@@ -155,13 +155,9 @@ export default function AdminActivitySummary() {
                       </Text>
                     }
                   />
-                    }
-                    actions={
-                      <Tag color={getActivityColor(item.type)}>
-                        {item.type.toUpperCase()}
-                      </Tag>
-                    }
-                  />
+                  <Tag color={getActivityColor(item.type)}>
+                    {item.type.toUpperCase()}
+                  </Tag>
                 </List.Item>
               )}
               locale={{

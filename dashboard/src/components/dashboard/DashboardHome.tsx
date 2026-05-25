@@ -389,3 +389,5 @@ export const DashboardHome: React.FC<DashboardHomeProps> = ({ isAdmin, setActive
     </motion.div>
   );
 };
+
+export default DashboardHome;

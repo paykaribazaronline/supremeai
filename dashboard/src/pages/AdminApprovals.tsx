@@ -74,9 +74,9 @@ export default function AdminApprovals() {
       dataIndex: 'status',
       key: 'status',
       render: (status: string) => (
-        <Badge.Status 
-          status={status === 'pending' ? 'warning' : status === 'approved' ? 'success' : 'error'} 
-          text={status.toUpperCase()} 
+        <Badge
+          status={status === 'pending' ? 'warning' : status === 'approved' ? 'success' : 'error'}
+          text={status.toUpperCase()}
         />
       )
     },

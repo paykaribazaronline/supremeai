@@ -15,6 +15,7 @@ interface AppGenerationCardProps {
   generationResult: any;
   onGenerate: () => void;
   onGetAdvice?: () => void;
+  compact?: boolean;
 }
 
 const AppGenerationCard: React.FC<AppGenerationCardProps> = ({

@@ -43,6 +43,7 @@ const UserSettings = lazy(() => import('./components/UserSettings'));
 const AdminLogs = lazy(() => import('./pages/AdminLogs'));
 const AdminSimulator = lazy(() => import('./pages/AdminSimulator'));
 const AdminRules = lazy(() => import('./pages/AdminRules'));
+const AdminTesting = lazy(() => import('./pages/AdminTesting'));
 
 interface ModelStatus {
   id: string;
@@ -245,8 +246,9 @@ function App() {
               <Route path="backup" element={<AdminBackup />} />
               <Route path="ocr" element={<AdminOCR />} />
               <Route path="infrastructure" element={<AdminInfrastructure />} />
-              <Route path="code-analysis" element={<AdminCodeAnalysis analysisProgress={null} />} />
+              <Route path="code-analysis" element={<AdminCodeAnalysis />} />
               <Route path="settings" element={<AdminSettings darkMode={true} setDarkMode={() => {}} chatFont="font-mono" setChatFont={() => {}} />} />
+              <Route path="testing" element={<AdminTesting />} />
             </Route>
             
             {/* Legacy routes redirect to admin */}

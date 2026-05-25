@@ -1,6 +1,6 @@
 // AutoBrowser.tsx - Autonomous Browser Automation
 import React, { useState, useEffect } from 'react';
-import { Typography, Space, Row, Col, Button, notification, Card, Input, Tag, Badge, Spin, Select, Modal, Form, Slider, Divider, Progress, Statistic } from 'antd';
+import { Typography, Space, Row, Col, Button, notification, Card, Input, Tag, Badge, Spin, Select, Modal, Form, Slider, Divider, Progress, Statistic, Switch } from 'antd';
 import {
   RocketOutlined,
   PlayCircleOutlined,

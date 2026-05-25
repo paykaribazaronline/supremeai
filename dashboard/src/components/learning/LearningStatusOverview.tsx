@@ -41,12 +41,12 @@ const LearningStatusOverview: React.FC<LearningStatusOverviewProps> = ({
         <Card bordered={false} className="glass-card">
           <Statistic 
             title={<span style={{ color: 'rgba(255,255,255,0.4)' }}>Daily Quota Usage</span>}
-            value={status?.quota.totalUsage || 0} 
-            suffix={`/ ${status?.quota.dailyLimit || 0}`}
+            value={status?.quota?.totalUsage || 0} 
+            suffix={`/ ${status?.quota?.dailyLimit || 0}`}
             valueStyle={{ color: '#10b981' }}
           />
           <Progress 
-            percent={status?.quota.percentageUsed} 
+            percent={status?.quota?.percentageUsed || 0} 
             size="small" 
             strokeColor={{ '0%': '#10b981', '100%': '#3b82f6' }}
           />

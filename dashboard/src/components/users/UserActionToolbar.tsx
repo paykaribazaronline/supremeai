@@ -15,6 +15,7 @@ interface UserActionToolbarProps {
   setSortOrder: (value: 'ascend' | 'descend') => void;
   onAddUser: () => void;
   onRefresh: () => void;
+  minimal?: boolean;
 }
 
 const UserActionToolbar: React.FC<UserActionToolbarProps> = ({

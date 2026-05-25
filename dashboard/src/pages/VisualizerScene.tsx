@@ -1,5 +1,6 @@
 import React, { useState, useEffect, Suspense } from 'react';
-import { Canvas, PerspectiveCamera, OrbitControls, Stars } from '@react-three/fiber';
+import { Canvas } from '@react-three/fiber';
+import { PerspectiveCamera, OrbitControls, Stars } from '@react-three/drei';
 import { CoreEngine } from '../components/CoreEngine';
 import { Cpu, Shield, Zap, Terminal as TerminalIcon, Globe } from 'lucide-react';
 import { motion } from 'framer-motion';

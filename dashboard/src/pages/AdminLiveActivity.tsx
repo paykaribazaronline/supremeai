@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Typography, Card, List, Text, Space, Button, Tag } from 'antd';
+import { Typography, Card, List, Space, Button, Tag } from 'antd';
 import { ThunderboltOutlined, SyncOutlined, ClearOutlined } from '@ant-design/icons';
 import { authUtils } from '../lib/authUtils';
 

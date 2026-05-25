@@ -46,6 +46,8 @@ const AdminSimulator = lazy(() => import('./AdminSimulator'));
 const AdminReverseEngineer = lazy(() => import('./AdminReverseEngineer'));
 const AdminReports = lazy(() => import('./AdminReports'));
 const AdminApprovals = lazy(() => import('../components/AdminApprovals'));
+const AdminInfrastructure = lazy(() => import('./AdminInfrastructure'));
+const AdminCodeAnalysis = lazy(() => import('./AdminCodeAnalysis'));
 
 
 const { Content } = Layout;
@@ -148,7 +150,7 @@ export default function ModernAdminDashboard() {
               case 'ocr': return <AdminOCR />;
               case 'approvals': return <AdminApprovals />;
               case 'infrastructure': return <AdminInfrastructure />;
-              case 'code-analysis': return <AdminCodeAnalysis analysisProgress={null} />;
+              case 'code-analysis': return <AdminCodeAnalysis />;
 
               case 'settings': return isAdmin ? 
                 <AdminSettings darkMode={darkMode} setDarkMode={setDarkMode} chatFont={chatFont} setChatFont={setChatFont} /> : 

@@ -67,9 +67,9 @@ export default function AdminSelfHealing() {
       dataIndex: 'status',
       key: 'status',
       render: (status: string) => (
-        <Badge.Status 
-          status={status === 'success' ? 'success' : status === 'failed' ? 'error' : 'processing'} 
-          text={status.replace('_', ' ')} 
+        <Badge
+          status={status === 'success' ? 'success' : status === 'failed' ? 'error' : 'processing'}
+          text={status.replace('_', ' ')}
         />
       )
     },

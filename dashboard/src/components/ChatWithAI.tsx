@@ -1,6 +1,6 @@
-// ChatWithAI.tsx - Enhanced with Multi-Chat Sessions
+// ChatWithAI.tsx - Premium Designed Neural Chat Component
 import React, { useState, useRef, useEffect } from 'react';
-import { Input, Button, Space, message, Tag, Tooltip, Modal, Badge } from 'antd';
+import { Input, Button, message, Tooltip, Modal, Badge } from 'antd';
 import {
     SendOutlined,
     RobotOutlined,
@@ -17,7 +17,6 @@ import {
     LoadingOutlined
 } from '@ant-design/icons';
 import { authUtils } from '../lib/authUtils';
-import AISuggestionInformer from './AISuggestionInformer';
 
 interface ChatMessage {
     id: string;
@@ -201,7 +200,7 @@ const ChatWithAI: React.FC<ChatWithAIProps> = ({ chatFont = 'font-mono' }) => {
     const createNewSession = () => {
         const newSession: ChatSession = {
             id: Date.now().toString(),
-            name: 'New Chat',
+            name: 'নতুন চ্যাট সেশন',
             messages: [],
             createdAt: new Date().toISOString()
         };
@@ -216,13 +215,12 @@ const ChatWithAI: React.FC<ChatWithAIProps> = ({ chatFont = 'font-mono' }) => {
         if (activeSessionId === id) {
             setActiveSessionId(filtered.length > 0 ? filtered[0].id : null);
             if (filtered.length === 0) {
-                // We'll create one in the useEffect if needed, but let's do it here for UX
                 setTimeout(() => {
                     if (filtered.length === 0) createNewSession();
                 }, 0);
             }
         }
-        message.success('Chat deleted');
+        message.success('চ্যাট সেশন মুছে ফেলা হয়েছে');
     };
 
     const handleRename = (session: ChatSession, e: React.MouseEvent) => {
@@ -238,7 +236,7 @@ const ChatWithAI: React.FC<ChatWithAIProps> = ({ chatFont = 'font-mono' }) => {
                 s.id === sessionToRename.id ? { ...s, name: newName.trim() } : s
             ));
             setIsRenameModalVisible(false);
-            message.success('Chat renamed');
+            message.success('চ্যাটের নাম পরিবর্তন করা হয়েছে');
         }
     };
 
@@ -263,7 +261,6 @@ const ChatWithAI: React.FC<ChatWithAIProps> = ({ chatFont = 'font-mono' }) => {
                 const result = await response.json();
                 const rawData = result.data?.providers || (Array.isArray(result.data) ? result.data : []);
                 
-                // Map providers to agent format
                 const mappedAgents = rawData.map((p: any) => ({
                     id: p.id,
                     name: p.name,
@@ -325,8 +322,8 @@ const ChatWithAI: React.FC<ChatWithAIProps> = ({ chatFont = 'font-mono' }) => {
             currentSessions[sessionIndex].messages.push(userMessage);
             
             // Smart Name: If first message or default name, generate name
-            if (currentSessions[sessionIndex].messages.length === 1 || currentSessions[sessionIndex].name === 'New Chat') {
-                const words = input.trim() ? input.split(' ') : ['Attached Image'];
+            if (currentSessions[sessionIndex].messages.length === 1 || currentSessions[sessionIndex].name === 'New Chat' || currentSessions[sessionIndex].name === 'নতুন চ্যাট সেশন') {
+                const words = input.trim() ? input.split(' ') : ['সংযুক্ত ছবি'];
                 currentSessions[sessionIndex].name = words.slice(0, 4).join(' ') + (words.length > 4 ? '...' : '');
             }
             
@@ -346,7 +343,6 @@ const ChatWithAI: React.FC<ChatWithAIProps> = ({ chatFont = 'font-mono' }) => {
             const currentSession = sessions.find(s => s.id === activeSessionId);
             const history = currentSession ? currentSession.messages : [];
             
-            // Format message body to include image markdown if present so backend models can see it
             const messageBody = currentImage 
                 ? `${currentInput}\n\n[সংযুক্ত ছবি: ${currentImageName}]\n![${currentImageName}](${currentImage})`
                 : currentInput;
@@ -380,7 +376,7 @@ const ChatWithAI: React.FC<ChatWithAIProps> = ({ chatFont = 'font-mono' }) => {
                 ));
             }
         } catch (error: any) {
-            message.error('Request failed');
+            message.error('কমান্ড সফলভাবে পাঠানো যায়নি।');
         } finally {
             setLoading(false);
         }
@@ -419,45 +415,57 @@ const ChatWithAI: React.FC<ChatWithAIProps> = ({ chatFont = 'font-mono' }) => {
     };
 
     return (
-        <div className="flex flex-1 h-full glass-panel text-white overflow-hidden rounded-2xl">
+        <div className="glass-panel text-white neural-chat-container">
             {/* Left Sidebar: Sessions */}
-            <div className="w-64 bg-[#020205]/60 border-r border-white/10 flex flex-col backdrop-blur-xl">
-                <div className="p-4 border-b border-white/10">
+            <div className="neural-chat-sidebar">
+                <div className="sidebar-header">
                     <Button 
                         type="primary" 
                         icon={<PlusOutlined />} 
                         block 
                         onClick={createNewSession}
-                        className="bg-cyan-500/90 hover:bg-cyan-400 border-none h-11 font-black uppercase tracking-widest flex items-center justify-center gap-2 rounded-xl transition-all hover:shadow-[0_0_20px_rgba(16,185,129,0.4)]"
+                        className="new-session-glow-btn"
+                        style={{
+                            background: 'linear-gradient(135deg, var(--neon-blue), var(--neon-purple))',
+                            border: 'none',
+                            height: '46px',
+                            borderRadius: '12px',
+                            fontWeight: 800,
+                            fontSize: '11px',
+                            letterSpacing: '1px',
+                            textTransform: 'uppercase',
+                            color: '#ffffff',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '8px',
+                            boxShadow: '0 0 15px rgba(0, 243, 255, 0.25)'
+                        }}
                     >
-                        New Neural Session
+                        নতুন নিউরাল চ্যাট
                     </Button>
                 </div>
-                <div className="flex-1 overflow-y-auto p-3 space-y-1 custom-scrollbar bg-black/20">
+                <div className="sessions-list custom-scrollbar">
                     {sessions.map(s => (
                         <div 
                             key={s.id}
                             onClick={() => setActiveSessionId(s.id)}
-                            className={`group flex items-center justify-between p-3 rounded-xl cursor-pointer transition-all duration-200 ${
-                                activeSessionId === s.id 
-                                ? 'bg-gradient-to-r from-cyan-400/20 to-transparent border border-cyan-400/30 shadow-[0_0_15px_rgba(16,185,129,0.1)]' 
-                                : 'hover:bg-white/5 border border-transparent opacity-60 hover:opacity-100'
-                            }`}
+                            className={`session-item ${activeSessionId === s.id ? 'active' : ''}`}
                         >
-                            <div className="flex items-center gap-3 overflow-hidden flex-1">
-                                <div className={`w-2 h-2 rounded-full transition-all ${activeSessionId === s.id ? 'bg-cyan-400 shadow-[0_0_8px_#00f3ff]' : 'bg-white/10'}`} />
-                                <span className={`text-[12px] truncate font-bold uppercase tracking-tight ${activeSessionId === s.id ? 'text-white' : 'text-white/40'}`}>{s.name}</span>
+                            <div className="session-name-container">
+                                <div className="session-dot" />
+                                <span className="session-name-text">{s.name}</span>
                             </div>
-                            <div className={`flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity`}>
-                                <Tooltip title="Rename">
+                            <div className="session-actions">
+                                <Tooltip title="নাম পরিবর্তন">
                                     <EditOutlined 
-                                        className="text-xs text-white/30 hover:text-white" 
+                                        className="action-icon" 
                                         onClick={(e) => handleRename(s, e)}
                                     />
                                 </Tooltip>
-                                <Tooltip title="Delete">
+                                <Tooltip title="মুছে ফেলুন">
                                     <DeleteOutlined 
-                                        className="text-xs text-white/30 hover:text-red-500" 
+                                        className="action-icon delete" 
                                         onClick={(e) => deleteSession(s.id, e)}
                                     />
                                 </Tooltip>
@@ -468,242 +476,255 @@ const ChatWithAI: React.FC<ChatWithAIProps> = ({ chatFont = 'font-mono' }) => {
             </div>
 
             {/* Main Column: Chat Interface */}
-            <div className="flex-1 flex flex-col relative">
+            <div className="neural-chat-content">
                 {/* Header */}
-                <div className="px-6 py-4 bg-white/[0.01] border-b border-white/10 flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                        <div className="p-2 bg-cyan-400/20 rounded-lg">
-                            <RobotOutlined className="text-cyan-400 text-lg" />
+                <div className="chat-content-header">
+                    <div className="header-info-container">
+                        <div className="header-icon-wrapper">
+                            <RobotOutlined style={{ color: 'var(--neon-blue)', fontSize: '20px' }} />
                         </div>
                         <div>
-                            <h3 className="text-sm font-bold text-white mb-0">{activeSession?.name || 'Neural Chat'}</h3>
-                            <span className="text-[10px] text-cyan-400/80 uppercase tracking-widest font-bold">SupremeAI Neural Core</span>
+                            <h3 className="header-title-text">{activeSession?.name || 'নিউরাল চ্যাট (Neural Chat)'}</h3>
+                            <span className="header-subtitle-text">SUPREMEAI NEURAL CORE SYSTEM</span>
                         </div>
                     </div>
-                    <div className="flex items-center gap-3">
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                        <span style={{ fontSize: '11px', color: 'rgba(255, 255, 255, 0.4)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>
+                            মডেল সিলেক্ট করুন:
+                        </span>
                         <select
                             value={selectedAgent}
                             onChange={(e) => setSelectedAgent(e.target.value)}
-                            className="bg-black/60 border border-white/10 text-[11px] px-4 py-2 rounded-lg text-white/80 outline-none hover:border-cyan-400/50 transition-all focus:ring-1 focus:ring-cyan-400/30"
+                            className="custom-agent-select"
                         >
-                            <option value="all">Dynamic Routing (All)</option>
+                            <option value="all">Dynamic Routing (All Models)</option>
                             {agents.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
                         </select>
                     </div>
                 </div>
 
-                {/* Chat Area */}
-                <div className="flex-1 overflow-y-auto custom-scrollbar bg-[#050505]">
-                    <div className="max-w-4xl mx-auto w-full p-6 space-y-8">
-                        {messages.length === 0 ? (
-                            <div className="h-[60vh] flex flex-col items-center justify-center text-white/20">
-                                <div className="w-20 h-20 bg-white/[0.02] rounded-3xl flex items-center justify-center mb-6 border border-white/5 shadow-2xl relative overflow-hidden group">
-                                    <div className="absolute inset-0 bg-cyan-400/5 animate-pulse" />
-                                    <MessageOutlined className="text-4xl text-cyan-400/40 relative z-10 group-hover:scale-110 transition-transform" />
-                                </div>
-                                <span className="text-[10px] font-black tracking-[0.4em] uppercase opacity-40 animate-pulse">Neural Synchronization Initiated</span>
+                {/* Chat Messages Area */}
+                <div className="chat-messages-area custom-scrollbar">
+                    {messages.length === 0 ? (
+                        <div style={{ height: '60vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: 'rgba(255,255,255,0.15)' }}>
+                            <div style={{
+                                width: '80px', height: '80px',
+                                background: 'rgba(0, 243, 255, 0.05)',
+                                borderRadius: '24px',
+                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                border: '1px solid rgba(0, 243, 255, 0.15)',
+                                boxShadow: '0 0 30px rgba(0, 243, 255, 0.05)',
+                                marginBottom: '20px',
+                                position: 'relative'
+                            }}>
+                                <MessageOutlined style={{ fontSize: '32px', color: 'var(--neon-blue)' }} />
+                                <div style={{ position: 'absolute', inset: 0, border: '1.5px solid var(--neon-blue)', borderRadius: '24px', opacity: 0.3, animation: 'pulse 2s infinite ease-in-out' }} />
                             </div>
-                        ) : (
-                            messages.map((msg) => (
-                                <div key={msg.id} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'} animate-in fade-in slide-in-from-bottom-2 duration-300`}>
-                                    <div className={`max-w-[85%] ${msg.sender === 'user' ? 'order-2' : 'order-1'}`}>
-                                        <div className={`flex items-center gap-3 mb-2 px-1 ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
-                                            <span className="text-[9px] font-black text-white/30 uppercase tracking-widest">
-                                                {msg.sender === 'ai' ? msg.agent : 'Authorized User'} • {msg.timestamp}
+                            <span style={{ fontSize: '10px', fontWeight: 800, letterSpacing: '4px', textTransform: 'uppercase', color: 'var(--neon-blue)', opacity: 0.6 }}>
+                                নিউরাল সিঙ্ক সেশন চালু হয়েছে
+                            </span>
+                        </div>
+                    ) : (
+                        <div className="messages-max-width-wrapper">
+                            {messages.map((msg) => (
+                                <div key={msg.id} className={`message-row ${msg.sender === 'user' ? 'user' : 'ai'}`}>
+                                    <div className="message-bubble-wrapper">
+                                        <div className={`message-meta-header ${msg.sender === 'user' ? 'user' : 'ai'}`}>
+                                            <span className="meta-sender-name">
+                                                {msg.sender === 'ai' ? msg.agent : 'অনুমোদিত অপারেটর (Operator)'} • {msg.timestamp}
                                             </span>
-                                            {msg.sender === 'ai' && (
-                                                <div className="flex items-center gap-1">
-                                                    <div className="w-1 h-1 rounded-full bg-cyan-400" />
-                                                    <span className="text-[8px] text-cyan-400/60 font-bold">{msg.confidence}% CONFIDENCE</span>
-                                                </div>
-                                            )}
                                         </div>
-                                        <div className={`px-6 py-5 rounded-2xl text-[14px] leading-relaxed shadow-2xl transition-all hover:shadow-cyan-900/5 ${
-                                            msg.sender === 'user'
-                                            ? 'bg-gradient-to-br from-cyan-500/20 to-cyan-900/5 border border-cyan-400/20 text-white rounded-tr-none'
-                                            : 'bg-white/[0.03] border border-white/10 text-white/90 rounded-tl-none backdrop-blur-xl'
-                                        }`}>
+                                        <div className={`message-bubble ${msg.sender === 'user' ? 'user' : 'ai'}`}>
                                             {msg.image && (
-                                                <div className="mb-4 relative rounded-xl overflow-hidden border border-white/10 group cursor-pointer max-w-sm">
+                                                <div style={{ marginBottom: '12px', borderRadius: '12px', overflow: 'hidden', border: '1px solid rgba(255, 255, 255, 0.1)', maxWidth: '320px', cursor: 'pointer' }}>
                                                     <img 
                                                         src={msg.image} 
                                                         alt="Attached file" 
-                                                        className="w-full h-auto object-cover max-h-60 rounded-xl transition-transform duration-300 group-hover:scale-105"
+                                                        style={{ width: '100%', height: 'auto', display: 'block', transition: 'transform 0.3s' }}
                                                         onClick={() => {
                                                             Modal.info({
-                                                                title: <span className="text-white font-bold uppercase tracking-wider">সংযুক্ত ছবি</span>,
+                                                                title: <span style={{ color: 'white', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px' }}>সংযুক্ত ছবি প্রিভিউ</span>,
                                                                 icon: null,
                                                                 width: 800,
                                                                 centered: true,
                                                                 content: (
-                                                                    <div className="flex justify-center p-2 bg-[#0c0c0c] rounded-xl border border-white/10 mt-4 overflow-hidden">
-                                                                        <img src={msg.image} alt="Preview" className="max-w-full max-h-[70vh] object-contain rounded-lg" />
+                                                                    <div style={{ display: 'flex', justifyContent: 'center', padding: '12px', background: '#08080f', borderRadius: '12px', border: '1px solid rgba(255, 255, 255, 0.1)', marginTop: '16px' }}>
+                                                                        <img src={msg.image} alt="Preview" style={{ maxWidth: '100%', maxHeight: '70vh', borderRadius: '8px', objectFit: 'contain' }} />
                                                                     </div>
                                                                 ),
                                                                 okText: 'বন্ধ করুন',
-                                                                styles: { body: { backgroundColor: '#0a0a0a', color: 'white' } },
+                                                                okButtonProps: { style: { background: 'var(--neon-blue)', border: 'none', color: '#000', fontWeight: 'bold' } },
+                                                                styles: { body: { backgroundColor: '#05050a', color: 'white' } },
                                                                 className: 'dark-modal'
                                                             });
                                                         }}
                                                     />
                                                 </div>
                                             )}
-                                            <div className="whitespace-pre-wrap">{msg.content}</div>
+                                            <div style={{ wordBreak: 'break-word', whiteSpace: 'pre-wrap' }}>{msg.content}</div>
+                                            
+                                            {msg.sender === 'ai' && (
+                                                <div className="message-bubble-footer">
+                                                    <div className="bubble-footer-actions">
+                                                        <button
+                                                            onClick={() => { navigator.clipboard.writeText(msg.content); message.success('টেক্সট কপি করা হয়েছে'); }}
+                                                            className="footer-action-btn"
+                                                        >
+                                                            <CopyOutlined /> কপি করুন
+                                                        </button>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => playVoice(msg.content)}
+                                                            className="footer-action-btn"
+                                                        >
+                                                            <AudioOutlined /> শুনুন
+                                                        </button>
+                                                    </div>
+                                                    {msg.confidence && (
+                                                        <div className="ai-confidence-badge">
+                                                            <div className="ai-confidence-dot" />
+                                                            <span className="ai-confidence-text">
+                                                                {msg.confidence}% Confidence
+                                                            </span>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            )}
                                         </div>
-                                        {msg.sender === 'ai' && (
-                                            <div className="flex gap-4 mt-3 px-1">
-                                                <button
-                                                    onClick={() => { navigator.clipboard.writeText(msg.content); message.success('Encrypted Data Copied'); }}
-                                                    className="text-[9px] text-white/20 hover:text-cyan-300 transition-all flex items-center gap-1.5 uppercase font-black tracking-wider border-none bg-transparent cursor-pointer"
-                                                >
-                                                    <CopyOutlined className="text-xs" /> Copy
-                                                </button>
-                                                <button
-                                                    type="button"
-                                                    onClick={() => playVoice(msg.content)}
-                                                    className="text-[9px] text-white/20 hover:text-cyan-300 transition-all flex items-center gap-1.5 uppercase font-black tracking-wider border-none bg-transparent cursor-pointer"
-                                                >
-                                                    <AudioOutlined className="text-xs" /> শুনুন (Listen)
-                                                </button>
-                                            </div>
-                                        )}
                                     </div>
                                 </div>
-                            ))
-                        )}
-                        <div ref={messagesEndRef} />
-                    </div>
+                            ))}
+                            <div ref={messagesEndRef} />
+                        </div>
+                    )}
                 </div>
 
                 {/* Input Area */}
-                <div className="p-6 bg-gradient-to-t from-black to-transparent border-t border-white/5 relative z-10">
-                    <div className="max-w-4xl mx-auto w-full">
-                        {/* Image Preview Container */}
+                <div className="chat-input-wrapper">
+                    <div className="input-max-width-wrapper">
                         {attachedImage && (
-                            <div className="mb-3 p-3 bg-white/[0.03] border border-white/10 rounded-xl flex items-center justify-between animate-in fade-in slide-in-from-bottom-2 duration-200 backdrop-blur-md">
-                                <div className="flex items-center gap-3">
-                                    <div className="w-12 h-12 rounded-lg overflow-hidden border border-white/10 relative group">
-                                        <img src={attachedImage} alt="Upload preview" className="w-full h-full object-cover" />
-                                    </div>
-                                    <div className="flex flex-col">
-                                        <span className="text-xs font-bold text-white/80">{attachedImageName || 'ছবি.png'}</span>
-                                        <span className="text-[10px] text-cyan-400/80 uppercase tracking-widest font-black">IMAGE READY</span>
+                            <div className="image-preview-panel">
+                                <div className="preview-thumb-container">
+                                    <img src={attachedImage} alt="Upload preview" className="preview-thumbnail" />
+                                    <div className="preview-file-details">
+                                        <span className="preview-filename">{attachedImageName || 'image.png'}</span>
+                                        <span className="preview-badge">সংযুক্ত ছবি প্রস্তুত</span>
                                     </div>
                                 </div>
                                 <button
                                     type="button"
-                                    onClick={() => { setAttachedImage(null); setAttachedImageName(''); }}
-                                    className="p-2 text-white/40 hover:text-red-500 hover:bg-white/5 rounded-lg transition-all border-none bg-transparent cursor-pointer"
+                                    onClick={removeAttachedImage}
+                                    style={{ background: 'transparent', border: 'none', color: 'rgba(255, 255, 255, 0.4)', cursor: 'pointer', fontSize: '16px' }}
                                 >
-                                    <DeleteOutlined />
+                                    <CloseCircleOutlined style={{ color: 'var(--error)' }} />
                                 </button>
                             </div>
                         )}
-                        <form onSubmit={handleSendMessage} className="relative group flex gap-3">
+                        <form onSubmit={handleSendMessage} className="input-container-row">
                             <button
                                 type="button"
                                 onClick={() => setSessions(prev => prev.map(s => s.id === activeSessionId ? { ...s, messages: [] } : s))}
-                                className="h-16 px-5 flex items-center justify-center bg-[#8b5cf6]/20 hover:bg-[#8b5cf6]/30 text-[#8b5cf6] border border-[#8b5cf6]/30 rounded-2xl font-bold transition-all shadow-[0_0_15px_rgba(139,92,246,0.15)] hover:shadow-[0_0_25px_rgba(139,92,246,0.3)] cursor-pointer"
-                                title="Reset Context"
+                                className="reset-context-btn"
+                                title="চ্যাট রিসেট করুন (Reset Context)"
                             >
-                                <ThunderboltOutlined className="text-xl" />
+                                <ThunderboltOutlined style={{ fontSize: '20px' }} />
                             </button>
-                            <div className="relative flex-1">
+                            
+                            <div className="main-input-capsule">
+                                <input 
+                                    type="file" 
+                                    id="chat-image-upload" 
+                                    accept="image/*" 
+                                    onChange={handleImageUpload} 
+                                    style={{ display: 'none' }} 
+                                />
                                 <Input
-                                    placeholder={isRecording ? "ভয়েস সনাক্ত করা হচ্ছে... কথা বলুন..." : "Neural Input Channel [Type your command]..."}
+                                    placeholder={isRecording ? "ভয়েস রেকর্ড করা হচ্ছে... কথা বলুন..." : "নিউরাল কমান্ড টাইপ করুন..."}
                                     value={input}
                                     onChange={(e) => setInput(e.target.value)}
                                     disabled={loading}
-                                    className={`h-16 bg-[#020205]/60 border border-[#00f3ff]/20 text-white placeholder:text-[#00f3ff]/30 rounded-2xl px-6 pr-44 focus:bg-[#020205]/80 focus:border-[#00f3ff]/60 transition-all shadow-2xl backdrop-blur-md font-mono ${isRecording ? 'border-red-500/50 shadow-[0_0_15px_rgba(239,68,68,0.2)]' : 'hover:border-[#00f3ff]/40 shadow-[0_0_15px_rgba(0,243,255,0.05)]'}`}
+                                    className="chat-styled-input"
                                     prefix={
-                                        <div className="flex items-center gap-2 mr-3 border-r border-[#00f3ff]/20 pr-3">
-                                            <input 
-                                                type="file" 
-                                                id="chat-image-upload" 
-                                                accept="image/*" 
-                                                onChange={handleImageUpload} 
-                                                className="hidden" 
-                                            />
+                                        <div className="chat-input-actions-prefix">
                                             <Tooltip title="ছবি সংযুক্ত করুন">
                                                 <button
                                                     type="button"
                                                     onClick={() => document.getElementById('chat-image-upload')?.click()}
-                                                    className="p-2 hover:bg-[#00f3ff]/10 text-[#00f3ff]/60 hover:text-[#00f3ff] rounded-lg transition-all flex items-center justify-center border-none bg-transparent cursor-pointer"
+                                                    className="prefix-action-btn"
                                                 >
-                                                    <PictureOutlined className="text-lg" />
+                                                    <PictureOutlined style={{ fontSize: '16px' }} />
                                                 </button>
                                             </Tooltip>
                                             <Tooltip title={isRecording ? "রেকর্ডিং বন্ধ করুন" : "ভয়েস ইনপুট"}>
                                                 <button
                                                     type="button"
                                                     onClick={toggleRecording}
-                                                    className={`p-2 rounded-lg transition-all flex items-center justify-center border-none cursor-pointer ${
-                                                        isRecording 
-                                                        ? 'bg-red-500/20 text-red-500 animate-pulse hover:bg-red-500/30' 
-                                                        : 'bg-transparent text-[#00f3ff]/60 hover:text-[#00f3ff] hover:bg-[#00f3ff]/10'
-                                                    }`}
+                                                    className={`prefix-action-btn ${isRecording ? 'recording' : ''}`}
                                                 >
-                                                    {isRecording ? <LoadingOutlined className="text-lg" /> : <AudioOutlined className="text-lg" />}
+                                                    {isRecording ? <LoadingOutlined style={{ fontSize: '16px' }} /> : <AudioOutlined style={{ fontSize: '16px' }} />}
                                                 </button>
                                             </Tooltip>
                                         </div>
                                     }
                                 />
-                            <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-3">
-                                <AISuggestionInformer 
-                                    context="admin_chat" 
-                                    onSelect={(val) => setInput(val)} 
-                                />
-                                <button
-                                    type="submit"
-                                    disabled={loading || (!input.trim() && !attachedImage)}
-                                    className="h-12 px-8 bg-cyan-500 hover:bg-cyan-400 disabled:bg-white/5 text-white rounded-xl font-black uppercase tracking-widest transition-all disabled:cursor-not-allowed flex items-center gap-2 shadow-[0_0_20px_rgba(5,150,105,0.3)] hover:shadow-[0_0_30px_rgba(5,150,105,0.5)] border-none"
-                                >
-                                    {loading ? <ThunderboltOutlined spin className="text-lg" /> : <SendOutlined className="text-lg" />}
-                                    <span className="hidden sm:inline">{loading ? 'PROCESSING' : 'EXECUTE'}</span>
-                                </button>
+                                <div className="input-submit-wrapper">
+                                    <button
+                                        type="submit"
+                                        disabled={loading || (!input.trim() && !attachedImage)}
+                                        className="chat-send-btn"
+                                    >
+                                        {loading ? <ThunderboltOutlined spin /> : <SendOutlined />}
+                                        <span>{loading ? 'প্রসেস...' : 'পাঠান'}</span>
+                                    </button>
+                                </div>
                             </div>
-                        </div>
                         </form>
-                        <div className="flex items-center justify-between mt-4 px-2">
-                            <div className="flex items-center gap-2">
-                                <div className="w-1 h-1 rounded-full bg-cyan-400 animate-ping" />
-                                <span className="text-[8px] text-white/20 font-black tracking-[0.3em] uppercase">Security Level: High</span>
+                        
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '12px', padding: '0 8px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <div className="session-dot" style={{ background: 'var(--success)', boxShadow: '0 0 6px var(--success)', width: '5px', height: '5px' }} />
+                                <span style={{ fontSize: '9px', fontWeight: 800, color: 'rgba(255, 255, 255, 0.25)', textTransform: 'uppercase', letterSpacing: '1.5px' }}>
+                                    Security Level: High (Alpha-1)
+                                </span>
                             </div>
-                            <p className="text-[9px] text-white/10 font-black tracking-[0.2em] uppercase m-0">
-                                AI-Driven Autonomy System • Core v4.2 Stable
-                            </p>
+                            <span style={{ fontSize: '9px', fontWeight: 800, color: 'rgba(255, 255, 255, 0.15)', textTransform: 'uppercase', letterSpacing: '1px' }}>
+                                AI-Driven Autonomy System • Core v6.0 Stable
+                            </span>
                         </div>
                     </div>
                 </div>
             </div>
 
-            {/* Right Column: Knowledge Context (Optimized) */}
-            <div className="w-80 bg-white/[0.01] border-l border-white/10 hidden xl:flex flex-col">
-                <div className="p-6">
-                    <div className="flex items-center gap-3 mb-8">
-                        <DatabaseOutlined className="text-cyan-400" />
-                        <h4 className="text-xs font-black text-white uppercase tracking-[0.2em] mb-0">System Context</h4>
-                    </div>
-                    
+            {/* Right Column: Knowledge Context */}
+            <div className="neural-chat-knowledge-pane">
+                <div className="knowledge-pane-title-row">
+                    <DatabaseOutlined style={{ color: 'var(--neon-blue)', fontSize: '14px' }} />
+                    <h4 style={{ fontSize: '11px', fontWeight: 800, color: '#ffffff', textTransform: 'uppercase', letterSpacing: '2px', margin: 0 }}>
+                        সিস্টেম কনটেক্সট (Context)
+                    </h4>
+                </div>
+                
+                <div style={{ flex: 1, overflowY: 'auto' }} className="custom-scrollbar">
                     {knowledge.rules && knowledge.rules.length > 0 ? (
-                        <div className="mb-8">
-                            <div className="flex items-center justify-between mb-4">
-                                <span className="text-[10px] font-black text-white/40 uppercase tracking-widest">Active Rules</span>
-                                <Badge count={knowledge.rules.length} style={{ backgroundColor: '#00f3ff', fontSize: '9px', fontWeight: 'bold' }} />
+                        <div style={{ marginBottom: '24px' }}>
+                            <div className="knowledge-section-header">
+                                <span className="knowledge-section-title">সক্রিয় রুলস (Rules)</span>
+                                <Badge count={knowledge.rules.length} style={{ backgroundColor: 'var(--neon-blue)', fontSize: '9px', fontWeight: 800, color: '#000', border: 'none' }} />
                             </div>
-                            <div className="space-y-3">
+                            <div className="knowledge-cards-stack">
                                 {knowledge.rules.map((r, i) => (
-                                    <div key={i} className="p-4 bg-white/[0.02] border border-white/5 rounded-xl text-[11px] text-white/60 leading-relaxed hover:bg-white/[0.04] transition-colors shadow-sm">
+                                    <div key={i} className="knowledge-rule-card">
                                         {r.content || r.message}
                                     </div>
                                 ))}
                             </div>
                         </div>
                     ) : (
-                        <div className="flex flex-col items-center justify-center py-12 opacity-20">
-                            <DatabaseOutlined className="text-3xl mb-3" />
-                            <span className="text-[10px] uppercase font-bold tracking-widest">No Active Rules</span>
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px 0', opacity: 0.15 }}>
+                            <DatabaseOutlined style={{ fontSize: '28px', marginBottom: '12px' }} />
+                            <span style={{ fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px' }}>
+                                কোন রুলস সক্রিয় নেই
+                            </span>
                         </div>
                     )}
                 </div>
@@ -711,23 +732,31 @@ const ChatWithAI: React.FC<ChatWithAIProps> = ({ chatFont = 'font-mono' }) => {
 
             {/* Rename Modal */}
             <Modal
-                title={<span className="text-white font-bold uppercase tracking-wider">Rename Chat Session</span>}
+                title={<span style={{ color: 'white', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1px' }}>চ্যাট সেশনের নাম পরিবর্তন</span>}
                 open={isRenameModalVisible}
                 onOk={saveNewName}
                 onCancel={() => setIsRenameModalVisible(false)}
-                okText="Save Changes"
-                cancelText="Cancel"
+                okText="নাম পরিবর্তন করুন"
+                cancelText="বাতিল"
                 centered
                 className="dark-modal"
                 styles={{ body: { backgroundColor: '#0a0a0a', borderBottomLeftRadius: '12px', borderBottomRightRadius: '12px' } }}
             >
-                <div className="py-4">
-                    <label className="block text-[10px] font-black text-white/30 uppercase tracking-[0.2em] mb-3">New Session Name</label>
+                <div style={{ padding: '16px 0' }}>
+                    <label style={{ display: 'block', fontSize: '9px', fontWeight: 800, color: 'rgba(255, 255, 255, 0.3)', textTransform: 'uppercase', letterSpacing: '2px', marginBottom: '8px' }}>
+                        নতুন নাম লিখুন
+                    </label>
                     <Input 
                         value={newName} 
                         onChange={(e) => setNewName(e.target.value)}
-                        className="bg-white/[0.05] border-white/10 text-white h-12 rounded-xl focus:border-cyan-400/50"
-                        placeholder="Enter a descriptive name..."
+                        style={{
+                            background: 'rgba(255, 255, 255, 0.05)',
+                            border: '1px solid rgba(255, 255, 255, 0.1)',
+                            color: 'white',
+                            height: '46px',
+                            borderRadius: '12px'
+                        }}
+                        placeholder="চ্যাটের নতুন নাম..."
                         onPressEnter={saveNewName}
                         autoFocus
                     />
@@ -735,6 +764,607 @@ const ChatWithAI: React.FC<ChatWithAIProps> = ({ chatFont = 'font-mono' }) => {
             </Modal>
 
             <style>{`
+                .neural-chat-container {
+                    display: flex;
+                    flex: 1;
+                    height: 100%;
+                    overflow: hidden;
+                    border-radius: var(--radius-lg);
+                    background: var(--cyber-dark);
+                }
+
+                .neural-chat-sidebar {
+                    width: 280px;
+                    background: rgba(2, 2, 5, 0.65);
+                    border-right: 1px solid rgba(0, 243, 255, 0.15);
+                    display: flex;
+                    flex-direction: column;
+                    backdrop-filter: blur(20px);
+                    flex-shrink: 0;
+                }
+
+                .sidebar-header {
+                    padding: var(--space-3);
+                    border-bottom: 1px solid rgba(0, 243, 255, 0.1);
+                }
+
+                .new-session-glow-btn:hover {
+                    box-shadow: 0 0 25px rgba(0, 243, 255, 0.5) !important;
+                    transform: translateY(-1px);
+                }
+
+                .sessions-list {
+                    flex: 1;
+                    overflow-y: auto;
+                    padding: var(--space-2);
+                    display: flex;
+                    flex-direction: column;
+                    gap: 8px;
+                }
+
+                .session-item {
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    padding: 12px 16px;
+                    border-radius: 12px;
+                    cursor: pointer;
+                    transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+                    border: 1px solid transparent;
+                    position: relative;
+                    overflow: hidden;
+                }
+
+                .session-item.active {
+                    background: linear-gradient(90deg, rgba(0, 243, 255, 0.12), rgba(188, 19, 254, 0.03));
+                    border-color: rgba(0, 243, 255, 0.3);
+                    box-shadow: 0 0 15px rgba(0, 243, 255, 0.05);
+                }
+
+                .session-item:not(.active):hover {
+                    background: rgba(255, 255, 255, 0.03);
+                    border-color: rgba(255, 255, 255, 0.05);
+                }
+
+                .session-name-container {
+                    display: flex;
+                    align-items: center;
+                    gap: 12px;
+                    flex: 1;
+                    overflow: hidden;
+                }
+
+                .session-dot {
+                    width: 6px;
+                    height: 6px;
+                    border-radius: 50%;
+                    background: rgba(255, 255, 255, 0.2);
+                    transition: all 0.3s ease;
+                }
+
+                .session-item.active .session-dot {
+                    background: var(--neon-blue);
+                    box-shadow: 0 0 8px var(--neon-blue);
+                }
+
+                .session-name-text {
+                    font-size: 13px;
+                    font-weight: 600;
+                    color: rgba(255, 255, 255, 0.5);
+                    text-transform: uppercase;
+                    letter-spacing: 0.5px;
+                    white-space: nowrap;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    transition: all 0.3s ease;
+                }
+
+                .session-item.active .session-name-text {
+                    color: #ffffff;
+                }
+
+                .session-actions {
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
+                    opacity: 0;
+                    transition: opacity 0.25s ease;
+                    padding-left: 8px;
+                }
+
+                .session-item:hover .session-actions {
+                    opacity: 1;
+                }
+
+                .action-icon {
+                    font-size: 13px;
+                    color: rgba(255, 255, 255, 0.4);
+                    transition: color 0.2s ease;
+                    cursor: pointer;
+                }
+
+                .action-icon:hover {
+                    color: var(--neon-blue);
+                }
+
+                .action-icon.delete:hover {
+                    color: var(--error);
+                }
+
+                /* Chat Layout Content Pane */
+                .neural-chat-content {
+                    display: flex;
+                    flex-direction: column;
+                    flex: 1;
+                    position: relative;
+                    background: #030307;
+                }
+
+                .chat-content-header {
+                    padding: 16px 24px;
+                    background: rgba(2, 2, 5, 0.4);
+                    border-bottom: 1px solid rgba(0, 243, 255, 0.15);
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    backdrop-filter: blur(10px);
+                }
+
+                .header-info-container {
+                    display: flex;
+                    align-items: center;
+                    gap: 16px;
+                }
+
+                .header-icon-wrapper {
+                    padding: 10px;
+                    background: rgba(0, 243, 255, 0.1);
+                    border-radius: 12px;
+                    border: 1px solid rgba(0, 243, 255, 0.2);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                }
+
+                .header-title-text {
+                    font-size: 15px;
+                    font-weight: 700;
+                    color: #ffffff;
+                    margin: 0 0 2px 0;
+                }
+
+                .header-subtitle-text {
+                    font-size: 9px;
+                    color: var(--neon-blue);
+                    font-weight: 800;
+                    text-transform: uppercase;
+                    letter-spacing: 2px;
+                }
+
+                .custom-agent-select {
+                    background: rgba(8, 8, 16, 0.8);
+                    border: 1px solid rgba(0, 243, 255, 0.25);
+                    color: rgba(255, 255, 255, 0.85);
+                    font-size: 12px;
+                    font-family: var(--font-mono);
+                    padding: 8px 16px;
+                    border-radius: 8px;
+                    outline: none;
+                    cursor: pointer;
+                    transition: all 0.3s ease;
+                }
+
+                .custom-agent-select:hover {
+                    border-color: rgba(0, 243, 255, 0.5);
+                    box-shadow: 0 0 10px rgba(0, 243, 255, 0.15);
+                }
+
+                /* Chat Messages Display Area */
+                .chat-messages-area {
+                    flex: 1;
+                    overflow-y: auto;
+                    padding: 24px;
+                }
+
+                .messages-max-width-wrapper {
+                    max-width: 800px;
+                    margin: 0 auto;
+                    width: 100%;
+                    display: flex;
+                    flex-direction: column;
+                    gap: 24px;
+                }
+
+                .message-row {
+                    display: flex;
+                    width: 100%;
+                }
+
+                .message-row.user {
+                    justify-content: flex-end;
+                }
+
+                .message-row.ai {
+                    justify-content: flex-start;
+                }
+
+                .message-bubble-wrapper {
+                    max-width: 80%;
+                    display: flex;
+                    flex-direction: column;
+                }
+
+                .message-meta-header {
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
+                    margin-bottom: 6px;
+                    padding: 0 4px;
+                }
+
+                .message-meta-header.user {
+                    justify-content: flex-end;
+                }
+
+                .message-meta-header.ai {
+                    justify-content: flex-start;
+                }
+
+                .meta-sender-name {
+                    font-size: 10px;
+                    font-weight: 800;
+                    color: rgba(255, 255, 255, 0.35);
+                    text-transform: uppercase;
+                    letter-spacing: 1.5px;
+                }
+
+                .message-bubble {
+                    padding: 16px 20px;
+                    border-radius: 16px;
+                    font-size: 14px;
+                    line-height: 1.6;
+                    box-shadow: 0 10px 25px -10px rgba(0, 0, 0, 0.5);
+                    transition: all 0.3s ease;
+                }
+
+                .message-bubble.user {
+                    background: linear-gradient(135deg, rgba(0, 243, 255, 0.15), rgba(188, 19, 254, 0.04));
+                    border: 1px solid rgba(0, 243, 255, 0.25);
+                    color: #ffffff;
+                    border-top-right-radius: 2px;
+                }
+
+                .message-bubble.user:hover {
+                    border-color: rgba(0, 243, 255, 0.4);
+                    box-shadow: 0 10px 30px -10px rgba(0, 243, 255, 0.15);
+                }
+
+                .message-bubble.ai {
+                    background: rgba(255, 255, 255, 0.03);
+                    border: 1px solid rgba(255, 255, 255, 0.06);
+                    color: rgba(255, 255, 255, 0.9);
+                    border-top-left-radius: 2px;
+                    backdrop-filter: blur(10px);
+                }
+
+                .message-bubble.ai:hover {
+                    border-color: rgba(0, 243, 255, 0.15);
+                    background: rgba(255, 255, 255, 0.04);
+                }
+
+                .message-bubble-footer {
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    margin-top: 12px;
+                    padding-top: 10px;
+                    border-top: 1px solid rgba(255, 255, 255, 0.05);
+                }
+
+                .bubble-footer-actions {
+                    display: flex;
+                    gap: 16px;
+                }
+
+                .footer-action-btn {
+                    background: transparent;
+                    border: none;
+                    color: rgba(255, 255, 255, 0.35);
+                    font-size: 10px;
+                    font-weight: 700;
+                    text-transform: uppercase;
+                    letter-spacing: 1px;
+                    cursor: pointer;
+                    display: flex;
+                    align-items: center;
+                    gap: 6px;
+                    transition: all 0.2s ease;
+                    padding: 2px 0;
+                }
+
+                .footer-action-btn:hover {
+                    color: var(--neon-blue);
+                }
+
+                .ai-confidence-badge {
+                    display: flex;
+                    align-items: center;
+                    gap: 6px;
+                    padding: 3px 8px;
+                    background: rgba(0, 243, 255, 0.08);
+                    border: 1px solid rgba(0, 243, 255, 0.2);
+                    border-radius: 6px;
+                }
+
+                .ai-confidence-dot {
+                    width: 5px;
+                    height: 5px;
+                    border-radius: 50%;
+                    background: var(--neon-blue);
+                    box-shadow: 0 0 6px var(--neon-blue);
+                }
+
+                .ai-confidence-text {
+                    font-size: 9px;
+                    font-weight: 800;
+                    color: var(--neon-blue);
+                    text-transform: uppercase;
+                    letter-spacing: 0.5px;
+                }
+
+                /* Chat Input Styling */
+                .chat-input-wrapper {
+                    padding: 24px;
+                    background: linear-gradient(180deg, transparent, rgba(2, 2, 5, 0.95));
+                    border-top: 1px solid rgba(255, 255, 255, 0.05);
+                    position: relative;
+                    z-index: 10;
+                }
+
+                .input-max-width-wrapper {
+                    max-width: 800px;
+                    margin: 0 auto;
+                    width: 100%;
+                }
+
+                .image-preview-panel {
+                    background: rgba(8, 8, 16, 0.85);
+                    border: 1px solid rgba(0, 243, 255, 0.2);
+                    border-radius: 12px;
+                    padding: 12px 16px;
+                    margin-bottom: 12px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    backdrop-filter: blur(10px);
+                }
+
+                .preview-thumb-container {
+                    display: flex;
+                    align-items: center;
+                    gap: 12px;
+                }
+
+                .preview-thumbnail {
+                    width: 44px;
+                    height: 44px;
+                    border-radius: 8px;
+                    object-fit: cover;
+                    border: 1px solid rgba(255, 255, 255, 0.1);
+                }
+
+                .preview-file-details {
+                    display: flex;
+                    flex-direction: column;
+                }
+
+                .preview-filename {
+                    font-size: 12px;
+                    font-weight: 700;
+                    color: #ffffff;
+                }
+
+                .preview-badge {
+                    font-size: 8px;
+                    font-weight: 800;
+                    color: var(--neon-blue);
+                    letter-spacing: 1.5px;
+                    margin-top: 2px;
+                }
+
+                .input-container-row {
+                    display: flex;
+                    gap: 12px;
+                    align-items: center;
+                }
+
+                .reset-context-btn {
+                    width: 56px;
+                    height: 56px;
+                    border-radius: 14px;
+                    background: rgba(188, 19, 254, 0.1);
+                    border: 1px solid rgba(188, 19, 254, 0.3);
+                    color: var(--neon-purple);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    cursor: pointer;
+                    transition: all 0.3s ease;
+                    flex-shrink: 0;
+                }
+
+                .reset-context-btn:hover {
+                    background: rgba(188, 19, 254, 0.25);
+                    border-color: var(--neon-purple);
+                    box-shadow: 0 0 15px rgba(188, 19, 254, 0.2);
+                    color: #ffffff;
+                }
+
+                .main-input-capsule {
+                    flex: 1;
+                    position: relative;
+                    display: flex;
+                    align-items: center;
+                }
+
+                .chat-styled-input {
+                    background: rgba(2, 2, 5, 0.8) !important;
+                    border: 1px solid rgba(0, 243, 255, 0.2) !important;
+                    border-radius: 16px !important;
+                    height: 56px !important;
+                    font-size: 13px !important;
+                    font-family: var(--font-mono) !important;
+                    color: #ffffff !important;
+                    padding-left: 100px !important;
+                    padding-right: 140px !important;
+                    transition: all 0.3s ease !important;
+                }
+
+                .chat-styled-input:focus, .chat-styled-input:hover {
+                    border-color: rgba(0, 243, 255, 0.5) !important;
+                    box-shadow: 0 0 15px rgba(0, 243, 255, 0.15) !important;
+                }
+
+                .chat-input-actions-prefix {
+                    position: absolute;
+                    left: 8px;
+                    top: 50%;
+                    transform: translateY(-50%);
+                    display: flex;
+                    align-items: center;
+                    gap: 4px;
+                    z-index: 5;
+                    border-right: 1px solid rgba(0, 243, 255, 0.15);
+                    padding-right: 8px;
+                }
+
+                .prefix-action-btn {
+                    background: transparent;
+                    border: none;
+                    width: 36px;
+                    height: 36px;
+                    border-radius: 10px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    color: rgba(0, 243, 255, 0.5);
+                    cursor: pointer;
+                    transition: all 0.2s ease;
+                }
+
+                .prefix-action-btn:hover {
+                    background: rgba(0, 243, 255, 0.1);
+                    color: var(--neon-blue);
+                }
+
+                .prefix-action-btn.recording {
+                    background: rgba(239, 68, 68, 0.15);
+                    color: #ef4444;
+                    animation: recordingPulse 1.5s infinite ease-in-out;
+                }
+
+                @keyframes recordingPulse {
+                    0%, 100% { opacity: 0.8; }
+                    50% { opacity: 1; box-shadow: 0 0 10px rgba(239, 68, 68, 0.2); }
+                }
+
+                .input-submit-wrapper {
+                    position: absolute;
+                    right: 8px;
+                    top: 50%;
+                    transform: translateY(-50%);
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                    z-index: 5;
+                }
+
+                .chat-send-btn {
+                    height: 40px;
+                    padding: 0 20px;
+                    background: var(--neon-blue);
+                    border: none;
+                    border-radius: 10px;
+                    color: #020205;
+                    font-weight: 800;
+                    font-size: 11px;
+                    text-transform: uppercase;
+                    letter-spacing: 1.5px;
+                    cursor: pointer;
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+                }
+
+                .chat-send-btn:hover:not(:disabled) {
+                    background: #ffffff;
+                    box-shadow: 0 0 15px rgba(0, 243, 255, 0.4);
+                    transform: translateY(-1px);
+                }
+
+                .chat-send-btn:disabled {
+                    background: rgba(255, 255, 255, 0.05);
+                    color: rgba(255, 255, 255, 0.15);
+                    cursor: not-allowed;
+                }
+
+                /* Right Sidebar: Knowledge Context styling */
+                .neural-chat-knowledge-pane {
+                    width: 320px;
+                    background: rgba(2, 2, 5, 0.3);
+                    border-left: 1px solid rgba(0, 243, 255, 0.15);
+                    display: flex;
+                    flex-direction: column;
+                    padding: 24px;
+                    flex-shrink: 0;
+                }
+
+                .knowledge-pane-title-row {
+                    display: flex;
+                    align-items: center;
+                    gap: 12px;
+                    margin-bottom: 24px;
+                }
+
+                .knowledge-section-header {
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    margin-bottom: 16px;
+                }
+
+                .knowledge-section-title {
+                    font-size: 10px;
+                    font-weight: 800;
+                    color: rgba(255, 255, 255, 0.35);
+                    text-transform: uppercase;
+                    letter-spacing: 2px;
+                }
+
+                .knowledge-cards-stack {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 12px;
+                }
+
+                .knowledge-rule-card {
+                    background: rgba(255, 255, 255, 0.02);
+                    border: 1px solid rgba(255, 255, 255, 0.05);
+                    border-radius: 12px;
+                    padding: 14px;
+                    font-size: 11.5px;
+                    line-height: 1.5;
+                    color: rgba(255, 255, 255, 0.65);
+                    transition: all 0.25s ease;
+                }
+
+                .knowledge-rule-card:hover {
+                    background: rgba(255, 255, 255, 0.04);
+                    border-color: rgba(0, 243, 255, 0.15);
+                    color: #ffffff;
+                }
+
                 .custom-scrollbar::-webkit-scrollbar {
                     width: 4px;
                 }
@@ -746,32 +1376,34 @@ const ChatWithAI: React.FC<ChatWithAIProps> = ({ chatFont = 'font-mono' }) => {
                     border-radius: 10px;
                 }
                 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-                    background: rgba(16, 185, 129, 0.2);
+                    background: rgba(0, 243, 255, 0.2);
                 }
                 .dark-modal .ant-modal-content {
-                    background-color: #0a0a0a;
-                    border: 1px solid rgba(255, 255, 255, 0.1);
-                    border-radius: 16px;
-                    overflow: hidden;
+                    background-color: #05050a !important;
+                    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+                    border-radius: 16px !important;
+                    overflow: hidden !important;
                 }
                 .dark-modal .ant-modal-header {
-                    background-color: #0a0a0a;
-                    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+                    background-color: #05050a !important;
+                    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
                 }
                 .dark-modal .ant-modal-title {
-                    color: white;
+                    color: white !important;
                 }
                 .dark-modal .ant-modal-close-x {
-                    color: rgba(255, 255, 255, 0.4);
+                    color: rgba(255, 255, 255, 0.4) !important;
                 }
                 .dark-modal .ant-btn-primary {
-                    background-color: #059669;
-                    border: none;
+                    background-color: var(--neon-blue) !important;
+                    color: #000 !important;
+                    font-weight: bold !important;
+                    border: none !important;
                 }
                 .dark-modal .ant-btn-default {
-                    background-color: transparent;
-                    border: 1px solid rgba(255, 255, 255, 0.1);
-                    color: white;
+                    background-color: transparent !important;
+                    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+                    color: white !important;
                 }
             `}</style>
         </div>
