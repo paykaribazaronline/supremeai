@@ -1,46 +1,52 @@
-# src/ ফোল্ডার গাইড
+# src/main/java/com/supremeai প্যাকেজগুলোর গাইড
 
-## উদ্দেশ্য
+## প্যাকেজগুলোর বিবরণ
 
-এই ফোল্ডারটি SupremeAI-র মূল সোর্স কোড ধারণ করে, যা স্প্রিং বুট ব্যাকএন্ড অ্যাপ্লিকেশনকে কভার করে।
+### কোর প্যাকেজ
 
-## ফোল্ডার স্ট্রাকচার
-
-```
-src/
-├── main/       # মূল অ্যাপ্লিকেশন কোড
-│   ├── java/   # জাভা সোর্স
-│   └── resources/  # রিসোর্সস
-└── test/       # টেস্ট কোড
-```
-
-## মূল প্যাকেজগুলো
-
-| প্যাকেজ | বিবরণ |
+| প্যাকেজ | ব্যবহার |
 |--------|------|
 | `com.supremeai.service` | ব্যবসায়িক লজিক |
 | `com.supremeai.controller` | REST API কন্ট্রোলার |
-| `com.supremeai.repository` | ডাটাবেস রেপোজিটরি |
+| `com.supremeai.repository` | ডাটাবেস অপারেশন |
 | `com.supremeai.config` | অ্যাপ্লিকেশন কনফিগ |
-| `com.supremeai.security` | সিকিউরিটি মডিউল |
-| `com.supremeai.ml` | মেশিন লার্নিং মডিউল |
+| `com.supremeai.model` | ডাটা মডেল |
+| `com.supremeai.dto` | ডাটা টansfer অবজেক্ট |
+| `com.supremeai.exception` | একসেপশন হ্যান্ডলিং |
+
+### সিকিউরিটি ও অথেন্টিকেশন
+
+| প্যাকেজ | ব্যবহার |
+|--------|------|
+| `com.supremeai.security` | সিকিউরিটি কনফিগ |
+| `com.supremeai.security.ratelimit` | রেট লিমিটিং |
+| `com.supremeai.filter` | অনুরোধ ফিল্টার |
+| `com.supremeai.interceptor` | অনুরোধ ইন্টারসেপ্টর |
+
+### AI/ML মডিউল
+
+| প্যাকেজ | ব্যবহার |
+|--------|------|
+| `com.supremeai.ml` | মেশিন লার্ণিং |
 | `com.supremeai.agentorchestration` | এজেন্ট অর্কেস্ট্রেশন |
+| `com.supremeai.intelligence` | এআই ইন্টেলিজেন্স |
+| `com.supremeai.learning` | লার্নিং সিস্টেম |
 
-## মূল ক্লাস
+### অপারেশনাল প্যাকেজ
 
-- `SupremeaiApplication.java` - অ্যাপ্লিকেশন এন্ট্রি পয়েন্ট
-- `Application.java` - স্প্রিং অ্যাপ্লিকেশন কনফিগ
+| প্যাকেজ | ব্যবহার |
+|--------|------|
+| `com.supremeai.websocket` | রিয়াল-টাইম কমিউনিকেশন |
+| `com.supremeai.event` | ইভেন্ট হ্যান্ডলিং |
+| `com.supremeai.middleware` | মিডিডলওয়্যার |
+| `com.supremeai.fallback` | ফলব্যাক ম্যানেজমেন্ট |
+| `com.supremeai.deployment` | ডিপ্লোয়মেন্ট মনিটরিং |
 
-## বিল্ড করা
+## ডাটাবেস কনফিগারেশন
 
-```bash
-# গ্রেডল বিল্ড
-./gradlew build
-```
+### Firestore কনশেপ্ট
+- কলেকশনগুলো `config/firestore.indexes.json` এ ডিফাইন করা
+- সিকিউরিটি রুলস `config/firestore.rules` এ
 
-## ডিবাগ করা
-
-```bash
-# ডিবাগ মোডে রান
-./gradlew bootRun --debug
-```
+### Firebase Data Connect
+- জেনারেটেড কোড `src/dataconnect-admin-generated/` এ আছে
