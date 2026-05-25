@@ -70,7 +70,11 @@ export const allMenuItems: MenuItem[] = [
 export const getBreadcrumbs = (activeKey: string) => {
   const activeItem = allMenuItems.find(item => item.key === activeKey);
   return [
-    { title: <><HomeOutlined /> <span>কমান্ড</span></>, key: 'home' },
-    { title: activeItem?.label || 'ড্যাশবোর্ড', key: 'active' }
+    { title: <><HomeOutlined /> <span>কমান্ড</span></>, key: 'home', path: '/admin/dashboard' },
+    { title: activeItem?.label || 'ড্যাশবোর্ড', key: 'active', path: `/admin/${activeKey === 'dashboard' ? '' : activeKey}` }
   ];
+};
+
+export const getMenuPath = (key: string): string => {
+  return `/admin/${key === 'dashboard' ? '' : key}`;
 };

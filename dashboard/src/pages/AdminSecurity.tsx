@@ -6,7 +6,6 @@ import {
   SecurityScanOutlined,
   ReloadOutlined,
   ThunderboltOutlined,
-  ShieldOutlined,
   BugOutlined,
   SafetyOutlined,
   EyeOutlined
@@ -144,7 +143,7 @@ const AdminSecurity: React.FC = () => {
         <Row justify="space-between" align="bottom">
           <Col>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
-              <ShieldOutlined style={{ color: 'var(--success)', fontSize: 20 }} />
+              <SafetyCertificateOutlined style={{ color: 'var(--success)', fontSize: 20 }} />
               <Text style={{ color: 'var(--success)', letterSpacing: 2, fontWeight: 800, fontSize: 12 }}>DEFENSIVE MATRIX ACTIVE</Text>
             </div>
             <Title level={2} style={{ color: '#fff', margin: 0, fontWeight: 800, fontSize: 32 }}>
