@@ -1,0 +1,46 @@
+name: E2E Tests
+
+on:
+  schedule:
+    - cron: '0 2 * * *'  # Daily at 2 AM
+  push:
+    branches: [main]
+    paths:
+      - 'dashboard/**'
+      - 'functions/**'
+      - 'config/**'
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+    
+    - name: Install Playwright
+      run: |
+        cd tests
+        npm install
+        npx playwright install-deps
+    
+    - name: Run E2E Tests
+      run: |
+        cd tests
+        npm test
+      env:
+        BASE_URL: https://supremeai-a.web.app
+    
+    - name: Upload Test Report
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: test-report
+        path: tests/test-report/
+        retention-days: 30
