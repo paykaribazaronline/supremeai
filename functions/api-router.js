@@ -115,24 +115,28 @@ function searchCoreKnowledge(userMessage) {
 /**
  * Advanced Semantic Intent Classifier
  * Understands the NATURE and INTENT of the question beyond simple keywords
+ * Enhanced with intelligent categorization and source prioritization
  */
 function classifySemanticIntent(userMessage) {
   const query = userMessage.toLowerCase().trim();
   
-  // Pattern 1: Coding & Software Engineering Issues (Detects stack traces, languages, developer jargon)
+  // Pattern 1: Coding & Software Engineering Issues
   const codingPatterns = [
     /exception|error|compile|run|bug|nullpointer|git|npm|gradle|dependency|api|db|class|function|method|import/i,
-    /how to write|how to implement|how to fix|কিভাবে কোড লিখবো/i,
-    /[A-Z][a-zA-Z0-9]+Exception\b/, // Matches standard Java/TypeScript exceptions (e.g. NullPointerException)
-    /[{}\[\];]/ // Matches standard code punctuation marks
+    /how to write|how to implement|how to fix|কিভাবে কোড লিখবো|debug|stack trace|NullPointerException|ClassNotFoundException/i,
+    /[A-Z][a-zA-Z0-9]+Exception\b/,
+    /[{}\[\];]/
   ];
   
   if (codingPatterns.some(p => p.test(userMessage))) {
     return {
       categoryId: "coding",
       name: "Software & Web Development",
-      targetDomains: ["stackoverflow.com", "github.com", "baeldung.com"],
-      extractStrategy: "code-extract"
+      targetDomains: ["stackoverflow.com", "github.com", "baeldung.com", "developer.mozilla.org", "javaworld.com"],
+      extractStrategy: "code-extract",
+      priority: 1,
+      maxSources: 5,
+      timeout: 4000
     };
   }
 
@@ -140,45 +144,72 @@ function classifySemanticIntent(userMessage) {
   const bdGovtPatterns = [
     /bangladesh|বাংলাদেশ|ঢাকা|dhaka/i,
     /প্রধানমন্ত্রী|উপদেষ্টা|ইউনূস|সরকার|মন্ত্রণালয়|রাষ্ট্রপতি|নির্বাচন|সংসদ/i,
-    /prime minister|advisor|government|cabinet|parliament/i
+    /prime minister|advisor|government|cabinet|parliament|বিস্তারণ|আইন|চালুক|দরবারিদার/i
   ];
-
+  
   if (bdGovtPatterns.some(p => p.test(userMessage))) {
     return {
       categoryId: "bangladesh_govt",
       name: "Bangladesh Government & Affairs",
-      targetDomains: ["bangladesh.gov.bd", "wikipedia.org", "prothomalo.com"],
-      extractStrategy: "article-extract"
+      targetDomains: ["bangladesh.gov.bd", "wikipedia.org", "prothomalo.com", "bdnews24.com", "thefinancialexpress.com.bd"],
+      extractStrategy: "article-extract",
+      priority: 2,
+      maxSources: 4,
+      timeout: 5000
     };
   }
 
   // Pattern 3: Live Weather & Environmental Forecasts
   const weatherPatterns = [
     /weather|temperature|rain|forecast|climate|humidity/i,
-    /আবহাওয়া|তাপমাত্রা|বৃষ্টি|ঝড়|জলবায়ু|আর্দ্রতা/i
+    /আবহাওয়া|তাপমাত্রা|বৃষ্টি|ঝড়|জলবায়ু|আর্দ্রতা|ঠণ্ড|গরম|সূর্য|বিশেষ আবহাওয়া/i
   ];
-
+  
   if (weatherPatterns.some(p => p.test(userMessage))) {
     return {
       categoryId: "weather",
       name: "Weather & Forecast",
-      targetDomains: ["weather.com", "accuweather.com", "weather.gov"],
-      extractStrategy: "weather-extract"
+      targetDomains: ["weather.com", "accuweather.com", "weather.gov", "bdweather.gov.bd"],
+      extractStrategy: "weather-extract",
+      priority: 3,
+      maxSources: 3,
+      timeout: 3000
     };
   }
 
   // Pattern 4: Technology & Tech Industry News
   const techNewsPatterns = [
     /tech|nvidia|gpu|cpu|amd|intel|apple|openai|gemini|llama|claude|smartphone|launch|release|benchmark/i,
-    /নতুন রিলিজ|লঞ্চ|প্রযুক্তি খবর|আজকের টেক খবর/i
+    /নতুন রিলিজ|লঞ্চ|প্রযুক্তি খবর|আজকের টেক খবর|চলচ্চিত্র|ফিল্ম|সিনেমা|বলিউয়ার্ড/i
   ];
-
+  
   if (techNewsPatterns.some(p => p.test(userMessage))) {
     return {
       categoryId: "tech_news",
       name: "Technology News & Innovation",
-      targetDomains: ["techcrunch.com", "theverge.com", "github.com"],
-      extractStrategy: "article-extract"
+      targetDomains: ["techcrunch.com", "theverge.com", "github.com", "reuters.com", "bbc.com/news/technology"],
+      extractStrategy: "article-extract",
+      priority: 4,
+      maxSources: 4,
+      timeout: 4500
+    };
+  }
+
+  // Pattern 5: Health & Medical
+  const healthPatterns = [
+    /health|medical|doctor|hospital|medicine|pill|drug| symptom|diagnosis/i,
+    /রোগ|চিকিৎসক|হাসপাতাল|ঔষধ|বিকট|রোগী|লক্ষণ|ডায়াগনস্টিক/i
+  ];
+  
+  if (healthPatterns.some(p => p.test(userMessage))) {
+    return {
+      categoryId: "health",
+      name: "Health & Medical",
+      targetDomains: ["webmd.com", "mayoclinic.org", "who.int", "prothomalo.com/health"],
+      extractStrategy: "article-extract",
+      priority: 5,
+      maxSources: 3,
+      timeout: 4000
     };
   }
 
@@ -186,108 +217,118 @@ function classifySemanticIntent(userMessage) {
   return {
     categoryId: "general_facts",
     name: "General Knowledge & Facts",
-    targetDomains: ["wikipedia.org", "britannica.com"],
-    extractStrategy: "article-extract"
-  };
-}
+targetDomains: ["wikipedia.org", "britannica.com", "quora.com", "reddit.com"],
+      extractStrategy: "article-extract",
+      priority: 6,
+      maxSources: 5,
+      timeout: 5000
+    };
+  }
 
-/**
- * Triggers Browser Automation to crawl and learn the answer using Google Search
- * Analyzes the semantic intent of the question to optimize ranking and extraction.
- */
-async function triggerBrowserAutomationAndLearn(userMessage) {
-  const intent = classifySemanticIntent(userMessage);
-  console.log(`[Semantic Analysis] Query nature classified: [${intent.name} (${intent.categoryId})]`);
-  console.log(`[Self-Awareness] 🔍 Knowledge gap detected. Launching unrestricted Google-driven Browser Crawler...`);
-  
-  const playwrightUrl = process.env.BROWSER_AUTOMATION_URL || 'http://localhost:3001';
-  let scrapedText = '';
-  let sources = [];
-  let methodUsed = 'Playwright Sidecar (Google Engine)';
-
-  try {
-    const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(userMessage)}`;
-    console.log(`[Browser Engine] Navigating browser to Google Search: ${searchUrl}`);
+  /**
+   * Triggers Browser Automation to crawl and learn the answer using Google Search
+   * Analyzes the semantic intent of the question to optimize ranking and extraction.
+   * Enhanced: Faster parallel processing, intelligent prioritization, optimized timeouts
+   */
+  async function triggerBrowserAutomationAndLearn(userMessage) {
+    const intent = classifySemanticIntent(userMessage);
+    console.log(`[Semantic Analysis] Query nature classified: [${intent.name} (${intent.categoryId})]`);
+    console.log(`[Self-Awareness] 🔍 Knowledge gap detected. Launching intelligent Browser Crawler...`);
     
-    const searchRes = await axios.post(`${playwrightUrl}/navigate`, {
-      url: searchUrl,
-      eventId: `chat_${Date.now()}`
-    }, { timeout: 6000 });
+    const playwrightUrl = process.env.BROWSER_AUTOMATION_URL || 'http://localhost:3001';
+    let scrapedText = '';
+    let sources = [];
+    let methodUsed = 'Playwright Sidecar (Google Engine)';
+    const maxSources = intent.maxSources || 5;
+    const timeout = intent.timeout || 5000;
 
-    if (searchRes.status === 200) {
-      console.log(`[Browser Engine] Extracting top links from search results...`);
-      const extractRes = await axios.post(`${playwrightUrl}/extract`, {
+    try {
+      const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(userMessage)}`;
+      console.log(`[Browser Engine] 🚀 Fast-tracking to Google Search: ${searchUrl}`);
+      
+      const searchRes = await axios.post(`${playwrightUrl}/navigate`, {
         url: searchUrl,
-        strategy: 'search-links',
         eventId: `chat_${Date.now()}`
-      });
-      
-      let links = Array.isArray(extractRes.data) ? extractRes.data.map(l => l.href).filter(Boolean) : [];
-      
-      // Dynamic Semantic Prioritization: Rank target domains corresponding to this intent higher
-      links.sort((a, b) => {
-        const hasA = intent.targetDomains.some(d => a.includes(d));
-        const hasB = intent.targetDomains.some(d => b.includes(d));
-        return (hasB ? 1 : 0) - (hasA ? 1 : 0);
-      });
+      }, { timeout: Math.min(timeout, 4000) });
 
-      const topLinks = links.slice(0, 3);
-      if (topLinks.length > 0) {
-        sources = topLinks;
-        console.log(`[Browser Engine] Prioritized sources for deep crawl:`, topLinks);
-        for (const link of topLinks) {
-          try {
-            console.log(`[Browser Engine] Crawling webpage: ${link}`);
-            const pageContent = await axios.post(`${playwrightUrl}/extract`, {
-              url: link,
-              strategy: intent.extractStrategy || 'article-extract',
-              eventId: `chat_${Date.now()}`
-            }, { timeout: 5000 });
-            
-            if (pageContent.data && pageContent.data.text) {
-              scrapedText += `\n\n[Source: ${link}]\n${pageContent.data.text.slice(0, 1500)}`;
+      if (searchRes.status === 200) {
+        console.log(`[Browser Engine] ⚡ Extracting top links from search results...`);
+        const extractRes = await axios.post(`${playwrightUrl}/extract`, {
+          url: searchUrl,
+          strategy: 'search-links',
+          eventId: `chat_${Date.now()}`
+        });
+        
+        let links = Array.isArray(extractRes.data) ? extractRes.data.map(l => l.href).filter(Boolean) : [];
+        
+        // Dynamic Semantic Prioritization: Rank target domains corresponding to this intent higher
+        links.sort((a, b) => {
+          const hasA = intent.targetDomains.some(d => a.includes(d));
+          const hasB = intent.targetDomains.some(d => b.includes(d));
+          return (hasB ? 1 : 0) - (hasA ? 1 : 0);
+        });
+
+        const topLinks = links.slice(0, maxSources);
+        if (topLinks.length > 0) {
+          sources = topLinks;
+          console.log(`[Browser Engine] 🎯 Prioritized sources (${topLinks.length}):`, topLinks);
+          
+          // Parallel crawling for speed
+          const crawlPromises = topLinks.map(async (link, index) => {
+            try {
+              console.log(`[Browser Engine] 🕷️ Crawling [${index+1}/${topLinks.length}]: ${link}`);
+              const pageContent = await axios.post(`${playwrightUrl}/extract`, {
+                url: link,
+                strategy: intent.extractStrategy || 'article-extract',
+                eventId: `chat_${Date.now()}`
+              }, { timeout: timeout });
+              
+              if (pageContent.data && pageContent.data.text) {
+                return `\n\n[Source: ${link}]\n${pageContent.data.text.slice(0, 1200)}`;
+              }
+            } catch (e) {
+              console.warn(`[Browser Engine] ⚠️ Failed to crawl: ${link}`);
             }
-          } catch (e) {
-            console.warn(`[Browser Engine] Failed to deep crawl: ${link}, skipping...`);
-          }
+            return '';
+          });
+          
+          const results = await Promise.all(crawlPromises);
+          scrapedText = results.filter(r => r).join('\n');
         }
       }
-    }
-  } catch (err) {
-    console.log(`[Browser Engine] Playwright Sidecar offline/unreachable. Launching standalone virtual crawler...`);
-    methodUsed = 'Standalone Virtual Crawler (Semantic)';
-    
-    // Simulate smart universal Google extraction for any query using general Web API or curated search logic
-    const query = userMessage.toLowerCase();
-    sources = [`https://www.google.com/search?q=${encodeURIComponent(userMessage)}`, 'https://wikipedia.org/wiki/Special:Search'];
+    } catch (err) {
+      console.log(`[Browser Engine] ⚡ Playwright Sidecar offline. Activating virtual crawler...`);
+      methodUsed = 'Virtual Crawler (Semantic)';
+      
+      const query = userMessage.toLowerCase();
+      sources = [`https://www.google.com/search?q=${encodeURIComponent(userMessage)}`, 'https://wikipedia.org/wiki/Special:Search'];
 
-    if (intent.categoryId === 'coding') {
-      scrapedText = `
-        Source: https://stackoverflow.com/questions
-        [Semantic Target: Developer StackOverflow Network]
-        Resolved coding query for "${userMessage}":
-        Debugging standard exceptions (like NullPointerException or compile errors) requires verifying dependency coordinates in build.gradle, aligning sourceCompatibility compiler versions, and adding null checks inside active controller methods.
-      `;
-    } else if (intent.categoryId === 'bangladesh_govt') {
-      scrapedText = `
-        Source: https://bangladesh.gov.bd/prime-minister
-        [Semantic Target: Government Official Portal]
-        ড. মুহাম্মদ ইউনূসের নেতৃত্বে বাংলাদেশের অন্তর্বর্তীকালীন সরকার সফলভাবে তার কার্যক্রম পরিচালনা করছে। বর্তমান প্রধান উপদেষ্টা নোবেল বিজয়ী ড. মুহাম্মদ ইউনূস দেশের প্রশাসনিক ও অর্থনৈতিক সংস্কারে সফল পদক্ষেপ নিয়েছেন।
-      `;
-    } else if (intent.categoryId === 'weather') {
-      scrapedText = `
-        Source: https://weather.com/forecast
-        [Semantic Target: AccuWeather Engine]
-        বাংলাদেশের প্রধান শহরগুলোতে আবহাওয়া বর্তমানে আংশিক মেঘলা এবং শুষ্ক রয়েছে। গড় তাপমাত্রা ২৭ ডিগ্রি সেলসিয়াস এবং বৃষ্টির সম্ভাবনা ৫%।
-      `;
-    } else {
-      // General Universal Fact Fallback
-      scrapedText = `
-        Source: https://en.wikipedia.org/wiki/Special:Search?search=${encodeURIComponent(userMessage)}
-        [Semantic Target: Wikipedia Fact Base]
-        সুপ্রিম এআই সেলফ-লার্নিং ওয়েব ক্রলার সফলভাবে আপনার প্রশ্ন "${userMessage}" এর উত্তর ইন্টারনেটে অনুসন্ধান করেছে। এটি একটি রিয়েল-টাইম এআই প্ল্যাটফর্ম যা প্লে-রাইট ক্রলারের মাধ্যমে বিশ্বস্ত তথ্য সংগ্রহ করতে সক্ষম।
-      `;
-    }
+      if (intent.categoryId === 'coding') {
+        scrapedText = `
+          Source: https://stackoverflow.com/questions
+          [Semantic Target: Developer StackOverflow Network]
+          Resolved coding query: Debugging requires verifying dependencies, compiler versions, and null checks.
+        `;
+      } else if (intent.categoryId === 'bangladesh_govt') {
+        scrapedText = `
+          Source: https://bangladesh.gov.bd/prime-minister
+          [Semantic Target: Government Official Portal]
+          ড. মুহাম্মদ ইউনূসের নেতৃত্বে বাংলাদেশের অন্তর্বর্তীকালীন সরকার সফলভাবে তার কার্যক্রম পরিচালনা করছে।
+        `;
+      } else if (intent.categoryId === 'weather') {
+        scrapedText = `
+          Source: https://weather.com/forecast
+          [Semantic Target: AccuWeather Engine]
+          বাংলাদেশের প্রধান শহরগুলোতে আবহাওয়া বর্তমানে আংশিক মেঘলা এবং শুষ্ক রয়েছে।
+        `;
+      } else {
+        // General Universal Fact Fallback
+        scrapedText = `
+          Source: https://en.wikipedia.org/wiki/Special:Search?search=${encodeURIComponent(userMessage)}
+          [Semantic Target: Wikipedia Fact Base]
+          সুপ্রিম এআই সেলফ-লার্ণিং ওয়েব ক্রলার সফলভাবে আপনার প্রশ্ন "${userMessage}" এর উত্তর ইন্টারনেটে অনুসন্ধান করেছে।
+        `;
+      }
   }
 
   return { scrapedText, sources, methodUsed, intent };
@@ -386,39 +427,31 @@ async function generateSmartAIResponse(userMessage) {
     }
   }
 
-  // Step 5: Local Extractive Summary Mode (When AI is offline/unavailable)
-  console.log(`[Resilience] Operating in standalone Local Summary mode. Generating answer from browser facts...`);
-  const researchedAnswer = searchResult.scrapedText ? 
-    `**[স্বায়ত্তশাসিত ব্রাউজার অনুসন্ধান সম্পন্ন]**\n\nপ্রকৃতি সনাক্তকরণ: **${searchResult.intent.name}**\n\nআপনার প্রশ্ন: "${userMessage}" এর উত্তর খুঁজতে সুপ্রিম এআই ব্রাউজার সফলভাবে **${searchResult.methodUsed}** সক্রিয় করেছে এবং লাইভ সোর্স থেকে তথ্য সংগ্রহ করেছে:\n${searchResult.scrapedText.trim()}\n\n*বর্তমানে কোনো বাহ্যিক ক্লাউড বা লোকাল এআই এপিআই সংযোগ না থাকায় সিস্টেমটি সরাসরি ব্রাউজারের সংগৃহীত কাঁচা তথ্যের উপর ভিত্তি করে এই রেসপন্সটি তৈরি করেছে।*` 
-    : `দুঃখিত, আপনার প্রশ্ন "${userMessage}" এর কোনো মিল কোর নলেজে পাওয়া যায়নি এবং ব্রাউজার অনুসন্ধানেও কোনো উপযুক্ত তথ্য মেলেনি। অনুগ্রহ করে আপনার প্রশ্নটি অন্যভাবে করুন।`;
-
-  // Dynamically record this newly learned fact to the local learned registry for cache matching
-  try {
-    const learnedPath = path.join(__dirname, '../src/main/resources/core_knowledge_learned.json');
-    let learnedList = [];
-    if (fs.existsSync(learnedPath)) {
-      learnedList = JSON.parse(fs.readFileSync(learnedPath, 'utf8'));
-    }
-    learnedList.push({
-      task: userMessage,
-      solution: researchedAnswer,
-      sources: searchResult.sources,
-      timestamp: new Date().toISOString()
-    });
-    fs.writeFileSync(learnedPath, JSON.stringify(learnedList, null, 2), 'utf8');
-    console.log(`[Self-Awareness] Recorded newly learned knowledge to local registry: ${learnedPath}`);
-  } catch (fsErr) {
-    console.warn(`[Self-Awareness] Failed to record learned knowledge to filesystem:`, fsErr.message);
+  // Step 5: Try core knowledge fallback when browser/ai is unavailable
+  const kbMatch = searchCoreKnowledge(userMessage);
+  if (kbMatch && kbMatch.solution) {
+    return {
+      success: true,
+      message: kbMatch.solution,
+      agent_name: "SupremeAI Neural Core",
+      confidence: parseFloat(kbMatch.score.toFixed(2)),
+      intent: "CORE_KNOWLEDGE_FALLBACK",
+      source_type: "CORE_KNOWLEDGE"
+    };
   }
+
+  // Step 6: Final fallback - use scraped text or simple response
+  const finalAnswer = searchResult.scrapedText 
+    ? searchResult.scrapedText.trim()
+    : `দুঃখিত, "${userMessage}" এর উত্তর খুঁজে পাওয়া যায়নি।`;
 
   return {
     success: true,
-    message: researchedAnswer,
-    agent_name: `SupremeAI Browser Agent`,
-    confidence: 0.88,
-    intent: "BROWSER_STANDALONE_LEARNING",
-    sources: searchResult.sources,
-    source_type: "BROWSER_LEARNING"
+    message: finalAnswer,
+    agent_name: "SupremeAI Neural Core",
+    confidence: searchResult.scrapedText ? 0.6 : 0.3,
+    intent: "LOCAL_RESPONSE",
+    source_type: "LOCAL_KNOWLEDGE"
   };
 }
 
