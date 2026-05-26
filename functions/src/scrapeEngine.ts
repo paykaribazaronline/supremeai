@@ -1,13 +1,12 @@
-import { initializeApp, getApps, App } from "firebase-admin/app";
+import { initializeApp } from "firebase-admin/app";
 import { getFirestore, Firestore, Timestamp } from "firebase-admin/firestore";
-import { https } from "firebase-functions/v2/https";
-import { HttpsError } from "firebase-functions/v2/https";
-import httpsOptions from "./httpsOptions";
+import * as https from "firebase-functions/v2/https";
+
+const httpsOptions = { region: "us-central1" };
 
 // ─────────────────────────────────────────────────────────────────
 // Firebase initialisation (singleton-safe)
 // ─────────────────────────────────────────────────────────────────
-let firebaseApp: App | null = null;
 let db: Firestore | null = null;
 
 function getDb(): Firestore {
@@ -88,7 +87,8 @@ interface ScrapeEventEntry {
     | "domain_skipped"
     | "error"
     | "crawl_depth_reached"
-    | "rate_limited";
+    | "rate_limited"
+    | "cached_answer";
   payload: Record<string, unknown>;
   timestamp: FirebaseFirestore.Timestamp;
 }
@@ -188,8 +188,8 @@ async function extractFromPage(
   const result = await callPlaywright("extract", { url: pageUrl, strategy, eventId });
   return {
     url: pageUrl,
-    title: (result as Record<string, unknown>).title ? String(result.title) : pageUrl,
-    text:   (result as Record<string, unknown>).text  ? String(result.text)  : "",
+    title: (result as any)?.title ? String((result as any).title) : pageUrl,
+    text:   (result as any)?.text  ? String((result as any).text)  : "",
     strategy,
   };
 }
@@ -204,16 +204,13 @@ async function callPlaywright(
   body: Record<string, unknown>,
 ): Promise<unknown> {
   try {
-    const res = await fetch(`${PLAYWRIGHT_URL}/${action}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-      signal: AbortSignal.timeout(parseInt(process.env.SCRAPE_TIMEOUT_MS || "30000")),
+    const axios = require("axios");
+    const res = await axios.post(`${PLAYWRIGHT_URL}/${action}`, body, {
+      timeout: parseInt(process.env.SCRAPE_TIMEOUT_MS || "30000"),
     });
-    if (!res.ok) throw new Error(`Playwright ${action}: HTTP ${res.status}`);
-    return res.json();
+    return res.data;
   } catch (err) {
-    throw new HttpsError(
+    throw new https.HttpsError(
       "unavailable",
       `Browser automation unavailable for ${action}: ${(err as Error).message}`,
     );
@@ -486,7 +483,7 @@ function summarise(mergedText: string, query: string): string {
  */
 export const scrapeAndRespondFn = https.onRequest(
   { ...httpsOptions, cors: true },
-  async (req: https.Request, res: https.Response) => {
+  async (req: any, res: any) => {
     if (req.method !== "POST") {
       res.status(405).json({ error: "Method Not Allowed" });
       return;
@@ -512,7 +509,7 @@ export const scrapeAndRespondFn = https.onRequest(
  */
 export const classifyIntentFn = https.onRequest(
   { ...httpsOptions, cors: true },
-  async (req: https.Request, _res: https.Response) => {
+  async (req: any, _res: any) => {
     if (req.method !== "POST") { _res.status(405).end(); return; }
     const { message } = req.body;
     if (!message) { _res.status(400).json({ error: "message required" }); return; }
@@ -525,11 +522,12 @@ export const classifyIntentFn = https.onRequest(
  */
 export const scrapeHealthFn = https.onRequest(
   { ...httpsOptions, cors: true },
-  async (_req: https.Request, res: https.Response) => {
+  async (_req: any, res: any) => {
     const playStatus = (await (async (): Promise<unknown> => {
       try {
-        const r = await fetch(`${PLAYWRIGHT_URL}/health`);
-        return { ok: r.ok, status: r.status };
+        const axios = require("axios");
+        const r = await axios.get(`${PLAYWRIGHT_URL}/health`, { timeout: 5000 });
+        return { ok: r.status === 200, status: r.status };
       } catch { return { ok: false }; }
     })()) as { ok: boolean; status: number };
     res.status(200).json({

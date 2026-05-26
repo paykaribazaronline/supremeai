@@ -366,7 +366,7 @@ const ChatWithAI: React.FC<ChatWithAIProps> = ({ chatFont = 'font-mono' }) => {
                     agent: data.agent_name || 'Neural Core',
                     content: data.message || 'Processing optimized.',
                     timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-                    confidence: data.confidence ? Math.round(data.confidence * 100) : 98,
+                    confidence: data.confidence ? Math.round(data.confidence * 100) : undefined,
                     intent: data.intent || 'NORMAL',
                     status: 'completed',
                 };

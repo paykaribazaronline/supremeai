@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
 import com.supremeai.model.*;
 import com.supremeai.repository.*;
 import com.supremeai.service.*;
-import com.supremeai.fallback.AIFallbackOrchestrator;
+import com.supremeai.fallback.ThirdOpinionOrchestrator;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**

@@ -8,7 +8,7 @@ import com.supremeai.repository.KnowledgeDomainRepository;
 import com.supremeai.repository.KnowledgeRecommendationRepository;
 import com.supremeai.repository.SystemLearningRepository;
 import com.supremeai.learning.active.ActiveInternetScraper;
-import com.supremeai.fallback.AIFallbackOrchestrator;
+import com.supremeai.fallback.ThirdOpinionOrchestrator;
 import com.supremeai.controller.WebSocketController;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,7 +45,7 @@ public class KnowledgeService {
     private WebSocketController webSocketController;
 
     @Autowired
-    private AIFallbackOrchestrator fallbackOrchestrator;
+    private ThirdOpinionOrchestrator fallbackOrchestrator;
 
     /**
      * Register a new knowledge domain for learning

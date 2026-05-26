@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
 
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
-import com.supremeai.fallback.AIFallbackOrchestrator;
+import com.supremeai.fallback.ThirdOpinionOrchestrator;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -28,7 +28,7 @@ public class ChatProcessingService {
     private final ChatConfirmationRepository chatConfirmationRepository;
     private final ChatHistoryRepository chatHistoryRepository;
     private final ChatAdminActionRepository chatAdminActionRepository;
-    private final AIFallbackOrchestrator fallbackOrchestrator;
+    private final ThirdOpinionOrchestrator fallbackOrchestrator;
 
     private final AIProviderService aiProviderService;
     private final com.supremeai.service.browser.BrowserService browserService;
@@ -49,7 +49,7 @@ public class ChatProcessingService {
             ChatConfirmationRepository chatConfirmationRepository,
             ChatHistoryRepository chatHistoryRepository,
             ChatAdminActionRepository chatAdminActionRepository,
-            AIFallbackOrchestrator fallbackOrchestrator,
+            ThirdOpinionOrchestrator fallbackOrchestrator,
             AIProviderService aiProviderService,
             com.supremeai.service.browser.BrowserService browserService,
             AdminProviderValidationService validationService,

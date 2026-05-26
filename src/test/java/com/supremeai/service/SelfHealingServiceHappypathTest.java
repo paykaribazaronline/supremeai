@@ -5,7 +5,7 @@ import com.supremeai.model.UserContext;
 import com.supremeai.ml.EnhancedRandomForestPredictor;
 import com.supremeai.learning.SupremeLearningOrchestrator;
 import com.supremeai.learning.knowledge.GlobalKnowledgeBase;
-import com.supremeai.fallback.AIFallbackOrchestrator;
+import com.supremeai.fallback.ThirdOpinionOrchestrator;
 import com.supremeai.provider.AIProvider;
 import com.supremeai.provider.AIProviderFactory;
 import com.supremeai.repository.APIHealthReportRepository;
@@ -38,7 +38,7 @@ class SelfHealingServiceHappypathTest {
 
     @Mock GlobalKnowledgeBase globalKnowledgeBase;
     @Mock SupremeLearningOrchestrator learningOrchestrator;
-    @Mock AIFallbackOrchestrator fallbackOrchestrator;
+    @Mock ThirdOpinionOrchestrator fallbackOrchestrator;
     @Mock MultiAIVotingService votingService;
     @Mock ProviderRepository providerRepository;
     @Mock AIProviderFactory providerFactory;
@@ -273,14 +273,14 @@ class SelfHealingServiceHappypathTest {
 
     /**
      * GIVEN ProviderRepository has zero active entries
-     * WHEN a new AIFallbackOrchestrator is constructed and init() completes
+    * WHEN a new ThirdOpinionOrchestrator is constructed and init() completes
      * THEN getSoloMode() returns true — solo mode is automatically detected and flagged.
      */
     @Test
     void soloMode_noActiveProviders_setsSoloFlag() {
         when(providerRepository.findAll()).thenReturn(reactor.core.publisher.Flux.empty());
 
-        AIFallbackOrchestrator orchestrator = new AIFallbackOrchestrator(
+        ThirdOpinionOrchestrator orchestrator = new ThirdOpinionOrchestrator(
                 mock(com.supremeai.cost.QuotaManager.class),
                 mock(GlobalKnowledgeBase.class),
                 mock(com.supremeai.learning.immunity.CodeImmunitySystem.class),

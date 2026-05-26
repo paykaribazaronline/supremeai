@@ -16,7 +16,7 @@ import com.supremeai.repository.TaskProviderAssignmentRepository;
 import com.supremeai.service.EnhancedLearningService;
 import com.supremeai.service.FirebaseRealtimeService;
 import com.supremeai.service.solomode.SoloModeManagerService;
-import com.supremeai.util.FallbackConstants;
+import com.supremeai.util.ThirdOpinionConstants;
 import com.supremeai.service.SelfHealingService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -226,7 +226,7 @@ public class MultiAIVotingService {
                 .onErrorResume(java.util.concurrent.TimeoutException.class, e -> {
                     logger.warn("Ensemble voting timed out for prompt: {}", prompt);
                     return Mono.just(new VotingResult(prompt,
-                            FallbackConstants.VOTING_TIMEOUT,
+                            ThirdOpinionConstants.VOTING_TIMEOUT,
                             List.of(), 0.0, "TIMEOUT", timeoutMs));
                 });
     }
@@ -1167,8 +1167,8 @@ public class MultiAIVotingService {
             Map<String, Double> weightsMap) {
         if (votes.isEmpty()) {
             return new VotingResult(prompt,
-                    FallbackConstants.NO_PROVIDER_RESPONSE,
-                    votes, 0.0, "ERROR", duration);
+                ThirdOpinionConstants.NO_PROVIDER_RESPONSE,
+                votes, 0.0, "ERROR", duration);
         }
 
         // ===== 2-ROUND META-CONSENSUS REFINEMENT LOOP =====
@@ -1306,7 +1306,7 @@ public class MultiAIVotingService {
         if (successCount == 0) {
             decision.setStrength("ERROR");
             decision.setConfidence(0.0);
-            decision.setAiConsensus(FallbackConstants.VOTING_FAILURE);
+            decision.setAiConsensus(ThirdOpinionConstants.VOTING_FAILURE);
             return decision;
         }
 
@@ -1339,14 +1339,14 @@ public class MultiAIVotingService {
     private ConsensusResult calculateConsensusResult(String question, List<ProviderVote> votes, long totalTimeMs) {
         if (votes.isEmpty()) {
             return new ConsensusResult(
-                    question,
-                    FallbackConstants.NO_PROVIDER_RESPONSE,
-                    List.of(),
-                    0.0,
-                    "ERROR",
-                    0.0,
-                    totalTimeMs,
-                    0.0);
+                question,
+                ThirdOpinionConstants.NO_PROVIDER_RESPONSE,
+                List.of(),
+                0.0,
+                "ERROR",
+                0.0,
+                totalTimeMs,
+                0.0);
         }
 
         Map<String, List<ProviderVote>> groups = new LinkedHashMap<>();

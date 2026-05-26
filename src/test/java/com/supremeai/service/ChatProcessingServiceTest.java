@@ -2,7 +2,7 @@ package com.supremeai.service;
 
 import com.supremeai.model.*;
 import com.supremeai.repository.*;
-import com.supremeai.fallback.AIFallbackOrchestrator;
+import com.supremeai.fallback.ThirdOpinionOrchestrator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -35,7 +35,7 @@ class ChatProcessingServiceTest {
     @Mock
     private ChatAdminActionRepository chatAdminActionRepository;
     @Mock
-    private AIFallbackOrchestrator fallbackOrchestrator;
+    private ThirdOpinionOrchestrator fallbackOrchestrator;
     @Mock
     private AIProviderService aiProviderService;
     @Mock

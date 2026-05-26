@@ -1,6 +1,6 @@
 package com.supremeai.provider;
 
-import com.supremeai.fallback.AIFallbackOrchestrator;
+import com.supremeai.fallback.ThirdOpinionOrchestrator;
 import com.supremeai.resilience.RetryableAIExecutor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,7 +25,7 @@ public class AIProviderSwitcher {
     private AIProviderFactory providerFactory;
 
     @Autowired
-    private AIFallbackOrchestrator fallbackOrchestrator;
+    private ThirdOpinionOrchestrator fallbackOrchestrator;
 
     @Autowired
     private RetryableAIExecutor retryExecutor;

@@ -1,19 +1,47 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.scrapeHealthFn = exports.classifyIntentFn = exports.scrapeAndRespondFn = void 0;
 exports.scrapeAndRespond = scrapeAndRespond;
 const app_1 = require("firebase-admin/app");
 const firestore_1 = require("firebase-admin/firestore");
-const https_1 = require("firebase-functions/v2/https");
-const https_2 = require("firebase-functions/v2/https");
-const httpsOptions_1 = __importDefault(require("./httpsOptions"));
+const https = __importStar(require("firebase-functions/v2/https"));
+const httpsOptions = { region: "us-central1" };
 // ─────────────────────────────────────────────────────────────────
 // Firebase initialisation (singleton-safe)
 // ─────────────────────────────────────────────────────────────────
-let firebaseApp = null;
 let db = null;
 function getDb() {
     db ?? (db = (0, firestore_1.getFirestore)((0, app_1.initializeApp)({})));
@@ -107,8 +135,8 @@ async function extractFromPage(pageUrl, strategy, eventId) {
     const result = await callPlaywright("extract", { url: pageUrl, strategy, eventId });
     return {
         url: pageUrl,
-        title: result.title ? String(result.title) : pageUrl,
-        text: result.text ? String(result.text) : "",
+        title: result?.title ? String(result.title) : pageUrl,
+        text: result?.text ? String(result.text) : "",
         strategy,
     };
 }
@@ -118,18 +146,14 @@ async function extractFromPage(pageUrl, strategy, eventId) {
 const PLAYWRIGHT_URL = process.env.BROWSER_AUTOMATION_URL || "http://localhost:3001";
 async function callPlaywright(action, body) {
     try {
-        const res = await fetch(`${PLAYWRIGHT_URL}/${action}`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(body),
-            signal: AbortSignal.timeout(parseInt(process.env.SCRAPE_TIMEOUT_MS || "30000")),
+        const axios = require("axios");
+        const res = await axios.post(`${PLAYWRIGHT_URL}/${action}`, body, {
+            timeout: parseInt(process.env.SCRAPE_TIMEOUT_MS || "30000"),
         });
-        if (!res.ok)
-            throw new Error(`Playwright ${action}: HTTP ${res.status}`);
-        return res.json();
+        return res.data;
     }
     catch (err) {
-        throw new https_2.HttpsError("unavailable", `Browser automation unavailable for ${action}: ${err.message}`);
+        throw new https.HttpsError("unavailable", `Browser automation unavailable for ${action}: ${err.message}`);
     }
 }
 // ─────────────────────────────────────────────────────────────────
@@ -367,7 +391,7 @@ function summarise(mergedText, query) {
  * POST /scrapeAndRespond — main scraping endpoint.
  * Body: { message: string, userId: string }
  */
-exports.scrapeAndRespondFn = https_1.https.onRequest({ ...httpsOptions_1.default, cors: true }, async (req, res) => {
+exports.scrapeAndRespondFn = https.onRequest({ ...httpsOptions, cors: true }, async (req, res) => {
     if (req.method !== "POST") {
         res.status(405).json({ error: "Method Not Allowed" });
         return;
@@ -390,7 +414,7 @@ exports.scrapeAndRespondFn = https_1.https.onRequest({ ...httpsOptions_1.default
  * POST /classifyIntent — classifier-only endpoint for testing.
  * Body: { message: string }
  */
-exports.classifyIntentFn = https_1.https.onRequest({ ...httpsOptions_1.default, cors: true }, async (req, _res) => {
+exports.classifyIntentFn = https.onRequest({ ...httpsOptions, cors: true }, async (req, _res) => {
     if (req.method !== "POST") {
         _res.status(405).end();
         return;
@@ -405,11 +429,12 @@ exports.classifyIntentFn = https_1.https.onRequest({ ...httpsOptions_1.default, 
 /**
  * GET /health
  */
-exports.scrapeHealthFn = https_1.https.onRequest({ ...httpsOptions_1.default, cors: true }, async (_req, res) => {
+exports.scrapeHealthFn = https.onRequest({ ...httpsOptions, cors: true }, async (_req, res) => {
     const playStatus = (await (async () => {
         try {
-            const r = await fetch(`${PLAYWRIGHT_URL}/health`);
-            return { ok: r.ok, status: r.status };
+            const axios = require("axios");
+            const r = await axios.get(`${PLAYWRIGHT_URL}/health`, { timeout: 5000 });
+            return { ok: r.status === 200, status: r.status };
         }
         catch {
             return { ok: false };

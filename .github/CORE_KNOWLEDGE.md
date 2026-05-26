@@ -44,11 +44,17 @@
 - **Hybrid Architecture:** Use smaller, faster models for simple tasks and "expensive" models (Gemini 1.5 Pro/Claude 3.5) only for complex reasoning to balance intelligence and cost.
 - **Prompt Versioning:** Treat prompts as code. Version them and test them against regression before production rollout.
 
-## 9. Frameworks & Observability Standards
+## 8. Frameworks & Observability Standards
 - **Framework:** Use **LangChain4j** for Java/Spring Boot integration to manage LLM interactions.
 - **Observability:** Enable **LangSmith** for tracing every request. This is mandatory for debugging hallucinations.
 - **Evaluation:** Implement "Evaluators" in LangSmith to check for relevance, toxicity, and factual accuracy.
 
-## 8. Development Principles
+## 9. Development Principles
 - **Fail Fast:** If an AI confidence score is low, fallback to a human-in-the-loop or a safe default instead of hallucinating.
 - **Data Privacy:** Scrub PII (Personally Identifiable Information) before sending data to external LLM APIs.
+
+## 10. AI Architecture Priority (Self-Sufficient Systems)
+- **Core Knowledge is PRIMARY:** Local knowledge seed at `config/core_knowledge.json` serves as the authoritative source of truth. Must solve every single work independently.
+- **Browser is SECONDARY:** Playwright-based web automation (`triggerBrowserAutomationAndLearn()`) provides real-time data when Core Knowledge has gaps. Never blocks operation.
+- **Third-party AI is OPTIONAL:** External AI providers (Gemini, Claude, etc.) are enhancement-only. System continues gracefully without them.
+- **Graceful Degradation:** Priority order: Core Knowledge → Browser → Third-party AI. If third-party AI unavailable, system operates with Core Knowledge + Browser only.

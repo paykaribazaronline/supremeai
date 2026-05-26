@@ -1,6 +1,6 @@
 package com.supremeai.controller;
 
-import com.supremeai.fallback.AIFallbackOrchestrator;
+import com.supremeai.fallback.ThirdOpinionOrchestrator;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -11,10 +11,10 @@ import java.util.Map;
 @CrossOrigin(origins = "*")
 public class FailoverController {
 
-    private final AIFallbackOrchestrator fallbackOrchestrator;
+    private final ThirdOpinionOrchestrator thirdOpinionOrchestrator;
 
-    public FailoverController(AIFallbackOrchestrator fallbackOrchestrator) {
-        this.fallbackOrchestrator = fallbackOrchestrator;
+    public FailoverController(ThirdOpinionOrchestrator thirdOpinionOrchestrator) {
+        this.thirdOpinionOrchestrator = thirdOpinionOrchestrator;
     }
 
     @PostMapping("/execute")
@@ -26,7 +26,7 @@ public class FailoverController {
             return ResponseEntity.badRequest().body(Map.of("error", "Missing 'prompt' field"));
         }
         try {
-            String result = fallbackOrchestrator.executeWithSupremeIntelligence(taskCategory, errorSignature, prompt).block();
+            String result = thirdOpinionOrchestrator.executeWithSupremeIntelligence(taskCategory, errorSignature, prompt).block();
             return ResponseEntity.ok(Map.of("status", "success", "result", result));
         } catch (Exception e) {
             return ResponseEntity.status(500).body(Map.of("status", "failed", "error", e.getMessage()));
@@ -35,6 +35,6 @@ public class FailoverController {
 
     @GetMapping("/providers")
     public ResponseEntity<Map<String, Object>> getProviderStatus() {
-        return ResponseEntity.ok(fallbackOrchestrator.getProviderHealthStatus());
+        return ResponseEntity.ok(thirdOpinionOrchestrator.getProviderHealthStatus());
     }
 }

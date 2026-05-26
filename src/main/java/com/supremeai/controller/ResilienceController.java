@@ -1,6 +1,6 @@
 package com.supremeai.controller;
 
-import com.supremeai.fallback.AIFallbackOrchestrator;
+import com.supremeai.fallback.ThirdOpinionOrchestrator;
 import com.supremeai.resilience.RetryableAIExecutor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -12,9 +12,9 @@ import java.util.Map;
 public class ResilienceController {
 
     private final RetryableAIExecutor retryableAIExecutor;
-    private final AIFallbackOrchestrator fallbackOrchestrator;
+    private final ThirdOpinionOrchestrator fallbackOrchestrator;
 
-    public ResilienceController(RetryableAIExecutor retryableAIExecutor, AIFallbackOrchestrator fallbackOrchestrator) {
+    public ResilienceController(RetryableAIExecutor retryableAIExecutor, ThirdOpinionOrchestrator fallbackOrchestrator) {
         this.retryableAIExecutor = retryableAIExecutor;
         this.fallbackOrchestrator = fallbackOrchestrator;
     }

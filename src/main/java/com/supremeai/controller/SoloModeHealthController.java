@@ -1,6 +1,6 @@
 package com.supremeai.controller;
 
-import com.supremeai.fallback.AIFallbackOrchestrator;
+import com.supremeai.fallback.ThirdOpinionOrchestrator;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -13,10 +13,10 @@ import java.util.Map;
 @RequestMapping("/api/health/solo-mode")
 public class SoloModeHealthController {
 
-    private final AIFallbackOrchestrator fallbackOrchestrator;
+    private final ThirdOpinionOrchestrator thirdOpinionOrchestrator;
 
-    public SoloModeHealthController(AIFallbackOrchestrator fallbackOrchestrator) {
-        this.fallbackOrchestrator = fallbackOrchestrator;
+    public SoloModeHealthController(ThirdOpinionOrchestrator thirdOpinionOrchestrator) {
+        this.thirdOpinionOrchestrator = thirdOpinionOrchestrator;
     }
 
     /**
@@ -27,7 +27,7 @@ public class SoloModeHealthController {
      */
     @GetMapping
     public ResponseEntity<Map<String, Object>> getSoloModeHealth() {
-        boolean inSoloMode = fallbackOrchestrator.getSoloMode();
+        boolean inSoloMode = thirdOpinionOrchestrator.getSoloMode();
         Map<String, Object> health = new HashMap<>();
         health.put("status", inSoloMode ? "SOLO_MODE_ACTIVE" : "FULL_AI_MODE");
         health.put("soloMode", inSoloMode);
