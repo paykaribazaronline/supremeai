@@ -2,7 +2,7 @@ package com.supremeai.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.supremeai.fallback.AIFallbackOrchestrator;
+import com.supremeai.fallback.ThirdOpinionOrchestrator;
 import com.supremeai.learning.SupremeLearningOrchestrator;
 import com.supremeai.provider.AIProvider;
 import com.supremeai.provider.AIProviderFactory;
@@ -69,7 +69,7 @@ public class SupremeAIBrain {
     private AIProviderFactory providerFactory;
 
     @Autowired
-    private AIFallbackOrchestrator fallbackOrchestrator;
+    private ThirdOpinionOrchestrator fallbackOrchestrator;
 
     @Autowired
     private SupremeLearningOrchestrator learningOrchestrator;

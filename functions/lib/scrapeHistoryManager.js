@@ -30,7 +30,7 @@ function docToEntry(doc) {
         rawChunks: data.rawChunks ?? [],
         finalAnswer: data.finalAnswer ?? "",
         confidence: data.confidence ?? 0,
-        timestamp: data.timestamp?.toDate() ?? new Date(),
+        timestamp: (data.timestamp && typeof data.timestamp.toDate === "function" ? data.timestamp.toDate() : new Date()),
         userFeedback: data.userFeedback,
         scrapedPages: data.scrapedPages,
         cached: data.cached,

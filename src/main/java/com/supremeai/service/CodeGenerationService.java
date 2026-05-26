@@ -1,6 +1,6 @@
 package com.supremeai.service;
 
-import com.supremeai.fallback.AIFallbackOrchestrator;
+import com.supremeai.fallback.ThirdOpinionOrchestrator;
 import com.supremeai.model.GeneratedApp;
 import com.supremeai.model.EntityDefinition;
 import com.supremeai.model.FieldDefinition;
@@ -19,7 +19,7 @@ public class CodeGenerationService {
 
     @Autowired
     @org.springframework.context.annotation.Lazy
-    private AIFallbackOrchestrator aiFallbackOrchestrator;
+    private ThirdOpinionOrchestrator aiFallbackOrchestrator;
 
     @Autowired
     private GeneratedAppRepository generatedAppRepository;

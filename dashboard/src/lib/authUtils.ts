@@ -625,7 +625,7 @@ export const authUtils = {
 
     // ── Emulator / Dev Mode: stub all /api/admin/* and /api/self-healing/* calls ──
     // This prevents 50+ console errors when the backend is not running locally.
-  const isEmulator = import.meta.env.VITE_USE_EMULATOR === 'true' || !API_BASE;
+  const isEmulator = import.meta.env.VITE_USE_EMULATOR === 'true';
     if (isEmulator && (
       url.startsWith('/api/admin/') ||
       url.startsWith('/api/self-healing/') ||

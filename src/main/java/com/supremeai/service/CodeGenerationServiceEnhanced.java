@@ -1,6 +1,6 @@
 package com.supremeai.service;
 
-import com.supremeai.fallback.AIFallbackOrchestrator;
+import com.supremeai.fallback.ThirdOpinionOrchestrator;
 import com.supremeai.model.EntityDefinition;
 import com.supremeai.model.FieldDefinition;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
 public class CodeGenerationServiceEnhanced {
 
     @Autowired
-    private AIFallbackOrchestrator aiFallbackOrchestrator;
+    private ThirdOpinionOrchestrator aiFallbackOrchestrator;
     
     public CodeGenerationServiceEnhanced() {
     }

@@ -71,7 +71,7 @@ function docToEntry(doc: FirebaseFirestore.DocumentSnapshot<FirebaseFirestore.Do
     rawChunks: (data.rawChunks as Array<{ url: string; text: string }>) ?? [],
     finalAnswer: (data.finalAnswer as string) ?? "",
     confidence: (data.confidence as number) ?? 0,
-    timestamp: (data.timestamp?.toDate() as Date) ?? new Date(),
+    timestamp: (data.timestamp && typeof (data.timestamp as any).toDate === "function" ? (data.timestamp as any).toDate() : new Date()),
     userFeedback: data.userFeedback as string | undefined,
     scrapedPages: data.scrapedPages as number | undefined,
     cached: data.cached as boolean | undefined,

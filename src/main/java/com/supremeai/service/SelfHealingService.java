@@ -13,7 +13,7 @@ import com.supremeai.repository.ProviderRepository;
 import com.supremeai.repository.APIHealthReportRepository;
 import com.supremeai.provider.AIProviderFactory;
 import com.supremeai.provider.AIProvider;
-import com.supremeai.fallback.AIFallbackOrchestrator;
+import com.supremeai.fallback.ThirdOpinionOrchestrator;
 import com.supremeai.service.MultiAIVotingService;
 import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
@@ -65,7 +65,7 @@ public class SelfHealingService {
     private SupremeLearningOrchestrator learningOrchestrator;
 
     @Autowired
-    private AIFallbackOrchestrator fallbackOrchestrator;
+    private ThirdOpinionOrchestrator fallbackOrchestrator;
 
     @Autowired
     private MultiAIVotingService votingService;

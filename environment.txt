@@ -1,0 +1,5 @@
+<environment_details>
+Current time: 2026-05-25T17:48:25+06:00
+Working directory: /home/nazifarabbu/supremeai
+Workspace root folder: /home/nazifarabbu/supremeai
+</environment_details>

@@ -1,6 +1,6 @@
 package com.supremeai.intelligence.healing;
 
-import com.supremeai.fallback.AIFallbackOrchestrator;
+import com.supremeai.fallback.ThirdOpinionOrchestrator;
 import com.supremeai.service.SelfHealingService;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -16,7 +16,7 @@ class InfiniteAutoHealerTest {
 
     @Test
     void testDevelopUntilPerfection_delegatesToSelfHealingService() {
-        AIFallbackOrchestrator fallback = mock(AIFallbackOrchestrator.class);
+        ThirdOpinionOrchestrator fallback = mock(ThirdOpinionOrchestrator.class);
         SelfHealingService selfHealing = mock(SelfHealingService.class);
 
         when(selfHealing.developUntilPerfection(anyString(), anyString()))
