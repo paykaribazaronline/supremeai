@@ -173,6 +173,33 @@ public class ChatController {
 
                 return Mono.just(ResponseEntity.ok((Object) response));
             })
+            .switchIfEmpty(Mono.defer(() -> {
+                logger.info("Voting service returned empty. Routing to intelligent offline fallback pipeline...");
+                if (neuralChatService == null) {
+                    return Mono.just(ResponseEntity.status(503).body((Object) Map.of("error", "AI services temporarily unavailable")));
+                }
+                return neuralChatService.generateIntelligentResponse(message)
+                    .map(neuralResponse -> {
+                        Map<String, Object> response = new HashMap<>();
+                        response.put("message", neuralResponse.getAnswer());
+                        response.put("confidence", neuralResponse.getConfidence());
+                        response.put("sources", neuralResponse.getSources());
+                        response.put("tier", neuralResponse.getTier());
+                        response.put("pipeline", neuralResponse.getPipeline());
+                        response.put("localMode", true);
+
+                        // Intent classification
+                        var intent = intelligenceService.classifyIntent(message);
+                        response.put("mode", intent.name().toLowerCase());
+                        response.put("intent", intent.name());
+
+                        return ResponseEntity.ok((Object) response);
+                    })
+                    .onErrorResume(err -> {
+                        logger.error("Intelligent fallback pipeline failed as well: {}", err.getMessage());
+                        return Mono.just(ResponseEntity.status(503).body((Object) Map.of("error", "AI services temporarily unavailable")));
+                    });
+            }))
             .onErrorResume(e -> {
                 logger.error("Failed to get response via voting system. Routing to intelligent offline fallback pipeline...", e);
                 if (neuralChatService == null) {
