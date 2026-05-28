@@ -456,9 +456,14 @@ public class ChatController {
         } else if (p.contains("java") || p.contains("spring")) {
             return "১. **স্প্রিং বুট**: spring initializr ব্যবহার করুন\n২. **REST**: @RestController যোগ করুন\n৩. **ডাটাবেস**: JPA এবং PostgreSQL কনফিগার করুন";
         }
-        return "🤖 **SupremeAI লোকাল-ফার্স্ট মোড**\n\n" +
-            "কোনো বাইরের AI API ছাড়াই আমি আপনার প্রশ্নের উত্তর দিচ্ছি।\n\n" +
-            "প্রশ্ন: \"" + prompt + "\"\n\n" +
-            "এই মুহূর্তে আমি লোকাল কোড-বেসড রুলস ও কনোথিউম ব্যবহার করছি। আরও নির্দিষ্ট কোনো কিছু জানালে আমি আরও ভালো সাহায্য করতে পারব।";
+        return "I can help you with many topics! Here's what I know about:\n\n" +
+            "**Web:** React, Vue, Angular, Next.js, HTML, CSS, JavaScript, TypeScript\n" +
+            "**Backend:** Java, Spring Boot, Python, Flask, Node.js, Express\n" +
+            "**Mobile:** Flutter, Dart\n" +
+            "**DevOps:** Docker, Kubernetes, Git, Linux, CI/CD\n" +
+            "**Cloud:** AWS, GCP, Firebase\n" +
+            "**Databases:** SQL, PostgreSQL, MongoDB, Firestore\n\n" +
+            "Your question: \"" + prompt + "\"\n\n" +
+            "Please try rephrasing with one of these topics for a detailed answer with code examples!";
     }
 }

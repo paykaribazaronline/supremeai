@@ -111,7 +111,7 @@ public class APIProvider {
     public Double getCurrentUsage() { return currentUsage; }
     public void setCurrentUsage(Double currentUsage) { this.currentUsage = currentUsage; }
     public LocalDateTime getLastCheck() { return convertToLocalDateTime(lastCheck); }
-    public void setLastCheck(LocalDateTime lastCheck) { this.lastCheck = lastCheck; }
+    public void setLastCheck(Object lastCheck) { this.lastCheck = lastCheck; }
 
     public java.util.List<String> getModels() { return models; }
     public void setModels(java.util.List<String> models) { this.models = models; }
@@ -147,10 +147,10 @@ public class APIProvider {
     public void setConsecutiveErrorDays(Integer consecutiveErrorDays) { this.consecutiveErrorDays = consecutiveErrorDays; }
 
     public LocalDateTime getLastValidated() { return convertToLocalDateTime(lastValidated); }
-    public void setLastValidated(LocalDateTime lastValidated) { this.lastValidated = lastValidated; }
+    public void setLastValidated(Object lastValidated) { this.lastValidated = lastValidated; }
 
     public LocalDateTime getLastErrorDate() { return convertToLocalDateTime(lastErrorDate); }
-    public void setLastErrorDate(LocalDateTime lastErrorDate) { this.lastErrorDate = lastErrorDate; }
+    public void setLastErrorDate(Object lastErrorDate) { this.lastErrorDate = lastErrorDate; }
 
     public String getDeadReason() { return deadReason; }
     public void setDeadReason(String deadReason) { this.deadReason = deadReason; }
@@ -159,13 +159,13 @@ public class APIProvider {
     public void setAssignedRoles(java.util.List<String> assignedRoles) { this.assignedRoles = assignedRoles; }
 
     public LocalDateTime getDeadAt() { return convertToLocalDateTime(deadAt); }
-    public void setDeadAt(LocalDateTime deadAt) { this.deadAt = deadAt; }
+    public void setDeadAt(Object deadAt) { this.deadAt = deadAt; }
 
     public java.util.Map<String, Double> getCapabilityScores() { return capabilityScores; }
     public void setCapabilityScores(java.util.Map<String, Double> capabilityScores) { this.capabilityScores = capabilityScores; }
 
     public LocalDateTime getLastBenchmarkedAt() { return convertToLocalDateTime(lastBenchmarkedAt); }
-    public void setLastBenchmarkedAt(LocalDateTime lastBenchmarkedAt) { this.lastBenchmarkedAt = lastBenchmarkedAt; }
+    public void setLastBenchmarkedAt(Object lastBenchmarkedAt) { this.lastBenchmarkedAt = lastBenchmarkedAt; }
 
     public Integer getBenchmarkCount() { return benchmarkCount; }
     public void setBenchmarkCount(Integer benchmarkCount) { this.benchmarkCount = benchmarkCount; }
@@ -177,10 +177,10 @@ public class APIProvider {
     public void setLastErrorMessage(String lastErrorMessage) { this.lastErrorMessage = lastErrorMessage; }
 
     public LocalDateTime getLastTested() { return convertToLocalDateTime(lastTested); }
-    public void setLastTested(LocalDateTime lastTested) { this.lastTested = lastTested; }
+    public void setLastTested(Object lastTested) { this.lastTested = lastTested; }
 
     public LocalDateTime getAddedAt() { return convertToLocalDateTime(addedAt); }
-    public void setAddedAt(LocalDateTime addedAt) { this.addedAt = addedAt; }
+    public void setAddedAt(Object addedAt) { this.addedAt = addedAt; }
 
     public String getHints() { return hints; }
     public void setHints(String hints) { this.hints = hints; }

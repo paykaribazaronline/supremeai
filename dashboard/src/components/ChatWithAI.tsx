@@ -376,14 +376,18 @@ const ChatWithAI: React.FC<ChatWithAIProps> = ({ chatFont = 'font-mono' }) => {
                 ));
             } else {
                 // API failed - provide local fallback response
+                let errorMsg = 'সিস্টেম প্রক্রিয়াকরণে সমস্যা হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন বা ব্যাকএন্ড লগ পরীক্ষা করুন।';
+                try {
+                    const data = await response.json();
+                    if (data && data.message) errorMsg = data.message;
+                    else if (data && data.error) errorMsg = data.error;
+                } catch(e) {}
+
                 const fallbackMessage: ChatMessage = {
                     id: (Date.now() + 1).toString(),
                     sender: 'ai',
-                    agent: 'লোকাল মোড',
-                    content: '🤖 **SupremeAI লোকাল-ফার্স্ট মোড সক্রিয়**\n\n' +
-                        'কোনো বাইরের AI API কী ছাড়াই আমি আপনার সাহায্য করছি।\n\n' +
-                        'আপনার প্রশ্ন: "' + currentInput + '"\n\n' +
-                        'এই মুহূর্তে আমি লোকাল কোড-বেসড রুলস ব্যবহার করছি। আরও নির্দিষ্ট কিছু জানালে আমি আরও ভালো সাহায্য করতে পারব।',
+                    agent: 'সিস্টেম রেসপন্স',
+                    content: errorMsg,
                     timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
                     status: 'completed',
                 };
@@ -397,11 +401,8 @@ const ChatWithAI: React.FC<ChatWithAIProps> = ({ chatFont = 'font-mono' }) => {
             const fallbackMessage: ChatMessage = {
                 id: (Date.now() + 1).toString(),
                 sender: 'ai',
-                agent: 'লোকাল মোড',
-                content: '🤖 **SupremeAI লোকাল-ফার্স্ট মোড সক্রিয়**\n\n' +
-                    'কোনো বাইরের AI API কী ছাড়াই আমি আপনার সাহায্য করছি।\n\n' +
-                    'আপনার প্রশ্ন: "' + currentInput + '"\n\n' +
-                    'এই মুহূর্তে আমি লোকাল কোড-বেসড রুলস ব্যবহার করছি। আরও নির্দিষ্ট কিছু জানালে আমি আরও ভালো সাহায্য করতে পারব।',
+                agent: 'লোকাল নেটওয়ার্ক',
+                content: `সার্ভারের সাথে সংযোগ স্থাপন করা যাচ্ছে না। ত্রুটি: ${error.message || 'Unknown network error'}`,
                 timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
                 status: 'completed',
             };
