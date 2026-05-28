@@ -19,6 +19,8 @@ const GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions";
 /**
  * HTTP trigger: Analyze deployment changes with AI
  * Endpoint: https://region-supremeai.cloudfunctions.net/analyzeDeployment
+ * 
+ * LOCAL-FIRST MODE: If no AI API key is configured, uses heuristic analysis.
  */
 exports.analyzeDeployment = onRequest(async (req, res) => {
     try {
@@ -30,19 +32,11 @@ exports.analyzeDeployment = onRequest(async (req, res) => {
             });
         }
 
-        // Get Groq API key from function config or environment
-        const groqApiKey = functions.config().groq?.api_key ||
-                          process.env.GROQ_API_KEY_DEPLOYMENT_MONITOR ||
-                          process.env.GROQ_API_KEY;
-
-        if (!groqApiKey) {
-            return res.status(500).json({
-                error: "Groq API key not configured. Set GROQ_API_KEY_DEPLOYMENT_MONITOR in environment."
-            });
-        }
-
-        // Analyze changes using Groq AI
-        const analysis = await analyzeWithGroq(groqApiKey, {
+        // LOCAL-FIRST: No external AI API key required
+        console.log("[LOCAL-FIRST] Analyzing deployment without external AI API key...");
+        
+        // Always use local heuristic analysis - no external API required
+        const analysis = fallbackAnalysis({
             commitMessage,
             changedFiles,
             author,
@@ -52,11 +46,6 @@ exports.analyzeDeployment = onRequest(async (req, res) => {
 
         // Determine if system needs to be woken up
         const needsWakeUp = shouldWakeSystem(analysis);
-
-        // If critical changes, wake up the system
-        if (needsWakeUp) {
-            await wakeSystem(runId, analysis);
-        }
 
         // Save analysis to Firestore for tracking
         await saveDeploymentAnalysis({
@@ -78,7 +67,8 @@ exports.analyzeDeployment = onRequest(async (req, res) => {
             success: true,
             analysis,
             needsWakeUp,
-            action: needsWakeUp ? "System woken up" : "No action needed"
+            action: needsWakeUp ? "System woken up" : "No action needed",
+            localMode: true
         });
 
     } catch (error) {

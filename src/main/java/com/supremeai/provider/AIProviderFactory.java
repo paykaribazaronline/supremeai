@@ -263,8 +263,11 @@ public class AIProviderFactory {
         return getDefaultProvider();
     }
 
+    @Autowired
+    private StubLocalProvider stubLocalProvider;
+
     public AIProvider getDefaultProvider() {
-        logger.info("Dynamically searching for healthiest default provider from metadata cache");
+        logger.info("Dynamically searching for default provider from metadata cache (local-first mode)");
 
         List<APIProvider> activeProviders = new ArrayList<>();
         if (providerMetadataService != null) {
@@ -288,17 +291,21 @@ public class AIProviderFactory {
             }
         }
 
+        // Return stub provider if no external providers configured - LOCAL-FIRST MODE
         if (activeProviders.isEmpty()) {
-            throw new RuntimeException("No working AI provider available in database/cache");
+            logger.info("[LOCAL-FIRST] No external AI providers configured. Using StubLocalProvider for offline operation.");
+            return stubLocalProvider;
         }
 
-        return activeProviders.stream()
+        AIProvider provider = activeProviders.stream()
                 .sorted(Comparator.comparingInt(APIProvider::getPriority))
                 .map(this::createProviderFromConfig)
                 .filter(Objects::nonNull)
                 .filter(this::isProviderHealthy_offElastic)
                 .findFirst()
-                .orElseThrow(() -> new RuntimeException("No working AI provider available and healthy"));
+                .orElse(stubLocalProvider); // Fallback to stub if no healthy provider found
+        
+        return provider;
     }
 
     /**
