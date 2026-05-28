@@ -57,6 +57,12 @@ import static org.mockito.Mockito.*;
     @Mock
     private ProviderRepository providerRepository;
 
+    @Mock
+    private com.supremeai.service.NeuralChatService neuralChatService;
+
+    @Mock
+    private com.supremeai.service.ContextSummarizerService summarizerService;
+
     private ChatController chatController;
 
     @BeforeEach
@@ -70,6 +76,8 @@ import static org.mockito.Mockito.*;
         setField(chatController, "intelligenceService", intelligenceService);
         setField(chatController, "chatHistoryRepository", chatHistoryRepository);
         setField(chatController, "providerRepository", providerRepository);
+        setField(chatController, "neuralChatService", neuralChatService);
+        setField(chatController, "summarizerService", summarizerService);
         lenient().when(providerRepository.findByStatus(anyString())).thenReturn(Flux.empty());
     }
 
@@ -207,16 +215,19 @@ import static org.mockito.Mockito.*;
                 .thenReturn(Mono.just(validationResult));
         when(votingService.executeEnsembleVoting(anyString(), any(), anyLong()))
                 .thenReturn(Mono.error(new RuntimeException("All providers failed")));
-        when(consensusService.askConsensus(anyString(), anyList(), anyLong()))
-                .thenReturn(Mono.just(new com.supremeai.model.ConsensusResult(
-                        "What is Python?", "Python is a programming language",
-                        List.of(), 0.8, "CONSENSUS_STRONG", 0.8, 1000L, 0.85
-                )));
+
+        com.supremeai.service.NeuralChatService.NeuralResponse neuralResponse = new com.supremeai.service.NeuralChatService.NeuralResponse(
+                "Python is a programming language", List.of("Core Knowledge"), 0.8, "CORE_ONLY", "core_knowledge"
+        );
+        when(neuralChatService.generateIntelligentResponse(anyString()))
+                .thenReturn(Mono.just(neuralResponse));
+        when(intelligenceService.classifyIntent(anyString()))
+                .thenReturn(ChatIntelligenceService.Intent.CASUAL);
 
         ResponseEntity<Object> result = chatController.sendMessage(request).block();
 
         Map<String, Object> body = (Map<String, Object>) result.getBody();
-        assertTrue((Boolean) body.get("fallback"));
+        assertTrue((Boolean) body.get("localMode"));
         assertEquals("Python is a programming language", body.get("message"));
     }
 
@@ -239,8 +250,8 @@ import static org.mockito.Mockito.*;
                 .thenReturn(Mono.just(validationResult));
         when(votingService.executeEnsembleVoting(anyString(), any(), anyLong()))
                 .thenReturn(Mono.error(new RuntimeException("All providers failed")));
-        when(consensusService.askConsensus(anyString(), anyList(), anyLong()))
-                .thenReturn(Mono.error(new RuntimeException("Consensus also failed")));
+        when(neuralChatService.generateIntelligentResponse(anyString()))
+                .thenReturn(Mono.error(new RuntimeException("NeuralChatService also failed")));
 
         ResponseEntity<Object> result = chatController.sendMessage(request).block();
 

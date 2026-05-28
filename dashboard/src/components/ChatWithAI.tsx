@@ -28,6 +28,8 @@ interface ChatMessage {
     intent?: string;
     status?: 'pending' | 'completed' | 'error';
     image?: string;
+    options?: string[];
+    type?: string;
 }
 
 interface ChatSession {
@@ -301,15 +303,14 @@ const ChatWithAI: React.FC<ChatWithAIProps> = ({ chatFont = 'font-mono' }) => {
         }
     };
 
-    const handleSendMessage = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if ((!input.trim() && !attachedImage) || loading || !activeSessionId) return;
+    const sendMessageToServer = async (messageText: string) => {
+        if ((!messageText.trim() && !attachedImage) || loading || !activeSessionId) return;
 
         const userMessage: ChatMessage = {
             id: Date.now().toString(),
             sender: 'user',
             agent: 'You',
-            content: input,
+            content: messageText,
             image: attachedImage || undefined,
             timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
             status: 'completed'
@@ -323,14 +324,13 @@ const ChatWithAI: React.FC<ChatWithAIProps> = ({ chatFont = 'font-mono' }) => {
             
             // Smart Name: If first message or default name, generate name
             if (currentSessions[sessionIndex].messages.length === 1 || currentSessions[sessionIndex].name === 'New Chat' || currentSessions[sessionIndex].name === 'নতুন চ্যাট সেশন') {
-                const words = input.trim() ? input.split(' ') : ['সংযুক্ত ছবি'];
+                const words = messageText.trim() ? messageText.split(' ') : ['সংযুক্ত ছবি'];
                 currentSessions[sessionIndex].name = words.slice(0, 4).join(' ') + (words.length > 4 ? '...' : '');
             }
             
             setSessions(currentSessions);
         }
 
-        const currentInput = input;
         const currentImage = attachedImage;
         const currentImageName = attachedImageName;
 
@@ -344,8 +344,8 @@ const ChatWithAI: React.FC<ChatWithAIProps> = ({ chatFont = 'font-mono' }) => {
             const history = currentSession ? currentSession.messages : [];
             
             const messageBody = currentImage 
-                ? `${currentInput}\n\n[সংযুক্ত ছবি: ${currentImageName}]\n![${currentImageName}](${currentImage})`
-                : currentInput;
+                ? `${messageText}\n\n[সংযুক্ত ছবি: ${currentImageName}]\n![${currentImageName}](${currentImage})`
+                : messageText;
 
             const response = await authUtils.fetchWithAuth('/api/chat/send', {
                 method: 'POST',
@@ -369,6 +369,8 @@ const ChatWithAI: React.FC<ChatWithAIProps> = ({ chatFont = 'font-mono' }) => {
                     confidence: data.confidence ? Math.round(data.confidence * 100) : undefined,
                     intent: data.intent || 'NORMAL',
                     status: 'completed',
+                    type: data.type,
+                    options: data.options || [],
                 };
                 
                 setSessions(prev => prev.map(s => 
@@ -413,6 +415,11 @@ const ChatWithAI: React.FC<ChatWithAIProps> = ({ chatFont = 'font-mono' }) => {
         } finally {
             setLoading(false);
         }
+    };
+
+    const handleSendMessage = async (e: React.FormEvent) => {
+        e.preventDefault();
+        await sendMessageToServer(input);
     };
 
     const playVoice = async (text: string) => {
@@ -595,6 +602,48 @@ const ChatWithAI: React.FC<ChatWithAIProps> = ({ chatFont = 'font-mono' }) => {
                                                 </div>
                                             )}
                                             <div style={{ wordBreak: 'break-word', whiteSpace: 'pre-wrap' }}>{msg.content}</div>
+                                            
+                                            {msg.type === 'CLARIFICATION_REQUIRED' && msg.options && msg.options.length > 0 && (
+                                                <div style={{ marginTop: '16px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                                                    <span style={{ fontSize: '12px', fontWeight: 600, color: 'rgba(255,255,255,0.6)' }}>
+                                                        সম্ভাব্য অপশনগুলো থেকে বেছে নিন:
+                                                    </span>
+                                                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                                                        {msg.options.map((opt, idx) => (
+                                                            <button
+                                                                key={idx}
+                                                                onClick={() => sendMessageToServer(opt)}
+                                                                style={{
+                                                                    background: 'rgba(0, 243, 255, 0.05)',
+                                                                    border: '1px solid rgba(0, 243, 255, 0.2)',
+                                                                    color: 'var(--neon-blue)',
+                                                                    padding: '8px 14px',
+                                                                    borderRadius: '8px',
+                                                                    fontSize: '13px',
+                                                                    cursor: 'pointer',
+                                                                    transition: 'all 0.2s',
+                                                                    fontWeight: 500,
+                                                                }}
+                                                                onMouseEnter={(e) => {
+                                                                    e.currentTarget.style.background = 'rgba(0, 243, 255, 0.15)';
+                                                                    e.currentTarget.style.borderColor = 'var(--neon-blue)';
+                                                                    e.currentTarget.style.boxShadow = '0 0 10px rgba(0, 243, 255, 0.3)';
+                                                                }}
+                                                                onMouseLeave={(e) => {
+                                                                    e.currentTarget.style.background = 'rgba(0, 243, 255, 0.05)';
+                                                                    e.currentTarget.style.borderColor = 'rgba(0, 243, 255, 0.2)';
+                                                                    e.currentTarget.style.boxShadow = 'none';
+                                                                }}
+                                                            >
+                                                                {opt}
+                                                            </button>
+                                                        ))}
+                                                    </div>
+                                                    <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', fontStyle: 'italic', marginTop: '4px' }}>
+                                                        *অথবা নিচের ইনপুট বক্সে আপনার নিজের মতো করে কাস্টম উত্তর টাইপ করুন।
+                                                    </span>
+                                                </div>
+                                            )}
                                             
                                             {msg.sender === 'ai' && (
                                                 <div className="message-bubble-footer">
