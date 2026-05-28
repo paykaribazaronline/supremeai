@@ -44,6 +44,7 @@ const AdminBrowser: React.FC = () => {
   const [keyInput, setKeyInput] = useState('');
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
   const [showSettings, setShowSettings] = useState(false);
+  const [isLearning, setIsLearning] = useState(true);
   const [showConsole, setShowConsole] = useState(true);
   const [deniedUrls, setDeniedUrls] = useState<any[]>([]);
   const [lastAiAction, setLastAiAction] = useState<any>(null);
@@ -213,8 +214,8 @@ const AdminBrowser: React.FC = () => {
         allowedUrls={[]} 
         deniedUrls={[]} 
         credentials={[]} 
-        isLearning={true} 
-        toggleLearning={() => {}} 
+        isLearning={isLearning} 
+        toggleLearning={(val: boolean) => setIsLearning(val)} 
         learningStatus={null}
         newUrlPattern=""
         setNewUrlPattern={() => {}}

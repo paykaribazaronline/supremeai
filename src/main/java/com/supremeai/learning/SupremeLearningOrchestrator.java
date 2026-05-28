@@ -777,4 +777,59 @@ public class SupremeLearningOrchestrator {
     public void logUnknownError(String signature, String message) {
         log.warn("[SYSTEM_LEARNING] Unknown error logged: signature={}, message={}", signature, message);
     }
+
+    public String findCoreKnowledgeSolution(String query) {
+        if (rootNode == null) return null;
+        
+        String normalizedQuery = normalizeText(query);
+        if (normalizedQuery.isEmpty()) return null;
+
+        JsonNode arrayNode = rootNode.isArray() ? rootNode : rootNode.path("knowledge");
+        if (arrayNode.isMissingNode() && rootNode.isObject()) {
+            java.util.Iterator<Map.Entry<String, JsonNode>> fields = rootNode.fields();
+            while (fields.hasNext()) {
+                Map.Entry<String, JsonNode> entry = fields.next();
+                if (entry.getValue().isArray()) {
+                    arrayNode = entry.getValue();
+                    break;
+                }
+            }
+        }
+
+        if (arrayNode.isArray()) {
+            String bestSolution = null;
+            double highestScore = 0.0;
+
+            for (JsonNode entry : arrayNode) {
+                String taskKeywords = entry.path("task").asText().toLowerCase();
+                String solution = entry.path("solution").asText();
+                if (!taskKeywords.isEmpty() && !solution.isEmpty()) {
+                    // Compute n-gram similarity
+                    double score = ngramSimilarity(normalizedQuery, taskKeywords);
+
+                    // Add bonus for exact word overlaps
+                    String[] keywords = taskKeywords.split("\\s+");
+                    int overlapCount = 0;
+                    for (String kw : keywords) {
+                        if (kw.length() > 2 && normalizedQuery.contains(kw.toLowerCase())) {
+                            overlapCount++;
+                        }
+                    }
+                    score += overlapCount * 0.15;
+
+                    if (score > highestScore && score >= 0.15) {
+                        highestScore = score;
+                        bestSolution = solution;
+                    }
+                }
+            }
+
+            if (bestSolution != null) {
+                log.info("[SYSTEM_LEARNING] Best matched solution found in core_knowledge.json with score: {}", highestScore);
+                return bestSolution;
+            }
+        }
+        return null;
+    }
 }
+

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Modal, Form, Input, Select, Button, Space, message, Divider, Tag, Spin } from 'antd';
+import { Modal, Form, Input, Select, Button, Space, message, Divider, Tag, Spin, Alert } from 'antd';
 import { ThunderboltOutlined, SearchOutlined, CheckCircleOutlined, ExclamationCircleOutlined } from '@ant-design/icons';
 import { Provider } from './types';
 import { authUtils } from '../../lib/authUtils';
@@ -63,7 +63,7 @@ const ProviderModal: React.FC<Props> = ({ visible, editingProvider, onCancel, on
       const response = await authUtils.fetchWithAuth('/api/admin/providers/test-key', {
         method: 'POST',
         body: JSON.stringify({
-          name: values.type, // We use type as provider name for testing
+          name: values.type,
           apiKey: values.apiKey
         }),
       });
@@ -151,8 +151,8 @@ const ProviderModal: React.FC<Props> = ({ visible, editingProvider, onCancel, on
           </Form.Item>
         </Form.Item>
 
-        <Form.Item name="baseUrl" label="API Base URL" initialValue="https://api.openai.com/v1">
-          <Input placeholder="https://api.openai.com/v1" />
+        <Form.Item name="baseUrl" label="API Base URL (Optional)" initialValue="https://api.openai.com/v1">
+          <Input placeholder="https://api.openai.com/v1 (required only for external API providers)" />
         </Form.Item>
 
         <Divider style={{ margin: '12px 0' }} />
@@ -160,13 +160,13 @@ const ProviderModal: React.FC<Props> = ({ visible, editingProvider, onCancel, on
         <div className="api-key-section glass-card" style={{ padding: '16px', borderRadius: '12px' }}>
           <Form.Item 
             name="apiKey" 
-            label="API Secret Key" 
-            rules={[{ required: true }]}
+            label="API Secret Key (Optional for Local Mode)" 
+            rules={[]}
             help={testResult.status === 'error' ? <span style={{ color: 'red' }}><ExclamationCircleOutlined /> {testResult.message}</span> : null}
             validateStatus={testResult.status === 'error' ? 'error' : testResult.status === 'success' ? 'success' : undefined}
           >
             <Input.Password 
-              placeholder="sk-..." 
+              placeholder="sk-... (leave empty for local mode)" 
               addonAfter={
                 <Button 
                   type="link" 
@@ -181,16 +181,24 @@ const ProviderModal: React.FC<Props> = ({ visible, editingProvider, onCancel, on
             />
           </Form.Item>
 
-          <Form.Item name="hints" label="API Key Hints / Note">
-            <Input placeholder="e.g., Personal key from MyAccount1" />
+          <Alert 
+            message="আপনি যেন এপিআই কী না দিয়েও সেভ করতে পারেন। সিস্টেম লোকাল-ফার্স্ট মোডে কাজ করবে।"
+            description="Local Mode: যদি কোনো কী দেওয়া না হয়, তবে SupremeAI core_knowledge.json ও browser scraping ব্যবহার করে রুল-বেসড উত্তর দেবে।"
+            type="info"
+            showIcon
+            style={{ marginBottom: 16 }}
+          />
+
+          <Form.Item name="hints" label="API Key Hints / Note (Optional)">
+            <Input placeholder="e.g., Personal key from MyAccount1 (optional for local mode)" />
           </Form.Item>
         </div>
 
-        <Form.Item name="deploymentSource" label="Deployment Group" initialValue="api" help="Determines which group this model appears in on the admin dashboard">
+        <Form.Item name="deploymentSource" label="Deployment Group" initialValue="local" help="Determines which group this model appears in on the admin dashboard">
           <Select>
             <Option value="api">🔑 API Key — Regular API key providers (OpenAI, Anthropic, etc.)</Option>
             <Option value="gcloud">☁️ GCloud Deploy — Firebase / Google Gemini / Vertex AI models</Option>
-            <Option value="local">🖥️ Local / Ollama — Self-hosted Ollama or local models</Option>
+            <Option value="local">🖥️ Local / Ollama — Self-hosted Ollama or local models (Recommended)</Option>
           </Select>
         </Form.Item>
 
@@ -231,8 +239,8 @@ const ProviderModal: React.FC<Props> = ({ visible, editingProvider, onCancel, on
         <Form.Item style={{ marginTop: 32, marginBottom: 0, textAlign: 'right' }}>
           <Space>
             <Button onClick={onCancel}>Cancel</Button>
-            <Button type="primary" htmlType="submit" size="large" disabled={testResult.status !== 'success' && !editingProvider}>
-              {editingProvider ? 'Update Configuration' : 'Validate & Save Provider'}
+            <Button type="primary" htmlType="submit" size="large">
+              {editingProvider ? 'Update Configuration' : 'Save Provider'}
             </Button>
           </Space>
         </Form.Item>

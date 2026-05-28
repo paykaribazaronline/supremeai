@@ -18,6 +18,7 @@ import com.supremeai.service.FirebaseRealtimeService;
 import com.supremeai.service.solomode.SoloModeManagerService;
 import com.supremeai.util.ThirdOpinionConstants;
 import com.supremeai.service.SelfHealingService;
+import com.supremeai.learning.SupremeLearningOrchestrator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -95,6 +96,9 @@ public class MultiAIVotingService {
     @Lazy
     private SoloModeManagerService soloModeManagerService;
 
+    @Autowired
+    private SupremeLearningOrchestrator learningOrchestrator;
+
     // Dynamic model selection (no hardcoded limit)
     private static final int DEFAULT_MAX_VOTING_PROVIDERS = 10;
 
@@ -167,6 +171,18 @@ public class MultiAIVotingService {
             String taskType // NEW: task type for smart routing
     ) {
         long startTime = System.currentTimeMillis();
+
+        // TIER 1: Core Knowledge Base lookup first for high-resilience offline mode
+        try {
+            String coreSolution = learningOrchestrator.findCoreKnowledgeSolution(prompt);
+            if (coreSolution != null && !coreSolution.isEmpty()) {
+                logger.info("[TIER 1] Found core knowledge solution matching prompt. Returning immediately.");
+                ProviderVote vote = new ProviderVote("core_knowledge", coreSolution, 0.99, System.currentTimeMillis() - startTime);
+                return Mono.just(new VotingResult(prompt, coreSolution, List.of(vote), 0.99, "CORE_KNOWLEDGE", System.currentTimeMillis() - startTime));
+            }
+        } catch (Exception e) {
+            logger.warn("Failed to lookup core knowledge for prompt: {}", e.getMessage());
+        }
 
         List<String> keywords = extractKeywords(prompt);
         String detectedDomain = detectDomain(prompt);

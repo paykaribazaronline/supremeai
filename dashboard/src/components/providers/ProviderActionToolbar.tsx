@@ -96,13 +96,13 @@ const ProviderActionToolbar: React.FC<Props> = ({
         </Button>
 
         {deadCount > 0 && (
-          <Popconfirm title="সব ডেড প্রোভাইডার রিমুভ করবেন?" onConfirm={onRemoveDead} okText="হ্যাঁ" cancelText="না">
+          <Popconfirm title="সব অক্রিয় প্রোভাইডার রিমুভ করবেন?" onConfirm={onRemoveDead} okText="হ্যাঁ" cancelText="না">
             <Button 
               danger 
               icon={<DeleteOutlined />}
               className="cyber-danger-button"
             >
-              {deadCount} ডেড কী মুছুন
+              {deadCount} অক্রিয় প্রোভাইডার মুছুন
             </Button>
           </Popconfirm>
         )}

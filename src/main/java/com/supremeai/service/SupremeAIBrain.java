@@ -146,6 +146,17 @@ public class SupremeAIBrain {
     }
 
     private Mono<String> executeWithHubOrchestration(String task, String prompt, String errorSignature, long startTime) {
+        // TIER 1: Core Knowledge lookup
+        try {
+            String coreSolution = learningOrchestrator.findCoreKnowledgeSolution(prompt);
+            if (coreSolution != null && !coreSolution.isEmpty()) {
+                logger.info("[BRAIN TIER 1] Found core knowledge solution matching prompt. Returning immediately.");
+                return Mono.just(coreSolution);
+            }
+        } catch (Exception e) {
+            logger.warn("Failed to check core_knowledge.json in Brain: {}", e.getMessage());
+        }
+
         Map<String, String> hubInfo;
         try {
             hubInfo = learningOrchestrator.identifyBestHub(prompt);
