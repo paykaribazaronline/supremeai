@@ -153,7 +153,13 @@ public class AIProviderFactory {
 
         logger.warn("[Factory] Provider '{}' not found in Firestore api_providers or provider_types. Using dynamic default.", normalizedName);
         try {
-            return getDefaultProvider();
+            AIProvider defaultProvider = getDefaultProvider();
+            if (defaultProvider == null) {
+                throw new IllegalArgumentException("Unknown AI provider: " + name + " and no healthy default available.");
+            }
+            return defaultProvider;
+        } catch (IllegalArgumentException e) {
+            throw e;
         } catch (Exception e) {
             logger.error("[Factory] getDefaultProvider failed for '{}': {}", normalizedName, e.toString());
             throw new IllegalArgumentException("Unknown AI provider: " + name + " and no healthy default available.", e);
