@@ -8,8 +8,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -49,9 +52,10 @@ public class NeuralChatService {
     private final ActiveInternetScraper internetScraper;
     private final QueryClassifier queryClassifier;
     private final StubLocalProvider stubLocalProvider;
+    private final WebClient webClient;
 
     /** Maximum time to wait for browser scraping before returning core knowledge only */
-    private static final Duration SCRAPE_TIMEOUT = Duration.ofSeconds(6);
+    private static final Duration SCRAPE_TIMEOUT = Duration.ofSeconds(12);
 
     /** Minimum snippet length to consider a scraped result useful */
     private static final int MIN_USEFUL_SNIPPET_LENGTH = 30;
@@ -63,12 +67,14 @@ public class NeuralChatService {
     public NeuralChatService(SupremeLearningOrchestrator learningOrchestrator,
                              ActiveInternetScraper internetScraper,
                              QueryClassifier queryClassifier,
-                             StubLocalProvider stubLocalProvider) {
+                             StubLocalProvider stubLocalProvider,
+                             WebClient.Builder webClientBuilder) {
         this.learningOrchestrator = learningOrchestrator;
         this.internetScraper = internetScraper;
         this.queryClassifier = queryClassifier;
         this.stubLocalProvider = stubLocalProvider;
-        log.info("[NeuralChat] Initialized — Tier 1 (Core Knowledge) + Tier 2 (Browser) + Tier 3 (StubLocal) merged pipeline");
+        this.webClient = webClientBuilder.build();
+        log.info("[NeuralChat] Initialized — Tier 1 (Core Knowledge) + Tier 2 (Browser) + Tier 2.5 (DDG Instant) + Tier 3 (StubLocal) merged pipeline");
     }
 
     /**
@@ -179,8 +185,17 @@ public class NeuralChatService {
                 calculateWebConfidence(usefulWebResults), "WEB_ONLY", "browser");
         }
 
-        // ── CASE 4: Nothing found → Tier 3 StubLocalProvider ────────────
-        log.info("[NeuralChat] ⚠️ No knowledge found — falling back to Tier 3 (StubLocal)");
+        // ── CASE 4: Try DuckDuckGo Instant Answer API as last-resort web search ──
+        log.info("[NeuralChat] ⚠️ No scraped knowledge — trying DuckDuckGo Instant Answer API...");
+        String ddgAnswer = tryDuckDuckGoInstantAnswer(userMessage);
+        if (ddgAnswer != null && !ddgAnswer.isEmpty()) {
+            log.info("[NeuralChat] ✅ DuckDuckGo Instant Answer found!");
+            return new NeuralResponse(ddgAnswer, List.of("DuckDuckGo Instant Answer"), 0.75,
+                "WEB_INSTANT", "duckduckgo_instant");
+        }
+
+        // ── CASE 5: Absolute fallback → Tier 3 StubLocalProvider ────────────
+        log.info("[NeuralChat] ⚠️ All web searches failed — falling back to Tier 3 (StubLocal)");
         String stubResponse = stubLocalProvider.generate(userMessage).block();
         return NeuralResponse.fromStub(stubResponse, "stub_local_fallback");
     }
@@ -360,6 +375,87 @@ public class NeuralChatService {
     private String truncate(String text, int maxLength) {
         if (text == null) return "";
         return text.length() > maxLength ? text.substring(0, maxLength) + "..." : text;
+    }
+
+    // ══════════════════════════════════════════════════════════════════════════
+    //  DUCKDUCKGO INSTANT ANSWER API (free, no key, JSON-based)
+    // ══════════════════════════════════════════════════════════════════════════
+
+    /**
+     * Try DuckDuckGo Instant Answer API as a fast last-resort web search.
+     * This is a free JSON API that returns instant answers for many queries.
+     * URL: https://api.duckduckgo.com/?q=QUERY&format=json&no_html=1
+     */
+    private String tryDuckDuckGoInstantAnswer(String query) {
+        try {
+            String encodedQuery = URLEncoder.encode(query, StandardCharsets.UTF_8);
+            String url = "https://api.duckduckgo.com/?q=" + encodedQuery + "&format=json&no_html=1&skip_disambig=1";
+
+            String json = webClient.get()
+                .uri(url)
+                .header("User-Agent", "SupremeAI/1.0")
+                .retrieve()
+                .bodyToMono(String.class)
+                .timeout(Duration.ofSeconds(8))
+                .onErrorResume(e -> {
+                    log.warn("[NeuralChat] DuckDuckGo Instant Answer API failed: {}", e.getMessage());
+                    return Mono.empty();
+                })
+                .block();
+
+            if (json == null || json.isEmpty()) return null;
+
+            com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+            com.fasterxml.jackson.databind.JsonNode root = mapper.readTree(json);
+
+            StringBuilder answer = new StringBuilder();
+
+            // 1. AbstractText — the main instant answer
+            String abstractText = root.path("AbstractText").asText("");
+            String abstractSource = root.path("AbstractSource").asText("");
+            String heading = root.path("Heading").asText("");
+
+            if (!abstractText.isEmpty() && abstractText.length() > 30) {
+                if (!heading.isEmpty()) {
+                    answer.append("## ").append(heading).append("\n\n");
+                }
+                answer.append(abstractText);
+                if (!abstractSource.isEmpty()) {
+                    answer.append("\n\n*Source: ").append(abstractSource).append("*");
+                }
+            }
+
+            // 2. RelatedTopics — additional context
+            com.fasterxml.jackson.databind.JsonNode relatedTopics = root.path("RelatedTopics");
+            if (relatedTopics.isArray() && relatedTopics.size() > 0 && answer.length() < 50) {
+                int count = 0;
+                for (com.fasterxml.jackson.databind.JsonNode topic : relatedTopics) {
+                    String text = topic.path("Text").asText("");
+                    if (!text.isEmpty() && text.length() > 20) {
+                        if (count == 0 && answer.length() == 0) {
+                            answer.append("## ").append(query).append("\n\n");
+                            answer.append("Here's what I found:\n\n");
+                        }
+                        answer.append("• ").append(text).append("\n\n");
+                        count++;
+                        if (count >= 4) break;
+                    }
+                }
+            }
+
+            // 3. Answer field (for factual queries like "age of earth")
+            String directAnswer = root.path("Answer").asText("");
+            if (!directAnswer.isEmpty() && answer.length() == 0) {
+                answer.append(directAnswer);
+            }
+
+            String result = answer.toString().trim();
+            return result.length() > 30 ? result : null;
+
+        } catch (Exception e) {
+            log.warn("[NeuralChat] DuckDuckGo Instant Answer failed: {}", e.getMessage());
+            return null;
+        }
     }
 
     // ══════════════════════════════════════════════════════════════════════════

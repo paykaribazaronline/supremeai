@@ -526,9 +526,21 @@ function jsonOk(data: unknown): Response {
 export const authUtils = {
   getToken(): string | null {
     if (_inMemoryToken) return _inMemoryToken;
-    const raw = sessionStorage.getItem(AUTH_TOKEN_KEY);
+    const raw = sessionStorage.getItem(AUTH_TOKEN_KEY) || localStorage.getItem(AUTH_TOKEN_KEY);
     if (raw) {
-      const token = deobfuscate(raw);
+      let token = raw;
+      if (raw.startsWith('eyJ')) {
+        token = raw;
+      } else {
+        try {
+          const deob = deobfuscate(raw);
+          if (deob && (deob.startsWith('eyJ') || deob.length > 10)) {
+            token = deob;
+          }
+        } catch (e) {
+          token = raw;
+        }
+      }
       _inMemoryToken = token;
       return token;
     }
@@ -537,9 +549,21 @@ export const authUtils = {
 
   getRefreshToken(): string | null {
     if (_inMemoryRefreshToken) return _inMemoryRefreshToken;
-    const raw = sessionStorage.getItem(REFRESH_TOKEN_KEY);
+    const raw = sessionStorage.getItem(REFRESH_TOKEN_KEY) || localStorage.getItem(REFRESH_TOKEN_KEY);
     if (raw) {
-      const token = deobfuscate(raw);
+      let token = raw;
+      if (raw.startsWith('eyJ') || raw === 'dev-refresh-token') {
+        token = raw;
+      } else {
+        try {
+          const deob = deobfuscate(raw);
+          if (deob) {
+            token = deob;
+          }
+        } catch (e) {
+          token = raw;
+        }
+      }
       _inMemoryRefreshToken = token;
       return token;
     }
@@ -585,37 +609,50 @@ export const authUtils = {
   },
 
   getCurrentUser(): AuthUser | null {
-    const raw = sessionStorage.getItem(FIREBASE_USER_KEY);
+    const raw = sessionStorage.getItem(FIREBASE_USER_KEY) || localStorage.getItem(FIREBASE_USER_KEY);
     if (!raw) return null;
     try {
-      const userStr = deobfuscate(raw);
+      let userStr = raw;
+      if (!raw.trim().startsWith('{')) {
+        userStr = deobfuscate(raw);
+      }
       return JSON.parse(userStr);
     } catch (e) {
-      return null;
+      try {
+        return JSON.parse(raw);
+      } catch (ex) {
+        return null;
+      }
     }
   },
 
   setToken(token: string) {
     _inMemoryToken = token;
     sessionStorage.setItem(AUTH_TOKEN_KEY, obfuscate(token));
+    localStorage.setItem(AUTH_TOKEN_KEY, obfuscate(token));
   },
 
   setRefreshToken(token: string) {
     _inMemoryRefreshToken = token;
     sessionStorage.setItem(REFRESH_TOKEN_KEY, obfuscate(token));
+    localStorage.setItem(REFRESH_TOKEN_KEY, obfuscate(token));
   },
 
   setCurrentUser(user: any) {
     const userStr = JSON.stringify(user);
     sessionStorage.setItem(FIREBASE_USER_KEY, obfuscate(userStr));
+    localStorage.setItem(FIREBASE_USER_KEY, obfuscate(userStr));
   },
 
   getAuthHeaders(): HeadersInit {
     const token = this.getToken();
-    if (token && token !== 'GUEST_MODE') {
-      return { Authorization: `Bearer ${token}` };
+    if (token) {
+      return { 
+        Authorization: `Bearer ${token}`,
+        'X-Guest-Access': token === 'GUEST_MODE' ? 'true' : 'false'
+      };
     }
-    return {};
+    return { 'X-Guest-Access': 'true' };
   },
 
   async fetchWithAuth(url: string, options: any = {}) {
@@ -639,10 +676,12 @@ export const authUtils = {
     }
 
     const headers = new Headers(options.headers || {});
-    if (token && token !== 'GUEST_MODE') {
+    if (token) {
       headers.set('Authorization', `Bearer ${token}`);
+      if (token === 'GUEST_MODE') {
+        headers.set('X-Guest-Access', 'true');
+      }
     } else {
-      // In Guest mode, we still send GUEST_MODE header to tell the backend
       headers.set('X-Guest-Access', 'true');
     }
 

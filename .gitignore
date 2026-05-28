@@ -201,3 +201,7 @@ backend_log.txt
 
 # Local gcloud config
 .gcloud/
+
+# Local documents & secrets
+docs/document/
+docs/document/*
