@@ -44,10 +44,7 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
              .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-              .csrf(csrf -> csrf
-                  .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-                  .ignoringRequestMatchers("/api/auth/**", "/ws/**")
-              )
+              .csrf(csrf -> csrf.disable())
              .sessionManagement(session -> 
                  session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
              // Security headers configuration
