@@ -38,5 +38,33 @@
   {
     "task": "core knowledge and browser as primary self-sufficient ai systems",
     "solution": "[SupremeAI Core — Self-Sufficient AI Architecture]\n\nPROBLEM: System relied heavily on third-party AI providers which could be unavailable or slow.\n\nSOLUTION: Established a two-tier primary system with graceful degradation:\n\nTIER 1 - CORE KNOWLEDGE (PRIMARY):\n- Local knowledge seed at config/core_knowledge.json\n- Must solve every single work independently\n- No external dependencies required\n\nTIER 2 - BROWSER (SECONDARY):\n- Playwright-based web automation\n- triggerBrowserAutomationAndLearn() function for real-time data\n- Semantic intent classification for optimized extraction\n- Never blocks operation\n\nTIER 3 - THIRD-PARTY AI (OPTIONAL):\n- Enhancement-only, never blocks operation\n- System continues with Core Knowledge + Browser if unavailable\n\nIMPLEMENTATION:\n- generateSmartAIResponse() follows: Core Knowledge → Browser → Helper AI → Fallback\n- Graceful degradation ensures continuous operation\n- No single point of failure\n\nVERIFICATION: System operational in resilience mode with Core Knowledge + Browser only."
+  },
+  {
+    "task": "flutter mobile app create widget dart development build",
+    "solution": "[SupremeAI Core — Flutter App Development]\n\nStep 1: Install Flutter SDK\n```\ngit clone https://github.com/flutter/flutter.git\nexport PATH=\"$PATH:`pwd`/flutter/bin\"\nflutter doctor\n```\n\nStep 2: Create a new project\n```\nflutter create my_app\ncd my_app\nflutter run\n```\n\nStep 3: Key files\n- lib/main.dart — App entry point\n- pubspec.yaml — Dependencies\n- android/ & ios/ — Platform code\n\nStep 4: Basic Widget\n```dart\nimport 'package:flutter/material.dart';\n\nvoid main() => runApp(MaterialApp(\n  home: Scaffold(\n    appBar: AppBar(title: Text('My App')),\n    body: Center(child: Text('Hello Flutter!')),\n  ),\n));\n```\n\nStep 5: Build for production\n- Android: flutter build apk\n- iOS: flutter build ios\n- Web: flutter build web"
+  },
+  {
+    "task": "python flask fastapi pip venv programming",
+    "solution": "[SupremeAI Core — Python Development]\n\nSetup:\n```\npython -m venv venv\nsource venv/bin/activate\npip install flask\n```\n\nFlask API Example:\n```python\nfrom flask import Flask, jsonify\napp = Flask(__name__)\n\n@app.route('/api/hello')\ndef hello():\n    return jsonify({'message': 'Hello World!'})\n\nif __name__ == '__main__':\n    app.run(debug=True)\n```\n\nFastAPI (Modern):\n```python\nfrom fastapi import FastAPI\napp = FastAPI()\n\n@app.get('/hello/{name}')\nasync def hello(name: str):\n    return {'message': f'Hello {name}!'}\n```"
+  },
+  {
+    "task": "docker container build image deploy dockerfile kubernetes",
+    "solution": "[SupremeAI Core — Docker Guide]\n\nDockerfile:\n```dockerfile\nFROM node:18-alpine\nWORKDIR /app\nCOPY package*.json ./\nRUN npm install\nCOPY . .\nEXPOSE 3000\nCMD [\"npm\", \"start\"]\n```\n\nCommands:\n- docker build -t myapp .\n- docker run -p 3000:3000 myapp\n- docker-compose up -d\n- docker push myapp:latest"
+  },
+  {
+    "task": "git version control commit push pull branch merge clone",
+    "solution": "[SupremeAI Core — Git Guide]\n\nEssential Commands:\n- git init — Initialize repo\n- git clone <url> — Clone remote\n- git add . — Stage changes\n- git commit -m \"message\" — Commit\n- git push origin main — Push\n- git pull — Pull latest\n- git branch feature-x — Create branch\n- git checkout feature-x — Switch branch\n- git merge feature-x — Merge\n- git log --oneline — View history\n\nBranching: Use main for production, develop for staging, feature/* for new work."
+  },
+  {
+    "task": "node nodejs express npm backend server",
+    "solution": "[SupremeAI Core — Node.js Guide]\n\nSetup:\n```\nnpm init -y\nnpm install express\n```\n\nExpress API:\n```javascript\nconst express = require('express');\nconst app = express();\napp.use(express.json());\n\napp.get('/api/users', (req, res) => {\n  res.json([{id: 1, name: 'John'}]);\n});\n\napp.listen(3000, () => console.log('Server on port 3000'));\n```"
+  },
+  {
+    "task": "deploy hosting production publish vercel netlify cloud",
+    "solution": "[SupremeAI Core — Deployment Guide]\n\nDeployment Options:\n- Firebase Hosting: firebase deploy\n- Vercel: npx vercel\n- Netlify: npx netlify deploy --prod\n- Google Cloud Run: gcloud run deploy\n- Docker: docker build && docker push\n- GitHub Pages: Push to gh-pages branch\n\nPre-deploy checklist:\n1. Run tests\n2. Build production bundle\n3. Set environment variables\n4. Configure domain/DNS\n5. Enable HTTPS"
+  },
+  {
+    "task": "how to find download files and share using teledrive",
+    "solution": "[SupremeAI Core — File Management, Downloader & Teledrive Sharing]\n\nPROBLEM: System needs clear protocols for finding, downloading, and sharing files over Telegram using Teledrive.\n\nSOLUTION: Implemented the following command and script guidelines for autonomous file orchestration:\n\n1. FINDING FILES:\n   - CLI Search: `find <path> -name \"*filename*\"` or `find <path> -iname \"*filename*\"` (case-insensitive)\n   - Size-based filter: `find <path> -size +100M -size -2G` (files between 100MB and 2GB)\n   - Extension listing: `find <path> -type f -name \"*.iso\"`\n\n2. DOWNLOADING FILES:\n   - Standard Wget: `wget -c -O <output_path> \"<url>\"` (-c resumes incomplete downloads)\n   - Standard Curl: `curl -L -o <output_path> \"<url>\"` (-L follows redirects)\n   - Multi-threaded: `aria2c -x 16 -s 16 -o <output_path> \"<url>\"` (16 connections for max speed)\n\n3. TELEDRIVE & TELEGRAM SHARING:\n   - What is Teledrive: A utility that uses Telegram API to store unlimited files in Telegram channels/chats with custom download links.\n   - Upload via Teledrive CLI: `teledrive upload <file_path>` (generates direct access and shareable download links)\n   - Alternative (telegram-upload): `telegram-upload --to <channel_username_or_id> <file_path>` (uploads files to specific Telegram channels, auto-splitting files above Telegram's limit: 2GB for standard, 4GB for premium)\n\nVERIFICATION: System can search, fetch, and publish download links automatically via CLI adapters."
   }
 ]

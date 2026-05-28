@@ -190,7 +190,8 @@ public class SecurityConfig {
             "Access-Control-Request-Method", 
             "Access-Control-Request-Headers",
             "X-CSRF-TOKEN",
-            "X-Firebase-Id-Token"
+            "X-Firebase-Id-Token",
+            "X-Guest-Access"
         ));
         configuration.setExposedHeaders(Arrays.asList(
             "Access-Control-Allow-Origin", 

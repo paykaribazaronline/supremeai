@@ -52,7 +52,7 @@
     {
       "task": "browser automation and web scraping fallback mechanism",
       "solution": "[SupremeAI Core — Browser Automation & Scraping Fallback]\n\nPROBLEM: Need real-time web data when Core Knowledge has gaps, with fallback when browser is unavailable.\n\nSOLUTION: triggerBrowserAutomationAndLearn() with multiple fallback layers:\n\nPRIMARY MODE - PLAYWRIGHT SIDECAR:\n- Connects to localhost:3001 (BROWSER_AUTOMATION_URL env)\n- POST /navigate to Google Search\n- POST /extract for search links and page content\n- Dynamic semantic prioritization of target domains\n\nFALLBACK MODE - STANDALONE VIRTUAL CRAWLER:\n- Activates when Playwright Sidecar is unreachable\n- Simulates smart Google extraction based on semantic intent\n- Category-specific responses for coding, Bangladesh gov, weather, general\n\nRESPONSE STRUCTURE:\n- scrapedText: Extracted content (max 1500 chars per source)\n- sources: Array of prioritized URLs\n- methodUsed: 'Playwright Sidecar (Google Engine)' or 'Standalone Virtual Crawler (Semantic)'\n- intent: Semantic classification object\n\nVERIFICATION: Both modes tested, graceful fallback working.",
-      "confidence": 0.90,
+      "confidence": 0.9,
       "tags": [
         "browser-automation",
         "scraping",
@@ -112,7 +112,7 @@
     {
       "task": "firebase firestore database operations security rules",
       "solution": "[SupremeAI Core — Firestore Database Operations & Security]\n\nPROBLEM: Need secure, efficient Firestore operations with proper security rules.\n\nSOLUTION: Follow these patterns for Firestore usage:\n\n1. SECURITY RULES (firestore.rules):\n   - Match only authenticated users: match /databases/{db}/documents { allow read, write: if request.auth != null; }\n   - Validate data structure: allow create: if request.resource.dataKeys().hasAll(['name', 'email'])\n   - Prevent unauthorized access: allow read: if resource.data.ownerId == request.auth.uid\n\n2. QUERY PATTERNS:\n   - Use composite indexes for complex queries\n   - Limit query results: .limit(100)\n   - Use orderBy with limit for pagination\n\n3. DATA STRUCTURE:\n   - Use camelCase for field names\n   - Store timestamps as FieldValue.serverTimestamp()\n   - Use subcollections for one-to-many relationships\n\n4. BATCH OPERATIONS:\n   - Use writeBatch for atomic operations\n   - Limit batch size to 500 operations\n\n5. ERROR HANDLING:\n   - Catch Firestore exceptions\n   - Retry on retryable errors\n   - Log errors for debugging\n\n6. PERFORMANCE:\n   - Use get() for single document reads\n   - Use onSnapshot for real-time updates\n   - Denormalize data to avoid joins\n\nVERIFICATION: Security rules deployed and tested.",
-      "confidence": 0.90,
+      "confidence": 0.9,
       "tags": [
         "firebase",
         "firestore",
@@ -131,6 +131,19 @@
         "security",
         "token-management",
         "spring-security"
+      ]
+    },
+    {
+      "task": "how to find download files and share using teledrive",
+      "solution": "[SupremeAI Core — File Management, Downloader & Teledrive Sharing]\n\nPROBLEM: System needs clear protocols for finding, downloading, and sharing files over Telegram using Teledrive.\n\nSOLUTION: Implemented the following command and script guidelines for autonomous file orchestration:\n\n1. FINDING FILES:\n   - CLI Search: `find <path> -name \"*filename*\"` or `find <path> -iname \"*filename*\"` (case-insensitive)\n   - Size-based filter: `find <path> -size +100M -size -2G` (files between 100MB and 2GB)\n   - Extension listing: `find <path> -type f -name \"*.iso\"`\n\n2. DOWNLOADING FILES:\n   - Standard Wget: `wget -c -O <output_path> \"<url>\"` (-c resumes incomplete downloads)\n   - Standard Curl: `curl -L -o <output_path> \"<url>\"` (-L follows redirects)\n   - Multi-threaded: `aria2c -x 16 -s 16 -o <output_path> \"<url>\"` (16 connections for max speed)\n\n3. TELEDRIVE & TELEGRAM SHARING:\n   - What is Teledrive: A utility that uses Telegram API to store unlimited files in Telegram channels/chats with custom download links.\n   - Upload via Teledrive CLI: `teledrive upload <file_path>` (generates direct access and shareable download links)\n   - Alternative (telegram-upload): `telegram-upload --to <channel_username_or_id> <file_path>` (uploads files to specific Telegram channels, auto-splitting files above Telegram's limit: 2GB for standard, 4GB for premium)\n\nVERIFICATION: System can search, fetch, and publish download links automatically via CLI adapters.",
+      "confidence": 0.95,
+      "tags": [
+        "find-file",
+        "download-file",
+        "teledrive",
+        "telegram-upload",
+        "wget-curl",
+        "file-sharing"
       ]
     }
   ]
