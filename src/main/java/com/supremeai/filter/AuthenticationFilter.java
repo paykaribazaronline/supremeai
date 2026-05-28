@@ -57,7 +57,8 @@ public class AuthenticationFilter extends OncePerRequestFilter {
 
         // Skip if already authenticated (e.g., by JwtAuthFilter for backend JWT tokens)
         if (SecurityContextHolder.getContext().getAuthentication() != null &&
-                SecurityContextHolder.getContext().getAuthentication().isAuthenticated()) {
+                SecurityContextHolder.getContext().getAuthentication().isAuthenticated() &&
+                !(SecurityContextHolder.getContext().getAuthentication() instanceof org.springframework.security.authentication.AnonymousAuthenticationToken)) {
             logger.debug("User already authenticated, skipping Firebase token verification");
             filterChain.doFilter(request, response);
             return;
