@@ -41,6 +41,50 @@ public class AutonomousQuestioningEngine {
         return configService.getThreshold("min_clarity", 0.6);
     }
 
+    private boolean isGreeting(String input) {
+        if (input == null) return false;
+        String trimmed = input.trim().toLowerCase();
+        return trimmed.matches("^(hi|hello|hey|greetings|hola|good morning|good afternoon|good evening|assalamualaikum|namaste|hello there|hi there|yo|hello neural|hi neural)(\\s+.*)?$");
+    }
+
+    private boolean isCommonPhrase(String input) {
+        if (input == null) return false;
+        String trimmed = input.trim().toLowerCase();
+        return trimmed.matches("^(thanks|thank you|ok|okay|yes|no|cool|awesome|great|perfect|bye|goodbye)(\\s+.*)?$");
+    }
+
+    public List<String> generateProbableOptions(String input, RequestType type) {
+        List<String> options = new ArrayList<>();
+        String lower = input != null ? input.toLowerCase().trim() : "";
+
+        if (lower.contains("flutter") || lower.contains("mobile")) {
+            options.add("How to create a Flutter app");
+            options.add("Flutter setup & installation");
+            options.add("Integrate Firebase with Flutter");
+        } else if (lower.contains("create") || lower.contains("build") || lower.contains("app")) {
+            options.add("Build a Spring Boot backend app");
+            options.add("Build a React frontend web app");
+            options.add("Build a Flutter mobile app");
+        } else if (lower.contains("database") || lower.contains("schema") || lower.contains("sql")) {
+            options.add("Design a PostgreSQL schema");
+            options.add("Design a MongoDB / Firestore schema");
+            options.add("Database connection setup");
+        } else if (lower.contains("error") || lower.contains("bug") || lower.contains("fix")) {
+            options.add("Fix a NullPointerException");
+            options.add("Fix a CORS policy blocked error");
+            options.add("Debug Spring Security 403 Forbidden");
+        } else if (lower.contains("api") || lower.contains("rest")) {
+            options.add("Design a REST API with GET & POST endpoints");
+            options.add("Spring Security JWT authentication API");
+            options.add("Implement pagination in REST API");
+        } else {
+            options.add("Explain the concept in detail");
+            options.add("Provide a practical code example");
+            options.add("Show step-by-step implementation guide");
+        }
+        return options;
+    }
+
     /**
      * Validate user input and generate clarifying questions if needed
      */
@@ -50,28 +94,48 @@ public class AutonomousQuestioningEngine {
 
             List<String> questions = new ArrayList<>();
             double clarityScore = calculateClarityScore(userInput, requestType);
-            boolean isComplete = clarityScore >= getMinClarityScore();
+            boolean isComplete;
 
-            // Check for missing critical information
-            questions.addAll(checkMissingInformation(userInput, requestType));
+            if (requestType == RequestType.GENERAL_AI) {
+                if (isGreeting(userInput) || isCommonPhrase(userInput)) {
+                    isComplete = true;
+                    clarityScore = 1.0;
+                } else if (userInput != null && userInput.trim().length() >= 3) {
+                    isComplete = true;
+                    clarityScore = 1.0;
+                } else {
+                    isComplete = false;
+                    questions.add("Could you elaborate on your request? The input seems too brief.");
+                }
+            } else {
+                // Check for missing critical information
+                questions.addAll(checkMissingInformation(userInput, requestType));
 
-            // Check for ambiguity
-            questions.addAll(checkAmbiguity(userInput));
+                // Check for ambiguity
+                questions.addAll(checkAmbiguity(userInput));
 
-            // Check for conflicting information
-            questions.addAll(checkConflicts(userInput));
-            
-            // S3 Enhancement: Check for missing context or "low-effort" prompts
-            questions.addAll(checkContextualCompleteness(userInput, requestType));
+                // Check for conflicting information
+                questions.addAll(checkConflicts(userInput));
+                
+                // S3 Enhancement: Check for missing context or "low-effort" prompts
+                questions.addAll(checkContextualCompleteness(userInput, requestType));
+
+                isComplete = (clarityScore >= getMinClarityScore()) && questions.isEmpty();
+            }
 
             ValidationResult result = new ValidationResult();
             result.setOriginalInput(userInput);
             result.setRequestType(requestType);
             result.setClarityScore(clarityScore);
-            result.setComplete(isComplete && questions.isEmpty());
+            result.setComplete(isComplete);
             result.setClarifyingQuestions(questions);
+            if (!isComplete) {
+                result.setOptions(generateProbableOptions(userInput, requestType));
+            } else {
+                result.setOptions(Collections.emptyList());
+            }
 
-            logger.info("Validation complete. Clarity: {}, Questions: {}", clarityScore, questions.size());
+            logger.info("Validation complete. Clarity: {}, Questions: {}, Options: {}", clarityScore, questions.size(), result.getOptions().size());
             return result;
         }).subscribeOn(Schedulers.boundedElastic());
     }
@@ -346,6 +410,7 @@ public class AutonomousQuestioningEngine {
         private double clarityScore;
         private boolean isComplete;
         private List<String> clarifyingQuestions;
+        private List<String> options;
 
         public String getOriginalInput() { return originalInput; }
         public void setOriginalInput(String originalInput) { this.originalInput = originalInput; }
@@ -361,6 +426,9 @@ public class AutonomousQuestioningEngine {
 
         public List<String> getClarifyingQuestions() { return clarifyingQuestions; }
         public void setClarifyingQuestions(List<String> clarifyingQuestions) { this.clarifyingQuestions = clarifyingQuestions; }
+
+        public List<String> getOptions() { return options; }
+        public void setOptions(List<String> options) { this.options = options; }
 
         public boolean hasQuestions() { return clarifyingQuestions != null && !clarifyingQuestions.isEmpty(); }
     }

@@ -88,10 +88,11 @@ public class ChatController {
         if (!skipValidation) {
             validationMono = questioningEngine.validateAndQuestion(message, AutonomousQuestioningEngine.RequestType.GENERAL_AI)
                 .flatMap(validation -> {
-                    if (validation != null && !validation.isComplete() && validation.hasQuestions()) {
+                    if (validation != null && !validation.isComplete()) {
                         Map<String, Object> response = new HashMap<>();
                         response.put("type", "CLARIFICATION_REQUIRED");
                         response.put("questions", validation.getClarifyingQuestions());
+                        response.put("options", validation.getOptions());
                         response.put("clarityScore", validation.getClarityScore());
                         response.put("message", "I need more information before I can give you a quality answer.");
                         return Mono.just(ResponseEntity.ok((Object) response));
@@ -174,6 +175,9 @@ public class ChatController {
             })
             .onErrorResume(e -> {
                 logger.error("Failed to get response via voting system. Routing to intelligent offline fallback pipeline...", e);
+                if (neuralChatService == null) {
+                    return Mono.just(ResponseEntity.status(503).body((Object) Map.of("error", "AI services temporarily unavailable")));
+                }
                 return neuralChatService.generateIntelligentResponse(message)
                     .map(neuralResponse -> {
                         Map<String, Object> response = new HashMap<>();
@@ -190,6 +194,10 @@ public class ChatController {
                         response.put("intent", intent.name());
 
                         return ResponseEntity.ok((Object) response);
+                    })
+                    .onErrorResume(err -> {
+                        logger.error("Intelligent fallback pipeline failed as well: {}", err.getMessage());
+                        return Mono.just(ResponseEntity.status(503).body((Object) Map.of("error", "AI services temporarily unavailable")));
                     });
             });
     }
