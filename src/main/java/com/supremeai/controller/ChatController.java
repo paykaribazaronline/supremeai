@@ -60,6 +60,9 @@ public class ChatController {
     @Autowired
     private com.supremeai.service.ContextSummarizerService summarizerService;
 
+    @Autowired
+    private com.supremeai.service.NeuralChatService neuralChatService;
+
     private final CircuitBreaker aiCircuitBreaker;
     private final Retry aiRetry;
 
@@ -106,8 +109,24 @@ public class ChatController {
     private Mono<ResponseEntity<Object>> executeVotingAndResponse(ChatRequest request, String message) {
         return votingService.executeEnsembleVoting(message, null, 15000L)
             .flatMap(votingResult -> {
-                if (votingResult == null) {
-                    return Mono.just(ResponseEntity.status(503).body((Object) Map.of("error", "AI services returned no result")));
+                if (votingResult == null || votingResult.getBestResponse() == null) {
+                    return neuralChatService.generateIntelligentResponse(message)
+                        .map(neuralResponse -> {
+                            Map<String, Object> response = new HashMap<>();
+                            response.put("message", neuralResponse.getAnswer());
+                            response.put("confidence", neuralResponse.getConfidence());
+                            response.put("sources", neuralResponse.getSources());
+                            response.put("tier", neuralResponse.getTier());
+                            response.put("pipeline", neuralResponse.getPipeline());
+                            response.put("localMode", true);
+
+                            // Intent classification
+                            var intent = intelligenceService.classifyIntent(message);
+                            response.put("mode", intent.name().toLowerCase());
+                            response.put("intent", intent.name());
+
+                            return ResponseEntity.ok((Object) response);
+                        });
                 }
 
                 String bestResponse = votingResult.getBestResponse();
@@ -154,54 +173,24 @@ public class ChatController {
                 return Mono.just(ResponseEntity.ok((Object) response));
             })
             .onErrorResume(e -> {
-                logger.error("Failed to get response via voting system", e);
-                CircuitBreaker.State circuitState = aiCircuitBreaker.getState();
-                if (consensusService != null && circuitState != CircuitBreaker.State.OPEN) {
-                    return providerRepository.findByStatus("active")
-                        .map(p -> p.getName() != null ? p.getName().toLowerCase() : "")
-                        .filter(name -> !name.isEmpty())
-                        .collectList()
-                        .flatMap(activeProviders -> {
-                            if (activeProviders.isEmpty()) {
-                                logger.warn("[CIRCUIT-FALLBACK] No active providers available for consensus");
-                                return Mono.just(ResponseEntity.status(503).body((Object) Map.of(
-                                    "error", "AI services temporarily unavailable — no active providers configured",
-                                    "circuitBreakerState", circuitState.name(),
-                                    "retryAfter", 60
-                                )));
-                            }
-                            return consensusService.askConsensus(message, activeProviders, 10000L)
-                                .map(res -> {
-                                    if (res != null) {
-                                        return ResponseEntity.ok((Object) Map.of(
-                                            "message", res.getConsensusAnswer(),
-                                            "confidence", res.getAverageConfidence(),
-                                            "fallback", true,
-                                            "circuitBreakerState", circuitState.name()
-                                        ));
-                                    }
-                                    return ResponseEntity.status(503).body((Object) Map.of(
-                                        "error", "AI services temporarily unavailable",
-                                        "circuitBreakerState", circuitState.name(),
-                                        "retryAfter", 60
-                                    ));
-                                });
-                        })
-                        .onErrorResume(ex -> {
-                            logger.error("Fallback consensus also failed", ex);
-                            return Mono.just(ResponseEntity.status(503).body((Object) Map.of(
-                                "error", "AI services temporarily unavailable",
-                                "circuitBreakerState", circuitState.name(),
-                                "retryAfter", 60
-                            )));
-                        });
-                }
+                logger.error("Failed to get response via voting system. Routing to intelligent offline fallback pipeline...", e);
+                return neuralChatService.generateIntelligentResponse(message)
+                    .map(neuralResponse -> {
+                        Map<String, Object> response = new HashMap<>();
+                        response.put("message", neuralResponse.getAnswer());
+                        response.put("confidence", neuralResponse.getConfidence());
+                        response.put("sources", neuralResponse.getSources());
+                        response.put("tier", neuralResponse.getTier());
+                        response.put("pipeline", neuralResponse.getPipeline());
+                        response.put("localMode", true);
 
-                return Mono.just(ResponseEntity.status(503).body((Object) Map.of(
-                    "error", "AI services temporarily unavailable",
-                    "circuitBreakerState", circuitState.name(),
-                    "retryAfter", 60
-                )));
+                        // Intent classification
+                        var intent = intelligenceService.classifyIntent(message);
+                        response.put("mode", intent.name().toLowerCase());
+                        response.put("intent", intent.name());
+
+                        return ResponseEntity.ok((Object) response);
+                    });
             });
     }
 
@@ -341,7 +330,7 @@ public class ChatController {
         if (sessionId == null || sessionId.trim().isEmpty()) {
             sessionId = "default-session";
         }
-        
+
         String finalSessionId = sessionId;
         String userMessage = request.getMessage();
 
@@ -361,7 +350,7 @@ public class ChatController {
                     String role = pastMsg.getRole() != null ? pastMsg.getRole() : (pastMsg.isAdmin() ? "admin" : "user");
                     fullHistoryBuilder.append(role.toUpperCase()).append(": ").append(pastMsg.getContent()).append("\n");
                 }
-                
+
                 if (history.isEmpty() || !history.get(history.size() - 1).getContent().equals(userMessage)) {
                     fullHistoryBuilder.append("USER: ").append(userMessage).append("\n");
                 }
@@ -375,15 +364,39 @@ public class ChatController {
 
                 return votingService.executeEnsembleVoting(contextualPrompt, null, 15000L)
                     .flatMap(votingResult -> {
-                        String bestResponse = (votingResult != null) ? votingResult.getBestResponse() : null;
-                        if (bestResponse == null) {
-                            return Mono.error(new RuntimeException("AI services returned no result"));
+                        String rawResponse = (votingResult != null) ? votingResult.getBestResponse() : null;
+                        if (rawResponse == null) {
+                            return neuralChatService.generateIntelligentResponse(userMessage)
+                                .flatMap(neuralResponse -> {
+                                    String bestResponse = neuralResponse.getAnswer();
+                                    ChatMessage aiMsg = new ChatMessage();
+                                    aiMsg.setId(java.util.UUID.randomUUID().toString());
+                                    aiMsg.setUserId(finalSessionId);
+                                    aiMsg.setContent(bestResponse);
+                                    aiMsg.setRole("ai");
+                                    aiMsg.setTimestamp(LocalDateTime.now());
+
+                                    return chatHistoryRepository.save(aiMsg)
+                                        .map(savedAiMsg -> {
+                                            Map<String, Object> response = new HashMap<>();
+                                            response.put("success", true);
+                                            response.put("message", "success");
+                                            response.put("response", bestResponse);
+                                            response.put("sessionId", finalSessionId);
+                                            response.put("timestamp", java.time.Instant.now().toString());
+                                            response.put("localMode", true);
+                                            response.put("sources", neuralResponse.getSources());
+                                            response.put("tier", neuralResponse.getTier());
+                                            response.put("pipeline", neuralResponse.getPipeline());
+                                            return ResponseEntity.ok((Object) response);
+                                        });
+                                });
                         }
 
                         ChatMessage aiMsg = new ChatMessage();
                         aiMsg.setId(java.util.UUID.randomUUID().toString());
                         aiMsg.setUserId(finalSessionId);
-                        aiMsg.setContent(bestResponse);
+                        aiMsg.setContent(rawResponse);
                         aiMsg.setRole("ai");
                         aiMsg.setTimestamp(LocalDateTime.now());
 
@@ -392,35 +405,60 @@ public class ChatController {
                                 Map<String, Object> response = new HashMap<>();
                                 response.put("success", true);
                                 response.put("message", "success");
-                                response.put("response", bestResponse);
+                                response.put("response", rawResponse);
                                 response.put("sessionId", finalSessionId);
                                 response.put("timestamp", java.time.Instant.now().toString());
+                                response.put("localMode", true);
                                 return ResponseEntity.ok((Object) response);
                             });
                     });
             })
             .onErrorResume(e -> {
                 logger.error("Failed to process chat with history for session: {}", finalSessionId, e);
-                
-                String fallbackResponse = "আমি দুঃখিত, এই মুহূর্তে আমি উত্তর দিতে পারছি না। (AI Error: " + e.getMessage() + ")";
-                
-                ChatMessage aiMsg = new ChatMessage();
-                aiMsg.setId(java.util.UUID.randomUUID().toString());
-                aiMsg.setUserId(finalSessionId);
-                aiMsg.setContent(fallbackResponse);
-                aiMsg.setRole("ai");
-                aiMsg.setTimestamp(LocalDateTime.now());
 
-                return chatHistoryRepository.save(aiMsg)
-                    .map(savedAiMsg -> {
-                        Map<String, Object> response = new HashMap<>();
-                        response.put("success", false);
-                        response.put("message", e.getMessage());
-                        response.put("response", fallbackResponse);
-                        response.put("sessionId", finalSessionId);
-                        response.put("timestamp", java.time.Instant.now().toString());
-                        return ResponseEntity.ok((Object) response);
+                return neuralChatService.generateIntelligentResponse(userMessage)
+                    .flatMap(neuralResponse -> {
+                        String localResponse = neuralResponse.getAnswer();
+
+                        ChatMessage aiMsg = new ChatMessage();
+                        aiMsg.setId(java.util.UUID.randomUUID().toString());
+                        aiMsg.setUserId(finalSessionId);
+                        aiMsg.setContent(localResponse);
+                        aiMsg.setRole("ai");
+                        aiMsg.setTimestamp(LocalDateTime.now());
+
+                        return chatHistoryRepository.save(aiMsg)
+                            .map(savedAiMsg -> {
+                                Map<String, Object> response = new HashMap<>();
+                                response.put("success", true);
+                                response.put("message", "AI temporarily unavailable, using intelligent offline fallback response");
+                                response.put("response", localResponse);
+                                response.put("sessionId", finalSessionId);
+                                response.put("timestamp", java.time.Instant.now().toString());
+                                response.put("localMode", true);
+                                response.put("sources", neuralResponse.getSources());
+                                response.put("tier", neuralResponse.getTier());
+                                response.put("pipeline", neuralResponse.getPipeline());
+                                return ResponseEntity.ok((Object) response);
+                            });
                     });
             });
+    }
+
+    private String generateLocalFallbackResponse(String prompt) {
+        String p = prompt.toLowerCase();
+        if (p.contains("hello") || p.contains("hi") || p.contains("হ্যালো") || p.contains("নমস্কার")) {
+            return "হ্যালো! আমি সুপ্রিমএআই। কোনো বাইরের API কী ছাড়াই আমি আপনার সাহায্য করছি।";
+        } else if (p.contains("help") || p.contains("সাহায্য") || p.contains("কীভাবে")) {
+            return "আমি কীভাবে সাহায্য করতে পারি:\n• কোড লিখতে ও বিশ্লেষণ করতে\n• বাগ ফিক্স করতে\n• প্রজেক্ট গঠন বল্ড করতে";
+        } else if (p.contains("react") || p.contains("javascript")) {
+            return "১. **প্রোজেক্ট সেটআপ**: `npx create-react-app my-app`\n২. **কম্পোনেন্ট**: ফাংশনাল কম্পোনেন্ট ব্যবহার করুন\n৩. **স্টেট**: useState এবং useEffect হুক ব্যবহার করুন";
+        } else if (p.contains("java") || p.contains("spring")) {
+            return "১. **স্প্রিং বুট**: spring initializr ব্যবহার করুন\n২. **REST**: @RestController যোগ করুন\n৩. **ডাটাবেস**: JPA এবং PostgreSQL কনফিগার করুন";
+        }
+        return "🤖 **SupremeAI লোকাল-ফার্স্ট মোড**\n\n" +
+            "কোনো বাইরের AI API ছাড়াই আমি আপনার প্রশ্নের উত্তর দিচ্ছি।\n\n" +
+            "প্রশ্ন: \"" + prompt + "\"\n\n" +
+            "এই মুহূর্তে আমি লোকাল কোড-বেসড রুলস ও কনোথিউম ব্যবহার করছি। আরও নির্দিষ্ট কোনো কিছু জানালে আমি আরও ভালো সাহায্য করতে পারব।";
     }
 }

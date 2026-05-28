@@ -56,21 +56,25 @@ public class ActiveInternetScraper {
         List<Flux<ScrapedIssue>> sources = new ArrayList<>();
         QueryClassifier.QueryClassification classification = queryClassifier.classify(domainName, keywords);
         
-        // General Search
+        // 1. General Wikipedia Search
         sources.add(scrapeWikipediaTargeted(domainName, keywords));
+
+        // 2. DuckDuckGo Web Search Fallback for highly specific general questions
+        String cleanQuery = buildCleanQuery(domainName, keywords);
+        sources.add(scrapeDuckDuckGoFallback(cleanQuery));
         
-        // Code Search
+        // 3. Code Search
         if (classification.isCodeRelated()) {
             sources.add(scrapeStackOverflowTargeted(domainName, keywords));
             sources.add(scrapeGitHubIssuesTargeted(domainName, keywords));
         }
         
-        // Web Dev Search
+        // 4. Web Dev Search
         if (classification.isWebDevRelated()) {
             sources.add(scrapeMDNTargeted(domainName, keywords));
         }
         
-        // Research Search
+        // 5. Research Search
         if (classification.isResearchRelated()) {
             sources.add(scrapeArxivTargeted(domainName, keywords));
         }
@@ -93,11 +97,109 @@ public class ActiveInternetScraper {
         return issues;
     }
 
+    /**
+     * Clean query builder to prevent keyword duplication and improve relevance score
+     */
+    private String buildCleanQuery(String domainName, List<String> keywords) {
+        java.util.Set<String> uniqueWords = new java.util.LinkedHashSet<>();
+        if (domainName != null) {
+            for (String part : domainName.toLowerCase().split("\\s+")) {
+                if (part.length() > 2) uniqueWords.add(part);
+            }
+        }
+        if (keywords != null) {
+            for (String kw : keywords) {
+                if (kw.length() > 2) uniqueWords.add(kw.toLowerCase());
+            }
+        }
+        return uniqueWords.isEmpty() ? "technology" : String.join(" ", uniqueWords);
+    }
+
+    /**
+     * Detect if text contains Bengali characters for dual-language searches
+     */
+    private boolean containsBengali(String text) {
+        if (text == null) return false;
+        for (int i = 0; i < text.length(); i++) {
+            char c = text.charAt(i);
+            if (c >= '\u0980' && c <= '\u09FF') {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * DuckDuckGo General Web Scraper - free, zero API keys, handles everything Wikipedia misses
+     */
+    private Flux<ScrapedIssue> scrapeDuckDuckGoFallback(String query) {
+        String url = "https://html.duckduckgo.com/html/?q=" + URLEncoder.encode(query, StandardCharsets.UTF_8);
+        return webClient.get()
+                .uri(url)
+                .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
+                .header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
+                .retrieve()
+                .bodyToMono(String.class)
+                .flatMapMany(html -> {
+                    List<ScrapedIssue> results = new ArrayList<>();
+                    try {
+                        int index = 0;
+                        while ((index = html.indexOf("class=\"result__snippet\"", index)) != -1) {
+                            int snippetStart = html.indexOf(">", index) + 1;
+                            int snippetEnd = html.indexOf("</a>", snippetStart);
+                            if (snippetEnd == -1) break;
+                            String snippet = html.substring(snippetStart, snippetEnd)
+                                    .replaceAll("<[^>]*>", "")
+                                    .replaceAll("&amp;", "&")
+                                    .replaceAll("&quot;", "\"")
+                                    .trim();
+
+                            int resultBodyStart = html.lastIndexOf("class=\"result__body\"", index);
+                            String title = "Web Result";
+                            if (resultBodyStart != -1) {
+                                int titleLinkStart = html.indexOf("class=\"result__a\"", resultBodyStart);
+                                if (titleLinkStart != -1 && titleLinkStart < index) {
+                                    int titleStart = html.indexOf(">", titleLinkStart) + 1;
+                                    int titleEnd = html.indexOf("</a>", titleStart);
+                                    if (titleEnd != -1) {
+                                        title = html.substring(titleStart, titleEnd)
+                                                .replaceAll("<[^>]*>", "")
+                                                .replaceAll("&amp;", "&")
+                                                .replaceAll("&quot;", "\"")
+                                                .trim();
+                                    }
+                                }
+                            }
+
+                            if (!snippet.isEmpty() && snippet.length() > 30) {
+                                ScrapedIssue issue = new ScrapedIssue(title, snippet, "Web Search");
+                                issue.setSolution(snippet);
+                                issue.setSourceAuthority(SourceAuthority.FORUMS.getWeight());
+                                issue.setRawConfidence(0.65);
+                                results.add(issue);
+                            }
+                            index = snippetEnd;
+                            if (results.size() >= 3) break;
+                        }
+                    } catch (Exception e) {
+                        log.error("Failed to parse DuckDuckGo HTML: {}", e.getMessage());
+                    }
+                    return Flux.fromIterable(results);
+                })
+                .onErrorResume(e -> {
+                    log.warn("DuckDuckGo HTML search failed: {}", e.getMessage());
+                    return Flux.empty();
+                });
+    }
+
     private Flux<ScrapedIssue> scrapeWikipediaTargeted(String domainName, List<String> keywords) {
-        String query = domainName + " " + String.join(" ", keywords);
+        String cleanQuery = buildCleanQuery(domainName, keywords);
+        String wikiSubdomain = containsBengali(cleanQuery) ? "bn" : "en";
+        
         String url = String.format(
-            "https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=%s&srlimit=%d&format=json",
-            URLEncoder.encode(query, StandardCharsets.UTF_8),
+            "https://%s.wikipedia.org/w/api.php?action=query&list=search&srsearch=%s&srlimit=%d&format=json",
+            wikiSubdomain,
+            URLEncoder.encode(cleanQuery, StandardCharsets.UTF_8),
             wikiLimit
         );
 
@@ -115,7 +217,7 @@ public class ActiveInternetScraper {
                                 String title = item.path("title").textValue();
                                 String snippet = item.path("snippet").textValue().replaceAll("<[^>]*>", "");
                                 
-                                ScrapedIssue issue = new ScrapedIssue(title, snippet, "Wikipedia");
+                                ScrapedIssue issue = new ScrapedIssue(title, snippet, "Wikipedia (" + wikiSubdomain.toUpperCase() + ")");
                                 issue.setSourceAuthority(SourceAuthority.WIKIPEDIA.getWeight());
                                 issue.setRawConfidence(0.7 + (new Random().nextDouble() * 0.2));
                                 issues.add(issue);
@@ -127,19 +229,24 @@ public class ActiveInternetScraper {
                         return Flux.empty();
                     }
                 })
-                .flatMap(issue -> fetchWikipediaSummaryReactive(issue.getTitle())
+                .flatMap(issue -> fetchWikipediaSummaryReactive(issue.getTitle(), wikiSubdomain)
                         .map(summary -> {
                             if (summary != null && !summary.isEmpty()) {
                                 issue.setSolution(summary);
                             }
                             return issue;
                         })
-                        .defaultIfEmpty(issue));
+                        .defaultIfEmpty(issue))
+                .onErrorResume(e -> {
+                    log.error("Wikipedia search failed gracefully: {}", e.getMessage());
+                    return Flux.empty();
+                });
     }
 
-    private Mono<String> fetchWikipediaSummaryReactive(String title) {
+    private Mono<String> fetchWikipediaSummaryReactive(String title, String wikiSubdomain) {
         String url = String.format(
-            "https://en.wikipedia.org/api/rest_v1/page/summary/%s",
+            "https://%s.wikipedia.org/api/rest_v1/page/summary/%s",
+            wikiSubdomain,
             URLEncoder.encode(title, StandardCharsets.UTF_8)
         );
         return webClient.get()
