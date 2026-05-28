@@ -12,6 +12,8 @@ import jakarta.validation.constraints.NotBlank;
 @Document(collectionName = "system_learning")
 public class SystemLearning {
     @DocumentId
+    private String docId;
+
     private String id;
 
     @NotBlank(message = "Topic is required and cannot be blank")
@@ -61,8 +63,11 @@ public class SystemLearning {
     }
 
     // Getters and Setters
-    public String getId() { return id; }
-    public void setId(String id) { this.id = id; }
+    public String getId() { return id != null ? id : docId; }
+    public void setId(String id) {
+        this.id = id;
+        this.docId = id;
+    }
     public String getTopic() { return topic; }
     public void setTopic(String topic) { this.topic = topic; }
     public String getCategory() { return category; }
