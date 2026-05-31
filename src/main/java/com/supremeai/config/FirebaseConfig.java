@@ -147,25 +147,13 @@ public class FirebaseConfig {
             log.warn("Error message: {}", e.getMessage());
             log.warn("========================================================================");
 
-            // Fallback to a dummy service account to prevent app startup/test failures
-            String dummyJson = "{\n" +
-                    "  \"type\": \"service_account\",\n" +
-                    "  \"project_id\": \"" + projectId + "\",\n" +
-                    "  \"private_key_id\": \"dummy\",\n" +
-                    "  \"private_key\": \"-----BEGIN PRIVATE KEY-----\\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQC3\\n-----END PRIVATE KEY-----\\n\",\n" +
-                    "  \"client_email\": \"dummy@" + projectId + ".iam.gserviceaccount.com\"\n" +
-                    "}";
-            try {
-                return GoogleCredentials.fromStream(new ByteArrayInputStream(dummyJson.getBytes(StandardCharsets.UTF_8)))
-                        .createScoped(Collections.singletonList("https://www.googleapis.com/auth/cloud-platform"));
-            } catch (Exception ex) {
-                return new GoogleCredentials() {
-                    @Override
-                    public com.google.auth.oauth2.AccessToken refreshAccessToken() throws IOException {
-                        return new com.google.auth.oauth2.AccessToken("", new java.util.Date(0));
-                    }
-                };
-            }
+            // Return anonymous credentials to allow app startup without real credentials
+            return new GoogleCredentials() {
+                @Override
+                public com.google.auth.oauth2.AccessToken refreshAccessToken() throws IOException {
+                    return new com.google.auth.oauth2.AccessToken("", new java.util.Date(0));
+                }
+            };
         }
     }
 
@@ -177,7 +165,10 @@ public class FirebaseConfig {
         try (stream) {
             byte[] bytes = stream.readAllBytes();
             String content = new String(bytes, StandardCharsets.UTF_8);
-            if (content.contains("YOUR_PRIVATE_KEY_HERE") || content.contains("YOUR_PRIVATE_KEY_ID_HERE")) {
+            if (content.contains("YOUR_PRIVATE_KEY_HERE") 
+                    || content.contains("YOUR_PRIVATE_KEY_ID_HERE")
+                    || content.contains("REPLACE_WITH_ACTUAL_KEY_FROM_SECRET_MANAGER")
+                    || content.contains("REPLACE_WITH_SECRET_MANAGER")) {
                 log.warn("Firebase: Detected placeholder in classpath file '{}'. Ignoring.", name);
                 return null;
             }
