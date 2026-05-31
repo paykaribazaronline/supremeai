@@ -35,7 +35,7 @@ import java.util.Arrays;
  * Real writes happen via scripts/seed/*.js (Node.js, uses Firebase Admin SDK).
  */
 @Component
-@Profile("!local & !test")
+@Profile("!local & !test & !sandbox")
 public class SeedDataValidator implements CommandLineRunner {
 
     private final UserRepository       userRepository;
