@@ -128,12 +128,24 @@
     </springProfile>
 
     <!-- Production/Default profile (with file logging) -->
-    <springProfile name="!cloud &amp; !dev &amp; !test">
+    <springProfile name="!cloud &amp; !dev &amp; !test &amp; !local &amp; !sandbox">
         <root level="INFO">
             <appender-ref ref="CONSOLE"/>
             <appender-ref ref="ASYNC_FILE"/>
             <appender-ref ref="SENTRY"/>
             <appender-ref ref="CLOUD_LOGGING"/>
+        </root>
+    </springProfile>
+
+    <springProfile name="local">
+        <root level="DEBUG">
+            <appender-ref ref="CONSOLE"/>
+        </root>
+    </springProfile>
+
+    <springProfile name="sandbox">
+        <root level="INFO">
+            <appender-ref ref="CONSOLE"/>
         </root>
     </springProfile>
 
