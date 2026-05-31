@@ -509,6 +509,9 @@ public class SelfHealingService {
         }
     }
 
+    @Autowired
+    private org.springframework.core.env.Environment env;
+
     /**
      * Perform initial health check after application is fully ready.
      * Uses @Async to avoid blocking the main startup thread.
@@ -516,6 +519,10 @@ public class SelfHealingService {
     @EventListener(ApplicationReadyEvent.class)
     @Async
     public void onApplicationReady() {
+        if (env != null && java.util.Arrays.asList(env.getActiveProfiles()).contains("test")) {
+            log.info("[SELF-HEALING] Test profile active. Skipping proactive health check to avoid shutdown conflicts.");
+            return;
+        }
         log.info("[SELF-HEALING] Application ready - triggering initial health check in 10 seconds...");
         try {
             TimeUnit.SECONDS.sleep(10);

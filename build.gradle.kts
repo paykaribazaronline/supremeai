@@ -128,6 +128,7 @@ dependencies {
     implementation("io.opentelemetry:opentelemetry-api:1.36.0")
     implementation("io.opentelemetry:opentelemetry-sdk:1.36.0")
     implementation("io.opentelemetry:opentelemetry-exporter-otlp:1.36.0")
+    implementation("com.google.cloud:google-cloud-logging-logback")
     
     // Redis caching
     implementation("org.springframework.boot:spring-boot-starter-data-redis")
@@ -185,6 +186,12 @@ tasks.withType<JavaExec> {
         "--add-opens", "java.base/java.util=ALL-UNNAMED",
         "--add-opens", "java.base/java.lang=ALL-UNNAMED"
     )
+}
+
+tasks.bootRun {
+    systemProperty("spring.profiles.active", "local")
+    environment("FIRESTORE_EMULATOR_HOST", "127.0.0.1:8081")
+    environment("FIREBASE_AUTH_EMULATOR_HOST", "127.0.0.1:9099")
 }
 
 tasks.test {
