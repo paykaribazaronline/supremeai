@@ -38,6 +38,9 @@ class NeuralChatServiceTest {
     @Mock
     private StubLocalProvider stubLocalProvider;
 
+    @Mock
+    private UnifiedOfflineKnowledgeService unifiedOfflineKnowledgeService;
+
     private NeuralChatService neuralChatService;
 
     @BeforeEach
@@ -48,6 +51,7 @@ class NeuralChatServiceTest {
                 internetScraper,
                 queryClassifier,
                 stubLocalProvider,
+                unifiedOfflineKnowledgeService,
                 webClientBuilder
         );
     }
