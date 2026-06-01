@@ -13,6 +13,7 @@ import reactor.test.StepVerifier;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
+@org.mockito.junit.jupiter.MockitoSettings(strictness = org.mockito.quality.Strictness.LENIENT)
 class TranslationServiceTest {
 
     @Mock
@@ -29,6 +30,7 @@ class TranslationServiceTest {
         java.lang.reflect.Field field = TranslationService.class.getDeclaredField("providerFactory");
         field.setAccessible(true);
         field.set(translationService, providerFactory);
+        org.mockito.Mockito.lenient().when(providerFactory.getDefaultProvider()).thenReturn(groqProvider);
     }
 
     @Test

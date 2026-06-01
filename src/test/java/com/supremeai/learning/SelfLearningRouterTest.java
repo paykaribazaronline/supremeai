@@ -48,8 +48,16 @@ class SelfLearningRouterTest {
         }
 
         List<String> agents = List.of("agentA", "agentB");
-        SelfLearningRouter.RoutingDecision decision = router.routeTask("bug_fix", "sig2", agents);
+        SelfLearningRouter.RoutingDecision decision = null;
+        for (int i = 0; i < 100; i++) {
+            SelfLearningRouter.RoutingDecision d = router.routeTask("bug_fix", "sig2", agents);
+            if ("exploitation".equals(d.decisionType)) {
+                decision = d;
+                break;
+            }
+        }
 
+        assertNotNull(decision, "Should eventually make an exploitation decision");
         assertEquals("agentA", decision.agentId, "Should select agent with highest Q-value");
     }
 

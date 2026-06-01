@@ -35,6 +35,7 @@ class DiOSAgentTest {
     void setUp() {
         MockitoAnnotations.openMocks(this);
         when(ruleService.wrapWithRules(anyString())).thenAnswer(invocation -> invocation.getArgument(0));
+        lenient().when(providerFactory.getDefaultProvider()).thenReturn(aiProvider);
     }
 
     @Test

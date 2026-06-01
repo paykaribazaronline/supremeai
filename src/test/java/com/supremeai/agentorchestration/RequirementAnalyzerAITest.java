@@ -29,6 +29,7 @@ public class RequirementAnalyzerAITest {
     @BeforeEach
     public void setUp() {
         MockitoAnnotations.openMocks(this);
+        org.mockito.Mockito.lenient().when(providerFactory.getDefaultProvider()).thenReturn(aiProvider);
     }
 
     @Test

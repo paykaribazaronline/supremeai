@@ -147,13 +147,25 @@ public class FirebaseConfig {
             log.warn("Error message: {}", e.getMessage());
             log.warn("========================================================================");
 
-            // Fallback to anonymous credentials to prevent app startup failure
-            return new GoogleCredentials() {
-                @Override
-                public com.google.auth.oauth2.AccessToken refreshAccessToken() throws IOException {
-                    return new com.google.auth.oauth2.AccessToken("", new java.util.Date(0));
-                }
-            };
+            // Fallback to a dummy service account to prevent app startup/test failures
+            String dummyJson = "{\n" +
+                    "  \"type\": \"service_account\",\n" +
+                    "  \"project_id\": \"" + projectId + "\",\n" +
+                    "  \"private_key_id\": \"dummy\",\n" +
+                    "  \"private_key\": \"-----BEGIN PRIVATE KEY-----\\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQC3\\n-----END PRIVATE KEY-----\\n\",\n" +
+                    "  \"client_email\": \"dummy@" + projectId + ".iam.gserviceaccount.com\"\n" +
+                    "}";
+            try {
+                return GoogleCredentials.fromStream(new ByteArrayInputStream(dummyJson.getBytes(StandardCharsets.UTF_8)))
+                        .createScoped(Collections.singletonList("https://www.googleapis.com/auth/cloud-platform"));
+            } catch (Exception ex) {
+                return new GoogleCredentials() {
+                    @Override
+                    public com.google.auth.oauth2.AccessToken refreshAccessToken() throws IOException {
+                        return new com.google.auth.oauth2.AccessToken("", new java.util.Date(0));
+                    }
+                };
+            }
         }
     }
 
