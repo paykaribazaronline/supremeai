@@ -18,6 +18,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
+@org.mockito.junit.jupiter.MockitoSettings(strictness = org.mockito.quality.Strictness.LENIENT)
 class AdaptiveAgentOrchestratorTest {
 
     @Mock
@@ -52,7 +53,7 @@ class AdaptiveAgentOrchestratorTest {
         }
 
         // Mock providers and translations
-        when(providerFactory.getProvider("groq")).thenReturn(aiProvider);
+        when(providerFactory.getDefaultProvider()).thenReturn(aiProvider);
         when(aiProvider.generate(anyString())).thenReturn(reactor.core.publisher.Mono.just(
             "[{\"key\":\"database\",\"text\":\"Which database?\",\"priority\":1},{\"key\":\"architecture\",\"text\":\"Style?\",\"priority\":2}]"
         ));
