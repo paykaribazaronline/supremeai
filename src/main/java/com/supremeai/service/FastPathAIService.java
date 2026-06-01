@@ -12,9 +12,10 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
 import jakarta.annotation.PostConstruct;
-import jakarta.annotation.PreDestroy;
 import java.time.Duration;
-import java.util.concurrent.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 /**
  * Fast Path AI Service
@@ -36,9 +37,6 @@ public class FastPathAIService {
     }
 
     private CircuitBreaker localCircuitBreaker;
-    // Private local executor — NOT a shared Spring bean.
-    // Safe to shut down in @PreDestroy without affecting other services.
-    private final ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor();
 
     @PostConstruct
     public void init() {
@@ -107,28 +105,26 @@ public class FastPathAIService {
 
         CompletableFuture<String> firstResponse = new CompletableFuture<>();
 
-        // Launch all providers in parallel virtual threads
+        // Launch all providers in parallel using Reactor's non-blocking subscription
         for (String providerName : providers) {
-            executor.submit(() -> {
-                try {
-                    AIProvider provider = providerFactory.getProvider(providerName);
-                    String response = resolveResponse(provider.generate(prompt));
-
-                    // Complete immediately on first success
-                    if (!firstResponse.isDone()) {
-                        firstResponse.complete(response);
-                        cacheService.putAiResponse(prompt, response);
-                        logger.debug("First response received from: {}", providerName);
-                    }
-
-                    // Continue running others in background for consensus
-                    return response;
-
-                } catch (Exception e) {
-                    logger.warn("Provider {} failed: {}", providerName, e.getMessage());
-                    return null;
-                }
-            });
+            try {
+                AIProvider provider = providerFactory.getProvider(providerName);
+                provider.generate(prompt)
+                    .subscribeOn(reactor.core.scheduler.Schedulers.boundedElastic())
+                    .subscribe(
+                        response -> {
+                            if (!firstResponse.isDone()) {
+                                firstResponse.complete(response);
+                                logger.debug("First response received from: {}", providerName);
+                            }
+                            // All providers continue in background and populate cache for consensus
+                            cacheService.putAiResponse(prompt, response);
+                        },
+                        error -> logger.warn("Provider {} failed: {}", providerName, error.getMessage())
+                    );
+            } catch (Exception e) {
+                logger.warn("Provider setup failed for {}: {}", providerName, e.getMessage());
+            }
         }
 
         try {
@@ -155,22 +151,6 @@ public class FastPathAIService {
         } catch (Exception e) {
             logger.warn("resolveResponse timed out or failed: {}", e.getMessage());
             return "";
-        }
-    }
-
-    @PreDestroy
-    public void shutdown() {
-        logger.info("Shutting down FastPathAIService executor...");
-        executor.shutdown();
-        try {
-            if (!executor.awaitTermination(30, TimeUnit.SECONDS)) {
-                logger.warn("FastPathAIService executor did not terminate in time, forcing shutdown");
-                executor.shutdownNow();
-            }
-        } catch (InterruptedException e) {
-            logger.error("Interrupted during FastPathAIService executor shutdown", e);
-            executor.shutdownNow();
-            Thread.currentThread().interrupt();
         }
     }
 }

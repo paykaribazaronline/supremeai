@@ -68,6 +68,15 @@ src/main/resources/firebase-service-account.json
 *.jks
 secrets/
 credentials/
+
+# 🔐 HYBRID WHITELIST FOR HIGH-RISK FOLDERS
+# Ignore everything inside these folders...
+secrets/*
+credentials/*
+# ...but ONLY ALLOW (Whitelist) the safe placeholder/template files!
+!secrets/template.json
+!credentials/.example-keys.json
+
 firebase-key.json
 google-cloud-key.json
 auth-token.txt

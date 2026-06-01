@@ -13,7 +13,7 @@ graph TD
     UserClient([ব্যবহারকারী: ওয়েব/মোবাইল]) -->|১. এপিআই রিকোয়েস্ট| CloudGate[GCP Cloud Run Backend]
     UserClient -->|২. অফলাইন চ্যাট ফলব্যাক| OnDeviceSuperFly[মোবাইল ডিভাইস: SuperFly 94M]
 
-    CloudGate -->|ইন্টেলিজেন্ট রাউটিং| SelectionRouter{রাউটার লজিক}
+    CloudGate -->|স্মার্ট ইন্টেন্ট অ্যানালিসিস| SelectionRouter{all-MiniLM-L6-v2\nSemantic Router}
     SelectionRouter -->|স্ট্যান্ডার্ড রিকোয়েস্ট| CloudChickenBrain[GCP VM: ChickenBrain]
     SelectionRouter -->|জটিল/সিকিউর কোডিং| PocketLab[ব্যবহারকারীর লোকাল: Tiny AI Pocket Lab]
     
@@ -77,6 +77,11 @@ graph TD
 - [ ] GCP Compute Engine-এ একটি Ollama কন্টেইনার তৈরি করা।
 - [ ] ChickenBrain মডেলের GGUF/Ollama ফরম্যাট আপলোড ও টেস্ট করা।
 - [ ] [AIFallbackOrchestrator](file:///f:/supremeai/src/main/java/com/supremeai/fallback/AIFallbackOrchestrator.java)-এ ChickenBrain এপিআই কানেকশন যুক্ত করা।
+
+### ফেজ ১.৫: all-MiniLM-L6-v2 সিম্যান্টিক রাউটার ডিপ্লয়মেন্ট
+- [x] Cloud Run-এর জন্য Python FastAPI মাইক্রোসার্ভিস তৈরি করা।
+- [x] Dockerfile ও GCloud ডিপ্লয়মেন্ট স্ক্রিপ্ট যুক্ত করা।
+- [ ] স্প্রিং বুটের AutonomousQuestioningEngine-এর সাথে ক্লাউড রাউটার API কানেক্ট করা।
 
 ### ফেজ ২: Pocket Lab লোকাল টানেলিং
 - [ ] ড্যাশবোর্ডে কাস্টম লোকাল এপিআই নোড রেজিস্টার করার অপশন তৈরি করা।

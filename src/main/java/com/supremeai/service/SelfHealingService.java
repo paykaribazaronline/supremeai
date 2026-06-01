@@ -680,37 +680,52 @@ public class SelfHealingService {
                                 String currentCode = state.getT2();
 
                                 log.info("[SELF-HEALING] Iteration {}: evaluating code", iteration + 1);
-                                if (isCodePerfect(currentCode)) {
-                                    log.info("[SELF-HEALING] Code passed quality gate after {} iterations", iteration + 1);
-                                    return Mono.empty();
-                                }
-
-                                return approvalGate.apply(defaultProviderId)
-                                        .flatMap(approved -> {
-                                            if (approved != null && !approved) {
-                                                log.warn("[SELF-HEALING] Council disapproved changes at iteration {}; returning best-known version.",
-                                                        iteration + 1);
-                                                return Mono.empty(); // Stop loop, return best-known
+                                
+                                return Mono.fromCallable(() -> isCodePerfect(currentCode))
+                                        .subscribeOn(Schedulers.parallel())
+                                        .flatMap(isPerfect -> {
+                                            if (isPerfect) {
+                                                log.info("[SELF-HEALING] Code passed quality gate after {} iterations", iteration + 1);
+                                                return Mono.empty();
                                             }
-                                            log.info("[SELF-HEALING] Iteration {}: approval granted, applying improvement pass", iteration + 1);
-                                            String improved = improveCode(currentCode, prompt, iteration);
 
-                                            if (isCodePerfect(improved)) {
-                                                log.info("[SELF-HEALING] Code passed quality gate after {} improvements", iteration + 1);
-                                                return Mono.just(reactor.util.function.Tuples.of(MAX_ITERATIONS + 99, improved)); // Stop loop via takeUntil
-                                            }
-                                            return Mono.just(reactor.util.function.Tuples.of(iteration + 1, improved));
-                                        })
-                                        .onErrorResume(err -> {
-                                            log.warn("[SELF-HEALING] Approval vote failed at iteration {} (ignoring and continuing): {}",
-                                                    iteration + 1, err.getMessage());
-                                            String improved = improveCode(currentCode, prompt, iteration);
-
-                                            if (isCodePerfect(improved)) {
-                                                log.info("[SELF-HEALING] Code passed quality gate after {} improvements", iteration + 1);
-                                                return Mono.just(reactor.util.function.Tuples.of(MAX_ITERATIONS + 99, improved)); // Stop loop via takeUntil
-                                            }
-                                            return Mono.just(reactor.util.function.Tuples.of(iteration + 1, improved));
+                                            return approvalGate.apply(defaultProviderId)
+                                                    .flatMap(approved -> {
+                                                        if (approved != null && !approved) {
+                                                            log.warn("[SELF-HEALING] Council disapproved changes at iteration {}; returning best-known version.",
+                                                                    iteration + 1);
+                                                            return Mono.empty(); // Stop loop, return best-known
+                                                        }
+                                                        log.info("[SELF-HEALING] Iteration {}: approval granted, applying improvement pass", iteration + 1);
+                                                        
+                                                        return Mono.fromCallable(() -> improveCode(currentCode, prompt, iteration))
+                                                                .subscribeOn(Schedulers.parallel())
+                                                                .flatMap(improved -> Mono.fromCallable(() -> isCodePerfect(improved))
+                                                                        .subscribeOn(Schedulers.parallel())
+                                                                        .map(perfectAfter -> {
+                                                                            if (perfectAfter) {
+                                                                                log.info("[SELF-HEALING] Code passed quality gate after {} improvements", iteration + 1);
+                                                                                return reactor.util.function.Tuples.of(MAX_ITERATIONS + 99, improved); // Stop loop via takeUntil
+                                                                            }
+                                                                            return reactor.util.function.Tuples.of(iteration + 1, improved);
+                                                                        }));
+                                                    })
+                                                    .onErrorResume(err -> {
+                                                        log.warn("[SELF-HEALING] Approval vote failed at iteration {} (ignoring and continuing): {}",
+                                                                iteration + 1, err.getMessage());
+                                                        
+                                                        return Mono.fromCallable(() -> improveCode(currentCode, prompt, iteration))
+                                                                .subscribeOn(Schedulers.parallel())
+                                                                .flatMap(improved -> Mono.fromCallable(() -> isCodePerfect(improved))
+                                                                        .subscribeOn(Schedulers.parallel())
+                                                                        .map(perfectAfter -> {
+                                                                            if (perfectAfter) {
+                                                                                log.info("[SELF-HEALING] Code passed quality gate after {} improvements", iteration + 1);
+                                                                                return reactor.util.function.Tuples.of(MAX_ITERATIONS + 99, improved);
+                                                                            }
+                                                                            return reactor.util.function.Tuples.of(iteration + 1, improved);
+                                                                        }));
+                                                    });
                                         });
                             })
                             .takeUntil(state -> state.getT1() >= MAX_ITERATIONS)

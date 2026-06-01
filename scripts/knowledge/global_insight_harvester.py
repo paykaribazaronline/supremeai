@@ -10,6 +10,8 @@ import os
 import time
 import json
 import hashlib
+import urllib.request
+import xml.etree.ElementTree as ET
 from datetime import datetime
 
 # Import Firebase utilities from seed_lib
@@ -26,7 +28,31 @@ except ImportError:
 # In a real scenario, this would call a search API and an LLM to summarize
 def fetch_global_trends():
     """Simulates fetching real-world data and converting it to system knowledge format."""
-    print("🌐 Searching for global engineering lessons and trends...")
+    print("🌐 Fetching real-world engineering lessons and trends from StackOverflow...")
+    
+    live_trends = []
+    try:
+        # Real integration: StackOverflow recent topics via RSS (No API Key needed)
+        url = "https://stackoverflow.com/feeds/tag?tagnames=architecture+or+outage&sort=newest"
+        req = urllib.request.Request(url, headers={'User-Agent': 'SupremeAI-Harvester'})
+        with urllib.request.urlopen(req, timeout=10) as response:
+            xml_data = response.read()
+            root = ET.fromstring(xml_data)
+            for entry in root.findall('{http://www.w3.org/2005/Atom}entry')[:3]:
+                title = entry.find('{http://www.w3.org/2005/Atom}title').text
+                summary = entry.find('{http://www.w3.org/2005/Atom}summary').text
+                
+                live_trends.append({
+                    "category": "REAL_WORLD_INCIDENT",
+                    "title": title,
+                    "description": summary[:250] + "..." if summary else "No description available.",
+                    "confidence": 0.85,
+                    "severity": "HIGH",
+                    "solutions": ["Analyze architecture dependencies", "Implement resilience patterns"]
+                })
+        return live_trends
+    except Exception as e:
+        print(f"⚠️ Could not fetch live data, falling back to cached trends. Error: {e}")
     
     # These represent 'lessons from the world' that an AI might discover via search
     trends = [

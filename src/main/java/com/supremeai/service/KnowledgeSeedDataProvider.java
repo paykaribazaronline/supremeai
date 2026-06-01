@@ -25,7 +25,8 @@ public class KnowledgeSeedDataProvider {
                 seedCloudAndDeploymentErrors(),
                 seedAiProviderManagement(),
                 seedUserAndPermissionManagement(),
-                seedLocalAiModelSetup()
+                seedLocalAiModelSetup(),
+                seedBrowserAutomationPatterns()
         );
     }
 
@@ -664,6 +665,22 @@ public class KnowledgeSeedDataProvider {
                         + "3. If entry is 365+ days since lastUsed time: escalate to ADMIN_REVIEW\n"
                         + "4. Never remove an entry without a documented replacement",
                     List.of("stale-entry", "upgrade", "validation", "core-knowledge"), false, 0.88)
+        ));
+    }
+
+    private Flux<SystemLearning> seedBrowserAutomationPatterns() {
+        return Flux.fromIterable(List.of(
+            makeLearning("ba-stealth-01", "Browser Stealth & VPN Anti-Tracking", "browser-automation",
+                "[LOCAL-SEED]\n1. When scraping heavily protected sites (Cloudflare, DataDome), activate Stealth Mode.\n2. Pass 'useVpn': true to route the Playwright instance through a random node from the VPN pool.\n3. This prevents IP bans and maintains 100% uptime for autonomous research.",
+                List.of("browser", "stealth", "vpn", "anti-tracking", "playwright"), true, 0.98),
+                
+            makeLearning("ba-hitl-01", "Human-in-the-Loop (HITL) Login Handling", "browser-automation",
+                "[LOCAL-SEED]\n1. If a website prompts for Login or CAPTCHA, Playwright will NOT crash.\n2. The 'humanInTheLoop': true flag pauses the browser session automatically.\n3. User is notified in the Dashboard to manually fill credentials or solve CAPTCHA.\n4. Once resolved, user clicks 'Resume' and scraping continues.",
+                List.of("browser", "human-in-the-loop", "captcha", "login", "pause-resume"), true, 0.95),
+                
+            makeLearning("ba-cookie-01", "Session Cookie Caching", "browser-automation",
+                "[LOCAL-SEED]\n1. Enable 'storeSessionCookies': true for sites requiring authentication.\n2. Once human-in-the-loop login succeeds, the session cookie is saved to Firestore/Local Storage.\n3. Subsequent runs will use the cached cookie to auto-login silently in the background.",
+                List.of("browser", "cookies", "session", "auto-login"), false, 0.94)
         ));
     }
 

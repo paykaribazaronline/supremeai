@@ -1,13 +1,11 @@
 package com.supremeai.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
-import java.util.regex.Pattern;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
@@ -28,7 +26,6 @@ import reactor.core.scheduler.Schedulers;
 public class AutonomousQuestioningEngine {
 
     private static final Logger logger = LoggerFactory.getLogger(AutonomousQuestioningEngine.class);
-    private static final ObjectMapper objectMapper = new ObjectMapper();
 
     // Minimum thresholds for different request types
     @Autowired
@@ -184,15 +181,6 @@ public class AutonomousQuestioningEngine {
                 // Check for missing critical information
                 questions.addAll(checkMissingInformation(userInput, requestType));
 
-                // Check for ambiguity
-                questions.addAll(checkAmbiguity(userInput));
-
-                // Check for conflicting information
-                questions.addAll(checkConflicts(userInput));
-                
-                // S3 Enhancement: Check for missing context or "low-effort" prompts
-                questions.addAll(checkContextualCompleteness(userInput, requestType));
-
                 isComplete = (clarityScore >= getMinClarityScore()) && questions.isEmpty();
             }
 
@@ -228,10 +216,39 @@ public class AutonomousQuestioningEngine {
             return ResponseStrategy.CLARIFY_FIRST;
         }
         
-        // 180-DEGREE SHIFT: 95% Browser Dependency. 
-        // Instead of answering from local DB, almost EVERY query (Factual, Task, Temporal, Creative) 
-        // goes to the Semantic Web Router to fetch the absolute latest data from the best source.
-        return ResponseStrategy.WEB_SEARCH_NEEDED;
+        // Local-first mode check: prefer local responses when enabled
+        boolean localFirst = Boolean.parseBoolean(
+                configService.getEffectiveSetting("supremeai.local-first.enabled", "false")
+        );
+        
+        if (localFirst) {
+            // In local-first mode, route to direct answer for most intents
+            return switch (intent) {
+                case FACTUAL, TASK, CREATIVE -> ResponseStrategy.DIRECT_ANSWER;
+                case CLARIFY -> ResponseStrategy.CLARIFY_FIRST;
+                case TEMPORAL -> ResponseStrategy.WEB_SEARCH_NEEDED;
+                default -> ResponseStrategy.DIRECT_ANSWER;
+            };
+        }
+        
+        // Feature flag checking instead of hardcoded 180-degree shift
+        boolean forceWebSearch = Boolean.parseBoolean(
+                configService.getEffectiveSetting("force_web_search", "false")
+        );
+        
+        if (forceWebSearch) {
+            return ResponseStrategy.WEB_SEARCH_NEEDED;
+        }
+        
+        // Standard logic when web search isn't explicitly forced
+        return switch (intent) {
+            case FACTUAL -> ResponseStrategy.DIRECT_ANSWER;
+            case TASK -> ResponseStrategy.MULTI_TURN_PLAN;
+            case CLARIFY -> ResponseStrategy.CLARIFY_FIRST;
+            case TEMPORAL -> ResponseStrategy.WEB_SEARCH_NEEDED;
+            case CREATIVE -> ResponseStrategy.DIRECT_ANSWER;
+            default -> ResponseStrategy.CLARIFY_FIRST;
+        };
     }
 
     private double calculateClarityScore(String userInput, RequestType requestType) {
@@ -261,23 +278,6 @@ public class AutonomousQuestioningEngine {
             }
         }
         return questions;
-    }
-
-    private List<String> checkAmbiguity(String userInput) {
-        List<String> questions = new ArrayList<>();
-        if (userInput != null && userInput.toLowerCase().contains("it")) {
-            // Very simplistic heuristic for 'it'
-            // questions.add("Could you clarify what 'it' refers to?");
-        }
-        return questions;
-    }
-
-    private List<String> checkConflicts(String userInput) {
-        return new ArrayList<>();
-    }
-
-    private List<String> checkContextualCompleteness(String userInput, RequestType requestType) {
-        return new ArrayList<>();
     }
 
 

@@ -130,7 +130,7 @@ discover_and_infer() {
   if [[ -f "${PROVIDERS_FILE}" ]]; then
     echo "Discovering providers from ${PROVIDERS_FILE}..."
     local count
-    count=$(python3 -c "import json; d=json.load(open('${PROVIDERS_FILE}')); print(len(d.get('providers', d.get('ai_providers', [])) if isinstance(d, dict) else []))" 2>/dev/null || echo 0)
+    count=$(python -c "import json; d=json.load(open('${PROVIDERS_FILE}')); print(len(d.get('providers', d.get('ai_providers', [])) if isinstance(d, dict) else []))" 2>/dev/null || echo 0)
     if [[ "${count}" != "0" ]]; then
       echo "Found ${count} providers in configuration"
       infer "" ""
