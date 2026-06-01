@@ -164,13 +164,13 @@ public class AdminProviderValidationService {
                 .flatMap(allProviders -> {
                     if (allProviders == null || allProviders.isEmpty()) {
                         log.info("testAllProviders: no providers found");
-                        return Mono.just(Map.of("status", "ok", "total", 0, "valid", 0, "failed", 0));
+                        return Mono.just(Map.<String, Object>of("status", "ok", "total", 0, "valid", 0, "failed", 0));
                     }
                     List<APIProvider> activeProviders = allProviders.stream()
                             .filter(p -> "active".equalsIgnoreCase(p.getStatus()) || "rotating".equalsIgnoreCase(p.getStatus()))
                             .collect(java.util.stream.Collectors.toList());
                     if (activeProviders.isEmpty()) {
-                        return Mono.just(Map.of("status", "ok", "total", 0, "valid", 0, "failed", 0,
+                        return Mono.just(Map.<String, Object>of("status", "ok", "total", 0, "valid", 0, "failed", 0,
                                 "note", "no active providers to test"));
                     }
                     int concurrency = Math.min(10, activeProviders.size());
