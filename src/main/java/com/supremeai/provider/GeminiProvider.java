@@ -1,8 +1,12 @@
 package com.supremeai.provider;
 
+import com.supremeai.security.SecretManagerService;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 import java.util.List;
 import java.util.Map;
 
@@ -12,9 +16,12 @@ import java.util.Map;
  */
 @Component
 public class GeminiProvider extends AbstractHttpProvider {
+
+    private static final Logger log = LoggerFactory.getLogger(GeminiProvider.class);
     private static final String API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent";
 
-
+    @Autowired
+    private SecretManagerService secretManagerService;
 
     public GeminiProvider() {
         super("", API_URL, "gemini-1.5-pro");
@@ -28,7 +35,7 @@ public class GeminiProvider extends AbstractHttpProvider {
     protected String getRequestUrl() {
         String key = apiKey;
         if (key == null || key.isBlank()) {
-            key = System.getenv("GEMINI_API_KEY");
+            key = secretManagerService.getSecret("GEMINI_API_KEY");
         }
         return super.getRequestUrl() + "?key=" + key;
     }
@@ -53,7 +60,6 @@ public class GeminiProvider extends AbstractHttpProvider {
         String base64Data = null;
 
         try {
-            // Pattern to match markdown image with base64 data URL
             java.util.regex.Pattern pattern = java.util.regex.Pattern.compile(
                 "(!\\[.*?\\]\\(data:(image\\/[a-zA-Z*\\-+.]+);base64,([^)]+)\\))"
             );
@@ -62,12 +68,10 @@ public class GeminiProvider extends AbstractHttpProvider {
                 String fullMatch = matcher.group(1);
                 mimeType = matcher.group(2);
                 base64Data = matcher.group(3);
-                
-                // Replace the base64 image link with a simpler text reference in the prompt
                 cleanPrompt = prompt.replace(fullMatch, "[Attached Image]");
             }
         } catch (Exception e) {
-            logger.error("Failed to parse image from prompt in GeminiProvider", e);
+            log.error("Failed to parse image from prompt in GeminiProvider", e);
         }
 
         if (base64Data != null && mimeType != null) {

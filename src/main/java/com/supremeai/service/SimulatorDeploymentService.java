@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Mono;
 
 import java.time.Duration;
 import java.util.List;
@@ -60,106 +61,110 @@ public class SimulatorDeploymentService {
     /**
      * Deploy a generated app to the simulator.
      */
-    public String deployToSimulator(String appId, String deviceType) {
+    public Mono<String> deployToSimulator(String appId, String deviceType) {
         logger.info("[SIMULATOR_DEPLOY] Deploying app={} device={}", appId, deviceType);
 
-        try {
-            String deviceSlug = deviceType.toLowerCase().replace("_", "-");
-            String serviceName = "sim-" + appId + "-" + deviceSlug;
-            String serviceNameClean = serviceName.replaceAll("[^a-z0-9-]", "-").toLowerCase();
+        String deviceSlug = deviceType.toLowerCase().replace("_", "-");
+        String serviceName = "sim-" + appId + "-" + deviceSlug;
+        String serviceNameClean = serviceName.replaceAll("[^a-z0-9-]", "-").toLowerCase();
 
-            // Deploy via Admin API
-            String serviceUrl = deployViaAdminApi(serviceNameClean, appId, deviceType);
-
-            // Record deployment in Firestore
-            SimulatorDeploymentRecord record = new SimulatorDeploymentRecord(appId, deviceType, serviceUrl, DeploymentStatus.RUNNING.name());
-            deploymentRepository.save(record).block();
-
-            logger.info("[SIMULATOR_DEPLOY] Deployed app={} url={}", appId, serviceUrl);
-            return serviceUrl;
-
-        } catch (Exception e) {
-            logger.error("[SIMULATOR_DEPLOY] Deployment failed for app {}: {}", appId, e.getMessage(), e);
-            throw new SimulatorDeploymentException("Failed to deploy to Cloud Run: " + e.getMessage(), e);
-        }
+        return deployViaAdminApi(serviceNameClean, appId, deviceType)
+                .flatMap(serviceUrl -> {
+                    SimulatorDeploymentRecord record = new SimulatorDeploymentRecord(appId, deviceType, serviceUrl, DeploymentStatus.RUNNING.name());
+                    return deploymentRepository.save(record)
+                            .thenReturn(serviceUrl)
+                            .doOnSuccess(url -> logger.info("[SIMULATOR_DEPLOY] Deployed app={} url={}", appId, url));
+                })
+                .onErrorMap(e -> {
+                    logger.error("[SIMULATOR_DEPLOY] Deployment failed for app {}: {}", appId, e.getMessage(), e);
+                    return new SimulatorDeploymentException("Failed to deploy to Cloud Run: " + e.getMessage(), e);
+                });
     }
 
     /**
      * Undeploy (remove) a simulator preview.
      */
-    public void undeployFromSimulator(String appId) {
+    public Mono<Void> undeployFromSimulator(String appId) {
         logger.info("[SIMULATOR_DEPLOY] Undeploying app={}", appId);
 
-        SimulatorDeploymentRecord record = deploymentRepository.findById(appId).block();
-        if (record != null) {
-            String deviceSlug = record.getDeviceType().toLowerCase().replace("_", "-");
-            String serviceName = "sim-" + appId + "-" + deviceSlug;
-            String serviceNameClean = serviceName.replaceAll("[^a-z0-9-]", "-").toLowerCase();
+        return deploymentRepository.findById(appId)
+                .flatMap(record -> {
+                    String deviceSlug = record.getDeviceType().toLowerCase().replace("_", "-");
+                    String serviceName = "sim-" + appId + "-" + deviceSlug;
+                    String serviceNameClean = serviceName.replaceAll("[^a-z0-9-]", "-").toLowerCase();
 
-            try (ServicesClient servicesClient = ServicesClient.create()) {
-                String name = ServiceName.of(projectId, region, serviceNameClean).toString();
-                servicesClient.deleteServiceAsync(name).get();
-                logger.info("[GCP] Deleted Cloud Run service: {}", serviceNameClean);
-            } catch (Exception e) {
-                logger.warn("[GCP] Failed to delete service {}: {}", serviceNameClean, e.getMessage());
-            }
-
-            record.setStatus(DeploymentStatus.STOPPED.name());
-            logger.info("[SIMULATOR_DEPLOY] Marked app={} as STOPPED", appId);
-            deploymentRepository.save(record).block();
-        } else {
-            logger.warn("[SIMULATOR_DEPLOY] No deployment record found for app={}", appId);
-        }
+                    return Mono.fromRunnable(() -> {
+                        try (ServicesClient servicesClient = ServicesClient.create()) {
+                            String name = ServiceName.of(projectId, region, serviceNameClean).toString();
+                            servicesClient.deleteServiceAsync(name).get();
+                            logger.info("[GCP] Deleted Cloud Run service: {}", serviceNameClean);
+                        } catch (Exception e) {
+                            logger.warn("[GCP] Failed to delete service {}: {}", serviceNameClean, e.getMessage());
+                        }
+                    })
+                    .subscribeOn(reactor.core.scheduler.Schedulers.boundedElastic())
+                    .then(Mono.defer(() -> {
+                        record.setStatus(DeploymentStatus.STOPPED.name());
+                        logger.info("[SIMULATOR_DEPLOY] Marked app={} as STOPPED", appId);
+                        return deploymentRepository.save(record);
+                    }))
+                    .then();
+                })
+                .switchIfEmpty(Mono.defer(() -> {
+                    logger.warn("[SIMULATOR_DEPLOY] No deployment record found for app={}", appId);
+                    return Mono.empty();
+                }));
     }
 
     /**
      * Check if the deployed URL is healthy.
      */
-    public boolean isDeploymentHealthy(String previewUrl) {
+    public Mono<Boolean> isDeploymentHealthy(String previewUrl) {
         if (previewUrl == null || previewUrl.isEmpty()) {
-            return false;
+            return Mono.just(false);
         }
 
         // Skip health check for localhost (dev mode)
         if (previewUrl.contains("localhost") || previewUrl.contains("127.0.0.1")) {
             logger.debug("[SIMULATOR_DEPLOY] Skipping health check for local URL: {}", previewUrl);
-            return true;
+            return Mono.just(true);
         }
 
-        try {
-            String healthUrl = previewUrl.split("\\?")[0] + "/health";
-            webClient.get()
-                    .uri(healthUrl)
-                    .retrieve()
-                    .toBodilessEntity()
-                    .timeout(Duration.ofMillis(healthCheckTimeoutMs))
-                    .block();
-            logger.debug("[SIMULATOR_DEPLOY] Health check passed for {}", previewUrl);
-            return true;
-        } catch (Exception e) {
-            logger.warn("[SIMULATOR_DEPLOY] Health check failed for {} ({}), assuming live", previewUrl, e.getMessage());
-            return true; // assume live for graceful degradation
-        }
+        String healthUrl = previewUrl.split("\\?")[0] + "/health";
+        return webClient.get()
+                .uri(healthUrl)
+                .retrieve()
+                .toBodilessEntity()
+                .timeout(Duration.ofMillis(healthCheckTimeoutMs))
+                .map(response -> {
+                    logger.debug("[SIMULATOR_DEPLOY] Health check passed for {}", previewUrl);
+                    return true;
+                })
+                .onErrorResume(e -> {
+                    logger.warn("[SIMULATOR_DEPLOY] Health check failed for {} ({}), assuming live", previewUrl, e.getMessage());
+                    return Mono.just(true); // assume live for graceful degradation
+                });
     }
 
-    public DeploymentStatus getStatus(String appId) {
-        SimulatorDeploymentRecord record = deploymentRepository.findById(appId).block();
-        if (record == null || record.getStatus() == null) {
-            return DeploymentStatus.NOT_DEPLOYED;
-        }
-        try {
-            return DeploymentStatus.valueOf(record.getStatus());
-        } catch (IllegalArgumentException e) {
-            return DeploymentStatus.ERROR;
-        }
+    public Mono<DeploymentStatus> getStatus(String appId) {
+        return deploymentRepository.findById(appId)
+                .map(record -> {
+                    if (record.getStatus() == null) return DeploymentStatus.NOT_DEPLOYED;
+                    try {
+                        return DeploymentStatus.valueOf(record.getStatus());
+                    } catch (IllegalArgumentException e) {
+                        return DeploymentStatus.ERROR;
+                    }
+                })
+                .defaultIfEmpty(DeploymentStatus.NOT_DEPLOYED);
     }
 
-    public List<SimulatorDeploymentRecord> getAllDeployments() {
-        return deploymentRepository.findAll().collectList().block();
+    public reactor.core.publisher.Flux<SimulatorDeploymentRecord> getAllDeployments() {
+        return deploymentRepository.findAll();
     }
 
-    public SimulatorDeploymentRecord getDeploymentRecord(String appId) {
-        return deploymentRepository.findById(appId).block();
+    public Mono<SimulatorDeploymentRecord> getDeploymentRecord(String appId) {
+        return deploymentRepository.findById(appId);
     }
 
     // ─────────────────────────────────────────────────────────────────────────────
@@ -169,65 +174,67 @@ public class SimulatorDeploymentService {
     /**
      * Deploy Cloud Run service using Admin API v2.
      */
-    private String deployViaAdminApi(String serviceNameId, String appId, String deviceType) throws Exception {
-        logger.info("[GCP] Deploying Cloud Run service: {}", serviceNameId);
+    private Mono<String> deployViaAdminApi(String serviceNameId, String appId, String deviceType) {
+        return Mono.fromCallable(() -> {
+            logger.info("[GCP] Deploying Cloud Run service: {}", serviceNameId);
 
-        String image = runtimeImage;
-        if (image == null || image.isEmpty()) {
-            image = "gcr.io/" + projectId + "/simulator-runtime:latest";
-        }
-
-        try (ServicesClient servicesClient = ServicesClient.create()) {
-            LocationName parent = LocationName.of(projectId, region);
-            String fullServiceName = ServiceName.of(projectId, region, serviceNameId).toString();
-
-            com.google.cloud.run.v2.Service serviceObj = com.google.cloud.run.v2.Service.newBuilder()
-                    .setTemplate(
-                            RevisionTemplate.newBuilder()
-                                    .addContainers(
-                                            Container.newBuilder()
-                                                    .setImage(image)
-                                                    .addEnv(EnvVar.newBuilder().setName("APP_ID").setValue(appId).build())
-                                                    .addEnv(EnvVar.newBuilder().setName("DEVICE_TYPE").setValue(deviceType).build())
-                                                    .addEnv(EnvVar.newBuilder().setName("SIMULATOR_MODE").setValue("preview").build())
-                                                    .build()
-                                    )
-                                    .build()
-                    )
-                    .build();
-
-            // Create or Update
-            com.google.cloud.run.v2.Service responseService;
-            try {
-                // Try updating first
-                UpdateServiceRequest updateRequest = UpdateServiceRequest.newBuilder()
-                        .setService(serviceObj.toBuilder().setName(fullServiceName).build())
-                        .build();
-                responseService = servicesClient.updateServiceAsync(updateRequest).get();
-            } catch (ExecutionException e) {
-                // If not found, create
-                CreateServiceRequest createRequest = CreateServiceRequest.newBuilder()
-                        .setParent(parent.toString())
-                        .setServiceId(serviceNameId)
-                        .setService(serviceObj)
-                        .build();
-                responseService = servicesClient.createServiceAsync(createRequest).get();
-                
-                // Make it publicly accessible
-                SetIamPolicyRequest iamRequest = SetIamPolicyRequest.newBuilder()
-                        .setResource(fullServiceName)
-                        .setPolicy(Policy.newBuilder()
-                                .addBindings(Binding.newBuilder()
-                                        .setRole("roles/run.invoker")
-                                        .addMembers("allUsers")
-                                        .build())
-                                .build())
-                        .build();
-                servicesClient.setIamPolicy(iamRequest);
+            String image = runtimeImage;
+            if (image == null || image.isEmpty()) {
+                image = "gcr.io/" + projectId + "/simulator-runtime:latest";
             }
 
-            return responseService.getUri();
-        }
+            try (ServicesClient servicesClient = ServicesClient.create()) {
+                LocationName parent = LocationName.of(projectId, region);
+                String fullServiceName = ServiceName.of(projectId, region, serviceNameId).toString();
+
+                com.google.cloud.run.v2.Service serviceObj = com.google.cloud.run.v2.Service.newBuilder()
+                        .setTemplate(
+                                RevisionTemplate.newBuilder()
+                                        .addContainers(
+                                                Container.newBuilder()
+                                                        .setImage(image)
+                                                        .addEnv(EnvVar.newBuilder().setName("APP_ID").setValue(appId).build())
+                                                        .addEnv(EnvVar.newBuilder().setName("DEVICE_TYPE").setValue(deviceType).build())
+                                                        .addEnv(EnvVar.newBuilder().setName("SIMULATOR_MODE").setValue("preview").build())
+                                                        .build()
+                                        )
+                                        .build()
+                        )
+                        .build();
+
+                // Create or Update
+                com.google.cloud.run.v2.Service responseService;
+                try {
+                    // Try updating first
+                    UpdateServiceRequest updateRequest = UpdateServiceRequest.newBuilder()
+                            .setService(serviceObj.toBuilder().setName(fullServiceName).build())
+                            .build();
+                    responseService = servicesClient.updateServiceAsync(updateRequest).get();
+                } catch (ExecutionException e) {
+                    // If not found, create
+                    CreateServiceRequest createRequest = CreateServiceRequest.newBuilder()
+                            .setParent(parent.toString())
+                            .setServiceId(serviceNameId)
+                            .setService(serviceObj)
+                            .build();
+                    responseService = servicesClient.createServiceAsync(createRequest).get();
+                    
+                    // Make it publicly accessible
+                    SetIamPolicyRequest iamRequest = SetIamPolicyRequest.newBuilder()
+                            .setResource(fullServiceName)
+                            .setPolicy(Policy.newBuilder()
+                                    .addBindings(Binding.newBuilder()
+                                            .setRole("roles/run.invoker")
+                                            .addMembers("allUsers")
+                                            .build())
+                                    .build())
+                            .build();
+                    servicesClient.setIamPolicy(iamRequest);
+                }
+
+                return responseService.getUri();
+            }
+        }).subscribeOn(reactor.core.scheduler.Schedulers.boundedElastic());
     }
 
     // ─────────────────────────────────────────────────────────────────────────────

@@ -1,6 +1,7 @@
 package com.supremeai.controller;
 
 import com.supremeai.service.SelfHealingService;
+import com.supremeai.security.SecretManagerService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +23,9 @@ public class GitHubWebhookController {
 
     @Autowired
     private WebSocketController webSocketController;
+
+    @Autowired
+    private SecretManagerService secretManagerService;
 
     private final RestTemplate restTemplate = new RestTemplate();
 
@@ -100,18 +104,15 @@ public class GitHubWebhookController {
                 String headSha = (String) payload.get("after");
 
                 if (repoFullName != null && headSha != null) {
-                    // Fetch commit details using GitHub API
-                    String githubToken = System.getenv("GITHUB_TOKEN");
+                    String githubToken = secretManagerService.getSecret("GITHUB_TOKEN");
                     if (githubToken == null) {
-                        githubToken = System.getenv("GITHUB_ACTIONS_TOKEN");
+                        githubToken = secretManagerService.getSecret("GITHUB_ACTIONS_TOKEN");
                     }
                     String commitUrl = String.format(
                         "https://api.github.com/repos/%s/commits/%s",
                         repoFullName, headSha
                     );
 
-                    // Note: This requires GITHUB_TOKEN to be set in environment
-                    // In production, use Firebase Callable Function instead
                     log.info("Deployment analysis triggered for commit: {}", headSha);
                 }
 

@@ -39,7 +39,7 @@ dependencies {
     // Firebase Admin SDK (complete suite)
     implementation("com.google.firebase:firebase-admin:9.2.0")
     // Firestore client provided by spring-cloud-gcp-starter-data-firestore (version managed by BOM)
-    implementation("com.google.cloud:google-cloud-storage")
+    // Note: google-cloud-storage removed — uploads use Telegram/Teldrive; no GCS object storage in codebase
     implementation("com.google.code.gson:gson:2.11.0")
 
     // Authentication & Google Cloud - SECURITY
@@ -47,7 +47,7 @@ dependencies {
     implementation("com.google.cloud:google-cloud-core")
     implementation("com.google.cloud:google-cloud-secretmanager")
     implementation("com.google.cloud:google-cloud-bigquery")
-    implementation("com.google.cloud:google-cloud-run:0.43.0") // Or managed by BOM if available, but let's just add it
+    implementation("com.google.cloud:google-cloud-run:0.43.0")
 
     // Removed software.amazon.awssdk and com.azure to reduce JAR size (~40MB saving)
     // Consolidated cloud secrets to Google Cloud Secret Manager
@@ -66,6 +66,7 @@ dependencies {
 
     // HTML Parsing
     implementation("org.jsoup:jsoup:1.18.1")
+    implementation("com.microsoft.playwright:playwright:1.40.0")
 
     // Logging - STRUCTURED LOGGING
     implementation("org.slf4j:slf4j-api:2.0.16")

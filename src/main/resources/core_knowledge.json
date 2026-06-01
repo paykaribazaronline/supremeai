@@ -1,10 +1,10 @@
 [
   {
-    "task": "hello hi greeting hey good morning good afternoon good evening",
-    "solution": "Hello! I am SupremeAI Core. I am currently operating in high-resilience offline mode because my external cloud connections are unavailable, but I am still here to assist you using my internal knowledge seed. How can I help you today?"
+    "task": "hello hi greeting hey good morning good afternoon good evening নমস্কার কেমন আছেন স্বাগতম",
+    "solution": "Hello! I am SupremeAI Core. I am currently operating in high-resilience offline mode because my external cloud connections are unavailable, but I am still here to assist you using my internal knowledge seed. How can I help you today?\n\nনমস্কার! আমি সুপ্রিম এআই কো어। বর্তমানে আমি উচ্চ-পুনরুত্থান অফলাইন মোডে কাজ করছি, কারণ আমার বহির্গত এআই সংযোগ অনুপলব্ধ, কিন্তু আমি আমার অভ্যন্তরীণ জ্ঞানবীজ ব্যবহার করে আপনাকে সহায়তা করার জন্য এখানে আছি।"
   },
   {
-    "task": "status health check server uptime connectivity system overview",
+    "task": "system status health check server uptime connectivity overview",
     "solution": "[SupremeAI Core — System Status]\nCurrent Mode: CORE_RESILIENCE (Offline/Tertiary)\nExternal Cloud AI: OFFLINE\nFirestore Memory: OFFLINE\nLocal Seed: ACTIVE\nSupremeAI Core: RUNNING\nAll core systems are operational in fallback mode. Admin panel users may experience reduced AI capabilities. Please activate helper AI providers from the dashboard to restore full functionality."
   },
   {
@@ -12,8 +12,28 @@
     "solution": "[SupremeAI Core — Offline Help]\nI am currently in core-resilience mode. The following capabilities are available from my local knowledge seed:\n\n1. Code Generation: Spring Boot entities, controllers, services, React components, Flutter widgets\n2. System Operations: Build, test, deploy, debug guidance\n3. Database: Firestore, SQL, JWT authentication patterns\n4. Health Checks: System connectivity and service diagnostics\n5. Admin Operations: User management, API keys, provider activation\n6. Troubleshooting: Network errors, HTTP status codes, circuit breaker recovery\n\nType a keyword related to any of the above to receive offline guidance."
   },
   {
-    "task": "who are you what is supremeai supreme ai introduction explain yourself",
+    "task": "who are you what is supremeai supreme ai introduction explain yourself system architecture",
     "solution": "I am SupremeAI Core — the primary orchestrator of the SupremeAI multi-agent system. I coordinate external AI providers, manage Firestore-based learning memory, and maintain a local knowledge seed for total resilience. Architecture: helper AI (layer-1) → memory (layer-2) → local seed (layer-3) → emergency response (layer-4). This ensures 100% uptime even when all external services are down."
+  },
+  {
+    "task": "what is llm large language model artificial intelligence ai explanation",
+    "solution": "A Large Language Model (LLM) is an AI system trained on vast amounts of text data to understand and generate human-like language. Examples include GPT, Claude, Gemini, and Llama. LLMs can answer questions, write code, summarize text, and assist with various tasks through pattern recognition and prediction."
+  },
+  {
+    "task": "what is machine learning deep learning data science",
+    "solution": "Machine Learning (ML) is a subset of AI that enables systems to learn patterns from data without explicit programming. Deep Learning uses neural networks with many layers (hence 'deep') for complex pattern recognition. Data Science combines ML, statistics, and data analysis to extract insights from data."
+  },
+  {
+    "task": "what is api rest restful web service",
+    "solution": "An API (Application Programming Interface) is a set of rules allowing software applications to communicate. A REST API follows architectural constraints: uses HTTP methods (GET, POST, PUT, DELETE), is stateless, returns JSON/XML, and uses standard URL patterns like `/api/users` for resource access."
+  },
+  {
+    "task": "what is database sql nosql data storage",
+    "solution": "A database is an organized collection of structured data. SQL databases (PostgreSQL, MySQL) use relational tables with fixed schemas. NoSQL databases (MongoDB, Firestore) use flexible documents or key-value pairs. Choose SQL for complex relationships, NoSQL for scalability and flexible schemas."
+  },
+  {
+    "task": "what is flutter dart mobile development",
+    "solution": "Flutter is Google's UI toolkit for building natively compiled applications for mobile, web, and desktop from a single codebase. Uses the Dart programming language. Features hot reload for fast development, rich widgets, and direct compilation to native code."
   },
   {
     "task": "spring boot rest api development best practices",
@@ -66,5 +86,20 @@
   {
     "task": "how to find download files and share using teledrive",
     "solution": "[SupremeAI Core — File Management, Downloader & Teledrive Sharing]\n\nPROBLEM: System needs clear protocols for finding, downloading, and sharing files over Telegram using Teledrive.\n\nSOLUTION: Implemented the following command and script guidelines for autonomous file orchestration:\n\n1. FINDING FILES:\n   - CLI Search: `find <path> -name \"*filename*\"` or `find <path> -iname \"*filename*\"` (case-insensitive)\n   - Size-based filter: `find <path> -size +100M -size -2G` (files between 100MB and 2GB)\n   - Extension listing: `find <path> -type f -name \"*.iso\"`\n\n2. DOWNLOADING FILES:\n   - Standard Wget: `wget -c -O <output_path> \"<url>\"` (-c resumes incomplete downloads)\n   - Standard Curl: `curl -L -o <output_path> \"<url>\"` (-L follows redirects)\n   - Multi-threaded: `aria2c -x 16 -s 16 -o <output_path> \"<url>\"` (16 connections for max speed)\n\n3. TELEDRIVE & TELEGRAM SHARING:\n   - What is Teledrive: A utility that uses Telegram API to store unlimited files in Telegram channels/chats with custom download links.\n   - Upload via Teledrive CLI: `teledrive upload <file_path>` (generates direct access and shareable download links)\n   - Alternative (telegram-upload): `telegram-upload --to <channel_username_or_id> <file_path>` (uploads files to specific Telegram channels, auto-splitting files above Telegram's limit: 2GB for standard, 4GB for premium)\n\nVERIFICATION: System can search, fetch, and publish download links automatically via CLI adapters."
+  },
+  {
+    "task": "স্বাস্থ্য চেক সিস্টেম স্ট্যাটাস সার্ভার স্ট্যাটাস কি করতে পারো ক্যাপাবিলিটি ফিচার",
+    "solution": "[সুপ্রিম এআই — সিস্টেম স্ট্যাটাস]\nবর্তমান মোড: কোর রেজিলেন্সি (অফলাইন/টার্সিয়ারি)\nবহির্গত এআই: অফলাইন\nফায়ারস্টোর মেমরি: অফলাইন\nলোকাল সীড: অ্যাক্টিভ\nসুপ্রিম এআই কোর: চলছে\nসমস্ত কোর সিস্টেম ফলব্যাক মোডে পরিচালিত হচ্ছে অ্যাডমিন প্যানেল ব্যবহারকারীরা কম এআই ক্ষমতা অনুভব করতে পারেন। সারা পুনরুত্থান করতে ড্যাশবোর্ড থেকে হেল্পার এআই প্রভাইডার অ্যাক্টিভেট করুন।"
+  },
+  {
+    "task": "কি কি করতে পারো সাহায্য commands feature এই সিস্টেমের সব ক্ষমতা",
+    "solution": "[সুপ্রিম এআই — অফলাইন সাহায্য]\nবর্তমানে কোর-রেজিলেন্সি মোডে আমি নিচের ক্ষমতাগুলো প্রদান করতে পারি:\n\n১. কোড জেনারেশন: Spring Boot entity, controller, service, React components, Flutter widget\n২. সিস্টেম অপারেশন: Build, test, deploy, debug গাইড\n৩. ডাটাবেস: Firestore, SQL, JWT authentication pattern\n৪. হেলথ চেক: সিস্টেম কানেকটিভিটি ও সার্ভিস ডায়াগনস্টিক\n৫. অ্যাডমিন অপারেশন: User management, API keys, provider activation\n৬. ট্রাবলশুটিং: Network error, HTTP status, circuit breaker recovery\n\nযেকোনো keywords টাইপ করুন উত্তর পাওয়ার জন্য।"
+  },
+  {
+    "task": "তুমি কিস worrying আছ সুপ্রিম এআই কি yourself কWF এই সিস্টেম সম্পর্কে বর্ণনা",
+    "solution": "আমি সুপ্রিম এআই কোর — সুপ্রিম এআই মাল্টি-এজেন্ট সিস্টেমের প্রাইমারি অর্কেস্ট্রেটর। আমি বহির্গত এআই প্রভাইডার ক Jersey করি, ফায়ারস্টোর-ভিত্তিক লার্নিং মেমরি manage করি এবং মোট ১০০% রেজিলিয়েন্সের জন্য লোকাল জ্ঞান সীড maintain করি। আর্কিটেকচার: helper AI → memory → local seed → emergency response। এতে সবসময় কাজ করা যায়।"
+  },
+  {
+    "task": "summarize text shortening english to bengali translation bangla অনুবাদ সারসংক্ষেপ",
+    "solution": "[সুপ্রিম এআই — টেক্সট সারসংক্ষেপ ও অনুবাদ]\nপরিস্রান্ত summarization বা অনুবাদ requires connected AI service.本地 core knowledge-তে আমি এই কাজের জন্য একটি short protocol দিই:\n\n১. Summarize: মূল text-এর key entities, topic sentence, conclusion আলাদা করা\n২. English→Bangla:直辖 phrase-by-phrase translation + maintain grammar\n৩. Preserve technical terms: vulgar শব্দগুলো transliterate করুন\n\nবর্তমানে অফলাইন মোডে আমি এই general guidance-এর বাইরে কিছু generated output দিতে পারি না। ইন্টারনেট থাকলে ChickenBrain cloud service এই কাজ স্বয়ংক্রিয়ভাবে করবে।"
   }
-]

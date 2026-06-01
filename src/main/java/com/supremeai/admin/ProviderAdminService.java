@@ -361,10 +361,6 @@ provider.setStatus("active");
 
         // 2. Legacy Fallback (for core types if keywords are not yet seeded in Firestore)
         if (n.contains("GOOGLE") || n.contains("GEMINI") || n.contains("VERTEX"))  return CATEGORY_GOOGLE;
-        if (n.contains("OPENAI") || n.contains("GPT"))                             return "openai";
-        if (n.contains("ANTHROPIC") || n.contains("CLAUDE"))                       return "anthropic";
-        if (n.contains("GROQ"))                                                     return "groq";
-        if (n.contains("DEEPSEEK"))                                                 return "deepseek";
         if (n.contains("MISTRAL"))                                                  return "mistral";
         if (n.contains("OLLAMA") || n.contains("LOCAL"))                            return CATEGORY_OLLAMA;
 

@@ -50,11 +50,11 @@ public class AdminChatController {
     @GetMapping({"/pending", "/actions/pending"})
     public Mono<ResponseEntity<Map<String, Object>>> getPending(
             @RequestParam(required = false) String user_id) {
-        List<Map<String, Object>> pending = chatProcessingService.getPendingConfirmations(user_id);
-        return Mono.just(ResponseEntity.ok(Map.of(
-            "success", true,
-            "items", pending
-        )));
+        return chatProcessingService.getPendingConfirmations(user_id)
+            .map(pending -> ResponseEntity.ok(Map.of(
+                "success", true,
+                "items", pending
+            )));
     }
 
     @PostMapping("/confirm")

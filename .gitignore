@@ -155,7 +155,10 @@ firebase-exports/
 # Credentials & secret keys — MUST NEVER be committed to Git
 service-account.json
 firebase-service-account.json
-*.json     # last-segment guard: catches any service account file with .json extension
+# Note: *.json is NOT used here — package.json, firebase.json and other tracked JSONs must remain valid
+# If you need to ignore untracked service keys, use: service-account*.json
+service-account*.json
+firebase-service-account*.json
 rotation_config.json
 # Private key files
 *.key
@@ -205,3 +208,20 @@ backend_log.txt
 # Local documents & secrets
 docs/document/
 docs/document/*
+
+# Large binary and environment files
+jdk/
+.node/
+node.exe
+corepack
+corepack.cmd
+npm
+npm.cmd
+npm.ps1
+npx
+npx.cmd
+npx.ps1
+nodevars.bat
+tests/test-results/
+tests/playwright-report/
+

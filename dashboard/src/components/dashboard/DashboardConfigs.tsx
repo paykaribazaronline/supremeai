@@ -65,6 +65,8 @@ export const allMenuItems: MenuItem[] = [
   { key: 'ocr', icon: <FileTextOutlined />, label: '25. 🔍 OCR Tool (OCR টুল)', roles: ['admin'] },
   { key: 'infrastructure', icon: <CloudServerOutlined />, label: '26. ☁️ Infrastructure (ইনফ্রাস্ট্রাকচার)', roles: ['admin'] },
   { key: 'code-analysis', icon: <CodeOutlined />, label: '27. 🔍 Code Intelligence (কোড ইন্টেলিজেন্স)', roles: ['admin'] },
+  { key: 'superfly', icon: <RocketOutlined />, label: '28. ⚡ SupremeAI Offline (এজ এআই)', roles: ['guest', 'user', 'admin'] },
+  { key: 'cloud-db-hub', icon: <DatabaseOutlined />, label: '29. 📦 Cloud & DB Hub (ক্লাউড ও ডাটাবেস হাব)', roles: ['admin'] },
 ];
 
 export const getBreadcrumbs = (activeKey: string) => {

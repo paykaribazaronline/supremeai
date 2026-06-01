@@ -25,13 +25,15 @@ public class RequirementAnalyzerAI {
      */
     public List<Question> analyze(String requirement) {
         try {
-            AIProvider provider = providerFactory.getProvider("groq");
+            AIProvider provider = providerFactory.getDefaultProvider();
             String prompt = "Given the following user requirement for a software project: \"" + requirement + "\"\n" +
                     "Generate a list of 5-7 clarifying questions to better understand the technical needs.\n" +
                     "Format each question as a JSON object with 'key', 'text', and 'priority' (CRITICAL, HIGH, MEDIUM, LOW).\n" +
                     "Return only a JSON array of these objects.";
             
-            String response = provider.generate(prompt).block();
+            String response = provider.generate(prompt)
+                    .subscribeOn(reactor.core.scheduler.Schedulers.boundedElastic())
+                    .block(java.time.Duration.ofSeconds(30));
             return parseQuestions(response, requirement);
         } catch (Exception e) {
             log.warn("AI analysis failed, falling back to default questions: {}", e.getMessage());

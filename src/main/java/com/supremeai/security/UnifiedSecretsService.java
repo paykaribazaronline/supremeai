@@ -1,5 +1,7 @@
 package com.supremeai.security;
 
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,17 +11,9 @@ import reactor.core.publisher.Mono;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
-/**
- * Unified secrets management service that integrates with GCP and Firebase.
- * Optimized for reduced build size and cloud-native stability.
- * 
- * Priority order:
- * 1. GCP Secret Manager (Native)
- * 2. Firebase Secrets (App context)
- * 3. Environment variables (Local/Container fallback)
- */
 @Service
 public class UnifiedSecretsService {
 
@@ -43,10 +37,18 @@ public class UnifiedSecretsService {
     @Value("${spring.profiles.active:local}")
     private String activeProfile;
 
-    private final Map<String, CacheEntry> secretCache = new ConcurrentHashMap<>();
+    private final Cache<String, String> secretCache;
+
+    public UnifiedSecretsService() {
+        this.secretCache = Caffeine.newBuilder()
+                .maximumSize(1000)
+                .expireAfterWrite(30, TimeUnit.MINUTES)
+                .recordStats()
+                .build();
+    }
 
     public boolean isProduction() {
-        return "prod".equals(activeProfile) || activeProfile.contains("prod");
+        return "prod".equals(activeProfile);
     }
 
     /**
@@ -56,16 +58,14 @@ public class UnifiedSecretsService {
      * @return The secret value as a Mono<String>
      */
     public Mono<String> getSecret(String secretKey) {
-        // Check cache first
         if (cacheEnabled) {
-            CacheEntry cached = secretCache.get(secretKey);
-            if (cached != null && !cached.isExpired()) {
+            String cached = secretCache.getIfPresent(secretKey);
+            if (cached != null) {
                 log.debug("Returning cached secret for key: {}", secretKey);
-                return Mono.just(cached.value);
+                return Mono.just(cached);
             }
         }
 
-        // Try GCP Secret Manager first (Core Production Provider)
         return Mono.fromCallable(() -> secretManagerService.getSecret(secretKey))
             .flatMap(value -> {
                 if (value != null && !value.isEmpty()) {
@@ -104,16 +104,16 @@ public class UnifiedSecretsService {
     private String mapToFirebaseKey(String secretKey) {
         String key = secretKey.toLowerCase();
         if (key.contains("gemini") && key.contains("key")) return "gemini.apiKey";
-        if (key.contains("openai") && key.contains("key")) return "openai.apiKey";
-        if (key.contains("groq") && key.contains("key")) return "groq.apiKey";
-        if (key.contains("anthropic") && key.contains("key")) return "anthropic.apiKey";
-        if (key.contains("deepseek") && key.contains("key")) return "deepseek.apiKey";
+        if (isLocalFirstExcludedKey(key)) return null;
         
-        // Fallback: if it contains a dot, assume it's already in provider.key format
         if (secretKey.contains(".")) return secretKey;
         
-        // Otherwise try to guess (e.g. GEMINI -> gemini.apiKey)
         return secretKey.toLowerCase() + ".apiKey";
+    }
+
+    private boolean isLocalFirstExcludedKey(String key) {
+        return key.contains("openai") || key.contains("groq")
+                || key.contains("anthropic") || key.contains("deepseek");
     }
 
     /**
@@ -140,7 +140,7 @@ public class UnifiedSecretsService {
      */
     private Mono<String> cacheAndReturn(String key, String value) {
         if (cacheEnabled) {
-            secretCache.put(key, new CacheEntry(value, cacheTtlMinutes));
+            secretCache.put(key, value);
         }
         return Mono.just(value);
     }
@@ -149,17 +149,10 @@ public class UnifiedSecretsService {
      * Retrieve multiple secrets at once.
      */
     public Mono<Map<String, String>> getSecrets(String... secretKeys) {
-        return Mono.fromCallable(() -> {
-            Map<String, String> secrets = new HashMap<>();
-            for (String key : secretKeys) {
-                // blocking for simplicity in the list retrieval context
-                String value = getSecret(key).block();
-                if (value != null) {
-                    secrets.put(key, value);
-                }
-            }
-            return secrets;
-        });
+        return reactor.core.publisher.Flux.fromArray(secretKeys)
+                .flatMap(key -> getSecret(key)
+                        .map(value -> reactor.util.function.Tuples.of(key, value)))
+                .collectMap(tuple -> tuple.getT1(), tuple -> tuple.getT2());
     }
 
     /**
@@ -181,47 +174,5 @@ public class UnifiedSecretsService {
      */
     public void clearCache() {
         log.info("Clearing secret cache");
-        secretCache.clear();
+        secretCache.invalidateAll();
     }
-
-    /**
-     * Check the health of available secret providers.
-     */
-    public Mono<Map<String, Boolean>> healthCheck() {
-        return Mono.fromCallable(() -> {
-            Map<String, Boolean> health = new HashMap<>();
-
-            // GCP Secret Manager Check
-            health.put("gcp_secret_manager", secretManagerService != null);
-
-            // Firebase Check
-            if (firebaseSecretsService != null) {
-                Boolean firebaseHealth = firebaseSecretsService.healthCheck().block();
-                health.put("firebase", firebaseHealth != null && firebaseHealth);
-            } else {
-                health.put("firebase", false);
-            }
-
-            health.put("environment", true);
-            return health;
-        });
-    }
-
-    /**
-     * Cache entry with TTL support.
-     */
-    private static class CacheEntry {
-        final String value;
-        final long expiryTime;
-
-        CacheEntry(String value, int ttlMinutes) {
-            this.value = value;
-            this.expiryTime = System.currentTimeMillis() + (ttlMinutes * 60 * 1000L);
-        }
-
-        boolean isExpired() {
-            return System.currentTimeMillis() > expiryTime;
-        }
-    }
-}
-

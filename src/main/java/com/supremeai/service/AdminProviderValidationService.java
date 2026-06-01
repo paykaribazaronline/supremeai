@@ -14,9 +14,7 @@ import reactor.core.scheduler.Schedulers;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
-import com.supremeai.model.*;
-import com.supremeai.repository.*;
-import com.supremeai.service.*;
+import com.supremeai.repository.APIHealthReportRepository;
 import com.supremeai.fallback.ThirdOpinionOrchestrator;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -52,100 +50,75 @@ public class AdminProviderValidationService {
     public void validateAllActiveProviders() {
         log.info("Running scheduled admin provider auto-validation...");
 
-        try {
-            List<APIProvider> allProviders = providerRepository.findAll().collectList().block();
-            if (allProviders == null || allProviders.isEmpty()) {
-                log.info("No API providers found to validate.");
-                return;
-            }
-
-            // Filter to active and rotating providers (skip inactive/error/dead)
-            List<APIProvider> activeProviders = allProviders.stream()
-                    .filter(p -> "active".equalsIgnoreCase(p.getStatus()) || "rotating".equalsIgnoreCase(p.getStatus()))
-                    .collect(java.util.stream.Collectors.toList());
-
-            if (activeProviders.isEmpty()) {
-                log.info("No active providers to validate.");
-                return;
-            }
-
-            int concurrency = Math.min(10, activeProviders.size());
-
-            Flux.fromIterable(activeProviders)
-                    .flatMap(provider ->
-                            Mono.fromCallable(() -> {
-                                        // Call discovery service validation (same as manual test)
-                                        boolean valid = discoveryService.validateKey(provider.getType(), provider.getApiKey())
-                                                .onErrorReturn(false)
-                                                .block();
-
-                                        provider.setLastValidated(java.time.LocalDateTime.now());
-
-                                         if (valid) {
-                                             provider.setConsecutiveErrorDays(0);
-                                             provider.setLastErrorDate(null);
-                                             provider.setStatus("active");
-                                             if (provider.getDeadReason() != null) provider.setDeadReason(null);
-                                             if (provider.getDeadAt() != null) provider.setDeadAt(null);
-                                             return Map.of(
-                                                    "provider", provider,
-                                                    "valid", true,
-                                                    "action", "none"
-                                            );
-                                        } else {
-                                            // Increment error streak
-                                            int currentStreak = provider.getConsecutiveErrorDays() != null ? provider.getConsecutiveErrorDays() : 0;
-                                            int newStreak = currentStreak + 1;
-                                            provider.setConsecutiveErrorDays(newStreak);
-                                            provider.setLastErrorDate(java.time.LocalDateTime.now());
-
-                                            String deadReason = null;
-                                            if (newStreak >= ERROR_THRESHOLD) {
-                                                // Quarantine as dead
-                                                provider.setStatus("dead");
-                                                provider.setDeadAt(java.time.LocalDateTime.now());
-                                                deadReason = "Quarantined after " + newStreak + " consecutive validation failures";
-                                                provider.setDeadReason(deadReason);
-                                                log.error("Provider '{}' ({}) quarantined as DEAD. Reason: {}",
-                                                        provider.getName(), provider.getId(), deadReason);
-                                            } else {
-                                                // DO NOT downgrade status — keep as active but track the failure streak.
-                                                // Many providers fail simple validation due to API format differences, not actual breakage.
-                                                log.warn("Provider '{}' ({}) validation failed (streak: {}/{}) — status preserved as '{}'",
-                                                        provider.getName(), provider.getId(), newStreak, ERROR_THRESHOLD, provider.getStatus());
-                                            }
-
-                                            return Map.of(
-                                                    "provider", provider,
-                                                    "valid", false,
-                                                    "action", newStreak >= ERROR_THRESHOLD ? "quarantined" : "marked_error"
-                                            );
-                                         }
-                                     })
-                                    .subscribeOn(Schedulers.boundedElastic())
-                                    .doOnNext(res -> {
-                                        APIProvider p = (APIProvider) res.get("provider");
-                                        providerRepository.save(p).block();
-                                        boolean valid = (Boolean) res.get("valid");
-                                        String action = (String) res.get("action");
-                                        log.info("Provider '{}' validation complete. valid={}, action={}",
-                                                p.getName(), valid, action);
-                                    })
-                                    .onErrorResume(e -> {
-                                        log.error("Error validating provider: {}", e.getMessage(), e);
-                                        return Mono.empty();
-                                    }),
-                            concurrency)
-                    .then()
-                    .block();
-
-            log.info("Admin provider validation complete. Processed {} active providers with concurrency {}.", activeProviders.size(), concurrency);
-
-            // Generate daily report
-            generateAndSaveReport(activeProviders);
-        } catch (Exception e) {
-            log.error("Failed to run admin provider validation: {}", e.getMessage(), e);
-        }
+        // Reactive pipeline: fetch all providers, filter active, validate concurrently, and generate report.
+        providerRepository.findAll()
+                .filter(p -> "active".equalsIgnoreCase(p.getStatus()) || "rotating".equalsIgnoreCase(p.getStatus()))
+                .collectList()
+                .flatMapMany(activeProviders -> {
+                    if (activeProviders.isEmpty()) {
+                        log.info("No active providers to validate.");
+                        return Flux.empty();
+                    }
+                    int concurrency = Math.min(10, activeProviders.size());
+                    return Flux.fromIterable(activeProviders)
+                            .flatMap(provider ->
+                                    discoveryService.validateKey(provider.getType(), provider.getApiKey())
+                                            .onErrorReturn(false)
+                                            .map(valid -> {
+                                                provider.setLastValidated(java.time.LocalDateTime.now());
+                                                if (valid) {
+                                                    provider.setConsecutiveErrorDays(0);
+                                                    provider.setLastErrorDate(null);
+                                                    provider.setStatus("active");
+                                                    provider.setDeadReason(null);
+                                                    provider.setDeadAt(null);
+                                                } else {
+                                                    int streak = Optional.ofNullable(provider.getConsecutiveErrorDays()).orElse(0) + 1;
+                                                    provider.setConsecutiveErrorDays(streak);
+                                                    provider.setLastErrorDate(java.time.LocalDateTime.now());
+                                                    if (streak >= ERROR_THRESHOLD) {
+                                                        provider.setStatus("dead");
+                                                        provider.setDeadAt(java.time.LocalDateTime.now());
+                                                        String deadReason = "Quarantined after " + streak + " consecutive validation failures";
+                                                        provider.setDeadReason(deadReason);
+                                                        log.error("Provider '{}' ({}) quarantined as DEAD. Reason: {}",
+                                                                provider.getName(), provider.getId(), deadReason);
+                                                    } else {
+                                                        log.warn("Provider '{}' ({}) validation failed (streak: {}/{}) — status preserved as '{}'",
+                                                                provider.getName(), provider.getId(), streak, ERROR_THRESHOLD, provider.getStatus());
+                                                    }
+                                                }
+                                                return provider;
+                                            })
+                                            .flatMap(p -> providerRepository.save(p))
+                                            .doOnNext(p -> log.info("Provider '{}' validation complete. status={}", p.getName(), p.getStatus()))
+                                            .onErrorResume(e -> {
+                                                log.error("Error validating provider: {}", e.getMessage(), e);
+                                                return Mono.empty();
+                                            })
+                                            , concurrency);
+                })
+                .then(Mono.defer(() -> {
+                    return providerRepository.findAll()
+                        .filter(p -> "active".equalsIgnoreCase(p.getStatus()) || "rotating".equalsIgnoreCase(p.getStatus()))
+                        .collectList()
+                        .timeout(java.time.Duration.ofSeconds(10))
+                        .flatMap(providers -> {
+                            List<APIProvider> allProviders = providers != null ? providers : List.of();
+                            return Mono.fromRunnable(() -> {
+                                try {
+                                    generateAndSaveReport(allProviders);
+                                } catch (Exception e) {
+                                    log.error("Daily API health report generation failed", e);
+                                }
+                            });
+                        })
+                        .doOnError(e -> log.error("Daily API health report generation failed", e));
+                }))
+                .subscribe(
+                    null,
+                    err -> log.error("validateAllActiveProviders: pipeline failed", err)
+                );
     }
 
     private void generateAndSaveReport(List<APIProvider> providers) {
@@ -184,92 +157,73 @@ public class AdminProviderValidationService {
      * Scans all active providers (max 10 concurrent), validates each against the discovery
      * service, and stores updated error-streak metadata.  Returns a count summary map.
      */
-    public Map<String, Object> testAllProviders() {
+    public Mono<Map<String, Object>> testAllProviders() {
         log.info("testAllProviders: on-demand validation started");
-
-        List<APIProvider> allProviders;
-        try {
-            allProviders = providerRepository.findAll().collectList().block();
-        } catch (Exception e) {
-            log.error("testAllProviders: failed to fetch providers: {}", e.getMessage(), e);
-            return Map.of("status", "error", "message", e.getMessage());
-        }
-
-        if (allProviders == null || allProviders.isEmpty()) {
-            log.info("testAllProviders: no providers found");
-            return Map.of("status", "ok", "total", 0, "valid", 0, "failed", 0);
-        }
-
-        List<APIProvider> activeProviders = allProviders.stream()
-                .filter(p -> "active".equalsIgnoreCase(p.getStatus())
-                        || "rotating".equalsIgnoreCase(p.getStatus()))
-                .collect(java.util.stream.Collectors.toList());
-
-        if (activeProviders.isEmpty()) {
-            return Map.of("status", "ok", "total", 0, "valid", 0, "failed", 0,
-                    "note", "no active providers to test");
-        }
-
-        int concurrency = Math.min(10, activeProviders.size());
-        AtomicInteger validCount = new AtomicInteger(0);
-        AtomicInteger failedCount = new AtomicInteger(0);
-
-        try {
-            Flux.fromIterable(activeProviders)
-                    .flatMap(provider ->
-                            Mono.fromCallable(() -> {
-                                        boolean valid = discoveryService
-                                                .validateKey(provider.getType(), provider.getApiKey())
-                                                .onErrorReturn(false).block();
-
-                                        provider.setLastValidated(java.time.LocalDateTime.now());
-
-                                        if (valid) {
-                                            provider.setConsecutiveErrorDays(0);
-                                            provider.setLastErrorDate(null);
-                                            provider.setStatus("active");
-                                            if (provider.getDeadReason() != null) provider.setDeadReason(null);
-                                            if (provider.getDeadAt() != null) provider.setDeadAt(null);
-                                            validCount.incrementAndGet();
-                                        } else {
-                                            int streak = provider.getConsecutiveErrorDays() != null
-                                                    ? provider.getConsecutiveErrorDays() : 0;
-                                            provider.setConsecutiveErrorDays(streak + 1);
-                                            provider.setLastErrorDate(java.time.LocalDateTime.now());
-                                            if (streak + 1 >= ERROR_THRESHOLD) {
-                                                provider.setStatus("dead");
-                                                provider.setDeadAt(java.time.LocalDateTime.now());
-                                                provider.setDeadReason(
-                                                        "Quarantined after " + (streak + 1)
-                                                                + " consecutive validation failures");
-                                                log.error("Provider '{}' ({}) quarantined. Reason: {}",
-                                                        provider.getName(), provider.getId(),
-                                                        provider.getDeadReason());
-                                            } else {
-                                                log.warn("Provider '{}' ({}) validation failed (streak: {}/{})",
-                                                        provider.getName(), provider.getId(),
-                                                        streak + 1, ERROR_THRESHOLD);
-                                            }
-                                            failedCount.incrementAndGet();
-                                        }
-                                        return provider;
-                                    })
-                                    .subscribeOn(Schedulers.boundedElastic())
-                                    .doOnNext(p -> providerRepository.save(p).block()),
-                            concurrency)
-                    .then().block();
-        } catch (Exception e) {
-            log.error("testAllProviders: batch validation error: {}", e.getMessage(), e);
-        }
-
-        Map<String, Object> summary = new HashMap<>();
-        summary.put("status", "completed");
-        summary.put("total", activeProviders.size());
-        summary.put("valid", validCount.get());
-        summary.put("failed", failedCount.get());
-        summary.put("note", "active providers validated; 'dead' providers skipped");
-        log.info("testAllProviders: done — total={}, valid={}, failed={}",
-                activeProviders.size(), validCount.get(), failedCount.get());
-        return summary;
+        return providerRepository.findAll()
+                .collectList()
+                .flatMap(allProviders -> {
+                    if (allProviders == null || allProviders.isEmpty()) {
+                        log.info("testAllProviders: no providers found");
+                        return Mono.just(Map.of("status", "ok", "total", 0, "valid", 0, "failed", 0));
+                    }
+                    List<APIProvider> activeProviders = allProviders.stream()
+                            .filter(p -> "active".equalsIgnoreCase(p.getStatus()) || "rotating".equalsIgnoreCase(p.getStatus()))
+                            .collect(java.util.stream.Collectors.toList());
+                    if (activeProviders.isEmpty()) {
+                        return Mono.just(Map.of("status", "ok", "total", 0, "valid", 0, "failed", 0,
+                                "note", "no active providers to test"));
+                    }
+                    int concurrency = Math.min(10, activeProviders.size());
+                    AtomicInteger validCount = new AtomicInteger(0);
+                    AtomicInteger failedCount = new AtomicInteger(0);
+                    return Flux.fromIterable(activeProviders)
+                            .flatMap(provider ->
+                                    discoveryService.validateKey(provider.getType(), provider.getApiKey())
+                                            .onErrorReturn(false)
+                                            .flatMap(valid -> {
+                                                provider.setLastValidated(java.time.LocalDateTime.now());
+                                                if (valid) {
+                                                    provider.setConsecutiveErrorDays(0);
+                                                    provider.setLastErrorDate(null);
+                                                    provider.setStatus("active");
+                                                    provider.setDeadReason(null);
+                                                    provider.setDeadAt(null);
+                                                    validCount.incrementAndGet();
+                                                } else {
+                                                    int streak = Optional.ofNullable(provider.getConsecutiveErrorDays()).orElse(0) + 1;
+                                                    provider.setConsecutiveErrorDays(streak);
+                                                    provider.setLastErrorDate(java.time.LocalDateTime.now());
+                                                    if (streak >= ERROR_THRESHOLD) {
+                                                        provider.setStatus("dead");
+                                                        provider.setDeadAt(java.time.LocalDateTime.now());
+                                                        provider.setDeadReason("Quarantined after " + streak + " consecutive validation failures");
+                                                        log.error("Provider '{}' ({}) quarantined. Reason: {}",
+                                                                provider.getName(), provider.getId(), provider.getDeadReason());
+                                                    } else {
+                                                        log.warn("Provider '{}' ({}) validation failed (streak: {}/{})",
+                                                                provider.getName(), provider.getId(), streak, ERROR_THRESHOLD);
+                                                    }
+                                                    failedCount.incrementAndGet();
+                                                }
+                                                return providerRepository.save(provider);
+                                            })
+                                            .onErrorResume(e -> {
+                                                log.error("testAllProviders: validation error for provider {}: {}", provider.getId(), e.getMessage(), e);
+                                                return Mono.empty();
+                                            })
+                                            , concurrency)
+                            .then(Mono.fromSupplier(() -> {
+                                Map<String, Object> summary = new HashMap<>();
+                                summary.put("status", "completed");
+                                summary.put("total", activeProviders.size());
+                                summary.put("valid", validCount.get());
+                                summary.put("failed", failedCount.get());
+                                summary.put("note", "active providers validated; 'dead' providers skipped");
+                                log.info("testAllProviders: done — total={}, valid={}, failed={}",
+                                        activeProviders.size(), validCount.get(), failedCount.get());
+                                return summary;
+                            }));
+                })
+                .doOnError(e -> log.error("testAllProviders: overall error {}", e.getMessage(), e));
     }
 }

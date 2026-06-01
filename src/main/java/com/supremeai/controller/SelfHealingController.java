@@ -1,7 +1,5 @@
 package com.supremeai.controller;
 
-import com.supremeai.healing.AutoHealingEngine;
-import com.supremeai.intelligence.healing.InfiniteAutoHealer;
 import com.supremeai.service.SelfHealingService;
 import com.supremeai.service.CacheInvalidationService;
 import com.supremeai.audit.Audited;
@@ -98,30 +96,30 @@ public class SelfHealingController {
     // ===== HEALING ENDPOINTS (advanced) =====
 
     @PostMapping("/retry")
-    public ResponseEntity<Map<String, Object>> executeWithRetry(@RequestBody Map<String, Object> request) {
+    public Mono<ResponseEntity<Map<String, Object>>> executeWithRetry(@RequestBody Map<String, Object> request) {
         int maxAttempts = (int) request.getOrDefault("maxAttempts", 3);
         long initialBackoff = ((Number) request.getOrDefault("initialBackoff", 1000L)).longValue();
         String taskName = (String) request.getOrDefault("taskName", "unknown");
 
-        try {
-            String result = selfHealingService.executeWithRetry(
+        return selfHealingService.executeWithRetry(
                     () -> Mono.just("Task " + taskName + " completed successfully"),
                     maxAttempts,
                     initialBackoff
-            ).block();
-
-            return ResponseEntity.ok(Map.of(
-                    "status", "success",
-                    "result", result,
-                    "maxAttempts", maxAttempts
-            ));
-        } catch (Exception e) {
-            return ResponseEntity.status(500).body(Map.of(
-                    "status", "failed",
-                    "error", e.getMessage(),
-                    "maxAttempts", maxAttempts
-            ));
-        }
+            )
+            .map(result -> {
+                Map<String, Object> successBody = new java.util.HashMap<>();
+                successBody.put("status", "success");
+                successBody.put("result", result);
+                successBody.put("maxAttempts", maxAttempts);
+                return ResponseEntity.ok(successBody);
+            })
+            .onErrorResume(e -> {
+                Map<String, Object> errorBody = new java.util.HashMap<>();
+                errorBody.put("status", "failed");
+                errorBody.put("error", e.getMessage());
+                errorBody.put("maxAttempts", maxAttempts);
+                return Mono.just(ResponseEntity.status(500).body(errorBody));
+            });
     }
 
     @PostMapping("/detect")
@@ -262,5 +260,16 @@ public class SelfHealingController {
                 "status", "emergency_stop_activated",
                 "message", "Emergency stop signal sent. System will halt shortly."
         ));
+    }
+
+    @GetMapping("/test-proposal")
+    public ResponseEntity<Map<String, String>> testProposal() {
+        selfHealingService.proposeImprovementToKingsMode(
+            "বর্তমানে আমরা React-এর পুরনো version 17 ব্যবহার করছি, যা অনেক ধীর গতির।",
+            "React version 18-এ আপগ্রেড করা এবং Concurrent Features ব্যবহার করা।",
+            "এতে করে UI-র রেসপন্স টাইম অনেক বাড়বে এবং ইউজার এক্সপেরিয়েন্স স্মুথ হবে।",
+            "Rendering speed প্রায় ৪০% বৃদ্ধি পাবে এবং মেমোরি লিক কমে যাবে।"
+        );
+        return ResponseEntity.ok(Map.of("status", "success", "message", "Test Proposal Sent to KingsMode"));
     }
 }

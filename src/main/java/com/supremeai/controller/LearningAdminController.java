@@ -11,18 +11,17 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import com.supremeai.learning.active.ActiveInternetScraper;
 
+import java.time.Duration;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.net.URL;
 
-/**
- * Learning Management API - Admin only.
- * Controls quotas, modes, and provides operational metrics.
- */
 @RestController
 @RequestMapping("/api/admin/learning")
 @PreAuthorize("hasRole('ADMIN')")
 public class LearningAdminController {
+
+    private static final Duration BLOCK_TIMEOUT = Duration.ofSeconds(15);
 
     private final LearningModeControl modeControl;
     private final LearningQuotaService quotaService;
@@ -197,7 +196,7 @@ public class LearningAdminController {
         List<Map<String, Object>> result = sourceRepository.findAll()
                 .map(this::toSourceMap)
                 .collectList()
-                .block();
+                .block(BLOCK_TIMEOUT);
         return ResponseEntity.ok(result != null ? result : List.of());
     }
 
@@ -230,7 +229,7 @@ public class LearningAdminController {
                 .count()
                 .map(cnt -> cnt > 0)
                 .onErrorReturn(false)
-                .block();
+                .block(BLOCK_TIMEOUT);
         if (exists) {
             return ResponseEntity.badRequest().body(Map.of(
                     "status", "error", "message", "This URL is already in the learning sources"
@@ -251,7 +250,7 @@ public class LearningAdminController {
         source.setEnabled(true);
         source.setNotes((String) body.get("notes"));
 
-        LearningSource saved = sourceRepository.save(source).block();
+        LearningSource saved = sourceRepository.save(source).block(BLOCK_TIMEOUT);
 
         return ResponseEntity.ok(Map.of(
                 "status", "success",
@@ -292,7 +291,7 @@ public class LearningAdminController {
      */
     @DeleteMapping("/sources/{id}")
     public ResponseEntity<Map<String, String>> deleteSource(@PathVariable String id) {
-        LearningSource existing = sourceRepository.findById(id).block();
+        LearningSource existing = sourceRepository.findById(id).block(BLOCK_TIMEOUT);
         if (existing == null) {
             return ResponseEntity.notFound().build();
         }
@@ -310,13 +309,13 @@ public class LearningAdminController {
      */
     @PostMapping("/sources/{id}/toggle")
     public ResponseEntity<Map<String, Object>> toggleSource(@PathVariable String id) {
-        LearningSource existing = sourceRepository.findById(id).block();
+        LearningSource existing = sourceRepository.findById(id).block(BLOCK_TIMEOUT);
         if (existing == null) {
             return ResponseEntity.notFound().build();
         }
         existing.setEnabled(!existing.isEnabled());
         existing.setUpdatedAt(new Date());
-        LearningSource saved = sourceRepository.save(existing).block();
+        LearningSource saved = sourceRepository.save(existing).block(BLOCK_TIMEOUT);
         return ResponseEntity.ok(Map.of(
                 "status", "success",
                 "enabled", saved.isEnabled(),

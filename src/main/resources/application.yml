@@ -83,7 +83,7 @@ ai:
       api-key: ${AI_PROVIDERS_OLLAMA_API_KEY:ollama}
     huggingface:
       api-key: ${HUGGINGFACE_API_KEY:}
-      model: ${HUGGINGFACE_MODEL:meta-llama/Llama-3.3-70B-Instruct}
+      model: ${HUGGINGFACE_MODEL:meta-llama/Llama-3.2-3B-Instruct}
 
 # Rate limiting configuration
 rate-limit:

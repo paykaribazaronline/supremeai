@@ -287,12 +287,8 @@ public class SimulatorController {
      */
     @GetMapping("/admin/usage")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Map<String, Object>> getAllUsage(Authentication auth) {
-        // Aggregate usage from deployment service registry
-        java.util.List<com.supremeai.model.SimulatorDeploymentRecord> deployments =
-            simulatorService.getAllDeployments();
-
-        java.util.List<Map<String, Object>> usageList = deployments.stream()
+    public Mono<ResponseEntity<Map<String, Object>>> getAllUsage(Authentication auth) {
+        return simulatorService.getAllDeployments()
             .map(record -> {
                 Map<String, Object> entry = new HashMap<>();
                 entry.put("appId", record.getAppId());
@@ -302,13 +298,13 @@ public class SimulatorController {
                 entry.put("deployedAt", record.getDeployedAt());
                 return entry;
             })
-            .toList();
-
-        Map<String, Object> response = new HashMap<>();
-        response.put("totalDeployments", usageList.size());
-        response.put("deployments", usageList);
-
-        return ResponseEntity.ok(response);
+            .collectList()
+            .map(usageList -> {
+                Map<String, Object> response = new HashMap<>();
+                response.put("totalDeployments", usageList.size());
+                response.put("deployments", usageList);
+                return ResponseEntity.ok(response);
+            });
     }
 
     /**

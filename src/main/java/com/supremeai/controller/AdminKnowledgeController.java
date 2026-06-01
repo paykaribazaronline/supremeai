@@ -12,6 +12,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
@@ -22,6 +23,8 @@ import java.util.stream.Collectors;
 @RequestMapping("/api/admin/knowledge")
 @PreAuthorize("hasRole('ADMIN')")
 public class AdminKnowledgeController extends BaseAdminController<Object, String> {
+
+    private static final Duration BLOCK_TIMEOUT = Duration.ofSeconds(10);
 
     private final KnowledgeDomainRepository domainRepository;
     private final KnowledgeRecommendationRepository recommendationRepository;
@@ -39,7 +42,7 @@ public class AdminKnowledgeController extends BaseAdminController<Object, String
     @GetMapping("/snapshot")
     public ResponseEntity<ApiResponse<Map<String, Object>>> getKnowledgeSnapshot() {
         try {
-            Map<String, Object> data = knowledgeService.getKnowledgeSnapshot().block();
+            Map<String, Object> data = knowledgeService.getKnowledgeSnapshot().block(BLOCK_TIMEOUT);
             return ResponseEntity.ok(ApiResponse.ok(data));
         } catch (Exception e) {
             return handleErrorSync("Failed to get snapshot", e);
@@ -49,7 +52,7 @@ public class AdminKnowledgeController extends BaseAdminController<Object, String
     @GetMapping("/domains")
     public ResponseEntity<ApiResponse<List<Map<String, Object>>>> getDomains() {
         try {
-            List<KnowledgeDomain> list = domainRepository.findAll().collectList().block();
+            List<KnowledgeDomain> list = domainRepository.findAll().collectList().block(BLOCK_TIMEOUT);
             List<Map<String, Object>> uiDomains = list.stream().map(d -> {
                 Map<String, Object> m = new HashMap<>();
                 m.put("id", d.getId());
@@ -77,7 +80,7 @@ public class AdminKnowledgeController extends BaseAdminController<Object, String
 
         KnowledgeDomain domain = new KnowledgeDomain(name, keywords != null ? keywords : List.of());
         try {
-            KnowledgeDomain saved = domainRepository.save(domain).block();
+            KnowledgeDomain saved = domainRepository.save(domain).block(BLOCK_TIMEOUT);
             return ResponseEntity.ok(ApiResponse.ok(Map.of("domain", saved)));
         } catch (Exception e) {
             return ResponseEntity.status(500).body(ApiResponse.error("Failed to create domain"));
@@ -87,7 +90,7 @@ public class AdminKnowledgeController extends BaseAdminController<Object, String
     @GetMapping("/recommendations")
     public ResponseEntity<ApiResponse<List<Map<String, Object>>>> getRecommendations() {
         try {
-            List<KnowledgeRecommendation> list = recommendationRepository.findAll().collectList().block();
+            List<KnowledgeRecommendation> list = recommendationRepository.findAll().collectList().block(BLOCK_TIMEOUT);
             List<Map<String, Object>> uiRecs = list.stream().map(r -> {
                 Map<String, Object> m = new HashMap<>();
                 m.put("id", r.getId());
@@ -108,7 +111,7 @@ public class AdminKnowledgeController extends BaseAdminController<Object, String
     @PostMapping("/recommendations/{id}/approve")
     public ResponseEntity<ApiResponse<String>> approveRecommendation(@PathVariable String id) {
         try {
-            KnowledgeRecommendation rec = recommendationRepository.findById(id).block();
+            KnowledgeRecommendation rec = recommendationRepository.findById(id).block(BLOCK_TIMEOUT);
             if (rec == null) return ResponseEntity.notFound().build();
 
             rec.setStatus(KnowledgeRecommendation.Status.APPROVED);
@@ -116,8 +119,8 @@ public class AdminKnowledgeController extends BaseAdminController<Object, String
             
             KnowledgeDomain newDomain = new KnowledgeDomain(rec.getTopic(), rec.getKeywords());
             
-            recommendationRepository.save(rec).block();
-            domainRepository.save(newDomain).block();
+            recommendationRepository.save(rec).block(BLOCK_TIMEOUT);
+            domainRepository.save(newDomain).block(BLOCK_TIMEOUT);
             
             return ResponseEntity.ok(ApiResponse.ok("Recommendation approved and domain created"));
         } catch (Exception e) {
@@ -128,12 +131,12 @@ public class AdminKnowledgeController extends BaseAdminController<Object, String
     @PostMapping("/recommendations/{id}/decline")
     public ResponseEntity<ApiResponse<String>> declineRecommendation(@PathVariable String id) {
         try {
-            KnowledgeRecommendation rec = recommendationRepository.findById(id).block();
+            KnowledgeRecommendation rec = recommendationRepository.findById(id).block(BLOCK_TIMEOUT);
             if (rec == null) return ResponseEntity.notFound().build();
 
             rec.setStatus(KnowledgeRecommendation.Status.DECLINED);
             rec.setProcessedAt(LocalDateTime.now());
-            recommendationRepository.save(rec).block();
+            recommendationRepository.save(rec).block(BLOCK_TIMEOUT);
             
             return ResponseEntity.ok(ApiResponse.ok("Recommendation declined"));
         } catch (Exception e) {
@@ -144,7 +147,7 @@ public class AdminKnowledgeController extends BaseAdminController<Object, String
     @PostMapping("/domains/{domainId}/start")
     public ResponseEntity<ApiResponse<KnowledgeDomain>> startLearning(@PathVariable String domainId) {
         try {
-            KnowledgeDomain data = knowledgeService.startLearning(domainId).block();
+            KnowledgeDomain data = knowledgeService.startLearning(domainId).block(BLOCK_TIMEOUT);
             return ResponseEntity.ok(ApiResponse.ok(data));
         } catch (Exception e) {
             return ResponseEntity.status(500).body(ApiResponse.error("Failed to start learning"));
@@ -154,7 +157,7 @@ public class AdminKnowledgeController extends BaseAdminController<Object, String
     @PostMapping("/domains/{domainId}/process")
     public ResponseEntity<ApiResponse<Map<String, Object>>> processLearning(@PathVariable String domainId) {
         try {
-            Map<String, Object> data = knowledgeService.processLearningJob(domainId).block();
+            Map<String, Object> data = knowledgeService.processLearningJob(domainId).block(BLOCK_TIMEOUT);
             return ResponseEntity.ok(ApiResponse.ok(data));
         } catch (Exception e) {
             return ResponseEntity.status(500).body(ApiResponse.error("Processing failed"));
@@ -164,7 +167,7 @@ public class AdminKnowledgeController extends BaseAdminController<Object, String
     @PostMapping("/recommendations/generate")
     public ResponseEntity<ApiResponse<List<KnowledgeRecommendation>>> generateRecommendations() {
         try {
-            List<KnowledgeRecommendation> data = knowledgeService.generateRecommendations().block();
+            List<KnowledgeRecommendation> data = knowledgeService.generateRecommendations().block(BLOCK_TIMEOUT);
             return ResponseEntity.ok(ApiResponse.ok(data));
         } catch (Exception e) {
             return ResponseEntity.status(500).body(ApiResponse.error("Generation failed"));

@@ -5,19 +5,19 @@ test.describe('API Tests', () => {
 
   test.describe('Health Check Endpoints', () => {
     test('API health endpoint returns 200', async ({ request }) => {
-      const response = await request(`${BASE_URL}/api/health`);
+      const response = await request.fetch(`${BASE_URL}/api/health`);
       expect(response.status()).toBe(200);
     });
 
     test('System health endpoint returns 200', async ({ request }) => {
-      const response = await request(`${BASE_URL}/api/system-health`);
+      const response = await request.fetch(`${BASE_URL}/api/system-health`);
       expect(response.status()).toBe(200);
     });
   });
 
   test.describe('Authentication API', () => {
     test('Auth endpoint exists', async ({ request }) => {
-      const response = await request(`${BASE_URL}/api/auth`);
+      const response = await request.fetch(`${BASE_URL}/api/auth`);
       expect(response.status()).not.toBe(404);
     });
   });

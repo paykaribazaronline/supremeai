@@ -1,6 +1,7 @@
 package com.supremeai.controller;
 
 import com.supremeai.service.AutonomousQuestioningEngine;
+import com.supremeai.service.NeuralChatService.NeuralResponse;
 import com.supremeai.service.MultiAIVotingService;
 import com.supremeai.service.MultiAIConsensusService;
 import com.supremeai.service.EnhancedLearningService;
@@ -58,53 +59,120 @@ public class ChatController {
     private ProviderRepository providerRepository;
 
     @Autowired
-    private com.supremeai.service.ContextSummarizerService summarizerService;
-
-    @Autowired
     private com.supremeai.service.NeuralChatService neuralChatService;
 
     private final CircuitBreaker aiCircuitBreaker;
     private final Retry aiRetry;
 
     public ChatController() {
-        // Initialize circuit breaker and retry for AI operations
         this.aiCircuitBreaker = CircuitBreaker.ofDefaults("aiVotingService");
         this.aiRetry = Retry.ofDefaults("aiVotingService");
     }
 
+    @Deprecated(since = "2.0", forRemoval = true)
     @PostMapping("/send")
     @PreAuthorize("hasAnyRole('USER', 'ADMIN', 'AGENT_MANAGER', 'GUEST')")
     public Mono<ResponseEntity<Object>> sendMessage(@Valid @RequestBody ChatRequest request) {
+        logger.warn("Deprecated /api/chat/send endpoint called. Processing with legacy handler.");
+        if (request == null || request.getMessage() == null || request.getMessage().trim().isEmpty()) {
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("error", "Message is required");
+            return Mono.just(ResponseEntity.badRequest().body((Object) errorResponse));
+        }
+
         String message = request.getMessage();
         boolean skipValidation = request.isSkipValidation();
 
-        if (message == null || message.trim().isEmpty()) {
-            return Mono.just(ResponseEntity.badRequest().body(Map.of("error", "Message is required")));
+        return questioningEngine.validateAndQuestion(message, AutonomousQuestioningEngine.RequestType.GENERAL_AI)
+            .flatMap(validation -> executeResponseForRequest(request, message, validation, skipValidation));
+    }
+
+    private boolean isSkipValidationDirectAnswer(String message) {
+        if (message == null) {
+            return false;
+        }
+        String lower = message.toLowerCase();
+        return lower.startsWith("what is") || lower.startsWith("what are") || lower.startsWith("explain")
+            || lower.startsWith("define") || lower.startsWith("tell me about") || lower.startsWith("who is")
+            || lower.startsWith("when is");
+    }
+
+    private Mono<ResponseEntity<Object>> executeResponseForRequest(ChatRequest request, String message,
+            AutonomousQuestioningEngine.ValidationResult validation, boolean skipValidation) {
+        
+        if (!skipValidation && validation != null && !validation.isComplete()) {
+            Map<String, Object> response = new HashMap<>();
+            response.put("type", "CLARIFICATION_REQUIRED");
+            response.put("clarity", validation.getClarityScore());
+            response.put("questions", validation.getClarifyingQuestions());
+            response.put("options", validation.getOptions());
+            return Mono.just(ResponseEntity.ok((Object) response));
         }
 
-        logger.info("Received chat message: {}", message);
+        // Level-0: Direct Response Bypass RAG for Greetings
+        if (validation != null && validation.getIntentType() == AutonomousQuestioningEngine.IntentType.GREETING) {
+            Map<String, Object> response = new HashMap<>();
+            response.put("message", "হ্যালো! আমি SupremeAI. আজ আমি আপনার প্রজেক্ট বা কোডিংয়ের কাজে কীভাবে সহায়তা করতে পারি?");
+            response.put("confidence", 1.0);
+            response.put("sources", List.of("Local Memory"));
+            response.put("tier", "LEVEL_0_BYPASS");
+            response.put("pipeline", "direct_greeting");
+            response.put("localMode", true);
+            response.put("mode", "greeting");
+            response.put("intent", "GREETING");
+            return Mono.just(ResponseEntity.ok((Object) response));
+        }
 
-        Mono<ResponseEntity<Object>> validationMono;
-        if (!skipValidation) {
-            validationMono = questioningEngine.validateAndQuestion(message, AutonomousQuestioningEngine.RequestType.GENERAL_AI)
-                .flatMap(validation -> {
-                    if (validation != null && !validation.isComplete()) {
-                        Map<String, Object> response = new HashMap<>();
-                        response.put("type", "CLARIFICATION_REQUIRED");
-                        response.put("questions", validation.getClarifyingQuestions());
-                        response.put("options", validation.getOptions());
-                        response.put("clarityScore", validation.getClarityScore());
-                        response.put("message", "I need more information before I can give you a quality answer.");
-                        return Mono.just(ResponseEntity.ok((Object) response));
+        boolean preferLocal = (validation != null
+            && validation.getResponseStrategy() == AutonomousQuestioningEngine.ResponseStrategy.DIRECT_ANSWER)
+            || (skipValidation && isSkipValidationDirectAnswer(message));
+
+        if (preferLocal) {
+            return neuralChatService.generateIntelligentResponse(message)
+                .flatMap(neuralResponse -> {
+                    if (shouldUseLocalResponse(neuralResponse)) {
+                        return Mono.just(buildLocalResponse(neuralResponse, message));
                     }
-                    return Mono.empty();
+                    logger.info("[ChatController] Local direct answer produced weak response; falling back to voting.");
+                    return executeVotingAndResponse(request, message);
+                })
+                .onErrorResume(err -> {
+                    logger.warn("[ChatController] Local direct answer path failed: {}. Falling back to voting.", err.getMessage());
+                    return executeVotingAndResponse(request, message);
                 });
-        } else {
-            validationMono = Mono.empty();
         }
 
-        return validationMono
-            .switchIfEmpty(Mono.defer(() -> executeVotingAndResponse(request, message)));
+        return executeVotingAndResponse(request, message);
+    }
+
+    private boolean shouldUseLocalResponse(NeuralResponse neuralResponse) {
+        if (neuralResponse == null) {
+            return false;
+        }
+        String tier = neuralResponse.getTier();
+        if (tier == null) {
+            return false;
+        }
+        if (tier.equals("STUB_FALLBACK")) {
+            return false;
+        }
+        return neuralResponse.getConfidence() >= 0.55;
+    }
+
+    private ResponseEntity<Object> buildLocalResponse(NeuralResponse neuralResponse, String message) {
+        Map<String, Object> response = new HashMap<>();
+        response.put("message", neuralResponse.getAnswer());
+        response.put("confidence", neuralResponse.getConfidence());
+        response.put("sources", neuralResponse.getSources());
+        response.put("tier", neuralResponse.getTier());
+        response.put("pipeline", neuralResponse.getPipeline());
+        response.put("localMode", true);
+
+        var intent = intelligenceService.classifyIntent(message);
+        response.put("mode", intent.name().toLowerCase());
+        response.put("intent", intent.name());
+
+        return ResponseEntity.ok((Object) response);
     }
 
     private Mono<ResponseEntity<Object>> executeVotingAndResponse(ChatRequest request, String message) {
@@ -121,7 +189,6 @@ public class ChatController {
                             response.put("pipeline", neuralResponse.getPipeline());
                             response.put("localMode", true);
 
-                            // Intent classification
                             var intent = intelligenceService.classifyIntent(message);
                             response.put("mode", intent.name().toLowerCase());
                             response.put("intent", intent.name());
@@ -141,12 +208,10 @@ public class ChatController {
                 response.put("processingTimeMs", votingResult.getProcessingTimeMs());
                 response.put("timestamp", java.time.Instant.now().toString());
 
-                // Intent classification
                 var intent = intelligenceService.classifyIntent(message);
                 response.put("mode", intent.name().toLowerCase());
                 response.put("intent", intent.name());
 
-                // Side-effects (Learning) - non-blocking execution
                 intelligenceService.handleIntelligence(
                     request.getAgentId() != null ? request.getAgentId() : "default",
                     message,
@@ -188,7 +253,6 @@ public class ChatController {
                         response.put("pipeline", neuralResponse.getPipeline());
                         response.put("localMode", true);
 
-                        // Intent classification
                         var intent = intelligenceService.classifyIntent(message);
                         response.put("mode", intent.name().toLowerCase());
                         response.put("intent", intent.name());
@@ -215,7 +279,6 @@ public class ChatController {
                         response.put("pipeline", neuralResponse.getPipeline());
                         response.put("localMode", true);
 
-                        // Intent classification
                         var intent = intelligenceService.classifyIntent(message);
                         response.put("mode", intent.name().toLowerCase());
                         response.put("intent", intent.name());
@@ -252,7 +315,6 @@ public class ChatController {
 
         logger.info("Received feedback for message: {}, helpful: {}", messageId, helpful);
 
-        // Capture learning from feedback - this is valuable for NLP improvement
         if (enhancedLearningService != null && userMessage != null && aiResponse != null && messageId != null) {
             double qualityScore = helpful ? 1.0 : 0.3;
             enhancedLearningService.learnFromNLPInteraction(
@@ -270,9 +332,6 @@ public class ChatController {
         return Mono.just(ResponseEntity.ok(Map.of("status", "received")));
     }
 
-    /**
-     * ডায়নামিকভাবে মোড সনাক্ত করার হেল্পার মেথড
-     */
     private String detectMode(String message) {
         String lowerMsg = message.toLowerCase();
         if (lowerMsg.contains("architect") || lowerMsg.contains("design") || lowerMsg.contains("structure")) {
@@ -337,7 +396,7 @@ public class ChatController {
                     fullHistoryBuilder.append("USER: ").append(userMessage).append("\n");
                 }
 
-                return summarizerService.summarizeContext(fullHistoryBuilder.toString())
+                return Mono.just(fullHistoryBuilder.toString())
                     .flatMapMany(summarizedHistory -> {
                         String contextualPrompt = "You are SupremeAI, a highly intelligent coding and development assistant. Maintain a friendly and helpful tone.\n" +
                             "Below is the conversation context:\n\n" +
@@ -390,91 +449,91 @@ public class ChatController {
                     fullHistoryBuilder.append("USER: ").append(userMessage).append("\n");
                 }
 
-                return summarizerService.summarizeContext(fullHistoryBuilder.toString());
-            })
-            .flatMap(summarizedHistory -> {
-                String contextualPrompt = "You are SupremeAI, a highly intelligent coding and development assistant. Maintain a friendly and helpful tone.\n" +
-                    "Below is the conversation context:\n\n" +
-                    summarizedHistory + "\n\nAI: ";
+                return Mono.just(fullHistoryBuilder.toString())
+                    .flatMap(summarizedHistory -> {
+                        String contextualPrompt = "You are SupremeAI, a highly intelligent coding and development assistant. Maintain a friendly and helpful tone.\n" +
+                            "Below is the conversation context:\n\n" +
+                            summarizedHistory + "\n\nAI: ";
 
-                return votingService.executeEnsembleVoting(contextualPrompt, null, 15000L)
-                    .flatMap(votingResult -> {
-                        String rawResponse = (votingResult != null) ? votingResult.getBestResponse() : null;
-                        if (rawResponse == null) {
-                            return neuralChatService.generateIntelligentResponse(userMessage)
-                                .flatMap(neuralResponse -> {
-                                    String bestResponse = neuralResponse.getAnswer();
-                                    ChatMessage aiMsg = new ChatMessage();
-                                    aiMsg.setId(java.util.UUID.randomUUID().toString());
-                                    aiMsg.setUserId(finalSessionId);
-                                    aiMsg.setContent(bestResponse);
-                                    aiMsg.setRole("ai");
-                                    aiMsg.setTimestamp(LocalDateTime.now());
+                        return votingService.executeEnsembleVoting(contextualPrompt, null, 15000L)
+                            .flatMap(votingResult -> {
+                                String rawResponse = (votingResult != null) ? votingResult.getBestResponse() : null;
+                                if (rawResponse == null) {
+                                    return neuralChatService.generateIntelligentResponse(userMessage)
+                                        .flatMap(neuralResponse -> {
+                                            String bestResponse = neuralResponse.getAnswer();
+                                            ChatMessage aiMsg = new ChatMessage();
+                                            aiMsg.setId(java.util.UUID.randomUUID().toString());
+                                            aiMsg.setUserId(finalSessionId);
+                                            aiMsg.setContent(bestResponse);
+                                            aiMsg.setRole("ai");
+                                            aiMsg.setTimestamp(LocalDateTime.now());
 
-                                    return chatHistoryRepository.save(aiMsg)
-                                        .map(savedAiMsg -> {
-                                            Map<String, Object> response = new HashMap<>();
-                                            response.put("success", true);
-                                            response.put("message", "success");
-                                            response.put("response", bestResponse);
-                                            response.put("sessionId", finalSessionId);
-                                            response.put("timestamp", java.time.Instant.now().toString());
-                                            response.put("localMode", true);
-                                            response.put("sources", neuralResponse.getSources());
-                                            response.put("tier", neuralResponse.getTier());
-                                            response.put("pipeline", neuralResponse.getPipeline());
-                                            return ResponseEntity.ok((Object) response);
+                                            return chatHistoryRepository.save(aiMsg)
+                                                .map(savedAiMsg -> {
+                                                    Map<String, Object> response = new HashMap<>();
+                                                    response.put("success", true);
+                                                    response.put("message", "success");
+                                                    response.put("response", bestResponse);
+                                                    response.put("sessionId", finalSessionId);
+                                                    response.put("timestamp", java.time.Instant.now().toString());
+                                                    response.put("localMode", true);
+                                                    response.put("sources", neuralResponse.getSources());
+                                                    response.put("tier", neuralResponse.getTier());
+                                                    response.put("pipeline", neuralResponse.getPipeline());
+                                                    return ResponseEntity.ok((Object) response);
+                                                });
                                         });
-                                });
-                        }
+                                }
 
-                        ChatMessage aiMsg = new ChatMessage();
-                        aiMsg.setId(java.util.UUID.randomUUID().toString());
-                        aiMsg.setUserId(finalSessionId);
-                        aiMsg.setContent(rawResponse);
-                        aiMsg.setRole("ai");
-                        aiMsg.setTimestamp(LocalDateTime.now());
+                                ChatMessage aiMsg = new ChatMessage();
+                                aiMsg.setId(java.util.UUID.randomUUID().toString());
+                                aiMsg.setUserId(finalSessionId);
+                                aiMsg.setContent(rawResponse);
+                                aiMsg.setRole("ai");
+                                aiMsg.setTimestamp(LocalDateTime.now());
 
-                        return chatHistoryRepository.save(aiMsg)
-                            .map(savedAiMsg -> {
-                                Map<String, Object> response = new HashMap<>();
-                                response.put("success", true);
-                                response.put("message", "success");
-                                response.put("response", rawResponse);
-                                response.put("sessionId", finalSessionId);
-                                response.put("timestamp", java.time.Instant.now().toString());
-                                response.put("localMode", true);
-                                return ResponseEntity.ok((Object) response);
+                                return chatHistoryRepository.save(aiMsg)
+                                    .map(savedAiMsg -> {
+                                        Map<String, Object> response = new HashMap<>();
+                                        response.put("success", true);
+                                        response.put("message", "success");
+                                        response.put("response", rawResponse);
+                                        response.put("sessionId", finalSessionId);
+                                        response.put("timestamp", java.time.Instant.now().toString());
+                                        response.put("localMode", true);
+                                        return ResponseEntity.ok((Object) response);
+                                    });
                             });
-                    });
-            })
-            .onErrorResume(e -> {
-                logger.error("Failed to process chat with history for session: {}", finalSessionId, e);
+                    })
+                    .onErrorResume(e -> {
+                        logger.error("Failed to process chat with history for session: {}", finalSessionId, e);
 
-                return neuralChatService.generateIntelligentResponse(userMessage)
-                    .flatMap(neuralResponse -> {
-                        String localResponse = neuralResponse.getAnswer();
+                        return neuralChatService.generateIntelligentResponse(userMessage)
+                            .flatMap(neuralResponse -> {
+                                String localResponse = neuralResponse.getAnswer();
 
-                        ChatMessage aiMsg = new ChatMessage();
-                        aiMsg.setId(java.util.UUID.randomUUID().toString());
-                        aiMsg.setUserId(finalSessionId);
-                        aiMsg.setContent(localResponse);
-                        aiMsg.setRole("ai");
-                        aiMsg.setTimestamp(LocalDateTime.now());
+                                ChatMessage aiMsg = new ChatMessage();
+                                aiMsg.setId(java.util.UUID.randomUUID().toString());
+                                aiMsg.setUserId(finalSessionId);
+                                aiMsg.setContent(localResponse);
+                                aiMsg.setRole("ai");
+                                aiMsg.setTimestamp(LocalDateTime.now());
 
-                        return chatHistoryRepository.save(aiMsg)
-                            .map(savedAiMsg -> {
-                                Map<String, Object> response = new HashMap<>();
-                                response.put("success", true);
-                                response.put("message", "AI temporarily unavailable, using intelligent offline fallback response");
-                                response.put("response", localResponse);
-                                response.put("sessionId", finalSessionId);
-                                response.put("timestamp", java.time.Instant.now().toString());
-                                response.put("localMode", true);
-                                response.put("sources", neuralResponse.getSources());
-                                response.put("tier", neuralResponse.getTier());
-                                response.put("pipeline", neuralResponse.getPipeline());
-                                return ResponseEntity.ok((Object) response);
+                                return chatHistoryRepository.save(aiMsg)
+                                    .map(savedAiMsg -> {
+                                        Map<String, Object> response = new HashMap<>();
+                                        response.put("success", true);
+                                        response.put("message", "AI temporarily unavailable, using intelligent offline fallback response");
+                                        response.put("response", localResponse);
+                                        response.put("sessionId", finalSessionId);
+                                        response.put("timestamp", java.time.Instant.now().toString());
+                                        response.put("localMode", true);
+                                        response.put("sources", neuralResponse.getSources());
+                                        response.put("tier", neuralResponse.getTier());
+                                        response.put("pipeline", neuralResponse.getPipeline());
+                                        return ResponseEntity.ok((Object) response);
+                                    });
                             });
                     });
             });

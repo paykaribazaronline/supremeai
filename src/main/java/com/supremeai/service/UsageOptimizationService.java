@@ -12,7 +12,9 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 
 /**
  * Service for optimizing AI API usage across providers.
@@ -35,15 +37,6 @@ public class UsageOptimizationService {
     @Autowired
     private ApiKeyRotationService keyRotationService;
 
-    /**
-     * In-memory response cache. Key = hash of (userId + provider + model + prompt).
-     * This avoids duplicate API calls for the same prompt within the cache TTL.
-     */
-    private final ConcurrentHashMap<String, CachedResponse> responseCache = new ConcurrentHashMap<>();
-
-    private static final int CACHE_TTL_MINUTES = 30;
-    private static final int MAX_CACHE_SIZE = 1000;
-
     @Autowired
     private ProviderTypeRegistry providerTypeRegistry;
 
@@ -52,7 +45,12 @@ public class UsageOptimizationService {
 
     private static final String DEFAULT_TIER = "standard";
 
-    private final Map<String, ModelTier> modelTiersCache = new ConcurrentHashMap<>();
+    private final Cache<String, ModelTier> modelTiersCache = Caffeine.newBuilder()
+            .expireAfterWrite(CACHE_TTL_MINUTES, TimeUnit.MINUTES)
+            .maximumSize(MAX_CACHE_SIZE)
+            .build(modelId -> {
+                throw new IllegalArgumentException("Unknown model tier for: " + modelId);
+            });
 
     @jakarta.annotation.PostConstruct
     public void initModelTiers() {
@@ -79,73 +77,49 @@ public class UsageOptimizationService {
         modelTiersCache.put("grok-3-mini", new ModelTier("premium", 0.001));
     }
 
-    /**
-     * Check the response cache for a previous result.
-     * Returns null if not cached or cache expired.
-     */
+    private final Cache<String, CachedResponse> responseCache = Caffeine.newBuilder()
+            .expireAfterWrite(CACHE_TTL_MINUTES, TimeUnit.MINUTES)
+            .maximumSize(MAX_CACHE_SIZE)
+            .build();
+
     public String getCachedResponse(String userId, String provider, String model, String prompt) {
         String cacheKey = buildCacheKey(userId, provider, model, prompt);
-        CachedResponse cached = responseCache.get(cacheKey);
-
-        if (cached == null) return null;
-
-        if (cached.isExpired()) {
-            responseCache.remove(cacheKey);
+        CachedResponse cached = responseCache.getIfPresent(cacheKey);
+        if (cached == null || cached.isExpired()) {
+            if (cached != null) responseCache.invalidate(cacheKey);
             return null;
         }
-
         log.debug("Cache hit for key: {}", cacheKey.substring(0, 16) + "...");
         return cached.response;
     }
 
-    /**
-     * Store a response in the cache.
-     */
     public void cacheResponse(String userId, String provider, String model, String prompt, String response) {
-        // Evict old entries if cache is too large
-        if (responseCache.size() >= MAX_CACHE_SIZE) {
-            evictExpiredEntries();
-            if (responseCache.size() >= MAX_CACHE_SIZE) {
-                // Remove oldest entries
-                responseCache.entrySet().stream()
-                        .sorted(Comparator.comparingLong(e -> e.getValue().cachedAt))
-                        .limit(100)
-                        .forEach(e -> responseCache.remove(e.getKey()));
-            }
-        }
-
         String cacheKey = buildCacheKey(userId, provider, model, prompt);
         responseCache.put(cacheKey, new CachedResponse(response));
     }
 
-    /**
-     * Select the best model for a given task complexity.
-     *
-     * @param userId     The user making the request
-     * @param complexity Task complexity: "simple", "moderate", "complex", "critical"
-     * @return Recommended model name and the API key to use
-     */
     public Mono<SelectedModel> selectModelForTask(String userId, String complexity) {
         String targetTier = mapComplexityToTier(complexity);
 
-        // Find all active keys for this user
-        return userApiKeyRepository.findByUserIdAndStatus(userId, "active")
-            .collectList()
-            .flatMap(keys -> {
+        return Mono.zip(
+                userApiKeyRepository.findByUserIdAndStatus(userId, "active").collectList(),
+                providerRepository.findAll().collectList()
+            )
+            .flatMap(tuple -> {
+                List<UserApiKey> keys = tuple.getT1();
+                List<com.supremeai.model.APIProvider> allDbProviders = tuple.getT2();
+
                 if (keys.isEmpty()) return Mono.empty();
 
-                // Group keys by provider
                 Map<String, List<UserApiKey>> keysByProvider = new LinkedHashMap<>();
                 for (UserApiKey key : keys) {
                     keysByProvider.computeIfAbsent(key.getProvider().toLowerCase(), k -> new ArrayList<>()).add(key);
                 }
 
-                // Find the cheapest model in the target tier that the user has a key for
                 List<Map.Entry<String, ModelTier>> candidates = new ArrayList<>();
                 for (Map.Entry<String, ModelTier> entry : modelTiersCache.entrySet()) {
                     if (entry.getValue().tier.equals(targetTier) || isHigherTier(entry.getValue().tier, targetTier)) {
-                        // Check if user has a key for this model's provider
-                        String modelProvider = getProviderForModel(entry.getKey());
+                        String modelProvider = resolveProviderForModel(entry.getKey(), allDbProviders);
                         if (modelProvider != null && keysByProvider.containsKey(modelProvider)) {
                             candidates.add(entry);
                         }
@@ -153,23 +127,20 @@ public class UsageOptimizationService {
                 }
 
                 if (candidates.isEmpty()) {
-                    // Fallback: use any available key with its default model
                     UserApiKey anyKey = keys.get(0);
                     return Mono.just(new SelectedModel(
-                            getDefaultModelForProvider(anyKey.getProvider()),
+                            resolveDefaultModelForProvider(anyKey.getProvider(), allDbProviders),
                             anyKey.getApiKey(),
                             anyKey.getProvider(),
                             anyKey.getBaseUrl()
                     ));
                 }
 
-                // Sort by cost (cheapest first within the target tier)
                 candidates.sort(Comparator.comparingDouble(e -> e.getValue().costPerRequest));
 
                 Map.Entry<String, ModelTier> selected = candidates.get(0);
-                String modelProvider = getProviderForModel(selected.getKey());
+                String modelProvider = resolveProviderForModel(selected.getKey(), allDbProviders);
 
-                // Pick the least-used key for this provider
                 UserApiKey bestKey = keysByProvider.getOrDefault(modelProvider, keys).stream()
                         .min(Comparator.comparingLong(k -> k.getRequestCount() != null ? k.getRequestCount() : 0L))
                         .orElse(keys.get(0));
@@ -183,9 +154,6 @@ public class UsageOptimizationService {
             });
     }
 
-    /**
-     * Record usage of an API key (for cost tracking and rotation awareness).
-     */
     public Mono<Void> recordKeyUsage(String keyId, double estimatedCost) {
         return userApiKeyRepository.findById(keyId)
             .flatMap(key -> {
@@ -195,9 +163,6 @@ public class UsageOptimizationService {
             .then();
     }
 
-    /**
-     * Get usage summary for a user across all providers.
-     */
     public Mono<Map<String, Object>> getUserUsageSummary(String userId) {
         return userApiKeyRepository.findByUserId(userId).collectList()
             .map(keys -> {
@@ -213,7 +178,7 @@ public class UsageOptimizationService {
                         .filter(UserApiKey::needsRotation)
                         .count();
 
-                int cacheSize = responseCache.size();
+                int cacheSize = (int) responseCache.estimatedSize();
 
                 Map<String, Object> summary = new LinkedHashMap<>();
                 summary.put("totalRequests", totalRequests);
@@ -228,15 +193,9 @@ public class UsageOptimizationService {
             });
     }
 
-    // ─── Private helpers ──────────────────────────────────────────────
-
     private String buildCacheKey(String userId, String provider, String model, String prompt) {
         int hash = Objects.hash(userId, provider, model, prompt);
         return userId + ":" + provider + ":" + model + ":" + hash;
-    }
-
-    private void evictExpiredEntries() {
-        responseCache.entrySet().removeIf(e -> e.getValue().isExpired());
     }
 
     private String mapComplexityToTier(String complexity) {
@@ -266,13 +225,13 @@ public class UsageOptimizationService {
         };
     }
 
-    private String getProviderForModel(String modelId) {
+    private String resolveProviderForModel(String modelId, List<com.supremeai.model.APIProvider> allDbProviders) {
         try {
-            com.supremeai.model.APIProvider p = providerRepository.findAll()
-                    .filter(prov -> prov.getModels() != null && prov.getModels().stream()
-                            .anyMatch(m -> m.equalsIgnoreCase(modelId)))
-                    .blockFirst();
-            if (p != null && p.getType() != null) return p.getType();
+            for (com.supremeai.model.APIProvider p : allDbProviders) {
+                if (p.getModels() != null && p.getModels().stream().anyMatch(m -> m.equalsIgnoreCase(modelId))) {
+                    if (p.getType() != null) return p.getType();
+                }
+            }
         } catch (Exception e) {
             log.debug("Could not resolve provider for model {}: {}", modelId, e.getMessage());
         }
@@ -281,36 +240,40 @@ public class UsageOptimizationService {
             Object provider = typeConfig.getExtraConfig().get("provider");
             if (provider instanceof String) return (String) provider;
         }
-        if (modelId.startsWith("gpt-") || modelId.startsWith("o3") || modelId.startsWith("o4")) return "openai";
+        if (isLocalFirstExcluded(modelId)) return null;
         if (modelId.startsWith("gemini-")) return "google ai";
-        if (modelId.startsWith("claude-")) return "anthropic";
-        if (modelId.startsWith("deepseek-")) return "deepseek";
         if (modelId.startsWith("mistral-")) return "mistral";
         if (modelId.startsWith("grok-")) return "xai";
         return null;
     }
 
-    private String getDefaultModelForProvider(String provider) {
+    private boolean isLocalFirstExcluded(String raw) {
+        if (raw == null) return true;
+        String n = raw.toLowerCase();
+        return n.startsWith("gpt-") || n.startsWith("o3") || n.startsWith("o4") || n.equals("openai")
+                || n.startsWith("claude-") || n.equals("anthropic")
+                || n.startsWith("deepseek-") || n.equals("deepseek");
+    }
+
+    private String resolveDefaultModelForProvider(String provider, List<com.supremeai.model.APIProvider> allDbProviders) {
         com.supremeai.model.ProviderTypeConfig typeConfig = providerTypeRegistry.getTypeConfig(provider);
         if (typeConfig != null && typeConfig.getDefaultModel() != null) {
             return typeConfig.getDefaultModel();
         }
         try {
-            com.supremeai.model.APIProvider p = providerRepository.findAll()
+            com.supremeai.model.APIProvider matched = allDbProviders.stream()
                     .filter(prov -> prov.getType() != null && prov.getType().equalsIgnoreCase(provider))
-                    .sort(java.util.Comparator.comparingInt(com.supremeai.model.APIProvider::getPriority))
-                    .blockFirst();
-            if (p != null) {
-                if (p.getModels() != null && !p.getModels().isEmpty()) return p.getModels().get(0);
-                if (p.getModelName() != null) return p.getModelName();
+                    .min(Comparator.comparingInt(com.supremeai.model.APIProvider::getPriority))
+                    .orElse(null);
+            if (matched != null) {
+                if (matched.getModels() != null && !matched.getModels().isEmpty()) return matched.getModels().get(0);
+                if (matched.getModelName() != null) return matched.getModelName();
             }
         } catch (Exception e) {
             log.debug("Could not resolve default model for provider {}: {}", provider, e.getMessage());
         }
         return "default";
     }
-
-    // ─── Inner classes ──────────────────────────────────────────────
 
     private static class CachedResponse {
         final String response;
@@ -328,7 +291,7 @@ public class UsageOptimizationService {
 
     private static class ModelTier {
         final String tier;
-        final double costPerRequest; // Approximate cost per 1K tokens
+        final double costPerRequest;
 
         ModelTier(String tier, double costPerRequest) {
             this.tier = tier;
@@ -336,9 +299,6 @@ public class UsageOptimizationService {
         }
     }
 
-    /**
-     * Result of model selection: which model, API key, provider, and base URL to use.
-     */
     public static class SelectedModel {
         public final String modelId;
         public final String apiKey;

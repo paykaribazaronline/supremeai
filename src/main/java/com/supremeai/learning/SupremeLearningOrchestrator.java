@@ -4,7 +4,9 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.supremeai.model.SystemLearning;
 import com.supremeai.service.AdminDashboardFacadeService;
+import com.supremeai.service.SystemLearningService;
 import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,7 +18,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.Duration;
 import java.util.*;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 
 /**
@@ -49,6 +53,8 @@ public class SupremeLearningOrchestrator {
     private final ObjectMapper objectMapper = new ObjectMapper();
     private JsonNode rootNode;
     private final AdminDashboardFacadeService adminDashboardFacade;
+    private final SystemLearningService systemLearningService;
+    private final List<SystemLearning> systemLearningCache = new CopyOnWriteArrayList<>();
 
     private static final String KNOWLEDGE_FILE_PATH = "src/main/resources/core_knowledge.json";
 
@@ -65,8 +71,10 @@ public class SupremeLearningOrchestrator {
     private static final int    MIN_SOLUTIONS_FOR_GAP    = 1;
 
     @Autowired
-    public SupremeLearningOrchestrator(AdminDashboardFacadeService adminDashboardFacade) {
+    public SupremeLearningOrchestrator(AdminDashboardFacadeService adminDashboardFacade,
+                                       SystemLearningService systemLearningService) {
         this.adminDashboardFacade = adminDashboardFacade;
+        this.systemLearningService = systemLearningService;
     }
 
     @PostConstruct
@@ -91,6 +99,7 @@ public class SupremeLearningOrchestrator {
             log.error("[SYSTEM_LEARNING] Critical Error: Could not load core_knowledge.json", e);
             rootNode = objectMapper.createObjectNode();
         }
+        loadSystemLearningCache();
     }
 
     /**
@@ -99,6 +108,94 @@ public class SupremeLearningOrchestrator {
     public void reloadKnowledgeBase() {
         loadKnowledgeBase();
         log.info("[SYSTEM_LEARNING] Knowledge base reloaded");
+    }
+
+    private void loadSystemLearningCache() {
+        if (systemLearningService == null) {
+            log.info("[SYSTEM_LEARNING] SystemLearningService not available, skipping runtime cache load.");
+            return;
+        }
+
+        try {
+            List<SystemLearning> learnings = systemLearningService.getAllLearning()
+                .collectList()
+                .doOnError(e -> log.warn("[SYSTEM_LEARNING] Failed to load system_learning cache: {}", e.getMessage()))
+                .timeout(Duration.ofSeconds(10))
+                .onErrorReturn(List.of())
+                .block();
+
+            if (learnings != null) {
+                systemLearningCache.clear();
+                systemLearningCache.addAll(learnings);
+                log.info("[SYSTEM_LEARNING] Loaded {} system_learning entries into runtime cache", learnings.size());
+            }
+        } catch (Exception e) {
+            log.warn("[SYSTEM_LEARNING] Exception while priming system_learning cache: {}", e.getMessage());
+        }
+    }
+
+    private String findSystemLearningSolution(String normalizedQuery) {
+        if (systemLearningCache.isEmpty()) {
+            return null;
+        }
+
+        String query = normalizedQuery.toLowerCase(Locale.ROOT);
+        String bestSolution = null;
+        double highestScore = 0.0;
+
+        for (SystemLearning learning : systemLearningCache) {
+            if (learning == null || learning.getContent() == null || learning.getContent().isBlank()) {
+                continue;
+            }
+
+            String topic = normalizeText(learning.getTopic());
+            String category = normalizeText(learning.getCategory());
+            String content = normalizeText(learning.getContent());
+            String tags = learning.getTags() != null ? String.join(" ", learning.getTags()).toLowerCase(Locale.ROOT) : "";
+
+            double score = 0.0;
+            if (!topic.isBlank()) {
+                if (query.contains(topic) || topic.contains(query)) {
+                    score += 3.0;
+                } else {
+                    score += ngramSimilarity(query, topic) * 2.0;
+                }
+            }
+
+            if (!category.isBlank()) {
+                score += query.contains(category) ? 1.0 : ngramSimilarity(query, category) * 0.8;
+            }
+
+            if (!tags.isBlank()) {
+                for (String tag : tags.split("\\s+")) {
+                    if (tag.length() < 3) continue;
+                    if (query.contains(tag)) {
+                        score += 0.2;
+                    } else {
+                        score += ngramSimilarity(query, tag) * 0.1;
+                    }
+                }
+            }
+
+            if (!content.isBlank()) {
+                score += ngramSimilarity(query, content) * 0.15;
+            }
+
+            if (learning.getConfidenceScore() != null) {
+                score += Math.min(0.3, learning.getConfidenceScore() * 0.2);
+            }
+
+            if (score > highestScore) {
+                highestScore = score;
+                bestSolution = learning.getContent();
+            }
+        }
+
+        if (bestSolution != null && highestScore >= 0.15) {
+            log.info("[SYSTEM_LEARNING] Found system_learning answer for query with score {}", highestScore);
+            return bestSolution;
+        }
+        return null;
     }
 
     // ══════════════════════════════════════════════════════════════════════════
@@ -784,7 +881,66 @@ public class SupremeLearningOrchestrator {
         String normalizedQuery = normalizeText(query);
         if (normalizedQuery.isEmpty()) return null;
 
-        JsonNode arrayNode = rootNode.isArray() ? rootNode : rootNode.path("knowledge");
+        // SPECIAL HANDLING: For "what is X" questions, prioritize direct topic matches
+        // This prevents system architecture answers for factual queries
+        if (normalizedQuery.startsWith("what is") || normalizedQuery.startsWith("what are") || 
+            normalizedQuery.startsWith("explain") || normalizedQuery.startsWith("tell me about")) {
+            JsonNode arrayNode = findKnowledgeArrayNode();
+            if (arrayNode.isArray()) {
+                String bestSolution = null;
+                double highestScore = 0.0;
+                
+                for (JsonNode entry : arrayNode) {
+                    String taskKeywords = normalizeText(entry.path("task").asText());
+                    String solution = entry.path("solution").asText();
+                    
+                    if (!taskKeywords.isEmpty() && !solution.isEmpty()) {
+                        // For "what is" queries, look for exact topic keyword matches
+                        // Extract the topic after "what is"
+                        String[] queryWords = normalizedQuery.split("\\s+");
+                        String[] taskWords = taskKeywords.split("\\s+");
+                        
+                        // Count how many content words match (excluding "what", "is", "are", "the", "a", etc.)
+                        int matchCount = 0;
+                        int totalContentWords = 0;
+                        Set<String> stopWords = Set.of("what", "is", "are", "the", "a", "an", "about", "explain", "tell", "me");
+                        
+                        for (String queryWord : queryWords) {
+                            if (!stopWords.contains(queryWord) && queryWord.length() > 2) {
+                                totalContentWords++;
+                                if (taskKeywords.contains(queryWord)) {
+                                    matchCount++;
+                                }
+                            }
+                        }
+                        
+                        double score = totalContentWords > 0 ? (double) matchCount / totalContentWords : 0.0;
+                        
+                        if (score > highestScore && score >= 0.5) {
+                            highestScore = score;
+                            bestSolution = solution;
+                        }
+                    }
+                }
+                
+                if (bestSolution != null) {
+                    log.info("[SYSTEM_LEARNING] Direct topic match found for 'what is' query with score: {}", highestScore);
+                    return bestSolution;
+                }
+            }
+        }
+        
+        String systemLearningFallback = findSystemLearningSolution(normalizedQuery);
+        if (systemLearningFallback != null) {
+            log.info("[SYSTEM_LEARNING] Direct query fallback found in system_learning");
+            return systemLearningFallback;
+        }
+
+        return findCoreKnowledgeSolutionGeneric(normalizedQuery);
+    }
+    
+    private String findCoreKnowledgeSolutionGeneric(String normalizedQuery) {
+        JsonNode arrayNode = findKnowledgeArrayNode();
         if (arrayNode.isMissingNode() && rootNode.isObject()) {
             java.util.Iterator<Map.Entry<String, JsonNode>> fields = rootNode.fields();
             while (fields.hasNext()) {
@@ -829,7 +985,27 @@ public class SupremeLearningOrchestrator {
                 return bestSolution;
             }
         }
+
+        String systemLearningSolution = findSystemLearningSolution(normalizedQuery);
+        if (systemLearningSolution != null) {
+            return systemLearningSolution;
+        }
         return null;
+    }
+    
+    private JsonNode findKnowledgeArrayNode() {
+        JsonNode arrayNode = rootNode.isArray() ? rootNode : rootNode.path("knowledge");
+        if (arrayNode.isMissingNode() && rootNode.isObject()) {
+            java.util.Iterator<Map.Entry<String, JsonNode>> fields = rootNode.fields();
+            while (fields.hasNext()) {
+                Map.Entry<String, JsonNode> entry = fields.next();
+                if (entry.getValue().isArray()) {
+                    arrayNode = entry.getValue();
+                    break;
+                }
+            }
+        }
+        return arrayNode;
     }
 }
 

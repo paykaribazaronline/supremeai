@@ -11,7 +11,7 @@ import java.util.Map;
  * Groq Provider implementation using shared HTTP client and ObjectMapper.
  * Extends AbstractHttpProvider for optimized performance.
  */
-@Component
+// @Component // Disabled: heavy cloud provider excluded from local-first runtime
 public class GroqProvider extends AbstractHttpProvider {
     private static final String API_URL = "https://api.groq.com/openai/v1/chat/completions";
 

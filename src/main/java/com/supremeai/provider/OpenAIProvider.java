@@ -12,7 +12,7 @@ import java.util.Map;
  * OpenAI Provider implementation using shared HTTP client and ObjectMapper.
  * Extends AbstractHttpProvider for optimized performance.
  */
-@Component
+// @Component // Disabled: heavy cloud provider excluded from local-first runtime
 public class OpenAIProvider extends AbstractHttpProvider {
 
     @Autowired(required = false)

@@ -48,6 +48,8 @@ const AdminReports = lazy(() => import('./AdminReports'));
 const AdminApprovals = lazy(() => import('../components/AdminApprovals'));
 const AdminInfrastructure = lazy(() => import('./AdminInfrastructure'));
 const AdminCodeAnalysis = lazy(() => import('./AdminCodeAnalysis'));
+const AdminSuperFly = lazy(() => import('./AdminSuperFly'));
+const AdminCloudDbHub = lazy(() => import('./AdminCloudDbHub'));
 
 
 const { Content } = Layout;
@@ -151,6 +153,8 @@ export default function ModernAdminDashboard() {
               case 'approvals': return <AdminApprovals />;
               case 'infrastructure': return <AdminInfrastructure />;
               case 'code-analysis': return <AdminCodeAnalysis />;
+              case 'superfly': return <AdminSuperFly />;
+              case 'cloud-db-hub': return <AdminCloudDbHub />;
 
               case 'settings': return isAdmin ? 
                 <AdminSettings darkMode={darkMode} setDarkMode={setDarkMode} chatFont={chatFont} setChatFont={setChatFont} /> : 

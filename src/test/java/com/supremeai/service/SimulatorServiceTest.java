@@ -82,7 +82,7 @@ public class SimulatorServiceTest {
         when(userRepository.findByFirebaseUid("user-123")).thenReturn(Mono.empty());
         when(quotaService.incrementUsage("user-123")).thenReturn(Mono.just(true));
         when(deploymentService.deployToSimulator("app-abc", "PIXEL_6"))
-            .thenReturn("http://localhost:8080/simulator/preview/app-abc?device=pixel_6");
+            .thenReturn(Mono.just("http://localhost:8080/simulator/preview/app-abc?device=pixel_6"));
 
         UserSimulatorProfile savedProfile = new UserSimulatorProfile("user-123");
         savedProfile.setActiveInstalls(1);
@@ -121,7 +121,7 @@ public class SimulatorServiceTest {
 
         when(profileRepository.findByUserId("user-123")).thenReturn(Mono.just(testProfile));
         when(profileRepository.save(any(UserSimulatorProfile.class))).thenReturn(Mono.just(testProfile));
-        doNothing().when(deploymentService).undeployFromSimulator("app-abc");
+        when(deploymentService.undeployFromSimulator("app-abc")).thenReturn(Mono.empty());
 
         StepVerifier.create(simulatorService.uninstallApp("user-123", "app-abc"))
             .verifyComplete();

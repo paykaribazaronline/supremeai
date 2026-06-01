@@ -144,8 +144,8 @@ public class CodeGenerationService {
             app.jwt.expiration=86400000
             
             # File Upload
-            spring.servlet.multipart.max-file-size=10MB
-            spring.servlet.multipart.max-request-size=10MB
+            spring.servlet.multipart.max-file-size=100MB
+            spring.servlet.multipart.max-request-size=100MB
             """;
         files.put("src/main/resources/application.properties", appProps);
 
@@ -621,7 +621,10 @@ public class CodeGenerationService {
                             ". Include proper annotations, relationships, " +
                             "validation, and Lombok annotations.";
             
-            String aiResponse = aiFallbackOrchestrator.executeWithSupremeIntelligence("CODE_GEN", "entity_gen", prompt).block();
+            String aiResponse = aiFallbackOrchestrator
+                    .executeWithSupremeIntelligence("CODE_GEN", "entity_gen", prompt)
+                    .subscribeOn(reactor.core.scheduler.Schedulers.boundedElastic())
+                    .block(java.time.Duration.ofSeconds(30));
             if (aiResponse != null && !aiResponse.isEmpty()) {
                 return aiResponse;
             }

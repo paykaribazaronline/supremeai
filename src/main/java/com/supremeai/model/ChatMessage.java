@@ -6,6 +6,7 @@ import java.time.LocalDateTime;
 
 @Document(collectionName = "chat_messages")
 public class ChatMessage {
+        @DocumentId
     private String id;
     private String role; // "user" or "ai" or "system"
     private String content;

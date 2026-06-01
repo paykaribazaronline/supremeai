@@ -10,6 +10,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.Flux;
+import reactor.core.scheduler.Schedulers;
+
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -53,90 +56,80 @@ public class ProviderCapabilityAnalyzer {
     private final Map<String, Map<String, Double>> benchmarkCache = new ConcurrentHashMap<>();
 
     /**
-     * Run benchmarks for a provider and return capability scores
+     * Run benchmarks for a provider and return capability scores.
+     * Fully reactive — no .block() calls.
      */
     public Mono<Map<String, Double>> benchmarkProvider(String providerName) {
         return Mono.fromCallable(() -> {
-            log.info("🚀 Starting benchmark for provider: {}", providerName);
-            long startTime = System.currentTimeMillis();
+                log.info("🚀 Starting benchmark for provider: {}", providerName);
+                return providerFactory.getProvider(providerName);
+            })
+            .subscribeOn(Schedulers.boundedElastic())
+            .flatMap(provider -> {
+                long startTime = System.currentTimeMillis();
 
-            Map<String, Double> scores = new HashMap<>();
-            AIProvider provider;
+                // Run all benchmark tasks reactively in parallel
+                return Flux.fromIterable(taskDefinitions)
+                    .flatMap(task -> runSingleBenchmarkReactive(provider, task)
+                        .map(score -> {
+                            log.info("  {} - {}: {}", providerName, task.getName(), String.format("%.2f", score));
+                            return new AbstractMap.SimpleEntry<>(task.getName(), score);
+                        })
+                        .onErrorResume(e -> {
+                            log.warn("Benchmark failed for {} on {}: {}", providerName, task.getName(), e.getMessage());
+                            return Mono.just(new AbstractMap.SimpleEntry<>(task.getName(), 0.0));
+                        })
+                    )
+                    .collectList()
+                    .map(results -> {
+                        Map<String, Double> scores = new HashMap<>();
+                        for (Map.Entry<String, Double> entry : results) {
+                            scores.put(entry.getKey(), entry.getValue());
+                        }
 
-            try {
-                provider = providerFactory.getProvider(providerName);
-            } catch (Exception e) {
+                        long duration = System.currentTimeMillis() - startTime;
+                        log.info("✅ Benchmark complete for {}: {} scores in {}ms", providerName, scores.size(), duration);
+
+                        // Cache results
+                        benchmarkCache.put(providerName, new HashMap<>(scores));
+                        return scores;
+                    });
+            })
+            .onErrorResume(e -> {
                 log.error("Provider {} not available: {}", providerName, e.getMessage());
-                return scores;
-            }
-
-            // Run tests in parallel for efficiency
-            List<Mono<Map.Entry<String, Double>>> benchmarkMonos = new ArrayList<>();
-
-            for (TaskDefinition task : taskDefinitions) {
-                benchmarkMonos.add(
-                    Mono.<Map.Entry<String, Double>>fromCallable(() -> {
-                        double score = runSingleBenchmark(provider, task);
-                        log.info("  {} - {}: {:.2f}", providerName, task.getName(), score);
-                        return new AbstractMap.SimpleEntry<>(task.getName(), score);
-                    })
-                    .onErrorResume(e -> {
-                        log.warn("Benchmark failed for {} on {}: {}", providerName, task.getName(), e.getMessage());
-                        return Mono.<Map.Entry<String, Double>>just(new AbstractMap.SimpleEntry<>(task.getName(), 0.0));
-                    })
-                );
-            }
-
-            // Execute all benchmarks and collect
-            List<Map.Entry<String, Double>> results = Flux.merge(benchmarkMonos)
-                .collectList()
-                .block();
-
-            for (Map.Entry<String, Double> entry : results) {
-                scores.put(entry.getKey(), entry.getValue());
-            }
-
-            long duration = System.currentTimeMillis() - startTime;
-            log.info("✅ Benchmark complete for {}: {} scores in {}ms", providerName, scores.size(), duration);
-
-            // Cache results
-            benchmarkCache.put(providerName, new HashMap<>(scores));
-
-            return scores;
-        });
+                return Mono.just(new HashMap<>());
+            });
     }
 
     /**
-     * Run a single benchmark test for a provider on a specific task
+     * Run a single benchmark test reactively — no .block() calls.
      */
-    private double runSingleBenchmark(AIProvider provider, TaskDefinition task) {
-        try {
-            long start = System.currentTimeMillis();
-            String response = provider.generate(
-                "TASK: " + task.getName() + "\n\n" + task.getTestPrompt()
-            ).block();
-            long latency = System.currentTimeMillis() - start;
+    private Mono<Double> runSingleBenchmarkReactive(AIProvider provider, TaskDefinition task) {
+        long start = System.currentTimeMillis();
 
-            if (response == null || response.isEmpty()) {
-                return 0.0;
-            }
+        return provider.generate("TASK: " + task.getName() + "\n\n" + task.getTestPrompt())
+            .timeout(Duration.ofSeconds(30))
+            .subscribeOn(Schedulers.boundedElastic())
+            .map(response -> {
+                long latency = System.currentTimeMillis() - start;
 
-            // Score based on:
-            // 1. Response quality (length, relevance)
-            // 2. Latency (faster = better)
-            // 3. Completeness
+                if (response == null || response.isEmpty()) {
+                    return 0.0;
+                }
 
-            double qualityScore = evaluateQuality(response, task);
-            double latencyScore = evaluateLatency(latency);
-            double completenessScore = evaluateCompleteness(response, task);
+                // Score based on:
+                // 1. Response quality (length, relevance)
+                // 2. Latency (faster = better)
+                // 3. Completeness
 
-            // Weighted combination
-            return (qualityScore * 0.5) + (latencyScore * 0.2) + (completenessScore * 0.3);
+                double qualityScore = evaluateQuality(response, task);
+                double latencyScore = evaluateLatency(latency);
+                double completenessScore = evaluateCompleteness(response, task);
 
-        } catch (Exception e) {
-            log.warn("Benchmark error for task {}: {}", task.getName(), e.getMessage());
-            return 0.0;
-        }
+                // Weighted combination
+                return (qualityScore * 0.5) + (latencyScore * 0.2) + (completenessScore * 0.3);
+            })
+            .onErrorReturn(0.0);
     }
 
     /**

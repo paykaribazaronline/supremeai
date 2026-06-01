@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 
 import jakarta.annotation.PostConstruct;
 import java.time.LocalDateTime;
@@ -64,74 +65,65 @@ public class AutomaticTaskAssigner {
     /**
      * Auto-assign a newly registered provider based on its benchmark scores.
      * Called when admin adds a new provider.
+     * Fully reactive — no .block() calls.
      */
     public Mono<TaskProviderAssignment> autoAssignNewProvider(String providerId, Map<String, Double> scores) {
-        return Mono.fromCallable(() -> {
-            log.info("🔍 Auto-assigning provider {} based on {} capability scores",
-                providerId, scores.size());
+        log.info("🔍 Auto-assigning provider {} based on {} capability scores",
+            providerId, scores.size());
 
-            List<TaskProviderAssignment> newAssignments = new ArrayList<>();
-
-            for (TaskConfig task : ALL_TASK_TYPES) {
+        return Flux.fromIterable(ALL_TASK_TYPES)
+            .filter(task -> {
                 Double score = scores.get(task.name);
-                if (score == null) continue;
-
-                if (score >= task.minScore) {
-                    // Provider is good at this task → add to assignment
-                    TaskProviderAssignment existing = assignmentRepo.findByTaskType(task.name).block();
-
-                    if (existing != null) {
-                        // Add provider to existing assignment
-                        List<String> updatedProviders = new ArrayList<>(existing.getProviderIds());
-                        if (!updatedProviders.contains(providerId)) {
-                            updatedProviders.add(providerId);
-                            // Apply max limit
-                            if (updatedProviders.size() > DEFAULT_MAX_PROVIDERS) {
-                                // Keep top scorers (this provider's score is already validated)
-                                updatedProviders = keepTopProviders(updatedProviders, task.name);
-                            }
-                            existing.setProviderIds(updatedProviders);
-                            existing.setUpdatedAt(new Date());
-                            existing.setAssignmentSource("auto");
-                            assignmentRepo.save(existing).block();
-
-                            log.info("➕ Added {} to task '{}' (score: {})",
-                                providerId, task.name, score);
+                return score != null && score >= task.minScore;
+            })
+            .flatMap(task -> assignmentRepo.findByTaskType(task.name)
+                .flatMap(existing -> {
+                    // Add provider to existing assignment
+                    List<String> updatedProviders = new ArrayList<>(existing.getProviderIds());
+                    if (!updatedProviders.contains(providerId)) {
+                        updatedProviders.add(providerId);
+                        // Apply max limit
+                        if (updatedProviders.size() > DEFAULT_MAX_PROVIDERS) {
+                            updatedProviders = keepTopProviders(updatedProviders, task.name);
                         }
-                    } else {
-                        // Create new assignment for this task
-                        TaskProviderAssignment newAssignment = new TaskProviderAssignment();
-                        newAssignment.setTaskType(task.name);
-                        newAssignment.setTaskLabel(task.label);
-                        newAssignment.setProviderIds(List.of(providerId));
-                        newAssignment.setMinProviders(DEFAULT_MIN_PROVIDERS);
-                        newAssignment.setMaxProviders(DEFAULT_MAX_PROVIDERS);
-                        newAssignment.setVotingStrategy(DEFAULT_STRATEGY);
-                        newAssignment.setCapabilityThreshold(task.minScore);
-                        newAssignment.setActive(true);
-                        newAssignment.setCreatedBy("system");
-                        newAssignment.setAssignmentSource("auto");
-                        newAssignment.setCreatedAt(new Date());
-                        newAssignment.setUpdatedAt(new Date());
-
-                        assignmentRepo.save(newAssignment).block();
-                        newAssignments.add(newAssignment);
-
-                        log.info("🆕 Created new assignment: task='{}' → provider={}",
-                            task.name, providerId);
+                        existing.setProviderIds(updatedProviders);
+                        existing.setUpdatedAt(new Date());
+                        existing.setAssignmentSource("auto");
+                        log.info("➕ Added {} to task '{}' (score: {})",
+                            providerId, task.name, scores.get(task.name));
+                        return assignmentRepo.save(existing);
                     }
-                }
-            }
+                    return Mono.just(existing);
+                })
+                .switchIfEmpty(Mono.defer(() -> {
+                    // Create new assignment for this task
+                    TaskProviderAssignment newAssignment = new TaskProviderAssignment();
+                    newAssignment.setTaskType(task.name);
+                    newAssignment.setTaskLabel(task.label);
+                    newAssignment.setProviderIds(List.of(providerId));
+                    newAssignment.setMinProviders(DEFAULT_MIN_PROVIDERS);
+                    newAssignment.setMaxProviders(DEFAULT_MAX_PROVIDERS);
+                    newAssignment.setVotingStrategy(DEFAULT_STRATEGY);
+                    newAssignment.setCapabilityThreshold(task.minScore);
+                    newAssignment.setActive(true);
+                    newAssignment.setCreatedBy("system");
+                    newAssignment.setAssignmentSource("auto");
+                    newAssignment.setCreatedAt(new Date());
+                    newAssignment.setUpdatedAt(new Date());
 
-            log.info("✅ Provider {} auto-assigned to {} task types",
-                providerId, newAssignments.size());
-
-            return newAssignments;
-
-        }).flatMap(assignments -> {
-            if (assignments.isEmpty()) return Mono.empty();
-            return Mono.just(assignments.get(0));
-        });
+                    log.info("🆕 Created new assignment: task='{}' → provider={}",
+                        task.name, providerId);
+                    return assignmentRepo.save(newAssignment);
+                }))
+            )
+            .collectList()
+            .doOnNext(assignments ->
+                log.info("✅ Provider {} auto-assigned to {} task types",
+                    providerId, assignments.size()))
+            .flatMap(assignments -> {
+                if (assignments.isEmpty()) return Mono.empty();
+                return Mono.just(assignments.get(0));
+            });
     }
 
     /**
@@ -149,115 +141,129 @@ public class AutomaticTaskAssigner {
     /**
      * Nightly rebalance: remove underperforming providers from task assignments.
      * Called by scheduler at 2 AM.
+     * Returns Mono<Void> — fully reactive, no .block() or .blockLast().
      */
-    public void nightlyRebalance() {
+    public Mono<Void> nightlyRebalance() {
         log.info("🌙 Starting nightly rebalance of task assignments...");
 
-        assignmentRepo.findAllByIsActive(true)
-            .doOnNext(assignment -> {
+        return assignmentRepo.findAllByIsActive(true)
+            .flatMap(assignment -> {
                 String taskType = assignment.getTaskType();
                 List<String> currentProviders = assignment.getProviderIds();
 
-                if (currentProviders == null || currentProviders.isEmpty()) return;
-
-                List<String> poorPerformers = new ArrayList<>();
-
-                for (String providerId : currentProviders) {
-                    // Get latest capability score for this task
-                    Double score = getLatestScore(providerId, taskType);
-
-                    if (score != null && score < (assignment.getCapabilityThreshold() * 0.8)) {
-                        // Performance dropped significantly below threshold
-                        poorPerformers.add(providerId);
-                        log.warn("⚠️ Provider {} underperforming on {} (score: {}, threshold: {})",
-                            providerId, taskType, score, assignment.getCapabilityThreshold());
-                    }
+                if (currentProviders == null || currentProviders.isEmpty()) {
+                    return Mono.empty();
                 }
 
-                // Remove poor performers if they'd still meet minimum
-                if (!poorPerformers.isEmpty() &&
-                    currentProviders.size() - poorPerformers.size() >= assignment.getMinProviders()) {
+                // Check each provider's score reactively
+                return Flux.fromIterable(currentProviders)
+                    .flatMap(providerId -> getLatestScore(providerId, taskType)
+                        .map(score -> Map.entry(providerId, score))
+                        .defaultIfEmpty(Map.entry(providerId, -1.0))
+                    )
+                    .filter(entry -> {
+                        double score = entry.getValue();
+                        return score >= 0 && score < (assignment.getCapabilityThreshold() * 0.8);
+                    })
+                    .map(Map.Entry::getKey)
+                    .collectList()
+                    .flatMap(poorPerformers -> {
+                        if (!poorPerformers.isEmpty() &&
+                            currentProviders.size() - poorPerformers.size() >= assignment.getMinProviders()) {
 
-                    currentProviders.removeAll(poorPerformers);
-                    assignment.setProviderIds(currentProviders);
-                    assignment.setUpdatedAt(new Date());
-                    assignment.setAssignmentSource("auto_rebalance");
-                    assignmentRepo.save(assignment).block();
+                            for (String pp : poorPerformers) {
+                                log.warn("⚠️ Provider {} underperforming on {} (threshold: {})",
+                                    pp, taskType, assignment.getCapabilityThreshold());
+                            }
 
-                    log.info("🧹 Removed {} poor performers from task '{}'",
-                        poorPerformers.size(), taskType);
-                }
+                            List<String> updatedProviders = new ArrayList<>(currentProviders);
+                            updatedProviders.removeAll(poorPerformers);
+                            assignment.setProviderIds(updatedProviders);
+                            assignment.setUpdatedAt(new Date());
+                            assignment.setAssignmentSource("auto_rebalance");
+
+                            log.info("🧹 Removed {} poor performers from task '{}'",
+                                poorPerformers.size(), taskType);
+
+                            return assignmentRepo.save(assignment).then();
+                        }
+                        return Mono.empty();
+                    });
             })
-            .blockLast();
-
-        log.info("✅ Nightly rebalance complete");
+            .then()
+            .doOnTerminate(() -> log.info("✅ Nightly rebalance complete"));
     }
 
     /**
-     * Get latest capability score for a provider on a task
+     * Get latest capability score for a provider on a task — reactive, no .block().
      */
-    private Double getLatestScore(String providerId, String taskType) {
-        try {
-            APIProvider provider = providerRepo.findById(providerId).block();
-            if (provider != null && provider.getCapabilityScores() != null) {
-                return provider.getCapabilityScores().get(taskType);
-            }
-        } catch (Exception e) {
-            log.debug("Could not get score for {} on {}: {}", providerId, taskType, e.getMessage());
-        }
-        return null;
+    private Mono<Double> getLatestScore(String providerId, String taskType) {
+        return providerRepo.findById(providerId)
+            .map(provider -> {
+                if (provider.getCapabilityScores() != null) {
+                    Double score = provider.getCapabilityScores().get(taskType);
+                    return score != null ? score : -1.0;
+                }
+                return -1.0;
+            })
+            .onErrorResume(e -> {
+                log.debug("Could not get score for {} on {}: {}", providerId, taskType, e.getMessage());
+                return Mono.just(-1.0);
+            });
     }
 
     /**
-     * Get effective providers for a task (used at runtime)
+     * Get effective providers for a task — reactive, no .block().
      */
-    public List<String> getProvidersForTask(String taskType) {
-        TaskProviderAssignment assignment = assignmentRepo.findByTaskType(taskType).block();
-
-        if (assignment != null && assignment.getActive()) {
-            return assignment.getProviderIds();
-        }
-
-        // Fallback: return all active providers
-        return providerRepo.findByStatus("active")
-            .map(APIProvider::getId)
-            .collectList()
-            .block();
+    public Mono<List<String>> getProvidersForTask(String taskType) {
+        return assignmentRepo.findByTaskType(taskType)
+            .filter(TaskProviderAssignment::getActive)
+            .map(TaskProviderAssignment::getProviderIds)
+            .switchIfEmpty(
+                // Fallback: return all active providers
+                providerRepo.findByStatus("active")
+                    .map(APIProvider::getId)
+                    .collectList()
+            );
     }
 
     /**
-     * Check if a provider is assigned to a task
+     * Check if a provider is assigned to a task — reactive, no .block().
      */
-    public boolean isProviderAssigned(String providerId, String taskType) {
-        TaskProviderAssignment assignment = assignmentRepo.findByTaskType(taskType).block();
-        if (assignment != null) {
-            return assignment.getProviderIds() != null &&
-                   assignment.getProviderIds().contains(providerId);
-        }
-        return false;
+    public Mono<Boolean> isProviderAssigned(String providerId, String taskType) {
+        return assignmentRepo.findByTaskType(taskType)
+            .map(assignment ->
+                assignment.getProviderIds() != null &&
+                assignment.getProviderIds().contains(providerId))
+            .defaultIfEmpty(false);
     }
 
     /**
-     * Get all task assignments (for admin UI)
+     * Get all task assignments (for admin UI) — reactive, no .block().
      */
-    public List<TaskProviderAssignment> getAllAssignments() {
-        return assignmentRepo.findAll().collectList().block();
+    public Mono<List<TaskProviderAssignment>> getAllAssignments() {
+        return assignmentRepo.findAll().collectList();
     }
 
     /**
-     * Get assignment stats for dashboard
+     * Get assignment stats for dashboard — reactive, no .block().
      */
-    public Map<String, Object> getAssignmentStats() {
-        Map<String, Object> stats = new HashMap<>();
-        long totalAssignments = assignmentRepo.count().block();
-        long activeTasks = assignmentRepo.countByIsActive(true).block();
+    public Mono<Map<String, Object>> getAssignmentStats() {
+        Mono<Long> totalMono = assignmentRepo.count();
+        Mono<Long> activeMono = assignmentRepo.countByIsActive(true);
 
-        stats.put("totalAssignments", totalAssignments);
-        stats.put("activeTasks", activeTasks);
-        stats.put("totalTaskTypes", ALL_TASK_TYPES.size());
-        stats.put("coverage", (activeTasks * 100.0 / ALL_TASK_TYPES.size()));
+        return Mono.zip(totalMono, activeMono)
+            .map(tuple -> {
+                long totalAssignments = tuple.getT1();
+                long activeTasks = tuple.getT2();
 
-        return stats;
+                Map<String, Object> stats = new HashMap<>();
+                stats.put("totalAssignments", totalAssignments);
+                stats.put("activeTasks", activeTasks);
+                stats.put("totalTaskTypes", ALL_TASK_TYPES.size());
+                stats.put("coverage", (activeTasks * 100.0 / ALL_TASK_TYPES.size()));
+                return stats;
+            });
     }
 
     /** Internal config class */

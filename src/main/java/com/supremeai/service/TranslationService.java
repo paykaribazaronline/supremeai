@@ -25,7 +25,7 @@ public class TranslationService {
                 fromLanguage, toLanguage, text
         );
 
-        return Mono.fromCallable(() -> providerFactory.getProvider("groq"))
+        return Mono.fromCallable(() -> providerFactory.getDefaultProvider())
                 .flatMap(provider -> provider.generate(prompt))
                 .doOnSuccess(translated -> logger.debug("অনুবাদ সফল: {} -> {}", text, translated))
                 .doOnError(error -> logger.error("অনুবাদ ব্যর্থ: {}", error.getMessage()))

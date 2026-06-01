@@ -60,9 +60,6 @@ import static org.mockito.Mockito.*;
     @Mock
     private com.supremeai.service.NeuralChatService neuralChatService;
 
-    @Mock
-    private com.supremeai.service.ContextSummarizerService summarizerService;
-
     private ChatController chatController;
 
     @BeforeEach
@@ -77,8 +74,9 @@ import static org.mockito.Mockito.*;
         setField(chatController, "chatHistoryRepository", chatHistoryRepository);
         setField(chatController, "providerRepository", providerRepository);
         setField(chatController, "neuralChatService", neuralChatService);
-        setField(chatController, "summarizerService", summarizerService);
         lenient().when(providerRepository.findByStatus(anyString())).thenReturn(Flux.empty());
+        lenient().when(chatHistoryRepository.save(any(ChatMessage.class))).thenReturn(Mono.just(new ChatMessage()));
+        lenient().when(chatHistoryRepository.findByUserIdOrderByTimestampAsc(anyString())).thenReturn(Flux.empty());
     }
 
     private void setField(Object target, String fieldName, Object value) {
@@ -158,7 +156,7 @@ import static org.mockito.Mockito.*;
     @Test
     void sendMessage_SuccessfulVoting_ReturnsResponse() {
         ChatRequest request = new ChatRequest();
-        request.setMessage("Explain Java streams");
+        request.setMessage("How do Java streams work?");
         request.setSkipValidation(true);
 
         AutonomousQuestioningEngine.ValidationResult validationResult =
@@ -192,6 +190,80 @@ import static org.mockito.Mockito.*;
         assertEquals("Java streams are...", body.get("message"));
         assertEquals("STRONG_CONSENSUS", body.get("verdict"));
         assertEquals(0.85, body.get("confidence"));
+    }
+
+    @Test
+    void sendMessage_DirectAnswerPrefersLocalKnowledgeAndSkipsVoting() {
+        ChatRequest request = new ChatRequest();
+        request.setMessage("What is llm?");
+        request.setSkipValidation(false);
+
+        AutonomousQuestioningEngine.ValidationResult validationResult =
+                new AutonomousQuestioningEngine.ValidationResult();
+        validationResult.setComplete(true);
+        validationResult.setResponseStrategy(AutonomousQuestioningEngine.ResponseStrategy.DIRECT_ANSWER);
+
+        com.supremeai.service.NeuralChatService.NeuralResponse neuralResponse =
+                new com.supremeai.service.NeuralChatService.NeuralResponse(
+                        "LLM is a large language model.",
+                        List.of("Core Knowledge"),
+                        0.87,
+                        "CORE_ONLY",
+                        "core_knowledge"
+                );
+
+        when(questioningEngine.validateAndQuestion(anyString(), any()))
+                .thenReturn(Mono.just(validationResult));
+        when(neuralChatService.generateIntelligentResponse(anyString()))
+                .thenReturn(Mono.just(neuralResponse));
+        when(intelligenceService.classifyIntent(anyString()))
+                .thenReturn(ChatIntelligenceService.Intent.INFO_COLLECTION);
+
+        ResponseEntity<Object> result = chatController.sendMessage(request).block();
+
+        assertEquals(200, result.getStatusCode().value());
+        Map<String, Object> body = (Map<String, Object>) result.getBody();
+        assertEquals("LLM is a large language model.", body.get("message"));
+        assertTrue((Boolean) body.get("localMode"));
+        assertEquals("core_knowledge", body.get("pipeline"));
+
+        verify(votingService, never()).executeEnsembleVoting(anyString(), any(), anyLong());
+    }
+
+    @Test
+    void sendMessage_SkipValidationDirectAnswerStillUsesLocalKnowledge() {
+        ChatRequest request = new ChatRequest();
+        request.setMessage("What is llm?");
+        request.setSkipValidation(true);
+
+        AutonomousQuestioningEngine.ValidationResult validationResult =
+                new AutonomousQuestioningEngine.ValidationResult();
+        validationResult.setComplete(true);
+        validationResult.setResponseStrategy(AutonomousQuestioningEngine.ResponseStrategy.DIRECT_ANSWER);
+
+        com.supremeai.service.NeuralChatService.NeuralResponse neuralResponse =
+                new com.supremeai.service.NeuralChatService.NeuralResponse(
+                        "LLM is a large language model.",
+                        List.of("Core Knowledge"),
+                        0.87,
+                        "CORE_ONLY",
+                        "core_knowledge"
+                );
+
+        when(questioningEngine.validateAndQuestion(anyString(), any()))
+                .thenReturn(Mono.just(validationResult));
+        when(neuralChatService.generateIntelligentResponse(anyString()))
+                .thenReturn(Mono.just(neuralResponse));
+        when(intelligenceService.classifyIntent(anyString()))
+                .thenReturn(ChatIntelligenceService.Intent.INFO_COLLECTION);
+
+        ResponseEntity<Object> result = chatController.sendMessage(request).block();
+
+        assertEquals(200, result.getStatusCode().value());
+        Map<String, Object> body = (Map<String, Object>) result.getBody();
+        assertEquals("LLM is a large language model.", body.get("message"));
+        assertTrue((Boolean) body.get("localMode"));
+        verify(votingService, never()).executeEnsembleVoting(anyString(), any(), anyLong());
     }
 
     // ==================== sendMessage - Circuit Breaker Fallback Tests ====================

@@ -1,92 +1,54 @@
-# ========================================
-# DOCKER BUILD IGNORE
-# Exclude unnecessary files from Docker image
-# ========================================
+# Build outputs & artifacts
+build/
+*.jar
+*.war
+*.class
+*.zip
+*.log
+.gradle/
+gradle/wrapper/dists/
 
-# Version Control
-.git/
-.github/
-.gitignore
-.gitattributes
-
-# Documentation
-*.md
-README.md
-CHANGELOG.md
-CONTRIBUTING.md
-CODE_OF_CONDUCT.md
-LICENSE
-
-# IDE & Editor
+# IDE & editor files
 .idea/
 .vscode/
-*.iml
 *.swp
 *.swo
-
-# Build Artifacts
-build/classes/
-build/tmp/
-build/reports/
-build/test-results/
-build/resources/
-build/jacoco/
-out/
-target/
-*.class
-*.war
-
-# Explicitly allow the JAR - THESE MUST COME AFTER THE GENERAL EXCLUSIONS
-!build/libs/
-!build/libs/app.jar
-
-# Gradle
-.gradle/
-gradlew.bat.backup
-gradle/wrapper/dists/
-gradle-wrapper.jar.backup
-
-# Logs
-*.log
-supremeai.log
-npm-debug.log*
-yarn-debug.log*
-
-# OS
 .DS_Store
 Thumbs.db
-Desktop.ini
-.Trashes
 
-# Environment & Credentials
-.env
-.env.local
-local.properties
-service-account.json
-*.key
-*.pem
-
-# Project Temp Files
-projects/
-test_output.txt
-test_full.txt
-failures_summary.txt
-build_output.txt
-phase5_build.txt
-memory.json
-
-# Node (if applicable)
+# Node & frontend artifacts (not needed for JVM Docker build)
 node_modules/
 npm-cache/
-yarn-cache/
+dashboard/dist/
+public/
 
-# Coverage
-coverage/
-.nyc_output/
+# Local GCP SDK (130MB not needed in container)
+.gcloud/
 
-# Cache
-.cache/
+# Local JDK (200MB, image uses bundled JRE)
+jdk/
 
-# Misc
-*.orig
-*~
+# Gradle user home (local cache)
+.gradle-user-home/
+gradle_home/
+
+# Large local executables not needed at runtime
+node.exe
+
+# OS-specific files
+Desktop.ini
+
+# Secrets & credentials (security)
+service-account.json
+firebase-service-account.json
+*.key
+*.pem
+*.p12
+*.pfx
+secrets/
+
+# Misc generated files
+*.tmp
+*.temp
+*.cache
+.metadata

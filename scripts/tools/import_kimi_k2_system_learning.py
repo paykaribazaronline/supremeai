@@ -539,7 +539,8 @@ def normalize_documents(dataset: Dict[str, Any]) -> List[Dict[str, Any]]:
     return [doc for doc in docs if isinstance(doc, dict) and doc.get("document_id")]
 
 
-def architecture_records(doc: Dict[str, Any]) -> List[Dict[str, Any]]:    layers = (doc.get("content") or {}).get("layers") or {}
+def architecture_records(doc: Dict[str, Any]) -> List[Dict[str, Any]]:
+    layers = (doc.get("content") or {}).get("layers") or {}
     presentation = (layers.get("presentation") or {}).get("components") or []
     api_gateway = (layers.get("api_gateway") or {}).get("components") or []
     data_layer = (layers.get("data_layer") or {}).get("components") or []

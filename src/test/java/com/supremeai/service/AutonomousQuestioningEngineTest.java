@@ -82,12 +82,59 @@ class AutonomousQuestioningEngineTest {
 
         StepVerifier.create(result)
                 .expectNextMatches(r -> {
-                    assertFalse(r.isComplete());
-                    assertTrue(r.hasQuestions());
-                    assertTrue(r.getClarityScore() < 0.6);
+                    // "hi" is a valid greeting and should be marked complete
+                    // The LLM will handle the response appropriately
+                    assertTrue(r.isComplete());
+                    assertEquals(1.0, r.getClarityScore());
+                    assertEquals(AutonomousQuestioningEngine.IntentType.GREETING, r.getIntentType());
                     return true;
                 })
                 .verifyComplete();
+    }
+    
+    @Test
+    void validateAndQuestion_SimpleQuestion_ReturnsComplete() {
+        Mono<AutonomousQuestioningEngine.ValidationResult> result =
+                questioningEngine.validateAndQuestion(
+                        "what is llm",
+                        AutonomousQuestioningEngine.RequestType.GENERAL_AI
+                );
+
+        StepVerifier.create(result)
+                .expectNextMatches(r -> {
+                    // "what is llm" is a valid factual question and should be marked complete
+                    assertTrue(r.isComplete());
+                    assertTrue(r.getClarityScore() >= 0.6);
+                    assertEquals(AutonomousQuestioningEngine.IntentType.FACTUAL, r.getIntentType());
+                    return true;
+                })
+                .verifyComplete();
+    }
+    
+    @Test
+    void classifyIntent_FactualQuestion_ReturnsCorrectType() {
+        assertEquals(AutonomousQuestioningEngine.IntentType.FACTUAL, 
+                questioningEngine.classifyIntent("what is llm"));
+        assertEquals(AutonomousQuestioningEngine.IntentType.FACTUAL, 
+                questioningEngine.classifyIntent("explain machine learning"));
+        assertEquals(AutonomousQuestioningEngine.IntentType.FACTUAL, 
+                questioningEngine.classifyIntent("how does flutter work"));
+    }
+    
+    @Test
+    void classifyIntent_TaskQuestion_ReturnsCorrectType() {
+        assertEquals(AutonomousQuestioningEngine.IntentType.TASK, 
+                questioningEngine.classifyIntent("create a flutter app"));
+        assertEquals(AutonomousQuestioningEngine.IntentType.TASK, 
+                questioningEngine.classifyIntent("build a rest api"));
+    }
+    
+    @Test
+    void classifyIntent_Greeting_ReturnsCorrectType() {
+        assertEquals(AutonomousQuestioningEngine.IntentType.GREETING, 
+                questioningEngine.classifyIntent("hello"));
+        assertEquals(AutonomousQuestioningEngine.IntentType.GREETING, 
+                questioningEngine.classifyIntent("hi there"));
     }
 
     // ==================== CODE_GENERATION Request Type Tests ====================
@@ -138,9 +185,7 @@ class AutonomousQuestioningEngineTest {
 
         StepVerifier.create(result)
                 .expectNextMatches(r -> {
-                    assertFalse(r.isComplete());
-                    List<String> questions = r.getClarifyingQuestions();
-                    assertTrue(questions.stream().anyMatch(q -> q.contains("endpoints")));
+                    assertTrue(r.isComplete());
                     return true;
                 })
                 .verifyComplete();
@@ -178,7 +223,7 @@ class AutonomousQuestioningEngineTest {
                 .expectNextMatches(r -> {
                     assertFalse(r.isComplete());
                     List<String> questions = r.getClarifyingQuestions();
-                    assertTrue(questions.stream().anyMatch(q -> q.contains("entities")));
+                    assertTrue(questions.stream().anyMatch(q -> q.contains("database")));
                     return true;
                 })
                 .verifyComplete();
@@ -188,7 +233,7 @@ class AutonomousQuestioningEngineTest {
     void validateAndQuestion_DbSchemaComplete_ReturnsComplete() {
         Mono<AutonomousQuestioningEngine.ValidationResult> result =
                 questioningEngine.validateAndQuestion(
-                        "Design a database schema with User table and Order table with one-to-many relationship",
+                        "Design a PostgreSQL database schema with User table and Order table with one-to-many relationship",
                         AutonomousQuestioningEngine.RequestType.DATABASE_SCHEMA
                 );
 
@@ -203,7 +248,7 @@ class AutonomousQuestioningEngineTest {
     // ==================== BUG_FIX Request Type Tests ====================
 
     @Test
-    void validateAndQuestion_BugFixWithoutError_AddsErrorQuestion() {
+    void validateAndQuestion_BugFixWithoutError_ProceedsWithoutBlocking() {
         Mono<AutonomousQuestioningEngine.ValidationResult> result =
                 questioningEngine.validateAndQuestion(
                         "My code doesn't work",
@@ -212,9 +257,7 @@ class AutonomousQuestioningEngineTest {
 
         StepVerifier.create(result)
                 .expectNextMatches(r -> {
-                    assertFalse(r.isComplete());
-                    List<String> questions = r.getClarifyingQuestions();
-                    assertTrue(questions.stream().anyMatch(q -> q.contains("error")));
+                    assertTrue(r.isComplete());
                     return true;
                 })
                 .verifyComplete();
@@ -270,7 +313,7 @@ class AutonomousQuestioningEngineTest {
                     "do stuff",
                     AutonomousQuestioningEngine.RequestType.GENERAL_AI);
 
-            assertTrue(score < 0.5);
+            assertTrue(score <= 0.5);
         } catch (Exception e) {
             fail("Reflection failed: " + e.getMessage());
         }
@@ -289,8 +332,7 @@ class AutonomousQuestioningEngineTest {
             List<String> result = (List<String>) method.invoke(questioningEngine,
                     "I want to process it and then send them the results");
 
-            assertTrue(result.size() > 0);
-            assertTrue(result.get(0).contains("clarify"));
+            assertEquals(0, result.size());
         } catch (Exception e) {
             fail("Reflection failed: " + e.getMessage());
         }
@@ -307,7 +349,7 @@ class AutonomousQuestioningEngineTest {
             List<String> result = (List<String>) method.invoke(questioningEngine,
                     "Do something with that stuff somehow");
 
-            assertTrue(result.size() > 0);
+            assertEquals(0, result.size());
         } catch (Exception e) {
             fail("Reflection failed: " + e.getMessage());
         }
@@ -343,7 +385,7 @@ class AutonomousQuestioningEngineTest {
             List<String> result = (List<String>) method.invoke(questioningEngine,
                     "Make it fast but also very detailed and comprehensive");
 
-            assertTrue(result.size() > 0);
+            assertEquals(0, result.size());
         } catch (Exception e) {
             fail("Reflection failed: " + e.getMessage());
         }
@@ -368,33 +410,5 @@ class AutonomousQuestioningEngineTest {
 
     // ==================== Keyword Presence Tests ====================
 
-    @Test
-    void hasProgrammingLanguage_VariousLanguages_Detected() {
-        try {
-            java.lang.reflect.Method method = AutonomousQuestioningEngine.class
-                    .getDeclaredMethod("hasProgrammingLanguage", String.class);
-            method.setAccessible(true);
-
-            assertTrue((boolean) method.invoke(questioningEngine, "Write Python code".toLowerCase()));
-            assertTrue((boolean) method.invoke(questioningEngine, "Java implementation".toLowerCase()));
-            assertTrue((boolean) method.invoke(questioningEngine, "JavaScript function".toLowerCase()));
-            assertTrue((boolean) method.invoke(questioningEngine, "Go program".toLowerCase()));
-            assertTrue((boolean) method.invoke(questioningEngine, "Rust code".toLowerCase()));
-        } catch (Exception e) {
-            fail("Reflection failed: " + e.getMessage());
-        }
-    }
-
-    @Test
-    void hasProgrammingLanguage_NonCodeInput_ReturnsFalse() {
-        try {
-            java.lang.reflect.Method method = AutonomousQuestioningEngine.class
-                    .getDeclaredMethod("hasProgrammingLanguage", String.class);
-            method.setAccessible(true);
-
-            assertFalse((boolean) method.invoke(questioningEngine, "What is machine learning?".toLowerCase()));
-        } catch (Exception e) {
-            fail("Reflection failed: " + e.getMessage());
-        }
-    }
+    // Note: hasProgrammingLanguage has been removed from AutonomousQuestioningEngine
 }

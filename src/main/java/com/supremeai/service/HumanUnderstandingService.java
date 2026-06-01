@@ -67,7 +67,9 @@ public class HumanUnderstandingService {
                     java.util.List.of(preferredProvider),
                     15000
                 );
-                var analysis = analysisMono.block();
+                var analysis = analysisMono
+                        .subscribeOn(reactor.core.scheduler.Schedulers.boundedElastic())
+                        .block(java.time.Duration.ofSeconds(30));
                 if (analysis == null) {
                     return;
                 }
@@ -76,7 +78,9 @@ public class HumanUnderstandingService {
                 SystemLearning learning = new SystemLearning();
                 learning.setCategory("HUMAN_UNDERSTANDING");
                 learning.setContent(analysis.getConsensusAnswer());
-                learningRepository.save(learning).block(); // Use block() for synchronous save
+                learningRepository.save(learning)
+                        .subscribeOn(reactor.core.scheduler.Schedulers.boundedElastic())
+                        .block(java.time.Duration.ofSeconds(10));
 
                 logger.debug("Analyzed human factors: satisfaction={}",
                         analysis.getConsensusAnswer().contains("\"satisfaction\":"));

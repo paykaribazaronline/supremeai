@@ -94,7 +94,9 @@ public class VectorSearchService {
 
         List<CodeChunk> allChunks;
         try {
-            allChunks = codeChunkRepository.findByProjectId(projectId).collectList().block();
+            allChunks = codeChunkRepository.findByProjectId(projectId).collectList()
+                    .subscribeOn(reactor.core.scheduler.Schedulers.boundedElastic())
+                    .block(java.time.Duration.ofSeconds(30));
         } catch (Exception e) {
             log.warn("Failed to fetch chunks for project {}: {}", projectId, e.getMessage());
             return List.of();

@@ -45,11 +45,12 @@ public class GlobalKnowledgeBase {
             return;
         }
 
-         try {
-             List<SolutionMemory> allSolutions = solutionMemoryRepository.findAll()
-                     .timeout(Duration.ofSeconds(10))
-                     .collectList()
-                     .block();
+          try {
+              List<SolutionMemory> allSolutions = solutionMemoryRepository.findAll()
+                      .timeout(java.time.Duration.ofSeconds(10))
+                      .collectList()
+                      .subscribeOn(reactor.core.scheduler.Schedulers.boundedElastic())
+                      .block(java.time.Duration.ofSeconds(15));
 
             if (allSolutions != null) {
                 for (SolutionMemory solution : allSolutions) {

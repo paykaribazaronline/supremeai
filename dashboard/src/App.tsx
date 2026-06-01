@@ -230,7 +230,7 @@ function App() {
               <Route path="monitoring" element={<AdminMonitoring />} />
               <Route path="learning" element={<AdminLearning />} />
               <Route path="security" element={<AdminSecurity />} />
-              <Route path="work-rules" element={<AdminSystemWorkRules />} />
+              <Route path="system-work-rules" element={<AdminSystemWorkRules />} />
               <Route path="rules" element={<AdminRules />} />
               <Route path="analytics" element={<AdminAnalytics />} />
               <Route path="logs" element={<AdminLogs />} />
@@ -239,7 +239,7 @@ function App() {
               <Route path="auto-browser" element={<AutoBrowser />} />
               <Route path="quotas" element={<AdminQuotas />} />
               <Route path="simulator" element={<AdminSimulator />} />
-              <Route path="reverse-engineering" element={<AdminReverseEngineer />} />
+              <Route path="reverse" element={<AdminReverseEngineer />} />
               <Route path="notifications" element={<AdminNotifications />} />
               <Route path="reports" element={<AdminReports />} />
               <Route path="performance" element={<AdminPerformance />} />

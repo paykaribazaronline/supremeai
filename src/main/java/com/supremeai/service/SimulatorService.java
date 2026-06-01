@@ -60,28 +60,27 @@ public class SimulatorService {
                             return Mono.error(new RuntimeException("Simulator quota exceeded"));
                         }
 
-                        String previewUrl;
-                        try {
-                            previewUrl = deploymentService.deployToSimulator(appId, deviceType);
-                        } catch (Exception e) {
-                            logger.error("Deployment failed for app {} user {}", appId, userId, e);
-                            return Mono.error(new SimulatorDeploymentException("Failed to deploy: " + e.getMessage(), e));
-                        }
+                        return deploymentService.deployToSimulator(appId, deviceType)
+                            .flatMap(previewUrl -> {
+                                String appName = "App " + appId.substring(0, Math.min(6, appId.length()));
+                                String version = "1.0.0";
 
-                        String appName = "App " + appId.substring(0, Math.min(6, appId.length()));
-                        String version = "1.0.0";
+                                InstalledApp installedApp = new InstalledApp(appId, appName, version, previewUrl);
+                                installedApp.setStatus(UserSimulatorProfile.AppStatus.INSTALLED);
+                                updatedProfile.addInstalledApp(installedApp);
 
-                        InstalledApp installedApp = new InstalledApp(appId, appName, version, previewUrl);
-                        installedApp.setStatus(UserSimulatorProfile.AppStatus.INSTALLED);
-                        updatedProfile.addInstalledApp(installedApp);
-
-                        return profileRepository.save(updatedProfile)
-                            .map(savedProfile -> new SimulatorInstallResult(
-                                installedApp,
-                                savedProfile.getActiveInstalls(),
-                                savedProfile.getInstallQuota(),
-                                previewUrl
-                            ));
+                                return profileRepository.save(updatedProfile)
+                                    .map(savedProfile -> new SimulatorInstallResult(
+                                        installedApp,
+                                        savedProfile.getActiveInstalls(),
+                                        savedProfile.getInstallQuota(),
+                                        previewUrl
+                                    ));
+                            })
+                            .onErrorResume(e -> {
+                                logger.error("Deployment failed for app {} user {}", appId, userId, e);
+                                return Mono.error(new SimulatorDeploymentException("Failed to deploy: " + e.getMessage(), e));
+                            });
                     })
                 )
             );
@@ -93,13 +92,12 @@ public class SimulatorService {
             .flatMap(profile -> {
                 if (profile.removeInstalledApp(appId)) {
                     return profileRepository.save(profile)
-                        .then(Mono.fromRunnable(() -> {
-                            try {
-                                deploymentService.undeployFromSimulator(appId);
-                            } catch (Exception e) {
+                        .then(deploymentService.undeployFromSimulator(appId)
+                            .onErrorResume(e -> {
                                 logger.warn("Undeployment cleanup failed: {}", e.getMessage());
-                            }
-                        }));
+                                return Mono.empty();
+                            })
+                        );
                 }
                 return Mono.empty();
             });
@@ -137,14 +135,17 @@ public class SimulatorService {
 
                 profile.setCurrentSession(session);
                 // Get the actual preview URL for the active app
-                String previewUrl = profile.getInstalledApps().stream()
+                Mono<String> previewUrlMono = profile.getInstalledApps().stream()
                     .filter(a -> a.getAppId().equals(appId))
                     .map(InstalledApp::getDeployedUrl)
                     .findFirst()
-                    .orElse(deploymentService.deployToSimulator(appId, "PIXEL_6"));
+                    .map(Mono::just)
+                    .orElseGet(() -> deploymentService.deployToSimulator(appId, "PIXEL_6"));
 
-                return profileRepository.save(profile)
-                    .map(savedProfile -> new SessionStartResult(sessionId, websocketUrl, previewUrl, UserSimulatorProfile.SessionState.ACTIVE, java.time.LocalDateTime.now()));
+                return previewUrlMono.flatMap(previewUrl -> 
+                    profileRepository.save(profile)
+                        .map(savedProfile -> new SessionStartResult(sessionId, websocketUrl, previewUrl, UserSimulatorProfile.SessionState.ACTIVE, java.time.LocalDateTime.now()))
+                );
             });
     }
 
@@ -160,7 +161,7 @@ public class SimulatorService {
     /**
      * Get all active simulator deployments for admin view.
      */
-    public java.util.List<com.supremeai.model.SimulatorDeploymentRecord> getAllDeployments() {
+    public reactor.core.publisher.Flux<com.supremeai.model.SimulatorDeploymentRecord> getAllDeployments() {
         return deploymentService.getAllDeployments();
     }
 

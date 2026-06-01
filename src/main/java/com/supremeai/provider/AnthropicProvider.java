@@ -11,7 +11,7 @@ import java.util.Map;
  * Anthropic Provider implementation using shared HTTP client and ObjectMapper.
  * Extends AbstractHttpProvider for optimized performance.
  */
-@Component
+// @Component // Disabled: heavy cloud provider excluded from local-first runtime
 public class AnthropicProvider extends AbstractHttpProvider {
     private static final String API_URL = "https://api.anthropic.com/v1/messages";
     private static final String DEFAULT_MODEL = "claude-3-sonnet-20240229";

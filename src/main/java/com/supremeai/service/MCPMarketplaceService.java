@@ -63,6 +63,8 @@ public class MCPMarketplaceService {
         registration.metadata = metadata;
         registration.enabled = true;
         registration.installed = false;
+        registration.sourceUrl = "local_registry";
+        registration.approvalStatus = "APPROVED"; // Manual registration is auto-approved
 
         skillRegistry.put(skillId, registration);
         logger.info("Registered skill: {} ({})", name, skillId);
@@ -132,6 +134,68 @@ public class MCPMarketplaceService {
              );
          }
      }
+
+    /**
+     * Autonomous Discovery: System finds a skill from the web and proposes it to Admin
+     */
+    public SkillRegistration proposeDiscoveredSkill(String sourceUrl, String name, String description, List<String> triggers, List<String> steps, Map<String, Object> metadata) {
+        String skillId = "disc_" + UUID.randomUUID().toString().substring(0, 8);
+        SkillRegistration registration = new SkillRegistration();
+        registration.skillId = skillId;
+        registration.name = name;
+        registration.description = description;
+        registration.triggers = triggers;
+        registration.steps = steps;
+        registration.metadata = metadata;
+        registration.enabled = false; // Disabled by default until approved
+        registration.installed = false;
+        registration.sourceUrl = sourceUrl;
+        registration.approvalStatus = "PENDING"; // Waiting for Admin approval
+
+        skillRegistry.put(skillId, registration);
+        logger.info("🔍 Discovered new skill from {}: {} (PENDING Admin Approval)", sourceUrl, name);
+        return registration;
+    }
+
+    public boolean approveDiscoveredSkill(String skillId) {
+        SkillRegistration skill = skillRegistry.get(skillId);
+        if (skill != null && "PENDING".equals(skill.approvalStatus)) {
+            skill.approvalStatus = "APPROVED";
+            skill.enabled = true;
+            logger.info("✅ Admin APPROVED discovered skill: {}", skill.name);
+            return true;
+        }
+        return false;
+    }
+
+    public boolean rejectDiscoveredSkill(String skillId) {
+        SkillRegistration skill = skillRegistry.get(skillId);
+        if (skill != null && "PENDING".equals(skill.approvalStatus)) {
+            skill.approvalStatus = "REJECTED";
+            skill.enabled = false;
+            logger.info("❌ Admin REJECTED discovered skill: {}", skill.name);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Get all pending skills awaiting Admin approval
+     */
+    public List<Map<String, Object>> getPendingSkills() {
+        List<Map<String, Object>> pending = new ArrayList<>();
+        for (SkillRegistration skill : skillRegistry.values()) {
+            if ("PENDING".equals(skill.approvalStatus)) {
+                pending.add(Map.of(
+                    "skillId", skill.skillId,
+                    "name", skill.name,
+                    "description", skill.description,
+                    "sourceUrl", skill.sourceUrl != null ? skill.sourceUrl : "unknown"
+                ));
+            }
+        }
+        return pending;
+    }
 
      /**
       * Register a server from connection details
@@ -210,7 +274,7 @@ public class MCPMarketplaceService {
             // Check description
             if (skill.description.toLowerCase().contains(lowerQuery)) matches = true;
 
-            if (matches) {
+            if (matches && "APPROVED".equals(skill.approvalStatus)) {
                 results.add(Map.of(
                     "skillId", skill.skillId,
                     "name", skill.name,
@@ -229,7 +293,7 @@ public class MCPMarketplaceService {
      */
     public Map<String, Object> matchSkill(String userInput) {
         for (SkillRegistration skill : skillRegistry.values()) {
-            if (!skill.enabled) continue;
+            if (!skill.enabled || !"APPROVED".equals(skill.approvalStatus)) continue;
 
             for (String trigger : skill.triggers) {
                 if (userInput.toLowerCase().contains(trigger.toLowerCase())) {
@@ -426,6 +490,8 @@ public class MCPMarketplaceService {
         public boolean installed;
         public Date installedAt;
         public Map<String, Object> config;
+        public String sourceUrl;
+        public String approvalStatus; // "PENDING", "APPROVED", "REJECTED"
     }
 
     public static class MCPConnection {

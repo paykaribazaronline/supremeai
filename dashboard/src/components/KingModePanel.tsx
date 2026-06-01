@@ -1,6 +1,6 @@
 // KingModePanel.tsx — Admin Override (King Mode) with WAIT/AUTO/FORCE_STOP
 import React, { useState, useEffect } from 'react';
-import { Card, Button, Tag, Space, Alert, List, Modal, Typography, Row, Col, Statistic, Switch, Badge, message, Popconfirm } from 'antd';
+import { Card, Button, Tag, Space, Alert, List, Modal, Typography, Row, Col, Statistic, Switch, Badge, message, Popconfirm, Descriptions, Collapse } from 'antd';
 import { CrownOutlined, StopOutlined, PlayCircleOutlined, PauseCircleOutlined, CheckOutlined, CloseOutlined, ExclamationCircleOutlined, ReloadOutlined } from '@ant-design/icons';
 import { authUtils } from '../lib/authUtils';
 
@@ -178,6 +178,28 @@ const KingModePanel: React.FC = () => {
         finally { setActionLoading(null); }
     };
 
+    const parseProposalDescription = (desc: string) => {
+        if (!desc.includes('বর্তমান অবস্থা')) return null;
+        const sections = { currentState: '', proposed: '', reasoning: '', impact: '' };
+        try {
+            const currentMatch = desc.match(/১\.\s*\*\*বর্তমান অবস্থা[^*]*\*\*\s*:(.*?)(?=২\.)/s) || desc.match(/১\.\s*\*\*বর্তমান অবস্থা[^*]*\*\*(.*?)(?=২\.)/s);
+            const proposedMatch = desc.match(/২\.\s*\*\*সাজেশন[^*]*\*\*\s*:(.*?)(?=৩\.)/s) || desc.match(/২\.\s*\*\*সাজেশন[^*]*\*\*(.*?)(?=৩\.)/s);
+            const reasonMatch = desc.match(/৩\.\s*\*\*কেন অ্যাপ্রুভ[^*]*\*\*\s*:(.*?)(?=৪\.)/s) || desc.match(/৩\.\s*\*\*কেন অ্যাপ্রুভ[^*]*\*\*(.*?)(?=৪\.)/s);
+            const impactMatch = desc.match(/৪\.\s*\*\*উন্নতি[^*]*\*\*\s*:(.*)/s) || desc.match(/৪\.\s*\*\*উন্নতি[^*]*\*\*(.*)/s);
+            
+            if (currentMatch) sections.currentState = currentMatch[1].trim();
+            if (proposedMatch) sections.proposed = proposedMatch[1].trim();
+            if (reasonMatch) sections.reasoning = reasonMatch[1].trim();
+            if (impactMatch) sections.impact = impactMatch[1].trim();
+            
+            // Fallback if regex fails but keyword exists
+            if (!sections.currentState) return null;
+            return sections;
+        } catch (e) {
+            return null;
+        }
+    };
+
     const modeColor = status.mode === 'AUTO' ? '#52c41a' : status.mode === 'WAIT' ? '#faad14' : '#ff4d4f';
     const modeIcon = status.mode === 'AUTO' ? <PlayCircleOutlined /> : status.mode === 'WAIT' ? <PauseCircleOutlined /> : <StopOutlined />;
 
@@ -240,15 +262,40 @@ const KingModePanel: React.FC = () => {
                 {pendingActions.length === 0 ? (
                     <Alert message="No pending actions" type="success" showIcon />
                 ) : (
-                    <List dataSource={pendingActions} renderItem={(action) => (
-                        <List.Item key={action.id} actions={[
-                            <Button type="primary" icon={<CheckOutlined />} loading={actionLoading === action.id} onClick={() => handlePendingAction(action.id, 'approve')}>Approve</Button>,
-                            <Button danger icon={<CloseOutlined />} loading={actionLoading === action.id} onClick={() => handlePendingAction(action.id, 'reject')}>Reject</Button>,
-                        ]}>
-                            <List.Item.Meta title={<><Tag color={action.severity === 'critical' ? 'red' : 'orange'}>{action.severity}</Tag> {action.type}</>}
-                                description={<>{action.description}<br /><Text type="secondary">{action.requestedBy} — {new Date(action.requestedAt).toLocaleString()}</Text></>} />
-                        </List.Item>
-                    )} />
+                    <List dataSource={pendingActions} renderItem={(action) => {
+                        const parsedProposal = action.type === 'kingsmode-pending' || action.description.includes('Improvement Proposal') 
+                            ? parseProposalDescription(action.description) 
+                            : null;
+
+                        return (
+                            <List.Item key={action.id} style={{ display: 'block', padding: '16px', background: parsedProposal ? '#fafafa' : '#fff', border: '1px solid #f0f0f0', borderRadius: '8px', marginBottom: '16px' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
+                                    <div>
+                                        <Title level={5} style={{ margin: 0 }}>
+                                            <Tag color={action.severity === 'critical' ? 'red' : 'blue'}>{action.severity || 'info'}</Tag> 
+                                            {parsedProposal ? '🌟 System Improvement Proposal' : action.type}
+                                        </Title>
+                                        <Text type="secondary">{action.requestedBy} — {new Date(action.requestedAt).toLocaleString()}</Text>
+                                    </div>
+                                    <Space>
+                                        <Button type="primary" icon={<CheckOutlined />} loading={actionLoading === action.id} onClick={() => handlePendingAction(action.id, 'approve')}>Approve</Button>
+                                        <Button danger icon={<CloseOutlined />} loading={actionLoading === action.id} onClick={() => handlePendingAction(action.id, 'reject')}>Reject</Button>
+                                    </Space>
+                                </div>
+
+                                {parsedProposal ? (
+                                    <Descriptions bordered size="small" column={1} style={{ marginTop: 16, background: '#fff' }}>
+                                        <Descriptions.Item label={<Text strong style={{ color: '#1890ff' }}>বর্তমান অবস্থা</Text>}>{parsedProposal.currentState}</Descriptions.Item>
+                                        <Descriptions.Item label={<Text strong style={{ color: '#52c41a' }}>সাজেশন</Text>}>{parsedProposal.proposed}</Descriptions.Item>
+                                        <Descriptions.Item label={<Text strong style={{ color: '#faad14' }}>কারণ</Text>}>{parsedProposal.reasoning}</Descriptions.Item>
+                                        <Descriptions.Item label={<Text strong style={{ color: '#722ed1' }}>উন্নতি</Text>}>{parsedProposal.impact}</Descriptions.Item>
+                                    </Descriptions>
+                                ) : (
+                                    <div style={{ padding: '8px 0' }}>{action.description}</div>
+                                )}
+                            </List.Item>
+                        );
+                    }} />
                 )}
             </Card>
         </div>

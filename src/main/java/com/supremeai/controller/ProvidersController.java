@@ -11,20 +11,19 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+
 import reactor.core.publisher.Mono;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Controller for managing AI providers.
- * Refactored to delegate business logic to ProviderAdminService.
- */
 @RestController
 @RequestMapping("/api/admin/providers")
 public class ProvidersController extends BaseAdminController<APIProvider, String> {
 
     private static final Logger log = LoggerFactory.getLogger(ProvidersController.class);
+    private static final Duration BLOCK_TIMEOUT = Duration.ofSeconds(10);
 
     private final ProviderAdminService providerAdminService;
     private final AIProviderDiscoveryService discoveryService;
@@ -36,118 +35,97 @@ public class ProvidersController extends BaseAdminController<APIProvider, String
         this.discoveryService = discoveryService;
     }
 
-    private String getCurrentAdminUserId() {
+    private Mono<String> getCurrentAdminUserId() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null || !auth.isAuthenticated()) {
-            throw new IllegalStateException("Not authenticated");
+            return Mono.error(new IllegalStateException("Not authenticated"));
         }
-        return auth.getName();
+        return Mono.just(auth.getName());
     }
 
     @GetMapping("/configured")
-    public ResponseEntity<ApiResponse<Map<String, Object>>> getConfiguredProviders() {
-        try {
-            List<APIProvider> providers = providerAdminService.getAllProviders().collectList().block();
-            return wrapListSync(providers, "providers");
-        } catch (Exception e) {
-            return handleErrorSync("Failed to fetch providers", e);
-        }
+    public Mono<ResponseEntity<ApiResponse<Map<String, Object>>>> getConfiguredProviders() {
+        return providerAdminService.getAllProviders()
+            .collectList()
+            .map(providers -> wrapListSync(providers, "providers"))
+            .onErrorResume(this::handleErrorSync);
     }
 
     @PostMapping("/add")
-    public ResponseEntity<ApiResponse<Map<String, Object>>> addProvider(@RequestBody APIProvider provider) {
-        try {
-            String adminUserId = getCurrentAdminUserId();
-            APIProvider saved = providerAdminService.addProvider(provider, adminUserId).block();
-            return ResponseEntity.ok(ApiResponse.ok(Map.of("message", "Provider added", "provider", (Object)saved)));
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(ApiResponse.error(e.getMessage()));
-        }
+    public Mono<ResponseEntity<ApiResponse<Map<String, Object>>>> addProvider(@RequestBody APIProvider provider) {
+        return getCurrentAdminUserId()
+            .flatMap(adminUserId -> providerAdminService.addProvider(provider, adminUserId)
+                .map(saved -> ResponseEntity.ok(ApiResponse.ok(Map.of("message", "Provider added", "provider", (Object)saved)))))
+            .onErrorResume(e -> ResponseEntity.badRequest().body(ApiResponse.error(e.getMessage())));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ApiResponse<Map<String, Object>>>
-            updateProviderById(@PathVariable String id, @RequestBody APIProvider provider) {
-        try {
-            String adminUserId = getCurrentAdminUserId();
-            APIProvider saved = providerAdminService.updateProvider(id, provider, adminUserId).block();
-            if (saved == null) return ResponseEntity.status(404).body(ApiResponse.error("Provider not found"));
-            return ResponseEntity.ok(ApiResponse.ok(Map.of("message", "Provider updated", "provider", (Object)saved)));
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(ApiResponse.error(e.getMessage()));
-        }
+    public Mono<ResponseEntity<ApiResponse<Map<String, Object>>>> updateProviderById(@PathVariable String id, @RequestBody APIProvider provider) {
+        return getCurrentAdminUserId()
+            .flatMap(adminUserId -> providerAdminService.updateProvider(id, provider, adminUserId)
+                .map(saved -> {
+                    if (saved == null) return ResponseEntity.status(404).body(ApiResponse.error("Provider not found"));
+                    return ResponseEntity.ok(ApiResponse.ok(Map.of("message", "Provider updated", "provider", (Object)saved)));
+                }))
+            .onErrorResume(e -> ResponseEntity.badRequest().body(ApiResponse.error(e.getMessage())));
     }
 
     @PostMapping("/{id}/revive")
-    public ResponseEntity<ApiResponse<Map<String, Object>>> reviveProvider(@PathVariable String id) {
-        try {
-            String adminUserId = getCurrentAdminUserId();
-            APIProvider saved = providerAdminService.reviveProvider(id, adminUserId).block();
-            if (saved == null) return ResponseEntity.status(404).body(ApiResponse.error("Provider not found"));
-            return ResponseEntity.ok(ApiResponse.ok(Map.of("message", "Provider revived successfully", "provider", (Object)saved)));
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(ApiResponse.error(e.getMessage()));
-        }
+    public Mono<ResponseEntity<ApiResponse<Map<String, Object>>>> reviveProvider(@PathVariable String id) {
+        return getCurrentAdminUserId()
+            .flatMap(adminUserId -> providerAdminService.reviveProvider(id, adminUserId)
+                .map(saved -> {
+                    if (saved == null) return ResponseEntity.status(404).body(ApiResponse.error("Provider not found"));
+                    return ResponseEntity.ok(ApiResponse.ok(Map.of("message", "Provider revived successfully", "provider", (Object)saved)));
+                }))
+            .onErrorResume(e -> ResponseEntity.badRequest().body(ApiResponse.error(e.getMessage())));
     }
 
-    /**
-     * Manually activate a provider (set status to ACTIVE)
-     * Use this to activate GCloud/real API providers that have valid keys
-     */
     @PostMapping("/{id}/activate")
-    public ResponseEntity<ApiResponse<Map<String, Object>>> activateProvider(@PathVariable String id) {
-        try {
-            String adminUserId = getCurrentAdminUserId();
-            APIProvider saved = providerAdminService.activateProvider(id, adminUserId).block();
-            if (saved == null) return ResponseEntity.status(404).body(ApiResponse.error("Provider not found"));
-            log.info("[API] Provider {} activated by admin {}", id, adminUserId);
-            return ResponseEntity.ok(ApiResponse.ok(Map.of(
-                "message", "Provider activated successfully",
-                "provider", (Object)saved,
-                "status", "ACTIVE"
-            )));
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(ApiResponse.error(e.getMessage()));
-        }
+    public Mono<ResponseEntity<ApiResponse<Map<String, Object>>>> activateProvider(@PathVariable String id) {
+        return getCurrentAdminUserId()
+            .flatMap(adminUserId -> providerAdminService.activateProvider(id, adminUserId)
+                .map(saved -> {
+                    if (saved == null) return ResponseEntity.status(404).body(ApiResponse.error("Provider not found"));
+                    log.info("[API] Provider {} activated by admin {}", id, adminUserId);
+                    return ResponseEntity.ok(ApiResponse.ok(Map.of(
+                        "message", "Provider activated successfully",
+                        "provider", (Object)saved,
+                        "status", "ACTIVE"
+                    )));
+                }))
+            .onErrorResume(e -> ResponseEntity.badRequest().body(ApiResponse.error(e.getMessage())));
     }
 
-    /**
-     * Manually deactivate a provider (set status to INACTIVE)
-     * Use this to mark fake/test API keys as inactive
-     */
     @PostMapping("/{id}/deactivate")
-    public ResponseEntity<ApiResponse<Map<String, Object>>> deactivateProvider(
+    public Mono<ResponseEntity<ApiResponse<Map<String, Object>>>> deactivateProvider(
             @PathVariable String id,
             @RequestParam(defaultValue = "Admin requested deactivation") String reason) {
-        try {
-            String adminUserId = getCurrentAdminUserId();
-            APIProvider saved = providerAdminService.deactivateProvider(id, reason, adminUserId).block();
-            if (saved == null) return ResponseEntity.status(404).body(ApiResponse.error("Provider not found"));
-            log.info("[API] Provider {} deactivated by admin {} (reason: {})", id, adminUserId, reason);
-            return ResponseEntity.ok(ApiResponse.ok(Map.of(
-                "message", "Provider deactivated successfully",
-                "provider", (Object)saved,
-                "status", "INACTIVE",
-                "reason", reason
-            )));
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(ApiResponse.error(e.getMessage()));
-        }
+        return getCurrentAdminUserId()
+            .flatMap(adminUserId -> providerAdminService.deactivateProvider(id, reason, adminUserId)
+                .map(saved -> {
+                    if (saved == null) return ResponseEntity.status(404).body(ApiResponse.error("Provider not found"));
+                    log.info("[API] Provider {} deactivated by admin {} (reason: {})", id, adminUserId, reason);
+                    return ResponseEntity.ok(ApiResponse.ok(Map.of(
+                        "message", "Provider deactivated successfully",
+                        "provider", (Object)saved,
+                        "status", "INACTIVE",
+                        "reason", reason
+                    )));
+                }))
+            .onErrorResume(e -> ResponseEntity.badRequest().body(ApiResponse.error(e.getMessage())));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<ApiResponse<String>> deleteProvider(@PathVariable String id) {
-        try {
-            String adminUserId = getCurrentAdminUserId();
-            providerAdminService.deleteProvider(id, adminUserId).block();
-            return ResponseEntity.ok(ApiResponse.ok("Provider deleted"));
-        } catch (Exception e) {
-            return ResponseEntity.status(500).body(ApiResponse.error(e.getMessage()));
-        }
+    public Mono<ResponseEntity<ApiResponse<String>>> deleteProvider(@PathVariable String id) {
+        return getCurrentAdminUserId()
+            .flatMap(adminUserId -> providerAdminService.deleteProvider(id, adminUserId)
+                .thenReturn(ResponseEntity.ok(ApiResponse.ok("Provider deleted"))))
+            .onErrorResume(e -> ResponseEntity.status(500).body(ApiResponse.error(e.getMessage())));
     }
 
     @PostMapping("/test-key")
-    public ResponseEntity<ApiResponse<Map<String, Object>>> testProviderKey(@RequestBody Map<String, String> payload) {
+    public Mono<ResponseEntity<ApiResponse<Map<String, Object>>>> testProviderKey(@RequestBody Map<String, String> payload) {
         String name = payload.get("name");
         String apiKey = payload.get("apiKey");
 
@@ -155,91 +133,80 @@ public class ProvidersController extends BaseAdminController<APIProvider, String
 
         if (name == null || apiKey == null) {
             log.warn("[TEST-KEY] Rejected: missing parameters. name={}, apiKey present={}", name, apiKey != null);
-            return ResponseEntity.badRequest().body(ApiResponse.error("name and apiKey are required"));
+            return Mono.just(ResponseEntity.badRequest().body(ApiResponse.error("name and apiKey are required")));
         }
 
-        try {
-            Boolean valid = providerAdminService.validateKey(name, apiKey).block();
-            log.info("[TEST-KEY] Validation result for name={}: {}", name, valid);
-            if (Boolean.TRUE.equals(valid)) {
-                return ResponseEntity.ok(ApiResponse.ok(Map.of("message", "Key validated successfully", "valid", true)));
-            } else {
-                return ResponseEntity.status(401).body(ApiResponse.error("Invalid key or provider unreachable"));
-            }
-        } catch (Exception e) {
-            log.error("[TEST-KEY] Unexpected error during validation for name={}: {}", name, e.toString());
-            return ResponseEntity.status(500).body(ApiResponse.error("Validation error: " + e.getMessage()));
-        }
+        return providerAdminService.validateKey(name, apiKey)
+            .timeout(BLOCK_TIMEOUT)
+            .doOnNext(valid -> log.info("[TEST-KEY] Validation result for name={}: {}", name, valid))
+            .map(valid -> Boolean.TRUE.equals(valid)
+                ? ResponseEntity.ok(ApiResponse.ok(Map.of("message", "Key validated successfully", "valid", true)))
+                : ResponseEntity.status(401).body(ApiResponse.error("Invalid key or provider unreachable")))
+            .onErrorResume(e -> {
+                log.error("[TEST-KEY] Unexpected error during validation for name={}: {}", name, e.toString());
+                return Mono.just(ResponseEntity.status(500).body(ApiResponse.error("Validation error: " + e.getMessage())));
+            });
     }
 
     @GetMapping("/discover")
-    public ResponseEntity<ApiResponse<List<Map<String, Object>>>> discoverModels(@RequestParam(required = false) String query) {
-        List<Map<String, Object>> list = discoveryService.discoverModels(query).collectList().block();
-        return ResponseEntity.ok(ApiResponse.ok(list));
+    public Mono<ResponseEntity<ApiResponse<List<Map<String, Object>>>>> discoverModels(@RequestParam(required = false) String query) {
+        return discoveryService.discoverModels(query)
+            .collectList()
+            .timeout(BLOCK_TIMEOUT)
+            .map(list -> ResponseEntity.ok(ApiResponse.ok(list)))
+            .onErrorResume(e -> ResponseEntity.status(500).body(ApiResponse.error("Discovery failed: " + e.getMessage())));
     }
 
     @GetMapping("/health-stats")
-    public ResponseEntity<ApiResponse<Map<String, Object>>> getHealthStats() {
-        Map<String, Object> stats = providerAdminService.getHealthStats().block();
-        return ResponseEntity.ok(ApiResponse.ok(stats));
+    public Mono<ResponseEntity<ApiResponse<Map<String, Object>>>> getHealthStats() {
+        return providerAdminService.getHealthStats()
+            .timeout(BLOCK_TIMEOUT)
+            .map(ResponseEntity::ok);
     }
 
     @GetMapping("/{id}/roles")
-    public ResponseEntity<ApiResponse<List<String>>> getConfiguredRoles(@PathVariable String id) {
-        try {
-            Mono<List<APIProvider>> providersMono = providerAdminService.getAllProviders()
-                    .filter(p -> p.getId().equals(id))
-                    .collectList();
-            List<APIProvider> list = providersMono.block(java.time.Duration.ofSeconds(5));
-            if (list == null || list.isEmpty()) {
-                return ResponseEntity.status(404).body(ApiResponse.error("Provider not found"));
-            }
-            List<String> roles = providerAdminService.suggestRoles(list.get(0));
-            return ResponseEntity.ok(ApiResponse.ok(roles));
-        } catch (Exception e) {
-            return ResponseEntity.status(500).body(ApiResponse.error("Failed to fetch roles: " + e.getMessage()));
-        }
+    public Mono<ResponseEntity<ApiResponse<List<String>>>> getConfiguredRoles(@PathVariable String id) {
+        return providerAdminService.getAllProviders()
+            .filter(p -> p.getId().equals(id))
+            .next()
+            .flatMap(provider -> Mono.just(providerAdminService.suggestRoles(provider)))
+            .map(roles -> ResponseEntity.ok(ApiResponse.ok(roles)))
+            .switchIfEmpty(Mono.error(new IllegalArgumentException("Provider not found: " + id)))
+            .onErrorResume(e -> ResponseEntity.status(500).body(ApiResponse.error("Failed to fetch roles: " + e.getMessage())));
     }
 
     @PostMapping("/{id}/capability")
-    public ResponseEntity<ApiResponse<Map<String, Object>>> updateCapability(
+    public Mono<ResponseEntity<ApiResponse<Map<String, Object>>>> updateCapability(
             @PathVariable String id,
             @RequestBody Map<String, Object> updates) {
-        try {
-            String adminUserId = getCurrentAdminUserId();
-            APIProvider saved = providerAdminService.patchCapability(id, updates, adminUserId).block();
-            if (saved == null) return ResponseEntity.status(404).body(ApiResponse.error("Provider not found"));
-            return ResponseEntity.ok(ApiResponse.ok(Map.of("message", "Capability updated", "provider", (Object)saved)));
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(ApiResponse.error(e.getMessage()));
-        }
+        return getCurrentAdminUserId()
+            .flatMap(adminUserId -> providerAdminService.patchCapability(id, updates, adminUserId)
+                .map(saved -> {
+                    if (saved == null) return ResponseEntity.status(404).body(ApiResponse.error("Provider not found"));
+                    return ResponseEntity.ok(ApiResponse.ok(Map.of("message", "Capability updated", "provider", (Object)saved)));
+                }))
+            .onErrorResume(e -> ResponseEntity.badRequest().body(ApiResponse.error(e.getMessage())));
     }
 
     @PostMapping("/validate-all")
-    public ResponseEntity<ApiResponse<String>> triggerValidation() {
+    public Mono<ResponseEntity<ApiResponse<String>>> triggerValidation() {
         providerAdminService.triggerValidation();
-        return ResponseEntity.ok(ApiResponse.ok("Validation triggered"));
+        return Mono.just(ResponseEntity.ok(ApiResponse.ok("Validation triggered")));
     }
 
     @PostMapping("/sanitize")
-    public ResponseEntity<ApiResponse<String>> sanitizeProviders() {
-        try {
-            String adminUserId = getCurrentAdminUserId();
-            providerAdminService.sanitizeProviders(adminUserId).block();
-            return ResponseEntity.ok(ApiResponse.ok("Provider sanitization completed"));
-        } catch (Exception e) {
-            return ResponseEntity.status(500).body(ApiResponse.error(e.getMessage()));
-        }
+    public Mono<ResponseEntity<ApiResponse<String>>> sanitizeProviders() {
+        return getCurrentAdminUserId()
+            .flatMap(adminUserId -> providerAdminService.sanitizeProviders(adminUserId)
+                .then(Mono.just(ResponseEntity.ok(ApiResponse.ok("Provider sanitization completed")))))
+            .onErrorResume(e -> ResponseEntity.status(500).body(ApiResponse.error(e.getMessage())));
     }
 
     @DeleteMapping("/dead")
-    public ResponseEntity<ApiResponse<String>> cleanupDeadProviders() {
-        try {
-            String adminUserId = getCurrentAdminUserId();
-            providerAdminService.removeDeadProviders(adminUserId).block();
-            return ResponseEntity.ok(ApiResponse.ok("Dead providers removed"));
-        } catch (Exception e) {
-            return ResponseEntity.status(500).body(ApiResponse.error(e.getMessage()));
-        }
+    public Mono<ResponseEntity<ApiResponse<String>>> cleanupDeadProviders() {
+        return getCurrentAdminUserId()
+            .flatMap(adminUserId -> providerAdminService.removeDeadProviders(adminUserId)
+                .then(Mono.just(ResponseEntity.ok(ApiResponse.ok("Dead providers removed")))))
+            .onErrorResume(e -> ResponseEntity.status(500).body(ApiResponse.error(e.getMessage())));
     }
 }

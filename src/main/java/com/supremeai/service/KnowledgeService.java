@@ -260,6 +260,83 @@ public class KnowledgeService {
                 });
     }
 
+    // ══════════════════════════════════════════════════════════════════════════
+    //  PURE JAVA NLP: MULTILINGUAL N-GRAM COSINE SIMILARITY ENGINE (MAGIC LOOP)
+    // ══════════════════════════════════════════════════════════════════════════
+
+    public Mono<Double> findHighestSimilarityScore(String query) {
+        return getRankedKnowledge(query, 1)
+                .map(list -> list.isEmpty() ? 0.0 : list.get(0).score)
+                .defaultIfEmpty(0.0);
+    }
+
+    public Mono<String> getRelevantContext(String query) {
+        return getRankedKnowledge(query, 3)
+                .map(list -> {
+                    if (list.isEmpty()) return "No relevant local context found in system memory.";
+                    StringBuilder sb = new StringBuilder();
+                    for (ScoredKnowledge sk : list) {
+                        sb.append("- ").append(sk.learning.getContent()).append("\n");
+                    }
+                    return sb.toString();
+                });
+    }
+
+    private Mono<List<ScoredKnowledge>> getRankedKnowledge(String query, int limit) {
+        return learningRepository.findAll()
+                .filter(l -> l.getContent() != null)
+                .map(l -> {
+                    String docText = (l.getTopic() != null ? l.getTopic() + " " : "") + l.getContent();
+                    double score = calculateNgramCosineSimilarity(query, docText);
+                    return new ScoredKnowledge(l, score);
+                })
+                .filter(sk -> sk.score > 0.15) // নূন্যতম মিল থাকার থ্রেশহোল্ড
+                .collectSortedList((a, b) -> Double.compare(b.score, a.score))
+                .map(list -> list.stream().limit(limit).collect(Collectors.toList()));
+    }
+
+    private double calculateNgramCosineSimilarity(String text1, String text2) {
+        if (text1 == null || text2 == null || text1.trim().isEmpty() || text2.trim().isEmpty()) return 0.0;
+        
+        // Trigram (৩টি অক্ষরের খণ্ড) ব্যবহার করা হয়েছে, যা বাংলা, ইংরেজি বা যেকোনো ভাষার বানান ভুল থাকলেও কাজ করবে
+        Map<String, Integer> vector1 = getTrigramVector(text1.toLowerCase(Locale.ROOT));
+        Map<String, Integer> vector2 = getTrigramVector(text2.toLowerCase(Locale.ROOT));
+
+        Set<String> allKeys = new HashSet<>(vector1.keySet());
+        allKeys.addAll(vector2.keySet());
+
+        double dotProduct = 0.0, norm1 = 0.0, norm2 = 0.0;
+        for (String key : allKeys) {
+            int v1 = vector1.getOrDefault(key, 0);
+            int v2 = vector2.getOrDefault(key, 0);
+            dotProduct += v1 * v2;
+            norm1 += v1 * v1;
+            norm2 += v2 * v2;
+        }
+        return (norm1 == 0.0 || norm2 == 0.0) ? 0.0 : (dotProduct / (Math.sqrt(norm1) * Math.sqrt(norm2)));
+    }
+
+    private Map<String, Integer> getTrigramVector(String text) {
+        Map<String, Integer> vector = new HashMap<>();
+        // যতিচিহ্ন এবং স্পেস বাদ দিয়ে শুধু মূল অক্ষরগুলো নিয়ে কাজ করা হচ্ছে
+        String cleanText = text.replaceAll("[\\s\\p{Punct}]+", "");
+        if (cleanText.length() < 3) {
+            vector.put(cleanText, 1);
+            return vector;
+        }
+        for (int i = 0; i < cleanText.length() - 2; i++) {
+            String trigram = cleanText.substring(i, i + 3);
+            vector.put(trigram, vector.getOrDefault(trigram, 0) + 1);
+        }
+        return vector;
+    }
+
+    private static class ScoredKnowledge {
+        final SystemLearning learning;
+        final double score;
+        ScoredKnowledge(SystemLearning learning, double score) { this.learning = learning; this.score = score; }
+    }
+
     /**
      * Generate recommendations based on knowledge gaps
      */

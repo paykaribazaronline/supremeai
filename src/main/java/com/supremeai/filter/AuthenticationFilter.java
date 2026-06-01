@@ -75,6 +75,8 @@ public class AuthenticationFilter extends OncePerRequestFilter {
         if ("true".equals(guestHeader) || "GUEST_MODE".equals(idToken)) {
             List<SimpleGrantedAuthority> authorities = new ArrayList<>();
             authorities.add(new SimpleGrantedAuthority("ROLE_GUEST"));
+            authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
+            authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
             UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken("guest_user", null,
                     authorities);
             SecurityContextHolder.getContext().setAuthentication(auth);

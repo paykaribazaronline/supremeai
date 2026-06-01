@@ -1,7 +1,13 @@
 import { defineConfig } from '@playwright/test';
 
+const devices = {
+  'Desktop Chrome': {
+    viewport: { width: 1280, height: 720 },
+  },
+};
+
 export default defineConfig({
-  testDir: './tests',
+  testDir: '.',
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
@@ -25,9 +31,3 @@ export default defineConfig({
     reuseExistingServer: !process.env.CI,
   },
 });
-
-const devices = {
-  'Desktop Chrome': {
-    viewport: { width: 1280, height: 720 },
-  },
-};

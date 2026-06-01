@@ -70,7 +70,7 @@ const AdminRouteLayout: React.FC = () => {
   const menuItems = allMenuItems.filter(item => Array.isArray(item.roles) && item.roles.includes(currentRole));
 
   const getCurrentPageKey = () => {
-    const path = location.pathname.replace('/admin/', '');
+    const path = location.pathname.replace(/^\/admin\/?/, '').replace(/\/$/, '');
     return path || 'dashboard';
   };
 

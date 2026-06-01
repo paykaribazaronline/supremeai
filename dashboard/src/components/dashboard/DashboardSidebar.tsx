@@ -61,9 +61,7 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
 
   return (
        <Sider
-         collapsible
          collapsed={collapsed}
-         onCollapse={setCollapsed}
          onMouseEnter={handleMouseEnter}
          onMouseLeave={handleMouseLeave}
          theme="dark"

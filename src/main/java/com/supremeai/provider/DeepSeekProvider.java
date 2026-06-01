@@ -13,7 +13,7 @@ import java.util.Map;
  * DeepSeek Provider implementation using shared HTTP client and ObjectMapper.
  * Extends AbstractHttpProvider for optimized performance.
  */
-@Component
+// @Component // Disabled: heavy cloud provider excluded from local-first runtime
 public class DeepSeekProvider extends AbstractHttpProvider {
     private static final Logger logger = LoggerFactory.getLogger(DeepSeekProvider.class);
     private static final String API_URL = "https://api.deepseek.com/v1/chat/completions";
