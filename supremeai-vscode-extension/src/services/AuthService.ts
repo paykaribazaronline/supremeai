@@ -19,6 +19,10 @@ export class AuthService {
     return AuthService.instance;
   }
 
+  public static resetInstance(): void {
+    AuthService.instance = null as any;
+  }
+
   /**
    * Login using VS Code's built-in Google authentication provider
    */
