@@ -21,7 +21,7 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /**
@@ -52,7 +52,7 @@ public class ConfigService {
 
     private SystemConfig cachedConfig;
     private ListenerRegistration listenerRegistration;
-    private final Executor listenerExecutor = Executors.newSingleThreadExecutor();
+    private final ExecutorService listenerExecutor = Executors.newSingleThreadExecutor();
 
     public ConfigService() {
         this.cachedConfig = createDefaultConfig();

@@ -29,7 +29,7 @@ public class IdeAssistantController {
             com.supremeai.provider.AIProvider provider = providerFactory.getProvider(request.getProvider());
             String response = provider.generate(prompt)
                     .subscribeOn(reactor.core.scheduler.Schedulers.boundedElastic())
-                    .block(reactor.timeout.Duration.ofSeconds(30));
+                    .block(java.time.Duration.ofSeconds(30));
             return ResponseEntity.ok(Map.of(
                     "response", response != null ? response : "",
                     "code", "",

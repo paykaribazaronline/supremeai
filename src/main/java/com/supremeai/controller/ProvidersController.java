@@ -48,7 +48,7 @@ public class ProvidersController extends BaseAdminController<APIProvider, String
         return providerAdminService.getAllProviders()
             .collectList()
             .map(providers -> wrapListSync(providers, "providers"))
-            .onErrorResume(this::handleErrorSync);
+            .onErrorResume(e -> handleError("Failed to get configured providers", e));
     }
 
     @PostMapping("/add")
@@ -56,7 +56,7 @@ public class ProvidersController extends BaseAdminController<APIProvider, String
         return getCurrentAdminUserId()
             .flatMap(adminUserId -> providerAdminService.addProvider(provider, adminUserId)
                 .map(saved -> ResponseEntity.ok(ApiResponse.ok(Map.of("message", "Provider added", "provider", (Object)saved)))))
-            .onErrorResume(e -> ResponseEntity.badRequest().body(ApiResponse.error(e.getMessage())));
+            .onErrorResume(e -> Mono.just(ResponseEntity.badRequest().body(ApiResponse.<Map<String, Object>>error(e.getMessage()))));
     }
 
     @PutMapping("/{id}")
@@ -64,10 +64,10 @@ public class ProvidersController extends BaseAdminController<APIProvider, String
         return getCurrentAdminUserId()
             .flatMap(adminUserId -> providerAdminService.updateProvider(id, provider, adminUserId)
                 .map(saved -> {
-                    if (saved == null) return ResponseEntity.status(404).body(ApiResponse.error("Provider not found"));
+                    if (saved == null) return ResponseEntity.status(404).body(ApiResponse.<Map<String, Object>>error("Provider not found"));
                     return ResponseEntity.ok(ApiResponse.ok(Map.of("message", "Provider updated", "provider", (Object)saved)));
                 }))
-            .onErrorResume(e -> ResponseEntity.badRequest().body(ApiResponse.error(e.getMessage())));
+            .onErrorResume(e -> Mono.just(ResponseEntity.badRequest().body(ApiResponse.<Map<String, Object>>error(e.getMessage()))));
     }
 
     @PostMapping("/{id}/revive")
@@ -75,10 +75,10 @@ public class ProvidersController extends BaseAdminController<APIProvider, String
         return getCurrentAdminUserId()
             .flatMap(adminUserId -> providerAdminService.reviveProvider(id, adminUserId)
                 .map(saved -> {
-                    if (saved == null) return ResponseEntity.status(404).body(ApiResponse.error("Provider not found"));
+                    if (saved == null) return ResponseEntity.status(404).body(ApiResponse.<Map<String, Object>>error("Provider not found"));
                     return ResponseEntity.ok(ApiResponse.ok(Map.of("message", "Provider revived successfully", "provider", (Object)saved)));
                 }))
-            .onErrorResume(e -> ResponseEntity.badRequest().body(ApiResponse.error(e.getMessage())));
+            .onErrorResume(e -> Mono.just(ResponseEntity.badRequest().body(ApiResponse.<Map<String, Object>>error(e.getMessage()))));
     }
 
     @PostMapping("/{id}/activate")
@@ -86,7 +86,7 @@ public class ProvidersController extends BaseAdminController<APIProvider, String
         return getCurrentAdminUserId()
             .flatMap(adminUserId -> providerAdminService.activateProvider(id, adminUserId)
                 .map(saved -> {
-                    if (saved == null) return ResponseEntity.status(404).body(ApiResponse.error("Provider not found"));
+                    if (saved == null) return ResponseEntity.status(404).body(ApiResponse.<Map<String, Object>>error("Provider not found"));
                     log.info("[API] Provider {} activated by admin {}", id, adminUserId);
                     return ResponseEntity.ok(ApiResponse.ok(Map.of(
                         "message", "Provider activated successfully",
@@ -94,7 +94,7 @@ public class ProvidersController extends BaseAdminController<APIProvider, String
                         "status", "ACTIVE"
                     )));
                 }))
-            .onErrorResume(e -> ResponseEntity.badRequest().body(ApiResponse.error(e.getMessage())));
+            .onErrorResume(e -> Mono.just(ResponseEntity.badRequest().body(ApiResponse.<Map<String, Object>>error(e.getMessage()))));
     }
 
     @PostMapping("/{id}/deactivate")
@@ -104,7 +104,7 @@ public class ProvidersController extends BaseAdminController<APIProvider, String
         return getCurrentAdminUserId()
             .flatMap(adminUserId -> providerAdminService.deactivateProvider(id, reason, adminUserId)
                 .map(saved -> {
-                    if (saved == null) return ResponseEntity.status(404).body(ApiResponse.error("Provider not found"));
+                    if (saved == null) return ResponseEntity.status(404).body(ApiResponse.<Map<String, Object>>error("Provider not found"));
                     log.info("[API] Provider {} deactivated by admin {} (reason: {})", id, adminUserId, reason);
                     return ResponseEntity.ok(ApiResponse.ok(Map.of(
                         "message", "Provider deactivated successfully",
@@ -113,7 +113,7 @@ public class ProvidersController extends BaseAdminController<APIProvider, String
                         "reason", reason
                     )));
                 }))
-            .onErrorResume(e -> ResponseEntity.badRequest().body(ApiResponse.error(e.getMessage())));
+            .onErrorResume(e -> Mono.just(ResponseEntity.badRequest().body(ApiResponse.<Map<String, Object>>error(e.getMessage()))));
     }
 
     @DeleteMapping("/{id}")
@@ -121,7 +121,7 @@ public class ProvidersController extends BaseAdminController<APIProvider, String
         return getCurrentAdminUserId()
             .flatMap(adminUserId -> providerAdminService.deleteProvider(id, adminUserId)
                 .thenReturn(ResponseEntity.ok(ApiResponse.ok("Provider deleted"))))
-            .onErrorResume(e -> ResponseEntity.status(500).body(ApiResponse.error(e.getMessage())));
+            .onErrorResume(e -> Mono.just(ResponseEntity.status(500).body(ApiResponse.<String>error(e.getMessage()))));
     }
 
     @PostMapping("/test-key")
@@ -140,11 +140,11 @@ public class ProvidersController extends BaseAdminController<APIProvider, String
             .timeout(BLOCK_TIMEOUT)
             .doOnNext(valid -> log.info("[TEST-KEY] Validation result for name={}: {}", name, valid))
             .map(valid -> Boolean.TRUE.equals(valid)
-                ? ResponseEntity.ok(ApiResponse.ok(Map.of("message", "Key validated successfully", "valid", true)))
-                : ResponseEntity.status(401).body(ApiResponse.error("Invalid key or provider unreachable")))
+                ? ResponseEntity.ok(ApiResponse.<Map<String, Object>>ok(Map.of("message", "Key validated successfully", "valid", true)))
+                : ResponseEntity.status(401).body(ApiResponse.<Map<String, Object>>error("Invalid key or provider unreachable")))
             .onErrorResume(e -> {
                 log.error("[TEST-KEY] Unexpected error during validation for name={}: {}", name, e.toString());
-                return Mono.just(ResponseEntity.status(500).body(ApiResponse.error("Validation error: " + e.getMessage())));
+                return Mono.just(ResponseEntity.status(500).body(ApiResponse.<Map<String, Object>>error("Validation error: " + e.getMessage())));
             });
     }
 
@@ -154,14 +154,14 @@ public class ProvidersController extends BaseAdminController<APIProvider, String
             .collectList()
             .timeout(BLOCK_TIMEOUT)
             .map(list -> ResponseEntity.ok(ApiResponse.ok(list)))
-            .onErrorResume(e -> ResponseEntity.status(500).body(ApiResponse.error("Discovery failed: " + e.getMessage())));
+            .onErrorResume(e -> Mono.just(ResponseEntity.status(500).body(ApiResponse.<List<Map<String, Object>>>error("Discovery failed: " + e.getMessage()))));
     }
 
     @GetMapping("/health-stats")
     public Mono<ResponseEntity<ApiResponse<Map<String, Object>>>> getHealthStats() {
         return providerAdminService.getHealthStats()
             .timeout(BLOCK_TIMEOUT)
-            .map(ResponseEntity::ok);
+            .map(stats -> ResponseEntity.ok(ApiResponse.ok(stats)));
     }
 
     @GetMapping("/{id}/roles")
@@ -172,7 +172,7 @@ public class ProvidersController extends BaseAdminController<APIProvider, String
             .flatMap(provider -> Mono.just(providerAdminService.suggestRoles(provider)))
             .map(roles -> ResponseEntity.ok(ApiResponse.ok(roles)))
             .switchIfEmpty(Mono.error(new IllegalArgumentException("Provider not found: " + id)))
-            .onErrorResume(e -> ResponseEntity.status(500).body(ApiResponse.error("Failed to fetch roles: " + e.getMessage())));
+            .onErrorResume(e -> Mono.just(ResponseEntity.status(500).body(ApiResponse.<List<String>>error("Failed to fetch roles: " + e.getMessage()))));
     }
 
     @PostMapping("/{id}/capability")
@@ -182,10 +182,10 @@ public class ProvidersController extends BaseAdminController<APIProvider, String
         return getCurrentAdminUserId()
             .flatMap(adminUserId -> providerAdminService.patchCapability(id, updates, adminUserId)
                 .map(saved -> {
-                    if (saved == null) return ResponseEntity.status(404).body(ApiResponse.error("Provider not found"));
+                    if (saved == null) return ResponseEntity.status(404).body(ApiResponse.<Map<String, Object>>error("Provider not found"));
                     return ResponseEntity.ok(ApiResponse.ok(Map.of("message", "Capability updated", "provider", (Object)saved)));
                 }))
-            .onErrorResume(e -> ResponseEntity.badRequest().body(ApiResponse.error(e.getMessage())));
+            .onErrorResume(e -> Mono.just(ResponseEntity.badRequest().body(ApiResponse.<Map<String, Object>>error(e.getMessage()))));
     }
 
     @PostMapping("/validate-all")
@@ -199,7 +199,7 @@ public class ProvidersController extends BaseAdminController<APIProvider, String
         return getCurrentAdminUserId()
             .flatMap(adminUserId -> providerAdminService.sanitizeProviders(adminUserId)
                 .then(Mono.just(ResponseEntity.ok(ApiResponse.ok("Provider sanitization completed")))))
-            .onErrorResume(e -> ResponseEntity.status(500).body(ApiResponse.error(e.getMessage())));
+            .onErrorResume(e -> Mono.just(ResponseEntity.status(500).body(ApiResponse.<String>error(e.getMessage()))));
     }
 
     @DeleteMapping("/dead")
@@ -207,6 +207,6 @@ public class ProvidersController extends BaseAdminController<APIProvider, String
         return getCurrentAdminUserId()
             .flatMap(adminUserId -> providerAdminService.removeDeadProviders(adminUserId)
                 .then(Mono.just(ResponseEntity.ok(ApiResponse.ok("Dead providers removed")))))
-            .onErrorResume(e -> ResponseEntity.status(500).body(ApiResponse.error(e.getMessage())));
+            .onErrorResume(e -> Mono.just(ResponseEntity.status(500).body(ApiResponse.<String>error(e.getMessage()))));
     }
 }

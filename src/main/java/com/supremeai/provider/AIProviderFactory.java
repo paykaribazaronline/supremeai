@@ -32,7 +32,7 @@ public class AIProviderFactory {
     private static final int HEALTH_CACHE_MAX_SIZE = 25;
     private static final long HEALTH_CACHE_TTL_MS = 30_000;
 
-    private final Cache<String, Boolean> providerHealthCache = Caffeine.newBuilder()
+    private final com.github.benmanes.caffeine.cache.LoadingCache<String, Boolean> providerHealthCache = Caffeine.newBuilder()
             .maximumSize(HEALTH_CACHE_MAX_SIZE)
             .expireAfterWrite(Duration.ofMillis(HEALTH_CACHE_TTL_MS))
             .build(providerName -> {
