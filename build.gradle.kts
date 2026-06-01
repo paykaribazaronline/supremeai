@@ -191,6 +191,7 @@ tasks.test {
     useJUnitPlatform()
     environment("FIRESTORE_EMULATOR_HOST", "localhost:8081")
     environment("FIREBASE_AUTH_EMULATOR_HOST", "localhost:9099")
+    systemProperty("spring.profiles.active", "test")
     
     maxParallelForks = (findProperty("test.maxParallelForks") as String?)?.toIntOrNull()?.coerceAtLeast(1) 
         ?: Runtime.getRuntime().availableProcessors().coerceAtMost(4)
