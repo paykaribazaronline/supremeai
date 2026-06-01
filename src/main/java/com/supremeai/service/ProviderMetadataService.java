@@ -41,7 +41,7 @@ public class ProviderMetadataService {
         if (firestore == null) return;
 
         try {
-            com.google.api.core.ApiFuture<java.util.List<QueryDocumentSnapshot>> future =
+            com.google.api.core.ApiFuture<com.google.cloud.firestore.QuerySnapshot> future =
                     firestore.collection("api_providers").get();
             for (QueryDocumentSnapshot doc : future.get().getDocuments()) {
                 try {

@@ -104,7 +104,11 @@ public class GracefulDegradationService {
 
     private List<String> getActiveCloudProviders() {
         try {
-            return com.supremeai.provider.AIProviderFactoryHolder.getActiveProviderNames();
+            List<String> activeNames = providerRepository.findByStatus("active")
+                    .map(com.supremeai.model.APIProvider::getName)
+                    .collectList()
+                    .block(java.time.Duration.ofSeconds(2));
+            return activeNames != null ? activeNames : java.util.Collections.emptyList();
         } catch (Exception e) {
             log.error("Failed to resolve active cloud providers: {}", e.getMessage());
             return java.util.Collections.emptyList();

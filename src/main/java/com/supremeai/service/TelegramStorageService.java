@@ -374,7 +374,7 @@ public class TelegramStorageService {
         return Mono.defer(task)
                 .retryWhen(reactor.util.retry.Retry.backoff(3, Duration.ofMillis(500))
                         .filter(e -> e instanceof WebClientRequestException || e instanceof WebClientResponseException)
-                        .doBeforeRetry(sig -> logger.warn("[TELEGRAM] Retry attempt {} for: {}", sig.iteration() + 1, sig.failure().getMessage()))
+                        .doBeforeRetry(sig -> logger.warn("[TELEGRAM] Retry attempt {} for: {}", sig.totalRetries() + 1, sig.failure().getMessage()))
                 );
     }
 

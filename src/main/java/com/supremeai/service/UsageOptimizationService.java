@@ -31,6 +31,9 @@ public class UsageOptimizationService {
 
     private static final Logger log = LoggerFactory.getLogger(UsageOptimizationService.class);
 
+    private static final int CACHE_TTL_MINUTES = 30;
+    private static final int MAX_CACHE_SIZE = 1000;
+
     @Autowired
     private UserApiKeyRepository userApiKeyRepository;
 
@@ -117,7 +120,7 @@ public class UsageOptimizationService {
                 }
 
                 List<Map.Entry<String, ModelTier>> candidates = new ArrayList<>();
-                for (Map.Entry<String, ModelTier> entry : modelTiersCache.entrySet()) {
+                for (Map.Entry<String, ModelTier> entry : modelTiersCache.asMap().entrySet()) {
                     if (entry.getValue().tier.equals(targetTier) || isHigherTier(entry.getValue().tier, targetTier)) {
                         String modelProvider = resolveProviderForModel(entry.getKey(), allDbProviders);
                         if (modelProvider != null && keysByProvider.containsKey(modelProvider)) {
