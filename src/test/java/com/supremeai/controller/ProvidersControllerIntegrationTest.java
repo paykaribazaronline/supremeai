@@ -67,7 +67,7 @@ class ProvidersControllerIntegrationTest {
         when(providerAdminService.getAllProviders()).thenReturn(Flux.just(p1, p2));
 
         ResponseEntity<ApiResponse<Map<String, Object>>> result =
-                providersController.getConfiguredProviders();
+                providersController.getConfiguredProviders().block();
 
         assertEquals(HttpStatus.OK, result.getStatusCode());
         assertTrue(result.getBody().isSuccess());
@@ -83,7 +83,7 @@ class ProvidersControllerIntegrationTest {
         when(providerAdminService.getAllProviders()).thenReturn(Flux.empty());
 
         ResponseEntity<ApiResponse<Map<String, Object>>> result =
-                providersController.getConfiguredProviders();
+                providersController.getConfiguredProviders().block();
 
         assertEquals(HttpStatus.OK, result.getStatusCode());
         Map<String, Object> data = result.getBody().getData();
@@ -108,7 +108,7 @@ class ProvidersControllerIntegrationTest {
                 .thenReturn(Mono.just(saved));
 
         ResponseEntity<ApiResponse<Map<String, Object>>> result =
-                providersController.addProvider(input);
+                providersController.addProvider(input).block();
 
         assertEquals(HttpStatus.OK, result.getStatusCode());
         assertTrue(result.getBody().isSuccess());
@@ -128,7 +128,7 @@ class ProvidersControllerIntegrationTest {
         input.setApiKey("key");
 
         ResponseEntity<ApiResponse<Map<String, Object>>> result =
-                providersController.addProvider(input);
+                providersController.addProvider(input).block();
 
         assertEquals(HttpStatus.BAD_REQUEST, result.getStatusCode());
         assertFalse(result.getBody().isSuccess());
@@ -145,7 +145,7 @@ class ProvidersControllerIntegrationTest {
                 providersController.testProviderKey(Map.of(
                         "name", "OpenAI",
                         "apiKey", "sk-test"
-                ));
+                )).block();
 
         assertEquals(HttpStatus.OK, result.getStatusCode());
         assertEquals(true, result.getBody().getData().get("valid"));
@@ -162,7 +162,7 @@ class ProvidersControllerIntegrationTest {
                 providersController.testProviderKey(Map.of(
                         "name", "OpenAI",
                         "apiKey", "bad-key"
-                ));
+                )).block();
 
         assertEquals(HttpStatus.UNAUTHORIZED, result.getStatusCode());
     }
@@ -170,11 +170,11 @@ class ProvidersControllerIntegrationTest {
     @Test
     void testProviderKey_MissingNameOrKey_ReturnsBadRequest() {
         ResponseEntity<ApiResponse<Map<String, Object>>> result1 =
-                providersController.testProviderKey(Map.of("name", "OpenAI"));
+                providersController.testProviderKey(Map.of("name", "OpenAI")).block();
         // apiKey missing
 
         ResponseEntity<ApiResponse<Map<String, Object>>> result2 =
-                providersController.testProviderKey(Map.of("apiKey", "key"));
+                providersController.testProviderKey(Map.of("apiKey", "key")).block();
         // name missing
 
         assertEquals(HttpStatus.BAD_REQUEST, result1.getStatusCode());
@@ -187,7 +187,7 @@ class ProvidersControllerIntegrationTest {
     void discoverModels_ReturnsModelList() {
         when(discoveryService.discoverModels(anyString())).thenReturn(Flux.just(Map.of("model", "gpt-4")));
         ResponseEntity<ApiResponse<List<Map<String, Object>>>> result =
-                providersController.discoverModels("gpt");
+                providersController.discoverModels("gpt").block();
 
         assertNotNull(result);
         assertEquals(HttpStatus.OK, result.getStatusCode());
@@ -210,7 +210,7 @@ class ProvidersControllerIntegrationTest {
         )));
 
         ResponseEntity<ApiResponse<Map<String, Object>>> result =
-                providersController.getHealthStats();
+                providersController.getHealthStats().block();
 
         assertEquals(HttpStatus.OK, result.getStatusCode());
         Map<String, Object> stats = result.getBody().getData();
@@ -232,7 +232,7 @@ class ProvidersControllerIntegrationTest {
         );
 
         ResponseEntity<ApiResponse<List<String>>> result =
-                providersController.getConfiguredRoles("prov-1");
+                providersController.getConfiguredRoles("prov-1").block();
 
         assertEquals(HttpStatus.OK, result.getStatusCode());
         List<String> roles = result.getBody().getData();
@@ -247,7 +247,7 @@ class ProvidersControllerIntegrationTest {
         when(providerAdminService.getAllProviders()).thenReturn(Flux.empty());
 
         ResponseEntity<ApiResponse<List<String>>> result =
-                providersController.getConfiguredRoles("nonexistent");
+                providersController.getConfiguredRoles("nonexistent").block();
 
         assertEquals(HttpStatus.NOT_FOUND, result.getStatusCode());
     }
@@ -261,7 +261,7 @@ class ProvidersControllerIntegrationTest {
         when(providerAdminService.removeDeadProviders(anyString())).thenReturn(Mono.empty());
 
         ResponseEntity<ApiResponse<String>> result =
-                providersController.cleanupDeadProviders();
+                providersController.cleanupDeadProviders().block();
 
         assertEquals(HttpStatus.OK, result.getStatusCode());
 

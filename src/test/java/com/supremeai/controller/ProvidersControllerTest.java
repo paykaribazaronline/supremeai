@@ -61,7 +61,7 @@ class ProvidersControllerTest {
         when(providerAdminService.getAllProviders()).thenReturn(Flux.just(p1, p2));
 
         ResponseEntity<ApiResponse<Map<String, Object>>> result =
-                controller.getConfiguredProviders();
+                controller.getConfiguredProviders().block();
 
         assertEquals(HttpStatus.OK, result.getStatusCode());
         assertTrue(result.getBody().isSuccess());
@@ -80,7 +80,7 @@ class ProvidersControllerTest {
 
         when(providerAdminService.addProvider(eq(input), anyString())).thenReturn(Mono.just(saved));
 
-        ResponseEntity<ApiResponse<Map<String, Object>>> result = controller.addProvider(input);
+        ResponseEntity<ApiResponse<Map<String, Object>>> result = controller.addProvider(input).block();
 
         assertEquals(HttpStatus.OK, result.getStatusCode());
         assertTrue(result.getBody().isSuccess());
@@ -96,7 +96,7 @@ class ProvidersControllerTest {
 
         when(providerAdminService.updateProvider(eq("prov-1"), eq(input), anyString())).thenReturn(Mono.just(saved));
 
-        ResponseEntity<ApiResponse<Map<String, Object>>> result = controller.updateProviderById("prov-1", input);
+        ResponseEntity<ApiResponse<Map<String, Object>>> result = controller.updateProviderById("prov-1", input).block();
 
         assertEquals(HttpStatus.OK, result.getStatusCode());
         assertTrue(result.getBody().isSuccess());
@@ -109,7 +109,7 @@ class ProvidersControllerTest {
         setAuthentication("admin");
         when(providerAdminService.deleteProvider(eq("prov-1"), anyString())).thenReturn(Mono.empty());
 
-        ResponseEntity<ApiResponse<String>> result = controller.deleteProvider("prov-1");
+        ResponseEntity<ApiResponse<String>> result = controller.deleteProvider("prov-1").block();
 
         assertTrue(result.getStatusCode().is2xxSuccessful());
 
@@ -121,7 +121,7 @@ class ProvidersControllerTest {
         when(providerAdminService.validateKey("OpenAI", "sk-test")).thenReturn(Mono.just(true));
 
         ResponseEntity<ApiResponse<Map<String, Object>>> result =
-                controller.testProviderKey(Map.of("name", "OpenAI", "apiKey", "sk-test"));
+                controller.testProviderKey(Map.of("name", "OpenAI", "apiKey", "sk-test")).block();
 
         assertEquals(HttpStatus.OK, result.getStatusCode());
 
@@ -133,7 +133,7 @@ class ProvidersControllerTest {
         when(discoveryService.discoverModels(any())).thenReturn(Flux.empty());
 
         ResponseEntity<ApiResponse<List<Map<String, Object>>>> result =
-                controller.discoverModels("test");
+                controller.discoverModels("test").block();
 
         assertEquals(HttpStatus.OK, result.getStatusCode());
 
