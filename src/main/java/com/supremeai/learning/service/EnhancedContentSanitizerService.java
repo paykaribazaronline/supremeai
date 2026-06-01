@@ -327,7 +327,14 @@ public class EnhancedContentSanitizerService {
             source.toLowerCase().contains("github.com") ||
             source.toLowerCase().contains("stackoverflow.com") ||
             source.toLowerCase().contains("docs.spring.io") ||
-            source.toLowerCase().contains("developer.android.com")
+            source.toLowerCase().contains("developer.android.com") ||
+            source.toLowerCase().contains("react.dev") ||
+            source.toLowerCase().contains("nextjs.org") ||
+            source.toLowerCase().contains("firebase.google.com") ||
+            source.toLowerCase().contains("cloud.google.com") ||
+            source.toLowerCase().contains("aws.amazon.com") ||
+            source.toLowerCase().contains("baeldung.com") ||
+            source.toLowerCase().contains("dev.to")
         );
     }
 
