@@ -4,6 +4,7 @@ import com.supremeai.model.APIProvider;
 import com.supremeai.repository.ProviderRepository;
 import com.supremeai.model.SystemConfig;
 import com.supremeai.repository.SystemConfigRepository;
+import com.supremeai.security.SecretManagerService;
 import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,6 +31,9 @@ public class SystemConfigSeeder {
     @Autowired
     private ProviderRepository providerRepository;
 
+    @Autowired
+    private SecretManagerService secretManagerService;
+
     @org.springframework.context.event.EventListener(org.springframework.boot.context.event.ApplicationReadyEvent.class)
     public void seedSystemConfig() {
         log.info("[CONFIG_SEED] Checking for global_settings in background...");
@@ -48,7 +52,8 @@ public class SystemConfigSeeder {
                             boolean updated = false;
                             Map<String, Object> tgConfig = config.getTelegramConfig();
                             if (tgConfig == null || tgConfig.isEmpty() || !Boolean.TRUE.equals(tgConfig.get("enabled"))) {
-                                String telegramBotToken = System.getenv().getOrDefault("TELEGRAM_BOT_TOKEN", System.getenv().getOrDefault("TG_BOT_TOKEN", ""));
+                                String telegramBotToken = secretManagerService.getSecret("TELEGRAM_BOT_TOKEN");
+                                if (telegramBotToken == null) telegramBotToken = secretManagerService.getSecret("TG_BOT_TOKEN");
                                 if (!telegramBotToken.isEmpty()) {
                                     log.info("[CONFIG_SEED] Found Telegram token in environment — updating existing config");
                                     config.setTelegramConfig(buildTelegramConfig());
@@ -66,12 +71,22 @@ public class SystemConfigSeeder {
     }
 
     private Map<String, Object> buildTelegramConfig() {
-        String telegramEnabled = System.getenv().getOrDefault("TELEGRAM_ENABLED", "true");
-        String telegramApiId = System.getenv().getOrDefault("TELEGRAM_API_ID", System.getenv().getOrDefault("TG_APP_ID", ""));
-        String telegramApiHash = System.getenv().getOrDefault("TELEGRAM_API_HASH", System.getenv().getOrDefault("TG_APP_HASH", ""));
-        String telegramBotToken = System.getenv().getOrDefault("TELEGRAM_BOT_TOKEN", System.getenv().getOrDefault("TG_BOT_TOKEN", ""));
-        String telegramChannelId = System.getenv().getOrDefault("TELEGRAM_CHANNEL_ID", System.getenv().getOrDefault("TG_CHANNEL_ID", ""));
-        String teldriveUrl = System.getenv().getOrDefault("TELDRIVE_URL", "https://teldrive-lhlwyikwlq-uc.a.run.app");
+        String telegramEnabled = secretManagerService.getSecret("TELEGRAM_ENABLED");
+        if (telegramEnabled == null) telegramEnabled = "true";
+        String telegramApiId = secretManagerService.getSecret("TELEGRAM_API_ID");
+        if (telegramApiId == null) telegramApiId = secretManagerService.getSecret("TG_APP_ID");
+        if (telegramApiId == null) telegramApiId = "";
+        String telegramApiHash = secretManagerService.getSecret("TELEGRAM_API_HASH");
+        if (telegramApiHash == null) telegramApiHash = secretManagerService.getSecret("TG_APP_HASH");
+        if (telegramApiHash == null) telegramApiHash = "";
+        String telegramBotToken = secretManagerService.getSecret("TELEGRAM_BOT_TOKEN");
+        if (telegramBotToken == null) telegramBotToken = secretManagerService.getSecret("TG_BOT_TOKEN");
+        if (telegramBotToken == null) telegramBotToken = "";
+        String telegramChannelId = secretManagerService.getSecret("TELEGRAM_CHANNEL_ID");
+        if (telegramChannelId == null) telegramChannelId = secretManagerService.getSecret("TG_CHANNEL_ID");
+        if (telegramChannelId == null) telegramChannelId = "";
+        String teldriveUrl = secretManagerService.getSecret("TELDRIVE_URL");
+        if (teldriveUrl == null) teldriveUrl = "https://teldrive-lhlwyikwlq-uc.a.run.app";
 
         return Map.of(
             "enabled", "true".equalsIgnoreCase(telegramEnabled),
@@ -126,9 +141,9 @@ public class SystemConfigSeeder {
 
         config.setTelegramConfig(buildTelegramConfig());
 
-        String supabaseUrl = System.getenv().getOrDefault("SUPABASE_DB_URL", "");
-        String supabaseKey = System.getenv().getOrDefault("SUPABASE_API_KEY", "");
-        if (!supabaseUrl.isEmpty()) {
+        String supabaseUrl = secretManagerService.getSecret("SUPABASE_DB_URL");
+        String supabaseKey = secretManagerService.getSecret("SUPABASE_API_KEY");
+        if (supabaseUrl != null && !supabaseUrl.isEmpty()) {
             config.setSupabaseConfig(Map.of(
                 "dbUrl", supabaseUrl,
                 "apiKey", supabaseKey,

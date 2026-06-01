@@ -1,5 +1,6 @@
 package com.supremeai.config;
 
+import com.supremeai.security.SecretManagerService;
 import com.supremeai.security.ratelimit.RateLimiter;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -26,14 +27,16 @@ public class RateLimiterFilter extends OncePerRequestFilter {
 
     private final RateLimitProperties rateLimitProperties;
     private final RateLimiter rateLimiter;
+    private final SecretManagerService secretManagerService;
 
     // Custom header for OpenAI-compatible external tool access
     private static final String API_KEY_HEADER = "X-Authorized-Key";
     private static final String CHAT_COMPLETIONS_PATH = "/api/v1/chat/completions";
 
-    public RateLimiterFilter(RateLimitProperties rateLimitProperties, RateLimiter rateLimiter) {
+    public RateLimiterFilter(RateLimitProperties rateLimitProperties, RateLimiter rateLimiter, SecretManagerService secretManagerService) {
         this.rateLimitProperties = rateLimitProperties;
         this.rateLimiter = rateLimiter;
+        this.secretManagerService = secretManagerService;
     }
 
     /**
@@ -42,15 +45,14 @@ public class RateLimiterFilter extends OncePerRequestFilter {
      * while still enforcing that callers present a known API key.
      */
     private boolean isApiKeyAuthorized(HttpServletRequest request) {
-        // Only apply API key gate to the OpenAI-compatible endpoint
         if (!CHAT_COMPLETIONS_PATH.equals(request.getRequestURI())) {
             return true;
         }
-        String expectedKey = System.getenv("SUPREMEAI_API_KEY");
+        String expectedKey = secretManagerService.getSecret("SUPREMEAI_API_KEY");
         String providedKey = request.getHeader(API_KEY_HEADER);
         if (expectedKey == null || expectedKey.isBlank()) {
-            // Key not configured — allow only if the feature flag explicitly enables open chat access
-            return "true".equalsIgnoreCase(System.getenv("OPEN_CHAT_COMPLETIONS"));
+            String openChat = secretManagerService.getSecret("OPEN_CHAT_COMPLETIONS");
+            return "true".equalsIgnoreCase(openChat);
         }
         return expectedKey.equals(providedKey);
     }

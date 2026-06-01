@@ -152,7 +152,7 @@ public class AdaptiveAgentOrchestrator {
 
     private List<com.supremeai.model.EntityDefinition> extractEntitiesAI(String requirement) {
         try {
-            AIProvider provider = providerFactory.getProvider("groq");
+            AIProvider provider = providerFactory.getDefaultProvider();
             String prompt = String.format(
                     "Identify the core data entities (domain models) for this app requirement:\n\n" +
                     "Requirement: %s\n\n" +
@@ -211,7 +211,7 @@ public class AdaptiveAgentOrchestrator {
     private List<Question> generateQuestionsAI(String requirement) {
         List<Question> questions = new ArrayList<>();
         try {
-            AIProvider provider = providerFactory.getProvider("groq");
+            AIProvider provider = providerFactory.getDefaultProvider();
             String prompt = String.format(
                     "Analyze this app requirement and generate 5 key questions to clarify the app's features, target platform, and user needs:\n\nRequirement: %s\n\nFormat as JSON array of objects with 'key', 'text', and 'priority' fields.",
                     requirement

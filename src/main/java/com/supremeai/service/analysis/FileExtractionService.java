@@ -1,30 +1,49 @@
 package com.supremeai.service.analysis;
 
+import jakarta.annotation.PreDestroy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.*;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.file.*;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.time.Duration;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
-/**
- * Service for extracting project files from ZIP uploads or Git repositories.
- */
 @Service
 public class FileExtractionService {
 
     private static final Logger log = LoggerFactory.getLogger(FileExtractionService.class);
 
-    private static final long MAX_SIZE_BYTES = 100 * 1024 * 1024; // 100MB
+    private static final long MAX_SIZE_BYTES = 100 * 1024 * 1024; // 100MB compressed upload
+    private static final long MAX_ENTRY_UNCOMPRESSED_BYTES = 200 * 1024 * 1024; // 200MB per entry
+    private static final long MAX_TOTAL_UNCOMPRESSED_BYTES = 500 * 1024 * 1024; // 500MB total
     private static final int MAX_FILES = 500;
+    private static final Duration GIT_CLONE_TIMEOUT = Duration.ofMinutes(5);
+    private static final Set<String> ALLOWED_GIT_SCHEMES = Set.of("https");
     private static final List<String> SKIP_DIRS = List.of(
         "node_modules", ".git", "dist", "build", "vendor", "target", "bin", "obj",
         "__pycache__", ".venv", "venv", ".idea", ".vscode"
     );
+
+    private final Set<Path> tempDirectories = ConcurrentHashMap.newKeySet();
+
+    @PreDestroy
+    public void cleanupAllTempDirectories() {
+        log.info("[FileExtractionService] Running @PreDestroy cleanup of {} temp directories", tempDirectories.size());
+        for (Path dir : tempDirectories) {
+            try {
+                cleanupDirectory(dir.toString());
+            } catch (Exception e) {
+                log.warn("[FileExtractionService] Failed to cleanup temp dir {}: {}", dir, e.getMessage());
+            }
+        }
+        tempDirectories.clear();
+    }
 
     /**
      * Extract files from a ZIP upload.
@@ -35,8 +54,9 @@ public class FileExtractionService {
         String tempDir = createTempDirectory("analysis_zip_");
         log.info("Extracting ZIP to temporary directory: {}", tempDir);
 
+        long totalUncompressed = 0;
+
         try {
-            // Extract ZIP
             try (java.util.zip.ZipInputStream zis = new java.util.zip.ZipInputStream(
                 new BufferedInputStream(zipFile.getInputStream()))) {
                 java.util.zip.ZipEntry entry;
@@ -45,25 +65,35 @@ public class FileExtractionService {
                         continue;
                     }
 
+                    long uncompressedSize = entry.getSize();
+                    if (uncompressedSize > MAX_ENTRY_UNCOMPRESSED_BYTES) {
+                        throw new IOException(String.format(
+                            "ZIP entry '%s' uncompressed size %d bytes exceeds per-entry limit of %d bytes",
+                            entry.getName(), uncompressedSize, MAX_ENTRY_UNCOMPRESSED_BYTES));
+                    }
+
+                    totalUncompressed += uncompressedSize;
+                    if (totalUncompressed > MAX_TOTAL_UNCOMPRESSED_BYTES) {
+                        throw new IOException(String.format(
+                            "Total uncompressed ZIP size %d bytes exceeds budget of %d bytes. Extraction aborted to prevent disk fill.",
+                            totalUncompressed, MAX_TOTAL_UNCOMPRESSED_BYTES));
+                    }
+
                     Path targetPath = Paths.get(tempDir, entry.getName());
 
-                    // Security check: prevent zip slip attack
                     targetPath = targetPath.normalize();
                     if (!targetPath.startsWith(tempDir)) {
                         log.warn("Skipping suspicious ZIP entry: {}", entry.getName());
                         continue;
                     }
 
-                    // Skip excluded directories
                     String pathStr = entry.getName();
                     if (shouldSkipPath(pathStr)) {
                         continue;
                     }
 
-                    // Create parent directories
                     Files.createDirectories(targetPath.getParent());
 
-                    // Extract file
                     try (OutputStream os = Files.newOutputStream(targetPath);
                          BufferedOutputStream bos = new BufferedOutputStream(os)) {
                         byte[] buffer = new byte[8192];
@@ -75,7 +105,9 @@ public class FileExtractionService {
                 }
             }
 
-            return collectFiles(Paths.get(tempDir));
+            List<File> result = collectFiles(Paths.get(tempDir));
+            tempDirectories.remove(Paths.get(tempDir));
+            return result;
         } catch (IOException e) {
             cleanupDirectory(tempDir);
             throw e;
@@ -86,15 +118,16 @@ public class FileExtractionService {
      * Checkout files from a Git repository.
      */
     public List<File> checkoutFromGit(String gitUrl, String branch) throws IOException, InterruptedException {
+        validateGitUrl(gitUrl);
+
         String tempDir = createTempDirectory("analysis_git_");
         log.info("Cloning Git repository to temporary directory: {}", tempDir);
 
         try {
-            // Clone repository
             List<String> cloneCmd = new ArrayList<>();
             cloneCmd.add("git");
             cloneCmd.add("clone");
-            cloneCmd.add("--depth=1"); // Shallow clone for speed
+            cloneCmd.add("--depth=1");
             if (branch != null && !branch.isEmpty()) {
                 cloneCmd.add("--branch");
                 cloneCmd.add(branch);
@@ -106,36 +139,72 @@ public class FileExtractionService {
             pb.redirectErrorStream(true);
             Process process = pb.start();
 
-            // Capture output for logging
-            try (BufferedReader reader = new BufferedReader(
-                new InputStreamReader(process.getInputStream()))) {
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    log.debug("Git clone output: {}", line);
-                }
+            boolean finished = process.waitFor(GIT_CLONE_TIMEOUT.toMillis(), java.util.concurrent.TimeUnit.MILLISECONDS);
+            if (!finished) {
+                process.destroyForcibly();
+                throw new IOException("Git clone timed out after " + GIT_CLONE_TIMEOUT + " for URL: " + gitUrl);
             }
 
-            int exitCode = process.waitFor();
+            int exitCode = process.exitValue();
             if (exitCode != 0) {
-                throw new IOException("Git clone failed with exit code: " + exitCode);
+                throw new IOException("Git clone failed with exit code: " + exitCode + " for URL: " + gitUrl);
             }
 
-            return collectFiles(Paths.get(tempDir));
+            List<File> result = collectFiles(Paths.get(tempDir));
+            tempDirectories.remove(Paths.get(tempDir));
+            return result;
         } catch (IOException | InterruptedException e) {
             cleanupDirectory(tempDir);
             throw e;
         }
     }
 
-    /**
-     * Delete temporary directory and all its contents.
-     */
+    private void validateGitUrl(String gitUrl) {
+        if (gitUrl == null || gitUrl.isBlank()) {
+            throw new IllegalArgumentException("Git URL must not be empty");
+        }
+
+        URI uri;
+        try {
+            uri = new URI(gitUrl);
+        } catch (URISyntaxException e) {
+            throw new IllegalArgumentException("Invalid Git URL: " + gitUrl, e);
+        }
+
+        String scheme = uri.getScheme();
+        if (scheme == null || !ALLOWED_GIT_SCHEMES.contains(scheme.toLowerCase())) {
+            throw new IllegalArgumentException("Only HTTPS Git URLs are allowed. Got scheme: " + scheme);
+        }
+
+        String host = uri.getHost();
+        if (host == null || host.isBlank()) {
+            throw new IllegalArgumentException("Git URL must contain a valid host");
+        }
+
+        List<String> blockedHosts = List.of(
+            "169.254.169.254",
+            "metadata.google.internal",
+            "metadata.internal",
+            "metadata",
+            "localhost",
+            "127.0.0.1",
+            "0.0.0.0",
+            "::1"
+        );
+        String lowerHost = host.toLowerCase();
+        for (String blocked : blockedHosts) {
+            if (lowerHost.equals(blocked) || lowerHost.endsWith("." + blocked)) {
+                throw new IllegalArgumentException("Git clone to internal/metadata host is blocked: " + host);
+            }
+        }
+    }
+
     public void cleanupDirectory(String directoryPath) {
         try {
             Path dir = Paths.get(directoryPath);
             if (Files.exists(dir)) {
                 Files.walk(dir)
-                    .sorted((a, b) -> b.compareTo(a)) // Delete children before parent
+                    .sorted((a, b) -> b.compareTo(a))
                     .forEach(p -> {
                         try {
                             Files.deleteIfExists(p);
@@ -143,16 +212,13 @@ public class FileExtractionService {
                             log.warn("Failed to delete temporary file: {}", p, e);
                         }
                     });
-                log.info("Cleaned up temporary directory: {}", directoryPath);
+                log.debug("Cleaned up temporary directory: {}", directoryPath);
             }
         } catch (IOException e) {
             log.error("Error cleaning up directory {}: {}", directoryPath, e.getMessage());
         }
     }
 
-    /**
-     * Validate file size limits.
-     */
     private void validateFileSize(long size) {
         if (size > MAX_SIZE_BYTES) {
             throw new IllegalArgumentException(
@@ -160,20 +226,16 @@ public class FileExtractionService {
         }
     }
 
-    /**
-     * Create a unique temporary directory.
-     */
     private String createTempDirectory(String prefix) {
         try {
-            return Files.createTempDirectory(prefix).toAbsolutePath().toString();
+            Path tempDir = Files.createTempDirectory(prefix);
+            tempDirectories.add(tempDir);
+            return tempDir.toAbsolutePath().toString();
         } catch (IOException e) {
             throw new RuntimeException("Failed to create temporary directory", e);
         }
     }
 
-    /**
-     * Collect source files from directory, respecting limits.
-     */
     private List<File> collectFiles(Path rootDir) throws IOException {
         List<File> files = new ArrayList<>();
         List<String> supportedExtensions = List.of(
@@ -185,11 +247,9 @@ public class FileExtractionService {
             .filter(Files::isRegularFile)
             .filter(path -> {
                 String fileName = path.getFileName().toString();
-                // Skip hidden files
                 if (fileName.startsWith(".")) {
                     return false;
                 }
-                // Check extension
                 String ext = getFileExtension(fileName);
                 return supportedExtensions.contains(ext);
             })
@@ -205,9 +265,6 @@ public class FileExtractionService {
         return files;
     }
 
-    /**
-     * Check if path should be skipped based on directory patterns.
-     */
     private boolean shouldSkipPath(String path) {
         String normalized = path.replace('\\', '/');
         for (String skipDir : SKIP_DIRS) {
@@ -218,9 +275,6 @@ public class FileExtractionService {
         return false;
     }
 
-    /**
-     * Get file extension from filename.
-     */
     private String getFileExtension(String filename) {
         int lastDot = filename.lastIndexOf('.');
         return (lastDot == -1) ? "" : filename.substring(lastDot).toLowerCase();

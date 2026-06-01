@@ -2,6 +2,8 @@ package com.supremeai.learning.service;
 
 import com.supremeai.model.SystemLearning;
 import com.supremeai.repository.SystemLearningRepository;
+import com.supremeai.service.MCPMarketplaceService;
+import com.supremeai.service.SystemLearningService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -16,7 +18,7 @@ import java.util.HashMap;
 /**
  * Autonomous Skill Discovery Service
  * Automatically finds resourceful websites (like skills.sh or AI agent registries),
- * scrapes their skill instructions, and injects them into SupremeAI's knowledge base.
+ * scrapes their skill instructions, and injects them into SupremeAI's marketplace + knowledge base.
  */
 @Service
 public class AutonomousSkillDiscoveryService {
@@ -29,17 +31,23 @@ public class AutonomousSkillDiscoveryService {
     @Autowired
     private SystemLearningRepository learningRepository;
 
+    @Autowired(required = false)
+    private SystemLearningService systemLearningService;
+
+    @Autowired(required = false)
+    private MCPMarketplaceService mcpMarketplaceService;
+
     // A list of seed registries to look for AI skills
     private final List<String> seedRegistries = Arrays.asList(
             "https://skills.sh",
-            "https://github.com/vercel/ai-skills" // Example fallback repository
+            "https://github.com/vercel/ai-skills"
     );
 
     /**
      * Scheduled job to autonomously discover and learn new skills.
      * Runs every 12 hours.
      */
-    @Scheduled(fixedRate = 43200000) // 12 hours
+    @Scheduled(fixedRate = 43200000)
     public void autonomousSkillDiscovery() {
         log.info("[Skill Discovery] Starting autonomous scan for new AI agent skills...");
 
@@ -49,7 +57,7 @@ public class AutonomousSkillDiscoveryService {
                 EnhancedWebScraperService.ScrapedContent content = scraperService.scrapeUrl(registryUrl);
 
                 if (content != null && content.getContent() != null) {
-                    processDiscoveredSkill(content);
+                    proposeSkillToMarketplace(content);
                 } else {
                     log.warn("[Skill Discovery] Failed to extract content from {}", registryUrl);
                 }
@@ -57,21 +65,66 @@ public class AutonomousSkillDiscoveryService {
                 log.error("[Skill Discovery] Error while scanning registry: {}", registryUrl, e);
             }
         }
-        
+
         log.info("[Skill Discovery] Autonomous scan completed.");
     }
 
     /**
-     * Process the scraped skill content, parse the instructions,
-     * and persist them into the SystemLearning database.
+     * Propose a discovered skill to MCPMarketplaceService for admin approval.
      */
+    private void proposeSkillToMarketplace(EnhancedWebScraperService.ScrapedContent content) {
+        if (mcpMarketplaceService == null) {
+            log.warn("[Skill Discovery] MCPMarketplaceService unavailable; skipping marketplace proposal.");
+            return;
+        }
+
+        String title = content.getTitle();
+        String description = content.getFullContent();
+        if (description != null && description.length() > 400) {
+            description = description.substring(0, 400) + "...";
+        }
+        if (description == null) description = "Auto-discovered skill from " + content.getUrl();
+
+        List<String> triggers = List.of(content.getDomain(), content.getUrl());
+        List<String> steps = List.of(content.getFullContent());
+        Map<String, Object> metadata = Map.of(
+                "url", content.getUrl(),
+                "domain", content.getDomain(),
+                "sourceAuthority", content.getSourceAuthority()
+        );
+
+        mcpMarketplaceService.proposeDiscoveredSkill(
+                content.getUrl(),
+                title,
+                description,
+                triggers,
+                steps,
+                metadata
+        );
+        log.info("[Skill Discovery] Proposed skill to marketplace: {}", title);
+    }
+
+    /**
+     * Manual trigger for on-demand skill learning.
+     */
+    public void learnSkillOnDemand(String url) {
+        log.info("[Skill Discovery] On-demand learning triggered for: {}", url);
+        try {
+            EnhancedWebScraperService.ScrapedContent content = scraperService.scrapeUrl(url);
+            if (content != null) {
+                proposeSkillToMarketplace(content);
+                processDiscoveredSkill(content);
+            }
+        } catch (Exception e) {
+            log.error("[Skill Discovery] On-demand learning failed for {}", url, e);
+        }
+    }
+
     private void processDiscoveredSkill(EnhancedWebScraperService.ScrapedContent content) {
         String title = content.getTitle();
         String fullContent = content.getFullContent();
 
-        // Check if we already learned this skill recently
-        // For simplicity, we just save it as a new learning if not exact duplicate
-        log.info("[Skill Discovery] Discovered new potential skill: {}", title);
+        log.info("[Skill Discovery] Persisting skill to knowledge base: {}", title);
 
         SystemLearning learning = new SystemLearning();
         learning.setTopic(title);
@@ -80,38 +133,21 @@ public class AutonomousSkillDiscoveryService {
         learning.setSources(Arrays.asList(content.getUrl()));
         learning.setConfidenceScore(content.getQualityScore());
         learning.setLearningType("SKILL_REGISTRY");
-        
+
         Map<String, Object> metadata = new HashMap<>();
         metadata.put("domain", content.getDomain());
         metadata.put("sourceAuthority", content.getSourceAuthority());
         metadata.put("technologies", String.join(",", content.getTechnologies()));
         learning.setMetadata(metadata);
-        
-        learning.setPermanent(true); // Persist as core knowledge
+
+        learning.setPermanent(true);
         learning.setTags(Arrays.asList("autonomous", "skill", content.getDomain()));
         learning.setSuccess(true);
         learning.setQualityScore(content.getQualityScore());
 
-        // Save to Firestore repository
         learningRepository.save(learning).subscribe(
-            saved -> log.info("[Skill Discovery] Successfully integrated skill '{}' into SupremeAI Core Engine.", title),
-            error -> log.error("[Skill Discovery] Failed to save skill to database.", error)
+                saved -> log.info("[Skill Discovery] Saved skill to knowledge base: {}", title),
+                error -> log.error("[Skill Discovery] Failed to save skill to knowledge base", error)
         );
-    }
-    
-    /**
-     * Manual trigger for on-demand skill learning.
-     * @param url The URL of the SKILL.md or registry to learn from
-     */
-    public void learnSkillOnDemand(String url) {
-        log.info("[Skill Discovery] On-demand learning triggered for: {}", url);
-        try {
-            EnhancedWebScraperService.ScrapedContent content = scraperService.scrapeUrl(url);
-            if (content != null) {
-                processDiscoveredSkill(content);
-            }
-        } catch (Exception e) {
-            log.error("[Skill Discovery] On-demand learning failed for {}", url, e);
-        }
     }
 }

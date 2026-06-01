@@ -2,6 +2,7 @@ package com.supremeai.service;
 
 import com.google.cloud.firestore.Firestore;
 import com.google.cloud.firestore.ListenerRegistration;
+import com.google.cloud.firestore.QueryDocumentSnapshot;
 import com.supremeai.model.APIProvider;
 import com.supremeai.repository.ProviderRepository;
 import jakarta.annotation.PostConstruct;
@@ -33,10 +34,46 @@ public class ProviderMetadataService {
     private final Map<String, APIProvider> metadataCache = new ConcurrentHashMap<>();
     private ListenerRegistration listenerRegistration;
     private final Executor listenerExecutor = Executors.newSingleThreadExecutor();
+    private final java.util.concurrent.atomic.AtomicBoolean cacheWarmedUp = new java.util.concurrent.atomic.AtomicBoolean(false);
+
+    private void warmUpCache() {
+        if (cacheWarmedUp.getAndSet(true)) return;
+        if (firestore == null) return;
+
+        try {
+            com.google.api.core.ApiFuture<java.util.List<QueryDocumentSnapshot>> future =
+                    firestore.collection("api_providers").get();
+            for (QueryDocumentSnapshot doc : future.get().getDocuments()) {
+                try {
+                    APIProvider provider = doc.toObject(APIProvider.class);
+                    if (provider != null) {
+                        String docId = doc.getId();
+                        provider.setDocumentId(docId);
+                        if (provider.getId() == null) {
+                            provider.setId(docId);
+                        }
+                        if (provider.getName() != null) {
+                            metadataCache.put(provider.getName().toLowerCase().trim(), provider);
+                        }
+                        metadataCache.put(docId.toLowerCase().trim(), provider);
+                        if (provider.getId() != null) {
+                            metadataCache.put(provider.getId().toLowerCase().trim(), provider);
+                        }
+                    }
+                } catch (Exception e) {
+                    logger.error("Error deserializing APIProvider from Firestore during warm-up", e);
+                }
+            }
+            logger.info("ProviderMetadataService cache warmed up with {} providers", metadataCache.size());
+        } catch (Exception e) {
+            logger.error("Failed to warm up ProviderMetadataService cache", e);
+        }
+    }
 
     @PostConstruct
     public void init() {
-        logger.info("Initializing ProviderMetadataService with real-time listener...");
+        warmUpCache();
+        logger.info("Initializing ProviderMetadataService real-time listener...");
         if (firestore == null) {
             logger.warn("Firestore is null (emulator not running or not configured) - ProviderMetadataService will use defaults");
             return;

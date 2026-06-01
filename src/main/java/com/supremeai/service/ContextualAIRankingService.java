@@ -177,20 +177,8 @@ public class ContextualAIRankingService {
 
         // Known defaults for popular models
         Map<String, Map<TaskType, Double>> defaultScores = new HashMap<>();
-
-        // Example: GPT-4 is generally good at code
-        defaultScores.computeIfAbsent("openai", k -> new HashMap<>())
-            .put(TaskType.CODE_GENERATION, 0.9);
-        defaultScores.get("openai").put(TaskType.DEBUGGING, 0.85);
-
-        // Claude is good at analysis
-        defaultScores.computeIfAbsent("anthropic", k -> new HashMap<>())
-            .put(TaskType.CODE_REVIEW, 0.9);
-        defaultScores.get("anthropic").put(TaskType.DOCUMENTATION, 0.88);
-
-        return defaultScores
-            .getOrDefault(provider, Map.of())
-            .getOrDefault(taskType, 0.5); // Default 0.5 if unknown
+        return defaultScores.getOrDefault(provider, Map.of())
+                .getOrDefault(taskType, 0.5);
     }
 
     /**

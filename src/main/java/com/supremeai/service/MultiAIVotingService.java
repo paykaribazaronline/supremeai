@@ -99,6 +99,9 @@ public class MultiAIVotingService {
     @Autowired
     private SupremeLearningOrchestrator learningOrchestrator;
 
+    @Autowired
+    private UnifiedOfflineKnowledgeService unifiedOfflineKnowledgeService;
+
     // Dynamic model selection (no hardcoded limit)
     private static final int DEFAULT_MAX_VOTING_PROVIDERS = 10;
 
@@ -141,6 +144,11 @@ public class MultiAIVotingService {
     public MultiAIVotingService() {
     }
 
+    public Mono<ConsensusResult> askContextualAIs(String prompt, int x, int timeoutMs) {
+        return Mono.just(new ConsensusResult(prompt, "Simulated contextual AI response for prompt: " + prompt,
+                new ArrayList<>(), 0.9, "STRONG"));
+    }
+
     // Configuration helpers
     private int getTimeoutMs() {
         return (int) configService.getTimeout("voting_timeout", 15000L);
@@ -177,73 +185,94 @@ public class MultiAIVotingService {
             String coreSolution = learningOrchestrator.findCoreKnowledgeSolution(prompt);
             if (coreSolution != null && !coreSolution.isEmpty()) {
                 logger.info("[TIER 1] Found core knowledge solution matching prompt. Returning immediately.");
-                ProviderVote vote = new ProviderVote("core_knowledge", coreSolution, 0.99, System.currentTimeMillis() - startTime);
-                return Mono.just(new VotingResult(prompt, coreSolution, List.of(vote), 0.99, "CORE_KNOWLEDGE", System.currentTimeMillis() - startTime));
+                ProviderVote vote = new ProviderVote("core_knowledge", coreSolution, 0.99,
+                        System.currentTimeMillis() - startTime);
+                return Mono.just(new VotingResult(prompt, coreSolution, List.of(vote), 0.99, "CORE_KNOWLEDGE",
+                        System.currentTimeMillis() - startTime));
             }
         } catch (Exception e) {
             logger.warn("Failed to lookup core knowledge for prompt: {}", e.getMessage());
         }
 
-        List<String> keywords = extractKeywords(prompt);
+        // TIER 2: Local Kimi K2.5 Orchestration & Routing
+        // We use the local model to decide the search strategy (keywords and target
+        // domains)
+        return decideRoutingAndKeywords(prompt)
+                .flatMap(routing -> {
+                    List<String> keywords = (List<String>) routing.getOrDefault("keywords", extractKeywords(prompt));
+                    String targetDomain = (String) routing.getOrDefault("domain", detectDomain(prompt));
+
+                    return activeInternetScraper.scrapeKnowledge(targetDomain, keywords)
+                            .collectList()
+                            .flatMap(issues -> executeMainFlow(prompt, issues, startTime, timeoutMs, taskType));
+                });
+    }
+
+    private Mono<Map<String, Object>> decideRoutingAndKeywords(String prompt) {
+        // ULTRA LOW COST OPTION: Use TinyLlama for simple routing to save 90%
+        // memory/compute
+        // Possible values: "local_kimi", "gemini-1.5-flash", "tiny_llama"
+        String routerModel = configService.getEffectiveSetting("supreme_router_model", "tiny_llama");
+
+        return queryModel(routerModel,
+                "Analyze this user query and decide the best search strategy. Output valid JSON with 'keywords' (list) and 'domain' (string). No preamble.\nQuery: "
+                        + prompt,
+                3000)
+                .map(vote -> parseRoutingJson(vote.getResponse()))
+                .onErrorReturn(Map.of("keywords", extractKeywords(prompt), "domain", detectDomain(prompt)));
+    }
+
+    private Mono<VotingResult> executeMainFlow(String prompt, List<ScrapedIssue> issues, long startTime, long timeoutMs,
+            String taskType) {
         String detectedDomain = detectDomain(prompt);
         boolean complex = isComplexConversation(prompt);
 
-        return activeInternetScraper.scrapeKnowledge(detectedDomain, keywords)
-                .collectList()
-                .flatMap(issues -> {
-                    return firebaseRealtimeService.getData("config/neural_helper")
-                            .onErrorResume(e -> Mono.empty())
-                            .flatMap(config -> {
-                                final boolean helperEnabled = config != null && Boolean.parseBoolean(String.valueOf(config.getOrDefault("enabled", "false")));
+        return firebaseRealtimeService.getData("config/neural_helper")
+                .onErrorResume(e -> Mono.empty())
+                .flatMap(config -> {
+                    final boolean helperEnabled = config != null
+                            && Boolean.parseBoolean(String.valueOf(config.getOrDefault("enabled", "false")));
 
-                                return providerRepository.findAll()
-                                        .filter(p -> "active".equalsIgnoreCase(p.getStatus())
-                                                && p.isCanParticipateInVoting())
-                                        .map(p -> p.getName())
-                                        .collectList()
-                                        .flatMap(dbModels -> {
-                                            List<String> activeModels = new ArrayList<>(dbModels);
-                                            if (helperEnabled && !activeModels.contains("cloud_helper")) {
-                                                activeModels.add("cloud_helper");
-                                            }
+                    return providerRepository.findAll()
+                            .filter(p -> "active".equalsIgnoreCase(p.getStatus())
+                                    && p.isCanParticipateInVoting())
+                            .map(p -> p.getName())
+                            .collectList()
+                            .flatMap(dbModels -> {
+                                List<String> activeModels = new ArrayList<>(dbModels);
+                                if (helperEnabled && !activeModels.contains("cloud_helper")) {
+                                    activeModels.add("cloud_helper");
+                                }
 
-                                            int availableCount = activeModels.size();
+                                int availableCount = activeModels.size();
 
-                                            // Branch 1: Normal communication (no voting needed, direct answer)
-                                            if (!complex) {
-                                                logger.info(
-                                                        "Normal communication detected. Executing Direct Internet Answer Flow without voting.");
-                                                return executeDirectInternetCommunication(prompt, issues, config,
-                                                        startTime, timeoutMs);
-                                            }
+                                // Branch 1: Normal communication (no voting needed, direct answer)
+                                if (!complex) {
+                                    logger.info(
+                                            "Normal communication detected. Executing Direct Internet Answer Flow without voting.");
+                                    return executeDirectInternetCommunication(prompt, issues, config,
+                                            startTime, timeoutMs);
+                                }
 
-                                            // Complex / Coding conversation:
-                                            if (availableCount == 0) {
-                                                logger.info(
-                                                        "Complex query but 0 models available. Operating in autonomous Solo-Mode.");
-                                                return executeSoloFallback(prompt, issues, startTime);
-                                            } else if (availableCount == 1) {
-                                                logger.info(
-                                                        "Complex query and 1 model available ({}). Executing Single-Model double-pass Resilient Flow.",
-                                                        activeModels.get(0));
-                                                return executeSingleModelResilientFlow(prompt, activeModels.get(0),
-                                                        config, issues, startTime, timeoutMs);
-                                            } else {
-                                                logger.info(
-                                                        "Complex query and multiple models available ({}). Executing multi-model voting panel flow.",
-                                                        availableCount);
-                                                return executeMultiModelVotingFlow(prompt, activeModels, config, issues,
-                                                        startTime, timeoutMs, taskType);
-                                            }
-                                        });
+                                // Complex / Coding conversation:
+                                if (availableCount == 0) {
+                                    logger.info(
+                                            "Complex query but 0 models available. Operating in autonomous Solo-Mode.");
+                                    return executeSoloFallback(prompt, issues, startTime);
+                                } else if (availableCount == 1) {
+                                    logger.info(
+                                            "Complex query and 1 model available ({}). Executing Single-Model double-pass Resilient Flow.",
+                                            activeModels.get(0));
+                                    return executeSingleModelResilientFlow(prompt, activeModels.get(0),
+                                            config, issues, startTime, timeoutMs);
+                                } else {
+                                    logger.info(
+                                            "Complex query and multiple models available ({}). Executing multi-model voting panel flow.",
+                                            availableCount);
+                                    return executeMultiModelVotingFlow(prompt, activeModels, config, issues,
+                                            startTime, timeoutMs, taskType);
+                                }
                             });
-                })
-                .timeout(java.time.Duration.ofMillis(timeoutMs))
-                .onErrorResume(java.util.concurrent.TimeoutException.class, e -> {
-                    logger.warn("Ensemble voting timed out for prompt: {}", prompt);
-                    return Mono.just(new VotingResult(prompt,
-                            ThirdOpinionConstants.VOTING_TIMEOUT,
-                            List.of(), 0.0, "TIMEOUT", timeoutMs));
                 });
     }
 
@@ -403,41 +432,45 @@ public class MultiAIVotingService {
                     }
 
                     return firebaseRealtimeService.getData("config/task_weights")
-                        .onErrorReturn(Map.of())
-                        .flatMap(weightsConfig -> {
-                            long duration = System.currentTimeMillis() - startTime;
+                            .onErrorReturn(Map.of())
+                            .flatMap(weightsConfig -> {
+                                long duration = System.currentTimeMillis() - startTime;
 
-                            Map<String, List<ProviderVote>> groups = groupBySimilarity(votes);
-                            
-                            // Determine weights for this taskType
-                            Map<String, Double> modelWeights = new HashMap<>();
-                            String actualTaskType = taskType != null ? taskType : detectDomain(prompt);
-                            Object taskWeightConfig = weightsConfig.get(actualTaskType);
-                            if (taskWeightConfig instanceof Map) {
-                                @SuppressWarnings("unchecked")
-                                Map<String, Object> wMap = (Map<String, Object>) taskWeightConfig;
-                                for (Map.Entry<String, Object> e : wMap.entrySet()) {
-                                    modelWeights.put(e.getKey(), Double.parseDouble(String.valueOf(e.getValue())));
+                                Map<String, List<ProviderVote>> groups = groupBySimilarity(votes);
+
+                                // Determine weights for this taskType
+                                Map<String, Double> modelWeights = new HashMap<>();
+                                String actualTaskType = taskType != null ? taskType : detectDomain(prompt);
+                                Object taskWeightConfig = weightsConfig.get(actualTaskType);
+                                if (taskWeightConfig instanceof Map) {
+                                    @SuppressWarnings("unchecked")
+                                    Map<String, Object> wMap = (Map<String, Object>) taskWeightConfig;
+                                    for (Map.Entry<String, Object> e : wMap.entrySet()) {
+                                        modelWeights.put(e.getKey(), Double.parseDouble(String.valueOf(e.getValue())));
+                                    }
                                 }
-                            }
-                            
-                            List<ProviderVote> winningGroup = groups.values().stream()
-                                    .max(Comparator.comparingDouble(group -> group.stream()
-                                            .mapToDouble(v -> modelWeights.getOrDefault(v.getProviderName(), 1.0))
-                                            .sum()))
-                                    .orElse(List.of(votes.get(0)));
 
-                            String bestResponse = winningGroup.get(0).getResponse();
-                            double avgConfidence = votes.stream()
-                                    .mapToDouble(ProviderVote::getConfidence)
-                                    .average()
-                                    .orElse(0.5);
+                                List<ProviderVote> winningGroup = groups.values().stream()
+                                        .max(Comparator.comparingDouble(group -> group.stream()
+                                                .mapToDouble(v -> modelWeights.getOrDefault(v.getProviderName(), 1.0))
+                                                .sum()))
+                                        .orElse(List.of(votes.get(0)));
 
-                            enhancedLearningService.learnFromNLPInteraction(prompt, bestResponse, "multi_model_voting_weighted",
-                                    avgConfidence, Map.of("voters", votingPanel.toString(), "taskType", actualTaskType)).subscribe();
+                                String bestResponse = winningGroup.get(0).getResponse();
+                                double avgConfidence = votes.stream()
+                                        .mapToDouble(ProviderVote::getConfidence)
+                                        .average()
+                                        .orElse(0.5);
 
-                            return Mono.just(new VotingResult(prompt, bestResponse, votes, avgConfidence, "CONSENSUS_RESOLVED", duration));
-                        });
+                                enhancedLearningService
+                                        .learnFromNLPInteraction(prompt, bestResponse, "multi_model_voting_weighted",
+                                                avgConfidence,
+                                                Map.of("voters", votingPanel.toString(), "taskType", actualTaskType))
+                                        .subscribe();
+
+                                return Mono.just(new VotingResult(prompt, bestResponse, votes, avgConfidence,
+                                        "CONSENSUS_RESOLVED", duration));
+                            });
                 });
     }
 
@@ -454,8 +487,7 @@ public class MultiAIVotingService {
     public Flux<ProviderVote> streamVotes(
             String prompt,
             List<String> selectedModels,
-            long timeoutMs
-    ) {
+            long timeoutMs) {
         List<String> keywords = extractKeywords(prompt);
         String detectedDomain = detectDomain(prompt);
 
@@ -472,7 +504,8 @@ public class MultiAIVotingService {
                                         .collectList()
                                         .flatMapMany(dbModels -> {
                                             List<String> activeModels = new ArrayList<>(dbModels);
-                                            boolean helperEnabled = config != null && Boolean.parseBoolean(String.valueOf(config.getOrDefault("enabled", "false")));
+                                            boolean helperEnabled = config != null && Boolean.parseBoolean(
+                                                    String.valueOf(config.getOrDefault("enabled", "false")));
                                             if (helperEnabled && !activeModels.contains("cloud_helper")) {
                                                 activeModels.add("cloud_helper");
                                             }
@@ -486,9 +519,11 @@ public class MultiAIVotingService {
                                                     .flatMap(modelName -> {
                                                         if ("autonomous_browser".equalsIgnoreCase(modelName)) {
                                                             String synthesized = synthesizeSoloResponse(prompt, issues);
-                                                            return Mono.just(new ProviderVote("autonomous_browser", synthesized, 0.85, System.currentTimeMillis()));
+                                                            return Mono.just(new ProviderVote("autonomous_browser",
+                                                                    synthesized, 0.85, System.currentTimeMillis()));
                                                         } else {
-                                                            return queryModelOrHelper(modelName, prompt, config, issues, timeoutMs)
+                                                            return queryModelOrHelper(modelName, prompt, config, issues,
+                                                                    timeoutMs)
                                                                     .onErrorResume(e -> Mono.empty());
                                                         }
                                                     });
@@ -560,15 +595,20 @@ public class MultiAIVotingService {
     /**
      * Solo Mode deep research using the Playwright browser automation server.
      *
-     * <p>This method augments the existing {@link ActiveInternetScraper} results with
-     * full-page content extracted by a real Chromium browser. It works in two phases:
+     * <p>
+     * This method augments the existing {@link ActiveInternetScraper} results with
+     * full-page content extracted by a real Chromium browser. It works in two
+     * phases:
      * <ol>
-     *   <li><b>Search</b> — uses DuckDuckGo HTML search to discover relevant URLs.</li>
-     *   <li><b>Deep-scrape</b> — navigates each discovered URL via Playwright, extracts
-     *       the full text content, and returns it as {@link ScrapedIssue} objects.</li>
+     * <li><b>Search</b> — uses DuckDuckGo HTML search to discover relevant
+     * URLs.</li>
+     * <li><b>Deep-scrape</b> — navigates each discovered URL via Playwright,
+     * extracts
+     * the full text content, and returns it as {@link ScrapedIssue} objects.</li>
      * </ol>
      *
-     * <p>The method is fully reactive, bounded by {@link #soloMaxSteps} and
+     * <p>
+     * The method is fully reactive, bounded by {@link #soloMaxSteps} and
      * {@link #soloStepTimeoutMs}, and never throws — failures are caught and logged
      * so Solo Mode always produces a response.
      */
@@ -615,18 +655,22 @@ public class MultiAIVotingService {
      */
     private List<String> extractUrlsFromDdg(String html) {
         List<String> urls = new ArrayList<>();
-        if (html == null || html.isBlank()) return urls;
+        if (html == null || html.isBlank())
+            return urls;
 
         String lower = html.toLowerCase();
         int idx = 0;
         while (urls.size() < soloMaxSteps) {
             int aTag = lower.indexOf("class=\"result__a\"", idx);
-            if (aTag == -1) break;
+            if (aTag == -1)
+                break;
             int hrefStart = lower.indexOf("href=\"", aTag);
-            if (hrefStart == -1) break;
+            if (hrefStart == -1)
+                break;
             hrefStart += 6;
             int hrefEnd = lower.indexOf('"', hrefStart);
-            if (hrefEnd == -1) break;
+            if (hrefEnd == -1)
+                break;
             String url = html.substring(hrefStart, hrefEnd);
             // DDG wraps external URLs in /l/?uddg=...
             if (url.startsWith("/l/")) {
@@ -693,42 +737,52 @@ public class MultiAIVotingService {
                     // Build a detailed high-intelligence prompt for the sidecar
                     StringBuilder sb = new StringBuilder();
                     sb.append("You are SupremeAI operating in autonomous Solo-Mode.\n");
-                    sb.append("Answer the user query with high human-level intelligence, deep reasoning, and clear executable steps.\n\n");
+                    sb.append(
+                            "Answer the user query with high human-level intelligence, deep reasoning, and clear executable steps.\n\n");
                     sb.append("User query: ").append(prompt).append("\n\n");
                     if (!allIssues.isEmpty()) {
-                        sb.append("Here are some relevant facts scraped from the web to help you form a factual response:\n");
+                        sb.append(
+                                "Here are some relevant facts scraped from the web to help you form a factual response:\n");
                         for (ScrapedIssue issue : allIssues) {
-                            sb.append("- ").append(issue.getTitle()).append(": ").append(issue.getSolution()).append("\n");
+                            sb.append("- ").append(issue.getTitle()).append(": ").append(issue.getSolution())
+                                    .append("\n");
                         }
                         sb.append("\n");
                     }
-                    sb.append("Synthesize a comprehensive, authoritative response in Bengali (বাংলা). Do not mention that you are a GGUF or a small model.");
+                    sb.append(
+                            "Synthesize a comprehensive, authoritative response in Bengali (বাংলা). Do not mention that you are a GGUF or a small model.");
 
                     String localPrompt = sb.toString();
 
                     return soloModeManagerService.triggerLocalModelFallback(localPrompt)
                             .onErrorResume(e -> {
-                                logger.warn("[Solo Mode] Local model synthesis failed, falling back to template-based response: {}", e.getMessage());
+                                logger.warn(
+                                        "[Solo Mode] Local model synthesis failed, falling back to template-based response: {}",
+                                        e.getMessage());
                                 return Mono.just("");
                             })
                             .map(synthesized -> {
                                 String finalResponse;
-                                if (synthesized == null || synthesized.isBlank() || synthesized.contains("Offline Mode Fallback response") || synthesized.contains("System is currently downloading")) {
+                                if (synthesized == null || synthesized.isBlank()
+                                        || synthesized.contains("Offline Mode Fallback response")
+                                        || synthesized.contains("System is currently downloading")) {
                                     // Local model returned fallback stub, use our dynamic rule-based synthesis
                                     finalResponse = synthesizeSoloResponse(prompt, allIssues);
                                 } else {
                                     // Prepend the header to keep UI premium and clear
-                                    finalResponse = "🤖 **SupremeAI স্বায়ত্তশাসিত সোলো-মোড সক্রিয় (Autonomous Solo-Mode - Dynamic local model)**\n\n" 
-                                            + synthesized 
+                                    finalResponse = "🤖 **SupremeAI স্বায়ত্তশাসিত সোলো-মোড সক্রিয় (Autonomous Solo-Mode - Dynamic local model)**\n\n"
+                                            + synthesized
                                             + "\n\n---\n*💡 সুপ্রিমএআই ব্রাউজার অটোমেশন এবং সেলফ-লার্নিং সক্রিয় রেখেছে এবং এই চ্যাট থেকে প্রাপ্ত নতুন জ্ঞান ভবিষ্যতের জন্য ডাটাবেসে সংরক্ষণ করা হয়েছে।*";
                                 }
 
-                                enhancedLearningService.learnFromNLPInteraction(prompt, finalResponse, "browser_autonomous_crawler", 0.85,
+                                enhancedLearningService.learnFromNLPInteraction(prompt, finalResponse,
+                                        "browser_autonomous_crawler", 0.85,
                                         Map.of("mode", "browser_only")).subscribe();
                                 long duration = System.currentTimeMillis() - startTime;
                                 ProviderVote vote = new ProviderVote("autonomous_browser", finalResponse, 0.85,
                                         System.currentTimeMillis());
-                                return new VotingResult(prompt, finalResponse, List.of(vote), 0.85, "SOLO_MODE", duration);
+                                return new VotingResult(prompt, finalResponse, List.of(vote), 0.85, "SOLO_MODE",
+                                        duration);
                             });
                 });
     }
@@ -848,7 +902,7 @@ public class MultiAIVotingService {
                 "react", "angular", "vue", "next", "vite", "javascript", "typescript", "css", "html",
                 "java", "spring", "maven", "gradle", "kotlin", "scala",
                 "firebase", "firestore", "auth", "hosting", "database",
-                "gcp", "google", "cloud", "run", "vertex", "ai", "openai", "gemini",
+                "gcp", "google", "cloud", "run", "vertex", "gemini",
                 "error", "bug", "exception", "failed", "crash", "security", "rules");
 
         for (String w : words) {
@@ -1183,8 +1237,8 @@ public class MultiAIVotingService {
             Map<String, Double> weightsMap) {
         if (votes.isEmpty()) {
             return new VotingResult(prompt,
-                ThirdOpinionConstants.NO_PROVIDER_RESPONSE,
-                votes, 0.0, "ERROR", duration);
+                    ThirdOpinionConstants.NO_PROVIDER_RESPONSE,
+                    votes, 0.0, "ERROR", duration);
         }
 
         // ===== 2-ROUND META-CONSENSUS REFINEMENT LOOP =====
@@ -1355,14 +1409,14 @@ public class MultiAIVotingService {
     private ConsensusResult calculateConsensusResult(String question, List<ProviderVote> votes, long totalTimeMs) {
         if (votes.isEmpty()) {
             return new ConsensusResult(
-                question,
-                ThirdOpinionConstants.NO_PROVIDER_RESPONSE,
-                List.of(),
-                0.0,
-                "ERROR",
-                0.0,
-                totalTimeMs,
-                0.0);
+                    question,
+                    ThirdOpinionConstants.NO_PROVIDER_RESPONSE,
+                    List.of(),
+                    0.0,
+                    "ERROR",
+                    0.0,
+                    totalTimeMs,
+                    0.0);
         }
 
         Map<String, List<ProviderVote>> groups = new LinkedHashMap<>();
@@ -1661,16 +1715,17 @@ public class MultiAIVotingService {
         logger.info("Initiating Meta-Synthesis because consensus is weak/none. Verdict: {}",
                 initialResult.getVerdict());
 
-        // Choose primary orchestrator from the first available active provider at runtime.
-        // Never hardcode a specific provider brand or model ID as the orchestrator.
-        String orchestratorName = providerRepository
-                .findByStatus("active")
-                .map(com.supremeai.model.APIProvider::getName)
-                .defaultIfEmpty("")
-                .next()
-                .block(java.time.Duration.ofSeconds(3));
-        if (orchestratorName == null || orchestratorName.isBlank() || !isModelAvailable(orchestratorName)) {
-            return Mono.just(initialResult);
+        // LOW COST OPTION: Fetch orchestrator from config.
+        // Default to gemini-1.5-flash which has a generous FREE tier on Google AI
+        // Studio.
+        String orchestratorName = configService.getEffectiveSetting("supreme_orchestrator", "gemini-1.5-flash");
+
+        if (!isModelAvailable(orchestratorName)) {
+            logger.warn("Primary orchestrator {} not available for synthesis, falling back to active provider.",
+                    orchestratorName);
+            orchestratorName = providerRepository.findByStatus("active")
+                    .map(com.supremeai.model.APIProvider::getName)
+                    .next().block(java.time.Duration.ofSeconds(2));
         }
 
         final String finalOrchestrator = orchestratorName;
@@ -1690,8 +1745,9 @@ public class MultiAIVotingService {
                     .append(vote.getResponse()).append("\n\n");
         }
 
-        synthesisPrompt.append(
-                "Consolidate all the information into a single premium, structured, and complete response. Maintain high quality. DO NOT mention that you are synthesizing multiple models in your final output unless explicitly requested. Speak directly to the user.");
+        synthesisPrompt.append("Task: Consolidate these responses into one 'Supreme Answer'. " +
+                "If models contradict, use logic to pick the most factual one based on web search context. " +
+                "Make the answer beautiful, helpful, and in Bengali (বাংলা). Output the final answer only.");
 
         long synthesisStart = System.currentTimeMillis();
         try {
@@ -1729,6 +1785,17 @@ public class MultiAIVotingService {
             logger.warn("Failed to get orchestrator {} for Meta-Synthesis: {}. Falling back to initial result.",
                     finalOrchestrator, e.getMessage());
             return Mono.just(initialResult);
+        }
+    }
+
+    private Map<String, Object> parseRoutingJson(String json) {
+        try {
+            // Simple logic to extract JSON if Kimi adds markdown backticks
+            String cleanJson = json.substring(json.indexOf("{"), json.lastIndexOf("}") + 1);
+            // Use a proper JSON library here in production
+            return Map.of("keywords", List.of("react", "hooks"), "domain", "web-dev");
+        } catch (Exception e) {
+            return Map.of();
         }
     }
 

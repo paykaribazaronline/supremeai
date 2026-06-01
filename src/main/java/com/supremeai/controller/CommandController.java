@@ -10,12 +10,14 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.Duration;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/commands")
 public class CommandController {
+    private static final Duration BLOCK_TIMEOUT = Duration.ofSeconds(10);
 
     private final CommandExecutor executor;
     private final UserRepository userRepository;
@@ -36,7 +38,7 @@ public class CommandController {
         }
 
         String uid = authentication.getName();
-        User user = userRepository.findByFirebaseUid(uid).block();
+        User user = userRepository.findByFirebaseUid(uid).block(java.time.Duration.ofSeconds(10));
         if (user == null) {
             throw new IllegalStateException("Authenticated user not found in database.");
         }

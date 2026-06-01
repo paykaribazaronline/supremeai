@@ -101,4 +101,37 @@ public class AdminFirestoreController extends BaseAdminController<Object, String
             return Mono.just(ResponseEntity.status(500).body(ApiResponse.error("Failed to delete document: " + e.getMessage())));
         });
     }
+
+    /**
+     * List all documents in a specific collection.
+     * Path example: GET /api/admin/firestore/system_configs
+     */
+    @GetMapping("/{collection}")
+    public Mono<ResponseEntity<ApiResponse<java.util.List<Map<String, Object>>>>> listDocuments(
+            @PathVariable String collection) {
+        
+        return Mono.fromCallable(() -> {
+            java.util.List<Map<String, Object>> list = new java.util.ArrayList<>();
+            Iterable<DocumentReference> docRefs = firestore.collection(collection).listDocuments();
+            for (DocumentReference ref : docRefs) {
+                try {
+                    DocumentSnapshot snapshot = ref.get().get();
+                    if (snapshot.exists()) {
+                        Map<String, Object> data = snapshot.getData();
+                        if (data != null) {
+                            Map<String, Object> enriched = new java.util.HashMap<>(data);
+                            enriched.put("_id", snapshot.getId());
+                            list.add(enriched);
+                        }
+                    }
+                } catch (Exception ex) {
+                    log.error("Failed to fetch document {} in collection {}: {}", ref.getId(), collection, ex.getMessage());
+                }
+            }
+            return ResponseEntity.ok(ApiResponse.ok(list));
+        }).onErrorResume(e -> {
+            log.error("Failed to list firestore collection {}: {}", collection, e.getMessage());
+            return Mono.just(ResponseEntity.status(500).body(ApiResponse.error("Failed to list collection: " + e.getMessage())));
+        });
+    }
 }

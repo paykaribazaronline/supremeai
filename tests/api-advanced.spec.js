@@ -5,60 +5,60 @@ test.describe('API Endpoint Tests', () => {
 
   test.describe('Provider Management', () => {
     test('Provider list endpoint', async ({ request }) => {
-      const response = await request(`${BASE_URL}/api/providers`);
+      const response = await request.fetch(`${BASE_URL}/api/providers`);
       expect(response.status()).not.toBe(404);
     });
 
     test('Provider health check', async ({ request }) => {
-      const response = await request(`${BASE_URL}/api/providers/health`);
+      const response = await request.fetch(`${BASE_URL}/api/providers/health`);
       expect(response.status()).not.toBe(404);
     });
   });
 
   test.describe('Agent Orchestration', () => {
     test('Agent status endpoint', async ({ request }) => {
-      const response = await request(`${BASE_URL}/api/agents/status`);
+      const response = await request.fetch(`${BASE_URL}/api/agents/status`);
       expect(response.status()).not.toBe(404);
     });
 
     test('Agent orchestration endpoint', async ({ request }) => {
-      const response = await request(`${BASE_URL}/api/agents/orchestrate`);
+      const response = await request.fetch(`${BASE_URL}/api/agents/orchestrate`);
       expect(response.status()).not.toBe(404);
     });
   });
 
   test.describe('Learning System', () => {
     test('Learning progress endpoint', async ({ request }) => {
-      const response = await request(`${BASE_URL}/api/learning/progress`);
+      const response = await request.fetch(`${BASE_URL}/api/learning/progress`);
       expect(response.status()).not.toBe(404);
     });
 
     test('Knowledge query endpoint', async ({ request }) => {
-      const response = await request(`${BASE_URL}/api/learning/query`);
+      const response = await request.fetch(`${BASE_URL}/api/learning/query`);
       expect(response.status()).not.toBe(404);
     });
   });
 
   test.describe('Chat System', () => {
     test('Chat session endpoint', async ({ request }) => {
-      const response = await request(`${BASE_URL}/api/chat/session`);
+      const response = await request.fetch(`${BASE_URL}/api/chat/session`);
       expect(response.status()).not.toBe(404);
     });
 
     test('Chat message endpoint', async ({ request }) => {
-      const response = await request(`${BASE_URL}/api/chat/message`);
+      const response = await request.fetch(`${BASE_URL}/api/chat/message`);
       expect(response.status()).not.toBe(404);
     });
   });
 
   test.describe('Project Management', () => {
     test('Project list endpoint', async ({ request }) => {
-      const response = await request(`${BASE_URL}/api/projects`);
+      const response = await request.fetch(`${BASE_URL}/api/projects`);
       expect(response.status()).not.toBe(404);
     });
 
     test('Project create endpoint', async ({ request }) => {
-      const response = await request(`${BASE_URL}/api/projects/create`);
+      const response = await request.fetch(`${BASE_URL}/api/projects/create`);
       expect(response.status()).not.toBe(404);
     });
   });

@@ -1,5 +1,6 @@
 package com.supremeai.controller;
 
+import com.supremeai.security.SecretManagerService;
 import com.supremeai.provider.AIProvider;
 import com.supremeai.service.SystemAutoDetectService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -9,7 +10,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.Duration;
 import java.util.*;
+import reactor.core.publisher.Mono;
 
 /**
  * OpenAI Compatible API Endpoint
@@ -37,15 +40,20 @@ public class OpenAICompatibleController {
 
     private static final Logger logger = LoggerFactory.getLogger(OpenAICompatibleController.class);
 
+    private static final Duration BLOCK_TIMEOUT = Duration.ofSeconds(30);
+
     @Autowired
     private SystemAutoDetectService autoDetectService;
 
-    /**
-     * Validates the X-Authorized-Key header for the OpenAI-compatible endpoint.
-     * Returns null if access is granted, or an error response body if access is denied.
-     */
+    private final SecretManagerService secretManagerService;
+
+    public OpenAICompatibleController(SystemAutoDetectService autoDetectService, SecretManagerService secretManagerService) {
+        this.autoDetectService = autoDetectService;
+        this.secretManagerService = secretManagerService;
+    }
+
     private ResponseEntity<Map<String, Object>> checkExternalApiKey(HttpServletRequest request) {
-        String expectedKey = System.getenv("SUPREMEAI_API_KEY");
+        String expectedKey = secretManagerService.getSecret("SUPREMEAI_API_KEY");
         if (expectedKey != null && !expectedKey.isBlank()) {
             String providedKey = request.getHeader("X-Authorized-Key");
             if (!expectedKey.equals(providedKey)) {
@@ -60,90 +68,80 @@ public class OpenAICompatibleController {
         return null;
     }
 
-    /**
-      * Handles chat completion requests with auto-detected model.
-      * Requires X-Authorized-Key header when SUPREMEAI_API_KEY is configured.
-      */
-     @PostMapping("/chat/completions")
-     public ResponseEntity<Map<String, Object>> chatCompletions(HttpServletRequest request,
-             @RequestBody Map<String, Object> body) {
-         // Gate: X-Authorized-Key must match SUPREMEAI_API_KEY (or env is unset / OPEN_CHAT_COMPLETIONS=true)
-         ResponseEntity<Map<String, Object>> authFail = checkExternalApiKey(request);
-         if (authFail != null) return authFail;
+    @PostMapping("/chat/completions")
+    public Mono<ResponseEntity<Map<String, Object>>> chatCompletions(HttpServletRequest request,
+            @RequestBody Map<String, Object> body) {
+        ResponseEntity<Map<String, Object>> authFail = checkExternalApiKey(request);
+        if (authFail != null) {
+            return Mono.just(authFail);
+        }
 
-         // Extract messages list
-         Object messagesObj = body.get("messages");
-         if (messagesObj == null) {
-             return ResponseEntity.badRequest().body(Map.of(
-                 "error", "messages is required",
-                 "message", "Request body must contain a non-empty 'messages' array"
-             ));
-         }
+        Object messagesObj = body.get("messages");
+        if (messagesObj == null) {
+            return Mono.just(ResponseEntity.badRequest().body(Map.of(
+                "error", "messages is required",
+                "message", "Request body must contain a non-empty 'messages' array"
+            )));
+        }
 
-         if (!(messagesObj instanceof List)) {
-             return ResponseEntity.badRequest().body(Map.of(
-                 "error", "messages must be a list",
-                 "message", "The 'messages' field must be an array"
-             ));
-         }
+        if (!(messagesObj instanceof List)) {
+            return Mono.just(ResponseEntity.badRequest().body(Map.of(
+                "error", "messages must be a list",
+                "message", "The 'messages' field must be an array"
+            )));
+        }
 
-         List<?> rawMessages = (List<?>) messagesObj;
-         if (rawMessages.isEmpty()) {
-             return ResponseEntity.badRequest().body(Map.of(
-                 "error", "messages is required",
-                 "message", "Request body must contain a non-empty 'messages' array"
-             ));
-         }
+        List<?> rawMessages = (List<?>) messagesObj;
+        if (rawMessages.isEmpty()) {
+            return Mono.just(ResponseEntity.badRequest().body(Map.of(
+                "error", "messages is required",
+                "message", "Request body must contain a non-empty 'messages' array"
+            )));
+        }
 
-         @SuppressWarnings("unchecked")
-         List<Map<String, String>> messages = (List<Map<String, String>>) rawMessages;
+        @SuppressWarnings("unchecked")
+        List<Map<String, String>> messages = (List<Map<String, String>>) rawMessages;
 
-        // Extract the last user message
         String prompt = extractLastUserMessage(messages);
         if (prompt == null || prompt.isBlank()) {
-            return ResponseEntity.badRequest().body(Map.of(
+            return Mono.just(ResponseEntity.badRequest().body(Map.of(
                 "error", "no_user_message",
                 "message", "No user message found in the messages array"
-            ));
+            )));
         }
 
-        // Get an auto-detected provider (cached healthy provider)
-        AIProvider provider;
-        try {
-            provider = autoDetectService.getProvider();
-        } catch (Exception e) {
-            logger.error("Auto-detection failed: {}", e.getMessage());
-            return ResponseEntity.status(503).body(Map.of(
-                "error", "no_provider_available",
-                "message", "No AI provider is currently available. Check API keys and network."
-            ));
-        }
+        return autoDetectService.getProvider()
+            .flatMap(provider -> provider.generate(prompt)
+                .timeout(BLOCK_TIMEOUT)
+                .map(responseContent -> {
+                    if (responseContent == null) responseContent = "";
+                    return buildResponse(provider, prompt, responseContent);
+                })
+                .onErrorResume(e -> {
+                    logger.error("Generation failed with provider {}: {}", provider.getName(), e.getMessage());
+                    autoDetectService.clearCache();
+                    return Mono.just(ResponseEntity.status(502).body(Map.of(
+                        "error", "generation_failed",
+                        "message", "AI provider returned an error: " + e.getMessage()
+                    )));
+                })
+            )
+            .onErrorResume(e -> {
+                logger.error("Auto-detection failed: {}", e.getMessage());
+                return Mono.just(ResponseEntity.status(503).body(Map.of(
+                    "error", "no_provider_available",
+                    "message", "No AI provider is currently available. Check API keys and network."
+                )));
+            });
+    }
 
-        // Generate response
-        String responseContent;
-        try {
-            responseContent = provider.generate(prompt).block();
-            if (responseContent == null) {
-                responseContent = "";
-            }
-        } catch (Exception e) {
-            logger.error("Generation failed with provider {}: {}", provider.getName(), e.getMessage());
-            // Invalidate cache for this provider as it seems unhealthy
-            autoDetectService.clearCache();
-            return ResponseEntity.status(502).body(Map.of(
-                "error", "generation_failed",
-                "message", "AI provider returned an error: " + e.getMessage()
-            ));
-        }
-
-        // Build OpenAI-compatible response
+    private ResponseEntity<Map<String, Object>> buildResponse(AIProvider provider, String prompt, String responseContent) {
         long timestamp = System.currentTimeMillis() / 1000L;
         String responseId = "chatcmpl-" + UUID.randomUUID();
 
-        // Token estimation (approx chars/4)
         int promptTokens = Math.max(1, prompt.length() / 4);
         int completionTokens = Math.max(1, responseContent.length() / 4);
-        int totalTokens = promptTokens + completionTokens;
+        int totalTokens = Math.max(1, promptTokens + completionTokens);
 
         Map<String, Object> messageResponse = new LinkedHashMap<>();
         messageResponse.put("role", "assistant");
@@ -163,7 +161,7 @@ public class OpenAICompatibleController {
         result.put("id", responseId);
         result.put("object", "chat.completion");
         result.put("created", timestamp);
-        result.put("model", provider.getName()); // provider name as model identifier
+        result.put("model", provider.getName());
         result.put("choices", List.of(choice));
         result.put("usage", usage);
 
@@ -171,9 +169,6 @@ public class OpenAICompatibleController {
         return ResponseEntity.ok(result);
     }
 
-    /**
-     * Extracts the last user message from a chat history.
-     */
     private String extractLastUserMessage(List<Map<String, String>> messages) {
         for (int i = messages.size() - 1; i >= 0; i--) {
             Map<String, String> msg = messages.get(i);

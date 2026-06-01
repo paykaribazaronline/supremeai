@@ -1,14 +1,13 @@
 package com.supremeai.service;
 
-import com.supremeai.config.VirtualThreadConfig;
 import com.supremeai.provider.AIProvider;
 import com.supremeai.provider.AIProviderFactory;
+import com.supremeai.provider.StubLocalProvider;
 import io.github.resilience4j.circuitbreaker.CircuitBreaker;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerConfig;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
@@ -36,8 +35,10 @@ public class FastPathAIService {
         this.cacheService = cacheService;
     }
 
-    private CircuitBreaker groqCircuitBreaker;
-    private final ExecutorService executor = VirtualThreadConfig.getVirtualThreadExecutor();
+    private CircuitBreaker localCircuitBreaker;
+    // Private local executor — NOT a shared Spring bean.
+    // Safe to shut down in @PreDestroy without affecting other services.
+    private final ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor();
 
     @PostConstruct
     public void init() {
@@ -48,9 +49,9 @@ public class FastPathAIService {
                 .build();
 
         CircuitBreakerRegistry registry = CircuitBreakerRegistry.of(config);
-        groqCircuitBreaker = registry.circuitBreaker("groq");
+        localCircuitBreaker = registry.circuitBreaker("local_fast_path");
 
-        logger.info("FastPathAIService initialized with Groq circuit breaker");
+        logger.info("FastPathAIService initialized with local-first circuit breaker");
     }
 
     /**
@@ -58,36 +59,33 @@ public class FastPathAIService {
      * Returns response in < 500ms when Groq is healthy
      */
     public String generateFast(String prompt) {
-        // Check cache first
         String cached = cacheService.getAiResponse(prompt);
         if (cached != null) {
             logger.debug("Cache hit for prompt: {}", prompt.substring(0, Math.min(50, prompt.length())));
             return cached;
         }
 
-        // Try Groq first with circuit breaker
-        if (groqCircuitBreaker.getState() == CircuitBreaker.State.CLOSED) {
+        if (localCircuitBreaker.getState() == CircuitBreaker.State.CLOSED) {
             try {
-                String response = groqCircuitBreaker.executeSupplier(() -> {
-                    AIProvider groq = providerFactory.getProvider("groq");
-                    return resolveResponse(groq.generate(prompt));
+                String response = localCircuitBreaker.executeSupplier(() -> {
+                    AIProvider local = providerFactory.getDefaultProvider();
+                    return resolveResponse(local.generate(prompt));
                 });
 
                 cacheService.putAiResponse(prompt, response);
-                logger.debug("Groq fast path success");
+                logger.debug("Local fast path success");
                 return response;
 
             } catch (Exception e) {
-                logger.warn("Groq fast path failed, falling back to Ollama: {}", e.getMessage());
+                logger.warn("Local fast path failed: {}", e.getMessage());
             }
         }
 
-        // Fallback to local Ollama
         try {
-            AIProvider ollama = providerFactory.getProvider("ollama");
-            String response = resolveResponse(ollama.generate(prompt));
+            AIProvider fallback = new StubLocalProvider();
+            String response = resolveResponse(fallback.generate(prompt));
             cacheService.putAiResponse(prompt, response);
-            logger.debug("Ollama fallback success");
+            logger.debug("Stub fallback success");
             return response;
 
         } catch (Exception e) {
@@ -146,11 +144,18 @@ public class FastPathAIService {
      * Check if Groq circuit is healthy
      */
     public boolean isGroqHealthy() {
-        return groqCircuitBreaker.getState() == CircuitBreaker.State.CLOSED;
+        return localCircuitBreaker.getState() == CircuitBreaker.State.CLOSED;
     }
 
     private String resolveResponse(Mono<String> responseMono) {
-        return java.util.Objects.requireNonNullElse(responseMono.block(), "");
+        try {
+            return java.util.Objects.requireNonNullElse(
+                responseMono.subscribeOn(reactor.core.scheduler.Schedulers.boundedElastic())
+                    .block(Duration.ofSeconds(5)), "");
+        } catch (Exception e) {
+            logger.warn("resolveResponse timed out or failed: {}", e.getMessage());
+            return "";
+        }
     }
 
     @PreDestroy

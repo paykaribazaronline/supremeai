@@ -5,6 +5,7 @@ import com.supremeai.model.ConsensusVote;
 import com.supremeai.model.ProviderVote;
 import com.supremeai.provider.AIProvider;
 import com.supremeai.provider.AIProviderFactory;
+import com.supremeai.util.ThirdOpinionConstants;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -168,7 +169,7 @@ class MultiAIConsensusServiceTest {
         StepVerifier.create(result)
                 .assertNext(consensus -> {
                     assertEquals(question, consensus.getQuestion());
-                    assertEquals("দুঃখিত, বর্তমানে কোনো এআই প্রোভাইডার সাড়া দিচ্ছে না। অনুগ্রহ করে ড্যাশবোর্ড থেকে এপিআই কী এবং প্রোভাইডার স্ট্যাটাস চেক করুন। (System Solo-Mode Active)", consensus.getConsensusAnswer());
+                    assertEquals(ThirdOpinionConstants.NO_PROVIDER_RESPONSE, consensus.getConsensusAnswer());
                     assertEquals(0, consensus.getVotes().size());
                     assertEquals(0.0, consensus.getAverageConfidence());
                     assertEquals("ERROR", consensus.getStrength());
@@ -314,7 +315,7 @@ class MultiAIConsensusServiceTest {
 
             // Then
             assertEquals(question, result.getQuestion());
-            assertEquals("দুঃখিত, বর্তমানে কোনো এআই প্রোভাইডার সাড়া দিচ্ছে না। অনুগ্রহ করে ড্যাশবোর্ড থেকে এপিআই কী এবং প্রোভাইডার স্ট্যাটাস চেক করুন। (System Solo-Mode Active)", result.getConsensusAnswer());
+            assertEquals(ThirdOpinionConstants.NO_PROVIDER_RESPONSE, result.getConsensusAnswer());
             assertEquals(0, result.getVotes().size());
             assertEquals(0.0, result.getAverageConfidence());
             assertEquals("ERROR", result.getStrength());

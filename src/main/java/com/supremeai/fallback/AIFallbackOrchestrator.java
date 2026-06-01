@@ -1,16 +1,20 @@
 package com.supremeai.fallback;
 
 import com.supremeai.cost.QuotaManager;
+import com.supremeai.learning.active.ActiveInternetScraper;
 import com.supremeai.learning.knowledge.GlobalKnowledgeBase;
 import com.supremeai.learning.immunity.CodeImmunitySystem;
 import com.supremeai.intelligence.profiling.AIProfiler;
 import com.supremeai.provider.AIProviderFactory;
 import com.supremeai.provider.AIProvider;
+import com.supremeai.client.PocketLabClient;
+import com.supremeai.service.AIRankingService;
 import com.supremeai.provider.StubLocalProvider;
 import com.supremeai.resilience.RetryableAIExecutor;
 import com.supremeai.security.ApiKeyRotationService;
 import com.supremeai.service.EnhancedLearningService;
 import com.supremeai.service.RequestHedgingService;
+import com.supremeai.service.browser.BrowserService;
 import io.github.resilience4j.circuitbreaker.CircuitBreaker;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerConfig;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
@@ -19,6 +23,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import com.supremeai.utils.FirebaseReporter;
+import com.supremeai.utils.GitHelper;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
@@ -26,9 +32,12 @@ import jakarta.annotation.PostConstruct;
 import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @Service
 public class AIFallbackOrchestrator {
+
+    private final PocketLabClient pocketLabClient;
 
     private static final Logger log = LoggerFactory.getLogger(AIFallbackOrchestrator.class);
     private final QuotaManager quotaManager;
@@ -38,12 +47,18 @@ public class AIFallbackOrchestrator {
     private final RetryableAIExecutor retryExecutor;
     private final ApiKeyRotationService keyRotationService;
     private final AIProviderFactory providerFactory;
+    private final AIRankingService aiRankingService;
     private final RequestHedgingService hedgingService;
+    private final ActiveInternetScraper activeInternetScraper;
+    private final BrowserService browserService;
     private final String fallbackProviderName;
     private final StubLocalProvider stubLocalProvider;
 
     @Autowired(required = false)
     private EnhancedLearningService enhancedLearningService;
+
+    @Autowired(required = false)
+    private com.supremeai.learning.SupremeLearningOrchestrator learningOrchestrator;
 
     private final CircuitBreakerRegistry circuitBreakerRegistry;
     private final Map<String, CircuitBreaker> providerCircuitBreakers = new ConcurrentHashMap<>();
@@ -56,14 +71,18 @@ public class AIFallbackOrchestrator {
      */
     private volatile boolean soloMode = false;
 
-    public AIFallbackOrchestrator(QuotaManager quotaManager,
-                                  GlobalKnowledgeBase knowledgeBase, CodeImmunitySystem immunitySystem,
-                                  AIProfiler aiProfiler, RetryableAIExecutor retryExecutor,
-                                  ApiKeyRotationService keyRotationService,
-                                  AIProviderFactory providerFactory,
-                                  RequestHedgingService hedgingService,
-                                  com.supremeai.repository.ProviderRepository providerRepository,
-                                  @Value("${supremeai.solo-mode.fallback-provider:airllm-sidecar}") String fallbackProviderName) {
+public AIFallbackOrchestrator(QuotaManager quotaManager,
+                                   PocketLabClient pocketLabClient,
+                                   GlobalKnowledgeBase knowledgeBase, CodeImmunitySystem immunitySystem,
+                                   AIProfiler aiProfiler, RetryableAIExecutor retryExecutor,
+                                   ApiKeyRotationService keyRotationService,
+                                   AIProviderFactory providerFactory,
+                                   AIRankingService aiRankingService,
+                                   RequestHedgingService hedgingService,
+                                   ActiveInternetScraper activeInternetScraper,
+                                   BrowserService browserService,
+                                   com.supremeai.repository.ProviderRepository providerRepository,
+                                   @Value("${supremeai.solo-mode.fallback-provider:airllm-sidecar}") String fallbackProviderName) {
         this.providerRepository = providerRepository;
         this.fallbackProviderName = fallbackProviderName;
         this.quotaManager = quotaManager;
@@ -74,7 +93,11 @@ public class AIFallbackOrchestrator {
         this.keyRotationService = keyRotationService;
         this.providerFactory = providerFactory;
         this.hedgingService = hedgingService;
+        this.activeInternetScraper = activeInternetScraper;
+        this.browserService = browserService;
         this.stubLocalProvider = new StubLocalProvider();
+        this.pocketLabClient = pocketLabClient;
+        this.aiRankingService = aiRankingService;
 
         CircuitBreakerConfig config = CircuitBreakerConfig.custom()
                 .failureRateThreshold(50)
@@ -89,7 +112,7 @@ public class AIFallbackOrchestrator {
     @PostConstruct
     public void init() {
         log.info("Initializing Dynamic AI Fallback Orchestrator...");
-        java.util.concurrent.atomic.AtomicInteger activeCount = new java.util.concurrent.atomic.AtomicInteger(0);
+        AtomicInteger activeCount = new AtomicInteger(0);
         providerRepository.findAll()
             .filter(p -> "active".equalsIgnoreCase(p.getStatus()))
             .doOnNext(p -> {
@@ -110,6 +133,35 @@ public class AIFallbackOrchestrator {
             .subscribe();
     }
 
+    private void conditionallyCommitAndPush() {
+        try {
+            // Only push when we are on main branch, have uncommitted changes, and a dry‑run reports pending pushes
+            if (GitHelper.isOnMainBranch() && GitHelper.hasChanges() && GitHelper.dryPushHasPending()) {
+                GitHelper.commitAndPushAll();
+                log.info("[GitHelper] Conditional commit & push executed.");
+            } else {
+                log.info("[GitHelper] No conditional push needed (branch={}, changes={}, dryRunPending={}).",
+                        GitHelper.isOnMainBranch(), GitHelper.hasChanges(), GitHelper.dryPushHasPending());
+            }
+        } catch (Exception e) {
+            log.error("Background Git sync failed: {}", e.getMessage(), e);
+        }
+    }
+
+    @org.springframework.scheduling.annotation.Scheduled(fixedDelay = 60000)
+    public void refreshSoloModeStatus() {
+        providerRepository.findAll()
+            .filter(p -> "active".equalsIgnoreCase(p.getStatus()))
+            .count()
+            .subscribe(count -> {
+                boolean newSoloMode = (count == 0);
+                if (newSoloMode != soloMode) {
+                    soloMode = newSoloMode;
+                    log.info("[SoloMode] Status changed dynamically to: {}", soloMode ? "SOLO" : "CONNECTED");
+                }
+            });
+    }
+
     private CircuitBreaker getOrCreateCircuitBreaker(String providerId) {
         String name = providerId.toLowerCase();
         return circuitBreakerRegistry.find(name).orElseGet(() -> {
@@ -124,20 +176,10 @@ public class AIFallbackOrchestrator {
 
     private Mono<String> generateForProvider(String providerId, String serviceName, CircuitBreaker cb,
                                               AIProvider provider, String prompt) {
-        return Mono.fromCallable(() ->
-                        retryExecutor.executeWithCircuitBreaker(
-                                providerId, serviceName, cb,
-                                () -> {
-                                    try {
-                                        return (String) provider.generate(prompt)
-                                                .subscribeOn(Schedulers.boundedElastic())
-                                                .block(Duration.ofSeconds(60));
-                                    } catch (Exception e) {
-                                        throw new RuntimeException(e);
-                                    }
-                                }
-                        )
-                ).subscribeOn(Schedulers.boundedElastic());
+        Mono<String> operation = provider.generate(prompt)
+                .subscribeOn(Schedulers.boundedElastic())
+                .timeout(Duration.ofSeconds(15));
+        return retryExecutor.executeWithCircuitBreakerReactive(providerId, serviceName, cb, operation);
     }
 
     public Mono<String> executeWithSupremeIntelligence(String taskCategory, String errorSignature, String prompt) {
@@ -145,70 +187,89 @@ public class AIFallbackOrchestrator {
     }
 
     public Mono<String> executeWithSupremeIntelligence(String taskCategory, String errorSignature, String prompt, String userId) {
-        return knowledgeBase.findKnownSolution(errorSignature)
-            .switchIfEmpty(Mono.defer(() -> {
-                log.info("[Solo-First] System running in default Solo-First mode. Preparing local model fallback...");
-                
-                // 1. Prepare default Solo Mode execution
-                Mono<String> soloExecution = tryPrivateCloudFailover(taskCategory, prompt);
+        // Tier 2: Check for Pocket Lab (tiny model) routing
+        return tryPocketLab(userId, prompt)
+                .switchIfEmpty(
+                        // Tier 2 fallback: Firestore Memory lookup
+                        knowledgeBase.findKnownSolution(errorSignature)
+                                .switchIfEmpty(Mono.defer(() -> {
+                                    log.info("[BRAIN TIER 3] No solution in Firestore. Attempting web scraping via browser...");
+                                    return tryBrowserScraping(taskCategory, prompt);
+                                }))
+                                .switchIfEmpty(Mono.defer(() -> {
+                                    log.info("[BRAIN TIER 4] No web scrape result. Trying Helper AI providers...");
+                                    return tryHelperAIProviders(taskCategory, errorSignature, prompt, userId);
+                                }))
+                );
+    }
 
-                // 2. Fetch active cloud providers to see if we can take help from them
-                return providerRepository.findByStatus("active")
-                    .filter(p -> !fallbackProviderName.equalsIgnoreCase(p.getName()) && !fallbackProviderName.equalsIgnoreCase(p.getType()))
-                    .collectList()
-                    .onErrorResume(e -> {
-                        log.warn("[Solo-First] Failed to load dynamic providers: {}. Operating purely offline.", e.getMessage());
-                        return Mono.just(new ArrayList<com.supremeai.model.APIProvider>());
-                    })
-                    .flatMap(activeCloudProviders -> {
-                        if (activeCloudProviders.isEmpty()) {
-                            log.info("[Solo-First] No active cloud AI models configured. Relying purely on local Solo Mode.");
-                            return soloExecution;
-                        }
+    private Mono<String> tryPocketLab(String userId, String prompt) {
+        log.info("[BRAIN TIER 2] Checking Pocket Lab client for user {}", userId);
+        return pocketLabClient.predict(prompt);
+    }
 
-                        log.info("[Solo-First] Active cloud models found. Checking connection and taking help opportunistically...");
-                        
-                        String expertProviderId = aiProfiler.getBestAIForTask(taskCategory);
-                        com.supremeai.model.APIProvider cloudProvider = activeCloudProviders.stream()
-                            .filter(p -> p.getName().equalsIgnoreCase(expertProviderId))
-                            .findFirst()
-                            .orElse(activeCloudProviders.get(0));
-
-                        AIProvider aiProvider = providerFactory.createProviderFromConfig(cloudProvider);
-                        if (aiProvider == null) {
-                            return soloExecution;
-                        }
-
-                        String serviceName = cloudProvider.getType() != null ? cloudProvider.getType() : cloudProvider.getName();
-                        CircuitBreaker cb = getOrCreateCircuitBreaker(cloudProvider.getName().toLowerCase());
-
-                        if (!isServiceQuotaAvailable(serviceName) || cb.getState() == CircuitBreaker.State.OPEN) {
-                            log.info("[Solo-First] Cloud provider {} quota exhausted or circuit open. Bypassing cloud assist.", cloudProvider.getName());
-                            return soloExecution;
-                        }
-
-                        // Tight 8-second timeout: if connection is slow, missing, or drops, we fall back to local model immediately.
-                        return generateForProvider(cloudProvider.getName(), serviceName, cb, aiProvider, prompt)
-                            .timeout(Duration.ofSeconds(8))
-                            .flatMap(cloudCode -> {
-                                boolean infected = immunitySystem.isCodeInfected(cloudCode);
-                                if (infected) {
-                                    return Mono.error(new RuntimeException("Cloud code infected"));
-                                }
-                                log.info("[Solo-First] Cloud assistant successfully provided help!");
-                                return Mono.just(cloudCode);
-                            })
-                            .onErrorResume(err -> {
-                                log.warn("[Solo-First] Cloud connection not available or timeout: {}. Continuing purely with Solo Mode.", err.getMessage());
-                                return Mono.empty();
-                            })
-                            .switchIfEmpty(soloExecution);
-                    })
-                    .onErrorResume(e -> {
-                        log.warn("[Solo-First] General error in Solo-First pipeline: {}. Running purely offline.", e.getMessage());
-                        return soloExecution;
+    /**
+     * Tier 4: Try Helper AI providers (Cloud/Sidecar fallback).
+     */
+    private Mono<String> tryHelperAIProviders(String taskCategory, String errorSignature, String prompt, String userId) {
+        // Retrieve provider rankings and sort active providers accordingly
+            return providerRepository.findAll()
+                .filter(p -> !fallbackProviderName.equalsIgnoreCase(p.getName()) && !fallbackProviderName.equalsIgnoreCase(p.getType()))
+                .collectList()
+                .flatMap(activeCloudProviders -> {
+                    // Get rankings
+                    List<com.supremeai.service.AIRankingService.ProviderRanking> rankings = aiRankingService.getRankings();
+                    // Map provider name to ranking value for quick lookup
+                    Map<String, Double> rankMap = rankings.stream()
+                        .collect(java.util.stream.Collectors.toMap(r -> r.getProvider(), r -> r.getValueScore()));
+                    // Sort providers by ranking (higher score first)
+                    activeCloudProviders.sort((a, b) -> {
+                        double ra = rankMap.getOrDefault(a.getName(), 0.0);
+                        double rb = rankMap.getOrDefault(b.getName(), 0.0);
+                        return Double.compare(rb, ra);
                     });
-            }));
+
+                if (activeCloudProviders.isEmpty()) {
+                    log.info("[Solo-First] No active cloud AI models configured. Relying purely on local Solo Mode.");
+                    return tryPrivateCloudFailover(taskCategory, prompt);
+                }
+
+                log.info("[Solo-First] Active cloud models found. Checking connection and taking help opportunistically...");
+                
+                String expertProviderId = aiProfiler.getBestAIForTask(taskCategory);
+                com.supremeai.model.APIProvider cloudProvider = activeCloudProviders.stream()
+                    .filter(p -> p.getName().equalsIgnoreCase(expertProviderId))
+                    .findFirst()
+                    .orElse(activeCloudProviders.get(0));
+
+                AIProvider aiProvider = providerFactory.createProviderFromConfig(cloudProvider);
+                if (aiProvider == null) {
+                    return tryPrivateCloudFailover(taskCategory, prompt);
+                }
+
+                String serviceName = cloudProvider.getType() != null ? cloudProvider.getType() : cloudProvider.getName();
+                CircuitBreaker cb = getOrCreateCircuitBreaker(cloudProvider.getName().toLowerCase());
+
+                if (!isServiceQuotaAvailable(serviceName) || cb.getState() == CircuitBreaker.State.OPEN) {
+                    log.info("[Solo-First] Cloud provider {} quota exhausted or circuit open. Bypassing cloud assist.", cloudProvider.getName());
+                    return tryPrivateCloudFailover(taskCategory, prompt);
+                }
+
+                return generateForProvider(cloudProvider.getName(), serviceName, cb, aiProvider, prompt)
+                    .timeout(Duration.ofSeconds(8))
+                    .flatMap(cloudCode -> {
+                        boolean infected = immunitySystem.isCodeInfected(cloudCode);
+                        if (infected) {
+                            return Mono.error(new RuntimeException("Cloud code infected"));
+                        }
+                        log.info("[Solo-First] Cloud assistant successfully provided help!");
+                        return Mono.just(cloudCode);
+                    })
+                    .onErrorResume(err -> {
+                        log.warn("[Solo-First] Cloud connection not available or timeout: {}. Continuing purely with Solo Mode.", err.getMessage());
+                        return tryPrivateCloudFailover(taskCategory, prompt);
+                    });
+            });
     }
 
     /**
@@ -296,58 +357,85 @@ public class AIFallbackOrchestrator {
     }
 
     /**
+     * Tier 3: Attempt to scrape web knowledge via browser automation.
+     */
+    private Mono<String> tryBrowserScraping(String taskCategory, String prompt) {
+        log.info("[BRAIN TIER 3] Attempting web scraping for task: {}", taskCategory);
+        
+        return Mono.fromCallable(() -> {
+            String cleanQuery = prompt.toLowerCase()
+                    .replaceAll("[\\p{Punct}]", " ")
+                    .replaceAll("\\s+", " ")
+                    .trim();
+            
+            String keywords = String.join(" ", cleanQuery.split("\\s+"));
+            return keywords;
+        })
+        .flatMap(keywords -> {
+            // Use ActiveInternetScraper to scrape knowledge
+            return activeInternetScraper.scrapeKnowledge(taskCategory, List.of(keywords.split("\\s+")))
+                    .next()
+                    .map(issue -> {
+                        log.info("[BRAIN TIER 3] Web scraping found result from: {}", issue.getSource());
+                        return issue.getSolution();
+                    });
+        })
+        .timeout(Duration.ofSeconds(10))
+        .onErrorResume(err -> {
+            log.warn("[BRAIN TIER 3] Web scraping failed or timed out: {}", err.getMessage());
+            return Mono.empty();
+        });
+    }
+
+    /**
      * Final failover to private cluster-local model (Solo Mode).
      * The airllm-sidecar entry must be configured as a regular provider in Firestore api_providers.
      * No endpoint, type, or model is hardcoded here.
      */
     private Mono<String> tryPrivateCloudFailover(String taskCategory, String prompt) {
-        log.warn("⚠️ ALL external providers failed. Triggering Solo Mode (fully offline)...");
+        log.warn("ALL external providers failed. Triggering Solo Mode (fully offline)...");
+        recordIntelligenceGap(taskCategory, prompt, "ALL_EXTERNAL_PROVIDERS_FAILED");
 
-        return Mono.fromCallable(() -> {
-            // Look up the fallback provider from the live DB — configuration-driven
-            com.supremeai.model.APIProvider airllmConfig = null;
-            try {
-                airllmConfig = providerRepository.findById(fallbackProviderName)
-                        .switchIfEmpty(providerRepository.findById(fallbackProviderName.toLowerCase()))
-                        .block(java.time.Duration.ofSeconds(2));
-            } catch (Exception e) {
-                log.warn("[SoloMode] Fallback provider '{}' not found in DB by id/lowercase. Trying name lookup...", fallbackProviderName);
-            }
-            if (airllmConfig == null) {
-                try {
-                    List<com.supremeai.model.APIProvider> sidecars = providerRepository.findAll()
-                            .filter(p -> fallbackProviderName.equalsIgnoreCase(p.getName()))
-                            .collectList()
-                            .block(java.time.Duration.ofSeconds(2));
-                    if (sidecars != null && !sidecars.isEmpty()) {
-                        airllmConfig = sidecars.get(0);
+        Mono<com.supremeai.model.APIProvider> lookupById = providerRepository.findById(fallbackProviderName)
+                .switchIfEmpty(providerRepository.findById(fallbackProviderName.toLowerCase()))
+                .onErrorResume(e -> {
+                    log.warn("[SoloMode] Fallback provider '{}' lookup by id/lowercase failed: {}", fallbackProviderName, e.getMessage());
+                    return Mono.empty();
+                });
+
+        Mono<com.supremeai.model.APIProvider> lookupByName = providerRepository.findAll()
+                .filter(p -> fallbackProviderName.equalsIgnoreCase(p.getName()))
+                .next()
+                .onErrorResume(e -> {
+                    log.error("[SoloMode] Fallback provider name lookup failed", e);
+                    return Mono.empty();
+                });
+
+        return lookupById
+                .switchIfEmpty(lookupByName)
+                .flatMap(airllmConfig -> {
+                    log.info("[SoloMode] Using fallback provider: baseUrl={}, type={}",
+                            airllmConfig.getBaseUrl(), airllmConfig.getType());
+                    AIProvider provider = providerFactory.createProviderFromConfig(airllmConfig);
+                    if (provider != null) {
+                        return provider.generate(prompt);
                     }
-                } catch (Exception e) {
-                    log.error("[SoloMode] Fallback provider name lookup also failed", e);
-                }
-            }
-            if (airllmConfig == null) {
-                log.info("[SoloMode] No local sidecar found. Using StubLocalProvider for fully offline operation.");
-                return (AIProvider) stubLocalProvider;
-            }
-            log.info("[SoloMode] Using fallback provider: baseUrl={}, type={}",
-                    airllmConfig.getBaseUrl(), airllmConfig.getType());
-            return providerFactory.createProviderFromConfig(airllmConfig);
-        })
-        .flatMap(provider -> {
-            if (provider == null) {
-                return Mono.just(stubLocalProvider.generate(prompt).block());
-            }
-            return provider.generate(prompt);
-        })
-        .timeout(Duration.ofSeconds(120))
-        .onErrorResume(e -> {
-            log.error("Local model unavailable: {}", e.getMessage());
-            // FALLBACK: Use stub provider instead of throwing critical error
-            return Mono.just(stubLocalProvider != null 
-                ? stubLocalProvider.generate("Offline fallback: " + prompt).block()
-                : "আমি লোকাল মোডে সক্রিয়। কোনো বাইরের API কী দরকার পড়ে না।");
-        });
+                    log.info("[SoloMode] Failed to create provider from config. Using StubLocalProvider.");
+                    return stubLocalProvider.generate(prompt);
+                })
+                .switchIfEmpty(Mono.defer(() -> {
+                    log.info("[SoloMode] No local sidecar found in DB. Using StubLocalProvider for fully offline operation.");
+                    return stubLocalProvider.generate(prompt);
+                }))
+                .timeout(Duration.ofSeconds(120))
+                .onErrorResume(e -> {
+                    log.error("Local model unavailable: {}", e.getMessage());
+                    // FALLBACK: Use stub provider instead of throwing critical error
+                    if (stubLocalProvider != null) {
+                        return stubLocalProvider.generate("Offline fallback: " + prompt);
+                    }
+                    return Mono.just("আমি লোকাল মোডে সক্রিয়। কোনো বাইরের API কী দরকার পড়ে না।");
+                });
     }
 
     private boolean isServiceQuotaAvailable(String serviceName) {
@@ -392,24 +480,29 @@ public class AIFallbackOrchestrator {
                 "User prompt: " + prompt + "\n\n" +
                 "Original Code:\n" + originalOutput;
 
-        return Mono.fromCallable(() -> {
-            // Re-use our safe local failover provider creator
-            com.supremeai.model.APIProvider airllmConfig = null;
-            try {
-                airllmConfig = providerRepository.findById(fallbackProviderName)
-                        .switchIfEmpty(providerRepository.findById(fallbackProviderName.toLowerCase()))
-                        .block(java.time.Duration.ofSeconds(1));
-            } catch (Exception e) {}
-            if (airllmConfig == null) {
-                airllmConfig = new com.supremeai.model.APIProvider();
-                airllmConfig.setName(fallbackProviderName);
-                airllmConfig.setBaseUrl("http://localhost:8081");
-                airllmConfig.setType("airllm-sidecar");
-                airllmConfig.setStatus("active");
-                airllmConfig.setModelName("airllm-sidecar");
-            }
-            return providerFactory.createProviderFromConfig(airllmConfig);
-        })
+        return providerRepository.findById(fallbackProviderName)
+            .switchIfEmpty(providerRepository.findById(fallbackProviderName.toLowerCase()))
+            .timeout(Duration.ofSeconds(1))
+            .onErrorResume(e -> {
+                // Fallback to default config if DB lookup fails
+                com.supremeai.model.APIProvider defaultConfig = new com.supremeai.model.APIProvider();
+                defaultConfig.setName(fallbackProviderName);
+                defaultConfig.setBaseUrl("http://localhost:8081");
+                defaultConfig.setType("airllm-sidecar");
+                defaultConfig.setStatus("active");
+                defaultConfig.setModelName("airllm-sidecar");
+                return Mono.just(defaultConfig);
+            })
+            .switchIfEmpty(Mono.fromCallable(() -> {
+                com.supremeai.model.APIProvider defaultConfig = new com.supremeai.model.APIProvider();
+                defaultConfig.setName(fallbackProviderName);
+                defaultConfig.setBaseUrl("http://localhost:8081");
+                defaultConfig.setType("airllm-sidecar");
+                defaultConfig.setStatus("active");
+                defaultConfig.setModelName("airllm-sidecar");
+                return defaultConfig;
+            }))
+            .map(config -> providerFactory.createProviderFromConfig(config))
         .flatMap(provider -> provider.generate(auditPrompt))
         .timeout(Duration.ofSeconds(15)) // Strict 15s timeout to avoid dragging cloud response times
         .onErrorResume(e -> {
@@ -432,5 +525,16 @@ public class AIFallbackOrchestrator {
      */
     public boolean getSoloMode() {
         return soloMode;
+    }
+
+    private void recordIntelligenceGap(String taskCategory, String prompt, String failReason) {
+        log.warn("[Intelligence Gap] Recorded for future training. Task Category: {}, Reason: {}", taskCategory, failReason);
+        if (learningOrchestrator != null) {
+            try {
+                learningOrchestrator.detectIntelligenceGap(taskCategory);
+            } catch (Exception e) {
+                log.warn("Failed to notify learningOrchestrator of gap: {}", e.getMessage());
+            }
+        }
     }
 }
