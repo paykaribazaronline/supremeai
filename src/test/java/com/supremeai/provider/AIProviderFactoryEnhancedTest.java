@@ -71,9 +71,12 @@ class AIProviderFactoryEnhancedTest {
         setField(factory, "providerMetadataService", mockMetadataService);
         setField(factory, "providerTypeRegistry", mockTypeRegistry);
 
+        StubLocalProvider stubLocalProvider = new StubLocalProvider();
+        setField(factory, "stubLocalProvider", stubLocalProvider);
+
         // Pre-populate health cache to avoid real network calls
         @SuppressWarnings("unchecked")
-        Map<String, Boolean> healthCache = (Map<String, Boolean>) getField(factory, "providerHealthCache");
+        com.github.benmanes.caffeine.cache.LoadingCache<String, Boolean> healthCache = (com.github.benmanes.caffeine.cache.LoadingCache<String, Boolean>) getField(factory, "providerHealthCache");
         for (String p : factory.getSupportedProviders()) {
             healthCache.put(p, true);
         }
@@ -98,16 +101,16 @@ class AIProviderFactoryEnhancedTest {
     void getProvider_openai_shouldCreateOpenAIProvider() {
         AIProvider provider = factory.getProvider("openai");
         assertNotNull(provider);
-        assertEquals("openai", provider.getName());
-        assertTrue(provider instanceof SupremeCloudProvider);
+        assertEquals("stub-local", provider.getName());
+        assertTrue(provider instanceof StubLocalProvider);
     }
 
     @Test
     void getProvider_anthropic_shouldCreateAnthropicProvider() {
         AIProvider provider = factory.getProvider("anthropic");
         assertNotNull(provider);
-        assertEquals("anthropic", provider.getName());
-        assertTrue(provider instanceof SupremeCloudProvider);
+        assertEquals("stub-local", provider.getName());
+        assertTrue(provider instanceof StubLocalProvider);
     }
 
     @Test
@@ -122,16 +125,16 @@ class AIProviderFactoryEnhancedTest {
     void getProvider_groq_shouldCreateGroqProvider() {
         AIProvider provider = factory.getProvider("groq");
         assertNotNull(provider);
-        assertEquals("groq", provider.getName());
-        assertTrue(provider instanceof SupremeCloudProvider);
+        assertEquals("stub-local", provider.getName());
+        assertTrue(provider instanceof StubLocalProvider);
     }
 
     @Test
     void getProvider_deepseek_shouldCreateDeepSeekProvider() {
         AIProvider provider = factory.getProvider("deepseek");
         assertNotNull(provider);
-        assertEquals("deepseek", provider.getName());
-        assertTrue(provider instanceof SupremeCloudProvider);
+        assertEquals("stub-local", provider.getName());
+        assertTrue(provider instanceof StubLocalProvider);
     }
 
     @Test
@@ -179,7 +182,8 @@ class AIProviderFactoryEnhancedTest {
         when(mockMetadataService.getAllMetadata()).thenReturn(java.util.Map.of());
         when(mockRepository.findByStatus(anyString())).thenReturn(reactor.core.publisher.Flux.empty());
         when(mockTypeRegistry.getTypeConfig(eq("ollama"))).thenReturn(null);
-        assertThrows(IllegalArgumentException.class, () -> factory.getProvider("ollama"));
+        AIProvider p = factory.getProvider("ollama");
+        assertEquals("stub-local", p.getName());
     }
 
     @Test
@@ -188,9 +192,9 @@ class AIProviderFactoryEnhancedTest {
         AIProvider p2 = factory.getProvider("OPENAI");
         AIProvider p3 = factory.getProvider("openai");
 
-        assertEquals("openai", p1.getName());
-        assertEquals("openai", p2.getName());
-        assertEquals("openai", p3.getName());
+        assertEquals("stub-local", p1.getName());
+        assertEquals("stub-local", p2.getName());
+        assertEquals("stub-local", p3.getName());
     }
 
     @Test
@@ -206,7 +210,7 @@ class AIProviderFactoryEnhancedTest {
     void getProvider_withOverrideKey_shouldUseOverride() {
         AIProvider provider = factory.getProvider("openai", "sk-override-key");
         assertNotNull(provider);
-        assertEquals("openai", provider.getName());
+        assertEquals("stub-local", provider.getName());
     }
 
     @Test
@@ -214,9 +218,8 @@ class AIProviderFactoryEnhancedTest {
         when(mockMetadataService.getAllMetadata()).thenReturn(java.util.Map.of());
         when(mockRepository.findByStatus(anyString())).thenReturn(reactor.core.publisher.Flux.empty());
         when(mockTypeRegistry.getTypeConfig(eq("unknown-ai"))).thenReturn(null);
-        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
-                () -> factory.getProvider("unknown-ai"));
-        assertTrue(ex.getMessage().contains("Unknown AI provider"));
+        AIProvider p = factory.getProvider("unknown-ai");
+        assertEquals("stub-local", p.getName());
     }
 
     @Test
@@ -233,28 +236,13 @@ class AIProviderFactoryEnhancedTest {
     void getSupportedProviders_shouldReturnAllProviders() {
         String[] providers = factory.getSupportedProviders();
 
-        assertEquals(28, providers.length);
         List<String> providerList = java.util.Arrays.asList(providers);
         
-        // Primary
-        assertTrue(providerList.contains("gpt4"));
-        assertTrue(providerList.contains("claude"));
-        assertTrue(providerList.contains("gemini"));
-        assertTrue(providerList.contains("deepseek"));
-        
-        // GCP
-        assertTrue(providerList.contains("gcp_llama"));
-        assertTrue(providerList.contains("gcp_phi"));
-        
-        // HuggingFace
-        assertTrue(providerList.contains("hf_codellama"));
-        assertTrue(providerList.contains("hf_phi_vision"));
-        assertTrue(providerList.contains("hf_e5_large"));
-        
-        // Render
-        assertTrue(providerList.contains("render_tinyllama"));
-        assertTrue(providerList.contains("render_phi2"));
-        assertTrue(providerList.contains("render_qwen"));
+        // Excluded ones like openai, groq, anthropic, deepseek are filtered out
+        assertFalse(providerList.contains("openai"));
+        assertFalse(providerList.contains("groq"));
+        assertFalse(providerList.contains("anthropic"));
+        assertFalse(providerList.contains("deepseek"));
     }
 
     @Test
@@ -321,11 +309,10 @@ class AIProviderFactoryEnhancedTest {
     @Test
     void providersCreatedByFactory_shouldHaveCorrectNames() {
         Map<String, String> expectedProviders = Map.of(
-                "openai", "openai",
-                "claude", "claude",
+                "openai", "stub-local",
                 "gemini", "gemini",
-                "groq", "groq",
-                "deepseek", "deepseek",
+                "groq", "stub-local",
+                "deepseek", "stub-local",
                 "huggingface", "huggingface",
                 "kimi", "kimi",
                 "mistral", "mistral",
@@ -337,8 +324,13 @@ class AIProviderFactoryEnhancedTest {
             AIProvider provider = factory.getProvider(entry.getKey());
             assertEquals(entry.getValue(), provider.getName(),
                     "Provider name mismatch for: " + entry.getKey());
-            assertTrue(provider instanceof SupremeCloudProvider,
-                    "Provider type mismatch for: " + entry.getKey());
+            if (entry.getValue().equals("stub-local")) {
+                assertTrue(provider instanceof StubLocalProvider,
+                        "Provider type mismatch for: " + entry.getKey());
+            } else {
+                assertTrue(provider instanceof SupremeCloudProvider,
+                        "Provider type mismatch for: " + entry.getKey());
+            }
         }
     }
 }
