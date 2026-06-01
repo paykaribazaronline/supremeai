@@ -29,8 +29,7 @@ public class GitHubAutomationService {
     private final GitHubAppService gitHubAppService;
     private final WebClient webClient;
 
-    @Autowired
-    public GitHubAutomationService(@Autowired(required = false) GitHubAppService gitHubAppService) {
+    public GitHubAutomationService(GitHubAppService gitHubAppService) {
         this.gitHubAppService = gitHubAppService;
         this.webClient = WebClient.builder()
                 .baseUrl("https://api.github.com")
