@@ -140,7 +140,7 @@ public class ProvidersController extends BaseAdminController<APIProvider, String
             .timeout(BLOCK_TIMEOUT)
             .doOnNext(valid -> log.info("[TEST-KEY] Validation result for name={}: {}", name, valid))
             .map(valid -> Boolean.TRUE.equals(valid)
-                ? ResponseEntity.ok(ApiResponse.<Map<String, Object>>ok(Map.of("message", "Key validated successfully", "valid", true)))
+                ? ResponseEntity.ok(ApiResponse.<Map<String, Object>>ok(Map.<String, Object>of("message", "Key validated successfully", "valid", true)))
                 : ResponseEntity.status(401).body(ApiResponse.<Map<String, Object>>error("Invalid key or provider unreachable")))
             .onErrorResume(e -> {
                 log.error("[TEST-KEY] Unexpected error during validation for name={}: {}", name, e.toString());
@@ -171,7 +171,7 @@ public class ProvidersController extends BaseAdminController<APIProvider, String
             .next()
             .flatMap(provider -> Mono.just(providerAdminService.suggestRoles(provider)))
             .map(roles -> ResponseEntity.ok(ApiResponse.ok(roles)))
-            .switchIfEmpty(Mono.error(new IllegalArgumentException("Provider not found: " + id)))
+            .switchIfEmpty(Mono.defer(() -> Mono.just(ResponseEntity.status(404).body(ApiResponse.<List<String>>error("Provider not found: " + id)))))
             .onErrorResume(e -> Mono.just(ResponseEntity.status(500).body(ApiResponse.<List<String>>error("Failed to fetch roles: " + e.getMessage()))));
     }
 

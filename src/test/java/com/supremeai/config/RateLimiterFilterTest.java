@@ -25,6 +25,9 @@ class RateLimiterFilterTest {
     private RateLimiter rateLimiter;
 
     @Mock
+    private com.supremeai.security.SecretManagerService secretManagerService;
+
+    @Mock
     private HttpServletRequest request;
 
     @Mock
@@ -38,7 +41,7 @@ class RateLimiterFilterTest {
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        rateLimiterFilter = new RateLimiterFilter(rateLimitProperties, rateLimiter);
+        rateLimiterFilter = new RateLimiterFilter(rateLimitProperties, rateLimiter, secretManagerService);
     }
 
     @Test
