@@ -16,8 +16,7 @@ public class CodeAnalysisController {
 
     private final MultiAIVotingService votingService;
 
-    @Autowired
-    public CodeAnalysisController(@Autowired(required = false) MultiAIVotingService votingService) {
+    public CodeAnalysisController(MultiAIVotingService votingService) {
         this.votingService = votingService;
     }
 

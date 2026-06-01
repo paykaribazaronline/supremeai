@@ -17,8 +17,7 @@ public class GitHubAdminController {
 
     private final GitHubAutomationService gitHubAutomationService;
 
-    @Autowired
-    public GitHubAdminController(@Autowired(required = false) GitHubAutomationService gitHubAutomationService) {
+    public GitHubAdminController(GitHubAutomationService gitHubAutomationService) {
         this.gitHubAutomationService = gitHubAutomationService;
     }
 
