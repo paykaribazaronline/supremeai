@@ -176,3 +176,4 @@ public class UnifiedSecretsService {
         log.info("Clearing secret cache");
         secretCache.invalidateAll();
     }
+}
