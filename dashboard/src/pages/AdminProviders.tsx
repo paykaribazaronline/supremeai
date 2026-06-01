@@ -98,48 +98,52 @@ const AdminProviders: React.FC = () => {
       transition={{ duration: 0.6 }}
       style={{ maxWidth: '1600px', margin: '0 auto' }}
     >
-      {/* Cinematic Header */}
-      <div style={{ marginBottom: 32, borderBottom: '1px solid rgba(0, 243, 255, 0.1)', paddingBottom: 24 }}>
-        <Row justify="space-between" align="bottom">
-          <Col>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
-              <GlobalOutlined style={{ color: 'var(--neon-blue)', fontSize: 20 }} />
-              <Text style={{ color: 'var(--neon-blue)', letterSpacing: 2, fontWeight: 800, fontSize: 12 }}>NEURAL ENDPOINTS</Text>
-            </div>
-            <Title level={2} style={{ color: '#fff', margin: 0, fontWeight: 800, fontSize: 32 }}>
-              AI <span className="text-gradient">Providers</span>
-            </Title>
-            <Text style={{ color: 'var(--text-dim)', fontSize: 14 }}>Manage global LLM orchestration, API keys, and model health.</Text>
-          </Col>
-          <Col>
-            <Space>
-              <Button
-                icon={<ThunderboltOutlined />}
-                onClick={handleWakeUpTest}
-                loading={wakeUpLoading}
-                className="glass-action-button"
-              >
-                Wake Up Test
-              </Button>
-              <Button
-                icon={<ReloadOutlined spin={loading} />}
-                onClick={fetchProviders}
-                className="glass-action-button"
-              >
-                Sync
-              </Button>
-              <Button
-                type="primary"
-                icon={<PlusOutlined />}
-                onClick={() => { setEditingProvider(null); setModalVisible(true); }}
-                className="cyber-button"
-              >
-                Connect Model
-              </Button>
-            </Space>
-          </Col>
-        </Row>
-      </div>
+       {/* Cinematic Header */}
+       <div style={{ marginBottom: 32, borderBottom: '1px solid rgba(0, 243, 255, 0.1)', paddingBottom: 24 }}>
+         <Row justify="space-between" align="bottom">
+           <Col>
+             <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
+               <GlobalOutlined style={{ color: 'var(--neon-blue)', fontSize: 20 }} />
+               <Text style={{ color: 'var(--neon-blue)', letterSpacing: 2, fontWeight: 800, fontSize: 12 }}>NEURAL ENDPOINTS</Text>
+             </div>
+             <Title level={2} style={{ color: '#fff', margin: 0, fontWeight: 800, fontSize: 32 }}>
+               AI <span className="text-gradient">Providers</span>
+             </Title>
+             <Text style={{ color: 'var(--text-dim)', fontSize: 14 }}>Manage global LLM orchestration and model health.</Text>
+           </Col>
+           <Col>
+             <Space>
+               <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 12px', borderRadius: 6, background: 'rgba(82, 196, 26, 0.15)', border: '1px solid rgba(82, 196, 26, 0.4)' }}>
+                 <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#52c41a', boxShadow: '0 0 8px #52c41a' }} />
+                 <Text style={{ color: '#52c41a', fontSize: 12, fontWeight: 700, letterSpacing: 1 }}>LOCAL MODE ACTIVE</Text>
+               </div>
+               <Button
+                 icon={<ThunderboltOutlined />}
+                 onClick={handleWakeUpTest}
+                 loading={wakeUpLoading}
+                 className="glass-action-button"
+               >
+                 Wake Up Test
+               </Button>
+               <Button
+                 icon={<ReloadOutlined spin={loading} />}
+                 onClick={fetchProviders}
+                 className="glass-action-button"
+               >
+                 Sync
+               </Button>
+               <Button
+                 type="primary"
+                 icon={<PlusOutlined />}
+                 onClick={() => { setEditingProvider(null); setModalVisible(true); }}
+                 className="cyber-button"
+               >
+                 Connect Model
+               </Button>
+             </Space>
+           </Col>
+         </Row>
+       </div>
 
       <Row gutter={[24, 24]}>
         {/* Stats Summary Cards */}

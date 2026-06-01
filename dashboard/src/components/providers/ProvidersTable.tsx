@@ -63,19 +63,7 @@ const ProvidersTable: React.FC<Props> = ({ providers, sortedGroupKeys, getGroupL
         );
       },
     },
-    {
-      title: 'API Key',
-      dataIndex: 'apiKey',
-      key: 'apiKey',
-      render: (key: string) => (
-        <Tooltip title="Click Edit to modify">
-          <Text code style={{ background: '#f5f5f5', border: '1px solid #d9d9d9' }}>
-            <KeyOutlined style={{ marginRight: 4 }} />
-            {key ? `****${key.slice(-6)}` : 'EMPTY'}
-          </Text>
-        </Tooltip>
-      ),
-    },
+
     {
       title: 'Work Roles',
       dataIndex: 'assignedRoles',
@@ -94,7 +82,7 @@ const ProvidersTable: React.FC<Props> = ({ providers, sortedGroupKeys, getGroupL
           <Button size="small" icon={<EditOutlined />} onClick={() => onEdit(record)}>
             Edit
           </Button>
-          <Popconfirm title="Delete this API key?" onConfirm={() => onDelete(record.id!)} okText="Delete" cancelText="No">
+          <Popconfirm title="Delete this provider?" onConfirm={() => onDelete(record.id!)} okText="Delete" cancelText="No">
             <Button size="small" danger icon={<DeleteOutlined />} />
           </Popconfirm>
         </Space>
