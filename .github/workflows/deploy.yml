@@ -9,8 +9,8 @@ on:
 env:
   SERVICE_NAME: supremeai-backend
   REGION: us-central1
-  WIF_PROVIDER: projects/123456789/locations/global/workloadIdentityPools/github-pool/providers/github-provider # UPDATE THIS
-  WIF_SERVICE_ACCOUNT: github-actions-sa@your-project.iam.gserviceaccount.com # UPDATE THIS
+  WIF_PROVIDER: ${{ secrets.WIF_PROVIDER }}
+  WIF_SERVICE_ACCOUNT: ${{ secrets.WIF_SERVICE_ACCOUNT }}
 
 jobs:
   deploy:
