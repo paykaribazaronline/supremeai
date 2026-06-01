@@ -18,18 +18,20 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '17'
-          cache: 'maven'
+          cache: 'gradle'
 
-      - name: Cache Maven dependencies
+      - name: Cache Gradle packages
         uses: actions/cache@v4
         with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          path: ~/.gradle/caches
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
           restore-keys: |
-            ${{ runner.os }}-m2-
+            ${{ runner.os }}-gradle-
 
-      - name: Build and run unit tests
-        run: mvn -B clean verify
+      - name: Build and run unit tests with Gradle
+        run: |
+          chmod +x gradlew
+          ./gradlew clean test --no-daemon
 
       - name: Run AI validation script
         # Assuming a script exists at scripts/validate_ai.sh that checks model integration
