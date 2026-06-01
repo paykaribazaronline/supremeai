@@ -222,7 +222,8 @@ public class VisionService {
     public String analyzeScreenshot(String base64Image) {
         return analyzeImage(base64Image, AnalysisType.ERROR_DEBUG)
             .map(VisionAnalysisResult::getSummary)
-            .block();
+            .subscribeOn(reactor.core.scheduler.Schedulers.boundedElastic())
+            .block(java.time.Duration.ofSeconds(30));
     }
 
     /**

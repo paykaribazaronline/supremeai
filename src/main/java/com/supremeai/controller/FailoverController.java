@@ -3,7 +3,16 @@ package com.supremeai.controller;
 import com.supremeai.fallback.ThirdOpinionOrchestrator;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.access.prepost.PreAuthorize;
+import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 
+import java.time.Duration;
+
+import java.util.Map;
+
+import reactor.core.scheduler.Schedulers;
+import java.time.Duration;
 import java.util.Map;
 
 @RestController
@@ -26,7 +35,9 @@ public class FailoverController {
             return ResponseEntity.badRequest().body(Map.of("error", "Missing 'prompt' field"));
         }
         try {
-            String result = thirdOpinionOrchestrator.executeWithSupremeIntelligence(taskCategory, errorSignature, prompt).block();
+            String result = thirdOpinionOrchestrator.executeWithSupremeIntelligence(taskCategory, errorSignature, prompt)
+                    .subscribeOn(Schedulers.boundedElastic())
+                    .block(Duration.ofSeconds(60));
             return ResponseEntity.ok(Map.of("status", "success", "result", result));
         } catch (Exception e) {
             return ResponseEntity.status(500).body(Map.of("status", "failed", "error", e.getMessage()));

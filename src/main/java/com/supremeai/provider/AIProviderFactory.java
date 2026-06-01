@@ -9,14 +9,18 @@ import com.supremeai.learning.SelfLearningRouter;
 import com.supremeai.learning.EnhancedSelfLearningRouter;
 import com.supremeai.model.APIProvider;
 import com.supremeai.model.ProviderTypeConfig;
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.context.annotation.Lazy;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -24,6 +28,25 @@ import java.util.concurrent.ConcurrentHashMap;
 public class AIProviderFactory {
 
     private static final Logger logger = LoggerFactory.getLogger(AIProviderFactory.class);
+
+    private static final int HEALTH_CACHE_MAX_SIZE = 25;
+    private static final long HEALTH_CACHE_TTL_MS = 30_000;
+
+    private final Cache<String, Boolean> providerHealthCache = Caffeine.newBuilder()
+            .maximumSize(HEALTH_CACHE_MAX_SIZE)
+            .expireAfterWrite(Duration.ofMillis(HEALTH_CACHE_TTL_MS))
+            .build(providerName -> {
+                try {
+                    AIProvider provider = getProvider(providerName);
+                    String testResponse = provider.generate("test")
+                            .subscribeOn(reactor.core.scheduler.Schedulers.boundedElastic())
+                            .block(Duration.ofSeconds(3));
+                    return testResponse != null && !testResponse.isEmpty();
+                } catch (Exception e) {
+                    logger.debug("Health check failed for {}: {}", providerName, e.getMessage());
+                    return false;
+                }
+            });
 
     @Autowired
     private ProviderMetadataService providerMetadataService;
@@ -37,10 +60,6 @@ public class AIProviderFactory {
     @Autowired
     private ProviderRepository providerRepository;
 
-    @Autowired
-    @Lazy
-    private ContextualAIRankingService contextualRankingService;
-
     @Autowired(required = false)
     private SelfLearningRouter selfLearningRouter;
 
@@ -50,7 +69,9 @@ public class AIProviderFactory {
     @Autowired
     private com.supremeai.agent.AgentRuleService ruleService;
 
-    private final Map<String, Boolean> providerHealthCache = new ConcurrentHashMap<>();
+    @Autowired
+    @Lazy
+    private ContextualAIRankingService contextualRankingService;
 
     private void injectMetadataService(AIProvider provider) {
         if (provider instanceof AbstractHttpProvider httpProvider) {
@@ -70,54 +91,41 @@ public class AIProviderFactory {
         String normalizedName = name.toLowerCase().trim();
         logger.info("[Factory] getProvider called: name={}, normalizedName={}, overrideApiKeyLength={}", name, normalizedName, overrideApiKey != null ? overrideApiKey.length() : "null");
 
+        if (isLocalFirstExcluded(normalizedName)) {
+            logger.info("[Factory] Provider '{}' is excluded under local-first policy; routing to stub/local fallback.", normalizedName);
+            return stubLocalProvider;
+        }
+
         APIProvider metadata = providerMetadataService != null ? providerMetadataService.getMetadata(normalizedName) : null;
-        
+
         if (metadata == null) {
             logger.info("[Factory] Provider '{}' not found in cache. Attempting DB query fallback...", normalizedName);
             try {
-                Mono<APIProvider> mono1 = providerRepository != null ? providerRepository.findById(name) : null;
-                APIProvider dbProvider = mono1 != null
-                        ? mono1.subscribeOn(reactor.core.scheduler.Schedulers.boundedElastic()).block(java.time.Duration.ofSeconds(2))
-                        : null;
+                Mono<APIProvider> lookupChain = Mono.empty();
+                if (providerRepository != null) {
+                    lookupChain = providerRepository.findById(name)
+                        .switchIfEmpty(providerRepository.findById(normalizedName))
+                        .switchIfEmpty(
+                            providerRepository.findAll()
+                                .filter(p -> {
+                                    String pName = p.getName() != null ? p.getName().toLowerCase().trim() : "";
+                                    String pId = p.getId() != null ? p.getId().toLowerCase().trim() : "";
+                                    String pDocId = p.getDocumentId() != null ? p.getDocumentId().toLowerCase().trim() : "";
+                                    return pName.equals(normalizedName) || pId.equals(normalizedName) || pDocId.equals(normalizedName);
+                                })
+                                .next()
+                        )
+                        .timeout(Duration.ofSeconds(5));
+                }
+                APIProvider dbProvider = lookupChain
+                        .subscribeOn(reactor.core.scheduler.Schedulers.boundedElastic())
+                        .block(Duration.ofSeconds(5));
                 if (dbProvider != null) {
                     metadata = dbProvider;
-                    logger.info("[Factory] Fallback found provider by ID '{}' in DB", name);
-                } else {
-                    Mono<APIProvider> mono2 = providerRepository != null ? providerRepository.findById(normalizedName) : null;
-                    dbProvider = mono2 != null
-                            ? mono2.subscribeOn(reactor.core.scheduler.Schedulers.boundedElastic()).block(java.time.Duration.ofSeconds(2))
-                            : null;
-                    if (dbProvider != null) {
-                        metadata = dbProvider;
-                        logger.info("[Factory] Fallback found provider by normalized ID '{}' in DB", normalizedName);
-                    } else {
-                        Flux<APIProvider> fluxAll = providerRepository != null ? providerRepository.findAll() : null;
-                        List<APIProvider> allDb = fluxAll != null
-                                ? fluxAll.collectList().subscribeOn(reactor.core.scheduler.Schedulers.boundedElastic()).block(java.time.Duration.ofSeconds(3))
-                                : null;
-                        if (allDb != null) {
-                            for (APIProvider p : allDb) {
-                                if (p.getName() != null && p.getName().toLowerCase().trim().equals(normalizedName)) {
-                                    metadata = p;
-                                    logger.info("[Factory] Fallback found provider by Name match '{}' in DB", p.getName());
-                                    break;
-                                }
-                                if (p.getId() != null && p.getId().toLowerCase().trim().equals(normalizedName)) {
-                                    metadata = p;
-                                    logger.info("[Factory] Fallback found provider by ID match '{}' in DB", p.getId());
-                                    break;
-                                }
-                                if (p.getDocumentId() != null && p.getDocumentId().toLowerCase().trim().equals(normalizedName)) {
-                                    metadata = p;
-                                    logger.info("[Factory] Fallback found provider by Document ID match '{}' in DB", p.getDocumentId());
-                                    break;
-                                }
-                            }
-                        }
-                    }
+                    logger.info("[Factory] Fallback found provider '{}' in DB", normalizedName);
                 }
             } catch (Exception e) {
-                logger.error("[Factory] DB query fallback failed for '{}'", normalizedName, e);
+                logger.error("[Factory] DB query fallback failed for '{}': {}", normalizedName, e.getMessage(), e);
             }
         }
 
@@ -126,8 +134,7 @@ public class AIProviderFactory {
         if (metadata != null && metadata.getBaseUrl() != null && !metadata.getBaseUrl().isBlank()) {
             String key = resolveKey(overrideApiKey, metadata.getApiKey(), normalizedName);
             String defaultModel = resolveModel(metadata);
-            logger.info("[Cloud-Only] Resolving provider '{}' from Firestore: baseUrl={}, model={}",
-                    normalizedName, metadata.getBaseUrl(), defaultModel);
+            logger.info("[Cloud-Only] Resolving provider '{}' from Firestore: baseUrl={}, model={}", normalizedName, metadata.getBaseUrl(), defaultModel);
             SupremeCloudProvider provider = new SupremeCloudProvider(key, normalizedName, defaultModel, metadata.getBaseUrl());
             injectMetadataService(provider);
             return provider;
@@ -144,8 +151,7 @@ public class AIProviderFactory {
                     + "Register a defaultModel in provider_types."
                 );
             }
-            logger.info("[Cloud-Only] Resolving provider '{}' from provider_types: baseUrl={}, model={}",
-                    normalizedName, typeConfig.getDefaultBaseUrl(), defaultModel);
+            logger.info("[Cloud-Only] Resolving provider '{}' from provider_types: baseUrl={}, model={}", normalizedName, typeConfig.getDefaultBaseUrl(), defaultModel);
             SupremeCloudProvider provider = new SupremeCloudProvider(key, normalizedName, defaultModel, typeConfig.getDefaultBaseUrl());
             injectMetadataService(provider);
             return provider;
@@ -161,7 +167,7 @@ public class AIProviderFactory {
         } catch (IllegalArgumentException e) {
             throw e;
         } catch (Exception e) {
-            logger.error("[Factory] getDefaultProvider failed for '{}': {}", normalizedName, e.toString());
+            logger.error("[Factory] getDefaultProvider failed for '{}': {}", normalizedName, e.getMessage(), e);
             throw new IllegalArgumentException("Unknown AI provider: " + name + " and no healthy default available.", e);
         }
     }
@@ -184,7 +190,6 @@ public class AIProviderFactory {
         if (typeConfig != null && typeConfig.getDefaultModel() != null && !typeConfig.getDefaultModel().isBlank()) {
             return typeConfig.getDefaultModel();
         }
-        // No model configured in Firestore api_providers or provider_types — fail explicit, not silent
         throw new IllegalStateException(
             "No model configured for provider '" + metadata.getName() + "'. "
             + "Set 'modelName' or 'models' in the Firestore api_providers document, "
@@ -192,10 +197,20 @@ public class AIProviderFactory {
     }
 
     public AIProvider getEnforcedProvider(String name) {
+        String normalizedName = name.toLowerCase().trim();
+        if (isLocalFirstExcluded(normalizedName)) {
+            logger.info("[Factory] getEnforcedProvider routed excluded provider '{}' to stub/local fallback.", normalizedName);
+            return stubLocalProvider;
+        }
         return new RuleEnforcingAIProvider(getProvider(name), ruleService);
     }
 
     public AIProvider getEnforcedProvider(String name, String overrideApiKey) {
+        String normalizedName = name.toLowerCase().trim();
+        if (isLocalFirstExcluded(normalizedName)) {
+            logger.info("[Factory] getEnforcedProvider routed excluded provider '{}' to stub/local fallback.", normalizedName);
+            return stubLocalProvider;
+        }
         return new RuleEnforcingAIProvider(getProvider(name, overrideApiKey), ruleService);
     }
 
@@ -288,7 +303,7 @@ public class AIProviderFactory {
                 List<APIProvider> dbList = providerRepository.findByStatus("active")
                         .collectList()
                         .subscribeOn(reactor.core.scheduler.Schedulers.boundedElastic())
-                        .block(java.time.Duration.ofSeconds(5));
+                        .block(Duration.ofSeconds(5));
                 if (dbList != null) {
                     activeProviders.addAll(dbList);
                 }
@@ -297,63 +312,39 @@ public class AIProviderFactory {
             }
         }
 
-        // Return stub provider if no external providers configured - LOCAL-FIRST MODE
         if (activeProviders.isEmpty()) {
             logger.info("[LOCAL-FIRST] No external AI providers configured. Using StubLocalProvider for offline operation.");
             return stubLocalProvider;
         }
 
         AIProvider provider = activeProviders.stream()
+                .filter(p -> !isLocalFirstExcluded(p.getName()))
                 .sorted(Comparator.comparingInt(APIProvider::getPriority))
                 .map(this::createProviderFromConfig)
                 .filter(Objects::nonNull)
                 .filter(this::isProviderHealthy_offElastic)
                 .findFirst()
-                .orElse(stubLocalProvider); // Fallback to stub if no healthy provider found
-        
+                .orElse(stubLocalProvider);
+
         return provider;
     }
 
-    /**
-     * Off-elastic copy of {@link #isProviderHealthy(AIProvider)} so callers on the
-     * Netty event-loop never block on the health-check.
-     */
     private boolean isProviderHealthy_offElastic(AIProvider provider) {
         String providerName = provider.getName();
-        if (providerHealthCache.containsKey(providerName)) {
-            return providerHealthCache.get(providerName);
-        }
         try {
-            String testResponse = provider.generate("test")
-                    .subscribeOn(reactor.core.scheduler.Schedulers.boundedElastic())
-                    .block(java.time.Duration.ofSeconds(3));
-            boolean isHealthy = testResponse != null && !testResponse.isEmpty();
-            providerHealthCache.put(providerName, isHealthy);
-            return isHealthy;
+            return providerHealthCache.get(providerName);
         } catch (Exception e) {
             logger.debug("Health check failed for {}: {}", providerName, e.getMessage());
-            providerHealthCache.put(providerName, false);
             return false;
         }
     }
 
     private boolean isProviderHealthy(AIProvider provider) {
         String providerName = provider.getName();
-
-        if (providerHealthCache.containsKey(providerName)) {
-            return providerHealthCache.get(providerName);
-        }
-
         try {
-            String testResponse = provider.generate("test")
-                    .subscribeOn(reactor.core.scheduler.Schedulers.boundedElastic())
-                    .block(java.time.Duration.ofSeconds(3));
-            boolean isHealthy = testResponse != null && !testResponse.isEmpty();
-            providerHealthCache.put(providerName, isHealthy);
-            return isHealthy;
+            return providerHealthCache.get(providerName);
         } catch (Exception e) {
             logger.debug("Health check failed for {}: {}", providerName, e.getMessage());
-            providerHealthCache.put(providerName, false);
             return false;
         }
     }
@@ -364,6 +355,7 @@ public class AIProviderFactory {
             if (!allMeta.isEmpty()) {
                 return allMeta.values().stream()
                         .map(APIProvider::getName)
+                        .filter(name -> !isLocalFirstExcluded(name))
                         .toArray(String[]::new);
             }
         }
@@ -373,14 +365,26 @@ public class AIProviderFactory {
             List<APIProvider> list = providerRepository.findAll()
                     .collectList()
                     .subscribeOn(reactor.core.scheduler.Schedulers.boundedElastic())
-                    .block(java.time.Duration.ofSeconds(5));
+                    .block(Duration.ofSeconds(5));
             if (list != null) {
-                return list.stream().map(APIProvider::getName).toArray(String[]::new);
+                return list.stream()
+                        .map(APIProvider::getName)
+                        .filter(name -> !isLocalFirstExcluded(name))
+                        .toArray(String[]::new);
             }
         } catch (Exception e) {
             logger.error("Failed to query supported providers synchronously", e);
         }
         return new String[0];
+    }
+
+    private boolean isLocalFirstExcluded(String normalizedName) {
+        if (normalizedName == null) return true;
+        String n = normalizedName.toLowerCase();
+        return n.equals("groq")
+                || n.equals("openai")
+                || n.equals("anthropic")
+                || n.equals("deepseek");
     }
 
     public String[] getAllProviderNames() {
@@ -409,7 +413,7 @@ public class AIProviderFactory {
     }
 
     public void clearHealthCache() {
-        providerHealthCache.clear();
+        providerHealthCache.invalidateAll();
         logger.info("Provider health cache cleared");
     }
 
@@ -432,14 +436,10 @@ public class AIProviderFactory {
         return null;
     }
 
-    /**
-     * Checks the health of a provider configuration reactively on elastic scheduler.
-     */
     public Mono<Boolean> checkProviderHealth(APIProvider config) {
         return Mono.fromCallable(() -> {
             AIProvider provider = createProviderFromConfig(config);
-            if (provider == null) return false;
-            return isProviderHealthy_offElastic(provider);
+            return provider != null && isProviderHealthy_offElastic(provider);
         }).subscribeOn(reactor.core.scheduler.Schedulers.boundedElastic());
     }
 }

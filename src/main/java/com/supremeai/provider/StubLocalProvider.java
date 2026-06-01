@@ -152,6 +152,12 @@ public class StubLocalProvider implements AIProvider {
         KNOWLEDGE_BASE.put("hello", "Hello! I'm SupremeAI. I can help you with programming, development, DevOps, databases, and more. What would you like to know?");
         KNOWLEDGE_BASE.put("hi", KNOWLEDGE_BASE.get("hello"));
         KNOWLEDGE_BASE.put("hey", KNOWLEDGE_BASE.get("hello"));
+        
+        // LLM/AI explanations
+        KNOWLEDGE_BASE.put("llm", "A Large Language Model (LLM) is an AI system trained on vast amounts of text data to understand and generate human-like language. Examples include GPT, Claude, Gemini, and Llama. LLMs can answer questions, write code, summarize text, and assist with various tasks through pattern recognition and prediction.");
+        KNOWLEDGE_BASE.put("large language model", KNOWLEDGE_BASE.get("llm"));
+        KNOWLEDGE_BASE.put("artificial intelligence", "Artificial Intelligence (AI) is the simulation of human intelligence in machines. It includes learning (gathering information), reasoning (using rules), and self-correction. AI is used in many applications like recommendation systems, image recognition, and natural language processing.");
+        KNOWLEDGE_BASE.put("ai", "AI stands for Artificial Intelligence. It's the simulation of human intelligence in machines that can learn, reason, and self-correct. AI powers everything from recommendation systems to autonomous vehicles.");
     }
 
     @Override
@@ -181,6 +187,21 @@ public class StubLocalProvider implements AIProvider {
         }
 
         String p = prompt.toLowerCase().trim();
+
+        // Handle "what is X" and similar factual questions FIRST
+        // These should be answered directly, not with system architecture
+        if (p.contains("what is") || p.contains("what are") || p.contains("explain") || p.contains("tell me about")) {
+            // Check for specific concepts in the prompt
+            for (Map.Entry<String, String> entry : KNOWLEDGE_BASE.entrySet()) {
+                String key = entry.getKey();
+                // For "what is X" questions, check if the topic keyword is in the prompt
+                if (p.contains("what is " + key) || p.contains("what are " + key) || 
+                    p.contains("explain " + key) || p.contains("tell me about " + key) ||
+                    p.contains("about " + key)) {
+                    return entry.getValue();
+                }
+            }
+        }
 
         // Try exact topic match first, then partial match
         for (Map.Entry<String, String> entry : KNOWLEDGE_BASE.entrySet()) {

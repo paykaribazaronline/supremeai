@@ -87,6 +87,11 @@ public class SelfHealingService {
     private static final long QUARANTINE_WINDOW_MS     = Duration.ofMinutes(5).toMillis();
     private static final long QUARANTINE_DURATION_MS   = Duration.ofMinutes(5).toMillis();
 
+    /** Domain → epoch-millis when quarantine expires */
+    private final Map<String, Long> domainQuarantineUntil = new ConcurrentHashMap<>();
+    /** Domain → list of failure timestamps */
+    private final Map<String, java.util.List<Long>> domainFailureTimestamps = new ConcurrentHashMap<>();
+    
     private final Map<String, Integer> errorPatterns = new ConcurrentHashMap<>();
     private final int MAX_ITERATIONS = 5;
 
@@ -361,6 +366,72 @@ public class SelfHealingService {
     }
 
     /**
+     * Quarantine a specific domain (Local-First Architecture).
+     * Called when BrowserService repeatedly fails to access a specific site.
+     */
+    public void recordDomainFailureAndMaybeQuarantine(String domain) {
+        long now = System.currentTimeMillis();
+        domainFailureTimestamps.computeIfAbsent(domain, k -> new java.util.ArrayList<>())
+                .add(now);
+
+        java.util.List<Long> recent = domainFailureTimestamps.get(domain);
+        if (recent != null) {
+            recent.removeIf(ts -> now - ts > QUARANTINE_WINDOW_MS);
+        }
+
+        if (recent != null && recent.size() >= QUARANTINE_FAILURE_THRESHOLD) {
+            long expiry = now + QUARANTINE_DURATION_MS;
+            domainQuarantineUntil.put(domain, expiry);
+            log.warn("[SELF-HEALING] Domain {} quarantined for {} minutes after {} failures.",
+                    domain, QUARANTINE_DURATION_MS / 60000, recent.size());
+
+            // Intelligence Gap Detection
+            if (learningOrchestrator != null) {
+                learningOrchestrator.detectIntelligenceGap("browser_access_" + domain);
+            }
+        }
+    }
+
+    /** Check if a domain is quarantined. */
+    public boolean isDomainQuarantined(String domain) {
+        Long expiry = domainQuarantineUntil.get(domain);
+        return expiry != null && System.currentTimeMillis() < expiry;
+    }
+
+    /**
+     * Generate an Improvement Proposal and send it to KingsMode (Admin Queue).
+     * @param currentState System's current state.
+     * @param proposedChange The new library/alternative found.
+     * @param reasoning Why this is good.
+     * @param expectedImpact Expected improvements in speed, security, etc.
+     */
+    public void proposeImprovementToKingsMode(String currentState, String proposedChange, String reasoning, String expectedImpact) {
+        String proposalId = "PROPOSAL_" + System.currentTimeMillis();
+        
+        StringBuilder proposalInBangla = new StringBuilder();
+        proposalInBangla.append("🌟 **SupremeAI Improvement Proposal (KingsMode)** 🌟\n\n");
+        proposalInBangla.append("১. **বর্তমান অবস্থা (Current State):** ").append(currentState).append("\n");
+        proposalInBangla.append("২. **সাজেশন (Proposed Change):** ").append(proposedChange).append("\n");
+        proposalInBangla.append("৩. **কেন অ্যাপ্রুভ করা উচিত (Reasoning):** ").append(reasoning).append("\n");
+        proposalInBangla.append("৪. **উন্নতি (Expected Impact):** ").append(expectedImpact).append("\n");
+        
+        log.info("[KINGSMODE] Generated Proposal ID: {}\n{}", proposalId, proposalInBangla.toString());
+        
+        // In a fully integrated environment, we save this to a database table read by getPendingConfirmations
+        try {
+            globalKnowledgeBase.recordSuccessWithPermission(
+                proposalId,
+                proposalInBangla.toString(),
+                "kingsmode-pending",
+                System.currentTimeMillis(),
+                0.90
+            );
+        } catch (Exception e) {
+            log.warn("[KINGSMODE] Failed to save proposal to knowledge base: {}", e.getMessage());
+        }
+    }
+
+    /**
      * Recover failed providers using fallback mechanisms.
      * Attempts to re-activate quarantined providers whose quarantine period has expired,
      * and delegates to the fallback orchestrator for active recovery.
@@ -594,58 +665,57 @@ public class SelfHealingService {
                         : Mono.just(true);
 
         return defaultProviderIdMono
-.flatMap(defaultProviderId -> Mono.fromCallable(() -> {
-                     int bestIteration = 0;
-                     var bestVersionRef = new java.util.concurrent.atomic.AtomicReference<>(generateInitialCode(prompt));
+                .flatMap(defaultProviderId -> {
+                    String initialCode = generateInitialCode(prompt);
+                    return Mono.just(reactor.util.function.Tuples.of(0, initialCode))
+                            .expand(state -> {
+                                int iteration = state.getT1();
+                                String currentCode = state.getT2();
 
-                     for (int iteration = 0; iteration < MAX_ITERATIONS; iteration++) {
-                         final int currentIteration = iteration; // effectively final for lambda capture
-                         final String bestVersion = bestVersionRef.get();
-                         log.info("[SELF-HEALING] Iteration {}: evaluating code", currentIteration + 1);
-                         if (isCodePerfect(bestVersion)) {
-                             log.info("[SELF-HEALING] Code passed quality gate after {} iterations", currentIteration + 1);
-                             return bestVersion;
-                         }
+                                log.info("[SELF-HEALING] Iteration {}: evaluating code", iteration + 1);
+                                if (isCodePerfect(currentCode)) {
+                                    log.info("[SELF-HEALING] Code passed quality gate after {} iterations", iteration + 1);
+                                    return Mono.empty();
+                                }
 
-                         // --- non-blocking approval vote (runs on boundedElastic) ---
-                         approvalGate.apply(defaultProviderId)
-                                 .subscribeOn(Schedulers.boundedElastic())
-                                 .flatMap(approved -> {
-                                     final String currentBest = bestVersionRef.get();
-                                     if (approved != null && !approved) {
-                                         log.warn("[SELF-HEALING] Council disapproved changes at iteration {}; returning best-known version.",
-                                                 currentIteration + 1);
-                                         return Mono.just(currentBest);   // abort early
-                                     }
-                                     log.info("[SELF-HEALING] Iteration {}: approval granted, applying improvement pass", currentIteration + 1);
+                                return approvalGate.apply(defaultProviderId)
+                                        .flatMap(approved -> {
+                                            if (approved != null && !approved) {
+                                                log.warn("[SELF-HEALING] Council disapproved changes at iteration {}; returning best-known version.",
+                                                        iteration + 1);
+                                                return Mono.empty(); // Stop loop, return best-known
+                                            }
+                                            log.info("[SELF-HEALING] Iteration {}: approval granted, applying improvement pass", iteration + 1);
+                                            String improved = improveCode(currentCode, prompt, iteration);
 
-                                     // --- apply one improvement pass ---
-                                     String improved = improveCode(currentBest, prompt, currentIteration);
-                                     if (isCodePerfect(improved)) {
-                                         log.info("[SELF-HEALING] Code passed quality gate after {} improvements", currentIteration + 1);
-                                         bestVersionRef.set(improved);
-                                         return Mono.just(improved);        // perfect — skip remaining iterations
-                                     }
-                                     bestVersionRef.set(improved);
-                                     return Mono.empty();                  // continue loop
-                                 })
-                                .onErrorResume(err -> {
-                                    log.warn("[SELF-HEALING] Approval vote failed at iteration {} (ignoring and continuing): {}",
-                                            currentIteration + 1, err.getMessage());
-                                    return Mono.empty();                  // treat as approved on error
-                                })
-.block(); // safe: we are already on boundedElastic
+                                            if (isCodePerfect(improved)) {
+                                                log.info("[SELF-HEALING] Code passed quality gate after {} improvements", iteration + 1);
+                                                return Mono.just(reactor.util.function.Tuples.of(MAX_ITERATIONS + 99, improved)); // Stop loop via takeUntil
+                                            }
+                                            return Mono.just(reactor.util.function.Tuples.of(iteration + 1, improved));
+                                        })
+                                        .onErrorResume(err -> {
+                                            log.warn("[SELF-HEALING] Approval vote failed at iteration {} (ignoring and continuing): {}",
+                                                    iteration + 1, err.getMessage());
+                                            String improved = improveCode(currentCode, prompt, iteration);
 
-                         if (isCodePerfect(bestVersionRef.get())) {
-                             log.info("[SELF-HEALING] Code passed quality gate after {} improvements", iteration + 1);
-                             return bestVersionRef.get();
-                         }
-                     }
-                     log.warn("[SELF-HEALING] Max iterations ({}) reached; returning last-known version",
-                             MAX_ITERATIONS);
-                     return bestVersionRef.get();
+                                            if (isCodePerfect(improved)) {
+                                                log.info("[SELF-HEALING] Code passed quality gate after {} improvements", iteration + 1);
+                                                return Mono.just(reactor.util.function.Tuples.of(MAX_ITERATIONS + 99, improved)); // Stop loop via takeUntil
+                                            }
+                                            return Mono.just(reactor.util.function.Tuples.of(iteration + 1, improved));
+                                        });
+                            })
+                            .takeUntil(state -> state.getT1() >= MAX_ITERATIONS)
+                            .last()
+                            .map(state -> {
+                                if (state.getT1() == MAX_ITERATIONS) {
+                                    log.warn("[SELF-HEALING] Max iterations ({}) reached; returning last-known version", MAX_ITERATIONS);
+                                }
+                                return state.getT2();
+                            });
                 })
-                .subscribeOn(Schedulers.boundedElastic()));
+                .subscribeOn(Schedulers.boundedElastic());
     }
 
     // ─────────────────────────────────────────────────────────────────

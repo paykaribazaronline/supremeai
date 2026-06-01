@@ -1,27 +1,75 @@
 package com.supremeai.skill;
 
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 import jakarta.annotation.PostConstruct;
 import java.util.*;
 import java.nio.file.*;
 
-/**
- * Skill Engine - Plan 24 Phase 1
- * Handles SKILL.md auto-discovery and registration (Pinokio-compatible)
- */
 @Component
 public class SkillEngine {
     
     private final Map<String, Skill> skillRegistry = new HashMap<>();
     
+    @Value("${app.skills.base-path:#{null}}")
+    private String configuredBasePath;
+    
+    @Value("${app.skills.config-path:config/skills-local.json}")
+    private String skillsConfigPath;
+    
+    @Value("${app.skills.lock-path:config/skills-lock.json}")
+    private String skillsLockPath;
+    
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private Environment environment;
+    
     @PostConstruct
     public void init() {
-        scanSkills("/home/nazifarabbu/supremeai/.agents/skills");
+        List<String> candidates = new ArrayList<>();
+        if (configuredBasePath != null && !configuredBasePath.isBlank()) {
+            candidates.add(configuredBasePath);
+        }
+        candidates.add(resolveDefaultBasePath());
+        candidates.add(".agents/skills");
+        for (String basePath : candidates) {
+            scanSkills(basePath);
+        }
+        loadSkillsFromConfig(skillsConfigPath);
+        loadSkillsFromConfig(skillsLockPath);
     }
     
-    /**
-     * Scan path recursively for SKILL.md files and register them
-     */
+    private String resolveDefaultBasePath() {
+        if (environment != null) {
+            String explicit = environment.getProperty("user.home") + "/supremeai/.agents/skills";
+            return explicit;
+        }
+        return ".agents/skills";
+    }
+    
+    private void loadSkillsFromConfig(String configPath) {
+        try {
+            Path path = Paths.get(configPath);
+            if (!Files.exists(path)) return;
+            String content = Files.readString(path);
+            String json = content.substring(content.indexOf('{'));
+            // extremely lightweight parsing without external json libs
+            String[] skillEntries = json.split("\"");
+            for (int i = 0; i < skillEntries.length - 1; i++) {
+                if ("skillPath".equals(skillEntries[i])) {
+                    String skillPath = skillEntries[i + 1];
+                    Path skillFile = path.getParent().resolve(skillPath).normalize();
+                    if (Files.exists(skillFile)) {
+                        String skillMd = Files.readString(skillFile);
+                        registerSkill(skillMd);
+                    }
+                }
+            }
+        } catch (Exception e) {
+            // ignore
+        }
+    }
+    
     public void scanSkills(String basePath) {
         try {
             Path path = Paths.get(basePath);
@@ -47,9 +95,6 @@ public class SkillEngine {
         return skillRegistry;
     }
     
-    /**
-     * Register skill from SKILL.md content
-     */
     public void registerSkill(String skillMdContent) {
         Skill skill = parseSkillMd(skillMdContent);
         if (skill.getName() != null && !skill.getName().isEmpty()) {
@@ -57,9 +102,6 @@ public class SkillEngine {
         }
     }
     
-    /**
-     * Parse SKILL.md content (simplified Pinokio format)
-     */
     private Skill parseSkillMd(String content) {
         Skill skill = new Skill();
         boolean parsingTriggers = false;
@@ -82,25 +124,20 @@ public class SkillEngine {
         return skill;
     }
     
-    /**
-     * Match user input to registered skills
-     */
     public Skill matchSkill(String userInput) {
+        if (userInput == null) return null;
+        String lowerInput = userInput.toLowerCase();
         return skillRegistry.values().stream()
-            .filter(skill -> skill.matches(userInput))
+            .filter(skill -> skill.matches(lowerInput))
             .findFirst()
             .orElse(null);
     }
     
-    /**
-     * Skill POJO
-     */
     static class Skill {
         private String name;
         private String description;
         private List<String> triggers = new ArrayList<>();
         
-        // Getters/setters
         public String getName() { return name; }
         public void setName(String name) { this.name = name; }
         public String getDescription() { return description; }
@@ -108,10 +145,11 @@ public class SkillEngine {
         public List<String> getTriggers() { return triggers; }
         
         public boolean matches(String input) {
-            String lowerInput = input.toLowerCase();
-            if (name != null && lowerInput.contains(name.toLowerCase())) return true;
+            if (input == null) return false;
+            if (name != null && input.contains(name.toLowerCase())) return true;
             for (String t : triggers) {
-                if (lowerInput.contains(t.toLowerCase())) return true;
+                if (t == null) continue;
+                if (input.contains(t.toLowerCase())) return true;
             }
             return false;
         }

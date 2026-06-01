@@ -117,22 +117,10 @@ public class ThirdOpinionOrchestrator {
         });
     }
 
-    private Mono<String> generateForProvider(String providerId, String serviceName, CircuitBreaker cb,
-                                              AIProvider provider, String prompt) {
-        return Mono.fromCallable(() ->
-                        retryExecutor.executeWithCircuitBreaker(
-                                providerId, serviceName, cb,
-                                () -> {
-                                    try {
-                                        return (String) provider.generate(prompt)
-                                                .subscribeOn(Schedulers.boundedElastic())
-                                                .block(Duration.ofSeconds(60));
-                                    } catch (Exception e) {
-                                        throw new RuntimeException(e);
-                                    }
-                                }
-                        )
-                ).subscribeOn(Schedulers.boundedElastic());
+    private Mono<String> generateForProvider(String providerId, String serviceName, CircuitBreaker cb, AIProvider provider, String prompt) {
+        return provider.generate(prompt)
+                .subscribeOn(Schedulers.boundedElastic())
+                .timeout(Duration.ofSeconds(15));
     }
 
     public Mono<String> executeWithSupremeIntelligence(String taskCategory, String errorSignature, String prompt) {

@@ -25,7 +25,7 @@ test.describe('Additional Feature Tests', () => {
 
     test('API response time', async ({ request }) => {
       const start = Date.now();
-      await request('/api/health');
+      await request.fetch('/api/health');
       const end = Date.now();
       const responseTime = end - start;
       expect(responseTime).toBeLessThan(1000);
@@ -85,7 +85,7 @@ test.describe('Additional Feature Tests', () => {
     });
 
     test('API error handling', async ({ request }) => {
-      const response = await request('/api/nonexistent');
+      const response = await request.fetch('/api/nonexistent');
       expect(response.status()).toBe(404);
     });
   });

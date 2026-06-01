@@ -28,7 +28,7 @@ test.describe('Integration Tests - Real System Features', () => {
     });
 
     test('Knowledge can be queried', async ({ request }) => {
-      const response = await request('/api/learning/query', {
+      const response = await request.fetch('/api/learning/query', {
         method: 'POST',
         data: JSON.stringify({ query: 'AI fundamentals' })
       });
@@ -112,7 +112,7 @@ test.describe('Integration Tests - Real System Features', () => {
 
   test.describe('Cloud Services', () => {
     test('Firebase services active', async ({ request }) => {
-      const healthResponse = await request('/api/health');
+      const healthResponse = await request.fetch('/api/health');
       expect(healthResponse.status()).toBe(200);
     });
 

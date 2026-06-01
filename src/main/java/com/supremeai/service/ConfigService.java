@@ -17,6 +17,7 @@ import com.google.cloud.firestore.ListenerRegistration;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -64,6 +65,27 @@ public class ConfigService {
         logger.info("[CONFIG] Initializing system configuration...");
 
         refreshCache()
+            .flatMap(config -> {
+                boolean needsUpdate = false;
+                if (!config.getSettings().containsKey("agentic.web.targets")) {
+                    config.getSettings().put("agentic.web.targets", 
+                        "- https://stackoverflow.com/search?q=%s (For programming errors and bugs)\n" +
+                        "- https://pub.dev/packages?q=%s (For Flutter and Dart packages)\n" +
+                        "- https://gemini.google.com/app?q=%s (For creative writing, songs, translations, and poems)\n" +
+                        "- https://kimi.moonshot.cn/chat?q=%s (For complex analysis, math, and deep research)\n" +
+                        "- https://huggingface.co/chat?q=%s (For free open-source AI models and coding help)\n" +
+                        "- https://github.com/search?q=%s&type=code (For open-source code examples and repositories)\n" +
+                        "- https://developer.mozilla.org/en-US/search?q=%s (For JavaScript, HTML, and CSS web documentation)\n" +
+                        "- https://en.wikipedia.org/w/index.php?search=%s (For general factual knowledge and history)\n" +
+                        "- https://html.duckduckgo.com/html/?q=%s (For latest news, current events, and general info)"
+                    );
+                    needsUpdate = true;
+                }
+                if (needsUpdate) {
+                    return updateConfig(config);
+                }
+                return Mono.just(config);
+            })
             .subscribeOn(reactor.core.scheduler.Schedulers.boundedElastic())
             .subscribe(
                 config -> logger.info("[CONFIG] System configuration initialized: v{}", config.getVersion()),
@@ -104,6 +126,17 @@ public class ConfigService {
     @PreDestroy
     public void cleanup() {
         if (listenerRegistration != null) listenerRegistration.remove();
+        // Shutdown the dedicated listener executor to avoid thread leaks on application stop
+        try {
+            listenerExecutor.shutdown();
+            if (!listenerExecutor.awaitTermination(10, java.util.concurrent.TimeUnit.SECONDS)) {
+                logger.warn("[CONFIG] Listener executor did not terminate, forcing shutdown");
+                listenerExecutor.shutdownNow();
+            }
+        } catch (InterruptedException e) {
+            logger.error("[CONFIG] Interrupted during executor shutdown", e);
+            Thread.currentThread().interrupt();
+        }
     }
 
     // ─── Defaults ──────────────────────────────────────────────────────────
@@ -138,6 +171,17 @@ public class ConfigService {
         config.getSettings().put("max_recent_logs", 1000);
         config.getSettings().put("scraper_rate_limit_requests", 10);
         config.getSettings().put("scraper_rate_limit_window", 60);
+        config.getSettings().put("agentic.web.targets", 
+            "- https://stackoverflow.com/search?q=%s (For programming errors and bugs)\n" +
+            "- https://pub.dev/packages?q=%s (For Flutter and Dart packages)\n" +
+            "- https://gemini.google.com/app?q=%s (For creative writing, songs, translations, and poems)\n" +
+            "- https://kimi.moonshot.cn/chat?q=%s (For complex analysis, math, and deep research)\n" +
+            "- https://huggingface.co/chat?q=%s (For free open-source AI models and coding help)\n" +
+            "- https://github.com/search?q=%s&type=code (For open-source code examples and repositories)\n" +
+            "- https://developer.mozilla.org/en-US/search?q=%s (For JavaScript, HTML, and CSS web documentation)\n" +
+            "- https://en.wikipedia.org/w/index.php?search=%s (For general factual knowledge and history)\n" +
+            "- https://html.duckduckgo.com/html/?q=%s (For latest news, current events, and general info)"
+        );
         return config;
     }
 
@@ -183,6 +227,8 @@ public class ConfigService {
      * Sync helper — resolves a setting value honouring SystemWorkRule overrides.
      * Only call from non-reactive (blocking) threads.
      */
+    private static final Duration BLOCK_TIMEOUT = Duration.ofSeconds(10);
+
     @SuppressWarnings("unchecked")
     public <T> T getEffectiveSetting(String key, T defaultVal) {
         if (systemWorkRuleService != null) {
@@ -190,7 +236,7 @@ public class ConfigService {
                 String ruleVal = systemWorkRuleService.getRuleByKey(key)
                         .map(SystemWorkRule::getValue)
                         .onErrorReturn(null)
-                        .block();
+                        .block(BLOCK_TIMEOUT);
                 if (ruleVal != null) {
                     try { return (T) ruleVal; } catch (ClassCastException e) { /* fall through */ }
                 }
@@ -313,4 +359,6 @@ public class ConfigService {
         current.getSettings().put(key, value);
         return updateConfig(current);
     }
+
+
 }

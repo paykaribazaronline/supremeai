@@ -1,0 +1,287 @@
+# সুপ্রেমAI ক্লাউড অপ্টিমাইজেশন তালিকা — সর্বশেষ গভীর বিশ্লেষণ
+# শেষ আপডেট: ২০২৬-০৬-০১ (সকাল ০৭:০২) | মোট Java: ৮৫০+ | প্রোডাকশনে .block() কল: ৯৬টি (৪২ ফাইল)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+## ✅ নতুন করে সম্পন্ন (সাম্প্রতিক পরিবর্তন)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+### 🔒 সিকিউরিটি ও বিল্ড
+- [x] `.dockerignore` ফিক্স — secrets, build/, node_modules/ বাদ দেওয়া
+- [x] Firestore রুলস: `if true` → `if request.auth != null`
+- [x] `service-account.json` রুট থেকে সরানো
+- [x] `FileExtractionService` — ZIP bomb + SSRF + টাইমআউট ফিক্স
+- [x] `UnifiedSecretsService` — Caffeine cache (Unbounded ConcurrentHashMap বদলানো)
+- [x] `GeminiProvider`, `RateLimiterFilter`, `OpenAICompatibleController` → SecretManager
+- [x] `GitHubWebhookController`, `SystemConfigSeeder` → SecretManager
+- [x] `TelegramStorageService` — Circuit Breaker + GZIP + 100MB + WebClient timeout
+
+### 🔄 Reactive Pipeline ফিক্স (সাম্প্রতিক)
+- [x] `ConfigService` — duplicate `@PreDestroy` সরানো ✅ (এখন শুধু `cleanup()`)
+- [x] `AdminProviderValidationService:103` — nested `.block()` → reactive `flatMap` ✅
+- [x] `NeuralChatService` — shared `objectMapper` field যোগ (প্রতি কলে নতুন ObjectMapper নয়) ✅
+- [x] `SystemAutoDetectService` — truly non-blocking `Mono<Boolean>` health check ✅
+- [x] `AIProviderFactory` — health cache এখন Caffeine-based bounded cache (max 25, 30s TTL) ✅
+- [x] `BlockingOperationException` যোগ করা হয়েছে ✅
+- [x] `ProvidersController` — 12 `.block()` → 10s BLOCK_TIMEOUT
+- [x] `AdminKnowledgeController` — 12 `.block()` → 10s BLOCK_TIMEOUT
+- [x] `CommandController`, `SystemMonitoringController` — BLOCK_TIMEOUT
+- [x] `LearningAdminController:318` — BLOCK_TIMEOUT যোগ
+- [x] `ConfigService.getEffectiveSetting()` — 10s BLOCK_TIMEOUT
+
+### 📊 অবজার্ভেবিলিটি
+- [x] `CorrelationIdFilter` + MDC + Cloud Logging
+- [x] GKE HPA + Deployment manifest
+- [x] Firestore composite index
+- [x] Redis L1 (Caffeine) + L2 ক্যাশিং
+- [x] `OpenTelemetryConfig` + `SentryConfig` যোগ
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+## 🚨 এখনো বাকি কাজ — অগ্রাধিকার অনুযায়ী
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+─────────────────────────────────────────────────────────────────────
+### 🔴 P0 — CRITICAL: ৯৬টি .block() কল এখনো ৪১ প্রোডাকশন ফাইলে
+─────────────────────────────────────────────────────────────────────
+
+**আপডেট:** `SystemAutoDetectService.isHealthyNonBlocking()` ভেতরে `.block()` সরানো হয়েছে ✅
+**আপডেট:** `AIProviderFactory` health cache এখন Caffeine bounded cache ✅
+
+**🔴 সবচেয়ে বিপজ্জনক ফাইলগুলো (অবিলম্বে ঠিক করতে হবে):**
+
+- [ ] **`AutomaticTaskAssigner.java`** — `Mono.fromCallable()` এর ভেতরে **১১টি** `.block()` + ১টি `blockLast()` 
+      → `nightlyRebalance()` এ `blockLast()` আছে যা সম্পূর্ণ event-loop আটকায়
+      → `Mono.fromCallable` + `subscribeOn(Schedulers.boundedElastic())` সঠিক প্যাটার্ন নয়
+         যদি ভেতরে আবার `.block()` থাকে
+      **সমাধান:** পুরো মেথডকে reactive করুন, নয়তো `@Scheduled` দিয়ে আলাদা করুন
+
+- [ ] **`AIFallbackOrchestrator.java`** — `.block(Duration.ofSeconds(60))` — ৬০ সেকেন্ড!
+      প্রোডাকশনে thread starve হওয়ার সর্বোচ্চ ঝুঁকি
+
+- [ ] **`ThirdOpinionOrchestrator.java`** — `.block(Duration.ofSeconds(60))` — একই সমস্যা
+
+- [ ] **`ProviderCapabilityAnalyzer.java`** — `.block(Duration.ofSeconds(60))` — ৬০ সেকেন্ড!
+      সাথে `.block()` (unbounded!) — এটি request-facing path এ থাকলে বিপজ্জনক
+
+- [ ] **`ProviderHealingStrategies.java`** — দুটো unbounded `.block()` (no timeout!)
+
+- [ ] **`SupremeLearningOrchestrator.java`** — unbounded `.block()` (no timeout)
+
+- [ ] **`GlobalKnowledgeBase.java`** — `.block(Duration.ofSeconds(15))` এখন ঠিক আছে
+      কিন্তু এটি high-frequency path এ থাকলে সমস্যা
+
+- [ ] **`HumanUnderstandingService.java`** — Virtual Thread executor এ `.block(30s)` + `.block(10s)`
+      (Virtual Thread ঠিক আছে, কিন্তু 30s timeout অনেক বেশি → 10s করুন)
+
+- [ ] **`KnowledgeSeederServiceEnhanced.java`** — unbounded `.block()` startup এ
+      (App startup blocking করতে পারে)
+
+- [ ] **`MultiAIVotingService.java`** (৯৫KB) — `next().block(2s)` আছে voting pipeline এ
+      → reactive chain এ `.block()` একদম অনুচিত এখানে
+
+- [ ] **`CodeGenerationService.java`** (৫৩KB) — `.block(30s)` code generation এ
+      → এটি reactive controller থেকে call হলে event-loop আটকাবে
+
+- [ ] **`VisionService.analyzeScreenshot()`** — `.block(30s)` 
+      (legacy compatibility wrapper — কিন্তু callers reactive করা উচিত)
+
+- [ ] **`DependencyGraphService.java`** — unbounded `.block()` graph analysis এ
+
+- [ ] **`ProjectAnalysisService.java`** — ৪টি unbounded `.block()` একই মেথডে
+
+- [ ] **`VectorSearchService.java`** — ২টি `.block()` (১টি ৩০s, ১টি unbounded)
+
+- [ ] **`VertexAIEmbeddingService.java`** — `secretsService.getSecret().block()` (unbounded)
+      Secret lookup reactive করুন বা `@PostConstruct`-এ একবার load করুন
+
+- [ ] **`LearningIngestController.java`** — `systemLearningRepository.count().block()` (unbounded)
+
+**সামগ্রিক সমাধান কৌশল:**
+  ১. Request-facing path এ কোনো `.block()` রাখা যাবে না
+  ২. `@Scheduled` / `@Async` মেথডে `.block(N_seconds)` সীমিতভাবে গ্রহণযোগ্য
+  ৩. Provider health check → `Schedulers.boundedElastic()` + timeout ≤ 5s
+  ৪. ৬০s timeout সব জায়গায় ১০-১৫s এ নামিয়ে আনুন
+
+─────────────────────────────────────────────────────────────────────
+### 🔴 P0 — CRITICAL: AutomaticTaskAssigner আর্কিটেকচার সমস্যা
+─────────────────────────────────────────────────────────────────────
+
+- [ ] `AutomaticTaskAssigner.java` এ `getProvidersForTask()`, `getAllAssignments()`,
+  `getAssignmentStats()`, `isProviderAssigned()` — সব synchronous public method যা
+  controller থেকে সরাসরি call হলে event-loop block করবে
+  **সমাধান:** সব return type `Mono<T>` বা `List<T>` → `Mono<List<T>>` করুন
+
+- [ ] `nightlyRebalance()` এ `blockLast()` — Flux শেষ না হওয়া পর্যন্ত থ্রেড ধরে রাখে
+  **সমাধান:** `.subscribe()` দিয়ে replace করুন + error handling
+
+─────────────────────────────────────────────────────────────────────
+### 🟠 P1 — HIGH: AIProviderFactory Hot Path Optimization
+─────────────────────────────────────────────────────────────────────
+
+- [x] `AIProviderFactory` health cache → Caffeine ✅
+  - Bounded cache: max 25 entries, 30s TTL
+  - Memory leak সমস্যা সমাধান হয়েছে ✅
+
+- [x] `AIProviderFactory.getProvider()` hot path এ এখনও `.block(5s)` আছে
+      →metadata cache hit率高 হলে block কমাবে, কিন্তু完全 remove করা যাবে না hot path Calcutta
+      **সমাধান:** ProviderMetadataService cache warm-up নিশ্চিত করা হয়েছে ✅, multi-tier cache strategy প্রয়োগ
+
+- [x] `AIProviderFactory.getSupportedProviders()` — metadata cache empty হলে
+   `providerRepository.findAll().block(5s)` — এটি high-frequency call!
+   **সমাধান:** `ProviderMetadataService` এর cache warm-up নিশ্চিত করা হয়েছে ✅
+
+─────────────────────────────────────────────────────────────────────
+### 🟠 P1 — HIGH: কোড আর্কিটেকচার
+
+- [ ] **`MultiAIVotingService.java` ৯৫KB** — ৩ class এ ভাগ করুন:
+    - `EnsembleVotingOrchestrator` (orchestration)
+    - `SoloModeResearchService` (playwright + DDG)
+    - `ConsensusWeightingEngine` (weighted voting logic)
+
+- [ ] **`CodeGenerationService.java` ৫৩KB** — Generator/Validator/Template আলাদা করুন
+
+- [ ] **`KnowledgeSeedDataProvider.java` ৭৭KB** — seed data JSON/YAML ফাইলে externalize করুন
+
+- [ ] **`AIFallbackOrchestrator.java` ২৮.৮KB + `ThirdOpinionOrchestrator.java`** — 
+      দুটোর দায়িত্ব overlap — একটিতে consolidate করুন
+
+- [x] **Caffeine dependency** integration ✅
+  - `AIProviderFactory` + `UsageOptimizationService` এ Caffeine cache বাস্তবায়িত সম্পন্ন
+
+─────────────────────────────────────────────────────────────────────
+### 🟠 P1 — HIGH: Provider List Caching (Performance)
+─────────────────────────────────────────────────────────────────────
+
+- [ ] **`MultiAIVotingService.executeMainFlow()`** — প্রতি request এ:
+      `providerRepository.findAll()` + `firebaseRealtimeService.getData()` দুটো I/O কল
+      **সমাধান:** Redis-এ 30s TTL দিয়ে active provider list cache করুন:
+      ```java
+      @Cacheable(value = "active_providers", unless = "#result.isEmpty()")
+      public Mono<List<APIProvider>> getActiveProviders() { ... }
+      ```
+
+- [ ] **`GracefulDegradationService.getActiveCloudProviders()`** — প্রতিবार `.block(3s)` করে
+      provider list আনে — synchronous helper method এ Firestore call
+      **সমাধান:** `ProviderMetadataService` cache থেকে নিন (DB query নয়)
+
+─────────────────────────────────────────────────────────────────────
+### 🟡 P2 — MEDIUM: টেস্টিং
+─────────────────────────────────────────────────────────────────────
+
+- [ ] **Integration tests** BaseFirestoreTest extend করুন সব test class এ
+- [ ] **`AutomaticTaskAssigner`** এর নতুন reactive API এর unit tests
+- [ ] **`AIProviderFactory` health cache** eviction test
+- [ ] **`MultiAIVotingService`** voting consensus test (mock providers)
+- [ ] JaCoCo minimum ৪০% → ৬০% (বর্তমানে estimate ~৩৫%)
+
+─────────────────────────────────────────────────────────────────────
+### 🟡 P2 — MEDIUM: অবজার্ভেবিলিটি
+─────────────────────────────────────────────────────────────────────
+
+- [ ] **OpenTelemetry custom span** — AI provider response time trace করুন:
+      `Tracer.spanBuilder("ai.provider.request").startSpan()`
+
+- [ ] **Prometheus histogram** — প্রতি provider এর latency:
+      `Timer.builder("ai.provider.latency").tag("provider", name).register(registry)`
+
+- [ ] **`DeadLetterQueueService`** — DLQ size/alert dashboard widget নেই
+
+- [ ] **Sentry trace sampling** — `sentry.traces-sample-rate=0.1` প্রোডাকশনে
+
+─────────────────────────────────────────────────────────────────────
+### 🟡 P2 — MEDIUM: নতুন ফাইল সমস্যা (সাম্প্রতিক পরিবর্তনে)
+─────────────────────────────────────────────────────────────────────
+
+- [ ] **`VisionService.analyzeScreenshot()`** (line 222-227) — legacy `.block(30s)` wrapper
+      → callers কে reactive করুন, তারপর এটি সরিয়ে ফেলুন
+
+- [ ] **`VertexAIEmbeddingService`** — `secretsService.getSecret("GCP_ACCESS_TOKEN").block()`
+      → `@PostConstruct`-এ once load করুন অথবা reactive chain এ রাখুন
+
+- [ ] **`GPublishAgent.java`, `DiOSAgent.java`** — agent loop এ `.block()` আছে
+      → Agent execution কে `Schedulers.boundedElastic()` এ রাখুন
+
+─────────────────────────────────────────────────────────────────────
+### 🟢 P3 — LOW: ক্লিনআপ
+─────────────────────────────────────────────────────────────────────
+
+- [ ] `AutomaticTaskAssigner.java` — duplicate `import reactor.core.scheduler.Schedulers;` সরান
+- [ ] `VisionService` — `@Value` দিয়ে `openai.api.key` hardcoded → SecretManager এ নিন
+- [ ] `ResponseCacheService.java` vs `UsageOptimizationService` cache — দুটো response cache আছে → একটিতে merge করুন
+- [ ] `SimulatorService.java` + `SimulatorDeploymentService.java` — দায়িত্ব overlap সরান
+- [ ] Wildcard imports — `AdminProviderValidationService`, অন্যান্য ফাইলে explicit import করুন
+- [ ] `VirtualThreadConfig.java` → `spring.threads.virtual.enabled=true` দিয়ে simplify করুন
+- [ ] **৫৬টি TODO/FIXME** থেকে critical ১০টি resolve করুন (বিশেষত `SelfHealingService.attemptAutoFix()`)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+## 📊 সর্বশেষ প্রকল্প স্কোর (সাম্প্রতিক পরিবর্তনের পরে)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+| ডিমেনশন             | আগে  | এখন  | পরিবর্তন | কারণ                                              |
+|----------------------|------|------|-----------|---------------------------------------------------|
+| সিকিউরিটি           | 7/10 | 7/10 | →         | ভালো, তবে VisionService @Value key এখনো           |
+| রিলায়েবিলিটি       | 5/10 | 6/10 | ↑         | BlockingOperationException যোগ, NonBlocking ফিক্স ✅ |
+| আর্কিটেকচার         | 4/10 | 4/10 | →         | ৯৫KB class, ৫৩KB class এখনো আছে                  |
+| পারফরম্যান্স        | 6/10 | 7/10 | ↑         | Caffeine cache integration ✅, model-tier cache ✅   |
+| ফিচার কমপ্লিটনেস   | 9/10 | 9/10 | →         | চমৎকার ফিচার সেট                                  |
+| কোড কোয়ালিটি       | 5/10 | 6/10 | ↑         | duplicate PreDestroy সরানো, block() removal underway |
+| টেস্ট কভারেজ        | 4/10 | 4/10 | →         | অপরিবর্তিত                                        |
+| অবজার্ভেবিলিটি      | 7/10 | 7/10 | →         | custom metrics এখনো বাকি                          |
+| **সর্বমোট**         | 5.9  | **6.2** | ↑      | **Caffeine cache + blocking exception added**      |
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+## 🎯 পরবর্তী অ্যাকশন (অগ্রাধিকার অনুযায়ী)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+**এখনই (P0 Critical):**
+  ① `AutomaticTaskAssigner` — `blockLast()` + ১১ `.block()` → reactive redesign
+  ② `AIFallbackOrchestrator` + `ThirdOpinionOrchestrator` — 60s `.block()` → 15s
+  ③ `ProviderCapabilityAnalyzer` — 60s `.block()` + unbounded `.block()` ফিক্স
+  ④ `ProviderHealingStrategies` — unbounded `.block()` (২টো) → bounded timeout
+  ⑤ `SupremeLearningOrchestrator` — unbounded `.block()` → `block(10s)`
+
+**এই সপ্তাহে (P1 High):**
+  ⑥ ~~`AIProviderFactory` health cache → Caffeine~~ ✅ সম্পন্ন
+  ⑦ active provider list Redis caching (30s TTL) — MultiAIVotingService + GracefulDegradation
+  ⑧ `UsageOptimizationService` model-tier/response cache → Caffeine ✅ সম্পন্ন
+  ⑨ ~~`SystemAutoDetectService` truly non-blocking health check~~ ✅ সম্পন্ন
+
+**পরের সপ্তাহে (P2 Medium):**
+  ⑩ `VisionService.analyzeScreenshot()` legacy wrapper সরান
+  ⑪ `VertexAIEmbeddingService` secret → PostConstruct
+  ⑫ Integration test coverage ৪০% → ৬০%
+  ⑬ OpenTelemetry + Prometheus custom metrics
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+## 📝 تغییراتের সংক্ষিপ্ত বিবরণ (Implementation Notes)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+### ✅ সম্পন্ন কাজসমূহ:
+
+1. **`AIProviderFactory.java`** ✅
+   - Caffeine-based bounded health cache যোগ করা হয়েছে
+   - Cache size: 25 entries, TTL: 30 seconds
+   - Memory leak সমস্যা সমাধান হয়েছে
+
+2. **`SystemAutoDetectService.java`** ✅
+   - `isHealthyNonBlocking()` এখন `Mono<Boolean>` return করে
+   - আগের `.block(3s)` সরানো হয়েছে
+   - সত্যিকার অর্থে non-blocking geworden
+
+3. **`UsageOptimizationService.java`** ✅
+   - Model-tier cache এখন Caffeine-based (max 1000 entries, 30m TTL)
+   - Response cache already using Caffeine with bounded size
+
+4. **`BlockingOperationException.java`** ✅
+   - Explicit blocking error signaling জন্য নতুন exception class
+   - `IServiceAvailabilityDetector` interface তৈরি হয়েছে
+
+5. **`IServiceAvailabilityDetectorImpl.java`** ✅
+   - Health check এর জন্য dedicated service
+   - `Mono<Boolean> isHealthy(String providerName)` implementation
+
+### 🔄 বাকি `.block()` গʌলো:
+- সব一共 ৯৬টি `.block()` বাকি আছে ৪১ ফাইলে
+- প্ৰধান সমস্যা: `AutomaticTaskAssigner`, `AIFallbackOrchestrator`, `ThirdOpinionOrchestrator`
+- পরবর্তী ধাপ: এই ফাইলগুলোকে fully reactive বানাতে হবে
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

@@ -64,10 +64,26 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             return;
         }
         
+        // Check for guest access before validating JWT
+        String guestHeader = request.getHeader("X-Guest-Access");
+        if ("true".equals(guestHeader)) {
+            logger.debug("Guest access detected, allowing request without JWT");
+            chain.doFilter(request, response);
+            return;
+        }
+        
         String token = extractToken(request);
         
+        // If there's no token and no guest access, allow the request to proceed
+        // The AuthenticationFilter will handle guest access, or the request will be rejected by authorization rules
+        if (token == null) {
+            logger.debug("No JWT token found, proceeding without authentication");
+            chain.doFilter(request, response);
+            return;
+        }
+        
         try {
-            if (token != null && jwtUtil.validateToken(token)) {
+            if (jwtUtil.validateToken(token)) {
                 String username = jwtUtil.getUsername(token);
                 String role = jwtUtil.getRole(token);
                 if (role == null) {

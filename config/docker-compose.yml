@@ -88,7 +88,7 @@ services:
       timeout: 10s
       retries: 3
     environment:
-      - MODEL=${AIRLLM_MODEL:-meta-llama/Llama-3.3-70B-Instruct}
+      - MODEL=${AIRLLM_MODEL:-meta-llama/Llama-3.2-3B-Instruct}
       - COMPRESSION=${AIRLLM_COMPRESSION:-4bit}
       - BATCH_SIZE=${AIRLLM_BATCH_SIZE:-12}
       - PREFETCH_LAYERS=${AIRLLM_PREFETCH_LAYERS:-4}

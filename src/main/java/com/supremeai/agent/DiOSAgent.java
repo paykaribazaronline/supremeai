@@ -32,7 +32,7 @@ public class DiOSAgent {
      */
     public List<Question> analyzeIOSRequirements(String requirement) {
         try {
-            AIProvider provider = providerFactory.getProvider("groq");
+            AIProvider provider = providerFactory.getDefaultProvider();
             String rawPrompt = "একটি iOS অ্যাপের জন্য নিম্নলিখিত প্রয়োজনীয়তা বিশ্লেষণ করুন: " + requirement + "\n" +
                     "iOS অ্যাপ ডেভেলপমেন্ট সম্পর্কিত 5-7টি প্রশ্ন তৈরি করুন।\n" +
                     "প্রতিটি প্রশ্নকে একটি JSON অবজেক্ট হিসেবে ফরম্যাট করুন যেখানে 'key', 'text', এবং 'priority' (CRITICAL, HIGH, MEDIUM, LOW) থাকবে।\n" +
@@ -40,7 +40,9 @@ public class DiOSAgent {
             
             String prompt = ruleService.wrapWithRules(rawPrompt);
 
-            String response = provider.generate(prompt).block();
+            String response = provider.generate(prompt)
+                    .subscribeOn(reactor.core.scheduler.Schedulers.boundedElastic())
+                    .block(java.time.Duration.ofSeconds(30));
             return parseQuestions(response);
         } catch (Exception e) {
             logger.warn("iOS প্রয়োজনীয়তা বিশ্লেষণ ব্যর্থ হয়েছে, ডিফল্ট প্রশ্নগুলি ব্যবহার করা হচ্ছে: {}", e.getMessage());
@@ -53,7 +55,7 @@ public class DiOSAgent {
      */
     public List<Question> analyzeDesktopRequirements(String requirement) {
         try {
-            AIProvider provider = providerFactory.getProvider("groq");
+            AIProvider provider = providerFactory.getDefaultProvider();
             String rawPrompt = "একটি ডেস্কটপ অ্যাপের জন্য নিম্নলিখিত প্রয়োজনীয়তা বিশ্লেষণ করুন: " + requirement + "\n" +
                     "ডেস্কটপ অ্যাপ ডেভেলপমেন্ট সম্পর্কিত 5-7টি প্রশ্ন তৈরি করুন।\n" +
                     "প্রতিটি প্রশ্নকে একটি JSON অবজেক্ট হিসেবে ফরম্যাট করুন যেখানে 'key', 'text', এবং 'priority' (CRITICAL, HIGH, MEDIUM, LOW) থাকবে।\n" +
@@ -61,7 +63,9 @@ public class DiOSAgent {
             
             String prompt = ruleService.wrapWithRules(rawPrompt);
 
-            String response = provider.generate(prompt).block();
+            String response = provider.generate(prompt)
+                    .subscribeOn(reactor.core.scheduler.Schedulers.boundedElastic())
+                    .block(java.time.Duration.ofSeconds(30));
             return parseQuestions(response);
         } catch (Exception e) {
             logger.warn("ডেস্কটপ প্রয়োজনীয়তা বিশ্লেষণ ব্যর্থ হয়েছে, ডিফল্ট প্রশ্নগুলি ব্যবহার করা হচ্ছে: {}", e.getMessage());

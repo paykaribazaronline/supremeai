@@ -7,11 +7,14 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.Duration;
 import java.util.*;
 
 @RestController
 @RequestMapping("/telemetry")
 public class SystemMonitoringController {
+
+    private static final Duration BLOCK_TIMEOUT = Duration.ofSeconds(10);
 
     private final AIProviderFactory providerFactory;
     private final ProviderRepository providerRepository;
@@ -27,7 +30,7 @@ public class SystemMonitoringController {
         Map<String, Object> response = new HashMap<>();
         List<Map<String, Object>> modelStatus = new ArrayList<>();
 
-        List<APIProvider> providers = providerRepository.findAll().collectList().block();
+        List<APIProvider> providers = providerRepository.findAll().collectList().block(BLOCK_TIMEOUT);
         if (providers != null) {
             for (APIProvider p : providers) {
                 Map<String, Object> stats = new HashMap<>();

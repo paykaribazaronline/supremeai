@@ -4,14 +4,20 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.supremeai.fallback.ThirdOpinionOrchestrator;
 import com.supremeai.learning.SupremeLearningOrchestrator;
+import com.supremeai.learning.active.ActiveInternetScraper;
 import com.supremeai.provider.AIProvider;
 import com.supremeai.provider.AIProviderFactory;
 import com.supremeai.repository.ProviderRepository;
 import com.supremeai.repository.SolutionMemoryRepository;
+import com.supremeai.service.browser.BrowserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Mono;
 
 import java.util.LinkedHashMap;
@@ -75,10 +81,19 @@ public class SupremeAIBrain {
     private SupremeLearningOrchestrator learningOrchestrator;
 
     @Autowired
+    private ActiveInternetScraper activeInternetScraper;
+
+    @Autowired
+    private BrowserService browserService;
+
+    @Autowired
     private SolutionMemoryRepository solutionMemoryRepository;
 
     @Autowired
     private ProviderRepository providerRepository;
+
+    @Autowired
+    private UnifiedOfflineKnowledgeService unifiedOfflineKnowledgeService;
 
     // Simple in-memory stats (Admin dashboard এ দেখানো হবে)
     private final Map<String, Long> taskCallCount = new ConcurrentHashMap<>();
@@ -151,59 +166,65 @@ public class SupremeAIBrain {
             String coreSolution = learningOrchestrator.findCoreKnowledgeSolution(prompt);
             if (coreSolution != null && !coreSolution.isEmpty()) {
                 logger.info("[BRAIN TIER 1] Found core knowledge solution matching prompt. Returning immediately.");
+                trackSuccess(task);
                 return Mono.just(coreSolution);
             }
         } catch (Exception e) {
             logger.warn("Failed to check core_knowledge.json in Brain: {}", e.getMessage());
         }
 
-        Map<String, String> hubInfo;
-        try {
-            hubInfo = learningOrchestrator.identifyBestHub(prompt);
-        } catch (Exception e) {
-            logger.warn("[BRAIN] Orchestrator intent classification failed: {}. Using defaults.", e.getMessage());
-            hubInfo = Map.of("hub", "general", "cluster", "general");
-        }
-        String suggestedHub = hubInfo.get("hub");
-        String suggestedCluster = hubInfo.get("cluster");
-        logger.info("[BRAIN] Task={} | Intent→Hub: {} | Cluster: {} | Prompt={}",
-                task, suggestedHub, suggestedCluster, truncate(prompt));
-
-        return fallbackOrchestrator
-                .executeWithSupremeIntelligence(task, errorSignature, prompt)
-                .filter(response -> response != null && !response.isBlank())
-                .switchIfEmpty(Mono.defer(() -> {
-                    logger.info("[BRAIN] Fallback orchestrator returned empty. Trying any available cloud provider.");
-                    return tryAnyCloudProvider(prompt);
-                }))
-                .onErrorResume(e -> {
-                    logger.warn("[BRAIN] Fallback orchestrator failed: {}. Trying any available cloud provider.", e.getMessage());
-                    return tryAnyCloudProvider(prompt);
-                })
-                .doOnNext(response -> {
-                    long ms = System.currentTimeMillis() - startTime;
+        // TIER 2: Firestore Memory lookup via AIFallbackOrchestrator
+        return fallbackOrchestrator.executeWithSupremeIntelligence(task, errorSignature, prompt)
+            .filter(response -> response != null && !response.isBlank())
+            .switchIfEmpty(Mono.defer(() -> {
+                logger.info("[BRAIN TIER 3] AIFallbackOrchestrator returned empty. No solution found in Core Knowledge or Firestore.");
+                return tryBrowserScraping(task, prompt);
+            }))
+            .onErrorResume(e -> {
+                logger.warn("[BRAIN TIER 3] AIFallbackOrchestrator failed: {}. Trying browser scraping.", e.getMessage());
+                return tryBrowserScraping(task, prompt);
+            })
+            .switchIfEmpty(Mono.defer(() -> unifiedOfflineKnowledgeService.findAnswer(prompt)))
+            .doOnNext(response -> {
+                long ms = System.currentTimeMillis() - startTime;
+                if (response != null && !response.contains("কোনো response পাওয়া যায়নি")) {
                     trackSuccess(task);
-                    logger.debug("[BRAIN] Task={} completed in {}ms", task, ms);
-                })
-                .defaultIfEmpty("[SupremeAI Core] কোনো response পাওয়া যায়নি। পরে চেষ্টা করুন।");
+                }
+                logger.debug("[BRAIN] Task={} completed in {}ms", task, ms);
+            })
+            .defaultIfEmpty("[SupremeAI Core] কোনো response পাওয়া যায়নি। পরে চেষ্টা করুন।");
     }
 
-    private Mono<String> tryAnyCloudProvider(String prompt) {
-        List<String> providers = providerFactory.getAvailableProviderIds();
-        for (String providerName : providers) {
-            try {
-                AIProvider provider = providerFactory.getProvider(providerName);
-                logger.info("[BRAIN] Trying cloud provider: {}", providerName);
-                return provider.generate(prompt)
-                    .onErrorResume(e -> {
-                        logger.warn("[BRAIN] Cloud provider {} failed: {}", providerName, e.getMessage());
-                        return Mono.empty();
-                    });
-            } catch (Exception e) {
-                logger.debug("[BRAIN] Could not create provider {}: {}", providerName, e.getMessage());
-            }
-        }
-        return Mono.just("[SupremeAI Core] সকল cloud provider বর্তমানে অনুপলব্ধ। Admin প্যানেল থেকে provider চেক করুন।");
+/**
+     * Tier 3: Browser/Web Scraping fallback for real-time knowledge.
+     */
+    private Mono<String> tryBrowserScraping(String task, String prompt) {
+        logger.info("[BRAIN TIER 3] Attempting web scraping via browser for task: {}", task);
+        
+        return Mono.fromCallable(() -> {
+            String cleanQuery = prompt.toLowerCase()
+                    .replaceAll("[\\p{Punct}]", " ")
+                    .replaceAll("\\s+", " ")
+                    .trim();
+            return cleanQuery;
+        })
+        .flatMap(cleanQuery -> {
+            return activeInternetScraper.scrapeKnowledge(task, List.of(cleanQuery.split("\\s+")))
+                    .next()
+                    .map(issue -> issue.getSolution());
+        })
+        .timeout(java.time.Duration.ofSeconds(10))
+        .onErrorResume(err -> {
+            logger.warn("[BRAIN TIER 3] Web scraping failed: {}", err.getMessage());
+            return Mono.just("[SupremeAI Core] Browser scraping failed. Please try again.");
+        });
+    }
+
+    /**
+     * Demo endpoint - Guest access without authentication to test 4-layer resilience.
+     */
+    public Mono<String> thinkDemo(String prompt) {
+        return think(TASK_GENERAL, prompt, "DEMO_NO_SIGNATURE");
     }
 
     // ══════════════════════════════════════════════════════════

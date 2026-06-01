@@ -66,8 +66,8 @@ public class TaskAssignmentController {
      */
     @GetMapping("/stats")
     public Mono<ResponseEntity<Map<String, Object>>> getStats() {
-        Map<String, Object> stats = taskAssigner.getAssignmentStats();
-        return Mono.just(ResponseEntity.ok(stats));
+        return taskAssigner.getAssignmentStats()
+            .map(stats -> ResponseEntity.ok(stats));
     }
 
     /**
@@ -130,11 +130,13 @@ public class TaskAssignmentController {
                 Map<String, Object> response = new HashMap<>();
                 response.put("taskType", taskType);
                 response.put("activeProviders", providerIds.size());
-                // Trigger re-evaluation
-                taskAssigner.nightlyRebalance();
-                response.put("message", "Auto-assignment triggered for task '" + taskType + "'");
-                response.put("success", true);
-                return Mono.just(ResponseEntity.ok(response));
+                // Trigger re-evaluation reactively
+                return taskAssigner.nightlyRebalance()
+                    .then(Mono.fromCallable(() -> {
+                        response.put("message", "Auto-assignment triggered for task '" + taskType + "'");
+                        response.put("success", true);
+                        return ResponseEntity.ok(response);
+                    }));
             });
     }
 
@@ -190,14 +192,14 @@ public class TaskAssignmentController {
      */
     @PostMapping("/rebalance")
     public Mono<ResponseEntity<Map<String, Object>>> triggerRebalance() {
-        taskAssigner.nightlyRebalance();
-
-        Map<String, Object> response = new HashMap<>();
-        response.put("message", "Rebalance triggered");
-        response.put("success", true);
-        log.info("🔄 Admin triggered global rebalance");
-
-        return Mono.just(ResponseEntity.ok(response));
+        return taskAssigner.nightlyRebalance()
+            .then(Mono.fromCallable(() -> {
+                Map<String, Object> response = new HashMap<>();
+                response.put("message", "Rebalance triggered");
+                response.put("success", true);
+                log.info("🔄 Admin triggered global rebalance");
+                return ResponseEntity.ok(response);
+            }));
     }
 
     /**

@@ -88,7 +88,17 @@ public class AIProviderSwitcher {
     }
 
     private String resolveResponse(Mono<String> responseMono) {
-        return Objects.requireNonNullElse(responseMono.block(), "");
+        try {
+            return java.util.Objects.requireNonNullElse(
+                responseMono.subscribeOn(reactor.core.scheduler.Schedulers.boundedElastic())
+                    .block(java.time.Duration.ofSeconds(5)), "");
+        } catch (Exception e) {
+            logger.error("Error executing with provider {}: {}", providerName, e.getMessage());
+            recordProviderPerformance(providerName, taskCategory, false, 0);
+
+            // ফলব্যাক অর্কেস্ট্রেটর ব্যবহার করা
+            return resolveResponse(fallbackOrchestrator.executeWithSupremeIntelligence(taskCategory, "provider_error:" + providerName, prompt, userId));
+        }
     }
 
     /**
