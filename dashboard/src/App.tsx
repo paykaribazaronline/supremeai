@@ -8,6 +8,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Spin } from 'antd';
 import FeedbackSystem from './components/FeedbackSystem';
 import ErrorBoundary from './components/ErrorBoundary';
+import { allMenuItems } from './components/dashboard/DashboardConfigs';
 
 // Lazy load pages for performance optimization
 const ModernAdminDashboard = lazy(() => import('./pages/ModernAdminDashboard'));
@@ -39,11 +40,12 @@ const AdminApprovals = lazy(() => import('./components/AdminApprovals'));
 const AdminInfrastructure = lazy(() => import('./pages/AdminInfrastructure'));
 const AdminCodeAnalysis = lazy(() => import('./pages/AdminCodeAnalysis'));
 const AdminSettings = lazy(() => import('./pages/AdminSettings'));
-const UserSettings = lazy(() => import('./components/UserSettings'));
 const AdminLogs = lazy(() => import('./pages/AdminLogs'));
 const AdminSimulator = lazy(() => import('./pages/AdminSimulator'));
 const AdminRules = lazy(() => import('./pages/AdminRules'));
 const AdminTesting = lazy(() => import('./pages/AdminTesting'));
+const AdminSuperFly = lazy(() => import('./pages/AdminSuperFly'));
+const AdminCloudDBHub = lazy(() => import('./pages/AdminCloudDBHub'));
 
 interface ModelStatus {
   id: string;
@@ -210,6 +212,39 @@ const HUDMetric = ({ icon, label, value, color }: { icon: any, label: string, va
 );
 
 function App() {
+  // Component Mapping: Link the string keys from allMenuItems to their actual React Components
+  const routeComponents: Record<string, React.ReactNode> = {
+    'dashboard': <DashboardHome isAdmin={true} setActiveKey={() => { }} />,
+    'ai': <ChatWithAI chatFont="font-mono" />,
+    'projects': <AdminProjects />,
+    'settings': <AdminSettings darkMode={true} setDarkMode={() => { }} chatFont="font-mono" setChatFont={() => { }} />,
+    'approvals': <AdminApprovals />,
+    'providers': <AdminProviders />,
+    'users': <AdminUsers />,
+    'monitoring': <AdminMonitoring />,
+    'learning': <AdminLearning />,
+    'security': <AdminSecurity />,
+    'system-work-rules': <AdminSystemWorkRules />,
+    'rules': <AdminRules />,
+    'analytics': <AdminAnalytics />,
+    'logs': <AdminLogs />,
+    'vpn': <AdminVPN />,
+    'browser': <AdminBrowser />,
+    'auto-browser': <AutoBrowser />,
+    'quotas': <AdminQuotas />,
+    'simulator': <AdminSimulator />,
+    'reverse': <AdminReverseEngineer />,
+    'notifications': <AdminNotifications />,
+    'reports': <AdminReports />,
+    'performance': <AdminPerformance />,
+    'backup': <AdminBackup />,
+    'ocr': <AdminOCR />,
+    'infrastructure': <AdminInfrastructure />,
+    'code-analysis': <AdminCodeAnalysis />,
+    'superfly': <AdminSuperFly />,
+    'cloud-db-hub': <AdminCloudDBHub />
+  };
+
   return (
     <ErrorBoundary>
       <BrowserRouter>
@@ -218,39 +253,22 @@ function App() {
           <Routes>
             {/* Authentication */}
             <Route path="/login" element={<LoginPage />} />
-            
+
             {/* Admin routes under single URL path */}
             <Route path="/admin" element={<AdminRouteLayout />}>
               <Route index element={<Navigate to="/admin/dashboard" replace />} />
-              <Route path="dashboard" element={<DashboardHome isAdmin={true} setActiveKey={() => {}} />} />
-              <Route path="ai" element={<ChatWithAI chatFont="font-mono" />} />
-              <Route path="projects" element={<AdminProjects />} />
-              <Route path="providers" element={<AdminProviders />} />
-              <Route path="users" element={<AdminUsers />} />
-              <Route path="monitoring" element={<AdminMonitoring />} />
-              <Route path="learning" element={<AdminLearning />} />
-              <Route path="security" element={<AdminSecurity />} />
-              <Route path="system-work-rules" element={<AdminSystemWorkRules />} />
-              <Route path="rules" element={<AdminRules />} />
-              <Route path="analytics" element={<AdminAnalytics />} />
-              <Route path="logs" element={<AdminLogs />} />
-              <Route path="vpn" element={<AdminVPN />} />
-              <Route path="browser" element={<AdminBrowser />} />
-              <Route path="auto-browser" element={<AutoBrowser />} />
-              <Route path="quotas" element={<AdminQuotas />} />
-              <Route path="simulator" element={<AdminSimulator />} />
-              <Route path="reverse" element={<AdminReverseEngineer />} />
-              <Route path="notifications" element={<AdminNotifications />} />
-              <Route path="reports" element={<AdminReports />} />
-              <Route path="performance" element={<AdminPerformance />} />
-              <Route path="backup" element={<AdminBackup />} />
-              <Route path="ocr" element={<AdminOCR />} />
-              <Route path="infrastructure" element={<AdminInfrastructure />} />
-              <Route path="code-analysis" element={<AdminCodeAnalysis />} />
-              <Route path="settings" element={<AdminSettings darkMode={true} setDarkMode={() => {}} chatFont="font-mono" setChatFont={() => {}} />} />
+
+              {/* Dynamically generate routes based on the sidebar menu configuration */}
+              {allMenuItems.map((item) => (
+                routeComponents[item.key] ? (
+                  <Route key={item.key} path={item.key} element={routeComponents[item.key]} />
+                ) : null
+              ))}
+
+              {/* Hidden Developer/Testing Routes not in sidebar */}
               <Route path="testing" element={<AdminTesting />} />
             </Route>
-            
+
             {/* Legacy routes redirect to admin */}
             <Route path="/" element={<Navigate to="/admin/dashboard" replace />} />
             <Route path="/visualizer" element={<MainVisualizer />} />

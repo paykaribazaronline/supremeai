@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Typography, Row, Col, Card, Button, Space, message, Spin, Table, Select, Modal, Input, Tabs, Badge, Tag } from 'antd';
-import { DatabaseOutlined, CloudServerOutlined, GitlabOutlined, EditOutlined, DeleteOutlined, SyncOutlined, PlayCircleOutlined, TerminalOutlined, AlertOutlined, CheckCircleOutlined, GlobalOutlined, InfoCircleOutlined } from '@ant-design/icons';
+import { DatabaseOutlined, CloudServerOutlined, GitlabOutlined, EditOutlined, DeleteOutlined, SyncOutlined, PlayCircleOutlined, CodeOutlined, AlertOutlined, CheckCircleOutlined, GlobalOutlined, InfoCircleOutlined } from '@ant-design/icons';
 import { authUtils } from '../lib/authUtils';
 
 const { Title, Text } = Typography;
@@ -272,7 +272,7 @@ export default function AdminCloudDbHub() {
 
                 {/* Console */}
                 <div style={{ marginBottom: 12 }}>
-                  <Text style={{ color: 'rgba(255,255,255,0.7)', fontWeight: 600, display: 'block', marginBottom: 8 }}><TerminalOutlined /> CLOUD DIAGNOSTIC CONSOLE</Text>
+                  <Text style={{ color: 'rgba(255,255,255,0.7)', fontWeight: 600, display: 'block', marginBottom: 8 }}><CodeOutlined /> CLOUD DIAGNOSTIC CONSOLE</Text>
                   <div style={{
                     background: '#04040a',
                     border: '1px solid rgba(255,255,255,0.05)',

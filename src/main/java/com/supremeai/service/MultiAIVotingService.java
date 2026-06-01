@@ -107,10 +107,10 @@ public class MultiAIVotingService {
 
     /**
      * Playwright browser automation server URL (e.g. http://localhost:3001).
-     * Set via application property: supremeai.browser.automation-url
+     * Used as a fallback if not configured dynamically in the database.
      */
     @Value("${supremeai.browser.automation-url:http://localhost:3001}")
-    private String playwrightAutomationUrl;
+    private String defaultPlaywrightUrl;
 
     /**
      * Maximum autonomous research steps per Solo Mode session.
@@ -613,7 +613,9 @@ public class MultiAIVotingService {
      * so Solo Mode always produces a response.
      */
     private Mono<List<ScrapedIssue>> playwrightResearch(String prompt, List<String> keywords) {
-        if (playwrightAutomationUrl == null || playwrightAutomationUrl.isBlank()) {
+        String automationUrl = configService.getEffectiveSetting("browser_automation_url", defaultPlaywrightUrl);
+        
+        if (automationUrl == null || automationUrl.isBlank()) {
             logger.debug("Playwright automation URL not configured — skipping deep research");
             return Mono.just(List.of());
         }
@@ -694,15 +696,23 @@ public class MultiAIVotingService {
      * extracted text as the solution.
      */
     private Mono<ScrapedIssue> deepScrapeUrl(String url, String prompt) {
+        String automationUrl = configService.getEffectiveSetting("browser_automation_url", defaultPlaywrightUrl);
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("url", url);
+        payload.put("useStealth", true);          // Bypass Cloudflare & DataDome
+        payload.put("useVpn", true);              // Rotate VPN IPs to avoid tracking
+        payload.put("humanInTheLoop", true);      // Pause on Login/CAPTCHA for user intervention
+        payload.put("storeSessionCookies", true); // Cache authenticated sessions
+
         return webClientBuilder.build().post()
-                .uri(playwrightAutomationUrl + "/navigate")
-                .bodyValue(Map.of("url", url))
+                .uri(automationUrl + "/navigate")
+                .bodyValue(payload)
                 .retrieve()
                 .bodyToMono(Void.class)
                 .timeout(java.time.Duration.ofMillis(soloStepTimeoutMs))
                 .then(Mono.delay(java.time.Duration.ofMillis(2000)))
                 .then(webClientBuilder.build().get()
-                        .uri(playwrightAutomationUrl + "/extract-text")
+                        .uri(automationUrl + "/extract-text")
                         .retrieve()
                         .bodyToMono(Map.class)
                         .timeout(java.time.Duration.ofMillis(soloStepTimeoutMs))

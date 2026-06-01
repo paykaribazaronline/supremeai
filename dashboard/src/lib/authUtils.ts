@@ -495,12 +495,12 @@ function emulatorStub(url: string, fullUrl: string): Response {
   // Rules
   if (url.match(/^\/api\/admin\/rules\/[^\/]+\/toggle$/)) { return jsonOk({ ok: true }); }
   if (url.match(/^\/api\/admin\/rules\/[^\/]+$/)) { return jsonOk({ id: url.split('/').pop(), ok: true }); }
-  // OCR
-  if (url === '/api/ocr/history') { return jsonOk({ results: [] }); }
-  if (url === '/api/ocr/process') { return jsonOk({ confidence: 95, text: 'Emulated OCR result', id: 'ocr-' + Date.now() }); }
-  if (url.match(/^\/api\/ocr\/history\/[^\/]+$/)) { return jsonOk({ ok: true }); }
-  if (url.match(/^\/api\/ocr\/history\/[^\/]+\/export/)) { return new Response(JSON.stringify({ success: true, data: { text: 'Emulated OCR export' } }), { status: 200, headers: { 'Content-Type': 'application/json' } }); }
-  // Browser
+  // ── OCR: pass through to backend (no longer emulated) ─────────────────
+  // if (url === '/api/ocr/history') { return jsonOk({ results: [] }); }
+  // if (url === '/api/ocr/process') { return jsonOk({ confidence: 95, text: 'Emulated OCR result', id: 'ocr-' + Date.now() }); }
+  // if (url.match(/^\/api\/ocr\/history\/[^\/]+$/)) { return jsonOk({ ok: true }); }
+  // if (url.match(/^\/api\/ocr\/history\/[^\/]+\/export/)) { return new Response(JSON.stringify({ success: true, data: { text: 'Emulated OCR export' } }), { status: 200, headers: { 'Content-Type': 'application/json' } }); }
+  // ── Browser
   if (url === '/api/browser/tasks') { return jsonOk({ tasks: [] }); }
   if (url.match(/^\/api\/browser\/tasks\/[^\/]+\/(start|pause|stop)$/)) { return jsonOk({ ok: true }); }
   if (url.match(/^\/api\/browser\/tasks\/[^\/]+\/findings$/)) { return jsonOk({ findings: [] }); }

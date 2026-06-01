@@ -1,19 +1,17 @@
 # Stage 1: Extract layers from the FAT JAR
-FROM eclipse-temurin:21-jre-jammy AS builder
+FROM eclipse-temurin:21-jre-alpine AS builder
 WORKDIR /builder
 COPY build/libs/app.jar app.jar
 RUN java -Djarmode=layertools -jar app.jar extract
 
 # Stage 2: Final Runtime Image
-FROM eclipse-temurin:21-jre-jammy
+FROM eclipse-temurin:21-jre-alpine
 
 # Minimal health-check tooling (single layer)
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    curl ca-certificates \
-    && rm -rf /var/lib/apt/lists/*
+RUN apk add --no-cache curl ca-certificates
 
 # Create a non-root user for security
-RUN groupadd -r spring && useradd -r -g spring spring
+RUN addgroup -S spring && adduser -S spring -G spring
 
 WORKDIR /app
 

@@ -4,6 +4,7 @@ import com.supremeai.model.SystemLearning;
 import com.supremeai.repository.SystemLearningRepository;
 import com.supremeai.service.MCPMarketplaceService;
 import com.supremeai.service.SystemLearningService;
+import com.supremeai.service.ConfigService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -37,11 +38,9 @@ public class AutonomousSkillDiscoveryService {
     @Autowired(required = false)
     private MCPMarketplaceService mcpMarketplaceService;
 
-    // A list of seed registries to look for AI skills
-    private final List<String> seedRegistries = Arrays.asList(
-            "https://skills.sh",
-            "https://github.com/vercel/ai-skills"
-    );
+    // Added ConfigService to fetch registries dynamically from Database
+    @Autowired
+    private ConfigService configService;
 
     /**
      * Scheduled job to autonomously discover and learn new skills.
@@ -51,7 +50,16 @@ public class AutonomousSkillDiscoveryService {
     public void autonomousSkillDiscovery() {
         log.info("[Skill Discovery] Starting autonomous scan for new AI agent skills...");
 
-        for (String registryUrl : seedRegistries) {
+        // Fetch dynamic registries from database (comma separated)
+        String registriesStr = configService.getEffectiveSetting("skill_registries", 
+                "https://skills.sh,https://github.com/vercel/ai-skills,https://smith.langchain.com/hub,https://llamahub.ai,https://github.com/modelcontextprotocol/servers");
+        
+        List<String> dynamicRegistries = Arrays.stream(registriesStr.split(","))
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .toList();
+
+        for (String registryUrl : dynamicRegistries) {
             log.info("[Skill Discovery] Scanning registry: {}", registryUrl);
             try {
                 EnhancedWebScraperService.ScrapedContent content = scraperService.scrapeUrl(registryUrl);
@@ -149,5 +157,31 @@ public class AutonomousSkillDiscoveryService {
                 saved -> log.info("[Skill Discovery] Saved skill to knowledge base: {}", title),
                 error -> log.error("[Skill Discovery] Failed to save skill to knowledge base", error)
         );
+    }
+
+    /**
+     * Scheduled job to autonomously discover new free AI models/providers.
+     * Runs every 24 hours to find new models on platforms like HuggingFace.
+     */
+    @Scheduled(fixedRate = 86400000)
+    public void autonomousProviderDiscovery() {
+        log.info("[Provider Discovery] Scanning for new AI models and web interfaces...");
+        String aiRegistriesStr = configService.getEffectiveSetting("ai_model_registries", 
+                "https://huggingface.co/models?pipeline_tag=text-generation,https://openrouter.ai/models");
+        
+        List<String> registries = Arrays.stream(aiRegistriesStr.split(","))
+                .map(String::trim).filter(s -> !s.isEmpty()).toList();
+                
+        for (String url : registries) {
+            try {
+                EnhancedWebScraperService.ScrapedContent content = scraperService.scrapeUrl(url);
+                if (content != null && content.getContent() != null) {
+                    // Pushes discovery to Admin pending queue so you can approve new free models
+                    proposeSkillToMarketplace(content); 
+                }
+            } catch (Exception e) {
+                log.error("[Provider Discovery] Failed to scan AI model registry: {}", url, e);
+            }
+        }
     }
 }

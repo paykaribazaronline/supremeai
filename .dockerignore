@@ -1,54 +1,10 @@
-# Build outputs & artifacts
-build/
-*.jar
-*.war
-*.class
-*.zip
-*.log
-.gradle/
-gradle/wrapper/dists/
+# 1. Ignore EVERYTHING (including all hidden files/folders) by default
+*
+.*
 
-# IDE & editor files
-.idea/
-.vscode/
-*.swp
-*.swo
-.DS_Store
-Thumbs.db
-
-# Node & frontend artifacts (not needed for JVM Docker build)
-node_modules/
-npm-cache/
-dashboard/dist/
-public/
-
-# Local GCP SDK (130MB not needed in container)
-.gcloud/
-
-# Local JDK (200MB, image uses bundled JRE)
-jdk/
-
-# Gradle user home (local cache)
-.gradle-user-home/
-gradle_home/
-
-# Large local executables not needed at runtime
-node.exe
-
-# OS-specific files
-Desktop.ini
-
-# Secrets & credentials (security)
-service-account.json
-firebase-service-account.json
-*.key
-*.pem
-*.p12
-*.pfx
-secrets/
-
-# Misc generated files
-*.tmp
-*.temp
-*.cache
-.metadata
+# 2. ONLY ALLOW (Whitelist) the exact JAR file needed for deployment
+!build/
+build/*
+!build/libs/
+build/libs/*
+!build/libs/app.jar

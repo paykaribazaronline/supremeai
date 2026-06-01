@@ -5,7 +5,6 @@ import com.google.cloud.firestore.Firestore;
 import com.google.cloud.firestore.QueryDocumentSnapshot;
 import com.google.cloud.firestore.QuerySnapshot;
 import com.google.cloud.firestore.WriteBatch;
-import com.supremeai.service.FirebaseRealtimeService;
 import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -72,8 +71,9 @@ public class DatabaseSchemaMigrationService {
             List<QueryDocumentSnapshot> documents = querySnapshot.getDocuments();
             log.info("Found {} total system_learning documents. Analyzing for migration...", documents.size());
             
-            WriteBatch batch = firestore.batch();
             int updateCount = 0;
+            int totalUpdated = 0;
+            WriteBatch batch = firestore.batch();
             
             for (QueryDocumentSnapshot doc : documents) {
                 // Migrate document if it doesn't have schemaVersion or tags
@@ -94,17 +94,25 @@ public class DatabaseSchemaMigrationService {
                     );
                     
                     updateCount++;
+                    totalUpdated++;
+                    
+                    // Firestore has a hard limit of 500 writes per batch
+                    if (updateCount >= 450) {
+                        batch.commit().get();
+                        batch = firestore.batch();
+                        updateCount = 0;
+                        log.info("Committed intermediate batch of 450 documents.");
+                    }
                 }
             }
             
             if (updateCount > 0) {
-                log.info("Committed batch update containing {} changes to Firestore.", updateCount);
                 batch.commit().get(); // Commit batch blocking inside boundedElastic
-            } else {
-                log.info("No documents required migration.");
             }
             
-            return updateCount;
+            log.info("Completed migration. Total documents updated: {}", totalUpdated);
+            
+            return totalUpdated;
         });
     }
 }

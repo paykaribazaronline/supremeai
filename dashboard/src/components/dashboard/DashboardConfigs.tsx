@@ -7,7 +7,6 @@ import {
   SettingOutlined,
   BulbOutlined,
   GlobalOutlined,
-  SafetyOutlined,
   ClusterOutlined,
   HddOutlined,
   ApiOutlined,
@@ -21,7 +20,6 @@ import {
   BellOutlined,
   SecurityScanOutlined,
   AuditOutlined,
-  ToolOutlined,
   HomeOutlined,
   RocketOutlined,
   CloudServerOutlined
@@ -41,7 +39,7 @@ export const allMenuItems: MenuItem[] = [
   { key: 'projects', icon: <CodeOutlined />, label: '3. 🚀 Deployments (ডিপ্লয়মেন্টস)', roles: ['user', 'admin'] },
   { key: 'settings', icon: <SettingOutlined />, label: '4. ⚙️ Config (কনফিগ)', roles: ['guest', 'user', 'admin'] },
   { key: 'approvals', icon: <BulbOutlined />, label: '5. ✅ Approvals (অ্যাপ্রুভালস)', roles: ['admin'] },
-  
+
   // Admin-only tabs
   { key: 'providers', icon: <ApiOutlined />, label: '6. 🌐 AI Providers (AI প্রোভাইডার)', roles: ['admin'] },
   { key: 'users', icon: <UserOutlined />, label: '7. 👥 User Management (ইউজার ম্যানেজমেন্ট)', roles: ['admin'] },

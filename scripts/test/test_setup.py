@@ -128,8 +128,8 @@ if __name__ == "__main__":
     # Check for credentials file
     possible_paths = [
         os.environ.get('GOOGLE_APPLICATION_CREDENTIALS'),
-        r"C:\Users\Nazifa\supremeai\bengali-credentials.json",
-        r"C:\Users\Nazifa\supremeai\credentials.json"
+        os.path.join(os.path.expanduser("~"), "supremeai", "bengali-credentials.json"),
+        os.path.join(os.path.expanduser("~"), "supremeai", "credentials.json")
     ]
 
     credentials_path = None

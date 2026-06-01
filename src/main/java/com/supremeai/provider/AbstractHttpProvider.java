@@ -1,5 +1,6 @@
 package com.supremeai.provider;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.supremeai.service.ProviderMetadataService;
 import okhttp3.OkHttpClient;
@@ -62,11 +63,7 @@ public abstract class AbstractHttpProvider implements AIProvider {
 
     // Constructor for subclasses to call
     protected AbstractHttpProvider(String apiKey, String baseUrl, String defaultModel) {
-        this.apiKey = apiKey;
-        this.baseUrl = baseUrl;
-        this.defaultModel = defaultModel;
-        // Initialize ObjectMapper with default instance
-        this.objectMapper = new com.fasterxml.jackson.databind.ObjectMapper();
+        this(apiKey, baseUrl, defaultModel, null);
     }
     
     // Constructor with ObjectMapper for dependency injection
@@ -118,19 +115,13 @@ public abstract class AbstractHttpProvider implements AIProvider {
             return "Empty response from " + providerName + ".";
         }
 
-        Map<String, Object> responseMap = objectMapper.readValue(responseBody,
-            new com.fasterxml.jackson.core.type.TypeReference<Map<String, Object>>() {});
-
-        @SuppressWarnings("unchecked")
-        List<Map<String, Object>> choices = (List<Map<String, Object>>) responseMap.get("choices");
-        if (choices != null && !choices.isEmpty()) {
-            @SuppressWarnings("unchecked")
-            Map<String, Object> message = (Map<String, Object>) choices.get(0).get("message");
-            if (message != null) {
-                Object content = message.get("content");
-                if (content instanceof String text) {
-                    return text;
-                }
+        JsonNode rootNode = objectMapper.readTree(responseBody);
+        JsonNode choices = rootNode.path("choices");
+        if (choices.isArray() && !choices.isEmpty()) {
+            JsonNode message = choices.get(0).path("message");
+            JsonNode content = message.path("content");
+            if (content.isTextual()) {
+                return content.asText();
             }
         }
         return "No response from " + providerName + ".";
