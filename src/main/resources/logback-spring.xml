@@ -112,6 +112,13 @@
         </root>
     </springProfile>
 
+    <!-- Test profile -->
+    <springProfile name="test">
+        <root level="INFO">
+            <appender-ref ref="CONSOLE"/>
+        </root>
+    </springProfile>
+
     <!-- Cloud Run profile (No file logging) -->
     <springProfile name="cloud">
         <root level="INFO">
@@ -121,7 +128,7 @@
     </springProfile>
 
     <!-- Production/Default profile (with file logging) -->
-    <springProfile name="!cloud &amp; !dev">
+    <springProfile name="!cloud &amp; !dev &amp; !test">
         <root level="INFO">
             <appender-ref ref="CONSOLE"/>
             <appender-ref ref="ASYNC_FILE"/>

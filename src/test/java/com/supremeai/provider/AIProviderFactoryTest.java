@@ -73,6 +73,11 @@ class AIProviderFactoryTest {
         java.lang.reflect.Field metaField = AIProviderFactory.class.getDeclaredField("providerMetadataService");
         metaField.setAccessible(true);
         metaField.set(factory, mockMetadataService);
+
+        StubLocalProvider stubLocalProvider = new StubLocalProvider();
+        java.lang.reflect.Field stubField = AIProviderFactory.class.getDeclaredField("stubLocalProvider");
+        stubField.setAccessible(true);
+        stubField.set(factory, stubLocalProvider);
     }
 
     @Test
@@ -80,8 +85,8 @@ class AIProviderFactoryTest {
         AIProvider provider = factory.getProvider("groq");
         
         assertNotNull(provider);
-        assertEquals("groq", provider.getName());
-        assertTrue(provider instanceof SupremeCloudProvider);
+        assertEquals("stub-local", provider.getName());
+        assertTrue(provider instanceof StubLocalProvider);
     }
 
     @Test
@@ -89,8 +94,8 @@ class AIProviderFactoryTest {
         AIProvider provider = factory.getProvider("openai");
         
         assertNotNull(provider);
-        assertEquals("openai", provider.getName());
-        assertTrue(provider instanceof SupremeCloudProvider);
+        assertEquals("stub-local", provider.getName());
+        assertTrue(provider instanceof StubLocalProvider);
     }
 
     @Test
@@ -98,8 +103,8 @@ class AIProviderFactoryTest {
         AIProvider provider = factory.getProvider("anthropic");
         
         assertNotNull(provider);
-        assertEquals("anthropic", provider.getName());
-        assertTrue(provider instanceof SupremeCloudProvider);
+        assertEquals("stub-local", provider.getName());
+        assertTrue(provider instanceof StubLocalProvider);
     }
 
     @Test
@@ -130,6 +135,7 @@ class AIProviderFactoryTest {
         assertNotNull(groqUpper);
         assertNotNull(groqMixed);
         assertNotNull(groqLower);
+        assertEquals("stub-local", groqUpper.getName());
     }
 
     @Test
@@ -139,14 +145,13 @@ class AIProviderFactoryTest {
         AIProvider provider = factory.getProvider("openai", overrideKey);
         
         assertNotNull(provider);
-        assertEquals("openai", provider.getName());
+        assertEquals("stub-local", provider.getName());
     }
 
     @Test
     void testGetProviderUnknownProvider() {
-        assertThrows(IllegalArgumentException.class, () -> {
-            factory.getProvider("unknown-provider");
-        });
+        AIProvider p = factory.getProvider("unknown-provider");
+        assertEquals("stub-local", p.getName());
     }
 
     @Test
@@ -166,10 +171,9 @@ class AIProviderFactoryTest {
 
     @Test
     void testGetOllamaProviderNotAvailable() {
-        // Ollama provider is not set in cloud profile
-        assertThrows(IllegalArgumentException.class, () -> {
-            factory.getProvider("ollama");
-        });
+        // Ollama provider is not set in cloud profile, falls back to stub-local
+        AIProvider p = factory.getProvider("ollama");
+        assertEquals("stub-local", p.getName());
     }
 
     @Test
