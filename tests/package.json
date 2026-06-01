@@ -8,6 +8,8 @@
     "test:report": "playwright show-report"
   },
   "devDependencies": {
-    "@playwright/test": "^1.44.0"
+    "@playwright/test": "^1.60.0",
+    "typescript": "^6.0.3",
+    "dotenv": "^16.4.7"
   }
 }
