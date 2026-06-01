@@ -31,6 +31,7 @@ class GPublishAgentTest {
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
+        lenient().when(providerFactory.getDefaultProvider()).thenReturn(aiProvider);
     }
 
     @Test
