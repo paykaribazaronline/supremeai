@@ -231,3 +231,5 @@ nodevars.bat
 tests/test-results/
 tests/playwright-report/
 
+supremeai_build_test_failure_analysis.md
+
