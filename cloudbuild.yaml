@@ -8,7 +8,7 @@ steps:
 
 # 2. Copy Jar to root for Docker build context
 - name: 'ubuntu'
-  args: ['cp', 'build/libs/app.jar', '.']
+  args: ['cp', '.gradle/build/libs/app.jar', '.']
 
 # 3. Build Docker Image with BuildKit (smaller layers, better caching)
 - name: 'gcr.io/cloud-builders/docker'

@@ -147,4 +147,40 @@ class OCRControllerTest {
                 .expectNextMatches(res -> (Boolean) res.getBody().get("ok"))
                 .verifyComplete();
     }
+
+    @Test
+    void getHistory_ReturnsList() {
+        StepVerifier.create(ocrController.getHistory())
+                .expectNextMatches(res -> {
+                    assertEquals(HttpStatus.OK, res.getStatusCode());
+                    assertNotNull(res.getBody().get("results"));
+                    assertNotNull(res.getBody().get("total"));
+                    return true;
+                })
+                .verifyComplete();
+    }
+
+    @Test
+    void processOCR_FallbackLocalExtraction_EnglishText() {
+        when(nativeVisionService.isModelLoaded()).thenReturn(false);
+        MockMultipartFile englishFile = new MockMultipartFile("file", "image.png", "image/png", "dummy content".getBytes());
+
+        StepVerifier.create(ocrController.processOCR(englishFile, "en"))
+                .expectNextMatches(response -> {
+                    assertEquals(HttpStatus.OK, response.getStatusCode());
+                    assertTrue(response.getBody().get("text").toString().contains("Sample extracted text"));
+                    return true;
+                })
+                .verifyComplete();
+    }
+
+    @Test
+    void exportResult_NotFound() {
+        StepVerifier.create(ocrController.exportResult("invalid-id", "json"))
+                .expectNextMatches(res -> {
+                    Map<String, Object> data = (Map<String, Object>) res.getBody().get("data");
+                    return "no data".equals(data.get("text"));
+                })
+                .verifyComplete();
+    }
 }
