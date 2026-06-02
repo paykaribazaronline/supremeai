@@ -8,7 +8,6 @@ import com.google.cloud.firestore.WriteBatch;
 import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
@@ -22,14 +21,15 @@ import java.util.List;
  */
 @Service
 public class DatabaseSchemaMigrationService {
+    public DatabaseSchemaMigrationService(FirebaseRealtimeService firebaseRealtimeService, Firestore firestore) {
+        this.firebaseRealtimeService = firebaseRealtimeService;
+        this.firestore = firestore;
+    }
+
 
     private static final Logger log = LoggerFactory.getLogger(DatabaseSchemaMigrationService.class);
 
-    @Autowired
-    private FirebaseRealtimeService firebaseRealtimeService;
 
-    @Autowired
-    private Firestore firestore;
 
     @PostConstruct
     public void runAutoMigrations() {

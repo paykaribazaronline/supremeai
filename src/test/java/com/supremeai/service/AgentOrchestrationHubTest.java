@@ -5,7 +5,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import reactor.core.publisher.Mono;
 
@@ -17,22 +16,25 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class AgentOrchestrationHubTest {
+class AgentOrchestrationHubTest {ReverseEngineeringIntegrationServicepublic AgentOrchestrationHubTest(ReverseEngineeringIntegrationService reverseEngineeringIntegrationService, CodeGenerationService codeGenerationService, SimulatorService simulatorService, com.supremeai.agentorchestration.CrossAgentVectorMemory crossAgentMemory, AgentOrchestrationHub hub) {
+ReverseEngineeringIntegrationService    this.reverseEngineeringIntegrationService = reverseEngineeringIntegrationService;
+ReverseEngineeringIntegrationService    this.codeGenerationService = codeGenerationService;
+ReverseEngineeringIntegrationService    this.simulatorService = simulatorService;
+ReverseEngineeringIntegrationService    this.crossAgentMemory = crossAgentMemory;
+ReverseEngineeringIntegrationService    this.hub = hub;
+ReverseEngineeringIntegrationService}
 
-    @Mock
-    private ReverseEngineeringIntegrationService reverseEngineeringIntegrationService;
 
-    @Mock
-    private CodeGenerationService codeGenerationService;
 
-    @Mock
-    private SimulatorService simulatorService;
 
-    @Mock
-    private com.supremeai.agentorchestration.CrossAgentVectorMemory crossAgentMemory;
+
+
+
+
+
 
     @InjectMocks
-    private AgentOrchestrationHub hub;
+
 
     @BeforeEach
     void setUp() {

@@ -140,7 +140,7 @@ public class ApiTestingController {
         public ApiTestResult() {
         }
 
-        public ApiTestResult(int status, String responseBody, long responseTimeMs, Map<String, String> headers, boolean success, String error) {
+        public ApiTestingController(int status, String responseBody, long responseTimeMs, Map<String, String> headers, boolean success, String error) {
             this.status = status;
             this.responseBody = responseBody;
             this.responseTimeMs = responseTimeMs;

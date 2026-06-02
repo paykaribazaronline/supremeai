@@ -8,7 +8,6 @@ import com.supremeai.service.AutonomousQuestioningEngine;
 import com.supremeai.service.MultiAIVotingService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -28,20 +27,19 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/api/v2/intelligence")
 public class IntelligenceController {
+    public IntelligenceController(AutonomousQuestioningEngine questioningEngine, ContextualAIRankingService rankingService, ApplicationContext applicationContext, ProviderRepository providerRepository) {
+        this.questioningEngine = questioningEngine;
+        this.rankingService = rankingService;
+        this.applicationContext = applicationContext;
+        this.providerRepository = providerRepository;
+    }
+
 
     private static final Logger logger = LoggerFactory.getLogger(IntelligenceController.class);
 
-    @Autowired
-    private AutonomousQuestioningEngine questioningEngine;
 
-    @Autowired
-    private ContextualAIRankingService rankingService;
 
-    @Autowired
-    private ApplicationContext applicationContext;
 
-    @Autowired
-    private ProviderRepository providerRepository;
 
     /**
      * S9: Get AI Provider Rankings (Auto-Ranking)

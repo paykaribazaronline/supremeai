@@ -12,9 +12,12 @@ import static org.junit.jupiter.api.Assertions.*;
  * Unit tests for EnhancedRandomForestPredictor.
  * Tests random forest training, prediction, feature importance, and retraining logic.
  */
-class EnhancedRandomForestPredictorTest {
+class EnhancedRandomForestPredictorTest {EnhancedRandomForestPredictorpublic EnhancedRandomForestPredictorTest(EnhancedRandomForestPredictor predictor) {
+EnhancedRandomForestPredictor    this.predictor = predictor;
+EnhancedRandomForestPredictor}
 
-    private EnhancedRandomForestPredictor predictor;
+
+
 
     @BeforeEach
     void setUp() {

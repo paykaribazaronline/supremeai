@@ -23,13 +23,17 @@ import java.util.concurrent.Executors;
  */
 @Service
 public class ProviderMetadataService {
+    public ProviderMetadataService(Firestore firestore) {
+        this.firestore = firestore;
+    }
+
+    public ProviderMetadataService(ProviderRepository providerRepository) {
+        this.providerRepository = providerRepository;
+    }
+
     private static final Logger logger = LoggerFactory.getLogger(ProviderMetadataService.class);
 
-    @Autowired
-    private ProviderRepository providerRepository;
 
-    @Autowired(required = false)
-    private Firestore firestore;
 
     private final Map<String, APIProvider> metadataCache = new ConcurrentHashMap<>();
     private ListenerRegistration listenerRegistration;

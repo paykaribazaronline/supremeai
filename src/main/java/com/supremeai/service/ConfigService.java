@@ -29,23 +29,25 @@ import java.util.concurrent.Executors;
  */
 @Service
 public class ConfigService {
+    public ConfigService(RedisTemplate<String, Object> redisTemplate, SystemWorkRuleService systemWorkRuleService) {
+        this.redisTemplate = redisTemplate;
+        this.systemWorkRuleService = systemWorkRuleService;
+    }
+
+    public ConfigService(SystemConfigRepository systemConfigRepository, Firestore firestore) {
+        this.systemConfigRepository = systemConfigRepository;
+        this.firestore = firestore;
+    }
+
 
     private static final Logger logger = LoggerFactory.getLogger(ConfigService.class);
     private static final String DOCUMENT_ID = "global_settings";
     private static final String REDIS_CONFIG_KEY = "supremeai:config";
     private static final Duration CACHE_TTL = Duration.ofMinutes(30);
 
-    @Autowired
-    private SystemConfigRepository systemConfigRepository;
 
-    @Autowired
-    private Firestore firestore;
 
-    @Autowired(required = false)
-    private RedisTemplate<String, Object> redisTemplate;
 
-    @Autowired(required = false)
-    private SystemWorkRuleService systemWorkRuleService;
 
     @org.springframework.beans.factory.annotation.Value("${supremeai.redis.mock-online:false}")
     private boolean mockOnline;

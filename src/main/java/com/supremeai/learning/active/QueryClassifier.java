@@ -29,7 +29,7 @@ public class QueryClassifier {
         private final boolean researchRelated;
         private final boolean webDevRelated;
 
-        public QueryClassification(boolean codeRelated, boolean researchRelated, boolean webDevRelated) {
+        public QueryClassifier(boolean codeRelated, boolean researchRelated, boolean webDevRelated) {
             this.codeRelated = codeRelated;
             this.researchRelated = researchRelated;
             this.webDevRelated = webDevRelated;

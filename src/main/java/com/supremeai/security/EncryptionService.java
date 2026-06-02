@@ -26,6 +26,10 @@ import java.util.Base64;
  */
 @Service
 public class EncryptionService {
+    public EncryptionService(String base64Key) {
+        this.base64Key = base64Key;
+    }
+
 
     private static final Logger log = LoggerFactory.getLogger(EncryptionService.class);
     private static final String ALGORITHM = "AES/GCM/NoPadding";
@@ -34,8 +38,6 @@ public class EncryptionService {
     private static final int IV_LENGTH_BYTE = 12;
     private static final int AES_KEY_SIZE = 256;
 
-    @Value("${api.encryption.key:${API_ENCRYPTION_KEY:}}")
-    private String base64Key;
 
     private SecretKey secretKey;
 

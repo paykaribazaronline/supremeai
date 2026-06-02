@@ -20,20 +20,22 @@ import java.util.Map;
  */
 @Service
 public class AppOrchestrationService {
+    public AppOrchestrationService(AdaptiveAgentOrchestrator orchestrator) {
+        this.orchestrator = orchestrator;
+    }
+
+    public AppOrchestrationService(CodeGenerationService codeGenerationService, GPublishAgent publishAgent, org.springframework.messaging.simp.SimpMessagingTemplate messagingTemplate) {
+        this.codeGenerationService = codeGenerationService;
+        this.publishAgent = publishAgent;
+        this.messagingTemplate = messagingTemplate;
+    }
+
 
     private static final Logger log = LoggerFactory.getLogger(AppOrchestrationService.class);
 
-    @Autowired(required = false)
-    private AdaptiveAgentOrchestrator orchestrator;
 
-    @Autowired
-    private CodeGenerationService codeGenerationService;
 
-    @Autowired
-    private GPublishAgent publishAgent;
 
-    @Autowired
-    private org.springframework.messaging.simp.SimpMessagingTemplate messagingTemplate;
 
     private void broadcastProgress(int step, int progress, String message) {
         Map<String, Object> payload = new java.util.HashMap<>();

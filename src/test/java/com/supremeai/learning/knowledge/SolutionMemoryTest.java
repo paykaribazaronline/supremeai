@@ -17,9 +17,12 @@ import static org.junit.jupiter.api.Assertions.*;
  * Unit tests for SolutionMemory.
  * Tests supreme score calculation, versioning, obsoleting, and recency decay.
  */
-class SolutionMemoryTest {
+class SolutionMemoryTest {SolutionMemorypublic SolutionMemoryTest(SolutionMemory solution) {
+SolutionMemory    this.solution = solution;
+SolutionMemory}
 
-    private SolutionMemory solution;
+
+
 
     @BeforeEach
     void setUp() {

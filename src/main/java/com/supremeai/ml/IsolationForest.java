@@ -57,7 +57,7 @@ public class IsolationForest {
     private static class ITree {
         private final Node root;
 
-        public ITree(double[][] data, int currentHeight, int maxDepth) {
+        public IsolationForest(double[][] data, int currentHeight, int maxDepth) {
             this.root = buildTree(data, currentHeight, maxDepth);
         }
 

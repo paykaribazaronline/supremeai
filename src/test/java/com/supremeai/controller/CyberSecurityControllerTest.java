@@ -5,7 +5,6 @@ import com.supremeai.response.ApiResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,12 +21,15 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class CyberSecurityControllerTest {
+class CyberSecurityControllerTest {CyberSecuritySkillServicepublic CyberSecurityControllerTest(CyberSecuritySkillService cyberSecuritySkillService, CyberSecurityController cyberSecurityController) {
+CyberSecuritySkillService    this.cyberSecuritySkillService = cyberSecuritySkillService;
+CyberSecuritySkillService    this.cyberSecurityController = cyberSecurityController;
+CyberSecuritySkillService}
 
-    @Mock
-    private CyberSecuritySkillService cyberSecuritySkillService;
 
-    private CyberSecurityController cyberSecurityController;
+
+
+
 
     @BeforeEach
     void setUp() {

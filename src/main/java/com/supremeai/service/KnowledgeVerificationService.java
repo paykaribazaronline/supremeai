@@ -21,11 +21,13 @@ import java.util.stream.Collectors;
  */
 @Service
 public class KnowledgeVerificationService {
+    public KnowledgeVerificationService(Firestore firestore) {
+        this.firestore = firestore;
+    }
+
 
     private static final Logger log = LoggerFactory.getLogger(KnowledgeVerificationService.class);
 
-    @Autowired(required = false)
-    private Firestore firestore;
 
     private final double defaultMinConfidence = 0.90;
 

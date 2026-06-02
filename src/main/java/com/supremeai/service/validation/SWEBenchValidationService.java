@@ -4,7 +4,6 @@ import com.supremeai.service.EnhancedMultiAIConsensusService;
 import com.supremeai.service.FirebaseRealtimeService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -18,17 +17,17 @@ import java.util.*;
  */
 @Service
 public class SWEBenchValidationService {
+    public SWEBenchValidationService(AIValidationHarnessService harnessService, FirebaseRealtimeService firebaseRealtimeService, EnhancedMultiAIConsensusService consensusService) {
+        this.harnessService = harnessService;
+        this.firebaseRealtimeService = firebaseRealtimeService;
+        this.consensusService = consensusService;
+    }
+
 
     private static final Logger log = LoggerFactory.getLogger(SWEBenchValidationService.class);
 
-    @Autowired
-    private AIValidationHarnessService harnessService;
 
-    @Autowired
-    private FirebaseRealtimeService firebaseRealtimeService;
 
-    @Autowired
-    private EnhancedMultiAIConsensusService consensusService;
 
     // Simulated SWE-bench dataset (normally loaded from a file/DB)
     private final List<SweTask> sweTasks = Arrays.asList(

@@ -19,14 +19,15 @@ import java.util.Base64;
 @RestController
 @RequestMapping("/api/ocr")
 public class OCRController {
+    public OCRController(NativeVisionService nativeVisionService, VisionService visionService) {
+        this.nativeVisionService = nativeVisionService;
+        this.visionService = visionService;
+    }
+
 
     private static final Logger log = LoggerFactory.getLogger(OCRController.class);
 
-    @Autowired(required = false)
-    private NativeVisionService nativeVisionService;
 
-    @Autowired(required = false)
-    private VisionService visionService;
 
     private static final Map<String, OCRResult> historyStore = new ConcurrentHashMap<>();
 

@@ -10,10 +10,14 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class SimulatorQuotaServiceTest {
+public class SimulatorQuotaServiceTest {SimulatorQuotaServicepublic SimulatorQuotaServiceTest(SimulatorQuotaService quotaService, UserSimulatorProfile profile) {
+SimulatorQuotaService    this.quotaService = quotaService;
+SimulatorQuotaService    this.profile = profile;
+SimulatorQuotaService}
 
-    private SimulatorQuotaService quotaService;
-    private UserSimulatorProfile profile;
+
+
+
 
     @BeforeEach
     void setUp() {

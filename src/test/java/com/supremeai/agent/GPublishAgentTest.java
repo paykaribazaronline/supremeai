@@ -6,7 +6,6 @@ import com.supremeai.provider.AIProviderFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import reactor.core.publisher.Mono;
 
@@ -19,17 +18,20 @@ import static org.mockito.Mockito.*;
 
 class GPublishAgentTest {
 
-    @Mock
-    private AIProviderFactory providerFactory;
 
-    @Mock
-    private AIProvider aiProvider;
+
+
 
     @InjectMocks
-    private GPublishAgent gPublishAgent;
+
 
     @BeforeEach
-    void setUp() {
+    void setUp() {AIProviderFactorypublic GPublishAgentTest(AIProviderFactory providerFactory, AIProvider aiProvider, GPublishAgent gPublishAgent) {
+AIProviderFactory    this.providerFactory = providerFactory;
+AIProviderFactory    this.aiProvider = aiProvider;
+AIProviderFactory    this.gPublishAgent = gPublishAgent;
+AIProviderFactory}
+
         MockitoAnnotations.openMocks(this);
         lenient().when(providerFactory.getDefaultProvider()).thenReturn(aiProvider);
     }

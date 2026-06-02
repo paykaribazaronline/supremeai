@@ -6,7 +6,6 @@ import com.supremeai.repository.ChatRuleRepository;
 import com.supremeai.repository.ChatPlanRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
@@ -15,16 +14,16 @@ import java.util.UUID;
 
 @Service
 public class ChatIntelligenceService {
+    public ChatIntelligenceService(ChatRuleRepository ruleRepository, ChatPlanRepository planRepository, com.supremeai.repository.ChatAdminActionRepository adminActionRepository) {
+        this.ruleRepository = ruleRepository;
+        this.planRepository = planRepository;
+        this.adminActionRepository = adminActionRepository;
+    }
+
     private static final Logger logger = LoggerFactory.getLogger(ChatIntelligenceService.class);
 
-    @Autowired
-    private ChatRuleRepository ruleRepository;
 
-    @Autowired
-    private ChatPlanRepository planRepository;
 
-    @Autowired
-    private com.supremeai.repository.ChatAdminActionRepository adminActionRepository;
 
     public enum Intent {
         COMMAND,

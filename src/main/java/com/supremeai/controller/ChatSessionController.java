@@ -2,7 +2,6 @@ package com.supremeai.controller;
 
 import com.supremeai.model.ChatSession;
 import com.supremeai.service.ChatSessionService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
@@ -13,9 +12,11 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/chat/sessions")
 public class ChatSessionController {
+    public ChatSessionController(ChatSessionService chatSessionService) {
+        this.chatSessionService = chatSessionService;
+    }
 
-    @Autowired
-    private ChatSessionService chatSessionService;
+
 
     @PostMapping
     public Mono<ResponseEntity<ChatSession>> saveSession(@RequestBody ChatSession session) {

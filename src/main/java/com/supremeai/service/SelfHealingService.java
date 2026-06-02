@@ -19,7 +19,6 @@ import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
@@ -45,36 +44,33 @@ import org.springframework.http.ResponseEntity;
  */
 @Service
 public class SelfHealingService {
+    public SelfHealingService(SupremeLearningOrchestrator learningOrchestrator, AIReasoningService reasoningService) {
+        this.learningOrchestrator = learningOrchestrator;
+        this.reasoningService = reasoningService;
+    }
 
-    @Autowired
-    private ProviderRepository providerRepository;
+    public SelfHealingService(ProviderRepository providerRepository, AIProviderFactory providerFactory, APIHealthReportRepository healthReportRepository, GlobalKnowledgeBase globalKnowledgeBase, RootCauseAnalysisService rootCauseAnalysisService, ThirdOpinionOrchestrator fallbackOrchestrator, MultiAIVotingService votingService, com.supremeai.repository.HealingEventRepository healingEventRepository, org.springframework.core.env.Environment env) {
+        this.providerRepository = providerRepository;
+        this.providerFactory = providerFactory;
+        this.healthReportRepository = healthReportRepository;
+        this.globalKnowledgeBase = globalKnowledgeBase;
+        this.rootCauseAnalysisService = rootCauseAnalysisService;
+        this.fallbackOrchestrator = fallbackOrchestrator;
+        this.votingService = votingService;
+        this.healingEventRepository = healingEventRepository;
+        this.env = env;
+    }
 
-    @Autowired
-    private AIProviderFactory providerFactory;
 
-    @Autowired
-    private APIHealthReportRepository healthReportRepository;
 
-    @Autowired
-    private GlobalKnowledgeBase globalKnowledgeBase;
 
-    @Autowired
-    private RootCauseAnalysisService rootCauseAnalysisService;
 
-    @Autowired(required = false)
-    private SupremeLearningOrchestrator learningOrchestrator;
 
-    @Autowired
-    private ThirdOpinionOrchestrator fallbackOrchestrator;
 
-    @Autowired
-    private MultiAIVotingService votingService;
 
-    @Autowired
-    private com.supremeai.repository.HealingEventRepository healingEventRepository;
 
-    @Autowired(required = false)
-    private AIReasoningService reasoningService;
+
+
 
     private static final Logger log = LoggerFactory.getLogger(SelfHealingService.class);
 
@@ -285,15 +281,6 @@ public class SelfHealingService {
                 "Self-healing attempted but no fix available for error: " + errorMessage, null);
     }
 
-    /**
-     * Attempt to apply an automatic fix for known error patterns.
-     */
-    private SupremeAIResponse attemptAutoFix(String errorSignature, String errorMessage, 
-                                           Throwable throwable, UserContext userContext) {
-        // This would contain logic to apply known fixes for recurring errors
-        // For now, return null to indicate no auto-fix available
-        return null;
-    }
 
     /**
      * Detect and fix issues proactively.
@@ -509,8 +496,6 @@ public class SelfHealingService {
         }
     }
 
-    @Autowired
-    private org.springframework.core.env.Environment env;
 
     /**
      * Perform initial health check after application is fully ready.

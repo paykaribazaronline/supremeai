@@ -28,9 +28,12 @@ import static org.junit.jupiter.api.Assertions.*;
  *
  * Currently tests 25+ validation scenarios across 12 DTO types.
  */
-class DtoValidationTest {
+class DtoValidationTest {final Validatorpublic DtoValidationTest(final Validator validator) {
+final Validator    this.validator = validator;
+final Validator}
 
-    private final Validator validator;
+
+
 
     public DtoValidationTest() {
         ValidatorFactory factory = Validation.buildDefaultValidatorFactory();

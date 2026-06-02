@@ -8,7 +8,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -22,25 +21,30 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class SimulationManagerTest {
+public class SimulationManagerTest {SimulationScenarioRepositorypublic SimulationManagerTest(SimulationScenarioRepository scenarioRepository, SimulationResultRepository resultRepository, ControllerEngine controllerEngine, ResultAnalyzer resultAnalyzer, SimulationManager simulationManager, SimulationScenario scenario, SimulationResult result) {
+SimulationScenarioRepository    this.scenarioRepository = scenarioRepository;
+SimulationScenarioRepository    this.resultRepository = resultRepository;
+SimulationScenarioRepository    this.controllerEngine = controllerEngine;
+SimulationScenarioRepository    this.resultAnalyzer = resultAnalyzer;
+SimulationScenarioRepository    this.simulationManager = simulationManager;
+SimulationScenarioRepository    this.scenario = scenario;
+SimulationScenarioRepository    this.result = result;
+SimulationScenarioRepository}
 
-    @Mock
-    private SimulationScenarioRepository scenarioRepository;
 
-    @Mock
-    private SimulationResultRepository resultRepository;
 
-    @Mock
-    private ControllerEngine controllerEngine;
 
-    @Mock
-    private ResultAnalyzer resultAnalyzer;
+
+
+
+
+
 
     @InjectMocks
-    private SimulationManager simulationManager;
 
-    private SimulationScenario scenario;
-    private SimulationResult result;
+
+
+
 
     @BeforeEach
     void setUp() {

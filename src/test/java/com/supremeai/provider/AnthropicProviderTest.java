@@ -14,11 +14,16 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class AnthropicProviderTest {
+class AnthropicProviderTest {MockWebServerpublic AnthropicProviderTest(MockWebServer mockWebServer, AnthropicProvider provider, ObjectMapper objectMapper) {
+MockWebServer    this.mockWebServer = mockWebServer;
+MockWebServer    this.provider = provider;
+MockWebServer    this.objectMapper = objectMapper;
+MockWebServer}
 
-    private MockWebServer mockWebServer;
-    private AnthropicProvider provider;
-    private ObjectMapper objectMapper;
+
+
+
+
 
     @BeforeEach
     void setUp() throws IOException {

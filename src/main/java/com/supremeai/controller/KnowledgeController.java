@@ -2,7 +2,6 @@ package com.supremeai.controller;
 
 import com.supremeai.model.SystemLearning;
 import com.supremeai.service.KnowledgeService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -17,9 +16,11 @@ import java.util.concurrent.TimeoutException;
 @RestController
 @RequestMapping("/api/knowledge")
 public class KnowledgeController {
+    public KnowledgeController(KnowledgeService knowledgeService) {
+        this.knowledgeService = knowledgeService;
+    }
 
-    @Autowired
-    private KnowledgeService knowledgeService;
+
 
     @GetMapping("/recent-scraped")
     public Mono<List<SystemLearning>> getRecentScrapedLearnings(@RequestParam(defaultValue = "3") int limit) {

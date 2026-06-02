@@ -5,7 +5,6 @@ import com.supremeai.repository.MilestoneRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -20,12 +19,15 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class AgentsV1ControllerTest {
+class AgentsV1ControllerTest {MilestoneRepositorypublic AgentsV1ControllerTest(MilestoneRepository milestoneRepository, AgentsV1Controller controller) {
+MilestoneRepository    this.milestoneRepository = milestoneRepository;
+MilestoneRepository    this.controller = controller;
+MilestoneRepository}
 
-    @Mock
-    private MilestoneRepository milestoneRepository;
 
-    private AgentsV1Controller controller;
+
+
+
 
     @BeforeEach
     void setUp() throws Exception {

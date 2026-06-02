@@ -4,7 +4,6 @@ import com.supremeai.dto.ApiKeyCreateRequest;
 import com.supremeai.model.APIHealthReport;
 import com.supremeai.service.UserApiKeyService;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -23,9 +22,11 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/apikeys")
 public class APIKeyController {
+    public APIKeyController(UserApiKeyService apiKeyService) {
+        this.apiKeyService = apiKeyService;
+    }
 
-    @Autowired
-    private UserApiKeyService apiKeyService;
+
 
     private static ResponseEntity<Map<String, Object>> forbidden(String msg) {
         Map<String, Object> err = new HashMap<>();

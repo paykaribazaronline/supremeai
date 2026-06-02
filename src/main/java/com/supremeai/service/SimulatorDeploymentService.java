@@ -9,7 +9,6 @@ import com.supremeai.model.SimulatorDeploymentRecord;
 import com.supremeai.repository.SimulatorDeploymentRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -27,24 +26,26 @@ import java.util.concurrent.ExecutionException;
  */
 @Service
 public class SimulatorDeploymentService {
+    public SimulatorDeploymentService(String projectId, String region, String runtimeImage, int healthCheckTimeoutMs) {
+        this.projectId = projectId;
+        this.region = region;
+        this.runtimeImage = runtimeImage;
+        this.healthCheckTimeoutMs = healthCheckTimeoutMs;
+    }
+
+    public SimulatorDeploymentService(SimulatorDeploymentRepository deploymentRepository) {
+        this.deploymentRepository = deploymentRepository;
+    }
+
 
     private static final Logger logger = LoggerFactory.getLogger(SimulatorDeploymentService.class);
 
-    @Value("${spring.cloud.gcp.project-id:supremeai-a}")
-    private String projectId;
 
-    @Value("${simulator.cloud.region:us-central1}")
-    private String region;
 
-    @Value("${simulator.cloud.run.image:}")
-    private String runtimeImage; // optional override
+// optional override
 
-    @Value("${simulator.health.check.timeout.ms:3000}")
-    private int healthCheckTimeoutMs;
 
     // Firestore deployment registry
-    @Autowired
-    private SimulatorDeploymentRepository deploymentRepository;
 
     private final WebClient webClient;
 

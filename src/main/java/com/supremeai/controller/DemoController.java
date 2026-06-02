@@ -1,7 +1,6 @@
 package com.supremeai.controller;
 
 import com.supremeai.service.SupremeAIBrain;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -19,9 +18,7 @@ import java.util.Map;
 public class DemoController {
     
     private final SupremeAIBrain brain;
-    
-    @Autowired
-    public DemoController(SupremeAIBrain brain) {
+public DemoController(SupremeAIBrain brain) {
         this.brain = brain;
     }
     

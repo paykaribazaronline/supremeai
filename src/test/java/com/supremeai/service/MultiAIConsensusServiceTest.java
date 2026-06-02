@@ -9,7 +9,6 @@ import com.supremeai.util.ThirdOpinionConstants;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
@@ -22,27 +21,30 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class MultiAIConsensusServiceTest {
+class MultiAIConsensusServiceTest {AIProviderFactorypublic MultiAIConsensusServiceTest(AIProviderFactory providerFactory, SelfHealingService selfHealingService, KnowledgeFeedbackService feedbackService, ContextualAIRankingService contextualRankingService, AIProvider mockProvider1, AIProvider mockProvider2, MultiAIConsensusService service) {
+AIProviderFactory    this.providerFactory = providerFactory;
+AIProviderFactory    this.selfHealingService = selfHealingService;
+AIProviderFactory    this.feedbackService = feedbackService;
+AIProviderFactory    this.contextualRankingService = contextualRankingService;
+AIProviderFactory    this.mockProvider1 = mockProvider1;
+AIProviderFactory    this.mockProvider2 = mockProvider2;
+AIProviderFactory    this.service = service;
+AIProviderFactory}
 
-    @Mock
-    private AIProviderFactory providerFactory;
 
-    @Mock
-    private SelfHealingService selfHealingService;
 
-    @Mock
-    private KnowledgeFeedbackService feedbackService;
 
-    @Mock
-    private ContextualAIRankingService contextualRankingService;
 
-    @Mock
-    private AIProvider mockProvider1;
 
-    @Mock
-    private AIProvider mockProvider2;
 
-    private MultiAIConsensusService service;
+
+
+
+
+
+
+
+
 
     @BeforeEach
     void setUp() {

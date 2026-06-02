@@ -26,23 +26,25 @@ import java.util.Map;
  */
 @Service
 public class VisionService {
+    public VisionService(String openAiKey, String geminiKey, long maxImageSizeBytes, NativeVisionService nativeVisionService) {
+        this.openAiKey = openAiKey;
+        this.geminiKey = geminiKey;
+        this.maxImageSizeBytes = maxImageSizeBytes;
+        this.nativeVisionService = nativeVisionService;
+    }
+
+    public VisionService(ConfigService configService) {
+        this.configService = configService;
+    }
+
 
     private static final Logger log = LoggerFactory.getLogger(VisionService.class);
 
-    @Value("${openai.api.key:}")
-    private String openAiKey;
 
-    @Value("${gemini.api.key:}")
-    private String geminiKey;
 
-    @Value("${vision.max.image.size.bytes:4194304}")
-    private long maxImageSizeBytes; // 4MB default
+// 4MB default
 
-    @Autowired(required = false)
-    private NativeVisionService nativeVisionService;
 
-    @Autowired
-    private ConfigService configService;
 
     private final WebClient webClient = WebClient.builder().build();
 

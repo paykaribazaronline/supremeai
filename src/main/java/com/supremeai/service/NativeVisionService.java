@@ -26,20 +26,19 @@ import java.util.Map;
  */
 @Service
 public class NativeVisionService {
+    public NativeVisionService(boolean nativeVisionEnabled, String nativeModelPath, long maxImageSizeBytes, float confidenceThreshold) {
+        this.nativeVisionEnabled = nativeVisionEnabled;
+        this.nativeModelPath = nativeModelPath;
+        this.maxImageSizeBytes = maxImageSizeBytes;
+        this.confidenceThreshold = confidenceThreshold;
+    }
+
 
     private static final Logger log = LoggerFactory.getLogger(NativeVisionService.class);
 
-    @Value("${vision.native.enabled:true}")
-    private boolean nativeVisionEnabled;
 
-    @Value("${vision.native.model.path:models/vision_model.tflite}")
-    private String nativeModelPath;
 
-    @Value("${vision.native.max-image-size:4194304}")
-    private long maxImageSizeBytes;
 
-    @Value("${vision.native.confidence-threshold:0.7}")
-    private float confidenceThreshold;
 
     private volatile boolean modelLoaded = false;
     private transient Object nativeModelHandle; // Placeholder for native model reference
@@ -353,7 +352,7 @@ public class NativeVisionService {
         private final int width;
         private final int height;
 
-        public DetectedObject(String label, float confidence, int x, int y, int width, int height) {
+        public NativeVisionService(String label, float confidence, int x, int y, int width, int height) {
             this.label = label;
             this.confidence = confidence;
             this.x = x;

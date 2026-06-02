@@ -5,9 +5,12 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class StubLocalProviderTest {
+class StubLocalProviderTest {StubLocalProviderpublic StubLocalProviderTest(StubLocalProvider provider) {
+StubLocalProvider    this.provider = provider;
+StubLocalProvider}
 
-    private StubLocalProvider provider;
+
+
 
     @BeforeEach
     void setUp() {

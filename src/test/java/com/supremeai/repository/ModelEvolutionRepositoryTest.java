@@ -3,7 +3,6 @@ package com.supremeai.repository;
 import com.supremeai.model.ModelEvolution;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -14,10 +13,12 @@ import java.util.List;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class ModelEvolutionRepositoryTest {
+class ModelEvolutionRepositoryTest {ModelEvolutionRepositorypublic ModelEvolutionRepositoryTest(ModelEvolutionRepository repository) {
+ModelEvolutionRepository    this.repository = repository;
+ModelEvolutionRepository}
 
-    @Mock
-    private ModelEvolutionRepository repository;
+
+
 
     @Test
     void save_shouldPersistEvolution() {

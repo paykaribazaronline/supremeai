@@ -6,7 +6,6 @@ import com.supremeai.repository.ProviderRepository;
 import com.supremeai.model.APIProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -28,6 +27,12 @@ import java.util.stream.Collectors;
  */
 @Service
 public class AutomaticTaskAssigner {
+    public AutomaticTaskAssigner(TaskProviderAssignmentRepository assignmentRepo, ProviderRepository providerRepo, ProviderCapabilityAnalyzer capabilityAnalyzer) {
+        this.assignmentRepo = assignmentRepo;
+        this.providerRepo = providerRepo;
+        this.capabilityAnalyzer = capabilityAnalyzer;
+    }
+
 
     private static final Logger log = LoggerFactory.getLogger(AutomaticTaskAssigner.class);
 
@@ -53,14 +58,8 @@ public class AutomaticTaskAssigner {
     private static final int DEFAULT_MAX_PROVIDERS = 10;
     private static final String DEFAULT_STRATEGY = "weighted_consensus";
 
-    @Autowired
-    private TaskProviderAssignmentRepository assignmentRepo;
 
-    @Autowired
-    private ProviderRepository providerRepo;
 
-    @Autowired
-    private ProviderCapabilityAnalyzer capabilityAnalyzer;
 
     /**
      * Auto-assign a newly registered provider based on its benchmark scores.

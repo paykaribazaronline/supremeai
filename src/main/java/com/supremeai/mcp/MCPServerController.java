@@ -1,6 +1,5 @@
 package com.supremeai.mcp;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import java.util.*;
 import java.nio.file.Files;
@@ -14,6 +13,11 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/mcp")
 public class MCPServerController {
+    public MCPServerController(PythonBridge pythonBridge, com.supremeai.agentorchestration.AdaptiveAgentOrchestrator orchestrator) {
+        this.pythonBridge = pythonBridge;
+        this.orchestrator = orchestrator;
+    }
+
     
     /**
      * MCP tools/list - List all available tools
@@ -75,8 +79,6 @@ public class MCPServerController {
         }
     }
     
-    @Autowired
-    private PythonBridge pythonBridge;
     
     @SuppressWarnings("unchecked")
     private Map<String, Object> executeReverseEngineer(Map<String, Object> args) {
@@ -88,8 +90,6 @@ public class MCPServerController {
         return pythonBridge.callReverseEngineer(url, credentials);
     }
     
-    @Autowired
-    private com.supremeai.agentorchestration.AdaptiveAgentOrchestrator orchestrator;
 
     private Map<String, Object> executeDynamicAgent(Map<String, Object> args) {
         Map<String, Object> response = new HashMap<>();

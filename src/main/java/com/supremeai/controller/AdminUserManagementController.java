@@ -8,7 +8,6 @@ import com.supremeai.response.ApiResponse;
 import com.supremeai.service.AdminDashboardFacadeService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -39,9 +38,7 @@ public class AdminUserManagementController extends BaseAdminController<Object, S
     private final ActivityLogRepository activityLogRepository;
     private final AdminDashboardFacadeService facadeService;
     private final UserAccountService userAccountService;
-
-    @Autowired
-    public AdminUserManagementController(UserRepository userRepository,
+public AdminUserManagementController(UserRepository userRepository,
                                           ActivityLogRepository activityLogRepository,
                                           AdminDashboardFacadeService facadeService,
                                           UserAccountService userAccountService) {

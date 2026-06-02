@@ -12,9 +12,12 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 
 @ExtendWith(MockitoExtension.class)
-class NativeVisionServiceTest {
+class NativeVisionServiceTest {NativeVisionServicepublic NativeVisionServiceTest(NativeVisionService nativeVisionService) {
+NativeVisionService    this.nativeVisionService = nativeVisionService;
+NativeVisionService}
 
-    private NativeVisionService nativeVisionService;
+
+
 
     @BeforeEach
     void setUp() {

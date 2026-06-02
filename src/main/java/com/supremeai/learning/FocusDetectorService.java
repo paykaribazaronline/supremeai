@@ -6,7 +6,6 @@ import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.net.URL;
@@ -18,11 +17,13 @@ import java.util.regex.Pattern;
 
 @Service
 public class FocusDetectorService {
+    public FocusDetectorService(Firestore firestore) {
+        this.firestore = firestore;
+    }
+
 
     private static final Logger log = LoggerFactory.getLogger(FocusDetectorService.class);
 
-    @Autowired
-    private Firestore firestore;
 
     private final Map<String, List<String>> focusKeywordsCache = new ConcurrentHashMap<>();
     private ListenerRegistration listenerRegistration;
@@ -52,14 +53,16 @@ public class FocusDetectorService {
                                     }
                                 } catch (Exception e) {
                                     log.error("[FocusDetector] Error deserializing focus keywords", e);
-                                }
+        throw new RuntimeException("Swallowed exception: " + e.getMessage(), e);
+    }
                             });
                             log.info("[FocusDetector] Loaded {} focus areas from Firestore", focusKeywordsCache.size());
                         }
                     });
         } catch (Exception e) {
             log.error("[FocusDetector] Failed to setup listener", e);
-        }
+        throw new RuntimeException("Swallowed exception: " + e.getMessage(), e);
+    }
 
         focusKeywordsCache.put("marketing", List.of("marketing", "growth", "seo", "ads", "advert", "promo", "brand", "social-media", "influencer", "copywriting", "content-writ", "hubspot", "mailchimp", "moz", "semrush", "ahrefs"));
         focusKeywordsCache.put("security_hacking", List.of("hack", "security", "exploit", "vulnerab", "pentest", "cve", "malware", "ransomware", "payload", "reverse-engine", "cybersec", "offensive", "defensive", "threat", "ctf", "kali", "metasploit", "burp"));

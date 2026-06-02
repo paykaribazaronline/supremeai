@@ -4,7 +4,6 @@ import com.supremeai.model.InstalledSkill;
 import com.supremeai.repository.InstalledSkillRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
@@ -13,14 +12,15 @@ import reactor.core.scheduler.Schedulers;
 
 @Component
 public class SkillsSeederService {
+    public SkillsSeederService(InstalledSkillRepository installedSkillRepository, SkillsSeedDataProvider skillsSeedDataProvider) {
+        this.installedSkillRepository = installedSkillRepository;
+        this.skillsSeedDataProvider = skillsSeedDataProvider;
+    }
+
 
     private static final Logger log = LoggerFactory.getLogger(SkillsSeederService.class);
 
-    @Autowired
-    private InstalledSkillRepository installedSkillRepository;
 
-    @Autowired
-    private SkillsSeedDataProvider skillsSeedDataProvider;
 
     @EventListener(ApplicationReadyEvent.class)
     public void seedSkills() {

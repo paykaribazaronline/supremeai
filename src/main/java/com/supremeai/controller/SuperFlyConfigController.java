@@ -5,7 +5,6 @@ import com.supremeai.repository.SuperFlyConfigRepository;
 import com.supremeai.response.ApiResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -18,9 +17,7 @@ public class SuperFlyConfigController {
     private static final Logger log = LoggerFactory.getLogger(SuperFlyConfigController.class);
 
     private final SuperFlyConfigRepository repository;
-
-    @Autowired
-    public SuperFlyConfigController(SuperFlyConfigRepository repository) {
+public SuperFlyConfigController(SuperFlyConfigRepository repository) {
         this.repository = repository;
     }
 

@@ -6,7 +6,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.io.PrintWriter;
@@ -16,27 +15,30 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-class RateLimiterFilterTest {
+class RateLimiterFilterTest {RateLimitPropertiespublic RateLimiterFilterTest(RateLimitProperties rateLimitProperties, RateLimiter rateLimiter, com.supremeai.security.SecretManagerService secretManagerService, HttpServletRequest request, HttpServletResponse response, FilterChain filterChain, RateLimiterFilter rateLimiterFilter) {
+RateLimitProperties    this.rateLimitProperties = rateLimitProperties;
+RateLimitProperties    this.rateLimiter = rateLimiter;
+RateLimitProperties    this.secretManagerService = secretManagerService;
+RateLimitProperties    this.request = request;
+RateLimitProperties    this.response = response;
+RateLimitProperties    this.filterChain = filterChain;
+RateLimitProperties    this.rateLimiterFilter = rateLimiterFilter;
+RateLimitProperties}
 
-    @Mock
-    private RateLimitProperties rateLimitProperties;
 
-    @Mock
-    private RateLimiter rateLimiter;
 
-    @Mock
-    private com.supremeai.security.SecretManagerService secretManagerService;
 
-    @Mock
-    private HttpServletRequest request;
 
-    @Mock
-    private HttpServletResponse response;
 
-    @Mock
-    private FilterChain filterChain;
 
-    private RateLimiterFilter rateLimiterFilter;
+
+
+
+
+
+
+
+
 
     @BeforeEach
     void setUp() {

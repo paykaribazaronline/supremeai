@@ -137,7 +137,7 @@ public class ChatClassifier {
         private double confidence;
         private String reason;
 
-        public ClassificationResult(ChatType chatType, double confidence, String reason) {
+        public ChatClassifier(ChatType chatType, double confidence, String reason) {
             this.chatType = chatType;
             this.confidence = confidence;
             this.reason = reason;

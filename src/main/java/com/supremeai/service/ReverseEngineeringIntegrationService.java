@@ -5,7 +5,6 @@ import com.supremeai.model.ReverseEngineeringJob;
 import com.supremeai.repository.ReverseEngineeringJobRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -27,20 +26,19 @@ import java.util.stream.Collectors;
  */
 @Service
 public class ReverseEngineeringIntegrationService {
+    public ReverseEngineeringIntegrationService(ReverseEngineeringJobRepository jobRepository, CodeGenerationService codeGenerationService, PubSubPublisherService pubSubPublisherService, SimulatorService simulatorService) {
+        this.jobRepository = jobRepository;
+        this.codeGenerationService = codeGenerationService;
+        this.pubSubPublisherService = pubSubPublisherService;
+        this.simulatorService = simulatorService;
+    }
+
 
     private static final Logger logger = LoggerFactory.getLogger(ReverseEngineeringIntegrationService.class);
 
-    @Autowired
-    private ReverseEngineeringJobRepository jobRepository;
 
-    @Autowired
-    private CodeGenerationService codeGenerationService;
 
-    @Autowired
-    private PubSubPublisherService pubSubPublisherService;
 
-    @Autowired
-    private SimulatorService simulatorService;
 
     private static final String PUBSUB_TOPIC = "reverse-engineering-jobs";
 

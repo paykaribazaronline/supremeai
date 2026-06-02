@@ -9,17 +9,17 @@ import java.nio.file.*;
 
 @Component
 public class SkillEngine {
+    public SkillEngine(String configuredBasePath, String skillsConfigPath, String skillsLockPath) {
+        this.configuredBasePath = configuredBasePath;
+        this.skillsConfigPath = skillsConfigPath;
+        this.skillsLockPath = skillsLockPath;
+    }
+
     
     private final Map<String, Skill> skillRegistry = new HashMap<>();
     
-    @Value("${app.skills.base-path:#{null}}")
-    private String configuredBasePath;
     
-    @Value("${app.skills.config-path:config/skills-local.json}")
-    private String skillsConfigPath;
     
-    @Value("${app.skills.lock-path:config/skills-lock.json}")
-    private String skillsLockPath;
     
     @org.springframework.beans.factory.annotation.Autowired(required = false)
     private Environment environment;

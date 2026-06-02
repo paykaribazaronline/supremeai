@@ -2,7 +2,6 @@ package com.supremeai.controller;
 
 import com.supremeai.model.Milestone;
 import com.supremeai.repository.MilestoneRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -16,9 +15,11 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/api/v1/agents")
 public class AgentsV1Controller {
+    public AgentsV1Controller(MilestoneRepository milestoneRepository) {
+        this.milestoneRepository = milestoneRepository;
+    }
 
-    @Autowired
-    private MilestoneRepository milestoneRepository;
+
 
     @GetMapping("/all-phases")
     public Mono<Map<String, Object>> getAllPhases() {

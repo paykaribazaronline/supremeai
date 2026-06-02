@@ -6,7 +6,6 @@ import com.supremeai.repository.MonitoringLogRepository;
 import com.supremeai.response.ApiResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -16,17 +15,17 @@ import java.util.Map;
 
 @Service
 public class MonitoringService {
+    public MonitoringService(SimpMessagingTemplate messagingTemplate, ProductionHealthMonitor healthMonitor, MonitoringLogRepository monitoringLogRepository) {
+        this.messagingTemplate = messagingTemplate;
+        this.healthMonitor = healthMonitor;
+        this.monitoringLogRepository = monitoringLogRepository;
+    }
+
 
     private static final Logger logger = LoggerFactory.getLogger(MonitoringService.class);
 
-    @Autowired
-    private SimpMessagingTemplate messagingTemplate;
 
-    @Autowired
-    private ProductionHealthMonitor healthMonitor;
 
-    @Autowired
-    private MonitoringLogRepository monitoringLogRepository;
 
     private static final double CPU_ALERT_THRESHOLD = 90.0;
     private static final double MEMORY_ALERT_THRESHOLD = 90.0;

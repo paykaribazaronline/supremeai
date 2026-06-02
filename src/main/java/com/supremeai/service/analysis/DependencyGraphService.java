@@ -4,7 +4,6 @@ import com.supremeai.model.analysis.DependencyGraph;
 import com.supremeai.repository.analysis.DependencyGraphRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -39,9 +38,7 @@ public class DependencyGraphService {
         "kotlin", Pattern.compile("^import\\s+([\\w.]+)"),
         "scala", Pattern.compile("^import\\s+([\\w.]+)")
     );
-
-    @Autowired
-    public DependencyGraphService(DependencyGraphRepository dependencyGraphRepository) {
+public DependencyGraphService(DependencyGraphRepository dependencyGraphRepository) {
         this.dependencyGraphRepository = dependencyGraphRepository;
     }
 

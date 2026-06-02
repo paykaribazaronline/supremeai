@@ -50,7 +50,8 @@ public class ParallelCodeAnalyzer {
             }
         } catch (Exception e) {
             log.error("Parallel analysis interrupted", e);
-        }
+        throw new RuntimeException("Swallowed exception: " + e.getMessage(), e);
+    }
 
         long endTime = System.nanoTime();
         finalResult.setTimeTakenMs((endTime - startTime) / 1_000_000);

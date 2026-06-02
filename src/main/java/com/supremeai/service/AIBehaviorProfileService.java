@@ -4,16 +4,17 @@ import com.supremeai.model.AIBehaviorProfile;
 import com.supremeai.repository.AIBehaviorProfileRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import java.util.Map;@Service
 public class AIBehaviorProfileService {
+    public AIBehaviorProfileService(AIBehaviorProfileRepository profileRepository) {
+        this.profileRepository = profileRepository;
+    }
+
     private static final Logger logger = LoggerFactory.getLogger(AIBehaviorProfileService.class);
 
-    @Autowired
-    private AIBehaviorProfileRepository profileRepository;
 
     public Mono<AIBehaviorProfile> getProfileForProject(String projectId) {
         return profileRepository.findFirstByProjectId(projectId)

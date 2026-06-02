@@ -6,7 +6,6 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
@@ -16,16 +15,19 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class ContextualAIRankingServiceTest {
+public class ContextualAIRankingServiceTest {AIProviderFactorypublic ContextualAIRankingServiceTest(AIProviderFactory providerFactory, ProviderTierService providerTierService, ContextualAIRankingService contextualRankingService) {
+AIProviderFactory    this.providerFactory = providerFactory;
+AIProviderFactory    this.providerTierService = providerTierService;
+AIProviderFactory    this.contextualRankingService = contextualRankingService;
+AIProviderFactory}
 
-    @Mock
-    private AIProviderFactory providerFactory;
 
-    @Mock
-    private ProviderTierService providerTierService;
+
+
+
 
     @InjectMocks
-    private ContextualAIRankingService contextualRankingService;
+
 
     @BeforeEach
     void setUp() {

@@ -9,7 +9,6 @@ import com.supremeai.audit.Audited;
 import com.supremeai.response.ApiResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -26,11 +25,13 @@ import java.util.concurrent.ExecutionException;
 @RequestMapping("/api/admin/firestore")
 @PreAuthorize("hasRole('ADMIN')")
 public class AdminFirestoreController extends BaseAdminController<Object, String> {
+    public AdminFirestoreController(Firestore firestore) {
+        this.firestore = firestore;
+    }
+
 
     private static final Logger log = LoggerFactory.getLogger(AdminFirestoreController.class);
 
-    @Autowired
-    private Firestore firestore;
 
     /**
      * Get a document from a specific collection.

@@ -93,7 +93,7 @@ class AgentConfig {
     public double confidenceThreshold;
     public double learningRate;
 
-    public AgentConfig(double dw, double ct, double lr) {
+    public GeneticAlgorithm(double dw, double ct, double lr) {
         this.decisionWeight = dw;
         this.confidenceThreshold = ct;
         this.learningRate = lr;

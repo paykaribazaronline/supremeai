@@ -1,9 +1,9 @@
 package com.supremeai.config;
-
 import com.supremeai.security.JwtUtil;
 import com.supremeai.websocket.SimulatorWebSocketHandler;
 import com.supremeai.websocket.AdminWebSocketHandler;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Lazy;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -12,7 +12,6 @@ import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.web.socket.config.annotation.EnableWebSocket;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
-import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketConfigurer;
 import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
@@ -24,20 +23,23 @@ import java.util.stream.Collectors;
 @EnableWebSocketMessageBroker
 @EnableWebSocket
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer, WebSocketConfigurer {
+    public WebSocketConfig(String allowedOriginsCsv) {
+        this.allowedOriginsCsv = allowedOriginsCsv;
+    }
 
-    @Value("${cors.allowed-origins:*}")
-    private String allowedOriginsCsv;
 
-    @Autowired
-    private JwtUtil jwtUtil;
+    private final JwtUtil jwtUtil;
+    private final AdminWebSocketHandler adminWebSocketHandler;
+    private final SimulatorWebSocketHandler simulatorWebSocketHandler;
 
-    @Autowired
-    @org.springframework.context.annotation.Lazy
-    private AdminWebSocketHandler adminWebSocketHandler;
+    public WebSocketConfig(JwtUtil jwtUtil,
+                           @Lazy AdminWebSocketHandler adminWebSocketHandler,
+                           @Lazy SimulatorWebSocketHandler simulatorWebSocketHandler) {
+        this.jwtUtil = jwtUtil;
+        this.adminWebSocketHandler = adminWebSocketHandler;
+        this.simulatorWebSocketHandler = simulatorWebSocketHandler;
+    }
 
-    @Autowired
-    @org.springframework.context.annotation.Lazy
-    private SimulatorWebSocketHandler simulatorWebSocketHandler;
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry config) {

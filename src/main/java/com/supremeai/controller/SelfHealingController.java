@@ -5,7 +5,6 @@ import com.supremeai.service.CacheInvalidationService;
 import com.supremeai.audit.Audited;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -33,14 +32,15 @@ import java.util.Map;
 @RequestMapping({"/api/self-healing", "/api/healing"})
 @CrossOrigin(origins = "*")
 public class SelfHealingController {
+    public SelfHealingController(SelfHealingService selfHealingService, CacheInvalidationService cacheInvalidationService) {
+        this.selfHealingService = selfHealingService;
+        this.cacheInvalidationService = cacheInvalidationService;
+    }
+
 
     private static final Logger log = LoggerFactory.getLogger(SelfHealingController.class);
 
-    @Autowired
-    private SelfHealingService selfHealingService;
 
-    @Autowired
-    private CacheInvalidationService cacheInvalidationService;
 
     // ===== HEALTH-CHECK ENDPOINTS (simple) =====
 

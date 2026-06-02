@@ -2,7 +2,6 @@ package com.supremeai.controller;
 
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -15,13 +14,16 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
-public class WebSocketPipelineIntegrationTest {
+public class WebSocketPipelineIntegrationTest {SimpMessagingTemplatepublic WebSocketPipelineIntegrationTest(SimpMessagingTemplate messagingTemplate, WebSocketController webSocketController) {
+SimpMessagingTemplate    this.messagingTemplate = messagingTemplate;
+SimpMessagingTemplate    this.webSocketController = webSocketController;
+SimpMessagingTemplate}
 
-    @Mock
-    private SimpMessagingTemplate messagingTemplate;
+
+
 
     @InjectMocks
-    private WebSocketController webSocketController;
+
 
     @Test
     public void testBroadcastAppGenProgress_SendsCorrectPayloadToTopic() {

@@ -6,7 +6,6 @@ import com.supremeai.service.SystemLearningService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,20 +21,24 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class SystemLearningControllerTest {
+class SystemLearningControllerTest {SystemLearningServicepublic SystemLearningControllerTest(SystemLearningService learningService, EnhancedLearningService enhancedService, com.supremeai.service.CyberSecuritySkillService cyberSkillService, SystemLearningController controller, SystemLearning testLearning) {
+SystemLearningService    this.learningService = learningService;
+SystemLearningService    this.enhancedService = enhancedService;
+SystemLearningService    this.cyberSkillService = cyberSkillService;
+SystemLearningService    this.controller = controller;
+SystemLearningService    this.testLearning = testLearning;
+SystemLearningService}
 
-    @Mock
-    private SystemLearningService learningService;
 
-    @Mock
-    private EnhancedLearningService enhancedService;
 
-    @Mock
-    private com.supremeai.service.CyberSecuritySkillService cyberSkillService;
 
-    private SystemLearningController controller;
 
-    private SystemLearning testLearning;
+
+
+
+
+
+
 
     @BeforeEach
     void setUp() {

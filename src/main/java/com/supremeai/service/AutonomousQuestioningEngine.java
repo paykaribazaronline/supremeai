@@ -2,7 +2,6 @@ package com.supremeai.service;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -24,15 +23,16 @@ import reactor.core.scheduler.Schedulers;
  */
 @Service
 public class AutonomousQuestioningEngine {
+    public AutonomousQuestioningEngine(com.supremeai.provider.AIProviderFactory providerFactory, ConfigService configService) {
+        this.providerFactory = providerFactory;
+        this.configService = configService;
+    }
+
 
     private static final Logger logger = LoggerFactory.getLogger(AutonomousQuestioningEngine.class);
 
     // Minimum thresholds for different request types
-    @Autowired
-    private com.supremeai.provider.AIProviderFactory providerFactory;
 
-    @Autowired
-    private ConfigService configService;
     
     /**
      * INTENT TYPES for Response Strategy

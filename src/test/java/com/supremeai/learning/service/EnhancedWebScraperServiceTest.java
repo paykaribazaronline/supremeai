@@ -8,7 +8,6 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.util.Set;
@@ -23,15 +22,18 @@ import static org.mockito.Mockito.*;
  * Unit tests for EnhancedWebScraperService.
  * Tests rate limiting, deduplication, content extraction, and quality scoring.
  */
-class EnhancedWebScraperServiceTest {
+class EnhancedWebScraperServiceTest {EnhancedWebScraperServicepublic EnhancedWebScraperServiceTest(EnhancedWebScraperService scraper, EnhancedContentSanitizerService mockSanitizer, ConfigService mockConfigService) {
+EnhancedWebScraperService    this.scraper = scraper;
+EnhancedWebScraperService    this.mockSanitizer = mockSanitizer;
+EnhancedWebScraperService    this.mockConfigService = mockConfigService;
+EnhancedWebScraperService}
 
-    private EnhancedWebScraperService scraper;
 
-    @Mock
-    private EnhancedContentSanitizerService mockSanitizer;
 
-    @Mock
-    private ConfigService mockConfigService;
+
+
+
+
 
     @BeforeEach
     void setUp() {

@@ -9,7 +9,6 @@ import com.supremeai.security.ApiKeyRotationService;
 import com.supremeai.security.EncryptionService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -25,23 +24,22 @@ import java.util.stream.Collectors;
 
 @Service
 public class UserApiKeyService {
+    public UserApiKeyService(UserApiKeyRepository userApiKeyRepository, ApiKeyRotationService rotationService, ActivityLogRepository activityLogRepository, EncryptionService encryptionService, ContextualAIRankingService contextualRankingService, com.supremeai.repository.APIHealthReportRepository healthReportRepository) {
+        this.userApiKeyRepository = userApiKeyRepository;
+        this.rotationService = rotationService;
+        this.activityLogRepository = activityLogRepository;
+        this.encryptionService = encryptionService;
+        this.contextualRankingService = contextualRankingService;
+        this.healthReportRepository = healthReportRepository;
+    }
+
 
     private static final Logger logger = LoggerFactory.getLogger(UserApiKeyService.class);
 
-    @Autowired
-    private UserApiKeyRepository userApiKeyRepository;
 
-    @Autowired
-    private ApiKeyRotationService rotationService;
 
-    @Autowired
-    private ActivityLogRepository activityLogRepository;
 
-    @Autowired
-    private EncryptionService encryptionService;
 
-    @Autowired
-    private ContextualAIRankingService contextualRankingService;
 
     public Mono<List<Map<String, Object>>> listKeys(String userId) {
         return userApiKeyRepository.findByUserId(userId)
@@ -231,8 +229,6 @@ public class UserApiKeyService {
         return rotationService.testAllKeysNow().then();
     }
 
-    @Autowired
-    private com.supremeai.repository.APIHealthReportRepository healthReportRepository;
 
     public Mono<List<com.supremeai.model.APIHealthReport>> getHealthReports() {
         return healthReportRepository.findAll()

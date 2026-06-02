@@ -13,27 +13,23 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/config")
 public class ConfigController {
+    public ConfigController(String apiKey, String authDomain, String databaseUrl, String projectId, String storageBucket, String messagingSenderId, String appId) {
+        this.apiKey = apiKey;
+        this.authDomain = authDomain;
+        this.databaseUrl = databaseUrl;
+        this.projectId = projectId;
+        this.storageBucket = storageBucket;
+        this.messagingSenderId = messagingSenderId;
+        this.appId = appId;
+    }
 
-    @Value("${firebase.api.key}")
-    private String apiKey;
 
-    @Value("${firebase.auth.domain:supremeai-a.firebaseapp.com}")
-    private String authDomain;
 
-    @Value("${firebase.database.url:https://supremeai-a-default-rtdb.asia-southeast1.firebasedatabase.app/}")
-    private String databaseUrl;
 
-    @Value("${firebase.project.id:supremeai-a}")
-    private String projectId;
 
-    @Value("${firebase.storage.bucket:supremeai-a.firebasestorage.app}")
-    private String storageBucket;
 
-    @Value("${firebase.messaging.sender.id:565236080752}")
-    private String messagingSenderId;
 
-    @Value("${firebase.app.id:1:565236080752:web:572bb9313db9afb355d4b5}")
-    private String appId;
+
 
     @GetMapping("/firebase")
     public Map<String, String> getFirebaseConfig() {

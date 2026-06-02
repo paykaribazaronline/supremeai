@@ -100,7 +100,7 @@ public class SimulatorSessionService {
         private final long createdAt;
         private volatile long lastHeartbeat;
 
-        public RuntimeSession(String sessionId, String appId, String deviceType) {
+        public SimulatorSessionService(String sessionId, String appId, String deviceType) {
             this.sessionId = sessionId;
             this.appId = appId;
             this.deviceType = deviceType;

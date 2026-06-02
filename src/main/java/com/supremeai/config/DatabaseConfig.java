@@ -15,33 +15,27 @@ import javax.sql.DataSource;
 @Configuration
 @ConditionalOnProperty(name = "spring.datasource.url")
 public class DatabaseConfig {
+    public DatabaseConfig(String dbUrl, String dbUsername, String dbPassword, int maxPoolSize, int minIdle, long connectionTimeout, long idleTimeout, long maxLifetime, long leakDetectionThreshold) {
+        this.dbUrl = dbUrl;
+        this.dbUsername = dbUsername;
+        this.dbPassword = dbPassword;
+        this.maxPoolSize = maxPoolSize;
+        this.minIdle = minIdle;
+        this.connectionTimeout = connectionTimeout;
+        this.idleTimeout = idleTimeout;
+        this.maxLifetime = maxLifetime;
+        this.leakDetectionThreshold = leakDetectionThreshold;
+    }
 
-    @Value("${spring.datasource.url:#{null}}")
-    private String dbUrl;
 
-    @Value("${spring.datasource.username:#{null}}")
-    private String dbUsername;
 
-    @Value("${spring.datasource.password:#{null}}")
-    private String dbPassword;
 
-    @Value("${spring.datasource.hikari.maximum-pool-size:20}")
-    private int maxPoolSize;
 
-    @Value("${spring.datasource.hikari.minimum-idle:5}")
-    private int minIdle;
 
-    @Value("${spring.datasource.hikari.connection-timeout:30000}")
-    private long connectionTimeout;
 
-    @Value("${spring.datasource.hikari.idle-timeout:600000}")
-    private long idleTimeout;
 
-    @Value("${spring.datasource.hikari.max-lifetime:1800000}")
-    private long maxLifetime;
 
-    @Value("${spring.datasource.hikari.leak-detection-threshold:60000}")
-    private long leakDetectionThreshold;
+
 
     @Bean
     @Primary

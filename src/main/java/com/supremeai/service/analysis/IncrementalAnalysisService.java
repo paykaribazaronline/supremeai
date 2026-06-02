@@ -5,7 +5,6 @@ import com.supremeai.model.analysis.AnalysisFinding;
 import com.supremeai.repository.analysis.AnalysisBaselineRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
@@ -23,9 +22,7 @@ public class IncrementalAnalysisService {
     private final GitDiffService gitDiffService;
     private final DependencyGraphService dependencyGraphService;
     private final AnalysisBaselineRepository baselineRepository;
-
-    @Autowired
-    public IncrementalAnalysisService(
+public IncrementalAnalysisService(
             GitDiffService gitDiffService,
             DependencyGraphService dependencyGraphService,
             AnalysisBaselineRepository baselineRepository) {

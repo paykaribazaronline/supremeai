@@ -11,10 +11,14 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.*;
 
 @ExtendWith(MockitoExtension.class)
-class AIProviderServiceTest {
+class AIProviderServiceTest {AIProviderServicepublic AIProviderServiceTest(AIProviderService service, Map<String, String> initialKeys) {
+AIProviderService    this.service = service;
+AIProviderService    this.initialKeys = initialKeys;
+AIProviderService}
 
-    private AIProviderService service;
-    private Map<String, String> initialKeys;
+
+
+
 
     @BeforeEach
     void setUp() {

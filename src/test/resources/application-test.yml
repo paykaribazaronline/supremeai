@@ -2,60 +2,59 @@
 # Test Configuration for SupremeAI
 
 spring:
+  profiles:
+    active: test
+
   application:
     name: supremeai-test
 
-  # Use in-memory H2 database for testing
+  autoconfigure:
+    exclude:
+      - com.google.cloud.spring.autoconfigure.firestore.GcpFirestoreAutoConfiguration
+      - com.google.cloud.spring.autoconfigure.core.GcpContextAutoConfiguration
+      - com.google.cloud.spring.autoconfigure.core.GcpCredentialsAutoConfiguration
+
   datasource:
     url: jdbc:h2:mem:testdb
     driver-class-name: org.h2.Driver
     username: sa
-    password: 
+    password:
 
-  # JPA configuration
   jpa:
-    database-platform: org.hibernate.dialect.H2Dialect
     hibernate:
       ddl-auto: create-drop
+    database-platform: org.hibernate.dialect.H2Dialect
     show-sql: true
 
-  # Enable Firestore for testing
   cloud:
     gcp:
-      project-id: supremeai-a
-      firestore:
-        enabled: true
-        project-id: supremeai-a
-        host: localhost:8081
+      project-id: test-project
+      credentials:
+        location: classpath:dummy-credentials.json
 
-  # Redis configuration for testing
-  redis:
-    host: localhost
-    port: 6379
-    database: 1
+ai:
+  providers:
+    gemini:
+      enabled: false
+    deepseek:
+      enabled: false
+    groq:
+      enabled: false
+  stub-mode: true
 
-# Firebase configuration for testing
 firebase:
-  enabled: true
-  project-id: supremeai-a
-  database-url: https://supremeai-a-default-rtdb.asia-southeast1.firebasedatabase.app/
+  enabled: false
+  project-id: test-project
+  database-url: https://test-project-default-rtdb.firebasedatabase.app/
 
-# Security configuration for testing
 security:
   jwt:
     secret: test-secret-key-for-testing-only
-    expiration: 86400000 # 24 hours in milliseconds
+    expiration: 86400000
 
-# Logging configuration for testing
 logging:
   level:
     com.supremeai: DEBUG
     org.springframework.security: DEBUG
     org.springframework.web: DEBUG
     reactor.core: DEBUG
-
-# Test properties
-test:
-  timeout:
-    default: 5000
-    long-running: 30000

@@ -4,7 +4,6 @@ import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
@@ -16,26 +15,26 @@ import java.util.concurrent.TimeUnit;
 
 @Service
 public class UnifiedSecretsService {
+    public UnifiedSecretsService(boolean cacheEnabled, int cacheTtlMinutes, String activeProfile) {
+        this.cacheEnabled = cacheEnabled;
+        this.cacheTtlMinutes = cacheTtlMinutes;
+        this.activeProfile = activeProfile;
+    }
+
+    public UnifiedSecretsService(SecretManagerService secretManagerService, FirebaseSecretsService firebaseSecretsService, EncryptionService encryptionService) {
+        this.secretManagerService = secretManagerService;
+        this.firebaseSecretsService = firebaseSecretsService;
+        this.encryptionService = encryptionService;
+    }
+
 
     private static final Logger log = LoggerFactory.getLogger(UnifiedSecretsService.class);
 
-    @Autowired
-    private SecretManagerService secretManagerService;
 
-    @Autowired
-    private FirebaseSecretsService firebaseSecretsService;
 
-    @Autowired
-    private EncryptionService encryptionService;
 
-    @Value("${secrets.cache.enabled:true}")
-    private boolean cacheEnabled;
 
-    @Value("${secrets.cache.ttl.minutes:30}")
-    private int cacheTtlMinutes;
 
-    @Value("${spring.profiles.active:local}")
-    private String activeProfile;
 
     private final Cache<String, String> secretCache;
 

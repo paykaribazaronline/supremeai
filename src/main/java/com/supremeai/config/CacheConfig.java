@@ -22,15 +22,15 @@ import java.util.Arrays;
  */
 @Configuration
 public class CacheConfig {
+    public CacheConfig(int l1MaxSize, int l1ExpireAfterWriteMinutes, int l2ExpireAfterWriteMinutes) {
+        this.l1MaxSize = l1MaxSize;
+        this.l1ExpireAfterWriteMinutes = l1ExpireAfterWriteMinutes;
+        this.l2ExpireAfterWriteMinutes = l2ExpireAfterWriteMinutes;
+    }
 
-    @Value("${cache.l1.max-size:100000}")
-    private int l1MaxSize;
 
-    @Value("${cache.l1.expire-after-write:30}")
-    private int l1ExpireAfterWriteMinutes;
 
-    @Value("${cache.l2.expire-after-write:120}")
-    private int l2ExpireAfterWriteMinutes;
+
 
     /**
      * L1 Cache: Caffeine for fast local caching

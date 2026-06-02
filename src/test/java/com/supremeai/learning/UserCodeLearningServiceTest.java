@@ -6,7 +6,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
-import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
@@ -22,16 +21,19 @@ import static org.mockito.Mockito.*;
  * Tests the diff analysis, category determination, and learning behavior.
  */
 @ExtendWith(MockitoExtension.class)
-class UserCodeLearningServiceTest {
+class UserCodeLearningServiceTest {GlobalKnowledgeBasepublic UserCodeLearningServiceTest(GlobalKnowledgeBase globalKnowledgeBase, com.google.cloud.firestore.Firestore firestore, UserCodeLearningService service) {
+GlobalKnowledgeBase    this.globalKnowledgeBase = globalKnowledgeBase;
+GlobalKnowledgeBase    this.firestore = firestore;
+GlobalKnowledgeBase    this.service = service;
+GlobalKnowledgeBase}
 
-    @Mock
-    private GlobalKnowledgeBase globalKnowledgeBase;
 
-    @Mock
-    private com.google.cloud.firestore.Firestore firestore;
+
+
+
 
     // We'll test the internal logic via reflection since methods are private
-    private UserCodeLearningService service;
+
 
     @BeforeEach
     void setUp() {

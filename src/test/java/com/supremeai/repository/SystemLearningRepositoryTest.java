@@ -3,7 +3,6 @@ package com.supremeai.repository;
 import com.supremeai.model.SystemLearning;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -14,10 +13,12 @@ import java.util.List;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class SystemLearningRepositoryTest {
+class SystemLearningRepositoryTest {SystemLearningRepositorypublic SystemLearningRepositoryTest(SystemLearningRepository repository) {
+SystemLearningRepository    this.repository = repository;
+SystemLearningRepository}
 
-    @Mock
-    private SystemLearningRepository repository;
+
+
 
     @Test
     void findByCategory_shouldReturnEntriesForCategory() {

@@ -7,7 +7,6 @@ import com.supremeai.agent.GPublishAgent;
 import com.supremeai.agentorchestration.Question;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
@@ -15,20 +14,19 @@ import java.util.Map;
 
 @Service
 public class MultiPlatformGenerator {
+    public MultiPlatformGenerator(DiOSAgent diOSAgent, EWebAgent eWebAgent, FDesktopAgent fDesktopAgent, GPublishAgent gPublishAgent) {
+        this.diOSAgent = diOSAgent;
+        this.eWebAgent = eWebAgent;
+        this.fDesktopAgent = fDesktopAgent;
+        this.gPublishAgent = gPublishAgent;
+    }
+
 
     private static final Logger logger = LoggerFactory.getLogger(MultiPlatformGenerator.class);
 
-    @Autowired
-    private DiOSAgent diOSAgent;
 
-    @Autowired
-    private EWebAgent eWebAgent;
 
-    @Autowired
-    private FDesktopAgent fDesktopAgent;
 
-    @Autowired
-    private GPublishAgent gPublishAgent;
 
     public Map<String, String> generateForPlatform(String requirements, String platform) {
         // প্ল্যাটফর্ম অনুযায়ী প্রশ্ন তৈরি করা

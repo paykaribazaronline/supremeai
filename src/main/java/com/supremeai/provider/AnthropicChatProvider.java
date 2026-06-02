@@ -11,7 +11,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 public class AnthropicChatProvider extends AbstractHttpProvider {
     private final String providerName;
 
-    public AnthropicChatProvider(String apiKey, String baseUrl, String model, String providerName) {
+    public replaces(String apiKey, String baseUrl, String model, String providerName) {
         super(apiKey, baseUrl, model);
         this.providerName = providerName;
     }

@@ -10,7 +10,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentMatchers;
 import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationContext;
 import org.springframework.http.HttpStatus;
@@ -29,24 +28,27 @@ import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 
 @ExtendWith(MockitoExtension.class)
-class IntelligenceControllerTest {
+class IntelligenceControllerTest {AutonomousQuestioningEnginepublic IntelligenceControllerTest(AutonomousQuestioningEngine questioningEngine, ContextualAIRankingService rankingService, ApplicationContext applicationContext, ProviderRepository providerRepository, MultiAIVotingService votingService, IntelligenceController intelligenceController) {
+AutonomousQuestioningEngine    this.questioningEngine = questioningEngine;
+AutonomousQuestioningEngine    this.rankingService = rankingService;
+AutonomousQuestioningEngine    this.applicationContext = applicationContext;
+AutonomousQuestioningEngine    this.providerRepository = providerRepository;
+AutonomousQuestioningEngine    this.votingService = votingService;
+AutonomousQuestioningEngine    this.intelligenceController = intelligenceController;
+AutonomousQuestioningEngine}
 
-    @Mock
-    private AutonomousQuestioningEngine questioningEngine;
 
-    @Mock
-    private ContextualAIRankingService rankingService;
 
-    @Mock
-    private ApplicationContext applicationContext;
 
-    @Mock
-    private ProviderRepository providerRepository;
 
-    @Mock
-    private MultiAIVotingService votingService;
 
-    private IntelligenceController intelligenceController;
+
+
+
+
+
+
+
 
     @BeforeEach
     void setUp() {

@@ -13,7 +13,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 import reactor.core.publisher.Mono;
@@ -26,27 +25,31 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class AuthenticationServiceExtendedTest {
+class AuthenticationServiceExtendedTest {UserRepositorypublic AuthenticationServiceExtendedTest(UserRepository userRepository, ActivityLogRepository activityLogRepository, BruteForceProtectionService bruteForceProtectionService, JwtUtil jwtUtil, ConfigService configService, AuthenticationService authenticationService, User existingUser) {
+UserRepository    this.userRepository = userRepository;
+UserRepository    this.activityLogRepository = activityLogRepository;
+UserRepository    this.bruteForceProtectionService = bruteForceProtectionService;
+UserRepository    this.jwtUtil = jwtUtil;
+UserRepository    this.configService = configService;
+UserRepository    this.authenticationService = authenticationService;
+UserRepository    this.existingUser = existingUser;
+UserRepository}
 
-    @Mock
-    private UserRepository userRepository;
 
-    @Mock
-    private ActivityLogRepository activityLogRepository;
 
-    @Mock
-    private BruteForceProtectionService bruteForceProtectionService;
 
-    @Mock
-    private JwtUtil jwtUtil;
 
-    @Mock
-    private ConfigService configService;
+
+
+
+
+
+
 
     @InjectMocks
-    private AuthenticationService authenticationService;
 
-    private User existingUser;
+
+
 
     @BeforeEach
     void setUp() {

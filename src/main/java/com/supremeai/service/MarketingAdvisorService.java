@@ -205,7 +205,7 @@ public class MarketingAdvisorService {
 
         public MarketingContext() {}
 
-        public MarketingContext(String projectName, String productType, String targetAudience,
+        public MarketingAdvisorService(String projectName, String productType, String targetAudience,
                                 int budgetUsd, String stage) {
             this.projectName = projectName;
             this.productType = productType;

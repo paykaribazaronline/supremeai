@@ -4,7 +4,6 @@ import com.supremeai.model.User;
 import com.supremeai.repository.UserRepository;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.Flux;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -19,12 +18,13 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 @Service
 public class QuotaPredictionService {
+    public QuotaPredictionService(UserRepository userRepository, QuotaService quotaService) {
+        this.userRepository = userRepository;
+        this.quotaService = quotaService;
+    }
 
-    @Autowired
-    private UserRepository userRepository;
 
-    @Autowired
-    private QuotaService quotaService;
+
 
     // Track daily usage per user: userId -> Map<date, usageCount>
     private final Map<String, Map<LocalDate, Integer>> dailyUsage = new ConcurrentHashMap<>();

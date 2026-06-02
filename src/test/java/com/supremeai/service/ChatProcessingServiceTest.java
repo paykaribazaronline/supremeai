@@ -6,7 +6,6 @@ import com.supremeai.fallback.ThirdOpinionOrchestrator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.Flux;
@@ -18,33 +17,36 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
-class ChatProcessingServiceTest {
+class ChatProcessingServiceTest {ChatHistoryRepositorypublic ChatProcessingServiceTest(ChatHistoryRepository chatHistoryRepository, ThirdOpinionOrchestrator fallbackOrchestrator, AIProviderService aiProviderService, com.supremeai.service.browser.BrowserService browserService, AdminProviderValidationService validationService, CyberSecuritySkillService cyberSecuritySkillService, EnhancedLearningService enhancedLearningService, KnowledgeService knowledgeService, AutonomousQuestioningEngine autonomousEngine, ConfigService configService, MultiAIVotingService multiAIVotingService, ChatProcessingService chatProcessingService) {
+ChatHistoryRepository    this.chatHistoryRepository = chatHistoryRepository;
+ChatHistoryRepository    this.fallbackOrchestrator = fallbackOrchestrator;
+ChatHistoryRepository    this.aiProviderService = aiProviderService;
+ChatHistoryRepository    this.browserService = browserService;
+ChatHistoryRepository    this.validationService = validationService;
+ChatHistoryRepository    this.cyberSecuritySkillService = cyberSecuritySkillService;
+ChatHistoryRepository    this.enhancedLearningService = enhancedLearningService;
+ChatHistoryRepository    this.knowledgeService = knowledgeService;
+ChatHistoryRepository    this.autonomousEngine = autonomousEngine;
+ChatHistoryRepository    this.configService = configService;
+ChatHistoryRepository    this.multiAIVotingService = multiAIVotingService;
+ChatHistoryRepository    this.chatProcessingService = chatProcessingService;
+ChatHistoryRepository}
 
-    @Mock
-    private ChatHistoryRepository chatHistoryRepository;
-    @Mock
-    private ThirdOpinionOrchestrator fallbackOrchestrator;
-    @Mock
-    private AIProviderService aiProviderService;
-    @Mock
-    private com.supremeai.service.browser.BrowserService browserService;
-    @Mock
-    private AdminProviderValidationService validationService;
-    @Mock
-    private CyberSecuritySkillService cyberSecuritySkillService;
-    @Mock
-    private EnhancedLearningService enhancedLearningService;
-    @Mock
-    private KnowledgeService knowledgeService;
-    @Mock
-    private AutonomousQuestioningEngine autonomousEngine;
-    @Mock
-    private ConfigService configService;
-    @Mock
-    private MultiAIVotingService multiAIVotingService;
+
+
+
+
+
+
+
+
+
+
+
+
 
     @InjectMocks
-    private ChatProcessingService chatProcessingService;
+
 
     @BeforeEach
     void setUp() {

@@ -628,7 +628,7 @@ public class CodeAnalyzer {
         private List<CodeRepository.ClassInfo> classes;
         private List<CodeRepository.ImportInfo> imports;
 
-        public TreeSitterParseResult(List<CodeRepository.FunctionInfo> f, List<CodeRepository.ClassInfo> c, List<CodeRepository.ImportInfo> i) {
+        public CodeAnalyzer(List<CodeRepository.FunctionInfo> f, List<CodeRepository.ClassInfo> c, List<CodeRepository.ImportInfo> i) {
             this.functions = f; this.classes = c; this.imports = i;
         }
         public List<CodeRepository.FunctionInfo> getFunctions() { return functions; }

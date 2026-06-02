@@ -19,29 +19,25 @@ import jakarta.annotation.PostConstruct;
  */
 @Configuration
 public class AppConfig {
+    public AppConfig(String redisHost, int redisPort, int redisMaxActive, int redisMinIdle, int asyncCorePoolSize, int asyncMaxPoolSize, int asyncQueueCapacity) {
+        this.redisHost = redisHost;
+        this.redisPort = redisPort;
+        this.redisMaxActive = redisMaxActive;
+        this.redisMinIdle = redisMinIdle;
+        this.asyncCorePoolSize = asyncCorePoolSize;
+        this.asyncMaxPoolSize = asyncMaxPoolSize;
+        this.asyncQueueCapacity = asyncQueueCapacity;
+    }
+
     
     private static final Logger log = LoggerFactory.getLogger(AppConfig.class);
     
-    @Value("${spring.data.redis.host:localhost}")
-    private String redisHost;
     
-    @Value("${spring.data.redis.port:6379}")
-    private int redisPort;
     
-    @Value("${spring.data.redis.lettuce.pool.max-active:100}")
-    private int redisMaxActive;
     
-    @Value("${spring.data.redis.lettuce.pool.min-idle:10}")
-    private int redisMinIdle;
     
-    @Value("${performance.async.core-pool-size:10}")
-    private int asyncCorePoolSize;
     
-    @Value("${performance.async.max-pool-size:100}")
-    private int asyncMaxPoolSize;
     
-    @Value("${performance.async.queue-capacity:1000}")
-    private int asyncQueueCapacity;
     
     /**
      * Validates configuration at startup

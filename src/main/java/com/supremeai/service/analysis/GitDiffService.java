@@ -178,7 +178,7 @@ public class GitDiffService {
 
         public FileDiff() {}
 
-        public FileDiff(String fileName, ChangeType changeType, List<LineRange> changedLineRanges, String rawDiff) {
+        public GitDiffService(String fileName, ChangeType changeType, List<LineRange> changedLineRanges, String rawDiff) {
             this.fileName = fileName;
             this.changeType = changeType;
             this.changedLineRanges = changedLineRanges;
