@@ -1,7 +1,7 @@
 # Stage 1: Extract layers from the FAT JAR
 FROM eclipse-temurin:21-jre-alpine AS builder
 WORKDIR /builder
-COPY build/libs/*.jar app.jar
+COPY .gradle/build/libs/app.jar app.jar
 RUN java -Djarmode=layertools -jar app.jar extract
 
 # Stage 2: Final Runtime Image
