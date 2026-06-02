@@ -1,11 +1,11 @@
 import React from 'react';
-import { Layout, Button, Breadcrumb, Typography, Space, Badge, Tooltip } from 'antd';
-import { 
-  MenuUnfoldOutlined, 
-  MenuFoldOutlined, 
-  HomeOutlined, 
+import { Layout, Button, Breadcrumb, Typography, Badge, Tooltip } from 'antd';
+import {
+  MenuUnfoldOutlined,
+  MenuFoldOutlined,
+  HomeOutlined,
   LogoutOutlined,
-  SearchOutlined,
+  LoginOutlined,
   BellOutlined,
   ThunderboltOutlined
 } from '@ant-design/icons';
@@ -88,18 +88,13 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
           </Tooltip>
 
           <Badge dot color="var(--neon-blue)">
-            <Button
-              type="text"
-              icon={<BellOutlined style={{ color: 'rgba(255,255,255,0.65)' }} />}
-              style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-            />
+            <div style={{
+              width: 32, height: 32, borderRadius: 8, background: 'rgba(255,255,255,0.05)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer'
+            }}>
+              <BellOutlined style={{ color: 'rgba(255,255,255,0.85)', fontSize: 16 }} />
+            </div>
           </Badge>
-
-          <Button
-            type="text"
-            icon={<SearchOutlined style={{ color: 'rgba(255,255,255,0.65)' }} />}
-            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-          />
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
@@ -125,24 +120,31 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
 
           <Tooltip title="Security Clearance Alpha">
             <div style={{
-              width: 42, height: 42, borderRadius: 12,
+              width: 38, height: 38, borderRadius: 10,
               background: 'linear-gradient(135deg, rgba(0, 243, 255, 0.2), rgba(188, 19, 254, 0.2))',
-              border: '1px solid rgba(255,255,255,0.1)',
+              border: '1px solid rgba(0, 243, 255, 0.3)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               cursor: 'pointer', position: 'relative', overflow: 'hidden'
             }}>
-               <ThunderboltOutlined style={{ color: '#fff', fontSize: 18, zIndex: 1 }} />
-               <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.2)' }} />
+              <ThunderboltOutlined style={{ color: '#fff', fontSize: 18, zIndex: 1 }} />
+              <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.2)' }} />
             </div>
           </Tooltip>
 
           <Button
             onClick={handleLogout}
             className="glass-action-button"
-            icon={<LogoutOutlined />}
-            style={{ height: '36px', minHeight: '36px', padding: '0 16px', borderRadius: 8 }}
+            icon={isAuthenticated ? <LogoutOutlined style={{ color: 'var(--warning)' }} /> : <LoginOutlined style={{ color: 'var(--success)' }} />}
+            style={{
+              height: '38px',
+              minHeight: '38px',
+              padding: '0 16px',
+              borderRadius: 10,
+              borderColor: isAuthenticated ? 'rgba(255, 152, 0, 0.2)' : 'rgba(16, 185, 129, 0.2)',
+              color: isAuthenticated ? 'var(--warning)' : 'var(--success)'
+            }}
           >
-            DISCONNECT
+            {isAuthenticated ? 'LOGOUT' : 'LOGIN'}
           </Button>
         </div>
       </div>

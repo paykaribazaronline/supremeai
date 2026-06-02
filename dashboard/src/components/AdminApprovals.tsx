@@ -2,17 +2,18 @@
 import React from 'react';
 import { Typography, Empty, Badge, Space, Button, Row, Col, message } from 'antd';
 import {
-  SafetyCertificateOutlined,
-  BulbOutlined,
-  CheckCircleOutlined,
-  SyncOutlined,
-  ThunderboltOutlined,
-  SecurityScanOutlined,
-  FireOutlined
+    SafetyCertificateOutlined,
+    BulbOutlined,
+    CheckCircleOutlined,
+    SyncOutlined,
+    ThunderboltOutlined,
+    SecurityScanOutlined,
+    FireOutlined
 } from '@ant-design/icons';
 import { motion, AnimatePresence } from 'framer-motion';
 import AISuggestionInformer from './AISuggestionInformer';
 import { useAISuggestions } from '../lib/suggestionService';
+import AdminLayout from './AdminLayout';
 
 const { Title, Text } = Typography;
 
@@ -42,49 +43,37 @@ const AdminApprovals: React.FC = () => {
     };
 
     return (
-        <motion.div
-            initial={{ opacity: 0, scale: 0.98 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.5 }}
-            style={{ maxWidth: '1400px', margin: '0 auto' }}
+        <AdminLayout
+            title="Neural"
+            titleHighlight="Approvals"
+            subtitle="Review and authorize autonomous system optimizations and security patches."
+            categoryLabel="PERMISSION PROTOCOL"
+            icon={<SafetyCertificateOutlined />}
+            themeColor="#f59e0b"
+            maxWidth="1400px"
+            extra={
+                <Space>
+                    <Button
+                        icon={<SyncOutlined />}
+                        onClick={() => refresh()}
+                        className="glass-action-button"
+                    >
+                        Refresh Insights
+                    </Button>
+                    {suggestions.length > 0 && (
+                        <Button
+                            type="primary"
+                            onClick={handleApproveAll}
+                            loading={approvingAll}
+                            style={{ background: '#f59e0b', border: 'none', color: '#000', fontWeight: 700 }}
+                            className="cyber-button"
+                        >
+                            AUTHORIZE ALL ({count})
+                        </Button>
+                    )}
+                </Space>
+            }
         >
-            {/* Cinematic Header */}
-            <div style={{ marginBottom: 32, borderBottom: '1px solid rgba(245, 158, 11, 0.2)', paddingBottom: 24 }}>
-                <Row justify="space-between" align="bottom">
-                    <Col>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
-                            <SafetyCertificateOutlined style={{ color: '#f59e0b', fontSize: 20 }} />
-                            <Text style={{ color: '#f59e0b', letterSpacing: 2, fontWeight: 800, fontSize: 12 }}>PERMISSION PROTOCOL</Text>
-                        </div>
-                        <Title level={2} style={{ color: '#fff', margin: 0, fontWeight: 800, fontSize: 32 }}>
-                            Neural <span style={{ color: '#f59e0b', textShadow: '0 0 10px rgba(245, 158, 11, 0.3)' }}>Approvals</span>
-                        </Title>
-                        <Text style={{ color: 'var(--text-dim)', fontSize: 14 }}>Review and authorize autonomous system optimizations and security patches.</Text>
-                    </Col>
-                    <Col>
-                        <Space>
-                            <Button
-                                icon={<SyncOutlined />}
-                                onClick={() => refresh()}
-                                className="glass-action-button"
-                            >
-                                Refresh Insights
-                            </Button>
-                            {suggestions.length > 0 && (
-                                <Button
-                                    type="primary"
-                                    onClick={handleApproveAll}
-                                    loading={approvingAll}
-                                    style={{ background: '#f59e0b', border: 'none', color: '#000', fontWeight: 700 }}
-                                    className="cyber-button"
-                                >
-                                    AUTHORIZE ALL ({count})
-                                </Button>
-                            )}
-                        </Space>
-                    </Col>
-                </Row>
-            </div>
 
             <Row gutter={[24, 24]}>
                 {/* Stats Row */}
@@ -172,7 +161,7 @@ const AdminApprovals: React.FC = () => {
                     </div>
                 </Col>
             </Row>
-        </motion.div>
+        </AdminLayout>
     );
 };
 

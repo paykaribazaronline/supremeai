@@ -43,7 +43,7 @@ const LoginPage: React.FC = () => {
     try {
       // ✅ Real Firebase Authentication
       const result = await firebaseSignIn(values.email, values.password);
-      
+
       authUtils.setToken(result.token);
       authUtils.setCurrentUser(result.user);
 
@@ -88,7 +88,7 @@ const LoginPage: React.FC = () => {
       message.success(result.data?.message || 'অ্যাকাউন্ট তৈরি সফল! এখন লগইন করার চেষ্টা করুন।');
       setShowRegisterForm(false);
       createUserForm.resetFields();
-      
+
       // Switch to login mode and fill email automatically
       form.setFieldsValue({ email: values.email });
     } catch (error: any) {
@@ -303,25 +303,6 @@ const LoginPage: React.FC = () => {
                   >
                     Login
                   </Button>
-
-                  <Button
-                    type="default"
-                    onClick={handleGuestLogin}
-                    loading={loading}
-                    icon={<RobotOutlined />}
-                    className="glass-action-button"
-                    style={{
-                      width: '100%',
-                      height: '50px',
-                      fontWeight: 700,
-                      borderRadius: '8px',
-                      border: '1px solid rgba(0, 243, 255, 0.35)',
-                      color: 'var(--neon-blue)',
-                      background: 'rgba(0, 243, 255, 0.06)'
-                    }}
-                  >
-                    Continue as Guest
-                  </Button>
                 </Space>
               </Form>
 
@@ -338,7 +319,7 @@ const LoginPage: React.FC = () => {
               </div>
 
               {/* Divider */}
-              <Divider style={{ 
+              <Divider style={{
                 margin: '24px 0 16px 0',
                 borderColor: 'rgba(255,255,255,0.1)'
               }}>
@@ -347,165 +328,186 @@ const LoginPage: React.FC = () => {
                 </Text>
               </Divider>
 
-              {/* Create Account Section */}
-              {!showRegisterForm ? (
+              {/* Secondary Actions (Register & Guest) */}
+              <Space direction="vertical" style={{ width: '100%', gap: '12px' }}>
+                {!showRegisterForm ? (
+                  <Button
+                    type="link"
+                    icon={<UserAddOutlined />}
+                    onClick={() => setShowRegisterForm(true)}
+                    style={{
+                      width: '100%',
+                      color: 'var(--text-main)',
+                      border: '1px dashed rgba(255,255,255,0.2)',
+                      borderRadius: '8px',
+                      height: '48px'
+                    }}
+                  >
+                    Create New Account
+                  </Button>
+                ) : (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    style={{
+                      background: 'rgba(0, 243, 255, 0.05)',
+                      border: '1px solid rgba(0, 243, 255, 0.2)',
+                      borderRadius: '12px',
+                      padding: '20px',
+                      marginTop: '16px'
+                    }}
+                  >
+                    <Form
+                      form={createUserForm}
+                      layout="vertical"
+                      onFinish={handleCreateUser}
+                      size="large"
+                    >
+                      <Form.Item
+                        name="fullName"
+                        rules={[{ required: true, message: 'পূর্ণ নাম প্রয়োজন!' }]}
+                      >
+                        <Input
+                          prefix={<UserOutlined style={{ color: 'var(--neon-blue)' }} />}
+                          placeholder="পূর্ণ নাম"
+                          style={{
+                            background: 'rgba(255,255,255,0.05)',
+                            border: '1px solid rgba(255,255,255,0.1)',
+                            color: 'var(--text-main)',
+                            borderRadius: '8px'
+                          }}
+                        />
+                      </Form.Item>
+
+                      <Form.Item
+                        name="email"
+                        rules={[
+                          { required: true, message: 'ইমেইল প্রয়োজন!' },
+                          { type: 'email', message: 'সঠিক ইমেইল ফরম্যাট দিন!' }
+                        ]}
+                      >
+                        <Input
+                          prefix={<MailOutlined style={{ color: 'var(--neon-blue)' }} />}
+                          placeholder="ইমেইল অ্যাড্রেস"
+                          style={{
+                            background: 'rgba(255,255,255,0.05)',
+                            border: '1px solid rgba(255,255,255,0.1)',
+                            color: 'var(--text-main)',
+                            borderRadius: '8px'
+                          }}
+                        />
+                      </Form.Item>
+
+                      <Form.Item
+                        name="password"
+                        rules={[
+                          { required: true, message: 'পাসওয়ার্ড প্রয়োজন!' },
+                          { min: 6, message: 'পাসওয়ার্ড কমপক্ষে ৬ অক্ষর হতে হবে!' }
+                        ]}
+                      >
+                        <Input.Password
+                          prefix={<LockOutlined style={{ color: 'var(--neon-blue)' }} />}
+                          placeholder="পাসওয়ার্ড (অন্তত ৬ অক্ষর)"
+                          style={{
+                            background: 'rgba(255,255,255,0.05)',
+                            border: '1px solid rgba(255,255,255,0.1)',
+                            color: 'var(--text-main)',
+                            borderRadius: '8px'
+                          }}
+                        />
+                      </Form.Item>
+
+                      <Form.Item
+                        name="confirmPassword"
+                        rules={[
+                          { required: true, message: 'পাসওয়ার্ড কনফার্ম করুন!' },
+                          ({ getFieldValue }) => ({
+                            validator(_, value) {
+                              if (!value || getFieldValue('password') === value) {
+                                return Promise.resolve();
+                              }
+                              return Promise.reject(new Error('পাসওয়ার্ড মিলছে না!'));
+                            },
+                          }),
+                        ]}
+                      >
+                        <Input.Password
+                          prefix={<CheckCircleOutlined style={{ color: 'var(--neon-blue)' }} />}
+                          placeholder="পাসওয়ার্ড আবার লিখুন"
+                          style={{
+                            background: 'rgba(255,255,255,0.05)',
+                            border: '1px solid rgba(255,255,255,0.1)',
+                            color: 'var(--text-main)',
+                            borderRadius: '8px'
+                          }}
+                        />
+                      </Form.Item>
+
+                      <Button
+                        type="primary"
+                        htmlType="submit"
+                        loading={createUserLoading}
+                        icon={<UserAddOutlined />}
+                        block
+                        style={{
+                          background: 'linear-gradient(135deg, var(--success), var(--neon-blue))',
+                          border: 'none',
+                          height: '48px',
+                          fontWeight: 700,
+                          fontSize: '16px',
+                          borderRadius: '8px',
+                          marginBottom: '8px'
+                        }}
+                      >
+                        Create Account
+                      </Button>
+
+                      <Button
+                        type="text"
+                        onClick={() => {
+                          setShowRegisterForm(false);
+                          createUserForm.resetFields();
+                        }}
+                        style={{ padding: 0, height: 'auto' }}
+                      >
+                        Cancel
+                      </Button>
+                    </Form>
+                  </motion.div>
+                )}
+
                 <Button
-                  type="link"
-                  icon={<UserAddOutlined />}
-                  onClick={() => setShowRegisterForm(true)}
+                  type="default"
+                  onClick={handleGuestLogin}
+                  loading={loading}
+                  icon={<RobotOutlined />}
+                  className="glass-action-button"
                   style={{
                     width: '100%',
-                    color: 'var(--text-main)',
-                    border: '1px dashed rgba(255,255,255,0.2)',
+                    height: '48px',
+                    fontWeight: 700,
                     borderRadius: '8px',
-                    height: '48px'
+                    border: '1px solid rgba(0, 243, 255, 0.35)',
+                    color: 'var(--neon-blue)',
+                    background: 'rgba(0, 243, 255, 0.06)'
                   }}
                 >
-                  Create New Account
+                  Continue as Guest
                 </Button>
-              ) : (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: 'auto' }}
-                  exit={{ opacity: 0, height: 0 }}
-                  style={{
-                    background: 'rgba(0, 243, 255, 0.05)',
-                    border: '1px solid rgba(0, 243, 255, 0.2)',
-                    borderRadius: '12px',
-                    padding: '20px',
-                    marginTop: '16px'
-                  }}
-                >
-                  <Form
-                    form={createUserForm}
-                    layout="vertical"
-                    onFinish={handleCreateUser}
-                    size="large"
-                  >
-                    <Form.Item
-                      name="fullName"
-                      rules={[{ required: true, message: 'পূর্ণ নাম প্রয়োজন!' }]}
-                    >
-                      <Input
-                        prefix={<UserOutlined style={{ color: 'var(--neon-blue)' }} />}
-                        placeholder="পূর্ণ নাম"
-                        style={{
-                          background: 'rgba(255,255,255,0.05)',
-                          border: '1px solid rgba(255,255,255,0.1)',
-                          color: 'var(--text-main)',
-                          borderRadius: '8px'
-                        }}
-                      />
-                    </Form.Item>
-
-                    <Form.Item
-                      name="email"
-                      rules={[
-                        { required: true, message: 'ইমেইল প্রয়োজন!' },
-                        { type: 'email', message: 'সঠিক ইমেইল ফরম্যাট দিন!' }
-                      ]}
-                    >
-                      <Input
-                        prefix={<MailOutlined style={{ color: 'var(--neon-blue)' }} />}
-                        placeholder="ইমেইল অ্যাড্রেস"
-                        style={{
-                          background: 'rgba(255,255,255,0.05)',
-                          border: '1px solid rgba(255,255,255,0.1)',
-                          color: 'var(--text-main)',
-                          borderRadius: '8px'
-                        }}
-                      />
-                    </Form.Item>
-
-                    <Form.Item
-                      name="password"
-                      rules={[
-                        { required: true, message: 'পাসওয়ার্ড প্রয়োজন!' },
-                        { min: 6, message: 'পাসওয়ার্ড কমপক্ষে ৬ অক্ষর হতে হবে!' }
-                      ]}
-                    >
-                      <Input.Password
-                        prefix={<LockOutlined style={{ color: 'var(--neon-blue)' }} />}
-                        placeholder="পাসওয়ার্ড (অন্তত ৬ অক্ষর)"
-                        style={{
-                          background: 'rgba(255,255,255,0.05)',
-                          border: '1px solid rgba(255,255,255,0.1)',
-                          color: 'var(--text-main)',
-                          borderRadius: '8px'
-                        }}
-                      />
-                    </Form.Item>
-
-                    <Form.Item
-                      name="confirmPassword"
-                      rules={[
-                        { required: true, message: 'পাসওয়ার্ড কনফার্ম করুন!' },
-                        ({ getFieldValue }) => ({
-                          validator(_, value) {
-                            if (!value || getFieldValue('password') === value) {
-                              return Promise.resolve();
-                            }
-                            return Promise.reject(new Error('পাসওয়ার্ড মিলছে না!'));
-                          },
-                        }),
-                      ]}
-                    >
-                      <Input.Password
-                        prefix={<CheckCircleOutlined style={{ color: 'var(--neon-blue)' }} />}
-                        placeholder="পাসওয়ার্ড আবার লিখুন"
-                        style={{
-                          background: 'rgba(255,255,255,0.05)',
-                          border: '1px solid rgba(255,255,255,0.1)',
-                          color: 'var(--text-main)',
-                          borderRadius: '8px'
-                        }}
-                      />
-                    </Form.Item>
-
-                    <Button
-                      type="primary"
-                      htmlType="submit"
-                      loading={createUserLoading}
-                      icon={<UserAddOutlined />}
-                      block
-                      style={{
-                        background: 'linear-gradient(135deg, var(--success), var(--neon-blue))',
-                        border: 'none',
-                        height: '48px',
-                        fontWeight: 700,
-                        fontSize: '16px',
-                        borderRadius: '8px',
-                        marginBottom: '8px'
-                      }}
-                    >
-                      Create Account
-                    </Button>
-                    
-                    <Button
-                      type="text"
-                      onClick={() => {
-                        setShowRegisterForm(false);
-                        createUserForm.resetFields();
-                      }}
-                      style={{ padding: 0, height: 'auto' }}
-                    >
-                      Cancel
-                    </Button>
-                  </Form>
-                </motion.div>
-              )}
+              </Space>
 
               {/* Info Text */}
-              <div style={{ 
+              <div style={{
                 marginTop: showRegisterForm ? '12px' : '24px',
                 textAlign: 'center'
               }}>
-                <Text style={{ 
-                  color: 'var(--text-dim)', 
+                <Text style={{
+                  color: 'var(--text-dim)',
                   fontSize: '11px',
                   lineHeight: '1.6'
                 }}>
-                 একাউন্ট তৈরি করলে আপনি SupremeAI-এর সব ফিচার ব্যবহার করতে পারবেন। 
+                  একাউন্ট তৈরি করলে আপনি SupremeAI-এর সব ফিচার ব্যবহার করতে পারবেন।
                   আপনার ইমেইল ভিত্তিক অ্যাক্সেস লেভেল স্বয়ংক্রিয়ভাবে নির্ধারিত হবে।
                 </Text>
               </div>
