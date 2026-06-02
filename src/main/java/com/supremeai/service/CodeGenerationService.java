@@ -138,7 +138,7 @@ public class CodeGenerationService {
             spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect
             
             # JWT Configuration — MUST be set via environment variable at deploy time
-            app.jwt.secret=${JWT_SECRET:CHANGE-ME-AT-DEPLOY}
+            app.jwt.secret=${JWT_SECRET:REPLACE_WITH_REAL_SECRET}
             app.jwt.expiration=86400000
             
             # File Upload

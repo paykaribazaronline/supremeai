@@ -3,12 +3,6 @@ name: E2E Tests
 on:
   schedule:
     - cron: '0 2 * * *'
-  push:
-    branches: [main, master]
-    paths:
-      - 'dashboard/**'
-      - 'functions/**'
-      - 'config/**'
   workflow_dispatch:
 
 jobs:

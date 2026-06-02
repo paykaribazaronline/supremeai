@@ -25,6 +25,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+@Deprecated
 @Service
 public class MultiAIConsensusService {
     public MultiAIConsensusService(AIProviderFactory providerFactory, SelfHealingService selfHealingService, KnowledgeFeedbackService feedbackService, ContextualAIRankingService contextualRankingService) {
