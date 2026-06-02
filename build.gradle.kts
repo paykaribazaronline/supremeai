@@ -274,7 +274,9 @@ application {
 
 tasks.bootJar {
     archiveFileName.set("app.jar")
-    // Optimize JAR creation
+    layered {
+        enabled = true
+    }
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     isZip64 = true
 }
