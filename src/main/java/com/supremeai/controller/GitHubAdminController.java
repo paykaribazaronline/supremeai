@@ -1,6 +1,7 @@
 package com.supremeai.controller;
 
 import com.supremeai.service.GitHubAutomationService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -16,7 +17,8 @@ public class GitHubAdminController {
 
     private final GitHubAutomationService gitHubAutomationService;
 
-    public GitHubAdminController(GitHubAutomationService gitHubAutomationService) {
+    @Autowired
+    public GitHubAdminController(@Autowired(required = false) GitHubAutomationService gitHubAutomationService) {
         this.gitHubAutomationService = gitHubAutomationService;
     }
 
