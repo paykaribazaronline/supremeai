@@ -9,6 +9,14 @@
 # Allow Dockerfile and build output
 !Dockerfile
 !app.jar
-!build/libs/app.jar
+!.gradle/build/libs/app.jar
+# Allow dashboard (Firebase hosting)
+!dashboard/**
+# Allow public directory (Firebase hosting output)
+!public/**
+# Allow Firebase config
+!.firebase/**
+!firebase.json
+!firebase/**
 # Allow this gcloudignore itself
 !.gcloudignore
