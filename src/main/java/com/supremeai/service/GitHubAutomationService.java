@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -159,6 +160,66 @@ public class GitHubAutomationService {
                                 return Mono.just(String.format("https://%s.github.io/%s/", owner.toLowerCase(), repo));
                             });
                 });
+    }
+
+    /**
+     * Fetch open Pull Requests to view repo status on the Admin Dashboard
+     */
+    public Mono<List> getOpenPullRequests(String owner, String repo, String installationId) {
+        log.info("Fetching open pull requests for {}/{}", owner, repo);
+        return gitHubAppService.getInstallationToken(installationId)
+                .flatMap(token -> webClient.get()
+                        .uri("/repos/{owner}/{repo}/pulls?state=open", owner, repo)
+                        .header("Authorization", "token " + token)
+                        .retrieve()
+                        .bodyToMono(List.class)
+                )
+                .doOnError(e -> log.error("Failed to fetch PRs: {}", e.getMessage()));
+    }
+
+    /**
+     * Accept and Merge a Pull Request directly from the Admin Dashboard
+     */
+    public Mono<Map<String, Object>> mergePullRequest(String owner, String repo, int pullNumber, String commitTitle, String installationId) {
+        log.info("Merging PR #{} for {}/{}", pullNumber, owner, repo);
+        
+        return gitHubAppService.getInstallationToken(installationId)
+                .flatMap(token -> {
+                    Map<String, Object> body = new HashMap<>();
+                    body.put("commit_title", commitTitle);
+                    body.put("merge_method", "squash"); // 'squash', 'merge', or 'rebase'
+
+                    return webClient.put()
+                            .uri("/repos/{owner}/{repo}/pulls/{pull_number}/merge", owner, repo, pullNumber)
+                            .header("Authorization", "token " + token)
+                            .bodyValue(body)
+                            .retrieve()
+                            .bodyToMono(Map.class)
+                            .map(res -> (Map<String, Object>) res);
+                })
+                .doOnSuccess(res -> log.info("Successfully merged PR #{}: {}", pullNumber, res))
+                .doOnError(e -> log.error("Failed to merge PR #{}: {}", pullNumber, e.getMessage()));
+    }
+
+    /**
+     * Trigger a GitHub Actions workflow manually (e.g., from Admin Dashboard)
+     */
+    public Mono<Void> triggerWorkflow(String owner, String repo, String workflowId, String branch, String installationId) {
+        log.info("Triggering workflow {} for {}/{} on branch {}", workflowId, owner, repo, branch);
+        
+        return gitHubAppService.getInstallationToken(installationId)
+                .flatMap(token -> {
+                    Map<String, Object> body = new HashMap<>();
+                    body.put("ref", branch);
+                    return webClient.post()
+                            .uri("/repos/{owner}/{repo}/actions/workflows/{workflow_id}/dispatches", owner, repo, workflowId)
+                            .header("Authorization", "token " + token)
+                            .bodyValue(body)
+                            .retrieve()
+                            .bodyToMono(Void.class);
+                })
+                .doOnSuccess(v -> log.info("Successfully triggered workflow {} for {}/{}", workflowId, owner, repo))
+                .doOnError(e -> log.error("Failed to trigger workflow: {}", e.getMessage()));
     }
 
     private void runCommand(Path directory, String... command) throws IOException, InterruptedException {
