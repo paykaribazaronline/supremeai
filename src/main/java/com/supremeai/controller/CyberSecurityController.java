@@ -2,7 +2,6 @@ package com.supremeai.controller;
 
 import com.supremeai.service.CyberSecuritySkillService;
 import com.supremeai.response.ApiResponse;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -20,9 +19,11 @@ import java.util.HashMap;
 @RequestMapping("/api/admin/security/cyber")
 @PreAuthorize("hasRole('ADMIN')")
 public class CyberSecurityController {
+    public CyberSecurityController(CyberSecuritySkillService cyberSecuritySkillService) {
+        this.cyberSecuritySkillService = cyberSecuritySkillService;
+    }
 
-    @Autowired
-    private CyberSecuritySkillService cyberSecuritySkillService;
+
 
     @GetMapping("/skills")
     public reactor.core.publisher.Flux<Map<String, Object>> getSkills() {

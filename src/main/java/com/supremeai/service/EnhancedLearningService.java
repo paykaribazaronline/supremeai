@@ -5,7 +5,6 @@ import com.supremeai.repository.SystemLearningRepository;
 import com.supremeai.util.IdUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 
@@ -27,9 +26,7 @@ public class EnhancedLearningService {
 
     private final SystemLearningRepository repository;
     private final SystemLearningService systemLearningService;
-
-    @Autowired
-    public EnhancedLearningService(SystemLearningRepository repository,
+public EnhancedLearningService(SystemLearningRepository repository,
                                    SystemLearningService systemLearningService) {
         this.repository = repository;
         this.systemLearningService = systemLearningService;

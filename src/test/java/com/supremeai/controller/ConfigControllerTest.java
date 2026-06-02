@@ -7,9 +7,12 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class ConfigControllerTest {
+class ConfigControllerTest {ConfigControllerpublic ConfigControllerTest(ConfigController controller) {
+ConfigController    this.controller = controller;
+ConfigController}
 
-    private ConfigController controller;
+
+
 
     @BeforeEach
     void setUp() {

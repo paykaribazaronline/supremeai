@@ -28,6 +28,10 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 @Service
 public class EnhancedSelfLearningRouter {
+    public EnhancedSelfLearningRouter(ProductionHealthMonitor healthMonitor) {
+        this.healthMonitor = healthMonitor;
+    }
+
 
     private static final Logger logger = LoggerFactory.getLogger(EnhancedSelfLearningRouter.class);
 
@@ -58,8 +62,6 @@ public class EnhancedSelfLearningRouter {
     private final AtomicLong totalDecisions = new AtomicLong(0);
     private final AtomicLong successfulRoutes = new AtomicLong(0);
 
-    @Autowired(required = false)
-    private ProductionHealthMonitor healthMonitor;
 
     // ──────────────────────────────────────────────────────────────────────
     // Public API
@@ -485,7 +487,7 @@ public class EnhancedSelfLearningRouter {
         public final String decisionType;
         public final double confidence;
 
-        public RoutingDecision(String agentId, String decisionType, double confidence) {
+        public EnhancedSelfLearningRouter(String agentId, String decisionType, double confidence) {
             this.agentId = agentId;
             this.decisionType = decisionType;
             this.confidence = confidence;

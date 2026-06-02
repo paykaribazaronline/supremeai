@@ -4,7 +4,6 @@ import com.supremeai.model.UserSimulatorProfile;
 import com.supremeai.model.UserTier;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -15,10 +14,12 @@ import java.util.List;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class UserSimulatorProfileRepositoryTest {
+class UserSimulatorProfileRepositoryTest {UserSimulatorProfileRepositorypublic UserSimulatorProfileRepositoryTest(UserSimulatorProfileRepository repository) {
+UserSimulatorProfileRepository    this.repository = repository;
+UserSimulatorProfileRepository}
 
-    @Mock
-    private UserSimulatorProfileRepository repository;
+
+
 
     @Test
     void findByUserId_shouldReturnProfileForUser() {

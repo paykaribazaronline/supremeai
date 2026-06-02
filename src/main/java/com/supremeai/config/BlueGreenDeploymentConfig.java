@@ -16,17 +16,17 @@ import java.util.concurrent.atomic.AtomicReference;
  */
 @Configuration
 public class BlueGreenDeploymentConfig implements ApplicationRunner {
+    public BlueGreenDeploymentConfig(String deploymentStrategy, String deploymentColor, String deploymentVersion) {
+        this.deploymentStrategy = deploymentStrategy;
+        this.deploymentColor = deploymentColor;
+        this.deploymentVersion = deploymentVersion;
+    }
+
 
     private static final Logger log = LoggerFactory.getLogger(BlueGreenDeploymentConfig.class);
 
-    @Value("${deployment.strategy:blue-green}")
-    private String deploymentStrategy;
 
-    @Value("${deployment.color:blue}")
-    private String deploymentColor;
 
-    @Value("${deployment.version:1.0.0}")
-    private String deploymentVersion;
 
     // Track active deployment
     private final AtomicReference<DeploymentInfo> activeDeployment = new AtomicReference<>();
@@ -100,7 +100,7 @@ public class BlueGreenDeploymentConfig implements ApplicationRunner {
         public DeploymentInfo() {
         }
 
-        public DeploymentInfo(String color, String version, String strategy, Instant startTime, String previousColor, String previousVersion) {
+        public BlueGreenDeploymentConfig(String color, String version, String strategy, Instant startTime, String previousColor, String previousVersion) {
             this.color = color;
             this.version = version;
             this.strategy = strategy;

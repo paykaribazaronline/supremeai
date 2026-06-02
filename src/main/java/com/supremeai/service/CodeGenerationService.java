@@ -6,7 +6,6 @@ import com.supremeai.model.EntityDefinition;
 import com.supremeai.model.FieldDefinition;
 import com.supremeai.repository.GeneratedAppRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -16,13 +15,12 @@ import reactor.core.publisher.Mono;
 
 @Service
 public class CodeGenerationService {
+    public CodeGenerationService(GeneratedAppRepository generatedAppRepository, ProductRepository productRepository, ProductService productService) {
+        this.generatedAppRepository = generatedAppRepository;
+        this.productRepository = productRepository;
+        this.productService = productService;
+    }
 
-    @Autowired
-    @org.springframework.context.annotation.Lazy
-    private ThirdOpinionOrchestrator aiFallbackOrchestrator;
-
-    @Autowired
-    private GeneratedAppRepository generatedAppRepository;
 
     public CodeGenerationService() {
     }
@@ -314,8 +312,6 @@ public class CodeGenerationService {
             @Transactional
             public class ProductService {
                 
-                @Autowired
-                private ProductRepository productRepository;
                 
                 public List<ProductDto> getAllProducts() {
                     return productRepository.findAll().stream()
@@ -395,8 +391,6 @@ public class CodeGenerationService {
             @RequestMapping("/api/products")
             public class ProductController {
                 
-                @Autowired
-                private ProductService productService;
                 
                 @GetMapping
                 public ResponseEntity<List<ProductDto>> getAllProducts() {

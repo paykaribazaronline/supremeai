@@ -6,7 +6,6 @@ import com.supremeai.repository.SimulationScenarioRepository;
 import com.supremeai.repository.SimulationResultRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -19,20 +18,19 @@ import java.util.UUID;
  */
 @Service
 public class SimulationManager {
+    public SimulationManager(SimulationScenarioRepository scenarioRepository, SimulationResultRepository resultRepository, ControllerEngine controllerEngine, ResultAnalyzer resultAnalyzer) {
+        this.scenarioRepository = scenarioRepository;
+        this.resultRepository = resultRepository;
+        this.controllerEngine = controllerEngine;
+        this.resultAnalyzer = resultAnalyzer;
+    }
+
 
     private static final Logger logger = LoggerFactory.getLogger(SimulationManager.class);
 
-    @Autowired
-    private SimulationScenarioRepository scenarioRepository;
 
-    @Autowired
-    private SimulationResultRepository resultRepository;
 
-    @Autowired
-    private ControllerEngine controllerEngine;
 
-    @Autowired
-    private ResultAnalyzer resultAnalyzer;
 
     /**
      * Create a new simulation scenario

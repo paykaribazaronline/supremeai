@@ -35,17 +35,20 @@ import reactor.core.scheduler.Schedulers;
  */
 @Service
 public class UserAccountService {
+    public UserAccountService(Firestore firestore, FirebaseAuth firebaseAuth) {
+        this.firestore = firestore;
+        this.firebaseAuth = firebaseAuth;
+    }
+
+    public UserAccountService(UserRepository userRepository) {
+        this.userRepository = userRepository;
+    }
+
 
     private static final Logger log = LoggerFactory.getLogger(UserAccountService.class);
 
-    @Autowired
-    private UserRepository userRepository;
 
-    @Autowired(required = false)
-    private Firestore firestore;
 
-    @Autowired(required = false)
-    private FirebaseAuth firebaseAuth;
 
     private FirebaseAuth getAuth() {
         return firebaseAuth != null ? firebaseAuth : FirebaseAuth.getInstance();

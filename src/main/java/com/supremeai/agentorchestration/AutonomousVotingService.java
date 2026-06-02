@@ -3,15 +3,11 @@ package com.supremeai.agentorchestration;
 import com.supremeai.model.ProviderVote;
 import com.supremeai.provider.AIProvider;
 import com.supremeai.provider.AIProviderFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -21,16 +17,15 @@ import java.util.stream.Collectors;
 public class AutonomousVotingService {
 
     private static final Logger logger = LoggerFactory.getLogger(AutonomousVotingService.class);
+    private final AIProviderFactory providerFactory;
+    private final com.supremeai.repository.ProviderRepository providerRepository;
     private final java.util.concurrent.Executor executor;
 
-    @Autowired
-    private AIProviderFactory providerFactory;
-
-    @Autowired
-    private com.supremeai.repository.ProviderRepository providerRepository;
-
-    @Autowired
-    public AutonomousVotingService(@Qualifier("votingTaskExecutor") java.util.concurrent.Executor votingTaskExecutor) {
+    public AutonomousVotingService(AIProviderFactory providerFactory,
+                                   com.supremeai.repository.ProviderRepository providerRepository,
+                                   @Qualifier("votingTaskExecutor") java.util.concurrent.Executor votingTaskExecutor) {
+        this.providerFactory = providerFactory;
+        this.providerRepository = providerRepository;
         this.executor = votingTaskExecutor;
     }
 
@@ -118,7 +113,6 @@ public class AutonomousVotingService {
     private double calculateConfidence(String response, long latencyMs) {
         double confidence = 0.3; // Base confidence
 
-        // Latency score: lower latency = higher score
         if (latencyMs < 100) {
             confidence += 0.3;
         } else if (latencyMs < 500) {
@@ -127,7 +121,6 @@ public class AutonomousVotingService {
             confidence += 0.1;
         }
 
-        // Response length score: reasonable length = higher score
         int length = response != null ? response.length() : 0;
         if (length >= 50 && length <= 500) {
             confidence += 0.4;
@@ -135,7 +128,6 @@ public class AutonomousVotingService {
             confidence += 0.2;
         }
 
-        // Cap confidence between 0 and 1
         return Math.max(0.0, Math.min(1.0, confidence));
     }
     

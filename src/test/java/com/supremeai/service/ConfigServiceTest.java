@@ -6,7 +6,6 @@ import com.supremeai.repository.SystemConfigRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
@@ -19,14 +18,17 @@ import static org.mockito.Mockito.*;
 
 class ConfigServiceTest {
 
-    @Mock
-    private SystemConfigRepository systemConfigRepository;
+
 
     @InjectMocks
-    private ConfigService configService;
+
 
     @BeforeEach
-    void setUp() {
+    void setUp() {SystemConfigRepositorypublic ConfigServiceTest(SystemConfigRepository systemConfigRepository, ConfigService configService) {
+SystemConfigRepository    this.systemConfigRepository = systemConfigRepository;
+SystemConfigRepository    this.configService = configService;
+SystemConfigRepository}
+
         MockitoAnnotations.openMocks(this);
     }
 

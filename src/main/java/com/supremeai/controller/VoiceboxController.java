@@ -1,7 +1,6 @@
 package com.supremeai.controller;
 
 import com.supremeai.service.VoiceboxClientService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
@@ -10,9 +9,11 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/voicebox")
 public class VoiceboxController {
+    public VoiceboxController(VoiceboxClientService voiceboxClientService) {
+        this.voiceboxClientService = voiceboxClientService;
+    }
 
-    @Autowired
-    private VoiceboxClientService voiceboxClientService;
+
 
     @PostMapping("/speak")
     public Mono<ResponseEntity<Map>> speak(@RequestBody Map<String, String> request) {

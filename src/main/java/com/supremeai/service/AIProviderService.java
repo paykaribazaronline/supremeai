@@ -1,7 +1,6 @@
 package com.supremeai.service;
 
 import com.supremeai.model.APIProvider;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -13,9 +12,7 @@ public class AIProviderService {
     private final Map<String, Integer> currentKeyIndex = new ConcurrentHashMap<>();
     private final Map<String, Set<String>> exhaustedKeys = new ConcurrentHashMap<>();
     private final Map<String, APIProvider> providerStore = new ConcurrentHashMap<>();
-
-    @Autowired
-    public AIProviderService(Map<String, String> initialKeys) {
+public AIProviderService(Map<String, String> initialKeys) {
         initialKeys.forEach((provider, key) -> {
             providerKeys.computeIfAbsent(provider, k -> new ArrayList<>()).add(key);
             currentKeyIndex.putIfAbsent(provider, 0);

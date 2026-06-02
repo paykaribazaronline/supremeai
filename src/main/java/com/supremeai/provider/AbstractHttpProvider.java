@@ -6,7 +6,6 @@ import com.supremeai.service.ProviderMetadataService;
 import okhttp3.OkHttpClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import reactor.core.publisher.Mono;
@@ -44,29 +43,23 @@ public abstract class AbstractHttpProvider implements AIProvider {
     /**
      * Sets the provider metadata service after construction.
      * Used by AIProviderFactory instead of reflection-based field injection.
-     * Spring @Autowired on the class field still works for Spring-managed subclasses.
+     * Subclasses must provide this setter callable or set the field directly.
      */
     public void setProviderMetadataService(ProviderMetadataService providerMetadataService) {
         this.providerMetadataService = providerMetadataService;
     }
 
-    // SECURITY FIX: ObjectMapper is now provided via constructor injection
-    // This ensures proper initialization and testability
-    protected final ObjectMapper objectMapper;
-
-    @Autowired
     protected ProviderMetadataService providerMetadataService;
 
+    protected final ObjectMapper objectMapper;
     protected final String apiKey;
     protected final String baseUrl;
     protected final String defaultModel;
 
-    // Constructor for subclasses to call
     protected AbstractHttpProvider(String apiKey, String baseUrl, String defaultModel) {
         this(apiKey, baseUrl, defaultModel, null);
     }
     
-    // Constructor with ObjectMapper for dependency injection
     protected AbstractHttpProvider(String apiKey, String baseUrl, String defaultModel, ObjectMapper objectMapper) {
         this.apiKey = apiKey;
         this.baseUrl = baseUrl;
@@ -74,9 +67,6 @@ public abstract class AbstractHttpProvider implements AIProvider {
         this.objectMapper = objectMapper != null ? objectMapper : new com.fasterxml.jackson.databind.ObjectMapper();
     }
 
-    /**
-     * Common implementation for all HTTP based providers
-     */
     @Override
     public Mono<String> generate(String prompt) {
         return Mono.fromCallable(() -> {
@@ -90,26 +80,12 @@ public abstract class AbstractHttpProvider implements AIProvider {
         }).subscribeOn(Schedulers.boundedElastic());
     }
 
-    /**
-     * Each provider implements their specific request body format
-     */
     protected abstract Map<String, Object> createRequestBody(String prompt);
 
-    /**
-     * Each provider can override for custom response extraction.
-     * Default implementation handles OpenAI-compatible format (choices[0].message.content).
-     * Providers like Gemini or Anthropic that use different formats should override this.
-     */
     protected String extractResponse(String responseBody) throws Exception {
         return extractOpenAICompatibleResponse(responseBody, getName());
     }
 
-    /**
-     * কমন রেসপন্স এক্সট্রাক্টর — OpenAI-compatible API ফরম্যাটের জন্য
-     * (OpenAI, DeepSeek, Groq, Mistral, HuggingFace ইত্যাদি)
-     * 
-     * রেসপন্স ফরম্যাট: { "choices": [{ "message": { "content": "..." } }] }
-     */
     protected final String extractOpenAICompatibleResponse(String responseBody, String providerName) throws Exception {
         if (responseBody == null || responseBody.isBlank()) {
             return "Empty response from " + providerName + ".";
@@ -127,9 +103,6 @@ public abstract class AbstractHttpProvider implements AIProvider {
         return "No response from " + providerName + ".";
     }
 
-    /**
-     * Common HTTP request execution
-     */
     protected String executeRequest(Map<String, Object> body) throws Exception {
         okhttp3.Request request = buildRequest(body);
         logger.info("[HTTP] Calling URL: {}", request.url());
@@ -147,9 +120,6 @@ public abstract class AbstractHttpProvider implements AIProvider {
         }
     }
 
-    /**
-     * Common request builder
-     */
     protected okhttp3.Request buildRequest(Map<String, Object> body) throws Exception {
         okhttp3.Request.Builder builder = new okhttp3.Request.Builder()
                 .url(getRequestUrl())
@@ -164,9 +134,6 @@ public abstract class AbstractHttpProvider implements AIProvider {
         return builder.build();
     }
 
-    /**
-     * Get the request URL - can be overridden by providers that need custom URL building
-     */
     protected String getRequestUrl() {
         if (providerMetadataService != null) {
             return providerMetadataService.getBaseUrl(getName(), baseUrl);
@@ -174,9 +141,6 @@ public abstract class AbstractHttpProvider implements AIProvider {
         return baseUrl;
     }
 
-    /**
-     * Get the default model - can be overridden or dynamically fetched
-     */
     protected String getModel() {
         if (providerMetadataService != null) {
             return providerMetadataService.getDefaultModel(getName(), defaultModel);
@@ -184,14 +148,8 @@ public abstract class AbstractHttpProvider implements AIProvider {
         return defaultModel;
     }
 
-    /**
-     * Add authentication headers
-     */
     protected abstract void addAuthHeaders(okhttp3.Request.Builder builder);
 
-    /**
-     * Override to add provider specific headers
-     */
     protected void addExtraHeaders(okhttp3.Request.Builder builder) {
         // Default no extra headers
     }
@@ -212,7 +170,6 @@ public abstract class AbstractHttpProvider implements AIProvider {
                 );
             }
         }
-        // Fallback when no metadata service: provide minimal capabilities
         return Map.of(
             "name", getName(),
             "model", defaultModel,

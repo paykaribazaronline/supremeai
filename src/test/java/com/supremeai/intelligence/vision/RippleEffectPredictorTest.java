@@ -5,9 +5,12 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class RippleEffectPredictorTest {
+class RippleEffectPredictorTest {RippleEffectPredictorpublic RippleEffectPredictorTest(RippleEffectPredictor predictor) {
+RippleEffectPredictor    this.predictor = predictor;
+RippleEffectPredictor}
 
-    private RippleEffectPredictor predictor;
+
+
 
     @BeforeEach
     void setUp() {

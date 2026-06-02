@@ -6,7 +6,6 @@ import com.supremeai.model.UserTier;
 import com.supremeai.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import reactor.core.publisher.Mono;
@@ -17,13 +16,16 @@ import static org.junit.jupiter.api.Assertions.*;
 @ActiveProfiles("test")
 public class DatabaseIntegrationTest {
 
-    @Autowired
-    private UserRepository userRepository;
 
-    private User testUser;
+
+
 
     @BeforeEach
-    public void setUp() {
+    public void setUp() {UserRepositorypublic DatabaseIntegrationTest(UserRepository userRepository, User testUser) {
+UserRepository    this.userRepository = userRepository;
+UserRepository    this.testUser = testUser;
+UserRepository}
+
         userRepository.deleteAll().block();
 
         testUser = new User("test-uid", "test@example.com", "Test User");

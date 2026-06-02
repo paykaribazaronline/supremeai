@@ -53,7 +53,7 @@ public class CrossAgentVectorMemory {
         String taskType;
         long timestamp;
 
-        public MemoryEntry(String sourceAgent, String contextData, String taskType, long timestamp) {
+        public CrossAgentVectorMemory(String sourceAgent, String contextData, String taskType, long timestamp) {
             this.sourceAgent = sourceAgent;
             this.contextData = contextData;
             this.taskType = taskType;

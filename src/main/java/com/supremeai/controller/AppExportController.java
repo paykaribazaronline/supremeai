@@ -3,7 +3,6 @@ package com.supremeai.controller;
 import com.supremeai.model.GeneratedApp;
 import com.supremeai.repository.GeneratedAppRepository;
 import com.supremeai.service.CodeGenerationService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -20,9 +19,11 @@ import java.util.zip.ZipOutputStream;
 @RestController
 @RequestMapping("/api/export")
 public class AppExportController {
+    public AppExportController(CodeGenerationService codeGenerationService) {
+        this.codeGenerationService = codeGenerationService;
+    }
 
-    @Autowired
-    private CodeGenerationService codeGenerationService;
+
 
     @GetMapping("/download/{appId}")
     public Mono<ResponseEntity<ByteArrayResource>> downloadApp(@PathVariable String appId) {

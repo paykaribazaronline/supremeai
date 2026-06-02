@@ -4,7 +4,6 @@ import com.supremeai.dto.AgentStatus;
 import com.supremeai.model.Agent;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
@@ -13,10 +12,12 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 @org.mockito.junit.jupiter.MockitoSettings(strictness = org.mockito.quality.Strictness.LENIENT)
-class AgentRepositoryTest {
+class AgentRepositoryTest {AgentRepositorypublic AgentRepositoryTest(AgentRepository agentRepository) {
+AgentRepository    this.agentRepository = agentRepository;
+AgentRepository}
 
-    @Mock
-    private AgentRepository agentRepository;
+
+
 
     @Test
     void findStatusById_shouldReturnStatus_whenAgentExists() {

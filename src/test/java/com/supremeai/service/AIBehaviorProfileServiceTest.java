@@ -13,9 +13,13 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.junit.jupiter.api.Assertions.*;
 
-class AIBehaviorProfileServiceTest {
-    private AIBehaviorProfileService profileService;
-    private AIBehaviorProfileRepository mockRepository;
+class AIBehaviorProfileServiceTest {AIBehaviorProfileServicepublic AIBehaviorProfileServiceTest(AIBehaviorProfileService profileService, AIBehaviorProfileRepository mockRepository) {
+AIBehaviorProfileService    this.profileService = profileService;
+AIBehaviorProfileService    this.mockRepository = mockRepository;
+AIBehaviorProfileService}
+
+
+
 
     @BeforeEach
     void setUp() {

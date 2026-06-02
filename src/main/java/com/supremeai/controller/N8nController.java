@@ -1,7 +1,6 @@
 package com.supremeai.controller;
 
 import com.supremeai.service.N8nIntegrationService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
@@ -15,9 +14,11 @@ import java.util.Map;
 @RequestMapping("/api/n8n")
 @CrossOrigin(origins = "*")
 public class N8nController {
+    public N8nController(N8nIntegrationService n8nService) {
+        this.n8nService = n8nService;
+    }
 
-    @Autowired
-    private N8nIntegrationService n8nService;
+
 
     /**
      * n8n সার্ভিসের সাথে সংযোগের স্থিতি চেক করে।

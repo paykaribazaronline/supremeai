@@ -6,7 +6,6 @@ import com.supremeai.service.SystemAutoDetectService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -37,13 +36,15 @@ import reactor.core.publisher.Mono;
 @RequestMapping("/api/v1")
 @CrossOrigin(origins = "*", maxAge = 3600)
 public class OpenAICompatibleController {
+    public OpenAICompatibleController(SystemAutoDetectService autoDetectService) {
+        this.autoDetectService = autoDetectService;
+    }
+
 
     private static final Logger logger = LoggerFactory.getLogger(OpenAICompatibleController.class);
 
     private static final Duration BLOCK_TIMEOUT = Duration.ofSeconds(30);
 
-    @Autowired
-    private SystemAutoDetectService autoDetectService;
 
     private final SecretManagerService secretManagerService;
 

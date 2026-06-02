@@ -7,7 +7,6 @@ import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -17,11 +16,13 @@ import java.util.concurrent.Executors;
 
 @Service
 public class ProviderRoleSuggestionService {
+    public ProviderRoleSuggestionService(Firestore firestore) {
+        this.firestore = firestore;
+    }
+
 
     private static final Logger log = LoggerFactory.getLogger(ProviderRoleSuggestionService.class);
 
-    @Autowired
-    private Firestore firestore;
 
     private final Map<String, List<String>> roleKeywordsCache = new ConcurrentHashMap<>();
     private ListenerRegistration listenerRegistration;
@@ -60,13 +61,15 @@ public class ProviderRoleSuggestionService {
                                     }
                                 } catch (Exception e) {
                                     log.error("[RoleSuggestion] Error deserializing role keywords", e);
-                                }
+        throw new RuntimeException("Swallowed exception: " + e.getMessage(), e);
+    }
                             });
                         }
                     });
         } catch (Exception e) {
             log.error("[RoleSuggestion] Failed to setup listener", e);
-        }
+        throw new RuntimeException("Swallowed exception: " + e.getMessage(), e);
+    }
 
         roleKeywordsCache.put("coding", List.of("coder", "code", "codegen", "extension", "functions"));
         roleKeywordsCache.put("security", List.of("audit", "exploit", "security", "defense", "hacking", "penetration", "cve", "vulnerability"));

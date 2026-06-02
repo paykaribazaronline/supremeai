@@ -1,7 +1,6 @@
 package com.supremeai.controller;
 
 import com.supremeai.service.MCPMarketplaceService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,9 +13,11 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/admin/skills")
 public class MCPMarketplaceController {
+    public MCPMarketplaceController(MCPMarketplaceService marketplaceService) {
+        this.marketplaceService = marketplaceService;
+    }
 
-    @Autowired
-    private MCPMarketplaceService marketplaceService;
+
 
     @GetMapping("/pending")
     public ResponseEntity<List<Map<String, Object>>> getPendingSkills() {

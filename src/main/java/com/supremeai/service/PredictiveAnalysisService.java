@@ -5,7 +5,6 @@ import com.supremeai.repository.SystemLearningRepository;
 import com.supremeai.util.IdUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
@@ -25,9 +24,7 @@ public class PredictiveAnalysisService {
 
     private final SystemLearningRepository repository;
     private final EnhancedLearningService enhancedLearningService;
-
-    @Autowired
-    public PredictiveAnalysisService(SystemLearningRepository repository,
+public PredictiveAnalysisService(SystemLearningRepository repository,
                                       EnhancedLearningService enhancedLearningService) {
         this.repository = repository;
         this.enhancedLearningService = enhancedLearningService;

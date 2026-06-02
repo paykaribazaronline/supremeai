@@ -3,7 +3,6 @@ package com.supremeai.controller;
 import com.supremeai.admin.ProviderAdminService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -23,15 +22,18 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class ProvidersControllerIntegrationTest {
 
-    @Mock
-    private ProviderAdminService providerAdminService;
-    @Mock
-    private AIProviderDiscoveryService discoveryService;
 
-    private com.supremeai.controller.ProvidersController providersController;
+
+
+
 
     @BeforeEach
-    void setUp() {
+    void setUp() {ProviderAdminServicepublic ProvidersControllerIntegrationTest(ProviderAdminService providerAdminService, AIProviderDiscoveryService discoveryService, com.supremeai.controller.ProvidersController providersController) {
+ProviderAdminService    this.providerAdminService = providerAdminService;
+ProviderAdminService    this.discoveryService = discoveryService;
+ProviderAdminService    this.providersController = providersController;
+ProviderAdminService}
+
         providersController = new com.supremeai.controller.ProvidersController(providerAdminService, discoveryService);
         SecurityContextHolder.clearContext();
     }

@@ -14,11 +14,16 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class GroqProviderTest {
+class GroqProviderTest {MockWebServerpublic GroqProviderTest(MockWebServer mockWebServer, GroqProvider provider, ObjectMapper objectMapper) {
+MockWebServer    this.mockWebServer = mockWebServer;
+MockWebServer    this.provider = provider;
+MockWebServer    this.objectMapper = objectMapper;
+MockWebServer}
 
-    private MockWebServer mockWebServer;
-    private GroqProvider provider;
-    private ObjectMapper objectMapper;
+
+
+
+
 
     @BeforeEach
     void setUp() throws IOException {

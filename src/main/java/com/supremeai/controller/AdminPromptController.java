@@ -4,7 +4,6 @@ import com.supremeai.service.AutonomousQuestioningEngine;
 import com.supremeai.response.ApiResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -22,9 +21,7 @@ public class AdminPromptController {
 
     private static final Logger log = LoggerFactory.getLogger(AdminPromptController.class);
     private final AutonomousQuestioningEngine questioningEngine;
-
-    @Autowired
-    public AdminPromptController(AutonomousQuestioningEngine questioningEngine) {
+public AdminPromptController(AutonomousQuestioningEngine questioningEngine) {
         this.questioningEngine = questioningEngine;
     }
 

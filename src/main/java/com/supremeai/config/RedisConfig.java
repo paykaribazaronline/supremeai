@@ -17,21 +17,19 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
 @Configuration
 @ConditionalOnProperty(name = "supremeai.cache.enabled", havingValue = "true", matchIfMissing = true)
 public class RedisConfig {
+    public RedisConfig(String redisHost, int redisPort, String redisPassword, int redisDatabase, int redisTimeout) {
+        this.redisHost = redisHost;
+        this.redisPort = redisPort;
+        this.redisPassword = redisPassword;
+        this.redisDatabase = redisDatabase;
+        this.redisTimeout = redisTimeout;
+    }
 
-    @Value("${spring.data.redis.host:localhost}")
-    private String redisHost;
 
-    @Value("${spring.data.redis.port:6379}")
-    private int redisPort;
 
-    @Value("${spring.data.redis.password:#{null}}")
-    private String redisPassword;
 
-    @Value("${spring.data.redis.database:0}")
-    private int redisDatabase;
 
-    @Value("${spring.data.redis.timeout:5000}")
-    private int redisTimeout;
+
 
     @Bean
     public RedisConnectionFactory redisConnectionFactory() {

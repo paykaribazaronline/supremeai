@@ -5,7 +5,6 @@ import com.supremeai.service.AdminDashboardFacadeService;
 import com.supremeai.service.ContextualAIRankingService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
@@ -32,9 +31,7 @@ public class AdminDashboardController extends BaseAdminController<Object, String
     private final SolutionMemoryRepository solutionMemoryRepository;
     private final ContextualAIRankingService contextualRankingService;
     private final com.supremeai.service.ChatProcessingService chatProcessingService;
-
-    @Autowired
-    public AdminDashboardController(AdminDashboardFacadeService facadeService,
+public AdminDashboardController(AdminDashboardFacadeService facadeService,
                                      SolutionMemoryRepository solutionMemoryRepository,
                                      ContextualAIRankingService contextualRankingService,
                                      com.supremeai.service.ChatProcessingService chatProcessingService) {

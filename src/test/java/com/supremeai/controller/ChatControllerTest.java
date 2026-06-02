@@ -34,33 +34,36 @@ import static org.mockito.Mockito.*;
 
     @ExtendWith(MockitoExtension.class)
     @MockitoSettings(strictness = Strictness.LENIENT)
-    class ChatControllerTest {
+    class ChatControllerTest {MultiAIVotingServicepublic ChatControllerTest(MultiAIVotingService consensusService, AutonomousQuestioningEngine questioningEngine, MultiAIVotingService votingService, EnhancedLearningService enhancedLearningService, ChatIntelligenceService intelligenceService, ChatHistoryRepository chatHistoryRepository, ProviderRepository providerRepository, com.supremeai.service.NeuralChatService neuralChatService, ChatController chatController) {
+MultiAIVotingService    this.consensusService = consensusService;
+MultiAIVotingService    this.questioningEngine = questioningEngine;
+MultiAIVotingService    this.votingService = votingService;
+MultiAIVotingService    this.enhancedLearningService = enhancedLearningService;
+MultiAIVotingService    this.intelligenceService = intelligenceService;
+MultiAIVotingService    this.chatHistoryRepository = chatHistoryRepository;
+MultiAIVotingService    this.providerRepository = providerRepository;
+MultiAIVotingService    this.neuralChatService = neuralChatService;
+MultiAIVotingService    this.chatController = chatController;
+MultiAIVotingService}
 
-    @Mock
-    private MultiAIVotingService consensusService;
 
-    @Mock
-    private AutonomousQuestioningEngine questioningEngine;
 
-    @Mock
-    private MultiAIVotingService votingService;
 
-    @Mock
-    private EnhancedLearningService enhancedLearningService;
 
-    @Mock
-    private ChatIntelligenceService intelligenceService;
 
-    @Mock
-    private ChatHistoryRepository chatHistoryRepository;
 
-    @Mock
-    private ProviderRepository providerRepository;
 
-    @Mock
-    private com.supremeai.service.NeuralChatService neuralChatService;
 
-    private ChatController chatController;
+
+
+
+
+
+
+
+
+
+
 
     @BeforeEach
     void setUp() {

@@ -13,9 +13,12 @@ import static org.junit.jupiter.api.Assertions.*;
  * Unit tests for AdvancedPredictiveMLService.
  * Tests ARIMA forecasting, quota prediction, and time-series analysis.
  */
-class AdvancedPredictiveMLServiceTest {
+class AdvancedPredictiveMLServiceTest {AdvancedPredictiveMLServicepublic AdvancedPredictiveMLServiceTest(AdvancedPredictiveMLService mlService) {
+AdvancedPredictiveMLService    this.mlService = mlService;
+AdvancedPredictiveMLService}
 
-    private AdvancedPredictiveMLService mlService;
+
+
 
     @BeforeEach
     void setUp() {

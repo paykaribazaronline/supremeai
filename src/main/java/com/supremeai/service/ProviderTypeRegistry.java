@@ -7,7 +7,6 @@ import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
@@ -25,12 +24,14 @@ import java.util.concurrent.Executors;
  */
 @Service
 public class ProviderTypeRegistry {
+    public ProviderTypeRegistry(Firestore firestore) {
+        this.firestore = firestore;
+    }
+
 
     private static final Logger log = LoggerFactory.getLogger(ProviderTypeRegistry.class);
     private static final String COLLECTION = "provider_types";
 
-    @Autowired
-    private Firestore firestore;
 
     private final Map<String, ProviderTypeConfig> typeCache = new ConcurrentHashMap<>();
     private ListenerRegistration listenerRegistration;
@@ -65,13 +66,15 @@ public class ProviderTypeRegistry {
                                     }
                                 } catch (Exception e) {
                                     log.error("[ProviderTypeRegistry] Error deserializing ProviderTypeConfig", e);
-                                }
+        throw new RuntimeException("Swallowed exception: " + e.getMessage(), e);
+    }
                             });
                         }
                     });
         } catch (Exception e) {
             log.error("[ProviderTypeRegistry] Failed to setup listener", e);
-        }
+        throw new RuntimeException("Swallowed exception: " + e.getMessage(), e);
+    }
     }
 
     @PreDestroy

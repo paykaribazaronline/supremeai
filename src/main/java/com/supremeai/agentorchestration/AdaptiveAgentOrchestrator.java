@@ -17,23 +17,24 @@ import java.util.*;
 
 @Service
 public class AdaptiveAgentOrchestrator {
+    public AdaptiveAgentOrchestrator(EnhancedLearningService enhancedLearningService) {
+        this.enhancedLearningService = enhancedLearningService;
+    }
+
+    public AdaptiveAgentOrchestrator(AIProviderFactory providerFactory, TranslationService translationService, UserLanguagePreferenceService languagePreferenceService, com.supremeai.service.AIBehaviorProfileService behaviorProfileService) {
+        this.providerFactory = providerFactory;
+        this.translationService = translationService;
+        this.languagePreferenceService = languagePreferenceService;
+        this.behaviorProfileService = behaviorProfileService;
+    }
+
 
     private static final Logger logger = LoggerFactory.getLogger(AdaptiveAgentOrchestrator.class);
 
-    @Autowired
-    private AIProviderFactory providerFactory;
 
-    @Autowired
-    private TranslationService translationService;
 
-    @Autowired
-    private UserLanguagePreferenceService languagePreferenceService;
 
-    @Autowired
-    private com.supremeai.service.AIBehaviorProfileService behaviorProfileService;
 
-    @Autowired(required = false)
-    private EnhancedLearningService enhancedLearningService;
 
     public AdaptiveAgentOrchestrator() {}
 

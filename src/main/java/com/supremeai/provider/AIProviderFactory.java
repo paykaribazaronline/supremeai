@@ -1,7 +1,6 @@
 package com.supremeai.provider;
 
 import com.supremeai.service.AIProviderService;
-import com.supremeai.repository.ProviderRepository;
 import com.supremeai.service.ContextualAIRankingService;
 import com.supremeai.service.ProviderMetadataService;
 import com.supremeai.service.ProviderTypeRegistry;
@@ -9,7 +8,7 @@ import com.supremeai.learning.SelfLearningRouter;
 import com.supremeai.learning.EnhancedSelfLearningRouter;
 import com.supremeai.model.APIProvider;
 import com.supremeai.model.ProviderTypeConfig;
-import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.LoadingCache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,13 +25,37 @@ import java.util.concurrent.ConcurrentHashMap;
 
 @Component
 public class AIProviderFactory {
-
     private static final Logger logger = LoggerFactory.getLogger(AIProviderFactory.class);
 
     private static final int HEALTH_CACHE_MAX_SIZE = 25;
     private static final long HEALTH_CACHE_TTL_MS = 30_000;
 
-    private final com.github.benmanes.caffeine.cache.LoadingCache<String, Boolean> providerHealthCache = Caffeine.newBuilder()
+    public AIProviderFactory(ProviderMetadataService providerMetadataService, ProviderTypeRegistry providerTypeRegistry, AIProviderService aiProviderService, ProviderRepository providerRepository, com.supremeai.agent.AgentRuleService ruleService, StubLocalProvider stubLocalProvider,
+                             @Autowired(required = false) SelfLearningRouter selfLearningRouter,
+                             @Autowired(required = false) EnhancedSelfLearningRouter enhancedRouter,
+                             @Autowired @Lazy ContextualAIRankingService contextualRankingService) {
+        this.providerMetadataService = providerMetadataService;
+        this.providerTypeRegistry = providerTypeRegistry;
+        this.aiProviderService = aiProviderService;
+        this.providerRepository = providerRepository;
+        this.ruleService = ruleService;
+        this.stubLocalProvider = stubLocalProvider;
+        this.selfLearningRouter = selfLearningRouter;
+        this.enhancedRouter = enhancedRouter;
+        this.contextualRankingService = contextualRankingService;
+    }
+
+    private final com.supremeai.service.ProviderMetadataService providerMetadataService;
+    private final com.supremeai.service.ProviderTypeRegistry providerTypeRegistry;
+    private final com.supremeai.service.AIProviderService aiProviderService;
+    private final com.supremeai.repository.ProviderRepository providerRepository;
+    private final com.supremeai.agent.AgentRuleService ruleService;
+    private final StubLocalProvider stubLocalProvider;
+    private final SelfLearningRouter selfLearningRouter;
+    private final EnhancedSelfLearningRouter enhancedRouter;
+    private final ContextualAIRankingService contextualRankingService;
+
+    private final LoadingCache<String, Boolean> providerHealthCache = Caffeine.newBuilder()
             .maximumSize(HEALTH_CACHE_MAX_SIZE)
             .expireAfterWrite(Duration.ofMillis(HEALTH_CACHE_TTL_MS))
             .build(providerName -> {
@@ -48,30 +71,6 @@ public class AIProviderFactory {
                 }
             });
 
-    @Autowired
-    private ProviderMetadataService providerMetadataService;
-
-    @Autowired
-    private ProviderTypeRegistry providerTypeRegistry;
-
-    @Autowired
-    private AIProviderService aiProviderService;
-
-    @Autowired
-    private ProviderRepository providerRepository;
-
-    @Autowired(required = false)
-    private SelfLearningRouter selfLearningRouter;
-
-    @Autowired(required = false)
-    private EnhancedSelfLearningRouter enhancedRouter;
-
-    @Autowired
-    private com.supremeai.agent.AgentRuleService ruleService;
-
-    @Autowired
-    @Lazy
-    private ContextualAIRankingService contextualRankingService;
 
     private void injectMetadataService(AIProvider provider) {
         if (provider instanceof AbstractHttpProvider httpProvider) {
@@ -284,8 +283,6 @@ public class AIProviderFactory {
         return getDefaultProvider();
     }
 
-    @Autowired
-    private StubLocalProvider stubLocalProvider;
 
     public AIProvider getDefaultProvider() {
         logger.info("Dynamically searching for default provider from metadata cache (local-first mode)");

@@ -6,7 +6,6 @@ import com.supremeai.provider.AIProvider;
 import com.supremeai.provider.AIProviderFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -21,17 +20,17 @@ import reactor.core.publisher.Mono;
  */
 @Service
 public class GPublishAgent {
+    public GPublishAgent(AIProviderFactory providerFactory, com.supremeai.service.GitHubAutomationService githubAutomationService, com.supremeai.service.SystemWorkRuleService ruleService) {
+        this.providerFactory = providerFactory;
+        this.githubAutomationService = githubAutomationService;
+        this.ruleService = ruleService;
+    }
+
 
     private static final Logger logger = LoggerFactory.getLogger(GPublishAgent.class);
 
-    @Autowired
-    private AIProviderFactory providerFactory;
 
-    @Autowired
-    private com.supremeai.service.GitHubAutomationService githubAutomationService;
 
-    @Autowired
-    private com.supremeai.service.SystemWorkRuleService ruleService;
 
     /**
      * অটোমেটিক গিটহাব পুশ এনাবল করা আছে কিনা এবং ডিফল্ট অর্গানাইজেশন কী তা যাচাই করে

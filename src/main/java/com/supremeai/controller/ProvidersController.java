@@ -6,7 +6,6 @@ import com.supremeai.admin.ProviderAdminService;
 import com.supremeai.service.AIProviderDiscoveryService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -27,9 +26,7 @@ public class ProvidersController extends BaseAdminController<APIProvider, String
 
     private final ProviderAdminService providerAdminService;
     private final AIProviderDiscoveryService discoveryService;
-
-    @Autowired
-    public ProvidersController(ProviderAdminService providerAdminService,
+public ProvidersController(ProviderAdminService providerAdminService,
                                AIProviderDiscoveryService discoveryService) {
         this.providerAdminService = providerAdminService;
         this.discoveryService = discoveryService;

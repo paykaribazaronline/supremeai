@@ -19,36 +19,29 @@ import javax.sql.DataSource;
  */
 @Configuration
 public class HikariCPConfig {
+    public HikariCPConfig(int maximumPoolSize, int minimumIdle, long connectionTimeout, long idleTimeout, long maxLifetime, long leakDetectionThreshold, String jdbcUrl, String username, String password, String driverClassName) {
+        this.maximumPoolSize = maximumPoolSize;
+        this.minimumIdle = minimumIdle;
+        this.connectionTimeout = connectionTimeout;
+        this.idleTimeout = idleTimeout;
+        this.maxLifetime = maxLifetime;
+        this.leakDetectionThreshold = leakDetectionThreshold;
+        this.jdbcUrl = jdbcUrl;
+        this.username = username;
+        this.password = password;
+        this.driverClassName = driverClassName;
+    }
 
-    @Value("${spring.datasource.hikari.maximum-pool-size:200}")
-    private int maximumPoolSize;
 
-    @Value("${spring.datasource.hikari.minimum-idle:50}")
-    private int minimumIdle;
 
-    @Value("${spring.datasource.hikari.connection-timeout:5000}")
-    private long connectionTimeout;
 
-    @Value("${spring.datasource.hikari.idle-timeout:300000}")
-    private long idleTimeout;
 
-    @Value("${spring.datasource.hikari.max-lifetime:1800000}")
-    private long maxLifetime;
 
-    @Value("${spring.datasource.hikari.leak-detection-threshold:60000}")
-    private long leakDetectionThreshold;
 
-    @Value("${spring.datasource.url:}")
-    private String jdbcUrl;
 
-    @Value("${spring.datasource.username:sa}")
-    private String username;
 
-    @Value("${spring.datasource.password:}")
-    private String password;
 
-    @Value("${spring.datasource.driver-class-name:}")
-    private String driverClassName;
+
 
     @Bean
     @ConditionalOnProperty(name = "spring.datasource.url", matchIfMissing = false)

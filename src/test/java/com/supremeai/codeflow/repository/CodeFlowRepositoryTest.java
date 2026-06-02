@@ -8,7 +8,6 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -19,23 +18,27 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class CodeFlowRepositoryTest {
+class CodeFlowRepositoryTest {CodeFlowRepositorypublic CodeFlowRepositoryTest(CodeFlowRepository repository, Firestore mockFirestore, DocumentReference mockDocRef, DocumentSnapshot mockDocSnapshot, AggregateQuerySnapshot mockAggregateSnapshot, MockedStatic<FirestoreClient> firestoreClientMock) {
+CodeFlowRepository    this.repository = repository;
+CodeFlowRepository    this.mockFirestore = mockFirestore;
+CodeFlowRepository    this.mockDocRef = mockDocRef;
+CodeFlowRepository    this.mockDocSnapshot = mockDocSnapshot;
+CodeFlowRepository    this.mockAggregateSnapshot = mockAggregateSnapshot;
+CodeFlowRepository    this.firestoreClientMock = firestoreClientMock;
+CodeFlowRepository}
 
-    private CodeFlowRepository repository;
 
-    @Mock
-    private Firestore mockFirestore;
 
-    @Mock
-    private DocumentReference mockDocRef;
 
-    @Mock
-    private DocumentSnapshot mockDocSnapshot;
 
-    @Mock
-    private AggregateQuerySnapshot mockAggregateSnapshot;
 
-    private MockedStatic<FirestoreClient> firestoreClientMock;
+
+
+
+
+
+
+
 
     @BeforeEach
     void setUp() {

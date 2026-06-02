@@ -3,9 +3,10 @@ plugins {
     // Trigger CI/CD Pipeline
     id("application")
     id("jacoco")
-    id("org.springframework.boot") version "3.5.14"
+    id("org.springframework.boot") version "3.5.0"
     id("io.spring.dependency-management") version "1.1.7"
     id("io.freefair.lombok") version "8.10"
+    id("com.diffplug.spotless") version "6.25.0"
 }
 
 group = "com.supremeai"
@@ -280,6 +281,19 @@ tasks.bootJar {
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     isZip64 = true
 }
+
+spotless {
+    java {
+        googleJavaFormat("1.22.0")
+        target("src/**/*.java")
+    }
+    format("gradle", {
+        target("*.gradle", "*.gradle.kts")
+    })
+}
+
+// Verify Spotless plugin available
+tasks.named("spotlessCheck")
 
 tasks.jar {
     enabled = false

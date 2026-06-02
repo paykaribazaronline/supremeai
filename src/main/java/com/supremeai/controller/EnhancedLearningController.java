@@ -2,7 +2,6 @@ package com.supremeai.controller;
 
 import com.supremeai.service.EnhancedLearningService;
 import com.supremeai.model.SystemLearning;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
@@ -18,9 +17,11 @@ import java.util.Map;
 @RequestMapping("/api/enhanced-learning")
 @PreAuthorize("hasRole('ADMIN')")
 public class EnhancedLearningController {
+    public EnhancedLearningController(EnhancedLearningService enhancedLearningService) {
+        this.enhancedLearningService = enhancedLearningService;
+    }
 
-    @Autowired
-    private EnhancedLearningService enhancedLearningService;
+
 
     /**
      * Get learning statistics

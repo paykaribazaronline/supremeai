@@ -5,7 +5,6 @@ import com.supremeai.model.User;
 import com.supremeai.model.UserTier;
 import com.supremeai.service.UserAccountService;
 import com.supremeai.response.ApiResponse;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -35,9 +34,11 @@ import java.util.*;
 @RequestMapping("/api/accounts")
 @Validated
 public class UserAccountController {
+    public UserAccountController(UserAccountService userAccountService) {
+        this.userAccountService = userAccountService;
+    }
 
-    @Autowired
-    private UserAccountService userAccountService;
+
 
     /**
      * POST /api/accounts/create - Create a single user account.

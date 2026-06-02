@@ -3,7 +3,6 @@ package com.supremeai.repository;
 import com.supremeai.model.VPNConnection;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -16,11 +15,13 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class VPNRepositoryTest {
 
-    @Mock
-    private VPNRepository repository;
+
 
     @Test
-    void save_shouldPersistConnection() {
+    void save_shouldPersistConnection() {VPNRepositorypublic VPNRepositoryTest(VPNRepository repository) {
+VPNRepository    this.repository = repository;
+VPNRepository}
+
         VPNConnection vpn = new VPNConnection("vpn-1", "US East", "us-east-1", 8080, "connected");
         when(repository.save(vpn)).thenReturn(Mono.just(vpn));
 

@@ -5,9 +5,12 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class BruteForceProtectionServiceTest {
+class BruteForceProtectionServiceTest {BruteForceProtectionServicepublic BruteForceProtectionServiceTest(BruteForceProtectionService bruteForceService) {
+BruteForceProtectionService    this.bruteForceService = bruteForceService;
+BruteForceProtectionService}
 
-    private BruteForceProtectionService bruteForceService;
+
+
 
     @BeforeEach
     void setUp() {

@@ -7,7 +7,6 @@ import com.supremeai.service.TranslationService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.ResponseEntity;
 import reactor.core.publisher.Mono;
@@ -17,12 +16,15 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class TranslationControllerTest {
+class TranslationControllerTest {TranslationServicepublic TranslationControllerTest(TranslationService translationService, TranslationController controller) {
+TranslationService    this.translationService = translationService;
+TranslationService    this.controller = controller;
+TranslationService}
 
-    @Mock
-    private TranslationService translationService;
 
-    private TranslationController controller;
+
+
+
 
     @BeforeEach
     void setUp() {

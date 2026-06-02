@@ -6,7 +6,6 @@ import com.supremeai.model.APIProvider;
 import com.supremeai.repository.ProviderRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -22,17 +21,17 @@ import java.util.Comparator;
  */
 @Service
 public class SystemAutoDetectService {
+    public SystemAutoDetectService(AIProviderFactory providerFactory, ProviderRepository providerRepository, ConfigService configService) {
+        this.providerFactory = providerFactory;
+        this.providerRepository = providerRepository;
+        this.configService = configService;
+    }
+
 
     private static final Logger logger = LoggerFactory.getLogger(SystemAutoDetectService.class);
 
-    @Autowired
-    private AIProviderFactory providerFactory;
 
-    @Autowired
-    private ProviderRepository providerRepository;
 
-    @Autowired
-    private ConfigService configService;
 
     private volatile AIProvider cachedProvider = null;
     private volatile long cacheExpiry = 0;

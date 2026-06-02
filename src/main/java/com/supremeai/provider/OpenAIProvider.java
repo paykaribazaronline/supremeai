@@ -2,7 +2,6 @@ package com.supremeai.provider;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.springframework.beans.factory.annotation.Value;
 import com.supremeai.service.ProviderModelRegistry;
 import com.supremeai.service.ProviderTierService;
 import java.util.List;
@@ -14,12 +13,13 @@ import java.util.Map;
  */
 // @Component // Disabled: heavy cloud provider excluded from local-first runtime
 public class OpenAIProvider extends AbstractHttpProvider {
+    public OpenAIProvider(ProviderModelRegistry providerModelRegistry, ProviderTierService providerTierService) {
+        this.providerModelRegistry = providerModelRegistry;
+        this.providerTierService = providerTierService;
+    }
 
-    @Autowired(required = false)
-    private ProviderModelRegistry providerModelRegistry;
 
-    @Autowired(required = false)
-    private ProviderTierService providerTierService;
+
     private static final String API_URL = "https://api.openai.com/v1/chat/completions";
     private static final String DEFAULT_MODEL = "gpt-3.5-turbo";
     private static final List<String> SUPPORTED_MODELS = List.of(

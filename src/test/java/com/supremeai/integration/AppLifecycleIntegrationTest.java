@@ -6,7 +6,6 @@ import com.supremeai.repository.UserRepository;
 import com.supremeai.security.JwtUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
@@ -25,23 +24,27 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ActiveProfiles("test")
 public class AppLifecycleIntegrationTest {
 
-    @Autowired
-    private MockMvc mockMvc;
 
-    @Autowired
-    private UserRepository userRepository;
 
-    @Autowired
-    private JwtUtil jwtUtil;
 
-    @Autowired
-    private ObjectMapper objectMapper;
 
-    private User testUser;
-    private String authToken;
+
+
+
+
+
+
 
     @BeforeEach
-    public void setUp() {
+    public void setUp() {MockMvcpublic AppLifecycleIntegrationTest(MockMvc mockMvc, UserRepository userRepository, JwtUtil jwtUtil, ObjectMapper objectMapper, User testUser, String authToken) {
+MockMvc    this.mockMvc = mockMvc;
+MockMvc    this.userRepository = userRepository;
+MockMvc    this.jwtUtil = jwtUtil;
+MockMvc    this.objectMapper = objectMapper;
+MockMvc    this.testUser = testUser;
+MockMvc    this.authToken = authToken;
+MockMvc}
+
         // Clean up before each test
         userRepository.deleteAll().block();
 

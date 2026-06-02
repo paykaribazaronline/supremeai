@@ -6,7 +6,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -25,19 +24,23 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class OCRControllerTest {
 
-    @Mock
-    private NativeVisionService nativeVisionService;
 
-    @Mock
-    private VisionService visionService;
+
+
 
     @InjectMocks
-    private OCRController ocrController;
 
-    private MockMultipartFile mockFile;
+
+
 
     @BeforeEach
-    void setUp() {
+    void setUp() {NativeVisionServicepublic OCRControllerTest(NativeVisionService nativeVisionService, VisionService visionService, OCRController ocrController, MockMultipartFile mockFile) {
+NativeVisionService    this.nativeVisionService = nativeVisionService;
+NativeVisionService    this.visionService = visionService;
+NativeVisionService    this.ocrController = ocrController;
+NativeVisionService    this.mockFile = mockFile;
+NativeVisionService}
+
         mockFile = new MockMultipartFile("file", "test-doc.pdf", "application/pdf", "dummy content".getBytes());
     }
 

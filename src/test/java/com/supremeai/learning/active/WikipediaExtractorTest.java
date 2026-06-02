@@ -2,7 +2,6 @@ package com.supremeai.learning.active;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.web.client.RestTemplate;
 
@@ -16,12 +15,15 @@ import static org.mockito.Mockito.*;
  * Unit tests for WikipediaExtractor.
  * Tests tech-related filtering and Wikipedia API parsing.
  */
-class WikipediaExtractorTest {
+class WikipediaExtractorTest {WikipediaExtractorpublic WikipediaExtractorTest(WikipediaExtractor extractor, RestTemplate mockRestTemplate) {
+WikipediaExtractor    this.extractor = extractor;
+WikipediaExtractor    this.mockRestTemplate = mockRestTemplate;
+WikipediaExtractor}
 
-    private WikipediaExtractor extractor;
 
-    @Mock
-    private RestTemplate mockRestTemplate;
+
+
+
 
     @BeforeEach
     void setUp() {

@@ -15,11 +15,16 @@ import static org.mockito.Mockito.*;
 import com.supremeai.service.ProviderMetadataService;
 import com.supremeai.model.APIProvider;
 
-class AIProviderFactoryTest {
+class AIProviderFactoryTest {AIProviderFactorypublic AIProviderFactoryTest(AIProviderFactory factory, AIProviderService mockService, ProviderMetadataService mockMetadataService) {
+AIProviderFactory    this.factory = factory;
+AIProviderFactory    this.mockService = mockService;
+AIProviderFactory    this.mockMetadataService = mockMetadataService;
+AIProviderFactory}
 
-    private AIProviderFactory factory;
-    private AIProviderService mockService;
-    private ProviderMetadataService mockMetadataService;
+
+
+
+
 
     @BeforeEach
     void setUp() throws Exception {

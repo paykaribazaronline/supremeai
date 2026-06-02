@@ -18,13 +18,18 @@ import static org.junit.jupiter.api.Assertions.*;
  * Unit tests for EvolutionPersistence.
  * Tests saving and loading best agent configurations.
  */
-class EvolutionPersistenceTest {
+class EvolutionPersistenceTest {EvolutionPersistencepublic EvolutionPersistenceTest(EvolutionPersistence persistence, File saveFile, final String testPath) {
+EvolutionPersistence    this.persistence = persistence;
+EvolutionPersistence    this.saveFile = saveFile;
+EvolutionPersistence    this.testPath = testPath;
+EvolutionPersistence}
+
 
     @TempDir
     Path tempDir;
 
-    private EvolutionPersistence persistence;
-    private File saveFile;
+
+
 
     @BeforeEach
     void setUp() throws Exception {
@@ -36,7 +41,7 @@ class EvolutionPersistenceTest {
      * Testable subclass that allows overriding the save file path.
      */
     private static class TestableEvolutionPersistence extends EvolutionPersistence {
-        private final String testPath;
+
 
         TestableEvolutionPersistence(String testPath) {
             this.testPath = testPath;

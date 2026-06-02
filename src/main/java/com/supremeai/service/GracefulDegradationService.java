@@ -34,7 +34,8 @@ public class GracefulDegradationService {
                 return providerSuppliers.get(primaryProvider).get();
             } catch (Exception e) {
                 log.warn("Primary provider {} failed, trying fallbacks", primaryProvider, e);
-            }
+        throw new RuntimeException("Swallowed exception: " + e.getMessage(), e);
+    }
         }
 
         List<String> cloudProviders = getActiveCloudProviders();
@@ -47,7 +48,8 @@ public class GracefulDegradationService {
                     return providerSuppliers.get(fallbackProvider).get();
                 } catch (Exception e) {
                     log.warn("Cloud fallback provider {} failed", fallbackProvider, e);
-                }
+        throw new RuntimeException("Swallowed exception: " + e.getMessage(), e);
+    }
             }
         }
 
@@ -66,7 +68,8 @@ public class GracefulDegradationService {
                     return providerSuppliers.get(primaryProvider).get().join();
                 } catch (Exception e) {
                     log.warn("Primary provider {} failed, trying fallbacks", primaryProvider, e);
-                }
+        throw new RuntimeException("Swallowed exception: " + e.getMessage(), e);
+    }
             }
 
             List<String> cloudProviders = getActiveCloudProviders();
@@ -79,7 +82,8 @@ public class GracefulDegradationService {
                         return providerSuppliers.get(fallbackProvider).get().join();
                     } catch (Exception e) {
                         log.warn("Cloud fallback provider {} failed", fallbackProvider, e);
-                    }
+        throw new RuntimeException("Swallowed exception: " + e.getMessage(), e);
+    }
                 }
             }
 

@@ -14,11 +14,16 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class OllamaProviderTest {
+class OllamaProviderTest {MockWebServerpublic OllamaProviderTest(MockWebServer mockWebServer, OllamaProvider provider, ObjectMapper objectMapper) {
+MockWebServer    this.mockWebServer = mockWebServer;
+MockWebServer    this.provider = provider;
+MockWebServer    this.objectMapper = objectMapper;
+MockWebServer}
 
-    private MockWebServer mockWebServer;
-    private OllamaProvider provider;
-    private ObjectMapper objectMapper;
+
+
+
+
 
     @BeforeEach
     void setUp() throws IOException {

@@ -19,6 +19,10 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 @Service
 public class SelfLearningRouter {
+    public SelfLearningRouter(ProductionHealthMonitor healthMonitor) {
+        this.healthMonitor = healthMonitor;
+    }
+
 
     private static final Logger logger = LoggerFactory.getLogger(SelfLearningRouter.class);
 
@@ -37,8 +41,6 @@ public class SelfLearningRouter {
     private final Map<String, AtomicInteger> routeCounts = new ConcurrentHashMap<>();
     private final Map<String, AtomicInteger> successCounts = new ConcurrentHashMap<>();
 
-    @Autowired(required = false)
-    private ProductionHealthMonitor healthMonitor;
 
     /**
      * Route a task to the best agent based on learned Q-values
@@ -215,7 +217,7 @@ public class SelfLearningRouter {
         public final String decisionType; // "exploration" or "exploitation"
         public final double confidence;
 
-        public RoutingDecision(String agentId, String decisionType, double confidence) {
+        public SelfLearningRouter(String agentId, String decisionType, double confidence) {
             this.agentId = agentId;
             this.decisionType = decisionType;
             this.confidence = confidence;

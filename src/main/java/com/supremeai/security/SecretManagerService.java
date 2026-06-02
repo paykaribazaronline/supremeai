@@ -19,17 +19,17 @@ import java.util.Optional;
  */
 @Service
 public class SecretManagerService {
+    public SecretManagerService(String projectId, boolean enabled, String activeProfile) {
+        this.projectId = projectId;
+        this.enabled = enabled;
+        this.activeProfile = activeProfile;
+    }
+
 
     private static final Logger log = LoggerFactory.getLogger(SecretManagerService.class);
 
-    @Value("${spring.cloud.gcp.project-id:supremeai-a}")
-    private String projectId;
 
-    @Value("${secret.manager.enabled:false}")
-    private boolean enabled;
 
-    @Value("${spring.profiles.active:local}")
-    private String activeProfile;
 
     private SecretManagerServiceClient client;
 

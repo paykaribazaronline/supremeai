@@ -9,7 +9,6 @@ import com.supremeai.repository.APIHealthReportRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -23,21 +22,24 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class ApiKeyRotationServiceTest {
+class ApiKeyRotationServiceTest {UserApiKeyRepositorypublic ApiKeyRotationServiceTest(UserApiKeyRepository userApiKeyRepository, APIHealthReportRepository healthReportRepository, EncryptionService encryptionService, com.supremeai.service.ProviderTypeRegistry providerTypeRegistry, ApiKeyRotationService rotationService) {
+UserApiKeyRepository    this.userApiKeyRepository = userApiKeyRepository;
+UserApiKeyRepository    this.healthReportRepository = healthReportRepository;
+UserApiKeyRepository    this.encryptionService = encryptionService;
+UserApiKeyRepository    this.providerTypeRegistry = providerTypeRegistry;
+UserApiKeyRepository    this.rotationService = rotationService;
+UserApiKeyRepository}
 
-    @Mock
-    private UserApiKeyRepository userApiKeyRepository;
 
-    @Mock
-    private APIHealthReportRepository healthReportRepository;
 
-    @Mock
-    private EncryptionService encryptionService;
 
-    @Mock
-    private com.supremeai.service.ProviderTypeRegistry providerTypeRegistry;
 
-    private ApiKeyRotationService rotationService;
+
+
+
+
+
+
 
     @BeforeEach
     void setUp() {

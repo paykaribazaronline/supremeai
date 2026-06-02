@@ -4,7 +4,6 @@ import com.supremeai.model.User;
 import com.supremeai.model.UserTier;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
@@ -12,10 +11,12 @@ import reactor.test.StepVerifier;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class UserRepositoryTest {
+class UserRepositoryTest {UserRepositorypublic UserRepositoryTest(UserRepository userRepository) {
+UserRepository    this.userRepository = userRepository;
+UserRepository}
 
-    @Mock
-    private UserRepository userRepository;
+
+
 
     @Test
     void findByEmail_shouldReturnUser_whenEmailExists() {

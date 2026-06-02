@@ -16,6 +16,10 @@ import java.util.stream.Collectors;
  */
 @Service
 public class QualityScoringService {
+    public QualityScoringService(ReputationService reputationService) {
+        this.reputationService = reputationService;
+    }
+
 
     private static final Logger logger = LoggerFactory.getLogger(QualityScoringService.class);
 
@@ -32,8 +36,6 @@ public class QualityScoringService {
     private final Map<String, QualityAssessment> assessmentCache = new ConcurrentHashMap<>();
     private final Map<String, AutoTestResult> testResults = new ConcurrentHashMap<>();
 
-    @Autowired(required = false)
-    private ReputationService reputationService;
 
     /**
      * Quality assessment result
@@ -50,7 +52,7 @@ public class QualityScoringService {
         public List<String> recommendations;
         public long assessedAt;
 
-        public QualityAssessment(String apiId) {
+        public QualityScoringService(String apiId) {
             this.apiId = apiId;
             this.checksPassed = new ArrayList<>();
             this.checksFailed = new ArrayList<>();

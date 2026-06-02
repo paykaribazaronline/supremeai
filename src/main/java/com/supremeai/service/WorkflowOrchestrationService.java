@@ -7,7 +7,6 @@ import com.supremeai.repository.WorkflowDefinitionRepository;
 import com.supremeai.repository.WorkflowExecutionRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
@@ -20,17 +19,17 @@ import java.util.regex.Pattern;
 
 @Service
 public class WorkflowOrchestrationService {
+    public WorkflowOrchestrationService(WorkflowDefinitionRepository definitionRepository, WorkflowExecutionRepository executionRepository, AgentOrchestrationHub agentHub) {
+        this.definitionRepository = definitionRepository;
+        this.executionRepository = executionRepository;
+        this.agentHub = agentHub;
+    }
+
 
     private static final Logger logger = LoggerFactory.getLogger(WorkflowOrchestrationService.class);
 
-    @Autowired
-    private WorkflowDefinitionRepository definitionRepository;
 
-    @Autowired
-    private WorkflowExecutionRepository executionRepository;
 
-    @Autowired
-    private AgentOrchestrationHub agentHub;
 
     /**
      * Starts a workflow execution.

@@ -5,15 +5,16 @@ import java.util.HashMap;
 
 import com.supremeai.service.ConfigService;
 import com.supremeai.model.SystemConfig;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
 
 public class AISwitchCommand implements Command {
+    public AISwitchCommand(ConfigService configService) {
+        this.configService = configService;
+    }
+
     
-    @Autowired
-    private ConfigService configService;
     // This command allows for dynamic switching of AI providers.
 
     @Override

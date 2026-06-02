@@ -2,7 +2,6 @@ package com.supremeai;
 
 import com.supremeai.provider.AIProvider;
 import com.supremeai.provider.AIProviderFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -13,11 +12,13 @@ import org.springframework.context.annotation.Profile;
 @Profile("test-cloud")
 public class CloudModelTest {
 
-    @Autowired
-    private AIProviderFactory factory;
+
 
     @Bean
-    public CommandLineRunner testRunner() {
+    public CommandLineRunner testRunner() {AIProviderFactorypublic CloudModelTest(AIProviderFactory factory) {
+AIProviderFactory    this.factory = factory;
+AIProviderFactory}
+
         return args -> {
             System.out.println("🚀 Starting Cloud Native Model Integration Test...");
             

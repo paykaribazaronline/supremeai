@@ -7,7 +7,6 @@ import com.supremeai.provider.StubLocalProvider;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
@@ -24,24 +23,27 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class NeuralChatServiceTest {
+class NeuralChatServiceTest {SupremeLearningOrchestratorpublic NeuralChatServiceTest(SupremeLearningOrchestrator learningOrchestrator, ActiveInternetScraper internetScraper, QueryClassifier queryClassifier, StubLocalProvider stubLocalProvider, UnifiedOfflineKnowledgeService unifiedOfflineKnowledgeService, NeuralChatService neuralChatService) {
+SupremeLearningOrchestrator    this.learningOrchestrator = learningOrchestrator;
+SupremeLearningOrchestrator    this.internetScraper = internetScraper;
+SupremeLearningOrchestrator    this.queryClassifier = queryClassifier;
+SupremeLearningOrchestrator    this.stubLocalProvider = stubLocalProvider;
+SupremeLearningOrchestrator    this.unifiedOfflineKnowledgeService = unifiedOfflineKnowledgeService;
+SupremeLearningOrchestrator    this.neuralChatService = neuralChatService;
+SupremeLearningOrchestrator}
 
-    @Mock
-    private SupremeLearningOrchestrator learningOrchestrator;
 
-    @Mock
-    private ActiveInternetScraper internetScraper;
 
-    @Mock
-    private QueryClassifier queryClassifier;
 
-    @Mock
-    private StubLocalProvider stubLocalProvider;
 
-    @Mock
-    private UnifiedOfflineKnowledgeService unifiedOfflineKnowledgeService;
 
-    private NeuralChatService neuralChatService;
+
+
+
+
+
+
+
 
     @BeforeEach
     void setUp() {

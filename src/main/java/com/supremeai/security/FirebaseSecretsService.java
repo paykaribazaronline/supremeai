@@ -5,7 +5,6 @@ import com.supremeai.repository.SystemConfigRepository;
 import com.supremeai.service.FirebaseRealtimeService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
@@ -15,14 +14,15 @@ import reactor.core.publisher.Mono;
  */
 @Service
 public class FirebaseSecretsService {
+    public FirebaseSecretsService(FirebaseRealtimeService realtimeService, SystemConfigRepository systemConfigRepository) {
+        this.realtimeService = realtimeService;
+        this.systemConfigRepository = systemConfigRepository;
+    }
+
 
     private static final Logger log = LoggerFactory.getLogger(FirebaseSecretsService.class);
 
-    @Autowired
-    private FirebaseRealtimeService realtimeService;
 
-    @Autowired
-    private SystemConfigRepository systemConfigRepository;
 
     /**
      * Retrieve a secret from Firebase.

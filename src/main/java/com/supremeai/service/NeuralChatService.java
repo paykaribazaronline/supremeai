@@ -7,7 +7,6 @@ import com.supremeai.provider.StubLocalProvider;
 import com.supremeai.service.UnifiedOfflineKnowledgeService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
@@ -65,9 +64,7 @@ public class NeuralChatService {
 
     /** Maximum number of web sources to include in a merged response */
     private static final int MAX_WEB_SOURCES = 3;
-
-    @Autowired
-    public NeuralChatService(SupremeLearningOrchestrator learningOrchestrator,
+public NeuralChatService(SupremeLearningOrchestrator learningOrchestrator,
                              ActiveInternetScraper internetScraper,
                              QueryClassifier queryClassifier,
                              StubLocalProvider stubLocalProvider,

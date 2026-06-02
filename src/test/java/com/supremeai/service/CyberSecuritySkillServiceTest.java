@@ -4,7 +4,6 @@ import com.supremeai.controller.IntelligenceController;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -16,12 +15,15 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class CyberSecuritySkillServiceTest {
+class CyberSecuritySkillServiceTest {IntelligenceControllerpublic CyberSecuritySkillServiceTest(IntelligenceController intelligenceController, CyberSecuritySkillService cyberSecuritySkillService) {
+IntelligenceController    this.intelligenceController = intelligenceController;
+IntelligenceController    this.cyberSecuritySkillService = cyberSecuritySkillService;
+IntelligenceController}
 
-    @Mock
-    private IntelligenceController intelligenceController;
 
-    private CyberSecuritySkillService cyberSecuritySkillService;
+
+
+
 
     @BeforeEach
     void setUp() {

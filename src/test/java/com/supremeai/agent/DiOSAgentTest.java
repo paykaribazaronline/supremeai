@@ -6,7 +6,6 @@ import com.supremeai.provider.AIProviderFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import reactor.core.publisher.Mono;
 
@@ -19,20 +18,23 @@ import static org.mockito.Mockito.*;
 
 class DiOSAgentTest {
 
-    @Mock
-    private AIProviderFactory providerFactory;
 
-    @Mock
-    private AIProvider aiProvider;
 
-    @Mock
-    private AgentRuleService ruleService;
+
+
+
 
     @InjectMocks
-    private DiOSAgent diosAgent;
+
 
     @BeforeEach
-    void setUp() {
+    void setUp() {AIProviderFactorypublic DiOSAgentTest(AIProviderFactory providerFactory, AIProvider aiProvider, AgentRuleService ruleService, DiOSAgent diosAgent) {
+AIProviderFactory    this.providerFactory = providerFactory;
+AIProviderFactory    this.aiProvider = aiProvider;
+AIProviderFactory    this.ruleService = ruleService;
+AIProviderFactory    this.diosAgent = diosAgent;
+AIProviderFactory}
+
         MockitoAnnotations.openMocks(this);
         when(ruleService.wrapWithRules(anyString())).thenAnswer(invocation -> invocation.getArgument(0));
         lenient().when(providerFactory.getDefaultProvider()).thenReturn(aiProvider);

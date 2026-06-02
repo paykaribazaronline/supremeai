@@ -26,16 +26,19 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
-class EnhancedLearningServiceTest {
+class EnhancedLearningServiceTest {SystemLearningRepositorypublic EnhancedLearningServiceTest(SystemLearningRepository repository, SystemLearningService systemLearningService, EnhancedLearningService enhancedLearningService) {
+SystemLearningRepository    this.repository = repository;
+SystemLearningRepository    this.systemLearningService = systemLearningService;
+SystemLearningRepository    this.enhancedLearningService = enhancedLearningService;
+SystemLearningRepository}
 
-    @Mock
-    private SystemLearningRepository repository;
 
-    @Mock
-    private SystemLearningService systemLearningService;
+
+
+
 
     @InjectMocks
-    private EnhancedLearningService enhancedLearningService;
+
 
     @BeforeEach
     void setUp() {

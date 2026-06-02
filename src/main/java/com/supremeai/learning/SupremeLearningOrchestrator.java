@@ -10,7 +10,6 @@ import com.supremeai.service.SystemLearningService;
 import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 
@@ -69,9 +68,7 @@ public class SupremeLearningOrchestrator {
     private static final int    CORRECTION_TRIGGER_COUNT  = 3;
     private static final double LOW_SUCCESS_RATE_THRESHOLD = 0.50;
     private static final int    MIN_SOLUTIONS_FOR_GAP    = 1;
-
-    @Autowired
-    public SupremeLearningOrchestrator(AdminDashboardFacadeService adminDashboardFacade,
+public SupremeLearningOrchestrator(AdminDashboardFacadeService adminDashboardFacade,
                                        SystemLearningService systemLearningService) {
         this.adminDashboardFacade = adminDashboardFacade;
         this.systemLearningService = systemLearningService;

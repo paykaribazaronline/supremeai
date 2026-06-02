@@ -14,35 +14,29 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @Configuration
 @EnableScheduling
 public class ProductionDeploymentConfig {
+    public ProductionDeploymentConfig(String activeProfile, int serverPort, String exposedEndpoints, String cloudRegion, String simulatorImage, int responseTimeThreshold, double errorRateThreshold, long healthCheckInterval, int metricsRetentionHours) {
+        this.activeProfile = activeProfile;
+        this.serverPort = serverPort;
+        this.exposedEndpoints = exposedEndpoints;
+        this.cloudRegion = cloudRegion;
+        this.simulatorImage = simulatorImage;
+        this.responseTimeThreshold = responseTimeThreshold;
+        this.errorRateThreshold = errorRateThreshold;
+        this.healthCheckInterval = healthCheckInterval;
+        this.metricsRetentionHours = metricsRetentionHours;
+    }
+
 
     private static final Logger logger = LoggerFactory.getLogger(ProductionDeploymentConfig.class);
 
-    @Value("${spring.profiles.active:dev}")
-    private String activeProfile;
 
-    @Value("${server.port:8080}")
-    private int serverPort;
 
-    @Value("${management.endpoints.web.exposure.include:health,info,prometheus}")
-    private String exposedEndpoints;
 
-    @Value("${simulator.cloud.region:us-central1}")
-    private String cloudRegion;
 
-    @Value("${simulator.cloud.run.image:}")
-    private String simulatorImage;
 
-    @Value("${monitoring.alert.threshold.response-time:500}")
-    private int responseTimeThreshold;
 
-    @Value("${monitoring.alert.threshold.error-rate:5.0}")
-    private double errorRateThreshold;
 
-    @Value("${monitoring.health-check.interval:30000}")
-    private long healthCheckInterval;
 
-    @Value("${monitoring.metrics.retention:168}")
-    private int metricsRetentionHours;
 
     @Bean
     public DeploymentInfo deploymentInfo() {
@@ -81,7 +75,7 @@ public class ProductionDeploymentConfig {
         private final long healthCheckInterval;
         private final int metricsRetentionHours;
 
-        public DeploymentInfo(boolean production, String profile, int port, String region,
+        public ProductionDeploymentConfig(boolean production, String profile, int port, String region,
                               String image, int responseTimeThreshold, double errorRateThreshold,
                               long healthCheckInterval, int metricsRetentionHours) {
             this.production = production;

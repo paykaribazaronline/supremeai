@@ -11,12 +11,16 @@ import org.springframework.test.util.ReflectionTestUtils;
 import static org.junit.jupiter.api.Assertions.*;
 
 @ExtendWith(MockitoExtension.class)
-public class EncryptionServiceTest {
+public class EncryptionServiceTest {EncryptionServicepublic EncryptionServiceTest(EncryptionService encryptionService, String testPlainText) {
+EncryptionService    this.encryptionService = encryptionService;
+EncryptionService    this.testPlainText = testPlainText;
+EncryptionService}
+
 
     @InjectMocks
-    private EncryptionService encryptionService;
 
-    private String testPlainText;
+
+
 
     @BeforeEach
     public void setUp() {

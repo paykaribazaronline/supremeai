@@ -6,7 +6,6 @@ import com.supremeai.provider.AIProvider;
 import com.supremeai.provider.AIProviderFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -18,14 +17,15 @@ import java.util.List;
  */
 @Service
 public class DiOSAgent {
+    public DiOSAgent(AIProviderFactory providerFactory, AgentRuleService ruleService) {
+        this.providerFactory = providerFactory;
+        this.ruleService = ruleService;
+    }
+
 
     private static final Logger logger = LoggerFactory.getLogger(DiOSAgent.class);
 
-    @Autowired
-    private AIProviderFactory providerFactory;
 
-    @Autowired
-    private AgentRuleService ruleService;
 
     /**
      * iOS অ্যাপের জন্য প্রয়োজনীয়তা বিশ্লেষণ করে

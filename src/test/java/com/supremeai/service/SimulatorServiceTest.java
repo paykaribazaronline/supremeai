@@ -8,7 +8,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
@@ -18,27 +17,31 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class SimulatorServiceTest {
+public class SimulatorServiceTest {UserSimulatorProfileRepositorypublic SimulatorServiceTest(UserSimulatorProfileRepository profileRepository, UserRepository userRepository, ConfigService configService, QuotaService quotaService, SimulatorDeploymentService deploymentService, SimulatorService simulatorService, UserSimulatorProfile testProfile) {
+UserSimulatorProfileRepository    this.profileRepository = profileRepository;
+UserSimulatorProfileRepository    this.userRepository = userRepository;
+UserSimulatorProfileRepository    this.configService = configService;
+UserSimulatorProfileRepository    this.quotaService = quotaService;
+UserSimulatorProfileRepository    this.deploymentService = deploymentService;
+UserSimulatorProfileRepository    this.simulatorService = simulatorService;
+UserSimulatorProfileRepository    this.testProfile = testProfile;
+UserSimulatorProfileRepository}
 
-    @Mock
-    private UserSimulatorProfileRepository profileRepository;
 
-    @Mock
-    private UserRepository userRepository;
 
-    @Mock
-    private ConfigService configService;
 
-    @Mock
-    private QuotaService quotaService;
 
-    @Mock
-    private SimulatorDeploymentService deploymentService;
+
+
+
+
+
+
 
     @InjectMocks
-    private SimulatorService simulatorService;
 
-    private UserSimulatorProfile testProfile;
+
+
 
     @BeforeEach
     void setUp() {

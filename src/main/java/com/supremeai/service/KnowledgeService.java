@@ -12,7 +12,6 @@ import com.supremeai.fallback.ThirdOpinionOrchestrator;
 import com.supremeai.controller.WebSocketController;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -26,26 +25,23 @@ import java.util.stream.Collectors;
 
 @Service
 public class KnowledgeService {
+    public KnowledgeService(KnowledgeDomainRepository domainRepository, KnowledgeRecommendationRepository recommendationRepository, SystemLearningRepository learningRepository, ActiveInternetScraper scraper, WebSocketController webSocketController, ThirdOpinionOrchestrator fallbackOrchestrator) {
+        this.domainRepository = domainRepository;
+        this.recommendationRepository = recommendationRepository;
+        this.learningRepository = learningRepository;
+        this.scraper = scraper;
+        this.webSocketController = webSocketController;
+        this.fallbackOrchestrator = fallbackOrchestrator;
+    }
+
 
     private static final Logger logger = LoggerFactory.getLogger(KnowledgeService.class);
 
-    @Autowired
-    private KnowledgeDomainRepository domainRepository;
 
-    @Autowired
-    private KnowledgeRecommendationRepository recommendationRepository;
 
-    @Autowired
-    private SystemLearningRepository learningRepository;
 
-    @Autowired
-    private ActiveInternetScraper scraper;
 
-    @Autowired
-    private WebSocketController webSocketController;
 
-    @Autowired
-    private ThirdOpinionOrchestrator fallbackOrchestrator;
 
     /**
      * Register a new knowledge domain for learning

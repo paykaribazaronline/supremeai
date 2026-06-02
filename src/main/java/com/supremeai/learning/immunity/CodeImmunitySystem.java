@@ -16,6 +16,10 @@ import java.util.regex.Pattern;
 
 @Service
 public class CodeImmunitySystem {
+    public CodeImmunitySystem(Firestore firestore) {
+        this.firestore = firestore;
+    }
+
 
     private static final Logger log = LoggerFactory.getLogger(CodeImmunitySystem.class);
     private static final String COLLECTION_NAME = "system_configs";
@@ -24,8 +28,6 @@ public class CodeImmunitySystem {
     // In-memory cache for fast access
     private final Set<Pattern> toxicCodePatterns = ConcurrentHashMap.newKeySet();
 
-    @Autowired(required = false)
-    private Firestore firestore;
 
     public CodeImmunitySystem() {
         // Initial generic toxic patterns (regex-based)
@@ -125,7 +127,8 @@ public class CodeImmunitySystem {
                 savePatterns();
             } catch (Exception e) {
                 log.error("Failed to async-save patterns", e);
-            }
+        throw new RuntimeException("Swallowed exception: " + e.getMessage(), e);
+    }
         }).start();
     }
 

@@ -7,7 +7,6 @@ import com.supremeai.model.ProviderVote;
 import com.supremeai.provider.AIProvider;
 import com.supremeai.provider.AIProviderFactory;
 import com.supremeai.util.ThirdOpinionConstants;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
@@ -28,18 +27,17 @@ import java.util.stream.Collectors;
 
 @Service
 public class MultiAIConsensusService {
+    public MultiAIConsensusService(AIProviderFactory providerFactory, SelfHealingService selfHealingService, KnowledgeFeedbackService feedbackService, ContextualAIRankingService contextualRankingService) {
+        this.providerFactory = providerFactory;
+        this.selfHealingService = selfHealingService;
+        this.feedbackService = feedbackService;
+        this.contextualRankingService = contextualRankingService;
+    }
 
-    @Autowired
-    private AIProviderFactory providerFactory;
 
-    @Autowired
-    private SelfHealingService selfHealingService;
 
-    @Autowired
-    private KnowledgeFeedbackService feedbackService;
 
-    @Autowired
-    private ContextualAIRankingService contextualRankingService;
+
 
     // In-memory history for taste phase (no Firebase)
     private final List<ConsensusVote> history = new CopyOnWriteArrayList<>();

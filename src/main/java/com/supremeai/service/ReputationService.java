@@ -3,7 +3,6 @@ package com.supremeai.service;
 import com.supremeai.model.APIProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -58,7 +57,7 @@ public class ReputationService {
         public List<String> badges;
         public Map<String, Integer> categoryScores;
 
-        public ContributorProfile(String id) {
+        public ReputationService(String id) {
             this.contributorId = id;
             this.totalScore = 0;
             this.tier = ReputationTier.NOVICE;

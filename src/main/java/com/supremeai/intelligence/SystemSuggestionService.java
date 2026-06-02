@@ -5,7 +5,6 @@ import com.supremeai.learning.SupremeLearningOrchestrator;
 import com.supremeai.model.ImprovementProposal;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
@@ -20,14 +19,15 @@ import java.util.*;
  */
 @Service
 public class SystemSuggestionService {
+    public SystemSuggestionService(SupremeLearningOrchestrator supremeLearningOrchestrator, AdminDashboardService adminDashboard) {
+        this.supremeLearningOrchestrator = supremeLearningOrchestrator;
+        this.adminDashboard = adminDashboard;
+    }
+
 
     private static final Logger log = LoggerFactory.getLogger(SystemSuggestionService.class);
 
-    @Autowired
-    private SupremeLearningOrchestrator supremeLearningOrchestrator;
 
-    @Autowired
-    private AdminDashboardService adminDashboard;
 
     /**
      * Evaluates an AI model based on a shared link or metadata.
