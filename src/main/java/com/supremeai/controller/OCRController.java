@@ -1,6 +1,7 @@
 package com.supremeai.controller;
 
 import com.supremeai.service.NativeVisionService;
+import com.supremeai.service.VisionService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
