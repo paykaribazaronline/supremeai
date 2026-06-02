@@ -38,6 +38,10 @@ jobs:
       - name: Clean Build Directory
         run: ./gradlew clean
 
+      - name: Check Code Formatting and Style
+        run: ./gradlew spotlessCheck
+        # এটি কোডের ফরম্যাটিং এবং স্টাইল সংক্রান্ত সমস্যা পরীক্ষা করবে।
+
       - name: Build and Run Tests
         run: |
           ./gradlew build --stacktrace
