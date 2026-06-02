@@ -1,7 +1,7 @@
 # Stage 1: Extract layers from the FAT JAR
 FROM eclipse-temurin:21-jre-alpine AS builder
 WORKDIR /builder
-COPY build/libs/app.jar app.jar
+COPY build/libs/*.jar app.jar
 RUN java -Djarmode=layertools -jar app.jar extract
 
 # Stage 2: Final Runtime Image
@@ -35,6 +35,6 @@ EXPOSE 8080
 HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=2 \
   CMD curl -f http://localhost:8080/actuator/health || exit 1
 
-ENV JAVA_OPTS="-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0 -XX:+ExitOnOutOfMemoryError -Djava.security.egd=file:/dev/./urandom -Duser.timezone=UTC"
+ENV JAVA_TOOL_OPTIONS="-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0 -XX:+ExitOnOutOfMemoryError -Djava.security.egd=file:/dev/./urandom -Duser.timezone=UTC"
 
-ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS org.springframework.boot.loader.launch.JarLauncher"]
+ENTRYPOINT ["java", "org.springframework.boot.loader.launch.JarLauncher"]
