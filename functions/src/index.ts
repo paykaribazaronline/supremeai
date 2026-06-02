@@ -1,4 +1,4 @@
-import * as functions from 'firebase-functions';
+import * as functions from 'firebase-functions/v1';
 import * as admin from 'firebase-admin';
 
 // Initialize Firebase Admin SDK
@@ -8,7 +8,7 @@ admin.initializeApp();
  * Trigger: Executes automatically whenever a new user signs up via Firebase Auth.
  * Action: Assigns a default 'user' custom claim and creates a Firestore profile.
  */
-export const onUserSignUp = functions.auth.user().onCreate(async (user) => {
+export const onUserSignUp = functions.auth.user().onCreate(async (user: admin.auth.UserRecord) => {
     try {
         // 1. Set Custom User Claims (Embeds the role directly into their JWT token)
         await admin.auth().setCustomUserClaims(user.uid, {

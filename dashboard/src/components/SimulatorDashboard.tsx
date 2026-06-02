@@ -12,6 +12,7 @@ import {
     ExclamationCircleOutlined, LinkOutlined
 } from '@ant-design/icons';
 import { authUtils } from '../lib/authUtils';
+import AdminLayout from './AdminLayout';
 
 const { Text, Title } = Typography;
 const { Option } = Select;
@@ -296,36 +297,33 @@ const SimulatorDashboard: React.FC = () => {
     const quotaStatus = quotaPercent >= 90 ? 'exception' : quotaPercent >= 70 ? 'normal' : 'success';
 
     return (
-        <div style={{ padding: 24 }}>
-            <Row gutter={[16, 16]} align="middle" style={{ marginBottom: 16 }}>
-                <Col flex="auto">
-                    <Title level={4} style={{ margin: 0 }}>
-                        <DesktopOutlined /> App Simulator
-                    </Title>
-                    <Text type="secondary">
-                        Preview and test your generated apps in a virtual device
-                    </Text>
-                </Col>
-                <Col>
-                    <Space>
-                        <Button
-                            icon={<ReloadOutlined />}
-                            onClick={() => { loadApps(); loadSession(); }}
-                            loading={loading}
-                        >
-                            Refresh
-                        </Button>
-                        <Button
-                            type="primary"
-                            icon={<CloudUploadOutlined />}
-                            onClick={() => setInstallModalOpen(true)}
-                            disabled={quota.used >= quota.total}
-                        >
-                            Install App
-                        </Button>
-                    </Space>
-                </Col>
-            </Row>
+        <AdminLayout
+            title="App Simulator"
+            subtitle="Preview and test your generated apps in a virtual device"
+            icon={<DesktopOutlined />}
+            themeColor="#00f3ff"
+            extra={
+                <Space>
+                    <Button
+                        icon={<ReloadOutlined />}
+                        onClick={() => { loadApps(); loadSession(); }}
+                        loading={loading}
+                        className="glass-action-button"
+                    >
+                        Refresh
+                    </Button>
+                    <Button
+                        type="primary"
+                        icon={<CloudUploadOutlined />}
+                        onClick={() => setInstallModalOpen(true)}
+                        disabled={quota.used >= quota.total}
+                        className="cyber-button"
+                    >
+                        Install App
+                    </Button>
+                </Space>
+            }
+        >
 
             {/* Quota Bar */}
             <Card size="small" style={{ marginBottom: 16 }}>
@@ -489,7 +487,7 @@ const SimulatorDashboard: React.FC = () => {
                     <Empty description="No preview URL available" />
                 )}
             </Modal>
-        </div>
+        </AdminLayout>
     );
 };
 

@@ -13,6 +13,7 @@ import {
   GlobalOutlined
 } from '@ant-design/icons';
 import { motion } from 'framer-motion';
+import AdminLayout from '../components/AdminLayout';
 import { authUtils } from '../lib/authUtils';
 import UserSettings from '../components/UserSettings';
 import { SystemConfig } from '../components/settings/types';
@@ -93,7 +94,7 @@ const AdminSettings: React.FC<AdminSettingsProps> = ({ darkMode, setDarkMode, ch
         message.success(`Parameter "${key}" updated`);
         fetchConfig();
       }
-    } catch (err) {}
+    } catch (err) { }
   };
 
   const tabItems = [
@@ -108,9 +109,9 @@ const AdminSettings: React.FC<AdminSettingsProps> = ({ darkMode, setDarkMode, ch
       children: <QuotaSettingsCard config={config} onUpdateValue={updateMapValue} />,
     },
     {
-       key: 'notifications',
-       label: <span className="tab-label"><BellOutlined /> LOG CHANNELS</span>,
-       children: <NotificationSettingsCard form={form} onFinish={handleSaveGeneral} saving={saving} />,
+      key: 'notifications',
+      label: <span className="tab-label"><BellOutlined /> LOG CHANNELS</span>,
+      children: <NotificationSettingsCard form={form} onFinish={handleSaveGeneral} saving={saving} />,
     },
     {
       key: 'engine',
@@ -122,11 +123,11 @@ const AdminSettings: React.FC<AdminSettingsProps> = ({ darkMode, setDarkMode, ch
       label: <span className="tab-label"><UserOutlined /> OPERATOR PREFS</span>,
       children: (
         <div style={{ marginTop: 24 }}>
-          <UserSettings 
-            darkMode={darkMode} 
-            setDarkMode={setDarkMode} 
-            chatFont={chatFont} 
-            setChatFont={setChatFont} 
+          <UserSettings
+            darkMode={darkMode}
+            setDarkMode={setDarkMode}
+            chatFont={chatFont}
+            setChatFont={setChatFont}
           />
         </div>
       ),
@@ -134,36 +135,24 @@ const AdminSettings: React.FC<AdminSettingsProps> = ({ darkMode, setDarkMode, ch
   ];
 
   return (
-    <motion.div
-      initial={{ opacity: 0, x: -20 }}
-      animate={{ opacity: 1, x: 0 }}
-      transition={{ duration: 0.5 }}
-      style={{ maxWidth: '1400px', margin: '0 auto' }}
+    <AdminLayout
+      title="System"
+      titleHighlight="Orchestration"
+      subtitle="Fine-tune neural thresholds, API quotas, and system-wide protocols."
+      categoryLabel="CENTRAL CONFIGURATION"
+      icon={<ControlOutlined />}
+      themeColor="#bc13fe"
+      maxWidth="1400px"
+      extra={
+        <Button
+          icon={<ReloadOutlined spin={loading} />}
+          onClick={fetchConfig}
+          className="glass-action-button"
+        >
+          Force Sync
+        </Button>
+      }
     >
-      {/* Cinematic Header */}
-      <div style={{ marginBottom: 40, borderBottom: '1px solid rgba(0, 243, 255, 0.1)', paddingBottom: 24 }}>
-        <Row justify="space-between" align="bottom">
-          <Col>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
-              <ControlOutlined style={{ color: 'var(--neon-purple)', fontSize: 20 }} />
-              <Text style={{ color: 'var(--neon-purple)', letterSpacing: 2, fontWeight: 800, fontSize: 12 }}>CENTRAL CONFIGURATION</Text>
-            </div>
-            <Title level={2} style={{ color: '#fff', margin: 0, fontWeight: 800, fontSize: 32 }}>
-              System <span className="text-gradient">Orchestration</span>
-            </Title>
-            <Text style={{ color: 'var(--text-dim)', fontSize: 14 }}>Fine-tune neural thresholds, API quotas, and system-wide protocols.</Text>
-          </Col>
-          <Col>
-            <Button
-              icon={<ReloadOutlined spin={loading} />}
-              onClick={fetchConfig}
-              className="glass-action-button"
-            >
-              Force Sync
-            </Button>
-          </Col>
-        </Row>
-      </div>
 
       <Row gutter={[32, 32]}>
         <Col xs={24} lg={18}>
@@ -246,7 +235,7 @@ const AdminSettings: React.FC<AdminSettingsProps> = ({ darkMode, setDarkMode, ch
           gap: 8px;
         }
       `}</style>
-    </motion.div>
+    </AdminLayout>
   );
 };
 
