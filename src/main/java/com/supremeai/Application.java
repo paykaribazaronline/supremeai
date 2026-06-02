@@ -17,13 +17,15 @@ public class Application {
         SpringApplication app = new SpringApplication(Application.class);
         app.addListeners((org.springframework.context.ApplicationListener<org.springframework.boot.context.event.ApplicationEnvironmentPreparedEvent>) event -> {
                 Environment env = event.getEnvironment();
+                if (env == null) return;
                 String jwtSecret = env.getProperty("jwt.secret", "");
-                String profile = env.getActiveProfiles().length > 0 ? env.getActiveProfiles()[0] : "default";
+                String[] profiles = env.getActiveProfiles();
+                String profile = (profiles != null && profiles.length > 0) ? profiles[0] : "default";
                 boolean isTestOrLocal = "local".equals(profile) || "test".equals(profile) || "sandbox".equals(profile);
                 if (!isTestOrLocal) {
-                    if (jwtSecret.isBlank() || 
-                        jwtSecret.startsWith("supremeai-test") || 
-                        jwtSecret.contains("test-secret-key") || 
+                    if (jwtSecret.isBlank() ||
+                        jwtSecret.startsWith("supremeai-test") ||
+                        jwtSecret.contains("test-secret-key") ||
                         jwtSecret.length() < 32) {
                         System.err.println("[SECURITY] FATAL: Weak, blank, or test JWT_SECRET detected in production environment (profile: '" + profile + "').");
                         System.err.println("[SECURITY] A production JWT secret must be at least 32 characters (256 bits) long and must not use test placeholders.");

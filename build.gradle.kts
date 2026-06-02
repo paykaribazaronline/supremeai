@@ -69,7 +69,7 @@ dependencies {
 
     // HTML Parsing
     implementation("org.jsoup:jsoup:1.18.1")
-    implementation("com.microsoft.playwright:playwright:1.40.0")
+    testImplementation("com.microsoft.playwright:playwright:1.40.0")
 
     // Logging - STRUCTURED LOGGING
     implementation("org.slf4j:slf4j-api:2.0.16")
