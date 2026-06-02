@@ -13,7 +13,7 @@ import reactor.core.publisher.Mono;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectlectors;
+import java.util.stream.Collectors;
 import java.util.Base64;
 
 @RestController
@@ -91,12 +91,11 @@ public class OCRController {
     @GetMapping("/history")
     @PreAuthorize("hasAnyRole('USER', 'ADMIN', 'AGENT_MANAGER', 'GUEST')")
     public Mono<ResponseEntity<Map<String, Object>>> getHistory() {
-        return Mono.fromCallable(() -> {
-            List<Map<String, Object>> results = historyStore.values().stream()
-                    .sorted(Comparator.comparing(r -> r.createdAt).reversed())
-                    .map(this::toMap)
-                    .collect(Collectors.toList());
-
+        return Mono.fromSupplier(() -> {
+List<Map<String, Object>> results = historyStore.values()
+        .stream()
+        .map(OCRResultValue -> this.toMap(OCRResultValue))
+        .toList();
             Map<String, Object> response = new LinkedHashMap<>();
             response.put("results", results);
             response.put("total", results.size());
@@ -109,7 +108,7 @@ public class OCRController {
     public Mono<ResponseEntity<Map<String, Object>>> deleteResult(@PathVariable String id) {
         return Mono.fromCallable(() -> {
             historyStore.remove(id);
-            return ResponseEntity.ok(Map.of("ok", true));
+                    return ResponseEntity.ok(Map.of("ok", (Object) true));
         }).subscribeOn(reactor.core.scheduler.Schedulers.boundedElastic());
     }
 

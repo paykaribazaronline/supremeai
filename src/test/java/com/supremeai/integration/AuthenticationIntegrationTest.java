@@ -2,7 +2,7 @@
 package com.supremeai.integration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.supremeai.config.TestFirebaseConfig;
+import com.supremeai.config.test.TestFirebaseConfig;
 import com.supremeai.model.User;
 import com.supremeai.repository.UserRepository;
 import com.supremeai.security.JwtUtil;
