@@ -1,7 +1,8 @@
+package com.supremeai.api;
+
 import com.supremeai.service.MultiAIVotingService;
 import com.supremeai.service.GitHubAppService;
 import com.supremeai.service.GitHubAutomationService;
-package com.supremeai.api;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
