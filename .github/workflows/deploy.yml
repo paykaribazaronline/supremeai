@@ -72,7 +72,7 @@ jobs:
             --region $REGION \
             --no-traffic \
             --tag new-revision \
-            --set-env-vars="LANGCHAIN_TRACING_V2=true,LANGCHAIN_ENDPOINT=https://api.smith.langchain.com,LANGCHAIN_API_KEY=${{ secrets.LANGCHAIN_API_KEY }},LANGCHAIN_PROJECT=supremeai-prod"
+            --set-env-vars="LANGCHAIN_TRACING_V2=true,LANGCHAIN_ENDPOINT=https://api.smith.langchain.com,LANGCHAIN_API_KEY=${{ secrets.LANGCHAIN_API_KEY }},LANGCHAIN_PROJECT=supremeai-prod,SEMANTIC_ROUTER_URL=https://hybrid-tiny-ai-model-565236080752.us-central1.run.app"
 
           # Capture the exact new revision name
           NEW_REV_NAME=$(gcloud run revisions list --service $SERVICE_NAME --region $REGION --filter="tag=new-revision" --format="value(name)" --limit=1)

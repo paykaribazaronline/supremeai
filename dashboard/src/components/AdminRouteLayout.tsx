@@ -36,23 +36,29 @@ const AdminRouteLayout: React.FC = () => {
   }, []);
 
   const handleLogout = () => {
+    const isGuestUser = !isAuthenticated;
+
     Modal.confirm({
-      title: <Text style={{ color: 'var(--text-main)', fontSize: 18, fontWeight: 700 }}>লগআউট নিশ্চিত করুন</Text>,
+      title: <Text style={{ color: 'var(--text-main)', fontSize: 18, fontWeight: 700 }}>{isGuestUser ? 'লগইন পেজে যান' : 'লগআউট নিশ্চিত করুন'}</Text>,
       icon: <ExclamationCircleOutlined style={{ color: 'var(--warning)', fontSize: 24 }} />,
       content: (
         <div style={{ marginTop: 12 }}>
-          <Text style={{ color: 'var(--text-dim)' }}>আপনি কি নিশ্চিতভাবে আপনার বর্তমান সেশনটি শেষ করতে চান? সকল সেভ না করা পরিবর্তন হারিয়ে যেতে পারে।</Text>
+          <Text style={{ color: 'var(--text-dim)' }}>
+            {isGuestUser
+              ? 'আপনি কি গেস্ট সেশন শেষ করে মূল লগইন পেজে ফিরে যেতে চান?'
+              : 'আপনি কি নিশ্চিতভাবে আপনার বর্তমান সেশনটি শেষ করতে চান? সকল সেভ না করা পরিবর্তন হারিয়ে যেতে পারে।'}
+          </Text>
         </div>
       ),
-      okText: 'লগআউট',
+      okText: isGuestUser ? 'লগইন করুন' : 'লগআউট',
       cancelText: 'ফিরে যান',
       centered: true,
-      okButtonProps: { 
-        className: 'cyber-button', 
-        style: { background: 'var(--warning)', border: 'none', color: '#000' } 
+      okButtonProps: {
+        className: 'cyber-button',
+        style: { background: 'var(--warning)', border: 'none', color: '#000' }
       },
-      cancelButtonProps: { 
-        style: { background: 'rgba(255,255,255,0.05)', color: '#fff', border: '1px solid rgba(255,255,255,0.1)' } 
+      cancelButtonProps: {
+        style: { background: 'rgba(255,255,255,0.05)', color: '#fff', border: '1px solid rgba(255,255,255,0.1)' }
       },
       onOk: async () => {
         try {
@@ -89,17 +95,19 @@ const AdminRouteLayout: React.FC = () => {
     }
 
     return (
-      <div style={{ height: 'calc(100vh - 80px)', padding: '24px', overflowY: 'auto', overflowX: 'hidden' }}>
-        <Suspense fallback={
-          <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <div className="loading-fallback" style={{ background: 'transparent', position: 'relative' }}>
-               <Spin size="large" />
-               <div className="loading-text">SYNCING NEURAL LINK...</div>
+      <div className="admin-scroll-area" style={{ height: 'calc(100vh - 80px)', overflowY: 'auto', overflowX: 'hidden' }}>
+        <div className="admin-content-container" style={{ padding: '24px', maxWidth: '1800px', margin: '0 auto', width: '100%' }}>
+          <Suspense fallback={
+            <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <div className="loading-fallback" style={{ background: 'transparent', position: 'relative' }}>
+                <Spin size="large" />
+                <div className="loading-text">SYNCING NEURAL LINK...</div>
+              </div>
             </div>
-          </div>
-        }>
-          <Outlet />
-        </Suspense>
+          }>
+            <Outlet />
+          </Suspense>
+        </div>
       </div>
     );
   };
@@ -145,8 +153,8 @@ const AdminRouteLayout: React.FC = () => {
         <div className="bg-grid" />
         <div className="hex-grid" />
         <div className="scanline" />
-        
-        <DashboardSidebar 
+
+        <DashboardSidebar
           collapsed={collapsed}
           setCollapsed={setCollapsed}
           activeKey={activeKey}
@@ -159,13 +167,13 @@ const AdminRouteLayout: React.FC = () => {
         />
 
         {autoHide && collapsed && (
-          <div 
+          <div
             className="sidebar-hover-trigger"
             onMouseEnter={() => setCollapsed(false)}
           />
         )}
 
-        <DashboardMobileDrawer 
+        <DashboardMobileDrawer
           open={mobileDrawerOpen}
           onClose={() => setMobileDrawerOpen(false)}
           activeKey={activeKey}
@@ -175,14 +183,14 @@ const AdminRouteLayout: React.FC = () => {
           isAuthenticated={isAuthenticated}
         />
 
-        <Layout 
-          className="responsive-layout" 
-          style={{ 
+        <Layout
+          className="responsive-layout"
+          style={{
             background: 'transparent',
             ['--sidebar-margin' as any]: collapsed ? '0px' : '276px'
           }}
         >
-          <DashboardHeader 
+          <DashboardHeader
             collapsed={collapsed}
             setCollapsed={setCollapsed}
             getBreadcrumbs={() => getBreadcrumbs(activeKey)}
@@ -191,7 +199,7 @@ const AdminRouteLayout: React.FC = () => {
             user={user}
             handleLogout={handleLogout}
           />
-          
+
           <Content style={{ overflow: 'auto', position: 'relative' }}>
             {renderContent()}
           </Content>
