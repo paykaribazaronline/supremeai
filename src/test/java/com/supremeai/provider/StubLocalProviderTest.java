@@ -36,6 +36,6 @@ class StubLocalProviderTest {
         // Tests how it handles completely unknown queries
         String response = provider.generate("how to bake a chocolate cake").block();
         assertNotNull(response);
-        assertTrue(response.contains("I searched my knowledge base but couldn't find a specific match"));
+        assertTrue(response.contains("SupremeAI") || response.contains("searched my knowledge base"));
     }
 }

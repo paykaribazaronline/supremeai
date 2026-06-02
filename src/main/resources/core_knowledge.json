@@ -103,3 +103,4 @@
     "task": "summarize text shortening english to bengali translation bangla অনুবাদ সারসংক্ষেপ",
     "solution": "[সুপ্রিম এআই — টেক্সট সারসংক্ষেপ ও অনুবাদ]\nপরিস্রান্ত summarization বা অনুবাদ requires connected AI service.本地 core knowledge-তে আমি এই কাজের জন্য একটি short protocol দিই:\n\n১. Summarize: মূল text-এর key entities, topic sentence, conclusion আলাদা করা\n২. English→Bangla:直辖 phrase-by-phrase translation + maintain grammar\n৩. Preserve technical terms: vulgar শব্দগুলো transliterate করুন\n\nবর্তমানে অফলাইন মোডে আমি এই general guidance-এর বাইরে কিছু generated output দিতে পারি না। ইন্টারনেট থাকলে ChickenBrain cloud service এই কাজ স্বয়ংক্রিয়ভাবে করবে।"
   }
+]
