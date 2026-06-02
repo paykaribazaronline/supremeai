@@ -10,6 +10,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import com.fasterxml.jackson.core.type.TypeReference;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -220,6 +221,29 @@ public class GitHubAutomationService {
                 })
                 .doOnSuccess(v -> log.info("Successfully triggered workflow {} for {}/{}", workflowId, owner, repo))
                 .doOnError(e -> log.error("Failed to trigger workflow: {}", e.getMessage()));
+    }
+
+    /**
+     * Fetch the latest workflow run status (e.g., to check if deployment failed)
+     */
+    public Mono<Map<String, Object>> getLatestWorkflowRun(String owner, String repo, String workflowId, String installationId) {
+        log.info("Fetching latest workflow run for {}/{}", owner, repo);
+        @SuppressWarnings("unchecked")
+        Mono<Map<String, Object>> result = gitHubAppService.getInstallationToken(installationId)
+                .flatMap(token -> webClient.get()
+                        .uri("/repos/{owner}/{repo}/actions/workflows/{workflow_id}/runs?per_page=1", owner, repo, workflowId)
+                        .header("Authorization", "token " + token)
+                        .retrieve()
+                        .bodyToMono(Map.class)
+                        .map(res -> {
+                            List<Map<String, Object>> runs = (List<Map<String, Object>>) res.get("workflow_runs");
+                            if (runs != null && !runs.isEmpty()) {
+                                return runs.get(0);
+                            }
+                            return java.util.Collections.<String, Object>emptyMap();
+                        })
+                );
+        return result.doOnError(e -> log.error("Failed to fetch workflow runs: {}", e.getMessage()));
     }
 
     private void runCommand(Path directory, String... command) throws IOException, InterruptedException {

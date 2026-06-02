@@ -55,6 +55,18 @@ public class GitHubAdminController {
                 .then(Mono.just(ResponseEntity.ok(Map.of("status", "success", "message", "Workflow triggered successfully"))));
     }
 
+    @GetMapping("/repos/{owner}/{repo}/workflows/{workflowId}/runs/latest")
+    public Mono<ResponseEntity<Map<String, Object>>> getLatestWorkflowRun(
+            @PathVariable String owner,
+            @PathVariable String repo,
+            @PathVariable String workflowId,
+            @RequestParam String installationId) {
+        
+        return gitHubAutomationService.getLatestWorkflowRun(owner, repo, workflowId, installationId)
+                .map(ResponseEntity::ok)
+                .defaultIfEmpty(ResponseEntity.notFound().build());
+    }
+
     public static class MergeRequest {
         private String commitTitle;
         private String installationId;
