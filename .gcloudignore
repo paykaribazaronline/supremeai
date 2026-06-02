@@ -1,8 +1,14 @@
-# 1. Ignore EVERYTHING (including all hidden files/folders) by default
+# Ignore everything by default
 *
-.*
-
-# 2. ONLY ALLOW the exact files required for Cloud Run Python deployment
-!main.py
-!requirements.txt
+# Allow Gradle build files and source
+!settings.gradle.kts
+!build.gradle.kts
+!src/**
+!gradle/**
+!gradlew
+# Allow Dockerfile and build output
 !Dockerfile
+!app.jar
+!build/libs/app.jar
+# Allow this gcloudignore itself
+!.gcloudignore

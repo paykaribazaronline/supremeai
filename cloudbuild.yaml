@@ -58,12 +58,4 @@ steps:
   entrypoint: 'npx'
   args: ['firebase-tools', 'deploy', '--only', 'hosting,functions', '--project', '$PROJECT_ID', '--non-interactive', '--force']
 
-options:
-  # Enable build cache for faster incremental builds
-  cache:
-    paths: ['gradle/caches/', 'dashboard/node_modules/']
-  # Compress build context upload to Cloud Build (reduces upload size from ~1.5GB to ~50MB)
-  compression: 'gzip'
-  logging: 'CLOUD_LOGGING_ONLY'
 
-timeout: 1200s
