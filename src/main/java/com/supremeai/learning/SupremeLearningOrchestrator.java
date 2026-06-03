@@ -395,63 +395,7 @@ public SupremeLearningOrchestrator(AdminDashboardFacadeService adminDashboardFac
                 .trim();
     }
 
-    // ══════════════════════════════════════════════════════════════════════════
-    //  LEGACY KEYWORD MATCHING (kept as fallback)
-    // ══════════════════════════════════════════════════════════════════════════
 
-    /**
-     * @deprecated Phase 2: Use findBestCategoryBySimilarity() instead.
-     * Kept as fallback for backward compatibility.
-     */
-    @Deprecated(since = "Phase 2", forRemoval = true)
-    private boolean matchesCategory(String query, String category, JsonNode node) {
-        String lowerQuery = query.toLowerCase();
-        if (lowerQuery.contains(category.replace("_", " "))) return true;
-
-        JsonNode clusters = node.path("clusters");
-        Iterator<Map.Entry<String, JsonNode>> clusterEntries = clusters.fields();
-        while (clusterEntries.hasNext()) {
-            Map.Entry<String, JsonNode> entry = clusterEntries.next();
-            String cName = entry.getKey();
-            JsonNode cNode = entry.getValue();
-
-            if (lowerQuery.contains(cName.replace("_", " "))) return true;
-
-            JsonNode tasks = cNode.path("tasks");
-            if (tasks.isArray()) {
-                for (JsonNode task : tasks) {
-                    String intent = task.path("intent").asText().toLowerCase();
-                    if (lowerQuery.contains(intent)) return true;
-                }
-            }
-        }
-        return false;
-    }
-
-    /**
-     * @deprecated Phase 2: Use findBestClusterBySimilarity() instead.
-     */
-    @Deprecated(since = "Phase 2", forRemoval = true)
-    private String findSpecificCluster(String query, JsonNode clusters) {
-        String lowerQuery = query.toLowerCase();
-        Iterator<Map.Entry<String, JsonNode>> fields = clusters.fields();
-        while (fields.hasNext()) {
-            Map.Entry<String, JsonNode> entry = fields.next();
-            String cName = entry.getKey();
-            JsonNode cNode = entry.getValue();
-
-            if (lowerQuery.contains(cName.replace("_", " "))) return cName;
-
-            JsonNode tasks = cNode.path("tasks");
-            if (tasks.isArray()) {
-                for (JsonNode task : tasks) {
-                    String intent = task.path("intent").asText().toLowerCase();
-                    if (lowerQuery.contains(intent)) return cName;
-                }
-            }
-        }
-        return "general";
-    }
 
     // ══════════════════════════════════════════════════════════════════════════
     //  SELF-LEARNING LOOP: CORRECTION RECORDING

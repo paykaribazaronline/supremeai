@@ -21,10 +21,6 @@ public class CodeGenerationService {
         this.productService = productService;
     }
 
-
-    public CodeGenerationService() {
-    }
-
     /**
      * Retrieve a generated app by its appId.
      * Used by SimulatorRuntimeController to serve preview.
