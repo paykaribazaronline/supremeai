@@ -32,43 +32,22 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
-    @ExtendWith(MockitoExtension.class)
-    @MockitoSettings(strictness = Strictness.LENIENT)
-    class ChatControllerTest {MultiAIVotingServicepublic ChatControllerTest(MultiAIVotingService consensusService, AutonomousQuestioningEngine questioningEngine, MultiAIVotingService votingService, EnhancedLearningService enhancedLearningService, ChatIntelligenceService intelligenceService, ChatHistoryRepository chatHistoryRepository, ProviderRepository providerRepository, com.supremeai.service.NeuralChatService neuralChatService, ChatController chatController) {
-MultiAIVotingService    this.consensusService = consensusService;
-MultiAIVotingService    this.questioningEngine = questioningEngine;
-MultiAIVotingService    this.votingService = votingService;
-MultiAIVotingService    this.enhancedLearningService = enhancedLearningService;
-MultiAIVotingService    this.intelligenceService = intelligenceService;
-MultiAIVotingService    this.chatHistoryRepository = chatHistoryRepository;
-MultiAIVotingService    this.providerRepository = providerRepository;
-MultiAIVotingService    this.neuralChatService = neuralChatService;
-MultiAIVotingService    this.chatController = chatController;
-MultiAIVotingService}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
+class ChatControllerTest {
+    private MultiAIVotingService consensusService;
+    private AutonomousQuestioningEngine questioningEngine;
+    private MultiAIVotingService votingService;
+    private EnhancedLearningService enhancedLearningService;
+    private ChatIntelligenceService intelligenceService;
+    private ChatHistoryRepository chatHistoryRepository;
+    private ProviderRepository providerRepository;
+    private com.supremeai.service.NeuralChatService neuralChatService;
+    private ChatController chatController;
 
     @BeforeEach
     void setUp() {
         chatController = new ChatController();
-        // Inject mocks via reflection since @Autowired is used
         setField(chatController, "consensusService", consensusService);
         setField(chatController, "questioningEngine", questioningEngine);
         setField(chatController, "votingService", votingService);
@@ -87,7 +66,6 @@ MultiAIVotingService}
             java.lang.reflect.Field field = ChatController.class.getDeclaredField(fieldName);
             field.setAccessible(true);
             field.set(target, value);
-            // Also set the circuit breaker and retry to avoid NPE
             field = ChatController.class.getDeclaredField("aiCircuitBreaker");
             field.setAccessible(true);
             field.set(target, CircuitBreaker.ofDefaults("test"));

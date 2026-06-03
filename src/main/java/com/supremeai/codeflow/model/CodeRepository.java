@@ -225,7 +225,7 @@ public class CodeRepository {
     public List<CodeFile> getFiles() { return files; }
     public void setFiles(List<CodeFile> files) { this.files = files; }
     public DependencyGraph getDependencyGraph() { return dependencyGraph; }
-    public void setDependencyGraph(DependencyGraph dependencyGraph) { this.dependencyGraph = dependencyGraph; return; }
+    public void setDependencyGraph(DependencyGraph dependencyGraph) { this.dependencyGraph = dependencyGraph; }
     public List<PatternDetection> getDetectedPatterns() { return detectedPatterns; }
     public void setDetectedPatterns(List<PatternDetection> detectedPatterns) { this.detectedPatterns = detectedPatterns; }
     public List<SecurityIssue> getSecurityIssues() { return securityIssues; }
