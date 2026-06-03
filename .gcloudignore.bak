@@ -1,7 +1,0 @@
-# Extreme optimization: Ignore EVERYTHING by default
-*
-
-# Whitelist ONLY the direct dependencies of the Dockerfile build step
-!Dockerfile
-!app.jar
-!.gcloudignore
