@@ -360,7 +360,7 @@ public class EnhancedContentSanitizerService {
         private final double securityScore;
         private final double qualityScore;
 
-        public EnhancedContentSanitizerService(boolean isValid, String message, 
+        public SanitizationResult(boolean isValid, String message, 
                                double securityScore, double qualityScore) {
             this.isValid = isValid;
             this.message = message;

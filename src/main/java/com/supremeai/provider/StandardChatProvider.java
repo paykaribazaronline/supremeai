@@ -10,7 +10,7 @@ import java.util.List;
 public class StandardChatProvider extends AbstractHttpProvider {
     private final String providerName;
 
-    public replaces(String apiKey, String endpoint, String modelName, String providerName) {
+    public StandardChatProvider(String apiKey, String endpoint, String modelName, String providerName) {
         super(apiKey, endpoint, modelName != null ? modelName : "default");
         this.providerName = providerName;
     }

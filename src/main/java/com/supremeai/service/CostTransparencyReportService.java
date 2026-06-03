@@ -107,7 +107,7 @@ public class CostTransparencyReportService {
         int completionTokens;
         double cost;
 
-        public CostTransparencyReportService(String userId, String sessionId, String provider, int promptTokens, int completionTokens, double cost) {
+        public UsageLog(String userId, String sessionId, String provider, int promptTokens, int completionTokens, double cost) {
             this.userId = userId;
             this.sessionId = sessionId;
             this.provider = provider;

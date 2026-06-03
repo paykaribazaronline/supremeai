@@ -100,7 +100,7 @@ public class BlueGreenDeploymentConfig implements ApplicationRunner {
         public DeploymentInfo() {
         }
 
-        public BlueGreenDeploymentConfig(String color, String version, String strategy, Instant startTime, String previousColor, String previousVersion) {
+        public DeploymentInfo(String color, String version, String strategy, Instant startTime, String previousColor, String previousVersion) {
             this.color = color;
             this.version = version;
             this.strategy = strategy;
