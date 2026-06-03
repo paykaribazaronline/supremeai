@@ -329,7 +329,7 @@ public class CodeRepository {
         public FunctionInfo() {}
         public String getName() { return name; }
         public void setName(String n) { this.name = n; }
-        public Boolean getIsPrivate() { return isPrivate; }
+        public Boolean isPrivate() { return isPrivate; }
         public void setIsPrivate(Boolean ip) { this.isPrivate = ip; }
         public Integer getLine() { return line; }
         public void setLine(Integer l) { this.line = l; }

@@ -48,12 +48,7 @@ public class ChatController {
         this.neuralChatService = neuralChatService;
     }
 
-
     private static final Logger logger = LoggerFactory.getLogger(ChatController.class);
-
-
-
-
 
 
 
