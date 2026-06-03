@@ -44,34 +44,6 @@ import org.springframework.http.ResponseEntity;
  */
 @Service
 public class SelfHealingService {
-    public SelfHealingService(SupremeLearningOrchestrator learningOrchestrator, AIReasoningService reasoningService) {
-        this.learningOrchestrator = learningOrchestrator;
-        this.reasoningService = reasoningService;
-    }
-
-    public SelfHealingService(ProviderRepository providerRepository, AIProviderFactory providerFactory, APIHealthReportRepository healthReportRepository, GlobalKnowledgeBase globalKnowledgeBase, RootCauseAnalysisService rootCauseAnalysisService, ThirdOpinionOrchestrator fallbackOrchestrator, MultiAIVotingService votingService, com.supremeai.repository.HealingEventRepository healingEventRepository, org.springframework.core.env.Environment env) {
-        this.providerRepository = providerRepository;
-        this.providerFactory = providerFactory;
-        this.healthReportRepository = healthReportRepository;
-        this.globalKnowledgeBase = globalKnowledgeBase;
-        this.rootCauseAnalysisService = rootCauseAnalysisService;
-        this.fallbackOrchestrator = fallbackOrchestrator;
-        this.votingService = votingService;
-        this.healingEventRepository = healingEventRepository;
-        this.env = env;
-    }
-
-
-
-
-
-
-
-
-
-
-
-
     private static final Logger log = LoggerFactory.getLogger(SelfHealingService.class);
 
     // ── Circuit-breaker / quarantine state ──────────────────────────────
