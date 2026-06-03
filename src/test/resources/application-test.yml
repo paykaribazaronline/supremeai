@@ -1,0 +1,60 @@
+
+# Test Configuration for SupremeAI
+
+spring:
+  profiles:
+    active: test
+
+  application:
+    name: supremeai-test
+
+  autoconfigure:
+    exclude:
+      - com.google.cloud.spring.autoconfigure.firestore.GcpFirestoreAutoConfiguration
+      - com.google.cloud.spring.autoconfigure.core.GcpContextAutoConfiguration
+      - com.google.cloud.spring.autoconfigure.core.GcpCredentialsAutoConfiguration
+
+  datasource:
+    url: jdbc:h2:mem:testdb
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    database-platform: org.hibernate.dialect.H2Dialect
+    show-sql: true
+
+  cloud:
+    gcp:
+      project-id: test-project
+      credentials:
+        location: classpath:dummy-credentials.json
+
+ai:
+  providers:
+    gemini:
+      enabled: false
+    deepseek:
+      enabled: false
+    groq:
+      enabled: false
+  stub-mode: true
+
+firebase:
+  enabled: false
+  project-id: test-project
+  database-url: https://test-project-default-rtdb.firebasedatabase.app/
+
+security:
+  jwt:
+    secret: test-secret-key-for-testing-only
+    expiration: 86400000
+
+logging:
+  level:
+    com.supremeai: DEBUG
+    org.springframework.security: DEBUG
+    org.springframework.web: DEBUG
+    reactor.core: DEBUG

@@ -1,0 +1,76 @@
+package com.supremeai.service;
+
+import com.supremeai.dto.AgentStatus;
+import com.supremeai.dto.Provider;
+import com.supremeai.repository.AgentRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.stereotype.Service;
+
+import reactor.core.publisher.Mono;
+
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+
+@Service
+public class AgentService {
+
+    private static final Logger log = LoggerFactory.getLogger(AgentService.class);
+
+    private final AgentRepository agentRepository;
+    private final RedisTemplate<String, Object> redisTemplate;
+
+    public AgentService(AgentRepository agentRepository, @org.springframework.beans.factory.annotation.Autowired(required = false) RedisTemplate<String, Object> redisTemplate) {
+        this.agentRepository = agentRepository;
+        this.redisTemplate = redisTemplate;
+    }
+
+    private static final String CACHE_KEY_AGENT_STATUS = "agentStatus:";
+    private static final String CACHE_KEY_PROVIDER_LIST = "providerList";
+    private static final long CACHE_TTL_MINUTES = 10;
+
+    public Mono<AgentStatus> getAgentStatus(String agentId) {
+        String key = CACHE_KEY_AGENT_STATUS + agentId;
+        if (redisTemplate != null) {
+            Object cachedObj = redisTemplate.opsForValue().get(key);
+            if (cachedObj instanceof AgentStatus cached) {
+                log.debug("Cache hit for agentId: {}", agentId);
+                return Mono.just(cached);
+            }
+        }
+
+        log.debug("Cache miss, fetching from DB for agentId: {}", agentId);
+        return agentRepository.findStatusById(agentId)
+                .doOnNext(status -> {
+                    if (redisTemplate != null) {
+                        redisTemplate.opsForValue().set(key, status, CACHE_TTL_MINUTES, TimeUnit.MINUTES);
+                    }
+                });
+    }
+
+    public Mono<Void> updateAgentStatus(String agentId, AgentStatus status) {
+        log.debug("Updating agent status and evicting cache for agentId: {}", agentId);
+        if (redisTemplate != null) {
+            redisTemplate.delete(CACHE_KEY_AGENT_STATUS + agentId);
+        }
+        return agentRepository.updateStatus(agentId, status);
+    }
+
+    public Mono<List<Provider>> getAllProviders() {
+        if (redisTemplate != null) {
+            Object cachedObj = redisTemplate.opsForValue().get(CACHE_KEY_PROVIDER_LIST);
+            if (cachedObj instanceof List<?> cached) {
+                @SuppressWarnings("unchecked")
+                List<Provider> providers = (List<Provider>) cached;
+                return Mono.just(providers);
+            }
+        }
+        // Since findAllProviders doesn't exist in Firestore reactive repo, return empty for now
+        List<Provider> providers = List.of();
+        if (redisTemplate != null) {
+            redisTemplate.opsForValue().set(CACHE_KEY_PROVIDER_LIST, providers, CACHE_TTL_MINUTES, TimeUnit.MINUTES);
+        }
+        return Mono.just(providers);
+    }
+}

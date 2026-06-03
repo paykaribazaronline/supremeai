@@ -1,0 +1,61 @@
+steps:
+# 1. Build Spring Boot Jar
+- name: 'gradle:8.7-jdk21'
+  entrypoint: 'gradle'
+  args: ['bootJar', '-x', 'test', '--no-daemon']
+  env:
+    - 'GRADLE_USER_HOME=.gradle'
+
+# 2. Copy Jar to root for Docker build context
+- name: 'ubuntu'
+  args: ['cp', '.gradle/build/libs/app.jar', '.']
+
+# 3. Build Docker Image with BuildKit (smaller layers, better caching)
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['build', '--build-arg', 'BUILDKIT_INLINE_CACHE=1', '-t', 'gcr.io/$PROJECT_ID/supremeai-backend', '.']
+
+# 4. Push Docker Image
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['push', 'gcr.io/$PROJECT_ID/supremeai-backend']
+
+# 5. Deploy to Cloud Run with resource optimizations
+- name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+  entrypoint: 'gcloud'
+  args:
+    - 'run'
+    - 'deploy'
+    - 'supremeai'
+    - '--image=gcr.io/$PROJECT_ID/supremeai-backend'
+    - '--region=us-central1'
+    - '--platform=managed'
+    - '--allow-unauthenticated'
+    - '--set-env-vars=SPRING_PROFILES_ACTIVE=cloud'
+    - '--cpu=1'
+    - '--memory=512Mi'
+    - '--concurrency=80'
+    - '--timeout=300'
+    - '--max-instances=10'
+    - '--min-instances=1'
+
+# 6. Install npm dependencies for dashboard
+- name: 'node:20'
+  entrypoint: 'npm'
+  dir: 'dashboard'
+  args: ['install']
+
+# 7. Build dashboard
+- name: 'node:20'
+  entrypoint: 'npm'
+  dir: 'dashboard'
+  args: ['run', 'build']
+
+# 8. Copy dashboard build output to public directory
+- name: 'ubuntu'
+  args: ['cp', '-R', 'dashboard/dist/.', 'public/']
+
+# 9. Deploy to Firebase Hosting and Functions
+- name: 'node:20'
+  entrypoint: 'npx'
+  args: ['firebase-tools', 'deploy', '--only', 'hosting,functions', '--project', '$PROJECT_ID', '--non-interactive', '--force']
+
+

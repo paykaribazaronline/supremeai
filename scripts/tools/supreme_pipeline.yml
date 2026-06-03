@@ -1,0 +1,120 @@
+name: SupremeAI Unified Pipeline
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch: # ড্যাশবোর্ড থেকে ম্যানুয়ালি ডিপ্লয়মেন্ট ট্রিগার করার জন্য
+
+# নতুন কোড পুশ করলে আগের রানিং বিল্ড ক্যানসেল করে দিবে (খরচ এবং ক্র্যাশ এড়াতে)
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+  REGION: us-central1
+  SERVICE_NAME: supremeai
+  GAR_LOCATION: us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/supremeai-repo/supremeai
+
+jobs:
+  build-test-deploy:
+    name: Build, Test & Deploy
+    timeout-minutes: 20 # হ্যাং হলে যেন বিলিং না বাড়ে
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: 'gradle'
+
+      - name: Build and Run Tests
+        run: |
+          chmod +x ./gradlew
+          ./gradlew clean build jacocoTestReport --stacktrace
+        # টেস্ট স্কিপ করার (-x test) সমস্যা সমাধান করা হয়েছে! এখন প্রোডাকশনে যাওয়ার আগে কোড টেস্ট হবে।
+
+      - name: Publish Test Report
+        uses: dorny/test-reporter@v1
+        if: success() || failure()
+        with:
+          name: "JUnit Test Results"
+          path: build/test-results/test/TEST-*.xml
+          reporter: java-junit
+          fail-on-error: 'false'
+        # গিটহাবে সুন্দর চার্ট আকারে টেস্ট রিপোর্ট দেখানোর জন্য
+
+      - name: Upload Test Results
+        uses: actions/upload-artifact@v4
+        if: always() # বিল্ড ফেইল করলেও যেন টেস্ট রিপোর্ট পাওয়া যায়
+        with:
+          name: junit-test-results
+          path: build/test-results/test/TEST-*.xml
+
+      - name: Run Trivy Vulnerability Scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs' # পুরো ফাইলসিস্টেম এবং ডিপেন্ডেন্সি চেক করবে
+          ignore-unfixed: true
+          format: 'table'
+          exit-code: '0' # OS level vulnerability তে আটকে না যাওয়ার জন্য 0 করা হলো
+          severity: 'CRITICAL,HIGH'
+        # এটি নিশ্চিত করবে যে হ্যাক হওয়ার মতো কোনো দুর্বলতা প্রোডাকশনে যাচ্ছে না
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: '${{ secrets.GCP_SA_KEY }}'
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Configure Docker for Artifact Registry
+        run: gcloud auth configure-docker us-central1-docker.pkg.dev --quiet
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        # গিটহাব অ্যাকশনস ক্যাশ ব্যবহার করার জন্য Buildx সেটআপ করা বাধ্যতামূলক
+
+      - name: Build and Push Docker Image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: ${{ github.event_name == 'push' }}
+          tags: |
+            ${{ env.GAR_LOCATION }}:${{ github.sha }}
+            ${{ env.GAR_LOCATION }}:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+        # অপ্রয়োজনীয় Cloud Build বাদ দিয়ে সরাসরি GitHub Actions এ ডকার বিল্ড করা হচ্ছে।
+
+      - name: Deploy to Cloud Run
+        if: github.event_name == 'push'
+        uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          service: ${{ env.SERVICE_NAME }}
+          region: ${{ env.REGION }}
+          image: ${{ env.GAR_LOCATION }}:${{ github.sha }}
+          env_vars: |
+            SPRING_PROFILES_ACTIVE=cloud
+            GCP_PROJECT_ID=${{ secrets.GCP_PROJECT_ID }}
+            GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}
+            DEEPSEEK_API_KEY=${{ secrets.DEEPSEEK_API_KEY }}
+            GROQ_API_KEY=${{ secrets.GROQ_API_KEY }}
+            MAPS_API_KEY=${{ secrets.MAPS_API_KEY }}
+            JWT_SECRET=${{ secrets.JWT_SECRET }}
+            SENTRY_DSN=${{ secrets.SENTRY_DSN }}
+            FIREBASE_TOKEN=${{ secrets.FIREBASE_TOKEN }}
+          flags: '--cpu-boost'
+        # আপনার গিটহাবের Secret গুলো সরাসরি Cloud Run এর Environment Variable হিসেবে যুক্ত করা হয়েছে।

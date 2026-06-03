@@ -1,0 +1,331 @@
+package com.supremeai.controller;
+
+import com.supremeai.model.UserSimulatorProfile;
+import com.supremeai.repository.UserSimulatorProfileRepository;
+import com.supremeai.service.SimulatorService;
+import com.supremeai.audit.Audited;
+import com.supremeai.exception.SimulatorConflictException;
+import com.supremeai.exception.SimulatorDeploymentException;
+import com.supremeai.exception.SimulatorQuotaExceededException;
+import com.supremeai.exception.SimulatorResourceNotFoundException;
+import com.supremeai.exception.SimulatorSessionException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.*;
+import reactor.core.publisher.Mono;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * REST API for simulator management.
+ *
+ * Security: All endpoints require authentication via AuthenticationFilter (Firebase).
+ * Users can only access their own profile. Admin endpoints require ROLE_ADMIN.
+ */
+@RestController
+@RequestMapping("/api/simulator")
+public class SimulatorController {
+    public SimulatorController(SimulatorService simulatorService, UserSimulatorProfileRepository profileRepository) {
+        this.simulatorService = simulatorService;
+        this.profileRepository = profileRepository;
+    }
+
+
+    private static final Logger logger = LoggerFactory.getLogger(SimulatorController.class);
+
+
+
+    // Profile Management
+    @Audited(resource = "simulator_profile", action = "READ")
+    @GetMapping("/profile")
+    @PreAuthorize("isAuthenticated()")
+    public Mono<ResponseEntity<UserSimulatorProfile>> getProfile(Authentication auth) {
+        String userId = auth.getName();
+        return simulatorService.getProfile(userId)
+            .map(ResponseEntity::ok);
+    }
+
+    /**
+     * POST /api/simulator/profile
+     * Update current user's simulator profile (quota, device)
+     */
+    @PostMapping("/profile")
+    @PreAuthorize("isAuthenticated()")
+    public Mono<ResponseEntity<UserSimulatorProfile>> updateProfile(
+            Authentication auth,
+            @RequestBody Map<String, Object> updates) {
+        String userId = auth.getName();
+        
+        SimulatorService.UpdateProfileRequest request = new SimulatorService.UpdateProfileRequest();
+        
+        // Parse installQuota if present
+        if (updates.containsKey("installQuota")) {
+            Number quota = (Number) updates.get("installQuota");
+            request.setInstallQuota(quota.intValue());
+        }
+        
+        // Parse device if present
+        if (updates.containsKey("device")) {
+            @SuppressWarnings("unchecked")
+            Map<String, Object> deviceMap = (Map<String, Object>) updates.get("device");
+            SimulatorService.DeviceUpdateRequest deviceReq = new SimulatorService.DeviceUpdateRequest();
+            deviceReq.setType((String) deviceMap.get("type"));
+            deviceReq.setOsVersion((String) deviceMap.get("osVersion"));
+            deviceReq.setScreenResolution((String) deviceMap.get("screenResolution"));
+            Object dpiObj = deviceMap.get("densityDpi");
+            if (dpiObj instanceof Number dpi) {
+                deviceReq.setDensityDpi(dpi.intValue());
+            }
+            request.setDevice(deviceReq);
+        }
+        
+        return simulatorService.updateProfile(userId, request)
+            .map(ResponseEntity::ok);
+    }
+
+    // Installation Management
+    @Audited(resource = "simulator_install", action = "CREATE")
+    @PostMapping("/install")
+    @PreAuthorize("isAuthenticated()")
+    public Mono<ResponseEntity<Map<String, Object>>> installApp(
+            Authentication auth,
+            @RequestBody Map<String, String> request) {
+        
+        String userId = auth.getName();
+        String appId = request.get("appId");
+        String deviceProfile = request.getOrDefault("deviceProfile", "PIXEL_6");
+
+        if (appId == null || appId.trim().isEmpty()) {
+            return Mono.just(ResponseEntity.badRequest()
+                .body(Map.of("error", "appId is required")));
+        }
+
+        return simulatorService.installApp(userId, appId, deviceProfile)
+            .map(result -> {
+                Map<String, Object> response = new HashMap<>();
+                response.put("success", true);
+                response.put("app", Map.of(
+                    "appId", result.getInstalledApp().getAppId(),
+                    "appName", result.getInstalledApp().getAppName(),
+                    "previewUrl", result.getPreviewUrl(),
+                    "installedAt", result.getInstalledApp().getInstalledAt(),
+                    "status", result.getInstalledApp().getStatus().name()
+                ));
+                response.put("quota", Map.of(
+                    "used", result.getActiveInstalls(),
+                    "total", result.getInstallQuota()
+                ));
+                
+                return ResponseEntity.status(HttpStatus.CREATED).body(response);
+            });
+    }
+
+    /**
+     * DELETE /api/simulator/install/{appId}
+     * Uninstall an app from simulator
+     */
+    @Audited(resource = "simulator_install", action = "DELETE")
+    @DeleteMapping("/install/{appId}")
+    @PreAuthorize("isAuthenticated()")
+    public Mono<ResponseEntity<Map<String, Object>>> uninstallApp(
+            Authentication auth,
+            @PathVariable String appId) {
+        
+        String userId = auth.getName();
+        return simulatorService.uninstallApp(userId, appId)
+            .then(Mono.just(ResponseEntity.ok(Map.of("success", true))));
+    }
+
+    /**
+     * GET /api/simulator/installed
+     * List all installed apps for authenticated user
+     */
+    @GetMapping("/installed")
+    @PreAuthorize("isAuthenticated()")
+    public Mono<ResponseEntity<Map<String, Object>>> getInstalledApps(Authentication auth) {
+        String userId = auth.getName();
+        
+        return simulatorService.getProfile(userId)
+            .map(profile -> {
+                java.util.List<Map<String, Object>> apps = profile.getInstalledApps().stream()
+                    .map(app -> {
+                        Map<String, Object> map = new HashMap<>();
+                        map.put("appId", app.getAppId());
+                        map.put("appName", app.getAppName());
+                        map.put("version", app.getVersion());
+                        map.put("previewUrl", app.getDeployedUrl());
+                        map.put("installedAt", app.getInstalledAt());
+                        map.put("launchCount", app.getLaunchCount());
+                        map.put("lastLaunchedAt", app.getLastLaunchedAt());
+                        map.put("status", app.getStatus().name());
+                        return map;
+                    })
+                    .toList();
+
+                Map<String, Object> response = new HashMap<>();
+                response.put("installedApps", apps);
+                response.put("quota", Map.of(
+                    "used", profile.getActiveInstalls(),
+                    "total", profile.getInstallQuota()
+                ));
+                
+                return ResponseEntity.ok(response);
+            })
+            .defaultIfEmpty(ResponseEntity.ok(Map.of(
+                "installedApps", java.util.List.of(),
+                "quota", Map.of("used", 0, "total", 5)
+            )));
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────────
+    // Session Management
+    @Audited(resource = "simulator_session", action = "CREATE")
+    @PostMapping("/session/start")
+    @PreAuthorize("isAuthenticated()")
+    public Mono<ResponseEntity<Map<String, Object>>> startSession(
+            Authentication auth,
+            @RequestParam String appId) {
+        
+        String userId = auth.getName();
+        
+        return simulatorService.startSession(userId, appId)
+            .map(result -> {
+                Map<String, Object> response = new HashMap<>();
+                response.put("sessionId", result.getSessionId());
+                response.put("websocketUrl", result.getWebsocketUrl());
+                response.put("previewUrl", result.getPreviewUrl());
+                response.put("state", result.getState());
+                response.put("startedAt", result.getStartedAt());
+                
+                return ResponseEntity.ok(response);
+            });
+    }
+
+    /**
+     * POST /api/simulator/session/stop
+     * Stop current simulator session
+     */
+    @Audited(resource = "simulator_session", action = "DELETE")
+    @PostMapping("/session/stop")
+    @PreAuthorize("isAuthenticated()")
+    public Mono<ResponseEntity<Map<String, Object>>> stopSession(Authentication auth) {
+        String userId = auth.getName();
+        return simulatorService.stopSession(userId)
+            .then(Mono.just(ResponseEntity.ok(Map.of("success", true))));
+    }
+
+    /**
+     * GET /api/simulator/session/status
+     * Get current session status
+     */
+    @Audited(resource = "simulator_session", action = "READ")
+    @GetMapping("/session/status")
+    @PreAuthorize("isAuthenticated()")
+    public Mono<ResponseEntity<Map<String, Object>>> getSessionStatus(Authentication auth) {
+        String userId = auth.getName();
+        
+        return simulatorService.getSessionStatus(userId)
+            .map(status -> {
+                Map<String, Object> response = new HashMap<>();
+                if (status == null || status.getState() == null || "NONE".equals(status.getState())) {
+                    response.put("hasSession", false);
+                } else {
+                    response.put("hasSession", true);
+                    response.put("sessionId", status.getSessionId());
+                    response.put("activeAppId", status.getActiveAppId());
+                    response.put("state", status.getState());
+                    response.put("lastHeartbeat", status.getLastHeartbeat());
+                }
+                return ResponseEntity.ok(response);
+            })
+            .onErrorResume(e -> {
+                logger.error("Error getting session status", e);
+                return Mono.just(ResponseEntity.ok(Map.of("hasSession", false)));
+            });
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────────
+    // Device Management
+    // ─────────────────────────────────────────────────────────────────────────────
+
+    /**
+     * GET /api/simulator/devices
+     * List available device profiles
+     */
+    @GetMapping("/devices")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<java.util.List<Map<String, Object>>> getAvailableDevices() {
+        java.util.List<Map<String, Object>> devices = new java.util.ArrayList<>();
+        
+        for (UserSimulatorProfile.DeviceProfile.DeviceType type : 
+             UserSimulatorProfile.DeviceProfile.DeviceType.values()) {
+            Map<String, Object> device = new HashMap<>();
+            device.put("type", type.name());
+            device.put("name", type.getDisplayName());
+            device.put("osVersion", type.getOsVersion());
+            device.put("screenResolution", type.getResolution());
+            device.put("densityDpi", type.getDensityDpi());
+            devices.add(device);
+        }
+        
+        return ResponseEntity.ok(devices);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────────
+    // Admin Operations (stubbed - to be implemented)
+    // ─────────────────────────────────────────────────────────────────────────────
+
+    /**
+     * GET /api/simulator/admin/usage
+     * Get simulator usage across all users (Admin only)
+     */
+    @GetMapping("/admin/usage")
+    @PreAuthorize("hasRole('ADMIN')")
+    public Mono<ResponseEntity<Map<String, Object>>> getAllUsage(Authentication auth) {
+        return simulatorService.getAllDeployments()
+            .map(record -> {
+                Map<String, Object> entry = new HashMap<>();
+                entry.put("appId", record.getAppId());
+                entry.put("deviceType", record.getDeviceType());
+                entry.put("previewUrl", record.getPreviewUrl());
+                entry.put("status", record.getStatus());
+                entry.put("deployedAt", record.getDeployedAt());
+                return entry;
+            })
+            .collectList()
+            .map(usageList -> {
+                Map<String, Object> response = new HashMap<>();
+                response.put("totalDeployments", usageList.size());
+                response.put("deployments", usageList);
+                return ResponseEntity.ok(response);
+            });
+    }
+
+    /**
+     * POST /api/simulator/admin/set-quota/{userId}
+     * Override user's install quota (Admin only)
+     */
+    @PostMapping("/admin/set-quota/{userId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public Mono<ResponseEntity<UserSimulatorProfile>> adminSetQuota(
+            Authentication auth,
+            @PathVariable String userId,
+            @RequestParam int quota) {
+        
+        // Clamp quota to 1-20
+        int safeQuota = Math.max(1, Math.min(20, quota));
+        
+        SimulatorService.UpdateProfileRequest request = new SimulatorService.UpdateProfileRequest();
+        request.setInstallQuota(safeQuota);
+
+        return simulatorService.updateProfile(userId, request)
+            .map(ResponseEntity::ok)
+            .defaultIfEmpty(ResponseEntity.notFound().build());
+    }
+}
