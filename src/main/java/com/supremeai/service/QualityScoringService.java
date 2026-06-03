@@ -52,7 +52,7 @@ public class QualityScoringService {
         public List<String> recommendations;
         public long assessedAt;
 
-        public QualityScoringService(String apiId) {
+        public QualityAssessment(String apiId) {
             this.apiId = apiId;
             this.checksPassed = new ArrayList<>();
             this.checksFailed = new ArrayList<>();

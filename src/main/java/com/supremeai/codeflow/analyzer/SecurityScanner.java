@@ -60,7 +60,7 @@ public class SecurityScanner {
         private String remediation;
         private String cweId;
 
-        public SecurityScanner(String t, String s, Pattern p, String d, String r, String c) {
+        public SecurityPattern(String t, String s, Pattern p, String d, String r, String c) {
             this.type = t; this.severity = s; this.pattern = p; this.description = d; this.remediation = r; this.cweId = c;
         }
         public String getType() { return type; }

@@ -372,7 +372,7 @@ public class UserBehaviorProfilingService {
         public final double confidence;
         public final SuggestionType type;
 
-        public UserBehaviorProfilingService(String title, String description, String actionType,
+        public SmartSuggestion(String title, String description, String actionType,
                               double confidence, SuggestionType type) {
             this.title = title;
             this.description = description;

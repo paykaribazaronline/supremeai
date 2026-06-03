@@ -188,7 +188,7 @@ public class HybridVoiceService {
         private final String code;
         private final String source; // "hint" or "auto"
 
-        public HybridVoiceService(String code, String source) {
+        public DetectedLanguage(String code, String source) {
             this.code = code;
             this.source = source;
         }

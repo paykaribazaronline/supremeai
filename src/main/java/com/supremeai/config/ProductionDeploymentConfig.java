@@ -75,7 +75,7 @@ public class ProductionDeploymentConfig {
         private final long healthCheckInterval;
         private final int metricsRetentionHours;
 
-        public ProductionDeploymentConfig(boolean production, String profile, int port, String region,
+        public DeploymentInfo(boolean production, String profile, int port, String region,
                               String image, int responseTimeThreshold, double errorRateThreshold,
                               long healthCheckInterval, int metricsRetentionHours) {
             this.production = production;

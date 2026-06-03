@@ -44,7 +44,7 @@ class RippleWarning {
     private String changedFile;
     private List<String> warnings = new ArrayList<>();
 
-    public RippleEffectPredictor(String changedFile) {
+    public RippleWarning(String changedFile) {
         this.changedFile = changedFile;
     }
 

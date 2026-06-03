@@ -487,7 +487,7 @@ public class EnhancedSelfLearningRouter {
         public final String decisionType;
         public final double confidence;
 
-        public EnhancedSelfLearningRouter(String agentId, String decisionType, double confidence) {
+        public RoutingDecision(String agentId, String decisionType, double confidence) {
             this.agentId = agentId;
             this.decisionType = decisionType;
             this.confidence = confidence;

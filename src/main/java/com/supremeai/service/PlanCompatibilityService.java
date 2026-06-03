@@ -152,7 +152,7 @@ public class PlanCompatibilityService {
         private final List<String> warnings;
         private final String impactSummary;
 
-        public PlanCompatibilityService(int score, RiskLevel riskLevel, List<String> conflicts,
+        public CompatibilityReport(int score, RiskLevel riskLevel, List<String> conflicts,
                                    List<String> compatibleAreas, List<String> warnings,
                                    String impactSummary) {
             this.score = score;

@@ -110,7 +110,7 @@ public class SwarmCoordinator {
     public static class Agent {
         private String id;
         private String type;
-        public SwarmCoordinator(String id, String type) { this.id=id; this.type=type; }
+        public Agent(String id, String type) { this.id=id; this.type=type; }
         public String createPlan(String task) { return "Plan for: " + task; }
         public String execute(String input) { return "Result from " + id + ": " + input; }
     }

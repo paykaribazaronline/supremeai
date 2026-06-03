@@ -217,7 +217,7 @@ public class SelfLearningRouter {
         public final String decisionType; // "exploration" or "exploitation"
         public final double confidence;
 
-        public SelfLearningRouter(String agentId, String decisionType, double confidence) {
+        public RoutingDecision(String agentId, String decisionType, double confidence) {
             this.agentId = agentId;
             this.decisionType = decisionType;
             this.confidence = confidence;
