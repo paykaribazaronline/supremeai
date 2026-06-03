@@ -57,6 +57,15 @@ public class ChatController {
     private final CircuitBreaker aiCircuitBreaker;
     private final Retry aiRetry;
 
+    private MultiAIVotingService consensusService;
+    private AutonomousQuestioningEngine questioningEngine;
+    private MultiAIVotingService votingService;
+    private com.supremeai.service.ChatIntelligenceService intelligenceService;
+    private ChatHistoryRepository chatHistoryRepository;
+    private ProviderRepository providerRepository;
+    private com.supremeai.service.NeuralChatService neuralChatService;
+    private EnhancedLearningService enhancedLearningService;
+
     public ChatController() {
         this.aiCircuitBreaker = CircuitBreaker.ofDefaults("aiVotingService");
         this.aiRetry = Retry.ofDefaults("aiVotingService");
