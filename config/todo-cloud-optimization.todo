@@ -1,0 +1,47 @@
+# সুপ্রেমAI অপ্টিমাইজেশন — সংক্ষিপ্ত তালিকা
+# বিস্তারিত: docs/todo-cloud-optimization.todo দেখুন
+# শেষ আপডেট: ২০২৬-০৬-০১ (০৭:০২) | প্রোডাকশনে .block(): ৯৬টি (৪১ ফাইল)
+
+## ✅ সাম্প্রতিক পরিবর্তনে সম্পন্ন
+- [x] ConfigService — duplicate @PreDestroy সরানো ✅
+- [x] AdminProviderValidationService:103 — nested .block() → reactive flatMap ✅
+- [x] NeuralChatService — shared objectMapper (প্রতি কলে নতুন ObjectMapper নয়) ✅
+- [x] SystemAutoDetectService — truly non-blocking Mono<Boolean> health check ✅
+- [x] SecretManager migration (Gemini, RateLimiter, OpenAI, GitHub, SystemConfig) ✅
+- [x] TelegramStorageService — Circuit Breaker + GZIP + timeout ✅
+- [x] FileExtractionService — ZIP bomb + SSRF ✅
+- [x] BlockingOperationException + IServiceAvailabilityDetector Int face add
+- [x] IServiceAvailabilityDetectorImpl added ✅
+- [x] AIProviderFactory health cache → Caffeine (max 25, 30s TTL) ✅
+- [x] UsageOptimizationService model-tiers cache → Caffeine ✅
+
+## 🔴 P0 — এখনই করতে হবে
+
+### সবচেয়ে বিপজ্জনক .block() কল:
+- [ ] `AutomaticTaskAssigner` — Mono.fromCallable ভেতরে ১১টি .block() + blockLast()!
+      → পুরো class reactive করুন অথবা @Scheduled এ আলাদা করুন
+- [ ] `AIFallbackOrchestrator` + `ThirdOpinionOrchestrator` — .block(60s)!! → max 15s
+- [ ] `ProviderCapabilityAnalyzer` — .block(60s) + unbounded .block() → bounded ফিক্স
+- [ ] `ProviderHealingStrategies` — ২টো unbounded .block() → .block(Duration.ofSeconds(10))
+- [ ] `SupremeLearningOrchestrator` — unbounded .block() → .block(Duration.ofSeconds(10))
+- [ ] `AIProviderFactory` — hot path এ ৭টি .block() (প্রতি AI request এ যায়!)
+      4 entries left after health-cache migration
+
+## 🟠 P1 — এই সপ্তাহে
+- [x] ~~`AIProviderFactory` health cache → Caffeine~~ ✅ সম্পন্ন
+- [x] ~~`SystemAutoDetectService` truly non-blocking health check~~ ✅ সম্পন্ন
+- [x] ~~`UsageOptimizationService` model-tier/response cache → Caffeine~~ ✅ সম্পন্ন
+- [ ] Active provider list Redis caching (30s TTL) — MultiAIVotingService + GracefulDegradation
+- [ ] MultiAIVotingService.java (৯৫KB) → ৩ ভাগে ভাগ করুন
+
+## 🟡 P2 — পরের সপ্তাহে
+- [ ] VisionService.analyzeScreenshot() — legacy .block(30s) wrapper সরান
+- [ ] VertexAIEmbeddingService — secret .block() → @PostConstruct load
+- [ ] Integration test coverage → ৬০%
+- [ ] OpenTelemetry custom span (AI provider latency)
+- [ ] Prometheus histogram (per-provider response time)
+- [ ] AutomaticTaskAssigner duplicate import সরান (line 13-14)
+
+## 📊 স্কোর: ৬.২/১০ (↑ আগে ছিল ৫.৯)
+   সিকিউরিটি ৭ | রিলায়েবিলিটি ৬↑ | আর্কিটেকচার ৪ | পারফরম্যান্স ৬
+   ফিচার ৯ | কোড কোয়ালিটি ৬↑ | টেস্ট ৪ | অবজার্ভেবিলিটি ৭

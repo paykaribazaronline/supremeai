@@ -1,0 +1,106 @@
+[
+  {
+    "task": "hello hi greeting hey good morning good afternoon good evening নমস্কার কেমন আছেন স্বাগতম",
+    "solution": "Hello! I am SupremeAI Core. I am currently operating in high-resilience offline mode because my external cloud connections are unavailable, but I am still here to assist you using my internal knowledge seed. How can I help you today?\n\nনমস্কার! আমি সুপ্রিম এআই কো어। বর্তমানে আমি উচ্চ-পুনরুত্থান অফলাইন মোডে কাজ করছি, কারণ আমার বহির্গত এআই সংযোগ অনুপলব্ধ, কিন্তু আমি আমার অভ্যন্তরীণ জ্ঞানবীজ ব্যবহার করে আপনাকে সহায়তা করার জন্য এখানে আছি।"
+  },
+  {
+    "task": "system status health check server uptime connectivity overview",
+    "solution": "[SupremeAI Core — System Status]\nCurrent Mode: CORE_RESILIENCE (Offline/Tertiary)\nExternal Cloud AI: OFFLINE\nFirestore Memory: OFFLINE\nLocal Seed: ACTIVE\nSupremeAI Core: RUNNING\nAll core systems are operational in fallback mode. Admin panel users may experience reduced AI capabilities. Please activate helper AI providers from the dashboard to restore full functionality."
+  },
+  {
+    "task": "help available commands what can you do capabilities features",
+    "solution": "[SupremeAI Core — Offline Help]\nI am currently in core-resilience mode. The following capabilities are available from my local knowledge seed:\n\n1. Code Generation: Spring Boot entities, controllers, services, React components, Flutter widgets\n2. System Operations: Build, test, deploy, debug guidance\n3. Database: Firestore, SQL, JWT authentication patterns\n4. Health Checks: System connectivity and service diagnostics\n5. Admin Operations: User management, API keys, provider activation\n6. Troubleshooting: Network errors, HTTP status codes, circuit breaker recovery\n\nType a keyword related to any of the above to receive offline guidance."
+  },
+  {
+    "task": "who are you what is supremeai supreme ai introduction explain yourself system architecture",
+    "solution": "I am SupremeAI Core — the primary orchestrator of the SupremeAI multi-agent system. I coordinate external AI providers, manage Firestore-based learning memory, and maintain a local knowledge seed for total resilience. Architecture: helper AI (layer-1) → memory (layer-2) → local seed (layer-3) → emergency response (layer-4). This ensures 100% uptime even when all external services are down."
+  },
+  {
+    "task": "what is llm large language model artificial intelligence ai explanation",
+    "solution": "A Large Language Model (LLM) is an AI system trained on vast amounts of text data to understand and generate human-like language. Examples include GPT, Claude, Gemini, and Llama. LLMs can answer questions, write code, summarize text, and assist with various tasks through pattern recognition and prediction."
+  },
+  {
+    "task": "what is machine learning deep learning data science",
+    "solution": "Machine Learning (ML) is a subset of AI that enables systems to learn patterns from data without explicit programming. Deep Learning uses neural networks with many layers (hence 'deep') for complex pattern recognition. Data Science combines ML, statistics, and data analysis to extract insights from data."
+  },
+  {
+    "task": "what is api rest restful web service",
+    "solution": "An API (Application Programming Interface) is a set of rules allowing software applications to communicate. A REST API follows architectural constraints: uses HTTP methods (GET, POST, PUT, DELETE), is stateless, returns JSON/XML, and uses standard URL patterns like `/api/users` for resource access."
+  },
+  {
+    "task": "what is database sql nosql data storage",
+    "solution": "A database is an organized collection of structured data. SQL databases (PostgreSQL, MySQL) use relational tables with fixed schemas. NoSQL databases (MongoDB, Firestore) use flexible documents or key-value pairs. Choose SQL for complex relationships, NoSQL for scalability and flexible schemas."
+  },
+  {
+    "task": "what is flutter dart mobile development",
+    "solution": "Flutter is Google's UI toolkit for building natively compiled applications for mobile, web, and desktop from a single codebase. Uses the Dart programming language. Features hot reload for fast development, rich widgets, and direct compilation to native code."
+  },
+  {
+    "task": "spring boot rest api development best practices",
+    "solution": "[SupremeAI Core — Spring Boot REST API Best Practices]\n\nPROBLEM: Need standardized patterns for building production-ready REST APIs.\n\nSOLUTION: Follow these patterns for all Spring Boot controllers:\n\n1. CONTROLLER DESIGN:\n   - Use @RestController for JSON APIs\n   - Use @RequestMapping at class level for base path\n   - Use proper HTTP status codes (200, 201, 400, 404, 500)\n   - Use ResponseEntity for explicit status control\n\n2. VALIDATION:\n   - Use @Valid annotation on request bodies\n   - Use JSR-380 constraints (@NotNull, @Size, @Email, etc.)\n   - Return 400 Bad Request for validation failures\n\n3. EXCEPTION HANDLING:\n   - Use @ControllerAdvice for global exception handling\n   - Map specific exceptions to appropriate HTTP status\n   - Return ProblemDetail or custom error DTO\n\n4. SECURITY:\n   - Use Spring Security for authentication/authorization\n   - Validate CSRF for state-changing operations\n   - Use @PreAuthorize for method-level security\n\n5. TESTING:\n   - Write unit tests with @WebMvcTest\n   - Use @MockBean for dependencies\n   - Test edge cases and error scenarios\n\n6. DOCUMENTATION:\n   - Use SpringDoc OpenAPI (Swagger UI)\n   - Document all endpoints with @Operation and @ApiResponse\n\nVERIFICATION: All new APIs follow these patterns."
+  },
+  {
+    "task": "react functional component development patterns hooks",
+    "solution": "[SupremeAI Core — React Functional Component Development]\n\nPROBLEM: Need standardized patterns for building React components with hooks.\n\nSOLUTION: Follow these patterns for all React components:\n\n1. FUNCTIONAL COMPONENTS:\n   - Use arrow functions: const MyComponent = ({ prop }) => { ... }\n   - Use TypeScript interfaces for props: interface Props { name: string }\n\n2. HOOKS PATTERNS:\n   - useState for local state: const [state, setState] = useState(initial)\n   - useEffect for side effects: useEffect(() => { ... }, [dependency])\n   - Custom hooks for reusable logic: const useCustomLogic = () => { ... }\n\n3. PERFORMANCE:\n   - Use React.memo for component memoization\n   - Use useCallback for callback memoization\n   - Use useMemo for expensive calculations\n   - Avoid inline object creation in JSX\n\n4. DATA FETCHING:\n   - Use useEffect with async/await\n   - Handle loading and error states\n   - Implement cleanup in useEffect return\n\n5. TYPESCRIPT:\n   - Define prop types with interface\n   - Use generics for flexible components\n   - Avoid any type\n\n6. BEST PRACTICES:\n   - Keep components small and focused\n   - Extract reusable logic to custom hooks\n   - Use custom hooks for data fetching\n\nVERIFICATION: Components tested and following patterns."
+  },
+  {
+    "task": "firebase firestore database operations security rules",
+    "solution": "[SupremeAI Core — Firestore Database Operations & Security]\n\nPROBLEM: Need secure, efficient Firestore operations with proper security rules.\n\nSOLUTION: Follow these patterns for Firestore usage:\n\n1. SECURITY RULES (firestore.rules):\n   - Match only authenticated users: match /databases/{db}/documents { allow read, write: if request.auth != null; }\n   - Validate data structure: allow create: if request.resource.dataKeys().hasAll(['name', 'email'])\n   - Prevent unauthorized access: allow read: if resource.data.ownerId == request.auth.uid\n\n2. QUERY PATTERNS:\n   - Use composite indexes for complex queries\n   - Limit query results: .limit(100)\n   - Use orderBy with limit for pagination\n\n3. DATA STRUCTURE:\n   - Use camelCase for field names\n   - Store timestamps as FieldValue.serverTimestamp()\n   - Use subcollections for one-to-many relationships\n\n4. BATCH OPERATIONS:\n   - Use writeBatch for atomic operations\n   - Limit batch size to 500 operations\n\n5. ERROR HANDLING:\n   - Catch Firestore exceptions\n   - Retry on retryable errors\n   - Log errors for debugging\n\n6. PERFORMANCE:\n   - Use get() for single document reads\n   - Use onSnapshot for real-time updates\n   - Denormalize data to avoid joins\n\nVERIFICATION: Security rules deployed and tested."
+  },
+  {
+    "task": "authentication jwt token management security",
+    "solution": "[SupremeAI Core — JWT Authentication & Token Management]\n\nPROBLEM: Need secure authentication with JWT tokens for API access.\n\nSOLUTION: Implement JWT authentication with these patterns:\n\n1. TOKEN GENERATION:\n   - Use signin key (secret) to generate tokens\n   - Set expiration: 1 hour for access, 7 days for refresh\n   - Include claims: sub (user id), roles, expires\n\n2. TOKEN VALIDATION:\n   - Parse and verify signature\n   - Check expiration\n   - Validate issuer and audience\n\n3. SECURITY BEST PRACTICES:\n   - Store tokens securely (httpOnly cookies for web)\n   - Use strong secret keys (256-bit minimum)\n   - Implement token refresh mechanism\n   - Revoke tokens on logout\n\n4. FILTER PATTERN:\n   - Use UsernamePasswordAuthenticationFilter\n   - Authenticate user credentials\n   - Generate and return JWT token\n\n5. METHOD SECURITY:\n   - Use @PreAuthorize(\"hasRole('ADMIN')\")\n   - Use @Secured for simple roles\n\n6. LOGOUT:\n   - Invalidate refresh token\n   - Clear client-side storage\n\nVERIFICATION: Authentication flow tested end-to-end."
+  },
+  {
+    "task": "admin panel single url relocation feature moved to admin path",
+    "solution": "[SupremeAI Core — Admin Panel URL Relocation]\n\nPROBLEM: All admin features were accessible via client-side routing within the dashboard at various paths.\n\nSOLUTION: Relocated all admin features under a single URL path `/admin/*`.\n\nCHANGES MADE:\n1. Created new AdminRouteLayout component with sidebar/header navigation\n2. Updated App.tsx routing to use `/admin/*` routes with nested Outlet\n3. Root URL `/` now redirects to `/admin/dashboard`\n4. Added `getMenuPath()` helper in DashboardConfigs for consistent path generation\n\nNEW URL STRUCTURE:\n- /admin/dashboard - Main dashboard\n- /admin/ai - Neural chat\n- /admin/projects - Deployments\n- /admin/providers - AI providers\n- /admin/users - User management\n- /admin/monitoring - System monitoring\n- /admin/learning - Knowledge dashboard\n- /admin/security - Security management\n- /admin/work-rules - Work rules\n- /admin/rules - System rules\n- /admin/analytics - Analytics\n- /admin/logs - System logs\n- /admin/vpn - VPN config\n- /admin/browser - Browser\n- /admin/auto-browser - Auto browser\n- /admin/quotas - Quota management\n- /admin/simulator - Simulator\n- /admin/reverse-engineering - Reverse engineering\n- /admin/notifications - Notifications\n- /admin/reports - Reports\n- /admin/performance - Performance\n- /admin/backup - Backup\n- /admin/ocr - OCR tool\n- /admin/infrastructure - Infrastructure\n- /admin/code-analysis - Code intelligence\n- /admin/settings - Settings\n\nVERIFICATION: Build completed successfully. All admin features accessible at single URL."
+  },
+  {
+    "task": "core knowledge and browser as primary self-sufficient ai systems",
+    "solution": "[SupremeAI Core — Self-Sufficient AI Architecture]\n\nPROBLEM: System relied heavily on third-party AI providers which could be unavailable or slow.\n\nSOLUTION: Established a two-tier primary system with graceful degradation:\n\nTIER 1 - CORE KNOWLEDGE (PRIMARY):\n- Local knowledge seed at config/core_knowledge.json\n- Must solve every single work independently\n- No external dependencies required\n\nTIER 2 - BROWSER (SECONDARY):\n- Playwright-based web automation\n- triggerBrowserAutomationAndLearn() function for real-time data\n- Semantic intent classification for optimized extraction\n- Never blocks operation\n\nTIER 3 - THIRD-PARTY AI (OPTIONAL):\n- Enhancement-only, never blocks operation\n- System continues with Core Knowledge + Browser if unavailable\n\nIMPLEMENTATION:\n- generateSmartAIResponse() follows: Core Knowledge → Browser → Helper AI → Fallback\n- Graceful degradation ensures continuous operation\n- No single point of failure\n\nVERIFICATION: System operational in resilience mode with Core Knowledge + Browser only."
+  },
+  {
+    "task": "flutter mobile app create widget dart development build",
+    "solution": "[SupremeAI Core — Flutter App Development]\n\nStep 1: Install Flutter SDK\n```\ngit clone https://github.com/flutter/flutter.git\nexport PATH=\"$PATH:`pwd`/flutter/bin\"\nflutter doctor\n```\n\nStep 2: Create a new project\n```\nflutter create my_app\ncd my_app\nflutter run\n```\n\nStep 3: Key files\n- lib/main.dart — App entry point\n- pubspec.yaml — Dependencies\n- android/ & ios/ — Platform code\n\nStep 4: Basic Widget\n```dart\nimport 'package:flutter/material.dart';\n\nvoid main() => runApp(MaterialApp(\n  home: Scaffold(\n    appBar: AppBar(title: Text('My App')),\n    body: Center(child: Text('Hello Flutter!')),\n  ),\n));\n```\n\nStep 5: Build for production\n- Android: flutter build apk\n- iOS: flutter build ios\n- Web: flutter build web"
+  },
+  {
+    "task": "python flask fastapi pip venv programming",
+    "solution": "[SupremeAI Core — Python Development]\n\nSetup:\n```\npython -m venv venv\nsource venv/bin/activate\npip install flask\n```\n\nFlask API Example:\n```python\nfrom flask import Flask, jsonify\napp = Flask(__name__)\n\n@app.route('/api/hello')\ndef hello():\n    return jsonify({'message': 'Hello World!'})\n\nif __name__ == '__main__':\n    app.run(debug=True)\n```\n\nFastAPI (Modern):\n```python\nfrom fastapi import FastAPI\napp = FastAPI()\n\n@app.get('/hello/{name}')\nasync def hello(name: str):\n    return {'message': f'Hello {name}!'}\n```"
+  },
+  {
+    "task": "docker container build image deploy dockerfile kubernetes",
+    "solution": "[SupremeAI Core — Docker Guide]\n\nDockerfile:\n```dockerfile\nFROM node:18-alpine\nWORKDIR /app\nCOPY package*.json ./\nRUN npm install\nCOPY . .\nEXPOSE 3000\nCMD [\"npm\", \"start\"]\n```\n\nCommands:\n- docker build -t myapp .\n- docker run -p 3000:3000 myapp\n- docker-compose up -d\n- docker push myapp:latest"
+  },
+  {
+    "task": "git version control commit push pull branch merge clone",
+    "solution": "[SupremeAI Core — Git Guide]\n\nEssential Commands:\n- git init — Initialize repo\n- git clone <url> — Clone remote\n- git add . — Stage changes\n- git commit -m \"message\" — Commit\n- git push origin main — Push\n- git pull — Pull latest\n- git branch feature-x — Create branch\n- git checkout feature-x — Switch branch\n- git merge feature-x — Merge\n- git log --oneline — View history\n\nBranching: Use main for production, develop for staging, feature/* for new work."
+  },
+  {
+    "task": "node nodejs express npm backend server",
+    "solution": "[SupremeAI Core — Node.js Guide]\n\nSetup:\n```\nnpm init -y\nnpm install express\n```\n\nExpress API:\n```javascript\nconst express = require('express');\nconst app = express();\napp.use(express.json());\n\napp.get('/api/users', (req, res) => {\n  res.json([{id: 1, name: 'John'}]);\n});\n\napp.listen(3000, () => console.log('Server on port 3000'));\n```"
+  },
+  {
+    "task": "deploy hosting production publish vercel netlify cloud",
+    "solution": "[SupremeAI Core — Deployment Guide]\n\nDeployment Options:\n- Firebase Hosting: firebase deploy\n- Vercel: npx vercel\n- Netlify: npx netlify deploy --prod\n- Google Cloud Run: gcloud run deploy\n- Docker: docker build && docker push\n- GitHub Pages: Push to gh-pages branch\n\nPre-deploy checklist:\n1. Run tests\n2. Build production bundle\n3. Set environment variables\n4. Configure domain/DNS\n5. Enable HTTPS"
+  },
+  {
+    "task": "how to find download files and share using teledrive",
+    "solution": "[SupremeAI Core — File Management, Downloader & Teledrive Sharing]\n\nPROBLEM: System needs clear protocols for finding, downloading, and sharing files over Telegram using Teledrive.\n\nSOLUTION: Implemented the following command and script guidelines for autonomous file orchestration:\n\n1. FINDING FILES:\n   - CLI Search: `find <path> -name \"*filename*\"` or `find <path> -iname \"*filename*\"` (case-insensitive)\n   - Size-based filter: `find <path> -size +100M -size -2G` (files between 100MB and 2GB)\n   - Extension listing: `find <path> -type f -name \"*.iso\"`\n\n2. DOWNLOADING FILES:\n   - Standard Wget: `wget -c -O <output_path> \"<url>\"` (-c resumes incomplete downloads)\n   - Standard Curl: `curl -L -o <output_path> \"<url>\"` (-L follows redirects)\n   - Multi-threaded: `aria2c -x 16 -s 16 -o <output_path> \"<url>\"` (16 connections for max speed)\n\n3. TELEDRIVE & TELEGRAM SHARING:\n   - What is Teledrive: A utility that uses Telegram API to store unlimited files in Telegram channels/chats with custom download links.\n   - Upload via Teledrive CLI: `teledrive upload <file_path>` (generates direct access and shareable download links)\n   - Alternative (telegram-upload): `telegram-upload --to <channel_username_or_id> <file_path>` (uploads files to specific Telegram channels, auto-splitting files above Telegram's limit: 2GB for standard, 4GB for premium)\n\nVERIFICATION: System can search, fetch, and publish download links automatically via CLI adapters."
+  },
+  {
+    "task": "স্বাস্থ্য চেক সিস্টেম স্ট্যাটাস সার্ভার স্ট্যাটাস কি করতে পারো ক্যাপাবিলিটি ফিচার",
+    "solution": "[সুপ্রিম এআই — সিস্টেম স্ট্যাটাস]\nবর্তমান মোড: কোর রেজিলেন্সি (অফলাইন/টার্সিয়ারি)\nবহির্গত এআই: অফলাইন\nফায়ারস্টোর মেমরি: অফলাইন\nলোকাল সীড: অ্যাক্টিভ\nসুপ্রিম এআই কোর: চলছে\nসমস্ত কোর সিস্টেম ফলব্যাক মোডে পরিচালিত হচ্ছে অ্যাডমিন প্যানেল ব্যবহারকারীরা কম এআই ক্ষমতা অনুভব করতে পারেন। সারা পুনরুত্থান করতে ড্যাশবোর্ড থেকে হেল্পার এআই প্রভাইডার অ্যাক্টিভেট করুন।"
+  },
+  {
+    "task": "কি কি করতে পারো সাহায্য commands feature এই সিস্টেমের সব ক্ষমতা",
+    "solution": "[সুপ্রিম এআই — অফলাইন সাহায্য]\nবর্তমানে কোর-রেজিলেন্সি মোডে আমি নিচের ক্ষমতাগুলো প্রদান করতে পারি:\n\n১. কোড জেনারেশন: Spring Boot entity, controller, service, React components, Flutter widget\n২. সিস্টেম অপারেশন: Build, test, deploy, debug গাইড\n৩. ডাটাবেস: Firestore, SQL, JWT authentication pattern\n৪. হেলথ চেক: সিস্টেম কানেকটিভিটি ও সার্ভিস ডায়াগনস্টিক\n৫. অ্যাডমিন অপারেশন: User management, API keys, provider activation\n৬. ট্রাবলশুটিং: Network error, HTTP status, circuit breaker recovery\n\nযেকোনো keywords টাইপ করুন উত্তর পাওয়ার জন্য।"
+  },
+  {
+    "task": "তুমি কিস worrying আছ সুপ্রিম এআই কি yourself কWF এই সিস্টেম সম্পর্কে বর্ণনা",
+    "solution": "আমি সুপ্রিম এআই কোর — সুপ্রিম এআই মাল্টি-এজেন্ট সিস্টেমের প্রাইমারি অর্কেস্ট্রেটর। আমি বহির্গত এআই প্রভাইডার ক Jersey করি, ফায়ারস্টোর-ভিত্তিক লার্নিং মেমরি manage করি এবং মোট ১০০% রেজিলিয়েন্সের জন্য লোকাল জ্ঞান সীড maintain করি। আর্কিটেকচার: helper AI → memory → local seed → emergency response। এতে সবসময় কাজ করা যায়।"
+  },
+  {
+    "task": "summarize text shortening english to bengali translation bangla অনুবাদ সারসংক্ষেপ",
+    "solution": "[সুপ্রিম এআই — টেক্সট সারসংক্ষেপ ও অনুবাদ]\nপরিস্রান্ত summarization বা অনুবাদ requires connected AI service.本地 core knowledge-তে আমি এই কাজের জন্য একটি short protocol দিই:\n\n১. Summarize: মূল text-এর key entities, topic sentence, conclusion আলাদা করা\n২. English→Bangla:直辖 phrase-by-phrase translation + maintain grammar\n৩. Preserve technical terms: vulgar শব্দগুলো transliterate করুন\n\nবর্তমানে অফলাইন মোডে আমি এই general guidance-এর বাইরে কিছু generated output দিতে পারি না। ইন্টারনেট থাকলে ChickenBrain cloud service এই কাজ স্বয়ংক্রিয়ভাবে করবে।"
+  }
+]

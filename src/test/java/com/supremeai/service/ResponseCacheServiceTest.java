@@ -1,0 +1,82 @@
+package com.supremeai.service;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.ValueOperations;
+
+import java.time.Duration;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.startsWith;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+@ExtendWith(MockitoExtension.class)
+class ResponseCacheServiceTest {RedisTemplate<String, Object>public ResponseCacheServiceTest(RedisTemplate<String, Object> redisTemplate, ValueOperations<String, Object> valueOperations, ResponseCacheService responseCacheService) {
+RedisTemplate<String, Object>    this.redisTemplate = redisTemplate;
+RedisTemplate<String, Object>    this.valueOperations = valueOperations;
+RedisTemplate<String, Object>    this.responseCacheService = responseCacheService;
+RedisTemplate<String, Object>}
+
+
+
+
+
+
+
+
+    @BeforeEach
+    void setUp() throws Exception {
+        responseCacheService = new ResponseCacheService(redisTemplate);
+        responseCacheService.init();  // Initialize the cache
+        when(redisTemplate.opsForValue()).thenReturn(valueOperations);
+    }
+
+    @Test
+    void putAndGetUseLocalCacheEvenIfRedisFails() {
+        doThrow(new RuntimeException("redis unavailable"))
+            .when(valueOperations).set(any(), any(), anyLong(), any());
+
+        responseCacheService.putAiResponse("prompt", "response");
+
+        assertEquals("response", responseCacheService.getAiResponse("prompt"));
+    }
+
+    @Test
+    void getBackfillsLocalCacheFromRedis() {
+        ResponseCacheService.CacheEntry cacheEntry = new ResponseCacheService.CacheEntry("redis-response", Duration.ofMinutes(30));
+        when(valueOperations.get(startsWith("cache:ai-responses:"))).thenReturn(cacheEntry);
+
+        assertEquals("redis-response", responseCacheService.getAiResponse("prompt"));
+        assertEquals("redis-response", responseCacheService.getAiResponse("prompt"));
+    }
+
+    @Test
+    void clearRemovesLocalEntriesAndStatsRemainAccessible() {
+        responseCacheService.putAiResponse("prompt", "response");
+        responseCacheService.clear();
+
+        assertNull(responseCacheService.getAiResponse("prompt"));
+        assertNotNull(responseCacheService.getStats());
+    }
+
+    @Test
+    void getStatsReflectsCacheAccess() {
+        responseCacheService.putAiResponse("prompt", "response");
+        responseCacheService.getAiResponse("prompt");
+        responseCacheService.getAiResponse("missing");
+
+        ResponseCacheService.CacheStats stats = responseCacheService.getStats();
+
+        assertEquals(1L, stats.size());
+        assertEquals(1L, stats.hitCount());
+    }
+}

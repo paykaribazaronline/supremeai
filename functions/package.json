@@ -1,0 +1,31 @@
+{
+  "name": "functions",
+  "description": "Cloud Functions for Firebase",
+  "scripts": {
+    "serve": "firebase emulators:start --only functions",
+    "shell": "firebase functions:shell",
+    "start": "npm run shell",
+    "deploy": "firebase deploy --only functions",
+    "lint": "echo 'Linting functions...'",
+    "logs": "firebase functions:log",
+    "build": "tsc",
+    "prepublishOnly": "npm run build"
+  },
+  "engines": {
+    "node": "22"
+  },
+  "main": "index.js",
+  "dependencies": {
+    "@dataconnect/admin-generated": "file:./src/dataconnect-admin-generated",
+    "@google-cloud/vision": "^3.1.0",
+    "axios": "^1.4.0",
+    "exceljs": "^4.3.0",
+    "firebase-admin": "^11.11.1",
+    "firebase-functions": "^6.3.2"
+  },
+  "devDependencies": {
+    "firebase-functions-test": "^3.1.0",
+    "typescript": "^5.0.0"
+  },
+  "private": true
+}

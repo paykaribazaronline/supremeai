@@ -1,0 +1,72 @@
+package com.supremeai.service;
+
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.util.Map;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
+@ExtendWith(MockitoExtension.class)
+class UnifiedDataServiceTest {MeterRegistrypublic UnifiedDataServiceTest(MeterRegistry meterRegistry, Counter dataCollectCounter, Counter dataPurgeCounter, Counter dataQueryCounter, UnifiedDataService unifiedDataService) {
+MeterRegistry    this.meterRegistry = meterRegistry;
+MeterRegistry    this.dataCollectCounter = dataCollectCounter;
+MeterRegistry    this.dataPurgeCounter = dataPurgeCounter;
+MeterRegistry    this.dataQueryCounter = dataQueryCounter;
+MeterRegistry    this.unifiedDataService = unifiedDataService;
+MeterRegistry}
+
+
+
+
+
+
+
+
+
+
+
+
+    @BeforeEach
+    void setUp() {
+        when(meterRegistry.counter("unified_data_service.collect")).thenReturn(dataCollectCounter);
+        when(meterRegistry.counter("unified_data_service.purge")).thenReturn(dataPurgeCounter);
+        when(meterRegistry.counter("unified_data_service.query")).thenReturn(dataQueryCounter);
+        unifiedDataService = new UnifiedDataService(meterRegistry);
+    }
+
+    @Test
+    void collectData_ShouldNotThrowException() {
+        // GIVEN
+        String source = "testSource";
+        Object data = new Object();
+
+        // WHEN & THEN
+        assertDoesNotThrow(() -> unifiedDataService.collectData(source, data));
+    }
+
+    @Test
+    void purgeOldData_ShouldNotThrowException() {
+        // WHEN & THEN
+        assertDoesNotThrow(() -> unifiedDataService.purgeOldData());
+    }
+
+    @Test
+    void getCollectedData_ShouldReturnEmptyMap() {
+        // GIVEN
+        String query = "testQuery";
+
+        // WHEN
+        Map<String, Object> result = unifiedDataService.getCollectedData(query);
+
+        // THEN
+        assertNotNull(result);
+        assertTrue(result.isEmpty());
+    }
+}

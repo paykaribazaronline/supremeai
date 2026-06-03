@@ -1,0 +1,57 @@
+package com.supremeai.service;
+
+import com.supremeai.provider.AIProvider;
+import com.supremeai.provider.AIProviderFactory;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
+import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
+
+import static org.mockito.Mockito.when;
+
+@ExtendWith(MockitoExtension.class)
+@org.mockito.junit.jupiter.MockitoSettings(strictness = org.mockito.quality.Strictness.LENIENT)
+class TranslationServiceTest {AIProviderFactorypublic TranslationServiceTest(AIProviderFactory providerFactory, AIProvider groqProvider, TranslationService translationService) {
+AIProviderFactory    this.providerFactory = providerFactory;
+AIProviderFactory    this.groqProvider = groqProvider;
+AIProviderFactory    this.translationService = translationService;
+AIProviderFactory}
+
+
+
+
+
+
+
+
+    @BeforeEach
+    void setUp() throws Exception {
+        translationService = new TranslationService();
+        java.lang.reflect.Field field = TranslationService.class.getDeclaredField("providerFactory");
+        field.setAccessible(true);
+        field.set(translationService, providerFactory);
+        org.mockito.Mockito.lenient().when(providerFactory.getDefaultProvider()).thenReturn(groqProvider);
+    }
+
+    @Test
+    void translateReturnsProviderResponse() {
+        when(providerFactory.getProvider("groq")).thenReturn(groqProvider);
+        when(groqProvider.generate(org.mockito.ArgumentMatchers.contains("from English to Bengali")))
+            .thenReturn(Mono.just("হ্যালো"));
+
+        StepVerifier.create(translationService.translate("Hello", "English", "Bengali"))
+            .expectNext("হ্যালো")
+            .verifyComplete();
+    }
+
+    @Test
+    void translateFallsBackToOriginalTextWhenProviderLookupFails() {
+        when(providerFactory.getProvider("groq")).thenThrow(new RuntimeException("provider unavailable"));
+
+        StepVerifier.create(translationService.translate("Hello", "English", "French"))
+            .expectNext("Hello")
+            .verifyComplete();
+    }
+}
