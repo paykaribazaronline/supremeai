@@ -2,6 +2,7 @@ package com.supremeai.controller;
 
 import com.supremeai.service.PromptEnhancerService;
 import com.supremeai.service.AgentOrchestrationHub;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import java.util.Map;
@@ -11,15 +12,14 @@ import java.util.concurrent.ConcurrentHashMap;
 @RequestMapping("/api/v1/admin/rules")
 @PreAuthorize("hasRole('ADMIN')")
 public class SystemAdminRuleController {
-    public SystemAdminRuleController(PromptEnhancerService promptEnhancer, AgentOrchestrationHub orchestrationHub) {
-        this.promptEnhancer = promptEnhancer;
-        this.orchestrationHub = orchestrationHub;
-    }
-
 
     private final Map<String, String> activeRules = new ConcurrentHashMap<>();
 
+    @Autowired
+    private PromptEnhancerService promptEnhancer;
 
+    @Autowired
+    private AgentOrchestrationHub orchestrationHub;
 
     @PostMapping("/execute")
     public String executeAdminCommand(@RequestBody String rawCommand) {

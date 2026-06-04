@@ -14,6 +14,8 @@ public class AIReasoningService {
 
     private static final Logger log = LoggerFactory.getLogger(AIReasoningService.class);
     private final Queue<ReasoningLog> recentLogs = new ConcurrentLinkedQueue<>();
+    @org.springframework.beans.factory.annotation.Autowired
+    private ConfigService configService;
 
     private int getMaxRecentLogs() {
         return configService.getSetting("max_recent_logs", 1000);

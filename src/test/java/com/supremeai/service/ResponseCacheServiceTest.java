@@ -3,6 +3,7 @@ package com.supremeai.service;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
@@ -20,18 +21,15 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class ResponseCacheServiceTest {RedisTemplate<String, Object>public ResponseCacheServiceTest(RedisTemplate<String, Object> redisTemplate, ValueOperations<String, Object> valueOperations, ResponseCacheService responseCacheService) {
-RedisTemplate<String, Object>    this.redisTemplate = redisTemplate;
-RedisTemplate<String, Object>    this.valueOperations = valueOperations;
-RedisTemplate<String, Object>    this.responseCacheService = responseCacheService;
-RedisTemplate<String, Object>}
+class ResponseCacheServiceTest {
 
+    @Mock
+    private RedisTemplate<String, Object> redisTemplate;
 
+    @Mock
+    private ValueOperations<String, Object> valueOperations;
 
-
-
-
-
+    private ResponseCacheService responseCacheService;
 
     @BeforeEach
     void setUp() throws Exception {

@@ -21,12 +21,10 @@ import java.util.concurrent.Executors;
  */
 @Service
 public class ProviderTierService {
-    public ProviderTierService(Firestore firestore) {
-        this.firestore = firestore;
-    }
-
     private static final Logger logger = LoggerFactory.getLogger(ProviderTierService.class);
 
+    @Autowired(required = false)
+    private Firestore firestore;
 
     private final Map<String, String> tierCache = new ConcurrentHashMap<>();
     private final Map<String, String> fallbackTiers = new HashMap<>();

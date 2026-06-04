@@ -4,6 +4,8 @@ import com.supremeai.security.SecretManagerService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import java.util.List;
 import java.util.Map;
@@ -14,14 +16,12 @@ import java.util.Map;
  */
 @Component
 public class GeminiProvider extends AbstractHttpProvider {
-    public GeminiProvider(SecretManagerService secretManagerService) {
-        this.secretManagerService = secretManagerService;
-    }
-
 
     private static final Logger log = LoggerFactory.getLogger(GeminiProvider.class);
     private static final String API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent";
 
+    @Autowired
+    private SecretManagerService secretManagerService;
 
     public GeminiProvider() {
         super("", API_URL, "gemini-1.5-pro");
@@ -72,8 +72,7 @@ public class GeminiProvider extends AbstractHttpProvider {
             }
         } catch (Exception e) {
             log.error("Failed to parse image from prompt in GeminiProvider", e);
-        throw new RuntimeException("Swallowed exception: " + e.getMessage(), e);
-    }
+        }
 
         if (base64Data != null && mimeType != null) {
             return Map.of(

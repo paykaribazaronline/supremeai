@@ -4,19 +4,18 @@ import com.supremeai.model.UserLanguagePreference;
 import com.supremeai.repository.UserLanguagePreferenceRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @Service
 public class UserLanguagePreferenceService {
-    public UserLanguagePreferenceService(UserLanguagePreferenceRepository repository) {
-        this.repository = repository;
-    }
-
 
     private static final Logger logger = LoggerFactory.getLogger(UserLanguagePreferenceService.class);
 
+    @Autowired
+    private UserLanguagePreferenceRepository repository;
 
     /**
      * ব্যবহারকারীর পছন্দসমূহ সংরক্ষণ করে

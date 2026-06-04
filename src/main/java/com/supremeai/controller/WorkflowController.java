@@ -5,6 +5,7 @@ import com.supremeai.model.WorkflowExecution;
 import com.supremeai.repository.WorkflowDefinitionRepository;
 import com.supremeai.repository.WorkflowExecutionRepository;
 import com.supremeai.service.WorkflowOrchestrationService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -14,15 +15,15 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/workflows")
 public class WorkflowController {
-    public WorkflowController(WorkflowOrchestrationService workflowService, WorkflowDefinitionRepository definitionRepository, WorkflowExecutionRepository executionRepository) {
-        this.workflowService = workflowService;
-        this.definitionRepository = definitionRepository;
-        this.executionRepository = executionRepository;
-    }
 
+    @Autowired
+    private WorkflowOrchestrationService workflowService;
 
+    @Autowired
+    private WorkflowDefinitionRepository definitionRepository;
 
-
+    @Autowired
+    private WorkflowExecutionRepository executionRepository;
 
     @PostMapping("/definitions")
     public Mono<WorkflowDefinition> createDefinition(@RequestBody WorkflowDefinition definition) {

@@ -48,6 +48,6 @@ public class Application {
                 }
             }
         );
-        SpringApplication.run(Application.class, args);
+        app.run(args);
     }
 }

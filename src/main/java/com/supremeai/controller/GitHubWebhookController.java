@@ -4,6 +4,7 @@ import com.supremeai.service.SelfHealingService;
 import com.supremeai.security.SecretManagerService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
@@ -14,17 +15,17 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/webhooks/github")
 public class GitHubWebhookController {
-    public GitHubWebhookController(SelfHealingService selfHealingService, WebSocketController webSocketController, SecretManagerService secretManagerService) {
-        this.selfHealingService = selfHealingService;
-        this.webSocketController = webSocketController;
-        this.secretManagerService = secretManagerService;
-    }
-
 
     private static final Logger log = LoggerFactory.getLogger(GitHubWebhookController.class);
 
+    @Autowired
+    private SelfHealingService selfHealingService;
 
+    @Autowired
+    private WebSocketController webSocketController;
 
+    @Autowired
+    private SecretManagerService secretManagerService;
 
     private final RestTemplate restTemplate = new RestTemplate();
 
@@ -129,8 +130,7 @@ public class GitHubWebhookController {
 
             } catch (Exception e) {
                 log.error("Error in deployment analysis trigger:", e);
-        throw new RuntimeException("Swallowed exception: " + e.getMessage(), e);
-    }
+            }
         }).start();
     }
 }

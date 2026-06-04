@@ -6,12 +6,9 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class JwtUtilTest {JwtUtilpublic JwtUtilTest(JwtUtil jwtUtil) {
-JwtUtil    this.jwtUtil = jwtUtil;
-JwtUtil}
+public class JwtUtilTest {
 
-
-
+    private JwtUtil jwtUtil;
 
     @BeforeEach
     public void setUp() {

@@ -4,6 +4,7 @@ import com.supremeai.learning.SupremeLearningOrchestrator;
 import com.supremeai.provider.StubLocalProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
@@ -14,7 +15,9 @@ public class UnifiedOfflineKnowledgeService {
 
     private final SupremeLearningOrchestrator learningOrchestrator;
     private final StubLocalProvider stubLocalProvider;
-public UnifiedOfflineKnowledgeService(SupremeLearningOrchestrator learningOrchestrator,
+
+    @Autowired
+    public UnifiedOfflineKnowledgeService(SupremeLearningOrchestrator learningOrchestrator,
                                          StubLocalProvider stubLocalProvider) {
         this.learningOrchestrator = learningOrchestrator;
         this.stubLocalProvider = stubLocalProvider;

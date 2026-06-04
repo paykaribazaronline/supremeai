@@ -6,6 +6,7 @@ import com.supremeai.model.SystemLearning;
 import com.supremeai.repository.SystemLearningRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -21,15 +22,14 @@ import java.time.LocalDateTime;
 @RequestMapping("/api/v1/learning")
 @CrossOrigin(origins = "*", allowedHeaders = "*") // Allow VS Code extension origin
 public class LearningIngestController {
-    public LearningIngestController(UserCodeLearningService userCodeLearningService, SystemLearningRepository systemLearningRepository) {
-        this.userCodeLearningService = userCodeLearningService;
-        this.systemLearningRepository = systemLearningRepository;
-    }
-
 
     private static final Logger log = LoggerFactory.getLogger(LearningIngestController.class);
 
+    @Autowired
+    private UserCodeLearningService userCodeLearningService;
 
+    @Autowired
+    private SystemLearningRepository systemLearningRepository;
 
     /**
      * Receive code edit event from VS Code extension

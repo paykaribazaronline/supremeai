@@ -1,6 +1,8 @@
 package com.supremeai.generation;
 
 import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.io.*;
 import java.nio.file.*;
@@ -55,7 +57,7 @@ public class FullStackCodeGenerator {
                 
                 public Product() {}
                 
-                public FullStackCodeGenerator(String name, String description, Double price) {
+                public Product(String name, String description, Double price) {
                     this.name = name;
                     this.description = description;
                     this.price = price;

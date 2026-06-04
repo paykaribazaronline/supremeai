@@ -2,6 +2,7 @@ package com.supremeai.service.analysis;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -13,13 +14,11 @@ import jakarta.annotation.PostConstruct;
  */
 @Component
 public class ProjectDNAHarvesterScheduler {
-    public ProjectDNAHarvesterScheduler(ProjectDNAHarvesterService harvesterService) {
-        this.harvesterService = harvesterService;
-    }
-
 
     private static final Logger log = LoggerFactory.getLogger(ProjectDNAHarvesterScheduler.class);
 
+    @Autowired
+    private ProjectDNAHarvesterService harvesterService;
 
     /**
      * Run harvesting on startup.

@@ -4,6 +4,8 @@ import com.supremeai.service.MultiAIVotingService;
 import com.supremeai.agentorchestration.RequirementAnalyzerAI;
 import com.supremeai.agentorchestration.VotingDecision;
 import com.supremeai.model.ConsensusResult;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,15 +17,15 @@ import reactor.core.publisher.Mono;
 @RestController
 @RequestMapping("/api/voting")
 public class VotingController {
-    public VotingController(MultiAIVotingService votingService, RequirementAnalyzerAI requirementAnalyzer, com.supremeai.provider.AIProviderFactory providerFactory) {
-        this.votingService = votingService;
-        this.requirementAnalyzer = requirementAnalyzer;
-        this.providerFactory = providerFactory;
-    }
 
+    @Autowired
+    private MultiAIVotingService votingService;
 
+    @Autowired
+    private RequirementAnalyzerAI requirementAnalyzer;
 
-
+    @Autowired
+    private com.supremeai.provider.AIProviderFactory providerFactory;
 
     // ===== CLARIFYING QUESTIONS ENDPOINT =====
 

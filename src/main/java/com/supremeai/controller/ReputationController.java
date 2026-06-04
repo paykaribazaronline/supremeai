@@ -3,6 +3,7 @@ package com.supremeai.controller;
 import com.supremeai.service.ReputationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,13 +19,11 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/admin/reputation")
 public class ReputationController {
-    public ReputationController(ReputationService reputationService) {
-        this.reputationService = reputationService;
-    }
-
 
     private static final Logger logger = LoggerFactory.getLogger(ReputationController.class);
 
+    @Autowired
+    private ReputationService reputationService;
 
     /**
      * GET /api/admin/reputation/contributor/{contributorId}

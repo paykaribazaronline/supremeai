@@ -2,6 +2,7 @@ package com.supremeai.controller;
 
 import com.supremeai.service.UsageOptimizationService;
 import reactor.core.publisher.Mono;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -21,11 +22,9 @@ import java.util.*;
 @RequestMapping("/api/optimization")
 @CrossOrigin(origins = "*", maxAge = 3600)
 public class UsageOptimizationController {
-    public UsageOptimizationController(UsageOptimizationService optimizationService) {
-        this.optimizationService = optimizationService;
-    }
 
-
+    @Autowired
+    private UsageOptimizationService optimizationService;
 
     private String getCurrentUserId() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();

@@ -27,4 +27,10 @@ public class ThreadPoolConfig {
         // High-concurrency executor for multi-agent coordination
         return Executors.newVirtualThreadPerTaskExecutor();
     }
+
+    @Bean(destroyMethod = "shutdown")
+    @org.springframework.context.annotation.Primary
+    public java.util.concurrent.ScheduledExecutorService scheduledExecutorService() {
+        return java.util.concurrent.Executors.newScheduledThreadPool(2);
+    }
 }

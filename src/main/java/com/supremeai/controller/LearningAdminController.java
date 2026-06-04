@@ -5,6 +5,7 @@ import com.supremeai.learning.LearningQuotaService;
 import com.supremeai.learning.FocusDetectorService;
 import com.supremeai.model.LearningSource;
 import com.supremeai.repository.LearningSourceRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -29,7 +30,9 @@ public class LearningAdminController {
     private final com.supremeai.service.SelfImprovementService selfImprovementService;
     private final LearningSourceRepository sourceRepository;
     private final FocusDetectorService focusDetector;
-public LearningAdminController(LearningModeControl modeControl,
+
+    @Autowired
+    public LearningAdminController(LearningModeControl modeControl,
                                     LearningQuotaService quotaService,
                                     ActiveInternetScraper scraper,
                                     com.supremeai.service.ConfigService configService,

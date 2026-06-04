@@ -16,6 +16,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -29,33 +30,29 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class ProviderAdminServiceExtendedTest {ProviderRepositorypublic ProviderAdminServiceExtendedTest(ProviderRepository providerRepository, ActivityLogRepository activityLogRepository, AIProviderDiscoveryService discoveryService, ProviderRoleSuggestionService roleSuggestionService, AdminProviderValidationService adminProviderValidationService, ProviderTypeRegistry providerTypeRegistry, ProviderAdminService providerAdminService, APIProvider testProvider) {
-ProviderRepository    this.providerRepository = providerRepository;
-ProviderRepository    this.activityLogRepository = activityLogRepository;
-ProviderRepository    this.discoveryService = discoveryService;
-ProviderRepository    this.roleSuggestionService = roleSuggestionService;
-ProviderRepository    this.adminProviderValidationService = adminProviderValidationService;
-ProviderRepository    this.providerTypeRegistry = providerTypeRegistry;
-ProviderRepository    this.providerAdminService = providerAdminService;
-ProviderRepository    this.testProvider = testProvider;
-ProviderRepository}
+class ProviderAdminServiceExtendedTest {
 
+    @Mock
+    private ProviderRepository providerRepository;
 
+    @Mock
+    private ActivityLogRepository activityLogRepository;
 
+    @Mock
+    private AIProviderDiscoveryService discoveryService;
 
+    @Mock
+    private ProviderRoleSuggestionService roleSuggestionService;
 
+    @Mock
+    private AdminProviderValidationService adminProviderValidationService;
 
+    @Mock
+    private ProviderTypeRegistry providerTypeRegistry;
 
+    private ProviderAdminService providerAdminService;
 
-
-
-
-
-
-
-
-
-
+    private APIProvider testProvider;
 
     @BeforeEach
     void setUp() {

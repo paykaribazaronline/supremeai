@@ -2,6 +2,7 @@ package com.supremeai.controller;
 
 import com.supremeai.model.UserGuide;
 import com.supremeai.repository.UserGuideRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
@@ -28,11 +29,9 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/guides")
 public class GuideController {
-    public GuideController(UserGuideRepository userGuideRepository) {
-        this.userGuideRepository = userGuideRepository;
-    }
 
-
+    @Autowired
+    private UserGuideRepository userGuideRepository;
 
     /**
      * GET /api/guides - Get all published video guides sorted by order.

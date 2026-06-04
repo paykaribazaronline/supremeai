@@ -12,10 +12,7 @@ import reactor.core.publisher.Mono;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class SeedDataValidatorTest {SeedDataValidatorpublic SeedDataValidatorTest(SeedDataValidator validator) {
-SeedDataValidator    this.validator = validator;
-SeedDataValidator}
-
+class SeedDataValidatorTest {
 
     @Mock private UserRepository userRepository;
     @Mock private ProviderRepository apiProviderRepository;
@@ -27,7 +24,7 @@ SeedDataValidator}
     @Mock private WorkflowDefinitionRepository workflowRepository;
 
     @InjectMocks
-
+    private SeedDataValidator validator;
 
     @BeforeEach
     void setUp() {

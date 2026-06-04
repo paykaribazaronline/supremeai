@@ -10,6 +10,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -36,19 +37,20 @@ import java.util.Map;
 @RequestMapping("/api/admin/tasks")
 @PreAuthorize("hasRole('ADMIN')")
 public class TaskAssignmentController {
-    public TaskAssignmentController(TaskProviderAssignmentRepository assignmentRepo, ProviderRepository providerRepo, AutomaticTaskAssigner taskAssigner, ProviderCapabilityAnalyzer capabilityAnalyzer) {
-        this.assignmentRepo = assignmentRepo;
-        this.providerRepo = providerRepo;
-        this.taskAssigner = taskAssigner;
-        this.capabilityAnalyzer = capabilityAnalyzer;
-    }
-
 
     private static final Logger log = LoggerFactory.getLogger(TaskAssignmentController.class);
 
+    @Autowired
+    private TaskProviderAssignmentRepository assignmentRepo;
 
+    @Autowired
+    private ProviderRepository providerRepo;
 
+    @Autowired
+    private AutomaticTaskAssigner taskAssigner;
 
+    @Autowired
+    private ProviderCapabilityAnalyzer capabilityAnalyzer;
 
     /**
      * Get all task assignments

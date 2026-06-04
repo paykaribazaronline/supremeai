@@ -18,13 +18,6 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 @Service
 public class AlertingService {
-    public AlertingService(ConfigService configService, boolean circuitBreakerAlertingEnabled, double errorRateThreshold, long alertCooldownMinutes) {
-        this.configService = configService;
-        this.circuitBreakerAlertingEnabled = circuitBreakerAlertingEnabled;
-        this.errorRateThreshold = errorRateThreshold;
-        this.alertCooldownMinutes = alertCooldownMinutes;
-    }
-
 
     private static final Logger log = LoggerFactory.getLogger(AlertingService.class);
     private final MeterRegistry meterRegistry;
@@ -35,9 +28,17 @@ public class AlertingService {
     // Track recent alerts to avoid spam
     private final ConcurrentHashMap<String, Instant> recentAlerts = new ConcurrentHashMap<>();
     
+    @Autowired(required = false)
+    private ConfigService configService;
 
+    @Value("${alerting.circuit-breaker.enabled:true}")
+    private boolean circuitBreakerAlertingEnabled;
     
+    @Value("${alerting.error-rate.threshold:0.05}")
+    private double errorRateThreshold;
     
+    @Value("${alerting.cooldown.minutes:5}")
+    private long alertCooldownMinutes;
 
     // Helper methods for dynamic settings with robust parsing/conversion
     private boolean isCircuitBreakerAlertingEnabled() {

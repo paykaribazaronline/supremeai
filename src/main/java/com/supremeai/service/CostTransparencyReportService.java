@@ -17,13 +17,11 @@ import java.util.*;
  */
 @Service
 public class CostTransparencyReportService {
-    public CostTransparencyReportService(Environment environment) {
-        this.environment = environment;
-    }
-
 
     private static final Logger log = LoggerFactory.getLogger(CostTransparencyReportService.class);
 
+    @Autowired(required = false)
+    private Environment environment;
 
     // Simulated usage data. In production, this would be fetched from Firestore usage_logs.
     private final List<UsageLog> usageLogs = new ArrayList<>();

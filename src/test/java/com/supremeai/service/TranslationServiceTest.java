@@ -5,6 +5,7 @@ import com.supremeai.provider.AIProviderFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
@@ -13,18 +14,15 @@ import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 @org.mockito.junit.jupiter.MockitoSettings(strictness = org.mockito.quality.Strictness.LENIENT)
-class TranslationServiceTest {AIProviderFactorypublic TranslationServiceTest(AIProviderFactory providerFactory, AIProvider groqProvider, TranslationService translationService) {
-AIProviderFactory    this.providerFactory = providerFactory;
-AIProviderFactory    this.groqProvider = groqProvider;
-AIProviderFactory    this.translationService = translationService;
-AIProviderFactory}
+class TranslationServiceTest {
 
+    @Mock
+    private AIProviderFactory providerFactory;
 
+    @Mock
+    private AIProvider groqProvider;
 
-
-
-
-
+    private TranslationService translationService;
 
     @BeforeEach
     void setUp() throws Exception {

@@ -7,6 +7,7 @@ import io.github.resilience4j.retry.RetryConfig;
 import io.github.resilience4j.retry.RetryRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
@@ -26,10 +27,6 @@ import java.util.function.Supplier;
  */
 @Service
 public class RetryableAIExecutor {
-    public RetryableAIExecutor(QuotaManager quotaManager) {
-        this.quotaManager = quotaManager;
-    }
-
 
     private static final Logger log = LoggerFactory.getLogger(RetryableAIExecutor.class);
 
@@ -41,6 +38,8 @@ public class RetryableAIExecutor {
     private RetryConfig retryConfig;
     private RetryRegistry retryRegistry;
 
+    @Autowired
+    private QuotaManager quotaManager;
 
     @PostConstruct
     public void init() {

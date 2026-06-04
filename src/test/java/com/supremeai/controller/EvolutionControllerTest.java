@@ -6,6 +6,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -16,16 +17,13 @@ import java.util.List;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class EvolutionControllerTest {ModelEvolutionRepositorypublic EvolutionControllerTest(ModelEvolutionRepository evolutionRepository, EvolutionController controller) {
-ModelEvolutionRepository    this.evolutionRepository = evolutionRepository;
-ModelEvolutionRepository    this.controller = controller;
-ModelEvolutionRepository}
+class EvolutionControllerTest {
 
-
-
+    @Mock
+    private ModelEvolutionRepository evolutionRepository;
 
     @InjectMocks
-
+    private EvolutionController controller;
 
     @Test
     void getAllEvolutionStates_shouldReturnAll() {

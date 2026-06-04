@@ -14,16 +14,11 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class CodeGeeX4ProviderEnhancedTest {MockWebServerpublic CodeGeeX4ProviderEnhancedTest(MockWebServer mockWebServer, CodeGeeX4Provider provider, ObjectMapper objectMapper) {
-MockWebServer    this.mockWebServer = mockWebServer;
-MockWebServer    this.provider = provider;
-MockWebServer    this.objectMapper = objectMapper;
-MockWebServer}
+class CodeGeeX4ProviderEnhancedTest {
 
-
-
-
-
+    private MockWebServer mockWebServer;
+    private CodeGeeX4Provider provider;
+    private ObjectMapper objectMapper;
 
     @BeforeEach
     void setUp() throws IOException {

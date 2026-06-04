@@ -18,11 +18,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 // @Component // Disabled: using servlet RateLimitingFilter instead
 public class RateLimitingFilter implements WebFilter {
-    public RateLimitingFilter(int rateLimitPerMinute) {
-        this.rateLimitPerMinute = rateLimitPerMinute;
-    }
 
-
+    @Value("${rate.limit.per.minute:100}")
+    private int rateLimitPerMinute;
 
     // Simple in-memory rate limiter: ip -> (count, timestamp)
     private static class RateLimitInfo {

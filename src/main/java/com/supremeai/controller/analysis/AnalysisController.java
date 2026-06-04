@@ -8,6 +8,7 @@ import com.supremeai.service.analysis.ProjectAnalysisService;
 import com.supremeai.service.analysis.RAGContextBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -26,7 +27,9 @@ public class AnalysisController {
     private final ProjectAnalysisService projectAnalysisService;
     private final FixSuggestionService fixSuggestionService;
     private final AnalysisFixRepository fixRepository;
-public AnalysisController(ProjectAnalysisService projectAnalysisService,
+
+    @Autowired
+    public AnalysisController(ProjectAnalysisService projectAnalysisService,
                              FixSuggestionService fixSuggestionService,
                              AnalysisFixRepository fixRepository) {
         this.projectAnalysisService = projectAnalysisService;

@@ -6,12 +6,9 @@ import org.junit.jupiter.params.provider.CsvSource;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-class AutonomousQuestioningEngineTest {AutonomousQuestioningEnginepublic AutonomousQuestioningEngineTest(AutonomousQuestioningEngine engine) {
-AutonomousQuestioningEngine    this.engine = engine;
-AutonomousQuestioningEngine}
+class AutonomousQuestioningEngineTest {
 
-
-
+    private AutonomousQuestioningEngine engine;
 
     @BeforeEach
     void setUp() {

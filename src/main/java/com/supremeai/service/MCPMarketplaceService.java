@@ -16,10 +16,6 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 @Service
 public class MCPMarketplaceService {
-    public MCPMarketplaceService(MCPClientManager mcpClientManager) {
-        this.mcpClientManager = mcpClientManager;
-    }
-
 
     private static final Logger logger = LoggerFactory.getLogger(MCPMarketplaceService.class);
 
@@ -29,6 +25,8 @@ public class MCPMarketplaceService {
     private final Map<String, MCPConnection> serverConnections = new ConcurrentHashMap<>();
     private final Map<String, MCPServerInfo> serverRegistry = new ConcurrentHashMap<>();
 
+    @Autowired(required = false)
+    private MCPClientManager mcpClientManager;
 
     /**
      * Register a new MCP tool in the marketplace

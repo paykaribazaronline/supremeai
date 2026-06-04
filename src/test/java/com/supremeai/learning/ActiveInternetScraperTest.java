@@ -5,6 +5,7 @@ import com.supremeai.learning.active.ActiveInternetScraper;
 import com.supremeai.learning.active.QueryClassifier;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.web.reactive.function.client.WebClient;
 
@@ -16,24 +17,21 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
-class ActiveInternetScraperTest {WebClient.Builderpublic ActiveInternetScraperTest(WebClient.Builder mockWebClientBuilder, EnhancedContentSanitizerService mockSanitizer, QueryClassifier mockQueryClassifier, WebClient mockWebClient, ActiveInternetScraper scraper) {
-WebClient.Builder    this.mockWebClientBuilder = mockWebClientBuilder;
-WebClient.Builder    this.mockSanitizer = mockSanitizer;
-WebClient.Builder    this.mockQueryClassifier = mockQueryClassifier;
-WebClient.Builder    this.mockWebClient = mockWebClient;
-WebClient.Builder    this.scraper = scraper;
-WebClient.Builder}
+class ActiveInternetScraperTest {
 
+    @Mock
+    private WebClient.Builder mockWebClientBuilder;
 
+    @Mock
+    private EnhancedContentSanitizerService mockSanitizer;
 
+    @Mock
+    private QueryClassifier mockQueryClassifier;
 
+    @Mock
+    private WebClient mockWebClient;
 
-
-
-
-
-
-
+    private ActiveInternetScraper scraper;
 
     @BeforeEach
     void setUp() throws Exception {

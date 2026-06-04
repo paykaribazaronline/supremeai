@@ -1,6 +1,7 @@
 package com.supremeai.learning.controller;
 
 import com.supremeai.learning.service.AutonomousSkillDiscoveryService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -12,11 +13,9 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/admin/skills")
 public class SkillDiscoveryController {
-    public SkillDiscoveryController(AutonomousSkillDiscoveryService discoveryService) {
-        this.discoveryService = discoveryService;
-    }
 
-
+    @Autowired
+    private AutonomousSkillDiscoveryService discoveryService;
 
     /**
      * On-Demand Learning Endpoint for Admin Dashboard.

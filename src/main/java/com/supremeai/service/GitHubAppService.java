@@ -21,15 +21,14 @@ import java.util.Map;
  */
 @Service
 public class GitHubAppService {
-    public GitHubAppService(String appId, String privateKeyPem) {
-        this.appId = appId;
-        this.privateKeyPem = privateKeyPem;
-    }
-
 
     private static final Logger log = LoggerFactory.getLogger(GitHubAppService.class);
 
+    @Value("${github.app.id:}")
+    private String appId;
 
+    @Value("${github.app.private-key:}")
+    private String privateKeyPem;
 
     private final WebClient webClient;
 

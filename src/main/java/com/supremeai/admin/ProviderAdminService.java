@@ -11,6 +11,7 @@ import com.supremeai.service.ProviderRoleSuggestionService;
 import com.supremeai.service.ProviderTypeRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -33,7 +34,9 @@ public class ProviderAdminService {
     private final ProviderRoleSuggestionService roleSuggestionService;
     private final AdminProviderValidationService adminProviderValidationService;
     private final ProviderTypeRegistry providerTypeRegistry;
-public ProviderAdminService(ProviderRepository providerRepository,
+
+    @Autowired
+    public ProviderAdminService(ProviderRepository providerRepository,
                                 ActivityLogRepository activityLogRepository,
                                 AIProviderDiscoveryService discoveryService,
                                 ProviderRoleSuggestionService roleSuggestionService,

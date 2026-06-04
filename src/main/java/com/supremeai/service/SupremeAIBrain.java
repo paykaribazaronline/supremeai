@@ -54,17 +54,6 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 @Service
 public class SupremeAIBrain {
-    public SupremeAIBrain(AIProviderFactory providerFactory, ThirdOpinionOrchestrator fallbackOrchestrator, SupremeLearningOrchestrator learningOrchestrator, ActiveInternetScraper activeInternetScraper, BrowserService browserService, SolutionMemoryRepository solutionMemoryRepository, ProviderRepository providerRepository, UnifiedOfflineKnowledgeService unifiedOfflineKnowledgeService) {
-        this.providerFactory = providerFactory;
-        this.fallbackOrchestrator = fallbackOrchestrator;
-        this.learningOrchestrator = learningOrchestrator;
-        this.activeInternetScraper = activeInternetScraper;
-        this.browserService = browserService;
-        this.solutionMemoryRepository = solutionMemoryRepository;
-        this.providerRepository = providerRepository;
-        this.unifiedOfflineKnowledgeService = unifiedOfflineKnowledgeService;
-    }
-
 
     private static final Logger logger = LoggerFactory.getLogger(SupremeAIBrain.class);
 
@@ -82,13 +71,29 @@ public class SupremeAIBrain {
     public static final String TASK_ORCHESTRATION   = "ORCHESTRATION";
     public static final String TASK_GENERAL         = "GENERAL";
 
+    @Autowired
+    private AIProviderFactory providerFactory;
 
+    @Autowired
+    private ThirdOpinionOrchestrator fallbackOrchestrator;
 
+    @Autowired
+    private SupremeLearningOrchestrator learningOrchestrator;
 
+    @Autowired
+    private ActiveInternetScraper activeInternetScraper;
 
+    @Autowired
+    private BrowserService browserService;
 
+    @Autowired
+    private SolutionMemoryRepository solutionMemoryRepository;
 
+    @Autowired
+    private ProviderRepository providerRepository;
 
+    @Autowired
+    private UnifiedOfflineKnowledgeService unifiedOfflineKnowledgeService;
 
     // Simple in-memory stats (Admin dashboard এ দেখানো হবে)
     private final Map<String, Long> taskCallCount = new ConcurrentHashMap<>();

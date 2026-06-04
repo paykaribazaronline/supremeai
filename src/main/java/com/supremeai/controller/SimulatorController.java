@@ -11,6 +11,7 @@ import com.supremeai.exception.SimulatorResourceNotFoundException;
 import com.supremeai.exception.SimulatorSessionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -31,15 +32,14 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/simulator")
 public class SimulatorController {
-    public SimulatorController(SimulatorService simulatorService, UserSimulatorProfileRepository profileRepository) {
-        this.simulatorService = simulatorService;
-        this.profileRepository = profileRepository;
-    }
-
 
     private static final Logger logger = LoggerFactory.getLogger(SimulatorController.class);
 
+    @Autowired
+    private SimulatorService simulatorService;
 
+    @Autowired
+    private UserSimulatorProfileRepository profileRepository;
 
     // Profile Management
     @Audited(resource = "simulator_profile", action = "READ")

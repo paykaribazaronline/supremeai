@@ -14,21 +14,10 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.*;
 
 @ExtendWith(MockitoExtension.class)
-public class CodeAnalyzerTest {CodeAnalyzerpublic CodeAnalyzerTest(CodeAnalyzer codeAnalyzer, Long id, String name, Dependency dep1, Dependency dep2, List<User> users, transient String transientField, volatile boolean volatileField, Map<String, List<Map<Integer, Set<String>>>> complexMap) {
-CodeAnalyzer    this.codeAnalyzer = codeAnalyzer;
-CodeAnalyzer    this.id = id;
-CodeAnalyzer    this.name = name;
-CodeAnalyzer    this.dep1 = dep1;
-CodeAnalyzer    this.dep2 = dep2;
-CodeAnalyzer    this.users = users;
-CodeAnalyzer    this.transientField = transientField;
-CodeAnalyzer    this.volatileField = volatileField;
-CodeAnalyzer    this.complexMap = complexMap;
-CodeAnalyzer}
-
+public class CodeAnalyzerTest {
 
     @InjectMocks
-
+    private CodeAnalyzer codeAnalyzer;
 
     private static final String JAVA_CODE = """
         package com.example;
@@ -51,8 +40,8 @@ CodeAnalyzer}
             }
             
             public static class User {
-
-
+                private Long id;
+                private String name;
                 
                 public Long getId() { return id; }
                 public void setId(Long id) { this.id = id; }
@@ -161,8 +150,8 @@ CodeAnalyzer}
     void testParseCodeWithComplexStructure() {
         String complexCode = """
             public class ComplexService {
-
-
+                private Dependency dep1;
+                private Dependency dep2;
                 
                 public ComplexService(Dependency d1, Dependency d2) {
                     this.dep1 = d1;
@@ -436,7 +425,7 @@ CodeAnalyzer}
              */
             public class UserService {
                 // Single line comment
-
+                private List<User> users;
                 
                 /* Multi-line
                    comment */
@@ -1267,8 +1256,8 @@ CodeAnalyzer}
     void testParseCodeWithTransientVolatile() {
         String transientVolatileCode = """
             public class TransientVolatileExample implements java.io.Serializable {
-
-
+                private transient String transientField;
+                private volatile boolean volatileField;
                 
                 public String getTransientField() {
                     return transientField;
@@ -1341,7 +1330,7 @@ CodeAnalyzer}
             import java.util.*;
             
             public class ComplexGenericsExample {
-
+                private Map<String, List<Map<Integer, Set<String>>>> complexMap;
                 
                 public <T extends Comparable<T> & Serializable> T process(T input) {
                     return input;

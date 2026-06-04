@@ -5,6 +5,7 @@ import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDateTime;
@@ -20,23 +21,19 @@ import com.supremeai.repository.MonitoringLogRepository;
 import reactor.core.publisher.Mono;
 
 @ExtendWith(MockitoExtension.class)
-class ProductionHealthMonitorTest {MeterRegistrypublic ProductionHealthMonitorTest(MeterRegistry meterRegistry, ProductionHealthMonitor healthMonitor, com.supremeai.mcp.MCPClientManager mcpClientManager, SimpMessagingTemplate messagingTemplate, MonitoringLogRepository monitoringLogRepository) {
-MeterRegistry    this.meterRegistry = meterRegistry;
-MeterRegistry    this.healthMonitor = healthMonitor;
-MeterRegistry    this.mcpClientManager = mcpClientManager;
-MeterRegistry    this.messagingTemplate = messagingTemplate;
-MeterRegistry    this.monitoringLogRepository = monitoringLogRepository;
-MeterRegistry}
+class ProductionHealthMonitorTest {
 
+    private MeterRegistry meterRegistry;
+    private ProductionHealthMonitor healthMonitor;
 
+    @Mock
+    private com.supremeai.mcp.MCPClientManager mcpClientManager;
 
+    @Mock
+    private SimpMessagingTemplate messagingTemplate;
 
-
-
-
-
-
-
+    @Mock
+    private MonitoringLogRepository monitoringLogRepository;
 
     @BeforeEach
     void setUp() {

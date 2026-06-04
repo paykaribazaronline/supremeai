@@ -6,6 +6,7 @@ import com.supremeai.model.UserTier;
 import com.supremeai.service.ConfigService;
 import com.supremeai.response.ApiResponse;
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -21,11 +22,9 @@ import java.util.Map;
 @RequestMapping("/api/admin/config")
 @PreAuthorize("hasRole('ADMIN')")
 public class AdminConfigController {
-    public AdminConfigController(ConfigService configService) {
-        this.configService = configService;
-    }
 
-
+    @Autowired
+    private ConfigService configService;
 
     /**
      * Get the current global system configuration.

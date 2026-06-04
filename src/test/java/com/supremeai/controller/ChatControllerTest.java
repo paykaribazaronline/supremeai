@@ -32,22 +32,40 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
-@ExtendWith(MockitoExtension.class)
-@MockitoSettings(strictness = Strictness.LENIENT)
-class ChatControllerTest {
+    @ExtendWith(MockitoExtension.class)
+    @MockitoSettings(strictness = Strictness.LENIENT)
+    class ChatControllerTest {
+
+    @Mock
     private MultiAIVotingService consensusService;
+
+    @Mock
     private AutonomousQuestioningEngine questioningEngine;
+
+    @Mock
     private MultiAIVotingService votingService;
+
+    @Mock
     private EnhancedLearningService enhancedLearningService;
+
+    @Mock
     private ChatIntelligenceService intelligenceService;
+
+    @Mock
     private ChatHistoryRepository chatHistoryRepository;
+
+    @Mock
     private ProviderRepository providerRepository;
+
+    @Mock
     private com.supremeai.service.NeuralChatService neuralChatService;
+
     private ChatController chatController;
 
     @BeforeEach
     void setUp() {
         chatController = new ChatController();
+        // Inject mocks via reflection since @Autowired is used
         setField(chatController, "consensusService", consensusService);
         setField(chatController, "questioningEngine", questioningEngine);
         setField(chatController, "votingService", votingService);
@@ -66,6 +84,7 @@ class ChatControllerTest {
             java.lang.reflect.Field field = ChatController.class.getDeclaredField(fieldName);
             field.setAccessible(true);
             field.set(target, value);
+            // Also set the circuit breaker and retry to avoid NPE
             field = ChatController.class.getDeclaredField("aiCircuitBreaker");
             field.setAccessible(true);
             field.set(target, CircuitBreaker.ofDefaults("test"));

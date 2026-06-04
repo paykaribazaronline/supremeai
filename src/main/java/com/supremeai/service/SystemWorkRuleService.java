@@ -34,18 +34,14 @@ import java.util.Map;
  */
 @Service
 public class SystemWorkRuleService {
-    public SystemWorkRuleService(Firestore firestore) {
-        this.firestore = firestore;
-    }
-
-    public SystemWorkRuleService(SystemWorkRuleRepository ruleRepository) {
-        this.ruleRepository = ruleRepository;
-    }
-
 
     private static final Logger log = LoggerFactory.getLogger(SystemWorkRuleService.class);
 
+    @Autowired
+    private SystemWorkRuleRepository ruleRepository;
 
+    @Autowired(required = false)
+    private Firestore firestore;
 
     // ─── READ ────────────────────────────────────────────────────────────────
 

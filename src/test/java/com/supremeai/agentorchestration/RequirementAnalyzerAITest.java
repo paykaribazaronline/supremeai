@@ -5,6 +5,7 @@ import com.supremeai.provider.AIProviderFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import reactor.core.publisher.Mono;
 
@@ -14,19 +15,16 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
-public class RequirementAnalyzerAITest {AIProviderFactorypublic RequirementAnalyzerAITest(AIProviderFactory providerFactory, AIProvider aiProvider, RequirementAnalyzerAI requirementAnalyzer) {
-AIProviderFactory    this.providerFactory = providerFactory;
-AIProviderFactory    this.aiProvider = aiProvider;
-AIProviderFactory    this.requirementAnalyzer = requirementAnalyzer;
-AIProviderFactory}
+public class RequirementAnalyzerAITest {
 
+    @Mock
+    private AIProviderFactory providerFactory;
 
-
-
-
+    @Mock
+    private AIProvider aiProvider;
 
     @InjectMocks
-
+    private RequirementAnalyzerAI requirementAnalyzer;
 
     @BeforeEach
     public void setUp() {

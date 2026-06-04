@@ -16,6 +16,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.MockitoAnnotations;
 import org.springframework.mock.web.MockHttpServletRequest;
@@ -37,44 +38,38 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
-public class AuthenticationControllerTest {AuthenticationControllerpublic AuthenticationControllerTest(AuthenticationController authenticationController, UserRepository userRepository, ActivityLogRepository activityLogRepository, JwtUtil jwtUtil, Environment env, com.google.cloud.spring.data.firestore.FirestoreTemplate firestoreTemplate, com.supremeai.service.AuthenticationService authenticationService, com.supremeai.service.ConfigService configService, com.supremeai.security.BruteForceProtectionService bruteForceProtectionService, MockedStatic<FirebaseAuth> firebaseAuthMock, FirebaseAuth firebaseAuth, AutoCloseable closeable) {
-AuthenticationController    this.authenticationController = authenticationController;
-AuthenticationController    this.userRepository = userRepository;
-AuthenticationController    this.activityLogRepository = activityLogRepository;
-AuthenticationController    this.jwtUtil = jwtUtil;
-AuthenticationController    this.env = env;
-AuthenticationController    this.firestoreTemplate = firestoreTemplate;
-AuthenticationController    this.authenticationService = authenticationService;
-AuthenticationController    this.configService = configService;
-AuthenticationController    this.bruteForceProtectionService = bruteForceProtectionService;
-AuthenticationController    this.firebaseAuthMock = firebaseAuthMock;
-AuthenticationController    this.firebaseAuth = firebaseAuth;
-AuthenticationController    this.closeable = closeable;
-AuthenticationController}
-
+public class AuthenticationControllerTest {
 
     @InjectMocks
+    private AuthenticationController authenticationController;
 
+    @Mock
+    private UserRepository userRepository;
 
+    @Mock
+    private ActivityLogRepository activityLogRepository;
 
+    @Mock
+    private JwtUtil jwtUtil;
 
+    @Mock
+    private Environment env;
 
+    @Mock
+    private com.google.cloud.spring.data.firestore.FirestoreTemplate firestoreTemplate;
 
+    @Mock
+    private com.supremeai.service.AuthenticationService authenticationService;
 
+    @Mock
+    private com.supremeai.service.ConfigService configService;
 
+    @Mock
+    private com.supremeai.security.BruteForceProtectionService bruteForceProtectionService;
 
-
-
-
-
-
-
-
-
-
-
-
-
+    private MockedStatic<FirebaseAuth> firebaseAuthMock;
+    private FirebaseAuth firebaseAuth;
+    private AutoCloseable closeable;
 
     @BeforeEach
     void setUp() {

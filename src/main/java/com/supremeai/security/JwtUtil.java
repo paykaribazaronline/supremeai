@@ -29,16 +29,15 @@ import java.util.function.Function;
  */
 @Component
 public class JwtUtil {
-    public JwtUtil(String secret, String issuer) {
-        this.secret = secret;
-        this.issuer = issuer;
-    }
-
 
     private static final long ACCESS_TOKEN_TTL_MS = 1000L * 60 * 60 * 48; // 48 h
     private static final long REFRESH_TOKEN_TTL_MS = 1000L * 60 * 60 * 24 * 7; // 7 d
 
+    @Value("${jwt.secret}")
+    private String secret;
 
+    @Value("${JWT_ISSUER:supremeai}")
+    private String issuer;
 
     // Lazy-init cache: rebuilt from the live secret whenever this is null.
     // Matches lifecycle of both @PostConstruct-init and test-field-set patterns.

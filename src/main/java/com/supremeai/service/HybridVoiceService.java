@@ -25,15 +25,14 @@ import java.util.Map;
  */
 @Service
 public class HybridVoiceService {
-    public HybridVoiceService(int maxTextLength, boolean bengaliCorrectionEnabled) {
-        this.maxTextLength = maxTextLength;
-        this.bengaliCorrectionEnabled = bengaliCorrectionEnabled;
-    }
-
 
     private static final Logger logger = LoggerFactory.getLogger(HybridVoiceService.class);
 
+    @Value("${voice.max.text.length:5000}")
+    private int maxTextLength;
 
+    @Value("${voice.bengali.correction.enabled:true}")
+    private boolean bengaliCorrectionEnabled;
 
     // Common Bengali transcription corrections (romanized misreadings → correct forms)
     private static final Map<String, String> BENGALI_CORRECTIONS = Map.of(

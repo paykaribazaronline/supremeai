@@ -4,6 +4,7 @@ import com.supremeai.model.ImprovementProposal;
 import com.supremeai.repository.ImprovementProposalRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -24,7 +25,9 @@ public class AdminDashboardService {
 
     // Auto Pilot Toggle
     private boolean isAutoPilotEnabled = false;
-public AdminDashboardService(ImprovementProposalRepository proposalRepository) {
+
+    @Autowired
+    public AdminDashboardService(ImprovementProposalRepository proposalRepository) {
         this.proposalRepository = proposalRepository;
     }
 

@@ -9,6 +9,7 @@ import com.supremeai.provider.AIProvider;
 import com.supremeai.provider.AIProviderFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
@@ -26,21 +27,23 @@ import java.util.stream.Collectors;
  */
 @Service
 public class EnhancedMultiAIConsensusService {
-    public EnhancedMultiAIConsensusService(AIProviderFactory providerFactory, SelfHealingService selfHealingService, AIRankingService aiRankingService, AIReasoningService aiReasoningService, EnhancedContentSanitizerService contentSanitizer) {
-        this.providerFactory = providerFactory;
-        this.selfHealingService = selfHealingService;
-        this.aiRankingService = aiRankingService;
-        this.aiReasoningService = aiReasoningService;
-        this.contentSanitizer = contentSanitizer;
-    }
-
 
     private static final Logger log = LoggerFactory.getLogger(EnhancedMultiAIConsensusService.class);
 
+    @Autowired
+    private AIProviderFactory providerFactory;
 
+    @Autowired
+    private SelfHealingService selfHealingService;
 
+    @Autowired
+    private AIRankingService aiRankingService;
 
+    @Autowired
+    private AIReasoningService aiReasoningService;
 
+    @Autowired
+    private EnhancedContentSanitizerService contentSanitizer;
 
     private final ExecutorService executor;
     private final List<ConsensusVote> history = new CopyOnWriteArrayList<>();

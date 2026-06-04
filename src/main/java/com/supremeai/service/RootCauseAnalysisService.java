@@ -5,6 +5,7 @@ import com.supremeai.learning.knowledge.SolutionMemory;
 import com.supremeai.ml.EnhancedRandomForestPredictor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
@@ -20,15 +21,14 @@ import java.util.regex.Pattern;
  */
 @Service
 public class RootCauseAnalysisService {
-    public RootCauseAnalysisService(GlobalKnowledgeBase globalKnowledgeBase, EnhancedRandomForestPredictor failurePredictor) {
-        this.globalKnowledgeBase = globalKnowledgeBase;
-        this.failurePredictor = failurePredictor;
-    }
-
 
     private static final Logger log = LoggerFactory.getLogger(RootCauseAnalysisService.class);
 
+    @Autowired
+    private GlobalKnowledgeBase globalKnowledgeBase;
 
+    @Autowired
+    private EnhancedRandomForestPredictor failurePredictor;
 
     // Root cause patterns and their fixes
     private final Map<String, RootCausePattern> rootCausePatterns = new ConcurrentHashMap<>();
@@ -39,7 +39,9 @@ public class RootCauseAnalysisService {
     private static final Pattern ERROR_TYPE_PATTERN = Pattern.compile("([a-zA-Z]+Error|[a-zA-Z]+Exception):\\s*(.+)");
     private static final Pattern NULL_POINTER_PATTERN = Pattern.compile("NullPointer|null");
     private static final Pattern IMPORT_PATTERN = Pattern.compile("cannot find symbol|unresolved symbol|Import.*not found");
-public RootCauseAnalysisService(RootCausePatternProvider rootCausePatternProvider) {
+
+    @Autowired
+    public RootCauseAnalysisService(RootCausePatternProvider rootCausePatternProvider) {
         if (rootCausePatternProvider != null) {
             this.rootCausePatterns.putAll(rootCausePatternProvider.providePatterns());
         }

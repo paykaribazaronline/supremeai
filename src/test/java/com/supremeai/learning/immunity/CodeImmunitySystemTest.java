@@ -2,6 +2,7 @@ package com.supremeai.learning.immunity;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.util.regex.Pattern;
@@ -13,21 +14,18 @@ import static org.mockito.Mockito.*;
  * Unit tests for CodeImmunitySystem.
  * Tests toxic pattern learning and code infection detection.
  */
-class CodeImmunitySystemTest {CodeImmunitySystempublic CodeImmunitySystemTest(CodeImmunitySystem immunity, com.google.cloud.firestore.Firestore mockFirestore, com.google.cloud.firestore.CollectionReference mockCollection, com.google.cloud.firestore.DocumentReference mockDocRef) {
-CodeImmunitySystem    this.immunity = immunity;
-CodeImmunitySystem    this.mockFirestore = mockFirestore;
-CodeImmunitySystem    this.mockCollection = mockCollection;
-CodeImmunitySystem    this.mockDocRef = mockDocRef;
-CodeImmunitySystem}
+class CodeImmunitySystemTest {
 
+    private CodeImmunitySystem immunity;
 
+    @Mock
+    private com.google.cloud.firestore.Firestore mockFirestore;
 
+    @Mock
+    private com.google.cloud.firestore.CollectionReference mockCollection;
 
-
-
-
-
-
+    @Mock
+    private com.google.cloud.firestore.DocumentReference mockDocRef;
 
     @BeforeEach
     void setUp() throws Exception {

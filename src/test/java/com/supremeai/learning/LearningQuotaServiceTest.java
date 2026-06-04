@@ -12,12 +12,9 @@ import static org.junit.jupiter.api.Assertions.*;
  * Unit tests for LearningQuotaService.
  * Tests quota enforcement, daily reset logic, and emergency thresholds.
  */
-class LearningQuotaServiceTest {LearningQuotaServicepublic LearningQuotaServiceTest(LearningQuotaService quotaService) {
-LearningQuotaService    this.quotaService = quotaService;
-LearningQuotaService}
+class LearningQuotaServiceTest {
 
-
-
+    private LearningQuotaService quotaService;
 
     @BeforeEach
     void setUp() {

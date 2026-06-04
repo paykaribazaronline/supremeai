@@ -7,6 +7,7 @@ import com.supremeai.service.CodeGenerationService;
 import com.supremeai.service.SimulatorService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -34,19 +35,20 @@ import java.util.Map;
 @RestController
 @RequestMapping("/simulator/preview")
 public class SimulatorRuntimeController {
-    public SimulatorRuntimeController(SimulatorService simulatorService, CodeGenerationService codeGenerationService, SimulatorDeploymentRepository deploymentRepository, WebClient.Builder webClientBuilder) {
-        this.simulatorService = simulatorService;
-        this.codeGenerationService = codeGenerationService;
-        this.deploymentRepository = deploymentRepository;
-        this.webClientBuilder = webClientBuilder;
-    }
-
 
     private static final Logger logger = LoggerFactory.getLogger(SimulatorRuntimeController.class);
 
+    @Autowired
+    private SimulatorService simulatorService;
 
+    @Autowired
+    private CodeGenerationService codeGenerationService;
 
+    @Autowired
+    private SimulatorDeploymentRepository deploymentRepository;
 
+    @Autowired
+    private WebClient.Builder webClientBuilder;
 
     /**
      * Serve a generated app with device emulation.

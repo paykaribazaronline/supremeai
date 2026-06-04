@@ -4,6 +4,7 @@ import com.supremeai.model.APIProvider;
 import com.supremeai.repository.ProviderRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
@@ -15,15 +16,14 @@ import reactor.core.publisher.Mono;
  */
 @Service
 public class ProviderTournamentService {
-    public ProviderTournamentService(ProviderRepository providerRepository, SWEBenchValidationService sweBenchService) {
-        this.providerRepository = providerRepository;
-        this.sweBenchService = sweBenchService;
-    }
-
 
     private static final Logger log = LoggerFactory.getLogger(ProviderTournamentService.class);
 
+    @Autowired
+    private ProviderRepository providerRepository;
 
+    @Autowired
+    private SWEBenchValidationService sweBenchService;
 
     /**
      * Run the tournament monthly (1st of every month at 3 AM)

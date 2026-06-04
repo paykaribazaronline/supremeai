@@ -10,6 +10,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -24,21 +25,18 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class VotingControllerTest {MultiAIVotingServicepublic VotingControllerTest(MultiAIVotingService votingService, com.supremeai.agentorchestration.RequirementAnalyzerAI requirementAnalyzer, com.supremeai.provider.AIProviderFactory providerFactory, VotingController votingController) {
-MultiAIVotingService    this.votingService = votingService;
-MultiAIVotingService    this.requirementAnalyzer = requirementAnalyzer;
-MultiAIVotingService    this.providerFactory = providerFactory;
-MultiAIVotingService    this.votingController = votingController;
-MultiAIVotingService}
+class VotingControllerTest {
 
+    @Mock
+    private MultiAIVotingService votingService;
 
+    @Mock
+    private com.supremeai.agentorchestration.RequirementAnalyzerAI requirementAnalyzer;
 
+    @Mock
+    private com.supremeai.provider.AIProviderFactory providerFactory;
 
-
-
-
-
-
+    private VotingController votingController;
 
     @BeforeEach
     void setUp() {

@@ -4,6 +4,7 @@ import com.supremeai.model.AIBehaviorProfile;
 import com.supremeai.service.AIBehaviorProfileService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -14,12 +15,10 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/v1/behavior-profiles")
 public class AIBehaviorProfileController {
-    public AIBehaviorProfileController(AIBehaviorProfileService profileService) {
-        this.profileService = profileService;
-    }
-
     private static final Logger logger = LoggerFactory.getLogger(AIBehaviorProfileController.class);
 
+    @Autowired
+    private AIBehaviorProfileService profileService;
 
     @GetMapping("/project/{projectId}")
     public Mono<ResponseEntity<AIBehaviorProfile>> getProfileByProject(@PathVariable String projectId) {

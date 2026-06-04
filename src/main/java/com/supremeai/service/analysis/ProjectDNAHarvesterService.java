@@ -4,6 +4,7 @@ import com.supremeai.model.SystemLearning;
 import com.supremeai.repository.SystemLearningRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
@@ -23,13 +24,11 @@ import java.util.stream.Collectors;
  */
 @Service
 public class ProjectDNAHarvesterService {
-    public ProjectDNAHarvesterService(SystemLearningRepository systemLearningRepository) {
-        this.systemLearningRepository = systemLearningRepository;
-    }
-
 
     private static final Logger log = LoggerFactory.getLogger(ProjectDNAHarvesterService.class);
 
+    @Autowired
+    private SystemLearningRepository systemLearningRepository;
 
     private static final String PROJECT_ROOT = "/home/nazifarabbu/supremeai";
 

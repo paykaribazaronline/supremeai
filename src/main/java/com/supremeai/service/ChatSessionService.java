@@ -2,17 +2,16 @@ package com.supremeai.service;
 
 import com.supremeai.model.ChatSession;
 import com.supremeai.repository.ChatSessionRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @Service
 public class ChatSessionService {
-    public ChatSessionService(ChatSessionRepository chatSessionRepository) {
-        this.chatSessionRepository = chatSessionRepository;
-    }
 
-
+    @Autowired
+    private ChatSessionRepository chatSessionRepository;
 
     public Mono<ChatSession> saveSession(ChatSession session) {
         return chatSessionRepository.save(session);

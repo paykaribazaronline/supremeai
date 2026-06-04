@@ -4,6 +4,7 @@ import com.supremeai.model.ActivityLog;
 import com.supremeai.repository.ActivityLogRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
@@ -17,15 +18,14 @@ import java.util.Map;
  */
 @Service
 public class SystemAuditService {
-    public SystemAuditService(ActivityLogRepository activityLogRepository, SimpMessagingTemplate messagingTemplate) {
-        this.activityLogRepository = activityLogRepository;
-        this.messagingTemplate = messagingTemplate;
-    }
-
 
     private static final Logger logger = LoggerFactory.getLogger(SystemAuditService.class);
 
+    @Autowired
+    private ActivityLogRepository activityLogRepository;
 
+    @Autowired
+    private SimpMessagingTemplate messagingTemplate;
 
     /**
      * Log a system activity and broadcast it.

@@ -6,6 +6,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Map;
@@ -14,24 +15,21 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class UnifiedDataServiceTest {MeterRegistrypublic UnifiedDataServiceTest(MeterRegistry meterRegistry, Counter dataCollectCounter, Counter dataPurgeCounter, Counter dataQueryCounter, UnifiedDataService unifiedDataService) {
-MeterRegistry    this.meterRegistry = meterRegistry;
-MeterRegistry    this.dataCollectCounter = dataCollectCounter;
-MeterRegistry    this.dataPurgeCounter = dataPurgeCounter;
-MeterRegistry    this.dataQueryCounter = dataQueryCounter;
-MeterRegistry    this.unifiedDataService = unifiedDataService;
-MeterRegistry}
+class UnifiedDataServiceTest {
 
+    @Mock
+    private MeterRegistry meterRegistry;
 
+    @Mock
+    private Counter dataCollectCounter;
 
+    @Mock
+    private Counter dataPurgeCounter;
 
+    @Mock
+    private Counter dataQueryCounter;
 
-
-
-
-
-
-
+    private UnifiedDataService unifiedDataService;
 
     @BeforeEach
     void setUp() {

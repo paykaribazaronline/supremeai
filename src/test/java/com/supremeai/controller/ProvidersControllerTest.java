@@ -7,6 +7,7 @@ import com.supremeai.response.ApiResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -26,18 +27,15 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 @org.mockito.junit.jupiter.MockitoSettings(strictness = org.mockito.quality.Strictness.LENIENT)
-class ProvidersControllerTest {ProviderAdminServicepublic ProvidersControllerTest(ProviderAdminService providerAdminService, AIProviderDiscoveryService discoveryService, ProvidersController controller) {
-ProviderAdminService    this.providerAdminService = providerAdminService;
-ProviderAdminService    this.discoveryService = discoveryService;
-ProviderAdminService    this.controller = controller;
-ProviderAdminService}
+class ProvidersControllerTest {
 
+    @Mock
+    private ProviderAdminService providerAdminService;
 
+    @Mock
+    private AIProviderDiscoveryService discoveryService;
 
-
-
-
-
+    private ProvidersController controller;
 
     @BeforeEach
     void setUp() {

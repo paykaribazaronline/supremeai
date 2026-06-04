@@ -25,18 +25,14 @@ import java.util.*;
  */
 @Service
 public class RouterKnowledgeInitializer {
-    public RouterKnowledgeInitializer(EnhancedSelfLearningRouter enhancedRouter) {
-        this.enhancedRouter = enhancedRouter;
-    }
-
-    public RouterKnowledgeInitializer(SelfLearningRouter selfLearningRouter) {
-        this.selfLearningRouter = selfLearningRouter;
-    }
-
 
     private static final Logger logger = LoggerFactory.getLogger(RouterKnowledgeInitializer.class);
 
+    @Autowired
+    private SelfLearningRouter selfLearningRouter;
 
+    @Autowired(required = false)
+    private EnhancedSelfLearningRouter enhancedRouter;
 
     // ──────────────────────────────────────────────────────────────────────
     // Knowledge Injection

@@ -32,33 +32,30 @@ import org.mockito.quality.Strictness;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
-class AppGenerationControllerTest {CodeGenerationServicepublic AppGenerationControllerTest(CodeGenerationService codeGenerationService, AppOrchestrationService appOrchestrationService, FullStackCodeGenerator fullStackCodeGenerator, MultiPlatformGenerator multiPlatformGenerator, GeneratedAppRepository generatedAppRepository, WebSocketController webSocketController, Authentication authentication, AppGenerationController controller) {
-CodeGenerationService    this.codeGenerationService = codeGenerationService;
-CodeGenerationService    this.appOrchestrationService = appOrchestrationService;
-CodeGenerationService    this.fullStackCodeGenerator = fullStackCodeGenerator;
-CodeGenerationService    this.multiPlatformGenerator = multiPlatformGenerator;
-CodeGenerationService    this.generatedAppRepository = generatedAppRepository;
-CodeGenerationService    this.webSocketController = webSocketController;
-CodeGenerationService    this.authentication = authentication;
-CodeGenerationService    this.controller = controller;
-CodeGenerationService}
+class AppGenerationControllerTest {
 
+    @Mock
+    private CodeGenerationService codeGenerationService;
 
+    @Mock
+    private AppOrchestrationService appOrchestrationService;
 
+    @Mock
+    private FullStackCodeGenerator fullStackCodeGenerator;
 
+    @Mock
+    private MultiPlatformGenerator multiPlatformGenerator;
 
+    @Mock
+    private GeneratedAppRepository generatedAppRepository;
 
+    @Mock
+    private WebSocketController webSocketController;
 
+    @Mock
+    private Authentication authentication;
 
-
-
-
-
-
-
-
-
-
+    private AppGenerationController controller;
 
     @BeforeEach
     void setUp() {

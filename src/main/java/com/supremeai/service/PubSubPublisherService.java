@@ -22,13 +22,11 @@ import java.util.concurrent.TimeUnit;
  */
 @Service
 public class PubSubPublisherService {
-    public PubSubPublisherService(String projectId) {
-        this.projectId = projectId;
-    }
-
 
     private static final Logger logger = LoggerFactory.getLogger(PubSubPublisherService.class);
 
+    @Value("${spring.cloud.gcp.project-id:supremeai-a}")
+    private String projectId;
 
     private final Map<String, Publisher> publisherCache = new ConcurrentHashMap<>();
     private final Gson gson = new Gson();

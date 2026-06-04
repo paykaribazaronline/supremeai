@@ -5,6 +5,7 @@ import com.supremeai.repository.UserGuideRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,15 +20,12 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class GuideControllerTest {UserGuideRepositorypublic GuideControllerTest(UserGuideRepository userGuideRepository, GuideController controller) {
-UserGuideRepository    this.userGuideRepository = userGuideRepository;
-UserGuideRepository    this.controller = controller;
-UserGuideRepository}
+class GuideControllerTest {
 
+    @Mock
+    private UserGuideRepository userGuideRepository;
 
-
-
-
+    private GuideController controller;
 
     @BeforeEach
     void setUp() throws Exception {

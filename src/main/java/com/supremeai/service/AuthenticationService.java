@@ -12,6 +12,7 @@ import com.supremeai.security.BruteForceProtectionService;
 import com.supremeai.security.JwtUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
@@ -29,7 +30,9 @@ public class AuthenticationService {
     private final BruteForceProtectionService bruteForceProtectionService;
     private final JwtUtil jwtUtil;
     private final ConfigService configService;
-public AuthenticationService(
+
+    @Autowired
+    public AuthenticationService(
             UserRepository userRepository,
             ActivityLogRepository activityLogRepository,
             BruteForceProtectionService bruteForceProtectionService,

@@ -4,6 +4,7 @@ import com.supremeai.learning.immunity.CodeImmunitySystem;
 import com.supremeai.learning.knowledge.SolutionMemory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -16,15 +17,12 @@ import static org.mockito.Mockito.*;
  * Unit tests for EnhancedContentSanitizerService.
  * Tests comprehensive PII detection, malicious code scanning, quality scoring.
  */
-class EnhancedContentSanitizerServiceTest {EnhancedContentSanitizerServicepublic EnhancedContentSanitizerServiceTest(EnhancedContentSanitizerService sanitizer, CodeImmunitySystem mockImmunity) {
-EnhancedContentSanitizerService    this.sanitizer = sanitizer;
-EnhancedContentSanitizerService    this.mockImmunity = mockImmunity;
-EnhancedContentSanitizerService}
+class EnhancedContentSanitizerServiceTest {
 
+    private EnhancedContentSanitizerService sanitizer;
 
-
-
-
+    @Mock
+    private CodeImmunitySystem mockImmunity;
 
     @BeforeEach
     void setUp() {

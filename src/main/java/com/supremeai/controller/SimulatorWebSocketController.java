@@ -3,6 +3,7 @@ package com.supremeai.controller;
 import com.supremeai.service.SimulatorSessionService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.*;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
@@ -22,15 +23,14 @@ import java.util.Map;
  */
 @Controller
 public class SimulatorWebSocketController {
-    public SimulatorWebSocketController(SimpMessagingTemplate messagingTemplate, SimulatorSessionService sessionService) {
-        this.messagingTemplate = messagingTemplate;
-        this.sessionService = sessionService;
-    }
-
 
     private static final Logger logger = LoggerFactory.getLogger(SimulatorWebSocketController.class);
 
+    @Autowired
+    private SimpMessagingTemplate messagingTemplate;
 
+    @Autowired
+    private SimulatorSessionService sessionService;
 
     /**
      * Admin UI sends a control command to a simulator session.

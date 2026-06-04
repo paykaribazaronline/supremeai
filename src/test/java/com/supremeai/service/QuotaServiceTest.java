@@ -8,6 +8,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -26,30 +27,24 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class QuotaServiceTest {
 
+    @Mock
+    private UserApiKeyRepository userApiKeyRepository;
 
+    @Mock
+    private QuotaManager quotaManager;
 
-
-
-
+    @Mock
+    private ConfigService configService;
 
     @InjectMocks
+    private QuotaService quotaService;
 
-
-
-
-
+    private UserApiKey activeApiKey;
+    private UserApiKey inactiveApiKey;
+    private UserApiKey exhaustedApiKey;
 
     @BeforeEach
-    void setUp() {UserApiKeyRepositorypublic QuotaServiceTest(UserApiKeyRepository userApiKeyRepository, QuotaManager quotaManager, ConfigService configService, QuotaService quotaService, UserApiKey activeApiKey, UserApiKey inactiveApiKey, UserApiKey exhaustedApiKey) {
-UserApiKeyRepository    this.userApiKeyRepository = userApiKeyRepository;
-UserApiKeyRepository    this.quotaManager = quotaManager;
-UserApiKeyRepository    this.configService = configService;
-UserApiKeyRepository    this.quotaService = quotaService;
-UserApiKeyRepository    this.activeApiKey = activeApiKey;
-UserApiKeyRepository    this.inactiveApiKey = inactiveApiKey;
-UserApiKeyRepository    this.exhaustedApiKey = exhaustedApiKey;
-UserApiKeyRepository}
-
+    void setUp() {
         activeApiKey = new UserApiKey("user1", "OpenAI", "Active", "key-1");
         activeApiKey.setStatus("active");
         activeApiKey.setRequestCount(500L);

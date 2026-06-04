@@ -5,6 +5,7 @@ import com.supremeai.model.analysis.CodeChunk;
 import com.supremeai.repository.analysis.CodeChunkRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -21,7 +22,9 @@ public class VectorSearchService {
     private final CodeChunkRepository codeChunkRepository;
     private final EmbeddingService embeddingService;
     private final ConfigService configService;
-public VectorSearchService(CodeChunkRepository codeChunkRepository, EmbeddingService embeddingService, ConfigService configService) {
+
+    @Autowired
+    public VectorSearchService(CodeChunkRepository codeChunkRepository, EmbeddingService embeddingService, ConfigService configService) {
         this.codeChunkRepository = codeChunkRepository;
         this.embeddingService = embeddingService;
         this.configService = configService;

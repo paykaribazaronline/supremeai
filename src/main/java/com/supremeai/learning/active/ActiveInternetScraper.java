@@ -27,11 +27,6 @@ import java.util.Random;
  */
 @Service
 public class ActiveInternetScraper {
-    public ActiveInternetScraper(int wikiLimit, int soLimit) {
-        this.wikiLimit = wikiLimit;
-        this.soLimit = soLimit;
-    }
-
 
     private static final Logger log = LoggerFactory.getLogger(ActiveInternetScraper.class);
     private final WebClient webClient;
@@ -39,7 +34,11 @@ public class ActiveInternetScraper {
     private final EnhancedContentSanitizerService sanitizer;
     private final QueryClassifier queryClassifier;
 
+    @Value("${learning.scraper.wikipedia.limit:5}")
+    private int wikiLimit;
 
+    @Value("${learning.scraper.stackoverflow.limit:3}")
+    private int soLimit;
 
     public ActiveInternetScraper(WebClient.Builder webClientBuilder, EnhancedContentSanitizerService sanitizer, QueryClassifier queryClassifier) {
         this.webClient = webClientBuilder.build();

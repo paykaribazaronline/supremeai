@@ -2,6 +2,7 @@ package com.supremeai.service;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -14,18 +15,14 @@ import java.util.Map;
  */
 @Service
 public class KnowledgeVerificationScheduler {
-    public KnowledgeVerificationScheduler(double minConfidenceThreshold) {
-        this.minConfidenceThreshold = minConfidenceThreshold;
-    }
-
-    public KnowledgeVerificationScheduler(KnowledgeVerificationService verificationService) {
-        this.verificationService = verificationService;
-    }
-
 
     private static final Logger log = LoggerFactory.getLogger(KnowledgeVerificationScheduler.class);
 
+    @Autowired
+    private KnowledgeVerificationService verificationService;
 
+    @Value("${foundation.knowledge.min-confidence:0.90}")
+    private double minConfidenceThreshold;
 
     /**
      * Scheduled task to run foundation knowledge verification.

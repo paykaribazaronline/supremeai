@@ -2,6 +2,7 @@ package com.supremeai.config;
 
 import com.supremeai.filter.AuthenticationFilter;
 import com.supremeai.security.JwtAuthFilter;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
 import org.springframework.context.annotation.Bean;
@@ -26,20 +27,18 @@ import java.util.stream.Collectors;
 @EnableWebSecurity
 @EnableMethodSecurity
 public class SecurityConfig {
-    public SecurityConfig(String allowedOriginsCsv) {
-        this.allowedOriginsCsv = allowedOriginsCsv;
-    }
-
-    public SecurityConfig(AuthenticationFilter authenticationFilter, SecurityHeadersFilter securityHeadersFilter, JwtAuthFilter jwtAuthFilter) {
-        this.authenticationFilter = authenticationFilter;
-        this.securityHeadersFilter = securityHeadersFilter;
-        this.jwtAuthFilter = jwtAuthFilter;
-    }
-
     
+    @Autowired
+    private AuthenticationFilter authenticationFilter;
     
+    @Autowired
+    private SecurityHeadersFilter securityHeadersFilter;
 
+    @Value("${cors.allowed-origins:}")
+    private String allowedOriginsCsv;
 
+    @Autowired
+    private JwtAuthFilter jwtAuthFilter;
     
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -47,15 +46,7 @@ public class SecurityConfig {
              .cors(cors -> cors.configurationSource(corsConfigurationSource()))
               .csrf(csrf -> csrf.disable())
              .sessionManagement(session -> 
-                  session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-              .sessionManagement(session -> 
-                  session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-             // CSRF protection is disabled because this application uses stateless
-             // JWT / Firebase ID token authentication. No server-side session is
-             // created or maintained, therefore CSRF attacks are not applicable.
-             // If session-based auth is ever re-introduced, this MUST be changed
-             // to enable CSRF with a proper token repository.
-             .csrf(csrf -> csrf.disable())
+                 session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
              // Security headers configuration
              .headers(headers -> headers
                  .contentSecurityPolicy(csp -> csp
@@ -115,7 +106,8 @@ public class SecurityConfig {
                       "/__/firebase/**",
                       "/ws/**",
                       "/error",
-                      // /api/v1/chat/completions — secured by Spring Security (authenticated)
+                      // /api/v1/chat/completions — gated by ExternalToolsAuthFilter (X-Authorized-Key)
+                      "/api/v1/chat/completions",
                       "/admin",
                      "/admin/index.html"
                  ).permitAll()

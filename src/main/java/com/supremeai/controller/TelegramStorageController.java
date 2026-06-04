@@ -2,6 +2,7 @@ package com.supremeai.controller;
 
 import com.supremeai.response.ApiResponse;
 import com.supremeai.service.TelegramStorageService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
@@ -11,19 +12,21 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/admin/telegram")
 public class TelegramStorageController {
-    public TelegramStorageController(TelegramStorageService telegramStorageService, com.supremeai.service.CodebaseBackupService codebaseBackupService, com.supremeai.service.ChatArchiveService chatArchiveService, com.supremeai.service.LearningArchiveService learningArchiveService, com.supremeai.repository.StorageMetadataRepository storageMetadataRepository) {
-        this.telegramStorageService = telegramStorageService;
-        this.codebaseBackupService = codebaseBackupService;
-        this.chatArchiveService = chatArchiveService;
-        this.learningArchiveService = learningArchiveService;
-        this.storageMetadataRepository = storageMetadataRepository;
-    }
 
+    @Autowired
+    private TelegramStorageService telegramStorageService;
 
+    @Autowired
+    private com.supremeai.service.CodebaseBackupService codebaseBackupService;
 
+    @Autowired
+    private com.supremeai.service.ChatArchiveService chatArchiveService;
 
+    @Autowired
+    private com.supremeai.service.LearningArchiveService learningArchiveService;
 
-
+    @Autowired
+    private com.supremeai.repository.StorageMetadataRepository storageMetadataRepository;
 
     @GetMapping("/status")
     public Mono<ResponseEntity<ApiResponse<Map<String, Object>>>> getBotStatus() {

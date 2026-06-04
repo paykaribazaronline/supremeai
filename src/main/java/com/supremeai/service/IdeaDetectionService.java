@@ -28,14 +28,13 @@ import java.util.concurrent.CopyOnWriteArrayList;
  */
 @Service
 public class IdeaDetectionService {
-    public IdeaDetectionService(ConfigService configService, int detectionThreshold) {
-        this.configService = configService;
-        this.detectionThreshold = detectionThreshold;
-    }
-
     private static final Logger logger = LoggerFactory.getLogger(IdeaDetectionService.class);
 
+    @Autowired(required = false)
+    private ConfigService configService;
 
+    @Value("${idea.detection.threshold:20}")
+    private int detectionThreshold;
 
     private int getDetectionThreshold() {
         if (configService == null) {
@@ -195,7 +194,7 @@ public class IdeaDetectionService {
         private IdeaStatus status;
         private LocalDateTime reviewedAt;
 
-        public IdeaDetectionService(String ideaId, String textSnippet, String source,
+        public DetectedIdea(String ideaId, String textSnippet, String source,
                             int score, List<String> signals) {
             this.ideaId = ideaId;
             this.textSnippet = textSnippet;

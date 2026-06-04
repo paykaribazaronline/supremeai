@@ -24,16 +24,6 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
  */
 @Service
 public class ProductionHealthMonitor {
-    public ProductionHealthMonitor(MCPClientManager mcpClientManager) {
-        this.mcpClientManager = mcpClientManager;
-    }
-
-    public ProductionHealthMonitor(io.micrometer.core.instrument.MeterRegistry meterRegistry, SimpMessagingTemplate messagingTemplate, MonitoringLogRepository monitoringLogRepository) {
-        this.meterRegistry = meterRegistry;
-        this.messagingTemplate = messagingTemplate;
-        this.monitoringLogRepository = monitoringLogRepository;
-    }
-
 
     private static final Logger logger = LoggerFactory.getLogger(ProductionHealthMonitor.class);
 
@@ -54,9 +44,17 @@ public class ProductionHealthMonitor {
     private long uptimeSeconds;
     private String overallStatus = "HEALTHY";
 
+    @Autowired(required = false)
+    private MCPClientManager mcpClientManager;
 
+    @Autowired
+    private io.micrometer.core.instrument.MeterRegistry meterRegistry;
 
+    @Autowired
+    private SimpMessagingTemplate messagingTemplate;
 
+    @Autowired
+    private MonitoringLogRepository monitoringLogRepository;
 
     public ProductionHealthMonitor(io.micrometer.core.instrument.MeterRegistry meterRegistry) {
         this.meterRegistry = meterRegistry;

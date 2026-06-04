@@ -8,6 +8,7 @@ import com.supremeai.repository.UserRepository;
 import com.supremeai.response.ApiResponse;
 import com.supremeai.service.ConfigService;
 import com.supremeai.service.QuotaService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
@@ -19,17 +20,18 @@ import java.util.Map;
 @RequestMapping("/api/admin/quotas")
 @PreAuthorize("hasRole('ADMIN')")
 public class AdminQuotaController {
-    public AdminQuotaController(ConfigService configService, QuotaService quotaService, UserApiKeyRepository userApiKeyRepository, UserRepository userRepository) {
-        this.configService = configService;
-        this.quotaService = quotaService;
-        this.userApiKeyRepository = userApiKeyRepository;
-        this.userRepository = userRepository;
-    }
 
+    @Autowired
+    private ConfigService configService;
 
+    @Autowired
+    private QuotaService quotaService;
 
+    @Autowired
+    private UserApiKeyRepository userApiKeyRepository;
 
-
+    @Autowired
+    private UserRepository userRepository;
 
     @GetMapping("/config")
     public Mono<ApiResponse<SystemConfig>> getQuotaConfig() {

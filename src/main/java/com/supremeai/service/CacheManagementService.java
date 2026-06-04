@@ -16,17 +16,13 @@ import java.util.Set;
  */
 @Service
 public class CacheManagementService {
-    public CacheManagementService(StringRedisTemplate redisTemplate) {
-        this.redisTemplate = redisTemplate;
-    }
-
-    public CacheManagementService(CacheManager cacheManager) {
-        this.cacheManager = cacheManager;
-    }
-
     private static final Logger log = LoggerFactory.getLogger(CacheManagementService.class);
 
+    @Autowired
+    private CacheManager cacheManager;
 
+    @Autowired(required = false)
+    private StringRedisTemplate redisTemplate;
 
     /**
      * Clears all Spring-managed runtime caches (e.g., ai_responses, system_learning).

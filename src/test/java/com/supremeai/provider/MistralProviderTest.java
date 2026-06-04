@@ -14,16 +14,11 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class MistralProviderTest {MockWebServerpublic MistralProviderTest(MockWebServer mockWebServer, MistralProvider provider, ObjectMapper objectMapper) {
-MockWebServer    this.mockWebServer = mockWebServer;
-MockWebServer    this.provider = provider;
-MockWebServer    this.objectMapper = objectMapper;
-MockWebServer}
+class MistralProviderTest {
 
-
-
-
-
+    private MockWebServer mockWebServer;
+    private MistralProvider provider;
+    private ObjectMapper objectMapper;
 
     @BeforeEach
     void setUp() throws IOException {
