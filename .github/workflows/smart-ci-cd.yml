@@ -277,8 +277,12 @@ jobs:
           GOOGLE_APPLICATION_CREDENTIALS: ${{ steps.auth.outputs.credentials_file_path }}
         run: |
           chmod +x gradlew
-          nohup ./gradlew bootRun --no-daemon > backend.log 2>&1 &
-          for i in $(seq 1 90); do
+          echo "Building backend synchronously..."
+          ./gradlew bootJar -x test --no-daemon
+          echo "Starting backend from JAR..."
+          JAR_FILE=$(find build/libs -maxdepth 1 -name "*.jar" ! -name "*-plain.jar" | head -n 1)
+          nohup java -jar $JAR_FILE > backend.log 2>&1 &
+          for i in $(seq 1 60); do
             if curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/api/health | grep -q "200"; then
               echo "Backend is healthy"
               break
