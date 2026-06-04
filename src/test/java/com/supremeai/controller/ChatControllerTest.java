@@ -3,19 +3,14 @@ package com.supremeai.controller;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyDouble;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -65,20 +60,23 @@ class ChatControllerTest {
 
   @Mock private NeuralChatService neuralChatService;
 
-  @org.mockito.InjectMocks
-  private ChatController chatController;
+  @org.mockito.InjectMocks private ChatController chatController;
 
   @BeforeEach
   void setUp() {
 
     lenient().when(providerRepository.findByStatus(anyString())).thenReturn(Flux.empty());
-    lenient().when(chatHistoryRepository.save(any(ChatMessage.class)))
+    lenient()
+        .when(chatHistoryRepository.save(any(ChatMessage.class)))
         .thenAnswer(invocation -> Mono.just(invocation.getArgument(0)));
-    lenient().when(chatHistoryRepository.findByUserIdOrderByTimestampAsc(anyString()))
+    lenient()
+        .when(chatHistoryRepository.findByUserIdOrderByTimestampAsc(anyString()))
         .thenReturn(Flux.empty());
-    lenient().when(votingService.executeEnsembleVoting(anyString(), any(), anyLong()))
+    lenient()
+        .when(votingService.executeEnsembleVoting(anyString(), any(), anyLong()))
         .thenReturn(Mono.empty());
-    lenient().when(consensusService.executeEnsembleVoting(anyString(), any(), anyLong()))
+    lenient()
+        .when(consensusService.executeEnsembleVoting(anyString(), any(), anyLong()))
         .thenReturn(Mono.empty());
 
     NeuralChatService.NeuralResponse defaultResponse =
@@ -88,7 +86,8 @@ class ChatControllerTest {
             0.0,
             "CORE_ONLY",
             "core_knowledge");
-    lenient().when(neuralChatService.generateIntelligentResponse(anyString()))
+    lenient()
+        .when(neuralChatService.generateIntelligentResponse(anyString()))
         .thenReturn(Mono.just(defaultResponse));
   }
 
@@ -282,14 +281,10 @@ class ChatControllerTest {
         .thenReturn(
             Mono.just(
                 new MultiAIVotingService.VotingResult(
-                    "Explain CI",
-                    "Explain CI",
-                    List.of(),
-                    0.92,
-                    "STRONG_CONSENSUS",
-                    1000L)));
+                    "Explain CI", "Explain CI", List.of(), 0.92, "STRONG_CONSENSUS", 1000L)));
 
-    ResponseEntity<Object> messageResponse = blockResponse(chatController.handleChatMessage(request));
+    ResponseEntity<Object> messageResponse =
+        blockResponse(chatController.handleChatMessage(request));
 
     assertNotNull(messageResponse);
     assertEquals(HttpStatus.OK, messageResponse.getStatusCode());
@@ -316,17 +311,25 @@ class ChatControllerTest {
     provider.setStatus("active");
     lenient().when(providerRepository.findByStatus("active")).thenReturn(Flux.just(provider));
 
-    lenient().when(questioningEngine.validateAndQuestion(anyString(), any()))
+    lenient()
+        .when(questioningEngine.validateAndQuestion(anyString(), any()))
         .thenReturn(Mono.just(validationResult));
-    lenient().when(votingService.executeEnsembleVoting(anyString(), any(), anyLong()))
+    lenient()
+        .when(votingService.executeEnsembleVoting(anyString(), any(), anyLong()))
         .thenReturn(Mono.error(new RuntimeException("All providers failed")));
 
     NeuralChatService.NeuralResponse neuralResponse =
         new NeuralChatService.NeuralResponse(
-            "Python is a programming language", List.of("Core Knowledge"), 0.8, "CORE_ONLY", "core_knowledge");
-    lenient().when(neuralChatService.generateIntelligentResponse(anyString()))
+            "Python is a programming language",
+            List.of("Core Knowledge"),
+            0.8,
+            "CORE_ONLY",
+            "core_knowledge");
+    lenient()
+        .when(neuralChatService.generateIntelligentResponse(anyString()))
         .thenReturn(Mono.just(neuralResponse));
-    lenient().when(intelligenceService.classifyIntent(anyString()))
+    lenient()
+        .when(intelligenceService.classifyIntent(anyString()))
         .thenReturn(ChatIntelligenceService.Intent.CASUAL);
 
     ResponseEntity<Object> response = blockResponse(chatController.sendMessage(request));
@@ -390,8 +393,10 @@ class ChatControllerTest {
     request.setAiResponse("Java is a programming language");
     request.setHelpful(true);
 
-    lenient().when(enhancedLearningService.learnFromNLPInteraction(
-            anyString(), anyString(), anyString(), anyDouble(), anyMap()))
+    lenient()
+        .when(
+            enhancedLearningService.learnFromNLPInteraction(
+                anyString(), anyString(), anyString(), anyDouble(), anyMap()))
         .thenReturn(Mono.empty());
 
     ResponseEntity<Object> response = blockResponse(chatController.submitFeedback(request));
@@ -410,8 +415,10 @@ class ChatControllerTest {
     request.setAiResponse("Bad answer");
     request.setHelpful(false);
 
-    lenient().when(enhancedLearningService.learnFromNLPInteraction(
-            anyString(), anyString(), anyString(), anyDouble(), anyMap()))
+    lenient()
+        .when(
+            enhancedLearningService.learnFromNLPInteraction(
+                anyString(), anyString(), anyString(), anyDouble(), anyMap()))
         .thenReturn(Mono.empty());
 
     ResponseEntity<Object> response = blockResponse(chatController.submitFeedback(request));
@@ -427,8 +434,10 @@ class ChatControllerTest {
     request.setAiResponse("Response");
     request.setHelpful(true);
 
-    lenient().when(enhancedLearningService.learnFromNLPInteraction(
-            anyString(), anyString(), anyString(), anyDouble(), anyMap()))
+    lenient()
+        .when(
+            enhancedLearningService.learnFromNLPInteraction(
+                anyString(), anyString(), anyString(), anyDouble(), anyMap()))
         .thenReturn(Mono.empty());
 
     ResponseEntity<Object> response = blockResponse(chatController.submitFeedback(request));
@@ -450,12 +459,15 @@ class ChatControllerTest {
 
   @Test
   void detectorMode_ArchitectKeywords_ReturnsArchitect() {
-    assertEquals("architect", invokeDetectMode(chatController, "Design the architecture for a microservice"));
+    assertEquals(
+        "architect",
+        invokeDetectMode(chatController, "Design the architecture for a microservice"));
   }
 
   @Test
   void detectorMode_DebugKeywords_ReturnsDebug() {
-    assertEquals("debug", invokeDetectMode(chatController, "I have an error in my code, help me fix it"));
+    assertEquals(
+        "debug", invokeDetectMode(chatController, "I have an error in my code, help me fix it"));
   }
 
   @Test
@@ -470,7 +482,8 @@ class ChatControllerTest {
 
   @Test
   void detectorMode_OrchestrateKeywords_ReturnsOrchestrator() {
-    assertEquals("orchestrator", invokeDetectMode(chatController, "Orchestrate the deployment pipeline"));
+    assertEquals(
+        "orchestrator", invokeDetectMode(chatController, "Orchestrate the deployment pipeline"));
   }
 
   @Test

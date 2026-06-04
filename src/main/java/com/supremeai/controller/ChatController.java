@@ -66,12 +66,19 @@ public class ChatController {
       return Mono.just(ResponseEntity.badRequest().build());
     }
     logger.warn("Deprecated /api/chat/send endpoint called. Using legacy chat flow.");
-    return questioningEngine.validateAndQuestion(request.getMessage(), AutonomousQuestioningEngine.RequestType.GENERAL_AI)
-        .flatMap(validation -> executeResponseForRequest(request, request.getMessage(), validation, request.isSkipValidation()))
-        .switchIfEmpty(Mono.defer(() -> executeResponseForRequest(request, request.getMessage(), null, request.isSkipValidation())));
+    return questioningEngine
+        .validateAndQuestion(
+            request.getMessage(), AutonomousQuestioningEngine.RequestType.GENERAL_AI)
+        .flatMap(
+            validation ->
+                executeResponseForRequest(
+                    request, request.getMessage(), validation, request.isSkipValidation()))
+        .switchIfEmpty(
+            Mono.defer(
+                () ->
+                    executeResponseForRequest(
+                        request, request.getMessage(), null, request.isSkipValidation())));
   }
-
-
 
   private boolean isSkipValidationDirectAnswer(String message) {
     if (message == null) {
@@ -495,7 +502,8 @@ public class ChatController {
 
   private Mono<ResponseEntity<Object>> processChatWithHistory(ChatRequest request) {
     if (request.getMessage() == null || request.getMessage().trim().isEmpty()) {
-      return Mono.just(ResponseEntity.badRequest().body(Map.of("error", "Message cannot be empty")));
+      return Mono.just(
+          ResponseEntity.badRequest().body(Map.of("error", "Message cannot be empty")));
     }
 
     String sessionId = request.getSessionId();
@@ -684,4 +692,3 @@ public class ChatController {
         + "Please try rephrasing with one of these topics for a detailed answer with code examples!";
   }
 }
-

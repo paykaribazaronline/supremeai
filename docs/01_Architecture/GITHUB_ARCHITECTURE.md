@@ -11,15 +11,23 @@ flowchart TD
     Developer[Developer Push/PR] --> Trigger{GitHub Events}
     Cron[Nightly Cron Schedule] --> Trigger
     
-    Trigger -->|Smart Path Detection| Filter{dorny/paths-filter}
+    Trigger -->|Execute Smart Workflow| Pipeline[Smart CI/CD Pipeline]
     
-    Filter -->|Backend Changed| PipelineA[Backend CI/CD]
-    Filter -->|Frontend Changed| PipelineB[Frontend CI/CD]
-    Filter -->|Functions Changed| PipelineC[Functions CI/CD]
-    Trigger -->|Code Security Scan| CodeQL[CodeQL Security Scan]
-    Trigger -->|Dependabot updates| DepMerge[Dependabot Auto-Merge]
+    subgraph Smart CI/CD Pipeline
+        direction TB
+        S1[Secret Scan Job] --> S2[CodeQL Scan Job]
+        S2 --> S3[Path Filter Job]
+        
+        S3 -->|Backend Changed| A[Backend CI/CD Job]
+        S3 -->|Frontend Changed| B[Frontend CI/CD Job]
+        S3 -->|Functions Changed| C[Functions CI/CD Job]
+        
+        A --> M[Dependabot Auto-Merge Job]
+        B --> M
+        C --> M
+    end
     
-    subgraph Backend CI/CD
+    subgraph Backend CI/CD Job
         direction TB
         A1[Setup JDK 21 & Gradle] --> A2[Spotless Code Format Check]
         A2 --> A3[Clean & Run Unit Tests]
@@ -29,7 +37,7 @@ flowchart TD
         A6 --> A7[Discord Notification if Failure]
     end
     
-    subgraph Frontend CI/CD
+    subgraph Frontend CI/CD Job
         direction TB
         B1[Setup Node 18 & NPM] --> B2[Install Dashboard Deps]
         B2 --> B3[Run ESLint Formatter]
@@ -42,7 +50,7 @@ flowchart TD
         B8 --> B9
     end
 
-    subgraph Functions CI/CD
+    subgraph Functions CI/CD Job
         direction TB
         C1[Setup Node 18 & NPM] --> C2[Install Functions Deps]
         C2 --> C3{Is branch main?}
@@ -51,42 +59,40 @@ flowchart TD
     end
 ```
 
-## 2. Workflows Step-By-Step
+## 2. The Unified Workflow (`smart-ci-cd.yml`)
 
-### 2.1 Smart CI/CD Pipeline (`smart-ci-cd.yml`)
-Triggers on `push` and `pull_request` to `main`, `develop`, and `master` branches. It uses path filtering to ensure only modified components run, preventing runtime waste.
+SupremeAI uses a single, interconnected GitHub Actions workflow file that handles security scanning, formatting checks, testing, deployment, and auto-merge steps in one execution pipeline.
 
-**Step-by-Step Execution:**
-1. **Detect Changes:** Uses `dorny/paths-filter` to detect if files changed in `src/` (backend), `dashboard/` (frontend), or `functions/` (firebase functions).
-2. **Backend CI/CD:**
-   - Runs `./gradlew spotlessCheck` to enforce style guide.
-   - Runs `./gradlew clean test` to execute JUnit tests.
-   - On pushes to `main`, sets up QEMU/Docker Buildx and builds/pushes Docker image using `docker/build-push-action@v5` with GHA caching (`type=gha`).
-   - Deploys the built image to **Google Cloud Run**.
-   - Sends Discord failure alert if webhook is configured.
-3. **Frontend CI/CD:**
-   - Performs `npm run lint` inside the `dashboard/` workspace.
-   - Runs Vitest unit tests (`npm run test -- --run`).
-   - Builds Vite production bundle and copies it to `public/`.
-   - On pushes to `main`, deploys to **Firebase Hosting Production**.
-   - On `pull_request`, deploys to a **Firebase Hosting Preview Channel** and comments the preview URL directly on the PR using GitHub CLI (`gh`).
-   - Sends Discord failure alert if webhook is configured.
-4. **Functions CI/CD:**
-   - On pushes to `main`, deploys functions to **Firebase Functions**.
-   - Sends Discord failure alert if webhook is configured.
+### 2.1 Secret Scanning (`secret-scan` job)
+Runs on every push to detect credentials and API keys leak using Gitleaks tool.
 
-### 2.2 CodeQL Security Scan (`codeql.yml`)
-Runs on pushes and PRs to main branches as well as weekly. It analyzes `java-kotlin` and `javascript-typescript` code bases using static analysis to find code vulnerabilities (SQL Injection, XSS, etc.).
+### 2.2 CodeQL Security Scan (`codeql-scan` job)
+Runs static application security testing (SAST) on both `java-kotlin` and `javascript-typescript` code bases to flag security vulnerabilities (e.g. SQL Injection, XSS) before deployment.
 
-### 2.3 Dependabot & Auto-Merge (`dependabot.yml` & `dependabot-auto-merge.yml`)
-- Scans `gradle` and `npm` dependency layers weekly and creates PRs for package updates.
-- If a Dependabot PR is a patch or minor release and passes all CI tests, it is automatically approved and merged via `gh pr merge --auto`.
+### 2.3 Path Filter (`detect-changes` job)
+Uses `dorny/paths-filter` to ensure that only the modified sections of the project are built and deployed, saving GitHub Action execution limits.
+
+### 2.4 Backend CI/CD (`backend-ci` job)
+- **Formatting:** Enforces strict Spotless formatting rules using `./gradlew spotlessCheck`.
+- **Testing:** Runs backend JUnit tests using `./gradlew clean test`.
+- **Deployment:** On push to `main`, builds the container using QEMU & Buildx with GHA caching (`type=gha`), pushes it to Google Container Registry (GCR), and deploys it to **Google Cloud Run**.
+
+### 2.5 Frontend CI/CD (`frontend-ci` job)
+- **Formatting:** Enforces style guidelines via `npm run lint`.
+- **Testing:** Runs Vitest unit tests inside the dashboard project.
+- **Deployment:** 
+  - On push to `main`, builds production files and deploys them to **Firebase Hosting Production**.
+  - On `pull_request`, deploys to a temporary **Firebase Hosting Preview Channel** and comments the preview URL directly on the PR using the GitHub CLI (`gh`).
+
+### 2.6 Functions CI/CD (`functions-ci` job)
+On push to `main`, deploys serverless Node.js handlers to **Firebase Functions**.
+
+### 2.7 Dependabot Auto-Merge (`dependabot-merge` job)
+- Scans `gradle` and `npm` package managers weekly (defined in `dependabot.yml`).
+- When a Dependabot PR is created, this job monitors CI/CD results. If all other tests succeed and the update type is patch or minor, it auto-merges the PR.
 
 ## 3. Secrets & Variables
-The pipelines securely inject the following GitHub Secrets:
-- `GCP_SA_KEY`: GCP service account key for Cloud Run and Firebase Hosting/Functions authentication.
-- `DISCORD_WEBHOOK` (Optional): Webhook to receive instant pipeline failure alerts in Discord.
-- `GITHUB_TOKEN`: Built-in GitHub token used for PR comment creation and Dependabot auto-merging.
-
-## 4. Concurrency & Performance
-Workflows use `concurrency` groups mapping to the workflow name and Git branch (`${{ github.workflow }}-${{ github.ref }}`). If a new commit is pushed while a pipeline is running, `cancel-in-progress: true` stops the old run, saving valuable compute minutes. Docker build utilizes GHA backend caching to speed up compilation.
+The pipeline securely injects the following GitHub Secrets:
+- `GCP_SA_KEY`: GCP service account key for Google Cloud Run and Firebase.
+- `DISCORD_WEBHOOK` (Optional): Webhook to receive pipeline failure notifications in Discord.
+- `GITHUB_TOKEN`: Access token to post PR comments and perform Dependabot auto-merging.

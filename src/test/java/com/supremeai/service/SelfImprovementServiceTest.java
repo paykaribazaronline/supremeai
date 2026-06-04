@@ -9,7 +9,6 @@ import com.supremeai.model.APIProvider;
 import com.supremeai.model.SystemLearning;
 import com.supremeai.repository.SystemLearningRepository;
 import java.time.LocalDateTime;
-import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -37,7 +36,8 @@ class SelfImprovementServiceTest {
 
   @Test
   void hourlyImprovementLoop_shouldCompleteWithoutError() {
-    when(configService.getEffectiveSetting("learning_interval_minutes", 60L)).thenReturn(10L); // Force run
+    when(configService.getEffectiveSetting("learning_interval_minutes", 60L))
+        .thenReturn(10L); // Force run
 
     SystemLearning entry = new SystemLearning();
     entry.setLearnedAt(LocalDateTime.now());

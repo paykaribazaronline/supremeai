@@ -31,7 +31,6 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
@@ -80,7 +79,6 @@ public class MultiAIVotingService {
   @Autowired private SupremeLearningOrchestrator learningOrchestrator;
 
   @Autowired private UnifiedOfflineKnowledgeService unifiedOfflineKnowledgeService;
-
 
   @Autowired private AutonomousBrowserService autonomousBrowserService;
 
@@ -712,11 +710,10 @@ public class MultiAIVotingService {
             });
   }
 
-
-
   private Mono<VotingResult> executeSoloFallback(
       String prompt, List<ScrapedIssue> issues, long startTime) {
-    return autonomousBrowserService.playwrightResearch(prompt, extractKeywords(prompt))
+    return autonomousBrowserService
+        .playwrightResearch(prompt, extractKeywords(prompt))
         .flatMap(
             playwrightIssues -> {
               List<ScrapedIssue> allIssues = new ArrayList<>(issues);

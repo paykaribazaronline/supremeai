@@ -23,27 +23,19 @@ public class AutonomousBrowserService {
 
   @Autowired private WebClient.Builder webClientBuilder;
 
-  /**
-   * Playwright browser automation server URL. Used as a fallback if not configured dynamically.
-   */
+  /** Playwright browser automation server URL. Used as a fallback if not configured dynamically. */
   @Value("${supremeai.browser.automation-url:http://localhost:3001}")
   private String defaultPlaywrightUrl;
 
-  /**
-   * Maximum autonomous research steps per Solo Mode session.
-   */
+  /** Maximum autonomous research steps per Solo Mode session. */
   @Value("${supremeai.solo.max-steps:5}")
   private int soloMaxSteps;
 
-  /**
-   * Per-step timeout in milliseconds for Solo Mode Playwright research.
-   */
+  /** Per-step timeout in milliseconds for Solo Mode Playwright research. */
   @Value("${supremeai.solo.step-timeout-ms:30000}")
   private long soloStepTimeoutMs;
 
-  /**
-   * Solo Mode deep research using the Playwright browser automation server.
-   */
+  /** Solo Mode deep research using the Playwright browser automation server. */
   public Mono<List<ScrapedIssue>> playwrightResearch(String prompt, List<String> keywords) {
     String automationUrl =
         configService.getEffectiveSetting("browser_automation_url", defaultPlaywrightUrl);
@@ -92,9 +84,7 @@ public class AutonomousBrowserService {
         .onErrorResume(e -> Mono.just(List.of()));
   }
 
-  /**
-   * Extracts result URLs from DuckDuckGo HTML search results.
-   */
+  /** Extracts result URLs from DuckDuckGo HTML search results. */
   private List<String> extractUrlsFromDdg(String html) {
     List<String> urls = new ArrayList<>();
     if (html == null || html.isBlank()) return urls;
@@ -127,9 +117,7 @@ public class AutonomousBrowserService {
     return urls;
   }
 
-  /**
-   * Navigates to a URL via the Playwright server and extracts the full page text.
-   */
+  /** Navigates to a URL via the Playwright server and extracts the full page text. */
   private Mono<ScrapedIssue> deepScrapeUrl(String url, String prompt) {
     String automationUrl =
         configService.getEffectiveSetting("browser_automation_url", defaultPlaywrightUrl);
