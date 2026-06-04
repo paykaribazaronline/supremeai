@@ -17,14 +17,14 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.web.servlet.MockMvc;
+
 /**
  * Integration tests for core REST API endpoints.
  * Uses MockMvc to test the full request-response cycle against the real server context.
  * addFilters=false is used to bypass web security in isolated integration tests.
  */
-import org.springframework.test.context.ActiveProfiles;
-
-import org.springframework.test.web.servlet.MockMvc;
 
 @SpringBootTest
 @AutoConfigureMockMvc(addFilters = false)
