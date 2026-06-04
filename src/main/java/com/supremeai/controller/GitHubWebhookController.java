@@ -11,6 +11,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
+import org.springframework.boot.web.client.RestTemplateBuilder;
+
 @RestController
 @RequestMapping("/api/webhooks/github")
 public class GitHubWebhookController {
@@ -27,11 +29,11 @@ public class GitHubWebhookController {
       SelfHealingService selfHealingService,
       WebSocketController webSocketController,
       SecretManagerService secretManagerService,
-      RestTemplate restTemplate) {
+      RestTemplateBuilder restTemplateBuilder) {
     this.selfHealingService = selfHealingService;
     this.webSocketController = webSocketController;
     this.secretManagerService = secretManagerService;
-    this.restTemplate = restTemplate;
+    this.restTemplate = restTemplateBuilder.build();
   }
 
   @PostMapping("/workflow")

@@ -26,15 +26,18 @@ public class GitHubWebhookControllerTest {
 
   @Mock private SecretManagerService secretManagerService;
 
+  @Mock private org.springframework.boot.web.client.RestTemplateBuilder restTemplateBuilder;
+
   @Mock private RestTemplate restTemplate;
 
   private GitHubWebhookController controller;
 
   @BeforeEach
   void setUp() {
+    when(restTemplateBuilder.build()).thenReturn(restTemplate);
     controller =
         new GitHubWebhookController(
-            selfHealingService, webSocketController, secretManagerService, restTemplate);
+            selfHealingService, webSocketController, secretManagerService, restTemplateBuilder);
   }
 
   @Test
