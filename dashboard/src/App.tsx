@@ -56,7 +56,11 @@ interface ModelStatus {
   type: string;
 }
 
-const models_list: ModelStatus[] = [];
+const models_list: ModelStatus[] = [
+  { id: '1', name: 'Supreme-Qwen-Coder-32B', status: 'online', latency: 45, memory: '24GB', type: 'LLM' },
+  { id: '2', name: 'Supreme-Llama-3-70B', status: 'online', latency: 82, memory: '48GB', type: 'LLM' },
+  { id: '3', name: 'Supreme-DeepSeek-R1', status: 'online', latency: 120, memory: '80GB', type: 'LLM' }
+];
 
 const LoadingFallback = () => (
   <div className="loading-fallback">
@@ -74,22 +78,25 @@ const MainVisualizer = () => {
   const [activeModel, setActiveModel] = useState<string | null>(null);
   const [logs, setLogs] = useState<string[]>([]);
 
-  const fetchHealth = async () => {
+  const fetchHealth = async (signal?: AbortSignal) => {
     try {
       const API_BASE = import.meta.env.VITE_API_URL || '';
-      const response = await fetch(`${API_BASE}/telemetry/health`);
+      const response = await fetch(`${API_BASE}/telemetry/health`, { signal });
       const data = await response.json();
       if (data.models) {
         setModels(data.models);
       }
     } catch (error) {
-      console.error("Failed to fetch health metrics:", error);
+      if ((error as Error).name !== 'AbortError') {
+        console.error("Failed to fetch health metrics:", error);
+      }
     }
   };
 
   useEffect(() => {
-    fetchHealth();
-    const metricsInterval = setInterval(fetchHealth, 5000);
+    const controller = new AbortController();
+    fetchHealth(controller.signal);
+    const metricsInterval = setInterval(() => fetchHealth(controller.signal), 15000);
     const logInterval = setInterval(() => {
       const messages = [
         "📡 System Heartbeat: OK",
@@ -99,8 +106,9 @@ const MainVisualizer = () => {
         "🌐 Scaling Qwen Coder... Instance Count: 4"
       ];
       setLogs(prev => [messages[Math.floor(Math.random() * messages.length)], ...prev.slice(0, 5)]);
-    }, 3000);
+    }, 10000);
     return () => {
+      controller.abort();
       clearInterval(metricsInterval);
       clearInterval(logInterval);
     };
@@ -212,49 +220,53 @@ const HUDMetric = ({ icon, label, value, color }: { icon: any, label: string, va
 );
 
 function App() {
+  const [darkMode, setDarkMode] = useState(true);
+  const [chatFont, setChatFont] = useState('font-mono');
+
   return (
-    <ErrorBoundary>
-      <BrowserRouter>
-        <FeedbackSystem />
-        <Suspense fallback={<LoadingFallback />}>
-          <Routes>
-            {/* Authentication */}
-            <Route path="/login" element={<LoginPage />} />
+    <div className={darkMode ? 'dark-mode' : 'light-mode'}>
+      <ErrorBoundary>
+        <BrowserRouter>
+          <FeedbackSystem />
+          <Suspense fallback={<LoadingFallback />}>
+            <Routes>
+              {/* Authentication */}
+              <Route path="/login" element={<LoginPage />} />
 
-            {/* Admin routes under single URL path */}
-            <Route path="/admin" element={<AdminRouteLayout />}>
-              <Route index element={<Navigate to="/admin/dashboard" replace />} />
+              {/* Admin routes under single URL path */}
+              <Route path="/admin" element={<AdminRouteLayout />}>
+                <Route index element={<Navigate to="/admin/dashboard" replace />} />
 
-              {/* Statically defined routes guarantee stability during Suspense/Lazy loads */}
-              <Route path="dashboard" element={<DashboardHome isAdmin={true} setActiveKey={() => { }} />} />
-              <Route path="ai" element={<ChatWithAI chatFont="font-mono" />} />
-              <Route path="projects" element={<AdminProjects />} />
-              <Route path="providers" element={<AdminProviders />} />
-              <Route path="users" element={<AdminUsers />} />
-              <Route path="monitoring" element={<AdminMonitoring />} />
-              <Route path="learning" element={<AdminLearning />} />
-              <Route path="security" element={<AdminSecurity />} />
-              <Route path="system-work-rules" element={<AdminSystemWorkRules />} />
-              <Route path="rules" element={<AdminRules />} />
-              <Route path="analytics" element={<AdminAnalytics />} />
-              <Route path="logs" element={<AdminLogs />} />
-              <Route path="vpn" element={<AdminVPN />} />
-              <Route path="browser" element={<AdminBrowser />} />
-              <Route path="auto-browser" element={<AutoBrowser />} />
-              <Route path="quotas" element={<AdminQuotas />} />
-              <Route path="simulator" element={<AdminSimulator />} />
-              <Route path="reverse" element={<AdminReverseEngineer />} />
-              <Route path="notifications" element={<AdminNotifications />} />
-              <Route path="reports" element={<AdminReports />} />
-              <Route path="performance" element={<AdminPerformance />} />
-              <Route path="backup" element={<AdminBackup />} />
-              <Route path="ocr" element={<AdminOCR />} />
-              <Route path="infrastructure" element={<AdminInfrastructure />} />
-              <Route path="code-analysis" element={<AdminCodeAnalysis />} />
-              <Route path="settings" element={<AdminSettings darkMode={true} setDarkMode={() => { }} chatFont="font-mono" setChatFont={() => { }} />} />
-              <Route path="approvals" element={<AdminApprovals />} />
-              <Route path="superfly" element={<AdminSuperFly />} />
-              <Route path="cloud-db-hub" element={<AdminCloudDBHub />} />
+                {/* Statically defined routes guarantee stability during Suspense/Lazy loads */}
+                <Route path="dashboard" element={<DashboardHome isAdmin={true} setActiveKey={() => { }} />} />
+                <Route path="ai" element={<ChatWithAI chatFont={chatFont} />} />
+                <Route path="projects" element={<AdminProjects />} />
+                <Route path="providers" element={<AdminProviders />} />
+                <Route path="users" element={<AdminUsers />} />
+                <Route path="monitoring" element={<AdminMonitoring />} />
+                <Route path="learning" element={<AdminLearning />} />
+                <Route path="security" element={<AdminSecurity />} />
+                <Route path="system-work-rules" element={<AdminSystemWorkRules />} />
+                <Route path="rules" element={<AdminRules />} />
+                <Route path="analytics" element={<AdminAnalytics />} />
+                <Route path="logs" element={<AdminLogs />} />
+                <Route path="vpn" element={<AdminVPN />} />
+                <Route path="browser" element={<AdminBrowser />} />
+                <Route path="auto-browser" element={<AutoBrowser />} />
+                <Route path="quotas" element={<AdminQuotas />} />
+                <Route path="simulator" element={<AdminSimulator />} />
+                <Route path="reverse" element={<AdminReverseEngineer />} />
+                <Route path="notifications" element={<AdminNotifications />} />
+                <Route path="reports" element={<AdminReports />} />
+                <Route path="performance" element={<AdminPerformance />} />
+                <Route path="backup" element={<AdminBackup />} />
+                <Route path="ocr" element={<AdminOCR />} />
+                <Route path="infrastructure" element={<AdminInfrastructure />} />
+                <Route path="code-analysis" element={<AdminCodeAnalysis />} />
+                <Route path="settings" element={<AdminSettings darkMode={darkMode} setDarkMode={setDarkMode} chatFont={chatFont} setChatFont={setChatFont} />} />
+                <Route path="approvals" element={<AdminApprovals />} />
+                <Route path="superfly" element={<AdminSuperFly />} />
+                <Route path="cloud-db-hub" element={<AdminCloudDBHub />} />
 
               {/* Hidden Developer/Testing Routes not in sidebar */}
               <Route path="testing" element={<AdminTesting />} />
@@ -269,6 +281,7 @@ function App() {
         </Suspense>
       </BrowserRouter>
     </ErrorBoundary>
+    </div>
   );
 }
 

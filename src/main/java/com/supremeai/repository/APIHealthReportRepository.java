@@ -5,5 +5,4 @@ import com.supremeai.model.APIHealthReport;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface APIHealthReportRepository extends FirestoreReactiveRepository<APIHealthReport> {
-}
+public interface APIHealthReportRepository extends FirestoreReactiveRepository<APIHealthReport> {}

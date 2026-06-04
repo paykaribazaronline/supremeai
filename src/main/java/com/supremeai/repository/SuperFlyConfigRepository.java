@@ -5,5 +5,4 @@ import com.supremeai.model.SuperFlyConfig;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface SuperFlyConfigRepository extends FirestoreReactiveRepository<SuperFlyConfig> {
-}
+public interface SuperFlyConfigRepository extends FirestoreReactiveRepository<SuperFlyConfig> {}

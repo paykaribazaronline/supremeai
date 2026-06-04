@@ -12,47 +12,43 @@ import reactor.core.publisher.Mono;
 @RequestMapping("/api/user/language-preference")
 public class UserLanguagePreferenceController {
 
-    @Autowired
-    private UserLanguagePreferenceService languagePreferenceService;
+  @Autowired private UserLanguagePreferenceService languagePreferenceService;
 
-    /**
-     * ব্যবহারকারীর পছন্দসমূহ সংরক্ষণ করে
-     */
-    @PostMapping
-    public Mono<ResponseEntity<UserLanguagePreference>> saveUserPreference(@RequestBody UserLanguagePreference preference) {
-        return languagePreferenceService.saveUserPreference(preference)
-                .map(saved -> ResponseEntity.ok(saved))
-                .onErrorReturn(ResponseEntity.badRequest().build());
-    }
+  /** ব্যবহারকারীর পছন্দসমূহ সংরক্ষণ করে */
+  @PostMapping
+  public Mono<ResponseEntity<UserLanguagePreference>> saveUserPreference(
+      @RequestBody UserLanguagePreference preference) {
+    return languagePreferenceService
+        .saveUserPreference(preference)
+        .map(saved -> ResponseEntity.ok(saved))
+        .onErrorReturn(ResponseEntity.badRequest().build());
+  }
 
-    /**
-     * ব্যবহারকারী আইডি দিয়ে পছন্দসমূহ খুঁজে বের করে
-     */
-    @GetMapping("/{userId}")
-    public Mono<ResponseEntity<UserLanguagePreference>> getUserPreference(@PathVariable String userId) {
-        return languagePreferenceService.getUserPreference(userId)
-                .map(preference -> ResponseEntity.ok(preference))
-                .defaultIfEmpty(ResponseEntity.notFound().build());
-    }
+  /** ব্যবহারকারী আইডি দিয়ে পছন্দসমূহ খুঁজে বের করে */
+  @GetMapping("/{userId}")
+  public Mono<ResponseEntity<UserLanguagePreference>> getUserPreference(
+      @PathVariable String userId) {
+    return languagePreferenceService
+        .getUserPreference(userId)
+        .map(preference -> ResponseEntity.ok(preference))
+        .defaultIfEmpty(ResponseEntity.notFound().build());
+  }
 
-    /**
-     * ব্যবহারকারীর ভাষা পছন্দ আপডেট করে
-     */
-    @PutMapping("/{userId}")
-    public Mono<ResponseEntity<UserLanguagePreference>> updateLanguagePreference(
-            @PathVariable String userId,
-            @RequestParam String languageCode,
-            @RequestParam String languageName) {
-        return languagePreferenceService.updateUserLanguagePreference(userId, languageCode, languageName)
-                .map(updated -> ResponseEntity.ok(updated))
-                .onErrorReturn(ResponseEntity.badRequest().build());
-    }
+  /** ব্যবহারকারীর ভাষা পছন্দ আপডেট করে */
+  @PutMapping("/{userId}")
+  public Mono<ResponseEntity<UserLanguagePreference>> updateLanguagePreference(
+      @PathVariable String userId,
+      @RequestParam String languageCode,
+      @RequestParam String languageName) {
+    return languagePreferenceService
+        .updateUserLanguagePreference(userId, languageCode, languageName)
+        .map(updated -> ResponseEntity.ok(updated))
+        .onErrorReturn(ResponseEntity.badRequest().build());
+  }
 
-    /**
-     * সব ব্যবহারকারীর ভাষা পছন্দ পায়
-     */
-    @GetMapping
-    public Flux<UserLanguagePreference> getAllLanguagePreferences() {
-        return languagePreferenceService.getAllUserLanguagePreferences();
-    }
+  /** সব ব্যবহারকারীর ভাষা পছন্দ পায় */
+  @GetMapping
+  public Flux<UserLanguagePreference> getAllLanguagePreferences() {
+    return languagePreferenceService.getAllUserLanguagePreferences();
+  }
 }

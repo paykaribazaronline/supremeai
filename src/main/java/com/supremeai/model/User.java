@@ -1,192 +1,287 @@
 package com.supremeai.model;
 
+import com.google.cloud.Timestamp;
 import com.google.cloud.firestore.annotation.DocumentId;
 import com.google.cloud.firestore.annotation.Exclude;
 import com.google.cloud.spring.data.firestore.Document;
-import com.google.cloud.Timestamp;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.time.Instant;
 
 @Document(collectionName = "users")
 public class User {
 
-    @DocumentId
-    private String documentId;
+  @DocumentId private String documentId;
 
-    @com.google.cloud.firestore.annotation.PropertyName("id")
-    private String idField;
+  @com.google.cloud.firestore.annotation.PropertyName("id")
+  private String idField;
 
-    private String firebaseUid;
+  private String firebaseUid;
 
-    private String email;
+  private String email;
 
-    private String displayName;
+  private String displayName;
 
-    private UserTier tier = UserTier.FREE;
+  private UserTier tier = UserTier.FREE;
 
-    // Legacy Firestore fields compatibility
-    private Boolean isAdmin;
-    private String role;
-    private Boolean admin;
-    private String userRole; // Handle the warning seen in logs
-    private String username; // Handle the warning seen in logs
+  // Legacy Firestore fields compatibility
+  private Boolean isAdmin;
+  private String role;
+  private Boolean admin;
+  private String userRole; // Handle the warning seen in logs
+  private String username; // Handle the warning seen in logs
 
-    private Long currentUsage = 0L;
+  private Long currentUsage = 0L;
 
-    // Use Object to seamlessly handle legacy Map (from LocalDateTime), String, or Timestamp
-    private Object createdAt;
+  // Use Object to seamlessly handle legacy Map (from LocalDateTime), String, or Timestamp
+  private Object createdAt;
 
-    private Object updatedAt;
+  private Object updatedAt;
 
-    private Object lastUsedAt;
+  private Object lastUsedAt;
 
-    private Object lastLoginAt;
+  private Object lastLoginAt;
 
-    private Boolean isActive = true;
+  private Boolean isActive = true;
 
-    private Long monthlyQuota;
+  private Long monthlyQuota;
 
-    private String githubInstallationId;
+  private String githubInstallationId;
 
-    // Constructors
-    public User() {
-        this.createdAt = java.time.LocalDateTime.now().toString();
-        this.updatedAt = java.time.LocalDateTime.now().toString();
-    }
+  // Constructors
+  public User() {
+    this.createdAt = java.time.LocalDateTime.now().toString();
+    this.updatedAt = java.time.LocalDateTime.now().toString();
+  }
 
-    public User(String firebaseUid, String email, String displayName) {
-        this.idField = firebaseUid;
-        this.firebaseUid = firebaseUid;
-        this.email = email;
-        this.displayName = displayName;
-        this.createdAt = java.time.LocalDateTime.now().toString();
-        this.updatedAt = java.time.LocalDateTime.now().toString();
-    }
+  public User(String firebaseUid, String email, String displayName) {
+    this.idField = firebaseUid;
+    this.firebaseUid = firebaseUid;
+    this.email = email;
+    this.displayName = displayName;
+    this.createdAt = java.time.LocalDateTime.now().toString();
+    this.updatedAt = java.time.LocalDateTime.now().toString();
+  }
 
-    // Getters and Setters
-    public String getDocumentId() { return documentId; }
-    public void setDocumentId(String documentId) { this.documentId = documentId; }
+  // Getters and Setters
+  public String getDocumentId() {
+    return documentId;
+  }
 
-    @com.google.cloud.firestore.annotation.PropertyName("id")
-    public String getId() { return idField; }
+  public void setDocumentId(String documentId) {
+    this.documentId = documentId;
+  }
 
-    @com.google.cloud.firestore.annotation.PropertyName("id")
-    public void setId(String id) { this.idField = id; }
+  @com.google.cloud.firestore.annotation.PropertyName("id")
+  public String getId() {
+    return idField;
+  }
 
-    public String getFirebaseUid() { return firebaseUid; }
-    public void setFirebaseUid(String firebaseUid) { this.firebaseUid = firebaseUid; }
+  @com.google.cloud.firestore.annotation.PropertyName("id")
+  public void setId(String id) {
+    this.idField = id;
+  }
 
-    public String getEmail() { return email; }
-    public void setEmail(String email) { this.email = email; }
+  public String getFirebaseUid() {
+    return firebaseUid;
+  }
 
-    public String getDisplayName() { return displayName; }
-    public void setDisplayName(String displayName) { this.displayName = displayName; }
+  public void setFirebaseUid(String firebaseUid) {
+    this.firebaseUid = firebaseUid;
+  }
 
-    public UserTier getTier() {
-        if (tier != null && tier != UserTier.FREE) return tier;
-        if (Boolean.TRUE.equals(isAdmin) || Boolean.TRUE.equals(admin) || "admin".equalsIgnoreCase(role) || "admin".equalsIgnoreCase(userRole)) return UserTier.ADMIN;
-        return tier != null ? tier : UserTier.FREE;
-    }
-    public void setTier(UserTier tier) { this.tier = tier; }
+  public String getEmail() {
+    return email;
+  }
 
-    public Boolean getIsAdmin() { return isAdmin; }
-    public void setIsAdmin(Boolean isAdmin) { this.isAdmin = isAdmin; }
+  public void setEmail(String email) {
+    this.email = email;
+  }
 
-    public String getRole() { return role; }
-    public void setRole(String role) { this.role = role; }
+  public String getDisplayName() {
+    return displayName;
+  }
 
-    public String getUserRole() { return userRole; }
-    public void setUserRole(String userRole) { this.userRole = userRole; }
+  public void setDisplayName(String displayName) {
+    this.displayName = displayName;
+  }
 
-    public String getUsername() { return username; }
-    public void setUsername(String username) { this.username = username; }
+  public UserTier getTier() {
+    if (tier != null && tier != UserTier.FREE) return tier;
+    if (Boolean.TRUE.equals(isAdmin)
+        || Boolean.TRUE.equals(admin)
+        || "admin".equalsIgnoreCase(role)
+        || "admin".equalsIgnoreCase(userRole)) return UserTier.ADMIN;
+    return tier != null ? tier : UserTier.FREE;
+  }
 
-    public Long getCurrentUsage() { return currentUsage; }
-    public void setCurrentUsage(Long currentUsage) { this.currentUsage = currentUsage; }
+  public void setTier(UserTier tier) {
+    this.tier = tier;
+  }
 
-    public String getCreatedAt() { return convertDateObjToString(createdAt); }
-    public void setCreatedAt(Object createdAt) { this.createdAt = convertToIsoString(createdAt); }
+  public Boolean getIsAdmin() {
+    return isAdmin;
+  }
 
-    public String getUpdatedAt() { return convertDateObjToString(updatedAt); }
-    public void setUpdatedAt(Object updatedAt) { this.updatedAt = convertToIsoString(updatedAt); }
+  public void setIsAdmin(Boolean isAdmin) {
+    this.isAdmin = isAdmin;
+  }
 
-    public String getLastUsedAt() { return convertDateObjToString(lastUsedAt); }
-    public void setLastUsedAt(Object lastUsedAt) { this.lastUsedAt = convertToIsoString(lastUsedAt); }
+  public String getRole() {
+    return role;
+  }
 
-    public String getLastLoginAt() { return convertDateObjToString(lastLoginAt); }
-    public void setLastLoginAt(Object lastLoginAt) { this.lastLoginAt = convertToIsoString(lastLoginAt); }
+  public void setRole(String role) {
+    this.role = role;
+  }
 
-    private String convertToIsoString(Object obj) {
-        if (obj == null) return null;
-        if (obj instanceof String) return (String) obj;
-        if (obj instanceof LocalDateTime) return ((LocalDateTime) obj).toString();
-        if (obj instanceof Timestamp) return ((Timestamp) obj).toDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime().toString();
-        if (obj instanceof java.util.Map) {
-            try {
-                java.util.Map<?, ?> map = (java.util.Map<?, ?>) obj;
-                Object seconds = map.get("seconds");
-                Object nanos = map.get("nanoseconds");
-                if (seconds instanceof Long && nanos instanceof Integer) {
-                    return LocalDateTime.ofInstant(
-                        Instant.ofEpochSecond((Long) seconds, (Integer) nanos),
-                        ZoneId.systemDefault()
-                    ).toString();
-                }
-            } catch (Exception e) {}
-            return null;
+  public String getUserRole() {
+    return userRole;
+  }
+
+  public void setUserRole(String userRole) {
+    this.userRole = userRole;
+  }
+
+  public String getUsername() {
+    return username;
+  }
+
+  public void setUsername(String username) {
+    this.username = username;
+  }
+
+  public Long getCurrentUsage() {
+    return currentUsage;
+  }
+
+  public void setCurrentUsage(Long currentUsage) {
+    this.currentUsage = currentUsage;
+  }
+
+  public String getCreatedAt() {
+    return convertDateObjToString(createdAt);
+  }
+
+  public void setCreatedAt(Object createdAt) {
+    this.createdAt = convertToIsoString(createdAt);
+  }
+
+  public String getUpdatedAt() {
+    return convertDateObjToString(updatedAt);
+  }
+
+  public void setUpdatedAt(Object updatedAt) {
+    this.updatedAt = convertToIsoString(updatedAt);
+  }
+
+  public String getLastUsedAt() {
+    return convertDateObjToString(lastUsedAt);
+  }
+
+  public void setLastUsedAt(Object lastUsedAt) {
+    this.lastUsedAt = convertToIsoString(lastUsedAt);
+  }
+
+  public String getLastLoginAt() {
+    return convertDateObjToString(lastLoginAt);
+  }
+
+  public void setLastLoginAt(Object lastLoginAt) {
+    this.lastLoginAt = convertToIsoString(lastLoginAt);
+  }
+
+  private String convertToIsoString(Object obj) {
+    if (obj == null) return null;
+    if (obj instanceof String) return (String) obj;
+    if (obj instanceof LocalDateTime) return ((LocalDateTime) obj).toString();
+    if (obj instanceof Timestamp)
+      return ((Timestamp) obj)
+          .toDate()
+          .toInstant()
+          .atZone(ZoneId.systemDefault())
+          .toLocalDateTime()
+          .toString();
+    if (obj instanceof java.util.Map) {
+      try {
+        java.util.Map<?, ?> map = (java.util.Map<?, ?>) obj;
+        Object seconds = map.get("seconds");
+        Object nanos = map.get("nanoseconds");
+        if (seconds instanceof Long && nanos instanceof Integer) {
+          return LocalDateTime.ofInstant(
+                  Instant.ofEpochSecond((Long) seconds, (Integer) nanos), ZoneId.systemDefault())
+              .toString();
         }
-        return null;
+      } catch (Exception e) {
+      }
+      return null;
     }
+    return null;
+  }
 
-    private String convertDateObjToString(Object obj) {
-        if (obj == null) return null;
-        if (obj instanceof String) return (String) obj;
-        return convertToIsoString(obj);
-    }
+  private String convertDateObjToString(Object obj) {
+    if (obj == null) return null;
+    if (obj instanceof String) return (String) obj;
+    return convertToIsoString(obj);
+  }
 
-    public Boolean getIsActive() { return isActive; }
-    public void setIsActive(Boolean isActive) { this.isActive = isActive; }
+  public Boolean getIsActive() {
+    return isActive;
+  }
 
-    public String getGithubInstallationId() { return githubInstallationId; }
-    public void setGithubInstallationId(String githubInstallationId) { this.githubInstallationId = githubInstallationId; }
+  public void setIsActive(Boolean isActive) {
+    this.isActive = isActive;
+  }
 
-    @Exclude
-    public boolean isSystemAdmin() {
-        return getTier() == UserTier.ADMIN;
-    }
+  public String getGithubInstallationId() {
+    return githubInstallationId;
+  }
 
-    @Exclude
-    public Long fetchMonthlyQuota() {
-        return getTier().getDefaultMonthlyQuota();
-    }
+  public void setGithubInstallationId(String githubInstallationId) {
+    this.githubInstallationId = githubInstallationId;
+  }
 
-    public void resetMonthlyUsage() {
-        this.currentUsage = 0L;
-        this.updatedAt = java.time.LocalDateTime.now().toString();
-    }
+  @Exclude
+  public boolean isSystemAdmin() {
+    return getTier() == UserTier.ADMIN;
+  }
 
-    @Exclude
-    public boolean checkQuotaRemaining() {
-        if (getTier() == UserTier.ADMIN) return true;
-        return this.currentUsage < fetchMonthlyQuota();
-    }
+  @Exclude
+  public Long fetchMonthlyQuota() {
+    return getTier().getDefaultMonthlyQuota();
+  }
 
-    @Exclude
-    public boolean isAdmin() {
-        return isSystemAdmin();
-    }
+  public void resetMonthlyUsage() {
+    this.currentUsage = 0L;
+    this.updatedAt = java.time.LocalDateTime.now().toString();
+  }
 
-    @Exclude
-    public Long getMonthlyQuota() {
-        return fetchMonthlyQuota();
-    }
+  @Exclude
+  public boolean checkQuotaRemaining() {
+    if (getTier() == UserTier.ADMIN) return true;
+    return this.currentUsage < fetchMonthlyQuota();
+  }
 
-    @Exclude
-    public boolean hasQuotaRemaining() {
-        return checkQuotaRemaining();
-    }
+  @Exclude
+  public boolean isAdmin() {
+    return isSystemAdmin();
+  }
 
-    public Boolean getAdmin() { return admin; }
-    public void setAdmin(Boolean admin) { this.admin = admin; }
+  @Exclude
+  public Long getMonthlyQuota() {
+    return fetchMonthlyQuota();
+  }
+
+  @Exclude
+  public boolean hasQuotaRemaining() {
+    return checkQuotaRemaining();
+  }
+
+  public Boolean getAdmin() {
+    return admin;
+  }
+
+  public void setAdmin(Boolean admin) {
+    this.admin = admin;
+  }
 }

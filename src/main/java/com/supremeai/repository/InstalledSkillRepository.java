@@ -5,5 +5,4 @@ import com.supremeai.model.InstalledSkill;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface InstalledSkillRepository extends FirestoreReactiveRepository<InstalledSkill> {
-}
+public interface InstalledSkillRepository extends FirestoreReactiveRepository<InstalledSkill> {}

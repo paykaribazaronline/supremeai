@@ -6,69 +6,133 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * ProviderTypeConfig — Firestore document for dynamic provider type definitions.
- * Collection: provider_types
+ * ProviderTypeConfig — Firestore document for dynamic provider type definitions. Collection:
+ * provider_types
  *
- * This replaces all hardcoded switch/case provider mappings in AIProviderFactory.
- * Admin can add/edit/delete provider types via dashboard without code changes.
+ * <p>This replaces all hardcoded switch/case provider mappings in AIProviderFactory. Admin can
+ * add/edit/delete provider types via dashboard without code changes.
  */
 @Document(collectionName = "provider_types")
 public class ProviderTypeConfig {
 
-    @DocumentId
-    private String typeId;
+  @DocumentId private String typeId;
 
-    private String displayName;
-    private String defaultBaseUrl;
-    private String defaultModel;
-    private String authType;
-    private List<String> supportedModels;
-    private List<String> capabilities;
-    private List<String> defaultRoles;
-    private List<String> keywords;
-    private Map<String, Object> extraConfig;
-    private boolean enabled;
-    private int priority;
-    private double costPer1kTokens;
+  private String displayName;
+  private String defaultBaseUrl;
+  private String defaultModel;
+  private String authType;
+  private List<String> supportedModels;
+  private List<String> capabilities;
+  private List<String> defaultRoles;
+  private List<String> keywords;
+  private Map<String, Object> extraConfig;
+  private boolean enabled;
+  private int priority;
+  private double costPer1kTokens;
 
-    public ProviderTypeConfig() {}
+  public ProviderTypeConfig() {}
 
-    public String getTypeId() { return typeId; }
-    public void setTypeId(String typeId) { this.typeId = typeId; }
+  public String getTypeId() {
+    return typeId;
+  }
 
-    public String getDisplayName() { return displayName; }
-    public void setDisplayName(String displayName) { this.displayName = displayName; }
+  public void setTypeId(String typeId) {
+    this.typeId = typeId;
+  }
 
-    public String getDefaultBaseUrl() { return defaultBaseUrl; }
-    public void setDefaultBaseUrl(String defaultBaseUrl) { this.defaultBaseUrl = defaultBaseUrl; }
+  public String getDisplayName() {
+    return displayName;
+  }
 
-    public String getDefaultModel() { return defaultModel; }
-    public void setDefaultModel(String defaultModel) { this.defaultModel = defaultModel; }
+  public void setDisplayName(String displayName) {
+    this.displayName = displayName;
+  }
 
-    public String getAuthType() { return authType; }
-    public void setAuthType(String authType) { this.authType = authType; }
+  public String getDefaultBaseUrl() {
+    return defaultBaseUrl;
+  }
 
-    public List<String> getSupportedModels() { return supportedModels; }
-    public void setSupportedModels(List<String> supportedModels) { this.supportedModels = supportedModels; }
+  public void setDefaultBaseUrl(String defaultBaseUrl) {
+    this.defaultBaseUrl = defaultBaseUrl;
+  }
 
-    public List<String> getCapabilities() { return capabilities; }
-    public void setCapabilities(List<String> capabilities) { this.capabilities = capabilities; }
+  public String getDefaultModel() {
+    return defaultModel;
+  }
 
-    public List<String> getDefaultRoles() { return defaultRoles; }
-    public void setDefaultRoles(List<String> defaultRoles) { this.defaultRoles = defaultRoles; }
+  public void setDefaultModel(String defaultModel) {
+    this.defaultModel = defaultModel;
+  }
 
-    public List<String> getKeywords() { return keywords; }
-    public void setKeywords(List<String> keywords) { this.keywords = keywords; }
+  public String getAuthType() {
+    return authType;
+  }
 
-    public Map<String, Object> getExtraConfig() { return extraConfig; }
-    public void setExtraConfig(Map<String, Object> extraConfig) { this.extraConfig = extraConfig; }
+  public void setAuthType(String authType) {
+    this.authType = authType;
+  }
 
-    public boolean isEnabled() { return enabled; }
-    public void setEnabled(boolean enabled) { this.enabled = enabled; }
+  public List<String> getSupportedModels() {
+    return supportedModels;
+  }
 
-    public int getPriority() { return priority; }
-    public void setPriority(int priority) { this.priority = priority; }
+  public void setSupportedModels(List<String> supportedModels) {
+    this.supportedModels = supportedModels;
+  }
 
-    public double getCostPer1kTokens() { return costPer1kTokens; }
-    public void setCostPer1kTokens(double costPer1kTokens) { this.costPer1kTokens = costPer1kTokens; }
+  public List<String> getCapabilities() {
+    return capabilities;
+  }
+
+  public void setCapabilities(List<String> capabilities) {
+    this.capabilities = capabilities;
+  }
+
+  public List<String> getDefaultRoles() {
+    return defaultRoles;
+  }
+
+  public void setDefaultRoles(List<String> defaultRoles) {
+    this.defaultRoles = defaultRoles;
+  }
+
+  public List<String> getKeywords() {
+    return keywords;
+  }
+
+  public void setKeywords(List<String> keywords) {
+    this.keywords = keywords;
+  }
+
+  public Map<String, Object> getExtraConfig() {
+    return extraConfig;
+  }
+
+  public void setExtraConfig(Map<String, Object> extraConfig) {
+    this.extraConfig = extraConfig;
+  }
+
+  public boolean isEnabled() {
+    return enabled;
+  }
+
+  public void setEnabled(boolean enabled) {
+    this.enabled = enabled;
+  }
+
+  public int getPriority() {
+    return priority;
+  }
+
+  public void setPriority(int priority) {
+    this.priority = priority;
+  }
+
+  public double getCostPer1kTokens() {
+    return costPer1kTokens;
+  }
+
+  public void setCostPer1kTokens(double costPer1kTokens) {
+    this.costPer1kTokens = costPer1kTokens;
+  }
 }

@@ -1,0 +1,19 @@
+:root {
+  /* Color Palette */
+  --supreme-primary: #8b5cf6;
+  --supreme-primary-hover: #7c3aed;
+  --supreme-primary-light: rgba(139, 92, 246, 0.1);
+  --supreme-bg-dark: #0f172a;
+  --supreme-bg-darker: #020617;
+  --supreme-border: #1e293b;
+  --supreme-text: #f8fafc;
+  --supreme-text-muted: #94a3b8;
+  
+  /* Typography */
+  --supreme-font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --supreme-font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+  
+  /* Layout & Spacing */
+  --supreme-radius: 8px;
+  --supreme-transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}

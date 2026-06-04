@@ -1,6 +1,7 @@
 import { initializeApp } from "firebase-admin/app";
 import { getFirestore, Firestore, Timestamp } from "firebase-admin/firestore";
 import * as https from "firebase-functions/v2/https";
+import axios from "axios";
 
 const httpsOptions = { region: "us-central1" };
 
@@ -204,7 +205,6 @@ async function callPlaywright(
   body: Record<string, unknown>,
 ): Promise<unknown> {
   try {
-    const axios = require("axios");
     const res = await axios.post(`${PLAYWRIGHT_URL}/${action}`, body, {
       timeout: parseInt(process.env.SCRAPE_TIMEOUT_MS || "30000"),
     });
@@ -351,7 +351,8 @@ export async function scrapeAndRespond(
     resultLinks = Array.isArray(searchContent)
       ? (searchContent as Array<{ href: string }>).map((r) => r.href).filter(Boolean)
       : [];
-  } catch {
+  } catch (extractionError) {
+    console.error(`[ScrapeEngine] Failed to extract search result links:`, extractionError);
     // If link extraction fails, fall back to navigating each engine URL directly
     resultLinks = builtUrls.map((b) => b.url);
   }
@@ -525,7 +526,6 @@ export const scrapeHealthFn = https.onRequest(
   async (_req: any, res: any) => {
     const playStatus = (await (async (): Promise<unknown> => {
       try {
-        const axios = require("axios");
         const r = await axios.get(`${PLAYWRIGHT_URL}/health`, { timeout: 5000 });
         return { ok: r.status === 200, status: r.status };
       } catch { return { ok: false }; }

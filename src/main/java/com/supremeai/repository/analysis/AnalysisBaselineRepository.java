@@ -8,7 +8,9 @@ import reactor.core.publisher.Mono;
 
 @Repository
 public interface AnalysisBaselineRepository extends FirestoreReactiveRepository<AnalysisBaseline> {
-    Flux<AnalysisBaseline> findByProjectId(String projectId);
-    Mono<AnalysisBaseline> findByProjectIdAndCommitHash(String projectId, String commitHash);
-    Mono<AnalysisBaseline> findFirstByProjectIdOrderByCreatedAtAsc(String projectId);
+  Flux<AnalysisBaseline> findByProjectId(String projectId);
+
+  Mono<AnalysisBaseline> findByProjectIdAndCommitHash(String projectId, String commitHash);
+
+  Mono<AnalysisBaseline> findFirstByProjectIdOrderByCreatedAtAsc(String projectId);
 }

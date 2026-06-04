@@ -22,17 +22,23 @@ import QuotaSettingsCard from '../components/settings/QuotaSettingsCard';
 import NotificationSettingsCard from '../components/settings/NotificationSettingsCard';
 import EngineSettingsCard from '../components/settings/EngineSettingsCard';
 import { Form } from 'antd';
+import { useOutletContext } from 'react-router-dom';
 
 const { Title, Text } = Typography;
 
 interface AdminSettingsProps {
-  darkMode: boolean;
-  setDarkMode: (value: boolean) => void;
-  chatFont: string;
-  setChatFont: (value: string) => void;
+  darkMode?: boolean;
+  setDarkMode?: (value: boolean) => void;
+  chatFont?: string;
+  setChatFont?: (value: string) => void;
 }
 
-const AdminSettings: React.FC<AdminSettingsProps> = ({ darkMode, setDarkMode, chatFont, setChatFont }) => {
+const AdminSettings: React.FC<AdminSettingsProps> = (props) => {
+  const context = useOutletContext<{ darkMode?: boolean; setDarkMode?: (value: boolean) => void; chatFont?: string; setChatFont?: (value: string) => void }>();
+  const darkMode = props.darkMode ?? context.darkMode ?? true;
+  const setDarkMode = props.setDarkMode ?? context.setDarkMode ?? (() => { });
+  const chatFont = props.chatFont ?? context.chatFont ?? 'font-mono';
+  const setChatFont = props.setChatFont ?? context.setChatFont ?? (() => { });
   const [config, setConfig] = useState<SystemConfig>({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);

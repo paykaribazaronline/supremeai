@@ -4,47 +4,47 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
 public class ProjectCreateRequest {
-    @NotBlank(message = "Project name is required")
-    private String name;
-    
-    @Size(max = 2000, message = "Description must be 2000 characters or less")
-    private String description;
-    
-    private String type = "standard";
-    
-    private String platform;
+  @NotBlank(message = "Project name is required")
+  private String name;
 
-    public ProjectCreateRequest() {}
+  @Size(max = 2000, message = "Description must be 2000 characters or less")
+  private String description;
 
-    public String getName() {
-        return name;
-    }
+  private String type = "standard";
 
-    public void setName(String name) {
-        this.name = name;
-    }
+  private String platform;
 
-    public String getDescription() {
-        return description;
-    }
+  public ProjectCreateRequest() {}
 
-    public void setDescription(String description) {
-        this.description = description;
-    }
+  public String getName() {
+    return name;
+  }
 
-    public String getType() {
-        return type;
-    }
+  public void setName(String name) {
+    this.name = name;
+  }
 
-    public void setType(String type) {
-        this.type = type;
-    }
+  public String getDescription() {
+    return description;
+  }
 
-    public String getPlatform() {
-        return platform;
-    }
+  public void setDescription(String description) {
+    this.description = description;
+  }
 
-    public void setPlatform(String platform) {
-        this.platform = platform;
-    }
+  public String getType() {
+    return type;
+  }
+
+  public void setType(String type) {
+    this.type = type;
+  }
+
+  public String getPlatform() {
+    return platform;
+  }
+
+  public void setPlatform(String platform) {
+    this.platform = platform;
+  }
 }

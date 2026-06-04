@@ -1,15 +1,18 @@
 package com.supremeai.repository;
 
-import com.supremeai.model.User;
 import com.google.cloud.spring.data.firestore.FirestoreReactiveRepository;
+import com.supremeai.model.User;
 import org.springframework.stereotype.Repository;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @Repository
 public interface UserRepository extends FirestoreReactiveRepository<User> {
-    Mono<User> findByEmail(String email);
-    Mono<User> findByFirebaseUid(String firebaseUid);
-    Flux<User> findByIsActive(boolean isActive);
-    Mono<Void> deleteByFirebaseUid(String firebaseUid);
+  Mono<User> findByEmail(String email);
+
+  Mono<User> findByFirebaseUid(String firebaseUid);
+
+  Flux<User> findByIsActive(boolean isActive);
+
+  Mono<Void> deleteByFirebaseUid(String firebaseUid);
 }

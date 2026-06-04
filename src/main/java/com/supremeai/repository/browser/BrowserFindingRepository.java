@@ -5,5 +5,5 @@ import com.supremeai.model.browser.BrowserFinding;
 import reactor.core.publisher.Flux;
 
 public interface BrowserFindingRepository extends FirestoreReactiveRepository<BrowserFinding> {
-    Flux<BrowserFinding> findByTaskId(String taskId);
+  Flux<BrowserFinding> findByTaskId(String taskId);
 }

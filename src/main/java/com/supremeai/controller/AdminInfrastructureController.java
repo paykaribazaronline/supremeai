@@ -13,25 +13,25 @@ import reactor.core.publisher.Mono;
 @PreAuthorize("hasRole('ADMIN')")
 public class AdminInfrastructureController {
 
-    private final InfrastructureConciergeService infraService;
+  private final InfrastructureConciergeService infraService;
 
-    @GetMapping("/advice")
-    public Mono<com.supremeai.response.ApiResponse<java.util.List<InfrastructureAdvice>>> getAllAdvice() {
-        // Return all generated advice for the system
-        return infraService.getAllAdvice()
-                .collectList()
-                .map(com.supremeai.response.ApiResponse::ok);
-    }
+  @GetMapping("/advice")
+  public Mono<com.supremeai.response.ApiResponse<java.util.List<InfrastructureAdvice>>>
+      getAllAdvice() {
+    // Return all generated advice for the system
+    return infraService.getAllAdvice().collectList().map(com.supremeai.response.ApiResponse::ok);
+  }
 
-    @PostMapping("/generate-advice")
-    public Mono<com.supremeai.response.ApiResponse<InfrastructureAdvice>> generateGlobalAdvice() {
-        return infraService.getOrGenerateAdvice("global-system")
-                .map(com.supremeai.response.ApiResponse::ok);
-    }
+  @PostMapping("/generate-advice")
+  public Mono<com.supremeai.response.ApiResponse<InfrastructureAdvice>> generateGlobalAdvice() {
+    return infraService
+        .getOrGenerateAdvice("global-system")
+        .map(com.supremeai.response.ApiResponse::ok);
+  }
 
-    @GetMapping("/advice/{appId}")
-    public Mono<com.supremeai.response.ApiResponse<InfrastructureAdvice>> getAdvice(@PathVariable String appId) {
-        return infraService.getOrGenerateAdvice(appId)
-                .map(com.supremeai.response.ApiResponse::ok);
-    }
+  @GetMapping("/advice/{appId}")
+  public Mono<com.supremeai.response.ApiResponse<InfrastructureAdvice>> getAdvice(
+      @PathVariable String appId) {
+    return infraService.getOrGenerateAdvice(appId).map(com.supremeai.response.ApiResponse::ok);
+  }
 }

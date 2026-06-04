@@ -7,5 +7,5 @@ import reactor.core.publisher.Flux;
 
 @Repository
 public interface MilestoneRepository extends FirestoreReactiveRepository<Milestone> {
-    Flux<Milestone> findAllByOrderByOrderAsc();
+  Flux<Milestone> findAllByOrderByOrderAsc();
 }

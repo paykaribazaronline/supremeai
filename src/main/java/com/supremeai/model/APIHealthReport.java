@@ -6,59 +6,97 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Daily health report for all stored API keys.
- * Helps administrators identify dead/expired keys.
- */
+/** Daily health report for all stored API keys. Helps administrators identify dead/expired keys. */
 public class APIHealthReport {
 
-    @DocumentId
-    private String id;
+  @DocumentId private String id;
 
-    private int totalKeysTested;
-    private int activeKeys;
-    private int deadKeys;
-    private int rotationDueKeys;
-    
-    private List<Map<String, Object>> deadKeyDetails; // [{id, label, provider, error}]
+  private int totalKeysTested;
+  private int activeKeys;
+  private int deadKeys;
+  private int rotationDueKeys;
 
-    @ServerTimestamp
-    private Date createdAt;
+  private List<Map<String, Object>> deadKeyDetails; // [{id, label, provider, error}]
 
-    public APIHealthReport() {}
+  @ServerTimestamp private Date createdAt;
 
-    public APIHealthReport(String id, int total, int active, int dead, int rotationDue) {
-        this.id = id;
-        this.totalKeysTested = total;
-        this.activeKeys = active;
-        this.deadKeys = dead;
-        this.rotationDueKeys = rotationDue;
-        this.createdAt = new Date();
-    }
+  public APIHealthReport() {}
 
-    public String getId() { return id; }
-    public void setId(String id) { this.id = id; }
+  public APIHealthReport(String id, int total, int active, int dead, int rotationDue) {
+    this.id = id;
+    this.totalKeysTested = total;
+    this.activeKeys = active;
+    this.deadKeys = dead;
+    this.rotationDueKeys = rotationDue;
+    this.createdAt = new Date();
+  }
 
-    public int getTotalKeysTested() { return totalKeysTested; }
-    public void setTotalKeysTested(int totalKeysTested) { this.totalKeysTested = totalKeysTested; }
+  public String getId() {
+    return id;
+  }
 
-    public int getActiveKeys() { return activeKeys; }
-    public void setActiveKeys(int activeKeys) { this.activeKeys = activeKeys; }
+  public void setId(String id) {
+    this.id = id;
+  }
 
-    public int getDeadKeys() { return deadKeys; }
-    public void setDeadKeys(int deadKeys) { this.deadKeys = deadKeys; }
+  public int getTotalKeysTested() {
+    return totalKeysTested;
+  }
 
-    public int getRotationDueKeys() { return rotationDueKeys; }
-    public void setRotationDueKeys(int rotationDueKeys) { this.rotationDueKeys = rotationDueKeys; }
+  public void setTotalKeysTested(int totalKeysTested) {
+    this.totalKeysTested = totalKeysTested;
+  }
 
-    // Convenience aliases for SelfHealingService
-    public int getTotalCount() { return totalKeysTested; }
-    public int getActiveCount() { return activeKeys; }
-    public int getDeadCount() { return deadKeys; }
+  public int getActiveKeys() {
+    return activeKeys;
+  }
 
-    public List<Map<String, Object>> getDeadKeyDetails() { return deadKeyDetails; }
-    public void setDeadKeyDetails(List<Map<String, Object>> deadKeyDetails) { this.deadKeyDetails = deadKeyDetails; }
+  public void setActiveKeys(int activeKeys) {
+    this.activeKeys = activeKeys;
+  }
 
-    public Date getCreatedAt() { return createdAt; }
-    public void setCreatedAt(Date createdAt) { this.createdAt = createdAt; }
+  public int getDeadKeys() {
+    return deadKeys;
+  }
+
+  public void setDeadKeys(int deadKeys) {
+    this.deadKeys = deadKeys;
+  }
+
+  public int getRotationDueKeys() {
+    return rotationDueKeys;
+  }
+
+  public void setRotationDueKeys(int rotationDueKeys) {
+    this.rotationDueKeys = rotationDueKeys;
+  }
+
+  // Convenience aliases for SelfHealingService
+  public int getTotalCount() {
+    return totalKeysTested;
+  }
+
+  public int getActiveCount() {
+    return activeKeys;
+  }
+
+  public int getDeadCount() {
+    return deadKeys;
+  }
+
+  public List<Map<String, Object>> getDeadKeyDetails() {
+    return deadKeyDetails;
+  }
+
+  public void setDeadKeyDetails(List<Map<String, Object>> deadKeyDetails) {
+    this.deadKeyDetails = deadKeyDetails;
+  }
+
+  public Date getCreatedAt() {
+    return createdAt;
+  }
+
+  public void setCreatedAt(Date createdAt) {
+    this.createdAt = createdAt;
+  }
 }

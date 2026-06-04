@@ -5,5 +5,4 @@ import com.supremeai.model.VPNConnection;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface VPNRepository extends FirestoreReactiveRepository<VPNConnection> {
-}
+public interface VPNRepository extends FirestoreReactiveRepository<VPNConnection> {}

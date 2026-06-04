@@ -1,0 +1,10 @@
+{
+  "name": "@supremeai/design-system",
+  "version": "1.0.0",
+  "description": "Shared Design System tokens for SupremeAI Web, Flutter, and VSCode Extension",
+  "main": "index.js",
+  "types": "index.d.ts",
+  "scripts": {
+    "build": "echo 'Building design system tokens...'"
+  }
+}

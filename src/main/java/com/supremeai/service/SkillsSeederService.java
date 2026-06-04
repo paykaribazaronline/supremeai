@@ -14,40 +14,42 @@ import reactor.core.scheduler.Schedulers;
 @Component
 public class SkillsSeederService {
 
-    private static final Logger log = LoggerFactory.getLogger(SkillsSeederService.class);
+  private static final Logger log = LoggerFactory.getLogger(SkillsSeederService.class);
 
-    @Autowired
-    private InstalledSkillRepository installedSkillRepository;
+  @Autowired private InstalledSkillRepository installedSkillRepository;
 
-    @Autowired
-    private SkillsSeedDataProvider skillsSeedDataProvider;
+  @Autowired private SkillsSeedDataProvider skillsSeedDataProvider;
 
-    @EventListener(ApplicationReadyEvent.class)
-    public void seedSkills() {
-        log.info("[SKILL-SEED] Checking installed_skills collection...");
-        installedSkillRepository.count()
-            .subscribeOn(Schedulers.boundedElastic())
-            .flatMapMany(count -> {
-                if (count == 0) {
-                    log.info("[SKILL-SEED] installed_skills is empty — seeding skill marketplace...");
-                    return seedAll();
-                } else {
-                    log.info("[SKILL-SEED] installed_skills already has {} entries — skipping seed", count);
-                    return Flux.empty();
-                }
+  @EventListener(ApplicationReadyEvent.class)
+  public void seedSkills() {
+    log.info("[SKILL-SEED] Checking installed_skills collection...");
+    installedSkillRepository
+        .count()
+        .subscribeOn(Schedulers.boundedElastic())
+        .flatMapMany(
+            count -> {
+              if (count == 0) {
+                log.info("[SKILL-SEED] installed_skills is empty — seeding skill marketplace...");
+                return seedAll();
+              } else {
+                log.info(
+                    "[SKILL-SEED] installed_skills already has {} entries — skipping seed", count);
+                return Flux.empty();
+              }
             })
-            .subscribe(
-                entry -> log.debug("[SKILL-SEED] Saved: {}", entry.getId()),
-                error -> log.error("[SKILL-SEED] Failed to seed skills: {}", error.getMessage()),
-                () -> log.info("[SKILL-SEED] Skill marketplace seed complete")
-            );
-    }
+        .subscribe(
+            entry -> log.debug("[SKILL-SEED] Saved: {}", entry.getId()),
+            error -> log.error("[SKILL-SEED] Failed to seed skills: {}", error.getMessage()),
+            () -> log.info("[SKILL-SEED] Skill marketplace seed complete"));
+  }
 
-    private Flux<InstalledSkill> seedAll() {
-        return skillsSeedDataProvider.provideAllSkillSeeds()
-            .flatMap(skill -> installedSkillRepository
+  private Flux<InstalledSkill> seedAll() {
+    return skillsSeedDataProvider
+        .provideAllSkillSeeds()
+        .flatMap(
+            skill ->
+                installedSkillRepository
                     .save(skill)
-                    .doOnSuccess(saved -> log.debug("[SKILL-SEED] Saved: {}", saved.getId()))
-            );
-    }
+                    .doOnSuccess(saved -> log.debug("[SKILL-SEED] Saved: {}", saved.getId())));
+  }
 }

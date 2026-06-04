@@ -1,5 +1,5 @@
-// ChatWithAI.tsx - Premium Designed Neural Chat Component
 import React, { useState, useRef, useEffect } from 'react';
+import ReactMarkdown from 'react-markdown';
 import { Input, Button, message, Tooltip, Modal, Badge } from 'antd';
 import {
     SendOutlined,
@@ -14,9 +14,12 @@ import {
     AudioOutlined,
     PictureOutlined,
     CloseCircleOutlined,
-    LoadingOutlined
+    LoadingOutlined,
+    LockOutlined,
 } from '@ant-design/icons';
 import { authUtils } from '../lib/authUtils';
+import './ChatWithAI.css';
+
 
 interface ChatMessage {
     id: string;
@@ -39,6 +42,56 @@ interface ChatSession {
     createdAt: string;
 }
 
+interface Agent {
+    id: string;
+    name: string;
+    status: string;
+    type: string;
+}
+
+interface Rule {
+    content?: string;
+    message?: string;
+}
+
+interface Plan {
+    id?: string;
+    name?: string;
+}
+
+interface Action {
+    id?: string;
+    name?: string;
+}
+
+interface SpeechRecognitionEvent extends Event {
+    resultIndex: number;
+    results: {
+        [index: number]: {
+            [index: number]: {
+                transcript: string;
+            };
+            isFinal: boolean;
+        };
+        length: number;
+    };
+}
+
+interface SpeechRecognitionErrorEvent extends Event {
+    error: string;
+}
+
+interface ISpeechRecognition {
+    continuous: boolean;
+    interimResults: boolean;
+    lang: string;
+    onresult: (event: SpeechRecognitionEvent) => void;
+    onerror: (event: SpeechRecognitionErrorEvent) => void;
+    onend: () => void;
+    start: () => void;
+    stop: () => void;
+}
+
 interface ChatWithAIProps {
     chatFont?: string;
 }
@@ -54,13 +107,13 @@ const ChatWithAI: React.FC<ChatWithAIProps> = ({ chatFont = 'font-mono' }) => {
     const [input, setInput] = useState('');
     const [loading, setLoading] = useState(false);
     const [selectedAgent, setSelectedAgent] = useState('all');
-    const [agents, setAgents] = useState<any[]>([]);
-    const [knowledge, setKnowledge] = useState<{rules: any[], plans: any[], actions: any[]}>({ rules: [], plans: [], actions: [] });
+    const [agents, setAgents] = useState<Agent[]>([]);
+    const [knowledge, setKnowledge] = useState<{rules: Rule[], plans: Plan[], actions: Action[]}>({ rules: [], plans: [], actions: [] });
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
     // Voice & Image States
     const [isRecording, setIsRecording] = useState(false);
-    const [recognition, setRecognition] = useState<any>(null);
+    const [recognition, setRecognition] = useState<ISpeechRecognition | null>(null);
     const [attachedImage, setAttachedImage] = useState<string | null>(null);
     const [attachedImageName, setAttachedImageName] = useState<string>('');
 
@@ -73,7 +126,7 @@ const ChatWithAI: React.FC<ChatWithAIProps> = ({ chatFont = 'font-mono' }) => {
             recog.interimResults = true;
             recog.lang = 'bn-BD'; // Support Bengali by default
 
-            recog.onresult = (event: any) => {
+            recog.onresult = (event: SpeechRecognitionEvent) => {
                 let interimTranscript = '';
                 let finalTranscript = '';
                 for (let i = event.resultIndex; i < event.results.length; ++i) {
@@ -95,7 +148,7 @@ const ChatWithAI: React.FC<ChatWithAIProps> = ({ chatFont = 'font-mono' }) => {
                 }
             };
 
-            recog.onerror = (event: any) => {
+            recog.onerror = (event: SpeechRecognitionErrorEvent) => {
                 console.error('Speech recognition error:', event.error);
                 if (event.error === 'not-allowed') {
                     message.error('মাইক্রোফোন অ্যাক্সেসের অনুমতি নেই।');
@@ -165,34 +218,111 @@ const ChatWithAI: React.FC<ChatWithAIProps> = ({ chatFont = 'font-mono' }) => {
         message.info('সংযুক্ত ছবি মুছে ফেলা হয়েছে।');
     };
 
-    // Load sessions from localStorage on mount
+    // Encryption helpers
+const getCryptoKey = async (): Promise<CryptoKey | null> => {
+  const raw = sessionStorage.getItem('supremeai_crypto_key');
+  if (!raw) return null;
+  try {
+    return await crypto.subtle.importKey(
+      'jwk',
+      JSON.parse(raw),
+      { name: 'AES-GCM', length: 256 },
+      true,
+      ['encrypt', 'decrypt'],
+    );
+  } catch {
+    return null;
+  }
+};
+
+const storeCryptoKey = async (key: CryptoKey) => {
+  const jwk = await crypto.subtle.exportKey('jwk', key);
+  sessionStorage.setItem('supremeai_crypto_key', JSON.stringify(jwk));
+};
+
+const encryptPayload = async (payload: unknown): Promise<string> => {
+  try {
+    let key = await getCryptoKey();
+    if (!key) {
+      key = await crypto.subtle.generateKey(
+        { name: 'AES-GCM', length: 256 },
+        true,
+        ['encrypt', 'decrypt'],
+      );
+      await storeCryptoKey(key);
+    }
+    const iv = crypto.getRandomValues(new Uint8Array(12));
+    const encoded = new TextEncoder().encode(JSON.stringify(payload));
+    const cipher = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, encoded);
+    const combined = new Uint8Array(iv.length + cipher.byteLength);
+    combined.set(iv, 0);
+    combined.set(new Uint8Array(cipher), iv.length);
+    return btoa(String.fromCharCode(...combined));
+  } catch {
+    return btoa(encodeURIComponent(JSON.stringify(payload)));
+  }
+};
+
+const decryptPayload = async (token: string): Promise<unknown> => {
+  try {
+    const combined = Uint8Array.from(atob(token), c => c.charCodeAt(0));
+    const key = await getCryptoKey();
+    if (!key) throw new Error('missing_key');
+    const iv = combined.slice(0, 12);
+    const cipher = combined.slice(12);
+    const plain = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, cipher);
+    return JSON.parse(new TextDecoder().decode(plain));
+  } catch {
+    return JSON.parse(decodeURIComponent(atob(token)));
+  }
+};
+
+const sessionStorageKey = 'supremeai_chat_sessions_v1';
+
+const loadSessions = async (): Promise<ChatSession[]> => {
+  try {
+    const raw = sessionStorage.getItem(sessionStorageKey);
+    if (!raw) return [];
+    const data = (await decryptPayload(raw)) as ChatSession[];
+    if (Array.isArray(data)) return data;
+  } catch (e) {
+    console.error('Failed to load sessions:', e);
+  }
+  return [];
+};
+
+const saveSessions = async (sessions: ChatSession[]) => {
+  try {
+    const encrypted = await encryptPayload(sessions);
+    sessionStorage.setItem(sessionStorageKey, encrypted);
+  } catch (e) {
+    console.error('Failed to save sessions:', e);
+  }
+};
+
+    // Load sessions from sessionStorage on mount
     useEffect(() => {
-        const savedSessions = localStorage.getItem('supremeai_chat_sessions');
-        if (savedSessions) {
-            try {
-                const parsed = JSON.parse(savedSessions);
-                setSessions(parsed);
-                if (parsed.length > 0) {
-                    setActiveSessionId(parsed[0].id);
-                } else {
-                    createNewSession();
-                }
-            } catch (e) {
-                console.error('Failed to parse saved sessions');
+        let cancelled = false;
+        const bootstrap = async () => {
+            const saved = await loadSessions();
+            if (cancelled) return;
+            setSessions(saved);
+            if (saved.length > 0) {
+                setActiveSessionId(saved[0].id);
+            } else {
                 createNewSession();
             }
-        } else {
-            createNewSession();
-        }
-        
-        fetchAgents();
-        fetchKnowledge();
+            fetchAgents();
+            fetchKnowledge();
+        };
+        bootstrap();
+        return () => { cancelled = true; };
     }, []);
 
-    // Save sessions to localStorage whenever they change
+    // Save sessions to sessionStorage whenever they change
     useEffect(() => {
         if (sessions.length >= 0) {
-            localStorage.setItem('supremeai_chat_sessions', JSON.stringify(sessions));
+            saveSessions(sessions);
         }
     }, [sessions]);
 
@@ -263,7 +393,7 @@ const ChatWithAI: React.FC<ChatWithAIProps> = ({ chatFont = 'font-mono' }) => {
                 const result = await response.json();
                 const rawData = result.data?.providers || (Array.isArray(result.data) ? result.data : []);
                 
-                const mappedAgents = rawData.map((p: any) => ({
+                const mappedAgents = rawData.map((p: { id: string; name: string; status?: string; type?: string; }) => ({
                     id: p.id,
                     name: p.name,
                     status: p.status || 'online',
@@ -347,12 +477,19 @@ const ChatWithAI: React.FC<ChatWithAIProps> = ({ chatFont = 'font-mono' }) => {
                 ? `${messageText}\n\n[সংযুক্ত ছবি: ${currentImageName}]\n![${currentImageName}](${currentImage})`
                 : messageText;
 
+            // 🧠 Intent Classifier: Route between Tiny Hybrid and GODMODE 3
+            const criticalKeywords = ['code', 'analyze', 'hack', 'critical', 'error', 'debug', 'explain', 'complex', 'why', 'কীভাবে', 'কেন', 'কোড', 'বিশ্লেষণ', 'সমস্যা'];
+            const isCritical = criticalKeywords.some(kw => messageText.toLowerCase().includes(kw));
+            
+            // If critical, we route to GODMODE (represented by 'all' models or a special tag)
+            const routingAgentId = isCritical ? 'all' : (selectedAgent === 'all' ? null : selectedAgent);
+
             const response = await authUtils.fetchWithAuth('/api/chat/send', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    message: messageBody,
-                    agentId: selectedAgent === 'all' ? null : selectedAgent,
+                    message: isCritical ? `[GODMODE 3 CRITICAL REQUEST]\n${messageBody}` : messageBody,
+                    agentId: routingAgentId,
                     sessionId: activeSessionId,
                     messages: history,
                 }),
@@ -363,11 +500,11 @@ const ChatWithAI: React.FC<ChatWithAIProps> = ({ chatFont = 'font-mono' }) => {
                 const aiMessage: ChatMessage = {
                     id: (Date.now() + 1).toString(),
                     sender: 'ai',
-                    agent: data.agent_name || 'Neural Core',
+                    agent: isCritical ? `🔥 GODMODE 3 (${data.agent_name || 'Multi-Model'})` : `Tiny Hybrid (${data.agent_name || 'Core'})`,
                     content: data.message || 'Processing optimized.',
                     timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-                    confidence: data.confidence ? Math.round(data.confidence * 100) : undefined,
-                    intent: data.intent || 'NORMAL',
+                    confidence: data.confidence ? Math.round(data.confidence * 100) : (isCritical ? 99 : 88),
+                    intent: isCritical ? 'CRITICAL_ROUTING' : 'NORMAL_ROUTING',
                     status: 'completed',
                     type: data.type,
                     options: data.options || [],
@@ -378,20 +515,22 @@ const ChatWithAI: React.FC<ChatWithAIProps> = ({ chatFont = 'font-mono' }) => {
                 ));
             } else {
                 // API failed - provide local fallback response
-                let errorMsg = 'সিস্টেম প্রক্রিয়াকরণে সমস্যা হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন বা ব্যাকএন্ড লগ পরীক্ষা করুন।';
+                let errorMsg = `সিস্টেম প্রক্রিয়াকরণে সমস্যা হয়েছে (Error ${response.status}: ${response.statusText})। অনুগ্রহ করে আবার চেষ্টা করুন বা ব্যাকএন্ড লগ পরীক্ষা করুন।`;
                 try {
                     const data = await response.json();
-                    if (data && data.message) errorMsg = data.message;
-                    else if (data && data.error) errorMsg = data.error;
-                } catch(e) {}
+                    if (data && data.message) errorMsg = `Error ${response.status}: ${data.message}`;
+                    else if (data && data.error) errorMsg = `Error ${response.status}: ${data.error}`;
+                } catch(e) {
+                    console.error('Failed to parse API error response JSON:', e);
+                }
 
                 const fallbackMessage: ChatMessage = {
                     id: (Date.now() + 1).toString(),
                     sender: 'ai',
-                    agent: 'সিস্টেম রেসপন্স',
+                    agent: 'সিস্টেম রেসপন্স (Error)',
                     content: errorMsg,
                     timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-                    status: 'completed',
+                    status: 'error',
                 };
                 
                 setSessions(prev => prev.map(s => 
@@ -601,7 +740,9 @@ const ChatWithAI: React.FC<ChatWithAIProps> = ({ chatFont = 'font-mono' }) => {
                                                     />
                                                 </div>
                                             )}
-                                            <div style={{ wordBreak: 'break-word', whiteSpace: 'pre-wrap' }}>{msg.content}</div>
+                                            <div style={{ wordBreak: 'break-word' }}>
+                                                <ReactMarkdown>{msg.content}</ReactMarkdown>
+                                            </div>
                                             
                                             {msg.type === 'CLARIFICATION_REQUIRED' && msg.options && msg.options.length > 0 && (
                                                 <div style={{ marginTop: '16px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
@@ -844,650 +985,6 @@ const ChatWithAI: React.FC<ChatWithAIProps> = ({ chatFont = 'font-mono' }) => {
                     />
                 </div>
             </Modal>
-
-            <style>{`
-                .neural-chat-container {
-                    display: flex;
-                    flex: 1;
-                    height: 100%;
-                    overflow: hidden;
-                    border-radius: var(--radius-lg);
-                    background: var(--cyber-dark);
-                }
-
-                .neural-chat-sidebar {
-                    width: 280px;
-                    background: rgba(2, 2, 5, 0.65);
-                    border-right: 1px solid rgba(0, 243, 255, 0.15);
-                    display: flex;
-                    flex-direction: column;
-                    backdrop-filter: blur(20px);
-                    flex-shrink: 0;
-                }
-
-                .sidebar-header {
-                    padding: var(--space-3);
-                    border-bottom: 1px solid rgba(0, 243, 255, 0.1);
-                }
-
-                .new-session-glow-btn:hover {
-                    box-shadow: 0 0 25px rgba(0, 243, 255, 0.5) !important;
-                    transform: translateY(-1px);
-                }
-
-                .sessions-list {
-                    flex: 1;
-                    overflow-y: auto;
-                    padding: var(--space-2);
-                    display: flex;
-                    flex-direction: column;
-                    gap: 8px;
-                }
-
-                .session-item {
-                    display: flex;
-                    align-items: center;
-                    justify-content: space-between;
-                    padding: 12px 16px;
-                    border-radius: 12px;
-                    cursor: pointer;
-                    transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
-                    border: 1px solid transparent;
-                    position: relative;
-                    overflow: hidden;
-                }
-
-                .session-item.active {
-                    background: linear-gradient(90deg, rgba(0, 243, 255, 0.12), rgba(188, 19, 254, 0.03));
-                    border-color: rgba(0, 243, 255, 0.3);
-                    box-shadow: 0 0 15px rgba(0, 243, 255, 0.05);
-                }
-
-                .session-item:not(.active):hover {
-                    background: rgba(255, 255, 255, 0.03);
-                    border-color: rgba(255, 255, 255, 0.05);
-                }
-
-                .session-name-container {
-                    display: flex;
-                    align-items: center;
-                    gap: 12px;
-                    flex: 1;
-                    overflow: hidden;
-                }
-
-                .session-dot {
-                    width: 6px;
-                    height: 6px;
-                    border-radius: 50%;
-                    background: rgba(255, 255, 255, 0.2);
-                    transition: all 0.3s ease;
-                }
-
-                .session-item.active .session-dot {
-                    background: var(--neon-blue);
-                    box-shadow: 0 0 8px var(--neon-blue);
-                }
-
-                .session-name-text {
-                    font-size: 13px;
-                    font-weight: 600;
-                    color: rgba(255, 255, 255, 0.5);
-                    text-transform: uppercase;
-                    letter-spacing: 0.5px;
-                    white-space: nowrap;
-                    overflow: hidden;
-                    text-overflow: ellipsis;
-                    transition: all 0.3s ease;
-                }
-
-                .session-item.active .session-name-text {
-                    color: #ffffff;
-                }
-
-                .session-actions {
-                    display: flex;
-                    align-items: center;
-                    gap: 10px;
-                    opacity: 0;
-                    transition: opacity 0.25s ease;
-                    padding-left: 8px;
-                }
-
-                .session-item:hover .session-actions {
-                    opacity: 1;
-                }
-
-                .action-icon {
-                    font-size: 13px;
-                    color: rgba(255, 255, 255, 0.4);
-                    transition: color 0.2s ease;
-                    cursor: pointer;
-                }
-
-                .action-icon:hover {
-                    color: var(--neon-blue);
-                }
-
-                .action-icon.delete:hover {
-                    color: var(--error);
-                }
-
-                /* Chat Layout Content Pane */
-                .neural-chat-content {
-                    display: flex;
-                    flex-direction: column;
-                    flex: 1;
-                    position: relative;
-                    background: #030307;
-                }
-
-                .chat-content-header {
-                    padding: 16px 24px;
-                    background: rgba(2, 2, 5, 0.4);
-                    border-bottom: 1px solid rgba(0, 243, 255, 0.15);
-                    display: flex;
-                    align-items: center;
-                    justify-content: space-between;
-                    backdrop-filter: blur(10px);
-                }
-
-                .header-info-container {
-                    display: flex;
-                    align-items: center;
-                    gap: 16px;
-                }
-
-                .header-icon-wrapper {
-                    padding: 10px;
-                    background: rgba(0, 243, 255, 0.1);
-                    border-radius: 12px;
-                    border: 1px solid rgba(0, 243, 255, 0.2);
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                }
-
-                .header-title-text {
-                    font-size: 15px;
-                    font-weight: 700;
-                    color: #ffffff;
-                    margin: 0 0 2px 0;
-                }
-
-                .header-subtitle-text {
-                    font-size: 9px;
-                    color: var(--neon-blue);
-                    font-weight: 800;
-                    text-transform: uppercase;
-                    letter-spacing: 2px;
-                }
-
-                .custom-agent-select {
-                    background: rgba(8, 8, 16, 0.8);
-                    border: 1px solid rgba(0, 243, 255, 0.25);
-                    color: rgba(255, 255, 255, 0.85);
-                    font-size: 12px;
-                    font-family: var(--font-mono);
-                    padding: 8px 16px;
-                    border-radius: 8px;
-                    outline: none;
-                    cursor: pointer;
-                    transition: all 0.3s ease;
-                }
-
-                .custom-agent-select:hover {
-                    border-color: rgba(0, 243, 255, 0.5);
-                    box-shadow: 0 0 10px rgba(0, 243, 255, 0.15);
-                }
-
-                /* Chat Messages Display Area */
-                .chat-messages-area {
-                    flex: 1;
-                    overflow-y: auto;
-                    padding: 24px;
-                }
-
-                .messages-max-width-wrapper {
-                    max-width: 800px;
-                    margin: 0 auto;
-                    width: 100%;
-                    display: flex;
-                    flex-direction: column;
-                    gap: 24px;
-                }
-
-                .message-row {
-                    display: flex;
-                    width: 100%;
-                }
-
-                .message-row.user {
-                    justify-content: flex-end;
-                }
-
-                .message-row.ai {
-                    justify-content: flex-start;
-                }
-
-                .message-bubble-wrapper {
-                    max-width: 80%;
-                    display: flex;
-                    flex-direction: column;
-                }
-
-                .message-meta-header {
-                    display: flex;
-                    align-items: center;
-                    gap: 10px;
-                    margin-bottom: 6px;
-                    padding: 0 4px;
-                }
-
-                .message-meta-header.user {
-                    justify-content: flex-end;
-                }
-
-                .message-meta-header.ai {
-                    justify-content: flex-start;
-                }
-
-                .meta-sender-name {
-                    font-size: 10px;
-                    font-weight: 800;
-                    color: rgba(255, 255, 255, 0.35);
-                    text-transform: uppercase;
-                    letter-spacing: 1.5px;
-                }
-
-                .message-bubble {
-                    padding: 16px 20px;
-                    border-radius: 16px;
-                    font-size: 14px;
-                    line-height: 1.6;
-                    box-shadow: 0 10px 25px -10px rgba(0, 0, 0, 0.5);
-                    transition: all 0.3s ease;
-                }
-
-                .message-bubble.user {
-                    background: linear-gradient(135deg, rgba(0, 243, 255, 0.15), rgba(188, 19, 254, 0.04));
-                    border: 1px solid rgba(0, 243, 255, 0.25);
-                    color: #ffffff;
-                    border-top-right-radius: 2px;
-                }
-
-                .message-bubble.user:hover {
-                    border-color: rgba(0, 243, 255, 0.4);
-                    box-shadow: 0 10px 30px -10px rgba(0, 243, 255, 0.15);
-                }
-
-                .message-bubble.ai {
-                    background: rgba(255, 255, 255, 0.03);
-                    border: 1px solid rgba(255, 255, 255, 0.06);
-                    color: rgba(255, 255, 255, 0.9);
-                    border-top-left-radius: 2px;
-                    backdrop-filter: blur(10px);
-                }
-
-                .message-bubble.ai:hover {
-                    border-color: rgba(0, 243, 255, 0.15);
-                    background: rgba(255, 255, 255, 0.04);
-                }
-
-                .message-bubble-footer {
-                    display: flex;
-                    align-items: center;
-                    justify-content: space-between;
-                    margin-top: 12px;
-                    padding-top: 10px;
-                    border-top: 1px solid rgba(255, 255, 255, 0.05);
-                }
-
-                .bubble-footer-actions {
-                    display: flex;
-                    gap: 16px;
-                }
-
-                .footer-action-btn {
-                    background: transparent;
-                    border: none;
-                    color: rgba(255, 255, 255, 0.35);
-                    font-size: 10px;
-                    font-weight: 700;
-                    text-transform: uppercase;
-                    letter-spacing: 1px;
-                    cursor: pointer;
-                    display: flex;
-                    align-items: center;
-                    gap: 6px;
-                    transition: all 0.2s ease;
-                    padding: 2px 0;
-                }
-
-                .footer-action-btn:hover {
-                    color: var(--neon-blue);
-                }
-
-                .ai-confidence-badge {
-                    display: flex;
-                    align-items: center;
-                    gap: 6px;
-                    padding: 3px 8px;
-                    background: rgba(0, 243, 255, 0.08);
-                    border: 1px solid rgba(0, 243, 255, 0.2);
-                    border-radius: 6px;
-                }
-
-                .ai-confidence-dot {
-                    width: 5px;
-                    height: 5px;
-                    border-radius: 50%;
-                    background: var(--neon-blue);
-                    box-shadow: 0 0 6px var(--neon-blue);
-                }
-
-                .ai-confidence-text {
-                    font-size: 9px;
-                    font-weight: 800;
-                    color: var(--neon-blue);
-                    text-transform: uppercase;
-                    letter-spacing: 0.5px;
-                }
-
-                /* Chat Input Styling */
-                .chat-input-wrapper {
-                    padding: 24px;
-                    background: linear-gradient(180deg, transparent, rgba(2, 2, 5, 0.95));
-                    border-top: 1px solid rgba(255, 255, 255, 0.05);
-                    position: relative;
-                    z-index: 10;
-                }
-
-                .input-max-width-wrapper {
-                    max-width: 800px;
-                    margin: 0 auto;
-                    width: 100%;
-                }
-
-                .image-preview-panel {
-                    background: rgba(8, 8, 16, 0.85);
-                    border: 1px solid rgba(0, 243, 255, 0.2);
-                    border-radius: 12px;
-                    padding: 12px 16px;
-                    margin-bottom: 12px;
-                    display: flex;
-                    align-items: center;
-                    justify-content: space-between;
-                    backdrop-filter: blur(10px);
-                }
-
-                .preview-thumb-container {
-                    display: flex;
-                    align-items: center;
-                    gap: 12px;
-                }
-
-                .preview-thumbnail {
-                    width: 44px;
-                    height: 44px;
-                    border-radius: 8px;
-                    object-fit: cover;
-                    border: 1px solid rgba(255, 255, 255, 0.1);
-                }
-
-                .preview-file-details {
-                    display: flex;
-                    flex-direction: column;
-                }
-
-                .preview-filename {
-                    font-size: 12px;
-                    font-weight: 700;
-                    color: #ffffff;
-                }
-
-                .preview-badge {
-                    font-size: 8px;
-                    font-weight: 800;
-                    color: var(--neon-blue);
-                    letter-spacing: 1.5px;
-                    margin-top: 2px;
-                }
-
-                .input-container-row {
-                    display: flex;
-                    gap: 12px;
-                    align-items: center;
-                }
-
-                .reset-context-btn {
-                    width: 56px;
-                    height: 56px;
-                    border-radius: 14px;
-                    background: rgba(188, 19, 254, 0.1);
-                    border: 1px solid rgba(188, 19, 254, 0.3);
-                    color: var(--neon-purple);
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    cursor: pointer;
-                    transition: all 0.3s ease;
-                    flex-shrink: 0;
-                }
-
-                .reset-context-btn:hover {
-                    background: rgba(188, 19, 254, 0.25);
-                    border-color: var(--neon-purple);
-                    box-shadow: 0 0 15px rgba(188, 19, 254, 0.2);
-                    color: #ffffff;
-                }
-
-                .main-input-capsule {
-                    flex: 1;
-                    position: relative;
-                    display: flex;
-                    align-items: center;
-                }
-
-                .chat-styled-input {
-                    background: rgba(2, 2, 5, 0.8) !important;
-                    border: 1px solid rgba(0, 243, 255, 0.2) !important;
-                    border-radius: 16px !important;
-                    height: 56px !important;
-                    font-size: 13px !important;
-                    font-family: var(--font-mono) !important;
-                    color: #ffffff !important;
-                    padding-left: 100px !important;
-                    padding-right: 140px !important;
-                    transition: all 0.3s ease !important;
-                }
-
-                .chat-styled-input:focus, .chat-styled-input:hover {
-                    border-color: rgba(0, 243, 255, 0.5) !important;
-                    box-shadow: 0 0 15px rgba(0, 243, 255, 0.15) !important;
-                }
-
-                .chat-input-actions-prefix {
-                    position: absolute;
-                    left: 8px;
-                    top: 50%;
-                    transform: translateY(-50%);
-                    display: flex;
-                    align-items: center;
-                    gap: 4px;
-                    z-index: 5;
-                    border-right: 1px solid rgba(0, 243, 255, 0.15);
-                    padding-right: 8px;
-                }
-
-                .prefix-action-btn {
-                    background: transparent;
-                    border: none;
-                    width: 36px;
-                    height: 36px;
-                    border-radius: 10px;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    color: rgba(0, 243, 255, 0.5);
-                    cursor: pointer;
-                    transition: all 0.2s ease;
-                }
-
-                .prefix-action-btn:hover {
-                    background: rgba(0, 243, 255, 0.1);
-                    color: var(--neon-blue);
-                }
-
-                .prefix-action-btn.recording {
-                    background: rgba(239, 68, 68, 0.15);
-                    color: #ef4444;
-                    animation: recordingPulse 1.5s infinite ease-in-out;
-                }
-
-                @keyframes recordingPulse {
-                    0%, 100% { opacity: 0.8; }
-                    50% { opacity: 1; box-shadow: 0 0 10px rgba(239, 68, 68, 0.2); }
-                }
-
-                .input-submit-wrapper {
-                    position: absolute;
-                    right: 8px;
-                    top: 50%;
-                    transform: translateY(-50%);
-                    display: flex;
-                    align-items: center;
-                    gap: 8px;
-                    z-index: 5;
-                }
-
-                .chat-send-btn {
-                    height: 40px;
-                    padding: 0 20px;
-                    background: var(--neon-blue);
-                    border: none;
-                    border-radius: 10px;
-                    color: #020205;
-                    font-weight: 800;
-                    font-size: 11px;
-                    text-transform: uppercase;
-                    letter-spacing: 1.5px;
-                    cursor: pointer;
-                    display: flex;
-                    align-items: center;
-                    gap: 8px;
-                    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-                }
-
-                .chat-send-btn:hover:not(:disabled) {
-                    background: #ffffff;
-                    box-shadow: 0 0 15px rgba(0, 243, 255, 0.4);
-                    transform: translateY(-1px);
-                }
-
-                .chat-send-btn:disabled {
-                    background: rgba(255, 255, 255, 0.05);
-                    color: rgba(255, 255, 255, 0.15);
-                    cursor: not-allowed;
-                }
-
-                /* Right Sidebar: Knowledge Context styling */
-                .neural-chat-knowledge-pane {
-                    width: 320px;
-                    background: rgba(2, 2, 5, 0.3);
-                    border-left: 1px solid rgba(0, 243, 255, 0.15);
-                    display: flex;
-                    flex-direction: column;
-                    padding: 24px;
-                    flex-shrink: 0;
-                }
-
-                .knowledge-pane-title-row {
-                    display: flex;
-                    align-items: center;
-                    gap: 12px;
-                    margin-bottom: 24px;
-                }
-
-                .knowledge-section-header {
-                    display: flex;
-                    align-items: center;
-                    justify-content: space-between;
-                    margin-bottom: 16px;
-                }
-
-                .knowledge-section-title {
-                    font-size: 10px;
-                    font-weight: 800;
-                    color: rgba(255, 255, 255, 0.35);
-                    text-transform: uppercase;
-                    letter-spacing: 2px;
-                }
-
-                .knowledge-cards-stack {
-                    display: flex;
-                    flex-direction: column;
-                    gap: 12px;
-                }
-
-                .knowledge-rule-card {
-                    background: rgba(255, 255, 255, 0.02);
-                    border: 1px solid rgba(255, 255, 255, 0.05);
-                    border-radius: 12px;
-                    padding: 14px;
-                    font-size: 11.5px;
-                    line-height: 1.5;
-                    color: rgba(255, 255, 255, 0.65);
-                    transition: all 0.25s ease;
-                }
-
-                .knowledge-rule-card:hover {
-                    background: rgba(255, 255, 255, 0.04);
-                    border-color: rgba(0, 243, 255, 0.15);
-                    color: #ffffff;
-                }
-
-                .custom-scrollbar::-webkit-scrollbar {
-                    width: 4px;
-                }
-                .custom-scrollbar::-webkit-scrollbar-track {
-                    background: transparent;
-                }
-                .custom-scrollbar::-webkit-scrollbar-thumb {
-                    background: rgba(255, 255, 255, 0.05);
-                    border-radius: 10px;
-                }
-                .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-                    background: rgba(0, 243, 255, 0.2);
-                }
-                .dark-modal .ant-modal-content {
-                    background-color: #05050a !important;
-                    border: 1px solid rgba(255, 255, 255, 0.1) !important;
-                    border-radius: 16px !important;
-                    overflow: hidden !important;
-                }
-                .dark-modal .ant-modal-header {
-                    background-color: #05050a !important;
-                    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
-                }
-                .dark-modal .ant-modal-title {
-                    color: white !important;
-                }
-                .dark-modal .ant-modal-close-x {
-                    color: rgba(255, 255, 255, 0.4) !important;
-                }
-                .dark-modal .ant-btn-primary {
-                    background-color: var(--neon-blue) !important;
-                    color: #000 !important;
-                    font-weight: bold !important;
-                    border: none !important;
-                }
-                .dark-modal .ant-btn-default {
-                    background-color: transparent !important;
-                    border: 1px solid rgba(255, 255, 255, 0.1) !important;
-                    color: white !important;
-                }
-            `}</style>
         </div>
     );
 };

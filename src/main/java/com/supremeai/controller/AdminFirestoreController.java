@@ -7,6 +7,7 @@ import com.google.cloud.firestore.Firestore;
 import com.google.cloud.firestore.WriteResult;
 import com.supremeai.audit.Audited;
 import com.supremeai.response.ApiResponse;
+import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,123 +16,161 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
-import java.util.Map;
-import java.util.concurrent.ExecutionException;
-
 /**
- * Controller to handle generic Firestore document operations for the admin dashboard.
- * Used for dynamic settings like teldrive_settings.
+ * Controller to handle generic Firestore document operations for the admin dashboard. Used for
+ * dynamic settings like teldrive_settings.
  */
 @RestController
 @RequestMapping("/api/admin/firestore")
 @PreAuthorize("hasRole('ADMIN')")
 public class AdminFirestoreController extends BaseAdminController<Object, String> {
 
-    private static final Logger log = LoggerFactory.getLogger(AdminFirestoreController.class);
+  private static final Logger log = LoggerFactory.getLogger(AdminFirestoreController.class);
 
-    @Autowired
-    private Firestore firestore;
+  @Autowired private Firestore firestore;
 
-    /**
-     * Get a document from a specific collection.
-     * Path example: /api/admin/firestore/system_configs/teldrive_settings
-     */
-    @GetMapping("/{collection}/{document}")
-    public Mono<ResponseEntity<ApiResponse<Object>>> getDocument(
-            @PathVariable String collection,
-            @PathVariable String document) {
-        
-        return Mono.fromCallable(() -> {
-            DocumentReference docRef = firestore.collection(collection).document(document);
-            ApiFuture<DocumentSnapshot> future = docRef.get();
-            DocumentSnapshot snapshot = future.get();
-            
-            if (snapshot.exists()) {
+  /**
+   * Get a document from a specific collection. Path example:
+   * /api/admin/firestore/system_configs/teldrive_settings
+   */
+  @GetMapping("/{collection}/{document}")
+  public Mono<ResponseEntity<ApiResponse<Object>>> getDocument(
+      @PathVariable String collection, @PathVariable String document) {
+
+    return Mono.fromCallable(
+            () -> {
+              DocumentReference docRef = firestore.collection(collection).document(document);
+              ApiFuture<DocumentSnapshot> future = docRef.get();
+              DocumentSnapshot snapshot = future.get();
+
+              if (snapshot.exists()) {
                 return ResponseEntity.ok(ApiResponse.<Object>ok(snapshot.getData()));
-            } else {
-                return ResponseEntity.status(404).body(ApiResponse.<Object>error("Document not found: " + collection + "/" + document));
-            }
-        }).map(r -> (ResponseEntity<ApiResponse<Object>>) r)
-        .onErrorResume(e -> {
-            log.error("Failed to fetch firestore document {}/{}: {}", collection, document, e.getMessage());
-            return Mono.just(ResponseEntity.status(500).body(ApiResponse.<Object>error("Failed to fetch document: " + e.getMessage())));
-        });
-    }
+              } else {
+                return ResponseEntity.status(404)
+                    .body(
+                        ApiResponse.<Object>error(
+                            "Document not found: " + collection + "/" + document));
+              }
+            })
+        .map(r -> (ResponseEntity<ApiResponse<Object>>) r)
+        .onErrorResume(
+            e -> {
+              log.error(
+                  "Failed to fetch firestore document {}/{}: {}",
+                  collection,
+                  document,
+                  e.getMessage());
+              return Mono.just(
+                  ResponseEntity.status(500)
+                      .body(
+                          ApiResponse.<Object>error(
+                              "Failed to fetch document: " + e.getMessage())));
+            });
+  }
 
-    /**
-     * Update or create a document in a specific collection.
-     */
-    @PutMapping("/{collection}/{document}")
-    @Audited(resource = "firestore_config", action = "update_document")
-    public Mono<ResponseEntity<ApiResponse<Object>>> updateDocument(
-            @PathVariable String collection,
-            @PathVariable String document,
-            @RequestBody Map<String, Object> data) {
-        
-        return Mono.fromCallable(() -> {
-            DocumentReference docRef = firestore.collection(collection).document(document);
-            ApiFuture<WriteResult> future = docRef.set(data);
-            WriteResult result = future.get();
-            
-            log.info("Firestore document {}/{} updated at {}", collection, document, result.getUpdateTime());
-            return ResponseEntity.ok(ApiResponse.<Object>ok(data));
-        }).onErrorResume(e -> {
-            log.error("Failed to update firestore document {}/{}: {}", collection, document, e.getMessage());
-            return Mono.just(ResponseEntity.status(500).body(ApiResponse.<Object>error("Failed to update document: " + e.getMessage())));
-        });
-    }
+  /** Update or create a document in a specific collection. */
+  @PutMapping("/{collection}/{document}")
+  @Audited(resource = "firestore_config", action = "update_document")
+  public Mono<ResponseEntity<ApiResponse<Object>>> updateDocument(
+      @PathVariable String collection,
+      @PathVariable String document,
+      @RequestBody Map<String, Object> data) {
 
-    /**
-     * Delete a document from a specific collection.
-     */
-    @DeleteMapping("/{collection}/{document}")
-    @Audited(resource = "firestore_config", action = "delete_document")
-    public Mono<ResponseEntity<ApiResponse<String>>> deleteDocument(
-            @PathVariable String collection,
-            @PathVariable String document) {
-        
-        return Mono.fromCallable(() -> {
-            DocumentReference docRef = firestore.collection(collection).document(document);
-            ApiFuture<WriteResult> future = docRef.delete();
-            future.get();
-            
-            return ResponseEntity.ok(ApiResponse.ok("Document deleted successfully"));
-        }).onErrorResume(e -> {
-            log.error("Failed to delete firestore document {}/{}: {}", collection, document, e.getMessage());
-            return Mono.just(ResponseEntity.status(500).body(ApiResponse.error("Failed to delete document: " + e.getMessage())));
-        });
-    }
+    return Mono.fromCallable(
+            () -> {
+              DocumentReference docRef = firestore.collection(collection).document(document);
+              ApiFuture<WriteResult> future = docRef.set(data);
+              WriteResult result = future.get();
 
-    /**
-     * List all documents in a specific collection.
-     * Path example: GET /api/admin/firestore/system_configs
-     */
-    @GetMapping("/{collection}")
-    public Mono<ResponseEntity<ApiResponse<java.util.List<Map<String, Object>>>>> listDocuments(
-            @PathVariable String collection) {
-        
-        return Mono.fromCallable(() -> {
-            java.util.List<Map<String, Object>> list = new java.util.ArrayList<>();
-            Iterable<DocumentReference> docRefs = firestore.collection(collection).listDocuments();
-            for (DocumentReference ref : docRefs) {
+              log.info(
+                  "Firestore document {}/{} updated at {}",
+                  collection,
+                  document,
+                  result.getUpdateTime());
+              return ResponseEntity.ok(ApiResponse.<Object>ok(data));
+            })
+        .onErrorResume(
+            e -> {
+              log.error(
+                  "Failed to update firestore document {}/{}: {}",
+                  collection,
+                  document,
+                  e.getMessage());
+              return Mono.just(
+                  ResponseEntity.status(500)
+                      .body(
+                          ApiResponse.<Object>error(
+                              "Failed to update document: " + e.getMessage())));
+            });
+  }
+
+  /** Delete a document from a specific collection. */
+  @DeleteMapping("/{collection}/{document}")
+  @Audited(resource = "firestore_config", action = "delete_document")
+  public Mono<ResponseEntity<ApiResponse<String>>> deleteDocument(
+      @PathVariable String collection, @PathVariable String document) {
+
+    return Mono.fromCallable(
+            () -> {
+              DocumentReference docRef = firestore.collection(collection).document(document);
+              ApiFuture<WriteResult> future = docRef.delete();
+              future.get();
+
+              return ResponseEntity.ok(ApiResponse.ok("Document deleted successfully"));
+            })
+        .onErrorResume(
+            e -> {
+              log.error(
+                  "Failed to delete firestore document {}/{}: {}",
+                  collection,
+                  document,
+                  e.getMessage());
+              return Mono.just(
+                  ResponseEntity.status(500)
+                      .body(ApiResponse.error("Failed to delete document: " + e.getMessage())));
+            });
+  }
+
+  /**
+   * List all documents in a specific collection. Path example: GET
+   * /api/admin/firestore/system_configs
+   */
+  @GetMapping("/{collection}")
+  public Mono<ResponseEntity<ApiResponse<java.util.List<Map<String, Object>>>>> listDocuments(
+      @PathVariable String collection) {
+
+    return Mono.fromCallable(
+            () -> {
+              java.util.List<Map<String, Object>> list = new java.util.ArrayList<>();
+              Iterable<DocumentReference> docRefs =
+                  firestore.collection(collection).listDocuments();
+              for (DocumentReference ref : docRefs) {
                 try {
-                    DocumentSnapshot snapshot = ref.get().get();
-                    if (snapshot.exists()) {
-                        Map<String, Object> data = snapshot.getData();
-                        if (data != null) {
-                            Map<String, Object> enriched = new java.util.HashMap<>(data);
-                            enriched.put("_id", snapshot.getId());
-                            list.add(enriched);
-                        }
+                  DocumentSnapshot snapshot = ref.get().get();
+                  if (snapshot.exists()) {
+                    Map<String, Object> data = snapshot.getData();
+                    if (data != null) {
+                      Map<String, Object> enriched = new java.util.HashMap<>(data);
+                      enriched.put("_id", snapshot.getId());
+                      list.add(enriched);
                     }
+                  }
                 } catch (Exception ex) {
-                    log.error("Failed to fetch document {} in collection {}: {}", ref.getId(), collection, ex.getMessage());
+                  log.error(
+                      "Failed to fetch document {} in collection {}: {}",
+                      ref.getId(),
+                      collection,
+                      ex.getMessage());
                 }
-            }
-            return ResponseEntity.ok(ApiResponse.ok(list));
-        }).onErrorResume(e -> {
-            log.error("Failed to list firestore collection {}: {}", collection, e.getMessage());
-            return Mono.just(ResponseEntity.status(500).body(ApiResponse.error("Failed to list collection: " + e.getMessage())));
-        });
-    }
+              }
+              return ResponseEntity.ok(ApiResponse.ok(list));
+            })
+        .onErrorResume(
+            e -> {
+              log.error("Failed to list firestore collection {}: {}", collection, e.getMessage());
+              return Mono.just(
+                  ResponseEntity.status(500)
+                      .body(ApiResponse.error("Failed to list collection: " + e.getMessage())));
+            });
+  }
 }

@@ -10,12 +10,13 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @RequiredArgsConstructor
 public class WebConfig implements WebMvcConfigurer {
 
-    private final PerformanceInterceptor performanceInterceptor;
+  private final PerformanceInterceptor performanceInterceptor;
 
-    @Override
-    public void addInterceptors(InterceptorRegistry registry) {
-        registry.addInterceptor(performanceInterceptor)
-                .addPathPatterns("/api/**")
-                .excludePathPatterns("/api/public/**");
-    }
+  @Override
+  public void addInterceptors(InterceptorRegistry registry) {
+    registry
+        .addInterceptor(performanceInterceptor)
+        .addPathPatterns("/api/**")
+        .excludePathPatterns("/api/public/**");
+  }
 }

@@ -58,8 +58,7 @@ export const allMenuItems: MenuItem[] = [
     roles: ['admin'],
     children: [
       { key: 'monitoring', icon: <HddOutlined />, label: 'Monitoring (মনিটরিং)', roles: ['admin'] },
-      { key: 'analytics', icon: <LineChartOutlined />, label: 'Analytics (এনালাইটিক্স)', roles: ['admin'] },
-      { key: 'performance', icon: <ClusterOutlined />, label: 'Performance (পারফরম্যান্স)', roles: ['admin'] },
+      { key: 'analytics', icon: <LineChartOutlined />, label: 'Analytics & Perf. (এনালাইটিক্স)', roles: ['admin'] },
       { key: 'logs', icon: <FileTextOutlined />, label: 'System Logs (সিস্টেম লগ)', roles: ['admin'] },
       { key: 'reports', icon: <BarChartOutlined />, label: 'Reports (রিপোর্টস)', roles: ['admin'] },
       { key: 'notifications', icon: <BellOutlined />, label: 'Notifications (নোটিফিকেশন)', roles: ['admin'] }
@@ -69,12 +68,11 @@ export const allMenuItems: MenuItem[] = [
   {
     key: 'infrastructure',
     icon: <CloudServerOutlined />,
-    label: '4. ☁️ Infrastructure & DB',
+    label: '4. ☁️ Infrastructure Hub',
     roles: ['admin'],
     children: [
-      { key: 'infrastructure', icon: <CloudServerOutlined />, label: 'Infrastructure (ইনফ্রাস্ট্রাকচার)', roles: ['admin'] },
-      { key: 'cloud-db-hub', icon: <DatabaseOutlined />, label: 'Cloud & DB Hub (ক্লাউড হাব)', roles: ['admin'] },
-      { key: 'backup', icon: <DatabaseOutlined />, label: 'Backup (ব্যাকআপ)', roles: ['admin'] },
+      { key: 'infrastructure', icon: <CloudServerOutlined />, label: 'Infra & Advice (ইনফ্রাস্ট্রাকচার)', roles: ['admin'] },
+      { key: 'cloud-db-hub', icon: <DatabaseOutlined />, label: 'Cloud DB & Backup (ডেটাবেস)', roles: ['admin'] },
       { key: 'vpn', icon: <GlobalOutlined />, label: 'VPN Connection (VPN কানেকশন)', roles: ['admin'] }
     ]
   },
@@ -82,13 +80,12 @@ export const allMenuItems: MenuItem[] = [
   {
     key: 'security_governance',
     icon: <SecurityScanOutlined />,
-    label: '5. 🛡️ Security & Rules',
+    label: '5. 🛡️ Security & Policies',
     roles: ['admin'],
     children: [
       { key: 'security', icon: <SecurityScanOutlined />, label: 'Security (সিকিউরিটি)', roles: ['admin'] },
       { key: 'approvals', icon: <BulbOutlined />, label: 'Approvals (অ্যাপ্রুভালস)', roles: ['admin'] },
-      { key: 'system-work-rules', icon: <RocketOutlined />, label: 'Work Rules (ওয়ার্ক রুলস)', roles: ['admin'] },
-      { key: 'rules', icon: <AuditOutlined />, label: 'System Rules (সিস্টেম রুলস)', roles: ['admin'] }
+      { key: 'rules', icon: <AuditOutlined />, label: 'System & Work Rules (রুলস)', roles: ['admin'] }
     ]
   },
 

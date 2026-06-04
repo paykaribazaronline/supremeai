@@ -26,8 +26,10 @@ const AdminRouteLayout: React.FC = () => {
   const [autoHide, setAutoHide] = useState(() => {
     return localStorage.getItem('sidebar_autohide') === 'true';
   });
-  const [darkMode] = useState(true);
-  const [chatFont] = useState(localStorage.getItem('chatFont') || 'font-mono');
+  const [darkMode, setDarkMode] = useState(() => {
+    return localStorage.getItem('darkMode') !== 'false';
+  });
+  const [chatFont, setChatFont] = useState(localStorage.getItem('chatFont') || 'font-mono');
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
 
@@ -105,7 +107,7 @@ const AdminRouteLayout: React.FC = () => {
               </div>
             </div>
           }>
-            <Outlet />
+            <Outlet context={{ darkMode, setDarkMode, chatFont, setChatFont }} />
           </Suspense>
         </div>
       </div>

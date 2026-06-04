@@ -42,16 +42,19 @@ class _HomeScreenState extends State<HomeScreen> {
     if (orchestration.lastResult != null && mounted) {
       setState(() {
         final result = orchestration.lastResult!;
-        final response = result['status'] == 'DECIDED' || result['status'] == 'COMPLETED'
-            ? 'I\'ve analyzed your requirement using ${result['mode'] ?? 'AI'} mode. Tap "Generate" to create your project.'
-            : 'Requirement analyzed. System status: ${result['status']}';
-        
+        final status = result['status']?.toString().toUpperCase() ?? 'UNKNOWN';
+        final mode = result['mode'] ?? 'AI';
+        final answer = (result['answer'] ?? result['message'] ?? 'Requirement analyzed.');
+        final sources = (result['sources'] as List<dynamic>?)?.cast<String>() ?? const <String>[];
+        final hasAction = status == 'DECIDED' || status == 'COMPLETED';
+
         _messages.add(ChatMessage(
-          text: response,
+          text: answer,
           isUser: false,
           timestamp: DateTime.now(),
-          hasAction: result['status'] == 'DECIDED' || result['status'] == 'COMPLETED',
+          hasAction: hasAction,
           result: result,
+          sources: sources,
         ));
       });
     }
@@ -280,6 +283,14 @@ class ChatMessage {
   final DateTime timestamp;
   final bool hasAction;
   final Map<String, dynamic>? result;
+  final List<String> sources;
 
-  ChatMessage({required this.text, required this.isUser, required this.timestamp, this.hasAction = false, this.result});
+  ChatMessage({
+    required this.text,
+    required this.isUser,
+    required this.timestamp,
+    this.hasAction = false,
+    this.result,
+    this.sources = const <String>[],
+  });
 }

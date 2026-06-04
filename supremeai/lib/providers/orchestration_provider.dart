@@ -94,6 +94,20 @@ class OrchestrationProvider with ChangeNotifier {
     defaultValue: 'https://supremeai-a.web.app',
   );
 
+  static const String _scrapeChatUrl = String.fromEnvironment(
+    'SCRAPE_CHAT_URL',
+    defaultValue: '/api/chat/send',
+  );
+
+  String _buildFullUrl(String path) {
+    final base = _baseUrl.endsWith('/') ? _baseUrl.substring(0, _baseUrl.length - 1) : _baseUrl;
+    final cleanPath = path.startsWith('/') ? path : '/$path';
+    if (cleanPath.startsWith('/api/chat/') || cleanPath.startsWith('/chat/')) {
+      return '$base$_scrapeChatUrl';
+    }
+    return '$base$cleanPath';
+  }
+
   static const String _cachedResultKey = 'orchestration_cached_result';
   static const String _offlineQueueKey = 'orchestration_offline_queue';
 
@@ -172,12 +186,53 @@ class OrchestrationProvider with ChangeNotifier {
     clearError();
     notifyListeners();
 
-    // Try backend first
+    const scrapeUrl = _buildFullUrl('/api/chat/send');
+
+    if (_isOnline) {
+      try {
+        final headers = <String, String>{
+          'Content-Type': 'application/json',
+        };
+        if (token.isNotEmpty == true) {
+          headers['Authorization'] = 'Bearer $token';
+        }
+        headers['X-Use-Scrape'] = 'true';
+
+        final response = await http
+            .post(
+              Uri.parse(scrapeUrl),
+              headers: headers,
+              body: json.encode({'message': requirement, 'userId': 'flutter-user'}),
+            )
+            .timeout(const Duration(seconds: 30));
+
+        if (response.statusCode == 200) {
+          final data = json.decode(response.body) as Map<String, dynamic>;
+          _lastResult = {
+            'status': 'COMPLETED',
+            'mode': data['sourceType'] ?? 'AI',
+            'answer': data['message'] ?? data['answer'] ?? '',
+            'sources': data['sources'] ?? [],
+            'confidence': data['confidence'] ?? 0.5,
+            'chatType': data['chatType'] ?? 'UNKNOWN',
+            'scrapedPages': data['scrapedPages'] ?? 0,
+            'raw': data,
+          };
+          await _cacheResult(_lastResult!);
+          _isLoading = false;
+          notifyListeners();
+          return;
+        }
+      } catch (e) {
+        debugPrint('[SupremeAI] Scrape-backed chat failed, trying orchestrate:', e);
+      }
+    }
+
     if (_isOnline) {
       try {
         final response = await http
             .post(
-              Uri.parse('$_baseUrl/api/orchestrate/requirement'),
+              Uri.parse(_buildFullUrl('/api/orchestrate/requirement')),
               headers: {
                 'Content-Type': 'application/json',
                 'Authorization': 'Bearer $token',
@@ -194,22 +249,24 @@ class OrchestrationProvider with ChangeNotifier {
           return;
         }
       } catch (e) {
-        debugPrint('[SupremeAI] Backend orchestration failed, trying native Gemini: $e');
+        debugPrint('[SupremeAI] backend orchestrate failed:', e);
       }
     }
 
-    // Native Gemini Fallback (if offline or backend failed)
     if (geminiKey != null && geminiKey.isNotEmpty) {
       try {
         final model = GenerativeModel(model: 'gemini-1.5-pro', apiKey: geminiKey);
-        final prompt = 'As an AI Orchestrator for SupremeAI, analyze this requirement and provide a structured JSON response with "tasks", "priority", and "estimatedComplexity": $requirement';
-        final content = [Content.text(prompt)];
+        final content = [Content.text('As an AI Orchestrator for SupremeAI, analyze this requirement and provide a structured JSON response with "tasks", "priority", and "estimatedComplexity": $requirement')];
         final response = await model.generateContent(content);
-        
         if (response.text != null) {
-          // Try to extract JSON from response
           final jsonStr = _extractJson(response.text!);
-          _lastResult = json.decode(jsonStr);
+          _lastResult = {
+            'status': 'COMPLETED',
+            'mode': 'NativeGemini',
+            'answer': response.text,
+            ...json.decode(jsonStr),
+          };
+          await _cacheResult(_lastResult!);
           _isLoading = false;
           notifyListeners();
           return;
@@ -220,19 +277,22 @@ class OrchestrationProvider with ChangeNotifier {
     }
 
     if (!_isOnline) {
-        await _queueOfflineOperation({
-          'type': 'orchestrate',
-          'requirement': requirement,
-          'timestamp': DateTime.now().toIso8601String(),
-        });
-        _error = OrchestrationError(
-          message: 'You are offline and no AI key configured. Request queued.',
-          type: OrchestrationErrorType.network,
-        );
+      await _queueOfflineOperation({
+        'type': 'orchestrate',
+        'requirement': requirement,
+        'timestamp': DateTime.now().toIso8601String(),
+      });
+      _error = OrchestrationError(
+        message: 'You are offline. Request queued for later sync.',
+        type: OrchestrationErrorType.network,
+      );
     } else {
-        _error = OrchestrationError(message: 'Orchestration failed on both backend and native AI.', type: OrchestrationErrorType.serverError);
+      _error = OrchestrationError(
+        message: 'All response sources failed. Please try again.',
+        type: OrchestrationErrorType.serverError,
+      );
     }
-    
+
     _isLoading = false;
     notifyListeners();
   }

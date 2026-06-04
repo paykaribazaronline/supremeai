@@ -1,8 +1,14 @@
 package com.supremeai.agent;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.Mockito.*;
+
 import com.supremeai.agentorchestration.Question;
 import com.supremeai.provider.AIProvider;
 import com.supremeai.provider.AIProviderFactory;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -10,111 +16,104 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import reactor.core.publisher.Mono;
 
-import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.Mockito.*;
-
 class DiOSAgentTest {
 
-    @Mock
-    private AIProviderFactory providerFactory;
+  @Mock private AIProviderFactory providerFactory;
 
-    @Mock
-    private AIProvider aiProvider;
+  @Mock private AIProvider aiProvider;
 
-    @Mock
-    private AgentRuleService ruleService;
+  @Mock private AgentRuleService ruleService;
 
-    @InjectMocks
-    private DiOSAgent diosAgent;
+  @InjectMocks private DiOSAgent diosAgent;
 
-    @BeforeEach
-    void setUp() {
-        MockitoAnnotations.openMocks(this);
-        when(ruleService.wrapWithRules(anyString())).thenAnswer(invocation -> invocation.getArgument(0));
-        lenient().when(providerFactory.getDefaultProvider()).thenReturn(aiProvider);
-    }
+  @BeforeEach
+  void setUp() {
+    MockitoAnnotations.openMocks(this);
+    when(ruleService.wrapWithRules(anyString()))
+        .thenAnswer(invocation -> invocation.getArgument(0));
+    lenient().when(providerFactory.getDefaultProvider()).thenReturn(aiProvider);
+  }
 
-    @Test
-    void testAnalyzeIOSRequirements_returnsQuestions() {
-        String jsonResponse = "[{\"key\":\"test\",\"text\":\"Test question\",\"priority\":\"HIGH\"}]";
-        when(providerFactory.getProvider("groq")).thenReturn(aiProvider);
-        when(aiProvider.generate(anyString())).thenReturn(Mono.just(jsonResponse));
+  @Test
+  void testAnalyzeIOSRequirements_returnsQuestions() {
+    String jsonResponse = "[{\"key\":\"test\",\"text\":\"Test question\",\"priority\":\"HIGH\"}]";
+    when(providerFactory.getProvider("groq")).thenReturn(aiProvider);
+    when(aiProvider.generate(anyString())).thenReturn(Mono.just(jsonResponse));
 
-        List<Question> result = diosAgent.analyzeIOSRequirements("Test requirement");
+    List<Question> result = diosAgent.analyzeIOSRequirements("Test requirement");
 
-        assertNotNull(result);
-        assertFalse(result.isEmpty());
-        assertEquals("test", result.get(0).getKey());
-    }
+    assertNotNull(result);
+    assertFalse(result.isEmpty());
+    assertEquals("test", result.get(0).getKey());
+  }
 
-    @Test
-    void testAnalyzeIOSRequirements_returnsDefaultsOnException() {
-        when(providerFactory.getProvider("groq")).thenReturn(aiProvider);
-        when(aiProvider.generate(anyString())).thenReturn(Mono.error(new RuntimeException("API error")));
+  @Test
+  void testAnalyzeIOSRequirements_returnsDefaultsOnException() {
+    when(providerFactory.getProvider("groq")).thenReturn(aiProvider);
+    when(aiProvider.generate(anyString()))
+        .thenReturn(Mono.error(new RuntimeException("API error")));
 
-        List<Question> result = diosAgent.analyzeIOSRequirements("Test requirement");
+    List<Question> result = diosAgent.analyzeIOSRequirements("Test requirement");
 
-        assertNotNull(result);
-        assertFalse(result.isEmpty());
-    }
+    assertNotNull(result);
+    assertFalse(result.isEmpty());
+  }
 
-    @Test
-    void testAnalyzeIOSRequirements_returnsDefaultsOnInvalidJson() {
-        when(providerFactory.getProvider("groq")).thenReturn(aiProvider);
-        when(aiProvider.generate(anyString())).thenReturn(Mono.just("Invalid JSON"));
+  @Test
+  void testAnalyzeIOSRequirements_returnsDefaultsOnInvalidJson() {
+    when(providerFactory.getProvider("groq")).thenReturn(aiProvider);
+    when(aiProvider.generate(anyString())).thenReturn(Mono.just("Invalid JSON"));
 
-        List<Question> result = diosAgent.analyzeIOSRequirements("Test requirement");
+    List<Question> result = diosAgent.analyzeIOSRequirements("Test requirement");
 
-        assertNotNull(result);
-    }
+    assertNotNull(result);
+  }
 
-    @Test
-    void testAnalyzeDesktopRequirements_returnsQuestions() {
-        String jsonResponse = "[{\"key\":\"desktop\",\"text\":\"Test question\",\"priority\":\"CRITICAL\"}]";
-        when(providerFactory.getProvider("groq")).thenReturn(aiProvider);
-        when(aiProvider.generate(anyString())).thenReturn(Mono.just(jsonResponse));
+  @Test
+  void testAnalyzeDesktopRequirements_returnsQuestions() {
+    String jsonResponse =
+        "[{\"key\":\"desktop\",\"text\":\"Test question\",\"priority\":\"CRITICAL\"}]";
+    when(providerFactory.getProvider("groq")).thenReturn(aiProvider);
+    when(aiProvider.generate(anyString())).thenReturn(Mono.just(jsonResponse));
 
-        List<Question> result = diosAgent.analyzeDesktopRequirements("Test requirement");
+    List<Question> result = diosAgent.analyzeDesktopRequirements("Test requirement");
 
-        assertNotNull(result);
-        assertFalse(result.isEmpty());
-        assertEquals("desktop", result.get(0).getKey());
-    }
+    assertNotNull(result);
+    assertFalse(result.isEmpty());
+    assertEquals("desktop", result.get(0).getKey());
+  }
 
-    @Test
-    void testAnalyzeDesktopRequirements_returnsDefaultsOnException() {
-        when(providerFactory.getProvider("groq")).thenReturn(aiProvider);
-        when(aiProvider.generate(anyString())).thenReturn(Mono.error(new RuntimeException("API error")));
+  @Test
+  void testAnalyzeDesktopRequirements_returnsDefaultsOnException() {
+    when(providerFactory.getProvider("groq")).thenReturn(aiProvider);
+    when(aiProvider.generate(anyString()))
+        .thenReturn(Mono.error(new RuntimeException("API error")));
 
-        List<Question> result = diosAgent.analyzeDesktopRequirements("Test requirement");
+    List<Question> result = diosAgent.analyzeDesktopRequirements("Test requirement");
 
-        assertNotNull(result);
-        assertFalse(result.isEmpty());
-    }
+    assertNotNull(result);
+    assertFalse(result.isEmpty());
+  }
 
-    @Test
-    void testAnalyzeIOSRequirements_includesBengaliPrompt() {
-        when(providerFactory.getProvider("groq")).thenReturn(aiProvider);
-        when(aiProvider.generate(anyString())).thenReturn(Mono.just("[]"));
+  @Test
+  void testAnalyzeIOSRequirements_includesBengaliPrompt() {
+    when(providerFactory.getProvider("groq")).thenReturn(aiProvider);
+    when(aiProvider.generate(anyString())).thenReturn(Mono.just("[]"));
 
-        diosAgent.analyzeIOSRequirements("Requirement");
+    diosAgent.analyzeIOSRequirements("Requirement");
 
-        verify(aiProvider).generate(argThat(prompt -> 
-            prompt.contains("iOS") && prompt.contains("একটি")));
-    }
+    verify(aiProvider)
+        .generate(argThat(prompt -> prompt.contains("iOS") && prompt.contains("একটি")));
+  }
 
-    @Test
-    void testAnalyzeDesktopRequirements_includesBengaliPrompt() {
-        when(providerFactory.getProvider("groq")).thenReturn(aiProvider);
-        when(aiProvider.generate(anyString())).thenReturn(Mono.just("[]"));
+  @Test
+  void testAnalyzeDesktopRequirements_includesBengaliPrompt() {
+    when(providerFactory.getProvider("groq")).thenReturn(aiProvider);
+    when(aiProvider.generate(anyString())).thenReturn(Mono.just("[]"));
 
-        diosAgent.analyzeDesktopRequirements("Requirement");
+    diosAgent.analyzeDesktopRequirements("Requirement");
 
-        verify(aiProvider).generate(argThat(prompt -> 
-            prompt.contains("ডেস্কটপ") && prompt.contains("একটি")));
-    }
+    verify(aiProvider)
+        .generate(argThat(prompt -> prompt.contains("ডেস্কটপ") && prompt.contains("একটি")));
+  }
 }

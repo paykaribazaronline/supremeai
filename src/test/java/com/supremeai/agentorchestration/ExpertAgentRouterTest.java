@@ -1,34 +1,32 @@
 package com.supremeai.agentorchestration;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 @ExtendWith(MockitoExtension.class)
 public class ExpertAgentRouterTest {
 
-    @InjectMocks
-    private ExpertAgentRouter expertAgentRouter;
+  @InjectMocks private ExpertAgentRouter expertAgentRouter;
 
-    @BeforeEach
-    void setUp() {
-    }
+  @BeforeEach
+  void setUp() {}
 
-    @Test
-    void testRouteRequest_ToCodingAgent() {
-        String prompt = "Write a Java function to sort a list";
-        String result = expertAgentRouter.route(prompt);
-        assertEquals("CODING_AGENT", result);
-    }
+  @Test
+  void testRouteRequest_ToCodingAgent() {
+    String prompt = "Write a Java function to sort a list";
+    String result = expertAgentRouter.route(prompt);
+    assertEquals("CODING_AGENT", result);
+  }
 
-    @Test
-    void testRouteRequest_ToGeneralAgent() {
-        String prompt = "What is the capital of France?";
-        String result = expertAgentRouter.route(prompt);
-        assertEquals("GENERAL_AGENT", result);
-    }
+  @Test
+  void testRouteRequest_ToGeneralAgent() {
+    String prompt = "What is the capital of France?";
+    String result = expertAgentRouter.route(prompt);
+    assertEquals("GENERAL_AGENT", result);
+  }
 }

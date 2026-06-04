@@ -6,6 +6,7 @@ import org.springframework.stereotype.Repository;
 import reactor.core.publisher.Mono;
 
 @Repository
-public interface WorkflowExecutionRepository extends FirestoreReactiveRepository<WorkflowExecution> {
-    Mono<WorkflowExecution> findByExecutionId(String executionId);
+public interface WorkflowExecutionRepository
+    extends FirestoreReactiveRepository<WorkflowExecution> {
+  Mono<WorkflowExecution> findByExecutionId(String executionId);
 }
