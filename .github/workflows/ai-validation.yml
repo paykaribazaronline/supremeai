@@ -42,18 +42,15 @@ jobs:
           java-version: '21'
           cache: 'gradle'
 
-      - name: Cache Gradle packages
-        uses: actions/cache@v4
-        with:
-          path: ~/.gradle/caches
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-          restore-keys: |
-            ${{ runner.os }}-gradle-
-
       - name: Build and run unit tests with Gradle
         run: |
           chmod +x gradlew
           ./gradlew clean test --no-daemon
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
 
       - name: Run Backend for Validation
         env:
@@ -72,8 +69,7 @@ jobs:
       - name: Run AI validation script
         run: bash scripts/validate_ai.sh
         env:
-          POCKETLAB_URL: ${{ secrets.POCKETLAB_URL }}
-          GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}
+          POCKETLAB_URL: ${{ secrets.SUPREMEAI_BASE_URL }}
 
       - name: Archive test reports
         if: always()

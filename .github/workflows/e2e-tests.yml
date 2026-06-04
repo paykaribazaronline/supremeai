@@ -3,12 +3,6 @@ name: E2E Tests
 on:
   schedule:
     - cron: '0 2 * * *'
-  push:
-    branches: [main, master]
-    paths:
-      - 'dashboard/**'
-      - 'functions/**'
-      - 'config/**'
   workflow_dispatch:
 
 concurrency:
@@ -48,14 +42,6 @@ jobs:
           java-version: '21'
           cache: 'gradle'
 
-      - name: Cache Gradle packages
-        uses: actions/cache@v4
-        with:
-          path: ~/.gradle/caches
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-          restore-keys: |
-            ${{ runner.os }}-gradle-
-
       - name: Cache Playwright browsers
         uses: actions/cache@v4
         with:
@@ -68,6 +54,14 @@ jobs:
           npm install
           npx playwright install-deps chromium
           npx playwright install chromium
+
+      - name: Install & Start Firebase Emulators
+        run: |
+          npm install -g firebase-tools
+          firebase emulators:start --only firestore,auth --project demo-supremeai &
+          sleep 15
+          echo "Firebase emulators started"
+        shell: bash
 
       - name: Run Backend (Firebase Emulators + Spring Boot)
         env:
@@ -95,7 +89,7 @@ jobs:
         run: |
           cd dashboard
           npm install
-          nohup npm run dev > frontend.log 2>&1 &
+          nohup npm run dev > ../frontend.log 2>&1 &
           echo $! > frontend.pid
           cd ..
           for i in $(seq 1 60); do
@@ -142,7 +136,7 @@ jobs:
         with:
           name: test-report
           path: tests/playwright-report/
-          retention-days: 30
+          retention-days: 7
 
       - name: Upload Backend Logs
         uses: actions/upload-artifact@v4
@@ -151,5 +145,5 @@ jobs:
           name: backend-logs
           path: |
             backend.log
-            dashboard/frontend.log
+            frontend.log
           retention-days: 7

@@ -1,6 +1,6 @@
 package com.supremeai.controller;
 
-import com.supremeai.service.MultiAIConsensusService;
+import com.supremeai.service.MultiAIVotingService;
 import java.util.List;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,7 +12,7 @@ import reactor.core.publisher.Mono;
 @RequestMapping("/api/consensus")
 public class MultiAIConsensusController {
 
-  @Autowired private MultiAIConsensusService consensusService;
+  @Autowired private MultiAIVotingService votingService;
 
   @Autowired private com.supremeai.provider.AIProviderFactory providerFactory;
 
@@ -31,8 +31,8 @@ public class MultiAIConsensusController {
           ResponseEntity.badRequest().body((Object) Map.of("error", "Question is required")));
     }
 
-    return consensusService
-        .askAllAIs(question, providers, 10000L)
+    return votingService
+        .askConsensus(question, providers, 10000L)
         .map(
             result ->
                 ResponseEntity.ok(
@@ -48,8 +48,8 @@ public class MultiAIConsensusController {
   /** GET /api/consensus/history?limit=20 Returns recent consensus votes for audit/learning */
   @GetMapping("/history")
   public Mono<ResponseEntity<Object>> getHistory(@RequestParam(defaultValue = "20") int limit) {
-    return consensusService
-        .getHistory(limit)
+    return votingService
+        .getConsensusHistory(limit)
         .collectList()
         .map(
             history -> {
@@ -66,7 +66,7 @@ public class MultiAIConsensusController {
             (Object)
                 Map.of(
                     "status", "UP",
-                    "service", "MultiAIConsensusService",
+                    "service", "MultiAIVotingService",
                     "providers", providerFactory.getAvailableProviderIds())));
   }
 
@@ -83,8 +83,8 @@ public class MultiAIConsensusController {
               .body((Object) Map.of("error", "At least 2 providers required for comparison")));
     }
 
-    return consensusService
-        .askAllAIs(question, providers, 15000L)
+    return votingService
+        .askConsensus(question, providers, 15000L)
         .map(
             result ->
                 ResponseEntity.ok(
