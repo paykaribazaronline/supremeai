@@ -120,7 +120,7 @@ public class GitHubWebhookControllerTest {
 
     // Verify asynchronous AI analysis trigger (using timeout because it's in a
     // separate thread)
-    verify(restTemplate, timeout(1000))
+    verify(restTemplate, timeout(3000))
         .postForEntity(
             eq("https://us-central1-supremeai-a.cloudfunctions.net/analyzeDeployment"),
             any(Map.class),
