@@ -7,12 +7,9 @@ import java.time.LocalDateTime;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class UserTest {Userpublic UserTest(User user) {
-User    this.user = user;
-User}
+public class UserTest {
 
-
-
+    private User user;
 
     @BeforeEach
     public void setUp() {

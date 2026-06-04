@@ -4,6 +4,7 @@ import com.supremeai.service.SimulatorService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
@@ -33,10 +34,6 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 @Component
 public class SimulatorWebSocketHandler extends TextWebSocketHandler {
-    public SimulatorWebSocketHandler(SimulatorService simulatorService) {
-        this.simulatorService = simulatorService;
-    }
-
 
     private static final Logger logger = LoggerFactory.getLogger(SimulatorWebSocketHandler.class);
     private static final ObjectMapper mapper = new ObjectMapper();
@@ -46,6 +43,8 @@ public class SimulatorWebSocketHandler extends TextWebSocketHandler {
     private final ScheduledExecutorService heartbeatScheduler = Executors.newScheduledThreadPool(2);
     private final AtomicLong messageCounter = new AtomicLong(0);
 
+    @Autowired
+    private SimulatorService simulatorService;
 
     @Override
     public void afterConnectionEstablished(WebSocketSession session) {

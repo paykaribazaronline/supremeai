@@ -2,6 +2,7 @@ package com.supremeai.controller;
 
 import com.supremeai.response.ApiResponse;
 import com.supremeai.service.ProductionHealthMonitor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -18,11 +19,9 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/system/metrics")
 public class SystemMetricsController {
-    public SystemMetricsController(ProductionHealthMonitor healthMonitor) {
-        this.healthMonitor = healthMonitor;
-    }
 
-
+    @Autowired
+    private ProductionHealthMonitor healthMonitor;
 
     /**
      * GET /api/system/metrics/resources

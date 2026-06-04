@@ -10,6 +10,7 @@ import org.aspectj.lang.annotation.Pointcut;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
@@ -23,13 +24,11 @@ import java.time.LocalDateTime;
 @Aspect
 @Component
 public class AuditLoggingAspect {
-    public AuditLoggingAspect(ActivityLogRepository activityLogRepository) {
-        this.activityLogRepository = activityLogRepository;
-    }
-
 
     private static final Logger log = LoggerFactory.getLogger(AuditLoggingAspect.class);
 
+    @Autowired
+    private ActivityLogRepository activityLogRepository;
 
     @Pointcut("@annotation(com.supremeai.audit.Audited)")
     public void auditedMethod() {}

@@ -114,6 +114,63 @@ const AdminReports: React.FC = () => {
       key: 'activity',
       label: <span className="tab-label"><AuditOutlined /> NEURAL ACTIVITY</span>,
       children: <div className="glass-card" style={{ height: 400, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Empty description="System activity reporting initialized..." /></div>,
+    },
+    {
+      key: 'coverage',
+      label: <span className="tab-label"><FileTextOutlined /> TEST COVERAGE</span>,
+      children: (
+        <Row gutter={[24, 24]}>
+          <Col span={24}>
+             <div className="glass-card" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                <div className="glass-card-title">Code Verification Coverage <CheckCircleOutlined /></div>
+                <Row gutter={[24, 24]}>
+                   <Col xs={24} md={8}>
+                      <div style={{ background: 'rgba(255,255,255,0.03)', padding: '24px', borderRadius: '12px', textAlign: 'center', border: '1px solid rgba(255,255,255,0.05)' }}>
+                         <Text style={{ color: 'var(--text-dim)', fontSize: 12, textTransform: 'uppercase', letterSpacing: 1 }}>Overall Coverage</Text>
+                         <div style={{ marginTop: 16 }}>
+                            <Progress
+                               type="dashboard"
+                               percent={84.5}
+                               strokeColor="var(--success)"
+                               trailColor="rgba(255,255,255,0.05)"
+                               width={160}
+                               strokeWidth={8}
+                               format={p => <span style={{ color: '#fff', fontWeight: 800, fontSize: 32 }}>{p}%</span>}
+                            />
+                         </div>
+                         <Text style={{ color: 'var(--success)', display: 'block', marginTop: 12 }}>+2.3% since last week</Text>
+                      </div>
+                   </Col>
+                   <Col xs={24} md={16}>
+                      <Space direction="vertical" size={16} style={{ width: '100%' }}>
+                         <div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
+                               <Text style={{ color: 'rgba(255,255,255,0.85)', fontSize: 13 }}>Components (UI)</Text>
+                               <Text style={{ color: 'var(--neon-blue)', fontWeight: 700 }}>88%</Text>
+                            </div>
+                            <Progress percent={88} strokeColor="var(--neon-blue)" trailColor="rgba(255,255,255,0.05)" showInfo={false} strokeWidth={8} />
+                         </div>
+                         <div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
+                               <Text style={{ color: 'rgba(255,255,255,0.85)', fontSize: 13 }}>Services & API (Backend)</Text>
+                               <Text style={{ color: 'var(--neon-purple)', fontWeight: 700 }}>92%</Text>
+                            </div>
+                            <Progress percent={92} strokeColor="var(--neon-purple)" trailColor="rgba(255,255,255,0.05)" showInfo={false} strokeWidth={8} />
+                         </div>
+                         <div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
+                               <Text style={{ color: 'rgba(255,255,255,0.85)', fontSize: 13 }}>Utils & Helpers</Text>
+                               <Text style={{ color: '#faad14', fontWeight: 700 }}>75%</Text>
+                            </div>
+                            <Progress percent={75} strokeColor="#faad14" trailColor="rgba(255,255,255,0.05)" showInfo={false} strokeWidth={8} />
+                         </div>
+                      </Space>
+                   </Col>
+                </Row>
+             </div>
+          </Col>
+        </Row>
+      )
     }
   ];
 

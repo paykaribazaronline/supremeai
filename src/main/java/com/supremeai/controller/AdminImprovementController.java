@@ -5,6 +5,7 @@ import com.supremeai.model.ImprovementProposal;
 import com.supremeai.response.ApiResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -22,7 +23,9 @@ public class AdminImprovementController {
 
     private static final Logger log = LoggerFactory.getLogger(AdminImprovementController.class);
     private final AdminDashboardService adminDashboardService;
-public AdminImprovementController(AdminDashboardService adminDashboardService) {
+
+    @Autowired
+    public AdminImprovementController(AdminDashboardService adminDashboardService) {
         this.adminDashboardService = adminDashboardService;
     }
 

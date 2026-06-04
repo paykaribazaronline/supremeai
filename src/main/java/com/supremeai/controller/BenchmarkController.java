@@ -3,6 +3,7 @@ package com.supremeai.controller;
 import com.supremeai.repository.BenchmarkResultRepository;
 import com.supremeai.service.validation.AIValidationHarnessService;
 import com.supremeai.service.validation.SWEBenchValidationService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -18,15 +19,15 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/api/benchmarks")
 public class BenchmarkController {
-    public BenchmarkController(AIValidationHarnessService harnessService, SWEBenchValidationService sweBenchService, BenchmarkResultRepository benchmarkResultRepository) {
-        this.harnessService = harnessService;
-        this.sweBenchService = sweBenchService;
-        this.benchmarkResultRepository = benchmarkResultRepository;
-    }
 
+    @Autowired
+    private AIValidationHarnessService harnessService;
 
+    @Autowired
+    private SWEBenchValidationService sweBenchService;
 
-
+    @Autowired
+    private BenchmarkResultRepository benchmarkResultRepository;
 
     /**
      * BV-05: Public endpoint for transparent AI quality reporting.

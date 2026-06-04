@@ -12,12 +12,9 @@ import static org.junit.jupiter.api.Assertions.*;
  * Unit tests for SelfLearningRouter (Q-Learning based router).
  * Tests route selection, reward updates, and top-N retrieval.
  */
-class SelfLearningRouterTest {SelfLearningRouterpublic SelfLearningRouterTest(SelfLearningRouter router) {
-SelfLearningRouter    this.router = router;
-SelfLearningRouter}
+class SelfLearningRouterTest {
 
-
-
+    private SelfLearningRouter router;
 
     @BeforeEach
     void setUp() {

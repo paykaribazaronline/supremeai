@@ -7,6 +7,7 @@ import com.supremeai.model.analysis.AnalysisFinding;
 import com.supremeai.repository.analysis.AnalysisFixRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -29,7 +30,9 @@ public class FixSuggestionService {
     private static final Pattern EXPLANATION_PATTERN = Pattern.compile("EXPLANATION:\\s*(.+?)(?=FIXED_CODE:|$)", Pattern.DOTALL);
     private static final Pattern FIXED_CODE_PATTERN = Pattern.compile("FIXED_CODE:\\s*(.+?)(?=CONFIDENCE:|$)", Pattern.DOTALL);
     private static final Pattern CONFIDENCE_PATTERN = Pattern.compile("CONFIDENCE:\\s*([0-9.]+)");
-public FixSuggestionService(AIProviderFactory providerFactory, FixPromptTemplates fixPromptTemplates,
+
+    @Autowired
+    public FixSuggestionService(AIProviderFactory providerFactory, FixPromptTemplates fixPromptTemplates,
                                  AnalysisFixRepository fixRepository) {
         this.providerFactory = providerFactory;
         this.fixPromptTemplates = fixPromptTemplates;

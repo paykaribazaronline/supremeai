@@ -24,19 +24,19 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 @Service
 public class DataLifecycleService {
-    public DataLifecycleService(ConfigService configService, int defaultTtlDays, int gracePeriodDays) {
-        this.configService = configService;
-        this.defaultTtlDays = defaultTtlDays;
-        this.gracePeriodDays = gracePeriodDays;
-    }
-
 
     private static final Logger logger = LoggerFactory.getLogger(DataLifecycleService.class);
 
+    @Autowired(required = false)
+    private ConfigService configService;
 
     // Default TTL in days before soft-delete (fallback value)
+    @Value("${lifecycle.default.ttl.days:30}")
+    private int defaultTtlDays;
 
     // Grace period in days between soft-delete and hard-delete (fallback value)
+    @Value("${lifecycle.grace.period.days:7}")
+    private int gracePeriodDays;
 
     // In-memory registry; in production, back with Firestore collection "data_lifecycle"
     private final Map<String, LifecycleEntry> registry = new ConcurrentHashMap<>();
@@ -197,7 +197,7 @@ public class DataLifecycleService {
         private LocalDateTime softDeletedAt;
         private LocalDateTime hardDeleteAfter;
 
-        public DataLifecycleService(String dataId, String dataType, LocalDateTime expiresAt) {
+        public LifecycleEntry(String dataId, String dataType, LocalDateTime expiresAt) {
             this.dataId = dataId;
             this.dataType = dataType;
             this.registeredAt = LocalDateTime.now();

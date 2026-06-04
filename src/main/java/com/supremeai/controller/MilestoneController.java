@@ -2,6 +2,7 @@ package com.supremeai.controller;
 
 import com.supremeai.model.Milestone;
 import com.supremeai.repository.MilestoneRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -9,11 +10,9 @@ import reactor.core.publisher.Mono;
 @RestController
 @RequestMapping("/api/admin/milestones")
 public class MilestoneController {
-    public MilestoneController(MilestoneRepository milestoneRepository) {
-        this.milestoneRepository = milestoneRepository;
-    }
 
-
+    @Autowired
+    private MilestoneRepository milestoneRepository;
 
     @GetMapping
     public Flux<Milestone> getAllMilestones() {

@@ -5,6 +5,7 @@ import com.supremeai.repository.ProviderRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -20,28 +21,25 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
-class AutoProviderDiscoveryServiceTest {ProviderRepositorypublic AutoProviderDiscoveryServiceTest(ProviderRepository providerRepository, WebClient webClient, WebClient.RequestHeadersUriSpec getUriSpec, WebClient.RequestHeadersSpec getHeaderSpec, WebClient.ResponseSpec responseSpec, AutoProviderDiscoveryService autoDiscoveryService) {
-ProviderRepository    this.providerRepository = providerRepository;
-ProviderRepository    this.webClient = webClient;
-ProviderRepository    this.getUriSpec = getUriSpec;
-ProviderRepository    this.getHeaderSpec = getHeaderSpec;
-ProviderRepository    this.responseSpec = responseSpec;
-ProviderRepository    this.autoDiscoveryService = autoDiscoveryService;
-ProviderRepository}
+class AutoProviderDiscoveryServiceTest {
 
+    @Mock
+    private ProviderRepository providerRepository;
 
+    @Mock
+    private WebClient webClient;
 
+    @Mock
+    private WebClient.RequestHeadersUriSpec getUriSpec;
 
+    @Mock
+    private WebClient.RequestHeadersSpec getHeaderSpec;
 
-
-
-
-
-
-
+    @Mock
+    private WebClient.ResponseSpec responseSpec;
 
     @InjectMocks
-
+    private AutoProviderDiscoveryService autoDiscoveryService;
 
     @BeforeEach
     void setUp() {

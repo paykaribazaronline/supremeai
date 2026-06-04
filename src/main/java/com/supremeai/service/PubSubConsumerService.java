@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.supremeai.dto.PubSubMessageEnvelope;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
@@ -16,16 +17,15 @@ import java.util.Map;
  */
 @Service
 public class PubSubConsumerService {
-    public PubSubConsumerService(ReverseEngineeringIntegrationService revEngIntegrationService, CodeGenerationService codeGenerationService) {
-        this.revEngIntegrationService = revEngIntegrationService;
-        this.codeGenerationService = codeGenerationService;
-    }
-
 
     private static final Logger logger = LoggerFactory.getLogger(PubSubConsumerService.class);
     private final Gson gson = new Gson();
 
+    @Autowired
+    private ReverseEngineeringIntegrationService revEngIntegrationService;
 
+    @Autowired
+    private CodeGenerationService codeGenerationService;
 
     /**
      * Process a raw Pub/Sub push message.

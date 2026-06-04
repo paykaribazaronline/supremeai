@@ -3,6 +3,7 @@ package com.supremeai.service;
 import com.supremeai.model.ReverseEngineeringJob;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
@@ -17,14 +18,20 @@ import java.util.UUID;
  */
 @Service
 public class AgentOrchestrationHub {
-    public AgentOrchestrationHub(ReverseEngineeringIntegrationService reverseEngineeringIntegrationService, com.supremeai.agentorchestration.CrossAgentVectorMemory crossAgentMemory) {
-        this.reverseEngineeringIntegrationService = reverseEngineeringIntegrationService;
-        this.crossAgentMemory = crossAgentMemory;
-    }
-
 
     private static final Logger logger = LoggerFactory.getLogger(AgentOrchestrationHub.class);
 
+    @Autowired
+    private ReverseEngineeringIntegrationService reverseEngineeringIntegrationService;
+
+    @org.springframework.beans.factory.annotation.Autowired
+    private CodeGenerationService codeGenerationService;
+
+    @org.springframework.beans.factory.annotation.Autowired
+    private SimulatorService simulatorService;
+
+    @Autowired
+    private com.supremeai.agentorchestration.CrossAgentVectorMemory crossAgentMemory;
 
     /**
      * Executes a specific agent with given inputs.

@@ -5,6 +5,7 @@ import com.supremeai.dto.TranslationRequest;
 import com.supremeai.dto.TranslationResponse;
 import com.supremeai.service.TranslationService;
 import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
@@ -12,11 +13,9 @@ import reactor.core.publisher.Mono;
 @RestController
 @RequestMapping("/api/translation")
 public class TranslationController {
-    public TranslationController(TranslationService translationService) {
-        this.translationService = translationService;
-    }
 
-
+    @Autowired
+    private TranslationService translationService;
 
     /**
      * টেক্সট অনুবাদ করে

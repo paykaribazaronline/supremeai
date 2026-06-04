@@ -2,16 +2,11 @@
 # Test Configuration for SupremeAI
 
 spring:
-  profiles:
-    active: test
-
   application:
     name: supremeai-test
 
   autoconfigure:
     exclude:
-      - com.google.cloud.spring.autoconfigure.firestore.GcpFirestoreAutoConfiguration
-      - com.google.cloud.spring.autoconfigure.core.GcpContextAutoConfiguration
       - com.google.cloud.spring.autoconfigure.core.GcpCredentialsAutoConfiguration
 
   datasource:
@@ -58,3 +53,10 @@ logging:
     org.springframework.security: DEBUG
     org.springframework.web: DEBUG
     reactor.core: DEBUG
+
+management:
+  health:
+    firestore:
+      enabled: false
+    redis:
+      enabled: false

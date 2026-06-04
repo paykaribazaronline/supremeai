@@ -10,12 +10,9 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class DataLifecycleServiceTest {DataLifecycleServicepublic DataLifecycleServiceTest(DataLifecycleService service) {
-DataLifecycleService    this.service = service;
-DataLifecycleService}
+public class DataLifecycleServiceTest {
 
-
-
+    private DataLifecycleService service;
 
     @BeforeEach
     void setUp() {

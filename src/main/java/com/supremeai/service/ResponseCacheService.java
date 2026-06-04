@@ -257,7 +257,7 @@ public class ResponseCacheService {
         private final long ttlSeconds;
         private long hitCount;
 
-        public ResponseCacheService(String value, Duration ttl) {
+        public CacheEntry(String value, Duration ttl) {
             this.value = value;
             this.createdAt = System.currentTimeMillis();
             this.ttlSeconds = ttl.getSeconds();

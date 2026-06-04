@@ -6,6 +6,7 @@ import com.google.cloud.run.v2.ServicesClient;
 import com.google.cloud.run.v2.LocationName;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -23,24 +24,23 @@ import java.util.stream.Collectors;
  */
 @Service
 public class AIProviderDiscoveryService {
-    public AIProviderDiscoveryService(String ollamaEndpoint, String gcpProjectId, String gcpRegion) {
-        this.ollamaEndpoint = ollamaEndpoint;
-        this.gcpProjectId = gcpProjectId;
-        this.gcpRegion = gcpRegion;
-    }
-
-    public AIProviderDiscoveryService(AIProviderFactory providerFactory, WebClient webClient) {
-        this.providerFactory = providerFactory;
-        this.webClient = webClient;
-    }
-
 
     private static final Logger logger = LoggerFactory.getLogger(AIProviderDiscoveryService.class);
 
+    @Autowired
+    private AIProviderFactory providerFactory;
 
+    @Autowired
+    private WebClient webClient;
 
+    @Value("${ai.providers.ollama.endpoint:http://localhost:11434}")
+    private String ollamaEndpoint;
 
+    @Value("${gcp.project-id:supremeai-a}")
+    private String gcpProjectId;
 
+    @Value("${gcp.region:us-central1}")
+    private String gcpRegion;
 
     public Flux<Map<String, Object>> discoverModels(String query) {
         logger.info("Discovering AI models for query: {}", query);

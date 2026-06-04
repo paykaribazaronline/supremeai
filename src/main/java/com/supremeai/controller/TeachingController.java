@@ -4,6 +4,7 @@ import com.supremeai.model.SystemLearning;
 import com.supremeai.repository.SystemLearningRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
@@ -21,13 +22,11 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/api/teach")
 public class TeachingController {
-    public TeachingController(SystemLearningRepository systemLearningRepository) {
-        this.systemLearningRepository = systemLearningRepository;
-    }
-
 
     private static final Logger log = LoggerFactory.getLogger(TeachingController.class);
 
+    @Autowired
+    private SystemLearningRepository systemLearningRepository;
 
     /**
      * Get learned patterns for the dashboard

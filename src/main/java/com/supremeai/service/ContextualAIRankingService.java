@@ -18,20 +18,17 @@ import java.util.stream.Collectors;
  */
 @Service
 public class ContextualAIRankingService {
-    public ContextualAIRankingService(ProviderMetadataService providerMetadataService) {
-        this.providerMetadataService = providerMetadataService;
-    }
-
-    public ContextualAIRankingService(AIProviderFactory providerFactory, ProviderTierService providerTierService) {
-        this.providerFactory = providerFactory;
-        this.providerTierService = providerTierService;
-    }
-
 
     private static final Logger log = LoggerFactory.getLogger(ContextualAIRankingService.class);
 
+    @Autowired
+    private AIProviderFactory providerFactory;
 
+    @Autowired(required = false)
+    private ProviderMetadataService providerMetadataService;
 
+    @Autowired
+    private ProviderTierService providerTierService;
 
     // Task types for categorization
     public enum TaskType {

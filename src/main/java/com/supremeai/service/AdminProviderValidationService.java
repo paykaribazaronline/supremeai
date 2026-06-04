@@ -4,6 +4,7 @@ import com.supremeai.model.APIProvider;
 import com.supremeai.repository.ProviderRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
@@ -26,19 +27,19 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 @Service
 public class AdminProviderValidationService {
-    public AdminProviderValidationService(ProviderRepository providerRepository, AIProviderDiscoveryService discoveryService, APIHealthReportRepository healthReportRepository) {
-        this.providerRepository = providerRepository;
-        this.discoveryService = discoveryService;
-        this.healthReportRepository = healthReportRepository;
-    }
-
 
     private static final Logger log = LoggerFactory.getLogger(AdminProviderValidationService.class);
 
     private static final int ERROR_THRESHOLD = 3; // Quarantine after 3 consecutive failures (prevents false positives)
 
+    @Autowired
+    private ProviderRepository providerRepository;
 
+    @Autowired
+    private AIProviderDiscoveryService discoveryService;
 
+    @Autowired
+    private APIHealthReportRepository healthReportRepository;
 
     /**
      * Daily cron (3 AM) to validate all active admin provider keys.
@@ -109,8 +110,7 @@ public class AdminProviderValidationService {
                                     generateAndSaveReport(allProviders);
                                 } catch (Exception e) {
                                     log.error("Daily API health report generation failed", e);
-        throw new RuntimeException("Swallowed exception: " + e.getMessage(), e);
-    }
+                                }
                             });
                         })
                         .doOnError(e -> log.error("Daily API health report generation failed", e));

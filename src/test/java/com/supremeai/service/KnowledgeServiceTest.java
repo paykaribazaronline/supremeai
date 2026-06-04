@@ -10,6 +10,7 @@ import com.supremeai.controller.WebSocketController;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -22,28 +23,25 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class KnowledgeServiceTest {KnowledgeDomainRepositorypublic KnowledgeServiceTest(KnowledgeDomainRepository domainRepository, KnowledgeRecommendationRepository recommendationRepository, SystemLearningRepository learningRepository, ActiveInternetScraper scraper, WebSocketController webSocketController, KnowledgeService knowledgeService) {
-KnowledgeDomainRepository    this.domainRepository = domainRepository;
-KnowledgeDomainRepository    this.recommendationRepository = recommendationRepository;
-KnowledgeDomainRepository    this.learningRepository = learningRepository;
-KnowledgeDomainRepository    this.scraper = scraper;
-KnowledgeDomainRepository    this.webSocketController = webSocketController;
-KnowledgeDomainRepository    this.knowledgeService = knowledgeService;
-KnowledgeDomainRepository}
+public class KnowledgeServiceTest {
 
+ @Mock
+ private KnowledgeDomainRepository domainRepository;
 
+ @Mock
+ private KnowledgeRecommendationRepository recommendationRepository;
 
+ @Mock
+ private SystemLearningRepository learningRepository;
 
+ @Mock
+ private ActiveInternetScraper scraper;
 
-
-
-
-
-
-
+ @Mock
+ private WebSocketController webSocketController;
 
  @InjectMocks
-
+ private KnowledgeService knowledgeService;
 
  @Test
  void testProcessMultipleWebsites() {

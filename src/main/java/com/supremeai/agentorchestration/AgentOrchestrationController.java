@@ -12,20 +12,18 @@ import reactor.core.publisher.Mono;
 @RestController
 @RequestMapping("/api/orchestrate")
 public class AgentOrchestrationController {
-    public AgentOrchestrationController(AdaptiveAgentOrchestrator orchestrator) {
-        this.orchestrator = orchestrator;
-    }
 
-    public AgentOrchestrationController(com.supremeai.service.AppOrchestrationService orchestrationService, CodeGenerationService codeGenerationService, com.supremeai.agent.GPublishAgent publishAgent) {
-        this.orchestrationService = orchestrationService;
-        this.codeGenerationService = codeGenerationService;
-        this.publishAgent = publishAgent;
-    }
+    @Autowired(required = false)
+    private AdaptiveAgentOrchestrator orchestrator;
 
+    @Autowired
+    private com.supremeai.service.AppOrchestrationService orchestrationService;
 
+    @Autowired
+    private CodeGenerationService codeGenerationService;
 
-
-
+    @Autowired
+    private com.supremeai.agent.GPublishAgent publishAgent;
 
     @PostMapping("/requirement")
     public Mono<ResponseEntity<Object>> orchestrate(@RequestBody Map<String, Object> request) {

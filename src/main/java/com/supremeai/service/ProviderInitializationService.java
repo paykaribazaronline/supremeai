@@ -4,6 +4,7 @@ import com.supremeai.model.APIProvider;
 import com.supremeai.repository.ProviderRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
@@ -20,22 +21,20 @@ import java.util.Map;
  */
 @Service
 public class ProviderInitializationService {
-    public ProviderInitializationService(String ollamaEndpoint) {
-        this.ollamaEndpoint = ollamaEndpoint;
-    }
-
-    public ProviderInitializationService(FirebaseRealtimeService realtimeService, ProviderRepository providerRepository, ProviderTypeRegistry providerTypeRegistry) {
-        this.realtimeService = realtimeService;
-        this.providerRepository = providerRepository;
-        this.providerTypeRegistry = providerTypeRegistry;
-    }
-
 
     private static final Logger log = LoggerFactory.getLogger(ProviderInitializationService.class);
 
+    @Autowired
+    private FirebaseRealtimeService realtimeService;
 
+    @Autowired
+    private ProviderRepository providerRepository;
 
+    @Autowired
+    private ProviderTypeRegistry providerTypeRegistry;
 
+    @Value("${ai.providers.ollama.endpoint:http://localhost:11434}")
+    private String ollamaEndpoint;
 
     /**
      * Infer a provider type category from the provider name.

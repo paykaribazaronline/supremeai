@@ -4,6 +4,7 @@ import com.supremeai.learning.knowledge.GlobalKnowledgeBase;
 import com.supremeai.learning.knowledge.SolutionMemory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,13 +21,11 @@ import reactor.core.publisher.Flux;
 @RestController
 @RequestMapping("/api/knowledge")
 public class KnowledgeBaseController {
-    public KnowledgeBaseController(GlobalKnowledgeBase globalKnowledgeBase) {
-        this.globalKnowledgeBase = globalKnowledgeBase;
-    }
-
 
     private static final Logger log = LoggerFactory.getLogger(KnowledgeBaseController.class);
 
+    @Autowired
+    private GlobalKnowledgeBase globalKnowledgeBase;
 
     /**
      * Get best solution for a specific error signature.

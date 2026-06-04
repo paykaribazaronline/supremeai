@@ -27,23 +27,26 @@ import java.util.concurrent.*;
 @EnableCaching
 @EnableAsync
 public class PerformanceConfig {
-    public PerformanceConfig(boolean virtualThreadsEnabled, int asyncCorePoolSize, int asyncMaxPoolSize, int asyncQueueCapacity, double rateLimitPerSecond, int ioTimeoutSeconds) {
-        this.virtualThreadsEnabled = virtualThreadsEnabled;
-        this.asyncCorePoolSize = asyncCorePoolSize;
-        this.asyncMaxPoolSize = asyncMaxPoolSize;
-        this.asyncQueueCapacity = asyncQueueCapacity;
-        this.rateLimitPerSecond = rateLimitPerSecond;
-        this.ioTimeoutSeconds = ioTimeoutSeconds;
-    }
-
 
     private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(PerformanceConfig.class);
 
+    @Value("${performance.virtual-threads.enabled:true}")
+    private boolean virtualThreadsEnabled;
 
+    @Value("${performance.async.core-pool-size:50}")
+    private int asyncCorePoolSize;
 
+    @Value("${performance.async.max-pool-size:500}")
+    private int asyncMaxPoolSize;
 
+    @Value("${performance.async.queue-capacity:5000}")
+    private int asyncQueueCapacity;
 
+    @Value("${performance.rate-limit:5000.0}")
+    private double rateLimitPerSecond;
 
+    @Value("${performance.io-timeout-seconds:30}")
+    private int ioTimeoutSeconds;
 
     /**
      * Shared ObjectMapper with Afterburner for 20-30% faster JSON serialization.

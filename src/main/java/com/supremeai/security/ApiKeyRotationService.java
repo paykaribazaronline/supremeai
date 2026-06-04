@@ -8,6 +8,7 @@ import okhttp3.Request;
 import okhttp3.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
@@ -22,13 +23,6 @@ import java.util.stream.Collectors;
 
 @Service
 public class ApiKeyRotationService {
-    public ApiKeyRotationService(UserApiKeyRepository userApiKeyRepository, com.supremeai.repository.APIHealthReportRepository healthReportRepository, EncryptionService encryptionService, com.supremeai.service.ProviderTypeRegistry providerTypeRegistry) {
-        this.userApiKeyRepository = userApiKeyRepository;
-        this.healthReportRepository = healthReportRepository;
-        this.encryptionService = encryptionService;
-        this.providerTypeRegistry = providerTypeRegistry;
-    }
-
 
     private static final Logger log = LoggerFactory.getLogger(ApiKeyRotationService.class);
 
@@ -40,9 +34,17 @@ public class ApiKeyRotationService {
             .readTimeout(10, TimeUnit.SECONDS)
             .build();
 
+    @Autowired
+    private UserApiKeyRepository userApiKeyRepository;
 
+    @Autowired
+    private com.supremeai.repository.APIHealthReportRepository healthReportRepository;
 
+    @Autowired
+    private EncryptionService encryptionService;
 
+    @Autowired
+    private com.supremeai.service.ProviderTypeRegistry providerTypeRegistry;
 
     public String getDecryptedApiKey(UserApiKey key) {
         if (key == null || key.getApiKey() == null) return null;

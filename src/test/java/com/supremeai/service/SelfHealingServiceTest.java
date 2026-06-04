@@ -3,6 +3,7 @@ package com.supremeai.service;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
@@ -13,15 +14,12 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class SelfHealingServiceTest {AIReasoningServicepublic SelfHealingServiceTest(AIReasoningService reasoningService, SelfHealingService selfHealingService) {
-AIReasoningService    this.reasoningService = reasoningService;
-AIReasoningService    this.selfHealingService = selfHealingService;
-AIReasoningService}
+class SelfHealingServiceTest {
 
+    @Mock
+    private AIReasoningService reasoningService;
 
-
-
-
+    private SelfHealingService selfHealingService;
 
     @BeforeEach
     void setUp() {

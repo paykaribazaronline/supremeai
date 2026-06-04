@@ -11,6 +11,7 @@ import com.supremeai.repository.UserRepository;
 import com.supremeai.repository.UserSimulatorProfileRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
@@ -22,22 +23,23 @@ import java.util.UUID;
  */
 @Service
 public class SimulatorService {
-    public SimulatorService(UserSimulatorProfileRepository profileRepository, UserRepository userRepository, ConfigService configService, QuotaService quotaService, SimulatorDeploymentService deploymentService, CodeGenerationService codeGenerationService) {
-        this.profileRepository = profileRepository;
-        this.userRepository = userRepository;
-        this.configService = configService;
-        this.quotaService = quotaService;
-        this.deploymentService = deploymentService;
-        this.codeGenerationService = codeGenerationService;
-    }
-
 
     private static final Logger logger = LoggerFactory.getLogger(SimulatorService.class);
 
+    @Autowired
+    private UserSimulatorProfileRepository profileRepository;
 
+    @Autowired
+    private UserRepository userRepository;
 
+    @Autowired
+    private ConfigService configService;
 
+    @Autowired
+    private QuotaService quotaService;
 
+    @Autowired
+    private SimulatorDeploymentService deploymentService;
 
     public Mono<SimulatorInstallResult> installApp(String userId, String appId, String deviceType) {
         logger.info("Installing app {} to simulator for user {}", appId, userId);
@@ -189,6 +191,8 @@ public class SimulatorService {
         public void setDevice(DeviceUpdateRequest device) { this.device = device; }
     }
 
+    @Autowired
+    private CodeGenerationService codeGenerationService;
 
     /**
      * Fetch generated app content by appId.

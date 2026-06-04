@@ -7,6 +7,7 @@ import com.supremeai.provider.AIProviderFactory;
 import com.supremeai.repository.ProviderRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import reactor.core.publisher.Flux;
@@ -19,24 +20,21 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
-class MultiAIVotingServiceTest {AIProviderFactorypublic MultiAIVotingServiceTest(AIProviderFactory providerFactory, ProviderRepository providerRepository, AIProvider provider1, AIProvider provider2, com.supremeai.service.MultiAIVotingService votingService) {
-AIProviderFactory    this.providerFactory = providerFactory;
-AIProviderFactory    this.providerRepository = providerRepository;
-AIProviderFactory    this.provider1 = provider1;
-AIProviderFactory    this.provider2 = provider2;
-AIProviderFactory    this.votingService = votingService;
-AIProviderFactory}
+class MultiAIVotingServiceTest {
 
+    @Mock
+    private AIProviderFactory providerFactory;
 
+    @Mock
+    private ProviderRepository providerRepository;
 
+    @Mock
+    private AIProvider provider1;
 
+    @Mock
+    private AIProvider provider2;
 
-
-
-
-
-
-
+    private com.supremeai.service.MultiAIVotingService votingService;
 
     @BeforeEach
     void setUp() throws Exception {

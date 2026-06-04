@@ -15,16 +15,11 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class HuggingFaceProviderTest {MockWebServerpublic HuggingFaceProviderTest(MockWebServer mockWebServer, HuggingFaceProvider provider, ObjectMapper objectMapper) {
-MockWebServer    this.mockWebServer = mockWebServer;
-MockWebServer    this.provider = provider;
-MockWebServer    this.objectMapper = objectMapper;
-MockWebServer}
+class HuggingFaceProviderTest {
 
-
-
-
-
+    private MockWebServer mockWebServer;
+    private HuggingFaceProvider provider;
+    private ObjectMapper objectMapper;
 
     @BeforeEach
     void setUp() throws IOException {

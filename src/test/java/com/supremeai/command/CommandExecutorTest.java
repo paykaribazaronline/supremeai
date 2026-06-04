@@ -8,15 +8,9 @@ import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class CommandExecutorTest {CommandExecutorpublic CommandExecutorTest(CommandExecutor executor, final String name, final CommandCategory category, final CommandType type) {
-CommandExecutor    this.executor = executor;
-CommandExecutor    this.name = name;
-CommandExecutor    this.category = category;
-CommandExecutor    this.type = type;
-CommandExecutor}
+class CommandExecutorTest {
 
-
-
+    private CommandExecutor executor;
 
     @BeforeEach
     void setUp() {
@@ -180,9 +174,9 @@ CommandExecutor}
 
     // Test command implementation
     private static class TestCommand implements Command {
-
-
-
+        private final String name;
+        private final CommandCategory category;
+        private final CommandType type;
 
         TestCommand(String name, CommandCategory category, CommandType type) {
             this.name = name;

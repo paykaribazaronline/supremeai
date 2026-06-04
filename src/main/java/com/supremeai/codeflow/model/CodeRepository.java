@@ -225,7 +225,7 @@ public class CodeRepository {
     public List<CodeFile> getFiles() { return files; }
     public void setFiles(List<CodeFile> files) { this.files = files; }
     public DependencyGraph getDependencyGraph() { return dependencyGraph; }
-    public void setDependencyGraph(DependencyGraph dependencyGraph) { this.dependencyGraph = dependencyGraph; }
+    public void setDependencyGraph(DependencyGraph dependencyGraph) { this.dependencyGraph = dependencyGraph; return; }
     public List<PatternDetection> getDetectedPatterns() { return detectedPatterns; }
     public void setDetectedPatterns(List<PatternDetection> detectedPatterns) { this.detectedPatterns = detectedPatterns; }
     public List<SecurityIssue> getSecurityIssues() { return securityIssues; }
@@ -329,7 +329,7 @@ public class CodeRepository {
         public FunctionInfo() {}
         public String getName() { return name; }
         public void setName(String n) { this.name = n; }
-        public Boolean isPrivate() { return isPrivate; }
+        public Boolean getIsPrivate() { return isPrivate; }
         public void setIsPrivate(Boolean ip) { this.isPrivate = ip; }
         public Integer getLine() { return line; }
         public void setLine(Integer l) { this.line = l; }

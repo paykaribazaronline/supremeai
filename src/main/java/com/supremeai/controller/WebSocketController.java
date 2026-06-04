@@ -3,6 +3,7 @@ package com.supremeai.controller;
 import com.supremeai.repository.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.annotation.SendToUser;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -18,15 +19,14 @@ import java.util.Map;
 
 @Controller
 public class WebSocketController {
-    public WebSocketController(SimpMessagingTemplate messagingTemplate, UserRepository userRepository) {
-        this.messagingTemplate = messagingTemplate;
-        this.userRepository = userRepository;
-    }
-
 
     private static final Logger log = LoggerFactory.getLogger(WebSocketController.class);
 
+    @Autowired
+    private SimpMessagingTemplate messagingTemplate;
 
+    @Autowired
+    private UserRepository userRepository;
 
     @MessageMapping("/dashboard/subscribe")
     @SendToUser("/topic/dashboard")

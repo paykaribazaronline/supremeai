@@ -13,16 +13,12 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 @Service
 public class AIRankingService {
-    public AIRankingService(RedisTemplate<String, Object> redisTemplate) {
-        this.redisTemplate = redisTemplate;
-    }
 
-    public AIRankingService(ProviderTypeRegistry providerTypeRegistry) {
-        this.providerTypeRegistry = providerTypeRegistry;
-    }
+    @Autowired(required = false)
+    private RedisTemplate<String, Object> redisTemplate;
 
-
-
+    @Autowired
+    private ProviderTypeRegistry providerTypeRegistry;
 
     private static final String REDIS_KEY_PREFIX = "ai_provider_stats:";
     private final Map<String, ProviderStats> providerStats = new ConcurrentHashMap<>();

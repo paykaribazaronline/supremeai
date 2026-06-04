@@ -6,6 +6,7 @@ import com.supremeai.repository.ProviderRepository;
 import com.supremeai.model.APIProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -27,12 +28,6 @@ import java.util.stream.Collectors;
  */
 @Service
 public class AutomaticTaskAssigner {
-    public AutomaticTaskAssigner(TaskProviderAssignmentRepository assignmentRepo, ProviderRepository providerRepo, ProviderCapabilityAnalyzer capabilityAnalyzer) {
-        this.assignmentRepo = assignmentRepo;
-        this.providerRepo = providerRepo;
-        this.capabilityAnalyzer = capabilityAnalyzer;
-    }
-
 
     private static final Logger log = LoggerFactory.getLogger(AutomaticTaskAssigner.class);
 
@@ -58,17 +53,20 @@ public class AutomaticTaskAssigner {
     private static final int DEFAULT_MAX_PROVIDERS = 10;
     private static final String DEFAULT_STRATEGY = "weighted_consensus";
 
+    @Autowired
+    private TaskProviderAssignmentRepository assignmentRepo;
 
+    @Autowired
+    private ProviderRepository providerRepo;
 
+    @Autowired
+    private ProviderCapabilityAnalyzer capabilityAnalyzer;
 
     /**
      * Auto-assign a newly registered provider based on its benchmark scores.
-     * Called when admin adds a new provider.
-     * Fully reactive — no .block() calls.
      */
     public Mono<TaskProviderAssignment> autoAssignNewProvider(String providerId, Map<String, Double> scores) {
-        log.info("🔍 Auto-assigning provider {} based on {} capability scores",
-            providerId, scores.size());
+        log.info("Auto-assigning provider {} based on {} capability scores", providerId, scores.size());
 
         return Flux.fromIterable(ALL_TASK_TYPES)
             .filter(task -> {
@@ -77,25 +75,21 @@ public class AutomaticTaskAssigner {
             })
             .flatMap(task -> assignmentRepo.findByTaskType(task.name)
                 .flatMap(existing -> {
-                    // Add provider to existing assignment
                     List<String> updatedProviders = new ArrayList<>(existing.getProviderIds());
                     if (!updatedProviders.contains(providerId)) {
                         updatedProviders.add(providerId);
-                        // Apply max limit
                         if (updatedProviders.size() > DEFAULT_MAX_PROVIDERS) {
                             updatedProviders = keepTopProviders(updatedProviders, task.name);
                         }
                         existing.setProviderIds(updatedProviders);
                         existing.setUpdatedAt(new Date());
                         existing.setAssignmentSource("auto");
-                        log.info("➕ Added {} to task '{}' (score: {})",
-                            providerId, task.name, scores.get(task.name));
+                        log.info("Added {} to task '{}' (score: {})", providerId, task.name, scores.get(task.name));
                         return assignmentRepo.save(existing);
                     }
                     return Mono.just(existing);
                 })
                 .switchIfEmpty(Mono.defer(() -> {
-                    // Create new assignment for this task
                     TaskProviderAssignment newAssignment = new TaskProviderAssignment();
                     newAssignment.setTaskType(task.name);
                     newAssignment.setTaskLabel(task.label);
@@ -109,52 +103,34 @@ public class AutomaticTaskAssigner {
                     newAssignment.setAssignmentSource("auto");
                     newAssignment.setCreatedAt(new Date());
                     newAssignment.setUpdatedAt(new Date());
-
-                    log.info("🆕 Created new assignment: task='{}' → provider={}",
-                        task.name, providerId);
+                    log.info("Created new assignment: task='{}' -> provider={}", task.name, providerId);
                     return assignmentRepo.save(newAssignment);
                 }))
             )
             .collectList()
             .doOnNext(assignments ->
-                log.info("✅ Provider {} auto-assigned to {} task types",
-                    providerId, assignments.size()))
+                log.info("Provider {} auto-assigned to {} task types", providerId, assignments.size()))
             .flatMap(assignments -> {
                 if (assignments.isEmpty()) return Mono.empty();
                 return Mono.just(assignments.get(0));
             });
     }
 
-    /**
-     * Keep only top-scoring providers for a task (when exceeding max)
-     */
     private List<String> keepTopProviders(List<String> providerIds, String taskType) {
-        // Get capability scores from provider registry and sort
-        // For now, keep most recently added (last in list)
-        // In production: would query capability scores and pick top N
         return providerIds.stream()
             .limit(DEFAULT_MAX_PROVIDERS)
             .collect(Collectors.toList());
     }
 
-    /**
-     * Nightly rebalance: remove underperforming providers from task assignments.
-     * Called by scheduler at 2 AM.
-     * Returns Mono<Void> — fully reactive, no .block() or .blockLast().
-     */
     public Mono<Void> nightlyRebalance() {
-        log.info("🌙 Starting nightly rebalance of task assignments...");
-
+        log.info("Starting nightly rebalance of task assignments...");
         return assignmentRepo.findAllByIsActive(true)
             .flatMap(assignment -> {
                 String taskType = assignment.getTaskType();
                 List<String> currentProviders = assignment.getProviderIds();
-
                 if (currentProviders == null || currentProviders.isEmpty()) {
                     return Mono.empty();
                 }
-
-                // Check each provider's score reactively
                 return Flux.fromIterable(currentProviders)
                     .flatMap(providerId -> getLatestScore(providerId, taskType)
                         .map(score -> Map.entry(providerId, score))
@@ -169,33 +145,26 @@ public class AutomaticTaskAssigner {
                     .flatMap(poorPerformers -> {
                         if (!poorPerformers.isEmpty() &&
                             currentProviders.size() - poorPerformers.size() >= assignment.getMinProviders()) {
-
                             for (String pp : poorPerformers) {
-                                log.warn("⚠️ Provider {} underperforming on {} (threshold: {})",
+                                log.warn("Provider {} underperforming on {} (threshold: {})",
                                     pp, taskType, assignment.getCapabilityThreshold());
                             }
-
                             List<String> updatedProviders = new ArrayList<>(currentProviders);
                             updatedProviders.removeAll(poorPerformers);
                             assignment.setProviderIds(updatedProviders);
                             assignment.setUpdatedAt(new Date());
                             assignment.setAssignmentSource("auto_rebalance");
-
-                            log.info("🧹 Removed {} poor performers from task '{}'",
+                            log.info("Removed {} poor performers from task '{}'",
                                 poorPerformers.size(), taskType);
-
                             return assignmentRepo.save(assignment).then();
                         }
                         return Mono.empty();
                     });
             })
             .then()
-            .doOnTerminate(() -> log.info("✅ Nightly rebalance complete"));
+            .doOnTerminate(() -> log.info("Nightly rebalance complete"));
     }
 
-    /**
-     * Get latest capability score for a provider on a task — reactive, no .block().
-     */
     private Mono<Double> getLatestScore(String providerId, String taskType) {
         return providerRepo.findById(providerId)
             .map(provider -> {
@@ -211,24 +180,17 @@ public class AutomaticTaskAssigner {
             });
     }
 
-    /**
-     * Get effective providers for a task — reactive, no .block().
-     */
     public Mono<List<String>> getProvidersForTask(String taskType) {
         return assignmentRepo.findByTaskType(taskType)
             .filter(TaskProviderAssignment::getActive)
             .map(TaskProviderAssignment::getProviderIds)
             .switchIfEmpty(
-                // Fallback: return all active providers
                 providerRepo.findByStatus("active")
                     .map(APIProvider::getId)
                     .collectList()
             );
     }
 
-    /**
-     * Check if a provider is assigned to a task — reactive, no .block().
-     */
     public Mono<Boolean> isProviderAssigned(String providerId, String taskType) {
         return assignmentRepo.findByTaskType(taskType)
             .map(assignment ->
@@ -237,25 +199,17 @@ public class AutomaticTaskAssigner {
             .defaultIfEmpty(false);
     }
 
-    /**
-     * Get all task assignments (for admin UI) — reactive, no .block().
-     */
     public Mono<List<TaskProviderAssignment>> getAllAssignments() {
         return assignmentRepo.findAll().collectList();
     }
 
-    /**
-     * Get assignment stats for dashboard — reactive, no .block().
-     */
     public Mono<Map<String, Object>> getAssignmentStats() {
         Mono<Long> totalMono = assignmentRepo.count();
         Mono<Long> activeMono = assignmentRepo.countByIsActive(true);
-
         return Mono.zip(totalMono, activeMono)
             .map(tuple -> {
                 long totalAssignments = tuple.getT1();
                 long activeTasks = tuple.getT2();
-
                 Map<String, Object> stats = new HashMap<>();
                 stats.put("totalAssignments", totalAssignments);
                 stats.put("activeTasks", activeTasks);
@@ -265,12 +219,10 @@ public class AutomaticTaskAssigner {
             });
     }
 
-    /** Internal config class */
     private static class TaskConfig {
         String name;
         String label;
         double minScore;
-
         TaskConfig(String name, String label, double minScore) {
             this.name = name;
             this.label = label;

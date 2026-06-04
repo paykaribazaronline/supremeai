@@ -22,12 +22,10 @@ import java.util.concurrent.Executors;
  */
 @Service
 public class ProviderModelRegistry {
-    public ProviderModelRegistry(Firestore firestore) {
-        this.firestore = firestore;
-    }
-
     private static final Logger logger = LoggerFactory.getLogger(ProviderModelRegistry.class);
 
+    @Autowired(required = false)
+    private Firestore firestore;
 
     private final Map<String, List<String>> registryCache = new ConcurrentHashMap<>();
     private final Map<String, List<String>> fallbackModels = new HashMap<>();

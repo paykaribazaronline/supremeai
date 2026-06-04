@@ -10,6 +10,7 @@ import com.supremeai.service.EnhancedMultiAIConsensusService;
 import com.supremeai.service.FirebaseRealtimeService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
@@ -25,19 +26,20 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 @Service
 public class AIValidationHarnessService {
-    public AIValidationHarnessService(ProviderRepository providerRepository, AIProviderFactory providerFactory, EnhancedMultiAIConsensusService consensusService, FirebaseRealtimeService firebaseRealtimeService) {
-        this.providerRepository = providerRepository;
-        this.providerFactory = providerFactory;
-        this.consensusService = consensusService;
-        this.firebaseRealtimeService = firebaseRealtimeService;
-    }
-
 
     private static final Logger log = LoggerFactory.getLogger(AIValidationHarnessService.class);
 
+    @Autowired
+    private ProviderRepository providerRepository;
 
+    @Autowired
+    private AIProviderFactory providerFactory;
 
+    @Autowired
+    private EnhancedMultiAIConsensusService consensusService;
 
+    @Autowired
+    private FirebaseRealtimeService firebaseRealtimeService;
 
     // Standard prompts for validation
     private final List<ValidationPrompt> standardPrompts = Arrays.asList(

@@ -4,6 +4,7 @@ import com.supremeai.dto.PubSubMessageEnvelope;
 import com.supremeai.service.PubSubConsumerService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -18,13 +19,11 @@ import reactor.core.publisher.Mono;
 @RestController
 @RequestMapping("/api/pubsub")
 public class PubSubWebhookController {
-    public PubSubWebhookController(PubSubConsumerService consumerService) {
-        this.consumerService = consumerService;
-    }
-
 
     private static final Logger logger = LoggerFactory.getLogger(PubSubWebhookController.class);
 
+    @Autowired
+    private PubSubConsumerService consumerService;
 
     @PostMapping("/push")
     public Mono<ResponseEntity<String>> handlePush(@RequestBody PubSubMessageEnvelope envelope) {

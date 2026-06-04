@@ -4,6 +4,7 @@ import com.supremeai.admin.AdminDashboardService;
 import com.supremeai.repository.SolutionMemoryRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -19,18 +20,15 @@ import static org.mockito.Mockito.*;
  * Unit tests for GlobalKnowledgeBase.
  * Tests memory storage, retrieval, versioning, and scoring logic.
  */
-class GlobalKnowledgeBaseTest {GlobalKnowledgeBasepublic GlobalKnowledgeBaseTest(GlobalKnowledgeBase knowledgeBase, AdminDashboardService adminDashboard, SolutionMemoryRepository solutionMemoryRepository) {
-GlobalKnowledgeBase    this.knowledgeBase = knowledgeBase;
-GlobalKnowledgeBase    this.adminDashboard = adminDashboard;
-GlobalKnowledgeBase    this.solutionMemoryRepository = solutionMemoryRepository;
-GlobalKnowledgeBase}
+class GlobalKnowledgeBaseTest {
 
+    private GlobalKnowledgeBase knowledgeBase;
 
+    @Mock
+    private AdminDashboardService adminDashboard;
 
-
-
-
-
+    @Mock
+    private SolutionMemoryRepository solutionMemoryRepository;
 
     @BeforeEach
     void setUp() {

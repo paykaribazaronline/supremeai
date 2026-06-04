@@ -3,6 +3,7 @@ package com.supremeai.controller;
 import com.supremeai.service.MCPMarketplaceService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,13 +18,11 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/marketplace")
 public class MarketplaceController {
-    public MarketplaceController(MCPMarketplaceService marketplaceService) {
-        this.marketplaceService = marketplaceService;
-    }
-
 
     private static final Logger logger = LoggerFactory.getLogger(MarketplaceController.class);
 
+    @Autowired
+    private MCPMarketplaceService marketplaceService;
 
     /**
      * GET /api/marketplace/servers

@@ -2,6 +2,7 @@ package com.supremeai.service;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 import com.supremeai.controller.IntelligenceController;
@@ -19,10 +20,6 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 @Service
 public class CyberSecuritySkillService {
-    public CyberSecuritySkillService(ConfigService configService) {
-        this.configService = configService;
-    }
-
 
     private static final Logger logger = LoggerFactory.getLogger(CyberSecuritySkillService.class);
 
@@ -30,8 +27,13 @@ public class CyberSecuritySkillService {
     private final Map<String, Map<String, Object>> learnedTechniques = new ConcurrentHashMap<>();
     
     // Protection Registry (Generated Defenses)
-    private final Map<String, Map<String, Object>> activeProtections = new ConcurrentHashMap<>(); // For AI-driven discovery
+    private final Map<String, Map<String, Object>> activeProtections = new ConcurrentHashMap<>();
 
+    @Autowired
+    private IntelligenceController intelligenceController; // For AI-driven discovery
+
+    @Autowired
+    private ConfigService configService;
 
     private LocalDateTime lastAuditTime;
     private LocalDateTime lastLearningTime;

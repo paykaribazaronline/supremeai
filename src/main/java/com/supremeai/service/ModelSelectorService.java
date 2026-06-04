@@ -2,6 +2,7 @@ package com.supremeai.service;
 
 import com.supremeai.model.APIProvider;
 import com.supremeai.repository.ProviderRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 import java.util.Comparator;
@@ -12,11 +13,9 @@ import java.util.Comparator;
  */
 @Service
 public class ModelSelectorService {
-    public ModelSelectorService(ProviderRepository providerRepository) {
-        this.providerRepository = providerRepository;
-    }
 
-
+    @Autowired
+    private ProviderRepository providerRepository;
 
     /**
      * Get the best provider for a specific role (e.g., 'coding', 'security').

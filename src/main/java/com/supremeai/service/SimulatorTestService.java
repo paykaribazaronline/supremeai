@@ -21,14 +21,6 @@ import java.util.*;
  */
 @Service
 public class SimulatorTestService {
-    public SimulatorTestService(ChatProcessingService chatProcessingService) {
-        this.chatProcessingService = chatProcessingService;
-    }
-
-    public SimulatorTestService(AIProviderService aiProviderService) {
-        this.aiProviderService = aiProviderService;
-    }
-
 
     private static final Logger logger = LoggerFactory.getLogger(SimulatorTestService.class);
 
@@ -37,7 +29,11 @@ public class SimulatorTestService {
 
     private final Map<String, TestExecution> activeExecutions = new java.util.concurrent.ConcurrentHashMap<>();
 
+    @Autowired(required = false)
+    private ChatProcessingService chatProcessingService;
 
+    @Autowired
+    private AIProviderService aiProviderService;
 
     // ──────────────────────────────────────────────────────────────────────
     // Public API

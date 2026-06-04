@@ -10,12 +10,9 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class RegisterRequestTest {Validatorpublic RegisterRequestTest(Validator validator) {
-Validator    this.validator = validator;
-Validator}
+class RegisterRequestTest {
 
-
-
+    private Validator validator;
 
     @BeforeEach
     void setUp() {

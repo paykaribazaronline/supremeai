@@ -20,22 +20,22 @@ export default defineConfig(({ mode }) => ({
     port: 5173,
     proxy: {
       '/api': {
-        target: 'http://localhost:5003',
+        target: 'http://localhost:8080',
         changeOrigin: true,
         secure: false,
       },
       '/healthCheck': {
-        target: 'http://localhost:5003',
+        target: 'http://localhost:8080',
         changeOrigin: true,
         secure: false,
       },
       '/getConfiguredProviders': {
-        target: 'http://localhost:5003',
+        target: 'http://localhost:8080',
         changeOrigin: true,
         secure: false,
       },
       '/getProviderHealthStats': {
-        target: 'http://localhost:5003',
+        target: 'http://localhost:8080',
         changeOrigin: true,
         secure: false,
       },

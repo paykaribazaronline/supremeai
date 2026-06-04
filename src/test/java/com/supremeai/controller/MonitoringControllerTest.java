@@ -4,6 +4,7 @@ import com.supremeai.service.ProductionHealthMonitor;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.ResponseEntity;
 import reactor.core.publisher.Mono;
@@ -16,16 +17,13 @@ import reactor.test.StepVerifier;
 import org.mockito.InjectMocks;
 
 @ExtendWith(MockitoExtension.class)
-class MonitoringControllerTest {ProductionHealthMonitorpublic MonitoringControllerTest(ProductionHealthMonitor healthMonitor, MonitoringController monitoringController) {
-ProductionHealthMonitor    this.healthMonitor = healthMonitor;
-ProductionHealthMonitor    this.monitoringController = monitoringController;
-ProductionHealthMonitor}
+class MonitoringControllerTest {
 
-
-
+    @Mock
+    private ProductionHealthMonitor healthMonitor;
 
     @InjectMocks
-
+    private MonitoringController monitoringController;
 
     @BeforeEach
     void setUp() {

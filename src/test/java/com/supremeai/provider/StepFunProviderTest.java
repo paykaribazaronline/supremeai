@@ -14,16 +14,11 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class StepFunProviderTest {MockWebServerpublic StepFunProviderTest(MockWebServer mockWebServer, StepFunProvider provider, ObjectMapper objectMapper) {
-MockWebServer    this.mockWebServer = mockWebServer;
-MockWebServer    this.provider = provider;
-MockWebServer    this.objectMapper = objectMapper;
-MockWebServer}
+class StepFunProviderTest {
 
-
-
-
-
+    private MockWebServer mockWebServer;
+    private StepFunProvider provider;
+    private ObjectMapper objectMapper;
 
     @BeforeEach
     void setUp() throws IOException {

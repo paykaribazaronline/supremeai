@@ -7,6 +7,7 @@ import com.supremeai.dto.ProjectCreateRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -26,15 +27,12 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 @org.mockito.junit.jupiter.MockitoSettings(strictness = org.mockito.quality.Strictness.LENIENT)
-class ProjectsControllerTest {ProjectRepositorypublic ProjectsControllerTest(ProjectRepository projectRepository, ProjectsController controller) {
-ProjectRepository    this.projectRepository = projectRepository;
-ProjectRepository    this.controller = controller;
-ProjectRepository}
+class ProjectsControllerTest {
 
+    @Mock
+    private ProjectRepository projectRepository;
 
-
-
-
+    private ProjectsController controller;
 
     @BeforeEach
     void setUp() {

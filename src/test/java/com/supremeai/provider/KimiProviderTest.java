@@ -14,16 +14,11 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class KimiProviderTest {MockWebServerpublic KimiProviderTest(MockWebServer mockWebServer, KimiProvider provider, ObjectMapper objectMapper) {
-MockWebServer    this.mockWebServer = mockWebServer;
-MockWebServer    this.provider = provider;
-MockWebServer    this.objectMapper = objectMapper;
-MockWebServer}
+class KimiProviderTest {
 
-
-
-
-
+    private MockWebServer mockWebServer;
+    private KimiProvider provider;
+    private ObjectMapper objectMapper;
 
     @BeforeEach
     void setUp() throws IOException {

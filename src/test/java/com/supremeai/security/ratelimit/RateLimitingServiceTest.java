@@ -4,6 +4,7 @@ import com.supremeai.config.RateLimitProperties;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.util.Map;
@@ -11,22 +12,19 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-class RateLimitingServiceTest {RateLimitPropertiespublic RateLimitingServiceTest(RateLimitProperties properties, RedisRateLimiter redisRateLimiter, InMemoryRateLimiter inMemoryRateLimiter, RateLimitingService rateLimitingService) {
-RateLimitProperties    this.properties = properties;
-RateLimitProperties    this.redisRateLimiter = redisRateLimiter;
-RateLimitProperties    this.inMemoryRateLimiter = inMemoryRateLimiter;
-RateLimitProperties    this.rateLimitingService = rateLimitingService;
-RateLimitProperties}
+class RateLimitingServiceTest {
 
+    @Mock
+    private RateLimitProperties properties;
 
+    @Mock
+    private RedisRateLimiter redisRateLimiter;
 
-
-
-
-
+    @Mock
+    private InMemoryRateLimiter inMemoryRateLimiter;
 
     @InjectMocks
-
+    private RateLimitingService rateLimitingService;
 
     @BeforeEach
     void setUp() {

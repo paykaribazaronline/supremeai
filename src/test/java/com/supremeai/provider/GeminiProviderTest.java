@@ -14,16 +14,11 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class GeminiProviderTest {MockWebServerpublic GeminiProviderTest(MockWebServer mockWebServer, GeminiProvider provider, ObjectMapper objectMapper) {
-MockWebServer    this.mockWebServer = mockWebServer;
-MockWebServer    this.provider = provider;
-MockWebServer    this.objectMapper = objectMapper;
-MockWebServer}
+class GeminiProviderTest {
 
-
-
-
-
+    private MockWebServer mockWebServer;
+    private GeminiProvider provider;
+    private ObjectMapper objectMapper;
 
     @BeforeEach
     void setUp() throws IOException {

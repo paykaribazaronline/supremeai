@@ -3,6 +3,7 @@ package com.supremeai.repository;
 import com.supremeai.model.ActivityLog;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -14,12 +15,10 @@ import java.util.List;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class ActivityLogRepositoryTest {ActivityLogRepositorypublic ActivityLogRepositoryTest(ActivityLogRepository activityLogRepository) {
-ActivityLogRepository    this.activityLogRepository = activityLogRepository;
-ActivityLogRepository}
+class ActivityLogRepositoryTest {
 
-
-
+    @Mock
+    private ActivityLogRepository activityLogRepository;
 
     @Test
     void findByCategoryOrderByTimestampDesc_shouldReturnLogsForCategory() {

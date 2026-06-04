@@ -1,5 +1,6 @@
 package com.supremeai.controller;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
@@ -17,13 +18,12 @@ import com.supremeai.intelligence.SystemSuggestionService;
 @RequestMapping("/api/supreme")
 @PreAuthorize("hasRole('ADMIN')")
 public class SupremeOrchestratorController {
-    public SupremeOrchestratorController(SupremeLearningOrchestrator orchestrator, SystemSuggestionService suggestionService) {
-        this.orchestrator = orchestrator;
-        this.suggestionService = suggestionService;
-    }
 
+    @Autowired
+    private SupremeLearningOrchestrator orchestrator;
 
-
+    @Autowired
+    private SystemSuggestionService suggestionService;
 
     @PostMapping("/identify-hub")
     public Mono<Map<String, String>> identifyHub(@RequestBody Map<String, String> request) {

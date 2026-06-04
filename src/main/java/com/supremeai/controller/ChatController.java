@@ -34,37 +34,35 @@ import java.util.function.Supplier;
 @RestController
 @RequestMapping("/api/chat")
 public class ChatController {
-    public ChatController(MultiAIVotingService consensusService, EnhancedLearningService enhancedLearningService) {
-        this.consensusService = consensusService;
-        this.enhancedLearningService = enhancedLearningService;
-    }
-
-    public ChatController(AutonomousQuestioningEngine questioningEngine, MultiAIVotingService votingService, com.supremeai.service.ChatIntelligenceService intelligenceService, ChatHistoryRepository chatHistoryRepository, ProviderRepository providerRepository, com.supremeai.service.NeuralChatService neuralChatService) {
-        this.questioningEngine = questioningEngine;
-        this.votingService = votingService;
-        this.intelligenceService = intelligenceService;
-        this.chatHistoryRepository = chatHistoryRepository;
-        this.providerRepository = providerRepository;
-        this.neuralChatService = neuralChatService;
-    }
 
     private static final Logger logger = LoggerFactory.getLogger(ChatController.class);
 
+    @Autowired(required = false)
+    private MultiAIVotingService consensusService;
 
+    @Autowired
+    private AutonomousQuestioningEngine questioningEngine;
 
+    @Autowired
+    private MultiAIVotingService votingService;
 
+    @Autowired(required = false)
+    private EnhancedLearningService enhancedLearningService;
+
+    @Autowired
+    private com.supremeai.service.ChatIntelligenceService intelligenceService;
+
+    @Autowired
+    private ChatHistoryRepository chatHistoryRepository;
+
+    @Autowired
+    private ProviderRepository providerRepository;
+
+    @Autowired
+    private com.supremeai.service.NeuralChatService neuralChatService;
 
     private final CircuitBreaker aiCircuitBreaker;
     private final Retry aiRetry;
-
-    private MultiAIVotingService consensusService;
-    private AutonomousQuestioningEngine questioningEngine;
-    private MultiAIVotingService votingService;
-    private com.supremeai.service.ChatIntelligenceService intelligenceService;
-    private ChatHistoryRepository chatHistoryRepository;
-    private ProviderRepository providerRepository;
-    private com.supremeai.service.NeuralChatService neuralChatService;
-    private EnhancedLearningService enhancedLearningService;
 
     public ChatController() {
         this.aiCircuitBreaker = CircuitBreaker.ofDefaults("aiVotingService");

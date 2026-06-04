@@ -7,6 +7,7 @@ import com.supremeai.model.ModelEvolution;
 import com.supremeai.model.VPNConnection;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -17,12 +18,10 @@ import java.util.List;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class ChatHistoryRepositoryTest {ChatHistoryRepositorypublic ChatHistoryRepositoryTest(ChatHistoryRepository repository) {
-ChatHistoryRepository    this.repository = repository;
-ChatHistoryRepository}
+class ChatHistoryRepositoryTest {
 
-
-
+    @Mock
+    private ChatHistoryRepository repository;
 
     @Test
     void save_shouldPersistChatMessage() {

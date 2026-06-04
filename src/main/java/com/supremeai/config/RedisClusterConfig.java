@@ -23,17 +23,18 @@ import java.util.List;
 @Configuration
 @ConditionalOnProperty(name = "redis.cluster.enabled", havingValue = "true", matchIfMissing = false)
 public class RedisClusterConfig {
-    public RedisClusterConfig(List<String> clusterNodes, int maxRedirects, String sentinelMaster, List<String> sentinelNodes) {
-        this.clusterNodes = clusterNodes;
-        this.maxRedirects = maxRedirects;
-        this.sentinelMaster = sentinelMaster;
-        this.sentinelNodes = sentinelNodes;
-    }
 
+    @Value("${redis.cluster.nodes:localhost:7000,localhost:7001,localhost:7002}")
+    private List<String> clusterNodes;
 
+    @Value("${redis.cluster.max-redirects:3}")
+    private int maxRedirects;
 
+    @Value("${redis.sentinel.master:mymaster}")
+    private String sentinelMaster;
 
-
+    @Value("${redis.sentinel.nodes:localhost:26379}")
+    private List<String> sentinelNodes;
 
     /**
      * Configure Lettuce client resources for cluster.

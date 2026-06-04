@@ -25,21 +25,23 @@ import java.util.regex.Pattern;
  */
 @Service
 public class EnhancedContentSanitizerService {
-    public EnhancedContentSanitizerService(CodeImmunitySystem immunitySystem, int minContentLength, int maxContentLength, double minSecurityScore, double minQualityScore) {
-        this.immunitySystem = immunitySystem;
-        this.minContentLength = minContentLength;
-        this.maxContentLength = maxContentLength;
-        this.minSecurityScore = minSecurityScore;
-        this.minQualityScore = minQualityScore;
-    }
-
 
     private static final Logger log = LoggerFactory.getLogger(EnhancedContentSanitizerService.class);
 
+    @Autowired(required = false)
+    private CodeImmunitySystem immunitySystem;
 
+    @Value("${sanitizer.min.content.length:50}")
+    private int minContentLength;
 
+    @Value("${sanitizer.max.content.length:10000}")
+    private int maxContentLength;
 
+    @Value("${sanitizer.min.security.score:0.3}")
+    private double minSecurityScore;
 
+    @Value("${sanitizer.min.quality.score:0.4}")
+    private double minQualityScore;
 
     /**
      * Enhanced PII detection patterns.

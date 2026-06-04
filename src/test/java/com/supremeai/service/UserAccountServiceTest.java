@@ -8,6 +8,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -21,22 +22,18 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class UserAccountServiceTest {UserRepositorypublic UserAccountServiceTest(UserRepository userRepository, FirebaseAuth firebaseAuth, UserAccountService userAccountService, User testUser) {
-UserRepository    this.userRepository = userRepository;
-UserRepository    this.firebaseAuth = firebaseAuth;
-UserRepository    this.userAccountService = userAccountService;
-UserRepository    this.testUser = testUser;
-UserRepository}
+class UserAccountServiceTest {
 
+    @Mock
+    private UserRepository userRepository;
 
-
-
-
+    @Mock
+    private FirebaseAuth firebaseAuth;
 
     @InjectMocks
+    private UserAccountService userAccountService;
 
-
-
+    private User testUser;
 
     @BeforeEach
     void setUp() {

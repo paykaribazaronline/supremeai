@@ -2,6 +2,7 @@ package com.supremeai.ml;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -23,20 +24,16 @@ import java.util.stream.DoubleStream;
  */
 @Service
 public class AdvancedPredictiveMLService {
-    public AdvancedPredictiveMLService(String n8nWebhookUrl) {
-        this.n8nWebhookUrl = n8nWebhookUrl;
-    }
-
-    public AdvancedPredictiveMLService(EnhancedRandomForestPredictor randomForestPredictor) {
-        this.randomForestPredictor = randomForestPredictor;
-    }
-
 
     private static final Logger log = LoggerFactory.getLogger(AdvancedPredictiveMLService.class);
 
+    @Autowired
+    private EnhancedRandomForestPredictor randomForestPredictor;
 
     private final WebClient webClient;
 
+    @Value("${n8n.webhook.url:http://localhost:5678/webhook/quota-alert}")
+    private String n8nWebhookUrl;
 
     public AdvancedPredictiveMLService(WebClient.Builder webClientBuilder) {
         this.webClient = webClientBuilder.build();

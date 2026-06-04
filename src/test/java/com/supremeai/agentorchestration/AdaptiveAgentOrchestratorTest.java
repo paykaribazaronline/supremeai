@@ -5,6 +5,7 @@ import com.supremeai.model.ProviderVote;
 import com.supremeai.service.MultiAIConsensusService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.lang.reflect.Field;
@@ -18,27 +19,24 @@ import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 @org.mockito.junit.jupiter.MockitoSettings(strictness = org.mockito.quality.Strictness.LENIENT)
-class AdaptiveAgentOrchestratorTest {com.supremeai.provider.AIProviderFactorypublic AdaptiveAgentOrchestratorTest(com.supremeai.provider.AIProviderFactory providerFactory, com.supremeai.provider.AIProvider aiProvider, com.supremeai.service.TranslationService translationService, com.supremeai.service.UserLanguagePreferenceService languagePreferenceService, com.supremeai.service.AIBehaviorProfileService behaviorProfileService, AdaptiveAgentOrchestrator orchestrator) {
-com.supremeai.provider.AIProviderFactory    this.providerFactory = providerFactory;
-com.supremeai.provider.AIProviderFactory    this.aiProvider = aiProvider;
-com.supremeai.provider.AIProviderFactory    this.translationService = translationService;
-com.supremeai.provider.AIProviderFactory    this.languagePreferenceService = languagePreferenceService;
-com.supremeai.provider.AIProviderFactory    this.behaviorProfileService = behaviorProfileService;
-com.supremeai.provider.AIProviderFactory    this.orchestrator = orchestrator;
-com.supremeai.provider.AIProviderFactory}
+class AdaptiveAgentOrchestratorTest {
 
+    @Mock
+    private com.supremeai.provider.AIProviderFactory providerFactory;
 
+    @Mock
+    private com.supremeai.provider.AIProvider aiProvider;
 
+    @Mock
+    private com.supremeai.service.TranslationService translationService;
 
+    @Mock
+    private com.supremeai.service.UserLanguagePreferenceService languagePreferenceService;
 
+    @Mock
+    private com.supremeai.service.AIBehaviorProfileService behaviorProfileService;
 
-
-
-
-
-
-
-
+    private AdaptiveAgentOrchestrator orchestrator;
 
     @Test
     void testOrchestrationProducesDecisionsAndContext() {

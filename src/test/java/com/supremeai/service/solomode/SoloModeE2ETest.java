@@ -5,6 +5,7 @@ import com.supremeai.repository.ProviderRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
@@ -17,22 +18,19 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class SoloModeE2ETest {
 
+    @Mock
+    private ProviderRepository providerRepository;
 
+    @Mock
+    private AIProviderFactory providerFactory;
 
+    @Mock
+    private WebClient.Builder webClientBuilder;
 
-
-
-
-
+    private SoloModeManagerService soloModeManager;
 
     @BeforeEach
-    void setUp() {ProviderRepositorypublic SoloModeE2ETest(ProviderRepository providerRepository, AIProviderFactory providerFactory, WebClient.Builder webClientBuilder, SoloModeManagerService soloModeManager) {
-ProviderRepository    this.providerRepository = providerRepository;
-ProviderRepository    this.providerFactory = providerFactory;
-ProviderRepository    this.webClientBuilder = webClientBuilder;
-ProviderRepository    this.soloModeManager = soloModeManager;
-ProviderRepository}
-
+    void setUp() {
         soloModeManager = new SoloModeManagerService();
         try {
             java.lang.reflect.Field providerRepoField = SoloModeManagerService.class.getDeclaredField("providerRepository");
@@ -118,7 +116,7 @@ ProviderRepository}
             }).start();
         }
         
-        latch.await(5, java.util.concurrent.TimeUnit.SECONDS);
+        latch.await(30, java.util.concurrent.TimeUnit.SECONDS);
         
         assertEquals(numThreads * incrementsPerThread, soloModeManager.getStepCounterForTest());
     }

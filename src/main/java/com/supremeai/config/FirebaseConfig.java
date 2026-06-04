@@ -30,18 +30,17 @@ import java.util.Collections;
  */
 @Configuration
 public class FirebaseConfig {
-    public FirebaseConfig(String projectId, String databaseUrl) {
-        this.projectId = projectId;
-        this.databaseUrl = databaseUrl;
-    }
-
 
     private static final Logger log = LoggerFactory.getLogger(FirebaseConfig.class);
 
+    @Value("${firebase.project.id:supremeai-a}")
+    private String projectId;
 
     @Value("${spring.cloud.gcp.firestore.database-id:(default)}")
     private String databaseId;
 
+    @Value("${firebase.database.url:https://supremeai-a-default-rtdb.asia-southeast1.firebasedatabase.app/}")
+    private String databaseUrl;
 
     /**
      * 초기화 FirebaseApp.

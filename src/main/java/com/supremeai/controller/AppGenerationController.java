@@ -10,6 +10,7 @@ import com.supremeai.model.FieldDefinition;
 import com.supremeai.repository.GeneratedAppRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -32,23 +33,26 @@ import java.util.UUID;
 @RestController
 @RequestMapping({"/api/generate", "/api/teaching/create-app"})
 public class AppGenerationController {
-    public AppGenerationController(CodeGenerationService codeGenerationService, FullStackCodeGenerator fullStackCodeGenerator, MultiPlatformGenerator multiPlatformGenerator, GeneratedAppRepository generatedAppRepository, AppOrchestrationService appOrchestrationService, WebSocketController webSocketController) {
-        this.codeGenerationService = codeGenerationService;
-        this.fullStackCodeGenerator = fullStackCodeGenerator;
-        this.multiPlatformGenerator = multiPlatformGenerator;
-        this.generatedAppRepository = generatedAppRepository;
-        this.appOrchestrationService = appOrchestrationService;
-        this.webSocketController = webSocketController;
-    }
-
     
     private static final Logger logger = LoggerFactory.getLogger(AppGenerationController.class);
     
+    @Autowired
+    private CodeGenerationService codeGenerationService;
     
+    @Autowired
+    private FullStackCodeGenerator fullStackCodeGenerator;
     
+    @Autowired
+    private MultiPlatformGenerator multiPlatformGenerator;
 
+    @Autowired
+    private GeneratedAppRepository generatedAppRepository;
 
+    @Autowired
+    private AppOrchestrationService appOrchestrationService;
 
+    @Autowired
+    private WebSocketController webSocketController;
 
     @PostMapping
     @PreAuthorize("hasAnyRole('USER', 'ADMIN', 'GUEST')")

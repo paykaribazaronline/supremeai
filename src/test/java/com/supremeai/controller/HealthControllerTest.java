@@ -5,6 +5,7 @@ import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.boot.actuate.health.Health;
 import org.springframework.data.redis.connection.RedisConnection;
@@ -20,27 +21,24 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class HealthControllerTest {ObjectProvider<RedisConnectionFactory>public HealthControllerTest(ObjectProvider<RedisConnectionFactory> redisConnectionFactoryProvider, RedisConnectionFactory redisConnectionFactory, RedisConnection redisConnection, CircuitBreakerRegistry circuitBreakerRegistry, CircuitBreaker circuitBreaker, HealthController controller) {
-ObjectProvider<RedisConnectionFactory>    this.redisConnectionFactoryProvider = redisConnectionFactoryProvider;
-ObjectProvider<RedisConnectionFactory>    this.redisConnectionFactory = redisConnectionFactory;
-ObjectProvider<RedisConnectionFactory>    this.redisConnection = redisConnection;
-ObjectProvider<RedisConnectionFactory>    this.circuitBreakerRegistry = circuitBreakerRegistry;
-ObjectProvider<RedisConnectionFactory>    this.circuitBreaker = circuitBreaker;
-ObjectProvider<RedisConnectionFactory>    this.controller = controller;
-ObjectProvider<RedisConnectionFactory>}
+class HealthControllerTest {
 
+    @Mock
+    private ObjectProvider<RedisConnectionFactory> redisConnectionFactoryProvider;
 
+    @Mock
+    private RedisConnectionFactory redisConnectionFactory;
 
+    @Mock
+    private RedisConnection redisConnection;
 
+    @Mock
+    private CircuitBreakerRegistry circuitBreakerRegistry;
 
+    @Mock
+    private CircuitBreaker circuitBreaker;
 
-
-
-
-
-
-
-
+    private HealthController controller;
 
     @BeforeEach
     void setUp() {

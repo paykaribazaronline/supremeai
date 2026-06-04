@@ -7,6 +7,7 @@ import com.supremeai.repository.UserApiKeyRepository;
 import com.supremeai.security.ApiKeyRotationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -27,22 +28,23 @@ import com.github.benmanes.caffeine.cache.Caffeine;
  */
 @Service
 public class UsageOptimizationService {
-    public UsageOptimizationService(UserApiKeyRepository userApiKeyRepository, ApiKeyRotationService keyRotationService, ProviderTypeRegistry providerTypeRegistry, com.supremeai.repository.ProviderRepository providerRepository) {
-        this.userApiKeyRepository = userApiKeyRepository;
-        this.keyRotationService = keyRotationService;
-        this.providerTypeRegistry = providerTypeRegistry;
-        this.providerRepository = providerRepository;
-    }
-
 
     private static final Logger log = LoggerFactory.getLogger(UsageOptimizationService.class);
 
     private static final int CACHE_TTL_MINUTES = 30;
     private static final int MAX_CACHE_SIZE = 1000;
 
+    @Autowired
+    private UserApiKeyRepository userApiKeyRepository;
 
+    @Autowired
+    private ApiKeyRotationService keyRotationService;
 
+    @Autowired
+    private ProviderTypeRegistry providerTypeRegistry;
 
+    @Autowired
+    private com.supremeai.repository.ProviderRepository providerRepository;
 
     private static final String DEFAULT_TIER = "standard";
 

@@ -4,6 +4,7 @@ import com.supremeai.provider.AIProvider;
 import com.supremeai.provider.AIProviderFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
@@ -18,7 +19,9 @@ public class SuperHubOrchestrator {
 
     private final AIProviderFactory providerFactory;
     private final SupremeAIBrain supremeAIBrain;
-public SuperHubOrchestrator(AIProviderFactory providerFactory, SupremeAIBrain supremeAIBrain) {
+
+    @Autowired
+    public SuperHubOrchestrator(AIProviderFactory providerFactory, SupremeAIBrain supremeAIBrain) {
         this.providerFactory = providerFactory;
         this.supremeAIBrain = supremeAIBrain;
     }

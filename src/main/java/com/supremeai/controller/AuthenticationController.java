@@ -13,6 +13,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -45,7 +46,9 @@ public class AuthenticationController {
     private final UserRepository userRepository;
     private final BruteForceProtectionService bruteForceProtectionService;
     private final AuthenticationService authenticationService;
-public AuthenticationController(
+
+    @Autowired
+    public AuthenticationController(
             UserRepository userRepository,
             BruteForceProtectionService bruteForceProtectionService,
             AuthenticationService authenticationService

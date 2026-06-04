@@ -5,6 +5,7 @@ import com.supremeai.repository.SystemLearningRepository;
 import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -37,15 +38,14 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 @Component
 public class KnowledgeSeederServiceEnhanced {
-    public KnowledgeSeederServiceEnhanced(SystemLearningRepository systemLearningRepository, KnowledgeSeedDataProvider knowledgeSeedDataProvider) {
-        this.systemLearningRepository = systemLearningRepository;
-        this.knowledgeSeedDataProvider = knowledgeSeedDataProvider;
-    }
-
 
     private static final Logger log = LoggerFactory.getLogger(KnowledgeSeederServiceEnhanced.class);
 
+    @Autowired
+    private SystemLearningRepository systemLearningRepository;
 
+    @Autowired
+    private KnowledgeSeedDataProvider knowledgeSeedDataProvider;
 
     // Real-time learning cache for fast access
     private final Map<String, SystemLearning> knowledgeCache = new ConcurrentHashMap<>();

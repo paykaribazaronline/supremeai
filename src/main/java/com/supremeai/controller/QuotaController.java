@@ -4,6 +4,7 @@ import com.supremeai.model.ActivityLog;
 import com.supremeai.repository.ActivityLogRepository;
 import com.supremeai.service.QuotaService;
 import com.supremeai.service.QuotaPredictionService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -23,15 +24,14 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/quota")
 public class QuotaController {
-    public QuotaController(QuotaPredictionService predictionService, ActivityLogRepository activityLogRepository) {
-        this.predictionService = predictionService;
-        this.activityLogRepository = activityLogRepository;
-    }
-
 
     private final QuotaService quotaService;
     
+    @Autowired
+    private QuotaPredictionService predictionService;
     
+    @Autowired
+    private ActivityLogRepository activityLogRepository;
 
     public QuotaController(QuotaService quotaService) {
         this.quotaService = quotaService;

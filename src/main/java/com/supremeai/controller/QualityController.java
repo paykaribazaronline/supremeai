@@ -3,6 +3,7 @@ package com.supremeai.controller;
 import com.supremeai.service.QualityScoringService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -16,13 +17,11 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/admin/quality")
 public class QualityController {
-    public QualityController(QualityScoringService qualityService) {
-        this.qualityService = qualityService;
-    }
-
 
     private static final Logger logger = LoggerFactory.getLogger(QualityController.class);
 
+    @Autowired
+    private QualityScoringService qualityService;
 
     /**
      * POST /api/admin/quality/assess

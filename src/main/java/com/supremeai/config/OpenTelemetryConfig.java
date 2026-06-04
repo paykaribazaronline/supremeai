@@ -20,15 +20,15 @@ import java.time.Duration;
  */
 @Configuration
 public class OpenTelemetryConfig {
-    public OpenTelemetryConfig(String otlpEndpoint, String serviceName, String tracesExporter) {
-        this.otlpEndpoint = otlpEndpoint;
-        this.serviceName = serviceName;
-        this.tracesExporter = tracesExporter;
-    }
 
+    @Value("${otel.exporter.otlp.endpoint:http://localhost:4317}")
+    private String otlpEndpoint;
 
+    @Value("${otel.service.name:supremeai-backend}")
+    private String serviceName;
 
-
+    @Value("${otel.traces.exporter:otlp}")
+    private String tracesExporter;
 
     /**
      * Configure OpenTelemetry SDK with OTLP exporter.

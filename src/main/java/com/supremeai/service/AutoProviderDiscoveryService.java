@@ -4,6 +4,7 @@ import com.supremeai.model.APIProvider;
 import com.supremeai.repository.ProviderRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -21,13 +22,11 @@ import java.util.UUID;
  */
 @Service
 public class AutoProviderDiscoveryService {
-    public AutoProviderDiscoveryService(ProviderRepository providerRepository) {
-        this.providerRepository = providerRepository;
-    }
-
 
     private static final Logger log = LoggerFactory.getLogger(AutoProviderDiscoveryService.class);
 
+    @Autowired
+    private ProviderRepository providerRepository;
 
     private final WebClient webClient = WebClient.builder()
             .codecs(configurer -> configurer.defaultCodecs().maxInMemorySize(2 * 1024 * 1024)) // 2MB buffer limit

@@ -4,18 +4,17 @@ import com.supremeai.provider.AIProvider;
 import com.supremeai.provider.AIProviderFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
 @Service
 public class TranslationService {
-    public TranslationService(AIProviderFactory providerFactory) {
-        this.providerFactory = providerFactory;
-    }
-
 
     private static final Logger logger = LoggerFactory.getLogger(TranslationService.class);
 
+    @Autowired
+    private AIProviderFactory providerFactory;
 
     /**
      * টেক্সট এক ভাষা থেকে অন্য ভাষায় অনুবাদ করে

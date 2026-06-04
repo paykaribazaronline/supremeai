@@ -5,9 +5,11 @@ import com.supremeai.service.GitHubAppService;
 import com.supremeai.service.GitHubAutomationService;
 
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.test.context.support.WithMockUser;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -22,18 +24,24 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 import org.springframework.test.context.ActiveProfiles;
 
+import org.springframework.test.web.servlet.MockMvc;
+
 @SpringBootTest
 @AutoConfigureMockMvc(addFilters = false)
 @ActiveProfiles("test")
 public class RestAPIIntegrationTest {
 
+    @Autowired
+    private MockMvc mockMvc;
 
+    @MockBean
+    private MultiAIVotingService multiAIVotingService;
 
+    @MockBean
+    private GitHubAppService gitHubAppService;
 
-
-
-
-
+    @MockBean
+    private GitHubAutomationService gitHubAutomationService;
 
     @Test
     void contextLoads() {
@@ -41,13 +49,7 @@ public class RestAPIIntegrationTest {
     }
 
     @Test
-    void healthEndpoint_ReturnsHealthy() throws Exception {MockMvcpublic RestAPIIntegrationTest(MockMvc mockMvc, MultiAIVotingService multiAIVotingService, GitHubAppService gitHubAppService, GitHubAutomationService gitHubAutomationService) {
-MockMvc    this.mockMvc = mockMvc;
-MockMvc    this.multiAIVotingService = multiAIVotingService;
-MockMvc    this.gitHubAppService = gitHubAppService;
-MockMvc    this.gitHubAutomationService = gitHubAutomationService;
-MockMvc}
-
+    void healthEndpoint_ReturnsHealthy() throws Exception {
         mockMvc.perform(get("/actuator/health"))
                 .andExpect(status().isOk());
     }

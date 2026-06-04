@@ -6,6 +6,7 @@ import com.supremeai.repository.KnowledgeDomainRepository;
 import com.supremeai.repository.KnowledgeRecommendationRepository;
 import com.supremeai.service.KnowledgeService;
 import com.supremeai.response.ApiResponse;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -28,7 +29,9 @@ public class AdminKnowledgeController extends BaseAdminController<Object, String
     private final KnowledgeDomainRepository domainRepository;
     private final KnowledgeRecommendationRepository recommendationRepository;
     private final KnowledgeService knowledgeService;
-public AdminKnowledgeController(KnowledgeDomainRepository domainRepository, 
+
+    @Autowired
+    public AdminKnowledgeController(KnowledgeDomainRepository domainRepository, 
                                     KnowledgeRecommendationRepository recommendationRepository,
                                     KnowledgeService knowledgeService) {
         this.domainRepository = domainRepository;

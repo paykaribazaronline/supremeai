@@ -5,6 +5,7 @@ import com.google.cloud.firestore.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.test.util.ReflectionTestUtils;
 import reactor.core.publisher.Mono;
@@ -17,34 +18,31 @@ import java.util.concurrent.ExecutionException;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
-class DatabaseSchemaMigrationServiceTest {FirebaseRealtimeServicepublic DatabaseSchemaMigrationServiceTest(FirebaseRealtimeService firebaseRealtimeService, Firestore firestore, CollectionReference collectionReference, QuerySnapshot querySnapshot, QueryDocumentSnapshot documentSnapshot, DocumentReference documentReference, WriteBatch writeBatch, DatabaseSchemaMigrationService migrationService) {
-FirebaseRealtimeService    this.firebaseRealtimeService = firebaseRealtimeService;
-FirebaseRealtimeService    this.firestore = firestore;
-FirebaseRealtimeService    this.collectionReference = collectionReference;
-FirebaseRealtimeService    this.querySnapshot = querySnapshot;
-FirebaseRealtimeService    this.documentSnapshot = documentSnapshot;
-FirebaseRealtimeService    this.documentReference = documentReference;
-FirebaseRealtimeService    this.writeBatch = writeBatch;
-FirebaseRealtimeService    this.migrationService = migrationService;
-FirebaseRealtimeService}
+class DatabaseSchemaMigrationServiceTest {
 
+    @Mock
+    private FirebaseRealtimeService firebaseRealtimeService;
 
+    @Mock
+    private Firestore firestore;
 
+    @Mock
+    private CollectionReference collectionReference;
 
+    @Mock
+    private QuerySnapshot querySnapshot;
 
+    @Mock
+    private QueryDocumentSnapshot documentSnapshot;
 
+    @Mock
+    private DocumentReference documentReference;
 
-
-
-
-
-
-
-
-
+    @Mock
+    private WriteBatch writeBatch;
 
     @InjectMocks
-
+    private DatabaseSchemaMigrationService migrationService;
 
     @BeforeEach
     void setUp() {

@@ -9,12 +9,9 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class CodeValidationServiceTest {CodeValidationServicepublic CodeValidationServiceTest(CodeValidationService codeValidationService) {
-CodeValidationService    this.codeValidationService = codeValidationService;
-CodeValidationService}
+class CodeValidationServiceTest {
 
-
-
+    private CodeValidationService codeValidationService;
 
     @BeforeEach
     void setUp() {

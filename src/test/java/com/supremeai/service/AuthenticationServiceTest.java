@@ -13,6 +13,7 @@ import com.supremeai.security.JwtUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.MockitoAnnotations;
 import reactor.core.publisher.Mono;
@@ -24,28 +25,25 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
-class AuthenticationServiceTest {UserRepositorypublic AuthenticationServiceTest(UserRepository userRepository, ActivityLogRepository activityLogRepository, BruteForceProtectionService bruteForceProtectionService, JwtUtil jwtUtil, ConfigService configService, AuthenticationService authenticationService) {
-UserRepository    this.userRepository = userRepository;
-UserRepository    this.activityLogRepository = activityLogRepository;
-UserRepository    this.bruteForceProtectionService = bruteForceProtectionService;
-UserRepository    this.jwtUtil = jwtUtil;
-UserRepository    this.configService = configService;
-UserRepository    this.authenticationService = authenticationService;
-UserRepository}
+class AuthenticationServiceTest {
 
+    @Mock
+    private UserRepository userRepository;
 
+    @Mock
+    private ActivityLogRepository activityLogRepository;
 
+    @Mock
+    private BruteForceProtectionService bruteForceProtectionService;
 
+    @Mock
+    private JwtUtil jwtUtil;
 
-
-
-
-
-
-
+    @Mock
+    private ConfigService configService;
 
     @InjectMocks
-
+    private AuthenticationService authenticationService;
 
     @BeforeEach
     void setUp() {

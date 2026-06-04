@@ -6,6 +6,7 @@ import com.supremeai.repository.analysis.AnalysisFindingRepository;
 import com.supremeai.repository.analysis.AnalysisJobRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -40,7 +41,9 @@ public class ProjectAnalysisService {
 
     private final Map<String, AnalysisJob> jobStore = new ConcurrentHashMap<>();
     private final Map<String, List<AnalysisFinding>> findingsStore = new ConcurrentHashMap<>();
-public ProjectAnalysisService(List<AnalysisAgentInterface> agents,
+
+    @Autowired
+    public ProjectAnalysisService(List<AnalysisAgentInterface> agents,
                                   FileExtractionService fileExtractionService,
                                   AnalysisJobRepository jobRepository,
                                   AnalysisFindingRepository findingRepository,

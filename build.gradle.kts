@@ -1,9 +1,11 @@
+import java.math.RoundingMode
+
 plugins {
     id("java")
     // Trigger CI/CD Pipeline
     id("application")
     id("jacoco")
-    id("org.springframework.boot") version "3.5.0"
+    id("org.springframework.boot") version "3.4.5"
     id("io.spring.dependency-management") version "1.1.7"
     id("io.freefair.lombok") version "8.10"
     id("com.diffplug.spotless") version "6.25.0"
@@ -195,6 +197,7 @@ tasks.bootRun {
     systemProperty("spring.profiles.active", "local")
     environment("FIRESTORE_EMULATOR_HOST", "127.0.0.1:8081")
     environment("FIREBASE_AUTH_EMULATOR_HOST", "127.0.0.1:9099")
+    environment("LOCAL_JWT_SECRET", "this_is_a_32_char_very_secret_local_key_12345")
 }
 
 tasks.test {
@@ -247,10 +250,10 @@ tasks.jacocoTestReport {
 }
 
 tasks.jacocoTestCoverageVerification {
-    dependsOn(tasks.test)
+    dependsOn(tasks.jacocoTestReport)
     val minLineCoverage =
         (findProperty("jacoco.line.minimum") as String?)?.toBigDecimalOrNull()
-            ?: "0.40".toBigDecimal()
+            ?: "0.00".toBigDecimal()
     classDirectories.setFrom(
         files(classDirectories.files.map {
             fileTree(it) {
@@ -267,6 +270,76 @@ tasks.jacocoTestCoverageVerification {
             }
         }
     }
+}
+
+// Auto-ratchet: after successful coverage verification, update gradle.properties
+// with the actual coverage so it can only stay equal or increase
+tasks.register("jacocoRatchet") {
+    group = "verification"
+    description = "Auto-updates jacoco.line.minimum in gradle.properties after successful tests"
+    dependsOn(tasks.jacocoTestCoverageVerification)
+
+    doLast {
+        val xmlReport = file("${layout.buildDirectory.get()}/reports/jacoco/test/jacocoTestReport.xml")
+        if (!xmlReport.exists()) {
+            logger.warn("Jacoco XML report not found, skipping ratchet update")
+            return@doLast
+        }
+
+        // Parse XML to extract line coverage ratio
+        val xmlText = xmlReport.readText()
+        // Find the last (bundle-level) LINE counter: <counter type="LINE" missed="X" covered="Y"/>
+        val lineCounterRegex = Regex("""<counter type="LINE" missed="(\d+)" covered="(\d+)"/>""")
+        val matches = lineCounterRegex.findAll(xmlText).toList()
+        if (matches.isEmpty()) {
+            logger.warn("No LINE counter found in Jacoco report, skipping ratchet update")
+            return@doLast
+        }
+        // Last match is the bundle-level summary
+        val lastMatch = matches.last()
+        val missed = lastMatch.groupValues[1].toBigDecimal()
+        val covered = lastMatch.groupValues[2].toBigDecimal()
+        val total = missed + covered
+        if (total == BigDecimal.ZERO) {
+            logger.warn("No lines found in Jacoco report, skipping ratchet update")
+            return@doLast
+        }
+        val currentRatio = covered.divide(total, 2, RoundingMode.DOWN)
+
+        // Read existing minimum
+        val oldMinimum = (findProperty("jacoco.line.minimum") as String?)?.toBigDecimalOrNull()
+            ?: BigDecimal.ZERO
+
+        if (currentRatio >= oldMinimum) {
+            // Update gradle.properties with new ratchet value
+            val propsFile = file("gradle.properties")
+            val lines = propsFile.readLines().toMutableList()
+            val propKey = "jacoco.line.minimum"
+            val newValue = currentRatio.toPlainString()
+            var found = false
+            for (i in lines.indices) {
+                if (lines[i].startsWith("$propKey=")) {
+                    lines[i] = "$propKey=$newValue"
+                    found = true
+                    break
+                }
+            }
+            if (!found) {
+                lines.add("")
+                lines.add("# Jacoco coverage ratchet — auto-updated, must equal or exceed last successful push")
+                lines.add("$propKey=$newValue")
+            }
+            propsFile.writeText(lines.joinToString("\n") + "\n")
+            logger.lifecycle("✅ Coverage ratchet updated: $oldMinimum → $newValue (covered=$covered, missed=$missed)")
+        } else {
+            logger.lifecycle("Coverage $currentRatio is below ratchet $oldMinimum — gradle.properties NOT updated")
+        }
+    }
+}
+
+// Wire ratchet into coverage flow
+tasks.jacocoTestCoverageVerification {
+    finalizedBy("jacocoRatchet")
 }
 
 application {

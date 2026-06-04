@@ -16,16 +16,11 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class OpenAIProviderTest {MockWebServerpublic OpenAIProviderTest(MockWebServer mockWebServer, OpenAIProvider provider, ObjectMapper objectMapper) {
-MockWebServer    this.mockWebServer = mockWebServer;
-MockWebServer    this.provider = provider;
-MockWebServer    this.objectMapper = objectMapper;
-MockWebServer}
+class OpenAIProviderTest {
 
-
-
-
-
+    private MockWebServer mockWebServer;
+    private OpenAIProvider provider;
+    private ObjectMapper objectMapper;
 
     @BeforeEach
     void setUp() throws IOException {

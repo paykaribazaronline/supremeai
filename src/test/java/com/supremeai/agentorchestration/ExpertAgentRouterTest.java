@@ -9,13 +9,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import static org.junit.jupiter.api.Assertions.*;
 
 @ExtendWith(MockitoExtension.class)
-public class ExpertAgentRouterTest {ExpertAgentRouterpublic ExpertAgentRouterTest(ExpertAgentRouter expertAgentRouter) {
-ExpertAgentRouter    this.expertAgentRouter = expertAgentRouter;
-ExpertAgentRouter}
-
+public class ExpertAgentRouterTest {
 
     @InjectMocks
-
+    private ExpertAgentRouter expertAgentRouter;
 
     @BeforeEach
     void setUp() {

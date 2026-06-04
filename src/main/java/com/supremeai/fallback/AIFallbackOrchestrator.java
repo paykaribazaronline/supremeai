@@ -35,11 +35,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 @Service
 public class AIFallbackOrchestrator {
-    public AIFallbackOrchestrator(EnhancedLearningService enhancedLearningService, com.supremeai.learning.SupremeLearningOrchestrator learningOrchestrator) {
-        this.enhancedLearningService = enhancedLearningService;
-        this.learningOrchestrator = learningOrchestrator;
-    }
-
 
     private final PocketLabClient pocketLabClient;
 
@@ -58,7 +53,11 @@ public class AIFallbackOrchestrator {
     private final String fallbackProviderName;
     private final StubLocalProvider stubLocalProvider;
 
+    @Autowired(required = false)
+    private EnhancedLearningService enhancedLearningService;
 
+    @Autowired(required = false)
+    private com.supremeai.learning.SupremeLearningOrchestrator learningOrchestrator;
 
     private final CircuitBreakerRegistry circuitBreakerRegistry;
     private final Map<String, CircuitBreaker> providerCircuitBreakers = new ConcurrentHashMap<>();

@@ -3,6 +3,7 @@ package com.supremeai.repository;
 import com.supremeai.model.UserApiKey;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -13,12 +14,10 @@ import java.util.List;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class UserApiKeyRepositoryTest {UserApiKeyRepositorypublic UserApiKeyRepositoryTest(UserApiKeyRepository userApiKeyRepository) {
-UserApiKeyRepository    this.userApiKeyRepository = userApiKeyRepository;
-UserApiKeyRepository}
+class UserApiKeyRepositoryTest {
 
-
-
+    @Mock
+    private UserApiKeyRepository userApiKeyRepository;
 
     @Test
     void findByApiKey_shouldReturnKey_whenExists() {

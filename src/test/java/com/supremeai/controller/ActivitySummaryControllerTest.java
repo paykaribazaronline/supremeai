@@ -5,6 +5,7 @@ import com.supremeai.repository.ActivityLogRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,15 +20,12 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class ActivitySummaryControllerTest {ActivityLogRepositorypublic ActivitySummaryControllerTest(ActivityLogRepository activityLogRepository, ActivitySummaryController controller) {
-ActivityLogRepository    this.activityLogRepository = activityLogRepository;
-ActivityLogRepository    this.controller = controller;
-ActivityLogRepository}
+class ActivitySummaryControllerTest {
 
+    @Mock
+    private ActivityLogRepository activityLogRepository;
 
-
-
-
+    private ActivitySummaryController controller;
 
     @BeforeEach
     void setUp() {

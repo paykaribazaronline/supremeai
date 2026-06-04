@@ -4,6 +4,7 @@ import com.supremeai.model.UserGuide;
 import com.supremeai.repository.UserGuideRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
@@ -21,13 +22,11 @@ import java.util.Map;
 @Component
 
 public class GuideDataInitializer {
-    public GuideDataInitializer(UserGuideRepository userGuideRepository) {
-        this.userGuideRepository = userGuideRepository;
-    }
-
 
     private static final Logger log = LoggerFactory.getLogger(GuideDataInitializer.class);
 
+    @Autowired
+    private UserGuideRepository userGuideRepository;
 
     @org.springframework.context.event.EventListener(org.springframework.boot.context.event.ApplicationReadyEvent.class)
     public void initialize() {

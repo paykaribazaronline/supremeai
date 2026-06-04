@@ -36,7 +36,7 @@ public class TestFirebaseConfig {
 
   @Bean
   @Primary
-  public com.google.api.gax.core.CredentialsProvider mockCredentialsProvider() {
+  public com.google.api.gax.core.CredentialsProvider googleCredentialsProvider() {
       return () -> com.google.cloud.NoCredentials.getInstance();
   }
 
@@ -47,6 +47,7 @@ public class TestFirebaseConfig {
    */
   @DynamicPropertySource
   static void registerProperties(DynamicPropertyRegistry registry) {
+    registry.add("spring.cloud.gcp.firestore.emulator.enabled", () -> "true");
     registry.add("spring.cloud.gcp.firestore.emulator.host", () -> "localhost:8081");
     registry.add("spring.cloud.gcp.firestore.host", () -> "localhost:8081");
     registry.add("firebase.emulator.firestore.host", () -> "localhost:8081");

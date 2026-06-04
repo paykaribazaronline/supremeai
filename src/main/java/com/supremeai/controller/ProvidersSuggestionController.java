@@ -9,15 +9,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.springframework.beans.factory.annotation.Autowired;
 
 @RestController
 @RequestMapping("/api/providers")
 public class ProvidersSuggestionController {
-    public ProvidersSuggestionController(ProviderMetadataService providerMetadataService) {
-        this.providerMetadataService = providerMetadataService;
-    }
 
-
+    @Autowired
+    private ProviderMetadataService providerMetadataService;
 
     /**
      * Model suggestion DTO returned to the frontend.

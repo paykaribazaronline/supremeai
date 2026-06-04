@@ -5,6 +5,7 @@ import com.supremeai.model.UserTier;
 import com.supremeai.repository.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
@@ -37,7 +38,9 @@ public class AdminDashboardFacadeService {
     private final VPNRepository vpnRepository;
     private final ConfigService configService;
     private final TelegramStorageService telegramStorageService;
-public AdminDashboardFacadeService(
+
+    @Autowired
+    public AdminDashboardFacadeService(
             UserRepository userRepository,
             AgentRepository agentRepository,
             ProjectRepository projectRepository,

@@ -3,6 +3,7 @@ package com.supremeai.security;
 import com.google.firebase.FirebaseApp;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
@@ -20,13 +21,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Import(com.supremeai.config.test.TestFirebaseConfig.class)
 public class SecurityConfigTest {
 
-
+    @Autowired
+    private MockMvc mockMvc;
 
     @Test
-    public void testPublicEndpointsAccessibleWithoutAuth() throws Exception {MockMvcpublic SecurityConfigTest(MockMvc mockMvc) {
-MockMvc    this.mockMvc = mockMvc;
-MockMvc}
-
+    public void testPublicEndpointsAccessibleWithoutAuth() throws Exception {
         // Test public endpoints
         mockMvc.perform(get("/api/auth/firebase-login"))
                 .andExpect(status().isMethodNotAllowed()); // POST endpoint

@@ -3,6 +3,7 @@ package com.supremeai.repository;
 import com.supremeai.model.ChatPlan;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -13,12 +14,10 @@ import java.util.List;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class ChatPlanRepositoryTest {ChatPlanRepositorypublic ChatPlanRepositoryTest(ChatPlanRepository repository) {
-ChatPlanRepository    this.repository = repository;
-ChatPlanRepository}
+class ChatPlanRepositoryTest {
 
-
-
+    @Mock
+    private ChatPlanRepository repository;
 
     @Test
     void findByActive_shouldReturnActivePlans() {

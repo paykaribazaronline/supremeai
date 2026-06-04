@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.supremeai.service.FirebaseRealtimeService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -25,29 +26,30 @@ import com.supremeai.repository.ProviderRepository;
  */
 @Service
 public class SoloModeManagerService {
-    public SoloModeManagerService(String fallbackModelName, String fallbackProviderId, String airllmHealthcheckUrl) {
-        this.fallbackModelName = fallbackModelName;
-        this.fallbackProviderId = fallbackProviderId;
-        this.airllmHealthcheckUrl = airllmHealthcheckUrl;
-    }
-
-    public SoloModeManagerService(FirebaseRealtimeService firebaseRealtimeService, ProviderRepository providerRepository, AIProviderFactory providerFactory, org.springframework.web.reactive.function.client.WebClient.Builder webClientBuilder) {
-        this.firebaseRealtimeService = firebaseRealtimeService;
-        this.providerRepository = providerRepository;
-        this.providerFactory = providerFactory;
-        this.webClientBuilder = webClientBuilder;
-    }
-
 
     private static final Logger log = LoggerFactory.getLogger(SoloModeManagerService.class);
     private final ObjectMapper mapper = new ObjectMapper();
 
+    @Autowired
+    private FirebaseRealtimeService firebaseRealtimeService;
 
+    @Autowired
+    private ProviderRepository providerRepository;
 
+    @Autowired
+    private AIProviderFactory providerFactory;
 
+    @Value("${solo.fallback.model:phi-3-mini}")
+    private String fallbackModelName;
 
+    @Value("${supremeai.solo-mode.fallback-provider:airllm-sidecar}")
+    private String fallbackProviderId;
 
+    @Value("${airllm.healthcheck-url:${AIRLLM_HEALTHCHECK_URL:http://localhost:8081/health}}")
+    private String airllmHealthcheckUrl;
 
+    @Autowired
+    private org.springframework.web.reactive.function.client.WebClient.Builder webClientBuilder;
 
     // SL-01: Local AI Model Auto-Download Tracker (Atomic for thread safety and preventing thread leak)
     private final java.util.concurrent.atomic.AtomicBoolean isLocalModelDownloading = new java.util.concurrent.atomic.AtomicBoolean(false);
@@ -162,8 +164,7 @@ public class SoloModeManagerService {
                                 log.info("Successfully distilled {} entries into core_knowledge.json", data.size());
                             } catch (Exception e) {
                                 log.error("Failed to write offline knowledge distillation", e);
-        throw new RuntimeException("Swallowed exception: " + e.getMessage(), e);
-    }
+                            }
                         },
                         error -> log.error("Failed to fetch system_learning for distillation", error)
                 );

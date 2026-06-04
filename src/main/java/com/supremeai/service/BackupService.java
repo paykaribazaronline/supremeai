@@ -5,6 +5,7 @@ import com.supremeai.service.TelegramStorageService;
 import com.supremeai.service.ConfigService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
@@ -24,15 +25,14 @@ import java.util.zip.ZipOutputStream;
  */
 @Service
 public class BackupService {
-    public BackupService(TelegramStorageService telegramStorageService, ConfigService configService) {
-        this.telegramStorageService = telegramStorageService;
-        this.configService = configService;
-    }
-
 
     private static final Logger logger = LoggerFactory.getLogger(BackupService.class);
 
+    @Autowired
+    private TelegramStorageService telegramStorageService;
 
+    @Autowired
+    private ConfigService configService;
 
     /**
      * Scheduled task to backup the codebase daily at 3 AM.

@@ -73,9 +73,11 @@ public class UserCodeLearningService {
             }
 
             log.info("Loaded {} learning patterns from Firestore", loadedCount);
-        } catch (InterruptedException | ExecutionException e) {
+        } catch (InterruptedException e) {
             log.error("Failed to load learning patterns from Firestore: {}", e.getMessage());
             Thread.currentThread().interrupt();
+        } catch (ExecutionException e) {
+            log.error("Failed to load learning patterns from Firestore: {}", e.getMessage());
         } catch (Exception e) {
             log.error("Unexpected error loading learning patterns: {}", e.getMessage());
         }
@@ -261,9 +263,11 @@ public class UserCodeLearningService {
                         patternCache.put(patternId, pattern);
                     }
                 }
-            } catch (InterruptedException | ExecutionException e) {
+            } catch (InterruptedException e) {
                 log.error("Failed to fetch pattern from Firestore: {}", e.getMessage());
                 Thread.currentThread().interrupt();
+            } catch (ExecutionException e) {
+                log.error("Failed to fetch pattern from Firestore: {}", e.getMessage());
             }
         }
 
@@ -298,9 +302,11 @@ public class UserCodeLearningService {
                         patternCache.put(pattern.getId(), pattern);
                     }
                 }
-            } catch (InterruptedException | ExecutionException e) {
+            } catch (InterruptedException e) {
                 log.error("Failed to fetch patterns by category from Firestore: {}", e.getMessage());
                 Thread.currentThread().interrupt();
+            } catch (ExecutionException e) {
+                log.error("Failed to fetch patterns by category from Firestore: {}", e.getMessage());
             }
         }
 

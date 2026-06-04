@@ -9,6 +9,7 @@ import io.github.resilience4j.retry.Retry;
 import io.github.resilience4j.retry.RetryRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.HttpEntity;
@@ -42,16 +43,6 @@ import java.util.zip.GZIPOutputStream;
 
 @Service
 public class TelegramStorageService {
-    public TelegramStorageService(boolean secretManagerEnabled) {
-        this.secretManagerEnabled = secretManagerEnabled;
-    }
-
-    public TelegramStorageService(ConfigService configService, com.google.cloud.firestore.Firestore firestore, RetryableAIExecutor retryExecutor) {
-        this.configService = configService;
-        this.firestore = firestore;
-        this.retryExecutor = retryExecutor;
-    }
-
 
     private static final Logger logger = LoggerFactory.getLogger(TelegramStorageService.class);
 
@@ -63,9 +54,17 @@ public class TelegramStorageService {
     private static final Duration READ_TIMEOUT = Duration.ofMinutes(5);
     private static final Duration METRIC_UPDATE_DEBOUNCE = Duration.ofSeconds(30);
 
+    @Autowired
+    private ConfigService configService;
 
+    @Autowired
+    private com.google.cloud.firestore.Firestore firestore;
 
+    @Autowired
+    private RetryableAIExecutor retryExecutor;
 
+    @Value("${secret.manager.enabled:false}")
+    private boolean secretManagerEnabled;
 
     private final WebClient.Builder webClientBuilder;
     private WebClient dedicatedWebClient;

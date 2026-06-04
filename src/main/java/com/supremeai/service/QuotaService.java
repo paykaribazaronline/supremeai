@@ -6,6 +6,7 @@ import com.supremeai.repository.UserApiKeyRepository;
 import com.supremeai.cost.QuotaManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
@@ -18,17 +19,17 @@ import java.time.LocalDateTime;
  */
 @Service
 public class QuotaService {
-    public QuotaService(UserApiKeyRepository userApiKeyRepository, QuotaManager quotaManager, ConfigService configService) {
-        this.userApiKeyRepository = userApiKeyRepository;
-        this.quotaManager = quotaManager;
-        this.configService = configService;
-    }
-
 
     private static final Logger logger = LoggerFactory.getLogger(QuotaService.class);
 
+    @Autowired
+    private UserApiKeyRepository userApiKeyRepository;
 
+    @Autowired
+    private QuotaManager quotaManager;
 
+    @Autowired
+    private ConfigService configService;
 
     private long getMonthlyQuota() {
         return configService.getConfig().getTierQuotas().getOrDefault(UserTier.FREE.name(), 1000L);

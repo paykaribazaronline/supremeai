@@ -13,22 +13,14 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-class AIProviderFactoryEnhancedTest {AIProviderFactorypublic AIProviderFactoryEnhancedTest(AIProviderFactory factory, AIProviderService mockService, ContextualAIRankingService mockRankingService, com.supremeai.repository.ProviderRepository mockRepository, com.supremeai.service.ProviderMetadataService mockMetadataService, com.supremeai.service.ProviderTypeRegistry mockTypeRegistry) {
-AIProviderFactory    this.factory = factory;
-AIProviderFactory    this.mockService = mockService;
-AIProviderFactory    this.mockRankingService = mockRankingService;
-AIProviderFactory    this.mockRepository = mockRepository;
-AIProviderFactory    this.mockMetadataService = mockMetadataService;
-AIProviderFactory    this.mockTypeRegistry = mockTypeRegistry;
-AIProviderFactory}
+class AIProviderFactoryEnhancedTest {
 
-
-
-
-
-
-
-
+    private AIProviderFactory factory;
+    private AIProviderService mockService;
+    private ContextualAIRankingService mockRankingService;
+    private com.supremeai.repository.ProviderRepository mockRepository;
+    private com.supremeai.service.ProviderMetadataService mockMetadataService;
+    private com.supremeai.service.ProviderTypeRegistry mockTypeRegistry;
 
     @BeforeEach
     void setUp() throws Exception {

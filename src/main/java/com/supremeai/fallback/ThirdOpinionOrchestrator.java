@@ -29,14 +29,6 @@ import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 public class ThirdOpinionOrchestrator {
-    public ThirdOpinionOrchestrator(EnhancedLearningService enhancedLearningService) {
-        this.enhancedLearningService = enhancedLearningService;
-    }
-
-    public ThirdOpinionOrchestrator(StubLocalProvider stubLocalProvider) {
-        this.stubLocalProvider = stubLocalProvider;
-    }
-
 
     private static final Logger log = LoggerFactory.getLogger(ThirdOpinionOrchestrator.class);
     private final QuotaManager quotaManager;
@@ -49,7 +41,11 @@ public class ThirdOpinionOrchestrator {
     private final RequestHedgingService hedgingService;
     private final String thirdOpinionProviderName;
 
+    @Autowired(required = false)
+    private EnhancedLearningService enhancedLearningService;
 
+    @Autowired
+    private StubLocalProvider stubLocalProvider;
 
     private final CircuitBreakerRegistry circuitBreakerRegistry;
     private final Map<String, CircuitBreaker> providerCircuitBreakers = new ConcurrentHashMap<>();

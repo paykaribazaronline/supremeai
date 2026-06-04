@@ -4,6 +4,8 @@ import com.supremeai.model.ConsensusResult;
 import com.supremeai.model.ConsensusVote;
 import com.supremeai.service.MultiAIConsensusService;
 import com.supremeai.model.SystemConfig;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,13 +17,12 @@ import reactor.core.publisher.Mono;
 @RestController
 @RequestMapping("/api/consensus")
 public class MultiAIConsensusController {
-    public MultiAIConsensusController(MultiAIConsensusService consensusService, com.supremeai.provider.AIProviderFactory providerFactory) {
-        this.consensusService = consensusService;
-        this.providerFactory = providerFactory;
-    }
 
-
+    @Autowired
+    private MultiAIConsensusService consensusService;
     
+    @Autowired
+    private com.supremeai.provider.AIProviderFactory providerFactory;
 
     /**
      * POST /api/consensus/vote

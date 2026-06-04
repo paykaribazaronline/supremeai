@@ -6,6 +6,7 @@ import com.supremeai.provider.AIProviderFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,21 +23,17 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class MultiAIConsensusControllerTest {MultiAIConsensusControllerpublic MultiAIConsensusControllerTest(MultiAIConsensusController controller, MultiAIConsensusService consensusService, AIProviderFactory providerFactory, ConsensusResult consensusResult) {
-MultiAIConsensusController    this.controller = controller;
-MultiAIConsensusController    this.consensusService = consensusService;
-MultiAIConsensusController    this.providerFactory = providerFactory;
-MultiAIConsensusController    this.consensusResult = consensusResult;
-MultiAIConsensusController}
+public class MultiAIConsensusControllerTest {
 
+    private MultiAIConsensusController controller;
 
+    @Mock
+    private MultiAIConsensusService consensusService;
 
+    @Mock
+    private AIProviderFactory providerFactory;
 
-
-
-
-
-
+    private ConsensusResult consensusResult;
 
     @BeforeEach
     public void setUp() {

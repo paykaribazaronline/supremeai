@@ -2,6 +2,7 @@ package com.supremeai.controller;
 
 import com.supremeai.model.UserLanguagePreference;
 import com.supremeai.service.UserLanguagePreferenceService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
@@ -10,11 +11,9 @@ import reactor.core.publisher.Mono;
 @RestController
 @RequestMapping("/api/user/language-preference")
 public class UserLanguagePreferenceController {
-    public UserLanguagePreferenceController(UserLanguagePreferenceService languagePreferenceService) {
-        this.languagePreferenceService = languagePreferenceService;
-    }
 
-
+    @Autowired
+    private UserLanguagePreferenceService languagePreferenceService;
 
     /**
      * ব্যবহারকারীর পছন্দসমূহ সংরক্ষণ করে

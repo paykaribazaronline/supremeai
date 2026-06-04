@@ -4,6 +4,7 @@ import com.supremeai.fallback.ThirdOpinionOrchestrator;
 import com.supremeai.resilience.RetryableAIExecutor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
@@ -17,17 +18,17 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 @Service
 public class AIProviderSwitcher {
-    public AIProviderSwitcher(AIProviderFactory providerFactory, ThirdOpinionOrchestrator fallbackOrchestrator, RetryableAIExecutor retryExecutor) {
-        this.providerFactory = providerFactory;
-        this.fallbackOrchestrator = fallbackOrchestrator;
-        this.retryExecutor = retryExecutor;
-    }
-
 
     private static final Logger logger = LoggerFactory.getLogger(AIProviderSwitcher.class);
 
+    @Autowired
+    private AIProviderFactory providerFactory;
 
+    @Autowired
+    private ThirdOpinionOrchestrator fallbackOrchestrator;
 
+    @Autowired
+    private RetryableAIExecutor retryExecutor;
 
     // প্রোভাইডার পারফরম্যান্স মেট্রিক্স
     private final Map<String, ProviderMetrics> providerMetrics = new ConcurrentHashMap<>();

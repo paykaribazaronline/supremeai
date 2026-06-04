@@ -27,19 +27,20 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 @Service
 public class LearningQuotaService {
-    public LearningQuotaService(int globalDailyMax, int perUserDailyMax, int siteVisitMaxPerUser, double emergencyThreshold) {
-        this.globalDailyMax = globalDailyMax;
-        this.perUserDailyMax = perUserDailyMax;
-        this.siteVisitMaxPerUser = siteVisitMaxPerUser;
-        this.emergencyThreshold = emergencyThreshold;
-    }
-
 
     private static final Logger log = LoggerFactory.getLogger(LearningQuotaService.class);
 
+    @Value("${learning.quota.global.dailyMax:1000}")
+    private int globalDailyMax;
 
+    @Value("${learning.quota.perUser.dailyMax:50}")
+    private int perUserDailyMax;
 
+    @Value("${learning.quota.scraper.siteVisitMax:10}")
+    private int siteVisitMaxPerUser;
 
+    @Value("${learning.quota.emergency.globalThreshold:0.9}")
+    private double emergencyThreshold;
 
     // Daily counters (reset at midnight UTC)
     private final Map<String, AtomicInteger> userDailyCounters = new ConcurrentHashMap<>();

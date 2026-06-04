@@ -3,6 +3,7 @@ package com.supremeai.repository;
 import com.supremeai.model.UserGuide;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -14,12 +15,10 @@ import java.util.Map;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class UserGuideRepositoryTest {UserGuideRepositorypublic UserGuideRepositoryTest(UserGuideRepository repository) {
-UserGuideRepository    this.repository = repository;
-UserGuideRepository}
+class UserGuideRepositoryTest {
 
-
-
+    @Mock
+    private UserGuideRepository repository;
 
     @Test
     void findByIsPublished_shouldReturnPublishedGuides() {

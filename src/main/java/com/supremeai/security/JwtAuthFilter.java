@@ -6,6 +6,7 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -19,13 +20,11 @@ import org.slf4j.LoggerFactory;
 
 @Component
 public class JwtAuthFilter extends OncePerRequestFilter {
-    public JwtAuthFilter(JwtUtil jwtUtil) {
-        this.jwtUtil = jwtUtil;
-    }
-
     
     private static final Logger logger = LoggerFactory.getLogger(JwtAuthFilter.class);
     
+    @Autowired
+    private JwtUtil jwtUtil;
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {

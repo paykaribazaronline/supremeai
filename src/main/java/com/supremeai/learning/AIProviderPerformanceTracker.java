@@ -27,21 +27,17 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 @Service
 public class AIProviderPerformanceTracker {
-    public AIProviderPerformanceTracker(EnhancedSelfLearningRouter enhancedRouter) {
-        this.enhancedRouter = enhancedRouter;
-    }
-
-    public AIProviderPerformanceTracker(SelfLearningRouter selfLearningRouter) {
-        this.selfLearningRouter = selfLearningRouter;
-    }
-
 
     private static final Logger logger = LoggerFactory.getLogger(AIProviderPerformanceTracker.class);
 
     // In-memory buffer before batch write
     private final Map<String, OutcomeBuffer> pendingOutcomes = new ConcurrentHashMap<>();
 
+    @Autowired
+    private SelfLearningRouter selfLearningRouter;
 
+    @Autowired(required = false)
+    private EnhancedSelfLearningRouter enhancedRouter;
 
     private final AtomicLong totalTracked = new AtomicLong(0);
     private final AtomicLong errorCount = new AtomicLong(0);

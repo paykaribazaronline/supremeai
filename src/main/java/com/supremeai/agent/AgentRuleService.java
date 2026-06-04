@@ -1,6 +1,7 @@
 package com.supremeai.agent;
 
 import com.supremeai.service.DynamicInstructionService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
@@ -10,11 +11,9 @@ import reactor.core.publisher.Mono;
  */
 @Service
 public class AgentRuleService {
-    public AgentRuleService(DynamicInstructionService dynamicInstructionService) {
-        this.dynamicInstructionService = dynamicInstructionService;
-    }
 
-
+    @Autowired
+    private DynamicInstructionService dynamicInstructionService;
 
     /**
      * Enriches a prompt with dynamic rules from Firestore or file fallback.

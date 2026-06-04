@@ -4,6 +4,7 @@ import com.supremeai.service.PubSubPublisherService;
 import com.supremeai.service.ReverseEngineeringIntegrationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -23,13 +24,11 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/api/reverse-engineer")
 public class ReverseEngineeringController {
-    public ReverseEngineeringController(ReverseEngineeringIntegrationService integrationService) {
-        this.integrationService = integrationService;
-    }
-
 
     private static final Logger logger = LoggerFactory.getLogger(ReverseEngineeringController.class);
     
+    @Autowired
+    private ReverseEngineeringIntegrationService integrationService;
 
     @PostMapping("/submit")
     @PreAuthorize("hasRole('ADMIN')")

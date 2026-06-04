@@ -23,25 +23,24 @@ import java.util.HashMap;
  */
 @Service
 public class AutonomousSkillDiscoveryService {
-    public AutonomousSkillDiscoveryService(SystemLearningService systemLearningService, MCPMarketplaceService mcpMarketplaceService) {
-        this.systemLearningService = systemLearningService;
-        this.mcpMarketplaceService = mcpMarketplaceService;
-    }
-
-    public AutonomousSkillDiscoveryService(EnhancedWebScraperService scraperService, SystemLearningRepository learningRepository, ConfigService configService) {
-        this.scraperService = scraperService;
-        this.learningRepository = learningRepository;
-        this.configService = configService;
-    }
-
 
     private static final Logger log = LoggerFactory.getLogger(AutonomousSkillDiscoveryService.class);
 
+    @Autowired
+    private EnhancedWebScraperService scraperService;
 
+    @Autowired
+    private SystemLearningRepository learningRepository;
 
+    @Autowired(required = false)
+    private SystemLearningService systemLearningService;
 
+    @Autowired(required = false)
+    private MCPMarketplaceService mcpMarketplaceService;
 
     // Added ConfigService to fetch registries dynamically from Database
+    @Autowired
+    private ConfigService configService;
 
     /**
      * Scheduled job to autonomously discover and learn new skills.
@@ -72,8 +71,7 @@ public class AutonomousSkillDiscoveryService {
                 }
             } catch (Exception e) {
                 log.error("[Skill Discovery] Error while scanning registry: {}", registryUrl, e);
-        throw new RuntimeException("Swallowed exception: " + e.getMessage(), e);
-    }
+            }
         }
 
         log.info("[Skill Discovery] Autonomous scan completed.");
@@ -127,8 +125,7 @@ public class AutonomousSkillDiscoveryService {
             }
         } catch (Exception e) {
             log.error("[Skill Discovery] On-demand learning failed for {}", url, e);
-        throw new RuntimeException("Swallowed exception: " + e.getMessage(), e);
-    }
+        }
     }
 
     private void processDiscoveredSkill(EnhancedWebScraperService.ScrapedContent content) {
@@ -184,8 +181,7 @@ public class AutonomousSkillDiscoveryService {
                 }
             } catch (Exception e) {
                 log.error("[Provider Discovery] Failed to scan AI model registry: {}", url, e);
-        throw new RuntimeException("Swallowed exception: " + e.getMessage(), e);
-    }
+            }
         }
     }
 }
