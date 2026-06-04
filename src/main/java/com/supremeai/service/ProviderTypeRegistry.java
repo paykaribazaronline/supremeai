@@ -5,107 +5,118 @@ import com.google.cloud.firestore.ListenerRegistration;
 import com.supremeai.model.ProviderTypeConfig;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
-
 /**
- * Dynamic provider type registry backed by Firestore.
- * Replaces all hardcoded switch/case provider mappings.
+ * Dynamic provider type registry backed by Firestore. Replaces all hardcoded switch/case provider
+ * mappings.
  *
- * Firestore collection: provider_types
- * Each document contains: typeId, defaultBaseUrl, defaultModel, authType, etc.
- * Admin can add/edit/delete provider types via dashboard without code changes.
+ * <p>Firestore collection: provider_types Each document contains: typeId, defaultBaseUrl,
+ * defaultModel, authType, etc. Admin can add/edit/delete provider types via dashboard without code
+ * changes.
  */
 @Service
 public class ProviderTypeRegistry {
 
-    private static final Logger log = LoggerFactory.getLogger(ProviderTypeRegistry.class);
-    private static final String COLLECTION = "provider_types";
+  private static final Logger log = LoggerFactory.getLogger(ProviderTypeRegistry.class);
+  private static final String COLLECTION = "provider_types";
 
-    @Autowired
-    private Firestore firestore;
+  @Autowired private Firestore firestore;
 
-    private final Map<String, ProviderTypeConfig> typeCache = new ConcurrentHashMap<>();
-    private ListenerRegistration listenerRegistration;
-    private final Executor listenerExecutor = Executors.newSingleThreadExecutor();
+  private final Map<String, ProviderTypeConfig> typeCache = new ConcurrentHashMap<>();
+  private ListenerRegistration listenerRegistration;
+  private final Executor listenerExecutor = Executors.newSingleThreadExecutor();
 
-    @PostConstruct
-    public void init() {
-        log.info("[ProviderTypeRegistry] Initializing with Firestore real-time listener...");
-        try {
-            listenerRegistration = firestore.collection(COLLECTION)
-                    .addSnapshotListener(listenerExecutor, (snapshot, error) -> {
-                        if (error != null) {
-                            log.error("[ProviderTypeRegistry] Firestore listener error", error);
-                            return;
-                        }
-                        if (snapshot != null) {
-                            snapshot.getDocumentChanges().forEach(change -> {
+  @PostConstruct
+  public void init() {
+    log.info("[ProviderTypeRegistry] Initializing with Firestore real-time listener...");
+    try {
+      listenerRegistration =
+          firestore
+              .collection(COLLECTION)
+              .addSnapshotListener(
+                  listenerExecutor,
+                  (snapshot, error) -> {
+                    if (error != null) {
+                      log.error("[ProviderTypeRegistry] Firestore listener error", error);
+                      return;
+                    }
+                    if (snapshot != null) {
+                      snapshot
+                          .getDocumentChanges()
+                          .forEach(
+                              change -> {
                                 try {
-                                    ProviderTypeConfig type = change.getDocument().toObject(ProviderTypeConfig.class);
-                                    if (type != null && type.getTypeId() != null) {
-                                        String key = type.getTypeId().toLowerCase();
-                                        switch (change.getType()) {
-                                            case ADDED, MODIFIED -> {
-                                                typeCache.put(key, type);
-                                                log.info("[ProviderTypeRegistry] Type updated: {} -> baseUrl={}", key, type.getDefaultBaseUrl());
-                                            }
-                                            case REMOVED -> {
-                                                typeCache.remove(key);
-                                                log.info("[ProviderTypeRegistry] Type removed: {}", key);
-                                            }
-                                        }
+                                  ProviderTypeConfig type =
+                                      change.getDocument().toObject(ProviderTypeConfig.class);
+                                  if (type != null && type.getTypeId() != null) {
+                                    String key = type.getTypeId().toLowerCase();
+                                    switch (change.getType()) {
+                                      case ADDED, MODIFIED -> {
+                                        typeCache.put(key, type);
+                                        log.info(
+                                            "[ProviderTypeRegistry] Type updated: {} -> baseUrl={}",
+                                            key,
+                                            type.getDefaultBaseUrl());
+                                      }
+                                      case REMOVED -> {
+                                        typeCache.remove(key);
+                                        log.info("[ProviderTypeRegistry] Type removed: {}", key);
+                                      }
                                     }
+                                  }
                                 } catch (Exception e) {
-                                    log.error("[ProviderTypeRegistry] Error deserializing ProviderTypeConfig", e);
+                                  log.error(
+                                      "[ProviderTypeRegistry] Error deserializing ProviderTypeConfig",
+                                      e);
                                 }
-                            });
-                        }
-                    });
-        } catch (Exception e) {
-            log.error("[ProviderTypeRegistry] Failed to setup listener", e);
-        }
+                              });
+                    }
+                  });
+    } catch (Exception e) {
+      log.error("[ProviderTypeRegistry] Failed to setup listener", e);
     }
+  }
 
-    @PreDestroy
-    public void cleanup() {
-        if (listenerRegistration != null) {
-            listenerRegistration.remove();
-        }
+  @PreDestroy
+  public void cleanup() {
+    if (listenerRegistration != null) {
+      listenerRegistration.remove();
     }
+  }
 
-    public ProviderTypeConfig getTypeConfig(String typeId) {
-        if (typeId == null) return null;
-        return typeCache.get(typeId.toLowerCase());
-    }
+  public ProviderTypeConfig getTypeConfig(String typeId) {
+    if (typeId == null) return null;
+    return typeCache.get(typeId.toLowerCase());
+  }
 
-    public String getDefaultBaseUrl(String typeId) {
-        ProviderTypeConfig config = getTypeConfig(typeId);
-        return config != null ? config.getDefaultBaseUrl() : null;
-    }
+  public String getDefaultBaseUrl(String typeId) {
+    ProviderTypeConfig config = getTypeConfig(typeId);
+    return config != null ? config.getDefaultBaseUrl() : null;
+  }
 
-    public String getDefaultModel(String typeId) {
-        ProviderTypeConfig config = getTypeConfig(typeId);
-        return config != null ? config.getDefaultModel() : null;
-    }
+  public String getDefaultModel(String typeId) {
+    ProviderTypeConfig config = getTypeConfig(typeId);
+    return config != null ? config.getDefaultModel() : null;
+  }
 
-    public String getAuthType(String typeId) {
-        ProviderTypeConfig config = getTypeConfig(typeId);
-        return config != null ? config.getAuthType() : "bearer";
-    }
+  public String getAuthType(String typeId) {
+    ProviderTypeConfig config = getTypeConfig(typeId);
+    return config != null ? config.getAuthType() : "bearer";
+  }
 
-    public Map<String, ProviderTypeConfig> getAllTypes() {
-        return Map.copyOf(typeCache);
-    }
+  public Map<String, ProviderTypeConfig> getAllTypes() {
+    return Map.copyOf(typeCache);
+  }
 
-    public boolean hasType(String typeId) {
-        return typeId != null && typeCache.containsKey(typeId.toLowerCase());
-    }
+  public boolean hasType(String typeId) {
+    return typeId != null && typeCache.containsKey(typeId.toLowerCase());
+  }
 }

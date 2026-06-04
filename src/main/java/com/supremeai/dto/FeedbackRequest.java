@@ -3,47 +3,46 @@ package com.supremeai.dto;
 import jakarta.validation.constraints.NotBlank;
 
 public class FeedbackRequest {
-    @NotBlank(message = "Message ID is required")
-    private String messageId;
-    
-    private boolean helpful;
-    
-    private String userMessage;
-    
-    private String aiResponse;
+  @NotBlank(message = "Message ID is required")
+  private String messageId;
 
-    public FeedbackRequest() {}
+  private boolean helpful;
 
-    public String getMessageId() {
-        return messageId;
-    }
+  private String userMessage;
 
-    public void setMessageId(String messageId) {
-        this.messageId = messageId;
-    }
+  private String aiResponse;
 
-    public boolean isHelpful() {
-        return helpful;
-    }
+  public FeedbackRequest() {}
 
-    public void setHelpful(boolean helpful) {
-        this.helpful = helpful;
-    }
+  public String getMessageId() {
+    return messageId;
+  }
 
-    public String getUserMessage() {
-        return userMessage;
-    }
+  public void setMessageId(String messageId) {
+    this.messageId = messageId;
+  }
 
-    public void setUserMessage(String userMessage) {
-        this.userMessage = userMessage;
-    }
+  public boolean isHelpful() {
+    return helpful;
+  }
 
-    public String getAiResponse() {
-        return aiResponse;
-    }
+  public void setHelpful(boolean helpful) {
+    this.helpful = helpful;
+  }
 
-    public void setAiResponse(String aiResponse) {
-        this.aiResponse = aiResponse;
-    }
+  public String getUserMessage() {
+    return userMessage;
+  }
+
+  public void setUserMessage(String userMessage) {
+    this.userMessage = userMessage;
+  }
+
+  public String getAiResponse() {
+    return aiResponse;
+  }
+
+  public void setAiResponse(String aiResponse) {
+    this.aiResponse = aiResponse;
+  }
 }
-

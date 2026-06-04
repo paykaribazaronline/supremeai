@@ -1,7 +1,12 @@
 package com.supremeai.agentorchestration;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.when;
+
 import com.supremeai.provider.AIProvider;
 import com.supremeai.provider.AIProviderFactory;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -9,70 +14,62 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import reactor.core.publisher.Mono;
 
-import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.when;
-
 public class RequirementAnalyzerAITest {
 
-    @Mock
-    private AIProviderFactory providerFactory;
+  @Mock private AIProviderFactory providerFactory;
 
-    @Mock
-    private AIProvider aiProvider;
+  @Mock private AIProvider aiProvider;
 
-    @InjectMocks
-    private RequirementAnalyzerAI requirementAnalyzer;
+  @InjectMocks private RequirementAnalyzerAI requirementAnalyzer;
 
-    @BeforeEach
-    public void setUp() {
-        MockitoAnnotations.openMocks(this);
-        org.mockito.Mockito.lenient().when(providerFactory.getDefaultProvider()).thenReturn(aiProvider);
-    }
+  @BeforeEach
+  public void setUp() {
+    MockitoAnnotations.openMocks(this);
+    org.mockito.Mockito.lenient().when(providerFactory.getDefaultProvider()).thenReturn(aiProvider);
+  }
 
-    @Test
-    public void testAnalyzeWithAiSuccess() {
-        String mockResponse = "Here are the questions:\n" +
-                "[\n" +
-                "  {\"key\": \"q1\", \"text\": \"Question 1?\", \"priority\": \"HIGH\"},\n" +
-                "  {\"key\": \"q2\", \"text\": \"Question 2?\", \"priority\": \"CRITICAL\"}\n" +
-                "]";
-        
-        when(providerFactory.getProvider("groq")).thenReturn(aiProvider);
-        when(aiProvider.generate(anyString())).thenReturn(Mono.just(mockResponse));
+  @Test
+  public void testAnalyzeWithAiSuccess() {
+    String mockResponse =
+        "Here are the questions:\n"
+            + "[\n"
+            + "  {\"key\": \"q1\", \"text\": \"Question 1?\", \"priority\": \"HIGH\"},\n"
+            + "  {\"key\": \"q2\", \"text\": \"Question 2?\", \"priority\": \"CRITICAL\"}\n"
+            + "]";
 
-        List<Question> questions = requirementAnalyzer.analyze("Build a web app");
+    when(providerFactory.getProvider("groq")).thenReturn(aiProvider);
+    when(aiProvider.generate(anyString())).thenReturn(Mono.just(mockResponse));
 
-        assertNotNull(questions);
-        assertEquals(2, questions.size());
-        assertEquals("q1", questions.get(0).getKey());
-        assertEquals("Question 1?", questions.get(0).getText());
-        assertEquals("HIGH", questions.get(0).getPriority());
-    }
+    List<Question> questions = requirementAnalyzer.analyze("Build a web app");
 
-    @Test
-    public void testAnalyzeWithAiFailureFallback() {
-        when(providerFactory.getProvider("groq")).thenThrow(new RuntimeException("Provider failed"));
+    assertNotNull(questions);
+    assertEquals(2, questions.size());
+    assertEquals("q1", questions.get(0).getKey());
+    assertEquals("Question 1?", questions.get(0).getText());
+    assertEquals("HIGH", questions.get(0).getPriority());
+  }
 
-        List<Question> questions = requirementAnalyzer.analyze("Build a web app");
+  @Test
+  public void testAnalyzeWithAiFailureFallback() {
+    when(providerFactory.getProvider("groq")).thenThrow(new RuntimeException("Provider failed"));
 
-        assertNotNull(questions);
-        assertFalse(questions.isEmpty());
-        // Should contain default questions
-        assertTrue(questions.stream().anyMatch(q -> q.getKey().equals("architecture")));
-    }
+    List<Question> questions = requirementAnalyzer.analyze("Build a web app");
 
-    @Test
-    public void testAnalyzeWithMalformedJsonFallback() {
-        when(providerFactory.getProvider("groq")).thenReturn(aiProvider);
-        when(aiProvider.generate(anyString())).thenReturn(Mono.just("Not a JSON response"));
+    assertNotNull(questions);
+    assertFalse(questions.isEmpty());
+    // Should contain default questions
+    assertTrue(questions.stream().anyMatch(q -> q.getKey().equals("architecture")));
+  }
 
-        List<Question> questions = requirementAnalyzer.analyze("Build a web app");
+  @Test
+  public void testAnalyzeWithMalformedJsonFallback() {
+    when(providerFactory.getProvider("groq")).thenReturn(aiProvider);
+    when(aiProvider.generate(anyString())).thenReturn(Mono.just("Not a JSON response"));
 
-        assertNotNull(questions);
-        assertFalse(questions.isEmpty());
-        assertTrue(questions.stream().anyMatch(q -> q.getKey().equals("database")));
-    }
+    List<Question> questions = requirementAnalyzer.analyze("Build a web app");
+
+    assertNotNull(questions);
+    assertFalse(questions.isEmpty());
+    assertTrue(questions.stream().anyMatch(q -> q.getKey().equals("database")));
+  }
 }

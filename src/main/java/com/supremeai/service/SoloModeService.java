@@ -3,5 +3,4 @@ package com.supremeai.service;
 import org.springframework.stereotype.Service;
 
 @Service
-public class SoloModeService {
-}
+public class SoloModeService {}

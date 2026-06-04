@@ -7,7 +7,9 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @Repository
-public interface AIBehaviorProfileRepository extends FirestoreReactiveRepository<AIBehaviorProfile> {
-    Flux<AIBehaviorProfile> findByProjectId(String projectId);
-    Mono<AIBehaviorProfile> findFirstByProjectId(String projectId);
+public interface AIBehaviorProfileRepository
+    extends FirestoreReactiveRepository<AIBehaviorProfile> {
+  Flux<AIBehaviorProfile> findByProjectId(String projectId);
+
+  Mono<AIBehaviorProfile> findFirstByProjectId(String projectId);
 }

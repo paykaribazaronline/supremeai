@@ -7,7 +7,9 @@ import reactor.core.publisher.Flux;
 
 @Repository
 public interface StorageMetadataRepository extends FirestoreReactiveRepository<StorageMetadata> {
-    Flux<StorageMetadata> findByCategory(String category);
-    Flux<StorageMetadata> findByUserId(String userId);
-    Flux<StorageMetadata> findByStorageProvider(String storageProvider);
+  Flux<StorageMetadata> findByCategory(String category);
+
+  Flux<StorageMetadata> findByUserId(String userId);
+
+  Flux<StorageMetadata> findByStorageProvider(String storageProvider);
 }

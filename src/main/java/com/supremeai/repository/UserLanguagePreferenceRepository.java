@@ -7,8 +7,9 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @Repository
-public interface UserLanguagePreferenceRepository extends FirestoreReactiveRepository<UserLanguagePreference> {
-    Mono<UserLanguagePreference> findByUserId(String userId);
+public interface UserLanguagePreferenceRepository
+    extends FirestoreReactiveRepository<UserLanguagePreference> {
+  Mono<UserLanguagePreference> findByUserId(String userId);
 
-    Flux<UserLanguagePreference> findAll();
+  Flux<UserLanguagePreference> findAll();
 }

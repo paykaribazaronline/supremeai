@@ -8,6 +8,7 @@ import java.lang.annotation.Target;
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Audited {
-    String resource() default "";
-    String action() default "";
+  String resource() default "";
+
+  String action() default "";
 }

@@ -8,6 +8,7 @@ import reactor.core.publisher.Mono;
 
 @Repository
 public interface ProviderRepository extends FirestoreReactiveRepository<APIProvider> {
-    Flux<APIProvider> findByStatus(String status);
-    Mono<APIProvider> findByName(String name);
+  Flux<APIProvider> findByStatus(String status);
+
+  Mono<APIProvider> findByName(String name);
 }

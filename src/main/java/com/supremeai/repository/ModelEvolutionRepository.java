@@ -5,5 +5,4 @@ import com.supremeai.model.ModelEvolution;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface ModelEvolutionRepository extends FirestoreReactiveRepository<ModelEvolution> {
-}
+public interface ModelEvolutionRepository extends FirestoreReactiveRepository<ModelEvolution> {}

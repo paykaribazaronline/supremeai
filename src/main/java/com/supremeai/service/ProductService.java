@@ -4,5 +4,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class ProductService {
-    public boolean existsById(Long id) { return false; }
+  public boolean existsById(Long id) {
+    return false;
+  }
 }

@@ -10,81 +10,81 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
 /**
- * BV-04: Provider Tournament Mode
- * Monthly automated head-to-head provider comparison.
- * Auto-demotes consistently underperforming providers.
+ * BV-04: Provider Tournament Mode Monthly automated head-to-head provider comparison. Auto-demotes
+ * consistently underperforming providers.
  */
 @Service
 public class ProviderTournamentService {
 
-    private static final Logger log = LoggerFactory.getLogger(ProviderTournamentService.class);
+  private static final Logger log = LoggerFactory.getLogger(ProviderTournamentService.class);
 
-    @Autowired
-    private ProviderRepository providerRepository;
+  @Autowired private ProviderRepository providerRepository;
 
-    @Autowired
-    private SWEBenchValidationService sweBenchService;
+  @Autowired private SWEBenchValidationService sweBenchService;
 
-    /**
-     * Run the tournament monthly (1st of every month at 3 AM)
-     */
-    @Scheduled(cron = "0 0 3 1 * *")
-    public void runMonthlyTournament() {
-        log.info("🏆 Starting Monthly Provider Tournament...");
-        
-        providerRepository.findAll()
-            .filter(p -> "active".equalsIgnoreCase(p.getStatus()))
-            .map(APIProvider::getName)
-            .collectList()
-            .flatMap(activeProviders -> {
-                if (activeProviders.size() < 2) {
-                    log.warn("Not enough active providers for a tournament.");
-                    return Mono.empty();
-                }
-                
-                log.info("Tournament participants: {}", activeProviders);
-                return sweBenchService.runSweBenchSuite(activeProviders);
+  /** Run the tournament monthly (1st of every month at 3 AM) */
+  @Scheduled(cron = "0 0 3 1 * *")
+  public void runMonthlyTournament() {
+    log.info("🏆 Starting Monthly Provider Tournament...");
+
+    providerRepository
+        .findAll()
+        .filter(p -> "active".equalsIgnoreCase(p.getStatus()))
+        .map(APIProvider::getName)
+        .collectList()
+        .flatMap(
+            activeProviders -> {
+              if (activeProviders.size() < 2) {
+                log.warn("Not enough active providers for a tournament.");
+                return Mono.empty();
+              }
+
+              log.info("Tournament participants: {}", activeProviders);
+              return sweBenchService.runSweBenchSuite(activeProviders);
             })
-            .subscribe(
-                results -> evaluateTournamentResults((java.util.Map<String, Object>) results),
-                error -> log.error("Tournament failed", error)
-            );
+        .subscribe(
+            results -> evaluateTournamentResults((java.util.Map<String, Object>) results),
+            error -> log.error("Tournament failed", error));
+  }
+
+  private void evaluateTournamentResults(java.util.Map<String, Object> results) {
+    if (results == null || !results.containsKey("baselinePassRates")) return;
+
+    @SuppressWarnings("unchecked")
+    java.util.Map<String, Double> rates =
+        (java.util.Map<String, Double>) results.get("baselinePassRates");
+
+    String winner = null;
+    double maxRate = -1;
+    String loser = null;
+    double minRate = 2.0;
+
+    for (java.util.Map.Entry<String, Double> entry : rates.entrySet()) {
+      if (entry.getValue() > maxRate) {
+        maxRate = entry.getValue();
+        winner = entry.getKey();
+      }
+      if (entry.getValue() < minRate) {
+        minRate = entry.getValue();
+        loser = entry.getKey();
+      }
     }
 
-    private void evaluateTournamentResults(java.util.Map<String, Object> results) {
-        if (results == null || !results.containsKey("baselinePassRates")) return;
-        
-        @SuppressWarnings("unchecked")
-        java.util.Map<String, Double> rates = (java.util.Map<String, Double>) results.get("baselinePassRates");
-        
-        String winner = null;
-        double maxRate = -1;
-        String loser = null;
-        double minRate = 2.0;
-        
-        for (java.util.Map.Entry<String, Double> entry : rates.entrySet()) {
-            if (entry.getValue() > maxRate) {
-                maxRate = entry.getValue();
-                winner = entry.getKey();
-            }
-            if (entry.getValue() < minRate) {
-                minRate = entry.getValue();
-                loser = entry.getKey();
-            }
-        }
-        
-        log.info("Tournament Winner: {} with pass rate {}", winner, maxRate);
-        
-        // Auto-demote underperforming provider
-        if (loser != null && minRate < 0.40) { // e.g., < 40% pass rate
-            log.warn("Auto-demoting consistently underperforming provider: {} (rate: {})", loser, minRate);
-            providerRepository.findByName(loser)
-                .flatMap(provider -> {
-                    provider.setStatus("demoted");
-                    provider.setCanParticipateInVoting(false);
-                    return providerRepository.save(provider);
-                })
-                .subscribe();
-        }
+    log.info("Tournament Winner: {} with pass rate {}", winner, maxRate);
+
+    // Auto-demote underperforming provider
+    if (loser != null && minRate < 0.40) { // e.g., < 40% pass rate
+      log.warn(
+          "Auto-demoting consistently underperforming provider: {} (rate: {})", loser, minRate);
+      providerRepository
+          .findByName(loser)
+          .flatMap(
+              provider -> {
+                provider.setStatus("demoted");
+                provider.setCanParticipateInVoting(false);
+                return providerRepository.save(provider);
+              })
+          .subscribe();
     }
+  }
 }

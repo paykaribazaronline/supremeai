@@ -7,7 +7,9 @@ import reactor.core.publisher.Flux;
 
 @Repository
 public interface CodeChunkRepository extends FirestoreReactiveRepository<CodeChunk> {
-    Flux<CodeChunk> findByProjectId(String projectId);
-    Flux<CodeChunk> findByProjectIdAndFile(String projectId, String file);
-    Flux<CodeChunk> findByProjectIdAndLanguage(String projectId, String language);
+  Flux<CodeChunk> findByProjectId(String projectId);
+
+  Flux<CodeChunk> findByProjectIdAndFile(String projectId, String file);
+
+  Flux<CodeChunk> findByProjectIdAndLanguage(String projectId, String language);
 }

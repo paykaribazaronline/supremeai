@@ -6,6 +6,7 @@ import org.springframework.stereotype.Repository;
 import reactor.core.publisher.Flux;
 
 @Repository
-public interface KnowledgeRecommendationRepository extends FirestoreReactiveRepository<KnowledgeRecommendation> {
-    Flux<KnowledgeRecommendation> findByStatus(KnowledgeRecommendation.Status status);
+public interface KnowledgeRecommendationRepository
+    extends FirestoreReactiveRepository<KnowledgeRecommendation> {
+  Flux<KnowledgeRecommendation> findByStatus(KnowledgeRecommendation.Status status);
 }

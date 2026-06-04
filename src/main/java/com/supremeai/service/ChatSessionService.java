@@ -10,26 +10,25 @@ import reactor.core.publisher.Mono;
 @Service
 public class ChatSessionService {
 
-    @Autowired
-    private ChatSessionRepository chatSessionRepository;
+  @Autowired private ChatSessionRepository chatSessionRepository;
 
-    public Mono<ChatSession> saveSession(ChatSession session) {
-        return chatSessionRepository.save(session);
-    }
+  public Mono<ChatSession> saveSession(ChatSession session) {
+    return chatSessionRepository.save(session);
+  }
 
-    public Mono<ChatSession> getSession(String id) {
-        return chatSessionRepository.findById(id);
-    }
+  public Mono<ChatSession> getSession(String id) {
+    return chatSessionRepository.findById(id);
+  }
 
-    public Flux<ChatSession> getSessionsByUserId(String userId) {
-        return chatSessionRepository.findAllByUserId(userId);
-    }
+  public Flux<ChatSession> getSessionsByUserId(String userId) {
+    return chatSessionRepository.findAllByUserId(userId);
+  }
 
-    public Mono<Void> deleteSession(String id) {
-        return chatSessionRepository.deleteById(id);
-    }
+  public Mono<Void> deleteSession(String id) {
+    return chatSessionRepository.deleteById(id);
+  }
 
-    public Mono<Void> deleteAllSessionsByUserId(String userId) {
-        return chatSessionRepository.deleteAllByUserId(userId);
-    }
+  public Mono<Void> deleteAllSessionsByUserId(String userId) {
+    return chatSessionRepository.deleteAllByUserId(userId);
+  }
 }

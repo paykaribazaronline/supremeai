@@ -7,26 +7,22 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
 /**
- * The Infinite Auto-Healing Loop!
- * Now delegates to the unified SelfHealingService.
- * Ensures nothing is considered "Done" until it actually compiles and passes tests in CI/CD.
+ * The Infinite Auto-Healing Loop! Now delegates to the unified SelfHealingService. Ensures nothing
+ * is considered "Done" until it actually compiles and passes tests in CI/CD.
  */
 @Service
 public class InfiniteAutoHealer {
 
-    private static final Logger log = LoggerFactory.getLogger(InfiniteAutoHealer.class);
-    private final SelfHealingService selfHealingService;
+  private static final Logger log = LoggerFactory.getLogger(InfiniteAutoHealer.class);
+  private final SelfHealingService selfHealingService;
 
-    public InfiniteAutoHealer(SelfHealingService selfHealingService) {
-        this.selfHealingService = selfHealingService;
-    }
+  public InfiniteAutoHealer(SelfHealingService selfHealingService) {
+    this.selfHealingService = selfHealingService;
+  }
 
-    /**
-     * This method now delegates to the unified SelfHealingService.
-     */
-    public Mono<String> developUntilPerfection(String taskCategory, String userPrompt) {
-        log.info("[Infinite Auto-Healer] Delegating to unified SelfHealingService");
-        return selfHealingService.developUntilPerfection(taskCategory, userPrompt);
-    }
-
+  /** This method now delegates to the unified SelfHealingService. */
+  public Mono<String> developUntilPerfection(String taskCategory, String userPrompt) {
+    log.info("[Infinite Auto-Healer] Delegating to unified SelfHealingService");
+    return selfHealingService.developUntilPerfection(taskCategory, userPrompt);
+  }
 }

@@ -3,43 +3,42 @@ package com.supremeai.dto;
 import jakarta.validation.constraints.NotBlank;
 
 public class IdeAssistantRequest {
-    @NotBlank(message = "Prompt is required")
-    private String prompt;
-    
-    private String context;
-    
-    private String provider = "";
+  @NotBlank(message = "Prompt is required")
+  private String prompt;
 
-    public IdeAssistantRequest() {
-    }
+  private String context;
 
-    public IdeAssistantRequest(String prompt, String context, String provider) {
-        this.prompt = prompt;
-        this.context = context;
-        this.provider = provider;
-    }
+  private String provider = "";
 
-    public String getPrompt() {
-        return prompt;
-    }
+  public IdeAssistantRequest() {}
 
-    public void setPrompt(String prompt) {
-        this.prompt = prompt;
-    }
+  public IdeAssistantRequest(String prompt, String context, String provider) {
+    this.prompt = prompt;
+    this.context = context;
+    this.provider = provider;
+  }
 
-    public String getContext() {
-        return context;
-    }
+  public String getPrompt() {
+    return prompt;
+  }
 
-    public void setContext(String context) {
-        this.context = context;
-    }
+  public void setPrompt(String prompt) {
+    this.prompt = prompt;
+  }
 
-    public String getProvider() {
-        return provider;
-    }
+  public String getContext() {
+    return context;
+  }
 
-    public void setProvider(String provider) {
-        this.provider = provider;
-    }
+  public void setContext(String context) {
+    this.context = context;
+  }
+
+  public String getProvider() {
+    return provider;
+  }
+
+  public void setProvider(String provider) {
+    this.provider = provider;
+  }
 }

@@ -7,5 +7,5 @@ import reactor.core.publisher.Flux;
 
 @Repository
 public interface ProtocolRuleRepository extends FirestoreReactiveRepository<ProtocolRule> {
-    Flux<ProtocolRule> findByActive(boolean active);
+  Flux<ProtocolRule> findByActive(boolean active);
 }

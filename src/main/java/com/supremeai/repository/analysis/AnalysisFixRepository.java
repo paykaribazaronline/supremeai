@@ -7,6 +7,7 @@ import reactor.core.publisher.Flux;
 
 @Repository
 public interface AnalysisFixRepository extends FirestoreReactiveRepository<AnalysisFix> {
-    Flux<AnalysisFix> findByJobId(String jobId);
-    Flux<AnalysisFix> findByFindingId(String findingId);
+  Flux<AnalysisFix> findByJobId(String jobId);
+
+  Flux<AnalysisFix> findByFindingId(String findingId);
 }

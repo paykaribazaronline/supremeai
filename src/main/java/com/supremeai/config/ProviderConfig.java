@@ -11,20 +11,18 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class ProviderConfig {
-    private static final Logger log = LoggerFactory.getLogger(ProviderConfig.class);
+  private static final Logger log = LoggerFactory.getLogger(ProviderConfig.class);
 
-    @Autowired
-    private UnifiedSecretsService secretsService;
+  @Autowired private UnifiedSecretsService secretsService;
 
-    @Autowired
-    private ProviderRepository providerRepository;
+  @Autowired private ProviderRepository providerRepository;
 
-    @Autowired
-    private AIProviderFactory providerFactory;
+  @Autowired private AIProviderFactory providerFactory;
 
-    @Bean
-    public SupremeCoreProvider supremeCoreProvider() {
-        log.info("[ProviderConfig] Initializing SupremeCoreProvider — cloud-only multi-orchestrated mode");
-        return new SupremeCoreProvider(providerRepository, providerFactory);
-    }
+  @Bean
+  public SupremeCoreProvider supremeCoreProvider() {
+    log.info(
+        "[ProviderConfig] Initializing SupremeCoreProvider — cloud-only multi-orchestrated mode");
+    return new SupremeCoreProvider(providerRepository, providerFactory);
+  }
 }

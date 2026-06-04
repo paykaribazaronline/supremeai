@@ -11,27 +11,27 @@ import reactor.core.publisher.Mono;
 @RequestMapping("/api/admin/milestones")
 public class MilestoneController {
 
-    @Autowired
-    private MilestoneRepository milestoneRepository;
+  @Autowired private MilestoneRepository milestoneRepository;
 
-    @GetMapping
-    public Flux<Milestone> getAllMilestones() {
-        return milestoneRepository.findAllByOrderByOrderAsc();
-    }
+  @GetMapping
+  public Flux<Milestone> getAllMilestones() {
+    return milestoneRepository.findAllByOrderByOrderAsc();
+  }
 
-    @PostMapping
-    public Mono<Milestone> saveMilestone(@RequestBody Milestone milestone) {
-        return milestoneRepository.save(milestone);
-    }
+  @PostMapping
+  public Mono<Milestone> saveMilestone(@RequestBody Milestone milestone) {
+    return milestoneRepository.save(milestone);
+  }
 
-    @PutMapping("/{id}")
-    public Mono<Milestone> updateMilestone(@PathVariable String id, @RequestBody Milestone milestone) {
-        milestone.setId(id);
-        return milestoneRepository.save(milestone);
-    }
+  @PutMapping("/{id}")
+  public Mono<Milestone> updateMilestone(
+      @PathVariable String id, @RequestBody Milestone milestone) {
+    milestone.setId(id);
+    return milestoneRepository.save(milestone);
+  }
 
-    @DeleteMapping("/{id}")
-    public Mono<Void> deleteMilestone(@PathVariable String id) {
-        return milestoneRepository.deleteById(id);
-    }
+  @DeleteMapping("/{id}")
+  public Mono<Void> deleteMilestone(@PathVariable String id) {
+    return milestoneRepository.deleteById(id);
+  }
 }

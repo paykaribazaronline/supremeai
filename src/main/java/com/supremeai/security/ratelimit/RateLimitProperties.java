@@ -7,31 +7,31 @@ import org.springframework.stereotype.Component;
 @ConfigurationProperties(prefix = "rate-limit")
 public class RateLimitProperties {
 
-    private boolean distributed = false;
-    private int defaultLimit = 100;
-    private int defaultWindowSeconds = 60;
+  private boolean distributed = false;
+  private int defaultLimit = 100;
+  private int defaultWindowSeconds = 60;
 
-    public boolean isDistributed() {
-        return distributed;
-    }
+  public boolean isDistributed() {
+    return distributed;
+  }
 
-    public void setDistributed(boolean distributed) {
-        this.distributed = distributed;
-    }
+  public void setDistributed(boolean distributed) {
+    this.distributed = distributed;
+  }
 
-    public int getDefaultLimit() {
-        return defaultLimit;
-    }
+  public int getDefaultLimit() {
+    return defaultLimit;
+  }
 
-    public void setDefaultLimit(int defaultLimit) {
-        this.defaultLimit = defaultLimit;
-    }
+  public void setDefaultLimit(int defaultLimit) {
+    this.defaultLimit = defaultLimit;
+  }
 
-    public int getDefaultWindowSeconds() {
-        return defaultWindowSeconds;
-    }
+  public int getDefaultWindowSeconds() {
+    return defaultWindowSeconds;
+  }
 
-    public void setDefaultWindowSeconds(int defaultWindowSeconds) {
-        this.defaultWindowSeconds = defaultWindowSeconds;
-    }
+  public void setDefaultWindowSeconds(int defaultWindowSeconds) {
+    this.defaultWindowSeconds = defaultWindowSeconds;
+  }
 }

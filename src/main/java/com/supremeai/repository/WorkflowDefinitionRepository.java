@@ -6,6 +6,7 @@ import org.springframework.stereotype.Repository;
 import reactor.core.publisher.Mono;
 
 @Repository
-public interface WorkflowDefinitionRepository extends FirestoreReactiveRepository<WorkflowDefinition> {
-    Mono<WorkflowDefinition> findByName(String name);
+public interface WorkflowDefinitionRepository
+    extends FirestoreReactiveRepository<WorkflowDefinition> {
+  Mono<WorkflowDefinition> findByName(String name);
 }

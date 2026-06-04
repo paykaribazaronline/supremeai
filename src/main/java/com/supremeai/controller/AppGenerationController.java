@@ -1,116 +1,113 @@
 package com.supremeai.controller;
 
-import com.supremeai.service.CodeGenerationService;
-import com.supremeai.service.AppOrchestrationService;
+import com.supremeai.dto.AppGenerationRequest;
 import com.supremeai.generation.FullStackCodeGenerator;
 import com.supremeai.generation.MultiPlatformGenerator;
-import com.supremeai.model.GeneratedApp;
 import com.supremeai.model.EntityDefinition;
 import com.supremeai.model.FieldDefinition;
+import com.supremeai.model.GeneratedApp;
 import com.supremeai.repository.GeneratedAppRepository;
+import com.supremeai.response.ApiResponse;
+import com.supremeai.service.AppOrchestrationService;
+import com.supremeai.service.CodeGenerationService;
+import jakarta.validation.Valid;
+import java.util.*;
+import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
-import jakarta.validation.Valid;
-import org.springframework.security.access.prepost.PreAuthorize;
-import com.supremeai.dto.AppGenerationRequest;
-
-import java.time.LocalDateTime;
-import java.util.*;
-import java.util.stream.Collectors;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
-import com.supremeai.response.ApiResponse;
-import java.util.UUID;
 
 /**
- * Controller for app generation endpoints.
- * Handles requests to generate applications based on user requirements.
+ * Controller for app generation endpoints. Handles requests to generate applications based on user
+ * requirements.
  */
 @RestController
 @RequestMapping({"/api/generate", "/api/teaching/create-app"})
 public class AppGenerationController {
-    
-    private static final Logger logger = LoggerFactory.getLogger(AppGenerationController.class);
-    
-    @Autowired
-    private CodeGenerationService codeGenerationService;
-    
-    @Autowired
-    private FullStackCodeGenerator fullStackCodeGenerator;
-    
-    @Autowired
-    private MultiPlatformGenerator multiPlatformGenerator;
 
-    @Autowired
-    private GeneratedAppRepository generatedAppRepository;
+  private static final Logger logger = LoggerFactory.getLogger(AppGenerationController.class);
 
-    @Autowired
-    private AppOrchestrationService appOrchestrationService;
+  @Autowired private CodeGenerationService codeGenerationService;
 
-    @Autowired
-    private WebSocketController webSocketController;
+  @Autowired private FullStackCodeGenerator fullStackCodeGenerator;
 
-    @PostMapping
-    @PreAuthorize("hasAnyRole('USER', 'ADMIN', 'GUEST')")
-    public Mono<ResponseEntity<ApiResponse<Map<String, Object>>>> generateApp(
-            @Valid @RequestBody AppGenerationRequest request,
-            Authentication auth) {
-        
-        String requestId = UUID.randomUUID().toString();
-        String name = request.getName();
-        String userId = auth != null ? auth.getName() : "anonymous";
-        String description = request.getDescription();
-        String platform = request.getPlatform();
-        boolean useAI = request.isUseAI();
+  @Autowired private MultiPlatformGenerator multiPlatformGenerator;
 
-        logger.info("App generation request received [{}]: {} (useAI: {}) by user {}", 
-            requestId, name, useAI, userId);
+  @Autowired private GeneratedAppRepository generatedAppRepository;
 
-        if (useAI && "project".equals(request.getType())) {
-            // Trigger the Full Orchestration Pipeline (AI + Code + GitHub)
-            appOrchestrationService.runFullPipeline(description != null ? description : name, null)
-                .flatMap(result -> {
-                    // Save to repository for persistence/preview
-                    String appId = UUID.randomUUID().toString();
-                    GeneratedApp generatedApp = new GeneratedApp(appId, userId, platform, "React");
-                    generatedApp.setHtmlContent(buildPreviewHtml(name, platform, description, result));
-                    generatedApp.setStatus("GENERATED");
-                    generatedApp.setRequestId(requestId);
-                    
-                    if (result.get("generatedApp") instanceof Map) {
-                        Map<String, Object> genApp = (Map<String, Object>) result.get("generatedApp");
-                        if (genApp.containsKey("files")) {
-                            generatedApp.setSourceFiles((Map<String, String>) genApp.get("files"));
-                        }
-                    }
-                    
-                    return generatedAppRepository.save(generatedApp).thenReturn(result);
-                })
-                .subscribeOn(Schedulers.boundedElastic())
-                .subscribe(
-                    res -> logger.info("Orchestration pipeline completed for {}", requestId),
-                    err -> logger.error("Orchestration pipeline failed for " + requestId, err)
-                );
+  @Autowired private AppOrchestrationService appOrchestrationService;
 
-            Map<String, Object> acceptedResponse = new HashMap<>();
-            acceptedResponse.put("requestId", requestId);
-            acceptedResponse.put("status", "ACCEPTED");
-            acceptedResponse.put("message", "Full AI orchestration pipeline started");
-            
-            return Mono.just(ResponseEntity.accepted().body(ApiResponse.ok(acceptedResponse)));
-        }
-        
-        // Fallback to legacy/direct generation logic
-        Mono.fromCallable(() -> {
-            try {
+  @Autowired private WebSocketController webSocketController;
+
+  @PostMapping
+  @PreAuthorize("hasAnyRole('USER', 'ADMIN', 'GUEST')")
+  public Mono<ResponseEntity<ApiResponse<Map<String, Object>>>> generateApp(
+      @Valid @RequestBody AppGenerationRequest request, Authentication auth) {
+
+    String requestId = UUID.randomUUID().toString();
+    String name = request.getName();
+    String userId = auth != null ? auth.getName() : "anonymous";
+    String description = request.getDescription();
+    String platform = request.getPlatform();
+    boolean useAI = request.isUseAI();
+
+    logger.info(
+        "App generation request received [{}]: {} (useAI: {}) by user {}",
+        requestId,
+        name,
+        useAI,
+        userId);
+
+    if (useAI && "project".equals(request.getType())) {
+      // Trigger the Full Orchestration Pipeline (AI + Code + GitHub)
+      appOrchestrationService
+          .runFullPipeline(description != null ? description : name, null)
+          .flatMap(
+              result -> {
+                // Save to repository for persistence/preview
+                String appId = UUID.randomUUID().toString();
+                GeneratedApp generatedApp = new GeneratedApp(appId, userId, platform, "React");
+                generatedApp.setHtmlContent(buildPreviewHtml(name, platform, description, result));
+                generatedApp.setStatus("GENERATED");
+                generatedApp.setRequestId(requestId);
+
+                if (result.get("generatedApp") instanceof Map) {
+                  Map<String, Object> genApp = (Map<String, Object>) result.get("generatedApp");
+                  if (genApp.containsKey("files")) {
+                    generatedApp.setSourceFiles((Map<String, String>) genApp.get("files"));
+                  }
+                }
+
+                return generatedAppRepository.save(generatedApp).thenReturn(result);
+              })
+          .subscribeOn(Schedulers.boundedElastic())
+          .subscribe(
+              res -> logger.info("Orchestration pipeline completed for {}", requestId),
+              err -> logger.error("Orchestration pipeline failed for " + requestId, err));
+
+      Map<String, Object> acceptedResponse = new HashMap<>();
+      acceptedResponse.put("requestId", requestId);
+      acceptedResponse.put("status", "ACCEPTED");
+      acceptedResponse.put("message", "Full AI orchestration pipeline started");
+
+      return Mono.just(ResponseEntity.accepted().body(ApiResponse.ok(acceptedResponse)));
+    }
+
+    // Fallback to legacy/direct generation logic
+    Mono.fromCallable(
+            () -> {
+              try {
                 String database = request.getDatabase();
                 String type = request.getType();
 
-                webSocketController.broadcastAppGenProgress(requestId, name, "INITIALIZING", 5, "Initializing generation engine...");
+                webSocketController.broadcastAppGenProgress(
+                    requestId, name, "INITIALIZING", 5, "Initializing generation engine...");
 
                 Map<String, String> decisions = new HashMap<>();
                 decisions.put("architecture", "monolith");
@@ -119,39 +116,50 @@ public class AppGenerationController {
                 decisions.put("authType", "JWT");
                 decisions.put("frontend", "React");
                 decisions.put("deployment", "GCP");
-                
-                webSocketController.broadcastAppGenProgress(requestId, name, "ANALYZING", 15, "Analyzing requirements and entities...");
-                
+
+                webSocketController.broadcastAppGenProgress(
+                    requestId, name, "ANALYZING", 15, "Analyzing requirements and entities...");
+
                 Map<String, Object> result;
-                
+
                 // Use enhanced AI-powered generation if requested (legacy path)
                 if (useAI) {
-                    List<EntityDefinition> entities = request.getEntities();
-                    if (entities == null) entities = new ArrayList<>();
-                    result = codeGenerationService.generateAppWithAI(name, description, entities, database, "JWT");
+                  List<EntityDefinition> entities = request.getEntities();
+                  if (entities == null) entities = new ArrayList<>();
+                  result =
+                      codeGenerationService.generateAppWithAI(
+                          name, description, entities, database, "JWT");
                 } else {
-                    webSocketController.broadcastAppGenProgress(requestId, name, "GENERATING_CORE", 30, "Generating core application structure...");
-                    
-                    switch (platform.toLowerCase()) {
-                        case "fullstack":
-                            result = codeGenerationService.generateFromContext(decisions);
-                            break;
-                        case "web":
-                        case "android":
-                        case "ios":
-                        case "desktop":
-                            Map<String, String> platformResult = multiPlatformGenerator.generateForPlatform(
-                                description != null && !description.isEmpty() ? description : name, platform);
-                            result = new HashMap<>(platformResult);
-                            result.put("decisions", decisions);
-                            break;
-                        default:
-                            result = codeGenerationService.generateFromContext(decisions);
-                            break;
-                    }
+                  webSocketController.broadcastAppGenProgress(
+                      requestId,
+                      name,
+                      "GENERATING_CORE",
+                      30,
+                      "Generating core application structure...");
+
+                  switch (platform.toLowerCase()) {
+                    case "fullstack":
+                      result = codeGenerationService.generateFromContext(decisions);
+                      break;
+                    case "web":
+                    case "android":
+                    case "ios":
+                    case "desktop":
+                      Map<String, String> platformResult =
+                          multiPlatformGenerator.generateForPlatform(
+                              description != null && !description.isEmpty() ? description : name,
+                              platform);
+                      result = new HashMap<>(platformResult);
+                      result.put("decisions", decisions);
+                      break;
+                    default:
+                      result = codeGenerationService.generateFromContext(decisions);
+                      break;
+                  }
                 }
-                
-                webSocketController.broadcastAppGenProgress(requestId, name, "FINALIZING", 80, "Finalizing files and preparing preview...");
+
+                webSocketController.broadcastAppGenProgress(
+                    requestId, name, "FINALIZING", 80, "Finalizing files and preparing preview...");
 
                 result.put("name", name);
                 result.put("description", description);
@@ -165,144 +173,157 @@ public class AppGenerationController {
                 generatedApp.setHtmlContent(buildPreviewHtml(name, platform, description, result));
                 generatedApp.setStatus("GENERATED");
                 generatedApp.setRequestId(requestId);
-                
+
                 if (result.containsKey("files")) {
-                    generatedApp.setSourceFiles((Map<String, String>) result.get("files"));
+                  generatedApp.setSourceFiles((Map<String, String>) result.get("files"));
                 }
-                
+
                 generatedAppRepository.save(generatedApp).subscribe();
                 result.put("appId", appId);
-                
-                webSocketController.broadcastAppGenProgress(requestId, name, "COMPLETED", 100, "Generation completed successfully!");
+
+                webSocketController.broadcastAppGenProgress(
+                    requestId, name, "COMPLETED", 100, "Generation completed successfully!");
                 return result;
-            } catch (Exception e) {
+              } catch (Exception e) {
                 logger.error("Async app generation failed for request " + requestId, e);
-                webSocketController.broadcastAppGenProgress(requestId, name, "FAILED", 0, "Error: " + e.getMessage());
+                webSocketController.broadcastAppGenProgress(
+                    requestId, name, "FAILED", 0, "Error: " + e.getMessage());
                 throw new RuntimeException(e);
-            }
-        })
+              }
+            })
         .subscribeOn(Schedulers.boundedElastic())
-        .subscribe(); 
+        .subscribe();
 
-        Map<String, Object> acceptedResponse = new HashMap<>();
-        acceptedResponse.put("requestId", requestId);
-        acceptedResponse.put("status", "ACCEPTED");
-        acceptedResponse.put("message", "App generation started in background");
-        
-        return Mono.just(ResponseEntity.accepted().body(ApiResponse.ok(acceptedResponse)));
+    Map<String, Object> acceptedResponse = new HashMap<>();
+    acceptedResponse.put("requestId", requestId);
+    acceptedResponse.put("status", "ACCEPTED");
+    acceptedResponse.put("message", "App generation started in background");
+
+    return Mono.just(ResponseEntity.accepted().body(ApiResponse.ok(acceptedResponse)));
+  }
+
+  /**
+   * Builds a fully self-contained, executable HTML single-page preview of the generated
+   * application. The HTML is safe to load directly into an iframe via GET
+   * /api/simulator/preview/{appId}.
+   *
+   * <p>Strategy per platform: web → embedded vanilla JS from the "app" field (no TSX needed)
+   * ios-mock → interactive device-frame mock-up card desktop → embedded Electron-style mock shell
+   * android → embedded WebView-styled mock shell fullstack → React-style dashboard mock-up + API
+   * panel unknown → beautiful generic "App Ready" card
+   */
+  private String buildPreviewHtml(
+      String name, String platform, String description, Map<String, Object> result) {
+
+    String safeName = escapeHtml(name != null ? name : "Generated App");
+    String safeDesc = escapeHtml(description != null ? description : "");
+    String status = "GENERATED";
+
+    // Extract any source-code text from the result map
+    String sourceCode = "";
+    if (result.get("app") instanceof String) {
+      sourceCode = (String) result.get("app");
+    } else if (result.get("index.html") instanceof String) {
+      sourceCode = (String) result.get("index.html");
     }
 
+    String filesSection = buildFileListSection(result);
 
-    /**
-     * Builds a fully self-contained, executable HTML single-page preview of the
-     * generated application.  The HTML is safe to load directly into an iframe
-     * via GET /api/simulator/preview/{appId}.
-     *
-     * Strategy per platform:
-     *   web        → embedded vanilla JS from the "app" field (no TSX needed)
-     *   ios-mock   → interactive device-frame mock-up card
-     *   desktop    → embedded Electron-style mock shell
-     *   android    → embedded WebView-styled mock shell
-     *   fullstack  → React-style dashboard mock-up + API panel
-     *   unknown    → beautiful generic "App Ready" card
-     */
-    private String buildPreviewHtml(String name, String platform, String description,
-                                    Map<String, Object> result) {
+    // ── Decide preview style ──────────────────────────────────────────
+    String platformLower = platform.toLowerCase(Locale.ROOT);
+    String scriptContent;
+    String bodyClass = "preview-generic";
+    String headerEmoji = "🚀";
 
-        String safeName  = escapeHtml(name != null ? name : "Generated App");
-        String safeDesc  = escapeHtml(description != null ? description : "");
-        String status    = "GENERATED";
+    if (platformLower.contains("web")
+        || platformLower.contains("fullstack")
+        || platformLower.contains("react")
+        || platformLower.contains("angular")
+        || platformLower.contains("vue")) {
 
-        // Extract any source-code text from the result map
-        String sourceCode = "";
-        if (result.get("app") instanceof String) {
-            sourceCode = (String) result.get("app");
-        } else if (result.get("index.html") instanceof String) {
-            sourceCode = (String) result.get("index.html");
-        }
+      // ── Web: render actual interactive HTML from source code ──────
+      headerEmoji = "🌐";
+      bodyClass = "preview-web";
+      scriptContent = buildWebScript(sourceCode, safeName);
+      filesSection = buildFileListSection(result) + buildCodeViewer(sourceCode, "src/App.jsx");
 
-        String filesSection = buildFileListSection(result);
+    } else if (platformLower.contains("ios")
+        || platformLower.contains("swift")
+        || platformLower.contains("macos")) {
 
-        // ── Decide preview style ──────────────────────────────────────────
-        String platformLower = platform.toLowerCase(Locale.ROOT);
-        String scriptContent;
-        String bodyClass = "preview-generic";
-        String headerEmoji = "🚀";
+      // ── iOS: interactive phone mock card ──────────────────────────
+      headerEmoji = "📱";
+      bodyClass = "preview-ios";
+      scriptContent = buildDeviceScript("iOS App Preview", "SwiftUI", "#007AFF");
+      filesSection =
+          buildFileListSection(result) + buildCodeViewer(sourceCode, "ContentView.swift");
 
-        if (platformLower.contains("web") || platformLower.contains("fullstack")
-                || platformLower.contains("react") || platformLower.contains("angular")
-                || platformLower.contains("vue")) {
+    } else if (platformLower.contains("android")
+        || platformLower.contains("kotlin")
+        || platformLower.contains("jetpack")) {
 
-            // ── Web: render actual interactive HTML from source code ──────
-            headerEmoji = "🌐";
-            bodyClass = "preview-web";
-            scriptContent = buildWebScript(sourceCode, safeName);
-            filesSection = buildFileListSection(result) + buildCodeViewer(sourceCode, "src/App.jsx");
+      // ── Android: phone mock card ──────────────────────────────────
+      headerEmoji = "🤖";
+      bodyClass = "preview-android";
+      scriptContent = buildDeviceScript("Android App Preview", "Kotlin + Jetpack", "#3DDC84");
+      filesSection = buildFileListSection(result) + buildCodeViewer(sourceCode, "MainActivity.kt");
 
-        } else if (platformLower.contains("ios") || platformLower.contains("swift") || platformLower.contains("macos")) {
+    } else if (platformLower.contains("desktop")
+        || platformLower.contains("tauri")
+        || platformLower.contains("electron")
+        || platformLower.contains("javafx")
+        || platformLower.contains("swing")) {
 
-            // ── iOS: interactive phone mock card ──────────────────────────
-            headerEmoji = "📱";
-            bodyClass = "preview-ios";
-            scriptContent = buildDeviceScript("iOS App Preview", "SwiftUI", "#007AFF");
-            filesSection = buildFileListSection(result) + buildCodeViewer(sourceCode, "ContentView.swift");
+      // ── Desktop: window frame mock-up ────────────────────────────
+      headerEmoji = "🖥️";
+      bodyClass = "preview-desktop";
+      scriptContent = buildDeviceScript("Desktop App Preview", platform, "#6B7280");
+      filesSection =
+          buildFileListSection(result) + buildCodeViewer(sourceCode, "main.dart / App.java");
 
-        } else if (platformLower.contains("android") || platformLower.contains("kotlin") || platformLower.contains("jetpack")) {
+    } else {
 
-            // ── Android: phone mock card ──────────────────────────────────
-            headerEmoji = "🤖";
-            bodyClass = "preview-android";
-            scriptContent = buildDeviceScript("Android App Preview", "Kotlin + Jetpack", "#3DDC84");
-            filesSection = buildFileListSection(result) + buildCodeViewer(sourceCode, "MainActivity.kt");
-
-        } else if (platformLower.contains("desktop") || platformLower.contains("tauri") || platformLower.contains("electron")
-                   || platformLower.contains("javafx") || platformLower.contains("swing")) {
-
-            // ── Desktop: window frame mock-up ────────────────────────────
-            headerEmoji = "🖥️";
-            bodyClass = "preview-desktop";
-            scriptContent = buildDeviceScript("Desktop App Preview", platform, "#6B7280");
-            filesSection = buildFileListSection(result) + buildCodeViewer(sourceCode, "main.dart / App.java");
-
-        } else {
-
-            // ── Generic fallback ─────────────────────────────────────────
-            headerEmoji = "✨";
-            scriptContent = buildGenericScript(safeName, safeDesc);
-        }
-
-        return assemblePreviewHtml(safeName, safeDesc, platform, status,
-                                   bodyClass, headerEmoji, scriptContent,
-                                   filesSection);
+      // ── Generic fallback ─────────────────────────────────────────
+      headerEmoji = "✨";
+      scriptContent = buildGenericScript(safeName, safeDesc);
     }
 
-    // ── XSS-safe helpers ───────────────────────────────────────────────────────
-    private static String escapeHtml(String raw) {
-        if (raw == null || raw.isEmpty()) return "";
-        return raw.replace("&", "&amp;")
-                  .replace("<", "&lt;")
-                  .replace(">", "&gt;")
-                  .replace("\"", "&quot;")
-                  .replace("'", "&#39;");
-    }
+    return assemblePreviewHtml(
+        safeName, safeDesc, platform, status, bodyClass, headerEmoji, scriptContent, filesSection);
+  }
 
-    private static String escapeJs(String raw) {
-        if (raw == null) return "null";
-        return raw.replace("\\", "\\\\")
-                  .replace("\"", "\\\"")
-                  .replace("'", "\\'")
-                  .replace("\n", "\\n")
-                  .replace("\r", "")
-                  .replace("\t", "\\t");
-    }
+  // ── XSS-safe helpers ───────────────────────────────────────────────────────
+  private static String escapeHtml(String raw) {
+    if (raw == null || raw.isEmpty()) return "";
+    return raw.replace("&", "&amp;")
+        .replace("<", "&lt;")
+        .replace(">", "&gt;")
+        .replace("\"", "&quot;")
+        .replace("'", "&#39;");
+  }
 
-    // ── HTML Assembly Helpers ────────────────────────────────────────────────
+  private static String escapeJs(String raw) {
+    if (raw == null) return "null";
+    return raw.replace("\\", "\\\\")
+        .replace("\"", "\\\"")
+        .replace("'", "\\'")
+        .replace("\n", "\\n")
+        .replace("\r", "")
+        .replace("\t", "\\t");
+  }
 
-    private String assemblePreviewHtml(String name, String desc, String platform,
-                                       String status, String bodyClass,
-                                       String emoji, String bodyScript,
-                                       String filesSection) {
-        return """
+  // ── HTML Assembly Helpers ────────────────────────────────────────────────
+
+  private String assemblePreviewHtml(
+      String name,
+      String desc,
+      String platform,
+      String status,
+      String bodyClass,
+      String emoji,
+      String bodyScript,
+      String filesSection) {
+    return """
             <!DOCTYPE html>
             <html lang="en">
             <head>
@@ -403,18 +424,25 @@ public class AppGenerationController {
               </div>
             </body>
             </html>
-            """.formatted(
-                name,  name,  name,                                            // <title>
-                bodyClass, name, emoji + " " + name, desc,                     // <body>, <h1>, badge
-                platform, status,                                             // badge, status
-                buildPreviewToolbar(name, platform),                          // preview toolbar
-                buildPreviewWindow(platform, bodyScript),                     // preview canvas + script
-                filesSection                                                  // generated files
+            """
+        .formatted(
+            name,
+            name,
+            name, // <title>
+            bodyClass,
+            name,
+            emoji + " " + name,
+            desc, // <body>, <h1>, badge
+            platform,
+            status, // badge, status
+            buildPreviewToolbar(name, platform), // preview toolbar
+            buildPreviewWindow(platform, bodyScript), // preview canvas + script
+            filesSection // generated files
             );
-    }
+  }
 
-    private String buildPreviewToolbar(String name, String platform) {
-        return """
+  private String buildPreviewToolbar(String name, String platform) {
+    return """
             <div class="btn-row" style="margin-bottom:20px; display:flex; gap:10px;">
               <button class="btn btn-primary" onclick="reloadPreview()">
                 <span>🔄</span> Reload Preview
@@ -434,11 +462,12 @@ public class AppGenerationController {
                 <span class="dot dot-g"></span>
                 <span class="preview-url">localhost — %s Preview</span>
               </div>
-            """.formatted(escapeHtml(platform));
-    }
+            """
+        .formatted(escapeHtml(platform));
+  }
 
-    private String buildPreviewWindow(String platform, String scriptContent) {
-        return """
+  private String buildPreviewWindow(String platform, String scriptContent) {
+    return """
               <div class="preview-body" id="preview-canvas">
                  %s
               </div>
@@ -459,19 +488,20 @@ public class AppGenerationController {
                 alert('Source code copied to clipboard.');
               }
             </script>
-            """.formatted(
-                scriptContent,          // initial body HTML
-                escapeJs(scriptContent),// script to run
-                scriptContent.replace("`", "\\`"), // backtick-escape for reload
-                escapeJs(scriptContent)
-            );
-    }
+            """
+        .formatted(
+            scriptContent, // initial body HTML
+            escapeJs(scriptContent), // script to run
+            scriptContent.replace("`", "\\`"), // backtick-escape for reload
+            escapeJs(scriptContent));
+  }
 
-    // ── Platform-Specific Script Blocks ─────────────────────────────────────
+  // ── Platform-Specific Script Blocks ─────────────────────────────────────
 
-    private String buildWebScript(String sourceCode, String appName) {
-        String snippet = sourceCode.length() > 600 ? sourceCode.substring(0, 600) + "\n// ... more" : sourceCode;
-        return """
+  private String buildWebScript(String sourceCode, String appName) {
+    String snippet =
+        sourceCode.length() > 600 ? sourceCode.substring(0, 600) + "\n// ... more" : sourceCode;
+    return """
             <div class="app-canvas">
               <span style="font-size:3.5rem">🖥️</span>
               <h2 style="font-size:1.3rem">%s</h2>
@@ -482,11 +512,12 @@ public class AppGenerationController {
                 ✅ React + Vite Project Ready
               </div>
             </div>
-            """.formatted(escapeHtml(appName));
-    }
+            """
+        .formatted(escapeHtml(appName));
+  }
 
-    private String buildDeviceScript(String title, String lang, String accentColor) {
-        return """
+  private String buildDeviceScript(String title, String lang, String accentColor) {
+    return """
             <div style="text-align:center; padding:18px 0 8px">
               <div class="device-frame">
                 <div class="device-notch"></div>
@@ -502,11 +533,12 @@ public class AppGenerationController {
               </div>
               <p style="font-size:.75rem;color:#4b5563;margin-top:10px">Native %s source in file list below → open in Xcode / Android Studio</p>
             </div>
-            """.formatted(emojiFor(title), accentColor, title, lang);
-    }
+            """
+        .formatted(emojiFor(title), accentColor, title, lang);
+  }
 
-    private String buildGenericScript(String name, String desc) {
-        return """
+  private String buildGenericScript(String name, String desc) {
+    return """
             <div class="app-canvas">
               <span style="font-size:3.5rem">✨</span>
               <h2 style="font-size:1.3rem">%s — Ready</h2>
@@ -515,217 +547,229 @@ public class AppGenerationController {
                 ✅ App Generated Successfully
               </div>
             </div>
-            """.formatted(escapeHtml(name), escapeHtml(desc.isEmpty() ? "Your application is ready for review and deployment." : desc));
-    }
+            """
+        .formatted(
+            escapeHtml(name),
+            escapeHtml(
+                desc.isEmpty() ? "Your application is ready for review and deployment." : desc));
+  }
 
-    private String emojiFor(String title) {
-        if (title.toLowerCase().contains("ios"))    return "🍎";
-        if (title.toLowerCase().contains("android"))return "🤖";
-        if (title.toLowerCase().contains("desktop"))return "🖥️";
-        return "✨";
-    }
+  private String emojiFor(String title) {
+    if (title.toLowerCase().contains("ios")) return "🍎";
+    if (title.toLowerCase().contains("android")) return "🤖";
+    if (title.toLowerCase().contains("desktop")) return "🖥️";
+    return "✨";
+  }
 
-    private String buildFileListSection(Map<String, Object> result) {
-        if (!result.containsKey("files")) return "";
-        @SuppressWarnings("unchecked")
-        Map<String, String> files = (Map<String, String>) result.get("files");
-        if (files == null || files.isEmpty()) return "";
+  private String buildFileListSection(Map<String, Object> result) {
+    if (!result.containsKey("files")) return "";
+    @SuppressWarnings("unchecked")
+    Map<String, String> files = (Map<String, String>) result.get("files");
+    if (files == null || files.isEmpty()) return "";
 
-        StringBuilder sb = new StringBuilder();
-        sb.append("<p class=\"label\">📁 Generated Files (").append(files.size()).append(")</p>");
-        sb.append("<ul class=\"file-list\">");
-        files.forEach((fname, fcontent) -> {
-            String ext = fname.contains(".") ? fname.substring(fname.lastIndexOf('.') + 1).toUpperCase() : "FILE";
-            String langColor = switch (ext) {
+    StringBuilder sb = new StringBuilder();
+    sb.append("<p class=\"label\">📁 Generated Files (").append(files.size()).append(")</p>");
+    sb.append("<ul class=\"file-list\">");
+    files.forEach(
+        (fname, fcontent) -> {
+          String ext =
+              fname.contains(".")
+                  ? fname.substring(fname.lastIndexOf('.') + 1).toUpperCase()
+                  : "FILE";
+          String langColor =
+              switch (ext) {
                 case "JAVA", "KT" -> "#f97316";
                 case "JSX", "TSX", "JS" -> "#61dafb";
                 case "CSS" -> "#a78bfa";
                 case "SQL" -> "#fb7185";
                 case "YAML", "YML" -> "#fbbf24";
                 default -> "#94a3b8";
-            };
-            sb.append(String.format(
-                "<li><span>%s</span><span class=\"file-ext\" style=\"color:%s\">%s</span></li>",
-                escapeHtml(fname), langColor, ext
-            ));
+              };
+          sb.append(
+              String.format(
+                  "<li><span>%s</span><span class=\"file-ext\" style=\"color:%s\">%s</span></li>",
+                  escapeHtml(fname), langColor, ext));
         });
-        sb.append("</ul>");
-        return sb.toString();
-    }
+    sb.append("</ul>");
+    return sb.toString();
+  }
 
-    private String buildCodeViewer(String sourceCode, String filenameHint) {
-        if (sourceCode == null || sourceCode.isBlank()) return "";
-        // Show first 1200 chars of source for a quick peek
-        String preview = sourceCode.length() > 1200 ? sourceCode.substring(0, 1200) + "\n\n// ── remaining content in source file ──" : sourceCode;
-        return """
+  private String buildCodeViewer(String sourceCode, String filenameHint) {
+    if (sourceCode == null || sourceCode.isBlank()) return "";
+    // Show first 1200 chars of source for a quick peek
+    String preview =
+        sourceCode.length() > 1200
+            ? sourceCode.substring(0, 1200) + "\n\n// ── remaining content in source file ──"
+            : sourceCode;
+    return """
             <p class="label">👁 %s — Live Preview</p>
             <div class="code-wrap">
               <div class="code-header">%s</div>
               <div class="code-block">%s</div>
             </div>
-            """.formatted(
-                escapeHtml(filenameHint),
-                escapeHtml(filenameHint),
-                escapeHtml(preview)
-            );
-    }
+            """
+        .formatted(escapeHtml(filenameHint), escapeHtml(filenameHint), escapeHtml(preview));
+  }
 
-    private List<EntityDefinition> parseEntitiesFromRequest(Map<String, Object> request) {
-        List<EntityDefinition> entities = new ArrayList<>();
-        
-        // Check if custom entities are provided
-        if (request.containsKey("entities")) {
-            List<Map<String, Object>> entityMaps = (List<Map<String, Object>>) request.get("entities");
-            for (Map<String, Object> entityMap : entityMaps) {
-                EntityDefinition entity = new EntityDefinition();
-                entity.setName((String) entityMap.get("name"));
-                entity.setDescription((String) entityMap.get("description"));
-                
-                List<FieldDefinition> fields = new ArrayList<>();
-                if (entityMap.containsKey("fields")) {
-                    List<Map<String, Object>> fieldMaps = (List<Map<String, Object>>) entityMap.get("fields");
-                    for (Map<String, Object> fieldMap : fieldMaps) {
-                        FieldDefinition field = new FieldDefinition();
-                        field.setName((String) fieldMap.get("name"));
-                        field.setType((String) fieldMap.get("type"));
-                        field.setRequired((Boolean) fieldMap.getOrDefault("required", false));
-                        field.setUnique((Boolean) fieldMap.getOrDefault("unique", false));
-                        if (fieldMap.containsKey("maxLength")) {
-                            field.setMaxLength(((Number) fieldMap.get("maxLength")).intValue());
-                        }
-                        fields.add(field);
-                    }
-                }
-                entity.setFields(fields);
-                entities.add(entity);
-            }
-        } else {
-            // Default to Product entity
-            entities.add(createDefaultProductEntity());
-        }
-        
-        return entities;
-    }
-    
-    /**
-     * Create default Product entity
-     */
-    private EntityDefinition createDefaultProductEntity() {
+  private List<EntityDefinition> parseEntitiesFromRequest(Map<String, Object> request) {
+    List<EntityDefinition> entities = new ArrayList<>();
+
+    // Check if custom entities are provided
+    if (request.containsKey("entities")) {
+      List<Map<String, Object>> entityMaps = (List<Map<String, Object>>) request.get("entities");
+      for (Map<String, Object> entityMap : entityMaps) {
         EntityDefinition entity = new EntityDefinition();
-        entity.setName("Product");
-        entity.setDescription("Product entity with basic fields");
-        
+        entity.setName((String) entityMap.get("name"));
+        entity.setDescription((String) entityMap.get("description"));
+
         List<FieldDefinition> fields = new ArrayList<>();
-        
-        FieldDefinition nameField = new FieldDefinition();
-        nameField.setName("name");
-        nameField.setType("string");
-        nameField.setRequired(true);
-        nameField.setMaxLength(255);
-        fields.add(nameField);
-        
-        FieldDefinition descField = new FieldDefinition();
-        descField.setName("description");
-        descField.setType("text");
-        descField.setRequired(false);
-        fields.add(descField);
-        
-        FieldDefinition priceField = new FieldDefinition();
-        priceField.setName("price");
-        priceField.setType("double");
-        priceField.setRequired(true);
-        fields.add(priceField);
-        
-        FieldDefinition stockField = new FieldDefinition();
-        stockField.setName("stock");
-        stockField.setType("integer");
-        stockField.setRequired(false);
-        fields.add(stockField);
-        
-        FieldDefinition categoryField = new FieldDefinition();
-        categoryField.setName("category");
-        categoryField.setType("string");
-        categoryField.setRequired(false);
-        categoryField.setMaxLength(100);
-        fields.add(categoryField);
-        
+        if (entityMap.containsKey("fields")) {
+          List<Map<String, Object>> fieldMaps = (List<Map<String, Object>>) entityMap.get("fields");
+          for (Map<String, Object> fieldMap : fieldMaps) {
+            FieldDefinition field = new FieldDefinition();
+            field.setName((String) fieldMap.get("name"));
+            field.setType((String) fieldMap.get("type"));
+            field.setRequired((Boolean) fieldMap.getOrDefault("required", false));
+            field.setUnique((Boolean) fieldMap.getOrDefault("unique", false));
+            if (fieldMap.containsKey("maxLength")) {
+              field.setMaxLength(((Number) fieldMap.get("maxLength")).intValue());
+            }
+            fields.add(field);
+          }
+        }
         entity.setFields(fields);
-        return entity;
-    }
-    
-    /**
-     * Health check endpoint.
-     */
-    @GetMapping("/health")
-    public Mono<ResponseEntity<ApiResponse<Map<String, String>>>> health() {
-        Map<String, String> health = new HashMap<>();
-        health.put("status", "UP");
-        health.put("service", "AppGenerationService");
-        return Mono.just(ResponseEntity.ok(ApiResponse.ok(health)));
-    }
-    
-    /**
-     * Infrastructure advice endpoint - provides AI-powered deployment guidance.
-     */
-    @PostMapping("/infrastructure-advice")
-    @PreAuthorize("hasAnyRole('USER', 'ADMIN', 'GUEST')")
-    public Mono<ResponseEntity<ApiResponse<String>>> getInfrastructureAdvice(
-            @RequestBody Map<String, String> request) {
-        
-        String appName = request.getOrDefault("appName", "My App");
-        String description = request.getOrDefault("description", "");
-        String techStack = request.getOrDefault("techStack", "Full Stack Spring Boot/React");
-        String cloudPreference = request.getOrDefault("cloudPreference", "GCP");
-
-        logger.info("Generating infrastructure advice for app: {}", appName);
-
-        return codeGenerationService.generateInfrastructureAdvice(appName, description, techStack, cloudPreference)
-                .map(advice -> ResponseEntity.ok(ApiResponse.ok(advice)))
-                .onErrorResume(e -> {
-                    logger.error("Failed to generate infrastructure advice", e);
-                    return Mono.just(ResponseEntity.internalServerError().body(ApiResponse.error("Failed to generate infrastructure advice: " + e.getMessage())));
-                });
+        entities.add(entity);
+      }
+    } else {
+      // Default to Product entity
+      entities.add(createDefaultProductEntity());
     }
 
-    /**
-     * Preview generation - returns sample output without creating files.
-     */
-    @PostMapping("/preview")
-    public Mono<ResponseEntity<ApiResponse<Map<String, Object>>>> previewGeneration(@RequestBody Map<String, Object> request) {
-        return Mono.fromCallable(() -> {
-            String platform = (String) request.getOrDefault("platform", "fullstack");
-            
-            Map<String, String> decisions = new HashMap<>();
-            decisions.put("architecture", "monolith");
-            decisions.put("database", "PostgreSQL");
-            decisions.put("apiStyle", "REST");
-            decisions.put("authType", "JWT");
-            decisions.put("frontend", "React");
-            decisions.put("deployment", "GCP");
-            
-            Map<String, Object> result = codeGenerationService.generateFromContext(decisions);
-            
-            // Limit preview to first few files
-            @SuppressWarnings("unchecked")
-            Map<String, String> files = (Map<String, String>) result.get("files");
-            if (files != null && files.size() > 3) {
+    return entities;
+  }
+
+  /** Create default Product entity */
+  private EntityDefinition createDefaultProductEntity() {
+    EntityDefinition entity = new EntityDefinition();
+    entity.setName("Product");
+    entity.setDescription("Product entity with basic fields");
+
+    List<FieldDefinition> fields = new ArrayList<>();
+
+    FieldDefinition nameField = new FieldDefinition();
+    nameField.setName("name");
+    nameField.setType("string");
+    nameField.setRequired(true);
+    nameField.setMaxLength(255);
+    fields.add(nameField);
+
+    FieldDefinition descField = new FieldDefinition();
+    descField.setName("description");
+    descField.setType("text");
+    descField.setRequired(false);
+    fields.add(descField);
+
+    FieldDefinition priceField = new FieldDefinition();
+    priceField.setName("price");
+    priceField.setType("double");
+    priceField.setRequired(true);
+    fields.add(priceField);
+
+    FieldDefinition stockField = new FieldDefinition();
+    stockField.setName("stock");
+    stockField.setType("integer");
+    stockField.setRequired(false);
+    fields.add(stockField);
+
+    FieldDefinition categoryField = new FieldDefinition();
+    categoryField.setName("category");
+    categoryField.setType("string");
+    categoryField.setRequired(false);
+    categoryField.setMaxLength(100);
+    fields.add(categoryField);
+
+    entity.setFields(fields);
+    return entity;
+  }
+
+  /** Health check endpoint. */
+  @GetMapping("/health")
+  public Mono<ResponseEntity<ApiResponse<Map<String, String>>>> health() {
+    Map<String, String> health = new HashMap<>();
+    health.put("status", "UP");
+    health.put("service", "AppGenerationService");
+    return Mono.just(ResponseEntity.ok(ApiResponse.ok(health)));
+  }
+
+  /** Infrastructure advice endpoint - provides AI-powered deployment guidance. */
+  @PostMapping("/infrastructure-advice")
+  @PreAuthorize("hasAnyRole('USER', 'ADMIN', 'GUEST')")
+  public Mono<ResponseEntity<ApiResponse<String>>> getInfrastructureAdvice(
+      @RequestBody Map<String, String> request) {
+
+    String appName = request.getOrDefault("appName", "My App");
+    String description = request.getOrDefault("description", "");
+    String techStack = request.getOrDefault("techStack", "Full Stack Spring Boot/React");
+    String cloudPreference = request.getOrDefault("cloudPreference", "GCP");
+
+    logger.info("Generating infrastructure advice for app: {}", appName);
+
+    return codeGenerationService
+        .generateInfrastructureAdvice(appName, description, techStack, cloudPreference)
+        .map(advice -> ResponseEntity.ok(ApiResponse.ok(advice)))
+        .onErrorResume(
+            e -> {
+              logger.error("Failed to generate infrastructure advice", e);
+              return Mono.just(
+                  ResponseEntity.internalServerError()
+                      .body(
+                          ApiResponse.error(
+                              "Failed to generate infrastructure advice: " + e.getMessage())));
+            });
+  }
+
+  /** Preview generation - returns sample output without creating files. */
+  @PostMapping("/preview")
+  public Mono<ResponseEntity<ApiResponse<Map<String, Object>>>> previewGeneration(
+      @RequestBody Map<String, Object> request) {
+    return Mono.fromCallable(
+            () -> {
+              String platform = (String) request.getOrDefault("platform", "fullstack");
+
+              Map<String, String> decisions = new HashMap<>();
+              decisions.put("architecture", "monolith");
+              decisions.put("database", "PostgreSQL");
+              decisions.put("apiStyle", "REST");
+              decisions.put("authType", "JWT");
+              decisions.put("frontend", "React");
+              decisions.put("deployment", "GCP");
+
+              Map<String, Object> result = codeGenerationService.generateFromContext(decisions);
+
+              // Limit preview to first few files
+              @SuppressWarnings("unchecked")
+              Map<String, String> files = (Map<String, String>) result.get("files");
+              if (files != null && files.size() > 3) {
                 Map<String, String> previewFiles = new HashMap<>();
                 int count = 0;
                 for (Map.Entry<String, String> entry : files.entrySet()) {
-                    if (count++ >= 3) break;
-                    previewFiles.put(entry.getKey(), entry.getValue());
+                  if (count++ >= 3) break;
+                  previewFiles.put(entry.getKey(), entry.getValue());
                 }
                 result.put("files", previewFiles);
                 result.put("preview", true);
                 result.put("totalFiles", files.size());
-            }
-            
-            return ResponseEntity.ok(ApiResponse.ok(result));
-            
-        }).subscribeOn(Schedulers.boundedElastic())
-        .onErrorResume(e -> {
-            logger.error("Preview generation failed", e);
-            return Mono.just(ResponseEntity.internalServerError().body(ApiResponse.error("Preview generation failed: " + e.getMessage())));
-        });
-    }
+              }
+
+              return ResponseEntity.ok(ApiResponse.ok(result));
+            })
+        .subscribeOn(Schedulers.boundedElastic())
+        .onErrorResume(
+            e -> {
+              logger.error("Preview generation failed", e);
+              return Mono.just(
+                  ResponseEntity.internalServerError()
+                      .body(ApiResponse.error("Preview generation failed: " + e.getMessage())));
+            });
+  }
 }

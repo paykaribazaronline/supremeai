@@ -11,22 +11,22 @@ import reactor.core.publisher.Mono;
 @RequestMapping("/api/admin/evolution")
 public class EvolutionController {
 
-    @Autowired
-    private ModelEvolutionRepository evolutionRepository;
+  @Autowired private ModelEvolutionRepository evolutionRepository;
 
-    @GetMapping
-    public Flux<ModelEvolution> getAllEvolutionStates() {
-        return evolutionRepository.findAll();
-    }
+  @GetMapping
+  public Flux<ModelEvolution> getAllEvolutionStates() {
+    return evolutionRepository.findAll();
+  }
 
-    @PostMapping
-    public Mono<ModelEvolution> saveEvolution(@RequestBody ModelEvolution evolution) {
-        return evolutionRepository.save(evolution);
-    }
+  @PostMapping
+  public Mono<ModelEvolution> saveEvolution(@RequestBody ModelEvolution evolution) {
+    return evolutionRepository.save(evolution);
+  }
 
-    @PutMapping("/{id}")
-    public Mono<ModelEvolution> updateEvolution(@PathVariable String id, @RequestBody ModelEvolution evolution) {
-        evolution.setId(id);
-        return evolutionRepository.save(evolution);
-    }
+  @PutMapping("/{id}")
+  public Mono<ModelEvolution> updateEvolution(
+      @PathVariable String id, @RequestBody ModelEvolution evolution) {
+    evolution.setId(id);
+    return evolutionRepository.save(evolution);
+  }
 }

@@ -12,10 +12,23 @@ admin.initializeApp();
 const db = admin.firestore();
 
 // ============ GLOBAL CORS (for localhost emulator + future) ============
+const allowedOrigins = [
+  'http://localhost:3000',
+  'http://localhost:5173',
+  'http://localhost:5000',
+  'http://127.0.0.1:3000',
+  'http://127.0.0.1:5173',
+  'http://127.0.0.1:5000'
+];
+
 const allowCors = (handler) => async (req, res) => {
-  res.set('Access-Control-Allow-Origin', '*');
+  const origin = req.headers.origin;
+  const allowedOrigin = (origin && (allowedOrigins.includes(origin) || origin.includes('supremeai'))) ? origin : 'https://supremeai-dashboard.web.app';
+
+  res.set('Access-Control-Allow-Origin', allowedOrigin);
   res.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.set('Access-Control-Allow-Headers', 'Content-Type, Authorization, x-api-key');
+  res.set('Vary', 'Origin');
 
   if (req.method === 'OPTIONS') {
     return res.status(204).send('');
@@ -93,7 +106,7 @@ exports.processRequirement = onRequest(withAuth(async (req, res) => {
         }
         
         // Call Java backend to classify
-        const backendUrl = (functions.config().backend && functions.config().backend.url) || 'https://ide-api.supremeai.google.com';
+        const backendUrl = (functions.config().backend && functions.config().backend.url) || process.env.JAVA_BACKEND_URL || 'http://localhost:8080';
         const classificationUrl = `${backendUrl}/classify`;
         const classifyResponse = await axios.post(classificationUrl, { description });
         const size = classifyResponse.data.size; // SMALL, MEDIUM, or BIG
@@ -180,7 +193,7 @@ exports.approveRequirement = onRequest(withAuth(async (req, res) => {
             const { projectId, description } = req_doc.data();
             
             // Call Java backend orchestrator
-            const backendUrl = (functions.config().backend && functions.config().backend.url) || 'https://ide-api.supremeai.google.com';
+            const backendUrl = (functions.config().backend && functions.config().backend.url) || process.env.JAVA_BACKEND_URL || 'http://localhost:8080';
             const orchestrateUrl = `${backendUrl}/orchestrate`;
             await axios.post(orchestrateUrl, {
                 projectId,
@@ -209,7 +222,7 @@ exports.approveRequirement = onRequest(withAuth(async (req, res) => {
 /**
  * Scheduled trigger: Auto-approve MEDIUM tasks after 10 minutes
  */
-exports.autoApproveScheduled = onSchedule("*/1 * * * *", async (event) => {
+exports.autoApproveScheduled = onSchedule("*/5 * * * *", async (event) => {
     const now = admin.firestore.Timestamp.now();
     
     const scheduledApprovals = await db.collection("scheduled_approvals")
@@ -297,7 +310,7 @@ exports.onChatMessage = onDocumentCreated("projects/{projectId}/chat/{messageId}
             const adminUserId = project.data().adminUserId;
             
             if (adminUserId) {
-                await admin.messaging().sendToDevice(adminUserId, {
+                await admin.messaging().send({
                     notification: {
                         title: `${message.sender} Updated`,
                         body: message.message.substring(0, 50) + "...",
@@ -306,6 +319,7 @@ exports.onChatMessage = onDocumentCreated("projects/{projectId}/chat/{messageId}
                         projectId,
                         type: "chat_update",
                     },
+                    topic: `user-${adminUserId}`,
                 });
             }
         }
@@ -320,14 +334,18 @@ exports.updateProgress = onRequest(withAuth(async (req, res) => {
     try {
         const { projectId, progress, status } = req.body;
         
-        await db.collection("projects").doc(projectId).update({
+        const updateData = {
             progress,
-            status: status || undefined,
             updatedAt: admin.firestore.FieldValue.serverTimestamp(),
-        });
+        };
+        if (status) {
+            updateData.status = status;
+        }
+        await db.collection("projects").doc(projectId).update(updateData);
         
         res.json({ success: true });
     } catch (error) {
+        console.error("Error updating project progress:", error);
         res.status(500).json({ error: error.message });
     }
 }));
@@ -380,8 +398,7 @@ exports.processBengaliOCR = onRequest(withAuth(async (req, res) => {
                     const base64Data = imageUrl.split(',')[1];
                     image = { content: Buffer.from(base64Data, 'base64') };
                 } else {
-                    // External URL
-                    const axios = require('axios');
+                    // External URL — axios already imported at top-level
                     const response = await axios.get(imageUrl, { responseType: 'arraybuffer' });
                     image = { content: Buffer.from(response.data) };
                 }
@@ -440,9 +457,8 @@ exports.processBengaliOCR = onRequest(withAuth(async (req, res) => {
             }
         }
 
-        // Send notification to user
         if (userId && results.some(r => r.success)) {
-            await admin.messaging().sendToDevice(userId, {
+            await admin.messaging().send({
                 notification: {
                     title: "✅ Bengali OCR Complete",
                     body: `Processed ${results.filter(r => r.success).length}/${results.length} images`,
@@ -451,6 +467,7 @@ exports.processBengaliOCR = onRequest(withAuth(async (req, res) => {
                     type: "ocr_complete",
                     projectId: projectId || "",
                 },
+                topic: `user-${userId}`,
             });
         }
 
@@ -569,7 +586,7 @@ exports.exportOCRToExcel = onRequest(withAuth(async (req, res) => {
         // Get download URL
         const [url] = await file.getSignedUrl({
             action: 'read',
-            expires: '03-09-2491', // Long expiry
+            expires: Date.now() + 7 * 24 * 60 * 60 * 1000, // Expires in 7 days
         });
 
         // Save export record
@@ -628,28 +645,5 @@ async function switchVPN(agentId) {
 }
 
 // ============ FIRESTORE SECURITY RULES ============
-/*
-rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
-    // Admin can read/write all
-    match /{document=**} {
-      allow read, write: if request.auth.token.admin == true;
-    }
-    
-    // AI system can write to chat/notifications
-    match /projects/{projectId}/chat/{document=**} {
-      allow write: if request.auth.uid == "ai-system";
-    }
-    
-    match /notifications/{document=**} {
-      allow read: if request.auth.uid == resource.data.userId;
-    }
-    
-    // Deny all others
-    match /{document=**} {
-      allow read, write: if false;
-    }
-  }
-}
-*/
+// The active Firestore rules are configured in config/firestore.rules.
+// Modifying this comment will not change the active rules. Please refer to config/firestore.rules.

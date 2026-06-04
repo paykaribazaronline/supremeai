@@ -8,6 +8,7 @@ import reactor.core.publisher.Flux;
 
 @Repository
 public interface KnowledgeDomainRepository extends FirestoreReactiveRepository<KnowledgeDomain> {
-    Flux<KnowledgeDomain> findByStatus(Status status);
-    Flux<KnowledgeDomain> findByKeywordsContaining(String keyword);
+  Flux<KnowledgeDomain> findByStatus(Status status);
+
+  Flux<KnowledgeDomain> findByKeywordsContaining(String keyword);
 }

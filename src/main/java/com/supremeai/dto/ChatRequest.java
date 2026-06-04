@@ -5,58 +5,56 @@ import java.util.List;
 import java.util.Map;
 
 public class ChatRequest {
-    @NotBlank(message = "Message is required")
-    private String message;
-    
-    private boolean skipValidation = false;
-    
-    private String agentId;
-    
-    private String sessionId;
-    
-    private List<Map<String, Object>> messages;
+  @NotBlank(message = "Message is required")
+  private String message;
 
-    public ChatRequest() {}
+  private boolean skipValidation = false;
 
-    public String getMessage() {
-        return message;
-    }
+  private String agentId;
 
-    public void setMessage(String message) {
-        this.message = message;
-    }
+  private String sessionId;
 
-    public boolean isSkipValidation() {
-        return skipValidation;
-    }
+  private List<Map<String, Object>> messages;
 
-    public void setSkipValidation(boolean skipValidation) {
-        this.skipValidation = skipValidation;
-    }
+  public ChatRequest() {}
 
-    public String getAgentId() {
-        return agentId;
-    }
+  public String getMessage() {
+    return message;
+  }
 
-    public void setAgentId(String agentId) {
-        this.agentId = agentId;
-    }
+  public void setMessage(String message) {
+    this.message = message;
+  }
 
-    public String getSessionId() {
-        return sessionId;
-    }
+  public boolean isSkipValidation() {
+    return skipValidation;
+  }
 
-    public void setSessionId(String sessionId) {
-        this.sessionId = sessionId;
-    }
+  public void setSkipValidation(boolean skipValidation) {
+    this.skipValidation = skipValidation;
+  }
 
-    public List<Map<String, Object>> getMessages() {
-        return messages;
-    }
+  public String getAgentId() {
+    return agentId;
+  }
 
-    public void setMessages(List<Map<String, Object>> messages) {
-        this.messages = messages;
-    }
+  public void setAgentId(String agentId) {
+    this.agentId = agentId;
+  }
+
+  public String getSessionId() {
+    return sessionId;
+  }
+
+  public void setSessionId(String sessionId) {
+    this.sessionId = sessionId;
+  }
+
+  public List<Map<String, Object>> getMessages() {
+    return messages;
+  }
+
+  public void setMessages(List<Map<String, Object>> messages) {
+    this.messages = messages;
+  }
 }
-
-

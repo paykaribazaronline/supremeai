@@ -5,5 +5,5 @@ import com.supremeai.model.browser.BrowserActivity;
 import reactor.core.publisher.Flux;
 
 public interface BrowserActivityRepository extends FirestoreReactiveRepository<BrowserActivity> {
-    Flux<BrowserActivity> findAllByOrderByTimestampDesc();
+  Flux<BrowserActivity> findAllByOrderByTimestampDesc();
 }

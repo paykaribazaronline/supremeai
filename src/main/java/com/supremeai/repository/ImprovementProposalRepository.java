@@ -6,6 +6,7 @@ import org.springframework.stereotype.Repository;
 import reactor.core.publisher.Flux;
 
 @Repository
-public interface ImprovementProposalRepository extends FirestoreReactiveRepository<ImprovementProposal> {
-    Flux<ImprovementProposal> findByApproved(boolean approved);
+public interface ImprovementProposalRepository
+    extends FirestoreReactiveRepository<ImprovementProposal> {
+  Flux<ImprovementProposal> findByApproved(boolean approved);
 }

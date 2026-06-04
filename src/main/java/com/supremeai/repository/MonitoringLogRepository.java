@@ -7,6 +7,7 @@ import reactor.core.publisher.Flux;
 
 @Repository
 public interface MonitoringLogRepository extends FirestoreReactiveRepository<MonitoringLog> {
-    Flux<MonitoringLog> findByOrderByTimestampDesc();
-    Flux<MonitoringLog> findByComponentOrderByTimestampDesc(String component);
+  Flux<MonitoringLog> findByOrderByTimestampDesc();
+
+  Flux<MonitoringLog> findByComponentOrderByTimestampDesc(String component);
 }

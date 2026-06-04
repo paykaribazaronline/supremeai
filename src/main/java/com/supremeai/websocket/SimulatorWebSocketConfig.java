@@ -9,17 +9,19 @@ import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry
 @EnableWebSocket
 public class SimulatorWebSocketConfig implements WebSocketConfigurer {
 
-    private final SimulatorWebSocketHandler simulatorWebSocketHandler;
+  private final SimulatorWebSocketHandler simulatorWebSocketHandler;
 
-    public SimulatorWebSocketConfig(SimulatorWebSocketHandler simulatorWebSocketHandler) {
-        this.simulatorWebSocketHandler = simulatorWebSocketHandler;
-    }
+  public SimulatorWebSocketConfig(SimulatorWebSocketHandler simulatorWebSocketHandler) {
+    this.simulatorWebSocketHandler = simulatorWebSocketHandler;
+  }
 
-    @Override
-    public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
-        // Path pattern: /ws/simulator/{type}/{sessionId}
-        // type: runtime | dashboard
-        registry.addHandler(simulatorWebSocketHandler, "/ws/simulator/runtime/*", "/ws/simulator/dashboard/*")
-                .setAllowedOrigins("*");
-    }
+  @Override
+  public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
+    // Path pattern: /ws/simulator/{type}/{sessionId}
+    // type: runtime | dashboard
+    registry
+        .addHandler(
+            simulatorWebSocketHandler, "/ws/simulator/runtime/*", "/ws/simulator/dashboard/*")
+        .setAllowedOrigins("*");
+  }
 }

@@ -8,6 +8,7 @@ import reactor.core.publisher.Mono;
 
 @Repository
 public interface DependencyGraphRepository extends FirestoreReactiveRepository<DependencyGraph> {
-    Flux<DependencyGraph> findByProjectId(String projectId);
-    Mono<DependencyGraph> findByProjectIdAndFile(String projectId, String file);
+  Flux<DependencyGraph> findByProjectId(String projectId);
+
+  Mono<DependencyGraph> findByProjectIdAndFile(String projectId, String file);
 }

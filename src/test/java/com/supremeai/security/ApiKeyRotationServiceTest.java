@@ -1,11 +1,17 @@
 package com.supremeai.service;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
+
 import com.supremeai.model.APIHealthReport;
 import com.supremeai.model.UserApiKey;
+import com.supremeai.repository.APIHealthReportRepository;
 import com.supremeai.repository.UserApiKeyRepository;
 import com.supremeai.security.ApiKeyRotationService;
 import com.supremeai.security.EncryptionService;
-import com.supremeai.repository.APIHealthReportRepository;
+import java.time.LocalDateTime;
+import java.util.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -15,283 +21,270 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
-import java.time.LocalDateTime;
-import java.util.*;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
-
 @ExtendWith(MockitoExtension.class)
 class ApiKeyRotationServiceTest {
 
-    @Mock
-    private UserApiKeyRepository userApiKeyRepository;
+  @Mock private UserApiKeyRepository userApiKeyRepository;
 
-    @Mock
-    private APIHealthReportRepository healthReportRepository;
+  @Mock private APIHealthReportRepository healthReportRepository;
 
-    @Mock
-    private EncryptionService encryptionService;
+  @Mock private EncryptionService encryptionService;
 
-    @Mock
-    private com.supremeai.service.ProviderTypeRegistry providerTypeRegistry;
+  @Mock private com.supremeai.service.ProviderTypeRegistry providerTypeRegistry;
 
-    private ApiKeyRotationService rotationService;
+  private ApiKeyRotationService rotationService;
 
-    @BeforeEach
-    void setUp() {
-        rotationService = new ApiKeyRotationService();
-        // Inject mocks manually since @Autowired is used in the class
-        setField(rotationService, "userApiKeyRepository", userApiKeyRepository);
-        setField(rotationService, "healthReportRepository", healthReportRepository);
-        setField(rotationService, "encryptionService", encryptionService);
-        setField(rotationService, "providerTypeRegistry", providerTypeRegistry);
-        lenient().when(providerTypeRegistry.getAllTypes()).thenReturn(Map.of());
+  @BeforeEach
+  void setUp() {
+    rotationService = new ApiKeyRotationService();
+    // Inject mocks manually since @Autowired is used in the class
+    setField(rotationService, "userApiKeyRepository", userApiKeyRepository);
+    setField(rotationService, "healthReportRepository", healthReportRepository);
+    setField(rotationService, "encryptionService", encryptionService);
+    setField(rotationService, "providerTypeRegistry", providerTypeRegistry);
+    lenient().when(providerTypeRegistry.getAllTypes()).thenReturn(Map.of());
+  }
+
+  private void setField(Object target, String fieldName, Object value) {
+    try {
+      java.lang.reflect.Field field = ApiKeyRotationService.class.getDeclaredField(fieldName);
+      field.setAccessible(true);
+      field.set(target, value);
+    } catch (Exception e) {
+      throw new RuntimeException(e);
     }
+  }
 
-    private void setField(Object target, String fieldName, Object value) {
-        try {
-            java.lang.reflect.Field field = ApiKeyRotationService.class.getDeclaredField(fieldName);
-            field.setAccessible(true);
-            field.set(target, value);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
+  // ==================== getDecryptedApiKey Tests ====================
 
-    // ==================== getDecryptedApiKey Tests ====================
+  @Test
+  void getDecryptedApiKey_ValidKey_ReturnsDecrypted() {
+    UserApiKey key = new UserApiKey();
+    key.setApiKey("encrypted-key-123");
 
-    @Test
-    void getDecryptedApiKey_ValidKey_ReturnsDecrypted() {
-        UserApiKey key = new UserApiKey();
-        key.setApiKey("encrypted-key-123");
+    when(encryptionService.decrypt("encrypted-key-123")).thenReturn("decrypted-key");
 
-        when(encryptionService.decrypt("encrypted-key-123")).thenReturn("decrypted-key");
+    String result = rotationService.getDecryptedApiKey(key);
 
-        String result = rotationService.getDecryptedApiKey(key);
+    assertEquals("decrypted-key", result);
+    verify(encryptionService).decrypt("encrypted-key-123");
+  }
 
-        assertEquals("decrypted-key", result);
-        verify(encryptionService).decrypt("encrypted-key-123");
-    }
+  @Test
+  void getDecryptedApiKey_NullKey_ReturnsNull() {
+    String result = rotationService.getDecryptedApiKey(null);
+    assertNull(result);
+  }
 
-    @Test
-    void getDecryptedApiKey_NullKey_ReturnsNull() {
-        String result = rotationService.getDecryptedApiKey(null);
-        assertNull(result);
-    }
+  @Test
+  void getDecryptedApiKey_KeyWithNullApiKey_ReturnsNull() {
+    UserApiKey key = new UserApiKey();
+    key.setApiKey(null);
 
-    @Test
-    void getDecryptedApiKey_KeyWithNullApiKey_ReturnsNull() {
-        UserApiKey key = new UserApiKey();
-        key.setApiKey(null);
+    String result = rotationService.getDecryptedApiKey(key);
+    assertNull(result);
+  }
 
-        String result = rotationService.getDecryptedApiKey(key);
-        assertNull(result);
-    }
+  // ==================== getRotationDaysForKey Tests ====================
 
-    // ==================== getRotationDaysForKey Tests ====================
+  @Test
+  void getRotationDaysForKey_KnownProvider_ReturnsConfiguredDays() {
+    int days = rotationService.getRotationDaysForKey("openai");
+    assertEquals(90, days);
+  }
 
-    @Test
-    void getRotationDaysForKey_KnownProvider_ReturnsConfiguredDays() {
-        int days = rotationService.getRotationDaysForKey("openai");
-        assertEquals(90, days);
-    }
+  @Test
+  void getRotationDaysForKey_UnknownProvider_ReturnsDefault() {
+    int days = rotationService.getRotationDaysForKey("unknown-provider");
+    assertEquals(90, days);
+  }
 
-    @Test
-    void getRotationDaysForKey_UnknownProvider_ReturnsDefault() {
-        int days = rotationService.getRotationDaysForKey("unknown-provider");
-        assertEquals(90, days);
-    }
+  @Test
+  void getRotationDaysForKey_Null_ReturnsDefault() {
+    int days = rotationService.getRotationDaysForKey(null);
+    assertEquals(90, days);
+  }
 
-    @Test
-    void getRotationDaysForKey_Null_ReturnsDefault() {
-        int days = rotationService.getRotationDaysForKey(null);
-        assertEquals(90, days);
-    }
+  // ==================== getMaxKeysPerProvider Tests ====================
 
-    // ==================== getMaxKeysPerProvider Tests ====================
+  @Test
+  void getMaxKeysPerProvider_KnownProvider_ReturnsConfiguredMax() {
+    int max = rotationService.getMaxKeysPerProvider("openai");
+    assertEquals(5, max);
+  }
 
-    @Test
-    void getMaxKeysPerProvider_KnownProvider_ReturnsConfiguredMax() {
-        int max = rotationService.getMaxKeysPerProvider("openai");
-        assertEquals(5, max);
-    }
+  @Test
+  void getMaxKeysPerProvider_UnknownProvider_ReturnsDefault() {
+    int max = rotationService.getMaxKeysPerProvider("unknown");
+    assertEquals(5, max);
+  }
 
-    @Test
-    void getMaxKeysPerProvider_UnknownProvider_ReturnsDefault() {
-        int max = rotationService.getMaxKeysPerProvider("unknown");
-        assertEquals(5, max);
-    }
+  // ==================== testApiKey Tests ====================
 
-    // ==================== testApiKey Tests ====================
+  @Test
+  void testApiKey_UnknownProvider_ReturnsAssumedValid() {
+    UserApiKey key = new UserApiKey();
+    key.setId("key-1");
+    key.setProvider("unknown-provider");
+    key.setApiKey("some-key");
 
-    @Test
-    void testApiKey_UnknownProvider_ReturnsAssumedValid() {
-        UserApiKey key = new UserApiKey();
-        key.setId("key-1");
-        key.setProvider("unknown-provider");
-        key.setApiKey("some-key");
+    Map<String, Object> result = rotationService.testApiKey(key);
 
+    assertEquals("key-1", result.get("id"));
+    assertEquals("unknown-provider", result.get("provider"));
+    assertTrue((Boolean) result.get("valid"));
+    assertEquals("No test endpoint configured — skipping validation", result.get("message"));
+  }
 
-        Map<String, Object> result = rotationService.testApiKey(key);
+  @Test
+  void testApiKey_KnownProvider_DecryptsAndTests() {
+    UserApiKey key = new UserApiKey();
+    key.setId("key-2");
+    key.setProvider("openai");
+    key.setApiKey("encrypted-openai-key");
 
-        assertEquals("key-1", result.get("id"));
-        assertEquals("unknown-provider", result.get("provider"));
-        assertTrue((Boolean) result.get("valid"));
-        assertEquals("No test endpoint configured — skipping validation", result.get("message"));
-    }
+    com.supremeai.model.ProviderTypeConfig typeConfig =
+        new com.supremeai.model.ProviderTypeConfig();
+    typeConfig.setExtraConfig(
+        Map.of("testEndpoint", "http://localhost/test", "authMethod", "Bearer"));
+    when(providerTypeRegistry.getTypeConfig("openai")).thenReturn(typeConfig);
 
-    @Test
-    void testApiKey_KnownProvider_DecryptsAndTests() {
-        UserApiKey key = new UserApiKey();
-        key.setId("key-2");
-        key.setProvider("openai");
-        key.setApiKey("encrypted-openai-key");
+    when(encryptionService.decrypt("encrypted-openai-key")).thenReturn("sk-openai-test");
 
-        com.supremeai.model.ProviderTypeConfig typeConfig = new com.supremeai.model.ProviderTypeConfig();
-        typeConfig.setExtraConfig(Map.of("testEndpoint", "http://localhost/test", "authMethod", "Bearer"));
-        when(providerTypeRegistry.getTypeConfig("openai")).thenReturn(typeConfig);
+    Map<String, Object> result = rotationService.testApiKey(key);
 
-        when(encryptionService.decrypt("encrypted-openai-key")).thenReturn("sk-openai-test");
+    assertNotNull(result);
+    assertEquals("key-2", result.get("id"));
+    verify(encryptionService).decrypt("encrypted-openai-key");
+  }
 
-        Map<String, Object> result = rotationService.testApiKey(key);
+  // ==================== selectBestKey Tests ====================
 
-        assertNotNull(result);
-        assertEquals("key-2", result.get("id"));
-        verify(encryptionService).decrypt("encrypted-openai-key");
-    }
+  @Test
+  void selectBestKey_ActiveKeysExist_ReturnsBestKey() {
+    UserApiKey key1 = createKey("key-1", "openai", "active", 5L);
+    UserApiKey key2 = createKey("key-2", "openai", "active", 2L);
+    UserApiKey key3 = createKey("key-3", "openai", "active", 10L);
 
-    // ==================== selectBestKey Tests ====================
+    when(userApiKeyRepository.findByUserIdAndStatus("user-1", "active"))
+        .thenReturn(Flux.just(key1, key2, key3));
 
-    @Test
-    void selectBestKey_ActiveKeysExist_ReturnsBestKey() {
-        UserApiKey key1 = createKey("key-1", "openai", "active", 5L);
-        UserApiKey key2 = createKey("key-2", "openai", "active", 2L);
-        UserApiKey key3 = createKey("key-3", "openai", "active", 10L);
+    Mono<UserApiKey> result = rotationService.selectBestKey("user-1", "openai");
 
-        when(userApiKeyRepository.findByUserIdAndStatus("user-1", "active"))
-                .thenReturn(Flux.just(key1, key2, key3));
+    StepVerifier.create(result).expectNextMatches(k -> "key-2".equals(k.getId())).verifyComplete();
+  }
 
-        Mono<UserApiKey> result = rotationService.selectBestKey("user-1", "openai");
+  @Test
+  void selectBestKey_NoActiveKeys_ReturnsEmpty() {
+    when(userApiKeyRepository.findByUserIdAndStatus("user-1", "active")).thenReturn(Flux.empty());
 
-        StepVerifier.create(result)
-                .expectNextMatches(k -> "key-2".equals(k.getId()))
-                .verifyComplete();
-    }
+    Mono<UserApiKey> result = rotationService.selectBestKey("user-1", "openai");
 
-    @Test
-    void selectBestKey_NoActiveKeys_ReturnsEmpty() {
-        when(userApiKeyRepository.findByUserIdAndStatus("user-1", "active"))
-                .thenReturn(Flux.empty());
+    StepVerifier.create(result).verifyComplete();
+  }
 
-        Mono<UserApiKey> result = rotationService.selectBestKey("user-1", "openai");
+  @Test
+  void selectBestKey_NoMatchingProvider_ReturnsEmpty() {
+    UserApiKey key = createKey("key-1", "anthropic", "active", 1L);
+    when(userApiKeyRepository.findByUserIdAndStatus("user-1", "active")).thenReturn(Flux.just(key));
 
-        StepVerifier.create(result)
-                .verifyComplete();
-    }
+    Mono<UserApiKey> result = rotationService.selectBestKey("user-1", "openai");
 
-    @Test
-    void selectBestKey_NoMatchingProvider_ReturnsEmpty() {
-        UserApiKey key = createKey("key-1", "anthropic", "active", 1L);
-        when(userApiKeyRepository.findByUserIdAndStatus("user-1", "active"))
-                .thenReturn(Flux.just(key));
+    StepVerifier.create(result).verifyComplete();
+  }
 
-        Mono<UserApiKey> result = rotationService.selectBestKey("user-1", "openai");
+  // ==================== getRotationStatus Tests ====================
 
-        StepVerifier.create(result)
-                .verifyComplete();
-    }
+  @Test
+  void getRotationStatus_HasKeys_ReturnsSummary() {
+    UserApiKey key1 = createKey("key-1", "openai", "active", 5L);
+    UserApiKey key2 = createKey("key-2", "openai", "rotation_due", 3L);
+    UserApiKey key3 = createKey("key-3", "openai", "error", 1L);
 
-    // ==================== getRotationStatus Tests ====================
+    when(userApiKeyRepository.findByUserId("user-1")).thenReturn(Flux.just(key1, key2, key3));
+    when(providerTypeRegistry.getAllTypes())
+        .thenReturn(Map.of("openai", new com.supremeai.model.ProviderTypeConfig()));
 
-    @Test
-    void getRotationStatus_HasKeys_ReturnsSummary() {
-        UserApiKey key1 = createKey("key-1", "openai", "active", 5L);
-        UserApiKey key2 = createKey("key-2", "openai", "rotation_due", 3L);
-        UserApiKey key3 = createKey("key-3", "openai", "error", 1L);
+    Mono<Map<String, Object>> result = rotationService.getRotationStatus("user-1");
 
-        when(userApiKeyRepository.findByUserId("user-1")).thenReturn(Flux.just(key1, key2, key3));
-        when(providerTypeRegistry.getAllTypes()).thenReturn(Map.of("openai", new com.supremeai.model.ProviderTypeConfig()));
+    StepVerifier.create(result)
+        .expectNextMatches(
+            summary -> {
+              assertEquals(3, summary.get("totalKeys"));
+              assertEquals(1L, summary.get("active"));
+              assertEquals(1L, summary.get("rotationDue"));
+              assertEquals(1L, summary.get("error"));
+              assertNotNull(summary.get("providerConfigs"));
+              return true;
+            })
+        .verifyComplete();
+  }
 
-        Mono<Map<String, Object>> result = rotationService.getRotationStatus("user-1");
+  @Test
+  void getRotationStatus_NoKeys_ReturnsEmptySummary() {
+    when(userApiKeyRepository.findByUserId("user-1")).thenReturn(Flux.empty());
 
-        StepVerifier.create(result)
-                .expectNextMatches(summary -> {
-                    assertEquals(3, summary.get("totalKeys"));
-                    assertEquals(1L, summary.get("active"));
-                    assertEquals(1L, summary.get("rotationDue"));
-                    assertEquals(1L, summary.get("error"));
-                    assertNotNull(summary.get("providerConfigs"));
-                    return true;
-                })
-                .verifyComplete();
-    }
+    Mono<Map<String, Object>> result = rotationService.getRotationStatus("user-1");
 
-    @Test
-    void getRotationStatus_NoKeys_ReturnsEmptySummary() {
-        when(userApiKeyRepository.findByUserId("user-1")).thenReturn(Flux.empty());
+    StepVerifier.create(result)
+        .expectNextMatches(
+            summary -> {
+              assertEquals(0, summary.get("totalKeys"));
+              return true;
+            })
+        .verifyComplete();
+  }
 
-        Mono<Map<String, Object>> result = rotationService.getRotationStatus("user-1");
+  // ==================== testAllKeysNow Tests ====================
 
-        StepVerifier.create(result)
-                .expectNextMatches(summary -> {
-                    assertEquals(0, summary.get("totalKeys"));
-                    return true;
-                })
-                .verifyComplete();
-    }
+  @Test
+  void testAllKeysNow_NoActiveKeys_ReturnsEmpty() {
+    when(userApiKeyRepository.findAll()).thenReturn(Flux.empty());
 
-    // ==================== testAllKeysNow Tests ====================
+    Mono<Void> result = rotationService.testAllKeysNow();
 
-    @Test
-    void testAllKeysNow_NoActiveKeys_ReturnsEmpty() {
-        when(userApiKeyRepository.findAll()).thenReturn(Flux.empty());
+    StepVerifier.create(result).verifyComplete();
 
-        Mono<Void> result = rotationService.testAllKeysNow();
+    verify(userApiKeyRepository).findAll();
+  }
 
-        StepVerifier.create(result)
-                .verifyComplete();
+  @Test
+  void testAllKeysNow_ActiveKeysValidated() {
+    UserApiKey key1 = createKey("key-1", "openai", "active", 5L);
+    key1.setApiKey("encrypted-key-1");
+    UserApiKey key2 = createKey("key-2", "openai", "active", 3L);
+    key2.setApiKey("encrypted-key-2");
 
-        verify(userApiKeyRepository).findAll();
-    }
+    when(userApiKeyRepository.findAll()).thenReturn(Flux.just(key1, key2));
+    com.supremeai.model.ProviderTypeConfig typeConfig =
+        new com.supremeai.model.ProviderTypeConfig();
+    typeConfig.setExtraConfig(
+        Map.of("testEndpoint", "http://localhost/test", "authMethod", "Bearer"));
+    lenient().when(providerTypeRegistry.getTypeConfig("openai")).thenReturn(typeConfig);
+    when(encryptionService.decrypt(anyString())).thenReturn("decrypted-key");
+    when(userApiKeyRepository.save(any(UserApiKey.class)))
+        .thenAnswer(invocation -> Mono.just(invocation.getArgument(0)));
+    when(healthReportRepository.save(any(APIHealthReport.class)))
+        .thenAnswer(invocation -> Mono.just(invocation.getArgument(0)));
 
-    @Test
-    void testAllKeysNow_ActiveKeysValidated() {
-        UserApiKey key1 = createKey("key-1", "openai", "active", 5L);
-        key1.setApiKey("encrypted-key-1");
-        UserApiKey key2 = createKey("key-2", "openai", "active", 3L);
-        key2.setApiKey("encrypted-key-2");
+    Mono<Void> result = rotationService.testAllKeysNow();
 
-        when(userApiKeyRepository.findAll()).thenReturn(Flux.just(key1, key2));
-        com.supremeai.model.ProviderTypeConfig typeConfig = new com.supremeai.model.ProviderTypeConfig();
-        typeConfig.setExtraConfig(Map.of("testEndpoint", "http://localhost/test", "authMethod", "Bearer"));
-        lenient().when(providerTypeRegistry.getTypeConfig("openai")).thenReturn(typeConfig);
-        when(encryptionService.decrypt(anyString())).thenReturn("decrypted-key");
-        when(userApiKeyRepository.save(any(UserApiKey.class)))
-                .thenAnswer(invocation -> Mono.just(invocation.getArgument(0)));
-        when(healthReportRepository.save(any(APIHealthReport.class)))
-                .thenAnswer(invocation -> Mono.just(invocation.getArgument(0)));
+    StepVerifier.create(result).verifyComplete();
 
-        Mono<Void> result = rotationService.testAllKeysNow();
+    verify(userApiKeyRepository, atLeastOnce()).save(any(UserApiKey.class));
+    verify(healthReportRepository).save(any(APIHealthReport.class));
+  }
 
-        StepVerifier.create(result)
-                .verifyComplete();
+  // ==================== Helper ====================
 
-        verify(userApiKeyRepository, atLeastOnce()).save(any(UserApiKey.class));
-        verify(healthReportRepository).save(any(APIHealthReport.class));
-    }
-
-    // ==================== Helper ====================
-
-    private UserApiKey createKey(String id, String provider, String status, Long requestCount) {
-        UserApiKey key = new UserApiKey();
-        key.setId(id);
-        key.setProvider(provider);
-        key.setStatus(status);
-        key.setRequestCount(requestCount);
-        key.setAddedAt(LocalDateTime.now().minusDays(30));
-        key.setLastTested(LocalDateTime.now());
-        return key;
-    }
+  private UserApiKey createKey(String id, String provider, String status, Long requestCount) {
+    UserApiKey key = new UserApiKey();
+    key.setId(id);
+    key.setProvider(provider);
+    key.setStatus(status);
+    key.setRequestCount(requestCount);
+    key.setAddedAt(LocalDateTime.now().minusDays(30));
+    key.setLastTested(LocalDateTime.now());
+    return key;
+  }
 }

@@ -8,6 +8,7 @@ import reactor.core.publisher.Mono;
 
 @Repository
 public interface ChatRuleRepository extends FirestoreReactiveRepository<ChatRule> {
-    Flux<ChatRule> findByActive(boolean active);
-    Mono<ChatRule> findByIdAndActive(String id, boolean active);
+  Flux<ChatRule> findByActive(boolean active);
+
+  Mono<ChatRule> findByIdAndActive(String id, boolean active);
 }

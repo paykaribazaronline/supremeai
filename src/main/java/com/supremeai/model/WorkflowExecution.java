@@ -3,108 +3,112 @@ package com.supremeai.model;
 import com.google.cloud.firestore.annotation.DocumentId;
 import com.google.cloud.firestore.annotation.ServerTimestamp;
 import com.google.cloud.spring.data.firestore.Document;
-import org.springframework.data.annotation.Id;
 import java.util.Date;
 import java.util.Map;
+import org.springframework.data.annotation.Id;
 
 @Document(collectionName = "workflow_executions")
 public class WorkflowExecution {
-    @Id
-    @DocumentId
-    private String executionId;
-    private String workflowId;
-    private String status; // RUNNING, COMPLETED, FAILED
-    private int currentStepIndex;
-    private Map<String, Object> stepResults;
-    
-    @ServerTimestamp
-    private Date startedAt;
-    
-    @ServerTimestamp
-    private Date completedAt;
-    private String errorMessage;
+  @Id @DocumentId private String executionId;
+  private String workflowId;
+  private String status; // RUNNING, COMPLETED, FAILED
+  private int currentStepIndex;
+  private Map<String, Object> stepResults;
 
-    public WorkflowExecution() {}
+  @ServerTimestamp private Date startedAt;
 
-    public WorkflowExecution(String executionId, String workflowId, String status) {
-        this.executionId = executionId;
-        this.workflowId = workflowId;
-        this.status = status;
-        this.startedAt = new Date();
-    }
+  @ServerTimestamp private Date completedAt;
+  private String errorMessage;
 
-    public WorkflowExecution(String executionId, String workflowId, String status, int currentStepIndex, Map<String, Object> stepResults, Date startedAt, Date completedAt, String errorMessage) {
-        this.executionId = executionId;
-        this.workflowId = workflowId;
-        this.status = status;
-        this.currentStepIndex = currentStepIndex;
-        this.stepResults = stepResults;
-        this.startedAt = startedAt;
-        this.completedAt = completedAt;
-        this.errorMessage = errorMessage;
-    }
+  public WorkflowExecution() {}
 
-    public String getExecutionId() {
-        return executionId;
-    }
+  public WorkflowExecution(String executionId, String workflowId, String status) {
+    this.executionId = executionId;
+    this.workflowId = workflowId;
+    this.status = status;
+    this.startedAt = new Date();
+  }
 
-    public void setExecutionId(String executionId) {
-        this.executionId = executionId;
-    }
+  public WorkflowExecution(
+      String executionId,
+      String workflowId,
+      String status,
+      int currentStepIndex,
+      Map<String, Object> stepResults,
+      Date startedAt,
+      Date completedAt,
+      String errorMessage) {
+    this.executionId = executionId;
+    this.workflowId = workflowId;
+    this.status = status;
+    this.currentStepIndex = currentStepIndex;
+    this.stepResults = stepResults;
+    this.startedAt = startedAt;
+    this.completedAt = completedAt;
+    this.errorMessage = errorMessage;
+  }
 
-    public String getWorkflowId() {
-        return workflowId;
-    }
+  public String getExecutionId() {
+    return executionId;
+  }
 
-    public void setWorkflowId(String workflowId) {
-        this.workflowId = workflowId;
-    }
+  public void setExecutionId(String executionId) {
+    this.executionId = executionId;
+  }
 
-    public String getStatus() {
-        return status;
-    }
+  public String getWorkflowId() {
+    return workflowId;
+  }
 
-    public void setStatus(String status) {
-        this.status = status;
-    }
+  public void setWorkflowId(String workflowId) {
+    this.workflowId = workflowId;
+  }
 
-    public int getCurrentStepIndex() {
-        return currentStepIndex;
-    }
+  public String getStatus() {
+    return status;
+  }
 
-    public void setCurrentStepIndex(int currentStepIndex) {
-        this.currentStepIndex = currentStepIndex;
-    }
+  public void setStatus(String status) {
+    this.status = status;
+  }
 
-    public Map<String, Object> getStepResults() {
-        return stepResults;
-    }
+  public int getCurrentStepIndex() {
+    return currentStepIndex;
+  }
 
-    public void setStepResults(Map<String, Object> stepResults) {
-        this.stepResults = stepResults;
-    }
+  public void setCurrentStepIndex(int currentStepIndex) {
+    this.currentStepIndex = currentStepIndex;
+  }
 
-    public Date getStartedAt() {
-        return startedAt;
-    }
+  public Map<String, Object> getStepResults() {
+    return stepResults;
+  }
 
-    public void setStartedAt(Date startedAt) {
-        this.startedAt = startedAt;
-    }
+  public void setStepResults(Map<String, Object> stepResults) {
+    this.stepResults = stepResults;
+  }
 
-    public Date getCompletedAt() {
-        return completedAt;
-    }
+  public Date getStartedAt() {
+    return startedAt;
+  }
 
-    public void setCompletedAt(Date completedAt) {
-        this.completedAt = completedAt;
-    }
+  public void setStartedAt(Date startedAt) {
+    this.startedAt = startedAt;
+  }
 
-    public String getErrorMessage() {
-        return errorMessage;
-    }
+  public Date getCompletedAt() {
+    return completedAt;
+  }
 
-    public void setErrorMessage(String errorMessage) {
-        this.errorMessage = errorMessage;
-    }
+  public void setCompletedAt(Date completedAt) {
+    this.completedAt = completedAt;
+  }
+
+  public String getErrorMessage() {
+    return errorMessage;
+  }
+
+  public void setErrorMessage(String errorMessage) {
+    this.errorMessage = errorMessage;
+  }
 }
