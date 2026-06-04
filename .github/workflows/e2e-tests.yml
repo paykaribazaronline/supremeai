@@ -12,7 +12,7 @@ concurrency:
 jobs:
   test:
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 45
 
     services:
       redis:
@@ -58,9 +58,19 @@ jobs:
       - name: Install & Start Firebase Emulators
         run: |
           npm install -g firebase-tools
-          firebase emulators:start --only firestore,auth --project demo-supremeai &
-          sleep 15
-          echo "Firebase emulators started"
+          # Start emulators in background and wait for ports to be ready
+          firebase emulators:start --only firestore,auth --project demo-supremeai > firebase.log 2>&1 &
+          EMU_PID=$!
+          echo $EMU_PID > firebase.pid
+          for i in $(seq 1 60); do
+            if nc -z localhost 8081 && nc -z localhost 9099; then
+              echo "Firebase emulators are listening"
+              break
+            fi
+            echo "Waiting for firebase emulators... (${i}s)"
+            sleep 1
+          done
+          tail -n +1 firebase.log | sed -n '1,200p'
         shell: bash
 
       - name: Run Backend (Firebase Emulators + Spring Boot)
@@ -72,36 +82,44 @@ jobs:
           chmod +x ./gradlew
           nohup ./gradlew bootRun --no-daemon > backend.log 2>&1 &
           echo $! > backend.pid
-          for i in $(seq 1 90); do
+          for i in $(seq 1 120); do
             if curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/api/health | grep -q "200"; then
               echo "Backend is healthy"
               break
             fi
-            echo "Waiting for backend... ($((i*3))s)"
-            sleep 3
+            echo "Waiting for backend... (${i}s)"
+            sleep 1
           done
+          if ! curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/api/health | grep -q "200"; then
+            echo "Backend failed to start, dumping backend.log"
+            tail -n 500 backend.log || true
+            exit 1
+          fi
         shell: bash
-        continue-on-error: true
 
       - name: Run Frontend (Vite Dashboard)
         env:
           VITE_API_URL: http://localhost:8080
         run: |
           cd dashboard
-          npm install
+          npm ci
           nohup npm run dev > ../frontend.log 2>&1 &
           echo $! > frontend.pid
           cd ..
-          for i in $(seq 1 60); do
+          for i in $(seq 1 120); do
             if curl -s -o /dev/null -w "%{http_code}" http://localhost:5173 | grep -q "200"; then
               echo "Frontend is healthy"
               break
             fi
-            echo "Waiting for frontend... ($((i*3))s)"
-            sleep 3
+            echo "Waiting for frontend... (${i}s)"
+            sleep 1
           done
+          if ! curl -s -o /dev/null -w "%{http_code}" http://localhost:5173 | grep -q "200"; then
+            echo "Frontend failed to start, dumping frontend.log"
+            tail -n 500 frontend.log || true
+            exit 1
+          fi
         shell: bash
-        continue-on-error: true
 
       - name: Create test user in local emulator
         env:
