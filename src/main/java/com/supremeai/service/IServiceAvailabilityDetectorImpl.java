@@ -16,7 +16,12 @@ public class IServiceAvailabilityDetectorImpl implements IServiceAvailabilityDet
   private static final Logger logger =
       LoggerFactory.getLogger(IServiceAvailabilityDetectorImpl.class);
 
-  @Autowired private AIProviderFactory providerFactory;
+  private final AIProviderFactory providerFactory;
+
+  @Autowired
+  public IServiceAvailabilityDetectorImpl(AIProviderFactory providerFactory) {
+    this.providerFactory = providerFactory;
+  }
 
   @Override
   public Mono<Boolean> isHealthy(String providerName) {

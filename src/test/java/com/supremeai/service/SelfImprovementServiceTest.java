@@ -37,7 +37,7 @@ class SelfImprovementServiceTest {
 
   @Test
   void hourlyImprovementLoop_shouldCompleteWithoutError() {
-    when(configService.getEffectiveSetting("learning_interval_minutes", 60L)).thenReturn(0L); // Force run
+    when(configService.getEffectiveSetting("learning_interval_minutes", 60L)).thenReturn(10L); // Force run
 
     SystemLearning entry = new SystemLearning();
     entry.setLearnedAt(LocalDateTime.now());
