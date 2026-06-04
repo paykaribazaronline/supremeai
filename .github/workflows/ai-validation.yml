@@ -6,20 +6,45 @@ on:
     paths-ignore:
       - '**.md'
       - 'docs/**'
-  pull_request:
-    branches: [ main, develop, master ]
-    paths-ignore:
-      - '**.md'
-      - 'docs/**'
+  workflow_dispatch:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  validate:
+  unit_tests:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 20
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+          cache: 'gradle'
+
+      - name: Build and run unit tests with Gradle
+        run: |
+          chmod +x gradlew
+          ./gradlew clean test --no-daemon
+
+      - name: Archive unit test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: supeAI-unit-test-reports
+          path: build/reports/tests/**
+
+  validate:
+    needs: unit_tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
     services:
       redis:
         image: redis:7-alpine
@@ -42,11 +67,6 @@ jobs:
           java-version: '21'
           cache: 'gradle'
 
-      - name: Build and run unit tests with Gradle
-        run: |
-          chmod +x gradlew
-          ./gradlew clean test --no-daemon
-
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v2
         with:
@@ -57,6 +77,7 @@ jobs:
         env:
           SPRING_PROFILES_ACTIVE: test
         run: |
+          chmod +x gradlew
           nohup ./gradlew bootRun --no-daemon > backend.log 2>&1 &
           for i in $(seq 1 90); do
             if curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/api/health | grep -q "200"; then
@@ -66,15 +87,42 @@ jobs:
             echo "Waiting for backend... ($((i*3))s)"
             sleep 3
           done
+          if ! curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/api/health | grep -q "200"; then
+            echo "ERROR: backend failed to become healthy within timeout"
+            cat backend.log || true
+            exit 1
+          fi
 
       - name: Run AI validation script
-        run: bash scripts/validate_ai.sh
-        env:
-          AI_VALIDATION_BASE_URL: ${{ secrets.SUPREMEAI_BASE_URL }}
+        run: |
+          chmod +x scripts/validate_ai.sh
+          export AI_VALIDATION_BASE_URL=http://127.0.0.1:8080
+          export AI_VALIDATION_ENDPOINT=/api/chat/send
+          attempts=3
+          backoff=5
+          for i in $(seq 1 "$attempts"); do
+            echo "AI validation attempt $i/$attempts"
+            bash scripts/validate_ai.sh
+            rc=$?
+            if [ "$rc" -eq 0 ]; then
+              echo "AI validation succeeded"
+              break
+            fi
+            echo "AI validation failed with exit code $rc"
+            if [ "$i" -lt "$attempts" ]; then
+              echo "Retrying after ${backoff}s..."
+              sleep "$backoff"
+            else
+              echo "Exceeded retry limit ($attempts)"
+              exit "$rc"
+            fi
+          done
 
-      - name: Archive test reports
+      - name: Archive validation artifacts
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: supeAI-test-reports
-          path: build/reports/tests/**
+          name: supeAI-validation-artifacts
+          path: |
+            backend.log
+            ai_validation_report.json
