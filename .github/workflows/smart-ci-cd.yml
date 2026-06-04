@@ -217,28 +217,20 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '18'
-          cache-dependency-path: dashboard/package-lock.json
+          cache-dependency-path: package-lock.json
           cache: 'npm'
 
       - name: Install Frontend Dependencies
-        run: |
-          cd dashboard
-          npm ci
+        run: npm ci -w dashboard
 
       - name: Run Frontend Lint Checks
-        run: |
-          cd dashboard
-          npm run lint
+        run: npm run lint -w dashboard
 
       - name: Run Frontend Tests
-        run: |
-          cd dashboard
-          npm run test -- --run || echo "No tests or test command failed"
+        run: npm run test -w dashboard -- --run || echo "No tests or test command failed"
 
       - name: Build Dashboard
-        run: |
-          cd dashboard
-          npm run build
+        run: npm run build -w dashboard
 
       - name: Prepare Dashboard for Firebase
         run: |
@@ -311,13 +303,14 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '18'
-          cache-dependency-path: functions/package.json
+          cache-dependency-path: package-lock.json
           cache: 'npm'
 
       - name: Install Functions Dependencies
-        run: |
-          cd functions
-          npm install
+        run: npm ci -w functions
+
+      - name: Compile TypeScript Functions
+        run: npm run build -w functions
 
       - name: Authenticate to Google Cloud (Firebase)
         uses: google-github-actions/auth@v2
