@@ -38,6 +38,12 @@ module.exports = {
         'no-empty': 'off',
         'import/no-unresolved': ['off'],
         'import/order': 'off',
+        'prettier/prettier': [
+            'error',
+            {
+                endOfLine: 'auto',
+            },
+        ],
     },
     overrides: [
         {
