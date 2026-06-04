@@ -33,47 +33,7 @@ jobs:
         with:
           args: --redact
 
-  # 2. CodeQL Static Application Security Testing (SAST)
-  codeql-scan:
-    name: CodeQL Security Scan
-    runs-on: ubuntu-latest
-    permissions:
-      actions: read
-      contents: read
-      security-events: write
-    strategy:
-      fail-fast: false
-      matrix:
-        language: [ 'java-kotlin', 'javascript-typescript' ]
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Set up JDK 21
-        if: matrix.language == 'java-kotlin'
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: '21'
-          cache: 'gradle'
-
-      - name: Initialize CodeQL
-        uses: github/codeql-action/init@v3
-        with:
-          languages: ${{ matrix.language }}
-
-      - name: Autobuild Backend (Java)
-        if: matrix.language == 'java-kotlin'
-        run: |
-          chmod +x gradlew
-          ./gradlew bootJar --no-daemon -x test
-
-      - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v3
-        with:
-          category: "/language:${{matrix.language}}"
-
-  # 3. Path Filter for Selective CI/CD
+  # 2. Path Filter for Selective CI/CD
   detect-changes:
     name: Detect File Changes
     runs-on: ubuntu-latest
@@ -143,6 +103,50 @@ jobs:
           echo "backend=$BACKEND_CHANGED" >> $GITHUB_OUTPUT
           echo "frontend=$FRONTEND_CHANGED" >> $GITHUB_OUTPUT
           echo "functions=$FUNCTIONS_CHANGED" >> $GITHUB_OUTPUT
+
+  # 3. CodeQL Static Application Security Testing (SAST)
+  codeql-scan:
+    name: CodeQL Security Scan
+    needs: detect-changes
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [ 'java-kotlin', 'javascript-typescript' ]
+    if: >-
+      (matrix.language == 'java-kotlin' && needs.detect-changes.outputs.backend == 'true') ||
+      (matrix.language == 'javascript-typescript' && (needs.detect-changes.outputs.frontend == 'true' || needs.detect-changes.outputs.functions == 'true'))
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        if: matrix.language == 'java-kotlin'
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+          cache: 'gradle'
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}
+
+      - name: Autobuild Backend (Java)
+        if: matrix.language == 'java-kotlin'
+        run: |
+          chmod +x gradlew
+          ./gradlew bootJar --no-daemon -x test
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:${{matrix.language}}"
 
   # 4. Backend Testing
   backend-test:
@@ -315,7 +319,12 @@ jobs:
           SPRING_PROFILES_ACTIVE: test
           FIREBASE_PROJECT_ID: ${{ steps.auth.outputs.project_id }}
           GOOGLE_APPLICATION_CREDENTIALS: ${{ steps.auth.outputs.credentials_file_path }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
         run: |
+          if [ -z "$JWT_SECRET" ]; then
+            export JWT_SECRET="dummy_secret_key_for_ci_cd_validation_123456"
+            echo "JWT_SECRET was not set in GitHub secrets, using a temporary one for CI."
+          fi
           chmod +x gradlew
           echo "Building backend synchronously..."
           ./gradlew bootJar -x test --no-daemon
