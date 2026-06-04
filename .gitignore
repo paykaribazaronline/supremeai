@@ -116,6 +116,11 @@ phase5_build.txt
 *_output.txt
 *_summary.txt
 test_export.csv
+# GENERATED FRONTEND ARTIFACTS (Firebase deploy staging)
+public/
+docs/01_Architecture/github.com/
+docs/01_Architecture/github.png
+src/supremeai-vscode-extension/
 # TEMPORARY & CACHE FILES
 *.tmp
 *.temp
