@@ -77,10 +77,12 @@ jobs:
   detect-changes:
     name: Detect File Changes
     runs-on: ubuntu-latest
+    permissions:
+      actions: read
     outputs:
-      backend: ${{ steps.filter.outputs.backend }}
-      frontend: ${{ steps.filter.outputs.frontend }}
-      functions: ${{ steps.filter.outputs.functions }}
+      backend: ${{ steps.smart-resolution.outputs.backend }}
+      frontend: ${{ steps.smart-resolution.outputs.frontend }}
+      functions: ${{ steps.smart-resolution.outputs.functions }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -103,6 +105,44 @@ jobs:
             functions:
               - 'functions/**'
               - '.github/workflows/smart-ci-cd.yml'
+
+      - name: Smart Failure Resolution
+        id: smart-resolution
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          BACKEND_CHANGED="${{ steps.filter.outputs.backend }}"
+          FRONTEND_CHANGED="${{ steps.filter.outputs.frontend }}"
+          FUNCTIONS_CHANGED="${{ steps.filter.outputs.functions }}"
+
+          # Fetch the last completed run ID for this workflow on this branch
+          LAST_RUN_ID=$(gh run list --workflow "${{ github.workflow }}" --branch "${{ github.ref_name }}" --status completed --limit 1 --json databaseId -q ".[0].databaseId" || echo "")
+
+          if [ -n "$LAST_RUN_ID" ] && [ "$LAST_RUN_ID" != "null" ]; then
+            # Fetch failed jobs from the last run
+            FAILED_JOBS=$(gh run view "$LAST_RUN_ID" --json jobs -q '.jobs[] | select(.conclusion == "failure") | .name' || echo "")
+            echo "Failed jobs in previous run ($LAST_RUN_ID):"
+            echo "$FAILED_JOBS"
+
+            if echo "$FAILED_JOBS" | grep -qi -e "backend" -e "ai validation"; then
+              echo "Overriding backend to true due to previous failure"
+              BACKEND_CHANGED="true"
+            fi
+            if echo "$FAILED_JOBS" | grep -qi "frontend"; then
+              echo "Overriding frontend to true due to previous failure"
+              FRONTEND_CHANGED="true"
+            fi
+            if echo "$FAILED_JOBS" | grep -qi "functions"; then
+              echo "Overriding functions to true due to previous failure"
+              FUNCTIONS_CHANGED="true"
+            fi
+          else
+            echo "No previous completed run found to check."
+          fi
+
+          echo "backend=$BACKEND_CHANGED" >> $GITHUB_OUTPUT
+          echo "frontend=$FRONTEND_CHANGED" >> $GITHUB_OUTPUT
+          echo "functions=$FUNCTIONS_CHANGED" >> $GITHUB_OUTPUT
 
   # 4. Backend Testing
   backend-test:
@@ -280,8 +320,14 @@ jobs:
           echo "Building backend synchronously..."
           ./gradlew bootJar -x test --no-daemon
           echo "Starting backend from JAR..."
-          JAR_FILE=$(find build/libs -maxdepth 1 -name "*.jar" ! -name "*-plain.jar" | head -n 1)
-          nohup java -jar $JAR_FILE > backend.log 2>&1 &
+          JAR_FILE=$(find build/libs -name "*.jar" | grep -v "plain.jar" | head -n 1)
+          if [ -z "$JAR_FILE" ]; then
+            echo "Error: JAR file not found in build/libs!"
+            ls -la build/libs || true
+            exit 1
+          fi
+          echo "Found JAR: $JAR_FILE"
+          nohup java -jar "$JAR_FILE" > backend.log 2>&1 &
           for i in $(seq 1 60); do
             if curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/api/health | grep -q "200"; then
               echo "Backend is healthy"
