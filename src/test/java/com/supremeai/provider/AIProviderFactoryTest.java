@@ -8,13 +8,13 @@ import org.mockito.Mockito;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+import com.supremeai.service.ProviderMetadataService;
+import com.supremeai.model.APIProvider;
+
 /**
  * Unit tests for AIProviderFactory.
  * Tests provider creation, key resolution, and error handling.
  */
-import com.supremeai.service.ProviderMetadataService;
-import com.supremeai.model.APIProvider;
-
 class AIProviderFactoryTest {
 
     private AIProviderFactory factory;
