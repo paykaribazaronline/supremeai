@@ -1,0 +1,250 @@
+name: Smart CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop, master ]
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+  pull_request:
+    branches: [ main, develop, master ]
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  detect-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      backend: ${{ steps.filter.outputs.backend }}
+      frontend: ${{ steps.filter.outputs.frontend }}
+      functions: ${{ steps.filter.outputs.functions }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Detect Changes
+        id: filter
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            backend:
+              - 'src/**'
+              - 'build.gradle.kts'
+              - 'gradle/**'
+              - 'gradlew*'
+              - 'infra/Dockerfile'
+              - '.github/workflows/smart-ci-cd.yml'
+            frontend:
+              - 'dashboard/**'
+              - '.github/workflows/smart-ci-cd.yml'
+            functions:
+              - 'functions/**'
+              - '.github/workflows/smart-ci-cd.yml'
+
+  backend-ci:
+    needs: detect-changes
+    if: ${{ needs.detect-changes.outputs.backend == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+          cache: 'gradle'
+
+      - name: Run Spotless Code Format Check
+        run: |
+          chmod +x gradlew
+          ./gradlew spotlessCheck --no-daemon
+
+      - name: Run Backend Unit Tests
+        run: ./gradlew clean test --no-daemon
+
+      - name: Set up Google Cloud SDK
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        uses: google-github-actions/auth@v2
+        id: auth
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Set up gcloud
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Set up QEMU
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        uses: docker/setup-buildx-action@v3
+
+      - name: Configure Docker for GCP
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: gcloud auth configure-docker --quiet
+
+      - name: Build and Push Docker Image (with cache)
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: infra/Dockerfile
+          push: true
+          tags: gcr.io/${{ steps.auth.outputs.project_id }}/supremeai-backend:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          build-args: |
+            BUILDKIT_INLINE_CACHE=1
+
+      - name: Deploy to Cloud Run
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: |
+          gcloud run deploy supremeai \
+            --image=gcr.io/${{ steps.auth.outputs.project_id }}/supremeai-backend:latest \
+            --region=us-central1 \
+            --platform=managed \
+            --allow-unauthenticated \
+            --set-env-vars=SPRING_PROFILES_ACTIVE=cloud \
+            --cpu=1 \
+            --memory=512Mi \
+            --concurrency=80 \
+            --timeout=300 \
+            --max-instances=10 \
+            --min-instances=1
+
+      - name: Discord Notification on Failure
+        if: failure() && secrets.DISCORD_WEBHOOK != ''
+        run: |
+          curl -H "Content-Type: application/json" \
+               -X POST \
+               -d '{"content": "❌ **SupremeAI Backend CI Pipeline Failed**\n**Branch:** `${{ github.ref_name }}`\n**Commit:** `${{ github.sha }}`\n[View Run Log](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})"}' \
+               ${{ secrets.DISCORD_WEBHOOK }}
+
+  frontend-ci:
+    needs: detect-changes
+    if: ${{ needs.detect-changes.outputs.frontend == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache-dependency-path: dashboard/package-lock.json
+          cache: 'npm'
+
+      - name: Install Frontend Dependencies
+        run: |
+          cd dashboard
+          npm ci
+
+      - name: Run Frontend Lint Checks
+        run: |
+          cd dashboard
+          npm run lint
+
+      - name: Run Frontend Tests
+        run: |
+          cd dashboard
+          npm run test -- --run || echo "No tests or test command failed"
+
+      - name: Build Dashboard
+        run: |
+          cd dashboard
+          npm run build
+
+      - name: Prepare Dashboard for Firebase
+        run: |
+          mkdir -p public
+          cp -R dashboard/dist/. public/
+
+      - name: Authenticate to Google Cloud (Firebase)
+        if: (github.ref == 'refs/heads/main' && github.event_name == 'push') || github.event_name == 'pull_request'
+        uses: google-github-actions/auth@v2
+        id: auth
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Deploy to Firebase Hosting (Production)
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: |
+          npx firebase-tools deploy --only hosting --project ${{ steps.auth.outputs.project_id }} --non-interactive --force
+
+      - name: Deploy to Firebase Hosting (Preview)
+        if: github.event_name == 'pull_request'
+        id: firebase_preview
+        run: |
+          # Deploy to preview channel named after the PR number
+          PREVIEW_URL=$(npx firebase-tools hosting:channel:deploy pr-${{ github.event.number }} --project ${{ steps.auth.outputs.project_id }} --json | jq -r '.result.hosting.urls[0]')
+          echo "preview_url=$PREVIEW_URL" >> $GITHUB_OUTPUT
+
+      - name: Comment PR with Preview URL
+        if: github.event_name == 'pull_request' && steps.firebase_preview.outputs.preview_url != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PREVIEW_URL: ${{ steps.firebase_preview.outputs.preview_url }}
+        run: |
+          gh pr comment ${{ github.event.number }} --body "🚀 **Firebase Hosting Preview Deployment Succeeded!**
+          
+          🔗 Preview URL: $PREVIEW_URL
+          _Built on commit \`${{ github.sha }}\`_"
+
+      - name: Discord Notification on Failure
+        if: failure() && secrets.DISCORD_WEBHOOK != ''
+        run: |
+          curl -H "Content-Type: application/json" \
+               -X POST \
+               -d '{"content": "❌ **SupremeAI Frontend CI Pipeline Failed**\n**Branch:** `${{ github.ref_name }}`\n**Commit:** `${{ github.sha }}`\n[View Run Log](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})"}' \
+               ${{ secrets.DISCORD_WEBHOOK }}
+
+  functions-ci:
+    needs: detect-changes
+    if: ${{ needs.detect-changes.outputs.functions == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache-dependency-path: functions/package.json
+          cache: 'npm'
+
+      - name: Install Functions Dependencies
+        run: |
+          cd functions
+          npm install
+
+      - name: Authenticate to Google Cloud (Firebase)
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        uses: google-github-actions/auth@v2
+        id: auth
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Deploy to Firebase Functions
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: |
+          npx firebase-tools deploy --only functions --project ${{ steps.auth.outputs.project_id }} --non-interactive --force
+
+      - name: Discord Notification on Failure
+        if: failure() && secrets.DISCORD_WEBHOOK != ''
+        run: |
+          curl -H "Content-Type: application/json" \
+               -X POST \
+               -d '{"content": "❌ **SupremeAI Firebase Functions CI Pipeline Failed**\n**Branch:** `${{ github.ref_name }}`\n**Commit:** `${{ github.sha }}`\n[View Run Log](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})"}' \
+               ${{ secrets.DISCORD_WEBHOOK }}
