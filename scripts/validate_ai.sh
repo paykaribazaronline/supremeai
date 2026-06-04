@@ -3,7 +3,8 @@
 set -euo pipefail
 
 PROVIDERS_FILE="${AI_PROVIDERS_FILE:-config/skills-local.json}"
-BASE_URL="${AI_VALIDATION_BASE_URL:-http://localhost:8080}"
+# Accept either AI_VALIDATION_BASE_URL (preferred) or legacy POCKETLAB_URL
+BASE_URL="${AI_VALIDATION_BASE_URL:-${POCKETLAB_URL:-http://localhost:8080}}"
 PROMPT="Return only the word OK"
 TIMEOUT_SECONDS="${AI_VALIDATION_TIMEOUT:-15}"
 MAX_LATENCY_MS="${AI_VALIDATION_MAX_LATENCY:-8000}"
