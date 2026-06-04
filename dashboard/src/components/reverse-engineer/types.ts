@@ -14,7 +14,10 @@ export interface Job {
     observation?: any;
     auth?: any;
     endpoints?: string[];
-    connectors?: Record<string, { code: string; filename: string; status: string; validation?: any }>;
+    connectors?: Record<
+      string,
+      { code: string; filename: string; status: string; validation?: any }
+    >;
     alternative_suggestions?: AlternativeSuggestion[];
   };
 }

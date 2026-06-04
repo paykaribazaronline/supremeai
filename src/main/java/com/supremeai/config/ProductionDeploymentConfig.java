@@ -5,14 +5,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.scheduling.annotation.EnableScheduling;
 
 /**
  * Production Deployment Configuration - Phase 4 Configures production-ready settings for
  * deployment, monitoring, and operations.
  */
 @Configuration
-@EnableScheduling
 public class ProductionDeploymentConfig {
 
   private static final Logger logger = LoggerFactory.getLogger(ProductionDeploymentConfig.class);

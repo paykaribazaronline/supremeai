@@ -1,6 +1,4 @@
 // AdminProjects.tsx - Cinematic Project Orchestration
-import React, { useState, useEffect } from 'react';
-import { Typography, Row, Col, Space, Button, Badge, Spin, Alert, message, Progress } from 'antd';
 import {
   RocketOutlined,
   ReloadOutlined,
@@ -8,19 +6,37 @@ import {
   CodeOutlined,
   BlockOutlined,
   BranchesOutlined,
-  ExperimentOutlined
-} from '@ant-design/icons';
-import { motion, AnimatePresence } from 'framer-motion';
-import { authUtils } from '../lib/authUtils';
-import { useSystemWebSocket } from '../hooks/useSystemWebSocket';
+  ExperimentOutlined,
+} from "@ant-design/icons";
+import {
+  Typography,
+  Row,
+  Col,
+  Space,
+  Button,
+  Badge,
+  Spin,
+  Alert,
+  message,
+  Progress,
+} from "antd";
+import { motion, AnimatePresence } from "framer-motion";
+import React, { useState, useEffect } from "react";
 
 // Modular Components
-import { Project, GenerationForm, GenerationStatus, ProjectSortField } from '../components/projects/types';
-import ProjectTable from '../components/projects/ProjectTable';
-import ProjectModal from '../components/projects/ProjectModal';
-import AppGenerationCard from '../components/projects/AppGenerationCard';
-import ProjectActionToolbar from '../components/projects/ProjectActionToolbar';
-import InfrastructureAdviceModal from '../components/projects/InfrastructureAdviceModal';
+import AppGenerationCard from "../components/projects/AppGenerationCard";
+import InfrastructureAdviceModal from "../components/projects/InfrastructureAdviceModal";
+import ProjectActionToolbar from "../components/projects/ProjectActionToolbar";
+import ProjectModal from "../components/projects/ProjectModal";
+import ProjectTable from "../components/projects/ProjectTable";
+import {
+  Project,
+  GenerationForm,
+  GenerationStatus,
+  ProjectSortField,
+} from "../components/projects/types";
+import { useSystemWebSocket } from "../hooks/useSystemWebSocket";
+import { authUtils } from "../lib/authUtils";
 
 const { Title, Text } = Typography;
 
@@ -30,56 +46,64 @@ const AdminProjects: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
-  
-  const [searchTerm, setSearchTerm] = useState('');
-  const [sortBy, setSortBy] = useState<ProjectSortField | null>('createdAt');
-  const [sortOrder, setSortOrder] = useState<'ascend' | 'descend'>('descend');
+
+  const [searchTerm, setSearchTerm] = useState("");
+  const [sortBy, setSortBy] = useState<ProjectSortField | null>("createdAt");
+  const [sortOrder, setSortOrder] = useState<"ascend" | "descend">("descend");
 
   // Generation State
   const [generationForm, setGenerationForm] = useState<GenerationForm>({
-    name: '',
-    description: '',
-    platform: 'fullstack',
-    database: 'PostgreSQL',
-    useAI: true
+    name: "",
+    description: "",
+    platform: "fullstack",
+    database: "PostgreSQL",
+    useAI: true,
   });
-  const [generationStatus, setGenerationStatus] = useState<GenerationStatus>('idle');
+  const [generationStatus, setGenerationStatus] =
+    useState<GenerationStatus>("idle");
   const [generationStep, setGenerationStep] = useState(0);
   const [generationProgress, setGenerationProgress] = useState(0);
   const [generationResult, setGenerationResult] = useState<any>(null);
 
-  const { messages } = useSystemWebSocket(['/topic/pipeline/progress']);
+  const { messages } = useSystemWebSocket(["/topic/pipeline/progress"]);
 
   useEffect(() => {
-    const pipelineMsg = messages['/topic/pipeline/progress'];
+    const pipelineMsg = messages["/topic/pipeline/progress"];
     if (pipelineMsg) {
       if (pipelineMsg.step !== undefined) setGenerationStep(pipelineMsg.step);
-      if (pipelineMsg.progress !== undefined) setGenerationProgress(pipelineMsg.progress);
+      if (pipelineMsg.progress !== undefined)
+        setGenerationProgress(pipelineMsg.progress);
     }
   }, [messages]);
 
   const [adviceVisible, setAdviceVisible] = useState(false);
   const [adviceLoading, setAdviceLoading] = useState(false);
-  const [infrastructureAdvice, setInfrastructureAdvice] = useState<string | null>(null);
+  const [infrastructureAdvice, setInfrastructureAdvice] = useState<
+    string | null
+  >(null);
 
   const processedProjects = React.useMemo(() => {
-    let result = projects.filter(p => {
+    const result = projects.filter((p) => {
       if (!searchTerm) return true;
       const term = searchTerm.toLowerCase();
-      return p.name.toLowerCase().includes(term) || 
-             (p.description && p.description.toLowerCase().includes(term)) ||
-             p.id.toLowerCase().includes(term);
+      return (
+        p.name.toLowerCase().includes(term) ||
+        (p.description && p.description.toLowerCase().includes(term)) ||
+        p.id.toLowerCase().includes(term)
+      );
     });
     if (sortBy) {
       result.sort((a, b) => {
-        const aVal = (a as any)[sortBy] ?? '';
-        const bVal = (b as any)[sortBy] ?? '';
-        if (sortBy === 'createdAt') {
-          return sortOrder === 'ascend' 
+        const aVal = (a as any)[sortBy] ?? "";
+        const bVal = (b as any)[sortBy] ?? "";
+        if (sortBy === "createdAt") {
+          return sortOrder === "ascend"
             ? new Date(aVal).getTime() - new Date(bVal).getTime()
             : new Date(bVal).getTime() - new Date(aVal).getTime();
         }
-        return sortOrder === 'ascend' ? String(aVal).localeCompare(String(bVal)) : String(bVal).localeCompare(String(aVal));
+        return sortOrder === "ascend"
+          ? String(aVal).localeCompare(String(bVal))
+          : String(bVal).localeCompare(String(aVal));
       });
     }
     return result;
@@ -88,69 +112,73 @@ const AdminProjects: React.FC = () => {
   const fetchProjects = async () => {
     setLoading(true);
     try {
-      const response = await authUtils.fetchWithAuth('/api/projects');
+      const response = await authUtils.fetchWithAuth("/api/projects");
       if (response.ok) {
         const result = await response.json();
         setProjects(result.data || []);
       }
     } catch (err) {
-      setError('Failed to load project database');
+      setError("Failed to load project database");
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => { fetchProjects(); }, []);
+  useEffect(() => {
+    fetchProjects();
+  }, []);
 
   const handleGenerateApp = async () => {
     if (!generationForm.name || !generationForm.description) {
-      message.warning('Please provide target parameters');
+      message.warning("Please provide target parameters");
       return;
     }
-    setGenerationStatus('generating');
+    setGenerationStatus("generating");
     try {
-      const response = await authUtils.fetchWithAuth('/api/generate', {
-        method: 'POST',
-        body: JSON.stringify({ ...generationForm, type: 'project' }),
+      const response = await authUtils.fetchWithAuth("/api/generate", {
+        method: "POST",
+        body: JSON.stringify({ ...generationForm, type: "project" }),
       });
       if (response.ok) {
-        message.success('Synthesis engine initialized');
+        message.success("Synthesis engine initialized");
       }
     } catch (err) {
-      setGenerationStatus('error');
+      setGenerationStatus("error");
     }
   };
 
   const handleDeleteProject = async (id: string) => {
     try {
       const res = await authUtils.fetchWithAuth(`/api/projects/${id}`, {
-        method: 'DELETE', headers: { 'Content-Type': 'application/json' }
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
       });
       if (res.ok) {
-        message.success('Project deleted successfully');
+        message.success("Project deleted successfully");
         fetchProjects();
       } else {
-        message.error('Failed to delete project');
+        message.error("Failed to delete project");
       }
     } catch {
-      message.error('Failed to delete project');
+      message.error("Failed to delete project");
     }
   };
 
   const handleUpdateStatus = async (id: string, status: string) => {
     try {
       const res = await authUtils.fetchWithAuth(`/api/projects/${id}/status`, {
-        method: 'PUT', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status })
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status }),
       });
       if (res.ok) {
         message.success(`Project status updated to ${status}`);
         fetchProjects();
       } else {
-        message.error('Failed to update project status');
+        message.error("Failed to update project status");
       }
     } catch {
-      message.error('Failed to update project status');
+      message.error("Failed to update project status");
     }
   };
 
@@ -159,20 +187,54 @@ const AdminProjects: React.FC = () => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6 }}
-      style={{ maxWidth: '1600px', margin: '0 auto' }}
+      style={{ maxWidth: "1600px", margin: "0 auto" }}
     >
       {/* Cinematic Header */}
-      <div style={{ marginBottom: 32, borderBottom: '1px solid rgba(0, 243, 255, 0.1)', paddingBottom: 24 }}>
+      <div
+        style={{
+          marginBottom: 32,
+          borderBottom: "1px solid rgba(0, 243, 255, 0.1)",
+          paddingBottom: 24,
+        }}
+      >
         <Row justify="space-between" align="bottom">
           <Col>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
-              <RocketOutlined style={{ color: 'var(--neon-blue)', fontSize: 20 }} />
-              <Text style={{ color: 'var(--neon-blue)', letterSpacing: 2, fontWeight: 800, fontSize: 12 }}>PROJECT VAULT</Text>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 12,
+                marginBottom: 8,
+              }}
+            >
+              <RocketOutlined
+                style={{ color: "var(--neon-blue)", fontSize: 20 }}
+              />
+              <Text
+                style={{
+                  color: "var(--neon-blue)",
+                  letterSpacing: 2,
+                  fontWeight: 800,
+                  fontSize: 12,
+                }}
+              >
+                PROJECT VAULT
+              </Text>
             </div>
-            <Title level={2} style={{ color: '#fff', margin: 0, fontWeight: 800, fontSize: 32 }}>
+            <Title
+              level={2}
+              style={{
+                color: "#fff",
+                margin: 0,
+                fontWeight: 800,
+                fontSize: 32,
+              }}
+            >
               System <span className="text-gradient">Orchestrator</span>
             </Title>
-            <Text style={{ color: 'var(--text-dim)', fontSize: 14 }}>Manage, synthesize, and deploy neural-integrated applications.</Text>
+            <Text style={{ color: "var(--text-dim)", fontSize: 14 }}>
+              Manage, synthesize, and deploy neural-integrated applications.
+            </Text>
           </Col>
           <Col>
             <Space>
@@ -186,7 +248,10 @@ const AdminProjects: React.FC = () => {
               <Button
                 type="primary"
                 icon={<ExperimentOutlined />}
-                onClick={() => { setEditingProject(null); setModalVisible(true); }}
+                onClick={() => {
+                  setEditingProject(null);
+                  setModalVisible(true);
+                }}
                 className="cyber-button"
               >
                 New Synthesis
@@ -201,19 +266,67 @@ const AdminProjects: React.FC = () => {
         <Col span={24}>
           <Row gutter={[24, 24]}>
             {[
-              { label: 'Active Deployments', value: projects.length, icon: <BranchesOutlined />, color: 'var(--neon-blue)' },
-              { label: 'Production Ready', value: projects.filter(p => p.status === 'production').length, icon: <CodeOutlined />, color: 'var(--success)' },
-              { label: 'Synthesis in Progress', value: generationStatus === 'generating' ? 1 : 0, icon: <SyncOutlined spin={generationStatus === 'generating'} />, color: 'var(--neon-purple)' },
-              { label: 'System Load', value: '42%', icon: <BlockOutlined />, color: 'var(--text-dim)' }
+              {
+                label: "Active Deployments",
+                value: projects.length,
+                icon: <BranchesOutlined />,
+                color: "var(--neon-blue)",
+              },
+              {
+                label: "Production Ready",
+                value: projects.filter((p) => p.status === "production").length,
+                icon: <CodeOutlined />,
+                color: "var(--success)",
+              },
+              {
+                label: "Synthesis in Progress",
+                value: generationStatus === "generating" ? 1 : 0,
+                icon: <SyncOutlined spin={generationStatus === "generating"} />,
+                color: "var(--neon-purple)",
+              },
+              {
+                label: "System Load",
+                value: "42%",
+                icon: <BlockOutlined />,
+                color: "var(--text-dim)",
+              },
             ].map((stat, idx) => (
               <Col xs={12} lg={6} key={idx}>
-                <div className="glass-card" style={{ padding: '16px 24px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div className="glass-card" style={{ padding: "16px 24px" }}>
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                    }}
+                  >
                     <div>
-                      <Text style={{ color: 'rgba(255,255,255,0.45)', fontSize: 11, textTransform: 'uppercase', letterSpacing: 1 }}>{stat.label}</Text>
-                      <div style={{ color: '#fff', fontSize: 24, fontWeight: 800, marginTop: 4 }}>{stat.value}</div>
+                      <Text
+                        style={{
+                          color: "rgba(255,255,255,0.45)",
+                          fontSize: 11,
+                          textTransform: "uppercase",
+                          letterSpacing: 1,
+                        }}
+                      >
+                        {stat.label}
+                      </Text>
+                      <div
+                        style={{
+                          color: "#fff",
+                          fontSize: 24,
+                          fontWeight: 800,
+                          marginTop: 4,
+                        }}
+                      >
+                        {stat.value}
+                      </div>
                     </div>
-                    <div style={{ color: stat.color, fontSize: 24, opacity: 0.8 }}>{stat.icon}</div>
+                    <div
+                      style={{ color: stat.color, fontSize: 24, opacity: 0.8 }}
+                    >
+                      {stat.icon}
+                    </div>
                   </div>
                 </div>
               </Col>
@@ -223,14 +336,24 @@ const AdminProjects: React.FC = () => {
 
         {/* Project List */}
         <Col xs={24} xl={16}>
-          <div className="glass-card" style={{ minHeight: '600px', display: 'flex', flexDirection: 'column' }}>
+          <div
+            className="glass-card"
+            style={{
+              minHeight: "600px",
+              display: "flex",
+              flexDirection: "column",
+            }}
+          >
             <div className="glass-card-title">
               Active Project Matrix
               <Space>
                 <ProjectActionToolbar
                   searchTerm={searchTerm}
                   setSearchTerm={setSearchTerm}
-                  onNewProject={() => { setEditingProject(null); setModalVisible(true); }}
+                  onNewProject={() => {
+                    setEditingProject(null);
+                    setModalVisible(true);
+                  }}
                   onRefresh={fetchProjects}
                   loading={loading}
                   sortBy={sortBy}
@@ -244,14 +367,24 @@ const AdminProjects: React.FC = () => {
 
             <div style={{ flex: 1, marginTop: 12 }}>
               {loading && !projects.length ? (
-                <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <div
+                  style={{
+                    height: "100%",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
                   <Spin size="large" tip="SYNCING VAULT..." />
                 </div>
               ) : (
                 <ProjectTable
                   projects={processedProjects}
                   loading={loading}
-                  onEdit={(project) => { setEditingProject(project); setModalVisible(true); }}
+                  onEdit={(project) => {
+                    setEditingProject(project);
+                    setModalVisible(true);
+                  }}
                   onDelete={handleDeleteProject}
                   onUpdateStatus={handleUpdateStatus}
                 />
@@ -262,12 +395,15 @@ const AdminProjects: React.FC = () => {
 
         {/* Generation & Advice Side Panel */}
         <Col xs={24} xl={8}>
-          <Space direction="vertical" size={24} style={{ width: '100%' }}>
+          <Space direction="vertical" size={24} style={{ width: "100%" }}>
             {/* App Generation Card - Modified for Sidebar */}
-            <div className="glass-card" style={{ borderLeft: '4px solid var(--neon-purple)' }}>
+            <div
+              className="glass-card"
+              style={{ borderLeft: "4px solid var(--neon-purple)" }}
+            >
               <div className="glass-card-title">
                 AI Synthesis Engine
-                <ExperimentOutlined style={{ color: 'var(--neon-purple)' }} />
+                <ExperimentOutlined style={{ color: "var(--neon-purple)" }} />
               </div>
               <AppGenerationCard
                 generationForm={generationForm}
@@ -286,11 +422,19 @@ const AdminProjects: React.FC = () => {
             <div className="glass-card">
               <div className="glass-card-title">
                 Neural Infrastructure
-                <BranchesOutlined style={{ color: 'var(--neon-blue)' }} />
+                <BranchesOutlined style={{ color: "var(--neon-blue)" }} />
               </div>
-              <div style={{ padding: '8px 0' }}>
-                <Text style={{ color: 'rgba(255,255,255,0.65)', fontSize: 13, display: 'block', marginBottom: 16 }}>
-                  Our AI agents can analyze your project requirements and suggest optimal deployment strategies.
+              <div style={{ padding: "8px 0" }}>
+                <Text
+                  style={{
+                    color: "rgba(255,255,255,0.65)",
+                    fontSize: 13,
+                    display: "block",
+                    marginBottom: 16,
+                  }}
+                >
+                  Our AI agents can analyze your project requirements and
+                  suggest optimal deployment strategies.
                 </Text>
                 <Button
                   block
@@ -303,12 +447,37 @@ const AdminProjects: React.FC = () => {
             </div>
 
             {/* System Status */}
-            <div className="glass-card" style={{ background: 'rgba(16, 185, 129, 0.05)' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-                <div className="pulsing" style={{ width: 12, height: 12, borderRadius: '50%', background: 'var(--success)', boxShadow: '0 0 10px var(--success)' }} />
+            <div
+              className="glass-card"
+              style={{ background: "rgba(16, 185, 129, 0.05)" }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+                <div
+                  className="pulsing"
+                  style={{
+                    width: 12,
+                    height: 12,
+                    borderRadius: "50%",
+                    background: "var(--success)",
+                    boxShadow: "0 0 10px var(--success)",
+                  }}
+                />
                 <div>
-                  <Text style={{ color: '#fff', fontSize: 14, fontWeight: 600, display: 'block' }}>Pipeline Ready</Text>
-                  <Text style={{ color: 'rgba(255,255,255,0.45)', fontSize: 11 }}>Cluster capacity at 85%</Text>
+                  <Text
+                    style={{
+                      color: "#fff",
+                      fontSize: 14,
+                      fontWeight: 600,
+                      display: "block",
+                    }}
+                  >
+                    Pipeline Ready
+                  </Text>
+                  <Text
+                    style={{ color: "rgba(255,255,255,0.45)", fontSize: 11 }}
+                  >
+                    Cluster capacity at 85%
+                  </Text>
                 </div>
               </div>
             </div>
@@ -316,7 +485,7 @@ const AdminProjects: React.FC = () => {
         </Col>
       </Row>
 
-      <InfrastructureAdviceModal 
+      <InfrastructureAdviceModal
         visible={adviceVisible}
         onCancel={() => setAdviceVisible(false)}
         advice={infrastructureAdvice}
@@ -324,7 +493,7 @@ const AdminProjects: React.FC = () => {
         projectName={generationForm.name || "New Project"}
       />
 
-      <ProjectModal 
+      <ProjectModal
         visible={modalVisible}
         editingProject={editingProject}
         onCancel={() => setModalVisible(false)}
@@ -332,22 +501,26 @@ const AdminProjects: React.FC = () => {
           try {
             const isEdit = !!editingProject;
             const res = await authUtils.fetchWithAuth(
-              isEdit ? `/api/projects/${editingProject.id}` : '/api/projects',
+              isEdit ? `/api/projects/${editingProject.id}` : "/api/projects",
               {
-                method: isEdit ? 'PUT' : 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                method: isEdit ? "PUT" : "POST",
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(v),
-              }
+              },
             );
             if (res.ok) {
-              message.success(isEdit ? 'Project updated successfully' : 'Project created successfully');
+              message.success(
+                isEdit
+                  ? "Project updated successfully"
+                  : "Project created successfully",
+              );
               setModalVisible(false);
               fetchProjects();
             } else {
-              message.error('Operation failed');
+              message.error("Operation failed");
             }
           } catch (err) {
-            message.error('Failed to save project');
+            message.error("Failed to save project");
           }
         }}
       />

@@ -1,7 +1,12 @@
-import React, { useRef } from 'react';
-import { useFrame } from '@react-three/fiber';
-import { Sphere, MeshDistortMaterial, Float, MeshWobbleMaterial } from '@react-three/drei';
-import * as THREE from 'three';
+import {
+  Sphere,
+  MeshDistortMaterial,
+  Float,
+  MeshWobbleMaterial,
+} from "@react-three/drei";
+import { useFrame } from "@react-three/fiber";
+import React, { useRef } from "react";
+import * as THREE from "three";
 
 export const CoreEngine = () => {
   const outerRef = useRef<THREE.Mesh>(null);
@@ -59,9 +64,17 @@ export const CoreEngine = () => {
   );
 };
 
-const OrbitingData = ({ color, radius, speed }: { color: string, radius: number, speed: number }) => {
+const OrbitingData = ({
+  color,
+  radius,
+  speed,
+}: {
+  color: string;
+  radius: number;
+  speed: number;
+}) => {
   const ref = useRef<THREE.Group>(null);
-  
+
   useFrame((state) => {
     if (ref.current) {
       ref.current.rotation.y = state.clock.getElapsedTime() * speed;
@@ -71,13 +84,20 @@ const OrbitingData = ({ color, radius, speed }: { color: string, radius: number,
   return (
     <group ref={ref}>
       {[...Array(5)].map((_, i) => (
-        <mesh key={i} position={[
-          Math.cos((i / 5) * Math.PI * 2) * radius,
-          Math.sin(i * 1.5) * 0.5,
-          Math.sin((i / 5) * Math.PI * 2) * radius
-        ]}>
+        <mesh
+          key={i}
+          position={[
+            Math.cos((i / 5) * Math.PI * 2) * radius,
+            Math.sin(i * 1.5) * 0.5,
+            Math.sin((i / 5) * Math.PI * 2) * radius,
+          ]}
+        >
           <boxGeometry args={[0.1, 0.1, 0.1]} />
-          <meshStandardMaterial color={color} emissive={color} emissiveIntensity={5} />
+          <meshStandardMaterial
+            color={color}
+            emissive={color}
+            emissiveIntensity={5}
+          />
         </mesh>
       ))}
     </group>

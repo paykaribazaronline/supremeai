@@ -1,13 +1,15 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
-import { Client, IMessage } from '@stomp/stompjs';
-import SockJS from 'sockjs-client';
+import { Client, IMessage } from "@stomp/stompjs";
+import { useState, useEffect, useRef, useCallback } from "react";
+import SockJS from "sockjs-client";
 
 interface SystemEvent {
   type: string;
   [key: string]: any;
 }
 
-export function useSystemWebSocket(topics: string[] = ['/topic/system-events']) {
+export function useSystemWebSocket(
+  topics: string[] = ["/topic/system-events"],
+) {
   const [messages, setMessages] = useState<Record<string, SystemEvent>>({});
   const [connected, setConnected] = useState(false);
   const stompClientRef = useRef<Client | null>(null);
@@ -15,9 +17,9 @@ export function useSystemWebSocket(topics: string[] = ['/topic/system-events']) 
   const handleMessage = useCallback((topic: string, message: IMessage) => {
     try {
       const data = JSON.parse(message.body) as SystemEvent;
-      setMessages(prev => ({
+      setMessages((prev) => ({
         ...prev,
-        [topic]: data
+        [topic]: data,
       }));
     } catch (e) {
       console.error(`Failed to parse WebSocket message from ${topic}`, e);
@@ -27,31 +29,33 @@ export function useSystemWebSocket(topics: string[] = ['/topic/system-events']) 
   useEffect(() => {
     const connectWebSocket = () => {
       try {
-        const wsUrl = `${window.location.protocol === 'https:' ? 'wss:' : 'ws'}://${window.location.host}/ws`;
+        const wsUrl = `${window.location.protocol === "https:" ? "wss:" : "ws"}://${window.location.host}/ws`;
         const socket = new SockJS(wsUrl);
-        
+
         const stompClient = new Client({
           webSocketFactory: () => socket,
           reconnectDelay: 5000,
           onConnect: () => {
             setConnected(true);
-            topics.forEach(topic => {
-              stompClient.subscribe(topic, (message) => handleMessage(topic, message));
+            topics.forEach((topic) => {
+              stompClient.subscribe(topic, (message) =>
+                handleMessage(topic, message),
+              );
             });
           },
           onDisconnect: () => {
             setConnected(false);
           },
           onStompError: (frame) => {
-            console.error('STOMP error', frame);
+            console.error("STOMP error", frame);
             setConnected(false);
-          }
+          },
         });
 
         stompClient.activate();
         stompClientRef.current = stompClient;
       } catch (err) {
-        console.error('WebSocket connection error', err);
+        console.error("WebSocket connection error", err);
       }
     };
 

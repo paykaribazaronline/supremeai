@@ -1,6 +1,13 @@
 // RoleContext.tsx - User role and permissions provider
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { authUtils } from '../lib/authUtils';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  ReactNode,
+} from "react";
+
+import { authUtils } from "../lib/authUtils";
 
 interface RoleContextType {
   isAdmin: boolean;
@@ -15,7 +22,7 @@ const RoleContext = createContext<RoleContextType | undefined>(undefined);
 export const useRole = () => {
   const context = useContext(RoleContext);
   if (!context) {
-    throw new Error('useRole must be used within a RoleProvider');
+    throw new Error("useRole must be used within a RoleProvider");
   }
   return context;
 };
@@ -34,19 +41,24 @@ export const RoleProvider: React.FC<RoleProviderProps> = ({ children }) => {
     const token = authUtils.getToken();
     const currentUser = authUtils.getCurrentUser();
 
-    setIsAuthenticated(!!token && token !== 'GUEST_MODE');
-    setIsGuest(token === 'GUEST_MODE');
+    setIsAuthenticated(!!token && token !== "GUEST_MODE");
+    setIsGuest(token === "GUEST_MODE");
     setUser(currentUser);
 
     // Check admin status: rely on backend-assigned roles/tiers
     const isAdminUser =
-      currentUser?.role === 'admin' ||
-      currentUser?.tier === 'admin' ||
-      currentUser?.tier === 'ADMIN';
+      currentUser?.role === "admin" ||
+      currentUser?.tier === "admin" ||
+      currentUser?.tier === "ADMIN";
 
-    console.log('[RoleContext] Refreshing user:', currentUser?.email);
-    console.log('[RoleContext] Raw role/tier:', currentUser?.role, '/', currentUser?.tier);
-    console.log('[RoleContext] Calculated isAdmin:', isAdminUser);
+    console.log("[RoleContext] Refreshing user:", currentUser?.email);
+    console.log(
+      "[RoleContext] Raw role/tier:",
+      currentUser?.role,
+      "/",
+      currentUser?.tier,
+    );
+    console.log("[RoleContext] Calculated isAdmin:", isAdminUser);
 
     setIsAdmin(isAdminUser);
   };
@@ -55,12 +67,14 @@ export const RoleProvider: React.FC<RoleProviderProps> = ({ children }) => {
     refreshUser();
     // Listen for storage changes (login/logout in other tabs)
     const handleStorage = () => refreshUser();
-    window.addEventListener('storage', handleStorage);
-    return () => window.removeEventListener('storage', handleStorage);
+    window.addEventListener("storage", handleStorage);
+    return () => window.removeEventListener("storage", handleStorage);
   }, []);
 
   return (
-    <RoleContext.Provider value={{ isAdmin, isAuthenticated, isGuest, user, refreshUser }}>
+    <RoleContext.Provider
+      value={{ isAdmin, isAuthenticated, isGuest, user, refreshUser }}
+    >
       {children}
     </RoleContext.Provider>
   );

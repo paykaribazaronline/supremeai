@@ -1,6 +1,4 @@
 // AdminSettings.tsx - Cinematic System Configuration
-import React, { useState, useEffect } from 'react';
-import { Tabs, Button, message, Spin, Alert, Typography, Row, Col, Space, Progress } from 'antd';
 import {
   SettingOutlined,
   ApiOutlined,
@@ -10,19 +8,33 @@ import {
   ReloadOutlined,
   ControlOutlined,
   SafetyOutlined,
-  GlobalOutlined
-} from '@ant-design/icons';
-import { motion } from 'framer-motion';
-import AdminLayout from '../components/AdminLayout';
-import { authUtils } from '../lib/authUtils';
-import UserSettings from '../components/UserSettings';
-import { SystemConfig } from '../components/settings/types';
-import GeneralSettingsCard from '../components/settings/GeneralSettingsCard';
-import QuotaSettingsCard from '../components/settings/QuotaSettingsCard';
-import NotificationSettingsCard from '../components/settings/NotificationSettingsCard';
-import EngineSettingsCard from '../components/settings/EngineSettingsCard';
-import { Form } from 'antd';
-import { useOutletContext } from 'react-router-dom';
+  GlobalOutlined,
+} from "@ant-design/icons";
+import {
+  Tabs,
+  Button,
+  message,
+  Spin,
+  Alert,
+  Typography,
+  Row,
+  Col,
+  Space,
+  Progress,
+  Form,
+} from "antd";
+import { motion } from "framer-motion";
+import React, { useState, useEffect } from "react";
+import { useOutletContext } from "react-router-dom";
+
+import AdminLayout from "../components/AdminLayout";
+import EngineSettingsCard from "../components/settings/EngineSettingsCard";
+import GeneralSettingsCard from "../components/settings/GeneralSettingsCard";
+import NotificationSettingsCard from "../components/settings/NotificationSettingsCard";
+import QuotaSettingsCard from "../components/settings/QuotaSettingsCard";
+import { SystemConfig } from "../components/settings/types";
+import UserSettings from "../components/UserSettings";
+import { authUtils } from "../lib/authUtils";
 
 const { Title, Text } = Typography;
 
@@ -34,11 +46,16 @@ interface AdminSettingsProps {
 }
 
 const AdminSettings: React.FC<AdminSettingsProps> = (props) => {
-  const context = useOutletContext<{ darkMode?: boolean; setDarkMode?: (value: boolean) => void; chatFont?: string; setChatFont?: (value: string) => void }>();
+  const context = useOutletContext<{
+    darkMode?: boolean;
+    setDarkMode?: (value: boolean) => void;
+    chatFont?: string;
+    setChatFont?: (value: string) => void;
+  }>();
   const darkMode = props.darkMode ?? context.darkMode ?? true;
-  const setDarkMode = props.setDarkMode ?? context.setDarkMode ?? (() => { });
-  const chatFont = props.chatFont ?? context.chatFont ?? 'font-mono';
-  const setChatFont = props.setChatFont ?? context.setChatFont ?? (() => { });
+  const setDarkMode = props.setDarkMode ?? context.setDarkMode ?? (() => {});
+  const chatFont = props.chatFont ?? context.chatFont ?? "font-mono";
+  const setChatFont = props.setChatFont ?? context.setChatFont ?? (() => {});
   const [config, setConfig] = useState<SystemConfig>({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -48,85 +65,130 @@ const AdminSettings: React.FC<AdminSettingsProps> = (props) => {
   const fetchConfig = async () => {
     setLoading(true);
     try {
-      const response = await authUtils.fetchWithAuth('/api/admin/config');
+      const response = await authUtils.fetchWithAuth("/api/admin/config");
       if (response.ok) {
         const data: SystemConfig = await response.json();
         setConfig(data);
         form.setFieldsValue(data);
       }
     } catch (err) {
-      setError('Failed to fetch neural configuration');
+      setError("Failed to fetch neural configuration");
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => { fetchConfig(); }, []);
+  useEffect(() => {
+    fetchConfig();
+  }, []);
 
   const handleSaveGeneral = async (values: any) => {
-    const hide = message.loading('Propagating configuration to all nodes...', 0);
+    const hide = message.loading(
+      "Propagating configuration to all nodes...",
+      0,
+    );
     setSaving(true);
     try {
       const payload = { ...config, ...values };
-      const response = await authUtils.fetchWithAuth('/api/admin/config', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await authUtils.fetchWithAuth("/api/admin/config", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
       if (response.ok) {
-        message.success('Neural weights updated successfully');
+        message.success("Neural weights updated successfully");
         setTimeout(() => fetchConfig(), 500);
       }
     } catch (err) {
-      message.error('Update failed');
+      message.error("Update failed");
     } finally {
       setSaving(false);
       hide();
     }
   };
 
-  const updateMapValue = async (field: keyof SystemConfig, key: string, value: any) => {
+  const updateMapValue = async (
+    field: keyof SystemConfig,
+    key: string,
+    value: any,
+  ) => {
     try {
       const newConfig = { ...config };
       const map = { ...(newConfig[field] as Record<string, any>) };
       map[key] = value;
       (newConfig as any)[field] = map;
-      const response = await authUtils.fetchWithAuth('/api/admin/config', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await authUtils.fetchWithAuth("/api/admin/config", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(newConfig),
       });
       if (response.ok) {
         message.success(`Parameter "${key}" updated`);
         fetchConfig();
       }
-    } catch (err) { }
+    } catch (err) {}
   };
 
   const tabItems = [
     {
-      key: 'general',
-      label: <span className="tab-label"><SettingOutlined /> CORE CONFIG</span>,
-      children: <GeneralSettingsCard form={form} onFinish={handleSaveGeneral} saving={saving} />,
+      key: "general",
+      label: (
+        <span className="tab-label">
+          <SettingOutlined /> CORE CONFIG
+        </span>
+      ),
+      children: (
+        <GeneralSettingsCard
+          form={form}
+          onFinish={handleSaveGeneral}
+          saving={saving}
+        />
+      ),
     },
     {
-      key: 'quotas',
-      label: <span className="tab-label"><ApiOutlined /> NEURAL LIMITS</span>,
-      children: <QuotaSettingsCard config={config} onUpdateValue={updateMapValue} />,
+      key: "quotas",
+      label: (
+        <span className="tab-label">
+          <ApiOutlined /> NEURAL LIMITS
+        </span>
+      ),
+      children: (
+        <QuotaSettingsCard config={config} onUpdateValue={updateMapValue} />
+      ),
     },
     {
-      key: 'notifications',
-      label: <span className="tab-label"><BellOutlined /> LOG CHANNELS</span>,
-      children: <NotificationSettingsCard form={form} onFinish={handleSaveGeneral} saving={saving} />,
+      key: "notifications",
+      label: (
+        <span className="tab-label">
+          <BellOutlined /> LOG CHANNELS
+        </span>
+      ),
+      children: (
+        <NotificationSettingsCard
+          form={form}
+          onFinish={handleSaveGeneral}
+          saving={saving}
+        />
+      ),
     },
     {
-      key: 'engine',
-      label: <span className="tab-label"><FileTextOutlined /> ENGINE SEEDS</span>,
-      children: <EngineSettingsCard config={config} onUpdateValue={updateMapValue} />,
+      key: "engine",
+      label: (
+        <span className="tab-label">
+          <FileTextOutlined /> ENGINE SEEDS
+        </span>
+      ),
+      children: (
+        <EngineSettingsCard config={config} onUpdateValue={updateMapValue} />
+      ),
     },
     {
-      key: 'personal',
-      label: <span className="tab-label"><UserOutlined /> OPERATOR PREFS</span>,
+      key: "personal",
+      label: (
+        <span className="tab-label">
+          <UserOutlined /> OPERATOR PREFS
+        </span>
+      ),
       children: (
         <div style={{ marginTop: 24 }}>
           <UserSettings
@@ -159,14 +221,27 @@ const AdminSettings: React.FC<AdminSettingsProps> = (props) => {
         </Button>
       }
     >
-
       <Row gutter={[32, 32]}>
         <Col xs={24} lg={18}>
-          <div className="glass-card" style={{ minHeight: '700px' }}>
-            {error && <Alert type="error" message={error} showIcon style={{ marginBottom: 20 }} />}
+          <div className="glass-card" style={{ minHeight: "700px" }}>
+            {error && (
+              <Alert
+                type="error"
+                message={error}
+                showIcon
+                style={{ marginBottom: 20 }}
+              />
+            )}
 
             {loading && !Object.keys(config).length ? (
-              <div style={{ height: 400, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <div
+                style={{
+                  height: 400,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
                 <Spin size="large" tip="FETCHING NEURAL STATE..." />
               </div>
             ) : (
@@ -180,32 +255,96 @@ const AdminSettings: React.FC<AdminSettingsProps> = (props) => {
         </Col>
 
         <Col xs={24} lg={6}>
-          <Space direction="vertical" size={24} style={{ width: '100%' }}>
-            <div className="glass-card" style={{ background: 'linear-gradient(135deg, rgba(0, 243, 255, 0.05), rgba(188, 19, 254, 0.05))' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
-                <SafetyOutlined style={{ color: 'var(--success)', fontSize: 20 }} />
-                <Text strong style={{ color: '#fff' }}>Protocol Security</Text>
+          <Space direction="vertical" size={24} style={{ width: "100%" }}>
+            <div
+              className="glass-card"
+              style={{
+                background:
+                  "linear-gradient(135deg, rgba(0, 243, 255, 0.05), rgba(188, 19, 254, 0.05))",
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 12,
+                  marginBottom: 16,
+                }}
+              >
+                <SafetyOutlined
+                  style={{ color: "var(--success)", fontSize: 20 }}
+                />
+                <Text strong style={{ color: "#fff" }}>
+                  Protocol Security
+                </Text>
               </div>
-              <Text style={{ color: 'var(--text-dim)', fontSize: 13 }}>
-                Configuration changes are logged and propagated across the cluster with AES-256 encryption.
+              <Text style={{ color: "var(--text-dim)", fontSize: 13 }}>
+                Configuration changes are logged and propagated across the
+                cluster with AES-256 encryption.
               </Text>
             </div>
 
             <div className="glass-card">
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
-                <GlobalOutlined style={{ color: 'var(--neon-blue)', fontSize: 20 }} />
-                <Text strong style={{ color: '#fff' }}>Global Propagator</Text>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 12,
+                  marginBottom: 16,
+                }}
+              >
+                <GlobalOutlined
+                  style={{ color: "var(--neon-blue)", fontSize: 20 }}
+                />
+                <Text strong style={{ color: "#fff" }}>
+                  Global Propagator
+                </Text>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-                <Text style={{ color: 'rgba(255,255,255,0.45)', fontSize: 12 }}>Sync Latency</Text>
-                <Text style={{ color: 'var(--neon-blue)', fontWeight: 700 }}>14ms</Text>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  marginBottom: 8,
+                }}
+              >
+                <Text style={{ color: "rgba(255,255,255,0.45)", fontSize: 12 }}>
+                  Sync Latency
+                </Text>
+                <Text style={{ color: "var(--neon-blue)", fontWeight: 700 }}>
+                  14ms
+                </Text>
               </div>
-              <Progress percent={100} strokeColor="var(--neon-blue)" trailColor="rgba(255,255,255,0.05)" showInfo={false} strokeWidth={4} />
+              <Progress
+                percent={100}
+                strokeColor="var(--neon-blue)"
+                trailColor="rgba(255,255,255,0.05)"
+                showInfo={false}
+                strokeWidth={4}
+              />
             </div>
 
-            <div className="glass-card" style={{ textAlign: 'center', padding: '32px 16px' }}>
-              <Text style={{ color: 'rgba(255,255,255,0.3)', fontSize: 11, textTransform: 'uppercase', letterSpacing: 2 }}>Build Signature</Text>
-              <div style={{ color: 'rgba(255,255,255,0.6)', fontFamily: 'JetBrains Mono', fontSize: 12, marginTop: 8 }}>
+            <div
+              className="glass-card"
+              style={{ textAlign: "center", padding: "32px 16px" }}
+            >
+              <Text
+                style={{
+                  color: "rgba(255,255,255,0.3)",
+                  fontSize: 11,
+                  textTransform: "uppercase",
+                  letterSpacing: 2,
+                }}
+              >
+                Build Signature
+              </Text>
+              <div
+                style={{
+                  color: "rgba(255,255,255,0.6)",
+                  fontFamily: "JetBrains Mono",
+                  fontSize: 12,
+                  marginTop: 8,
+                }}
+              >
                 SHA-256: 8f2b...3a1c
               </div>
             </div>

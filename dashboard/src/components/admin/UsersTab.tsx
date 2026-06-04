@@ -1,10 +1,11 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { message, Spin, Alert, Form, Modal } from 'antd';
-import { authUtils } from '../../lib/authUtils';
-import { User, UserSortField } from '../users/types';
-import UserTable from '../users/UserTable';
-import UserModal from '../users/UserModal';
-import UserActionToolbar from '../users/UserActionToolbar';
+import { message, Spin, Alert, Form, Modal } from "antd";
+import React, { useState, useEffect, useMemo } from "react";
+
+import { authUtils } from "../../lib/authUtils";
+import { User, UserSortField } from "../users/types";
+import UserActionToolbar from "../users/UserActionToolbar";
+import UserModal from "../users/UserModal";
+import UserTable from "../users/UserTable";
 
 const UsersTab: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
@@ -15,21 +16,21 @@ const UsersTab: React.FC = () => {
   const [form] = Form.useForm();
   const [submitLoading, setSubmitLoading] = useState(false);
   const [deletingUserId, setDeletingUserId] = useState<string | null>(null);
-  
-  const [searchTerm, setSearchTerm] = useState('');
+
+  const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState<UserSortField | null>(null);
-  const [sortOrder, setSortOrder] = useState<'ascend' | 'descend'>('ascend');
+  const [sortOrder, setSortOrder] = useState<"ascend" | "descend">("ascend");
 
   const fetchUsers = async () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await authUtils.fetchWithAuth('/api/admin/users');
-      if (!response.ok) throw new Error('Failed to fetch users');
+      const response = await authUtils.fetchWithAuth("/api/admin/users");
+      if (!response.ok) throw new Error("Failed to fetch users");
       const result = await response.json();
       setUsers(result.data?.users || []);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load users');
+      setError(err instanceof Error ? err.message : "Failed to load users");
     } finally {
       setLoading(false);
     }
@@ -49,8 +50,8 @@ const UsersTab: React.FC = () => {
     setEditingUser(user);
     form.setFieldsValue({
       email: user.email,
-      displayName: user.displayName || '',
-      tier: user.tier?.toLowerCase() || 'free',
+      displayName: user.displayName || "",
+      tier: user.tier?.toLowerCase() || "free",
     });
     setModalVisible(true);
   };
@@ -61,34 +62,42 @@ const UsersTab: React.FC = () => {
       if (editingUser) {
         if (values.tier !== editingUser.tier.toLowerCase()) {
           const tierUpper = values.tier.toUpperCase();
-          const resp = await authUtils.fetchWithAuth(`/api/admin/users/${editingUser.uid}/tier`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ tier: tierUpper }),
-          });
-          if (!resp.ok) throw new Error('Failed to update tier');
-          message.success('User tier updated successfully');
+          const resp = await authUtils.fetchWithAuth(
+            `/api/admin/users/${editingUser.uid}/tier`,
+            {
+              method: "PUT",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ tier: tierUpper }),
+            },
+          );
+          if (!resp.ok) throw new Error("Failed to update tier");
+          message.success("User tier updated successfully");
         } else {
-          message.info('No changes detected');
+          message.info("No changes detected");
         }
       } else {
         const { email, password, displayName, tier } = values;
-        const resp = await authUtils.fetchWithAuth('/api/admin/users/create', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, password, displayName, tier: tier.toUpperCase() }),
+        const resp = await authUtils.fetchWithAuth("/api/admin/users/create", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email,
+            password,
+            displayName,
+            tier: tier.toUpperCase(),
+          }),
         });
         if (!resp.ok) {
           const err = await resp.json();
-          throw new Error(err.error || 'Failed to create user');
+          throw new Error(err.error || "Failed to create user");
         }
-        message.success('User created successfully');
+        message.success("User created successfully");
       }
       setModalVisible(false);
       form.resetFields();
       fetchUsers();
     } catch (err) {
-      message.error(err instanceof Error ? err.message : 'Operation failed');
+      message.error(err instanceof Error ? err.message : "Operation failed");
     } finally {
       setSubmitLoading(false);
     }
@@ -97,14 +106,19 @@ const UsersTab: React.FC = () => {
   const handleDeactivate = async (uid: string) => {
     setDeletingUserId(uid);
     try {
-      const resp = await authUtils.fetchWithAuth(`/api/admin/users/${uid}/deactivate`, {
-        method: 'PUT',
-      });
-      if (!resp.ok) throw new Error('Failed to deactivate user');
-      message.success('User deactivated');
+      const resp = await authUtils.fetchWithAuth(
+        `/api/admin/users/${uid}/deactivate`,
+        {
+          method: "PUT",
+        },
+      );
+      if (!resp.ok) throw new Error("Failed to deactivate user");
+      message.success("User deactivated");
       fetchUsers();
     } catch (err) {
-      message.error(err instanceof Error ? err.message : 'Failed to deactivate');
+      message.error(
+        err instanceof Error ? err.message : "Failed to deactivate",
+      );
     } finally {
       setDeletingUserId(null);
     }
@@ -112,67 +126,81 @@ const UsersTab: React.FC = () => {
 
   const handleReactivate = async (uid: string) => {
     try {
-      const resp = await authUtils.fetchWithAuth(`/api/admin/users/${uid}/reactivate`, {
-        method: 'PUT',
-      });
-      if (!resp.ok) throw new Error('Failed to reactivate user');
-      message.success('User reactivated');
+      const resp = await authUtils.fetchWithAuth(
+        `/api/admin/users/${uid}/reactivate`,
+        {
+          method: "PUT",
+        },
+      );
+      if (!resp.ok) throw new Error("Failed to reactivate user");
+      message.success("User reactivated");
       fetchUsers();
     } catch (err) {
-      message.error(err instanceof Error ? err.message : 'Failed to reactivate');
+      message.error(
+        err instanceof Error ? err.message : "Failed to reactivate",
+      );
     }
   };
 
   const handleDelete = async (uid: string) => {
     Modal.confirm({
-      title: 'Are you sure you want to PERMANENTLY delete this user?',
-      content: 'This action cannot be undone. All user data will be removed.',
-      okText: 'Yes, Delete',
-      okType: 'danger',
-      cancelText: 'No',
+      title: "Are you sure you want to PERMANENTLY delete this user?",
+      content: "This action cannot be undone. All user data will be removed.",
+      okText: "Yes, Delete",
+      okType: "danger",
+      cancelText: "No",
       onOk: async () => {
         try {
-          const resp = await authUtils.fetchWithAuth(`/api/admin/users/${uid}`, {
-            method: 'DELETE',
-          });
-          if (!resp.ok) throw new Error('Failed to delete user');
-          message.success('User permanently deleted');
+          const resp = await authUtils.fetchWithAuth(
+            `/api/admin/users/${uid}`,
+            {
+              method: "DELETE",
+            },
+          );
+          if (!resp.ok) throw new Error("Failed to delete user");
+          message.success("User permanently deleted");
           fetchUsers();
         } catch (err) {
-          message.error(err instanceof Error ? err.message : 'Failed to delete');
+          message.error(
+            err instanceof Error ? err.message : "Failed to delete",
+          );
         }
       },
     });
   };
 
   const processedUsers = useMemo(() => {
-    let result = users.filter(user => {
+    const result = users.filter((user) => {
       if (!searchTerm) return true;
       const term = searchTerm.toLowerCase();
-      return user.email.toLowerCase().includes(term) ||
-             (user.displayName && user.displayName.toLowerCase().includes(term));
+      return (
+        user.email.toLowerCase().includes(term) ||
+        (user.displayName && user.displayName.toLowerCase().includes(term))
+      );
     });
 
     if (sortBy) {
       result.sort((a, b) => {
-        let aVal: any = a[sortBy as keyof User] ?? '';
-        let bVal: any = b[sortBy as keyof User] ?? '';
+        let aVal: any = a[sortBy as keyof User] ?? "";
+        let bVal: any = b[sortBy as keyof User] ?? "";
 
-        if (sortBy === 'usagePercent') {
+        if (sortBy === "usagePercent") {
           aVal = (a.currentUsage || 0) / (a.monthlyQuota || 1);
           bVal = (b.currentUsage || 0) / (b.monthlyQuota || 1);
-        } else if (sortBy === 'lastLoginAt') {
+        } else if (sortBy === "lastLoginAt") {
           const aTime = aVal ? new Date(aVal as string).getTime() : 0;
           const bTime = bVal ? new Date(bVal as string).getTime() : 0;
-          return sortOrder === 'ascend' ? aTime - bTime : bTime - aTime;
+          return sortOrder === "ascend" ? aTime - bTime : bTime - aTime;
         }
 
-        if (typeof aVal === 'string' && typeof bVal === 'string') {
-          return sortOrder === 'ascend' ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
+        if (typeof aVal === "string" && typeof bVal === "string") {
+          return sortOrder === "ascend"
+            ? aVal.localeCompare(bVal)
+            : bVal.localeCompare(aVal);
         }
-        
-        if (typeof aVal === 'number' && typeof bVal === 'number') {
-          return sortOrder === 'ascend' ? aVal - bVal : bVal - aVal;
+
+        if (typeof aVal === "number" && typeof bVal === "number") {
+          return sortOrder === "ascend" ? aVal - bVal : bVal - aVal;
         }
 
         return 0;
@@ -196,17 +224,17 @@ const UsersTab: React.FC = () => {
       />
 
       {error && (
-        <Alert 
-          type="error" 
-          message="Connection Error" 
-          description={error} 
-          showIcon 
-          style={{ marginBottom: 16, borderRadius: '8px' }}
+        <Alert
+          type="error"
+          message="Connection Error"
+          description={error}
+          showIcon
+          style={{ marginBottom: 16, borderRadius: "8px" }}
         />
       )}
 
       {loading && !users.length ? (
-        <div style={{ textAlign: 'center', padding: '100px' }}>
+        <div style={{ textAlign: "center", padding: "100px" }}>
           <Spin size="large" tip="Loading system users..." />
         </div>
       ) : (

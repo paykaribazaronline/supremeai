@@ -22,4 +22,3 @@ export interface SystemConfig {
   permissions?: Record<string, string>;
   providers?: Record<string, Record<string, any>>;
 }
-

@@ -1,7 +1,8 @@
-import React from 'react';
-import { Table, Space, Button, Tag, Select } from 'antd';
-import { EditOutlined, DeleteOutlined } from '@ant-design/icons';
-import { Project } from './types';
+import { EditOutlined, DeleteOutlined } from "@ant-design/icons";
+import { Table, Space, Button, Tag, Select } from "antd";
+import React from "react";
+
+import { Project } from "./types";
 
 const { Option } = Select;
 
@@ -18,57 +19,87 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
   loading,
   onEdit,
   onDelete,
-  onUpdateStatus
+  onUpdateStatus,
 }) => {
   const columns = [
     {
-      title: 'Name',
-      dataIndex: 'name',
-      key: 'name',
+      title: "Name",
+      dataIndex: "name",
+      key: "name",
       sorter: (a: Project, b: Project) => a.name.localeCompare(b.name),
     },
     {
-      title: 'Description',
-      dataIndex: 'description',
-      key: 'description',
-      render: (desc: string) => desc || '-',
+      title: "Description",
+      dataIndex: "description",
+      key: "description",
+      render: (desc: string) => desc || "-",
     },
     {
-      title: 'Owner',
-      dataIndex: 'ownerId',
-      key: 'ownerId',
-      render: (owner: string) => <span style={{ fontFamily: 'monospace' }}>{owner.substring(0, 8)}...</span>,
+      title: "Owner",
+      dataIndex: "ownerId",
+      key: "ownerId",
+      render: (owner: string) => (
+        <span style={{ fontFamily: "monospace" }}>
+          {owner.substring(0, 8)}...
+        </span>
+      ),
     },
     {
-      title: 'Status',
-      dataIndex: 'status',
-      key: 'status',
+      title: "Status",
+      dataIndex: "status",
+      key: "status",
       render: (status: string) => {
-        let color = 'default';
-        let borderColor = 'transparent';
-        if (status === 'ACTIVE') { color = '#00f3ff'; borderColor = 'rgba(0, 243, 255, 0.5)'; }
-        else if (status === 'PAUSED') { color = '#faad14'; borderColor = 'rgba(250, 173, 20, 0.5)'; }
-        else if (status === 'COMPLETED') { color = '#8b5cf6'; borderColor = 'rgba(139, 92, 246, 0.5)'; }
-        else if (status === 'FAILED') { color = '#ff4d4f'; borderColor = 'rgba(255, 77, 79, 0.5)'; }
-        return <Tag style={{ background: 'rgba(0,0,0,0.4)', color, borderColor, textShadow: `0 0 5px ${color}`, padding: '0 8px', borderRadius: '4px' }}>{status}</Tag>;
+        let color = "default";
+        let borderColor = "transparent";
+        if (status === "ACTIVE") {
+          color = "#00f3ff";
+          borderColor = "rgba(0, 243, 255, 0.5)";
+        } else if (status === "PAUSED") {
+          color = "#faad14";
+          borderColor = "rgba(250, 173, 20, 0.5)";
+        } else if (status === "COMPLETED") {
+          color = "#8b5cf6";
+          borderColor = "rgba(139, 92, 246, 0.5)";
+        } else if (status === "FAILED") {
+          color = "#ff4d4f";
+          borderColor = "rgba(255, 77, 79, 0.5)";
+        }
+        return (
+          <Tag
+            style={{
+              background: "rgba(0,0,0,0.4)",
+              color,
+              borderColor,
+              textShadow: `0 0 5px ${color}`,
+              padding: "0 8px",
+              borderRadius: "4px",
+            }}
+          >
+            {status}
+          </Tag>
+        );
       },
     },
     {
-      title: 'Created',
-      dataIndex: 'createdAt',
-      key: 'createdAt',
+      title: "Created",
+      dataIndex: "createdAt",
+      key: "createdAt",
       render: (date: string) => new Date(date).toLocaleDateString(),
     },
     {
-      title: 'Actions',
-      key: 'actions',
+      title: "Actions",
+      key: "actions",
       render: (_: any, record: Project) => (
         <Space>
-          <Button 
-            size="small" 
-            icon={<EditOutlined />} 
+          <Button
+            size="small"
+            icon={<EditOutlined />}
             onClick={() => onEdit(record)}
-            style={{ background: 'transparent', color: 'var(--neon-blue)', borderColor: 'var(--neon-blue)' }}
+            style={{
+              background: "transparent",
+              color: "var(--neon-blue)",
+              borderColor: "var(--neon-blue)",
+            }}
           >
             Edit
           </Button>
@@ -85,12 +116,16 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
             <Option value="COMPLETED">Completed</Option>
             <Option value="FAILED">Failed</Option>
           </Select>
-          <Button 
-            size="small" 
-            danger 
-            icon={<DeleteOutlined />} 
+          <Button
+            size="small"
+            danger
+            icon={<DeleteOutlined />}
             onClick={() => onDelete(record.id)}
-            style={{ background: 'transparent', color: 'var(--neon-red)', borderColor: 'var(--neon-red)' }}
+            style={{
+              background: "transparent",
+              color: "var(--neon-red)",
+              borderColor: "var(--neon-red)",
+            }}
           >
             Delete
           </Button>
@@ -108,8 +143,8 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
       pagination={{ pageSize: 10, showSizeChanger: true }}
       scroll={{ x: 1000 }}
       className="custom-table cyber-table"
-      rowClassName={() => 'cyber-table-row'}
-      style={{ background: 'transparent' }}
+      rowClassName={() => "cyber-table-row"}
+      style={{ background: "transparent" }}
     />
   );
 };

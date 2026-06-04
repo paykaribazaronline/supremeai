@@ -1,8 +1,20 @@
-import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { Typography, Row, Col, Card, Table, Tag, Button, Space, message, Badge } from 'antd';
-import { CheckOutlined, CloseOutlined, SyncOutlined } from '@ant-design/icons';
-import { authUtils } from '../lib/authUtils';
+import { CheckOutlined, CloseOutlined, SyncOutlined } from "@ant-design/icons";
+import {
+  Typography,
+  Row,
+  Col,
+  Card,
+  Table,
+  Tag,
+  Button,
+  Space,
+  message,
+  Badge,
+} from "antd";
+import { motion } from "framer-motion";
+import React, { useState, useEffect } from "react";
+
+import { authUtils } from "../lib/authUtils";
 
 const { Title, Text } = Typography;
 
@@ -10,7 +22,7 @@ interface Approval {
   id: string;
   type: string;
   request: string;
-  status: 'pending' | 'approved' | 'rejected';
+  status: "pending" | "approved" | "rejected";
   submittedBy: string;
   submittedAt: string;
 }
@@ -26,26 +38,29 @@ export default function AdminApprovals() {
   const fetchApprovals = async () => {
     setLoading(true);
     try {
-      const res = await authUtils.fetchWithAuth('/api/admin/approvals');
+      const res = await authUtils.fetchWithAuth("/api/admin/approvals");
       if (res.ok) {
         const data = await res.json();
         setApprovals(Array.isArray(data) ? data : data.approvals || []);
       }
     } catch (error) {
-      message.error('Failed to fetch approvals');
+      message.error("Failed to fetch approvals");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleAction = async (id: string, action: 'approve' | 'reject') => {
+  const handleAction = async (id: string, action: "approve" | "reject") => {
     try {
-      const res = await authUtils.fetchWithAuth(`/api/admin/approvals/${id}/${action}`, {
-        method: 'POST'
-      });
+      const res = await authUtils.fetchWithAuth(
+        `/api/admin/approvals/${id}/${action}`,
+        {
+          method: "POST",
+        },
+      );
       if (res.ok) {
         message.success(`Approval ${action}ed`);
-        setApprovals(approvals.filter(a => a.id !== id));
+        setApprovals(approvals.filter((a) => a.id !== id));
       }
     } catch (error) {
       message.error(`Failed to ${action} approval`);
@@ -54,50 +69,61 @@ export default function AdminApprovals() {
 
   const columns = [
     {
-      title: 'Type',
-      dataIndex: 'type',
-      key: 'type',
-      render: (text: string) => <Tag color="blue">{text}</Tag>
+      title: "Type",
+      dataIndex: "type",
+      key: "type",
+      render: (text: string) => <Tag color="blue">{text}</Tag>,
     },
     {
-      title: 'Request',
-      dataIndex: 'request',
-      key: 'request'
+      title: "Request",
+      dataIndex: "request",
+      key: "request",
     },
     {
-      title: 'Submitted By',
-      dataIndex: 'submittedBy',
-      key: 'submittedBy'
+      title: "Submitted By",
+      dataIndex: "submittedBy",
+      key: "submittedBy",
     },
     {
-      title: 'Status',
-      dataIndex: 'status',
-      key: 'status',
+      title: "Status",
+      dataIndex: "status",
+      key: "status",
       render: (status: string) => (
         <Badge
-          status={status === 'pending' ? 'warning' : status === 'approved' ? 'success' : 'error'}
+          status={
+            status === "pending"
+              ? "warning"
+              : status === "approved"
+                ? "success"
+                : "error"
+          }
           text={status.toUpperCase()}
         />
-      )
+      ),
     },
     {
-      title: 'Actions',
-      key: 'actions',
-      render: (record: Approval) => record.status === 'pending' ? (
-        <Space>
-          <Button 
-            icon={<CheckOutlined />} 
-            size="small"
-            onClick={() => handleAction(record.id, 'approve')}
-          >Approve</Button>
-          <Button 
-            icon={<CloseOutlined />} 
-            size="small"
-            onClick={() => handleAction(record.id, 'reject')}
-          >Reject</Button>
-        </Space>
-      ) : null
-    }
+      title: "Actions",
+      key: "actions",
+      render: (record: Approval) =>
+        record.status === "pending" ? (
+          <Space>
+            <Button
+              icon={<CheckOutlined />}
+              size="small"
+              onClick={() => handleAction(record.id, "approve")}
+            >
+              Approve
+            </Button>
+            <Button
+              icon={<CloseOutlined />}
+              size="small"
+              onClick={() => handleAction(record.id, "reject")}
+            >
+              Reject
+            </Button>
+          </Space>
+        ) : null,
+    },
   ];
 
   return (
@@ -105,13 +131,24 @@ export default function AdminApprovals() {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6 }}
-      style={{ padding: '24px' }}
+      style={{ padding: "24px" }}
     >
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-        <Title level={4} style={{ color: '#fff', margin: 0 }}>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          marginBottom: 24,
+        }}
+      >
+        <Title level={4} style={{ color: "#fff", margin: 0 }}>
           Approvals Queue
         </Title>
-        <Button icon={<SyncOutlined />} onClick={fetchApprovals} className="glass-action-button">
+        <Button
+          icon={<SyncOutlined />}
+          onClick={fetchApprovals}
+          className="glass-action-button"
+        >
           Refresh
         </Button>
       </div>
@@ -122,7 +159,7 @@ export default function AdminApprovals() {
           dataSource={approvals}
           loading={loading}
           pagination={{ pageSize: 10 }}
-          locale={{ emptyText: 'No pending approvals' }}
+          locale={{ emptyText: "No pending approvals" }}
         />
       </Card>
     </motion.div>
