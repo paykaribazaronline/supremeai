@@ -320,10 +320,10 @@ jobs:
           echo "Building backend synchronously..."
           ./gradlew bootJar -x test --no-daemon
           echo "Starting backend from JAR..."
-          JAR_FILE=$(find build/libs -name "*.jar" | grep -v "plain.jar" | head -n 1)
+          JAR_FILE=$(find .gradle/build/libs -name "*.jar" | grep -v "plain.jar" | head -n 1)
           if [ -z "$JAR_FILE" ]; then
-            echo "Error: JAR file not found in build/libs!"
-            ls -la build/libs || true
+            echo "Error: JAR file not found in .gradle/build/libs!"
+            ls -la .gradle/build/libs || true
             exit 1
           fi
           echo "Found JAR: $JAR_FILE"
