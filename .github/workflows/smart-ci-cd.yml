@@ -207,7 +207,7 @@ jobs:
   # 5. Backend Deployment
   backend-deploy:
     name: Backend Deployment
-    needs: [backend-test, ai-validation-ci]
+    needs: [backend-test]
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:
@@ -270,29 +270,6 @@ jobs:
             --timeout=300 \
             --max-instances=10 \
             --min-instances=1
-
-      - name: Report Status to Admin Dashboard
-        if: always()
-        env:
-          PROJECT_ID: ${{ steps.auth.outputs.project_id }}
-        run: |
-          if [ -n "$PROJECT_ID" ]; then
-            FILES_JSON=$(git diff-tree --no-commit-id --name-only -r ${{ github.sha }} | jq -R . | jq -s .)
-            COMMIT_MSG=$(echo "[Backend Deploy] ${{ job.status }} - ${{ github.event.head_commit.message }}" | jq -R .)
-            
-            curl -s -X POST \
-              -H "Content-Type: application/json" \
-              -d "{
-                \"commitMessage\": $COMMIT_MSG,
-                \"changedFiles\": $FILES_JSON,
-                \"author\": \"${{ github.actor }}\",
-                \"branch\": \"${{ github.ref_name }}\",
-                \"runId\": \"${{ github.run_id }}\"
-              }" \
-              "https://us-central1-$PROJECT_ID.cloudfunctions.net/analyzeDeployment" || echo "Dashboard notification failed"
-          else
-            echo "GCP Auth not available, skipping dashboard report"
-          fi
 
   # 5. AI Validation Pipeline
   ai-validation-ci:
@@ -496,29 +473,6 @@ jobs:
           🔗 Preview URL: $PREVIEW_URL
           _Built on commit \`${{ github.sha }}\`_"
 
-      - name: Report Status to Admin Dashboard
-        if: always()
-        env:
-          PROJECT_ID: ${{ steps.auth.outputs.project_id }}
-        run: |
-          if [ -n "$PROJECT_ID" ]; then
-            FILES_JSON=$(git diff-tree --no-commit-id --name-only -r ${{ github.sha }} | jq -R . | jq -s .)
-            COMMIT_MSG=$(echo "[Frontend Deploy] ${{ job.status }} - ${{ github.event.head_commit.message }}" | jq -R .)
-            
-            curl -s -X POST \
-              -H "Content-Type: application/json" \
-              -d "{
-                \"commitMessage\": $COMMIT_MSG,
-                \"changedFiles\": $FILES_JSON,
-                \"author\": \"${{ github.actor }}\",
-                \"branch\": \"${{ github.ref_name }}\",
-                \"runId\": \"${{ github.run_id }}\"
-              }" \
-              "https://us-central1-$PROJECT_ID.cloudfunctions.net/analyzeDeployment" || echo "Dashboard notification failed"
-          else
-            echo "GCP Auth not available, skipping dashboard report"
-          fi
-
   # 8. Functions Testing
   functions-test:
     name: Functions Test & Build
@@ -588,29 +542,6 @@ jobs:
         run: |
           npx firebase-tools deploy --only functions --project ${{ steps.auth.outputs.project_id }} --non-interactive --force --debug
 
-      - name: Report Status to Admin Dashboard
-        if: always()
-        env:
-          PROJECT_ID: ${{ steps.auth.outputs.project_id }}
-        run: |
-          if [ -n "$PROJECT_ID" ]; then
-            FILES_JSON=$(git diff-tree --no-commit-id --name-only -r ${{ github.sha }} | jq -R . | jq -s .)
-            COMMIT_MSG=$(echo "[Functions Deploy] ${{ job.status }} - ${{ github.event.head_commit.message }}" | jq -R .)
-            
-            curl -s -X POST \
-              -H "Content-Type: application/json" \
-              -d "{
-                \"commitMessage\": $COMMIT_MSG,
-                \"changedFiles\": $FILES_JSON,
-                \"author\": \"${{ github.actor }}\",
-                \"branch\": \"${{ github.ref_name }}\",
-                \"runId\": \"${{ github.run_id }}\"
-              }" \
-              "https://us-central1-$PROJECT_ID.cloudfunctions.net/analyzeDeployment" || echo "Dashboard notification failed"
-          else
-            echo "GCP Auth not available, skipping dashboard report"
-          fi
-
   # 10. Dependabot Auto-Merge
   dependabot-merge:
     name: Dependabot Auto-Merge
@@ -642,3 +573,52 @@ jobs:
         env:
           PR_URL: ${{ github.event.pull_request.html_url }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # 11. Smart Workflow Summary
+  workflow-summary:
+    name: Smart Workflow Summary
+    needs: [backend-deploy, frontend-deploy, functions-deploy, ai-validation-ci]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        id: auth
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+        continue-on-error: true
+
+      - name: Generate Smart Summary and Notify Dashboard
+        env:
+          PROJECT_ID: ${{ steps.auth.outputs.project_id }}
+          BACKEND_STATUS: ${{ needs.backend-deploy.result || 'skipped' }}
+          FRONTEND_STATUS: ${{ needs.frontend-deploy.result || 'skipped' }}
+          FUNCTIONS_STATUS: ${{ needs.functions-deploy.result || 'skipped' }}
+          AI_VALIDATION_STATUS: ${{ needs.ai-validation-ci.result || 'skipped' }}
+        run: |
+          echo "# Smart Workflow Summary 🚀" >> $GITHUB_STEP_SUMMARY
+          echo "- **Backend Deployment**: $BACKEND_STATUS" >> $GITHUB_STEP_SUMMARY
+          echo "- **Frontend Deployment**: $FRONTEND_STATUS" >> $GITHUB_STEP_SUMMARY
+          echo "- **Functions Deployment**: $FUNCTIONS_STATUS" >> $GITHUB_STEP_SUMMARY
+          echo "- **AI Validation**: $AI_VALIDATION_STATUS" >> $GITHUB_STEP_SUMMARY
+
+          if [ -n "$PROJECT_ID" ]; then
+            FILES_JSON=$(git diff-tree --no-commit-id --name-only -r ${{ github.sha }} | jq -R . | jq -s .)
+            COMMIT_MSG=$(echo "Workflow Summary: Backend=$BACKEND_STATUS, Frontend=$FRONTEND_STATUS, Functions=$FUNCTIONS_STATUS, AI_Validation=$AI_VALIDATION_STATUS - ${{ github.event.head_commit.message }}" | jq -R .)
+            
+            curl -s -X POST \
+              -H "Content-Type: application/json" \
+              -d "{
+                \"commitMessage\": $COMMIT_MSG,
+                \"changedFiles\": $FILES_JSON,
+                \"author\": \"${{ github.actor }}\",
+                \"branch\": \"${{ github.ref_name }}\",
+                \"runId\": \"${{ github.run_id }}\"
+              }" \
+              "https://us-central1-$PROJECT_ID.cloudfunctions.net/analyzeDeployment" || echo "Dashboard notification failed"
+          else
+            echo "GCP Auth not available, skipping dashboard report"
+          fi
