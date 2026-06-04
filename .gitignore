@@ -175,6 +175,15 @@ rotation_config.json
 *.p12
 *.pfx
 # Build outputs
+public/assets/
+public/admin/assets/
+public/admin/index.html
+public/index.html
+src/main/resources/static/assets/
+src/main/resources/static/index.html
+backend.pid
+local-files.txt
+remote-files.txt
 # OS files
 nul
 # Logs
