@@ -60,7 +60,8 @@ http_post() {
 }
 
 start_time=$(date +%s)
-results=(provider_health_check pass latency_ms provider model error response_valid)
+declare -A results
+results=( ["provider_health_check"]="000" ["pass"]="000" ["latency_ms"]="0" ["provider"]="default" ["model"]="default" ["error"]="" ["response_valid"]="false" )
 RESPONSE_BODY=""
 
 check_health() {
