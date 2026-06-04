@@ -62,21 +62,16 @@ public class ChatController {
   @PostMapping("/send")
   @PreAuthorize("hasAnyRole('USER', 'ADMIN', 'AGENT_MANAGER', 'GUEST')")
   public Mono<ResponseEntity<Object>> sendMessage(@Valid @RequestBody ChatRequest request) {
-    logger.warn("Deprecated /api/chat/send endpoint called. Processing with legacy handler.");
-    if (request == null || request.getMessage() == null || request.getMessage().trim().isEmpty()) {
-      Map<String, Object> errorResponse = new HashMap<>();
-      errorResponse.put("error", "Message is required");
-      return Mono.just(ResponseEntity.badRequest().body((Object) errorResponse));
+    if (request.getMessage() == null || request.getMessage().trim().isEmpty()) {
+      return Mono.just(ResponseEntity.badRequest().build());
     }
-
-    String message = request.getMessage();
-    boolean skipValidation = request.isSkipValidation();
-
-    return questioningEngine
-        .validateAndQuestion(message, AutonomousQuestioningEngine.RequestType.GENERAL_AI)
-        .flatMap(
-            validation -> executeResponseForRequest(request, message, validation, skipValidation));
+    logger.warn("Deprecated /api/chat/send endpoint called. Using legacy chat flow.");
+    return questioningEngine.validateAndQuestion(request.getMessage(), AutonomousQuestioningEngine.RequestType.GENERAL_AI)
+        .flatMap(validation -> executeResponseForRequest(request, request.getMessage(), validation, request.isSkipValidation()))
+        .switchIfEmpty(Mono.defer(() -> executeResponseForRequest(request, request.getMessage(), null, request.isSkipValidation())));
   }
+
+
 
   private boolean isSkipValidationDirectAnswer(String message) {
     if (message == null) {
@@ -499,6 +494,10 @@ public class ChatController {
   }
 
   private Mono<ResponseEntity<Object>> processChatWithHistory(ChatRequest request) {
+    if (request.getMessage() == null || request.getMessage().trim().isEmpty()) {
+      return Mono.just(ResponseEntity.badRequest().body(Map.of("error", "Message cannot be empty")));
+    }
+
     String sessionId = request.getSessionId();
     if (sessionId == null || sessionId.trim().isEmpty()) {
       sessionId = "default-session";
@@ -685,3 +684,4 @@ public class ChatController {
         + "Please try rephrasing with one of these topics for a detailed answer with code examples!";
   }
 }
+

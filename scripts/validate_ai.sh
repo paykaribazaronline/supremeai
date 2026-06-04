@@ -5,6 +5,7 @@ set -euo pipefail
 PROVIDERS_FILE="${AI_PROVIDERS_FILE:-config/skills-local.json}"
 # Accept either AI_VALIDATION_BASE_URL (preferred) or legacy POCKETLAB_URL
 BASE_URL="${AI_VALIDATION_BASE_URL:-${POCKETLAB_URL:-http://localhost:8080}}"
+VALIDATION_ENDPOINT="${AI_VALIDATION_ENDPOINT:-/api/chat/send}"
 PROMPT="Return only the word OK"
 TIMEOUT_SECONDS="${AI_VALIDATION_TIMEOUT:-15}"
 MAX_LATENCY_MS="${AI_VALIDATION_MAX_LATENCY:-8000}"
@@ -24,6 +25,7 @@ fi
 
 echo "Running real AI validation checks..."
 echo "Base URL: ${BASE_URL}"
+echo "Validation endpoint: ${VALIDATION_ENDPOINT}"
 echo "Providers file: ${PROVIDERS_FILE}"
 echo "Timeout: ${TIMEOUT_SECONDS}s"
 echo "Max latency: ${MAX_LATENCY_MS}ms"
@@ -97,7 +99,7 @@ EOF
   fi
   local out
   RESPONSE_BODY=""
-  out=$(http_post "${BASE_URL}/api/chat/message" "$payload") || true
+  out=$(http_post "${BASE_URL}${VALIDATION_ENDPOINT}" "$payload") || true
   read -r code latency <<< "$out" || true
   results[provider]="${provider:-default}"
   results[model]="${model:-default}"
@@ -117,9 +119,35 @@ EOF
       ((FAIL++)) || true
     fi
   else
-    echo "FAIL Inference (${provider:-default}/${model:-default}) HTTP ${code}"
-    ERRORS+=("Inference ${provider:-default}/${model:-default}: HTTP ${code}")
-    ((FAIL++)) || true
+    if [[ "$code" == "500" && "${VALIDATION_ENDPOINT}" == "/api/chat/send" ]]; then
+      echo "WARN Inference endpoint returned HTTP 500; trying fallback /api/chat/message"
+      out=$(http_post "${BASE_URL}/api/chat/message" "$payload") || true
+      read -r code latency <<< "$out" || true
+      results[provider]="${provider:-default}"
+      results[model]="${model:-default}"
+      results[pass]="${code}"
+      results[latency_ms]=$(awk "BEGIN{printf \"%d\", ${latency:-0} * 1000}")
+      if [[ "$code" == "200" ]]; then
+        echo "PASS Fallback inference (/api/chat/message) ${results[latency_ms]}ms — checking response content..."
+        if echo "$RESPONSE_BODY" | grep -qi "OK"; then
+          echo "PASS Response content contains expected output 'OK'"
+          response_ok="true"
+          ((PASS++)) || true
+        else
+          echo "FAIL Response body does not contain expected output 'OK'"
+          ERRORS+=("Fallback inference ${provider:-default}/${model:-default}: response body missing expected content 'OK'")
+          ((FAIL++)) || true
+        fi
+      else
+        echo "FAIL Fallback inference (/api/chat/message) HTTP ${code}"
+        ERRORS+=("Fallback inference ${provider:-default}/${model:-default}: HTTP ${code}")
+        ((FAIL++)) || true
+      fi
+    else
+      echo "FAIL Inference (${provider:-default}/${model:-default}) HTTP ${code}"
+      ERRORS+=("Inference ${provider:-default}/${model:-default}: HTTP ${code}")
+      ((FAIL++)) || true
+    fi
   fi
   results[response_valid]="$response_ok"
 
@@ -141,7 +169,7 @@ discover_and_infer() {
       infer "" ""
     fi
   else
-    echo "Providers file not found; running default inference against ${BASE_URL}/api/chat/message"
+    echo "Providers file not found; running default inference against ${BASE_URL}${VALIDATION_ENDPOINT}"
     infer "" ""
   fi
 }
