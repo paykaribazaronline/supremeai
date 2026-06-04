@@ -45,8 +45,8 @@ http_post() {
   tmp=$(mktemp)
   local code latency
   if check_command curl; then
-    code=$(curl -sS -o "$tmp" -w "%{http_code}" --max-time "${TIMEOUT_SECONDS}" -H "Content-Type: application/json" -d "$body" "$url" 2>/dev/null || true)
-    latency=$(curl -sS -o /dev/null -w "%{time_total}" --max-time "${TIMEOUT_SECONDS}" -H "Content-Type: application/json" -d "$body" "$url" 2>/dev/null || true)
+    code=$(curl -sS -o "$tmp" -w "%{http_code}" --max-time "${TIMEOUT_SECONDS}" -H "Content-Type: application/json" -H "X-Guest-Access: true" -d "$body" "$url" 2>/dev/null || true)
+    latency=$(curl -sS -o /dev/null -w "%{time_total}" --max-time "${TIMEOUT_SECONDS}" -H "Content-Type: application/json" -H "X-Guest-Access: true" -d "$body" "$url" 2>/dev/null || true)
   else
     echo "000 0"
     rm -f "$tmp"
@@ -66,7 +66,7 @@ RESPONSE_BODY=""
 
 check_health() {
   local code latency
-  read -r code latency <<< "$(http_get "${BASE_URL}/actuator/health")" || true
+  read -r code latency <<< "$(http_get "${BASE_URL}/api/health")" || true
   results[provider_health_check]="${code:-000}"
   results[latency_ms]=$(awk "BEGIN{printf \"%d\", ${latency:-0} * 1000}")
   if [[ "${results[provider_health_check]}" == "200" ]]; then
@@ -85,18 +85,18 @@ infer() {
   local payload
   if [[ -n "$provider" && -n "$model" ]]; then
     payload=$(cat <<EOF
-{"provider":"${provider}","model":"${model}","messages":[{"role":"user","content":"${PROMPT}"}],"max_tokens":8,"temperature":0.0}
+{"message":"${PROMPT}","provider":"${provider}","model":"${model}","messages":[{"role":"user","content":"${PROMPT}"}],"max_tokens":8,"temperature":0.0}
 EOF
 )
   else
     payload=$(cat <<EOF
-{"messages":[{"role":"user","content":"${PROMPT}"}],"max_tokens":8,"temperature":0.0}
+{"message":"${PROMPT}","messages":[{"role":"user","content":"${PROMPT}"}],"max_tokens":8,"temperature":0.0}
 EOF
 )
   fi
   local out
   RESPONSE_BODY=""
-  out=$(http_post "${BASE_URL}/api/chat" "$payload") || true
+  out=$(http_post "${BASE_URL}/api/chat/message" "$payload") || true
   read -r code latency <<< "$out" || true
   results[provider]="${provider:-default}"
   results[model]="${model:-default}"
@@ -140,7 +140,7 @@ discover_and_infer() {
       infer "" ""
     fi
   else
-    echo "Providers file not found; running default inference against ${BASE_URL}/api/chat"
+    echo "Providers file not found; running default inference against ${BASE_URL}/api/chat/message"
     infer "" ""
   fi
 }

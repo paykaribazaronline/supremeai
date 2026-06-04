@@ -149,6 +149,7 @@ class AdminDashboardFacadeServiceTest {
   void toUserMap_shouldMapAllUserFields() {
     User user = new User("test-uid", "test@test.com", "Test User");
     user.setTier(UserTier.PRO);
+    user.setMonthlyQuota(100000L);
     user.setIsActive(true);
     user.setCreatedAt(1000L);
     user.setLastLoginAt(2000L);

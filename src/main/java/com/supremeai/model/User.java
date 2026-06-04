@@ -248,7 +248,11 @@ public class User {
 
   @Exclude
   public Long fetchMonthlyQuota() {
-    return getTier().getDefaultMonthlyQuota();
+    return monthlyQuota != null ? monthlyQuota : getTier().getDefaultMonthlyQuota();
+  }
+
+  public void setMonthlyQuota(Long monthlyQuota) {
+    this.monthlyQuota = monthlyQuota;
   }
 
   public void resetMonthlyUsage() {

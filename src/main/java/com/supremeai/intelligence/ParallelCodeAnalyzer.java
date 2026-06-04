@@ -42,13 +42,15 @@ public class ParallelCodeAnalyzer {
     AnalysisResult finalResult = new AnalysisResult();
 
     // 4. Gather results blazingly fast
-    try {
-      for (Future<ChunkAnalysis> future : futures) {
-        ChunkAnalysis result = future.get(5, TimeUnit.SECONDS); // Max 5s timeout per chunk
-        finalResult.merge(result);
+    for (Future<ChunkAnalysis> future : futures) {
+      try {
+        ChunkAnalysis result = future.get(15, TimeUnit.SECONDS); // Max 15s timeout per chunk
+        if (result != null) {
+          finalResult.merge(result);
+        }
+      } catch (Exception e) {
+        log.error("Parallel analysis chunk failed or timed out", e);
       }
-    } catch (Exception e) {
-      log.error("Parallel analysis interrupted", e);
     }
 
     long endTime = System.nanoTime();
