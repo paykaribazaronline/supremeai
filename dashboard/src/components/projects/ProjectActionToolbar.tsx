@@ -1,7 +1,15 @@
-import React from 'react';
-import { Button, Space, Select, Typography, Input, Tooltip } from 'antd';
-import { PlusOutlined, ReloadOutlined, SortAscendingOutlined, SortDescendingOutlined, SearchOutlined, ClearOutlined } from '@ant-design/icons';
-import { ProjectSortField } from './types';
+import {
+  PlusOutlined,
+  ReloadOutlined,
+  SortAscendingOutlined,
+  SortDescendingOutlined,
+  SearchOutlined,
+  ClearOutlined,
+} from "@ant-design/icons";
+import { Button, Space, Select, Typography, Input, Tooltip } from "antd";
+import React from "react";
+
+import { ProjectSortField } from "./types";
 
 const { Option } = Select;
 const { Text } = Typography;
@@ -14,8 +22,8 @@ interface ProjectActionToolbarProps {
   loading: boolean;
   sortBy: ProjectSortField | null;
   setSortBy: (field: ProjectSortField | null) => void;
-  sortOrder: 'ascend' | 'descend';
-  setSortOrder: (order: 'ascend' | 'descend') => void;
+  sortOrder: "ascend" | "descend";
+  setSortOrder: (order: "ascend" | "descend") => void;
   minimal?: boolean;
 }
 
@@ -28,53 +36,84 @@ const ProjectActionToolbar: React.FC<ProjectActionToolbarProps> = ({
   sortBy,
   setSortBy,
   sortOrder,
-  setSortOrder
+  setSortOrder,
 }) => {
   return (
-    <div className="glass-card" style={{ 
-      marginBottom: 24, 
-      padding: '20px 24px', 
-      display: 'flex', 
-      justifyContent: 'space-between', 
-      alignItems: 'center',
-      flexWrap: 'wrap', 
-      gap: '20px', 
-      borderRadius: '16px',
-      background: 'rgba(255, 255, 255, 0.02)',
-      border: '1px solid rgba(255, 255, 255, 0.08)',
-      backdropFilter: 'blur(12px)'
-    }}>
-      <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flex: '1 1 300px' }}>
+    <div
+      className="glass-card"
+      style={{
+        marginBottom: 24,
+        padding: "20px 24px",
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+        flexWrap: "wrap",
+        gap: "20px",
+        borderRadius: "16px",
+        background: "rgba(255, 255, 255, 0.02)",
+        border: "1px solid rgba(255, 255, 255, 0.08)",
+        backdropFilter: "blur(12px)",
+      }}
+    >
+      <div
+        style={{
+          display: "flex",
+          gap: "12px",
+          alignItems: "center",
+          flex: "1 1 300px",
+        }}
+      >
         <Input
           placeholder="প্রজেক্টের নাম বা আইডি দিয়ে খুঁজুন..."
-          prefix={<SearchOutlined style={{ color: 'rgba(255,255,255,0.25)' }} />}
+          prefix={
+            <SearchOutlined style={{ color: "rgba(255,255,255,0.25)" }} />
+          }
           value={searchTerm}
-          onChange={e => setSearchTerm(e.target.value)}
-          style={{ 
-            maxWidth: 320, 
-            borderRadius: '10px',
-            background: 'rgba(255, 255, 255, 0.04)',
-            border: '1px solid rgba(255, 255, 255, 0.1)',
-            color: '#fff',
-            height: '42px'
+          onChange={(e) => setSearchTerm(e.target.value)}
+          style={{
+            maxWidth: 320,
+            borderRadius: "10px",
+            background: "rgba(255, 255, 255, 0.04)",
+            border: "1px solid rgba(255, 255, 255, 0.1)",
+            color: "#fff",
+            height: "42px",
           }}
           className="dark-input"
-          suffix={searchTerm && (
-            <ClearOutlined 
-              onClick={() => setSearchTerm('')} 
-              style={{ cursor: 'pointer', color: 'rgba(255,255,255,0.45)' }} 
-            />
-          )}
+          suffix={
+            searchTerm && (
+              <ClearOutlined
+                onClick={() => setSearchTerm("")}
+                style={{ cursor: "pointer", color: "rgba(255,255,255,0.45)" }}
+              />
+            )
+          }
         />
       </div>
 
-      <div style={{ display: 'flex', gap: '20px', alignItems: 'center', flexWrap: 'wrap' }}>
+      <div
+        style={{
+          display: "flex",
+          gap: "20px",
+          alignItems: "center",
+          flexWrap: "wrap",
+        }}
+      >
         <Space size="large">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <Text style={{ color: 'rgba(255,255,255,0.45)', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '1.2px', fontWeight: 600 }}>সর্ট করুন</Text>
-            <Select 
-              value={sortBy} 
-              onChange={setSortBy} 
+          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+            <Text
+              style={{
+                color: "rgba(255,255,255,0.45)",
+                fontSize: "11px",
+                textTransform: "uppercase",
+                letterSpacing: "1.2px",
+                fontWeight: 600,
+              }}
+            >
+              সর্ট করুন
+            </Text>
+            <Select
+              value={sortBy}
+              onChange={setSortBy}
               style={{ width: 180 }}
               placeholder="বাছাই করুন"
               allowClear
@@ -86,68 +125,86 @@ const ProjectActionToolbar: React.FC<ProjectActionToolbarProps> = ({
               <Option value="createdAt">তৈরির তারিখ</Option>
             </Select>
           </div>
-          
-          <Tooltip title={sortOrder === 'ascend' ? 'ক্রমানুসারে' : 'বিপরীত ক্রমানুসারে'}>
-            <Button 
-              icon={sortOrder === 'ascend' ? <SortAscendingOutlined /> : <SortDescendingOutlined />} 
-              onClick={() => setSortOrder(sortOrder === 'ascend' ? 'descend' : 'ascend')}
+
+          <Tooltip
+            title={
+              sortOrder === "ascend" ? "ক্রমানুসারে" : "বিপরীত ক্রমানুসারে"
+            }
+          >
+            <Button
+              icon={
+                sortOrder === "ascend" ? (
+                  <SortAscendingOutlined />
+                ) : (
+                  <SortDescendingOutlined />
+                )
+              }
+              onClick={() =>
+                setSortOrder(sortOrder === "ascend" ? "descend" : "ascend")
+              }
               style={{
-                height: '42px',
-                width: '42px',
-                borderRadius: '10px',
-                background: 'rgba(255, 255, 255, 0.04)',
-                border: '1px solid rgba(255, 255, 255, 0.1)',
-                color: '#fff',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
+                height: "42px",
+                width: "42px",
+                borderRadius: "10px",
+                background: "rgba(255, 255, 255, 0.04)",
+                border: "1px solid rgba(255, 255, 255, 0.1)",
+                color: "#fff",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
               }}
             />
           </Tooltip>
         </Space>
 
-        <div style={{ height: '32px', width: '1px', background: 'rgba(255,255,255,0.08)' }} />
+        <div
+          style={{
+            height: "32px",
+            width: "1px",
+            background: "rgba(255,255,255,0.08)",
+          }}
+        />
 
         <Space size="middle">
-          <Button 
-            type="primary" 
-            icon={<PlusOutlined />} 
+          <Button
+            type="primary"
+            icon={<PlusOutlined />}
             onClick={onNewProject}
             className="cyber-button"
-            style={{ 
-              background: 'transparent', 
-              border: '1px solid var(--neon-blue)',
-              color: 'var(--neon-blue)',
-              height: '42px',
-              borderRadius: '8px',
+            style={{
+              background: "transparent",
+              border: "1px solid var(--neon-blue)",
+              color: "var(--neon-blue)",
+              height: "42px",
+              borderRadius: "8px",
               fontWeight: 600,
-              padding: '0 24px',
-              boxShadow: '0 0 10px rgba(0, 243, 255, 0.2)',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              textTransform: 'uppercase',
-              letterSpacing: '1px'
+              padding: "0 24px",
+              boxShadow: "0 0 10px rgba(0, 243, 255, 0.2)",
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+              textTransform: "uppercase",
+              letterSpacing: "1px",
             }}
           >
             নতুন প্রজেক্ট
           </Button>
-          
+
           <Tooltip title="রিফ্রেশ করুন">
-            <Button 
-              icon={<ReloadOutlined />} 
+            <Button
+              icon={<ReloadOutlined />}
               onClick={onRefresh}
               loading={loading}
               style={{
-                height: '42px',
-                width: '42px',
-                borderRadius: '10px',
-                background: 'rgba(255, 255, 255, 0.04)',
-                border: '1px solid rgba(255, 255, 255, 0.1)',
-                color: '#fff',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
+                height: "42px",
+                width: "42px",
+                borderRadius: "10px",
+                background: "rgba(255, 255, 255, 0.04)",
+                border: "1px solid rgba(255, 255, 255, 0.1)",
+                color: "#fff",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
               }}
             />
           </Tooltip>
@@ -158,4 +215,3 @@ const ProjectActionToolbar: React.FC<ProjectActionToolbarProps> = ({
 };
 
 export default ProjectActionToolbar;
-

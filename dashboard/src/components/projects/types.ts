@@ -16,6 +16,6 @@ export interface GenerationForm {
   useAI?: boolean;
 }
 
-export type GenerationStatus = 'idle' | 'generating' | 'success' | 'error';
+export type GenerationStatus = "idle" | "generating" | "success" | "error";
 
-export type ProjectSortField = 'name' | 'status' | 'createdAt';
+export type ProjectSortField = "name" | "status" | "createdAt";

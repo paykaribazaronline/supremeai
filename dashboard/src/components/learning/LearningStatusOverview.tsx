@@ -1,6 +1,10 @@
-import React from 'react';
-import { Row, Col, Card, Statistic, Progress, Button } from 'antd';
-import { SyncOutlined, PauseCircleOutlined, CheckCircleOutlined } from '@ant-design/icons';
+import {
+  SyncOutlined,
+  PauseCircleOutlined,
+  CheckCircleOutlined,
+} from "@ant-design/icons";
+import { Row, Col, Card, Statistic, Progress, Button } from "antd";
+import React from "react";
 
 interface LearningStatus {
   mode: string;
@@ -29,46 +33,71 @@ const LearningStatusOverview: React.FC<LearningStatusOverviewProps> = ({
       <Col span={8}>
         <Card bordered={false} className="glass-card">
           <Statistic
-            title={<span style={{ color: 'rgba(255,255,255,0.4)' }}>Active Evolution Mode</span>}
-            value={status?.mode || 'UNKNOWN'}
-            prefix={<SyncOutlined spin={!status?.emergencyPaused} style={{ color: '#10b981' }} />}
-            valueStyle={{ color: '#fff', fontSize: '18px', fontWeight: 900 }}
+            title={
+              <span style={{ color: "rgba(255,255,255,0.4)" }}>
+                Active Evolution Mode
+              </span>
+            }
+            value={status?.mode || "UNKNOWN"}
+            prefix={
+              <SyncOutlined
+                spin={!status?.emergencyPaused}
+                style={{ color: "#10b981" }}
+              />
+            }
+            valueStyle={{ color: "#fff", fontSize: "18px", fontWeight: 900 }}
           />
-          <div style={{ color: 'rgba(255,255,255,0.45)', fontSize: '12px' }}>{status?.modeDescription}</div>
+          <div style={{ color: "rgba(255,255,255,0.45)", fontSize: "12px" }}>
+            {status?.modeDescription}
+          </div>
         </Card>
       </Col>
       <Col span={8}>
         <Card bordered={false} className="glass-card">
-          <Statistic 
-            title={<span style={{ color: 'rgba(255,255,255,0.4)' }}>Daily Quota Usage</span>}
-            value={status?.quota?.totalUsage || 0} 
+          <Statistic
+            title={
+              <span style={{ color: "rgba(255,255,255,0.4)" }}>
+                Daily Quota Usage
+              </span>
+            }
+            value={status?.quota?.totalUsage || 0}
             suffix={`/ ${status?.quota?.dailyLimit || 0}`}
-            valueStyle={{ color: '#10b981' }}
+            valueStyle={{ color: "#10b981" }}
           />
-          <Progress 
-            percent={status?.quota?.percentageUsed || 0} 
-            size="small" 
-            strokeColor={{ '0%': '#10b981', '100%': '#3b82f6' }}
+          <Progress
+            percent={status?.quota?.percentageUsed || 0}
+            size="small"
+            strokeColor={{ "0%": "#10b981", "100%": "#3b82f6" }}
           />
         </Card>
       </Col>
       <Col span={8}>
         <Card bordered={false} className="glass-card">
-          <Statistic 
-            title={<span style={{ color: 'rgba(255,255,255,0.4)' }}>Status</span>}
-            value={status?.emergencyPaused ? 'Paused' : 'Active'} 
-            valueStyle={{ color: status?.emergencyPaused ? '#ef4444' : '#10b981' }}
-            prefix={status?.emergencyPaused ? <PauseCircleOutlined /> : <CheckCircleOutlined />}
+          <Statistic
+            title={
+              <span style={{ color: "rgba(255,255,255,0.4)" }}>Status</span>
+            }
+            value={status?.emergencyPaused ? "Paused" : "Active"}
+            valueStyle={{
+              color: status?.emergencyPaused ? "#ef4444" : "#10b981",
+            }}
+            prefix={
+              status?.emergencyPaused ? (
+                <PauseCircleOutlined />
+              ) : (
+                <CheckCircleOutlined />
+              )
+            }
           />
-          <Button 
+          <Button
             danger={!status?.emergencyPaused}
-            type={status?.emergencyPaused ? 'primary' : 'default'}
+            type={status?.emergencyPaused ? "primary" : "default"}
             size="small"
             style={{ marginTop: 8 }}
             onClick={onEmergencyPause}
             loading={actionLoading}
           >
-            {status?.emergencyPaused ? 'Resume Learning' : 'Emergency Pause'}
+            {status?.emergencyPaused ? "Resume Learning" : "Emergency Pause"}
           </Button>
         </Card>
       </Col>

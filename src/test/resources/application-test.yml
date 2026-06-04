@@ -1,6 +1,11 @@
 
 # Test Configuration for SupremeAI
 
+# Disable @Scheduled tasks to prevent real HTTP calls during tests
+app:
+  scheduling:
+    enabled: false
+
 spring:
   application:
     name: supremeai-test

@@ -1,6 +1,7 @@
-import React from 'react';
-import { Modal, Form, Input, Select, Space, Button } from 'antd';
-import { User } from './types';
+import { Modal, Form, Input, Select, Space, Button } from "antd";
+import React from "react";
+
+import { User } from "./types";
 
 const { Option } = Select;
 
@@ -19,11 +20,11 @@ const UserModal: React.FC<UserModalProps> = ({
   onCancel,
   onFinish,
   loading,
-  form
+  form,
 }) => {
   return (
     <Modal
-      title={editingUser ? 'Edit User Profile' : 'Register New User'}
+      title={editingUser ? "Edit User Profile" : "Register New User"}
       open={open}
       onCancel={onCancel}
       footer={null}
@@ -31,38 +32,59 @@ const UserModal: React.FC<UserModalProps> = ({
       centered
       className="glass-modal"
     >
-      <Form form={form} layout="vertical" onFinish={onFinish} requiredMark={false}>
+      <Form
+        form={form}
+        layout="vertical"
+        onFinish={onFinish}
+        requiredMark={false}
+      >
         <Form.Item
           name="email"
           label="Email Address"
-          rules={[{ required: true, type: 'email', message: 'Please enter a valid email' }]}
+          rules={[
+            {
+              required: true,
+              type: "email",
+              message: "Please enter a valid email",
+            },
+          ]}
         >
-          <Input placeholder="user@example.com" disabled={!!editingUser} style={{ borderRadius: '8px' }} />
+          <Input
+            placeholder="user@example.com"
+            disabled={!!editingUser}
+            style={{ borderRadius: "8px" }}
+          />
         </Form.Item>
 
-        <Form.Item
-          name="displayName"
-          label="Display Name"
-        >
-          <Input placeholder="John Doe" style={{ borderRadius: '8px' }} />
+        <Form.Item name="displayName" label="Display Name">
+          <Input placeholder="John Doe" style={{ borderRadius: "8px" }} />
         </Form.Item>
 
         {!editingUser && (
           <Form.Item
             name="password"
             label="Initial Password"
-            rules={[{ required: true, min: 6, message: 'Password must be at least 6 characters' }]}
+            rules={[
+              {
+                required: true,
+                min: 6,
+                message: "Password must be at least 6 characters",
+              },
+            ]}
           >
-            <Input.Password placeholder="Secure password" style={{ borderRadius: '8px' }} />
+            <Input.Password
+              placeholder="Secure password"
+              style={{ borderRadius: "8px" }}
+            />
           </Form.Item>
         )}
 
         <Form.Item
           name="tier"
           label="Subscription Tier / Role"
-          rules={[{ required: true, message: 'Please select a tier' }]}
+          rules={[{ required: true, message: "Please select a tier" }]}
         >
-          <Select placeholder="Select tier" style={{ borderRadius: '8px' }}>
+          <Select placeholder="Select tier" style={{ borderRadius: "8px" }}>
             <Option value="free">Free Tier</Option>
             <Option value="pro">Pro Subscriber</Option>
             <Option value="enterprise">Enterprise</Option>
@@ -70,13 +92,24 @@ const UserModal: React.FC<UserModalProps> = ({
           </Select>
         </Form.Item>
 
-        <Form.Item style={{ marginTop: 32, marginBottom: 0, textAlign: 'right' }}>
+        <Form.Item
+          style={{ marginTop: 32, marginBottom: 0, textAlign: "right" }}
+        >
           <Space>
-            <Button onClick={onCancel} style={{ borderRadius: '8px' }}>
+            <Button onClick={onCancel} style={{ borderRadius: "8px" }}>
               Cancel
             </Button>
-            <Button type="primary" htmlType="submit" loading={loading} style={{ borderRadius: '8px', paddingLeft: '24px', paddingRight: '24px' }}>
-              {editingUser ? 'Save Changes' : 'Create User'}
+            <Button
+              type="primary"
+              htmlType="submit"
+              loading={loading}
+              style={{
+                borderRadius: "8px",
+                paddingLeft: "24px",
+                paddingRight: "24px",
+              }}
+            >
+              {editingUser ? "Save Changes" : "Create User"}
             </Button>
           </Space>
         </Form.Item>

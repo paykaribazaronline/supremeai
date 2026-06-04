@@ -1,6 +1,6 @@
-import React from 'react';
-import { Card, Typography, Space, Row, Col, Input, Select, Button } from 'antd';
-import { RobotOutlined, GlobalOutlined, SendOutlined } from '@ant-design/icons';
+import { RobotOutlined, GlobalOutlined, SendOutlined } from "@ant-design/icons";
+import { Card, Typography, Space, Row, Col, Input, Select, Button } from "antd";
+import React from "react";
 
 const { Title, Text } = Typography;
 const { Option } = Select;
@@ -29,35 +29,38 @@ const AutomationLaunchCard: React.FC<AutomationLaunchCardProps> = ({
   languages,
   setLanguages,
   submitting,
-  onSubmit
+  onSubmit,
 }) => {
   return (
     <Card className="glass-card premium-shadow" style={{ marginBottom: 24 }}>
-      <Title level={4} style={{ marginBottom: 24, display: 'flex', alignItems: 'center' }}>
-        <RobotOutlined style={{ marginRight: 8, color: '#722ed1' }} />
+      <Title
+        level={4}
+        style={{ marginBottom: 24, display: "flex", alignItems: "center" }}
+      >
+        <RobotOutlined style={{ marginRight: 8, color: "#722ed1" }} />
         Launch New Automation Task
       </Title>
-      
-      <Space direction="vertical" size="large" style={{ width: '100%' }}>
+
+      <Space direction="vertical" size="large" style={{ width: "100%" }}>
         <Row gutter={16}>
           <Col span={18}>
             <Text strong>Target Website URL</Text>
-            <Input 
-              size="large" 
-              placeholder="https://target-website.com" 
+            <Input
+              size="large"
+              placeholder="https://target-website.com"
               value={url}
-              onChange={e => setUrl(e.target.value)}
-              prefix={<GlobalOutlined style={{ color: '#1890ff' }} />}
+              onChange={(e) => setUrl(e.target.value)}
+              prefix={<GlobalOutlined style={{ color: "#1890ff" }} />}
               style={{ marginTop: 8 }}
             />
           </Col>
           <Col span={6}>
             <Text strong>Task Objective</Text>
-            <Select 
+            <Select
               size="large"
               value={taskType}
               onChange={setTaskType}
-              style={{ width: '100%', marginTop: 8 }}
+              style={{ width: "100%", marginTop: 8 }}
             >
               <Option value="reverse_engineer">Reverse Engineer API</Option>
               <Option value="extraction">Data Extraction (Scrape)</Option>
@@ -69,11 +72,11 @@ const AutomationLaunchCard: React.FC<AutomationLaunchCardProps> = ({
 
         <div>
           <Text strong>Custom Instructions (AI Intent)</Text>
-          <TextArea 
-            rows={4} 
+          <TextArea
+            rows={4}
             placeholder="Tell SupremeAI exactly what to do. Example: 'Go to the pricing page, extract all plans into a table, and find the cheapest annual option.'"
             value={instructions}
-            onChange={e => setInstructions(e.target.value)}
+            onChange={(e) => setInstructions(e.target.value)}
             style={{ marginTop: 8, borderRadius: 12 }}
           />
         </div>
@@ -95,14 +98,20 @@ const AutomationLaunchCard: React.FC<AutomationLaunchCardProps> = ({
             </Select>
           </Col>
           <Col>
-            <Button 
-              type="primary" 
-              size="large" 
-              icon={<SendOutlined />} 
+            <Button
+              type="primary"
+              size="large"
+              icon={<SendOutlined />}
               loading={submitting}
               onClick={onSubmit}
               className="pulse-button"
-              style={{ paddingLeft: 32, paddingRight: 32, height: 48, borderRadius: 24, fontWeight: 600 }}
+              style={{
+                paddingLeft: 32,
+                paddingRight: 32,
+                height: 48,
+                borderRadius: 24,
+                fontWeight: 600,
+              }}
             >
               Execute Task
             </Button>

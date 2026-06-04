@@ -15,11 +15,11 @@ export interface SystemStats {
 
 export interface SystemEvent {
   id: string;
-  type: 'info' | 'warning' | 'error' | 'success' | 'system';
+  type: "info" | "warning" | "error" | "success" | "system";
   timestamp: Date;
   message: string;
   source: string;
-  payload?: Record<string, any>;
+  payload?: Record<string, unknown>;
 }
 
 export interface ApiResponse<T> {
@@ -29,7 +29,7 @@ export interface ApiResponse<T> {
   timestamp: number;
 }
 
-export type UserRole = 'admin' | 'user';
+export type UserRole = "admin" | "user";
 
 export interface AuthUser {
   id: string;
@@ -75,7 +75,7 @@ export interface DashboardContract {
     runningProjects: number;
     completedTasks: number;
     successRate: number;
-    systemHealthStatus: 'healthy' | 'warning' | 'critical';
+    systemHealthStatus: "healthy" | "warning" | "critical";
     systemHealthReason: string;
     knowledgeBaseSize: number;
     activeConnections: number;
@@ -88,19 +88,19 @@ export interface DashboardContract {
     lastUpdateAt: number;
     latency?: number;
     systemHealthNodes?: SystemHealthNode[];
-    userHistory?: Array<{t: string, active: number, total: number}>;
-    projectHistory?: Array<{t: string, running: number, completed: number}>;
+    userHistory?: Array<{ t: string; active: number; total: number }>;
+    projectHistory?: Array<{ t: string; running: number; completed: number }>;
   };
   navigation: NavItem[];
   components: DashboardComponentDescriptor[];
-  apiEndpoints: Record<string, any>;
+  apiEndpoints: Record<string, unknown>;
 }
 
 export interface SystemHealthNode {
   id: string;
   name: string;
-  type: 'PROVIDER' | 'AGENT' | 'DATABASE' | 'NETWORK';
-  status: 'online' | 'busy' | 'error' | 'standby';
+  type: "PROVIDER" | "AGENT" | "DATABASE" | "NETWORK";
+  status: "online" | "busy" | "error" | "standby";
   latency: number;
   load: number;
   lastSeen: string;
@@ -110,7 +110,7 @@ export interface SystemHealthNode {
 export interface AnalysisFinding {
   id: string;
   jobId: string;
-  severity: 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW' | 'INFO';
+  severity: "CRITICAL" | "HIGH" | "MEDIUM" | "LOW" | "INFO";
   category: string;
   file: string;
   line: number;
@@ -125,7 +125,7 @@ export interface AnalysisJob {
   projectName: string;
   projectType?: string;
   gitUrl?: string;
-  status: 'PENDING' | 'RUNNING' | 'COMPLETED' | 'FAILED' | 'CANCELLED';
+  status: "PENDING" | "RUNNING" | "COMPLETED" | "FAILED" | "CANCELLED";
   startTime: string;
   endTime?: string;
   durationMs?: number;
@@ -178,7 +178,7 @@ export interface AgentConfig {
   name: string;
   description: string;
   enabled: boolean;
-  category: 'SECURITY' | 'QUALITY' | 'DEPENDENCIES' | 'ARCHITECTURE';
+  category: "SECURITY" | "QUALITY" | "DEPENDENCIES" | "ARCHITECTURE";
 }
 
 export interface AnalysisFix {
@@ -194,4 +194,3 @@ export interface AnalysisFix {
   applied: boolean;
   createdAt: string;
 }
-
