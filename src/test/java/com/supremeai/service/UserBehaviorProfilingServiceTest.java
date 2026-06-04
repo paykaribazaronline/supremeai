@@ -1,23 +1,23 @@
 package com.supremeai.service;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
 import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
+
 import java.util.*;
-import com.supremeai.model.User;
-import com.supremeai.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import reactor.core.publisher.Mono;
 
 @ExtendWith(MockitoExtension.class)
 class UserBehaviorProfilingServiceTest {
   private UserBehaviorProfilingService service;
+
   @BeforeEach
-  void setUp() { service = new UserBehaviorProfilingService(); }
+  void setUp() {
+    service = new UserBehaviorProfilingService();
+  }
 
   @Test
   void trackAction_shouldRecordActionForUser() {

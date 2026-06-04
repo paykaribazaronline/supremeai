@@ -18,7 +18,64 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # 1. Secret Scanning via Gitleaks
+  secret-scan:
+    name: Secret Scanning
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Run Gitleaks secret scan
+        uses: zricethezav/gitleaks-action@v1.3.0
+        with:
+          args: --redact
+
+  # 2. CodeQL Static Application Security Testing (SAST)
+  codeql-scan:
+    name: CodeQL Security Scan
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [ 'java-kotlin', 'javascript-typescript' ]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        if: matrix.language == 'java-kotlin'
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+          cache: 'gradle'
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}
+
+      - name: Autobuild Backend (Java)
+        if: matrix.language == 'java-kotlin'
+        run: |
+          chmod +x gradlew
+          ./gradlew bootJar --no-daemon -x test
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:${{matrix.language}}"
+
+  # 3. Path Filter for Selective CI/CD
   detect-changes:
+    name: Detect File Changes
     runs-on: ubuntu-latest
     outputs:
       backend: ${{ steps.filter.outputs.backend }}
@@ -47,8 +104,10 @@ jobs:
               - 'functions/**'
               - '.github/workflows/smart-ci-cd.yml'
 
+  # 4. Backend Testing and Deployment
   backend-ci:
-    needs: detect-changes
+    name: Backend CI/CD
+    needs: [detect-changes, secret-scan]
     if: ${{ needs.detect-changes.outputs.backend == 'true' }}
     runs-on: ubuntu-latest
     steps:
@@ -71,7 +130,6 @@ jobs:
         run: ./gradlew clean test --no-daemon
 
       - name: Set up Google Cloud SDK
-        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         uses: google-github-actions/auth@v2
         id: auth
         with:
@@ -122,16 +180,33 @@ jobs:
             --max-instances=10 \
             --min-instances=1
 
-      - name: Discord Notification on Failure
-        if: failure() && secrets.DISCORD_WEBHOOK != ''
+      - name: Report Status to Admin Dashboard
+        if: always()
+        env:
+          PROJECT_ID: ${{ steps.auth.outputs.project_id }}
         run: |
-          curl -H "Content-Type: application/json" \
-               -X POST \
-               -d '{"content": "❌ **SupremeAI Backend CI Pipeline Failed**\n**Branch:** `${{ github.ref_name }}`\n**Commit:** `${{ github.sha }}`\n[View Run Log](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})"}' \
-               ${{ secrets.DISCORD_WEBHOOK }}
+          if [ -n "$PROJECT_ID" ]; then
+            FILES_JSON=$(git diff-tree --no-commit-id --name-only -r ${{ github.sha }} | jq -R . | jq -s .)
+            COMMIT_MSG=$(echo "[Backend] ${{ job.status }} - ${{ github.event.head_commit.message }}" | jq -R .)
+            
+            curl -s -X POST \
+              -H "Content-Type: application/json" \
+              -d "{
+                \"commitMessage\": $COMMIT_MSG,
+                \"changedFiles\": $FILES_JSON,
+                \"author\": \"${{ github.actor }}\",
+                \"branch\": \"${{ github.ref_name }}\",
+                \"runId\": \"${{ github.run_id }}\"
+              }" \
+              "https://us-central1-$PROJECT_ID.cloudfunctions.net/analyzeDeployment" || echo "Dashboard notification failed"
+          else
+            echo "GCP Auth not available, skipping dashboard report"
+          fi
 
+  # 5. Frontend Testing and Deployment
   frontend-ci:
-    needs: detect-changes
+    name: Frontend CI/CD
+    needs: [detect-changes, secret-scan]
     if: ${{ needs.detect-changes.outputs.frontend == 'true' }}
     runs-on: ubuntu-latest
     steps:
@@ -171,7 +246,6 @@ jobs:
           cp -R dashboard/dist/. public/
 
       - name: Authenticate to Google Cloud (Firebase)
-        if: (github.ref == 'refs/heads/main' && github.event_name == 'push') || github.event_name == 'pull_request'
         uses: google-github-actions/auth@v2
         id: auth
         with:
@@ -186,7 +260,6 @@ jobs:
         if: github.event_name == 'pull_request'
         id: firebase_preview
         run: |
-          # Deploy to preview channel named after the PR number
           PREVIEW_URL=$(npx firebase-tools hosting:channel:deploy pr-${{ github.event.number }} --project ${{ steps.auth.outputs.project_id }} --json | jq -r '.result.hosting.urls[0]')
           echo "preview_url=$PREVIEW_URL" >> $GITHUB_OUTPUT
 
@@ -201,16 +274,33 @@ jobs:
           🔗 Preview URL: $PREVIEW_URL
           _Built on commit \`${{ github.sha }}\`_"
 
-      - name: Discord Notification on Failure
-        if: failure() && secrets.DISCORD_WEBHOOK != ''
+      - name: Report Status to Admin Dashboard
+        if: always()
+        env:
+          PROJECT_ID: ${{ steps.auth.outputs.project_id }}
         run: |
-          curl -H "Content-Type: application/json" \
-               -X POST \
-               -d '{"content": "❌ **SupremeAI Frontend CI Pipeline Failed**\n**Branch:** `${{ github.ref_name }}`\n**Commit:** `${{ github.sha }}`\n[View Run Log](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})"}' \
-               ${{ secrets.DISCORD_WEBHOOK }}
+          if [ -n "$PROJECT_ID" ]; then
+            FILES_JSON=$(git diff-tree --no-commit-id --name-only -r ${{ github.sha }} | jq -R . | jq -s .)
+            COMMIT_MSG=$(echo "[Frontend] ${{ job.status }} - ${{ github.event.head_commit.message }}" | jq -R .)
+            
+            curl -s -X POST \
+              -H "Content-Type: application/json" \
+              -d "{
+                \"commitMessage\": $COMMIT_MSG,
+                \"changedFiles\": $FILES_JSON,
+                \"author\": \"${{ github.actor }}\",
+                \"branch\": \"${{ github.ref_name }}\",
+                \"runId\": \"${{ github.run_id }}\"
+              }" \
+              "https://us-central1-$PROJECT_ID.cloudfunctions.net/analyzeDeployment" || echo "Dashboard notification failed"
+          else
+            echo "GCP Auth not available, skipping dashboard report"
+          fi
 
+  # 6. Firebase Functions Deployment
   functions-ci:
-    needs: detect-changes
+    name: Functions CI/CD
+    needs: [detect-changes, secret-scan]
     if: ${{ needs.detect-changes.outputs.functions == 'true' }}
     runs-on: ubuntu-latest
     steps:
@@ -230,7 +320,6 @@ jobs:
           npm install
 
       - name: Authenticate to Google Cloud (Firebase)
-        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         uses: google-github-actions/auth@v2
         id: auth
         with:
@@ -241,10 +330,57 @@ jobs:
         run: |
           npx firebase-tools deploy --only functions --project ${{ steps.auth.outputs.project_id }} --non-interactive --force
 
-      - name: Discord Notification on Failure
-        if: failure() && secrets.DISCORD_WEBHOOK != ''
+      - name: Report Status to Admin Dashboard
+        if: always()
+        env:
+          PROJECT_ID: ${{ steps.auth.outputs.project_id }}
         run: |
-          curl -H "Content-Type: application/json" \
-               -X POST \
-               -d '{"content": "❌ **SupremeAI Firebase Functions CI Pipeline Failed**\n**Branch:** `${{ github.ref_name }}`\n**Commit:** `${{ github.sha }}`\n[View Run Log](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})"}' \
-               ${{ secrets.DISCORD_WEBHOOK }}
+          if [ -n "$PROJECT_ID" ]; then
+            FILES_JSON=$(git diff-tree --no-commit-id --name-only -r ${{ github.sha }} | jq -R . | jq -s .)
+            COMMIT_MSG=$(echo "[Functions] ${{ job.status }} - ${{ github.event.head_commit.message }}" | jq -R .)
+            
+            curl -s -X POST \
+              -H "Content-Type: application/json" \
+              -d "{
+                \"commitMessage\": $COMMIT_MSG,
+                \"changedFiles\": $FILES_JSON,
+                \"author\": \"${{ github.actor }}\",
+                \"branch\": \"${{ github.ref_name }}\",
+                \"runId\": \"${{ github.run_id }}\"
+              }" \
+              "https://us-central1-$PROJECT_ID.cloudfunctions.net/analyzeDeployment" || echo "Dashboard notification failed"
+          else
+            echo "GCP Auth not available, skipping dashboard report"
+          fi
+
+  # 7. Dependabot Auto-Merge
+  dependabot-merge:
+    name: Dependabot Auto-Merge
+    needs: [backend-ci, frontend-ci, functions-ci]
+    if: github.event.pull_request.user.login == 'dependabot[bot]' && always()
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Check CI Status
+        if: |
+          contains(needs.backend-ci.result, 'failure') ||
+          contains(needs.frontend-ci.result, 'failure') ||
+          contains(needs.functions-ci.result, 'failure')
+        run: |
+          echo "CI/CD checks failed, blocking auto-merge."
+          exit 1
+
+      - name: Fetch Dependabot Metadata
+        id: metadata
+        uses: dependabot/fetch-metadata@v2
+        with:
+          github-token: "${{ secrets.GITHUB_TOKEN }}"
+
+      - name: Enable Auto-Merge for Dependabot PR
+        if: steps.metadata.outputs.update-type == 'version-update:semver-patch' || steps.metadata.outputs.update-type == 'version-update:semver-minor'
+        run: gh pr merge --auto --merge "$PR_URL"
+        env:
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -2,7 +2,6 @@ package com.supremeai.service;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import com.supremeai.model.InstalledSkill;
 import java.util.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

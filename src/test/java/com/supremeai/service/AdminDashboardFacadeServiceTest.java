@@ -4,9 +4,9 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
+import com.supremeai.model.SystemConfig;
 import com.supremeai.model.User;
 import com.supremeai.model.UserTier;
-import com.supremeai.model.SystemConfig;
 import com.supremeai.repository.*;
 import java.util.*;
 import org.junit.jupiter.api.BeforeEach;
@@ -16,7 +16,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import reactor.test.StepVerifier;
 
 @ExtendWith(MockitoExtension.class)
 class AdminDashboardFacadeServiceTest {
@@ -63,8 +62,7 @@ class AdminDashboardFacadeServiceTest {
     when(userRepository.findByIsActive(true)).thenReturn(Flux.empty());
     when(providerRepository.count()).thenReturn(Mono.just(8L));
     when(providerRepository.findByStatus("active")).thenReturn(Flux.empty());
-    when(telegramStorageService.checkBotStatus())
-        .thenReturn(Mono.just(Map.of("status", "ONLINE")));
+    when(telegramStorageService.checkBotStatus()).thenReturn(Mono.just(Map.of("status", "ONLINE")));
 
     Map<String, Object> uiMetadata = Map.of("navigation", List.of(), "components", List.of());
     SystemConfig systemConfig = new SystemConfig();
@@ -90,11 +88,9 @@ class AdminDashboardFacadeServiceTest {
   void buildContract_shouldProduceNonNullResult() {
     SystemConfig systemConfig = new SystemConfig();
     when(configService.getConfig()).thenReturn(systemConfig);
-    
+
     Object[] data =
-        new Object[] {
-          0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, Map.of("status", "UNKNOWN")
-        };
+        new Object[] {0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, Map.of("status", "UNKNOWN")};
     Map<String, Object> result = service.buildContract(data);
 
     assertNotNull(result);
@@ -107,7 +103,7 @@ class AdminDashboardFacadeServiceTest {
   void buildDefaultContract_shouldReturnDefaultValues() {
     SystemConfig systemConfig = new SystemConfig();
     when(configService.getConfig()).thenReturn(systemConfig);
-    
+
     Map<String, Object> result = service.buildDefaultContract();
 
     assertNotNull(result);
