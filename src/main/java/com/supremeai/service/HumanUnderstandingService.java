@@ -20,15 +20,15 @@ public class HumanUnderstandingService {
   private static final Logger logger = LoggerFactory.getLogger(HumanUnderstandingService.class);
 
   private final SystemLearningRepository learningRepository;
-  private final MultiAIConsensusService consensusService;
+  private final MultiAIVotingService votingService;
   private final ConfigService configService;
 
   public HumanUnderstandingService(
       SystemLearningRepository learningRepository,
-      MultiAIConsensusService consensusService,
+      MultiAIVotingService votingService,
       ConfigService configService) {
     this.learningRepository = learningRepository;
-    this.consensusService = consensusService;
+    this.votingService = votingService;
     this.configService = configService;
   }
 
@@ -40,8 +40,8 @@ public class HumanUnderstandingService {
     // Get analysis provider from config (resolves to the default provider at runtime).
     String preferredProvider = configService.getEffectiveSetting("analysis_provider", "default");
 
-    consensusService
-        .askAllAIs(
+    votingService
+        .askConsensus(
             """
             Analyze this human-AI interaction and extract ONLY these values:
 

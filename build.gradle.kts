@@ -169,6 +169,7 @@ dependencies {
 // Configure UTF-8 encoding for all compilation tasks with performance optimizations
 tasks.withType<JavaCompile> {
     options.encoding = "UTF-8"
+    options.compilerArgs.addAll(listOf("--enable-preview"))
 }
 
 tasks.withType<Test> {
@@ -187,6 +188,7 @@ tasks.named<JavaCompile>("compileTestJava") {
 
 tasks.withType<JavaExec> {
     jvmArgs(
+        "--enable-preview",
         "--add-opens", "java.base/java.time.chrono=ALL-UNNAMED",
         "--add-opens", "java.base/java.util=ALL-UNNAMED",
         "--add-opens", "java.base/java.lang=ALL-UNNAMED"

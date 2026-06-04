@@ -6,7 +6,7 @@ import static org.mockito.Mockito.*;
 
 import com.supremeai.model.ConsensusResult;
 import com.supremeai.provider.AIProviderFactory;
-import com.supremeai.service.MultiAIConsensusService;
+import com.supremeai.service.MultiAIVotingService;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -25,7 +25,7 @@ public class MultiAIConsensusControllerTest {
 
   private MultiAIConsensusController controller;
 
-  @Mock private MultiAIConsensusService consensusService;
+  @Mock private MultiAIVotingService votingService;
 
   @Mock private AIProviderFactory providerFactory;
 
@@ -34,7 +34,7 @@ public class MultiAIConsensusControllerTest {
   @BeforeEach
   public void setUp() {
     controller = new MultiAIConsensusController();
-    setField(controller, "consensusService", consensusService);
+    setField(controller, "votingService", votingService);
     setField(controller, "providerFactory", providerFactory);
 
     consensusResult = new ConsensusResult();
@@ -63,7 +63,7 @@ public class MultiAIConsensusControllerTest {
     request.put("providers", Collections.singletonList("openai"));
     request.put("timeout", 5000);
 
-    when(consensusService.askAllAIs(eq("What is AI?"), anyList(), anyLong()))
+    when(votingService.askConsensus(eq("What is AI?"), anyList(), anyLong()))
         .thenReturn(Mono.just(consensusResult));
 
     // Act
@@ -92,7 +92,7 @@ public class MultiAIConsensusControllerTest {
     request.put("timeout", 5000);
 
     when(providerFactory.getAvailableProviderIds()).thenReturn(Collections.singletonList("openai"));
-    when(consensusService.askAllAIs(eq("What is AI?"), anyList(), anyLong()))
+    when(votingService.askConsensus(eq("What is AI?"), anyList(), anyLong()))
         .thenReturn(Mono.just(consensusResult));
 
     // Act
@@ -115,7 +115,7 @@ public class MultiAIConsensusControllerTest {
     request.put("providers", Collections.singletonList("openai"));
     request.put("timeout", 5000);
 
-    when(consensusService.askAllAIs(anyString(), anyList(), anyLong()))
+    when(votingService.askConsensus(anyString(), anyList(), anyLong()))
         .thenReturn(Mono.error(new RuntimeException("Service unavailable")));
 
     // Act
