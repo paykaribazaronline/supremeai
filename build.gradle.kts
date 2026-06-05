@@ -74,7 +74,7 @@ dependencies {
     implementation("com.microsoft.playwright:playwright:1.40.0")
 
     // Logging - STRUCTURED LOGGING
-    implementation("org.slf4j:slf4j-api:2.0.16")
+    implementation("org.slf4j:slf4j-api:2.0.18")
     implementation("ch.qos.logback:logback-classic:1.5.12")
     implementation("ch.qos.logback:logback-core:1.5.12")
 
