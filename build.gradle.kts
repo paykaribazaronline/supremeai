@@ -97,7 +97,7 @@ dependencies {
     implementation("com.google.cloud:spring-cloud-gcp-starter-data-firestore")
     implementation("com.google.cloud:google-cloud-secretmanager")
     implementation("com.google.cloud:google-cloud-firestore")
-    implementation("io.projectreactor:reactor-core:3.5.1")
+    implementation("io.projectreactor:reactor-core:3.8.5")
 
     // Google Cloud Pub/Sub client
     implementation("com.google.cloud:google-cloud-pubsub")
