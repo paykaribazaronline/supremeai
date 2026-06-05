@@ -195,9 +195,7 @@ app.post(['/api/chat/classify', '/chat/classify'], async (req, res) => {
     const response = await axios.post(scrapeUrl, { message }, { timeout: 10000 });
     return res.json({ success: true, ...response.data });
   } catch (error) {
-    try {
-      return res.status(500).json({ success: false, error: 'Classification failed' });
-    }
+    return res.status(500).json({ success: false, error: 'Classification failed' });
   }
 });
 
