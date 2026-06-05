@@ -132,7 +132,7 @@ jobs:
   # 5. Backend Deployment
   backend-deploy:
     name: Backend Deployment
-    needs: [backend-test]
+    needs: [backend-test, ai-validation-ci]
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:
@@ -145,6 +145,11 @@ jobs:
           distribution: 'temurin'
           java-version: '21'
           cache: 'gradle'
+
+      - name: Build Backend Jar
+        run: |
+          chmod +x gradlew
+          ./gradlew bootJar -x test --no-daemon
 
       - name: Set up Google Cloud SDK
         uses: google-github-actions/auth@v2
@@ -245,6 +250,7 @@ jobs:
 
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v2
+        id: auth
         with:
           credentials_json: ${{ secrets.GCP_SA_KEY }}
         continue-on-error: true
@@ -252,6 +258,8 @@ jobs:
       - name: Run Backend for Validation
         env:
           SPRING_PROFILES_ACTIVE: test
+          FIREBASE_PROJECT_ID: ${{ steps.auth.outputs.project_id }}
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ steps.auth.outputs.credentials_file_path }}
         run: |
           chmod +x gradlew
           nohup ./gradlew bootRun --no-daemon > backend.log 2>&1 &
@@ -476,6 +484,9 @@ jobs:
         with:
           name: functions-build
           path: functions/
+
+      - name: Install Functions Dependencies
+        run: npm ci -w functions
 
       - name: Authenticate to Google Cloud (Firebase)
         uses: google-github-actions/auth@v2
