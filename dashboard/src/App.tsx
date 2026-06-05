@@ -56,7 +56,7 @@ const AdminSimulator = lazy(() => import("./pages/AdminSimulator"));
 const AdminRules = lazy(() => import("./pages/AdminRules"));
 const AdminTesting = lazy(() => import("./pages/AdminTesting"));
 const AdminSuperFly = lazy(() => import("./pages/AdminSuperFly"));
-const AdminCloudDBHub = lazy(() => import("./pages/AdminCloudDBHub"));
+const AdminCloudDBHub = lazy(() => import("./pages/AdminCloudDbHub"));
 
 interface ModelStatus {
   id: string;
