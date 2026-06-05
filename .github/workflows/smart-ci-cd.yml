@@ -108,7 +108,7 @@ jobs:
   backend-ci:
     name: Backend CI/CD
     needs: [detect-changes, secret-scan]
-    if: ${{ needs.detect-changes.outputs.backend == 'true' }}
+    if: ${{ needs.detect-changes.outputs.backend == 'true' || github.ref == 'refs/heads/main' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -203,11 +203,100 @@ jobs:
             echo "GCP Auth not available, skipping dashboard report"
           fi
 
-  # 5. Frontend Testing and Deployment
+  # 5. AI Validation Pipeline
+  ai-validation-ci:
+    name: AI Validation
+    needs: [detect-changes, backend-ci]
+    if: ${{ needs.detect-changes.outputs.backend == 'true' || github.ref == 'refs/heads/main' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    services:
+      redis:
+        image: redis:7-alpine
+        ports: ['6379:6379']
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+          cache: 'gradle'
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+        continue-on-error: true
+
+      - name: Run Backend for Validation
+        env:
+          SPRING_PROFILES_ACTIVE: test
+        run: |
+          chmod +x gradlew
+          nohup ./gradlew bootRun --no-daemon > backend.log 2>&1 &
+          for i in $(seq 1 90); do
+            if curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/api/health | grep -q "200"; then
+              echo "Backend is healthy"
+              break
+            fi
+            echo "Waiting for backend... ($((i*3))s)"
+            sleep 3
+          done
+          if ! curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/api/health | grep -q "200"; then
+            echo "ERROR: backend failed to become healthy within timeout"
+            cat backend.log || true
+            exit 1
+          fi
+
+      - name: Run AI validation script
+        run: |
+          chmod +x scripts/validate_ai.sh
+          export AI_VALIDATION_BASE_URL=http://127.0.0.1:8080
+          export AI_VALIDATION_ENDPOINT=/api/chat/send
+          attempts=3
+          backoff=5
+          for i in $(seq 1 "$attempts"); do
+            echo "AI validation attempt $i/$attempts"
+            bash scripts/validate_ai.sh
+            rc=$?
+            if [ "$rc" -eq 0 ]; then
+              echo "AI validation succeeded"
+              break
+            fi
+            echo "AI validation failed with exit code $rc"
+            if [ "$i" -lt "$attempts" ]; then
+              echo "Retrying after ${backoff}s..."
+              sleep "$backoff"
+            else
+              echo "Exceeded retry limit ($attempts)"
+              exit "$rc"
+            fi
+          done
+
+      - name: Archive validation artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: supeAI-validation-artifacts
+          path: |
+            backend.log
+            ai_validation_report.json
+
+  # 6. Frontend Testing and Deployment
   frontend-ci:
     name: Frontend CI/CD
     needs: [detect-changes, secret-scan]
-    if: ${{ needs.detect-changes.outputs.frontend == 'true' }}
+    if: ${{ needs.detect-changes.outputs.frontend == 'true' || github.ref == 'refs/heads/main' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -293,7 +382,7 @@ jobs:
   functions-ci:
     name: Functions CI/CD
     needs: [detect-changes, secret-scan]
-    if: ${{ needs.detect-changes.outputs.functions == 'true' }}
+    if: ${{ needs.detect-changes.outputs.functions == 'true' || github.ref == 'refs/heads/main' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
