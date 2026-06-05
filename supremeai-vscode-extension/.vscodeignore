@@ -13,3 +13,10 @@ src/**
 **/*.ts
 !**/*.d.ts
 node_modules/**
+test/**
+*.java
+*.vsix
+tsconfig.tsbuildinfo
+jest.config.js
+package-lock.json
+

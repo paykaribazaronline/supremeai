@@ -179,6 +179,26 @@ export class SupremeAIService {
   }
 
   /**
+   * ভেক্টর মেমোরিতে ফাইল সিঙ্ক করার ফাংশন
+   * POST /api/memory/ingest
+   */
+  async syncFileToMemory(filePath: string, content: string, language: string): Promise<any> {
+    try {
+      const response = await this.client.post('/api/memory/ingest', {
+        filePath,
+        content,
+        language,
+        sessionId: this.sessionId,
+        timestamp: new Date().toISOString()
+      });
+      return response.data;
+    } catch (error: any) {
+      console.error(`[SupremeAI] ভেক্টর মেমোরি সিঙ্ক ব্যর্থ হয়েছে: ${error.message}`);
+      return { success: false, message: error.message };
+    }
+  }
+
+  /**
    * Send chat message
    * POST /api/chat/message
    */

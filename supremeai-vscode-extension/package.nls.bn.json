@@ -24,6 +24,23 @@
     "error.networkIssue": "নেটওয়ার্ক সমস্যা",
     "info.learningInProgress": "শিখানোর প্রক্রিয়া চলছে...",
     "info.codeAnalysisSent": "কোড বিশ্লেষণ পাঠানো হয়েছে",
-    "info.extensionActivated": "সুপ্রিমএআই রিয়েল-টাইম লার্নিং সক্রিয় হয়েছে!"
+    "info.extensionActivated": "সুপ্রিমএআই রিয়েল-টাইম লার্নিং সক্রিয় হয়েছে!",
+    "ai.suggestionGenerated": "এআই সাজেশন তৈরি করা হয়েছে",
+    "ai.codeCompletion": "কোড পূরণ করুন",
+    "ai.errorExplanation": "এরকে ব্যাখ্যা করুন",
+    "ai.refactorSuggestion": "রিফ্যাকচার সাজেশন",
+    "ai.codeReview": "কোড রিভিউ করুন",
+    "ai.generating": "জেনারেট করা হচ্ছে...",
+    "ai.retry": "আবার চেষ্টা করুন",
+    "ai.cancel": "বাতিল করুন",
+    "ai.copy": "কপি করুন",
+    "ai.apply": "আবেগীকরণ",
+    "dashboard.title": "সুপ্রিমএআই ড্যাশবোর্ড",
+    "dashboard.healthScore": "হেলথ স্কোর",
+    "dashboard.learningProgress": "শিখন প্রগ্রেস",
+    "dashboard.codeMetrics": "কোড মেট্রিক্স",
+    "chat.placeholder": "আপনার কোড সম্পর্কে জিজ্ঞাসা করুন...",
+    "chat.send": "পাঠান",
+    "chat.newSession": "নতুন সেশন"
   }
 }

@@ -45,6 +45,11 @@ export class CodeFlowHandler {
     );
 
     this.statusBarItem.show();
+
+    // এক্সটেনশন চালু হওয়ার পর ব্যাকগ্রাউন্ডে প্রাথমিক ওয়ার্কস্পেস ইনডেক্সিং ও সিঙ্ক
+    setTimeout(() => {
+      this.syncWorkspaceToMemory();
+    }, 3000);
   }
 
   /**
@@ -271,9 +276,45 @@ export class CodeFlowHandler {
   }
 
   /**
+   * পুরো ওয়ার্কস্পেস স্ক্যান করে ফাইল ভেক্টর মেমোরিতে সিঙ্ক করার মেথড
+   */
+  private async syncWorkspaceToMemory(): Promise<void> {
+    const workspaceFolders = vscode.workspace.workspaceFolders;
+    if (!workspaceFolders) return;
+
+    try {
+      const files = await this.collectFiles(workspaceFolders[0].uri);
+      this.outputChannel.appendLine(`[SupremeAI] প্রারম্ভিক ইনডেক্সিং শুরু: ${files.length} ফাইল পাওয়া গেছে`);
+      for (const file of files) {
+        const ext = file.path.split('.').pop() || 'txt';
+        await this.supremeAIService.syncFileToMemory(file.path, file.content, ext);
+      }
+      this.outputChannel.appendLine(`[SupremeAI] প্রারম্ভিক ইনডেক্সিং সফলভাবে সম্পন্ন হয়েছে`);
+    } catch (err: any) {
+      this.outputChannel.appendLine(`[SupremeAI] প্রারম্ভিক ইনডেক্সিং ব্যর্থ হয়েছে: ${err.message}`);
+    }
+  }
+
+  /**
    * Handle file save event
    */
   private async onFileSave(e: vscode.TextDocument): Promise<void> {
+    // ফাইলটি ভেক্টর মেমোরিতে সিঙ্ক করার ব্যাকগ্রাউন্ড টাস্ক
+    const allowedLanguages = ['javascript', 'typescript', 'python', 'go', 'rust', 'java', 'cpp', 'c'];
+    if (allowedLanguages.includes(e.languageId)) {
+      this.supremeAIService.syncFileToMemory(
+        vscode.workspace.asRelativePath(e.uri),
+        e.getText(),
+        e.languageId
+      ).then(res => {
+        if (res && res.success) {
+          console.log(`[SupremeAI] ভেক্টর মেমোরি অটো-সিঙ্ক সম্পন্ন: ${e.fileName}`);
+        }
+      }).catch(err => {
+        console.error(`[SupremeAI] ভেক্টর মেমোরি অটো-সিঙ্ক ব্যর্থ: ${err.message}`);
+      });
+    }
+
     const config = vscode.workspace.getConfiguration('supremeai');
     const autoAnalyze = config.get<boolean>('autoAnalyzeOnSave', false);
 

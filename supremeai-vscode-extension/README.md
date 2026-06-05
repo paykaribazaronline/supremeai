@@ -7,7 +7,6 @@ Real-time code learning and AI assistance directly in your IDE. Every code edit,
 - **Real-Time Learning**: Every code edit you make is anonymously sent to SupremeAI for learning
 - **Auto Error Reporting**: Compilation errors and stack traces automatically reported
 - **Suggestion Feedback**: Accept/Reject AI suggestions with one click to improve future results
-- **Instant Statistics**: See learning progress in the status bar
 
 ## Installation
 

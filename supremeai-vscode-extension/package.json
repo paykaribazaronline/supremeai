@@ -34,20 +34,52 @@
     "Auto-Completion",
     "Error Detection",
     "CodeFlow",
-    "Analysis"
+    "Analysis",
+    "Code Generation",
+    "Refactoring"
   ],
   "activationEvents": [
     "onStartupFinished",
+    "onCommand:supremeai.login",
+    "onCommand:supremeai.loginAsGuest",
+    "onCommand:supremeai.logout",
     "onCommand:supremeai.analyzeCodeFlow",
     "onCommand:supremeai.resolveError",
     "onCommand:supremeai.showSecurityIssues",
     "onCommand:supremeai.showDependencies",
     "onCommand:supremeai.openCodeFlowDashboard",
-    "onCommand:supremeai.refreshCodeFlow"
+    "onCommand:supremeai.refreshCodeFlow",
+    "onCommand:supremeai.aiComplete",
+    "onCommand:supremeai.aiExplain",
+    "onCommand:supremeai.aiReview"
   ],
   "main": "./out/extension.js",
   "contributes": {
     "commands": [
+      {
+        "command": "supremeai.login",
+        "title": "SupremeAI: Login",
+        "titled": {
+          "default": "SupremeAI: Login",
+          "bn": "সুপ্রিমএআই: লগইন করুন"
+        }
+      },
+      {
+        "command": "supremeai.loginAsGuest",
+        "title": "SupremeAI: Login as Guest",
+        "titled": {
+          "default": "SupremeAI: Login as Guest",
+          "bn": "সুপ্রিমএআই: অতিথি হিসেবে লগইন করুন"
+        }
+      },
+      {
+        "command": "supremeai.logout",
+        "title": "SupremeAI: Logout",
+        "titled": {
+          "default": "SupremeAI: Logout",
+          "bn": "সুপ্রিমএআই: লগআউট করুন"
+        }
+      },
       {
         "command": "supremeai.acceptSuggestion",
         "title": "SupremeAI: Accept Suggestion",
@@ -135,6 +167,30 @@
           "default": "SupremeAI: Refresh CodeFlow Analysis",
           "bn": "সুপ্রিমএআই: কোড ফ্লো বিশ্লেষণ রিফ্রেশ করুন"
         }
+      },
+      {
+        "command": "supremeai.aiComplete",
+        "title": "SupremeAI: AI Code Completion",
+        "titled": {
+          "default": "SupremeAI: AI Code Completion",
+          "bn": "সুপ্রিমএআই: এআই কোড পূরণ"
+        }
+      },
+      {
+        "command": "supremeai.aiExplain",
+        "title": "SupremeAI: Explain Code",
+        "titled": {
+          "default": "SupremeAI: Explain Code",
+          "bn": "সুপ্রিমএআই: কোড ব্যাখ্যা করুন"
+        }
+      },
+      {
+        "command": "supremeai.aiReview",
+        "title": "SupremeAI: AI Code Review",
+        "titled": {
+          "default": "SupremeAI: AI Code Review",
+          "bn": "সুপ্রিমএআই: এআই কোড রিভিউ"
+        }
       }
     ],
     "menus": {
@@ -146,6 +202,16 @@
         },
         {
           "command": "supremeai.analyzeCodeFlow",
+          "group": "SupremeAI"
+        },
+        {
+          "command": "supremeai.aiExplain",
+          "when": "editorHasSelection",
+          "group": "SupremeAI"
+        },
+        {
+          "command": "supremeai.aiReview",
+          "when": "editorHasSelection",
           "group": "SupremeAI"
         }
       ],
@@ -171,6 +237,16 @@
             "default": "SupremeAI Backend API URL",
             "bn": "সুপ্রিমএআই ব্যাকএন্ড API URL"
           }
+        },
+        "supremeai.aiApiKey": {
+          "type": "string",
+          "default": "",
+          "description": "OpenAI API Key for AI features",
+          "description_t": {
+            "default": "OpenAI API Key for AI features",
+            "bn": "এআই ফিচারের জন্য OpenAI API কী"
+          },
+          "secret": true
         },
         "supremeai.codegeex4.enabled": {
           "type": "boolean",
@@ -225,6 +301,15 @@
             "default": "Automatically run CodeFlow analysis on file save",
             "bn": "ফাইল সেভ করলে স্বয়ংক্রিয়ভাবে কোড ফ্লো বিশ্লেষণ চালান"
           }
+        },
+        "supremeai.aiModel": {
+          "type": "string",
+          "default": "gpt-3.5-turbo",
+          "description": "AI model to use for completions and refactoring (e.g., gpt-3.5-turbo, codegeex-4-lite, etc.)",
+          "description_t": {
+            "default": "AI model to use for completions and refactoring (e.g., gpt-3.5-turbo, codegeex-4-lite, etc.)",
+            "bn": "কমপ্লিশন এবং রিফ্যাক্টরিং এর জন্য এআই মডেল (যেমন gpt-3.5-turbo, codegeex-4-lite ইত্যাদি)"
+          }
         }
       }
     },
@@ -240,20 +325,6 @@
     "views": {
       "supremeai-sidebar": [
         {
-          "id": "supremeaiDashboard",
-          "name": "Dashboard",
-          "type": "webview"
-        },
-        {
-          "id": "supremeaiActivity",
-          "name": "Activity"
-        },
-        {
-          "id": "supremeaiCodeFlow",
-          "name": "CodeFlow",
-          "type": "webview"
-        },
-        {
           "id": "supremeaiChat",
           "name": "Chat",
           "type": "webview"
@@ -262,13 +333,14 @@
     }
   },
   "scripts": {
-    "vscode:prepublish": "npm run compile",
+    "vscode:prepublish": "npm run package-ext",
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
     "lint": "eslint src --ext ts",
     "pretest": "npm run compile",
     "test": "node ./out/test/runTest.js",
-    "unit": "jest --passWithNoTests"
+    "unit": "jest --passWithNoTests",
+    "package-ext": "esbuild src/extension.ts --bundle --outfile=out/extension.js --external:vscode --format=cjs --platform=node --minify"
   },
   "devDependencies": {
     "@types/node": "18.x",
@@ -279,10 +351,12 @@
     "jest": "^29.7.0",
     "@types/jest": "^29.5.0",
     "ts-jest": "^29.1.0",
-    "typescript": "^5.0.0"
+    "typescript": "^5.0.0",
+    "esbuild": "^0.28.0",
+    "axios": "^1.6.0",
+    "openai": "^4.0.0"
   },
   "dependencies": {
-    "@dataconnect/generated": "file:src/dataconnect-generated",
-    "axios": "^1.6.0"
+    "@dataconnect/generated": "file:src/dataconnect-generated"
   }
 }

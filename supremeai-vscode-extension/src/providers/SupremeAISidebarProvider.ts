@@ -4,6 +4,7 @@
 
 import * as vscode from 'vscode';
 import { getSupremeAIService } from '../services/SupremeAIService';
+import { AuthService } from '../services/AuthService';
 
 export class SupremeAISidebarProvider implements vscode.WebviewViewProvider {
   private webview: vscode.WebviewView | null = null;
@@ -45,6 +46,11 @@ export class SupremeAISidebarProvider implements vscode.WebviewViewProvider {
         switch (data.type) {
           case 'forceLearn':
             await this.handleForceLearn();
+            break;
+          case 'login':
+            vscode.commands.executeCommand('supremeai.login').then(() => {
+              this.updateContent(webviewView);
+            });
             break;
           case 'openSettings':
             vscode.commands.executeCommand('workbench.action.openSettings', 'supremeai');
@@ -91,11 +97,83 @@ export class SupremeAISidebarProvider implements vscode.WebviewViewProvider {
   }
 
   private async updateContent(webviewView: vscode.WebviewView): Promise<void> {
+    const authService = AuthService.getInstance();
+    if (!authService || !authService.isAuthenticated()) {
+      webviewView.webview.html = this.getLoginHTML();
+      return;
+    }
+
     const service = getSupremeAIService();
     const stats = await service.getLearningStats();
 
     const content = this.getHTMLContent(stats);
     webviewView.webview.html = content;
+  }
+
+  private getLoginHTML(): string {
+    return `<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8">
+  <style>
+    body {
+      font-family: var(--vscode-font-family);
+      padding: 20px;
+      color: var(--vscode-foreground);
+      background-color: var(--vscode-sideBar-background);
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 80vh;
+    }
+    .logo {
+      font-size: 50px;
+      margin-bottom: 20px;
+    }
+    .title {
+      font-size: 18px;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+    .desc {
+      font-size: 13px;
+      color: var(--vscode-descriptionForeground);
+      margin-bottom: 24px;
+      line-height: 1.5;
+    }
+    .btn {
+      background: var(--vscode-button-background);
+      color: var(--vscode-button-foreground);
+      border: none;
+      padding: 10px 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: bold;
+      width: 100%;
+      max-width: 200px;
+    }
+    .btn:hover {
+      background: var(--vscode-button-hoverBackground);
+    }
+  </style>
+</head>
+<body>
+  <div class="logo">🤖</div>
+  <div class="title">SupremeAI-তে লগইন করুন</div>
+  <div class="desc">আপনার কোড অ্যাসিস্ট্যান্ট ব্যবহার করতে এবং রিয়েল-টাইম এআই মেমোরি সিঙ্ক চালু করতে সাইন-ইন করা প্রয়োজন।</div>
+  <button class="btn" id="loginBtn">লগইন করুন</button>
+
+  <script>
+    const vscode = acquireVsCodeApi();
+    document.getElementById('loginBtn').addEventListener('click', () => {
+      vscode.postMessage({ type: 'login' });
+    });
+  </script>
+</body>
+</html>`;
   }
 
   private startPeriodicUpdates(): void {

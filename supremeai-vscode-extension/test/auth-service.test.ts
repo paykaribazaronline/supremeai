@@ -21,7 +21,7 @@ beforeAll(() => {
 });
 
 describe('AuthService', () => {
-  let authService;
+  let authService: any;
 
   beforeEach(() => {
     AuthService.resetInstance();

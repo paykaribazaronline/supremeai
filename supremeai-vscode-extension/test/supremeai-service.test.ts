@@ -1,10 +1,44 @@
-jest.mock('axios');
+jest.mock('axios', () => {
+  const mockAxios = {
+    create: jest.fn((config) => {
+      const baseURL = config?.baseURL || '';
+      return {
+        interceptors: {
+          request: { use: jest.fn() },
+          response: { use: jest.fn() },
+        },
+        post: (url: string, data: any, options: any) => {
+          const fullUrl = url.startsWith('http') ? url : (baseURL + url);
+          return mockAxios.post(fullUrl, data, options || {});
+        },
+        get: (url: string, options: any) => {
+          const fullUrl = url.startsWith('http') ? url : (baseURL + url);
+          return mockAxios.get(fullUrl, options || {});
+        },
+        delete: (url: string, options: any) => {
+          const fullUrl = url.startsWith('http') ? url : (baseURL + url);
+          return mockAxios.delete(fullUrl, options || {});
+        },
+      };
+    }),
+    post: jest.fn(),
+    get: jest.fn(),
+    delete: jest.fn(),
+    mockReset: () => {
+      mockAxios.post.mockReset();
+      mockAxios.get.mockReset();
+      mockAxios.delete.mockReset();
+      mockAxios.create.mockClear();
+    }
+  };
+  return mockAxios;
+});
 
 const axios = require('axios');
 const { SupremeAIService, getSupremeAIService, setSupremeAIService } = require('../src/services/SupremeAIService');
 
 describe('SupremeAIService', () => {
-  let service;
+  let service: any;
   const mockConfig = {
     backendUrl: 'http://localhost:8080',
     enableRealTimeLearning: true,
