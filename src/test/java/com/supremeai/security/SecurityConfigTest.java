@@ -38,33 +38,19 @@ public class SecurityConfigTest {
 
   @Test
   public void testAdminEndpointsRequireAdminRole() throws Exception {
-    // Test admin endpoints without authentication
     mockMvc
-        .perform(get("/api/admin/dashboard"))
-        .andExpect(
-            result -> {
-              int status = result.getResponse().getStatus();
-              if (status != 401 && status != 403) {
-                throw new AssertionError("Expected 401 or 403, but got: " + status);
-              }
-            });
+        .perform(get("/api/admin/dashboard/contract"))
+        .andExpect(status().isUnauthorized());
 
     mockMvc
         .perform(get("/api/v1/admin/users"))
-        .andExpect(
-            result -> {
-              int status = result.getResponse().getStatus();
-              if (status != 401 && status != 403) {
-                throw new AssertionError("Expected 401 or 403, but got: " + status);
-              }
-            });
+        .andExpect(status().isUnauthorized());
   }
 
   @Test
   @WithMockUser(roles = "USER")
   public void testAdminEndpointsForbiddenForRegularUser() throws Exception {
-    // Test admin endpoints with regular user role
-    mockMvc.perform(get("/api/admin/dashboard")).andExpect(status().isForbidden());
+    mockMvc.perform(get("/api/admin/dashboard/contract")).andExpect(status().isForbidden());
 
     mockMvc.perform(get("/api/v1/admin/users")).andExpect(status().isForbidden());
   }
@@ -72,14 +58,13 @@ public class SecurityConfigTest {
   @Test
   @WithMockUser(roles = "ADMIN")
   public void testAdminEndpointsAccessibleForAdmin() throws Exception {
-    // Test admin endpoints with admin role
     mockMvc
-        .perform(get("/api/admin/dashboard"))
-        .andExpect(status().isNotFound()); // Endpoint might not exist, but should not be 401/403
+        .perform(get("/api/admin/dashboard/contract"))
+        .andExpect(status().isOk());
 
     mockMvc
         .perform(get("/api/v1/admin/users"))
-        .andExpect(status().isNotFound()); // Endpoint might not exist, but should not be 401/403
+        .andExpect(status().isNotFound());
   }
 
   @Test

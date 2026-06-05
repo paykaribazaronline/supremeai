@@ -76,25 +76,21 @@ public class AuthenticationIntegrationTest {
 
   @Test
   public void testAdminEndpoint_AccessibleWithAdminToken() throws Exception {
-    // Arrange
     testUser.setTier(com.supremeai.model.UserTier.ADMIN);
     userRepository.save(testUser).block();
     String token = jwtUtil.generateToken(testUser.getFirebaseUid(), "ADMIN");
 
-    // Act & Assert
     mockMvc
-        .perform(get("/api/admin/dashboard").header("Authorization", "Bearer " + token))
-        .andExpect(status().isNotFound()); // Endpoint might not exist, but should not be 401/403
+        .perform(get("/api/admin/dashboard/contract").header("Authorization", "Bearer " + token))
+        .andExpect(status().isOk());
   }
 
   @Test
   public void testAdminEndpoint_InaccessibleWithRegularUserToken() throws Exception {
-    // Arrange
     String token = jwtUtil.generateToken(testUser.getFirebaseUid(), "USER");
 
-    // Act & Assert
     mockMvc
-        .perform(get("/api/admin/dashboard").header("Authorization", "Bearer " + token))
+        .perform(get("/api/admin/dashboard/contract").header("Authorization", "Bearer " + token))
         .andExpect(status().isForbidden());
   }
 }
