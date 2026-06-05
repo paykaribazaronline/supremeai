@@ -17,13 +17,22 @@ public class GitHubWebhookController {
 
   private static final Logger log = LoggerFactory.getLogger(GitHubWebhookController.class);
 
-  @Autowired private SelfHealingService selfHealingService;
+  private final SelfHealingService selfHealingService;
+  private final WebSocketController webSocketController;
+  private final SecretManagerService secretManagerService;
+  private final RestTemplate restTemplate;
 
-  @Autowired private WebSocketController webSocketController;
-
-  @Autowired private SecretManagerService secretManagerService;
-
-  private final RestTemplate restTemplate = new RestTemplate();
+  @Autowired
+  public GitHubWebhookController(
+      SelfHealingService selfHealingService,
+      WebSocketController webSocketController,
+      SecretManagerService secretManagerService,
+      RestTemplate restTemplate) {
+    this.selfHealingService = selfHealingService;
+    this.webSocketController = webSocketController;
+    this.secretManagerService = secretManagerService;
+    this.restTemplate = restTemplate;
+  }
 
   @PostMapping("/workflow")
   public ResponseEntity<String> handleWorkflowEvent(@RequestBody Map<String, Object> payload) {
@@ -125,8 +134,12 @@ public class GitHubWebhookController {
                 requestBody.put("changedFiles", new String[] {"部署文件已更新"});
                 requestBody.put("runId", analysisPayload.get("runId"));
 
-                // This is async fire-and-forget
-                log.info("Deployment analysis payload prepared for Groq AI processing");
+                // Send the request to the analysis function
+                log.info("Sending deployment analysis payload to: {}", functionUrl);
+                restTemplate.postForEntity(functionUrl, requestBody, String.class);
+                log.info(
+                    "Deployment analysis request sent successfully for runId: {}",
+                    analysisPayload.get("runId"));
 
               } catch (Exception e) {
                 log.error("Error in deployment analysis trigger:", e);

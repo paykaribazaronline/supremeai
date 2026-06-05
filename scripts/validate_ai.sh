@@ -160,10 +160,12 @@ discover_and_infer() {
   if [[ -f "${PROVIDERS_FILE}" ]]; then
     echo "Discovering providers from ${PROVIDERS_FILE}..."
     local count
-    count=$(python -c "import json; d=json.load(open('${PROVIDERS_FILE}')); print(len(d.get('providers', d.get('ai_providers', [])) if isinstance(d, dict) else []))" 2>/dev/null || echo 0)
+    count=$(python -c "import json; d=json.load(open('${PROVIDERS_FILE}')); print(len(d.get('skills', d.get('providers', d.get('ai_providers', []))) if isinstance(d, dict) else []))" 2>/dev/null || echo 0)
     if [[ "${count}" != "0" ]]; then
       echo "Found ${count} providers in configuration"
-      infer "" ""
+      local first_skill
+      first_skill=$(python -c "import json; d=json.load(open('${PROVIDERS_FILE}')); s=d.get('skills', d.get('providers', {})); print(list(s.keys())[0] if s else '')" 2>/dev/null || echo "")
+      infer "${first_skill}" "default"
     else
       echo "No parsable providers in ${PROVIDERS_FILE}; running default inference"
       infer "" ""

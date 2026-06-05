@@ -38,13 +38,9 @@ public class SecurityConfigTest {
 
   @Test
   public void testAdminEndpointsRequireAdminRole() throws Exception {
-    mockMvc
-        .perform(get("/api/admin/dashboard/contract"))
-        .andExpect(status().isUnauthorized());
+    mockMvc.perform(get("/api/admin/dashboard/contract")).andExpect(status().isUnauthorized());
 
-    mockMvc
-        .perform(get("/api/v1/admin/users"))
-        .andExpect(status().isUnauthorized());
+    mockMvc.perform(get("/api/v1/admin/users")).andExpect(status().isUnauthorized());
   }
 
   @Test
@@ -58,13 +54,9 @@ public class SecurityConfigTest {
   @Test
   @WithMockUser(roles = "ADMIN")
   public void testAdminEndpointsAccessibleForAdmin() throws Exception {
-    mockMvc
-        .perform(get("/api/admin/dashboard/contract"))
-        .andExpect(status().isOk());
+    mockMvc.perform(get("/api/admin/dashboard/contract")).andExpect(status().isOk());
 
-    mockMvc
-        .perform(get("/api/v1/admin/users"))
-        .andExpect(status().isNotFound());
+    mockMvc.perform(get("/api/v1/admin/users")).andExpect(status().isNotFound());
   }
 
   @Test
