@@ -1,10 +1,13 @@
 # SupremeAI Local-First Requirements
 
 ## Executive Summary
-**NO EXTERNAL AI API KEYS ALLOWED** - System must function completely autonomously without any dependency on external AI services (OpenAI, Anthropic, Gemini, Groq, etc.)
+**NO EXTERNAL AI API KEYS ALLOWED** - System must function completely autonomously without any dependency on external AI services (OpenAI, Anthropic, Gemini, Groq, etc.).
+**Cloud Server as Local Server**: Since the user's local device lacks the required hardware configuration to run large AI models locally, a dedicated Cloud Server is used as the "local server". In this architecture, a "local model" refers to the AI model hosted and running on this cloud server, serving requests for the application.
+**Optional Local Execution (Extra Feature)**: Users who possess sufficient hardware configuration can optionally connect and run **AI Pocket Lab** or **SuperFly** locally on their own devices.
+
 
 ## Core Principle
-> "SupremeAI শুধু লোকালাই চালায়। বাইরের API কী দরকার পড়বে না।"
+> "SupremeAI ক্লাউড সার্ভারকে লোকাল সার্ভার হিসেবে ব্যবহার করে। ডিভাইসে কনফিগারেশন কম থাকায় মডেল ক্লাউডে চলবে, যা লোকাল মডেল হিসেবে কাজ করবে এবং বাইরের কোনো থার্ড-পার্টি API কী এর প্রয়োজন হবে না।"
 
 ## Completed Changes
 

@@ -96,3 +96,19 @@ The pipeline securely injects the following GitHub Secrets:
 - `GCP_SA_KEY`: GCP service account key for Google Cloud Run and Firebase.
 - `DISCORD_WEBHOOK` (Optional): Webhook to receive pipeline failure notifications in Discord.
 - `GITHUB_TOKEN`: Access token to post PR comments and perform Dependabot auto-merging.
+
+## 4. Local Pre-push Verification (`verify.bat`)
+
+To guarantee a 99.99% match with GitHub CI/CD, a local pre-push validation tool [verify.bat](file:///f:/supremeai/verify.bat) has been added to the root directory.
+
+### 4.1 Features:
+* **Java Version Check:** Warns if the local Java version does not match the CI Java 21 environment.
+* **Selective Verification:** Minimizes run times by only checking modified components (Backend or Frontend) based on Git changes.
+* **Auto-formatting:** Prompts the developer to automatically resolve formatting issues (`spotlessApply`) if check fails.
+* **Git Pre-push Integration:** Can be configured to run automatically before every `git push`.
+
+Install local pre-push hook:
+```cmd
+.\verify.bat --install-hook
+```
+

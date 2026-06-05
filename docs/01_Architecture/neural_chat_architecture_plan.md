@@ -5,6 +5,8 @@
 
 This document defines the finalized **"Local-First, Hybrid Nano-Cloud, Magic Loop & Failover"** architecture for Neural Chat. It ensures that the AI answers 100% of user queries instantly, intelligently, and without expensive cloud infrastructure.
 
+> **গুরুত্বপূর্ণ দ্রষ্টব্য (Important Note):** আমাদের ডিভাইসে মডেল চালানোর মতো পর্যাপ্ত কনফিগারেশন না থাকায়, ডিফল্টরূপে আমরা একটি ডেডিকেটেড ক্লাউড সার্ভারকে "লোকাল সার্ভার" হিসেবে ব্যবহার করছি এবং "লোকাল মডেল" বলতে এই ক্লাউড সার্ভারে চলমান মডেলকেই বোঝানো হবে। তবে, এটি একটি অতিরিক্ত ফিচার (Extra Feature) হিসেবে রাখা হয়েছে যাতে যেসব ব্যবহারকারীর পর্যাপ্ত শক্তিশালী হার্ডওয়্যার রয়েছে, তারা চাইলে নিজস্ব ডিভাইসে সরাসরি **AI Pocket Lab** বা মোবাইলে **SuperFly** অফলাইনে রান করাতে পারেন।
+
 ---
 
 ## ১. Smart Intent Routing & Edge Processing (লেভেল-০ এবং লেভেল-১)
