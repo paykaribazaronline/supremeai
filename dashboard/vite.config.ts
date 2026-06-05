@@ -58,7 +58,6 @@ export default defineConfig(({ mode }) => ({
           'vendor-react': ['react', 'react-dom', 'react-router-dom'],
           'vendor-antd': ['antd', '@ant-design/icons'],
           'vendor-three': ['three', '@react-three/fiber', '@react-three/drei'],
-          'vendor-charts': ['chart.js', 'react-chartjs-2', 'd3'],
           'vendor-firebase': ['firebase/app', 'firebase/auth', 'firebase/firestore', 'firebase/storage'],
           'vendor-i18n': ['i18next', 'react-i18next'],
         },
