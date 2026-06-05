@@ -7,7 +7,7 @@ This document tracks the testing progress, coverage metrics, and verification st
 | Category | Status | Target Coverage | Current Coverage |
 | :--- | :--- | :--- | :--- |
 | **Controller Logic** | 🟢 Excellent | 95% | 98% |
-| **Service Layer** | 🟡 Improving | 80% | ~30% |
+vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv| **Service Layer** | 🟡 Improving | 80% | ~30% |
 | **Service Layer** | 🟡 Improving | 80% | ~45% |
 | **Security/Secrets** | 🟢 Good | 100% | 100% |
 | **Integration Tests** | 🔴 Low | 70% | <10% |
