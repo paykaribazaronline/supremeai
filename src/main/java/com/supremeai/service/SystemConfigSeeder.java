@@ -77,16 +77,22 @@ public class SystemConfigSeeder {
               nvidia.setName("nvidia");
               nvidia.setType("nvidia");
               nvidia.setStatus("active");
-              nvidia.setApiKey("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");
+              nvidia.setApiKey(
+                  "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");
               nvidia.setModelName("meta/llama-3.1-70b-instruct");
               nvidia.setBaseUrl("https://integrate.api.nvidia.com/v1");
               nvidia.setDescription("Created by niloyjoy7");
               nvidia.setCreatorEmail("niloyjoy7");
-              
-              providerRepository.save(nvidia).subscribe(
-                  p -> log.info("[CONFIG_SEED] Saved/updated nvidia API provider successfully!"),
-                  error -> log.error("[CONFIG_SEED] Failed to save/update nvidia API provider: {}", error.getMessage())
-              );
+
+              providerRepository
+                  .save(nvidia)
+                  .subscribe(
+                      p ->
+                          log.info("[CONFIG_SEED] Saved/updated nvidia API provider successfully!"),
+                      error ->
+                          log.error(
+                              "[CONFIG_SEED] Failed to save/update nvidia API provider: {}",
+                              error.getMessage()));
             },
             error ->
                 log.error("[CONFIG_SEED] Failed to seed system config: {}", error.getMessage()));
