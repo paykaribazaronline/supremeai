@@ -8,8 +8,7 @@
     "deploy": "firebase deploy --only functions",
     "lint": "echo 'Linting functions...'",
     "logs": "firebase functions:log",
-    "build": "tsc",
-    "prepublishOnly": "npm run build"
+    "build": "tsc"
   },
   "engines": {
     "node": "22"

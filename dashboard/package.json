@@ -33,6 +33,7 @@
     "react-router-dom": "^6.22.0",
     "recharts": "^3.8.1",
     "@stomp/stompjs": "^7.0.0",
+    "sockjs-client": "^1.6.1",
     "three": "^0.160.0",
     "typescript": "^5.3.3"
   },
@@ -44,6 +45,7 @@
     "@types/three": "^0.184.1",
     "@types/react": "^18.2.43",
     "@types/react-dom": "^18.2.17",
+    "@types/sockjs-client": "^1.1.16",
     "@typescript-eslint/eslint-plugin": "^6.21.0",
     "@typescript-eslint/parser": "^6.21.0",
     "@vitejs/plugin-react": "^4.2.1",
