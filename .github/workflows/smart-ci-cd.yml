@@ -110,6 +110,15 @@ jobs:
     needs: [detect-changes, secret-scan]
     if: ${{ needs.detect-changes.outputs.backend == 'true' || github.ref == 'refs/heads/main' }}
     runs-on: ubuntu-latest
+    services:
+      redis:
+        image: redis:7-alpine
+        ports: ['6379:6379']
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -128,6 +137,12 @@ jobs:
 
       - name: Run Backend Unit Tests
         run: ./gradlew clean test --no-daemon
+
+      - name: Print Test Reports on Failure
+        if: failure()
+        run: |
+          echo "=== Backend Test Failures Summary ==="
+          find build/test-results/test -name "*.xml" -exec cat {} + || true
 
   # 5. Backend Deployment
   backend-deploy:
@@ -496,7 +511,7 @@ jobs:
 
       - name: Deploy to Firebase Functions
         run: |
-          npx firebase-tools deploy --only functions --project ${{ steps.auth.outputs.project_id }} --non-interactive --force
+          npx firebase-tools deploy --only functions --project ${{ steps.auth.outputs.project_id }} --non-interactive --force --debug
 
       - name: Report Status to Admin Dashboard
         if: always()
