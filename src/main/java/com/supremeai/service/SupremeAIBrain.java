@@ -37,6 +37,12 @@ import reactor.core.publisher.Mono;
  *
  * <p>════════════════════════════════════════════════════════════
  */
+/**
+ * CORE KNOWLEDGE ROLE STATEMENT: - The primary job of Core Knowledge from now on is to act as the
+ * central coordinator and decision maker. - It understands how to make other components work (e.g.
+ * why only the browser is enough to solve 80% of tasks, when to route tasks to helper models, and
+ * what prompt engineering strategies to use dynamically).
+ */
 @Service
 public class SupremeAIBrain {
 
@@ -72,6 +78,8 @@ public class SupremeAIBrain {
 
   @Autowired private UnifiedOfflineKnowledgeService unifiedOfflineKnowledgeService;
 
+  @Autowired private EnhancedLearningService enhancedLearningService;
+
   // Simple in-memory stats (Admin dashboard এ দেখানো হবে)
   private final Map<String, Long> taskCallCount = new ConcurrentHashMap<>();
   private final Map<String, Long> taskSuccessCount = new ConcurrentHashMap<>();
@@ -103,7 +111,7 @@ public class SupremeAIBrain {
   }
 
   /**
-   * Full AI thinking — task, prompt এবং error signature সহ। AIFallbackOrchestrator এর সাথে
+   * Full AI thinking — task, prompt এবং error signature সহ। ThirdOpinionOrchestrator এর সাথে
    * SupremeCore orchestration একত্রিত।
    *
    * @param taskCategory TASK_* constant
@@ -143,47 +151,96 @@ public class SupremeAIBrain {
 
   private Mono<String> executeWithHubOrchestration(
       String task, String prompt, String errorSignature, long startTime) {
-    // TIER 1: Core Knowledge lookup
-    try {
-      String coreSolution = learningOrchestrator.findCoreKnowledgeSolution(prompt);
-      if (coreSolution != null && !coreSolution.isEmpty()) {
-        logger.info(
-            "[BRAIN TIER 1] Found core knowledge solution matching prompt. Returning immediately.");
-        trackSuccess(task);
-        return Mono.just(coreSolution);
-      }
-    } catch (Exception e) {
-      logger.warn("Failed to check core_knowledge.json in Brain: {}", e.getMessage());
-    }
 
-    // TIER 2: Firestore Memory lookup via AIFallbackOrchestrator
+    // Core Knowledge decision making: Decide if query is Normal or Complex
+    // (Change made: Core Knowledge is now a dynamic decision maker and does not serve static
+    // answers)
+    boolean isComplex =
+        task.contains("CODE_")
+            || task.contains("REVIEW")
+            || task.contains("SECURITY")
+            || task.contains("TESTING")
+            || task.contains("REASONING")
+            || prompt.contains("generate")
+            || prompt.contains("write code")
+            || prompt.contains("complex");
+
+    if (!isComplex) {
+      logger.info(
+          "🧠 [CORE KNOWLEDGE] Decision: Routing NORMAL query to Browser and Database Learning in parallel.");
+
+      // Part 1: Browser search and Database learning queries run in parallel
+      Mono<String> browserMono =
+          tryBrowserScraping(task, prompt).onErrorReturn("No web search results available.");
+
+      String searchKey =
+          (errorSignature != null && !errorSignature.equals("NO_SIGNATURE"))
+              ? errorSignature
+              : prompt;
+      Mono<String> dbMemoryMono =
+          solutionMemoryRepository
+              .findByTriggerError(searchKey)
+              .sort((a, b) -> Double.compare(b.calculateSupremeScore(), a.calculateSupremeScore()))
+              .next()
+              .map(sol -> sol.getResolvedCode())
+              .defaultIfEmpty("No local database learning found.")
+              .onErrorReturn("No local database learning found.");
+
+      return Mono.zip(browserMono, dbMemoryMono)
+          .flatMap(tuple -> chickenBrainMerge(tuple.getT1(), tuple.getT2(), prompt))
+          .doOnNext(response -> trackSuccess(task));
+    } else {
+      logger.info(
+          "🧠 [CORE KNOWLEDGE] Decision: Routing COMPLEX query to Deployed AI Model, and system will learn the output.");
+
+      // Part 2: Complex questions route to Deployed AI Model
+      return fallbackOrchestrator
+          .executeWithSupremeIntelligence(task, errorSignature, prompt)
+          .flatMap(
+              aiResponse -> {
+                logger.info(
+                    "🧠 [CORE KNOWLEDGE] Decision: System is learning the complex AI response");
+                // System dynamically learns the output and stores in database memory
+                return enhancedLearningService
+                    .learnFromInteraction("system", prompt, aiResponse)
+                    .thenReturn(aiResponse);
+              })
+          .onErrorResume(
+              e -> {
+                logger.warn("Complex AI run failed, falling back: {}", e.getMessage());
+                return Mono.just("Failed to execute complex logic on deployed AI model.");
+              })
+          .doOnNext(response -> trackSuccess(task));
+    }
+  }
+
+  /**
+   * ChickenBrain merges browser search results & database learning to create a better answer.
+   * (Change made: ChickenBrain merges parallel results from browser and database learning)
+   */
+  private Mono<String> chickenBrainMerge(String browserData, String dbData, String prompt) {
+    logger.info(
+        "🧠 [ChickenBrain] Merging browser data and database learning for query: {}", prompt);
+
+    String promptWithContext =
+        "You are ChickenBrain. Merge the following web search data and local database learning data to answer the user question: \""
+            + prompt
+            + "\"\n\nContext:\n"
+            + "Web Search Results:\n"
+            + browserData
+            + "\n\nLocal Database Learning:\n"
+            + dbData;
+
     return fallbackOrchestrator
-        .executeWithSupremeIntelligence(task, errorSignature, prompt)
-        .filter(response -> response != null && !response.isBlank())
-        .switchIfEmpty(
-            Mono.defer(
-                () -> {
-                  logger.info(
-                      "[BRAIN TIER 3] AIFallbackOrchestrator returned empty. No solution found in Core Knowledge or Firestore.");
-                  return tryBrowserScraping(task, prompt);
-                }))
+        .executeWithSupremeIntelligence("CHAT", "chicken_brain_merge", promptWithContext)
         .onErrorResume(
-            e -> {
-              logger.warn(
-                  "[BRAIN TIER 3] AIFallbackOrchestrator failed: {}. Trying browser scraping.",
-                  e.getMessage());
-              return tryBrowserScraping(task, prompt);
-            })
-        .switchIfEmpty(Mono.defer(() -> unifiedOfflineKnowledgeService.findAnswer(prompt)))
-        .doOnNext(
-            response -> {
-              long ms = System.currentTimeMillis() - startTime;
-              if (response != null && !response.contains("কোনো response পাওয়া যায়নি")) {
-                trackSuccess(task);
-              }
-              logger.debug("[BRAIN] Task={} completed in {}ms", task, ms);
-            })
-        .defaultIfEmpty("[SupremeAI Core] কোনো response পাওয়া যায়নি। পরে চেষ্টা করুন।");
+            e ->
+                Mono.just(
+                    "[ChickenBrain Local Merge]\n"
+                        + "We found this in search:\n"
+                        + browserData
+                        + "\n\nAnd this in our database:\n"
+                        + dbData));
   }
 
   /** Tier 3: Browser/Web Scraping fallback for real-time knowledge. */

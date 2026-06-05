@@ -46,10 +46,10 @@ export class CodeFlowHandler {
 
     this.statusBarItem.show();
 
-    // এক্সটেনশন চালু হওয়ার পর ব্যাকগ্রাউন্ডে প্রাথমিক ওয়ার্কস্পেস ইনডেক্সিং ও সিঙ্ক
+    // এক্সটেনশন চালু হওয়ার পর ব্যাকগ্রাউন্ডে প্রাথমিক ওয়ার্কস্পেস ইনডেক্সিং ও সিঙ্ক (পিসি স্মুথ রাখতে ১৫ সেকেন্ড পর শুরু)
     setTimeout(() => {
       this.syncWorkspaceToMemory();
-    }, 3000);
+    }, 15000);
   }
 
   /**
@@ -284,10 +284,17 @@ export class CodeFlowHandler {
 
     try {
       const files = await this.collectFiles(workspaceFolders[0].uri);
-      this.outputChannel.appendLine(`[SupremeAI] প্রারম্ভিক ইনডেক্সিং শুরু: ${files.length} ফাইল পাওয়া গেছে`);
+      this.outputChannel.appendLine(`[SupremeAI] প্রারম্ভিক ইনডেক্সিং শুরু (ব্যাকগ্রাউন্ড ও লো-প্রায়োরিটি): ${files.length} ফাইল পাওয়া গেছে`);
+      
       for (const file of files) {
         const ext = file.path.split('.').pop() || 'txt';
-        await this.supremeAIService.syncFileToMemory(file.path, file.content, ext);
+        try {
+          await this.supremeAIService.syncFileToMemory(file.path, file.content, ext);
+        } catch (fileErr: any) {
+          this.outputChannel.appendLine(`[SupremeAI] ফাইল সিঙ্ক ব্যর্থ: ${file.path} (${fileErr.message})`);
+        }
+        // পিসি মন্থর না করতে প্রতি ফাইলের মাঝে ১.৫ সেকেন্ড বিরতি
+        await new Promise(resolve => setTimeout(resolve, 1500));
       }
       this.outputChannel.appendLine(`[SupremeAI] প্রারম্ভিক ইনডেক্সিং সফলভাবে সম্পন্ন হয়েছে`);
     } catch (err: any) {

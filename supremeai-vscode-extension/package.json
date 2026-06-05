@@ -241,10 +241,10 @@
         "supremeai.aiApiKey": {
           "type": "string",
           "default": "",
-          "description": "OpenAI API Key for AI features",
+          "description": "SupremeAI API Key (Linked dynamically to your logged in account)",
           "description_t": {
-            "default": "OpenAI API Key for AI features",
-            "bn": "এআই ফিচারের জন্য OpenAI API কী"
+            "default": "SupremeAI API Key (Linked dynamically to your logged in account)",
+            "bn": "সক্রিয় ইউজারের জন্য সুপ্রিমএআই API কী"
           },
           "secret": true
         },
@@ -304,11 +304,11 @@
         },
         "supremeai.aiModel": {
           "type": "string",
-          "default": "gpt-3.5-turbo",
-          "description": "AI model to use for completions and refactoring (e.g., gpt-3.5-turbo, codegeex-4-lite, etc.)",
+          "default": "supreme-large",
+          "description": "SupremeAI model to use (e.g., supreme-large, supreme-medium, supreme-small)",
           "description_t": {
-            "default": "AI model to use for completions and refactoring (e.g., gpt-3.5-turbo, codegeex-4-lite, etc.)",
-            "bn": "কমপ্লিশন এবং রিফ্যাক্টরিং এর জন্য এআই মডেল (যেমন gpt-3.5-turbo, codegeex-4-lite ইত্যাদি)"
+            "default": "SupremeAI model to use (e.g., supreme-large, supreme-medium, supreme-small)",
+            "bn": "ব্যবহার করার জন্য সুপ্রিমএআই মডেল (যেমন: supreme-large, supreme-medium, supreme-small)"
           }
         }
       }

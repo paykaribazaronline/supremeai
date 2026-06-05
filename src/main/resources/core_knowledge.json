@@ -102,5 +102,21 @@
   {
     "task": "summarize text shortening english to bengali translation bangla অনুবাদ সারসংক্ষেপ",
     "solution": "[সুপ্রিম এআই — টেক্সট সারসংক্ষেপ ও অনুবাদ]\nপরিস্রান্ত summarization বা অনুবাদ requires connected AI service.本地 core knowledge-তে আমি এই কাজের জন্য একটি short protocol দিই:\n\n১. Summarize: মূল text-এর key entities, topic sentence, conclusion আলাদা করা\n২. English→Bangla:直辖 phrase-by-phrase translation + maintain grammar\n৩. Preserve technical terms: vulgar শব্দগুলো transliterate করুন\n\nবর্তমানে অফলাইন মোডে আমি এই general guidance-এর বাইরে কিছু generated output দিতে পারি না। ইন্টারনেট থাকলে ChickenBrain cloud service এই কাজ স্বয়ংক্রিয়ভাবে করবে।"
+  },
+  {
+    "task": "why browser only enough self sufficient active internet research",
+    "solution": "Browser is enough and self-sufficient because it can bypass static limits by dynamically querying Google, DuckDuckGo, Stack Overflow, and official docs. It also accesses free online chat interfaces of LLMs directly without API keys. (Change made: User requested explicit justification of why browser-only research is self-sufficient)."
+  },
+  {
+    "task": "when deployed model helper ai provider active needed vs browser",
+    "solution": "Deployed models (like local models or configured helper AIs) are needed for highly complex logical reasoning, custom code completions, and private data operations where external web browsing is either prohibited or insufficient. (Change made: User requested explicit criteria for deployed model execution vs browser)."
+  },
+  {
+    "task": "prompt engineering core knowledge system decision routing",
+    "solution": "The Core Knowledge serves as the system's brain by first mapping the user query. It decides whether to route to Browser (for general, real-time QA) or Helper AI (for structured generation/reviews), and applies prompt engineering techniques to maximize output accuracy. (Change made: User requested core decision routing & prompt engineering documentation)."
+  },
+  {
+    "task": "free login-free open models app use ai gemini",
+    "solution": "Free and login-free models accessible via browser include: https://gemini.google.com/app, https://use.ai/, Hugging Face Chat, ChatGPT Free, You.com, DuckDuckGo AI Chat, Cohere, Perplexity. Admin presets can store default credentials (email/password) in the database for secure automated logins. (Change made: User requested free/open model listing and admin credentials)."
   }
 ]

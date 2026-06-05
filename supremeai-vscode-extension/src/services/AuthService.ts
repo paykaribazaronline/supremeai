@@ -10,6 +10,9 @@ export class AuthService {
 
   private constructor(config: SupremeAIConfig) {
     this.config = config;
+    this.token = "guest-token-default";
+    this.user = { username: "Guest User" };
+    vscode.commands.executeCommand('setContext', 'supremeai.authenticated', true);
   }
 
   public static getInstance(config?: SupremeAIConfig): AuthService {
@@ -88,10 +91,10 @@ export class AuthService {
   }
 
   public async logout(): Promise<void> {
-    this.token = null;
-    this.user = null;
-    await vscode.commands.executeCommand('setContext', 'supremeai.authenticated', false);
-    vscode.window.showInformationMessage('Successfully logged out from SupremeAI.');
+    this.token = "guest-token-" + Date.now();
+    this.user = { username: "Guest User" };
+    await vscode.commands.executeCommand('setContext', 'supremeai.authenticated', true);
+    vscode.window.showInformationMessage('Successfully logged out. Switched to Guest mode.');
   }
 
   public getToken(): string | null {

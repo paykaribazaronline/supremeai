@@ -479,6 +479,19 @@ export class SupremeAIService {
   }
 
   /**
+   * Register a proposed feature detected in environment
+   */
+  async registerProposedFeature(feature: any): Promise<any> {
+    try {
+      const response = await this.client.post('/api/features/propose', feature);
+      return response.data;
+    } catch (error: any) {
+      console.error(`[SupremeAI] Failed to register proposed feature: ${error.message}`);
+      return { success: false, message: error.message };
+    }
+  }
+
+  /**
    * Get current session ID
    */
   getSessionId(): string {

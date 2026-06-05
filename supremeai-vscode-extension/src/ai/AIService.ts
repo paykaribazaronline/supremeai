@@ -43,7 +43,7 @@ export class AIService {
 
     try {
       const config = vscode.workspace.getConfiguration('supremeai');
-      const modelName = config.get<string>('aiModel', 'gpt-3.5-turbo');
+      const modelName = config.get<string>('aiModel', 'supreme-large');
 
       const response = await this.openai.chat.completions.create({
         model: modelName,
@@ -86,7 +86,7 @@ export class AIService {
 
     try {
       const config = vscode.workspace.getConfiguration('supremeai');
-      const modelName = config.get<string>('aiModel', 'gpt-3.5-turbo');
+      const modelName = config.get<string>('aiModel', 'supreme-large');
 
       const response = await this.openai.chat.completions.create({
         model: modelName,
@@ -116,7 +116,7 @@ export class AIService {
 
     try {
       const config = vscode.workspace.getConfiguration('supremeai');
-      const modelName = config.get<string>('aiModel', 'gpt-3.5-turbo');
+      const modelName = config.get<string>('aiModel', 'supreme-large');
 
       const response = await this.openai.chat.completions.create({
         model: modelName,
