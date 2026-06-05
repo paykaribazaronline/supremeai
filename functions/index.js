@@ -79,8 +79,8 @@ const withAuth = (handler) => {
 // ============ SYSTEM HEALTH MONITORING ============
 
 const systemHealth = require('./system-health');
-exports.getSystemHealth = onRequest(allowCors(systemHealth.getSystemHealth));
-exports.collectHealthMetrics = onRequest(allowCors(systemHealth.collectHealthMetrics));
+exports.getSystemHealth = systemHealth.getSystemHealth;
+exports.collectHealthMetrics = systemHealth.collectHealthMetrics;
 
 // Smart AI Providers (auto-discovery from Cloud Run + env + Firestore)
 const smartProviders = require('./providers-smart');

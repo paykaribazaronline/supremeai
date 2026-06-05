@@ -18,7 +18,7 @@ const HISTORY_RETENTION_DAYS = 7;
  * HTTP trigger: Get current system health status
  * Endpoint: https://region-supremeai.cloudfunctions.net/getSystemHealth
  */
-exports.getSystemHealth = onRequest(async (req, res) => {
+exports.getSystemHealth = onRequest({ cors: true }, async (req, res) => {
     try {
         const healthData = {
             timestamp: new Date().toISOString(),
