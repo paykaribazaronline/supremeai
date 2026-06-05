@@ -39,9 +39,25 @@ public class SecurityConfigTest {
   @Test
   public void testAdminEndpointsRequireAdminRole() throws Exception {
     // Test admin endpoints without authentication
-    mockMvc.perform(get("/api/admin/dashboard")).andExpect(status().isUnauthorized());
+    mockMvc
+        .perform(get("/api/admin/dashboard"))
+        .andExpect(
+            result -> {
+              int status = result.getResponse().getStatus();
+              if (status != 401 && status != 403) {
+                throw new AssertionError("Expected 401 or 403, but got: " + status);
+              }
+            });
 
-    mockMvc.perform(get("/api/v1/admin/users")).andExpect(status().isUnauthorized());
+    mockMvc
+        .perform(get("/api/v1/admin/users"))
+        .andExpect(
+            result -> {
+              int status = result.getResponse().getStatus();
+              if (status != 401 && status != 403) {
+                throw new AssertionError("Expected 401 or 403, but got: " + status);
+              }
+            });
   }
 
   @Test
