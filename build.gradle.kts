@@ -140,7 +140,7 @@ dependencies {
     implementation("org.apache.commons:commons-pool2:2.12.0")
 
     // Database Connection Pooling
-    implementation("com.zaxxer:HikariCP:5.1.0")
+    implementation("com.zaxxer:HikariCP:7.0.2")
 
     // Caching
     implementation("com.github.ben-manes.caffeine:caffeine:3.1.8")
