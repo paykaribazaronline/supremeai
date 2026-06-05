@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 
-import { authUtils, fetchWithAuth } from "../src/lib/authUtils";
+import { authUtils, fetchWithAuth } from "./authUtils";
 
 describe("authUtils", () => {
   beforeEach(() => {
