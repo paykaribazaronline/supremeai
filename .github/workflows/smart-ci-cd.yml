@@ -104,9 +104,9 @@ jobs:
               - 'functions/**'
               - '.github/workflows/smart-ci-cd.yml'
 
-  # 4. Backend Testing and Deployment
-  backend-ci:
-    name: Backend CI/CD
+  # 4. Backend Testing
+  backend-test:
+    name: Backend Test & Build
     needs: [detect-changes, secret-scan]
     if: ${{ needs.detect-changes.outputs.backend == 'true' || github.ref == 'refs/heads/main' }}
     runs-on: ubuntu-latest
@@ -129,6 +129,23 @@ jobs:
       - name: Run Backend Unit Tests
         run: ./gradlew clean test --no-daemon
 
+  # 5. Backend Deployment
+  backend-deploy:
+    name: Backend Deployment
+    needs: [backend-test]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+          cache: 'gradle'
+
       - name: Set up Google Cloud SDK
         uses: google-github-actions/auth@v2
         id: auth
@@ -136,23 +153,18 @@ jobs:
           credentials_json: ${{ secrets.GCP_SA_KEY }}
 
       - name: Set up gcloud
-        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         uses: google-github-actions/setup-gcloud@v2
 
       - name: Set up QEMU
-        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         uses: docker/setup-qemu-action@v3
 
       - name: Set up Docker Buildx
-        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         uses: docker/setup-buildx-action@v3
 
       - name: Configure Docker for GCP
-        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         run: gcloud auth configure-docker --quiet
 
       - name: Build and Push Docker Image (with cache)
-        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         uses: docker/build-push-action@v5
         with:
           context: .
@@ -165,7 +177,6 @@ jobs:
             BUILDKIT_INLINE_CACHE=1
 
       - name: Deploy to Cloud Run
-        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         run: |
           gcloud run deploy supremeai \
             --image=gcr.io/${{ steps.auth.outputs.project_id }}/supremeai-backend:latest \
@@ -187,7 +198,7 @@ jobs:
         run: |
           if [ -n "$PROJECT_ID" ]; then
             FILES_JSON=$(git diff-tree --no-commit-id --name-only -r ${{ github.sha }} | jq -R . | jq -s .)
-            COMMIT_MSG=$(echo "[Backend] ${{ job.status }} - ${{ github.event.head_commit.message }}" | jq -R .)
+            COMMIT_MSG=$(echo "[Backend Deploy] ${{ job.status }} - ${{ github.event.head_commit.message }}" | jq -R .)
             
             curl -s -X POST \
               -H "Content-Type: application/json" \
@@ -206,7 +217,7 @@ jobs:
   # 5. AI Validation Pipeline
   ai-validation-ci:
     name: AI Validation
-    needs: [detect-changes, backend-ci]
+    needs: [detect-changes, backend-test]
     if: ${{ needs.detect-changes.outputs.backend == 'true' || github.ref == 'refs/heads/main' }}
     runs-on: ubuntu-latest
     timeout-minutes: 40
@@ -292,9 +303,9 @@ jobs:
             backend.log
             ai_validation_report.json
 
-  # 6. Frontend Testing and Deployment
-  frontend-ci:
-    name: Frontend CI/CD
+  # 6. Frontend Testing
+  frontend-test:
+    name: Frontend Test & Build
     needs: [detect-changes, secret-scan]
     if: ${{ needs.detect-changes.outputs.frontend == 'true' || github.ref == 'refs/heads/main' }}
     runs-on: ubuntu-latest
@@ -320,6 +331,38 @@ jobs:
 
       - name: Build Dashboard
         run: npm run build -w dashboard
+
+      - name: Archive Dashboard Build Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: dashboard-build
+          path: dashboard/dist/
+          retention-days: 1
+
+  # 7. Frontend Deployment
+  frontend-deploy:
+    name: Frontend Deployment
+    needs: [frontend-test]
+    if: |
+      always() &&
+      needs.frontend-test.result == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache-dependency-path: package-lock.json
+          cache: 'npm'
+
+      - name: Download Dashboard Build Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: dashboard-build
+          path: dashboard/dist/
 
       - name: Prepare Dashboard for Firebase
         run: |
@@ -362,7 +405,7 @@ jobs:
         run: |
           if [ -n "$PROJECT_ID" ]; then
             FILES_JSON=$(git diff-tree --no-commit-id --name-only -r ${{ github.sha }} | jq -R . | jq -s .)
-            COMMIT_MSG=$(echo "[Frontend] ${{ job.status }} - ${{ github.event.head_commit.message }}" | jq -R .)
+            COMMIT_MSG=$(echo "[Frontend Deploy] ${{ job.status }} - ${{ github.event.head_commit.message }}" | jq -R .)
             
             curl -s -X POST \
               -H "Content-Type: application/json" \
@@ -378,9 +421,9 @@ jobs:
             echo "GCP Auth not available, skipping dashboard report"
           fi
 
-  # 6. Firebase Functions Deployment
-  functions-ci:
-    name: Functions CI/CD
+  # 8. Functions Testing
+  functions-test:
+    name: Functions Test & Build
     needs: [detect-changes, secret-scan]
     if: ${{ needs.detect-changes.outputs.functions == 'true' || github.ref == 'refs/heads/main' }}
     runs-on: ubuntu-latest
@@ -401,6 +444,39 @@ jobs:
       - name: Compile TypeScript Functions
         run: npm run build -w functions
 
+      - name: Archive Functions Build Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: functions-build
+          path: |
+            functions/lib/
+            functions/package.json
+            functions/package-lock.json
+          retention-days: 1
+
+  # 9. Functions Deployment
+  functions-deploy:
+    name: Functions Deployment
+    needs: [functions-test]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache-dependency-path: package-lock.json
+          cache: 'npm'
+
+      - name: Download Functions Build Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: functions-build
+          path: functions/
+
       - name: Authenticate to Google Cloud (Firebase)
         uses: google-github-actions/auth@v2
         id: auth
@@ -408,7 +484,6 @@ jobs:
           credentials_json: ${{ secrets.GCP_SA_KEY }}
 
       - name: Deploy to Firebase Functions
-        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         run: |
           npx firebase-tools deploy --only functions --project ${{ steps.auth.outputs.project_id }} --non-interactive --force
 
@@ -419,7 +494,7 @@ jobs:
         run: |
           if [ -n "$PROJECT_ID" ]; then
             FILES_JSON=$(git diff-tree --no-commit-id --name-only -r ${{ github.sha }} | jq -R . | jq -s .)
-            COMMIT_MSG=$(echo "[Functions] ${{ job.status }} - ${{ github.event.head_commit.message }}" | jq -R .)
+            COMMIT_MSG=$(echo "[Functions Deploy] ${{ job.status }} - ${{ github.event.head_commit.message }}" | jq -R .)
             
             curl -s -X POST \
               -H "Content-Type: application/json" \
@@ -435,10 +510,10 @@ jobs:
             echo "GCP Auth not available, skipping dashboard report"
           fi
 
-  # 7. Dependabot Auto-Merge
+  # 10. Dependabot Auto-Merge
   dependabot-merge:
     name: Dependabot Auto-Merge
-    needs: [backend-ci, frontend-ci, functions-ci]
+    needs: [backend-test, frontend-test, functions-test]
     if: github.event.pull_request.user.login == 'dependabot[bot]' && always()
     runs-on: ubuntu-latest
     permissions:
@@ -447,9 +522,9 @@ jobs:
     steps:
       - name: Check CI Status
         if: |
-          contains(needs.backend-ci.result, 'failure') ||
-          contains(needs.frontend-ci.result, 'failure') ||
-          contains(needs.functions-ci.result, 'failure')
+          contains(needs.backend-test.result, 'failure') ||
+          contains(needs.frontend-test.result, 'failure') ||
+          contains(needs.functions-test.result, 'failure')
         run: |
           echo "CI/CD checks failed, blocking auto-merge."
           exit 1
