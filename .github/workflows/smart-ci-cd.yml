@@ -329,7 +329,7 @@ jobs:
           cache: 'npm'
 
       - name: Install Frontend Dependencies
-        run: npm ci -w dashboard
+        run: npm install -w dashboard
 
       - name: Run Frontend Lint Checks
         run: npm run lint -w dashboard
@@ -447,7 +447,7 @@ jobs:
           cache: 'npm'
 
       - name: Install Functions Dependencies
-        run: npm ci -w functions
+        run: npm install -w functions
 
       - name: Compile TypeScript Functions
         run: npm run build -w functions
@@ -486,7 +486,7 @@ jobs:
           path: functions/
 
       - name: Install Functions Dependencies
-        run: npm ci -w functions
+        run: npm install -w functions
 
       - name: Authenticate to Google Cloud (Firebase)
         uses: google-github-actions/auth@v2
