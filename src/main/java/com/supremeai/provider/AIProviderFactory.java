@@ -35,16 +35,20 @@ public class AIProviderFactory {
               .expireAfterWrite(Duration.ofMillis(HEALTH_CACHE_TTL_MS))
               .build(
                   providerName -> {
+                    logger.debug("[Health] Checking health for: {}", providerName);
                     try {
                       AIProvider provider = getProvider(providerName);
-                      String testResponse =
-                          provider
-                              .generate("test")
-                              .subscribeOn(reactor.core.scheduler.Schedulers.boundedElastic())
-                              .block(Duration.ofSeconds(3));
-                      return testResponse != null && !testResponse.isEmpty();
+                      // নন-ব্লকিং স্টাইলে হেলথ চেক এবং হার্ড টাইমাউট নিশ্চিত করা
+                      return provider
+                          .generate("ping")
+                          .timeout(Duration.ofSeconds(2)) // ২ সেকেন্ডের বেশি সময় নিলে ফেইল ধরবে
+                          .map(res -> res != null && !res.isBlank())
+                          .onErrorReturn(false)
+                          .subscribeOn(reactor.core.scheduler.Schedulers.boundedElastic())
+                          .block(); // LoadingCache সিঙ্ক্রোনাস হওয়ায় এখানে ব্লক প্রয়োজন, তবে
+                      // টাইমাউট সেফটিসহ
                     } catch (Exception e) {
-                      logger.debug("Health check failed for {}: {}", providerName, e.getMessage());
+                      logger.warn("Health check failed for {}: {}", providerName, e.getMessage());
                       return false;
                     }
                   });
