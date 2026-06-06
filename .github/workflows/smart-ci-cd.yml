@@ -329,10 +329,10 @@ jobs:
         env:
           SPRING_PROFILES_ACTIVE: test
           OFFLINE_MODE_ENABLED: true
-          FIRESTORE_EMULATOR_HOST: localhost:8081
+          SPRING_CLOUD_GCP_FIRESTORE_EMULATOR_ENABLED: "true"
+          SPRING_CLOUD_GCP_FIRESTORE_HOST: "localhost:8081"
           SPRING_JPA_HIBERNATE_DDL_AUTO: update
-          FIREBASE_PROJECT_ID: ${{ steps.auth.outputs.project_id }}
-          GOOGLE_APPLICATION_CREDENTIALS: ${{ steps.auth.outputs.credentials_file_path }}
+          FIREBASE_PROJECT_ID: "supremeai-test"
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
         run: |
           if [ -z "$JWT_SECRET" ]; then
