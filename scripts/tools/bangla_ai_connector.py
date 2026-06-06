@@ -5,6 +5,7 @@
 import requests
 from typing import Dict, Any, Optional
 
+
 class BanglaAiConnector:
     """Auto-generated connector for bangla_ai"""
 
@@ -18,7 +19,7 @@ class BanglaAiConnector:
         """Handle authentication"""
         login_data = {
             "email": self.credentials.get("email"),
-            "password": self.credentials.get("password")
+            "password": self.credentials.get("password"),
         }
         resp = self.session.post(f"{self.base_url}/api/login", json=login_data)
         return resp.status_code == 200
@@ -35,5 +36,5 @@ class BanglaAiConnector:
             "success": True,
             "platform": "bangla_ai",
             "data": data,
-            "auto_generated": True
+            "auto_generated": True,
         }

@@ -5,6 +5,7 @@
 import requests
 from typing import Dict, Any, Optional
 
+
 class ExampleComConnector:
     """Auto-generated connector for example.com"""
 
@@ -24,5 +25,5 @@ class ExampleComConnector:
             "success": True,
             "platform": "example.com",
             "data": data,
-            "auto_generated": True
+            "auto_generated": True,
         }

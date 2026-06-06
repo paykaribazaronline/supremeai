@@ -6,6 +6,7 @@ Seeds knowledge about the importance and implementation of verifying foundationa
 
 import sys
 import os
+
 sys.path.insert(0, os.path.dirname(__file__))
 
 from seed_lib import _learning, run_part
@@ -23,17 +24,17 @@ SYSTEM_LEARNINGS = {
         solutions=[
             "Expose a /api/knowledge/verify-foundation endpoint to check core knowledge status",
             "Run verification during system startup and after any major knowledge update",
-            "Alert administrators if critical foundation entries are missing or have low confidence"
+            "Alert administrators if critical foundation entries are missing or have low confidence",
         ],
         severity="CRITICAL",
         confidence=0.99,
         times_applied=1,
-        context={"service": "KnowledgeVerificationService"}
+        context={"service": "KnowledgeVerificationService"},
     )
 }
 
 if __name__ == "__main__":
     run_part(
         part_name="Part 7 — Knowledge Verification",
-        collections={"system_learning": SYSTEM_LEARNINGS}
+        collections={"system_learning": SYSTEM_LEARNINGS},
     )

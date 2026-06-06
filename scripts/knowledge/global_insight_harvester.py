@@ -24,36 +24,48 @@ except ImportError:
     print("Error: Required libraries or seed_lib.py not found.")
     sys.exit(1)
 
+
 # Simulating a search and extraction process for real-world lessons
 # In a real scenario, this would call a search API and an LLM to summarize
 def fetch_global_trends():
     """Simulates fetching real-world data and converting it to system knowledge format."""
     print("🌐 Fetching real-world engineering lessons and trends from StackOverflow...")
-    
+
     live_trends = []
     try:
         # Real integration: StackOverflow recent topics via RSS (No API Key needed)
         url = "https://stackoverflow.com/feeds/tag?tagnames=architecture+or+outage&sort=newest"
-        req = urllib.request.Request(url, headers={'User-Agent': 'SupremeAI-Harvester'})
+        req = urllib.request.Request(url, headers={"User-Agent": "SupremeAI-Harvester"})
         with urllib.request.urlopen(req, timeout=10) as response:
             xml_data = response.read()
             root = ET.fromstring(xml_data)
-            for entry in root.findall('{http://www.w3.org/2005/Atom}entry')[:3]:
-                title = entry.find('{http://www.w3.org/2005/Atom}title').text
-                summary = entry.find('{http://www.w3.org/2005/Atom}summary').text
-                
-                live_trends.append({
-                    "category": "REAL_WORLD_INCIDENT",
-                    "title": title,
-                    "description": summary[:250] + "..." if summary else "No description available.",
-                    "confidence": 0.85,
-                    "severity": "HIGH",
-                    "solutions": ["Analyze architecture dependencies", "Implement resilience patterns"]
-                })
+            for entry in root.findall("{http://www.w3.org/2005/Atom}entry")[:3]:
+                title = entry.find("{http://www.w3.org/2005/Atom}title").text
+                summary = entry.find("{http://www.w3.org/2005/Atom}summary").text
+
+                live_trends.append(
+                    {
+                        "category": "REAL_WORLD_INCIDENT",
+                        "title": title,
+                        "description": (
+                            summary[:250] + "..."
+                            if summary
+                            else "No description available."
+                        ),
+                        "confidence": 0.85,
+                        "severity": "HIGH",
+                        "solutions": [
+                            "Analyze architecture dependencies",
+                            "Implement resilience patterns",
+                        ],
+                    }
+                )
         return live_trends
     except Exception as e:
-        print(f"⚠️ Could not fetch live data, falling back to cached trends. Error: {e}")
-    
+        print(
+            f"⚠️ Could not fetch live data, falling back to cached trends. Error: {e}"
+        )
+
     # These represent 'lessons from the world' that an AI might discover via search
     trends = [
         {
@@ -65,8 +77,8 @@ def fetch_global_trends():
             "solutions": [
                 "Implement strict dependency ordering in Kubernetes manifests",
                 "Use 'fail-open' health checks for circular dependencies",
-                "Decouple service discovery from service availability"
-            ]
+                "Decouple service discovery from service availability",
+            ],
         },
         {
             "category": "EMERGING_TECH",
@@ -77,8 +89,8 @@ def fetch_global_trends():
             "solutions": [
                 "Implement X25519 + Kyber hybrid key exchange",
                 "Update TLS libraries to support ML-KEM",
-                "Inventory all long-term data encrypted with RSA/ECC for re-encryption"
-            ]
+                "Inventory all long-term data encrypted with RSA/ECC for re-encryption",
+            ],
         },
         {
             "category": "HUMAN_LOGIC",
@@ -89,15 +101,16 @@ def fetch_global_trends():
             "solutions": [
                 "Scheduled notification-free blocks for engineering teams",
                 "Replace instant-response culture with asynchronous document-first updates",
-                "Use Slack/Teams status for 'Deep Work' mode"
-            ]
-        }
+                "Use Slack/Teams status for 'Deep Work' mode",
+            ],
+        },
     ]
     return trends
 
+
 def run_harvest():
     print("\n🌍  SupremeAI Global Insight Harvester — Starting...\n")
-    
+
     try:
         db = init_firestore(firebase_admin, credentials, fs_module)
         print("✅  Connected to Firestore!")
@@ -111,7 +124,7 @@ def run_harvest():
     for trend in trends:
         # Create a stable ID based on title
         doc_id = hashlib.md5(trend["title"].encode()).hexdigest()
-        
+
         # Convert to SystemLearning format
         knowledge_items[doc_id] = _learning(
             type_="IMPROVEMENT",
@@ -120,13 +133,19 @@ def run_harvest():
             solutions=trend["solutions"],
             severity=trend["severity"],
             confidence=trend["confidence"],
-            context={"source": "Global Trend Analysis", "date": datetime.now().strftime("%Y-%m-%d")}
+            context={
+                "source": "Global Trend Analysis",
+                "date": datetime.now().strftime("%Y-%m-%d"),
+            },
         )
 
-    print(f"\n📁  Seeding {len(knowledge_items)} global insights into 'system_learning'...")
+    print(
+        f"\n📁  Seeding {len(knowledge_items)} global insights into 'system_learning'..."
+    )
     batch_set(db, "system_learning", knowledge_items)
-    
+
     print("\n✅  Global learning complete. The system is now smarter about the world.")
+
 
 if __name__ == "__main__":
     run_harvest()

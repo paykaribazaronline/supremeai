@@ -23,11 +23,15 @@
 }
 
 .glass-card {
-  background: linear-gradient(145deg, rgba(13, 17, 33, 0.95), rgba(7, 9, 18, 0.98));
+  background: linear-gradient(
+    145deg,
+    rgba(13, 17, 33, 0.95),
+    rgba(7, 9, 18, 0.98)
+  );
   backdrop-filter: blur(12px);
   border: 1px solid rgba(0, 243, 255, 0.15);
   border-radius: 12px;
-  box-shadow: 
+  box-shadow:
     0 10px 30px -10px rgba(0, 0, 0, 0.8),
     inset 0 1px 0 rgba(255, 255, 255, 0.05),
     inset 0 0 20px rgba(0, 243, 255, 0.02);
@@ -39,7 +43,7 @@
 
 .glass-card:hover {
   border-color: rgba(0, 243, 255, 0.3);
-  box-shadow: 
+  box-shadow:
     0 10px 40px -10px rgba(0, 0, 0, 0.9),
     inset 0 1px 0 rgba(255, 255, 255, 0.1),
     inset 0 0 30px rgba(0, 243, 255, 0.05);
@@ -74,7 +78,6 @@
   text-shadow: 0 0 10px rgba(188, 19, 254, 0.5);
 }
 
-
 /* ============================================
    AI CARD - Fully Fluid
    ============================================ */
@@ -103,7 +106,7 @@
 }
 
 .ai-card::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: -100%;
@@ -220,7 +223,7 @@
   color: #00f3ff;
   border: 1px solid #00f3ff;
   padding: 8px 16px;
-  font-family: 'Outfit', sans-serif;
+  font-family: "Outfit", sans-serif;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 1px;
@@ -241,8 +244,9 @@
 .cyber-button:hover {
   background: #00f3ff;
   color: #020205;
-  box-shadow: 0 0 20px rgba(0, 243, 255, 0.6), 
-              0 0 40px rgba(0, 243, 255, 0.2);
+  box-shadow:
+    0 0 20px rgba(0, 243, 255, 0.6),
+    0 0 40px rgba(0, 243, 255, 0.2);
   transform: translateY(-2px);
 }
 
@@ -261,9 +265,15 @@
 }
 
 @keyframes gradient {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
 }
 
 /* ============================================
@@ -277,23 +287,45 @@
   background-clip: text;
 }
 
-.text-main { color: var(--text-main); }
-.text-dim { color: var(--text-dim); }
-.text-success { color: var(--success); }
-.text-warning { color: var(--warning); }
-.text-error { color: var(--error); }
-.text-neon { color: var(--neon-blue); }
-.text-purple { color: var(--neon-purple); }
+.text-main {
+  color: var(--text-main);
+}
+.text-dim {
+  color: var(--text-dim);
+}
+.text-success {
+  color: var(--success);
+}
+.text-warning {
+  color: var(--warning);
+}
+.text-error {
+  color: var(--error);
+}
+.text-neon {
+  color: var(--neon-blue);
+}
+.text-purple {
+  color: var(--neon-purple);
+}
 
-.border-glass { border: 1px solid rgba(255, 255, 255, 0.2); }
-.border-neon { border: 1px solid var(--neon-blue); }
+.border-glass {
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+.border-neon {
+  border: 1px solid var(--neon-blue);
+}
 
 /* ============================================
    VISIBILITY UTILITIES
    ============================================ */
 
-.opacity-dim { opacity: 0.6; }
-.opacity-very-dim { opacity: 0.3; }
+.opacity-dim {
+  opacity: 0.6;
+}
+.opacity-very-dim {
+  opacity: 0.3;
+}
 .bg-glass-heavy {
   background: rgba(0, 0, 0, 0.6);
   backdrop-filter: blur(clamp(16px, 2.5vw, 24px));
@@ -304,7 +336,8 @@
    ============================================ */
 
 @keyframes pulse {
-  0%, 100% {
+  0%,
+  100% {
     transform: scale(1);
     opacity: 0.8;
   }
@@ -340,16 +373,21 @@
 }
 
 @keyframes rotate {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* ============================================
    CUSTOM CHAT FONTS
    ============================================ */
 
-
-.font-mono { font-family: 'JetBrains Mono', monospace !important; }
+.font-mono {
+  font-family: "JetBrains Mono", monospace !important;
+}
 
 /* ============================================
    AI VOICE WAVEFORM - Fluid
@@ -371,14 +409,29 @@
   animation: wave 1.2s ease-in-out infinite;
 }
 
-.wave-bar:nth-child(odd) { animation-delay: 0s; }
-.wave-bar:nth-child(2n) { animation-delay: 0.1s; }
-.wave-bar:nth-child(3n) { animation-delay: 0.2s; }
-.wave-bar:nth-child(4n) { animation-delay: 0.3s; }
+.wave-bar:nth-child(odd) {
+  animation-delay: 0s;
+}
+.wave-bar:nth-child(2n) {
+  animation-delay: 0.1s;
+}
+.wave-bar:nth-child(3n) {
+  animation-delay: 0.2s;
+}
+.wave-bar:nth-child(4n) {
+  animation-delay: 0.3s;
+}
 
 @keyframes wave {
-  0%, 100% { height: clamp(8px, 1.5vh, 16px); opacity: 0.5; }
-  50% { height: clamp(24px, 4vh, 45px); opacity: 1; }
+  0%,
+  100% {
+    height: clamp(8px, 1.5vh, 16px);
+    opacity: 0.5;
+  }
+  50% {
+    height: clamp(24px, 4vh, 45px);
+    opacity: 1;
+  }
 }
 
 /* ============================================
@@ -393,7 +446,9 @@
 }
 
 @keyframes dash {
-  to { stroke-dashoffset: -100; }
+  to {
+    stroke-dashoffset: -100;
+  }
 }
 
 /* ============================================
@@ -423,7 +478,7 @@
   border: 1px solid rgba(0, 243, 255, 0.2);
   border-radius: clamp(2px, 0.25vw, 6px);
   padding: clamp(10px, 1.5vw, 18px);
-  font-family: 'JetBrains Mono', monospace;
+  font-family: "JetBrains Mono", monospace;
   font-size: var(--text-xs);
   color: var(--neon-blue);
   box-shadow:
@@ -457,8 +512,13 @@
 }
 
 @keyframes blink {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
 }
 
 /* ============================================
@@ -469,7 +529,7 @@
   position: absolute;
   top: 0;
   color: var(--neon-blue);
-  font-family: 'JetBrains Mono', monospace;
+  font-family: "JetBrains Mono", monospace;
   font-size: var(--text-xs);
   opacity: 0.2;
   white-space: nowrap;
@@ -479,6 +539,10 @@
 }
 
 @keyframes fall {
-  from { transform: translateY(-100vh); }
-  to { transform: translateY(100vh); }
+  from {
+    transform: translateY(-100vh);
+  }
+  to {
+    transform: translateY(100vh);
+  }
 }

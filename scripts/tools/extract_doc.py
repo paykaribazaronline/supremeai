@@ -1,7 +1,9 @@
 from docx import Document
 import sys
 
-doc = Document(r'C:\Users\Nazifa\supremeai\plans\main plan\SupremeAI_Self_Learning_Documentation.docx')
+doc = Document(
+    r"C:\Users\Nazifa\supremeai\plans\main plan\SupremeAI_Self_Learning_Documentation.docx"
+)
 
 full_text = []
 for para in doc.paragraphs:
@@ -13,7 +15,7 @@ for table in doc.tables:
             full_text.append(cell.text)
 
 # Write to UTF-8 file to avoid encoding issues
-with open('extracted_doc.txt', 'w', encoding='utf-8') as f:
-    f.write('\n'.join(full_text))
+with open("extracted_doc.txt", "w", encoding="utf-8") as f:
+    f.write("\n".join(full_text))
 
 print("Document extracted successfully")

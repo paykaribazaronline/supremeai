@@ -6,6 +6,7 @@ Seeds knowledge about the shift from script-based seeding to API-driven foundati
 
 import sys
 import os
+
 sys.path.insert(0, os.path.dirname(__file__))
 
 from seed_lib import _learning, run_part
@@ -22,17 +23,17 @@ SYSTEM_LEARNINGS = {
         solutions=[
             "Expose POST /api/knowledge/init for one-click environment setup",
             "Use the seedBulk service method to populate collections during CI/CD bootstrap",
-            "Ensure the foundation seed is idempotent (uses fixed document IDs)"
+            "Ensure the foundation seed is idempotent (uses fixed document IDs)",
         ],
         severity="MEDIUM",
         confidence=0.99,
         times_applied=1,
-        context={"service": "KnowledgeController"}
+        context={"service": "KnowledgeController"},
     )
 }
 
 if __name__ == "__main__":
     run_part(
         part_name="Part 6 — API Initialization",
-        collections={"system_learning": SYSTEM_LEARNINGS}
+        collections={"system_learning": SYSTEM_LEARNINGS},
     )

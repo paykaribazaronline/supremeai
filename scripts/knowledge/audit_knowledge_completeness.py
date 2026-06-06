@@ -24,29 +24,36 @@ from collections import defaultdict
 from datetime import datetime
 
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-CORE_KNOWLEDGE_PATH = os.path.join(REPO_ROOT, "src", "main", "resources", "core_knowledge.json")
+CORE_KNOWLEDGE_PATH = os.path.join(
+    REPO_ROOT, "src", "main", "resources", "core_knowledge.json"
+)
 AUTONOMOUS_SEED_PATH = os.path.join(REPO_ROOT, "autonomous_seed_knowledge.json")
 REFRESH_FIRESTORE = "--firestore" in sys.argv
 
 MANDATORY_CATEGORIES = {
-    "Network failure recovery":       ["network", "timeout", "dns", "firewall", "connection"],
-    "Memory exhaustion":              ["memory", "outofmemory", "heap", "oom"],
-    "Database migration":             ["migration", "flyway", "liquibase", "database"],
-    "SSL/TLS certificate":            ["ssl", "tls", "certificate"],
-    "Rate limiting / quota":          ["rate", "limit", "quota", "throttl"],
-    "Complete AI blackout":           ["blackout", "thunder", "ai fail", "all ai", "emergency"],
-    "Cascading failure":              ["cascad", "cascade", "multi-provider"],
-    "Self-healing recovery":          ["self-heal", "auto-recovery", "self-repair"],
-    "Graceful degradation":           ["graceful", "degradation", "degrad"],
-    "Provider health / quarantine":   ["quarantine", "health check", "provider isolat"],
-    "Provider migration":             ["migrat", "provider migration", "knowledge transfer"],
-    "Seed rebuild":                   ["seed rebuild", "knowledge seed", "reconstruct"],
-    "Confidence-weighted voting":     ["voting", "confidence-weighted", "quality gate"],
-    "Zero-AI offline operation":      ["zero ai", "offline mode", "no ai", "standalone"],
-    "Knowledge bootstrap from zero":  ["bootstrap", "from scratch", "fresh start"],
-    "Local AI model setup":           ["local ai", "ollama", "llama.cpp", "on-device"],
-    "P2P knowledge sync":             ["p2p", "peer-to-peer", "peer"],
-    "Observability (Prometheus/grafana)": ["prometheus", "grafana", "metric", "observability"],
+    "Network failure recovery": ["network", "timeout", "dns", "firewall", "connection"],
+    "Memory exhaustion": ["memory", "outofmemory", "heap", "oom"],
+    "Database migration": ["migration", "flyway", "liquibase", "database"],
+    "SSL/TLS certificate": ["ssl", "tls", "certificate"],
+    "Rate limiting / quota": ["rate", "limit", "quota", "throttl"],
+    "Complete AI blackout": ["blackout", "thunder", "ai fail", "all ai", "emergency"],
+    "Cascading failure": ["cascad", "cascade", "multi-provider"],
+    "Self-healing recovery": ["self-heal", "auto-recovery", "self-repair"],
+    "Graceful degradation": ["graceful", "degradation", "degrad"],
+    "Provider health / quarantine": ["quarantine", "health check", "provider isolat"],
+    "Provider migration": ["migrat", "provider migration", "knowledge transfer"],
+    "Seed rebuild": ["seed rebuild", "knowledge seed", "reconstruct"],
+    "Confidence-weighted voting": ["voting", "confidence-weighted", "quality gate"],
+    "Zero-AI offline operation": ["zero ai", "offline mode", "no ai", "standalone"],
+    "Knowledge bootstrap from zero": ["bootstrap", "from scratch", "fresh start"],
+    "Local AI model setup": ["local ai", "ollama", "llama.cpp", "on-device"],
+    "P2P knowledge sync": ["p2p", "peer-to-peer", "peer"],
+    "Observability (Prometheus/grafana)": [
+        "prometheus",
+        "grafana",
+        "metric",
+        "observability",
+    ],
 }
 
 
@@ -63,8 +70,8 @@ def safe_load_json(path):
 
 def text_of(entry):
     """Return the concatenation of task + solution for a knowledge entry."""
-    task       = str(entry.get("task", "")).lower()
-    solution   = str(entry.get("solution", "")).lower()
+    task = str(entry.get("task", "")).lower()
+    solution = str(entry.get("solution", "")).lower()
     return task + " " + solution
 
 
@@ -105,21 +112,23 @@ def check_broken_paths(all_entries):
     # Common stale-path patterns
     stale_patterns = [
         r"supremeai-a/supremeai_ecosystem_plan\.md",  # doc moved/renamed
-        r"http://localhost:\d+/admin",                  # vary in dev (may be correct)
-        r"GET /api/admin/providers/health[^\"']*",     # endpoint may not exist yet
-        r"kill-switch diagnose",                         # may not exist on all installs
+        r"http://localhost:\d+/admin",  # vary in dev (may be correct)
+        r"GET /api/admin/providers/health[^\"']*",  # endpoint may not exist yet
+        r"kill-switch diagnose",  # may not exist on all installs
     ]
     for e in all_entries:
         t = text_of(e)
         for pat in stale_patterns:
             hits = re.findall(pat, t, re.IGNORECASE)
             if hits:
-                broken.append({
-                    "task": e.get("task", "?"),
-                    "pattern": pat,
-                    "hits": hits,
-                    "action": "REVIEW — verify path/tool/endpoint still exists",
-                })
+                broken.append(
+                    {
+                        "task": e.get("task", "?"),
+                        "pattern": pat,
+                        "hits": hits,
+                        "action": "REVIEW — verify path/tool/endpoint still exists",
+                    }
+                )
     return broken
 
 
@@ -180,29 +189,31 @@ def make_report(core, autonomous, seed_entries):
     coverage_pct = round(ok_categories / total_categories * 100, 1)
 
     # Gaps summary
-    all_gaps = [{"category": k, **v} for k, v in gap_results.items() if v["status"] == "GAP"]
+    all_gaps = [
+        {"category": k, **v} for k, v in gap_results.items() if v["status"] == "GAP"
+    ]
     critical_gaps = [g for g in all_gaps if g["count"] == 0]
 
     report = {
-        "scanTimestamp":       now,
-        "version":             "1.0",
+        "scanTimestamp": now,
+        "version": "1.0",
         "summary": {
-            "totalEntries":        total,
-            "core_knowledge_entries":   len(core),
-            "autonomous_seed_entries":  len(autonomous),
-            "system_learning_entries":  len(seed_entries),
+            "totalEntries": total,
+            "core_knowledge_entries": len(core),
+            "autonomous_seed_entries": len(autonomous),
+            "system_learning_entries": len(seed_entries),
             "mandatoryCategories": total_categories,
-            "categoriesPass":     ok_categories,
-            "categoriesFail":     total_categories - ok_categories,
-            "coveragePercent":    coverage_pct,
+            "categoriesPass": ok_categories,
+            "categoriesFail": total_categories - ok_categories,
+            "coveragePercent": coverage_pct,
         },
-        "gapsFound":            len(all_gaps),
-        "criticalGaps":         len(critical_gaps),
-        "gapDetails":           all_gaps,
-        "staleEntries":         stale,
-        "brokenPathEntries":    broken,
-        "duplicateKeywords":    dupes if dupes else None,
-        "overallPass":          len(critical_gaps) == 0 and coverage_pct >= 80,
+        "gapsFound": len(all_gaps),
+        "criticalGaps": len(critical_gaps),
+        "gapDetails": all_gaps,
+        "staleEntries": stale,
+        "brokenPathEntries": broken,
+        "duplicateKeywords": dupes if dupes else None,
+        "overallPass": len(critical_gaps) == 0 and coverage_pct >= 80,
     }
     return report
 
@@ -217,7 +228,9 @@ def print_human(report):
     print(f"  core_knowledge.json      : {s['core_knowledge_entries']}")
     print(f"  autonomous_seed_knowledge: {s['autonomous_seed_entries']}")
     print(f"  system_learning (seed)   : {s['system_learning_entries']}")
-    print(f"\nCoverage : {s['coveragePercent']}% ({s['categoriesPass']}/{s['mandatoryCategories']} categories)")
+    print(
+        f"\nCoverage : {s['coveragePercent']}% ({s['categoriesPass']}/{s['mandatoryCategories']} categories)"
+    )
     print(f"Gaps found: {report['gapsFound']}  (CRITICAL: {report['criticalGaps']})")
 
     if report["gapDetails"]:
@@ -232,7 +245,9 @@ def print_human(report):
             print(f"    - {e['task'][:60]}  (lastUsed: {e['lastUsed']})")
 
     if report.get("brokenPathEntries"):
-        print(f"\n  Path/tool/endpoint review needed: {len(report['brokenPathEntries'])}")
+        print(
+            f"\n  Path/tool/endpoint review needed: {len(report['brokenPathEntries'])}"
+        )
         for b in report["brokenPathEntries"]:
             print(f"    - {b['task'][:60]}  | {b['action']}")
 
@@ -247,7 +262,7 @@ def print_human(report):
 
 
 def main():
-    core, core_err     = safe_load_json(CORE_KNOWLEDGE_PATH)
+    core, core_err = safe_load_json(CORE_KNOWLEDGE_PATH)
     autonomous, auto_err = safe_load_json(AUTONOMOUS_SEED_PATH)
 
     if core_err:

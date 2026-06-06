@@ -20,6 +20,7 @@ Run:
 
 import sys
 import os
+
 sys.path.insert(0, os.path.dirname(__file__))
 
 from seed_lib import _learning, run_part
@@ -29,7 +30,6 @@ from seed_lib import _learning, run_part
 # ============================================================================
 
 SYSTEM_LEARNINGS = {
-
     "sysdesign_cap_theorem": _learning(
         type_="PATTERN",
         category="DISTRIBUTED_SYSTEMS",
@@ -59,7 +59,6 @@ SYSTEM_LEARNINGS = {
             "firestore": "Firestore is CP — strong consistency within a region",
         },
     ),
-
     "sysdesign_horizontal_scaling": _learning(
         type_="PATTERN",
         category="SCALABILITY",
@@ -87,7 +86,6 @@ SYSTEM_LEARNINGS = {
             "session_tip": "spring-session-data-redis moves HttpSession to Redis in one dependency + @Bean",
         },
     ),
-
     "sysdesign_consistent_hashing": _learning(
         type_="PATTERN",
         category="DISTRIBUTED_SYSTEMS",
@@ -115,7 +113,6 @@ SYSTEM_LEARNINGS = {
             "alternatives": "Rendezvous hashing (simpler, no ring), Jump hashing (fast, bucket-based)",
         },
     ),
-
     "sysdesign_message_queue_patterns": _learning(
         type_="PATTERN",
         category="MESSAGING",
@@ -144,7 +141,6 @@ SYSTEM_LEARNINGS = {
             "spring": "Spring Kafka @KafkaListener; Spring AMQP @RabbitListener",
         },
     ),
-
     "sysdesign_api_design_rest": _learning(
         type_="PATTERN",
         category="API_DESIGN",
@@ -173,7 +169,6 @@ SYSTEM_LEARNINGS = {
             "problem_details": "Spring Boot 3: ProblemDetail class built-in for RFC 7807 error responses",
         },
     ),
-
     "sysdesign_graphql": _learning(
         type_="PATTERN",
         category="API_DESIGN",
@@ -201,7 +196,6 @@ SYSTEM_LEARNINGS = {
             "when_not_to": "Simple CRUD APIs with known fixed clients — REST is simpler",
         },
     ),
-
     "sysdesign_grpc": _learning(
         type_="PATTERN",
         category="API_DESIGN",
@@ -229,7 +223,6 @@ SYSTEM_LEARNINGS = {
             "spring_lib": "net.devh:grpc-spring-boot-starter for Spring Boot gRPC server",
         },
     ),
-
     "sysdesign_event_sourcing": _learning(
         type_="PATTERN",
         category="ARCHITECTURE",
@@ -258,7 +251,6 @@ SYSTEM_LEARNINGS = {
             "frameworks": "Axon Framework (Java), EventStoreDB, Marten (.NET), Eventuate",
         },
     ),
-
     "sysdesign_resilience4j": _learning(
         type_="PATTERN",
         category="RESILIENCE",
@@ -287,7 +279,6 @@ SYSTEM_LEARNINGS = {
             "order": "Rate Limiter → Circuit Breaker → Retry → Time Limiter → Bulkhead",
         },
     ),
-
     "sysdesign_database_sharding": _learning(
         type_="PATTERN",
         category="SCALABILITY",
@@ -316,7 +307,6 @@ SYSTEM_LEARNINGS = {
             "tools": "Vitess (YouTube's MySQL sharding layer), Citus (Postgres), Amazon Aurora sharding",
         },
     ),
-
     "sysdesign_idempotency": _learning(
         type_="PATTERN",
         category="DISTRIBUTED_SYSTEMS",
@@ -346,7 +336,6 @@ SYSTEM_LEARNINGS = {
             "stripe": "Stripe Idempotency-Key header is the industry standard pattern",
         },
     ),
-
     "sysdesign_websocket_realtime": _learning(
         type_="PATTERN",
         category="REAL_TIME",
@@ -383,7 +372,6 @@ SYSTEM_LEARNINGS = {
 # ============================================================================
 
 SYSTEM_DESIGN_KNOWLEDGE_DOCS = {
-
     "distributed_systems_guide": {
         "topic": "Distributed Systems — Core Concepts",
         "category": "DISTRIBUTED_SYSTEMS",
@@ -429,7 +417,6 @@ SYSTEM_DESIGN_KNOWLEDGE_DOCS = {
         },
         "confidence": 0.95,
     },
-
     "api_design_guide": {
         "topic": "API Design — REST, GraphQL, gRPC",
         "category": "API_DESIGN",
@@ -438,25 +425,52 @@ SYSTEM_DESIGN_KNOWLEDGE_DOCS = {
             "REST": {
                 "best_for": "External APIs, browser clients, simple CRUD",
                 "pros": ["Simple", "Cacheable", "HTTP-native", "Universal tooling"],
-                "cons": ["Over/under fetching", "Multiple round trips", "Versioning complexity"],
+                "cons": [
+                    "Over/under fetching",
+                    "Multiple round trips",
+                    "Versioning complexity",
+                ],
                 "spring": "@RestController + @RequestMapping + ResponseEntity",
             },
             "GraphQL": {
                 "best_for": "Complex data requirements, multiple clients, mobile bandwidth optimization",
-                "pros": ["Client-defined queries", "No over-fetching", "Strong typing", "Introspection"],
-                "cons": ["N+1 without DataLoader", "Caching complex", "Learning curve", "Query complexity attacks"],
+                "pros": [
+                    "Client-defined queries",
+                    "No over-fetching",
+                    "Strong typing",
+                    "Introspection",
+                ],
+                "cons": [
+                    "N+1 without DataLoader",
+                    "Caching complex",
+                    "Learning curve",
+                    "Query complexity attacks",
+                ],
                 "spring": "Spring for GraphQL: @QueryMapping, @MutationMapping",
             },
             "gRPC": {
                 "best_for": "Internal microservice communication, streaming, performance-critical",
-                "pros": ["10x faster than REST JSON", "Bidirectional streaming", "Code generation", "Strong typing"],
-                "cons": ["Browser unfriendly", "Binary format (debugging harder)", "Less ecosystem tooling"],
+                "pros": [
+                    "10x faster than REST JSON",
+                    "Bidirectional streaming",
+                    "Code generation",
+                    "Strong typing",
+                ],
+                "cons": [
+                    "Browser unfriendly",
+                    "Binary format (debugging harder)",
+                    "Less ecosystem tooling",
+                ],
                 "spring": "grpc-spring-boot-starter + @GrpcService",
             },
             "WebSocket": {
                 "best_for": "Real-time bidirectional communication (chat, gaming, collaboration)",
                 "pros": ["Full-duplex", "Low latency", "Persistent connection"],
-                "cons": ["Complex server scaling", "Connection management", "No HTTP caching"],
+                "cons": [
+                    "Complex server scaling",
+                    "Connection management",
+                    "No HTTP caching",
+                ],
                 "spring": "@EnableWebSocketMessageBroker + STOMP",
             },
         },
@@ -472,7 +486,6 @@ SYSTEM_DESIGN_KNOWLEDGE_DOCS = {
         },
         "confidence": 0.96,
     },
-
     "scalability_patterns_guide": {
         "topic": "Scalability Patterns — Design for Growth",
         "category": "SCALABILITY",
@@ -521,7 +534,6 @@ SYSTEM_DESIGN_KNOWLEDGE_DOCS = {
         ],
         "confidence": 0.94,
     },
-
     "resilience_patterns_guide": {
         "topic": "Resilience Patterns — Building Fault-Tolerant Systems",
         "category": "RESILIENCE",
@@ -577,7 +589,6 @@ SYSTEM_DESIGN_KNOWLEDGE_DOCS = {
         ),
         "confidence": 0.95,
     },
-
     "system_design_case_studies": {
         "topic": "System Design Case Studies",
         "category": "SYSTEM_DESIGN",
@@ -635,7 +646,6 @@ SYSTEM_DESIGN_KNOWLEDGE_DOCS = {
         ],
         "confidence": 0.93,
     },
-
     "event_sourcing_cqrs_guide": {
         "topic": "Event Sourcing + CQRS — Complete Guide",
         "category": "ARCHITECTURE",

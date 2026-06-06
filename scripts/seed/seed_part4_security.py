@@ -21,6 +21,7 @@ Run:
 
 import sys
 import os
+
 sys.path.insert(0, os.path.dirname(__file__))
 
 from seed_lib import _learning, run_part
@@ -30,13 +31,12 @@ from seed_lib import _learning, run_part
 # ============================================================================
 
 SYSTEM_LEARNINGS = {
-
     "security_sql_injection": _learning(
         type_="ERROR",
         category="SECURITY",
         content=(
             "SQL Injection: attacker inserts SQL code into a query via unsanitised input. "
-            "Example: name = \"'; DROP TABLE users; --\" in a string-concatenated query. "
+            'Example: name = "\'; DROP TABLE users; --" in a string-concatenated query. '
             "Impact: full database read/write/delete, authentication bypass, data exfiltration. "
             "OWASP A03:2021. "
             "Cause: building SQL queries by string concatenation of user input."
@@ -59,7 +59,6 @@ SYSTEM_LEARNINGS = {
             "detection": "SAST tools: SonarQube, CodeQL; DAST: OWASP ZAP, Burp Suite",
         },
     ),
-
     "security_xss": _learning(
         type_="ERROR",
         category="SECURITY",
@@ -87,7 +86,6 @@ SYSTEM_LEARNINGS = {
         resolution="Auto-escape output (React), set CSP header, HttpOnly cookies",
         context={"owasp": "OWASP A03:2021 — Injection (XSS is a type of injection)"},
     ),
-
     "security_jwt_implementation": _learning(
         type_="PATTERN",
         category="SECURITY",
@@ -115,7 +113,6 @@ SYSTEM_LEARNINGS = {
             "library": "io.jsonwebtoken:jjwt-api:0.12.x",
         },
     ),
-
     "security_oauth2_spring": _learning(
         type_="PATTERN",
         category="SECURITY",
@@ -141,11 +138,17 @@ SYSTEM_LEARNINGS = {
         confidence=0.95,
         times_applied=67,
         context={
-            "providers": ["Google", "GitHub", "Microsoft (Azure AD)", "Keycloak", "Auth0", "Firebase Auth"],
+            "providers": [
+                "Google",
+                "GitHub",
+                "Microsoft (Azure AD)",
+                "Keycloak",
+                "Auth0",
+                "Firebase Auth",
+            ],
             "spring_security": "spring-security-oauth2-client + spring-security-oauth2-jose",
         },
     ),
-
     "security_spring_security_config": _learning(
         type_="PATTERN",
         category="SECURITY",
@@ -176,7 +179,6 @@ SYSTEM_LEARNINGS = {
             "csrf_note": "CSRF protection is mandatory for session-based apps; can disable for JWT stateless APIs",
         },
     ),
-
     "security_secrets_management": _learning(
         type_="PATTERN",
         category="SECURITY",
@@ -204,7 +206,6 @@ SYSTEM_LEARNINGS = {
             "spring_config": "spring.cloud.gcp.secretmanager.project-id=supremeai-a",
         },
     ),
-
     "security_cors_configuration": _learning(
         type_="ERROR",
         category="SECURITY",
@@ -233,7 +234,6 @@ SYSTEM_LEARNINGS = {
             "preflight": "Browser sends OPTIONS preflight — Spring handles automatically with CORS config",
         },
     ),
-
     "security_input_validation": _learning(
         type_="PATTERN",
         category="SECURITY",
@@ -261,7 +261,6 @@ SYSTEM_LEARNINGS = {
             "error_handling": "@ExceptionHandler(MethodArgumentNotValidException.class) for field error map",
         },
     ),
-
     "security_password_hashing": _learning(
         type_="PATTERN",
         category="SECURITY",
@@ -289,7 +288,6 @@ SYSTEM_LEARNINGS = {
             "strength_12": "BCrypt strength=12 takes ~250ms per hash — too slow for brute force, fast enough for login",
         },
     ),
-
     "security_rate_limiting": _learning(
         type_="PATTERN",
         category="SECURITY",
@@ -317,7 +315,6 @@ SYSTEM_LEARNINGS = {
             "redis_key": "rate_limit:{userId}:{endpoint} with INCR + EXPIRE for distributed counter",
         },
     ),
-
     "security_https_tls": _learning(
         type_="PATTERN",
         category="SECURITY",
@@ -345,7 +342,6 @@ SYSTEM_LEARNINGS = {
             "spring": "server.ssl.enabled=true only when running outside Cloud Run/Kubernetes ingress",
         },
     ),
-
     "security_owasp_top10_summary": _learning(
         type_="PATTERN",
         category="SECURITY",
@@ -384,7 +380,6 @@ SYSTEM_LEARNINGS = {
 # ============================================================================
 
 SECURITY_KNOWLEDGE_DOCS = {
-
     "owasp_top10_detailed": {
         "topic": "OWASP Top 10 (2021) — Detailed Mitigation Guide",
         "category": "OWASP",
@@ -392,29 +387,77 @@ SECURITY_KNOWLEDGE_DOCS = {
         "vulnerabilities": {
             "A01_Broken_Access_Control": {
                 "description": "Access control enforces policy so users cannot act outside their intended permissions",
-                "examples": ["Accessing /api/users/123 when logged in as user 456", "IDOR (Insecure Direct Object Reference)", "Privilege escalation by changing role parameter"],
-                "mitigations": ["Enforce access control on every request server-side", "@PreAuthorize in Spring Security", "Deny by default — whitelist what is allowed", "Log access control failures and alert on high frequency"],
+                "examples": [
+                    "Accessing /api/users/123 when logged in as user 456",
+                    "IDOR (Insecure Direct Object Reference)",
+                    "Privilege escalation by changing role parameter",
+                ],
+                "mitigations": [
+                    "Enforce access control on every request server-side",
+                    "@PreAuthorize in Spring Security",
+                    "Deny by default — whitelist what is allowed",
+                    "Log access control failures and alert on high frequency",
+                ],
                 "spring_impl": "@PreAuthorize(\"#id == authentication.name or hasRole('ADMIN')\")",
             },
             "A02_Cryptographic_Failures": {
                 "description": "Failures related to cryptography — often leads to data exposure",
-                "examples": ["Storing passwords in plain text or MD5", "Transmitting data over HTTP", "Using weak encryption (DES, RC4)"],
-                "mitigations": ["Use bcrypt/Argon2 for passwords", "TLS 1.2+ for all data in transit", "AES-256-GCM for data at rest", "Never implement custom cryptography"],
+                "examples": [
+                    "Storing passwords in plain text or MD5",
+                    "Transmitting data over HTTP",
+                    "Using weak encryption (DES, RC4)",
+                ],
+                "mitigations": [
+                    "Use bcrypt/Argon2 for passwords",
+                    "TLS 1.2+ for all data in transit",
+                    "AES-256-GCM for data at rest",
+                    "Never implement custom cryptography",
+                ],
             },
             "A03_Injection": {
                 "description": "User-supplied data is sent to an interpreter as part of a command",
-                "examples": ["SQL injection", "XSS", "LDAP injection", "OS command injection"],
-                "mitigations": ["Parameterised queries exclusively", "Input validation + output encoding", "Use safe API (JPA, prepared statements)", "SAST scanning in CI pipeline"],
+                "examples": [
+                    "SQL injection",
+                    "XSS",
+                    "LDAP injection",
+                    "OS command injection",
+                ],
+                "mitigations": [
+                    "Parameterised queries exclusively",
+                    "Input validation + output encoding",
+                    "Use safe API (JPA, prepared statements)",
+                    "SAST scanning in CI pipeline",
+                ],
             },
             "A05_Security_Misconfiguration": {
                 "description": "Insecure default configurations, unnecessary features enabled",
-                "examples": ["Default credentials unchanged", "Stack traces in production errors", "Unnecessary HTTP methods enabled", "Missing security headers"],
-                "mitigations": ["Disable Spring Boot Actuator /actuator/env in production", "Return generic error messages; log details server-side", "Add security headers: CSP, HSTS, X-Frame-Options", "Remove unused endpoints and features"],
+                "examples": [
+                    "Default credentials unchanged",
+                    "Stack traces in production errors",
+                    "Unnecessary HTTP methods enabled",
+                    "Missing security headers",
+                ],
+                "mitigations": [
+                    "Disable Spring Boot Actuator /actuator/env in production",
+                    "Return generic error messages; log details server-side",
+                    "Add security headers: CSP, HSTS, X-Frame-Options",
+                    "Remove unused endpoints and features",
+                ],
             },
             "A07_Auth_Failures": {
                 "description": "Authentication and session management implemented incorrectly",
-                "examples": ["Weak passwords allowed", "No MFA on sensitive operations", "JWT with 'none' algorithm accepted", "Session not invalidated on logout"],
-                "mitigations": ["Enforce password complexity + MFA for admin accounts", "Validate JWT algorithm field — reject 'none'", "Implement token revocation on logout", "Rate limit login attempts (5/min per IP)"],
+                "examples": [
+                    "Weak passwords allowed",
+                    "No MFA on sensitive operations",
+                    "JWT with 'none' algorithm accepted",
+                    "Session not invalidated on logout",
+                ],
+                "mitigations": [
+                    "Enforce password complexity + MFA for admin accounts",
+                    "Validate JWT algorithm field — reject 'none'",
+                    "Implement token revocation on logout",
+                    "Rate limit login attempts (5/min per IP)",
+                ],
             },
         },
         "security_headers_checklist": {
@@ -427,7 +470,6 @@ SECURITY_KNOWLEDGE_DOCS = {
         },
         "confidence": 0.96,
     },
-
     "authentication_guide": {
         "topic": "Authentication — Complete Implementation Guide",
         "category": "AUTHENTICATION",
@@ -435,12 +477,22 @@ SECURITY_KNOWLEDGE_DOCS = {
         "authentication_methods": {
             "Username_Password": {
                 "security": "Medium — password reuse, phishing, brute force risks",
-                "best_practices": ["bcrypt hashing", "rate limiting on login", "account lockout after N failures", "MFA for sensitive accounts"],
+                "best_practices": [
+                    "bcrypt hashing",
+                    "rate limiting on login",
+                    "account lockout after N failures",
+                    "MFA for sensitive accounts",
+                ],
             },
             "JWT_Stateless": {
                 "security": "High if implemented correctly",
                 "flow": "Login → server issues JWT → client sends JWT in Authorization header → server validates",
-                "best_practices": ["Short expiry (15 min)", "Refresh token rotation", "RS256 for microservices", "Revocation via Redis blocklist"],
+                "best_practices": [
+                    "Short expiry (15 min)",
+                    "Refresh token rotation",
+                    "RS256 for microservices",
+                    "Revocation via Redis blocklist",
+                ],
             },
             "OAuth2_OIDC": {
                 "security": "High — delegates to proven identity providers",
@@ -450,11 +502,25 @@ SECURITY_KNOWLEDGE_DOCS = {
             "API_Key": {
                 "security": "Medium — simple but no expiry/rotation by default",
                 "use_when": "Server-to-server API calls; developer API access",
-                "best_practices": ["Hash API keys in DB (SHA-256)", "Rate limit per key", "Scope keys to minimum permissions", "Rotate keys regularly"],
+                "best_practices": [
+                    "Hash API keys in DB (SHA-256)",
+                    "Rate limit per key",
+                    "Scope keys to minimum permissions",
+                    "Rotate keys regularly",
+                ],
             },
             "MFA": {
-                "types": ["TOTP (Google Authenticator)", "SMS OTP (weaker)", "Hardware key (FIDO2/WebAuthn)", "Push notification"],
-                "required_for": ["Admin accounts", "Sensitive operations (payment, delete)", "Privilege escalation"],
+                "types": [
+                    "TOTP (Google Authenticator)",
+                    "SMS OTP (weaker)",
+                    "Hardware key (FIDO2/WebAuthn)",
+                    "Push notification",
+                ],
+                "required_for": [
+                    "Admin accounts",
+                    "Sensitive operations (payment, delete)",
+                    "Privilege escalation",
+                ],
             },
         },
         "session_management": {
@@ -469,7 +535,6 @@ SECURITY_KNOWLEDGE_DOCS = {
         },
         "confidence": 0.96,
     },
-
     "authorisation_guide": {
         "topic": "Authorisation — RBAC, ABAC, Spring Security",
         "category": "AUTHORISATION",
@@ -501,9 +566,9 @@ SECURITY_KNOWLEDGE_DOCS = {
         },
         "spring_security_method_security": {
             "PreAuthorize": "@PreAuthorize(\"hasRole('ADMIN') or #userId == authentication.name\")",
-            "PostAuthorize": "@PostAuthorize(\"returnObject.owner == authentication.name\")",
-            "PreFilter": "@PreFilter(\"filterObject.active == true\")",
-            "PostFilter": "@PostFilter(\"filterObject.owner == authentication.name\")",
+            "PostAuthorize": '@PostAuthorize("returnObject.owner == authentication.name")',
+            "PreFilter": '@PreFilter("filterObject.active == true")',
+            "PostFilter": '@PostFilter("filterObject.owner == authentication.name")',
             "enable": "@EnableMethodSecurity on @Configuration class",
         },
         "firebase_authorisation": {
@@ -514,7 +579,6 @@ SECURITY_KNOWLEDGE_DOCS = {
         },
         "confidence": 0.95,
     },
-
     "encryption_guide": {
         "topic": "Encryption — Symmetric, Asymmetric, and Hashing",
         "category": "CRYPTOGRAPHY",
@@ -555,7 +619,6 @@ SECURITY_KNOWLEDGE_DOCS = {
         ],
         "confidence": 0.94,
     },
-
     "api_security_guide": {
         "topic": "API Security — Complete Guide",
         "category": "API_SECURITY",
@@ -602,7 +665,6 @@ SECURITY_KNOWLEDGE_DOCS = {
         ),
         "confidence": 0.96,
     },
-
     "secrets_management_guide": {
         "topic": "Secrets Management — Production Guide",
         "category": "SECRETS",

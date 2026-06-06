@@ -35,7 +35,10 @@
 
 .timeline-stats-dashboard {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(clamp(100px, 15vw, 160px), 1fr));
+  grid-template-columns: repeat(
+    auto-fit,
+    minmax(clamp(100px, 15vw, 160px), 1fr)
+  );
   gap: var(--space-2);
   margin: var(--space-4) 0;
   padding: var(--space-4);
@@ -408,17 +411,33 @@
   box-shadow: 0 0 clamp(6px, 1vw, 12px) rgba(0, 243, 255, 0.4);
 }
 
-.entry-green { background: var(--success); }
-.entry-green:hover { background: #229954; }
+.entry-green {
+  background: var(--success);
+}
+.entry-green:hover {
+  background: #229954;
+}
 
-.entry-red { background: var(--error); }
-.entry-red:hover { background: #c0392b; }
+.entry-red {
+  background: var(--error);
+}
+.entry-red:hover {
+  background: #c0392b;
+}
 
-.entry-yellow { background: var(--warning); }
-.entry-yellow:hover { background: #d68910; }
+.entry-yellow {
+  background: var(--warning);
+}
+.entry-yellow:hover {
+  background: #d68910;
+}
 
-.entry-grey { background: rgba(149, 165, 166, 0.7); }
-.entry-grey:hover { background: rgba(127, 140, 141, 0.8); }
+.entry-grey {
+  background: rgba(149, 165, 166, 0.7);
+}
+.entry-grey:hover {
+  background: rgba(127, 140, 141, 0.8);
+}
 
 /* ==================== Detail Panel ==================== */
 

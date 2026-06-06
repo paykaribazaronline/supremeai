@@ -19,8 +19,11 @@ from scripts.supremeai_mcp_server import SupremeAIMCP
 from scripts.multi_account_rotator import MultiAccountRotator, TaskType
 
 # Configure logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+)
 logger = logging.getLogger(__name__)
+
 
 class SystemIntegrationTest:
     """Comprehensive system integration test"""
@@ -61,7 +64,9 @@ class SystemIntegrationTest:
         ]
 
         for prompt, task_type, complexity in test_cases:
-            task_type_str = task_type.value if hasattr(task_type, 'value') else str(task_type)
+            task_type_str = (
+                task_type.value if hasattr(task_type, "value") else str(task_type)
+            )
             logger.info(f"Testing: {task_type_str} - {prompt[:50]}...")
 
             start_time = time.time()
@@ -77,13 +82,15 @@ class SystemIntegrationTest:
                 "response_time": end_time - start_time,
                 "provider": result.get("provider") if result else None,
                 "account": result.get("account") if result else None,
-                "timestamp": datetime.now().isoformat()
+                "timestamp": datetime.now().isoformat(),
             }
 
             self.test_results.append(test_result)
 
             if result:
-                logger.info(f"✅ Success: {result['provider']} in {test_result['response_time']:.2f}s")
+                logger.info(
+                    f"✅ Success: {result['provider']} in {test_result['response_time']:.2f}s"
+                )
             else:
                 logger.error(f"❌ Failed: No provider available")
 
@@ -116,13 +123,15 @@ class SystemIntegrationTest:
                 "intent": result.get("metadata", {}).get("intent"),
                 "strategy": result.get("metadata", {}).get("strategy"),
                 "error": result.get("error") if not result.get("success") else None,
-                "timestamp": datetime.now().isoformat()
+                "timestamp": datetime.now().isoformat(),
             }
 
             self.test_results.append(test_result)
 
             if result.get("success"):
-                logger.info(f"✅ MCP Success: {result['metadata']['provider']} ({test_result['response_time']:.2f}s)")
+                logger.info(
+                    f"✅ MCP Success: {result['metadata']['provider']} ({test_result['response_time']:.2f}s)"
+                )
             else:
                 logger.error(f"❌ MCP Failed: {result.get('error', 'Unknown error')}")
 
@@ -152,7 +161,7 @@ class SystemIntegrationTest:
             "provider": result.get("provider") if result else None,
             "account": result.get("account") if result else None,
             "failover_success": result is not None,  # Should use backup account
-            "timestamp": datetime.now().isoformat()
+            "timestamp": datetime.now().isoformat(),
         }
 
         self.test_results.append(test_result)
@@ -187,8 +196,12 @@ class SystemIntegrationTest:
             "rotator_status": rotator_status,
             "overall_health": overall_health,
             "api_health": api_health,
-            "vm_status": mcp_status.get("vm_models", {}).get("status") if isinstance(mcp_status, dict) else "unknown",
-            "timestamp": datetime.now().isoformat()
+            "vm_status": (
+                mcp_status.get("vm_models", {}).get("status")
+                if isinstance(mcp_status, dict)
+                else "unknown"
+            ),
+            "timestamp": datetime.now().isoformat(),
         }
 
         self.test_results.append(test_result)
@@ -208,7 +221,9 @@ class SystemIntegrationTest:
         for i in range(3):
             result = await self.mcp.process_request(test_prompt)
             if result.get("success"):
-                logger.info(f"Learning iteration {i+1}: {result['metadata']['provider']}")
+                logger.info(
+                    f"Learning iteration {i+1}: {result['metadata']['provider']}"
+                )
 
         final_patterns = len(self.mcp.knowledge_base.get("patterns", {}))
         patterns_learned = final_patterns - initial_patterns
@@ -220,7 +235,7 @@ class SystemIntegrationTest:
             "patterns_learned": patterns_learned,
             "initial_patterns": initial_patterns,
             "final_patterns": final_patterns,
-            "timestamp": datetime.now().isoformat()
+            "timestamp": datetime.now().isoformat(),
         }
 
         self.test_results.append(test_result)
@@ -232,39 +247,53 @@ class SystemIntegrationTest:
         report = {
             "test_summary": {
                 "total_tests": len(self.test_results),
-                "passed_tests": len([t for t in self.test_results if t.get("success", False)]),
-                "failed_tests": len([t for t in self.test_results if not t.get("success", False)]),
+                "passed_tests": len(
+                    [t for t in self.test_results if t.get("success", False)]
+                ),
+                "failed_tests": len(
+                    [t for t in self.test_results if not t.get("success", False)]
+                ),
                 "success_rate": 0,
-                "timestamp": datetime.now().isoformat()
+                "timestamp": datetime.now().isoformat(),
             },
             "test_results": self.test_results,
             "system_status": self.mcp.get_system_status(),
-            "recommendations": []
+            "recommendations": [],
         }
 
         if report["test_summary"]["total_tests"] > 0:
             report["test_summary"]["success_rate"] = (
-                report["test_summary"]["passed_tests"] / report["test_summary"]["total_tests"] * 100
+                report["test_summary"]["passed_tests"]
+                / report["test_summary"]["total_tests"]
+                * 100
             )
 
         # Generate recommendations
         system_health = report["system_status"].get("overall_health", 0)
         if system_health < 70:
-            report["recommendations"].append("System health is below 70%. Check VM connectivity and API accounts.")
+            report["recommendations"].append(
+                "System health is below 70%. Check VM connectivity and API accounts."
+            )
 
-        api_health = report["system_status"].get("api_rotation", {}).get("system_health", 0)
+        api_health = (
+            report["system_status"].get("api_rotation", {}).get("system_health", 0)
+        )
         if api_health < 80:
-            report["recommendations"].append("API rotation health is below 80%. Add more accounts or check account status.")
+            report["recommendations"].append(
+                "API rotation health is below 80%. Add more accounts or check account status."
+            )
 
         vm_status = report["system_status"].get("vm_models", {}).get("status")
         if vm_status != "online":
-            report["recommendations"].append("VM models are not online. Check GCloud VM connectivity.")
+            report["recommendations"].append(
+                "VM models are not online. Check GCloud VM connectivity."
+            )
 
         # Save report
         os.makedirs("test_reports", exist_ok=True)
         report_file = f"test_reports/integration_test_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
 
-        with open(report_file, 'w') as f:
+        with open(report_file, "w") as f:
             json.dump(report, f, indent=2, default=str)
 
         logger.info(f"Test report saved to: {report_file}")
@@ -308,6 +337,7 @@ class SystemIntegrationTest:
             logger.error(f"Integration test failed: {e}")
             return None
 
+
 async def main():
     """Run integration tests"""
     tester = SystemIntegrationTest()
@@ -319,6 +349,7 @@ async def main():
     else:
         logger.error("❌ SupremeAI Plugin needs fixes")
         return False
+
 
 if __name__ == "__main__":
     success = asyncio.run(main())

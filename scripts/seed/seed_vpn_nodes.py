@@ -22,7 +22,7 @@ VPN_NODES = {
         "isPremium": True,
         "isActive": True,
         "stealthEnabled": True,
-        "lastTestedAt": int(time.time() * 1000)
+        "lastTestedAt": int(time.time() * 1000),
     },
     "vpn_eu_west_01": {
         "id": "vpn_eu_west_01",
@@ -33,7 +33,7 @@ VPN_NODES = {
         "isPremium": False,
         "isActive": True,
         "stealthEnabled": True,
-        "lastTestedAt": int(time.time() * 1000)
+        "lastTestedAt": int(time.time() * 1000),
     },
     "vpn_asia_sg_01": {
         "id": "vpn_asia_sg_01",
@@ -44,12 +44,13 @@ VPN_NODES = {
         "isPremium": True,
         "isActive": True,
         "stealthEnabled": True,
-        "lastTestedAt": int(time.time() * 1000)
-    }
+        "lastTestedAt": int(time.time() * 1000),
+    },
 }
 
 if __name__ == "__main__":
     import sys
+
     try:
         import firebase_admin
         from firebase_admin import credentials, firestore
@@ -58,20 +59,22 @@ if __name__ == "__main__":
         sys.exit(1)
 
     print("🚀 Seeding SupremeAI VPN / Proxy Pool...")
-    
+
     try:
         if CREDENTIALS_FILE and os.path.exists(CREDENTIALS_FILE):
             cred = credentials.Certificate(CREDENTIALS_FILE)
             firebase_admin.initialize_app(cred)
         else:
             firebase_admin.initialize_app()
-            
+
         db = firestore.client()
         col = db.collection("vpns")
-        
+
         for doc_id, data in VPN_NODES.items():
             col.document(doc_id).set(data)
-            
-        print(f"✅ Successfully seeded {len(VPN_NODES)} VPN nodes into Firestore 'vpns' collection.")
+
+        print(
+            f"✅ Successfully seeded {len(VPN_NODES)} VPN nodes into Firestore 'vpns' collection."
+        )
     except Exception as e:
         print(f"❌ Seeding failed: {e}")

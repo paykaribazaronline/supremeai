@@ -20,6 +20,7 @@ Run:
 
 import sys
 import os
+
 sys.path.insert(0, os.path.dirname(__file__))
 
 from seed_lib import _learning, run_part
@@ -29,9 +30,7 @@ from seed_lib import _learning, run_part
 # ============================================================================
 
 SYSTEM_LEARNINGS = {
-
     # ── LLM fundamentals ─────────────────────────────────────────────────────
-
     "llm_transformer_architecture": _learning(
         type_="PATTERN",
         category="AI_FUNDAMENTALS",
@@ -53,11 +52,16 @@ SYSTEM_LEARNINGS = {
         confidence=0.97,
         times_applied=120,
         context={
-            "models": ["GPT-4o", "Claude 3.5", "Llama 3", "Gemini 1.5 Pro", "Mistral Large"],
+            "models": [
+                "GPT-4o",
+                "Claude 3.5",
+                "Llama 3",
+                "Gemini 1.5 Pro",
+                "Mistral Large",
+            ],
             "learned_from": "Attention Is All You Need (Vaswani et al., 2017)",
         },
     ),
-
     "llm_temperature_sampling": _learning(
         type_="PATTERN",
         category="AI_FUNDAMENTALS",
@@ -80,7 +84,6 @@ SYSTEM_LEARNINGS = {
         times_applied=88,
         context={"tip": "top-p and top-k are applied AFTER temperature scaling"},
     ),
-
     "prompt_engineering_system_prompt": _learning(
         type_="PATTERN",
         category="PROMPT_ENGINEERING",
@@ -102,9 +105,10 @@ SYSTEM_LEARNINGS = {
         severity="HIGH",
         confidence=0.96,
         times_applied=201,
-        context={"copilot_analogy": "Copilot's 'editor context' is effectively its system prompt"},
+        context={
+            "copilot_analogy": "Copilot's 'editor context' is effectively its system prompt"
+        },
     ),
-
     "prompt_engineering_few_shot": _learning(
         type_="PATTERN",
         category="PROMPT_ENGINEERING",
@@ -130,7 +134,6 @@ SYSTEM_LEARNINGS = {
             "warning": "Too many examples can crowd out the actual question in short context windows",
         },
     ),
-
     "prompt_engineering_chain_of_thought": _learning(
         type_="PATTERN",
         category="PROMPT_ENGINEERING",
@@ -156,7 +159,6 @@ SYSTEM_LEARNINGS = {
             "benchmark_gain": "CoT improves GSM8K accuracy from 17% to 78% on large models",
         },
     ),
-
     "rag_architecture": _learning(
         type_="PATTERN",
         category="RAG",
@@ -185,7 +187,6 @@ SYSTEM_LEARNINGS = {
             "tip": "Retrieved chunks should be < 50% of context window to leave room for the answer",
         },
     ),
-
     "rag_chunking_strategy": _learning(
         type_="PATTERN",
         category="RAG",
@@ -210,10 +211,13 @@ SYSTEM_LEARNINGS = {
         confidence=0.92,
         times_applied=54,
         context={
-            "tools": ["LangChain TextSplitter", "LlamaIndex NodeParser", "Unstructured.io"],
+            "tools": [
+                "LangChain TextSplitter",
+                "LlamaIndex NodeParser",
+                "Unstructured.io",
+            ],
         },
     ),
-
     "llm_fine_tuning_when": _learning(
         type_="PATTERN",
         category="AI_FINE_TUNING",
@@ -238,11 +242,15 @@ SYSTEM_LEARNINGS = {
         confidence=0.93,
         times_applied=41,
         context={
-            "frameworks": ["HuggingFace Transformers", "Axolotl", "LLaMA-Factory", "OpenAI fine-tuning API"],
+            "frameworks": [
+                "HuggingFace Transformers",
+                "Axolotl",
+                "LLaMA-Factory",
+                "OpenAI fine-tuning API",
+            ],
             "cost_estimate": "LoRA fine-tune of 7B model: ~$10 on 1 A100 for 1000 examples",
         },
     ),
-
     "llm_hallucination_mitigation": _learning(
         type_="ERROR",
         category="AI_SAFETY",
@@ -270,7 +278,6 @@ SYSTEM_LEARNINGS = {
             "tool": "Guardrails AI or NeMo Guardrails for automated hallucination detection",
         },
     ),
-
     "ai_agents_react_pattern": _learning(
         type_="PATTERN",
         category="AI_AGENTS",
@@ -297,7 +304,6 @@ SYSTEM_LEARNINGS = {
             "research": "ReAct: Synergizing Reasoning and Acting in Language Models (Yao et al., 2022)",
         },
     ),
-
     "llm_structured_output": _learning(
         type_="PATTERN",
         category="AI_FUNDAMENTALS",
@@ -320,9 +326,10 @@ SYSTEM_LEARNINGS = {
         severity="HIGH",
         confidence=0.95,
         times_applied=112,
-        context={"library": "Pydantic v2 + instructor library for clean LLM→schema binding"},
+        context={
+            "library": "Pydantic v2 + instructor library for clean LLM→schema binding"
+        },
     ),
-
     "embedding_models_selection": _learning(
         type_="PATTERN",
         category="RAG",
@@ -345,9 +352,10 @@ SYSTEM_LEARNINGS = {
         severity="HIGH",
         confidence=0.92,
         times_applied=63,
-        context={"benchmark": "MTEB leaderboard at huggingface.co/spaces/mteb/leaderboard"},
+        context={
+            "benchmark": "MTEB leaderboard at huggingface.co/spaces/mteb/leaderboard"
+        },
     ),
-
     "improvement_llm_cost_optimization": _learning(
         type_="IMPROVEMENT",
         category="AI_COST_MANAGEMENT",
@@ -371,7 +379,9 @@ SYSTEM_LEARNINGS = {
         severity="MEDIUM",
         confidence=0.90,
         times_applied=44,
-        context={"savings_estimate": "Caching + routing together reduce LLM costs 40-70%"},
+        context={
+            "savings_estimate": "Caching + routing together reduce LLM costs 40-70%"
+        },
     ),
 }
 
@@ -380,7 +390,6 @@ SYSTEM_LEARNINGS = {
 # ============================================================================
 
 AI_FUNDAMENTALS_DOCS = {
-
     "llm_overview": {
         "topic": "Large Language Models — Complete Overview",
         "category": "AI_FUNDAMENTALS",
@@ -399,12 +408,36 @@ AI_FUNDAMENTALS_DOCS = {
             "tokens": "Sub-word units; roughly 1 token ≈ 0.75 English words; GPT-4 costs per token",
         },
         "top_models_2024_2025": [
-            {"name": "GPT-4o", "provider": "OpenAI", "strengths": "Best all-rounder, vision, fast"},
-            {"name": "Claude 3.5 Sonnet", "provider": "Anthropic", "strengths": "Coding, long context, safety"},
-            {"name": "Gemini 1.5 Pro", "provider": "Google", "strengths": "1M token context, multimodal"},
-            {"name": "Llama 3 70B", "provider": "Meta (open)", "strengths": "Best open-weights, deployable locally"},
-            {"name": "Mistral Large", "provider": "Mistral", "strengths": "European, fast, multilingual"},
-            {"name": "DeepSeek V3", "provider": "DeepSeek", "strengths": "Coding, cost-efficient, open"},
+            {
+                "name": "GPT-4o",
+                "provider": "OpenAI",
+                "strengths": "Best all-rounder, vision, fast",
+            },
+            {
+                "name": "Claude 3.5 Sonnet",
+                "provider": "Anthropic",
+                "strengths": "Coding, long context, safety",
+            },
+            {
+                "name": "Gemini 1.5 Pro",
+                "provider": "Google",
+                "strengths": "1M token context, multimodal",
+            },
+            {
+                "name": "Llama 3 70B",
+                "provider": "Meta (open)",
+                "strengths": "Best open-weights, deployable locally",
+            },
+            {
+                "name": "Mistral Large",
+                "provider": "Mistral",
+                "strengths": "European, fast, multilingual",
+            },
+            {
+                "name": "DeepSeek V3",
+                "provider": "DeepSeek",
+                "strengths": "Coding, cost-efficient, open",
+            },
         ],
         "best_practices": [
             "Always test with your actual data — benchmarks don't predict your use case",
@@ -422,7 +455,6 @@ AI_FUNDAMENTALS_DOCS = {
         ],
         "confidence": 0.97,
     },
-
     "prompt_engineering_guide": {
         "topic": "Prompt Engineering — Complete Playbook",
         "category": "PROMPT_ENGINEERING",
@@ -454,7 +486,6 @@ AI_FUNDAMENTALS_DOCS = {
         ],
         "confidence": 0.96,
     },
-
     "rag_implementation_guide": {
         "topic": "RAG — Production Implementation Guide",
         "category": "RAG",
@@ -493,13 +524,12 @@ AI_FUNDAMENTALS_DOCS = {
             "}\n"
             "// Query\n"
             "var docs = vectorStore.similaritySearch(SearchRequest.query(userQuery).withTopK(5));\n"
-            "var context = docs.stream().map(Document::getContent).collect(joining(\"\\n\"));\n"
+            'var context = docs.stream().map(Document::getContent).collect(joining("\\n"));\n'
             "var prompt = new Prompt(systemPrompt + context + userQuery);\n"
             "return chatClient.call(prompt).getResult().getOutput().getContent();"
         ),
         "confidence": 0.95,
     },
-
     "fine_tuning_guide": {
         "topic": "LLM Fine-Tuning — When and How",
         "category": "AI_FINE_TUNING",
@@ -541,10 +571,14 @@ AI_FUNDAMENTALS_DOCS = {
             "format": "JSONL with {instruction, input, output} fields",
             "quality_over_quantity": "100 perfect examples beat 1000 mediocre ones",
         },
-        "tools": ["HuggingFace PEFT", "Axolotl", "LLaMA-Factory", "Unsloth (2x faster QLoRA)"],
+        "tools": [
+            "HuggingFace PEFT",
+            "Axolotl",
+            "LLaMA-Factory",
+            "Unsloth (2x faster QLoRA)",
+        ],
         "confidence": 0.91,
     },
-
     "ai_agents_guide": {
         "topic": "AI Agents — Architecture and Implementation",
         "category": "AI_AGENTS",
@@ -581,7 +615,6 @@ AI_FUNDAMENTALS_DOCS = {
         },
         "confidence": 0.90,
     },
-
     "llm_evaluation_guide": {
         "topic": "LLM Evaluation — Measuring AI Quality",
         "category": "AI_EVALUATION",
@@ -608,7 +641,13 @@ AI_FUNDAMENTALS_DOCS = {
             "Run eval suite on every: model version change, prompt change, RAG index update. "
             "Alert if accuracy drops >2% or hallucination rate increases."
         ),
-        "tools": ["Ragas", "DeepEval", "LangSmith Evaluators", "OpenAI Evals", "Weights&Biases"],
+        "tools": [
+            "Ragas",
+            "DeepEval",
+            "LangSmith Evaluators",
+            "OpenAI Evals",
+            "Weights&Biases",
+        ],
         "confidence": 0.93,
     },
 }

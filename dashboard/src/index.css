@@ -1,9 +1,9 @@
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;600&family=JetBrains+Mono:wght@400&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Outfit:wght@400;600&family=JetBrains+Mono:wght@400&display=swap");
 
-@import '../../shared-theme.css';
-@import './components.css';
-@import './admin.css';
-@import './visualizer.css';
+@import "../../shared-theme.css";
+@import "./components.css";
+@import "./admin.css";
+@import "./visualizer.css";
 
 :root {
   /* Fluid typography scale using clamp */
@@ -48,8 +48,8 @@
   --success: #10b981;
   --warning: #f59e0b;
   --error: #ef4444;
-  --font-main: 'Outfit', sans-serif;
-  --font-mono: 'JetBrains Mono', monospace;
+  --font-main: "Outfit", sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
 
   /* Border radius - fluid */
   --radius-sm: clamp(4px, 0.5vw, 8px);
@@ -71,21 +71,21 @@
 
 /* High visibility and contrast overrides */
 .text-high-vis {
-    color: #ffffff !important;
-    text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+  color: #ffffff !important;
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
 }
 
 .text-glow {
-    text-shadow: 0 0 15px currentColor;
+  text-shadow: 0 0 15px currentColor;
 }
 
 /* Hide scrollbars but keep functionality */
 .no-scrollbar::-webkit-scrollbar {
-    display: none;
+  display: none;
 }
 .no-scrollbar {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 
 * {
@@ -135,13 +135,17 @@ body {
 }
 
 .bg-grid::after {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background: radial-gradient(circle at center, transparent 0%, var(--cyber-black) 80%);
+  background: radial-gradient(
+    circle at center,
+    transparent 0%,
+    var(--cyber-black) 80%
+  );
 }
 
 /* Hex Grid Overlay */
@@ -172,8 +176,12 @@ body {
 }
 
 @keyframes scanline {
-  0% { transform: translateY(-100vh); }
-  100% { transform: translateY(100vh); }
+  0% {
+    transform: translateY(-100vh);
+  }
+  100% {
+    transform: translateY(100vh);
+  }
 }
 
 /* ============================================
@@ -232,7 +240,10 @@ body {
 /* Dashboard Grid - fully responsive */
 .dashboard-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(clamp(280px, 30vw, 340px), 1fr));
+  grid-template-columns: repeat(
+    auto-fit,
+    minmax(clamp(280px, 30vw, 340px), 1fr)
+  );
   gap: var(--space-4);
   width: 100%;
   margin: 0 auto;
@@ -241,7 +252,10 @@ body {
 /* Quick Actions Grid */
 .quick-actions {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(clamp(140px, 20vw, 180px), 1fr));
+  grid-template-columns: repeat(
+    auto-fit,
+    minmax(clamp(140px, 20vw, 180px), 1fr)
+  );
   gap: var(--space-2);
   width: 100%;
 }
@@ -302,7 +316,9 @@ body {
 .responsive-layout {
   margin-left: var(--sidebar-margin, 276px);
   width: calc(100% - var(--sidebar-margin, 276px));
-  transition: margin-left 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), width 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+  transition:
+    margin-left 0.3s cubic-bezier(0.2, 0.8, 0.2, 1),
+    width 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
   min-height: 100vh;
 }
 

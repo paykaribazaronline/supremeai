@@ -17,8 +17,11 @@ import random
 from enum import Enum
 
 # Configure logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+)
 logger = logging.getLogger(__name__)
+
 
 class ProviderStatus(Enum):
     ACTIVE = "active"
@@ -26,6 +29,7 @@ class ProviderStatus(Enum):
     RATE_LIMITED = "rate_limited"
     FAILED = "failed"
     MAINTENANCE = "maintenance"
+
 
 class TaskType(Enum):
     CODING = "coding"
@@ -35,9 +39,11 @@ class TaskType(Enum):
     RESEARCH = "research"
     CREATIVE = "creative"
 
+
 @dataclass
 class Account:
     """Represents a single API account"""
+
     id: str
     provider: str
     email: str
@@ -97,9 +103,11 @@ class Account:
         # Set reset time to 1 minute from now
         self.reset_time = datetime.now() + timedelta(minutes=1)
 
+
 @dataclass
 class Provider:
     """Represents an AI provider with multiple accounts"""
+
     name: str
     base_url: str
     models: List[str]
@@ -126,6 +134,7 @@ class Provider:
         """Add an account to this provider"""
         self.accounts.append(account)
 
+
 class MultiAccountRotator:
     """Main class for managing multi-account rotation across providers"""
 
@@ -139,7 +148,7 @@ class MultiAccountRotator:
         """Load configuration from file"""
         if os.path.exists(self.config_file):
             try:
-                with open(self.config_file, 'r') as f:
+                with open(self.config_file, "r") as f:
                     config = json.load(f)
                     self._load_providers_from_config(config)
             except Exception as e:
@@ -155,11 +164,8 @@ class MultiAccountRotator:
             "Admin must populate providers and routing via scripts/rotation_config.json. "
             "Creating a blank config file as a template."
         )
-        skeleton = {
-            "providers": [],
-            "task_preferences": {}
-        }
-        with open(self.config_file, 'w') as f:
+        skeleton = {"providers": [], "task_preferences": {}}
+        with open(self.config_file, "w") as f:
             json.dump(skeleton, f, indent=2)
 
     def _load_providers_from_config(self, config: dict):
@@ -204,10 +210,10 @@ class MultiAccountRotator:
         """Save current configuration to file"""
         config = {
             "providers": [self._provider_to_dict(p) for p in self.providers.values()],
-            "task_preferences": self.task_preferences
+            "task_preferences": self.task_preferences,
         }
 
-        with open(self.config_file, 'w') as f:
+        with open(self.config_file, "w") as f:
             json.dump(config, f, indent=2, default=str)
 
     def _provider_to_dict(self, provider: Provider) -> dict:
@@ -220,7 +226,7 @@ class MultiAccountRotator:
             "rate_limit_tpm": provider.rate_limit_tpm,
             "accounts": [self._account_to_dict(acc) for acc in provider.accounts],
             "status": provider.status.value,
-            "cost_per_token": provider.cost_per_token
+            "cost_per_token": provider.cost_per_token,
         }
 
     def _account_to_dict(self, account: Account) -> dict:
@@ -238,7 +244,7 @@ class MultiAccountRotator:
             "status": account.status.value,
             "quota_used": account.quota_used,
             "quota_limit": account.quota_limit,
-            "reset_time": account.reset_time
+            "reset_time": account.reset_time,
         }
 
     def add_account(self, provider_name: str, email: str, api_key: str):
@@ -251,7 +257,9 @@ class MultiAccountRotator:
             self._create_provider_if_missing(provider_name)
 
         if provider_name not in self.providers:
-            raise ValueError(f"Provider {provider_name} not found even after creation attempt")
+            raise ValueError(
+                f"Provider {provider_name} not found even after creation attempt"
+            )
 
         provider = self.providers[provider_name]
 
@@ -263,7 +271,7 @@ class MultiAccountRotator:
             provider=provider_name,
             email=email,
             api_key=api_key,
-            quota_limit=provider.rate_limit_tpm // 1000  # Estimate quota
+            quota_limit=provider.rate_limit_tpm // 1000,  # Estimate quota
         )
 
         provider.add_account(account)
@@ -279,7 +287,7 @@ class MultiAccountRotator:
                 rate_limit_rpm=60,
                 rate_limit_tpm=1000000,
                 status=ProviderStatus.ACTIVE,
-                cost_per_token=0.0002
+                cost_per_token=0.0002,
             )
         elif provider_name == "deepseek":
             provider = Provider(
@@ -289,7 +297,7 @@ class MultiAccountRotator:
                 rate_limit_rpm=100,
                 rate_limit_tpm=5000000,
                 status=ProviderStatus.ACTIVE,
-                cost_per_token=0.00005
+                cost_per_token=0.00005,
             )
         elif provider_name == "google_ai_studio":
             provider = Provider(
@@ -299,7 +307,7 @@ class MultiAccountRotator:
                 rate_limit_rpm=15,
                 rate_limit_tpm=1000000,
                 status=ProviderStatus.ACTIVE,
-                cost_per_token=0.0001
+                cost_per_token=0.0001,
             )
         else:
             # Generic provider
@@ -310,18 +318,20 @@ class MultiAccountRotator:
                 rate_limit_rpm=10,
                 rate_limit_tpm=100000,
                 status=ProviderStatus.ACTIVE,
-                cost_per_token=0.0001
+                cost_per_token=0.0001,
             )
 
         self.providers[provider_name] = provider
         logger.info(f"Created missing provider: {provider_name}")
 
-    def get_best_provider_for_task(self, task_type: TaskType, requirements: dict = None) -> Optional[Tuple[Provider, Account]]:
+    def get_best_provider_for_task(
+        self, task_type: TaskType, requirements: dict = None
+    ) -> Optional[Tuple[Provider, Account]]:
         """Get the best provider and account for a specific task"""
         logger.info(f"Looking for provider/account for task: {task_type}")
 
         # Convert task type to string key
-        if hasattr(task_type, 'value'):
+        if hasattr(task_type, "value"):
             task_key = task_type.value
         elif isinstance(task_type, str):
             task_key = task_type
@@ -335,14 +345,16 @@ class MultiAccountRotator:
             "REASONING": "reasoning",
             "DEBUGGING": "debugging",
             "RESEARCH": "research",
-            "CREATIVE": "creative"
+            "CREATIVE": "creative",
         }
 
         task_key = key_mapping.get(task_key.upper(), task_key.lower())
         logger.info(f"Mapped task key: {task_key}")
 
         if task_key not in self.task_preferences:
-            logger.warning(f"No task preferences found for {task_key}, using all providers")
+            logger.warning(
+                f"No task preferences found for {task_key}, using all providers"
+            )
             # Default to first available
             preferred_providers = list(self.providers.keys())
         else:
@@ -362,14 +374,20 @@ class MultiAccountRotator:
                 continue
 
             available_accounts = provider.get_available_accounts()
-            logger.info(f"Provider {provider_name} has {len(available_accounts)} available accounts")
+            logger.info(
+                f"Provider {provider_name} has {len(available_accounts)} available accounts"
+            )
 
             account = provider.get_best_account()
             if account:
-                logger.info(f"Selected account {account.id} for provider {provider_name}")
+                logger.info(
+                    f"Selected account {account.id} for provider {provider_name}"
+                )
                 # Check if meets requirements
                 if self._meets_requirements(provider, account, requirements):
-                    logger.info(f"Account meets requirements, returning {provider_name}/{account.id}")
+                    logger.info(
+                        f"Account meets requirements, returning {provider_name}/{account.id}"
+                    )
                     return provider, account
             else:
                 logger.warning(f"No best account found for provider {provider_name}")
@@ -377,7 +395,9 @@ class MultiAccountRotator:
         logger.error("No available provider/account found")
         return None
 
-    def _meets_requirements(self, provider: Provider, account: Account, requirements: dict) -> bool:
+    def _meets_requirements(
+        self, provider: Provider, account: Account, requirements: dict
+    ) -> bool:
         """Check if provider/account meets specific requirements"""
         # Check cost requirements
         if "max_cost_per_token" in requirements:
@@ -396,7 +416,9 @@ class MultiAccountRotator:
 
         return True
 
-    async def execute_task(self, task_type: TaskType, prompt: str, **kwargs) -> Optional[dict]:
+    async def execute_task(
+        self, task_type: TaskType, prompt: str, **kwargs
+    ) -> Optional[dict]:
         """Execute a task using the best available provider/account"""
         provider_account = self.get_best_provider_for_task(task_type, kwargs)
 
@@ -418,7 +440,7 @@ class MultiAccountRotator:
                 "provider": provider.name,
                 "account": account.id,
                 "model": kwargs.get("model", provider.models[0]),
-                "tokens_used": len(prompt.split()) * 1.5  # Rough estimate
+                "tokens_used": len(prompt.split()) * 1.5,  # Rough estimate
             }
 
         except Exception as e:
@@ -429,7 +451,9 @@ class MultiAccountRotator:
             # Try failover to another account/provider
             return await self._failover_execute(task_type, prompt, **kwargs)
 
-    async def _call_api(self, provider: Provider, account: Account, prompt: str, **kwargs) -> str:
+    async def _call_api(
+        self, provider: Provider, account: Account, prompt: str, **kwargs
+    ) -> str:
         """Make actual API call (placeholder implementation)"""
         # This would contain the actual API integration code
         # For now, return a mock response
@@ -446,7 +470,9 @@ class MultiAccountRotator:
         else:
             return f"Response from {provider.name}: {prompt[:50]}..."
 
-    async def _failover_execute(self, task_type: TaskType, prompt: str, **kwargs) -> Optional[dict]:
+    async def _failover_execute(
+        self, task_type: TaskType, prompt: str, **kwargs
+    ) -> Optional[dict]:
         """Execute task with failover logic"""
         # Try other providers/accounts
         tried_providers = set()
@@ -469,7 +495,7 @@ class MultiAccountRotator:
                     "provider": provider.name,
                     "account": account.id,
                     "failover": True,
-                    "model": kwargs.get("model", provider.models[0])
+                    "model": kwargs.get("model", provider.models[0]),
                 }
 
             except Exception as e:
@@ -482,44 +508,53 @@ class MultiAccountRotator:
     def get_system_status(self) -> dict:
         """Get comprehensive system status"""
         total_accounts = sum(len(p.accounts) for p in self.providers.values())
-        active_accounts = sum(len(p.get_available_accounts()) for p in self.providers.values())
+        active_accounts = sum(
+            len(p.get_available_accounts()) for p in self.providers.values()
+        )
 
         provider_status = {}
         for name, provider in self.providers.items():
             accounts = []
             for acc in provider.accounts:
-                accounts.append({
-                    "id": acc.id,
-                    "status": acc.status.value,
-                    "health_score": acc.get_health_score(),
-                    "quota_used": acc.quota_used,
-                    "quota_limit": acc.quota_limit,
-                    "total_requests": acc.total_requests
-                })
+                accounts.append(
+                    {
+                        "id": acc.id,
+                        "status": acc.status.value,
+                        "health_score": acc.get_health_score(),
+                        "quota_used": acc.quota_used,
+                        "quota_limit": acc.quota_limit,
+                        "total_requests": acc.total_requests,
+                    }
+                )
 
             provider_status[name] = {
                 "status": provider.status.value,
                 "total_accounts": len(provider.accounts),
                 "active_accounts": len(provider.get_available_accounts()),
-                "accounts": accounts
+                "accounts": accounts,
             }
 
         return {
             "total_providers": len(self.providers),
             "total_accounts": total_accounts,
             "active_accounts": active_accounts,
-            "system_health": (active_accounts / total_accounts * 100) if total_accounts > 0 else 0,
-            "providers": provider_status
+            "system_health": (
+                (active_accounts / total_accounts * 100) if total_accounts > 0 else 0
+            ),
+            "providers": provider_status,
         }
+
 
 # Global instance - only create when needed
 rotator = None
+
 
 def get_rotator():
     global rotator
     if rotator is None:
         rotator = MultiAccountRotator()
     return rotator
+
 
 async def main():
     """Example usage"""
@@ -532,13 +567,15 @@ async def main():
     tasks = [
         (TaskType.CODING, "Write a Python function to reverse a string"),
         (TaskType.CHAT, "Explain quantum computing in simple terms"),
-        (TaskType.REASONING, "Solve this logic puzzle: ...")
+        (TaskType.REASONING, "Solve this logic puzzle: ..."),
     ]
 
     for task_type, prompt in tasks:
         result = await rotator.execute_task(task_type, prompt)
         if result:
-            print(f"✅ {task_type.value}: {result['provider']} - {result['result'][:100]}...")
+            print(
+                f"✅ {task_type.value}: {result['provider']} - {result['result'][:100]}..."
+            )
         else:
             print(f"❌ {task_type.value}: Failed to execute")
 
@@ -546,6 +583,7 @@ async def main():
     status = rotator.get_system_status()
     print(f"\n📊 System Status: {status['system_health']:.1f}% healthy")
     print(f"Active accounts: {status['active_accounts']}/{status['total_accounts']}")
+
 
 if __name__ == "__main__":
     asyncio.run(main())

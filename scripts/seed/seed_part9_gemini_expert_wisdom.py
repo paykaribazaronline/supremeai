@@ -19,6 +19,7 @@ Run:
 
 import sys
 import os
+
 sys.path.insert(0, os.path.dirname(__file__))
 
 from seed_lib import _learning, run_part
@@ -28,7 +29,6 @@ from seed_lib import _learning, run_part
 # ============================================================================
 
 SYSTEM_LEARNINGS = {
-
     "gemini_surgical_diffs": _learning(
         type_="PATTERN",
         category="CODE_GENERATION",
@@ -42,17 +42,16 @@ SYSTEM_LEARNINGS = {
         solutions=[
             "Use Unified Diff format internally to plan changes before generating code.",
             "Preserve existing imports, variable names, and formatting styles.",
-            "If a class is larger than 200 lines, only output the modified method with '... existing code ...' placeholders."
+            "If a class is larger than 200 lines, only output the modified method with '... existing code ...' placeholders.",
         ],
         severity="HIGH",
         confidence=0.99,
         times_applied=540,
         context={
             "learned_from": "Gemini Code Assist Codebase Evolution Analysis",
-            "benefit": "Reduces PR review time by 80% and prevents regression bugs."
+            "benefit": "Reduces PR review time by 80% and prevents regression bugs.",
         },
     ),
-
     "gemini_defensive_generation": _learning(
         type_="PATTERN",
         category="CODE_GENERATION",
@@ -66,17 +65,16 @@ SYSTEM_LEARNINGS = {
             "Always validate method parameters at the beginning of a function.",
             "Never use empty catch blocks `catch (Exception e) {}`. Always log the error.",
             "When calling external APIs, automatically generate timeout and retry logic.",
-            "Use Optional (Java), Optional Chaining (TS/JS), or Option (Rust) by default."
+            "Use Optional (Java), Optional Chaining (TS/JS), or Option (Rust) by default.",
         ],
         severity="CRITICAL",
         confidence=0.98,
         times_applied=312,
         context={
             "learned_from": "Gemini Code Assist Enterprise Security Reviews",
-            "target": "Prevents NullPointerExceptions and silent system failures in production."
+            "target": "Prevents NullPointerExceptions and silent system failures in production.",
         },
     ),
-
     "gemini_context_gathering": _learning(
         type_="PATTERN",
         category="PROMPT_ENGINEERING",
@@ -89,7 +87,7 @@ SYSTEM_LEARNINGS = {
         solutions=[
             "Invoke the AutonomousQuestioningEngine immediately if stack/versions are missing.",
             "Ask the user to run diagnostic commands (e.g., `npm list`, `./gradlew dependencies`).",
-            "Search the workspace for `pom.xml` or `package.json` before generating framework-specific code."
+            "Search the workspace for `pom.xml` or `package.json` before generating framework-specific code.",
         ],
         severity="HIGH",
         confidence=0.97,
@@ -98,7 +96,6 @@ SYSTEM_LEARNINGS = {
             "learned_from": "Gemini Code Assist Conversation Analytics",
         },
     ),
-
     "gemini_test_driven_ai": _learning(
         type_="IMPROVEMENT",
         category="CODE_QUALITY",
@@ -111,7 +108,7 @@ SYSTEM_LEARNINGS = {
         solutions=[
             "Proactively include a `@Test` or `.test.ts` snippet with every logic generation.",
             "Ensure tests cover one happy path, one null/empty path, and one error path.",
-            "If the user provides a failing test, treat it as the ultimate source of truth."
+            "If the user provides a failing test, treat it as the ultimate source of truth.",
         ],
         severity="MEDIUM",
         confidence=0.95,
@@ -127,7 +124,6 @@ SYSTEM_LEARNINGS = {
 # ============================================================================
 
 AI_EXPERT_KNOWLEDGE_DOCS = {
-
     "expert_code_review_guide": {
         "topic": "Expert-Level Code Review Guidelines",
         "category": "CODE_REVIEW",
@@ -136,17 +132,16 @@ AI_EXPERT_KNOWLEDGE_DOCS = {
             "Security_First": "Look for SQL injection, hardcoded secrets, and missing authorization checks before anything else.",
             "Performance": "Identify N+1 query problems in ORMs, unbounded memory loading, and missing database indices.",
             "Readability": "Enforce clear naming conventions. Code is read 10x more than it is written.",
-            "Maintainability": "Reject highly coupled code. Ensure the Single Responsibility Principle is followed."
+            "Maintainability": "Reject highly coupled code. Ensure the Single Responsibility Principle is followed.",
         },
         "anti_patterns_to_flag": [
             "Swallowing exceptions without logging.",
             "God classes (classes longer than 1000 lines handling multiple domains).",
             "Magic numbers/strings scattered throughout business logic.",
-            "Using floating point numbers for financial calculations (always use BigDecimal)."
+            "Using floating point numbers for financial calculations (always use BigDecimal).",
         ],
         "confidence": 0.98,
     },
-    
     "multi_agent_handoff_protocol": {
         "topic": "Multi-Agent Handoff and State Synchronization",
         "category": "AI_AGENTS",
@@ -154,10 +149,10 @@ AI_EXPERT_KNOWLEDGE_DOCS = {
         "protocols": [
             "When an Architect Agent hands off to a Builder Agent, it must pass a strict JSON schema of the required inputs and outputs.",
             "Code Review agents must be given the original user requirements, not just the generated code, to verify business intent.",
-            "All agents must record their decisions in the `Audit & Logs` system to maintain a single source of truth."
+            "All agents must record their decisions in the `Audit & Logs` system to maintain a single source of truth.",
         ],
         "confidence": 0.96,
-    }
+    },
 }
 
 # ============================================================================

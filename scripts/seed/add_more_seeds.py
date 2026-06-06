@@ -1,6 +1,10 @@
 import re
 
-with open("src/main/java/org/example/learning/StrategicKnowledgeLearningInitializer.java", "r", encoding="utf-8") as f:
+with open(
+    "src/main/java/org/example/learning/StrategicKnowledgeLearningInitializer.java",
+    "r",
+    encoding="utf-8",
+) as f:
     content = f.read()
 
 additional_seeds = """
@@ -148,10 +152,18 @@ additional_seeds = """
 idx = content.find("        seedAdvancedResearchFindings();")
 if idx != -1:
     insert_pos = idx + len("        seedAdvancedResearchFindings();")
-    content = content[:insert_pos] + "\n        seedExtendedEngineeringPatterns();" + content[insert_pos:]
-    
+    content = (
+        content[:insert_pos]
+        + "\n        seedExtendedEngineeringPatterns();"
+        + content[insert_pos:]
+    )
+
     class_end = content.rfind("}")
     content = content[:class_end] + additional_seeds + "\n}"
-    
-    with open("src/main/java/org/example/learning/StrategicKnowledgeLearningInitializer.java", "w", encoding="utf-8") as f:
+
+    with open(
+        "src/main/java/org/example/learning/StrategicKnowledgeLearningInitializer.java",
+        "w",
+        encoding="utf-8",
+    ) as f:
         f.write(content)

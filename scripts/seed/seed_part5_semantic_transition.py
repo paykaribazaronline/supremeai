@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Part 5 — Semantic Transition Knowledge
-Seeds SupremeAI Firebase with insights gained during the transition from 
+Seeds SupremeAI Firebase with insights gained during the transition from
 heuristic logic to semantic AI-driven analysis.
 
 Topics:
@@ -12,12 +12,12 @@ Topics:
 
 import sys
 import os
+
 sys.path.insert(0, os.path.dirname(__file__))
 
 from seed_lib import _learning, run_part
 
 SYSTEM_LEARNINGS = {
-
     "semantic_vs_heuristic_analysis": _learning(
         type_="PATTERN",
         category="AI_ARCHITECTURE",
@@ -31,14 +31,13 @@ SYSTEM_LEARNINGS = {
         solutions=[
             "Replace List.of(keywords) with LLM prompts that ask for 'reasoning' and 'score'",
             "Always return structured JSON from analysis prompts for easy system parsing",
-            "Include 'brilliance' and 'monetization' as semantic metrics in IdeaDetectionService"
+            "Include 'brilliance' and 'monetization' as semantic metrics in IdeaDetectionService",
         ],
         severity="HIGH",
         confidence=0.98,
         times_applied=5,
-        context={"learned_from": "IdeaDetectionService Refactor 2026-05"}
+        context={"learned_from": "IdeaDetectionService Refactor 2026-05"},
     ),
-
     "query_humanization_optimization": _learning(
         type_="IMPROVEMENT",
         category="NLP",
@@ -51,14 +50,13 @@ SYSTEM_LEARNINGS = {
         solutions=[
             "Use a high-quality model (Claude 3.5/GPT-4o) for the humanization step",
             "Target 5-10 sentences for expanded prompts to provide maximum context",
-            "Ensure abbreviations (auth, db, ui) are expanded to full technical terms"
+            "Ensure abbreviations (auth, db, ui) are expanded to full technical terms",
         ],
         severity="MEDIUM",
         confidence=0.95,
         times_applied=12,
-        context={"service": "NaturalLanguageQueryService"}
+        context={"service": "NaturalLanguageQueryService"},
     ),
-
     "simulator_lifecycle_safety": _learning(
         type_="PATTERN",
         category="INFRASTRUCTURE",
@@ -72,17 +70,17 @@ SYSTEM_LEARNINGS = {
         solutions=[
             "Call dataLifecycleService.register() immediately upon session start",
             "Set default TTL for previews to 24 hours unless explicitly extended",
-            "Implement a heartbeat mechanism to differentiate between idle and abandoned sessions"
+            "Implement a heartbeat mechanism to differentiate between idle and abandoned sessions",
         ],
         severity="CRITICAL",
         confidence=0.97,
         times_applied=2,
-        context={"plan": "Plan 17 & Plan 22 Integration"}
-    )
+        context={"plan": "Plan 17 & Plan 22 Integration"},
+    ),
 }
 
 if __name__ == "__main__":
     run_part(
         part_name="Part 5 — Semantic Transition",
-        collections={"system_learning": SYSTEM_LEARNINGS}
+        collections={"system_learning": SYSTEM_LEARNINGS},
     )

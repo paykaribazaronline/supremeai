@@ -30,6 +30,7 @@ BATCH_DELAY_S: float = float(os.getenv("SEED_BATCH_DELAY", "1.0"))
 
 # ── Document builder ──────────────────────────────────────────────────────────
 
+
 def _learning(
     type_: str,
     category: str,
@@ -46,14 +47,14 @@ def _learning(
     """Return a dict that matches the SystemLearning.java Firestore model exactly."""
     return {
         "id": str(uuid.uuid4()),
-        "type": type_,            # ERROR | PATTERN | IMPROVEMENT | REQUIREMENT
+        "type": type_,  # ERROR | PATTERN | IMPROVEMENT | REQUIREMENT
         "category": category,
         "content": content,
         "errorCount": error_count,
         "solutions": solutions,
         "context": context or {},
         "timestamp": int(time.time() * 1000),
-        "severity": severity,     # CRITICAL | HIGH | MEDIUM | LOW
+        "severity": severity,  # CRITICAL | HIGH | MEDIUM | LOW
         "resolved": resolved,
         "resolution": resolution or (solutions[0] if solutions else ""),
         "timesApplied": times_applied,
@@ -62,6 +63,7 @@ def _learning(
 
 
 # ── Firebase helpers ──────────────────────────────────────────────────────────
+
 
 def init_firestore(firebase_admin, credentials, firestore):
     """Initialize Firebase app (cert file first, then ADC fallback)."""
@@ -128,6 +130,7 @@ def batch_set(
 
 # ── Standard part runner ──────────────────────────────────────────────────────
 
+
 def run_part(
     part_name: str,
     collections: Dict[str, Dict[str, Any]],
@@ -190,7 +193,9 @@ def run_part(
         for col_name, count in results.items():
             print(f"   • {col_name}: {count} documents")
         print(f"\n   TOTAL: {total} documents seeded")
-        print(f"\n🔗  https://console.firebase.google.com/project/{FIREBASE_PROJECT_ID}/firestore")
+        print(
+            f"\n🔗  https://console.firebase.google.com/project/{FIREBASE_PROJECT_ID}/firestore"
+        )
         sys.exit(0)
 
     except Exception as exc:

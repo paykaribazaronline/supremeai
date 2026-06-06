@@ -10,6 +10,7 @@ Seeds SupremeAI Firebase with unique insights about:
 
 import sys
 import os
+
 sys.path.insert(0, os.path.dirname(__file__))
 
 from seed_lib import _learning, run_part
@@ -19,7 +20,6 @@ from seed_lib import _learning, run_part
 # ============================================================================
 
 SYSTEM_LEARNINGS = {
-
     "ai_context_management": _learning(
         type_="PATTERN",
         category="AI_ENGINEERING",
@@ -34,14 +34,13 @@ SYSTEM_LEARNINGS = {
             "Use grep/glob to identify dependencies before reading file content",
             "Prune large files by omitting irrelevant method implementations",
             "Always include the entry point (e.g., Controller or Main) to provide architectural context",
-            "Maintain a 'knowledge graph' of the project structure in the agent's memory"
+            "Maintain a 'knowledge graph' of the project structure in the agent's memory",
         ],
         severity="HIGH",
         confidence=0.98,
         times_applied=500,
-        context={"tool_preference": "Grep + Read over recursive LS for large repos"}
+        context={"tool_preference": "Grep + Read over recursive LS for large repos"},
     ),
-
     "autonomous_error_recovery": _learning(
         type_="PATTERN",
         category="AGENT_BEHAVIOR",
@@ -55,14 +54,15 @@ SYSTEM_LEARNINGS = {
             "Implement a 'retry-with-analysis' loop where failure triggers a search for WHY it failed",
             "Use 'diagnostics' tools (like linter or type-checker) to get structured feedback on failures",
             "If stuck, the agent should zoom out and re-evaluate the entire plan",
-            "Maintain a 'failed_strategies' list in the session state to prevent loops"
+            "Maintain a 'failed_strategies' list in the session state to prevent loops",
         ],
         severity="CRITICAL",
         confidence=0.95,
         times_applied=250,
-        context={"anti_pattern": "Infinite retry loops with identical or slightly modified commands"}
+        context={
+            "anti_pattern": "Infinite retry loops with identical or slightly modified commands"
+        },
     ),
-
     "react_spring_integration_consistency": _learning(
         type_="PATTERN",
         category="FULL_STACK",
@@ -76,14 +76,13 @@ SYSTEM_LEARNINGS = {
             "Run 'springdoc-openapi' to generate latest API spec on every backend build",
             "Use 'openapi-generator-cli' to sync frontend interfaces automatically",
             "Prefer 'record' types in Java 17+ for immutable DTOs",
-            "Implement end-to-end contract tests using tools like Pact"
+            "Implement end-to-end contract tests using tools like Pact",
         ],
         severity="MEDIUM",
         confidence=0.92,
         times_applied=180,
-        context={"tooling": "SpringDoc + OpenAPI Generator"}
+        context={"tooling": "SpringDoc + OpenAPI Generator"},
     ),
-
     "incremental_refactoring_safety": _learning(
         type_="PATTERN",
         category="ENGINEERING_PRACTICE",
@@ -97,13 +96,13 @@ SYSTEM_LEARNINGS = {
             "Use TodoWrite to track the refactoring progress at a granular level",
             "Always run 'npm run lint' or './gradlew check' after each minor edit",
             "Create a temporary 'back-up' of critical files before applying complex regex-based edits",
-            "Favour small Edit tool calls over large Write tool calls for existing code"
+            "Favour small Edit tool calls over large Write tool calls for existing code",
         ],
         severity="HIGH",
         confidence=0.96,
         times_applied=320,
-        context={"motto": "Small steps, frequent verification"}
-    )
+        context={"motto": "Small steps, frequent verification"},
+    ),
 }
 
 # ============================================================================
@@ -121,7 +120,7 @@ ZENCODER_KNOWLEDGE_DOCS = {
             "until the tests pass and the linter is silent. We prioritize technical truth over "
             "pleasing the user with fast but broken code."
         ),
-        "last_updated": "2026-04-24"
+        "last_updated": "2026-04-24",
     }
 }
 
@@ -131,6 +130,6 @@ if __name__ == "__main__":
         part_name="Zencoder Specialized Knowledge",
         collections={
             "system_learning": SYSTEM_LEARNINGS,
-            "zencoder_knowledge": ZENCODER_KNOWLEDGE_DOCS
-        }
+            "zencoder_knowledge": ZENCODER_KNOWLEDGE_DOCS,
+        },
     )

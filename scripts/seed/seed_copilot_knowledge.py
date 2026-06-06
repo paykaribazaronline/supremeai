@@ -37,19 +37,30 @@ CREDENTIALS_FILE = os.getenv("FIREBASE_CREDENTIALS_FILE")
 #             confidenceScore
 # ============================================================================
 
-def _learning(type_, category, content, solutions, severity,
-               confidence, resolved=True, resolution=None,
-               error_count=0, times_applied=0, context=None):
+
+def _learning(
+    type_,
+    category,
+    content,
+    solutions,
+    severity,
+    confidence,
+    resolved=True,
+    resolution=None,
+    error_count=0,
+    times_applied=0,
+    context=None,
+):
     return {
         "id": str(uuid.uuid4()),
-        "type": type_,           # ERROR | PATTERN | REQUIREMENT | IMPROVEMENT
+        "type": type_,  # ERROR | PATTERN | REQUIREMENT | IMPROVEMENT
         "category": category,
         "content": content,
         "errorCount": error_count,
         "solutions": solutions,
         "context": context or {},
         "timestamp": int(time.time() * 1000),
-        "severity": severity,    # CRITICAL | HIGH | MEDIUM | LOW
+        "severity": severity,  # CRITICAL | HIGH | MEDIUM | LOW
         "resolved": resolved,
         "resolution": resolution or (solutions[0] if solutions else ""),
         "timesApplied": times_applied,
@@ -58,9 +69,7 @@ def _learning(type_, category, content, solutions, severity,
 
 
 SYSTEM_LEARNINGS = {
-
     # ── Copilot project-creation patterns ──────────────────────────────────
-
     "pattern_copilot_project_init": _learning(
         type_="PATTERN",
         category="PROJECT_CREATION",
@@ -81,10 +90,15 @@ SYSTEM_LEARNINGS = {
         times_applied=42,
         context={
             "learned_from": "GitHub Copilot Chat, GitHub Next research",
-            "applies_to": ["React", "Spring Boot", "Flutter", "Node.js", "Python FastAPI"],
+            "applies_to": [
+                "React",
+                "Spring Boot",
+                "Flutter",
+                "Node.js",
+                "Python FastAPI",
+            ],
         },
     ),
-
     "pattern_copilot_file_structure": _learning(
         type_="PATTERN",
         category="PROJECT_CREATION",
@@ -109,7 +123,6 @@ SYSTEM_LEARNINGS = {
             "pitfall": "Renaming Copilot's suggested directories breaks auto-import resolution",
         },
     ),
-
     "pattern_copilot_dependency_management": _learning(
         type_="PATTERN",
         category="PROJECT_CREATION",
@@ -133,7 +146,6 @@ SYSTEM_LEARNINGS = {
             "warning": "Copilot may suggest slightly outdated versions — always verify on Maven Central",
         },
     ),
-
     "pattern_copilot_test_generation": _learning(
         type_="PATTERN",
         category="PROJECT_CREATION",
@@ -157,7 +169,6 @@ SYSTEM_LEARNINGS = {
             "coverage_achieved": "78–92% branch coverage in practice",
         },
     ),
-
     "pattern_copilot_cicd_generation": _learning(
         type_="PATTERN",
         category="PROJECT_CREATION",
@@ -181,9 +192,7 @@ SYSTEM_LEARNINGS = {
             "output": ".github/workflows/ci.yml with build, test, docker-build, deploy jobs",
         },
     ),
-
     # ── Error detection patterns ────────────────────────────────────────────
-
     "pattern_error_detection_compilation": _learning(
         type_="PATTERN",
         category="ERROR_DETECTION",
@@ -204,11 +213,14 @@ SYSTEM_LEARNINGS = {
         confidence=0.97,
         times_applied=120,
         context={
-            "error_categories": ["cannot find symbol", "incompatible types", "package does not exist"],
+            "error_categories": [
+                "cannot find symbol",
+                "incompatible types",
+                "package does not exist",
+            ],
             "tools": ["VS Code Problems panel", "Copilot Chat error analysis"],
         },
     ),
-
     "pattern_error_detection_runtime": _learning(
         type_="PATTERN",
         category="ERROR_DETECTION",
@@ -229,11 +241,15 @@ SYSTEM_LEARNINGS = {
         confidence=0.95,
         times_applied=87,
         context={
-            "error_categories": ["NullPointerException", "ClassCastException", "StackOverflowError", "OutOfMemoryError"],
+            "error_categories": [
+                "NullPointerException",
+                "ClassCastException",
+                "StackOverflowError",
+                "OutOfMemoryError",
+            ],
             "tip": "First 'at org.example.' line in stack trace is always the real bug location",
         },
     ),
-
     "pattern_error_detection_build_tools": _learning(
         type_="PATTERN",
         category="ERROR_DETECTION",
@@ -261,7 +277,6 @@ SYSTEM_LEARNINGS = {
             "error_signal_flutter": "Because X requires Y, Because Y requires Z",
         },
     ),
-
     "pattern_error_detection_security": _learning(
         type_="PATTERN",
         category="ERROR_DETECTION",
@@ -282,13 +297,16 @@ SYSTEM_LEARNINGS = {
         confidence=0.92,
         times_applied=31,
         context={
-            "security_checks": ["hardcoded secrets", "SQL injection", "missing CSRF", "insecure random"],
+            "security_checks": [
+                "hardcoded secrets",
+                "SQL injection",
+                "missing CSRF",
+                "insecure random",
+            ],
             "tool": "GitHub Advanced Security Code Scanning + Copilot Autofix",
         },
     ),
-
     # ── Error solving / fix patterns ────────────────────────────────────────
-
     "pattern_fix_null_pointer": _learning(
         type_="ERROR",
         category="RUNTIME",
@@ -305,9 +323,10 @@ SYSTEM_LEARNINGS = {
         times_applied=19,
         resolved=True,
         resolution="Add @Service annotation and ensure package is under root scan path",
-        context={"common_location": "Service calling a Repository that was not injected"},
+        context={
+            "common_location": "Service calling a Repository that was not injected"
+        },
     ),
-
     "pattern_fix_missing_import": _learning(
         type_="ERROR",
         category="COMPILATION",
@@ -328,7 +347,6 @@ SYSTEM_LEARNINGS = {
             "copilot_fix": "Copilot Chat: 'update all javax imports to jakarta for Spring Boot 3'",
         },
     ),
-
     "pattern_fix_react_hook_violation": _learning(
         type_="ERROR",
         category="RUNTIME",
@@ -349,7 +367,6 @@ SYSTEM_LEARNINGS = {
             "copilot_fix": "Copilot Chat: 'fix React hooks rules violation in this component'",
         },
     ),
-
     "pattern_fix_cors_error": _learning(
         type_="ERROR",
         category="CONFIG",
@@ -371,7 +388,6 @@ SYSTEM_LEARNINGS = {
             "copilot_fix": "Copilot Chat: 'add CORS configuration for React frontend at localhost:3000'",
         },
     ),
-
     "pattern_fix_jwt_invalid_signature": _learning(
         type_="ERROR",
         category="SECURITY",
@@ -393,7 +409,6 @@ SYSTEM_LEARNINGS = {
             "copilot_fix": "Copilot Chat: 'generate JWT refresh token endpoint for Spring Security'",
         },
     ),
-
     "pattern_fix_flutter_dispose": _learning(
         type_="ERROR",
         category="RUNTIME",
@@ -410,9 +425,10 @@ SYSTEM_LEARNINGS = {
         times_applied=9,
         resolved=True,
         resolution="Add mounted check: 'if (!mounted) return;' before setState in all async callbacks",
-        context={"copilot_fix": "Copilot Chat: 'add mounted checks to all async setState calls in this widget'"},
+        context={
+            "copilot_fix": "Copilot Chat: 'add mounted checks to all async setState calls in this widget'"
+        },
     ),
-
     "pattern_fix_gradle_cache_corrupt": _learning(
         type_="ERROR",
         category="BUILD",
@@ -429,9 +445,10 @@ SYSTEM_LEARNINGS = {
         times_applied=7,
         resolved=True,
         resolution="Clear ~/.gradle/caches and rerun build with --refresh-dependencies flag",
-        context={"copilot_fix": "Copilot Chat: 'why is my Gradle build failing with checksum mismatch?'"},
+        context={
+            "copilot_fix": "Copilot Chat: 'why is my Gradle build failing with checksum mismatch?'"
+        },
     ),
-
     "pattern_fix_firebase_credentials": _learning(
         type_="ERROR",
         category="CONFIG",
@@ -453,7 +470,6 @@ SYSTEM_LEARNINGS = {
             "copilot_fix": "Copilot Chat: 'set up Firebase Admin SDK credentials for Cloud Run'",
         },
     ),
-
     "pattern_fix_docker_port_conflict": _learning(
         type_="ERROR",
         category="DEPLOYMENT",
@@ -470,9 +486,10 @@ SYSTEM_LEARNINGS = {
         times_applied=21,
         resolved=True,
         resolution="Kill process occupying port or change host port mapping in docker run / docker-compose.yml",
-        context={"copilot_fix": "Copilot Chat: 'docker port conflict on 8080 — how to fix'"},
+        context={
+            "copilot_fix": "Copilot Chat: 'docker port conflict on 8080 — how to fix'"
+        },
     ),
-
     "pattern_fix_spring_boot_circular_dependency": _learning(
         type_="ERROR",
         category="COMPILATION",
@@ -489,9 +506,10 @@ SYSTEM_LEARNINGS = {
         times_applied=7,
         resolved=True,
         resolution="Extract shared logic into a third @Service bean; both original beans depend on it",
-        context={"copilot_fix": "Copilot Chat: 'resolve circular dependency between ServiceA and ServiceB'"},
+        context={
+            "copilot_fix": "Copilot Chat: 'resolve circular dependency between ServiceA and ServiceB'"
+        },
     ),
-
     "pattern_fix_typescript_strict_null": _learning(
         type_="ERROR",
         category="COMPILATION",
@@ -508,9 +526,10 @@ SYSTEM_LEARNINGS = {
         times_applied=29,
         resolved=True,
         resolution="Replace property access with optional chaining (?.) and nullish coalescing (??)",
-        context={"copilot_fix": "Copilot Chat: 'fix all strict null check errors in this TypeScript file'"},
+        context={
+            "copilot_fix": "Copilot Chat: 'fix all strict null check errors in this TypeScript file'"
+        },
     ),
-
     "pattern_fix_kubernetes_oom_killed": _learning(
         type_="ERROR",
         category="DEPLOYMENT",
@@ -532,9 +551,7 @@ SYSTEM_LEARNINGS = {
             "monitoring": "Set up Prometheus JVM metrics to track heap before it OOMKills",
         },
     ),
-
     # ── Improvement learnings ────────────────────────────────────────────────
-
     "improvement_copilot_prompt_quality": _learning(
         type_="IMPROVEMENT",
         category="COPILOT_USAGE",
@@ -559,7 +576,6 @@ SYSTEM_LEARNINGS = {
             "learned_from": "Copilot productivity research and internal usage metrics",
         },
     ),
-
     "improvement_ai_review_before_commit": _learning(
         type_="IMPROVEMENT",
         category="COPILOT_USAGE",
@@ -590,7 +606,6 @@ SYSTEM_LEARNINGS = {
 # ============================================================================
 
 EXTRA_PATTERNS = {
-
     "retry_with_exponential_backoff": {
         "category": "Resilience",
         "framework": "Java / Spring",
@@ -606,7 +621,6 @@ EXTRA_PATTERNS = {
         "cons": ["Can mask real issues if retry count too high"],
         "copilot_prompt": "add @Retryable with exponential backoff to this service method",
     },
-
     "circuit_breaker_resilience4j": {
         "category": "Resilience",
         "framework": "Spring Boot / Resilience4j",
@@ -622,7 +636,6 @@ EXTRA_PATTERNS = {
         "cons": ["Fallback must be meaningful, not just null"],
         "copilot_prompt": "wrap this external API call with a Resilience4j CircuitBreaker and fallback",
     },
-
     "repository_pattern_spring_data": {
         "category": "Data Access",
         "framework": "Spring Data JPA",
@@ -638,7 +651,6 @@ EXTRA_PATTERNS = {
         "cons": ["N+1 query risk with lazy loading — use @EntityGraph or join fetch"],
         "copilot_prompt": "create a JpaRepository for <Entity> with pagination and a custom findByEmail query",
     },
-
     "event_driven_spring_application_events": {
         "category": "Architecture",
         "framework": "Spring Boot",
@@ -651,11 +663,14 @@ EXTRA_PATTERNS = {
         "when_to_use": "Breaking circular dependencies; sending emails/notifications after business operations",
         "confidence": 0.93,
         "times_used": 22,
-        "pros": ["Decouples services", "No circular dependency", "Transactional safety"],
+        "pros": [
+            "Decouples services",
+            "No circular dependency",
+            "Transactional safety",
+        ],
         "cons": ["Harder to trace flow; use structured logging to track events"],
         "copilot_prompt": "refactor UserService to publish a UserCreatedEvent instead of calling EmailService directly",
     },
-
     "global_exception_handler_spring": {
         "category": "Error Management",
         "framework": "Spring Boot",
@@ -671,7 +686,6 @@ EXTRA_PATTERNS = {
         "cons": ["Must explicitly handle new exception types"],
         "copilot_prompt": "create a @RestControllerAdvice that handles EntityNotFoundException, ValidationException, and generic Exception",
     },
-
     "feature_flag_pattern": {
         "category": "Deployment",
         "framework": "Any",
@@ -687,7 +701,6 @@ EXTRA_PATTERNS = {
         "cons": ["Flag debt accumulates — must clean up old flags"],
         "copilot_prompt": "add a feature flag check using Firebase Remote Config before executing this new logic",
     },
-
     "structured_logging_pattern": {
         "category": "Observability",
         "framework": "Spring Boot / Logback",
@@ -700,11 +713,14 @@ EXTRA_PATTERNS = {
         "when_to_use": "All production Spring Boot services — required for log aggregation in Cloud Logging/ELK",
         "confidence": 0.96,
         "times_used": 73,
-        "pros": ["Machine-parseable", "Searchable in Cloud Logging", "Correlatable with trace IDs"],
+        "pros": [
+            "Machine-parseable",
+            "Searchable in Cloud Logging",
+            "Correlatable with trace IDs",
+        ],
         "cons": ["Slightly more verbose log setup"],
         "copilot_prompt": "add structured JSON logging with MDC request-id tracking to this Spring Boot service",
     },
-
     "database_migration_flyway": {
         "category": "Database",
         "framework": "Spring Boot / Flyway",
@@ -717,7 +733,11 @@ EXTRA_PATTERNS = {
         "when_to_use": "Every project with a relational database — ensures schema stays in sync across environments",
         "confidence": 0.97,
         "times_used": 41,
-        "pros": ["Versioned schema history", "Repeatable across environments", "Works with CI/CD"],
+        "pros": [
+            "Versioned schema history",
+            "Repeatable across environments",
+            "Works with CI/CD",
+        ],
         "cons": ["Cannot easily rollback destructive migrations"],
         "copilot_prompt": "create a Flyway V2 migration script to add an 'email_verified' column to the users table",
     },
@@ -728,7 +748,6 @@ EXTRA_PATTERNS = {
 # ============================================================================
 
 EXTRA_ERROR_FIXES = {
-
     "null_pointer_spring_bean": {
         "error_message": "NullPointerException: Cannot invoke method on null — Spring @Autowired field is null",
         "cause": "Missing @Service/@Component annotation or bean outside component-scan package",
@@ -738,7 +757,6 @@ EXTRA_ERROR_FIXES = {
         "ai_that_fixed": "claude",
         "copilot_chat_prompt": "why is my @Autowired field null in Spring Boot?",
     },
-
     "javax_to_jakarta_migration": {
         "error_message": "package javax.servlet does not exist / cannot find symbol @Entity",
         "cause": "Spring Boot 3 uses jakarta.* namespace; old code has javax.* imports",
@@ -748,7 +766,6 @@ EXTRA_ERROR_FIXES = {
         "ai_that_fixed": "claude",
         "copilot_chat_prompt": "migrate all javax imports to jakarta for Spring Boot 3 upgrade",
     },
-
     "react_infinite_render_loop": {
         "error_message": "Maximum update depth exceeded / Component re-renders infinitely",
         "cause": "useEffect dependency array contains object/array reference that changes each render",
@@ -758,7 +775,6 @@ EXTRA_ERROR_FIXES = {
         "ai_that_fixed": "gpt4",
         "copilot_chat_prompt": "fix React infinite re-render caused by useEffect dependency array",
     },
-
     "spring_security_403_forbidden": {
         "error_message": "403 Forbidden on all API endpoints after adding Spring Security",
         "cause": "Spring Security blocks all requests by default until you configure permitAll() rules",
@@ -768,7 +784,6 @@ EXTRA_ERROR_FIXES = {
         "ai_that_fixed": "claude",
         "copilot_chat_prompt": "configure Spring Security to allow unauthenticated access to public endpoints",
     },
-
     "docker_build_context_large": {
         "error_message": "Docker build sending extremely large build context / COPY fails with file not found",
         "cause": "Missing .dockerignore file; node_modules or .gradle is included in build context",
@@ -778,7 +793,6 @@ EXTRA_ERROR_FIXES = {
         "ai_that_fixed": "gpt4",
         "copilot_chat_prompt": "create a .dockerignore file for a Spring Boot + React monorepo",
     },
-
     "cloud_run_cold_start_timeout": {
         "error_message": "Cloud Run request timeout on cold start / container startup exceeds 240s limit",
         "cause": "Spring Boot slow startup due to component scanning or unneeded auto-configurations",
@@ -788,7 +802,6 @@ EXTRA_ERROR_FIXES = {
         "ai_that_fixed": "google",
         "copilot_chat_prompt": "optimize Spring Boot startup time for Cloud Run cold start",
     },
-
     "flutter_pub_semver_conflict": {
         "error_message": "Because A depends on B >=X and C depends on B >=Y which is incompatible with B >=X",
         "cause": "Two Flutter packages require incompatible versions of a shared transitive dependency",
@@ -798,7 +811,6 @@ EXTRA_ERROR_FIXES = {
         "ai_that_fixed": "claude",
         "copilot_chat_prompt": "resolve Flutter pub version conflict using dependency_overrides",
     },
-
     "postgres_too_many_connections": {
         "error_message": "FATAL: remaining connection slots are reserved for replication superuser connections",
         "cause": "Application connection pool size exceeds Postgres max_connections limit",
@@ -808,7 +820,6 @@ EXTRA_ERROR_FIXES = {
         "ai_that_fixed": "claude",
         "copilot_chat_prompt": "fix PostgreSQL too many connections with HikariCP and PgBouncer",
     },
-
     "github_actions_permission_denied": {
         "error_message": "Permission denied to github-actions[bot] / refusing to allow a GitHub App to create or update workflow",
         "cause": "Workflow lacks write permissions to repository contents or packages",
@@ -818,7 +829,6 @@ EXTRA_ERROR_FIXES = {
         "ai_that_fixed": "gpt4",
         "copilot_chat_prompt": "add correct permissions to GitHub Actions workflow for pushing Docker image to GHCR",
     },
-
     "git_merge_conflict_binary": {
         "error_message": "CONFLICT (binary): Merge conflict in <file> — binary files differ",
         "cause": "Two branches modified a binary file (image, compiled artifact, keystore) independently",
@@ -835,7 +845,6 @@ EXTRA_ERROR_FIXES = {
 # ============================================================================
 
 COPILOT_WORKFLOW = {
-
     "step_01_project_requirements": {
         "step": 1,
         "title": "Capture requirements in Copilot Chat",
@@ -852,7 +861,6 @@ COPILOT_WORKFLOW = {
         "time_estimate_minutes": 5,
         "confidence": 0.95,
     },
-
     "step_02_scaffold_project": {
         "step": 2,
         "title": "Scaffold project structure with Copilot",
@@ -863,12 +871,16 @@ COPILOT_WORKFLOW = {
             "Run the build immediately to verify the scaffold compiles."
         ),
         "inputs": ["Architecture plan from step 1"],
-        "outputs": ["src/ folder structure", "build.gradle / pom.xml / package.json", "README.md", ".gitignore"],
+        "outputs": [
+            "src/ folder structure",
+            "build.gradle / pom.xml / package.json",
+            "README.md",
+            ".gitignore",
+        ],
         "copilot_prompt_template": "scaffold a {stack} project with this structure: {structure}. Include build file, README, and .gitignore.",
         "time_estimate_minutes": 10,
         "confidence": 0.93,
     },
-
     "step_03_generate_data_layer": {
         "step": 3,
         "title": "Generate data models and repositories",
@@ -884,7 +896,6 @@ COPILOT_WORKFLOW = {
         "time_estimate_minutes": 15,
         "confidence": 0.94,
     },
-
     "step_04_generate_business_logic": {
         "step": 4,
         "title": "Generate service layer (business logic)",
@@ -900,7 +911,6 @@ COPILOT_WORKFLOW = {
         "time_estimate_minutes": 20,
         "confidence": 0.92,
     },
-
     "step_05_generate_api_layer": {
         "step": 5,
         "title": "Generate REST controllers and API endpoints",
@@ -911,12 +921,15 @@ COPILOT_WORKFLOW = {
             "Copilot generates correct HTTP verbs, status codes, and request validation."
         ),
         "inputs": ["Service names", "Endpoint list", "Request/response DTO names"],
-        "outputs": ["@RestController classes", "Full CRUD endpoints", "@Valid request binding"],
+        "outputs": [
+            "@RestController classes",
+            "Full CRUD endpoints",
+            "@Valid request binding",
+        ],
         "copilot_prompt_template": "create @RestController {name} with endpoints: {endpoints}. Use {service}. Return ResponseEntity with correct HTTP status codes.",
         "time_estimate_minutes": 15,
         "confidence": 0.95,
     },
-
     "step_06_generate_tests": {
         "step": 6,
         "title": "Generate unit and integration tests",
@@ -927,12 +940,15 @@ COPILOT_WORKFLOW = {
             "target 80% branch coverage'. Add @SpringBootTest integration tests for controllers."
         ),
         "inputs": ["Implementation classes", "Business rules", "Edge cases list"],
-        "outputs": ["@Test methods for all paths", "Mockito mocks", "@SpringBootTest for controllers"],
+        "outputs": [
+            "@Test methods for all paths",
+            "Mockito mocks",
+            "@SpringBootTest for controllers",
+        ],
         "copilot_prompt_template": "generate JUnit 5 + Mockito tests for {class_name} covering success, error, and edge cases. Target 80% branch coverage.",
         "time_estimate_minutes": 20,
         "confidence": 0.90,
     },
-
     "step_07_add_security": {
         "step": 7,
         "title": "Add authentication and security",
@@ -943,12 +959,16 @@ COPILOT_WORKFLOW = {
             "Copilot generates the complete security setup with correct filter chain ordering."
         ),
         "inputs": ["Existing Spring Boot app", "Token TTL requirements"],
-        "outputs": ["SecurityFilterChain @Bean", "JwtTokenProvider service", "POST /auth/login endpoint", "JwtAuthenticationFilter"],
+        "outputs": [
+            "SecurityFilterChain @Bean",
+            "JwtTokenProvider service",
+            "POST /auth/login endpoint",
+            "JwtAuthenticationFilter",
+        ],
         "copilot_prompt_template": "add JWT authentication with {secret_strategy}. Implement login endpoint, token validation filter, and secure all /api endpoints except /auth/**.",
         "time_estimate_minutes": 25,
         "confidence": 0.91,
     },
-
     "step_08_generate_frontend": {
         "step": 8,
         "title": "Generate frontend components",
@@ -959,12 +979,15 @@ COPILOT_WORKFLOW = {
             "Ask for one component at a time for best results."
         ),
         "inputs": ["API endpoints from step 5", "UI requirements"],
-        "outputs": ["React functional components", "Custom hooks for data fetching", "Error boundary"],
+        "outputs": [
+            "React functional components",
+            "Custom hooks for data fetching",
+            "Error boundary",
+        ],
         "copilot_prompt_template": "create a React {component_name} that fetches {endpoint}, shows loading state, handles errors, and renders {ui_description}.",
         "time_estimate_minutes": 30,
         "confidence": 0.89,
     },
-
     "step_09_add_cicd": {
         "step": 9,
         "title": "Generate CI/CD pipeline",
@@ -974,13 +997,21 @@ COPILOT_WORKFLOW = {
             "and deploys to Cloud Run using GCP_SA_KEY secret'. "
             "Copilot generates a complete multi-job workflow YAML."
         ),
-        "inputs": ["Build tool", "Test commands", "Docker registry", "Deployment platform"],
-        "outputs": [".github/workflows/ci.yml", "Docker deployment steps", "Secret usage instructions"],
+        "inputs": [
+            "Build tool",
+            "Test commands",
+            "Docker registry",
+            "Deployment platform",
+        ],
+        "outputs": [
+            ".github/workflows/ci.yml",
+            "Docker deployment steps",
+            "Secret usage instructions",
+        ],
         "copilot_prompt_template": "create GitHub Actions workflow for {build_tool} app: build, test, docker-build, push to {registry}, deploy to {platform}.",
         "time_estimate_minutes": 10,
         "confidence": 0.93,
     },
-
     "step_10_error_review_cycle": {
         "step": 10,
         "title": "Error detection and fix cycle",
@@ -1003,7 +1034,6 @@ COPILOT_WORKFLOW = {
 # ============================================================================
 
 COPILOT_ERROR_DETECTION = {
-
     "detection_method_copilot_chat": {
         "method": "Copilot Chat — paste and explain",
         "description": (
@@ -1012,7 +1042,12 @@ COPILOT_ERROR_DETECTION = {
             "root cause, affected file and line, code fix, and prevention tip. "
             "Works for: compilation errors, runtime exceptions, build failures, test failures."
         ),
-        "best_for": ["NullPointerException", "Compilation errors", "Test failures", "Build errors"],
+        "best_for": [
+            "NullPointerException",
+            "Compilation errors",
+            "Test failures",
+            "Build errors",
+        ],
         "accuracy": 0.94,
         "steps": [
             "1. Copy full error including stack trace",
@@ -1023,7 +1058,6 @@ COPILOT_ERROR_DETECTION = {
         ],
         "limitations": "May not know about errors caused by internal APIs not in training data",
     },
-
     "detection_method_inline_errors": {
         "method": "VS Code Problems panel + Copilot inline fix",
         "description": (
@@ -1032,7 +1066,12 @@ COPILOT_ERROR_DETECTION = {
             "for an instant inline fix. Copilot also shows inline ghost text that fixes the "
             "error while you type, before you even save the file."
         ),
-        "best_for": ["TypeScript errors", "Java compilation errors", "Lint violations", "Import issues"],
+        "best_for": [
+            "TypeScript errors",
+            "Java compilation errors",
+            "Lint violations",
+            "Import issues",
+        ],
         "accuracy": 0.91,
         "steps": [
             "1. Open VS Code Problems panel (Ctrl+Shift+M)",
@@ -1043,7 +1082,6 @@ COPILOT_ERROR_DETECTION = {
         ],
         "limitations": "Inline fixes work best for single-file errors; multi-file refactors need Copilot Chat",
     },
-
     "detection_method_copilot_review": {
         "method": "Copilot Code Review (PR review / file review)",
         "description": (
@@ -1052,7 +1090,12 @@ COPILOT_ERROR_DETECTION = {
             "security issues, missing tests, performance concerns. "
             "In VS Code: right-click a file > 'Copilot: Review and Comment'."
         ),
-        "best_for": ["Pre-commit review", "Security scanning", "Missing error handling", "Logic bugs"],
+        "best_for": [
+            "Pre-commit review",
+            "Security scanning",
+            "Missing error handling",
+            "Logic bugs",
+        ],
         "accuracy": 0.88,
         "steps": [
             "1. In GitHub PR: click 'Copilot' > 'Review changes'",
@@ -1063,7 +1106,6 @@ COPILOT_ERROR_DETECTION = {
         ],
         "limitations": "Review accuracy depends on context; always verify business logic manually",
     },
-
     "detection_method_github_advanced_security": {
         "method": "GitHub Advanced Security + Copilot Autofix",
         "description": (
@@ -1072,7 +1114,12 @@ COPILOT_ERROR_DETECTION = {
             "When a CodeQL alert is found, Copilot Autofix generates a one-click fix. "
             "Enable in repo Settings > Security > Code Scanning > Enable CodeQL."
         ),
-        "best_for": ["Security vulnerabilities", "OWASP Top 10", "Secret detection", "CWE-classified bugs"],
+        "best_for": [
+            "Security vulnerabilities",
+            "OWASP Top 10",
+            "Secret detection",
+            "CWE-classified bugs",
+        ],
         "accuracy": 0.92,
         "steps": [
             "1. Enable GHAS in repo settings",
@@ -1083,7 +1130,6 @@ COPILOT_ERROR_DETECTION = {
         ],
         "limitations": "GHAS requires GitHub Enterprise or public repos; private repos need Advanced Security license",
     },
-
     "detection_method_test_driven": {
         "method": "Test-Driven Error Detection",
         "description": (
@@ -1092,7 +1138,12 @@ COPILOT_ERROR_DETECTION = {
             "or 'flutter test' (Dart). Copy the failing test assertion + stack trace into "
             "Copilot Chat: 'this test is failing — fix the implementation to make it pass'."
         ),
-        "best_for": ["Logic errors", "Business rule violations", "Edge case bugs", "Regression detection"],
+        "best_for": [
+            "Logic errors",
+            "Business rule violations",
+            "Edge case bugs",
+            "Regression detection",
+        ],
         "accuracy": 0.96,
         "steps": [
             "1. Write a @Test that exercises the failing scenario",
@@ -1103,7 +1154,6 @@ COPILOT_ERROR_DETECTION = {
         ],
         "limitations": "Requires tests to exist — Copilot can also generate the tests first",
     },
-
     "detection_method_log_analysis": {
         "method": "Production log analysis with Copilot",
         "description": (
@@ -1113,7 +1163,12 @@ COPILOT_ERROR_DETECTION = {
             "if it is a known Java/Spring/React pattern, and what the fix is. "
             "Best with structured (JSON) logs that include request_id and user_id."
         ),
-        "best_for": ["Production incidents", "Intermittent errors", "Performance degradation", "Memory leaks"],
+        "best_for": [
+            "Production incidents",
+            "Intermittent errors",
+            "Performance degradation",
+            "Memory leaks",
+        ],
         "accuracy": 0.86,
         "steps": [
             "1. Open Cloud Logging or log aggregator (ELK/Datadog)",
@@ -1124,38 +1179,69 @@ COPILOT_ERROR_DETECTION = {
         ],
         "limitations": "Copilot cannot access live systems — must paste log content manually",
     },
-
     "error_classification_guide": {
         "method": "Error Classification Reference",
         "description": "Quick reference for classifying any error before asking Copilot to fix it",
         "classifications": {
             "COMPILATION": {
-                "signals": ["cannot find symbol", "package does not exist", "incompatible types", "error: expected"],
+                "signals": [
+                    "cannot find symbol",
+                    "package does not exist",
+                    "incompatible types",
+                    "error: expected",
+                ],
                 "fix_strategy": "Check imports, dependencies, and type correctness",
                 "copilot_prompt": "fix this compilation error: {error}",
             },
             "RUNTIME": {
-                "signals": ["NullPointerException", "ClassCastException", "ArrayIndexOutOfBoundsException", "StackOverflowError"],
+                "signals": [
+                    "NullPointerException",
+                    "ClassCastException",
+                    "ArrayIndexOutOfBoundsException",
+                    "StackOverflowError",
+                ],
                 "fix_strategy": "Add null checks, fix type casting, check recursion termination",
                 "copilot_prompt": "explain and fix this runtime exception: {stack_trace}",
             },
             "CONFIG": {
-                "signals": ["application.properties not found", "BeanCreationException", "could not load credentials", "connection refused"],
+                "signals": [
+                    "application.properties not found",
+                    "BeanCreationException",
+                    "could not load credentials",
+                    "connection refused",
+                ],
                 "fix_strategy": "Check env vars, application.properties, service account keys",
                 "copilot_prompt": "fix this Spring Boot configuration error: {error}",
             },
             "BUILD": {
-                "signals": ["BUILD FAILED", "FAILED task :test", "npm ERR!", "Because X depends on Y"],
+                "signals": [
+                    "BUILD FAILED",
+                    "FAILED task :test",
+                    "npm ERR!",
+                    "Because X depends on Y",
+                ],
                 "fix_strategy": "Check build file syntax, dependency versions, plugin compatibility",
                 "copilot_prompt": "why is this build failing and how do I fix it: {build_output}",
             },
             "SECURITY": {
-                "signals": ["403 Forbidden", "401 Unauthorized", "JWT expired", "CORS blocked", "SSL handshake failed"],
+                "signals": [
+                    "403 Forbidden",
+                    "401 Unauthorized",
+                    "JWT expired",
+                    "CORS blocked",
+                    "SSL handshake failed",
+                ],
                 "fix_strategy": "Check tokens, permissions, CORS config, certificates",
                 "copilot_prompt": "fix this security/auth error in Spring Security: {error}",
             },
             "DEPLOYMENT": {
-                "signals": ["OOMKilled", "CrashLoopBackOff", "port already in use", "container exited with code 1", "health check failed"],
+                "signals": [
+                    "OOMKilled",
+                    "CrashLoopBackOff",
+                    "port already in use",
+                    "container exited with code 1",
+                    "health check failed",
+                ],
                 "fix_strategy": "Check resource limits, port conflicts, environment variables, startup order",
                 "copilot_prompt": "fix this Kubernetes/Docker deployment error: {error}",
             },
@@ -1167,6 +1253,7 @@ COPILOT_ERROR_DETECTION = {
 # ============================================================================
 # COLLECTION SEEDING LOGIC
 # ============================================================================
+
 
 def seed_all(db):
     results = {}
@@ -1224,7 +1311,9 @@ def print_summary(results):
         print(f"   • {col}: {count} documents")
     print(f"\n   TOTAL: {total} documents seeded")
     print(f"\n🔗 Firebase Console:")
-    print(f"   https://console.firebase.google.com/project/{FIREBASE_PROJECT_ID}/firestore")
+    print(
+        f"   https://console.firebase.google.com/project/{FIREBASE_PROJECT_ID}/firestore"
+    )
     print("\n💡 What Supreme AI now knows:")
     print("   ✔ How GitHub Copilot creates projects (10-step workflow)")
     print("   ✔ How to detect errors (6 detection methods + classification guide)")
@@ -1236,11 +1325,11 @@ def print_summary(results):
 def run_dry():
     """Preview what would be seeded without connecting to Firebase."""
     total = (
-        len(SYSTEM_LEARNINGS) +
-        len(EXTRA_PATTERNS) +
-        len(EXTRA_ERROR_FIXES) +
-        len(COPILOT_WORKFLOW) +
-        len(COPILOT_ERROR_DETECTION)
+        len(SYSTEM_LEARNINGS)
+        + len(EXTRA_PATTERNS)
+        + len(EXTRA_ERROR_FIXES)
+        + len(COPILOT_WORKFLOW)
+        + len(COPILOT_ERROR_DETECTION)
     )
     print("\n🔍 DRY RUN — no Firebase connection needed")
     print(f"   system_learning:             {len(SYSTEM_LEARNINGS)} records")
@@ -1261,12 +1350,14 @@ def init_firestore(firebase_admin, credentials, firestore):
     cert_error = None
     if CREDENTIALS_FILE and not os.path.exists(CREDENTIALS_FILE):
         raise FileNotFoundError(f"Credentials file not found: {CREDENTIALS_FILE}")
-        
+
     if CREDENTIALS_FILE and os.path.exists(CREDENTIALS_FILE):
         try:
             cred = credentials.Certificate(CREDENTIALS_FILE)
             firebase_admin.initialize_app(cred)
-            print(f"\n✅ Initialized Firebase using credentials file: {CREDENTIALS_FILE}")
+            print(
+                f"\n✅ Initialized Firebase using credentials file: {CREDENTIALS_FILE}"
+            )
             return firestore.client()
         except Exception as err:
             cert_error = err
@@ -1316,11 +1407,17 @@ if __name__ == "__main__":
 
     print("=" * 80)
     print("  Collections to be seeded:")
-    print("   1. system_learning          (SystemLearning model — PATTERN/ERROR/IMPROVEMENT)")
-    print("   2. patterns                 (adds 8 architecture/resilience/observability patterns)")
+    print(
+        "   1. system_learning          (SystemLearning model — PATTERN/ERROR/IMPROVEMENT)"
+    )
+    print(
+        "   2. patterns                 (adds 8 architecture/resilience/observability patterns)"
+    )
     print("   3. generation_errors_and_fixes (adds 10 comprehensive error fixes)")
     print("   4. copilot_workflow         (10-step Copilot project-creation workflow)")
-    print("   5. copilot_error_detection  (6 error-detection methods + classification guide)")
+    print(
+        "   5. copilot_error_detection  (6 error-detection methods + classification guide)"
+    )
     print("=" * 80)
 
     try:
@@ -1334,8 +1431,12 @@ if __name__ == "__main__":
     except FileNotFoundError:
         print(f"\n❌ Credentials file not found: {CREDENTIALS_FILE}")
         print("   Options:")
-        print("   A) Download from Firebase Console > Project Settings > Service Accounts")
-        print("      and store it outside the repo root, then set FIREBASE_CREDENTIALS_FILE")
+        print(
+            "   A) Download from Firebase Console > Project Settings > Service Accounts"
+        )
+        print(
+            "      and store it outside the repo root, then set FIREBASE_CREDENTIALS_FILE"
+        )
         print("   B) Run: gcloud auth application-default login")
         print("   C) Set GOOGLE_APPLICATION_CREDENTIALS=/path/to/key.json")
         print("\n   Or preview without Firebase:")

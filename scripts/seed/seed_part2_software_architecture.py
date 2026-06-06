@@ -20,6 +20,7 @@ Run:
 
 import sys
 import os
+
 sys.path.insert(0, os.path.dirname(__file__))
 
 from seed_lib import _learning, run_part
@@ -29,7 +30,6 @@ from seed_lib import _learning, run_part
 # ============================================================================
 
 SYSTEM_LEARNINGS = {
-
     "solid_single_responsibility": _learning(
         type_="PATTERN",
         category="SOLID",
@@ -52,7 +52,6 @@ SYSTEM_LEARNINGS = {
         times_applied=144,
         context={"author": "Robert C. Martin (Uncle Bob), Clean Code 2008"},
     ),
-
     "solid_open_closed": _learning(
         type_="PATTERN",
         category="SOLID",
@@ -73,9 +72,10 @@ SYSTEM_LEARNINGS = {
         severity="HIGH",
         confidence=0.95,
         times_applied=89,
-        context={"pattern_family": "Strategy, Template Method, Decorator, Chain of Responsibility"},
+        context={
+            "pattern_family": "Strategy, Template Method, Decorator, Chain of Responsibility"
+        },
     ),
-
     "solid_liskov_substitution": _learning(
         type_="PATTERN",
         category="SOLID",
@@ -98,7 +98,6 @@ SYSTEM_LEARNINGS = {
         times_applied=67,
         context={"coined_by": "Barbara Liskov, 1987"},
     ),
-
     "solid_dependency_inversion": _learning(
         type_="PATTERN",
         category="SOLID",
@@ -118,9 +117,10 @@ SYSTEM_LEARNINGS = {
         severity="HIGH",
         confidence=0.96,
         times_applied=178,
-        context={"spring_boot_tip": "Constructor injection makes DIP automatic with Spring + Lombok @RequiredArgsConstructor"},
+        context={
+            "spring_boot_tip": "Constructor injection makes DIP automatic with Spring + Lombok @RequiredArgsConstructor"
+        },
     ),
-
     "pattern_strategy": _learning(
         type_="PATTERN",
         category="DESIGN_PATTERN",
@@ -140,9 +140,10 @@ SYSTEM_LEARNINGS = {
         severity="MEDIUM",
         confidence=0.97,
         times_applied=112,
-        context={"anti_pattern": "if/else or switch on type string — replace with Strategy"},
+        context={
+            "anti_pattern": "if/else or switch on type string — replace with Strategy"
+        },
     ),
-
     "pattern_builder": _learning(
         type_="PATTERN",
         category="DESIGN_PATTERN",
@@ -162,9 +163,10 @@ SYSTEM_LEARNINGS = {
         severity="MEDIUM",
         confidence=0.96,
         times_applied=134,
-        context={"lombok": "@Builder annotation eliminates 50+ lines of boilerplate per class"},
+        context={
+            "lombok": "@Builder annotation eliminates 50+ lines of boilerplate per class"
+        },
     ),
-
     "pattern_observer": _learning(
         type_="PATTERN",
         category="DESIGN_PATTERN",
@@ -185,9 +187,10 @@ SYSTEM_LEARNINGS = {
         severity="HIGH",
         confidence=0.94,
         times_applied=78,
-        context={"benefit": "Decouples publishers from subscribers — breaks circular dependencies"},
+        context={
+            "benefit": "Decouples publishers from subscribers — breaks circular dependencies"
+        },
     ),
-
     "pattern_decorator": _learning(
         type_="PATTERN",
         category="DESIGN_PATTERN",
@@ -208,9 +211,10 @@ SYSTEM_LEARNINGS = {
         severity="MEDIUM",
         confidence=0.93,
         times_applied=56,
-        context={"aop_connection": "AOP proxies ARE decorators — Spring uses JDK dynamic proxy or CGLIB"},
+        context={
+            "aop_connection": "AOP proxies ARE decorators — Spring uses JDK dynamic proxy or CGLIB"
+        },
     ),
-
     "architecture_hexagonal": _learning(
         type_="PATTERN",
         category="ARCHITECTURE",
@@ -237,7 +241,6 @@ SYSTEM_LEARNINGS = {
             "also_known_as": "Ports & Adapters, Clean Architecture (Robert Martin), Onion Architecture",
         },
     ),
-
     "architecture_cqrs": _learning(
         type_="PATTERN",
         category="ARCHITECTURE",
@@ -263,7 +266,6 @@ SYSTEM_LEARNINGS = {
             "warning": "CQRS adds complexity — only use when read/write loads are significantly different",
         },
     ),
-
     "microservices_decomposition": _learning(
         type_="PATTERN",
         category="MICROSERVICES",
@@ -290,7 +292,6 @@ SYSTEM_LEARNINGS = {
             "anti_pattern": "Shared database between services = distributed monolith",
         },
     ),
-
     "ddd_aggregate": _learning(
         type_="PATTERN",
         category="DDD",
@@ -316,7 +317,6 @@ SYSTEM_LEARNINGS = {
             "invariant_example": "Order total must not exceed customer credit limit",
         },
     ),
-
     "pattern_saga_distributed_tx": _learning(
         type_="PATTERN",
         category="MICROSERVICES",
@@ -342,7 +342,6 @@ SYSTEM_LEARNINGS = {
             "tool": "Axon Framework SagaLifecycle, Temporal Workflow, Apache Camel",
         },
     ),
-
     "improvement_clean_code_naming": _learning(
         type_="IMPROVEMENT",
         category="CLEAN_CODE",
@@ -364,7 +363,9 @@ SYSTEM_LEARNINGS = {
         severity="MEDIUM",
         confidence=0.95,
         times_applied=210,
-        context={"reference": "Clean Code, Chapter 2 — Meaningful Names, Robert C. Martin"},
+        context={
+            "reference": "Clean Code, Chapter 2 — Meaningful Names, Robert C. Martin"
+        },
     ),
 }
 
@@ -373,7 +374,6 @@ SYSTEM_LEARNINGS = {
 # ============================================================================
 
 SOFTWARE_ARCHITECTURE_DOCS = {
-
     "solid_principles_overview": {
         "topic": "SOLID Principles — Complete Reference",
         "category": "SOLID",
@@ -423,7 +423,6 @@ SOFTWARE_ARCHITECTURE_DOCS = {
         ),
         "confidence": 0.97,
     },
-
     "design_patterns_creational": {
         "topic": "Creational Design Patterns",
         "category": "DESIGN_PATTERNS",
@@ -458,7 +457,6 @@ SOFTWARE_ARCHITECTURE_DOCS = {
         },
         "confidence": 0.95,
     },
-
     "design_patterns_structural": {
         "topic": "Structural Design Patterns",
         "category": "DESIGN_PATTERNS",
@@ -492,7 +490,6 @@ SOFTWARE_ARCHITECTURE_DOCS = {
         },
         "confidence": 0.94,
     },
-
     "design_patterns_behavioural": {
         "topic": "Behavioural Design Patterns",
         "category": "DESIGN_PATTERNS",
@@ -531,7 +528,6 @@ SOFTWARE_ARCHITECTURE_DOCS = {
         },
         "confidence": 0.95,
     },
-
     "microservices_patterns": {
         "topic": "Microservices Design Patterns",
         "category": "MICROSERVICES",
@@ -540,7 +536,13 @@ SOFTWARE_ARCHITECTURE_DOCS = {
             "API_Gateway": {
                 "intent": "Single entry point for all client requests; handles routing, auth, rate limiting",
                 "tools": ["Spring Cloud Gateway", "Kong", "AWS API Gateway", "Traefik"],
-                "responsibilities": ["Authentication", "Rate limiting", "Load balancing", "SSL termination", "Request routing"],
+                "responsibilities": [
+                    "Authentication",
+                    "Rate limiting",
+                    "Load balancing",
+                    "SSL termination",
+                    "Request routing",
+                ],
             },
             "Service_Discovery": {
                 "intent": "Services find each other dynamically without hardcoded addresses",
@@ -551,11 +553,18 @@ SOFTWARE_ARCHITECTURE_DOCS = {
             "Circuit_Breaker": {
                 "intent": "Detect failing dependencies and fail fast instead of cascading failures",
                 "tools": ["Resilience4j", "Spring Cloud Circuit Breaker"],
-                "states": ["CLOSED (normal)", "OPEN (failing fast)", "HALF_OPEN (probing recovery)"],
+                "states": [
+                    "CLOSED (normal)",
+                    "OPEN (failing fast)",
+                    "HALF_OPEN (probing recovery)",
+                ],
             },
             "Saga": {
                 "intent": "Manage distributed transactions across services without 2PC",
-                "types": ["Choreography (event-driven)", "Orchestration (central coordinator)"],
+                "types": [
+                    "Choreography (event-driven)",
+                    "Orchestration (central coordinator)",
+                ],
                 "tools": ["Axon Framework", "Temporal", "Apache Camel"],
             },
             "Outbox_Pattern": {
@@ -565,13 +574,16 @@ SOFTWARE_ARCHITECTURE_DOCS = {
             },
             "Sidecar": {
                 "intent": "Deploy cross-cutting concerns as a separate container alongside the main service",
-                "examples": ["Envoy proxy (service mesh)", "Logging agent", "Secret rotator"],
+                "examples": [
+                    "Envoy proxy (service mesh)",
+                    "Logging agent",
+                    "Secret rotator",
+                ],
                 "tools": ["Istio + Envoy", "Linkerd", "Dapr"],
             },
         },
         "confidence": 0.93,
     },
-
     "ddd_building_blocks": {
         "topic": "Domain-Driven Design (DDD) Building Blocks",
         "category": "DDD",
@@ -605,7 +617,6 @@ SOFTWARE_ARCHITECTURE_DOCS = {
         },
         "confidence": 0.92,
     },
-
     "event_driven_architecture": {
         "topic": "Event-Driven Architecture (EDA)",
         "category": "ARCHITECTURE",

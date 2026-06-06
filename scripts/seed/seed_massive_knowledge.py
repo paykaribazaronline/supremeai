@@ -20,15 +20,28 @@ FIREBASE_PROJECT_ID = "supremeai-a"
 CREDENTIALS_FILE = os.getenv("FIREBASE_CREDENTIALS_FILE")
 DRY_RUN = "--dry-run" in sys.argv
 
+
 def _ts():
     return int(time.time() * 1000)
+
 
 def _uid():
     return str(uuid.uuid4())
 
-def _learning(type_, category, content, solutions, severity,
-              confidence, resolved=True, resolution=None,
-              error_count=0, times_applied=0, context=None):
+
+def _learning(
+    type_,
+    category,
+    content,
+    solutions,
+    severity,
+    confidence,
+    resolved=True,
+    resolution=None,
+    error_count=0,
+    times_applied=0,
+    context=None,
+):
     """Match SystemLearning.java model exactly."""
     return {
         "id": _uid(),
@@ -46,8 +59,17 @@ def _learning(type_, category, content, solutions, severity,
         "confidenceScore": confidence,
     }
 
-def _pattern(name, category, description, when_to_use, code_example,
-             framework, confidence, times_used=0):
+
+def _pattern(
+    name,
+    category,
+    description,
+    when_to_use,
+    code_example,
+    framework,
+    confidence,
+    times_used=0,
+):
     """Reusable pattern document for patterns collection."""
     return {
         "id": _uid(),
@@ -63,8 +85,17 @@ def _pattern(name, category, description, when_to_use, code_example,
         "source": "COPILOT_MASSIVE_SEED",
     }
 
-def _error_fix(error_msg, cause, fix, language, framework,
-               confidence, occurrences=0, ai_fixed="Claude"):
+
+def _error_fix(
+    error_msg,
+    cause,
+    fix,
+    language,
+    framework,
+    confidence,
+    occurrences=0,
+    ai_fixed="Claude",
+):
     """Error-fix pair for generation_errors_and_fixes collection."""
     return {
         "id": _uid(),
@@ -80,8 +111,8 @@ def _error_fix(error_msg, cause, fix, language, framework,
         "source": "COPILOT_MASSIVE_SEED",
     }
 
-def _code_template(name, language, framework, template_type,
-                   code, description, tags):
+
+def _code_template(name, language, framework, template_type, code, description, tags):
     """Code template/snippet for code_templates collection."""
     return {
         "id": _uid(),
@@ -97,8 +128,10 @@ def _code_template(name, language, framework, template_type,
         "source": "COPILOT_MASSIVE_SEED",
     }
 
-def _best_practice(title, category, description, do_list, dont_list,
-                   severity, applies_to):
+
+def _best_practice(
+    title, category, description, do_list, dont_list, severity, applies_to
+):
     """Best practice rule for best_practices collection."""
     return {
         "id": _uid(),
@@ -113,16 +146,25 @@ def _best_practice(title, category, description, do_list, dont_list,
         "source": "COPILOT_MASSIVE_SEED",
     }
 
+
 # ── Import all data modules ────────────────────────────────────────────────
 from seed_data.languages import LANGUAGE_LEARNINGS, LANGUAGE_PATTERNS
-from seed_data.frameworks import FRAMEWORK_LEARNINGS, FRAMEWORK_PATTERNS, FRAMEWORK_TEMPLATES
+from seed_data.frameworks import (
+    FRAMEWORK_LEARNINGS,
+    FRAMEWORK_PATTERNS,
+    FRAMEWORK_TEMPLATES,
+)
 from seed_data.design_patterns import DESIGN_PATTERN_LEARNINGS, DESIGN_PATTERNS
 from seed_data.security import SECURITY_LEARNINGS, SECURITY_PRACTICES
 from seed_data.devops import DEVOPS_LEARNINGS, DEVOPS_PATTERNS, DEVOPS_TEMPLATES
 from seed_data.databases import DATABASE_LEARNINGS, DATABASE_PATTERNS
 from seed_data.testing import TESTING_LEARNINGS, TESTING_PATTERNS, TESTING_TEMPLATES
 from seed_data.errors import ERROR_FIXES
-from seed_data.api_and_performance import API_LEARNINGS, API_PATTERNS, PERFORMANCE_LEARNINGS
+from seed_data.api_and_performance import (
+    API_LEARNINGS,
+    API_PATTERNS,
+    PERFORMANCE_LEARNINGS,
+)
 from seed_data.ai_ml import AI_ML_LEARNINGS, AI_ML_PATTERNS
 from seed_data.system_design import SYSTEM_DESIGN_LEARNINGS, SYSTEM_DESIGN_PATTERNS
 from seed_data.practices import PRACTICE_LEARNINGS, PRACTICE_BEST_PRACTICES
@@ -133,20 +175,37 @@ def seed_to_firebase():
     if DRY_RUN:
         print("=== DRY RUN MODE ===")
         counts = {
-            "system_learning": (len(LANGUAGE_LEARNINGS) + len(FRAMEWORK_LEARNINGS) +
-                               len(DESIGN_PATTERN_LEARNINGS) + len(SECURITY_LEARNINGS) +
-                               len(DEVOPS_LEARNINGS) + len(DATABASE_LEARNINGS) +
-                               len(TESTING_LEARNINGS) + len(API_LEARNINGS) +
-                               len(PERFORMANCE_LEARNINGS) + len(AI_ML_LEARNINGS) +
-                               len(SYSTEM_DESIGN_LEARNINGS) + len(PRACTICE_LEARNINGS)),
-            "patterns": (len(LANGUAGE_PATTERNS) + len(FRAMEWORK_PATTERNS) +
-                        len(DESIGN_PATTERNS) + len(DEVOPS_PATTERNS) +
-                        len(DATABASE_PATTERNS) + len(TESTING_PATTERNS) +
-                        len(API_PATTERNS) + len(AI_ML_PATTERNS) +
-                        len(SYSTEM_DESIGN_PATTERNS)),
+            "system_learning": (
+                len(LANGUAGE_LEARNINGS)
+                + len(FRAMEWORK_LEARNINGS)
+                + len(DESIGN_PATTERN_LEARNINGS)
+                + len(SECURITY_LEARNINGS)
+                + len(DEVOPS_LEARNINGS)
+                + len(DATABASE_LEARNINGS)
+                + len(TESTING_LEARNINGS)
+                + len(API_LEARNINGS)
+                + len(PERFORMANCE_LEARNINGS)
+                + len(AI_ML_LEARNINGS)
+                + len(SYSTEM_DESIGN_LEARNINGS)
+                + len(PRACTICE_LEARNINGS)
+            ),
+            "patterns": (
+                len(LANGUAGE_PATTERNS)
+                + len(FRAMEWORK_PATTERNS)
+                + len(DESIGN_PATTERNS)
+                + len(DEVOPS_PATTERNS)
+                + len(DATABASE_PATTERNS)
+                + len(TESTING_PATTERNS)
+                + len(API_PATTERNS)
+                + len(AI_ML_PATTERNS)
+                + len(SYSTEM_DESIGN_PATTERNS)
+            ),
             "generation_errors_and_fixes": len(ERROR_FIXES),
-            "code_templates": (len(FRAMEWORK_TEMPLATES) + len(DEVOPS_TEMPLATES) +
-                              len(TESTING_TEMPLATES)),
+            "code_templates": (
+                len(FRAMEWORK_TEMPLATES)
+                + len(DEVOPS_TEMPLATES)
+                + len(TESTING_TEMPLATES)
+            ),
             "best_practices": len(SECURITY_PRACTICES) + len(PRACTICE_BEST_PRACTICES),
         }
         total = sum(counts.values())
@@ -176,7 +235,7 @@ def seed_to_firebase():
         written = 0
         for i in range(0, len(items), batch_size):
             batch = db.batch()
-            chunk = items[i:i + batch_size]
+            chunk = items[i : i + batch_size]
             for doc_id, doc_data in chunk:
                 ref = db.collection(collection_name).document(doc_id)
                 batch.set(ref, doc_data, merge=True)
@@ -192,19 +251,37 @@ def seed_to_firebase():
 
     # 1. System Learnings
     all_learnings = {}
-    for src in [LANGUAGE_LEARNINGS, FRAMEWORK_LEARNINGS, DESIGN_PATTERN_LEARNINGS,
-                SECURITY_LEARNINGS, DEVOPS_LEARNINGS, DATABASE_LEARNINGS,
-                TESTING_LEARNINGS, API_LEARNINGS, PERFORMANCE_LEARNINGS,
-                AI_ML_LEARNINGS, SYSTEM_DESIGN_LEARNINGS, PRACTICE_LEARNINGS]:
+    for src in [
+        LANGUAGE_LEARNINGS,
+        FRAMEWORK_LEARNINGS,
+        DESIGN_PATTERN_LEARNINGS,
+        SECURITY_LEARNINGS,
+        DEVOPS_LEARNINGS,
+        DATABASE_LEARNINGS,
+        TESTING_LEARNINGS,
+        API_LEARNINGS,
+        PERFORMANCE_LEARNINGS,
+        AI_ML_LEARNINGS,
+        SYSTEM_DESIGN_LEARNINGS,
+        PRACTICE_LEARNINGS,
+    ]:
         all_learnings.update(src)
     print(f"\n[1/5] Seeding system_learning ({len(all_learnings)} docs)...")
     total += _batch_write("system_learning", all_learnings)
 
     # 2. Patterns
     all_patterns = {}
-    for src in [LANGUAGE_PATTERNS, FRAMEWORK_PATTERNS, DESIGN_PATTERNS,
-                DEVOPS_PATTERNS, DATABASE_PATTERNS, TESTING_PATTERNS, API_PATTERNS,
-                AI_ML_PATTERNS, SYSTEM_DESIGN_PATTERNS]:
+    for src in [
+        LANGUAGE_PATTERNS,
+        FRAMEWORK_PATTERNS,
+        DESIGN_PATTERNS,
+        DEVOPS_PATTERNS,
+        DATABASE_PATTERNS,
+        TESTING_PATTERNS,
+        API_PATTERNS,
+        AI_ML_PATTERNS,
+        SYSTEM_DESIGN_PATTERNS,
+    ]:
         all_patterns.update(src)
     print(f"\n[2/5] Seeding patterns ({len(all_patterns)} docs)...")
     total += _batch_write("patterns", all_patterns)

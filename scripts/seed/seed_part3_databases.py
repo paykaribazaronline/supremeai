@@ -22,6 +22,7 @@ Run:
 
 import sys
 import os
+
 sys.path.insert(0, os.path.dirname(__file__))
 
 from seed_lib import _learning, run_part
@@ -31,7 +32,6 @@ from seed_lib import _learning, run_part
 # ============================================================================
 
 SYSTEM_LEARNINGS = {
-
     "db_index_design": _learning(
         type_="PATTERN",
         category="DATABASE",
@@ -60,7 +60,6 @@ SYSTEM_LEARNINGS = {
             "tool": "EXPLAIN ANALYZE in PostgreSQL; EXPLAIN FORMAT=JSON in MySQL",
         },
     ),
-
     "db_n_plus_one": _learning(
         type_="ERROR",
         category="DATABASE",
@@ -89,7 +88,6 @@ SYSTEM_LEARNINGS = {
             "hibernate_log": "logging.level.org.hibernate.SQL=DEBUG shows all generated queries",
         },
     ),
-
     "db_transaction_isolation": _learning(
         type_="PATTERN",
         category="DATABASE",
@@ -117,7 +115,6 @@ SYSTEM_LEARNINGS = {
             "mysql_default": "REPEATABLE READ with gap locks",
         },
     ),
-
     "db_connection_pooling_hikari": _learning(
         type_="PATTERN",
         category="DATABASE",
@@ -145,7 +142,6 @@ SYSTEM_LEARNINGS = {
             "pool_size_formula": "Ideal pool size = ((core_count * 2) + effective_spindle_count)",
         },
     ),
-
     "db_firestore_data_model": _learning(
         type_="PATTERN",
         category="FIRESTORE",
@@ -176,7 +172,6 @@ SYSTEM_LEARNINGS = {
             "tool": "Firebase Console → Firestore → Indexes for composite index management",
         },
     ),
-
     "db_flyway_migrations": _learning(
         type_="PATTERN",
         category="DATABASE",
@@ -205,7 +200,6 @@ SYSTEM_LEARNINGS = {
             "repair_command": "./mvnw flyway:repair -Dflyway.url=... -Dflyway.user=... -Dflyway.password=...",
         },
     ),
-
     "db_postgres_performance": _learning(
         type_="PATTERN",
         category="DATABASE",
@@ -234,7 +228,6 @@ SYSTEM_LEARNINGS = {
             "quick_win": "ANALYZE <table> rebuilds statistics after bulk INSERT — fixes bad query plans",
         },
     ),
-
     "db_redis_patterns": _learning(
         type_="PATTERN",
         category="NOSQL",
@@ -262,7 +255,6 @@ SYSTEM_LEARNINGS = {
             "data_structures": "String(cache), Hash(object), List(queue), Set(unique), ZSet(ranking)",
         },
     ),
-
     "db_sql_query_optimisation": _learning(
         type_="PATTERN",
         category="DATABASE",
@@ -290,7 +282,6 @@ SYSTEM_LEARNINGS = {
             "explain_output": "Seq Scan = no index; Index Scan = index used; Index Only Scan = covering index",
         },
     ),
-
     "db_mongodb_patterns": _learning(
         type_="PATTERN",
         category="NOSQL",
@@ -313,9 +304,10 @@ SYSTEM_LEARNINGS = {
         severity="MEDIUM",
         confidence=0.92,
         times_applied=43,
-        context={"tip": "MongoDB 16MB document limit — for large embeds consider GridFS"},
+        context={
+            "tip": "MongoDB 16MB document limit — for large embeds consider GridFS"
+        },
     ),
-
     "db_optimistic_locking": _learning(
         type_="PATTERN",
         category="DATABASE",
@@ -337,9 +329,10 @@ SYSTEM_LEARNINGS = {
         severity="HIGH",
         confidence=0.95,
         times_applied=59,
-        context={"spring_jpa": "@Version annotation on Long or Integer field; Spring Data handles everything"},
+        context={
+            "spring_jpa": "@Version annotation on Long or Integer field; Spring Data handles everything"
+        },
     ),
-
     "improvement_db_query_monitoring": _learning(
         type_="IMPROVEMENT",
         category="DATABASE",
@@ -370,7 +363,6 @@ SYSTEM_LEARNINGS = {
 # ============================================================================
 
 DATABASE_KNOWLEDGE_DOCS = {
-
     "sql_fundamentals": {
         "topic": "SQL Fundamentals — Complete Reference",
         "category": "SQL",
@@ -383,7 +375,14 @@ DATABASE_KNOWLEDGE_DOCS = {
             "CROSS JOIN": "Cartesian product — all combinations; use with care (N×M rows)",
             "SELF JOIN": "Join table to itself; useful for hierarchical data (employee → manager)",
         },
-        "aggregate_functions": ["COUNT(*)", "SUM(col)", "AVG(col)", "MIN(col)", "MAX(col)", "GROUP_CONCAT / STRING_AGG"],
+        "aggregate_functions": [
+            "COUNT(*)",
+            "SUM(col)",
+            "AVG(col)",
+            "MIN(col)",
+            "MAX(col)",
+            "GROUP_CONCAT / STRING_AGG",
+        ],
         "window_functions": {
             "ROW_NUMBER()": "Unique sequential number per partition",
             "RANK()": "Rank with gaps on ties",
@@ -410,7 +409,6 @@ DATABASE_KNOWLEDGE_DOCS = {
         ],
         "confidence": 0.97,
     },
-
     "nosql_comparison": {
         "topic": "NoSQL Database Comparison & Selection Guide",
         "category": "NOSQL",
@@ -462,7 +460,6 @@ DATABASE_KNOWLEDGE_DOCS = {
         },
         "confidence": 0.94,
     },
-
     "firestore_best_practices": {
         "topic": "Firestore Best Practices for SupremeAI",
         "category": "FIRESTORE",
@@ -511,7 +508,6 @@ DATABASE_KNOWLEDGE_DOCS = {
         },
         "confidence": 0.96,
     },
-
     "database_design_guide": {
         "topic": "Database Design — Normalisation to Schema Design",
         "category": "DATABASE_DESIGN",
@@ -546,7 +542,6 @@ DATABASE_KNOWLEDGE_DOCS = {
         ],
         "confidence": 0.95,
     },
-
     "database_transactions_guide": {
         "topic": "Transactions, ACID, and Concurrency Control",
         "category": "DATABASE",
@@ -578,7 +573,6 @@ DATABASE_KNOWLEDGE_DOCS = {
         },
         "confidence": 0.96,
     },
-
     "migration_strategies": {
         "topic": "Database Migration Strategies",
         "category": "DATABASE_MIGRATIONS",

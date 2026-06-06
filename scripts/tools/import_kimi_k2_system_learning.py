@@ -28,7 +28,6 @@ import time
 from copy import deepcopy
 from typing import Any, Dict, Iterable, List, Optional, Tuple
 
-
 FIREBASE_PROJECT_ID = "supremeai-a"
 DATABASE_URL = "https://supremeai-a-default-rtdb.asia-southeast1.firebasedatabase.app/"
 CREDENTIALS_FILE = os.getenv("FIREBASE_CREDENTIALS_FILE")
@@ -551,18 +550,26 @@ def architecture_records(doc: Dict[str, Any]) -> List[Dict[str, Any]]:
         "and Firebase/GCP services for auth, secrets, and operational data persistence."
     )
     solutions = [
-        f"Presentation layer components: {', '.join(presentation)}"
-        if presentation
-        else "Presentation layer uses hosted admin and web surfaces.",
-        f"API gateway components: {', '.join(api_gateway)}"
-        if api_gateway
-        else "Backend runs on Cloud Run with Spring Boot.",
-        f"Data layer components: {', '.join(data_layer)}"
-        if data_layer
-        else "Data layer uses Firebase and GCP managed services.",
-        f"Verified workflow files: {', '.join(workflows)}"
-        if workflows
-        else "Deployment is workflow-driven through GitHub Actions.",
+        (
+            f"Presentation layer components: {', '.join(presentation)}"
+            if presentation
+            else "Presentation layer uses hosted admin and web surfaces."
+        ),
+        (
+            f"API gateway components: {', '.join(api_gateway)}"
+            if api_gateway
+            else "Backend runs on Cloud Run with Spring Boot."
+        ),
+        (
+            f"Data layer components: {', '.join(data_layer)}"
+            if data_layer
+            else "Data layer uses Firebase and GCP managed services."
+        ),
+        (
+            f"Verified workflow files: {', '.join(workflows)}"
+            if workflows
+            else "Deployment is workflow-driven through GitHub Actions."
+        ),
     ]
     context = {
         "sourceDocument": doc["document_id"],
@@ -586,7 +593,7 @@ def architecture_records(doc: Dict[str, Any]) -> List[Dict[str, Any]]:
 
 def error_playbook_records(doc: Dict[str, Any]) -> List[Dict[str, Any]]:
     records: List[Dict[str, Any]] = []
-    for error in (doc.get("errors") or []):
+    for error in doc.get("errors") or []:
         symptom = error.get("symptom", "Unknown failure")
         root_cause = error.get("root_cause", "Unknown root cause")
         solution = error.get("solution", "Investigate and verify fix")

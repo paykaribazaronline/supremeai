@@ -301,7 +301,7 @@
 }
 
 .glass-card .ant-card-head {
-  border-bottom: 1px solid rgba(255,255,255,0.05) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
   padding: var(--space-3) var(--space-4) !important;
   min-height: auto !important;
 }
@@ -343,7 +343,7 @@
   text-transform: uppercase !important;
   letter-spacing: 0.5px !important;
   color: var(--text-dim) !important;
-  background: rgba(255,255,255,0.02) !important;
+  background: rgba(255, 255, 255, 0.02) !important;
 }
 
 .ant-table-tbody > tr > td {

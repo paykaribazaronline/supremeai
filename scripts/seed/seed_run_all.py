@@ -34,17 +34,37 @@ sys.path.insert(0, os.path.dirname(__file__))
 
 # ── Import all parts ──────────────────────────────────────────────────────────
 
-from seed_part1_ai_fundamentals import SYSTEM_LEARNINGS as P1_SL, AI_FUNDAMENTALS_DOCS as P1_AF
-from seed_part2_software_architecture import (
-    SYSTEM_LEARNINGS as P2_SL, SOFTWARE_ARCHITECTURE_DOCS as P2_SA,
+from seed_part1_ai_fundamentals import (
+    SYSTEM_LEARNINGS as P1_SL,
+    AI_FUNDAMENTALS_DOCS as P1_AF,
 )
-from seed_part3_databases import SYSTEM_LEARNINGS as P3_SL, DATABASE_KNOWLEDGE_DOCS as P3_DB
-from seed_part4_security import SYSTEM_LEARNINGS as P4_SL, SECURITY_KNOWLEDGE_DOCS as P4_SK
-from seed_part5_devops_cloud import SYSTEM_LEARNINGS as P5_SL, DEVOPS_KNOWLEDGE_DOCS as P5_DK
-from seed_part6_performance import SYSTEM_LEARNINGS as P6_SL, PERFORMANCE_KNOWLEDGE_DOCS as P6_PK
-from seed_part7_testing import SYSTEM_LEARNINGS as P7_SL, TESTING_KNOWLEDGE_DOCS as P7_TK
+from seed_part2_software_architecture import (
+    SYSTEM_LEARNINGS as P2_SL,
+    SOFTWARE_ARCHITECTURE_DOCS as P2_SA,
+)
+from seed_part3_databases import (
+    SYSTEM_LEARNINGS as P3_SL,
+    DATABASE_KNOWLEDGE_DOCS as P3_DB,
+)
+from seed_part4_security import (
+    SYSTEM_LEARNINGS as P4_SL,
+    SECURITY_KNOWLEDGE_DOCS as P4_SK,
+)
+from seed_part5_devops_cloud import (
+    SYSTEM_LEARNINGS as P5_SL,
+    DEVOPS_KNOWLEDGE_DOCS as P5_DK,
+)
+from seed_part6_performance import (
+    SYSTEM_LEARNINGS as P6_SL,
+    PERFORMANCE_KNOWLEDGE_DOCS as P6_PK,
+)
+from seed_part7_testing import (
+    SYSTEM_LEARNINGS as P7_SL,
+    TESTING_KNOWLEDGE_DOCS as P7_TK,
+)
 from seed_part8_system_design import (
-    SYSTEM_LEARNINGS as P8_SL, SYSTEM_DESIGN_KNOWLEDGE_DOCS as P8_SD,
+    SYSTEM_LEARNINGS as P8_SL,
+    SYSTEM_DESIGN_KNOWLEDGE_DOCS as P8_SD,
 )
 
 # ── Part registry ─────────────────────────────────────────────────────────────
@@ -119,6 +139,7 @@ PARTS = [
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
+
 def _part_total(part: dict) -> int:
     return sum(len(docs) for docs in part["collections"].values())
 
@@ -138,7 +159,10 @@ def print_grand_summary(results: dict[int, dict[str, int]]) -> None:
     print(f"\n  {'─' * 50}")
     print(f"  GRAND TOTAL: {grand_total} documents seeded across all collections")
     from seed_lib import FIREBASE_PROJECT_ID
-    print(f"\n🔗  https://console.firebase.google.com/project/{FIREBASE_PROJECT_ID}/firestore")
+
+    print(
+        f"\n🔗  https://console.firebase.google.com/project/{FIREBASE_PROJECT_ID}/firestore"
+    )
     print("\n💡  SupremeAI now knows about:")
     print("    1 — LLMs, RAG, prompt engineering, fine-tuning, AI agents")
     print("    2 — SOLID, design patterns, microservices, DDD, EDA")
@@ -152,6 +176,7 @@ def print_grand_summary(results: dict[int, dict[str, int]]) -> None:
 
 
 # ── Main ──────────────────────────────────────────────────────────────────────
+
 
 def main() -> None:
     parser = argparse.ArgumentParser(
@@ -229,7 +254,9 @@ def main() -> None:
         for col_name, docs in part["collections"].items():
             print(f"\n📁  Seeding '{col_name}' ({len(docs)} documents) …")
             try:
-                count = batch_set(db, col_name, docs, batch_size=BATCH_SIZE, delay=BATCH_DELAY_S)
+                count = batch_set(
+                    db, col_name, docs, batch_size=BATCH_SIZE, delay=BATCH_DELAY_S
+                )
                 part_results[col_name] = count
                 print(f"   ✅  '{col_name}' done — {count} documents written")
             except Exception as exc:

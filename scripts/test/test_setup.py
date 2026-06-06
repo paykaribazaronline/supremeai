@@ -4,6 +4,7 @@ from google.cloud import vision
 from google.oauth2 import service_account
 import pandas as pd
 
+
 def test_google_vision_setup(credentials_path=None):
     """Test Google Cloud Vision API setup"""
     print("🔍 Testing Google Cloud Vision API Setup...")
@@ -16,7 +17,9 @@ def test_google_vision_setup(credentials_path=None):
             if not os.path.exists(credentials_path):
                 print(f"❌ Credentials file not found: {credentials_path}")
                 return False
-            credentials = service_account.Credentials.from_service_account_file(credentials_path)
+            credentials = service_account.Credentials.from_service_account_file(
+                credentials_path
+            )
             client = vision.ImageAnnotatorClient(credentials=credentials)
             print("✅ Credentials loaded successfully")
         else:
@@ -29,9 +32,9 @@ def test_google_vision_setup(credentials_path=None):
         from PIL import Image, ImageDraw, ImageFont
         import tempfile
 
-        with tempfile.NamedTemporaryFile(suffix='.png', delete=False) as tmp:
+        with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as tmp:
             # Create a simple test image
-            img = Image.new('RGB', (200, 50), color='white')
+            img = Image.new("RGB", (200, 50), color="white")
             draw = ImageDraw.Draw(img)
             try:
                 # Try to use a default font
@@ -39,12 +42,12 @@ def test_google_vision_setup(credentials_path=None):
             except:
                 font = ImageFont.load_default()
 
-            draw.text((10, 10), "Hello Bengali", fill='black', font=font)
+            draw.text((10, 10), "Hello Bengali", fill="black", font=font)
             img.save(tmp.name)
             test_image_path = tmp.name
 
         # Test OCR on the simple image
-        with io.open(test_image_path, 'rb') as image_file:
+        with io.open(test_image_path, "rb") as image_file:
             content = image_file.read()
 
         image = vision.Image(content=content)
@@ -58,7 +61,9 @@ def test_google_vision_setup(credentials_path=None):
         os.unlink(test_image_path)
 
         print("✅ API connectivity successful")
-        print(f"   Response received with {len(response.text_annotations)} text annotations")
+        print(
+            f"   Response received with {len(response.text_annotations)} text annotations"
+        )
 
         # Test 3: Check quota/billing
         print("\n3. Checking project and billing status...")
@@ -79,6 +84,7 @@ def test_google_vision_setup(credentials_path=None):
         print("- Check that your service account has proper permissions")
         return False
 
+
 def test_bengali_ocr():
     """Test Bengali OCR specifically"""
     print("\n🌐 Testing Bengali OCR capabilities...")
@@ -87,21 +93,21 @@ def test_bengali_ocr():
         client = vision.ImageAnnotatorClient()
 
         # Test with Bengali language hint
-        image_context = vision.ImageContext(language_hints=['bn'])
+        image_context = vision.ImageContext(language_hints=["bn"])
 
         # Create a test image with Bengali text approximation
         from PIL import Image, ImageDraw
         import tempfile
 
-        with tempfile.NamedTemporaryFile(suffix='.png', delete=False) as tmp:
-            img = Image.new('RGB', (300, 50), color='white')
+        with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as tmp:
+            img = Image.new("RGB", (300, 50), color="white")
             draw = ImageDraw.Draw(img)
             # Simple test - we'll use English for now, but API will be configured for Bengali
-            draw.text((10, 10), "Test Bengali OCR", fill='black')
+            draw.text((10, 10), "Test Bengali OCR", fill="black")
             img.save(tmp.name)
             test_image_path = tmp.name
 
-        with io.open(test_image_path, 'rb') as image_file:
+        with io.open(test_image_path, "rb") as image_file:
             content = image_file.read()
 
         image = vision.Image(content=content)
@@ -121,15 +127,16 @@ def test_bengali_ocr():
         print(f"❌ Bengali OCR test failed: {str(e)}")
         return False
 
+
 if __name__ == "__main__":
     print("🛠️  Google Cloud Vision API Setup Tester")
     print("=" * 50)
 
     # Check for credentials file
     possible_paths = [
-        os.environ.get('GOOGLE_APPLICATION_CREDENTIALS'),
+        os.environ.get("GOOGLE_APPLICATION_CREDENTIALS"),
         os.path.join(os.path.expanduser("~"), "supremeai", "bengali-credentials.json"),
-        os.path.join(os.path.expanduser("~"), "supremeai", "credentials.json")
+        os.path.join(os.path.expanduser("~"), "supremeai", "credentials.json"),
     ]
 
     credentials_path = None
@@ -145,7 +152,9 @@ if __name__ == "__main__":
         print("Please ensure you have:")
         print("1. Downloaded the service account JSON key")
         print("2. Set GOOGLE_APPLICATION_CREDENTIALS environment variable")
-        credentials_path = input("Enter path to credentials JSON file (or press Enter to skip): ").strip()
+        credentials_path = input(
+            "Enter path to credentials JSON file (or press Enter to skip): "
+        ).strip()
         if not credentials_path:
             exit(1)
 

@@ -22,18 +22,34 @@ FIREBASE_PROJECT_ID = os.getenv("FIREBASE_PROJECT_ID", "supremeai-a")
 DRY_RUN = "--dry-run" in sys.argv
 REFRESH = "--refresh" in sys.argv
 
+
 def _ts():
     return int(time.time() * 1000)
+
 
 def _uid():
     return str(uuid.uuid4())[:8]
 
 
-def entry(id_, topic, category, content, learning_type="RESILIENCE",
-          confidence=0.95, severity="HIGH", permanent=True,
-          tags=None, related_provider=None, resolution=None,
-          solutions=None, context=None, error_count=0, times_applied=0,
-          success=None, quality_score=0.9):
+def entry(
+    id_,
+    topic,
+    category,
+    content,
+    learning_type="RESILIENCE",
+    confidence=0.95,
+    severity="HIGH",
+    permanent=True,
+    tags=None,
+    related_provider=None,
+    resolution=None,
+    solutions=None,
+    context=None,
+    error_count=0,
+    times_applied=0,
+    success=None,
+    quality_score=0.9,
+):
     """Build a SystemLearning document matching SystemLearning.java model."""
     return {
         "id": id_,
@@ -67,7 +83,6 @@ def entry(id_, topic, category, content, learning_type="RESILIENCE",
 # ══════════════════════════════════════════════════════════════════════════════
 
 RESILIENCE_LEARNINGS = {
-
     # ─── CASCADING FAILURE HANDLING ───────────────────────────────────────────
     "rl-0001": entry(
         id_="rl-0001",
@@ -93,7 +108,13 @@ RESILIENCE_LEARNINGS = {
             "  5. Restore traffic: 10% -> 30% -> 60% -> 100% (no sudden jumps)\n"
             "6. Confirm success-rate > 1% error rate for 10+ consecutive minutes before declaring recovered."
         ),
-        tags=["cascading-failure", "cascade", "provider-failure", "circuit-breaker", "multi-provider"],
+        tags=[
+            "cascading-failure",
+            "cascade",
+            "provider-failure",
+            "circuit-breaker",
+            "multi-provider",
+        ],
         severity="CRITICAL",
         solutions=[
             "Step 1: Open all circuit breakers for failing providers immediately.",
@@ -105,7 +126,6 @@ RESILIENCE_LEARNINGS = {
         ],
         error_count=0,
     ),
-
     # ─── COMPLETE AI BLACKOUT ────────────────────────────────────────────────
     "rl-0002": entry(
         id_="rl-0002",
@@ -123,8 +143,8 @@ RESILIENCE_LEARNINGS = {
             "  * In-memory cache accumulated BEFORE blackout\n\n"
             "THUNDER MODE RESPONSE TEMPLATE:\n"
             '  "[LOCAL-SEED] <template answer from core_knowledge.json>\\n\\n'
-            '  NOTE: Full AI capabilities are currently offline.\\n'
-            '  Operating on local knowledge seed only.\\n'
+            "  NOTE: Full AI capabilities are currently offline.\\n"
+            "  Operating on local knowledge seed only.\\n"
             '  Contact admin to restore AI providers."\n\n'
             "RESTART CHECKLIST:\n"
             "  1. ./kill-switch diagnose\n"
@@ -136,7 +156,13 @@ RESILIENCE_LEARNINGS = {
             "  7. Admin panel: /admin > AI Providers > Re-activate\n\n"
             "NO DATA LOSS: All operations are safe. Only AI-generation is downgraded to local seed."
         ),
-        tags=["thunder-mode", "blackout", "complete-failure", "all-ai-down", "emergency"],
+        tags=[
+            "thunder-mode",
+            "blackout",
+            "complete-failure",
+            "all-ai-down",
+            "emergency",
+        ],
         severity="CRITICAL",
         solutions=[
             "1. Verify SupremeAI Core JVM alive: ps aux | grep java",
@@ -147,7 +173,6 @@ RESILIENCE_LEARNINGS = {
         ],
         error_count=0,
     ),
-
     # ─── SELF-HEALING MEMORY ──────────────────────────────────────────────────
     "rl-0003": entry(
         id_="rl-0003",
@@ -184,7 +209,6 @@ RESILIENCE_LEARNINGS = {
         ],
         error_count=0,
     ),
-
     # ─── PROVIDER HEALTH-QUARANTINE ───────────────────────────────────────────
     "rl-0004": entry(
         id_="rl-0004",
@@ -217,7 +241,6 @@ RESILIENCE_LEARNINGS = {
         ],
         error_count=0,
     ),
-
     # ─── GRACEFUL DEGRADATION TIERS ──────────────────────────────────────────
     "rl-0005": entry(
         id_="rl-0005",
@@ -254,7 +277,6 @@ RESILIENCE_LEARNINGS = {
         ],
         error_count=0,
     ),
-
     # ─── CONFIDENCE-WEIGHTED MODEL VOTING ────────────────────────────────────
     "rl-0006": entry(
         id_="rl-0006",
@@ -277,7 +299,13 @@ RESILIENCE_LEARNINGS = {
             "  - voting.single_model_min = 0.30\n"
             "  - voting.tiebreak = HIGHEST_CONFIDENCE"
         ),
-        tags=["voting", "confidence-weighted", "multi-model", "quality-gate", "fallback"],
+        tags=[
+            "voting",
+            "confidence-weighted",
+            "multi-model",
+            "quality-gate",
+            "fallback",
+        ],
         severity="MEDIUM",
         solutions=[
             "Always collect confidence scores from provider responses.",
@@ -286,7 +314,6 @@ RESILIENCE_LEARNINGS = {
         ],
         error_count=0,
     ),
-
     # ─── PROVIDER MIGRATION & KNOWLEDGE TRANSFER ─────────────────────────────
     "rl-0007": entry(
         id_="rl-0007",
@@ -324,7 +351,6 @@ RESILIENCE_LEARNINGS = {
         ],
         error_count=0,
     ),
-
     # ─── KNOWLEDGE SEED REBUILD ───────────────────────────────────────────────
     "rl-0008": entry(
         id_="rl-0008",
@@ -361,7 +387,6 @@ RESILIENCE_LEARNINGS = {
         ],
         error_count=0,
     ),
-
     # ─── MODEL HEALTH MONITORING ─────────────────────────────────────────────
     "rl-0009": entry(
         id_="rl-0009",
@@ -391,7 +416,12 @@ RESILIENCE_LEARNINGS = {
             "  GET /api/admin/providers/{id}/health\n"
             "  GET /api/admin/system/degradation-tier"
         ),
-        tags=["health-monitoring", "model-health", "degradation-detection", "proactive"],
+        tags=[
+            "health-monitoring",
+            "model-health",
+            "degradation-detection",
+            "proactive",
+        ],
         severity="HIGH",
         solutions=[
             "Enable model health scoring in AIProviderDiscoveryService (rolling windows).",
@@ -400,7 +430,6 @@ RESILIENCE_LEARNINGS = {
         ],
         error_count=0,
     ),
-
     # ─── ERROR SIGNATURE LEARNING ─────────────────────────────────────────────
     "rl-0010": entry(
         id_="rl-0010",
@@ -438,7 +467,6 @@ RESILIENCE_LEARNINGS = {
         ],
         error_count=0,
     ),
-
     # ─── RETRY BUDGET & BACKOFF ───────────────────────────────────────────────
     "rl-0011": entry(
         id_="rl-0011",
@@ -477,7 +505,6 @@ RESILIENCE_LEARNINGS = {
         ],
         error_count=0,
     ),
-
     # ─── SMART ROUTER SELF-HEALING ────────────────────────────────────────────
     "rl-0012": entry(
         id_="rl-0012",
@@ -511,7 +538,6 @@ RESILIENCE_LEARNINGS = {
         ],
         error_count=0,
     ),
-
     # ─── FALLBACK CHAIN COMPLETENESS ──────────────────────────────────────────
     "rl-0013": entry(
         id_="rl-0013",
@@ -545,7 +571,6 @@ RESILIENCE_LEARNINGS = {
         ],
         error_count=0,
     ),
-
     # ─── INCIDENT LEARNING FEEDBACK LOOP ─────────────────────────────────────
     "rl-0014": entry(
         id_="rl-0014",
@@ -580,7 +605,6 @@ RESILIENCE_LEARNINGS = {
         ],
         error_count=0,
     ),
-
     # ─── SEED GENERATION & KNOWLEDGE BASE STORES ─────────────────────────────
     "rl-0015": entry(
         id_="rl-0015",
@@ -615,7 +639,6 @@ RESILIENCE_LEARNINGS = {
         ],
         error_count=0,
     ),
-
     # ─── KNOWLEDGE GAP SCAN AUTOMATION ───────────────────────────────────────
     "rl-0016": entry(
         id_="rl-0016",
@@ -639,7 +662,13 @@ RESILIENCE_LEARNINGS = {
             "  * LOW gap -> log and re-scan within 24h; mark as known-gap, no jira ticket needed\n\n"
             "RUN MANUALLY: python scripts/audit_knowledge_completeness.py"
         ),
-        tags=["gap-scan", "knowledge-audit", "completeness", "staleness", "session-start"],
+        tags=[
+            "gap-scan",
+            "knowledge-audit",
+            "completeness",
+            "staleness",
+            "session-start",
+        ],
         severity="HIGH",
         solutions=[
             "Run: python scripts/audit_knowledge_completeness.py --format json > audit_report.json",
@@ -660,7 +689,9 @@ def main():
         print(f"  [{entry_id}] {doc['topic'][:60]}")
 
     if DRY_RUN:
-        print("\n[dry-run] No changes written. Run without --dry-run to seed Firestore.")
+        print(
+            "\n[dry-run] No changes written. Run without --dry-run to seed Firestore."
+        )
         return
 
     import firebase_admin
@@ -701,7 +732,9 @@ def main():
         items_written += 1
 
     batch.commit()
-    print(f"\n[commit] Written {items_written} resilience learning entries to system_learning.")
+    print(
+        f"\n[commit] Written {items_written} resilience learning entries to system_learning."
+    )
     print("Done ✓")
 
 

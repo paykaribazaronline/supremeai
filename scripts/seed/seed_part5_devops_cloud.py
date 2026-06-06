@@ -21,6 +21,7 @@ Run:
 
 import sys
 import os
+
 sys.path.insert(0, os.path.dirname(__file__))
 
 from seed_lib import _learning, run_part
@@ -30,7 +31,6 @@ from seed_lib import _learning, run_part
 # ============================================================================
 
 SYSTEM_LEARNINGS = {
-
     "docker_multistage_build": _learning(
         type_="PATTERN",
         category="DOCKER",
@@ -58,7 +58,6 @@ SYSTEM_LEARNINGS = {
             "tip": "-XX:+UseContainerSupport makes JVM respect container memory limits (not host RAM)",
         },
     ),
-
     "kubernetes_deployment": _learning(
         type_="PATTERN",
         category="KUBERNETES",
@@ -86,7 +85,6 @@ SYSTEM_LEARNINGS = {
             "yaml_tip": "Use 'kubectl diff -f deployment.yaml' to preview changes before applying",
         },
     ),
-
     "cloud_run_configuration": _learning(
         type_="PATTERN",
         category="CLOUD_RUN",
@@ -114,7 +112,6 @@ SYSTEM_LEARNINGS = {
             "cold_start_tip": "Spring Boot: enable lazy initialisation + spring-context-indexer to cut startup time",
         },
     ),
-
     "github_actions_cicd": _learning(
         type_="PATTERN",
         category="CICD",
@@ -139,11 +136,16 @@ SYSTEM_LEARNINGS = {
         confidence=0.95,
         times_applied=134,
         context={
-            "supremeai_workflows": ["firebase-hosting-merge.yml", "deploy-cloudrun.yml", "java-ci.yml", "code-quality.yml", "knowledge-reseed.yml"],
+            "supremeai_workflows": [
+                "firebase-hosting-merge.yml",
+                "deploy-cloudrun.yml",
+                "java-ci.yml",
+                "code-quality.yml",
+                "knowledge-reseed.yml",
+            ],
             "tip": "Use concurrency: group: ${{ github.ref }} to cancel in-flight runs on new push",
         },
     ),
-
     "docker_security": _learning(
         type_="PATTERN",
         category="DOCKER",
@@ -172,7 +174,6 @@ SYSTEM_LEARNINGS = {
             "distroless": "gcr.io/distroless/java21-debian12 — no shell, no package manager, minimal attack surface",
         },
     ),
-
     "observability_three_pillars": _learning(
         type_="PATTERN",
         category="OBSERVABILITY",
@@ -200,7 +201,6 @@ SYSTEM_LEARNINGS = {
             "gcp_tools": "Cloud Logging + Cloud Monitoring + Cloud Trace (OpenTelemetry compatible)",
         },
     ),
-
     "sre_sli_slo": _learning(
         type_="PATTERN",
         category="SRE",
@@ -227,7 +227,6 @@ SYSTEM_LEARNINGS = {
             "tool": "Google Cloud Monitoring SLO tracking, Prometheus recording rules for burn rate",
         },
     ),
-
     "cloud_run_cold_start_optimization": _learning(
         type_="IMPROVEMENT",
         category="CLOUD_RUN",
@@ -256,7 +255,6 @@ SYSTEM_LEARNINGS = {
             "native": "Spring Native: <200ms cold start; requires GraalVM AOT compilation",
         },
     ),
-
     "kubernetes_hpa_scaling": _learning(
         type_="PATTERN",
         category="KUBERNETES",
@@ -283,7 +281,6 @@ SYSTEM_LEARNINGS = {
             "keda": "Kubernetes Event-Driven Autoscaling — scale to zero for batch/event-driven workloads",
         },
     ),
-
     "cicd_gitops_strategy": _learning(
         type_="PATTERN",
         category="CICD",
@@ -310,7 +307,6 @@ SYSTEM_LEARNINGS = {
             "supremeai": "Cloud Run + Cloud Build + Cloud Deploy for GCP-native GitOps",
         },
     ),
-
     "infrastructure_as_code_terraform": _learning(
         type_="PATTERN",
         category="IAC",
@@ -338,7 +334,6 @@ SYSTEM_LEARNINGS = {
             "state_locking": "GCS backend supports state locking natively — prevents concurrent applies",
         },
     ),
-
     "improvement_deployment_checklist": _learning(
         type_="IMPROVEMENT",
         category="DEPLOYMENT",
@@ -363,7 +358,9 @@ SYSTEM_LEARNINGS = {
         severity="HIGH",
         confidence=0.94,
         times_applied=89,
-        context={"rollback": "Cloud Run: 'gcloud run services update-traffic supremeai-a --to-revisions=<prev>=100'"},
+        context={
+            "rollback": "Cloud Run: 'gcloud run services update-traffic supremeai-a --to-revisions=<prev>=100'"
+        },
     ),
 }
 
@@ -372,7 +369,6 @@ SYSTEM_LEARNINGS = {
 # ============================================================================
 
 DEVOPS_KNOWLEDGE_DOCS = {
-
     "docker_guide": {
         "topic": "Docker — Complete Production Guide",
         "category": "DOCKER",
@@ -398,7 +394,7 @@ DEVOPS_KNOWLEDGE_DOCS = {
             "COPY --from=builder /workspace/application/ ./\n"
             "USER appuser\n"
             "EXPOSE 8080\n"
-            "ENTRYPOINT [\"java\",\"-XX:+UseContainerSupport\",\"-XX:MaxRAMPercentage=75.0\",\"org.springframework.boot.loader.launch.JarLauncher\"]\n"
+            'ENTRYPOINT ["java","-XX:+UseContainerSupport","-XX:MaxRAMPercentage=75.0","org.springframework.boot.loader.launch.JarLauncher"]\n'
         ),
         "docker_compose_dev": (
             "services:\n"
@@ -428,7 +424,6 @@ DEVOPS_KNOWLEDGE_DOCS = {
         ],
         "confidence": 0.95,
     },
-
     "kubernetes_guide": {
         "topic": "Kubernetes — Production Deployment Guide",
         "category": "KUBERNETES",
@@ -476,7 +471,6 @@ DEVOPS_KNOWLEDGE_DOCS = {
         },
         "confidence": 0.94,
     },
-
     "github_actions_guide": {
         "topic": "GitHub Actions — CI/CD Complete Guide",
         "category": "CICD",
@@ -530,7 +524,6 @@ DEVOPS_KNOWLEDGE_DOCS = {
         ],
         "confidence": 0.95,
     },
-
     "observability_guide": {
         "topic": "Observability — Metrics, Logs, Traces",
         "category": "OBSERVABILITY",
@@ -549,7 +542,15 @@ DEVOPS_KNOWLEDGE_DOCS = {
         },
         "logging": {
             "format": "JSON structured logging with logstash-logback-encoder",
-            "required_fields": ["timestamp", "level", "requestId", "userId", "operation", "durationMs", "message"],
+            "required_fields": [
+                "timestamp",
+                "level",
+                "requestId",
+                "userId",
+                "operation",
+                "durationMs",
+                "message",
+            ],
             "mdc_setup": "MDCFilter adds requestId to MDC on every request; cleared after response",
             "levels": {
                 "DEBUG": "Dev noise — SQL queries, method entry/exit",
@@ -573,7 +574,6 @@ DEVOPS_KNOWLEDGE_DOCS = {
         },
         "confidence": 0.94,
     },
-
     "cloud_run_guide": {
         "topic": "Google Cloud Run — Complete Configuration Guide",
         "category": "CLOUD_RUN",

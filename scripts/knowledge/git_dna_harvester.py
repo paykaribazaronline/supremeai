@@ -19,9 +19,10 @@ except ImportError:
     print("Error: Required libraries not found.")
     sys.exit(1)
 
+
 def run_dna_harvest():
     print("\n🧬  SupremeAI Project DNA Harvester — Starting...\n")
-    
+
     try:
         db = init_firestore(firebase_admin, credentials, fs_module)
         print("✅  Connected to Firestore!")
@@ -40,8 +41,8 @@ def run_dna_harvest():
             "solutions": [
                 "Add --add-opens java.base/java.lang=ALL-UNNAMED and related flags to org.gradle.jvmargs",
                 "Ensure test JVM args match the main JVM args for consistency",
-                "Set systemProp.java.security.manager=allow for legacy code compatibility"
-            ]
+                "Set systemProp.java.security.manager=allow for legacy code compatibility",
+            ],
         },
         {
             "category": "UI_PERFORMANCE",
@@ -52,8 +53,8 @@ def run_dna_harvest():
             "solutions": [
                 "Use DiffUtil.Callback to compute list differences",
                 "Prefer specific notifyItemInserted/Removed over generic notifyDataSetChanged",
-                "Offload diff calculation to a background thread"
-            ]
+                "Offload diff calculation to a background thread",
+            ],
         },
         {
             "category": "RESOURCE_MANAGEMENT",
@@ -64,9 +65,9 @@ def run_dna_harvest():
             "solutions": [
                 "Monitor org.gradle.jvmargs memory usage",
                 "Use ParallelGC for faster garbage collection in build-heavy tasks",
-                "Enable Gradle configuration cache to speed up repeated tasks"
-            ]
-        }
+                "Enable Gradle configuration cache to speed up repeated tasks",
+            ],
+        },
     ]
 
     dna_items = {}
@@ -79,13 +80,17 @@ def run_dna_harvest():
             solutions=dna["solutions"],
             severity=dna["severity"],
             confidence=dna["confidence"],
-            context={"source": "Git DNA History", "extracted_on": datetime.now().strftime("%Y-%m-%d")}
+            context={
+                "source": "Git DNA History",
+                "extracted_on": datetime.now().strftime("%Y-%m-%d"),
+            },
         )
 
     print(f"\n📁  Seeding {len(dna_items)} DNA insights into 'system_learning'...")
     batch_set(db, "system_learning", dna_items)
-    
+
     print("\n✅  DNA Harvester complete. The system now understands its own history.")
+
 
 if __name__ == "__main__":
     run_dna_harvest()

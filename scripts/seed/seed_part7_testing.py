@@ -22,6 +22,7 @@ Run:
 
 import sys
 import os
+
 sys.path.insert(0, os.path.dirname(__file__))
 
 from seed_lib import _learning, run_part
@@ -31,7 +32,6 @@ from seed_lib import _learning, run_part
 # ============================================================================
 
 SYSTEM_LEARNINGS = {
-
     "testing_tdd_cycle": _learning(
         type_="PATTERN",
         category="TESTING",
@@ -60,7 +60,6 @@ SYSTEM_LEARNINGS = {
             "benefit": "TDD-written code has 40-80% fewer defects (Microsoft/IBM studies)",
         },
     ),
-
     "testing_junit5_mockito": _learning(
         type_="PATTERN",
         category="TESTING",
@@ -90,7 +89,6 @@ SYSTEM_LEARNINGS = {
             "test_naming": "methodName_scenario_expectedBehaviour: findUser_whenNotFound_throwsException",
         },
     ),
-
     "testing_spring_web_mvc_test": _learning(
         type_="PATTERN",
         category="TESTING",
@@ -117,7 +115,6 @@ SYSTEM_LEARNINGS = {
             "json_helper": "Use ObjectMapper.writeValueAsString(dto) to serialize test request bodies",
         },
     ),
-
     "testing_spring_data_jpa_test": _learning(
         type_="PATTERN",
         category="TESTING",
@@ -144,7 +141,6 @@ SYSTEM_LEARNINGS = {
             "dependency": "testImplementation 'org.testcontainers:postgresql:1.19.x'",
         },
     ),
-
     "testing_spring_boot_integration": _learning(
         type_="PATTERN",
         category="TESTING",
@@ -172,7 +168,6 @@ SYSTEM_LEARNINGS = {
             "tip": "Mark @SpringBootTest tests with @Tag('integration') to run separately from unit tests",
         },
     ),
-
     "testing_test_pyramid": _learning(
         type_="PATTERN",
         category="TESTING",
@@ -202,7 +197,6 @@ SYSTEM_LEARNINGS = {
             "cost_ratio": "Unit: $0.001; Integration: $0.10; E2E: $1.00 per test (time+maintenance)",
         },
     ),
-
     "testing_playwright_e2e": _learning(
         type_="PATTERN",
         category="TESTING",
@@ -230,7 +224,6 @@ SYSTEM_LEARNINGS = {
             "auth_fixture": "Use storageState to save and restore auth cookies across tests",
         },
     ),
-
     "testing_flutter": _learning(
         type_="PATTERN",
         category="TESTING",
@@ -258,7 +251,6 @@ SYSTEM_LEARNINGS = {
             "ci": "flutter test --coverage && lcov --list coverage/lcov.info",
         },
     ),
-
     "testing_testcontainers": _learning(
         type_="PATTERN",
         category="TESTING",
@@ -286,7 +278,6 @@ SYSTEM_LEARNINGS = {
             "supported": "PostgreSQL, MySQL, MongoDB, Redis, Kafka, RabbitMQ, Elasticsearch, and 60+ more",
         },
     ),
-
     "testing_contract_testing": _learning(
         type_="PATTERN",
         category="TESTING",
@@ -311,11 +302,14 @@ SYSTEM_LEARNINGS = {
         confidence=0.89,
         times_applied=38,
         context={
-            "tools": ["Spring Cloud Contract", "Pact (pact.io)", "Postman Contract Testing"],
+            "tools": [
+                "Spring Cloud Contract",
+                "Pact (pact.io)",
+                "Postman Contract Testing",
+            ],
             "use_when": "Multiple teams, independent deployments, shared API contracts",
         },
     ),
-
     "testing_mutation_testing": _learning(
         type_="IMPROVEMENT",
         category="TESTING",
@@ -343,7 +337,6 @@ SYSTEM_LEARNINGS = {
             "insight": "100% coverage + 0% mutation score = tests that never actually check results (assertion-free)",
         },
     ),
-
     "testing_test_data_management": _learning(
         type_="PATTERN",
         category="TESTING",
@@ -379,7 +372,6 @@ SYSTEM_LEARNINGS = {
 # ============================================================================
 
 TESTING_KNOWLEDGE_DOCS = {
-
     "testing_pyramid_guide": {
         "topic": "Test Pyramid — Strategy and Implementation",
         "category": "TESTING_STRATEGY",
@@ -390,14 +382,24 @@ TESTING_KNOWLEDGE_DOCS = {
                 "speed": "< 1ms per test — run on every file save",
                 "tools": "JUnit 5, Mockito, AssertJ (Java); Jest (JS); pytest (Python); flutter_test (Dart)",
                 "mocking": "Mock all external dependencies (DB, HTTP, email) — test only the class logic",
-                "examples": ["Service method logic", "Domain model calculations", "Utility functions", "Validators"],
+                "examples": [
+                    "Service method logic",
+                    "Domain model calculations",
+                    "Utility functions",
+                    "Validators",
+                ],
             },
             "Integration_20_percent": {
                 "scope": "Multiple components, DB access, API endpoints",
                 "speed": "100ms - 5s per test — run on PR",
                 "tools": "@WebMvcTest, @DataJpaTest, Testcontainers, WireMock",
                 "mocking": "Mock external services (third-party APIs); use real DB",
-                "examples": ["Controller + Service + Repository", "DB queries", "Security rules", "Message consumers"],
+                "examples": [
+                    "Controller + Service + Repository",
+                    "DB queries",
+                    "Security rules",
+                    "Message consumers",
+                ],
             },
             "E2E_10_percent": {
                 "scope": "Full user flow through real browser/app",
@@ -423,7 +425,6 @@ TESTING_KNOWLEDGE_DOCS = {
         },
         "confidence": 0.97,
     },
-
     "junit5_mockito_guide": {
         "topic": "JUnit 5 + Mockito — Complete Reference",
         "category": "UNIT_TESTING",
@@ -462,7 +463,6 @@ TESTING_KNOWLEDGE_DOCS = {
         ],
         "confidence": 0.97,
     },
-
     "playwright_guide": {
         "topic": "Playwright — E2E Testing for Web Applications",
         "category": "E2E_TESTING",
@@ -526,7 +526,6 @@ TESTING_KNOWLEDGE_DOCS = {
         ),
         "confidence": 0.93,
     },
-
     "flutter_testing_guide": {
         "topic": "Flutter Testing — Unit, Widget, Integration",
         "category": "FLUTTER_TESTING",
@@ -592,7 +591,6 @@ TESTING_KNOWLEDGE_DOCS = {
         },
         "confidence": 0.93,
     },
-
     "test_quality_guide": {
         "topic": "Test Quality — Coverage, Mutation, and Reliability",
         "category": "TEST_QUALITY",
