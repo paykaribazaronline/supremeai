@@ -49,12 +49,12 @@ class AuthProvider with ChangeNotifier {
           _status = AuthStatus.unauthenticated;
         }
       } else {
-        // Default to guest mode instead of unauthenticated
-        _status = AuthStatus.guest;
+        final isGuest = prefs.getBool('is_guest') ?? false;
+        _status = isGuest ? AuthStatus.guest : AuthStatus.unauthenticated;
       }
     } catch (e) {
       _errorMessage = 'Failed to check authentication status.';
-      _status = AuthStatus.guest; // Default to guest even on error
+      _status = AuthStatus.unauthenticated;
     }
     notifyListeners();
   }

@@ -3,6 +3,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supremeai/providers/auth_provider.dart';
+import 'package:supremeai/providers/orchestration_provider.dart';
+import 'package:supremeai/providers/settings_provider.dart';
 import 'package:supremeai/screens/dashboard/home_screen.dart';
 import 'package:supremeai/services/localization_service.dart';
 import 'package:http/http.dart' as http;
@@ -31,12 +33,14 @@ class FakeApiService implements ApiService {
   Future<String?> getToken() async => null;
 }
 
-class FakeOrchestrationProvider extends ChangeNotifier {
+class FakeOrchestrationProvider extends OrchestrationProvider {
   bool _isLoading = false;
-  String? _errorMessage;
+  OrchestrationError? _errorMessage;
 
+  @override
   bool get isLoading => _isLoading;
-  String? get error => _errorMessage;
+  @override
+  OrchestrationError? get error => _errorMessage;
 
   void setLoading(bool loading) {
     _isLoading = loading;
@@ -44,16 +48,18 @@ class FakeOrchestrationProvider extends ChangeNotifier {
   }
 
   void setError(String message) {
-    _errorMessage = message;
+    _errorMessage = OrchestrationError(message: message, type: OrchestrationErrorType.unknown);
     notifyListeners();
   }
 
+  @override
   void clearError() {
     _errorMessage = null;
     notifyListeners();
   }
 
-  Future<void> orchestrateRequirement(String requirement, String token, {String? geminiKey}) async {
+  @override
+  Future<void> orchestrateRequirement(String requirement, String token, {String? geminiKey, String? activeModel}) async {
     _isLoading = true;
     notifyListeners();
     await Future<void>.delayed(const Duration(milliseconds: 10));
@@ -61,6 +67,7 @@ class FakeOrchestrationProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  @override
   Future<void> generateProject(String token) async {}
 }
 
@@ -83,7 +90,8 @@ void main() {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider<AuthProvider>.value(value: auth),
-        ChangeNotifierProvider<FakeOrchestrationProvider>.value(value: orch),
+        ChangeNotifierProvider<OrchestrationProvider>.value(value: orch),
+        ChangeNotifierProvider<SettingsProvider>.value(value: SettingsProvider()),
       ],
       child: const MaterialApp(home: HomeScreen()),
     );

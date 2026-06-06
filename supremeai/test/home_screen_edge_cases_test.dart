@@ -5,6 +5,9 @@ import 'package:provider/provider.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:supremeai/services/api_service.dart';
+import 'package:supremeai/providers/auth_provider.dart';
+import 'package:supremeai/providers/orchestration_provider.dart';
+import 'package:supremeai/providers/settings_provider.dart';
 
 class FakeApiService implements ApiService {
   @override
@@ -29,19 +32,37 @@ class FakeApiService implements ApiService {
   Future<String?> getToken() async => null;
 }
 
-class FakeAuth extends ChangeNotifier {
-  final bool _guest = true;
-  bool get isGuest => _guest;
+class FakeAuth extends AuthProvider {
+  FakeAuth() : super(apiService: FakeApiService());
+
+  @override
+  bool get isGuest => true;
+
+  @override
   String? get token => null;
+
+  @override
   Future<void> logout() async {}
 }
 
-class FakeOrch extends ChangeNotifier {
-  final bool _loading = false;
-  String? _error;
+class FakeOrch extends OrchestrationProvider {
+  bool _loading = false;
+  OrchestrationError? _errorMessage;
+
+  @override
   bool get isLoading => _loading;
-  String? get error => _error;
-  Future<void> orchestrateRequirement(String req, String token, {String? geminiKey}) async {}
+  @override
+  OrchestrationError? get error => _errorMessage;
+
+  void setLoading(bool loading) {
+    _loading = loading;
+    notifyListeners();
+  }
+
+  @override
+  Future<void> orchestrateRequirement(String req, String token, {String? geminiKey, String? activeModel}) async {}
+
+  @override
   Future<void> generateProject(String token) async {}
 }
 
@@ -55,8 +76,9 @@ void main() {
   testWidgets('HomeScreen send button disabled when input empty', (WidgetTester tester) async {
     await tester.pumpWidget(MultiProvider(
       providers: [
-        ChangeNotifierProvider<FakeAuth>.value(value: FakeAuth()),
-        ChangeNotifierProvider<FakeOrch>.value(value: FakeOrch()),
+        ChangeNotifierProvider<AuthProvider>.value(value: FakeAuth()),
+        ChangeNotifierProvider<OrchestrationProvider>.value(value: FakeOrch()),
+        ChangeNotifierProvider<SettingsProvider>.value(value: SettingsProvider()),
       ],
       child: const MaterialApp(home: HomeScreen()),
     ));
@@ -70,8 +92,9 @@ void main() {
     final orch = FakeOrch();
     await tester.pumpWidget(MultiProvider(
       providers: [
-        ChangeNotifierProvider<FakeAuth>.value(value: FakeAuth()),
-        ChangeNotifierProvider<FakeOrch>.value(value: orch),
+        ChangeNotifierProvider<AuthProvider>.value(value: FakeAuth()),
+        ChangeNotifierProvider<OrchestrationProvider>.value(value: orch),
+        ChangeNotifierProvider<SettingsProvider>.value(value: SettingsProvider()),
       ],
       child: const MaterialApp(home: HomeScreen()),
     ));
@@ -87,8 +110,9 @@ void main() {
   testWidgets('HomeScreen switches tabs via bottom bar', (WidgetTester tester) async {
     await tester.pumpWidget(MultiProvider(
       providers: [
-        ChangeNotifierProvider<FakeAuth>.value(value: FakeAuth()),
-        ChangeNotifierProvider<FakeOrch>.value(value: FakeOrch()),
+        ChangeNotifierProvider<AuthProvider>.value(value: FakeAuth()),
+        ChangeNotifierProvider<OrchestrationProvider>.value(value: FakeOrch()),
+        ChangeNotifierProvider<SettingsProvider>.value(value: SettingsProvider()),
       ],
       child: const MaterialApp(home: HomeScreen()),
     ));
