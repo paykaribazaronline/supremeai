@@ -32,6 +32,131 @@ class FakeApiService implements ApiService {
   Future<String?> getToken() async => null;
 }
 
+class MockAuthProvider extends ChangeNotifier implements AuthProvider {
+  @override
+  AuthStatus get status => AuthStatus.guest;
+
+  @override
+  Map<String, dynamic>? get user => null;
+
+  @override
+  String? get token => null;
+
+  @override
+  String? get errorMessage => null;
+
+  @override
+  bool get isGuest => true;
+
+  @override
+  bool get isLoading => false;
+
+  @override
+  bool get isAdmin => false;
+
+  @override
+  Future<bool> login(String email, String password) async => false;
+
+  @override
+  Future<bool> loginWithGoogle() async => false;
+
+  @override
+  Future<void> continueAsGuest() async {}
+
+  @override
+  Future<void> logout() async {}
+
+  @override
+  void clearError() {}
+}
+
+class MockOrchestrationProvider extends ChangeNotifier implements OrchestrationProvider {
+  bool _loading = false;
+  OrchestrationError? _error;
+
+  @override
+  bool get isLoading => _loading;
+
+  @override
+  OrchestrationError? get error => _error;
+
+  @override
+  Map<String, dynamic>? get lastResult => null;
+
+  @override
+  bool get isOnline => true;
+
+  @override
+  List<Map<String, dynamic>> get offlineQueue => [];
+
+  void setLoading(bool value) {
+    _loading = value;
+    notifyListeners();
+  }
+
+  @override
+  Future<void> orchestrateRequirement(String req, String token, {String? geminiKey, String? activeModel}) async {}
+
+  @override
+  Future<void> generateProject(String token) async {}
+}
+
+class MockSettingsProvider extends ChangeNotifier implements SettingsProvider {
+  @override
+  SupremeAISettings get settings => const SupremeAISettings();
+
+  @override
+  bool get isLoading => false;
+
+  @override
+  String? get error => null;
+
+  @override
+  void update(SupremeAISettings next) {}
+
+  @override
+  void setFullAuthority(bool enabled) {}
+
+  @override
+  Future<void> loadFromBackend({String? authToken}) async {}
+}
+
+class FakeAuth extends AuthProvider {
+  FakeAuth() : super(apiService: FakeApiService());
+
+  @override
+  bool get isGuest => true;
+
+  @override
+  String? get token => null;
+
+  @override
+  Future<void> logout() async {}
+}
+
+class FakeOrch extends OrchestrationProvider {
+  FakeOrch() : _isLoading = false, _error = null, super._();
+
+  final bool _isLoading;
+  final OrchestrationError? _error;
+
+  @override
+  bool get isLoading => _isLoading;
+
+  @override
+  OrchestrationError? get error => _error;
+
+  @override
+  Future<void> orchestrateRequirement(String req, String token, {String? geminiKey, String? activeModel}) async {}
+
+  @override
+  Future<void> generateProject(String token) async {}
+}
+
+class FakeSettings extends SettingsProvider {
+  FakeSettings() : super();
+}
+
 class FakeAuth extends AuthProvider {
   FakeAuth() : super(apiService: FakeApiService());
 
@@ -76,9 +201,9 @@ void main() {
   testWidgets('HomeScreen send button disabled when input empty', (WidgetTester tester) async {
     await tester.pumpWidget(MultiProvider(
       providers: [
-        ChangeNotifierProvider<AuthProvider>.value(value: FakeAuth()),
-        ChangeNotifierProvider<OrchestrationProvider>.value(value: FakeOrch()),
-        ChangeNotifierProvider<SettingsProvider>.value(value: SettingsProvider()),
+        ChangeNotifierProvider<AuthProvider>.value(value: MockAuthProvider()),
+        ChangeNotifierProvider<OrchestrationProvider>.value(value: MockOrchestrationProvider()),
+        ChangeNotifierProvider<SettingsProvider>.value(value: MockSettingsProvider()),
       ],
       child: const MaterialApp(home: HomeScreen()),
     ));
@@ -89,12 +214,12 @@ void main() {
   });
 
   testWidgets('HomeScreen generates project when result has action', (WidgetTester tester) async {
-    final orch = FakeOrch();
+    final orch = MockOrchestrationProvider();
     await tester.pumpWidget(MultiProvider(
       providers: [
-        ChangeNotifierProvider<AuthProvider>.value(value: FakeAuth()),
+        ChangeNotifierProvider<AuthProvider>.value(value: MockAuthProvider()),
         ChangeNotifierProvider<OrchestrationProvider>.value(value: orch),
-        ChangeNotifierProvider<SettingsProvider>.value(value: SettingsProvider()),
+        ChangeNotifierProvider<SettingsProvider>.value(value: MockSettingsProvider()),
       ],
       child: const MaterialApp(home: HomeScreen()),
     ));
@@ -110,9 +235,9 @@ void main() {
   testWidgets('HomeScreen switches tabs via bottom bar', (WidgetTester tester) async {
     await tester.pumpWidget(MultiProvider(
       providers: [
-        ChangeNotifierProvider<AuthProvider>.value(value: FakeAuth()),
-        ChangeNotifierProvider<OrchestrationProvider>.value(value: FakeOrch()),
-        ChangeNotifierProvider<SettingsProvider>.value(value: SettingsProvider()),
+        ChangeNotifierProvider<AuthProvider>.value(value: MockAuthProvider()),
+        ChangeNotifierProvider<OrchestrationProvider>.value(value: MockOrchestrationProvider()),
+        ChangeNotifierProvider<SettingsProvider>.value(value: MockSettingsProvider()),
       ],
       child: const MaterialApp(home: HomeScreen()),
     ));
