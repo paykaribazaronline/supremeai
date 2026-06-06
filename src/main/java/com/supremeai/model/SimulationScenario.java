@@ -21,6 +21,7 @@ public class SimulationScenario {
   private String name;
   private String description;
   private String deviceProfile = "PIXEL_6";
+  private Map<String, Object> deviceConfig = new HashMap<>();
 
   /** Dynamic simulation parameters (e.g. networkSpeed, memoryLimit, cpuThrottling, concurrency) */
   private Map<String, Object> parameters = new HashMap<>();
@@ -89,6 +90,14 @@ public class SimulationScenario {
 
   public void setDeviceProfile(String deviceProfile) {
     this.deviceProfile = deviceProfile;
+  }
+
+  public Map<String, Object> getDeviceConfig() {
+    return deviceConfig;
+  }
+
+  public void setDeviceConfig(Map<String, Object> deviceConfig) {
+    this.deviceConfig = deviceConfig;
   }
 
   public Map<String, Object> getParameters() {

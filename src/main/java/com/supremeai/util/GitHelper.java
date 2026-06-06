@@ -1,4 +1,4 @@
-package com.supremeai.utils;
+package com.supremeai.util;
 
 import java.io.BufferedReader;
 import java.io.File;
