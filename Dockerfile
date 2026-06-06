@@ -9,7 +9,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 WORKDIR /app
 
 # Copy the pre-built JAR from the root context directory
-COPY app.jar app.jar
+COPY build/libs/*.jar app.jar
 
 EXPOSE 8080
 

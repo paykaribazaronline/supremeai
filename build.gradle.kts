@@ -14,7 +14,6 @@ plugins {
 group = "com.supremeai"
 version = "6.0.1"
 
-rootProject.layout.buildDirectory.set(file("$rootDir/.gradle/build"))
 
 java {
     sourceCompatibility = JavaVersion.VERSION_21

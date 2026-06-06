@@ -135,7 +135,6 @@ jobs:
         run: |
           cd dashboard
           npm run test -- --run
-        continue-on-error: true
 
       - name: Run E2E Tests
         run: |

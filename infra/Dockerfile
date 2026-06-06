@@ -10,7 +10,7 @@ WORKDIR /app
 
 # Copy the pre-built JAR from the build runner
 # Gradle outputs to .gradle/build/libs (per build.gradle.kts:17)
-COPY .gradle/build/libs/*.jar app.jar
+COPY build/libs/*.jar app.jar
 
 EXPOSE 8080
 

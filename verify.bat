@@ -116,7 +116,7 @@ echo Mobile verification: %RUN_MOBILE%
 echo/
 
 :: 4. Run Backend Verification
-if "%RUN_BACKEND%"=="true" (
+if "!RUN_BACKEND!"=="true" (
     echo [1/2] Running Backend Checks...
     echo Running Spotless code format check...
     call .\gradlew spotlessCheck
@@ -169,7 +169,7 @@ if "!RUN_BACKEND!"=="true" (
 )
 
 :: 5. Run Frontend Verification
-if "%RUN_FRONTEND%"=="true" (
+if "!RUN_FRONTEND!"=="true" (
     echo [2/2] Running Frontend Checks...
     where npm >nul 2>nul
     if !ERRORLEVEL! NEQ 0 (
@@ -213,7 +213,7 @@ if "!RUN_FRONTEND!"=="true" (
 )
 
 :: 6. Run Mobile Verification
-if "%RUN_MOBILE%"=="true" (
+if "!RUN_MOBILE!"=="true" (
     echo [3/3] Running Mobile Checks...
     where flutter >nul 2>nul
     if !ERRORLEVEL! NEQ 0 (

@@ -202,18 +202,10 @@ jobs:
           java-version: "21"
           cache: "gradle"
 
-      - name: Run Spotless Code Format Check and Auto-Fix
+      - name: Check Code Formatting
         run: |
           chmod +x gradlew
-          ./gradlew spotlessApply --no-daemon
-
-      - name: Commit and Push Backend Format Changes
-        uses: stefanzweifel/git-auto-commit-action@v5
-        with:
-          commit_message: "style: spotless auto-format java code [skip ci]"
-          commit_user_name: "GitHub Action"
-          commit_user_email: "actions@github.com"
-          file_pattern: "src/**/*.java"
+          ./gradlew spotlessCheck --no-daemon
 
       - name: Run Backend Unit Tests
         run: ./gradlew clean test --no-daemon
@@ -441,14 +433,6 @@ jobs:
           pip install black
           black scripts/**/*.py || echo "No python scripts found or black failed"
 
-      - name: Commit and Push Frontend Lint/Format Changes
-        uses: stefanzweifel/git-auto-commit-action@v5
-        with:
-          commit_message: "style: auto-fix frontend, python, and root formatting [skip ci]"
-          commit_user_name: "GitHub Action"
-          commit_user_email: "actions@github.com"
-          file_pattern: "dashboard/** scripts/**/*.py *.json *.md config/**"
-
       - name: Run Frontend Tests
         run: npm run test -w dashboard -- --run || echo "No tests or test command failed"
 
@@ -576,14 +560,6 @@ jobs:
             -H "Content-Type: application/json" \
             -H "Authorization: Bearer ${{ secrets.SUPREMEAI_TOKEN }}" \
             -d "{\"log\": \"Firebase Functions failure\", \"context\": \"functions_failure\", \"repo\": \"${{ github.repository }}\"}"
-
-      - name: Commit and Push Functions Fixes
-        uses: stefanzweifel/git-auto-commit-action@v5
-        with:
-          commit_message: "style: auto-fix functions linting [skip ci]"
-          commit_user_name: "GitHub Action"
-          commit_user_email: "actions@github.com"
-          file_pattern: "functions/**"
 
       - name: Compile TypeScript Functions
         run: npm run build -w functions

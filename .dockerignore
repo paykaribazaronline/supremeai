@@ -4,14 +4,7 @@
 
 # 2. Whitelist the build files and jar
 !build/
-build/*
 !build/libs/
-build/libs/*
+!build/libs/*.jar
 !build/libs/app.jar
-
-!app.jar
-!.gradle/
-!.gradle/build/
-!.gradle/build/libs/
-!.gradle/build/libs/app.jar
-!.gradle/build/libs/*.jar
+!app.jar
