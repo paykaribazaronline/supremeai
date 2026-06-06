@@ -208,6 +208,8 @@ jobs:
           ./gradlew spotlessCheck --no-daemon
 
       - name: Run Backend Unit Tests
+        env:
+          OPENAI_API_KEY: dummy-ci-key-for-validation
         run: ./gradlew clean test --no-daemon
 
       - name: Autonomous Repair Analysis on Failure
@@ -334,6 +336,7 @@ jobs:
           SPRING_JPA_HIBERNATE_DDL_AUTO: update
           FIREBASE_PROJECT_ID: "supremeai-test"
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          OPENAI_API_KEY: dummy-ci-key-for-validation
         run: |
           if [ -z "$JWT_SECRET" ]; then
             export JWT_SECRET="dummy_secret_key_for_ci_cd_validation_123456"
