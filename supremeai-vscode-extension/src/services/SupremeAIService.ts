@@ -6,25 +6,25 @@
 import * as vscode from 'vscode';
 import axios, { AxiosInstance } from 'axios';
 import { AuthService } from './AuthService';
-import { 
-   LearningUpload, 
-   LearningResponse, 
-   SupremeAIConfig,
-   CodeEdit,
-   ErrorReport,
-   SuggestionFeedback,
-   ChatMessage,
-   ChatRequest,
-   ChatResponse,
-   CodeAnalysis,
-   CodeFlowAnalysis,
-   CodeFlowAnalysisRequest,
-   CodeFlowAnalysisResponse,
-   ErrorResolutionRequest,
-   ErrorResolutionResponse,
-   SecurityIssue,
-   HealthScore,
-   DependencyGraph
+import {
+  LearningUpload,
+  LearningResponse,
+  SupremeAIConfig,
+  CodeEdit,
+  ErrorReport,
+  SuggestionFeedback,
+  ChatMessage,
+  ChatRequest,
+  ChatResponse,
+  CodeAnalysis,
+  CodeFlowAnalysis,
+  CodeFlowAnalysisRequest,
+  CodeFlowAnalysisResponse,
+  ErrorResolutionRequest,
+  ErrorResolutionResponse,
+  SecurityIssue,
+  HealthScore,
+  DependencyGraph
 } from '../types';
 
 export class SupremeAIService {
@@ -35,7 +35,7 @@ export class SupremeAIService {
   constructor(config: SupremeAIConfig) {
     this.config = config;
     this.sessionId = this.generateSessionId();
-    
+
     // Configure Axios instance with defaults
     this.client = axios.create({
       baseURL: config.backendUrl,
@@ -274,25 +274,21 @@ export class SupremeAIService {
    */
   private generateFallbackResponse(message: string): string {
     const lowerMsg = message.toLowerCase();
-    
-    if (/\b(hello|hi|hey)\b/.test(lowerMsg)) {
+
+    if (lowerMsg.includes('hello') || lowerMsg.includes('hi') || lowerMsg.includes('hey')) {
       return 'Hello! I\'m your SupremeAI assistant. How can I help you with your code today?';
     }
-    
-    if (/\b(bug|error|fix)\b/.test(lowerMsg)) {
+
+    if (lowerMsg.includes('bug') || lowerMsg.includes('error') || lowerMsg.includes('fix')) {
       return 'I can help you debug! Please share the error message or the problematic code, and I\'ll analyze it for you.';
     }
-    
-    if (/\b(refactor|improve|optimize)\b/.test(lowerMsg)) {
+
+    if (lowerMsg.includes('refactor') || lowerMsg.includes('improve') || lowerMsg.includes('optimize')) {
       return 'I can help refactor your code! Please share the code you\'d like to improve, and I\'ll suggest optimizations.';
     }
-    
-    if (/\b(explain|understand)\b/.test(lowerMsg)) {
-      return 'I can explain code concepts! Please share the code or concept you\'d like me to explain.';
-    }
 
-    if (lowerMsg.includes('time')) {
-      return `The current time is: ${new Date().toLocaleTimeString()}`;
+    if (lowerMsg.includes('explain') || lowerMsg.includes('understand')) {
+      return 'I can explain code concepts! Please share the code or concept you\'d like me to explain.';
     }
 
     return 'I\'m here to help with your coding needs! You can ask me to:\n' +

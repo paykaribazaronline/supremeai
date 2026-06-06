@@ -861,6 +861,54 @@ public class SupremeLearningOrchestrator {
     return rootNode;
   }
 
+  public String findCoreKnowledgeStrategy(String query) {
+    if (rootNode == null) return "BROWSER_SCRAPE";
+
+    String normalizedQuery = normalizeText(query);
+    if (normalizedQuery.isEmpty()) return "BROWSER_SCRAPE";
+
+    JsonNode arrayNode = findKnowledgeArrayNode();
+    if (arrayNode.isMissingNode() && rootNode.isObject()) {
+      java.util.Iterator<Map.Entry<String, JsonNode>> fields = rootNode.fields();
+      while (fields.hasNext()) {
+        Map.Entry<String, JsonNode> entry = fields.next();
+        if (entry.getValue().isArray()) {
+          arrayNode = entry.getValue();
+          break;
+        }
+      }
+    }
+
+    if (arrayNode.isArray()) {
+      String bestStrategy = null;
+      double highestScore = 0.0;
+      for (JsonNode entry : arrayNode) {
+        String taskKeywords = normalizeText(entry.path("task").asText());
+        String strategy = entry.path("strategy").asText("BROWSER_SCRAPE");
+        if (taskKeywords.isEmpty()) continue;
+        double score = ngramSimilarity(normalizedQuery, taskKeywords);
+        String[] keywords = taskKeywords.split("\\s+");
+        int overlapCount = 0;
+        for (String kw : keywords) {
+          if (kw.length() > 2 && normalizedQuery.contains(kw.toLowerCase())) {
+            overlapCount++;
+          }
+        }
+        score += overlapCount * 0.15;
+        if (score > highestScore) {
+          highestScore = score;
+          bestStrategy = strategy;
+        }
+      }
+      if (bestStrategy != null) {
+        log.info(
+            "[SYSTEM_LEARNING] Strategy matched for query with score {}: {}", highestScore, bestStrategy);
+        return bestStrategy;
+      }
+    }
+    return "BROWSER_SCRAPE";
+  }
+
   // ══════════════════════════════════════════════════════════════════════════
   //  INTERNAL HELPERS
   // ══════════════════════════════════════════════════════════════════════════

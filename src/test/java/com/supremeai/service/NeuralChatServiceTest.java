@@ -8,15 +8,13 @@ import static org.mockito.Mockito.when;
 
 import com.supremeai.learning.SupremeLearningOrchestrator;
 import com.supremeai.learning.active.ActiveInternetScraper;
-import com.supremeai.learning.active.QueryClassifier;
-import com.supremeai.provider.StubLocalProvider;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.core.io.ResourceLoader;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
@@ -27,30 +25,24 @@ class NeuralChatServiceTest {
 
   @Mock private ActiveInternetScraper internetScraper;
 
-  @Mock private QueryClassifier queryClassifier;
-
-  @Mock private StubLocalProvider stubLocalProvider;
-
-  @Mock private UnifiedOfflineKnowledgeService unifiedOfflineKnowledgeService;
+  @Mock private ResourceLoader resourceLoader;
 
   private NeuralChatService neuralChatService;
 
   @BeforeEach
   void setUp() {
-    WebClient.Builder webClientBuilder = WebClient.builder();
     neuralChatService =
         new NeuralChatService(
             learningOrchestrator,
             internetScraper,
-            queryClassifier,
-            stubLocalProvider,
-            unifiedOfflineKnowledgeService,
-            webClientBuilder);
+            resourceLoader);
   }
 
   @Test
   void generateIntelligentResponse_CoreKnowledgeDirectQuery_SkipsExternalScraping() {
     String userMessage = "What is llm?";
+    when(learningOrchestrator.findCoreKnowledgeStrategy(userMessage))
+        .thenReturn("CORE_ONLY");
     when(learningOrchestrator.findCoreKnowledgeSolution(userMessage))
         .thenReturn("LLM is a large language model.");
 
