@@ -275,20 +275,24 @@ export class SupremeAIService {
   private generateFallbackResponse(message: string): string {
     const lowerMsg = message.toLowerCase();
     
-    if (lowerMsg.includes('hello') || lowerMsg.includes('hi') || lowerMsg.includes('hey')) {
+    if (/\b(hello|hi|hey)\b/.test(lowerMsg)) {
       return 'Hello! I\'m your SupremeAI assistant. How can I help you with your code today?';
     }
     
-    if (lowerMsg.includes('bug') || lowerMsg.includes('error') || lowerMsg.includes('fix')) {
+    if (/\b(bug|error|fix)\b/.test(lowerMsg)) {
       return 'I can help you debug! Please share the error message or the problematic code, and I\'ll analyze it for you.';
     }
     
-    if (lowerMsg.includes('refactor') || lowerMsg.includes('improve') || lowerMsg.includes('optimize')) {
+    if (/\b(refactor|improve|optimize)\b/.test(lowerMsg)) {
       return 'I can help refactor your code! Please share the code you\'d like to improve, and I\'ll suggest optimizations.';
     }
     
-    if (lowerMsg.includes('explain') || lowerMsg.includes('understand')) {
+    if (/\b(explain|understand)\b/.test(lowerMsg)) {
       return 'I can explain code concepts! Please share the code or concept you\'d like me to explain.';
+    }
+
+    if (lowerMsg.includes('time')) {
+      return `The current time is: ${new Date().toLocaleTimeString()}`;
     }
 
     return 'I\'m here to help with your coding needs! You can ask me to:\n' +
