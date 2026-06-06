@@ -2,15 +2,17 @@
 
 > **Status:** 🟢 Updated for v5 Architecture
 
-## Status: ✅ **FINISHED**
+## Status: ✅ **FINISHED (Bengali OCR Optimized)**
 
-## Completion: ~90%
+## Completion: ~95%
 
 ## Priority: MEDIUM
 
 ## Last Updated: 2026-05-04
 
 ---
+
+> **মতামত:** বর্তমানে যুক্ত হওয়া "বাংলা ওসিআর (Bengali OCR)" ফিচারটি সিস্টেমটিকে একটি বিশেষ মাত্রা দিয়েছে। এটি সাধারণ ইমেজ এনালাইসিসের চেয়ে অনেক বেশি কার্যকর এবং আমাদের লোকাল মার্কেটের জন্য সেরা।
 
 ## Overview
 

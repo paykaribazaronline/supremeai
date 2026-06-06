@@ -226,7 +226,7 @@ SYSTEM_LEARNINGS = {
         category="ERROR_DETECTION",
         content=(
             "Runtime errors are identified from stack traces. Key detection rules: "
-            "(1) NullPointerException → find the first 'at org.example.' line for the real "
+            "(1) NullPointerException → find the first 'at com.supremeai.' line for the real "
             "location; (2) ClassCastException → mismatched generics or wrong JSON "
             "deserialization; (3) StackOverflowError → circular dependency or infinite "
             "recursion; (4) OutOfMemoryError → heap tuning or memory leak. "
@@ -247,7 +247,7 @@ SYSTEM_LEARNINGS = {
                 "StackOverflowError",
                 "OutOfMemoryError",
             ],
-            "tip": "First 'at org.example.' line in stack trace is always the real bug location",
+            "tip": "First 'at com.supremeai.' line in stack trace is always the real bug location",
         },
     ),
     "pattern_error_detection_build_tools": _learning(

@@ -2,62 +2,42 @@
 
 > **Status:** 🟢 Updated for v5 Architecture
 
-## Analysis Completed: 2026-04-26
+## Restructured: 2026-06-06
 
 ---
 
-## 📁 Files Created
+## 📁 Reorganized Folder Structure
 
-### 1. Full Documentation
+### 📍 Level 1: Project Master (Docs Root)
+*   `SupremeAI_Complete_Documentation.md`: মাস্টার সিস্টেম বাইবেল এবং ফিচার রেজিস্ট্রি।
+*   `Final_Integrated_Workflow.md`: দৈনন্দিন কাজের জন্য বাংলা ইন্সট্রাকশন এবং কমান্ড লিস্ট।
+*   `SupremeAI_Project_Status_Update.md`: প্রজেক্টের বর্তমান অগ্রগতি এবং মাইলস্টোন ট্র্যাকিং।
 
-**File:** `SupremeAI_Complete_Documentation.md`
-**Contents:**
+### 📍 Level 2: Engineering Specs (in `/main plan/`)
+*   **AI Intelligence:** `Plan_01`, `Plan_03`, `Plan_04`, `Plan_20`, `Plan_21`.
+*   **Data & Scaling:** `Plan_02`, `Plan_09`, `Plan_10`, `Plan_17`.
+*   **Expansion Features:** `Plan_12`, `Plan_14` (OCR), `Plan_15` (Voice), `Plan_23` (RevEng).
+*   **Environment:** `Plan_11` (Pre-push), `Plan_16` (CI/CD), `Plan_22` (Simulator).
 
-- Executive Summary
-- System Architecture (Diagram)
-- 22 Plans Overview Table (Including Simulator Controller)
-- Detailed Plan Descriptions
-- Problem Analysis (10 Categories)
-- Solutions Applied
-- Meta-Learning Framework
-- Risk Assessment
-- Implementation Roadmap (4 Phases + Simulator Phase)
-- Future Considerations
-- Glossary & Decision Log
+### 📍 Level 3: Architecture & Guides (in `/01_Architecture/`)
+*   `GITHUB_ARCHITECTURE.md`: CI/CD এবং সিকিউরিটি পাইপলাইনের নকশা।
+*   `contingency_plans.md`: আপদকালীন পরিস্থিতির জন্য গাইডলাইন।
 
-### 2. Repository Analysis & Action Plan
+---
 
-**File:** `SupremeAI_Repository_Analysis_Action_Plan.md`
-**Contents:**
+## 🔑 Logical Flow for Developers
 
-- Current Repository State
-- 10 Critical Gaps Identified
-- Complete Folder Structure
-- Database Schema (SQL)
-- Environment Configuration
-- Core Code Samples (Python/Java)
-- Testing Strategy
-- Deployment Plan
-- Immediate Action Items
-- Risk Mitigation
+1.  **Read** `SupremeAI_Complete_Documentation.md` to understand *What* we are building.
+2.  **Follow** `Final_Integrated_Workflow.md` to know *How* to work (Seeding, Verify, Deploy).
+3.  **Check** `SupremeAI_Project_Status_Update.md` to see *Where* we are currently.
+4.  **Reference** `Plan_XX_...` files for specific feature implementation details.
 
-### 3. Simulator Controller Implementation Plan
+---
 
-**File:** `SupremeAI_Simulator_Controller_Plan.md`
-**Contents:**
-
-- Perfect Implementation Guide
-- Enhanced Data Model (Java)
-- API Endpoints Specification
-- Firestore Integration
-- Quota Enforcement Logic
-- Simulator Runtime Design
-- Real-time Session Management
-- Audit & Monitoring
-- Implementation Checklist (8 Phases)
-- Testing Strategy
-- Deployment Configuration
-- Migration Timeline (6-8 sprints)
+## ⚠️ High-Priority Re-Arrangement Actions
+1.  **Merge** `Simulator_Controller_Plan` details into `Plan_22_Simulator_Controller_Perfection.md`.
+2.  **Ensure** Plan 18 remains deprecated across all registry lists.
+3.  **Update** percentages in `SupremeAI_Complete_Documentation.md` weekly.
 
 ### 4. Visual Summary
 
@@ -138,7 +118,6 @@
 
 ## ⚠️ Critical Risks
 
-1. **Plan 18 (Crowdsourced API):** Legal/Security risk — temporary only
 2. **No Database:** Cannot store user data, preferences, or learning
 3. **No Tests:** High risk of bugs in production
 4. **Hardcoded Config:** Security vulnerability

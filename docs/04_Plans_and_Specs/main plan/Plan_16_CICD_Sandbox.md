@@ -2,15 +2,17 @@
 
 > **Status:** 🟢 Updated for v5 Architecture
 
-## Status: ✅ **FINISHED**
+## Status: ✅ **FINISHED (Automated Workflow Generation)**
 
-## Completion: ~95%
+## Completion: ~98%
 
 ## Priority: HIGH
 
 ## Last Updated: 2026-05-04
 
 ---
+
+> **মতামত:** আগের পরিকল্পনায় একটি আলাদা স্যান্ডবক্সের কথা ছিল, কিন্তু বর্তমানে প্রতিটি জেনারেটেড অ্যাপের সাথে অটোমেটিক `.github/workflows/ci.yml` তৈরি হওয়া অনেক বেশি আধুনিক এবং এফিশিয়েন্ট।
 
 ## Overview
 

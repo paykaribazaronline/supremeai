@@ -2,15 +2,17 @@
 
 > **Status:** 🟢 Updated for v5 Architecture
 
-## Status: 🔴 **NEW**
+## Status: 🟡 **IN PROGRESS (Migration to Firestore)**
 
-## Completion: ~0%
+## Completion: ~20%
 
 ## Priority: MEDIUM
 
 ## Last Updated: 2026-05-04
 
 ---
+
+> **মতামত:** এটি একটি নতুন মাইলস্টোন। ইন-মেমোরি স্টাব থেকে ক্লাউড-বেসড সিমুলেটরে যাওয়ার সিদ্ধান্তটি চমৎকার, কারণ এতে ইউজাররা তাদের অ্যাপ সরাসরি ব্রাউজারে টেস্ট করতে পারবে।
 
 ## Overview
 

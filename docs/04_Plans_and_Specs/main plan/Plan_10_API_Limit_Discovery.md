@@ -2,15 +2,17 @@
 
 > **Status:** 🟢 Updated for v5 Architecture
 
-## Status: ✅ **FINISHED**
+## Status: ✅ **FINISHED (Adaptive Limit Discovery)**
 
-## Completion: ~90%
+## Completion: ~95%
 
 ## Priority: MEDIUM
 
 ## Last Updated: 2026-05-04
 
 ---
+
+> **মতামত:** বর্তমান পদ্ধতিটি আগের চেয়ে ভালো। আগে শুধু ডকুমেন্টেশন স্ক্র্যাপ করার কথা ছিল, কিন্তু এখন সিস্টেমটি সরাসরি '৪২৯ (Too Many Requests)' এরর শনাক্ত করে এবং রিয়েল-টাইম ইউজেজ ট্র্যাক করে অটো-রোটেশন করে, যা অনেক বেশি প্রাকটিক্যাল।
 
 ## Overview
 
