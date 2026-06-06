@@ -1,18 +1,14 @@
 [
   {
-    "pattern": "technical_how_to",
-    "strategy": "BROWSER_SCRAPE",
-    "priority_sources": [
-      "StackOverflow",
-      "GitHub",
-      "MDN"
-    ]
+    "task": "flutter",
+    "solution": "Flutter is a UI toolkit for building natively compiled applications for mobile, web, and desktop from a single codebase."
   },
   {
-    "pattern": "general_knowledge_complex",
-    "strategy": "CLOUD_AI",
-    "priority_sources": [
-      "Gemini_1.5_Pro"
-    ]
+    "task": "technical_how_to",
+    "solution": "For technical how-to questions, search StackOverflow, GitHub, or MDN."
+  },
+  {
+    "task": "general_knowledge_complex",
+    "solution": "For complex general knowledge questions, use cloud AI like Gemini 1.5 Pro."
   }
 ]
