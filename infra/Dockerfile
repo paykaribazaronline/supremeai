@@ -9,7 +9,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 WORKDIR /app
 
 # Copy the pre-built JAR from the build runner
-# Gradle outputs to .gradle/build/libs (per build.gradle.kts:17)
+# Gradle outputs to build/libs/
 COPY build/libs/*.jar app.jar
 
 EXPOSE 8080

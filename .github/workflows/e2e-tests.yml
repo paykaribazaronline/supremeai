@@ -132,7 +132,6 @@ jobs:
             -H "Content-Type: application/json" \
             -d '{"email":"test@supreme.ai","password":"test123","returnSecureToken":true}' || true
         shell: bash
-        continue-on-error: true
 
       - name: Run Frontend Unit Tests
         run: |
