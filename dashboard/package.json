@@ -21,7 +21,7 @@
     "@react-three/drei": "^9.88.16",
     "@react-three/fiber": "^8.15.11",
     "@stomp/stompjs": "^7.0.0",
-    "antd": "^5.22.0",
+    "antd": "^6.4.3",
     "axios": "^1.15.2",
     "firebase": "^12.14.0",
     "framer-motion": "^12.38.0",
