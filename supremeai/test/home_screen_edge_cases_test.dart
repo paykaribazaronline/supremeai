@@ -3,6 +3,31 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supremeai/screens/dashboard/home_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'package:supremeai/services/api_service.dart';
+
+class FakeApiService implements ApiService {
+  @override
+  http.Client get client => throw UnimplementedError();
+
+  @override
+  Future<Map<String, dynamic>> getUserProfile() async => {'success': false};
+
+  @override
+  Future<Map<String, dynamic>> register(String email, String password, String displayName) async => {'success': false};
+
+  @override
+  Future<Map<String, dynamic>> firebaseLogin(String idToken) async => {'success': false};
+
+  @override
+  Future<void> logout() async {}
+
+  @override
+  Future<List<Map<String, dynamic>>> getConfiguredProviders() async => [];
+
+  @override
+  Future<String?> getToken() async => null;
+}
 
 class FakeAuth extends ChangeNotifier {
   final bool _guest = true;

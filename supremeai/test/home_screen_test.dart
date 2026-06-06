@@ -5,6 +5,31 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supremeai/providers/auth_provider.dart';
 import 'package:supremeai/screens/dashboard/home_screen.dart';
 import 'package:supremeai/services/localization_service.dart';
+import 'package:http/http.dart' as http;
+import 'package:supremeai/services/api_service.dart';
+
+class FakeApiService implements ApiService {
+  @override
+  http.Client get client => throw UnimplementedError();
+
+  @override
+  Future<Map<String, dynamic>> getUserProfile() async => {'success': false};
+
+  @override
+  Future<Map<String, dynamic>> register(String email, String password, String displayName) async => {'success': false};
+
+  @override
+  Future<Map<String, dynamic>> firebaseLogin(String idToken) async => {'success': false};
+
+  @override
+  Future<void> logout() async {}
+
+  @override
+  Future<List<Map<String, dynamic>>> getConfiguredProviders() async => [];
+
+  @override
+  Future<String?> getToken() async => null;
+}
 
 class FakeOrchestrationProvider extends ChangeNotifier {
   bool _isLoading = false;
@@ -52,7 +77,7 @@ void main() {
   });
 
   Widget createHomeScreen({AuthProvider? authProvider, FakeOrchestrationProvider? orchestration}) {
-    final auth = authProvider ?? AuthProvider();
+    final auth = authProvider ?? AuthProvider(apiService: FakeApiService());
     final orch = orchestration ?? FakeOrchestrationProvider();
 
     return MultiProvider(
@@ -118,7 +143,7 @@ void main() {
   });
 
   testWidgets('logout button present in app bar when authenticated', (WidgetTester tester) async {
-    final auth = AuthProvider();
+    final auth = AuthProvider(apiService: FakeApiService());
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('auth_token', 'token-abc');
     await prefs.setString('user_json', '{"username":"admin","role":"admin"}');
@@ -130,7 +155,7 @@ void main() {
   });
 
   testWidgets('login icon shown when in guest mode', (WidgetTester tester) async {
-    final auth = AuthProvider();
+    final auth = AuthProvider(apiService: FakeApiService());
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('is_guest', true);
 
