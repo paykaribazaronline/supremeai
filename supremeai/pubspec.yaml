@@ -40,7 +40,7 @@ dependencies:
   connectivity_plus: ^6.1.0
   google_sign_in: ^6.2.1
   google_generative_ai: ^0.4.4
-  firebase_core: ^4.10.0
+  firebase_core: ^4.9.0
   firebase_data_connect: ^0.3.0
 
 dev_dependencies:

@@ -350,7 +350,7 @@ jobs:
             exit 1
           fi
           echo "Found JAR: $JAR_FILE"
-          nohup java --add-opens java.base/java.time.chrono=ALL-UNNAMED --add-opens java.base/java.util=ALL-UNNAMED --add-opens java.base/java.lang=ALL-UNNAMED -jar "$JAR_FILE" > backend.log 2>&1 &
+          nohup java -Dspring.cloud.gcp.firestore.emulator.enabled=true -Dspring.cloud.gcp.firestore.host=localhost:8081 --add-opens java.base/java.time.chrono=ALL-UNNAMED --add-opens java.base/java.util=ALL-UNNAMED --add-opens java.base/java.lang=ALL-UNNAMED -jar "$JAR_FILE" > backend.log 2>&1 &
           for i in $(seq 1 60); do
             if curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/api/health | grep -q "200"; then
               echo "Backend is healthy"
