@@ -32,17 +32,13 @@ class NeuralChatServiceTest {
   @BeforeEach
   void setUp() {
     neuralChatService =
-        new NeuralChatService(
-            learningOrchestrator,
-            internetScraper,
-            resourceLoader);
+        new NeuralChatService(learningOrchestrator, internetScraper, resourceLoader);
   }
 
   @Test
   void generateIntelligentResponse_CoreKnowledgeDirectQuery_SkipsExternalScraping() {
     String userMessage = "What is llm?";
-    when(learningOrchestrator.findCoreKnowledgeStrategy(userMessage))
-        .thenReturn("CORE_ONLY");
+    when(learningOrchestrator.findCoreKnowledgeStrategy(userMessage)).thenReturn("CORE_ONLY");
     when(learningOrchestrator.findCoreKnowledgeSolution(userMessage))
         .thenReturn("LLM is a large language model.");
 

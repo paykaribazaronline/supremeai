@@ -902,7 +902,9 @@ public class SupremeLearningOrchestrator {
       }
       if (bestStrategy != null) {
         log.info(
-            "[SYSTEM_LEARNING] Strategy matched for query with score {}: {}", highestScore, bestStrategy);
+            "[SYSTEM_LEARNING] Strategy matched for query with score {}: {}",
+            highestScore,
+            bestStrategy);
         return bestStrategy;
       }
     }

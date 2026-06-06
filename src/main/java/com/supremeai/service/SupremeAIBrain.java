@@ -43,12 +43,9 @@ import reactor.core.publisher.Mono;
  * <p>════════════════════════════════════════════════════════════
  */
 /**
- * CORE KNOWLEDGE ROLE STATEMENT: - The primary job of Core Knowledge from now
- * on is to act as the
- * central coordinator and decision maker. - It understands how to make other
- * components work (e.g.
- * why only the browser is enough to solve 80% of tasks, when to route tasks to
- * helper models, and
+ * CORE KNOWLEDGE ROLE STATEMENT: - The primary job of Core Knowledge from now on is to act as the
+ * central coordinator and decision maker. - It understands how to make other components work (e.g.
+ * why only the browser is enough to solve 80% of tasks, when to route tasks to helper models, and
  * what prompt engineering strategies to use dynamically).
  */
 @Service
@@ -71,35 +68,25 @@ public class SupremeAIBrain {
   public static final String TASK_ORCHESTRATION = "ORCHESTRATION";
   public static final String TASK_GENERAL = "GENERAL";
 
-  @Autowired
-  private AIProviderFactory providerFactory;
+  @Autowired private AIProviderFactory providerFactory;
 
-  @Autowired
-  private ThirdOpinionOrchestrator fallbackOrchestrator;
+  @Autowired private ThirdOpinionOrchestrator fallbackOrchestrator;
 
-  @Autowired
-  private SupremeLearningOrchestrator learningOrchestrator;
+  @Autowired private SupremeLearningOrchestrator learningOrchestrator;
 
-  @Autowired
-  private ActiveInternetScraper activeInternetScraper;
+  @Autowired private ActiveInternetScraper activeInternetScraper;
 
-  @Autowired
-  private BrowserService browserService;
+  @Autowired private BrowserService browserService;
 
-  @Autowired
-  private SolutionMemoryRepository solutionMemoryRepository;
+  @Autowired private SolutionMemoryRepository solutionMemoryRepository;
 
-  @Autowired
-  private ProviderRepository providerRepository;
+  @Autowired private ProviderRepository providerRepository;
 
-  @Autowired
-  private UnifiedOfflineKnowledgeService unifiedOfflineKnowledgeService;
+  @Autowired private UnifiedOfflineKnowledgeService unifiedOfflineKnowledgeService;
 
-  @Autowired
-  private EnhancedLearningService enhancedLearningService;
+  @Autowired private EnhancedLearningService enhancedLearningService;
 
-  @Autowired
-  private ObjectMapper objectMapper;
+  @Autowired private ObjectMapper objectMapper;
 
   // Simple in-memory stats (Admin dashboard এ দেখানো হবে)
   private final Map<String, Long> taskCallCount = new ConcurrentHashMap<>();
@@ -110,8 +97,7 @@ public class SupremeAIBrain {
   // ══════════════════════════════════════════════════════════
 
   /**
-   * General-purpose AI thinking — task category ছাড়া। SupremeCore নিজে সিদ্ধান্ত
-   * নেয় কোন helper
+   * General-purpose AI thinking — task category ছাড়া। SupremeCore নিজে সিদ্ধান্ত নেয় কোন helper
    * AI (যদি থাকে) ব্যবহার করবে।
    *
    * @param prompt ব্যবহারকারীর প্রশ্ন বা request
@@ -124,9 +110,8 @@ public class SupremeAIBrain {
   /**
    * Task-specific AI thinking — Admin task অনুযায়ী helper AI route করতে পারেন।
    *
-   * @param taskCategory TASK_* constants ব্যবহার করুন (যেমন:
-   *                     TASK_CODE_GENERATION)
-   * @param prompt       কাজের বিবরণ বা প্রশ্ন
+   * @param taskCategory TASK_* constants ব্যবহার করুন (যেমন: TASK_CODE_GENERATION)
+   * @param prompt কাজের বিবরণ বা প্রশ্ন
    * @return AI response
    */
   public Mono<String> think(String taskCategory, String prompt) {
@@ -134,12 +119,11 @@ public class SupremeAIBrain {
   }
 
   /**
-   * Full AI thinking — task, prompt এবং error signature সহ।
-   * ThirdOpinionOrchestrator এর সাথে
+   * Full AI thinking — task, prompt এবং error signature সহ। ThirdOpinionOrchestrator এর সাথে
    * SupremeCore orchestration একত্রিত।
    *
-   * @param taskCategory   TASK_* constant
-   * @param prompt         AI-কে দেওয়া instruction
+   * @param taskCategory TASK_* constant
+   * @param prompt AI-কে দেওয়া instruction
    * @param errorSignature known error/task signature (cache lookup-এর জন্য)
    * @return AI response — সবসময় non-null, কখনো error throw করে না
    */
@@ -180,35 +164,41 @@ public class SupremeAIBrain {
     // (Change made: Core Knowledge is now a dynamic decision maker and does not
     // serve static
     // answers)
-    boolean isComplex = task.contains("CODE_")
-        || task.contains("REVIEW")
-        || task.contains("SECURITY")
-        || task.contains("TESTING")
-        || task.contains("REASONING")
-        || prompt.contains("generate")
-        || prompt.contains("write code")
-        || prompt.contains("complex");
+    boolean isComplex =
+        task.contains("CODE_")
+            || task.contains("REVIEW")
+            || task.contains("SECURITY")
+            || task.contains("TESTING")
+            || task.contains("REASONING")
+            || prompt.contains("generate")
+            || prompt.contains("write code")
+            || prompt.contains("complex");
 
     if (!isComplex) {
       logger.info(
           "🧠 [CORE KNOWLEDGE] Decision: Routing NORMAL query to Browser and Database Learning in parallel.");
 
       // Part 1: Browser search and Database learning queries run in parallel
-      Mono<String> browserMono = tryBrowserScraping(task, prompt).onErrorReturn("No web search results available.");
+      Mono<String> browserMono =
+          tryBrowserScraping(task, prompt).onErrorReturn("No web search results available.");
 
-      String searchKey = (errorSignature != null && !errorSignature.equals("NO_SIGNATURE"))
-          ? errorSignature
-          : prompt;
-      Mono<String> dbMemoryMono = solutionMemoryRepository
-          .findByTriggerError(searchKey)
-          .sort((a, b) -> Double.compare(b.calculateSupremeScore(), a.calculateSupremeScore()))
-          .next()
-          .map(sol -> sol.getResolvedCode())
-          .defaultIfEmpty("No local database learning found.")
-          .onErrorReturn("No local database learning found.");
+      String searchKey =
+          (errorSignature != null && !errorSignature.equals("NO_SIGNATURE"))
+              ? errorSignature
+              : prompt;
+      Mono<String> dbMemoryMono =
+          solutionMemoryRepository
+              .findByTriggerError(searchKey)
+              .sort((a, b) -> Double.compare(b.calculateSupremeScore(), a.calculateSupremeScore()))
+              .next()
+              .map(sol -> sol.getResolvedCode())
+              .defaultIfEmpty("No local database learning found.")
+              .onErrorReturn("No local database learning found.");
 
       return Mono.zip(browserMono, dbMemoryMono)
-          .flatMap(tuple -> chickenBrainMerge(tuple.getT1(), tuple.getT2(), prompt, task, errorSignature))
+          .flatMap(
+              tuple ->
+                  chickenBrainMerge(tuple.getT1(), tuple.getT2(), prompt, task, errorSignature))
           .doOnNext(response -> trackSuccess(task));
     } else {
       logger.info(
@@ -236,60 +226,75 @@ public class SupremeAIBrain {
   }
 
   /**
-   * ChickenBrain merges browser search results & database learning to create a
-   * better answer.
-   * (Change made: ChickenBrain merges parallel results from browser and database
-   * learning)
+   * ChickenBrain merges browser search results & database learning to create a better answer.
+   * (Change made: ChickenBrain merges parallel results from browser and database learning)
    */
-  private Mono<String> chickenBrainMerge(String browserData, String dbData, String prompt, String task, String errorSignature) {
-    logger.info("🧠 [ChickenBrain] Merging browser data and database learning for query: {}", truncate(prompt));
+  private Mono<String> chickenBrainMerge(
+      String browserData, String dbData, String prompt, String task, String errorSignature) {
+    logger.info(
+        "🧠 [ChickenBrain] Merging browser data and database learning for query: {}",
+        truncate(prompt));
 
-    if (isInsufficientResponse(browserData, prompt).block() && isInsufficientResponse(dbData, prompt).block()) {
-      logger.info("🧠 [ChickenBrain] Both browser and DB data are insufficient. Escalating to complex AI.");
+    if (isInsufficientResponse(browserData, prompt).block()
+        && isInsufficientResponse(dbData, prompt).block()) {
+      logger.info(
+          "🧠 [ChickenBrain] Both browser and DB data are insufficient. Escalating to complex AI.");
       return escalateToComplexAI(task, prompt, errorSignature);
     }
 
-    String promptWithContext = String.format(
-        "You are ChickenBrain, a high-precision hybrid intelligence synthesizer for SupremeAI. "
-            + "Merge the following web search data and local database learning data into ONE cohesive answer.\n\n"
-            + "USER QUESTION: \"%s\"\n\n"
-            + "CONTEXT 1 (Live Web Results):\n%s\n\n"
-            + "CONTEXT 2 (Local Database Learning):\n%s\n\n"
-            + "STRICT INSTRUCTIONS:\n"
-            + "1. Prioritize Local Memory for project-specific architecture and internal rules.\n"
-            + "2. Use Web Results for the latest technical trends, documentation, and external facts.\n"
-            + "3. Resolve Contradictions: If sources disagree, favor the more recent and authoritative source.\n"
-            + "4. Output: Use professional Markdown. Be concise but thorough. Answer in the same language as the user question.\n"
-            + "5. If information is insufficient, state what is missing instead of hallucinating.",
-        prompt, browserData, dbData);
+    String promptWithContext =
+        String.format(
+            "You are ChickenBrain, a high-precision hybrid intelligence synthesizer for SupremeAI. "
+                + "Merge the following web search data and local database learning data into ONE cohesive answer.\n\n"
+                + "USER QUESTION: \"%s\"\n\n"
+                + "CONTEXT 1 (Live Web Results):\n%s\n\n"
+                + "CONTEXT 2 (Local Database Learning):\n%s\n\n"
+                + "STRICT INSTRUCTIONS:\n"
+                + "1. Prioritize Local Memory for project-specific architecture and internal rules.\n"
+                + "2. Use Web Results for the latest technical trends, documentation, and external facts.\n"
+                + "3. Resolve Contradictions: If sources disagree, favor the more recent and authoritative source.\n"
+                + "4. Output: Use professional Markdown. Be concise but thorough. Answer in the same language as the user question.\n"
+                + "5. If information is insufficient, state what is missing instead of hallucinating.",
+            prompt, browserData, dbData);
 
     return fallbackOrchestrator
         .executeWithSupremeIntelligence("CHAT", "chicken_brain_merge", promptWithContext)
-        .flatMap(mergedResponse -> isInsufficientResponse(mergedResponse, prompt)
-            .flatMap(insufficient -> {
-              if (insufficient) {
-                logger.info("🧠 [ChickenBrain] Merged response is insufficient per AI Judge. Escalating to complex AI.");
-                return escalateToComplexAI(task, prompt, errorSignature);
-              }
-              return Mono.just(mergedResponse);
-            }))
+        .flatMap(
+            mergedResponse ->
+                isInsufficientResponse(mergedResponse, prompt)
+                    .flatMap(
+                        insufficient -> {
+                          if (insufficient) {
+                            logger.info(
+                                "🧠 [ChickenBrain] Merged response is insufficient per AI Judge. Escalating to complex AI.");
+                            return escalateToComplexAI(task, prompt, errorSignature);
+                          }
+                          return Mono.just(mergedResponse);
+                        }))
         .onErrorResume(
-            e -> Mono.just(
-                "[ChickenBrain Local Merge]\n"
-                    + "We found this in search:\n"
-                    + browserData
-                    + "\n\nAnd this in our database:\n"
-                    + dbData));
+            e ->
+                Mono.just(
+                    "[ChickenBrain Local Merge]\n"
+                        + "We found this in search:\n"
+                        + browserData
+                        + "\n\nAnd this in our database:\n"
+                        + dbData));
   }
 
   private Mono<String> escalateToComplexAI(String task, String prompt, String errorSignature) {
-      return fallbackOrchestrator
-          .executeWithSupremeIntelligence(task, errorSignature, prompt)
-          .flatMap(aiResponse -> enhancedLearningService.learnFromInteraction("system", prompt, aiResponse).thenReturn(aiResponse))
-          .onErrorResume(e -> {
+    return fallbackOrchestrator
+        .executeWithSupremeIntelligence(task, errorSignature, prompt)
+        .flatMap(
+            aiResponse ->
+                enhancedLearningService
+                    .learnFromInteraction("system", prompt, aiResponse)
+                    .thenReturn(aiResponse))
+        .onErrorResume(
+            e -> {
               logger.warn("Escalated complex AI run failed: {}", e.getMessage());
-              return Mono.just("Failed to get information from deployed AI model after all attempts.");
-          });
+              return Mono.just(
+                  "Failed to get information from deployed AI model after all attempts.");
+            });
   }
 
   /** Tier 3: Browser/Web Scraping fallback for real-time knowledge. */
@@ -297,30 +302,29 @@ public class SupremeAIBrain {
     logger.info("[BRAIN TIER 3] Attempting web scraping via browser for task: {}", task);
 
     return Mono.fromCallable(
-        () -> {
-          String cleanQuery = prompt
-              .toLowerCase()
-              .replaceAll("[\\p{Punct}]", " ")
-              .replaceAll("\\s+", " ")
-              .trim();
-          String domain = extractDomain(prompt); // Extract domain for targeted scraping
-          return activeInternetScraper
-              .scrapeKnowledge(domain, List.of(cleanQuery.split("\\s+")))
-              .next()
-              .map(issue -> issue.getSolution())
-              .timeout(Duration.ofSeconds(10))
-              .onErrorResume(err -> {
-                  logger.warn("[BRAIN TIER 3] Web scraping failed: {}", err.getMessage());
-                  return Mono.just("No web search results available.");
-              });
-        })
+            () -> {
+              String cleanQuery =
+                  prompt
+                      .toLowerCase()
+                      .replaceAll("[\\p{Punct}]", " ")
+                      .replaceAll("\\s+", " ")
+                      .trim();
+              String domain = extractDomain(prompt); // Extract domain for targeted scraping
+              return activeInternetScraper
+                  .scrapeKnowledge(domain, List.of(cleanQuery.split("\\s+")))
+                  .next()
+                  .map(issue -> issue.getSolution())
+                  .timeout(Duration.ofSeconds(10))
+                  .onErrorResume(
+                      err -> {
+                        logger.warn("[BRAIN TIER 3] Web scraping failed: {}", err.getMessage());
+                        return Mono.just("No web search results available.");
+                      });
+            })
         .flatMap(mono -> mono); // Flatten the Mono<Mono<String>>
   }
 
-  /**
-   * Demo endpoint - Guest access without authentication to test 4-layer
-   * resilience.
-   */
+  /** Demo endpoint - Guest access without authentication to test 4-layer resilience. */
   public Mono<String> thinkDemo(String prompt) {
     return think(TASK_GENERAL, prompt, "DEMO_NO_SIGNATURE");
   }
@@ -388,8 +392,7 @@ public class SupremeAIBrain {
   }
 
   /**
-   * Phase 1: Hub Identification for Super-Hub Orchestrator. Maps user intent to a
-   * specific Hub ID.
+   * Phase 1: Hub Identification for Super-Hub Orchestrator. Maps user intent to a specific Hub ID.
    */
   public Mono<String> identifyHub(String query) {
     return Mono.fromCallable(
@@ -397,18 +400,13 @@ public class SupremeAIBrain {
           Map<String, String> hubInfo = learningOrchestrator.identifyBestHub(query);
           String hubName = hubInfo.get("hub").toLowerCase();
 
-          if (hubName.contains("development"))
-            return "dev_hub";
-          if (hubName.contains("language") || hubName.contains("marketing"))
-            return "lang_hub";
-          if (hubName.contains("security"))
-            return "security_hub";
+          if (hubName.contains("development")) return "dev_hub";
+          if (hubName.contains("language") || hubName.contains("marketing")) return "lang_hub";
+          if (hubName.contains("security")) return "security_hub";
           if (hubName.contains("visual")
               || hubName.contains("voice")
-              || hubName.contains("multimodal"))
-            return "multimodal_hub";
-          if (hubName.contains("memory"))
-            return "memory_hub";
+              || hubName.contains("multimodal")) return "multimodal_hub";
+          if (hubName.contains("memory")) return "memory_hub";
 
           return "lang_hub"; // Default fallback
         });
@@ -441,8 +439,7 @@ public class SupremeAIBrain {
   // ══════════════════════════════════════════════════════════
 
   /**
-   * Phase 2: Expose orchestrator learning stats for admin dashboard. Returns
-   * intent classification
+   * Phase 2: Expose orchestrator learning stats for admin dashboard. Returns intent classification
    * counts, hub routing distribution, and correction history summary.
    */
   public Mono<Map<String, Object>> getLearningStats() {
@@ -487,14 +484,13 @@ public class SupremeAIBrain {
   }
 
   private String truncate(String text) {
-    if (text == null)
-      return "";
+    if (text == null) return "";
     return text.length() > 100 ? text.substring(0, 100) + "..." : text;
   }
 
   /**
-   * AI Judge — determines whether a merged response actually answers the user's
-   * question. Uses ChickenBrain to avoid brittle string matching.
+   * AI Judge — determines whether a merged response actually answers the user's question. Uses
+   * ChickenBrain to avoid brittle string matching.
    */
   private Mono<Boolean> isInsufficientResponse(String response, String userPrompt) {
     if (response == null || response.trim().isEmpty()) {
@@ -509,21 +505,32 @@ public class SupremeAIBrain {
             + "SUFFICIENT means: the answer contains relevant, factual information that "
             + "directly addresses the user question.\n\n"
             + "Respond with EXACTLY ONE WORD: either \"SUFFICIENT\" or \"INSUFFICIENT\".\n\n"
-            + "USER QUESTION: \"" + userPrompt + "\"\n\n"
-            + "CANDIDATE ANSWER:\n" + response;
+            + "USER QUESTION: \""
+            + userPrompt
+            + "\"\n\n"
+            + "CANDIDATE ANSWER:\n"
+            + response;
 
     return fallbackOrchestrator
         .executeWithSupremeIntelligence("CHAT", "quality_judge", aiJudgePrompt)
-        .map(judgment -> {
-          String lower = judgment.trim().toUpperCase();
-          boolean insufficient = lower.contains("INSUFFICIENT") || lower.contains("NO") || lower.contains("FAIL");
-          logger.info("[ChickenBrain Judge] Quality judgment: {} -> {}", insufficient ? "INSUFFICIENT" : "SUFFICIENT", truncate(judgment));
-          return insufficient;
-        })
-        .onErrorResume(e -> {
-          logger.warn("[ChickenBrain Judge] Evaluation failed, falling back to heuristic: {}", e.getMessage());
-          return Mono.just(heuristicInsufficientCheck(response));
-        });
+        .map(
+            judgment -> {
+              String lower = judgment.trim().toUpperCase();
+              boolean insufficient =
+                  lower.contains("INSUFFICIENT") || lower.contains("NO") || lower.contains("FAIL");
+              logger.info(
+                  "[ChickenBrain Judge] Quality judgment: {} -> {}",
+                  insufficient ? "INSUFFICIENT" : "SUFFICIENT",
+                  truncate(judgment));
+              return insufficient;
+            })
+        .onErrorResume(
+            e -> {
+              logger.warn(
+                  "[ChickenBrain Judge] Evaluation failed, falling back to heuristic: {}",
+                  e.getMessage());
+              return Mono.just(heuristicInsufficientCheck(response));
+            });
   }
 
   private boolean heuristicInsufficientCheck(String response) {
@@ -542,23 +549,24 @@ public class SupremeAIBrain {
   }
 
   /**
-   * Extract meaningful keywords from the user's message for targeted scraping.
-   * Removes stop words
+   * Extract meaningful keywords from the user's message for targeted scraping. Removes stop words
    * and short words, keeps technical terms.
    */
   private List<String> extractKeywords(String message) {
-    Set<String> stopWords = Set.of(
-        "what", "is", "the", "a", "an", "in", "on", "of", "to", "for", "and", "or", "how", "do",
-        "does", "can", "could", "would", "should", "this", "that", "with", "from", "by", "at",
-        "it", "be", "are", "was", "were", "been", "being", "have", "has", "had", "will", "i",
-        "me", "my", "you", "your", "we", "our", "they", "them", "tell", "explain", "about",
-        "please", "help", "want", "need", "কি", "কী", "কেন", "কোথায়", "কিভাবে", "কীভাবে",
-        "আমি", "আমার", "এটা", "এটি", "সেটা", "তুমি", "তোমার", "করো", "করুন", "বলো", "বলুন");
+    Set<String> stopWords =
+        Set.of(
+            "what", "is", "the", "a", "an", "in", "on", "of", "to", "for", "and", "or", "how", "do",
+            "does", "can", "could", "would", "should", "this", "that", "with", "from", "by", "at",
+            "it", "be", "are", "was", "were", "been", "being", "have", "has", "had", "will", "i",
+            "me", "my", "you", "your", "we", "our", "they", "them", "tell", "explain", "about",
+            "please", "help", "want", "need", "কি", "কী", "কেন", "কোথায়", "কিভাবে", "কীভাবে",
+            "আমি", "আমার", "এটা", "এটি", "সেটা", "তুমি", "তোমার", "করো", "করুন", "বলো", "বলুন");
 
     return Arrays.stream(message.toLowerCase().split("\\s+"))
         .map(
-            w -> w.replaceAll(
-                "[^a-zA-Z0-9\\u0980-\\u09FF#+.-]", "")) // Keep Bengali, English, special
+            w ->
+                w.replaceAll(
+                    "[^a-zA-Z0-9\\u0980-\\u09FF#+.-]", "")) // Keep Bengali, English, special
         .filter(w -> w.length() > 2)
         .filter(w -> !stopWords.contains(w))
         .distinct()
