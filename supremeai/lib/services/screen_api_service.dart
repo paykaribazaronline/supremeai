@@ -12,11 +12,40 @@ class ScreenApiService {
 
       if (response.statusCode == 200) {
         return json.decode(response.body) as Map<String, dynamic>;
-      } else {
-        throw Exception('Failed to load screen data: ${response.statusCode}');
       }
-    } catch (e) {
-      throw Exception('Error fetching $screen data: $e');
+    } catch (_) {
+      // fall through to local fallback
     }
+    return _localFallback(screen);
+  }
+
+  Future<Map<String, dynamic>> action(String screen, Map<String, dynamic> payload) async {
+    try {
+      final response = await http
+          .post(
+            Uri.parse('$_baseUrl/screens/$screen/action'),
+            headers: <String, String>{'Content-Type': 'application/json'},
+            body: json.encode(payload),
+          )
+          .timeout(const Duration(seconds: 15));
+
+      if (response.statusCode == 200) {
+        return json.decode(response.body) as Map<String, dynamic>;
+      }
+    } catch (_) {
+      // fall through to local fallback
+    }
+    return _localFallback(screen);
+  }
+
+  Map<String, dynamic> _localFallback(String screen) {
+    return {
+      'status': 'ok',
+      'mode': 'local',
+      'screen': screen,
+      'message': 'Backend unavailable — using local context.',
+      'timestamp': DateTime.now().toIso8601String(),
+      'data': <String, dynamic>{},
+    };
   }
 }

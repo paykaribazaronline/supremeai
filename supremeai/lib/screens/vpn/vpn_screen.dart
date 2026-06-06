@@ -133,7 +133,7 @@ class _VpnScreenState extends State<VpnScreen> {
     );
   }
 
-  Widget _uildEmptyNodesTile() {
+  Widget _buildEmptyNodesTile() {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.03), borderRadius: BorderRadius.circular(20), border: Border.all(color: Colors.white10)),
