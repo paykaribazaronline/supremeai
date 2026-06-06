@@ -39,7 +39,7 @@ repositories {
 dependencyManagement {
     imports {
         // Spring Cloud GCP BOM for version alignment
-        mavenBom("com.google.cloud:spring-cloud-gcp-dependencies:5.1.2")
+        mavenBom("com.google.cloud:spring-cloud-gcp-dependencies:8.0.4")
         // Spring AI BOM
         mavenBom("org.springframework.ai:spring-ai-bom:1.0.0-M1")
     }
