@@ -42,6 +42,12 @@ public class FirebaseConfig {
       "${firebase.database.url:https://supremeai-a-default-rtdb.asia-southeast1.firebasedatabase.app/}")
   private String databaseUrl;
 
+  @Value("${spring.cloud.gcp.firestore.host:}")
+  private String firestoreHost;
+
+  @Value("${spring.cloud.gcp.firestore.emulator.enabled:false}")
+  private boolean emulatorEnabled;
+
   /** 초기화 FirebaseApp. @Lazy(false) 재성 스프링링 이 가능되어도 도 초기화. */
   @Bean
   @ConditionalOnProperty(name = "firebase.enabled", havingValue = "true", matchIfMissing = true)
@@ -83,11 +89,23 @@ public class FirebaseConfig {
   @Bean
   public FirestoreOptions firestoreOptions(GoogleCredentials credentials) {
     log.info("Creating FirestoreOptions for project: {} and database: {}", projectId, databaseId);
-    return FirestoreOptions.newBuilder()
-        .setProjectId(projectId)
-        .setDatabaseId(databaseId)
-        .setCredentials(credentials)
-        .build();
+    FirestoreOptions.Builder builder =
+        FirestoreOptions.newBuilder().setProjectId(projectId).setDatabaseId(databaseId);
+
+    if (emulatorEnabled && firestoreHost != null && !firestoreHost.isBlank()) {
+      log.info("Firestore: Connecting to emulator at {}", firestoreHost);
+      builder.setHost(firestoreHost);
+      try {
+        builder.setCredentials(
+            GoogleCredentials.create(
+                new com.google.auth.oauth2.AccessToken("", new java.util.Date(0))));
+      } catch (Exception e) {
+        log.warn("Failed to set anonymous credentials: {}", e.getMessage());
+      }
+    } else {
+      builder.setCredentials(credentials);
+    }
+    return builder.build();
   }
 
   @Bean

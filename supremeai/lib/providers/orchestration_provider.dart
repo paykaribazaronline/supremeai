@@ -186,7 +186,7 @@ class OrchestrationProvider with ChangeNotifier {
     clearError();
     notifyListeners();
 
-    const scrapeUrl = _buildFullUrl('/api/chat/send');
+    final scrapeUrl = _buildFullUrl('/api/chat/send');
 
     if (_isOnline) {
       try {
@@ -224,7 +224,7 @@ class OrchestrationProvider with ChangeNotifier {
           return;
         }
       } catch (e) {
-        debugPrint('[SupremeAI] Scrape-backed chat failed, trying orchestrate:', e);
+        debugPrint('[SupremeAI] Scrape-backed chat failed, trying orchestrate: $e');
       }
     }
 
@@ -249,7 +249,7 @@ class OrchestrationProvider with ChangeNotifier {
           return;
         }
       } catch (e) {
-        debugPrint('[SupremeAI] backend orchestrate failed:', e);
+        debugPrint('[SupremeAI] backend orchestrate failed: $e');
       }
     }
 

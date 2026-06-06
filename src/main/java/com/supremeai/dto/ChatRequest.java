@@ -1,9 +1,11 @@
 package com.supremeai.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.validation.constraints.NotBlank;
 import java.util.List;
 import java.util.Map;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class ChatRequest {
   @NotBlank(message = "Message is required")
   private String message;

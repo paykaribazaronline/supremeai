@@ -329,6 +329,8 @@ jobs:
         env:
           SPRING_PROFILES_ACTIVE: test
           OFFLINE_MODE_ENABLED: true
+          FIRESTORE_EMULATOR_HOST: localhost:8081
+          SPRING_JPA_HIBERNATE_DDL_AUTO: update
           FIREBASE_PROJECT_ID: ${{ steps.auth.outputs.project_id }}
           GOOGLE_APPLICATION_CREDENTIALS: ${{ steps.auth.outputs.credentials_file_path }}
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
@@ -348,7 +350,7 @@ jobs:
             exit 1
           fi
           echo "Found JAR: $JAR_FILE"
-          nohup java -jar "$JAR_FILE" > backend.log 2>&1 &
+          nohup java --add-opens java.base/java.time.chrono=ALL-UNNAMED --add-opens java.base/java.util=ALL-UNNAMED --add-opens java.base/java.lang=ALL-UNNAMED -jar "$JAR_FILE" > backend.log 2>&1 &
           for i in $(seq 1 60); do
             if curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/api/health | grep -q "200"; then
               echo "Backend is healthy"
