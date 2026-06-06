@@ -11,6 +11,7 @@ import com.supremeai.provider.AIProvider;
 import com.supremeai.provider.AIProviderFactory;
 import com.supremeai.repository.APIHealthReportRepository;
 import com.supremeai.repository.ProviderRepository;
+import jakarta.annotation.PreDestroy;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -28,6 +29,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import reactor.core.Disposable;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
@@ -43,6 +45,8 @@ public class SelfHealingService {
   @Autowired private APIHealthReportRepository healthReportRepository;
 
   @Autowired private GlobalKnowledgeBase globalKnowledgeBase;
+
+  @Autowired private ConfigService configService;
 
   @Autowired private RootCauseAnalysisService rootCauseAnalysisService;
 
@@ -78,6 +82,14 @@ public class SelfHealingService {
   private final Map<String, java.util.List<Long>> domainFailureTimestamps =
       new ConcurrentHashMap<>();
 
+  /** Managed container for fire-and-forget reactive subscriptions to prevent leaks. */
+  private final Disposable.Composite disposables = reactor.core.Disposables.composite();
+
+  @PreDestroy
+  public void dispose() {
+    disposables.dispose();
+  }
+
   private final Map<String, Integer> errorPatterns = new ConcurrentHashMap<>();
   private final int MAX_ITERATIONS = 5;
 
@@ -85,15 +97,17 @@ public class SelfHealingService {
   @Scheduled(fixedRate = 600000) // 10 minutes
   public void scheduledHealthCheck() {
     log.info("[HEALTH-CHECK] Scheduled run started");
-    runProactiveHealthCheck()
-        .subscribe(
-            report ->
-                log.info(
-                    "[HEALTH-CHECK] Scheduled run finished: {} active, {} inactive of {}",
-                    report.getActiveCount(),
-                    report.getDeadCount(),
-                    report.getTotalCount()),
-            err -> log.error("[HEALTH-CHECK] Scheduled run failed: {}", err.getMessage()));
+    cleanupStateMaps();
+    disposables.add(
+        runProactiveHealthCheck()
+            .subscribe(
+                report ->
+                    log.info(
+                        "[HEALTH-CHECK] Scheduled run finished: {} active, {} inactive of {}",
+                        report.getActiveCount(),
+                        report.getDeadCount(),
+                        report.getTotalCount()),
+                err -> log.error("[HEALTH-CHECK] Scheduled run failed: {}", err.getMessage())));
   }
 
   /**
@@ -210,25 +224,36 @@ public class SelfHealingService {
   public void recordUnknownErrorToKnowledge(
       String errorSignature, String errorMessage, String stackTrace) {
     try {
-      // Record to Firestore via GlobalKnowledgeBase
-      globalKnowledgeBase.recordSuccessWithPermission(
-          "UNKNOWN_ERROR_" + errorSignature.hashCode(),
-          "[SupremeAI Core — Unknown Error Self-Healing]\n\n"
-              + "Error Signature: "
-              + errorSignature
-              + "\n"
-              + "Error Message: "
-              + errorMessage
-              + "\n"
-              + "Stack Trace: "
-              + stackTrace
-              + "\n\n"
-              + "Resolution: This error was automatically captured by the self-healing system "
-              + "for future learning. When similar patterns occur, the system will attempt "
-              + "to apply known fixes before escalating to human intervention.",
-          "self-healing-system",
-          System.currentTimeMillis(),
-          0.95);
+      // Managed subscription to avoid dangling resources
+      disposables.add(
+          globalKnowledgeBase
+              .recordSuccessWithPermission(
+                  "UNKNOWN_ERROR_" + errorSignature.hashCode(),
+                  "[SupremeAI Core — Unknown Error Self-Healing]\n\n"
+                      + "Error Signature: "
+                      + errorSignature
+                      + "\n"
+                      + "Error Message: "
+                      + errorMessage
+                      + "\n"
+                      + "Stack Trace: "
+                      + stackTrace
+                      + "\n\n"
+                      + "Resolution: This error was automatically captured by the self-healing system "
+                      + "for future learning. When similar patterns occur, the system will attempt "
+                      + "to apply known fixes before escalating to human intervention.",
+                  "self-healing-system",
+                  System.currentTimeMillis(),
+                  0.95)
+              .subscribe(
+                  v ->
+                      log.info(
+                          "[SELF-HEALING] Knowledge artifact persisted for {}", errorSignature),
+                  err ->
+                      log.warn(
+                          "[SELF-HEALING] Failed to persist knowledge for {}: {}",
+                          errorSignature,
+                          err.getMessage())));
 
       // Also attempt to record to core_knowledge.json via SupremeLearningOrchestrator
       if (learningOrchestrator != null) {
@@ -266,17 +291,18 @@ public class SelfHealingService {
         if (analysis != null) {
           if (analysis.canAutoFix && analysis.rootCauseConfidence > 0.8) {
             // Close the learning loop on the success path — async-subscribe
-            rootCauseAnalysisService
-                .recordSuccessfulCorrection(errorSignature, analysis.correctedCode)
-                .subscribe(
-                    v ->
-                        log.info(
-                            "[SELF-HEALING] Correction recorded in GKB for {}", errorSignature),
-                    err ->
-                        log.warn(
-                            "[SELF-HEALING] GKB write failed for {}: {}",
-                            errorSignature,
-                            err.getMessage()));
+            disposables.add(
+                rootCauseAnalysisService
+                    .recordSuccessfulCorrection(errorSignature, analysis.correctedCode)
+                    .subscribe(
+                        v ->
+                            log.info(
+                                "[SELF-HEALING] Correction recorded in GKB for {}", errorSignature),
+                        err ->
+                            log.warn(
+                                "[SELF-HEALING] GKB write failed for {}: {}",
+                                errorSignature,
+                                err.getMessage())));
             return new SupremeAIResponse(
                 true, "Auto-fix applied successfully", analysis.correctedCode, analysis);
           } else if (analysis.rootCauseConfidence > 0.5) {
@@ -293,8 +319,17 @@ public class SelfHealingService {
               analysis.suggestedAction,
               errorSignature);
         }
+
+        // MANDATORY KNOWLEDGE RULE: Record analysis attempt even if confidence is low
+        if (analysis != null && analysis.rootCauseConfidence <= 0.8) {
+          recordUnknownErrorToKnowledge(
+              errorSignature + "_LOW_CONF",
+              errorMessage,
+              "RCA Suggested: " + analysis.suggestedAction);
+        }
       } catch (Exception e) {
-        // RCA itself threw — record this as a failed correction so the ML predictor learns
+        // RCA itself threw — record this as a failed correction so the ML predictor
+        // learns
         log.warn("[SELF-HEALING] RCA analysis failed for {}: {}", errorSignature, e.getMessage());
         if (rootCauseAnalysisService != null) {
           try {
@@ -308,7 +343,8 @@ public class SelfHealingService {
       }
     }
 
-    // Unknown or unhandled error — ALWAYS write a knowledge artifact before returning failure
+    // Unknown or unhandled error — ALWAYS write a knowledge artifact before
+    // returning failure
     recordUnknownErrorToKnowledge(errorSignature, errorMessage, stackTrace);
     return new SupremeAIResponse(
         false, "Self-healing attempted but no fix available for error: " + errorMessage, null);
@@ -328,31 +364,38 @@ public class SelfHealingService {
   public void detectAndFix() {
     try {
       // Existing health check logic...
-      runProactiveHealthCheck()
-          .subscribe(
-              report -> {
-                log.info(
-                    "[SELF-HEALING] Proactive check: {} active, {} inactive, {} error",
-                    report.getActiveCount(),
-                    report.getTotalCount() - report.getActiveCount(),
-                    report.getDeadCount());
+      disposables.add(
+          runProactiveHealthCheck()
+              .subscribe(
+                  report -> {
+                    log.info(
+                        "[SELF-HEALING] Proactive check: {} active, {} inactive, {} error",
+                        report.getActiveCount(),
+                        report.getTotalCount() - report.getActiveCount(),
+                        report.getDeadCount());
 
-                // If we find inactive/error providers, try to recover them
-                if (report.getDeadCount() > 0) {
-                  recoverFailedProviders();
-                }
-              },
-              err -> {
-                // Record the error to knowledge base BEFORE logging it (MANDATORY)
-                String errorSignature = "HEALTH_CHECK_FAILURE_" + System.currentTimeMillis();
-                recordUnknownErrorToKnowledge(
-                    errorSignature,
-                    err.getMessage(),
-                    org.apache.commons.lang3.exception.ExceptionUtils.getStackTrace(err));
+                    // If we find inactive/error providers, try to recover them
+                    if (report.getDeadCount() > 0) {
+                      disposables.add(
+                          recoverFailedProviders()
+                              .subscribe(
+                                  null,
+                                  err ->
+                                      log.error(
+                                          "[SELF-HEALING] Recovery failed: {}", err.getMessage())));
+                    }
+                  },
+                  err -> {
+                    // Record the error to knowledge base BEFORE logging it (MANDATORY)
+                    String errorSignature = "HEALTH_CHECK_FAILURE_" + System.currentTimeMillis();
+                    recordUnknownErrorToKnowledge(
+                        errorSignature,
+                        err.getMessage(),
+                        org.apache.commons.lang3.exception.ExceptionUtils.getStackTrace(err));
 
-                log.error(
-                    "[SELF-HEALING] Proactive health check failed: {}", err.getMessage(), err);
-              });
+                    log.error(
+                        "[SELF-HEALING] Proactive health check failed: {}", err.getMessage(), err);
+                  }));
     } catch (Exception e) {
       // Record unknown error to knowledge base (MANDATORY)
       String errorSignature = "DETECT_AND_FIX_EXCEPTION_" + System.currentTimeMillis();
@@ -371,13 +414,13 @@ public class SelfHealingService {
    */
   private void recordFailureAndMaybeQuarantine(String providerName) {
     long now = System.currentTimeMillis();
-    failureTimestamps.computeIfAbsent(providerName, k -> new java.util.ArrayList<>()).add(now);
+    java.util.List<Long> recent =
+        failureTimestamps.computeIfAbsent(
+            providerName, k -> java.util.Collections.synchronizedList(new java.util.ArrayList<>()));
+    recent.add(now);
 
     // Prune timestamps outside the sliding window
-    java.util.List<Long> recent = failureTimestamps.get(providerName);
-    if (recent != null) {
-      recent.removeIf(ts -> now - ts > QUARANTINE_WINDOW_MS);
-    }
+    recent.removeIf(ts -> now - ts > QUARANTINE_WINDOW_MS);
 
     if (recent != null && recent.size() >= QUARANTINE_FAILURE_THRESHOLD) {
       long expiry = now + QUARANTINE_DURATION_MS;
@@ -410,12 +453,13 @@ public class SelfHealingService {
    */
   public void recordDomainFailureAndMaybeQuarantine(String domain) {
     long now = System.currentTimeMillis();
-    domainFailureTimestamps.computeIfAbsent(domain, k -> new java.util.ArrayList<>()).add(now);
+    java.util.List<Long> recent =
+        domainFailureTimestamps.computeIfAbsent(
+            domain, k -> java.util.Collections.synchronizedList(new java.util.ArrayList<>()));
+    recent.add(now);
 
-    java.util.List<Long> recent = domainFailureTimestamps.get(domain);
-    if (recent != null) {
-      recent.removeIf(ts -> now - ts > QUARANTINE_WINDOW_MS);
-    }
+    // Prune timestamps outside the sliding window
+    recent.removeIf(ts -> now - ts > QUARANTINE_WINDOW_MS);
 
     if (recent != null && recent.size() >= QUARANTINE_FAILURE_THRESHOLD) {
       long expiry = now + QUARANTINE_DURATION_MS;
@@ -475,15 +519,48 @@ public class SelfHealingService {
     // In a fully integrated environment, we save this to a database table read by
     // getPendingConfirmations
     try {
-      globalKnowledgeBase.recordSuccessWithPermission(
-          proposalId,
-          proposalInBangla.toString(),
-          "kingsmode-pending",
-          System.currentTimeMillis(),
-          0.90);
+      disposables.add(
+          globalKnowledgeBase
+              .recordSuccessWithPermission(
+                  proposalId,
+                  proposalInBangla.toString(),
+                  "kingsmode-pending",
+                  System.currentTimeMillis(),
+                  0.90)
+              .subscribe(
+                  v -> log.info("[KINGSMODE] Proposal {} saved to knowledge base", proposalId),
+                  err ->
+                      log.warn(
+                          "[KINGSMODE] Failed to save proposal {} to knowledge base: {}",
+                          proposalId,
+                          err.getMessage())));
     } catch (Exception e) {
       log.warn("[KINGSMODE] Failed to save proposal to knowledge base: {}", e.getMessage());
     }
+  }
+
+  /** Periodically clean up quarantine maps to prevent unbounded memory growth. */
+  private void cleanupStateMaps() {
+    long now = System.currentTimeMillis();
+    quarantineUntil.entrySet().removeIf(e -> now > e.getValue());
+    domainQuarantineUntil.entrySet().removeIf(e -> now > e.getValue());
+
+    // Prune stale failure tracking entries to prevent memory leaks from unique keys
+    failureTimestamps
+        .entrySet()
+        .removeIf(
+            entry -> {
+              entry.getValue().removeIf(ts -> now - ts > QUARANTINE_WINDOW_MS);
+              return entry.getValue().isEmpty();
+            });
+
+    domainFailureTimestamps
+        .entrySet()
+        .removeIf(
+            entry -> {
+              entry.getValue().removeIf(ts -> now - ts > QUARANTINE_WINDOW_MS);
+              return entry.getValue().isEmpty();
+            });
   }
 
   /**
@@ -491,7 +568,7 @@ public class SelfHealingService {
    * providers whose quarantine period has expired, and delegates to the fallback orchestrator for
    * active recovery.
    */
-  private void recoverFailedProviders() {
+  private Mono<Void> recoverFailedProviders() {
     try {
       long now = System.currentTimeMillis();
 
@@ -510,59 +587,86 @@ public class SelfHealingService {
 
       // 2. Actively re-ping released providers to verify they're back online
       if (!released.isEmpty()) {
-        providerRepository
-            .findAll()
-            .filter(p -> released.contains(p.getName()))
-            .flatMap(
-                apiProvider -> {
-                  String name = apiProvider.getName();
-                  try {
-                    AIProvider aiProvider = providerFactory.getProvider(name);
-                    return aiProvider
-                        .generate("ping")
-                        .timeout(Duration.ofSeconds(8))
-                        .flatMap(
-                            resp -> {
-                              boolean ok = resp != null && !resp.isBlank();
-                              if (ok) {
-                                apiProvider.setStatus(ProviderStatus.ACTIVE);
-                                apiProvider.setLastErrorMessage(null);
-                                apiProvider.setLastTested(LocalDateTime.now());
-                                log.info(
-                                    "[SELF-HEALING] ✅ Provider {} recovered successfully", name);
-                              } else {
-                                apiProvider.setLastErrorMessage("Recovery ping returned empty");
-                                apiProvider.setLastTested(LocalDateTime.now());
-                                log.warn(
-                                    "[SELF-HEALING] Provider {} recovery ping returned empty",
-                                    name);
-                              }
-                              return providerRepository.save(apiProvider);
-                            })
-                        .onErrorResume(
-                            e -> {
-                              apiProvider.setLastErrorMessage(
-                                  "Recovery ping failed: " + e.getMessage());
-                              apiProvider.setLastTested(LocalDateTime.now());
-                              log.warn(
-                                  "[SELF-HEALING] Provider {} recovery ping failed: {}",
-                                  name,
-                                  e.getMessage());
-                              return providerRepository.save(apiProvider);
-                            });
-                  } catch (Exception e) {
-                    log.warn(
-                        "[SELF-HEALING] Cannot create provider instance for {}: {}",
-                        name,
-                        e.getMessage());
-                    return Mono.empty();
-                  }
-                })
-            .subscribe(
-                p -> {},
-                err -> log.error("[SELF-HEALING] Recovery pipeline error: {}", err.getMessage()));
+        Mono<Void> recoveryProcess =
+            providerRepository
+                .findAll()
+                .filter(p -> released.contains(p.getName()))
+                .flatMap(
+                    apiProvider -> {
+                      String name = apiProvider.getName();
+                      try {
+                        AIProvider aiProvider = providerFactory.getProvider(name);
+                        return aiProvider
+                            .generate("ping")
+                            .timeout(Duration.ofSeconds(8))
+                            .flatMap(
+                                resp -> {
+                                  boolean ok = resp != null && !resp.isBlank();
+                                  if (ok) {
+                                    apiProvider.setStatus(ProviderStatus.ACTIVE);
+                                    apiProvider.setLastErrorMessage(null);
+                                    apiProvider.setLastTested(LocalDateTime.now());
+                                    log.info(
+                                        "[SELF-HEALING] ✅ Provider {} recovered successfully",
+                                        name);
+                                  } else {
+                                    apiProvider.setLastErrorMessage("Recovery ping returned empty");
+                                    apiProvider.setLastTested(LocalDateTime.now());
+                                    log.warn(
+                                        "[SELF-HEALING] Provider {} recovery ping returned empty",
+                                        name);
+                                  }
+                                  return providerRepository
+                                      .save(apiProvider)
+                                      .doOnSuccess(
+                                          p ->
+                                              log.debug(
+                                                  "Provider {} status updated after recovery ping.",
+                                                  apiProvider.getName()))
+                                      .doOnError(
+                                          e ->
+                                              log.error(
+                                                  "Failed to save provider {} after recovery ping: {}",
+                                                  apiProvider.getName(),
+                                                  e.getMessage()))
+                                      .then(); // Return a completion signal to the chain
+                                })
+                            .onErrorResume(
+                                e -> {
+                                  apiProvider.setLastErrorMessage(
+                                      "Recovery ping failed: " + e.getMessage());
+                                  apiProvider.setLastTested(LocalDateTime.now());
+                                  log.warn(
+                                      "[SELF-HEALING] Provider {} recovery ping failed: {}",
+                                      name,
+                                      e.getMessage());
+                                  return providerRepository
+                                      .save(apiProvider)
+                                      .doOnSuccess(
+                                          p ->
+                                              log.debug(
+                                                  "Provider {} status updated after failed recovery ping.",
+                                                  apiProvider.getName()))
+                                      .doOnError(
+                                          err ->
+                                              log.error(
+                                                  "Failed to save provider {} after failed recovery ping: {}",
+                                                  apiProvider.getName(),
+                                                  err.getMessage()))
+                                      .then(); // Return a completion signal to the chain
+                                });
+                      } catch (Exception e) {
+                        log.warn(
+                            "[SELF-HEALING] Cannot create provider instance for {}: {}",
+                            name,
+                            e.getMessage());
+                        return Mono.empty();
+                      }
+                    })
+                .then();
 
         log.info("[SELF-HEALING] Recovery initiated for {} providers", released.size());
+        return recoveryProcess;
       }
 
       // 3. Delegate to fallback orchestrator for routing adjustments
@@ -580,6 +684,7 @@ public class SelfHealingService {
 
       log.warn("[SELF-HEALING] Failed to recover providers: {}", e.getMessage(), e);
     }
+    return Mono.empty();
   }
 
   @Autowired private org.springframework.core.env.Environment env;
@@ -726,18 +831,26 @@ public class SelfHealingService {
             : Mono.just("");
 
     // The approval vote (conductApprovalVote) is inherently a blocking pipeline
-    // (it materialises its upstream Mono calls).  We therefore:
-    //  1. Run the iteration body on boundedElastic via subscribeOn
-    //  2. Inside the loop, call conductApprovalVote() directly—no .block()—
-    //     and let flatMap chain it as a non-blocking step
-    //  3. Use onErrorResume so a vote timeout/failure never kills the whole loop
+    // (it materialises its upstream Mono calls). We therefore:
+    // 1. Run the iteration body on boundedElastic via subscribeOn
+    // 2. Inside the loop, call conductApprovalVote() directly—no .block()—
+    // and let flatMap chain it as a non-blocking step
+    // 3. Use onErrorResume so a vote timeout/failure never kills the whole loop
     java.util.function.Function<String, Mono<Boolean>> approvalGate =
-        defaultProviderId ->
-            (votingService != null && defaultProviderId != null && !defaultProviderId.isBlank())
-                ? votingService.conductApprovalVote(
-                    taskCategory, prompt, java.util.List.of(defaultProviderId))
-                // If no voting service or no default provider, auto-approve
-                : Mono.just(true);
+        defaultProviderId -> {
+          boolean autoApprove =
+              configService != null
+                  && !configService.getEffectiveSetting("autoExecApprovalRequired", true);
+          if (autoApprove) return Mono.just(true);
+
+          return (votingService != null
+                  && defaultProviderId != null
+                  && !defaultProviderId.isBlank())
+              ? votingService.conductApprovalVote(
+                  taskCategory, prompt, java.util.List.of(defaultProviderId))
+              // Default fallback if voting unavailable
+              : Mono.just(true);
+        };
 
     return defaultProviderIdMono
         .flatMap(

@@ -1,0 +1,20 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // গ্লোবাল মেট্রিক্স রুলস
+    match /system/global_metrics {
+      // শুধুমাত্র লগইন করা ইউজাররা দেখতে পারবে
+      allow read: if request.auth != null;
+      // ক্লায়েন্ট সাইড থেকে কেউ পরিবর্তন করতে পারবে না (শুধুমাত্র ব্যাকএন্ড করতে পারবে)
+      allow write: if false;
+    }
+
+    // ইউজার প্রোফাইল রুলস
+    match /users/{userId} {
+      // লগইন করা ইউজাররা তাদের নিজেদের ইমেইল বা আইডি ম্যাচ করলে দেখতে পারবে
+      allow read: if request.auth != null && (resource.data.email == request.auth.token.email || request.auth.uid == userId);
+      // নতুন ইউজার ক্রিয়েশন ও আপডেট রুলস
+      allow create, update: if request.auth != null && request.auth.uid == userId;
+    }
+  }
+}

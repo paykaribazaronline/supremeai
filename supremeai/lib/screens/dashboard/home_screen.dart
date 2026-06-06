@@ -9,6 +9,8 @@ import '../projects/projects_list_screen.dart';
 import '../notifications/notifications_screen.dart';
 import '../../services/localization_service.dart';
 
+import '../../providers/settings_provider.dart';
+
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -18,8 +20,8 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0;
-  final TextEditingController _chatController = TextEditingController();
   final List<ChatMessage> _messages = [];
+  final TextEditingController _chatController = TextEditingController();
 
   void _sendMessage() async {
     if (_chatController.text.trim().isEmpty) return;
@@ -36,8 +38,13 @@ class _HomeScreenState extends State<HomeScreen> {
 
     final orchestration = context.read<OrchestrationProvider>();
     final auth = context.read<AuthProvider>();
+    final settings = context.read<SettingsProvider>().settings;
 
-    await orchestration.orchestrateRequirement(userMessage, auth.token ?? 'GUEST_MODE');
+    await orchestration.orchestrateRequirement(
+      userMessage,
+      auth.token ?? 'GUEST_MODE',
+      activeModel: settings.model,
+    );
 
     if (orchestration.lastResult != null && mounted) {
       setState(() {

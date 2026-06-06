@@ -17,7 +17,7 @@ import {
   getIdTokenResult,
   connectAuthEmulator,
 } from "firebase/auth";
-import { getFirestore, connectFirestoreEmulator } from "firebase/firestore";
+import { getFirestore, connectFirestoreEmulator, doc, getDoc, setDoc, collection, query, where, getDocs } from "firebase/firestore";
 import { getFunctions, connectFunctionsEmulator } from "firebase/functions";
 
 // Use Firebase Hosting environment or environment variables
@@ -184,6 +184,32 @@ export async function firebaseSignIn(
     }
 
     // Fallback for localhost/emulator when backend exchange is unavailable
+    let userRole = "user";
+    let userTier = "user";
+    try {
+      // Look up by email if needed, or by uid (assuming document ID might be the custom ID shown in screenshot, wait! The screenshot shows doc ID is dTEI3... but firebaseUid is qLYUI...)
+      // Wait, let's fetch using collection group or assuming the uid is the doc ID.
+      // But the screenshot shows doc ID 'dTEI3l4uTcYaCdaAO4Z2', and a field 'firebaseUid: "qLYUi1K8icZBBqblurF5DozNrqZ2"'!
+      // This means the doc ID is NOT the firebaseUid!
+      const usersRef = collection(firestore, "users");
+      const q = query(usersRef, where("email", "==", cred.user.email));
+      const querySnapshot = await getDocs(q);
+      
+      if (!querySnapshot.empty) {
+        const userDoc = querySnapshot.docs[0].data();
+        userRole = userDoc.role || "user";
+        userTier = userDoc.tier || "user";
+      } else {
+        const defaultRole = cred.user.email?.includes("admin") ? "admin" : "user";
+        userRole = defaultRole;
+        userTier = defaultRole;
+      }
+    } catch (e) {
+      console.warn("Could not fetch user role from Firestore, using email check.", e);
+      userRole = cred.user.email?.includes("admin") ? "admin" : "user";
+      userTier = userRole;
+    }
+
     const fallbackData = {
       token: idToken,
       refreshToken: "dev-refresh-token",
@@ -192,7 +218,8 @@ export async function firebaseSignIn(
         email: cred.user.email || "",
         displayName: cred.user.displayName || "",
         photoURL: cred.user.photoURL || "",
-        role: "admin",
+        role: userRole,
+        tier: userTier,
       } as any,
     };
     localStorage.setItem("supremeai_token", fallbackData.token);

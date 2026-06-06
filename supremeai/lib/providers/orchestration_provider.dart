@@ -181,7 +181,7 @@ class OrchestrationProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> orchestrateRequirement(String requirement, String token, {String? geminiKey}) async {
+  Future<void> orchestrateRequirement(String requirement, String token, {String? geminiKey, String? activeModel}) async {
     _isLoading = true;
     clearError();
     notifyListeners();
@@ -255,7 +255,7 @@ class OrchestrationProvider with ChangeNotifier {
 
     if (geminiKey != null && geminiKey.isNotEmpty) {
       try {
-        final model = GenerativeModel(model: 'gemini-1.5-pro', apiKey: geminiKey);
+        final model = GenerativeModel(model: activeModel ?? 'gemini-1.5-flash', apiKey: geminiKey);
         final content = [Content.text('As an AI Orchestrator for SupremeAI, analyze this requirement and provide a structured JSON response with "tasks", "priority", and "estimatedComplexity": $requirement')];
         final response = await model.generateContent(content);
         if (response.text != null) {

@@ -34,7 +34,7 @@ const { Content } = Layout;
 const { Text } = Typography;
 
 const AdminRouteLayout: React.FC = () => {
-  const { isAdmin, isAuthenticated, user, refreshUser } = useRole();
+  const { isAdmin, isAuthenticated, isGuest, user, refreshUser } = useRole();
   const navigate = useNavigate();
   const location = useLocation();
   const [collapsed, setCollapsed] = useState(false);
@@ -52,7 +52,15 @@ const AdminRouteLayout: React.FC = () => {
 
   useEffect(() => {
     setMounted(true);
-  }, []);
+    if (!isAuthenticated && !isGuest) {
+      navigate("/login");
+      return;
+    }
+    if (!isAdmin) {
+      message.error("Access denied. Admin privileges required.");
+      navigate("/user/dashboard");
+    }
+  }, [isAdmin, isAuthenticated, isGuest, navigate]);
 
   const handleLogout = () => {
     const isGuestUser = !isAuthenticated;
@@ -106,9 +114,19 @@ const AdminRouteLayout: React.FC = () => {
   };
 
   const currentRole = isAdmin ? "admin" : isAuthenticated ? "user" : "guest";
-  const menuItems = allMenuItems.filter(
-    (item) => Array.isArray(item.roles) && item.roles.includes(currentRole),
-  );
+  
+  const filterMenuItems = (items: any[]): any[] => {
+    return items
+      .filter((item) => Array.isArray(item.roles) && item.roles.includes(currentRole))
+      .map((item) => {
+        if (item.children) {
+          return { ...item, children: filterMenuItems(item.children) };
+        }
+        return item;
+      });
+  };
+
+  const menuItems = filterMenuItems(allMenuItems);
 
   const getCurrentPageKey = () => {
     const path = location.pathname
@@ -124,7 +142,19 @@ const AdminRouteLayout: React.FC = () => {
   };
 
   const renderContent = () => {
-    const activeItem = allMenuItems.find((item) => item.key === activeKey);
+    let activeItem = allMenuItems.find((item) => item.key === activeKey);
+    if (!activeItem) {
+      for (const item of allMenuItems) {
+        if (item.children) {
+          const child = item.children.find((c) => c.key === activeKey);
+          if (child) {
+            activeItem = child;
+            break;
+          }
+        }
+      }
+    }
+    
     const hasAccess = activeItem?.roles.includes(currentRole);
 
     if (!hasAccess && activeKey !== "dashboard") {

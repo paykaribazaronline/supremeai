@@ -31,12 +31,17 @@ repositories {
         name = "MavenCentralMirror"
         url = uri("https://repo1.maven.org/maven2/")
     }
+    maven {
+        url = uri("https://repo.spring.io/milestone")
+    }
 }
 
 dependencyManagement {
     imports {
         // Spring Cloud GCP BOM for version alignment
         mavenBom("com.google.cloud:spring-cloud-gcp-dependencies:5.1.2")
+        // Spring AI BOM
+        mavenBom("org.springframework.ai:spring-ai-bom:1.0.0-M1")
     }
 }
 
@@ -60,6 +65,9 @@ dependencies {
     // HTTP Client for AI APIs
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
     implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
+
+    // Spring AI
+    implementation("org.springframework.ai:spring-ai-openai-spring-boot-starter")
 
     // JSON Processing - Consolidated Jackson artifacts
     val jacksonVersion = "2.18.1"

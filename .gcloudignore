@@ -6,17 +6,45 @@
 !src/**
 !gradle/**
 !gradlew
+
 # Allow Dockerfile and build output
 !Dockerfile
-!app.jar
-!.gradle/build/libs/app.jar
-# Allow dashboard (Firebase hosting)
-!dashboard/**
-# Allow public directory (Firebase hosting output)
-!public/**
+
 # Allow Firebase config
 !.firebase/**
 !firebase.json
+!.firebaserc
 !firebase/**
+
 # Allow this gcloudignore itself
 !.gcloudignore
+!functions/**
+
+# Re-ignore heavy folders
+**/node_modules/
+.gradle/
+.turbo/
+.git/
+dashboard/node_modules/
+functions/node_modules/
+
+# Explicit hidden folder ignores
+.kilo/
+.docs/
+.agents/
+.antigravity/
+.gemini/
+.vscode/
+.github/
+.idea/
+*.vsix
+*.log
+__pycache__/
+.pytest_cache/
+.env
+.env.*
+venv/
+.venv/
+.npmrc
+yarn-error.log
+npm-debug.log

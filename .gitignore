@@ -243,7 +243,9 @@ npx.cmd
 npx.ps1
 nodevars.bat
 tests/test-results/
-tests/playwright-report/
-
 supremeai_build_test_failure_analysis.md
 
+# Local secrets and keys files
+keys.txt
+secrets_to_seed.json
+test_openai_keys.js

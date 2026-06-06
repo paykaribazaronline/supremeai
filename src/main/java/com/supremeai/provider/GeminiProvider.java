@@ -22,11 +22,11 @@ public class GeminiProvider extends AbstractHttpProvider {
   @Autowired private SecretManagerService secretManagerService;
 
   public GeminiProvider() {
-    super("", API_URL, "gemini-1.5-pro");
+    super("", API_URL, "gemini-1.5-flash");
   }
 
   public GeminiProvider(String apiKey) {
-    super(apiKey, API_URL, "gemini-1.5-pro");
+    super(apiKey, API_URL, "gemini-1.5-flash");
   }
 
   @Override

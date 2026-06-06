@@ -100,6 +100,30 @@ class ApiService {
     }
   }
 
+  Future<List<Map<String, dynamic>>> getConfiguredProviders() async {
+    try {
+      final token = await getToken();
+      final response = await client.get(
+        Uri.parse('$_baseUrl/api/admin/providers/configured'),
+        headers: {
+          'Content-Type': 'application/json',
+          if (token != null) 'Authorization': 'Bearer $token',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final decoded = jsonDecode(response.body);
+        final list = decoded['data']?['providers'] ?? decoded['data'] ?? decoded;
+        if (list is List) {
+          return List<Map<String, dynamic>>.from(list.map((e) => Map<String, dynamic>.from(e)));
+        }
+      }
+    } catch (_) {
+      // Fallback
+    }
+    return [];
+  }
+
   Future<void> logout() async {
     _token = null;
     final prefs = await SharedPreferences.getInstance();

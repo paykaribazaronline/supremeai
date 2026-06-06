@@ -32,10 +32,13 @@ interface RoleProviderProps {
 }
 
 export const RoleProvider: React.FC<RoleProviderProps> = ({ children }) => {
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isGuest, setIsGuest] = useState(false);
-  const [user, setUser] = useState<any>(null);
+  const [isAdmin, setIsAdmin] = useState(() => authUtils.isAdmin());
+  const [isAuthenticated, setIsAuthenticated] = useState(() => {
+    const token = authUtils.getToken();
+    return !!token && token !== "GUEST_MODE";
+  });
+  const [isGuest, setIsGuest] = useState(() => authUtils.getToken() === "GUEST_MODE");
+  const [user, setUser] = useState<any>(() => authUtils.getCurrentUser());
 
   const refreshUser = () => {
     const token = authUtils.getToken();
@@ -46,10 +49,7 @@ export const RoleProvider: React.FC<RoleProviderProps> = ({ children }) => {
     setUser(currentUser);
 
     // Check admin status: rely on backend-assigned roles/tiers
-    const isAdminUser =
-      currentUser?.role === "admin" ||
-      currentUser?.tier === "admin" ||
-      currentUser?.tier === "ADMIN";
+    const isAdminUser = authUtils.isAdmin();
 
     console.log("[RoleContext] Refreshing user:", currentUser?.email);
     console.log(
@@ -65,10 +65,18 @@ export const RoleProvider: React.FC<RoleProviderProps> = ({ children }) => {
 
   useEffect(() => {
     refreshUser();
-    // Listen for storage changes (login/logout in other tabs)
-    const handleStorage = () => refreshUser();
-    window.addEventListener("storage", handleStorage);
-    return () => window.removeEventListener("storage", handleStorage);
+    
+    // Listen for storage events (e.g., login/logout in another tab)
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === "supremeai_token" || e.key === "supremeai_user") {
+        refreshUser();
+      }
+    };
+    
+    window.addEventListener("storage", handleStorageChange);
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+    };
   }, []);
 
   return (

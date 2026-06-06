@@ -151,32 +151,27 @@ sequenceDiagram
 ---
 
 ## 4. Neural Chat Agentic Routing Pipeline
-Neural Chat follows a strict 4-level "Local-First, Edge-Cloud Hybrid & Failover" architecture to ensure 100% uptime, zero redundant cloud fees, and the highest accuracy for user queries.
+Neural Chat follows a unified **Local-First (In-House Stack)** architecture with external fallbacks to ensure 100% uptime, optimized query routing, and accurate responses.
 
 ```mermaid
 flowchart TD
     User[User Message] --> IntentRouter{Intent & Context Router}
     
-    IntentRouter -->|Greeting / Casual| L0[Level 0: Direct Bypass RAG - On-Device SuperFly 94M]
-    IntentRouter -->|Project / Tech Query| L1[Level 1: Core Knowledge RAG]
+    subgraph Local_First_Stack [Local-First In-House Stack (Equal Importance)]
+        Browser[Browser Engine: Playwright/Jsoup Scraper]
+        Knowledge[Core Knowledge Base: Firestore/DB Rules]
+        HybridTiny[Hybrid Tiny AI Model: Cloud-Deployed Default]
+        Godmode3[GODMODE 3: Multi-Model Orchestration Engine]
+        FreeClaude[Free Claude Code: Reasoning & CLI Coding Assistant]
+    end
     
-    L1 --> CheckSim{Similarity > 0.70?}
-    CheckSim -->|Yes| L1_Answer[LLM Generates Answer from Local DB]
-    CheckSim -->|No| MagicLoop[Level 2 & 3: The Magic Loop]
+    IntentRouter -->|Core Routing| Local_First_Stack
+    Local_First_Stack -->|Processing & Synthesis| FinalResponse[Synthesized Response & Learning Update]
     
-    MagicLoop --> Parallel{Parallel Execution}
-    Parallel --> |Local NLP Search| L2_Cache[KnowledgeService: N-Gram Similarity]
-    Parallel --> |Dynamic Web Navigator| L3_Scrape[Cloud-VM ChickenBrain: Generates Target URL -> BrowserService Scrapes]
-    L2_Cache --> Combine[Combine Local Memory + Web Data]
-    L3_Scrape --> Combine
-    Combine --> L3_Answer[ChickenBrain Synthesizes Final Answer]
-    L3_Answer --> SaveDB[Auto-Learn: Save to System Learning]
-    
-    L3_Answer --> Fallback{If AI Fails / Heavy Task}
-    L1_Answer --> Fallback
-    Fallback -->|Premium Hardware Tunnel| L4_PocketLab[Tiny AI Pocket Lab Edge Node]
-    Fallback -->|Backup Council Failover| L4_Voting[Level 4: Multi-AI Voting Council]
+    FinalResponse -->|If Additional Reasoning Needed / Fallback| L4_External[External Option: Third-Party API Keys - OpenAI / Gemini / Claude]
 ```
+
+*(Note: Pocket Lab and Mobile downloaded models are treated as extra/optional features.)*
 
 
 ## ৫. কোর মডিউলসমূহ: কীভাবে তারা কাজ করে

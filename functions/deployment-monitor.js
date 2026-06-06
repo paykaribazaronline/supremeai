@@ -34,7 +34,7 @@ exports.analyzeDeployment = onRequest(async (req, res) => {
 
         // LOCAL-FIRST: No external AI API key required
         console.log("[LOCAL-FIRST] Analyzing deployment without external AI API key...");
-        
+
         // Always use local heuristic analysis - no external API required
         const analysis = fallbackAnalysis({
             commitMessage,
@@ -46,6 +46,15 @@ exports.analyzeDeployment = onRequest(async (req, res) => {
 
         // Determine if system needs to be woken up
         const needsWakeUp = shouldWakeSystem(analysis);
+
+        // BUG FIX: Actually call the wakeSystem function if needed
+        if (needsWakeUp) {
+            console.log(`[MONITOR] High-impact deployment detected for Run ID: ${runId}. Pinging backend...`);
+            const success = await wakeSystem(runId, analysis);
+            if (!success) {
+                console.warn(`[MONITOR] Warning: System wake-up failed for Run ID: ${runId}`);
+            }
+        }
 
         // Save analysis to Firestore for tracking
         await saveDeploymentAnalysis({
@@ -201,8 +210,8 @@ function fallbackAnalysis(deploymentInfo) {
  */
 function shouldWakeSystem(analysis) {
     return analysis.wakeNeeded === true ||
-           analysis.impact === "critical" ||
-           analysis.action === "wake_system";
+        analysis.impact === "critical" ||
+        analysis.action === "wake_system";
 }
 
 /**
@@ -350,7 +359,7 @@ exports.monitorSystemHealth = onSchedule('*/5 * * * *', async (event) => {
  */
 async function diagnoseAndAlert() {
     const groqApiKey = functions.config().groq?.api_key ||
-                      process.env.GROQ_API_KEY_DEPLOYMENT_MONITOR;
+        process.env.GROQ_API_KEY_DEPLOYMENT_MONITOR;
 
     if (!groqApiKey) {
         console.warn("Groq API key not available for diagnosis");

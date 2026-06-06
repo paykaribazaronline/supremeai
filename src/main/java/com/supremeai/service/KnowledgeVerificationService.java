@@ -103,4 +103,37 @@ public class KnowledgeVerificationService {
   public Mono<Map<String, Object>> verifyFoundationKnowledge() {
     return verifyFoundationKnowledge(getFoundationKnowledgeIds(), defaultMinConfidence);
   }
+
+  /**
+   * অটো-রিমুভ লজিক: কনফিডেন্স স্কোর থ্রেশহোল্ডের নিচে হলে ডেটা মুছে ফেলা।
+   *
+   * @param threshold সর্বনিম্ন গ্রহণযোগ্য স্কোর (যেমন ০.৮৫)
+   */
+  public void purgeInvalidLearnings(double threshold) {
+    firestore
+        .collection("system_learning")
+        .whereLessThan("confidenceScore", threshold)
+        .get()
+        .addListener(
+            () -> {
+              try {
+                List<com.google.cloud.firestore.QueryDocumentSnapshot> lowConfidenceDocs =
+                    firestore
+                        .collection("system_learning")
+                        .whereLessThan("confidenceScore", threshold)
+                        .get()
+                        .get()
+                        .getDocuments();
+
+                for (DocumentSnapshot doc : lowConfidenceDocs) {
+                  // লার্নিং ডিলিট করা হচ্ছে কারণ এটি ভেরিফিকেশনে ফেল করেছে
+                  doc.getReference().delete();
+                  log.info("[KNOWLEDGE_PURGE] Auto-removed low confidence entry: {}", doc.getId());
+                }
+              } catch (Exception e) {
+                log.error("[KNOWLEDGE_PURGE] Error during auto-purge: {}", e.getMessage());
+              }
+            },
+            Runnable::run);
+  }
 }

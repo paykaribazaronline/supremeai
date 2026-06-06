@@ -1,17 +1,20 @@
 import 'package:flutter/material.dart';
 import 'dart:ui';
 import '../../services/localization_service.dart';
+import '../../services/api_service.dart';
 
 class AiProvidersScreen extends StatelessWidget {
   const AiProvidersScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final providers = [
-      {'name': 'OpenAI', 'status': 'providers.online'.tr(), 'model': 'gpt-4-turbo', 'color': Colors.greenAccent},
-      {'name': 'SupremeAI Pro', 'status': 'providers.online'.tr(), 'model': 'supremeai-1.5-pro', 'color': Colors.greenAccent},
-      {'name': 'Anthropic', 'status': 'providers.online'.tr(), 'model': 'claude-3-opus', 'color': Colors.greenAccent},
-      {'name': 'Groq', 'status': 'providers.online'.tr(), 'model': 'llama3-70b-8192', 'color': Colors.greenAccent},
+    final apiService = ApiService();
+
+    final defaultProviders = [
+      {'name': 'OpenAI', 'status': 'providers.online'.tr(), 'model': 'gpt-4o-mini', 'color': Colors.greenAccent},
+      {'name': 'SupremeAI Light', 'status': 'providers.online'.tr(), 'model': 'supremeai-1.5-flash', 'color': Colors.greenAccent},
+      {'name': 'Anthropic', 'status': 'providers.online'.tr(), 'model': 'claude-3-5-haiku', 'color': Colors.greenAccent},
+      {'name': 'Groq', 'status': 'providers.online'.tr(), 'model': 'llama3-8b-8192', 'color': Colors.greenAccent},
     ];
 
     return Scaffold(
@@ -22,19 +25,39 @@ class AiProvidersScreen extends StatelessWidget {
           style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w900, letterSpacing: 1.5, color: Colors.white)
         ),
       ),
-      body: ListView.builder(
-        padding: const EdgeInsets.all(16.0),
-        itemCount: providers.length,
-        itemBuilder: (context, index) {
-          final p = providers[index];
-          return _buildProviderCard(
-            context,
-            p['name'] as String,
-            p['model'] as String,
-            p['status'] as String,
-            p['color'] as Color,
+      body: FutureBuilder<List<Map<String, dynamic>>>(
+        future: apiService.getConfiguredProviders(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator(color: Colors.blueAccent));
+          }
+
+          final fetchedList = snapshot.data ?? [];
+          final displayProviders = fetchedList.isEmpty ? defaultProviders : fetchedList.map((p) {
+            final active = p['status']?.toString().toLowerCase() == 'active' || p['status']?.toString().toLowerCase() == 'online';
+            return {
+              'name': p['name']?.toString() ?? 'Unknown',
+              'status': active ? 'providers.online'.tr() : 'providers.offline'.tr(),
+              'model': p['model']?.toString() ?? p['activeModel']?.toString() ?? 'Dynamic',
+              'color': active ? Colors.greenAccent : Colors.redAccent,
+            };
+          }).toList();
+
+          return ListView.builder(
+            padding: const EdgeInsets.all(16.0),
+            itemCount: displayProviders.length,
+            itemBuilder: (context, index) {
+              final p = displayProviders[index];
+              return _buildProviderCard(
+                context,
+                p['name'] as String,
+                p['model'] as String,
+                p['status'] as String,
+                p['color'] as Color,
+              );
+            },
           );
-        },
+        }
       ),
     );
   }

@@ -642,7 +642,7 @@ export const authUtils = {
       _inMemoryToken = token;
       return token;
     }
-    return "GUEST_MODE";
+    return null;
   },
 
   getRefreshToken(): string | null {

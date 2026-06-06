@@ -50,11 +50,22 @@ const LoginPage: React.FC = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // If user is already authenticated, redirect to home
     if (authUtils.isAuthenticated()) {
-      navigate("/");
+      if (authUtils.isAdmin()) {
+        navigate("/admin/dashboard");
+      } else {
+        navigate("/user/dashboard");
+      }
     }
   }, [navigate]);
+
+  if (authUtils.isAuthenticated()) {
+    return (
+      <div style={{ height: "100vh", display: "flex", justifyContent: "center", alignItems: "center", background: "#0a0a0a" }}>
+        <Typography.Title level={3} style={{ color: "var(--neon-blue)" }}>Redirecting to Dashboard...</Typography.Title>
+      </div>
+    );
+  }
 
   const handleLogin = async (values: LoginForm) => {
     setLoading(true);
@@ -71,7 +82,11 @@ const LoginPage: React.FC = () => {
       refreshUser();
 
       setTimeout(() => {
-        window.location.href = "/";
+        if (authUtils.isAdmin()) {
+          window.location.href = "/admin/dashboard";
+        } else {
+          window.location.href = "/user/dashboard";
+        }
       }, 1500);
     } catch (error: any) {
       message.error(error.message || "লগইন ব্যর্থ হয়েছে!");
@@ -137,7 +152,7 @@ const LoginPage: React.FC = () => {
       message.success("গেস্ট মোডে প্রবেশ করা হয়েছে!");
       refreshUser();
       setTimeout(() => {
-        window.location.href = "/";
+        window.location.href = "/user/dashboard";
       }, 1000);
     } catch (error: any) {
       message.error(error.message || "গেস্ট এক্সেস ব্যর্থ হয়েছে!");

@@ -17,46 +17,64 @@ import { allMenuItems } from "./components/dashboard/DashboardConfigs";
 import ErrorBoundary from "./components/ErrorBoundary";
 import FeedbackSystem from "./components/FeedbackSystem";
 
-// Lazy load pages for performance optimization
-const ModernAdminDashboard = lazy(() => import("./pages/ModernAdminDashboard"));
-const LoginPage = lazy(() => import("./pages/LoginPage"));
-const AdminRouteLayout = lazy(() => import("./components/AdminRouteLayout"));
+// Auto-recovery wrapper for lazy imports: if a chunk fails to load (stale cache after deploy),
+// it forces a single hard reload to fetch the latest assets.
+function lazyWithRetry(importFn: () => Promise<any>) {
+  return lazy(() =>
+    importFn().catch((error: any) => {
+      const hasReloaded = sessionStorage.getItem("chunk_reload");
+      if (!hasReloaded) {
+        sessionStorage.setItem("chunk_reload", "1");
+        window.location.reload();
+        return new Promise(() => {}); // never resolves, page is reloading
+      }
+      sessionStorage.removeItem("chunk_reload");
+      throw error; // re-throw if reload already attempted
+    })
+  );
+}
 
+// Lazy load pages with auto-recovery
+const ModernAdminDashboard = lazyWithRetry(() => import("./pages/ModernAdminDashboard"));
+const LoginPage = lazyWithRetry(() => import("./pages/LoginPage"));
+const AdminRouteLayout = lazyWithRetry(() => import("./components/AdminRouteLayout"));
+const UserRouteLayout = lazyWithRetry(() => import("./components/UserRouteLayout"));
 // Lazy load admin pages
-const DashboardHome = lazy(
+const DashboardHome = lazyWithRetry(
   () => import("./components/dashboard/DashboardHome"),
 );
-const ChatWithAI = lazy(() => import("./components/ChatWithAI"));
-const AdminProjects = lazy(() => import("./pages/AdminProjects"));
-const AdminProviders = lazy(() => import("./pages/AdminProviders"));
-const AdminUsers = lazy(() => import("./pages/AdminUsers"));
-const AdminMonitoring = lazy(() => import("./pages/AdminMonitoring"));
-const AdminLearning = lazy(() => import("./pages/AdminLearning"));
-const AdminSecurity = lazy(() => import("./pages/AdminSecurity"));
-const AdminSystemWorkRules = lazy(
+const ChatWithAI = lazyWithRetry(() => import("./components/ChatWithAI"));
+const AdminProjects = lazyWithRetry(() => import("./pages/AdminProjects"));
+const AdminProviders = lazyWithRetry(() => import("./pages/AdminProviders"));
+const AdminUsers = lazyWithRetry(() => import("./pages/AdminUsers"));
+const AdminMonitoring = lazyWithRetry(() => import("./pages/AdminMonitoring"));
+const AdminLearning = lazyWithRetry(() => import("./pages/AdminLearning"));
+const AdminSecurity = lazyWithRetry(() => import("./pages/AdminSecurity"));
+const AdminSystemWorkRules = lazyWithRetry(
   () => import("./components/AdminSystemWorkRules"),
 );
-const AdminAnalytics = lazy(() => import("./pages/AdminAnalytics"));
-const AdminVPN = lazy(() => import("./pages/AdminVPN"));
-const AdminBrowser = lazy(() => import("./pages/AdminBrowser"));
-const AutoBrowser = lazy(() => import("./pages/AutoBrowser"));
-const AdminQuotas = lazy(() => import("./pages/AdminQuotas"));
-const AdminNotifications = lazy(() => import("./pages/AdminNotifications"));
-const AdminPerformance = lazy(() => import("./pages/AdminPerformance"));
-const AdminBackup = lazy(() => import("./pages/AdminBackup"));
-const AdminOCR = lazy(() => import("./pages/AdminOCR"));
-const AdminReverseEngineer = lazy(() => import("./pages/AdminReverseEngineer"));
-const AdminReports = lazy(() => import("./pages/AdminReports"));
-const AdminApprovals = lazy(() => import("./components/AdminApprovals"));
-const AdminInfrastructure = lazy(() => import("./pages/AdminInfrastructure"));
-const AdminCodeAnalysis = lazy(() => import("./pages/AdminCodeAnalysis"));
-const AdminSettings = lazy(() => import("./pages/AdminSettings"));
-const AdminLogs = lazy(() => import("./pages/AdminLogs"));
-const AdminSimulator = lazy(() => import("./pages/AdminSimulator"));
-const AdminRules = lazy(() => import("./pages/AdminRules"));
-const AdminTesting = lazy(() => import("./pages/AdminTesting"));
-const AdminSuperFly = lazy(() => import("./pages/AdminSuperFly"));
-const AdminCloudDBHub = lazy(() => import("./pages/AdminCloudDbHub"));
+const AdminAnalytics = lazyWithRetry(() => import("./pages/AdminAnalytics"));
+const AdminVPN = lazyWithRetry(() => import("./pages/AdminVPN"));
+const AdminBrowser = lazyWithRetry(() => import("./pages/AdminBrowser"));
+const AutoBrowser = lazyWithRetry(() => import("./pages/AutoBrowser"));
+const AdminQuotas = lazyWithRetry(() => import("./pages/AdminQuotas"));
+const AdminNotifications = lazyWithRetry(() => import("./pages/AdminNotifications"));
+const AdminPerformance = lazyWithRetry(() => import("./pages/AdminPerformance"));
+const AdminBackup = lazyWithRetry(() => import("./pages/AdminBackup"));
+const AdminOCR = lazyWithRetry(() => import("./pages/AdminOCR"));
+const AdminReverseEngineer = lazyWithRetry(() => import("./pages/AdminReverseEngineer"));
+const AdminReports = lazyWithRetry(() => import("./pages/AdminReports"));
+const AdminApprovals = lazyWithRetry(() => import("./components/AdminApprovals"));
+const AdminInfrastructure = lazyWithRetry(() => import("./pages/AdminInfrastructure"));
+const AdminCodeAnalysis = lazyWithRetry(() => import("./pages/AdminCodeAnalysis"));
+const AdminSettings = lazyWithRetry(() => import("./pages/AdminSettings"));
+const AdminLogs = lazyWithRetry(() => import("./pages/AdminLogs"));
+const AdminSimulator = lazyWithRetry(() => import("./pages/AdminSimulator"));
+const AdminRules = lazyWithRetry(() => import("./pages/AdminRules"));
+const AdminTesting = lazyWithRetry(() => import("./pages/AdminTesting"));
+const AdminSuperFly = lazyWithRetry(() => import("./pages/AdminSuperFly"));
+const AdminCloudDBHub = lazyWithRetry(() => import("./pages/AdminCloudDbHub"));
+
 
 interface ModelStatus {
   id: string;
@@ -403,16 +421,47 @@ function App() {
                 <Route path="testing" element={<AdminTesting />} />
               </Route>
 
+              {/* User routes */}
+              <Route path="/user" element={<UserRouteLayout />}>
+                <Route
+                  index
+                  element={<Navigate to="/user/dashboard" replace />}
+                />
+                <Route
+                  path="dashboard"
+                  element={
+                    <DashboardHome isAdmin={false} setActiveKey={() => {}} />
+                  }
+                />
+                <Route path="ai" element={<ChatWithAI chatFont={chatFont} />} />
+                <Route path="projects" element={<AdminProjects />} />
+                <Route path="browser" element={<AdminBrowser />} />
+                <Route path="auto-browser" element={<AutoBrowser />} />
+                <Route path="simulator" element={<AdminSimulator />} />
+                <Route path="superfly" element={<AdminSuperFly />} />
+                <Route
+                  path="settings"
+                  element={
+                    <AdminSettings
+                      darkMode={darkMode}
+                      setDarkMode={setDarkMode}
+                      chatFont={chatFont}
+                      setChatFont={setChatFont}
+                    />
+                  }
+                />
+              </Route>
+
               {/* Legacy routes redirect to admin */}
               <Route
                 path="/"
-                element={<Navigate to="/admin/dashboard" replace />}
+                element={<Navigate to="/user/dashboard" replace />}
               />
               <Route path="/visualizer" element={<MainVisualizer />} />
               {/* Catch-all */}
               <Route
                 path="*"
-                element={<Navigate to="/admin/dashboard" replace />}
+                element={<Navigate to="/user/dashboard" replace />}
               />
             </Routes>
           </Suspense>

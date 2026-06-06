@@ -14,7 +14,7 @@ import reactor.core.publisher.Mono;
 @RequestMapping("/api/config")
 public class ConfigController {
 
-  @Value("${firebase.api.key}")
+  @Value("${firebase.api.key:}")
   private String apiKey;
 
   @Value("${firebase.auth.domain:supremeai-a.firebaseapp.com}")

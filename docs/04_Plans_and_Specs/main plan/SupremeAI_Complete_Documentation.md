@@ -133,6 +133,8 @@
 | 22 | Simulator Controller Perfection | 🔴 New | ~0% |
 | 23 | Website Reverse Engineering Master Guide | 📝 In Progress | ~80% |
 | 24 | AI Agent Ecosystem Integration | 📝 In Progress | ~60% |
+| 25 | Centralized Feature Inventory Registry | ✅ Solved | ~100% |
+| 26 | Autonomous Project Orchestration & Sync |  In Progress | ~40% |
 
 ---
 
@@ -664,6 +666,41 @@ response = supreme.process_task(
 ### Related Files:
 - **Full Guide:** `Plan_23_Website_Reverse_Engineering_Master_Guide.md`
 - **Related Plans:** Plan 12 (Multi-Platform Expansion), Plan 1 (Dynamic AI Agent)
+
+---
+
+## Plan 25: Centralized Feature Inventory Registry ✅
+**Status:** Implemented via `FeatureRegistryService`
+
+### Concept:
+- Prevent duplicate feature implementation.
+- Maintain a "Table of Capabilities" in the Admin Dashboard.
+- Track provider, classpath, and status for every AI model and engine.
+
+### Solution Applied:
+- **Runtime Registry:** Every new feature must be registered in `FeatureRegistryService`.
+- **Admin Visibility:** Dashboard provides a real-time table of all active components.
+where- **Auto-Audit Task:** AI Agents can now scan the codebase via `CodebaseAuditService` and propose new features with a `PROPOSED` status for admin review.
+- **Browser Auto-Config:** Godmode 3 can now autonomously navigate web interfaces to perform complex user settings (e.g., Cloud setup, API configurations).
+- **AI-Driven Interaction:** Live preview now supports user guidance (clicks/text) when the AI encounters CAPTCHAs or ambiguous UI elements.
+- **Context-Aware Browsing:** Browser navigation is optimized based on the user's current codebase (e.g., Spring Boot vs React context).
+- **Interaction Learning:** System logs and learns from human manual interventions to automate similar future scenarios.
+- **Resilience Fallback:** Automated fallback to on-device Tiny AI or LLM-only modes if the browser engine is blocked or fails.
+
+---
+
+## Plan 26: Autonomous Project Orchestration & Sync 🔴
+**Status:** New — Initial logic in `DocumentationSyncService`
+
+### Concept:
+- Reduce manual maintenance of system documentation and registry.
+- Automate AI Model probing to ensure Level 1/Level 2 fallbacks are valid.
+- Programmatic syncing of project milestones from code to the Dashboard.
+
+### Solutions to Apply:
+- **Doc Automator:** Scans Markdown files for status updates.
+- **Provider Prober:** Scheduled task to verify API key health and rotate before failures occur.
+- **Hybrid Core Orchestrator:** `deploy_models.sh` now manages the Godmode 3 engine and Tiny AI sync services.
 
 ---
 

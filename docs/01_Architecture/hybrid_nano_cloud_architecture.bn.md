@@ -21,13 +21,15 @@ graph TD
     CloudGate -->|স্মার্ট ইন্টেন্ট অ্যানালিসিস| SelectionRouter{all-MiniLM-L6-v2\nSemantic Router}
     SelectionRouter -->|স্ট্যান্ডার্ড রিকোয়েস্ট| CloudChickenBrain[GCP VM: ChickenBrain]
     SelectionRouter -->|জটিল/সিকিউর কোডিং| PocketLab[ব্যবহারকারীর লোকাল: Tiny AI Pocket Lab]
+    SelectionRouter -->|ওয়েব ব্রাউজিং ও অটোরিট্রাইভাল| GodmodeEngine[GCP Cloud Run: Godmode 3 Browser]
+    SelectionRouter -->|জটিল কোডিং ও লজিক| ClaudeCode[External Free: Claude Code CLI]
     
     FirestoreDB[(Firestore Config & Memory)] <--> CloudGate
 ```
 
 ---
 
-## 🧠 ৩টি কোর এআই উপাদানের ভূমিকা (Model Triad Analysis)
+## 🧠 ৫টি কোর এআই উপাদানের ভূমিকা (Model Components Analysis)
 
 ### ১. SuperFly (অন-ডিভাইস এজ মডেল)
 * **সাইজ ও টাইপ:** ৯৪ মিলিয়ন প্যারামিটার সম্পন্ন ন্যানো-মডেল (SmolLM2-ভিত্তিক)।
@@ -52,16 +54,28 @@ graph TD
   * ক্লাউড হোস্টিং কস্ট এবং ব্যান্ডউইথ শূন্যে নামিয়ে আনা।
   * কর্পোরেট কোড এবং স্পর্শকাতর প্রজেক্ট ফাইল ক্লাউডে না পাঠিয়ে সম্পূর্ণ সুরক্ষিত ও অফলাইনে প্রোসেস করা।
 
+### ৪. Godmode 3 (ওয়েব রিট্রাইভাল ও ব্রাউজার ইঞ্জিন)
+* **হোস্টিং:** ক্লাউডে পরিচালিত Stateful Playwright সেবা (GCP Cloud Run এ `engine-godmode-3` হিসেবে হোস্ট করা)।
+* **উদ্দেশ্য:**
+  * রিয়েল-টাইম ওয়েব অ্যাক্সেস এবং ভিজ্যুয়াল অডিট সম্পন্ন করা।
+  * ব্রাউজার-ভিত্তিক তথ্য সংগ্রহ এবং অটোরিট্রাইভাল পরিচালনা করা।
+
+### ৫. Claude Code (এক্সটার্নাল জটিল কোডিং ইঞ্জিন)
+* **হোস্টিং:** এক্সটার্নাল ফ্রি টিয়ার / Claude CLI ইন্টিগ্রেশন।
+* **উদ্দেশ্য:**
+  * উচ্চ-স্তরের যৌক্তিক বিশ্লেষণ এবং অত্যন্ত জটিল কোড রিফ্যাক্টরিং করা।
+  * পিআর (PR) রিভিউ এবং অ্যাডভান্সড কোডিং লজিক ডেভেলপমেন্টে সহায়তা করা।
+
 ---
 
 ## 🛠️ সিস্টেম ইন্টিগ্রেশন পাথ (System Integration Paths)
 
 ### ক. ব্যাকএন্ড ইন্টিগ্রেশন ও রাউটিং লজিক
-আমাদের ব্যাকএন্ডের [AIFallbackOrchestrator](file:///f:/supremeai/src/main/java/com/supremeai/fallback/AIFallbackOrchestrator.java)-এ আমরা ChickenBrain-কে প্রাইমারি ক্লাউড প্রোভাইডার হিসেবে রেজিস্টার করব।
-1. যখন কোনো ব্যবহারকারী চ্যাট করবেন, [ChatProcessingService](file:///f:/supremeai/src/main/java/com/supremeai/service/ChatProcessingService.java) প্রথমে কুয়েরিটি ক্লাসিফাই করবে।
-2. যদি ব্যবহারকারীর একাউন্টে কোনো কাস্টম **Pocket Lab** রেজিস্টার্ড থাকে, তবে রিকোয়েস্টটি ক্লাউড প্রোভাইডারে না পাঠিয়ে সরাসরি তার পকেট ল্যাবের লোকাল এপিআই টানেলে পাঠানো হবে।
-3. যদি পকেট ল্যাব কানেকশন না থাকে, তবে ক্লাউডে হোস্ট করা **ChickenBrain** ইনস্ট্যান্স উত্তর প্রদান করবে।
-4. ব্যাকএন্ডের কোনো সার্ভিস ফেইল করলে স্বয়ংক্রিয়ভাবে [StubLocalProvider](file:///f:/supremeai/src/main/java/com/supremeai/provider/StubLocalProvider.java) লোকাল ব্যাকআপ সলিউশন হ্যান্ডেল করবে।
+আমাদের ব্যাকএন্ডে **Local-First (In-House Stack)** মেকানিজম সমান গুরুত্ব দিয়ে কাজ করবে:
+*   **কোর কম্পোনেন্টস (Local-First):** `Browser Engine` (Playwright/Jsoup স্ক্র্যাপার), `Core Knowledge Base` (রুলস ডাটাবেস), আমাদের ক্লাউডে ডিপ্লয়ড নিজস্ব এআই মডেল (`ChickenBrain` বা `hybrid_tiny`), **GODMODE 3** (মাল্টি-মডেল অরকেস্ট্রেশন), এবং **Free Claude Code** (রিজনিং ও কোডিং অ্যাসিস্ট্যান্ট) একে অপরের পরিপূরক হিসেবে কাজ করবে।
+*   **অতিরিক্ত ফিচার (Pocket Lab):** ব্যবহারকারীর অ্যাকাউন্টে কাস্টম **Pocket Lab** রেজিস্টার্ড থাকলে, রিকোয়েস্ট লোকাল টানেলে ফরোয়ার্ড করা সম্ভব (যা একটি অতিরিক্ত বা ঐচ্ছিক ফিচার)।
+*   **এক্সটার্নাল প্রোভাইডার:** যেকোনো এক্সটার্নাল এপিআই কী ব্যবহারকারীর ৪র্থ অপশন বা এক্সটার্নাল ফলব্যাক হিসেবে বিবেচিত হবে।
+*   **ফেইলওভার:** ব্যাকএন্ডের সার্ভিস ফেইল করলে [StubLocalProvider](file:///f:/supremeai/src/main/java/com/supremeai/provider/StubLocalProvider.java) অফলাইন সমাধান নিশ্চিত করবে।
 
 ### খ. মোবাইল ডিভাইস ইন্টিগ্রেশন (Edge Node)
 ফ্লাটার ক্লায়েন্ট অ্যাপ্লিকেশন ডিরেক্টরি [supremeai](file:///f:/supremeai/supremeai)-তে অন-ডিভাইস মডেল রান করার জন্য `onnxruntime_flutter` প্যাকেজ যুক্ত করা হবে।

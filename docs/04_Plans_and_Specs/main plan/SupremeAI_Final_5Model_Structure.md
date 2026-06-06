@@ -1,24 +1,22 @@
 
-# SupremeAI - Final 5-Model Structure
+# SupremeAI - Hybrid Core Structure
 
 > **Status:** 🟢 Updated for v5 Architecture
 
-## With Free Multiple API Keys Support
+## Streamlined Tiny AI & Godmode 3 Integration
 
 ---
 
-# 1. Model Selection (Final 5)
+# 1. Hybrid Core Components
 
-| # | Model | Role | Provider | Cost | Why |
-|---|-------|------|----------|------|-----|
-| 1 | **Qwen 2.5 Coder 7B** | Primary Coder | GCP Run | $0 (Idle) | Best code generation |
-| 2 | **Llama 3.1 8B** | General Chat | GCP Run | $0 (Idle) | Best all-rounder |
-| 3 | **DeepSeek-V4-Pro** | Review/Debug | HF Endpoint| $0 (Idle) | State-of-the-art Reasoning |
-| 4 | **Phi 3 Mini** | Fast Tasks | GCP Run | $0 (Idle) | Quick responses |
-| 5 | **Nomic Embed** | Embeddings | GCP Run | $0 (Idle) | Search/Similarity |
+| Component | Role | Runtime | Advantage |
+| :--- | :--- | :--- | :--- |
+| **Tiny AI (SuperFly)** | Fast execution, local inference | On-Device / Edge | Zero latency, offline capable |
+| **Godmode 3** | Web retrieval, browser automation | Cloud / Playwright | Real-time web access, visual audit |
+| **Claude Code** | High-level reasoning, complex coding | External (Free) | State-of-the-art logic and PR review |
 
-**Infrastructure Strategy:** Scale-to-Zero (Serverless GPU)
-**Deployment:** All models are hosted as independent Cloud Run services or Hugging Face Dedicated Endpoints.
+**Infrastructure Strategy:** Hybrid Local-Cloud. 
+Heavy reasoning is delegated to Claude Code, while rapid interactions and automations are handled locally or via the stateful browser engine.
 
 ---
 

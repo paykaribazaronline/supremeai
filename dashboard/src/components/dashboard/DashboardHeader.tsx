@@ -161,7 +161,7 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                 fontFamily: "JetBrains Mono",
               }}
             >
-              {user?.email || "root@supreme.ai"}
+              {user?.email || "Guest User"}
             </div>
           </div>
 

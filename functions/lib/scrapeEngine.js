@@ -32,12 +32,16 @@ var __importStar = (this && this.__importStar) || (function () {
         return result;
     };
 })();
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.scrapeHealthFn = exports.classifyIntentFn = exports.scrapeAndRespondFn = void 0;
 exports.scrapeAndRespond = scrapeAndRespond;
 const app_1 = require("firebase-admin/app");
 const firestore_1 = require("firebase-admin/firestore");
 const https = __importStar(require("firebase-functions/v2/https"));
+const axios_1 = __importDefault(require("axios"));
 const httpsOptions = { region: "us-central1" };
 // ─────────────────────────────────────────────────────────────────
 // Firebase initialisation (singleton-safe)
@@ -146,8 +150,7 @@ async function extractFromPage(pageUrl, strategy, eventId) {
 const PLAYWRIGHT_URL = process.env.BROWSER_AUTOMATION_URL || "http://localhost:3001";
 async function callPlaywright(action, body) {
     try {
-        const axios = require("axios");
-        const res = await axios.post(`${PLAYWRIGHT_URL}/${action}`, body, {
+        const res = await axios_1.default.post(`${PLAYWRIGHT_URL}/${action}`, body, {
             timeout: parseInt(process.env.SCRAPE_TIMEOUT_MS || "30000"),
         });
         return res.data;
@@ -272,7 +275,8 @@ async function scrapeAndRespond(message, userId) {
             ? searchContent.map((r) => r.href).filter(Boolean)
             : [];
     }
-    catch {
+    catch (extractionError) {
+        console.error(`[ScrapeEngine] Failed to extract search result links:`, extractionError);
         // If link extraction fails, fall back to navigating each engine URL directly
         resultLinks = builtUrls.map((b) => b.url);
     }
@@ -432,8 +436,7 @@ exports.classifyIntentFn = https.onRequest({ ...httpsOptions, cors: true }, asyn
 exports.scrapeHealthFn = https.onRequest({ ...httpsOptions, cors: true }, async (_req, res) => {
     const playStatus = (await (async () => {
         try {
-            const axios = require("axios");
-            const r = await axios.get(`${PLAYWRIGHT_URL}/health`, { timeout: 5000 });
+            const r = await axios_1.default.get(`${PLAYWRIGHT_URL}/health`, { timeout: 5000 });
             return { ok: r.status === 200, status: r.status };
         }
         catch {
