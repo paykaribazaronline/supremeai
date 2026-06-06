@@ -203,7 +203,13 @@ ai-validation-ci:
 workflow-summary:
   stage: summary
   image: curlimages/curl:latest
-  needs: ["backend-deploy", "frontend-deploy", "functions-deploy", "ai-validation-ci"]
+  needs:
+    [
+      "backend-deploy",
+      "frontend-deploy",
+      "functions-deploy",
+      "ai-validation-ci",
+    ]
   rules:
     - if: $CI_COMMIT_BRANCH == "main"
       when: always

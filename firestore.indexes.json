@@ -3,50 +3,48 @@
     {
       "collectionGroup": "chat_messages",
       "fields": [
-        {"fieldPath": "userId", "order": "ASCENDING"},
-        {"fieldPath": "timestamp", "order": "ASCENDING"}
+        { "fieldPath": "userId", "order": "ASCENDING" },
+        { "fieldPath": "timestamp", "order": "ASCENDING" }
       ]
     },
     {
       "collectionGroup": "chat_messages",
       "fields": [
-        {"fieldPath": "role", "order": "ASCENDING"},
-        {"fieldPath": "timestamp", "order": "ASCENDING"}
+        { "fieldPath": "role", "order": "ASCENDING" },
+        { "fieldPath": "timestamp", "order": "ASCENDING" }
       ]
     },
     {
       "collectionGroup": "api_providers",
       "fields": [
-        {"fieldPath": "active", "order": "ASCENDING"},
-        {"fieldPath": "lastUsed", "order": "ASCENDING"}
+        { "fieldPath": "active", "order": "ASCENDING" },
+        { "fieldPath": "lastUsed", "order": "ASCENDING" }
       ]
     },
     {
       "collectionGroup": "api_providers",
       "fields": [
-        {"fieldPath": "tier", "order": "ASCENDING"},
-        {"fieldPath": "quotaUsed", "order": "ASCENDING"}
+        { "fieldPath": "tier", "order": "ASCENDING" },
+        { "fieldPath": "quotaUsed", "order": "ASCENDING" }
       ]
     },
     {
       "collectionGroup": "learning_entries",
       "fields": [
-        {"fieldPath": "sessionId", "order": "ASCENDING"},
-        {"fieldPath": "timestamp", "order": "ASCENDING"}
+        { "fieldPath": "sessionId", "order": "ASCENDING" },
+        { "fieldPath": "timestamp", "order": "ASCENDING" }
       ]
     },
     {
       "collectionGroup": "validation_results",
       "fields": [
-        {"fieldPath": "taskId", "order": "ASCENDING"},
-        {"fieldPath": "timestamp", "order": "DESCENDING"}
+        { "fieldPath": "taskId", "order": "ASCENDING" },
+        { "fieldPath": "timestamp", "order": "DESCENDING" }
       ]
     },
     {
       "collectionGroup": "git_remotes",
-      "fields": [
-        {"fieldPath": "timestamp", "order": "DESCENDING"}
-      ]
+      "fields": [{ "fieldPath": "timestamp", "order": "DESCENDING" }]
     }
   ]
 }

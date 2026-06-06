@@ -37,7 +37,9 @@ export const RoleProvider: React.FC<RoleProviderProps> = ({ children }) => {
     const token = authUtils.getToken();
     return !!token && token !== "GUEST_MODE";
   });
-  const [isGuest, setIsGuest] = useState(() => authUtils.getToken() === "GUEST_MODE");
+  const [isGuest, setIsGuest] = useState(
+    () => authUtils.getToken() === "GUEST_MODE",
+  );
   const [user, setUser] = useState<any>(() => authUtils.getCurrentUser());
 
   const refreshUser = () => {
@@ -65,14 +67,14 @@ export const RoleProvider: React.FC<RoleProviderProps> = ({ children }) => {
 
   useEffect(() => {
     refreshUser();
-    
+
     // Listen for storage events (e.g., login/logout in another tab)
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === "supremeai_token" || e.key === "supremeai_user") {
         refreshUser();
       }
     };
-    
+
     window.addEventListener("storage", handleStorageChange);
     return () => {
       window.removeEventListener("storage", handleStorageChange);

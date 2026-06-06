@@ -30,15 +30,21 @@ function lazyWithRetry(importFn: () => Promise<any>) {
       }
       sessionStorage.removeItem("chunk_reload");
       throw error; // re-throw if reload already attempted
-    })
+    }),
   );
 }
 
 // Lazy load pages with auto-recovery
-const ModernAdminDashboard = lazyWithRetry(() => import("./pages/ModernAdminDashboard"));
+const ModernAdminDashboard = lazyWithRetry(
+  () => import("./pages/ModernAdminDashboard"),
+);
 const LoginPage = lazyWithRetry(() => import("./pages/LoginPage"));
-const AdminRouteLayout = lazyWithRetry(() => import("./components/AdminRouteLayout"));
-const UserRouteLayout = lazyWithRetry(() => import("./components/UserRouteLayout"));
+const AdminRouteLayout = lazyWithRetry(
+  () => import("./components/AdminRouteLayout"),
+);
+const UserRouteLayout = lazyWithRetry(
+  () => import("./components/UserRouteLayout"),
+);
 // Lazy load admin pages
 const DashboardHome = lazyWithRetry(
   () => import("./components/dashboard/DashboardHome"),
@@ -58,15 +64,27 @@ const AdminVPN = lazyWithRetry(() => import("./pages/AdminVPN"));
 const AdminBrowser = lazyWithRetry(() => import("./pages/AdminBrowser"));
 const AutoBrowser = lazyWithRetry(() => import("./pages/AutoBrowser"));
 const AdminQuotas = lazyWithRetry(() => import("./pages/AdminQuotas"));
-const AdminNotifications = lazyWithRetry(() => import("./pages/AdminNotifications"));
-const AdminPerformance = lazyWithRetry(() => import("./pages/AdminPerformance"));
+const AdminNotifications = lazyWithRetry(
+  () => import("./pages/AdminNotifications"),
+);
+const AdminPerformance = lazyWithRetry(
+  () => import("./pages/AdminPerformance"),
+);
 const AdminBackup = lazyWithRetry(() => import("./pages/AdminBackup"));
 const AdminOCR = lazyWithRetry(() => import("./pages/AdminOCR"));
-const AdminReverseEngineer = lazyWithRetry(() => import("./pages/AdminReverseEngineer"));
+const AdminReverseEngineer = lazyWithRetry(
+  () => import("./pages/AdminReverseEngineer"),
+);
 const AdminReports = lazyWithRetry(() => import("./pages/AdminReports"));
-const AdminApprovals = lazyWithRetry(() => import("./components/AdminApprovals"));
-const AdminInfrastructure = lazyWithRetry(() => import("./pages/AdminInfrastructure"));
-const AdminCodeAnalysis = lazyWithRetry(() => import("./pages/AdminCodeAnalysis"));
+const AdminApprovals = lazyWithRetry(
+  () => import("./components/AdminApprovals"),
+);
+const AdminInfrastructure = lazyWithRetry(
+  () => import("./pages/AdminInfrastructure"),
+);
+const AdminCodeAnalysis = lazyWithRetry(
+  () => import("./pages/AdminCodeAnalysis"),
+);
 const AdminSettings = lazyWithRetry(() => import("./pages/AdminSettings"));
 const AdminLogs = lazyWithRetry(() => import("./pages/AdminLogs"));
 const AdminSimulator = lazyWithRetry(() => import("./pages/AdminSimulator"));
@@ -74,7 +92,6 @@ const AdminRules = lazyWithRetry(() => import("./pages/AdminRules"));
 const AdminTesting = lazyWithRetry(() => import("./pages/AdminTesting"));
 const AdminSuperFly = lazyWithRetry(() => import("./pages/AdminSuperFly"));
 const AdminCloudDBHub = lazyWithRetry(() => import("./pages/AdminCloudDbHub"));
-
 
 interface ModelStatus {
   id: string;

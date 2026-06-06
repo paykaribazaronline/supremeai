@@ -5,12 +5,14 @@
 ### ✅ Completed Tasks
 
 #### 1. Dashboard Build
+
 - **Status:** SUCCESS
 - **Build command:** `npm run build` in `/dashboard`
 - **Output:** `/public/` directory (45 files)
 - **Size:** ~1.2 MB total
 
 #### 2. Firebase Hosting Deployment
+
 - **Status:** SUCCESS
 - **Project:** `supremeai-a`
 - **URL:** https://supremeai-a.web.app
@@ -18,6 +20,7 @@
 - **Files deployed:** 45
 
 #### 3. Cloud Run Services (Backend)
+
 - **Status:** ALREADY DEPLOYED
 - **Region:** us-central1
 - **Services running:** 25+ services
@@ -45,17 +48,18 @@
 
 ### 🔗 Access URLs
 
-| Service | URL |
-|---------|-----|
-| **Dashboard** | https://supremeai-a.web.app |
-| **Admin Panel** | https://supremeai-a.web.app/admin/dashboard |
-| **API Backend** | https://supremeai-565236080752.us-central1.run.app |
+| Service              | URL                                                     |
+| -------------------- | ------------------------------------------------------- |
+| **Dashboard**        | https://supremeai-a.web.app                             |
+| **Admin Panel**      | https://supremeai-a.web.app/admin/dashboard             |
+| **API Backend**      | https://supremeai-565236080752.us-central1.run.app      |
 | **Firebase Console** | https://console.firebase.google.com/project/supremeai-a |
-| **GCP Console** | https://console.cloud.google.com/run |
+| **GCP Console**      | https://console.cloud.google.com/run                    |
 
 ### 🚀 Next Steps (Optional)
 
 1. **Deploy Spring Boot Backend to Cloud Run** (if not already done):
+
    ```bash
    gcloud run deploy supremeai-backend \
      --image=gcr.io/PROJECT_ID/supremeai \

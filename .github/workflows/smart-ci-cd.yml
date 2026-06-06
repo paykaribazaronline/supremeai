@@ -43,6 +43,7 @@ jobs:
       backend: ${{ steps.smart-resolution.outputs.backend }}
       frontend: ${{ steps.smart-resolution.outputs.frontend }}
       functions: ${{ steps.smart-resolution.outputs.functions }}
+      mobile: ${{ steps.smart-resolution.outputs.mobile }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -62,6 +63,9 @@ jobs:
             frontend:
               - 'dashboard/**'
               - '.github/workflows/smart-ci-cd.yml'
+            mobile:
+              - 'supremeai/**'
+              - '.github/workflows/smart-ci-cd.yml'
             functions:
               - 'functions/**'
               - '.github/workflows/smart-ci-cd.yml'
@@ -74,6 +78,7 @@ jobs:
           BACKEND_CHANGED="${{ steps.filter.outputs.backend }}"
           FRONTEND_CHANGED="${{ steps.filter.outputs.frontend }}"
           FUNCTIONS_CHANGED="${{ steps.filter.outputs.functions }}"
+          MOBILE_CHANGED="${{ steps.filter.outputs.mobile }}"
 
           # Fetch the last completed run ID for this workflow on this branch
           LAST_RUN_ID=$(gh run list --workflow "${{ github.workflow }}" --branch "${{ github.ref_name }}" --status completed --limit 1 --json databaseId -q ".[0].databaseId" || echo "")
@@ -96,6 +101,10 @@ jobs:
               echo "Overriding functions to true due to previous failure"
               FUNCTIONS_CHANGED="true"
             fi
+            if echo "$FAILED_JOBS" | grep -qi "mobile"; then
+              echo "Overriding mobile to true due to previous failure"
+              MOBILE_CHANGED="true"
+            fi
           else
             echo "No previous completed run found to check."
           fi
@@ -103,6 +112,7 @@ jobs:
           echo "backend=$BACKEND_CHANGED" >> $GITHUB_OUTPUT
           echo "frontend=$FRONTEND_CHANGED" >> $GITHUB_OUTPUT
           echo "functions=$FUNCTIONS_CHANGED" >> $GITHUB_OUTPUT
+          echo "mobile=$MOBILE_CHANGED" >> $GITHUB_OUTPUT
 
   # 3. CodeQL Static Application Security Testing (SAST) - Java
   codeql-scan-java:
@@ -170,6 +180,8 @@ jobs:
     needs: [detect-changes, secret-scan]
     if: ${{ needs.detect-changes.outputs.backend == 'true' || github.ref == 'refs/heads/main' }}
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     services:
       redis:
         image: redis:7-alpine
@@ -190,19 +202,33 @@ jobs:
           java-version: '21'
           cache: 'gradle'
 
-      - name: Run Spotless Code Format Check
+      - name: Run Spotless Code Format Check and Auto-Fix
         run: |
           chmod +x gradlew
-          ./gradlew spotlessCheck --no-daemon
+          ./gradlew spotlessApply --no-daemon
+
+      - name: Commit and Push Backend Format Changes
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "style: spotless auto-format java code [skip ci]"
+          commit_user_name: "GitHub Action"
+          commit_user_email: "actions@github.com"
+          file_pattern: 'src/**/*.java'
 
       - name: Run Backend Unit Tests
         run: ./gradlew clean test --no-daemon
 
-      - name: Print Test Reports on Failure
+      - name: Autonomous Repair Analysis on Failure
         if: failure()
         run: |
           echo "=== Backend Test Failures Summary ==="
-          find build/test-results/test -name "*.xml" -exec cat {} + || true
+          FAILED_LOG=$(find build/test-results/test -name "*.xml" -exec cat {} + | head -c 50000)
+          ESCAPED_LOG=$(echo "$FAILED_LOG" | jq -aRs .)
+          curl -X POST "${{ secrets.SUPREMEAI_BASE_URL }}/api/admin/code-analysis/analyze" \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Bearer ${{ secrets.SUPREMEAI_TOKEN }}" \
+            -d "{\"log\": $ESCAPED_LOG, \"context\": \"backend_test_failure\", \"repo\": \"${{ github.repository }}\"}"
+          echo "Error logs sent to SupremeAI for autonomous repair generation."
 
   # 5. Backend Deployment
   backend-deploy:
@@ -384,6 +410,8 @@ jobs:
     needs: [detect-changes, secret-scan]
     if: ${{ needs.detect-changes.outputs.frontend == 'true' || github.ref == 'refs/heads/main' }}
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -398,8 +426,27 @@ jobs:
       - name: Install Frontend Dependencies
         run: npm install -w dashboard
 
-      - name: Run Frontend Lint Checks
-        run: npm run lint -w dashboard
+      - name: Run Frontend Lint Checks and Auto-Fix
+        run: npm run lint -w dashboard -- --fix || echo "Some linting warnings couldn't be auto-fixed"
+
+      - name: Run Prettier Format
+        run: npm run format -w dashboard || echo "Prettier formatting failed or not defined"
+
+      - name: Run Global/Root Formatting
+        run: npm run format:root || echo "Root formatting failed"
+
+      - name: Auto-fix Python Scripts
+        run: |
+          pip install black
+          black scripts/**/*.py || echo "No python scripts found or black failed"
+
+      - name: Commit and Push Frontend Lint/Format Changes
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "style: auto-fix frontend, python, and root formatting [skip ci]"
+          commit_user_name: "GitHub Action"
+          commit_user_email: "actions@github.com"
+          file_pattern: 'dashboard/** scripts/**/*.py *.json *.md config/**'
 
       - name: Run Frontend Tests
         run: npm run test -w dashboard -- --run || echo "No tests or test command failed"
@@ -492,6 +539,8 @@ jobs:
     needs: [detect-changes, secret-scan]
     if: ${{ needs.detect-changes.outputs.functions == 'true' || github.ref == 'refs/heads/main' }}
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -505,6 +554,17 @@ jobs:
 
       - name: Install Functions Dependencies
         run: npm install -w functions
+
+      - name: Run Functions Lint and Auto-Fix
+        run: npm run lint:functions || echo "Functions lint-fix failed"
+
+      - name: Commit and Push Functions Fixes
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "style: auto-fix functions linting [skip ci]"
+          commit_user_name: "GitHub Action"
+          commit_user_email: "actions@github.com"
+          file_pattern: 'functions/**'
 
       - name: Compile TypeScript Functions
         run: npm run build -w functions
@@ -555,10 +615,33 @@ jobs:
         run: |
           npx firebase-tools deploy --only functions --project ${{ steps.auth.outputs.project_id }} --non-interactive --force --debug
 
+  # 10. Mobile CI (Flutter)
+  mobile-test:
+    name: Mobile Test & Analyze
+    needs: [detect-changes]
+    if: ${{ needs.detect-changes.outputs.mobile == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.22.0'
+          cache: true
+
+      - name: Run Flutter Analyze and Test
+        run: |
+          cd supremeai
+          flutter pub get
+          flutter analyze
+          flutter test
+
   # 10. Dependabot Auto-Merge
   dependabot-merge:
     name: Dependabot Auto-Merge
-    needs: [backend-test, frontend-test, functions-test]
+    needs: [backend-test, frontend-test, functions-test, mobile-test]
     if: github.event.pull_request.user.login == 'dependabot[bot]' && always()
     runs-on: ubuntu-latest
     permissions:

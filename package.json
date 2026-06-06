@@ -12,12 +12,32 @@
   "scripts": {
     "dev": "turbo run dev",
     "build": "turbo run build",
-    "test": "turbo run test"
+    "test": "turbo run test",
+    "prepare": "husky",
+    "format:root": "prettier --write \"*.{json,md,yml}\" \"config/**/*.{rules,json}\"",
+    "lint:functions": "npm run lint -w functions -- --fix"
+  },
+  "lint-staged": {
+    "dashboard/src/**/*.{ts,tsx}": [
+      "npm run lint -w dashboard -- --fix"
+    ],
+    "src/main/java/**/*.java": [
+      "./gradlew spotlessApply"
+    ]
+  },
+  "commitlint": {
+    "extends": [
+      "@commitlint/config-conventional"
+    ]
   },
   "devDependencies": {
     "@playwright/test": "^1.60.0",
+    "@commitlint/cli": "^19.0.0",
+    "@commitlint/config-conventional": "^19.0.0",
     "concurrently": "^9.2.1",
-    "typescript": "^6.0.3",
-    "turbo": "latest"
+    "husky": "^9.1.7",
+    "lint-staged": "^15.5.2",
+    "turbo": "latest",
+    "typescript": "^6.0.3"
   }
 }

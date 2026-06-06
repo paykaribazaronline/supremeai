@@ -15,8 +15,14 @@
       "description": "Main overview with stats, quick actions, and system health",
       "apiEndpoints": ["/api/admin/dashboard-stats"],
       "adminHtml": { "sectionId": "dashboard", "menuLabel": "📊 Dashboard" },
-      "react": { "component": "AdminDashboard.tsx", "path": "pages/AdminDashboard.tsx" },
-      "flutter": { "screen": "home_screen.dart", "path": "screens/dashboard/home_screen.dart" },
+      "react": {
+        "component": "AdminDashboard.tsx",
+        "path": "pages/AdminDashboard.tsx"
+      },
+      "flutter": {
+        "screen": "home_screen.dart",
+        "path": "screens/dashboard/home_screen.dart"
+      },
       "priority": "critical"
     },
     {
@@ -25,7 +31,10 @@
       "icon": "📋",
       "description": "Daily activity summary with key metrics",
       "apiEndpoints": ["/api/activity/summary"],
-      "adminHtml": { "sectionId": "activity-summary", "menuLabel": "📋 আজকের সারসংক্ষেপ" },
+      "adminHtml": {
+        "sectionId": "activity-summary",
+        "menuLabel": "📋 আজকের সারসংক্ষেপ"
+      },
       "react": { "component": null, "path": null },
       "flutter": { "screen": null, "path": null },
       "priority": "medium"
@@ -36,7 +45,10 @@
       "icon": "🚨",
       "description": "System alert monitoring and management",
       "apiEndpoints": ["/api/alerts"],
-      "adminHtml": { "sectionId": "system-alerts", "menuLabel": "✅ System Alerts" },
+      "adminHtml": {
+        "sectionId": "system-alerts",
+        "menuLabel": "✅ System Alerts"
+      },
       "react": { "component": null, "path": null },
       "flutter": { "screen": "alerts", "path": "screens/alerts/" },
       "priority": "high"
@@ -46,9 +58,15 @@
       "name": "Learned Techniques",
       "icon": "🧠",
       "description": "Browse operational techniques SupremeAI has learned",
-      "apiEndpoints": ["/api/learning/stats", "/api/learning/solutions/{category}"],
+      "apiEndpoints": [
+        "/api/learning/stats",
+        "/api/learning/solutions/{category}"
+      ],
       "adminHtml": { "sectionId": "techniques", "menuLabel": "🧠 Techniques" },
-      "react": { "component": "LearningResearch.tsx", "path": "components/LearningResearch.tsx" },
+      "react": {
+        "component": "LearningResearch.tsx",
+        "path": "components/LearningResearch.tsx"
+      },
       "flutter": { "screen": "learning", "path": "screens/learning/" },
       "priority": "high"
     },
@@ -58,9 +76,15 @@
       "icon": "🛰️",
       "description": "AI provider status and coverage metrics",
       "apiEndpoints": ["/api/providers", "/api/providers/coverage"],
-      "adminHtml": { "sectionId": "provider-coverage", "menuLabel": "🛰️ Provider Coverage" },
+      "adminHtml": {
+        "sectionId": "provider-coverage",
+        "menuLabel": "🛰️ Provider Coverage"
+      },
       "react": { "component": null, "path": null },
-      "flutter": { "screen": "ai_providers_screen.dart", "path": "screens/providers/ai_providers_screen.dart" },
+      "flutter": {
+        "screen": "ai_providers_screen.dart",
+        "path": "screens/providers/ai_providers_screen.dart"
+      },
       "priority": "high"
     },
     {
@@ -81,7 +105,10 @@
       "description": "Execute system commands and view history",
       "apiEndpoints": ["/api/commands/execute", "/api/commands/history"],
       "adminHtml": { "sectionId": "commands", "menuLabel": "💻 Commands" },
-      "react": { "component": "CommandPanel.tsx", "path": "components/CommandPanel.tsx" },
+      "react": {
+        "component": "CommandPanel.tsx",
+        "path": "components/CommandPanel.tsx"
+      },
       "flutter": { "screen": null, "path": null },
       "priority": "medium"
     },
@@ -91,8 +118,14 @@
       "icon": "🔑",
       "description": "Manage API keys for AI providers",
       "apiEndpoints": ["/api/accounts", "/api/accounts/add"],
-      "adminHtml": { "sectionId": "api-keys", "menuLabel": "🔑 API Key Manager" },
-      "react": { "component": "APIManagement.tsx", "path": "components/APIManagement.tsx" },
+      "adminHtml": {
+        "sectionId": "api-keys",
+        "menuLabel": "🔑 API Key Manager"
+      },
+      "react": {
+        "component": "APIManagement.tsx",
+        "path": "components/APIManagement.tsx"
+      },
       "flutter": { "screen": null, "path": null },
       "priority": "high"
     },
@@ -102,8 +135,14 @@
       "icon": "🤖",
       "description": "Assign AI agents to task types",
       "apiEndpoints": ["/api/agents", "/api/agents/assign"],
-      "adminHtml": { "sectionId": "ai-agents", "menuLabel": "🤖 AI Agent Assignment" },
-      "react": { "component": "AIAssignment.tsx", "path": "components/AIAssignment.tsx" },
+      "adminHtml": {
+        "sectionId": "ai-agents",
+        "menuLabel": "🤖 AI Agent Assignment"
+      },
+      "react": {
+        "component": "AIAssignment.tsx",
+        "path": "components/AIAssignment.tsx"
+      },
       "flutter": { "screen": null, "path": null },
       "priority": "medium"
     },
@@ -113,7 +152,10 @@
       "icon": "🔄",
       "description": "Git operations — commit, push, branch management",
       "apiEndpoints": ["/api/git/status", "/api/git/commit", "/api/git/push"],
-      "adminHtml": { "sectionId": "git-projects", "menuLabel": "🔄 Git Projects" },
+      "adminHtml": {
+        "sectionId": "git-projects",
+        "menuLabel": "🔄 Git Projects"
+      },
       "react": { "component": null, "path": null },
       "flutter": { "screen": "git", "path": "screens/git/" },
       "priority": "medium"
@@ -126,7 +168,10 @@
       "apiEndpoints": ["/api/projects", "/api/generate"],
       "adminHtml": { "sectionId": "projects", "menuLabel": "📦 Projects" },
       "react": { "component": null, "path": null },
-      "flutter": { "screen": "projects_list_screen.dart", "path": "screens/projects/projects_list_screen.dart" },
+      "flutter": {
+        "screen": "projects_list_screen.dart",
+        "path": "screens/projects/projects_list_screen.dart"
+      },
       "priority": "high"
     },
     {
@@ -136,7 +181,10 @@
       "description": "View system audit trail",
       "apiEndpoints": ["/api/admin/logs"],
       "adminHtml": { "sectionId": "logs", "menuLabel": "📝 Audit Logs" },
-      "react": { "component": "AuditLog.tsx", "path": "components/AuditLog.tsx" },
+      "react": {
+        "component": "AuditLog.tsx",
+        "path": "components/AuditLog.tsx"
+      },
       "flutter": { "screen": "alerts", "path": "screens/alerts/" },
       "priority": "medium"
     },
@@ -146,7 +194,10 @@
       "icon": "👥",
       "description": "Manage admin users — create, view, permissions",
       "apiEndpoints": ["/api/auth/users", "/api/auth/register"],
-      "adminHtml": { "sectionId": "user-management", "menuLabel": "👥 User Management" },
+      "adminHtml": {
+        "sectionId": "user-management",
+        "menuLabel": "👥 User Management"
+      },
       "react": { "component": null, "path": null },
       "flutter": { "screen": null, "path": null },
       "priority": "high"
@@ -157,7 +208,10 @@
       "icon": "🏷️",
       "description": "User tier management and quota settings",
       "apiEndpoints": ["/api/tier/plans", "/api/quota"],
-      "adminHtml": { "sectionId": "tier-quota", "menuLabel": "🏷️ Tiers & Quotas" },
+      "adminHtml": {
+        "sectionId": "tier-quota",
+        "menuLabel": "🏷️ Tiers & Quotas"
+      },
       "react": { "component": null, "path": null },
       "flutter": { "screen": "quota", "path": "screens/quota/" },
       "priority": "medium"
@@ -168,8 +222,14 @@
       "icon": "🔒",
       "description": "VPN tunnel management and settings",
       "apiEndpoints": ["/api/vpn/status", "/api/vpn/tunnels"],
-      "adminHtml": { "sectionId": "vpn-management", "menuLabel": "🔒 VPN Management" },
-      "react": { "component": "VPNManagement.tsx", "path": "components/VPNManagement.tsx" },
+      "adminHtml": {
+        "sectionId": "vpn-management",
+        "menuLabel": "🔒 VPN Management"
+      },
+      "react": {
+        "component": "VPNManagement.tsx",
+        "path": "components/VPNManagement.tsx"
+      },
       "flutter": { "screen": "vpn", "path": "screens/vpn/" },
       "priority": "low"
     },
@@ -179,8 +239,14 @@
       "icon": "📅",
       "description": "Visualize AI decision history",
       "apiEndpoints": ["/api/decisions/timeline"],
-      "adminHtml": { "sectionId": "timeline", "menuLabel": "📅 Decision Timeline" },
-      "react": { "component": "TimelineVisualization.tsx", "path": "components/TimelineVisualization.tsx" },
+      "adminHtml": {
+        "sectionId": "timeline",
+        "menuLabel": "📅 Decision Timeline"
+      },
+      "react": {
+        "component": "TimelineVisualization.tsx",
+        "path": "components/TimelineVisualization.tsx"
+      },
       "flutter": { "screen": "decisions", "path": "screens/decisions/" },
       "priority": "low"
     },
@@ -190,9 +256,18 @@
       "icon": "📊",
       "description": "System metrics, AIOps alerts, and performance data",
       "apiEndpoints": ["/api/metrics", "/api/aiops"],
-      "adminHtml": { "sectionId": "metrics", "menuLabel": "📊 Metrics & Alerts" },
-      "react": { "component": "SystemMetrics.tsx", "path": "components/SystemMetrics.tsx" },
-      "flutter": { "screen": "analytics_screen.dart", "path": "screens/analytics/analytics_screen.dart" },
+      "adminHtml": {
+        "sectionId": "metrics",
+        "menuLabel": "📊 Metrics & Alerts"
+      },
+      "react": {
+        "component": "SystemMetrics.tsx",
+        "path": "components/SystemMetrics.tsx"
+      },
+      "flutter": {
+        "screen": "analytics_screen.dart",
+        "path": "screens/analytics/analytics_screen.dart"
+      },
       "priority": "high"
     },
     {
@@ -212,7 +287,10 @@
       "icon": "🧐",
       "description": "System self-repair status and history",
       "apiEndpoints": ["/api/self-healing/health", "/api/self-healing/history"],
-      "adminHtml": { "sectionId": "self-healing", "menuLabel": "🧐 Self-Healing" },
+      "adminHtml": {
+        "sectionId": "self-healing",
+        "menuLabel": "🧐 Self-Healing"
+      },
       "react": { "component": null, "path": null },
       "flutter": { "screen": "resilience", "path": "screens/resilience/" },
       "priority": "medium"
@@ -222,9 +300,19 @@
       "name": "Self-Extension",
       "icon": "⚕️",
       "description": "Submit requirements for auto code generation",
-      "apiEndpoints": ["/api/extend/requirement", "/api/extend/status", "/api/extend/history"],
-      "adminHtml": { "sectionId": "self-extension", "menuLabel": "⚕️ Self-Extension" },
-      "react": { "component": "SelfExtension.tsx", "path": "components/SelfExtension.tsx" },
+      "apiEndpoints": [
+        "/api/extend/requirement",
+        "/api/extend/status",
+        "/api/extend/history"
+      ],
+      "adminHtml": {
+        "sectionId": "self-extension",
+        "menuLabel": "⚕️ Self-Extension"
+      },
+      "react": {
+        "component": "SelfExtension.tsx",
+        "path": "components/SelfExtension.tsx"
+      },
       "flutter": { "screen": "extension", "path": "screens/extension/" },
       "priority": "high"
     },
@@ -234,8 +322,14 @@
       "icon": "🧠",
       "description": "Multi-AI voting and consensus system",
       "apiEndpoints": ["/api/consensus/ask", "/api/consensus/stats"],
-      "adminHtml": { "sectionId": "consensus", "menuLabel": "🧠 Multi-AI Consensus" },
-      "react": { "component": "DecisionVoting.tsx", "path": "components/DecisionVoting.tsx" },
+      "adminHtml": {
+        "sectionId": "consensus",
+        "menuLabel": "🧠 Multi-AI Consensus"
+      },
+      "react": {
+        "component": "DecisionVoting.tsx",
+        "path": "components/DecisionVoting.tsx"
+      },
       "flutter": { "screen": "consensus", "path": "screens/consensus/" },
       "priority": "high"
     },
@@ -244,9 +338,23 @@
       "name": "System Learning",
       "icon": "📖",
       "description": "Learning dashboard — stats, settings, quota, research controls",
-      "apiEndpoints": ["/api/learning/stats", "/api/learning/critical", "/api/research/settings", "/api/research/quota", "/api/research/enable", "/api/research/disable", "/api/research/trigger"],
-      "adminHtml": { "sectionId": "system-learning", "menuLabel": "📖 System Learning" },
-      "react": { "component": "LearningResearch.tsx", "path": "components/LearningResearch.tsx" },
+      "apiEndpoints": [
+        "/api/learning/stats",
+        "/api/learning/critical",
+        "/api/research/settings",
+        "/api/research/quota",
+        "/api/research/enable",
+        "/api/research/disable",
+        "/api/research/trigger"
+      ],
+      "adminHtml": {
+        "sectionId": "system-learning",
+        "menuLabel": "📖 System Learning"
+      },
+      "react": {
+        "component": "LearningResearch.tsx",
+        "path": "components/LearningResearch.tsx"
+      },
       "flutter": { "screen": "learning", "path": "screens/learning/" },
       "priority": "critical"
     },
@@ -255,9 +363,18 @@
       "name": "Improve Existing App",
       "icon": "🔧",
       "description": "Register and improve existing GitHub projects",
-      "apiEndpoints": ["/api/existing-projects/register", "/api/existing-projects/list"],
-      "adminHtml": { "sectionId": "existing-projects", "menuLabel": "🔧 Improve Existing App" },
-      "react": { "component": "ImprovementTracking.tsx", "path": "components/ImprovementTracking.tsx" },
+      "apiEndpoints": [
+        "/api/existing-projects/register",
+        "/api/existing-projects/list"
+      ],
+      "adminHtml": {
+        "sectionId": "existing-projects",
+        "menuLabel": "🔧 Improve Existing App"
+      },
+      "react": {
+        "component": "ImprovementTracking.tsx",
+        "path": "components/ImprovementTracking.tsx"
+      },
       "flutter": { "screen": null, "path": null },
       "priority": "medium"
     },
@@ -267,9 +384,15 @@
       "icon": "📬",
       "description": "Notification center and history",
       "apiEndpoints": ["/api/notifications/history", "/api/notifications/send"],
-      "adminHtml": { "sectionId": "notifications", "menuLabel": "📬 Notifications" },
+      "adminHtml": {
+        "sectionId": "notifications",
+        "menuLabel": "📬 Notifications"
+      },
       "react": { "component": null, "path": null },
-      "flutter": { "screen": "notifications_screen.dart", "path": "screens/notifications/notifications_screen.dart" },
+      "flutter": {
+        "screen": "notifications_screen.dart",
+        "path": "screens/notifications/notifications_screen.dart"
+      },
       "priority": "medium"
     },
     {
@@ -278,7 +401,10 @@
       "icon": "⚡",
       "description": "Real-time system activity feed",
       "apiEndpoints": ["/api/activity/live"],
-      "adminHtml": { "sectionId": "live-activity", "menuLabel": "⚡ Live Activity" },
+      "adminHtml": {
+        "sectionId": "live-activity",
+        "menuLabel": "⚡ Live Activity"
+      },
       "react": { "component": null, "path": null },
       "flutter": { "screen": null, "path": null },
       "priority": "low"
@@ -288,8 +414,15 @@
       "name": "AI Learning Orchestration",
       "icon": "🔮",
       "description": "Adaptive agent orchestration with MoE routing",
-      "apiEndpoints": ["/api/orchestration/status", "/api/orchestration/submit", "/api/orchestration/leaderboard"],
-      "adminHtml": { "sectionId": "kimi-k2", "menuLabel": "🔮 AI Learning Orchestration" },
+      "apiEndpoints": [
+        "/api/orchestration/status",
+        "/api/orchestration/submit",
+        "/api/orchestration/leaderboard"
+      ],
+      "adminHtml": {
+        "sectionId": "kimi-k2",
+        "menuLabel": "🔮 AI Learning Orchestration"
+      },
       "react": { "component": null, "path": null },
       "flutter": { "screen": null, "path": null },
       "priority": "high"
@@ -300,8 +433,14 @@
       "icon": "💬",
       "description": "Interactive chat with the AI system",
       "apiEndpoints": ["/api/chat"],
-      "adminHtml": { "sectionId": "chat", "menuLabel": "💬 Chat with SupremeAI" },
-      "react": { "component": "ChatWithAI.tsx", "path": "components/ChatWithAI.tsx" },
+      "adminHtml": {
+        "sectionId": "chat",
+        "menuLabel": "💬 Chat with SupremeAI"
+      },
+      "react": {
+        "component": "ChatWithAI.tsx",
+        "path": "components/ChatWithAI.tsx"
+      },
       "flutter": { "screen": null, "path": null },
       "priority": "medium"
     },

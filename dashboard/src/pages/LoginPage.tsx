@@ -61,8 +61,18 @@ const LoginPage: React.FC = () => {
 
   if (authUtils.isAuthenticated()) {
     return (
-      <div style={{ height: "100vh", display: "flex", justifyContent: "center", alignItems: "center", background: "#0a0a0a" }}>
-        <Typography.Title level={3} style={{ color: "var(--neon-blue)" }}>Redirecting to Dashboard...</Typography.Title>
+      <div
+        style={{
+          height: "100vh",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          background: "#0a0a0a",
+        }}
+      >
+        <Typography.Title level={3} style={{ color: "var(--neon-blue)" }}>
+          Redirecting to Dashboard...
+        </Typography.Title>
       </div>
     );
   }

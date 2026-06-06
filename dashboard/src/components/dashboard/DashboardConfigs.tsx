@@ -256,7 +256,10 @@ export const allMenuItems: MenuItem[] = [
   },
 ];
 
-export const getBreadcrumbs = (activeKey: string, basePath: string = "/admin") => {
+export const getBreadcrumbs = (
+  activeKey: string,
+  basePath: string = "/admin",
+) => {
   let activeItem: MenuItem | undefined;
 
   for (const item of allMenuItems) {
@@ -291,6 +294,9 @@ export const getBreadcrumbs = (activeKey: string, basePath: string = "/admin") =
   ];
 };
 
-export const getMenuPath = (key: string, basePath: string = "/admin"): string => {
+export const getMenuPath = (
+  key: string,
+  basePath: string = "/admin",
+): string => {
   return `${basePath}/${key === "dashboard" ? "" : key}`;
 };

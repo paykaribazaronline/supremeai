@@ -17,7 +17,17 @@ import {
   getIdTokenResult,
   connectAuthEmulator,
 } from "firebase/auth";
-import { getFirestore, connectFirestoreEmulator, doc, getDoc, setDoc, collection, query, where, getDocs } from "firebase/firestore";
+import {
+  getFirestore,
+  connectFirestoreEmulator,
+  doc,
+  getDoc,
+  setDoc,
+  collection,
+  query,
+  where,
+  getDocs,
+} from "firebase/firestore";
 import { getFunctions, connectFunctionsEmulator } from "firebase/functions";
 
 // Use Firebase Hosting environment or environment variables
@@ -194,18 +204,23 @@ export async function firebaseSignIn(
       const usersRef = collection(firestore, "users");
       const q = query(usersRef, where("email", "==", cred.user.email));
       const querySnapshot = await getDocs(q);
-      
+
       if (!querySnapshot.empty) {
         const userDoc = querySnapshot.docs[0].data();
         userRole = userDoc.role || "user";
         userTier = userDoc.tier || "user";
       } else {
-        const defaultRole = cred.user.email?.includes("admin") ? "admin" : "user";
+        const defaultRole = cred.user.email?.includes("admin")
+          ? "admin"
+          : "user";
         userRole = defaultRole;
         userTier = defaultRole;
       }
     } catch (e) {
-      console.warn("Could not fetch user role from Firestore, using email check.", e);
+      console.warn(
+        "Could not fetch user role from Firestore, using email check.",
+        e,
+      );
       userRole = cred.user.email?.includes("admin") ? "admin" : "user";
       userTier = userRole;
     }

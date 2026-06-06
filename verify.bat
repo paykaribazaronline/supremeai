@@ -25,6 +25,33 @@ if "%1"=="--install-hook" (
     exit /b 0
 )
 
+if "%1"=="--install-pre-commit" (
+    echo [System] Installing verify.bat as Git pre-commit hook...
+    if not exist ".git\" (
+        echo [ERROR] Not a git repository or not in root folder.
+        exit /b 1
+    )
+    (
+        echo #!/bin/sh
+        echo echo "Running pre-commit lint check..."
+        echo cmd.exe /c verify.bat --hook-mode --lint-only
+        echo if [ $? -ne 0 ]; then exit 1; fi
+    ) > .git\hooks\pre-commit
+    echo [SUCCESS] Pre-commit hook installed!
+    exit /b 0
+)
+
+if "%1"=="--auto-heal" (
+    echo [System] Entering Autonomous Healing Mode...
+    echo [Step 1] Fetching suggested fixes from SupremeAI...
+    :: This would call a local script to pull AI-generated diffs based on last local failure
+    if exist "fix.patch" (
+        echo Applying AI-suggested fix...
+        git apply fix.patch
+        del fix.patch
+    )
+)
+
 :: 1. Detect Java Version
 echo [System] Checking Java Version...
 for /f "tokens=3" %%g in ('java -version 2^>^&1 ^| findstr /i "version"') do (
@@ -103,12 +130,31 @@ if "%RUN_BACKEND%"=="true" (
         )
     )
     
+    :: Solo AI Resilience (SK-0054): Ensure dummy keys exist to prevent Spring AI startup crashes during verification
+    if "!OPENAI_API_KEY!"=="" (
+        set OPENAI_API_KEY=dummy-verification-key
+    )
+
+    if "%2"=="--lint-only" goto skip_backend_tests
     echo Running Backend Unit Tests...
     call .\gradlew test
     if !ERRORLEVEL! NEQ 0 (
         echo [ERROR] Backend tests failed!
         exit /b !ERRORLEVEL!
     )
+)
+
+:skip_backend_tests
+if "%RUN_BACKEND%"=="true" (
+    echo Running Global Formatting Fixes...
+    call npm run format:root
+
+    where black >nul 2>nul
+    if !ERRORLEVEL! EQU 0 (
+        echo Running Python Auto-formatting...
+        black scripts/**/*.py
+    )
+
     echo Backend checks passed successfully.
     echo.
 )
@@ -132,15 +178,29 @@ if "%RUN_FRONTEND%"=="true" (
             exit /b !ERRORLEVEL!
         )
         
+        if "%2"=="--lint-only" goto skip_frontend_tests
         echo Running Frontend Tests...
         call npm run test -w dashboard -- --run
         if !ERRORLEVEL! NEQ 0 (
             echo [ERROR] Frontend tests failed!
             exit /b !ERRORLEVEL!
         )
-        echo Frontend checks passed successfully.
-        echo.
     )
+)
+
+:skip_frontend_tests
+if "%RUN_FRONTEND%"=="true" (
+    echo Running Global Formatting Fixes...
+    call npm run format:root
+
+    where black >nul 2>nul
+    if !ERRORLEVEL! EQU 0 (
+        echo Running Python Auto-formatting...
+        black scripts/**/*.py
+    )
+
+    echo Frontend checks passed successfully.
+    echo.
 )
 
 echo ===================================================

@@ -111,10 +111,12 @@ const UserRouteLayout: React.FC = () => {
 
   // Always treat as user or guest in this layout to avoid showing admin items
   const currentRole = isAuthenticated ? "user" : "guest";
-  
+
   const filterMenuItems = (items: any[]): any[] => {
     return items
-      .filter((item) => Array.isArray(item.roles) && item.roles.includes(currentRole))
+      .filter(
+        (item) => Array.isArray(item.roles) && item.roles.includes(currentRole),
+      )
       .map((item) => {
         if (item.children) {
           return { ...item, children: filterMenuItems(item.children) };
@@ -126,9 +128,7 @@ const UserRouteLayout: React.FC = () => {
   const menuItems = filterMenuItems(allMenuItems);
 
   const getCurrentPageKey = () => {
-    const path = location.pathname
-      .replace(/^\/user\/?/, "")
-      .replace(/\/$/, "");
+    const path = location.pathname.replace(/^\/user\/?/, "").replace(/\/$/, "");
     return path || "dashboard";
   };
 
@@ -151,7 +151,7 @@ const UserRouteLayout: React.FC = () => {
         }
       }
     }
-    
+
     const hasAccess = activeItem?.roles.includes(currentRole);
 
     if (!hasAccess && activeKey !== "dashboard") {

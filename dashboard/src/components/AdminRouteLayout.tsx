@@ -114,10 +114,12 @@ const AdminRouteLayout: React.FC = () => {
   };
 
   const currentRole = isAdmin ? "admin" : isAuthenticated ? "user" : "guest";
-  
+
   const filterMenuItems = (items: any[]): any[] => {
     return items
-      .filter((item) => Array.isArray(item.roles) && item.roles.includes(currentRole))
+      .filter(
+        (item) => Array.isArray(item.roles) && item.roles.includes(currentRole),
+      )
       .map((item) => {
         if (item.children) {
           return { ...item, children: filterMenuItems(item.children) };
@@ -154,7 +156,7 @@ const AdminRouteLayout: React.FC = () => {
         }
       }
     }
-    
+
     const hasAccess = activeItem?.roles.includes(currentRole);
 
     if (!hasAccess && activeKey !== "dashboard") {
