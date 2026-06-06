@@ -145,7 +145,7 @@ export class SupremeAIChatProvider implements vscode.WebviewViewProvider {
       };
 
       this.addMessage(aiMessage);
-      this.updateContent(this.webview!);
+      this.webview?.webview.postMessage({ type: 'addMessage', message: aiMessage });
     } catch (error: any) {
       this.removeThinkingIndicator();
       const errorMessage: ChatMessage = {
@@ -320,12 +320,13 @@ export class SupremeAIChatProvider implements vscode.WebviewViewProvider {
         thinking: true
       };
       this.addMessage(thinkingMsg);
-      this.updateContent(this.webview);
+      this.webview.webview.postMessage({ type: 'showThinking' });
     }
   }
 
   private removeThinkingIndicator(): void {
     this.messageHistory = this.messageHistory.filter(m => m.id !== 'thinking');
+    this.webview?.webview.postMessage({ type: 'removeThinking' });
   }
 
   private async updateContent(webviewView: vscode.WebviewView): Promise<void> {

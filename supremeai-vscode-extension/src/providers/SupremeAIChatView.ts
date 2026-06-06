@@ -157,19 +157,37 @@ export class SupremeAIChatView {
         if (emptyState) emptyState.remove();
         messagesDiv.insertAdjacentHTML('beforeend', msgHtml);
         messagesDiv.scrollTop = messagesDiv.scrollHeight;
+      } else if (data.type === 'showThinking') {
+        const thinkingHtml = renderMessage({
+          id: 'thinking',
+          role: 'assistant',
+          content: '🤔 Thinking...',
+          timestamp: new Date().toISOString(),
+          thinking: true
+        });
+        const emptyState = document.querySelector('.empty-state');
+        if (emptyState) emptyState.remove();
+        messagesDiv.insertAdjacentHTML('beforeend', thinkingHtml);
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+      } else if (data.type === 'removeThinking') {
+        const thinkingMsg = document.getElementById('thinking-message-container');
+        if (thinkingMsg) thinkingMsg.remove();
       }
     });
 
     function renderMessage(msg) {
       const time = new Date(msg.timestamp).toLocaleTimeString();
       const role = msg.role || 'assistant';
+      const isThinking = msg.thinking;
       return \`
-        <div class="message \${role}">
-          <div class="avatar \${role}-avatar">\${role === 'user' ? 'U' : 'AI'}</div>
-          <div class="message-content \${msg.error ? 'error' : ''} \${msg.thinking ? 'thinking' : ''}">\${msg.content}</div>
-        </div>
-        <div class="message-meta" style="margin-left: \${role === 'user' ? 'auto' : '44px'}; text-align: \${role === 'user' ? 'right' : 'left'};">
-          \${time}
+        <div class="message-container" \${isThinking ? 'id="thinking-message-container"' : ''}>
+          <div class="message \${role}">
+            <div class="avatar \${role}-avatar">\${role === 'user' ? 'U' : 'AI'}</div>
+            <div class="message-content \${msg.error ? 'error' : ''} \${isThinking ? 'thinking' : ''}">\${msg.content}</div>
+          </div>
+          <div class="message-meta" style="margin-left: \${role === 'user' ? 'auto' : '44px'}; text-align: \${role === 'user' ? 'right' : 'left'};">
+            \${time}
+          </div>
         </div>\`;
     }
 
@@ -224,16 +242,18 @@ export class SupremeAIChatView {
         const content = msg.content || '';
 
         return `
-      <div class="message ${role}">
-        <div class="avatar ${role}-avatar">
-          ${role === 'user' ? 'U' : 'AI'}
+      <div class="message-container" ${isThinking ? 'id="thinking-message-container"' : ''}>
+        <div class="message ${role}">
+          <div class="avatar ${role}-avatar">
+            ${role === 'user' ? 'U' : 'AI'}
+          </div>
+          <div class="message-content ${isError ? 'error' : ''} ${isThinking ? 'thinking' : ''}">
+            ${content}
+          </div>
         </div>
-        <div class="message-content ${isError ? 'error' : ''} ${isThinking ? 'thinking' : ''}">
-          ${content}
+        <div class="message-meta" style="margin-left: ${role === 'user' ? 'auto' : '44px'}; text-align: ${role === 'user' ? 'right' : 'left'};">
+          ${time}
         </div>
-      </div>
-      <div class="message-meta" style="margin-left: ${role === 'user' ? 'auto' : '44px'}; text-align: ${role === 'user' ? 'right' : 'left'};">
-        ${time}
       </div>
     `;
     }
