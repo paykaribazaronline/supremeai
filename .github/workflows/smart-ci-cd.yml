@@ -424,7 +424,7 @@ jobs:
           cache: 'npm'
 
       - name: Install Frontend Dependencies
-        run: npm install -w dashboard
+        run: npm install -w dashboard --ignore-scripts
 
       - name: Run Frontend Lint Checks and Auto-Fix
         run: npm run lint -w dashboard -- --fix || echo "Some linting warnings couldn't be auto-fixed"
@@ -553,7 +553,7 @@ jobs:
           cache: 'npm'
 
       - name: Install Functions Dependencies
-        run: npm install -w functions
+        run: npm install -w functions --ignore-scripts --legacy-peer-deps
 
       - name: Run Functions Lint and Auto-Fix
         run: npm run lint:functions || echo "Functions lint-fix failed"

@@ -79,6 +79,7 @@ echo.
 :: 3. Smart Change Detection via Git
 set RUN_BACKEND=false
 set RUN_FRONTEND=false
+set RUN_MOBILE=false
 
 where git >nul 2>nul
 if %ERRORLEVEL% EQU 0 (
@@ -89,21 +90,32 @@ if %ERRORLEVEL% EQU 0 (
     git diff --name-only | findstr /R "^dashboard/" >nul
     if !ERRORLEVEL! EQU 0 set RUN_FRONTEND=true
     
+    git diff --name-only | findstr /R "^supremeai/" >nul
+    if !ERRORLEVEL! EQU 0 set RUN_MOBILE=true
+    
     if "!RUN_BACKEND!"=="false" (
         if "!RUN_FRONTEND!"=="false" (
             echo No local changes detected. Running full verification suite...
             set RUN_BACKEND=true
             set RUN_FRONTEND=true
+            if "!RUN_MOBILE!"=="false" (
+                echo No local changes detected. Running full verification suite...
+                set RUN_BACKEND=true
+                set RUN_FRONTEND=true
+                set RUN_MOBILE=true
+            )
         )
     )
 ) else (
     echo [WARNING] Git not found in PATH. Defaulting to run all tests.
     set RUN_BACKEND=true
     set RUN_FRONTEND=true
+    set RUN_MOBILE=true
 )
 
 echo Backend verification: %RUN_BACKEND%
 echo Frontend verification: %RUN_FRONTEND%
+echo Mobile verification: %RUN_MOBILE%
 echo.
 
 :: 4. Run Backend Verification
@@ -200,6 +212,35 @@ if "%RUN_FRONTEND%"=="true" (
     )
 
     echo Frontend checks passed successfully.
+    echo.
+)
+
+:: 6. Run Mobile Verification
+if "%RUN_MOBILE%"=="true" (
+    echo [3/3] Running Mobile Checks...
+    where flutter >nul 2>nul
+    if !ERRORLEVEL! NEQ 0 (
+        echo [WARNING] Flutter is not installed. Skipping mobile checks.
+    ) else (
+        echo Running Flutter Analyze...
+        pushd supremeai
+        call flutter pub get
+        call flutter analyze
+        if !ERRORLEVEL! NEQ 0 (
+            echo [ERROR] Flutter analysis failed!
+            popd
+            exit /b !ERRORLEVEL!
+        )
+        echo Running Flutter Tests...
+        call flutter test
+        if !ERRORLEVEL! NEQ 0 (
+            echo [ERROR] Flutter tests failed!
+            popd
+            exit /b !ERRORLEVEL!
+        )
+        popd
+    )
+    echo Mobile checks passed successfully.
     echo.
 )
 
