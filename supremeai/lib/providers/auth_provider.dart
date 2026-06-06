@@ -10,7 +10,7 @@ class AuthProvider with ChangeNotifier {
   Map<String, dynamic>? _user;
   String? _token;
   String? _errorMessage;
-  final ApiService _apiService = ApiService();
+  final ApiService _apiService;
 
   AuthStatus get status => _status;
   Map<String, dynamic>? get user => _user;
@@ -24,7 +24,7 @@ class AuthProvider with ChangeNotifier {
     return role == 'admin' || tier == 'ADMIN';
   }
 
-  AuthProvider() {
+  AuthProvider({ApiService? apiService}) : _apiService = apiService ?? ApiService() {
     _checkAuth();
   }
 

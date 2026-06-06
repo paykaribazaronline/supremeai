@@ -5,14 +5,14 @@ import 'package:provider/provider.dart';
 import 'package:flutter/material.dart';
 
 class FakeAuth extends ChangeNotifier {
-  bool _guest = true;
+  final bool _guest = true;
   bool get isGuest => _guest;
   String? get token => null;
   Future<void> logout() async {}
 }
 
 class FakeOrch extends ChangeNotifier {
-  bool _loading = false;
+  final bool _loading = false;
   String? _error;
   bool get isLoading => _loading;
   String? get error => _error;

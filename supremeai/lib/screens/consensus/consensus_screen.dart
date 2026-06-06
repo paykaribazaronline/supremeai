@@ -41,7 +41,7 @@ class _ConsensusScreenState extends State<ConsensusScreen> {
           Text('consensus.ongoing_sessions'.tr().toUpperCase(), style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w900, letterSpacing: 2, color: Colors.white54)),
           const SizedBox(height: 16),
           if (_sessions.isEmpty) Center(child: Text('No active consensus sessions.'.tr(), style: const TextStyle(color: Colors.white38))),
-          ..._sessions.map((session) => _buildSessionCard(session)).toList(),
+          ..._sessions.map((session) => _buildSessionCard(session)),
         ],
       ),
     );

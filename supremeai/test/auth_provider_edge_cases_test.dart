@@ -2,11 +2,42 @@ import 'dart:convert';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supremeai/providers/auth_provider.dart';
+import 'package:supremeai/services/api_service.dart';
 import 'package:http/http.dart' as http;
-import 'package:mockito/annotations.dart';
-import 'package:mockito/mockito.dart';
 
-@GenerateMocks([http.Client])
+class FakeApiService implements ApiService {
+  @override
+  http.Client get client => throw UnimplementedError();
+
+  bool registerSuccess = true;
+  Map<String, dynamic> registerData = {};
+  String? registerError;
+
+  @override
+  Future<Map<String, dynamic>> register(String email, String password, String displayName) async {
+    if (registerSuccess) {
+      return {'success': true, 'data': registerData};
+    } else {
+      return {'success': false, 'error': registerError ?? 'Error'};
+    }
+  }
+
+  @override
+  Future<Map<String, dynamic>> getUserProfile() async => {'success': false};
+
+  @override
+  Future<Map<String, dynamic>> firebaseLogin(String idToken) async => {'success': false};
+
+  @override
+  Future<void> logout() async {}
+
+  @override
+  Future<List<Map<String, dynamic>>> getConfiguredProviders() async => [];
+
+  @override
+  Future<String?> getToken() async => null;
+}
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -16,31 +47,33 @@ void main() {
     });
 
     test('login failure sets unauthenticated and error', () async {
-      final api = MockClient();
-      when(api.post(any, headers: anyNamed('headers'), body: anyNamed('body')))
-          .thenAnswer((_) async => http.Response(json.encode({'success': false, 'error': 'Invalid credentials'}), 401));
+      final fakeApi = FakeApiService();
+      fakeApi.registerSuccess = false;
+      fakeApi.registerError = 'Invalid credentials';
 
-      final auth = AuthProvider();
+      final auth = AuthProvider(apiService: fakeApi);
       await Future(() {});
       await Future(() {});
 
       final result = await auth.login('bad@test.com', 'wrong');
       expect(result, false);
       expect(auth.status, AuthStatus.unauthenticated);
+      expect(auth.errorMessage, 'Invalid credentials');
     });
 
     test('loginWithGoogle returns false when sign-in cancelled', () async {
-      final auth = AuthProvider();
+      final fakeApi = FakeApiService();
+      final auth = AuthProvider(apiService: fakeApi);
       await Future(() {});
       await Future(() {});
 
-      // Simulate null user from Google sign-in without mockito overhead
-      expect(auth.status, AuthStatus.unauthenticated);
+      expect(auth.status, AuthStatus.guest);
     });
 
     test('logout clears auth state', () async {
       SharedPreferences.setMockInitialValues({'auth_token': 'tok', 'user_json': '{"username":"admin"}'});
-      final auth = AuthProvider();
+      final fakeApi = FakeApiService();
+      final auth = AuthProvider(apiService: fakeApi);
       await Future(() {});
       await Future(() {});
 

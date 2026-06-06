@@ -62,12 +62,14 @@ class _ApiKeysScreenState extends State<ApiKeysScreen> {
       );
       if (response.statusCode == 200) {
         final result = json.decode(response.body);
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(result['message'] ?? 'api_keys.test_success'.tr())),
         );
         _loadApiKeys();
       }
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('error.server'.tr())),
       );
@@ -83,12 +85,14 @@ class _ApiKeysScreenState extends State<ApiKeysScreen> {
         headers: {'Authorization': 'Bearer ${auth.token}'},
       );
       if (response.statusCode == 200) {
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('api_keys.validation_triggered'.tr())),
         );
         _loadApiKeys();
       }
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('error.server'.tr())),
       );

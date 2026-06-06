@@ -50,7 +50,6 @@ class _HomeScreenState extends State<HomeScreen> {
       setState(() {
         final result = orchestration.lastResult!;
         final status = result['status']?.toString().toUpperCase() ?? 'UNKNOWN';
-        final mode = result['mode'] ?? 'AI';
         final answer = (result['answer'] ?? result['message'] ?? 'Requirement analyzed.');
         final sources = (result['sources'] as List<dynamic>?)?.cast<String>() ?? const <String>[];
         final hasAction = status == 'DECIDED' || status == 'COMPLETED';
