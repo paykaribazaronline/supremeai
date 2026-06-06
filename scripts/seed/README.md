@@ -7,12 +7,12 @@ All AI endpoints are sourced from `../../src/main/resources/ai-cloud-endpoints.j
 
 ## Files
 
-| File | Purpose |
-|------|---------|
-| `seed-data.json` | 13-collection seed payload (57 records): users, tiers, providers, agents, learning, domains, entries, recommendations, consensus, performance, workflows, activity logs, reasoning logs |
-| `seed-all-data.js` | Multi-collection seeder — reads `seed-data.json`, writes to Firestore in batches |
-| `seed-ai-providers.js` | Reads cloud endpoints, pings each for live latency + health status, writes to `api_providers` |
-| `package.json` | NPM scripts (run from `scripts/` directory) |
+| File                   | Purpose                                                                                                                                                                                 |
+| ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `seed-data.json`       | 13-collection seed payload (57 records): users, tiers, providers, agents, learning, domains, entries, recommendations, consensus, performance, workflows, activity logs, reasoning logs |
+| `seed-all-data.js`     | Multi-collection seeder — reads `seed-data.json`, writes to Firestore in batches                                                                                                        |
+| `seed-ai-providers.js` | Reads cloud endpoints, pings each for live latency + health status, writes to `api_providers`                                                                                           |
+| `package.json`         | NPM scripts (run from `scripts/` directory)                                                                                                                                             |
 
 ---
 

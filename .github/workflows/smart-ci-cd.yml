@@ -2,15 +2,15 @@ name: Smart CI/CD Pipeline
 
 on:
   push:
-    branches: [ main, develop, master ]
+    branches: [main, develop, master]
     paths-ignore:
-      - '**.md'
-      - 'docs/**'
+      - "**.md"
+      - "docs/**"
   pull_request:
-    branches: [ main, develop, master ]
+    branches: [main, develop, master]
     paths-ignore:
-      - '**.md'
-      - 'docs/**'
+      - "**.md"
+      - "docs/**"
   workflow_dispatch:
 
 concurrency:
@@ -131,19 +131,19 @@ jobs:
       - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
-          distribution: 'temurin'
-          java-version: '21'
-          cache: 'gradle'
+          distribution: "temurin"
+          java-version: "21"
+          cache: "gradle"
 
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v3
         with:
           languages: java-kotlin
 
-      - name: Autobuild Backend (Java)
+      - name: Clean Build Backend for CodeQL (Java)
         run: |
           chmod +x gradlew
-          ./gradlew bootJar --no-daemon -x test
+          ./gradlew clean bootJar --no-daemon -x test
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
@@ -185,7 +185,7 @@ jobs:
     services:
       redis:
         image: redis:7-alpine
-        ports: ['6379:6379']
+        ports: ["6379:6379"]
         options: >-
           --health-cmd "redis-cli ping"
           --health-interval 10s
@@ -198,9 +198,9 @@ jobs:
       - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
-          distribution: 'temurin'
-          java-version: '21'
-          cache: 'gradle'
+          distribution: "temurin"
+          java-version: "21"
+          cache: "gradle"
 
       - name: Run Spotless Code Format Check and Auto-Fix
         run: |
@@ -213,7 +213,7 @@ jobs:
           commit_message: "style: spotless auto-format java code [skip ci]"
           commit_user_name: "GitHub Action"
           commit_user_email: "actions@github.com"
-          file_pattern: 'src/**/*.java'
+          file_pattern: "src/**/*.java"
 
       - name: Run Backend Unit Tests
         run: ./gradlew clean test --no-daemon
@@ -243,9 +243,9 @@ jobs:
       - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
-          distribution: 'temurin'
-          java-version: '21'
-          cache: 'gradle'
+          distribution: "temurin"
+          java-version: "21"
+          cache: "gradle"
 
       - name: Build Backend Jar
         run: |
@@ -307,7 +307,7 @@ jobs:
     services:
       redis:
         image: redis:7-alpine
-        ports: ['6379:6379']
+        ports: ["6379:6379"]
         options: >-
           --health-cmd "redis-cli ping"
           --health-interval 10s
@@ -322,9 +322,9 @@ jobs:
       - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
-          distribution: 'temurin'
-          java-version: '21'
-          cache: 'gradle'
+          distribution: "temurin"
+          java-version: "21"
+          cache: "gradle"
 
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v2
@@ -336,6 +336,7 @@ jobs:
       - name: Run Backend for Validation
         env:
           SPRING_PROFILES_ACTIVE: test
+          OFFLINE_MODE_ENABLED: true
           FIREBASE_PROJECT_ID: ${{ steps.auth.outputs.project_id }}
           GOOGLE_APPLICATION_CREDENTIALS: ${{ steps.auth.outputs.credentials_file_path }}
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
@@ -348,10 +349,10 @@ jobs:
           echo "Building backend synchronously..."
           ./gradlew bootJar -x test --no-daemon
           echo "Starting backend from JAR..."
-          JAR_FILE=$(find .gradle/build/libs -name "*.jar" | grep -v "plain.jar" | head -n 1)
+          JAR_FILE=$(find build/libs -name "*.jar" | grep -v "plain.jar" | head -n 1)
           if [ -z "$JAR_FILE" ]; then
-            echo "Error: JAR file not found in .gradle/build/libs!"
-            ls -la .gradle/build/libs || true
+            echo "Error: JAR file not found in build/libs!"
+            ls -la build/libs || true
             exit 1
           fi
           echo "Found JAR: $JAR_FILE"
@@ -419,9 +420,9 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: "22"
           cache-dependency-path: package-lock.json
-          cache: 'npm'
+          cache: "npm"
 
       - name: Install Frontend Dependencies
         run: npm install -w dashboard --ignore-scripts
@@ -446,10 +447,20 @@ jobs:
           commit_message: "style: auto-fix frontend, python, and root formatting [skip ci]"
           commit_user_name: "GitHub Action"
           commit_user_email: "actions@github.com"
-          file_pattern: 'dashboard/** scripts/**/*.py *.json *.md config/**'
+          file_pattern: "dashboard/** scripts/**/*.py *.json *.md config/**"
 
       - name: Run Frontend Tests
         run: npm run test -w dashboard -- --run || echo "No tests or test command failed"
+
+      - name: Autonomous Repair Analysis on Failure
+        if: failure()
+        run: |
+          echo "=== Frontend Failure Detected ==="
+          curl -X POST "${{ secrets.SUPREMEAI_BASE_URL }}/api/admin/code-analysis/analyze" \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Bearer ${{ secrets.SUPREMEAI_TOKEN }}" \
+            -d "{\"log\": \"Frontend build or test failure detected\", \"context\": \"frontend_failure\", \"repo\": \"${{ github.repository }}\"}"
+          echo "Failure signal sent to SupremeAI."
 
       - name: Inject Firebase Config
         run: |
@@ -489,9 +500,9 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: "22"
           cache-dependency-path: package-lock.json
-          cache: 'npm'
+          cache: "npm"
 
       - name: Download Dashboard Build Artifact
         uses: actions/download-artifact@v4
@@ -529,7 +540,7 @@ jobs:
           PREVIEW_URL: ${{ steps.firebase_preview.outputs.preview_url }}
         run: |
           gh pr comment ${{ github.event.number }} --body "🚀 **Firebase Hosting Preview Deployment Succeeded!**
-          
+
           🔗 Preview URL: $PREVIEW_URL
           _Built on commit \`${{ github.sha }}\`_"
 
@@ -548,9 +559,9 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: "22"
           cache-dependency-path: package-lock.json
-          cache: 'npm'
+          cache: "npm"
 
       - name: Install Functions Dependencies
         run: npm install -w functions --ignore-scripts --legacy-peer-deps
@@ -558,13 +569,21 @@ jobs:
       - name: Run Functions Lint and Auto-Fix
         run: npm run lint:functions || echo "Functions lint-fix failed"
 
+      - name: Autonomous Repair Analysis on Failure
+        if: failure()
+        run: |
+          curl -X POST "${{ secrets.SUPREMEAI_BASE_URL }}/api/admin/code-analysis/analyze" \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Bearer ${{ secrets.SUPREMEAI_TOKEN }}" \
+            -d "{\"log\": \"Firebase Functions failure\", \"context\": \"functions_failure\", \"repo\": \"${{ github.repository }}\"}"
+
       - name: Commit and Push Functions Fixes
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: "style: auto-fix functions linting [skip ci]"
           commit_user_name: "GitHub Action"
           commit_user_email: "actions@github.com"
-          file_pattern: 'functions/**'
+          file_pattern: "functions/**"
 
       - name: Compile TypeScript Functions
         run: npm run build -w functions
@@ -592,9 +611,9 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: "22"
           cache-dependency-path: package-lock.json
-          cache: 'npm'
+          cache: "npm"
 
       - name: Download Functions Build Artifact
         uses: actions/download-artifact@v4
@@ -603,7 +622,7 @@ jobs:
           path: functions/
 
       - name: Install Functions Dependencies
-        run: npm install -w functions
+        run: npm install -w functions --ignore-scripts --legacy-peer-deps
 
       - name: Authenticate to Google Cloud (Firebase)
         uses: google-github-actions/auth@v2
@@ -628,8 +647,17 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.22.0'
+          flutter-version: "3.27.x"
+          channel: "stable"
           cache: true
+
+      - name: Cache Pub dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.pub-cache
+          key: ${{ runner.os }}-pub-${{ hashFiles('**/pubspec.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-pub-
 
       - name: Run Flutter Analyze and Test
         run: |
@@ -638,7 +666,17 @@ jobs:
           flutter analyze
           flutter test
 
-  # 10. Dependabot Auto-Merge
+      - name: Autonomous Repair Analysis on Failure
+        if: failure()
+        run: |
+          echo "=== Mobile Failure Detected ==="
+          curl -X POST "${{ secrets.SUPREMEAI_BASE_URL }}/api/admin/code-analysis/analyze" \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Bearer ${{ secrets.SUPREMEAI_TOKEN }}" \
+            -d "{\"log\": \"Mobile/Flutter analyze or test failure\", \"context\": \"mobile_failure\", \"repo\": \"${{ github.repository }}\"}"
+          echo "Failure signal sent to SupremeAI."
+
+  # 11. Dependabot Auto-Merge
   dependabot-merge:
     name: Dependabot Auto-Merge
     needs: [backend-test, frontend-test, functions-test, mobile-test]
@@ -670,7 +708,7 @@ jobs:
           PR_URL: ${{ github.event.pull_request.html_url }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  # 11. Smart Workflow Summary
+  # 12. Smart Workflow Summary
   workflow-summary:
     name: Smart Workflow Summary
     needs: [backend-deploy, frontend-deploy, functions-deploy, ai-validation-ci]

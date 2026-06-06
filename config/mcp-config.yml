@@ -5,7 +5,7 @@ server:
   name: "supremeai-core"
   version: "1.0.0"
   description: "SupremeAI MCP Server - Exposes agents as MCP tools"
-  
+
   # Standard MCP endpoints
   endpoints:
     tools:
@@ -17,7 +17,7 @@ server:
     prompts:
       list: "/mcp/prompts/list"
       get: "/mcp/prompts/get"
-  
+
   # Exposed tools (SupremeAI agents)
   tools:
     - name: "reverse_engineer"
@@ -35,7 +35,7 @@ server:
               email: { type: "string" }
               password: { type: "string" }
         required: ["url"]
-      
+
     - name: "dynamic_agent"
       description: "Execute task with dynamic AI agent selection (Plan 1)"
       inputSchema:
@@ -48,7 +48,7 @@ server:
             type: "string"
             description: "Language code (en, bn, etc.)"
         required: ["task"]
-      
+
     - name: "swarm_coordinator"
       description: "Coordinate multi-agent swarm (Plan 24)"
       inputSchema:
@@ -60,7 +60,7 @@ server:
             enum: ["HIERARCHICAL", "MESH", "RING", "STAR"]
           agent_count: { type: "integer", default: 3 }
         required: ["task"]
-  
+
   # Resources (data/context)
   resources:
     - uri: "supremeai://plans/23"
@@ -69,7 +69,7 @@ server:
     - uri: "supremeai://plans/24"
       name: "Plan 24 - AI Agent Ecosystem"
       mimeType: "text/markdown"
-  
+
   # Prompts (templates)
   prompts:
     - name: "reverse_engineer_prompt"

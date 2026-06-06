@@ -118,5 +118,13 @@
   {
     "task": "free login-free open models app use ai gemini",
     "solution": "Free and login-free models accessible via browser include: https://gemini.google.com/app, https://use.ai/, Hugging Face Chat, ChatGPT Free, You.com, DuckDuckGo AI Chat, Cohere, Perplexity. Admin presets can store default credentials (email/password) in the database for secure automated logins. (Change made: User requested free/open model listing and admin credentials)."
+  },
+  {
+    "task": "Return only the word OK",
+    "solution": "OK"
+  },
+  {
+    "task": "set rules for documenting changes why was change made accountability",
+    "solution": "[SupremeAI Core — Change Accountability Rule]\n\nPROBLEM: Changes without rationale lead to technical debt and confusion during audits.\n\nRULE: Every modification must document the 'WHY'.\n\n1. GIT COMMITS:\n   - Subject line: Standard conventional format (feat, fix, etc.).\n   - Body: Explain the reasoning, especially for complex logic or architecture shifts.\n\n2. SYSTEM WORK RULES:\n   - Populate the `changeNote` field in `SystemWorkRule` for every update.\n   - Include the original conflict or requirement ID if applicable.\n\n3. AI PROPOSALS:\n   - AI agents must append a 'Rationale' section to proposed patches or code completions.\n\nVERIFICATION: Commit hooks and system services enforce the presence of these notes."
   }
 ]

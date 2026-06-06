@@ -6,24 +6,26 @@
 
 ## ফাইলগুলো
 
-| ফাইল | ব্যবহার |
-|------|--------|
-| `seed_copilot_knowledge.py` | কোপিলট AI এর জ্ঞান সিড করে |
-| `seed_massive_knowledge.py` | ম্যাসিভ জ্ঞান ডাটাসেট সিড করে |
-| `audit_knowledge_completeness.py` | জ্ঞানের পূর্ণতা যাচাই করে |
-| `auto_knowledge_harvester.py` | স্বয়ংস্রুতি জ্ঞান সংগ্রহ করে |
-| `expand_knowledge.py` | জ্ঞানকে প্রসারিত করে |
-| `git_dna_harvester.py` | জিট থেকে জ্ঞান বানায় |
-| `global_insight_harvester.py` | গ্লোবাল ইনসাইট সংগ্রহ করে |
+| ফাইল                              | ব্যবহার                       |
+| --------------------------------- | ----------------------------- |
+| `seed_copilot_knowledge.py`       | কোপিলট AI এর জ্ঞান সিড করে    |
+| `seed_massive_knowledge.py`       | ম্যাসিভ জ্ঞান ডাটাসেট সিড করে |
+| `audit_knowledge_completeness.py` | জ্ঞানের পূর্ণতা যাচাই করে     |
+| `auto_knowledge_harvester.py`     | স্বয়ংস্রুতি জ্ঞান সংগ্রহ করে |
+| `expand_knowledge.py`             | জ্ঞানকে প্রসারিত করে          |
+| `git_dna_harvester.py`            | জিট থেকে জ্ঞান বানায়         |
+| `global_insight_harvester.py`     | গ্লোবাল ইনসাইট সংগ্রহ করে     |
 
 ## ক্লাউড ডাটাবেস কনফিগারেশন
 
 ### Firestore জ্ঞান স্টোরেজ
+
 - জ্ঞান ডকুমেন্টগুলো `knowledge/` কলেকশনে সেভ হয়
 - ইনডেক্স `config/firestore.indexes.json` এ আছে
 - সিকিউরিটি রুলস `config/firestore.rules` এ
 
 ### জ্ঞান বীজ (Seed) রান করা
+
 ```bash
 python knowledge/seed_copilot_knowledge.py
 ```

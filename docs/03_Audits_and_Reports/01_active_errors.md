@@ -8,13 +8,14 @@
 
 ## ACT-01: SecurityConfig-এ `permitAll()` বাইপাস — ✅ সমাধিত
 
-| ফিল্ড | বিবরণ |
-|:---|:---|
-| **তীব্রতা** | ~~🔴 CRITICAL~~ → ✅ **RESOLVED** |
-| **ফাইল** | `src/main/java/com/supremeai/config/SecurityConfig.java` |
-| **সমাধান তারিখ** | 2026-05-21 |
+| ফিল্ড            | বিবরণ                                                    |
+| :--------------- | :------------------------------------------------------- |
+| **তীব্রতা**      | ~~🔴 CRITICAL~~ → ✅ **RESOLVED**                        |
+| **ফাইল**         | `src/main/java/com/supremeai/config/SecurityConfig.java` |
+| **সমাধান তারিখ** | 2026-05-21                                               |
 
 ### কী পরিবর্তন হয়েছে
+
 ```diff
 - // পুরাতন (INSECURE):
 - .requestMatchers("/api/admin/chat/**").permitAll()
@@ -42,12 +43,13 @@
 
 ## ACT-02: `.env` সিক্রেটস এক্সপোজার — ✅ আংশিক সমাধিত
 
-| ফিল্ড | বিবরণ |
-|:---|:---|
-| **তীব্রতা** | ~~🔴 CRITICAL~~ → ✅ **RESOLVED (partial)** |
-| **সমাধান** | `.gitignore`-এ `.env` আছে; `dashboard/.env` এ `VITE_API_URL` configured |
+| ফিল্ড       | বিবরণ                                                                   |
+| :---------- | :---------------------------------------------------------------------- |
+| **তীব্রতা** | ~~🔴 CRITICAL~~ → ✅ **RESOLVED (partial)**                             |
+| **সমাধান**  | `.gitignore`-এ `.env` আছে; `dashboard/.env` এ `VITE_API_URL` configured |
 
 ### বর্তমান অবস্থা
+
 - ✅ `.env` ফাইল `.gitignore`-এ সংযুক্ত
 - ✅ `dashboard/.env` → `VITE_API_URL=http://localhost:8080` সেট করা আছে
 - ⚠️ **দীর্ঘমেয়াদী:** GCP Secret Manager মাইগ্রেশন এখনও বাকি (Tech Debt)
@@ -56,12 +58,13 @@
 
 ## ACT-03: CORS `origins = *` ফলব্যাক — ✅ সমাধিত
 
-| ফিল্ড | বিবরণ |
-|:---|:---|
-| **তীব্রতা** | ~~🔴 CRITICAL~~ → ✅ **RESOLVED** |
-| **ফাইল** | `SecurityConfig.java` (লাইন 157-201) |
+| ফিল্ড       | বিবরণ                                |
+| :---------- | :----------------------------------- |
+| **তীব্রতা** | ~~🔴 CRITICAL~~ → ✅ **RESOLVED**    |
+| **ফাইল**    | `SecurityConfig.java` (লাইন 157-201) |
 
 ### কী পরিবর্তন হয়েছে
+
 ```diff
 - // পুরাতন:
 - origins = List.of("*");  // ← wildcard fallback
@@ -80,20 +83,22 @@
 
 ## ACT-04: ৫৮+ টেস্ট ফেইলিওর — ✅ সমাধিত
 
-| ফিল্ড | বিবরণ |
-|:---|:---|
-| **তীব্রতা** | ~~🔴 CRITICAL~~ → ✅ **RESOLVED** |
+| ফিল্ড           | বিবরণ                                                |
+| :-------------- | :--------------------------------------------------- |
+| **তীব্রতা**     | ~~🔴 CRITICAL~~ → ✅ **RESOLVED**                    |
 | **সমাধান ফাইল** | `TestFirebaseConfig.java` + `BaseFirestoreTest.java` |
 
 ### কী তৈরি হয়েছে
 
 **1. `TestFirebaseConfig.java`** (47 লাইন):
+
 - ✅ `@TestConfiguration` annotated
 - ✅ `@Primary` Mock `GoogleCredentials` bean — real credentials ছাড়া টেস্ট চলবে
 - ✅ `@DynamicPropertySource` — emulator host mapping (`localhost:8080`)
 - ✅ Zero Hardcoding Policy (Rule 13) মেনে চলছে
 
 **2. `BaseFirestoreTest.java`** (40 লাইন):
+
 - ✅ `BeforeAllCallback` + `AfterAllCallback` extension
 - ✅ Emulator detection via `FIRESTORE_EMULATOR_HOST` env var
 - ✅ Graceful fallback — emulator না থাকলেও টেস্ট চলবে
@@ -104,12 +109,13 @@
 
 ## ACT-05: Self-Healing → RCA সাইলেন্ট ক্যাচ — ✅ সমাধিত
 
-| ফিল্ড | বিবরণ |
-|:---|:---|
-| **তীব্রতা** | ~~🟠 HIGH~~ → ✅ **RESOLVED** |
-| **ফাইল** | `SelfHealingService.java` (সম্পূর্ণ পুনর্লিখিত) |
+| ফিল্ড       | বিবরণ                                           |
+| :---------- | :---------------------------------------------- |
+| **তীব্রতা** | ~~🟠 HIGH~~ → ✅ **RESOLVED**                   |
+| **ফাইল**    | `SelfHealingService.java` (সম্পূর্ণ পুনর্লিখিত) |
 
 ### কী পরিবর্তন হয়েছে
+
 ```diff
 - // পুরাতন:
 - } catch (Exception ignored) {}  // ← সাইলেন্ট ফেইলিওর!
@@ -121,6 +127,7 @@
 ```
 
 অতিরিক্ত উন্নতি:
+
 - ✅ `recordUnknownErrorToKnowledge()` মেথড — প্রতিটি অজানা ত্রুটি GKB-তে রেকর্ড হচ্ছে
 - ✅ `detectAndFix()` — error path-এ `recordUnknownErrorToKnowledge()` কল হচ্ছে
 - ✅ `recoverFailedProviders()` — নতুন মেথড, proper error handling সহ
@@ -132,5 +139,4 @@
 
 ---
 
-*পরবর্তী ফাইল: [02_latent_risks.md](./02_latent_risks.md)*
-
+_পরবর্তী ফাইল: [02_latent_risks.md](./02_latent_risks.md)_

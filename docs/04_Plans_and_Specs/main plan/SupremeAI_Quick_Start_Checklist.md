@@ -1,8 +1,6 @@
-
 # SupremeAI - Quick Start Checklist
 
 > **Status:** 🟢 Updated for v5 Architecture
-
 
 ## Stack: Spring Boot 3 (Java 21) + React/TypeScript + Flutter + Firebase/Firestore
 
@@ -11,19 +9,22 @@
 ## Immediate Actions (This Week)
 
 ### Day 1-2: Project Setup
+
 - [ ] Create new branch: `feature/major-restructure`
 - [ ] Review folder structure as per AGENTS.md
 - [ ] Ensure all packages have proper `package com.supremeai.*` declarations
 - [ ] Create `.env.example` file with all required env vars
-- [ ] Update `.gitignore` (add .env, build/, *.class, node_modules/)
+- [ ] Update `.gitignore` (add .env, build/, \*.class, node_modules/)
 
 ### Day 3-4: Database / Firestore
+
 - [ ] Verify Firestore collections: `users`, `api_keys`, `agents`, `tasks`, `knowledge`, `simulator_profiles`
 - [ ] Check Firestore security rules in `database.rules.json`
 - [ ] Verify `UserSimulatorProfileRepository` Firestore integration works end-to-end
 - [ ] Test Firestore connection: `./gradlew bootRun` and call `GET /api/simulator/profile`
 
 ### Day 5-7: Core Modules Verification
+
 - [ ] Verify `AgentOrchestrationHub.java` is wired correctly
 - [ ] Verify `ApiKeyRotationService.java` rotation logic
 - [ ] Verify `DataLifecycleService.java` scheduler triggers
@@ -34,17 +35,20 @@
 ## Next Week: Integration
 
 ### Day 8-10: GitHub Integration
+
 - [ ] Verify `GitHubWebhookController` handles push events
 - [ ] Test dual-repo push logic (main repo vs user repos)
 - [ ] Verify trust-tier based access in service layer
 
 ### Day 11-12: Testing
+
 - [ ] Run: `./gradlew jacocoTestReport`
 - [ ] Check coverage report at `build/reports/jacoco/test/html/index.html`
 - [ ] Add tests for any service below 10% coverage (JaCoCo minimum enforced)
 - [ ] Target: `./gradlew test` — all green
 
 ### Day 13-14: CI/CD
+
 - [ ] Verify `.github/workflows/` pipelines run on push
 - [ ] Check `cloudbuild.yaml` for Cloud Build config
 - [ ] Verify Docker build: `docker build -t supremeai .`
@@ -54,12 +58,14 @@
 ## Week 3: Dashboard & Frontend
 
 ### React Dashboard (`dashboard/`)
+
 - [ ] Run: `cd dashboard && npm install && npm run dev`
 - [ ] Verify `SimulatorDashboard.tsx` loads at `/simulator`
 - [ ] Add `SimulatorDashboard` route in `AdminLayout.tsx` or main router
 - [ ] Run type-check: `npm run type-check`
 
 ### Flutter Admin App (`supremeai/`)
+
 - [ ] Run: `cd supremeai && flutter pub get && flutter run`
 - [ ] Verify feature parity with React dashboard (AGENTS.md requirement)
 
@@ -68,12 +74,14 @@
 ## Week 4: Polish & Deploy
 
 ### Pre-Production Checklist
+
 - [ ] Code review all new services (DataLifecycleService, PlanCompatibilityService, etc.)
 - [ ] Verify no hardcoded secrets (grep for API keys in code)
 - [ ] Run: `./gradlew clean build -x test` — must succeed
 - [ ] Update `README.md` with setup instructions
 
 ### Deployment
+
 - [ ] Deploy to staging: `gcloud run deploy supremeai-staging`
 - [ ] Run smoke tests against staging
 - [ ] Merge to main and deploy production

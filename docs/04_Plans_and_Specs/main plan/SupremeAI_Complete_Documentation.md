@@ -1,4 +1,3 @@
-
 # SupremeAI - Complete System Documentation
 
 > **Status:** 🟢 Updated for v5 Architecture
@@ -8,6 +7,7 @@
 ---
 
 # Table of Contents
+
 1. [Executive Summary](#1-executive-summary)
 2. [System Architecture](#2-system-architecture)
 3. [21 Plans Overview](#3-21-plans-overview)
@@ -24,11 +24,13 @@
 # 1. Executive Summary
 
 ## Project: SupremeAI
+
 **Type:** AI-Powered Development & Business Assistant System
 **Status:** Planning Phase (Coding Not Started)
 **Philosophy:** Bootstrap-first, Learning-driven, User-centric
 
 ### Core Capabilities:
+
 - Multi-Agent AI Coordination (Dynamic 0 to ∞ agents)
 - API Key Rotation & Management
 - Continuous Learning & Knowledge Expansion
@@ -42,6 +44,7 @@
 - Intelligent Data Lifecycle Management
 
 ### Key Principles:
+
 1. **Free-first:** Maximum utilization of free tiers
 2. **Learning system:** Improves with every interaction
 3. **User autonomy:** Full control and transparency
@@ -107,49 +110,52 @@
 
 # 3. 24 Plans Overview
 
-| # | Plan Name | Status | Completion |
-|---|-----------|--------|------------|
-| 1 | Dynamic AI Agent System | ✅ Solved | ~100% |
-| 2 | API Key Rotation System | ✅ Solved | ~90% |
-| 3 | Continuous Learning | ✅ Solved | ~95% |
-| 4 | Intent Analysis & Confirmation | ✅ Solved | ~90% |
-| 5 | Plan Compatibility Analysis | ✅ Solved | ~90% |
-| 6 | Dual Repo System | ✅ Solved | ~90% |
-| 7 | Dashboard & Plugin Settings | 🟡 Partial | ~80% |
-| 8 | Adaptive Response Depth | ✅ Solved | ~90% |
-| 9 | Smart Data Storage | 🟡 Partial | ~75% |
-| 10 | API Limit Discovery | 🟡 Partial | ~70% |
-| 11 | Pre-Push Verification | 🟡 Partial | ~75% |
-| 12 | Multi-Platform Expansion | 🟡 Partial | ~70% |
-| 13 | Marketing Strategy Advisor | 🟡 Partial | ~75% |
-| 14 | Vision & Image Integration | 🟡 Partial | ~75% |
-| 15 | Hybrid Voice System | 🟡 Partial | ~80% |
-| 16 | CI/CD Sandbox | 🟡 Partial | ~80% |
-| 17 | Data Lifecycle Management | 🟡 Partial | ~75% |
-| 18 | Crowdsourced API Model | 🔴 Critical | ~60% |
-| 19 | Brilliant Idea Detection | 🟡 Partial | ~75% |
-| 20 | Learning from Examples | 🟡 Partial | ~80% |
-| 21 | Best Pattern Curation | 🟡 Partial | ~80% |
-| 22 | Simulator Controller Perfection | 🔴 New | ~0% |
-| 23 | Website Reverse Engineering Master Guide | 📝 In Progress | ~80% |
-| 24 | AI Agent Ecosystem Integration | 📝 In Progress | ~60% |
-| 25 | Centralized Feature Inventory Registry | ✅ Solved | ~100% |
-| 26 | Autonomous Project Orchestration & Sync |  In Progress | ~40% |
+| #   | Plan Name                                | Status         | Completion |
+| --- | ---------------------------------------- | -------------- | ---------- |
+| 1   | Dynamic AI Agent System                  | ✅ Solved      | ~100%      |
+| 2   | API Key Rotation System                  | ✅ Solved      | ~90%       |
+| 3   | Continuous Learning                      | ✅ Solved      | ~95%       |
+| 4   | Intent Analysis & Confirmation           | ✅ Solved      | ~90%       |
+| 5   | Plan Compatibility Analysis              | ✅ Solved      | ~90%       |
+| 6   | Dual Repo System                         | ✅ Solved      | ~90%       |
+| 7   | Dashboard & Plugin Settings              | 🟡 Partial     | ~80%       |
+| 8   | Adaptive Response Depth                  | ✅ Solved      | ~90%       |
+| 9   | Smart Data Storage                       | 🟡 Partial     | ~75%       |
+| 10  | API Limit Discovery                      | 🟡 Partial     | ~70%       |
+| 11  | Pre-Push Verification                    | 🟡 Partial     | ~75%       |
+| 12  | Multi-Platform Expansion                 | 🟡 Partial     | ~70%       |
+| 13  | Marketing Strategy Advisor               | 🟡 Partial     | ~75%       |
+| 14  | Vision & Image Integration               | 🟡 Partial     | ~75%       |
+| 15  | Hybrid Voice System                      | 🟡 Partial     | ~80%       |
+| 16  | CI/CD Sandbox                            | 🟡 Partial     | ~80%       |
+| 17  | Data Lifecycle Management                | 🟡 Partial     | ~75%       |
+| 18  | Crowdsourced API Model                   | 🔴 Critical    | ~60%       |
+| 19  | Brilliant Idea Detection                 | 🟡 Partial     | ~75%       |
+| 20  | Learning from Examples                   | 🟡 Partial     | ~80%       |
+| 21  | Best Pattern Curation                    | 🟡 Partial     | ~80%       |
+| 22  | Simulator Controller Perfection          | 🔴 New         | ~0%        |
+| 23  | Website Reverse Engineering Master Guide | 📝 In Progress | ~80%       |
+| 24  | AI Agent Ecosystem Integration           | 📝 In Progress | ~60%       |
+| 25  | Centralized Feature Inventory Registry   | ✅ Solved      | ~100%      |
+| 26  | Autonomous Project Orchestration & Sync  | In Progress    | ~40%       |
 
 ---
 
 # 4. Detailed Plans
 
 ## Plan 1: Dynamic AI Agent System ✅
+
 **Status:** Fully Solved
 
 ### Concept:
+
 - No fixed AI agents
 - 0 to ∞ dynamic agents
 - Admin adds new agents
 - System works with available agents or self
 
 ### Task Categories:
+
 1. Code Writing
 2. Court Error Checking
 3. Code Review (Other AI)
@@ -159,12 +165,14 @@
 7. GitHub Actions Check & Fix
 
 ### Multi-Agent Rules:
+
 - Max 3 agents per task
 - Max 10 agents in voting
 - 60% approval threshold
 - System decides who does what
 
 ### Solution Applied:
+
 - **Performance-based routing:** Best agent for specific task
 - **Historical data:** Learns which agent performs best for what
 - **System AI fallback:** When no agents available or all fail
@@ -172,14 +180,17 @@
 ---
 
 ## Plan 2: API Key Rotation System ✅
+
 **Status:** Solved with buffer
 
 ### Concept:
+
 - Multiple API keys per AI model
 - Free tier maximization
 - Automatic rotation before limit reached
 
 ### Solution Applied:
+
 - **80% threshold rotation:** Pre-emptive before limit
 - **System AI backup:** When rotation impossible
 - **User key integration:** Plan 18 for additional keys
@@ -187,15 +198,18 @@
 ---
 
 ## Plan 3: Continuous Learning & Knowledge Expansion ✅
+
 **Status:** Solved with web learning
 
 ### Concept:
+
 - System always learning like a good student
 - Monitors new updates
 - Analyzes usefulness
 - Accesses free data from other AIs
 
 ### Solution Applied:
+
 - **Admin approval gate:** Topic-level permission
 - **In-built browser:** Google, Wikipedia for knowledge
 - **No per-part permission:** Single approval per topic
@@ -204,15 +218,18 @@
 ---
 
 ## Plan 4: Intent Analysis & Confirmation System ✅
+
 **Status:** Solved with learning
 
 ### Concept:
+
 - System analyzes chat in real-time
 - Determines: permanent rule vs planning vs command
 - Confirms understanding with user
 - Saves confirmed intents to database
 
 ### Solution Applied:
+
 - **Smart confirmation:** Only when uncertainty exists
 - **Learning:** Improves accuracy over time
 - **User preference memory:** Remembers who wants what detail level
@@ -220,15 +237,18 @@
 ---
 
 ## Plan 5: Plan Compatibility & Impact Analysis ✅
+
 **Status:** Solved with user autonomy
 
 ### Concept:
+
 - Compares new plans with initial plan
 - Shows compatibility score
 - Provides impact simulation
 - Gives overview of future state
 
 ### Solution Applied:
+
 - **Simple analogy:** Like "building vs buying land"
 - **User warning:** Informs but doesn't block
 - **Full user right:** Can proceed anyway if desired
@@ -236,15 +256,18 @@
 ---
 
 ## Plan 6: Dual Repo System ✅
+
 **Status:** Solved with trust tiers
 
 ### Concept:
+
 - Main system repo (auto push)
 - User repos (conditional push)
 - GitHub bot for access
 - Manual fallback available
 
 ### Solution Applied:
+
 - **Trust-based tiers:**
   - High trust: Full automation
   - Low trust: Manual only
@@ -254,43 +277,52 @@
 ---
 
 ## Plan 7: Dashboard & Plugin Settings 🟡
+
 **Status:** Partial — needs safety granularity
 
 ### Concept:
+
 - User/Admin configurable settings
 - Auto-approve toggle
 - Language selection
 - Multi-language support
 
 ### Remaining Issue:
+
 - **Auto-approve safety:** Which tasks auto, which manual?
 - Needs task-level distinction rules
 
 ---
 
 ## Plan 8: Adaptive Response Depth ✅
+
 **Status:** Solved with learning
 
 ### Concept:
+
 - System understands how much detail user wants
 - Default: concise and simple
 - Details only when explicitly requested
 
 ### Solution Applied:
+
 - **Learning:** Adapts to user preference over time
 - **Context awareness:** Complex topics get more detail automatically
 
 ---
 
 ## Plan 9: Smart Data Storage 🟡
+
 **Status:** Partial — needs recovery mechanism
 
 ### Concept:
+
 - Minimal but informative data storage
 - Only save what's needed later
 - Avoid database bloat
 
 ### Remaining Issues:
+
 - **False negative pruning:** Important data might be discarded
 - **Grace period management:** Soft vs hard delete timing
 - **Recovery UX:** How to restore from archive
@@ -298,14 +330,17 @@
 ---
 
 ## Plan 10: API Limit Discovery 🟡
+
 **Status:** Partial — needs robust validation
 
 ### Concept:
+
 - Auto-discover free/paid tier limits
 - Save for rotation planning
 - Real-world validation
 
 ### Remaining Issues:
+
 - **Scraping fragility:** Provider docs change
 - **Self-consuming tests:** Validation uses up limits
 - **Provider inconsistency:** Web data vs reality
@@ -313,14 +348,17 @@
 ---
 
 ## Plan 11: Pre-Push Verification 🟡
+
 **Status:** Partial — needs merge safety
 
 ### Concept:
+
 - Verify before pushing to user repo
 - Check for others' changes
 - Review code if changes found
 
 ### Remaining Issues:
+
 - **Auto-merge safety:** Sensitive code shouldn't auto-merge
 - **Local changes:** Can't track uncommitted local work
 - **Conflict resolution:** Auto-resolve strategy undefined
@@ -328,15 +366,18 @@
 ---
 
 ## Plan 12: Multi-Platform Expansion 🟡
+
 **Status:** Partial — delegation management needed
 
 ### Concept:
+
 - Beyond API generator
 - Web, mobile, desktop apps
 - Learns new platforms
 - Delegates manual tasks
 
 ### Remaining Issues:
+
 - **Manual delegation list:** App store submission, signing, etc.
 - **Platform complexity:** Each platform unique requirements
 - **Learning curve:** Slow adaptation
@@ -344,15 +385,18 @@
 ---
 
 ## Plan 13: Marketing Strategy Advisor 🟡
+
 **Status:** Partial — needs personalization
 
 ### Concept:
+
 - Business partner, not just coder
 - Marketing plans
 - Social media strategy
 - Real-life marketing ideas
 
 ### Remaining Issues:
+
 - **Generic advice:** Needs specific targeting
 - **Local context:** Local market nuances
 - **Budget awareness:** Needs explicit budget input
@@ -360,14 +404,17 @@
 ---
 
 ## Plan 14: Vision & Image Integration 🟡
+
 **Status:** Partial — cost concern
 
 ### Concept:
+
 - Image understanding
 - Screenshot error reading
 - Visual data extraction
 
 ### Remaining Issues:
+
 - **Vision API cost:** Free tier limited
 - **Image quality:** Blurry images misinterpreted
 - **Processing overhead:** Resource intensive
@@ -375,14 +422,17 @@
 ---
 
 ## Plan 15: Hybrid Voice System 🟡
+
 **Status:** Partial — accuracy concern
 
 ### Concept:
+
 - Voice-to-text (not direct upload)
 - Real-time speech conversion
 - Bengali support
 
 ### Remaining Issues:
+
 - **Bengali accuracy:** Web Speech API imperfect
 - **Latency:** Two-step process delay
 - **Background noise:** Accuracy drops
@@ -390,14 +440,17 @@
 ---
 
 ## Plan 16: CI/CD Sandbox 🟡
+
 **Status:** Partial — setup needed
 
 ### Concept:
+
 - CI/CD as testing gate
 - Error = not merged
 - Production safety
 
 ### Remaining Issues:
+
 - **Initial setup:** Pipeline configuration complexity
 - **Test coverage:** Insufficient tests miss bugs
 - **Delay:** CI run time slows push
@@ -405,14 +458,17 @@
 ---
 
 ## Plan 17: Data Lifecycle Management 🟡
+
 **Status:** Partial — policy needed
 
 ### Concept:
+
 - Auto-expire unnecessary data
 - Keep what's needed
 - Project-end cleanup
 
 ### Remaining Issues:
+
 - **Grace period rules:** When to soft vs hard delete
 - **Recovery UX:** Restore from archive interface
 - **False classification:** Important data marked temporary
@@ -420,20 +476,24 @@
 ---
 
 ## Plan 18: Crowdsourced API Model 🔴
+
 **Status:** Critical — highest risk
 
 ### Concept:
+
 - Premium access in exchange for API key sharing
 - User shares free AI API key
 - System validates and uses
 
 ### Critical Issues:
+
 - **ToS violation:** Provider terms may prohibit third-party use
 - **Security risk:** Key storage and breach possibility
 - **Trust barrier:** Users hesitant to share keys
 - **Key reliability:** User can revoke anytime
 
 ### Mitigation Applied:
+
 - **Temporary:** Only for bootstrap phase
 - **Transparent:** Clear access list shown
 - **User choice:** Optional, not forced
@@ -442,14 +502,17 @@
 ---
 
 ## Plan 19: Brilliant Idea Detection 🟡
+
 **Status:** Partial — heuristic needed
 
 ### Concept:
+
 - System detects "brilliant ideas" from conversations
 - Saves to curated list
 - Admin reviews
 
 ### Remaining Issues:
+
 - **Subjective detection:** "Brilliant" is subjective
 - **False positives:** Mediocre ideas marked brilliant
 - **Admin overhead:** Review volume management
@@ -457,15 +520,18 @@
 ---
 
 ## Plan 20: Learning from Examples 🟡
+
 **Status:** Partial — time factor
 
 ### Concept:
+
 - Admin gives real-world examples
 - System learns underlying logic
 - Confirms understanding
 - Applies to other users
 
 ### Remaining Issues:
+
 - **Iterative time:** Many examples needed for perfection
 - **Generalization accuracy:** Specific to universal rule conversion
 - **Context transfer:** One situation to another applicability
@@ -473,15 +539,18 @@
 ---
 
 ## Plan 21: Best Pattern Curation 🟡
+
 **Status:** Partial — evaluation needed
 
 ### Concept:
+
 - Observe AI agent work patterns
 - Save best practices
 - Keep top 3 per task type
 - Avoid database overload
 
 ### Remaining Issues:
+
 - **Evaluation metric:** How to measure "best"
 - **Niche coverage:** Uncommon scenarios need more options
 - **Dynamic expansion:** When to add more patterns
@@ -489,13 +558,16 @@
 ---
 
 ## Plan 22: Simulator Controller Perfection 🔴
+
 **Status:** New — No implementation started  
 **Estimated Effort:** 6-8 sprints (12-16 weeks)
 
 ### Concept:
+
 The SimulatorController provides a **cloud-based app preview environment** where users can install, run, and test their generated Android/iOS applications before publishing to app stores. It adds a critical quality assurance layer to SupremeAI by allowing users to interact with their apps in a live, browser-based simulator rather than just downloading APK files.
 
 ### Current State:
+
 - Basic CRUD endpoints only (`SimulatorController.java` - ~43 lines)
 - In-memory profile storage (volatile)
 - No app installation workflow
@@ -504,7 +576,9 @@ The SimulatorController provides a **cloud-based app preview environment** where
 - No Firestore integration
 
 ### Perfect Implementation:
+
 Enhanced UserSimulatorProfile model with:
+
 - **Installation Management**: Install/uninstall generated apps with quota enforcement (default 5 apps)
 - **Simulator Runtime**: Cloud Run-based preview deployment (option 2 recommended)
 - **Session Management**: WebSocket-based real-time communication, session lifecycle control
@@ -514,6 +588,7 @@ Enhanced UserSimulatorProfile model with:
 - **Frontend UI**: React panel for simulator control
 
 ### Key Technical Components:
+
 - **Firestore Collections**: `simulator_profiles`, `simulator_sessions`, `simulator_audit_log`
 - **Quota Enforcement**: Atomic counter updates via Firestore transactions
 - **Preview URL**: `https://{appId}-simulator.run.app` per installed app
@@ -521,6 +596,7 @@ Enhanced UserSimulatorProfile model with:
 - **Cost Control**: Quota limits, auto-cleanup, alerting on spikes
 
 ### API Endpoints (New):
+
 - `POST /api/simulator/install` - Install app
 - `DELETE /api/simulator/install/{appId}` - Uninstall
 - `GET /api/simulator/installed` - List installed apps
@@ -530,21 +606,25 @@ Enhanced UserSimulatorProfile model with:
 - `POST /api/simulator/admin/usage` - Admin analytics
 
 ### Dependencies:
+
 - App generation must produce deployable artifacts (APK/web builds)
 - Cloud Run deployment pipeline must be automated
 - Frontend React panel integration needed
 
 ### Estimated Timeline:
+
 - **MVP** (basic install+launch): 2-3 sprints → 4-6 weeks
 - **Perfect** (full feature set): 6-8 sprints → 12-16 weeks
 
 ### Value Proposition:
+
 - Users can **test apps before download** → reduces support issues
 - **Confidence building** — see working demo before committing to install
 - **Professional demos** — shareable simulator links for stakeholders
 - **Early bug detection** — catch issues before app store submission
 
 ### Priority: **Medium-High** (Phase 8)
+
 - After core app generation (Phase 3-4) is stable
 - Parallel with advanced features (Vision, Voice)
 - Requires existing Cloud Run infrastructure
@@ -552,13 +632,15 @@ Enhanced UserSimulatorProfile model with:
 ---
 
 ## Plan 23: Website Reverse Engineering Master Guide 📝
+
 **Status:** In Progress — Documentation complete, implementation pending  
 **Estimated Effort:** 16 weeks (4 phases)
 
 ### Concept:
+
 Enable SupremeAI to automatically reverse engineer ANY website with a web interface and generate production-ready API connectors. Uses AI-powered analysis (Kimi-style) to observe, analyze, and generate code automatically.
 
-**Core Philosophy:** *"Any service that has a web interface can be your API. And AI can build that API for you."*
+**Core Philosophy:** _"Any service that has a web interface can be your API. And AI can build that API for you."_
 
 ### The Kimi Analysis Loop (6 Steps):
 
@@ -570,6 +652,7 @@ Enable SupremeAI to automatically reverse engineer ANY website with a web interf
 6. **Validation & Healing** — Test connector, compare responses, auto-fix errors, regenerate if needed
 
 ### Key Features:
+
 - **Universal Adaptation:** Works on ANY website, not just known platforms
 - **Self-Healing Connectors:** When a site changes, AI updates the connector automatically
 - **No Manual DevTools:** AI reads page source and network patterns
@@ -579,31 +662,37 @@ Enable SupremeAI to automatically reverse engineer ANY website with a web interf
 ### Implementation Phases:
 
 #### Phase 1: Foundation (Weeks 1-2)
+
 - [ ] Implement Kimi Observer Engine
 - [ ] Build static JS analysis tools
 - [ ] Create authentication detector
 
 #### Phase 2: Core Engine (Weeks 3-6)
+
 - [ ] Develop endpoint discovery system
 - [ ] Build payload analyzer
 - [ ] Implement code generator templates
 
 #### Phase 3: Validation (Weeks 7-10)
+
 - [ ] Create validation pipeline
 - [ ] Implement self-healing mechanisms
 - [ ] Build test suite
 
 #### Phase 4: Stealth & Production (Weeks 11-14)
+
 - [ ] Add anti-detection measures
 - [ ] Implement proxy rotation
 - [ ] Create deployment pipeline
 
 #### Phase 5: Integration (Weeks 15-16)
+
 - [ ] Integrate with SupremeAI core
 - [ ] Build user-facing API
 - [ ] Document all components
 
 ### Success Metrics:
+
 - **Connector Generation Success Rate:** >90%
 - **Auth Detection Accuracy:** >95%
 - **Endpoint Discovery Coverage:** >85%
@@ -611,6 +700,7 @@ Enable SupremeAI to automatically reverse engineer ANY website with a web interf
 - **Time to New Platform:** <10 minutes from URL to working connector
 
 ### Technical Stack:
+
 - **Language:** Python 3.11+
 - **Web Scraping:** Playwright, BeautifulSoup4
 - **HTTP Client:** httpx, requests
@@ -621,6 +711,7 @@ Enable SupremeAI to automatically reverse engineer ANY website with a web interf
 - **Database:** Firebase Firestore (connector registry)
 
 ### Example Usage:
+
 ```python
 from supremeai import SupremeAIWithAutoConnect
 
@@ -641,12 +732,14 @@ response = supreme.process_task(
 ```
 
 ### Platform Deep Dives Included:
+
 - Meta AI (meta.ai) — OAuth 2.0 with Facebook login
 - ChatGPT (chat.openai.com) — Session-based with Cloudflare
 - Claude (claude.ai) — Session token, WebSocket streaming
 - Gemini (gemini.google.com) — Google OAuth, complex signing
 
 ### Documentation Structure (10 Parts):
+
 1. Core Philosophy & The Kimi Vision
 2. Kimi Observer Engine
 3. Endpoint Discovery
@@ -659,28 +752,33 @@ response = supreme.process_task(
 10. Future Vision
 
 ### Priority: **High** (Phase 5-6)
+
 - After Dynamic Agent System and API Rotation are stable
 - Before major platform expansion
 - Critical for multi-platform support
 
 ### Related Files:
+
 - **Full Guide:** `Plan_23_Website_Reverse_Engineering_Master_Guide.md`
 - **Related Plans:** Plan 12 (Multi-Platform Expansion), Plan 1 (Dynamic AI Agent)
 
 ---
 
 ## Plan 25: Centralized Feature Inventory Registry ✅
+
 **Status:** Implemented via `FeatureRegistryService`
 
 ### Concept:
+
 - Prevent duplicate feature implementation.
 - Maintain a "Table of Capabilities" in the Admin Dashboard.
 - Track provider, classpath, and status for every AI model and engine.
 
 ### Solution Applied:
+
 - **Runtime Registry:** Every new feature must be registered in `FeatureRegistryService`.
 - **Admin Visibility:** Dashboard provides a real-time table of all active components.
-where- **Auto-Audit Task:** AI Agents can now scan the codebase via `CodebaseAuditService` and propose new features with a `PROPOSED` status for admin review.
+  where- **Auto-Audit Task:** AI Agents can now scan the codebase via `CodebaseAuditService` and propose new features with a `PROPOSED` status for admin review.
 - **Browser Auto-Config:** Godmode 3 can now autonomously navigate web interfaces to perform complex user settings (e.g., Cloud setup, API configurations).
 - **AI-Driven Interaction:** Live preview now supports user guidance (clicks/text) when the AI encounters CAPTCHAs or ambiguous UI elements.
 - **Context-Aware Browsing:** Browser navigation is optimized based on the user's current codebase (e.g., Spring Boot vs React context).
@@ -690,14 +788,17 @@ where- **Auto-Audit Task:** AI Agents can now scan the codebase via `CodebaseAud
 ---
 
 ## Plan 26: Autonomous Project Orchestration & Sync 🔴
+
 **Status:** New — Initial logic in `DocumentationSyncService`
 
 ### Concept:
+
 - Reduce manual maintenance of system documentation and registry.
 - Automate AI Model probing to ensure Level 1/Level 2 fallbacks are valid.
 - Programmatic syncing of project milestones from code to the Dashboard.
 
 ### Solutions to Apply:
+
 - **Doc Automator:** Scans Markdown files for status updates.
 - **Provider Prober:** Scheduled task to verify API key health and rotate before failures occur.
 - **Hybrid Core Orchestrator:** `deploy_models.sh` now manages the Godmode 3 engine and Tiny AI sync services.
@@ -709,6 +810,7 @@ where- **Auto-Audit Task:** AI Agents can now scan the codebase via `CodebaseAud
 ## Problems by Category:
 
 ### 1. Security & Legal (Critical)
+
 - API key storage breach risk
 - Provider ToS violation
 - User data privacy scope
@@ -716,6 +818,7 @@ where- **Auto-Audit Task:** AI Agents can now scan the codebase via `CodebaseAud
 - Encryption strategy
 
 ### 2. User Trust & Permission
+
 - GitHub App installation hesitation
 - API key sharing reluctance
 - Trust level determination
@@ -723,6 +826,7 @@ where- **Auto-Audit Task:** AI Agents can now scan the codebase via `CodebaseAud
 - Graceful revocation handling
 
 ### 3. Limitations & Cost
+
 - Free tier API limits
 - Validation test consuming limits
 - Image processing resources
@@ -730,6 +834,7 @@ where- **Auto-Audit Task:** AI Agents can now scan the codebase via `CodebaseAud
 - Multi-platform API costs
 
 ### 4. Technical Limitations
+
 - Bengali speech accuracy
 - Local uncommitted changes tracking
 - Provider documentation changes
@@ -737,6 +842,7 @@ where- **Auto-Audit Task:** AI Agents can now scan the codebase via `CodebaseAud
 - Merge conflict auto-resolution
 
 ### 5. Policy & Rules
+
 - Auto-approve task classification
 - Grace period duration
 - "Best" pattern measurement
@@ -744,6 +850,7 @@ where- **Auto-Audit Task:** AI Agents can now scan the codebase via `CodebaseAud
 - Marketing budget input
 
 ### 6. Interface & UX
+
 - Archive recovery interface
 - Admin review volume
 - Manual delegation UX
@@ -751,6 +858,7 @@ where- **Auto-Audit Task:** AI Agents can now scan the codebase via `CodebaseAud
 - Initial setup complexity
 
 ### 7. First-Time Risk
+
 - Important topic missed in pruning
 - Risky code auto-merged
 - Generic marketing advice
@@ -758,6 +866,7 @@ where- **Auto-Audit Task:** AI Agents can now scan the codebase via `CodebaseAud
 - New platform learning lag
 
 ### 8. External Dependencies
+
 - Vision API provider changes
 - Speech API support changes
 - GitHub API rate changes
@@ -765,6 +874,7 @@ where- **Auto-Audit Task:** AI Agents can now scan the codebase via `CodebaseAud
 - Free tier policy changes
 
 ### 9. Measurement & Evaluation
+
 - API key performance scoring
 - Pattern quality measurement
 - Idea brilliance detection
@@ -772,6 +882,7 @@ where- **Auto-Audit Task:** AI Agents can now scan the codebase via `CodebaseAud
 - Learning progress tracking
 
 ### 10. Coordination & Synchronization
+
 - Remote vs local workspace sync
 - Multi-agent task collision
 - Key rotation task handover
@@ -783,9 +894,11 @@ where- **Auto-Audit Task:** AI Agents can now scan the codebase via `CodebaseAud
 # 6. Solutions Applied
 
 ## Meta-Solution 1: Learning Process
+
 **Principle:** "The more it learns, the more perfect it becomes"
 
 ### Impact:
+
 - Plan 1: Agent coordination improves
 - Plan 2: Rotation pattern optimization
 - Plan 3: Knowledge base expansion
@@ -797,9 +910,11 @@ where- **Auto-Audit Task:** AI Agents can now scan the codebase via `CodebaseAud
 - Plan 21: Pattern evaluation matures
 
 ## Meta-Solution 2: System AI Backup
+
 **Principle:** "When no AI is available, the system itself is sufficient"
 
 ### Impact:
+
 - Plan 1: Fallback when agents fail
 - Plan 2: Fallback when rotation impossible
 - Plan 3: Self-learning capability
@@ -808,15 +923,15 @@ where- **Auto-Audit Task:** AI Agents can now scan the codebase via `CodebaseAud
 
 ## Individual Solutions:
 
-| Plan | Solution | Completion |
-|------|----------|------------|
-| 1 | Performance-based routing + System AI fallback | 100% |
-| 2 | 80% threshold rotation + System AI backup | 90% |
-| 3 | Admin approval + In-built browser learning | 95% |
-| 4 | Smart confirmation + Learning | 90% |
-| 5 | Simple analogy + User autonomy | 90% |
-| 6 | Trust-based tiers + Transparent access | 90% |
-| 18 | Temporary + Transparent + Future removal | 60% |
+| Plan | Solution                                       | Completion |
+| ---- | ---------------------------------------------- | ---------- |
+| 1    | Performance-based routing + System AI fallback | 100%       |
+| 2    | 80% threshold rotation + System AI backup      | 90%        |
+| 3    | Admin approval + In-built browser learning     | 95%        |
+| 4    | Smart confirmation + Learning                  | 90%        |
+| 5    | Simple analogy + User autonomy                 | 90%        |
+| 6    | Trust-based tiers + Transparent access         | 90%        |
+| 18   | Temporary + Transparent + Future removal       | 60%        |
 
 ---
 
@@ -851,6 +966,7 @@ Every Interaction
 ```
 
 ### Learning Sources:
+
 1. **User interactions** — Preferences, corrections, confirmations
 2. **Web browsing** — Google, Wikipedia, documentation
 3. **AI agent performance** — Success/failure rates per task
@@ -862,40 +978,45 @@ Every Interaction
 # 8. Risk Assessment
 
 ## High Risk (Immediate Attention):
-| Risk | Plan | Mitigation |
-|------|------|------------|
-| ToS violation | 18 | Temporary, transparent, future removal |
-| Security breach | 18 | Encryption (future), minimal storage |
-| Auto-approve danger | 7 | Task-level rules (to be defined) |
+
+| Risk                | Plan | Mitigation                             |
+| ------------------- | ---- | -------------------------------------- |
+| ToS violation       | 18   | Temporary, transparent, future removal |
+| Security breach     | 18   | Encryption (future), minimal storage   |
+| Auto-approve danger | 7    | Task-level rules (to be defined)       |
 
 ## Medium Risk (Monitor):
-| Risk | Plan | Mitigation |
-|------|------|------------|
-| Service disruption | 2 | 80% threshold + backup |
-| Data loss | 9 | Soft delete + grace period |
-| Scraping failure | 10 | Multiple sources + fallback |
-| Merge conflict | 11 | Manual review suggestion |
-| Manual task growth | 12 | Progressive automation |
-| Generic advice | 13 | User context integration |
-| API cost | 14 | Hybrid approach |
-| Speech accuracy | 15 | Fallback + learning |
+
+| Risk               | Plan | Mitigation                  |
+| ------------------ | ---- | --------------------------- |
+| Service disruption | 2    | 80% threshold + backup      |
+| Data loss          | 9    | Soft delete + grace period  |
+| Scraping failure   | 10   | Multiple sources + fallback |
+| Merge conflict     | 11   | Manual review suggestion    |
+| Manual task growth | 12   | Progressive automation      |
+| Generic advice     | 13   | User context integration    |
+| API cost           | 14   | Hybrid approach             |
+| Speech accuracy    | 15   | Fallback + learning         |
 
 ## Low Risk (Acceptable):
-| Risk | Plan | Mitigation |
-|------|------|------------|
+
+| Risk              | Plan    | Mitigation                  |
+| ----------------- | ------- | --------------------------- |
 | First-time errors | Various | Learning improves over time |
-| External changes | Various | Monitoring + adaptation |
-| Setup complexity | 16 | One-time effort |
+| External changes  | Various | Monitoring + adaptation     |
+| Setup complexity  | 16      | One-time effort             |
 
 ---
 
 # 9. Implementation Roadmap
 
 ## Phase 1: Foundation (Bootstrap)
+
 **Duration:** Months 1-3
 **Focus:** Core functionality with free resources
 
 ### Deliverables:
+
 - [ ] Dynamic agent system (Plan 1)
 - [ ] API rotation with user keys (Plans 2, 18)
 - [ ] Basic intent analysis (Plan 4)
@@ -904,10 +1025,12 @@ Every Interaction
 - [ ] Dashboard with basic settings (Plan 7)
 
 ## Phase 2: Enhancement
+
 **Duration:** Months 4-6
 **Focus:** Learning and automation
 
 ### Deliverables:
+
 - [ ] Web-based learning (Plan 3)
 - [ ] Smart confirmation (Plan 4)
 - [ ] Adaptive responses (Plan 8)
@@ -916,10 +1039,12 @@ Every Interaction
 - [ ] Voice integration (Plan 15)
 
 ## Phase 3: Expansion
+
 **Duration:** Months 7-12
 **Focus:** Multi-platform and business features
 
 ### Deliverables:
+
 - [ ] Vision integration (Plan 14)
 - [ ] Multi-platform support (Plan 12)
 - [ ] Marketing advisor (Plan 13)
@@ -929,10 +1054,12 @@ Every Interaction
 - [ ] Simulator Controller MVP (Plan 22) - Weeks 1-2
 
 ## Phase 4: Maturity
+
 **Duration:** Months 10-12
 **Focus:** Quality of life and polish
 
 ### Deliverables:
+
 - [ ] Simulator Controller full feature set (Plan 22)
 - [ ] Simulator admin dashboard
 - [ ] Multi-device support
@@ -940,10 +1067,12 @@ Every Interaction
 - [ ] Performance benchmarking
 
 ## Phase 5: Scale
+
 **Duration:** Year 2+
 **Focus:** Dedicated infrastructure
 
 ### Deliverables:
+
 - [ ] Remove user key dependency
 - [ ] Dedicated API infrastructure
 - [ ] Advanced security
@@ -955,24 +1084,28 @@ Every Interaction
 # 10. Future Considerations
 
 ## Technical Debt:
+
 1. **Plan 18 migration:** Move from crowdsourced to dedicated APIs
 2. **Encryption implementation:** Secure key storage
 3. **Test coverage:** Automated test generation
 4. **Documentation:** Keep updated with changes
 
 ## Scalability Concerns:
+
 1. **Database growth:** Even with pruning, scale needs planning
 2. **Agent coordination:** More agents = more complexity
 3. **Multi-tenancy:** User isolation as system grows
 4. **Performance:** Response time with learning overhead
 
 ## Business Evolution:
+
 1. **Monetization:** When and how to introduce paid tiers
 2. **Partnerships:** API provider relationships
 3. **Compliance:** GDPR, data protection as user base grows
 4. **Support:** User support system for non-technical users
 
 ## Innovation Opportunities:
+
 1. **Custom models:** Fine-tuned models for specific tasks
 2. **Plugin ecosystem:** Third-party integrations
 3. **Mobile app:** Native mobile experience
@@ -982,26 +1115,26 @@ Every Interaction
 
 # Appendix A: Glossary
 
-| Term | Definition |
-|------|------------|
-| **Agent** | An AI model instance assigned to a task |
-| **Rotation** | Switching between API keys to avoid limits |
-| **Sandbox** | Isolated testing environment |
-| **Grace Period** | Time between soft and hard delete |
-| **ToS** | Terms of Service |
-| **CI/CD** | Continuous Integration/Continuous Deployment |
-| **OCR** | Optical Character Recognition |
-| **TTL** | Time To Live |
+| Term             | Definition                                   |
+| ---------------- | -------------------------------------------- |
+| **Agent**        | An AI model instance assigned to a task      |
+| **Rotation**     | Switching between API keys to avoid limits   |
+| **Sandbox**      | Isolated testing environment                 |
+| **Grace Period** | Time between soft and hard delete            |
+| **ToS**          | Terms of Service                             |
+| **CI/CD**        | Continuous Integration/Continuous Deployment |
+| **OCR**          | Optical Character Recognition                |
+| **TTL**          | Time To Live                                 |
 
 # Appendix B: Decision Log
 
-| Date | Decision | Rationale |
-|------|----------|-----------|
-| 2026-04-26 | Crowdsourced API temporary | Bootstrap necessity |
-| 2026-04-26 | 80% rotation threshold | Pre-emptive safety |
-| 2026-04-26 | Trust-based access tiers | User autonomy |
-| 2026-04-26 | Learning as meta-solution | Long-term improvement |
-| 2026-04-26 | System AI as ultimate backup | Reliability |
+| Date       | Decision                     | Rationale             |
+| ---------- | ---------------------------- | --------------------- |
+| 2026-04-26 | Crowdsourced API temporary   | Bootstrap necessity   |
+| 2026-04-26 | 80% rotation threshold       | Pre-emptive safety    |
+| 2026-04-26 | Trust-based access tiers     | User autonomy         |
+| 2026-04-26 | Learning as meta-solution    | Long-term improvement |
+| 2026-04-26 | System AI as ultimate backup | Reliability           |
 
 ---
 

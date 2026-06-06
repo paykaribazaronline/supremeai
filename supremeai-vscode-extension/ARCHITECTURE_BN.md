@@ -36,11 +36,13 @@ supremeai-vscode-extension/
 ## ৩. কম্পোনেন্ট ডিজাইন (Bangla Description)
 
 ### ৩.১ Extension.ts - মূল কন্ট্রোলার
+
 - **ভাস্য**: এক্সটেনশনের লাইফ সাইকেল ম্যানেজ করে
 - **কাজ**: সব সার্ভিস আর হ্যান্ডলার ইনিশিয়ালাইজ করে, কমান্ড রেজিস্টার করে
 - **গুরুত্ব**: সবকিছুর সেন্ট্রাল অর্গানাইজেশন
 
 ### ৩.২ SupremeAIService - ব্যাকএন্ড কনেকশন
+
 - **ভাস্য**: VS Code এবং SupremeAI ক্লাউড ব্যাকএন্ডের মধ্যে যোগাযোগ
 - **কার্যক্রম**:
   - `POST /api/knowledge/learn` - কোড শিখানোর জন্য
@@ -50,6 +52,7 @@ supremeai-vscode-extension/
 - **বিশেষতা**: Axios ইন্টারসেপ্টরে অথেন্টিকেশন টোকেন যুক্ত করা
 
 ### ৩.৩ CodeEditHandler - রিয়েল-টাইম লার্নিং
+
 - **ভাস্য**: ব্যবহারকারীর কোড এডিটিটি ক্য্যাপচার করে শিখানোর জন্য
 - **কিভাবে কাজ করে**:
   1. `onDidChangeTextDocument` ইভেন্ট শুনে
@@ -59,6 +62,7 @@ supremeai-vscode-extension/
 - **সেভিং মেকানিজ্ম**: `context.globalState` এ বেসলাইন কোড স্টোর করে
 
 ### ৩.৪ ErrorHandler - এরর ট্র্যাকিং এবং সমাধান
+
 - **ভাস্য**: কম্পাইলার/রানটাইম এররগুলোকে AI-এর কাছে পাঠায়
 - **কার্যক্রম**:
   - Problem Matcher থেকে এরর পার্স করে
@@ -67,6 +71,7 @@ supremeai-vscode-extension/
 - **ডিবাগিং**: Stack trace এবং কোড স্নিপেট সহজলভ্য করে
 
 ### ৩.৫ FeedbackHandler - ইউজার ইনপুট প্রসেসিং
+
 - **ভাস্য**: ইউজারের সাজেশন গ্রহণ/অস্বীকারের ফিডব্যাক
 - **কাজ**:
   - `supremeai.acceptSuggestion` কমান্ড হ্যান্ডেল করে
@@ -74,6 +79,7 @@ supremeai-vscode-extension/
   - ব্যাকএন্ডে ফিডব্যাক পাঠায় (যাতে AI শিখতে পারে)
 
 ### ৩.৬ CodeFlowHandler - কোডবে�이সিক বিশ্লেষণ
+
 - **ভাস্য**: কোডবেইসিক (Codebase) স্তরে বিশ্লেষণ করে
 - **ফিচার**:
   - ডিপেন্ডেন্সি গ্রাফ জেনারেট করে
@@ -82,6 +88,7 @@ supremeai-vscode-extension/
   - হেলথ স্কোর গণনা করে
 
 ### ৩.৭ প্রোভাইডার्स - UI কম্পোনেন্ট
+
 - **SupremeAISidebarProvider**: ওয়েবভিউইউ ব্যবহার করে সাইডবার তৈরি
 - **SupremeAIChatProvider**: চ্যাট ইন্টারফেস
 - **SupremeAIActivityProvider**: ট্রি ভিউয়ে অ্যাক্টিভিটি দেখায়
@@ -100,13 +107,13 @@ VS Code → CodeEditHandler → SupremeAIService → Backend → ML Model → Re
 
 ### ৪.২ লার্নিং মেকানিজ্ম
 
-| ধাপ | বর্ণনা | বাংলা |
-|-----|--------|--------|
-| ১ | কোড চেঞ্জ ডিটেক্ট | কোড পরিবর্তন detect করা |
-| ২ | অরিজিনাল vs এডিটেড কোড তুলনা | মূল আপত্তি তুলনা |
-| ৩ | ব্যাকএন্ডে লার্নিং রিকোয়ার্স | শিখানোর রিকোয়ার্স |
-| ৪ | ML মডেল প্যাটার্ন স্টোর | প্যাটার্ন স্টোর |
-| ৫ | কন্টекстুअલ সাজেশন | প্রসঙ্গভিত্তিক সাজেশন |
+| ধাপ | বর্ণনা                       | বাংলা                   |
+| --- | ---------------------------- | ----------------------- |
+| ১   | কোড চেঞ্জ ডিটেক্ট            | কোড পরিবর্তন detect করা |
+| ২   | অরিজিনাল vs এডিটেড কোড তুলনা | মূল আপত্তি তুলনা        |
+| ৩   | ব্যাকএন্ডে লার্নিং রিকোয়ার্স | শিখানোর রিকোয়ার্স       |
+| ৪   | ML মডেল প্যাটার্ন স্টোর      | প্যাটার্ন স্টোর         |
+| ৫   | কন্টекстুअલ সাজেশন           | প্রসঙ্গভিত্তিক সাজেশন   |
 
 ### ৪.৩ AI মডেলের ভূমিকা
 
@@ -121,21 +128,24 @@ VS Code → CodeEditHandler → SupremeAIService → Backend → ML Model → Re
 ### ৫.১ LLM-এর সাথে সরাসরি ইন্টিগ্রেশন
 
 **কী যোগ করবেন:**
+
 ```typescript
 // new file: src/services/AIService.ts
-import { OpenAI } from 'openai';
+import { OpenAI } from "openai";
 
 export class AIService {
   private openai: OpenAI;
-  
+
   async generateCode(prompt: string, context: any) {
     return await this.openai.chat.completions.create({
-      model: 'gpt-4',
-      messages: [{ role: 'user', content: prompt }],
-      tools: [{
-        type: 'code_interpreter',
-        // Allow AI to run and test code
-      }]
+      model: "gpt-4",
+      messages: [{ role: "user", content: prompt }],
+      tools: [
+        {
+          type: "code_interpreter",
+          // Allow AI to run and test code
+        },
+      ],
     });
   }
 }
@@ -144,6 +154,7 @@ export class AIService {
 ### ৫.২ অ্যাসিস্ট্যান্ট মেমরি সিস্টেম
 
 **কী যোগ করবেন:**
+
 - ব্যবহারকারীর পছন্দের কোড স্টাইল স্টোর করার ডাটাবেস
 - রিপোজিটরির হিস্টোরি থেকে কন্টেক্স্ট বানানো
 - ইতিহাসস্থলীয় সাজেশনের জন্য মেমরি
@@ -151,6 +162,7 @@ export class AIService {
 ### ৫.৩ রিয়েল-টাইম কোড রিভিউ
 
 **কী যোগ করবেন:**
+
 - প্রতিটি কী-স্ট্রোকের পরে AI ইনফিলেন্সার দেখানো
 - অন-দিমান্ডিং এরর ডিটেকশন
 - স্বয়ংক্রিয় রিফ্যাকচуар সাজেশন
@@ -158,16 +170,17 @@ export class AIService {
 ### ৫.৪ মাল্টি-ল্যাঙ্গুয়েজ সাপোর্ট
 
 **কী যোগ করবেন:**
+
 ```typescript
 // src/languages/languageDetector.ts
 export class LanguageDetector {
   detectLanguage(fileExtension: string): LanguageConfig {
     const configs = {
-      'ts': { model: 'gpt-4', templ: tsTemplate },
-      'py': { model: 'codex', template: pyTemplate },
-      'java': { model: 'codegeex', template: javaTemplate }
+      ts: { model: "gpt-4", templ: tsTemplate },
+      py: { model: "codex", template: pyTemplate },
+      java: { model: "codegeex", template: javaTemplate },
     };
-    return configs[fileExtension] || configs['ts'];
+    return configs[fileExtension] || configs["ts"];
   }
 }
 ```
@@ -175,6 +188,7 @@ export class LanguageDetector {
 ### ৫.৫ কোড স্ন্যাপশট বেসড সাজেশন
 
 **কী যোগ করবেন:**
+
 - ফাইল সেভ করার সময় কোডের স্ন্যাপশট নেয়
 - পূর্ববর্তী স্ন্যাপশটের সাথে পার্থক্য বের করে
 - AI-এর সাথে পাঠায় শুধু পরি঵র্তনগুলো
@@ -182,6 +196,7 @@ export class LanguageDetector {
 ### ৫.৬ ভিজ্যুয়ালাইজেশন ড্যাশবোর্ড
 
 **কী যোগ করবেন:**
+
 - কোডক্যোয়ার্ড ম্যাপ (যে কোড কোথায় কল করে)
 - লার্নিং প্রগ্রেস চার্ট
 - এরর ট্র্যাকিং ড্যাশবোর্ড
@@ -232,15 +247,15 @@ supremeai-vscode-extension/
 
 ## ৮. বাংলা ট্রান্সলেশন গাইড
 
-| ইংরেজি | বাংলা |
-|--------|-------|
-| AI Assistant | এআই সহায়ক |
-| Real-time Learning | রিয়েল-টাইম শিখুন |
-| Code Analysis | কোড বিশ্লেষণ |
-| Suggestion | প্রস্তাব |
-| Error Resolution | এরর সমাধান |
-| CodeFlow | কোড ফ্লো |
-| Dashboard | ড্যাশবোর্ড |
-| Feedback | ফিডব্যাক |
-| Security Issues | সুরক্ষা সমস্যা |
-| Dependency Graph | ডিপেন্ডেন্সি গ্রাফ |
+| ইংরেজি             | বাংলা              |
+| ------------------ | ------------------ |
+| AI Assistant       | এআই সহায়ক          |
+| Real-time Learning | রিয়েল-টাইম শিখুন  |
+| Code Analysis      | কোড বিশ্লেষণ       |
+| Suggestion         | প্রস্তাব           |
+| Error Resolution   | এরর সমাধান         |
+| CodeFlow           | কোড ফ্লো           |
+| Dashboard          | ড্যাশবোর্ড         |
+| Feedback           | ফিডব্যাক           |
+| Security Issues    | সুরক্ষা সমস্যা     |
+| Dependency Graph   | ডিপেন্ডেন্সি গ্রাফ |

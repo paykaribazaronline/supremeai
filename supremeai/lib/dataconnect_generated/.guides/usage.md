@@ -28,4 +28,3 @@ await ExampleConnector.instance.SearchMovie({ ... })
 ```
 
 Note: the above example is a mutation, but the same logic applies to query operations as well. Additionally, `createMovie` is an example, and may not be available to the user.
-

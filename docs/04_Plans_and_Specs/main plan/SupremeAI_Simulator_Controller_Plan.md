@@ -2,7 +2,6 @@
 
 > **Status:** 🟢 Updated for v5 Architecture
 
-
 **Status:** P2 Feature - Supporting Infrastructure  
 **Component:** `/api/simulator/*` endpoints  
 **Phase:** Phase 8 (Simulator & Visualization)  
@@ -23,18 +22,18 @@ The SimulatorController provides a **cloud-based app preview environment** where
 
 ### Existing Components
 
-| File | Lines | Status |
-|------|-------|--------|
-| `SimulatorController.java` | 43 | Basic CRUD - storage only |
-| `UserSimulatorProfile.java` | 21 | Basic model - missing fields |
+| File                        | Lines | Status                       |
+| --------------------------- | ----- | ---------------------------- |
+| `SimulatorController.java`  | 43    | Basic CRUD - storage only    |
+| `UserSimulatorProfile.java` | 21    | Basic model - missing fields |
 
 ### Current API Endpoints
 
-| Endpoint | Method | Purpose | Status |
-|----------|--------|---------|--------|
-| `GET /api/simulator/profile/{userId}` | GET | Get user profile | ✅ Works (in-memory) |
-| `POST /api/simulator/profile/{userId}/save` | POST | Save profile | ✅ Works (in-memory) |
-| `POST /api/simulator/admin/set-quota/{userId}` | POST | Admin set quota | ✅ Works (in-memory) |
+| Endpoint                                       | Method | Purpose          | Status               |
+| ---------------------------------------------- | ------ | ---------------- | -------------------- |
+| `GET /api/simulator/profile/{userId}`          | GET    | Get user profile | ✅ Works (in-memory) |
+| `POST /api/simulator/profile/{userId}/save`    | POST   | Save profile     | ✅ Works (in-memory) |
+| `POST /api/simulator/admin/set-quota/{userId}` | POST   | Admin set quota  | ✅ Works (in-memory) |
 
 **Major Gaps:**
 
@@ -65,7 +64,7 @@ public class UserSimulatorProfile {
     private LocalDateTime lastActiveAt;
     private SimulatorSession currentSession;  // Active session if any
     private QuotaHistory[] quotaHistory;      // Usage over time
-    
+
     // Inner classes
     public static class SimulatorApp {
         private String appId;           // Reference to generated app
@@ -77,7 +76,7 @@ public class UserSimulatorProfile {
         private LocalDateTime lastLaunchedAt;
         private SimulatorAppStatus status; // INSTALLED, RUNNING, ERROR
     }
-    
+
     public static class SimulatorDevice {
         private DeviceType type = DeviceType.PIXEL_6;   // DEFAULT
         private String osVersion = "Android 14";
@@ -86,7 +85,7 @@ public class UserSimulatorProfile {
         private boolean hasGooglePlayServices = false;
         private Map<String, String> customProperties;
     }
-    
+
     public static class SimulatorSession {
         private String sessionId;
         private String activeAppId;
@@ -181,33 +180,33 @@ simulator_audit_log/{logId}
 ```java
 @Service
 public class SimulatorQuotaService {
-    
+
     /**
      * Check if user can install more apps
      */
     public boolean canInstallApp(String userId, String appId) {
         UserSimulatorProfile profile = repository.findByUserId(userId);
         if (profile == null) return false;
-        
+
         // Check active installs < quota
         if (profile.getActiveInstalls() >= profile.getInstallQuota()) {
             return false;
         }
-        
+
         // Check if app already installed
         if (profile.getInstalledApps().stream()
                 .anyMatch(app -> app.getAppId().equals(appId))) {
             return false;
         }
-        
+
         return true;
     }
-    
+
     /**
      * Record installation (increment counters)
      */
     public void recordInstallation(String userId, String appId) { ... }
-    
+
     /**
      * Record uninstallation (decrement counters)
      */
@@ -415,11 +414,11 @@ Authorization: Bearer {firebaseToken}
 
 ## 🔐 Security & Access Control
 
-| Role | Permissions |
-|------|-------------|
-| **User** | Read own profile, install own apps, launch own sessions |
-| **Admin** | All user permissions + set any quota, view all users, force cleanup |
-| **System** | Internal webhook authentication (service account) |
+| Role       | Permissions                                                         |
+| ---------- | ------------------------------------------------------------------- |
+| **User**   | Read own profile, install own apps, launch own sessions             |
+| **Admin**  | All user permissions + set any quota, view all users, force cleanup |
+| **System** | Internal webhook authentication (service account)                   |
 
 **Authentication:** Firebase ID token (already in `AuthenticationFilter`)  
 **Authorization:** Spring Security `@PreAuthorize` rules
@@ -429,14 +428,14 @@ Authorization: Bearer {firebaseToken}
 @RequestMapping("/api/simulator")
 @PreAuthorize("isAuthenticated()")
 public class SimulatorController {
-    
+
     @GetMapping("/profile/{userId}")
     @PreAuthorize("authentication.name == #userId or hasRole('ADMIN')")
     public UserSimulatorProfile getProfile(@PathVariable String userId) { ... }
-    
+
     @PostMapping("/install")
     @PreAuthorize("isAuthenticated()")
-    public InstallResponse installApp(@RequestBody InstallRequest request, 
+    public InstallResponse installApp(@RequestBody InstallRequest request,
                                       Authentication auth) { ... }
 }
 ```
@@ -458,9 +457,9 @@ public class SimulatorController {
       "appName": "MyFirstApp",
       "version": "1.0.0",
       "deployedUrl": "https://app-001-simulator.run.app",
-      "installedAt": {"_seconds": 1745180400, "_nanos": 0},
+      "installedAt": { "_seconds": 1745180400, "_nanos": 0 },
       "launchCount": 3,
-      "lastLaunchedAt": {"_seconds": 1745200000, "_nanos": 0},
+      "lastLaunchedAt": { "_seconds": 1745200000, "_nanos": 0 },
       "status": "INSTALLED"
     }
   ],
@@ -474,16 +473,16 @@ public class SimulatorController {
     "sessionId": "sess_xyz",
     "activeAppId": "app-generated-001",
     "sessionUrl": "wss://simulator.run.app/ws/sess_xyz",
-    "startedAt": {"_seconds": 1745200000},
+    "startedAt": { "_seconds": 1745200000 },
     "state": "ACTIVE"
   },
-  "lastActiveAt": {"_seconds": 1745200500},
+  "lastActiveAt": { "_seconds": 1745200500 },
   "quotaHistory": [
-    {"date": "2026-04-01", "count": 1},
-    {"date": "2026-04-15", "count": 3}
+    { "date": "2026-04-01", "count": 1 },
+    { "date": "2026-04-15", "count": 3 }
   ],
-  "createdAt": {"_seconds": 1745000000},
-  "updatedAt": {"_seconds": 1745200500}
+  "createdAt": { "_seconds": 1745000000 },
+  "updatedAt": { "_seconds": 1745200500 }
 }
 ```
 
@@ -494,42 +493,42 @@ public class SimulatorController {
 ```java
 @Service
 public class SimulatorService {
-    
+
     @Autowired
     private SimulatorProfileRepository profileRepository;
-    
+
     @Autowired
     private AppDeploymentService deploymentService;
-    
+
     @Autowired
     private SimulatorWebSocketHandler webSocketHandler;
-    
+
     @Autowired
     private AuditLogService auditLogService;
-    
+
     /**
      * Install app to user's simulator
      */
     public SimulatorInstallResult installApp(String userId, String appId, String deviceType) {
         // 1. Load profile
         UserSimulatorProfile profile = profileRepository.findByUserId(userId);
-        
+
         // 2. Check quota
         if (!canInstall(profile, appId)) {
             throw new SimulatorQuotaExceededException(
                 "Quota exceeded: " + profile.getActiveInstalls() + "/" + profile.getInstallQuota()
             );
         }
-        
+
         // 3. Validate app exists and belongs to user
         GeneratedApp app = appRepository.findByAppIdAndUserId(appId, userId);
         if (app == null) {
             throw new ResourceNotFoundException("App not found or unauthorized");
         }
-        
+
         // 4. Deploy to preview environment
         String previewUrl = deploymentService.deployToSimulator(app, deviceType);
-        
+
         // 5. Update profile
         SimulatorApp installedApp = new SimulatorApp();
         installedApp.setAppId(appId);
@@ -538,19 +537,19 @@ public class SimulatorService {
         installedApp.setDeployedUrl(previewUrl);
         installedApp.setInstalledAt(LocalDateTime.now());
         installedApp.setStatus(SimulatorAppStatus.INSTALLED);
-        
+
         profile.getInstalledApps().add(installedApp);
         profile.setActiveInstalls(profile.getActiveInstalls() + 1);
         profile.setLastActiveAt(LocalDateTime.now());
         profileRepository.save(profile);
-        
+
         // 6. Log audit event
         auditLogService.log("APP_INSTALL", userId, Map.of(
             "appId", appId,
             "device", deviceType,
             "previewUrl", previewUrl
         ));
-        
+
         return new SimulatorInstallResult(profile, installedApp);
     }
 }
@@ -565,29 +564,29 @@ public class SimulatorService {
 ```java
 @SpringBootTest
 class SimulatorServiceTest {
-    
+
     @Test
     void testInstallApp_WithinQuota() {
         // Given: user has quota available
         UserSimulatorProfile profile = new UserSimulatorProfile();
         profile.setInstallQuota(5);
         profile.setActiveInstalls(2);
-        
+
         // When: install app
         SimulatorInstallResult result = service.installApp(profile, appId);
-        
+
         // Then: success
         assertTrue(result.isSuccess());
         assertEquals(3, profile.getActiveInstalls());
     }
-    
+
     @Test
     void testInstallApp_ExceedsQuota() {
         // Given: user at quota limit
         UserSimulatorProfile profile = new UserSimulatorProfile();
         profile.setInstallQuota(2);
         profile.setActiveInstalls(2);
-        
+
         // When/Then: throws exception
         assertThrows(SimulatorQuotaExceededException.class, () -> {
             service.installApp(profile, appId);
@@ -601,7 +600,7 @@ class SimulatorServiceTest {
 ```java
 @AutoConfigureMockMvc
 class SimulatorControllerIntegrationTest {
-    
+
     @Test
     void testInstallApp_EndToEnd() throws Exception {
         // Authenticate as user
@@ -634,18 +633,18 @@ public class SimulatorLoadTest extends LoadTestingSuite {
 ```java
 @Component
 public class SimulatorMetrics {
-    
+
     Counter installCounter = Counter.build()
         .name("simulator_installs_total")
         .help("Total apps installed to simulator")
         .labelNames("userId", "appType")
         .register();
-    
+
     Gauge activeSessionsGauge = Gauge.build()
         .name("simulator_active_sessions")
         .help("Currently active simulator sessions")
         .register();
-    
+
     Histogram installDuration = Histogram.build()
         .name("simulator_install_duration_seconds")
         .help("Time to install app to simulator")
@@ -764,15 +763,15 @@ simulator.cloudrun.cpu=${SIMULATOR_CPU:1}
 
 ## ⚠️ Potential Pitfalls & Mitigations
 
-| Risk | Impact | Mitigation |
-|------|--------|------------|
-| Cloud Run cost explosion | High | Auto-cleanup after 7 days; quota limits; budget alerts |
-| Concurrent install race conditions | Medium | Synchronized quota checks via Firestore transactions |
-| Simulator session resource leaks | Medium | Heartbeat + auto-timeout; cleanup daemon |
-| Large apps deployment timeout | Medium | Async deployment + status polling |
-| User confusion between simulator vs generated APK | Low | Clear UI labels; tooltips; separate sections |
-| Frontend complexity (iframe embedding) | Medium | Use new tab for simulator; simpler first iteration |
-| Device type compatibility issues | Low | Test matrix; default to Pixel 6 |
+| Risk                                              | Impact | Mitigation                                             |
+| ------------------------------------------------- | ------ | ------------------------------------------------------ |
+| Cloud Run cost explosion                          | High   | Auto-cleanup after 7 days; quota limits; budget alerts |
+| Concurrent install race conditions                | Medium | Synchronized quota checks via Firestore transactions   |
+| Simulator session resource leaks                  | Medium | Heartbeat + auto-timeout; cleanup daemon               |
+| Large apps deployment timeout                     | Medium | Async deployment + status polling                      |
+| User confusion between simulator vs generated APK | Low    | Clear UI labels; tooltips; separate sections           |
+| Frontend complexity (iframe embedding)            | Medium | Use new tab for simulator; simpler first iteration     |
+| Device type compatibility issues                  | Low    | Test matrix; default to Pixel 6                        |
 
 ---
 
@@ -826,10 +825,10 @@ The SimulatorController is currently a minimal stub with ~64 lines of code. To m
 MVP: 2-3 sprints (2 weeks each) → 4-6 weeks total  
 Perfect: 6-8 sprints → 12-16 weeks total
 
-**Dependencies:**  
+**Dependencies:**
 
-- Code generation must produce deployable artifacts  
-- Cloud Run deployments must be automated  
-- Frontend team to build UI panel  
+- Code generation must produce deployable artifacts
+- Cloud Run deployments must be automated
+- Frontend team to build UI panel
 
 **Value:** Users can test generated apps in a live environment **before** downloading APK → reduces support issues and increases confidence in generated code.

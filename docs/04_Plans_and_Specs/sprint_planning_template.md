@@ -2,7 +2,6 @@
 
 > **Status:** 🟢 Updated for v5 Architecture
 
-
 ## Sprint Overview
 
 - **Sprint Number**: [X]
@@ -30,10 +29,10 @@
 
 ## Team Assignments
 
-| Team Member | Tasks | Estimated Hours |
-|-------------|-------|-----------------|
-| [Name] | [Task list] | [Total] |
-| [Name] | [Task list] | [Total] |
+| Team Member | Tasks       | Estimated Hours |
+| ----------- | ----------- | --------------- |
+| [Name]      | [Task list] | [Total]         |
+| [Name]      | [Task list] | [Total]         |
 
 ## Dependencies
 
@@ -42,10 +41,10 @@
 
 ## Risks & Mitigations
 
-| Risk | Impact | Probability | Mitigation |
-|------|--------|-------------|------------|
-| [Risk 1] | [High/Medium/Low] | [High/Medium/Low] | [Plan] |
-| [Risk 2] | [High/Medium/Low] | [High/Medium/Low] | [Plan] |
+| Risk     | Impact            | Probability       | Mitigation |
+| -------- | ----------------- | ----------------- | ---------- |
+| [Risk 1] | [High/Medium/Low] | [High/Medium/Low] | [Plan]     |
+| [Risk 2] | [High/Medium/Low] | [High/Medium/Low] | [Plan]     |
 
 ## Definition of Done
 

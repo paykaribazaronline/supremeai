@@ -1,19 +1,23 @@
 # Reactive .block() Migration Plan
 
 ## Problem Statement
+
 The codebase contains **122+ `.block()` calls** across controllers, services, and orchestration layers. This anti-pattern can stall the reactive event-loop and increase latency.
 
 ## Priority Targets (High-Impact Areas)
 
 ### 1. Controllers (Block per-request)
+
 - `ProvidersController.java` (~20 calls) - Convert to fully asynchronous responses
 - `AdminKnowledgeController.java` (~15 calls) - Same approach
 
 ### 2. AI Provider Factory (`AIProviderFactory.java`)
+
 - Multiple `.block()` calls for Firestore queries
 - Solution: Cache provider metadata at startup; use `Mono.defer()` for lazy resolution
 
 ### 3. Orchestrators
+
 - `AIFallbackOrchestrator.java` - `.block(Duration.ofSeconds(60))`
 - `AdaptiveAgentOrchestrator.java` - bare `.block()` with comment
 - `MultiAIVotingService.java` - `.next().block(Duration.ofSeconds(2))`
@@ -21,6 +25,7 @@ The codebase contains **122+ `.block()` calls** across controllers, services, an
 ## Migration Strategy
 
 ### Phase 1: Non-blocking by Default
+
 1. Identify blocking call sites via `grep -r "\.block\(" src/`
 2. For each call, determine if the calling method is:
    - Controller endpoint → return `Mono<T>`/`Flux<T>` directly
@@ -28,7 +33,9 @@ The codebase contains **122+ `.block()` calls** across controllers, services, an
    - Scheduled task → use `Schedulers.boundedElastic()` for blocking workloads
 
 ### Phase 2: Introduce Blocking Batches
+
 Where blocking is unavoidable (e.g., legacy integration):
+
 ```java
 @Configuration
 public class BlockingConfig {
@@ -40,11 +47,13 @@ public class BlockingConfig {
 ```
 
 ### Phase 3: Eliminate Static Initialization Blocks
+
 - `TelegramStorageService.java` static fields with `System.getenv()` → lazy resolution
 
 ## Quick Fixes
 
 ### For Controller Endpoints
+
 ```java
 // Before
 @GetMapping("/health")
@@ -63,6 +72,7 @@ public Mono<ResponseEntity<String>> health() {
 ```
 
 ### For Service Methods
+
 ```java
 // Before
 public String getApiKey() {
@@ -76,11 +86,13 @@ public Mono<String> getApiKey() {
 ```
 
 ## Testing Strategy
+
 - Run BlockHound tests: `BlockHoundCustomConfig.java` already in place
 - Add `@Test` cases with `StepVerifier` to verify non-blocking behavior
 - Use `reactor.core.scheduler.Schedulers.boundedElastic()` for tests that need blocking
 
 ## Timeline
+
 - Phase 1: 2-3 days (identify + prioritize)
 - Phase 2: 1-2 weeks (refactor high-impact areas)
 - Phase 3: Ongoing (incremental improvements)

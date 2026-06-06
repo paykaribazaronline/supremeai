@@ -2,7 +2,6 @@
 
 > **Status:** 🟢 Updated for v5 Architecture
 
-
 ## Backend Development Skills
 
 ### Required Skills
@@ -204,15 +203,15 @@
 
 ## Skill Matrix
 
-| Role | Backend | Frontend | DevOps | QA | PM |
-|------|---------|----------|--------|-----|----|
-| Backend Lead | ★★★ | ★☆☆ | ★★☆ | ★☆☆ | ★★☆ |
-| Senior Backend | ★★★ | ★☆☆ | ★★☆ | ★★☆ | ★☆☆ |
-| Junior Backend | ★★☆ | ★☆☆ | ★☆☆ | ★★☆ | ☆☆☆ |
-| Frontend Lead | ★☆☆ | ★★★ | ★★☆ | ★☆☆ | ★★☆ |
-| Frontend Dev | ★☆☆ | ★★★ | ★☆☆ | ★★☆ | ☆☆☆ |
-| DevOps Engineer | ★★☆ | ★☆☆ | ★★★ | ★★☆ | ★☆☆ |
-| QA Engineer | ★★☆ | ★★☆ | ★★☆ | ★★★ | ★☆☆ |
-| Project Manager | ☆☆☆ | ☆☆☆ | ★★☆ | ★★☆ | ★★★ |
+| Role            | Backend | Frontend | DevOps | QA  | PM  |
+| --------------- | ------- | -------- | ------ | --- | --- |
+| Backend Lead    | ★★★     | ★☆☆      | ★★☆    | ★☆☆ | ★★☆ |
+| Senior Backend  | ★★★     | ★☆☆      | ★★☆    | ★★☆ | ★☆☆ |
+| Junior Backend  | ★★☆     | ★☆☆      | ★☆☆    | ★★☆ | ☆☆☆ |
+| Frontend Lead   | ★☆☆     | ★★★      | ★★☆    | ★☆☆ | ★★☆ |
+| Frontend Dev    | ★☆☆     | ★★★      | ★☆☆    | ★★☆ | ☆☆☆ |
+| DevOps Engineer | ★★☆     | ★☆☆      | ★★★    | ★★☆ | ★☆☆ |
+| QA Engineer     | ★★☆     | ★★☆      | ★★☆    | ★★★ | ★☆☆ |
+| Project Manager | ☆☆☆     | ☆☆☆      | ★★☆    | ★★☆ | ★★★ |
 
 Legend: ★★★ = Expert, ★★☆ = Intermediate, ★☆☆ = Basic, ☆☆☆ = Not Required

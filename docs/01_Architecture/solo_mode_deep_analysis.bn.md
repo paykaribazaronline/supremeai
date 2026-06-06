@@ -47,6 +47,7 @@ public void init() {
 ## ২. সোলো মোডের ৫-স্তরীয় পাইপলাইন (5-Tier Solo Pipeline)
 
 ### স্তর ০: সরাসরি গ্রিটিং বাইপাস (Level 0 - Direct Greeting Bypass)
+
 **কোড রেফারেন্স:** `ChatController.java`, Line 116-127
 
 ```java
@@ -57,11 +58,13 @@ if (validation.getIntentType() == IntentType.GREETING) {
     return Mono.just(ResponseEntity.ok(response));
 }
 ```
+
 **স্ট্যাটাস:** ✅ সম্পূর্ণ অফলাইনে কাজ করে
 
 ---
 
 ### স্তর ১: Core Knowledge.json (Local Knowledge Base)
+
 **কোড রেফারেন্স:** `NeuralChatService.java`, Line 95-101
 
 ```java
@@ -79,6 +82,7 @@ if (coreAnswer != null && shouldReturnCoreOnlyWithoutScraping(userMessage)) {
 ---
 
 ### স্তর ২: Browser Scraping (ইন্টারনেট থাকলে)
+
 **কোড রেফারেন্স:** `NeuralChatService.java`, Line 108-121
 
 ```java
@@ -97,6 +101,7 @@ Mono<List<ScrapedIssue>> scrapeMono =
 ---
 
 ### স্তর ২.৫: DuckDuckGo Instant Answer API
+
 **কোড রেফারেন্স:** `NeuralChatService.java`, Line 194-201
 
 ```java
@@ -111,6 +116,7 @@ if (ddgAnswer != null && !ddgAnswer.isEmpty()) {
 ---
 
 ### স্তর ৩: StubLocalProvider (চূড়ান্ত অফলাইন ফলব্যাক)
+
 **কোড রেফারেন্স:** `NeuralChatService.java`, Line 203-206
 
 ```java
@@ -187,6 +193,7 @@ return Mono.just(stubLocalProvider.generate("Offline fallback: " + prompt).block
 **ঝুঁকি:** Netty event loop thread-এ `.block()` চললে `BlockingOperationError` বা deadlock হতে পারে।
 
 **সমাধান:**
+
 ```java
 // ✅ এভাবে ঠিক করতে হবে
 return stubLocalProvider.generate(userMessage)
@@ -239,25 +246,26 @@ private volatile boolean soloMode = false;
 
 ## ৬. docs/latest_plan ফাইলের সাথে কোডের তুলনা
 
-| ডকুমেন্টে উল্লিখিত ফিচার | কোডে বিদ্যমান? | মন্তব্য |
-|---|---|---|
-| Core Knowledge (Tier 1) | ✅ আছে | `NeuralChatService` + `MultiAIVotingService` উভয়ে |
-| Browser Scraping (Tier 2) | ✅ আছে | `ActiveInternetScraper` + timeout |
-| StubLocalProvider (Tier 3) | ✅ আছে | কিন্তু `.block()` সমস্যা |
-| AIFallbackOrchestrator Solo Mode | ✅ আছে | Flag-based, স্টার্টআপে সেট হয় |
-| SuperFly 94M হাইব্রিড | ⬜ পরিকল্পনায় আছে | `hybrid_nano_cloud_architecture.bn.md`-এ ডিজাইন আছে, কোডে নেই |
-| ChickenBrain URL Generator | ⬜ পরিকল্পনায় আছে | `neural_chat_architecture_plan.md`-এ ডিজাইন, কোড নেই |
-| Smart Circuit Breaker (Domain-level) | ✅ আংশিক আছে | Provider-level আছে, Domain-level নেই |
-| Intelligence Gap → core_knowledge | ⬜ ডকে আছে | কোডে এখনো নেই |
-| KingsMode Approval Queue | ⬜ ডকে আছে | API আছে (`getPendingConfirmations`), কিন্তু স্বয়ংক্রিয় discovery নেই |
-| Playwright Solo Research | ✅ আছে | `MultiAIVotingService.playwrightResearch()` |
-| Multi-AI Voting Fallback | ✅ আছে | 0 মডেলে Solo Fallback হয় |
+| ডকুমেন্টে উল্লিখিত ফিচার             | কোডে বিদ্যমান?     | মন্তব্য                                                                |
+| ------------------------------------ | ------------------ | ---------------------------------------------------------------------- |
+| Core Knowledge (Tier 1)              | ✅ আছে             | `NeuralChatService` + `MultiAIVotingService` উভয়ে                     |
+| Browser Scraping (Tier 2)            | ✅ আছে             | `ActiveInternetScraper` + timeout                                      |
+| StubLocalProvider (Tier 3)           | ✅ আছে             | কিন্তু `.block()` সমস্যা                                               |
+| AIFallbackOrchestrator Solo Mode     | ✅ আছে             | Flag-based, স্টার্টআপে সেট হয়                                         |
+| SuperFly 94M হাইব্রিড                | ⬜ পরিকল্পনায় আছে | `hybrid_nano_cloud_architecture.bn.md`-এ ডিজাইন আছে, কোডে নেই          |
+| ChickenBrain URL Generator           | ⬜ পরিকল্পনায় আছে | `neural_chat_architecture_plan.md`-এ ডিজাইন, কোড নেই                   |
+| Smart Circuit Breaker (Domain-level) | ✅ আংশিক আছে       | Provider-level আছে, Domain-level নেই                                   |
+| Intelligence Gap → core_knowledge    | ⬜ ডকে আছে         | কোডে এখনো নেই                                                          |
+| KingsMode Approval Queue             | ⬜ ডকে আছে         | API আছে (`getPendingConfirmations`), কিন্তু স্বয়ংক্রিয় discovery নেই |
+| Playwright Solo Research             | ✅ আছে             | `MultiAIVotingService.playwrightResearch()`                            |
+| Multi-AI Voting Fallback             | ✅ আছে             | 0 মডেলে Solo Fallback হয়                                              |
 
 ---
 
 ## ৭. সোলো মোড কি সম্পূর্ণ কার্যকর? — চূড়ান্ত মূল্যায়ন
 
 ### ✅ যা সঠিকভাবে কাজ করে:
+
 - গ্রিটিং/ক্যাজুয়াল মেসেজ → সরাসরি বাংলায় উত্তর (কোনো AI লাগে না)
 - "What is React?", "Explain Python" — Core Knowledge থেকে উত্তর
 - সমস্ত পাইপলাইনে ফলব্যাক চেইন বিদ্যমান
@@ -266,12 +274,14 @@ private volatile boolean soloMode = false;
 - Circuit Breaker Provider-level কাজ করে
 
 ### ⚠️ যা উন্নত করা দরকার:
+
 - `.block()` কল reactive thread থেকে সরাতে হবে
 - `/api/chat/send` vs `/api/chat/message` দ্বৈততা দূর করতে হবে
 - `soloMode` flag রানটাইমে আপডেট হওয়া দরকার
 - Core Knowledge তিন জায়গায় বিক্ষিপ্ত — কেন্দ্রীয় করতে হবে
 
 ### ❌ যা এখনো বাস্তবায়িত হয়নি (পরিকল্পনায় আছে):
+
 - SuperFly 94M অন-ডিভাইস মডেল ইন্টিগ্রেশন
 - ChickenBrain URL Generator
 - Intelligence Gap → auto-save to `core_knowledge.json`
@@ -285,6 +295,7 @@ private volatile boolean soloMode = false;
 ### অগ্রাধিকার ১ (Critical — এখনই করুন):
 
 **`.block()` সরান:**
+
 ```java
 // ❌ আগে (NeuralChatService.java, line 205)
 String stubResponse = stubLocalProvider.generate(userMessage).block();
@@ -298,6 +309,7 @@ return stubLocalProvider.generate(userMessage)
 ### অগ্রাধিকার ২ (High):
 
 **soloMode Firestore Listener যোগ করুন:**
+
 ```java
 // AIFallbackOrchestrator.java - @PostConstruct init() এর পরে
 providerRepository.findAll()
@@ -310,6 +322,7 @@ providerRepository.findAll()
 ### অগ্রাধিকার ৩ (Medium):
 
 **কেন্দ্রীয় OfflineKnowledgeService তৈরি করুন:**
+
 ```java
 @Service
 public class OfflineKnowledgeService {
@@ -323,6 +336,7 @@ public class OfflineKnowledgeService {
 ### অগ্রাধিকার ৪ (Future):
 
 **SuperFly 94M ইন্টিগ্রেশনের জন্য নতুন Provider তৈরি করুন:**
+
 ```java
 @Component("superfly-provider")
 public class SuperFlyProvider implements AIProvider {

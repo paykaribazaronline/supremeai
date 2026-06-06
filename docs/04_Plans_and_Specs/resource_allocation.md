@@ -2,7 +2,6 @@
 
 > **Status:** 🟢 Updated for v5 Architecture
 
-
 ## Team Structure
 
 ### Development Team

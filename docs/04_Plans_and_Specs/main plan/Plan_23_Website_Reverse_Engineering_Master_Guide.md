@@ -2,15 +2,18 @@
 
 > **Status:** 🟢 Updated for v5 Architecture
 
-
 ## Status: 📝 **IN PROGRESS**
+
 ## Completion: ~0%
+
 ## Priority: HIGH
+
 ## Last Updated: 2026-05-04
 
 ---
 
 ## Overview
+
 Comprehensive guide and implementation plan for reverse engineering any website using AI-powered analysis. Enables SupremeAI to automatically generate connectors for any web service by analyzing its structure, API endpoints, and authentication mechanisms.
 
 ---
@@ -47,7 +50,7 @@ When Kimi K2.5/K2.6 analyzes a website or code, it follows a systematic Reverse 
 5. **Code Synthesis:** Generates working Python/JavaScript connectors
 6. **Validation:** Tests and iterates until success
 
-*This is EXACTLY what SupremeAI Auto-Connector Engine does.*
+_This is EXACTLY what SupremeAI Auto-Connector Engine does._
 
 ### Why Kimi-Style Analysis Changes Everything
 
@@ -88,19 +91,19 @@ class KimiObserver:
         self.tech_stack = {}
         self.api_endpoints = []
         self.auth_patterns = {}
-    
+
     def fetch_page_source(self):
         """Retrieve complete page HTML and embedded scripts"""
         pass
-    
+
     def detect_framework(self):
         """Identify React, Vue, Angular, or vanilla JS"""
         pass
-    
+
     def extract_js_bundles(self):
         """Find and download JS bundle files"""
         pass
-    
+
     def find_api_base_urls(self):
         """Extract API URLs from JS source maps"""
         pass
@@ -123,22 +126,22 @@ class KimiObserver:
 ```python
 def analyze_authentication(self):
     """Comprehensive auth mechanism detection"""
-    
+
     # Check login form
     login_form = self.find_login_form()
-    
+
     # Check cookies
     cookies = self.extract_cookies()
-    
+
     # Check localStorage/sessionStorage
     storage_tokens = self.check_web_storage()
-    
+
     # Check for OAuth
     oauth_flows = self.detect_oauth()
-    
+
     # Check CSRF tokens
     csrf_tokens = self.find_csrf_tokens()
-    
+
     return {
         'type': self.determine_auth_type(),
         'credentials_needed': self.list_required_credentials(),
@@ -175,7 +178,7 @@ class EndpointDiscovery:
     def __init__(self, js_bundles):
         self.bundles = js_bundles
         self.endpoints = []
-    
+
     def static_analysis(self):
         """Search JS bundles for API patterns"""
         patterns = [
@@ -185,12 +188,12 @@ class EndpointDiscovery:
             r'"/graphql"',
             r'new WebSocket\([\'"](.*?)[\'"]'
         ]
-        
+
         for bundle in self.bundles:
             for pattern in patterns:
                 matches = re.findall(pattern, bundle)
                 self.endpoints.extend(matches)
-    
+
     def dynamic_analysis(self, browser_session):
         """Capture network traffic during interaction"""
         with browser_session as session:
@@ -228,13 +231,13 @@ class EndpointDiscovery:
 ```python
 class BanglaAIConnector:
     """Auto-generated connector for banglaai.example.com"""
-    
+
     def __init__(self, credentials):
         self.base_url = "https://banglaai.example.com"
         self.session = requests.Session()
         self.auth_data = None
         self.credentials = credentials
-    
+
     def authenticate(self):
         """Handle authentication flow"""
         login_data = {
@@ -242,18 +245,18 @@ class BanglaAIConnector:
             'password': self.credentials['password'],
             '_csrf': self.get_csrf_token()
         }
-        
+
         response = self.session.post(
             f"{self.base_url}/api/login",
             json=login_data,
             headers=self._get_headers()
         )
-        
+
         if response.status_code == 200:
             self.auth_data = response.json()
             return True
         return False
-    
+
     def _get_headers(self):
         """Generate request headers"""
         return {
@@ -261,7 +264,7 @@ class BanglaAIConnector:
             'X-CSRF-Token': self._csrf_token,
             'Authorization': f"Bearer {self.auth_data.get('token')}"
         }
-    
+
     def generate_text(self, prompt, language='bn'):
         """Main API method for text generation"""
         endpoint = f"{self.base_url}/api/generate"
@@ -271,20 +274,20 @@ class BanglaAIConnector:
             'temperature': 0.7,
             'max_tokens': 1000
         }
-        
+
         response = self.session.post(
             endpoint,
             json=payload,
             headers=self._get_headers()
         )
-        
+
         return self._parse_response(response)
-    
+
     def _parse_response(self, response):
         """Parse and validate API response"""
         if response.status_code != 200:
             raise ConnectorError(f"API error: {response.status_code}")
-        
+
         data = response.json()
         return {
             'success': True,
@@ -320,7 +323,7 @@ class ConnectorValidator:
     def __init__(self, connector_class, test_credentials):
         self.connector = connector_class(test_credentials)
         self.test_results = {}
-    
+
     def validate_compilation(self):
         """Check if code compiles without errors"""
         try:
@@ -330,7 +333,7 @@ class ConnectorValidator:
             return True
         except:
             return False
-    
+
     def validate_authentication(self):
         """Test login flow"""
         try:
@@ -338,7 +341,7 @@ class ConnectorValidator:
             return result
         except Exception as e:
             return False, str(e)
-    
+
     def validate_endpoints(self):
         """Test each discovered endpoint"""
         results = {}
@@ -350,7 +353,7 @@ class ConnectorValidator:
             except Exception as e:
                 results[method_name] = {'error': str(e)}
         return results
-    
+
     def run_full_validation(self):
         """Execute complete validation suite"""
         return {
@@ -364,6 +367,7 @@ class ConnectorValidator:
 #### Self-Healing Mechanism
 
 When validation fails:
+
 1. Capture error details and stack trace
 2. Analyze error pattern (auth failure, schema change, endpoint removed)
 3. Re-run Kimi Analysis on failed components
@@ -377,6 +381,7 @@ When validation fails:
 ### Stealth Techniques
 
 #### 1. Browser Fingerprint Masking
+
 ```python
 stealth_profile = {
     'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) ...',
@@ -388,6 +393,7 @@ stealth_profile = {
 ```
 
 #### 2. Human Behavior Simulation
+
 - Random delays between actions (1-5 seconds)
 - Mouse movement patterns (Bezier curves)
 - Typing speed variation (80-200ms per keystroke)
@@ -395,12 +401,13 @@ stealth_profile = {
 - Session duration variation
 
 #### 3. Proxy Rotation
+
 ```python
 class ProxyRotator:
     def __init__(self, proxy_list):
         self.proxies = proxy_list
         self.current = 0
-    
+
     def get_next_proxy(self):
         proxy = self.proxies[self.current]
         self.current = (self.current + 1) % len(self.proxies)
@@ -408,6 +415,7 @@ class ProxyRotator:
 ```
 
 #### 4. Request Pattern Obfuscation
+
 - Vary request headers
 - Randomize payload field order
 - Add harmless-looking query parameters
@@ -485,11 +493,13 @@ result = supreme.add_platform(
 
 **Authentication:** OAuth 2.0 with Facebook login
 **Endpoints:**
+
 - `/api/chat` - Main chat endpoint
 - `/api/upload` - Image upload
 - `/graphql` - GraphQL endpoint for mutations
 
 **Special Notes:**
+
 - Requires valid Facebook session
 - Rate limiting: 100 requests/hour
 - WebSocket for streaming responses
@@ -498,10 +508,12 @@ result = supreme.add_platform(
 
 **Authentication:** Session-based with cf_clearance cookie
 **Endpoints:**
+
 - `/backend-api/conversation` - Main endpoint
 - `/backend-api/models` - List available models
 
 **Anti-Detection:**
+
 - Cloudflare protection
 - Requires browser-like TLS fingerprint
 - Use Playwright with stealth mode
@@ -510,10 +522,12 @@ result = supreme.add_platform(
 
 **Authentication:** Session token in cookies
 **Endpoints:**
+
 - `/api/organizations/{org_id}/chat_conversations` - Create conversation
 - `/api/append_message` - Send message
 
 **Special Notes:**
+
 - Organization ID required in URL
 - Supports file attachments (multipart)
 - WebSocket for streaming
@@ -522,9 +536,11 @@ result = supreme.add_platform(
 
 **Authentication:** Google OAuth
 **Endpoints:**
+
 - `/_/BardChatUi/data/assistant.lamda.BardFrontendService/StreamGenerate` - Main endpoint
 
 **Special Notes:**
+
 - Complex request signing
 - Requires Google account session
 - Snapshot ID tracking
@@ -536,12 +552,14 @@ result = supreme.add_platform(
 ### Deployment Considerations
 
 #### 1. Legal & Compliance
+
 - [ ] Review Terms of Service of target platforms
 - [ ] Implement rate limiting to avoid overload
 - [ ] Add robots.txt compliance checker
 - [ ] Create audit logs for all reverse engineering activities
 
 #### 2. Official API Migration Path
+
 ```
 Reverse Engineered --> Hybrid (Both) --> Official API Only
       |                          |                |
@@ -551,6 +569,7 @@ Reverse Engineered --> Hybrid (Both) --> Official API Only
 ```
 
 #### 3. Risk Mitigation
+
 - **IP Ban:** Use proxy rotation, respect rate limits
 - **Legal Action:** Document fair use, provide opt-out
 - **Connector Breakage:** Implement self-healing, monitor changes
@@ -600,26 +619,31 @@ AI: "Success! Connector added and validated."
 ## Implementation Roadmap
 
 ### Phase 1: Foundation (Weeks 1-2)
+
 - [ ] Implement Kimi Observer Engine
 - [ ] Build static JS analysis tools
 - [ ] Create authentication detector
 
 ### Phase 2: Core Engine (Weeks 3-6)
+
 - [ ] Develop endpoint discovery system
 - [ ] Build payload analyzer
 - [ ] Implement code generator templates
 
 ### Phase 3: Validation (Weeks 7-10)
+
 - [ ] Create validation pipeline
 - [ ] Implement self-healing mechanisms
 - [ ] Build test suite
 
 ### Phase 4: Stealth & Production (Weeks 11-14)
+
 - [ ] Add anti-detection measures
 - [ ] Implement proxy rotation
 - [ ] Create deployment pipeline
 
 ### Phase 5: Integration (Weeks 15-16)
+
 - [ ] Integrate with SupremeAI core
 - [ ] Build user-facing API
 - [ ] Document all components
@@ -669,4 +693,4 @@ AI: "Success! Connector added and validated."
 ---
 
 **Version:** 1.0 | **Date:** 2026-05-04 | **Author:** SupremeAI Team
-*"The Whole Internet, One API - Now Powered by AI Itself"*
+_"The Whole Internet, One API - Now Powered by AI Itself"_

@@ -8,14 +8,17 @@
 ## ১. স্বয়ংসম্পূর্ণ ভোটিং ও কনসেনসাস সিস্টেম (Autonomous Voting System)
 
 ### মূল লক্ষ্য:
+
 এআই-এর সিদ্ধান্তের নির্ভুলতা বৃদ্ধি প্রায়োগিকভাবে। কোনো অতিরিক্ত খরচ ছাড়াই বিভিন্ন ওপেন সোর্স ও ফ্রি এপিআই মডেলের মধ্যে ভোটিংয়ের মাধ্যমে ভুল উত্তরের হার প্রায় ০% এ নেমে আনা।
 
 ### �্রধান বৈশিষ্ট্য:
+
 - **গতিশীল রাউটিং:** সাধারণ কথার জন্য কোনো ভোটিং হবে না। `isComplexConversation(prompt)` মেথড রান করে জটিল কিওয়ার্ড (class, function, db, fix, deploy) চেক করে।
 - **ডাবল-পাস রেসিলিয়েন্ট ফ্লো:** একমাত্র এআই মডেল সক্রিয় থাকলে ব্রাউজার প্রথমে ইন্টারনেটের লাইভ সোর্স স্ক্র্যাপ করে, তারপর সেরা সমাধান দিয়ে এআই তাজা উত্তর তৈরি করে।
 - **জোড়-বেজোড় টাই-প্রিভেনশন:** জোড় সংখ্যক এআই (যেমন ২, ৪) থাকলে SupremeAI Browser প্যানেলে যুক্ত হয়ে মোট ভোটার সংখ্যা বেজোড় করে দেয়। অজোড় সংখ্যক (যেমন ৩, ৫) হলে ব্রাউজার নিরপেক্ষ থাকে।
 
 ### লগিক উদাহরণ:
+
 ```java
 if (!complex) {
     logger.info("Normal communication detected. Executing Direct Internet Answer Flow without voting.");
@@ -35,15 +38,18 @@ if (availableCount == 0) {
 ## ২. বাজেট-বান্ধব বিশ্বমানের এআই মডেল তৈরি (Budget World-Class AI Model)
 
 ### মূল লক্ষ্য:
+
 মিলিয়ন ডলার খরচ ছাড়াই ওপেন-সোর্স কমিউনিটি, সিন্থেটিক ডেটা জেনারেশন, প্যারামিটার-এফিকেশন ট্রেইনিং (PEFT) ও ফ্রি ক্লাউড রিসোর্স ব্যবহার করে একটি অত্যন্ত শক্তিশালী ও নিরাপদ AI মডেল তৈরি।
 
 ### স্টেপ-বাই-স্টেপ পদ্ধতি:
+
 ১. **সিন্থেটিক ডেটা জেনারেশন:** Gemini/Groq API ব্যবহার করে Multi-Agent Pipeline দিযয়ে উচ্চমানের ডেটা তৈরি।
 ২. **ডিফ-ডুপ্লিকেশন:** MinHash LSH ও Perplexity Filtering দিয়ে ডেটা ক্লিন করা।
 ৩. **ফাইন-টিউনিং:** QLoRA/GaLore PEFT কনফিগারেশনে ৪-বিট কোয়ান্টাইজেশন করে Kaggle/Colab এ ট্রেইনিং।
 ৪. **ডেপ্লয়মেন্ট:** Hugging Face Spaces + Llama.cpp দিয়ে জিরো-কস্টে লোকাল ও Edge ডিভাইসে চালানো।
 
 ### সম্পূর্ণ আর্কিটেকচার ও পাইপলাইন:
+
 ```mermaid
 graph TD
     A["ফ্রি ডাটা সোর্স ও সিন্থেটিক ডাটা জেনারেশন (Gemini/Groq API)"] --> B["ডাটা ক্লিনজিং ও ফিল্টারিং (Local Python Scripts)"]
@@ -56,14 +62,16 @@ graph TD
 ```
 
 ### ভিত্তি মডেল তুলনা ম্যাট্রিক্স:
-| মডেল | প্যারামিটার | VRAM প্রয়োজন | সেরা জন্য | প্রধান সুবিধা |
-|------|----------|--------------|-----------|--------------|
-| Qwen-2.5-7B | 7.2B | ~15GB | বহুভাষিক, কোডিং | বাংলা ভাষায় চমৎকার পারফরম্যান্স |
-| Llama-3.1-8B | 8.0B | ~16GB | রিজনিং, এজেন্টিক টাস্ক | ১২৮ক রো যোগ্য কনটেক্সট উইন্ডো |
-| DeepSeek-R1 | 8.0B | ~16GB | গাণিতিক সমস্যা, CoT | GPT-4 স্তরের রিজনিং ক্ষমতা |
-| Phi-3-Medium | 14B | ~28GB | লজিক্যাল অ্যানালাইসিস | কম আকারে অসাধারণ ক্ষমতা |
+
+| মডেল         | প্যারামিটার | VRAM প্রয়োজন | সেরা জন্য              | প্রধান সুবিধা                    |
+| ------------ | ----------- | ------------- | ---------------------- | -------------------------------- |
+| Qwen-2.5-7B  | 7.2B        | ~15GB         | বহুভাষিক, কোডিং        | বাংলা ভাষায় চমৎকার পারফরম্যান্স |
+| Llama-3.1-8B | 8.0B        | ~16GB         | রিজনিং, এজেন্টিক টাস্ক | ১২৮ক রো যোগ্য কনটেক্সট উইন্ডো    |
+| DeepSeek-R1  | 8.0B        | ~16GB         | গাণিতিক সমস্যা, CoT    | GPT-4 স্তরের রিজনিং ক্ষমতা       |
+| Phi-3-Medium | 14B         | ~28GB         | লজিক্যাল অ্যানালাইসিস  | কম আকারে অসাধারণ ক্ষমতা          |
 
 ### PEFT কনফিগারেশন:
+
 ```yaml
 model_name_or_path: "Qwen/Qwen2.5-7B-Instruct"
 quantization:
@@ -73,7 +81,16 @@ quantization:
 peft:
   r: 16
   lora_alpha: 32
-  target_modules: ["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "up_proj", "down_proj"]
+  target_modules:
+    [
+      "q_proj",
+      "k_proj",
+      "v_proj",
+      "o_proj",
+      "gate_proj",
+      "up_proj",
+      "down_proj",
+    ]
 training_args:
   per_device_train_batch_size: 2
   gradient_accumulation_steps: 8
@@ -81,6 +98,7 @@ training_args:
 ```
 
 ### সাইবার সিকিউরিটি হার্ডেনিং:
+
 - **প্রম্পট স্যানিটাইজার:** Jailbreak কীওয়ার্ড ফিল্টার করা
 - **ওয়েটস এনক্রিপশন:** AES-256 দিয়ে model.safetensors এনক্রিপ্ট করা
 - **DPO অ্যালাইনমেন্ট:** Direct Preference Optimization দিয়ে নিরাপদ আচরণ শিখানো
@@ -110,6 +128,7 @@ training_args:
 ১. **পাসওয়ার্ড লিক ঠিক করা:** `BrowserService.java`-এর `getCredentialContext()` মেথডে decrypted password এর বদলে `[REDACTED]` লগ করতে হবে।
 
 ২. **সার্কিট ব্রেকার কুলড়ান:** `application.yml`-এ Resilience4j কনফিগারেশন যোগ করতে হবে:
+
 ```yaml
 resilience4j.circuitbreaker:
   instances:
@@ -123,6 +142,7 @@ resilience4j.circuitbreaker:
 ৩. **জাজ নির্বাচন ঠিক করা:** `EnhancedMultiAIConsensusService.java`-এর `triggerDebate()`-এর `allProviders.get(0)` এর বদলে `aiRankingService.getTopProvider()` ব্যবহার করতে হবে।
 
 ৪. **Docker হেলথচেক:** `docker-compose.yml`-এ healthcheck যোগ:
+
 ```yaml
 healthcheck:
   test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
@@ -136,15 +156,16 @@ healthcheck:
 
 ### টেস্ট কভারেজ লক্ষ্যমাত্রা:
 
-| মডিউল | কভারেজ লক্ষ্য | টুলস |
-|------|----------------|------|
-| Self Healing & RCA Loop | ১০০% | Mockito, JUnit 5 |
-| Consensus Voting Engine | ১০০% | Reactor Test, MockWebServer |
-| Security Shield | ১০০% | Mockito, Spring Security Test |
-| Dashboard API Controllers | ১০০% | WebTestClient, H2 Database |
-| React Dashboard Frontend | ৯৫%+ | Vitest, React Testing Library |
+| মডিউল                     | কভারেজ লক্ষ্য | টুলস                          |
+| ------------------------- | ------------- | ----------------------------- |
+| Self Healing & RCA Loop   | ১০০%          | Mockito, JUnit 5              |
+| Consensus Voting Engine   | ১০০%          | Reactor Test, MockWebServer   |
+| Security Shield           | ১০০%          | Mockito, Spring Security Test |
+| Dashboard API Controllers | ১০০%          | WebTestClient, H2 Database    |
+| React Dashboard Frontend  | ৯৫%+          | Vitest, React Testing Library |
 
 ### ১০০% কভারেজের জন্য জ্যাকোকো কনফিগারেশন:
+
 ```kotlin
 tasks.jacocoTestCoverageVerification {
     violationRules {
@@ -196,23 +217,28 @@ tasks.jacocoTestCoverageVerification {
 ## ১০. কোর মডিউলসমূহ এবং কার্যক্ষমতা (Core Modules & How They Work)
 
 ### 🏗️ **সিমুলেটর ইঞ্জিন (Simulator Engine)**
+
 - এটি `SimulatorService` এবং `SimulatorDeploymentService` দ্বারা পরিচালিত হয়।
 - ডকার ইমেজ থেকে ডায়নামিক ক্লাউড রান কন্টেইনার তৈরি করতে এটি GCP Admin API v2 ব্যবহার করে।
 
 ### 🔧 **সেলফ-হিলিং (Self-Healing)**
+
 - এটি `SelfHealingService` এর মাধ্যমে কাজ করে।
 - এটি ব্যাকগ্রাউন্ডে সিস্টেম চেক করে এবং অফলাইন এআই এন্ডপয়েন্টগুলোকে রিকভার করার চেষ্টা করে।
 - অজানা এররগুলোকে `GlobalKnowledgeBase`-এ সেভ করে রাখে।
 
 ### 🤖 **এআই রাউটিং ও অপটিমাইজেশন (AI Routing & Optimization)**
+
 - এটি `UsageOptimizationService` পরিচালনা করে।
 - একই ধরনের রিকোয়েস্টের ক্ষেত্রে এটি ইন-মেমোরি ক্যাশে (Caffeine caches) ব্যবহার করে এবং সবচেয়ে সাশ্রয়ী এআই মডেলকে কুয়েরি পাঠায়।
 
 ### 🔐 **সিকিউরিটি ও সিক্রেটস (Security & Secrets)**
+
 - এটি `UnifiedSecretsService` দ্বারা পরিচালিত হয়।
 - এটি একটি প্রায়োরিটি স্কেল অনুযায়ী নিরাপদে API কী (Keys) ফেচ করে: GCP Secret Manager -> Firebase -> Environment Variables।
 
 ### 🕸️ **অফলাইন নলেজ ও পাইথন সিডিং পাইপলাইন (Offline Knowledge & Seeding Pipeline)**
+
 - SupremeAI এক্সটার্নাল API ফেইল করলে একটি "Zero-AI" অফলাইন মোডে (Thunder Mode) কাজ করতে সক্ষম।
 - **অফলাইন ইঞ্জিন (`knowledge_manager.py`**): ইন্টারনেট ছাড়াই `core_knowledge.json` এবং `autonomous_seed_knowledge.json` ব্যবহার করে লোকালি কুয়েরি ইন্টারসেপ্ট করে।
 - **সিডিং স্ক্রিপ্টস (Seeding Scripts)**: এই পাইথন স্ক্রিপ্টগুলো ফায়ারস্টোরের `system_learning` এবং `patterns` কালেকশনে পশন ইনজেক্ট করে।
@@ -222,12 +248,15 @@ tasks.jacocoTestCoverageVerification {
 ## ১১. টেস্টিং, ভেরিফিকেশন ও রিলায়েবিলিটি ইনফ্রাস্ট্রাকচার (Testing Infrastructure)
 
 ### 🔄 **রিঅ্যাক্টিভ থ্রেড রিলায়েবিলিটি (Reactive Thread Reliability)**
+
 - কোনো ডেভেলপার যদি ভুলবশত রিঅ্যাক্টিভ ইভেন্ট লুপের মধ্যে সিঙ্ক্রোনাস ব্লকিং (Blocking) কল করে ফেলে, তবে `BlockHoundCustomConfig.java` এর মাধ্যমে CI/CD বিল্ড ফেল হবে।
 
 ### 🧪 **এন্ড-টু-এন্ড (E2E) টেস্টিং**
+
 - প্লে-রাইট (Playwright) স্ক্রিপ্টস (`remaining.spec.js`) নিশ্চিত করে যে রিঅ্যাক্ট ড্যাশবোর্ড UI সম্পূর্ণভাবে কার্যকর আছে।
 
 ### 🔍 **ইন্টিগ্রেশন ভেরিফিকেশন**
+
 - `verify-stepfun-integration.sh` এর মতো ব্যাশ স্ক্রিপ্টগুলো প্রোভাইডার ইন্টিগ্রেশন, এনভায়রনমেন্ট ভেরিয়েবল, API হেলথ এবং ফ্রন্টএন্ড আপডেটগুলোকে যাচাই করে।
 
 ---
@@ -236,14 +265,14 @@ tasks.jacocoTestCoverageVerification {
 
 ### কোন কোন ফাইল পরিবর্তন করলে কী প্রভাব পাবে:
 
-| পরিবর্তন করা ফাইল/সিস্টেম | প্রভাবিত অংশ | করতে হবে কিনা |
-|----------------------------|----------------|-----------------|
-| GCP Cloud Run Region | `SimulatorDeploymentService` | হ্যাঁ (`deployViaAdminApi` আপডেট) |
-| নতুন এআই মডেল (যেমন GPT-5) | `UsageOptimizationService`, `ProviderTypeRegistry` | হ্যাঁ (`initModelTiers()` আপডেট) |
-| Firestore Schema | Repositories, Python Seed Scripts | হ্যাঁ (`SystemLearning` আপডেট + seed স্ক্রিপ্ট) |
-| Self-Healing Quality Rules | `SelfHealingService` (`isCodePerfect`) | সতর্ক হতে হবে (MAX_ITERATIONS টাইমআউট বাড়বে) |
-| Firebase DataConnect GraphQL | রিঅ্যাক্ট ফ্রন্টএন্ড | হ্যাঁ (হুকগুলো আপডেট) |
-| UnifiedSecretsService | সম্পূর্ণ এআই অরকেস্ট্রেশন | ল্যাটেন্সি প্রভাবিত হবে, GCP বিল বাড়বে |
+| পরিবর্তন করা ফাইল/সিস্টেম    | প্রভাবিত অংশ                                       | করতে হবে কিনা                                   |
+| ---------------------------- | -------------------------------------------------- | ----------------------------------------------- |
+| GCP Cloud Run Region         | `SimulatorDeploymentService`                       | হ্যাঁ (`deployViaAdminApi` আপডেট)               |
+| নতুন এআই মডেল (যেমন GPT-5)   | `UsageOptimizationService`, `ProviderTypeRegistry` | হ্যাঁ (`initModelTiers()` আপডেট)                |
+| Firestore Schema             | Repositories, Python Seed Scripts                  | হ্যাঁ (`SystemLearning` আপডেট + seed স্ক্রিপ্ট) |
+| Self-Healing Quality Rules   | `SelfHealingService` (`isCodePerfect`)             | সতর্ক হতে হবে (MAX_ITERATIONS টাইমআউট বাড়বে)   |
+| Firebase DataConnect GraphQL | রিঅ্যাক্ট ফ্রন্টএন্ড                               | হ্যাঁ (হুকগুলো আপডেট)                           |
+| UnifiedSecretsService        | সম্পূর্ণ এআই অরকেস্ট্রেশন                          | ল্যাটেন্সি প্রভাবিত হবে, GCP বিল বাড়বে         |
 
 ---
 
@@ -257,6 +286,7 @@ tasks.jacocoTestCoverageVerification {
 
 > [!IMPORTANT]
 > **সারসংক্ষেপ:**
+>
 > - **Autonomous Voting System** = তাতক্ষণিক নির্ভুলতা ও গুণমান
 > - **Budget World-Class AI** = ভবিষ্যৎ স্বাধীনতা ও খরচ কমা
 > - **Browser Weapon** = সিস্টেমকে মানুষের মতো কাজ করতে শিখিয়ে দেবে

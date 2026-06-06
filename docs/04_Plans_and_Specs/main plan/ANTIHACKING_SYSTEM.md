@@ -2,7 +2,6 @@
 
 > **Status:** 🟢 Updated for v5 Architecture
 
-
 ## Overview
 
 The Anti-Hacking System is a comprehensive security framework designed to protect SupremeAI's infrastructure and provide security-as-a-service to client systems. This document describes the architecture, components, and administrative controls for the anti-hacking system.
@@ -45,12 +44,14 @@ The Anti-Hacking System is a comprehensive security framework designed to protec
 ### 1. Threat Detection Engine
 
 #### 1.1 Anomaly Detection
+
 - **Behavioral Analysis**: Monitors user and system behavior patterns
 - **Statistical Anomaly Detection**: Uses ML algorithms to identify outliers
 - **Signature-Based Detection**: Known attack pattern matching
 - **Heuristic Analysis**: Rule-based threat identification
 
 #### 1.2 Attack Surface Monitoring
+
 - **Port Scanning Detection**: Identifies reconnaissance activities
 - **Brute Force Detection**: Monitors authentication attempts
 - **SQL Injection Detection**: Analyzes query patterns
@@ -60,14 +61,16 @@ The Anti-Hacking System is a comprehensive security framework designed to protec
 ### 2. Response Engine
 
 #### 2.1 Automated Response Actions
-| Threat Level | Actions |
-|--------------|---------|
-| Low | Log, notify admin |
-| Medium | Rate limit, challenge auth |
-| High | Block IP, disable account, alert admin |
-| Critical | Emergency shutdown, full incident response |
+
+| Threat Level | Actions                                    |
+| ------------ | ------------------------------------------ |
+| Low          | Log, notify admin                          |
+| Medium       | Rate limit, challenge auth                 |
+| High         | Block IP, disable account, alert admin     |
+| Critical     | Emergency shutdown, full incident response |
 
 #### 2.2 Response Mechanisms
+
 - **Rate Limiting**: Per-IP and per-user request throttling
 - **IP Blocking**: Temporary or permanent IP bans
 - **Account Lockdown**: User account suspension
@@ -77,12 +80,14 @@ The Anti-Hacking System is a comprehensive security framework designed to protec
 ### 3. Intelligence Engine
 
 #### 3.1 Threat Intelligence
+
 - **Real-time Feeds**: Integration with threat intelligence providers
 - **Local Learning**: Adapts to new attack patterns
 - **Peer Sharing**: Shares threat data with trusted partners
 - **Historical Analysis**: Trend analysis and pattern recognition
 
 #### 3.2 Adaptive Security
+
 - **Dynamic Rules**: Automatically updates security rules
 - **Profile Learning**: Builds user behavior baselines
 - **Risk Scoring**: Assigns risk scores to activities
@@ -91,6 +96,7 @@ The Anti-Hacking System is a comprehensive security framework designed to protec
 ## Admin Control Dashboard
 
 ### Access Control
+
 - **URL**: `http://localhost:8080/admin/security`
 - **Role Required**: `ADMIN`
 - **Authentication**: JWT-based with multi-factor support
@@ -98,6 +104,7 @@ The Anti-Hacking System is a comprehensive security framework designed to protec
 ### Dashboard Features
 
 #### 1. Threat Overview
+
 ```
 ┌─────────────────────────────────────────────────┐
 │  Threat Status: [NORMAL] [LOW] [MEDIUM] [HIGH] │
@@ -109,12 +116,14 @@ The Anti-Hacking System is a comprehensive security framework designed to protec
 ```
 
 #### 2. Policy Management
+
 - **Whitelist/Blacklist Management**
 - **Rate Limit Configuration**
 - **Authentication Rules**
 - **Data Access Policies**
 
 #### 3. Client Service Management
+
 - **Client Onboarding**
 - **Service Level Agreements**
 - **Monitoring Configuration**
@@ -125,18 +134,21 @@ The Anti-Hacking System is a comprehensive security framework designed to protec
 ### Service Offerings
 
 #### 1. Infrastructure Protection
+
 - **DDoS Protection**: Layer 3-7 DDoS mitigation
 - **WAF Integration**: Web Application Firewall as a service
 - **Bot Mitigation**: Automated bot detection and blocking
 - **API Security**: Rate limiting and abuse prevention
 
 #### 2. Application Security
+
 - **Vulnerability Scanning**: Automated security assessments
 - **Penetration Testing**: Authorized security testing
 - **Compliance Monitoring**: Regulatory compliance checks
 - **Secure Deployment**: Hardened deployment pipelines
 
 #### 3. Monitoring & Alerting
+
 - **24/7 Monitoring**: Continuous threat monitoring
 - **Incident Response**: SLA-driven response times
 - **Forensic Analysis**: Detailed incident investigation
@@ -145,6 +157,7 @@ The Anti-Hacking System is a comprehensive security framework designed to protec
 ### Client Integration
 
 #### API Endpoints
+
 ```
 POST   /api/security/client/register     - Register new client
 GET    /api/security/client/{id}/status  - Get client status
@@ -154,6 +167,7 @@ GET    /api/security/client/{id}/reports - Get security reports
 ```
 
 #### Configuration Options
+
 ```json
 {
   "clientId": "client-123",
@@ -177,6 +191,7 @@ GET    /api/security/client/{id}/reports - Get security reports
 ### 1. Data Models
 
 #### SecurityEvent
+
 ```java
 public class SecurityEvent {
     private String id;
@@ -192,6 +207,7 @@ public class SecurityEvent {
 ```
 
 #### SecurityPolicy
+
 ```java
 public class SecurityPolicy {
     private String id;
@@ -205,6 +221,7 @@ public class SecurityPolicy {
 ```
 
 #### ClientConfig
+
 ```java
 public class ClientConfig {
     private String clientId;
@@ -219,21 +236,25 @@ public class ClientConfig {
 ### 2. Service Layer
 
 #### SecurityMonitoringService
+
 - Real-time threat monitoring
 - Event correlation and analysis
 - Alert generation and escalation
 
 #### ThreatIntelligenceService
+
 - Threat feed processing
 - Pattern analysis and learning
 - Signature database management
 
 #### IncidentResponseService
+
 - Automated response execution
 - Forensic data collection
 - Recovery and remediation
 
 #### ClientSecurityService
+
 - Client onboarding and management
 - Custom policy application
 - Service level monitoring
@@ -241,6 +262,7 @@ public class ClientConfig {
 ### 3. Controller Endpoints
 
 #### Admin Endpoints
+
 ```
 GET    /api/admin/security/events          - List security events
 GET    /api/admin/security/events/{id}     - Get event details
@@ -251,6 +273,7 @@ GET    /api/admin/security/dashboard       - Get dashboard data
 ```
 
 #### Client Endpoints
+
 ```
 POST   /api/security/client/register       - Register client
 GET    /api/security/client/{id}           - Get client config
@@ -262,6 +285,7 @@ POST   /api/security/client/{id}/whitelist - Add to whitelist
 ## Configuration
 
 ### Environment Variables
+
 ```bash
 # Security System Configuration
 SECURITY_ENABLED=true
@@ -281,6 +305,7 @@ ADMIN_NOTIFICATION_WEBHOOK=https://hooks.slack.com/services/...
 ```
 
 ### Application Properties
+
 ```yaml
 security:
   enabled: true
@@ -293,7 +318,7 @@ security:
   logging:
     level: INFO
     retention-days: 90
-    
+
 client-service:
   enabled: true
   max-clients: 100
@@ -304,14 +329,16 @@ client-service:
 ## Monitoring and Alerting
 
 ### Alert Levels
-| Level | Description | Response Time |
-|-------|-------------|---------------|
-| INFO | Informational events | N/A |
-| WARNING | Potential threats | 1 hour |
-| CRITICAL | Confirmed threats | 15 minutes |
-| EMERGENCY | System-wide threats | Immediate |
+
+| Level     | Description          | Response Time |
+| --------- | -------------------- | ------------- |
+| INFO      | Informational events | N/A           |
+| WARNING   | Potential threats    | 1 hour        |
+| CRITICAL  | Confirmed threats    | 15 minutes    |
+| EMERGENCY | System-wide threats  | Immediate     |
 
 ### Notification Channels
+
 - **Email**: Detailed incident reports
 - **Slack/Webhook**: Real-time alerts
 - **SMS**: Critical alerts only
@@ -320,12 +347,14 @@ client-service:
 ## Best Practices
 
 ### For Administrators
+
 1. **Regular Policy Reviews**: Update security policies monthly
 2. **Incident Analysis**: Review all incidents for learning
 3. **Client Communication**: Maintain clear client communication
 4. **System Updates**: Keep threat intelligence feeds updated
 
 ### For Clients
+
 1. **Whitelist Configuration**: Maintain accurate IP whitelists
 2. **Alert Monitoring**: Monitor security alerts regularly
 3. **Incident Reporting**: Report suspected incidents promptly
@@ -334,12 +363,14 @@ client-service:
 ## Performance Metrics
 
 ### Key Metrics
+
 - **Detection Rate**: >95% of threats detected
 - **False Positive Rate**: <5% false positives
 - **Response Time**: <30 seconds for automated responses
 - **Uptime**: >99.9% system availability
 
 ### SLA Guarantees
+
 - **Detection SLA**: 99% of threats detected within 1 minute
 - **Response SLA**: 95% of automated responses within 30 seconds
 - **Availability SLA**: 99.9% uptime guaranteed
@@ -347,11 +378,13 @@ client-service:
 ## Security Considerations
 
 ### Data Protection
+
 - All security events are encrypted at rest
 - Client data is isolated and access-controlled
 - Audit logs are immutable and tamper-evident
 
 ### Privacy
+
 - Minimal data collection for threat detection
 - GDPR-compliant data handling
 - Client data never shared without consent
@@ -361,16 +394,19 @@ client-service:
 ### Common Issues
 
 #### 1. High False Positive Rate
+
 - **Solution**: Adjust sensitivity settings in admin dashboard
 - **Impact**: May miss some real threats
 - **Resolution**: Fine-tune rules based on legitimate traffic patterns
 
 #### 2. Client Registration Fails
+
 - **Solution**: Check client service configuration
 - **Impact**: New clients cannot use security service
 - **Resolution**: Ensure client service is enabled and within limits
 
 #### 3. Automated Responses Not Working
+
 - **Solution**: Verify auto-response configuration
 - **Impact**: Manual intervention required for incidents
 - **Resolution**: Enable auto-response and check permissions
@@ -378,6 +414,7 @@ client-service:
 ## API Reference
 
 ### SecurityEvent API
+
 ```java
 // Get all security events
 GET /api/admin/security/events
@@ -390,6 +427,7 @@ POST /api/admin/security/events
 ```
 
 ### SecurityPolicy API
+
 ```java
 // List all policies
 GET /api/admin/security/policies
@@ -408,6 +446,7 @@ DELETE /api/admin/security/policies/{id}
 ```
 
 ### ClientSecurity API
+
 ```java
 // Register new client
 POST /api/security/client/register

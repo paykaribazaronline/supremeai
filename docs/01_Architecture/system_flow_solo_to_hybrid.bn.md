@@ -126,13 +126,13 @@ executeWithSupremeIntelligence(taskCategory, errorSignature, prompt)
 
 ## ৫. কোন মোডে কী পাওয়া যায়?
 
-| পরিস্থিতি | গ্রিটিং | সহজ প্রশ্ন | কোডিং প্রশ্ন | জটিল প্রশ্ন |
-|---|---|---|---|---|
-| **সম্পূর্ণ অফলাইন** | ✅ | ✅ Core | ✅ Stub | 🟡 Template |
-| **ইন্টারনেট আছে, AI নেই** | ✅ | ✅ Web+Core | ✅ Web+Stub | 🟡 Web+Template |
-| **১টি AI আছে** | ✅ | ✅ AI | ✅ AI+Web | ✅ AI Compared |
-| **হাইব্রিড (SuperFly চালু)** | ✅ | ✅ On-device | ✅ ChickenBrain | ✅ Pocket Lab |
-| **সম্পূর্ণ ক্লাউড** | ✅ | ✅ | ✅ | ✅ Multi-vote |
+| পরিস্থিতি                    | গ্রিটিং | সহজ প্রশ্ন   | কোডিং প্রশ্ন    | জটিল প্রশ্ন     |
+| ---------------------------- | ------- | ------------ | --------------- | --------------- |
+| **সম্পূর্ণ অফলাইন**          | ✅      | ✅ Core      | ✅ Stub         | 🟡 Template     |
+| **ইন্টারনেট আছে, AI নেই**    | ✅      | ✅ Web+Core  | ✅ Web+Stub     | 🟡 Web+Template |
+| **১টি AI আছে**               | ✅      | ✅ AI        | ✅ AI+Web       | ✅ AI Compared  |
+| **হাইব্রিড (SuperFly চালু)** | ✅      | ✅ On-device | ✅ ChickenBrain | ✅ Pocket Lab   |
+| **সম্পূর্ণ ক্লাউড**          | ✅      | ✅           | ✅              | ✅ Multi-vote   |
 
 ---
 

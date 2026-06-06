@@ -1,9 +1,9 @@
-
 # SupremeAI - GitHub Repository Analysis & Action Plan
 
 > **Status:** 🟢 Updated for v5 Architecture
 
 ## Repository: https://github.com/paykaribazaronline/supremeai
+
 ## Analysis Date: 2026-04-26
 
 ---
@@ -11,6 +11,7 @@
 # 1. Current Repository State
 
 ## 1.1 Detected Structure
+
 ```
 supremeai/
 ├── .github/
@@ -30,18 +31,19 @@ supremeai/
 ```
 
 ## 1.2 Current Status Assessment
-| Aspect | Status | Notes |
-|--------|--------|-------|
-| **Code Structure** | 🟡 Basic | Single agent, no orchestration |
-| **CI/CD** | 🟡 Minimal | Basic workflow exists |
-| **Testing** | 🔴 Insufficient | Only one test file |
-| **Documentation** | 🟡 Basic | README only |
-| **Configuration** | 🟡 Hardcoded | No environment management |
-| **Multi-Agent** | 🔴 Missing | Plan 1 not implemented |
-| **API Rotation** | 🔴 Missing | Plan 2 not implemented |
-| **Learning System** | 🔴 Missing | Plan 3 not implemented |
-| **Intent Analysis** | 🔴 Missing | Plan 4 not implemented |
-| **GitHub Integration** | 🟡 Partial | Basic CI only |
+
+| Aspect                 | Status          | Notes                          |
+| ---------------------- | --------------- | ------------------------------ |
+| **Code Structure**     | 🟡 Basic        | Single agent, no orchestration |
+| **CI/CD**              | 🟡 Minimal      | Basic workflow exists          |
+| **Testing**            | 🔴 Insufficient | Only one test file             |
+| **Documentation**      | 🟡 Basic        | README only                    |
+| **Configuration**      | 🟡 Hardcoded    | No environment management      |
+| **Multi-Agent**        | 🔴 Missing      | Plan 1 not implemented         |
+| **API Rotation**       | 🔴 Missing      | Plan 2 not implemented         |
+| **Learning System**    | 🔴 Missing      | Plan 3 not implemented         |
+| **Intent Analysis**    | 🔴 Missing      | Plan 4 not implemented         |
+| **GitHub Integration** | 🟡 Partial      | Basic CI only                  |
 
 ---
 
@@ -50,26 +52,31 @@ supremeai/
 ## 2.1 Critical Gaps (Must Fix)
 
 ### Gap 1: No Multi-Agent System
+
 **Current:** Single `base_agent.py`
 **Required:** Dynamic 0 to ∞ agents with task orchestration
 **Impact:** Core functionality missing
 
 ### Gap 2: No API Key Management
+
 **Current:** `config.py` likely hardcoded
 **Required:** Rotation system with multiple keys
 **Impact:** Cannot scale, will hit rate limits
 
 ### Gap 3: No Learning Mechanism
+
 **Current:** Static code
 **Required:** Self-updating knowledge base
 **Impact:** System cannot improve over time
 
 ### Gap 4: No Intent Analysis
+
 **Current:** Direct command processing
 **Required:** Smart confirmation system
 **Impact:** Risk of misinterpretation
 
 ### Gap 5: No Dual Repo Support
+
 **Current:** Single repo (own)
 **Required:** Main + User repo management
 **Impact:** Cannot serve users
@@ -77,8 +84,10 @@ supremeai/
 ## 2.2 Infrastructure Gaps
 
 ### Gap 6: Database Missing
+
 **Current:** No database layer
 **Required:** SQLite/PostgreSQL for:
+
 - User preferences
 - Agent performance
 - API key status
@@ -86,32 +95,40 @@ supremeai/
 - Plan compatibility data
 
 ### Gap 7: No Web Interface
+
 **Current:** CLI only (assumed)
 **Required:** Dashboard for:
+
 - Admin settings
 - User chat interface
 - API key management
 - Plan visualization
 
 ### Gap 8: No GitHub App/Bot
+
 **Current:** Basic CI workflow
 **Required:** GitHub App for:
+
 - User repo access
 - Auto-push capability
 - Pre-push verification
 - Webhook handling
 
 ### Gap 9: Testing Insufficient
+
 **Current:** `test_main.py` only
 **Required:** Comprehensive test suite:
+
 - Unit tests for each module
 - Integration tests
 - CI/CD pipeline tests
 - Mock API tests
 
 ### Gap 10: No Error Handling
+
 **Current:** Basic (assumed)
 **Required:** Robust error handling:
+
 - API failure fallback
 - Network retry logic
 - Graceful degradation
@@ -124,6 +141,7 @@ supremeai/
 ## Phase 1: Foundation (Weeks 1-4)
 
 ### 3.1 Project Structure Overhaul
+
 ```
 supremeai/
 ├── .github/
@@ -217,6 +235,7 @@ supremeai/
 ```
 
 ### 3.2 Database Schema (SQLite/PostgreSQL)
+
 ```sql
 -- Users table
 CREATE TABLE users (
@@ -315,6 +334,7 @@ CREATE TABLE conversations (
 ```
 
 ### 3.3 Environment Configuration (.env.example)
+
 ```bash
 # Database
 DATABASE_URL=sqlite:///supremeai.db
@@ -348,6 +368,7 @@ AUTO_APPROVE=False
 ## Phase 2: Core Implementation (Weeks 5-8)
 
 ### 3.4 Agent Orchestrator (Plan 1)
+
 ```python
 # src/core/orchestrator.py
 class AgentOrchestrator:
@@ -358,7 +379,7 @@ class AgentOrchestrator:
     def assign_task(self, task_type, task_input):
         # Get best 3 agents for this task type
         best_agents = self.performance_tracker.get_best_agents(
-            task_type, 
+            task_type,
             limit=3
         )
 
@@ -380,6 +401,7 @@ class AgentOrchestrator:
 ```
 
 ### 3.5 API Key Manager (Plan 2)
+
 ```python
 # src/api/key_manager.py
 class APIKeyManager:
@@ -431,6 +453,7 @@ class APIKeyManager:
 ```
 
 ### 3.6 Intent Analyzer (Plan 4)
+
 ```python
 # src/core/intent_analyzer.py
 class IntentAnalyzer:
@@ -479,6 +502,7 @@ class IntentAnalyzer:
 ## Phase 3: Integration (Weeks 9-12)
 
 ### 3.7 GitHub Integration (Plan 6, 11)
+
 ```python
 # src/github/repo_manager.py
 class RepoManager:
@@ -516,6 +540,7 @@ class RepoManager:
 ```
 
 ### 3.8 Learning System (Plan 3)
+
 ```python
 # src/learning/knowledge_base.py
 class KnowledgeBase:
@@ -553,6 +578,7 @@ class KnowledgeBase:
 ## Phase 4: Advanced Features (Weeks 13-16)
 
 ### 3.9 Voice Integration (Plan 15)
+
 ```python
 # src/voice/speech_to_text.py
 class VoiceProcessor:
@@ -579,6 +605,7 @@ class VoiceProcessor:
 ```
 
 ### 3.10 Vision Integration (Plan 14)
+
 ```python
 # src/vision/image_processor.py
 class ImageProcessor:
@@ -608,6 +635,7 @@ class ImageProcessor:
 ### 3.11 Core Model & Persistence (Plan 22)
 
 **Spring Boot Package Structure:**
+
 ```
 src/main/java/com/supremeai/
 ├── controller/
@@ -625,29 +653,30 @@ src/main/java/com/supremeai/
 ```
 
 **Expanded Model (Java):**
+
 ```java
 @Entity
 @Document(collectionName = "simulator_profiles")
 public class UserSimulatorProfile {
-    
+
     @Id
     private String userId;
     private int installQuota = 5;
     private int activeInstalls = 0;
     private LocalDateTime lastActiveAt;
-    
+
     @ElementCollection
     private List<SimulatorApp> installedApps = new ArrayList<>();
-    
+
     @Embedded
     private SimulatorDevice device = new SimulatorDevice();
-    
+
     @Embedded
     private SimulatorSession currentSession;
-    
+
     @ElementCollection
     private List<QuotaHistory> quotaHistory = new ArrayList<>();
-    
+
     // Getters & Setters
 }
 
@@ -680,20 +709,21 @@ public class SimulatorSession {
 ```
 
 **Firestore Repository:**
+
 ```java
 @Repository
 public class SimulatorProfileRepository {
-    
+
     @Autowired
     private Firestore firestore;
-    
+
     private final CollectionReference collection;
-    
+
     public SimulatorProfileRepository(Firestore firestore) {
         this.firestore = firestore;
         this.collection = firestore.collection("simulator_profiles");
     }
-    
+
     public Optional<UserSimulatorProfile> findByUserId(String userId) {
         try {
             DocumentSnapshot doc = collection.document(userId).get().get();
@@ -705,7 +735,7 @@ public class SimulatorProfileRepository {
             return Optional.empty();
         }
     }
-    
+
     public void save(UserSimulatorProfile profile) {
         try {
             Map<String, Object> data = new HashMap<>();
@@ -717,7 +747,7 @@ public class SimulatorProfileRepository {
             throw new DataAccessException("Failed to save simulator profile", e);
         }
     }
-    
+
     public List<UserSimulatorProfile> findAllProfiles() {
         try {
             ApiFuture<QuerySnapshot> future = collection.get();
@@ -738,19 +768,19 @@ public class SimulatorProfileRepository {
 @Service
 @Slf4j
 public class SimulatorService {
-    
+
     @Autowired
     private SimulatorProfileRepository profileRepository;
-    
+
     @Autowired
     private AppDeploymentService deploymentService;
-    
+
     @Autowired
     private AuditLogService auditLogService;
-    
+
     @Value("${simulator.max.installs.per.user:5}")
     private int defaultQuota;
-    
+
     /**
      * Install app to user's simulator with atomic quota check
      * Thread-safe via Firestore transactions
@@ -759,32 +789,32 @@ public class SimulatorService {
     public SimulatorInstallResult installApp(String userId, String appId, String deviceType) {
         UserSimulatorProfile profile = profileRepository.findByUserId(userId)
             .orElseGet(() -> createNewProfile(userId));
-        
+
         // Check quota
         if (profile.getActiveInstalls() >= profile.getInstallQuota()) {
-            log.warn("Quota exceeded for user {}: {}/{}", 
+            log.warn("Quota exceeded for user {}: {}/{}",
                 userId, profile.getActiveInstalls(), profile.getInstallQuota());
             throw new SimulatorQuotaExceededException(
                 "Quota exceeded: " + profile.getActiveInstalls() + "/" + profile.getInstallQuota()
             );
         }
-        
+
         // Check duplicate
         boolean alreadyInstalled = profile.getInstalledApps().stream()
             .anyMatch(app -> app.getAppId().equals(appId));
         if (alreadyInstalled) {
             throw new SimulatorConflictException("App already installed");
         }
-        
+
         // Validate app belongs to user (query app repository)
         GeneratedApp app = appRepository.findByAppIdAndUserId(appId, userId);
         if (app == null) {
             throw new ResourceNotFoundException("App not found or unauthorized");
         }
-        
+
         // Deploy to Cloud Run preview environment
         String previewUrl = deploymentService.deployToSimulator(app, deviceType);
-        
+
         // Create installed app entry
         SimulatorApp installedApp = new SimulatorApp();
         installedApp.setAppId(appId);
@@ -793,46 +823,46 @@ public class SimulatorService {
         installedApp.setDeployedUrl(previewUrl);
         installedApp.setInstalledAt(LocalDateTime.now());
         installedApp.setStatus(SimulatorAppStatus.INSTALLED);
-        
+
         // Update profile atomically
         profile.getInstalledApps().add(installedApp);
         profile.setActiveInstalls(profile.getActiveInstalls() + 1);
         profile.setLastActiveAt(LocalDateTime.now());
         profileRepository.save(profile);
-        
+
         // Audit log
         auditLogService.log("APP_INSTALL", userId, Map.of(
             "appId", appId,
             "device", deviceType,
             "previewUrl", previewUrl
         ));
-        
+
         return new SimulatorInstallResult(profile, installedApp);
     }
-    
+
     public void uninstallApp(String userId, String appId) {
         UserSimulatorProfile profile = profileRepository.findByUserId(userId)
             .orElseThrow(() -> new ResourceNotFoundException("Profile not found"));
-        
+
         SimulatorApp appToRemove = profile.getInstalledApps().stream()
             .filter(app -> app.getAppId().equals(appId))
             .findFirst()
             .orElseThrow(() -> new ResourceNotFoundException("App not installed"));
-        
+
         // Stop session if active
-        if (profile.getCurrentSession() != null && 
+        if (profile.getCurrentSession() != null &&
             profile.getCurrentSession().getActiveAppId().equals(appId)) {
             stopSession(userId);
         }
-        
+
         // Decrement counters
         profile.getInstalledApps().remove(appToRemove);
         profile.setActiveInstalls(profile.getActiveInstalls() - 1);
         profileRepository.save(profile);
-        
+
         auditLogService.log("APP_UNINSTALL", userId, Map.of("appId", appId));
     }
-    
+
     private UserSimulatorProfile createNewProfile(String userId) {
         UserSimulatorProfile profile = new UserSimulatorProfile();
         profile.setUserId(userId);
@@ -850,19 +880,19 @@ public class SimulatorService {
 @Service
 @Slf4j
 public class SimulatorDeploymentService {
-    
+
     @Value("${simulator.cloudrun.region:us-central1}")
     private String region;
-    
+
     @Value("${simulator.cloudrun.memory:2Gi}")
     private String memory;
-    
+
     @Value("${simulator.cloudrun.cpu:1}")
     private String cpu;
-    
+
     @Value("${simulator.preview.url.format}")
     private String urlFormat;
-    
+
     /**
      * Deploy generated app to Cloud Run preview environment
      * Each installed app gets its own isolated Cloud Run service
@@ -870,7 +900,7 @@ public class SimulatorDeploymentService {
     public String deployToSimulator(GeneratedApp app, String deviceType) {
         String serviceName = "sim-" + app.getAppId().toLowerCase();
         String imageUrl = app.getDockerImageUrl();
-        
+
         try {
             // Using Google Cloud Run client
             Service service = CloudRunService.newBuilder()
@@ -922,7 +952,7 @@ public class SimulatorDeploymentService {
                         .build())
                     .build())
                 .build();
-            
+
             // Deploy service (async)
             ApiFuture<Operation> future = cloudRunClient.createService(
                 CreateServiceRequest.newBuilder()
@@ -930,21 +960,21 @@ public class SimulatorDeploymentService {
                     .setService(service)
                     .build()
             );
-            
+
             // Wait for deployment to complete
             future.get();
-            
-            String previewUrl = String.format(urlFormat, 
+
+            String previewUrl = String.format(urlFormat,
                 Pattern.compile("\\{appId\\}").matcher(serviceName).replaceAll(app.getAppId()));
             log.info("Deployed simulator for app {} at {}", app.getAppId(), previewUrl);
             return previewUrl;
-            
+
         } catch (Exception e) {
             log.error("Failed to deploy simulator for app " + app.getAppId(), e);
             throw new SimulatorDeploymentException("Simulator deployment failed", e);
         }
     }
-    
+
     /**
      * Scheduled task: Clean up expired simulator apps (older than configurable TTL)
      */
@@ -952,7 +982,7 @@ public class SimulatorDeploymentService {
     @Transactional
     public void cleanupExpiredApps() {
         log.info("Starting simulator cleanup job");
-        
+
         List<UserSimulatorProfile> allProfiles = profileRepository.findAllProfiles();
         LocalDateTime expiryThreshold = LocalDateTime.now()
             .minusDays(
@@ -960,13 +990,13 @@ public class SimulatorDeploymentService {
                     System.getenv().getOrDefault("SIMULATOR_APP_EXPIRY_DAYS", "7")
                 )
             );
-        
+
         int totalCleaned = 0;
-        
+
         for (UserSimulatorProfile profile : allProfiles) {
             boolean modified = false;
             Iterator<SimulatorApp> iterator = profile.getInstalledApps().iterator();
-            
+
             while (iterator.hasNext()) {
                 SimulatorApp app = iterator.next();
                 if (app.getInstalledAt().isBefore(expiryThreshold)) {
@@ -976,19 +1006,19 @@ public class SimulatorDeploymentService {
                     modified = true;
                     profile.setActiveInstalls(profile.getActiveInstalls() - 1);
                     totalCleaned++;
-                    log.info("Cleaned up expired app {} for user {}", 
+                    log.info("Cleaned up expired app {} for user {}",
                         app.getAppId(), profile.getUserId());
                 }
             }
-            
+
             if (modified) {
                 profileRepository.save(profile);
             }
         }
-        
+
         log.info("Simulator cleanup complete: {} apps removed", totalCleaned);
     }
-    
+
     private void deleteCloudRunService(String serviceName) {
         try {
             ApiFuture<Operation> future = cloudRunClient.deleteService(
@@ -1011,60 +1041,60 @@ public class SimulatorDeploymentService {
 @Component
 @Slf4j
 public class SimulatorWebSocketHandler extends TextWebSocketHandler {
-    
-    private static final Map<String, WebSocketSession> sessions = 
+
+    private static final Map<String, WebSocketSession> sessions =
         new ConcurrentHashMap<>();
-    private static final Map<String, SimulatorSession> sessionStates = 
+    private static final Map<String, SimulatorSession> sessionStates =
         new ConcurrentHashMap<>();
-    
+
     @Autowired
     private SimulatorService simulatorService;
-    
+
     @Autowired
     private AuditLogService auditLogService;
-    
+
     private final ObjectMapper objectMapper = new ObjectMapper();
-    
+
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
         String sessionId = session.getId();
         sessions.put(sessionId, session);
-        
+
         SimulatorSession simulatorSession = new SimulatorSession();
         simulatorSession.setSessionId(sessionId);
         simulatorSession.setState(SessionState.ACTIVE);
         simulatorSession.setStartedAt(LocalDateTime.now());
         simulatorSession.setLastHeartbeat(LocalDateTime.now());
         sessionStates.put(sessionId, simulatorSession);
-        
+
         log.info("WebSocket connected: sessionId={}", sessionId);
     }
-    
+
     @Override
     protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
         String payload = message.getPayload();
         JsonNode json = objectMapper.readTree(payload);
-        
+
         String type = json.get("type").asText();
         String sessionId = session.getId();
         SimulatorSession simSession = sessionStates.get(sessionId);
-        
+
         if (simSession == null) {
             session.close(CloseStatus.NOT_ACCEPTABLE.withReason("Session not found"));
             return;
         }
-        
+
         switch (type) {
             case "heartbeat":
                 simSession.setLastHeartbeat(LocalDateTime.now());
                 session.sendMessage(new TextMessage("{\"type\":\"heartbeat_ack\"}"));
                 break;
-                
+
             case "user_input":
                 // Forward touch/gesture events to simulator container
                 forwardToSimulator(sessionId, json);
                 break;
-                
+
             case "session_stop":
                 simulatorService.stopSession(simSession.getUserId());
                 session.close();
@@ -1072,35 +1102,35 @@ public class SimulatorWebSocketHandler extends TextWebSocketHandler {
                     "sessionId", sessionId
                 ));
                 break;
-                
+
             case "session_pause":
                 simSession.setState(SessionState.PAUSED);
                 sendToSimulator(sessionId, Map.of("type", "pause"));
                 break;
-                
+
             case "session_resume":
                 simSession.setState(SessionState.ACTIVE);
                 sendToSimulator(sessionId, Map.of("type", "resume"));
                 break;
-                
+
             default:
                 log.warn("Unknown WebSocket message type: {}", type);
         }
     }
-    
+
     @Override
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
         String sessionId = session.getId();
         sessions.remove(sessionId);
-        
+
         SimulatorSession simSession = sessionStates.remove(sessionId);
         if (simSession != null) {
-            log.info("WebSocket disconnected: sessionId={}, state={}", 
+            log.info("WebSocket disconnected: sessionId={}, state={}",
                 sessionId, simSession.getState());
             // Auto-cleanup of Cloud Run service after timeout
         }
     }
-    
+
     private void forwardToSimulator(String sessionId, JsonNode data) throws Exception {
         WebSocketSession session = sessions.get(sessionId);
         if (session != null && session.isOpen()) {
@@ -1112,14 +1142,14 @@ public class SimulatorWebSocketHandler extends TextWebSocketHandler {
                 .build());
         }
     }
-    
+
     /**
      * Health check: Remove stale sessions (>30 min inactive)
      */
     @Scheduled(fixedDelay = 600000)  // Every 10 minutes
     public void cleanupStaleSessions() {
         LocalDateTime cutoff = LocalDateTime.now().minusMinutes(30);
-        
+
         sessionStates.entrySet().removeIf(entry -> {
             SimulatorSession session = entry.getValue();
             if (session.getLastHeartbeat().isBefore(cutoff)) {
@@ -1141,23 +1171,23 @@ public class SimulatorWebSocketHandler extends TextWebSocketHandler {
 @PreAuthorize("hasRole('ADMIN')")
 @Slf4j
 public class SimulatorAdminController {
-    
+
     @Autowired
     private SimulatorProfileRepository profileRepository;
-    
+
     @Autowired
     private AuditLogService auditLogService;
-    
+
     @Autowired
     private SimulatorMetrics metrics;
-    
+
     /**
      * Get simulator usage across all users (admin view)
      */
     @GetMapping("/usage")
     public Map<String, Object> getAllUsersUsage() {
         List<UserSimulatorProfile> allProfiles = profileRepository.findAllProfiles();
-        
+
         int totalUsers = allProfiles.size();
         int totalActiveInstalls = allProfiles.stream()
             .mapToInt(UserSimulatorProfile::getActiveInstalls)
@@ -1165,7 +1195,7 @@ public class SimulatorAdminController {
         long totalSessions = allProfiles.stream()
             .filter(p -> p.getCurrentSession() != null)
             .count();
-        
+
         List<Map<String, Object>> userSummaries = allProfiles.stream()
             .map(profile -> Map.of(
                 "userId", profile.getUserId(),
@@ -1181,21 +1211,21 @@ public class SimulatorAdminController {
                 "hasActiveSession", profile.getCurrentSession() != null
             ))
             .collect(Collectors.toList());
-        
+
         Map<String, Object> response = new HashMap<>();
         response.put("totalUsers", totalUsers);
         response.put("totalActiveInstalls", totalActiveInstalls);
         response.put("totalActiveSessions", totalSessions);
         response.put("users", userSummaries);
         response.put("generatedAt", LocalDateTime.now());
-        
+
         auditLogService.log("ADMIN_USAGE_VIEW", "system", Map.of(
             "resultCount", totalUsers
         ));
-        
+
         return response;
     }
-    
+
     /**
      * Admin override: force-set user quota
      */
@@ -1204,20 +1234,20 @@ public class SimulatorAdminController {
             @PathVariable String userId,
             @RequestParam int newQuota,
             @AuthenticationPrincipal User admin) {
-        
+
         UserSimulatorProfile profile = profileRepository.findByUserId(userId)
             .orElseThrow(() -> new ResourceNotFoundException("User not found"));
-        
+
         int oldQuota = profile.getInstallQuota();
         profile.setInstallQuota(newQuota);
         profileRepository.save(profile);
-        
+
         auditLogService.log("ADMIN_QUOTA_OVERRIDE", admin.getUsername(), Map.of(
             "userId", userId,
             "oldQuota", oldQuota,
             "newQuota", newQuota
         ));
-        
+
         return ResponseEntity.ok(Map.of(
             "success", true,
             "userId", userId,
@@ -1225,7 +1255,7 @@ public class SimulatorAdminController {
             "newQuota", newQuota
         ));
     }
-    
+
     /**
      * Force-kill a user's active session
      */
@@ -1233,7 +1263,7 @@ public class SimulatorAdminController {
     public ResponseEntity<?> killUserSession(@PathVariable String userId) {
         UserSimulatorProfile profile = profileRepository.findByUserId(userId)
             .orElse(null);
-        
+
         if (profile != null && profile.getCurrentSession() != null) {
             String sessionId = profile.getCurrentSession().getSessionId();
             // Close WebSocket
@@ -1245,35 +1275,35 @@ public class SimulatorAdminController {
                     log.error("Failed to close WebSocket", e);
                 }
             }
-            
+
             profile.setCurrentSession(null);
             profileRepository.save(profile);
-            
+
             auditLogService.log("ADMIN_KILL_SESSION", "system", Map.of(
                 "userId", userId,
                 "sessionId", sessionId
             ));
-            
+
             return ResponseEntity.ok(Map.of("killed", true, "sessionId", sessionId));
         }
-        
+
         return ResponseEntity.ok(Map.of("killed", false, "reason", "No active session"));
     }
-    
+
     /**
      * Cleanup stale/inactive simulator sessions manually
      */
     @DeleteMapping("/cleanup")
     public CleanupResult cleanupStaleSessions() {
         CleanupResult result = new CleanupResult();
-        
+
         // Use same logic as scheduled job, but immediate
         // (logic from SimulatorDeploymentService.cleanupExpiredApps)
-        
+
         result.setCleanedAt(LocalDateTime.now());
         return result;
     }
-    
+
     /**
      * Prometheus metrics aggregation
      */
@@ -1286,7 +1316,7 @@ public class SimulatorAdminController {
             "avgInstallLatencySec", metrics.getAvgInstallLatency()
         );
     }
-    
+
     /**
      * Get detailed audit log
      */
@@ -1295,7 +1325,7 @@ public class SimulatorAdminController {
             @RequestParam(required = false) String userId,
             @RequestParam(required = false) String action,
             @RequestParam(defaultValue = "100") int limit) {
-        
+
         return auditLogService.getLogs(userId, action, limit);
     }
 }
@@ -1306,13 +1336,13 @@ public class SimulatorAdminController {
 **File:** `dashboard/src/components/SimulatorPanel.tsx`
 
 ```tsx
-import React, { useState, useEffect } from 'react';
-import { 
-  Card, 
-  Button, 
-  Progress, 
-  Select, 
-  Modal, 
+import React, { useState, useEffect } from "react";
+import {
+  Card,
+  Button,
+  Progress,
+  Select,
+  Modal,
   message,
   Spin,
   Empty,
@@ -1321,17 +1351,17 @@ import {
   Row,
   Col,
   Statistic,
-  Table
-} from 'antd';
-import { 
-  PlayCircleOutlined, 
-  DeleteOutlined, 
+  Table,
+} from "antd";
+import {
+  PlayCircleOutlined,
+  DeleteOutlined,
   PlusOutlined,
   CloudUploadOutlined,
   CheckCircleOutlined,
-  ExclamationCircleOutlined
-} from '@ant-design/icons';
-import type { SimulatorApp, SimulatorProfile } from '../types/simulator';
+  ExclamationCircleOutlined,
+} from "@ant-design/icons";
+import type { SimulatorApp, SimulatorProfile } from "../types/simulator";
 
 const { Option } = Select;
 const { confirm } = Modal;
@@ -1339,137 +1369,141 @@ const { confirm } = Modal;
 export const SimulatorPanel: React.FC = () => {
   const [profile, setProfile] = useState<SimulatorProfile | null>(null);
   const [loading, setLoading] = useState(false);
-  const [selectedDevice, setSelectedDevice] = useState<DeviceType>('PIXEL_6');
+  const [selectedDevice, setSelectedDevice] = useState<DeviceType>("PIXEL_6");
   const [showAddApp, setShowAddApp] = useState(false);
   const [selectedAppId, setSelectedAppId] = useState<string | null>(null);
-  
+
   // Fetch user's simulator profile
   const fetchProfile = async () => {
     setLoading(true);
     try {
-      const response = await fetch('/api/simulator/profile/me', {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      const response = await fetch("/api/simulator/profile/me", {
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
       });
       const data = await response.json();
       setProfile(data);
     } catch (error) {
-      message.error('Failed to load simulator profile');
+      message.error("Failed to load simulator profile");
     } finally {
       setLoading(false);
     }
   };
-  
+
   useEffect(() => {
     fetchProfile();
   }, []);
-  
+
   // Launch app in new browser window
   const launchApp = (app: SimulatorApp) => {
     if (app.deployedUrl) {
       // Open simulator in new window with specific dimensions for mobile frame
-      const width = 414;  // iPhone/Pixel width
+      const width = 414; // iPhone/Pixel width
       const height = 896; // iPhone/Pixel height
       const left = (screen.width - width) / 2;
       const top = (screen.height - height) / 2;
-      
+
       window.open(
-        app.deployedUrl, 
+        app.deployedUrl,
         `simulator-${app.appId}`,
-        `width=${width},height=${height},left=${left},top=${top},resizable=yes,scrollbars=yes`
+        `width=${width},height=${height},left=${left},top=${top},resizable=yes,scrollbars=yes`,
       );
-      
+
       // Record launch via API
-      fetch('/api/simulator/launch', {
-        method: 'POST',
+      fetch("/api/simulator/launch", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('token')}`
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
-        body: JSON.stringify({ appId: app.appId })
+        body: JSON.stringify({ appId: app.appId }),
       });
     }
   };
-  
+
   // Install new app
   const installApp = async (appId: string) => {
     try {
-      const response = await fetch('/api/simulator/install', {
-        method: 'POST',
+      const response = await fetch("/api/simulator/install", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('token')}`
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
-        body: JSON.stringify({ 
-          appId, 
-          deviceProfile: selectedDevice 
-        })
+        body: JSON.stringify({
+          appId,
+          deviceProfile: selectedDevice,
+        }),
       });
-      
+
       if (response.ok) {
-        message.success('App installed successfully');
+        message.success("App installed successfully");
         fetchProfile();
         setShowAddApp(false);
       } else {
         const error = await response.json();
         if (response.status === 409) {
-          message.error('Quota exceeded. Uninstall an app first or contact admin for quota increase.');
+          message.error(
+            "Quota exceeded. Uninstall an app first or contact admin for quota increase.",
+          );
         } else {
-          message.error(error.message || 'Install failed');
+          message.error(error.message || "Install failed");
         }
       }
     } catch (error) {
-      message.error('Network error during install');
+      message.error("Network error during install");
     }
   };
-  
+
   // Uninstall confirmation
   const uninstallApp = (app: SimulatorApp) => {
     confirm({
-      title: 'Uninstall App',
+      title: "Uninstall App",
       content: `Are you sure you want to uninstall ${app.appName}? This cannot be undone.`,
-      okText: 'Uninstall',
-      okType: 'danger',
-      cancelText: 'Cancel',
+      okText: "Uninstall",
+      okType: "danger",
+      cancelText: "Cancel",
       onOk: async () => {
         try {
           await fetch(`/api/simulator/install/${app.appId}`, {
-            method: 'DELETE',
-            headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+            method: "DELETE",
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
           });
-          message.success('App uninstalled');
+          message.success("App uninstalled");
           fetchProfile();
         } catch (error) {
-          message.error('Failed to uninstall app');
+          message.error("Failed to uninstall app");
         }
-      }
+      },
     });
   };
-  
+
   const deviceOptions = [
-    { label: 'Pixel 6 (Android 14)', value: 'PIXEL_6' },
-    { label: 'Pixel 7 (Android 14)', value: 'PIXEL_7' },
-    { label: 'iPhone 15 (iOS 17)', value: 'IPHONE_15' },
-    { label: 'iPhone 14 (iOS 17)', value: 'IPHONE_14' },
+    { label: "Pixel 6 (Android 14)", value: "PIXEL_6" },
+    { label: "Pixel 7 (Android 14)", value: "PIXEL_7" },
+    { label: "iPhone 15 (iOS 17)", value: "IPHONE_15" },
+    { label: "iPhone 14 (iOS 17)", value: "IPHONE_14" },
   ];
-  
+
   if (loading) {
     return <Spin size="large" tip="Loading Simulator..." />;
   }
-  
+
   if (!profile) {
     return <Empty description="Simulator profile not found" />;
   }
-  
+
   const quotaUsed = profile.activeInstalls;
   const quotaTotal = profile.installQuota;
   const quotaPercent = (quotaUsed / quotaTotal) * 100;
-  
+
   return (
     <div className="simulator-panel p-6">
       {/* Header */}
       <div className="mb-6">
         <h2 className="text-2xl font-bold mb-4">My Simulator</h2>
-        
+
         {/* Quota Banner */}
         <Card className="mb-4">
           <Row gutter={16} align="middle">
@@ -1478,23 +1512,25 @@ export const SimulatorPanel: React.FC = () => {
                 title="Install Quota"
                 value={quotaUsed}
                 suffix={`/ ${quotaTotal} apps`}
-                valueStyle={{ color: quotaUsed >= quotaTotal ? '#cf1322' : '#3f8600' }}
+                valueStyle={{
+                  color: quotaUsed >= quotaTotal ? "#cf1322" : "#3f8600",
+                }}
               />
             </Col>
             <Col>
-              <Progress 
-                percent={Math.round(quotaPercent)} 
-                status={quotaUsed >= quotaTotal ? 'exception' : 'success'}
+              <Progress
+                percent={Math.round(quotaPercent)}
+                status={quotaUsed >= quotaTotal ? "exception" : "success"}
                 showInfo={false}
               />
             </Col>
             <Col>
-              <Select 
+              <Select
                 value={selectedDevice}
                 onChange={setSelectedDevice}
                 style={{ width: 180 }}
               >
-                {deviceOptions.map(opt => (
+                {deviceOptions.map((opt) => (
                   <Option key={opt.value} value={opt.value}>
                     {opt.label}
                   </Option>
@@ -1502,8 +1538,8 @@ export const SimulatorPanel: React.FC = () => {
               </Select>
             </Col>
             <Col>
-              <Button 
-                type="primary" 
+              <Button
+                type="primary"
                 icon={<PlusOutlined />}
                 onClick={() => setShowAddApp(true)}
                 disabled={quotaUsed >= quotaTotal}
@@ -1514,52 +1550,63 @@ export const SimulatorPanel: React.FC = () => {
           </Row>
         </Card>
       </div>
-      
+
       {/* Installed Apps Grid */}
       {profile.installedApps && profile.installedApps.length > 0 ? (
         <div className="apps-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {profile.installedApps.map(app => (
-            <Card 
-              key={app.appId} 
+          {profile.installedApps.map((app) => (
+            <Card
+              key={app.appId}
               className="app-card hover:shadow-lg transition-shadow"
               actions={[
                 <Tooltip title="Launch Simulator">
-                  <PlayCircleOutlined 
+                  <PlayCircleOutlined
                     onClick={() => launchApp(app)}
-                    style={{ fontSize: '16px', color: '#1890ff' }}
+                    style={{ fontSize: "16px", color: "#1890ff" }}
                   />
                 </Tooltip>,
                 <Tooltip title="Uninstall">
-                  <DeleteOutlined 
+                  <DeleteOutlined
                     onClick={() => uninstallApp(app)}
-                    style={{ fontSize: '16px', color: '#ff4d4f' }}
+                    style={{ fontSize: "16px", color: "#ff4d4f" }}
                   />
-                </Tooltip>
+                </Tooltip>,
               ]}
             >
               <Card.Meta
-                avatar={<CloudUploadOutlined style={{ fontSize: '32px', color: '#52c41a' }} />}
+                avatar={
+                  <CloudUploadOutlined
+                    style={{ fontSize: "32px", color: "#52c41a" }}
+                  />
+                }
                 title={app.appName}
                 description={
                   <div>
                     <div>v{app.version}</div>
                     <div className="text-xs text-gray-500">
-                      Installed: {new Date(app.installedAt).toLocaleDateString()}
+                      Installed:{" "}
+                      {new Date(app.installedAt).toLocaleDateString()}
                     </div>
                     <div className="text-xs text-gray-500">
                       Launched {app.launchCount} times
                     </div>
-                    <Tag color={
-                      app.status === 'INSTALLED' ? 'green' : 
-                      app.status === 'RUNNING' ? 'blue' : 'red'
-                    }>
+                    <Tag
+                      color={
+                        app.status === "INSTALLED"
+                          ? "green"
+                          : app.status === "RUNNING"
+                            ? "blue"
+                            : "red"
+                      }
+                    >
                       {app.status}
                     </Tag>
                     {app.deployedUrl && (
                       <div className="mt-2">
-                        <Tag color="purple" 
+                        <Tag
+                          color="purple"
                           className="cursor-pointer"
-                          onClick={() => window.open(app.deployedUrl, '_blank')}
+                          onClick={() => window.open(app.deployedUrl, "_blank")}
                         >
                           Preview: {new URL(app.deployedUrl).hostname}
                         </Tag>
@@ -1572,12 +1619,12 @@ export const SimulatorPanel: React.FC = () => {
           ))}
         </div>
       ) : (
-        <Empty 
+        <Empty
           description="No apps installed"
           image={Empty.PRESENTED_IMAGE_SIMPLE}
         >
-          <Button 
-            type="primary" 
+          <Button
+            type="primary"
             icon={<PlusOutlined />}
             onClick={() => setShowAddApp(true)}
           >
@@ -1585,7 +1632,7 @@ export const SimulatorPanel: React.FC = () => {
           </Button>
         </Empty>
       )}
-      
+
       {/* Add App Modal */}
       <Modal
         title="Install App to Simulator"
@@ -1607,6 +1654,7 @@ export const SimulatorPanel: React.FC = () => {
 ### 3.17 Configuration & Environment Variables
 
 **application.yml / application.properties:**
+
 ```properties
 # Simulator quota settings
 simulator.max.installs.per.user=${SIMULATOR_MAX_INSTALLS:5}
@@ -1634,6 +1682,7 @@ management.metrics.export.prometheus.enabled=true
 ```
 
 **.env.example additions:**
+
 ```bash
 # Simulator Controller
 SIMULATOR_MAX_INSTALLS=5
@@ -1648,6 +1697,7 @@ SIMULATOR_URL_FORMAT=https://{appId}-simulator.run.app
 ```
 
 **SimulatorConfig.java (Spring Boot Config):**
+
 ```java
 @Configuration
 @ConfigurationProperties(prefix = "simulator")
@@ -1660,7 +1710,7 @@ public class SimulatorConfig {
     private int appExpiryDays = 7;
     private String previewUrlFormat;
     private CloudRun cloudrun = new CloudRun();
-    
+
     @Data
     public static class CloudRun {
         private String region = "us-central1";
@@ -1678,19 +1728,19 @@ public class SimulatorConfig {
 @AutoConfigureMockMvc
 @Transactional
 class SimulatorControllerIntegrationTest {
-    
+
     @Autowired
     private MockMvc mockMvc;
-    
+
     @Autowired
     private SimulatorProfileRepository profileRepository;
-    
+
     @Test
     @WithMockUser(roles = "USER")
     void testInstallApp_Success() throws Exception {
         String userId = "test-user-123";
         String appId = "test-app-456";
-        
+
         mockMvc.perform(post("/api/simulator/install")
                 .header("Authorization", "Bearer " + generateTestToken(userId))
                 .content("{\"appId\":\"" + appId + "\",\"deviceProfile\":\"PIXEL_6\"}")
@@ -1700,12 +1750,12 @@ class SimulatorControllerIntegrationTest {
             .andExpect(jsonPath("$.quota.used").value(1))
             .andExpect(jsonPath("$.app.deployedUrl").exists());
     }
-    
+
     @Test
     @WithMockUser(roles = "USER")
     void testInstallApp_QuotaExceeded() throws Exception {
         String userId = "quota-user";
-        
+
         // Fill quota first (assume quota=5)
         for (int i = 0; i < 5; i++) {
             mockMvc.perform(post("/api/simulator/install")
@@ -1714,7 +1764,7 @@ class SimulatorControllerIntegrationTest {
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isCreated());
         }
-        
+
         // 6th install should fail
         mockMvc.perform(post("/api/simulator/install")
             .header("Authorization", "Bearer " + generateTestToken(userId))
@@ -1723,20 +1773,20 @@ class SimulatorControllerIntegrationTest {
             .andExpect(status().isConflict())
             .andExpect(jsonPath("$.error").value("QUOTA_EXCEEDED"));
     }
-    
+
     @Test
     @WithMockUser(roles = "USER")
     void testInstallApp_Duplicate() throws Exception {
         String userId = "dup-user";
         String appId = "duplicate-app";
-        
+
         // First install
         mockMvc.perform(post("/api/simulator/install")
             .header("Authorization", "Bearer " + generateTestToken(userId))
             .content("{\"appId\":\"" + appId + "\",\"deviceProfile\":\"PIXEL_6\"}")
             .contentType(MediaType.APPLICATION_JSON))
             .andExpect(status().isCreated());
-        
+
         // Second install of same app should fail
         mockMvc.perform(post("/api/simulator/install")
             .header("Authorization", "Bearer " + generateTestToken(userId))
@@ -1745,13 +1795,13 @@ class SimulatorControllerIntegrationTest {
             .andExpect(status().isConflict())
             .andExpect(jsonPath("$.error").value("APP_ALREADY_INSTALLED"));
     }
-    
+
     @Test
     @WithMockUser(roles = "ADMIN")
     void testAdminForceQuota() throws Exception {
         String adminToken = generateAdminToken();
         String targetUserId = "target-user";
-        
+
         mockMvc.perform(post("/api/simulator/admin/force-quota/{userId}", targetUserId)
             .header("Authorization", "Bearer " + adminToken)
             .param("newQuota", "10"))
@@ -1764,31 +1814,31 @@ class SimulatorControllerIntegrationTest {
  * Concurrency Testing - Verify no race conditions on quota counters
  */
 public class SimulatorConcurrencyTest {
-    
+
     @Autowired
     private SimulatorService simulatorService;
-    
+
     @Autowired
     private SimulatorProfileRepository profileRepository;
-    
+
     @Test
     public void testConcurrentInstall_SameUser_NoRaceCondition() throws Exception {
         String userId = "concurrent-user";
         String deviceType = "PIXEL_6";
         int quota = 5;
-        
+
         // Setup: create profile with quota 5
         UserSimulatorProfile profile = new UserSimulatorProfile();
         profile.setUserId(userId);
         profile.setInstallQuota(quota);
         profileRepository.save(profile);
-        
+
         int threadCount = 20;
         CountDownLatch latch = new CountDownLatch(threadCount);
         ExecutorService executor = Executors.newFixedThreadPool(threadCount);
         AtomicInteger successCount = new AtomicInteger();
         AtomicInteger failureCount = new AtomicInteger();
-        
+
         for (int i = 0; i < threadCount; i++) {
             final String appId = "concurrent-app-" + i;
             executor.submit(() -> {
@@ -1804,14 +1854,14 @@ public class SimulatorConcurrencyTest {
                 }
             });
         }
-        
+
         latch.await(30, TimeUnit.SECONDS);
         executor.shutdown();
-        
+
         // Verify: max 5 successful, rest failed with quota exceeded
         assertEquals(quota, successCount.get());
         assertEquals(threadCount - quota, failureCount.get());
-        
+
         // Verify final state
         UserSimulatorProfile finalProfile = profileRepository.findByUserId(userId).orElseThrow();
         assertEquals(quota, finalProfile.getActiveInstalls());
@@ -1824,10 +1874,10 @@ public class SimulatorConcurrencyTest {
  */
 @SpringBootTest
 class SimulatorCleanupTest {
-    
+
     @Autowired
     private SimulatorDeploymentService cleanupService;
-    
+
     @Test
     public void testCleanupRemovesExpiredApps() {
         // Given: profile with app 8 days old
@@ -1836,10 +1886,10 @@ class SimulatorCleanupTest {
         oldApp.setInstalledAt(LocalDateTime.now().minusDays(8));
         oldProfile.setInstalledApps(List.of(oldApp));
         profileRepository.save(oldProfile);
-        
+
         // When: run cleanup
         cleanupService.cleanupExpiredApps();
-        
+
         // Then: old app removed
         UserSimulatorProfile updated = profileRepository.findByUserId(oldProfile.getUserId()).get();
         assertTrue(updated.getInstalledApps().isEmpty());
@@ -1849,14 +1899,15 @@ class SimulatorCleanupTest {
 ```
 
 **Mocking WebSocket Tests:**
+
 ```java
 @SpringBootTest
 @AutoConfigureWebSocket
 class SimulatorWebSocketTest {
-    
+
     @Autowired
     private SimulatorWebSocketHandler handler;
-    
+
     @Test
     public void testHeartbeatKeepsSessionAlive() throws Exception {
         // Simulate WebSocket connection + heartbeat
@@ -1870,40 +1921,47 @@ class SimulatorWebSocketTest {
 ## Phase 6: Polish & Optimization (Weeks 25-32)
 
 ### 3.19 Multi-Device Support
+
 - Store separate device profiles per user
 - Save device configurations (screen size, DPI, OS version)
 - Side-by-side device comparison view in UI
 - Transfer apps between devices
 
 ### 3.20 App Version Management
+
 - Keep history of deployed app versions
 - Roll back to previous version
 - A/B testing between versions
 
 ### 3.21 Automated Screenshot Capture
+
 - Capture screenshot on install
 - Store in Cloud Storage
 - Display in UI app grid
 
 ### 3.22 Performance Benchmarking
+
 - Track app load time
 - Memory usage monitoring
 - Error rate per app version
 - Performance regression alerts
 
 ### 3.23 Shareable Simulator Link
+
 - Temporary public access tokens
 - Link expiration (24h default)
 - View-only mode option
 - Embedded iframe support
 
 ### 3.24 Cost Management & Alerts
+
 - Cost per simulator session tracking
 - Budget alerts (daily/weekly thresholds)
 - Automatic throttling when budget exceeded
 - Cost reporting dashboard
 
 ### 3.25 Enhanced Admin Analytics
+
 - Charts: installs by day, active sessions, quota utilization
 - User leaderboard (top users by install count)
 - App popularity metrics
@@ -1915,6 +1973,7 @@ class SimulatorWebSocketTest {
 # 4. Testing Strategy
 
 ## 4.1 Test Coverage Requirements
+
 ```
 Minimum 80% coverage for:
 - Core orchestrator
@@ -1928,6 +1987,7 @@ Minimum 80% coverage for:
 ```
 
 ## 4.2 CI/CD Pipeline (.github/workflows/ci.yml)
+
 ```yaml
 name: SupremeAI CI
 
@@ -1942,7 +2002,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.11'
+          python-version: "3.11"
 
       - name: Install dependencies
         run: |
@@ -1967,6 +2027,7 @@ jobs:
 # 5. Deployment Plan
 
 ## 5.1 Local Development
+
 ```bash
 # Setup
 python -m venv venv
@@ -1980,6 +2041,7 @@ python src/main.py
 ```
 
 ## 5.2 Production Deployment
+
 ```bash
 # Docker
 docker build -t supremeai .
@@ -1995,6 +2057,7 @@ web: python src/main.py
 # 6. Immediate Action Items
 
 ## This Week:
+
 1. [ ] Restructure project folders
 2. [ ] Add database layer (SQLite)
 3. [ ] Create .env configuration
@@ -2002,6 +2065,7 @@ web: python src/main.py
 5. [ ] Add comprehensive .gitignore
 
 ## Next Week:
+
 6. [ ] Implement APIKeyManager
 7. [ ] Add IntentAnalyzer
 8. [ ] Create GitHub integration module
@@ -2009,6 +2073,7 @@ web: python src/main.py
 10. [ ] Write unit tests for core modules
 
 ## Following Weeks:
+
 11. [ ] Implement learning system
 12. [ ] Add voice processing
 13. [ ] Create admin dashboard
@@ -2020,16 +2085,16 @@ web: python src/main.py
 
 # 7. Risk Mitigation
 
-| Risk | Mitigation |
-|------|------------|
-| API key exposure | Hash storage, .env file, never commit keys |
-| Rate limiting | Rotation system, fallback to system AI |
-| Data loss | Regular backups, soft delete, grace period |
-| Security breach | Input validation, parameterized queries, HTTPS |
-| Scaling issues | Modular design, database indexing, caching |
-| Simulator cost explosion | Auto-cleanup after 7 days, quota limits, budget alerts |
-| Concurrent install race conditions | Firestore transactions for atomic updates |
-| Simulator session leaks | Heartbeat + auto-timeout, cleanup daemon |
+| Risk                               | Mitigation                                             |
+| ---------------------------------- | ------------------------------------------------------ |
+| API key exposure                   | Hash storage, .env file, never commit keys             |
+| Rate limiting                      | Rotation system, fallback to system AI                 |
+| Data loss                          | Regular backups, soft delete, grace period             |
+| Security breach                    | Input validation, parameterized queries, HTTPS         |
+| Scaling issues                     | Modular design, database indexing, caching             |
+| Simulator cost explosion           | Auto-cleanup after 7 days, quota limits, budget alerts |
+| Concurrent install race conditions | Firestore transactions for atomic updates              |
+| Simulator session leaks            | Heartbeat + auto-timeout, cleanup daemon               |
 
 ---
 

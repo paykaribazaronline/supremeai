@@ -1,4 +1,3 @@
-
 # Test Configuration for SupremeAI
 
 # Disable @Scheduled tasks to prevent real HTTP calls during tests

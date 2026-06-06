@@ -64,7 +64,7 @@ if %ERRORLEVEL% NEQ 0 (
     echo [WARNING] GitHub CI runs on Java 21. Your local Java version is %JAVAV%.
     echo           This might cause minor bytecode or library incompatibilities.
 )
-echo.
+echo/
 
 :: 2. Pre-commit secrets sanity check
 echo [System] Checking Secrets Hygiene...
@@ -74,7 +74,7 @@ if exist "config\.env" (
 if exist "src\main\resources\firebase-service-account.json" (
     echo [WARNING] firebase-service-account.json detected. Never commit keys to GitHub.
 )
-echo.
+echo/
 
 :: 3. Smart Change Detection via Git
 set RUN_BACKEND=false
@@ -95,9 +95,6 @@ if %ERRORLEVEL% EQU 0 (
     
     if "!RUN_BACKEND!"=="false" (
         if "!RUN_FRONTEND!"=="false" (
-            echo No local changes detected. Running full verification suite...
-            set RUN_BACKEND=true
-            set RUN_FRONTEND=true
             if "!RUN_MOBILE!"=="false" (
                 echo No local changes detected. Running full verification suite...
                 set RUN_BACKEND=true
@@ -116,7 +113,7 @@ if %ERRORLEVEL% EQU 0 (
 echo Backend verification: %RUN_BACKEND%
 echo Frontend verification: %RUN_FRONTEND%
 echo Mobile verification: %RUN_MOBILE%
-echo.
+echo/
 
 :: 4. Run Backend Verification
 if "%RUN_BACKEND%"=="true" (
@@ -157,7 +154,7 @@ if "%RUN_BACKEND%"=="true" (
 )
 
 :skip_backend_tests
-if "%RUN_BACKEND%"=="true" (
+if "!RUN_BACKEND!"=="true" (
     echo Running Global Formatting Fixes...
     call npm run format:root
 
@@ -168,7 +165,7 @@ if "%RUN_BACKEND%"=="true" (
     )
 
     echo Backend checks passed successfully.
-    echo.
+    echo/
 )
 
 :: 5. Run Frontend Verification
@@ -201,7 +198,7 @@ if "%RUN_FRONTEND%"=="true" (
 )
 
 :skip_frontend_tests
-if "%RUN_FRONTEND%"=="true" (
+if "!RUN_FRONTEND!"=="true" (
     echo Running Global Formatting Fixes...
     call npm run format:root
 
@@ -212,7 +209,7 @@ if "%RUN_FRONTEND%"=="true" (
     )
 
     echo Frontend checks passed successfully.
-    echo.
+    echo/
 )
 
 :: 6. Run Mobile Verification
@@ -222,6 +219,13 @@ if "%RUN_MOBILE%"=="true" (
     if !ERRORLEVEL! NEQ 0 (
         echo [WARNING] Flutter is not installed. Skipping mobile checks.
     ) else (
+        echo Checking Dart SDK Version compatibility...
+        for /f "tokens=4" %%v in ('dart --version 2^>^&1') do set "DARTV=%%v"
+        echo "!DARTV!" | findstr /R "3\.[6-9]\." >nul
+        if !ERRORLEVEL! NEQ 0 (
+            echo [ERROR] Dart SDK 3.6.0+ is required (Found !DARTV!).
+            exit /b 1
+        )
         echo Running Flutter Analyze...
         pushd supremeai
         call flutter pub get
@@ -241,7 +245,7 @@ if "%RUN_MOBILE%"=="true" (
         popd
     )
     echo Mobile checks passed successfully.
-    echo.
+    echo/
 )
 
 echo ===================================================

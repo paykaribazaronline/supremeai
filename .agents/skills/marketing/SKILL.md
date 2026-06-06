@@ -12,6 +12,7 @@ tags: [marketing, SEO, copywriting, ads, analytics, automation]
 Marketing strategy, execution, and measurement for products and brands.
 
 ## Triggers
+
 - marketing campaign
 - SEO optimization
 - social media content
@@ -24,6 +25,7 @@ Marketing strategy, execution, and measurement for products and brands.
 - growth marketing
 
 ## Workflow
+
 1. Define brand/proposition/marketing goal
 2. Select target personas, channels, and KPI
 3. Generate copy and asset plans
@@ -31,6 +33,7 @@ Marketing strategy, execution, and measurement for products and brands.
 5. Set up tracking and measurement plan
 
 ## Inputs
+
 - Product or brand description
 - Goals, constraints, and budget
 - Audience or region
@@ -38,11 +41,13 @@ Marketing strategy, execution, and measurement for products and brands.
 - Assets or content samples
 
 ## Outputs
+
 - Campaign plan and timeline
 - Channel-specific copy and creatives
 - Messaging, position, and CTA framework
 - KPI/analytics plan and measurement schema
 
 ## Safety
+
 - No spam or unsolicited outreach tactics
 - No social media impersonation

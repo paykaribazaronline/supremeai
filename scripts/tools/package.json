@@ -4,16 +4,15 @@
   "description": "Seed & data-load scripts for SupremeAI Firestore collections",
   "private": true,
   "type": "commonjs",
-
   "scripts": {
-    "seed:knowledge":      "node seed/seed-all-data.js",
-    "seed:execute":        "NODE_PATH=./functions/node_modules node seed/seed-all-data.js --execute",
-    "seed:providers":      "NODE_PATH=./functions/node_modules node seed/seed-ai-providers.js",
+    "seed:knowledge": "node seed/seed-all-data.js",
+    "seed:execute": "NODE_PATH=./functions/node_modules node seed/seed-all-data.js --execute",
+    "seed:providers": "NODE_PATH=./functions/node_modules node seed/seed-ai-providers.js",
     "seed:providers:exec": "NODE_PATH=./functions/node_modules node seed/seed-ai-providers.js --execute --healthcheck",
-    "seed:health":         "NODE_PATH=./functions/node_modules node seed/seed-ai-providers.js --healthcheck",
-    "seed:all":            "NODE_PATH=./functions/node_modules node seed/seed-all-data.js --execute && NODE_PATH=./functions/node_modules node seed/seed-ai-providers.js --execute --healthcheck",
-    "seed:exec":           "npm run seed:execute && npm run seed:providers:exec",
-    "seed:all:dry":        "node seed/seed-all-data.js && NODE_PATH=./functions/node_modules node seed/seed-ai-providers.js",
-    "seed:clear":          "NODE_PATH=./functions/node_modules node seed/seed-all-data.js --execute --clear"
+    "seed:health": "NODE_PATH=./functions/node_modules node seed/seed-ai-providers.js --healthcheck",
+    "seed:all": "NODE_PATH=./functions/node_modules node seed/seed-all-data.js --execute && NODE_PATH=./functions/node_modules node seed/seed-ai-providers.js --execute --healthcheck",
+    "seed:exec": "npm run seed:execute && npm run seed:providers:exec",
+    "seed:all:dry": "node seed/seed-all-data.js && NODE_PATH=./functions/node_modules node seed/seed-ai-providers.js",
+    "seed:clear": "NODE_PATH=./functions/node_modules node seed/seed-all-data.js --execute --clear"
   }
 }

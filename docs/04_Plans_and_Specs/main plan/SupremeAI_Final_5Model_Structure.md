@@ -1,4 +1,3 @@
-
 # SupremeAI - Hybrid Core Structure
 
 > **Status:** 🟢 Updated for v5 Architecture
@@ -9,13 +8,13 @@
 
 # 1. Hybrid Core Components
 
-| Component | Role | Runtime | Advantage |
-| :--- | :--- | :--- | :--- |
-| **Tiny AI (SuperFly)** | Fast execution, local inference | On-Device / Edge | Zero latency, offline capable |
-| **Godmode 3** | Web retrieval, browser automation | Cloud / Playwright | Real-time web access, visual audit |
-| **Claude Code** | High-level reasoning, complex coding | External (Free) | State-of-the-art logic and PR review |
+| Component              | Role                                 | Runtime            | Advantage                            |
+| :--------------------- | :----------------------------------- | :----------------- | :----------------------------------- |
+| **Tiny AI (SuperFly)** | Fast execution, local inference      | On-Device / Edge   | Zero latency, offline capable        |
+| **Godmode 3**          | Web retrieval, browser automation    | Cloud / Playwright | Real-time web access, visual audit   |
+| **Claude Code**        | High-level reasoning, complex coding | External (Free)    | State-of-the-art logic and PR review |
 
-**Infrastructure Strategy:** Hybrid Local-Cloud. 
+**Infrastructure Strategy:** Hybrid Local-Cloud.
 Heavy reasoning is delegated to Claude Code, while rapid interactions and automations are handled locally or via the stateful browser engine.
 
 ---
@@ -111,15 +110,15 @@ supremeai/
 
 ## Supported Free Tiers:
 
-| Provider | Free Tier | Limit | Model Access |
-|----------|-----------|-------|--------------|
-| **OpenAI** | $5 credit | 3 months | GPT-3.5, GPT-4 |
-| **Anthropic** | $5 credit | - | Claude 3 Haiku |
-| **Google AI** | Free tier | 60 req/min | Gemini Pro, Flash |
-| **Groq** | Free tier | - | Llama, Mixtral (fast) |
-| **Together AI** | $5 credit | - | Various models |
-| **Cohere** | Trial | - | Command models |
-| **Mistral** | Free tier | - | Mistral 7B |
+| Provider        | Free Tier | Limit      | Model Access          |
+| --------------- | --------- | ---------- | --------------------- |
+| **OpenAI**      | $5 credit | 3 months   | GPT-3.5, GPT-4        |
+| **Anthropic**   | $5 credit | -          | Claude 3 Haiku        |
+| **Google AI**   | Free tier | 60 req/min | Gemini Pro, Flash     |
+| **Groq**        | Free tier | -          | Llama, Mixtral (fast) |
+| **Together AI** | $5 credit | -          | Various models        |
+| **Cohere**      | Trial     | -          | Command models        |
+| **Mistral**     | Free tier | -          | Mistral 7B            |
 
 ## config/api_keys.py:
 
@@ -305,7 +304,7 @@ AUTO_APPROVE=False
 # 7. Docker Compose (Optional)
 
 ```yaml
-version: '3.8'
+version: "3.8"
 services:
   supremeai:
     build: .

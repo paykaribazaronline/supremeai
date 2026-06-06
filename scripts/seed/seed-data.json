@@ -4,10 +4,19 @@
     "generated_at": "2026-05-16T01:50:00+06:00",
     "description": "Real-world seed data for SupremeAI — based on actual GCP Cloud Run endpoints from ai-cloud-endpoints.json",
     "collections": [
-      "users", "user_tiers", "api_providers", "ai_agents",
-      "system_learning", "knowledge_domains", "knowledge_entries",
-      "knowledge_recommendations", "consensus_results", "provider_task_performance",
-      "workflow_definitions", "activity_logs", "reasoning_logs"
+      "users",
+      "user_tiers",
+      "api_providers",
+      "ai_agents",
+      "system_learning",
+      "knowledge_domains",
+      "knowledge_entries",
+      "knowledge_recommendations",
+      "consensus_results",
+      "provider_task_performance",
+      "workflow_definitions",
+      "activity_logs",
+      "reasoning_logs"
     ]
   },
 
@@ -33,7 +42,13 @@
       "limits": {
         "maxConcurrentChats": 10,
         "maxMessagesPerSession": 200,
-        "featuresAllowed": ["chat", "history", "code_analysis", "workflow", "multi_agent"]
+        "featuresAllowed": [
+          "chat",
+          "history",
+          "code_analysis",
+          "workflow",
+          "multi_agent"
+        ]
       }
     },
     {
@@ -45,7 +60,15 @@
       "limits": {
         "maxConcurrentChats": 50,
         "maxMessagesPerSession": 0,
-        "featuresAllowed": ["chat", "history", "code_analysis", "workflow", "multi_agent", "provider_mgmt", "learning_mgmt"]
+        "featuresAllowed": [
+          "chat",
+          "history",
+          "code_analysis",
+          "workflow",
+          "multi_agent",
+          "provider_mgmt",
+          "learning_mgmt"
+        ]
       }
     }
   ],
@@ -108,7 +131,13 @@
       "creatorEmail": "nazif@supremeai.dev",
       "accountEmail": "nazif@supremeai.dev",
       "models": ["chickenbrain-8b-instruct"],
-      "capabilities": ["chat", "code_generation", "code_review", "debugging", "reasoning"],
+      "capabilities": [
+        "chat",
+        "code_generation",
+        "code_review",
+        "debugging",
+        "reasoning"
+      ],
       "languages": ["en", "bn", "python", "javascript", "java", "go"],
       "priority": 1,
       "canCommunicate": true,
@@ -183,7 +212,11 @@
       "creatorEmail": "nazif@supremeai.dev",
       "accountEmail": "nazif@supremeai.dev",
       "models": ["n8n-workflows-v1"],
-      "capabilities": ["workflow_automation", "visual_api", "task_orchestration"],
+      "capabilities": [
+        "workflow_automation",
+        "visual_api",
+        "task_orchestration"
+      ],
       "languages": ["en", "bn"],
       "priority": 6,
       "canCommunicate": false,
@@ -294,7 +327,11 @@
       "errorCount": 0,
       "resolved": true,
       "severity": "info",
-      "solutions": ["Use runBlocking(IO) for suspend methods", "Keep controllers reactive consistently", "Avoid mixing webflux and servlet stacks"]
+      "solutions": [
+        "Use runBlocking(IO) for suspend methods",
+        "Keep controllers reactive consistently",
+        "Avoid mixing webflux and servlet stacks"
+      ]
     },
     {
       "id": "sl-002",
@@ -313,7 +350,11 @@
       "errorCount": 0,
       "resolved": true,
       "severity": "info",
-      "solutions": ["Read Accept-Language header on every request", "Save to user_preferences collection", "Translate via bn.json in middleware"]
+      "solutions": [
+        "Read Accept-Language header on every request",
+        "Save to user_preferences collection",
+        "Translate via bn.json in middleware"
+      ]
     },
     {
       "id": "sl-003",
@@ -332,7 +373,11 @@
       "errorCount": 2,
       "resolved": true,
       "severity": "warning",
-      "solutions": ["Check provider status before assignment", "Rotate on timeout or HTTP 5xx", "Persist fallback history to provider_task_performance"]
+      "solutions": [
+        "Check provider status before assignment",
+        "Rotate on timeout or HTTP 5xx",
+        "Persist fallback history to provider_task_performance"
+      ]
     },
     {
       "id": "sl-004",
@@ -351,7 +396,11 @@
       "errorCount": 4,
       "resolved": true,
       "severity": "critical",
-      "solutions": ["Remove manual timestamp init for @ServerTimestamp fields", "Verify in tests with mocked Firestore", "Do not serialize these fields to JSON responses"]
+      "solutions": [
+        "Remove manual timestamp init for @ServerTimestamp fields",
+        "Verify in tests with mocked Firestore",
+        "Do not serialize these fields to JSON responses"
+      ]
     },
     {
       "id": "sl-005",
@@ -370,7 +419,11 @@
       "errorCount": 1,
       "resolved": true,
       "severity": "info",
-      "solutions": ["Read capabilityScores from APIProvider in Firestore", "Normalize scores before weighting votes", "Log weighted decision in reasoning_logs"]
+      "solutions": [
+        "Read capabilityScores from APIProvider in Firestore",
+        "Normalize scores before weighting votes",
+        "Log weighted decision in reasoning_logs"
+      ]
     },
     {
       "id": "sl-006",
@@ -389,7 +442,11 @@
       "errorCount": 0,
       "resolved": true,
       "severity": "critical",
-      "solutions": ["Check Firestore memory first for cached solutions", "Serve from core_knowledge.json templates", "Mark responses with [OFFLINE] prefix"]
+      "solutions": [
+        "Check Firestore memory first for cached solutions",
+        "Serve from core_knowledge.json templates",
+        "Mark responses with [OFFLINE] prefix"
+      ]
     },
     {
       "id": "sl-007",
@@ -408,7 +465,12 @@
       "errorCount": 0,
       "resolved": true,
       "severity": "high",
-      "solutions": ["Buffer writes in local queue", "Serve reads from cache", "Replay queue on reconnection", "Use @Retryable annotation"]
+      "solutions": [
+        "Buffer writes in local queue",
+        "Serve reads from cache",
+        "Replay queue on reconnection",
+        "Use @Retryable annotation"
+      ]
     },
     {
       "id": "sl-008",
@@ -427,7 +489,12 @@
       "errorCount": 0,
       "resolved": true,
       "severity": "high",
-      "solutions": ["CacheBuilder.maximumSize(10000)", "Redis fallback for overflow", "LRU eviction policy", "Monitor heap with Micrometer"]
+      "solutions": [
+        "CacheBuilder.maximumSize(10000)",
+        "Redis fallback for overflow",
+        "LRU eviction policy",
+        "Monitor heap with Micrometer"
+      ]
     }
   ],
 
@@ -435,7 +502,14 @@
     {
       "id": "spring_boot_java",
       "name": "Spring Boot & Java 21",
-      "keywords": ["spring-boot", "java", "virtual-threads", "webflux", "firestore", "gradle"],
+      "keywords": [
+        "spring-boot",
+        "java",
+        "virtual-threads",
+        "webflux",
+        "firestore",
+        "gradle"
+      ],
       "status": "LEARNING",
       "depth": 4,
       "nodesDiscovered": 28,
@@ -445,7 +519,14 @@
     {
       "id": "react_typescript",
       "name": "React & TypeScript",
-      "keywords": ["react", "typescript", "vite", "dashboard", "material-ui", "zustand"],
+      "keywords": [
+        "react",
+        "typescript",
+        "vite",
+        "dashboard",
+        "material-ui",
+        "zustand"
+      ],
       "status": "LEARNING",
       "depth": 3,
       "nodesDiscovered": 22,
@@ -455,7 +536,14 @@
     {
       "id": "flutter_dart",
       "name": "Flutter & Dart Mobile",
-      "keywords": ["flutter", "dart", "mobile", "firebase_auth", "riverpod", "supremeai"],
+      "keywords": [
+        "flutter",
+        "dart",
+        "mobile",
+        "firebase_auth",
+        "riverpod",
+        "supremeai"
+      ],
       "status": "LEARNING",
       "depth": 3,
       "nodesDiscovered": 18,
@@ -465,7 +553,15 @@
     {
       "id": "ai_orchestration",
       "name": "AI Provider Orchestration",
-      "keywords": ["ai-provider", "fallback", "consensus", "voting", "rotation", "openai", "gemini"],
+      "keywords": [
+        "ai-provider",
+        "fallback",
+        "consensus",
+        "voting",
+        "rotation",
+        "openai",
+        "gemini"
+      ],
       "status": "LEARNING",
       "depth": 5,
       "nodesDiscovered": 35,
@@ -475,7 +571,15 @@
     {
       "id": "devops_gcloud",
       "name": "DevOps & GCP Deployment",
-      "keywords": ["gcloud", "cloud-run", "firebase", "terraform", "ci-cd", "docker", "monitoring"],
+      "keywords": [
+        "gcloud",
+        "cloud-run",
+        "firebase",
+        "terraform",
+        "ci-cd",
+        "docker",
+        "monitoring"
+      ],
       "status": "LEARNING",
       "depth": 3,
       "nodesDiscovered": 15,
@@ -485,7 +589,14 @@
     {
       "id": "git_reverse_engineering",
       "name": "Git & Reverse Engineering",
-      "keywords": ["git", "reverse-engineering", "apk", "dex", "smali", "binary-analysis"],
+      "keywords": [
+        "git",
+        "reverse-engineering",
+        "apk",
+        "dex",
+        "smali",
+        "binary-analysis"
+      ],
       "status": "IDLE",
       "depth": 2,
       "nodesDiscovered": 8,
@@ -578,9 +689,24 @@
       "question": "What is the recommended file size limit for comprehensive Brazilian Phone library changeset?",
       "consensusAnswer": "Reduce the patch size by splitting into multiple smaller patches. The AAPCanary config mandates each patch ≤ MAX_PATCH_LINES limit to ensure review quality.",
       "votes": [
-        {"provider": "qwen-coder", "vote": "Reduce into multiple patches", "confidence": 0.95, "latencyMs": 3200},
-        {"provider": "deepseek-pro", "vote": "Split into smaller patches", "confidence": 0.92, "latencyMs": 4100},
-        {"provider": "llama-3-1", "vote": "Split changes into multiple smaller patches", "confidence": 0.88, "latencyMs": 2900}
+        {
+          "provider": "qwen-coder",
+          "vote": "Reduce into multiple patches",
+          "confidence": 0.95,
+          "latencyMs": 3200
+        },
+        {
+          "provider": "deepseek-pro",
+          "vote": "Split into smaller patches",
+          "confidence": 0.92,
+          "latencyMs": 4100
+        },
+        {
+          "provider": "llama-3-1",
+          "vote": "Split changes into multiple smaller patches",
+          "confidence": 0.88,
+          "latencyMs": 2900
+        }
       ],
       "averageConfidence": 0.91,
       "strength": "STRONG",
@@ -593,9 +719,24 @@
       "question": "Which Spring Boot 3 database pool is recommended: HikariCP or Tomcat JDBC?",
       "consensusAnswer": "Use HikariCP — it is the default in Spring Boot 3 and offers lower connection overhead with better virtual thread compatibility.",
       "votes": [
-        {"provider": "qwen-coder", "vote": "HikariCP", "confidence": 0.99, "latencyMs": 2100},
-        {"provider": "deepseek-pro", "vote": "HikariCP — default in Boot 3", "confidence": 0.98, "latencyMs": 3800},
-        {"provider": "llama-3-1", "vote": "HikariCP recommended", "confidence": 0.97, "latencyMs": 2600}
+        {
+          "provider": "qwen-coder",
+          "vote": "HikariCP",
+          "confidence": 0.99,
+          "latencyMs": 2100
+        },
+        {
+          "provider": "deepseek-pro",
+          "vote": "HikariCP — default in Boot 3",
+          "confidence": 0.98,
+          "latencyMs": 3800
+        },
+        {
+          "provider": "llama-3-1",
+          "vote": "HikariCP recommended",
+          "confidence": 0.97,
+          "latencyMs": 2600
+        }
       ],
       "averageConfidence": 0.98,
       "strength": "STRONG",
@@ -695,12 +836,22 @@
       "description": "When a PR is opened, trigger AI agents to review code, post comments, and approve lane merges",
       "trigger": "webhook",
       "steps": [
-        {"step": 1, "action": "fetch_pr_diff", "timeoutSeconds": 30},
-        {"step": 2, "action": "agent_analyze", "agentId": "agent-coder", "timeoutSeconds": 120},
-        {"step": 3, "action": "vote_consensus", "agents": ["agent-coder", "agent-reasoner"], "timeoutSeconds": 60},
-        {"step": 4, "action": "post_review_comments", "timeoutSeconds": 30}
+        { "step": 1, "action": "fetch_pr_diff", "timeoutSeconds": 30 },
+        {
+          "step": 2,
+          "action": "agent_analyze",
+          "agentId": "agent-coder",
+          "timeoutSeconds": 120
+        },
+        {
+          "step": 3,
+          "action": "vote_consensus",
+          "agents": ["agent-coder", "agent-reasoner"],
+          "timeoutSeconds": 60
+        },
+        { "step": 4, "action": "post_review_comments", "timeoutSeconds": 30 }
       ],
-      "outputs": {"approvalRequired": true, "requiredVotes": 2}
+      "outputs": { "approvalRequired": true, "requiredVotes": 2 }
     },
     {
       "id": "wf-auto-heal",
@@ -708,12 +859,17 @@
       "description": "Automatically diagnose failures via HealingEvent entries and attempt provider rotation or config reload",
       "trigger": "scheduled",
       "steps": [
-        {"step": 1, "action": "collect_recent_errors", "timeoutSeconds": 15},
-        {"step": 2, "action": "analyze_failure_pattern", "agentId": "agent-reasoner", "timeoutSeconds": 60},
-        {"step": 3, "action": "apply_remediation", "timeoutSeconds": 45},
-        {"step": 4, "action": "log_healing_event", "timeoutSeconds": 10}
+        { "step": 1, "action": "collect_recent_errors", "timeoutSeconds": 15 },
+        {
+          "step": 2,
+          "action": "analyze_failure_pattern",
+          "agentId": "agent-reasoner",
+          "timeoutSeconds": 60
+        },
+        { "step": 3, "action": "apply_remediation", "timeoutSeconds": 45 },
+        { "step": 4, "action": "log_healing_event", "timeoutSeconds": 10 }
       ],
-      "outputs": {"maxAttempts": 3, "escalateToAdmin": true}
+      "outputs": { "maxAttempts": 3, "escalateToAdmin": true }
     },
     {
       "id": "wf-daily-knowledge",
@@ -721,11 +877,20 @@
       "description": "Every 24h scheduler reviews chat sessions for new patterns and seeds them into knowledge_entries",
       "trigger": "scheduled",
       "steps": [
-        {"step": 1, "action": "fetch_recent_chat_sessions", "sinceHours": 24},
-        {"step": 2, "action": "extract_patterns", "agentId": "agent-chat", "timeoutSeconds": 180},
-        {"step": 3, "action": "save_to_knowledge_entries", "timeoutSeconds": 30}
+        { "step": 1, "action": "fetch_recent_chat_sessions", "sinceHours": 24 },
+        {
+          "step": 2,
+          "action": "extract_patterns",
+          "agentId": "agent-chat",
+          "timeoutSeconds": 180
+        },
+        {
+          "step": 3,
+          "action": "save_to_knowledge_entries",
+          "timeoutSeconds": 30
+        }
       ],
-      "outputs": {"minConfidenceToStore": 0.85, "runIntervalHours": 24}
+      "outputs": { "minConfidenceToStore": 0.85, "runIntervalHours": 24 }
     }
   ],
 

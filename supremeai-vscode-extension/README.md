@@ -40,11 +40,11 @@ npx vsce package
 
 Open VS Code Settings (Ctrl+,) and search for `supremeai`:
 
-| Setting | Type | Default | Description |
-|---------|------|---------|-------------|
-| `supremeai.backendUrl` | string | `https://ide-api.supremeai.google.com` | SupremeAI Backend API URL |
-| `supremeai.enableRealTimeLearning` | boolean | `true` | Enable sending code edits for learning |
-| `supremeai.autoReportErrors` | boolean | `true` | Auto-report errors to backend |
+| Setting                            | Type    | Default                                | Description                            |
+| ---------------------------------- | ------- | -------------------------------------- | -------------------------------------- |
+| `supremeai.backendUrl`             | string  | `https://ide-api.supremeai.google.com` | SupremeAI Backend API URL              |
+| `supremeai.enableRealTimeLearning` | boolean | `true`                                 | Enable sending code edits for learning |
+| `supremeai.autoReportErrors`       | boolean | `true`                                 | Auto-report errors to backend          |
 
 ## Usage
 
@@ -60,12 +60,12 @@ The extension works automatically in the background:
 
 Open Command Palette (Ctrl+Shift+P) and run:
 
-| Command | Description |
-|---------|-------------|
-| `SupremeAI: Accept Suggestion` | Mark current AI suggestion as accepted |
-| `SupremeAI: Reject Suggestion` | Mark current AI suggestion as rejected |
-| `SupremeAI: Send Feedback` | Open feedback dialog |
-| `SupremeAI: Report Error` | Manually report error at cursor |
+| Command                                    | Description                               |
+| ------------------------------------------ | ----------------------------------------- |
+| `SupremeAI: Accept Suggestion`             | Mark current AI suggestion as accepted    |
+| `SupremeAI: Reject Suggestion`             | Mark current AI suggestion as rejected    |
+| `SupremeAI: Send Feedback`                 | Open feedback dialog                      |
+| `SupremeAI: Report Error`                  | Manually report error at cursor           |
 | `SupremeAI: Force Learn from Current File` | Immediately analyze and send current file |
 
 ## Data Sent to Backend

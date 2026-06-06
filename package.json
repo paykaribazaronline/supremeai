@@ -13,8 +13,9 @@
     "dev": "turbo run dev",
     "build": "turbo run build",
     "test": "turbo run test",
-    "prepare": "node -e \"if(process.env.NODE_ENV!=='production'){try{require('husky')}catch(e){process.exit(0)}}\" && husky",
-    "format:root": "prettier --write \"*.{json,md,yml}\" \"config/**/*.{rules,json}\"",
+    "prepare": "node -e \"if(process.env.CI !== 'true') { try { require('husky') } catch (e) { process.exit(0) } process.exit(1) }\" || husky",
+    "release": "standard-version",
+    "format:root": "prettier --write \"**/*.{json,md,yml}\"",
     "lint:functions": "npm run lint -w functions -- --fix"
   },
   "lint-staged": {
@@ -37,7 +38,8 @@
     "concurrently": "^9.2.1",
     "husky": "^9.1.7",
     "lint-staged": "^15.5.2",
+    "standard-version": "^9.5.0",
     "turbo": "latest",
-    "typescript": "^6.0.3"
+    "typescript": "~5.3.3"
   }
 }

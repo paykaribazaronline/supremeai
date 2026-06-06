@@ -8,12 +8,13 @@
 
 ## LAT-01: Firestore Rules `isServiceAccount()` বাইপাস — ✅ সমাধিত
 
-| ফিল্ড | বিবরণ |
-|:---|:---|
-| **তীব্রতা** | ~~🔴 CRITICAL~~ → ✅ **RESOLVED** |
-| **সমাধান তারিখ** | 2026-05-21 |
+| ফিল্ড            | বিবরণ                             |
+| :--------------- | :-------------------------------- |
+| **তীব্রতা**      | ~~🔴 CRITICAL~~ → ✅ **RESOLVED** |
+| **সমাধান তারিখ** | 2026-05-21                        |
 
 ### কী পরিবর্তন হয়েছে
+
 ```diff
 - // পুরাতন:
 - function isServiceAccount() {
@@ -31,6 +32,7 @@
 ```
 
 **বর্তমান Firestore Rules যাচাই (52 লাইন):**
+
 - ✅ `isServiceAccount()` ফাংশন সম্পূর্ণ সরানো
 - ✅ `isAuthenticated()` — `request.auth != null` চেক
 - ✅ `isAdmin()` — token + Firestore user tier চেক
@@ -43,19 +45,21 @@
 
 ## LAT-02: Scraping Engine `scrapeEngine.ts` খালি — ✅ সমাধিত (v4)
 
-| ফিল্ড | বিবরণ |
-|:---|:---|
-| **তীব্রতা** | ~~🟠 HIGH~~ → ✅ **RESOLVED (v4)** |
-| **ফাইল** | `functions/src/scrapeEngine.ts` — **541 লাইন, 23KB** |
-| **সমাধান তারিখ** | 2026-05-21 (v4 রিভিউয়) |
+| ফিল্ড            | বিবরণ                                                |
+| :--------------- | :--------------------------------------------------- |
+| **তীব্রতা**      | ~~🟠 HIGH~~ → ✅ **RESOLVED (v4)**                   |
+| **ফাইল**         | `functions/src/scrapeEngine.ts` — **541 লাইন, 23KB** |
+| **সমাধান তারিখ** | 2026-05-21 (v4 রিভিউয়)                              |
 
 ### কী পরিবর্তন হয়েছে
+
 ```
 পুরাতন (v3): functions/src/scrapeEngine.ts = 0 bytes (খালি)
 নতুন (v4):   functions/src/scrapeEngine.ts = 541 lines (সম্পূর্ণ বাস্তবায়ন)
 ```
 
 **ইমপ্লিমেন্টেড ফাংশনসমূহ:**
+
 - ✅ `scrapeAndRespond()` — মূল এంట্রি পয়েন্ট (লাইন 264)
 - ✅ `classifyIntent()` — ইনটেন্ট ক্লাসিফিকেশন (`scrapeEngine.ts` লাইন 108)
 - ✅ `getGlobalPolicy()` — Firestore policy fetch (লাইন 123)
@@ -73,11 +77,12 @@
 
 ## LAT-03: Cloud Run `--allow-unauthenticated` — ✅ সমাধিত
 
-| ফিল্ড | বিবরণ |
-|:---|:---|
+| ফিল্ড       | বিবরণ                         |
+| :---------- | :---------------------------- |
 | **তীব্রতা** | ~~🟠 HIGH~~ → ✅ **RESOLVED** |
 
 ### কী পরিবর্তন হয়েছে (`deploy.sh`)
+
 ```diff
 - # পুরাতন: সব সার্ভিস --allow-unauthenticated
 - gcloud run deploy "$REVERSE_ENG_SERVICE" --allow-unauthenticated ...
@@ -93,22 +98,24 @@
 
 ## LAT-04: ChatProcessingService Stub Handlers — ✅ সমাধিত
 
-| ফিল্ড | বিবরণ |
-|:---|:---|
+| ফিল্ড       | বিবরণ                           |
+| :---------- | :------------------------------ |
 | **তীব্রতা** | ~~🟡 MEDIUM~~ → ✅ **RESOLVED** |
 
 ### যাচাই
+
 `ChatProcessingService.java` এ আর কোনো `stub` keyword পাওয়া যাচ্ছে না (grep search: 0 results)। `ADD_API`, `LEARN_WEBSITE`, `TEST_API`, `RUN_AUDIT` action handlers বাস্তবায়িত বা সরানো হয়েছে।
 
 ---
 
 ## LAT-05: CSRF Token — অতিরিক্ত Exempt — ✅ সমাধিত
 
-| ফিল্ড | বিবরণ |
-|:---|:---|
+| ফিল্ড       | বিবরণ                           |
+| :---------- | :------------------------------ |
 | **তীব্রতা** | ~~🟡 MEDIUM~~ → ✅ **RESOLVED** |
 
 ### কী পরিবর্তন হয়েছে
+
 ```diff
 - // পুরাতন — প্রায় সব রুট exempt:
 - .ignoringRequestMatchers(
@@ -126,11 +133,12 @@
 
 ## LAT-06: `.block()` কল Netty Thread Block — ✅ সমাধিত
 
-| ফিল্ড | বিবরণ |
-|:---|:---|
+| ফিল্ড       | বিবরণ                           |
+| :---------- | :------------------------------ |
 | **তীব্রতা** | ~~🟡 MEDIUM~~ → ✅ **RESOLVED** |
 
 ### কী পরিবর্তন হয়েছে (SelfHealingService.java)
+
 ```diff
 - // পুরাতন:
 - .block();  // ← Netty event loop ব্লক!
@@ -145,11 +153,12 @@
 
 ## LAT-07: Dashboard Build Pipeline — ✅ সমাধিত
 
-| ফিল্ড | বিবরণ |
-|:---|:---|
+| ফিল্ড       | বিবরণ                           |
+| :---------- | :------------------------------ |
 | **তীব্রতা** | ~~🟡 MEDIUM~~ → ✅ **RESOLVED** |
 
 ### কী পরিবর্তন হয়েছে (`deploy.sh`)
+
 ```diff
 - // পুরাতন ক্রম:
 - 1. cp dashboard/dist → src/main/resources/static/
@@ -165,9 +174,10 @@
 
 ## সারসংক্ষেপ
 
-| মোট Latent Risks | সমাধিত | বাকি |
-|:---:|:---:|:---:|
-| 7 | 7 ✅ | **0** |
+| মোট Latent Risks | সমাধিত | বাকি  |
+| :--------------: | :----: | :---: |
+|        7         |  7 ✅  | **0** |
 
 ---
-*পরবর্তী ফাইল: [03_security_audit.md](./03_security_audit.md)*
+
+_পরবর্তী ফাইল: [03_security_audit.md](./03_security_audit.md)_

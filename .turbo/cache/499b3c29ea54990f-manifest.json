@@ -1,1 +1,377 @@
-{"files":{"dashboard/dist/assets/index-IT6HOs6J.js":{"size":231974,"mtime_nanos":1780667902517822300,"mode":420,"is_dir":false},"dashboard/dist/assets/vendor-firebase-Cyagq06t.js":{"size":453977,"mtime_nanos":1780667902517822300,"mode":420,"is_dir":false},"dashboard/dist/assets/AdminTesting-DalRNp84.js":{"size":5483,"mtime_nanos":1780667902536444600,"mode":420,"is_dir":false},"dashboard/dist/assets/vendor-react-6NsMiC-o.js":{"size":18895,"mtime_nanos":1780667902516824600,"mode":420,"is_dir":false},"dashboard/dist/assets/RestrictedDemo-CnY7CV3N.js":{"size":13987,"mtime_nanos":1780667902517822300,"mode":420,"is_dir":false},"dashboard/dist/assets/DashboardHome-C0IimbM_.js":{"size":393261,"mtime_nanos":1780667902517822300,"mode":420,"is_dir":false},"dashboard/dist/assets/AdminNotifications-C49L1ZbM.js":{"size":6461,"mtime_nanos":1780667902518819500,"mode":420,"is_dir":false},"dashboard/dist/assets/vendor-i18n-CTwZzjyc.js":{"size":57647,"mtime_nanos":1780667902516824600,"mode":420,"is_dir":false},"dashboard/dist/assets/AdminCodeAnalysis-CnJu47iJ.js":{"size":16810,"mtime_nanos":1780667902519816500,"mode":420,"is_dir":false},"dashboard/dist/assets/AdminOCR-ChFtxjDb.js":{"size":7060,"mtime_nanos":1780667902519816500,"mode":420,"is_dir":false},"dashboard/dist/assets/AdminProviders-B0DyZMer.js":{"size":14624,"mtime_nanos":1780667902517822300,"mode":420,"is_dir":false},"dashboard/dist/assets/AdminReverseEngineer-cym0Vjgh.js":{"size":13673,"mtime_nanos":1780667902518819500,"mode":420,"is_dir":false},"dashboard/dist/assets/AdminInfrastructure-dIKQTcuM.js":{"size":6853,"mtime_nanos":1780667902519816500,"mode":420,"is_dir":false},"dashboard/dist/assets/AdminReports-Dk9cwma4.js":{"size":10136,"mtime_nanos":1780667902519816500,"mode":420,"is_dir":false},"dashboard/dist/assets/AdminSecurity-BAr3Mdbg.js":{"size":16231,"mtime_nanos":1780667902518819500,"mode":420,"is_dir":false},"dashboard/dist/assets/AdminVPN-D7NpEaMh.js":{"size":5650,"mtime_nanos":1780667902518819500,"mode":420,"is_dir":false},"dashboard/dist/assets":{"size":0,"mtime_nanos":0,"mode":0,"is_dir":true},"dashboard/dist/assets/AdminMonitoring-hxoPuWx7.js":{"size":8242,"mtime_nanos":1780667902518819500,"mode":420,"is_dir":false},"dashboard/dist/assets/index-ljpdxNqi.js":{"size":117818,"mtime_nanos":1780667902517822300,"mode":420,"is_dir":false},"dashboard/dist/assets/AdminSimulator-NZtwGMDz.js":{"size":17275,"mtime_nanos":1780667902526468900,"mode":420,"is_dir":false},"dashboard/dist/assets/AutoBrowser-CbUidwGt.js":{"size":8569,"mtime_nanos":1780667902518819500,"mode":420,"is_dir":false},"dashboard/dist/assets/AdminSettings--5jGmPMd.js":{"size":11735,"mtime_nanos":1780667902519816500,"mode":420,"is_dir":false},"dashboard/dist/assets/AdminProjects-HR7bXxRG.js":{"size":23548,"mtime_nanos":1780667902517822300,"mode":420,"is_dir":false},"dashboard/dist/assets/AdminApprovals-BEd1LVtT.js":{"size":5939,"mtime_nanos":1780667902519816500,"mode":420,"is_dir":false},"dashboard/dist/assets/AdminQuotas-CN9CalT_.js":{"size":6231,"mtime_nanos":1780667902518819500,"mode":420,"is_dir":false},"dashboard/dist/assets/AdminUsers-Di30GfZw.js":{"size":12664,"mtime_nanos":1780667902517822300,"mode":420,"is_dir":false},"dashboard/dist/assets/index-DpkUL5Nt.css":{"size":30046,"mtime_nanos":1780667902536444600,"mode":420,"is_dir":false},"dashboard/dist/index.html":{"size":802,"mtime_nanos":1780667902527468900,"mode":420,"is_dir":false},"dashboard/dist/assets/AISuggestionInformer-BCYfNCHi.js":{"size":2563,"mtime_nanos":1780667902519816500,"mode":420,"is_dir":false},"dashboard/dist/assets/ChatWithAI-YNaSPrfE.js":{"size":22276,"mtime_nanos":1780667902517822300,"mode":420,"is_dir":false},"dashboard/dist/assets/AdminLearning-DP30OrrW.js":{"size":25208,"mtime_nanos":1780667902518819500,"mode":420,"is_dir":false},"dashboard/dist/assets/AdminBrowser-C2QGdCyr.js":{"size":33858,"mtime_nanos":1780667902518819500,"mode":420,"is_dir":false},"dashboard/dist/assets/AdminPerformance-zhmGgVUg.js":{"size":6645,"mtime_nanos":1780667902518819500,"mode":420,"is_dir":false},"dashboard/dist/assets/AdminLogs-BJugIvTt.js":{"size":6235,"mtime_nanos":1780667902526468900,"mode":420,"is_dir":false},"dashboard/dist/assets/AdminCloudDbHub-CJW5Xs9u.js":{"size":12417,"mtime_nanos":1780667902526468900,"mode":420,"is_dir":false},"dashboard/dist/assets/useSystemWebSocket-Db6dyxyp.js":{"size":67956,"mtime_nanos":1780667902517822300,"mode":420,"is_dir":false},"dashboard/dist/assets/AdminRouteLayout-BB98Vhcj.js":{"size":4820,"mtime_nanos":1780667902517822300,"mode":420,"is_dir":false},"dashboard/dist/assets/vendor-antd-JD67LZz7.js":{"size":1194067,"mtime_nanos":1780667902532455100,"mode":420,"is_dir":false},"dashboard/dist/assets/vendor-three-DZM4d6tQ.js":{"size":960265,"mtime_nanos":1780667902526468900,"mode":420,"is_dir":false},"dashboard/dist/assets/AdminRules-ejbvSeoB.js":{"size":5006,"mtime_nanos":1780667902526468900,"mode":420,"is_dir":false},"dashboard/dist/assets/firebase-CYJiTiTI.js":{"size":10184,"mtime_nanos":1780667902526468900,"mode":420,"is_dir":false},"dashboard/dist/assets/AdminAnalytics-kkTFzrTA.js":{"size":7314,"mtime_nanos":1780667902518819500,"mode":420,"is_dir":false},"dashboard/dist/assets/UserRouteLayout-Boao-Vg5.js":{"size":4745,"mtime_nanos":1780667902517822300,"mode":420,"is_dir":false},"dashboard/dist/assets/ChatWithAI-CithgvEc.css":{"size":10060,"mtime_nanos":1780667902500867400,"mode":420,"is_dir":false},"dashboard/dist/assets/ModernAdminDashboard-kW35ETNj.js":{"size":10095,"mtime_nanos":1780667902517822300,"mode":420,"is_dir":false},"dashboard/dist/assets/AdminLayout-DJTMUiFG.js":{"size":1391,"mtime_nanos":1780667902519816500,"mode":420,"is_dir":false},"dashboard/dist/assets/UserSettings-CWmq8y9F.js":{"size":2452,"mtime_nanos":1780667902519816500,"mode":420,"is_dir":false},"dashboard/dist/assets/AdminBackup-eHCPnhlo.js":{"size":5496,"mtime_nanos":1780667902519816500,"mode":420,"is_dir":false},"dashboard/.turbo/turbo-build.log":{"size":7134,"mtime_nanos":1780667903222106400,"mode":420,"is_dir":false},"dashboard/dist":{"size":0,"mtime_nanos":0,"mode":0,"is_dir":true},"dashboard/dist/assets/AdminSuperFly-BPHSlSGx.js":{"size":7928,"mtime_nanos":1780667902526468900,"mode":420,"is_dir":false},"dashboard/dist/assets/AdminSystemWorkRules-CSg3bPj6.js":{"size":6273,"mtime_nanos":1780667902518819500,"mode":420,"is_dir":false},"dashboard/dist/assets/LoginPage-YS_k1u3o.js":{"size":12448,"mtime_nanos":1780667902536444600,"mode":420,"is_dir":false}},"order":["dashboard/.turbo/turbo-build.log","dashboard/dist","dashboard/dist/assets","dashboard/dist/assets/AISuggestionInformer-BCYfNCHi.js","dashboard/dist/assets/AdminAnalytics-kkTFzrTA.js","dashboard/dist/assets/AdminApprovals-BEd1LVtT.js","dashboard/dist/assets/AdminBackup-eHCPnhlo.js","dashboard/dist/assets/AdminBrowser-C2QGdCyr.js","dashboard/dist/assets/AdminCloudDbHub-CJW5Xs9u.js","dashboard/dist/assets/AdminCodeAnalysis-CnJu47iJ.js","dashboard/dist/assets/AdminInfrastructure-dIKQTcuM.js","dashboard/dist/assets/AdminLayout-DJTMUiFG.js","dashboard/dist/assets/AdminLearning-DP30OrrW.js","dashboard/dist/assets/AdminLogs-BJugIvTt.js","dashboard/dist/assets/AdminMonitoring-hxoPuWx7.js","dashboard/dist/assets/AdminNotifications-C49L1ZbM.js","dashboard/dist/assets/AdminOCR-ChFtxjDb.js","dashboard/dist/assets/AdminPerformance-zhmGgVUg.js","dashboard/dist/assets/AdminProjects-HR7bXxRG.js","dashboard/dist/assets/AdminProviders-B0DyZMer.js","dashboard/dist/assets/AdminQuotas-CN9CalT_.js","dashboard/dist/assets/AdminReports-Dk9cwma4.js","dashboard/dist/assets/AdminReverseEngineer-cym0Vjgh.js","dashboard/dist/assets/AdminRouteLayout-BB98Vhcj.js","dashboard/dist/assets/AdminRules-ejbvSeoB.js","dashboard/dist/assets/AdminSecurity-BAr3Mdbg.js","dashboard/dist/assets/AdminSettings--5jGmPMd.js","dashboard/dist/assets/AdminSimulator-NZtwGMDz.js","dashboard/dist/assets/AdminSuperFly-BPHSlSGx.js","dashboard/dist/assets/AdminSystemWorkRules-CSg3bPj6.js","dashboard/dist/assets/AdminTesting-DalRNp84.js","dashboard/dist/assets/AdminUsers-Di30GfZw.js","dashboard/dist/assets/AdminVPN-D7NpEaMh.js","dashboard/dist/assets/AutoBrowser-CbUidwGt.js","dashboard/dist/assets/ChatWithAI-CithgvEc.css","dashboard/dist/assets/ChatWithAI-YNaSPrfE.js","dashboard/dist/assets/DashboardHome-C0IimbM_.js","dashboard/dist/assets/LoginPage-YS_k1u3o.js","dashboard/dist/assets/ModernAdminDashboard-kW35ETNj.js","dashboard/dist/assets/RestrictedDemo-CnY7CV3N.js","dashboard/dist/assets/UserRouteLayout-Boao-Vg5.js","dashboard/dist/assets/UserSettings-CWmq8y9F.js","dashboard/dist/assets/firebase-CYJiTiTI.js","dashboard/dist/assets/index-DpkUL5Nt.css","dashboard/dist/assets/index-IT6HOs6J.js","dashboard/dist/assets/index-ljpdxNqi.js","dashboard/dist/assets/useSystemWebSocket-Db6dyxyp.js","dashboard/dist/assets/vendor-antd-JD67LZz7.js","dashboard/dist/assets/vendor-firebase-Cyagq06t.js","dashboard/dist/assets/vendor-i18n-CTwZzjyc.js","dashboard/dist/assets/vendor-react-6NsMiC-o.js","dashboard/dist/assets/vendor-three-DZM4d6tQ.js","dashboard/dist/index.html"]}
+{
+  "files": {
+    "dashboard/dist/assets/index-IT6HOs6J.js": {
+      "size": 231974,
+      "mtime_nanos": 1780667902517822300,
+      "mode": 420,
+      "is_dir": false
+    },
+    "dashboard/dist/assets/vendor-firebase-Cyagq06t.js": {
+      "size": 453977,
+      "mtime_nanos": 1780667902517822300,
+      "mode": 420,
+      "is_dir": false
+    },
+    "dashboard/dist/assets/AdminTesting-DalRNp84.js": {
+      "size": 5483,
+      "mtime_nanos": 1780667902536444600,
+      "mode": 420,
+      "is_dir": false
+    },
+    "dashboard/dist/assets/vendor-react-6NsMiC-o.js": {
+      "size": 18895,
+      "mtime_nanos": 1780667902516824600,
+      "mode": 420,
+      "is_dir": false
+    },
+    "dashboard/dist/assets/RestrictedDemo-CnY7CV3N.js": {
+      "size": 13987,
+      "mtime_nanos": 1780667902517822300,
+      "mode": 420,
+      "is_dir": false
+    },
+    "dashboard/dist/assets/DashboardHome-C0IimbM_.js": {
+      "size": 393261,
+      "mtime_nanos": 1780667902517822300,
+      "mode": 420,
+      "is_dir": false
+    },
+    "dashboard/dist/assets/AdminNotifications-C49L1ZbM.js": {
+      "size": 6461,
+      "mtime_nanos": 1780667902518819500,
+      "mode": 420,
+      "is_dir": false
+    },
+    "dashboard/dist/assets/vendor-i18n-CTwZzjyc.js": {
+      "size": 57647,
+      "mtime_nanos": 1780667902516824600,
+      "mode": 420,
+      "is_dir": false
+    },
+    "dashboard/dist/assets/AdminCodeAnalysis-CnJu47iJ.js": {
+      "size": 16810,
+      "mtime_nanos": 1780667902519816500,
+      "mode": 420,
+      "is_dir": false
+    },
+    "dashboard/dist/assets/AdminOCR-ChFtxjDb.js": {
+      "size": 7060,
+      "mtime_nanos": 1780667902519816500,
+      "mode": 420,
+      "is_dir": false
+    },
+    "dashboard/dist/assets/AdminProviders-B0DyZMer.js": {
+      "size": 14624,
+      "mtime_nanos": 1780667902517822300,
+      "mode": 420,
+      "is_dir": false
+    },
+    "dashboard/dist/assets/AdminReverseEngineer-cym0Vjgh.js": {
+      "size": 13673,
+      "mtime_nanos": 1780667902518819500,
+      "mode": 420,
+      "is_dir": false
+    },
+    "dashboard/dist/assets/AdminInfrastructure-dIKQTcuM.js": {
+      "size": 6853,
+      "mtime_nanos": 1780667902519816500,
+      "mode": 420,
+      "is_dir": false
+    },
+    "dashboard/dist/assets/AdminReports-Dk9cwma4.js": {
+      "size": 10136,
+      "mtime_nanos": 1780667902519816500,
+      "mode": 420,
+      "is_dir": false
+    },
+    "dashboard/dist/assets/AdminSecurity-BAr3Mdbg.js": {
+      "size": 16231,
+      "mtime_nanos": 1780667902518819500,
+      "mode": 420,
+      "is_dir": false
+    },
+    "dashboard/dist/assets/AdminVPN-D7NpEaMh.js": {
+      "size": 5650,
+      "mtime_nanos": 1780667902518819500,
+      "mode": 420,
+      "is_dir": false
+    },
+    "dashboard/dist/assets": {
+      "size": 0,
+      "mtime_nanos": 0,
+      "mode": 0,
+      "is_dir": true
+    },
+    "dashboard/dist/assets/AdminMonitoring-hxoPuWx7.js": {
+      "size": 8242,
+      "mtime_nanos": 1780667902518819500,
+      "mode": 420,
+      "is_dir": false
+    },
+    "dashboard/dist/assets/index-ljpdxNqi.js": {
+      "size": 117818,
+      "mtime_nanos": 1780667902517822300,
+      "mode": 420,
+      "is_dir": false
+    },
+    "dashboard/dist/assets/AdminSimulator-NZtwGMDz.js": {
+      "size": 17275,
+      "mtime_nanos": 1780667902526468900,
+      "mode": 420,
+      "is_dir": false
+    },
+    "dashboard/dist/assets/AutoBrowser-CbUidwGt.js": {
+      "size": 8569,
+      "mtime_nanos": 1780667902518819500,
+      "mode": 420,
+      "is_dir": false
+    },
+    "dashboard/dist/assets/AdminSettings--5jGmPMd.js": {
+      "size": 11735,
+      "mtime_nanos": 1780667902519816500,
+      "mode": 420,
+      "is_dir": false
+    },
+    "dashboard/dist/assets/AdminProjects-HR7bXxRG.js": {
+      "size": 23548,
+      "mtime_nanos": 1780667902517822300,
+      "mode": 420,
+      "is_dir": false
+    },
+    "dashboard/dist/assets/AdminApprovals-BEd1LVtT.js": {
+      "size": 5939,
+      "mtime_nanos": 1780667902519816500,
+      "mode": 420,
+      "is_dir": false
+    },
+    "dashboard/dist/assets/AdminQuotas-CN9CalT_.js": {
+      "size": 6231,
+      "mtime_nanos": 1780667902518819500,
+      "mode": 420,
+      "is_dir": false
+    },
+    "dashboard/dist/assets/AdminUsers-Di30GfZw.js": {
+      "size": 12664,
+      "mtime_nanos": 1780667902517822300,
+      "mode": 420,
+      "is_dir": false
+    },
+    "dashboard/dist/assets/index-DpkUL5Nt.css": {
+      "size": 30046,
+      "mtime_nanos": 1780667902536444600,
+      "mode": 420,
+      "is_dir": false
+    },
+    "dashboard/dist/index.html": {
+      "size": 802,
+      "mtime_nanos": 1780667902527468900,
+      "mode": 420,
+      "is_dir": false
+    },
+    "dashboard/dist/assets/AISuggestionInformer-BCYfNCHi.js": {
+      "size": 2563,
+      "mtime_nanos": 1780667902519816500,
+      "mode": 420,
+      "is_dir": false
+    },
+    "dashboard/dist/assets/ChatWithAI-YNaSPrfE.js": {
+      "size": 22276,
+      "mtime_nanos": 1780667902517822300,
+      "mode": 420,
+      "is_dir": false
+    },
+    "dashboard/dist/assets/AdminLearning-DP30OrrW.js": {
+      "size": 25208,
+      "mtime_nanos": 1780667902518819500,
+      "mode": 420,
+      "is_dir": false
+    },
+    "dashboard/dist/assets/AdminBrowser-C2QGdCyr.js": {
+      "size": 33858,
+      "mtime_nanos": 1780667902518819500,
+      "mode": 420,
+      "is_dir": false
+    },
+    "dashboard/dist/assets/AdminPerformance-zhmGgVUg.js": {
+      "size": 6645,
+      "mtime_nanos": 1780667902518819500,
+      "mode": 420,
+      "is_dir": false
+    },
+    "dashboard/dist/assets/AdminLogs-BJugIvTt.js": {
+      "size": 6235,
+      "mtime_nanos": 1780667902526468900,
+      "mode": 420,
+      "is_dir": false
+    },
+    "dashboard/dist/assets/AdminCloudDbHub-CJW5Xs9u.js": {
+      "size": 12417,
+      "mtime_nanos": 1780667902526468900,
+      "mode": 420,
+      "is_dir": false
+    },
+    "dashboard/dist/assets/useSystemWebSocket-Db6dyxyp.js": {
+      "size": 67956,
+      "mtime_nanos": 1780667902517822300,
+      "mode": 420,
+      "is_dir": false
+    },
+    "dashboard/dist/assets/AdminRouteLayout-BB98Vhcj.js": {
+      "size": 4820,
+      "mtime_nanos": 1780667902517822300,
+      "mode": 420,
+      "is_dir": false
+    },
+    "dashboard/dist/assets/vendor-antd-JD67LZz7.js": {
+      "size": 1194067,
+      "mtime_nanos": 1780667902532455100,
+      "mode": 420,
+      "is_dir": false
+    },
+    "dashboard/dist/assets/vendor-three-DZM4d6tQ.js": {
+      "size": 960265,
+      "mtime_nanos": 1780667902526468900,
+      "mode": 420,
+      "is_dir": false
+    },
+    "dashboard/dist/assets/AdminRules-ejbvSeoB.js": {
+      "size": 5006,
+      "mtime_nanos": 1780667902526468900,
+      "mode": 420,
+      "is_dir": false
+    },
+    "dashboard/dist/assets/firebase-CYJiTiTI.js": {
+      "size": 10184,
+      "mtime_nanos": 1780667902526468900,
+      "mode": 420,
+      "is_dir": false
+    },
+    "dashboard/dist/assets/AdminAnalytics-kkTFzrTA.js": {
+      "size": 7314,
+      "mtime_nanos": 1780667902518819500,
+      "mode": 420,
+      "is_dir": false
+    },
+    "dashboard/dist/assets/UserRouteLayout-Boao-Vg5.js": {
+      "size": 4745,
+      "mtime_nanos": 1780667902517822300,
+      "mode": 420,
+      "is_dir": false
+    },
+    "dashboard/dist/assets/ChatWithAI-CithgvEc.css": {
+      "size": 10060,
+      "mtime_nanos": 1780667902500867400,
+      "mode": 420,
+      "is_dir": false
+    },
+    "dashboard/dist/assets/ModernAdminDashboard-kW35ETNj.js": {
+      "size": 10095,
+      "mtime_nanos": 1780667902517822300,
+      "mode": 420,
+      "is_dir": false
+    },
+    "dashboard/dist/assets/AdminLayout-DJTMUiFG.js": {
+      "size": 1391,
+      "mtime_nanos": 1780667902519816500,
+      "mode": 420,
+      "is_dir": false
+    },
+    "dashboard/dist/assets/UserSettings-CWmq8y9F.js": {
+      "size": 2452,
+      "mtime_nanos": 1780667902519816500,
+      "mode": 420,
+      "is_dir": false
+    },
+    "dashboard/dist/assets/AdminBackup-eHCPnhlo.js": {
+      "size": 5496,
+      "mtime_nanos": 1780667902519816500,
+      "mode": 420,
+      "is_dir": false
+    },
+    "dashboard/.turbo/turbo-build.log": {
+      "size": 7134,
+      "mtime_nanos": 1780667903222106400,
+      "mode": 420,
+      "is_dir": false
+    },
+    "dashboard/dist": {
+      "size": 0,
+      "mtime_nanos": 0,
+      "mode": 0,
+      "is_dir": true
+    },
+    "dashboard/dist/assets/AdminSuperFly-BPHSlSGx.js": {
+      "size": 7928,
+      "mtime_nanos": 1780667902526468900,
+      "mode": 420,
+      "is_dir": false
+    },
+    "dashboard/dist/assets/AdminSystemWorkRules-CSg3bPj6.js": {
+      "size": 6273,
+      "mtime_nanos": 1780667902518819500,
+      "mode": 420,
+      "is_dir": false
+    },
+    "dashboard/dist/assets/LoginPage-YS_k1u3o.js": {
+      "size": 12448,
+      "mtime_nanos": 1780667902536444600,
+      "mode": 420,
+      "is_dir": false
+    }
+  },
+  "order": [
+    "dashboard/.turbo/turbo-build.log",
+    "dashboard/dist",
+    "dashboard/dist/assets",
+    "dashboard/dist/assets/AISuggestionInformer-BCYfNCHi.js",
+    "dashboard/dist/assets/AdminAnalytics-kkTFzrTA.js",
+    "dashboard/dist/assets/AdminApprovals-BEd1LVtT.js",
+    "dashboard/dist/assets/AdminBackup-eHCPnhlo.js",
+    "dashboard/dist/assets/AdminBrowser-C2QGdCyr.js",
+    "dashboard/dist/assets/AdminCloudDbHub-CJW5Xs9u.js",
+    "dashboard/dist/assets/AdminCodeAnalysis-CnJu47iJ.js",
+    "dashboard/dist/assets/AdminInfrastructure-dIKQTcuM.js",
+    "dashboard/dist/assets/AdminLayout-DJTMUiFG.js",
+    "dashboard/dist/assets/AdminLearning-DP30OrrW.js",
+    "dashboard/dist/assets/AdminLogs-BJugIvTt.js",
+    "dashboard/dist/assets/AdminMonitoring-hxoPuWx7.js",
+    "dashboard/dist/assets/AdminNotifications-C49L1ZbM.js",
+    "dashboard/dist/assets/AdminOCR-ChFtxjDb.js",
+    "dashboard/dist/assets/AdminPerformance-zhmGgVUg.js",
+    "dashboard/dist/assets/AdminProjects-HR7bXxRG.js",
+    "dashboard/dist/assets/AdminProviders-B0DyZMer.js",
+    "dashboard/dist/assets/AdminQuotas-CN9CalT_.js",
+    "dashboard/dist/assets/AdminReports-Dk9cwma4.js",
+    "dashboard/dist/assets/AdminReverseEngineer-cym0Vjgh.js",
+    "dashboard/dist/assets/AdminRouteLayout-BB98Vhcj.js",
+    "dashboard/dist/assets/AdminRules-ejbvSeoB.js",
+    "dashboard/dist/assets/AdminSecurity-BAr3Mdbg.js",
+    "dashboard/dist/assets/AdminSettings--5jGmPMd.js",
+    "dashboard/dist/assets/AdminSimulator-NZtwGMDz.js",
+    "dashboard/dist/assets/AdminSuperFly-BPHSlSGx.js",
+    "dashboard/dist/assets/AdminSystemWorkRules-CSg3bPj6.js",
+    "dashboard/dist/assets/AdminTesting-DalRNp84.js",
+    "dashboard/dist/assets/AdminUsers-Di30GfZw.js",
+    "dashboard/dist/assets/AdminVPN-D7NpEaMh.js",
+    "dashboard/dist/assets/AutoBrowser-CbUidwGt.js",
+    "dashboard/dist/assets/ChatWithAI-CithgvEc.css",
+    "dashboard/dist/assets/ChatWithAI-YNaSPrfE.js",
+    "dashboard/dist/assets/DashboardHome-C0IimbM_.js",
+    "dashboard/dist/assets/LoginPage-YS_k1u3o.js",
+    "dashboard/dist/assets/ModernAdminDashboard-kW35ETNj.js",
+    "dashboard/dist/assets/RestrictedDemo-CnY7CV3N.js",
+    "dashboard/dist/assets/UserRouteLayout-Boao-Vg5.js",
+    "dashboard/dist/assets/UserSettings-CWmq8y9F.js",
+    "dashboard/dist/assets/firebase-CYJiTiTI.js",
+    "dashboard/dist/assets/index-DpkUL5Nt.css",
+    "dashboard/dist/assets/index-IT6HOs6J.js",
+    "dashboard/dist/assets/index-ljpdxNqi.js",
+    "dashboard/dist/assets/useSystemWebSocket-Db6dyxyp.js",
+    "dashboard/dist/assets/vendor-antd-JD67LZz7.js",
+    "dashboard/dist/assets/vendor-firebase-Cyagq06t.js",
+    "dashboard/dist/assets/vendor-i18n-CTwZzjyc.js",
+    "dashboard/dist/assets/vendor-react-6NsMiC-o.js",
+    "dashboard/dist/assets/vendor-three-DZM4d6tQ.js",
+    "dashboard/dist/index.html"
+  ]
+}

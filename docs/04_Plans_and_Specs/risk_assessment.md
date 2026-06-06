@@ -2,7 +2,6 @@
 
 > **Status:** 🟢 Updated for v5 Architecture
 
-
 ## High Priority Risks
 
 ### 1. Technical Debt
@@ -158,15 +157,15 @@
 
 ## Risk Register
 
-| Risk ID | Risk Description | Impact | Probability | Mitigation | Owner | Status |
-|---------|------------------|--------|-------------|------------|-------|--------|
-| R001 | Technical Debt | High | Medium | Code reviews, refactoring | Lead Devs | Active |
-| R002 | Resource Shortage | High | Low | Cross-training, hiring | PM | Low |
-| R003 | Timeline Delays | Medium | Medium | Buffer time, monitoring | PM | Active |
-| R004 | Integration Challenges | Medium | Medium | Early testing, communication | Tech Leads | Active |
-| R005 | Performance Issues | Medium | Medium | Performance testing, optimization | DevOps | Active |
-| R006 | Third-Party Dependencies | Low | Medium | Monitoring, alternatives | DevOps | Low |
-| R007 | Scope Creep | Low | Low | Change control, prioritization | PM | Low |
+| Risk ID | Risk Description         | Impact | Probability | Mitigation                        | Owner      | Status |
+| ------- | ------------------------ | ------ | ----------- | --------------------------------- | ---------- | ------ |
+| R001    | Technical Debt           | High   | Medium      | Code reviews, refactoring         | Lead Devs  | Active |
+| R002    | Resource Shortage        | High   | Low         | Cross-training, hiring            | PM         | Low    |
+| R003    | Timeline Delays          | Medium | Medium      | Buffer time, monitoring           | PM         | Active |
+| R004    | Integration Challenges   | Medium | Medium      | Early testing, communication      | Tech Leads | Active |
+| R005    | Performance Issues       | Medium | Medium      | Performance testing, optimization | DevOps     | Active |
+| R006    | Third-Party Dependencies | Low    | Medium      | Monitoring, alternatives          | DevOps     | Low    |
+| R007    | Scope Creep              | Low    | Low         | Change control, prioritization    | PM         | Low    |
 
 ## Lessons Learned
 

@@ -19,26 +19,31 @@ SupremeAI Backend API Router
 ## 🧠 আপনার সমস্ত AI সিস্টেম কীভাবে কাজ করে
 
 ### ১. **SuperFly (সোলো মোড)**
+
 - **টাইপ:** On-device nano-model (94M parameters)
 - **ব্যবহার:** অফলাইনে কোড ব্যাখ্যা, গ্রিটিং, সময়
 - **সক্রিয় করুন:** `settings.json` এ local model URL দিয়ে
 
 ### ২. **ChickenBrain (ক্লাউড)**
+
 - **টাইপ:** Quantum-compressed Llama 3.1
 - **ব্যবহার:** প্রধান AI সেবা, কোড জেনারেশন
 - **সক্রিয় করুন:** Backend API URL সেট করুন
 
 ### ৩. **Pocket Lab (প্রিমিয়াম)**
+
 - **টাইপ:** Local 100B+ parameter AI node
 - **ব্যবহার:** কর্পোরেট কোড প্রসেসিং
 - **সক্রিয় করুন:** Dashboard-এ লোকাল নোড রেজিস্টার করুন
 
 ### ৪. **Browser Automation**
+
 - **টাইপ:** Playwright headless browser
 - **ব্যবহার:** Web থেকে তথ্য সাপোর্ট, রিসার্চ
 - **সক্রিয় করুন:** Backend-এ browser controller চালু করুন
 
 ### ৫. **System Learning**
+
 - **টাইপ:** Self-improving knowledge base
 - **ব্যবহার:** কোড এডিট থেকে শিখন
 - **সক্রিয় করুন:** `enableRealTimeLearning: true` সেট করুন
@@ -46,6 +51,7 @@ SupremeAI Backend API Router
 ## 🔧 VS Code Extension Configuration
 
 ### settings.json Setup:
+
 ```json
 {
   "supremeai.backendUrl": "https://your-backend.com",
@@ -57,13 +63,13 @@ SupremeAI Backend API Router
 
 ## 🚀 Available Commands (বাংলা টাইটেলসহ)
 
-| Command | Bengali | Uses |
-|---------|---------|------|
-| `supremeai.aiComplete` | এআই কোড পূরণ | Comment → Code |
-| `supremeai.aiExplain` | কোড ব্যাখ্যা | Code → Explanation |
-| `supremeai.aiReview` | এআই কোড রিভিউ | Auto-review + web search |
-| `supremeai.analyzeCodeFlow` | কোড ফ্লো বিশ্লেষণ | Repository analysis |
-| `supremeai.forceLearn` | শিখুন | Force learning from file |
+| Command                     | Bengali           | Uses                     |
+| --------------------------- | ----------------- | ------------------------ |
+| `supremeai.aiComplete`      | এআই কোড পূরণ      | Comment → Code           |
+| `supremeai.aiExplain`       | কোড ব্যাখ্যা      | Code → Explanation       |
+| `supremeai.aiReview`        | এআই কোড রিভিউ     | Auto-review + web search |
+| `supremeai.analyzeCodeFlow` | কোড ফ্লো বিশ্লেষণ | Repository analysis      |
+| `supremeai.forceLearn`      | শিখুন             | Force learning from file |
 
 ## 🔄 Data Flow (ডাটা ফ্লো)
 
@@ -85,6 +91,7 @@ VS Code → CodeEditHandler → Backend API
 ## 📊 System Health Check
 
 Run `GET /api/chat/health` to see:
+
 ```json
 {
   "status": "UP",

@@ -1,13 +1,13 @@
 name: Cleanup Old Workflow Runs
 on:
   schedule:
-    - cron: '0 0 * * *' # প্রতিদিন রাত ১২টায় (UTC) অটোমেটিকভাবে রান করবে
+    - cron: "0 0 * * *" # প্রতিদিন রাত ১২টায় (UTC) অটোমেটিকভাবে রান করবে
   workflow_dispatch:
     inputs:
       days:
-        description: 'Days to keep runs'
+        description: "Days to keep runs"
         required: true
-        default: '5'
+        default: "5"
 
 jobs:
   del_runs:

@@ -8,16 +8,16 @@
 
 ## সিকিউরিটি স্কোরকার্ড (আপডেটেড)
 
-| ক্যাটাগরি | আগের স্কোর | নতুন স্কোর | স্ট্যাটাস |
-|:---|:---:|:---:|:---|
-| **Authentication & Authorization** | 3/10 | **9/10** ✅ | `hasRole("ADMIN")` সঠিকভাবে প্রয়োগ |
-| **CORS Policy** | 2/10 | **9/10** ✅ | নির্দিষ্ট ডোমেইন, wildcard নেই |
-| **CSRF Protection** | 3/10 | **8/10** ✅ | শুধু `/api/auth/**`, `/ws/**` exempt |
-| **Secrets Management** | 5/10 | **6/10** 🟡 | `.gitignore` আছে; Secret Manager বাকি |
-| **Firestore Security Rules** | 2/10 | **10/10** ✅ | `deny all` default, owner-scoped, admin-only |
-| **HTTP Security Headers** | 8/10 | **8/10** ✅ | CSP, HSTS, X-Frame-Options সঠিক |
-| **Cloud Run IAM** | 3/10 | **9/10** ✅ | Internal services `--no-allow-unauthenticated` |
-| **Input Validation** | 6/10 | **6/10** 🟡 | পরিবর্তন নেই |
+| ক্যাটাগরি                          | আগের স্কোর |  নতুন স্কোর  | স্ট্যাটাস                                      |
+| :--------------------------------- | :--------: | :----------: | :--------------------------------------------- |
+| **Authentication & Authorization** |    3/10    | **9/10** ✅  | `hasRole("ADMIN")` সঠিকভাবে প্রয়োগ            |
+| **CORS Policy**                    |    2/10    | **9/10** ✅  | নির্দিষ্ট ডোমেইন, wildcard নেই                 |
+| **CSRF Protection**                |    3/10    | **8/10** ✅  | শুধু `/api/auth/**`, `/ws/**` exempt           |
+| **Secrets Management**             |    5/10    | **6/10** 🟡  | `.gitignore` আছে; Secret Manager বাকি          |
+| **Firestore Security Rules**       |    2/10    | **10/10** ✅ | `deny all` default, owner-scoped, admin-only   |
+| **HTTP Security Headers**          |    8/10    | **8/10** ✅  | CSP, HSTS, X-Frame-Options সঠিক                |
+| **Cloud Run IAM**                  |    3/10    | **9/10** ✅  | Internal services `--no-allow-unauthenticated` |
+| **Input Validation**               |    6/10    | **6/10** 🟡  | পরিবর্তন নেই                                   |
 
 **সামগ্রিক সিকিউরিটি স্কোর: 68/80 (85%)** ⬆️ (+36 পয়েন্ট)
 
@@ -39,23 +39,23 @@
 
 ### আপডেটেড এন্ডপয়েন্ট ম্যাপিং
 
-| এন্ডপয়েন্ট | প্রত্যাশিত আচরণ | বাস্তব আচরণ | স্ট্যাটাস |
-|:---|:---|:---|:---:|
-| `/api/admin/providers` | 🔒 ADMIN only | 🔒 `hasRole("ADMIN")` | ✅ |
-| `/api/admin/chat/**` | 🔒 ADMIN only | 🔒 `hasRole("ADMIN")` | ✅ |
-| `/api/self-healing/**` | 🔒 ADMIN only | 🔒 `hasRole("ADMIN")` | ✅ |
-| `/api/healing/**` | 🔒 ADMIN only | 🔒 `hasRole("ADMIN")` | ✅ |
-| `/api/debug/**` | 🔒 ADMIN only | 🔒 `hasRole("ADMIN")` | ✅ |
-| `/api/security/**` | 🔒 ADMIN only | 🔒 `hasRole("ADMIN")` | ✅ |
-| `/api/workflows/**` | 🔒 ADMIN only | 🔒 `hasRole("ADMIN")` | ✅ |
-| `/api/ext/**` | 🔒 ADMIN only | 🔒 `hasRole("ADMIN")` | ✅ |
-| `/api/v1/admin/**` | 🔒 ADMIN only | 🔒 `hasRole("ADMIN")` | ✅ |
-| `/api/v1/agents/**` | 🔒 ADMIN only | 🔒 `hasRole("ADMIN")` | ✅ |
-| `/api/v1/optimization/**` | 🔒 ADMIN only | 🔒 `hasRole("ADMIN")` | ✅ |
-| `/api/auth/firebase-login` | 🔓 Public | 🔓 `permitAll()` | ✅ |
-| `/api/health` | 🔓 Public | 🔓 `permitAll()` | ✅ |
-| `/api/v1/chat/completions` | 🔓 Public | 🔓 `permitAll()` | ⚠️ Review |
-| অন্য সকল রুট | 🔒 Authenticated | 🔒 `.authenticated()` | ✅ |
+| এন্ডপয়েন্ট                | প্রত্যাশিত আচরণ  | বাস্তব আচরণ           | স্ট্যাটাস |
+| :------------------------- | :--------------- | :-------------------- | :-------: |
+| `/api/admin/providers`     | 🔒 ADMIN only    | 🔒 `hasRole("ADMIN")` |    ✅     |
+| `/api/admin/chat/**`       | 🔒 ADMIN only    | 🔒 `hasRole("ADMIN")` |    ✅     |
+| `/api/self-healing/**`     | 🔒 ADMIN only    | 🔒 `hasRole("ADMIN")` |    ✅     |
+| `/api/healing/**`          | 🔒 ADMIN only    | 🔒 `hasRole("ADMIN")` |    ✅     |
+| `/api/debug/**`            | 🔒 ADMIN only    | 🔒 `hasRole("ADMIN")` |    ✅     |
+| `/api/security/**`         | 🔒 ADMIN only    | 🔒 `hasRole("ADMIN")` |    ✅     |
+| `/api/workflows/**`        | 🔒 ADMIN only    | 🔒 `hasRole("ADMIN")` |    ✅     |
+| `/api/ext/**`              | 🔒 ADMIN only    | 🔒 `hasRole("ADMIN")` |    ✅     |
+| `/api/v1/admin/**`         | 🔒 ADMIN only    | 🔒 `hasRole("ADMIN")` |    ✅     |
+| `/api/v1/agents/**`        | 🔒 ADMIN only    | 🔒 `hasRole("ADMIN")` |    ✅     |
+| `/api/v1/optimization/**`  | 🔒 ADMIN only    | 🔒 `hasRole("ADMIN")` |    ✅     |
+| `/api/auth/firebase-login` | 🔓 Public        | 🔓 `permitAll()`      |    ✅     |
+| `/api/health`              | 🔓 Public        | 🔓 `permitAll()`      |    ✅     |
+| `/api/v1/chat/completions` | 🔓 Public        | 🔓 `permitAll()`      | ⚠️ Review |
+| অন্য সকল রুট               | 🔒 Authenticated | 🔒 `.authenticated()` |    ✅     |
 
 ⚠️ **পর্যবেক্ষণ:** `/api/v1/chat/completions` পাবলিক — এটি OpenAI-compatible endpoint হতে পারে, কিন্তু rate-limiting/API key verify দরকার।
 
@@ -84,6 +84,7 @@ Catch-all:
 ```
 
 **আক্রমণ পরীক্ষা:**
+
 ```
 আক্রমণকারী: signOut() → request.auth = null
 isAuthenticated() → false
@@ -97,13 +98,13 @@ Catch-all → if false → ❌ DENIED
 
 ## SEC-03: সিক্রেটস ম্যানেজমেন্ট — 🟡 আংশিক সমাধিত
 
-| সিক্রেট | অবস্থান | .gitignore | GCP Secret Manager | স্ট্যাটাস |
-|:---|:---|:---:|:---:|:---:|
-| JWT_SECRET | `.env` | ✅ | ❌ বাকি | 🟡 |
-| DB_DATA_SOURCE | `.env` | ✅ | ❌ বাকি | 🟡 |
-| TG_BOT_TOKEN | `.env` | ✅ | ❌ বাকি | 🟡 |
-| Firebase API Key | `dashboard/.env` | ✅ | N/A (client) | ✅ |
-| CORS_ALLOWED_ORIGINS | `application.properties` | N/A | ❌ বাকি | 🟡 |
+| সিক্রেট              | অবস্থান                  | .gitignore | GCP Secret Manager | স্ট্যাটাস |
+| :------------------- | :----------------------- | :--------: | :----------------: | :-------: |
+| JWT_SECRET           | `.env`                   |     ✅     |      ❌ বাকি       |    🟡     |
+| DB_DATA_SOURCE       | `.env`                   |     ✅     |      ❌ বাকি       |    🟡     |
+| TG_BOT_TOKEN         | `.env`                   |     ✅     |      ❌ বাকি       |    🟡     |
+| Firebase API Key     | `dashboard/.env`         |     ✅     |    N/A (client)    |    ✅     |
+| CORS_ALLOWED_ORIGINS | `application.properties` |    N/A     |      ❌ বাকি       |    🟡     |
 
 **সুপারিশ:** প্রোডাকশন ডিপ্লয়মেন্টের আগে `gcloud secrets create` দিয়ে সিক্রেটস মাইগ্রেট করা।
 
@@ -140,11 +141,11 @@ configuration.setAllowCredentials(true);
 
 ## SEC-06: Cloud Run IAM — ✅ সমাধিত
 
-| সার্ভিস | আগে | এখন |
-|:---|:---:|:---:|
-| `supremeai-backend` | 🔓 `--allow-unauthenticated` | 🔓 Public (Spring Security protects) ✅ |
-| `reverse-engineering` | 🔓 `--allow-unauthenticated` | 🔒 `--no-allow-unauthenticated` ✅ |
-| `simulator-runtime` | 🔓 `--allow-unauthenticated` | 🔒 `--no-allow-unauthenticated` ✅ |
+| সার্ভিস               |             আগে              |                   এখন                   |
+| :-------------------- | :--------------------------: | :-------------------------------------: |
+| `supremeai-backend`   | 🔓 `--allow-unauthenticated` | 🔓 Public (Spring Security protects) ✅ |
+| `reverse-engineering` | 🔓 `--allow-unauthenticated` |   🔒 `--no-allow-unauthenticated` ✅    |
+| `simulator-runtime`   | 🔓 `--allow-unauthenticated` |   🔒 `--no-allow-unauthenticated` ✅    |
 
 ---
 
@@ -172,12 +173,13 @@ configuration.setAllowCredentials(true);
 
 ## 🔵 বাকি সিকিউরিটি Tech Debt
 
-| আইটেম | অগ্রাধিকার |
-|:---|:---:|
-| `.env` → GCP Secret Manager মাইগ্রেশন | 🟡 P2 |
-| `/api/v1/chat/completions` rate limiting | 🟡 P2 |
-| `Permissions-Policy` header যোগ করা | 🔵 P3 |
-| `Referrer-Policy: strict-origin-when-cross-origin` | 🔵 P3 |
+| আইটেম                                              | অগ্রাধিকার |
+| :------------------------------------------------- | :--------: |
+| `.env` → GCP Secret Manager মাইগ্রেশন              |   🟡 P2    |
+| `/api/v1/chat/completions` rate limiting           |   🟡 P2    |
+| `Permissions-Policy` header যোগ করা                |   🔵 P3    |
+| `Referrer-Policy: strict-origin-when-cross-origin` |   🔵 P3    |
 
 ---
-*পরবর্তী ফাইল: [04_stub_and_incomplete.md](./04_stub_and_incomplete.md)*
+
+_পরবর্তী ফাইল: [04_stub_and_incomplete.md](./04_stub_and_incomplete.md)_

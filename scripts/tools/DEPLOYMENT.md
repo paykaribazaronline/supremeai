@@ -64,13 +64,13 @@ pwsh scripts/deploy-cloudrun-auth-fix.ps1 -ProjectId supremeai-a
 
 **Parameters:**
 
-| Parameter | Default | Description |
-|-----------|---------|-------------|
-| `-ProjectId` | `supremeai-a` | GCP project ID |
-| `-ServiceName` | `supremeai` | Cloud Run service name |
-| `-Region` | `us-central1` | Deployment region |
-| `-FirebaseServiceAccountFile` | (none) | Path to service account JSON for secret update |
-| `-SkipBuild` | false | Skip Docker build/push, deploy existing image |
+| Parameter                     | Default       | Description                                    |
+| ----------------------------- | ------------- | ---------------------------------------------- |
+| `-ProjectId`                  | `supremeai-a` | GCP project ID                                 |
+| `-ServiceName`                | `supremeai`   | Cloud Run service name                         |
+| `-Region`                     | `us-central1` | Deployment region                              |
+| `-FirebaseServiceAccountFile` | (none)        | Path to service account JSON for secret update |
+| `-SkipBuild`                  | false         | Skip Docker build/push, deploy existing image  |
 
 ---
 
@@ -135,11 +135,11 @@ Use the correct Artifact Registry path: `us-central1-docker.pkg.dev/supremeai-a/
 
 ## Production Endpoints
 
-| Service | URL |
-|---------|-----|
-| **Backend API** | `https://ide-api.supremeai.google.com` |
-| **Admin Dashboard** | `https://ide-api.supremeai.google.com/admin.html` |
-| **Health Check** | `https://ide-api.supremeai.google.com/actuator/health` |
+| Service             | URL                                                    |
+| ------------------- | ------------------------------------------------------ |
+| **Backend API**     | `https://ide-api.supremeai.google.com`                 |
+| **Admin Dashboard** | `https://ide-api.supremeai.google.com/admin.html`      |
+| **Health Check**    | `https://ide-api.supremeai.google.com/actuator/health` |
 
 > **Note:** The Cloud Run URL hash (`lhlwyikwlq`) is stable for the lifetime of the service. If the service is deleted and recreated, the URL will change. Update references accordingly.
 
@@ -147,14 +147,14 @@ Use the correct Artifact Registry path: `us-central1-docker.pkg.dev/supremeai-a/
 
 ## Quick Reference
 
-| Task | Command |
-|------|---------|
-| Trigger production deploy | `git push origin main` (watch GitHub Actions) |
-| Manual deploy (emergency) | `pwsh scripts/deploy-cloudrun-auth-fix.ps1` |
-| View Cloud Run logs | `gcloud logging read "resource.type=cloud_run_revision AND resource.labels.service_name=supremeai" --limit 50` |
-| Roll back to previous revision | `gcloud run services update-traffic supremeai --to-revisions=LATEST_REVISION=100` |
-| Check Artifact Registry images | `gcloud artifacts docker images list us-central1-docker.pkg.dev/supremeai-a/supremeai-repo/supremeai` |
+| Task                           | Command                                                                                                        |
+| ------------------------------ | -------------------------------------------------------------------------------------------------------------- |
+| Trigger production deploy      | `git push origin main` (watch GitHub Actions)                                                                  |
+| Manual deploy (emergency)      | `pwsh scripts/deploy-cloudrun-auth-fix.ps1`                                                                    |
+| View Cloud Run logs            | `gcloud logging read "resource.type=cloud_run_revision AND resource.labels.service_name=supremeai" --limit 50` |
+| Roll back to previous revision | `gcloud run services update-traffic supremeai --to-revisions=LATEST_REVISION=100`                              |
+| Check Artifact Registry images | `gcloud artifacts docker images list us-central1-docker.pkg.dev/supremeai-a/supremeai-repo/supremeai`          |
 
 ---
 
-*Last updated: 2026-04-21*
+_Last updated: 2026-04-21_

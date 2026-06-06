@@ -2,52 +2,152 @@
   {
     "categoryId": "coding",
     "name": "Software & Web Development",
-    "keywords": ["java", "spring", "react", "typescript", "javascript", "code", "compile", "error", "exception", "bug", "git", "gradle", "jpa", "rest", "npm", "node"],
+    "keywords": [
+      "java",
+      "spring",
+      "react",
+      "typescript",
+      "javascript",
+      "code",
+      "compile",
+      "error",
+      "exception",
+      "bug",
+      "git",
+      "gradle",
+      "jpa",
+      "rest",
+      "npm",
+      "node"
+    ],
     "targetWebsites": [
-      { "domain": "stackoverflow.com", "urlTemplate": "https://stackoverflow.com/search?q={q}" },
-      { "domain": "github.com", "urlTemplate": "https://github.com/search?q={q}" },
-      { "domain": "baeldung.com", "urlTemplate": "https://www.google.com/search?q=site:baeldung.com+{q}" }
+      {
+        "domain": "stackoverflow.com",
+        "urlTemplate": "https://stackoverflow.com/search?q={q}"
+      },
+      {
+        "domain": "github.com",
+        "urlTemplate": "https://github.com/search?q={q}"
+      },
+      {
+        "domain": "baeldung.com",
+        "urlTemplate": "https://www.google.com/search?q=site:baeldung.com+{q}"
+      }
     ],
     "extractStrategy": "code-extract"
   },
   {
     "categoryId": "bangladesh_govt",
     "name": "Bangladesh Government & Affairs",
-    "keywords": ["bangladesh", "বাংলাদেশ", "প্রধানমন্ত্রী", "উপদেষ্টা", "ইউনূস", "সরকার", "ঢাকা", "dhaka", "govt", "ministry", "বাংলাদেশী"],
+    "keywords": [
+      "bangladesh",
+      "বাংলাদেশ",
+      "প্রধানমন্ত্রী",
+      "উপদেষ্টা",
+      "ইউনূস",
+      "সরকার",
+      "ঢাকা",
+      "dhaka",
+      "govt",
+      "ministry",
+      "বাংলাদেশী"
+    ],
     "targetWebsites": [
-      { "domain": "bangladesh.gov.bd", "urlTemplate": "https://bangladesh.gov.bd/site/search?q={q}" },
-      { "domain": "wikipedia.org", "urlTemplate": "https://bn.wikipedia.org/w/index.php?search={q}" },
-      { "domain": "prothomalo.com", "urlTemplate": "https://www.prothomalo.com/search?q={q}" }
+      {
+        "domain": "bangladesh.gov.bd",
+        "urlTemplate": "https://bangladesh.gov.bd/site/search?q={q}"
+      },
+      {
+        "domain": "wikipedia.org",
+        "urlTemplate": "https://bn.wikipedia.org/w/index.php?search={q}"
+      },
+      {
+        "domain": "prothomalo.com",
+        "urlTemplate": "https://www.prothomalo.com/search?q={q}"
+      }
     ],
     "extractStrategy": "article-extract"
   },
   {
     "categoryId": "weather",
     "name": "Weather & Forecast",
-    "keywords": ["weather", "temperature", "rain", "forecast", "climate", "আবহাওয়া", "তাপমাত্রা", "বৃষ্টি"],
+    "keywords": [
+      "weather",
+      "temperature",
+      "rain",
+      "forecast",
+      "climate",
+      "আবহাওয়া",
+      "তাপমাত্রা",
+      "বৃষ্টি"
+    ],
     "targetWebsites": [
-      { "domain": "weather.com", "urlTemplate": "https://weather.com/search/enhanced?searchType=address&query={q}" },
-      { "domain": "accuweather.com", "urlTemplate": "https://www.accuweather.com/en/search-locations?query={q}" }
+      {
+        "domain": "weather.com",
+        "urlTemplate": "https://weather.com/search/enhanced?searchType=address&query={q}"
+      },
+      {
+        "domain": "accuweather.com",
+        "urlTemplate": "https://www.accuweather.com/en/search-locations?query={q}"
+      }
     ],
     "extractStrategy": "weather-extract"
   },
   {
     "categoryId": "general_facts",
     "name": "General Knowledge & Facts",
-    "keywords": ["who", "what", "where", "when", "definition", "explain", "history", "science", "planet", "world", "পদ্ধতি", "ইতিহাস", "বিজ্ঞান"],
+    "keywords": [
+      "who",
+      "what",
+      "where",
+      "when",
+      "definition",
+      "explain",
+      "history",
+      "science",
+      "planet",
+      "world",
+      "পদ্ধতি",
+      "ইতিহাস",
+      "বিজ্ঞান"
+    ],
     "targetWebsites": [
-      { "domain": "wikipedia.org", "urlTemplate": "https://en.wikipedia.org/w/index.php?search={q}" },
-      { "domain": "britannica.com", "urlTemplate": "https://www.britannica.com/search?query={q}" }
+      {
+        "domain": "wikipedia.org",
+        "urlTemplate": "https://en.wikipedia.org/w/index.php?search={q}"
+      },
+      {
+        "domain": "britannica.com",
+        "urlTemplate": "https://www.britannica.com/search?query={q}"
+      }
     ],
     "extractStrategy": "article-extract"
   },
   {
     "categoryId": "tech_news",
     "name": "Technology News & Innovation",
-    "keywords": ["tech", "nvidia", "smartphone", "gpu", "ai", "openai", "model", "release", "benchmark", "amd", "apple"],
+    "keywords": [
+      "tech",
+      "nvidia",
+      "smartphone",
+      "gpu",
+      "ai",
+      "openai",
+      "model",
+      "release",
+      "benchmark",
+      "amd",
+      "apple"
+    ],
     "targetWebsites": [
-      { "domain": "techcrunch.com", "urlTemplate": "https://techcrunch.com/?s={q}" },
-      { "domain": "theverge.com", "urlTemplate": "https://www.theverge.com/search?q={q}" }
+      {
+        "domain": "techcrunch.com",
+        "urlTemplate": "https://techcrunch.com/?s={q}"
+      },
+      {
+        "domain": "theverge.com",
+        "urlTemplate": "https://www.theverge.com/search?q={q}"
+      }
     ],
     "extractStrategy": "article-extract"
   }

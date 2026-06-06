@@ -86,16 +86,13 @@ a total of 9 operations.
 Each of these operations is exposed
 as a property of [ExampleConnector].
 
-
 An example of the property for a query
 is the query named "GetMovieById",
 which can be accessed via the [ExampleConnector.getMovieById] property.
 
-
 An example of the property for a mutation
 is the mutation named "AddReview",
 which can be accessed via the [ExampleConnector.addReview] property.
-
 
 ### ExampleConnector - The `dataConnect` Property
 
@@ -166,7 +163,6 @@ _Required_ variables are specified as arguments to the `execute()` method.
 _Optional_ variables are specified in a Kotlin DSL block as the
 last argument of the `execute()` method.
 
-
 ### Executing Queries with No Variables
 
 If a query has no variables then it can be easily executed
@@ -183,7 +179,6 @@ val queryResult = connector.listMovies.execute()
 println("ListMovies query returned: ${queryResult.data}")
 ```
 
-
 ### Executing Queries with Required Variables
 
 If a query has _required_ variables then they must be specified as
@@ -198,7 +193,6 @@ val connector = ExampleConnector.instance
 val queryResult = connector.getMovieById.execute(id=java.util.UUID.randomUUID())
 println("GetMovieById query returned: ${queryResult.data}")
 ```
-
 
 ### Executing Queries with Optional Variables
 
@@ -221,7 +215,6 @@ val queryResult = connector.searchMovie.execute {
 println("SearchMovie query returned: ${queryResult.data}")
 ```
 
-
 ## Executing Mutations
 
 Executing a mutation is as simple as calling the `execute()` method
@@ -233,8 +226,6 @@ based on the "non-nullable" marker indicated in the GraphQL source file.
 _Required_ variables are specified as arguments to the `execute()` method.
 _Optional_ variables are specified in a Kotlin DSL block as the
 last argument of the `execute()` method.
-
-
 
 ### Executing Mutations with Required Variables
 
@@ -250,6 +241,3 @@ val connector = ExampleConnector.instance
 val mutationResult = connector.addReview.execute(movieId=java.util.UUID.randomUUID(), rating=7324, reviewText="waldo")
 println("AddReview mutation returned: ${mutationResult.data}")
 ```
-
-
-

@@ -1,0 +1,6 @@
+# Ignore Firebase Security Rules (Prettier can't parse them)
+*.rules
+config/**/*.rules
+
+# Ignore build artifacts
+dist/
