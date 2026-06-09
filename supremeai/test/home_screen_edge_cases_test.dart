@@ -99,6 +99,12 @@ class MockOrchestrationProvider extends ChangeNotifier implements OrchestrationP
 
   @override
   Future<void> generateProject(String token) async {}
+
+  @override
+  void clearError() {
+    _error = null;
+    notifyListeners();
+  }
 }
 
 class MockSettingsProvider extends ChangeNotifier implements SettingsProvider {

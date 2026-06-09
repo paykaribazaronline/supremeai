@@ -38,10 +38,6 @@ class FakeApiService implements ApiService {
 }
 
 class MockAuthProvider extends ChangeNotifier implements AuthProvider {
-  final FakeApiService _apiService;
-  
-  MockAuthProvider(this._apiService);
-
   @override
   AuthStatus get status => AuthStatus.unauthenticated;
 
@@ -64,6 +60,9 @@ class MockAuthProvider extends ChangeNotifier implements AuthProvider {
   bool get isAdmin => false;
 
   @override
+  Future<bool> login(String email, String password) async => false;
+
+  @override
   Future<bool> loginWithGoogle() async => false;
 
   @override
@@ -74,9 +73,6 @@ class MockAuthProvider extends ChangeNotifier implements AuthProvider {
 
   @override
   void clearError() {}
-
-  @override
-  Future<bool> saveToBackend({String? authToken}) async => true;
 }
 
 void main() {
