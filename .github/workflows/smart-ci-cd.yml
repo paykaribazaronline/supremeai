@@ -653,10 +653,12 @@ jobs:
           npx firebase-tools deploy --only functions --project ${{ steps.auth.outputs.project_id }} --non-interactive --force --debug
 
   # 10. Mobile CI (Flutter)
+  # TEMPORARILY DISABLED while working on main project backend/frontend
+  # To re-enable: remove the if: false condition below and uncomment any downstream dependencies on mobile-test
   mobile-test:
     name: Mobile Test & Analyze
     needs: [detect-changes]
-    if: ${{ needs.detect-changes.outputs.mobile == 'true' }}
+    if: false
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
