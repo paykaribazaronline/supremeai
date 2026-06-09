@@ -140,7 +140,19 @@ class FakeAuth extends AuthProvider {
   String? get token => null;
 
   @override
+  Future<bool> login(String email, String password) async => false;
+
+  @override
+  Future<bool> loginWithGoogle() async => false;
+
+  @override
+  Future<void> continueAsGuest() async {}
+
+  @override
   Future<void> logout() async {}
+
+  @override
+  void clearError() {}
 }
 
 class FakeOrch extends OrchestrationProvider {

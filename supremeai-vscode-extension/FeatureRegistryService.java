@@ -4,6 +4,7 @@ import com.supremeai.model.FeatureDefinition;
 import org.springframework.stereotype.Service;
 import jakarta.annotation.PostConstruct;
 import java.util.ArrayList;
+import java.util.Objects;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -34,11 +35,14 @@ public class FeatureRegistryService {
     }
 
     public void register(FeatureDefinition feature) {
+        if (feature == null)
+            return;
+
         // Enhanced logic to prevent actual duplicates in the inventory
         boolean isDuplicate = registry.stream()
-                .anyMatch(f -> f.getClassPath().equals(feature.getClassPath()) || 
-                               f.getId().equals(feature.getId()));
-        
+                .anyMatch(f -> Objects.equals(f.getClassPath(), feature.getClassPath()) ||
+                        Objects.equals(f.getId(), feature.getId()));
+
         if (!isDuplicate) {
             registry.add(feature);
         }

@@ -12,6 +12,7 @@ import java.util.stream.Collectors;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.web.bind.annotation.*;
+import reactor.core.publisher.Mono;
 
 @RestController
 @RequestMapping("/api/commands")
@@ -28,7 +29,7 @@ public class CommandController {
 
   @PostMapping("/execute")
   @SuppressWarnings("unchecked")
-  public CommandResult execute(
+  public Mono<CommandResult> execute(
       @RequestBody Map<String, Object> request,
       Authentication authentication,
       HttpServletRequest httpRequest) {
@@ -36,25 +37,23 @@ public class CommandController {
     Map<String, Object> parameters = (Map<String, Object>) request.get("parameters");
 
     if (authentication == null || !authentication.isAuthenticated()) {
-      return CommandResult.error(commandName, "AUTH_ERROR", "User is not authenticated.");
+      return Mono.just(CommandResult.error(commandName, "AUTH_ERROR", "User is not authenticated."));
     }
 
     String uid = authentication.getName();
-    User user = userRepository.findByFirebaseUid(uid).block(java.time.Duration.ofSeconds(10));
-    if (user == null) {
-      throw new IllegalStateException("Authenticated user not found in database.");
-    }
+    return userRepository.findByFirebaseUid(uid)
+        .switchIfEmpty(Mono.error(new IllegalStateException("Authenticated user not found in database.")))
+        .map(user -> {
+          String[] roles = authentication.getAuthorities().stream()
+              .map(GrantedAuthority::getAuthority)
+              .toArray(String[]::new);
 
-    String[] roles =
-        authentication.getAuthorities().stream()
-            .map(GrantedAuthority::getAuthority)
-            .toArray(String[]::new);
+          CommandContext context = new CommandContext(uid, user.getDisplayName(), roles);
+          context.setSourceIp(httpRequest.getRemoteAddr());
+          context.setSourceApp("API");
 
-    CommandContext context = new CommandContext(uid, user.getDisplayName(), roles);
-    context.setSourceIp(httpRequest.getRemoteAddr());
-    context.setSourceApp("API");
-
-    return executor.execute(commandName, parameters, context);
+          return executor.execute(commandName, parameters, context);
+        });
   }
 
   @GetMapping("/list")
@@ -76,12 +75,11 @@ public class CommandController {
         "name", command.getName(),
         "description", command.getDescription(),
         "parameters",
-            command.getSchema().getParameters().entrySet().stream()
-                .map(
-                    entry ->
-                        Map.of(
-                            "name", entry.getKey(),
-                            "type", entry.getValue().getType().getSimpleName()))
-                .collect(Collectors.toList()));
+        command.getSchema().getParameters().entrySet().stream()
+            .map(
+                entry -> Map.of(
+                    "name", entry.getKey(),
+                    "type", entry.getValue().getType().getSimpleName()))
+            .collect(Collectors.toList()));
   }
 }

@@ -16,6 +16,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import reactor.core.publisher.Mono;
+import java.util.Collections;
 
 @RestController
 @RequestMapping("/api/admin/knowledge")
@@ -39,21 +41,17 @@ public class AdminKnowledgeController extends BaseAdminController<Object, String
   }
 
   @GetMapping("/snapshot")
-  public ResponseEntity<ApiResponse<Map<String, Object>>> getKnowledgeSnapshot() {
-    try {
-      Map<String, Object> data = knowledgeService.getKnowledgeSnapshot().block(BLOCK_TIMEOUT);
-      return ResponseEntity.ok(ApiResponse.ok(data));
-    } catch (Exception e) {
-      return handleErrorSync("Failed to get snapshot", e);
-    }
+  public Mono<ResponseEntity<ApiResponse<Map<String, Object>>>> getKnowledgeSnapshot() {
+    return knowledgeService.getKnowledgeSnapshot()
+        .map(data -> ResponseEntity.ok(ApiResponse.ok(data)))
+        .onErrorResume(e -> handleError("Failed to get snapshot", e));
   }
 
   @GetMapping("/domains")
-  public ResponseEntity<ApiResponse<List<Map<String, Object>>>> getDomains() {
-    try {
-      List<KnowledgeDomain> list = domainRepository.findAll().collectList().block(BLOCK_TIMEOUT);
-      List<Map<String, Object>> uiDomains =
-          list.stream()
+  public Mono<ResponseEntity<ApiResponse<List<Map<String, Object>>>>> getDomains() {
+    return domainRepository.findAll().collectList()
+        .map(list -> {
+          List<Map<String, Object>> uiDomains = list.stream()
               .map(
                   d -> {
                     Map<String, Object> m = new HashMap<>();
@@ -67,39 +65,33 @@ public class AdminKnowledgeController extends BaseAdminController<Object, String
                     return m;
                   })
               .collect(Collectors.toList());
-
-      return ResponseEntity.ok(ApiResponse.ok(uiDomains));
-    } catch (Exception e) {
-      return handleErrorSync("Failed to fetch domains", e);
-    }
+          return ResponseEntity.ok(ApiResponse.ok(uiDomains));
+        })
+        .onErrorResume(e -> handleError("Failed to fetch domains", e));
   }
 
   @PostMapping("/domains")
-  public ResponseEntity<ApiResponse<Map<String, Object>>> createDomain(
+  public Mono<ResponseEntity<ApiResponse<Map<String, Object>>>> createDomain(
       @RequestBody Map<String, Object> body) {
     String name = (String) body.get("name");
-    List<String> keywords = (List<String>) body.get("keywords");
+    @SuppressWarnings("unchecked")
+    List<String> keywords = (List<String>) body.getOrDefault("keywords", Collections.emptyList());
 
     if (name == null || name.isEmpty()) {
-      return ResponseEntity.badRequest().body(ApiResponse.error("Name is required"));
+      return Mono.just(ResponseEntity.badRequest().body(ApiResponse.error("Name is required")));
     }
 
-    KnowledgeDomain domain = new KnowledgeDomain(name, keywords != null ? keywords : List.of());
-    try {
-      KnowledgeDomain saved = domainRepository.save(domain).block(BLOCK_TIMEOUT);
-      return ResponseEntity.ok(ApiResponse.ok(Map.of("domain", saved)));
-    } catch (Exception e) {
-      return ResponseEntity.status(500).body(ApiResponse.error("Failed to create domain"));
-    }
+    KnowledgeDomain domain = new KnowledgeDomain(name, keywords);
+    return domainRepository.save(domain)
+        .map(saved -> ResponseEntity.ok(ApiResponse.ok(Map.of("domain", saved))))
+        .onErrorResume(e -> Mono.just(ResponseEntity.status(500).body(ApiResponse.error("Failed to create domain"))));
   }
 
   @GetMapping("/recommendations")
-  public ResponseEntity<ApiResponse<List<Map<String, Object>>>> getRecommendations() {
-    try {
-      List<KnowledgeRecommendation> list =
-          recommendationRepository.findAll().collectList().block(BLOCK_TIMEOUT);
-      List<Map<String, Object>> uiRecs =
-          list.stream()
+  public Mono<ResponseEntity<ApiResponse<List<Map<String, Object>>>>> getRecommendations() {
+    return recommendationRepository.findAll().collectList()
+        .map(list -> {
+          List<Map<String, Object>> uiRecs = list.stream()
               .map(
                   r -> {
                     Map<String, Object> m = new HashMap<>();
@@ -117,78 +109,59 @@ public class AdminKnowledgeController extends BaseAdminController<Object, String
                     return m;
                   })
               .collect(Collectors.toList());
-
-      return ResponseEntity.ok(ApiResponse.ok(uiRecs));
-    } catch (Exception e) {
-      return handleErrorSync("Failed to fetch recommendations", e);
-    }
+          return ResponseEntity.ok(ApiResponse.ok(uiRecs));
+        })
+        .onErrorResume(e -> handleError("Failed to fetch recommendations", e));
   }
 
   @PostMapping("/recommendations/{id}/approve")
-  public ResponseEntity<ApiResponse<String>> approveRecommendation(@PathVariable String id) {
-    try {
-      KnowledgeRecommendation rec = recommendationRepository.findById(id).block(BLOCK_TIMEOUT);
-      if (rec == null) return ResponseEntity.notFound().build();
+  public Mono<ResponseEntity<ApiResponse<String>>> approveRecommendation(@PathVariable String id) {
+    return recommendationRepository.findById(id)
+        .flatMap(rec -> {
+          rec.setStatus(KnowledgeRecommendation.Status.APPROVED);
+          rec.setProcessedAt(LocalDateTime.now());
 
-      rec.setStatus(KnowledgeRecommendation.Status.APPROVED);
-      rec.setProcessedAt(LocalDateTime.now());
+          KnowledgeDomain newDomain = new KnowledgeDomain(rec.getTopic(), rec.getKeywords());
 
-      KnowledgeDomain newDomain = new KnowledgeDomain(rec.getTopic(), rec.getKeywords());
-
-      recommendationRepository.save(rec).block(BLOCK_TIMEOUT);
-      domainRepository.save(newDomain).block(BLOCK_TIMEOUT);
-
-      return ResponseEntity.ok(ApiResponse.ok("Recommendation approved and domain created"));
-    } catch (Exception e) {
-      return ResponseEntity.status(500).body(ApiResponse.error("Approval failed"));
-    }
+          return Mono.zip(recommendationRepository.save(rec), domainRepository.save(newDomain))
+              .thenReturn(ResponseEntity.ok(ApiResponse.ok("Recommendation approved and domain created")));
+        })
+        .switchIfEmpty(Mono.just(ResponseEntity.notFound().build()))
+        .onErrorResume(e -> Mono.just(ResponseEntity.status(500).body(ApiResponse.error("Approval failed"))));
   }
 
   @PostMapping("/recommendations/{id}/decline")
-  public ResponseEntity<ApiResponse<String>> declineRecommendation(@PathVariable String id) {
-    try {
-      KnowledgeRecommendation rec = recommendationRepository.findById(id).block(BLOCK_TIMEOUT);
-      if (rec == null) return ResponseEntity.notFound().build();
-
-      rec.setStatus(KnowledgeRecommendation.Status.DECLINED);
-      rec.setProcessedAt(LocalDateTime.now());
-      recommendationRepository.save(rec).block(BLOCK_TIMEOUT);
-
-      return ResponseEntity.ok(ApiResponse.ok("Recommendation declined"));
-    } catch (Exception e) {
-      return ResponseEntity.status(500).body(ApiResponse.error("Operation failed"));
-    }
+  public Mono<ResponseEntity<ApiResponse<String>>> declineRecommendation(@PathVariable String id) {
+    return recommendationRepository.findById(id)
+        .flatMap(rec -> {
+          rec.setStatus(KnowledgeRecommendation.Status.DECLINED);
+          rec.setProcessedAt(LocalDateTime.now());
+          return recommendationRepository.save(rec)
+              .thenReturn(ResponseEntity.ok(ApiResponse.ok("Recommendation declined")));
+        })
+        .switchIfEmpty(Mono.just(ResponseEntity.notFound().build()))
+        .onErrorResume(e -> Mono.just(ResponseEntity.status(500).body(ApiResponse.error("Operation failed"))));
   }
 
   @PostMapping("/domains/{domainId}/start")
-  public ResponseEntity<ApiResponse<KnowledgeDomain>> startLearning(@PathVariable String domainId) {
-    try {
-      KnowledgeDomain data = knowledgeService.startLearning(domainId).block(BLOCK_TIMEOUT);
-      return ResponseEntity.ok(ApiResponse.ok(data));
-    } catch (Exception e) {
-      return ResponseEntity.status(500).body(ApiResponse.error("Failed to start learning"));
-    }
+  public Mono<ResponseEntity<ApiResponse<KnowledgeDomain>>> startLearning(@PathVariable String domainId) {
+    return knowledgeService.startLearning(domainId)
+        .map(data -> ResponseEntity.ok(ApiResponse.ok(data)))
+        .onErrorResume(e -> Mono.just(ResponseEntity.status(500).body(ApiResponse.error("Failed to start learning"))));
   }
 
   @PostMapping("/domains/{domainId}/process")
-  public ResponseEntity<ApiResponse<Map<String, Object>>> processLearning(
+  public Mono<ResponseEntity<ApiResponse<Map<String, Object>>>> processLearning(
       @PathVariable String domainId) {
-    try {
-      Map<String, Object> data = knowledgeService.processLearningJob(domainId).block(BLOCK_TIMEOUT);
-      return ResponseEntity.ok(ApiResponse.ok(data));
-    } catch (Exception e) {
-      return ResponseEntity.status(500).body(ApiResponse.error("Processing failed"));
-    }
+    return knowledgeService.processLearningJob(domainId)
+        .map(data -> ResponseEntity.ok(ApiResponse.ok(data)))
+        .onErrorResume(e -> Mono.just(ResponseEntity.status(500).body(ApiResponse.error("Processing failed"))));
   }
 
   @PostMapping("/recommendations/generate")
-  public ResponseEntity<ApiResponse<List<KnowledgeRecommendation>>> generateRecommendations() {
-    try {
-      List<KnowledgeRecommendation> data =
-          knowledgeService.generateRecommendations().block(BLOCK_TIMEOUT);
-      return ResponseEntity.ok(ApiResponse.ok(data));
-    } catch (Exception e) {
-      return ResponseEntity.status(500).body(ApiResponse.error("Generation failed"));
-    }
+  public Mono<ResponseEntity<ApiResponse<List<KnowledgeRecommendation>>>> generateRecommendations() {
+    return knowledgeService.generateRecommendations()
+        .map(data -> ResponseEntity.ok(ApiResponse.ok(data)))
+        .onErrorResume(e -> Mono.just(ResponseEntity.status(500).body(ApiResponse.error("Generation failed"))));
   }
 }

@@ -5,6 +5,7 @@ import java.time.Duration;
 import java.util.Map;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
 @RestController
@@ -19,24 +20,20 @@ public class FailoverController {
   }
 
   @PostMapping("/execute")
-  public ResponseEntity<Map<String, String>> executeWithFailover(
+  public Mono<ResponseEntity<Map<String, String>>> executeWithFailover(
       @RequestBody Map<String, String> request) {
     String taskCategory = request.getOrDefault("taskCategory", "general");
     String errorSignature = request.getOrDefault("errorSignature", "unknown");
     String prompt = request.get("prompt");
     if (prompt == null || prompt.isEmpty()) {
-      return ResponseEntity.badRequest().body(Map.of("error", "Missing 'prompt' field"));
+      return Mono.just(ResponseEntity.badRequest().body(Map.of("error", "Missing 'prompt' field")));
     }
-    try {
-      String result =
-          thirdOpinionOrchestrator
-              .executeWithSupremeIntelligence(taskCategory, errorSignature, prompt)
-              .subscribeOn(Schedulers.boundedElastic())
-              .block(Duration.ofSeconds(60));
-      return ResponseEntity.ok(Map.of("status", "success", "result", result));
-    } catch (Exception e) {
-      return ResponseEntity.status(500).body(Map.of("status", "failed", "error", e.getMessage()));
-    }
+    return thirdOpinionOrchestrator
+        .executeWithSupremeIntelligence(taskCategory, errorSignature, prompt)
+        .subscribeOn(Schedulers.boundedElastic())
+        .map(result -> ResponseEntity.ok(Map.of("status", "success", "result", result)))
+        .onErrorResume(
+            e -> Mono.just(ResponseEntity.status(500).body(Map.of("status", "failed", "error", e.getMessage()))));
   }
 
   @GetMapping("/providers")

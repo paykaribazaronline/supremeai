@@ -24,26 +24,33 @@ import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
 /**
- * Controller for app generation endpoints. Handles requests to generate applications based on user
+ * Controller for app generation endpoints. Handles requests to generate
+ * applications based on user
  * requirements.
  */
 @RestController
-@RequestMapping({"/api/generate", "/api/teaching/create-app"})
+@RequestMapping({ "/api/generate", "/api/teaching/create-app" })
 public class AppGenerationController {
 
   private static final Logger logger = LoggerFactory.getLogger(AppGenerationController.class);
 
-  @Autowired private CodeGenerationService codeGenerationService;
+  @Autowired
+  private CodeGenerationService codeGenerationService;
 
-  @Autowired private FullStackCodeGenerator fullStackCodeGenerator;
+  @Autowired
+  private FullStackCodeGenerator fullStackCodeGenerator;
 
-  @Autowired private MultiPlatformGenerator multiPlatformGenerator;
+  @Autowired
+  private MultiPlatformGenerator multiPlatformGenerator;
 
-  @Autowired private GeneratedAppRepository generatedAppRepository;
+  @Autowired
+  private GeneratedAppRepository generatedAppRepository;
 
-  @Autowired private AppOrchestrationService appOrchestrationService;
+  @Autowired
+  private AppOrchestrationService appOrchestrationService;
 
-  @Autowired private WebSocketController webSocketController;
+  @Autowired
+  private WebSocketController webSocketController;
 
   @PostMapping
   @PreAuthorize("hasAnyRole('USER', 'ADMIN', 'GUEST')")
@@ -67,7 +74,7 @@ public class AppGenerationController {
     if (useAI && "project".equals(request.getType())) {
       // Trigger the Full Orchestration Pipeline (AI + Code + GitHub)
       appOrchestrationService
-          .runFullPipeline(description != null ? description : name, null)
+          .runFullPipeline(description != null ? description : name, Collections.emptyMap())
           .flatMap(
               result -> {
                 // Save to repository for persistence/preview
@@ -101,96 +108,95 @@ public class AppGenerationController {
 
     // Fallback to legacy/direct generation logic
     Mono.fromCallable(
-            () -> {
-              try {
-                String database = request.getDatabase();
-                String type = request.getType();
+        () -> {
+          try {
+            String database = request.getDatabase();
+            String type = request.getType();
 
-                webSocketController.broadcastAppGenProgress(
-                    requestId, name, "INITIALIZING", 5, "Initializing generation engine...");
+            webSocketController.broadcastAppGenProgress(
+                requestId, name, "INITIALIZING", 5, "Initializing generation engine...");
 
-                Map<String, String> decisions = new HashMap<>();
-                decisions.put("architecture", "monolith");
-                decisions.put("database", database);
-                decisions.put("apiStyle", "REST");
-                decisions.put("authType", "JWT");
-                decisions.put("frontend", "React");
-                decisions.put("deployment", "GCP");
+            Map<String, String> decisions = new HashMap<>();
+            decisions.put("architecture", "monolith");
+            decisions.put("database", database);
+            decisions.put("apiStyle", "REST");
+            decisions.put("authType", "JWT");
+            decisions.put("frontend", "React");
+            decisions.put("deployment", "GCP");
 
-                webSocketController.broadcastAppGenProgress(
-                    requestId, name, "ANALYZING", 15, "Analyzing requirements and entities...");
+            webSocketController.broadcastAppGenProgress(
+                requestId, name, "ANALYZING", 15, "Analyzing requirements and entities...");
 
-                Map<String, Object> result;
+            Map<String, Object> result;
 
-                // Use enhanced AI-powered generation if requested (legacy path)
-                if (useAI) {
-                  List<EntityDefinition> entities = request.getEntities();
-                  if (entities == null) entities = new ArrayList<>();
-                  result =
-                      codeGenerationService.generateAppWithAI(
-                          name, description, entities, database, "JWT");
-                } else {
-                  webSocketController.broadcastAppGenProgress(
-                      requestId,
-                      name,
-                      "GENERATING_CORE",
-                      30,
-                      "Generating core application structure...");
+            // Use enhanced AI-powered generation if requested (legacy path)
+            if (useAI) {
+              List<EntityDefinition> entities = request.getEntities();
+              if (entities == null)
+                entities = new ArrayList<>();
+              result = codeGenerationService.generateAppWithAI(
+                  name, description, entities, database, "JWT");
+            } else {
+              webSocketController.broadcastAppGenProgress(
+                  requestId,
+                  name,
+                  "GENERATING_CORE",
+                  30,
+                  "Generating core application structure...");
 
-                  switch (platform.toLowerCase()) {
-                    case "fullstack":
-                      result = codeGenerationService.generateFromContext(decisions);
-                      break;
-                    case "web":
-                    case "android":
-                    case "ios":
-                    case "desktop":
-                      Map<String, String> platformResult =
-                          multiPlatformGenerator.generateForPlatform(
-                              description != null && !description.isEmpty() ? description : name,
-                              platform);
-                      result = new HashMap<>(platformResult);
-                      result.put("decisions", decisions);
-                      break;
-                    default:
-                      result = codeGenerationService.generateFromContext(decisions);
-                      break;
-                  }
-                }
-
-                webSocketController.broadcastAppGenProgress(
-                    requestId, name, "FINALIZING", 80, "Finalizing files and preparing preview...");
-
-                result.put("name", name);
-                result.put("description", description);
-                result.put("platform", platform);
-                result.put("type", type);
-                result.put("status", "GENERATED");
-                result.put("requestId", requestId);
-
-                String appId = UUID.randomUUID().toString();
-                GeneratedApp generatedApp = new GeneratedApp(appId, userId, platform, "React");
-                generatedApp.setHtmlContent(buildPreviewHtml(name, platform, description, result));
-                generatedApp.setStatus("GENERATED");
-                generatedApp.setRequestId(requestId);
-
-                if (result.containsKey("files")) {
-                  generatedApp.setSourceFiles((Map<String, String>) result.get("files"));
-                }
-
-                generatedAppRepository.save(generatedApp).subscribe();
-                result.put("appId", appId);
-
-                webSocketController.broadcastAppGenProgress(
-                    requestId, name, "COMPLETED", 100, "Generation completed successfully!");
-                return result;
-              } catch (Exception e) {
-                logger.error("Async app generation failed for request " + requestId, e);
-                webSocketController.broadcastAppGenProgress(
-                    requestId, name, "FAILED", 0, "Error: " + e.getMessage());
-                throw new RuntimeException(e);
+              switch (platform.toLowerCase()) {
+                case "fullstack":
+                  result = codeGenerationService.generateFromContext(decisions);
+                  break;
+                case "web":
+                case "android":
+                case "ios":
+                case "desktop":
+                  Map<String, String> platformResult = multiPlatformGenerator.generateForPlatform(
+                      description != null && !description.isEmpty() ? description : name,
+                      platform);
+                  result = new HashMap<>(platformResult);
+                  result.put("decisions", decisions);
+                  break;
+                default:
+                  result = codeGenerationService.generateFromContext(decisions);
+                  break;
               }
-            })
+            }
+
+            webSocketController.broadcastAppGenProgress(
+                requestId, name, "FINALIZING", 80, "Finalizing files and preparing preview...");
+
+            result.put("name", name);
+            result.put("description", description);
+            result.put("platform", platform);
+            result.put("type", type);
+            result.put("status", "GENERATED");
+            result.put("requestId", requestId);
+
+            String appId = UUID.randomUUID().toString();
+            GeneratedApp generatedApp = new GeneratedApp(appId, userId, platform, "React");
+            generatedApp.setHtmlContent(buildPreviewHtml(name, platform, description, result));
+            generatedApp.setStatus("GENERATED");
+            generatedApp.setRequestId(requestId);
+
+            if (result.containsKey("files")) {
+              generatedApp.setSourceFiles((Map<String, String>) result.get("files"));
+            }
+
+            generatedAppRepository.save(generatedApp).subscribe();
+            result.put("appId", appId);
+
+            webSocketController.broadcastAppGenProgress(
+                requestId, name, "COMPLETED", 100, "Generation completed successfully!");
+            return result;
+          } catch (Exception e) {
+            logger.error("Async app generation failed for request " + requestId, e);
+            webSocketController.broadcastAppGenProgress(
+                requestId, name, "FAILED", 0, "Error: " + e.getMessage());
+            throw new RuntimeException(e);
+          }
+        })
         .subscribeOn(Schedulers.boundedElastic())
         .subscribe();
 
@@ -203,13 +209,18 @@ public class AppGenerationController {
   }
 
   /**
-   * Builds a fully self-contained, executable HTML single-page preview of the generated
+   * Builds a fully self-contained, executable HTML single-page preview of the
+   * generated
    * application. The HTML is safe to load directly into an iframe via GET
    * /api/simulator/preview/{appId}.
    *
-   * <p>Strategy per platform: web → embedded vanilla JS from the "app" field (no TSX needed)
-   * ios-mock → interactive device-frame mock-up card desktop → embedded Electron-style mock shell
-   * android → embedded WebView-styled mock shell fullstack → React-style dashboard mock-up + API
+   * <p>
+   * Strategy per platform: web → embedded vanilla JS from the "app" field (no TSX
+   * needed)
+   * ios-mock → interactive device-frame mock-up card desktop → embedded
+   * Electron-style mock shell
+   * android → embedded WebView-styled mock shell fullstack → React-style
+   * dashboard mock-up + API
    * panel unknown → beautiful generic "App Ready" card
    */
   private String buildPreviewHtml(
@@ -255,8 +266,7 @@ public class AppGenerationController {
       headerEmoji = "📱";
       bodyClass = "preview-ios";
       scriptContent = buildDeviceScript("iOS App Preview", "SwiftUI", "#007AFF");
-      filesSection =
-          buildFileListSection(result) + buildCodeViewer(sourceCode, "ContentView.swift");
+      filesSection = buildFileListSection(result) + buildCodeViewer(sourceCode, "ContentView.swift");
 
     } else if (platformLower.contains("android")
         || platformLower.contains("kotlin")
@@ -278,8 +288,7 @@ public class AppGenerationController {
       headerEmoji = "🖥️";
       bodyClass = "preview-desktop";
       scriptContent = buildDeviceScript("Desktop App Preview", platform, "#6B7280");
-      filesSection =
-          buildFileListSection(result) + buildCodeViewer(sourceCode, "main.dart / App.java");
+      filesSection = buildFileListSection(result) + buildCodeViewer(sourceCode, "main.dart / App.java");
 
     } else {
 
@@ -294,7 +303,8 @@ public class AppGenerationController {
 
   // ── XSS-safe helpers ───────────────────────────────────────────────────────
   private static String escapeHtml(String raw) {
-    if (raw == null || raw.isEmpty()) return "";
+    if (raw == null || raw.isEmpty())
+      return "";
     return raw.replace("&", "&amp;")
         .replace("<", "&lt;")
         .replace(">", "&gt;")
@@ -303,7 +313,8 @@ public class AppGenerationController {
   }
 
   private static String escapeJs(String raw) {
-    if (raw == null) return "null";
+    if (raw == null)
+      return "null";
     return raw.replace("\\", "\\\\")
         .replace("\"", "\\\"")
         .replace("'", "\\'")
@@ -324,171 +335,168 @@ public class AppGenerationController {
       String bodyScript,
       String filesSection) {
     return """
-            <!DOCTYPE html>
-            <html lang="en">
-            <head>
-              <meta charset="UTF-8"/>
-              <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-              <title>%s — Preview</title>
-              <style>
-                *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-                body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-                       background: linear-gradient(135deg, #0f0c29 0%%, #302b63 50%%, #24243e 100%%);
-                       color: #e2e8f0; min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 28px; }
-                h1 { font-size: 1.5rem; font-weight: 700; }
-                h2 { font-size: 1.15rem; font-weight: 600; color: #a5b4fc; margin-bottom: 12px; }
-                p  { color: #8392ab; line-height: 1.6; }
-                .badge { display: inline-flex; align-items: center; gap: 5px;
-                         background: rgba(99,102,241,.18); border: 1px solid rgba(99,102,241,.4);
-                         color: #818cf8; padding: 4px 14px; border-radius: 999px; font-size: .8rem; font-weight: 500; }
-                .card { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08);
-                        backdrop-filter: blur(24px); border-radius: 20px; padding: 28px;
-                        width: 100%%; max-width: 760px; }
-                .header { display: flex; justify-content: space-between; align-items: flex-start;
-                          flex-wrap: wrap; gap: 12px; margin-bottom: 20px; }
-                .hero-emoji { font-size: 2.8rem; }
-                .status-tag { font-size: .7rem; padding: 3px 10px; border-radius: 999px; font-weight: 600;
-                              text-transform: uppercase; letter-spacing: .05em; background: rgba(52,211,153,.15);
-                              border: 1px solid rgba(52,211,153,.35); color: #34d399; }
-                .label     { font-size: .75rem; text-transform: uppercase; letter-spacing: .1em;
-                             color: #64748b; margin: 20px 0 8px; }
-                /* preview-window — shades the active canvas area */
-                .preview-window { background: #1e1b4b; border-radius: 12px; overflow: hidden;
-                                  border: 1px solid rgba(255,255,255,.07); margin-bottom: 20px; }
-                .preview-bar   { background: rgba(255,255,255,.05); padding: 7px 12px; display: flex;
-                                  align-items: center; gap: 6px; border-bottom: 1px solid rgba(255,255,255,.07); }
-                .dot { width: 10px; height: 10px; border-radius: 50%%; }
-                .dot-r { background: #f87171; } .dot-y { background: #facc15; } .dot-g { background: #4ade80; }
-                .preview-url { flex: 1; text-align: center; font-size: .65rem; color: #4b5563; font-family: monospace; }
-                /* in-preview content */
-                .preview-body  { padding: 22px 24px; min-height: 200px; position: relative; }
-                /* device frame overlays */
-                .device-frame { border: 2px solid rgba(255,255,255,.12); border-radius: 28px;
-                                padding: 14px; margin: 0 auto; max-width: 300px; }
-                .device-screen { background: #0a0a1a; border-radius: 18px; overflow: hidden; min-height: 160px; }
-                .device-notch { width: 80px; height: 22px; background: #0a0a1a; border-radius: 0 0 14px 14px; margin: 0 auto -1px; }
-                /* generic iframe canvas */
-                .app-canvas { width: 100%%; min-height: 220px; display: flex; flex-direction: column;
-                               align-items: center; justify-content: center; gap: 14px; }
-                /* code block */
-                .code-wrap { background: #0b0b1e; border-radius: 10px; overflow: hidden;
-                              border: 1px solid rgba(255,255,255,.06); }
-                .code-header { background: rgba(255,255,255,.04); padding: 6px 14px;
-                               font-size: .7rem; color: #6b7280; font-family: monospace;
-                               border-bottom: 1px solid rgba(255,255,255,.06); }
-                .code-block  { padding: 14px; font-family: 'JetBrains Mono', 'Fira Code', monospace;
-                               font-size: .72rem; line-height: 1.7; color: #a5b4fc;
-                               max-height: 200px; overflow-y: auto; white-space: pre-wrap; }
-                .file-list   { list-style: none; }
-                .file-list li { display: flex; justify-content: space-between; align-items: center;
-                                padding: 7px 12px; border-bottom: 1px solid rgba(255,255,255,.05);
-                                font-size: .82rem; }
-                .file-list li:last-child { border-bottom: none; }
-                .file-ext { font-size: .7rem; color: #4b5563; background: rgba(255,255,255,.05);
-                            padding: 2px 8px; border-radius: 6px; }
-                /* tip banner */
-                .tip { margin-top: 20px; padding: 14px 16px; background: rgba(251,191,36,.08);
-                       border-left: 3px solid #f59e0b; border-radius: 8px; font-size: .82rem;
-                       color: #fde68a; }
-                /* animation */
-                @keyframes pulse-glow {
-                  0%%   { box-shadow: 0 0 8px rgba(99,102,241,.2); }
-                  50%%  { box-shadow: 0 0 22px rgba(99,102,241,.45); }
-                  100%% { box-shadow: 0 0 8px rgba(99,102,241,.2); }
-                }
-                .animate-glow { animation: pulse-glow 2.5s ease-in-out infinite; }
-                .btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 18px;
-                       border-radius: 9px; font-size: .82rem; font-weight: 600; text-decoration: none;
-                       cursor: pointer; transition: transform .15s, box-shadow .15s; }
-                .btn-primary { background: #4f46e5; color: #fff; border: none; }
-                .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 20px rgba(79,70,229,.4); }
-                .btn-outline { background: transparent; color: #818cf8; border: 1px solid rgba(99,102,241,.4); }
-                .btn-row { display: flex; gap: 10px; flex-wrap: wrap; }
-              </style>
-            </head>
-            <body class="%s">
-              <div class="card">
-                <div class="header">
-                  <div>
-                    <h1>%s %s</h1>
-                    <p style="margin-top:5px">%s</p>
-                  </div>
-                  <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px">
-                    <span class="badge">%s</span>
-                    <span class="status-tag">%s</span>
-                  </div>
-                </div>
-                %s
-                %s
-                %s
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+          <meta charset="UTF-8"/>
+          <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+          <title>%s — Preview</title>
+          <style>
+            *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+            body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                   background: linear-gradient(135deg, #0f0c29 0%%, #302b63 50%%, #24243e 100%%);
+                   color: #e2e8f0; min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 28px; }
+            h1 { font-size: 1.5rem; font-weight: 700; }
+            h2 { font-size: 1.15rem; font-weight: 600; color: #a5b4fc; margin-bottom: 12px; }
+            p  { color: #8392ab; line-height: 1.6; }
+            .badge { display: inline-flex; align-items: center; gap: 5px;
+                     background: rgba(99,102,241,.18); border: 1px solid rgba(99,102,241,.4);
+                     color: #818cf8; padding: 4px 14px; border-radius: 999px; font-size: .8rem; font-weight: 500; }
+            .card { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08);
+                    backdrop-filter: blur(24px); border-radius: 20px; padding: 28px;
+                    width: 100%%; max-width: 760px; }
+            .header { display: flex; justify-content: space-between; align-items: flex-start;
+                      flex-wrap: wrap; gap: 12px; margin-bottom: 20px; }
+            .hero-emoji { font-size: 2.8rem; }
+            .status-tag { font-size: .7rem; padding: 3px 10px; border-radius: 999px; font-weight: 600;
+                          text-transform: uppercase; letter-spacing: .05em; background: rgba(52,211,153,.15);
+                          border: 1px solid rgba(52,211,153,.35); color: #34d399; }
+            .label     { font-size: .75rem; text-transform: uppercase; letter-spacing: .1em;
+                         color: #64748b; margin: 20px 0 8px; }
+            /* preview-window — shades the active canvas area */
+            .preview-window { background: #1e1b4b; border-radius: 12px; overflow: hidden;
+                              border: 1px solid rgba(255,255,255,.07); margin-bottom: 20px; }
+            .preview-bar   { background: rgba(255,255,255,.05); padding: 7px 12px; display: flex;
+                              align-items: center; gap: 6px; border-bottom: 1px solid rgba(255,255,255,.07); }
+            .dot { width: 10px; height: 10px; border-radius: 50%%; }
+            .dot-r { background: #f87171; } .dot-y { background: #facc15; } .dot-g { background: #4ade80; }
+            .preview-url { flex: 1; text-align: center; font-size: .65rem; color: #4b5563; font-family: monospace; }
+            /* in-preview content */
+            .preview-body  { padding: 22px 24px; min-height: 200px; position: relative; }
+            /* device frame overlays */
+            .device-frame { border: 2px solid rgba(255,255,255,.12); border-radius: 28px;
+                            padding: 14px; margin: 0 auto; max-width: 300px; }
+            .device-screen { background: #0a0a1a; border-radius: 18px; overflow: hidden; min-height: 160px; }
+            .device-notch { width: 80px; height: 22px; background: #0a0a1a; border-radius: 0 0 14px 14px; margin: 0 auto -1px; }
+            /* generic iframe canvas */
+            .app-canvas { width: 100%%; min-height: 220px; display: flex; flex-direction: column;
+                           align-items: center; justify-content: center; gap: 14px; }
+            /* code block */
+            .code-wrap { background: #0b0b1e; border-radius: 10px; overflow: hidden;
+                          border: 1px solid rgba(255,255,255,.06); }
+            .code-header { background: rgba(255,255,255,.04); padding: 6px 14px;
+                           font-size: .7rem; color: #6b7280; font-family: monospace;
+                           border-bottom: 1px solid rgba(255,255,255,.06); }
+            .code-block  { padding: 14px; font-family: 'JetBrains Mono', 'Fira Code', monospace;
+                           font-size: .72rem; line-height: 1.7; color: #a5b4fc;
+                           max-height: 200px; overflow-y: auto; white-space: pre-wrap; }
+            .file-list   { list-style: none; }
+            .file-list li { display: flex; justify-content: space-between; align-items: center;
+                            padding: 7px 12px; border-bottom: 1px solid rgba(255,255,255,.05);
+                            font-size: .82rem; }
+            .file-list li:last-child { border-bottom: none; }
+            .file-ext { font-size: .7rem; color: #4b5563; background: rgba(255,255,255,.05);
+                        padding: 2px 8px; border-radius: 6px; }
+            /* tip banner */
+            .tip { margin-top: 20px; padding: 14px 16px; background: rgba(251,191,36,.08);
+                   border-left: 3px solid #f59e0b; border-radius: 8px; font-size: .82rem;
+                   color: #fde68a; }
+            /* animation */
+            @keyframes pulse-glow {
+              0%%   { box-shadow: 0 0 8px rgba(99,102,241,.2); }
+              50%%  { box-shadow: 0 0 22px rgba(99,102,241,.45); }
+              100%% { box-shadow: 0 0 8px rgba(99,102,241,.2); }
+            }
+            .animate-glow { animation: pulse-glow 2.5s ease-in-out infinite; }
+            .btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 18px;
+                   border-radius: 9px; font-size: .82rem; font-weight: 600; text-decoration: none;
+                   cursor: pointer; transition: transform .15s, box-shadow .15s; }
+            .btn-primary { background: #4f46e5; color: #fff; border: none; }
+            .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 20px rgba(79,70,229,.4); }
+            .btn-outline { background: transparent; color: #818cf8; border: 1px solid rgba(99,102,241,.4); }
+            .btn-row { display: flex; gap: 10px; flex-wrap: wrap; }
+          </style>
+        </head>
+        <body class="%s">
+          <div class="card">
+            <div class="header">
+              <div>
+                <h1>%s %s</h1>
+                <p style="margin-top:5px">%s</p>
               </div>
-            </body>
-            </html>
-            """
+              <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px">
+                <span class="badge">%s</span>
+                <span class="status-tag">%s</span>
+              </div>
+            </div>
+            %s
+            %s
+            %s
+          </div>
+        </body>
+        </html>
+        """
         .formatted(
-            name,
-            name,
             name, // <title>
             bodyClass,
-            name,
-            emoji + " " + name,
-            desc, // <body>, <h1>, badge
+            emoji,
+            name, // <h1>%s %s</h1>
+            desc,
             platform,
-            status, // badge, status
-            buildPreviewToolbar(name, platform), // preview toolbar
-            buildPreviewWindow(platform, bodyScript), // preview canvas + script
-            filesSection // generated files
-            );
+            status,
+            buildPreviewToolbar(name, platform),
+            buildPreviewWindow(platform, bodyScript),
+            filesSection);
   }
 
   private String buildPreviewToolbar(String name, String platform) {
     return """
-            <div class="btn-row" style="margin-bottom:20px; display:flex; gap:10px;">
-              <button class="btn btn-primary" onclick="reloadPreview()">
-                <span>🔄</span> Reload Preview
-              </button>
-              <button class="btn btn-outline" onclick="copySource()">
-                <span>📋</span> Copy Source
-              </button>
-              <a class="btn btn-outline" href="/api/generate/preview" target="_blank"
-                 style="text-decoration:none; cursor:pointer;">
-                <span>📐</span> Updated Blueprint
-              </a>
-            </div>
-            <div class="preview-window">
-              <div class="preview-bar">
-                <span class="dot dot-r"></span>
-                <span class="dot dot-y"></span>
-                <span class="dot dot-g"></span>
-                <span class="preview-url">localhost — %s Preview</span>
-              </div>
-            """
+        <div class="btn-row" style="margin-bottom:20px; display:flex; gap:10px;">
+          <button class="btn btn-primary" onclick="reloadPreview()">
+            <span>🔄</span> Reload Preview
+          </button>
+          <button class="btn btn-outline" onclick="copySource()">
+            <span>📋</span> Copy Source
+          </button>
+          <a class="btn btn-outline" href="/api/generate/preview" target="_blank"
+             style="text-decoration:none; cursor:pointer;">
+            <span>📐</span> Updated Blueprint
+          </a>
+        </div>
+        <div class="preview-window">
+          <div class="preview-bar">
+            <span class="dot dot-r"></span>
+            <span class="dot dot-y"></span>
+            <span class="dot dot-g"></span>
+            <span class="preview-url">localhost — %s Preview</span>
+          </div>
+        """
         .formatted(escapeHtml(platform));
   }
 
   private String buildPreviewWindow(String platform, String scriptContent) {
     return """
-              <div class="preview-body" id="preview-canvas">
-                 %s
-              </div>
-            </div>
-            <script>
-              %s
-              function reloadPreview() {
-                document.getElementById('preview-canvas').innerHTML = `%s`;
-                eval(`%s`);
-              }
-              function copySource() {
-                const ta = document.createElement('textarea');
-                ta.value = document.getElementById('preview-body')?.innerText || '';
-                document.body.appendChild(ta);
-                ta.select();
-                document.execCommand('copy');
-                document.body.removeChild(ta);
-                alert('Source code copied to clipboard.');
-              }
-            </script>
-            """
+          <div class="preview-body" id="preview-canvas">
+             %s
+          </div>
+        </div>
+        <script>
+          %s
+          function reloadPreview() {
+            document.getElementById('preview-canvas').innerHTML = `%s`;
+            eval(`%s`);
+          }
+          function copySource() {
+            const ta = document.createElement('textarea');
+            ta.value = document.getElementById('preview-body')?.innerText || '';
+            document.body.appendChild(ta);
+            ta.select();
+            document.execCommand('copy');
+            document.body.removeChild(ta);
+            alert('Source code copied to clipboard.');
+          }
+        </script>
+        """
         .formatted(
             scriptContent, // initial body HTML
             escapeJs(scriptContent), // script to run
@@ -499,55 +507,54 @@ public class AppGenerationController {
   // ── Platform-Specific Script Blocks ─────────────────────────────────────
 
   private String buildWebScript(String sourceCode, String appName) {
-    String snippet =
-        sourceCode.length() > 600 ? sourceCode.substring(0, 600) + "\n// ... more" : sourceCode;
+    String snippet = sourceCode.length() > 600 ? sourceCode.substring(0, 600) + "\n// ... more" : sourceCode;
     return """
-            <div class="app-canvas">
-              <span style="font-size:3.5rem">🖥️</span>
-              <h2 style="font-size:1.3rem">%s</h2>
-              <p style="font-size:.85rem;color:#6b7280;text-align:center;max-width:380px">
-                Web app generated successfully. The React/Vite source code is in the file list below — ready for <code>npm run build</code> and deployment.
-              </p>
-              <div class="btn btn btn-primary" style="cursor:default">
-                ✅ React + Vite Project Ready
-              </div>
-            </div>
-            """
+        <div class="app-canvas">
+          <span style="font-size:3.5rem">🖥️</span>
+          <h2 style="font-size:1.3rem">%s</h2>
+          <p style="font-size:.85rem;color:#6b7280;text-align:center;max-width:380px">
+            Web app generated successfully. The React/Vite source code is in the file list below — ready for <code>npm run build</code> and deployment.
+          </p>
+          <div class="btn btn btn-primary" style="cursor:default">
+            ✅ React + Vite Project Ready
+          </div>
+        </div>
+        """
         .formatted(escapeHtml(appName));
   }
 
   private String buildDeviceScript(String title, String lang, String accentColor) {
     return """
-            <div style="text-align:center; padding:18px 0 8px">
-              <div class="device-frame">
-                <div class="device-notch"></div>
-                <div class="device-screen">
-                  <div style="display:flex;flex-direction:column;align-items:center;
-                       justify-content:center;min-height:160px;padding:20px;gap:10px;
-                       background:linear-gradient(150deg,#0b0b2e 0%%,#11113a 100%%)">
-                    <span style="font-size:2.4rem">%s</span>
-                    <span style="font-size:.75rem;color:%s;font-weight:600">%s</span>
-                    <span style="font-size:.6rem;color:#4b5563">Generated by SupremeAI</span>
-                  </div>
-                </div>
+        <div style="text-align:center; padding:18px 0 8px">
+          <div class="device-frame">
+            <div class="device-notch"></div>
+            <div class="device-screen">
+              <div style="display:flex;flex-direction:column;align-items:center;
+                   justify-content:center;min-height:160px;padding:20px;gap:10px;
+                   background:linear-gradient(150deg,#0b0b2e 0%%,#11113a 100%%)">
+                <span style="font-size:2.4rem">%s</span>
+                <span style="font-size:.75rem;color:%s;font-weight:600">%s</span>
+                <span style="font-size:.6rem;color:#4b5563">Generated by SupremeAI</span>
               </div>
-              <p style="font-size:.75rem;color:#4b5563;margin-top:10px">Native %s source in file list below → open in Xcode / Android Studio</p>
             </div>
-            """
+          </div>
+          <p style="font-size:.75rem;color:#4b5563;margin-top:10px">Native %s source in file list below → open in Xcode / Android Studio</p>
+        </div>
+        """
         .formatted(emojiFor(title), accentColor, title, lang);
   }
 
   private String buildGenericScript(String name, String desc) {
     return """
-            <div class="app-canvas">
-              <span style="font-size:3.5rem">✨</span>
-              <h2 style="font-size:1.3rem">%s — Ready</h2>
-              <p style="font-size:.85rem;color:#6b7280;text-align:center;max-width:380px">%s</p>
-              <div class="btn btn-primary btn-animate-glow" style="padding:10px 24px">
-                ✅ App Generated Successfully
-              </div>
-            </div>
-            """
+        <div class="app-canvas">
+          <span style="font-size:3.5rem">✨</span>
+          <h2 style="font-size:1.3rem">%s — Ready</h2>
+          <p style="font-size:.85rem;color:#6b7280;text-align:center;max-width:380px">%s</p>
+          <div class="btn btn-primary btn-animate-glow" style="padding:10px 24px">
+            ✅ App Generated Successfully
+          </div>
+        </div>
+        """
         .formatted(
             escapeHtml(name),
             escapeHtml(
@@ -555,36 +562,39 @@ public class AppGenerationController {
   }
 
   private String emojiFor(String title) {
-    if (title.toLowerCase().contains("ios")) return "🍎";
-    if (title.toLowerCase().contains("android")) return "🤖";
-    if (title.toLowerCase().contains("desktop")) return "🖥️";
+    if (title.toLowerCase().contains("ios"))
+      return "🍎";
+    if (title.toLowerCase().contains("android"))
+      return "🤖";
+    if (title.toLowerCase().contains("desktop"))
+      return "🖥️";
     return "✨";
   }
 
   private String buildFileListSection(Map<String, Object> result) {
-    if (!result.containsKey("files")) return "";
+    if (!result.containsKey("files"))
+      return "";
     @SuppressWarnings("unchecked")
     Map<String, String> files = (Map<String, String>) result.get("files");
-    if (files == null || files.isEmpty()) return "";
+    if (files == null || files.isEmpty())
+      return "";
 
     StringBuilder sb = new StringBuilder();
     sb.append("<p class=\"label\">📁 Generated Files (").append(files.size()).append(")</p>");
     sb.append("<ul class=\"file-list\">");
     files.forEach(
         (fname, fcontent) -> {
-          String ext =
-              fname.contains(".")
-                  ? fname.substring(fname.lastIndexOf('.') + 1).toUpperCase()
-                  : "FILE";
-          String langColor =
-              switch (ext) {
-                case "JAVA", "KT" -> "#f97316";
-                case "JSX", "TSX", "JS" -> "#61dafb";
-                case "CSS" -> "#a78bfa";
-                case "SQL" -> "#fb7185";
-                case "YAML", "YML" -> "#fbbf24";
-                default -> "#94a3b8";
-              };
+          String ext = fname.contains(".")
+              ? fname.substring(fname.lastIndexOf('.') + 1).toUpperCase()
+              : "FILE";
+          String langColor = switch (ext) {
+            case "JAVA", "KT" -> "#f97316";
+            case "JSX", "TSX", "JS" -> "#61dafb";
+            case "CSS" -> "#a78bfa";
+            case "SQL" -> "#fb7185";
+            case "YAML", "YML" -> "#fbbf24";
+            default -> "#94a3b8";
+          };
           sb.append(
               String.format(
                   "<li><span>%s</span><span class=\"file-ext\" style=\"color:%s\">%s</span></li>",
@@ -595,19 +605,19 @@ public class AppGenerationController {
   }
 
   private String buildCodeViewer(String sourceCode, String filenameHint) {
-    if (sourceCode == null || sourceCode.isBlank()) return "";
+    if (sourceCode == null || sourceCode.isBlank())
+      return "";
     // Show first 1200 chars of source for a quick peek
-    String preview =
-        sourceCode.length() > 1200
-            ? sourceCode.substring(0, 1200) + "\n\n// ── remaining content in source file ──"
-            : sourceCode;
+    String preview = sourceCode.length() > 1200
+        ? sourceCode.substring(0, 1200) + "\n\n// ── remaining content in source file ──"
+        : sourceCode;
     return """
-            <p class="label">👁 %s — Live Preview</p>
-            <div class="code-wrap">
-              <div class="code-header">%s</div>
-              <div class="code-block">%s</div>
-            </div>
-            """
+        <p class="label">👁 %s — Live Preview</p>
+        <div class="code-wrap">
+          <div class="code-header">%s</div>
+          <div class="code-block">%s</div>
+        </div>
+        """
         .formatted(escapeHtml(filenameHint), escapeHtml(filenameHint), escapeHtml(preview));
   }
 
@@ -733,36 +743,37 @@ public class AppGenerationController {
   public Mono<ResponseEntity<ApiResponse<Map<String, Object>>>> previewGeneration(
       @RequestBody Map<String, Object> request) {
     return Mono.fromCallable(
-            () -> {
-              String platform = (String) request.getOrDefault("platform", "fullstack");
+        () -> {
+          String platform = (String) request.getOrDefault("platform", "fullstack");
 
-              Map<String, String> decisions = new HashMap<>();
-              decisions.put("architecture", "monolith");
-              decisions.put("database", "PostgreSQL");
-              decisions.put("apiStyle", "REST");
-              decisions.put("authType", "JWT");
-              decisions.put("frontend", "React");
-              decisions.put("deployment", "GCP");
+          Map<String, String> decisions = new HashMap<>();
+          decisions.put("architecture", "monolith");
+          decisions.put("database", "PostgreSQL");
+          decisions.put("apiStyle", "REST");
+          decisions.put("authType", "JWT");
+          decisions.put("frontend", "React");
+          decisions.put("deployment", "GCP");
 
-              Map<String, Object> result = codeGenerationService.generateFromContext(decisions);
+          Map<String, Object> result = codeGenerationService.generateFromContext(decisions);
 
-              // Limit preview to first few files
-              @SuppressWarnings("unchecked")
-              Map<String, String> files = (Map<String, String>) result.get("files");
-              if (files != null && files.size() > 3) {
-                Map<String, String> previewFiles = new HashMap<>();
-                int count = 0;
-                for (Map.Entry<String, String> entry : files.entrySet()) {
-                  if (count++ >= 3) break;
-                  previewFiles.put(entry.getKey(), entry.getValue());
-                }
-                result.put("files", previewFiles);
-                result.put("preview", true);
-                result.put("totalFiles", files.size());
-              }
+          // Limit preview to first few files
+          @SuppressWarnings("unchecked")
+          Map<String, String> files = (Map<String, String>) result.get("files");
+          if (files != null && files.size() > 3) {
+            Map<String, String> previewFiles = new HashMap<>();
+            int count = 0;
+            for (Map.Entry<String, String> entry : files.entrySet()) {
+              if (count++ >= 3)
+                break;
+              previewFiles.put(entry.getKey(), entry.getValue());
+            }
+            result.put("files", previewFiles);
+            result.put("preview", true);
+            result.put("totalFiles", files.size());
+          }
 
-              return ResponseEntity.ok(ApiResponse.ok(result));
-            })
+          return ResponseEntity.ok(ApiResponse.ok(result));
+        })
         .subscribeOn(Schedulers.boundedElastic())
         .onErrorResume(
             e -> {
