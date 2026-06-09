@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supremeai/providers/auth_provider.dart';
 import 'package:supremeai/services/api_service.dart';
@@ -84,11 +85,7 @@ void main() {
     });
 
     test('login failure sets unauthenticated and error', () async {
-      final fakeApi = FakeApiService();
-      fakeApi.registerSuccess = false;
-      fakeApi.registerError = 'Invalid credentials';
-
-      final auth = MockAuthProvider(fakeApi);
+      final auth = MockAuthProvider();
       await Future(() {});
       await Future(() {});
 
@@ -98,8 +95,7 @@ void main() {
     });
 
     test('loginWithGoogle returns false when sign-in cancelled', () async {
-      final fakeApi = FakeApiService();
-      final auth = MockAuthProvider(fakeApi);
+      final auth = MockAuthProvider();
       await Future(() {});
       await Future(() {});
 
@@ -108,8 +104,7 @@ void main() {
 
     test('logout clears auth state', () async {
       SharedPreferences.setMockInitialValues({'auth_token': 'tok', 'user_json': '{"username":"admin"}'});
-      final fakeApi = FakeApiService();
-      final auth = MockAuthProvider(fakeApi);
+      final auth = MockAuthProvider();
       await Future(() {});
       await Future(() {});
 
