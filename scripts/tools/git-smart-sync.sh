@@ -9,7 +9,7 @@
 # ==============================================================================
 
 # Configurations
-REPO_PATH="/home/nazifarabbu/supremeai"
+REPO_PATH="${REPO_PATH:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}"
 LOG_FILE="$REPO_PATH/logs/git-smart-sync.log"
 SYNC_INTERVAL=1800 # 30 minutes in seconds
 MAX_RETRIES=3
