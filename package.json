@@ -22,8 +22,8 @@
     "dashboard/src/**/*.{ts,tsx}": [
       "npm run lint -w dashboard -- --fix"
     ],
-    "src/main/java/**/*.java": [
-      "./gradlew spotlessApply"
+    "*.java": [
+      "git add -A && ./gradlew spotlessApply"
     ]
   },
   "commitlint": {
