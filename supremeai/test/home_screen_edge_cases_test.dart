@@ -172,6 +172,12 @@ class FakeOrch extends OrchestrationProvider {
 
   @override
   Future<void> generateProject(String token) async {}
+
+  @override
+  void clearError() {
+    _error = null;
+    notifyListeners();
+  }
 }
 
 class FakeSettings extends SettingsProvider {
