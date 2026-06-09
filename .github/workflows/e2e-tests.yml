@@ -66,11 +66,11 @@ jobs:
           EMU_PID=$!
           echo $EMU_PID > firebase.pid
           for i in $(seq 1 60); do
-            if nc -z localhost 8081 && nc -z localhost 9099; then
-              echo "Firebase emulators are listening"
+            if grep -q "All emulators ready" firebase.log; then
+              echo "✅ Firebase emulators are ready"
               break
             fi
-            echo "Waiting for firebase emulators... (${i}s)"
+            echo "⏳ Waiting for firebase emulators... (${i}s)"
             sleep 1
           done
           tail -n +1 firebase.log | sed -n '1,200p'

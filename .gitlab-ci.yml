@@ -95,9 +95,8 @@ backend-deploy:
   rules:
     - if: $CI_COMMIT_BRANCH == "main"
   script:
-    - echo $GCP_SA_KEY > /tmp/gcp-key.json
-    - gcloud auth activate-service-account --key-file=/tmp/gcp-key.json
-    - PROJECT_ID=$(gcloud config get-value project || grep project_id /tmp/gcp-key.json | cut -d '"' -f 4)
+    # Assuming Workload Identity Federation (WIF) is configured in the runner
+    - PROJECT_ID=$(gcloud config get-value project)
     - gcloud auth configure-docker --quiet
     - apt-get update && apt-get install -y openjdk-21-jdk
     - chmod +x gradlew
@@ -112,7 +111,7 @@ backend-deploy:
         --allow-unauthenticated \
         --set-env-vars=SPRING_PROFILES_ACTIVE=cloud \
         --cpu=1 \
-        --memory=512Mi \
+        --memory=1Gi \
         --concurrency=80 \
         --timeout=300 \
         --max-instances=10 \
@@ -169,12 +168,12 @@ ai-validation-ci:
   variables:
     SPRING_PROFILES_ACTIVE: test
   script:
-    - echo $GCP_SA_KEY > /tmp/gcp-key.json
-    - export GOOGLE_APPLICATION_CREDENTIALS=/tmp/gcp-key.json
+    # Security: Use WIF or pre-configured credentials
+    - export GOOGLE_APPLICATION_CREDENTIALS=${GCP_KEY_PATH}
     - apt-get update && apt-get install -y curl jq
     - PROJECT_ID=$(cat /tmp/gcp-key.json | jq -r .project_id)
     - export FIREBASE_PROJECT_ID=$PROJECT_ID
-    - export JWT_SECRET=${JWT_SECRET:-"dummy_secret_key_for_ci_cd_validation_123456"}
+    - export JWT_SECRET=${JWT_SECRET}
     - chmod +x gradlew
     - ./gradlew bootJar -x test --no-daemon
     - JAR_FILE=$(find .gradle/build/libs -name "*.jar" | grep -v "plain.jar" | head -n 1)

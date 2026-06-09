@@ -44,11 +44,11 @@ public class LearningFilteringService {
      * কন্টেন্টের MD5 হ্যাশ তৈরি করা।
      * 
      * @param content হ্যাশ করার জন্য কন্টেন্ট
-     * @return MD5 হ্যাশ স্ট্রিং
+     * @return SHA-256 হ্যাশ স্ট্রিং
      */
-    private String generateMd5Hash(String content) {
+    private String generateHash(String content) {
         try {
-            MessageDigest md = MessageDigest.getInstance("MD5");
+            MessageDigest md = MessageDigest.getInstance("SHA-256");
             byte[] messageDigest = md.digest(content.getBytes());
             // বাইট অ্যারে থেকে হেক্স স্ট্রিং-এ রূপান্তর
             StringBuilder hexString = new StringBuilder();

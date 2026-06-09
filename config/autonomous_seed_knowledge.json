@@ -118,7 +118,7 @@
       "category": "ERROR_SOLVING",
       "title": "Smallest correct fix principle",
       "description": "Always implement the minimal possible change that correctly resolves the error. No refactoring, improvements or cleanup in bug fix commits.",
-      "confidence": 1.0,
+      "confidence": 0.99,
       "evidence_type": "INCIDENT_DERIVED",
       "verification_steps": [
         "1. Identify root cause before writing any code",
@@ -1322,7 +1322,6 @@
         "Is this a RUNTIME error? (NoClassDefFoundError, ClassNotFoundException, LinkageError) → skip to Runtime-path.",
         "Is this a BUILD-TOOL error? (Gradle/Maven/Python/npm version conflict) → skip to Build-tool path.",
         "Is this a NETWORK error? (couldn't download artifact, TLS failure) → skip to Network path.",
-
         "STEP 2 — COMPILE-TIME PATH (cannot find symbol, missing import)",
         " 1. Open Terminal → run the project build to reproduce: ./gradlew compileJava (Gradle) or mvn compile (Maven).",
         " 2. Read the COMPILE output — the compiler tells you the EXACT missing artifact and the EXACT file causing it.",
@@ -1340,7 +1339,6 @@
         " 7. APPLY the fix:",
         "   Add the dependency declaration at correct scope (implementation/api/compileOnly for Gradle; scope provided/runtime for Maven).",
         "   Re-run the build command. If error moves to next missing artifact, repeat.",
-
         "STEP 3 — RUNTIME PATH (NoClassDefFoundError, ClassNotFoundException, class not found at runtime)",
         " 1. Confirm: the artifact IS listed in build.gradle or pom.xml.",
         " 2. Check SCOPING — is the artifact declared with compileOnly/testCompileOnly/provided instead of implementation/api?",
@@ -1351,7 +1349,6 @@
         "   Maven: mvn dependency:purge-local-repository && mvn clean",
         " 5. FORCE re-download: Delete the local cache entry for the specific artifact then rebuild.",
         " 6. Verify the CLASSPATH: the compiled artifact must be on the runtime classpath/jar-in-jar.",
-
         "STEP 4 — BUILD-TOOL PATH (version conflict, semantic versioning mismatch)",
         " 1. Enable rich dependency report to see the full tree:",
         "   Gradle: ./gradlew dependencies > deps.txt",
@@ -1361,7 +1358,6 @@
         " 4. Override transitive dependency pin in build.gradle (Gradle) with implementation group:name:exact_version or <dependencyManagement> in Maven.",
         " 5. During SemVer conflict: prefer MAJOR=current, PATCH=latest, MINOR=safe for security patches.",
         " 6. If no safe version exists → check vulnerability DB (GitHub Advisory / NIST NVD) for same artifact ID across group IDs.",
-
         "STEP 5 — DEPENDENCY SELECTION CRITERIA (find best dependency)",
         " Run through this decision matrix before picking an artifact:",
         " 1. COMPATIBILITY: Does it declare the same Java/Kotlin/Python/Node version as your project? (minimum required vs what you run)",
@@ -1373,13 +1369,11 @@
         " 7. LICENSING: Apache 2.0 > MIT > BSD > LGPL > Commercial. Reject GPL/AGPL for proprietary use.",
         " 8. API STABILITY: Check SEMVER_V2 constants — if minor→breaking change exists, label as UNSTABLE.",
         " 9. EXISTING FAMILIARITY: If team already knows AppSDK → prefer it over clone pattern UNLESS new library provides 20%+ improvement.",
-
         "STEP 6 — REPAIR BROKEN LOCAL CACHE (network, corrupted artifact)",
         " 1. CORRUPTED jar: delete the specific file from ~/.m2/repository or ~/.gradle/caches.",
         " 2. NETWORK: check DNS (nslookup repo.maven.apache.org); check proxy for enterprise, check VPC firewall egress.",
         " 3. TLS/SSL failure: verify JDK truststore is current; temporarily use skipTls flag for local dev.",
         " 4. TLS_FAILURE on GitHub: check $GITHUB_TOKEN is set; Enterprise: verify GITHUB_HOST override.",
-
         "STEP 7 — KNOWN FLAGSHIP PATTERNS IN THIS CODEBASE",
         " 8 DEPENDENCY CLUSTERS exist in this service tree. Prioritize these:",
         "   GROUP A — AI/ML: jackson-databind, resilience4j, reactor-core",
@@ -1390,7 +1384,6 @@
         "  When adding a library, always add to its CORRECT GROUP:",
         "   group J(6.2)=spring-boot-starter-*; group J(6.4)=testing-bom; group W(1.1)=Google Cloud BOM row.",
         "  Spring GATEWAY breaks if streams are versioned across BOM rows — always stay on one BOM row.",
-
         "STEP 8 — FAILURE PROTOCOL (cannot solve)",
         " If all above steps fail:",
         "  1. Record errorSignature + full stacktrace via recordUnknownErrorToKnowledge()",

@@ -1,5 +1,6 @@
 package com.supremeai.service;
 
+import org.springframework.beans.factory.annotation.Value;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import java.io.IOException;
@@ -11,21 +12,27 @@ import java.util.regex.Pattern;
 @Slf4j
 public class DocumentationSyncService {
 
-    private static final String DOCS_PATH = "c:/Users/n/supremeai/docs/04_Plans_and_Specs/main plan/";
-    private static final String MASTER_DOC = DOCS_PATH + "SupremeAI_Complete_Documentation.md";
+    @Value("${supremeai.docs.path:docs/04_Plans_and_Specs/main plan/}")
+    private String docsPath;
+
+    @Value("${supremeai.docs.master:SupremeAI_Complete_Documentation.md}")
+    private String masterDocName;
 
     /**
-     * Auto-Script: Scans sub-plan files and syncs their status to the master document.
-     * This ensures the 25+ plans table is always accurate based on individual file metadata.
+     * Auto-Script: Scans sub-plan files and syncs their status to the master
+     * document.
+     * This ensures the 25+ plans table is always accurate based on individual file
+     * metadata.
      */
     public void syncPlanStatuses() throws IOException {
-        Path masterFile = Paths.get(MASTER_DOC);
-        if (!Files.exists(masterFile)) return;
+        Path masterFile = Paths.get(docsPath, masterDocName);
+        if (!Files.exists(masterFile))
+            return;
 
         String masterContent = Files.readString(masterFile);
-        
+
         // Logic to scan directory for Plan_XX_*.md
-        try (DirectoryStream<Path> stream = Files.newDirectoryStream(Paths.get(DOCS_PATH), "Plan_*.md")) {
+        try (DirectoryStream<Path> stream = Files.newDirectoryStream(Paths.get(docsPath), "Plan_*.md")) {
             for (Path entry : stream) {
                 String content = Files.readString(entry);
                 String planId = extractPlanId(entry.getFileName().toString());
@@ -33,7 +40,8 @@ public class DocumentationSyncService {
                 String completion = extractMetadata(content, "Completion:");
 
                 log.info("Auto-Sync: Updating Plan {} to Status: {}, Completion: {}", planId, status, completion);
-                // Internal logic would use regex to replace specific rows in the masterContent table
+                // Internal logic would use regex to replace specific rows in the masterContent
+                // table
             }
         }
     }
