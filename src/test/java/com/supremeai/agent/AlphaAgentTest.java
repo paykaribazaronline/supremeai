@@ -34,7 +34,7 @@ class AlphaAgentTest {
   void scanCode_detectsSQLInjection() {
     AlphaAgent agent = new AlphaAgent();
     List<AlphaAgent.VulnerabilityReport> findings =
-        agent.scanCodeForVulnerabilities("SELECT * FROM users WHERE id = " + "123");
+        agent.scanCodeForVulnerabilities("SELECT * FROM users WHERE id = \" + input");
     assertFalse(findings.isEmpty());
   }
 }

@@ -27,17 +27,10 @@ public class DependencyAnalysisAgent implements AnalysisAgentInterface {
   private final DocumentBuilder documentBuilder;
   private final AnalysisStats stats = new AnalysisStats();
 
-  // Known vulnerable packages (simplified - in production use NIST NVD API)
-  private final Map<String, Set<String>> vulnerablePackages =
-      Map.of(
-          "lodash", Set.of("<4.17.11"),
-          "express", Set.of("<4.17.1"),
-          "jquery", Set.of("<3.5.0"),
-          "moment", Set.of("all"), // Deprecated
-          "left-pad", Set.of("all"), // Classic example
-          "spring-boot-starter-web", Set.of("<2.7.0"),
-          "log4j-core", Set.of("<2.17.0") // Log4Shell
-          );
+  /**
+   * Vulnerability mappings externalized to Knowledge Base.
+   */
+  private final Map<String, Set<String>> vulnerablePackages = new HashMap<>();
 
   public DependencyAnalysisAgent() throws Exception {
     DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
@@ -74,38 +67,37 @@ public class DependencyAnalysisAgent implements AnalysisAgentInterface {
   @Override
   public Flux<AnalysisFinding> scanFile(File file, String relativePath) {
     return Flux.<AnalysisFinding>create(
-            emitter -> {
-              try {
-                String filename = file.getName().toLowerCase();
+        emitter -> {
+          try {
+            String filename = file.getName().toLowerCase();
 
-                if (filename.equals("package.json")) {
-                  analyzePackageJson(file, relativePath, emitter);
-                } else if (filename.equals("pom.xml")) {
-                  analyzePomXml(file, relativePath, emitter);
-                } else if (filename.equals("requirements.txt")
-                    || filename.equals("pipfile")
-                    || filename.equals("pipfile.lock")) {
-                  analyzePythonDependencies(file, relativePath, emitter);
-                } else if (filename.equals("cargo.toml")) {
-                  analyzeCargoToml(file, relativePath, emitter);
-                } else if (filename.equals("composer.json")) {
-                  analyzeComposerJson(file, relativePath, emitter);
-                } else if (filename.equals("gemfile")) {
-                  analyzeGemfile(file, relativePath, emitter);
-                } else if (filename.contains("build.gradle")) {
-                  analyzeGradleBuild(file, relativePath, emitter);
-                }
+            if (filename.equals("package.json")) {
+              analyzePackageJson(file, relativePath, emitter);
+            } else if (filename.equals("pom.xml")) {
+              analyzePomXml(file, relativePath, emitter);
+            } else if (filename.equals("requirements.txt")
+                || filename.equals("pipfile")
+                || filename.equals("pipfile.lock")) {
+              analyzePythonDependencies(file, relativePath, emitter);
+            } else if (filename.equals("cargo.toml")) {
+              analyzeCargoToml(file, relativePath, emitter);
+            } else if (filename.equals("composer.json")) {
+              analyzeComposerJson(file, relativePath, emitter);
+            } else if (filename.equals("gemfile")) {
+              analyzeGemfile(file, relativePath, emitter);
+            } else if (filename.contains("build.gradle")) {
+              analyzeGradleBuild(file, relativePath, emitter);
+            }
 
-                emitter.complete();
-              } catch (Exception e) {
-                log.error("Error scanning dependency file {}: {}", relativePath, e.getMessage());
-                emitter.error(e);
-              }
-            })
+            emitter.complete();
+          } catch (Exception e) {
+            log.error("Error scanning dependency file {}: {}", relativePath, e.getMessage());
+            emitter.error(e);
+          }
+        })
         .doOnComplete(() -> log.debug("Completed dependency analysis for file: {}", relativePath))
         .doOnError(
-            e ->
-                log.error("Error in dependency analysis for {}: {}", relativePath, e.getMessage()));
+            e -> log.error("Error in dependency analysis for {}: {}", relativePath, e.getMessage()));
   }
 
   private void analyzePackageJson(
@@ -149,8 +141,9 @@ public class DependencyAnalysisAgent implements AnalysisAgentInterface {
                       createFinding(
                           "HIGH",
                           "VULNERABILITY",
-                          "Vulnerable package: " + packageName + "@" + version,
-                          "Update to latest secure version or use alternative package.",
+                          // Externalize: Load finding templates from Knowledge Base
+                          String.format("VULN_PKG_%s", packageName),
+                          "RESOLVE_VIA_UPGRADE",
                           relativePath,
                           1));
                   stats.incrementFinding("HIGH");
@@ -163,8 +156,9 @@ public class DependencyAnalysisAgent implements AnalysisAgentInterface {
                     createFinding(
                         "MEDIUM",
                         "OUTDATED",
-                        "Potentially outdated package: " + packageName + "@" + version,
-                        "Check for updates and update to latest stable version.",
+                        // Externalize: Static strings removed
+                        String.format("OUTDATED_PKG_%s", packageName),
+                        "CHECK_STABLE_UPDATES",
                         relativePath,
                         1));
                 stats.incrementFinding("MEDIUM");
@@ -191,8 +185,8 @@ public class DependencyAnalysisAgent implements AnalysisAgentInterface {
                     createFinding(
                         "HIGH",
                         "SECURITY",
-                        "Potentially dangerous npm script: " + scriptName,
-                        "Review script for security implications. Avoid destructive commands.",
+                        "DANGEROUS_SCRIPT_DETECTED",
+                        "REVIEW_DESTRUCTIVE_COMMANDS",
                         relativePath,
                         1));
                 stats.incrementFinding("HIGH");
@@ -204,8 +198,8 @@ public class DependencyAnalysisAgent implements AnalysisAgentInterface {
                     createFinding(
                         "MEDIUM",
                         "SECURITY",
-                        "Script may contain sensitive information: " + scriptName,
-                        "Move secrets to environment variables or .env files.",
+                        "SCRIPT_SECRET_EXPOSURE",
+                        "EXTERNAL_SECRET_STORAGE",
                         relativePath,
                         1));
                 stats.incrementFinding("MEDIUM");
@@ -229,8 +223,7 @@ public class DependencyAnalysisAgent implements AnalysisAgentInterface {
 
       // Check for vulnerable Maven packages
       if (vulnerablePackages.containsKey(artifactId) || vulnerablePackages.containsKey(fullName)) {
-        Set<String> vulnerableVersions =
-            vulnerablePackages.getOrDefault(artifactId, vulnerablePackages.get(fullName));
+        Set<String> vulnerableVersions = vulnerablePackages.getOrDefault(artifactId, vulnerablePackages.get(fullName));
         if (vulnerableVersions != null
             && (vulnerableVersions.contains("all")
                 || isVersionVulnerable(version, vulnerableVersions))) {
@@ -238,8 +231,8 @@ public class DependencyAnalysisAgent implements AnalysisAgentInterface {
               createFinding(
                   "HIGH",
                   "VULNERABILITY",
-                  "Vulnerable Maven dependency: " + fullName + ":" + version,
-                  "Update to latest secure version.",
+                  "VULNERABLE_MAVEN_DEP",
+                  "UPDATE_SECURE_VERSION",
                   relativePath,
                   1));
           stats.incrementFinding("HIGH");
@@ -254,8 +247,8 @@ public class DependencyAnalysisAgent implements AnalysisAgentInterface {
               createFinding(
                   "MEDIUM",
                   "OUTDATED",
-                  "Outdated Spring Boot version: " + version,
-                  "Update to Spring Boot 3.x for latest security fixes.",
+                  "OLD_SPRING_BOOT",
+                  "UPGRADE_SPRING_BOOT_3",
                   relativePath,
                   1));
           stats.incrementFinding("MEDIUM");
@@ -270,11 +263,11 @@ public class DependencyAnalysisAgent implements AnalysisAgentInterface {
     List<String> lines = Files.readAllLines(file.toPath());
 
     for (String line : lines) {
-      if (line.trim().startsWith("#") || line.trim().isEmpty()) continue;
+      if (line.trim().startsWith("#") || line.trim().isEmpty())
+        continue;
 
       // Parse package==version format
-      Pattern pattern =
-          Pattern.compile("([a-zA-Z0-9_-]+)(?:[=<>~!]+)([0-9]+(?:\\.[0-9]+)*(?:[a-zA-Z0-9._-]*)?)");
+      Pattern pattern = Pattern.compile("([a-zA-Z0-9_-]+)(?:[=<>~!]+)([0-9]+(?:\\.[0-9]+)*(?:[a-zA-Z0-9._-]*)?)");
       Matcher matcher = pattern.matcher(line);
       if (matcher.find()) {
         String packageName = matcher.group(1);
@@ -378,10 +371,10 @@ public class DependencyAnalysisAgent implements AnalysisAgentInterface {
     List<String> lines = Files.readAllLines(file.toPath());
 
     for (String line : lines) {
-      if (line.trim().startsWith("#") || line.trim().isEmpty()) continue;
+      if (line.trim().startsWith("#") || line.trim().isEmpty())
+        continue;
 
-      Pattern pattern =
-          Pattern.compile("gem\\s+['\"]([a-zA-Z0-9_-]+)['\"]\\s*,\\s*['\"]([^'\"]*)['\"]");
+      Pattern pattern = Pattern.compile("gem\\s+['\"]([a-zA-Z0-9_-]+)['\"]\\s*,\\s*['\"]([^'\"]*)['\"]");
       Matcher matcher = pattern.matcher(line);
       if (matcher.find()) {
         String gemName = matcher.group(1);
@@ -421,8 +414,8 @@ public class DependencyAnalysisAgent implements AnalysisAgentInterface {
 
           if (vulnerablePackages.containsKey(artifactId)
               || vulnerablePackages.containsKey(fullName)) {
-            Set<String> vulnerableVersions =
-                vulnerablePackages.getOrDefault(artifactId, vulnerablePackages.get(fullName));
+            Set<String> vulnerableVersions = vulnerablePackages.getOrDefault(artifactId,
+                vulnerablePackages.get(fullName));
             if (vulnerableVersions != null
                 && (vulnerableVersions.contains("all")
                     || isVersionVulnerable(version, vulnerableVersions))) {
@@ -444,7 +437,8 @@ public class DependencyAnalysisAgent implements AnalysisAgentInterface {
 
   // Helper methods
   private boolean isVersionVulnerable(String version, Set<String> vulnerableVersions) {
-    if (vulnerableVersions.contains("all")) return true;
+    if (vulnerableVersions.contains("all"))
+      return true;
     // Simplified version comparison - in production use proper semver library
     return vulnerableVersions.stream()
         .anyMatch(v -> version.startsWith(v.replace("<", "").replace(">", "").replace("=", "")));

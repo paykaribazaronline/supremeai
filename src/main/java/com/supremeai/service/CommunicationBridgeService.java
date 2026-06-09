@@ -13,11 +13,11 @@ public class CommunicationBridgeService {
         + ". Execute with high security, provide audit trail, and optimize for cost.";
   }
 
-  // সিস্টেমের জটিল রেজাল্টকে মানুষের জন্য সহজ ভাষায় রূপান্তর করে
+  // Translates complex system results into human-readable language
   public String explainToHuman(String systemResult) {
     if (systemResult.contains("optimized")) {
-      return "সিস্টেমের পারফরম্যান্স অপ্টিমাইজ করা হয়েছে এবং এখন আগের চেয়ে অনেক দ্রুত কাজ করবে।";
+      return "System performance has been optimized and will now operate significantly faster.";
     }
-    return "আপনার নির্দেশ সফলভাবে কার্যকর করা হয়েছে: " + systemResult;
+    return "Your instruction has been successfully executed: " + systemResult;
   }
 }

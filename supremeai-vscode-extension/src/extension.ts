@@ -43,6 +43,35 @@ export function activate(context: vscode.ExtensionContext) {
 
   AuthService.getInstance(supremeConfig);
 
+  // Register URI handler for OAuth callback
+  const authSuccessDisposable = vscode.window.registerUriHandler({
+    handleUri: async (uri: vscode.Uri) => {
+      console.log('[SupremeAI] URI callback received:', uri.toString());
+      
+      if (uri.query.includes('action=login') || uri.path.includes('callback')) {
+        const params = new URLSearchParams(uri.query);
+        const token = params.get('token');
+        const userParam = params.get('user');
+        
+        if (token) {
+          const auth = AuthService.getInstance();
+          if (auth) {
+            auth.setToken(token);
+            if (userParam) {
+              try {
+                auth.setUser(JSON.parse(decodeURIComponent(userParam)));
+              } catch {
+                auth.setUser({ username: 'User' });
+              }
+            }
+            vscode.window.showInformationMessage('Login successful! Welcome to SupremeAI.');
+          }
+        }
+      }
+    }
+  });
+  context.subscriptions.push(authSuccessDisposable);
+
   aiService = getAIService();
   setAIService(aiService);
 
@@ -335,15 +364,24 @@ function registerCommands(context: vscode.ExtensionContext): void {
   });
 
   const loginCommand = vscode.commands.registerCommand('supremeai.login', async () => {
-    await AuthService.getInstance().login();
+    const auth = AuthService.getInstance();
+    if (auth) {
+      await auth.login();
+    }
   });
 
   const loginAsGuestCommand = vscode.commands.registerCommand('supremeai.loginAsGuest', async () => {
-    await AuthService.getInstance().loginAsGuest();
+    const auth = AuthService.getInstance();
+    if (auth) {
+      await auth.loginAsGuest();
+    }
   });
 
   const logoutCommand = vscode.commands.registerCommand('supremeai.logout', async () => {
-    await AuthService.getInstance().logout();
+    const auth = AuthService.getInstance();
+    if (auth) {
+      await auth.logout();
+    }
   });
 
   const aiCompleteCommand = vscode.commands.registerCommand('supremeai.aiComplete', async () => {
@@ -403,8 +441,8 @@ function registerCommands(context: vscode.ExtensionContext): void {
 
   // নতুন কমান্ড: জটিল সেটিংস বা কনফিগারেশন অটোমেট করা (Godmode 3 ব্যবহার করে)
   const autoSetupCommand = vscode.commands.registerCommand('supremeai.autoSetup', async () => {
-    const task = await vscode.window.showInputBox({ 
-      prompt: 'কোন জটিল সেটিংসটি আমি আপনার হয়ে করে দেব? (উদাঃ Setup Firebase API keys)' 
+    const task = await vscode.window.showInputBox({
+      prompt: 'কোন জটিল সেটিংসটি আমি আপনার হয়ে করে দেব? (উদাঃ Setup Firebase API keys)'
     });
     if (!task) return;
 

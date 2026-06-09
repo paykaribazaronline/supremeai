@@ -1,0 +1,57 @@
+[
+  {
+    "task": "dynamic-signature-bootstrap",
+    "category": "SIGNATURE_REGISTRY",
+    "title": "Dynamic Signature Registry Bootstrap",
+    "content": "Core signatures for boundary-less dynamic operation loaded from database",
+    "permanent": true,
+    "confidence": 1.0,
+    "metadata": {
+      "signatures": {
+        "GREETING_PATTERNS": ["hello", "hi", "hey", "greetings", "hola", "good morning", "good afternoon", "good evening", "assalamualaikum", "namaste", "হ্যালো", "হাই", "নমস্কার"],
+        "COMMON_PHRASES": ["thanks", "thank you", "ok", "okay", "yes", "no", "cool", "awesome", "great", "perfect", "bye", "goodbye"],
+        "TEMPORAL_PATTERNS": ["time", "today", "now", "current", "latest", "news", "weather", "date", "clock", "hour"],
+        "CREATIVE_PATTERNS": ["song", "poem", "story", "creative", "write", "compose", "imagine"],
+        "TASK_PATTERNS": ["create", "build", "make", "generate", "write", "develop", "implement", "design"],
+        "REQUEST_PATTERNS": ["fix", "solve", "help", "need", "want", "please", "could", "would"],
+        "STOP_WORDS": ["the", "a", "an", "and", "or", "is", "are", "was", "were", "be", "been", "being", "have", "has", "had", "will", "would", "could", "should", "may", "might", "must", "shall", "can", "need", "used", "it", "its", "this", "that", "these", "those", "i", "me", "my", "myself", "we", "our", "ours", "you", "your", "yours", "he", "him", "his", "she", "her", "they", "them", "their"],
+        "INSUFFICIENT_MARKERS": ["no web search results available", "no local database learning found", "couldn't find any information", "failed to get information", "no information found", "failed"],
+        "COMPLEX_TASK_PATTERNS": ["generate", "write code", "complex", "multiple", "architecture"],
+        "CODE_LANGUAGE_INDICATORS": ["java", "python", "javascript", "typescript", "kotlin", "scala", "rust", "go", "c++", "php", "ruby", "swift", "c#", "dart"],
+        "DATABASE_INDICATORS": ["sql", "nosql", "mongo", "postgres", "mysql", "firestore", "redis", "sqlite"],
+        "MOBILE_TOOLS": ["flutter", "mobile", "android", "ios", "app"],
+        "BUILD_TOOLS": ["create", "build", "setup", "initialize", "bootstrap"],
+        "DATABASE_TOOLS": ["database", "schema", "sql", "nosql", "table", "query"],
+        "DEBUG_TOOLS": ["error", "bug", "fix", "debug", "exception", "issue", "crash"],
+        "API_TOOLS": ["api", "rest", "endpoint", "http", "controller", "service"],
+        "GREETING_RESPONSES": ["Hello! I'm SupremeAI, your autonomous coding assistant. How can I help you today?"],
+        "HELP_RESPONSE": "I can help you with coding, debugging, and project architecture. What would you like to work on?",
+        "DEBUG_RESPONSES": ["I can help you debug! Please share the error message or the problematic code."],
+        "REFRACTOR_RESPONSES": ["I can help refactor your code! Please share what you'd like improved."],
+        "EXPLAIN_RESPONSES": ["I can explain code concepts! Please share the code or concept."],
+        "TIME_RESPONSES": ["The current time is {{time}}."],
+        "FALLBACK_MESSAGES": ["I'm here to help with your coding needs!"],
+        "DEFAULT_RESPONSES": ["I'm here to help with your coding needs!"],
+        "KNOWN_TOPICS": ["coding", "programming", "architecture", "debugging", "design", "testing"],
+        "TOPIC_CATEGORIES": ["Web", "Backend", "Mobile", "DevOps", "Cloud", "Databases"],
+        "INTENT_CLASSIFICATION_PROMPT": ["Classify intent for: \"{{input}}\""],
+        "WEB_NO_RESULT": ["No web search results available."],
+        "DB_NO_RESULT": ["No local database learning found."],
+        "DB_ERROR": ["Error accessing knowledge base."],
+        "COMPLEX_AI_ERROR": ["Failed to execute complex logic."],
+        "JAVA_VERSIONS": ["JavaVersion.VERSION_21", "JavaVersion.VERSION_17", "JavaVersion.VERSION_11"],
+        "GREETING_RESPONSES": ["Hello! I'm SupremeAI, your autonomous coding assistant."],
+        "MISSING_INFO_QUESTIONS": [
+          "CODE_LANGUAGE_QUESTION:Which programming language should be used?",
+          "DATABASE_TYPE_QUESTION:What type of database are you targeting?"
+        ],
+        "GENERAL_OPTION_TEMPLATES": ["Explain the concept in detail", "Provide a practical code example", "Show step-by-step implementation guide"],
+        "MOBILE_OPTION_TEMPLATES": ["Build a mobile application", "Setup mobile development environment", "Integrate Firebase with mobile app"],
+        "BUILD_OPTION_TEMPLATES": ["Create a new project", "Initialize development environment", "Setup CI/CD pipeline"],
+        "DATABASE_OPTION_TEMPLATES": ["Design database schema", "Setup database connection", "Optimize queries"],
+        "DEBUG_OPTION_TEMPLATES": ["Debug the error", "Analyze stack trace", "Suggest fix for bug"],
+        "API_OPTION_TEMPLATES": ["Design REST endpoint", "Create API documentation", "Implement authentication"]
+      }
+    }
+  }
+]

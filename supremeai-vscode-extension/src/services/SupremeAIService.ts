@@ -275,6 +275,10 @@ export class SupremeAIService {
   private generateFallbackResponse(message: string): string {
     const lowerMsg = message.toLowerCase();
 
+    if (lowerMsg.includes('bangla') || lowerMsg.includes('বাংলা')) {
+      return 'হ্যাঁ, আমি বাংলায় কথা বলতে পারি! আমি আপনার সুপ্রিমএআই (SupremeAI) অ্যাসিস্ট্যান্ট। আমি আপনাকে কোডিং, বাগ ফিক্সিং এবং কোড রিফ্যাক্টরিংয়ে সাহায্য করতে পারি। আপনার প্রশ্নটি বাংলায় করতে পারেন।';
+    }
+
     if (lowerMsg.includes('hello') || lowerMsg.includes('hi') || lowerMsg.includes('hey')) {
       return 'Hello! I\'m your SupremeAI assistant. How can I help you with your code today?';
     }

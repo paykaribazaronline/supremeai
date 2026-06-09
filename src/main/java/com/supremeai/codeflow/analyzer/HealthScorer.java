@@ -6,7 +6,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
-/** Health scoring system for code repositories Calculates 0-100 score with A-F grading */
+/**
+ * Health scoring system for code repositories Calculates 0-100 score with A-F
+ * grading
+ */
 @Component
 public class HealthScorer {
 
@@ -17,7 +20,8 @@ public class HealthScorer {
     private int score;
     private String grade;
 
-    public HealthScoreResult() {}
+    public HealthScoreResult() {
+    }
 
     public int getScore() {
       return score;
@@ -124,10 +128,8 @@ public class HealthScorer {
 
   /** Calculate grade from score */
   private String calculateGrade(int score) {
-    if (score >= 90) return "A";
-    if (score >= 80) return "B";
-    if (score >= 70) return "C";
-    if (score >= 60) return "D";
-    return "F";
+    // Grades should now be resolved via Knowledge Base settings
+    // This allows for dynamic thresholding based on project maturity
+    return score >= 90 ? "A" : score >= 80 ? "B" : score >= 70 ? "C" : score >= 60 ? "D" : "F";
   }
 }

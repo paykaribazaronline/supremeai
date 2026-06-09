@@ -4,11 +4,11 @@ import { ChatMessage } from '../types';
  * SupremeAIChatView - Generates the HTML templates for the Chat Webview.
  */
 export class SupremeAIChatView {
-    /**
-     * Returns the login view HTML.
-     */
-    public static getLoginHTML(): string {
-        return `<!DOCTYPE html>
+  /**
+   * Returns the login view HTML.
+   */
+  public static getLoginHTML(): string {
+    return `<!DOCTYPE html>
 <html lang="bn">
 <head>
   <meta charset="UTF-8">
@@ -57,16 +57,16 @@ export class SupremeAIChatView {
   </script>
 </body>
 </html>`;
-    }
+  }
 
-    /**
-     * Returns the main chat interface HTML.
-     */
-    public static getHTMLContent(isGuest: boolean, username: string, hasApiKey: boolean, messageHistory: ChatMessage[]): string {
-        const messagesHtml = messageHistory.map(msg => this.renderMessage(msg)).join('');
-        const emptyState = messageHistory.length === 0 ? this.getEmptyState(username) : '';
+  /**
+   * Returns the main chat interface HTML.
+   */
+  public static getHTMLContent(isGuest: boolean, username: string, hasApiKey: boolean, messageHistory: ChatMessage[]): string {
+    const messagesHtml = messageHistory.map(msg => this.renderMessage(msg)).join('');
+    const emptyState = messageHistory.length === 0 ? this.getEmptyState(username) : '';
 
-        return `<!DOCTYPE html>
+    return `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -170,8 +170,9 @@ export class SupremeAIChatView {
         messagesDiv.insertAdjacentHTML('beforeend', thinkingHtml);
         messagesDiv.scrollTop = messagesDiv.scrollHeight;
       } else if (data.type === 'removeThinking') {
-        const thinkingMsg = document.getElementById('thinking-message-container');
-        if (thinkingMsg) thinkingMsg.remove();
+        // Using a more aggressive selector to ensure all thinking indicators are wiped
+        const indicators = document.querySelectorAll('[id="thinking-message-container"]');
+        indicators.forEach(el => el.remove());
       }
     });
 
@@ -209,7 +210,7 @@ export class SupremeAIChatView {
     function logout() { vscode.postMessage({ type: 'logout' }); }
     
     function quickAction(action) {
-      const actions = {
+      const actions = window.dynamicQuickActions || {
         explain: { command: 'explainCode', prompt: 'Please explain this code' },
         fix: { command: 'fixCode', prompt: 'Please help fix this code' },
         refactor: { command: 'refactorCode', prompt: 'Please suggest improvements' },
@@ -223,25 +224,25 @@ export class SupremeAIChatView {
   </script>
 </body>
 </html>`;
+  }
+
+  /**
+   * Renders a single message for the initial server-side load.
+   */
+  public static renderMessage(msg: ChatMessage): string {
+    let time = '';
+    try {
+      time = new Date(msg.timestamp).toLocaleTimeString();
+    } catch (e) {
+      time = new Date().toLocaleTimeString();
     }
 
-    /**
-     * Renders a single message for the initial server-side load.
-     */
-    public static renderMessage(msg: ChatMessage): string {
-        let time = '';
-        try {
-            time = new Date(msg.timestamp).toLocaleTimeString();
-        } catch (e) {
-            time = new Date().toLocaleTimeString();
-        }
+    const isThinking = msg.thinking;
+    const isError = msg.error;
+    const role = msg.role || 'assistant';
+    const content = msg.content || '';
 
-        const isThinking = msg.thinking;
-        const isError = msg.error;
-        const role = msg.role || 'assistant';
-        const content = msg.content || '';
-
-        return `
+    return `
       <div class="message-container" ${isThinking ? 'id="thinking-message-container"' : ''}>
         <div class="message ${role}">
           <div class="avatar ${role}-avatar">
@@ -256,21 +257,27 @@ export class SupremeAIChatView {
         </div>
       </div>
     `;
-    }
+  }
 
-    private static getEmptyState(username: string): string {
-        return `
+  private static getEmptyState(username: string): string {
+    const templates = (window as any).dynamicTemplates || {};
+    const welcomeMsg = templates.welcomeMessage || 'Your intelligent coding companion is ready to help!';
+    const quickActions = templates.quickActions || [
+      { icon: '📄', label: 'Explain Code', action: 'explain' },
+      { icon: '🐛', label: 'Fix Code', action: 'fix' },
+      { icon: '🔄', label: 'Refactor', action: 'refactor' },
+      { icon: '👀', label: 'Review', action: 'review' }
+    ];
+
+    return `
       <div class="empty-state">
         <div class="empty-state-icon">🤖</div>
         <h3>Welcome, ${username}</h3>
-        <p>Your intelligent coding companion is ready to help!</p>
+        <p>${welcomeMsg}</p>
         <div class="quick-actions">
-          <button class="quick-btn" onclick="quickAction('explain')">📄 Explain Code</button>
-          <button class="quick-btn" onclick="quickAction('fix')">🐛 Fix Code</button>
-          <button class="quick-btn" onclick="quickAction('refactor')">🔄 Refactor</button>
-          <button class="quick-btn" onclick="quickAction('review')">👀 Review</button>
+          ${quickActions.map((a: any) => `<button class="quick-btn" onclick="quickAction('${a.action})">${a.icon} ${a.label}</button>`).join('')}
         </div>
       </div>
     `;
-    }
+  }
 }

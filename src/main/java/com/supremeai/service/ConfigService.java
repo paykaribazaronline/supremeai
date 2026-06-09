@@ -19,7 +19,10 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
-/** Service to manage global system configuration with Firestore persistence and local caching. */
+/**
+ * Service to manage global system configuration with Firestore persistence and
+ * local caching.
+ */
 @Service
 public class ConfigService {
 
@@ -28,9 +31,11 @@ public class ConfigService {
   private static final String REDIS_CONFIG_KEY = "supremeai:config";
   private static final Duration CACHE_TTL = Duration.ofMinutes(30);
 
-  @Autowired private SystemConfigRepository systemConfigRepository;
+  @Autowired
+  private SystemConfigRepository systemConfigRepository;
 
-  @Autowired private Firestore firestore;
+  @Autowired
+  private Firestore firestore;
 
   @Autowired(required = false)
   private RedisTemplate<String, Object> redisTemplate;
@@ -51,8 +56,7 @@ public class ConfigService {
 
   // ─── Lifecycle ───────────────────────────────────────────────────────────
 
-  @org.springframework.context.event.EventListener(
-      org.springframework.boot.context.event.ApplicationReadyEvent.class)
+  @org.springframework.context.event.EventListener(org.springframework.boot.context.event.ApplicationReadyEvent.class)
   public void init() {
     logger.info("[CONFIG] Initializing system configuration...");
 
@@ -83,11 +87,9 @@ public class ConfigService {
             })
         .subscribeOn(reactor.core.scheduler.Schedulers.boundedElastic())
         .subscribe(
-            config ->
-                logger.info("[CONFIG] System configuration initialized: v{}", config.getVersion()),
-            error ->
-                logger.error(
-                    "[CONFIG] Failed to initialize system configuration: {}", error.getMessage()));
+            config -> logger.info("[CONFIG] System configuration initialized: v{}", config.getVersion()),
+            error -> logger.error(
+                "[CONFIG] Failed to initialize system configuration: {}", error.getMessage()));
 
     if (systemWorkRuleService != null) {
       systemWorkRuleService
@@ -99,25 +101,24 @@ public class ConfigService {
     }
 
     try {
-      this.listenerRegistration =
-          firestore
-              .collection("system_configs")
-              .document(DOCUMENT_ID)
-              .addSnapshotListener(
-                  listenerExecutor,
-                  (snapshot, error) -> {
-                    if (error != null) {
-                      logger.error("[CONFIG] Firestore listener error", error);
-                      return;
-                    }
-                    if (snapshot != null && snapshot.exists()) {
-                      SystemConfig newConfig = snapshot.toObject(SystemConfig.class);
-                      if (newConfig != null) {
-                        this.cachedConfig = newConfig;
-                        logger.info("[CONFIG] Live update received: v{}", newConfig.getVersion());
-                      }
-                    }
-                  });
+      this.listenerRegistration = firestore
+          .collection("system_configs")
+          .document(DOCUMENT_ID)
+          .addSnapshotListener(
+              listenerExecutor,
+              (snapshot, error) -> {
+                if (error != null) {
+                  logger.error("[CONFIG] Firestore listener error", error);
+                  return;
+                }
+                if (snapshot != null && snapshot.exists()) {
+                  SystemConfig newConfig = snapshot.toObject(SystemConfig.class);
+                  if (newConfig != null) {
+                    this.cachedConfig = newConfig;
+                    logger.info("[CONFIG] Live update received: v{}", newConfig.getVersion());
+                  }
+                }
+              });
       logger.info("[CONFIG] Real-time listener attached to: {}", DOCUMENT_ID);
     } catch (Exception e) {
       logger.error("[CONFIG] Failed to setup real-time listener", e);
@@ -126,8 +127,10 @@ public class ConfigService {
 
   @PreDestroy
   public void cleanup() {
-    if (listenerRegistration != null) listenerRegistration.remove();
-    // Shutdown the dedicated listener executor to avoid thread leaks on application stop
+    if (listenerRegistration != null)
+      listenerRegistration.remove();
+    // Shutdown the dedicated listener executor to avoid thread leaks on application
+    // stop
     try {
       listenerExecutor.shutdown();
       if (!listenerExecutor.awaitTermination(10, java.util.concurrent.TimeUnit.SECONDS)) {
@@ -176,6 +179,9 @@ public class ConfigService {
     config.getSettings().put("max_recent_logs", 1000);
     config.getSettings().put("scraper_rate_limit_requests", 10);
     config.getSettings().put("scraper_rate_limit_window", 60);
+    config.getSettings().put("system.default.language", "English"); // New default language setting
+    config.getSettings().put("chat.greeting.message",
+        "Hello! I'm SupremeAI. How can I assist you with your project or coding today?"); // Default English greeting
     config
         .getSettings()
         .put(
@@ -235,12 +241,13 @@ public class ConfigService {
 
   // ─── SystemWorkRule overlays ──────────────────────────────────────────
   //
-  // SystemWorkRules are the authoritative source of truth.  When an admin
+  // SystemWorkRules are the authoritative source of truth. When an admin
   // sets a rule these helpers always return the rule value first, then fall
   // back to SystemConfig.settings, then defaultVal.
 
   /**
-   * Sync helper — resolves a setting value honouring SystemWorkRule overrides. Only call from
+   * Sync helper — resolves a setting value honouring SystemWorkRule overrides.
+   * Only call from
    * non-reactive (blocking) threads.
    */
   private static final Duration BLOCK_TIMEOUT = Duration.ofSeconds(10);
@@ -249,12 +256,11 @@ public class ConfigService {
   public <T> T getEffectiveSetting(String key, T defaultVal) {
     if (systemWorkRuleService != null) {
       try {
-        String ruleVal =
-            systemWorkRuleService
-                .getRuleByKey(key)
-                .map(SystemWorkRule::getValue)
-                .onErrorReturn(null)
-                .block(BLOCK_TIMEOUT);
+        String ruleVal = systemWorkRuleService
+            .getRuleByKey(key)
+            .map(SystemWorkRule::getValue)
+            .onErrorReturn(null)
+            .block(BLOCK_TIMEOUT);
         if (ruleVal != null) {
           try {
             return (T) ruleVal;
@@ -276,7 +282,9 @@ public class ConfigService {
     return defaultVal;
   }
 
-  /** Mono-based string override — SystemWorkRules are checked before SystemConfig. */
+  /**
+   * Mono-based string override — SystemWorkRules are checked before SystemConfig.
+   */
   public Mono<String> getEffectiveString(String key, String defaultVal) {
     if (systemWorkRuleService == null) {
       Object raw = getConfig().getSettings().getOrDefault(key, defaultVal);
@@ -316,7 +324,8 @@ public class ConfigService {
   // ─── Quota helpers ─────────────────────────────────────────────────────
 
   public long getQuotaForTier(UserTier tier) {
-    if (tier == UserTier.ADMIN) return -1L;
+    if (tier == UserTier.ADMIN)
+      return -1L;
     return getConfig().getTierQuotas().getOrDefault(tier.name(), 1000L);
   }
 
@@ -403,7 +412,8 @@ public class ConfigService {
   @SuppressWarnings("unchecked")
   public <T> T getSetting(String key, T defaultVal) {
     Object val = getConfig().getSettings().get(key);
-    if (val == null) return defaultVal;
+    if (val == null)
+      return defaultVal;
     try {
       return (T) val;
     } catch (ClassCastException e) {

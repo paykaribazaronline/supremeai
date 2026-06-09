@@ -24,37 +24,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
-/**
- * ════════════════════════════════════════════════════════════ SupremeAI Brain — সিস্টেমের একমাত্র
- * Central AI Execution Point ════════════════════════════════════════════════════════════
- *
- * <p>আর্কিটেকচার নীতি: ────────────────────────────────────────────────────────── ✅ সিস্টেমের EVERY
- * feature এই service দিয়ে AI call করবে ✅ SupremeAI নিজেই DEFAULT brain — কোনো external AI নয় ✅
- * Admin যদি helper AI configure করেন → SupremeCore সেটা ব্যবহার করে ✅ Helper AI না থাকলে →
- * core_knowledge.json + Firebase memory ✅ সম্পূর্ণ Reactive — কোনো .block() নেই ✅ Task-aware —
- * feature অনুযায়ী সঠিক AI route করে ──────────────────────────────────────────────────────────
- *
- * <p>Usage (যেকোনো Service-এ): ───────────────────────── @Autowired SupremeAIBrain brain;
- *
- * <p>brain.think("generate spring boot controller for users") // general
- * brain.think("CODE_GENERATION", prompt) // task-specific brain.think("TRANSLATION", prompt) //
- * translation brain.think("VISION", imagePrompt) // vision
- *
- * <p>════════════════════════════════════════════════════════════
- */
-/**
- * CORE KNOWLEDGE ROLE STATEMENT: - The primary job of Core Knowledge from now on is to act as the
- * central coordinator and decision maker. - It understands how to make other components work (e.g.
- * why only the browser is enough to solve 80% of tasks, when to route tasks to helper models, and
- * what prompt engineering strategies to use dynamically).
- */
 @Service
 public class SupremeAIBrain {
 
   private static final Logger logger = LoggerFactory.getLogger(SupremeAIBrain.class);
 
-  // ── Task category constants (Admin এই categories দিয়ে providers configure
-  // করেন)
   public static final String TASK_CHAT = "CHAT";
   public static final String TASK_CODE_GENERATION = "CODE_GENERATION";
   public static final String TASK_CODE_REVIEW = "CODE_REVIEW";
@@ -72,6 +46,8 @@ public class SupremeAIBrain {
 
   @Autowired private ThirdOpinionOrchestrator fallbackOrchestrator;
 
+  @Autowired private DynamicSignatureRegistry signatureRegistry;
+
   @Autowired private SupremeLearningOrchestrator learningOrchestrator;
 
   @Autowired private ActiveInternetScraper activeInternetScraper;
@@ -88,55 +64,26 @@ public class SupremeAIBrain {
 
   @Autowired private ObjectMapper objectMapper;
 
-  // Simple in-memory stats (Admin dashboard এ দেখানো হবে)
   private final Map<String, Long> taskCallCount = new ConcurrentHashMap<>();
   private final Map<String, Long> taskSuccessCount = new ConcurrentHashMap<>();
 
-  // ══════════════════════════════════════════════════════════
-  // PRIMARY API — সব feature এই method গুলো ব্যবহার করবে
-  // ══════════════════════════════════════════════════════════
-
-  /**
-   * General-purpose AI thinking — task category ছাড়া। SupremeCore নিজে সিদ্ধান্ত নেয় কোন helper
-   * AI (যদি থাকে) ব্যবহার করবে।
-   *
-   * @param prompt ব্যবহারকারীর প্রশ্ন বা request
-   * @return AI response (সবসময় কিছু না কিছু দেবে, কখনো empty নয়)
-   */
   public Mono<String> think(String prompt) {
     return think(TASK_GENERAL, prompt);
   }
 
-  /**
-   * Task-specific AI thinking — Admin task অনুযায়ী helper AI route করতে পারেন।
-   *
-   * @param taskCategory TASK_* constants ব্যবহার করুন (যেমন: TASK_CODE_GENERATION)
-   * @param prompt কাজের বিবরণ বা প্রশ্ন
-   * @return AI response
-   */
   public Mono<String> think(String taskCategory, String prompt) {
     return think(taskCategory, prompt, "NO_SIGNATURE");
   }
 
-  /**
-   * Full AI thinking — task, prompt এবং error signature সহ। ThirdOpinionOrchestrator এর সাথে
-   * SupremeCore orchestration একত্রিত।
-   *
-   * @param taskCategory TASK_* constant
-   * @param prompt AI-কে দেওয়া instruction
-   * @param errorSignature known error/task signature (cache lookup-এর জন্য)
-   * @return AI response — সবসময় non-null, কখনো error throw করে না
-   */
   public Mono<String> think(String taskCategory, String prompt, String errorSignature) {
     if (prompt == null || prompt.isBlank()) {
-      return Mono.just("[SupremeAI Brain] প্রম্পট খালি। কিছু লিখুন।");
+      return Mono.just("[SupremeAI Brain] Prompt is empty. Please provide input.");
     }
 
     String task = taskCategory != null ? taskCategory.toUpperCase() : TASK_GENERAL;
     trackCall(task);
     long startTime = System.currentTimeMillis();
 
-    // ── Phase 3 Optimization: Check Solution Memory Cache first ──
     if (errorSignature != null && !errorSignature.equals("NO_SIGNATURE")) {
       return solutionMemoryRepository
           .findByTriggerError(errorSignature)
@@ -160,27 +107,14 @@ public class SupremeAIBrain {
   private Mono<String> executeWithHubOrchestration(
       String task, String prompt, String errorSignature, long startTime) {
 
-    // Core Knowledge decision making: Decide if query is Normal or Complex
-    // (Change made: Core Knowledge is now a dynamic decision maker and does not
-    // serve static
-    // answers)
-    boolean isComplex =
-        task.contains("CODE_")
-            || task.contains("REVIEW")
-            || task.contains("SECURITY")
-            || task.contains("TESTING")
-            || task.contains("REASONING")
-            || prompt.contains("generate")
-            || prompt.contains("write code")
-            || prompt.contains("complex");
+    boolean isComplex = isComplexTask(task, prompt);
 
     if (!isComplex) {
       logger.info(
           "🧠 [CORE KNOWLEDGE] Decision: Routing NORMAL query to Browser and Database Learning in parallel.");
 
-      // Part 1: Browser search and Database learning queries run in parallel
       Mono<String> browserMono =
-          tryBrowserScraping(task, prompt).onErrorReturn("No web search results available.");
+          tryBrowserScraping(task, prompt).onErrorReturn(getDynamicFallback("WEB_NO_RESULT"));
 
       String searchKey =
           (errorSignature != null && !errorSignature.equals("NO_SIGNATURE"))
@@ -192,8 +126,8 @@ public class SupremeAIBrain {
               .sort((a, b) -> Double.compare(b.calculateSupremeScore(), a.calculateSupremeScore()))
               .next()
               .map(sol -> sol.getResolvedCode())
-              .defaultIfEmpty("No local database learning found.")
-              .onErrorReturn("No local database learning found.");
+              .defaultIfEmpty(getDynamicFallback("DB_NO_RESULT"))
+              .onErrorReturn(getDynamicFallback("DB_ERROR"));
 
       return Mono.zip(browserMono, dbMemoryMono)
           .flatMap(
@@ -204,14 +138,12 @@ public class SupremeAIBrain {
       logger.info(
           "🧠 [CORE KNOWLEDGE] Decision: Routing COMPLEX query to Deployed AI Model, and system will learn the output.");
 
-      // Part 2: Complex questions route to Deployed AI Model
       return fallbackOrchestrator
           .executeWithSupremeIntelligence(task, errorSignature, prompt)
           .flatMap(
               aiResponse -> {
                 logger.info(
                     "🧠 [CORE KNOWLEDGE] Decision: System is learning the complex AI response");
-                // System dynamically learns the output and stores in database memory
                 return enhancedLearningService
                     .learnFromInteraction("system", prompt, aiResponse)
                     .thenReturn(aiResponse);
@@ -219,16 +151,53 @@ public class SupremeAIBrain {
           .onErrorResume(
               e -> {
                 logger.warn("Complex AI run failed, falling back: {}", e.getMessage());
-                return Mono.just("Failed to execute complex logic on deployed AI model.");
+                return Mono.just(getDynamicFallback("COMPLEX_AI_ERROR"));
               })
           .doOnNext(response -> trackSuccess(task));
     }
   }
 
-  /**
-   * ChickenBrain merges browser search results & database learning to create a better answer.
-   * (Change made: ChickenBrain merges parallel results from browser and database learning)
-   */
+  private boolean isComplexTask(String task, String prompt) {
+    Set<String> complexPatterns = signatureRegistry.getSignatures("COMPLEX_TASK_PATTERNS");
+    if (complexPatterns != null && !complexPatterns.isEmpty()) {
+      String lowerTask = task.toLowerCase();
+      String lowerPrompt = prompt.toLowerCase();
+      return complexPatterns.stream().anyMatch(pattern ->
+          lowerTask.contains(pattern) || lowerPrompt.contains(pattern));
+    }
+
+    boolean isComplex =
+        task.contains("CODE_")
+            || task.contains("REVIEW")
+            || task.contains("SECURITY")
+            || task.contains("TESTING")
+            || task.contains("REASONING")
+            || prompt.contains("generate")
+            || prompt.contains("write code")
+            || prompt.contains("complex");
+
+    return isComplex;
+  }
+
+  private String getDynamicFallback(String key) {
+    return signatureRegistry.getSignatures("FALLBACK_MESSAGES")
+        .stream()
+        .filter(s -> s.startsWith(key + ":"))
+        .map(s -> s.substring(key.length() + 1))
+        .findFirst()
+        .orElseGet(() -> getGenericFallback(key));
+  }
+
+  private String getGenericFallback(String key) {
+    return switch (key) {
+      case "WEB_NO_RESULT" -> "No web search results available.";
+      case "DB_NO_RESULT" -> "No local database learning found.";
+      case "DB_ERROR" -> "Error accessing knowledge base.";
+      case "COMPLEX_AI_ERROR" -> "Failed to execute complex logic on deployed AI model.";
+      default -> "No information available.";
+    };
+  }
+
   private Mono<String> chickenBrainMerge(
       String browserData, String dbData, String prompt, String task, String errorSignature) {
     logger.info(
@@ -292,12 +261,10 @@ public class SupremeAIBrain {
         .onErrorResume(
             e -> {
               logger.warn("Escalated complex AI run failed: {}", e.getMessage());
-              return Mono.just(
-                  "Failed to get information from deployed AI model after all attempts.");
+              return Mono.just(getDynamicFallback("COMPLEX_AI_ERROR"));
             });
   }
 
-  /** Tier 3: Browser/Web Scraping fallback for real-time knowledge. */
   private Mono<String> tryBrowserScraping(String task, String prompt) {
     logger.info("[BRAIN TIER 3] Attempting web scraping via browser for task: {}", task);
 
@@ -309,7 +276,7 @@ public class SupremeAIBrain {
                       .replaceAll("[\\p{Punct}]", " ")
                       .replaceAll("\\s+", " ")
                       .trim();
-              String domain = extractDomain(prompt); // Extract domain for targeted scraping
+              String domain = extractDynamicDomain(prompt);
               return activeInternetScraper
                   .scrapeKnowledge(domain, List.of(cleanQuery.split("\\s+")))
                   .next()
@@ -318,33 +285,24 @@ public class SupremeAIBrain {
                   .onErrorResume(
                       err -> {
                         logger.warn("[BRAIN TIER 3] Web scraping failed: {}", err.getMessage());
-                        return Mono.just("No web search results available.");
+                        return Mono.just(getDynamicFallback("WEB_NO_RESULT"));
                       });
             })
-        .flatMap(mono -> mono); // Flatten the Mono<Mono<String>>
+        .flatMap(mono -> mono);
   }
 
-  /** Demo endpoint - Guest access without authentication to test 4-layer resilience. */
   public Mono<String> thinkDemo(String prompt) {
     return think(TASK_GENERAL, prompt, "DEMO_NO_SIGNATURE");
   }
 
-  // ══════════════════════════════════════════════════════════
-  // FEATURE-SPECIFIC CONVENIENCE METHODS
-  // (প্রতিটি feature এর জন্য clean, named API)
-  // ══════════════════════════════════════════════════════════
-
-  /** Code generate করতে */
   public Mono<String> generateCode(String specification) {
     return think(TASK_CODE_GENERATION, specification);
   }
 
-  /** Code review করতে */
   public Mono<String> reviewCode(String code) {
     return think(TASK_CODE_REVIEW, "Review this code and provide detailed feedback:\n\n" + code);
   }
 
-  /** Error fix suggestion দিতে */
   public Mono<String> fixError(String errorDescription, String errorSignature) {
     return think(
         TASK_SELF_HEALING,
@@ -352,48 +310,38 @@ public class SupremeAIBrain {
         errorSignature);
   }
 
-  /** Translation করতে */
   public Mono<String> translate(String text, String targetLanguage) {
     return think(
         TASK_TRANSLATION,
         String.format("Translate the following to %s:\n\n%s", targetLanguage, text));
   }
 
-  /** Security analysis করতে */
   public Mono<String> analyzeSecurity(String code) {
     return think(
         TASK_SECURITY,
         "Perform a security audit on this code and identify vulnerabilities:\n\n" + code);
   }
 
-  /** Test generation করতে */
   public Mono<String> generateTests(String code) {
     return think(TASK_TESTING, "Generate comprehensive unit tests for this code:\n\n" + code);
   }
 
-  /** General reasoning/analysis করতে */
   public Mono<String> analyze(String topic) {
     return think(TASK_ANALYSIS, topic);
   }
 
-  /** Vision/image analysis করতে */
   public Mono<String> analyzeImage(String imageDescription) {
     return think(TASK_VISION, imageDescription);
   }
 
-  /** Chat/conversational response */
   public Mono<String> chat(String message) {
     return think(TASK_CHAT, message);
   }
 
-  /** Agent orchestration decisions */
   public Mono<String> orchestrate(String agentTask) {
     return think(TASK_ORCHESTRATION, agentTask);
   }
 
-  /**
-   * Phase 1: Hub Identification for Super-Hub Orchestrator. Maps user intent to a specific Hub ID.
-   */
   public Mono<String> identifyHub(String query) {
     return Mono.fromCallable(
         () -> {
@@ -408,15 +356,10 @@ public class SupremeAIBrain {
               || hubName.contains("multimodal")) return "multimodal_hub";
           if (hubName.contains("memory")) return "memory_hub";
 
-          return "lang_hub"; // Default fallback
+          return "lang_hub";
         });
   }
 
-  // ══════════════════════════════════════════════════════════
-  // ADMIN STATS
-  // ══════════════════════════════════════════════════════════
-
-  /** Admin dashboard এর জন্য Brain-এর usage statistics */
   public Mono<Map<String, Object>> getBrainStats() {
     return providerFactory
         .getActiveHelperProviderIds()
@@ -434,14 +377,6 @@ public class SupremeAIBrain {
             });
   }
 
-  // ══════════════════════════════════════════════════════════
-  // PHASE 2: LEARNING ORCHESTRATOR INTEGRATION
-  // ══════════════════════════════════════════════════════════
-
-  /**
-   * Phase 2: Expose orchestrator learning stats for admin dashboard. Returns intent classification
-   * counts, hub routing distribution, and correction history summary.
-   */
   public Mono<Map<String, Object>> getLearningStats() {
     return Mono.fromCallable(
         () -> {
@@ -456,7 +391,6 @@ public class SupremeAIBrain {
                 "systemVersion", root.path("system_identity").path("version").asText("unknown"));
             stats.put("intentTaxonomyCategories", root.path("intent_taxonomy").size());
 
-            // Hub routing distribution from recent corrections
             Map<String, Long> hubDistribution = new LinkedHashMap<>();
             for (JsonNode c : corrections) {
               String hub = c.path("corrected_hub").asText("unknown");
@@ -471,10 +405,6 @@ public class SupremeAIBrain {
         });
   }
 
-  // ══════════════════════════════════════════════════════════
-  // INTERNAL HELPERS
-  // ══════════════════════════════════════════════════════════
-
   private void trackCall(String task) {
     taskCallCount.merge(task, 1L, Long::sum);
   }
@@ -488,10 +418,6 @@ public class SupremeAIBrain {
     return text.length() > 100 ? text.substring(0, 100) + "..." : text;
   }
 
-  /**
-   * AI Judge — determines whether a merged response actually answers the user's question. Uses
-   * ChickenBrain to avoid brittle string matching.
-   */
   private Mono<Boolean> isInsufficientResponse(String response, String userPrompt) {
     if (response == null || response.trim().isEmpty()) {
       return Mono.just(true);
@@ -527,93 +453,50 @@ public class SupremeAIBrain {
         .onErrorResume(
             e -> {
               logger.warn(
-                  "[ChickenBrain Judge] Evaluation failed, falling back to heuristic: {}",
+                  "[ChickenBrain Judge] Evaluation failed, falling back to dynamic rule: {}",
                   e.getMessage());
-              return Mono.just(heuristicInsufficientCheck(response));
+              return Mono.just(dynamicHeuristicCheck(response));
             });
   }
 
-  private boolean heuristicInsufficientCheck(String response) {
-    if (response == null || response.trim().isEmpty()) {
-      return true;
+  private boolean dynamicHeuristicCheck(String response) {
+    Set<String> insufficientMarkers = signatureRegistry.getSignatures("INSUFFICIENT_MARKERS");
+    if (insufficientMarkers != null && !insufficientMarkers.isEmpty()) {
+      String lowerResponse = response.toLowerCase();
+      return insufficientMarkers.stream()
+          .anyMatch(marker -> lowerResponse.contains(marker.toLowerCase()));
     }
-    String lowerResponse = response.toLowerCase();
-    return lowerResponse.contains("no web search results available.")
-        || lowerResponse.contains("no local database learning found.")
-        || lowerResponse.contains("i couldn't find any information")
-        || lowerResponse.contains("failed to get information")
-        || lowerResponse.contains("no information found")
-        || lowerResponse.contains("আমি কোনো তথ্য খুঁজে পাইনি")
-        || lowerResponse.contains("আমি দুঃখিত, আপনার অনুরোধটি প্রক্রিয়া করতে পারিনি।")
-        || lowerResponse.contains("ChickenBrain Local Merge]");
+    return response == null || response.trim().isEmpty();
   }
 
-  /**
-   * Extract meaningful keywords from the user's message for targeted scraping. Removes stop words
-   * and short words, keeps technical terms.
-   */
   private List<String> extractKeywords(String message) {
-    Set<String> stopWords =
-        Set.of(
-            "what", "is", "the", "a", "an", "in", "on", "of", "to", "for", "and", "or", "how", "do",
-            "does", "can", "could", "would", "should", "this", "that", "with", "from", "by", "at",
-            "it", "be", "are", "was", "were", "been", "being", "have", "has", "had", "will", "i",
-            "me", "my", "you", "your", "we", "our", "they", "them", "tell", "explain", "about",
-            "please", "help", "want", "need", "কি", "কী", "কেন", "কোথায়", "কিভাবে", "কীভাবে",
-            "আমি", "আমার", "এটা", "এটি", "সেটা", "তুমি", "তোমার", "করো", "করুন", "বলো", "বলুন");
+    Set<String> stopWords = signatureRegistry.getSignatures("STOP_WORDS");
+    Set<String> effectiveStopWords = stopWords != null && !stopWords.isEmpty()
+        ? stopWords
+        : Set.of("the", "a", "an", "and", "or", "is", "are", "was", "were", "be", "been");
 
     return Arrays.stream(message.toLowerCase().split("\\s+"))
         .map(
             w ->
                 w.replaceAll(
-                    "[^a-zA-Z0-9\\u0980-\\u09FF#+.-]", "")) // Keep Bengali, English, special
+                    "[^a-zA-Z0-9\\u0980-\\u09FF#+.-]", ""))
         .filter(w -> w.length() > 2)
-        .filter(w -> !stopWords.contains(w))
+        .filter(w -> !effectiveStopWords.contains(w))
         .distinct()
         .limit(5)
         .collect(Collectors.toList());
   }
 
-  /** Extract the primary domain/topic from the message for scraping. */
-  private String extractDomain(String message) {
-    String lower = message.toLowerCase();
-
-    // Tech-specific domain detection
-    Map<String, String> domainMap = new LinkedHashMap<>();
-    domainMap.put("react", "React JavaScript framework");
-    domainMap.put("spring boot", "Spring Boot Java framework");
-    domainMap.put("spring", "Spring framework Java");
-    domainMap.put("python", "Python programming language");
-    domainMap.put("javascript", "JavaScript programming");
-    domainMap.put("typescript", "TypeScript programming");
-    domainMap.put("java", "Java programming language");
-    domainMap.put("docker", "Docker containerization");
-    domainMap.put("kubernetes", "Kubernetes container orchestration");
-    domainMap.put("database", "database management system");
-    domainMap.put("postgresql", "PostgreSQL database");
-    domainMap.put("mongodb", "MongoDB NoSQL database");
-    domainMap.put("sql", "SQL database query language");
-    domainMap.put("api", "REST API development");
-    domainMap.put("machine learning", "machine learning artificial intelligence");
-    domainMap.put("deep learning", "deep learning neural network");
-    domainMap.put("flutter", "Flutter mobile development");
-    domainMap.put("node", "Node.js JavaScript runtime");
-    domainMap.put("css", "CSS web styling");
-    domainMap.put("html", "HTML web markup");
-    domainMap.put("git", "Git version control");
-    domainMap.put("linux", "Linux operating system");
-    domainMap.put("aws", "Amazon Web Services cloud");
-    domainMap.put("gcp", "Google Cloud Platform");
-    domainMap.put("firebase", "Firebase Google platform");
-
-    for (Map.Entry<String, String> entry : domainMap.entrySet()) {
-      if (lower.contains(entry.getKey())) {
-        return entry.getValue();
-      }
+  private String extractDynamicDomain(String message) {
+    Set<String> domains = signatureRegistry.getSignatures("DOMAIN_MAPPINGS");
+    if (domains != null && !domains.isEmpty()) {
+      String lower = message.toLowerCase();
+      return domains.stream()
+          .map(d -> d.contains(":") ? d.split(":")[0].trim() : d)
+          .filter(keyword -> lower.contains(keyword.toLowerCase()))
+          .findFirst()
+          .orElseGet(() -> extractKeywords(message).isEmpty() ? message : String.join(" ", extractKeywords(message)));
     }
-
-    // Fallback: use the longest meaningful words as domain
-    List<String> keywords = extractKeywords(message);
-    return keywords.isEmpty() ? message : String.join(" ", keywords);
+    return extractKeywords(message).isEmpty() ? message : String.join(" ", extractKeywords(message));
   }
 }

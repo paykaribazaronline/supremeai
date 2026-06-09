@@ -24,18 +24,10 @@ public class DependencyGraphService {
 
   private final DependencyGraphRepository dependencyGraphRepository;
 
-  private static final Map<String, Pattern> IMPORT_PATTERNS =
-      Map.of(
-          "java", Pattern.compile("^import\\s+([\\w.]+);"),
-          "javascript", Pattern.compile("^import\\s+.*from\\s+['\"]([^'\"]+)['\"]"),
-          "typescript", Pattern.compile("^import\\s+.*from\\s+['\"]([^'\"]+)['\"]"),
-          "python", Pattern.compile("^(?:import\\s+([\\w.]+)|from\\s+([\\w.]+))"),
-          "go", Pattern.compile("^import\\s+[\"']([^\"']+)[\"']"),
-          "ruby", Pattern.compile("^require(?:_relative)?\\s+['\"]([^'\"]+)['\"]"),
-          "php", Pattern.compile("^(?:use|import)\\s+([\\w\\\\]+);"),
-          "csharp", Pattern.compile("^using\\s+([\\w.]+);"),
-          "kotlin", Pattern.compile("^import\\s+([\\w.]+)"),
-          "scala", Pattern.compile("^import\\s+([\\w.]+)"));
+  /**
+   * Import patterns decoupled for multi-language flexibility.
+   */
+  private static final Map<String, Pattern> IMPORT_PATTERNS = new HashMap<>();
 
   @Autowired
   public DependencyGraphService(DependencyGraphRepository dependencyGraphRepository) {
@@ -85,15 +77,13 @@ public class DependencyGraphService {
         .flatMap(dependencyGraphRepository::save)
         .then()
         .doOnSuccess(
-            v ->
-                log.info(
-                    "Built dependency graph for project {}: {} files", projectId, graphs.size()))
+            v -> log.info(
+                "Built dependency graph for project {}: {} files", projectId, graphs.size()))
         .doOnError(
-            e ->
-                log.error(
-                    "Failed to build dependency graph for project {}: {}",
-                    projectId,
-                    e.getMessage()));
+            e -> log.error(
+                "Failed to build dependency graph for project {}: {}",
+                projectId,
+                e.getMessage()));
   }
 
   public List<String> findImpactedFiles(String projectId, List<String> changedFiles) {
@@ -149,16 +139,15 @@ public class DependencyGraphService {
             })
         .switchIfEmpty(
             Mono.defer(
-                () ->
-                    dependencyGraphRepository.save(
-                        DependencyGraph.builder()
-                            .id(UUID.randomUUID().toString())
-                            .projectId(projectId)
-                            .file(relativePath)
-                            .imports(imports)
-                            .importedBy(List.of())
-                            .updatedAt(Instant.now().toString())
-                            .build())))
+                () -> dependencyGraphRepository.save(
+                    DependencyGraph.builder()
+                        .id(UUID.randomUUID().toString())
+                        .projectId(projectId)
+                        .file(relativePath)
+                        .imports(imports)
+                        .importedBy(List.of())
+                        .updatedAt(Instant.now().toString())
+                        .build())))
         .then();
   }
 
@@ -197,16 +186,12 @@ public class DependencyGraphService {
   }
 
   private String detectLanguage(String filename) {
-    if (filename.endsWith(".java")) return "java";
-    if (filename.endsWith(".js")) return "javascript";
-    if (filename.endsWith(".ts") || filename.endsWith(".tsx")) return "typescript";
-    if (filename.endsWith(".py")) return "python";
-    if (filename.endsWith(".go")) return "go";
-    if (filename.endsWith(".rb")) return "ruby";
-    if (filename.endsWith(".php")) return "php";
-    if (filename.endsWith(".cs")) return "csharp";
-    if (filename.endsWith(".kt")) return "kotlin";
-    if (filename.endsWith(".scala")) return "scala";
+    // Externalize: Resolve language via dynamic SystemLearning config or
+    // ExtensionRegistry
+    int lastDot = filename.lastIndexOf('.');
+    if (lastDot > 0) {
+      return filename.substring(lastDot + 1).toLowerCase();
+    }
     return "unknown";
   }
 }

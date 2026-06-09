@@ -12,7 +12,12 @@ src/**
 **/*.map
 **/*.ts
 !**/*.d.ts
-node_modules/**
+**/node_modules/**
+**/.git/**
+**/.github/**
+**/.nyc_output/**
+**/.yarn/**
+**/.pnpm-store/**
 test/**
 *.java
 *.vsix

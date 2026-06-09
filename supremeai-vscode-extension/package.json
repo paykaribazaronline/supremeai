@@ -40,6 +40,7 @@
   ],
   "activationEvents": [
     "onStartupFinished",
+    "onUri",
     "onCommand:supremeai.login",
     "onCommand:supremeai.loginAsGuest",
     "onCommand:supremeai.logout",

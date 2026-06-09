@@ -50,6 +50,8 @@ public class ChatController {
 
   @Autowired private com.supremeai.service.NeuralChatService neuralChatService;
 
+  @Autowired private com.supremeai.service.DynamicSignatureRegistry signatureRegistry;
+
   private final CircuitBreaker aiCircuitBreaker;
   private final Retry aiRetry;
 
@@ -670,25 +672,80 @@ public class ChatController {
 
   private String generateLocalFallbackResponse(String prompt) {
     String p = prompt.toLowerCase();
-    if (p.contains("hello") || p.contains("hi") || p.contains("হ্যালো") || p.contains("নমস্কার")) {
-      return "হ্যালো! আমি সুপ্রিমএআই। কোনো বাইরের API কী ছাড়াই আমি আপনার সাহায্য করছি।";
-    } else if (p.contains("help") || p.contains("সাহায্য") || p.contains("কীভাবে")) {
-      return "আমি কীভাবে সাহায্য করতে পারি:\n• কোড লিখতে ও বিশ্লেষণ করতে\n• বাগ ফিক্স করতে\n• প্রজেক্ট গঠন বল্ড করতে";
-    } else if (p.contains("react") || p.contains("javascript")) {
-      return "১. **প্রোজেক্ট সেটআপ**: `npx create-react-app my-app`\n২. **কম্পোনেন্ট**: ফাংশনাল কম্পোনেন্ট ব্যবহার করুন\n৩. **স্টেট**: useState এবং useEffect হুক ব্যবহার করুন";
-    } else if (p.contains("java") || p.contains("spring")) {
-      return "১. **স্প্রিং বুট**: spring initializr ব্যবহার করুন\n২. **REST**: @RestController যোগ করুন\n৩. **ডাটাবেস**: JPA এবং PostgreSQL কনফিগার করুন";
+
+    Set<String> greetingTriggers = signatureRegistry.getSignatures("GREETING_PATTERNS");
+    if (greetingTriggers.stream().anyMatch(trigger -> p.contains(trigger.toLowerCase()))) {
+      return signatureRegistry.getSignatures("RESPONSE_TEMPLATES")
+          .stream()
+          .filter(t -> t.startsWith("GREETING_RESPONSE:"))
+          .map(t -> t.substring("GREETING_RESPONSE:".length()))
+          .findFirst()
+          .orElseGet(() -> getLocalizedGreeting());
     }
-    return "I can help you with many topics! Here's what I know about:\n\n"
-        + "**Web:** React, Vue, Angular, Next.js, HTML, CSS, JavaScript, TypeScript\n"
-        + "**Backend:** Java, Spring Boot, Python, Flask, Node.js, Express\n"
-        + "**Mobile:** Flutter, Dart\n"
-        + "**DevOps:** Docker, Kubernetes, Git, Linux, CI/CD\n"
-        + "**Cloud:** AWS, GCP, Firebase\n"
-        + "**Databases:** SQL, PostgreSQL, MongoDB, Firestore\n\n"
-        + "Your question: \""
-        + prompt
-        + "\"\n\n"
-        + "Please try rephrasing with one of these topics for a detailed answer with code examples!";
+
+    Set<String> helpTriggers = signatureRegistry.getSignatures("HELP_PATTERNS");
+    if (helpTriggers.stream().anyMatch(trigger -> p.contains(trigger.toLowerCase()))) {
+      return signatureRegistry.getSignatures("RESPONSE_TEMPLATES")
+          .stream()
+          .filter(t -> t.startsWith("HELP_RESPONSE:"))
+          .map(t -> t.substring("HELP_RESPONSE:".length()))
+          .findFirst()
+          .orElse("I can help you with your coding needs.");
+    }
+
+    Set<String> techPatterns = signatureRegistry.getSignatures("TECHNOLOGY_PATTERNS");
+    Optional<String> techMatch = techPatterns.stream()
+        .filter(pattern -> pattern.contains(":"))
+        .filter(pattern -> p.contains(pattern.split(":")[0].toLowerCase()))
+        .findFirst();
+
+    if (techMatch.isPresent()) {
+      String responseTemplate = techMatch.get().split(":")[1];
+      return signatureRegistry.getSignatures("RESPONSE_TEMPLATES")
+          .stream()
+          .filter(t -> t.startsWith(responseTemplate + ":"))
+          .map(t -> t.substring(responseTemplate.length() + 1))
+          .findFirst()
+          .orElse("I can help with that technology.");
+    }
+
+    String defaultTemplate = signatureRegistry.getSignatures("RESPONSE_TEMPLATES")
+        .stream()
+        .filter(t -> t.startsWith("DEFAULT_RESPONSE:"))
+        .map(t -> t.substring("DEFAULT_RESPONSE:".length()))
+        .findFirst()
+        .orElse(getDefaultCapabilitiesMessage());
+
+    return String.format(defaultTemplate, prompt);
+  }
+
+  private String getLocalizedGreeting() {
+    return signatureRegistry.getSignatures("GREETING_RESPONSES")
+        .stream()
+        .findFirst()
+        .orElseGet(() -> "Hello! I'm SupremeAI. How can I help you today?");
+  }
+
+  private String getDefaultCapabilitiesMessage() {
+    Set<String> topics = signatureRegistry.getSignatures("KNOWN_TOPICS");
+    Set<String> categories = signatureRegistry.getSignatures("TOPIC_CATEGORIES");
+
+    StringBuilder sb = new StringBuilder();
+    sb.append("I can help you with many topics!\n\n");
+
+    for (String category : categories) {
+      Set<String> categoryTopics = signatureRegistry.getSignatures(category + "_TOPICS");
+      if (!categoryTopics.isEmpty()) {
+        sb.append(String.format("**%s:** %s\n", category, String.join(", ", categoryTopics)));
+      }
+    }
+
+    sb.append("\nYour question: \"").append("...").append("\"\n\n");
+    sb.append(signatureRegistry.getSignatures("FOOTER_MESSAGES")
+        .stream()
+        .findFirst()
+        .orElse("Please try rephrasing for more specific help!"));
+
+    return sb.toString();
   }
 }

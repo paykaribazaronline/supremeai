@@ -24,12 +24,16 @@ public class UnifiedOfflineKnowledgeService {
 
   private final SupremeLearningOrchestrator learningOrchestrator;
   private final StubLocalProvider stubLocalProvider;
+  private final SoloModeService soloModeService;
 
   @Autowired
   public UnifiedOfflineKnowledgeService(
-      SupremeLearningOrchestrator learningOrchestrator, StubLocalProvider stubLocalProvider) {
+      SupremeLearningOrchestrator learningOrchestrator,
+      StubLocalProvider stubLocalProvider,
+      SoloModeService soloModeService) {
     this.learningOrchestrator = learningOrchestrator;
     this.stubLocalProvider = stubLocalProvider;
+    this.soloModeService = soloModeService;
   }
 
   /**
@@ -62,8 +66,9 @@ public class UnifiedOfflineKnowledgeService {
         .flatMap(
             complex -> {
               if (complex) {
-                log.info("🧠 [Core Knowledge Decision] Route to Deployed AI Model");
-                return stubLocalProvider.generate(query);
+                log.info("🧠 [Core Knowledge Decision] Route to Local Model");
+                return soloModeService.askLocalModel(query)
+                    .onErrorResume(e -> stubLocalProvider.generate(query));
               } else {
                 log.info("🧠 [Core Knowledge Decision] Route to Browser and Database Learning");
                 return Mono.just("ROUTE_TO_BROWSER_AND_DATABASE");

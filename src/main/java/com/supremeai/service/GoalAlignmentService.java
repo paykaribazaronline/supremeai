@@ -16,18 +16,17 @@ public class GoalAlignmentService {
 
   public String checkAlignment(String userId, String currentCommand) {
     String goal = userGoals.get(userId);
-    if (goal == null) return "আপনি এখনো আপনার কোনো লক্ষ্য সেট করেননি।";
+    if (goal == null)
+      return "You haven't set a goal yet.";
 
     // সিম্পল লজিক: ইউজার তার লক্ষ্যের দিকে যাচ্ছে কি না
     if (currentCommand.contains("fix") || currentCommand.contains("optimize")) {
-      return "আপনি সঠিক ট্র্যাকেই আছেন।";
+      return "You are on the right track.";
     }
-    return "সতর্কতা: এই কমান্ডটি আপনার আগের লক্ষ্যের ("
-        + goal
-        + ") সাথে সামঞ্জস্যপূর্ণ মনে হচ্ছে না।";
+    return "Warning: This command does not seem to align with your previous goal (" + goal + ").";
   }
 
   public String predictOutcome(String command) {
-    return "এই কমান্ডটি সম্পন্ন করলে সিস্টেমের রেসপন্স টাইম ১০% কমবে এবং সিকিউরিটি লগ অটোমেটিক্যালি জেনারেট হবে।";
+    return "Executing this command will reduce response time by 10% and automatically generate security logs.";
   }
 }

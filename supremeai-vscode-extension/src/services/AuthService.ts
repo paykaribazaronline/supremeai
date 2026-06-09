@@ -10,9 +10,9 @@ export class AuthService {
 
   private constructor(config: SupremeAIConfig) {
     this.config = config;
-    this.token = "guest-token-default";
-    this.user = { username: "Guest User" };
-    vscode.commands.executeCommand('setContext', 'supremeai.authenticated', true);
+    this.token = null;
+    this.user = null;
+    vscode.commands.executeCommand('setContext', 'supremeai.authenticated', false);
   }
 
   public static getInstance(config?: SupremeAIConfig): AuthService {
@@ -47,6 +47,8 @@ export class AuthService {
 
       if (browserOpened) {
         vscode.window.showInformationMessage(`SupremeAI ব্রাউজার লগইন পেজ ওপেন করছে: ${targetUrl}`);
+      } else {
+        vscode.window.showErrorMessage(`ব্রাউজার ওপেন করতে সমস্যা হয়েছে। দয়া করে এই লিঙ্কে সরাসরি যান: ${targetUrl}`);
       }
 
       // Request standard session login from VS Code as a fallback/sync method
@@ -73,12 +75,8 @@ export class AuthService {
       return false;
     } catch (error: any) {
       console.error('[SupremeAI] Login error:', error);
-      // Fallback local mock token if backend is local/temp
-      this.token = "mock-token-" + Date.now();
-      this.user = { username: "Developer (Local Mode)" };
-      await vscode.commands.executeCommand('setContext', 'supremeai.authenticated', true);
-      vscode.window.showInformationMessage(`Signed in locally: ${this.user.username}`);
-      return true;
+      vscode.window.showErrorMessage(`লগইন করতে সমস্যা হয়েছে: ${error.message}`);
+      return false;
     }
   }
 
@@ -91,10 +89,10 @@ export class AuthService {
   }
 
   public async logout(): Promise<void> {
-    this.token = "guest-token-" + Date.now();
-    this.user = { username: "Guest User" };
-    await vscode.commands.executeCommand('setContext', 'supremeai.authenticated', true);
-    vscode.window.showInformationMessage('Successfully logged out. Switched to Guest mode.');
+    this.token = null;
+    this.user = null;
+    await vscode.commands.executeCommand('setContext', 'supremeai.authenticated', false);
+    vscode.window.showInformationMessage('সফলভাবে লগআউট করা হয়েছে।');
   }
 
   public getToken(): string | null {
@@ -107,5 +105,14 @@ export class AuthService {
 
   public isAuthenticated(): boolean {
     return !!this.token;
+  }
+
+  public setToken(token: string): void {
+    this.token = token;
+    vscode.commands.executeCommand('setContext', 'supremeai.authenticated', true);
+  }
+
+  public setUser(user: any): void {
+    this.user = user;
   }
 }

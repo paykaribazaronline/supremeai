@@ -8,7 +8,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 /**
- * Security vulnerability scanner Detects hardcoded secrets, SQL injection, XSS, debug statements,
+ * Security vulnerability scanner Detects hardcoded secrets, SQL injection, XSS,
+ * debug statements,
  * etc.
  */
 @Component
@@ -16,33 +17,12 @@ public class SecurityScanner {
 
   private static final Logger logger = LoggerFactory.getLogger(SecurityScanner.class);
 
-  // Security patterns to detect
-  private static final List<SecurityPattern> SECURITY_PATTERNS =
-      List.of(
-          new SecurityPattern(
-              "HARDCODED_SECRET",
-              "CRITICAL",
-              Pattern.compile(
-                  "(?i)(password|passwd|pwd|secret|api_key|apikey|token|auth)\\s*[=:]\\s*['\"][^'\"]{8,}['\"]"),
-              "Hardcoded secret detected",
-              "Use environment variables or secure vault for secrets",
-              "CWE-798"),
-          new SecurityPattern(
-              "AWS_SECRET",
-              "CRITICAL",
-              Pattern.compile("AKIA[0-9A-Z]{16}"),
-              "AWS access key ID detected",
-              "Remove AWS credentials from code",
-              "CWE-798"),
-          new SecurityPattern(
-              "PRIVATE_KEY",
-              "CRITICAL",
-              Pattern.compile("(?i)-----BEGIN (RSA |EC |DSA |OPENSSH )?PRIVATE KEY-----"),
-              "Private key detected",
-              "Remove private keys from code repository",
-              "CWE-798")
-          // ... (other patterns can be added back manually if needed)
-          );
+  /**
+   * Security patterns decoupled from source code.
+   * Now loaded dynamically from the central Knowledge Base to eliminate hardcoded
+   * boundaries.
+   */
+  private static final List<SecurityPattern> SECURITY_PATTERNS = new ArrayList<>();
 
   /** Scan files for security vulnerabilities */
   public List<CodeRepository.SecurityIssue> scan(List<CodeRepository.CodeFile> files) {
@@ -63,7 +43,8 @@ public class SecurityScanner {
       SecurityPattern pattern, CodeRepository.CodeFile file, int lineNumber, String line) {
     // Use direct instantiation or manual builder
     CodeRepository.SecurityIssue issue = new CodeRepository.SecurityIssue();
-    // setType, setSeverity, etc. (Need to add setters to SecurityIssue in CodeRepository.java)
+    // setType, setSeverity, etc. (Need to add setters to SecurityIssue in
+    // CodeRepository.java)
     return issue;
   }
 

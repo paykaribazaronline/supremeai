@@ -1,0 +1,52 @@
+[
+  {
+    "task": "signature-registry-bootstrap",
+    "category": "SIGNATURE_REGISTRY",
+    "title": "Dynamic Signature Registry Bootstrap",
+    "content": "Core signatures for boundary-less dynamic operation",
+    "permanent": true,
+    "metadata": {
+      "signatures": {
+        "GREETING_PATTERNS": ["hello", "hi", "hey", "greetings", "hola", "good morning", "good afternoon", "good evening", "assalamualaikum", "namaste", "হ্যালো", "হাই", "নমস্কার"],
+        "COMMON_PHRASES": ["thanks", "thank you", "ok", "okay", "yes", "no", "cool", "awesome", "great", "perfect", "bye", "goodbye"],
+        "TEMPORAL_PATTERNS": ["time", "today", "now", "current", "latest", "news", "weather", "date", "clock"],
+        "CREATIVE_PATTERNS": ["song", "poem", "story", "creative", "write", "compose", "imagine"],
+        "TASK_PATTERNS": ["create", "build", "make", "generate", "write", "develop", "implement", "design"],
+        "REQUEST_PATTERNS": ["fix", "solve", "help", "need", "want", "please", "could", "would"],
+        "STOP_WORDS": ["the", "a", "an", "and", "or", "is", "are", "was", "were", "be", "been", "being", "have", "has", "had", "will", "would", "could", "should", "may", "might", "must", "shall", "can", "need", "dare", "ought", "used", "it", "its", "this", "that", "these", "those", "i", "me", "my", "myself", "we", "our", "ours", "you", "your", "yours", "he", "him", "his", "she", "her", "it", "its", "they", "them", "their", "what", "which", "who", "whom", "when", "where", "why", "how", "all", "each", "every", "both", "few", "more", "most", "other", "some", "such", "no", "nor", "not", "only", "own", "same", "so", "than", "too", "very", "just", "for", "with", "about", "against", "between", "into", "through", "during", "before", "after", "above", "below", "from", "up", "down", "in", "out", "on", "off", "over", "under", "again", "further", "then", "once"],
+        "INSUFFICIENT_MARKERS": ["no web search results available", "no local database learning found", "couldn't find any information", "failed to get information", "no information found", "আমি কোনো তথ্য খুঁজে পাইনি", "আমি দুঃখিত", "failed"],
+        "COMPLEX_TASK_PATTERNS": ["generate", "write code", "complex", "multiple", "architecture"],
+        "CODE_LANGUAGE_INDICATORS": ["java", "python", "javascript", "typescript", "kotlin", "scala", "rust", "go", "c++", "php", "ruby", "swift"],
+        "DATABASE_INDICATORS": ["sql", "nosql", "mongo", "postgres", "mysql", "firestore", "redis", "sqlite"],
+        "MOBILE_TOOLS": ["flutter", "mobile", "android", "ios", "app"],
+        "BUILD_TOOLS": ["create", "build", "setup", "initialize", "bootstrap"],
+        "DATABASE_TOOLS": ["database", "schema", "sql", "nosql", "table", "query"],
+        "DEBUG_TOOLS": ["error", "bug", "fix", "debug", "exception", "issue"],
+        "API_TOOLS": ["api", "rest", "endpoint", "http", "controller", "service"],
+        "GREETING_RESPONSES": ["Hello! I'm SupremeAI, your autonomous coding assistant. How can I help you today?"],
+        "RESPONSE_TEMPLATES": [
+          "GREETING_RESPONSE:{{message}}",
+          "HELP_RESPONSE:{{message}}\n{{features}}"
+        ],
+        "GENERAL_OPTION_TEMPLATES": ["Explain the concept in detail", "Provide a practical code example", "Show step-by-step implementation guide"],
+        "MOBILE_OPTION_TEMPLATES": ["Build a mobile application", "Setup mobile development environment", "Integrate Firebase with mobile app"],
+        "BUILD_OPTION_TEMPLATES": ["Create a new project", "Initialize development environment", "Setup CI/CD pipeline"],
+        "DATABASE_OPTION_TEMPLATES": ["Design database schema", "Setup database connection", "Optimize queries"],
+        "DEBUG_OPTION_TEMPLATES": ["Debug the error", "Analyze stack trace", "Suggest fix for bug"],
+        "API_OPTION_TEMPLATES": ["Design REST endpoint", "Create API documentation", "Implement authentication"],
+        "MISSING_INFO_QUESTIONS": [
+          "CODE_LANGUAGE_QUESTION:Which programming language should be used?",
+          "DATABASE_TYPE_QUESTION:What type of database are you targeting?"
+        ],
+        "KNOWN_TOPICS": ["coding", "programming", "architecture", "debugging", "design"],
+        "TOPIC_CATEGORIES": ["Web", "Backend", "Mobile", "DevOps", "Cloud", "Databases"],
+        "INTENT_CLASSIFICATION_PROMPT": ["Classify intent for: \"{{input}}\""],
+        "WEB_NO_RESULT": ["No web search results available."],
+        "DB_NO_RESULT": ["No local database learning found."],
+        "DB_ERROR": ["Error accessing knowledge base."],
+        "COMPLEX_AI_ERROR": ["Failed to execute complex logic on deployed AI model."],
+        "JAVA_VERSIONS": ["JavaVersion.VERSION_21", "JavaVersion.VERSION_17", "JavaVersion.VERSION_11", "JavaVersion.VERSION_8"]
+      }
+    }
+  }
+]

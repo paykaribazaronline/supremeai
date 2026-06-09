@@ -7,6 +7,7 @@ import { getSupremeAIService } from '../services/SupremeAIService';
 import { AuthService } from '../services/AuthService';
 import { ChatMessage, ChatSession } from '../types';
 import { SupremeAIChatView } from './SupremeAIChatView';
+import { DynamicSignatureRegistry } from '../utils/DynamicSignatureRegistry';
 
 export class SupremeAIChatProvider implements vscode.WebviewViewProvider {
   private readonly viewId: string;
@@ -109,10 +110,29 @@ export class SupremeAIChatProvider implements vscode.WebviewViewProvider {
 
     this.addMessage(userMessage);
 
-    // Incremental update instead of full HTML reload
     this.webview?.webview.postMessage({ type: 'addMessage', message: userMessage });
 
-    // Show thinking indicator
+    // 1. Check for utility/meta questions locally FIRST to avoid backend delay and ensure correct language
+    const localResponse = this.generateLocalResponse(message);
+    const genericResponse = this.getGenericFallbackText();
+
+    if (localResponse !== genericResponse) {
+      const aiMessage: ChatMessage = {
+        id: Date.now().toString(),
+        role: 'assistant',
+        content: localResponse,
+        timestamp: new Date().toISOString()
+      };
+
+      // Small artificial delay for realism, then send
+      setTimeout(() => {
+        this.addMessage(aiMessage);
+        this.webview?.webview.postMessage({ type: 'addMessage', message: aiMessage });
+      }, 300);
+      return;
+    }
+
+    // 2. If not a meta-question, proceed to AI backend
     this.showThinkingIndicator();
 
     try {
@@ -135,7 +155,9 @@ export class SupremeAIChatProvider implements vscode.WebviewViewProvider {
 
       const response = await this.sendChatRequest(message, codeContext);
 
-      this.removeThinkingIndicator();
+      // Ensure thinking indicator is removed before adding the real response
+      // This prevents UI glitches where both show up simultaneously
+      await this.removeThinkingIndicator();
 
       const aiMessage: ChatMessage = {
         id: Date.now().toString(),
@@ -147,7 +169,7 @@ export class SupremeAIChatProvider implements vscode.WebviewViewProvider {
       this.addMessage(aiMessage);
       this.webview?.webview.postMessage({ type: 'addMessage', message: aiMessage });
     } catch (error: any) {
-      this.removeThinkingIndicator();
+      await this.removeThinkingIndicator();
       const errorMessage: ChatMessage = {
         id: Date.now().toString(),
         role: 'assistant',
@@ -158,6 +180,10 @@ export class SupremeAIChatProvider implements vscode.WebviewViewProvider {
       this.addMessage(errorMessage);
       this.webview?.webview.postMessage({ type: 'addMessage', message: errorMessage });
     }
+  }
+
+  private getGenericFallbackText(): string {
+    return "I'm here to help with your coding needs!";
   }
 
   private async sendChatRequest(message: string, codeContext: string = ''): Promise<string> {
@@ -185,33 +211,43 @@ export class SupremeAIChatProvider implements vscode.WebviewViewProvider {
   private generateLocalResponse(message: string): string {
     const lowerMsg = message.toLowerCase();
 
-    if (/\b(hello|hi|hey)\b/.test(lowerMsg)) {
-      return 'Hello! I\'m your SupremeAI assistant. How can I help you with your code today?';
+    const signatureRegistry = this.getDynamicSignatures();
+    const intent = signatureRegistry.detectCategory(lowerMsg);
+
+    if (signatureRegistry.matchesAny(lowerMsg, 'GREETING_PATTERNS')) {
+      return signatureRegistry.getTemplates('GREETING_RESPONSES')[0] || 'Hello! I\'m your SupremeAI assistant. How can I help you with your code today?';
     }
 
-    if (/\b(bug|error|fix)\b/.test(lowerMsg)) {
-      return 'I can help you debug! Please share the error message or the problematic code, and I\'ll analyze it for you.';
+    if (signatureRegistry.matchesAny(lowerMsg, 'DEBUG_PATTERNS')) {
+      const templates = signatureRegistry.getTemplates('DEBUG_RESPONSES');
+      return templates[0] || 'I can help you debug! Please share the error message or the problematic code.';
     }
 
-    if (/\b(refactor|improve|optimize)\b/.test(lowerMsg)) {
-      return 'I can help refactor your code! Please share the code you\'d like to improve, and I\'ll suggest optimizations.';
+    if (signatureRegistry.matchesAny(lowerMsg, 'REFACTOR_PATTERNS')) {
+      const templates = signatureRegistry.getTemplates('REFACTOR_RESPONSES');
+      return templates[0] || 'I can help refactor your code! Please share the code you\'d like to improve.';
     }
 
-    if (/\b(explain|understand)\b/.test(lowerMsg)) {
-      return 'I can explain code concepts! Please share the code or concept you\'d like me to explain.';
+    if (signatureRegistry.matchesAny(lowerMsg, 'EXPLAIN_PATTERNS')) {
+      const templates = signatureRegistry.getTemplates('EXPLAIN_RESPONSES');
+      return templates[0] || 'I can explain code concepts! Please share the code or concept.';
     }
 
-    if (lowerMsg.includes('time')) {
-      return `The current time is: ${new Date().toLocaleTimeString()}`;
+    if (signatureRegistry.matchesAny(lowerMsg, 'TIME_PATTERNS')) {
+      const templates = signatureRegistry.getTemplates('TIME_RESPONSES');
+      const template = templates[0] || 'The current time is: {{time}}';
+      return template.replace('{{time}}', new Date().toLocaleTimeString());
     }
 
-    return 'I\'m here to help with your coding needs! You can ask me to:\n' +
-      '• Explain code\n' +
-      '• Fix bugs\n' +
-      '• Refactor code\n' +
-      '• Review code\n' +
-      '• Answer programming questions\n\n' +
-      'Please share your code or question, and I\'ll do my best to help!';
+    return signatureRegistry.getTemplates('DEFAULT_RESPONSES')[0] || this.getGenericFallbackText();
+  }
+
+  private getGenericFallbackText(): string {
+    return this.getDynamicSignatures().getTemplates('FALLBACK_MESSAGES')[0] || "I'm here to help with your coding needs!";
+  }
+
+  private getDynamicSignatures(): DynamicSignatureRegistry {
+    return (this as any)._signatureRegistry || DynamicSignatureRegistry.getInstance();
   }
 
   private getRelevantCode(fullText: string, message: string): string {
@@ -324,9 +360,11 @@ export class SupremeAIChatProvider implements vscode.WebviewViewProvider {
     }
   }
 
-  private removeThinkingIndicator(): void {
+  private async removeThinkingIndicator(): Promise<void> {
     this.messageHistory = this.messageHistory.filter(m => m.id !== 'thinking');
     this.webview?.webview.postMessage({ type: 'removeThinking' });
+    // Essential delay to ensure the DOM is cleared before the next message appends
+    return new Promise(resolve => setTimeout(resolve, 50));
   }
 
   private async updateContent(webviewView: vscode.WebviewView): Promise<void> {

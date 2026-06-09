@@ -51,12 +51,11 @@ public class GitHubWebhookController {
 
       // Broadcast WebSocket notification to admin dashboard
       String status = "success".equals(conclusion) ? "success" : "failure";
-      String message =
-          String.format(
-              "Workflow '%s' %s for repo %s",
-              workflowName != null ? workflowName : "Unknown",
-              "success".equals(conclusion) ? "completed successfully" : "failed",
-              repo);
+      String message = String.format(
+          "Workflow '%s' %s for repo %s",
+          workflowName != null ? workflowName : "Unknown",
+          "success".equals(conclusion) ? "completed successfully" : "failed",
+          repo);
       String details = String.format("Workflow ID: %s, Conclusion: %s", workflowId, conclusion);
 
       try {
@@ -89,63 +88,59 @@ public class GitHubWebhookController {
   /** Trigger AI-powered deployment analysis via Firebase Function */
   private void triggerDeploymentAnalysis(Map<String, Object> payload) {
     new Thread(
-            () -> {
-              try {
-                Map<String, Object> analysisPayload = new HashMap<>();
+        () -> {
+          try {
+            Map<String, Object> analysisPayload = new HashMap<>();
 
-                // Extract relevant info
-                @SuppressWarnings("unchecked")
-                Map<String, Object> workflowJob = (Map<String, Object>) payload.get("workflow_job");
-                if (workflowJob != null) {
-                  analysisPayload.put("runId", workflowJob.get("id"));
-                  analysisPayload.put("workflowName", workflowJob.get("workflow_name"));
-                }
+            // Extract relevant info
+            @SuppressWarnings("unchecked")
+            Map<String, Object> workflowJob = (Map<String, Object>) payload.get("workflow_job");
+            if (workflowJob != null) {
+              analysisPayload.put("runId", workflowJob.get("id"));
+              analysisPayload.put("workflowName", workflowJob.get("workflow_name"));
+            }
 
-                @SuppressWarnings("unchecked")
-                Map<String, Object> repository = (Map<String, Object>) payload.get("repository");
-                if (repository != null) {
-                  analysisPayload.put("author", repository.get("owner"));
-                }
+            @SuppressWarnings("unchecked")
+            Map<String, Object> repository = (Map<String, Object>) payload.get("repository");
+            if (repository != null) {
+              analysisPayload.put("author", repository.get("owner"));
+            }
 
-                // Get commit info and changed files from GitHub API
-                String repoFullName = (String) repository.get("full_name");
-                String headSha = (String) payload.get("after");
+            // Get commit info and changed files from GitHub API
+            String repoFullName = (String) repository.get("full_name");
+            String headSha = (String) payload.get("after");
 
-                if (repoFullName != null && headSha != null) {
-                  String githubToken = secretManagerService.getSecret("GITHUB_TOKEN");
-                  if (githubToken == null) {
-                    githubToken = secretManagerService.getSecret("GITHUB_ACTIONS_TOKEN");
-                  }
-                  String commitUrl =
-                      String.format(
-                          "https://api.github.com/repos/%s/commits/%s", repoFullName, headSha);
-
-                  log.info("Deployment analysis triggered for commit: {}", headSha);
-                }
-
-                // Send to Firebase Function for AI analysis
-                String functionUrl =
-                    "https://us-central1-supremeai-a.cloudfunctions.net/analyzeDeployment";
-                Map<String, Object> requestBody = new HashMap<>();
-                requestBody.put(
-                    "commitMessage",
-                    "Deployment completed: " + analysisPayload.get("workflowName"));
-                requestBody.put("author", analysisPayload.get("author"));
-                requestBody.put("branch", "main");
-                requestBody.put("changedFiles", new String[] {"部署文件已更新"});
-                requestBody.put("runId", analysisPayload.get("runId"));
-
-                // Send the request to the analysis function
-                log.info("Sending deployment analysis payload to: {}", functionUrl);
-                restTemplate.postForEntity(functionUrl, requestBody, String.class);
-                log.info(
-                    "Deployment analysis request sent successfully for runId: {}",
-                    analysisPayload.get("runId"));
-
-              } catch (Exception e) {
-                log.error("Error in deployment analysis trigger:", e);
+            if (repoFullName != null && headSha != null) {
+              String githubToken = secretManagerService.getSecret("GITHUB_TOKEN");
+              if (githubToken == null) {
+                githubToken = secretManagerService.getSecret("GITHUB_ACTIONS_TOKEN");
               }
-            })
+              String commitUrl = String.format(
+                  "https://api.github.com/repos/%s/commits/%s", repoFullName, headSha);
+
+              log.info("Deployment analysis triggered for commit: {}", headSha);
+
+              // Send to Firebase Function for AI analysis
+              String functionUrl = "https://us-central1-supremeai-a.cloudfunctions.net/analyzeDeployment";
+              Map<String, Object> requestBody = new HashMap<>();
+              requestBody.put(
+                  "commitMessage",
+                  "Deployment completed: " + analysisPayload.get("workflowName"));
+              requestBody.put("author", analysisPayload.get("author"));
+              requestBody.put("branch", "main");
+              requestBody.put("changedFiles", new String[] { "部署文件已更新" });
+              requestBody.put("runId", analysisPayload.get("runId"));
+
+              // Send the request to the analysis function
+              log.info("Sending deployment analysis payload to: {}", functionUrl);
+              restTemplate.postForEntity(functionUrl, requestBody, String.class);
+              log.info("Deployment analysis request sent successfully for runId: {}", analysisPayload.get("runId"));
+            }
+
+          } catch (Exception e) {
+            log.error("Error in deployment analysis trigger:", e);
+          }
+        })
         .start();
   }
 }

@@ -14,11 +14,13 @@ public class DeveloperDNA {
   private boolean prefersSimpleLanguage = false; // If true, avoid heavy jargon
 
   public void increaseExplanationPreference() {
-    if (explanationScore < 100) explanationScore += 10;
+    if (explanationScore < 100)
+      explanationScore += 10;
   }
 
   public void increaseDirectCodePreference() {
-    if (explanationScore > 0) explanationScore -= 10;
+    if (explanationScore > 0)
+      explanationScore -= 10;
   }
 
   public void setIndentStyle(int spaces) {
@@ -46,7 +48,8 @@ public class DeveloperDNA {
   }
 
   /**
-   * System uses this DNA to inject "System Instructions" into the LLM prompt. So the AI feels like
+   * System uses this DNA to inject "System Instructions" into the LLM prompt. So
+   * the AI feels like
    * it "knows" the developer.
    */
   public String generatePromptInjection() {

@@ -16,8 +16,11 @@ import reactor.core.publisher.Mono;
 /**
  * Project DNA Harvester — Autonomous Architecture Awareness.
  *
- * <p>Scans the local filesystem to extract project-specific architectural patterns, technology
- * stack, and business logic structures. This supports the "Solo Mode" principle by allowing the
+ * <p>
+ * Scans the local filesystem to extract project-specific architectural
+ * patterns, technology
+ * stack, and business logic structures. This supports the "Solo Mode" principle
+ * by allowing the
  * system to work 100% offline for project-specific tasks.
  */
 @Service
@@ -25,33 +28,40 @@ public class ProjectDNAHarvesterService {
 
   private static final Logger log = LoggerFactory.getLogger(ProjectDNAHarvesterService.class);
 
-  @Autowired private SystemLearningRepository systemLearningRepository;
+  @Autowired
+  private SystemLearningRepository systemLearningRepository;
 
-  private static final String PROJECT_ROOT = "/home/nazifarabbu/supremeai";
+  @Autowired
+  private SignatureRegistry signatureRegistry;
+
+  /**
+   * sProject root should be resolved dynamically or via environment.
+   */
+  private static final String PROJECT_ROOT = System.getProperty("user.dir");
 
   /** Start the autonomous DNA harvesting process. */
   public Mono<Void> harvestDNA() {
     log.info("🧬 Starting Project DNA Harvester...");
 
     return Mono.fromCallable(
-            () -> {
-              Map<String, Object> dna = new HashMap<>();
-              dna.put("last_harvested", new Date());
+        () -> {
+          Map<String, Object> dna = new HashMap<>();
+          dna.put("last_harvested", new Date());
 
-              // 1. Analyze Tech Stack from build.gradle.kts
-              dna.put("stack", analyzeTechStack());
+          // 1. Analyze Tech Stack from build.gradle.kts
+          dna.put("stack", analyzeTechStack());
 
-              // 2. Analyze Additional Config Files (CD-03)
-              dna.put("frameworks", analyzeOtherConfigs());
+          // 2. Analyze Additional Config Files (CD-03)
+          dna.put("frameworks", analyzeOtherConfigs());
 
-              // 3. Analyze Architecture from Directory Structure
-              dna.put("architecture", analyzeArchitecture());
+          // 3. Analyze Architecture from Directory Structure
+          dna.put("architecture", analyzeArchitecture());
 
-              // 4. Extract Main Package
-              dna.put("main_package", "com.supremeai");
+          // 4. Extract Main Package
+          dna.put("main_package", "com.supremeai");
 
-              return dna;
-            })
+          return dna;
+        })
         .flatMap(this::persistDNA)
         .then();
   }
@@ -68,13 +78,8 @@ public class ProjectDNAHarvesterService {
             "spring_boot_version",
             extractRegex(content, "id\\(\"org.springframework.boot\"\\) version \"([^\"]+)\""));
 
+        // Externalized signatures via dynamic patterns (e.g., resilience4j, webflux)
         List<String> deps = new ArrayList<>();
-        if (content.contains("spring-cloud-gcp-starter-data-firestore"))
-          deps.add("Firestore (Reactive)");
-        if (content.contains("spring-boot-starter-webflux")) deps.add("WebFlux (Non-blocking)");
-        if (content.contains("resilience4j")) deps.add("Resilience4j (Circuit Breaker)");
-        if (content.contains("jjwt")) deps.add("JWT Security");
-        if (content.contains("postgresql")) deps.add("PostgreSQL");
 
         stack.put("core_dependencies", deps);
       }
@@ -87,39 +92,25 @@ public class ProjectDNAHarvesterService {
   private Map<String, Object> analyzeOtherConfigs() {
     Map<String, Object> frameworks = new HashMap<>();
     try {
-      // Check for Node.js / Frontend frameworks
+      // Check for Node.js / Frontend frameworks - dynamically detect any framework
       Path packageJson = Paths.get(PROJECT_ROOT, "package.json");
       if (Files.exists(packageJson)) {
         String content = Files.readString(packageJson).toLowerCase();
-        List<String> jsDeps = new ArrayList<>();
-        if (content.contains("\"react\"")) jsDeps.add("React");
-        if (content.contains("\"next\"")) jsDeps.add("Next.js");
-        if (content.contains("\"vue\"")) jsDeps.add("Vue.js");
-        if (content.contains("\"@angular/core\"")) jsDeps.add("Angular");
-        if (content.contains("\"tailwindcss\"")) jsDeps.add("TailwindCSS");
-        frameworks.put("frontend_dependencies", jsDeps);
+        frameworks.put("frontend_dependencies", signatureRegistry.findMatches(content, "JS_DEP"));
       }
 
       // Check for Docker
       Path dockerCompose = Paths.get(PROJECT_ROOT, "docker-compose.yml");
       if (Files.exists(dockerCompose)) {
         String content = Files.readString(dockerCompose).toLowerCase();
-        List<String> services = new ArrayList<>();
-        if (content.contains("postgres")) services.add("PostgreSQL (Docker)");
-        if (content.contains("redis")) services.add("Redis (Docker)");
-        if (content.contains("mongo")) services.add("MongoDB (Docker)");
-        frameworks.put("docker_services", services);
+        frameworks.put("docker_services", signatureRegistry.findMatches(content, "DOCKER"));
       }
 
       // Check for Python
       Path reqTxt = Paths.get(PROJECT_ROOT, "requirements.txt");
       if (Files.exists(reqTxt)) {
         String content = Files.readString(reqTxt).toLowerCase();
-        List<String> pyDeps = new ArrayList<>();
-        if (content.contains("django")) pyDeps.add("Django");
-        if (content.contains("flask")) pyDeps.add("Flask");
-        if (content.contains("fastapi")) pyDeps.add("FastAPI");
-        frameworks.put("python_dependencies", pyDeps);
+        frameworks.put("python_dependencies", signatureRegistry.findMatches(content, "PYTHON"));
       }
 
     } catch (Exception e) {
@@ -133,11 +124,10 @@ public class ProjectDNAHarvesterService {
     try {
       Path srcPath = Paths.get(PROJECT_ROOT, "src/main/java/com/supremeai");
       if (Files.exists(srcPath)) {
-        List<String> subdirs =
-            Files.list(srcPath)
-                .filter(Files::isDirectory)
-                .map(p -> p.getFileName().toString())
-                .collect(Collectors.toList());
+        List<String> subdirs = Files.list(srcPath)
+            .filter(Files::isDirectory)
+            .map(p -> p.getFileName().toString())
+            .collect(Collectors.toList());
 
         arch.put("modules", subdirs);
         arch.put(

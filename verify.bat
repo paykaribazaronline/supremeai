@@ -146,7 +146,12 @@ if "!RUN_BACKEND!"=="true" (
 
     if "%2"=="--lint-only" goto skip_backend_tests
     echo Running Backend Unit Tests...
-    call .\gradlew test
+    if "%1"=="--coverage" (
+        call .\gradlew test jacocoTestReport
+    ) else (
+        call .\gradlew test
+    )
+    
     if !ERRORLEVEL! NEQ 0 (
         echo [ERROR] Backend tests failed!
         exit /b !ERRORLEVEL!
@@ -181,7 +186,11 @@ if "!RUN_FRONTEND!"=="true" (
         )
         
         echo Running Frontend Lint...
-        call npm run lint -w dashboard
+        if "%1"=="--coverage" (
+            call npm run test -w dashboard -- --run --coverage
+        ) else (
+            call npm run lint -w dashboard
+        )
         if !ERRORLEVEL! NEQ 0 (
             echo [ERROR] Frontend Lint failed!
             exit /b !ERRORLEVEL!
@@ -236,7 +245,11 @@ if "!RUN_MOBILE!"=="true" (
             exit /b !ERRORLEVEL!
         )
         echo Running Flutter Tests...
-        call flutter test
+        if "%1"=="--coverage" (
+            call flutter test --coverage
+        ) else (
+            call flutter test
+        )
         if !ERRORLEVEL! NEQ 0 (
             echo [ERROR] Flutter tests failed!
             popd
@@ -246,6 +259,14 @@ if "!RUN_MOBILE!"=="true" (
     )
     echo Mobile checks passed successfully.
     echo/
+)
+
+:: 7. Run Coverage Auditor
+if "%1"=="--coverage" (
+    echo [System] Running Coverage Gap Analysis...
+    python scripts/tools/coverage_auditor.py
+    echo [System] Attempting to auto-generate missing tests...
+    python scripts/tools/auto_test_generator.py
 )
 
 echo ===================================================

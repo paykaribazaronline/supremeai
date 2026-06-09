@@ -8,34 +8,23 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
-/**
- * Autonomous Questioning Engine (S3)
- *
- * <p>INTELLIGENT INTENT CLASSIFICATION SYSTEM
- *
- * <p>This engine determines the appropriate response strategy for any user query. Instead of
- * hardcoded validation rules, it uses: - Intent classification (informational vs task vs
- * clarification needed) - Context-aware analysis - Confidence scoring
- *
- * <p>The system decides WHAT to do, WHEN to do it, and HOW to do it.
- */
 @Service
 public class AutonomousQuestioningEngine {
 
   private static final Logger logger = LoggerFactory.getLogger(AutonomousQuestioningEngine.class);
 
-  // Minimum thresholds for different request types
-  @Autowired private com.supremeai.provider.AIProviderFactory providerFactory;
+  @Autowired
+  private com.supremeai.provider.AIProviderFactory providerFactory;
 
-  @Autowired private ConfigService configService;
+  @Autowired
+  private ConfigService configService;
 
-  /**
-   * INTENT TYPES for Response Strategy - FACTUAL: "what is X", "explain Y" - Direct answer needed -
-   * TASK: "create", "build", "fix" - Action required - CLARIFY: Ambiguous queries - Need user input
-   * - GREETING: "hi", "hello" - Friendly acknowledgment - CREATIVE: "song", "poem", "story" -
-   * Unique requests, shouldn't be memorized - TEMPORAL: Time-sensitive data, news, prices - Will
-   * search web but NEVER memorize
-   */
+  @Autowired
+  private com.supremeai.service.SupremeAIBrain supremeAIBrain;
+
+  @Autowired
+  private DynamicSignatureRegistry signatureRegistry;
+
   public enum IntentType {
     FACTUAL,
     TASK,
@@ -46,169 +35,154 @@ public class AutonomousQuestioningEngine {
     UNKNOWN
   }
 
-  /** Response Strategy determined by the engine */
   public enum ResponseStrategy {
-    DIRECT_ANSWER, // Can answer directly from knowledge
-    CLARIFY_FIRST, // Need clarification before answering
-    MULTI_TURN_PLAN, // Complex task requiring step-by-step
-    WEB_SEARCH_NEEDED, // Need to search the web for current info
-    LEARN_AND_RESPOND // New concept - learn then respond
+    DIRECT_ANSWER,
+    CLARIFY_FIRST,
+    MULTI_TURN_PLAN,
+    WEB_SEARCH_NEEDED,
+    LEARN_AND_RESPOND
   }
 
-  public IntentType classifyIntent(String input) {
+  /**
+   * NEURAL ROUTING: Instead of hardcoded Regex, we ask the Supreme Brain to
+   * classify intent.
+   */
+  public Mono<IntentType> classifyIntentAI(String input) {
+    String prompt =
+        signatureRegistry.getSignatures("INTENT_CLASSIFICATION_PROMPT")
+            .stream()
+            .findFirst()
+            .orElse("Classify the intent for: \"%s\"")
+            .formatted(input);
+
+    return supremeAIBrain.think("ORCHESTRATION", prompt)
+        .map(response -> {
+          try {
+            return IntentType.valueOf(response.trim().toUpperCase());
+          } catch (Exception e) {
+            logger.warn("AI Classification failed for: {}, using contextual detection.", input);
+            return detectContextualIntent(input);
+          }
+        })
+        .defaultIfEmpty(IntentType.CLARIFY);
+  }
+
+  private IntentType detectContextualIntent(String input) {
     if (input == null || input.trim().isEmpty()) {
-      return IntentType.UNKNOWN;
+      return IntentType.CLARIFY;
     }
 
-    String lower = input.trim().toLowerCase();
-
-    // Greeting detection
-    if (isGreeting(input) || isCommonPhrase(input)) {
+    String lower = input.toLowerCase();
+    if (signatureRegistry.matchesAny(lower, "GREETING_PATTERNS")) {
       return IntentType.GREETING;
     }
-
-    // Creative patterns
-    if (lower.matches(
-        ".*\\b(song|poem|story|joke|creative|write me a|গান|কবিতা|গল্প|জোকস|ছড়া|প্রবন্ধ)\\b.*")) {
-      return IntentType.CREATIVE;
-    }
-
-    // Temporal / Time-sensitive patterns
-    if (lower.matches(
-        ".*\\b(latest|current|today|news|weather|price|now|সাম্প্রতিক|আজকের|খবর|বর্তমান|এখনকার)\\b.*")) {
+    if (signatureRegistry.matchesAny(lower, "TEMPORAL_PATTERNS")) {
       return IntentType.TEMPORAL;
     }
-
-    // Factual question patterns
-    if (lower.matches(".*\\b(what is|what are|explain|tell me about|describe|define)\\b.*")
-        || lower.matches(".*\\b(how does|how work|difference between)\\b.*")) {
+    if (signatureRegistry.matchesAny(lower, "CREATIVE_PATTERNS")) {
+      return IntentType.CREATIVE;
+    }
+    if (signatureRegistry.matchesAny(lower, "TASK_PATTERNS") || lower.contains("?")) {
       return IntentType.FACTUAL;
     }
-
-    // Task-oriented patterns
-    if (lower.matches(
-        ".*\\b(create|build|make|develop|implement|write|code|fix|debug|deploy|design)\\b.*")) {
+    if (signatureRegistry.matchesAny(lower, "REQUEST_PATTERNS")) {
       return IntentType.TASK;
     }
-
-    // Default to factual for questions ending with '?'
-    if (lower.endsWith("?")) {
-      return IntentType.FACTUAL;
-    }
-
-    return IntentType.CLARIFY;
-  }
-
-  private boolean isGreeting(String input) {
-    if (input == null) return false;
-    String trimmed = input.trim().toLowerCase();
-    return trimmed.matches(
-        "^(hi|hello|hey|hlw|greetings|hola|good morning|good afternoon|good evening|assalamualaikum|namaste|hello there|hi there|yo|hello neural|hi neural|হাই|হ্যালো|হেই|কি অবস্থা|কেমন আছেন)(\\s+.*)?$");
-  }
-
-  private boolean isCommonPhrase(String input) {
-    if (input == null) return false;
-    String trimmed = input.trim().toLowerCase();
-    return trimmed.matches(
-        "^(thanks|thank you|ok|okay|yes|no|cool|awesome|great|perfect|bye|goodbye)(\\s+.*)?$");
+    return IntentType.UNKNOWN;
   }
 
   public List<String> generateProbableOptions(String input, RequestType type) {
     List<String> options = new ArrayList<>();
     String lower = input != null ? input.toLowerCase().trim() : "";
 
-    if (lower.contains("flutter") || lower.contains("mobile")) {
-      options.add("How to create a Flutter app");
-      options.add("Flutter setup & installation");
-      options.add("Integrate Firebase with Flutter");
-    } else if (lower.contains("create") || lower.contains("build") || lower.contains("app")) {
-      options.add("Build a Spring Boot backend app");
-      options.add("Build a React frontend web app");
-      options.add("Build a Flutter mobile app");
-    } else if (lower.contains("database") || lower.contains("schema") || lower.contains("sql")) {
-      options.add("Design a PostgreSQL schema");
-      options.add("Design a MongoDB / Firestore schema");
-      options.add("Database connection setup");
-    } else if (lower.contains("error") || lower.contains("bug") || lower.contains("fix")) {
-      options.add("Fix a NullPointerException");
-      options.add("Fix a CORS policy blocked error");
-      options.add("Debug Spring Security 403 Forbidden");
-    } else if (lower.contains("api") || lower.contains("rest")) {
-      options.add("Design a REST API with GET & POST endpoints");
-      options.add("Spring Security JWT authentication API");
-      options.add("Implement pagination in REST API");
+    if (signatureRegistry.matchesAny(lower, "MOBILE_TOOLS")) {
+      Set<String> mobileOptions = signatureRegistry.getSignatures("MOBILE_OPTION_TEMPLATES");
+      options.addAll(mobileOptions.stream().limit(3).toList());
+    } else if (signatureRegistry.matchesAny(lower, "BUILD_TOOLS")) {
+      Set<String> buildOptions = signatureRegistry.getSignatures("BUILD_OPTION_TEMPLATES");
+      options.addAll(buildOptions.stream().limit(3).toList());
+    } else if (signatureRegistry.matchesAny(lower, "DATABASE_TOOLS")) {
+      Set<String> dbOptions = signatureRegistry.getSignatures("DATABASE_OPTION_TEMPLATES");
+      options.addAll(dbOptions.stream().limit(3).toList());
+    } else if (signatureRegistry.matchesAny(lower, "DEBUG_TOOLS")) {
+      Set<String> debugOptions = signatureRegistry.getSignatures("DEBUG_OPTION_TEMPLATES");
+      options.addAll(debugOptions.stream().limit(3).toList());
+    } else if (signatureRegistry.matchesAny(lower, "API_TOOLS")) {
+      Set<String> apiOptions = signatureRegistry.getSignatures("API_OPTION_TEMPLATES");
+      options.addAll(apiOptions.stream().limit(3).toList());
     } else {
-      options.add("Explain the concept in detail");
-      options.add("Provide a practical code example");
-      options.add("Show step-by-step implementation guide");
+      Set<String> generalOptions = signatureRegistry.getSignatures("GENERAL_OPTION_TEMPLATES");
+      options.addAll(generalOptions.stream().limit(3).toList());
     }
-    options.add("অন্য কিছু (বিস্তারিত লিখুন)");
+    options.add("Something else (please specify)");
     return options;
   }
 
   /**
    * Validate user input and generate clarifying questions if needed
    *
-   * <p>NEW APPROACH: Instead of blocking queries, determine response strategy
+   * <p>
+   * NEW APPROACH: Instead of blocking queries, determine response strategy
    */
   public Mono<ValidationResult> validateAndQuestion(String userInput, RequestType requestType) {
-    return Mono.fromCallable(
-            () -> {
-              logger.info("Validating user input of type: {}", requestType);
+    return classifyIntentAI(userInput)
+        .flatMap(intent -> Mono.fromCallable(() -> {
+          logger.info("Validating user input of type: {}", requestType);
 
-              List<String> questions = new ArrayList<>();
-              IntentType intent = classifyIntent(userInput);
-              ResponseStrategy strategy = determineStrategy(userInput, intent, requestType);
-              double clarityScore = calculateClarityScore(userInput, requestType);
-              boolean isComplete;
+          List<String> questions = new ArrayList<>();
+          ResponseStrategy strategy = determineStrategy(userInput, intent, requestType);
+          double clarityScore = calculateClarityScore(userInput, requestType);
+          boolean isComplete;
 
-              // INTELLIGENT FLOW: Don't block valid queries, determine response approach
-              if (intent == IntentType.GREETING) {
-                isComplete = true;
-                clarityScore = 1.0;
-              } else if (intent == IntentType.FACTUAL) {
-                // Factual questions should always proceed - let the knowledge system answer
-                isComplete = true;
-                clarityScore = 0.85;
-              } else if (requestType == RequestType.GENERAL_AI) {
-                // For general AI, accept inputs >= 3 chars and let the system handle it
-                if (userInput != null && userInput.trim().length() >= 3) {
-                  isComplete = true;
-                  clarityScore = Math.max(0.7, clarityScore);
-                } else {
-                  isComplete = false;
-                  questions.add("Could you elaborate on your request? The input seems too brief.");
-                }
-              } else {
-                // For specific task types (CODE_GENERATION, API_DESIGN, etc.)
-                // Check for missing critical information
-                questions.addAll(checkMissingInformation(userInput, requestType));
+          // Intent is now pre-classified via AI
 
-                isComplete = (clarityScore >= getMinClarityScore()) && questions.isEmpty();
-              }
+          // INTELLIGENT FLOW: Don't block valid queries, determine response approach
+          if (intent == IntentType.GREETING) {
+            isComplete = true;
+            clarityScore = 1.0;
+          } else if (intent == IntentType.FACTUAL) {
+            // Factual questions should always proceed - let the knowledge system answer
+            isComplete = true;
+            clarityScore = 0.85;
+          } else if (requestType == RequestType.GENERAL_AI) {
+            // For general AI, accept inputs >= 3 chars and let the system handle it
+            if (userInput != null && userInput.trim().length() >= 3) {
+              isComplete = true;
+              clarityScore = Math.max(0.7, clarityScore);
+            } else {
+              isComplete = false;
+              questions.add("Could you elaborate on your request? The input seems too brief.");
+            }
+          } else {
+            // For specific task types (CODE_GENERATION, API_DESIGN, etc.)
+            // Check for missing critical information
+            questions.addAll(checkMissingInformation(userInput, requestType));
 
-              ValidationResult result = new ValidationResult();
-              result.setOriginalInput(userInput);
-              result.setRequestType(requestType);
-              result.setClarityScore(clarityScore);
-              result.setComplete(isComplete);
-              result.setClarifyingQuestions(questions);
-              result.setIntentType(intent);
-              result.setResponseStrategy(strategy);
-              if (!isComplete) {
-                result.setOptions(generateProbableOptions(userInput, requestType));
-              } else {
-                result.setOptions(Collections.emptyList());
-              }
+            isComplete = (clarityScore >= getMinClarityScore()) && questions.isEmpty();
+          }
 
-              logger.info(
-                  "Validation complete. Intent: {}, Strategy: {}, Clarity: {}, Questions: {}",
-                  intent,
-                  strategy,
-                  clarityScore,
-                  questions.size());
-              return result;
-            })
+          ValidationResult result = new ValidationResult();
+          result.setOriginalInput(userInput);
+          result.setRequestType(requestType);
+          result.setClarityScore(clarityScore);
+          result.setComplete(isComplete);
+          result.setClarifyingQuestions(questions);
+          result.setIntentType(intent);
+          result.setResponseStrategy(strategy);
+          if (!isComplete) {
+            result.setOptions(generateProbableOptions(userInput, requestType));
+          } else {
+            result.setOptions(Collections.emptyList());
+          }
+
+          logger.info(
+              "Validation complete. Intent: {}, Strategy: {}, Clarity: {}, Questions: {}",
+              intent,
+              strategy,
+              clarityScore,
+              questions.size());
+          return result;
+        }))
         .subscribeOn(Schedulers.boundedElastic());
   }
 
@@ -224,9 +198,8 @@ public class AutonomousQuestioningEngine {
     }
 
     // Local-first mode check: prefer local responses when enabled
-    boolean localFirst =
-        Boolean.parseBoolean(
-            configService.getEffectiveSetting("supremeai.local-first.enabled", "false"));
+    boolean localFirst = Boolean.parseBoolean(
+        configService.getEffectiveSetting("supremeai.local-first.enabled", "false"));
 
     if (localFirst) {
       // In local-first mode, route to direct answer for most intents
@@ -239,8 +212,7 @@ public class AutonomousQuestioningEngine {
     }
 
     // Feature flag checking instead of hardcoded 180-degree shift
-    boolean forceWebSearch =
-        Boolean.parseBoolean(configService.getEffectiveSetting("force_web_search", "false"));
+    boolean forceWebSearch = Boolean.parseBoolean(configService.getEffectiveSetting("force_web_search", "false"));
 
     if (forceWebSearch) {
       return ResponseStrategy.WEB_SEARCH_NEEDED;
@@ -257,12 +229,23 @@ public class AutonomousQuestioningEngine {
     };
   }
 
-  private double calculateClarityScore(String userInput, RequestType requestType) {
-    if (userInput == null || userInput.trim().isEmpty()) return 0.0;
-    int wordCount = userInput.trim().split("\\s+").length;
-    if (wordCount >= 5) return 1.0;
-    if (wordCount >= 3) return 0.8;
-    return 0.5;
+  /**
+   * NEURAL CLARITY: Instead of word count, ask the brain if it has enough info.
+   */
+  public Mono<Double> calculateClarityScoreAI(String userInput, RequestType requestType) {
+    String prompt = "Rate the clarity of this request for " + requestType + " from 0.0 to 1.0.\n"
+        + "Input: \"" + userInput + "\"\n"
+        + "Respond with only the numeric score.";
+
+    return supremeAIBrain.think("VALIDATION", prompt)
+        .map(score -> {
+          try {
+            return Double.parseDouble(score.trim());
+          } catch (Exception e) {
+            return 0.5;
+          }
+        })
+        .defaultIfEmpty(0.5);
   }
 
   private double getMinClarityScore() {
@@ -271,25 +254,35 @@ public class AutonomousQuestioningEngine {
 
   private List<String> checkMissingInformation(String userInput, RequestType requestType) {
     List<String> questions = new ArrayList<>();
-    if (userInput == null) return questions;
-    String lower = userInput.toLowerCase();
+    if (userInput == null)
+      return questions;
+
+    Set<String> codeLangIndicators = signatureRegistry.getSignatures("CODE_LANGUAGE_INDICATORS");
+    Set<String> dbIndicators = signatureRegistry.getSignatures("DATABASE_INDICATORS");
 
     if (requestType == RequestType.CODE_GENERATION) {
-      if (!lower.contains("language")
-          && !lower.contains("java")
-          && !lower.contains("python")
-          && !lower.contains("js")) {
-        questions.add("Which programming language should be used?");
+      boolean hasLanguage = codeLangIndicators.stream()
+          .anyMatch(ind -> userInput.toLowerCase().contains(ind.toLowerCase()));
+      if (!hasLanguage) {
+        questions.add(getDynamicQuestion("CODE_LANGUAGE_QUESTION"));
       }
     } else if (requestType == RequestType.DATABASE_SCHEMA) {
-      if (!lower.contains("sql")
-          && !lower.contains("nosql")
-          && !lower.contains("mongo")
-          && !lower.contains("postgres")) {
-        questions.add("What type of database are you targeting (e.g., PostgreSQL, MongoDB)?");
+      boolean hasDb = dbIndicators.stream()
+          .anyMatch(ind -> userInput.toLowerCase().contains(ind.toLowerCase()));
+      if (!hasDb) {
+        questions.add(getDynamicQuestion("DATABASE_TYPE_QUESTION"));
       }
     }
     return questions;
+  }
+
+  private String getDynamicQuestion(String key) {
+    Set<String> questions = signatureRegistry.getSignatures("MISSING_INFO_QUESTIONS");
+    return questions.stream()
+        .filter(q -> q.startsWith(key + ":"))
+        .map(q -> q.substring(key.length() + 1))
+        .findFirst()
+        .orElse("Please provide more details about your request.");
   }
 
   /** Validation result container */

@@ -216,7 +216,7 @@ tasks.test {
     systemProperty("spring.profiles.active", "test")
     
     maxParallelForks = (findProperty("test.maxParallelForks") as String?)?.toIntOrNull()?.coerceAtLeast(1) 
-        ?: Runtime.getRuntime().availableProcessors().coerceAtMost(4)
+        ?: 1
         
     systemProperties["junit.jupiter.execution.parallel.enabled"] = "true"
     systemProperties["junit.jupiter.execution.parallel.mode.default"] = "concurrent"

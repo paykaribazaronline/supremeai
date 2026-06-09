@@ -58,12 +58,11 @@ public class ChatProcessingService {
   }
 
   public Mono<Map<String, Object>> processMessage(String userId, String message, boolean isAdmin) {
-    String sanitizedMessage =
-        Jsoup.clean(
-            message,
-            Safelist.basic()
-                .addTags("br", "p", "strong", "em", "code")
-                .addProtocols("a", "href", "https"));
+    String sanitizedMessage = Jsoup.clean(
+        message,
+        Safelist.basic()
+            .addTags("br", "p", "strong", "em", "code")
+            .addProtocols("a", "href", "https"));
 
     ChatMessage chatMsg = new ChatMessage(userId, sanitizedMessage, isAdmin);
     chatMsg.setId(generateId("chat"));
@@ -83,22 +82,20 @@ public class ChatProcessingService {
                   .validateAndQuestion(message, AutonomousQuestioningEngine.RequestType.GENERAL_AI)
                   .flatMap(
                       validation -> {
-                        if (validation.getIntentType()
-                            == AutonomousQuestioningEngine.IntentType.GREETING) {
+                        if (validation.getIntentType() == AutonomousQuestioningEngine.IntentType.GREETING) {
                           return configService
                               .getEffectiveString(
                                   "chat.greeting.message",
-                                  "হ্যালো! আমি SupremeAI. আজ আমি আপনার প্রজেক্ট বা কোডিংয়ের কাজে কীভাবে সহায়তা করতে পারি?")
+                                  "Hello! I'm SupremeAI. How can I assist you with your project or coding today?")
                               .flatMap(
-                                  greetingMsg ->
-                                      saveAiResponse(
-                                          userId,
-                                          greetingMsg,
-                                          result,
-                                          "local_greeting",
-                                          null,
-                                          message,
-                                          validation.getIntentType()));
+                                  greetingMsg -> saveAiResponse(
+                                      userId,
+                                      greetingMsg,
+                                      result,
+                                      "local_greeting",
+                                      null,
+                                      message,
+                                      validation.getIntentType()));
                         }
 
                         log.info(
@@ -133,19 +130,17 @@ public class ChatProcessingService {
 
     if (Arrays.asList("llm_response", "magic_loop_combined_response").contains(responseType)) {
       if (intentType != AutonomousQuestioningEngine.IntentType.GREETING) {
-        String skillExtractionPrompt =
-            "Analyze this interaction.\nUser: "
-                + originalMessage
-                + "\nResponse: "
-                + responseContent
-                + "\n\nCRITICAL INSTRUCTION: Extract ONLY the core technical SKILL (the 'Why' and 'How') and the best web SOURCE/URL pattern to find this type of info. Do NOT memorize the exact factual answer. Format as a reusable principle/routing rule for future queries.";
+        String skillExtractionPrompt = "Analyze this interaction.\nUser: "
+            + originalMessage
+            + "\nResponse: "
+            + responseContent
+            + "\n\nCRITICAL INSTRUCTION: Extract ONLY the core technical SKILL (the 'Why' and 'How') and the best web SOURCE/URL pattern to find this type of info. Do NOT memorize the exact factual answer. Format as a reusable principle/routing rule for future queries.";
         fallbackOrchestrator
             .executeWithSupremeIntelligence(
                 "chat", "skill_extraction", skillExtractionPrompt, "system")
             .flatMap(
-                skillPattern ->
-                    enhancedLearningService.learnFromInteraction(
-                        userId, originalMessage, skillPattern))
+                skillPattern -> enhancedLearningService.learnFromInteraction(
+                    userId, originalMessage, skillPattern))
             .subscribeOn(Schedulers.parallel())
             .subscribe(
                 v -> log.info("💡 Meta-Skill / Routing Pattern learned for user: {}", userId),
@@ -157,31 +152,30 @@ public class ChatProcessingService {
   }
 
   private Mono<String> determineSearchUrl(String message) {
-    String query = message.toLowerCase();
-    String targetUrl;
-
-    if (query.contains("error")
-        || query.contains("exception")
-        || query.contains("bug")
-        || query.contains("code")
-        || query.contains("compile")
-        || query.contains("run")) {
-      targetUrl = "https://stackoverflow.com/search?q=";
-    } else if (query.contains("flutter")
-        || query.contains("dart")
-        || query.contains("widget")
-        || query.contains("package")) {
-      targetUrl = "https://pub.dev/packages?q=";
-    } else {
-      targetUrl = "https://html.duckduckgo.com/html/?q=";
-    }
-
-    try {
-      String encoded = java.net.URLEncoder.encode(message, "UTF-8");
-      return Mono.just(targetUrl + encoded);
-    } catch (Exception e) {
-      return Mono.just("https://html.duckduckgo.com/html/?q=" + message);
-    }
+    // DYNAMIC DISCOVERY: Fetching targets from ConfigService instead of hardcoding
+    return configService.getEffectiveString("agentic.web.targets", "")
+        .map(targets -> {
+          String query = message.toLowerCase();
+          // Simple heuristic to find the best URL from the targets string
+          String[] lines = targets.split("\n");
+          for (String line : lines) {
+            if (line.contains("(") && line.contains(")")) {
+              String keywords = line.substring(line.indexOf("(") + 1, line.indexOf(")")).toLowerCase();
+              if (Arrays.stream(keywords.split(" ")).anyMatch(query::contains)) {
+                return line.split(" ")[1].replace("%s", "");
+              }
+            }
+          }
+          return "https://html.duckduckgo.com/html/?q=";
+        })
+        .map(baseUrl -> {
+          try {
+            String encoded = java.net.URLEncoder.encode(message, "UTF-8");
+            return baseUrl + encoded;
+          } catch (Exception e) {
+            return "https://html.duckduckgo.com/html/?q=" + message;
+          }
+        });
   }
 
   private Mono<Map<String, Object>> processWithWebFallback(
@@ -189,25 +183,23 @@ public class ChatProcessingService {
       String message,
       Map<String, Object> baseResult,
       AutonomousQuestioningEngine.IntentType intentType) {
-    Mono<String> webDataMono =
-        determineSearchUrl(message)
-            .flatMap(
-                dynamicUrl -> {
-                  if (dynamicUrl != null && !dynamicUrl.isEmpty()) {
-                    log.info("🎯 [Level 3] AI dynamically generated target URL: {}", dynamicUrl);
-                    return browserService.searchAndScrape("", "ai_directed", dynamicUrl);
-                  }
-                  return configService
-                      .getEffectiveString("fallback.search.engine", "duckduckgo")
-                      .flatMap(
-                          engine ->
-                              configService
-                                  .getEffectiveString(
-                                      "fallback.search.url." + engine,
-                                      "https://html.duckduckgo.com/html/?q=")
-                                  .flatMap(
-                                      url -> browserService.searchAndScrape(message, engine, url)));
-                });
+    Mono<String> webDataMono = determineSearchUrl(message)
+        .flatMap(
+            dynamicUrl -> {
+              if (dynamicUrl != null && !dynamicUrl.isEmpty()) {
+                log.info("🎯 [Level 3] AI dynamically generated target URL: {}", dynamicUrl);
+                return browserService.searchAndScrape("", "ai_directed", dynamicUrl);
+              }
+              return configService
+                  .getEffectiveString("fallback.search.engine", "duckduckgo")
+                  .flatMap(
+                      engine -> configService
+                          .getEffectiveString(
+                              "fallback.search.url." + engine,
+                              "https://html.duckduckgo.com/html/?q=")
+                          .flatMap(
+                              url -> browserService.searchAndScrape(message, engine, url)));
+            });
 
     Mono<String> localDataMono = knowledgeService.getRelevantContext(message);
 
@@ -220,8 +212,8 @@ public class ChatProcessingService {
               if ((scrapedData == null || scrapedData.isEmpty())
                   && localData.contains("No relevant local context")) {
                 return saveAiResponse(
-                    userId,
-                    "দুঃখিত, আমি ইন্টারনেট বা লোকাল ডাটাবেস থেকে এই বিষয়ে কোনো তথ্য পাইনি।",
+                    userId, // Changed to English
+                    "Sorry, I couldn't find any information on this topic from the internet or local database.",
                     baseResult,
                     "fallback_failed",
                     null,
@@ -229,18 +221,17 @@ public class ChatProcessingService {
                     intentType);
               }
 
-              String prompt =
-                  "You are SupremeAI, an advanced agentic system.\n\n"
-                      + "[PAST LEARNED SKILLS & ROUTING PATTERNS]\n"
-                      + localData
-                      + "\n\n"
-                      + "[LIVE EXTERNAL DATA]\n"
-                      + scrapedData
-                      + "\n\n"
-                      + "User Question: "
-                      + message
-                      + "\n\n"
-                      + "CRITICAL INSTRUCTION: Do not rely on past factual memory. Use the PAST LEARNED SKILLS and the LIVE EXTERNAL DATA to answer the user's question directly. DO NOT explain your work process, DO NOT provide an architecture plan, and DO NOT explain how you found the answer. Just provide the perfect, up-to-date REAL answer concisely in their preferred language.";
+              String prompt = "You are SupremeAI, an advanced agentic system.\n\n"
+                  + "[PAST LEARNED SKILLS & ROUTING PATTERNS]\n"
+                  + localData
+                  + "\n\n"
+                  + "[LIVE EXTERNAL DATA]\n"
+                  + scrapedData
+                  + "\n\n"
+                  + "User Question: "
+                  + message
+                  + "\n\n"
+                  + "CRITICAL INSTRUCTION: Do not rely on past factual memory. Use the PAST LEARNED SKILLS and the LIVE EXTERNAL DATA to answer the user's question directly. DO NOT explain your work process, DO NOT provide an architecture plan, and DO NOT explain how you found the answer. Just provide the perfect, up-to-date REAL answer concisely in their preferred language.";
 
               return fallbackOrchestrator
                   .executeWithSupremeIntelligence("chat", message, prompt, userId)
@@ -253,27 +244,27 @@ public class ChatProcessingService {
                             .askContextualAIs(prompt, 3, 15000)
                             .map(com.supremeai.model.ConsensusResult::getConsensusAnswer)
                             .onErrorResume(
-                                fallbackErr ->
-                                    Mono.just(
-                                        "দুঃখিত, ইন্টারনেট সার্চ সফল হলেও এআই প্রসেসিংয়ে সমস্যা হয়েছে। (All AIs Down)"));
+                                fallbackErr -> Mono.just(
+                                    "Sorry, internet search was successful, but there was an issue with AI processing. (All AIs Down)")); // Changed
+                                                                                                                                          // to
+                                                                                                                                          // English
                       })
                   .flatMap(
-                      aiResponse ->
-                          saveAiResponse(
-                              userId,
-                              aiResponse,
-                              baseResult,
-                              "magic_loop_combined_response",
-                              null,
-                              message,
-                              intentType));
+                      aiResponse -> saveAiResponse(
+                          userId,
+                          aiResponse,
+                          baseResult,
+                          "magic_loop_combined_response",
+                          null,
+                          message,
+                          intentType));
             })
         .onErrorResume(
             e -> {
               log.error("Web fallback error: ", e);
               return saveAiResponse(
                   userId,
-                  "ইন্টারনেট সার্চ করার সময় একটি সমস্যা হয়েছে: " + e.getMessage(),
+                  "An issue occurred while performing the internet search: " + e.getMessage(), // Changed to English
                   baseResult,
                   "error",
                   null,
@@ -284,8 +275,8 @@ public class ChatProcessingService {
 
   public Mono<List<Map<String, Object>>> getChatHistory(String userId, int limit) {
     return (userId != null
-            ? chatHistoryRepository.findByUserId(userId)
-            : chatHistoryRepository.findAll())
+        ? chatHistoryRepository.findByUserId(userId)
+        : chatHistoryRepository.findAll())
         .take(limit)
         .collectList()
         .map(this::convertChatMessageList);
@@ -293,7 +284,8 @@ public class ChatProcessingService {
 
   private List<Map<String, Object>> convertChatMessageList(List<ChatMessage> messages) {
     List<Map<String, Object>> list = new ArrayList<>();
-    if (messages == null) return list;
+    if (messages == null)
+      return list;
     for (ChatMessage msg : messages) {
       Map<String, Object> map = new HashMap<>();
       map.put("id", msg.getId());
