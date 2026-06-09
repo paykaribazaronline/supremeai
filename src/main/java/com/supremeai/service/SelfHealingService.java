@@ -26,6 +26,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.http.ResponseEntity;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -71,30 +72,40 @@ public class SelfHealingService {
   /** Provider name → list of failure timestamps (epoch-millis) within the sliding window */
   private final Map<String, java.util.List<Long>> failureTimestamps = new ConcurrentHashMap<>();
 
-  private static final int QUARANTINE_FAILURE_THRESHOLD = 3; // failures within window → quarantine
-  private static final long QUARANTINE_WINDOW_MS = Duration.ofMinutes(5).toMillis();
-  private static final long QUARANTINE_DURATION_MS = Duration.ofMinutes(5).toMillis();
+  @Value("${supremeai.quarantine.threshold:3}") // ব্যর্থতার সীমা এখন কনফিগারেশন থেকে আসবে।
+  private int quarantineFailureThreshold;
+
+  @Value("${supremeai.quarantine.window-ms:300000}") // কোয়ারেন্টাইন উইন্ডো (৫ মিনিট ডিফল্ট)।
+  private long quarantineWindowMs;
+
+  @Value("${supremeai.quarantine.duration-ms:300000}") // কোয়ারেন্টাইনের মেয়াদ (৫ মিনিট ডিফল্ট)।
+  private long quarantineDurationMs;
 
   /** Domain → epoch-millis when quarantine expires */
   private final Map<String, Long> domainQuarantineUntil = new ConcurrentHashMap<>();
 
   /** Domain → list of failure timestamps */
-  private final Map<String, java.util.List<Long>> domainFailureTimestamps =
+  private final Map<String, java.util.List<Long>> domainFailureTimestamps = // ডোমেইন ভিত্তিক ব্যর্থতা ট্র্যাকিং।
       new ConcurrentHashMap<>();
 
   /** Managed container for fire-and-forget reactive subscriptions to prevent leaks. */
   private final Disposable.Composite disposables = reactor.core.Disposables.composite();
 
   @PreDestroy
-  public void dispose() {
+  public void dispose() { // রিসোর্স মুক্ত করার জন্য, বিশেষ করে রিয়াক্টিভ সাবস্ক্রিপশনগুলো বন্ধ করতে।
+    // এই মেথডটি অ্যাপ্লিকেশন বন্ধ হওয়ার আগে কল করা হয় যাতে কোনো মেমরি লিক না হয়।
+    // এটি নিশ্চিত করে যে সমস্ত ফায়ার-এন্ড-ফরগেট অপারেশন সঠিকভাবে বন্ধ হয়েছে।
     disposables.dispose();
   }
 
   private final Map<String, Integer> errorPatterns = new ConcurrentHashMap<>();
   private final int MAX_ITERATIONS = 5;
 
-  /** Auto-check all providers frequently. Optimized frequency for high-reliability AI systems. */
-  @Scheduled(fixedRate = 600000) // 10 minutes
+  @Value("${supremeai.self-healing.max-iterations:5}") // কনফিগারেশন থেকে সর্বোচ্চ ইটারেশন সংখ্যা লোড করা হবে। ডিফল্ট মান 5।
+  private int maxIterations; // স্ব-আরোগ্যকরণ লুপের জন্য সর্বোচ্চ ইটারেশন সংখ্যা।
+
+  /** Auto-check all providers frequently. Optimized frequency for high-reliability AI systems. */ // উচ্চ-নির্ভরযোগ্য AI সিস্টেমের জন্য অপ্টিমাইজ করা ফ্রিকোয়েন্সি সহ সমস্ত প্রদানকারীকে স্বয়ংক্রিয়ভাবে পরীক্ষা করুন।
+  @Scheduled(fixedRateString = "${supremeai.healthcheck.rate:600000}") // হেলথ চেক রেট এখন ডাইনামিকালি কনফিগার করা যাবে।
   public void scheduledHealthCheck() {
     log.info("[HEALTH-CHECK] Scheduled run started");
     cleanupStateMaps();
@@ -114,7 +125,7 @@ public class SelfHealingService {
    * Ping every provider, update its status, and produce a health report. Provider records come from
    * Firestore (APIProvider); actual AI calls go through AIProviderFactory (AIProvider). The two
    * types are separated here so each is used only for what it owns.
-   */
+   */ // প্রতিটি প্রদানকারীকে পিং করুন, তাদের স্থিতি আপডেট করুন এবং একটি স্বাস্থ্য প্রতিবেদন তৈরি করুন।
   public Mono<APIHealthReport> runProactiveHealthCheck() {
     log.info("[HEALTH-CHECK] Running health check for all providers...");
 
@@ -127,7 +138,7 @@ public class SelfHealingService {
               // ── Quarantine gate ────────────────────────────────────────
               long now = System.currentTimeMillis();
               Long quarantineExpiry = quarantineUntil.get(name);
-              if (quarantineExpiry != null && now < quarantineExpiry) {
+              if (quarantineExpiry != null && now < quarantineExpiry) { // যদি প্রদানকারী কোয়ারেন্টাইনে থাকে এবং মেয়াদ শেষ না হয়, তবে পিং এড়িয়ে যান।
                 long remainingSec = (quarantineExpiry - now) / 1000;
                 log.info(
                     "[HEALTH-CHECK] {} is quarantined for {} more seconds — skipping ping",
@@ -148,7 +159,7 @@ public class SelfHealingService {
                     .timeout(Duration.ofSeconds(8))
                     .flatMap(
                         resp -> {
-                          long latency = System.currentTimeMillis() - start;
+                          long latency = System.currentTimeMillis() - start; // পিং এর লেটেন্সি গণনা করুন।
                           boolean ok = resp != null && !resp.isBlank();
                           if (ok) {
                             // Successful ping — clear quarantine and failure history
@@ -158,7 +169,7 @@ public class SelfHealingService {
                             apiProvider.setLastLatency(latency);
                             apiProvider.setLastErrorMessage(null);
                             apiProvider.setConsecutiveErrorDays(null);
-                          } else {
+                          } else { // যদি পিং সফল না হয় বা খালি প্রতিক্রিয়া আসে।
                             apiProvider.setLastLatency(latency);
                             apiProvider.setLastErrorMessage("Empty response from ping");
                             recordFailureAndMaybeQuarantine(name);
@@ -168,7 +179,7 @@ public class SelfHealingService {
                         })
                     .thenReturn(apiProvider)
                     .onErrorResume(
-                        e -> {
+                        e -> { // পিং ব্যর্থ হলে ত্রুটি পরিচালনা করুন।
                           long latency = System.currentTimeMillis() - start;
                           log.warn(
                               "[HEALTH-CHECK] {} ping failed (status preserved={}): {}",
@@ -186,7 +197,7 @@ public class SelfHealingService {
                         })
                     .thenReturn(apiProvider);
               } catch (Exception e) {
-                log.warn(
+                log.warn( // প্রদানকারী ইনস্ট্যান্স তৈরি করতে ব্যর্থ হলে।
                     "[HEALTH-CHECK] {} could not be tested (status preserved={}): {}",
                     name,
                     currentStatus,
@@ -220,7 +231,7 @@ public class SelfHealingService {
    * Record unknown errors to knowledge base for future self-healing. This follows the mandatory
    * knowledge-improvement rules: no error shall be returned without first adding a knowledge
    * artifact that would have prevented the failure.
-   */
+   */ // ভবিষ্যতের স্ব-আরোগ্যকরণের জন্য অজানা ত্রুটিগুলি জ্ঞানভাণ্ডারে রেকর্ড করুন।
   public void recordUnknownErrorToKnowledge(
       String errorSignature, String errorMessage, String stackTrace) {
     try {
@@ -271,7 +282,7 @@ public class SelfHealingService {
    * Analyze an error and attempt self-healing. Before returning any failure, creates a knowledge
    * entry that would have prevented the failure.
    */
-  public SupremeAIResponse analyzeError(
+  public SupremeAIResponse analyzeError( // একটি ত্রুটি বিশ্লেষণ করুন এবং স্ব-আরোগ্যকরণের চেষ্টা করুন।
       String errorMessage, Throwable throwable, UserContext userContext) {
     String errorSignature =
         throwable.getClass().getSimpleName()
@@ -290,7 +301,7 @@ public class SelfHealingService {
 
         if (analysis != null) {
           if (analysis.canAutoFix && analysis.rootCauseConfidence > 0.8) {
-            // Close the learning loop on the success path — async-subscribe
+            // Close the learning loop on the success path — async-subscribe // সফল পথে শেখার লুপ বন্ধ করুন — অ্যাসিঙ্ক-সাবস্ক্রাইব।
             disposables.add(
                 rootCauseAnalysisService
                     .recordSuccessfulCorrection(errorSignature, analysis.correctedCode)
@@ -314,7 +325,7 @@ public class SelfHealingService {
           }
 
           // Suggested action returned but not auto-fixable → log for manual review
-          log.info(
+          log.info( // প্রস্তাবিত অ্যাকশন ফেরত দেওয়া হয়েছে কিন্তু স্বয়ংক্রিয়ভাবে ঠিক করা যায় না → ম্যানুয়াল পর্যালোচনার জন্য লগ করুন।
               "[SELF-HEALING] RCA returned non-auto-fixable action {} for {} — manual review needed",
               analysis.suggestedAction,
               errorSignature);
@@ -322,7 +333,7 @@ public class SelfHealingService {
 
         // MANDATORY KNOWLEDGE RULE: Record analysis attempt even if confidence is low
         if (analysis != null && analysis.rootCauseConfidence <= 0.8) {
-          recordUnknownErrorToKnowledge(
+          recordUnknownErrorToKnowledge( // বাধ্যতামূলক জ্ঞান নিয়ম: আত্মবিশ্বাসের মাত্রা কম হলেও বিশ্লেষণের চেষ্টা রেকর্ড করুন।
               errorSignature + "_LOW_CONF",
               errorMessage,
               "RCA Suggested: " + analysis.suggestedAction);
@@ -330,7 +341,7 @@ public class SelfHealingService {
       } catch (Exception e) {
         // RCA itself threw — record this as a failed correction so the ML predictor
         // learns
-        log.warn("[SELF-HEALING] RCA analysis failed for {}: {}", errorSignature, e.getMessage());
+        log.warn("[SELF-HEALING] RCA analysis failed for {}: {}", errorSignature, e.getMessage()); // RCA বিশ্লেষণ ব্যর্থ হলে, এটি একটি ব্যর্থ সংশোধন হিসাবে রেকর্ড করুন যাতে ML ভবিষ্যদ্বাণীকারী শিখতে পারে।
         if (rootCauseAnalysisService != null) {
           try {
             rootCauseAnalysisService.recordFailedCorrection(
@@ -344,14 +355,14 @@ public class SelfHealingService {
     }
 
     // Unknown or unhandled error — ALWAYS write a knowledge artifact before
-    // returning failure
+    // returning failure // অজানা বা অনিয়ন্ত্রিত ত্রুটি — ব্যর্থতা ফেরত দেওয়ার আগে সর্বদা একটি জ্ঞান আর্টিফ্যাক্ট লিখুন।
     recordUnknownErrorToKnowledge(errorSignature, errorMessage, stackTrace);
     return new SupremeAIResponse(
         false, "Self-healing attempted but no fix available for error: " + errorMessage, null);
   }
 
-  /** Attempt to apply an automatic fix for known error patterns. */
-  private SupremeAIResponse attemptAutoFix(
+  /** Attempt to apply an automatic fix for known error patterns. */ // পরিচিত ত্রুটি প্যাটার্নের জন্য স্বয়ংক্রিয় ফিক্স প্রয়োগ করার চেষ্টা করুন।
+  private SupremeAIResponse attemptAutoFix( // এই মেথডটি পরিচিত ত্রুটি প্যাটার্নের জন্য স্বয়ংক্রিয় ফিক্স প্রয়োগ করার চেষ্টা করে।
       String errorSignature, String errorMessage, Throwable throwable, UserContext userContext) {
     // This would contain logic to apply known fixes for recurring errors
     // For now, return null to indicate no auto-fix available
@@ -360,11 +371,11 @@ public class SelfHealingService {
 
   /**
    * Detect and fix issues proactively. Enhanced to record unknown error patterns to knowledge base.
-   */
-  public void detectAndFix() {
+   */ // সক্রিয়ভাবে সমস্যা সনাক্ত এবং সমাধান করুন। অজানা ত্রুটি প্যাটার্ন জ্ঞানভাণ্ডারে রেকর্ড করার জন্য উন্নত করা হয়েছে।
+  public void detectAndFix() { // সক্রিয়ভাবে সমস্যা সনাক্ত এবং সমাধান করুন।
     try {
       // Existing health check logic...
-      disposables.add(
+      disposables.add( // বিদ্যমান স্বাস্থ্য পরীক্ষা লজিক।
           runProactiveHealthCheck()
               .subscribe(
                   report -> {
@@ -375,7 +386,7 @@ public class SelfHealingService {
                         report.getDeadCount());
 
                     // If we find inactive/error providers, try to recover them
-                    if (report.getDeadCount() > 0) {
+                    if (report.getDeadCount() > 0) { // যদি নিষ্ক্রিয় বা ত্রুটিপূর্ণ প্রদানকারী পাওয়া যায়, তবে তাদের পুনরুদ্ধার করার চেষ্টা করুন।
                       disposables.add(
                           recoverFailedProviders()
                               .subscribe(
@@ -386,7 +397,7 @@ public class SelfHealingService {
                     }
                   },
                   err -> {
-                    // Record the error to knowledge base BEFORE logging it (MANDATORY)
+                    // Record the error to knowledge base BEFORE logging it (MANDATORY) // লগ করার আগে জ্ঞানভাণ্ডারে ত্রুটি রেকর্ড করুন (বাধ্যতামূলক)।
                     String errorSignature = "HEALTH_CHECK_FAILURE_" + System.currentTimeMillis();
                     recordUnknownErrorToKnowledge(
                         errorSignature,
@@ -397,7 +408,7 @@ public class SelfHealingService {
                         "[SELF-HEALING] Proactive health check failed: {}", err.getMessage(), err);
                   }));
     } catch (Exception e) {
-      // Record unknown error to knowledge base (MANDATORY)
+      // Record unknown error to knowledge base (MANDATORY) // অজানা ত্রুটি জ্ঞানভাণ্ডারে রেকর্ড করুন (বাধ্যতামূলক)।
       String errorSignature = "DETECT_AND_FIX_EXCEPTION_" + System.currentTimeMillis();
       recordUnknownErrorToKnowledge(
           errorSignature,
@@ -412,27 +423,27 @@ public class SelfHealingService {
    * Record a failure for the given provider and quarantine it if the failure rate exceeds {@link
    * #QUARANTINE_FAILURE_THRESHOLD} within {@link #QUARANTINE_WINDOW_MS}.
    */
-  private void recordFailureAndMaybeQuarantine(String providerName) {
+  private void recordFailureAndMaybeQuarantine(String providerName) { // প্রদানকারীর ব্যর্থতা রেকর্ড এবং স্বয়ংক্রিয় কোয়ারেন্টাইন লজিক।
     long now = System.currentTimeMillis();
     java.util.List<Long> recent =
         failureTimestamps.computeIfAbsent(
             providerName, k -> java.util.Collections.synchronizedList(new java.util.ArrayList<>()));
     recent.add(now);
 
-    // Prune timestamps outside the sliding window
-    recent.removeIf(ts -> now - ts > QUARANTINE_WINDOW_MS);
+    // স্লাইডিং উইন্ডোর বাইরের পুরনো টাইমস্ট্যাম্পগুলি মুছে ফেলে মেমরি সাশ্রয় করা হচ্ছে।
+    recent.removeIf(ts -> now - ts > quarantineWindowMs); 
 
-    if (recent != null && recent.size() >= QUARANTINE_FAILURE_THRESHOLD) {
-      long expiry = now + QUARANTINE_DURATION_MS;
+    if (recent != null && recent.size() >= quarantineFailureThreshold) { // যদি ব্যর্থতার হার সীমা ছাড়িয়ে যায়।
+      long expiry = now + quarantineDurationMs;
       quarantineUntil.put(providerName, expiry);
       log.warn(
           "[HEALTH-CHECK] {} quarantined for {} minutes after {} failures in {} minutes",
           providerName,
-          QUARANTINE_DURATION_MS / 60000,
+          quarantineDurationMs / 60000,
           recent.size(),
-          QUARANTINE_WINDOW_MS / 60000);
+          quarantineWindowMs / 60000);
 
-      // Record quarantine event to knowledge base
+      // Record quarantine event to knowledge base // জ্ঞানভাণ্ডারে কোয়ারেন্টাইন ইভেন্ট রেকর্ড করুন।
       String errorSignature = "PROVIDER_QUARANTINED_" + providerName;
       recordUnknownErrorToKnowledge(
           errorSignature,
@@ -441,7 +452,7 @@ public class SelfHealingService {
               + " quarantined after "
               + recent.size()
               + " failures in "
-              + (QUARANTINE_WINDOW_MS / 60000)
+              + (quarantineWindowMs / 60000)
               + " minutes",
           "Quarantine expiry: " + new java.util.Date(expiry));
     }
@@ -450,7 +461,7 @@ public class SelfHealingService {
   /**
    * Quarantine a specific domain (Local-First Architecture). Called when BrowserService repeatedly
    * fails to access a specific site.
-   */
+   */ // একটি নির্দিষ্ট ডোমেইনকে কোয়ারেন্টাইন করুন (লোকাল-ফার্স্ট আর্কিটেকচার)।
   public void recordDomainFailureAndMaybeQuarantine(String domain) {
     long now = System.currentTimeMillis();
     java.util.List<Long> recent =
@@ -458,20 +469,20 @@ public class SelfHealingService {
             domain, k -> java.util.Collections.synchronizedList(new java.util.ArrayList<>()));
     recent.add(now);
 
-    // Prune timestamps outside the sliding window
-    recent.removeIf(ts -> now - ts > QUARANTINE_WINDOW_MS);
+    // ডোমেইন লেভেলেও স্লাইডিং উইন্ডো ব্যবহার করে কোয়ারেন্টাইন নির্ধারণ করা হয়।
+    recent.removeIf(ts -> now - ts > quarantineWindowMs); 
 
-    if (recent != null && recent.size() >= QUARANTINE_FAILURE_THRESHOLD) {
-      long expiry = now + QUARANTINE_DURATION_MS;
+    if (recent != null && recent.size() >= quarantineFailureThreshold) {
+      long expiry = now + quarantineDurationMs;
       domainQuarantineUntil.put(domain, expiry);
       log.warn(
           "[SELF-HEALING] Domain {} quarantined for {} minutes after {} failures.",
           domain,
-          QUARANTINE_DURATION_MS / 60000,
+          quarantineDurationMs / 60000,
           recent.size());
 
       // Intelligence Gap Detection
-      if (learningOrchestrator != null) {
+      if (learningOrchestrator != null) { // ইন্টেলিজেন্স গ্যাপ সনাক্তকরণ।
         learningOrchestrator.detectIntelligenceGap("browser_access_" + domain);
       }
     }
@@ -479,7 +490,7 @@ public class SelfHealingService {
 
   /** Check if a domain is quarantined. */
   public boolean isDomainQuarantined(String domain) {
-    Long expiry = domainQuarantineUntil.get(domain);
+    Long expiry = domainQuarantineUntil.get(domain); // একটি ডোমেইন কোয়ারেন্টাইনে আছে কিনা তা পরীক্ষা করুন।
     return expiry != null && System.currentTimeMillis() < expiry;
   }
 
@@ -490,7 +501,7 @@ public class SelfHealingService {
    * @param proposedChange The new library/alternative found.
    * @param reasoning Why this is good.
    * @param expectedImpact Expected improvements in speed, security, etc.
-   */
+   */ // একটি উন্নতি প্রস্তাব তৈরি করুন এবং এটি কিংসমোডে (অ্যাডমিন কিউ) পাঠান।
   public void proposeImprovementToKingsMode(
       String currentState, String proposedChange, String reasoning, String expectedImpact) {
     String proposalId = "PROPOSAL_" + System.currentTimeMillis();
@@ -517,7 +528,7 @@ public class SelfHealingService {
     log.info("[KINGSMODE] Generated Proposal ID: {}\n{}", proposalId, proposalInBangla.toString());
 
     // In a fully integrated environment, we save this to a database table read by
-    // getPendingConfirmations
+    // getPendingConfirmations // একটি সম্পূর্ণ সমন্বিত পরিবেশে, আমরা এটি একটি ডাটাবেস টেবিলে সংরক্ষণ করি যা getPendingConfirmations দ্বারা পড়া হয়।
     try {
       disposables.add(
           globalKnowledgeBase
@@ -539,7 +550,7 @@ public class SelfHealingService {
     }
   }
 
-  /** Periodically clean up quarantine maps to prevent unbounded memory growth. */
+  /** Periodically clean up quarantine maps to prevent unbounded memory growth. */ // সীমাহীন মেমরি বৃদ্ধি রোধ করতে পর্যায়ক্রমে কোয়ারেন্টাইন ম্যাপগুলি পরিষ্কার করুন।
   private void cleanupStateMaps() {
     long now = System.currentTimeMillis();
     quarantineUntil.entrySet().removeIf(e -> now > e.getValue());
@@ -550,7 +561,7 @@ public class SelfHealingService {
         .entrySet()
         .removeIf(
             entry -> {
-              entry.getValue().removeIf(ts -> now - ts > QUARANTINE_WINDOW_MS);
+              entry.getValue().removeIf(ts -> now - ts > quarantineWindowMs); // মেমরি লিক রোধে পুরনো ব্যর্থতার ডেটা ক্লিনআপ।
               return entry.getValue().isEmpty();
             });
 
@@ -558,7 +569,7 @@ public class SelfHealingService {
         .entrySet()
         .removeIf(
             entry -> {
-              entry.getValue().removeIf(ts -> now - ts > QUARANTINE_WINDOW_MS);
+              entry.getValue().removeIf(ts -> now - ts > quarantineWindowMs);
               return entry.getValue().isEmpty();
             });
   }
@@ -568,7 +579,7 @@ public class SelfHealingService {
    * providers whose quarantine period has expired, and delegates to the fallback orchestrator for
    * active recovery.
    */
-  private Mono<Void> recoverFailedProviders() {
+  private Mono<Void> recoverFailedProviders() { // ফলব্যাক মেকানিজম ব্যবহার করে ব্যর্থ প্রদানকারীদের পুনরুদ্ধার করুন।
     try {
       long now = System.currentTimeMillis();
 
@@ -576,7 +587,7 @@ public class SelfHealingService {
       List<String> released = new ArrayList<>();
       for (Map.Entry<String, Long> entry : quarantineUntil.entrySet()) {
         if (now >= entry.getValue()) {
-          released.add(entry.getKey());
+          released.add(entry.getKey()); // মেয়াদ উত্তীর্ণ কোয়ারেন্টাইন থেকে প্রদানকারীদের মুক্ত করুন।
         }
       }
       for (String name : released) {
@@ -586,7 +597,7 @@ public class SelfHealingService {
       }
 
       // 2. Actively re-ping released providers to verify they're back online
-      if (!released.isEmpty()) {
+      if (!released.isEmpty()) { // সক্রিয়ভাবে মুক্ত প্রদানকারীদের পুনরায় পিং করুন তারা অনলাইনে ফিরে এসেছে কিনা তা যাচাই করতে।
         Mono<Void> recoveryProcess =
             providerRepository
                 .findAll()
@@ -608,7 +619,7 @@ public class SelfHealingService {
                                     apiProvider.setLastTested(LocalDateTime.now());
                                     log.info(
                                         "[SELF-HEALING] ✅ Provider {} recovered successfully",
-                                        name);
+                                        name); // প্রদানকারী সফলভাবে পুনরুদ্ধার হয়েছে।
                                   } else {
                                     apiProvider.setLastErrorMessage("Recovery ping returned empty");
                                     apiProvider.setLastTested(LocalDateTime.now());
@@ -624,7 +635,7 @@ public class SelfHealingService {
                                                   "Provider {} status updated after recovery ping.",
                                                   apiProvider.getName()))
                                       .doOnError(
-                                          e ->
+                                          e -> // পুনরুদ্ধারের পিং এর পরে প্রদানকারী সংরক্ষণ করতে ব্যর্থ হলে।
                                               log.error(
                                                   "Failed to save provider {} after recovery ping: {}",
                                                   apiProvider.getName(),
@@ -648,7 +659,7 @@ public class SelfHealingService {
                                                   "Provider {} status updated after failed recovery ping.",
                                                   apiProvider.getName()))
                                       .doOnError(
-                                          err ->
+                                          err -> // ব্যর্থ পুনরুদ্ধারের পিং এর পরে প্রদানকারী সংরক্ষণ করতে ব্যর্থ হলে।
                                               log.error(
                                                   "Failed to save provider {} after failed recovery ping: {}",
                                                   apiProvider.getName(),
@@ -657,7 +668,7 @@ public class SelfHealingService {
                                 });
                       } catch (Exception e) {
                         log.warn(
-                            "[SELF-HEALING] Cannot create provider instance for {}: {}",
+                            "[SELF-HEALING] Cannot create provider instance for {}: {}", // প্রদানকারী ইনস্ট্যান্স তৈরি করতে ব্যর্থ হলে।
                             name,
                             e.getMessage());
                         return Mono.empty();
@@ -670,7 +681,7 @@ public class SelfHealingService {
       }
 
       // 3. Delegate to fallback orchestrator for routing adjustments
-      if (fallbackOrchestrator != null && !released.isEmpty()) {
+      if (fallbackOrchestrator != null && !released.isEmpty()) { // রাউটিং সমন্বয়ের জন্য ফলব্যাক অর্কেস্ট্রেটরের কাছে অর্পণ করুন।
         log.info(
             "[SELF-HEALING] Notifying fallback orchestrator of {} recovered providers",
             released.size());
@@ -693,7 +704,7 @@ public class SelfHealingService {
    * Perform initial health check after application is fully ready. Uses @Async to avoid blocking
    * the main startup thread.
    */
-  @EventListener(ApplicationReadyEvent.class)
+  @EventListener(ApplicationReadyEvent.class) // অ্যাপ্লিকেশন সম্পূর্ণরূপে প্রস্তুত হওয়ার পরে প্রাথমিক স্বাস্থ্য পরীক্ষা করুন।
   @Async
   public void onApplicationReady() {
     if (env != null && java.util.Arrays.asList(env.getActiveProfiles()).contains("test")) {
@@ -715,11 +726,11 @@ public class SelfHealingService {
   /**
    * Check if a provider is currently quarantined. Returns true when the expiry timestamp is in the
    * future (i.e. still quarantined).
-   */
-  public boolean isProviderQuarantined(String providerName) {
+   */ // একটি প্রদানকারী বর্তমানে কোয়ারেন্টাইনে আছে কিনা তা পরীক্ষা করুন।
+  public boolean isProviderQuarantined(String providerName) { // একটি প্রদানকারী বর্তমানে কোয়ারেন্টাইনে আছে কিনা তা পরীক্ষা করুন।
     Long expiry = quarantineUntil.get(providerName);
     return expiry != null && System.currentTimeMillis() < expiry;
-  }
+  } // মেয়াদ উত্তীর্ণ টাইমস্ট্যাম্প ভবিষ্যতে থাকলে (অর্থাৎ এখনও কোয়ারেন্টাইনে) সত্য ফেরত দেয়।
 
   /** Retry a reactive task with exponential backoff. */
   public <T> Mono<T> executeWithRetry(
@@ -740,7 +751,7 @@ public class SelfHealingService {
             });
   }
 
-  /** Trigger self-healing when a GitHub workflow failure is detected. */
+  /** Trigger self-healing when a GitHub workflow failure is detected. */ // একটি GitHub ওয়ার্কফ্লো ব্যর্থতা সনাক্ত হলে স্ব-আরোগ্যকরণ ট্রিগার করুন।
   public void handleWorkflowFailure(String repo, String workflowId, String reason) {
     log.info(
         "[HEALTH-CHECK] GitHub workflow failure: repo={}, workflowId={}, reason={}",
@@ -758,7 +769,7 @@ public class SelfHealingService {
     detectAndFix();
   }
 
-  /** Helper to analyze error message category. */
+  /** Helper to analyze error message category. */ // ত্রুটি বার্তার বিভাগ বিশ্লেষণ করার জন্য সহায়ক।
   private String analyzeError(String errorMsg) {
     if (errorMsg == null) {
       return "UNKNOWN";
@@ -779,7 +790,7 @@ public class SelfHealingService {
     return "GENERAL_SYSTEM_CHECK";
   }
 
-  /** Parameterized detect-and-fix entry point called from REST controller. */
+  /** Parameterized detect-and-fix entry point called from REST controller. */ // REST কন্ট্রোলার থেকে কল করা প্যারামিটারাইজড ডিটেক্ট-এন্ড-ফিক্স এন্ট্রি পয়েন্ট।
   public Mono<ResponseEntity<Map<String, Object>>> detectAndFix(String error) {
     return Mono.fromCallable(
         () -> {
@@ -814,7 +825,7 @@ public class SelfHealingService {
    * @param prompt The natural-language description of the desired code output
    * @return Mono of the best version of {@code currentCode} found within MAX_ITERATIONS
    */
-  public Mono<String> developUntilPerfection(String taskCategory, String prompt) {
+  public Mono<String> developUntilPerfection(String taskCategory, String prompt) { // MAX_ITERATIONS এর মধ্যে পাওয়া currentCode এর সেরা সংস্করণ ফেরত দেয়।
     log.info("[SELF-HEALING] Starting self-healing loop: category={}", taskCategory);
 
     // Resolve the active provider ID reactively BEFORE entering the bounded-elastic
@@ -837,7 +848,7 @@ public class SelfHealingService {
     // and let flatMap chain it as a non-blocking step
     // 3. Use onErrorResume so a vote timeout/failure never kills the whole loop
     java.util.function.Function<String, Mono<Boolean>> approvalGate =
-        defaultProviderId -> {
+        defaultProviderId -> { // অনুমোদনের জন্য একটি গেট ফাংশন।
           boolean autoApprove =
               configService != null
                   && !configService.getEffectiveSetting("autoExecApprovalRequired", true);
@@ -861,7 +872,7 @@ public class SelfHealingService {
                       state -> {
                         int iteration = state.getT1();
                         String currentCode = state.getT2();
-
+                        // কোড গুণমান পরীক্ষা করুন।
                         log.info("[SELF-HEALING] Iteration {}: evaluating code", iteration + 1);
 
                         return Mono.fromCallable(() -> isCodePerfect(currentCode))
@@ -869,7 +880,7 @@ public class SelfHealingService {
                             .flatMap(
                                 isPerfect -> {
                                   if (isPerfect) {
-                                    log.info(
+                                    log.info( // কোড গুণমান গেট পাস করেছে।
                                         "[SELF-HEALING] Code passed quality gate after {} iterations",
                                         iteration + 1);
                                     return Mono.empty();
@@ -880,7 +891,7 @@ public class SelfHealingService {
                                       .flatMap(
                                           approved -> {
                                             if (approved != null && !approved) {
-                                              log.warn(
+                                              log.warn( // কাউন্সিল পরিবর্তন অনুমোদন করেনি।
                                                   "[SELF-HEALING] Council disapproved changes at iteration {}; returning best-known version.",
                                                   iteration + 1);
                                               return Mono.empty(); // Stop loop, return best-known
@@ -888,7 +899,7 @@ public class SelfHealingService {
                                             log.info(
                                                 "[SELF-HEALING] Iteration {}: approval granted, applying improvement pass",
                                                 iteration + 1);
-
+                                            // কোড উন্নত করার চেষ্টা করুন।
                                             return Mono.fromCallable(
                                                     () ->
                                                         improveCode(currentCode, prompt, iteration))
@@ -901,7 +912,7 @@ public class SelfHealingService {
                                                             .map(
                                                                 perfectAfter -> {
                                                                   if (perfectAfter) {
-                                                                    log.info(
+                                                                    log.info( // কোড গুণমান গেট পাস করেছে।
                                                                         "[SELF-HEALING] Code passed quality gate after {} improvements",
                                                                         iteration + 1);
                                                                     return reactor.util.function
@@ -917,7 +928,7 @@ public class SelfHealingService {
                                           })
                                       .onErrorResume(
                                           err -> {
-                                            log.warn(
+                                            log.warn( // অনুমোদন ভোট ব্যর্থ হলে (উপেক্ষা করে চালিয়ে যান)।
                                                 "[SELF-HEALING] Approval vote failed at iteration {} (ignoring and continuing): {}",
                                                 iteration + 1,
                                                 err.getMessage());
@@ -934,7 +945,7 @@ public class SelfHealingService {
                                                             .map(
                                                                 perfectAfter -> {
                                                                   if (perfectAfter) {
-                                                                    log.info(
+                                                                    log.info( // কোড গুণমান গেট পাস করেছে।
                                                                         "[SELF-HEALING] Code passed quality gate after {} improvements",
                                                                         iteration + 1);
                                                                     return reactor.util.function
@@ -952,7 +963,7 @@ public class SelfHealingService {
                   .takeUntil(state -> state.getT1() >= MAX_ITERATIONS)
                   .last()
                   .map(
-                      state -> {
+                      state -> { // সর্বোচ্চ ইটারেশন সংখ্যায় পৌঁছালে শেষ-জানা সংস্করণ ফেরত দিন।
                         if (state.getT1() == MAX_ITERATIONS) {
                           log.warn(
                               "[SELF-HEALING] Max iterations ({}) reached; returning last-known version",
@@ -968,7 +979,7 @@ public class SelfHealingService {
   // STB-07 / STB-08 helper methods — self-healing code quality loop
   // ─────────────────────────────────────────────────────────────────
 
-  /**
+  /** // প্রাথমিক স্কেলেটন সোর্স তৈরি করে।
    * Produces the initial skeleton source for the requested task. Seeds a TODO-stub so subsequent
    * iterations can measure improvement.
    */
@@ -991,18 +1002,21 @@ public class SelfHealingService {
    *   <li>At least one class name keyword is present
    *   <li>The body has ≥ 8 meaningful (non-blank, non-comment) lines — not a skeleton
    * </ol>
-   */
-  private boolean isCodePerfect(String code) {
-    // Layer 1 — garbage markers must be gone
+   */ // কোডের গুণমান পরীক্ষা করে।
+  @Value("${supremeai.self-healing.code-quality.min-meaningful-lines:8}") // কনফিগারেশন থেকে সর্বনিম্ন অর্থপূর্ণ লাইনের সংখ্যা লোড করা হবে। ডিফল্ট মান 8।
+  private int minMeaningfulLines; // কোডকে "পারফেক্ট" ঘোষণা করার জন্য প্রয়োজনীয় সর্বনিম্ন অর্থপূর্ণ লাইনের সংখ্যা।
+
+  private boolean isCodePerfect(String code) { // কোড "পারফেক্ট" কিনা তা পরীক্ষা করে।
+    // স্তর 1 — আবর্জনা মার্কার অবশ্যই চলে যেতে হবে (যেমন TODO, FIXME, STUB)।
     if (code == null) return false;
     if (code.contains("TODO") || code.contains("FIXME") || code.contains("STUB")) {
       return false;
     }
-    // Layer 2 — braces must be balanced (surrounding code is structurally sound)
+    // স্তর 2 — বন্ধনীগুলি সুষম হতে হবে (আশেপাশের কোড কাঠামোগতভাবে সঠিক)।
     long openBraces = code.chars().filter(c -> c == '{').count();
     long closeBraces = code.chars().filter(c -> c == '}').count();
     if (openBraces != closeBraces || openBraces == 0) return false;
-    // Layer 3 — at least one class declaration required
+    // স্তর 3 — অন্তত একটি ক্লাস ঘোষণা প্রয়োজন।
     boolean hasClassKeyword = false;
     for (String line : code.split("\\R")) {
       String trimmed = line.trim();
@@ -1015,14 +1029,14 @@ public class SelfHealingService {
       }
     }
     if (!hasClassKeyword) return false;
-    // Layer 4 — not just a skeleton stub; must have ≥ 8 meaningful lines
+    // স্তর 4 — শুধুমাত্র একটি স্কেলেটন স্টাব নয়; কমপক্ষে 'minMeaningfulLines' অর্থপূর্ণ লাইন থাকতে হবে।
     long meaningfulLines =
         code.lines()
             .filter(l -> !l.trim().isEmpty())
             .filter(l -> !l.trim().startsWith("//") && !l.trim().startsWith("*"))
             .count();
-    return meaningfulLines >= 8;
-  }
+    return meaningfulLines >= minMeaningfulLines;
+  } // কোড "পারফেক্ট" কিনা তা পরীক্ষা করে।
 
   /**
    * [STB-08] Invokes one structured improvement pass on {@code currentCode}. Delegates entirely to
@@ -1033,8 +1047,8 @@ public class SelfHealingService {
    * @param prompt The task description (used for context-aware improvements)
    * @param iteration 0-based index of this improvement iteration
    * @return improved code — always different from input on the first call
-   */
-  private String improveCode(String currentCode, String prompt, int iteration) {
+   */ // currentCode এর উপর একটি কাঠামোগত উন্নতি পাস প্রয়োগ করে।
+  private String improveCode(String currentCode, String prompt, int iteration) { // কোড উন্নত করে।
     log.info("[SELF-HEALING] Improvement pass {} starting", iteration + 1);
     return applyHeuristicImprovements(currentCode, prompt, iteration);
   }
@@ -1051,17 +1065,17 @@ public class SelfHealingService {
    *   <li>Balance closing braces if the code has accumulated extra open brackets
    * </ol>
    */
-  private String applyHeuristicImprovements(String code, String prompt, int iteration) {
+  private String applyHeuristicImprovements(String code, String prompt, int iteration) { // হিউরিস্টিক উন্নতি প্রয়োগ করে।
     String improved = code;
 
-    // Pass 1 — Tag TOODO/FIXME annotations (keep but escalate)
+    // পাস 1 — TODO/FIXME টীকা ট্যাগ করুন (রাখুন তবে বাড়ান)।
     improved =
         improved
             .replace("TODO:", "// TODO [iteration " + (iteration + 2) + "]:")
             .replace("FIXME:", "// FIXME [iteration " + (iteration + 2) + "]:");
 
-    // Pass 2 — Inject structured logging stub for command-type prompts
-    if (prompt != null
+    // পাস 2 — কমান্ড-টাইপ প্রম্পটের জন্য কাঠামোগত লগিং স্টাব ইনজেক্ট করুন।
+    if (prompt != null // যদি প্রম্পট কমান্ড-টাইপ হয় (যেমন কন্ট্রোলার, সার্ভিস, এপিআই, এন্ডপয়েন্ট)।
         && (prompt.toLowerCase().contains("controller")
             || prompt.toLowerCase().contains("service")
             || prompt.toLowerCase().contains("api")
@@ -1074,13 +1088,13 @@ public class SelfHealingService {
       improved = improved.replaceFirst("\\{\\s*", "{" + injectLine);
     }
 
-    // Pass 3 — Convert bare "Stub" comments into tracked refactor reminders
+    // পাস 3 — খালি "Stub" মন্তব্যগুলিকে ট্র্যাক করা রিফ্যাক্টর অনুস্মারকগুলিতে রূপান্তর করুন।
     improved =
         improved.replaceAll(
             "(?i)//\\s*stub\\b",
             "// [REFACTOR] Review and implement — flagged in iteration " + (iteration + 1));
 
-    // Pass 4 — Balance unmatched braces
+    // পাস 4 — অসমাপ্ত বন্ধনীগুলি সুষম করুন।
     long openB = improved.chars().filter(c -> c == '{').count();
     long closeB = improved.chars().filter(c -> c == '}').count();
     if (openB > closeB) {
@@ -1096,13 +1110,13 @@ public class SelfHealingService {
     return improved;
   }
 
-  /** Return the history of healing events from Firestore, ordered newest first. */
-  public Flux<com.supremeai.model.HealingEvent> getHealingHistory() {
+  /** Return the history of healing events from Firestore, ordered newest first. */ // Firestore থেকে নিরাময় ইভেন্টের ইতিহাস ফেরত দিন, নতুন থেকে পুরানো ক্রমে সাজানো।
+  public Flux<com.supremeai.model.HealingEvent> getHealingHistory() { // Firestore থেকে নিরাময় ইভেন্টের ইতিহাস ফেরত দিন।
     return healingEventRepository.findAllByOrderByTimestampDesc().take(200);
   }
 
-  /** Reactivate all inactive/dead providers. */
-  public Mono<Map<String, Object>> reactivateAllProviders() {
+  /** Reactivate all inactive/dead providers. */ // সমস্ত নিষ্ক্রিয়/মৃত প্রদানকারীদের পুনরায় সক্রিয় করুন।
+  public Mono<Map<String, Object>> reactivateAllProviders() { // সমস্ত নিষ্ক্রিয়/মৃত প্রদানকারীদের পুনরায় সক্রিয় করুন।
     return providerRepository
         .findAll()
         .filter(
@@ -1118,14 +1132,14 @@ public class SelfHealingService {
         .map(list -> Map.of("reactivated", list.size(), "status", "all_providers_reactivated"));
   }
 
-  /** Reindex provider models — placeholder that triggers a fresh health-check run. */
-  public void reindexModels() {
+  /** Reindex provider models — placeholder that triggers a fresh health-check run. */ // প্রদানকারী মডেলগুলি পুনরায় সূচী করুন — একটি নতুন স্বাস্থ্য-পরীক্ষা চালানোর জন্য একটি স্থানধারক।
+  public void reindexModels() { // প্রদানকারী মডেলগুলি পুনরায় সূচী করুন।
     log.info("[SELF-HEALING] Reindex models triggered");
     detectAndFix();
   }
 
-  /** Get RCA statistics for the admin dashboard. */
-  public Map<String, Object> getRootCauseAnalysisStats() {
+  /** Get RCA statistics for the admin dashboard. */ // অ্যাডমিন ড্যাশবোর্ডের জন্য RCA পরিসংখ্যান পান।
+  public Map<String, Object> getRootCauseAnalysisStats() { // অ্যাডমিন ড্যাশবোর্ডের জন্য RCA পরিসংখ্যান পান।
     if (rootCauseAnalysisService != null) {
       return rootCauseAnalysisService.getStatistics();
     }
@@ -1133,7 +1147,7 @@ public class SelfHealingService {
   }
 
   /** Get recent correction records. */
-  public List<Map<String, Object>> getRecentCorrections() {
+  public List<Map<String, Object>> getRecentCorrections() { // সাম্প্রতিক সংশোধন রেকর্ড পান।
     if (rootCauseAnalysisService != null) {
       return rootCauseAnalysisService.getRecentCorrections(20);
     }

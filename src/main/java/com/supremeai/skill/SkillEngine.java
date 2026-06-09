@@ -3,6 +3,9 @@ package com.supremeai.skill;
 import jakarta.annotation.PostConstruct;
 import java.nio.file.*;
 import java.util.*;
+import java.util.concurrent.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
@@ -10,7 +13,13 @@ import org.springframework.stereotype.Component;
 @Component
 public class SkillEngine {
 
-  private final Map<String, Skill> skillRegistry = new HashMap<>();
+  private static final Logger log = LoggerFactory.getLogger(SkillEngine.class);
+
+  // স্কিল নাম থেকে স্কিল অবজেক্টের ম্যাপিং (পরিবর্তে HashMap ব্যবহার করা হয়)
+  private final Map<String, Skill> skillRegistry = new ConcurrentHashMap<>();
+  
+  // ট্রিগার কী-ওয়ার্ড থেকে স্কিলের ইনভার্টেড ইনডেক্স - O(1) সার্চের জন্য
+  private final Map<String, Set<Skill>> triggerIndex = new ConcurrentHashMap<>();
 
   @Value("${app.skills.base-path:#{null}}")
   private String configuredBasePath;
@@ -97,10 +106,25 @@ public class SkillEngine {
     return skillRegistry;
   }
 
+  // স্কিল নিবন্ধন করার সময় ট্রিগার ইনডেক্সও আপডেট করা হয়
   public void registerSkill(String skillMdContent) {
     Skill skill = parseSkillMd(skillMdContent);
     if (skill.getName() != null && !skill.getName().isEmpty()) {
       skillRegistry.put(skill.getName(), skill);
+      // ট্রিগার ইনডেক্স আপডেট করা হচ্ছে - O(1) রুটিংএর জন্য
+      indexTriggers(skill);
+      log.info("[SkillEngine] Registered skill '{}' with {} triggers", skill.getName(), skill.getTriggers().size());
+    }
+  }
+
+  // একটি স্কিলের ট্রিগারগুলোকে ইনডেক্সে যুক্ত করা হয়
+  private void indexTriggers(Skill skill) {
+    for (String trigger : skill.getTriggers()) {
+      String normalizedTrigger = trigger.toLowerCase();
+      // প্রতিটি ট্রিগার কী-ওয়ার্ডের জন্য স্কিল সেট সংযোজন করা হয়
+      triggerIndex.computeIfAbsent(normalizedTrigger, k -> ConcurrentHashMap.newKeySet()).add(skill);
+      // স্কিলের নামও ট্রিগার হিসেবে যুক্ত করা হয় (স্কিল ডাইরেক্ট ম্যাচিংয়ের জন্য)
+      triggerIndex.computeIfAbsent(skill.getName().toLowerCase(), k -> ConcurrentHashMap.newKeySet()).add(skill);
     }
   }
 
@@ -126,13 +150,35 @@ public class SkillEngine {
     return skill;
   }
 
+  // অপটিমাইজড স্কিল ম্যাচিং - O(1) সময় গতি সহ ইনভার্টেড ইনডেক্স ব্যবহার করে
   public Skill matchSkill(String userInput) {
-    if (userInput == null) return null;
+    if (userInput == null || userInput.trim().isEmpty()) return null;
+    
     String lowerInput = userInput.toLowerCase();
+    
+    // ইনভার্টেড ইনডেক্স থেকে সরাসরি স্কিল খুঁজে বের করা হয়
+    for (String word : lowerInput.split("[\\s\\p{Punct}]+")) {
+      Set<Skill> matchedSkills = triggerIndex.get(word);
+      if (matchedSkills != null && !matchedSkills.isEmpty()) {
+        // প্রথমে মেলে যাওয়া স্কিলটি রিটার্ন করা হয়
+        return matchedSkills.iterator().next();
+      }
+    }
+    
+    // যদি ইনডেক্সে ম্যাচ না পায়, তাহলে ফলব্যাক হিসাবে সম্পূর্ণ স্ক্যান করা হয়
     return skillRegistry.values().stream()
         .filter(skill -> skill.matches(lowerInput))
         .findFirst()
         .orElse(null);
+  }
+
+  // স্কিল ম্যাচিংয়ের দ্রুত পারফরম্যান্স মনিটরিংএর জন্য
+  public int getTriggerIndexSize() {
+    return triggerIndex.size();
+  }
+  
+  public int getSkillRegistrySize() {
+    return skillRegistry.size();
   }
 
   static class Skill {

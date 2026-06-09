@@ -2,6 +2,7 @@ package com.supremeai.service.analysis;
 
 import com.supremeai.model.SystemLearning;
 import com.supremeai.repository.SystemLearningRepository;
+import com.supremeai.service.DynamicSignatureRegistry;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -32,7 +33,7 @@ public class ProjectDNAHarvesterService {
   private SystemLearningRepository systemLearningRepository;
 
   @Autowired
-  private SignatureRegistry signatureRegistry;
+  private DynamicSignatureRegistry signatureRegistry;
 
   /**
    * sProject root should be resolved dynamically or via environment.

@@ -52,7 +52,7 @@ public class DynamicSignatureRegistry {
                 if (values instanceof List) {
                   @SuppressWarnings("unchecked")
                   List<String> list = (List<String>) values;
-                  signatureCache.put(group, ConcurrentHashMap.newKeySet(list));
+                  signatureCache.put(group, concurrentSet(list));
                 }
               });
             }
@@ -89,19 +89,29 @@ public class DynamicSignatureRegistry {
     signatureCache.putIfAbsent("KNOWN_TOPICS", ConcurrentHashMap.newKeySet());
     signatureCache.putIfAbsent("TOPIC_CATEGORIES", ConcurrentHashMap.newKeySet());
     signatureCache.putIfAbsent("JAVA_VERSIONS", ConcurrentHashMap.newKeySet());
-    signatureCache.putIfAbsent("MIN_USEFUL_SNIPPET_LENGTH", ConcurrentHashMap.newKeySet(java.util.List.of("30")));
+    signatureCache.putIfAbsent("MIN_USEFUL_SNIPPET_LENGTH", concurrentSet(java.util.List.of("30")));
 
     // Default signatures for CodeGenerationService
-    signatureCache.putIfAbsent("DEFAULT_ARCHITECTURE", ConcurrentHashMap.newKeySet(java.util.List.of("monolith")));
-    signatureCache.putIfAbsent("DEFAULT_DATABASE", ConcurrentHashMap.newKeySet(java.util.List.of("PostgreSQL")));
-    signatureCache.putIfAbsent("DEFAULT_API_STYLE", ConcurrentHashMap.newKeySet(java.util.List.of("REST")));
-    signatureCache.putIfAbsent("DEFAULT_AUTH", ConcurrentHashMap.newKeySet(java.util.List.of("JWT")));
-    signatureCache.putIfAbsent("DEFAULT_FRONTEND", ConcurrentHashMap.newKeySet(java.util.List.of("React")));
-    signatureCache.putIfAbsent("DEFAULT_DEPLOYMENT", ConcurrentHashMap.newKeySet(java.util.List.of("GCP")));
+    signatureCache.putIfAbsent("DEFAULT_ARCHITECTURE", concurrentSet(java.util.List.of("monolith")));
+    signatureCache.putIfAbsent("DEFAULT_DATABASE", concurrentSet(java.util.List.of("PostgreSQL")));
+    signatureCache.putIfAbsent("DEFAULT_API_STYLE", concurrentSet(java.util.List.of("REST")));
+    signatureCache.putIfAbsent("DEFAULT_AUTH", concurrentSet(java.util.List.of("JWT")));
+    signatureCache.putIfAbsent("DEFAULT_FRONTEND", concurrentSet(java.util.List.of("React")));
+    signatureCache.putIfAbsent("DEFAULT_DEPLOYMENT", concurrentSet(java.util.List.of("GCP")));
+  }
+
+  private Set<String> concurrentSet(Collection<String> values) {
+    Set<String> set = ConcurrentHashMap.newKeySet();
+    set.addAll(values);
+    return set;
   }
 
   public Set<String> getSignatures(String group) {
     return signatureCache.getOrDefault(group, ConcurrentHashMap.newKeySet());
+  }
+
+  public Map<String, String> getPatternsByCategory(String category) {
+    return getSignatures(category).stream().collect(Collectors.toMap(value -> value, value -> value));
   }
 
   public String getDefault(String group, String defaultVal) {

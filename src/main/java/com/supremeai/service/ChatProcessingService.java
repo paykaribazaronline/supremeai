@@ -31,6 +31,7 @@ public class ChatProcessingService {
   private final AutonomousQuestioningEngine autonomousEngine;
   private final ConfigService configService;
   private final MultiAIVotingService multiAIVotingService;
+  private final DynamicRegistryService dynamicRegistryService;
 
   public ChatProcessingService(
       ChatHistoryRepository chatHistoryRepository,
@@ -43,7 +44,8 @@ public class ChatProcessingService {
       KnowledgeService knowledgeService,
       AutonomousQuestioningEngine autonomousEngine,
       ConfigService configService,
-      MultiAIVotingService multiAIVotingService) {
+      MultiAIVotingService multiAIVotingService,
+      DynamicRegistryService dynamicRegistryService) {
     this.chatHistoryRepository = chatHistoryRepository;
     this.fallbackOrchestrator = fallbackOrchestrator;
     this.aiProviderService = aiProviderService;
@@ -55,6 +57,7 @@ public class ChatProcessingService {
     this.autonomousEngine = autonomousEngine;
     this.configService = configService;
     this.multiAIVotingService = multiAIVotingService;
+    this.dynamicRegistryService = dynamicRegistryService;
   }
 
   public Mono<Map<String, Object>> processMessage(String userId, String message, boolean isAdmin) {
@@ -83,10 +86,11 @@ public class ChatProcessingService {
                   .flatMap(
                       validation -> {
                         if (validation.getIntentType() == AutonomousQuestioningEngine.IntentType.GREETING) {
+                          // বাংলা মন্তব্য: হার্ডকোডেড গ্রিটিং মেসেজের বদলে ডাইনামিক কনফিগ ব্যবহার করা হচ্ছে।
                           return configService
                               .getEffectiveString(
                                   "chat.greeting.message",
-                                  "Hello! I'm SupremeAI. How can I assist you with your project or coding today?")
+                                  dynamicRegistryService.getMessage("chat.greeting", "Hello! How can I help?"))
                               .flatMap(
                                   greetingMsg -> saveAiResponse(
                                       userId,
@@ -130,21 +134,23 @@ public class ChatProcessingService {
 
     if (Arrays.asList("llm_response", "magic_loop_combined_response").contains(responseType)) {
       if (intentType != AutonomousQuestioningEngine.IntentType.GREETING) {
-        String skillExtractionPrompt = "Analyze this interaction.\nUser: "
-            + originalMessage
-            + "\nResponse: "
-            + responseContent
-            + "\n\nCRITICAL INSTRUCTION: Extract ONLY the core technical SKILL (the 'Why' and 'How') and the best web SOURCE/URL pattern to find this type of info. Do NOT memorize the exact factual answer. Format as a reusable principle/routing rule for future queries.";
+        // বাংলা মন্তব্য: স্কিল এক্সট্রাকশন প্রম্পট এখন ডাইনামিক।
+        String skillExtractionPrompt = dynamicRegistryService.getPrompt("skill_extraction",
+            "Analyze this interaction.\nUser: {originalMessage}\nResponse: {responseContent}\n\nCRITICAL INSTRUCTION: Extract ONLY the core technical SKILL and URL patterns. Format as a principle.",
+            Map.of("originalMessage", originalMessage, "responseContent", responseContent));
+
         fallbackOrchestrator
             .executeWithSupremeIntelligence(
                 "chat", "skill_extraction", skillExtractionPrompt, "system")
             .flatMap(
+                    // বাংলা মন্তব্য: লার্নিং প্রসেসটি এখন সরাসরি চেইন করা হয়েছে যাতে এটি "not saved" না হয়।
                 skillPattern -> enhancedLearningService.learnFromInteraction(
                     userId, originalMessage, skillPattern))
+                .doOnSuccess(v -> log.info("💡 Meta-Skill learned and verified for user: {}", userId))
             .subscribeOn(Schedulers.parallel())
             .subscribe(
-                v -> log.info("💡 Meta-Skill / Routing Pattern learned for user: {}", userId),
-                e -> log.error("⚠️ Failed to learn meta-skill: {}", e.getMessage()));
+                    v -> {}, 
+                    e -> log.error("⚠️ Learning persistence failed: {}", e.getMessage()));
       }
     }
 
@@ -152,29 +158,12 @@ public class ChatProcessingService {
   }
 
   private Mono<String> determineSearchUrl(String message) {
-    // DYNAMIC DISCOVERY: Fetching targets from ConfigService instead of hardcoding
-    return configService.getEffectiveString("agentic.web.targets", "")
-        .map(targets -> {
-          String query = message.toLowerCase();
-          // Simple heuristic to find the best URL from the targets string
-          String[] lines = targets.split("\n");
-          for (String line : lines) {
-            if (line.contains("(") && line.contains(")")) {
-              String keywords = line.substring(line.indexOf("(") + 1, line.indexOf(")")).toLowerCase();
-              if (Arrays.stream(keywords.split(" ")).anyMatch(query::contains)) {
-                return line.split(" ")[1].replace("%s", "");
-              }
-            }
-          }
-          return "https://html.duckduckgo.com/html/?q=";
-        })
-        .map(baseUrl -> {
-          try {
-            String encoded = java.net.URLEncoder.encode(message, "UTF-8");
-            return baseUrl + encoded;
-          } catch (Exception e) {
-            return "https://html.duckduckgo.com/html/?q=" + message;
-          }
+    // বাংলা মন্তব্য: DynamicRegistryService ব্যবহার করে সার্চ URL নির্ধারণ করা হচ্ছে।
+    // এটি Firestore থেকে লোড করা ডাইনামিক ম্যাপিং ব্যবহার করবে।
+    return Mono.just(dynamicRegistryService.determineSearchUrl(message))
+        .map(url -> {
+          // URL এনকোডিং নিশ্চিত করা হচ্ছে
+          return url.replace("{query}", java.net.URLEncoder.encode(message, java.nio.charset.StandardCharsets.UTF_8));
         });
   }
 
@@ -211,9 +200,10 @@ public class ChatProcessingService {
 
               if ((scrapedData == null || scrapedData.isEmpty())
                   && localData.contains("No relevant local context")) {
+                // বাংলা মন্তব্য: হার্ডকোড করা এরর মেসেজ ডাইনামিক করা হলো।
                 return saveAiResponse(
-                    userId, // Changed to English
-                    "Sorry, I couldn't find any information on this topic from the internet or local database.",
+                    userId,
+                    dynamicRegistryService.getMessage("error.no_info", "I couldn't find information on this topic."),
                     baseResult,
                     "fallback_failed",
                     null,
@@ -244,10 +234,8 @@ public class ChatProcessingService {
                             .askContextualAIs(prompt, 3, 15000)
                             .map(com.supremeai.model.ConsensusResult::getConsensusAnswer)
                             .onErrorResume(
-                                fallbackErr -> Mono.just(
-                                    "Sorry, internet search was successful, but there was an issue with AI processing. (All AIs Down)")); // Changed
-                                                                                                                                          // to
-                                                                                                                                          // English
+                                // বাংলা মন্তব্য: এআই ডাউন থাকাকালীন মেসেজটিও এখন ডাইনামিক।
+                                fallbackErr -> Mono.just(dynamicRegistryService.getMessage("error.ai_down", "AI systems are currently unavailable.")));
                       })
                   .flatMap(
                       aiResponse -> saveAiResponse(
@@ -262,9 +250,10 @@ public class ChatProcessingService {
         .onErrorResume(
             e -> {
               log.error("Web fallback error: ", e);
+              // বাংলা মন্তব্য: সার্চ এরর মেসেজ ডাইনামিক করা হলো।
               return saveAiResponse(
                   userId,
-                  "An issue occurred while performing the internet search: " + e.getMessage(), // Changed to English
+                  dynamicRegistryService.getMessage("error.search_failed", "Search error: ") + e.getMessage(),
                   baseResult,
                   "error",
                   null,

@@ -9,6 +9,8 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 @Service
@@ -33,7 +35,7 @@ public class ProximaAgentService {
 
     public String launchAgent(String task, String context) throws IOException {
         if (proximaApiKey == null || proximaApiKey.isBlank()) {
-            throw new IllegalStateException("Proxima API key not configured");
+            return objectMapper.writeValueAsString(createLocalTaskPlan(task, context));
         }
         var body = new java.util.HashMap<String, Object>();
         body.put("task", task);
@@ -55,6 +57,65 @@ public class ProximaAgentService {
     }
 
     public boolean isConfigured() {
-        return proximaApiKey != null && !proximaApiKey.isBlank();
+        return (proximaApiKey != null && !proximaApiKey.isBlank())
+                || (proximaApiUrl != null && !proximaApiUrl.isBlank());
+    }
+
+    public Map<String, Object> createLocalTaskPlan(String task, String context) {
+        String normalized = task == null ? "" : task.toLowerCase();
+        List<Map<String, Object>> steps = new ArrayList<>();
+
+        steps.add(step("understand_scope", "SupremeAIBrain", "Clarify objective, constraints, and success criteria."));
+
+        if (containsAny(normalized, "code", "implement", "build", "fix", "refactor")) {
+            steps.add(step("decompose_code_work", "CodeGenerationAgent", "Split implementation into minimal ordered subtasks."));
+            steps.add(step("validate_changes", "SimulatorAgent", "Run compile/tests/simulation for changed behavior."));
+        }
+
+        if (containsAny(normalized, "security", "audit", "jailbreak", "boundary", "pentest")) {
+            steps.add(step("defensive_security_review", "SecurityAuditAgent", "Run non-destructive policy and vulnerability checks."));
+        }
+
+        if (containsAny(normalized, "research", "web", "latest", "docs")) {
+            steps.add(step("research_context", "ResearchAgent", "Gather and summarize trusted external context."));
+        }
+
+        steps.add(step("consensus_decision", "MultiAIVotingService", "Ask eligible providers to vote on the best final path."));
+        steps.add(step("finalize", "SupremeAIBrain", "Synthesize final response and next actions."));
+
+        return Map.of(
+                "status", "local-plan",
+                "mode", "proxima-compatible",
+                "task", task == null ? "" : task,
+                "context", context == null ? "" : context,
+                "steps", steps,
+                "stepCount", steps.size());
+    }
+
+    public Map<String, Object> defineLogicChain(String task, List<String> agentNames) {
+        List<Map<String, Object>> chain = new ArrayList<>();
+        List<String> agents = agentNames == null || agentNames.isEmpty()
+                ? List.of("SupremeAIBrain", "MultiAIVotingService", "CodeGenerationAgent", "SimulatorAgent")
+                : agentNames;
+        for (int i = 0; i < agents.size(); i++) {
+            chain.add(Map.of(
+                    "order", i + 1,
+                    "agent", agents.get(i),
+                    "handoff", i == agents.size() - 1 ? "complete" : agents.get(i + 1)));
+        }
+        return Map.of("task", task == null ? "" : task, "chain", chain);
+    }
+
+    private Map<String, Object> step(String id, String agent, String objective) {
+        return Map.of("id", id, "agent", agent, "objective", objective, "status", "pending");
+    }
+
+    private boolean containsAny(String value, String... needles) {
+        for (String needle : needles) {
+            if (value.contains(needle)) {
+                return true;
+            }
+        }
+        return false;
     }
 }

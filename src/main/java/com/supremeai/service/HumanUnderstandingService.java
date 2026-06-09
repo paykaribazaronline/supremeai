@@ -22,44 +22,55 @@ public class HumanUnderstandingService {
   private final SystemLearningRepository learningRepository;
   private final MultiAIVotingService votingService;
   private final ConfigService configService;
+  private final ClaudeMemoryService memoryService;
 
   public HumanUnderstandingService(
       SystemLearningRepository learningRepository,
       MultiAIVotingService votingService,
-      ConfigService configService) {
+      ConfigService configService,
+      ClaudeMemoryService memoryService) {
     this.learningRepository = learningRepository;
     this.votingService = votingService;
     this.configService = configService;
+    this.memoryService = memoryService;
   }
 
   /**
    * Analyze every user message for human factors Runs automatically on every single user
    * interaction
    */
-  public void analyzeHumanFactors(String userMessage, String aiResponse) {
+  public void analyzeHumanFactors(String userId, String userMessage, String aiResponse) {
     // Get analysis provider from config (resolves to the default provider at runtime).
     String preferredProvider = configService.getEffectiveSetting("analysis_provider", "default");
 
-    votingService
-        .askConsensus(
-            """
-            Analyze this human-AI interaction and extract ONLY these values:
+    // ১ম ধাপ: ইউজারের পুরনো মেমরি সার্চ করা
+    memoryService.searchMemory(userId, userMessage)
+        .defaultIfEmpty(java.util.Collections.emptyList())
+        .flatMap(pastMemories -> {
+            String context = pastMemories.isEmpty() ? "None" : String.join("; ", pastMemories);
 
-            USER MESSAGE: %s
-            AI RESPONSE: %s
+            // ২য় ধাপ: পুরনো মেমরি এবং বর্তমান মেসেজ নিয়ে কনসেনসাস এনালাইসিস করা
+            return votingService.askConsensus(
+                """
+                Analyze this human-AI interaction considering past context if available.
+                
+                PAST CONTEXT: %s
+                USER MESSAGE: %s
+                AI RESPONSE: %s
 
-            Return JSON only:
-            {
-              "userIntent": "what user actually wanted",
-              "emotion": "frustrated/happy/confused/neutral",
-              "unstatedRequirement": "what user didn't say but meant",
-              "satisfaction": 0-10,
-              "improvement": "one thing we should do better next time"
-            }
-            """
-                .formatted(userMessage, aiResponse),
-            java.util.List.of(preferredProvider),
-            15000)
+                Return JSON only:
+                {
+                  "userIntent": "what user actually wanted",
+                  "emotion": "frustrated/happy/confused/neutral",
+                  "unstatedRequirement": "what user didn't say but meant",
+                  "satisfaction": 0-10,
+                  "improvement": "one thing we should do better next time"
+                }
+                """
+                    .formatted(context, userMessage, aiResponse),
+                java.util.List.of(preferredProvider),
+                15000);
+        })
         .subscribeOn(Schedulers.boundedElastic())
         .flatMap(
             analysis -> {
@@ -74,7 +85,9 @@ public class HumanUnderstandingService {
                   "Analyzed human factors: satisfaction={}",
                   analysis.getConsensusAnswer().contains("\"satisfaction\":"));
 
-              return learningRepository.save(learning);
+              // ৩য় ধাপ: এনালাইসিস রেজাল্ট লং-টার্ম মেমরিতে সেভ করা এবং রিপোজিটরিতে রাখা
+              return memoryService.storeMemory(userId, analysis.getConsensusAnswer())
+                  .then(learningRepository.save(learning));
             })
         .subscribe(
             saved -> {}, error -> logger.debug("Human analysis failed: {}", error.getMessage()));

@@ -43,10 +43,10 @@ public class AutonomousQuestioningEngine {
     LEARN_AND_RESPOND
   }
 
-  /**
-   * NEURAL ROUTING: Instead of hardcoded Regex, we ask the Supreme Brain to
-   * classify intent.
-   */
+/**
+    * NEURAL ROUTING: Instead of hardcoded Regex, we ask the Supreme Brain to
+    * classify intent.
+    */
   public Mono<IntentType> classifyIntentAI(String input) {
     String prompt =
         signatureRegistry.getSignatures("INTENT_CLASSIFICATION_PROMPT")
@@ -65,6 +65,13 @@ public class AutonomousQuestioningEngine {
           }
         })
         .defaultIfEmpty(IntentType.CLARIFY);
+  }
+
+  /**
+   * Alias for classifyIntentAI for backward compatibility.
+   */
+  public IntentType classifyIntent(String input) {
+    return classifyIntentAI(input).block();
   }
 
   private IntentType detectContextualIntent(String input) {
@@ -246,6 +253,27 @@ public class AutonomousQuestioningEngine {
           }
         })
         .defaultIfEmpty(0.5);
+  }
+
+  private double calculateClarityScore(String userInput, RequestType requestType) {
+    if (userInput == null || userInput.isBlank()) {
+      return 0.0;
+    }
+    String trimmed = userInput.trim();
+    double score = 0.35;
+    if (trimmed.length() >= 20) {
+      score += 0.2;
+    }
+    if (trimmed.length() >= 80) {
+      score += 0.15;
+    }
+    if (trimmed.contains("?") || trimmed.split("\\s+").length >= 5) {
+      score += 0.15;
+    }
+    if (requestType == RequestType.GENERAL_AI) {
+      score += 0.1;
+    }
+    return Math.min(1.0, score);
   }
 
   private double getMinClarityScore() {

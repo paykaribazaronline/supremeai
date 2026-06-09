@@ -10,6 +10,7 @@ import java.time.Duration;
 import java.util.function.Supplier;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import reactor.core.publisher.Mono;
@@ -20,24 +21,12 @@ class SelfHealingServiceTest {
 
   @Mock private AIReasoningService reasoningService;
 
+  @InjectMocks
   private SelfHealingService service;
-
-  private void initService() {
-    service = new SelfHealingService();
-    // Inject reasoningService via reflection since it's @Autowired in the service
-    try {
-      java.lang.reflect.Field field = SelfHealingService.class.getDeclaredField("reasoningService");
-      field.setAccessible(true);
-      field.set(service, reasoningService);
-    } catch (Exception e) {
-      throw new RuntimeException(e);
-    }
-  }
 
   @Test
   void testExecuteWithRetry_SuccessOnFirstTry() {
     // Given
-    initService();
     lenient()
         .doNothing()
         .when(reasoningService)
@@ -62,7 +51,6 @@ class SelfHealingServiceTest {
   @Test
   void testExecuteWithRetry_SucceedsAfterFailure() {
     // Given
-    initService();
 
     // Use a simple flag that fails once then succeeds
     // With maxAttempts=2, we have 1 retry (2 total attempts)
@@ -86,7 +74,6 @@ class SelfHealingServiceTest {
   @Test
   void testExecuteWithRetry_ThrowsAfterMaxAttempts() {
     // Given
-    initService();
     doNothing()
         .when(reasoningService)
         .logReasoning(anyString(), anyString(), anyString(), anyString());

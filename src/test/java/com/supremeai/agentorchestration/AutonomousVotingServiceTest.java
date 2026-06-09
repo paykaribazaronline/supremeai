@@ -41,9 +41,13 @@ class MultiAIVotingServiceTest {
     // Mock provider list for findAll
     APIProvider ap1 = new APIProvider("p1", "p1", "type", "active");
     ap1.setCanParticipateInVoting(true);
+    ap1.setWeight(1.5); // Admin defined higher weight for specialized model
     APIProvider ap2 = new APIProvider("p2", "p2", "type", "active");
     ap2.setCanParticipateInVoting(true);
-    when(providerRepository.findAll()).thenReturn(Flux.just(ap1, ap2));
+    ap2.setWeight(1.0);
+    APIProvider ap3 = new APIProvider("p3", "p3", "type", "active");
+    ap3.setCanParticipateInVoting(false); // Disabled by Admin
+    when(providerRepository.findAll()).thenReturn(Flux.just(ap1, ap2, ap3));
   }
 
   private void setField(Object target, String fieldName, Object value) throws Exception {
@@ -68,6 +72,28 @@ class MultiAIVotingServiceTest {
     assertEquals(1.0, decision.getConfidence());
     assertEquals("Agree", decision.getAiConsensus());
     assertEquals(2, decision.getProviderVotes().size());
+  }
+
+  @Test
+  void testConductDecisionVote_WeightedConsensus() {
+    // p1 has weight 1.5, p2 has weight 1.0
+    when(providerFactory.getEnforcedProvider("p1")).thenReturn(provider1);
+    when(providerFactory.getEnforcedProvider("p2")).thenReturn(provider2);
+
+    // p1 (higher weight) says "Option A", p2 (lower weight) says "Option B"
+    when(provider1.generate(anyString())).thenReturn(Mono.just("Option A"));
+    when(provider2.generate(anyString())).thenReturn(Mono.just("Option B"));
+
+    VotingDecision decision =
+        votingService.conductDecisionVote("Which is better?", "Context").block();
+
+    assertNotNull(decision);
+    // Option A should win because of weight (1.5 > 1.0)
+    assertEquals("Option A", decision.getAiConsensus());
+    assertEquals(2, decision.getProviderVotes().size());
+    
+    // Ensure ap3 (disabled) was never called
+    verify(providerFactory, never()).getEnforcedProvider("p3");
   }
 
   @Test

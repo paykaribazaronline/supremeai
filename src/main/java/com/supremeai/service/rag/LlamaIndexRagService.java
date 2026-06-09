@@ -89,4 +89,9 @@ public class LlamaIndexRagService {
             return results;
         }
     }
+
+    public boolean isConfigured() {
+        return llamaindexApiKey != null && !llamaindexApiKey.isBlank()
+                && llamaindexApiUrl != null && !llamaindexApiUrl.isBlank();
+    }
 }

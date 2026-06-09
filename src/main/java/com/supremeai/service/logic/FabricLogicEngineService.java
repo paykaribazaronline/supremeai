@@ -59,4 +59,8 @@ public class FabricLogicEngineService {
         }
         return meta;
     }
+
+    public boolean isConfigured() {
+        return patternsDir != null && !patternsDir.isBlank();
+    }
 }

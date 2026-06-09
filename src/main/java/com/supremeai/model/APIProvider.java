@@ -38,6 +38,12 @@ public class APIProvider {
   private java.util.List<String> assignedRoles = new java.util.ArrayList<>();
 
   /**
+   * Model weight for consensus voting (default 1.0) - Admin can configure different weights per model
+   * for weighted majority decisions.
+   */
+  private Double weight = 1.0;
+
+  /**
    * Auto-discovered capability scores (0.0 - 1.0) Populated by ProviderCapabilityAnalyzer on
    * registration Key: task type, Value: capability score
    */
@@ -300,6 +306,14 @@ public class APIProvider {
 
   public void setAssignedRoles(java.util.List<String> assignedRoles) {
     this.assignedRoles = assignedRoles;
+  }
+
+  public Double getWeight() {
+    return weight;
+  }
+
+  public void setWeight(Double weight) {
+    this.weight = weight != null ? weight : 1.0;
   }
 
   public LocalDateTime getDeadAt() {
