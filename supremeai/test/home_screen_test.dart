@@ -137,6 +137,9 @@ class MockSettingsProvider extends ChangeNotifier implements SettingsProvider {
 
   @override
   Future<void> loadFromBackend({String? authToken}) async {}
+
+  @override
+  Future<bool> saveToBackend({String? authToken}) async => true;
 }
 
 void main() {
@@ -234,147 +237,6 @@ void main() {
     await prefs.setBool('is_guest', true);
 
     await tester.pumpWidget(createHomeScreen(authProvider: MockAuthProvider()));
-    await tester.pumpAndSettle(const Duration(seconds: 1));
-
-    expect(find.byIcon(Icons.login), findsOneWidget);
-  });
-}
-
-class FakeOrchestrationProvider extends OrchestrationProvider {
-  bool _isLoading = false;
-  OrchestrationError? _errorMessage;
-
-  @override
-  bool get isLoading => _isLoading;
-  @override
-  OrchestrationError? get error => _errorMessage;
-
-  void setLoading(bool loading) {
-    _isLoading = loading;
-    notifyListeners();
-  }
-
-  void setError(String message) {
-    _errorMessage = OrchestrationError(message: message, type: OrchestrationErrorType.unknown);
-    notifyListeners();
-  }
-
-  @override
-  void clearError() {
-    _errorMessage = null;
-    notifyListeners();
-  }
-
-  @override
-  Future<void> orchestrateRequirement(String requirement, String token, {String? geminiKey, String? activeModel}) async {
-    _isLoading = true;
-    notifyListeners();
-    await Future<void>.delayed(const Duration(milliseconds: 10));
-    _isLoading = false;
-    notifyListeners();
-  }
-
-  @override
-  Future<void> generateProject(String token) async {}
-}
-
-void main() {
-  TestWidgetsFlutterBinding.ensureInitialized();
-
-  setUp(() {
-    SharedPreferences.setMockInitialValues({});
-    LocalizationService.setMockData({
-      'app': {'title': 'SupremeAI'},
-      'chat': {'describe': 'Describe what you want to build...'},
-      'nav': {'chat': 'Chat', 'skills': 'Skills'},
-    });
-  });
-
-  Widget createHomeScreen({AuthProvider? authProvider, FakeOrchestrationProvider? orchestration}) {
-    final auth = authProvider ?? AuthProvider(apiService: FakeApiService());
-    final orch = orchestration ?? FakeOrchestrationProvider();
-
-    return MultiProvider(
-      providers: [
-        ChangeNotifierProvider<AuthProvider>.value(value: auth),
-        ChangeNotifierProvider<OrchestrationProvider>.value(value: orch),
-        ChangeNotifierProvider<SettingsProvider>.value(value: SettingsProvider()),
-      ],
-      child: const MaterialApp(home: HomeScreen()),
-    );
-  }
-
-  testWidgets('HomeScreen renders title and chat input', (WidgetTester tester) async {
-    await tester.pumpWidget(createHomeScreen());
-    await tester.pumpAndSettle();
-
-    expect(find.text('SupremeAI'), findsOneWidget);
-    expect(find.byType(TextField), findsOneWidget);
-  });
-
-  testWidgets('HomeScreen shows empty state prompt when no messages', (WidgetTester tester) async {
-    await tester.pumpWidget(createHomeScreen());
-    await tester.pumpAndSettle();
-
-    expect(find.text('Describe what you want to build...'), findsOneWidget);
-  });
-
-  testWidgets('HomeScreen bottom navigation bar renders 5 destinations', (WidgetTester tester) async {
-    await tester.pumpWidget(createHomeScreen());
-    await tester.pumpAndSettle();
-
-    expect(find.byType(NavigationDestination), findsNWidgets(5));
-  });
-
-  testWidgets('typing in chat input updates field value', (WidgetTester tester) async {
-    await tester.pumpWidget(createHomeScreen());
-    await tester.pumpAndSettle();
-
-    final input = find.byType(TextField).first;
-    await tester.enterText(input, 'Build a todo app');
-    await tester.pump();
-
-    expect(find.text('Build a todo app'), findsOneWidget);
-  });
-
-  testWidgets('shows loading indicator when orchestration is loading', (WidgetTester tester) async {
-    final orch = FakeOrchestrationProvider();
-    orch.setLoading(true);
-
-    await tester.pumpWidget(createHomeScreen(orchestration: orch));
-    await tester.pumpAndSettle();
-
-    expect(find.byType(LinearProgressIndicator), findsOneWidget);
-  });
-
-  testWidgets('displays error banner when orchestration has error', (WidgetTester tester) async {
-    final orch = FakeOrchestrationProvider();
-    orch.setError('Network down');
-
-    await tester.pumpWidget(createHomeScreen(orchestration: orch));
-    await tester.pumpAndSettle();
-
-    expect(find.text('Network down'), findsOneWidget);
-  });
-
-  testWidgets('logout button present in app bar when authenticated', (WidgetTester tester) async {
-    final auth = AuthProvider(apiService: FakeApiService());
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('auth_token', 'token-abc');
-    await prefs.setString('user_json', '{"username":"admin","role":"admin"}');
-
-    await tester.pumpWidget(createHomeScreen(authProvider: auth));
-    await tester.pumpAndSettle(const Duration(seconds: 1));
-
-    expect(find.byIcon(Icons.logout), findsOneWidget);
-  });
-
-  testWidgets('login icon shown when in guest mode', (WidgetTester tester) async {
-    final auth = AuthProvider(apiService: FakeApiService());
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('is_guest', true);
-
-    await tester.pumpWidget(createHomeScreen(authProvider: auth));
     await tester.pumpAndSettle(const Duration(seconds: 1));
 
     expect(find.byIcon(Icons.login), findsOneWidget);

@@ -119,6 +119,9 @@ class MockSettingsProvider extends ChangeNotifier implements SettingsProvider {
 
   @override
   Future<void> loadFromBackend({String? authToken}) async {}
+
+  @override
+  Future<bool> saveToBackend({String? authToken}) async => true;
 }
 
 class FakeAuth extends AuthProvider {
@@ -135,7 +138,7 @@ class FakeAuth extends AuthProvider {
 }
 
 class FakeOrch extends OrchestrationProvider {
-  FakeOrch() : _isLoading = false, _error = null, super._();
+  FakeOrch() : _isLoading = false, _error = null;
 
   final bool _isLoading;
   final OrchestrationError? _error;
@@ -155,40 +158,6 @@ class FakeOrch extends OrchestrationProvider {
 
 class FakeSettings extends SettingsProvider {
   FakeSettings() : super();
-}
-
-class FakeAuth extends AuthProvider {
-  FakeAuth() : super(apiService: FakeApiService());
-
-  @override
-  bool get isGuest => true;
-
-  @override
-  String? get token => null;
-
-  @override
-  Future<void> logout() async {}
-}
-
-class FakeOrch extends OrchestrationProvider {
-  bool _loading = false;
-  OrchestrationError? _errorMessage;
-
-  @override
-  bool get isLoading => _loading;
-  @override
-  OrchestrationError? get error => _errorMessage;
-
-  void setLoading(bool loading) {
-    _loading = loading;
-    notifyListeners();
-  }
-
-  @override
-  Future<void> orchestrateRequirement(String req, String token, {String? geminiKey, String? activeModel}) async {}
-
-  @override
-  Future<void> generateProject(String token) async {}
 }
 
 void main() {

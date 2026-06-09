@@ -64,12 +64,6 @@ class MockAuthProvider extends ChangeNotifier implements AuthProvider {
   bool get isAdmin => false;
 
   @override
-  Future<bool> login(String email, String password) async {
-    final result = await _apiService.register(email, password, email.split('@')[0]);
-    return result['success'] as bool;
-  }
-
-  @override
   Future<bool> loginWithGoogle() async => false;
 
   @override
@@ -80,6 +74,9 @@ class MockAuthProvider extends ChangeNotifier implements AuthProvider {
 
   @override
   void clearError() {}
+
+  @override
+  Future<bool> saveToBackend({String? authToken}) async => true;
 }
 
 void main() {
