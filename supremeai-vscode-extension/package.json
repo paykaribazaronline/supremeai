@@ -3,11 +3,16 @@
   "displayName": "SupremeAI - AI-Powered Development Assistant",
   "description": "Real-time code analysis, learning, and AI assistance with SupremeAI Core Engine",
   "version": "6.0.0",
+  "license": "MIT",
   "publisher": "supremeai",
   "repository": {
     "type": "git",
     "url": "https://github.com/your-org/supremeai.git"
   },
+  "bugs": {
+    "url": "https://github.com/your-org/supremeai/issues"
+  },
+  "homepage": "https://github.com/your-org/supremeai#readme",
   "engines": {
     "vscode": "^1.85.0"
   },
@@ -38,22 +43,7 @@
     "Code Generation",
     "Refactoring"
   ],
-  "activationEvents": [
-    "onStartupFinished",
-    "onUri",
-    "onCommand:supremeai.login",
-    "onCommand:supremeai.loginAsGuest",
-    "onCommand:supremeai.logout",
-    "onCommand:supremeai.analyzeCodeFlow",
-    "onCommand:supremeai.resolveError",
-    "onCommand:supremeai.showSecurityIssues",
-    "onCommand:supremeai.showDependencies",
-    "onCommand:supremeai.openCodeFlowDashboard",
-    "onCommand:supremeai.refreshCodeFlow",
-    "onCommand:supremeai.aiComplete",
-    "onCommand:supremeai.aiExplain",
-    "onCommand:supremeai.aiReview"
-  ],
+  "activationEvents": [],
   "main": "./out/extension.js",
   "contributes": {
     "commands": [
@@ -328,7 +318,8 @@
         {
           "id": "supremeaiChat",
           "name": "Chat",
-          "type": "webview"
+          "type": "webview",
+          "icon": "media/icon.svg"
         }
       ]
     }

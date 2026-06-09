@@ -8,6 +8,7 @@ Run: python firebase_collections_setup.py
 import json
 import os
 from datetime import datetime, timedelta
+import uuid
 
 # ============================================================================
 # CONFIGURATION
@@ -90,6 +91,202 @@ APP_TEMPLATES = {
         "test_count": 20,
         "tags": ["ecommerce", "payment", "inventory"],
     },
+}
+
+FIX_PROMPT_TEMPLATES = {
+    "security": {
+        "template": "Analyze the following code for security vulnerabilities, focusing on OWASP Top 10. Code: {{code}}",
+        "category": "security",
+        "description": "Template for security analysis"
+    },
+    "quality": {
+        "template": "Review the following code for quality, readability, and adherence to best practices. Code: {{code}}",
+        "category": "quality",
+        "description": "Template for code quality review"
+    },
+    "dependencies": {
+        "template": "Check the following build file for outdated or vulnerable dependencies. File: {{code}}",
+        "category": "dependencies",
+        "description": "Template for dependency check"
+    },
+    "architecture": {
+        "template": "Analyze the architecture of the following component/module. Code: {{code}}",
+        "category": "architecture",
+        "description": "Template for architecture analysis"
+    },
+    "default": {
+        "template": "Process the following request: {{code}}",
+        "category": "general",
+        "description": "Default processing template"
+    }
+}
+
+SYSTEM_WORK_RULES = {
+    "VOTING_CONSENSUS_THRESHOLD": {"value": 0.75, "type": "FLOAT", "description": "Required agreement percentage for Multi-AI voting"},
+    "TRIAGE_MODEL_ID": {"value": "gemini-1.5-flash", "type": "STRING", "description": "Primary model used for routing tasks"},
+    "FIRECRAWL_API_KEY": {"value": "sk-placeholder", "type": "STRING", "description": "Key for Firecrawl.dev browser scraping"},
+    "GROQ_API_KEY": {"value": "gsk-placeholder", "type": "STRING", "description": "Key for high-speed LPU inference"},
+    "CLAUDE_MEM_API_KEY": {"value": "sk-placeholder", "type": "STRING", "description": "Key for Claude-mem long-term memory"},
+    "MEM0_API_KEY": {"value": "sk-placeholder", "type": "STRING", "description": "Key for personalized memory layer"},
+    "FABRIC_PATTERNS_PATH": {"value": "./config/patterns", "type": "STRING", "description": "Local path for logic patterns"},
+    "VOTING_ENABLED": {"value": True, "type": "BOOLEAN", "description": "Global switch for multi-agent consensus"},
+}
+
+GLOBAL_CONFIGS = {
+    "timeouts": {
+        "auto_learning_interval_min": 30,
+        "browser_scrape_timeout_sec": 45,
+        "ai_consensus_timeout_sec": 120
+    },
+    "security": {
+        "jwt_ttl_hours": 24,
+        "max_login_attempts": 5,
+        "allow_anonymous_queries": False
+    }
+}
+
+ADMIN_USERS = {
+    "admin_initial": {"email": "paykaribazaronline@gmail.com", "role": "ADMIN", "status": "ACTIVE", "created_at": datetime.now().isoformat()}
+}
+
+API_PROVIDERS = {
+    "claude": {
+        "id": "claude",
+        "name": "Anthropic Claude",
+        "type": "external",
+        "status": "active",
+        "baseUrl": "https://api.anthropic.com",
+        "models": ["claude-3-opus-20240229", "claude-3-sonnet-20240229", "claude-3-haiku-20240307"],
+        "capabilities": ["chat", "code_generation", "code_review", "debugging", "reasoning"],
+        "priority": 1,
+        "canCommunicate": True,
+        "canExecuteTasks": True,
+        "canParticipateInVoting": True,
+    },
+    "gpt4": {
+        "id": "gpt4",
+        "name": "OpenAI GPT-4",
+        "type": "external",
+        "status": "active",
+        "baseUrl": "https://api.openai.com/v1",
+        "models": ["gpt-4-turbo", "gpt-4-0125-preview"],
+        "capabilities": ["chat", "code_generation", "code_review", "debugging", "reasoning"],
+        "priority": 1,
+        "canCommunicate": True,
+        "canExecuteTasks": True,
+        "canParticipateInVoting": True,
+    },
+    "google": {
+        "id": "google",
+        "name": "Google Gemini",
+        "type": "external",
+        "status": "active",
+        "baseUrl": "https://generativelanguage.googleapis.com",
+        "models": ["gemini-1.5-pro", "gemini-1.5-flash"],
+        "capabilities": ["chat", "code_generation", "code_review", "debugging", "reasoning"],
+        "priority": 1,
+        "canCommunicate": True,
+        "canExecuteTasks": True,
+        "canParticipateInVoting": True,
+    },
+    "gemini-1.5-flash": {
+        "id": "gemini-1.5-flash",
+        "name": "Google Gemini 1.5 Flash (Triage)",
+        "type": "external",
+        "status": "active",
+        "baseUrl": "https://generativelanguage.googleapis.com",
+        "models": ["gemini-1.5-flash"],
+        "capabilities": ["chat", "triage"],
+        "priority": 1,
+    },
+    "openai": {
+        "id": "openai",
+        "name": "OpenAI general",
+        "type": "external",
+        "status": "active",
+        "baseUrl": "https://api.openai.com/v1",
+        "models": ["gpt-3.5-turbo-0125"],
+        "capabilities": ["chat", "code_generation", "code_review"],
+        "priority": 2,
+        "canCommunicate": True,
+        "canExecuteTasks": True,
+        "canParticipateInVoting": True,
+    },
+    "mistral": {
+        "id": "mistral",
+        "name": "Mistral AI",
+        "type": "external",
+        "status": "active",
+        "baseUrl": "https://api.mistral.ai",
+        "models": ["mistral-large-latest", "mistral-medium-latest"],
+        "capabilities": ["chat", "code_generation", "reasoning"],
+        "priority": 3,
+    },
+    "chickenbrain": {
+        "id": "chickenbrain",
+        "name": "SupremeAI ChickenBrain",
+        "type": "cloud_run",
+        "status": "active",
+        "baseUrl": "https://supreme-ai-chickenbrain-565236080752.us-central1.run.app",
+        "models": ["chickenbrain-8b-instruct"],
+        "capabilities": ["chat", "code_generation", "code_review", "debugging", "reasoning"],
+        "priority": 1,
+        "canCommunicate": True,
+        "canExecuteTasks": True,
+        "canParticipateInVoting": True,
+    },
+    "superfly": {
+        "id": "superfly",
+        "name": "SupremeAI SuperFly Edge",
+        "type": "superfly",
+        "status": "active",
+        "baseUrl": "http://localhost:8082",
+        "models": ["superfly-94m"],
+        "capabilities": ["chat", "fast_response", "lightweight_reasoning"],
+        "priority": 2,
+        "canCommunicate": True,
+        "canExecuteTasks": False,
+        "canParticipateInVoting": False,
+    },
+    "nomic-embed": {
+        "id": "nomic-embed",
+        "name": "SupremeAI Nomic Embed",
+        "type": "cloud_run",
+        "status": "active",
+        "baseUrl": "https://supreme-ai-nomic-embed-565236080752.us-central1.run.app",
+        "models": ["nomic-embed-text-v1.5"],
+        "capabilities": ["embeddings", "similarity_search", "rag"],
+        "priority": 3,
+        "canCommunicate": False,
+        "canExecuteTasks": False,
+        "canParticipateInVoting": False,
+    },
+    "n8n-core": {
+        "id": "n8n-core",
+        "name": "SupremeAI n8n Automation Core",
+        "type": "automation",
+        "status": "active",
+        "baseUrl": "https://n8n-565236080752.us-central1.run.app",
+        "models": ["n8n-workflows-v1"],
+        "capabilities": ["workflow_automation", "visual_api", "task_orchestration"],
+        "priority": 6,
+        "canCommunicate": False,
+        "canExecuteTasks": True,
+        "canParticipateInVoting": False,
+    },
+    "voice-hub": {
+        "id": "voice-hub",
+        "name": "SupremeAI Multimodal Voice Hub",
+        "type": "speech",
+        "status": "active",
+        "baseUrl": "Integrated",
+        "models": ["voicebox-tts-v1", "whisper-stt-v1"],
+        "capabilities": ["text_to_speech", "speech_to_text", "voice_dialogue"],
+        "priority": 7,
+        "canCommunicate": True,
+        "canExecuteTasks": False,
+        "canParticipateInVoting": False,
+    }
 }
 
 ARCHITECTURES = {
@@ -436,6 +633,11 @@ SETUP_INSTRUCTIONS = """
 ║   5. generation_errors_and_fixes (8 entries)                               ║
 ║   6. generated_apps (3 entries)                                            ║
 ║   7. deployment_configs (3 entries)                                        ║
+║   8. system_work_rules (8 rules)                                           ║
+║   9. system_configs (global_settings)                                      ║
+║   10. users (initial admin)                                               ║
+║   11. fix_prompt_templates (5 entries)                                     ║
+║   12. api_providers (11 entries)                                           ║
 ║   8. code_generators (placeholder for templates)                           ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
@@ -541,6 +743,35 @@ def create_firebase_collections():
             db.collection("deployment_configs").document(config_id).set(config_data)
         print(f"   ✅ Added {len(DEPLOYMENT_CONFIGS)} deployment configs")
 
+        # 7.1 Create system_work_rules collection
+        print("\n📁 Creating system_work_rules collection...")
+        for rule_id, rule_data in SYSTEM_WORK_RULES.items():
+            db.collection("system_work_rules").document(rule_id).set(rule_data)
+        print(f"   ✅ Added {len(SYSTEM_WORK_RULES)} system work rules")
+
+        # 7.2 Create system_configs collection
+        print("\n📁 Creating system_configs collection...")
+        db.collection("system_configs").document("global_settings").set(GLOBAL_CONFIGS)
+        print(f"   ✅ Added global_settings document")
+
+        # 7.3 Create users collection
+        print("\n📁 Creating users collection...")
+        for user_id, user_data in ADMIN_USERS.items():
+            db.collection("users").document(user_id).set(user_data)
+        print(f"   ✅ Added initial admin user")
+
+        # 7.4 Create fix_prompt_templates collection
+        print("\n📁 Creating fix_prompt_templates collection...")
+        for template_id, template_data in FIX_PROMPT_TEMPLATES.items():
+            db.collection("fix_prompt_templates").document(template_id).set(template_data)
+        print(f"   ✅ Added {len(FIX_PROMPT_TEMPLATES)} fix prompt templates")
+
+        # 7.5 Create api_providers collection
+        print("\n📁 Creating api_providers collection...")
+        for provider_id, provider_data in API_PROVIDERS.items():
+            db.collection("api_providers").document(provider_id).set(provider_data)
+        print(f"   ✅ Added {len(API_PROVIDERS)} API providers")
+
         # 8. Create code_generators collection placeholder
         print("\n📁 Creating code_generators collection...")
         placeholder = {
@@ -563,6 +794,11 @@ def create_firebase_collections():
         print(f"   • generation_errors_and_fixes: {len(ERROR_FIXES)} entries")
         print(f"   • generated_apps: {len(GENERATED_APPS)} entries")
         print(f"   • deployment_configs: {len(DEPLOYMENT_CONFIGS)} entries")
+        print(f"   • system_work_rules: {len(SYSTEM_WORK_RULES)} entries")
+        print(f"   • system_configs: 1 entry (global_settings)")
+        print(f"   • users: {len(ADMIN_USERS)} entries")
+        print(f"   • fix_prompt_templates: {len(FIX_PROMPT_TEMPLATES)} entries")
+        print(f"   • api_providers: {len(API_PROVIDERS)} entries")
         print(f"   • code_generators: 1 placeholder")
         print("\n🔗 View in Firebase Console:")
         print(f"   https://console.firebase.google.com/project/{FIREBASE_PROJECT_ID}")

@@ -1,0 +1,17 @@
+{
+    "folders": [
+        { "name": "Backend", "path": "functions" },
+        { "name": "Dashboard", "path": "dashboard" }
+    ],
+    "settings": {
+        "files.watcherExclude": {
+            "**/.git/objects/**": true,
+            "**/.git/subtree-cache/**": true,
+            "**/node_modules/*/**": true,
+            "**/build/**": true,
+            "**/.gradle/**": true,
+            "**/venv/**": true,
+            "**/.dart_tool/**": true
+        }
+    }
+}

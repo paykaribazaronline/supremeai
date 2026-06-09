@@ -22,7 +22,7 @@ public class FeatureRegistryController {
 
     @GetMapping("/inventory")
     public ApiResponse<List<FeatureDefinition>> getFeatureInventory() {
-  w       List<FeatureDefinition> features = featureRegistryService.getAllFeatures();
+        List<FeatureDefinition> features = featureRegistryService.getAllFeatures();
         return ApiResponse.ok(features);
     }
 
