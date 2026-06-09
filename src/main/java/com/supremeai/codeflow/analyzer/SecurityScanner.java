@@ -8,8 +8,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 /**
- * Security vulnerability scanner Detects hardcoded secrets, SQL injection, XSS,
- * debug statements,
+ * Security vulnerability scanner Detects hardcoded secrets, SQL injection, XSS, debug statements,
  * etc.
  */
 @Component
@@ -18,9 +17,8 @@ public class SecurityScanner {
   private static final Logger logger = LoggerFactory.getLogger(SecurityScanner.class);
 
   /**
-   * Security patterns decoupled from source code.
-   * Now loaded dynamically from the central Knowledge Base to eliminate hardcoded
-   * boundaries.
+   * Security patterns decoupled from source code. Now loaded dynamically from the central Knowledge
+   * Base to eliminate hardcoded boundaries.
    */
   private static final List<SecurityPattern> SECURITY_PATTERNS = new ArrayList<>();
 

@@ -44,16 +44,18 @@ public class HumanUnderstandingService {
     String preferredProvider = configService.getEffectiveSetting("analysis_provider", "default");
 
     // ১ম ধাপ: ইউজারের পুরনো মেমরি সার্চ করা
-    memoryService.searchMemory(userId, userMessage)
+    memoryService
+        .searchMemory(userId, userMessage)
         .defaultIfEmpty(java.util.Collections.emptyList())
-        .flatMap(pastMemories -> {
-            String context = pastMemories.isEmpty() ? "None" : String.join("; ", pastMemories);
+        .flatMap(
+            pastMemories -> {
+              String context = pastMemories.isEmpty() ? "None" : String.join("; ", pastMemories);
 
-            // ২য় ধাপ: পুরনো মেমরি এবং বর্তমান মেসেজ নিয়ে কনসেনসাস এনালাইসিস করা
-            return votingService.askConsensus(
-                """
+              // ২য় ধাপ: পুরনো মেমরি এবং বর্তমান মেসেজ নিয়ে কনসেনসাস এনালাইসিস করা
+              return votingService.askConsensus(
+                  """
                 Analyze this human-AI interaction considering past context if available.
-                
+
                 PAST CONTEXT: %s
                 USER MESSAGE: %s
                 AI RESPONSE: %s
@@ -67,10 +69,10 @@ public class HumanUnderstandingService {
                   "improvement": "one thing we should do better next time"
                 }
                 """
-                    .formatted(context, userMessage, aiResponse),
-                java.util.List.of(preferredProvider),
-                15000);
-        })
+                      .formatted(context, userMessage, aiResponse),
+                  java.util.List.of(preferredProvider),
+                  15000);
+            })
         .subscribeOn(Schedulers.boundedElastic())
         .flatMap(
             analysis -> {
@@ -86,7 +88,8 @@ public class HumanUnderstandingService {
                   analysis.getConsensusAnswer().contains("\"satisfaction\":"));
 
               // ৩য় ধাপ: এনালাইসিস রেজাল্ট লং-টার্ম মেমরিতে সেভ করা এবং রিপোজিটরিতে রাখা
-              return memoryService.storeMemory(userId, analysis.getConsensusAnswer())
+              return memoryService
+                  .storeMemory(userId, analysis.getConsensusAnswer())
                   .then(learningRepository.save(learning));
             })
         .subscribe(

@@ -42,18 +42,40 @@ public class CodeGenerationService {
     Map<String, String> files = new LinkedHashMap<>();
 
     // Derive tech stack from decisions or dynamic defaults
-    String architecture = decisions.getOrDefault("architecture",
-        signatureRegistry.getSignatures("DEFAULT_ARCHITECTURE").stream().findFirst().orElse("monolith"));
-    String database = decisions.getOrDefault("database",
-        signatureRegistry.getSignatures("DEFAULT_DATABASE").stream().findFirst().orElse("PostgreSQL"));
-    String apiStyle = decisions.getOrDefault("apiStyle",
-        signatureRegistry.getSignatures("DEFAULT_API_STYLE").stream().findFirst().orElse("REST"));
-    String authType = decisions.getOrDefault("authType",
-        signatureRegistry.getSignatures("DEFAULT_AUTH").stream().findFirst().orElse("JWT"));
-    String frontend = decisions.getOrDefault("frontend",
-        signatureRegistry.getSignatures("DEFAULT_FRONTEND").stream().findFirst().orElse("React"));
-    String deployment = decisions.getOrDefault("deployment",
-        signatureRegistry.getSignatures("DEFAULT_DEPLOYMENT").stream().findFirst().orElse("GCP"));
+    String architecture =
+        decisions.getOrDefault(
+            "architecture",
+            signatureRegistry.getSignatures("DEFAULT_ARCHITECTURE").stream()
+                .findFirst()
+                .orElse("monolith"));
+    String database =
+        decisions.getOrDefault(
+            "database",
+            signatureRegistry.getSignatures("DEFAULT_DATABASE").stream()
+                .findFirst()
+                .orElse("PostgreSQL"));
+    String apiStyle =
+        decisions.getOrDefault(
+            "apiStyle",
+            signatureRegistry.getSignatures("DEFAULT_API_STYLE").stream()
+                .findFirst()
+                .orElse("REST"));
+    String authType =
+        decisions.getOrDefault(
+            "authType",
+            signatureRegistry.getSignatures("DEFAULT_AUTH").stream().findFirst().orElse("JWT"));
+    String frontend =
+        decisions.getOrDefault(
+            "frontend",
+            signatureRegistry.getSignatures("DEFAULT_FRONTEND").stream()
+                .findFirst()
+                .orElse("React"));
+    String deployment =
+        decisions.getOrDefault(
+            "deployment",
+            signatureRegistry.getSignatures("DEFAULT_DEPLOYMENT").stream()
+                .findFirst()
+                .orElse("GCP"));
 
     // Build dependencies based on decisions
     List<String> dependencies = new ArrayList<>();

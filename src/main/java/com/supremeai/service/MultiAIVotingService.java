@@ -23,7 +23,6 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -39,8 +38,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 /**
- * Unified Multi-AI Voting Service Provides ensemble voting, consensus, and
- * decision-making across
+ * Unified Multi-AI Voting Service Provides ensemble voting, consensus, and decision-making across
  * multiple AI providers
  */
 @Service
@@ -48,63 +46,49 @@ public class MultiAIVotingService {
 
   private static final Logger logger = LoggerFactory.getLogger(MultiAIVotingService.class);
 
-  @Autowired
-  private FirebaseRealtimeService firebaseRealtimeService;
+  @Autowired private FirebaseRealtimeService firebaseRealtimeService;
 
-  @Autowired
-  private ActiveInternetScraper activeInternetScraper;
+  @Autowired private ActiveInternetScraper activeInternetScraper;
 
-  @Autowired
-  private EnhancedLearningService enhancedLearningService;
+  @Autowired private EnhancedLearningService enhancedLearningService;
 
-  @Autowired
-  private WebClient.Builder webClientBuilder;
+  @Autowired private WebClient.Builder webClientBuilder;
 
   // Dependencies from original services
-  @Autowired
-  private AIProviderFactory providerFactory;
+  @Autowired private AIProviderFactory providerFactory;
 
-  @Autowired
-  private ContextualAIRankingService contextualRankingService;
+  @Autowired private ContextualAIRankingService contextualRankingService;
 
-  @Autowired
-  private VotingTopicGenerator topicGenerator;
+  @Autowired private VotingTopicGenerator topicGenerator;
 
   @Lazy
   @Autowired(required = false)
   private SelfHealingService selfHealingService;
 
-  @Autowired
-  private ConfigService configService;
+  @Autowired private ConfigService configService;
 
-  @Autowired
-  private ProviderRepository providerRepository;
+  @Autowired private ProviderRepository providerRepository;
 
-  @Autowired
-  private TaskProviderAssignmentRepository taskAssignmentRepo;
+  @Autowired private TaskProviderAssignmentRepository taskAssignmentRepo;
 
-  @Autowired
-  @Lazy
-  private SoloModeManagerService soloModeManagerService;
+  @Autowired @Lazy private SoloModeManagerService soloModeManagerService;
 
-  @Autowired
-  private SupremeLearningOrchestrator learningOrchestrator;
+  @Autowired private SupremeLearningOrchestrator learningOrchestrator;
 
-  @Autowired
-  private AutonomousBrowserService autonomousBrowserService;
+  @Autowired private AutonomousBrowserService autonomousBrowserService;
 
   // Dynamic model selection (no hardcoded limit)
   private static final int DEFAULT_MAX_VOTING_PROVIDERS = 10;
 
-  private final Map<String, ModelPerformanceTracker> performanceTrackers = new ConcurrentHashMap<>();
+  private final Map<String, ModelPerformanceTracker> performanceTrackers =
+      new ConcurrentHashMap<>();
   private final List<ConsensusVote> consensusHistory = new CopyOnWriteArrayList<>();
 
   private static final int MAX_RETRIES = 3;
   private static final long RETRY_BACKOFF_MS = 1000;
 
   /** Provider cache TTL in milliseconds */
-  public MultiAIVotingService() {
-  }
+  public MultiAIVotingService() {}
 
   public Mono<ConsensusResult> askContextualAIs(String prompt, int x, int timeoutMs) {
     return askContextualConsensus(prompt, x, timeoutMs);
@@ -136,7 +120,7 @@ public class MultiAIVotingService {
       List<String> selectedModels,
       long timeoutMs,
       String taskType // NEW: task type for smart routing
-  ) {
+      ) {
     long startTime = System.currentTimeMillis();
 
     // TIER 1: Core Knowledge Base lookup first for high-resilience offline mode
@@ -145,8 +129,9 @@ public class MultiAIVotingService {
       if (coreSolution != null && !coreSolution.isEmpty()) {
         logger.info(
             "[TIER 1] Found core knowledge solution matching prompt. Returning immediately.");
-        ProviderVote vote = new ProviderVote(
-            "core_knowledge", coreSolution, 0.99, System.currentTimeMillis() - startTime);
+        ProviderVote vote =
+            new ProviderVote(
+                "core_knowledge", coreSolution, 0.99, System.currentTimeMillis() - startTime);
         return Mono.just(
             new VotingResult(
                 prompt,
@@ -166,7 +151,8 @@ public class MultiAIVotingService {
     return decideRoutingAndKeywords(prompt)
         .flatMap(
             routing -> {
-              List<String> keywords = (List<String>) routing.getOrDefault("keywords", extractKeywords(prompt));
+              List<String> keywords =
+                  (List<String>) routing.getOrDefault("keywords", extractKeywords(prompt));
               String targetDomain = (String) routing.getOrDefault("domain", detectDomain(prompt));
 
               return activeInternetScraper
@@ -184,10 +170,10 @@ public class MultiAIVotingService {
     String routerModel = configService.getEffectiveSetting("supreme_router_model", "tiny_llama");
 
     return queryModel(
-        routerModel,
-        "Analyze this user query and decide the best search strategy. Output valid JSON with 'keywords' (list) and 'domain' (string). No preamble.\nQuery: "
-            + prompt,
-        3000)
+            routerModel,
+            "Analyze this user query and decide the best search strategy. Output valid JSON with 'keywords' (list) and 'domain' (string). No preamble.\nQuery: "
+                + prompt,
+            3000)
         .map(vote -> parseRoutingJson(vote.getResponse()))
         .onErrorReturn(Map.of("keywords", extractKeywords(prompt), "domain", detectDomain(prompt)));
   }
@@ -202,9 +188,10 @@ public class MultiAIVotingService {
         .onErrorResume(e -> Mono.empty())
         .flatMap(
             config -> {
-              final boolean helperEnabled = config != null
-                  && Boolean.parseBoolean(
-                      String.valueOf(config.getOrDefault("enabled", "false")));
+              final boolean helperEnabled =
+                  config != null
+                      && Boolean.parseBoolean(
+                          String.valueOf(config.getOrDefault("enabled", "false")));
 
               return providerRepository
                   .findAll()
@@ -252,41 +239,40 @@ public class MultiAIVotingService {
   }
 
   private boolean isComplexConversation(String prompt) {
-    if (prompt == null)
-      return false;
+    if (prompt == null) return false;
     String p = prompt.toLowerCase();
 
-    Set<String> complexKeywords = Set.of(
-        "code",
-        "write",
-        "function",
-        "class",
-        "program",
-        "method",
-        "java",
-        "python",
-        "javascript",
-        "react",
-        "html",
-        "css",
-        "error",
-        "exception",
-        "bug",
-        "build",
-        "compile",
-        "database",
-        "algorithm",
-        "design",
-        "refactor",
-        "deploy",
-        "architecture",
-        "sql",
-        "api",
-        "query",
-        "optimize");
+    Set<String> complexKeywords =
+        Set.of(
+            "code",
+            "write",
+            "function",
+            "class",
+            "program",
+            "method",
+            "java",
+            "python",
+            "javascript",
+            "react",
+            "html",
+            "css",
+            "error",
+            "exception",
+            "bug",
+            "build",
+            "compile",
+            "database",
+            "algorithm",
+            "design",
+            "refactor",
+            "deploy",
+            "architecture",
+            "sql",
+            "api",
+            "query",
+            "optimize");
 
-    if (prompt.length() > 150)
-      return true;
+    if (prompt.length() > 150) return true;
 
     for (String word : p.split("[^a-zA-Z0-9]+")) {
       if (complexKeywords.contains(word)) {
@@ -304,7 +290,8 @@ public class MultiAIVotingService {
       long timeoutMs) {
     boolean helperEnabled = false;
     if (helperConfig != null) {
-      helperEnabled = Boolean.parseBoolean(String.valueOf(helperConfig.getOrDefault("enabled", "false")));
+      helperEnabled =
+          Boolean.parseBoolean(String.valueOf(helperConfig.getOrDefault("enabled", "false")));
     }
 
     if (helperEnabled) {
@@ -366,7 +353,8 @@ public class MultiAIVotingService {
             Map.of("mode", "direct_communication_solo"))
         .subscribe();
     long duration = System.currentTimeMillis() - startTime;
-    ProviderVote vote = new ProviderVote("direct_browser", synthesized, 0.80, System.currentTimeMillis());
+    ProviderVote vote =
+        new ProviderVote("direct_browser", synthesized, 0.80, System.currentTimeMillis());
     return new VotingResult(
         prompt, synthesized, List.of(vote), 0.80, "DIRECT_COMMUNICATION_SOLO", duration);
   }
@@ -383,19 +371,21 @@ public class MultiAIVotingService {
         .flatMap(
             voteA -> {
               String responseA = voteA.getResponse();
-              String responseB = synthesizeSoloResponse(prompt, issues); // The "Browser Weapon" output
+              String responseB =
+                  synthesizeSoloResponse(prompt, issues); // The "Browser Weapon" output
 
-              String comparisonPrompt = String.format(
-                  "ইউজার প্রশ্ন: %s\n\n"
-                      + "আপনার কাছে দুটি তথ্য আছে:\n"
-                      + "১. আপনার নিজস্ব AI মেমোরি থেকে প্রাপ্ত উত্তর (সমাধান A): %s\n"
-                      + "২. সুপ্রিমএআই ব্রাউজার দ্বারা ইন্টারনেট থেকে সংগৃহীত রিয়েল-টাইম তথ্য (সমাধান B): %s\n\n"
-                      + "এখন আপনি এই দুটি তুলনা করুন। কোনটি বেশি নির্ভুল এবং রিয়েল-টাইম তথ্যের সাথে সামঞ্জস্যপূর্ণ? "
-                      + "দয়া করে এই দুটির মধ্য থেকে একটি চূড়ান্ত 'বিজয়ী' সিদ্ধান্ত নিন এবং সেই অনুযায়ী সবচেয়ে উন্নত ও নিখুঁত বাংলা উত্তরটি প্রস্তুত করুন।",
-                  prompt, responseA, responseB);
+              String comparisonPrompt =
+                  String.format(
+                      "ইউজার প্রশ্ন: %s\n\n"
+                          + "আপনার কাছে দুটি তথ্য আছে:\n"
+                          + "১. আপনার নিজস্ব AI মেমোরি থেকে প্রাপ্ত উত্তর (সমাধান A): %s\n"
+                          + "২. সুপ্রিমএআই ব্রাউজার দ্বারা ইন্টারনেট থেকে সংগৃহীত রিয়েল-টাইম তথ্য (সমাধান B): %s\n\n"
+                          + "এখন আপনি এই দুটি তুলনা করুন। কোনটি বেশি নির্ভুল এবং রিয়েল-টাইম তথ্যের সাথে সামঞ্জস্যপূর্ণ? "
+                          + "দয়া করে এই দুটির মধ্য থেকে একটি চূড়ান্ত 'বিজয়ী' সিদ্ধান্ত নিন এবং সেই অনুযায়ী সবচেয়ে উন্নত ও নিখুঁত বাংলা উত্তরটি প্রস্তুত করুন।",
+                      prompt, responseA, responseB);
 
               return queryModelOrHelper(
-                  modelName, comparisonPrompt, helperConfig, null, timeoutMs / 2)
+                      modelName, comparisonPrompt, helperConfig, null, timeoutMs / 2)
                   .map(
                       voteWinner -> {
                         String winnerResponse = voteWinner.getResponse();
@@ -410,11 +400,12 @@ public class MultiAIVotingService {
                             .subscribe();
 
                         long duration = System.currentTimeMillis() - startTime;
-                        ProviderVote finalVote = new ProviderVote(
-                            modelName + "_compared",
-                            winnerResponse,
-                            0.96,
-                            System.currentTimeMillis());
+                        ProviderVote finalVote =
+                            new ProviderVote(
+                                modelName + "_compared",
+                                winnerResponse,
+                                0.96,
+                                System.currentTimeMillis());
                         return new VotingResult(
                             prompt,
                             winnerResponse,
@@ -473,8 +464,9 @@ public class MultiAIVotingService {
             modelName -> {
               if ("autonomous_browser".equalsIgnoreCase(modelName)) {
                 String synthesized = synthesizeSoloResponse(prompt, issues);
-                ProviderVote vote = new ProviderVote(
-                    "autonomous_browser", synthesized, 0.85, System.currentTimeMillis());
+                ProviderVote vote =
+                    new ProviderVote(
+                        "autonomous_browser", synthesized, 0.85, System.currentTimeMillis());
                 return Mono.just(vote);
               } else {
                 return queryModelOrHelper(modelName, prompt, helperConfig, issues, timeoutMs - 3000)
@@ -516,21 +508,25 @@ public class MultiAIVotingService {
                           }
                         }
 
-                        List<ProviderVote> winningGroup = groups.values().stream()
-                            .max(
-                                Comparator.comparingDouble(
-                                    group -> group.stream()
-                                        .mapToDouble(
-                                            v -> modelWeights.getOrDefault(
-                                                v.getProviderName(), 1.0))
-                                        .sum()))
-                            .orElse(List.of(votes.get(0)));
+                        List<ProviderVote> winningGroup =
+                            groups.values().stream()
+                                .max(
+                                    Comparator.comparingDouble(
+                                        group ->
+                                            group.stream()
+                                                .mapToDouble(
+                                                    v ->
+                                                        modelWeights.getOrDefault(
+                                                            v.getProviderName(), 1.0))
+                                                .sum()))
+                                .orElse(List.of(votes.get(0)));
 
                         String bestResponse = winningGroup.get(0).getResponse();
-                        double avgConfidence = votes.stream()
-                            .mapToDouble(ProviderVote::getConfidence)
-                            .average()
-                            .orElse(0.5);
+                        double avgConfidence =
+                            votes.stream()
+                                .mapToDouble(ProviderVote::getConfidence)
+                                .average()
+                                .orElse(0.5);
 
                         enhancedLearningService
                             .learnFromNLPInteraction(
@@ -585,17 +581,19 @@ public class MultiAIVotingService {
                         return providerRepository
                             .findAll()
                             .filter(
-                                p -> "active".equalsIgnoreCase(p.getStatus())
-                                    && p.isCanParticipateInVoting())
+                                p ->
+                                    "active".equalsIgnoreCase(p.getStatus())
+                                        && p.isCanParticipateInVoting())
                             .map(p -> p.getName())
                             .collectList()
                             .flatMapMany(
                                 dbModels -> {
                                   List<String> activeModels = new ArrayList<>(dbModels);
-                                  boolean helperEnabled = config != null
-                                      && Boolean.parseBoolean(
-                                          String.valueOf(
-                                              config.getOrDefault("enabled", "false")));
+                                  boolean helperEnabled =
+                                      config != null
+                                          && Boolean.parseBoolean(
+                                              String.valueOf(
+                                                  config.getOrDefault("enabled", "false")));
                                   if (helperEnabled && !activeModels.contains("cloud_helper")) {
                                     activeModels.add("cloud_helper");
                                   }
@@ -609,7 +607,8 @@ public class MultiAIVotingService {
                                       .flatMap(
                                           modelName -> {
                                             if ("autonomous_browser".equalsIgnoreCase(modelName)) {
-                                              String synthesized = synthesizeSoloResponse(prompt, issues);
+                                              String synthesized =
+                                                  synthesizeSoloResponse(prompt, issues);
                                               return Mono.just(
                                                   new ProviderVote(
                                                       "autonomous_browser",
@@ -618,7 +617,7 @@ public class MultiAIVotingService {
                                                       System.currentTimeMillis()));
                                             } else {
                                               return queryModelOrHelper(
-                                                  modelName, prompt, config, issues, timeoutMs)
+                                                      modelName, prompt, config, issues, timeoutMs)
                                                   .onErrorResume(e -> Mono.empty());
                                             }
                                           });
@@ -648,21 +647,24 @@ public class MultiAIVotingService {
     }
 
     String systemInstruction = "You are the SupremeAI Assistant. Answer in Bengali.";
-    String fullPrompt = systemInstruction
-        + "\n\nSearch Context:\n"
-        + contextBuilder.toString()
-        + "\n\nUser Question:\n"
-        + prompt;
+    String fullPrompt =
+        systemInstruction
+            + "\n\nSearch Context:\n"
+            + contextBuilder.toString()
+            + "\n\nUser Question:\n"
+            + prompt;
 
     String requestBody;
     if (endpoint.contains("googleapis.com")) {
-      requestBody = String.format("{\"contents\":[{\"parts\":[{\"text\":\"%s\"}]}]}", escapeJson(fullPrompt));
+      requestBody =
+          String.format("{\"contents\":[{\"parts\":[{\"text\":\"%s\"}]}]}", escapeJson(fullPrompt));
     } else {
-      requestBody = String.format(
-          "{\"model\":\"%s\",\"messages\":[{\"role\":\"system\",\"content\":\"%s\"},{\"role\":\"user\",\"content\":\"%s\"}]}",
-          model != null ? model : "helper-model",
-          escapeJson(systemInstruction + "\n\nSearch Context:\n" + contextBuilder.toString()),
-          escapeJson(prompt));
+      requestBody =
+          String.format(
+              "{\"model\":\"%s\",\"messages\":[{\"role\":\"system\",\"content\":\"%s\"},{\"role\":\"user\",\"content\":\"%s\"}]}",
+              model != null ? model : "helper-model",
+              escapeJson(systemInstruction + "\n\nSearch Context:\n" + contextBuilder.toString()),
+              escapeJson(prompt));
     }
 
     org.springframework.web.reactive.function.client.WebClient.RequestBodySpec requestSpec;
@@ -673,7 +675,8 @@ public class MultiAIVotingService {
       }
       requestSpec = webClientBuilder.build().post().uri(finalUrl);
     } else {
-      requestSpec = webClientBuilder.build().post().uri(endpoint).header("Authorization", "Bearer " + apiKey);
+      requestSpec =
+          webClientBuilder.build().post().uri(endpoint).header("Authorization", "Bearer " + apiKey);
     }
 
     return requestSpec
@@ -756,9 +759,10 @@ public class MultiAIVotingService {
                           finalResponse = synthesizeSoloResponse(prompt, allIssues);
                         } else {
                           // Prepend the header to keep UI premium and clear
-                          finalResponse = "🤖 **SupremeAI স্বায়ত্তশাসিত সোলো-মোড সক্রিয় (Autonomous Solo-Mode - Dynamic local model)**\n\n"
-                              + synthesized
-                              + "\n\n---\n*💡 সুপ্রিমএআই ব্রাউজার অটোমেশন এবং সেলফ-লার্নিং সক্রিয় রেখেছে এবং এই চ্যাট থেকে প্রাপ্ত নতুন জ্ঞান ভবিষ্যতের জন্য ডাটাবেসে সংরক্ষণ করা হয়েছে।*";
+                          finalResponse =
+                              "🤖 **SupremeAI স্বায়ত্তশাসিত সোলো-মোড সক্রিয় (Autonomous Solo-Mode - Dynamic local model)**\n\n"
+                                  + synthesized
+                                  + "\n\n---\n*💡 সুপ্রিমএআই ব্রাউজার অটোমেশন এবং সেলফ-লার্নিং সক্রিয় রেখেছে এবং এই চ্যাট থেকে প্রাপ্ত নতুন জ্ঞান ভবিষ্যতের জন্য ডাটাবেসে সংরক্ষণ করা হয়েছে।*";
                         }
 
                         enhancedLearningService
@@ -770,11 +774,12 @@ public class MultiAIVotingService {
                                 Map.of("mode", "browser_only"))
                             .subscribe();
                         long duration = System.currentTimeMillis() - startTime;
-                        ProviderVote vote = new ProviderVote(
-                            "autonomous_browser",
-                            finalResponse,
-                            0.85,
-                            System.currentTimeMillis());
+                        ProviderVote vote =
+                            new ProviderVote(
+                                "autonomous_browser",
+                                finalResponse,
+                                0.85,
+                                System.currentTimeMillis());
                         return new VotingResult(
                             prompt, finalResponse, List.of(vote), 0.85, "SOLO_MODE", duration);
                       });
@@ -894,46 +899,46 @@ public class MultiAIVotingService {
 
   private List<String> extractKeywords(String prompt) {
     List<String> keywords = new ArrayList<>();
-    if (prompt == null || prompt.isEmpty())
-      return keywords;
+    if (prompt == null || prompt.isEmpty()) return keywords;
 
     String clean = prompt.toLowerCase().replaceAll("[^a-zA-Z0-9\\s]", " ");
     String[] words = clean.split("\\s+");
 
-    Set<String> techWords = Set.of(
-        "react",
-        "angular",
-        "vue",
-        "next",
-        "vite",
-        "javascript",
-        "typescript",
-        "css",
-        "html",
-        "java",
-        "spring",
-        "maven",
-        "gradle",
-        "kotlin",
-        "scala",
-        "firebase",
-        "firestore",
-        "auth",
-        "hosting",
-        "database",
-        "gcp",
-        "google",
-        "cloud",
-        "run",
-        "vertex",
-        "gemini",
-        "error",
-        "bug",
-        "exception",
-        "failed",
-        "crash",
-        "security",
-        "rules");
+    Set<String> techWords =
+        Set.of(
+            "react",
+            "angular",
+            "vue",
+            "next",
+            "vite",
+            "javascript",
+            "typescript",
+            "css",
+            "html",
+            "java",
+            "spring",
+            "maven",
+            "gradle",
+            "kotlin",
+            "scala",
+            "firebase",
+            "firestore",
+            "auth",
+            "hosting",
+            "database",
+            "gcp",
+            "google",
+            "cloud",
+            "run",
+            "vertex",
+            "gemini",
+            "error",
+            "bug",
+            "exception",
+            "failed",
+            "crash",
+            "security",
+            "rules");
 
     for (String w : words) {
       if (techWords.contains(w) && !keywords.contains(w)) {
@@ -958,8 +963,7 @@ public class MultiAIVotingService {
   }
 
   private String detectDomain(String prompt) {
-    if (prompt == null)
-      return "general";
+    if (prompt == null) return "general";
     String p = prompt.toLowerCase();
     if (p.contains("react") || p.contains("next") || p.contains("frontend") || p.contains("web")) {
       return "web-development";
@@ -974,8 +978,7 @@ public class MultiAIVotingService {
   }
 
   private String escapeJson(String text) {
-    if (text == null)
-      return "";
+    if (text == null) return "";
     return text.replace("\\", "\\\\")
         .replace("\"", "\\\"")
         .replace("\n", "\\n")
@@ -1027,8 +1030,7 @@ public class MultiAIVotingService {
   }
 
   /**
-   * Get providers assigned to a specific task type. Priority: DB assignment →
-   * fallback providers →
+   * Get providers assigned to a specific task type. Priority: DB assignment → fallback providers →
    * all active providers.
    */
   private Mono<List<String>> getAssignedProvidersForTask(String taskType) {
@@ -1068,20 +1070,23 @@ public class MultiAIVotingService {
                   // 2. Fallback: use contextual ranking to select best providers
                   try {
                     ContextualAIRankingService.TaskType tType = null;
-                    for (ContextualAIRankingService.TaskType t : ContextualAIRankingService.TaskType.values()) {
+                    for (ContextualAIRankingService.TaskType t :
+                        ContextualAIRankingService.TaskType.values()) {
                       if (t.name().equalsIgnoreCase(taskType)) {
                         tType = t;
                         break;
                       }
                     }
                     if (tType != null) {
-                      List<String> ranked = contextualRankingService.getRankingsForTask(tType).stream()
-                          .map(r -> r.provider)
-                          .collect(Collectors.toList());
+                      List<String> ranked =
+                          contextualRankingService.getRankingsForTask(tType).stream()
+                              .map(r -> r.provider)
+                              .collect(Collectors.toList());
                       if (ranked != null && !ranked.isEmpty()) {
-                        List<String> result = ranked.stream()
-                            .limit(DEFAULT_MAX_VOTING_PROVIDERS)
-                            .collect(Collectors.toList());
+                        List<String> result =
+                            ranked.stream()
+                                .limit(DEFAULT_MAX_VOTING_PROVIDERS)
+                                .collect(Collectors.toList());
                         logger.info(
                             "📊 Using {} ranked providers for '{}': {}",
                             result.size(),
@@ -1103,24 +1108,23 @@ public class MultiAIVotingService {
                   return providerRepository
                       .findAll()
                       .filter(
-                          p -> "active".equalsIgnoreCase(p.getStatus())
-                              && p.isCanParticipateInVoting())
+                          p ->
+                              "active".equalsIgnoreCase(p.getStatus())
+                                  && p.isCanParticipateInVoting())
                       .map(p -> p.getName().toLowerCase())
                       .collectList()
                       .doOnNext(
-                          allProviders -> logger.info(
-                              "🌍 No task-specific assignment for '{}' - using {} active providers",
-                              taskType,
-                              allProviders != null ? allProviders.size() : 0));
+                          allProviders ->
+                              logger.info(
+                                  "🌍 No task-specific assignment for '{}' - using {} active providers",
+                                  taskType,
+                                  allProviders != null ? allProviders.size() : 0));
                 }));
   }
 
   // ===== APPROVAL VOTING (from CouncilVotingSystem) =====
 
-  /**
-   * Conduct approval vote for risky actions Replaces
-   * CouncilVotingSystem.conductVote
-   */
+  /** Conduct approval vote for risky actions Replaces CouncilVotingSystem.conductVote */
   public Mono<Boolean> conductApprovalVote(
       String changeType, String codeSnippet, List<String> councilMembers) {
     logger.info("[Approval Voting] Initiating vote for major change: {}", changeType);
@@ -1134,8 +1138,9 @@ public class MultiAIVotingService {
 
     return Flux.fromIterable(councilMembers)
         .flatMap(
-            member -> Mono.fromCallable(() -> simulateAIVote(member, topic))
-                .subscribeOn(reactor.core.scheduler.Schedulers.boundedElastic()))
+            member ->
+                Mono.fromCallable(() -> simulateAIVote(member, topic))
+                    .subscribeOn(reactor.core.scheduler.Schedulers.boundedElastic()))
         .collectList()
         .map(
             votes -> {
@@ -1153,10 +1158,7 @@ public class MultiAIVotingService {
 
   // ===== DECISION VOTING (from AutonomousVotingService) =====
 
-  /**
-   * Conduct decision vote on questions Replaces
-   * AutonomousVotingService.conductVote
-   */
+  /** Conduct decision vote on questions Replaces AutonomousVotingService.conductVote */
   public Mono<VotingDecision> conductDecisionVote(String question, String context) {
     logger.info("Starting decision voting for question: {}", question);
 
@@ -1222,11 +1224,11 @@ public class MultiAIVotingService {
 
   // ===== CONSENSUS VOTING (from MultiAIConsensusService) =====
 
-  /**
-   * Ask consensus from multiple AI providers Replaces
-   * MultiAIConsensusService.askAllAIs
-   */
-  @Cacheable(value = "ai_responses", key = "#question + '_' + T(java.util.Collections).unmodifiableSortedSet(new java.util.TreeSet(#providerNames)).hashCode()")
+  /** Ask consensus from multiple AI providers Replaces MultiAIConsensusService.askAllAIs */
+  @Cacheable(
+      value = "ai_responses",
+      key =
+          "#question + '_' + T(java.util.Collections).unmodifiableSortedSet(new java.util.TreeSet(#providerNames)).hashCode()")
   public Mono<ConsensusResult> askConsensus(
       String question, List<String> providerNames, long timeoutMs) {
     return executeEnsembleVoting(question, null, timeoutMs)
@@ -1267,38 +1269,42 @@ public class MultiAIVotingService {
 
   private Mono<ProviderVote> queryModel(String modelName, String prompt, long timeoutMs) {
     return Mono.defer(
-        () -> {
-          try {
-            AIProvider provider = providerFactory.getEnforcedProvider(modelName);
-            long startTime = System.currentTimeMillis();
+            () -> {
+              try {
+                AIProvider provider = providerFactory.getEnforcedProvider(modelName);
+                long startTime = System.currentTimeMillis();
 
-            Mono<String> generationMono = (selfHealingService != null)
-                ? selfHealingService.executeWithRetry(
-                    () -> provider.generate(prompt), getMaxRetries(), RETRY_BACKOFF_MS)
-                : provider.generate(prompt);
+                Mono<String> generationMono =
+                    (selfHealingService != null)
+                        ? selfHealingService.executeWithRetry(
+                            () -> provider.generate(prompt), getMaxRetries(), RETRY_BACKOFF_MS)
+                        : provider.generate(prompt);
 
-            return generationMono
-                .map(
-                    response -> {
-                      long responseTime = System.currentTimeMillis() - startTime;
-                      ContextualAIRankingService.TaskType taskType = contextualRankingService.detectTaskType(prompt);
-                      double confidence = calculateConfidence(response, modelName, responseTime, taskType);
-                      ProviderVote vote = new ProviderVote(
-                          modelName, response, confidence, System.currentTimeMillis());
-                      updatePerformanceTracker(vote, taskType);
-                      return vote;
-                    })
-                .timeout(java.time.Duration.ofMillis(timeoutMs))
-                .onErrorResume(
-                    e -> {
-                      logger.warn("Model {} failed: {}", modelName, e.getMessage());
-                      return Mono.empty();
-                    });
-          } catch (Exception e) {
-            logger.warn("Model Factory failed for {}: {}", modelName, e.getMessage());
-            return Mono.empty();
-          }
-        })
+                return generationMono
+                    .map(
+                        response -> {
+                          long responseTime = System.currentTimeMillis() - startTime;
+                          ContextualAIRankingService.TaskType taskType =
+                              contextualRankingService.detectTaskType(prompt);
+                          double confidence =
+                              calculateConfidence(response, modelName, responseTime, taskType);
+                          ProviderVote vote =
+                              new ProviderVote(
+                                  modelName, response, confidence, System.currentTimeMillis());
+                          updatePerformanceTracker(vote, taskType);
+                          return vote;
+                        })
+                    .timeout(java.time.Duration.ofMillis(timeoutMs))
+                    .onErrorResume(
+                        e -> {
+                          logger.warn("Model {} failed: {}", modelName, e.getMessage());
+                          return Mono.empty();
+                        });
+              } catch (Exception e) {
+                logger.warn("Model Factory failed for {}: {}", modelName, e.getMessage());
+                return Mono.empty();
+              }
+            })
         .subscribeOn(reactor.core.scheduler.Schedulers.boundedElastic());
   }
 
@@ -1322,8 +1328,7 @@ public class MultiAIVotingService {
         double totalSim = 0.0;
         int peerCount = 0;
         for (int j = 0; j < votes.size(); j++) {
-          if (i == j)
-            continue;
+          if (i == j) continue;
           ProviderVote vJ = votes.get(j);
           double jaccard = calculateJaccardOverlap(vI.getResponse(), vJ.getResponse());
           double structural = calculateStructuralSimilarity(vI.getResponse(), vJ.getResponse());
@@ -1341,8 +1346,7 @@ public class MultiAIVotingService {
         double weightedSimSum = 0.0;
         double weightSum = 0.0;
         for (int j = 0; j < votes.size(); j++) {
-          if (i == j)
-            continue;
+          if (i == j) continue;
           ProviderVote vJ = votes.get(j);
           double jaccard = calculateJaccardOverlap(vI.getResponse(), vJ.getResponse());
           double structural = calculateStructuralSimilarity(vI.getResponse(), vJ.getResponse());
@@ -1368,8 +1372,9 @@ public class MultiAIVotingService {
       double weightedScore = 0;
 
       for (ProviderVote vote : groupVotes) {
-        double weight = calculateModelWeight(
-            vote.getProviderName(), vote.getConfidence(), taskType, weightsMap);
+        double weight =
+            calculateModelWeight(
+                vote.getProviderName(), vote.getConfidence(), taskType, weightsMap);
         weightedScore += vote.getConfidence() * weight;
         totalWeight += weight;
       }
@@ -1378,20 +1383,22 @@ public class MultiAIVotingService {
       groupWeights.put(groupKey, totalWeight);
     }
 
-    String winningGroupKey = groupScores.entrySet().stream()
-        .max(Comparator.comparingDouble(e -> groupWeights.get(e.getKey()) * e.getValue()))
-        .map(Map.Entry::getKey)
-        .orElse(
-            votes
-                .get(0)
-                .getResponse()
-                .substring(0, Math.min(100, votes.get(0).getResponse().length())));
+    String winningGroupKey =
+        groupScores.entrySet().stream()
+            .max(Comparator.comparingDouble(e -> groupWeights.get(e.getKey()) * e.getValue()))
+            .map(Map.Entry::getKey)
+            .orElse(
+                votes
+                    .get(0)
+                    .getResponse()
+                    .substring(0, Math.min(100, votes.get(0).getResponse().length())));
 
     List<ProviderVote> winningVotes = similarityGroups.get(winningGroupKey);
     String bestResponse = winningVotes.get(0).getResponse();
 
     double consensusPercentage = (double) winningVotes.size() / votes.size() * 100.0;
-    double avgConfidence = winningVotes.stream().mapToDouble(ProviderVote::getConfidence).average().orElse(0.0);
+    double avgConfidence =
+        winningVotes.stream().mapToDouble(ProviderVote::getConfidence).average().orElse(0.0);
 
     for (ProviderVote vote : winningVotes) {
       updatePerformanceTracker(vote, taskType);
@@ -1425,18 +1432,13 @@ public class MultiAIVotingService {
   private double calculateDecisionConfidence(String response, long latencyMs) {
     double confidence = 0.3;
 
-    if (latencyMs < 100)
-      confidence += 0.3;
-    else if (latencyMs < 500)
-      confidence += 0.2;
-    else
-      confidence += 0.1;
+    if (latencyMs < 100) confidence += 0.3;
+    else if (latencyMs < 500) confidence += 0.2;
+    else confidence += 0.1;
 
     int length = response != null ? response.length() : 0;
-    if (length >= 50 && length <= 500)
-      confidence += 0.4;
-    else if (length > 0)
-      confidence += 0.2;
+    if (length >= 50 && length <= 500) confidence += 0.4;
+    else if (length > 0) confidence += 0.2;
 
     return Math.max(0.0, Math.min(1.0, confidence));
   }
@@ -1455,24 +1457,22 @@ public class MultiAIVotingService {
       return decision;
     }
 
-    Map<String, Long> responseFrequency = votes.stream()
-        .filter(ProviderVote::isSuccess)
-        .collect(Collectors.groupingBy(ProviderVote::getResponse, Collectors.counting()));
+    Map<String, Long> responseFrequency =
+        votes.stream()
+            .filter(ProviderVote::isSuccess)
+            .collect(Collectors.groupingBy(ProviderVote::getResponse, Collectors.counting()));
 
-    Map.Entry<String, Long> mostCommon = responseFrequency.entrySet().stream().max(Map.Entry.comparingByValue())
-        .orElseThrow();
+    Map.Entry<String, Long> mostCommon =
+        responseFrequency.entrySet().stream().max(Map.Entry.comparingByValue()).orElseThrow();
 
     double consensusPercentage = (double) mostCommon.getValue() / successCount;
 
     decision.setAiConsensus(mostCommon.getKey());
     decision.setConfidence(consensusPercentage);
 
-    if (consensusPercentage >= 0.75)
-      decision.setStrength("STRONG");
-    else if (consensusPercentage >= 0.5)
-      decision.setStrength("WEAK");
-    else
-      decision.setStrength("SPLIT");
+    if (consensusPercentage >= 0.75) decision.setStrength("STRONG");
+    else if (consensusPercentage >= 0.5) decision.setStrength("WEAK");
+    else decision.setStrength("SPLIT");
 
     logger.info(
         "Decision voting complete. Consensus: {} with {} confidence",
@@ -1505,13 +1505,15 @@ public class MultiAIVotingService {
       groups.computeIfAbsent(normalized, k -> new ArrayList<>()).add(vote);
     }
 
-    List<ProviderVote> winningGroup = groups.values().stream()
-        .max(Comparator.comparingInt(List::size))
-        .orElse(List.of(votes.get(0)));
+    List<ProviderVote> winningGroup =
+        groups.values().stream()
+            .max(Comparator.comparingInt(List::size))
+            .orElse(List.of(votes.get(0)));
 
     String consensusAnswer = winningGroup.get(0).getResponse();
     double consensusPercentage = (double) winningGroup.size() / votes.size() * 100.0;
-    double avgConfidence = votes.stream().mapToDouble(ProviderVote::getConfidence).average().orElse(0.0);
+    double avgConfidence =
+        votes.stream().mapToDouble(ProviderVote::getConfidence).average().orElse(0.0);
 
     double qualityScore = (consensusPercentage / 100.0) * 0.7 + (avgConfidence) * 0.3;
 
@@ -1555,17 +1557,14 @@ public class MultiAIVotingService {
       ContextualAIRankingService.TaskType taskType) {
     double confidence = 0.5;
     int length = response.length();
-    if (length > 100 && length < 5000)
-      confidence += 0.2;
-    else if (length >= 5000)
-      confidence += 0.1;
+    if (length > 100 && length < 5000) confidence += 0.2;
+    else if (length >= 5000) confidence += 0.1;
 
-    if (responseTime < 2000)
-      confidence += 0.1;
-    else if (responseTime > 10000)
-      confidence -= 0.1;
+    if (responseTime < 2000) confidence += 0.1;
+    else if (responseTime > 10000) confidence -= 0.1;
 
-    List<ContextualAIRankingService.ProviderRanking> rankings = contextualRankingService.getRankingsForTask(taskType);
+    List<ContextualAIRankingService.ProviderRanking> rankings =
+        contextualRankingService.getRankingsForTask(taskType);
     for (ContextualAIRankingService.ProviderRanking r : rankings) {
       if (r.provider.equalsIgnoreCase(modelName)) {
         confidence += (r.successRate / 100.0) * 0.3;
@@ -1573,10 +1572,8 @@ public class MultiAIVotingService {
       }
     }
 
-    if (containsCodeBlocks(response))
-      confidence += 0.1;
-    if (hasConclusion(response))
-      confidence += 0.1;
+    if (containsCodeBlocks(response)) confidence += 0.1;
+    if (hasConclusion(response)) confidence += 0.1;
 
     return Math.min(Math.max(confidence, 0.0), 1.0);
   }
@@ -1595,21 +1592,17 @@ public class MultiAIVotingService {
   }
 
   private String findSimilarGroup(Set<String> existingKeys, String newResponse) {
-    if (newResponse.length() < 10)
-      return null;
+    if (newResponse.length() < 10) return null;
     String normalizedNew = newResponse.toLowerCase().replaceAll("[^a-z0-9]", " ");
     String[] newWords = normalizedNew.split("\\s+");
-    if (newWords.length == 0)
-      return null;
+    if (newWords.length == 0) return null;
 
     Set<String> newWordSet = new HashSet<>();
-    for (String w : newWords)
-      if (w.length() > 2)
-        newWordSet.add(w);
+    for (String w : newWords) if (w.length() > 2) newWordSet.add(w);
 
     for (String key : existingKeys) {
-      if (Math.abs(key.length() - newResponse.length()) > Math.max(key.length(), newResponse.length()) * 0.5)
-        continue;
+      if (Math.abs(key.length() - newResponse.length())
+          > Math.max(key.length(), newResponse.length()) * 0.5) continue;
 
       String normalizedKey = key.toLowerCase().replaceAll("[^a-z0-9]", " ");
       String[] keyWords = normalizedKey.split("\\s+");
@@ -1619,20 +1612,17 @@ public class MultiAIVotingService {
       for (String kw : keyWords) {
         if (kw.length() > 2) {
           totalRelevant++;
-          if (newWordSet.contains(kw))
-            matches++;
+          if (newWordSet.contains(kw)) matches++;
         }
       }
 
-      if (totalRelevant == 0)
-        continue;
+      if (totalRelevant == 0) continue;
 
       double similarity = (double) matches / Math.max(totalRelevant, newWordSet.size());
       double structuralSimilarity = calculateStructuralSimilarity(key, newResponse);
       double finalSimilarity = (similarity * 0.6) + (structuralSimilarity * 0.4);
 
-      if (finalSimilarity > 0.65)
-        return key;
+      if (finalSimilarity > 0.65) return key;
     }
     return null;
   }
@@ -1664,7 +1654,8 @@ public class MultiAIVotingService {
       Map<String, Double> weightsMap) {
     double contextualScore = 0.5;
     if (taskType != null) {
-      List<ContextualAIRankingService.ProviderRanking> rankings = contextualRankingService.getRankingsForTask(taskType);
+      List<ContextualAIRankingService.ProviderRanking> rankings =
+          contextualRankingService.getRankingsForTask(taskType);
       if (rankings != null) {
         for (ContextualAIRankingService.ProviderRanking r : rankings) {
           if (r.provider.equalsIgnoreCase(modelName)) {
@@ -1709,7 +1700,8 @@ public class MultiAIVotingService {
   private void recordProviderOutcome(
       String providerName, String question, String response, long latency, double confidence) {
     try {
-      ContextualAIRankingService.TaskType taskType = contextualRankingService.detectTaskType(question);
+      ContextualAIRankingService.TaskType taskType =
+          contextualRankingService.detectTaskType(question);
       double quality = Math.min(5.0, (response.length() > 100 ? 3.0 : 1.0) + confidence * 2.0);
       contextualRankingService.recordTaskOutcome(providerName, taskType, true, latency, quality);
     } catch (Exception e) {
@@ -1718,8 +1710,7 @@ public class MultiAIVotingService {
   }
 
   private String normalizeResponse(String response) {
-    if (response == null)
-      return "";
+    if (response == null) return "";
     return response.trim().replaceAll("\\s+", " ").toLowerCase();
   }
 
@@ -1740,44 +1731,33 @@ public class MultiAIVotingService {
   }
 
   private String determineVerdict(double consensusPercentage, double confidence) {
-    if (consensusPercentage >= 80 && confidence >= 0.8)
-      return "STRONG_CONSENSUS";
-    else if (consensusPercentage >= 60 && confidence >= 0.6)
-      return "MODERATE_CONSENSUS";
-    else if (consensusPercentage >= 40)
-      return "WEAK_CONSENSUS";
-    else
-      return "NO_CONSENSUS";
+    if (consensusPercentage >= 80 && confidence >= 0.8) return "STRONG_CONSENSUS";
+    else if (consensusPercentage >= 60 && confidence >= 0.6) return "MODERATE_CONSENSUS";
+    else if (consensusPercentage >= 40) return "WEAK_CONSENSUS";
+    else return "NO_CONSENSUS";
   }
 
   private double calculateJaccardOverlap(String s1, String s2) {
-    if (s1 == null || s2 == null)
-      return 0.0;
+    if (s1 == null || s2 == null) return 0.0;
     String n1 = normalizeResponse(s1);
     String n2 = normalizeResponse(s2);
-    if (n1.isEmpty() && n2.isEmpty())
-      return 1.0;
-    if (n1.isEmpty() || n2.isEmpty())
-      return 0.0;
+    if (n1.isEmpty() && n2.isEmpty()) return 1.0;
+    if (n1.isEmpty() || n2.isEmpty()) return 0.0;
 
     String[] w1 = n1.split("\\s+");
     String[] w2 = n2.split("\\s+");
 
     Set<String> set1 = new HashSet<>();
     for (String w : w1) {
-      if (w.length() > 2)
-        set1.add(w);
+      if (w.length() > 2) set1.add(w);
     }
     Set<String> set2 = new HashSet<>();
     for (String w : w2) {
-      if (w.length() > 2)
-        set2.add(w);
+      if (w.length() > 2) set2.add(w);
     }
 
-    if (set1.isEmpty() && set2.isEmpty())
-      return 1.0;
-    if (set1.isEmpty() || set2.isEmpty())
-      return 0.0;
+    if (set1.isEmpty() && set2.isEmpty()) return 1.0;
+    if (set1.isEmpty() || set2.isEmpty()) return 0.0;
 
     Set<String> intersection = new HashSet<>(set1);
     intersection.retainAll(set2);
@@ -1797,17 +1777,19 @@ public class MultiAIVotingService {
     // LOW COST OPTION: Fetch orchestrator from config.
     // Default to gemini-1.5-flash which has a generous FREE tier on Google AI
     // Studio.
-    String orchestratorName = configService.getEffectiveSetting("supreme_orchestrator", "gemini-1.5-flash");
+    String orchestratorName =
+        configService.getEffectiveSetting("supreme_orchestrator", "gemini-1.5-flash");
 
     if (!isModelAvailable(orchestratorName)) {
       logger.warn(
           "Primary orchestrator {} not available for synthesis, falling back to active provider.",
           orchestratorName);
-      orchestratorName = providerRepository
-          .findByStatus("active")
-          .map(com.supremeai.model.APIProvider::getName)
-          .next()
-          .block(java.time.Duration.ofSeconds(2));
+      orchestratorName =
+          providerRepository
+              .findByStatus("active")
+              .map(com.supremeai.model.APIProvider::getName)
+              .next()
+              .block(java.time.Duration.ofSeconds(2));
     }
 
     final String finalOrchestrator = orchestratorName;
@@ -1844,17 +1826,19 @@ public class MultiAIVotingService {
           .generate(synthesisPrompt.toString())
           .map(
               synthesizedResponse -> {
-                long totalDuration = initialDuration + (System.currentTimeMillis() - synthesisStart);
+                long totalDuration =
+                    initialDuration + (System.currentTimeMillis() - synthesisStart);
                 logger.info(
                     "Meta-Synthesis successfully completed by {} in {}ms",
                     finalOrchestrator,
                     System.currentTimeMillis() - synthesisStart);
 
-                ProviderVote synthesisVote = new ProviderVote(
-                    finalOrchestrator + "_synthesis",
-                    synthesizedResponse,
-                    0.95,
-                    System.currentTimeMillis());
+                ProviderVote synthesisVote =
+                    new ProviderVote(
+                        finalOrchestrator + "_synthesis",
+                        synthesizedResponse,
+                        0.95,
+                        System.currentTimeMillis());
                 synthesisVote.setSuccess(true);
 
                 List<ProviderVote> updatedVotes = new ArrayList<>(votes);
@@ -1965,8 +1949,7 @@ public class MultiAIVotingService {
     }
 
     public double getHistoricalScore() {
-      if (totalAttempts == 0)
-        return 0.5;
+      if (totalAttempts == 0) return 0.5;
       return historicalScore;
     }
   }

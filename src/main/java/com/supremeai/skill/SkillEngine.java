@@ -17,7 +17,7 @@ public class SkillEngine {
 
   // স্কিল নাম থেকে স্কিল অবজেক্টের ম্যাপিং (পরিবর্তে HashMap ব্যবহার করা হয়)
   private final Map<String, Skill> skillRegistry = new ConcurrentHashMap<>();
-  
+
   // ট্রিগার কী-ওয়ার্ড থেকে স্কিলের ইনভার্টেড ইনডেক্স - O(1) সার্চের জন্য
   private final Map<String, Set<Skill>> triggerIndex = new ConcurrentHashMap<>();
 
@@ -113,7 +113,10 @@ public class SkillEngine {
       skillRegistry.put(skill.getName(), skill);
       // ট্রিগার ইনডেক্স আপডেট করা হচ্ছে - O(1) রুটিংএর জন্য
       indexTriggers(skill);
-      log.info("[SkillEngine] Registered skill '{}' with {} triggers", skill.getName(), skill.getTriggers().size());
+      log.info(
+          "[SkillEngine] Registered skill '{}' with {} triggers",
+          skill.getName(),
+          skill.getTriggers().size());
     }
   }
 
@@ -122,9 +125,13 @@ public class SkillEngine {
     for (String trigger : skill.getTriggers()) {
       String normalizedTrigger = trigger.toLowerCase();
       // প্রতিটি ট্রিগার কী-ওয়ার্ডের জন্য স্কিল সেট সংযোজন করা হয়
-      triggerIndex.computeIfAbsent(normalizedTrigger, k -> ConcurrentHashMap.newKeySet()).add(skill);
+      triggerIndex
+          .computeIfAbsent(normalizedTrigger, k -> ConcurrentHashMap.newKeySet())
+          .add(skill);
       // স্কিলের নামও ট্রিগার হিসেবে যুক্ত করা হয় (স্কিল ডাইরেক্ট ম্যাচিংয়ের জন্য)
-      triggerIndex.computeIfAbsent(skill.getName().toLowerCase(), k -> ConcurrentHashMap.newKeySet()).add(skill);
+      triggerIndex
+          .computeIfAbsent(skill.getName().toLowerCase(), k -> ConcurrentHashMap.newKeySet())
+          .add(skill);
     }
   }
 
@@ -153,9 +160,9 @@ public class SkillEngine {
   // অপটিমাইজড স্কিল ম্যাচিং - O(1) সময় গতি সহ ইনভার্টেড ইনডেক্স ব্যবহার করে
   public Skill matchSkill(String userInput) {
     if (userInput == null || userInput.trim().isEmpty()) return null;
-    
+
     String lowerInput = userInput.toLowerCase();
-    
+
     // ইনভার্টেড ইনডেক্স থেকে সরাসরি স্কিল খুঁজে বের করা হয়
     for (String word : lowerInput.split("[\\s\\p{Punct}]+")) {
       Set<Skill> matchedSkills = triggerIndex.get(word);
@@ -164,7 +171,7 @@ public class SkillEngine {
         return matchedSkills.iterator().next();
       }
     }
-    
+
     // যদি ইনডেক্সে ম্যাচ না পায়, তাহলে ফলব্যাক হিসাবে সম্পূর্ণ স্ক্যান করা হয়
     return skillRegistry.values().stream()
         .filter(skill -> skill.matches(lowerInput))
@@ -176,7 +183,7 @@ public class SkillEngine {
   public int getTriggerIndexSize() {
     return triggerIndex.size();
   }
-  
+
   public int getSkillRegistrySize() {
     return skillRegistry.size();
   }

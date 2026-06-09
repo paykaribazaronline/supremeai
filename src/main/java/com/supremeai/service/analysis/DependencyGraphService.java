@@ -24,9 +24,7 @@ public class DependencyGraphService {
 
   private final DependencyGraphRepository dependencyGraphRepository;
 
-  /**
-   * Import patterns decoupled for multi-language flexibility.
-   */
+  /** Import patterns decoupled for multi-language flexibility. */
   private static final Map<String, Pattern> IMPORT_PATTERNS = new HashMap<>();
 
   @Autowired
@@ -77,13 +75,15 @@ public class DependencyGraphService {
         .flatMap(dependencyGraphRepository::save)
         .then()
         .doOnSuccess(
-            v -> log.info(
-                "Built dependency graph for project {}: {} files", projectId, graphs.size()))
+            v ->
+                log.info(
+                    "Built dependency graph for project {}: {} files", projectId, graphs.size()))
         .doOnError(
-            e -> log.error(
-                "Failed to build dependency graph for project {}: {}",
-                projectId,
-                e.getMessage()));
+            e ->
+                log.error(
+                    "Failed to build dependency graph for project {}: {}",
+                    projectId,
+                    e.getMessage()));
   }
 
   public List<String> findImpactedFiles(String projectId, List<String> changedFiles) {
@@ -139,15 +139,16 @@ public class DependencyGraphService {
             })
         .switchIfEmpty(
             Mono.defer(
-                () -> dependencyGraphRepository.save(
-                    DependencyGraph.builder()
-                        .id(UUID.randomUUID().toString())
-                        .projectId(projectId)
-                        .file(relativePath)
-                        .imports(imports)
-                        .importedBy(List.of())
-                        .updatedAt(Instant.now().toString())
-                        .build())))
+                () ->
+                    dependencyGraphRepository.save(
+                        DependencyGraph.builder()
+                            .id(UUID.randomUUID().toString())
+                            .projectId(projectId)
+                            .file(relativePath)
+                            .imports(imports)
+                            .importedBy(List.of())
+                            .updatedAt(Instant.now().toString())
+                            .build())))
         .then();
   }
 

@@ -2,9 +2,9 @@ package com.supremeai.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.lang.reflect.Field;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import java.lang.reflect.Field;
 
 class AutonomousQuestioningEngineTest {
 
@@ -15,21 +15,21 @@ class AutonomousQuestioningEngineTest {
   @BeforeEach
   void setUp() throws Exception {
     agent = new AutonomousQuestioningEngine();
-    
+
     // Set mocks via reflection
     mockBrain = org.mockito.Mockito.mock(SupremeAIBrain.class);
     mockRegistry = org.mockito.Mockito.mock(DynamicSignatureRegistry.class);
-    
+
     setField(agent, "supremeAIBrain", mockBrain);
     setField(agent, "signatureRegistry", mockRegistry);
-    
-    org.mockito.Mockito.when(mockBrain.think(
-        org.mockito.ArgumentMatchers.anyString(), 
-        org.mockito.ArgumentMatchers.anyString()))
+
+    org.mockito.Mockito.when(
+            mockBrain.think(
+                org.mockito.ArgumentMatchers.anyString(), org.mockito.ArgumentMatchers.anyString()))
         .thenReturn(reactor.core.publisher.Mono.just("FACTUAL"));
-    org.mockito.Mockito.when(mockRegistry.matchesAny(
-        org.mockito.ArgumentMatchers.anyString(), 
-        org.mockito.ArgumentMatchers.anyString()))
+    org.mockito.Mockito.when(
+            mockRegistry.matchesAny(
+                org.mockito.ArgumentMatchers.anyString(), org.mockito.ArgumentMatchers.anyString()))
         .thenReturn(false);
   }
 
@@ -47,30 +47,30 @@ class AutonomousQuestioningEngineTest {
 
   @Test
   void testClassifyIntentGreeting() throws Exception {
-    org.mockito.Mockito.when(mockRegistry.matchesAny(
-        org.mockito.ArgumentMatchers.anyString(), 
-        org.mockito.ArgumentMatchers.anyString()))
+    org.mockito.Mockito.when(
+            mockRegistry.matchesAny(
+                org.mockito.ArgumentMatchers.anyString(), org.mockito.ArgumentMatchers.anyString()))
         .thenReturn(true);
-    org.mockito.Mockito.when(mockBrain.think(
-        org.mockito.ArgumentMatchers.anyString(), 
-        org.mockito.ArgumentMatchers.anyString()))
+    org.mockito.Mockito.when(
+            mockBrain.think(
+                org.mockito.ArgumentMatchers.anyString(), org.mockito.ArgumentMatchers.anyString()))
         .thenReturn(reactor.core.publisher.Mono.just("GREETING"));
-    
+
     AutonomousQuestioningEngine.IntentType result = agent.classifyIntent("hi there");
     assertEquals(AutonomousQuestioningEngine.IntentType.GREETING, result);
   }
 
   @Test
   void testClassifyIntentTask() throws Exception {
-    org.mockito.Mockito.when(mockRegistry.matchesAny(
-        org.mockito.ArgumentMatchers.anyString(), 
-        org.mockito.ArgumentMatchers.anyString()))
+    org.mockito.Mockito.when(
+            mockRegistry.matchesAny(
+                org.mockito.ArgumentMatchers.anyString(), org.mockito.ArgumentMatchers.anyString()))
         .thenReturn(true);
-    org.mockito.Mockito.when(mockBrain.think(
-        org.mockito.ArgumentMatchers.anyString(), 
-        org.mockito.ArgumentMatchers.anyString()))
+    org.mockito.Mockito.when(
+            mockBrain.think(
+                org.mockito.ArgumentMatchers.anyString(), org.mockito.ArgumentMatchers.anyString()))
         .thenReturn(reactor.core.publisher.Mono.just("TASK"));
-    
+
     AutonomousQuestioningEngine.IntentType result = agent.classifyIntent("build a microservice");
     assertEquals(AutonomousQuestioningEngine.IntentType.TASK, result);
   }

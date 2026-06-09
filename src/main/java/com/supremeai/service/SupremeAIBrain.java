@@ -162,8 +162,8 @@ public class SupremeAIBrain {
     if (complexPatterns != null && !complexPatterns.isEmpty()) {
       String lowerTask = task.toLowerCase();
       String lowerPrompt = prompt.toLowerCase();
-      return complexPatterns.stream().anyMatch(pattern ->
-          lowerTask.contains(pattern) || lowerPrompt.contains(pattern));
+      return complexPatterns.stream()
+          .anyMatch(pattern -> lowerTask.contains(pattern) || lowerPrompt.contains(pattern));
     }
 
     boolean isComplex =
@@ -180,8 +180,7 @@ public class SupremeAIBrain {
   }
 
   private String getDynamicFallback(String key) {
-    return signatureRegistry.getSignatures("FALLBACK_MESSAGES")
-        .stream()
+    return signatureRegistry.getSignatures("FALLBACK_MESSAGES").stream()
         .filter(s -> s.startsWith(key + ":"))
         .map(s -> s.substring(key.length() + 1))
         .findFirst()
@@ -471,15 +470,13 @@ public class SupremeAIBrain {
 
   private List<String> extractKeywords(String message) {
     Set<String> stopWords = signatureRegistry.getSignatures("STOP_WORDS");
-    Set<String> effectiveStopWords = stopWords != null && !stopWords.isEmpty()
-        ? stopWords
-        : Set.of("the", "a", "an", "and", "or", "is", "are", "was", "were", "be", "been");
+    Set<String> effectiveStopWords =
+        stopWords != null && !stopWords.isEmpty()
+            ? stopWords
+            : Set.of("the", "a", "an", "and", "or", "is", "are", "was", "were", "be", "been");
 
     return Arrays.stream(message.toLowerCase().split("\\s+"))
-        .map(
-            w ->
-                w.replaceAll(
-                    "[^a-zA-Z0-9\\u0980-\\u09FF#+.-]", ""))
+        .map(w -> w.replaceAll("[^a-zA-Z0-9\\u0980-\\u09FF#+.-]", ""))
         .filter(w -> w.length() > 2)
         .filter(w -> !effectiveStopWords.contains(w))
         .distinct()
@@ -495,8 +492,14 @@ public class SupremeAIBrain {
           .map(d -> d.contains(":") ? d.split(":")[0].trim() : d)
           .filter(keyword -> lower.contains(keyword.toLowerCase()))
           .findFirst()
-          .orElseGet(() -> extractKeywords(message).isEmpty() ? message : String.join(" ", extractKeywords(message)));
+          .orElseGet(
+              () ->
+                  extractKeywords(message).isEmpty()
+                      ? message
+                      : String.join(" ", extractKeywords(message)));
     }
-    return extractKeywords(message).isEmpty() ? message : String.join(" ", extractKeywords(message));
+    return extractKeywords(message).isEmpty()
+        ? message
+        : String.join(" ", extractKeywords(message));
   }
 }

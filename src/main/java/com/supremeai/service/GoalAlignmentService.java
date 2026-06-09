@@ -16,8 +16,7 @@ public class GoalAlignmentService {
 
   public String checkAlignment(String userId, String currentCommand) {
     String goal = userGoals.get(userId);
-    if (goal == null)
-      return "You haven't set a goal yet.";
+    if (goal == null) return "You haven't set a goal yet.";
 
     // সিম্পল লজিক: ইউজার তার লক্ষ্যের দিকে যাচ্ছে কি না
     if (currentCommand.contains("fix") || currentCommand.contains("optimize")) {

@@ -91,7 +91,7 @@ class MultiAIVotingServiceTest {
     // Option A should win because of weight (1.5 > 1.0)
     assertEquals("Option A", decision.getAiConsensus());
     assertEquals(2, decision.getProviderVotes().size());
-    
+
     // Ensure ap3 (disabled) was never called
     verify(providerFactory, never()).getEnforcedProvider("p3");
   }

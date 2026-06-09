@@ -1,6 +1,5 @@
 package com.supremeai.service;
 
-import com.supremeai.model.SystemLearning;
 import com.supremeai.repository.SystemLearningRepository;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -12,7 +11,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @Service
@@ -20,8 +18,7 @@ public class DynamicSignatureRegistry {
 
   private static final Logger log = LoggerFactory.getLogger(DynamicSignatureRegistry.class);
 
-  @Autowired
-  private SystemLearningRepository learningRepository;
+  @Autowired private SystemLearningRepository learningRepository;
 
   private final Map<String, Set<String>> signatureCache = new ConcurrentHashMap<>();
   private final Map<String, Pattern> compiledPatterns = new ConcurrentHashMap<>();
@@ -35,30 +32,33 @@ public class DynamicSignatureRegistry {
               initialized = true;
               log.info("[SignatureRegistry] Loaded {} dynamic signatures", count);
             },
-            error -> log.warn("[SignatureRegistry] Failed to load signatures: {}", error.getMessage()));
+            error ->
+                log.warn("[SignatureRegistry] Failed to load signatures: {}", error.getMessage()));
   }
 
   public Mono<Long> refreshSignatures() {
     return learningRepository
         .findByCategory("SIGNATURE_REGISTRY")
-        .flatMap(learning -> {
-          Map<String, Object> metadata = learning.getMetadata();
-          if (metadata != null && metadata.containsKey("signatures")) {
-            Object sigObj = metadata.get("signatures");
-            if (sigObj instanceof Map) {
-              @SuppressWarnings("unchecked")
-              Map<String, Object> sigMap = (Map<String, Object>) sigObj;
-              sigMap.forEach((group, values) -> {
-                if (values instanceof List) {
+        .flatMap(
+            learning -> {
+              Map<String, Object> metadata = learning.getMetadata();
+              if (metadata != null && metadata.containsKey("signatures")) {
+                Object sigObj = metadata.get("signatures");
+                if (sigObj instanceof Map) {
                   @SuppressWarnings("unchecked")
-                  List<String> list = (List<String>) values;
-                  signatureCache.put(group, concurrentSet(list));
+                  Map<String, Object> sigMap = (Map<String, Object>) sigObj;
+                  sigMap.forEach(
+                      (group, values) -> {
+                        if (values instanceof List) {
+                          @SuppressWarnings("unchecked")
+                          List<String> list = (List<String>) values;
+                          signatureCache.put(group, concurrentSet(list));
+                        }
+                      });
                 }
-              });
-            }
-          }
-          return Mono.just(learning);
-        })
+              }
+              return Mono.just(learning);
+            })
         .count()
         .doOnNext(
             count -> {
@@ -92,7 +92,8 @@ public class DynamicSignatureRegistry {
     signatureCache.putIfAbsent("MIN_USEFUL_SNIPPET_LENGTH", concurrentSet(java.util.List.of("30")));
 
     // Default signatures for CodeGenerationService
-    signatureCache.putIfAbsent("DEFAULT_ARCHITECTURE", concurrentSet(java.util.List.of("monolith")));
+    signatureCache.putIfAbsent(
+        "DEFAULT_ARCHITECTURE", concurrentSet(java.util.List.of("monolith")));
     signatureCache.putIfAbsent("DEFAULT_DATABASE", concurrentSet(java.util.List.of("PostgreSQL")));
     signatureCache.putIfAbsent("DEFAULT_API_STYLE", concurrentSet(java.util.List.of("REST")));
     signatureCache.putIfAbsent("DEFAULT_AUTH", concurrentSet(java.util.List.of("JWT")));
@@ -111,7 +112,8 @@ public class DynamicSignatureRegistry {
   }
 
   public Map<String, String> getPatternsByCategory(String category) {
-    return getSignatures(category).stream().collect(Collectors.toMap(value -> value, value -> value));
+    return getSignatures(category).stream()
+        .collect(Collectors.toMap(value -> value, value -> value));
   }
 
   public String getDefault(String group, String defaultVal) {
@@ -122,13 +124,15 @@ public class DynamicSignatureRegistry {
   public Set<String> findMatches(String content, String group) {
     Set<String> signatures = signatureCache.getOrDefault(group, Collections.emptySet());
     return signatures.stream()
-        .filter(sig -> {
-          if (sig.contains("|")) {
-            String[] alternatives = sig.split("\\|");
-            return Arrays.stream(alternatives).anyMatch(alt -> content.contains(alt.toLowerCase()));
-          }
-          return content.contains(sig.toLowerCase());
-        })
+        .filter(
+            sig -> {
+              if (sig.contains("|")) {
+                String[] alternatives = sig.split("\\|");
+                return Arrays.stream(alternatives)
+                    .anyMatch(alt -> content.contains(alt.toLowerCase()));
+              }
+              return content.contains(sig.toLowerCase());
+            })
         .collect(Collectors.toSet());
   }
 

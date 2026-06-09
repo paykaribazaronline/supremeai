@@ -38,8 +38,8 @@ public class APIProvider {
   private java.util.List<String> assignedRoles = new java.util.ArrayList<>();
 
   /**
-   * Model weight for consensus voting (default 1.0) - Admin can configure different weights per model
-   * for weighted majority decisions.
+   * Model weight for consensus voting (default 1.0) - Admin can configure different weights per
+   * model for weighted majority decisions.
    */
   private Double weight = 1.0;
 

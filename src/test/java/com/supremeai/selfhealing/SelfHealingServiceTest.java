@@ -21,8 +21,7 @@ class SelfHealingServiceTest {
 
   @Mock private AIReasoningService reasoningService;
 
-  @InjectMocks
-  private SelfHealingService service;
+  @InjectMocks private SelfHealingService service;
 
   @Test
   void testExecuteWithRetry_SuccessOnFirstTry() {

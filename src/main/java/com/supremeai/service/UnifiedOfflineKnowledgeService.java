@@ -67,7 +67,8 @@ public class UnifiedOfflineKnowledgeService {
             complex -> {
               if (complex) {
                 log.info("🧠 [Core Knowledge Decision] Route to Local Model");
-                return soloModeService.askLocalModel(query)
+                return soloModeService
+                    .askLocalModel(query)
                     .onErrorResume(e -> stubLocalProvider.generate(query));
               } else {
                 log.info("🧠 [Core Knowledge Decision] Route to Browser and Database Learning");

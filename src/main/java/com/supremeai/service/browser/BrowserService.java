@@ -10,7 +10,6 @@ import io.github.resilience4j.retry.annotation.Retry;
 import io.github.resilience4j.timelimiter.annotation.TimeLimiter;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.time.Duration;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -86,7 +85,10 @@ public class BrowserService {
 
   // Circuit Breaker ফেলব্যাক - স্ক্র্যাপিং ব্যর্থ হলে এই মেথডটি কল হয়
   public Mono<String> scrapeFallback(String query, String engine, String baseUrl, Exception ex) {
-    log.warn("🔄 [CircuitBreaker] Browser Scraper fallback activated for {}: {}", engine, ex.getMessage());
+    log.warn(
+        "🔄 [CircuitBreaker] Browser Scraper fallback activated for {}: {}",
+        engine,
+        ex.getMessage());
     return Mono.just("Web search temporarily unavailable. Using cached knowledge.");
   }
 
@@ -435,28 +437,31 @@ public class BrowserService {
     return reactor.core.publisher.Flux.empty();
   }
 
-public reactor.core.publisher.Mono<com.supremeai.model.browser.BrowserFinding> createFinding(
-       com.supremeai.model.browser.BrowserFinding finding) {
-     return reactor.core.publisher.Mono.just(finding);
-   }
+  public reactor.core.publisher.Mono<com.supremeai.model.browser.BrowserFinding> createFinding(
+      com.supremeai.model.browser.BrowserFinding finding) {
+    return reactor.core.publisher.Mono.just(finding);
+  }
 
-   /**
-    * Scrape a URL and return content as Markdown-compatible text.
-    * Used by FirecrawlService as fallback.
-    */
-   public Mono<String> scrapeToMarkdown(String url) {
-     return Mono.fromCallable(() -> {
-       try {
-         org.jsoup.nodes.Document doc = Jsoup.connect(url)
-             .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
-             .timeout(15000)
-             .get();
-         String text = doc.body().text();
-         return text.length() > 5000 ? text.substring(0, 5000) : text;
-       } catch (Exception e) {
-         log.error("Failed to scrape {}: {}", url, e.getMessage());
-         return "";
-       }
-     }).subscribeOn(Schedulers.boundedElastic());
-   }
+  /**
+   * Scrape a URL and return content as Markdown-compatible text. Used by FirecrawlService as
+   * fallback.
+   */
+  public Mono<String> scrapeToMarkdown(String url) {
+    return Mono.fromCallable(
+            () -> {
+              try {
+                org.jsoup.nodes.Document doc =
+                    Jsoup.connect(url)
+                        .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
+                        .timeout(15000)
+                        .get();
+                String text = doc.body().text();
+                return text.length() > 5000 ? text.substring(0, 5000) : text;
+              } catch (Exception e) {
+                log.error("Failed to scrape {}: {}", url, e.getMessage());
+                return "";
+              }
+            })
+        .subscribeOn(Schedulers.boundedElastic());
+  }
 }

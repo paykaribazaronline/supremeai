@@ -6,10 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
-/**
- * Health scoring system for code repositories Calculates 0-100 score with A-F
- * grading
- */
+/** Health scoring system for code repositories Calculates 0-100 score with A-F grading */
 @Component
 public class HealthScorer {
 
@@ -20,8 +17,7 @@ public class HealthScorer {
     private int score;
     private String grade;
 
-    public HealthScoreResult() {
-    }
+    public HealthScoreResult() {}
 
     public int getScore() {
       return score;

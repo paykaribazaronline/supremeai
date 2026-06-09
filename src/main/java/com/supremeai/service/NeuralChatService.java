@@ -15,32 +15,22 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
 /**
- * ═══════════════════════════════════════════════════════════════════════════════
- * NeuralChatService
+ * ═══════════════════════════════════════════════════════════════════════════════ NeuralChatService
  * — The Intelligent Strategic Router (Decision Maker)
  * ═══════════════════════════════════════════════════════════════════════════════
  *
- * <p>
- * Core Knowledge's new role: Strategic Router — decides WHERE to get answers
- * instead of
+ * <p>Core Knowledge's new role: Strategic Router — decides WHERE to get answers instead of
  * providing fixed answers.
  *
- * <p>
- * Strategy (from core_knowledge.json): - BROWSER_SCRAPE: Real-time web data
- * from multiple
- * sources - CLOUD_AI: Complex logic or creative answers via deployed cloud AI -
- * CORE_ONLY: Instant
+ * <p>Strategy (from core_knowledge.json): - BROWSER_SCRAPE: Real-time web data from multiple
+ * sources - CLOUD_AI: Complex logic or creative answers via deployed cloud AI - CORE_ONLY: Instant
  * local response, no external calls needed
  *
- * <p>
- * Flow: 1. Identify strategy from core knowledge 2. If CLOUD_AI → route to
- * cloud AI 3. If
- * BROWSER_SCRAPE → fetch domains from DB (scrape mappings) → scrape all sources
- * → merge with
+ * <p>Flow: 1. Identify strategy from core knowledge 2. If CLOUD_AI → route to cloud AI 3. If
+ * BROWSER_SCRAPE → fetch domains from DB (scrape mappings) → scrape all sources → merge with
  * ChickenBrain AI 4. If CORE_ONLY → return instant response
  *
- * <p>
- * Tiers: MERGED | CORE_ONLY | WEB_ONLY | HYBRID | CLOUD
+ * <p>Tiers: MERGED | CORE_ONLY | WEB_ONLY | HYBRID | CLOUD
  * ═══════════════════════════════════════════════════════════════════════════════
  */
 @Service
@@ -55,8 +45,7 @@ public class NeuralChatService {
 
   private List<Map<String, Object>> categoryMappings = new ArrayList<>();
 
-  @Autowired
-  private DynamicSignatureRegistry signatureRegistry;
+  @Autowired private DynamicSignatureRegistry signatureRegistry;
 
   private static final Duration SCRAPE_TIMEOUT = Duration.ofSeconds(12);
 
@@ -77,9 +66,9 @@ public class NeuralChatService {
     try {
       var resource = resourceLoader.getResource("classpath:scrape_domain_mappings.json");
       if (resource.exists()) {
-        categoryMappings = objectMapper.readValue(
-            resource.getInputStream(), new TypeReference<List<Map<String, Object>>>() {
-            });
+        categoryMappings =
+            objectMapper.readValue(
+                resource.getInputStream(), new TypeReference<List<Map<String, Object>>>() {});
         log.info("[NeuralChat] Loaded {} category domain mappings", categoryMappings.size());
       } else {
         log.warn("[NeuralChat] scrape_domain_mappings.json not found");
@@ -99,8 +88,7 @@ public class NeuralChatService {
   // ══════════════════════════════════════════════════════════════════════════
 
   /**
-   * Generate an intelligent response by following the strategy from core
-   * knowledge.
+   * Generate an intelligent response by following the strategy from core knowledge.
    *
    * @param userMessage The user's question or prompt
    * @return Mono<NeuralResponse> containing the merged intelligent response
@@ -192,35 +180,38 @@ public class NeuralChatService {
     return fetchBestDomainsFromDB(userMessage)
         .flatMap(
             domains -> {
-              List<Mono<List<ActiveInternetScraper.ScrapedIssue>>> scrapers = domains.stream()
-                  .limit(3)
-                  .map(
-                      domain -> internetScraper
-                          .scrapeKnowledge(domain, keywords)
-                          .collectList()
-                          .timeout(Duration.ofSeconds(10))
-                          .onErrorReturn(List.of()))
-                  .toList();
+              List<Mono<List<ActiveInternetScraper.ScrapedIssue>>> scrapers =
+                  domains.stream()
+                      .limit(3)
+                      .map(
+                          domain ->
+                              internetScraper
+                                  .scrapeKnowledge(domain, keywords)
+                                  .collectList()
+                                  .timeout(Duration.ofSeconds(10))
+                                  .onErrorReturn(List.of()))
+                      .toList();
               return Mono.zip(
-                  scrapers,
-                  resultsArr -> {
-                    List<ActiveInternetScraper.ScrapedIssue> allResults = new ArrayList<>();
-                    for (Object r : resultsArr) {
-                      if (r instanceof List<?> list) {
-                        list.stream()
-                            .filter(item -> item instanceof ActiveInternetScraper.ScrapedIssue)
-                            .map(item -> (ActiveInternetScraper.ScrapedIssue) item)
-                            .forEach(allResults::add);
-                      }
-                    }
-                    return allResults;
-                  })
+                      scrapers,
+                      resultsArr -> {
+                        List<ActiveInternetScraper.ScrapedIssue> allResults = new ArrayList<>();
+                        for (Object r : resultsArr) {
+                          if (r instanceof List<?> list) {
+                            list.stream()
+                                .filter(item -> item instanceof ActiveInternetScraper.ScrapedIssue)
+                                .map(item -> (ActiveInternetScraper.ScrapedIssue) item)
+                                .forEach(allResults::add);
+                          }
+                        }
+                        return allResults;
+                      })
                   .flatMap(
                       results -> {
                         if (results.isEmpty()) {
                           return Mono.just(
                               new NeuralResponse(
-                                  learningOrchestrator.findCoreKnowledgeSolution("MSG_SCRAPE_NO_RESULTS"),
+                                  learningOrchestrator.findCoreKnowledgeSolution(
+                                      "MSG_SCRAPE_NO_RESULTS"),
                                   List.of(),
                                   0.0,
                                   "NONE",
@@ -262,13 +253,15 @@ public class NeuralChatService {
     if (bestCategoryId != null) {
       for (Map<String, Object> category : categoryMappings) {
         if (bestCategoryId.equals(category.get("categoryId"))) {
-          List<Map<String, String>> targetWebsites = (List<Map<String, String>>) category.get("targetWebsites");
+          List<Map<String, String>> targetWebsites =
+              (List<Map<String, String>>) category.get("targetWebsites");
           if (targetWebsites != null && !targetWebsites.isEmpty()) {
-            List<String> domains = targetWebsites.stream()
-                .map(w -> w.getOrDefault("domain", ""))
-                .filter(d -> !d.isBlank())
-                .limit(3)
-                .collect(Collectors.toList());
+            List<String> domains =
+                targetWebsites.stream()
+                    .map(w -> w.getOrDefault("domain", ""))
+                    .filter(d -> !d.isBlank())
+                    .limit(3)
+                    .collect(Collectors.toList());
             if (!domains.isEmpty()) {
               log.info(
                   "[NeuralChat] {} domains selected from category '{}': {}",
@@ -293,27 +286,31 @@ public class NeuralChatService {
   private Mono<NeuralResponse> mergeWithChickenBrainAI(
       String query, List<ActiveInternetScraper.ScrapedIssue> results) {
     int minLen = getMinUsefulSnippetLength();
-    List<ActiveInternetScraper.ScrapedIssue> usefulResults = results.stream()
-        .filter(
-            r -> r.getSolution() != null
-                && r.getSolution().length() >= minLen)
-        .sorted((a, b) -> Double.compare(b.getSourceAuthority(), a.getSourceAuthority()))
-        .limit(3)
-        .collect(Collectors.toList());
+    List<ActiveInternetScraper.ScrapedIssue> usefulResults =
+        results.stream()
+            .filter(r -> r.getSolution() != null && r.getSolution().length() >= minLen)
+            .sorted((a, b) -> Double.compare(b.getSourceAuthority(), a.getSourceAuthority()))
+            .limit(3)
+            .collect(Collectors.toList());
 
     if (usefulResults.isEmpty()) {
       return Mono.just(
           new NeuralResponse(
-              learningOrchestrator.findCoreKnowledgeSolution("MSG_SCRAPE_INSUFFICIENT"), List.of(), 0.0, "NONE",
+              learningOrchestrator.findCoreKnowledgeSolution("MSG_SCRAPE_INSUFFICIENT"),
+              List.of(),
+              0.0,
+              "NONE",
               "no_useful_results"));
     }
 
-    String mergedContent = usefulResults.stream()
-        .map(r -> "[" + r.getSource() + "]\n" + r.getSolution())
-        .collect(Collectors.joining("\n\n"));
+    String mergedContent =
+        usefulResults.stream()
+            .map(r -> "[" + r.getSource() + "]\n" + r.getSolution())
+            .collect(Collectors.joining("\n\n"));
     String truncatedMergedContent = truncateForAI(mergedContent, 8000);
 
-    String promptTemplate = learningOrchestrator.findCoreKnowledgeSolution("PROMPT_CHICKENBRAIN_SYNTHESIS");
+    String promptTemplate =
+        learningOrchestrator.findCoreKnowledgeSolution("PROMPT_CHICKENBRAIN_SYNTHESIS");
     String chickenBrainPrompt = String.format(promptTemplate, query, truncatedMergedContent);
 
     return Mono.just(
@@ -328,13 +325,15 @@ public class NeuralChatService {
   }
 
   public String truncateForAI(String content, int maxTokens) {
-    if (content == null)
-      return "";
+    if (content == null) return "";
     int maxChars = maxTokens * 4;
     if (content.length() <= maxChars) {
       return content;
     }
-    log.info("[NeuralChat] Truncating scraped content from {} to {} characters", content.length(), maxChars);
+    log.info(
+        "[NeuralChat] Truncating scraped content from {} to {} characters",
+        content.length(),
+        maxChars);
     return content.substring(0, maxChars) + "\n...[Content truncated for context safety]...\n";
   }
 
@@ -344,9 +343,12 @@ public class NeuralChatService {
 
   private List<String> extractKeywords(String message) {
     Set<String> stopWords = signatureRegistry.getSignatures("STOP_WORDS");
-    Set<String> effectiveStopWords = stopWords != null && !stopWords.isEmpty()
-        ? stopWords
-        : Set.of("what", "is", "the", "a", "an", "in", "on", "of", "to", "for", "and", "or", "how", "do");
+    Set<String> effectiveStopWords =
+        stopWords != null && !stopWords.isEmpty()
+            ? stopWords
+            : Set.of(
+                "what", "is", "the", "a", "an", "in", "on", "of", "to", "for", "and", "or", "how",
+                "do");
 
     return Arrays.stream(message.toLowerCase().split("\\s+"))
         .map(w -> w.replaceAll("[^a-zA-Z0-9\\u0980-\\u09FF#+.-]", ""))
@@ -358,15 +360,15 @@ public class NeuralChatService {
   }
 
   private int getMinUsefulSnippetLength() {
-    return signatureRegistry.getSignatures("MIN_USEFUL_SNIPPET_LENGTH")
-        .stream()
-        .mapToInt(s -> {
-          try {
-            return Integer.parseInt(s);
-          } catch (NumberFormatException e) {
-            return 30;
-          }
-        })
+    return signatureRegistry.getSignatures("MIN_USEFUL_SNIPPET_LENGTH").stream()
+        .mapToInt(
+            s -> {
+              try {
+                return Integer.parseInt(s);
+              } catch (NumberFormatException e) {
+                return 30;
+              }
+            })
         .findFirst()
         .orElse(30);
   }
@@ -376,8 +378,7 @@ public class NeuralChatService {
   }
 
   private String truncate(String text, int maxLength) {
-    if (text == null)
-      return "";
+    if (text == null) return "";
     return text.length() > maxLength ? text.substring(0, maxLength) + "..." : text;
   }
 
@@ -385,10 +386,7 @@ public class NeuralChatService {
   // RESPONSE DATA CLASS
   // ══════════════════════════════════════════════════════════════════════════
 
-  /**
-   * Encapsulates the neural chat response with metadata about sources and
-   * confidence.
-   */
+  /** Encapsulates the neural chat response with metadata about sources and confidence. */
   public static class NeuralResponse {
     private final String answer;
     private final List<String> sources;

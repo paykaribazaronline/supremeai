@@ -11,10 +11,8 @@ import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 
 /**
- * Stub provider for local-first operation. Provides REAL, useful offline
- * responses without
- * requiring external AI API keys. Uses comprehensive rule-based patterns to
- * generate genuinely
+ * Stub provider for local-first operation. Provides REAL, useful offline responses without
+ * requiring external AI API keys. Uses comprehensive rule-based patterns to generate genuinely
  * helpful answers.
  */
 @Component
@@ -31,9 +29,9 @@ public class StubLocalProvider implements AIProvider {
       ObjectMapper mapper = new ObjectMapper();
       ClassPathResource resource = new ClassPathResource("core_knowledge.json");
       if (resource.exists()) {
-        List<Map<String, String>> loadedData = mapper.readValue(
-            resource.getInputStream(), new TypeReference<List<Map<String, String>>>() {
-            });
+        List<Map<String, String>> loadedData =
+            mapper.readValue(
+                resource.getInputStream(), new TypeReference<List<Map<String, String>>>() {});
         for (Map<String, String> entry : loadedData) {
           knowledgeBase.put(entry.get("task"), entry.get("solution"));
         }
@@ -81,12 +79,8 @@ public class StubLocalProvider implements AIProvider {
     String p = prompt.toLowerCase().trim();
 
     // সুনির্দিষ্ট টপিক ম্যাচিং লজিক (Longest Key First)
-    List<String> matchTriggers = List.of(
-        "what is ",
-        "what are ",
-        "explain ",
-        "tell me about ",
-        "about ");
+    List<String> matchTriggers =
+        List.of("what is ", "what are ", "explain ", "tell me about ", "about ");
     List<String> sortedKeys = new ArrayList<>(knowledgeBase.keySet());
     sortedKeys.sort((a, b) -> Integer.compare(b.length(), a.length()));
 

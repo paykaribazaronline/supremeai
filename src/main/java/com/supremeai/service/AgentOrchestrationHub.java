@@ -87,18 +87,38 @@ public class AgentOrchestrationHub {
     return Mono.fromCallable(
             () -> {
               Map<String, String> context = new HashMap<>();
-              context.put("architecture", (String) input.getOrDefault("architecture",
-                  signatureRegistry.getDefault("DEFAULT_ARCHITECTURE", "monolith")));
-              context.put("database", (String) input.getOrDefault("database",
-                  signatureRegistry.getDefault("DEFAULT_DATABASE", "PostgreSQL")));
-              context.put("apiStyle", (String) input.getOrDefault("apiStyle",
-                  signatureRegistry.getDefault("DEFAULT_API_STYLE", "REST")));
-              context.put("authType", (String) input.getOrDefault("authType",
-                  signatureRegistry.getDefault("DEFAULT_AUTH", "JWT")));
-              context.put("frontend", (String) input.getOrDefault("frontend",
-                  signatureRegistry.getDefault("DEFAULT_FRONTEND", "React")));
-              context.put("deployment", (String) input.getOrDefault("deployment",
-                  signatureRegistry.getDefault("DEFAULT_DEPLOYMENT", "GCP")));
+              context.put(
+                  "architecture",
+                  (String)
+                      input.getOrDefault(
+                          "architecture",
+                          signatureRegistry.getDefault("DEFAULT_ARCHITECTURE", "monolith")));
+              context.put(
+                  "database",
+                  (String)
+                      input.getOrDefault(
+                          "database",
+                          signatureRegistry.getDefault("DEFAULT_DATABASE", "PostgreSQL")));
+              context.put(
+                  "apiStyle",
+                  (String)
+                      input.getOrDefault(
+                          "apiStyle", signatureRegistry.getDefault("DEFAULT_API_STYLE", "REST")));
+              context.put(
+                  "authType",
+                  (String)
+                      input.getOrDefault(
+                          "authType", signatureRegistry.getDefault("DEFAULT_AUTH", "JWT")));
+              context.put(
+                  "frontend",
+                  (String)
+                      input.getOrDefault(
+                          "frontend", signatureRegistry.getDefault("DEFAULT_FRONTEND", "React")));
+              context.put(
+                  "deployment",
+                  (String)
+                      input.getOrDefault(
+                          "deployment", signatureRegistry.getDefault("DEFAULT_DEPLOYMENT", "GCP")));
               Map<String, Object> result = codeGenerationService.generateFromContext(context);
               result.put(
                   "appId",

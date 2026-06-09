@@ -7,7 +7,6 @@ import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
 import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -25,10 +24,13 @@ public class CodebaseBackupService {
   private final TelegramStorageService telegramStorageService;
   private final com.supremeai.repository.StorageMetadataRepository storageMetadataRepository;
 
-  @Value("${supremeai.backup.project-root:#{systemProperties['user.dir']}}") // হার্ডকোডেড পাথ সরিয়ে বর্তমান ডিরেক্টরি ডিফল্ট করা হয়েছে।
+  @Value("${supremeai.backup.project-root:#{systemProperties['user.dir']}}") // হার্ডকোডেড পাথ সরিয়ে
+  // বর্তমান ডিরেক্টরি
+  // ডিফল্ট করা হয়েছে।
   private String projectRoot;
 
-  @Value("${supremeai.backup.excluded-dirs:node_modules,.gradle,build,.git,.gemini,out,target,.idea,.vscode}") 
+  @Value(
+      "${supremeai.backup.excluded-dirs:node_modules,.gradle,build,.git,.gemini,out,target,.idea,.vscode}")
   private List<String> excludedDirs; // বাদ দেওয়া ডিরেক্টরিগুলো এখন কনফিগারযোগ্য।
 
   public CodebaseBackupService(
@@ -96,7 +98,9 @@ public class CodebaseBackupService {
           new SimpleFileVisitor<Path>() {
             @Override
             public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) {
-              if (excludedDirs.contains(dir.getFileName().toString())) { // কনফিগারেবল লিস্ট অনুযায়ী ডিরেক্টরি স্কিপ করা হচ্ছে।
+              if (excludedDirs.contains(
+                  dir.getFileName()
+                      .toString())) { // কনফিগারেবল লিস্ট অনুযায়ী ডিরেক্টরি স্কিপ করা হচ্ছে।
                 return FileVisitResult.SKIP_SUBTREE;
               }
               return FileVisitResult.CONTINUE;

@@ -27,9 +27,7 @@ public class DependencyAnalysisAgent implements AnalysisAgentInterface {
   private final DocumentBuilder documentBuilder;
   private final AnalysisStats stats = new AnalysisStats();
 
-  /**
-   * Vulnerability mappings externalized to Knowledge Base.
-   */
+  /** Vulnerability mappings externalized to Knowledge Base. */
   private final Map<String, Set<String>> vulnerablePackages = new HashMap<>();
 
   public DependencyAnalysisAgent() throws Exception {
@@ -67,37 +65,38 @@ public class DependencyAnalysisAgent implements AnalysisAgentInterface {
   @Override
   public Flux<AnalysisFinding> scanFile(File file, String relativePath) {
     return Flux.<AnalysisFinding>create(
-        emitter -> {
-          try {
-            String filename = file.getName().toLowerCase();
+            emitter -> {
+              try {
+                String filename = file.getName().toLowerCase();
 
-            if (filename.equals("package.json")) {
-              analyzePackageJson(file, relativePath, emitter);
-            } else if (filename.equals("pom.xml")) {
-              analyzePomXml(file, relativePath, emitter);
-            } else if (filename.equals("requirements.txt")
-                || filename.equals("pipfile")
-                || filename.equals("pipfile.lock")) {
-              analyzePythonDependencies(file, relativePath, emitter);
-            } else if (filename.equals("cargo.toml")) {
-              analyzeCargoToml(file, relativePath, emitter);
-            } else if (filename.equals("composer.json")) {
-              analyzeComposerJson(file, relativePath, emitter);
-            } else if (filename.equals("gemfile")) {
-              analyzeGemfile(file, relativePath, emitter);
-            } else if (filename.contains("build.gradle")) {
-              analyzeGradleBuild(file, relativePath, emitter);
-            }
+                if (filename.equals("package.json")) {
+                  analyzePackageJson(file, relativePath, emitter);
+                } else if (filename.equals("pom.xml")) {
+                  analyzePomXml(file, relativePath, emitter);
+                } else if (filename.equals("requirements.txt")
+                    || filename.equals("pipfile")
+                    || filename.equals("pipfile.lock")) {
+                  analyzePythonDependencies(file, relativePath, emitter);
+                } else if (filename.equals("cargo.toml")) {
+                  analyzeCargoToml(file, relativePath, emitter);
+                } else if (filename.equals("composer.json")) {
+                  analyzeComposerJson(file, relativePath, emitter);
+                } else if (filename.equals("gemfile")) {
+                  analyzeGemfile(file, relativePath, emitter);
+                } else if (filename.contains("build.gradle")) {
+                  analyzeGradleBuild(file, relativePath, emitter);
+                }
 
-            emitter.complete();
-          } catch (Exception e) {
-            log.error("Error scanning dependency file {}: {}", relativePath, e.getMessage());
-            emitter.error(e);
-          }
-        })
+                emitter.complete();
+              } catch (Exception e) {
+                log.error("Error scanning dependency file {}: {}", relativePath, e.getMessage());
+                emitter.error(e);
+              }
+            })
         .doOnComplete(() -> log.debug("Completed dependency analysis for file: {}", relativePath))
         .doOnError(
-            e -> log.error("Error in dependency analysis for {}: {}", relativePath, e.getMessage()));
+            e ->
+                log.error("Error in dependency analysis for {}: {}", relativePath, e.getMessage()));
   }
 
   private void analyzePackageJson(
@@ -223,7 +222,8 @@ public class DependencyAnalysisAgent implements AnalysisAgentInterface {
 
       // Check for vulnerable Maven packages
       if (vulnerablePackages.containsKey(artifactId) || vulnerablePackages.containsKey(fullName)) {
-        Set<String> vulnerableVersions = vulnerablePackages.getOrDefault(artifactId, vulnerablePackages.get(fullName));
+        Set<String> vulnerableVersions =
+            vulnerablePackages.getOrDefault(artifactId, vulnerablePackages.get(fullName));
         if (vulnerableVersions != null
             && (vulnerableVersions.contains("all")
                 || isVersionVulnerable(version, vulnerableVersions))) {
@@ -263,11 +263,11 @@ public class DependencyAnalysisAgent implements AnalysisAgentInterface {
     List<String> lines = Files.readAllLines(file.toPath());
 
     for (String line : lines) {
-      if (line.trim().startsWith("#") || line.trim().isEmpty())
-        continue;
+      if (line.trim().startsWith("#") || line.trim().isEmpty()) continue;
 
       // Parse package==version format
-      Pattern pattern = Pattern.compile("([a-zA-Z0-9_-]+)(?:[=<>~!]+)([0-9]+(?:\\.[0-9]+)*(?:[a-zA-Z0-9._-]*)?)");
+      Pattern pattern =
+          Pattern.compile("([a-zA-Z0-9_-]+)(?:[=<>~!]+)([0-9]+(?:\\.[0-9]+)*(?:[a-zA-Z0-9._-]*)?)");
       Matcher matcher = pattern.matcher(line);
       if (matcher.find()) {
         String packageName = matcher.group(1);
@@ -371,10 +371,10 @@ public class DependencyAnalysisAgent implements AnalysisAgentInterface {
     List<String> lines = Files.readAllLines(file.toPath());
 
     for (String line : lines) {
-      if (line.trim().startsWith("#") || line.trim().isEmpty())
-        continue;
+      if (line.trim().startsWith("#") || line.trim().isEmpty()) continue;
 
-      Pattern pattern = Pattern.compile("gem\\s+['\"]([a-zA-Z0-9_-]+)['\"]\\s*,\\s*['\"]([^'\"]*)['\"]");
+      Pattern pattern =
+          Pattern.compile("gem\\s+['\"]([a-zA-Z0-9_-]+)['\"]\\s*,\\s*['\"]([^'\"]*)['\"]");
       Matcher matcher = pattern.matcher(line);
       if (matcher.find()) {
         String gemName = matcher.group(1);
@@ -414,8 +414,8 @@ public class DependencyAnalysisAgent implements AnalysisAgentInterface {
 
           if (vulnerablePackages.containsKey(artifactId)
               || vulnerablePackages.containsKey(fullName)) {
-            Set<String> vulnerableVersions = vulnerablePackages.getOrDefault(artifactId,
-                vulnerablePackages.get(fullName));
+            Set<String> vulnerableVersions =
+                vulnerablePackages.getOrDefault(artifactId, vulnerablePackages.get(fullName));
             if (vulnerableVersions != null
                 && (vulnerableVersions.contains("all")
                     || isVersionVulnerable(version, vulnerableVersions))) {
@@ -437,8 +437,7 @@ public class DependencyAnalysisAgent implements AnalysisAgentInterface {
 
   // Helper methods
   private boolean isVersionVulnerable(String version, Set<String> vulnerableVersions) {
-    if (vulnerableVersions.contains("all"))
-      return true;
+    if (vulnerableVersions.contains("all")) return true;
     // Simplified version comparison - in production use proper semver library
     return vulnerableVersions.stream()
         .anyMatch(v -> version.startsWith(v.replace("<", "").replace(">", "").replace("=", "")));

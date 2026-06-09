@@ -19,18 +19,29 @@ public class ExpertAgentRouterTest {
   void setUp() {
     expertAgentRouter.register(new AlphaAgent());
     expertAgentRouter.register(new BetaAgent());
-    expertAgentRouter.register(new com.supremeai.agent.AgentCapability() {
-      @Override
-      public String getAgentId() { return "GENERAL"; }
-      @Override
-      public String getAgentName() { return "General-Agent"; }
-      @Override
-      public java.util.List<String> getTriggerKeywords() { return java.util.Collections.emptyList(); }
-      @Override
-      public reactor.core.publisher.Mono<String> process(String task, java.util.Map<String, Object> context) {
-        return reactor.core.publisher.Mono.just("General");
-      }
-    });
+    expertAgentRouter.register(
+        new com.supremeai.agent.AgentCapability() {
+          @Override
+          public String getAgentId() {
+            return "GENERAL";
+          }
+
+          @Override
+          public String getAgentName() {
+            return "General-Agent";
+          }
+
+          @Override
+          public java.util.List<String> getTriggerKeywords() {
+            return java.util.Collections.emptyList();
+          }
+
+          @Override
+          public reactor.core.publisher.Mono<String> process(
+              String task, java.util.Map<String, Object> context) {
+            return reactor.core.publisher.Mono.just("General");
+          }
+        });
   }
 
   @Test

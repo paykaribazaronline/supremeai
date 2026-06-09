@@ -22,7 +22,8 @@ public class SoloModeService {
 
   public long getSystemRamBytes() {
     try {
-      var osBean = (com.sun.management.OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean();
+      var osBean =
+          (com.sun.management.OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean();
       return osBean.getTotalPhysicalMemorySize();
     } catch (Exception e) {
       log.warn("Failed to detect physical RAM, defaulting to 4GB", e);
@@ -37,7 +38,10 @@ public class SoloModeService {
   public String selectOllamaModel() {
     long ramBytes = getSystemRamBytes();
     double ramGb = (double) ramBytes / (1024 * 1024 * 1024);
-    log.info("Detected system RAM: {} GB, CPU Cores: {}", String.format("%.2f", ramGb), getCpuCoresCount());
+    log.info(
+        "Detected system RAM: {} GB, CPU Cores: {}",
+        String.format("%.2f", ramGb),
+        getCpuCoresCount());
     if (ramGb >= 8.0) {
       return "llama3:8b";
     } else if (ramGb >= 4.0) {
@@ -51,27 +55,34 @@ public class SoloModeService {
     String modelName = selectOllamaModel();
     log.info("SoloMode: Calling local model {} for prompt", modelName);
 
-    Map<String, Object> requestBody = Map.of(
-        "model", modelName,
-        "prompt", prompt,
-        "stream", false
-    );
+    Map<String, Object> requestBody =
+        Map.of(
+            "model", modelName,
+            "prompt", prompt,
+            "stream", false);
 
-    return webClientBuilder.build()
+    return webClientBuilder
+        .build()
         .post()
         .uri("http://localhost:11434/api/generate")
         .bodyValue(requestBody)
         .retrieve()
         .bodyToMono(Map.class)
-        .map(response -> {
-          if (response != null && response.containsKey("response")) {
-            return (String) response.get("response");
-          }
-          return "Error: Empty response from local model.";
-        })
-        .onErrorResume(e -> {
-          log.warn("Local model API call failed, falling back to local fallback response: {}", e.getMessage());
-          return Mono.just("[Offline Fallback Response] Local Ollama service is unreachable. Solution for: " + prompt);
-        });
+        .map(
+            response -> {
+              if (response != null && response.containsKey("response")) {
+                return (String) response.get("response");
+              }
+              return "Error: Empty response from local model.";
+            })
+        .onErrorResume(
+            e -> {
+              log.warn(
+                  "Local model API call failed, falling back to local fallback response: {}",
+                  e.getMessage());
+              return Mono.just(
+                  "[Offline Fallback Response] Local Ollama service is unreachable. Solution for: "
+                      + prompt);
+            });
   }
 }

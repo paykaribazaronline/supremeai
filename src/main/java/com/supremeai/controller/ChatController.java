@@ -677,8 +677,7 @@ public class ChatController {
 
     Set<String> greetingTriggers = signatureRegistry.getSignatures("GREETING_PATTERNS");
     if (greetingTriggers.stream().anyMatch(trigger -> p.contains(trigger.toLowerCase()))) {
-      return signatureRegistry.getSignatures("RESPONSE_TEMPLATES")
-          .stream()
+      return signatureRegistry.getSignatures("RESPONSE_TEMPLATES").stream()
           .filter(t -> t.startsWith("GREETING_RESPONSE:"))
           .map(t -> t.substring("GREETING_RESPONSE:".length()))
           .findFirst()
@@ -687,8 +686,7 @@ public class ChatController {
 
     Set<String> helpTriggers = signatureRegistry.getSignatures("HELP_PATTERNS");
     if (helpTriggers.stream().anyMatch(trigger -> p.contains(trigger.toLowerCase()))) {
-      return signatureRegistry.getSignatures("RESPONSE_TEMPLATES")
-          .stream()
+      return signatureRegistry.getSignatures("RESPONSE_TEMPLATES").stream()
           .filter(t -> t.startsWith("HELP_RESPONSE:"))
           .map(t -> t.substring("HELP_RESPONSE:".length()))
           .findFirst()
@@ -696,34 +694,33 @@ public class ChatController {
     }
 
     Set<String> techPatterns = signatureRegistry.getSignatures("TECHNOLOGY_PATTERNS");
-    Optional<String> techMatch = techPatterns.stream()
-        .filter(pattern -> pattern.contains(":"))
-        .filter(pattern -> p.contains(pattern.split(":")[0].toLowerCase()))
-        .findFirst();
+    Optional<String> techMatch =
+        techPatterns.stream()
+            .filter(pattern -> pattern.contains(":"))
+            .filter(pattern -> p.contains(pattern.split(":")[0].toLowerCase()))
+            .findFirst();
 
     if (techMatch.isPresent()) {
       String responseTemplate = techMatch.get().split(":")[1];
-      return signatureRegistry.getSignatures("RESPONSE_TEMPLATES")
-          .stream()
+      return signatureRegistry.getSignatures("RESPONSE_TEMPLATES").stream()
           .filter(t -> t.startsWith(responseTemplate + ":"))
           .map(t -> t.substring(responseTemplate.length() + 1))
           .findFirst()
           .orElse("I can help with that technology.");
     }
 
-    String defaultTemplate = signatureRegistry.getSignatures("RESPONSE_TEMPLATES")
-        .stream()
-        .filter(t -> t.startsWith("DEFAULT_RESPONSE:"))
-        .map(t -> t.substring("DEFAULT_RESPONSE:".length()))
-        .findFirst()
-        .orElse(getDefaultCapabilitiesMessage());
+    String defaultTemplate =
+        signatureRegistry.getSignatures("RESPONSE_TEMPLATES").stream()
+            .filter(t -> t.startsWith("DEFAULT_RESPONSE:"))
+            .map(t -> t.substring("DEFAULT_RESPONSE:".length()))
+            .findFirst()
+            .orElse(getDefaultCapabilitiesMessage());
 
     return String.format(defaultTemplate, prompt);
   }
 
   private String getLocalizedGreeting() {
-    return signatureRegistry.getSignatures("GREETING_RESPONSES")
-        .stream()
+    return signatureRegistry.getSignatures("GREETING_RESPONSES").stream()
         .findFirst()
         .orElseGet(() -> "Hello! I'm SupremeAI. How can I help you today?");
   }
@@ -743,10 +740,10 @@ public class ChatController {
     }
 
     sb.append("\nYour question: \"").append("...").append("\"\n\n");
-    sb.append(signatureRegistry.getSignatures("FOOTER_MESSAGES")
-        .stream()
-        .findFirst()
-        .orElse("Please try rephrasing for more specific help!"));
+    sb.append(
+        signatureRegistry.getSignatures("FOOTER_MESSAGES").stream()
+            .findFirst()
+            .orElse("Please try rephrasing for more specific help!"));
 
     return sb.toString();
   }

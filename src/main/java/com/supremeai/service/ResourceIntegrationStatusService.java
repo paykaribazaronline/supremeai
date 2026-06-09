@@ -1,7 +1,7 @@
 package com.supremeai.service;
 
-import com.supremeai.service.analytics.PostHogService;
 import com.supremeai.service.agent.ProximaAgentService;
+import com.supremeai.service.analytics.PostHogService;
 import com.supremeai.service.memory.ClaudeMemAndMem0Service;
 import com.supremeai.service.rag.LlamaIndexRagService;
 import com.supremeai.service.redis.UpstashRedisService;
@@ -82,15 +82,28 @@ public class ResourceIntegrationStatusService {
 
   public Map<String, Object> getStatusSnapshot() {
     Map<String, Object> status = new LinkedHashMap<>();
-    status.put("claudeMem", configured(memoryService != null && memoryService.isClaudeMemConfigured()));
+    status.put(
+        "claudeMem", configured(memoryService != null && memoryService.isClaudeMemConfigured()));
     status.put("mem0", configured(memoryService != null && memoryService.isMem0Configured()));
-    status.put("perplexity", configured(perplexityResearchService != null && perplexityResearchService.isConfigured()));
-    status.put("llamaIndex", configured(llamaIndexRagService != null && llamaIndexRagService.isConfigured()));
-    status.put("pinecone", configured(pineconeVectorService != null && pineconeVectorService.isConfigured()));
-    status.put("qdrant", configured(qdrantVectorService != null && qdrantVectorService.isConfigured()));
-    status.put("turbovec", configured(turbovecVectorService != null && turbovecVectorService.isConfigured()));
-    status.put("weaviate", configured(weaviateVectorService != null && weaviateVectorService.isConfigured()));
-    status.put("upstash", configured(upstashRedisService != null && upstashRedisService.isConfigured()));
+    status.put(
+        "perplexity",
+        configured(perplexityResearchService != null && perplexityResearchService.isConfigured()));
+    status.put(
+        "llamaIndex",
+        configured(llamaIndexRagService != null && llamaIndexRagService.isConfigured()));
+    status.put(
+        "pinecone",
+        configured(pineconeVectorService != null && pineconeVectorService.isConfigured()));
+    status.put(
+        "qdrant", configured(qdrantVectorService != null && qdrantVectorService.isConfigured()));
+    status.put(
+        "turbovec",
+        configured(turbovecVectorService != null && turbovecVectorService.isConfigured()));
+    status.put(
+        "weaviate",
+        configured(weaviateVectorService != null && weaviateVectorService.isConfigured()));
+    status.put(
+        "upstash", configured(upstashRedisService != null && upstashRedisService.isConfigured()));
     status.put("postHog", configured(postHogService != null && postHogService.isConfigured()));
     status.put("sentry", configured(hasText(sentryDsn)));
     status.put("groq", configured(hasText(groqApiKey)));
@@ -98,8 +111,12 @@ public class ResourceIntegrationStatusService {
     status.put("higgsfield", configured(hasText(higgsfieldApiKey)));
     status.put("openHuman", configured(hasText(openHumanApiKey)));
     status.put("syncIn", configured(hasText(syncInApiUrl)));
-    status.put("ultraplinian", configured(ultraplinianSecurityService != null && ultraplinianSecurityService.isConfigured()));
-    status.put("proxima", configured(proximaAgentService != null && proximaAgentService.isConfigured()));
+    status.put(
+        "ultraplinian",
+        configured(
+            ultraplinianSecurityService != null && ultraplinianSecurityService.isConfigured()));
+    status.put(
+        "proxima", configured(proximaAgentService != null && proximaAgentService.isConfigured()));
     status.put("eccTools", configured(eccToolsService != null && eccToolsService.isAvailable()));
     return status;
   }

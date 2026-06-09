@@ -17,11 +17,8 @@ import reactor.core.publisher.Mono;
 /**
  * Project DNA Harvester — Autonomous Architecture Awareness.
  *
- * <p>
- * Scans the local filesystem to extract project-specific architectural
- * patterns, technology
- * stack, and business logic structures. This supports the "Solo Mode" principle
- * by allowing the
+ * <p>Scans the local filesystem to extract project-specific architectural patterns, technology
+ * stack, and business logic structures. This supports the "Solo Mode" principle by allowing the
  * system to work 100% offline for project-specific tasks.
  */
 @Service
@@ -29,15 +26,11 @@ public class ProjectDNAHarvesterService {
 
   private static final Logger log = LoggerFactory.getLogger(ProjectDNAHarvesterService.class);
 
-  @Autowired
-  private SystemLearningRepository systemLearningRepository;
+  @Autowired private SystemLearningRepository systemLearningRepository;
 
-  @Autowired
-  private DynamicSignatureRegistry signatureRegistry;
+  @Autowired private DynamicSignatureRegistry signatureRegistry;
 
-  /**
-   * sProject root should be resolved dynamically or via environment.
-   */
+  /** sProject root should be resolved dynamically or via environment. */
   private static final String PROJECT_ROOT = System.getProperty("user.dir");
 
   /** Start the autonomous DNA harvesting process. */
@@ -45,24 +38,24 @@ public class ProjectDNAHarvesterService {
     log.info("🧬 Starting Project DNA Harvester...");
 
     return Mono.fromCallable(
-        () -> {
-          Map<String, Object> dna = new HashMap<>();
-          dna.put("last_harvested", new Date());
+            () -> {
+              Map<String, Object> dna = new HashMap<>();
+              dna.put("last_harvested", new Date());
 
-          // 1. Analyze Tech Stack from build.gradle.kts
-          dna.put("stack", analyzeTechStack());
+              // 1. Analyze Tech Stack from build.gradle.kts
+              dna.put("stack", analyzeTechStack());
 
-          // 2. Analyze Additional Config Files (CD-03)
-          dna.put("frameworks", analyzeOtherConfigs());
+              // 2. Analyze Additional Config Files (CD-03)
+              dna.put("frameworks", analyzeOtherConfigs());
 
-          // 3. Analyze Architecture from Directory Structure
-          dna.put("architecture", analyzeArchitecture());
+              // 3. Analyze Architecture from Directory Structure
+              dna.put("architecture", analyzeArchitecture());
 
-          // 4. Extract Main Package
-          dna.put("main_package", "com.supremeai");
+              // 4. Extract Main Package
+              dna.put("main_package", "com.supremeai");
 
-          return dna;
-        })
+              return dna;
+            })
         .flatMap(this::persistDNA)
         .then();
   }
@@ -125,10 +118,11 @@ public class ProjectDNAHarvesterService {
     try {
       Path srcPath = Paths.get(PROJECT_ROOT, "src/main/java/com/supremeai");
       if (Files.exists(srcPath)) {
-        List<String> subdirs = Files.list(srcPath)
-            .filter(Files::isDirectory)
-            .map(p -> p.getFileName().toString())
-            .collect(Collectors.toList());
+        List<String> subdirs =
+            Files.list(srcPath)
+                .filter(Files::isDirectory)
+                .map(p -> p.getFileName().toString())
+                .collect(Collectors.toList());
 
         arch.put("modules", subdirs);
         arch.put(
