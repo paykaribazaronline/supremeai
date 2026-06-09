@@ -42,14 +42,6 @@ async function proxyToScrapeEngine(message, userId) {
   return response.data;
 }
 
-async function callChatBackend(message, token) {
-  const url = DEFAULT_CHAT_ENDPOINT;
-  const headers = { 'Content-Type': 'application/json' };
-  if (token) headers['Authorization'] = `Bearer ${token}`;
-  const response = await axios.post(url, { message }, { headers, timeout: 30000 });
-  return response.data;
-}
-
 app.get(['/health', '/api/health'], (req, res) => {
   res.json({
     status: 'ok',
@@ -66,7 +58,7 @@ async function callChatBackend(message, token) {
     // Fallback to local neural core if no API key
     return generateSmartAIResponse(message);
   }
-  
+
   try {
     // Attempt Gemini call
     const response = await axios.post(
@@ -76,7 +68,7 @@ async function callChatBackend(message, token) {
       },
       { timeout: 10000 }
     );
-    
+
     if (response.data && response.data.candidates && response.data.candidates.length > 0) {
       const text = response.data.candidates[0].content.parts[0].text;
       return {

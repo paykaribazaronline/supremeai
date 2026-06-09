@@ -308,7 +308,7 @@
       "category": "SECURITY",
       "title": "Secrets never logged",
       "description": "All secrets, credentials and keys must be marked as sensitive and automatically redacted from all logs, traces and error messages.",
-      "confidence": 1.0,
+      "confidence": 0.99,
       "evidence_type": "SECURITY_STANDARD",
       "verification_steps": [
         "1. Sensitive fields have dedicated type marking",
@@ -346,7 +346,7 @@
       "category": "SECURITY",
       "title": "All external inputs are untrusted",
       "description": "Every input received from outside the trust boundary is treated as malicious until proven valid. This includes inputs from internal services.",
-      "confidence": 1.0,
+      "confidence": 0.99,
       "evidence_type": "SECURITY_STANDARD",
       "verification_steps": [
         "1. All input validated against strict schema",
