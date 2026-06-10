@@ -8,11 +8,11 @@ steps:
 
 # 2. Copy Jar to root for Docker build context
 - name: 'ubuntu'
-  args: ['cp', '.gradle/build/libs/app.jar', '.']
+  args: ['cp', 'build/libs/app.jar', '.']
 
 # 3. Build Docker Image with BuildKit (smaller layers, better caching)
 - name: 'gcr.io/cloud-builders/docker'
-  args: ['build', '--build-arg', 'BUILDKIT_INLINE_CACHE=1', '-t', 'gcr.io/$PROJECT_ID/supremeai-backend', '.']
+  args: ['build', '-f', 'infra/Dockerfile', '--build-arg', 'BUILDKIT_INLINE_CACHE=1', '-t', 'gcr.io/$PROJECT_ID/supremeai-backend', '.']
 
 # 4. Push Docker Image
 - name: 'gcr.io/cloud-builders/docker'
