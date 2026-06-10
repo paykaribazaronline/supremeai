@@ -38,6 +38,9 @@
 | **Cohere** | ব্যবহৃত (সক্রিয়) | বেশি | **Embeddings/Rerank** | API Key / Cloud | `CohereEmbeddingService` ইমপ্লিমেন্ট করা হয়েছে। API Key কনফিগার করুন। |
 | **Qdrant** | ব্যবহৃত (সক্রিয়) | অত্যন্ত বেশি | **Vector Search** | Docker / Rust | `QdrantVectorService` ইমপ্লিমেন্ট করা হয়েছে। URL কনফিগার করুন। |
 | **Sentry** | ব্যবহৃত (সক্রিয়) | বেশি | **Error Tracking** | SDK / Dashboard | Sentry dependencies আছে, ড্যাশবোর্ড কনফিগারেশন দরকার। |
+| **Voicebox** | যোগ করার জন্য | বেশি | **TTS / Voice Interface** | Browser / API | Voicebox Service ইমপ্লিমেন্ট করুন। API Key কনফিগার করুন। |
+| **Free Claude Code** | যোগ করার জন্য | মাঝারি | **CLI-based Code Generation** | CLI Tool / API | FreeClaudeCodeService ইমপ্লিমেন্ট করুন। CLI বা API এন্ডপয়েন্ট কনফিগার করুন। |
+| **Teledrive** | যোগ করার জন্য | মাঝারি | **File Sharing / Storage** | API / Webhook | TeledriveService ইমপ্লিমেন্ট করুন। API Key ও Webhook URL কনফিগার করুন। |
 | **PostHog** | ব্যবহৃত (সক্রিয়) | বেশি | **Analytics/Experiment** | Docker / Cloud | `PostHogService` ইমপ্লিমেন্ট করা হয়েছে। API Key কনফিগার করুন। |
 
 ---
