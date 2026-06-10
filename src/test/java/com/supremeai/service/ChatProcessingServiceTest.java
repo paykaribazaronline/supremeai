@@ -29,6 +29,7 @@ class ChatProcessingServiceTest {
   @Mock private AutonomousQuestioningEngine autonomousEngine;
   @Mock private ConfigService configService;
   @Mock private MultiAIVotingService multiAIVotingService;
+  @Mock private DynamicRegistryService dynamicRegistryService;
 
   @InjectMocks private ChatProcessingService chatProcessingService;
 
@@ -44,16 +45,6 @@ class ChatProcessingServiceTest {
         .thenReturn(Mono.just("mock scraped data"));
     when(knowledgeService.getRelevantContext(anyString()))
         .thenReturn(Mono.just("mock relevant context"));
-
-    AutonomousQuestioningEngine.ValidationResult mockValidation =
-        new AutonomousQuestioningEngine.ValidationResult();
-    mockValidation.setComplete(true);
-    mockValidation.setIntentType(AutonomousQuestioningEngine.IntentType.FACTUAL);
-    when(autonomousEngine.validateAndQuestion(anyString(), any()))
-        .thenReturn(Mono.just(mockValidation));
-
-    when(configService.getEffectiveString(anyString(), anyString()))
-        .thenAnswer(invocation -> Mono.just(invocation.getArgument(1)));
   }
 
   @Test
@@ -62,14 +53,22 @@ class ChatProcessingServiceTest {
     String message = "Hello AI";
     String aiReply = "Hello Human!";
 
-    when(fallbackOrchestrator.executeWithSupremeIntelligence(
-            anyString(), anyString(), anyString(), anyString()))
-        .thenReturn(Mono.just(aiReply));
+    AutonomousQuestioningEngine.ValidationResult greetingValidation =
+        new AutonomousQuestioningEngine.ValidationResult();
+    greetingValidation.setComplete(true);
+    greetingValidation.setIntentType(AutonomousQuestioningEngine.IntentType.GREETING);
+    when(autonomousEngine.validateAndQuestion(anyString(), any()))
+        .thenReturn(Mono.just(greetingValidation));
+
+    when(dynamicRegistryService.getMessage(eq("chat.greeting"), anyString()))
+        .thenReturn("Hello Human!");
+    when(configService.getEffectiveString(eq("chat.greeting.message"), anyString()))
+        .thenReturn(Mono.just("Hello Human!"));
 
     Map<String, Object> response =
         chatProcessingService.processMessage(userId, message, false).block();
 
-    assertEquals(aiReply, response.get("response"));
+    assertEquals("Hello Human!", response.get("response"));
     assertFalse((Boolean) response.get("needs_confirmation"));
     verify(chatHistoryRepository, times(2)).save(any());
   }

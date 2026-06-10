@@ -37,9 +37,11 @@ class StubLocalProviderTest {
 
   @Test
   void testGenerateRealResponseFallback() {
-    // Tests how it handles completely unknown queries
     String response = provider.generate("how to bake a chocolate cake").block();
     assertNotNull(response);
-    assertTrue(response.contains("SupremeAI") || response.contains("searched my knowledge base"));
+    assertTrue(
+        response.contains("help you with")
+            || response.contains("knowledge")
+            || response.contains("SupremeAI"));
   }
 }

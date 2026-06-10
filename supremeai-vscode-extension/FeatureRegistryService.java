@@ -32,6 +32,15 @@ public class FeatureRegistryService {
                 .status("ACTIVE")
                 .classPath("com.supremeai.browser.GodmodeEngine")
                 .build());
+
+        register(FeatureDefinition.builder()
+                .id("kimi-k2.6")
+                .name("Kimi 2.6 (NVIDIA NIM)")
+                .category("AI_MODEL")
+                .provider("NVIDIA / Moonshot")
+                .status("ACTIVE")
+                .classPath("com.supremeai.service.ai.NvidiaKimiProvider")
+                .build());
     }
 
     public void register(FeatureDefinition feature) {

@@ -18,19 +18,49 @@ public class FixPromptTemplates {
   public FixPromptTemplates() {
     templates.put(
         "SECURITY",
-        "You are a security expert. Analyze the following code for security vulnerabilities. Provide EXPLANATION, FIXED_CODE, and CONFIDENCE.");
+        "You are a security expert. Analyze the following code for security vulnerabilities.\n"
+            + "File: {filePath}, Line: {lineNumber}\n"
+            + "Finding: {findingMessage}\n"
+            + "Suggestion: {suggestion}\n"
+            + "Code:\n{codeSnippet}\n"
+            + "Severity: {severity}, Category: {category}, Language: {language}\n\n"
+            + "Provide EXPLANATION, FIXED_CODE, and CONFIDENCE.");
     templates.put(
         "QUALITY",
-        "You are a code quality expert. Review the following code for quality issues. Provide EXPLANATION, FIXED_CODE, and CONFIDENCE.");
+        "You are a code quality expert. Review the following code for quality issues.\n"
+            + "File: {filePath}, Line: {lineNumber}\n"
+            + "Finding: {findingMessage}\n"
+            + "Suggestion: {suggestion}\n"
+            + "Code:\n{codeSnippet}\n"
+            + "Severity: {severity}, Category: {category}, Language: {language}\n\n"
+            + "Provide EXPLANATION, FIXED_CODE, and CONFIDENCE.");
     templates.put(
         "DEPENDENCIES",
-        "You are a dependency management expert. Analyze the following dependencies. Provide EXPLANATION, FIXED_CODE, and CONFIDENCE.");
+        "You are a dependency management expert. Analyze the following dependencies.\n"
+            + "File: {filePath}, Line: {lineNumber}\n"
+            + "Finding: {findingMessage}\n"
+            + "Suggestion: {suggestion}\n"
+            + "Code:\n{codeSnippet}\n"
+            + "Severity: {severity}, Category: {category}, Language: {language}\n\n"
+            + "Provide EXPLANATION, FIXED_CODE, and CONFIDENCE.");
     templates.put(
         "ARCHITECTURE",
-        "You are a software architect. Review the following architecture. Provide EXPLANATION, FIXED_CODE, and CONFIDENCE.");
+        "You are a software architect. Review the following architecture.\n"
+            + "File: {filePath}, Line: {lineNumber}\n"
+            + "Finding: {findingMessage}\n"
+            + "Suggestion: {suggestion}\n"
+            + "Code:\n{codeSnippet}\n"
+            + "Severity: {severity}, Category: {category}, Language: {language}\n\n"
+            + "Provide EXPLANATION, FIXED_CODE, and CONFIDENCE.");
     templates.put(
         "DEFAULT",
-        "You are an expert code reviewer. Analyze the following code. Provide EXPLANATION, FIXED_CODE, and CONFIDENCE.");
+        "You are an expert code reviewer. Analyze the following code.\n"
+            + "File: {filePath}, Line: {lineNumber}\n"
+            + "Finding: {findingMessage}\n"
+            + "Suggestion: {suggestion}\n"
+            + "Code:\n{codeSnippet}\n"
+            + "Severity: {severity}, Category: {category}, Language: {language}\n\n"
+            + "Provide EXPLANATION, FIXED_CODE, and CONFIDENCE.");
   }
 
   public FixPromptTemplate getTemplate(String category) {

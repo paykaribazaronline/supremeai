@@ -6,25 +6,20 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.supremeai.security.UnifiedSecretsService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import okhttp3.*;
+import org.springframework.http.MediaType;
+import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
 import java.io.IOException;
-import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class NvidiaKimiProvider {
 
-    private final OkHttpClient okHttpClient = new OkHttpClient.Builder()
-            .connectTimeout(10, TimeUnit.SECONDS)
-            .readTimeout(60, TimeUnit.SECONDS)
-            .build();
-
+    private final WebClient.Builder webClientBuilder = WebClient.builder();
     private final ObjectMapper objectMapper;
-
     private final UnifiedSecretsService secretsService;
 
     private static final String INVOKE_URL = "https://integrate.api.nvidia.com/v1/chat/completions";
@@ -47,30 +42,25 @@ public class NvidiaKimiProvider {
                     userMessage.put("role", "user");
                     userMessage.put("content", question);
 
-                    String jsonPayload = objectMapper.writeValueAsString(rootNode);
-
-                    Request request = new Request.Builder()
-                            .url(INVOKE_URL)
-                            .addHeader("Authorization", "Bearer " + apiKey)
-                            .addHeader("Accept", "application/json")
-                            .post(RequestBody.create(jsonPayload, MediaType.get("application/json")))
-                            .build();
-
-                    return Mono.fromCallable(() -> {
-                        try (Response response = okHttpClient.newCall(request).execute()) {
-                            if (!response.isSuccessful()) {
-                                log.error("NVIDIA API error: {} - {}", response.code(), response.message());
-                                throw new IOException("Unexpected code " + response);
-                            }
-
-                            if (response.body() == null) {
-                                return "";
-                            }
-
-                            String responseBody = response.body().string();
-                            return parseResponse(responseBody);
-                        }
-                    });
+                    return webClientBuilder.build()
+                            .post()
+                            .uri(INVOKE_URL)
+                            .header("Authorization", "Bearer " + apiKey)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .bodyValue(rootNode)
+                            .retrieve()
+                            .bodyToMono(String.class)
+                            .map(responseBody -> {
+                                try {
+                                    return parseResponse(responseBody);
+                                } catch (IOException e) {
+                                    throw new RuntimeException("Error parsing Kimi response", e);
+                                }
+                            })
+                            .onErrorResume(e -> {
+                                log.error("NVIDIA API error for Kimi: {}", e.getMessage());
+                                return Mono.just("");
+                            });
                 });
     }
 

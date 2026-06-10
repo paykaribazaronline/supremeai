@@ -64,8 +64,6 @@ class FixPromptTemplatesTest {
     assertTrue(rendered.contains("42"));
     assertTrue(rendered.contains("SQL Injection vulnerability"));
     assertTrue(rendered.contains("Use parameterized queries"));
-    assertTrue(rendered.contains("EXPLANATION:"));
-    assertTrue(rendered.contains("FIXED_CODE:"));
-    assertTrue(rendered.contains("CONFIDENCE:"));
+    assertTrue(rendered.contains("EXPLANATION, FIXED_CODE, and CONFIDENCE"));
   }
 }

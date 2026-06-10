@@ -26,6 +26,8 @@ class AgentOrchestrationHubTest {
 
   @Mock private com.supremeai.agentorchestration.CrossAgentVectorMemory crossAgentMemory;
 
+  @Mock private DynamicSignatureRegistry signatureRegistry;
+
   @InjectMocks private AgentOrchestrationHub hub;
 
   @BeforeEach
@@ -33,6 +35,12 @@ class AgentOrchestrationHubTest {
     org.mockito.Mockito.lenient()
         .when(crossAgentMemory.retrieveRelevantContext(anyString(), anyString(), anyString()))
         .thenReturn("");
+    org.mockito.Mockito.lenient()
+        .when(signatureRegistry.getDefault(anyString(), anyString()))
+        .thenAnswer(invocation -> invocation.getArgument(1));
+    org.mockito.Mockito.lenient()
+        .when(signatureRegistry.getSignatures(anyString()))
+        .thenReturn(java.util.Set.of("PostgreSQL", "React", "JWT", "GCP", "monolith"));
   }
 
   @Test

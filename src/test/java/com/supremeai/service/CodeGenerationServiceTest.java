@@ -1,22 +1,30 @@
 package com.supremeai.service;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.when;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class CodeGenerationServiceTest {
 
+  @Mock private DynamicSignatureRegistry signatureRegistry;
+
   private CodeGenerationService codeGenerationService;
 
   @BeforeEach
   void setUp() {
-    codeGenerationService = new CodeGenerationService();
+    codeGenerationService = new CodeGenerationService(signatureRegistry);
+    when(signatureRegistry.getSignatures(anyString()))
+        .thenReturn(java.util.Set.of("monolith", "PostgreSQL", "React", "REST", "JWT", "GCP"));
   }
 
   @Test

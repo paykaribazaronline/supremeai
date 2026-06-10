@@ -23,6 +23,10 @@ public class CodeGenerationService {
 
   public CodeGenerationService() {}
 
+  public CodeGenerationService(DynamicSignatureRegistry signatureRegistry) {
+    this.signatureRegistry = signatureRegistry;
+  }
+
   /** Retrieve a generated app by its appId. Used by SimulatorRuntimeController to serve preview. */
   public Mono<GeneratedApp> getGeneratedApp(String appId) {
     return generatedAppRepository.findByAppId(appId);

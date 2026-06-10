@@ -286,6 +286,19 @@ API_PROVIDERS = {
         "canCommunicate": True,
         "canExecuteTasks": False,
         "canParticipateInVoting": False,
+    },
+    "nvidia_nim": {
+        "id": "nvidia_nim",
+        "name": "NVIDIA NIM (Kimi 2.6)",
+        "type": "external",
+        "status": "active",
+        "baseUrl": "https://integrate.api.nvidia.com/v1",
+        "models": ["moonshotai/kimi-k2.6"],
+        "capabilities": ["chat", "code_generation", "reasoning", "long_context"],
+        "priority": 1,
+        "canCommunicate": True,
+        "canExecuteTasks": True,
+        "canParticipateInVoting": True,
     }
 }
 
