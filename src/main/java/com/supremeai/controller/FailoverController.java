@@ -1,7 +1,6 @@
 package com.supremeai.controller;
 
 import com.supremeai.fallback.ThirdOpinionOrchestrator;
-import java.time.Duration;
 import java.util.Map;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -33,7 +32,10 @@ public class FailoverController {
         .subscribeOn(Schedulers.boundedElastic())
         .map(result -> ResponseEntity.ok(Map.of("status", "success", "result", result)))
         .onErrorResume(
-            e -> Mono.just(ResponseEntity.status(500).body(Map.of("status", "failed", "error", e.getMessage()))));
+            e ->
+                Mono.just(
+                    ResponseEntity.status(500)
+                        .body(Map.of("status", "failed", "error", e.getMessage()))));
   }
 
   @GetMapping("/providers")

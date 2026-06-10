@@ -10,13 +10,13 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Helper for running Git commands using the bundled MinGit located at {@code
- * F:/supremeai/.gcloud/git/cmd/git.exe}. All commands are executed with a short
- * timeout and their
+ * F:/supremeai/.gcloud/git/cmd/git.exe}. All commands are executed with a short timeout and their
  * output is captured for logging.
  */
 public class GitHelper {
   private static final Logger log = LoggerFactory.getLogger(GitHelper.class);
-  private static final String GIT_EXE = System.getProperty("os.name").toLowerCase().contains("win") ? "git.exe" : "git";
+  private static final String GIT_EXE =
+      System.getProperty("os.name").toLowerCase().contains("win") ? "git.exe" : "git";
 
   private static String runGitCommand(String... args) throws Exception {
     List<String> command = new ArrayList<>();
@@ -54,10 +54,7 @@ public class GitHelper {
     }
   }
 
-  /**
-   * Adds all changes, commits with a generic message, and pushes to all
-   * configured remotes.
-   */
+  /** Adds all changes, commits with a generic message, and pushes to all configured remotes. */
   public static void commitAndPushAll() {
     try {
       if (!hasUncommittedChanges()) {

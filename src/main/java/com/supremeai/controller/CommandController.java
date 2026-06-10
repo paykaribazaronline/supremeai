@@ -3,7 +3,6 @@ package com.supremeai.controller;
 import com.supremeai.command.CommandContext;
 import com.supremeai.command.CommandExecutor;
 import com.supremeai.command.CommandResult;
-import com.supremeai.model.User;
 import com.supremeai.repository.UserRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import java.time.Duration;
@@ -37,23 +36,28 @@ public class CommandController {
     Map<String, Object> parameters = (Map<String, Object>) request.get("parameters");
 
     if (authentication == null || !authentication.isAuthenticated()) {
-      return Mono.just(CommandResult.error(commandName, "AUTH_ERROR", "User is not authenticated."));
+      return Mono.just(
+          CommandResult.error(commandName, "AUTH_ERROR", "User is not authenticated."));
     }
 
     String uid = authentication.getName();
-    return userRepository.findByFirebaseUid(uid)
-        .switchIfEmpty(Mono.error(new IllegalStateException("Authenticated user not found in database.")))
-        .map(user -> {
-          String[] roles = authentication.getAuthorities().stream()
-              .map(GrantedAuthority::getAuthority)
-              .toArray(String[]::new);
+    return userRepository
+        .findByFirebaseUid(uid)
+        .switchIfEmpty(
+            Mono.error(new IllegalStateException("Authenticated user not found in database.")))
+        .map(
+            user -> {
+              String[] roles =
+                  authentication.getAuthorities().stream()
+                      .map(GrantedAuthority::getAuthority)
+                      .toArray(String[]::new);
 
-          CommandContext context = new CommandContext(uid, user.getDisplayName(), roles);
-          context.setSourceIp(httpRequest.getRemoteAddr());
-          context.setSourceApp("API");
+              CommandContext context = new CommandContext(uid, user.getDisplayName(), roles);
+              context.setSourceIp(httpRequest.getRemoteAddr());
+              context.setSourceApp("API");
 
-          return executor.execute(commandName, parameters, context);
-        });
+              return executor.execute(commandName, parameters, context);
+            });
   }
 
   @GetMapping("/list")
@@ -72,14 +76,17 @@ public class CommandController {
       return Map.of("error", "Command not found");
     }
     return Map.of(
-        "name", command.getName(),
-        "description", command.getDescription(),
+        "name",
+        command.getName(),
+        "description",
+        command.getDescription(),
         "parameters",
         command.getSchema().getParameters().entrySet().stream()
             .map(
-                entry -> Map.of(
-                    "name", entry.getKey(),
-                    "type", entry.getValue().getType().getSimpleName()))
+                entry ->
+                    Map.of(
+                        "name", entry.getKey(),
+                        "type", entry.getValue().getType().getSimpleName()))
             .collect(Collectors.toList()));
   }
 }

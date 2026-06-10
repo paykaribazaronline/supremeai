@@ -24,6 +24,7 @@
 | **Anus CLI** | ব্যবহৃত (সক্রিয়) | মাঝারি | **Automation** | CLI Tool / Script | `AnusCliService` ইমপ্লিমেন্ট করা হয়েছে। |
 | **MiroFish-Offline** | ব্যবহৃত (সক্রিয়) | কম | **Local Vision AI** | Local Binaries | `MiroFishOfflineService` ইমপ্লিমেন্ট করা হয়েছে। |
 | **Perplexity.ai** | ব্যবহৃত (সক্রিয়) | অত্যন্ত বেশি | **Research Engine** | API Key / Search | `PerplexityResearchService` ইমপ্লিমেন্ট করা হয়েছে। API Key কনফিগার করুন। |
+| **OpenRouter** | ব্যবহৃত (সক্রিয়) | অত্যন্ত বেশি | **Cross-Model API** | API Key / Cloud | `useModelSearch` এবং `AddKeyModal` এ সাপোর্ট আছে। API Key কনফিগার করুন। |
 | **Repomix** | ব্যবহার হচ্ছে না | অত্যন্ত বেশি | **Code Bundler** | npm install | `supremeai_project_bundle.py` ব্যবহার করে কোড আপলোড করুন। |
 | **LangChain** | ব্যবহৃত (সক্রিয়) | অত্যন্ত বেশি | **LLM Orchestration** | Python/JS Library | `LangChainOrchestrationService` ইমপ্লিমেন্ট করা হয়েছে। API Key কনফিগার করুন। |
 | **LlamaIndex** | ব্যবহৃত (সক্রিয়) | অত্যন্ত বেশি | **RAG Framework** | Python Library | `LlamaIndexRagService` ইমপ্লিমেন্ট করা হয়েছে। API Key কনফিগার করুন। |

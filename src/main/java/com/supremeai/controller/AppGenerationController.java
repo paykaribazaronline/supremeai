@@ -24,33 +24,26 @@ import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
 /**
- * Controller for app generation endpoints. Handles requests to generate
- * applications based on user
+ * Controller for app generation endpoints. Handles requests to generate applications based on user
  * requirements.
  */
 @RestController
-@RequestMapping({ "/api/generate", "/api/teaching/create-app" })
+@RequestMapping({"/api/generate", "/api/teaching/create-app"})
 public class AppGenerationController {
 
   private static final Logger logger = LoggerFactory.getLogger(AppGenerationController.class);
 
-  @Autowired
-  private CodeGenerationService codeGenerationService;
+  @Autowired private CodeGenerationService codeGenerationService;
 
-  @Autowired
-  private FullStackCodeGenerator fullStackCodeGenerator;
+  @Autowired private FullStackCodeGenerator fullStackCodeGenerator;
 
-  @Autowired
-  private MultiPlatformGenerator multiPlatformGenerator;
+  @Autowired private MultiPlatformGenerator multiPlatformGenerator;
 
-  @Autowired
-  private GeneratedAppRepository generatedAppRepository;
+  @Autowired private GeneratedAppRepository generatedAppRepository;
 
-  @Autowired
-  private AppOrchestrationService appOrchestrationService;
+  @Autowired private AppOrchestrationService appOrchestrationService;
 
-  @Autowired
-  private WebSocketController webSocketController;
+  @Autowired private WebSocketController webSocketController;
 
   @PostMapping
   @PreAuthorize("hasAnyRole('USER', 'ADMIN', 'GUEST')")
@@ -108,95 +101,96 @@ public class AppGenerationController {
 
     // Fallback to legacy/direct generation logic
     Mono.fromCallable(
-        () -> {
-          try {
-            String database = request.getDatabase();
-            String type = request.getType();
+            () -> {
+              try {
+                String database = request.getDatabase();
+                String type = request.getType();
 
-            webSocketController.broadcastAppGenProgress(
-                requestId, name, "INITIALIZING", 5, "Initializing generation engine...");
+                webSocketController.broadcastAppGenProgress(
+                    requestId, name, "INITIALIZING", 5, "Initializing generation engine...");
 
-            Map<String, String> decisions = new HashMap<>();
-            decisions.put("architecture", "monolith");
-            decisions.put("database", database);
-            decisions.put("apiStyle", "REST");
-            decisions.put("authType", "JWT");
-            decisions.put("frontend", "React");
-            decisions.put("deployment", "GCP");
+                Map<String, String> decisions = new HashMap<>();
+                decisions.put("architecture", "monolith");
+                decisions.put("database", database);
+                decisions.put("apiStyle", "REST");
+                decisions.put("authType", "JWT");
+                decisions.put("frontend", "React");
+                decisions.put("deployment", "GCP");
 
-            webSocketController.broadcastAppGenProgress(
-                requestId, name, "ANALYZING", 15, "Analyzing requirements and entities...");
+                webSocketController.broadcastAppGenProgress(
+                    requestId, name, "ANALYZING", 15, "Analyzing requirements and entities...");
 
-            Map<String, Object> result;
+                Map<String, Object> result;
 
-            // Use enhanced AI-powered generation if requested (legacy path)
-            if (useAI) {
-              List<EntityDefinition> entities = request.getEntities();
-              if (entities == null)
-                entities = new ArrayList<>();
-              result = codeGenerationService.generateAppWithAI(
-                  name, description, entities, database, "JWT");
-            } else {
-              webSocketController.broadcastAppGenProgress(
-                  requestId,
-                  name,
-                  "GENERATING_CORE",
-                  30,
-                  "Generating core application structure...");
+                // Use enhanced AI-powered generation if requested (legacy path)
+                if (useAI) {
+                  List<EntityDefinition> entities = request.getEntities();
+                  if (entities == null) entities = new ArrayList<>();
+                  result =
+                      codeGenerationService.generateAppWithAI(
+                          name, description, entities, database, "JWT");
+                } else {
+                  webSocketController.broadcastAppGenProgress(
+                      requestId,
+                      name,
+                      "GENERATING_CORE",
+                      30,
+                      "Generating core application structure...");
 
-              switch (platform.toLowerCase()) {
-                case "fullstack":
-                  result = codeGenerationService.generateFromContext(decisions);
-                  break;
-                case "web":
-                case "android":
-                case "ios":
-                case "desktop":
-                  Map<String, String> platformResult = multiPlatformGenerator.generateForPlatform(
-                      description != null && !description.isEmpty() ? description : name,
-                      platform);
-                  result = new HashMap<>(platformResult);
-                  result.put("decisions", decisions);
-                  break;
-                default:
-                  result = codeGenerationService.generateFromContext(decisions);
-                  break;
+                  switch (platform.toLowerCase()) {
+                    case "fullstack":
+                      result = codeGenerationService.generateFromContext(decisions);
+                      break;
+                    case "web":
+                    case "android":
+                    case "ios":
+                    case "desktop":
+                      Map<String, String> platformResult =
+                          multiPlatformGenerator.generateForPlatform(
+                              description != null && !description.isEmpty() ? description : name,
+                              platform);
+                      result = new HashMap<>(platformResult);
+                      result.put("decisions", decisions);
+                      break;
+                    default:
+                      result = codeGenerationService.generateFromContext(decisions);
+                      break;
+                  }
+                }
+
+                webSocketController.broadcastAppGenProgress(
+                    requestId, name, "FINALIZING", 80, "Finalizing files and preparing preview...");
+
+                result.put("name", name);
+                result.put("description", description);
+                result.put("platform", platform);
+                result.put("type", type);
+                result.put("status", "GENERATED");
+                result.put("requestId", requestId);
+
+                String appId = UUID.randomUUID().toString();
+                GeneratedApp generatedApp = new GeneratedApp(appId, userId, platform, "React");
+                generatedApp.setHtmlContent(buildPreviewHtml(name, platform, description, result));
+                generatedApp.setStatus("GENERATED");
+                generatedApp.setRequestId(requestId);
+
+                if (result.containsKey("files")) {
+                  generatedApp.setSourceFiles((Map<String, String>) result.get("files"));
+                }
+
+                generatedAppRepository.save(generatedApp).subscribe();
+                result.put("appId", appId);
+
+                webSocketController.broadcastAppGenProgress(
+                    requestId, name, "COMPLETED", 100, "Generation completed successfully!");
+                return result;
+              } catch (Exception e) {
+                logger.error("Async app generation failed for request " + requestId, e);
+                webSocketController.broadcastAppGenProgress(
+                    requestId, name, "FAILED", 0, "Error: " + e.getMessage());
+                throw new RuntimeException(e);
               }
-            }
-
-            webSocketController.broadcastAppGenProgress(
-                requestId, name, "FINALIZING", 80, "Finalizing files and preparing preview...");
-
-            result.put("name", name);
-            result.put("description", description);
-            result.put("platform", platform);
-            result.put("type", type);
-            result.put("status", "GENERATED");
-            result.put("requestId", requestId);
-
-            String appId = UUID.randomUUID().toString();
-            GeneratedApp generatedApp = new GeneratedApp(appId, userId, platform, "React");
-            generatedApp.setHtmlContent(buildPreviewHtml(name, platform, description, result));
-            generatedApp.setStatus("GENERATED");
-            generatedApp.setRequestId(requestId);
-
-            if (result.containsKey("files")) {
-              generatedApp.setSourceFiles((Map<String, String>) result.get("files"));
-            }
-
-            generatedAppRepository.save(generatedApp).subscribe();
-            result.put("appId", appId);
-
-            webSocketController.broadcastAppGenProgress(
-                requestId, name, "COMPLETED", 100, "Generation completed successfully!");
-            return result;
-          } catch (Exception e) {
-            logger.error("Async app generation failed for request " + requestId, e);
-            webSocketController.broadcastAppGenProgress(
-                requestId, name, "FAILED", 0, "Error: " + e.getMessage());
-            throw new RuntimeException(e);
-          }
-        })
+            })
         .subscribeOn(Schedulers.boundedElastic())
         .subscribe();
 
@@ -209,18 +203,13 @@ public class AppGenerationController {
   }
 
   /**
-   * Builds a fully self-contained, executable HTML single-page preview of the
-   * generated
+   * Builds a fully self-contained, executable HTML single-page preview of the generated
    * application. The HTML is safe to load directly into an iframe via GET
    * /api/simulator/preview/{appId}.
    *
-   * <p>
-   * Strategy per platform: web → embedded vanilla JS from the "app" field (no TSX
-   * needed)
-   * ios-mock → interactive device-frame mock-up card desktop → embedded
-   * Electron-style mock shell
-   * android → embedded WebView-styled mock shell fullstack → React-style
-   * dashboard mock-up + API
+   * <p>Strategy per platform: web → embedded vanilla JS from the "app" field (no TSX needed)
+   * ios-mock → interactive device-frame mock-up card desktop → embedded Electron-style mock shell
+   * android → embedded WebView-styled mock shell fullstack → React-style dashboard mock-up + API
    * panel unknown → beautiful generic "App Ready" card
    */
   private String buildPreviewHtml(
@@ -266,7 +255,8 @@ public class AppGenerationController {
       headerEmoji = "📱";
       bodyClass = "preview-ios";
       scriptContent = buildDeviceScript("iOS App Preview", "SwiftUI", "#007AFF");
-      filesSection = buildFileListSection(result) + buildCodeViewer(sourceCode, "ContentView.swift");
+      filesSection =
+          buildFileListSection(result) + buildCodeViewer(sourceCode, "ContentView.swift");
 
     } else if (platformLower.contains("android")
         || platformLower.contains("kotlin")
@@ -288,7 +278,8 @@ public class AppGenerationController {
       headerEmoji = "🖥️";
       bodyClass = "preview-desktop";
       scriptContent = buildDeviceScript("Desktop App Preview", platform, "#6B7280");
-      filesSection = buildFileListSection(result) + buildCodeViewer(sourceCode, "main.dart / App.java");
+      filesSection =
+          buildFileListSection(result) + buildCodeViewer(sourceCode, "main.dart / App.java");
 
     } else {
 
@@ -303,8 +294,7 @@ public class AppGenerationController {
 
   // ── XSS-safe helpers ───────────────────────────────────────────────────────
   private static String escapeHtml(String raw) {
-    if (raw == null || raw.isEmpty())
-      return "";
+    if (raw == null || raw.isEmpty()) return "";
     return raw.replace("&", "&amp;")
         .replace("<", "&lt;")
         .replace(">", "&gt;")
@@ -313,8 +303,7 @@ public class AppGenerationController {
   }
 
   private static String escapeJs(String raw) {
-    if (raw == null)
-      return "null";
+    if (raw == null) return "null";
     return raw.replace("\\", "\\\\")
         .replace("\"", "\\\"")
         .replace("'", "\\'")
@@ -507,7 +496,8 @@ public class AppGenerationController {
   // ── Platform-Specific Script Blocks ─────────────────────────────────────
 
   private String buildWebScript(String sourceCode, String appName) {
-    String snippet = sourceCode.length() > 600 ? sourceCode.substring(0, 600) + "\n// ... more" : sourceCode;
+    String snippet =
+        sourceCode.length() > 600 ? sourceCode.substring(0, 600) + "\n// ... more" : sourceCode;
     return """
         <div class="app-canvas">
           <span style="font-size:3.5rem">🖥️</span>
@@ -562,39 +552,36 @@ public class AppGenerationController {
   }
 
   private String emojiFor(String title) {
-    if (title.toLowerCase().contains("ios"))
-      return "🍎";
-    if (title.toLowerCase().contains("android"))
-      return "🤖";
-    if (title.toLowerCase().contains("desktop"))
-      return "🖥️";
+    if (title.toLowerCase().contains("ios")) return "🍎";
+    if (title.toLowerCase().contains("android")) return "🤖";
+    if (title.toLowerCase().contains("desktop")) return "🖥️";
     return "✨";
   }
 
   private String buildFileListSection(Map<String, Object> result) {
-    if (!result.containsKey("files"))
-      return "";
+    if (!result.containsKey("files")) return "";
     @SuppressWarnings("unchecked")
     Map<String, String> files = (Map<String, String>) result.get("files");
-    if (files == null || files.isEmpty())
-      return "";
+    if (files == null || files.isEmpty()) return "";
 
     StringBuilder sb = new StringBuilder();
     sb.append("<p class=\"label\">📁 Generated Files (").append(files.size()).append(")</p>");
     sb.append("<ul class=\"file-list\">");
     files.forEach(
         (fname, fcontent) -> {
-          String ext = fname.contains(".")
-              ? fname.substring(fname.lastIndexOf('.') + 1).toUpperCase()
-              : "FILE";
-          String langColor = switch (ext) {
-            case "JAVA", "KT" -> "#f97316";
-            case "JSX", "TSX", "JS" -> "#61dafb";
-            case "CSS" -> "#a78bfa";
-            case "SQL" -> "#fb7185";
-            case "YAML", "YML" -> "#fbbf24";
-            default -> "#94a3b8";
-          };
+          String ext =
+              fname.contains(".")
+                  ? fname.substring(fname.lastIndexOf('.') + 1).toUpperCase()
+                  : "FILE";
+          String langColor =
+              switch (ext) {
+                case "JAVA", "KT" -> "#f97316";
+                case "JSX", "TSX", "JS" -> "#61dafb";
+                case "CSS" -> "#a78bfa";
+                case "SQL" -> "#fb7185";
+                case "YAML", "YML" -> "#fbbf24";
+                default -> "#94a3b8";
+              };
           sb.append(
               String.format(
                   "<li><span>%s</span><span class=\"file-ext\" style=\"color:%s\">%s</span></li>",
@@ -605,12 +592,12 @@ public class AppGenerationController {
   }
 
   private String buildCodeViewer(String sourceCode, String filenameHint) {
-    if (sourceCode == null || sourceCode.isBlank())
-      return "";
+    if (sourceCode == null || sourceCode.isBlank()) return "";
     // Show first 1200 chars of source for a quick peek
-    String preview = sourceCode.length() > 1200
-        ? sourceCode.substring(0, 1200) + "\n\n// ── remaining content in source file ──"
-        : sourceCode;
+    String preview =
+        sourceCode.length() > 1200
+            ? sourceCode.substring(0, 1200) + "\n\n// ── remaining content in source file ──"
+            : sourceCode;
     return """
         <p class="label">👁 %s — Live Preview</p>
         <div class="code-wrap">
@@ -743,37 +730,36 @@ public class AppGenerationController {
   public Mono<ResponseEntity<ApiResponse<Map<String, Object>>>> previewGeneration(
       @RequestBody Map<String, Object> request) {
     return Mono.fromCallable(
-        () -> {
-          String platform = (String) request.getOrDefault("platform", "fullstack");
+            () -> {
+              String platform = (String) request.getOrDefault("platform", "fullstack");
 
-          Map<String, String> decisions = new HashMap<>();
-          decisions.put("architecture", "monolith");
-          decisions.put("database", "PostgreSQL");
-          decisions.put("apiStyle", "REST");
-          decisions.put("authType", "JWT");
-          decisions.put("frontend", "React");
-          decisions.put("deployment", "GCP");
+              Map<String, String> decisions = new HashMap<>();
+              decisions.put("architecture", "monolith");
+              decisions.put("database", "PostgreSQL");
+              decisions.put("apiStyle", "REST");
+              decisions.put("authType", "JWT");
+              decisions.put("frontend", "React");
+              decisions.put("deployment", "GCP");
 
-          Map<String, Object> result = codeGenerationService.generateFromContext(decisions);
+              Map<String, Object> result = codeGenerationService.generateFromContext(decisions);
 
-          // Limit preview to first few files
-          @SuppressWarnings("unchecked")
-          Map<String, String> files = (Map<String, String>) result.get("files");
-          if (files != null && files.size() > 3) {
-            Map<String, String> previewFiles = new HashMap<>();
-            int count = 0;
-            for (Map.Entry<String, String> entry : files.entrySet()) {
-              if (count++ >= 3)
-                break;
-              previewFiles.put(entry.getKey(), entry.getValue());
-            }
-            result.put("files", previewFiles);
-            result.put("preview", true);
-            result.put("totalFiles", files.size());
-          }
+              // Limit preview to first few files
+              @SuppressWarnings("unchecked")
+              Map<String, String> files = (Map<String, String>) result.get("files");
+              if (files != null && files.size() > 3) {
+                Map<String, String> previewFiles = new HashMap<>();
+                int count = 0;
+                for (Map.Entry<String, String> entry : files.entrySet()) {
+                  if (count++ >= 3) break;
+                  previewFiles.put(entry.getKey(), entry.getValue());
+                }
+                result.put("files", previewFiles);
+                result.put("preview", true);
+                result.put("totalFiles", files.size());
+              }
 
-          return ResponseEntity.ok(ApiResponse.ok(result));
-        })
+              return ResponseEntity.ok(ApiResponse.ok(result));
+            })
         .subscribeOn(Schedulers.boundedElastic())
         .onErrorResume(
             e -> {
