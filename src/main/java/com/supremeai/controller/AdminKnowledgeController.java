@@ -83,8 +83,14 @@ public class AdminKnowledgeController extends BaseAdminController<Object, String
 
     KnowledgeDomain domain = new KnowledgeDomain(name, keywords);
     return domainRepository.save(domain)
-        .map(saved -> ResponseEntity.ok(ApiResponse.ok(Map.of("domain", saved))))
-        .onErrorResume(e -> Mono.just(ResponseEntity.status(500).body(ApiResponse.error("Failed to create domain"))));
+        .map(saved -> {
+          Map<String, Object> result = new HashMap<>();
+          result.put("domain", saved);
+          return ResponseEntity.ok(ApiResponse.ok(result));
+        })
+        .onErrorResume(e -> Mono.just(
+            ResponseEntity.status(500).body(ApiResponse.error("Failed to create domain"))
+        ));
   }
 
   @GetMapping("/recommendations")
