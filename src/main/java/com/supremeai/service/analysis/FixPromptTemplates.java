@@ -15,9 +15,27 @@ public class FixPromptTemplates {
    */
   private final Map<String, String> templates = new HashMap<>();
 
+  public FixPromptTemplates() {
+    templates.put(
+        "SECURITY",
+        "You are a security expert. Analyze the following code for security vulnerabilities. Provide EXPLANATION, FIXED_CODE, and CONFIDENCE.");
+    templates.put(
+        "QUALITY",
+        "You are a code quality expert. Review the following code for quality issues. Provide EXPLANATION, FIXED_CODE, and CONFIDENCE.");
+    templates.put(
+        "DEPENDENCIES",
+        "You are a dependency management expert. Analyze the following dependencies. Provide EXPLANATION, FIXED_CODE, and CONFIDENCE.");
+    templates.put(
+        "ARCHITECTURE",
+        "You are a software architect. Review the following architecture. Provide EXPLANATION, FIXED_CODE, and CONFIDENCE.");
+    templates.put(
+        "DEFAULT",
+        "You are an expert code reviewer. Analyze the following code. Provide EXPLANATION, FIXED_CODE, and CONFIDENCE.");
+  }
+
   public FixPromptTemplate getTemplate(String category) {
-    String template = templates.getOrDefault(category, "");
-    if (template.isEmpty()) {
+    String template = templates.getOrDefault(category, templates.get("DEFAULT"));
+    if (template == null || template.isEmpty()) {
       log.warn(
           "No prompt template found for category: {}. Ensure Knowledge Base is seeded.", category);
     }
