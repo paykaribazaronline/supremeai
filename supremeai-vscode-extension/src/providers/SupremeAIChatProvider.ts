@@ -1,13 +1,8 @@
-/**
- * SupremeAI Chat Provider - Real-time conversational AI assistant
- */
-
 import * as vscode from 'vscode';
 import { getSupremeAIService } from '../services/SupremeAIService';
 import { AuthService } from '../services/AuthService';
 import { ChatMessage, ChatSession } from '../types';
 import { SupremeAIChatView } from './SupremeAIChatView';
-import { DynamicSignatureRegistry } from '../utils/DynamicSignatureRegistry';
 
 export class SupremeAIChatProvider implements vscode.WebviewViewProvider {
   private readonly viewId: string;
@@ -21,35 +16,17 @@ export class SupremeAIChatProvider implements vscode.WebviewViewProvider {
 
   public resolveWebviewView(
     webviewView: vscode.WebviewView,
-    context: vscode.WebviewViewResolveContext,
+    _context: vscode.WebviewViewResolveContext,
     _token: vscode.CancellationToken
   ): void {
     this.webview = webviewView;
 
-    // Retain context when hidden to preserve state
     webviewView.webview.options = {
-      enableScripts: true,
-      localResourceRoots: [],
-      enableCommandUris: true
+      enableScripts: true
     };
 
-    // Restore previous state if available
-    const state = context.state as any;
-    if (state) {
-      this.messageHistory = state.messageHistory || [];
-      this.currentSession = state.currentSession || null;
-    }
-
     this.setupWebviewMessageListener(webviewView);
-
-    // Set initial loading state
-    webviewView.webview.html = this.getLoadingHTML();
-
-    this.updateContent(webviewView);
-  }
-
-  private getLoadingHTML(): string {
-    return '<!DOCTYPE html><html><body style="display:flex;justify-content:center;align-items:center;height:100vh;color:var(--vscode-descriptionForeground);font-family:sans-serif;background:var(--vscode-sideBar-background);"><div>🤖 Initializing AI Assistant...</div></body></html>';
+    webviewView.webview.html = SupremeAIChatView.getHTMLContent(true, 'Guest', false, this.messageHistory);
   }
 
   private setupWebviewMessageListener(webviewView: vscode.WebviewView): void {
@@ -75,19 +52,13 @@ export class SupremeAIChatProvider implements vscode.WebviewViewProvider {
             await this.handleRefactorCode();
             break;
           case 'login':
-            vscode.commands.executeCommand('supremeai.login').then(() => {
-              this.updateContent(webviewView);
-            });
+            vscode.window.showWarningMessage('Web login is currently unavailable due to a backend 401.');
             break;
           case 'loginAsGuest':
-            vscode.commands.executeCommand('supremeai.loginAsGuest').then(() => {
-              this.updateContent(webviewView);
-            });
+            vscode.window.showWarningMessage('Guest mode is currently unavailable. The backend rejects guest tokens with status 401.');
             break;
           case 'logout':
-            vscode.commands.executeCommand('supremeai.logout').then(() => {
-              this.updateContent(webviewView);
-            });
+            vscode.commands.executeCommand('supremeai.logout');
             break;
           case 'openSettings':
             vscode.commands.executeCommand('workbench.action.openSettings', 'supremeai');
@@ -109,30 +80,7 @@ export class SupremeAIChatProvider implements vscode.WebviewViewProvider {
     };
 
     this.addMessage(userMessage);
-
     this.webview?.webview.postMessage({ type: 'addMessage', message: userMessage });
-
-    // 1. Check for utility/meta questions locally FIRST to avoid backend delay and ensure correct language
-    const localResponse = this.generateLocalResponse(message);
-    const genericResponse = this.getGenericFallbackText();
-
-    if (localResponse !== genericResponse) {
-      const aiMessage: ChatMessage = {
-        id: Date.now().toString(),
-        role: 'assistant',
-        content: localResponse,
-        timestamp: new Date().toISOString()
-      };
-
-      // Small artificial delay for realism, then send
-      setTimeout(() => {
-        this.addMessage(aiMessage);
-        this.webview?.webview.postMessage({ type: 'addMessage', message: aiMessage });
-      }, 300);
-      return;
-    }
-
-    // 2. If not a meta-question, proceed to AI backend
     this.showThinkingIndicator();
 
     try {
@@ -154,9 +102,6 @@ export class SupremeAIChatProvider implements vscode.WebviewViewProvider {
       }
 
       const response = await this.sendChatRequest(message, codeContext);
-
-      // Ensure thinking indicator is removed before adding the real response
-      // This prevents UI glitches where both show up simultaneously
       await this.removeThinkingIndicator();
 
       const aiMessage: ChatMessage = {
@@ -173,7 +118,7 @@ export class SupremeAIChatProvider implements vscode.WebviewViewProvider {
       const errorMessage: ChatMessage = {
         id: Date.now().toString(),
         role: 'assistant',
-        content: `❌ Error: ${error.message}. Please check your connection and try again.`,
+        content: `Backend error: ${error.message}. Please log in with a SupremeAI account.`,
         timestamp: new Date().toISOString(),
         error: true
       };
@@ -182,75 +127,25 @@ export class SupremeAIChatProvider implements vscode.WebviewViewProvider {
     }
   }
 
-  private getGenericFallbackText(): string {
-    return "I'm here to help with your coding needs!";
-  }
-
   private async sendChatRequest(message: string, codeContext: string = ''): Promise<string> {
     const service = getSupremeAIService();
 
-    try {
-      const history = this.messageHistory.filter(m => !m.thinking);
-      const response = await (service as any).client.post('/api/chat/stream', {
-        message: message + codeContext,
-        sessionId: service.getSessionId(),
-        messages: history,
-        context: {
-          source: 'vscode',
-          timestamp: new Date().toISOString()
-        }
-      });
+    const history = this.messageHistory.filter(m => !m.thinking);
+    const request = {
+      message: message + codeContext,
+      sessionId: service.getSessionId(),
+      messages: history,
+      context: {
+        source: 'vscode',
+        timestamp: new Date().toISOString()
+      }
+    };
 
-      return response.data?.response || response.data?.message || 'I received your message!';
-    } catch (error: any) {
-      // Fallback to local AI processing (using only original user message, not code context)
-      return this.generateLocalResponse(message);
-    }
+    const response = await (service as any).sendChatMessage(request);
+    return response.response || response.message || 'No response from backend.';
   }
 
-  private generateLocalResponse(message: string): string {
-    const lowerMsg = message.toLowerCase();
-
-    const signatureRegistry = this.getDynamicSignatures();
-    const intent = signatureRegistry.detectCategory(lowerMsg);
-
-    if (signatureRegistry.matchesAny(lowerMsg, 'GREETING_PATTERNS')) {
-      return signatureRegistry.getTemplates('GREETING_RESPONSES')[0] || 'Hello! I\'m your SupremeAI assistant. How can I help you with your code today?';
-    }
-
-    if (signatureRegistry.matchesAny(lowerMsg, 'DEBUG_PATTERNS')) {
-      const templates = signatureRegistry.getTemplates('DEBUG_RESPONSES');
-      return templates[0] || 'I can help you debug! Please share the error message or the problematic code.';
-    }
-
-    if (signatureRegistry.matchesAny(lowerMsg, 'REFACTOR_PATTERNS')) {
-      const templates = signatureRegistry.getTemplates('REFACTOR_RESPONSES');
-      return templates[0] || 'I can help refactor your code! Please share the code you\'d like to improve.';
-    }
-
-    if (signatureRegistry.matchesAny(lowerMsg, 'EXPLAIN_PATTERNS')) {
-      const templates = signatureRegistry.getTemplates('EXPLAIN_RESPONSES');
-      return templates[0] || 'I can explain code concepts! Please share the code or concept.';
-    }
-
-    if (signatureRegistry.matchesAny(lowerMsg, 'TIME_PATTERNS')) {
-      const templates = signatureRegistry.getTemplates('TIME_RESPONSES');
-      const template = templates[0] || 'The current time is: {{time}}';
-      return template.replace('{{time}}', new Date().toLocaleTimeString());
-    }
-
-    return signatureRegistry.getTemplates('DEFAULT_RESPONSES')[0] || this.getGenericFallbackText();
-  }
-
-  private getGenericFallbackText(): string {
-    return this.getDynamicSignatures().getTemplates('FALLBACK_MESSAGES')[0] || "I'm here to help with your coding needs!";
-  }
-
-  private getDynamicSignatures(): DynamicSignatureRegistry {
-    return (this as any)._signatureRegistry || DynamicSignatureRegistry.getInstance();
-  }
-
-  private getRelevantCode(fullText: string, message: string): string {
+  private getRelevantCode(fullText: string, _message: string): string {
     const lines = fullText.split('\n');
     const maxLines = 50;
 
@@ -258,7 +153,6 @@ export class SupremeAIChatProvider implements vscode.WebviewViewProvider {
       return fullText;
     }
 
-    // Return first and last parts
     const firstPart = lines.slice(0, 25).join('\n');
     const lastPart = lines.slice(-25).join('\n');
 
@@ -269,14 +163,12 @@ export class SupremeAIChatProvider implements vscode.WebviewViewProvider {
     this.messageHistory = [];
     this.currentSession = null;
     this.updateContent(this.webview!);
-
     vscode.window.showInformationMessage('New chat session started');
   }
 
   private async handleClearChat(): Promise<void> {
     this.messageHistory = [];
     this.updateContent(this.webview!);
-
     vscode.window.showInformationMessage('Chat history cleared');
   }
 
@@ -295,8 +187,7 @@ export class SupremeAIChatProvider implements vscode.WebviewViewProvider {
       return;
     }
 
-    const message = `Please explain this code:\n\n${code}`;
-    await this.handleSendMessage(message, { includeCode: false });
+    await this.handleSendMessage(`Please explain this code:\n\n${code}`, { includeCode: false });
   }
 
   private async handleFixCode(): Promise<void> {
@@ -314,8 +205,7 @@ export class SupremeAIChatProvider implements vscode.WebviewViewProvider {
       return;
     }
 
-    const message = `Please help fix this code:\n\n${code}`;
-    await this.handleSendMessage(message, { includeCode: false });
+    await this.handleSendMessage(`Please help fix this code:\n\n${code}`, { includeCode: false });
   }
 
   private async handleRefactorCode(): Promise<void> {
@@ -333,49 +223,41 @@ export class SupremeAIChatProvider implements vscode.WebviewViewProvider {
       return;
     }
 
-    const message = `Please suggest improvements for this code:\n\n${code}`;
-    await this.handleSendMessage(message, { includeCode: false });
+    await this.handleSendMessage(`Please suggest improvements for this code:\n\n${code}`, { includeCode: false });
   }
 
   private addMessage(message: ChatMessage): void {
     this.messageHistory.push(message);
-
-    // Keep only last 100 messages
     if (this.messageHistory.length > 100) {
       this.messageHistory = this.messageHistory.slice(-100);
     }
   }
 
   private showThinkingIndicator(): void {
-    if (this.webview) {
-      const thinkingMsg: ChatMessage = {
-        id: 'thinking',
-        role: 'assistant',
-        content: '🤔 Thinking...',
-        timestamp: new Date().toISOString(),
-        thinking: true
-      };
-      this.addMessage(thinkingMsg);
-      this.webview.webview.postMessage({ type: 'showThinking' });
-    }
+    if (!this.webview) return;
+
+    const thinkingMsg: ChatMessage = {
+      id: 'thinking',
+      role: 'assistant',
+      content: 'Thinking...',
+      timestamp: new Date().toISOString(),
+      thinking: true
+    };
+
+    this.addMessage(thinkingMsg);
+    this.webview.webview.postMessage({ type: 'showThinking' });
   }
 
   private async removeThinkingIndicator(): Promise<void> {
     this.messageHistory = this.messageHistory.filter(m => m.id !== 'thinking');
     this.webview?.webview.postMessage({ type: 'removeThinking' });
-    // Essential delay to ensure the DOM is cleared before the next message appends
     return new Promise(resolve => setTimeout(resolve, 50));
   }
 
-  private async updateContent(webviewView: vscode.WebviewView): Promise<void> {
+  private updateContent(webviewView: vscode.WebviewView): void {
     const authService = AuthService.getInstance();
-    if (!authService || !authService.isAuthenticated()) {
-      webviewView.webview.html = SupremeAIChatView.getLoginHTML();
-      return;
-    }
-
-    const isGuest = authService.getUser()?.username === "Guest User";
-    const username = authService.getUser()?.username || 'Guest User';
+    const isGuest = !authService || !authService.isAuthenticated();
+    const username = (authService && authService.getUser()?.username) || 'Guest User';
     const config = vscode.workspace.getConfiguration('supremeai');
     const hasApiKey = !!config.get<string>('aiApiKey');
 
@@ -386,7 +268,6 @@ export class SupremeAIChatProvider implements vscode.WebviewViewProvider {
     this.webview = null;
   }
 
-  // Save state when webview is disposed
   public getState(): any {
     return {
       messageHistory: this.messageHistory,

@@ -34,7 +34,6 @@ export class CodeFlowHandler {
 
   public register(): void {
     this.context.subscriptions.push(
-      vscode.commands.registerCommand('supremeai.analyzeCodeFlow', this.analyzeCodeFlow.bind(this)),
       vscode.commands.registerCommand('supremeai.resolveError', this.resolveError.bind(this)),
       vscode.commands.registerCommand('supremeai.showSecurityIssues', this.showSecurityIssues.bind(this)),
       vscode.commands.registerCommand('supremeai.showDependencies', this.showDependencies.bind(this)),

@@ -63,8 +63,9 @@ export class SupremeAIChatView {
    * Returns the main chat interface HTML.
    */
   public static getHTMLContent(isGuest: boolean, username: string, hasApiKey: boolean, messageHistory: ChatMessage[]): string {
-    const messagesHtml = messageHistory.map(msg => this.renderMessage(msg)).join('');
-    const emptyState = messageHistory.length === 0 ? this.getEmptyState(username) : '';
+    const safeUsername = username || 'User';
+    const messagesHtml = (messageHistory || []).map(msg => this.renderMessage(msg)).join('');
+    const emptyState = (!messageHistory || messageHistory.length === 0) ? this.getEmptyState(safeUsername) : '';
 
     return `<!DOCTYPE html>
 <html lang="en">
@@ -77,7 +78,7 @@ export class SupremeAIChatView {
     .header { padding: 12px 16px; border-bottom: 1px solid var(--vscode-panel-border); display: flex; align-items: center; justify-content: space-between; background: var(--vscode-sideBarSectionHeader-background); }
     .header h2 { font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
     .header-actions { display: flex; gap: 8px; }
-    .btn { background: var(--vscode-button-background); color: var(--vscode-button-foreground); border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; transition: all 0.2s; }
+    .btn { background: var(--vscode-button-background); color: var(--vscode-button-foreground); border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; }
     .btn:hover { background: var(--vscode-button-hoverBackground); }
     .btn-secondary { background: var(--vscode-toolbar-hoverBackground); color: var(--vscode-foreground); }
     .messages { flex: 1; overflow-y: auto; padding: 16px; }
@@ -86,13 +87,13 @@ export class SupremeAIChatView {
     .empty-state h3 { font-size: 16px; margin-bottom: 8px; color: var(--vscode-foreground); }
     .empty-state p { font-size: 13px; line-height: 1.5; }
     .quick-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; justify-content: center; }
-    .quick-btn { background: var(--vscode-list-hoverBackground); border: 1px solid var(--vscode-panel-border); color: var(--vscode-foreground); padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 12px; transition: all 0.2s; }
+    .quick-btn { background: var(--vscode-list-hoverBackground); border: 1px solid var(--vscode-panel-border); color: var(--vscode-foreground); padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 12px; }
     .quick-btn:hover { background: var(--vscode-list-activeSelectionBackground); border-color: var(--vscode-focusBorder); }
     .input-area { padding: 12px 16px; border-top: 1px solid var(--vscode-panel-border); background: var(--vscode-sideBar-background); }
     .input-wrapper { display: flex; gap: 8px; align-items: flex-end; }
     textarea { flex: 1; background: var(--vscode-input-background); color: var(--vscode-input-foreground); border: 1px solid var(--vscode-input-border); border-radius: 6px; padding: 10px 12px; font-family: var(--vscode-font-family); font-size: 13px; resize: none; min-height: 40px; max-height: 120px; }
     textarea:focus { outline: none; border-color: var(--vscode-focusBorder); }
-    .send-btn { background: var(--vscode-button-background); color: var(--vscode-button-foreground); border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 500; transition: all 0.2s; }
+    .send-btn { background: var(--vscode-button-background); color: var(--vscode-button-foreground); border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 500; }
     .send-btn:hover { background: var(--vscode-button-hoverBackground); }
     .message { display: flex; gap: 12px; margin-bottom: 16px; animation: slideIn 0.3s ease; }
     @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
@@ -106,13 +107,13 @@ export class SupremeAIChatView {
     .message-content.error { background: var(--vscode-errorBackground); color: var(--vscode-errorForeground); }
     .message-meta { font-size: 11px; color: var(--vscode-descriptionForeground); margin-top: 4px; }
     .thinking { opacity: 0.7; }
-    .thinking::after { content: ''; animation: dots 1.5s infinite; }
-    @keyframes dots { 0%, 20% { content: ''; } 40% { content: '.'; } 60% { content: '..'; } 80%, 100% { content: '...'; } }
+    .thinking::after { content: '...'; animation: dots 1.5s infinite; }
+    @keyframes dots { 0%, 20% { content: ''; } 40% { content: '.'; } 60%, 100% { content: '...'; } }
   </style>
 </head>
 <body>
   <div class="header">
-    <h2>🤖 SupremeAI (${username})</h2>
+    <h2>🤖 SupremeAI (${safeUsername})</h2>
     <div class="header-actions">
       ${isGuest ? '<button class="btn" onclick="login()">Login</button>' : '<button class="btn btn-secondary" onclick="logout()">Logout</button>'}
       <button class="btn btn-secondary" onclick="newChat()">New Chat</button>
@@ -121,77 +122,54 @@ export class SupremeAIChatView {
     </div>
   </div>
   <div style="padding: 6px 16px; font-size: 11px; background: var(--vscode-input-background, #1e1e1e); border-bottom: 1px solid var(--vscode-panel-border); color: var(--vscode-descriptionForeground); display: flex; justify-content: space-between; align-items: center;">
-    <span>🔑 SupremeAI API Key:</span>
+    <span>🔑 API Key:</span>
     <span style="font-weight: bold; color: ${hasApiKey ? 'var(--vscode-testing-iconPassedColor, #73c991)' : 'var(--vscode-testing-iconFailedColor, #f14c4c)'};">
-      ${hasApiKey ? 'Active' : 'Missing (Using guest fallback)'}
+      ${hasApiKey ? 'Active' : 'Missing'}
     </span>
   </div>
-  
   <div class="messages" id="messages">
     ${emptyState}
     ${messagesHtml}
   </div>
-  
   <div class="input-area">
     <div class="input-wrapper">
       <textarea id="messageInput" placeholder="Ask SupremeAI..." rows="1" onkeydown="handleKeydown(event)" oninput="autoResize(this)"></textarea>
       <button class="send-btn" id="sendBtn" onclick="sendMessage()">Send</button>
     </div>
     <div class="quick-actions">
-      <button class="quick-btn" onclick="quickAction('explain')">📄 Explain Code</button>
-      <button class="quick-btn" onclick="quickAction('fix')">🐛 Fix Code</button>
+      <button class="quick-btn" onclick="quickAction('explain')">📄 Explain</button>
+      <button class="quick-btn" onclick="quickAction('fix')">🐛 Fix</button>
       <button class="quick-btn" onclick="quickAction('refactor')">🔄 Refactor</button>
       <button class="quick-btn" onclick="quickAction('review')">👀 Review</button>
     </div>
   </div>
-
   <script>
     const vscode = acquireVsCodeApi();
     const messagesDiv = document.getElementById('messages');
-
     window.addEventListener('message', event => {
       const data = event.data;
-      if (data.type === 'addMessage') {
-        const msgHtml = renderMessage(data.message);
+      if (data.type === 'addMessage' || data.type === 'showThinking') {
+        const msgData = data.type === 'addMessage' ? data.message : { id: 'thinking', role: 'assistant', content: '🤔 Thinking...', timestamp: new Date().toISOString(), thinking: true };
+        if (data.type === 'showThinking') {
+          const existing = document.getElementById('thinking-message-container');
+          if (existing) existing.remove();
+        }
+        const msgHtml = renderMessage(msgData);
         const emptyState = document.querySelector('.empty-state');
         if (emptyState) emptyState.remove();
         messagesDiv.insertAdjacentHTML('beforeend', msgHtml);
         messagesDiv.scrollTop = messagesDiv.scrollHeight;
-      } else if (data.type === 'showThinking') {
-        const thinkingHtml = renderMessage({
-          id: 'thinking',
-          role: 'assistant',
-          content: '🤔 Thinking...',
-          timestamp: new Date().toISOString(),
-          thinking: true
-        });
-        const emptyState = document.querySelector('.empty-state');
-        if (emptyState) emptyState.remove();
-        messagesDiv.insertAdjacentHTML('beforeend', thinkingHtml);
-        messagesDiv.scrollTop = messagesDiv.scrollHeight;
       } else if (data.type === 'removeThinking') {
-        // Using a more aggressive selector to ensure all thinking indicators are wiped
         const indicators = document.querySelectorAll('[id="thinking-message-container"]');
         indicators.forEach(el => el.remove());
       }
     });
-
     function renderMessage(msg) {
-      const time = new Date(msg.timestamp).toLocaleTimeString();
+      const time = new Date(msg.timestamp || Date.now()).toLocaleTimeString();
       const role = msg.role || 'assistant';
       const isThinking = msg.thinking;
-      return \`
-        <div class="message-container" \${isThinking ? 'id="thinking-message-container"' : ''}>
-          <div class="message \${role}">
-            <div class="avatar \${role}-avatar">\${role === 'user' ? 'U' : 'AI'}</div>
-            <div class="message-content \${msg.error ? 'error' : ''} \${isThinking ? 'thinking' : ''}">\${msg.content}</div>
-          </div>
-          <div class="message-meta" style="margin-left: \${role === 'user' ? 'auto' : '44px'}; text-align: \${role === 'user' ? 'right' : 'left'};">
-            \${time}
-          </div>
-        </div>\`;
+      return '<div class="message-container" ' + (isThinking ? 'id="thinking-message-container"' : '') + '><div class="message ' + role + '"><div class="avatar ' + role + '-avatar">' + (role === 'user' ? 'U' : 'AI') + '</div><div class="message-content ' + (msg.error ? 'error' : '') + ' ' + (isThinking ? 'thinking' : '') + '">' + (msg.content || '') + '</div></div><div class="message-meta" style="margin-left: ' + (role === 'user' ? 'auto' : '44px') + '; text-align: ' + (role === 'user' ? 'right' : 'left') + ';">' + time + '</div></div>';
     }
-
     function sendMessage() {
       const input = document.getElementById('messageInput');
       const message = input.value.trim();
@@ -200,7 +178,6 @@ export class SupremeAIChatView {
       input.value = '';
       input.style.height = '40px';
     }
-
     function handleKeydown(event) { if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); sendMessage(); } }
     function autoResize(textarea) { textarea.style.height = 'auto'; textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px'; }
     function newChat() { vscode.postMessage({ type: 'newChat' }); }
@@ -208,18 +185,7 @@ export class SupremeAIChatView {
     function openSettings() { vscode.postMessage({ type: 'openSettings' }); }
     function login() { vscode.postMessage({ type: 'login' }); }
     function logout() { vscode.postMessage({ type: 'logout' }); }
-    
-    function quickAction(action) {
-      const actions = window.dynamicQuickActions || {
-        explain: { command: 'explainCode', prompt: 'Please explain this code' },
-        fix: { command: 'fixCode', prompt: 'Please help fix this code' },
-        refactor: { command: 'refactorCode', prompt: 'Please suggest improvements' },
-        review: { command: 'sendMessage', prompt: 'Please review this code and suggest improvements:' }
-      };
-      const actionData = actions[action];
-      vscode.postMessage({ type: actionData.command, message: actionData.prompt });
-    }
-    
+    function quickAction(action) { vscode.postMessage({ type: action === 'review' ? 'sendMessage' : action + 'Code', message: action === 'explain' ? 'Please explain this code' : action === 'fix' ? 'Please help fix this code' : action === 'refactor' ? 'Please suggest improvements for this code' : 'Please review this code and suggest improvements' }); }
     messagesDiv.scrollTop = messagesDiv.scrollHeight;
   </script>
 </body>
@@ -260,9 +226,8 @@ export class SupremeAIChatView {
   }
 
   private static getEmptyState(username: string): string {
-    const templates = (window as any).dynamicTemplates || {};
-    const welcomeMsg = templates.welcomeMessage || 'Your intelligent coding companion is ready to help!';
-    const quickActions = templates.quickActions || [
+    const welcomeMsg = 'Your intelligent coding companion is ready to help!';
+    const quickActions = [
       { icon: '📄', label: 'Explain Code', action: 'explain' },
       { icon: '🐛', label: 'Fix Code', action: 'fix' },
       { icon: '🔄', label: 'Refactor', action: 'refactor' },
@@ -275,7 +240,7 @@ export class SupremeAIChatView {
         <h3>Welcome, ${username}</h3>
         <p>${welcomeMsg}</p>
         <div class="quick-actions">
-          ${quickActions.map((a: any) => `<button class="quick-btn" onclick="quickAction('${a.action})">${a.icon} ${a.label}</button>`).join('')}
+          ${quickActions.map(a => '<button class="quick-btn" onclick="quickAction(\'' + a.action + '\')">' + a.icon + ' ' + a.label + '</button>').join('')}
         </div>
       </div>
     `;

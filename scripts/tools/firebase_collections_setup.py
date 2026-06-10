@@ -152,7 +152,7 @@ ADMIN_USERS = {
 API_PROVIDERS = {
     "claude": {
         "id": "claude",
-        "name": "Anthropic Claude",
+        "name": "SupremeAI Node (C)",
         "type": "external",
         "status": "active",
         "baseUrl": "https://api.anthropic.com",
@@ -165,7 +165,7 @@ API_PROVIDERS = {
     },
     "gpt4": {
         "id": "gpt4",
-        "name": "OpenAI GPT-4",
+        "name": "SupremeAI Node (O)",
         "type": "external",
         "status": "active",
         "baseUrl": "https://api.openai.com/v1",
@@ -178,7 +178,7 @@ API_PROVIDERS = {
     },
     "google": {
         "id": "google",
-        "name": "Google Gemini",
+        "name": "SupremeAI Node (G)",
         "type": "external",
         "status": "active",
         "baseUrl": "https://generativelanguage.googleapis.com",

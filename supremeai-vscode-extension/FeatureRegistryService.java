@@ -34,10 +34,10 @@ public class FeatureRegistryService {
                 .build());
 
         register(FeatureDefinition.builder()
-                .id("kimi-k2.6")
-                .name("Kimi 2.6 (NVIDIA NIM)")
+                .id("supreme-core-advanced")
+                .name("SupremeAI Advanced Logic")
                 .category("AI_MODEL")
-                .provider("NVIDIA / Moonshot")
+                .provider("SupremeAI Logic Layer")
                 .status("ACTIVE")
                 .classPath("com.supremeai.service.ai.NvidiaKimiProvider")
                 .build());

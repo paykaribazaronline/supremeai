@@ -55,6 +55,7 @@ describe('AuthService', () => {
       });
       vscode.authentication.getSession.mockResolvedValueOnce({
         accessToken: 'google-access-token',
+        idToken: 'google-id-token',
       });
 
       const result = await authService.login();
@@ -79,6 +80,7 @@ describe('AuthService', () => {
       axios.post.mockRejectedValueOnce(new Error('Network error'));
       vscode.authentication.getSession.mockResolvedValueOnce({
         accessToken: 'token',
+        idToken: 'id-token',
       });
 
       const result = await authService.login();
@@ -101,6 +103,7 @@ describe('AuthService', () => {
       axios.post.mockResolvedValueOnce({ data: {} });
       vscode.authentication.getSession.mockResolvedValueOnce({
         accessToken: 'token',
+        idToken: 'id-token',
       });
 
       const result = await authService.login();

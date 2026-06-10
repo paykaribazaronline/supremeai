@@ -18,6 +18,7 @@ import { Input, Button, message, Tooltip, Modal, Badge } from "antd";
 import React, { useState, useRef, useEffect } from "react";
 import ReactMarkdown from "react-markdown";
 
+import { useRole } from "../contexts/RoleContext";
 import { authUtils } from "../lib/authUtils";
 import "./ChatWithAI.css";
 
@@ -97,6 +98,7 @@ interface ChatWithAIProps {
 }
 
 const ChatWithAI: React.FC<ChatWithAIProps> = ({ chatFont = "font-mono" }) => {
+  const { isAdmin } = useRole();
   // Session State
   const [sessions, setSessions] = useState<ChatSession[]>([]);
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
@@ -570,12 +572,15 @@ const ChatWithAI: React.FC<ChatWithAIProps> = ({ chatFont = "font-mono" }) => {
 
       if (response.ok) {
         const data = await response.json();
+        
+        // Dynamic branding: Admin sees the engine (Kimi/Claude), user sees the brand
+        const brandName = isCritical ? "SupremeAI Advance" : "SupremeAI Pro";
+        const adminHint = data.agent_name ? ` (${data.agent_name})` : "";
+
         const aiMessage: ChatMessage = {
           id: (Date.now() + 1).toString(),
           sender: "ai",
-          agent: isCritical
-            ? `🔥 GODMODE 3 (${data.agent_name || "Multi-Model"})`
-            : `Tiny Hybrid (${data.agent_name || "Core"})`,
+          agent: isAdmin ? `${brandName}${adminHint}` : brandName,
           content: data.message || "Processing optimized.",
           timestamp: new Date().toLocaleTimeString([], {
             hour: "2-digit",
@@ -793,7 +798,9 @@ const ChatWithAI: React.FC<ChatWithAIProps> = ({ chatFont = "font-mono" }) => {
               onChange={(e) => setSelectedAgent(e.target.value)}
               className="custom-agent-select"
             >
-              <option value="all">Dynamic Routing (All Models)</option>
+              <option value="all">{isAdmin ? "Dynamic Routing (All Models)" : "SupremeAI Smart Mode"}</option>
+              <option value="supremeai">SupremeAI Core</option>
+              <option value="supremeai-pro">SupremeAI Advance</option>
               {agents.map((a) => (
                 <option key={a.id} value={a.id}>
                   {a.name}

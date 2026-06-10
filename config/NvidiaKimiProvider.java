@@ -23,15 +23,16 @@ public class NvidiaKimiProvider {
     private final UnifiedSecretsService secretsService;
 
     private static final String INVOKE_URL = "https://integrate.api.nvidia.com/v1/chat/completions";
-    private static final String MODEL_NAME = "moonshotai/kimi-k2.6";
 
     public Mono<String> askQuestion(String question) {
-        return secretsService
-                .getSecret("nvidia.api.key")
-                .switchIfEmpty(Mono.defer(() -> Mono.error(new IllegalStateException("Missing NVIDIA API key in Firebase/system config"))))
-                .flatMap(apiKey -> {
+        return Mono.zip(
+                secretsService.getSecret("nvidia.api.key"),
+                secretsService.getSecret("nvidia.model.id").defaultIfEmpty("moonshotai/kimi-k2.6")).flatMap(tuple -> {
+                    String apiKey = tuple.getT1();
+                    String modelId = tuple.getT2();
+
                     ObjectNode rootNode = objectMapper.createObjectNode();
-                    rootNode.put("model", MODEL_NAME);
+                    rootNode.put("model", modelId);
                     rootNode.put("max_tokens", 16384);
                     rootNode.put("temperature", 1.0);
                     rootNode.put("top_p", 1.0);
@@ -54,11 +55,11 @@ public class NvidiaKimiProvider {
                                 try {
                                     return parseResponse(responseBody);
                                 } catch (IOException e) {
-                                    throw new RuntimeException("Error parsing Kimi response", e);
+                                    throw new RuntimeException("Error parsing response from " + modelId, e);
                                 }
                             })
                             .onErrorResume(e -> {
-                                log.error("NVIDIA API error for Kimi: {}", e.getMessage());
+                                log.error("Sovereign Logic Provider error: {}", e.getMessage());
                                 return Mono.just("");
                             });
                 });

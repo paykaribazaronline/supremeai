@@ -211,13 +211,7 @@ export class SupremeAIService {
       return response.data;
     } catch (error: any) {
       console.error(`[SupremeAI] Chat error: ${error.message}`);
-      return {
-        success: false,
-        message: error.message,
-        response: this.generateFallbackResponse(request.message),
-        sessionId: this.sessionId,
-        timestamp: new Date().toISOString()
-      };
+      throw error;
     }
   }
 

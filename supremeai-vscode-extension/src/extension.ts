@@ -26,7 +26,7 @@ let codeGenService: CodeGenerationService;
 let codeReviewService: CodeReviewService;
 let codeFlowHandler: CodeFlowHandler;
 
-export function activate(context: vscode.ExtensionContext) {
+export async function activate(context: vscode.ExtensionContext) {
   console.log('[SupremeAI] VS Code Extension activating...');
 
   const config = vscode.workspace.getConfiguration('supremeai');
@@ -41,7 +41,8 @@ export function activate(context: vscode.ExtensionContext) {
   supremeAIService = new SupremeAIService(supremeConfig);
   setSupremeAIService(supremeAIService);
 
-  AuthService.getInstance(supremeConfig);
+  const auth = AuthService.getInstance(supremeConfig);
+  await auth.loginAsGuest();
 
   // Register URI handler for OAuth callback
   const authSuccessDisposable = vscode.window.registerUriHandler({
@@ -339,41 +340,17 @@ function registerCommands(context: vscode.ExtensionContext): void {
     }
   });
 
-  const analyzeCodeFlowCommand = vscode.commands.registerCommand('supremeai.analyzeCodeFlow', () => {
-    codeFlowHandler.analyzeCodeFlow();
-  });
-
-  const resolveErrorCommand = vscode.commands.registerCommand('supremeai.resolveError', () => {
-    codeFlowHandler.resolveError();
-  });
-
-  const showSecurityIssuesCommand = vscode.commands.registerCommand('supremeai.showSecurityIssues', () => {
-    codeFlowHandler.showSecurityIssues();
-  });
-
-  const showDependenciesCommand = vscode.commands.registerCommand('supremeai.showDependencies', () => {
-    codeFlowHandler.showDependencies();
-  });
-
-  const openCodeFlowDashboardCommand = vscode.commands.registerCommand('supremeai.openCodeFlowDashboard', () => {
-    codeFlowHandler.openCodeFlowDashboard();
-  });
-
-  const refreshCodeFlowCommand = vscode.commands.registerCommand('supremeai.refreshCodeFlow', () => {
-    codeFlowHandler.refreshAnalysis();
+  const loginAsGuestCommand = vscode.commands.registerCommand('supremeai.loginAsGuest', async () => {
+    const auth = AuthService.getInstance();
+    if (auth) {
+      await auth.loginAsGuest();
+    }
   });
 
   const loginCommand = vscode.commands.registerCommand('supremeai.login', async () => {
     const auth = AuthService.getInstance();
     if (auth) {
       await auth.login();
-    }
-  });
-
-  const loginAsGuestCommand = vscode.commands.registerCommand('supremeai.loginAsGuest', async () => {
-    const auth = AuthService.getInstance();
-    if (auth) {
-      await auth.loginAsGuest();
     }
   });
 
@@ -384,95 +361,11 @@ function registerCommands(context: vscode.ExtensionContext): void {
     }
   });
 
-  const aiCompleteCommand = vscode.commands.registerCommand('supremeai.aiComplete', async () => {
-    const editor = vscode.window.activeTextEditor;
-    if (!editor) { return; }
-
-    const service = getCodeGenerationService();
-    const suggestion = await service.generateFromComment('complete this code', editor.document.languageId);
-
-    if (suggestion && suggestion.code) {
-      const active = editor.selection.active;
-      editor.edit(editBuilder => {
-        editBuilder.insert(active, suggestion.code);
-      });
-      vscode.window.showInformationMessage('AI suggestion applied!');
-    }
-  });
-
-  const aiExplainCommand = vscode.commands.registerCommand('supremeai.aiExplain', async () => {
-    const editor = vscode.window.activeTextEditor;
-    if (!editor) { return; }
-
-    const code = editor.document.getText(editor.selection);
-    const explanation = await aiService.explainCode(code, editor.document.languageId);
-    vscode.window.showInformationMessage(explanation, { modal: true });
-  });
-
-  const aiReviewCommand = vscode.commands.registerCommand('supremeai.aiReview', async () => {
-    const editor = vscode.window.activeTextEditor;
-    if (!editor) { return; }
-
-    const service = getCodeReviewService();
-    const code = editor.document.getText();
-
-    const issues = await service.reviewCode(code, editor.document.languageId, editor.document.fileName);
-    if (issues.length > 0) {
-      vscode.window.showWarningMessage(`${issues.length} issues found`, 'View');
-    } else {
-      vscode.window.showInformationMessage('No issues found!');
-    }
-  });
-
-  // নতুন কমান্ড: সরাসরি Godmode 3 ব্রাউজার রিসার্চ ট্রিগার করা
-  const webResearchCommand = vscode.commands.registerCommand('supremeai.webResearch', async () => {
-    const query = await vscode.window.showInputBox({ prompt: 'ইন্টারনেটে কী রিসার্চ করতে চান?' });
-    if (!query) return;
-
-    vscode.window.withProgress({
-      location: vscode.ProgressLocation.Notification,
-      title: "SupremeAI: Godmode 3 রিসার্চ করছে...",
-      cancellable: false
-    }, async () => {
-      const result = await supremeAIService.sendCodeAnalysis('web-research', query, 'research-request');
-      vscode.window.showInformationMessage('রিসার্চ কমপ্লিট! চ্যাট ট্যাবে ফলাফল দেখুন।');
-    });
-  });
-
-  // নতুন কমান্ড: জটিল সেটিংস বা কনফিগারেশন অটোমেট করা (Godmode 3 ব্যবহার করে)
-  const autoSetupCommand = vscode.commands.registerCommand('supremeai.autoSetup', async () => {
-    const task = await vscode.window.showInputBox({
-      prompt: 'কোন জটিল সেটিংসটি আমি আপনার হয়ে করে দেব? (উদাঃ Setup Firebase API keys)'
-    });
-    if (!task) return;
-
-    vscode.window.withProgress({
-      location: vscode.ProgressLocation.Notification,
-      title: "SupremeAI: ব্রাউজারের মাধ্যমে সেটিংস অটোমেট করছে...",
-      cancellable: true
-    }, async () => {
-      // সিস্টেম নিজে ব্রাউজ করে টাস্কটি সম্পন্ন করার চেষ্টা করবে
-      await supremeAIService.sendCodeAnalysis('browser-auto-config', task, 'automation-task');
-      vscode.window.showInformationMessage('অটোমেটিক সেটআপ সম্পন্ন হয়েছে!');
-    });
-  });
-
   context.subscriptions.push(
     forceLearnCommand,
-    analyzeCodeFlowCommand,
-    resolveErrorCommand,
-    showSecurityIssuesCommand,
-    showDependenciesCommand,
-    openCodeFlowDashboardCommand,
-    refreshCodeFlowCommand,
-    loginCommand,
     loginAsGuestCommand,
-    logoutCommand,
-    aiCompleteCommand,
-    aiExplainCommand,
-    aiReviewCommand,
-    webResearchCommand,
-    autoSetupCommand
+    loginCommand,
+    logoutCommand
   );
 }
 

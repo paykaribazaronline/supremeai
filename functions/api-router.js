@@ -53,7 +53,9 @@ app.get(['/health', '/api/health'], (req, res) => {
 
 // REAL LLM Connection (Gemini / OpenAI Fallback)
 async function callChatBackend(message, token) {
-  const apiKey = process.env.GEMINI_API_KEY || process.env.OPENAI_API_KEY;
+  const apiKey = process.env.SUPREME_API_KEY || process.env.GEMINI_API_KEY || process.env.OPENAI_API_KEY;
+  const targetModel = process.env.SUPREME_CORE_MODEL || 'gemini-pro';
+
   if (!apiKey) {
     // Fallback to local neural core if no API key
     return generateSmartAIResponse(message);
@@ -62,7 +64,7 @@ async function callChatBackend(message, token) {
   try {
     // Attempt Gemini call
     const response = await axios.post(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/${targetModel}:generateContent?key=${apiKey}`,
       {
         contents: [{ parts: [{ text: message }] }]
       },
@@ -75,8 +77,8 @@ async function callChatBackend(message, token) {
         message: text,
         confidence: 0.95,
         chatType: 'LLM_RESPONSE',
-        sourceType: 'GEMINI_API',
-        sources: ['Gemini Model']
+        sourceType: 'SUPREME_CORE_API',
+        sources: [`${process.env.SUPREME_BRAND_NAME || 'SupremeAI'} Intelligence`]
       };
     }
     throw new Error('Invalid LLM response format');
@@ -257,8 +259,8 @@ function generateSmartAIResponse(userMessage) {
   if (/who are you|আপনি কে/i.test(msg)) {
     return {
       success: true,
-      message: 'আমি SupremeAI এর Neural Core AI। আমি আপনার ডিজিটাল অ্যাসিস্ট্যান্ট এবং প্রযুক্তিগত কাজের সহায়তাকারী।',
-      agent_name: 'SupremeAI Neural Core',
+      message: `আমি ${process.env.SUPREME_BRAND_NAME || 'SupremeAI'}। আমি আপনার ডিজিটাল অ্যাসিস্ট্যান্ট।`,
+      agent_name: process.env.SUPREME_BRAND_NAME || 'SupremeAI',
       confidence: 0.99,
       source_type: 'LOCAL_SEED',
     };

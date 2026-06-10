@@ -23,7 +23,7 @@ public class AdminDashboardController {
         contract.put("navigation", buildUnifiedNavigation());
         contract.put("components", buildComponentDefinitions());
         contract.put("apiEndpoints", buildApiEndpoints());
-        contract.put("systemStatus", Map.of("learningActive", true, "consensusHealthy", true, "kimiActive", true));
+        contract.put("systemStatus", Map.of("learningActive", true, "consensusHealthy", true, "advancedActive", true));
 
         return contract;
     }
