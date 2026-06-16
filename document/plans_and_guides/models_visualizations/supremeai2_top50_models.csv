@@ -1,0 +1,51 @@
+Rank,Model Name,Provider,Best Quality / Strength,Context Window,API Cost (1M tokens),Open Source,Free Tier Available,SupremeAI 2.0 Implementation Plan
+1,Claude Opus 4.7,Anthropic,"Agentic coding, MCP tool use (77.3%), 3.75M vision, xhigh effort",200K,$5/$25,No,No,"PRIMARY: Complex coding, agentic workflows, MCP tool use - Route when task requires deep reasoning"
+2,GPT-5.5,OpenAI,"Terminal-Bench 2.0 leader (82.7%), 52.5% fewer hallucinations, autonomous workhorse",128K,$5/$10,No,No,"PRIMARY: Autonomous tasks, terminal operations, long-running processes - Default for agent mode"
+3,Qwen 3.7 Max,Alibaba,"Agent-first architecture, 35h autonomous runs, 1,158 tool calls, half price of Claude",128K,$2.50/$7.50,No,No,"PRIMARY: Cost-effective alternative to Claude, 35h autonomous runs - Fallback for long tasks"
+4,Claude Opus 4.6,Anthropic,"Proven performer, 1M context, 128K output, Agent Teams, adaptive thinking",1M,$5/$25,No,No,"SECONDARY: Proven stable choice, 1M context for large codebases - Legacy support"
+5,Claude Sonnet 4.6,Anthropic,"Accessible powerhouse, 1M context beta, near-Opus performance, free tier on claude.ai",1M,$3/$15,No,Yes,"PRIMARY: Default free tier model, near-Opus quality - Customer portal default"
+6,DeepSeek V4 Pro,DeepSeek,"Frontier performance at 34x cheaper pricing, open source, self-hostable",128K,$0.435/$0.87,Yes,Yes,"PRIMARY: Ultra-cheap frontier performance, open source - Self-hosted cloud option"
+7,Gemini 3.1 Pro,Google,"Strong SWE-bench (79.3%), improved grounding, native tool calling, competitive pricing",1M,$2/$12,No,Yes,"PRIMARY: Strong coding, native tool calling, competitive pricing - Google ecosystem tasks"
+8,Kimi K2.6,Moonshot,"300-agent swarms, 12h autonomous sessions, strong coding, open source",128K,$0.95/$4.00,Yes,Yes,"SECONDARY: 300-agent swarms, good for multi-agent orchestration - Parallel task processing"
+9,GPT-5.4 Pro,OpenAI,"GPQA Diamond 94.6%, high reasoning, strong multimodal, xhigh effort mode",128K,$2.50/$15,No,No,"SECONDARY: High reasoning, GPQA leader - Scientific/research tasks"
+10,Claude Opus 4.8,Anthropic,"Strongest sustained coding agent, MCP protocol, Claude Code integration, 1M context",1M,$5/$25,No,No,"PRIMARY: Best sustained coding, Claude Code integration - IDE assistant default"
+11,Gemini 3.5 Flash,Google,"Best value coding, high SWE-bench (79.3%), fast, cost-effective for production",1M,$2/$12,No,Yes,"PRIMARY: Best value coding, production default - Standard coding tasks"
+12,GPT-5.2,OpenAI,"GDPval leader (49.7%), strong general knowledge work, good balance",128K,$1.75/$14,No,Yes,"SECONDARY: GDPval leader, general knowledge work - Business analysis tasks"
+13,Llama 4 Maverick,Meta,"1M context window, multimodal (vision), long documents, open source, self-hostable",1M,$0.19-$0.49,Yes,Yes,"PRIMARY: 1M context, multimodal, open source - Document processing, vision tasks"
+14,Grok 4.3,xAI,"Fast responses, 131K context, lightweight reasoning, good for real-time",131K,$1.25/$2.50,No,Yes,"SECONDARY: Fast responses, real-time applications - Live chat, quick queries"
+15,GLM-5,Zhipu,"Strong multilingual, 1M context, competitive pricing, good for Asian languages",128K,$1.00/$3.20,Yes,Yes,"SECONDARY: Multilingual, Asian language support - Localization tasks"
+16,Mistral Large 3,Mistral,"Balanced performance, good tool use, European provider, GDPR compliant",128K,$2/$6,Partial,No,"SECONDARY: GDPR compliant, European data residency - EU customer tasks"
+17,Kimi K2.5,Moonshot,"Strong coding, good value, 128K context, reliable for production",128K,$0.60/$2.00,Yes,Yes,SECONDARY: Reliable production coding - Backup coding model
+18,Qwen 3.5,Alibaba,"Strong coding and analysis, 128K context, good for automation",128K,$1.20/$3.60,Yes,Yes,"SECONDARY: Strong automation, 128K context - Workflow automation"
+19,GPT-5.1,OpenAI,"Explicitly positioned for coding and agentic tasks, strong function calling",128K,$1.50/$8,No,Yes,SECONDARY: Coding and agentic tasks - OpenAI ecosystem fallback
+20,Claude Sonnet 4.5,Anthropic,"Best balance of coding quality and cost, full tool use support",200K,$3/$15,No,No,SECONDARY: Balance of quality and cost - Budget-conscious tasks
+21,DeepSeek V3,DeepSeek,"Good reasoning, 64K context, efficient, cost-effective for standard tasks",64K,$0.14/$0.28,Yes,Yes,"SECONDARY: Good reasoning, cost-effective - Standard chat, summaries"
+22,Gemini 3 Flash,Google,"Fast, efficient, good for summaries, lightweight, 128K context",128K,$0.50/$3,No,Yes,"SECONDARY: Fast, efficient summaries - Quick content generation"
+23,Llama 4 Scout,Meta,"10M context (ultra-long), fast, low-latency, good for real-time",10M,$0.15/$0.60,Yes,Yes,"PRIMARY: 10M context, ultra-long documents - Legal, research documents"
+24,Mistral Medium,Mistral,"Balanced writing and coding, 128K context, good speed",128K,$0.80/$2.40,Partial,No,SECONDARY: Balanced writing and coding - General assistant tasks
+25,Gemma 3 27B,Google,"Efficient instruction-following, 128K context, lightweight, Google-backed",128K,$0.30/$1.50,Yes,Yes,"SECONDARY: Efficient, lightweight - Mobile/edge applications"
+26,Qwen 3,Alibaba,"Strong coding, 128K context, good for analysis and automation",128K,$0.60/$1.80,Yes,Yes,"SECONDARY: Strong coding, analysis - Technical documentation"
+27,Phi-4,Microsoft,"Strong reasoning, efficient, Microsoft-backed, good for math",128K,$0.40/$1.20,Yes,Yes,"SECONDARY: Strong reasoning, efficient - Math and logic tasks"
+28,Command R+,Cohere,"Long context (128K), good RAG performance, conversational",128K,$1.50/$3,No,No,"SECONDARY: Long context, RAG - Knowledge base queries"
+29,DBRX,Databricks,"Mixture-of-Experts, efficient, good for diverse tasks",32K,$0.50/$1.50,Yes,Yes,SECONDARY: MoE efficient - Diverse task routing
+30,Jamba 1.5,AI21,"Hybrid SSM/Transformer, 256K context, efficient long-document processing",256K,$0.80/$2.40,No,No,SECONDARY: Long document processing - Report generation
+31,Llama 3.3 70B,Meta,"Strong text-only coding, self-hostable, good for privacy, 128K context",128K,$0.20/$0.40,Yes,Yes,"SECONDARY: Self-hosted coding, privacy - On-premise deployments"
+32,Mixtral 8x22B,Mistral,"Sparse MoE, efficient, good for diverse tasks, 64K context",64K,$0.90/$2.70,Yes,Yes,SECONDARY: Sparse MoE efficient - Batch processing
+33,CodeLlama 70B,Meta,"Code-specific, strong for programming, fill-in-the-middle capability",128K,$0.30/$0.90,Yes,Yes,SECONDARY: Code-specific tasks - IDE completions
+34,StarCoder2,BigCode,"Code generation, 16 programming languages, open source",16K,$0.40/$1.20,Yes,Yes,SECONDARY: Multi-language coding - Polyglot development
+35,WizardLM 2,Microsoft,"Strong instruction following, good for complex prompts",128K,$0.50/$1.50,Yes,Yes,SECONDARY: Complex instruction following - Advanced prompts
+36,Yi-34B,01.AI,"Multilingual, strong Chinese+English, 200K context",200K,$0.60/$1.80,Yes,Yes,SECONDARY: Chinese+English bilingual - Asian market support
+37,Falcon 180B,TII,"Large scale, 180B parameters, strong reasoning, Arabic+English",128K,$1.20/$3.60,Yes,Yes,SECONDARY: Large scale reasoning - Research applications
+38,MPT-30B,MosaicML,"Good for fine-tuning, commercial license, 8K context",8K,$0.50/$1.50,Yes,Yes,SECONDARY: Fine-tuning base - Custom model training
+39,StableLM,Stability,"Open source, good for experimentation, various sizes",16K,$0.30/$0.90,Yes,Yes,SECONDARY: Experimentation - Testing and prototyping
+40,OpenChat 3.5,OpenChat,"Conversational, personality-driven, good for chatbots",8K,$0.20/$0.60,Yes,Yes,SECONDARY: Personality chat - Entertainment bots
+41,DeepSeek-R1 (Free),DeepSeek,"FREE: Strong reasoning, math, logic, coding - 64K context",64K,FREE,Yes,Yes,"FREE TIER: Default for reasoning, math, coding - Zero-cost complex tasks"
+42,Llama 4 Scout (Free),Meta,"FREE: Long context, multimodal, 1M context - vision support",128K,FREE,Yes,Yes,"FREE TIER: Default for long documents, multimodal - Zero-cost vision tasks"
+43,Qwen3 235B (Free),Alibaba,"FREE: Strong coding, analysis, automation - 128K context",128K,FREE,Yes,Yes,"FREE TIER: Default for coding, automation - Zero-cost development"
+44,Grok 3 Mini (Free),xAI,"FREE: Fast responses, lightweight reasoning - 131K context",131K,FREE,Yes,Yes,FREE TIER: Default for fast responses - Zero-cost quick queries
+45,GLM-4 32B (Free),Zhipu,"FREE: Multilingual, Chinese+English - 32K context",32K,FREE,Yes,Yes,FREE TIER: Default for multilingual - Zero-cost translation
+46,Gemma 3 27B (Free),Google,"FREE: Lightweight chat, summaries - 128K context",128K,FREE,Yes,Yes,"FREE TIER: Default for chat, summaries - Zero-cost general tasks"
+47,Mistral Small 3.1 (Free),Mistral,"FREE: Writing, coding, assistants - 128K context",128K,FREE,Yes,Yes,"FREE TIER: Default for writing, coding - Zero-cost content creation"
+48,Hermes 3 70B (Free),Nous,"FREE: Roleplay, assistant-style chat - 128K context",128K,FREE,Yes,Yes,"FREE TIER: Default for roleplay, chat - Zero-cost conversational"
+49,OpenChat 7B (Free),OpenChat,"FREE: Simple chat, experimentation - 8K-32K context",8K,FREE,Yes,Yes,FREE TIER: Default for simple tasks - Zero-cost experimentation
+50,Zephyr 7B (Free),HuggingFace,"FREE: Lightweight, fast, good for testing - 32K context",32K,FREE,Yes,Yes,FREE TIER: Default for lightweight - Zero-cost testing
