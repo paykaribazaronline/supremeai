@@ -93,13 +93,13 @@ def test_openai_compatible_helper_uses_first_key():
 
         return _Response()
 
-    router._http_client = fake_post
-    result = router._call_openai_compatible(
+    import asyncio
+    result = asyncio.run(router._call_openai_compatible(
         base_url="https://example.test/v1",
         raw_keys="k1",
         model="m",
         prompt="p",
         provider_name="unit",
-    )
+    ))
     assert result["text"] == "text"
     assert result["provider"] == "unit"
