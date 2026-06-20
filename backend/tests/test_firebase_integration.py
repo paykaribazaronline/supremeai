@@ -1,6 +1,10 @@
 from unittest.mock import MagicMock, patch
 
+import importlib.util
 import pytest
+
+HAS_FIREBASE_DEPS = importlib.util.find_spec("firebase_admin") is not None
+pytestmark = pytest.mark.skipif(not HAS_FIREBASE_DEPS, reason="firebase_admin not installed")
 
 
 @pytest.fixture

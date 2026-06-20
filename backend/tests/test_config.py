@@ -6,6 +6,7 @@ import pytest
 from core.config import Settings
 
 
+@patch.dict(os.environ, {}, clear=True)
 def test_defaults():
     s = Settings()
     assert s.app_name == "SupremeAI 2.0"

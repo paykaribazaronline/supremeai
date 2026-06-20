@@ -4,7 +4,7 @@ from unittest.mock import MagicMock
 import pytest
 from fastapi.testclient import TestClient
 
-os.environ.setdefault("OPENROUTER_API_KEY", "")
+os.environ["OPENROUTER_API_KEY"] = "mock-key-value"
 os.environ.setdefault("HF_API_KEY", "")
 os.environ.setdefault("OLLAMA_URL", "http://localhost:11434")
 

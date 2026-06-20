@@ -83,7 +83,7 @@ def test_openai_compatible_helper_uses_first_key():
     router = ModelRouter()
     router._get_keys = lambda v: ["k1", "k2"]
 
-    async def fake_post(*, url, headers, json):
+    async def fake_post(url, headers=None, json=None, **kwargs):
         class _Response:
             def raise_for_status(self):
                 return None
@@ -92,6 +92,8 @@ def test_openai_compatible_helper_uses_first_key():
                 return {"choices": [{"message": {"content": "text"}}]}
 
         return _Response()
+
+    router._http_client.post = fake_post
 
     import asyncio
     result = asyncio.run(router._call_openai_compatible(
