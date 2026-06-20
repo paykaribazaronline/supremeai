@@ -1,8 +1,8 @@
 import os
 from unittest.mock import MagicMock, patch
 import pytest
-from interfaces.voice import VoiceInterface
-from interfaces.discord_bot import SupremeDiscordBot
+from tools.voice import VoiceInterface
+from core.discord_bot import SupremeDiscordBot
 
 def test_voice_interface_stt_missing_file():
     vi = VoiceInterface()

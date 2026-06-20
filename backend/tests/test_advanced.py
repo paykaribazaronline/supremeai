@@ -17,7 +17,7 @@ from memory.rag_pipeline import RAGPipeline
 from tools.browser_agent import BrowserAgent
 from tools.computer_agent import ComputerAgent
 from tools.api_gateway import APIGateway
-from interfaces.telegram_bot import TelegramBotHandler
+from tools.telegram_bot import TelegramBotHandler
 from evolution.daily_learner import DailyLearner
 from tools.multi_account_rotator import MultiAccountRotator
 from evolution.self_updater import SelfUpdater
