@@ -1,5 +1,10 @@
 [tool.poetry]
-package-mode = false
+name = "supremeai-backend"
+version = "2.0.0"
+description = "SupremeAI 2.0 — FastAPI AI Backend"
+authors = ["SupremeAI Team <team@supremeai.dev>"]
+readme = "README.md"
+packages = [{include = "core"}, {include = "brain"}, {include = "api"}, {include = "memory"}, {include = "tools"}]
 
 [tool.poetry.dependencies]
 python = "^3.11"
@@ -58,6 +63,9 @@ build-backend = "poetry.core.masonry.api"
 [tool.ruff]
 line-length = 100
 target-version = "py311"
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["F401", "F821", "F841", "E402"]
 
 [tool.mypy]
 python_version = "3.11"
