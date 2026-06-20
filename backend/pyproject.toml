@@ -4,6 +4,7 @@ version = "2.0.0"
 description = "SupremeAI 2.0 — FastAPI AI Backend"
 authors = ["SupremeAI Team <team@supremeai.dev>"]
 readme = "README.md"
+package-mode = false
 packages = [{include = "core"}, {include = "brain"}, {include = "api"}, {include = "memory"}, {include = "tools"}]
 
 [tool.poetry.dependencies]
