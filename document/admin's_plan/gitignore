@@ -47,12 +47,3 @@ data/*/
 
 # Firebase
 .firebase/
-
-# Antigravity & Playwright runtime / cache
-.antigravity
-.playwright-mcp/
-.turbo/
-.coverage
-*.ps1
-data/*.json
-*.tsbuildinfo

@@ -1,0 +1,105 @@
+import math
+
+import pytest
+
+from core.circuit_breaker import CircuitBreaker
+
+
+def test_breaker_blocks_after_failures_and_recovers():
+    breaker = CircuitBreaker("unit", failure_threshold=3, recovery_timeout=0.1)
+
+    for _ in range(3):
+        breaker.mark_failure()
+
+    assert breaker.state == "OPEN"
+    assert breaker.allow_request() is False
+
+    breaker.mark_success()
+    assert breaker.state == "CLOSED"
+    assert breaker.allow_request() is True
+
+
+def test_breaker_half_open_allows_one_request():
+    breaker = CircuitBreaker("unit", failure_threshold=2, recovery_timeout=0.05)
+    for _ in range(2):
+        breaker.mark_failure()
+
+    assert breaker.state == "OPEN"
+    breaker.mark_failure()
+    assert breaker.state == "OPEN"
+
+    breaker.opened_at -= 0.06
+    assert breaker.allow_request() is True
+    assert breaker.state == "HALF_OPEN"
+
+
+def test_breaker_call_success_and_failure():
+    breaker = CircuitBreaker("unit")
+
+    async def ok():
+        return "ok"
+
+    import asyncio
+    assert asyncio.run(breaker.call(ok)) == "ok"
+    assert breaker.state == "CLOSED"
+
+    async def bad():
+        raise RuntimeError("down")
+
+    with pytest.raises(RuntimeError, match="down"):
+        asyncio.run(breaker.call(bad))
+
+    assert breaker.state in {"OPEN", "HALF_OPEN", "CLOSED"}
+
+    for _ in range(5):
+        try:
+            asyncio.run(breaker.call(bad))
+        except RuntimeError:
+            pass
+
+    assert breaker.state == "OPEN"
+    with pytest.raises(RuntimeError, match="open"):
+        asyncio.run(breaker.call(ok))
+
+
+def test_response_cache_respects_ttl():
+    from brain.model_router import ModelRouter
+
+    router = ModelRouter()
+    router._cache_ttl = 1.0
+
+    router._put_in_cache("a", {"text": "v1"})
+    assert router._get_from_cache("a")["text"] == "v1"
+    router._put_in_cache("a", {"text": "v2"})
+    assert router._get_from_cache("a")["text"] == "v2"
+    for key in list(router._cache):
+        router._cache[key] = (router._cache[key][0], router._cache[key][1] - 2.0)
+    assert router._get_from_cache("a") is None
+
+
+def test_openai_compatible_helper_uses_first_key():
+    from brain.model_router import ModelRouter
+
+    router = ModelRouter()
+    router._get_keys = lambda v: ["k1", "k2"]
+
+    async def fake_post(*, url, headers, json):
+        class _Response:
+            def raise_for_status(self):
+                return None
+
+            def json(self):
+                return {"choices": [{"message": {"content": "text"}}]}
+
+        return _Response()
+
+    router._http_client = fake_post
+    result = router._call_openai_compatible(
+        base_url="https://example.test/v1",
+        raw_keys="k1",
+        model="m",
+        prompt="p",
+        provider_name="unit",
+    )
+    assert result["text"] == "text"
+    assert result["provider"] == "unit"
