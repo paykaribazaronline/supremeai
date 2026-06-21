@@ -12,6 +12,9 @@ from .metrics import router as metrics_router
 from .simulator import router as simulator_router
 from .stream import router as stream_router
 from .task import router as task_router
+from .email import router as email_router
+from .github import router as github_router
+from .marketplace_endpoints import router as marketplace_endpoints_router
 
 __all__ = [
     "admin_dashboard_router",
@@ -28,4 +31,8 @@ __all__ = [
     "simulator_router",
     "stream_router",
     "task_router",
+    "email_router",
+    "github_router",
+    "marketplace_endpoints_router",
 ]
+

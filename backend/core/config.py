@@ -1,9 +1,14 @@
+import sys
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from pydantic import field_validator
 
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
+    model_config = SettingsConfigDict(
+        env_file=None if ("pytest" in sys.modules or any("pytest" in arg for arg in sys.argv)) else ".env",
+        extra="ignore"
+    )
+
 
     PROJECT_NAME: str = "SupremeAI 2.0"
     API_V1_STR: str = "/api/v1"

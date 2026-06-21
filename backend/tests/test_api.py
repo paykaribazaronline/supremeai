@@ -72,10 +72,13 @@ def test_task_execute_allowed_and_success():
         assert resp.status_code == 200
         body = resp.json()
         assert body["success"] is True
-        assert body["result"] == "ok"
+        import json
+        res_obj = json.loads(body["result"])
+        assert res_obj["content"] == "ok"
         fake_router.route_and_generate.assert_called_once_with(
             prompt="hello", task_type="general", max_cost=0.01
         )
+
     finally:
         app_mod.admin_god = previous_admin
         app_mod.model_router = previous_router

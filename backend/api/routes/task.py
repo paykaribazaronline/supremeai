@@ -9,12 +9,16 @@ from brain.model_router import ModelRouter
 router = APIRouter()
 
 
+# --- Agentic Security & Context: Task Request Schema ---
+# Added messages and session_id parameters on 2026-06-21 to prevent context loss.
 class TaskRequest(BaseModel):
     task: str
     task_type: str = "general"
     max_cost: float = 0.01
     admin_token: str | None = None
     schema_name: str | None = None
+    messages: list[dict] | None = None
+    session_id: str | None = None
 
 
 class TaskResponse(BaseModel):
@@ -130,6 +134,87 @@ class ProblemDetailsResponse(JSONResponse):
         super().__init__(status_code=status, content=content, media_type="application/problem+json")
 
 
+# --- Action Cards Helpers ---
+# Added by Agent Antigravity on 2026-06-21. Formats output as structured action card JSON.
+def format_chat_history(messages: list[dict]) -> str:
+    lines = []
+    for msg in messages:
+        role = msg.get("role", "user")
+        content = msg.get("content", "")
+        if isinstance(content, str) and content.strip().startswith("{"):
+            try:
+                data = json.loads(content)
+                if isinstance(data, dict) and "content" in data:
+                    content = data["content"]
+            except Exception:
+                pass
+        role_label = "User" if role == "user" else "Assistant"
+        lines.append(f"{role_label}: {content}")
+    return "\n".join(lines)
+
+
+
+def format_response(text: str, task_type: str) -> str:
+    # Extracts code blocks to clean markup
+    def extract_code(t: str) -> str:
+        if "```" in t:
+            parts = t.split("```")
+            for part in parts[1:]:
+                lines = part.splitlines()
+                if len(lines) > 0:
+                    return "\n".join(lines[1:])
+        return t
+        
+    def detect_language(t: str) -> str:
+        if "```" in t:
+            lang = t.split("```")[1].splitlines()[0].strip()
+            if lang:
+                return lang
+        return "javascript"
+
+    if "```" in text or task_type in ["code", "completion"]:
+        return json.dumps({
+            "type": "code",
+            "content": extract_code(text),
+            "metadata": {
+                "language": detect_language(text),
+                "filename": "index.html" if "html" in detect_language(text) else "component.tsx",
+                "actions": [
+                    {"id": "preview", "label": "👁️ Preview", "type": "preview"},
+                    {"id": "save", "label": "💾 Save to Project", "type": "save"},
+                    {"id": "run", "label": "▶️ Run Code", "type": "run"},
+                    {"id": "deploy", "label": "🚀 Deploy", "type": "deploy"}
+                ]
+            }
+        }, ensure_ascii=False)
+        
+    if task_type == "image" or "generate image" in text.lower():
+        import re
+        urls = re.findall(r'http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+', text)
+        image_url = urls[0] if urls else text
+        return json.dumps({
+            "type": "image",
+            "content": image_url,
+            "metadata": {
+                "actions": [
+                    {"id": "download", "label": "⬇️ Download", "type": "save"},
+                    {"id": "share", "label": "🔗 Share", "type": "share"}
+                ]
+            }
+        }, ensure_ascii=False)
+        
+    return json.dumps({
+        "type": "text",
+        "content": text,
+        "metadata": {
+            "actions": [
+                {"id": "copy", "label": "📋 Copy", "type": "copy"},
+                {"id": "share", "label": "🔗 Share", "type": "share"}
+            ]
+        }
+    }, ensure_ascii=False)
+
+
 @router.post("/task/execute")
 def execute_task(req: TaskRequest):
     import core.app as app_mod
@@ -148,16 +233,55 @@ def execute_task(req: TaskRequest):
             instance="/task/execute"
         )
 
+    # Use the adaptive IntentParser
+    app_spec = app_mod.intent_parser.parse_intent(req.task, history=req.messages)
+
     intent = intent_clf.classify(req.task)
     task_type = req.task_type
     if intent.task_type != "general" and req.task_type == "general":
         task_type = intent.task_type.value
 
+    # Build prompt context if chat messages are provided
+    prompt = req.task
+    if req.messages and len(req.messages) > 1:
+        context_prompt = format_chat_history(req.messages[:-1])
+        prompt = f"{context_prompt}\nUser: {req.task}\nAssistant:"
+
     raw = model_router.route_and_generate(
-        prompt=req.task,
+        prompt=prompt,
         task_type=task_type,
         max_cost=req.max_cost,
     )
+
+    # Log to ExperienceDatabase
+    from adaptive_engine.experience_db import Experience
+    import datetime
+    
+    exp = Experience(
+        timestamp=datetime.datetime.utcnow().isoformat(),
+        user_id=req.session_id or "default-user",
+        request=req.task,
+        context={
+            "task_type": task_type,
+            "session_id": req.session_id,
+            "app_type": app_spec.app_type,
+            "features": app_spec.features,
+            "tech_stack": app_spec.tech_stack,
+            "pages": app_spec.pages,
+            "integrations": app_spec.integrations,
+            "deployment_target": app_spec.deployment_target
+        },
+        action_taken=f"Executed task on provider {raw.get('provider')}",
+        result="success" if raw.get("success") else "failure",
+        error_message=raw.get("error"),
+        generated_code=raw.get("text") if ("```" in raw.get("text", "")) else None,
+        what_worked=["Intent parsed successfully"] if raw.get("success") else [],
+        what_failed=[] if raw.get("success") else [raw.get("error", "Unknown error")]
+    )
+    try:
+        app_mod.experience_db.record_experience(exp)
+    except Exception:
+        pass
 
     if not raw.get("success"):
         return ProblemDetailsResponse(
@@ -170,10 +294,14 @@ def execute_task(req: TaskRequest):
             cost=raw.get("cost")
         )
 
+    # Format output as Action-Oriented JSON string
+    formatted_result = format_response(raw.get("text", ""), task_type)
+
     return TaskResponse(
         success=True,
-        result=raw.get("text"),
+        result=formatted_result,
         provider=raw.get("provider"),
         cost=raw.get("cost", 0.0),
     )
+
 

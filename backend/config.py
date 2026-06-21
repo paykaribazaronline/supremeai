@@ -1,9 +1,14 @@
+import sys
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from pydantic import Field, field_validator
 
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
+    # Added by Agent Antigravity on 2026-06-21: Disable loading .env during pytest runs to avoid local config leakage in tests
+    model_config = SettingsConfigDict(
+        env_file=None if "pytest" in sys.modules else ".env", 
+        extra="ignore"
+    )
 
     PROJECT_NAME: str = "SupremeAI 2.0"
     API_V1_STR: str = "/api/v1"
