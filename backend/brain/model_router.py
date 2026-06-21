@@ -475,8 +475,8 @@ class ModelRouter:
         from config import settings
         is_production = settings.env.lower() == "production"
 
-        # [2026-06-21] Fallback order optimized: free providers first (gemini → openrouter → groq)
-        remaining = ["gemini", "openrouter", "groq", "deepseek", "nvidia", "huggingface", "ollama"]
+        # [2026-06-21] Fallback order optimized: free providers first, deepseek removed (paid API, violates $0 cost policy)
+        remaining = ["gemini", "openrouter", "groq", "nvidia", "huggingface", "ollama"]
         if is_production and "ollama" in remaining:
             remaining.remove("ollama")
 
