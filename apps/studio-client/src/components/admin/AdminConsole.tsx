@@ -1,6 +1,5 @@
-import type { ChatMessage, Skill, Checkpoint, CloudStats, GcpHealth, AdminSubTab } from '../types';
+import type { ChatMessage, Skill, Checkpoint, CloudStats, GcpHealth } from '../types';
 import { useHydrated } from '../store/customerStore';
-import { CommandCenter, LiveLogs, CostAuditor, HealthMap, UserManager, ConfigEditor, ModelRouter, EnhancedSkillMarketplace, MemoryBrowser, CloudOrchestrator, ObservabilityDashboard, ThreatDetection, VisualRulesBuilder, CICDVisualizer, GithubIntegration, BackupRestore } from './admin';
 
 interface AdminConsoleProps {
   adminAuthenticated: boolean;
@@ -24,8 +23,8 @@ interface AdminConsoleProps {
   handleInstallSkill: (name: string) => void;
   checkpoints: Checkpoint[];
   handleDeleteCheckpoint: (taskId: string) => void;
-  adminSubTab: AdminSubTab;
-  setAdminSubTab: (tab: AdminSubTab) => void;
+  adminSubTab: 'sandbox' | 'logs' | 'costs' | 'health' | 'users' | 'config' | 'command-center' | 'model-router' | 'skills' | 'memory' | 'cloud' | 'observability' | 'threats' | 'rules' | 'cicd' | 'github' | 'backups';
+  setAdminSubTab: (tab: 'sandbox' | 'logs' | 'costs' | 'health' | 'users' | 'config' | 'command-center' | 'model-router' | 'skills' | 'memory' | 'cloud' | 'observability' | 'threats' | 'rules' | 'cicd' | 'github' | 'backups') => void;
   handleTriggerDeploy: () => void;
   adminMessages: ChatMessage[];
   loading: boolean;
@@ -59,14 +58,34 @@ interface AdminConsoleProps {
   toggleTheme: () => void;
 }
 
+const TabButton = ({ 
+  active, 
+  onClick, 
+  children 
+}: { 
+  active: boolean; 
+  onClick: () => void; 
+  children: React.ReactNode;
+}) => (
+  <button
+    onClick={onClick}
+    className={`px-3 py-1 text-xs font-semibold rounded font-mono transition-colors ${
+      active ? 'bg-[#00f3ff]/20 text-[#00f3ff]' : 'text-slate-400 hover:text-white'
+    }`}
+  >
+    {children}
+  </button>
+);
+
 export function AdminConsole(props: AdminConsoleProps) {
   const hydrated = useHydrated();
+  const { adminAuthenticated, adminSubTab, setAdminSubTab, handleAdminLogout, toggleTheme, theme, handleTriggerDeploy, adminError, actionStatus } = props;
   
   if (!hydrated) return null;
   
   return (
     <div className="flex-grow flex flex-col overflow-hidden bg-[#030407]">
-      {!props.adminAuthenticated ? (
+      {!adminAuthenticated ? (
         <LoginView {...props} />
       ) : (
         <AuthenticatedView {...props} />

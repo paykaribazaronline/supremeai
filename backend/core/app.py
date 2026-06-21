@@ -20,6 +20,8 @@ from api.routes import (
     marketplace_router,
     metrics_router,
     auth_router,
+    async_task_router,
+    cdc_router,
     codeflow_router,
     feedback_router,
     memory_router,
@@ -470,6 +472,8 @@ app.include_router(simulator_router)
 app.include_router(browser_router)
 app.include_router(stream_router)
 app.include_router(agent_router)
+app.include_router(async_task_router)
+app.include_router(cdc_router)
 app.include_router(media_router)
 app.include_router(knowledge_router)
 app.include_router(marketplace_router)
@@ -483,6 +487,16 @@ if codeflow_router is not None:
     app.include_router(codeflow_router)
 if feedback_router is not None:
     app.include_router(feedback_router)
+
+# Initialize connection pool on startup
+@app.on_event("startup")
+async def startup_event():
+    try:
+        from core.pgbouncer_pool import get_db_pool
+        await get_db_pool()
+        logger.info("PgBouncer connection pool initialized on startup")
+    except Exception as e:
+        logger.warning(f"PgBouncer pool initialization deferred: {e}")
 
 
 from core.universal_rules import UniversalRulesEngine

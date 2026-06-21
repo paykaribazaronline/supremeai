@@ -1,6 +1,8 @@
 from .admin_dashboard import router as admin_dashboard_router
 from .agent_tasks import agent_router as agent_router
 from .auth import router as auth_router
+from .async_task_router import router as async_task_router
+from .cdc_webhooks import router as cdc_router
 from .browser import router as browser_router
 from .codeflow import router as codeflow_router
 from .feedback import router as feedback_router
@@ -20,6 +22,8 @@ __all__ = [
     "admin_dashboard_router",
     "agent_router",
     "auth_router",
+    "async_task_router",
+    "cdc_router",
     "browser_router",
     "codeflow_router",
     "feedback_router",

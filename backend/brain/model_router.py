@@ -7,7 +7,6 @@ import httpx
 from typing import Any, Dict, Optional, Tuple
 from loguru import logger
 
-
 from brain.model_registry import ModelRegistry
 from tools.cot_reasoner import ChainOfThoughtReasoner
 from core.input_sanitizer import InputSanitizer
@@ -15,6 +14,11 @@ from core.audit_logger import AuditLogger
 from memory.long_term_memory import LongTermMemory
 from core.language_router import LanguageRouter
 from core.circuit_breaker import CircuitBreaker
+from core.agent_orchestrator import SmartSemanticRouter, route_request, async_task_manager
+from core.semantic_cache import SemanticCache
+
+MAX_AGENT_TOKENS = 5000
+MAX_AGENT_ITERATIONS = 5
 
 
 def run_async_as_sync(coro):
@@ -315,7 +319,9 @@ class ModelRouter:
             f"openrouter={'yes' if self.openrouter_api_key else 'no'}"
         )
 
-        # Sanitize input and strip PII
+        routing = route_request(prompt, task_type)
+        logger.info(f"Semantic routing: intent={routing.intent}, tier={routing.tier}, expensive={routing.requires_expensive}")
+
         sanitized = self.input_sanitizer.sanitize(prompt)
         if not sanitized.get("is_valid", True):
             return {
@@ -393,10 +399,19 @@ class ModelRouter:
             provider = lang_provider
             logger.info(f"Language override: detected {detected_lang} => provider {provider}")
 
-        cache_key = self._cache_key(enriched_prompt, task_type)
-        cached = self._get_from_cache(cache_key)
-        if cached is not None:
-            return cached
+        semantic_cache = SemanticCache()
+        if semantic_cache.is_configured:
+            cached = await semantic_cache.query_similar(prompt)
+            if cached:
+                logger.info(f"Semantic cache hit: {cached.provider}/{cached.model}")
+                return {
+                    "success": True,
+                    "provider": cached.provider,
+                    "model": cached.model,
+                    "text": cached.response,
+                    "cost": 0.0,
+                    "cached": True,
+                }
 
         self._warn_if_low_key_redundancy(provider)
         try:
