@@ -16,6 +16,7 @@ from .stream import router as stream_router
 from .task import router as task_router
 from .email import router as email_router
 from .github import router as github_router
+from .internal import router as internal_router
 from api.marketplace import router as marketplace_endpoints_router
 
 __all__ = [
@@ -37,6 +38,7 @@ __all__ = [
     "task_router",
     "email_router",
     "github_router",
+    "internal_router",
     "marketplace_endpoints_router",
 ]
 

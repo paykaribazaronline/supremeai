@@ -25,10 +25,10 @@ class RunEvolutionRequest(BaseModel):
 
 
 @router.post("/internal/run-daily-evolution")
-async def run_daily_evolution(request: RunEvolutionRequest):
-    _require_admin(Request)
+async def run_daily_evolution(request: Request, payload: RunEvolutionRequest):
+    _require_admin(request)
     engine = EvolutionEngine()
-    task_history = request.task_history or []
+    task_history = payload.task_history or []
     report = engine.run_daily_evolution(task_history)
     try:
         from core.gcp_firestore import GCPFirestoreVerificationQueue
