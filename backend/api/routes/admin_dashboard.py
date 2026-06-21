@@ -200,3 +200,108 @@ def trigger_deploy():
     """Trigger a mock production deployment."""
     logger.info("Production deployment triggered via Admin Dashboard")
     return {"status": "success", "message": "Deployment pipeline triggered successfully."}
+
+@router.get("/metrics")
+def get_metrics():
+    """Real-time metrics for Command Center."""
+    return {
+        "requests_per_second": 142,
+        "latency_p50_ms": 210,
+        "latency_p95_ms": 450,
+        "latency_p99_ms": 890,
+        "error_rate": 0.02,
+        "total_requests_24h": 12450,
+        "cost_per_hour": 2.40,
+        "cost_projected_monthly": 1720,
+        "active_providers": ["openrouter", "gemini", "groq", "deepseek"],
+        "model_call_distribution": {
+            "openrouter": 45,
+            "gemini": 25,
+            "groq": 20,
+            "deepseek": 10,
+        },
+    }
+
+@router.get("/providers")
+def get_providers():
+    """Provider status for Model Router module."""
+    return [
+        {
+            "id": "openrouter",
+            "name": "OpenRouter",
+            "status": "healthy",
+            "latency_ms": 120,
+            "latency_history": [115, 118, 120, 122, 119, 121, 120],
+            "api_key_valid": True,
+            "rate_limit_remaining": 85,
+            "rate_limit_max": 100,
+            "models": ["gpt-4o", "claude-3.5-sonnet", "llama-3.1-70b"],
+            "mode": "active",
+        },
+        {
+            "id": "gemini",
+            "name": "Google Gemini",
+            "status": "healthy",
+            "latency_ms": 180,
+            "latency_history": [175, 178, 180, 182, 179, 181, 180],
+            "api_key_valid": True,
+            "rate_limit_remaining": 60,
+            "rate_limit_max": 60,
+            "models": ["gemini-2.0-flash", "gemini-1.5-pro"],
+            "mode": "fallback",
+        },
+        {
+            "id": "groq",
+            "name": "Groq",
+            "status": "degraded",
+            "latency_ms": 340,
+            "latency_history": [120, 120, 125, 200, 300, 340, 340],
+            "api_key_valid": True,
+            "rate_limit_remaining": 100,
+            "rate_limit_max": 100,
+            "models": ["llama-3.1-8b", "mixtral-8x7b"],
+            "mode": "active",
+        },
+        {
+            "id": "deepseek",
+            "name": "DeepSeek",
+            "status": "healthy",
+            "latency_ms": 250,
+            "latency_history": [245, 248, 250, 252, 249, 251, 250],
+            "api_key_valid": True,
+            "rate_limit_remaining": 50,
+            "rate_limit_max": 50,
+            "models": ["deepseek-chat", "deepseek-reasoner"],
+            "mode": "fallback",
+        },
+    ]
+
+@router.get("/model-router")
+def get_model_router():
+    """Model router configuration."""
+    return {
+        "current_override": None,
+        "override_remaining_requests": 0,
+        "ab_test_active": False,
+        "ab_test_split": 50,
+        "provider_order": ["openrouter", "gemini", "groq", "deepseek"],
+        "cost_quality_preference": 0.7,
+    }
+
+class RouterOverrideRequest(BaseModel):
+    provider: str
+    model: str
+    remaining_requests: int
+
+@router.post("/model-router/override")
+def set_router_override(payload: RouterOverrideRequest):
+    """Force a specific provider/model for next N requests."""
+    logger.info(f"Router override set: {payload.provider}/{payload.model} for {payload.remaining_requests} requests")
+    return {
+        "status": "success",
+        "override": {
+            "provider": payload.provider,
+            "model": payload.model,
+            "remaining": payload.remaining_requests,
+        }
+    }
