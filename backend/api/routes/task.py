@@ -1,6 +1,6 @@
 import json
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel
 from fastapi.responses import StreamingResponse, JSONResponse
 
@@ -75,17 +75,14 @@ def _build_chat_prompt(req: ChatStreamRequest) -> str:
 @router.post("/api/chat/completion", response_model=CompletionResponse)
 async def get_completion(req: CompletionRequest):
     import core.app as app_mod
-    import anyio
     model_router = app_mod.model_router
 
     prompt = _build_completion_prompt(req.prefix, req.suffix)
 
-    raw = await anyio.to_thread.run_sync(
-        lambda: model_router.route_and_generate(
-            prompt=prompt,
-            task_type="completion",
-            max_cost=0.005,
-        )
+    raw = await model_router.async_route_and_generate(
+        prompt=prompt,
+        task_type="completion",
+        max_cost=0.005,
     )
 
     completion_text = raw.get("text", "")
@@ -105,20 +102,16 @@ async def get_completion(req: CompletionRequest):
 @router.post("/api/chat/stream")
 async def stream_chat(req: ChatStreamRequest):
     import core.app as app_mod
-    import anyio
 
     model_router = app_mod.model_router
     prompt = _build_chat_prompt(req)
 
     async def event_generator():
-        def get_chunks():
-            return list(model_router.route_and_stream(
-                prompt=prompt,
-                task_type="general",
-                max_cost=0.01,
-            ))
-        chunks = await anyio.to_thread.run_sync(get_chunks)
-        for chunk in chunks:
+        async for chunk in model_router.async_route_and_stream(
+            prompt=prompt,
+            task_type="general",
+            max_cost=0.01,
+        ):
             token = chunk.decode("utf-8") if isinstance(chunk, bytes) else str(chunk)
             yield f"data: {json.dumps({'token': token})}\n\n"
         yield "data: [DONE]\n\n"

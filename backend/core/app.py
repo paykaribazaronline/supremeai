@@ -123,10 +123,25 @@ platform_learner = PlatformLearner(model_router, platform_registry)
 
 
 from contextlib import asynccontextmanager
+import httpx
+
+global_http_client: httpx.AsyncClient = None
 
 @asynccontextmanager
 async def app_lifespan(app: FastAPI):
+    global global_http_client
+    limits = httpx.Limits(max_keepalive_connections=50, max_connections=100)
+    timeout = httpx.Timeout(10.0, connect=5.0, read=30.0)
+    global_http_client = httpx.AsyncClient(limits=limits, timeout=timeout)
+    app.state.http_client = global_http_client
+    # Point the model router's internal HTTP client to the shared global client
+    model_router._http_client = global_http_client
     yield
+    if global_http_client:
+        try:
+            await global_http_client.aclose()
+        except Exception as exc:
+            logger.warning(f"Shared HTTP client close failed: {exc}")
     try:
         await model_router._http_client.aclose()
     except Exception as exc:

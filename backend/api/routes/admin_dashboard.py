@@ -4,7 +4,7 @@ import json
 import asyncio
 import secrets
 from typing import Dict, Any, List
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, Request
 from fastapi.responses import StreamingResponse
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel
@@ -29,7 +29,32 @@ def require_admin_token(credentials: HTTPAuthorizationCredentials = Depends(secu
             return {"uid": "admin", "role": "admin"}
         raise HTTPException(status_code=401, detail=f"Invalid Admin Authorization Token: {str(e)}")
 
-router = APIRouter(prefix="/admin-api", tags=["admin-dashboard"], dependencies=[Depends(require_admin_token)])
+def admin_rate_limit(request: Request):
+    import core.app as app_mod
+    client_ip = request.client.host if request.client else "unknown"
+    key = f"rate_limit:admin:{client_ip}"
+    limit = 20
+    window = 60
+    
+    if app_mod.redis_queue and app_mod.redis_queue.configured:
+        try:
+            current_hits = app_mod.redis_queue.get(key)
+            if current_hits is not None and int(current_hits) >= limit:
+                logger.warning(f"Distributed admin rate limit exceeded for {client_ip}")
+                raise HTTPException(status_code=429, detail="Too many admin requests. Please try again later.")
+            
+            hits = app_mod.redis_queue.incr(key)
+            if hits == 1:
+                app_mod.redis_queue.set(key, "1", ex=window)
+            elif hits is not None and hits > limit:
+                logger.warning(f"Distributed admin rate limit exceeded for {client_ip}")
+                raise HTTPException(status_code=429, detail="Too many admin requests. Please try again later.")
+        except HTTPException:
+            raise
+        except Exception as exc:
+            logger.error(f"Distributed rate limiter check failed, falling back: {exc}")
+
+router = APIRouter(prefix="/admin-api", tags=["admin-dashboard"], dependencies=[Depends(require_admin_token), Depends(admin_rate_limit)])
 
 # User CRUD model
 class UserUpdate(BaseModel):
@@ -344,3 +369,15 @@ def set_router_override(payload: RouterOverrideRequest):
             "remaining": payload.remaining_requests,
         }
     }
+
+@router.get("/codebase/export")
+def get_codebase_export():
+    """Generates and returns the entire codebase represented as a single markdown file."""
+    from tools.codebase_exporter import export_codebase_to_markdown
+    try:
+        # Scan from backend's parent directory (the project root)
+        codebase_md = export_codebase_to_markdown("..")
+        return {"success": True, "markdown": codebase_md}
+    except Exception as e:
+        logger.error(f"Failed to export codebase: {e}")
+        raise HTTPException(status_code=500, detail=f"Export failed: {str(e)}")
