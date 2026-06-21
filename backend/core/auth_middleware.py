@@ -37,7 +37,7 @@ class AuthMiddleware(BaseHTTPMiddleware):
             referer = request.headers.get("referer", "")
 
             # Allow localhost / 127.0.0.1 only in development/test environments
-            from config import settings
+            from core.config import settings
             is_env_local = settings.env.lower() in {"local", "test"}
             is_local = is_env_local and ("localhost" in origin or "127.0.0.1" in origin or "localhost" in referer or "127.0.0.1" in referer)
 
