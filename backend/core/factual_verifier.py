@@ -2,7 +2,6 @@ import ast
 import operator
 import httpx
 import re
-from typing import Any, Dict, List
 
 
 _ALLOWED_OPERATORS = {

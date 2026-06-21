@@ -2,6 +2,7 @@ from fastapi.testclient import TestClient
 import os
 
 os.environ["OPENROUTER_API_KEY"] = "mock-key-value"
+os.environ["SUPREMEAI_API_TOKEN"] = "test-token"
 from core.app import app
 
 auth_headers = {"Authorization": "Bearer test-token"}
