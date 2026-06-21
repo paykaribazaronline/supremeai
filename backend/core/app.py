@@ -241,7 +241,7 @@ def get_firestore_client():
 # Attempt to initialize Firebase Admin SDK for token verification
 try:
     import firebase_admin
-    from firebase_admin import credentials, auth
+    from firebase_admin import auth
     if not firebase_admin._apps:
         firebase_admin.initialize_app()
 except Exception as e:

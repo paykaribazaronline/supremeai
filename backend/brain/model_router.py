@@ -2,7 +2,6 @@ import os
 import asyncio
 import hashlib
 import time
-from functools import wraps
 import httpx
 from typing import Any, Dict, Optional, Tuple
 from loguru import logger
@@ -14,7 +13,7 @@ from core.audit_logger import AuditLogger
 from memory.long_term_memory import LongTermMemory
 from core.language_router import LanguageRouter
 from core.circuit_breaker import CircuitBreaker
-from core.agent_orchestrator import SmartSemanticRouter, route_request, async_task_manager
+from core.agent_orchestrator import route_request
 from core.semantic_cache import SemanticCache
 
 MAX_AGENT_TOKENS = 5000

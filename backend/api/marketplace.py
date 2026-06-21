@@ -52,7 +52,10 @@ def load_skill_registry() -> Dict[str, Any]:
         return default_registry
     try:
         with open(REGISTRY_FILE, "r") as f:
-            return json.load(f)
+            data = json.load(f)
+            if isinstance(data, dict):
+                return data
+            return {"skills": {}}
     except Exception:
         return {"skills": {}}
 
@@ -124,8 +127,10 @@ async def search_marketplaces(payload: SearchRequest, request: Request):
     ]
 
     for tool in mock_results:
-        if payload.query.lower() in tool["name"].lower():
-            if not payload.categories or tool["marketplace"] in payload.categories:
+        tool_name = str(tool.get("name", ""))
+        tool_marketplace = str(tool.get("marketplace", ""))
+        if payload.query.lower() in tool_name.lower():
+            if not payload.categories or tool_marketplace in payload.categories:
                 results.append(tool)
 
     # Apply filters

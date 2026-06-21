@@ -6,7 +6,6 @@ from typing import Optional, Dict, Any, List
 from dataclasses import dataclass
 from loguru import logger
 import httpx
-import numpy as np
 
 @dataclass
 class CacheEntry:

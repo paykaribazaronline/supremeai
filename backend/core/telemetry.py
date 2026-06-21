@@ -1,4 +1,5 @@
 from contextlib import contextmanager
+import os
 from typing import Optional, Dict, Any
 from opentelemetry import trace as otel_trace
 from opentelemetry.trace import Span, Status, StatusCode, Tracer
@@ -13,9 +14,10 @@ _tracer: Optional[Tracer] = None
 
 
 def setup_tracing(service_name: str = "supremeai", otlp_endpoint: Optional[str] = None) -> None:
+    endpoint = otlp_endpoint or os.getenv("OTLP_ENDPOINT", "")
     provider = TracerProvider()
-    if otlp_endpoint:
-        exporter = OTLPSpanExporter(endpoint=otlp_endpoint, insecure=True)
+    if endpoint:
+        exporter = OTLPSpanExporter(endpoint=endpoint, insecure=True)
         provider.add_span_processor(BatchSpanProcessor(exporter))
     otel_trace.set_tracer_provider(provider)
     globals()["_tracer"] = otel_trace.get_tracer(service_name)
