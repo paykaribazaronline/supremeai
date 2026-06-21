@@ -239,17 +239,21 @@ def get_firestore_client():
         logger.warning(f"Failed to initialize Firestore client: {e}")
         return None
 
+auth = None
 # Attempt to initialize Firebase Admin SDK for token verification
 try:
     import firebase_admin
-    from firebase_admin import auth
+    from firebase_admin import auth as firebase_auth
     if not firebase_admin._apps:
         firebase_admin.initialize_app()
+    auth = firebase_auth
 except Exception as e:
     logger.warning(f"Failed to initialize Firebase Admin: {e}")
 
 @app.post("/api/admin/firebase-login")
 def admin_firebase_login(payload: dict = Body(...)):
+    if not auth:
+        raise HTTPException(status_code=500, detail="Firebase Admin SDK is not initialized")
     id_token = payload.get("id_token")
     if not id_token:
         raise HTTPException(status_code=400, detail="Missing Firebase ID token")
@@ -295,6 +299,8 @@ def admin_firebase_login(payload: dict = Body(...)):
 
 @app.post("/api/admin/firebase-totp-setup")
 def admin_firebase_totp_setup(payload: dict = Body(...)):
+    if not auth:
+        raise HTTPException(status_code=500, detail="Firebase Admin SDK is not initialized")
     id_token = payload.get("id_token")
     if not id_token:
         raise HTTPException(status_code=400, detail="Missing Firebase ID token")
@@ -323,6 +329,8 @@ def admin_firebase_totp_setup(payload: dict = Body(...)):
 
 @app.post("/api/admin/firebase-totp-verify")
 def admin_firebase_totp_verify(payload: dict = Body(...)):
+    if not auth:
+        raise HTTPException(status_code=500, detail="Firebase Admin SDK is not initialized")
     id_token = payload.get("id_token")
     otp = payload.get("otp")
     if not id_token or not otp:
