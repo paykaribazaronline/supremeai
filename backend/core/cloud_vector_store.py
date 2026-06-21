@@ -48,6 +48,31 @@ class CloudVectorStore:
             logger.error(f"Vector upsert failed: {e}")
             return False
 
+    def delete(self, ids: List[str], namespace: str = "default") -> bool:
+        """Deletes vectors from cloud store by their unique IDs to prevent RAG desync and phantom memory."""
+        if not self.client and not self.index:
+            logger.warning("Vector store not initialized")
+            return False
+
+        try:
+            if self.provider == "pinecone" and self.index:
+                self.index.delete(ids=ids, namespace=namespace)
+                logger.info(f"Deleted vectors {ids} from Pinecone namespace {namespace}")
+                return True
+            elif self.provider == "qdrant" and self.client:
+                from qdrant_client.http.models import PointIdsList
+                collection_name = os.getenv("QDRANT_COLLECTION", "supremeai-knowledge")
+                self.client.delete(
+                    collection_name=collection_name,
+                    points_selector=PointIdsList(points=ids)
+                )
+                logger.info(f"Deleted points {ids} from Qdrant collection {collection_name}")
+                return True
+            return False
+        except Exception as e:
+            logger.error(f"Vector delete failed: {e}")
+            return False
+
     def query(self, vector: List[float], top_k: int = 5, namespace: str = "default") -> List[Dict]:
         """Query similar vectors."""
         if not self.index:

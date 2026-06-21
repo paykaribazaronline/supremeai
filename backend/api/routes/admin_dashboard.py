@@ -4,7 +4,7 @@ import json
 import asyncio
 import secrets
 from typing import Dict, Any, List
-from fastapi import APIRouter, HTTPException, Depends, Request
+from fastapi import APIRouter, HTTPException, Depends, Request, Response
 from fastapi.responses import StreamingResponse
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel
@@ -230,9 +230,23 @@ def delete_user(username: str):
     save_users(new_users)
     return {"status": "success", "message": f"User {username} deleted"}
 
+import hashlib
+
+def get_env_etag() -> str:
+    if os.path.exists(".env"):
+        try:
+            with open(".env", "rb") as f:
+                return hashlib.md5(f.read()).hexdigest()
+        except Exception:
+            pass
+    return "empty-env"
+
 @router.get("/config")
-def get_config():
-    """Get key configuration variables from .env."""
+def get_config(response: Response):
+    """Get key configuration variables from .env with ETag support."""
+    etag = get_env_etag()
+    response.headers["ETag"] = etag
+    
     env_vars = {}
     if os.path.exists(".env"):
         with open(".env", "r") as f:
@@ -246,8 +260,17 @@ def get_config():
     return env_vars
 
 @router.post("/config")
-def update_config(payload: ConfigUpdate):
-    """Update configuration variables in .env."""
+def update_config(payload: ConfigUpdate, request: Request):
+    """Update configuration variables in .env with Optimistic Concurrency Control (ETag check)."""
+    if_match = request.headers.get("if-match")
+    current_etag = get_env_etag()
+    
+    if if_match and if_match != current_etag:
+        raise HTTPException(
+            status_code=409,
+            detail="Conflict: The configuration has been modified by another user. Please refresh and try again."
+        )
+
     if not os.path.exists(".env"):
         return {"status": "error", "message": ".env file not found"}
         
