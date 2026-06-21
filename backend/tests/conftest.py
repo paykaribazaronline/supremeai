@@ -11,7 +11,7 @@ _TEST_ENV_DEFAULTS = {
     "GROQ_API_KEY": "",
     "NVIDIA_API_KEY": "",
     "FIRECRAWL_API_KEY": "",
-    "OLLAMA_URL": "http://localhost:11434",
+    "OLLAMA_URL": "http://127.0.0.1:11434",
     "SUPREMEAI_API_TOKEN": "",
     "SENTRY_DSN": "",
     "GCP_PROJECT_ID": "",

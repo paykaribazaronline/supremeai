@@ -18,9 +18,9 @@ def test_setup_tracing_with_endpoint():
         mock_provider = MagicMock()
         mock_provider_class.return_value = mock_provider
 
-        setup_tracing("test-service", "http://localhost:4317")
+        setup_tracing("test-service", "http://127.0.0.1:4317")
 
-        mock_exporter.assert_called_once_with(endpoint="http://localhost:4317", insecure=True)
+        mock_exporter.assert_called_once_with(endpoint="http://127.0.0.1:4317", insecure=True)
         mock_processor.assert_called_once_with(mock_exporter.return_value)
         mock_provider.add_span_processor.assert_called_once_with(mock_processor.return_value)
 

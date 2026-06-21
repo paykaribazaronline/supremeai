@@ -95,7 +95,7 @@ class ModelRouter:
         self.groq_api_key = os.getenv("GROQ_API_KEY", "")
         self.nvidia_api_key = os.getenv("NVIDIA_API_KEY", "")
         self.firecrawl_api_key = os.getenv("FIRECRAWL_API_KEY", "")
-        self.ollama_url = os.getenv("OLLAMA_URL", "http://localhost:11434")
+        self.ollama_url = os.getenv("OLLAMA_URL", "http://127.0.0.1:11434")
         self.default_model = os.getenv(
             "DEFAULT_MODEL", "meta-llama/llama-3-8b-instruct:free"
         )

@@ -86,7 +86,7 @@ def install_app(req: InstallRequest, userId: str = "default"):
         "appId": req.appId,
         "appName": f"App {req.appId}",
         "version": "1.0.0",
-        "previewUrl": f"http://localhost:8000/preview/{req.appId}",
+        "previewUrl": f"http://127.0.0.1:8000/preview/{req.appId}",
         "installedAt": datetime.utcnow().isoformat(),
         "launchCount": 0,
         "lastLaunchedAt": None,
@@ -138,7 +138,7 @@ def start_session(appId: str, userId: str = "default"):
     session_id = f"sess_{userId}_{appId}"
     session = {
         "sessionId": session_id,
-        "websocketUrl": f"ws://localhost:8000/ws/simulator/{session_id}",
+        "websocketUrl": f"ws://127.0.0.1:8000/ws/simulator/{session_id}",
         "previewUrl": app["previewUrl"],
         "state": "RUNNING",
         "startedAt": datetime.utcnow().isoformat(),

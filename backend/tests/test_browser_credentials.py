@@ -7,7 +7,7 @@ from fastapi.testclient import TestClient
 
 os.environ.setdefault("OPENROUTER_API_KEY", "")
 os.environ.setdefault("HF_API_KEY", "")
-os.environ.setdefault("OLLAMA_URL", "http://localhost:11434")
+os.environ.setdefault("OLLAMA_URL", "http://127.0.0.1:11434")
 from core.app import app as app_mod
 from api.routes.browser import router as browser_router
 from core.secure_credential_store import SecureCredentialStore, generate_key

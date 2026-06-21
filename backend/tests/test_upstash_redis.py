@@ -21,14 +21,14 @@ def test_upstash_redis_configured_success():
         mock_response.json.return_value = {"result": "val"}
         mock_client.post.return_value = mock_response
         
-        queue = UpstashRedisQueue(rest_url="http://localhost:8079", token="my-token")
+        queue = UpstashRedisQueue(rest_url="http://127.0.0.1:8079", token="my-token")
         assert queue.configured
         
         # Test get
         val = queue.get("my-key")
         assert val == "val"
         mock_client.post.assert_called_with(
-            "http://localhost:8079",
+            "http://127.0.0.1:8079",
             headers={"Authorization": "Bearer my-token"},
             json=["GET", "my-key"]
         )
@@ -40,11 +40,11 @@ def test_upstash_redis_set_success():
         mock_response = MagicMock()
         mock_client.post.return_value = mock_response
         
-        queue = UpstashRedisQueue(rest_url="http://localhost:8079", token="my-token")
+        queue = UpstashRedisQueue(rest_url="http://127.0.0.1:8079", token="my-token")
         
         assert queue.set("my-key", "my-val", ex=3600)
         mock_client.post.assert_called_with(
-            "http://localhost:8079",
+            "http://127.0.0.1:8079",
             headers={"Authorization": "Bearer my-token"},
             json=["SET", "my-key", "my-val", "EX", 3600]
         )
@@ -58,7 +58,7 @@ def test_upstash_redis_incr_decr():
         mock_response.json.return_value = {"result": "5"}
         mock_client.post.return_value = mock_response
         
-        queue = UpstashRedisQueue(rest_url="http://localhost:8079", token="my-token")
+        queue = UpstashRedisQueue(rest_url="http://127.0.0.1:8079", token="my-token")
         
         assert queue.incr("counter") == 5
         assert queue.decr("counter") == 5

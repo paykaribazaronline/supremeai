@@ -31,7 +31,7 @@ services:
       - DB_POSTGRESDB_USER=${POSTGRES_USER:-n8n_user}
       - DB_POSTGRESDB_PASSWORD=${POSTGRES_PASSWORD:-n8n_password}
       - N8N_ENCRYPTION_KEY=${N8N_ENCRYPTION_KEY:-supreme_secret_key}
-      - WEBHOOK_URL=http://${CLOUD_SERVER_IP:-localhost}:5678/
+      - WEBHOOK_URL=http://${CLOUD_SERVER_IP:-127.0.0.1}:5678/
     depends_on:
       - db
     volumes:
@@ -39,7 +39,7 @@ services:
     networks:
       - supreme_network
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:5678/healthz || exit 1"]
+      test: ["CMD-SHELL", "curl -f http://127.0.0.1:5678/healthz || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3

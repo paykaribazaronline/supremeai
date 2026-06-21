@@ -9,7 +9,7 @@ except ImportError:
     CELERY_AVAILABLE = False
 
 # Scaffolding Celery App
-redis_url = os.getenv("REDIS_URL", "redis://localhost:6379/0")
+redis_url = os.getenv("REDIS_URL", "redis://127.0.0.1:6379/0")
 
 if CELERY_AVAILABLE:
     celery_app = Celery(

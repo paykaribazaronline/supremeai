@@ -7,7 +7,7 @@ def _bootstrap():
     os.environ.setdefault("ENV", "test")
     os.environ.setdefault("OPENROUTER_API_KEY", "")
     os.environ.setdefault("HF_API_KEY", "")
-    os.environ.setdefault("OLLAMA_URL", "http://localhost:11434")
+    os.environ.setdefault("OLLAMA_URL", "http://127.0.0.1:11434")
     os.environ.setdefault("GEMINI_API_KEY", "")
     os.environ.setdefault("DEEPSEEK_API_KEY", "")
     os.environ.setdefault("GROQ_API_KEY", "")
@@ -53,7 +53,7 @@ def test_model_router_fallback_chain(monkeypatch):
     mr = ModelRouter()
     mr.openrouter_api_key = "x"
     mr.hf_api_key = ""
-    mr.ollama_url = "http://localhost:11434"
+    mr.ollama_url = "http://127.0.0.1:11434"
     mr.default_model = "m"
     mr.local_model = "l"
 

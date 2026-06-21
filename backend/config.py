@@ -19,7 +19,7 @@ class Settings(BaseSettings):
     host: str = "0.0.0.0"
     supremeai_admin_password_hash: str | None = None
 
-    cors_origins: list[str] = ["http://localhost:3000", "http://localhost:8000"]
+    cors_origins: list[str] = ["http://127.0.0.1:3000", "http://127.0.0.1:8000"]
 
     openrouter_api_key: str = ""
     hf_api_key: str = ""
@@ -29,7 +29,7 @@ class Settings(BaseSettings):
     nvidia_api_key: str = ""
     firecrawl_api_key: str = ""
     sentry_dsn: str = ""
-    ollama_url: str = "http://localhost:11434"
+    ollama_url: str = "http://127.0.0.1:11434"
     gcp_project_id: str = "supremeai-a"
     gcp_region: str = "us-central1"
 
