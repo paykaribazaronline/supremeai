@@ -11,7 +11,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 RUN pip install --no-cache-dir poetry && poetry config virtualenvs.in-project true
 
-# Pre-create virtualenv and install CPU-only PyTorch to save ~1.7GB space
+# Pre-create virtualenv and install CPU-only PyTorch to save space
 RUN python -m venv /app/.venv && \
     /app/.venv/bin/pip install --no-cache-dir --upgrade pip && \
     /app/.venv/bin/pip install --no-cache-dir torch torchvision --index-url https://download.pytorch.org/whl/cpu
@@ -19,8 +19,10 @@ RUN python -m venv /app/.venv && \
 COPY pyproject.toml poetry.lock* ./
 RUN poetry install --no-interaction --no-ansi --no-root --only main
 
-# Re-install CPU-only PyTorch to overwrite the large CUDA PyTorch downloaded by Poetry and save ~1.7GB space
-RUN /app/.venv/bin/pip install --no-cache-dir torch torchvision --index-url https://download.pytorch.org/whl/cpu
+# Re-install CPU-only PyTorch and remove large CUDA/NVIDIA libraries to save ~2.5GB space
+# [2026-06-21] Added by Antigravity to keep runner image minimal and avoid copy timeout
+RUN /app/.venv/bin/pip uninstall -y torch torchvision nvidia-cuda-nvrtc-cu12 nvidia-cuda-runtime-cu12 nvidia-cuda-cupti-cu12 nvidia-cudnn-cu12 nvidia-cublas-cu12 nvidia-cufft-cu12 nvidia-curand-cu12 nvidia-cusolver-cu12 nvidia-cusparse-cu12 nvidia-nccl-cu12 nvidia-nvtx-cu12 nvidia-nvjitlink-cu12 triton && \
+    /app/.venv/bin/pip install --no-cache-dir torch torchvision --index-url https://download.pytorch.org/whl/cpu
 
 # Clean up build-time virtualenv caches to reduce copied size
 RUN find /app/.venv -name "__pycache__" -type d -exec rm -rf {} + 2>/dev/null || true
