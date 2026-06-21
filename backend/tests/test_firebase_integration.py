@@ -91,9 +91,9 @@ def test_existing_gcp_roundtrip_coverage():
     import subprocess
     import sys
     r = subprocess.run(
-        [sys.executable, "-m", "pytest", "tests/test_gcp_integration.py::test_gcp_firestore_integration_queue",
-         "tests/test_gcp_integration.py::test_gcp_pubsub_publish_pull",
-         "tests/test_gcp_integration.py::test_gcp_cloud_run_router_route", "-q"],
+        [sys.executable, "-m", "pytest", "backend/tests/test_gcp_integration.py::test_gcp_firestore_integration_queue",
+         "backend/tests/test_gcp_integration.py::test_gcp_pubsub_publish_pull",
+         "backend/tests/test_gcp_integration.py::test_gcp_cloud_run_router_route", "-q"],
         capture_output=True,
         text=True,
     )
