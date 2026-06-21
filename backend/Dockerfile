@@ -22,6 +22,10 @@ RUN poetry install --no-interaction --no-ansi --no-root --only main
 # Re-install CPU-only PyTorch to overwrite the large CUDA PyTorch downloaded by Poetry and save ~1.7GB space
 RUN /app/.venv/bin/pip install --no-cache-dir torch torchvision --index-url https://download.pytorch.org/whl/cpu
 
+# Clean up build-time virtualenv caches to reduce copied size
+RUN find /app/.venv -name "__pycache__" -type d -exec rm -rf {} + 2>/dev/null || true
+RUN find /app/.venv -name "*.pyc" -delete 2>/dev/null || true
+
 # Stage 2: Final minimal runner image
 FROM python:3.11-slim AS runner
 
@@ -41,6 +45,9 @@ ENV PYTHONUNBUFFERED=1
 ENV PYTHONDONTWRITEBYTECODE=1
 
 # Pre-download EasyOCR English & Bengali models during build for zero-maintenance offline operation
-RUN python -c "import easyocr; easyocr.Reader(['bn', 'en'])"
+RUN python -c "import easyocr; easyocr.Reader(['bn', 'en'])" && \
+    rm -f /root/.EasyOCR/model/*.zip && \
+    find /app/.venv -name "__pycache__" -type d -exec rm -rf {} + 2>/dev/null || true && \
+    find /app/.venv -name "*.pyc" -delete 2>/dev/null || true
 
 CMD ["sh", "-c", "uvicorn main:app --host 0.0.0.0 --port ${PORT:-8000}"]
