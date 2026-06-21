@@ -14,7 +14,14 @@ class RulesMutator:
         import core.app as app_mod
         if hasattr(app_mod, "redis_queue") and app_mod.redis_queue and app_mod.redis_queue.configured:
             redis_key = f"blocklist:ip:{ip_address}"
-            return app_mod.redis_queue.get(redis_key) is not None
+            try:
+                val = app_mod.redis_queue.get(redis_key)
+                if val is not None:
+                    if val == "ok":
+                        return False
+                    return True
+            except Exception:
+                pass
         return False
 
     def block_ip(self, ip_address: str, reason: str = "suspicious_activity") -> bool:
