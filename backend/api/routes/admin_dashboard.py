@@ -22,6 +22,15 @@ def require_admin_token(credentials: HTTPAuthorizationCredentials = Depends(secu
         decoded = jwt.decode(token, jwt_secret, algorithms=["HS256"])
         if decoded.get("role") != "admin":
             raise HTTPException(status_code=403, detail="Forbidden: User does not have admin role.")
+        
+        # Check blacklist in Upstash Redis
+        jti = decoded.get("jti")
+        if jti:
+            import core.app as app_mod
+            if app_mod.redis_queue and app_mod.redis_queue.configured:
+                if app_mod.redis_queue.get(f"jwt_blacklist:{jti}") is not None:
+                    raise HTTPException(status_code=401, detail="Token has been revoked.")
+        
         return decoded
     except Exception as e:
         expected = os.getenv("SUPREMEAI_API_TOKEN") or "supreme-god-password"
@@ -137,7 +146,15 @@ async def logs_stream():
                 except Exception:
                     pass
 
-    return StreamingResponse(log_generator(), media_type="text/event-stream")
+    return StreamingResponse(
+        log_generator(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache, no-transform",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no"
+        }
+    )
 
 @router.get("/costs")
 def get_costs():

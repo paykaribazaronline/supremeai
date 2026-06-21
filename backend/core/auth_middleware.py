@@ -66,6 +66,18 @@ class AuthMiddleware(BaseHTTPMiddleware):
                         status_code=403,
                         content={"detail": "Forbidden: User does not have admin role."},
                     )
+                
+                # Check blacklist in Upstash Redis
+                jti = decoded.get("jti")
+                if jti:
+                    import core.app as app_mod
+                    if app_mod.redis_queue and app_mod.redis_queue.configured:
+                        if app_mod.redis_queue.get(f"jwt_blacklist:{jti}") is not None:
+                            logger.warning(f"Revoked token presented for admin route: {jti}")
+                            return JSONResponse(
+                                status_code=401,
+                                content={"detail": "Token has been revoked."},
+                            )
             except Exception as e:
                 # Backward compatibility fallback for legacy API token or direct docs password access
                 expected = os.getenv("SUPREMEAI_API_TOKEN") or "supreme-god-password"
