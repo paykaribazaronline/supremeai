@@ -28,6 +28,7 @@ from api.routes import (
     admin_dashboard_router,
     email_router,
     github_router,
+    internal_router,
     marketplace_endpoints_router,
 )
 from core.auth_middleware import AuthMiddleware
