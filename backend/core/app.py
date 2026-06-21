@@ -31,6 +31,7 @@ from api.routes import (
 from core.auth_middleware import AuthMiddleware
 from core.observability_middleware import ObservabilityMiddleware
 from core.rate_limiter import RateLimitMiddleware
+from core.idempotency_middleware import IdempotencyMiddleware
 from core.telemetry import setup_tracing
 from core.upstash_redis_queue import UpstashRedisQueue
 from loguru import logger
@@ -91,6 +92,7 @@ app.add_middleware(
 )
 
 app.add_middleware(RateLimitMiddleware, requests_per_minute=120, burst=20)
+app.add_middleware(IdempotencyMiddleware)
 app.add_middleware(AuthMiddleware)
 app.add_middleware(ObservabilityMiddleware)
 

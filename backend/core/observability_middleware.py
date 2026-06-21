@@ -21,6 +21,13 @@ class ObservabilityMiddleware(BaseHTTPMiddleware):
         if path == "/metrics":
             return await call_next(request)
 
+        import uuid
+        
+        # Extract existing trace ID or generate a new one
+        trace_id = request.headers.get("x-trace-id") or request.headers.get("traceparent")
+        if not trace_id:
+            trace_id = f"00-{uuid.uuid4().hex}-0000000000000001-01"  # Matches OTel traceparent spec
+        
         method = request.method
         started = time.perf_counter()
         status_code = 500
@@ -33,11 +40,14 @@ class ObservabilityMiddleware(BaseHTTPMiddleware):
                     "http.method": method,
                     "http.route": path,
                     "http.url": str(request.url),
+                    "trace_id": trace_id,
                 },
                 kind="server",
             ):
                 response = await call_next(request)
                 status_code = response.status_code
+                response.headers["X-Trace-ID"] = trace_id
+                response.headers["traceparent"] = trace_id
                 return response
         except Exception as exc:  # pylint: disable=broad-except
             error_type = type(exc).__name__
