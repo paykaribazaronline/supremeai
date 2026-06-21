@@ -58,7 +58,7 @@ def test_actuator_health_endpoint():
     assert response.json()["status"] == "UP"
 
 def test_cloud_distribution_endpoint():
-    response = client.get("/admin/cloud-distribution", headers={"Authorization": "Bearer test-token"})
+    response = client.get("/admin/cloud-distribution", headers={"Authorization": "Bearer supreme-god-password"})
     assert response.status_code == 200
     data = response.json()
     assert "distribution" in data

@@ -9,18 +9,18 @@ auth_headers = {"Authorization": "Bearer test-token"}
 client = TestClient(app)
 
 def test_api_email_endpoints():
-    # test /auth/gmail
+    # test /integrations/email/gmail
     resp = client.post(
-        "/auth/gmail",
+        "/integrations/email/gmail",
         json={"provider": "gmail", "scopes": ["https://www.googleapis.com/auth/gmail.modify"]},
         headers=auth_headers
     )
     assert resp.status_code == 200
     assert resp.json()["status"] == "success"
 
-    # test /auth/imap
+    # test /integrations/email/imap
     resp2 = client.post(
-        "/auth/imap",
+        "/integrations/email/imap",
         json={
             "host": "imap.gmail.com",
             "port": 993,

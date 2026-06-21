@@ -1,4 +1,5 @@
 import os
+os.environ.setdefault("OPENROUTER_API_KEY", "mock-key-value")
 import pytest
 from core.rbac import RoleBasedAccessControl
 

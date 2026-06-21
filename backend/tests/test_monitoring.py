@@ -16,9 +16,10 @@ def test_docker_sandbox_security():
     # Test harmful command block
     res = sandbox.execute_command("rm -rf /")
     assert res["success"] is False
-    assert "Security block" in res["error"]
+    assert "Security Firewall block" in res["error"]
 
-def test_docker_sandbox_simulated_run():
+def test_docker_sandbox_simulated_run(monkeypatch):
+    monkeypatch.setenv("ALLOW_LOCAL_SANDBOX_FALLBACK", "true")
     sandbox = DockerSandbox()
     sandbox.docker_available = False
     res = sandbox.execute_command("echo hello")
