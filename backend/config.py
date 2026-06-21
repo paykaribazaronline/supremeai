@@ -33,7 +33,7 @@ class Settings(BaseSettings):
         "https://supremeai-admin.firebaseapp.com",
     ]
 
-    jwt_secret: str = "np97Qpdqi9VdRyiANqjfKZn8/u7s/WCjtG8UsjbhhS0="
+    jwt_secret: str = ""
 
     openrouter_api_key: str = ""
     hf_api_key: str = ""

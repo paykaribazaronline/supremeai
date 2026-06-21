@@ -99,13 +99,15 @@ class ModelRouter:
         self.groq_api_key = os.getenv("GROQ_API_KEY", "")
         self.nvidia_api_key = os.getenv("NVIDIA_API_KEY", "")
         self.firecrawl_api_key = os.getenv("FIRECRAWL_API_KEY", "")
+        self.cloudflare_account_id = os.getenv("CLOUDFLARE_ACCOUNT_ID", "")
+        self.cloudflare_api_token = os.getenv("CLOUDFLARE_API_TOKEN", "")
         self.ollama_url = os.getenv("OLLAMA_URL", "http://127.0.0.1:11434")
         # [2026-06-21] Updated default OpenRouter model — old llama-3-8b:free was deprecated/404
         self.default_model = os.getenv(
             "DEFAULT_MODEL", "google/gemma-4-31b-it:free"
         )
         self.local_model = os.getenv("LOCAL_MODEL", "llama3")
-        self.cot_reasoner = ChainOfThoughtReasoner(max_iterations=2)
+        self.cot_reasoner = ChainOfThoughtReasoner(max_iterations=3)
         self.input_sanitizer = InputSanitizer()
         self.audit_logger = AuditLogger()
         self._registry = ModelRegistry()
@@ -120,6 +122,7 @@ class ModelRouter:
             "nvidia": CircuitBreaker("nvidia"),
             "huggingface": CircuitBreaker("huggingface"),
             "ollama": CircuitBreaker("ollama"),
+            "cloudflare": CircuitBreaker("cloudflare"),
         }
         self._http_client = httpx.AsyncClient(timeout=30.0)
         self._cache: Dict[str, Tuple[Dict[str, Any], float]] = {}
@@ -201,6 +204,8 @@ class ModelRouter:
             return bool(self.nvidia_api_key) or bool(self.openrouter_api_key)
         if provider == "huggingface":
             return bool(self.hf_api_key)
+        if provider == "cloudflare":
+            return bool(self.cloudflare_api_token) and bool(self.cloudflare_account_id)
         if provider == "ollama":
             from config import settings
             return settings.env.lower() != "production"
@@ -370,20 +375,55 @@ class ModelRouter:
 
         # Integrate local search RAG for search/research tasks
         if "SEARCH" in upper_task or "RAG" in upper_task or "RESEARCH" in upper_task:
+            web_context = ""
+            if self.firecrawl_api_key:
+                try:
+                    logger.info("Using Firecrawl web search for Perplexity-style RAG")
+                    headers = {
+                        "Authorization": f"Bearer {self.firecrawl_api_key}",
+                        "Content-Type": "application/json"
+                    }
+                    response = run_async_as_sync(self._http_client.post(
+                        "https://api.firecrawl.dev/v1/search",
+                        headers=headers,
+                        json={"query": prompt, "limit": 3},
+                        timeout=10.0
+                    ))
+                    if response.status_code == 200:
+                        search_results = response.json()
+                        web_docs = []
+                        for item in search_results.get("data", []):
+                            title = item.get("title", "Web Result")
+                            url = item.get("url", "")
+                            markdown_content = item.get("markdown", "") or item.get("snippet", "")
+                            web_docs.append(f"Source: {title} ({url})\nContent: {markdown_content[:1000]}")
+                        if web_docs:
+                            web_context = "\n\nWeb Search Context (Firecrawl):\n" + "\n\n".join(web_docs)
+                            logger.info("Firecrawl search context added successfully.")
+                except Exception as fe:
+                    logger.warning(f"Firecrawl web search failed: {fe}")
+
             try:
                 rag_result = self.local_rag.semantic_search(prompt)
+                sources = []
                 if rag_result.get("status") == "ok" and rag_result.get("matches"):
-                    sources = []
                     for m in rag_result["matches"]:
                         doc_id = m.get("doc_id")
                         title = m.get("title", "")
                         fields = self.local_rag._index.get(doc_id, [])
                         text = fields[1] if len(fields) > 1 else ""
                         sources.append(f"Source: {title}\n{text}")
+                if sources or web_context:
+                    context_parts = []
+                    if web_context:
+                        context_parts.append(web_context)
                     if sources:
-                        enriched_prompt = f"{prompt}\n\nRetrieved context:\n" + "\n\n".join(sources)
+                        context_parts.append("\n\nLocal RAG Context:\n" + "\n\n".join(sources))
+                    enriched_prompt = f"{prompt}\n" + "\n".join(context_parts)
             except Exception as exc:
                 logger.warning(f"Local RAG search failed: {exc}")
+                if web_context:
+                    enriched_prompt = f"{prompt}\n{web_context}"
 
         # Integrate long-term memory context
         memory_context = self.long_term_memory.build_context()
@@ -423,9 +463,28 @@ class ModelRouter:
                     source=provider,
                     importance=0.3,
                 )
+                if semantic_cache.is_configured:
+                    await semantic_cache.set(prompt, result.get("text", ""), provider, model)
             if ("MATH" in upper_task or "REASONING" in upper_task) and result.get("success"):
                 parsed = self.cot_reasoner.parse(result.get("text", ""))
                 verification = self.cot_reasoner.verify(parsed.get("final_answer", ""))
+                
+                # o1-style self-critique/refinement loop on verification failure
+                if verification.get("math_error") or not verification.get("matches", True):
+                    logger.info("CoT verification failed, initiating o1-style self-critique correction loop...")
+                    error_details = verification.get("math_error", "Answer does not match expected constraints.")
+                    critique_prompt = (
+                        f"Original Problem: {prompt}\n\n"
+                        f"Your previous response:\n{result.get('text', '')}\n\n"
+                        f"Critique / Error detected: {error_details}\n\n"
+                        "Please analyze your errors, correct your reasoning step-by-step, and provide the correct answer."
+                    )
+                    retry_result = await self._call(provider, model, critique_prompt)
+                    if retry_result.get("success"):
+                        parsed = self.cot_reasoner.parse(retry_result.get("text", ""))
+                        verification = self.cot_reasoner.verify(parsed.get("final_answer", ""))
+                        result = retry_result
+                
                 result["reasoning"] = parsed
                 result["cot_verification"] = verification
             return result
@@ -484,6 +543,8 @@ class ModelRouter:
             return await self._call_groq(prompt, model)
         if provider == "nvidia":
             return await self._call_nvidia(prompt, model)
+        if provider == "cloudflare":
+            return await self._call_cloudflare(prompt, model)
         return await self._call_ollama(prompt, model)
 
     async def _fallback(self, prompt: str, failed: str, exc: Exception):
@@ -491,7 +552,7 @@ class ModelRouter:
         is_production = settings.env.lower() == "production"
 
         # [2026-06-21] Fallback order optimized: free providers first, deepseek removed (paid API, violates $0 cost policy)
-        remaining = ["gemini", "openrouter", "groq", "nvidia", "huggingface", "ollama"]
+        remaining = ["gemini", "openrouter", "groq", "cloudflare", "nvidia", "huggingface", "ollama"]
         if is_production and "ollama" in remaining:
             remaining.remove("ollama")
 
@@ -527,7 +588,50 @@ class ModelRouter:
             "deepseek": "deepseek-chat",
             "groq": "llama-3.3-70b-versatile",
             "nvidia": "meta/llama-3.1-8b-instruct",
+            "cloudflare": "@cf/meta/llama-3-8b-instruct",
         }[provider]
+
+    async def _call_cloudflare(self, prompt: str, model: str) -> Dict[str, Any]:
+        if not self.cloudflare_account_id or not self.cloudflare_api_token:
+            raise ValueError("Cloudflare credentials not configured.")
+        
+        headers = {
+            "Authorization": f"Bearer {self.cloudflare_api_token}",
+            "Content-Type": "application/json"
+        }
+        url = f"https://api.cloudflare.com/client/v4/accounts/{self.cloudflare_account_id}/ai/run/{model}"
+        payload = {
+            "messages": [
+                {"role": "user", "content": prompt}
+            ]
+        }
+        try:
+            start_time = time.time()
+            response = await self._http_client.post(url, headers=headers, json=payload, timeout=30.0)
+            latency = time.time() - start_time
+            if response.status_code == 200:
+                res_json = response.json()
+                text = res_json.get("result", {}).get("response", "")
+                return {
+                    "success": True,
+                    "provider": "cloudflare",
+                    "model": model,
+                    "text": text,
+                    "cost": 0.0,
+                    "latency": latency
+                }
+            else:
+                return {
+                    "success": False,
+                    "error": f"Cloudflare API error status={response.status_code}: {response.text}",
+                    "text": ""
+                }
+        except Exception as e:
+            return {
+                "success": False,
+                "error": f"Cloudflare call exception: {str(e)}",
+                "text": ""
+            }
 
     async def _call_openai_compatible(
         self,

@@ -1,4 +1,5 @@
 import os
+import json
 import hashlib
 import time
 from typing import Optional, Dict, Any, List
@@ -109,7 +110,7 @@ class SemanticCache:
         try:
             result = self._redis_request("GET", cache_key).get("result")
             if result:
-                data = eval(result) if isinstance(result, str) else result
+                data = json.loads(result) if isinstance(result, str) else result
                 return CacheEntry(
                     prompt_hash=self._hash_prompt(prompt),
                     prompt_text=prompt,
@@ -183,7 +184,7 @@ class SemanticCache:
                 if result:
                     matches.append(result)
             if matches:
-                data = eval(matches[0]) if isinstance(matches[0], str) else matches[0]
+                data = json.loads(matches[0]) if isinstance(matches[0], str) else matches[0]
                 return CacheEntry(
                     prompt_hash=prompt_hash,
                     prompt_text=data.get("prompt_text", ""),

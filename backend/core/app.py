@@ -91,7 +91,7 @@ app.add_middleware(
     allow_origins=settings.cors_origins,
     allow_credentials=False,
     allow_methods=["GET", "POST", "DELETE", "OPTIONS"],
-    allow_headers=["*"],
+    allow_headers=["Authorization", "Content-Type", "X-Request-ID"],
 )
 
 app.add_middleware(HoneypotMiddleware)
@@ -140,8 +140,13 @@ async def app_lifespan(app: FastAPI):
     timeout = httpx.Timeout(10.0, connect=5.0, read=30.0)
     global_http_client = httpx.AsyncClient(limits=limits, timeout=timeout)
     app.state.http_client = global_http_client
-    # Point the model router's internal HTTP client to the shared global client
     model_router._http_client = global_http_client
+    try:
+        from core.pgbouncer_pool import get_db_pool
+        await get_db_pool()
+        logger.info("PgBouncer connection pool initialized on startup")
+    except Exception as e:
+        logger.warning(f"PgBouncer pool initialization deferred: {e}")
     yield
     if global_http_client:
         try:
@@ -487,17 +492,6 @@ if codeflow_router is not None:
     app.include_router(codeflow_router)
 if feedback_router is not None:
     app.include_router(feedback_router)
-
-# Initialize connection pool on startup
-@app.on_event("startup")
-async def startup_event():
-    try:
-        from core.pgbouncer_pool import get_db_pool
-        await get_db_pool()
-        logger.info("PgBouncer connection pool initialized on startup")
-    except Exception as e:
-        logger.warning(f"PgBouncer pool initialization deferred: {e}")
-
 
 from core.universal_rules import UniversalRulesEngine
 rules_engine = UniversalRulesEngine()
