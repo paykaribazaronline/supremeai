@@ -19,7 +19,14 @@ class Settings(BaseSettings):
     host: str = "0.0.0.0"
     supremeai_admin_password_hash: str | None = None
 
-    cors_origins: list[str] = ["http://127.0.0.1:3000", "http://127.0.0.1:8000"]
+    cors_origins: list[str] = [
+        "http://127.0.0.1:3000",
+        "http://127.0.0.1:8000",
+        "https://supremeai-a.web.app",
+        "https://supremeai-a.firebaseapp.com",
+        "https://supremeai-admin.web.app",
+        "https://supremeai-admin.firebaseapp.com",
+    ]
 
     openrouter_api_key: str = ""
     hf_api_key: str = ""
