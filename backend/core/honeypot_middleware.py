@@ -95,5 +95,18 @@ class HoneypotMiddleware(BaseHTTPMiddleware):
         return response
 
     def _log_threat_intelligence(self, ip: str, payload: str, endpoint: str):
-        # log saved simulated
         logger.info(f"🧠 Threat studied and recorded for IP {ip}")
+        try:
+            import firebase_admin
+            from firebase_admin import firestore
+            if not firebase_admin._apps:
+                firebase_admin.initialize_app()
+            db = firestore.client()
+            db.collection("threat_intel").add({
+                "ip": ip,
+                "payload": payload[:1000],
+                "endpoint": endpoint,
+                "timestamp": time.time(),
+            })
+        except Exception as exc:
+            logger.debug(f"Failed to persist threat intel to Firestore: {exc}")
