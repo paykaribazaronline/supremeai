@@ -19,6 +19,9 @@ RUN python -m venv /app/.venv && \
 COPY pyproject.toml poetry.lock* ./
 RUN poetry install --no-interaction --no-ansi --no-root --only main
 
+# Re-install CPU-only PyTorch to overwrite the large CUDA PyTorch downloaded by Poetry and save ~1.7GB space
+RUN /app/.venv/bin/pip install --no-cache-dir torch torchvision --index-url https://download.pytorch.org/whl/cpu
+
 # Stage 2: Final minimal runner image
 FROM python:3.11-slim AS runner
 
