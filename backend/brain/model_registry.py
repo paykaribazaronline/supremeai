@@ -79,7 +79,8 @@ class ModelRegistry:
             "tier": 1,
             "provider": "google",
             "name": "Gemini 3.1 Pro",
-            "openrouter_id": "google/gemini-pro-1.5",
+            # [2026-06-21] Updated: gemini-pro-1.5 deprecated
+            "openrouter_id": "google/gemini-2.5-pro-preview",
             "context_length": 1000000,
             "cost_input_per_million": 1.25,
             "cost_output_per_million": 5.00,
@@ -125,7 +126,7 @@ class ModelRegistry:
             "tier": 2,
             "provider": "google",
             "name": "Gemini 3.5 Flash",
-            "openrouter_id": "google/gemini-flash-1.5",
+            "openrouter_id": "google/gemma-4-31b-it:free",
             "context_length": 1000000,
             "cost_input_per_million": 0.075,
             "cost_output_per_million": 0.30,
@@ -204,7 +205,8 @@ class ModelRegistry:
             "tier": 5,
             "provider": "alibaba",
             "name": "Qwen 3 (Free)",
-            "openrouter_id": "qwen/qwen-2-7b-instruct:free",
+            # [2026-06-21] Updated: qwen-2-7b-instruct:free deprecated
+            "openrouter_id": "qwen/qwen3-8b:free",
             "context_length": 128000,
             "cost_input_per_million": 0.00,
             "cost_output_per_million": 0.00,

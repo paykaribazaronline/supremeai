@@ -96,8 +96,9 @@ class ModelRouter:
         self.nvidia_api_key = os.getenv("NVIDIA_API_KEY", "")
         self.firecrawl_api_key = os.getenv("FIRECRAWL_API_KEY", "")
         self.ollama_url = os.getenv("OLLAMA_URL", "http://127.0.0.1:11434")
+        # [2026-06-21] Updated default OpenRouter model — old llama-3-8b:free was deprecated/404
         self.default_model = os.getenv(
-            "DEFAULT_MODEL", "meta-llama/llama-3-8b-instruct:free"
+            "DEFAULT_MODEL", "google/gemma-4-31b-it:free"
         )
         self.local_model = os.getenv("LOCAL_MODEL", "llama3")
         self.cot_reasoner = ChainOfThoughtReasoner(max_iterations=2)
@@ -216,7 +217,8 @@ class ModelRouter:
                     return "openrouter", metadata.get("openrouter_id")
                 if provider == "google":
                     if self.gemini_api_key:
-                        return "gemini", "gemini-1.5-flash" if "flash" in model_id else "gemini-pro-1.5"
+                        # [2026-06-21] gemini-1.5-flash deprecated June 2026, using gemini-3.5-flash
+                        return "gemini", "gemini-3.5-flash"
                     return "openrouter", metadata.get("openrouter_id")
                 if provider == "deepseek":
                     if self.deepseek_api_key:
@@ -224,11 +226,13 @@ class ModelRouter:
                     return "openrouter", metadata.get("openrouter_id")
                 if provider == "groq":
                     if self.groq_api_key:
-                        return "groq", "llama3-8b-8192"
+                        # [2026-06-21] llama3-8b-8192 deprecated, using llama-3.3-70b-versatile
+                        return "groq", "llama-3.3-70b-versatile"
                     return "openrouter", metadata.get("openrouter_id")
                 if provider == "nvidia":
                     if self.nvidia_api_key:
-                        return "nvidia", "meta/llama3-8b-instruct"
+                        # [2026-06-21] meta/llama3-8b-instruct 404, using meta/llama-3.1-8b-instruct
+                        return "nvidia", "meta/llama-3.1-8b-instruct"
                     return "openrouter", metadata.get("openrouter_id")
                 if provider == "huggingface" and self.hf_api_key:
                     return "huggingface", "google/flan-t5-base"
@@ -245,7 +249,8 @@ class ModelRouter:
                 return "ollama", self._registry.MODELS.get("local-qwen-0.5b", {}).get("ollama_id", self.local_model)
             else:
                 if self.gemini_api_key:
-                    return "gemini", "gemini-1.5-flash"
+                    # [2026-06-21] gemini-1.5-flash deprecated, using gemini-3.5-flash
+                    return "gemini", "gemini-3.5-flash"
                 if self.openrouter_api_key:
                     return "openrouter", self.default_model
                 raise RuntimeError("No available LLM providers configured in production.")
@@ -256,14 +261,15 @@ class ModelRouter:
         is_production = settings.env.lower() == "production"
 
         if task_type == "completion":
+            # [2026-06-21] Updated completion provider model names
             if self.gemini_api_key:
-                return "gemini", "gemini-1.5-flash"
+                return "gemini", "gemini-3.5-flash"
             if self.openrouter_api_key:
-                return "openrouter", "google/gemini-flash-1.5"
+                return "openrouter", "google/gemma-4-31b-it:free"
             if self.deepseek_api_key:
                 return "deepseek", "deepseek-chat"
             if self.groq_api_key:
-                return "groq", "llama3-8b-8192"
+                return "groq", "llama-3.3-70b-versatile"
             if is_production:
                 raise RuntimeError("Production mode requires cloud API keys. Ollama is disabled in production.")
             reg_info = self._registry.get_model("local-qwen-0.5b")
@@ -469,7 +475,8 @@ class ModelRouter:
         from config import settings
         is_production = settings.env.lower() == "production"
 
-        remaining = ["openrouter", "gemini", "deepseek", "groq", "nvidia", "huggingface", "ollama"]
+        # [2026-06-21] Fallback order optimized: free providers first (gemini → openrouter → groq)
+        remaining = ["gemini", "openrouter", "groq", "deepseek", "nvidia", "huggingface", "ollama"]
         if is_production and "ollama" in remaining:
             remaining.remove("ollama")
 
@@ -496,14 +503,15 @@ class ModelRouter:
         }
 
     def _model_for(self, provider: str) -> str:
+        # [2026-06-21] Updated all fallback model names to current versions
         return {
             "openrouter": self.default_model,
             "huggingface": "google/flan-t5-base",
             "ollama": self.local_model,
-            "gemini": "gemini-1.5-flash",
+            "gemini": "gemini-3.5-flash",
             "deepseek": "deepseek-chat",
-            "groq": "llama3-8b-8192",
-            "nvidia": "meta/llama3-8b-instruct",
+            "groq": "llama-3.3-70b-versatile",
+            "nvidia": "meta/llama-3.1-8b-instruct",
         }[provider]
 
     async def _call_openai_compatible(

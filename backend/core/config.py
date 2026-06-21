@@ -54,16 +54,20 @@ class Settings(BaseSettings):
         return value.lower()
 
     def validate(self) -> None:
+        # [2026-06-21] Relaxed validation: at least one AI provider key required (not all)
         if self.env.lower() == "production":
-            missing = []
-            if not self.openrouter_api_key:
-                missing.append("openrouter_api_key")
-            if not self.gemini_api_key:
-                missing.append("gemini_api_key")
-            if not self.sentry_dsn:
-                missing.append("sentry_dsn (strongly recommended)")
-            if missing:
-                raise RuntimeError(f"Missing required API keys for production: {', '.join(missing)}")
+            has_any_key = bool(
+                self.openrouter_api_key
+                or self.gemini_api_key
+                or self.deepseek_api_key
+                or self.groq_api_key
+                or self.nvidia_api_key
+            )
+            if not has_any_key:
+                raise RuntimeError(
+                    "Production mode requires at least one AI provider API key "
+                    "(OPENROUTER_API_KEY, GEMINI_API_KEY, DEEPSEEK_API_KEY, GROQ_API_KEY, or NVIDIA_API_KEY)"
+                )
 
 
 settings = Settings()
