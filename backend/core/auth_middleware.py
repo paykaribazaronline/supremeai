@@ -62,6 +62,8 @@ class AuthMiddleware(BaseHTTPMiddleware):
             "/docs",
             "/redoc",
             "/openapi.json",
+            "/api/admin/login",
+            "/api/admin/verify",
         }
         if path in public_paths or path.startswith("/static"):
             return await call_next(request)
