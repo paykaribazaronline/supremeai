@@ -3,7 +3,7 @@ from tools.email_agent import EmailAgent
 from pydantic import BaseModel
 from typing import List, Optional
 
-router = APIRouter(prefix="/auth", tags=["email"])
+router = APIRouter(prefix="/integrations/email", tags=["email"])
 email_agent = EmailAgent()
 
 class GmailAuthRequest(BaseModel):

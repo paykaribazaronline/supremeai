@@ -1,7 +1,7 @@
 import json
 import sqlite3
 import datetime
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import List, Optional, Dict, Any
 
 @dataclass
@@ -10,16 +10,16 @@ class Experience:
     timestamp: str = ""
     user_id: str = ""
     request: str = ""
-    context: Dict[str, Any] = None
+    context: Dict[str, Any] = field(default_factory=dict)
     action_taken: str = ""
     result: str = "success"  # "success", "partial", "failure"
     error_message: Optional[str] = None
     user_feedback: Optional[str] = None  # "great", "needs work", "failed"
     generated_code: Optional[str] = None
     deployment_logs: Optional[str] = None
-    what_worked: List[str] = None
-    what_failed: List[str] = None
-    suggested_improvements: List[str] = None
+    what_worked: List[str] = field(default_factory=list)
+    what_failed: List[str] = field(default_factory=list)
+    suggested_improvements: List[str] = field(default_factory=list)
 
 
 class ExperienceDatabase:
@@ -53,7 +53,7 @@ class ExperienceDatabase:
             conn.commit()
 
     def record_experience(self, exp: Experience) -> int:
-        timestamp = exp.timestamp or datetime.datetime.utcnow().isoformat()
+        timestamp = exp.timestamp or datetime.datetime.now(datetime.timezone.utc).isoformat()
         context_json = json.dumps(exp.context or {})
         what_worked_json = json.dumps(exp.what_worked or [])
         what_failed_json = json.dumps(exp.what_failed or [])

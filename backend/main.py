@@ -7,5 +7,7 @@ from config import settings
 setup_logging()
 
 if __name__ == "__main__":
-    is_local = settings.env.lower() == "local"
-    uvicorn.run("main:app", host=settings.host, port=settings.port, reload=is_local)
+    if is_local:
+        uvicorn.run("main:app", host=settings.host, port=settings.port, reload=True)
+    else:
+        uvicorn.run(app, host=settings.host, port=settings.port, reload=False)

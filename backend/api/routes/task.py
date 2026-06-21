@@ -73,16 +73,19 @@ def _build_chat_prompt(req: ChatStreamRequest) -> str:
 
 
 @router.post("/api/chat/completion", response_model=CompletionResponse)
-def get_completion(req: CompletionRequest):
+async def get_completion(req: CompletionRequest):
     import core.app as app_mod
+    import anyio
     model_router = app_mod.model_router
 
     prompt = _build_completion_prompt(req.prefix, req.suffix)
 
-    raw = model_router.route_and_generate(
-        prompt=prompt,
-        task_type="completion",
-        max_cost=0.005,
+    raw = await anyio.to_thread.run_sync(
+        lambda: model_router.route_and_generate(
+            prompt=prompt,
+            task_type="completion",
+            max_cost=0.005,
+        )
     )
 
     completion_text = raw.get("text", "")
@@ -100,26 +103,28 @@ def get_completion(req: CompletionRequest):
 
 
 @router.post("/api/chat/stream")
-def stream_chat(req: ChatStreamRequest):
+async def stream_chat(req: ChatStreamRequest):
     import core.app as app_mod
+    import anyio
 
     model_router = app_mod.model_router
     prompt = _build_chat_prompt(req)
 
-    def event_generator():
-        for chunk in model_router.route_and_stream(
-            prompt=prompt,
-            task_type="general",
-            max_cost=0.01,
-        ):
+    async def event_generator():
+        def get_chunks():
+            return list(model_router.route_and_stream(
+                prompt=prompt,
+                task_type="general",
+                max_cost=0.01,
+            ))
+        chunks = await anyio.to_thread.run_sync(get_chunks)
+        for chunk in chunks:
             token = chunk.decode("utf-8") if isinstance(chunk, bytes) else str(chunk)
             yield f"data: {json.dumps({'token': token})}\n\n"
         yield "data: [DONE]\n\n"
 
     return StreamingResponse(event_generator(), media_type="text/event-stream")
 
-
-from fastapi.responses import JSONResponse
 
 class ProblemDetailsResponse(JSONResponse):
     def __init__(self, title: str, status: int, detail: str, type_url: str = "about:blank", instance: str = None, **kwargs):
@@ -239,7 +244,7 @@ def execute_task(req: TaskRequest):
     intent = intent_clf.classify(req.task)
     task_type = req.task_type
     if intent.task_type != "general" and req.task_type == "general":
-        task_type = intent.task_type.value
+        task_type = intent.task_type.value if hasattr(intent.task_type, "value") else str(intent.task_type)
 
     # Build prompt context if chat messages are provided
     prompt = req.task
@@ -258,7 +263,7 @@ def execute_task(req: TaskRequest):
     import datetime
     
     exp = Experience(
-        timestamp=datetime.datetime.utcnow().isoformat(),
+        timestamp=datetime.datetime.now(datetime.timezone.utc).isoformat(),
         user_id=req.session_id or "default-user",
         request=req.task,
         context={

@@ -122,12 +122,17 @@ platform_learner = PlatformLearner(model_router, platform_registry)
 
 
 
-@app.on_event("shutdown")
-async def shutdown_event():
+from contextlib import asynccontextmanager
+
+@asynccontextmanager
+async def app_lifespan(app: FastAPI):
+    yield
     try:
         await model_router._http_client.aclose()
     except Exception as exc:
         logger.warning(f"HTTP client close failed: {exc}")
+
+app.router.lifespan_context = app_lifespan
 
 
 import time
@@ -145,7 +150,6 @@ def admin_login(payload: dict = Body(...)):
         raise HTTPException(status_code=401, detail="Invalid password")
     
     secret = os.getenv("SUPREMEAI_ADMIN_TOTP_SECRET", "JBSWY3DPEHPK3PXP")
-    logger.info(f"🔑 [2-STEP AUTHENTICATION] Use Google Authenticator with Secret Key: {secret}")
     return {"status": "otp_required", "message": "Google Authenticator code required."}
 
 @app.post("/api/admin/verify")
@@ -180,10 +184,19 @@ def admin_verify(payload: dict = Body(...)):
         except Exception:
             return False
 
-    if not verify_totp_code(otp.strip(), secret):
+    if not otp or not verify_totp_code(otp.strip(), secret):
         raise HTTPException(status_code=401, detail="Invalid Google Authenticator code")
         
-    return {"status": "success", "token": password}
+    # Issue backend session JWT for secure session management
+    from jose import jwt
+    jwt_payload = {
+        "uid": "admin",
+        "role": "admin",
+        "exp": int(time.time()) + 3600 * 24
+    }
+    jwt_secret = settings.jwt_secret
+    token = jwt.encode(jwt_payload, jwt_secret, algorithm="HS256")
+    return {"status": "success", "token": token}
 
 
 # --- Agentic Security: Firebase Authentication & Unique TOTP MFA ---
@@ -236,14 +249,14 @@ def admin_firebase_login(payload: dict = Body(...)):
                 totp_secret = data.get("totp_secret")
             else:
                 # If first time, auto-provision developer/admin email patterns
-                if "admin" in email.lower() or email.endswith("@supremeai.dev") or len(email) > 0:
+                if "admin" in email.lower() or email.endswith("@supremeai.dev"):
                     role = "admin"
                     doc_ref.set({"email": email, "role": "admin", "created_at": str(time.time())})
         except Exception as e:
             logger.error(f"Firestore admin lookup failed: {e}")
-            role = "admin" # Dev fallback
+            role = "user" # Secure fallback
     else:
-        role = "admin" # Dev fallback
+        role = "user" # Secure fallback
 
     if role != "admin":
         raise HTTPException(status_code=403, detail="Forbidden: Not authorized as an admin role user")
@@ -355,7 +368,7 @@ def admin_firebase_totp_verify(payload: dict = Body(...)):
         "role": "admin",
         "exp": int(time.time()) + 3600 * 24
     }
-    jwt_secret = os.getenv("JWT_SECRET", "np97Qpdqi9VdRyiANqjfKZn8/u7s/WCjtG8UsjbhhS0=")
+    jwt_secret = settings.jwt_secret
     token = jwt.encode(jwt_payload, jwt_secret, algorithm="HS256")
     
     return {"status": "success", "token": token}

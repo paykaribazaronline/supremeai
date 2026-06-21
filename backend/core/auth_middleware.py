@@ -9,6 +9,7 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import JSONResponse
 
 from loguru import logger
+from core.config import settings
 
 
 def _get_bearer_token(request: Request) -> Optional[str]:
@@ -57,25 +58,23 @@ class AuthMiddleware(BaseHTTPMiddleware):
                     content={"detail": "Missing Authorization Token for admin route."},
                 )
             try:
-                from jose import jwt
-                jwt_secret = os.getenv("JWT_SECRET", "np97Qpdqi9VdRyiANqjfKZn8/u7s/WCjtG8UsjbhhS0=")
-                decoded = jwt.decode(token, jwt_secret, algorithms=["HS256"])
-                if decoded.get("role") != "admin":
-                    return JSONResponse(
-                        status_code=403,
-                        content={"detail": "Forbidden: User does not have admin role."},
-                    )
-            except Exception as e:
-                # Backward compatibility fallback for legacy API token or direct docs password access
-                expected = os.getenv("SUPREMEAI_API_TOKEN") or "supreme-god-password"
-                if token == "test-token":
-                    pass
-                elif not secrets.compare_digest(token, expected):
-                    logger.warning(f"Invalid bearer token for admin path: {path}. Error: {e}")
-                    return JSONResponse(
-                        status_code=401,
-                        content={"detail": f"Invalid Admin Authorization Token: {str(e)}"},
-                    )
+                 from jose import jwt
+                 jwt_secret = settings.jwt_secret
+                 decoded = jwt.decode(token, jwt_secret, algorithms=["HS256"])
+                 if decoded.get("role") != "admin":
+                     return JSONResponse(
+                         status_code=403,
+                         content={"detail": "Forbidden: User does not have admin role."},
+                     )
+             except Exception as e:
+                 # Backward compatibility fallback for legacy API token or direct docs password access
+                 expected = os.getenv("SUPREMEAI_API_TOKEN") or "supreme-god-password"
+                 if not secrets.compare_digest(token, expected):
+                     logger.warning(f"Invalid bearer token for admin path: {path}. Error: {e}")
+                     return JSONResponse(
+                         status_code=401,
+                         content={"detail": f"Invalid Admin Authorization Token: {str(e)}"},
+                     )
 
 
         enabled = bool(os.getenv("SUPREMEAI_API_TOKEN"))
