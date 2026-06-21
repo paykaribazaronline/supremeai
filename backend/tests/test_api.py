@@ -1,7 +1,6 @@
 import os
 from unittest.mock import MagicMock
 
-import pytest
 from fastapi.testclient import TestClient
 
 os.environ["OPENROUTER_API_KEY"] = "mock-key-value"
@@ -44,7 +43,7 @@ def test_task_execute_enforces_admin_block():
 def test_task_execute_allowed_and_success():
     from admin.god import AdminGodLayer
     import tempfile, pathlib
-    from core.intent import IntentClassifier, TaskType
+    from core.intent import TaskType
 
     db = pathlib.Path(tempfile.gettempdir()) / "supremeai_test_rules2.db"
     admin = AdminGodLayer(str(db))

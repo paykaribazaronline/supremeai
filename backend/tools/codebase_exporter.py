@@ -1,5 +1,4 @@
 import os
-from typing import Set
 
 IGNORE_DIRS = {
     '.git', 'node_modules', 'venv', 'env', '__pycache__',

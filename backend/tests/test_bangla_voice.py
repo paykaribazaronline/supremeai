@@ -1,7 +1,6 @@
-import os
 import pytest
 from unittest.mock import patch, MagicMock
-from tools.bangla_voice import BanglaVoice, BanglaVoiceResult
+from tools.bangla_voice import BanglaVoice
 
 def test_bangla_voice_init():
     with patch("tools.bangla_voice.BanglaVoice._check_stt_available", return_value=True), \

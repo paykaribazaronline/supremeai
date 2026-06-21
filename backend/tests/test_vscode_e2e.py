@@ -1,11 +1,7 @@
 import os
-import sys
-import time
-import uuid
 from typing import Any, Dict, List
 from unittest.mock import MagicMock, patch
 
-import pytest
 
 
 class FakeVSCodeWorkspace:

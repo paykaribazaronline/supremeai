@@ -1,5 +1,4 @@
 import os
-import tempfile
 import sqlite3
 
 os.environ.setdefault("OPENROUTER_API_KEY", "")

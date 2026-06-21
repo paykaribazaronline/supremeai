@@ -1,6 +1,5 @@
-import pytest
 from unittest.mock import MagicMock
-from brain.agent_department import AgentDepartment, CodingAgent, ReviewAgent, QAAgent
+from brain.agent_department import AgentDepartment
 
 def test_agent_department_coding_success():
     mock_router = MagicMock()

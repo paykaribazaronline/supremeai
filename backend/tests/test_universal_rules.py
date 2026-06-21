@@ -1,7 +1,7 @@
 import os
 import json
 import tempfile
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 from core.universal_rules import UniversalRulesEngine
 
 

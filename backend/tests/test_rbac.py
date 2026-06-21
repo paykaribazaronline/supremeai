@@ -2,7 +2,7 @@ import datetime
 
 import pytest
 
-from core.rbac import RoleBasedAccessControl, UserContext, ROLE_MATRIX
+from core.rbac import RoleBasedAccessControl, UserContext
 
 
 def get_rbac():

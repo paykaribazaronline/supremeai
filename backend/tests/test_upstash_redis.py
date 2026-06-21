@@ -1,4 +1,3 @@
-import pytest
 from unittest.mock import patch, MagicMock
 from core.upstash_redis_queue import UpstashRedisQueue
 

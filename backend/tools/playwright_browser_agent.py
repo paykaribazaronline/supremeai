@@ -1,7 +1,6 @@
 from __future__ import annotations
 
-import os
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 
 
 class PlaywrightBrowserAgent:
@@ -10,11 +9,8 @@ class PlaywrightBrowserAgent:
         self.timeout_ms = timeout_ms
 
     def is_available(self) -> bool:
-        try:
-            from playwright.sync_api import sync_playwright  # type: ignore
-            return True
-        except ImportError:
-            return False
+        import importlib.util
+        return importlib.util.find_spec("playwright") is not None
 
     def open(self, url: str) -> Dict[str, Any]:
         if not self.is_available():

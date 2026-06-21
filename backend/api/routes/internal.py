@@ -1,6 +1,4 @@
 import os
-import time
-import json
 import secrets
 from typing import Dict, Any
 from fastapi import APIRouter, HTTPException, Request
@@ -34,7 +32,7 @@ async def run_daily_evolution(request: Request, payload: RunEvolutionRequest):
         from core.gcp_firestore import GCPFirestoreVerificationQueue
         fq = GCPFirestoreVerificationQueue()
         if hasattr(fq, "provider") and fq.provider != "disabled":
-            db = fq._get_client()
+            db = getattr(fq, "client", None)
             if db:
                 db.collection("evolution_logs").add(report)
     except Exception as exc:

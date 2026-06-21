@@ -1,4 +1,3 @@
-import pytest
 from tools.marketplace_agent import MarketplaceAgent
 
 def test_marketplace_search():

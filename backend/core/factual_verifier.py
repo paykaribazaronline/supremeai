@@ -1,7 +1,52 @@
+import ast
+import operator
 import httpx
 import re
-import hashlib
-from typing import List, Dict, Any
+from typing import Any, Dict, List
+
+
+_ALLOWED_OPERATORS = {
+    ast.Add: operator.add,
+    ast.Sub: operator.sub,
+    ast.Mult: operator.mul,
+    ast.Div: operator.truediv,
+    ast.USub: operator.neg,
+    ast.UAdd: operator.pos,
+    ast.Pow: operator.pow,
+    ast.Mod: operator.mod,
+    ast.FloorDiv: operator.floordiv,
+}
+
+
+def _safe_eval_math(expression: str) -> float:
+    tree = ast.parse(expression, mode="eval")
+    return _eval_node(tree.body)
+
+
+def _eval_node(node):
+    if isinstance(node, ast.Expression):
+        return _eval_node(node.body)
+    if isinstance(node, ast.BinOp):
+        op_type = type(node.op)
+        if op_type not in _ALLOWED_OPERATORS:
+            raise ValueError(f"Unsupported operator: {op_type.__name__}")
+        left = _eval_node(node.left)
+        right = _eval_node(node.right)
+        return _ALLOWED_OPERATORS[op_type](left, right)
+    if isinstance(node, ast.UnaryOp):
+        op_type = type(node.op)
+        if op_type not in _ALLOWED_OPERATORS:
+            raise ValueError(f"Unsupported unary operator: {op_type.__name__}")
+        operand = _eval_node(node.operand)
+        return _ALLOWED_OPERATORS[op_type](operand)
+    if isinstance(node, ast.Constant):
+        if isinstance(node.value, (int, float)):
+            return node.value
+        raise ValueError("Only numeric constants are allowed")
+    if isinstance(node, ast.Num):
+        return node.n
+    raise ValueError(f"Unsupported expression node: {type(node).__name__}")
+
 
 class FactualVerifier:
     def __init__(self):
@@ -104,7 +149,7 @@ class FactualVerifier:
         except Exception as e:
             try:
                 clean_expr = re.sub(r"[^0-9\+\-\*\/\(\)\.]", "", expression)
-                result = eval(clean_expr)
+                result = _safe_eval_math(clean_expr)
                 claimed = float(claimed_result.strip())
                 is_correct = abs(result - claimed) < 1e-9
                 return {

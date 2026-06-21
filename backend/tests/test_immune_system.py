@@ -1,7 +1,5 @@
 import pytest
-import os
-import json
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 from core.auto_remediation import AutoRemediation
 from core.rules_mutator import RulesMutator
 from core.rollback_monitor import RollbackMonitor

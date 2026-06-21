@@ -65,7 +65,7 @@ def test_trace_span_sets_ok_status_on_success():
     with patch("core.telemetry.get_tracer", return_value=mock_tracer):
         with trace_span("ok-span"):
             pass
-        from opentelemetry.trace import Status, StatusCode
+        from opentelemetry.trace import StatusCode
         mock_span.set_status.assert_called_once()
         status_arg = mock_span.set_status.call_args[0][0]
         assert status_arg.status_code == StatusCode.OK
@@ -82,7 +82,7 @@ def test_trace_span_records_exception_on_error():
                 raise RuntimeError("boom")
         except RuntimeError:
             pass
-        from opentelemetry.trace import Status, StatusCode
+        from opentelemetry.trace import StatusCode
         mock_span.set_status.assert_called()
         status_call = mock_span.set_status.call_args[0][0]
         assert status_call.status_code == StatusCode.ERROR

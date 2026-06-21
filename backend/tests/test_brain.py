@@ -1,7 +1,6 @@
 import os
 import sys
 import types
-import pytest
 from unittest.mock import patch, MagicMock
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -63,7 +62,6 @@ def test_orchestrator_execution_flow():
 
 
 def test_route_and_generate_with_cot():
-    from tools.cot_reasoner import ChainOfThoughtReasoner
     router = ModelRouter()
     router.cot_reasoner = MagicMock()
     router.cot_reasoner.refine_loop.return_value = {

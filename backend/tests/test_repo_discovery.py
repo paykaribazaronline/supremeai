@@ -1,4 +1,3 @@
-import pytest
 from tools.repo_discovery_agent import RepoDiscoveryAgent
 
 def test_discover_repos():

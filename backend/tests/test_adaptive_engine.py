@@ -4,7 +4,6 @@ from adaptive_engine.registry import PlatformRegistry, PlatformProfile
 from adaptive_engine.intent_parser import IntentParser
 from adaptive_engine.experience_db import ExperienceDatabase, Experience
 from adaptive_engine.platform_learner import PlatformLearner
-from brain.model_router import ModelRouter
 
 def test_platform_registry():
     registry = PlatformRegistry()

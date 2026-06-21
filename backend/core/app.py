@@ -488,6 +488,7 @@ app.include_router(auth_router)
 app.include_router(admin_dashboard_router)
 app.include_router(email_router)
 app.include_router(github_router)
+app.include_router(internal_router)
 app.include_router(marketplace_endpoints_router)
 if codeflow_router is not None:
     app.include_router(codeflow_router)

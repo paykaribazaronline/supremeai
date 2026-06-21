@@ -8,9 +8,6 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from core.task_router import TaskRouter
 from core.evolution_engine import EvolutionEngine
-from skills.registry import SkillRegistry
-from skills.installer import SkillInstaller
-from skills.marketplace import SkillMarketplace
 from memory.sqlite_store import SQLiteMemoryStore
 from memory.chromadb_store import ChromaDBStore
 from memory.rag_pipeline import RAGPipeline
@@ -18,9 +15,7 @@ from tools.browser_agent import BrowserAgent
 from tools.computer_agent import ComputerAgent
 from tools.api_gateway import APIGateway
 from tools.telegram_bot import TelegramBotHandler
-from evolution.daily_learner import DailyLearner
 from tools.multi_account_rotator import MultiAccountRotator
-from evolution.self_updater import SelfUpdater
 
 def test_task_router():
     router = TaskRouter()

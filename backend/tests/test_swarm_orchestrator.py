@@ -5,12 +5,12 @@ os.environ.setdefault("HF_API_KEY", "")
 os.environ.setdefault("OLLAMA_URL", "http://127.0.0.1:11434")
 
 import pytest
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 
 @pytest.fixture
 def orchestrator():
-    from brain.crewai_agents import CrewAgent, CrewTask
+    from brain.crewai_agents import CrewAgent
     from brain.swarm_orchestrator import SwarmOrchestrator
 
     agent1 = MagicMock(spec=CrewAgent)

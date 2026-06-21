@@ -1,4 +1,3 @@
-import pytest
 from tools.github_agent import GitHubAgent
 
 def test_github_agent_repo_connect():

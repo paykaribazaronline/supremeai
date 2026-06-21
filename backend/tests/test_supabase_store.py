@@ -1,6 +1,4 @@
 import os
-import json
-import pytest
 from unittest.mock import patch, MagicMock
 from memory.supabase_store import SupabaseStore
 

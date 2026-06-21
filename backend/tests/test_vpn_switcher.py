@@ -1,4 +1,3 @@
-import pytest
 import time
 from tools.vpn_switcher import VPNRotator
 

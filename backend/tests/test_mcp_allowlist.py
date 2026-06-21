@@ -1,4 +1,3 @@
-import pytest
 
 from core.mcp_allowlist import MCPAllowlist, get_mcp_servers
 

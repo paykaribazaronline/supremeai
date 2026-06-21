@@ -1,13 +1,10 @@
-import os
-import tempfile
 
 import httpx
 
 import pytest
 
 try:
-    from firebase_admin import auth as firebase_admin_auth, exceptions as firebase_exceptions
-    from google.cloud import firestore_v1, pubsub_v1
+    from firebase_admin import auth as firebase_admin_auth
     HAS_FIREBASE_DEPS = True
 except ImportError:
     HAS_FIREBASE_DEPS = False

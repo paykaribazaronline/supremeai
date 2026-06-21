@@ -5,7 +5,6 @@ os.environ.setdefault("HF_API_KEY", "")
 os.environ.setdefault("OLLAMA_URL", "http://127.0.0.1:11434")
 
 import pytest
-from unittest.mock import patch, MagicMock
 
 
 class TestSecureCredentialStoreDisable:

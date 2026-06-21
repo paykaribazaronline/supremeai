@@ -1,6 +1,4 @@
-import pytest
 import os
-import json
 import tempfile
 from unittest.mock import patch, MagicMock
 from tools.video_generator import VideoGenerator

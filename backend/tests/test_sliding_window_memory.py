@@ -1,10 +1,7 @@
-import os
-import tempfile
-from typing import Any, Dict, List
 
 import pytest
 
-from memory.sliding_window import SlidingWindowMemory, SlidingWindowConfig, MemoryWindowRecord
+from memory.sliding_window import SlidingWindowMemory, SlidingWindowConfig
 from memory.checkpoint_resume import CheckpointResume
 
 

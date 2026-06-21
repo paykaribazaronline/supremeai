@@ -1,6 +1,5 @@
 import os
 import tempfile
-import pytest
 from unittest.mock import patch, MagicMock
 from tools.vision_agent import VisionAgent
 

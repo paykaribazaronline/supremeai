@@ -1,6 +1,5 @@
 import os
 from unittest.mock import MagicMock, patch
-import pytest
 from tools.voice import VoiceInterface
 from core.discord_bot import SupremeDiscordBot
 
