@@ -116,6 +116,62 @@ async def shutdown_event():
         logger.warning(f"HTTP client close failed: {exc}")
 
 
+import time
+import hmac
+import hashlib
+import struct
+import base64
+import os
+
+@app.post("/api/admin/login")
+def admin_login(payload: dict = Body(...)):
+    password = payload.get("password")
+    expected_password = settings.docs_password or "supreme-god-password"
+    if password != expected_password:
+        raise HTTPException(status_code=401, detail="Invalid password")
+    
+    secret = os.getenv("SUPREMEAI_ADMIN_TOTP_SECRET", "JBSWY3DPEHPK3PXP")
+    logger.info(f"🔑 [2-STEP AUTHENTICATION] Use Google Authenticator with Secret Key: {secret}")
+    return {"status": "otp_required", "message": "Google Authenticator code required."}
+
+@app.post("/api/admin/verify")
+def admin_verify(payload: dict = Body(...)):
+    password = payload.get("password")
+    otp = payload.get("otp")
+    
+    expected_password = settings.docs_password or "supreme-god-password"
+    if password != expected_password:
+        raise HTTPException(status_code=401, detail="Invalid password")
+    
+    secret = os.getenv("SUPREMEAI_ADMIN_TOTP_SECRET", "JBSWY3DPEHPK3PXP")
+    
+    def verify_totp_code(user_otp: str, base32_secret: str) -> bool:
+        try:
+            missing_padding = len(base32_secret) % 8
+            if missing_padding:
+                base32_secret += '=' * (8 - missing_padding)
+            key = base64.b32decode(base32_secret.upper())
+            
+            # Allow current, previous (-30s), and next (+30s) windows to handle clock drift
+            current_time = int(time.time() // 30)
+            for drift in [-1, 0, 1]:
+                msg = struct.pack(">Q", current_time + drift)
+                h = hmac.new(key, msg, hashlib.sha1).digest()
+                o = h[19] & 15
+                h_num = struct.unpack(">I", h[o:o+4])[0] & 0x7fffffff
+                code = f"{h_num % 1000000:06d}"
+                if code == user_otp:
+                    return True
+            return False
+        except Exception:
+            return False
+
+    if not verify_totp_code(otp.strip(), secret):
+        raise HTTPException(status_code=401, detail="Invalid Google Authenticator code")
+        
+    return {"status": "success", "token": password}
+
+
 @app.get("/health")
 async def health():
     redis_ok = False
