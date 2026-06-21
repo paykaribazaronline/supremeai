@@ -2,7 +2,6 @@ from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from typing import Dict, Any, Optional
-from loguru import logger
 
 from brain.agent_departments import AgentDepartment
 from brain.model_router import ModelRouter

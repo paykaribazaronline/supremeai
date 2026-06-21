@@ -1,7 +1,6 @@
 from fastapi import APIRouter
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
-from typing import Optional
 import json
 
 from brain.model_router import ModelRouter

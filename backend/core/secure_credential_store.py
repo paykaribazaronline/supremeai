@@ -2,12 +2,12 @@ from __future__ import annotations
 
 import base64
 import os
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 
 from loguru import logger
 
 try:
-    from cryptography.fernet import Fernet, InvalidToken
+    from cryptography.fernet import Fernet
     CRYPTO_AVAILABLE = True
 except Exception:  # pragma: no cover - optional hardening
     CRYPTO_AVAILABLE = False

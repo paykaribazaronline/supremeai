@@ -8,7 +8,6 @@ from typing import Any, Dict, List, Optional, Tuple
 
 try:
     import chromadb
-    from chromadb.config import Settings as ChromaSettings
     _CHROMA_AVAILABLE = True
 except ImportError:
     _CHROMA_AVAILABLE = False

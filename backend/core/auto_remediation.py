@@ -1,5 +1,4 @@
 import os
-import sys
 import httpx
 import google.generativeai as genai
 from github import Github

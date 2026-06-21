@@ -1,7 +1,7 @@
 # backend/api/marketplace.py
 # Created by Agent Antigravity on 2026-06-21 to implement Docker Hub search and sandboxed installation.
 
-from fastapi import APIRouter, HTTPException, Depends, Request
+from fastapi import APIRouter, Depends, Request
 from pydantic import BaseModel
 from typing import List, Optional, Dict, Any
 import os

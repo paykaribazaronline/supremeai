@@ -1,4 +1,4 @@
-from typing import List, Dict, Any
+from typing import List, Dict
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from loguru import logger
 from .crewai_agents import CrewAgent, CrewTask

@@ -1,4 +1,3 @@
-import re
 
 class MultiAICodeGenerator:
     def generate_with_consensus(self, task: str, code_kimi: str, code_gpt: str, code_claude: str) -> dict:

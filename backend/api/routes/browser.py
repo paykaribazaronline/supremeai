@@ -1,8 +1,7 @@
-from fastapi import APIRouter, HTTPException, BackgroundTasks
+from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, Optional
 from datetime import datetime
-import base64
 
 from core.audit_logger import AuditLogger
 from core.secure_credential_store import SecureCredentialStore

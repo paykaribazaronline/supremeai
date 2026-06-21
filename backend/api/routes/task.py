@@ -1,10 +1,9 @@
 import json
 
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter
 from pydantic import BaseModel
 from fastapi.responses import StreamingResponse, JSONResponse
 
-from brain.model_router import ModelRouter
 
 router = APIRouter()
 

@@ -2,7 +2,6 @@ import ast
 import os
 import re
 import urllib.parse
-import sys
 
 class AICodeValidator:
     def validate_before_use(self, ai_generated_code: str) -> dict:

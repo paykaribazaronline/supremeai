@@ -1,11 +1,9 @@
 from __future__ import annotations
 
 import time
-from typing import Optional
 
 from fastapi import Request
 from starlette.middleware.base import BaseHTTPMiddleware
-from starlette.responses import Response
 
 from api.routes.metrics import record_error, record_request, record_request_duration
 from core.telemetry import setup_tracing, trace_span

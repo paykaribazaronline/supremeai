@@ -1,6 +1,6 @@
-from fastapi import APIRouter, HTTPException, Depends
-from pydantic import BaseModel, Field
-from typing import Dict, Any, List, Optional
+from fastapi import APIRouter, HTTPException
+from pydantic import BaseModel
+from typing import Dict, Any, Optional
 from datetime import datetime
 
 router = APIRouter(prefix="/api/simulator", tags=["simulator"])
