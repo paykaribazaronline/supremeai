@@ -105,7 +105,6 @@ class TestOnboardingAPI:
 
     def test_save_user_preferences_local_fallback(self, tmp_path):
         from api.routes.onboarding import _save_user_preferences, OnboardingPayload
-        import os
         payload = OnboardingPayload(
             user_id="test-user-123",
             provider="openrouter",

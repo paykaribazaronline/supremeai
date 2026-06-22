@@ -1,5 +1,6 @@
 import os
 import sys
+import pytest
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 if ROOT not in sys.path:
     sys.path.insert(0, ROOT)
@@ -10,7 +11,6 @@ os.environ.setdefault("OLLAMA_URL", "http://127.0.0.1:11434")
 from unittest.mock import MagicMock
 from fastapi.testclient import TestClient
 
-import core.app as app_mod
 from core.app import app
 
 client = TestClient(app)
@@ -33,16 +33,17 @@ class TestOnboardingFlow:
         _mock_db.table.return_value.insert.return_value.execute = MagicMock()
 
         resp = client.post("/api/onboarding/complete", json={
-            "model_preference": "gpt-4o",
-            "team_name": "Test Team"
+            "user_id": "test_user_new",
+            "provider": "openrouter",
+            "api_key": "mock-key",
+            "default_model": "gpt-4o",
+            "first_chat_sent": True
         })
         assert resp.status_code == 200
         data = resp.json()
         assert data["status"] == "success"
-        assert data["is_new_user"] is True
-        assert "access_token" in data
-        assert data["preferences"]["model_preference"] == "gpt-4o"
-        assert data["preferences"]["onboarded"] is True
+        assert data["user_id"] == "test_user_new"
+        assert data["setup_complete"] is True
 
     def test_complete_onboarding_existing_api_key(self, _mock_db):
         existing = MagicMock()
@@ -55,30 +56,31 @@ class TestOnboardingFlow:
         _mock_db.table.return_value.upsert.return_value.execute = mock_upsert
 
         resp = client.post("/api/onboarding/complete", json={
+            "user_id": "existing_user_123",
             "api_key": "sk-test-key-12345",
-            "model_preference": "gpt-4o",
+            "default_model": "gpt-4o",
         })
         assert resp.status_code == 200
         data = resp.json()
-        assert data["is_new_user"] is False
         assert data["status"] == "success"
 
     def test_get_onboarding_status(self, _mock_db):
         existing = MagicMock()
-        existing.data = [{"preferences": {"onboarded": True, "model_preference": "gpt-4o"}}]
-        _mock_db.table.return_value.select.return_value.eq.return_value.execute = existing
+        existing.data = [{"custom_shortcuts": {"onboarding_completed_at": 12345678}, "theme": "dark", "default_model": "gpt-4o"}]
+        _mock_db.table.return_value.select.return_value.eq.return_value.execute.return_value = existing
 
         resp = client.get("/api/onboarding/status/user_abc")
         assert resp.status_code == 200
         data = resp.json()
-        assert data["preferences"]["onboarded"] is True
+        assert data["onboarding_complete"] is True
+        assert data["preferences"]["default_model"] == "gpt-4o"
 
 
 class TestSmellCheck:
     def test_smell_check_requires_path(self):
-        resp = client.post("/api/tools/smell-check", json={})
+        resp = client.post("/tools/smell-check", json={})
         assert resp.status_code == 422
 
     def test_smell_check_invalid_path(self):
-        resp = client.post("/api/tools/smell-check", json={"path": "/nonexistent/path"})
+        resp = client.post("/tools/smell-check", json={"path": "/nonexistent/path"})
         assert resp.status_code == 404

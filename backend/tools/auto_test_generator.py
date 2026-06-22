@@ -8,11 +8,9 @@ from __future__ import annotations
 import os
 import ast
 import sys
-import asyncio
-import inspect
 import subprocess
 import pathlib
-from typing import Dict, Any, List, Optional, Tuple
+from typing import Dict, Any, List, Optional
 from loguru import logger
 from fastapi import APIRouter, HTTPException, UploadFile, File
 from pydantic import BaseModel
@@ -254,7 +252,7 @@ class AutoTestGenerator:
         test_code = self._clean_code(test_code, detected_stack)
 
         # Coverage estimate (heuristic: 1 function → ~15 lines of tests → ~80% coverage)
-        lines = len([l for l in test_code.splitlines() if l.strip()])
+        lines = len([line for line in test_code.splitlines() if line.strip()])
         coverage_estimate = min(95, max(40, lines * 2))
 
         return {

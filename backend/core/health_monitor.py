@@ -1,11 +1,10 @@
-import os
 import time
 import asyncio
 from typing import Any, Dict
 from loguru import logger
 
 try:
-    from prometheus_client import Counter, Gauge, Histogram, start_http_server
+    from prometheus_client import Gauge, Histogram, start_http_server
     _PROMETHEUS_AVAILABLE = True
 except ImportError:
     _PROMETHEUS_AVAILABLE = False

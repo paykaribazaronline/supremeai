@@ -4,7 +4,7 @@ import hashlib
 import time
 from typing import Dict, Any, Optional
 from loguru import logger
-from fastapi import APIRouter, HTTPException, UploadFile, File
+from fastapi import APIRouter, HTTPException
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
 

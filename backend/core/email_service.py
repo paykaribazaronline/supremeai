@@ -1,8 +1,6 @@
 import os
 import httpx
-from typing import Dict, Any, Optional
 from loguru import logger
-from core.config import settings
 
 class EmailService:
     def __init__(self):

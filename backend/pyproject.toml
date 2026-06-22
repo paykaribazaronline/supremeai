@@ -101,3 +101,7 @@ python_version = "3.11"
 warn_return_any = false
 warn_unused_configs = true
 disable_error_code = ["assignment", "attr-defined", "no-any-return"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+norecursedirs = [".venv", "venv", ".git", "build", "dist"]

@@ -12,8 +12,8 @@ from __future__ import annotations
 import time
 from typing import Dict, Any, List, Optional
 from loguru import logger
-from fastapi import APIRouter, HTTPException, Depends
-from pydantic import BaseModel, Field
+from fastapi import APIRouter, HTTPException
+from pydantic import BaseModel
 
 router = APIRouter(prefix="/admin/tenant-limits", tags=["tenant-admin"])
 

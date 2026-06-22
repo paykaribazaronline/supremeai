@@ -14,14 +14,12 @@ Tests cover:
 from __future__ import annotations
 
 import time
-import pytest
 
 from core.free_tier_tracker import (
     FreeTierTracker,
     ProviderBudget,
     _Window,
     _DayWindow,
-    FREE_PROVIDER_PRIORITY,
     get_tracker,
 )
 from core.token_budget import (

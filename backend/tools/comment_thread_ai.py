@@ -9,7 +9,6 @@ Handles GitHub PR/issue comment threads:
 from __future__ import annotations
 
 import os
-import json
 from typing import Dict, Any, List, Optional
 from loguru import logger
 from fastapi import APIRouter, HTTPException, Request, Header

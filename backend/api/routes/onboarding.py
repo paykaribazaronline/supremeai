@@ -4,16 +4,14 @@ Validates user's initial setup: API keys, preferred model, first chat confirmati
 """
 from __future__ import annotations
 
-import os
 import time
 from typing import Optional, Dict, Any
 
 import httpx
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter
 from pydantic import BaseModel
 from loguru import logger
 
-from core.config import settings
 
 router = APIRouter(prefix="/onboarding", tags=["onboarding"])
 

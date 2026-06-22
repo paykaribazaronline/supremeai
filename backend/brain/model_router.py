@@ -15,8 +15,9 @@ from core.language_router import LanguageRouter
 from core.circuit_breaker import CircuitBreaker
 from core.agent_orchestrator import route_request
 from core.semantic_cache import SemanticCache
-from core.free_tier_tracker import get_tracker, FreeTierTracker, FREE_PROVIDER_PRIORITY
+from core.free_tier_tracker import get_tracker, FreeTierTracker
 from core.token_budget import get_budget_manager, TokenBudgetManager
+from core.config import settings
 
 MAX_AGENT_TOKENS = 5000
 MAX_AGENT_ITERATIONS = 5

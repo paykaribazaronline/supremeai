@@ -1,6 +1,6 @@
 import os
 import base64
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, List
 from loguru import logger
 from fastapi import APIRouter, HTTPException, UploadFile, File, Form
 import tempfile

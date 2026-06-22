@@ -6,8 +6,7 @@ Sprint G Tests:
 - G.4: Tenant Admin API
 """
 import pytest
-from unittest.mock import AsyncMock, MagicMock, patch, mock_open
-import pathlib
+from unittest.mock import AsyncMock, patch
 
 
 # ── G.1 MultilingualTTS ───────────────────────────────────────────────────────

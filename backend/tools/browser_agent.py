@@ -3,7 +3,7 @@ import httpx
 from bs4 import BeautifulSoup
 from loguru import logger
 from typing import Dict, Any, Optional
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter
 from pydantic import BaseModel
 
 router = APIRouter(prefix="/browser", tags=["browser-agent"])

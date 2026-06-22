@@ -3,7 +3,6 @@ import json
 import datetime
 from typing import Dict, Any, List
 from loguru import logger
-import httpx
 
 class RLHFPipeline:
     def __init__(self, storage_dir: str = "data/rlhf"):
@@ -67,17 +66,20 @@ class RLHFPipeline:
         logger.info(f"Triggering DPO training on {base_model} using {dataset_path}")
         
         try:
-            # Attempt to import TRL and perform training locally or mock
-            import trl
-            import torch
-            from transformers import AutoModelForCausalLM, AutoTokenizer
-            logger.info("trl library is available. Simulating local DPOTrainer compilation.")
-            # Local training simulation with TRL
-            return {
-                "status": "success",
-                "method": "local_trl",
-                "message": "Local DPO training simulation success using TRL library."
-            }
+            # Attempt to check if TRL and dependencies are available
+            import importlib.util
+            if (importlib.util.find_spec("trl") is not None and 
+                importlib.util.find_spec("torch") is not None and 
+                importlib.util.find_spec("transformers") is not None):
+                logger.info("trl library is available. Simulating local DPOTrainer compilation.")
+                # Local training simulation with TRL
+                return {
+                    "status": "success",
+                    "method": "local_trl",
+                    "message": "Local DPO training simulation success using TRL library."
+                }
+            else:
+                raise ImportError("trl or dependencies missing")
         except ImportError:
             # Fallback to model trainer (RunPod/Modal Serverless)
             logger.warning("trl library not found locally. Delegating DPO job to ModelTrainer.")

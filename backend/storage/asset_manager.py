@@ -1,7 +1,6 @@
 import os
 from typing import Optional
 from loguru import logger
-import firebase_admin
 from firebase_admin import storage as firebase_storage
 
 class AssetManager:
