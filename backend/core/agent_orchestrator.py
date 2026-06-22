@@ -1,6 +1,6 @@
 import os
 import re
-from typing import Optional, Dict, Any, Tuple
+from typing import Optional, Dict, Any
 from pydantic import BaseModel
 from loguru import logger
 import time

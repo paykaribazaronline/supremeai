@@ -1,7 +1,6 @@
 import asyncio
 from typing import Dict, Any
 from loguru import logger
-from core.config import settings
 
 class OfflineModeManager:
     """

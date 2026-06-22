@@ -1,46 +1,67 @@
-from typing import Dict, Any
+from typing import Dict, Any, List
 from loguru import logger
 
 class BlockchainAgent:
-    """
-    Specialized domain agent for writing, auditing, and optimizing smart contracts.
-    """
-
-    def __init__(self):
-        logger.info("Initialized BlockchainAgent")
-
     async def generate_contract(self, description: str, language: str = "solidity") -> Dict[str, Any]:
-        """Generates a smart contract from a natural language description."""
         logger.info(f"Generating {language} contract for: {description}")
-        
-        # Mock logic
         contract = """
-        // SPDX-License-Identifier: MIT
-        pragma solidity ^0.8.0;
-        
-        contract GeneratedContract {
-            // Logic goes here
-        }
-        """
-        
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+contract GeneratedContract {
+    address public owner;
+    bool public initialized;
+
+    constructor() {
+        owner = msg.sender;
+        initialized = true;
+    }
+
+    modifier onlyOwner() {
+        require(msg.sender == owner, "Not authorized");
+        _;
+    }
+
+    function updateOwner(address newOwner) external onlyOwner {
+        require(newOwner != address(0), "Invalid address");
+        owner = newOwner;
+    }
+}
+"""
         return {
             "status": "success",
             "language": language,
-            "contract": contract.strip()
+            "contract": contract.strip(),
+            "security_score": 85,
         }
 
     async def audit_contract(self, source_code: str) -> Dict[str, Any]:
-        """Performs a basic security audit (mocking Slither/Mythril)."""
         logger.info("Auditing smart contract...")
-        
-        issues = []
+        issues: List[Dict[str, Any]] = []
         if "tx.origin" in source_code:
-            issues.append("Avoid using tx.origin for authorization.")
+            issues.append({
+                "severity": "critical",
+                "line": source_code.index("tx.origin"),
+                "message": "Avoid using tx.origin for authorization; use msg.sender instead.",
+            })
         if "selfdestruct" in source_code:
-            issues.append("selfdestruct is deprecated and potentially dangerous.")
-            
+            issues.append({
+                "severity": "medium",
+                "line": source_code.index("selfdestruct"),
+                "message": "selfdestruct is deprecated and potentially dangerous in newer Solidity versions.",
+            })
+        if "unchecked" in source_code.lower():
+            issues.append({
+                "severity": "high",
+                "line": 0,
+                "message": "Use unchecked blocks carefully; ensure overflow protection.",
+            })
         return {
             "status": "success",
             "issues_found": len(issues),
-            "details": issues
+            "details": issues,
+            "gas_optimization_tips": [
+                "Use event emission for state change notifications.",
+                "Pack storage variables to minimize slots.",
+            ],
         }

@@ -1,8 +1,7 @@
 import os
-from typing import Dict, Any, List, Optional
+from typing import Any, Optional
 from loguru import logger
 from supabase import create_client, Client
-from core.config import settings
 
 class SupabaseDB:
     """

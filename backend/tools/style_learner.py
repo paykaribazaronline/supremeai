@@ -1,6 +1,6 @@
 import os
 import json
-from typing import Dict, Any, List
+from typing import Dict, Any
 from loguru import logger
 
 class StyleLearner:

@@ -2,7 +2,6 @@ import json
 import os
 from typing import Dict, Any
 from loguru import logger
-from core.config import settings
 
 class PreferenceMemory:
     """
