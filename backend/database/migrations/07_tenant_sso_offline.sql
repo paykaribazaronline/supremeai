@@ -1,5 +1,8 @@
 -- SupremeAI 2.0 — Migration 07: Multi-Tenant Rate Limiting & Config
 
+DROP TABLE IF EXISTS tenant_usage CASCADE;
+DROP TABLE IF EXISTS tenant_limits CASCADE;
+
 -- Tenant (organization) limits table
 CREATE TABLE IF NOT EXISTS tenant_limits (
     tenant_id TEXT PRIMARY KEY,
@@ -15,6 +18,7 @@ CREATE TABLE IF NOT EXISTS tenant_limits (
 );
 
 -- Tenant usage tracking
+DROP TABLE IF EXISTS tenant_usage;
 CREATE TABLE IF NOT EXISTS tenant_usage (
     id BIGSERIAL PRIMARY KEY,
     tenant_id TEXT REFERENCES tenant_limits(tenant_id),

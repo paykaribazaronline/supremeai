@@ -3,6 +3,7 @@
 
 -- 1. Upgrade github_repos
 ALTER TABLE github_repos RENAME COLUMN repo_name TO id;
+ALTER TABLE github_repos ALTER COLUMN owner DROP NOT NULL;
 ALTER TABLE github_repos 
 ADD COLUMN IF NOT EXISTS name TEXT,
 ADD COLUMN IF NOT EXISTS url TEXT,

@@ -16,8 +16,11 @@ class CloudPostgresStore:
 
     def __init__(self):
         self.conn_string = os.getenv(
-            "DATABASE_URL",
-            os.getenv("SUPABASE_DATABASE_URL", "")
+            "SUPABASE_DATABASE_URL_POOLER",
+            os.getenv(
+                "DATABASE_URL",
+                os.getenv("SUPABASE_DATABASE_URL", "")
+            )
         )
         self._init_tables()
 

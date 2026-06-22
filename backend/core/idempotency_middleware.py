@@ -19,8 +19,14 @@ class IdempotencyMiddleware(BaseHTTPMiddleware):
         if request.method not in ("POST", "PUT", "PATCH"):
             return await call_next(request)
 
-        idempotency_key = request.headers.get("idempotency-key")
+        idempotency_key = request.headers.get("idempotency-key") or request.headers.get("Idempotency-Key")
         if not idempotency_key:
+            # Reject critical requests missing Idempotency-Key header to prevent duplicate execution
+            if "/api/orchestrate/generate" in request.url.path or "/api/markdown/export" in request.url.path:
+                return JSONResponse(
+                    status_code=400,
+                    content={"error": "Idempotency-Key header is required for this action."}
+                )
             return await call_next(request)
 
         import core.app as app_mod
