@@ -1,14 +1,14 @@
 import os
 import uuid
+import httpx
 from typing import Dict, Any
 from loguru import logger
 
 class CloudSandboxOrchestrator:
     """
-    Orchestrates persistent Ubuntu VMs for safe and isolated code execution.
-    Supports local Docker, RunPod, and Modal for cloud-scale execution.
+    Orchestrates persistent Ubuntu VMs/Containers for safe and isolated code execution.
+    Supports local Docker and RunPod for cloud-scale execution.
     Maintains state across sessions.
-    (Closes Devin Gap #1, #2, #3, #5)
     """
 
     def __init__(self, provider: str = "auto"):
@@ -18,9 +18,7 @@ class CloudSandboxOrchestrator:
         if self.provider == "auto":
             if os.getenv("RUNPOD_API_KEY"):
                 self.provider = "runpod"
-            elif os.getenv("MODAL_TOKEN_ID") and os.getenv("MODAL_TOKEN_SECRET"):
-                self.provider = "modal"
-            elif os.getenv("DOCKER_HOST") or os.path.exists("/var/run/docker.sock"):
+            elif os.getenv("DOCKER_HOST") or os.path.exists("/var/run/docker.sock") or os.name == 'nt':
                 self.provider = "docker"
             else:
                 self.provider = "local"
@@ -39,7 +37,7 @@ class CloudSandboxOrchestrator:
             self._docker_client.ping()
             return self._docker_client
         except Exception as e:
-            logger.warning(f"Docker not available: {e}")
+            logger.warning(f"Docker not available locally: {e}. Falling back to mock/local.")
             return None
 
     async def create_session(self, image: str = "ubuntu:22.04") -> str:
@@ -64,10 +62,44 @@ class CloudSandboxOrchestrator:
                     logger.error(f"Failed to create Docker container: {e}")
         
         if self.provider == "runpod":
-            if not os.getenv("RUNPOD_API_KEY"):
+            api_key = os.getenv("RUNPOD_API_KEY")
+            if not api_key:
                 raise RuntimeError("RUNPOD_API_KEY is required for RunPod sandbox sessions.")
-            logger.info(f"RunPod session creation not yet implemented. Falling back to mock. {session_id}")
-        
+                
+            # Create a pod using RunPod User API
+            headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
+            payload = {
+                "name": session_id,
+                "imageName": image,
+                "gpuTypeId": "cpu", # Serverless/CPU pod for cost savings
+                "volumeInGb": 5,
+                "ports": "22/tcp,80/tcp",
+            }
+            async with httpx.AsyncClient() as http_client:
+                # We fetch standard user templates or spin up standard container
+                resp = await http_client.post(
+                    "https://api.runpod.io/v1/user/pod",
+                    json=payload,
+                    headers=headers,
+                    timeout=20.0
+                )
+                if resp.status_code in (200, 201):
+                    data = resp.json()
+                    pod_id = data.get("id")
+                    self.active_sessions[session_id] = {
+                        "image": image,
+                        "status": "running",
+                        "provider": "runpod",
+                        "pod_id": pod_id,
+                        "cwd": "/workspace",
+                        "env": {"PYTHONUNBUFFERED": "1"}
+                    }
+                    logger.info(f"RunPod session created successfully: {session_id} (Pod ID: {pod_id})")
+                    return session_id
+                else:
+                    logger.error(f"RunPod pod creation API failed: {resp.text}. Falling back to local mock.")
+
+        # Fallback Mock Session
         self.active_sessions[session_id] = {
             "image": image,
             "status": "running",
@@ -105,13 +137,31 @@ class CloudSandboxOrchestrator:
             session["cwd"] = os.path.join(session["cwd"], new_dir) if session["cwd"] != "/workspace" else os.path.join("/workspace", new_dir)
             return {"exit_code": 0, "stdout": "", "stderr": ""}
 
-        if self.provider == "runpod":
-            if not os.getenv("RUNPOD_API_KEY"):
-                raise RuntimeError("RUNPOD_API_KEY is required for RunPod command execution.")
+        if provider == "runpod":
+            api_key = os.getenv("RUNPOD_API_KEY")
+            pod_id = session.get("pod_id")
+            if api_key and pod_id:
+                headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
+                payload = {"command": f"cd {session['cwd']} && {command}"}
+                async with httpx.AsyncClient() as http_client:
+                    # RunPod execute command endpoint
+                    resp = await http_client.post(
+                        f"https://api.runpod.io/v1/pod/{pod_id}/cmd",
+                        json=payload,
+                        headers=headers,
+                        timeout=float(timeout)
+                    )
+                    if resp.status_code == 200:
+                        data = resp.json()
+                        return {
+                            "exit_code": data.get("exitCode", 0),
+                            "stdout": data.get("stdout", ""),
+                            "stderr": data.get("stderr", "")
+                        }
         
         return {
             "exit_code": 0,
-            "stdout": f"Mock output for '{command}' in {self.provider} sandbox at {session['cwd']}",
+            "stdout": f"Mock output for '{command}' in {provider} sandbox at {session['cwd']}",
             "stderr": ""
         }
         
@@ -174,6 +224,18 @@ class CloudSandboxOrchestrator:
                             container.remove()
                         except Exception as e:
                             logger.warning(f"Docker cleanup failed: {e}")
+            
+            elif provider == "runpod":
+                api_key = os.getenv("RUNPOD_API_KEY")
+                pod_id = session.get("pod_id")
+                if api_key and pod_id:
+                    headers = {"Authorization": f"Bearer {api_key}"}
+                    async with httpx.AsyncClient() as http_client:
+                        await http_client.post(
+                            f"https://api.runpod.io/v1/pod/{pod_id}/stop",
+                            headers=headers,
+                            timeout=15.0
+                        )
             
             self.active_sessions.pop(session_id)
             return True

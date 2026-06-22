@@ -55,3 +55,18 @@ class ObservabilityMiddleware(BaseHTTPMiddleware):
             duration = time.perf_counter() - started
             record_request(method, path, status_code)
             record_request_duration(method, path, duration)
+            try:
+                from core.posthog_client import posthog_client
+                user_id = request.headers.get("x-user-id") or "anonymous_api_user"
+                posthog_client.capture(
+                    distinct_id=user_id,
+                    event="api_request",
+                    properties={
+                        "path": path,
+                        "method": method,
+                        "status_code": status_code,
+                        "duration": duration,
+                    }
+                )
+            except Exception:
+                pass

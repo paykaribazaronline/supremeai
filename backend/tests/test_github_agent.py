@@ -2,7 +2,8 @@ from tools.github_agent import GitHubAgent
 
 def test_github_agent_repo_connect():
     agent = GitHubAgent()
-    assert agent.connect_repo("test-owner", "test-repo") is True
+    res = agent.connect_repo("test-owner", "test-repo")
+    assert res["status"] == "success"
 
 def test_github_agent_analyze():
     agent = GitHubAgent()

@@ -46,19 +46,28 @@ async def connect_repo(payload: ConnectRequest):
 @router.post("/improve")
 async def improve_repo(payload: ImproveRequest):
     try:
-        analysis = github_agent.analyze_repo(payload.repo)
+        repo = payload.repo
+        if not repo or repo.lower().strip() == "dummy/repo":
+            raise HTTPException(status_code=400, detail="Repository name cannot be empty or 'dummy/repo'")
+        analysis = github_agent.analyze_repo(repo)
         return {"status": "success", "analysis": analysis}
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/push")
 async def push_improvements(payload: PushRequest):
     try:
+        repo = payload.repo
+        if not repo or repo.lower().strip() == "dummy/repo":
+            raise HTTPException(status_code=400, detail="Repository name cannot be empty or 'dummy/repo'")
         # Enforce PR governance via agent
         improvements = {f: "Optimized" for f in payload.files_changed}
-        repo = payload.repo
         res = github_agent.create_improvement_pr(repo, improvements, payload.branch)
         return res
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

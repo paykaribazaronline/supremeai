@@ -78,4 +78,35 @@ class SupabaseDB:
         except Exception as e:
             logger.error(f"Failed to add GitHub repo '{repo_name}': {e}")
 
+    # --- User Preferences ---
+    def get_user_preferences(self, user_id: str) -> Optional[Any]:
+        if not self.client: return None
+        try:
+            res = self.client.table("user_preferences").select("*").eq("user_id", user_id).execute()
+            if res.data:
+                return res.data[0]
+            return None
+        except Exception as e:
+            logger.error(f"Failed to fetch preferences for '{user_id}': {e}")
+            return None
+
+    def upsert_user_preferences(self, data: dict) -> Optional[Any]:
+        if not self.client: return None
+        try:
+            res = self.client.table("user_preferences").upsert(data).execute()
+            return res.data[0] if res.data else None
+        except Exception as e:
+            logger.error(f"Failed to upsert preferences: {e}")
+            return None
+
+    # --- Usage Metrics ---
+    def upsert_usage_metric(self, data: dict) -> Optional[Any]:
+        if not self.client: return None
+        try:
+            res = self.client.table("usage_metrics").upsert(data).execute()
+            return res.data[0] if res.data else None
+        except Exception as e:
+            logger.error(f"Failed to upsert usage metrics: {e}")
+            return None
+
 db = SupabaseDB()

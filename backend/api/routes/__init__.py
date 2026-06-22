@@ -139,6 +139,12 @@ except Exception:
     tools_ops_router = None
 
 try:
+    from .onboarding import router as onboarding_router
+    _safe_imports["onboarding_router"] = onboarding_router
+except Exception:
+    onboarding_router = None
+
+try:
     from .tools_registry import router as tools_registry_router
     _safe_imports["tools_registry_router"] = tools_registry_router
 except Exception:

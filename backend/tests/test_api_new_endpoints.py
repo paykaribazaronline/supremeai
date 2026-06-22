@@ -55,6 +55,7 @@ def test_api_github_endpoints():
     resp = client.post(
         "/github/push",
         json={
+            "repo": "owner/repo",
             "branch": "supremeai-improvements-1718952000",
             "commit_message": "AI: Optimized database queries",
             "files_changed": ["src/db.py", "src/cache.py"]

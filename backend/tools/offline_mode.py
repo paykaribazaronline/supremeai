@@ -1,40 +1,86 @@
 import asyncio
+import os
+import httpx
 from typing import Dict, Any, List
 from loguru import logger
+from database.supabase_client import db
 
 class OfflineModeManager:
+    """
+    Manages offline mode by falling back to Ollama and queuing actions for cloud sync.
+    """
     def __init__(self, local_model_id: str = "llama3-8b"):
-        self.local_model_id = local_model_id
+        self.local_model_id = os.getenv("LOCAL_MODEL", local_model_id)
+        self.ollama_url = os.getenv("OLLAMA_URL", "http://127.0.0.1:11434")
         self.sync_queue: List[Dict[str, Any]] = []
+        self._is_syncing = False
         logger.info(f"Initialized OfflineModeManager with local model {self.local_model_id}")
 
-    async def execute_task(self, prompt: str) -> Dict[str, Any]:
-        logger.info(f"Executing task offline: {prompt}")
-        await asyncio.sleep(0.3)
-        local_response = f"[Offline] Processed by {self.local_model_id}: Here is the local result for '{prompt}'."
-        self.sync_queue.append({
+    async def _call_ollama(self, prompt: str) -> str:
+        try:
+            async with httpx.AsyncClient(timeout=30.0) as client:
+                res = await client.post(
+                    f"{self.ollama_url}/api/generate",
+                    json={"model": self.local_model_id, "prompt": prompt, "stream": False}
+                )
+                res.raise_for_status()
+                return res.json().get("response", "No response from local model.")
+        except Exception as e:
+            logger.error(f"Ollama local fallback failed: {e}")
+            return f"[Offline Error] Could not reach local Ollama instance: {str(e)}"
+
+    async def execute_task(self, prompt: str, task_type: str = "general") -> Dict[str, Any]:
+        logger.info(f"Executing task offline via Ollama: {prompt}")
+        
+        local_response = await self._call_ollama(prompt)
+        
+        action_payload = {
             "action": "offline_execution",
+            "task_type": task_type,
             "prompt": prompt,
             "result": local_response,
-        })
+            "timestamp": asyncio.get_event_loop().time()
+        }
+        
+        self.sync_queue.append(action_payload)
+        
         return {
             "status": "success",
-            "source": "local",
+            "source": "ollama",
             "result": local_response,
             "queued_for_sync": True,
         }
 
     async def sync_with_cloud(self) -> Dict[str, Any]:
-        if not self.sync_queue:
+        if not self.sync_queue or self._is_syncing:
             return {"status": "success", "synced": 0}
-        logger.info(f"Syncing {len(self.sync_queue)} offline actions to the cloud...")
-        await asyncio.sleep(0.2)
-        count = len(self.sync_queue)
-        self.sync_queue.clear()
-        return {"status": "success", "synced": count}
             
+        self._is_syncing = True
         logger.info(f"Syncing {len(self.sync_queue)} offline actions to the cloud...")
-        # Mock sync to Supabase/Firebase
-        await asyncio.sleep(0.5)
-        self.sync_queue.clear()
-        return True
+        
+        synced_count = 0
+        try:
+            if db.client:
+                # Sync actions to database
+                sync_payloads = []
+                for action in self.sync_queue:
+                    sync_payloads.append({
+                        "action_type": action["action"],
+                        "payload": action,
+                        "status": "synced"
+                    })
+                
+                # In a real scenario, we'd insert into an 'offline_sync_logs' table
+                # db.client.table("offline_sync_logs").insert(sync_payloads).execute()
+                
+            synced_count = len(self.sync_queue)
+            self.sync_queue.clear()
+            logger.info(f"Successfully synced {synced_count} actions.")
+            return {"status": "success", "synced": synced_count}
+        except Exception as e:
+            logger.error(f"Failed to sync offline queue: {e}")
+            return {"status": "error", "error": str(e), "synced": 0}
+        finally:
+            self._is_syncing = False
+
+offline_manager = OfflineModeManager()

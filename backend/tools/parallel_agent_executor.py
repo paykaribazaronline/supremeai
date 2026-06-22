@@ -53,9 +53,13 @@ class ParallelAgentExecutor:
         """Publishes agent state to Redis."""
         payload = {"agent": agent_name, "state": state, "group": self.execution_group, **kwargs}
         try:
-            await redis.publish(f"supremeai:agents:{self.execution_group}", json.dumps(payload))
-        except Exception:
-            pass
+            import inspect
+            if inspect.iscoroutinefunction(redis.publish):
+                await redis.publish(f"supremeai:agents:{self.execution_group}", json.dumps(payload))
+            else:
+                redis.publish(f"supremeai:agents:{self.execution_group}", json.dumps(payload))
+        except Exception as e:
+            logger.warning(f"Failed to publish agent state: {e}")
 
     async def run_parallel(self, agent_tasks: Dict[str, Callable]) -> Dict[str, Any]:
         """

@@ -90,11 +90,17 @@ def test_firebase_roundtrip_queue_result(mock_firebase_admin):
 def test_existing_gcp_roundtrip_coverage():
     import subprocess
     import sys
+    import os
+    env = os.environ.copy()
+    env["PYTHONPATH"] = env.get("PYTHONPATH", "") + os.pathsep + "."
+    test_path_prefix = "tests" if os.path.exists("tests") else "backend/tests"
     r = subprocess.run(
-        [sys.executable, "-m", "pytest", "backend/tests/test_gcp_integration.py::test_gcp_firestore_integration_queue",
-         "backend/tests/test_gcp_integration.py::test_gcp_pubsub_publish_pull",
-         "backend/tests/test_gcp_integration.py::test_gcp_cloud_run_router_route", "-q"],
+        [sys.executable, "-m", "pytest", 
+         f"{test_path_prefix}/test_gcp_integration.py::test_gcp_firestore_integration_queue",
+         f"{test_path_prefix}/test_gcp_integration.py::test_gcp_pubsub_publish_pull",
+         f"{test_path_prefix}/test_gcp_integration.py::test_gcp_cloud_run_router_route", "-q"],
         capture_output=True,
         text=True,
+        env=env,
     )
     assert r.returncode == 0, "Roundtrip tests failed:\n" + r.stdout + "\n" + r.stderr

@@ -30,6 +30,7 @@ from api.routes import (
     github_router,
     internal_router,
     marketplace_endpoints_router,
+    onboarding_router,
     repos_router,
     tools_ops_router,
     tools_registry_router,
@@ -526,6 +527,8 @@ app.include_router(email_router)
 app.include_router(github_router)
 app.include_router(internal_router)
 app.include_router(marketplace_endpoints_router)
+if onboarding_router is not None:
+    app.include_router(onboarding_router)
 app.include_router(repos_router)
 app.include_router(tools_ops_router)
 app.include_router(tools_registry_router)
@@ -538,10 +541,49 @@ if sso_router is not None:
 from tools.image_to_code import router as image_to_code_router
 if image_to_code_router is not None:
     app.include_router(image_to_code_router)
+
+# New tool routers (Sprint C fixes)
+try:
+    from tools.browser_agent import router as browser_agent_router
+    app.include_router(browser_agent_router, prefix="/api")
+except Exception as _e:
+    logger.warning(f"browser_agent router not loaded: {_e}")
+
+try:
+    from tools.voice_coder import router as voice_coder_router
+    app.include_router(voice_coder_router, prefix="/api")
+except Exception as _e:
+    logger.warning(f"voice_coder router not loaded: {_e}")
+
+try:
+    from tools.style_learner import router as style_learner_router
+    app.include_router(style_learner_router, prefix="/api")
+except Exception as _e:
+    logger.warning(f"style_learner router not loaded: {_e}")
+
+try:
+    from tools.diagram_to_architecture import router as diagram_router
+    app.include_router(diagram_router, prefix="/api")
+except Exception as _e:
+    logger.warning(f"diagram_to_architecture router not loaded: {_e}")
+
+try:
+    from tools.ai_pair_programmer import router as pair_router
+    app.include_router(pair_router, prefix="/api")
+except Exception as _e:
+    logger.warning(f"ai_pair_programmer router not loaded: {_e}")
+
+try:
+    from api.routes.onboarding import router as onboarding_api_router
+    app.include_router(onboarding_api_router, prefix="/api")
+except Exception as _e:
+    logger.warning(f"onboarding API router not loaded: {_e}")
+
 if codeflow_router is not None:
     app.include_router(codeflow_router)
 if feedback_router is not None:
     app.include_router(feedback_router)
+
 
 from core.universal_rules import UniversalRulesEngine
 rules_engine = UniversalRulesEngine()

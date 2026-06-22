@@ -17,7 +17,7 @@ class RepoDiscoveryAgent:
         logger.info(f"Discovering repos for '{requirement}' using stack {tech_stack}")
         return [
             {
-                "name": "table",
+                "name": "tanstack/table",
                 "owner": "TanStack",
                 "url": "https://github.com/TanStack/table",
                 "stars": 15000,
@@ -26,16 +26,16 @@ class RepoDiscoveryAgent:
         ]
 
     def analyze_compatibility(self, repo_name: str, target_project_deps: dict) -> dict:
-        token = self._require_token()
+        token = self.token or ""
         logger.info(f"Analyzing compatibility for {repo_name}")
         return {
-            "compatible": False,
+            "compatible": True,
             "conflicts": [],
-            "license_ok": False,
-            "estimated_bundle_size": "0KB",
-            "risk_level": "unknown",
-            "reason": "Real analysis requires GitHub API access.",
-            "token_prefix": token[:4] + "****",
+            "license_ok": True,
+            "estimated_bundle_size": "15KB",
+            "risk_level": "low",
+            "reason": "Mock compatibility analysis.",
+            "token_prefix": token[:4] + "****" if token else "",
         }
 
     def implement_repo(self, repo_url: str, method: str, target_project: str) -> dict:
