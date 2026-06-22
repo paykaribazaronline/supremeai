@@ -1,5 +1,4 @@
 import json
-import typing
 import os
 import sqlite3
 import uuid

@@ -2,9 +2,10 @@ from __future__ import annotations
 
 from typing import Dict, Any, List
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
 
+from core.rbac import UserContext
 from core.config import settings
 
 try:
@@ -55,3 +56,4 @@ async def saml_login(payload: SAMLAssertionRequest):
         email=token_data["email"],
         method=token_data["method"],
     )
+

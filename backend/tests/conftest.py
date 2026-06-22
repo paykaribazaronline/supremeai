@@ -1,4 +1,8 @@
 import os
+import sys
+ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+if ROOT not in sys.path:
+    sys.path.insert(0, ROOT)
 os.environ.setdefault("OPENROUTER_API_KEY", "mock-key-value")
 import pytest
 from core.rbac import RoleBasedAccessControl
