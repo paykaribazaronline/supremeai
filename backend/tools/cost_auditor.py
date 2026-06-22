@@ -5,10 +5,13 @@ from loguru import logger
 from memory.sqlite_store import SQLiteMemoryStore
 
 class CostAuditor:
-    def __init__(self, db_path: typing.Optional[str] = None):
+    def __init__(self, db_path: typing.Optional[str] = None, report_dir: typing.Optional[str] = None):
         self.store = SQLiteMemoryStore(db_path)
-        base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        self.report_dir = os.path.join(base_dir, "data")
+        if report_dir:
+            self.report_dir = report_dir
+        else:
+            base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            self.report_dir = os.path.join(base_dir, "data")
         os.makedirs(self.report_dir, exist_ok=True)
 
     def generate_report(self) -> Dict[str, str]:

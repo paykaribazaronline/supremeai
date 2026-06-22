@@ -3,7 +3,8 @@ from unittest.mock import patch, MagicMock
 from tools.cloud_sandbox_orchestrator import CloudSandboxOrchestrator
 
 @pytest.mark.anyio
-async def test_sandbox_local_flow():
+@patch("tools.cloud_sandbox_orchestrator.CloudSandboxOrchestrator._get_docker_client", return_value=None)
+async def test_sandbox_local_flow(mock_get_docker):
     orchestrator = CloudSandboxOrchestrator(provider="local")
     session_id = await orchestrator.create_session()
     assert session_id is not None

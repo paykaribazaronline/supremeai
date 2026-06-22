@@ -22,7 +22,7 @@ def test_bangla_voice_transcribe_whisper():
     
     with patch("tools.bangla_voice.os.path.exists", return_value=True), \
          patch("tools.bangla_voice.BanglaVoice._check_stt_available", return_value=True), \
-         patch("sys.modules", {"whisper": mock_whisper}):
+         patch.dict("sys.modules", {"whisper": mock_whisper}):
         
         voice = BanglaVoice()
         res = voice.transcribe("dummy.wav")
@@ -35,7 +35,7 @@ def test_bangla_voice_speak_gtts():
     mock_gtts.gTTS.return_value = mock_tts_obj
     
     with patch("tools.bangla_voice.BanglaVoice._check_tts_available", return_value=False), \
-         patch("sys.modules", {"gtts": mock_gtts}):
+         patch.dict("sys.modules", {"gtts": mock_gtts}):
         
         voice = BanglaVoice()
         res = voice.speak("কেমন আছেন?", "output.mp3")
@@ -49,7 +49,7 @@ def test_bangla_voice_speak_coqui():
     mock_tts_class.return_value = mock_tts_obj
     
     with patch("tools.bangla_voice.BanglaVoice._check_tts_available", return_value=True), \
-         patch("sys.modules", {"TTS.api": MagicMock(TTS=mock_tts_class)}):
+         patch.dict("sys.modules", {"TTS.api": MagicMock(TTS=mock_tts_class)}):
         
         voice = BanglaVoice(prefer_coqui=True)
         res = voice.speak("শুভ সকাল", "output.mp3")

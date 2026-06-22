@@ -28,7 +28,14 @@ def test_docker_sandbox_simulated_run(monkeypatch):
 def test_cost_auditor_generation():
     with tempfile.TemporaryDirectory() as tmpdir:
         db_path = os.path.join(tmpdir, "test_mem.db")
-        auditor = CostAuditor(db_path)
+        auditor = CostAuditor(db_path, report_dir=tmpdir)
+        auditor.store.log_task(
+            task_description="Test task",
+            task_type="generation",
+            success=True,
+            cost=0.05,
+            outcome_text="Success"
+        )
         report = auditor.generate_report()
         
         assert os.path.exists(report["text_report"])
