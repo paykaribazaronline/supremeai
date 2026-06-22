@@ -70,6 +70,7 @@ torch = "^2.0.0"
 transformers = "^4.40.0"
 trl = "^0.9.0"
 openai-whisper = "^20240930"
+setuptools = "<82.0.0"
 opentelemetry-api = "^1.25.0"
 opentelemetry-sdk = "^1.25.0"
 
