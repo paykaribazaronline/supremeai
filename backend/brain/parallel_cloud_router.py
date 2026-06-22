@@ -13,7 +13,7 @@ class ParallelCloudRouter:
     Workload is distributed based on capacity, weight, and health.
     """
     
-    PROVIDERS = {
+    PROVIDERS: Dict[str, Any] = {
         "gcp_cloud_run": {
             "url": os.getenv("GCP_CLOUD_RUN_URL", ""),
             "weight": 40.0,  # 40% traffic (highest - free tier)
@@ -99,14 +99,14 @@ class ParallelCloudRouter:
     def _get_status(self, provider: str) -> str:
         if self.upstash.configured:
             val = self.upstash.get(f"parallel_router:status:{provider}")
-            return val if val else self.PROVIDERS[provider]["status"]
+            return str(val) if val else str(self.PROVIDERS[provider]["status"])
         if self.redis_client:
             try:
                 val = self.redis_client.get(f"parallel_router:status:{provider}")
-                return val if val else self.PROVIDERS[provider]["status"]
+                return str(val) if val else str(self.PROVIDERS[provider]["status"])
             except Exception as e:
                 logger.error(f"Redis get status failed: {e}")
-        return self.PROVIDERS[provider]["status"]
+        return str(self.PROVIDERS[provider]["status"])
 
     def _set_status(self, provider: str, status: str):
         if self.upstash.configured:

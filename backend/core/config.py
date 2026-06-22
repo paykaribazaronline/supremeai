@@ -60,7 +60,7 @@ class Settings(BaseSettings):
             raise ValueError(f"env must be one of {allowed}")
         return value.lower()
 
-    def validate(self) -> None:
+    def validate_config(self) -> None:
         if self.env.lower() == "production":
             missing = []
             if not self.openrouter_api_key:

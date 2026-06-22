@@ -59,7 +59,9 @@ class GCPFirestoreVerificationQueue:
             self._memory_conn = sqlite3.connect(self.db_path, check_same_thread=False)
             conn = self._memory_conn
         else:
-            conn = sqlite3.connect(self.db_path, check_same_thread=False)
+            conn = sqlite3.connect(str(self.db_path), check_same_thread=False)
+
+        assert conn is not None
 
         try:
             conn.execute(
@@ -107,7 +109,7 @@ class GCPFirestoreVerificationQueue:
         }
 
         if self.client is not None:
-            _, ref = self.client.collection(self.collection_name).add(document)
+            _, ref = self.client.collection(str(self.collection_name)).add(document)
             return {
                 "success": True,
                 "provider": "gcp_firestore",
@@ -146,7 +148,7 @@ class GCPFirestoreVerificationQueue:
     def get_pending(self, limit: int = 10) -> List[Dict[str, Any]]:
         if self.client is not None:
             rows = (
-                self.client.collection(self.collection_name)
+                self.client.collection(str(self.collection_name))
                 .where("status", "==", "pending")
                 .order_by("priority", direction=firestore.Query.DESCENDING)
                 .limit(limit)
@@ -175,7 +177,7 @@ class GCPFirestoreVerificationQueue:
         now = self._now()
         if self.client is not None:
             query = (
-                self.client.collection(self.collection_name)
+                self.client.collection(str(self.collection_name))
                 .where("task_id", "==", task_id)
                 .where("status", "==", "pending")
                 .limit(1)
@@ -200,7 +202,7 @@ class GCPFirestoreVerificationQueue:
 
     def delete(self, queue_id: str) -> Dict[str, Any]:
         if self.client is not None:
-            doc = self.client.collection(self.collection_name).document(queue_id)
+            doc = self.client.collection(str(self.collection_name)).document(queue_id)
             doc.delete()
             return {"success": True, "provider": "gcp_firestore", "queue_id": queue_id, "deleted": True}
 
@@ -211,8 +213,8 @@ class GCPFirestoreVerificationQueue:
 
     def stats(self) -> Dict[str, Any]:
         if self.client is not None:
-            pending = len(list(self.client.collection(self.collection_name).where("status", "==", "pending").stream()))
-            verified = len(list(self.client.collection(self.collection_name).where("status", "==", "verified").stream()))
+            pending = len(list(self.client.collection(str(self.collection_name)).where("status", "==", "pending").stream()))
+            verified = len(list(self.client.collection(str(self.collection_name)).where("status", "==", "verified").stream()))
             return {
                 "provider": "gcp_firestore",
                 "collection": self.collection_name,

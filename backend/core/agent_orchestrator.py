@@ -163,7 +163,8 @@ class AsyncTaskManager:
     def get_stats(self) -> Dict[str, Any]:
         statuses = {"pending": 0, "processing": 0, "completed": 0, "failed": 0}
         for task in self._tasks.values():
-            statuses[task.get("status", "failed")] = statuses.get(task.get("status"), 0) + 1
+            status_str = str(task.get("status", "failed"))
+            statuses[status_str] = statuses.get(status_str, 0) + 1
         
         return {
             "total_tasks": len(self._tasks),

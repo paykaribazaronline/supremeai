@@ -11,12 +11,12 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspa
 try:
     from tools.local_search_rag import LocalSearchRAG as LocalSearchRAGClass
 except ImportError:
-    LocalSearchRAGClass = None
+    LocalSearchRAGClass: Any = None
 
 try:
     from tools.knowledge_base_indexer import KnowledgeBaseIndexer as KnowledgeBaseIndexerClass
 except ImportError:
-    KnowledgeBaseIndexerClass = None
+    KnowledgeBaseIndexerClass: Any = None
 
 try:
     import sqlite3
