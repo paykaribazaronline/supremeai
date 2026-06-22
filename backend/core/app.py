@@ -39,6 +39,7 @@ from api.routes import (
     payments_router,
     sso_router,
     agents_router,
+    markdown_router,
 )
 from core.auth_middleware import AuthMiddleware
 from core.observability_middleware import ObservabilityMiddleware
@@ -623,6 +624,8 @@ def gcp_pubsub_stats():
 
 app.include_router(memory_router)
 app.include_router(task_router)
+if markdown_router is not None:
+    app.include_router(markdown_router, prefix="/api/v1")
 app.include_router(simulator_router)
 app.include_router(browser_router)
 app.include_router(stream_router)

@@ -174,5 +174,11 @@ try:
 except Exception:
     payments_router = None
 
+try:
+    from .markdown import router as markdown_router
+    _safe_imports["markdown_router"] = markdown_router
+except Exception:
+    markdown_router = None
+
 __all__ = list(_safe_imports.keys())
 
