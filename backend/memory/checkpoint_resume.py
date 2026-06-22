@@ -1,3 +1,4 @@
+import typing
 from tools.checkpoint_manager import CheckpointManager
 
 class CheckpointResume:

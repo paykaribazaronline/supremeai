@@ -32,7 +32,7 @@ class GCPPubSubQueue:
         self.publisher = None
         self.subscriber = None
         self.mode = "local_sqlite"
-        self._memory_conn: typing.Any = None
+        
 
         if PUBSUB_AVAILABLE and self.project_id:
             try:
@@ -205,7 +205,7 @@ class GCPPubSubQueue:
         self.subscriber = None
         if self._memory_conn is not None:
             self._memory_conn.close()
-            self._memory_conn: typing.Any = None
+            
 
     def _row_to_dict(self, row: sqlite3.Row) -> Dict[str, Any]:
         return {

@@ -1,3 +1,4 @@
+import typing
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import List, Optional, Dict, Any
@@ -21,7 +22,7 @@ except ImportError:
 try:
     import sqlite3
 except ImportError:
-    sqlite3: typing.Any = None
+    sqlite3 = None # type: ignore
 
 DB_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "knowledge_store.db")
 

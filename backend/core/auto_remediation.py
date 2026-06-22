@@ -1,3 +1,4 @@
+import typing
 import os
 import httpx
 import google.generativeai as genai
