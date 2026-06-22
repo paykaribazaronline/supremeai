@@ -127,7 +127,7 @@ async def stream_chat(req: ChatStreamRequest):
 
 
 class ProblemDetailsResponse(JSONResponse):
-    def __init__(self, title: str, status: int, detail: str, type_url: str = "about:blank", instance: str = None, **kwargs):
+    def __init__(self, title: str, status: int, detail: str, type_url: str = "about:blank", instance: typing.Optional[str] = None, **kwargs):
         content = {
             "type": type_url,
             "title": title,

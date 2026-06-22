@@ -109,7 +109,7 @@ class LocalSearchRAG:
         # Enhanced local TF-IDF fallback - works completely offline
         matches = []
         terms = [term.lower() for term in query.split() if term]
-        query_tf = {}
+        query_tf: typing.Dict[str, float] = {}
         for term in terms:
             query_tf[term] = query_tf.get(term, 0) + 1
         

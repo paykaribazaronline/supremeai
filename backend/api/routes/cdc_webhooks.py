@@ -31,7 +31,7 @@ async def _verify_webhook_signature(request: Request, body: bytes) -> bool:
     ).hexdigest()
     return hmac.compare_digest(f"sha256={expected}", signature)
 
-async def _delete_from_vector_db(user_id: str, doc_id: str = None) -> None:
+async def _delete_from_vector_db(user_id: str, doc_id: typing.Optional[str] = None) -> None:
     if not PINECONE_API_KEY or not PINECONE_HOST:
         return
     try:

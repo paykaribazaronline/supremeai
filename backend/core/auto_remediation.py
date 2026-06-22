@@ -67,7 +67,7 @@ class AutoRemediation:
     applies it, and creates a GitHub Pull Request for evaluation.
     """
 
-    def __init__(self, gemini_api_key: str = None):
+    def __init__(self, gemini_api_key: typing.Optional[str] = None):
         self.gemini_api_key = gemini_api_key or os.getenv("GEMINI_API_KEY", "")
         self.github_agent = GitHubAgent()
 

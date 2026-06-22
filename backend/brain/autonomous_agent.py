@@ -23,7 +23,7 @@ class AutonomousAgent:
             from evolution.auto_skill_creator import AutoSkillCreator
             self.skill_creator = AutoSkillCreator()
         except Exception:
-            self.skill_creator = None
+            self.skill_creator: typing.Any = None
 
     def plan(self, task_description: str) -> Dict[str, Any]:
         lowered = (task_description or "").lower()

@@ -1,7 +1,7 @@
 from tools.checkpoint_manager import CheckpointManager
 
 class CheckpointResume:
-    def __init__(self, db_path: str = None):
+    def __init__(self, db_path: typing.Optional[str] = None):
         self.manager = CheckpointManager(db_path=db_path)
 
     def save(self, task_id: str, step_index: int, state: dict):

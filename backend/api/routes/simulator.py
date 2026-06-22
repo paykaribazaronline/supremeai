@@ -1,3 +1,4 @@
+import typing
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import Dict, Any, Optional
@@ -6,8 +7,8 @@ from datetime import datetime
 router = APIRouter(prefix="/api/simulator", tags=["simulator"])
 
 # Mock database / state store
-PROFILES = {}
-SESSIONS = {}
+PROFILES: typing.Dict[str, typing.Any] = {}
+SESSIONS: typing.Dict[str, typing.Any] = {}
 
 # Default device profiles
 DEVICE_PROFILES = [

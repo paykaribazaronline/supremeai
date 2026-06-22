@@ -1,4 +1,5 @@
 import json
+import typing
 import os
 import sqlite3
 import uuid
@@ -29,7 +30,7 @@ class GCPFirestoreVerificationQueue:
         self.client = None
         self.mode = "local_sqlite"
         self.db_path = db_path or os.getenv("GCP_FIRESTORE_SQLITE_PATH")
-        self._memory_conn = None
+        self._memory_conn: typing.Any = None
 
         if FIRESTORE_AVAILABLE and self.project_id:
             try:
@@ -240,7 +241,7 @@ class GCPFirestoreVerificationQueue:
             self.client = None
         if self._memory_conn is not None:
             self._memory_conn.close()
-            self._memory_conn = None
+            self._memory_conn: typing.Any = None
 
     def _firestore_doc_to_dict(self, doc: Any) -> Dict[str, Any]:
         data = doc.to_dict()

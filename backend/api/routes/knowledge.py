@@ -21,7 +21,7 @@ except ImportError:
 try:
     import sqlite3
 except ImportError:
-    sqlite3 = None
+    sqlite3: typing.Any = None
 
 DB_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "knowledge_store.db")
 
