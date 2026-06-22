@@ -84,7 +84,7 @@ def _save_user_preferences(payload: OnboardingPayload) -> bool:
 
     # Local fallback
     try:
-        import json, pathlib
+        import json
         p = pathlib.Path("data/user_prefs")
         p.mkdir(parents=True, exist_ok=True)
         safe = payload.user_id.replace("/", "_")[:40]
