@@ -30,6 +30,13 @@ from api.routes import (
     github_router,
     internal_router,
     marketplace_endpoints_router,
+    repos_router,
+    tools_ops_router,
+    tools_registry_router,
+    preferences_router,
+    usage_metrics_router,
+    payments_router,
+    sso_router,
 )
 from core.auth_middleware import AuthMiddleware
 from core.observability_middleware import ObservabilityMiddleware
@@ -78,8 +85,18 @@ docs_auth_dep = _maybe_docs_auth()
 is_prod = settings.env.lower() == "production"
 docs_enabled = settings.debug or not is_prod or settings.docs_auth_enabled
 
+tags_metadata = [
+    {"name": "admin", "description": "God-mode admin operations."},
+    {"name": "agent", "description": "Autonomous agents execution and planning."},
+    {"name": "marketplace", "description": "Discover and manage AI skills and tools."},
+    {"name": "tools", "description": "Registry and management of integrated tools."},
+]
+
 app = FastAPI(
-    title=f"{settings.app_name} (Phase 0)",
+    title=f"{settings.app_name} (Production Ready)",
+    description="Multi-cloud AI orchestration platform with zero-cost edge computing.",
+    version="2.0.0",
+    openapi_tags=tags_metadata,
     debug=settings.debug,
     docs_url="/docs" if docs_enabled else None,
     redoc_url="/redoc" if docs_enabled else None,
@@ -503,11 +520,24 @@ app.include_router(knowledge_router)
 app.include_router(marketplace_router)
 app.include_router(metrics_router)
 app.include_router(auth_router)
-app.include_router(admin_dashboard_router)
+if admin_dashboard_router is not None:
+    app.include_router(admin_dashboard_router)
 app.include_router(email_router)
 app.include_router(github_router)
 app.include_router(internal_router)
 app.include_router(marketplace_endpoints_router)
+app.include_router(repos_router)
+app.include_router(tools_ops_router)
+app.include_router(tools_registry_router)
+app.include_router(preferences_router)
+app.include_router(usage_metrics_router)
+if payments_router is not None:
+    app.include_router(payments_router)
+if sso_router is not None:
+    app.include_router(sso_router)
+from tools.image_to_code import router as image_to_code_router
+if image_to_code_router is not None:
+    app.include_router(image_to_code_router)
 if codeflow_router is not None:
     app.include_router(codeflow_router)
 if feedback_router is not None:

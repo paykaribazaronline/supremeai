@@ -47,6 +47,10 @@ class Settings(BaseSettings):
     gcp_project_id: str = "supremeai-a"
     gcp_region: str = "us-central1"
 
+    # Stripe billing / payouts
+    stripe_api_key: str = ""
+    stripe_webhook_secret: str = ""
+
     max_cost_per_task: float = 0.01
     admin_rules_db: str = "data/constitutional_rules.db"
     memory_db_dir: str = "data/memory"
