@@ -276,8 +276,8 @@ try:
         _gac = os.getenv("GOOGLE_APPLICATION_CREDENTIALS", "")
         # 2. FIREBASE_SERVICE_ACCOUNT_JSON env var (inline JSON string)
         _sa_json = os.getenv("FIREBASE_SERVICE_ACCOUNT_JSON", "")
-        # 3. FIREBASE_SERVICE_ACCOUNT_PATH env var (path to JSON file)
-        _sa_path = os.getenv("FIREBASE_SERVICE_ACCOUNT_PATH", "")
+        # 3. FIREBASE_SERVICE_ACCOUNT_PATH env var (path to JSON file, defaults to service-account.json)
+        _sa_path = os.getenv("FIREBASE_SERVICE_ACCOUNT_PATH") or "service-account.json"
         
         if _sa_json:
             import json as _json
@@ -285,20 +285,32 @@ try:
             firebase_admin.initialize_app(_cred)
             logger.info("Firebase Admin initialized from FIREBASE_SERVICE_ACCOUNT_JSON")
         elif _sa_path:
-            # Try direct, strip 'backend/' if cwd is backend/, or try relative to parent
-            _resolved_path = _sa_path
-            if not os.path.exists(_resolved_path) and _resolved_path.startswith("backend/"):
-                _resolved_path = _sa_path[8:]
-            if not os.path.exists(_resolved_path):
-                _resolved_path = os.path.join("..", _sa_path)
+            # Try multiple locations to find the service account file robustly
+            _resolved_path = None
+            for p in [_sa_path, os.path.join("backend", _sa_path), os.path.join("..", _sa_path)]:
+                # Strip backend/ prefix if we're already inside backend folder to prevent duplicate pathing
+                clean_p = p.replace("backend/backend/", "backend/")
+                if not os.path.exists(clean_p) and clean_p.startswith("backend/"):
+                    clean_p = clean_p[8:]
+                if os.path.exists(clean_p):
+                    _resolved_path = clean_p
+                    break
             
-            if os.path.exists(_resolved_path):
+            if _resolved_path:
                 _cred = fb_credentials.Certificate(_resolved_path)
                 firebase_admin.initialize_app(_cred)
                 logger.info(f"Firebase Admin initialized from file: {_resolved_path}")
-            else:
-                logger.warning(f"Firebase service account file not found at {_sa_path} or {_resolved_path}")
+            elif _sa_path != "service-account.json":
+                # Only raise error if they explicitly configured a custom path that wasn't found
+                logger.warning(f"Firebase service account file not found at {_sa_path}")
                 raise RuntimeError(f"Service account file not found: {_sa_path}")
+            elif _gac and os.path.exists(_gac):
+                # Fallback to default credentials if service-account.json was not found
+                firebase_admin.initialize_app()
+                logger.info("Firebase Admin initialized via GOOGLE_APPLICATION_CREDENTIALS")
+            else:
+                logger.warning("Firebase Admin SDK: No credentials found.")
+                raise RuntimeError("No Firebase credentials configured")
         elif _gac and os.path.exists(_gac):
             # GOOGLE_APPLICATION_CREDENTIALS is set — SDK picks it up automatically
             firebase_admin.initialize_app()
@@ -329,6 +341,7 @@ def admin_firebase_login(payload: dict = Body(...)):
             uid = decoded_token['uid']
             email = decoded_token.get('email', '')
         except Exception as e:
+            logger.exception("Firebase token verification failed")
             raise HTTPException(status_code=401, detail=f"Firebase verification failed: {str(e)}")
 
         db = get_firestore_client()
