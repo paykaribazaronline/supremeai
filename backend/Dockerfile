@@ -14,7 +14,9 @@ RUN pip install --no-cache-dir poetry && poetry config virtualenvs.in-project tr
 # Pre-create virtualenv and install CPU-only PyTorch to save space
 RUN python -m venv /app/.venv && \
     /app/.venv/bin/pip install --no-cache-dir --upgrade pip && \
-    /app/.venv/bin/pip install --no-cache-dir torch torchvision --index-url https://download.pytorch.org/whl/cpu
+    /app/.venv/bin/pip install --no-cache-dir torch torchvision --index-url https://download.pytorch.org/whl/cpu && \
+    /app/.venv/bin/pip install --no-cache-dir "setuptools<82.0.0" && \
+    /app/.venv/bin/pip install --no-cache-dir --no-build-isolation "openai-whisper==20240930"
 
 COPY pyproject.toml poetry.lock* ./
 RUN poetry install --no-interaction --no-ansi --no-root --only main
