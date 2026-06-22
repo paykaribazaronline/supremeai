@@ -15,6 +15,8 @@ from core.language_router import LanguageRouter
 from core.circuit_breaker import CircuitBreaker
 from core.agent_orchestrator import route_request
 from core.semantic_cache import SemanticCache
+from core.free_tier_tracker import get_tracker, FreeTierTracker, FREE_PROVIDER_PRIORITY
+from core.token_budget import get_budget_manager, TokenBudgetManager
 
 MAX_AGENT_TOKENS = 5000
 MAX_AGENT_ITERATIONS = 5
@@ -134,6 +136,9 @@ class ModelRouter:
         self._http_client = httpx.AsyncClient(timeout=30.0)
         self._cache: Dict[str, Tuple[Dict[str, Any], float]] = {}
         self._cache_ttl = 300.0
+        # Free-tier tracking (Antigravity 2026-06-22)
+        self._free_tier: FreeTierTracker = get_tracker()
+        self._budget: TokenBudgetManager = get_budget_manager()
 
     def _cache_key(self, prompt: str, task_type: str) -> str:
         return hashlib.md5(f"{prompt}:{task_type}".encode()).hexdigest()
@@ -272,6 +277,16 @@ class ModelRouter:
                 raise RuntimeError("No available LLM providers configured in production.")
         return "ollama", self.local_model
 
+    def _quick_provider_hint(self, task_type: str) -> str:
+        """Return the most likely provider name for token budget estimation (fast, no API checks)."""
+        if self.gemini_api_key:
+            return "gemini"
+        if self.groq_api_key:
+            return "groq"
+        if self.openrouter_api_key:
+            return "openrouter"
+        return "default"
+
     def _pick_provider(self, task_type: str, prompt: str, max_cost: float) -> Tuple[str, str]:
         from core.config import settings
         is_production = settings.env.lower() == "production"
@@ -341,6 +356,15 @@ class ModelRouter:
                 "error": f"Input validation/safety block: {sanitized.get('reason')}"
             }
         prompt = sanitized.get("prompt", prompt)
+
+        # ---------------------------------------------------------------
+        # [Antigravity 2026-06-22] Apply token budget compression before routing
+        # so we never waste free-tier TPM on over-long prompts.
+        # ---------------------------------------------------------------
+        provider_hint = self._quick_provider_hint(task_type)
+        if settings.enable_token_compression:
+            prompt, _budget_meta = self._budget.prepare_prompt(prompt, provider=provider_hint)
+        # ---------------------------------------------------------------
 
         upper_task = (task_type or "general").upper()
 
@@ -464,6 +488,10 @@ class ModelRouter:
         try:
             result = await self._call(provider, model, enriched_prompt)
             if result.get("success"):
+                # [Antigravity 2026-06-22] Record free-tier usage after every successful call
+                out_tokens = self._budget.estimate(result.get("text", ""))
+                in_tokens = self._budget.estimate(enriched_prompt)
+                self._free_tier.record(provider, token_count=in_tokens + out_tokens)
                 self.long_term_memory.remember_fact(
                     content=result.get("text", "")[:200],
                     category="response",
@@ -506,11 +534,15 @@ class ModelRouter:
         for i in range(retries):
             try:
                 res = await self._call_with_breaker(provider, model, prompt)
-                
-                # If rate limited (e.g. rate limit error text or status)
-                if not res.get("success") and ("rate limit" in str(res.get("error", "")).lower() or "429" in str(res.get("error", ""))):
+
+                # If rate limited — pause provider in free-tier tracker
+                if not res.get("success") and (
+                    "rate limit" in str(res.get("error", "")).lower()
+                    or "429" in str(res.get("error", ""))
+                ):
+                    self._free_tier.mark_rate_limited(provider, pause_seconds=60.0)
                     raise RuntimeError(f"Rate limited: {res.get('error')}")
-                    
+
                 return res
             except Exception as exc:
                 last_exc = exc
@@ -587,6 +619,8 @@ class ModelRouter:
 
     def _model_for(self, provider: str) -> str:
         # [2026-06-21] Updated all fallback model names to current versions
+        # [2026-06-22] Added Claude via OpenRouter free tier
+        from core.config import settings
         return {
             "openrouter": self.default_model,
             "huggingface": "google/flan-t5-base",
@@ -596,7 +630,8 @@ class ModelRouter:
             "groq": "llama-3.3-70b-versatile",
             "nvidia": "meta/llama-3.1-8b-instruct",
             "cloudflare": "@cf/meta/llama-3-8b-instruct",
-        }[provider]
+            "claude": settings.claude_openrouter_model,  # Claude via OpenRouter free tier
+        }.get(provider, self.default_model)
 
     async def _call_cloudflare(self, prompt: str, model: str) -> Dict[str, Any]:
         if not self.cloudflare_account_id or not self.cloudflare_api_token:

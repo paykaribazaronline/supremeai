@@ -1,204 +1,403 @@
+"""
+AutoTestGenerator — Real Implementation (Sprint G.3)
+Generates pytest / Vitest / Flutter tests using ModelRouter.
+Replaces old BanglaAiConnector pattern.
+"""
+from __future__ import annotations
+
 import os
+import ast
 import sys
+import asyncio
+import inspect
 import subprocess
-from typing import Dict, Any
+import pathlib
+from typing import Dict, Any, List, Optional, Tuple
+from loguru import logger
+from fastapi import APIRouter, HTTPException, UploadFile, File
+from pydantic import BaseModel
 
-# Ensure UTF-8 console output on Windows
-if sys.platform.startswith('win'):
+router = APIRouter(prefix="/test-gen", tags=["auto-test-generator"])
+
+
+# ── Request/Response models ───────────────────────────────────────────────────
+
+class TestGenRequest(BaseModel):
+    source_code: str
+    file_path: str = "unknown.py"
+    stack: Optional[str] = None          # python | typescript | dart | auto
+    framework: Optional[str] = None      # pytest | vitest | jest | flutter
+    coverage_target: int = 80
+    include_mocks: bool = True
+    include_edge_cases: bool = True
+
+
+class TestGenResponse(BaseModel):
+    status: str
+    file_path: str
+    stack: str
+    framework: str
+    test_code: str
+    test_file_path: str
+    functions_found: int
+    coverage_estimate: int
+    error: Optional[str] = None
+
+
+# ── Language / framework detection ────────────────────────────────────────────
+
+def _detect_stack(file_path: str, source_code: str) -> str:
+    ext = pathlib.Path(file_path).suffix.lower()
+    if ext in (".py",):                        return "python"
+    if ext in (".ts", ".tsx"):                 return "typescript"
+    if ext in (".js", ".jsx"):                 return "javascript"
+    if ext in (".dart",):                      return "dart"
+    if ext in (".java",):                      return "java"
+    if ext in (".go",):                        return "go"
+    if ext in (".rs",):                        return "rust"
+    # Fallback: inspect source content
+    if "import pytest" in source_code or "def test_" in source_code:  return "python"
+    if "describe(" in source_code or "it(" in source_code:             return "typescript"
+    return "python"
+
+
+def _detect_framework(stack: str, framework: Optional[str]) -> str:
+    if framework:
+        return framework
+    return {
+        "python":     "pytest",
+        "typescript": "vitest",
+        "javascript": "jest",
+        "dart":       "flutter_test",
+        "java":       "junit5",
+        "go":         "testing",
+        "rust":       "cargo_test",
+    }.get(stack, "pytest")
+
+
+def _get_test_file_path(source_path: str, stack: str) -> str:
+    p = pathlib.Path(source_path)
+    if stack == "python":
+        return str(p.parent / f"test_{p.stem}.py")
+    if stack in ("typescript", "javascript"):
+        return str(p.parent / f"{p.stem}.test{p.suffix}")
+    if stack == "dart":
+        return str(p.parent.parent / "test" / f"{p.stem}_test.dart")
+    if stack == "java":
+        return str(p).replace("src/main/java", "src/test/java").replace(".java", "Test.java")
+    return str(p.parent / f"{p.stem}_test{p.suffix}")
+
+
+# ── Python AST analysis ───────────────────────────────────────────────────────
+
+def _extract_python_symbols(source_code: str) -> Dict[str, List[str]]:
+    """Extract classes, functions, and their signatures from Python source."""
     try:
-        sys.stdout.reconfigure(encoding='utf-8')
-        sys.stderr.reconfigure(encoding='utf-8')
-    except Exception:
-        pass
+        tree = ast.parse(source_code)
+    except SyntaxError:
+        return {"functions": [], "classes": [], "async_functions": []}
 
-# Add project root to PYTHONPATH
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
-sys.path.append(os.path.abspath(os.path.dirname(__file__)))
+    functions, classes, async_fns = [], [], []
+    for node in ast.walk(tree):
+        if isinstance(node, ast.FunctionDef):
+            args = [a.arg for a in node.args.args]
+            functions.append(f"{node.name}({', '.join(args)})")
+        elif isinstance(node, ast.AsyncFunctionDef):
+            args = [a.arg for a in node.args.args]
+            async_fns.append(f"async {node.name}({', '.join(args)})")
+        elif isinstance(node, ast.ClassDef):
+            classes.append(node.name)
 
-# Assuming coverage_auditor.py and bangla_ai_connector.py are in the same directory or accessible via sys.path
-try:
-    from scripts.tools.coverage_auditor import get_coverage_gaps
-    from scripts.tools.bangla_ai_connector import BanglaAiConnector
-except ImportError:
-    print("Error: Could not import coverage_auditor or bangla_ai_connector. Please check paths.")
-    # Fallback for local testing if imports fail
-    def get_coverage_gaps():
-        return [
-            {"file": "src/main/java/com/supremeai/service/UserService.java", "percentage": 0.0, "status": "EMPTY", "stack": "Java"},
-            {"file": "dashboard/src/components/UserCard.tsx", "percentage": 10.0, "status": "LOW", "stack": "Frontend"},
-            {"file": "supremeai/lib/screens/login_screen.dart", "percentage": 0.0, "status": "EMPTY", "stack": "Mobile"}
-        ]
-    class BanglaAiConnector:
-        def __init__(self, credentials=None):
-            print("Using dummy BanglaAiConnector")
-        def authenticate(self):
-            print("Dummy AI authentication successful.")
-            return True
-        def call_api(self, prompt: str) -> Dict[str, Any]:
-            print(f"Dummy AI call with prompt: {prompt[:100]}...")
-            # Simulate AI response for test code
-            if "Java" in prompt:
-                return {"success": True, "data": {"generated_text": "// Java Test Code for " + prompt.split("SOURCE CODE:")[0].split("for ")[1].strip().split("\n")[0] + "\npublic class GeneratedTest { /* ... */ }"}}
-            elif "Frontend" in prompt:
-                return {"success": True, "data": {"generated_text": "// Frontend Test Code for " + prompt.split("SOURCE CODE:")[0].split("for ")[1].strip().split("\n")[0] + "\ndescribe('Generated Component', () => { /* ... */ });"}}
-            elif "Mobile" in prompt:
-                return {"success": True, "data": {"generated_text": "// Mobile Test Code for " + prompt.split("SOURCE CODE:")[0].split("for ")[1].strip().split("\n")[0] + "\nvoid main() { /* ... */ }"}}
-            return {"success": False, "error": "AI generation failed"}
+    return {"functions": functions, "classes": classes, "async_functions": async_fns}
 
 
-def print_header(text):
-    print(f"\n{'='*60}\n{text}\n{'='*60}")
+# ── Prompt builders ───────────────────────────────────────────────────────────
 
-def call_ai_to_generate_test(file_path: str, code_content: str, stack_type: str) -> str:
-    """
-    Calls the AI model to generate test code for the given source file.
-    """
-    ai_connector = BanglaAiConnector() # Assuming credentials are handled internally or via env vars
-    if not ai_connector.authenticate():
-        print("[ERROR] AI authentication failed. Cannot generate tests.")
-        return ""
+def _build_prompt(
+    source_code: str,
+    file_path: str,
+    stack: str,
+    framework: str,
+    coverage_target: int,
+    include_mocks: bool,
+    include_edge_cases: bool,
+    symbols: Optional[Dict] = None,
+) -> str:
+    symbol_hint = ""
+    if symbols:
+        all_fns = symbols.get("functions", []) + symbols.get("async_functions", [])
+        classes = symbols.get("classes", [])
+        if all_fns or classes:
+            symbol_hint = (
+                f"\n\nDetected symbols:\n"
+                f"Functions: {', '.join(all_fns[:15]) or 'none'}\n"
+                f"Classes: {', '.join(classes[:10]) or 'none'}"
+            )
 
-    prompt = f"""
-    Generate a comprehensive unit test for the following {stack_type} code.
-    Follow the project's testing patterns (JUnit 5 for Java, Vitest/Jest for Frontend, Flutter test for Mobile).
-    Ensure 80%+ coverage. Focus on critical paths, edge cases, and error handling.
+    mock_instruction = (
+        "Use mocks/patches for external dependencies (database, HTTP, file I/O)." if include_mocks
+        else "Do not add mocking — use real implementations."
+    )
+    edge_instruction = (
+        "Include edge cases: empty inputs, None values, large inputs, concurrent calls." if include_edge_cases
+        else "Focus on happy-path tests only."
+    )
 
-    SOURCE FILE: {file_path}
-    STACK TYPE: {stack_type}
-    SOURCE CODE:
-    ```
-    {code_content}
-    ```
-    """
-    print(f"[AI] Requesting test generation for {file_path} ({stack_type})...")
-    
-    try:
-        response = ai_connector.call_api(prompt)
-        if response.get("success") and response.get("data", {}).get("generated_text"):
-            print(f"[AI] Successfully received test code for {file_path}.")
-            return response["data"]["generated_text"]
-        else:
-            print(f"[ERROR] AI generation failed for {file_path}: {response.get('error', 'Unknown error')}")
-            return ""
-    except Exception as e:
-        print(f"[ERROR] Exception during AI call for {file_path}: {e}")
-        return ""
+    framework_notes = {
+        "pytest": (
+            "Use pytest + pytest-asyncio. Mark async tests with @pytest.mark.asyncio.\n"
+            "Use @pytest.fixture for reusable setup. Use monkeypatch/patch for mocks.\n"
+            "Group tests in classes named Test<ClassName>."
+        ),
+        "vitest": (
+            "Use Vitest + @testing-library/react if React components.\n"
+            "Use vi.mock() for module mocks. Use describe/it/expect.\n"
+            "Import from 'vitest': { describe, it, expect, vi, beforeEach }."
+        ),
+        "jest": (
+            "Use Jest. Use jest.mock() for mocks. describe/it/expect pattern.\n"
+            "Use beforeEach/afterEach for setup/teardown."
+        ),
+        "flutter_test": (
+            "Use flutter_test package. Use testWidgets for widget tests.\n"
+            "Use mockito or mocktail for mocking."
+        ),
+        "junit5": (
+            "Use JUnit 5 with @Test, @ExtendWith(MockitoExtension.class).\n"
+            "Use Mockito for mocks. Follow AAA pattern (Arrange/Act/Assert)."
+        ),
+    }.get(framework, f"Use {framework} testing conventions.")
 
-def get_test_file_path(original_file_path: str, stack_type: str) -> str:
-    """
-    Determines the appropriate test file path based on the original file and stack type.
-    """
-    if stack_type == "Java":
-        # Example: src/main/java/com/supremeai/service/UserService.java
-        # Becomes: src/test/java/com/supremeai/service/UserServiceTest.java
-        return original_file_path.replace("src/main/java", "src/test/java").replace(".java", "Test.java")
-    elif stack_type == "Frontend":
-        # Example: dashboard/src/components/UserCard.tsx
-        # Becomes: dashboard/src/components/UserCard.test.tsx (or .spec.tsx)
-        base_name, ext = os.path.splitext(original_file_path)
-        return f"{base_name}.test{ext}"
-    elif stack_type == "Mobile":
-        # Example: supremeai/lib/screens/login_screen.dart
-        # Becomes: supremeai/test/screens/login_screen_test.dart
-        return original_file_path.replace("lib/", "test/").replace(".dart", "_test.dart")
-    return ""
+    return f"""You are an expert software engineer. Generate a comprehensive test file for the following {stack} source code.
 
-def main():
-    """
-    Main function to orchestrate autonomous test generation.
-    """
-    print_header("🚀 Starting Autonomous Test Generation...")
-    
-    # 1. Get coverage gaps from the auditor
-    gaps = get_coverage_gaps()
-    
-    if not gaps:
-        print("✅ No critical coverage gaps found. No tests to generate.")
-        return
+TARGET: {coverage_target}%+ code coverage
+FILE: {file_path}
+STACK: {stack.upper()}
+FRAMEWORK: {framework.upper()}{symbol_hint}
 
-    print(f"Found {len(gaps)} files with critical coverage gaps (below 50%).")
-    
-    generated_count = 0
-    passed_count = 0
-    for gap in gaps:
-        file_path = gap["file"]
-        stack = gap["stack"]
-        
-        # Adjust file_path for Java if it's in package format
-        if stack == 'Java' and not file_path.startswith("src/main/java"):
-             file_path = f"src/main/java/{file_path}" # Prepend base path if missing
+FRAMEWORK RULES:
+{framework_notes}
 
-        if not os.path.exists(file_path):
-            print(f"[WARNING] Source file not found, skipping: {file_path}")
-            continue
-            
-        # 2. Read source code
+ADDITIONAL REQUIREMENTS:
+- {mock_instruction}
+- {edge_instruction}
+- Test every public function/method
+- Add descriptive test names (test_<function>_<scenario>)
+- Include docstrings for complex tests
+- Return ONLY the complete test file. No markdown, no explanation.
+
+SOURCE CODE:
+```{stack}
+{source_code[:6000]}
+```
+
+Generate the complete test file now:"""
+
+
+# ── Main class ────────────────────────────────────────────────────────────────
+
+class AutoTestGenerator:
+    async def _llm(self, prompt: str) -> str:
         try:
-            with open(file_path, 'r', encoding='utf-8') as f:
-                content = f.read()
-        except Exception as e:
-            print(f"[ERROR] Could not read source file {file_path}: {e}")
-            continue
-            
-        # 3. AI generates test code
-        test_code = call_ai_to_generate_test(file_path, content, stack)
-        
-        if test_code:
-            # 4. Save test file
-            test_file_path = get_test_file_path(file_path, stack)
-            if test_file_path:
-                try:
-                    os.makedirs(os.path.dirname(test_file_path), exist_ok=True)
-                    with open(test_file_path, 'w', encoding='utf-8') as f:
-                        f.write(test_code)
-                    print(f"📝 Created test file: {test_file_path}")
-                    generated_count += 1
-                    
-                    # 5. Run the newly generated test
-                    print(f"🧪 Running newly generated test: {test_file_path}")
-                    test_command = []
-                    if stack == "Java":
-                        # Convert file path to fully qualified class name
-                        # e.g., src/test/java/com/supremeai/service/UserServiceTest.java -> com.supremeai.service.UserServiceTest
-                        fqcn = test_file_path.replace("src/test/java/", "").replace(".java", "").replace("/", ".")
-                        test_command = ["./gradlew", "test", "--tests", fqcn]
-                    elif stack == "Frontend":
-                        # Path relative to dashboard directory
-                        relative_path = os.path.relpath(test_file_path, "dashboard")
-                        test_command = ["npm", "test", "-w", "dashboard", "--", relative_path]
-                    elif stack == "Mobile":
-                        # Path relative to supremeai directory
-                        relative_path = os.path.relpath(test_file_path, "supremeai")
-                        test_command = ["flutter", "test", relative_path]
-                    
-                    if test_command:
-                        try:
-                            # Use shell=True for Windows batch commands like gradlew, npm
-                            # capture_output=True to suppress direct output unless needed for debugging
-                            result = subprocess.run(test_command, check=False, shell=True, capture_output=True, text=True)
-                            if result.returncode == 0:
-                                print(f"✅ Test passed for {test_file_path}")
-                                passed_count += 1
-                            else:
-                                print(f"❌ Test FAILED for {test_file_path}")
-                                print("--- Test Output ---")
-                                print(result.stdout)
-                                print(result.stderr)
-                                print("-------------------")
-                        except FileNotFoundError:
-                            print(f"[ERROR] Test runner not found for {stack}. Command: {' '.join(test_command)}")
-                        except Exception as e:
-                            print(f"[ERROR] Failed to run test for {test_file_path}: {e}")
-                    else:
-                        print(f"[WARNING] No test command defined for stack: {stack}")
-                except Exception as e:
-                    print(f"[ERROR] Could not write test file {test_file_path}: {e}")
-            else:
-                print(f"[ERROR] Could not determine test file path for {file_path} (stack: {stack})")
-        else:
-            print(f"[WARNING] No test code generated for {file_path}.")
-    
-    print_header(f"Autonomous Test Generation Completed. Generated {generated_count} new test files, {passed_count} passed.")
+            from brain.model_router import ModelRouter
+            r = ModelRouter()
+            result = await r.async_route_and_generate(prompt, task_type="coding", max_cost=0.05)
+            return result.get("text", "") if isinstance(result, dict) else str(result)
+        except Exception as exc:
+            logger.error(f"LLM call failed: {exc}")
+            return ""
 
-if __name__ == "__main__":
-    main()
+    async def generate(
+        self,
+        source_code: str,
+        file_path: str = "unknown.py",
+        stack: Optional[str] = None,
+        framework: Optional[str] = None,
+        coverage_target: int = 80,
+        include_mocks: bool = True,
+        include_edge_cases: bool = True,
+    ) -> Dict[str, Any]:
+        detected_stack = stack or _detect_stack(file_path, source_code)
+        detected_framework = _detect_framework(detected_stack, framework)
+        test_file = _get_test_file_path(file_path, detected_stack)
+
+        # Extract symbols for better prompt context
+        symbols = None
+        if detected_stack == "python":
+            symbols = _extract_python_symbols(source_code)
+
+        fn_count = len(symbols.get("functions", []) + symbols.get("async_functions", [])) if symbols else 0
+
+        prompt = _build_prompt(
+            source_code=source_code,
+            file_path=file_path,
+            stack=detected_stack,
+            framework=detected_framework,
+            coverage_target=coverage_target,
+            include_mocks=include_mocks,
+            include_edge_cases=include_edge_cases,
+            symbols=symbols,
+        )
+
+        logger.info(f"Generating tests: {file_path} | stack={detected_stack} | framework={detected_framework}")
+        test_code = await self._llm(prompt)
+
+        if not test_code:
+            return {
+                "status": "error", "file_path": file_path, "stack": detected_stack,
+                "framework": detected_framework, "test_code": "", "test_file_path": test_file,
+                "functions_found": fn_count, "coverage_estimate": 0,
+                "error": "LLM returned empty response",
+            }
+
+        # Clean up code fences if present
+        test_code = self._clean_code(test_code, detected_stack)
+
+        # Coverage estimate (heuristic: 1 function → ~15 lines of tests → ~80% coverage)
+        lines = len([l for l in test_code.splitlines() if l.strip()])
+        coverage_estimate = min(95, max(40, lines * 2))
+
+        return {
+            "status": "success",
+            "file_path": file_path,
+            "stack": detected_stack,
+            "framework": detected_framework,
+            "test_code": test_code,
+            "test_file_path": test_file,
+            "functions_found": fn_count,
+            "coverage_estimate": coverage_estimate,
+        }
+
+    def _clean_code(self, code: str, stack: str) -> str:
+        lang_map = {"python": "python", "typescript": "typescript", "javascript": "javascript",
+                    "dart": "dart", "java": "java"}
+        lang = lang_map.get(stack, "")
+        lines = code.splitlines()
+        # Strip leading ```lang and trailing ```
+        if lines and lines[0].strip().startswith("```"):
+            lines = lines[1:]
+        if lines and lines[-1].strip() == "```":
+            lines = lines[:-1]
+        return "\n".join(lines).strip()
+
+    async def generate_and_save(
+        self, source_path: str, run_tests: bool = False
+    ) -> Dict[str, Any]:
+        """Read file, generate tests, save to disk, optionally run them."""
+        if not os.path.exists(source_path):
+            return {"status": "error", "error": f"File not found: {source_path}"}
+
+        with open(source_path, "r", encoding="utf-8") as f:
+            source_code = f.read()
+
+        result = await self.generate(source_code=source_code, file_path=source_path)
+        if result["status"] != "success":
+            return result
+
+        test_file_path = result["test_file_path"]
+        os.makedirs(os.path.dirname(os.path.abspath(test_file_path)), exist_ok=True)
+        with open(test_file_path, "w", encoding="utf-8") as f:
+            f.write(result["test_code"])
+        logger.info(f"Saved test file: {test_file_path}")
+        result["saved"] = True
+
+        if run_tests and result["stack"] == "python":
+            run_result = self._run_pytest(test_file_path)
+            result["run_result"] = run_result
+
+        return result
+
+    def _run_pytest(self, test_file_path: str) -> Dict[str, Any]:
+        try:
+            proc = subprocess.run(
+                [sys.executable, "-m", "pytest", test_file_path, "-v", "--tb=short", "--timeout=30"],
+                capture_output=True, text=True, timeout=60,
+            )
+            return {
+                "returncode": proc.returncode,
+                "passed": proc.returncode == 0,
+                "stdout": proc.stdout[-2000:],
+                "stderr": proc.stderr[-500:],
+            }
+        except Exception as exc:
+            return {"returncode": -1, "passed": False, "error": str(exc)}
+
+    async def batch_generate(
+        self, source_paths: List[str], save: bool = True
+    ) -> Dict[str, Any]:
+        """Generate tests for multiple files."""
+        results = []
+        for path in source_paths:
+            if save:
+                r = await self.generate_and_save(path)
+            else:
+                code = pathlib.Path(path).read_text(encoding="utf-8") if os.path.exists(path) else ""
+                r = await self.generate(source_code=code, file_path=path)
+            results.append({"path": path, **r})
+        return {
+            "status": "success",
+            "total": len(source_paths),
+            "generated": sum(1 for r in results if r.get("status") == "success"),
+            "results": results,
+        }
+
+
+# ── Singleton ─────────────────────────────────────────────────────────────────
+_generator = AutoTestGenerator()
+
+
+# ── REST Endpoints ────────────────────────────────────────────────────────────
+
+@router.post("/generate", response_model=TestGenResponse)
+async def generate_tests(request: TestGenRequest):
+    """Generate unit tests for submitted source code."""
+    if not request.source_code.strip():
+        raise HTTPException(status_code=400, detail="source_code cannot be empty")
+    result = await _generator.generate(
+        source_code=request.source_code,
+        file_path=request.file_path,
+        stack=request.stack,
+        framework=request.framework,
+        coverage_target=request.coverage_target,
+        include_mocks=request.include_mocks,
+        include_edge_cases=request.include_edge_cases,
+    )
+    if result["status"] == "error":
+        raise HTTPException(status_code=503, detail=result.get("error", "Generation failed"))
+    return TestGenResponse(**result)
+
+
+@router.post("/generate-file")
+async def generate_from_file(file: UploadFile = File(...)):
+    """Upload a source file and get back a test file."""
+    content = (await file.read()).decode("utf-8", errors="replace")
+    result = await _generator.generate(
+        source_code=content,
+        file_path=file.filename or "uploaded.py",
+    )
+    if result["status"] == "error":
+        raise HTTPException(status_code=503, detail=result.get("error", "Generation failed"))
+    return result
+
+
+@router.post("/batch")
+async def batch_generate(paths: List[str]):
+    """Generate tests for multiple source file paths (server-side paths)."""
+    if len(paths) > 20:
+        raise HTTPException(status_code=400, detail="Max 20 files per batch")
+    return await _generator.batch_generate(paths, save=True)
+
+
+@router.get("/supported-stacks")
+async def supported_stacks():
+    return {
+        "stacks": ["python", "typescript", "javascript", "dart", "java", "go", "rust"],
+        "frameworks": {
+            "python": "pytest",
+            "typescript": "vitest",
+            "javascript": "jest",
+            "dart": "flutter_test",
+            "java": "junit5",
+        },
+        "features": ["mocks", "edge_cases", "async_support", "fixture_generation"],
+    }

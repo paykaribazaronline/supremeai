@@ -267,62 +267,106 @@ def get_firestore_client():
         return None
 
 auth = None
-# Attempt to initialize Firebase Admin SDK for token verification
+# Initialize Firebase Admin SDK — tries multiple credential sources
 try:
     import firebase_admin
-    from firebase_admin import auth as firebase_auth
+    from firebase_admin import auth as firebase_auth, credentials as fb_credentials
     if not firebase_admin._apps:
-        firebase_admin.initialize_app()
+        # 1. GOOGLE_APPLICATION_CREDENTIALS env var (path to service account JSON)
+        _gac = os.getenv("GOOGLE_APPLICATION_CREDENTIALS", "")
+        # 2. FIREBASE_SERVICE_ACCOUNT_JSON env var (inline JSON string)
+        _sa_json = os.getenv("FIREBASE_SERVICE_ACCOUNT_JSON", "")
+        # 3. FIREBASE_SERVICE_ACCOUNT_PATH env var (path to JSON file)
+        _sa_path = os.getenv("FIREBASE_SERVICE_ACCOUNT_PATH", "")
+        
+        if _sa_json:
+            import json as _json
+            _cred = fb_credentials.Certificate(_json.loads(_sa_json))
+            firebase_admin.initialize_app(_cred)
+            logger.info("Firebase Admin initialized from FIREBASE_SERVICE_ACCOUNT_JSON")
+        elif _sa_path:
+            # Try direct, strip 'backend/' if cwd is backend/, or try relative to parent
+            _resolved_path = _sa_path
+            if not os.path.exists(_resolved_path) and _resolved_path.startswith("backend/"):
+                _resolved_path = _sa_path[8:]
+            if not os.path.exists(_resolved_path):
+                _resolved_path = os.path.join("..", _sa_path)
+            
+            if os.path.exists(_resolved_path):
+                _cred = fb_credentials.Certificate(_resolved_path)
+                firebase_admin.initialize_app(_cred)
+                logger.info(f"Firebase Admin initialized from file: {_resolved_path}")
+            else:
+                logger.warning(f"Firebase service account file not found at {_sa_path} or {_resolved_path}")
+                raise RuntimeError(f"Service account file not found: {_sa_path}")
+        elif _gac and os.path.exists(_gac):
+            # GOOGLE_APPLICATION_CREDENTIALS is set — SDK picks it up automatically
+            firebase_admin.initialize_app()
+            logger.info("Firebase Admin initialized via GOOGLE_APPLICATION_CREDENTIALS")
+        else:
+            # No credentials found — Firebase verification will be unavailable
+            logger.warning(
+                "Firebase Admin SDK: No credentials found. "
+                "Set FIREBASE_SERVICE_ACCOUNT_JSON or FIREBASE_SERVICE_ACCOUNT_PATH in .env"
+            )
+            raise RuntimeError("No Firebase credentials configured")
     auth = firebase_auth
+    logger.info("Firebase Admin SDK ready ✅")
 except Exception as e:
-    logger.warning(f"Failed to initialize Firebase Admin: {e}")
+    logger.warning(f"Firebase Admin SDK not available: {e}")
+    auth = None
 
 @app.post("/api/admin/firebase-login")
 def admin_firebase_login(payload: dict = Body(...)):
-    if not auth:
-        raise HTTPException(status_code=500, detail="Firebase Admin SDK is not initialized")
     id_token = payload.get("id_token")
     if not id_token:
         raise HTTPException(status_code=400, detail="Missing Firebase ID token")
-    
-    try:
-        # Verify the Firebase ID token in the backend
-        decoded_token = auth.verify_id_token(id_token)
-        uid = decoded_token['uid']
-        email = decoded_token.get('email', '')
-    except Exception as e:
-        raise HTTPException(status_code=401, detail=f"Firebase verification failed: {str(e)}")
-    
-    db = get_firestore_client()
-    role = "user"
-    totp_secret = None
-    
-    if db:
-        try:
-            doc_ref = db.collection("admin_users").document(uid)
-            doc = doc_ref.get()
-            if doc.exists:
-                data = doc.to_dict()
-                role = data.get("role", "user")
-                totp_secret = data.get("totp_secret")
-            else:
-                # If first time, auto-provision developer/admin email patterns
-                if "admin" in email.lower() or email.endswith("@supremeai.dev"):
-                    role = "admin"
-                    doc_ref.set({"email": email, "role": "admin", "created_at": str(time.time())})
-        except Exception as e:
-            logger.error(f"Firestore admin lookup failed: {e}")
-            role = "user" # Secure fallback
-    else:
-        role = "user" # Secure fallback
 
-    if role != "admin":
-        raise HTTPException(status_code=403, detail="Forbidden: Not authorized as an admin role user")
-    
-    if not totp_secret:
-        return {"status": "totp_setup_required", "uid": uid, "email": email}
-    
-    return {"status": "totp_required", "uid": uid}
+    # ── Case 1: Firebase Admin SDK available — verify real token ─────────────
+    if auth is not None:
+        try:
+            decoded_token = auth.verify_id_token(id_token)
+            uid = decoded_token['uid']
+            email = decoded_token.get('email', '')
+        except Exception as e:
+            raise HTTPException(status_code=401, detail=f"Firebase verification failed: {str(e)}")
+
+        db = get_firestore_client()
+        role = "user"
+        totp_secret = None
+
+        if db:
+            try:
+                doc_ref = db.collection("admin_users").document(uid)
+                doc = doc_ref.get()
+                if doc.exists:
+                    data = doc.to_dict()
+                    role = data.get("role", "user")
+                    totp_secret = data.get("totp_secret")
+                else:
+                    if "admin" in email.lower() or email.endswith("@supremeai.dev"):
+                        role = "admin"
+                        doc_ref.set({"email": email, "role": "admin", "created_at": str(time.time())})
+            except Exception as e:
+                logger.error(f"Firestore admin lookup failed: {e}")
+                role = "user"
+        else:
+            role = "user"
+
+        if role != "admin":
+            raise HTTPException(status_code=403, detail="Forbidden: Not authorized as an admin role user")
+
+        if not totp_secret:
+            return {"status": "totp_setup_required", "uid": uid, "email": email}
+
+        return {"status": "totp_required", "uid": uid}
+
+    # Firebase Admin SDK not configured — reject login
+    logger.error("Firebase Admin SDK not initialized — admin login rejected")
+    raise HTTPException(
+        status_code=503,
+        detail="Admin authentication service unavailable. Firebase credentials not configured on server."
+    )
 
 @app.post("/api/admin/firebase-totp-setup")
 def admin_firebase_totp_setup(payload: dict = Body(...)):
@@ -642,6 +686,30 @@ if codeflow_router is not None:
 if feedback_router is not None:
     app.include_router(feedback_router)
 
+# Sprint G routers
+try:
+    from tools.multilingual_tts import router as tts_router
+    app.include_router(tts_router, prefix="/api")
+except Exception as _e:
+    logger.warning(f"multilingual_tts router not loaded: {_e}")
+
+try:
+    from tools.comment_thread_ai import router as comment_ai_router
+    app.include_router(comment_ai_router, prefix="/api")
+except Exception as _e:
+    logger.warning(f"comment_thread_ai router not loaded: {_e}")
+
+try:
+    from tools.auto_test_generator import router as test_gen_router
+    app.include_router(test_gen_router, prefix="/api")
+except Exception as _e:
+    logger.warning(f"auto_test_generator router not loaded: {_e}")
+
+try:
+    from api.routes.tenant_admin import router as tenant_admin_router
+    app.include_router(tenant_admin_router, prefix="/api")
+except Exception as _e:
+    logger.warning(f"tenant_admin router not loaded: {_e}")
 
 from core.universal_rules import UniversalRulesEngine
 rules_engine = UniversalRulesEngine()

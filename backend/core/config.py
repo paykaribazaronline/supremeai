@@ -6,7 +6,7 @@ from pydantic import field_validator
 class Settings(BaseSettings):
     # Added by Agent Antigravity on 2026-06-21: Disable loading .env during pytest runs to avoid local config leakage in tests
     model_config = SettingsConfigDict(
-        env_file=None if "pytest" in sys.modules else ".env", 
+        env_file=None if "pytest" in sys.modules else ["../.env", ".env"], 
         extra="ignore"
     )
 
@@ -42,6 +42,39 @@ class Settings(BaseSettings):
     groq_api_key: str = ""
     nvidia_api_key: str = ""
     firecrawl_api_key: str = ""
+
+    # Claude via OpenRouter (free tier model)
+    claude_openrouter_model: str = "anthropic/claude-3.5-haiku:free"
+
+    # ---------------------------------------------------------------
+    # Free-tier rate limit overrides (set in .env to adjust budgets)
+    # ---------------------------------------------------------------
+    # Gemini
+    gemini_rpm_limit: int = 9
+    gemini_tpm_limit: int = 240_000
+    gemini_rpd_limit: int = 475
+    # Groq
+    groq_rpm_limit: int = 28
+    groq_tpm_limit: int = 28_500
+    groq_rpd_limit: int = 13_680
+    # OpenRouter free models
+    openrouter_rpm_limit: int = 19
+    openrouter_rpd_limit: int = 45
+    # Cloudflare
+    cloudflare_rpd_limit: int = 9_000
+    # Nvidia
+    nvidia_rpm_limit: int = 38
+    nvidia_tpm_limit: int = 38_000
+    # HuggingFace
+    huggingface_rpm_limit: int = 18
+    huggingface_rpd_limit: int = 950
+
+    # ---------------------------------------------------------------
+    # Token budget settings
+    # ---------------------------------------------------------------
+    max_prompt_tokens: int = 4_000
+    max_response_tokens: int = 1_500
+    enable_token_compression: bool = True
     sentry_dsn: str = ""
     ollama_url: str = "http://127.0.0.1:11434"
     gcp_project_id: str = "supremeai-a"

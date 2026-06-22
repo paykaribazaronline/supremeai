@@ -1,6 +1,6 @@
 import os
 import re
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
 from pydantic import BaseModel
 from loguru import logger
 import time
@@ -8,6 +8,14 @@ import time
 MAX_AGENT_TOKENS = int(os.getenv("MAX_AGENT_TOKENS", "5000"))
 MAX_AGENT_ITERATIONS = int(os.getenv("MAX_AGENT_ITERATIONS", "5"))
 ADMIN_PERMISSIONS_REQUIRED = os.getenv("AGENT_ADMIN_PERMISSIONS_REQUIRED", "true").lower() == "true"
+
+# [Antigravity 2026-06-22] Import free-tier tracker for budget-aware routing
+try:
+    from core.free_tier_tracker import get_tracker, FREE_PROVIDER_PRIORITY
+    _free_tier_available = True
+except ImportError:
+    _free_tier_available = False
+    logger.warning("[Orchestrator] free_tier_tracker not available — budget-aware routing disabled")
 
 TIER_KEYWORDS = {
     1: [
@@ -172,3 +180,50 @@ class AsyncTaskManager:
         }
 
 async_task_manager = AsyncTaskManager()
+
+
+# ---------------------------------------------------------------------------
+# [Antigravity 2026-06-22] Budget-aware routing helper
+# ---------------------------------------------------------------------------
+
+def budget_aware_route(
+    prompt: str,
+    task_type: str = "general",
+    preferred_providers: Optional[List[str]] = None,
+) -> Dict[str, Any]:
+    """
+    Extends route_request() with free-tier budget awareness.
+
+    Returns the standard SmartSemanticRouter dict PLUS a 'best_provider' key
+    that reflects real-time free-tier availability.
+
+    Usage (in model_router or API handlers)::
+
+        route = budget_aware_route(prompt, task_type="code")
+        provider = route["best_provider"]  # e.g. "gemini" or "groq"
+    """
+    semantic_route = route_request(prompt, task_type)
+
+    best_provider: Optional[str] = None
+    if _free_tier_available:
+        try:
+            tracker = get_tracker()
+            candidates = preferred_providers or FREE_PROVIDER_PRIORITY
+            best_provider = tracker.get_best_provider(candidates=candidates)
+            if best_provider:
+                logger.info(
+                    f"[Orchestrator] budget_aware_route: intent={semantic_route.intent}, "
+                    f"tier={semantic_route.tier}, best_free_provider={best_provider}"
+                )
+            else:
+                logger.warning("[Orchestrator] budget_aware_route: all free providers exhausted")
+        except Exception as exc:
+            logger.warning(f"[Orchestrator] budget_aware_route failed: {exc}")
+
+    return {
+        "intent": semantic_route.intent,
+        "tier": semantic_route.tier,
+        "requires_expensive": semantic_route.requires_expensive,
+        "reasoning": semantic_route.reasoning,
+        "best_provider": best_provider,
+    }
