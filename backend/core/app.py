@@ -38,6 +38,7 @@ from api.routes import (
     usage_metrics_router,
     payments_router,
     sso_router,
+    agents_router,
 )
 from core.auth_middleware import AuthMiddleware
 from core.observability_middleware import ObservabilityMiddleware
@@ -487,6 +488,61 @@ def cloud_distribution():
     }
 
 
+# [Antigravity 2026-06-22] Free-tier usage monitoring endpoints
+@app.get("/admin/free-tier-status")
+def free_tier_status():
+    """
+    Returns real-time free-tier usage for all AI providers.
+    Shows RPM/TPM/RPD used vs limits and remaining budget.
+    """
+    from core.free_tier_tracker import get_tracker
+    tracker = get_tracker()
+    return tracker.get_status()
+
+
+@app.get("/admin/free-tier-status/{provider}")
+def free_tier_provider_status(provider: str):
+    """Returns free-tier status for a specific provider."""
+    from core.free_tier_tracker import get_tracker
+    tracker = get_tracker()
+    status = tracker.get_provider_status(provider)
+    if status is None:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=404, detail=f"Provider '{provider}' not tracked")
+    return status
+
+
+@app.post("/admin/free-tier-pause/{provider}")
+def free_tier_pause_provider(provider: str, payload: dict = Body(default={"seconds": 60})):
+    """Manually pause a provider for N seconds (useful after hitting external rate limits)."""
+    from core.free_tier_tracker import get_tracker
+    seconds = float(payload.get("seconds", 60))
+    tracker = get_tracker()
+    tracker.mark_rate_limited(provider, pause_seconds=seconds)
+    return {"status": "paused", "provider": provider, "seconds": seconds}
+
+
+@app.post("/admin/free-tier-override/{provider}")
+def free_tier_override_limits(provider: str, payload: dict = Body(...)):
+    """
+    Override free-tier limits for a provider at runtime.
+    Payload example: {"rpm": 50, "rpd": 1000}
+    Useful after upgrading an OpenRouter account ($10 spend → 1000 RPD).
+    """
+    from core.free_tier_tracker import get_tracker
+    tracker = get_tracker()
+    tracker.override_limits(provider, payload)
+    return {"status": "updated", "provider": provider, "new_limits": payload}
+
+
+@app.get("/admin/token-budget-stats")
+def token_budget_stats():
+    """Returns token usage and compression stats per provider."""
+    from core.token_budget import get_budget_manager
+    manager = get_budget_manager()
+    return manager.get_stats()
+
+
 @app.get("/gcp/health")
 def gcp_health():
     return {
@@ -531,6 +587,8 @@ if onboarding_router is not None:
     app.include_router(onboarding_router)
 app.include_router(repos_router)
 app.include_router(tools_ops_router)
+if agents_router is not None:
+    app.include_router(agents_router)
 app.include_router(tools_registry_router)
 app.include_router(preferences_router)
 app.include_router(usage_metrics_router)

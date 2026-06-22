@@ -163,6 +163,12 @@ except Exception:
     usage_metrics_router = None
 
 try:
+    from .agents import router as agents_router
+    _safe_imports["agents_router"] = agents_router
+except Exception:
+    agents_router = None
+
+try:
     from .payments import router as payments_router
     _safe_imports["payments_router"] = payments_router
 except Exception:
