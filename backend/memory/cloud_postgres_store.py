@@ -102,6 +102,7 @@ class CloudPostgresStore:
 
     def update_conversation(self, session_id: str, messages: List[Dict], summary: str = ""):
         """Update or create conversation context."""
+        from psycopg2.extras import Json
         with self._get_conn() as conn:
             with conn.cursor() as cur:
                 cur.execute("""
@@ -111,7 +112,7 @@ class CloudPostgresStore:
                         messages = EXCLUDED.messages,
                         summary = EXCLUDED.summary,
                         updated_at = CURRENT_TIMESTAMP
-                """, (session_id, Any(messages), summary))
+                """, (session_id, Json(messages), summary))
                 conn.commit()
 
     def get_stats(self) -> Dict[str, Any]:

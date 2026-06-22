@@ -19,9 +19,9 @@ class ImproveRequest(BaseModel):
     improvement_type: str
 
 class PushRequest(BaseModel):
-    repo: str
-    branch: str
-    commit_message: str
+    repo: str = ""
+    branch: str = "main"
+    commit_message: str = "AI: Automated improvements"
     files_changed: List[str]
 
 class DiscoverRequest(BaseModel):

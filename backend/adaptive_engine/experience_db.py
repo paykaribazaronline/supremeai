@@ -73,7 +73,7 @@ class ExperienceDatabase:
                 exp.deployment_logs, what_worked_json, what_failed_json, suggested_json
             ))
             conn.commit()
-            return cursor.lastrowid
+            return int(cursor.lastrowid or 0)
 
     def get_experiences(self, limit: int = 50) -> List[Experience]:
         with sqlite3.connect(self.db_path) as conn:

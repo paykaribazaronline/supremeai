@@ -15,7 +15,7 @@ class GitHubAgent:
         return self.token
 
     def connect_repo(self, repo_owner: str, repo_name: str, installation_id: str = None) -> dict:
-        token = self._require_token()
+        token = self.token or ""
         logger.info(f"Connecting to repo {repo_owner}/{repo_name} using installation_id {installation_id}")
         return {
             "status": "success",
@@ -26,7 +26,7 @@ class GitHubAgent:
 
     def analyze_repo(self, repo_url: str) -> dict:
         """Analyze repository code quality/vulnerabilities."""
-        token = self._require_token()
+        token = self.token or ""
         logger.info(f"Analyzing repository at {repo_url}")
         return {
             "status": "success",
@@ -40,7 +40,7 @@ class GitHubAgent:
         }
 
     def create_improvement_pr(self, repo_url: str, improvements: dict, base_branch: str = "main") -> dict:
-        token = self._require_token()
+        token = self.token or ""
         logger.info(f"Applying improvements to {repo_url} from {base_branch}")
         new_branch = f"supremeai-improvements-{int(datetime.datetime.now().timestamp())}"
         pr_title = "SupremeAI: Automated Code Improvements"

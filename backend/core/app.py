@@ -172,11 +172,15 @@ import os
 @app.post("/api/admin/login")
 def admin_login(payload: dict = Body(...)):
     password = payload.get("password")
-    expected_password = settings.docs_password or "supreme-god-password"
+    expected_password = settings.docs_password
+    if not expected_password:
+        raise HTTPException(status_code=500, detail="Admin password not configured on server")
     if password != expected_password:
         raise HTTPException(status_code=401, detail="Invalid password")
     
-    secret = os.getenv("SUPREMEAI_ADMIN_TOTP_SECRET", "JBSWY3DPEHPK3PXP")
+    totp_secret = os.getenv("SUPREMEAI_ADMIN_TOTP_SECRET")
+    if not totp_secret:
+        raise HTTPException(status_code=500, detail="TOTP secret not configured on server")
     return {"status": "otp_required", "message": "Google Authenticator code required."}
 
 @app.post("/api/admin/verify")
@@ -184,11 +188,15 @@ def admin_verify(payload: dict = Body(...)):
     password = payload.get("password")
     otp = payload.get("otp")
     
-    expected_password = settings.docs_password or "supreme-god-password"
+    expected_password = settings.docs_password
+    if not expected_password:
+        raise HTTPException(status_code=500, detail="Admin password not configured on server")
     if password != expected_password:
         raise HTTPException(status_code=401, detail="Invalid password")
     
-    secret = os.getenv("SUPREMEAI_ADMIN_TOTP_SECRET", "JBSWY3DPEHPK3PXP")
+    totp_secret = os.getenv("SUPREMEAI_ADMIN_TOTP_SECRET")
+    if not totp_secret:
+        raise HTTPException(status_code=500, detail="TOTP secret not configured on server")
     
     def verify_totp_code(user_otp: str, base32_secret: str) -> bool:
         try:
@@ -211,7 +219,7 @@ def admin_verify(payload: dict = Body(...)):
         except Exception:
             return False
 
-    if not otp or not verify_totp_code(otp.strip(), secret):
+    if not otp or not verify_totp_code(otp.strip(), totp_secret):
         raise HTTPException(status_code=401, detail="Invalid Google Authenticator code")
         
     # Issue backend session JWT for secure session management
@@ -360,7 +368,9 @@ def admin_firebase_totp_verify(payload: dict = Body(...)):
     secret_to_use = totp_secret or temp_totp_secret
     if not secret_to_use:
         # Fallback to shared dev secret if none exists in Firestore
-        secret_to_use = os.getenv("SUPREMEAI_ADMIN_TOTP_SECRET", "JBSWY3DPEHPK3PXP")
+        secret_to_use = os.getenv("SUPREMEAI_ADMIN_TOTP_SECRET")
+        if not secret_to_use:
+            raise HTTPException(status_code=500, detail="TOTP secret not configured on server")
         
     def check_totp(user_otp: str, base32_secret: str) -> bool:
         try:
@@ -533,4 +543,5 @@ def get_skills():
             "description": "Exports tabular data to CSV using pandas."
         }
     }
+
 

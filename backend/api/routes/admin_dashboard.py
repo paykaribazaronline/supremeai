@@ -276,7 +276,7 @@ def get_config(response: Response):
                 line = line.strip()
                 if line and not line.startswith("#") and "=" in line:
                     k, v = line.split("=", 1)
-                    if any(sec in k.upper() for sec in ["KEY", "SECRET", "PASSWORD", "DSN"]):
+                    if any(sec in k.upper() for sec in ["KEY", "SECRET", "PASSWORD", "DSN", "TOKEN", "CREDENTIAL", "AUTH", "PRIVATE"]):
                         v = "********"
                     env_vars[k.strip()] = v.strip()
     return env_vars

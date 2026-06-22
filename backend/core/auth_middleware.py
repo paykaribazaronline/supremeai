@@ -79,8 +79,13 @@ class AuthMiddleware(BaseHTTPMiddleware):
                                 content={"detail": "Token has been revoked."},
                             )
             except Exception as e:
-                # Backward compatibility fallback for legacy API token or direct docs password access
-                expected = os.getenv("SUPREMEAI_API_TOKEN") or "supreme-god-password"
+                expected = os.getenv("SUPREMEAI_API_TOKEN")
+                if not expected:
+                    logger.error("JWT validation failed and SUPREMEAI_API_TOKEN is not configured")
+                    return JSONResponse(
+                        status_code=500,
+                        content={"detail": "Server authentication not configured"},
+                    )
                 if not secrets.compare_digest(token, expected):
                     logger.warning(f"Invalid bearer token for admin path: {path}. Error: {e}")
                     return JSONResponse(

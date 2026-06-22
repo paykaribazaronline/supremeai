@@ -1,11 +1,10 @@
 from __future__ import annotations
 
-from typing import Dict, Any, List
+from typing import List
 
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
-from core.rbac import UserContext
 from core.config import settings
 
 try:
@@ -25,6 +24,16 @@ router = APIRouter(prefix="/auth/sso", tags=["sso"])
 class SAMLAssertionRequest(BaseModel):
     assertion: str
 
+class OIDCDiscoveryRequest(BaseModel):
+    issuer: str
+    redirect_uri: str
+    client_id: str
+    scope: str = "openid profile email"
+
+class OIDCLoginResponse(BaseModel):
+    authorization_url: str
+    state: str
+
 class SSOLoginResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
@@ -32,6 +41,20 @@ class SSOLoginResponse(BaseModel):
     roles: List[str]
     email: str
     method: str
+
+@router.post("/oidc/discovery", response_model=OIDCLoginResponse)
+async def oidc_discovery(payload: OIDCDiscoveryRequest):
+    import secrets
+    state = secrets.token_urlsafe(16)
+    auth_url = (
+        f"{payload.issuer}/authorize"
+        f"?response_type=code"
+        f"&client_id={payload.client_id}"
+        f"&redirect_uri={payload.redirect_uri}"
+        f"&scope={payload.scope}"
+        f"&state={state}"
+    )
+    return OIDCLoginResponse(authorization_url=auth_url, state=state)
 
 @router.post("/saml", response_model=SSOLoginResponse)
 async def saml_login(payload: SAMLAssertionRequest):
