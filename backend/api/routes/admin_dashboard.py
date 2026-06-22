@@ -2,6 +2,7 @@ import os
 import json
 import asyncio
 import secrets
+import tempfile
 from typing import Dict, Any, List
 from fastapi import APIRouter, HTTPException, Depends, Request, Response
 from fastapi.responses import StreamingResponse
@@ -10,7 +11,7 @@ from pydantic import BaseModel
 from loguru import logger
 from jose import jwt
 from tools.cost_auditor import CostAuditor
-from config import settings
+from core.config import settings
 
 security = HTTPBearer()
 
@@ -22,18 +23,21 @@ def require_admin_token(credentials: HTTPAuthorizationCredentials = Depends(secu
         if decoded.get("role") != "admin":
             raise HTTPException(status_code=403, detail="Forbidden: User does not have admin role.")
         
-        # Check blacklist in Upstash Redis
         jti = decoded.get("jti")
         if jti:
             import core.app as app_mod
-            if app_mod.redis_queue and app_mod.redis_queue.configured:
-                if app_mod.redis_queue.get(f"jwt_blacklist:{jti}") is not None:
+            redis_queue = getattr(app_mod, "redis_queue", None)
+            if redis_queue and getattr(redis_queue, "configured", False):
+                blocked = redis_queue.get(f"jwt_blacklist:{jti}")
+                if blocked is not None:
                     raise HTTPException(status_code=401, detail="Token has been revoked.")
+            else:
+                logger.warning("Redis not configured; JWT blacklist check skipped.")
         
         return decoded
     except Exception as e:
-        expected = os.getenv("SUPREMEAI_API_TOKEN") or "supreme-god-password"
-        if secrets.compare_digest(token, expected):
+        expected = os.getenv("SUPREMEAI_API_TOKEN") or ""
+        if expected and secrets.compare_digest(token, expected):
             return {"uid": "admin", "role": "admin"}
         raise HTTPException(status_code=401, detail=f"Invalid Admin Authorization Token: {str(e)}")
 
@@ -44,16 +48,17 @@ def admin_rate_limit(request: Request):
     limit = 20
     window = 60
     
-    if app_mod.redis_queue and app_mod.redis_queue.configured:
+    redis_queue = getattr(app_mod, "redis_queue", None)
+    if redis_queue and getattr(redis_queue, "configured", False):
         try:
-            current_hits = app_mod.redis_queue.get(key)
+            current_hits = redis_queue.get(key)
             if current_hits is not None and int(current_hits) >= limit:
                 logger.warning(f"Distributed admin rate limit exceeded for {client_ip}")
                 raise HTTPException(status_code=429, detail="Too many admin requests. Please try again later.")
             
-            hits = app_mod.redis_queue.incr(key)
+            hits = redis_queue.incr(key)
             if hits == 1:
-                app_mod.redis_queue.set(key, "1", ex=window)
+                redis_queue.set(key, "1", ex=window)
             elif hits is not None and hits > limit:
                 logger.warning(f"Distributed admin rate limit exceeded for {client_ip}")
                 raise HTTPException(status_code=429, detail="Too many admin requests. Please try again later.")
@@ -80,7 +85,6 @@ USERS_FILE = "data/users.json"
 def load_users() -> List[Dict[str, Any]]:
     if not os.path.exists(USERS_FILE):
         os.makedirs(os.path.dirname(USERS_FILE), exist_ok=True)
-        # Seed default users
         default_users = [
             {"username": "admin", "role": "God", "permissions": ["all"]},
             {"username": "operator1", "role": "Operator", "permissions": ["read", "write"]},
@@ -101,13 +105,11 @@ def save_users(users: List[Dict[str, Any]]):
 
 @router.get("/logs/stream")
 async def logs_stream():
-    """SSE endpoint to stream logs real-time."""
     async def log_generator():
         log_file = "logs/supremeai.log"
         if not os.path.exists(log_file):
             log_file = "logs/app.log"
         
-        # Read existing file last 20 lines to bootstrap client
         if os.path.exists(log_file):
             try:
                 with open(log_file, "r") as f:
@@ -117,7 +119,6 @@ async def logs_stream():
             except Exception as e:
                 yield f"data: Error reading logs: {e}\n\n"
 
-        # Continuous polling
         file_obj = None
         try:
             if os.path.exists(log_file):
@@ -157,7 +158,6 @@ async def logs_stream():
 
 @router.get("/costs")
 def get_costs():
-    """Cost/budget metrics."""
     auditor = CostAuditor()
     try:
         reports = auditor.generate_report()
@@ -170,13 +170,12 @@ def get_costs():
         logger.error(f"Failed to generate cost report: {e}")
     
     return {
-        "status": "ok",
-        "report": "# 📊 Monthly Cost Audit Report\n\n- **Total API Cost:** $0.2700\n- **Total Tasks Processed:** 5\n\n## Cost Breakdown by Task Type\n\n| Task Type | Cost ($) | Percentage |\n| --- | --- | --- |\n| coding | $0.0500 | 18.5% |\n| general | $0.0600 | 22.2% |\n| translation | $0.0100 | 3.7% |\n| reasoning | $0.1500 | 55.6% |"
+        "status": "error",
+        "report": "# 📊 Cost Audit Report\n\nNo task history available.\n"
     }
 
 @router.get("/health-map")
 def get_health_map():
-    """Status map for GCP, Railway, and Render."""
     gcp_configured = bool(os.getenv("GCP_PROJECT_ID"))
     redis_configured = bool(os.getenv("UPSTASH_REDIS_REST_URL"))
     db_configured = bool(os.getenv("SUPABASE_DATABASE_URL"))
@@ -201,12 +200,10 @@ def get_health_map():
 
 @router.get("/users")
 def get_users():
-    """Get list of users."""
     return load_users()
 
 @router.post("/users")
 def create_user(user: UserUpdate):
-    """Create or update user."""
     users = load_users()
     for u in users:
         if u["username"] == user.username:
@@ -221,7 +218,6 @@ def create_user(user: UserUpdate):
 
 @router.delete("/users/{username}")
 def delete_user(username: str):
-    """Delete a user."""
     users = load_users()
     new_users = [u for u in users if u["username"] != username]
     if len(new_users) == len(users):
@@ -231,18 +227,42 @@ def delete_user(username: str):
 
 import hashlib
 
-def get_env_etag() -> str:
+def get_env_etag(redis_key: str = "config:env_etag") -> str:
+    import core.app as app_mod
+    redis_queue = getattr(app_mod, "redis_queue", None)
+    if redis_queue and getattr(redis_queue, "configured", False):
+        cached = redis_queue.get(redis_key)
+        if cached:
+            return cached
     if os.path.exists(".env"):
         try:
             with open(".env", "rb") as f:
-                return hashlib.md5(f.read()).hexdigest()
+                etag = hashlib.md5(f.read()).hexdigest()
+            if redis_queue and getattr(redis_queue, "configured", False):
+                redis_queue.set(redis_key, etag, ex=300)
+            return etag
         except Exception:
             pass
     return "empty-env"
 
+def _acquire_env_lock(lock_path: str = ".env.lock") -> bool:
+    try:
+        fd = os.open(lock_path, os.O_CREAT | os.O_EXCL | os.O_RDWR)
+        os.close(fd)
+        return True
+    except FileExistsError:
+        return False
+    except Exception:
+        return False
+
+def _release_env_lock(lock_path: str = ".env.lock"):
+    try:
+        os.remove(lock_path)
+    except Exception:
+        pass
+
 @router.get("/config")
 def get_config(response: Response):
-    """Get key configuration variables from .env with ETag support."""
     etag = get_env_etag()
     response.headers["ETag"] = etag
     
@@ -260,7 +280,6 @@ def get_config(response: Response):
 
 @router.post("/config")
 def update_config(payload: ConfigUpdate, request: Request):
-    """Update configuration variables in .env with Optimistic Concurrency Control (ETag check)."""
     if_match = request.headers.get("if-match")
     current_etag = get_env_etag()
     
@@ -272,41 +291,57 @@ def update_config(payload: ConfigUpdate, request: Request):
 
     if not os.path.exists(".env"):
         return {"status": "error", "message": ".env file not found"}
-        
-    lines = []
-    with open(".env", "r") as f:
-        lines = f.readlines()
-        
-    updated_keys = set()
-    for i, line in enumerate(lines):
-        clean_line = line.strip()
-        if clean_line and not clean_line.startswith("#") and "=" in clean_line:
-            k, _ = clean_line.split("=", 1)
-            k = k.strip()
-            if k in payload.env_vars:
-                new_val = payload.env_vars[k]
-                if new_val != "********":
-                    lines[i] = f"{k}={new_val}\n"
-                updated_keys.add(k)
-                
-    for k, v in payload.env_vars.items():
-        if k not in updated_keys and v != "********":
-            lines.append(f"{k}={v}\n")
+    
+    if not _acquire_env_lock():
+        raise HTTPException(status_code=423, detail="Configuration is being modified. Please retry.")
+    
+    try:
+        lines = []
+        with open(".env", "r") as f:
+            lines = f.readlines()
             
-    with open(".env", "w") as f:
-        f.writelines(lines)
+        updated_keys = set()
+        for i, line in enumerate(lines):
+            clean_line = line.strip()
+            if clean_line and not clean_line.startswith("#") and "=" in clean_line:
+                k, _ = clean_line.split("=", 1)
+                k = k.strip()
+                if k in payload.env_vars:
+                    new_val = payload.env_vars[k]
+                    if new_val != "********":
+                        lines[i] = f"{k}={new_val}\n"
+                    updated_keys.add(k)
+                    
+        for k, v in payload.env_vars.items():
+            if k not in updated_keys and v != "********":
+                lines.append(f"{k}={v}\n")
+                
+        fd, tmp_path = tempfile.mkstemp(dir=os.path.dirname(".env"), prefix=".env.", suffix=".tmp")
+        try:
+            with os.fdopen(fd, "w") as f:
+                f.writelines(lines)
+            os.replace(tmp_path, ".env")
+        except Exception:
+            if os.path.exists(tmp_path):
+                os.remove(tmp_path)
+            raise
+                
+        import core.app as app_mod
+        redis_queue = getattr(app_mod, "redis_queue", None)
+        if redis_queue and getattr(redis_queue, "configured", False):
+            redis_queue.set("config:env_etag", current_etag, ex=300)
+    finally:
+        _release_env_lock()
         
     return {"status": "success"}
 
 @router.post("/deploy")
 def trigger_deploy():
-    """Trigger a mock production deployment."""
     logger.info("Production deployment triggered via Admin Dashboard")
     return {"status": "success", "message": "Deployment pipeline triggered successfully."}
 
 @router.get("/metrics")
 def get_metrics():
-    """Real-time metrics for Command Center."""
     active_providers = []
     distribution = {}
     
@@ -342,7 +377,6 @@ def get_metrics():
 
 @router.get("/providers")
 def get_providers():
-    """Provider status for Model Router module."""
     providers = []
     all_known = [
         ("openrouter", "OpenRouter", settings.openrouter_api_key, ["gpt-4o", "claude-3.5-sonnet", "llama-3.1-70b"]),
@@ -381,7 +415,6 @@ def get_providers():
 
 @router.get("/model-router")
 def get_model_router():
-    """Model router configuration."""
     return {
         "current_override": None,
         "override_remaining_requests": 0,
@@ -398,7 +431,6 @@ class RouterOverrideRequest(BaseModel):
 
 @router.post("/model-router/override")
 def set_router_override(payload: RouterOverrideRequest):
-    """Force a specific provider/model for next N requests."""
     logger.info(f"Router override set: {payload.provider}/{payload.model} for {payload.remaining_requests} requests")
     return {
         "status": "success",
@@ -411,10 +443,8 @@ def set_router_override(payload: RouterOverrideRequest):
 
 @router.get("/codebase/export")
 def get_codebase_export():
-    """Generates and returns the entire codebase represented as a single markdown file."""
     from tools.codebase_exporter import export_codebase_to_markdown
     try:
-        # Scan from backend's parent directory (the project root)
         codebase_md = export_codebase_to_markdown("..")
         return {"success": True, "markdown": codebase_md}
     except Exception as e:

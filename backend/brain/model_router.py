@@ -20,6 +20,14 @@ MAX_AGENT_TOKENS = 5000
 MAX_AGENT_ITERATIONS = 5
 
 
+def _get_redis_queue():
+    try:
+        import core.app as app_mod
+        return getattr(app_mod, "redis_queue", None)
+    except Exception:
+        return None
+
+
 def run_async_as_sync(coro):
     import asyncio
     from concurrent.futures import ThreadPoolExecutor
@@ -101,7 +109,6 @@ class ModelRouter:
         self.cloudflare_account_id = os.getenv("CLOUDFLARE_ACCOUNT_ID", "")
         self.cloudflare_api_token = os.getenv("CLOUDFLARE_API_TOKEN", "")
         self.ollama_url = os.getenv("OLLAMA_URL", "http://127.0.0.1:11434")
-        # [2026-06-21] Updated default OpenRouter model — old llama-3-8b:free was deprecated/404
         self.default_model = os.getenv(
             "DEFAULT_MODEL", "google/gemma-4-31b-it:free"
         )
@@ -113,15 +120,16 @@ class ModelRouter:
         self._local_rag = None
         self.long_term_memory = LongTermMemory()
         self.language_router = LanguageRouter()
+        redis_queue = _get_redis_queue()
         self._breakers = {
-            "openrouter": CircuitBreaker("openrouter"),
-            "gemini": CircuitBreaker("gemini"),
-            "deepseek": CircuitBreaker("deepseek"),
-            "groq": CircuitBreaker("groq"),
-            "nvidia": CircuitBreaker("nvidia"),
-            "huggingface": CircuitBreaker("huggingface"),
-            "ollama": CircuitBreaker("ollama"),
-            "cloudflare": CircuitBreaker("cloudflare"),
+            "openrouter": CircuitBreaker("openrouter", redis_queue=redis_queue),
+            "gemini": CircuitBreaker("gemini", redis_queue=redis_queue),
+            "deepseek": CircuitBreaker("deepseek", redis_queue=redis_queue),
+            "groq": CircuitBreaker("groq", redis_queue=redis_queue),
+            "nvidia": CircuitBreaker("nvidia", redis_queue=redis_queue),
+            "huggingface": CircuitBreaker("huggingface", redis_queue=redis_queue),
+            "ollama": CircuitBreaker("ollama", redis_queue=redis_queue),
+            "cloudflare": CircuitBreaker("cloudflare", redis_queue=redis_queue),
         }
         self._http_client = httpx.AsyncClient(timeout=30.0)
         self._cache: Dict[str, Tuple[Dict[str, Any], float]] = {}
@@ -206,7 +214,7 @@ class ModelRouter:
         if provider == "cloudflare":
             return bool(self.cloudflare_api_token) and bool(self.cloudflare_account_id)
         if provider == "ollama":
-            from config import settings
+            from core.config import settings
             return settings.env.lower() != "production"
         return False
 
@@ -252,7 +260,7 @@ class ModelRouter:
         elif target_tier == 2:
             return self._select_model_by_tier(5)
         elif target_tier == 5:
-            from config import settings
+            from core.config import settings
             if settings.env.lower() != "production":
                 return "ollama", self._registry.MODELS.get("local-qwen-0.5b", {}).get("ollama_id", self.local_model)
             else:
@@ -265,7 +273,7 @@ class ModelRouter:
         return "ollama", self.local_model
 
     def _pick_provider(self, task_type: str, prompt: str, max_cost: float) -> Tuple[str, str]:
-        from config import settings
+        from core.config import settings
         is_production = settings.env.lower() == "production"
 
         if task_type == "completion":
@@ -547,7 +555,7 @@ class ModelRouter:
         return await self._call_ollama(prompt, model)
 
     async def _fallback(self, prompt: str, failed: str, exc: Exception):
-        from config import settings
+        from core.config import settings
         is_production = settings.env.lower() == "production"
 
         # [2026-06-21] Fallback order optimized: free providers first, deepseek removed (paid API, violates $0 cost policy)

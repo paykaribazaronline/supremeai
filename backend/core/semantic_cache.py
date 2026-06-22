@@ -2,8 +2,8 @@ import os
 import json
 import hashlib
 import time
-from typing import Optional, Dict, Any, List
-from dataclasses import dataclass
+from typing import Optional, Dict, Any, List, Tuple
+from dataclasses import dataclass, field
 from loguru import logger
 import httpx
 
@@ -28,6 +28,7 @@ class SemanticCache:
         self._ttl_seconds = int(os.getenv("SEMANTIC_CACHE_TTL", "3600"))
         self._similarity_threshold = float(os.getenv("SEMANTIC_SIMILARITY_THRESHOLD", "0.95"))
         self._client = httpx.Client(timeout=10.0) if self._redis_url and self._redis_token else None
+        self._memory_cache: Dict[str, CacheEntry] = {}
     
     @property
     def is_configured(self) -> bool:
@@ -41,6 +42,9 @@ class SemanticCache:
     
     def _get_vector_key(self, prompt_hash: str) -> str:
         return f"semantic_vector:{prompt_hash}"
+    
+    def _prefix_key(self, prompt: str, prefix_chars: int = 40) -> str:
+        return f"prefix_cache:{prompt[:prefix_chars].lower().strip()}"
     
     def _redis_request(self, *args: Any) -> Dict[str, Any]:
         if not self._client:
@@ -71,8 +75,8 @@ class SemanticCache:
         return None
     
     async def query_similar(self, prompt: str) -> Optional[CacheEntry]:
-        if not self.is_configured:
-            return None
+        if not self._pinecone_api_key:
+            return await self._get_exact_match(prompt)
         
         query_embedding = await self.get_embedding(prompt)
         if not query_embedding:
@@ -98,6 +102,7 @@ class SemanticCache:
                             if cached:
                                 cached.hit_count += 1
                                 await self._increment_hit(prompt_hash)
+                                self._memory_cache[cached.prompt_hash] = cached
                                 return cached
         except Exception as e:
             logger.debug(f"Pinecone vector search failed: {e}")
@@ -106,19 +111,24 @@ class SemanticCache:
     
     async def _get_exact_match(self, prompt: str) -> Optional[CacheEntry]:
         cache_key = self._get_cache_key(prompt)
+        prompt_hash = self._hash_prompt(prompt)
+        if prompt_hash in self._memory_cache:
+            return self._memory_cache[prompt_hash]
         try:
             result = self._redis_request("GET", cache_key).get("result")
             if result:
                 data = json.loads(result) if isinstance(result, str) else result
-                return CacheEntry(
-                    prompt_hash=self._hash_prompt(prompt),
-                    prompt_text=prompt,
+                entry = CacheEntry(
+                    prompt_hash=prompt_hash,
+                    prompt_text=data.get("prompt_text", prompt),
                     response=data.get("response", ""),
                     provider=data.get("provider", ""),
                     model=data.get("model", ""),
                     embedding=data.get("embedding"),
                     created_at=data.get("created_at", time.time()),
                 )
+                self._memory_cache[prompt_hash] = entry
+                return entry
         except Exception as e:
             logger.debug(f"Exact cache miss: {e}")
         return None
@@ -129,22 +139,35 @@ class SemanticCache:
         
         cache_key = self._get_cache_key(prompt)
         prompt_hash = self._hash_prompt(prompt)
-        
-        embedding = await self.get_embedding(prompt)
+        prefix_key = self._prefix_key(prompt)
         
         entry_data = {
+            "prompt_text": prompt,
             "response": response,
             "provider": provider,
             "model": model,
-            "embedding": embedding,
+            "embedding": None,
             "created_at": time.time(),
         }
         
         try:
             self._redis_request("SET", cache_key, str(entry_data), "EX", self._ttl_seconds)
+            self._redis_request("SET", prefix_key, str(entry_data), "EX", self._ttl_seconds)
             
-            if embedding and self._pinecone_api_key:
+            embedding = await self.get_embedding(prompt)
+            if embedding:
+                entry_data["embedding"] = embedding
                 await self._upsert_vector(prompt_hash, embedding, entry_data)
+                
+            self._memory_cache[prompt_hash] = CacheEntry(
+                prompt_hash=prompt_hash,
+                prompt_text=prompt,
+                response=response,
+                provider=provider,
+                model=model,
+                embedding=embedding,
+                created_at=entry_data["created_at"],
+            )
         except Exception as e:
             logger.error(f"Failed to set cache: {e}")
     
@@ -222,6 +245,7 @@ class SemanticCache:
                 "total_cached": hits,
                 "similarity_threshold": self._similarity_threshold,
                 "ttl_seconds": self._ttl_seconds,
+                "memory_session_cached": len(self._memory_cache),
             }
         except Exception as e:
             return {"configured": True, "error": str(e)}

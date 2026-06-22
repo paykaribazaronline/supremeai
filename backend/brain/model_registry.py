@@ -2,7 +2,7 @@ from typing import Dict, Any, List
 
 class ModelRegistry:
     """
-    Registry of the Top 50 AI Models categorized by Tiers.
+    Registry of AI Models categorized by Tiers.
     Provides metadata such as provider, tier, context length, estimated cost, and OpenRouter/Ollama IDs.
     """
     
@@ -13,7 +13,7 @@ class ModelRegistry:
             "tier": 1,
             "provider": "anthropic",
             "name": "Claude 4.7 Opus",
-            "openrouter_id": "anthropic/claude-3-opus",  # Fallback to Opus
+            "openrouter_id": "anthropic/claude-3-opus",
             "context_length": 200000,
             "cost_input_per_million": 15.00,
             "cost_output_per_million": 75.00,
@@ -24,7 +24,7 @@ class ModelRegistry:
             "tier": 1,
             "provider": "openai",
             "name": "GPT-5.5",
-            "openrouter_id": "openai/gpt-4o",  # Fallback to 4o
+            "openrouter_id": "openai/gpt-4o",
             "context_length": 128000,
             "cost_input_per_million": 5.00,
             "cost_output_per_million": 15.00,
@@ -79,7 +79,6 @@ class ModelRegistry:
             "tier": 1,
             "provider": "google",
             "name": "Gemini 3.1 Pro",
-            # [2026-06-21] Updated: gemini-pro-1.5 deprecated
             "openrouter_id": "google/gemini-2.5-pro-preview",
             "context_length": 1000000,
             "cost_input_per_million": 1.25,
@@ -205,7 +204,6 @@ class ModelRegistry:
             "tier": 5,
             "provider": "alibaba",
             "name": "Qwen 3 (Free)",
-            # [2026-06-21] Updated: qwen-2-7b-instruct:free deprecated
             "openrouter_id": "qwen/qwen3-8b:free",
             "context_length": 128000,
             "cost_input_per_million": 0.00,
@@ -233,3 +231,15 @@ class ModelRegistry:
     @classmethod
     def get_by_tier(cls, tier: int) -> List[str]:
         return [mid for mid, m in cls.MODELS.items() if m["tier"] == tier]
+
+    @classmethod
+    def validate(cls) -> List[str]:
+        issues = []
+        for mid, meta in cls.MODELS.items():
+            provider = meta.get("provider")
+            needs_or = provider not in ("ollama",)
+            if needs_or and not meta.get("openrouter_id") and not meta.get("ollama_id"):
+                issues.append(f"{mid}: missing openrouter_id or ollama_id")
+            if meta.get("tier") not in (0, 1, 2, 3, 5):
+                issues.append(f"{mid}: invalid tier {meta.get('tier')}")
+        return issues

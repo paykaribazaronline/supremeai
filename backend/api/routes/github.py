@@ -19,7 +19,7 @@ class ImproveRequest(BaseModel):
     improvement_type: str
 
 class PushRequest(BaseModel):
-    repo: Optional[str] = "dummy/repo"
+    repo: str
     branch: str
     commit_message: str
     files_changed: List[str]
@@ -55,7 +55,7 @@ async def push_improvements(payload: PushRequest):
     try:
         # Enforce PR governance via agent
         improvements = {f: "Optimized" for f in payload.files_changed}
-        repo = payload.repo or "dummy/repo"
+        repo = payload.repo
         res = github_agent.create_improvement_pr(repo, improvements, payload.branch)
         return res
     except Exception as e:

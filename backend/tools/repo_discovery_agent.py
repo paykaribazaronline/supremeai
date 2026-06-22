@@ -2,65 +2,43 @@ from loguru import logger
 
 class RepoDiscoveryAgent:
     def __init__(self, token: str = None):
-        self.token = token
-        logger.info("RepoDiscoveryAgent initialized.")
+        self.token = token or ""
+        if not self.token:
+            logger.warning("RepoDiscoveryAgent initialized without a token; real API operations disabled.")
+        else:
+            logger.info("RepoDiscoveryAgent initialized with token.")
+
+    def _require_token(self) -> str:
+        if not self.token:
+            raise RuntimeError("GitHub token is required for repository discovery and integration.")
+        return self.token
 
     def discover_repos(self, requirement: str, tech_stack: list, criteria: dict) -> list:
+        token = self._require_token()
         logger.info(f"Discovering repos for '{requirement}' using stack {tech_stack}")
-        
-        # Mock repositories found
-        candidates = [
-            {
-                "name": "tanstack/table",
-                "url": "https://github.com/TanStack/table",
-                "stars": 25000,
-                "compatibility_score": 0.95,
-                "implementation_risk": "low",
-                "license": "MIT",
-                "has_typescript_defs": True
-            },
-            {
-                "name": "gridjs/gridjs",
-                "url": "https://github.com/gridjs/gridjs",
-                "stars": 11000,
-                "compatibility_score": 0.88,
-                "implementation_risk": "low",
-                "license": "MIT",
-                "has_typescript_defs": True
-            }
-        ]
-        
-        # Filter based on criteria
-        filtered = []
-        for repo in candidates:
-            if criteria:
-                min_stars = criteria.get("min_stars", 0)
-                if repo["stars"] < min_stars:
-                    continue
-                allowed_licenses = criteria.get("license", [])
-                if allowed_licenses and repo["license"] not in allowed_licenses:
-                    continue
-            filtered.append(repo)
-            
-        return filtered
+        return []
 
     def analyze_compatibility(self, repo_name: str, target_project_deps: dict) -> dict:
+        token = self._require_token()
         logger.info(f"Analyzing compatibility for {repo_name}")
-        # Perform mock compatibility check
         return {
-            "compatible": True,
+            "compatible": False,
             "conflicts": [],
-            "license_ok": True,
-            "estimated_bundle_size": "45KB",
-            "risk_level": "low"
+            "license_ok": False,
+            "estimated_bundle_size": "0KB",
+            "risk_level": "unknown",
+            "reason": "Real analysis requires GitHub API access.",
+            "token_prefix": token[:4] + "****",
         }
 
     def implement_repo(self, repo_url: str, method: str, target_project: str) -> dict:
+        token = self._require_token()
         logger.info(f"Implementing repo {repo_url} via method '{method}' into {target_project}")
         return {
-            "status": "success",
+            "status": "error",
             "repo_url": repo_url,
             "method": method,
             "target_project": target_project,
-            "message": f"Successfully integrated using method '{method}'."
+            "message": "Real integration requires GitHub API access.",
+            "token_prefix": token[:4] + "****",
         }

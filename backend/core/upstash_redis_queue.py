@@ -76,6 +76,16 @@ class UpstashRedisQueue:
             logger.error(f"Upstash Redis DECR failed: {exc}")
             return None
 
+    def publish(self, channel: str, message: str) -> bool:
+        if not self.configured:
+            return False
+        try:
+            self._request("PUBLISH", channel, message)
+            return True
+        except Exception as exc:
+            logger.error(f"Upstash Redis PUBLISH failed: {exc}")
+            return False
+
     def close(self) -> None:
         if self._client is not None:
             self._client.close()

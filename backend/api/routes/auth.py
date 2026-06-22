@@ -14,7 +14,7 @@ except ImportError:
     jwt = None  # type: ignore[assignment]
 
 from core.rbac import UserContext
-from config import settings
+from core.config import settings
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -23,12 +23,6 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login", auto_error=False)
 SECRET_KEY = settings.jwt_secret
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24
-
-FAKE_USERS = {
-    "admin": {"user_id": "u1", "role": "admin"},
-    "owner": {"user_id": "u2", "role": "owner"},
-    "viewer": {"user_id": "u3", "role": "viewer"},
-}
 
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
@@ -72,16 +66,10 @@ class MeResponse(BaseModel):
 
 @router.post("/login", response_model=TokenResponse)
 async def login(body: LoginRequest):
-    if settings.env.lower() == "production":
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Fake logins are disabled in production environment."
-        )
-    user = FAKE_USERS.get(body.username)
-    if not user:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
-    token = create_access_token({"sub": user["user_id"], "role": user["role"]})
-    return TokenResponse(access_token=token, user_id=user["user_id"], role=user["role"])
+    raise HTTPException(
+        status_code=status.HTTP_501_NOT_IMPLEMENTED,
+        detail="Direct login is not supported. Use the admin TOTP flow or an OAuth provider."
+    )
 
 
 @router.get("/me", response_model=MeResponse)

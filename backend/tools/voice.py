@@ -1,7 +1,8 @@
 import os
 import httpx
+import asyncio
 from loguru import logger
-from config import settings
+from core.config import settings
 
 class VoiceInterface:
     """
@@ -14,12 +15,10 @@ class VoiceInterface:
         self.api_url = "https://api-inference.huggingface.co/models/openai/whisper-large-v3"
         
     def speech_to_text(self, audio_path: str) -> str:
-        """Transcribes audio file to text using Whisper (local if available, else API)."""
         if not os.path.exists(audio_path):
             logger.error(f"Audio file not found: {audio_path}")
             return ""
             
-        # Try local whisper first
         try:
             import whisper
             logger.info("Using local Whisper model for Speech-to-Text...")
@@ -32,7 +31,6 @@ class VoiceInterface:
         except Exception as e:
             logger.warning(f"Local Whisper not available or failed: {e}. Falling back to HuggingFace API...")
 
-        # Fallback to HuggingFace Whisper Inference API
         if not self.hf_token:
             logger.warning("HF_API_KEY not set. Cannot transcribe audio via API.")
             return "Error: HuggingFace API key is missing and local Whisper failed."
@@ -54,8 +52,11 @@ class VoiceInterface:
             logger.error(f"Exception during speech to text API fallback: {api_err}")
             return f"Error: {str(api_err)}"
 
+    async def speech_to_text_async(self, audio_path: str) -> str:
+        loop = asyncio.get_running_loop()
+        return await loop.run_in_executor(None, self.speech_to_text, audio_path)
+
     def text_to_speech(self, text: str, output_path: str = "data/output.mp3") -> bool:
-        """Converts text to speech and saves to output_path using Coqui TTS (offline), gTTS, or HTTP fallback."""
         os.makedirs(os.path.dirname(output_path), exist_ok=True)
 
         has_bengali = any(0x0980 <= ord(char) <= 0x09FF for char in text)
@@ -109,3 +110,12 @@ class VoiceInterface:
         except Exception as api_err:
             logger.error(f"Exception during text to speech API fallback: {api_err}")
             return False
+
+    async def text_to_speech_async(self, text: str, output_path: str = "data/output.mp3") -> bool:
+        loop = asyncio.get_running_loop()
+        return await loop.run_in_executor(None, self.text_to_speech, text, output_path)
+
+    def stream_tts_chunks(self, text: str, chunk_size: int = 200):
+        chunks = [text[i:i+chunk_size] for i in range(0, len(text), chunk_size)]
+        for chunk in chunks:
+            yield chunk

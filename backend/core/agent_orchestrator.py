@@ -1,5 +1,6 @@
 import os
-from typing import Optional, Dict, Any
+import re
+from typing import Optional, Dict, Any, Tuple
 from pydantic import BaseModel
 from loguru import logger
 import time
@@ -7,6 +8,50 @@ import time
 MAX_AGENT_TOKENS = int(os.getenv("MAX_AGENT_TOKENS", "5000"))
 MAX_AGENT_ITERATIONS = int(os.getenv("MAX_AGENT_ITERATIONS", "5"))
 ADMIN_PERMISSIONS_REQUIRED = os.getenv("AGENT_ADMIN_PERMISSIONS_REQUIRED", "true").lower() == "true"
+
+TIER_KEYWORDS = {
+    1: [
+        "code", "function", "class", "debug", "refactor", "algorithm", "python", "javascript",
+        "typescript", "react", "analyze", "logic", "reason", "math", "calculate", "prove", "optimize",
+        "agent", "swarm", "workflow", "autonomous", "build", "create", "implement"
+    ],
+    2: [
+        "search", "find", "research", "lookup", "query", "summarize", "translate", "sentiment"
+    ],
+    3: [
+        "image", "photo", "picture", "visual", "ocr", "chart", "graph", "diagram"
+    ],
+}
+
+def _normalize(text: str) -> str:
+    return re.sub(r'[^a-z0-9\s]', '', text.lower()).strip()
+
+def _matches_any(prompt_lower: str, keywords: list[str]) -> bool:
+    norm = _normalize(prompt_lower)
+    return any(kw.lower() in norm for kw in keywords)
+
+def route_request(prompt: str, task_type: str = "general") -> "SmartSemanticRouter":
+    upper_task = (task_type or "general").upper()
+    prompt_lower = prompt.lower()
+
+    if upper_task in ("CODE", "CODING", "REASONING", "MATH"):
+        intent = "coding" if "CODE" in upper_task else "reasoning"
+        return SmartSemanticRouter(intent=intent, requires_expensive=True, tier=1, reasoning=f"Explicit task_type={task_type}")
+
+    if "VISION" in upper_task or any(ext in prompt_lower for ext in [".png", ".jpg", ".jpeg", ".pdf"]):
+        return SmartSemanticRouter(intent="vision", requires_expensive=True, tier=3, reasoning="Vision file or task_type detected")
+
+    if _matches_any(prompt_lower, TIER_KEYWORDS[1]):
+        intent = "coding" if _matches_any(prompt_lower, TIER_KEYWORDS[1][:10]) else "reasoning"
+        return SmartSemanticRouter(intent=intent, requires_expensive=True, tier=1, reasoning="Keyword classification tier-1")
+
+    if _matches_any(prompt_lower, TIER_KEYWORDS[2]) or upper_task in ("TRANSLATION", "SENTIMENT", "SUMMARIES", "RAG", "SEARCH"):
+        return SmartSemanticRouter(intent="search", requires_expensive=False, tier=2, reasoning="Keyword classification tier-2")
+
+    if _matches_any(prompt_lower, TIER_KEYWORDS[3]) or upper_task in ("IMAGE", "VISION", "OCR"):
+        return SmartSemanticRouter(intent="vision", requires_expensive=True, tier=3, reasoning="Keyword classification tier-3")
+
+    return SmartSemanticRouter(intent="general", requires_expensive=False, tier=5, reasoning="Default fallback tier-5")
 
 class AgentCircuitBreaker:
     def __init__(self, agent_name: str):
@@ -61,39 +106,6 @@ class SmartSemanticRouter(BaseModel):
     requires_expensive: bool = False
     tier: int = 5
     reasoning: str = ""
-
-def route_request(prompt: str, task_type: str = "general") -> SmartSemanticRouter:
-    prompt_lower = prompt.lower()
-    
-    coding_keywords = ["code", "function", "class", "debug", "refactor", "algorithm", "python", "javascript", "typescript", "react"]
-    reasoning_keywords = ["analyze", "logic", "reason", "math", "calculate", "prove", "optimize"]
-    vision_keywords = ["image", "photo", "picture", "visual", "ocr", "chart", "graph"]
-    search_keywords = ["search", "find", "research", "lookup", "query"]
-    
-    requires_coding = any(kw in prompt_lower for kw in coding_keywords)
-    requires_reasoning = any(kw in prompt_lower for kw in reasoning_keywords)
-    requires_vision = any(kw in prompt_lower for kw in vision_keywords)
-    
-    if requires_coding or requires_reasoning:
-        tier = 1
-        intent = "coding" if requires_coding else "reasoning"
-        requires_expensive = True
-    elif requires_vision or task_type in ["image", "vision"]:
-        tier = 3
-        intent = "vision"
-        requires_expensive = True
-    elif search_keywords or task_type in ["search", "rag"]:
-        tier = 2
-        intent = "search"
-        requires_expensive = False
-    else:
-        tier = 5
-        intent = "general"
-        requires_expensive = False
-    
-    reasoning = f"Prompt classified as '{intent}' with tier {tier}. Expensive model: {requires_expensive}"
-    
-    return SmartSemanticRouter(intent=intent, requires_expensive=requires_expensive, tier=tier, reasoning=reasoning)
 
 class AsyncTaskManager:
     def __init__(self):

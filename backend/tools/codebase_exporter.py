@@ -1,4 +1,6 @@
 import os
+import asyncio
+from typing import List
 
 IGNORE_DIRS = {
     '.git', 'node_modules', 'venv', 'env', '__pycache__',
@@ -27,45 +29,67 @@ def get_language(file_name: str) -> str:
     }
     return mapping.get(ext, 'text')
 
-def export_codebase_to_markdown(root_dir: str = ".") -> str:
-    """
-    Scans the codebase starting from root_dir, filters binaries and lockfiles, 
-    and returns a structured Markdown string containing all code.
-    """
-    markdown_parts = ["# 🔱 SupremeAI 2.0 - Full Codebase\n\n"]
-    
-    for root, dirs, files in os.walk(root_dir):
-        # Filter directories in-place to avoid traversing ignored folders
-        dirs[:] = [d for d in dirs if d not in IGNORE_DIRS and not d.startswith('.')]
-
-        for file in files:
+def _collect_files(root_dir: str, follow_symlinks: bool = False) -> List[str]:
+    files = []
+    for dirpath, dirnames, filenames in os.walk(root_dir, followlinks=follow_symlinks):
+        dirnames[:] = [d for d in dirnames if d not in IGNORE_DIRS and not d.startswith('.')]
+        for file in filenames:
             if file in IGNORE_FILES or file.startswith('.'):
                 continue
-
             ext = os.path.splitext(file)[1].lower()
             if ext in IGNORE_EXTS:
                 continue
-
-            file_path = os.path.join(root, file)
-            rel_path = os.path.relpath(file_path, root_dir)
-
-            if rel_path == "supremeai_full_codebase.md" or file == "code_to_md.py":
+            rel = os.path.relpath(os.path.join(dirpath, file), root_dir)
+            if rel == "supremeai_full_codebase.md" or file == "code_to_md.py":
                 continue
+            files.append(os.path.join(dirpath, file))
+    return files
 
-            try:
-                with open(file_path, 'r', encoding='utf-8') as f:
-                    content = f.read()
+def _chunk_lines(content: str, chunk_size: int = 200000) -> List[str]:
+    if len(content) <= chunk_size:
+        return [content]
+    chunks = []
+    start = 0
+    while start < len(content):
+        end = start + chunk_size
+        chunk = content[start:end]
+        if end < len(content):
+            nl = chunk.rfind('\n')
+            if nl != -1:
+                end = start + nl + 1
+                chunk = content[start:end]
+        chunks.append(chunk)
+        start = end
+    return [c for c in chunks if c.strip()]
 
-                if content.strip():
-                    lang = get_language(file)
-                    markdown_parts.append(f"### File: `{rel_path}`\n\n")
-                    markdown_parts.append(f"```{lang}\n")
-                    markdown_parts.append(content)
-                    if not content.endswith('\n'):
-                        markdown_parts.append("\n")
-                    markdown_parts.append("```\n\n")
-            except Exception:
-                # Silently skip read errors to avoid crashing during prompt construction
-                continue
-                
-    return "".join(markdown_parts)
+async def export_file_async(file_path: str, root_dir: str) -> str:
+    rel = os.path.relpath(file_path, root_dir)
+    language = get_language(os.path.basename(file_path))
+    try:
+        loop = asyncio.get_running_loop()
+        content = await loop.run_in_executor(None, _read_file, file_path)
+    except Exception as exc:
+        return f"### File: `{rel}` (read error: {exc})\n\n"
+    parts = [f"### File: `{rel}`\n\n```{language}\n"]
+    for idx, chunk in enumerate(_chunk_lines(content)):
+        if idx > 0:
+            parts.append(f"\n...[truncated chunk {idx+1}]\n")
+        parts.append(chunk)
+        if not chunk.endswith('\n'):
+            parts.append('\n')
+    parts.append("```\n\n")
+    return "".join(parts)
+
+def _read_file(path: str) -> str:
+    with open(path, 'r', encoding='utf-8', errors='ignore') as f:
+        return f.read()
+
+async def export_codebase_to_markdown(root_dir: str = ".", max_concurrency: int = 8) -> str:
+    root_dir = os.path.abspath(root_dir)
+    files = _collect_files(root_dir)
+    semaphore = asyncio.Semaphore(max_concurrency)
+    async def bounded(path):
+        async with semaphore:
+            return await export_file_async(path, root_dir)
+    chunks = await asyncio.gather(*(bounded(p) for p in files))
+    return "# 🔱 SupremeAI 2.0 - Full Codebase\n\n" + "".join(chunks)
