@@ -42,7 +42,8 @@ async def _delete_from_vector_db(user_id: str, doc_id: str = None) -> None:
             vector_id = user_id
         
         async with httpx.AsyncClient(timeout=10.0) as client:
-            await client.delete(
+            await client.request(
+                "DELETE",
                 f"https://{PINECONE_HOST}/vectors/delete",
                 headers={"Api-Key": PINECONE_API_KEY},
                 json={"ids": [vector_id]},

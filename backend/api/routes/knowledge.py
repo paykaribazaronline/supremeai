@@ -9,14 +9,14 @@ router = APIRouter(prefix="/api/knowledge", tags=["knowledge"])
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
 try:
-    from tools.local_search_rag import LocalSearchRAG
+    from tools.local_search_rag import LocalSearchRAG as LocalSearchRAGClass
 except ImportError:
-    LocalSearchRAG = None
+    LocalSearchRAGClass = None
 
 try:
-    from tools.knowledge_base_indexer import KnowledgeBaseIndexer
+    from tools.knowledge_base_indexer import KnowledgeBaseIndexer as KnowledgeBaseIndexerClass
 except ImportError:
-    KnowledgeBaseIndexer = None
+    KnowledgeBaseIndexerClass = None
 
 try:
     import sqlite3
@@ -59,9 +59,9 @@ def _fts_search(query: str, limit: int = 5) -> List[Dict[str, Any]]:
 
 @router.post("/seed")
 async def index_seed_data():
-    if KnowledgeBaseIndexer is None:
+    if KnowledgeBaseIndexerClass is None:
         raise HTTPException(status_code=500, detail="KnowledgeBaseIndexer unavailable")
-    indexer = KnowledgeBaseIndexer()
+    indexer = KnowledgeBaseIndexerClass()
     result = indexer.index_seed_data()
     return result
 
@@ -73,10 +73,10 @@ async def search_knowledge(q: str, limit: int = 5) -> List[KnowledgeSearchResult
             results = _fts_search(q, limit)
         except Exception:
             results = []
-    if not results and LocalSearchRAG is not None:
+    if not results and LocalSearchRAGClass is not None:
         try:
-            rag = LocalSearchRAG()
-            rag_results = rag.semantic_search(q, limit=limit)
+            rag = LocalSearchRAGClass()
+            rag_results = rag.semantic_search(q)
             matches = rag_results.get("matches", []) if isinstance(rag_results, dict) else []
             for m in matches:
                 results.append({

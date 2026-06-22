@@ -3,33 +3,39 @@ from typing import Dict, Any
 from loguru import logger
 
 class MultilingualTTS:
-    """
-    Detects language and synthesizes speech using native voices.
-    Integrates with ElevenLabs, Coqui, or Google TTS.
-    """
-
-    def __init__(self, provider: str = "elevenlabs"):
+    def __init__(self, provider: str = "auto"):
         self.provider = provider
         logger.info(f"Initialized MultilingualTTS with provider {self.provider}")
 
     def _detect_language(self, text: str) -> str:
-        """Mock language detection."""
-        if any(c in text for c in ['অ', 'আ', 'ক', 'খ']):
-            return "bn-BD"
-        return "en-US"
+        if any(0x0980 <= ord(c) <= 0x09FF for c in text):
+            return "bn"
+        if any(0x0600 <= ord(c) <= 0x06FF for c in text):
+            return "ar"
+        if any(0x4E00 <= ord(c) <= 0x9FFF for c in text):
+            return "zh"
+        return "en"
 
     async def synthesize(self, text: str) -> Dict[str, Any]:
-        """Converts text to speech."""
         lang = self._detect_language(text)
         logger.info(f"Synthesizing speech in language {lang} using {self.provider}")
-        
-        # Mock API call
-        await asyncio.sleep(0.5)
-        
-        audio_url = f"https://cdn.supremeai.example/tts/{lang}_{hash(text)}.mp3"
+        try:
+            from tools.voice import VoiceInterface
+            voice = VoiceInterface()
+            output_path = f"data/tts_{hash(text)}.mp3"
+            ok = await voice.text_to_speech_async(text, output_path)
+            if ok:
+                return {
+                    "status": "success",
+                    "language": lang,
+                    "provider": "voice_interface",
+                    "audio_path": output_path,
+                    "audio_url": output_path,
+                }
+        except Exception as exc:
+            logger.debug(f"VoiceInterface TTS failed: {exc}")
         return {
-            "status": "success",
+            "status": "error",
             "language": lang,
-            "provider": self.provider,
-            "audio_url": audio_url
+            "error": "All TTS providers failed.",
         }

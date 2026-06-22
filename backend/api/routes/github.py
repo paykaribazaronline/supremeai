@@ -37,7 +37,8 @@ class ImplementRequest(BaseModel):
 @router.post("/connect")
 async def connect_repo(payload: ConnectRequest):
     try:
-        github_agent.connect_repo(payload.repo_owner, payload.repo_name, payload.installation_id)
+        inst_id = payload.installation_id if payload.installation_id is not None else ""
+        github_agent.connect_repo(payload.repo_owner, payload.repo_name, inst_id)
         return {"status": "success", "message": f"Connected to {payload.repo_owner}/{payload.repo_name}"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

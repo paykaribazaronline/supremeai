@@ -19,8 +19,10 @@ class InstallRequest(BaseModel):
 @router.post("/search")
 async def search_marketplaces(payload: SearchRequest):
     try:
+        categories = payload.categories if payload.categories is not None else []
+        filters = payload.filters if payload.filters is not None else {}
         results = marketplace_agent.search_marketplaces(
-            payload.query, payload.categories, payload.filters
+            payload.query, categories, filters
         )
         return {"status": "success", "tools": results}
     except Exception as e:

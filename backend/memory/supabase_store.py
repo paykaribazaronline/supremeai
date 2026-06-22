@@ -14,7 +14,7 @@ class SupabaseStore(SQLiteMemoryStore):
         self.local_path = local_path or os.getenv("SQLITE_PATH", "data/supremeai.db")
         self._provider = "supabase" if self.database_url else "sqlite"
         self._supabase_client = None
-        super().__init__(self.local_path)
+        super().__init__(str(self.local_path))
 
     @property
     def provider(self) -> str:

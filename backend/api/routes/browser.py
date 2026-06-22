@@ -10,15 +10,15 @@ audit = AuditLogger()
 credential_store = SecureCredentialStore()
 
 router = APIRouter(prefix="/api/browser", tags=["browser"])
-BROWSER_STATUS = {"browsing": False, "currentUrl": "about:blank"}
-RECENT_ACTIVITIES = []
-CREDENTIALS = []
-PAUSED_STATE = {"paused": False}
-URL_PERMISSIONS = []
-PERMISSION_REQUESTS = []
-SYSTEM_LEARNING = {"enabled": True}
-TASKS = {}
-FINDINGS = []
+BROWSER_STATUS: Dict[str, Any] = {"browsing": False, "currentUrl": "about:blank"}
+RECENT_ACTIVITIES: list[Dict[str, Any]] = []
+CREDENTIALS: list[Dict[str, Any]] = []
+PAUSED_STATE: Dict[str, Any] = {"paused": False}
+URL_PERMISSIONS: list[Dict[str, Any]] = []
+PERMISSION_REQUESTS: list[Dict[str, Any]] = []
+SYSTEM_LEARNING: Dict[str, Any] = {"enabled": True}
+TASKS: Dict[str, Dict[str, Any]] = {}
+FINDINGS: list[Dict[str, Any]] = []
 
 class GoalRequest(BaseModel):
     goal: str
@@ -237,7 +237,7 @@ def navigate(req: NavigateRequest):
 @router.post("/surf/click")
 def click(req: ClickRequest):
     RECENT_ACTIVITIES.append({
-        "url": BROWSER_STATUS["currentUrl"],
+        "url": str(BROWSER_STATUS["currentUrl"]),
         "action": f"click {req.selector}",
         "timestamp": datetime.utcnow().isoformat()
     })
@@ -246,7 +246,7 @@ def click(req: ClickRequest):
 @router.post("/surf/fill")
 def fill(req: FillRequest):
     RECENT_ACTIVITIES.append({
-        "url": BROWSER_STATUS["currentUrl"],
+        "url": str(BROWSER_STATUS["currentUrl"]),
         "action": f"fill {req.selector} with {req.value}",
         "timestamp": datetime.utcnow().isoformat()
     })
@@ -255,7 +255,7 @@ def fill(req: FillRequest):
 @router.post("/surf/click-at")
 def click_at(req: ClickAtRequest):
     RECENT_ACTIVITIES.append({
-        "url": BROWSER_STATUS["currentUrl"],
+        "url": str(BROWSER_STATUS["currentUrl"]),
         "action": f"click at {req.x}, {req.y}",
         "timestamp": datetime.utcnow().isoformat()
     })
@@ -264,7 +264,7 @@ def click_at(req: ClickAtRequest):
 @router.post("/surf/type-key")
 def type_key(req: KeyRequest):
     RECENT_ACTIVITIES.append({
-        "url": BROWSER_STATUS["currentUrl"],
+        "url": str(BROWSER_STATUS["currentUrl"]),
         "action": f"type key {req.key}",
         "timestamp": datetime.utcnow().isoformat()
     })
