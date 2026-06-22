@@ -42,7 +42,7 @@ class RoleBasedAccessControl:
 
     def check(self, context: UserContext, action: str) -> bool:
         if getattr(context, "expires_at", None):
-            if context.expires_at < datetime.datetime.now().isoformat():
+            if str(context.expires_at) < datetime.datetime.now().isoformat():
                 return False
         return self.has_permission(context.role, action)
 

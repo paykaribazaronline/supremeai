@@ -12,11 +12,11 @@ class EvolutionEngine:
     def __init__(self, db_path: Optional[str] = None):
         base = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         self.db_path = db_path or os.getenv("EVOLUTION_DB_PATH", os.path.join(base, "data", "evolution.db"))
-        os.makedirs(os.path.dirname(self.db_path), exist_ok=True)
+        os.makedirs(os.path.dirname(str(self.db_path)), exist_ok=True)
         self._ensure_schema()
 
     def _ensure_schema(self) -> None:
-        conn = sqlite3.connect(self.db_path)
+        conn = sqlite3.connect(str(self.db_path))
         try:
             conn.executescript("""
                 CREATE TABLE IF NOT EXISTS task_history (
@@ -61,7 +61,7 @@ class EvolutionEngine:
 
     def learn_from_success(self, task: str, approach: str, result: str) -> Dict[str, Any]:
         created_at = datetime.now(timezone.utc).isoformat()
-        conn = sqlite3.connect(self.db_path)
+        conn = sqlite3.connect(str(self.db_path))
         try:
             conn.execute(
                 "INSERT INTO task_history (task, approach, result, success, created_at) VALUES (?, ?, ?, ?, ?)",
@@ -74,7 +74,7 @@ class EvolutionEngine:
 
     def learn_from_failure(self, task: str, approach: str, result: str) -> Dict[str, Any]:
         created_at = datetime.now(timezone.utc).isoformat()
-        conn = sqlite3.connect(self.db_path)
+        conn = sqlite3.connect(str(self.db_path))
         try:
             conn.execute(
                 "INSERT INTO task_history (task, approach, result, success, created_at) VALUES (?, ?, ?, ?, ?)",
@@ -86,7 +86,7 @@ class EvolutionEngine:
             conn.close()
 
     def detect_repeated_failures(self, min_occurrences: int = 3) -> List[Dict[str, Any]]:
-        conn = sqlite3.connect(self.db_path)
+        conn = sqlite3.connect(str(self.db_path))
         try:
             cursor = conn.execute(
                 """
@@ -115,7 +115,7 @@ class EvolutionEngine:
             f"    def run(self, payload: dict) -> dict:\n"
             f"        return {{'skill': '{skill_name}', 'status': 'ok'}}\n"
         )
-        conn = sqlite3.connect(self.db_path)
+        conn = sqlite3.connect(str(self.db_path))
         try:
             conn.execute(
                 "INSERT INTO skill_proposals (skill_name, source_pattern, generated_code, status, created_at) VALUES (?, ?, ?, ?, ?)",
@@ -134,7 +134,7 @@ class EvolutionEngine:
 
     def record_feedback(self, session_id: str, query: str, retrieved_chunks: str, user_rating: float) -> Dict[str, Any]:
         created_at = datetime.now(timezone.utc).isoformat()
-        conn = sqlite3.connect(self.db_path)
+        conn = sqlite3.connect(str(self.db_path))
         try:
             conn.execute(
                 "INSERT INTO feedback_loop (session_id, query, retrieved_chunks, user_rating, created_at) VALUES (?, ?, ?, ?, ?)",

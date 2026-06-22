@@ -76,3 +76,4 @@ class TaskRouter:
                         logger.error("All retry attempts failed.")
                         return {"success": False, "error": "External service unavailable"}
                     await asyncio.sleep(2 ** attempt)
+        return {"success": False, "error": "External service unavailable"}

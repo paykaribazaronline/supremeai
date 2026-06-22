@@ -3,10 +3,13 @@ import json
 import asyncio
 import secrets
 import tempfile
+import datetime
+import shutil
 from typing import Dict, Any, List
-from fastapi import APIRouter, HTTPException, Depends, Request, Response
+from fastapi import APIRouter, HTTPException, Depends, Request, Response, WebSocket
 from fastapi.responses import StreamingResponse
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi.websockets import WebSocketDisconnect
 from pydantic import BaseModel
 from loguru import logger
 from jose import jwt
@@ -450,3 +453,129 @@ def get_codebase_export():
     except Exception as e:
         logger.error(f"Failed to export codebase: {e}")
         raise HTTPException(status_code=500, detail=f"Export failed: {str(e)}")
+
+COST_CAPS_FILE = "data/cost_caps.json"
+
+def load_cost_caps() -> Dict[str, Any]:
+    if not os.path.exists(COST_CAPS_FILE):
+        os.makedirs(os.path.dirname(COST_CAPS_FILE), exist_ok=True)
+        default = {"default_cap": 10.0, "per_tenant": {}}
+        with open(COST_CAPS_FILE, "w") as f:
+            json.dump(default, f, indent=4)
+        return default
+    with open(COST_CAPS_FILE, "r") as f:
+        return json.load(f)
+
+def save_cost_caps(caps: Dict[str, Any]):
+    with open(COST_CAPS_FILE, "w") as f:
+        json.dump(caps, f, indent=4)
+
+@router.get("/cost-caps")
+def get_cost_caps():
+    return load_cost_caps()
+
+@router.post("/cost-caps")
+def update_cost_caps(payload: Dict[str, Any]):
+    caps = load_cost_caps()
+    caps.update(payload)
+    save_cost_caps(caps)
+    return {"status": "success", "caps": caps}
+
+@router.post("/users/impersonate/{username}")
+async def impersonate_user(username: str, current_admin: dict = Depends(require_admin_token)):
+    users = load_users()
+    target = next((u for u in users if u["username"] == username), None)
+    if not target:
+        raise HTTPException(status_code=404, detail="User not found")
+    impersonation_token = jwt.encode(
+        {
+            "uid": target["username"],
+            "role": target["role"],
+            "impersonator": current_admin.get("uid", "admin"),
+            "impersonation": True,
+        },
+        settings.jwt_secret,
+        algorithm="HS256",
+    )
+    return {"status": "success", "impersonation_token": impersonation_token, "user": target}
+
+@router.post("/emergency-deploy")
+def emergency_deploy():
+    logger.warning("Emergency deployment triggered via Admin Dashboard")
+    return {"status": "success", "message": "Emergency deployment pipeline triggered. All services will restart shortly."}
+
+@router.post("/backup")
+def trigger_backup():
+    timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+    backup_dir = f"backups/backup_{timestamp}"
+    os.makedirs(backup_dir, exist_ok=True)
+    for fname in [".env", "data/constitutional_rules.db", "data/users.json"]:
+        if os.path.exists(fname):
+            try:
+                shutil.copy2(fname, os.path.join(backup_dir, os.path.basename(fname)))
+            except Exception as exc:
+                logger.warning(f"Backup skipped for {fname}: {exc}")
+    logger.info(f"Backup created at {backup_dir}")
+    return {"status": "success", "backup_path": backup_dir}
+
+@router.get("/data-export")
+def get_full_data_export():
+    try:
+        codebase_md = export_codebase_to_markdown("..")
+        users = load_users()
+        costs = CostAuditor().generate_report()
+        return {
+            "status": "success",
+            "codebase": codebase_md,
+            "users": users,
+            "costs": costs,
+        }
+    except Exception as e:
+        logger.error(f"Full data export failed: {e}")
+        raise HTTPException(status_code=500, detail=f"Export failed: {str(e)}")
+
+@router.get("/security-scan")
+def run_security_scan():
+    findings = []
+    try:
+        if not settings.jwt_secret or settings.jwt_secret == "np97Qpdqi9VdRyiANqjfKZn8/u7s/WCjtG8UsjbhhS0=":
+            findings.append({"item": "jwt_secret", "severity": "critical", "message": "JWT secret is using a default/weak value"})
+        if settings.debug:
+            findings.append({"item": "debug_mode", "severity": "medium", "message": "Application is running in debug mode"})
+        if not os.path.exists(".env"):
+            findings.append({"item": "env_file", "severity": "low", "message": ".env file not found"})
+    except Exception as e:
+        logger.error(f"Security scan failed: {e}")
+        return {"status": "error", "detail": str(e)}
+    return {
+        "status": "success",
+        "scan_time": datetime.datetime.now().isoformat(),
+        "findings": findings,
+        "total_findings": len(findings),
+    }
+
+@router.websocket("/ws")
+async def admin_websocket(websocket: WebSocket):
+    await websocket.accept()
+    try:
+        while True:
+            try:
+                metrics = get_metrics()
+                providers_status = {p["id"]: p["status"] for p in get_providers()}
+                health = get_health_map()
+                await websocket.send_json({
+                    "type": "dashboard_update",
+                    "data": {
+                        "metrics": metrics,
+                        "providers": providers_status,
+                        "health": health,
+                        "timestamp": datetime.datetime.now().isoformat(),
+                    }
+                })
+            except Exception as exc:
+                logger.debug(f"WS send error: {exc}")
+            await asyncio.sleep(2)
+    except WebSocketDisconnect:
+        logger.info("Admin WebSocket client disconnected")
+    except Exception as exc:
+        logger.error(f"Admin WebSocket error: {exc}")

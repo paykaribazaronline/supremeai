@@ -111,7 +111,7 @@ class CloudPostgresStore:
                         messages = EXCLUDED.messages,
                         summary = EXCLUDED.summary,
                         updated_at = CURRENT_TIMESTAMP
-                """, (session_id, Json(messages), summary))
+                """, (session_id, Any(messages), summary))
                 conn.commit()
 
     def get_stats(self) -> Dict[str, Any]:

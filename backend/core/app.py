@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from core.config import settings
 security = HTTPBasic()
-settings.validate()
+settings.validate_config()
 
 from admin.god import AdminGodLayer
 from brain.model_router import ModelRouter

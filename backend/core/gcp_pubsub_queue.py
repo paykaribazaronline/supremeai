@@ -58,10 +58,11 @@ class GCPPubSubQueue:
 
     def _init_db(self) -> None:
         if self.db_path == ":memory:":
-            self._memory_conn = sqlite3.connect(self.db_path, check_same_thread=False)
+            self._memory_conn = sqlite3.connect(str(self.db_path), check_same_thread=False)
             conn = self._memory_conn
         else:
-            conn = sqlite3.connect(self.db_path, check_same_thread=False)
+            conn = sqlite3.connect(str(self.db_path), check_same_thread=False)
+        assert conn is not None
 
         try:
             conn.execute(
@@ -84,7 +85,7 @@ class GCPPubSubQueue:
     def _get_connection(self):
         if self.db_path == ":memory:":
             return self._memory_conn
-        return sqlite3.connect(self.db_path, check_same_thread=False)
+        return sqlite3.connect(str(self.db_path), check_same_thread=False)
 
     def publish(self, task_id: str, payload: Dict[str, Any]) -> Dict[str, Any]:
         now = self._now()

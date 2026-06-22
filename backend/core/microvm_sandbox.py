@@ -24,12 +24,12 @@ class MicroVMSandbox:
     def _check_microvm_available(self) -> bool:
         try:
             if shutil.which("firecracker"):
-                return "firecracker"
+                return True
             if shutil.which("runsc"):
-                return "gvisor"
+                return True
         except Exception:
             pass
-        return None
+        return False
     
     def _create_microvm_config(self, vm_id: str, cmd: str) -> str:
         config = {

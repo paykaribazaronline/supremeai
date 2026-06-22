@@ -10,7 +10,7 @@ setup_logging()
 
 if settings.env.lower() == "production":
     try:
-        settings.validate()
+        settings.validate_config()
     except RuntimeError as exc:
         logger.error(f"Production config validation failed: {exc}")
         sys.exit(1)
