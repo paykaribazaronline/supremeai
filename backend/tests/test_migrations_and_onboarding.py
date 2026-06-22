@@ -18,7 +18,7 @@ class TestMigrationFiles:
     """Ensure all migration files exist and have valid SQL structure."""
 
     @pytest.mark.parametrize("filename", [
-        "01_initial_schema.sql",
+        "01_initial_setup.sql",
         "04_schema_upgrade.sql",
         "06_referral_system.sql",
         "07_tenant_sso_offline.sql",
@@ -69,13 +69,13 @@ class TestMigrationFiles:
 # ── Onboarding API Tests ──────────────────────────────────────────────────────
 
 class TestOnboardingAPI:
-    @pytest.mark.asyncio
+    @pytest.mark.anyio
     async def test_validate_api_key_unknown_provider(self):
         from api.routes.onboarding import _validate_api_key
         result = await _validate_api_key("custom_provider", "any-key")
         assert result is True  # Unknown provider → assume valid
 
-    @pytest.mark.asyncio
+    @pytest.mark.anyio
     async def test_validate_api_key_valid(self):
         from api.routes.onboarding import _validate_api_key
         with patch("httpx.AsyncClient") as mock_client_cls:
@@ -89,7 +89,7 @@ class TestOnboardingAPI:
             result = await _validate_api_key("openai", "sk-test123")
         assert result is True
 
-    @pytest.mark.asyncio
+    @pytest.mark.anyio
     async def test_validate_api_key_invalid(self):
         from api.routes.onboarding import _validate_api_key
         with patch("httpx.AsyncClient") as mock_client_cls:
@@ -122,7 +122,7 @@ class TestOnboardingAPI:
         # Result is bool (True or False depending on DB/local)
         assert isinstance(result, bool)
 
-    @pytest.mark.asyncio
+    @pytest.mark.anyio
     async def test_complete_onboarding_endpoint(self):
         from api.routes.onboarding import complete_onboarding, OnboardingPayload
         payload = OnboardingPayload(
@@ -140,7 +140,7 @@ class TestOnboardingAPI:
         assert result.provider_valid is True
         assert "ready" in result.message.lower() or "set" in result.message.lower()
 
-    @pytest.mark.asyncio
+    @pytest.mark.anyio
     async def test_onboarding_invalid_key_still_succeeds(self):
         from api.routes.onboarding import complete_onboarding, OnboardingPayload
         payload = OnboardingPayload(

@@ -34,7 +34,7 @@ class TestBrowserAgent:
         assert result["success"] is False
         assert "error" in result
 
-    @pytest.mark.asyncio
+    @pytest.mark.anyio
     async def test_extract_data(self):
         from tools.browser_agent import BrowserAgent
         agent = BrowserAgent()
@@ -50,7 +50,7 @@ class TestBrowserAgent:
 # ── VoiceCoder ───────────────────────────────────────────────────────────────
 
 class TestVoiceCoder:
-    @pytest.mark.asyncio
+    @pytest.mark.anyio
     async def test_generate_code_from_instruction(self):
         from tools.voice_coder import VoiceCoder
         coder = VoiceCoder()
@@ -61,7 +61,7 @@ class TestVoiceCoder:
             result = await coder._generate_code_from_instruction("generate a hello function")
         assert "hello" in result or "def" in result or "#" in result
 
-    @pytest.mark.asyncio
+    @pytest.mark.anyio
     async def test_classify_and_execute_generate(self):
         from tools.voice_coder import VoiceCoder
         coder = VoiceCoder()
@@ -71,7 +71,7 @@ class TestVoiceCoder:
         assert action == "generate_code"
         assert "def hello" in code
 
-    @pytest.mark.asyncio
+    @pytest.mark.anyio
     async def test_classify_and_execute_explain(self):
         from tools.voice_coder import VoiceCoder
         coder = VoiceCoder()
@@ -84,7 +84,7 @@ class TestVoiceCoder:
 # ── AIPairProgrammer ─────────────────────────────────────────────────────────
 
 class TestAIPairProgrammer:
-    @pytest.mark.asyncio
+    @pytest.mark.anyio
     async def test_solve_issue_success(self):
         from tools.ai_pair_programmer import AIPairProgrammer
         programmer = AIPairProgrammer()
@@ -100,7 +100,7 @@ class TestAIPairProgrammer:
         assert "code" in result
         assert "tests" in result
 
-    @pytest.mark.asyncio
+    @pytest.mark.anyio
     async def test_review_code(self):
         from tools.ai_pair_programmer import AIPairProgrammer
         programmer = AIPairProgrammer()
@@ -139,7 +139,7 @@ class TestStyleLearner:
         assert "snake_case" in prompt
         assert "type hints" in prompt.lower()
 
-    @pytest.mark.asyncio
+    @pytest.mark.anyio
     async def test_extract_style_no_files(self, tmp_path):
         from tools.style_learner import StyleLearner
         learner = StyleLearner()
@@ -173,7 +173,7 @@ module "eks_cluster" {}
         assert "aws_subnet" in types
         assert "module" in types
 
-    @pytest.mark.asyncio
+    @pytest.mark.anyio
     async def test_generate_infrastructure_file_not_found(self):
         from tools.diagram_to_architecture import DiagramToArchitecture
         converter = DiagramToArchitecture()

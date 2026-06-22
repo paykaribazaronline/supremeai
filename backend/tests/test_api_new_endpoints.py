@@ -8,6 +8,13 @@ from core.app import app
 auth_headers = {"Authorization": "Bearer test-token"}
 client = TestClient(app)
 
+import pytest
+@pytest.fixture(autouse=True)
+def setup_token():
+    os.environ["SUPREMEAI_API_TOKEN"] = "test-token"
+    yield
+
+
 def test_api_email_endpoints():
     # test /integrations/email/gmail
     resp = client.post(

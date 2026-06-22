@@ -46,7 +46,7 @@ class TestMultilingualTTS:
         result = tts._cache_hit("text that doesn't exist", "en")
         assert result is None
 
-    @pytest.mark.asyncio
+    @pytest.mark.anyio
     async def test_synthesize_no_key_uses_fallback(self):
         from tools.multilingual_tts import MultilingualTTS
         tts = MultilingualTTS(api_key="")  # No ElevenLabs key
@@ -61,7 +61,7 @@ class TestMultilingualTTS:
         assert result["status"] == "success"
         assert result["provider"] == "edge-tts"
 
-    @pytest.mark.asyncio
+    @pytest.mark.anyio
     async def test_synthesize_elevenlabs_success(self):
         from tools.multilingual_tts import MultilingualTTS
         tts = MultilingualTTS(api_key="sk-test-key")
@@ -75,7 +75,7 @@ class TestMultilingualTTS:
         assert result["status"] == "success"
         assert result["provider"] == "elevenlabs"
 
-    @pytest.mark.asyncio
+    @pytest.mark.anyio
     async def test_get_voices_no_key(self):
         from tools.multilingual_tts import MultilingualTTS
         tts = MultilingualTTS(api_key="")
@@ -91,7 +91,7 @@ class TestMultilingualTTS:
 # ── G.2 CommentThreadAI ───────────────────────────────────────────────────────
 
 class TestCommentThreadAI:
-    @pytest.mark.asyncio
+    @pytest.mark.anyio
     async def test_handle_pr_comment_no_token(self):
         from tools.comment_thread_ai import CommentThreadAI
         ai = CommentThreadAI(github_token="")
@@ -112,7 +112,7 @@ class TestCommentThreadAI:
         assert "Fix" in result["proposed_fix"]
         assert result["comment_posted"] is False
 
-    @pytest.mark.asyncio
+    @pytest.mark.anyio
     async def test_handle_pr_comment_posts_to_github(self):
         from tools.comment_thread_ai import CommentThreadAI
         ai = CommentThreadAI(github_token="ghp_test_token")
@@ -130,7 +130,7 @@ class TestCommentThreadAI:
         assert result["status"] == "success"
         assert result["comment_posted"] is True
 
-    @pytest.mark.asyncio
+    @pytest.mark.anyio
     async def test_summarize_thread_no_token(self):
         from tools.comment_thread_ai import CommentThreadAI
         ai = CommentThreadAI(github_token="ghp_test")
@@ -148,7 +148,7 @@ class TestCommentThreadAI:
         assert result["comment_count"] == 2
         assert "Main topic" in result["summary"]
 
-    @pytest.mark.asyncio
+    @pytest.mark.anyio
     async def test_detect_stale_prs(self):
         from tools.comment_thread_ai import CommentThreadAI
         import datetime
@@ -165,7 +165,7 @@ class TestCommentThreadAI:
         assert result["stale_pr_count"] == 1
         assert result["stale_prs"][0]["days_idle"] >= 10
 
-    @pytest.mark.asyncio
+    @pytest.mark.anyio
     async def test_webhook_ignores_non_trigger(self):
         from tools.comment_thread_ai import CommentThreadAI
         ai = CommentThreadAI()
@@ -178,7 +178,7 @@ class TestCommentThreadAI:
         assert result["status"] == "ignored"
         assert result["reason"] == "No trigger keyword found"
 
-    @pytest.mark.asyncio
+    @pytest.mark.anyio
     async def test_webhook_responds_to_trigger(self):
         from tools.comment_thread_ai import CommentThreadAI
         ai = CommentThreadAI(github_token="ghp_test")
@@ -248,7 +248,7 @@ def helper(val):
         assert result["functions"] == []
         assert result["classes"] == []
 
-    @pytest.mark.asyncio
+    @pytest.mark.anyio
     async def test_generate_pytest_code(self):
         from tools.auto_test_generator import AutoTestGenerator
         gen = AutoTestGenerator()
@@ -288,7 +288,7 @@ class TestDivide:
         assert "test_add" in result["test_code"] or "TestAdd" in result["test_code"]
         assert result["functions_found"] >= 2
 
-    @pytest.mark.asyncio
+    @pytest.mark.anyio
     async def test_generate_returns_error_on_empty_llm(self):
         from tools.auto_test_generator import AutoTestGenerator
         gen = AutoTestGenerator()
@@ -316,7 +316,7 @@ class TestTenantAdminAPI:
         assert "enterprise" in TIER_DEFAULTS
         assert TIER_DEFAULTS["enterprise"]["requests_per_minute"] > TIER_DEFAULTS["free"]["requests_per_minute"]
 
-    @pytest.mark.asyncio
+    @pytest.mark.anyio
     async def test_list_tenants_empty(self):
         from api.routes.tenant_admin import list_tenants, _local_store
         _local_store.clear()
@@ -325,7 +325,7 @@ class TestTenantAdminAPI:
         assert result["status"] == "success"
         assert isinstance(result["tenants"], list)
 
-    @pytest.mark.asyncio
+    @pytest.mark.anyio
     async def test_create_tenant_applies_tier_defaults(self):
         from api.routes.tenant_admin import create_tenant, TenantLimitCreate, _local_store
         _local_store.clear()
@@ -345,7 +345,7 @@ class TestTenantAdminAPI:
             assert t["requests_per_minute"] == 200   # pro tier default
             assert t["max_tokens_per_day"] == 1_000_000
 
-    @pytest.mark.asyncio
+    @pytest.mark.anyio
     async def test_update_tenant_changes_tier(self):
         from api.routes.tenant_admin import update_tenant, TenantLimitUpdate, TIER_DEFAULTS
         existing = {
@@ -364,7 +364,7 @@ class TestTenantAdminAPI:
                     except Exception:
                         pass  # Redis cache failure OK
 
-    @pytest.mark.asyncio
+    @pytest.mark.anyio
     async def test_delete_tenant(self):
         from api.routes.tenant_admin import delete_tenant
         existing = {"tenant_id": "gone-org", "billing_tier": "free"}
@@ -373,7 +373,7 @@ class TestTenantAdminAPI:
                 result = await delete_tenant("gone-org")
         assert result["status"] == "deleted"
 
-    @pytest.mark.asyncio
+    @pytest.mark.anyio
     async def test_get_nonexistent_tenant_raises_404(self):
         from api.routes.tenant_admin import get_tenant
         from fastapi import HTTPException

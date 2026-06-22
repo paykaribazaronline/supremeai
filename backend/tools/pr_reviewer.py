@@ -17,7 +17,7 @@ class PRReviewer:
         # Leaked credentials regex
         secret_patterns = {
             "AWS API Key": r"AKIA[0-9A-Z]{16}",
-            "Stripe Secret Key": r"sk_live_[0-9a-zA-Z]{24}",
+            "Stripe Secret Key": r"sk_(live|test)_[0-9a-zA-Z_]{24,}",
             "Generic Secret/Password": r'(password|passwd|secret|api_key|token)\s*=\s*[\'"][^\'"]{8,}[\'"]'
         }
         

@@ -5,6 +5,7 @@ Validates user's initial setup: API keys, preferred model, first chat confirmati
 from __future__ import annotations
 
 import time
+import pathlib
 from typing import Optional, Dict, Any
 
 import httpx

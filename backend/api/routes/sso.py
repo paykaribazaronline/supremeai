@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import secrets
-from typing import List
+from typing import List, Optional
 
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel

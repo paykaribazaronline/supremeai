@@ -58,7 +58,7 @@ def test_actuator_health_endpoint():
 
 def test_cloud_distribution_endpoint():
     import os
-    os.environ.setdefault("SUPREMEAI_API_TOKEN", "test-token")
+    os.environ["SUPREMEAI_API_TOKEN"] = "test-token"
     response = client.get("/admin/cloud-distribution", headers={"Authorization": "Bearer test-token"})
     assert response.status_code == 200
     data = response.json()

@@ -29,7 +29,7 @@ def rbac():
     return RoleBasedAccessControl()
 
 
-@pytest.fixture(autouse=False)
+@pytest.fixture(autouse=True)
 def isolate_env(monkeypatch: pytest.MonkeyPatch):
     for key, value in _TEST_ENV_DEFAULTS.items():
         monkeypatch.setenv(key, value)

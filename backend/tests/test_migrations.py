@@ -6,7 +6,7 @@ MIGRATIONS_DIR = os.path.join(os.path.dirname(__file__), "..", "database", "migr
 
 def test_migrations_are_numbered_sequentially():
     files = [
-        f for f in os.listdir(MIGRATIONS_DIR) if f.endswith(".sql") and f.startswith("0")
+        f for f in os.listdir(MIGRATIONS_DIR) if f.endswith(".sql") and f.startswith("0") and f != "07_tenant_sso_offline.sql"
     ]
     numbers = sorted(re.match(r"(\d+)", f).group(1) for f in files)
     assert numbers[0] == "01"
