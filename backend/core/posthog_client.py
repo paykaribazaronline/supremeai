@@ -1,11 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-# ============================================================================
-# file >> posthog_client.py
-# project >> SupremeAI 2.0
-# purpose >> PostHog analytics
-# module >> core
-# ============================================================================
 import os
 from loguru import logger
 import posthog

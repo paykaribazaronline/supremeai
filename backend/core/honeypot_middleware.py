@@ -1,11 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-# ============================================================================
-# file >> honeypot_middleware.py
-# project >> SupremeAI 2.0
-# purpose >> Honeypot middleware
-# module >> core
-# ============================================================================
 from __future__ import annotations
 
 import json

@@ -1,11 +1,5 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-# ============================================================================
-# file >> seed_tools_registry.py
-# project >> SupremeAI 2.0
-# purpose >> Helper tools
-# module >> scripts
-# ============================================================================
+"""
 Seed the tools_registry table in Supabase with metadata for all 76 backend tools.
 Run: python backend/scripts/seed_tools_registry.py
 """

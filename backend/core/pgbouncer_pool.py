@@ -1,11 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-# ============================================================================
-# file >> pgbouncer_pool.py
-# project >> SupremeAI 2.0
-# purpose >> PgBouncer pool
-# module >> core
-# ============================================================================
 import os
 from typing import Optional, Dict, Any
 from contextlib import asynccontextmanager

@@ -1,11 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-# ============================================================================
-# file >> semantic_cache.py
-# project >> SupremeAI 2.0
-# purpose >> Caching system
-# module >> core
-# ============================================================================
 import os
 import json
 import hashlib

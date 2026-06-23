@@ -1,11 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-# ============================================================================
-# file >> crewai_agents.py
-# project >> SupremeAI 2.0
-# purpose >> AI agent management
-# module >> brain
-# ============================================================================
 from typing import Optional, Sequence
 from loguru import logger
 

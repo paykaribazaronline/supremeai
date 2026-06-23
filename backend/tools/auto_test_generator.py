@@ -1,11 +1,8 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-# ============================================================================
-# file >> auto_test_generator.py
-# project >> SupremeAI 2.0
-# purpose >> Unit testing and QC
-# module >> tools
-# ============================================================================
+"""
+AutoTestGenerator — Real Implementation (Sprint G.3)
+Generates pytest / Vitest / Flutter tests using ModelRouter.
+Replaces old BanglaAiConnector pattern.
+"""
 from __future__ import annotations
 
 import os

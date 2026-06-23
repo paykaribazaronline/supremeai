@@ -1,11 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-# ============================================================================
-# file >> prompt_firewall.py
-# project >> SupremeAI 2.0
-# purpose >> Prompt firewall
-# module >> core
-# ============================================================================
 import os
 import re
 from typing import Optional, Dict, Any, List

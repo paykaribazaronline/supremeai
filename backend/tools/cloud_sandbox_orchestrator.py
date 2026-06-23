@@ -1,11 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-# ============================================================================
-# file >> cloud_sandbox_orchestrator.py
-# project >> SupremeAI 2.0
-# purpose >> Database operations
-# module >> tools
-# ============================================================================
 import os
 import uuid
 import httpx

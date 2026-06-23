@@ -1,11 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-# ============================================================================
-# file >> god.py
-# project >> SupremeAI 2.0
-# purpose >> God mode
-# module >> admin
-# ============================================================================
 import sqlite3
 import time
 from pathlib import Path

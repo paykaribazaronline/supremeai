@@ -1,11 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-# ============================================================================
-# file >> audit_logger.py
-# project >> SupremeAI 2.0
-# purpose >> Audit logging
-# module >> core
-# ============================================================================
 import typing
 import os
 import sqlite3

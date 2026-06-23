@@ -1,11 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-# ============================================================================
-# file >> asset_manager.py
-# project >> SupremeAI 2.0
-# purpose >> General utility
-# module >> storage
-# ============================================================================
 import os
 from typing import Optional
 from loguru import logger

@@ -1,11 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-# ============================================================================
-# file >> internal.py
-# project >> SupremeAI 2.0
-# purpose >> General utility
-# module >> api
-# ============================================================================
 import os
 import secrets
 from typing import Dict, Any

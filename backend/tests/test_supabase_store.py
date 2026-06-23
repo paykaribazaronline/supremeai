@@ -1,11 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-# ============================================================================
-# file >> test_supabase_store.py
-# project >> SupremeAI 2.0
-# purpose >> Unit testing and QC
-# module >> tests
-# ============================================================================
 import os
 from unittest.mock import patch, MagicMock
 from memory.supabase_store import SupabaseStore

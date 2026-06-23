@@ -1,11 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-# ============================================================================
-# ফাইল >> ফাইল
-# প্রকল্প >> SupremeAI 2.0
-# উদ্দেশ্য >> Unit testing and QC
-# মডিউল >> tests
-# ============================================================================
 import pytest
 from unittest.mock import patch, MagicMock
 from tools.bangla_voice import BanglaVoice

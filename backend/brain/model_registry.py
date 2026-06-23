@@ -1,11 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-# ============================================================================
-# file >> model_registry.py
-# project >> SupremeAI 2.0
-# purpose >> General utility
-# module >> brain
-# ============================================================================
 from typing import Dict, Any, List
 
 class ModelRegistry:

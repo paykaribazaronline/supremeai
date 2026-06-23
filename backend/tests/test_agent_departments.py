@@ -1,11 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-# ============================================================================
-# file >> test_agent_departments.py
-# project >> SupremeAI 2.0
-# purpose >> AI agent management
-# module >> tests
-# ============================================================================
 from __future__ import annotations
 
 from unittest.mock import MagicMock

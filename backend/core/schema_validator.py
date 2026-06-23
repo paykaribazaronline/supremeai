@@ -1,11 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-# ============================================================================
-# file >> schema_validator.py
-# project >> SupremeAI 2.0
-# purpose >> Code validators
-# module >> core
-# ============================================================================
 from __future__ import annotations
 
 from typing import Any, Dict, List, Type, TypeVar

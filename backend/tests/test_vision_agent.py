@@ -1,11 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-# ============================================================================
-# file >> test_vision_agent.py
-# project >> SupremeAI 2.0
-# purpose >> AI agent management
-# module >> tests
-# ============================================================================
 import os
 import tempfile
 from unittest.mock import patch, MagicMock

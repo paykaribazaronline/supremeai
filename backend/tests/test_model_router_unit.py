@@ -1,11 +1,4 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-# ============================================================================
-# file >> test_model_router_unit.py
-# project >> SupremeAI 2.0
-# purpose >> Unit testing and QC
-# module >> tests
-# ============================================================================
+
 import pytest
 
 from core.circuit_breaker import CircuitBreaker

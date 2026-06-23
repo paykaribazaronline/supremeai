@@ -1,11 +1,5 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-# ============================================================================
-# file >> __init__.py
-# project >> SupremeAI 2.0
-# purpose >> General utility
-# module >> api
-# ============================================================================
+_safe_imports = {}
+
 try:
     from .admin_dashboard import router as admin_dashboard_router
     _safe_imports["admin_dashboard_router"] = admin_dashboard_router

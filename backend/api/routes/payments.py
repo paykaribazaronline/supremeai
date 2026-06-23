@@ -1,11 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-# ============================================================================
-# file >> payments.py
-# project >> SupremeAI 2.0
-# purpose >> Payment gateway
-# module >> api
-# ============================================================================
 import os
 from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel

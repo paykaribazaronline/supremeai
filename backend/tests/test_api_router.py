@@ -1,11 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-# ============================================================================
-# file >> test_api_router.py
-# project >> SupremeAI 2.0
-# purpose >> Unit testing and QC
-# module >> tests
-# ============================================================================
 import os
 
 os.environ.setdefault("OPENROUTER_API_KEY", "")

@@ -1,11 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-# ============================================================================
-# file >> test_repo_discovery.py
-# project >> SupremeAI 2.0
-# purpose >> Unit testing and QC
-# module >> tests
-# ============================================================================
 from tools.repo_discovery_agent import RepoDiscoveryAgent
 
 def test_discover_repos():

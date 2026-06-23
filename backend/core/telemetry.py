@@ -1,11 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-# ============================================================================
-# file >> telemetry.py
-# project >> SupremeAI 2.0
-# purpose >> Telemetry
-# module >> core
-# ============================================================================
 from contextlib import contextmanager
 import os
 from typing import Optional, Dict, Any

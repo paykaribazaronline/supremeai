@@ -1,11 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-# ============================================================================
-# file >> code_validator.py
-# project >> SupremeAI 2.0
-# purpose >> Code analysis
-# module >> core
-# ============================================================================
 import ast
 import os
 import re

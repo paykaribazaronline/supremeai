@@ -1,11 +1,8 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-# ============================================================================
-# file >> token_budget.py
-# project >> SupremeAI 2.0
-# purpose >> Token budget
-# module >> core
-# ============================================================================
+"""
+token_budget.py
+===============
+Added by Agent Antigravity on 2026-06-22
+
 Token budget management for free-tier AI providers.
 Estimates, compresses, and enforces token limits to avoid
 wasting free-tier quota on over-long prompts.

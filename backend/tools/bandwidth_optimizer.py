@@ -1,11 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-# ============================================================================
-# file >> bandwidth_optimizer.py
-# project >> SupremeAI 2.0
-# purpose >> Bandwidth optimization
-# module >> tools
-# ============================================================================
 import re
 from typing import Dict, Any
 from loguru import logger

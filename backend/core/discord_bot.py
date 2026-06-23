@@ -1,11 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-# ============================================================================
-# file >> discord_bot.py
-# project >> SupremeAI 2.0
-# purpose >> Discord bot
-# module >> core
-# ============================================================================
 import os
 import discord
 from discord.ext import commands

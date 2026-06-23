@@ -1,11 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-# ============================================================================
-# file >> mcp_client.py
-# project >> SupremeAI 2.0
-# purpose >> MCP tools
-# module >> brain
-# ============================================================================
 import json
 import signal
 import subprocess

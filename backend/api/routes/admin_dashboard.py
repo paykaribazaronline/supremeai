@@ -1,11 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-# ============================================================================
-# file >> admin_dashboard.py
-# project >> SupremeAI 2.0
-# purpose >> Admin panel and controls
-# module >> api
-# ============================================================================
 import os
 import json
 import asyncio

@@ -1,11 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-# ============================================================================
-# file >> agent_tasks.py
-# project >> SupremeAI 2.0
-# purpose >> AI agent management
-# module >> api
-# ============================================================================
 from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel

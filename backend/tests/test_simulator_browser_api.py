@@ -1,11 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-# ============================================================================
-# file >> test_simulator_browser_api.py
-# project >> SupremeAI 2.0
-# purpose >> Unit testing and QC
-# module >> tests
-# ============================================================================
 from fastapi.testclient import TestClient
 from core.app import app
 

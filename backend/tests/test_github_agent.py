@@ -1,11 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-# ============================================================================
-# file >> test_github_agent.py
-# project >> SupremeAI 2.0
-# purpose >> AI agent management
-# module >> tests
-# ============================================================================
 from tools.github_agent import GitHubAgent
 
 def test_github_agent_repo_connect():

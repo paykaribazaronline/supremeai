@@ -1,11 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-# ============================================================================
-# file >> self_planner.py
-# project >> SupremeAI 2.0
-# purpose >> General utility
-# module >> tools
-# ============================================================================
 import json
 import asyncio
 from typing import List, Dict, Any

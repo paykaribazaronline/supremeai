@@ -1,11 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-# ============================================================================
-# file >> rbac.py
-# project >> SupremeAI 2.0
-# purpose >> Role-based access
-# module >> core
-# ============================================================================
 from __future__ import annotations
 
 import datetime

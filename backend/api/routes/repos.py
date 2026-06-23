@@ -1,11 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-# ============================================================================
-# file >> repos.py
-# project >> SupremeAI 2.0
-# purpose >> General utility
-# module >> api
-# ============================================================================
 from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel
 from typing import Optional

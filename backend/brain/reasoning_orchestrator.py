@@ -1,11 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-# ============================================================================
-# file >> reasoning_orchestrator.py
-# project >> SupremeAI 2.0
-# purpose >> Agent orchestration
-# module >> brain
-# ============================================================================
 from __future__ import annotations
 
 from typing import Any, Dict, Optional

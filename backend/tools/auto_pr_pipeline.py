@@ -1,11 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-# ============================================================================
-# file >> auto_pr_pipeline.py
-# project >> SupremeAI 2.0
-# purpose >> Auto remediation
-# module >> tools
-# ============================================================================
 import subprocess
 from loguru import logger
 from typing import List, Dict, Any

@@ -1,11 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-# ============================================================================
-# file >> task_router.py
-# project >> SupremeAI 2.0
-# purpose >> Task routing
-# module >> core
-# ============================================================================
 from typing import Dict, Any
 from loguru import logger
 import httpx

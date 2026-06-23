@@ -1,11 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-# ============================================================================
-# file >> meta_architect.py
-# project >> SupremeAI 2.0
-# purpose >> General utility
-# module >> tools
-# ============================================================================
 import os
 from typing import Dict, Any
 from loguru import logger

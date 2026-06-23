@@ -1,11 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-# ============================================================================
-# file >> rlhf_pipeline.py
-# project >> SupremeAI 2.0
-# purpose >> RLHF
-# module >> tools
-# ============================================================================
 import os
 import json
 import datetime

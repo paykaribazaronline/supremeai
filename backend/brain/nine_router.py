@@ -1,11 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-# ============================================================================
-# file >> nine_router.py
-# project >> SupremeAI 2.0
-# purpose >> General utility
-# module >> brain
-# ============================================================================
 from brain.model_router import ModelRouter
 from typing import Optional, Dict, Any
 

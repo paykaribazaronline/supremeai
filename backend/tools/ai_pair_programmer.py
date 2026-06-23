@@ -1,11 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-# ============================================================================
-# file >> ai_pair_programmer.py
-# project >> SupremeAI 2.0
-# purpose >> General utility
-# module >> tools
-# ============================================================================
 from typing import Dict, Any, Optional
 from loguru import logger
 from pydantic import BaseModel

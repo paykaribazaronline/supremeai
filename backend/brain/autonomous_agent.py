@@ -1,11 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-# ============================================================================
-# file >> autonomous_agent.py
-# project >> SupremeAI 2.0
-# purpose >> AI agent management
-# module >> brain
-# ============================================================================
 from __future__ import annotations
 
 

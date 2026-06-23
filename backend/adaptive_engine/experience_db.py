@@ -1,11 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-# ============================================================================
-# file >> experience_db.py
-# project >> SupremeAI 2.0
-# purpose >> Database operations
-# module >> adaptive_engine
-# ============================================================================
 import json
 import sqlite3
 import datetime

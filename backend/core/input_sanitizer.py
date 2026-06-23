@@ -1,11 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-# ============================================================================
-# file >> input_sanitizer.py
-# project >> SupremeAI 2.0
-# purpose >> Input sanitization
-# module >> core
-# ============================================================================
 import re
 
 class InputSanitizer:

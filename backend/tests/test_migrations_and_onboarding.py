@@ -1,11 +1,4 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-# ============================================================================
-# file >> test_migrations_and_onboarding.py
-# project >> SupremeAI 2.0
-# purpose >> Unit testing and QC
-# module >> tests
-# ============================================================================
+"""
 Tests for:
 - DB Migration SQL schema validation (F.2)
 - Onboarding API (E.1)

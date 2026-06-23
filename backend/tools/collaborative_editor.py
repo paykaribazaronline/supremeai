@@ -1,11 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-# ============================================================================
-# file >> collaborative_editor.py
-# project >> SupremeAI 2.0
-# purpose >> Code editor
-# module >> tools
-# ============================================================================
 import json
 from typing import Dict, Any
 from loguru import logger

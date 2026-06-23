@@ -1,11 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-# ============================================================================
-# file >> rules_mutator.py
-# project >> SupremeAI 2.0
-# purpose >> Rules management
-# module >> core
-# ============================================================================
 from loguru import logger
 
 class RulesMutator:

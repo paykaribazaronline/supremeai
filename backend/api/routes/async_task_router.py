@@ -1,11 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-# ============================================================================
-# file >> async_task_router.py
-# project >> SupremeAI 2.0
-# purpose >> Task routing
-# module >> api
-# ============================================================================
 from fastapi import APIRouter
 from pydantic import BaseModel
 from typing import Optional, Dict, Any

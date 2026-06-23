@@ -1,11 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-# ============================================================================
-# file >> rollback_monitor.py
-# project >> SupremeAI 2.0
-# purpose >> System monitoring
-# module >> core
-# ============================================================================
 from __future__ import annotations
 
 from loguru import logger

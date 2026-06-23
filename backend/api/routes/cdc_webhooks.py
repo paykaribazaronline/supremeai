@@ -1,11 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-# ============================================================================
-# file >> cdc_webhooks.py
-# project >> SupremeAI 2.0
-# purpose >> Webhook handling
-# module >> api
-# ============================================================================
 import typing
 import os
 import hmac

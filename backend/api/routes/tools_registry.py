@@ -1,11 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-# ============================================================================
-# file >> tools_registry.py
-# project >> SupremeAI 2.0
-# purpose >> Helper tools
-# module >> api
-# ============================================================================
 from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel
 from typing import Optional, List

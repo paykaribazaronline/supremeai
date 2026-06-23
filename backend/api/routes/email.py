@@ -1,11 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-# ============================================================================
-# file >> email.py
-# project >> SupremeAI 2.0
-# purpose >> Email service
-# module >> api
-# ============================================================================
 from fastapi import APIRouter, HTTPException
 from tools.email_agent import EmailAgent
 from pydantic import BaseModel

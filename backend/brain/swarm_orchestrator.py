@@ -1,11 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-# ============================================================================
-# file >> swarm_orchestrator.py
-# project >> SupremeAI 2.0
-# purpose >> Swarm orchestration
-# module >> brain
-# ============================================================================
 from typing import List, Dict
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from loguru import logger

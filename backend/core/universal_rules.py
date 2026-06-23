@@ -1,11 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-# ============================================================================
-# file >> universal_rules.py
-# project >> SupremeAI 2.0
-# purpose >> Rules management
-# module >> core
-# ============================================================================
 import os
 import json
 import tempfile

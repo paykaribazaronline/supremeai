@@ -1,11 +1,6 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-# ============================================================================
-# file >> marketplace.py
-# project >> SupremeAI 2.0
-# purpose >> Skill marketplace
-# module >> api
-# ============================================================================
+# backend/api/marketplace.py
+# Created by Agent Antigravity on 2026-06-21 to implement Docker Hub search and sandboxed installation.
+
 from fastapi import APIRouter, Depends, Request
 from pydantic import BaseModel
 from typing import List, Optional, Dict, Any

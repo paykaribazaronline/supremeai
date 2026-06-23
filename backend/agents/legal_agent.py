@@ -1,11 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-# ============================================================================
-# file >> legal_agent.py
-# project >> SupremeAI 2.0
-# purpose >> AI agent management
-# module >> agents
-# ============================================================================
 import re
 from typing import Any, Dict, List
 from loguru import logger

@@ -1,11 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-# ============================================================================
-# file >> microvm_sandbox.py
-# project >> SupremeAI 2.0
-# purpose >> Database operations
-# module >> core
-# ============================================================================
 import os
 import subprocess
 import shutil

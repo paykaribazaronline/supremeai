@@ -1,11 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-# ============================================================================
-# file >> db_repository.py
-# project >> SupremeAI 2.0
-# purpose >> Database operations
-# module >> core
-# ============================================================================
 import logging
 from typing import Any, Optional, Dict
 from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type

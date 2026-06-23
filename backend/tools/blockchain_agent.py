@@ -1,11 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-# ============================================================================
-# file >> blockchain_agent.py
-# project >> SupremeAI 2.0
-# purpose >> AI agent management
-# module >> tools
-# ============================================================================
 from typing import Dict, Any, List
 from loguru import logger
 
