@@ -2,7 +2,16 @@
 -- Description: Upgrades tables to match the full Admin Plan specifications.
 
 -- 1. Upgrade github_repos
-ALTER TABLE github_repos RENAME COLUMN repo_name TO id;
+DO $$
+BEGIN
+    IF EXISTS (
+        SELECT 1 
+        FROM information_schema.columns 
+        WHERE table_name = 'github_repos' AND column_name = 'repo_name'
+    ) THEN
+        ALTER TABLE github_repos RENAME COLUMN repo_name TO id;
+    END IF;
+END $$;
 ALTER TABLE github_repos ALTER COLUMN owner DROP NOT NULL;
 ALTER TABLE github_repos 
 ADD COLUMN IF NOT EXISTS name TEXT,
