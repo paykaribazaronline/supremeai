@@ -1,3 +1,11 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# ============================================================================
+# file >> platform_learner.py
+# project >> SupremeAI 2.0
+# purpose >> General utility
+# module >> adaptive_engine
+# ============================================================================
 import httpx
 from adaptive_engine.registry import PlatformProfile, PlatformRegistry
 from brain.model_router import ModelRouter

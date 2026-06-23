@@ -1,8 +1,11 @@
-"""
-free_tier_tracker.py
-====================
-Added by Agent Antigravity on 2026-06-22
-
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# ============================================================================
+# file >> free_tier_tracker.py
+# project >> SupremeAI 2.0
+# purpose >> Free tier tracker
+# module >> core
+# ============================================================================
 Tracks per-provider free tier usage (RPM, TPM, RPD) with rolling windows.
 Automatically pauses a provider when limits are near-exhausted and selects
 the best available free provider for each request.

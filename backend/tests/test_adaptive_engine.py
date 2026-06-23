@@ -1,3 +1,11 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# ============================================================================
+# file >> test_adaptive_engine.py
+# project >> SupremeAI 2.0
+# purpose >> Unit testing and QC
+# module >> tests
+# ============================================================================
 import pytest
 from unittest.mock import MagicMock
 from adaptive_engine.registry import PlatformRegistry, PlatformProfile

@@ -1,3 +1,11 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# ============================================================================
+# file >> voice.py
+# project >> SupremeAI 2.0
+# purpose >> Voice and TTS
+# module >> tools
+# ============================================================================
 import os
 import httpx
 import asyncio

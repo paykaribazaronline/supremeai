@@ -1,3 +1,11 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# ============================================================================
+# file >> cli.py
+# project >> SupremeAI 2.0
+# purpose >> General utility
+# module >> tools
+# ============================================================================
 import os
 import sys
 import typer

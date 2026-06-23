@@ -1,3 +1,11 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# ============================================================================
+# file >> test_posthog.py
+# project >> SupremeAI 2.0
+# purpose >> Unit testing and QC
+# module >> tests
+# ============================================================================
 from unittest.mock import patch
 from core.posthog_client import posthog_client
 

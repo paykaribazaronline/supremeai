@@ -1,3 +1,11 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# ============================================================================
+# file >> auto_remediation.py
+# project >> SupremeAI 2.0
+# purpose >> Auto remediation
+# module >> core
+# ============================================================================
 import typing
 import os
 import httpx

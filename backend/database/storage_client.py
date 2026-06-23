@@ -1,3 +1,11 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# ============================================================================
+# file >> storage_client.py
+# project >> SupremeAI 2.0
+# purpose >> File storage
+# module >> database
+# ============================================================================
 import os
 from typing import Optional, Dict, Any
 from loguru import logger

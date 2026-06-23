@@ -1,3 +1,11 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# ============================================================================
+# file >> tenant_rate_limiter.py
+# project >> SupremeAI 2.0
+# purpose >> Rate limiting
+# module >> tools
+# ============================================================================
 import time
 from typing import Any, Dict
 from loguru import logger

@@ -1,4 +1,11 @@
-
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# ============================================================================
+# file >> output_validator.py
+# project >> SupremeAI 2.0
+# purpose >> Output validation
+# module >> core
+# ============================================================================
 class MultiAICodeGenerator:
     def generate_with_consensus(self, task: str, code_kimi: str, code_gpt: str, code_claude: str) -> dict:
         # Compare and find common lines

@@ -1,3 +1,11 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# ============================================================================
+# file >> style_learner.py
+# project >> SupremeAI 2.0
+# purpose >> Style learning
+# module >> tools
+# ============================================================================
 import os
 import json
 from typing import Dict, Any, Optional, List

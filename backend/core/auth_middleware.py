@@ -1,3 +1,11 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# ============================================================================
+# file >> auth_middleware.py
+# project >> SupremeAI 2.0
+# purpose >> User authentication
+# module >> core
+# ============================================================================
 from __future__ import annotations
 
 import os

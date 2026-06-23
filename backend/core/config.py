@@ -1,36 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # ============================================================================
-# File: config.py
-# Project: SupremeAI 2.0
-# Purpose: Configuration loading and management
-# Module: core
+# file >> config.py
+# project >> SupremeAI 2.0
+# purpose >> Configuration loading
+# module >> core
 # ============================================================================
-# -*- coding: utf-8 -*-
-# ============================================================================
-# ফাইলের নাম: config.py
-# প্রজেক্ট: SupremeAI 2.0 - মাল্টিক্লাউড AI অর্কেস্ট্রেশন প্ল্যাটফর্ম
-# উদ্দেশ্য: কনফিগারেশন লোড ও ব্যবস্থাপনা
-# প্রসঙ্গ: এই মডিউল "core" এর সাথে সম্পর্কিত।
-# ভাষা: বাংলা ও ইংরেজি মিশ্র কমেন্ট।
-# ============================================================================
-# -*- coding: utf-8 -*-
-# ============================================================================
-# File: config.py
-
-
-
-
-
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-# ======================================================================
-# File: config.py
-# Project: SupremeAI 2.0
-# Purpose: Configuration loading and management
-# Context: Connected to "core" module.
-# Language: Bangla / English comments throughout.
-# ======================================================================
 import os
 import sys
 os.environ.setdefault("CORS_ORIGINS", "[]")

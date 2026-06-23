@@ -1,3 +1,11 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# ============================================================================
+# file >> test_telemetry.py
+# project >> SupremeAI 2.0
+# purpose >> Unit testing and QC
+# module >> tests
+# ============================================================================
 from unittest.mock import patch, MagicMock
 from core.telemetry import setup_tracing, get_tracer, trace_span, _RealSpan, _NoOpSpan
 

@@ -1,3 +1,11 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# ============================================================================
+# file >> model_router.py
+# project >> SupremeAI 2.0
+# purpose >> General utility
+# module >> brain
+# ============================================================================
 import os
 import asyncio
 import hashlib

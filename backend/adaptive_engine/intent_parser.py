@@ -1,3 +1,11 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# ============================================================================
+# file >> intent_parser.py
+# project >> SupremeAI 2.0
+# purpose >> General utility
+# module >> adaptive_engine
+# ============================================================================
 import json
 from dataclasses import dataclass, field
 from typing import List, Dict, Optional

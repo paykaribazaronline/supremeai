@@ -1,3 +1,11 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# ============================================================================
+# file >> parallel_cloud_router.py
+# project >> SupremeAI 2.0
+# purpose >> Cloud provider
+# module >> brain
+# ============================================================================
 import os
 import random
 from typing import Dict, Any

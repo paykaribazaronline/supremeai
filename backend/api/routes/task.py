@@ -1,3 +1,11 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# ============================================================================
+# file >> task.py
+# project >> SupremeAI 2.0
+# purpose >> Task routing
+# module >> api
+# ============================================================================
 import typing
 import json
 

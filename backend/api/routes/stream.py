@@ -1,3 +1,11 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# ============================================================================
+# file >> stream.py
+# project >> SupremeAI 2.0
+# purpose >> Streaming data
+# module >> api
+# ============================================================================
 from fastapi import APIRouter
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel

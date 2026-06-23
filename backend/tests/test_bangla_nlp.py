@@ -1,3 +1,11 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# ============================================================================
+# file >> test_bangla_nlp.py
+# project >> SupremeAI 2.0
+# purpose >> Unit testing and QC
+# module >> tests
+# ============================================================================
 from tools.bangla_nlp import BengaliNLP
 
 

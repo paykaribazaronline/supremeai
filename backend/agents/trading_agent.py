@@ -1,3 +1,11 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# ============================================================================
+# file >> trading_agent.py
+# project >> SupremeAI 2.0
+# purpose >> AI agent management
+# module >> agents
+# ============================================================================
 import os
 import json
 import time

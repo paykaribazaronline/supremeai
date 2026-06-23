@@ -1,3 +1,11 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# ============================================================================
+# file >> test_core.py
+# project >> SupremeAI 2.0
+# purpose >> Core system functionality
+# module >> tests
+# ============================================================================
 import os
 
 

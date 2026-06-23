@@ -1,3 +1,11 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# ============================================================================
+# file >> sso.py
+# project >> SupremeAI 2.0
+# purpose >> Single sign-on
+# module >> api
+# ============================================================================
 from __future__ import annotations
 
 import secrets

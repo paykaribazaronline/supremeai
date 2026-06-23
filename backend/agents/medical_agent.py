@@ -1,3 +1,11 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# ============================================================================
+# file >> medical_agent.py
+# project >> SupremeAI 2.0
+# purpose >> AI agent management
+# module >> agents
+# ============================================================================
 from typing import Any, Dict, List, Optional
 from loguru import logger
 

@@ -1,3 +1,11 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# ============================================================================
+# file >> conftest.py
+# project >> SupremeAI 2.0
+# purpose >> Configuration management
+# module >> tests
+# ============================================================================
 import os
 import sys
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))

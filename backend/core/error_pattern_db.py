@@ -1,3 +1,11 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# ============================================================================
+# file >> error_pattern_db.py
+# project >> SupremeAI 2.0
+# purpose >> Database operations
+# module >> core
+# ============================================================================
 import sqlite3
 from datetime import datetime, timezone
 

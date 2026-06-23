@@ -1,4 +1,11 @@
-
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# ============================================================================
+# file >> test_mcp_allowlist.py
+# project >> SupremeAI 2.0
+# purpose >> Unit testing and QC
+# module >> tests
+# ============================================================================
 from core.mcp_allowlist import MCPAllowlist, get_mcp_servers
 
 

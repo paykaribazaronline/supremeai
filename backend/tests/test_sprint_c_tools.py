@@ -1,4 +1,11 @@
-"""
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# ============================================================================
+# file >> test_sprint_c_tools.py
+# project >> SupremeAI 2.0
+# purpose >> Helper tools
+# module >> tests
+# ============================================================================
 Tests for Sprint C fixed tools:
 - browser_agent
 - voice_coder

@@ -1,3 +1,11 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# ============================================================================
+# file >> test_email_agent.py
+# project >> SupremeAI 2.0
+# purpose >> AI agent management
+# module >> tests
+# ============================================================================
 from tools.email_agent import EmailAgent
 
 def test_email_agent_connection():

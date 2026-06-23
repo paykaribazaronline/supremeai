@@ -1,3 +1,11 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# ============================================================================
+# file >> agent_orchestrator.py
+# project >> SupremeAI 2.0
+# purpose >> AI agent management
+# module >> core
+# ============================================================================
 import os
 import re
 from typing import Optional, Dict, Any, List

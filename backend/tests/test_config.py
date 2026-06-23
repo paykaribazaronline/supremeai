@@ -1,3 +1,11 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# ============================================================================
+# file >> test_config.py
+# project >> SupremeAI 2.0
+# purpose >> Configuration loading
+# module >> tests
+# ============================================================================
 import os
 from unittest.mock import patch
 

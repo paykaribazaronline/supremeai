@@ -1,3 +1,11 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# ============================================================================
+# file >> browser.py
+# project >> SupremeAI 2.0
+# purpose >> Browser automation
+# module >> api
+# ============================================================================
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import Dict, Any, Optional

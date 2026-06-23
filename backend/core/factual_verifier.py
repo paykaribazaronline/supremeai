@@ -1,3 +1,11 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# ============================================================================
+# file >> factual_verifier.py
+# project >> SupremeAI 2.0
+# purpose >> Factual verifier
+# module >> core
+# ============================================================================
 import ast
 import operator
 import httpx

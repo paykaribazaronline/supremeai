@@ -1,3 +1,11 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# ============================================================================
+# file >> game_dev_agent.py
+# project >> SupremeAI 2.0
+# purpose >> AI agent management
+# module >> tools
+# ============================================================================
 from typing import Dict, Any
 from loguru import logger
 

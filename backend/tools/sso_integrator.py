@@ -1,3 +1,11 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# ============================================================================
+# file >> sso_integrator.py
+# project >> SupremeAI 2.0
+# purpose >> Single sign-on
+# module >> tools
+# ============================================================================
 import xml.etree.ElementTree as ET
 from typing import Dict, Any, List, Optional
 from urllib.parse import urlparse, parse_qs

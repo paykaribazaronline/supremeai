@@ -1,3 +1,11 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# ============================================================================
+# file >> email_service.py
+# project >> SupremeAI 2.0
+# purpose >> Business service
+# module >> core
+# ============================================================================
 import os
 import httpx
 from loguru import logger

@@ -1,3 +1,11 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# ============================================================================
+# file >> ensemble_router.py
+# project >> SupremeAI 2.0
+# purpose >> Ensemble routing
+# module >> tools
+# ============================================================================
 import asyncio
 from typing import Dict, Any, List
 from loguru import logger

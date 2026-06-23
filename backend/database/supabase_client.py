@@ -1,3 +1,11 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# ============================================================================
+# file >> supabase_client.py
+# project >> SupremeAI 2.0
+# purpose >> Supabase integration
+# module >> database
+# ============================================================================
 import os
 from typing import Any, Optional
 from loguru import logger

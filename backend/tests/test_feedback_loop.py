@@ -1,3 +1,11 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# ============================================================================
+# file >> test_feedback_loop.py
+# project >> SupremeAI 2.0
+# purpose >> Database operations
+# module >> tests
+# ============================================================================
 from __future__ import annotations
 
 from core.feedback_loop import FeedbackLoop

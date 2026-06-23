@@ -1,3 +1,11 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# ============================================================================
+# file >> secure_credential_store.py
+# project >> SupremeAI 2.0
+# purpose >> State management
+# module >> core
+# ============================================================================
 from __future__ import annotations
 
 import base64

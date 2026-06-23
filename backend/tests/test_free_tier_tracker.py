@@ -1,6 +1,11 @@
-"""
-test_free_tier_tracker.py
-=========================
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# ============================================================================
+# file >> test_free_tier_tracker.py
+# project >> SupremeAI 2.0
+# purpose >> Unit testing and QC
+# module >> tests
+# ============================================================================
 Unit tests for the FreeTierTracker and TokenBudgetManager modules.
 
 Tests cover:

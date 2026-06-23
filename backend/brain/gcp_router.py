@@ -1,3 +1,11 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# ============================================================================
+# file >> gcp_router.py
+# project >> SupremeAI 2.0
+# purpose >> GCP integration
+# module >> brain
+# ============================================================================
 import os
 from typing import Any, Dict, Optional
 from datetime import datetime, timezone

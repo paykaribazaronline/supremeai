@@ -1,3 +1,11 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# ============================================================================
+# file >> ai_federation_protocol.py
+# project >> SupremeAI 2.0
+# purpose >> General utility
+# module >> tools
+# ============================================================================
 import json
 import uuid
 from typing import Dict, Any, List, Optional

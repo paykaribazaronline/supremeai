@@ -1,3 +1,11 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# ============================================================================
+# file >> offline_mode.py
+# project >> SupremeAI 2.0
+# purpose >> General utility
+# module >> tools
+# ============================================================================
 import asyncio
 import os
 import httpx

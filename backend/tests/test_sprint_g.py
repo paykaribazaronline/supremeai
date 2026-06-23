@@ -1,10 +1,11 @@
-"""
-Sprint G Tests:
-- G.1: MultilingualTTS
-- G.2: CommentThreadAI
-- G.3: AutoTestGenerator
-- G.4: Tenant Admin API
-"""
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# ============================================================================
+# file >> test_sprint_g.py
+# project >> SupremeAI 2.0
+# purpose >> Unit testing and QC
+# module >> tests
+# ============================================================================
 import pytest
 from unittest.mock import AsyncMock, patch
 

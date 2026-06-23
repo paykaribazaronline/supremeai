@@ -1,3 +1,11 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# ============================================================================
+# file >> preference_memory.py
+# project >> SupremeAI 2.0
+# purpose >> Memory storage
+# module >> tools
+# ============================================================================
 import json
 import os
 from typing import Dict, Any

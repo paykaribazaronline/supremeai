@@ -1,3 +1,11 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# ============================================================================
+# file >> test_cloud_sandbox.py
+# project >> SupremeAI 2.0
+# purpose >> Database operations
+# module >> tests
+# ============================================================================
 import pytest
 from unittest.mock import patch, MagicMock
 from tools.cloud_sandbox_orchestrator import CloudSandboxOrchestrator

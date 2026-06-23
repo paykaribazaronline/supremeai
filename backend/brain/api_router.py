@@ -1,3 +1,11 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# ============================================================================
+# file >> api_router.py
+# project >> SupremeAI 2.0
+# purpose >> API client
+# module >> brain
+# ============================================================================
 import inspect
 import logging
 from typing import Any, Callable, Dict, Optional

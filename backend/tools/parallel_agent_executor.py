@@ -1,3 +1,11 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# ============================================================================
+# file >> parallel_agent_executor.py
+# project >> SupremeAI 2.0
+# purpose >> AI agent management
+# module >> tools
+# ============================================================================
 import asyncio
 import json
 from typing import Dict, Any, Callable

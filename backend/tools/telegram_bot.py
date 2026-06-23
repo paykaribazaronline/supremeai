@@ -1,7 +1,11 @@
-"""
-SupremeAI 2.0 — Telegram Bot Handler (Production-Ready)
-
-Features:
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# ============================================================================
+# file >> telegram_bot.py
+# project >> SupremeAI 2.0
+# purpose >> General utility
+# module >> tools
+# ============================================================================
 - Webhook support (recommended for production)
 - Polling mode fallback (dev/local)
 - /start, /help, /status, /admin commands

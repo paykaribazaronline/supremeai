@@ -1,106 +1,16 @@
-[tool.poetry]
-name = "supremeai-backend"
-version = "2.0.0"
-description = "SupremeAI 2.0 — FastAPI AI Backend"
-authors = ["SupremeAI Team <team@supremeai.dev>"]
-readme = "README.md"
-package-mode = false
-packages = [{include = "core"}, {include = "brain"}, {include = "api"}, {include = "memory"}, {include = "tools"}]
-
-[tool.poetry.dependencies]
-python = "^3.11"
-numpy = ">=1.24.0,<2.0.0"
-fastapi = "^0.111.0"
-uvicorn = {extras = ["standard"], version = "^0.30.0"}
-httpx = "^0.27.0"
-loguru = "^0.7.2"
-pydantic = "^2.7.0"
-pydantic-settings = "^2.2.0"
-python-dotenv = "^1.0.1"
-pyyaml = "^6.0.1"
-tenacity = "^9.0.0"
-beautifulsoup4 = "^4.12.0"
-lxml = "^5.3.0"
-sentry-sdk = {extras = ["fastapi"], version = "^2.0.0"}
-discord-py = "^2.3.0"
-easyocr = "^1.7.0"
-pandas = "^2.2.0"
-openpyxl = "^3.1.0"
-chromadb = "^0.4.0"
-sentence-transformers = "^2.2.0"
-sympy = "^1.13.0"
-pillow = "^10.0.0"
-matplotlib = "^3.8.0"
-playwright = "^1.60.0"
-typer = "^0.12.0"
-rich = "^13.0.0"
-celery = "^5.4.0"
-redis = "^5.0.0"
-openai = "^1.35.0"
-supabase = "^2.5.0"
-upstash-redis = "^1.1.0"
-google-cloud-firestore = "^2.16.0"
-google-cloud-pubsub = "^2.27.0"
-python-jose = {extras = ["cryptography"], version = "^3.3.0"}
-bcrypt = "^4.1.0"
-alembic = "^1.13.0"
-psycopg2-binary = "^2.9.9"
-pinecone-client = "^5.0.0"
-qdrant-client = "^1.9.0"
-sse-starlette = "^1.8.0"
-prometheus-client = "^0.20.0"
-pygithub = "^2.9.1"
-google-generativeai = "^0.8.3"
-firebase-admin = "^6.5.0"
-stripe = "^9.0.0"
-posthog = "^3.5.0"
-requests = "^2.31.0"
-boto3 = "^1.34.0"
-asyncpg = "^0.29.0"
-radon = "^6.0.0"
-networkx = "^3.2.0"
-onelogin = "^1.1.0"
-psutil = "^5.9.0"
-docker = "^7.0.0"
-gtts = "^2.5.1"
-edge-tts = "^6.1.9"
-pdfplumber = "^0.10.0"
-python-pptx = "^0.6.23"
-torch = "^2.0.0"
-torchvision = ">=0.19.1"
-transformers = "^4.40.0"
-trl = "^0.9.0"
-openai-whisper = "^20240930"
-setuptools = "<82.0.0"
-opentelemetry-api = "^1.25.0"
-opentelemetry-sdk = "^1.25.0"
-
-[tool.poetry.group.dev.dependencies]
-pytest = "^8.0.0"
-anyio = "^4.0.0"
-pytest-cov = "^5.0.0"
-httpx = "^0.27.0"
-ruff = "^0.4.0"
-mypy = "^1.10.0"
-black = "^24.0.0"
-isort = "^5.13.0"
-
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
-
-[tool.ruff]
-line-length = 100
-target-version = "py311"
-
-[tool.ruff.lint]
-ignore = ["F821", "F841", "E402", "E401", "E731", "E701", "F811", "F541"]
-
-[tool.mypy]
-python_version = "3.11"
-warn_return_any = false
-warn_unused_configs = true
-disable_error_code = ["assignment", "attr-defined", "no-any-return"]
+# ============================================================================
+# config >> pyproject.toml
+# project >> SupremeAI 2.0
+# purpose >> General utility
+# module >> pyproject.toml
+# ============================================================================
+# ============================================================================
+# config >> pyproject.toml
+# project >> SupremeAI 2.0
+# purpose >> General utility
+# module >> pyproject.toml
+# ============================================================================
+# ============================================================================\n# config >> pyproject.toml\n# project >> SupremeAI 2.0\n# purpose >> General utility\n# module >> pyproject.toml\n# ============================================================================\ndisable_error_code = ["assignment", "attr-defined", "no-any-return"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

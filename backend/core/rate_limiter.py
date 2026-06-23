@@ -1,3 +1,11 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# ============================================================================
+# file >> rate_limiter.py
+# project >> SupremeAI 2.0
+# purpose >> Rate limiting
+# module >> core
+# ============================================================================
 from __future__ import annotations
 
 import time

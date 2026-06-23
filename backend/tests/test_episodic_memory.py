@@ -1,4 +1,11 @@
-
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# ============================================================================
+# file >> test_episodic_memory.py
+# project >> SupremeAI 2.0
+# purpose >> Memory storage
+# module >> tests
+# ============================================================================
 import pytest
 
 from memory.episodic_memory import EpisodicMemory

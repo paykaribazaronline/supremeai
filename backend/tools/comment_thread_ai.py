@@ -1,7 +1,11 @@
-"""
-CommentThreadAI — Real Implementation
-Handles GitHub PR/issue comment threads:
-1. Auto-summarize long threads
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# ============================================================================
+# file >> comment_thread_ai.py
+# project >> SupremeAI 2.0
+# purpose >> General utility
+# module >> tools
+# ============================================================================
 2. Propose code fix from reviewer comment
 3. Post AI reply back to GitHub
 4. Detect stale/blocked PRs

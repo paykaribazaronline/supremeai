@@ -1,3 +1,11 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# ============================================================================
+# file >> viral_referral_engine.py
+# project >> SupremeAI 2.0
+# purpose >> Viral referral
+# module >> tools
+# ============================================================================
 import os
 import uuid
 import time

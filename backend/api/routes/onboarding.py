@@ -1,7 +1,11 @@
-"""
-Onboarding API — POST /api/onboarding/complete
-Validates user's initial setup: API keys, preferred model, first chat confirmation.
-"""
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# ============================================================================
+# file >> onboarding.py
+# project >> SupremeAI 2.0
+# purpose >> User onboarding
+# module >> api
+# ============================================================================
 from __future__ import annotations
 
 import time

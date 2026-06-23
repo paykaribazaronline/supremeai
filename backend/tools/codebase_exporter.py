@@ -1,3 +1,11 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# ============================================================================
+# file >> codebase_exporter.py
+# project >> SupremeAI 2.0
+# purpose >> Code analysis
+# module >> tools
+# ============================================================================
 import os
 import asyncio
 import subprocess

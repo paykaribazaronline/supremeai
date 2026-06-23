@@ -1,3 +1,11 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# ============================================================================
+# file >> test_brain.py
+# project >> SupremeAI 2.0
+# purpose >> AI brain and routing
+# module >> tests
+# ============================================================================
 import os
 import sys
 import types

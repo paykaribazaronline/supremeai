@@ -1,3 +1,11 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# ============================================================================
+# file >> github.py
+# project >> SupremeAI 2.0
+# purpose >> GitHub integration
+# module >> api
+# ============================================================================
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import List, Optional

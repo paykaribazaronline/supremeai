@@ -1,3 +1,11 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# ============================================================================
+# file >> config.py
+# project >> SupremeAI 2.0
+# purpose >> Configuration loading
+# module >> api
+# ============================================================================
 from fastapi import APIRouter, HTTPException
 from typing import Optional
 from database.supabase_client import db

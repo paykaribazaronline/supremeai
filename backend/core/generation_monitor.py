@@ -1,3 +1,11 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# ============================================================================
+# file >> generation_monitor.py
+# project >> SupremeAI 2.0
+# purpose >> System monitoring
+# module >> core
+# ============================================================================
 import re
 
 class GenerationMonitor:

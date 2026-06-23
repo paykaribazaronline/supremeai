@@ -1,3 +1,11 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# ============================================================================
+# file >> model_trainer.py
+# project >> SupremeAI 2.0
+# purpose >> Model trainer
+# module >> tools
+# ============================================================================
 import os
 import uuid
 import httpx

@@ -1,3 +1,11 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# ============================================================================
+# file >> test_long_term_memory.py
+# project >> SupremeAI 2.0
+# purpose >> Memory storage
+# module >> tests
+# ============================================================================
 from memory.long_term_memory import LongTermMemory
 
 

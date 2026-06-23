@@ -1,3 +1,11 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# ============================================================================
+# file >> task_queue.py
+# project >> SupremeAI 2.0
+# purpose >> Task routing
+# module >> core
+# ============================================================================
 import os
 from typing import Any, Dict
 from loguru import logger

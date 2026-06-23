@@ -1,3 +1,11 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# ============================================================================
+# file >> metrics.py
+# project >> SupremeAI 2.0
+# purpose >> General utility
+# module >> api
+# ============================================================================
 from fastapi import APIRouter
 from fastapi.responses import PlainTextResponse
 

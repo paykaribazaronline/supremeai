@@ -1,3 +1,11 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# ============================================================================
+# file >> knowledge.py
+# project >> SupremeAI 2.0
+# purpose >> General utility
+# module >> api
+# ============================================================================
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import List, Optional, Dict, Any

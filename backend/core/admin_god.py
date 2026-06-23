@@ -1,3 +1,11 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# ============================================================================
+# file >> admin_god.py
+# project >> SupremeAI 2.0
+# purpose >> Admin panel and controls
+# module >> core
+# ============================================================================
 import os
 import hashlib
 import hmac

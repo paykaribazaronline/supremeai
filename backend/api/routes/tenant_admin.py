@@ -1,12 +1,11 @@
-"""
-Tenant Rate Limiter Admin API (Sprint G.4)
-GET  /api/admin/tenant-limits        — list all tenants + live usage
-POST /api/admin/tenant-limits        — create tenant
-PUT  /api/admin/tenant-limits/{id}   — update limits
-DELETE /api/admin/tenant-limits/{id} — remove tenant
-GET  /api/admin/tenant-limits/{id}/usage — per-tenant usage stats
-POST /api/admin/tenant-limits/{id}/reset-usage — reset today's counters
-"""
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# ============================================================================
+# file >> tenant_admin.py
+# project >> SupremeAI 2.0
+# purpose >> Admin panel and controls
+# module >> api
+# ============================================================================
 from __future__ import annotations
 
 import time
