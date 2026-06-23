@@ -26,11 +26,11 @@ RUN python -m venv /app/.venv && \
     /app/.venv/bin/pip install --no-cache-dir "setuptools<82.0.0"
 
 # Copy dependency files only (for Docker layer caching)
-COPY pyproject.toml poetry.lock* ./
+COPY pyproject.toml ./
+COPY poetry.lock* ./
 
-# Install main + ml deps, skip CUDA torch reinstall with --no-deps for torch
-# Poetry sees torch is already installed (CPU) and skips it
-RUN poetry install --no-interaction --no-ansi --no-root --only main --with ml 2>/dev/null || \
+RUN poetry lock --no-update || true
+RUN poetry install --no-interaction --no-ansi --no-root --only main --with ml || \
     poetry install --no-interaction --no-ansi --no-root
 
 # ── Force CPU-only torch (in case Poetry overwrote it) ──

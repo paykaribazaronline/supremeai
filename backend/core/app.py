@@ -60,16 +60,15 @@ import secrets
 
 setup_tracing()
 
-    if settings.sentry_dsn:
-        try:
-            sentry_sdk.init(
-                dsn=settings.sentry_dsn,
-                traces_sample_rate=0.2 if settings.env.lower() == "production" else 1.0,
-                environment=settings.env,
-            )
-        except Exception as exc:
-            logger.warning(f"Sentry initialization failed: {exc}")
-
+if settings.sentry_dsn:
+    try:
+        sentry_sdk.init(
+            dsn=settings.sentry_dsn,
+            traces_sample_rate=0.2 if settings.env.lower() == "production" else 1.0,
+            environment=settings.env,
+        )
+    except Exception as exc:
+        logger.warning(f"Sentry initialization failed: {exc}")
 
 def _docs_auth(credentials: HTTPBasicCredentials = Depends(security)):
     correct = secrets.compare_digest(credentials.username, settings.docs_username) and \
@@ -81,7 +80,6 @@ def _docs_auth(credentials: HTTPBasicCredentials = Depends(security)):
             headers={"WWW-Authenticate": "Basic"},
         )
     return credentials.username
-
 
 def _maybe_docs_auth():
     if settings.docs_auth_enabled and not settings.debug:

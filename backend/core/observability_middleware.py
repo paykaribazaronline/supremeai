@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import time
 import uuid
-from loguru import logger
+
 from api.routes.metrics import record_error, record_request, record_request_duration
 from core.telemetry import setup_tracing, trace_span
 
