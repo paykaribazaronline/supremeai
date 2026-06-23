@@ -3,6 +3,7 @@ import sys
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from pydantic import field_validator
 from loguru import logger
+from core.secret_vault import secret_vault
 
 
 class Settings(BaseSettings):
@@ -34,15 +35,22 @@ class Settings(BaseSettings):
         "https://supremeai-admin.firebaseapp.com",
     ]
 
-    jwt_secret: str = "np97Qpdqi9VdRyiANqjfKZn8/u7s/WCjtG8UsjbhhS0="
+    jwt_secret: str = secret_vault.fetch_secret("JWT_SECRET", "np97Qpdqi9VdRyiANqjfKZn8/u7s/WCjtG8UsjbhhS0=")
+    
+    # ⚡ ডাইনামিকলি সরাসরি ক্লাউড মেমরি থেকে সিক্রেট রিড করা হচ্ছে
+    # ডিস্কে কোনো .env ফাইল না থাকলেও প্রোডাকশন এপিআই ১০০% স্মুথলি চলবে
+    supabase_database_url: str = secret_vault.fetch_secret(
+        "SUPABASE_DATABASE_URL_POOLER", 
+        "postgresql://localhost:5432/postgres"
+    )
 
-    openrouter_api_key: str = ""
-    hf_api_key: str = ""
-    gemini_api_key: str = ""
-    deepseek_api_key: str = ""
-    groq_api_key: str = ""
-    nvidia_api_key: str = ""
-    firecrawl_api_key: str = ""
+    openrouter_api_key: str = secret_vault.fetch_secret("OPENROUTER_API_KEY", "")
+    hf_api_key: str = secret_vault.fetch_secret("HF_API_KEY", "")
+    gemini_api_key: str = secret_vault.fetch_secret("GEMINI_API_KEY", "")
+    deepseek_api_key: str = secret_vault.fetch_secret("DEEPSEEK_API_KEY", "")
+    groq_api_key: str = secret_vault.fetch_secret("GROQ_API_KEY", "")
+    nvidia_api_key: str = secret_vault.fetch_secret("NVIDIA_API_KEY", "")
+    firecrawl_api_key: str = secret_vault.fetch_secret("FIRECRAWL_API_KEY", "")
 
     claude_openrouter_model: str = "anthropic/claude-3.5-haiku:free"
 
