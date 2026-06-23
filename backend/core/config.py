@@ -36,6 +36,7 @@ import sys
 os.environ.setdefault("CORS_ORIGINS", "[]")
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from pydantic import field_validator
+from loguru import logger
 
 
 class Settings(BaseSettings):
