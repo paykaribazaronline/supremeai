@@ -50,7 +50,7 @@ from api.routes import (
 from core.auth_middleware import AuthMiddleware
 from core.observability_middleware import ObservabilityMiddleware
 from core.rate_limiter import RateLimitMiddleware
-from core.idempotency_middleware import IdempotencyMiddleware
+from middleware.idempotency import IdempotencyMiddleware
 from core.honeypot_middleware import HoneypotMiddleware
 from core.telemetry import setup_tracing
 from core.upstash_redis_queue import UpstashRedisQueue
