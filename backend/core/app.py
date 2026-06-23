@@ -138,7 +138,7 @@ from tools.gcp_cloud_functions import GCPCloudFunctionClient
 
 model_router = ModelRouter()
 intent_clf = IntentClassifier()
-admin_god = AdminGodLayer()
+admin_god = AdminGodLayer(db_path=settings.admin_rules_db)
 parallel_router = ParallelCloudRouter()
 gcp_router = GCPCloudRunRouter()
 verification_queue = GCPFirestoreVerificationQueue()
