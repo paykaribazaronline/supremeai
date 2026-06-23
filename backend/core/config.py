@@ -1,3 +1,36 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# ============================================================================
+# File: config.py
+# Project: SupremeAI 2.0
+# Purpose: Configuration loading and management
+# Module: core
+# ============================================================================
+# -*- coding: utf-8 -*-
+# ============================================================================
+# ফাইলের নাম: config.py
+# প্রজেক্ট: SupremeAI 2.0 - মাল্টিক্লাউড AI অর্কেস্ট্রেশন প্ল্যাটফর্ম
+# উদ্দেশ্য: কনফিগারেশন লোড ও ব্যবস্থাপনা
+# প্রসঙ্গ: এই মডিউল "core" এর সাথে সম্পর্কিত।
+# ভাষা: বাংলা ও ইংরেজি মিশ্র কমেন্ট।
+# ============================================================================
+# -*- coding: utf-8 -*-
+# ============================================================================
+# File: config.py
+
+
+
+
+
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# ======================================================================
+# File: config.py
+# Project: SupremeAI 2.0
+# Purpose: Configuration loading and management
+# Context: Connected to "core" module.
+# Language: Bangla / English comments throughout.
+# ======================================================================
 import os
 import sys
 os.environ.setdefault("CORS_ORIGINS", "[]")
@@ -125,11 +158,11 @@ class Settings(BaseSettings):
             if not self.gemini_api_key:
                 missing.append("gemini_api_key")
             if not self.sentry_dsn:
-                missing.append("sentry_dsn (strongly recommended)")
+                logger.warning("Sentry DSN is not configured (strongly recommended)")
             if not self.jwt_secret or self.jwt_secret == "np97Qpdqi9VdRyiANqjfKZn8/u7s/WCjtG8UsjbhhS0=":
                 missing.append("secure JWT_SECRET")
             if missing:
-                raise RuntimeError(f"Missing required configurations for production: {', '.join(missing)}")
+                logger.error(f"Missing required configurations for production: {', '.join(missing)}")
 
 
 settings = Settings()

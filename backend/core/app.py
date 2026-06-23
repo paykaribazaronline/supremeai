@@ -1,3 +1,36 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# ============================================================================
+# File: app.py
+# Project: SupremeAI 2.0
+# Purpose: General utility
+# Module: core
+# ============================================================================
+# -*- coding: utf-8 -*-
+# ============================================================================
+# ফাইলের নাম: app.py
+# প্রজেক্ট: SupremeAI 2.0 - মাল্টিক্লাউড AI অর্কেস্ট্রেশন প্ল্যাটফর্ম
+# উদ্দেশ্য: সাধারণ ইউটিলিটি
+# প্রসঙ্গ: এই মডিউল "core" এর সাথে সম্পর্কিত।
+# ভাষা: বাংলা ও ইংরেজি মিশ্র কমেন্ট।
+# ============================================================================
+# -*- coding: utf-8 -*-
+# ============================================================================
+# File: app.py
+
+
+
+
+
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# ======================================================================
+# File: app.py
+# Project: SupremeAI 2.0
+# Purpose: core module functionality
+# Context: Connected to "core" module.
+# Language: Bangla / English comments throughout.
+# ======================================================================
 from fastapi import FastAPI, Body, Depends, HTTPException, status
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from fastapi.middleware.cors import CORSMiddleware
@@ -343,7 +376,8 @@ def admin_firebase_login(payload: dict = Body(...)):
     # ── Case 1: Firebase Admin SDK available — verify real token ─────────────
     if auth is not None:
         try:
-            decoded_token = auth.verify_id_token(id_token)
+            from firebase_admin import auth as firebase_auth
+            decoded_token = firebase_auth.verify_id_token(id_token)
             uid = decoded_token['uid']
             email = decoded_token.get('email', '')
         except Exception as e:
@@ -396,7 +430,8 @@ def admin_firebase_totp_setup(payload: dict = Body(...)):
         raise HTTPException(status_code=400, detail="Missing Firebase ID token")
         
     try:
-        decoded_token = auth.verify_id_token(id_token)
+        from firebase_admin import auth as firebase_auth
+        decoded_token = firebase_auth.verify_id_token(id_token)
         uid = decoded_token['uid']
         email = decoded_token.get('email', '')
     except Exception as e:
@@ -427,7 +462,8 @@ def admin_firebase_totp_verify(payload: dict = Body(...)):
         raise HTTPException(status_code=400, detail="Missing credentials")
         
     try:
-        decoded_token = auth.verify_id_token(id_token)
+        from firebase_admin import auth as firebase_auth
+        decoded_token = firebase_auth.verify_id_token(id_token)
         uid = decoded_token['uid']
     except Exception as e:
         raise HTTPException(status_code=401, detail=f"Firebase verification failed: {str(e)}")
