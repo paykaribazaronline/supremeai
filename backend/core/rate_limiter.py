@@ -42,6 +42,7 @@ class RedisRateLimiter:
         self.window = window
         self._redis = None
         self._configure_redis()
+        self._fallback_limiter = RateLimiter(requests_per_minute, burst)
 
     def _configure_redis(self) -> None:
         try:
@@ -53,14 +54,12 @@ class RedisRateLimiter:
 
     def is_allowed(self, key: str) -> bool:
         if not self._redis or not self._redis.configured:
-            fallback = RateLimiter(self.requests_per_minute, self.burst)
-            return fallback.is_allowed(key)
-        now = time.time()
+            return self._fallback_limiter.is_allowed(key)
         redis_key = f"rate_limit:{key}"
         try:
             count = self._redis.incr(redis_key)
             if count == 1:
-                self._redis.set(redis_key, "1", ex=self.window)
+                self._redis.expire(redis_key, self.window)
             elif count and count > self.burst:
                 return False
             return True
@@ -70,8 +69,7 @@ class RedisRateLimiter:
 
     def remaining(self, key: str) -> int:
         if not self._redis or not self._redis.configured:
-            fallback = RateLimiter(self.requests_per_minute, self.burst)
-            return fallback.remaining(key)
+            return self._fallback_limiter.remaining(key)
         redis_key = f"rate_limit:{key}"
         try:
             value = self._redis.get(redis_key)

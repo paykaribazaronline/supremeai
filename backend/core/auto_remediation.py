@@ -11,7 +11,7 @@ class AutoRemediationEngine:
         self.github_client = Github(os.getenv("GITHUB_TOKEN"))
         self.repo = self.github_client.get_repo(os.getenv("GITHUB_REPOSITORY", "paykaribazaronline/supremeai"))
         genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
-        self.model = genai.GenerativeModel('gemini-1.5-pro')
+        self.model = genai.GenerativeModel('gemini-2.0-flash')
 
     def process_codeql_alert(self, file_path: str, line_number: int, vulnerability_details: str):
         """CodeQL অ্যালার্ট প্রসেস করে অটোমেটিক PR ওপেন করে"""
@@ -87,7 +87,14 @@ class AutoRemediation:
         if not fixed_code:
             return {"success": False, "error": "AI failed to generate a secure patch"}
 
-        # 3. Apply the patch (Write to the file)
+        # 3. Apply the patch (Write to the file) with validation
+        try:
+            import ast
+            if fixed_code.strip() and not fixed_code.strip().startswith("#"):
+                ast.parse(fixed_code)
+        except SyntaxError as se:
+            logger.error(f"AI-generated patch failed validation: {se}")
+            return {"success": False, "error": f"Generated patch contains invalid syntax: {se}"}
         try:
             with open(file_path, "w", encoding="utf-8") as f:
                 f.write(fixed_code)
@@ -118,7 +125,7 @@ class AutoRemediation:
             # Simple mock patch application (add a security comment)
             return f"# Secure Patch Applied for: {issue}\n" + code
 
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={self.gemini_api_key}"
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={self.gemini_api_key}"
         prompt = f"""You are an elite secure coding assistant. Correct the security vulnerability in this file.
         File: {file_path}
         Line Number of Vulnerability: {line_number}

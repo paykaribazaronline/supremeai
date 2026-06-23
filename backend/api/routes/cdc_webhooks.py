@@ -73,7 +73,7 @@ async def handle_cdc_webhook(request: Request, background_tasks: BackgroundTasks
     
     logger.info(f"CDC Event received: {event_type} on {table}")
     
-    if event_type in ("DELETE", "INSERT", "UPDATE", "DELETE"):
+    if event_type in ("DELETE", "INSERT", "UPDATE"):
         user_id = record.get("user_id") or old_record.get("user_id")
         doc_id = record.get("id") or old_record.get("id")
         

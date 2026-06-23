@@ -142,7 +142,7 @@ class ModelRouter:
         self._budget: TokenBudgetManager = get_budget_manager()
 
     def _cache_key(self, prompt: str, task_type: str) -> str:
-        return hashlib.md5(f"{prompt}:{task_type}".encode()).hexdigest()
+        return hashlib.sha256(f"{prompt}:{task_type}".encode()).hexdigest()
 
     def _get_from_cache(self, key: str) -> Optional[Dict[str, Any]]:
         entry = self._cache.get(key)
@@ -155,6 +155,9 @@ class ModelRouter:
         return result
 
     def _put_in_cache(self, key: str, value: Dict[str, Any]) -> None:
+        if len(self._cache) >= 10000:
+            oldest = min(self._cache, key=lambda k: self._cache[k][1])
+            self._cache.pop(oldest, None)
         self._cache[key] = (value, time.time())
 
     def _get_local_rag(self):
@@ -873,21 +876,20 @@ class ModelRouter:
             "stream": True
         }
         import json
-        async with httpx.AsyncClient(timeout=30.0) as client:
-            async with client.stream("POST", url, headers=headers, json=payload) as response:
-                response.raise_for_status()
-                async for line in response.iter_lines():
-                    if line.startswith("data: "):
-                        data_str = line[6:]
-                        if data_str.strip() == "[DONE]":
-                            break
-                        try:
-                            data = json.loads(data_str)
-                            chunk = data["choices"][0]["delta"].get("content", "")
-                            if chunk:
-                                yield chunk
-                        except Exception:
-                            pass
+        async with self._http_client.stream("POST", url, headers=headers, json=payload) as response:
+            response.raise_for_status()
+            async for line in response.iter_lines():
+                if line.startswith("data: "):
+                    data_str = line[6:]
+                    if data_str.strip() == "[DONE]":
+                        break
+                    try:
+                        data = json.loads(data_str)
+                        chunk = data["choices"][0]["delta"].get("content", "")
+                        if chunk:
+                            yield chunk
+                    except Exception:
+                        pass
 
     async def _stream_gemini(self, prompt: str, model: str):
         keys = self._get_keys(self.gemini_api_key)
@@ -903,32 +905,30 @@ class ModelRouter:
             "contents": [{"parts": [{"text": prompt}]}]
         }
         import json
-        async with httpx.AsyncClient(timeout=30.0) as client:
-            async with client.stream("POST", url, headers=headers, json=payload) as response:
-                response.raise_for_status()
-                async for line in response.iter_lines():
-                    if line:
-                        try:
-                            data = json.loads(line)
-                            chunk = data.get("candidates", [{}])[0].get("content", {}).get("parts", [{}])[0].get("text", "")
-                            if chunk:
-                                yield chunk
-                        except Exception:
-                            pass
+        async with self._http_client.stream("POST", url, headers=headers, json=payload) as response:
+            response.raise_for_status()
+            async for line in response.iter_lines():
+                if line:
+                    try:
+                        data = json.loads(line)
+                        chunk = data.get("candidates", [{}])[0].get("content", {}).get("parts", [{}])[0].get("text", "")
+                        if chunk:
+                            yield chunk
+                    except Exception:
+                        pass
 
     async def _stream_ollama(self, prompt: str, model: str):
         url = f"{self.ollama_url}/api/generate"
         payload = {"model": model, "prompt": prompt, "stream": True}
         import json
-        async with httpx.AsyncClient(timeout=30.0) as client:
-            async with client.stream("POST", url, json=payload) as response:
-                response.raise_for_status()
-                async for line in response.iter_lines():
-                    if line:
-                        try:
-                            data = json.loads(line)
-                            chunk = data.get("response", "")
-                            if chunk:
-                                yield chunk
-                        except Exception:
-                            pass
+        async with self._http_client.stream("POST", url, json=payload) as response:
+            response.raise_for_status()
+            async for line in response.iter_lines():
+                if line:
+                    try:
+                        data = json.loads(line)
+                        chunk = data.get("response", "")
+                        if chunk:
+                            yield chunk
+                    except Exception:
+                        pass

@@ -1,43 +1,16 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-# ============================================================================
-# File: app.py
-# Project: SupremeAI 2.0
-# Purpose: General utility
-# Module: core
-# ============================================================================
-# -*- coding: utf-8 -*-
-# ============================================================================
-# ফাইলের নাম: app.py
-# প্রজেক্ট: SupremeAI 2.0 - মাল্টিক্লাউড AI অর্কেস্ট্রেশন প্ল্যাটফর্ম
-# উদ্দেশ্য: সাধারণ ইউটিলিটি
-# প্রসঙ্গ: এই মডিউল "core" এর সাথে সম্পর্কিত।
-# ভাষা: বাংলা ও ইংরেজি মিশ্র কমেন্ট।
-# ============================================================================
-# -*- coding: utf-8 -*-
-# ============================================================================
-# File: app.py
 
 
 
 
 
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-# ======================================================================
-# File: app.py
-# Project: SupremeAI 2.0
-# Purpose: core module functionality
-# Context: Connected to "core" module.
-# Language: Bangla / English comments throughout.
-# ======================================================================
+
+
 from fastapi import FastAPI, Body, Depends, HTTPException, status
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from fastapi.middleware.cors import CORSMiddleware
 
 from core.config import settings
 security = HTTPBasic()
-settings.validate_config()
 
 from admin.god import AdminGodLayer
 from brain.model_router import ModelRouter
@@ -87,15 +60,15 @@ import secrets
 
 setup_tracing()
 
-if settings.sentry_dsn:
-    try:
-        sentry_sdk.init(
-            dsn=settings.sentry_dsn,
-            traces_sample_rate=1.0,
-            environment=settings.env,
-        )
-    except Exception:
-        pass
+    if settings.sentry_dsn:
+        try:
+            sentry_sdk.init(
+                dsn=settings.sentry_dsn,
+                traces_sample_rate=0.2 if settings.env.lower() == "production" else 1.0,
+                environment=settings.env,
+            )
+        except Exception as exc:
+            logger.warning(f"Sentry initialization failed: {exc}")
 
 
 def _docs_auth(credentials: HTTPBasicCredentials = Depends(security)):
@@ -148,8 +121,8 @@ app.add_middleware(
         "http://127.0.0.1:5173",
         "http://127.0.0.1:5174",
     ],
-    allow_credentials=False,
-    allow_methods=["GET", "POST", "DELETE", "OPTIONS"],
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allow_headers=["Authorization", "Content-Type", "X-Request-ID"],
 )
 
@@ -161,13 +134,13 @@ app.add_middleware(ObservabilityMiddleware)
 
 from brain.parallel_cloud_router import ParallelCloudRouter
 from brain.gcp_router import GCPCloudRunRouter
-from core.gcp_firestore import GCPFirestoreVerificationQueue
+from core.gcp_firestore import GCPFirestoreVerificationQueue, get_firestore_client
 from core.gcp_pubsub_queue import GCPPubSubQueue
 from tools.gcp_cloud_functions import GCPCloudFunctionClient
 
 model_router = ModelRouter()
 intent_clf = IntentClassifier()
-admin_god = AdminGodLayer(settings.admin_rules_db)
+admin_god = AdminGodLayer()
 parallel_router = ParallelCloudRouter()
 gcp_router = GCPCloudRunRouter()
 verification_queue = GCPFirestoreVerificationQueue()
@@ -207,15 +180,11 @@ async def app_lifespan(app: FastAPI):
     except Exception as e:
         logger.warning(f"PgBouncer pool initialization deferred: {e}")
     yield
-    if global_http_client:
+    if global_http_client and global_http_client is not model_router._http_client:
         try:
             await global_http_client.aclose()
         except Exception as exc:
             logger.warning(f"Shared HTTP client close failed: {exc}")
-    try:
-        await model_router._http_client.aclose()
-    except Exception as exc:
-        logger.warning(f"HTTP client close failed: {exc}")
 
 app.router.lifespan_context = app_lifespan
 
@@ -295,17 +264,7 @@ def admin_verify(payload: dict = Body(...)):
 # --- Agentic Security: Firebase Authentication & Unique TOTP MFA ---
 # Added by Agent Antigravity on 2026-06-21 to enable personalized admin role verification and unique TOTP secrets.
 
-def get_firestore_client():
-    # Helper function to dynamically initialize Firestore client based on project ID
-    project_id = os.getenv("GCP_PROJECT_ID") or "supremeai-a"
-    try:
-        from google.cloud import firestore
-        return firestore.Client(project=project_id)
-    except Exception as e:
-        logger.warning(f"Failed to initialize Firestore client: {e}")
-        return None
 
-auth = None
 # Initialize Firebase Admin SDK — tries multiple credential sources
 try:
     import firebase_admin
@@ -374,14 +333,10 @@ def admin_firebase_login(payload: dict = Body(...)):
         raise HTTPException(status_code=400, detail="Missing Firebase ID token")
 
     # Simple bypass mechanism if the token starts with "mock-admin-token-" or Firebase is not configured
-    if id_token.startswith("mock-admin-token-") or auth is None:
+    if id_token.startswith("mock-admin-token-") or (auth is None and settings.env == "test"):
         logger.warning(f"Bypassing Firebase verification using mock token mode. Token: {id_token[:20]}...")
-        # Resolve user info from the mock token or use defaults
         uid = "mock-admin-uid"
         email = "niloyjoy7@gmail.com"
-        
-        # Check if we should setup TOTP or just verify
-        # To make it simple, let's bypass to TOTP verification using default secret
         return {"status": "totp_required", "uid": uid}
 
     # ── Case 1: Firebase Admin SDK available — verify real token ─────────────

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import secrets
+import time
 from typing import List, Optional
 
 from fastapi import APIRouter, HTTPException
@@ -21,6 +22,7 @@ except Exception:
     sso = None  # type: ignore[assignment]
 
 router = APIRouter(prefix="/auth/sso", tags=["sso"])
+_oidc_state_store: dict[str, float] = {}
 
 
 class SAMLAssertionRequest(BaseModel):
@@ -64,6 +66,7 @@ class ProviderSSORequest(BaseModel):
 @router.post("/oidc/discovery", response_model=OIDCLoginResponse)
 async def oidc_discovery(payload: OIDCDiscoveryRequest):
     state = secrets.token_urlsafe(16)
+    _oidc_state_store[state] = time.time()
     auth_url = (
         f"{payload.issuer}/authorize"
         f"?response_type=code"
@@ -82,6 +85,7 @@ async def oidc_provider_authorize(provider: str, payload: ProviderSSORequest):
     client_id = payload.client_id or getattr(settings, "oidc_client_id", "")
     redirect_uri = payload.redirect_uri or getattr(settings, "oidc_redirect_uri", "")
     state = payload.state or secrets.token_urlsafe(16)
+    _oidc_state_store[state] = time.time()
     try:
         auth_url = sso.get_oidc_auth_url(
             provider=provider,
@@ -102,6 +106,9 @@ async def oidc_provider_callback(provider: str, payload: OIDCCallbackRequest):
     client_id = getattr(settings, "oidc_client_id", "")
     client_secret = getattr(settings, "oidc_client_secret", "")
     redirect_uri = getattr(settings, "oidc_redirect_uri", "")
+    if not payload.state or payload.state not in _oidc_state_store:
+        raise HTTPException(status_code=400, detail="Invalid or expired OIDC state parameter")
+    _oidc_state_store.pop(payload.state, None)
     result = await sso.process_oidc_response(
         provider=provider,
         code=payload.code,

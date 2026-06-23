@@ -76,6 +76,16 @@ class UpstashRedisQueue:
             logger.error(f"Upstash Redis DECR failed: {exc}")
             return None
 
+    def expire(self, key: str, ttl: int) -> bool:
+        if not self.configured:
+            return False
+        try:
+            self._request("EXPIRE", key, str(ttl))
+            return True
+        except Exception as exc:
+            logger.error(f"Upstash Redis EXPIRE failed: {exc}")
+            return False
+
     def publish(self, channel: str, message: str) -> bool:
         if not self.configured:
             return False

@@ -76,38 +76,14 @@ class AuthMiddleware:
                     )
                     await response(scope, receive, send)
                     return
-                
-                # Check blacklist in Upstash Redis
-                jti = decoded.get("jti")
-                if jti:
-                    import core.app as app_mod
-                    if app_mod.redis_queue and app_mod.redis_queue.configured:
-                        if app_mod.redis_queue.get(f"jwt_blacklist:{jti}") is not None:
-                            logger.warning(f"Revoked token presented for admin route: {jti}")
-                            response = JSONResponse(
-                                status_code=401,
-                                content={"detail": "Token has been revoked."},
-                            )
-                            await response(scope, receive, send)
-                            return
             except Exception as e:
-                expected = os.getenv("SUPREMEAI_API_TOKEN")
-                if not expected:
-                    logger.error("JWT validation failed and SUPREMEAI_API_TOKEN is not configured")
-                    response = JSONResponse(
-                        status_code=500,
-                        content={"detail": "Server authentication not configured"},
-                    )
-                    await response(scope, receive, send)
-                    return
-                if not secrets.compare_digest(token, expected):
-                    logger.warning(f"Invalid bearer token for admin path: {path}. Error: {e}")
-                    response = JSONResponse(
-                        status_code=401,
-                        content={"detail": f"Invalid Admin Authorization Token: {str(e)}"},
-                    )
-                    await response(scope, receive, send)
-                    return
+                logger.error(f"JWT validation failed for admin path: {e}")
+                response = JSONResponse(
+                    status_code=401,
+                    content={"detail": f"Invalid Admin Authorization Token: {str(e)}"},
+                )
+                await response(scope, receive, send)
+                return
 
         enabled = bool(os.getenv("SUPREMEAI_API_TOKEN"))
         if not enabled:

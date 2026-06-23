@@ -86,11 +86,11 @@ class HoneypotMiddleware:
                     "timestamp": time.time(),
                 }
                 app_mod.redis_queue.set(f"honeypot_attacker:{hacker_ip}:{int(time.time())}", json.dumps(log_entry), ex=86400)
-                
+
                 threat_key = f"threat_level:{hacker_ip}"
                 hits = app_mod.redis_queue.incr(threat_key)
                 if hits == 1:
-                    app_mod.redis_queue.set(threat_key, "1", ex=300)
+                    app_mod.redis_queue.expire(threat_key, 300)
                 elif hits and hits >= 3:
                     # Dynamically block IP using RulesMutator
                     RulesMutator().block_ip(hacker_ip, reason="honeypot_threat_threshold_exceeded")
@@ -102,16 +102,26 @@ class HoneypotMiddleware:
                     "status": "success",
                     "data": {"role": "admin", "access_granted": True, "flag": "SupremeAI_Shadow_Env"}
                 },
-                headers={"X-Server": "SupremeAI-Honeypot-v1"}
+                headers={"X-Server": "SupremeAI"}
             )
-            await response(scope, receive, send)
+            await response(scope, new_receive, send)
             return
 
         # নরমাল ইউজার হলে রেগুলার ফ্লো
         await self.app(scope, new_receive, send)
 
     def _log_threat_intelligence(self, ip: str, payload: str, endpoint: str):
-        logger.info(f"🧠 Threat studied and recorded for IP {ip}")
+        logger.info(f"Threat studied and recorded for IP {ip}")
+        try:
+            import asyncio
+            loop = asyncio.get_running_loop()
+            loop.run_in_executor(None, self._persist_threat_intel, ip, payload, endpoint)
+        except RuntimeError:
+            self._persist_threat_intel(ip, payload, endpoint)
+        except Exception as exc:
+            logger.debug(f"Failed to schedule threat intel persistence: {exc}")
+
+    def _persist_threat_intel(self, ip: str, payload: str, endpoint: str):
         try:
             import firebase_admin
             from firebase_admin import firestore

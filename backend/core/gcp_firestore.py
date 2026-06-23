@@ -263,3 +263,13 @@ class GCPFirestoreVerificationQueue:
     @staticmethod
     def _now() -> str:
         return datetime.now(timezone.utc).isoformat()
+
+
+def get_firestore_client(project_id: Optional[str] = None):
+    project_id = project_id or os.getenv("GCP_PROJECT_ID") or "supremeai-a"
+    try:
+        if FIRESTORE_AVAILABLE:
+            return firestore.Client(project=project_id)
+    except Exception as e:
+        logger.warning(f"Failed to initialize Firestore client: {e}")
+    return None

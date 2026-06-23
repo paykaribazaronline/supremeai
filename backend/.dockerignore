@@ -1,19 +1,50 @@
-.venv
-__pycache__
+# SupremeAI Backend — Docker Build Ignore
+# Keeps Docker context small and secure
+
+# Virtual environment (built inside Docker, not copied from host)
+.venv/
+venv/
+
+# Test & coverage artifacts
+tests/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+htmlcov/
+
+# Python cache
+__pycache__/
 *.pyc
 *.pyo
-.pytest_cache
-.coverage
-htmlcov
-dist
-build
-*.egg-info
-.eggs
+
+# Development data
 data/
 *.db
-*.sqlite*
-*.png
-*.jpg
-*.jpeg
-*.gif
-.DS_Store
+*.sqlite3
+*.sqlite
+
+# IDE
+.vscode/
+.idea/
+
+# Git
+.git/
+.gitignore
+
+# Secrets (NEVER ship into container)
+service-account.json
+.env*
+
+# Build artifacts
+dist/
+build/
+*.egg-info
+
+# Documentation
+*.md
+LICENSE
+
+# CI/CD
+.github/

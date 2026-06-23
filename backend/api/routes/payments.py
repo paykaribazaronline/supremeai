@@ -3,18 +3,11 @@ from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel
 from loguru import logger
 import stripe
+from core.config import settings
 
 router = APIRouter(prefix="/payments", tags=["payments"])
 
-# Helper to dynamically get firestore client
-def get_firestore_client():
-    project_id = os.getenv("GCP_PROJECT_ID") or "supremeai-a"
-    try:
-        from google.cloud import firestore
-        return firestore.Client(project=project_id)
-    except Exception as e:
-        logger.warning(f"Failed to initialize Firestore client in payments: {e}")
-        return None
+from core.gcp_firestore import get_firestore_client
 
 class CheckoutRequest(BaseModel):
     price_id: str
@@ -33,7 +26,20 @@ async def get_subscription_plans():
     }
 
 @router.post("/checkout")
-async def create_checkout_session(payload: CheckoutRequest):
+async def create_checkout_session(request: Request, payload: CheckoutRequest):
+    token = None
+    auth_header = request.headers.get("authorization", "")
+    if auth_header.startswith("Bearer "):
+        token = auth_header[7:]
+    if not token:
+        raise HTTPException(status_code=401, detail="Missing authorization token")
+    try:
+        from jose import jwt
+        decoded = jwt.decode(token, settings.jwt_secret, algorithms=["HS256"])
+        if decoded.get("user_id") != payload.user_id and decoded.get("sub") != payload.user_id:
+            raise HTTPException(status_code=403, detail="User mismatch")
+    except Exception as e:
+        raise HTTPException(status_code=401, detail=f"Invalid token: {e}")
     try:
         stripe_key = os.getenv("STRIPE_SECRET_KEY")
         if not stripe_key:

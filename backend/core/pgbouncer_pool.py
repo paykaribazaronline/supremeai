@@ -22,6 +22,8 @@ class PgBouncerConnectionPool:
         return cls._instance
     
     def __init__(self, pool_config: Optional[PoolConfig] = None):
+        if getattr(self, "_initialized", False):
+            return
         self._pool_config = pool_config or PoolConfig()
         self._dsn = os.getenv("DATABASE_URL", "") or os.getenv("SUPABASE_DATABASE_URL", "")
         self._pgbouncer_url = os.getenv("PGBOUNCER_URL", "") or os.getenv("DATABASE_URL", "")
