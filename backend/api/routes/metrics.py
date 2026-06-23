@@ -1,10 +1,14 @@
 import os
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, Request, Header, HTTPException, BackgroundTasks
 from google.cloud import firestore
 from loguru import logger
 from typing import Dict, Any
 
+from core.config import settings
+from backend.workers.chaos_worker import NightlyChaosAuditor
+
 router = APIRouter(prefix="/api/admin/metrics", tags=["infrastructure-metrics"])
+auditor = NightlyChaosAuditor()
 
 class SupremeMetricsEngine:
     def __init__(self):
@@ -75,3 +79,32 @@ async def get_admin_metrics_dashboard(request: Request):
     }
     
     return report
+
+async def run_bg_audit():
+    await auditor.execute_audit_sequence()
+
+@router.post("/trigger-nightly-chaos")
+async def trigger_nightly_chaos(
+    background_tasks: BackgroundTasks, 
+    x_chaos_key: str = Header(None)
+):
+    """
+    Secure Webhook Target for Google Cloud Scheduler.
+    Triggers autonomous self-testing and loops it into the deployment gate.
+    """
+    # Secret Vault থেকে সিকিউর মাস্টার টোকেন ম্যাচিং
+    expected_key = settings.jwt_secret  # অথবা Secret Manager থেকে ডেডিকেটেড CHAOS_KEY 
+    
+    if not x_chaos_key or x_chaos_key != expected_key:
+        logger.warning("🚨 Unauthorized attempt to trigger Autonomous Chaos Engine blocked!")
+        raise HTTPException(status_code=401, detail="Unauthorized: Invalid Chaos Orchestration Key.")
+
+    logger.info("🔌 Cloud Scheduler authenticated successfully. Spawning Chaos Auditor in background...")
+    
+    # এপিআই রেসপন্স ইমিডিয়েট রিলিজ করে ব্যাকগ্রাউন্ড টাস্কে পুশ করা হলো যাতে শিডিউলার টাইমআউট না খায়
+    background_tasks.add_task(run_bg_audit)
+    
+    return {
+        "success": True,
+        "message": "Autonomous chaos audit successfully scheduled and running in background pipeline."
+    }
