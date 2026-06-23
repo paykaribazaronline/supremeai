@@ -815,6 +815,9 @@ try:
 except Exception as _e:
     logger.warning(f"tenant_admin router not loaded: {_e}")
 
+from api.routes.mobile_bff import router as mobile_bff_router
+app.include_router(mobile_bff_router)
+
 from core.universal_rules import UniversalRulesEngine
 rules_engine = UniversalRulesEngine()
 
