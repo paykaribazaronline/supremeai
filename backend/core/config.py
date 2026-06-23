@@ -114,3 +114,10 @@ class Settings(BaseSettings):
 
 settings = Settings()
 
+# Populate os.environ with settings values so os.getenv matches the loaded configuration
+import os
+for key, val in settings.model_dump().items():
+    env_key = key.upper()
+    if val is not None:
+        os.environ[env_key] = str(val)
+

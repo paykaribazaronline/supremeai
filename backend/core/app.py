@@ -109,7 +109,12 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.cors_origins,
+    allow_origins=settings.cors_origins + [
+        "http://localhost:5173",
+        "http://localhost:5174",
+        "http://127.0.0.1:5173",
+        "http://127.0.0.1:5174",
+    ],
     allow_credentials=False,
     allow_methods=["GET", "POST", "DELETE", "OPTIONS"],
     allow_headers=["Authorization", "Content-Type", "X-Request-ID"],
@@ -622,36 +627,58 @@ def gcp_pubsub_stats():
     return gcp_pubsub_queue.stats()
 
 
-app.include_router(memory_router)
-app.include_router(task_router)
+if memory_router is not None:
+    app.include_router(memory_router)
+if task_router is not None:
+    app.include_router(task_router)
 if markdown_router is not None:
     app.include_router(markdown_router, prefix="/api/v1")
-app.include_router(simulator_router)
-app.include_router(browser_router)
-app.include_router(stream_router)
-app.include_router(agent_router)
-app.include_router(async_task_router)
-app.include_router(cdc_router)
-app.include_router(media_router)
-app.include_router(knowledge_router)
-app.include_router(marketplace_router)
-app.include_router(metrics_router)
-app.include_router(auth_router)
+if simulator_router is not None:
+    app.include_router(simulator_router)
+if browser_router is not None:
+    app.include_router(browser_router)
+if stream_router is not None:
+    app.include_router(stream_router)
+if agent_router is not None:
+    app.include_router(agent_router)
+if async_task_router is not None:
+    app.include_router(async_task_router)
+if cdc_router is not None:
+    app.include_router(cdc_router)
+if media_router is not None:
+    app.include_router(media_router)
+if knowledge_router is not None:
+    app.include_router(knowledge_router)
+if marketplace_router is not None:
+    app.include_router(marketplace_router)
+if metrics_router is not None:
+    app.include_router(metrics_router)
+if auth_router is not None:
+    app.include_router(auth_router)
 if admin_dashboard_router is not None:
     app.include_router(admin_dashboard_router)
-app.include_router(email_router)
-app.include_router(github_router)
-app.include_router(internal_router)
-app.include_router(marketplace_endpoints_router)
+if email_router is not None:
+    app.include_router(email_router)
+if github_router is not None:
+    app.include_router(github_router)
+if internal_router is not None:
+    app.include_router(internal_router)
+if marketplace_endpoints_router is not None:
+    app.include_router(marketplace_endpoints_router)
 if onboarding_router is not None:
     app.include_router(onboarding_router)
-app.include_router(repos_router)
-app.include_router(tools_ops_router)
+if repos_router is not None:
+    app.include_router(repos_router)
+if tools_ops_router is not None:
+    app.include_router(tools_ops_router)
 if agents_router is not None:
     app.include_router(agents_router)
-app.include_router(tools_registry_router)
-app.include_router(preferences_router)
-app.include_router(usage_metrics_router)
+if tools_registry_router is not None:
+    app.include_router(tools_registry_router)
+if preferences_router is not None:
+    app.include_router(preferences_router)
+if usage_metrics_router is not None:
+    app.include_router(usage_metrics_router)
 if payments_router is not None:
     app.include_router(payments_router)
 if sso_router is not None:
