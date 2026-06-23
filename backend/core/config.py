@@ -2,7 +2,6 @@ import os
 import sys
 os.environ.setdefault("CORS_ORIGINS", "[]")
 from pydantic_settings import BaseSettings, SettingsConfigDict
-import json
 from pydantic import field_validator
 
 
