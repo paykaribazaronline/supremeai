@@ -1,9 +1,8 @@
+import logging
+from loguru import logger
 
-
-
-
-
-
+# স্ট্যান্ডার্ড লগকে লগুরুতে রাউট করার গ্লোবাল ক্লিনআপ
+logging.basicConfig(handlers=[__import__('loguru')._defaults.LoguruHandler()], level=0, force=True)
 
 from fastapi import FastAPI, Body, Depends, HTTPException, status
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
@@ -130,6 +129,15 @@ app.add_middleware(IdempotencyMiddleware)
 app.add_middleware(AuthMiddleware)
 app.add_middleware(ObservabilityMiddleware)
 
+from fastapi import Request
+from fastapi.responses import JSONResponse
+
+@app.exception_handler(HTTPException)
+async def custom_http_exception_handler(request: Request, exc: HTTPException):
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={"title": "Task Execution Failed", "detail": exc.detail, "instance": request.url.path}
+    )
 from brain.parallel_cloud_router import ParallelCloudRouter
 from brain.gcp_router import GCPCloudRunRouter
 from core.gcp_firestore import GCPFirestoreVerificationQueue, get_firestore_client

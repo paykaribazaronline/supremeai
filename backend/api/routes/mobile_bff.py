@@ -21,12 +21,8 @@ async def proxy_mobile_ai_request(request: Request, payload: MobileChatRequest):
     
     logger.info(f"📱 Mobile BFF intercepting request. Preferred Model: {payload.model_preference}")
     
-    # কনটেক্সট লস ঠেকাতে হিস্ট্রি থেকে ইউনিফাইড প্রম্পট বিল্ড করা হচ্ছে
-    formatted_prompt = ""
-    for msg in payload.history:
-        role = "User" if msg.get("role") == "user" else "Assistant"
-        formatted_prompt += f"{role}: {msg.get('content', '')}\n"
-    formatted_prompt += f"User: {payload.message}\nAssistant:"
+    from core.prompt_helpers import format_unified_chat_prompt
+    formatted_prompt = format_unified_chat_prompt(payload.message, payload.history)
 
     try:
         # ব্যাকএন্ডের ভেতরে থাকা সিকিউর ক্লাউড সিক্রেট এবং ইনজেক্টেড কী ব্যবহার করা হচ্ছে

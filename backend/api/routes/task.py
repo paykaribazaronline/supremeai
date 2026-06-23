@@ -235,12 +235,9 @@ async def execute_task(req: TaskRequest):
     try:
         admin_god.enforce("execute")
     except PermissionError as exc:
-        return ProblemDetailsResponse(
-            title="Forbidden Access",
-            status=403,
-            detail=str(exc),
-            type_url="https://supremeai.local/errors/forbidden",
-            instance="/task/execute"
+        raise HTTPException(
+            status_code=403,
+            detail=str(exc)
         )
 
     import anyio
@@ -259,10 +256,8 @@ async def execute_task(req: TaskRequest):
         task_type = intent.task_type.value if hasattr(intent.task_type, "value") else str(intent.task_type)
 
     # Build prompt context if chat messages are provided
-    prompt = req.task
-    if req.messages and len(req.messages) > 1:
-        context_prompt = format_chat_history(req.messages[:-1])
-        prompt = f"{context_prompt}\nUser: {req.task}\nAssistant:"
+    from core.prompt_helpers import format_unified_chat_prompt
+    prompt = format_unified_chat_prompt(req.task, req.messages)
 
     # --- True Vector Semantic Caching ---
     raw = None
