@@ -239,10 +239,17 @@ async def execute_task(req: TaskRequest):
             instance="/task/execute"
         )
 
-    # Use the adaptive IntentParser
-    app_spec = app_mod.intent_parser.parse_intent(req.task, history=req.messages)
+    import anyio
+    import hashlib
 
-    intent = intent_clf.classify(req.task)
+    # Offload heavy CPU-bound Intent classification to background thread pool
+    app_spec = await anyio.to_thread.run_sync(
+        app_mod.intent_parser.parse_intent, req.task, req.messages
+    )
+    intent = await anyio.to_thread.run_sync(
+        intent_clf.classify, req.task
+    )
+    
     task_type = req.task_type
     if intent.task_type != "general" and req.task_type == "general":
         task_type = intent.task_type.value if hasattr(intent.task_type, "value") else str(intent.task_type)
@@ -253,11 +260,33 @@ async def execute_task(req: TaskRequest):
         context_prompt = format_chat_history(req.messages[:-1])
         prompt = f"{context_prompt}\nUser: {req.task}\nAssistant:"
 
-    raw = await model_router.async_route_and_generate(
-        prompt=prompt,
-        task_type=task_type,
-        max_cost=req.max_cost,
-    )
+    # --- AI Token Burning Semantic Cache (Redis) ---
+    prompt_hash = hashlib.sha256(prompt.encode("utf-8")).hexdigest()
+    cache_key = f"semantic_cache:{prompt_hash}:{task_type}"
+    redis = getattr(app_mod, "redis_queue", None)
+    
+    raw = None
+    if redis and hasattr(redis, "configured") and redis.configured:
+        cached_result = redis.get(cache_key)
+        if cached_result:
+            try:
+                raw = json.loads(cached_result)
+                raw["provider"] = "semantic-cache-hit"
+                raw["cost"] = 0.0
+            except Exception:
+                pass
+
+    if not raw:
+        raw = await model_router.async_route_and_generate(
+            prompt=prompt,
+            task_type=task_type,
+            max_cost=req.max_cost,
+        )
+        if raw.get("success") and redis and hasattr(redis, "configured") and redis.configured:
+            try:
+                redis.set(cache_key, json.dumps(raw), ex=86400) # Cache for 24 hours
+            except Exception:
+                pass
 
     # Log to ExperienceDatabase
     from adaptive_engine.experience_db import Experience
