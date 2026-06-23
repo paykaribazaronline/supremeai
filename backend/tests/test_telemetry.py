@@ -1,4 +1,20 @@
+import sys
 from unittest.mock import patch, MagicMock
+
+# Conditional mock for opentelemetry exporter when running in environments
+# without ml dependencies (e.g. CI)
+try:
+    import opentelemetry.exporter.otlp.proto.grpc.trace_exporter as _
+except ImportError:
+    import opentelemetry
+    mock_exporter = MagicMock()
+    sys.modules["opentelemetry.exporter"] = mock_exporter
+    sys.modules["opentelemetry.exporter.otlp"] = mock_exporter
+    sys.modules["opentelemetry.exporter.otlp.proto"] = mock_exporter
+    sys.modules["opentelemetry.exporter.otlp.proto.grpc"] = mock_exporter
+    sys.modules["opentelemetry.exporter.otlp.proto.grpc.trace_exporter"] = mock_exporter
+    opentelemetry.exporter = mock_exporter
+
 from core.telemetry import setup_tracing, get_tracer, trace_span, _RealSpan, _NoOpSpan
 
 
