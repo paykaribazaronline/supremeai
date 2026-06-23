@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # ============================================================================
-# file >> multilingual_tts.py
-# project >> SupremeAI 2.0
-# purpose >> General utility
-# module >> tools
+# ফাইল >> ফাইল
+# প্রকল্প >> SupremeAI 2.0
+# উদ্দেশ্য >> General utility
+# মডিউল >> tools
 # ============================================================================
 import os
 import httpx

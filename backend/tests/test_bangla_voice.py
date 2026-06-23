@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # ============================================================================
-# file >> test_bangla_voice.py
-# project >> SupremeAI 2.0
-# purpose >> Unit testing and QC
-# module >> tests
+# ফাইল >> ফাইল
+# প্রকল্প >> SupremeAI 2.0
+# উদ্দেশ্য >> Unit testing and QC
+# মডিউল >> tests
 # ============================================================================
 import pytest
 from unittest.mock import patch, MagicMock

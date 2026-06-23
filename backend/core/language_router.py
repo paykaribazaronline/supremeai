@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # ============================================================================
-# file >> language_router.py
-# project >> SupremeAI 2.0
-# purpose >> Multilingual support
-# module >> core
+# ফাইল >> ফাইল
+# প্রকল্প >> SupremeAI 2.0
+# উদ্দেশ্য >> Multilingual support
+# মডিউল >> core
 # ============================================================================
 import re
 from typing import Dict, Any, Optional
