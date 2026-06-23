@@ -7,7 +7,6 @@ from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import (
     BatchSpanProcessor,
 )
-from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
 
 
 _tracer: Optional[Tracer] = None
@@ -17,8 +16,13 @@ def setup_tracing(service_name: str = "supremeai", otlp_endpoint: Optional[str] 
     endpoint = otlp_endpoint or os.getenv("OTLP_ENDPOINT", "")
     provider = TracerProvider()
     if endpoint:
-        exporter = OTLPSpanExporter(endpoint=endpoint, insecure=True)
-        provider.add_span_processor(BatchSpanProcessor(exporter))
+        try:
+            from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
+            exporter = OTLPSpanExporter(endpoint=endpoint, insecure=True)
+            provider.add_span_processor(BatchSpanProcessor(exporter))
+        except ImportError as exc:
+            from loguru import logger
+            logger.warning(f"OTLP exporter not available: {exc}")
     otel_trace.set_tracer_provider(provider)
     globals()["_tracer"] = otel_trace.get_tracer(service_name)
 

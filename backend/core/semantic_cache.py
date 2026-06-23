@@ -28,6 +28,7 @@ class SemanticCache:
         self._ttl_seconds = int(os.getenv("SEMANTIC_CACHE_TTL", "3600"))
         self._similarity_threshold = float(os.getenv("SEMANTIC_SIMILARITY_THRESHOLD", "0.95"))
         self._client = httpx.Client(timeout=10.0) if self._redis_url and self._redis_token else None
+        self._max_memory_cache = 5000
         self._memory_cache: Dict[str, CacheEntry] = {}
     
     @property
