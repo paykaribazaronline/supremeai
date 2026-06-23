@@ -1,8 +1,13 @@
-import os, json, sqlite3
+import os, json
 from typing import Dict, Any, List, Optional
 from datetime import datetime, timezone
 from dataclasses import dataclass
 from loguru import logger
+
+try:
+    from google.cloud import firestore
+except ImportError:
+    firestore = None
 
 @dataclass
 class Checkpoint:
@@ -13,68 +18,85 @@ class Checkpoint:
     resumed: bool = False
 
 class CheckpointManager:
-    """Persists task execution state to allow long runs to pause and resume."""
+    """Persists task execution state in Google Cloud Firestore (Serverless & Stateful)."""
     def __init__(self, db_path: str = None):
-        if db_path is None:
-            base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-            db_path = os.path.join(base_dir, "data", "checkpoints.db")
-        self.db_path = db_path
-        os.makedirs(os.path.dirname(self.db_path), exist_ok=True)
-        self._init_db()
-
-    def _init_db(self):
-        with sqlite3.connect(self.db_path) as conn:
-            conn.execute("""
-                CREATE TABLE IF NOT EXISTS checkpoints (
-                    task_id TEXT PRIMARY KEY,
-                    step_index INTEGER,
-                    state TEXT,
-                    created_at TEXT,
-                    resumed INTEGER DEFAULT 0
-                )
-            """)
+        self.collection_name = "checkpoints"
+        self._db = None
+        if firestore:
+            try:
+                # If running on Cloud Run, it automatically picks up the default service account.
+                self._db = firestore.AsyncClient() if hasattr(firestore, 'AsyncClient') else firestore.Client()
+                logger.info("Initialized Firestore CheckpointManager")
+            except Exception as e:
+                logger.warning(f"Failed to initialize Firestore: {e}. Checkpoints will be disabled.")
+        else:
+            logger.warning("google-cloud-firestore not installed. CheckpointManager is disabled.")
 
     def save(self, task_id: str, step_index: int, state: Dict[str, Any]) -> bool:
+        if not self._db: return False
         try:
-            with sqlite3.connect(self.db_path) as conn:
-                conn.execute(
-                    "INSERT OR REPLACE INTO checkpoints (task_id, step_index, state, created_at, resumed) VALUES (?, ?, ?, ?, COALESCE((SELECT resumed FROM checkpoints WHERE task_id = ?), 0))",
-                    (task_id, step_index, json.dumps(state), datetime.now(timezone.utc).isoformat(), task_id),
-                )
-            logger.info(f"Checkpoint saved for task_id={task_id} step={step_index}")
+            doc_ref = self._db.collection(self.collection_name).document(task_id)
+            doc = doc_ref.get()
+            resumed = doc.to_dict().get("resumed", False) if doc.exists else False
+            
+            doc_ref.set({
+                "task_id": task_id,
+                "step_index": step_index,
+                "state": json.dumps(state),
+                "created_at": datetime.now(timezone.utc).isoformat(),
+                "resumed": resumed
+            })
+            logger.info(f"Firestore checkpoint saved for task_id={task_id} step={step_index}")
             return True
         except Exception as exc:
-            logger.error(f"Failed to save checkpoint: {exc}")
+            logger.error(f"Failed to save Firestore checkpoint: {exc}")
             return False
 
     def load(self, task_id: str) -> Optional[Checkpoint]:
+        if not self._db: return None
         try:
-            with sqlite3.connect(self.db_path) as conn:
-                row = conn.execute("SELECT task_id, step_index, state, created_at, resumed FROM checkpoints WHERE task_id = ?", (task_id,)).fetchone()
-            if not row:
+            doc_ref = self._db.collection(self.collection_name).document(task_id)
+            doc = doc_ref.get()
+            if not doc.exists:
                 return None
-            cp = Checkpoint(task_id=row[0], step_index=row[1], state=json.loads(row[2]), created_at=row[3], resumed=bool(row[4]))
-            with sqlite3.connect(self.db_path) as conn:
-                conn.execute("UPDATE checkpoints SET resumed = 1 WHERE task_id = ?", (task_id,))
+                
+            data = doc.to_dict()
+            cp = Checkpoint(
+                task_id=data["task_id"],
+                step_index=data["step_index"],
+                state=json.loads(data["state"]),
+                created_at=data["created_at"],
+                resumed=bool(data.get("resumed", False))
+            )
+            # Mark as resumed
+            doc_ref.update({"resumed": True})
             return cp
         except Exception as exc:
-            logger.error(f"Failed to load checkpoint: {exc}")
+            logger.error(f"Failed to load Firestore checkpoint: {exc}")
             return None
 
     def list_all(self) -> List[Dict[str, Any]]:
+        if not self._db: return []
         try:
-            with sqlite3.connect(self.db_path) as conn:
-                rows = conn.execute("SELECT task_id, step_index, created_at, resumed FROM checkpoints ORDER BY created_at DESC").fetchall()
-            return [{"task_id": r[0], "step_index": r[1], "created_at": r[2], "resumed": bool(r[3])} for r in rows]
+            docs = self._db.collection(self.collection_name).order_by("created_at", direction=firestore.Query.DESCENDING).stream()
+            return [
+                {
+                    "task_id": d.id,
+                    "step_index": d.to_dict().get("step_index"),
+                    "created_at": d.to_dict().get("created_at"),
+                    "resumed": bool(d.to_dict().get("resumed", False))
+                }
+                for d in docs
+            ]
         except Exception as exc:
-            logger.error(f"Failed to list checkpoints: {exc}")
+            logger.error(f"Failed to list Firestore checkpoints: {exc}")
             return []
 
     def clear(self, task_id: str) -> bool:
+        if not self._db: return False
         try:
-            with sqlite3.connect(self.db_path) as conn:
-                conn.execute("DELETE FROM checkpoints WHERE task_id = ?", (task_id,))
+            self._db.collection(self.collection_name).document(task_id).delete()
             return True
         except Exception as exc:
-            logger.error(f"Failed to clear checkpoint: {exc}")
+            logger.error(f"Failed to clear Firestore checkpoint: {exc}")
             return False

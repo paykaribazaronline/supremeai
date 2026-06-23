@@ -222,7 +222,7 @@ def format_response(text: str, task_type: str) -> str:
 
 
 @router.post("/task/execute")
-def execute_task(req: TaskRequest):
+async def execute_task(req: TaskRequest):
     import core.app as app_mod
     admin_god = app_mod.admin_god
     model_router = app_mod.model_router
@@ -253,7 +253,7 @@ def execute_task(req: TaskRequest):
         context_prompt = format_chat_history(req.messages[:-1])
         prompt = f"{context_prompt}\nUser: {req.task}\nAssistant:"
 
-    raw = model_router.route_and_generate(
+    raw = await model_router.async_route_and_generate(
         prompt=prompt,
         task_type=task_type,
         max_cost=req.max_cost,

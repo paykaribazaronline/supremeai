@@ -3,10 +3,28 @@ import httpx
 from bs4 import BeautifulSoup
 from loguru import logger
 from typing import Dict, Any, Optional
-from fastapi import APIRouter
+import ipaddress
+import socket
+from urllib.parse import urlparse
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
+from backend.api.routes.admin_dashboard import require_admin_token
+
 router = APIRouter(prefix="/browser", tags=["browser-agent"])
+
+def is_safe_url(url: str) -> bool:
+    try:
+        parsed = urlparse(url)
+        hostname = parsed.hostname
+        if not hostname: return False
+        if hostname == "169.254.169.254" or hostname.endswith(".local"): return False
+        ip = socket.gethostbyname(hostname)
+        ip_obj = ipaddress.ip_address(ip)
+        if ip_obj.is_private or ip_obj.is_loopback or ip_obj.is_link_local: return False
+        return True
+    except Exception:
+        return False
 
 
 class BrowseRequest(BaseModel):
@@ -27,6 +45,9 @@ class BrowserAgent:
     # ── Simple fetch (no JS needed) ────────────────────────────────
     def fetch_page(self, url: str) -> Dict[str, Any]:
         logger.info(f"Fetching page: {url}")
+        if not is_safe_url(url):
+            logger.error(f"SSRF Attempt Blocked: {url}")
+            return {"success": False, "error": "SSRF check failed: Unauthorized internal access", "url": url}
         try:
             headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"}
             response = httpx.get(url, headers=headers, timeout=15.0, follow_redirects=True)
@@ -66,13 +87,17 @@ class BrowserAgent:
         text: Optional[str] = None,
         wait_for: Optional[str] = None,
     ) -> Dict[str, Any]:
+        if not is_safe_url(url):
+            logger.error(f"SSRF Attempt Blocked: {url}")
+            return {"success": False, "error": "SSRF check failed: Unauthorized internal access", "url": url}
+
         browser = await self._get_playwright()
         if not browser:
             # Fallback to httpx
             return self.fetch_page(url)
 
+        page = await browser.new_page()
         try:
-            page = await browser.new_page()
             await page.goto(url, wait_until="domcontentloaded", timeout=30000)
 
             if wait_for:
@@ -94,7 +119,6 @@ class BrowserAgent:
                 import base64
                 b64 = base64.b64encode(screenshot).decode()
                 title = await page.title()
-                await page.close()
                 return {"success": True, "url": url, "title": title, "screenshot_base64": b64}
 
             title = await page.title()
@@ -105,7 +129,6 @@ class BrowserAgent:
             text_content = " ".join(soup.get_text(separator=" ").split())[:3000]
             links = [a.get("href", "") for a in soup.find_all("a", href=True)][:20]
             current_url = page.url
-            await page.close()
 
             return {
                 "success": True, "url": current_url, "title": title,
@@ -114,6 +137,8 @@ class BrowserAgent:
         except Exception as e:
             logger.error(f"Playwright action failed: {e}")
             return {"success": False, "error": str(e), "url": url}
+        finally:
+            await page.close()
 
     async def extract_data(self, url: str, extraction_prompt: str) -> Dict[str, Any]:
         """Fetch page and use AI to extract structured data."""
@@ -140,9 +165,9 @@ class BrowserAgent:
 _agent = BrowserAgent()
 
 
-@router.post("/browse")
+@router.post("/browse", dependencies=[Depends(require_admin_token)])
 async def browse(request: BrowseRequest):
-    """Navigate to a URL and perform browser actions."""
+    """Navigate to a URL and perform browser actions (Admin Only)."""
     if request.action in ("click", "type", "scroll", "screenshot"):
         return await _agent.navigate_and_interact(
             url=request.url,
@@ -154,7 +179,7 @@ async def browse(request: BrowseRequest):
     return _agent.fetch_page(request.url)
 
 
-@router.post("/extract")
+@router.post("/extract", dependencies=[Depends(require_admin_token)])
 async def extract(url: str, extraction_prompt: str):
-    """Fetch page and extract structured data with AI."""
+    """Fetch page and extract structured data with AI (Admin Only)."""
     return await _agent.extract_data(url, extraction_prompt)

@@ -1,57 +1,66 @@
-import sqlite3
 import time
-from pathlib import Path
 from typing import Optional
-
 from loguru import logger
 
+try:
+    from google.cloud import firestore
+except ImportError:
+    firestore = None
 
 class AdminGodLayer:
     """
     Constitutional enforcement layer.
     Every write action requires admin approval unless explicitly whitelisted.
-    Reads from an encrypted (best-effort) SQLite DB.
+    Reads from Google Cloud Firestore (Distributed & Serverless).
     """
 
-    def __init__(self, db_path: str):
-        self.db_path = Path(db_path)
-        self.db_path.parent.mkdir(parents=True, exist_ok=True)
-        self._init_db()
+    def __init__(self, db_path: str = None):
+        # db_path is ignored for Firestore, kept for backward compatibility
+        self.collection_name = "constitutional_rules"
+        self._db = None
+        if firestore:
+            try:
+                # Firestore client auto-detects Cloud Run service account
+                self._db = firestore.Client()
+                self._init_db()
+            except Exception as e:
+                logger.warning(f"Failed to initialize Firestore for AdminGodLayer: {e}")
+        else:
+            logger.warning("google-cloud-firestore not installed. AdminGodLayer disabled.")
 
     def _init_db(self):
-        with sqlite3.connect(self.db_path, check_same_thread=False) as conn:
-            conn.execute(
-                """
-                CREATE TABLE IF NOT EXISTS rules (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    key TEXT UNIQUE NOT NULL,
-                    value TEXT NOT NULL,
-                    updated_at REAL NOT NULL
-                )
-                """
-            )
-            conn.commit()
-            if not self.get_rule("admin_authorized"):
+        if not self._db: return
+        try:
+            # Check if admin_authorized exists, if not initialize it
+            doc_ref = self._db.collection(self.collection_name).document("admin_authorized")
+            if not doc_ref.get().exists:
                 self.set_rule("admin_authorized", "true")
+        except Exception as e:
+            logger.error(f"Error initializing AdminGodLayer DB: {e}")
 
     def get_rule(self, key: str, default: Optional[str] = None) -> Optional[str]:
-        with sqlite3.connect(self.db_path, check_same_thread=False) as conn:
-            cur = conn.execute("SELECT value FROM rules WHERE key = ?", (key,))
-            row = cur.fetchone()
-            return row[0] if row else default
+        if not self._db: return default
+        try:
+            doc_ref = self._db.collection(self.collection_name).document(key)
+            doc = doc_ref.get()
+            if doc.exists:
+                return doc.to_dict().get("value", default)
+            return default
+        except Exception as e:
+            logger.error(f"Error fetching rule {key}: {e}")
+            return default
 
     def set_rule(self, key: str, value: str) -> None:
-        with sqlite3.connect(self.db_path, check_same_thread=False) as conn:
-            conn.execute(
-                """
-                INSERT INTO rules(key, value, updated_at)
-                VALUES(?, ?, ?)
-                ON CONFLICT(key) DO UPDATE SET value=excluded.value, updated_at=excluded.updated_at
-                """,
-                (key, value, time.time()),
-            )
-            conn.commit()
-        logger.info(f"Constitutional rule updated: {key} = {value}")
+        if not self._db: return
+        try:
+            doc_ref = self._db.collection(self.collection_name).document(key)
+            doc_ref.set({
+                "value": value,
+                "updated_at": time.time()
+            })
+            logger.info(f"Constitutional rule updated in Firestore: {key} = {value}")
+        except Exception as e:
+            logger.error(f"Error setting rule {key}: {e}")
 
     def is_admin_action_allowed(self, action: str) -> bool:
         """
