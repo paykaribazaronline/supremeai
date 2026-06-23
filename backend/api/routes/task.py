@@ -8,7 +8,11 @@ from fastapi.responses import StreamingResponse, JSONResponse
 
 router = APIRouter()
 
-
+try:
+    from core.semantic_cache import VectorSemanticCache
+    semantic_cache = VectorSemanticCache()
+except ImportError:
+    semantic_cache = None
 # --- Agentic Security & Context: Task Request Schema ---
 # Added messages and session_id parameters on 2026-06-21 to prevent context loss.
 class TaskRequest(BaseModel):
@@ -260,21 +264,20 @@ async def execute_task(req: TaskRequest):
         context_prompt = format_chat_history(req.messages[:-1])
         prompt = f"{context_prompt}\nUser: {req.task}\nAssistant:"
 
-    # --- AI Token Burning Semantic Cache (Redis) ---
-    prompt_hash = hashlib.sha256(prompt.encode("utf-8")).hexdigest()
-    cache_key = f"semantic_cache:{prompt_hash}:{task_type}"
-    redis = getattr(app_mod, "redis_queue", None)
-    
+    # --- True Vector Semantic Caching ---
     raw = None
-    if redis and hasattr(redis, "configured") and redis.configured:
-        cached_result = redis.get(cache_key)
-        if cached_result:
-            try:
-                raw = json.loads(cached_result)
-                raw["provider"] = "semantic-cache-hit"
-                raw["cost"] = 0.0
-            except Exception:
-                pass
+    if semantic_cache:
+        cached_text = await semantic_cache.get_cached_inference(
+            prompt=prompt, 
+            model_name=task_type
+        )
+        if cached_text:
+            raw = {
+                "success": True,
+                "text": cached_text,
+                "provider": "semantic-vector-hit",
+                "cost": 0.0
+            }
 
     if not raw:
         raw = await model_router.async_route_and_generate(
@@ -282,9 +285,13 @@ async def execute_task(req: TaskRequest):
             task_type=task_type,
             max_cost=req.max_cost,
         )
-        if raw.get("success") and redis and hasattr(redis, "configured") and redis.configured:
+        if raw.get("success") and semantic_cache:
             try:
-                redis.set(cache_key, json.dumps(raw), ex=86400) # Cache for 24 hours
+                await semantic_cache.set_cache_inference(
+                    prompt=prompt,
+                    model_name=task_type,
+                    response_text=raw.get("text")
+                )
             except Exception:
                 pass
 

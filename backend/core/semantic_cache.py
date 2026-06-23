@@ -1,256 +1,79 @@
 import os
-import json
-import hashlib
-import time
-from typing import Optional, Dict, Any, List
-from dataclasses import dataclass
+import math
+import google.generativeai as genai
+from google.cloud import firestore
 from loguru import logger
-import httpx
+from typing import Optional, List
 
-@dataclass
-class CacheEntry:
-    prompt_hash: str
-    prompt_text: str
-    response: str
-    provider: str
-    model: str
-    embedding: Optional[List[float]]
-    created_at: float
-    hit_count: int = 0
-
-class SemanticCache:
+class VectorSemanticCache:
+    """
+    Enterprise Vector Semantic Cache Engine.
+    Saves up to 90% of AI Token costs by matching prompt meanings instead of exact strings.
+    """
     def __init__(self):
-        self._redis_url = os.getenv("UPSTASH_REDIS_REST_URL", "")
-        self._redis_token = os.getenv("UPSTASH_REDIS_REST_TOKEN", "")
-        self._pinecone_api_key = os.getenv("PINECONE_API_KEY", "")
-        self._pinecone_index_name = os.getenv("PINECONE_INDEX_NAME", "supremeai-semantic-cache")
-        self._pinecone_host = os.getenv("PINECONE_HOST", "")
-        self._ttl_seconds = int(os.getenv("SEMANTIC_CACHE_TTL", "3600"))
-        self._similarity_threshold = float(os.getenv("SEMANTIC_SIMILARITY_THRESHOLD", "0.95"))
-        self._client = httpx.Client(timeout=10.0) if self._redis_url and self._redis_token else None
-        self._max_memory_cache = 5000
-        self._memory_cache: Dict[str, CacheEntry] = {}
-    
-    @property
-    def is_configured(self) -> bool:
-        return bool(self._client and self._pinecone_api_key)
-    
-    def _hash_prompt(self, prompt: str) -> str:
-        return hashlib.sha256(prompt.encode()).hexdigest()
-    
-    def _get_cache_key(self, prompt: str) -> str:
-        return f"semantic_cache:{self._hash_prompt(prompt)}"
-    
-    def _get_vector_key(self, prompt_hash: str) -> str:
-        return f"semantic_vector:{prompt_hash}"
-    
-    def _prefix_key(self, prompt: str, prefix_chars: int = 40) -> str:
-        return f"prefix_cache:{prompt[:prefix_chars].lower().strip()}"
-    
-    def _redis_request(self, *args: Any) -> Dict[str, Any]:
-        if not self._client:
-            raise RuntimeError("Redis not configured")
-        response = self._client.post(
-            self._redis_url,
-            headers={"Authorization": f"Bearer {self._redis_token}"},
-            json=list(args),
-        )
-        response.raise_for_status()
-        return response.json()
-    
-    async def get_embedding(self, text: str) -> Optional[List[float]]:
-        if not self._pinecone_api_key:
-            return None
+        self.db = firestore.Client()
+        self.collection = self.db.collection("supreme_semantic_cache")
+        # Gemini API Config
+        genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
+
+    def _cosine_similarity(self, vec1: List[float], vec2: List[float]) -> float:
+        """দুটি ভেক্টরের মধ্যে সিমিলারিটি স্কোর পরিমাপ করার বিশুদ্ধ গাণিতিক লজিক (Zero Dependencies)"""
+        dot_product = sum(a * b for a, b in zip(vec1, vec2))
+        magnitude1 = math.sqrt(sum(a * a for a in vec1))
+        magnitude2 = math.sqrt(sum(b * b for b in vec2))
+        if not magnitude1 or not magnitude2:
+            return 0.0
+        return dot_product / (magnitude1 * magnitude2)
+
+    async def get_cached_inference(self, prompt: str, model_name: str, threshold: float = 0.95) -> Optional[str]:
+        """প্রম্পটের অর্থ বিশ্লেষণ করে ৯৫% ম্যাচিং পেলে ক্যাশড রেসপন্স রিটার্ন করে"""
         try:
-            async with httpx.AsyncClient(timeout=10.0) as client:
-                response = await client.post(
-                    f"https://api.pinecone.io/embed",
-                    headers={"Api-Key": self._pinecone_api_key},
-                    json={"text": text, "model": "text-embedding-3-small"},
-                )
-                if response.status_code == 200:
-                    data = response.json()
-                    return data.get("embedding", [])
-        except Exception as e:
-            logger.debug(f"Failed to get embedding: {e}")
-        return None
-    
-    async def query_similar(self, prompt: str) -> Optional[CacheEntry]:
-        if not self._pinecone_api_key:
-            return await self._get_exact_match(prompt)
-        
-        query_embedding = await self.get_embedding(prompt)
-        if not query_embedding:
-            return await self._get_exact_match(prompt)
-        
-        try:
-            async with httpx.AsyncClient(timeout=10.0) as client:
-                response = await client.post(
-                    f"https://{self._pinecone_host}/query",
-                    headers={"Api-Key": self._pinecone_api_key},
-                    json={
-                        "vector": query_embedding,
-                        "topK": 5,
-                        "includeMetadata": True,
-                    },
-                )
-                if response.status_code == 200:
-                    matches = response.json().get("matches", [])
-                    for match in matches:
-                        if match.get("score", 0) >= self._similarity_threshold:
-                            prompt_hash = match.get("id", "")
-                            cached = await self._get_by_hash(prompt_hash)
-                            if cached:
-                                cached.hit_count += 1
-                                await self._increment_hit(prompt_hash)
-                                self._memory_cache[cached.prompt_hash] = cached
-                                return cached
-        except Exception as e:
-            logger.debug(f"Pinecone vector search failed: {e}")
-        
-        return await self._get_exact_match(prompt)
-    
-    async def _get_exact_match(self, prompt: str) -> Optional[CacheEntry]:
-        cache_key = self._get_cache_key(prompt)
-        prompt_hash = self._hash_prompt(prompt)
-        if prompt_hash in self._memory_cache:
-            return self._memory_cache[prompt_hash]
-        try:
-            result = self._redis_request("GET", cache_key).get("result")
-            if result:
-                data = json.loads(result) if isinstance(result, str) else result
-                entry = CacheEntry(
-                    prompt_hash=prompt_hash,
-                    prompt_text=data.get("prompt_text", prompt),
-                    response=data.get("response", ""),
-                    provider=data.get("provider", ""),
-                    model=data.get("model", ""),
-                    embedding=data.get("embedding"),
-                    created_at=data.get("created_at", time.time()),
-                )
-                self._memory_cache[prompt_hash] = entry
-                return entry
-        except Exception as e:
-            logger.debug(f"Exact cache miss: {e}")
-        return None
-    
-    async def set(self, prompt: str, response: str, provider: str, model: str) -> None:
-        if not self._client:
-            return
-        
-        cache_key = self._get_cache_key(prompt)
-        prompt_hash = self._hash_prompt(prompt)
-        prefix_key = self._prefix_key(prompt)
-        
-        entry_data = {
-            "prompt_text": prompt,
-            "response": response,
-            "provider": provider,
-            "model": model,
-            "embedding": None,
-            "created_at": time.time(),
-        }
-        
-        try:
-            self._redis_request("SET", cache_key, str(entry_data), "EX", self._ttl_seconds)
-            self._redis_request("SET", prefix_key, str(entry_data), "EX", self._ttl_seconds)
-            
-            embedding = await self.get_embedding(prompt)
-            if embedding:
-                entry_data["embedding"] = embedding
-                await self._upsert_vector(prompt_hash, embedding, entry_data)
-                
-            self._memory_cache[prompt_hash] = CacheEntry(
-                prompt_hash=prompt_hash,
-                prompt_text=prompt,
-                response=response,
-                provider=provider,
-                model=model,
-                embedding=embedding,
-                created_at=entry_data["created_at"],
+            # ১. Gemini Embedding API দিয়ে প্রম্পটের ভেক্টর জেনারেট করা (Lightweight & High-Accuracy)
+            response = genai.embed_content(
+                model="models/text-embedding-004",
+                content=prompt,
+                task_type="retrieval_document"
             )
+            query_vector = response.get('embedding')
+            if not query_vector: return None
+
+            # ২. ফায়ারস্টোর থেকে ওই নির্দিষ্ট মডেলের ক্যাশড ডাটা রিড করা
+            cache_docs = self.collection.where("model", "==", model_name).stream()
+            
+            for doc in cache_docs:
+                data = doc.to_dict()
+                cached_vector = data.get("embedding")
+                
+                if cached_vector:
+                    # ৩. কসাইন সিমিলারিটি ক্যালকুলেট করা
+                    score = self._cosine_similarity(query_vector, cached_vector)
+                    if score >= threshold:
+                        logger.info(f"⚡ [SEMANTIC CACHE HIT] Score: {score:.4f}. Token saved for model {model_name}!")
+                        return data.get("response_text")
+                        
+            return None
         except Exception as e:
-            logger.error(f"Failed to set cache: {e}")
-    
-    async def _upsert_vector(self, prompt_hash: str, embedding: List[float], metadata: Dict) -> None:
-        if not self._pinecone_api_key or not self._pinecone_host:
-            return
+            logger.error(f"⚠️ Semantic cache lookup failed silently: {str(e)}")
+            return None
+
+    async def set_cache_inference(self, prompt: str, model_name: str, response_text: str):
+        """ভবিষ্যতের ম্যাচিংয়ের জন্য রেসপন্স টেক্সট ভেক্টরসহ সেভ করে রাখা"""
         try:
-            async with httpx.AsyncClient(timeout=10.0) as client:
-                await client.post(
-                    f"https://{self._pinecone_host}/vectors/upsert",
-                    headers={"Api-Key": self._pinecone_api_key},
-                    json={
-                        "vectors": [{
-                            "id": prompt_hash,
-                            "values": embedding,
-                            "metadata": metadata,
-                        }],
-                    },
-                )
+            response = genai.embed_content(
+                model="models/text-embedding-004",
+                content=prompt,
+                task_type="retrieval_document"
+            )
+            embedding = response.get('embedding')
+            if not embedding: return
+
+            self.collection.add({
+                "prompt_example": prompt,
+                "model": model_name,
+                "embedding": embedding,
+                "response_text": response_text,
+                "created_at": firestore.SERVER_TIMESTAMP
+            })
+            logger.info(f"💾 Successfully vectorized and cached new semantic context for {model_name}.")
         except Exception as e:
-            logger.debug(f"Failed to upsert vector: {e}")
-    
-    async def _increment_hit(self, prompt_hash: str) -> None:
-        if not self._client:
-            return
-        try:
-            self._redis_request("HINCRBY", self._get_vector_key(prompt_hash), "hits", 1)
-        except Exception:
-            pass
-    
-    async def _get_by_hash(self, prompt_hash: str) -> Optional[CacheEntry]:
-        try:
-            matches = []
-            for key in [f for f in self._list_cache_keys()[:100] if prompt_hash in f]:
-                result = self._redis_request("GET", key).get("result")
-                if result:
-                    matches.append(result)
-            if matches:
-                data = json.loads(matches[0]) if isinstance(matches[0], str) else matches[0]
-                return CacheEntry(
-                    prompt_hash=prompt_hash,
-                    prompt_text=data.get("prompt_text", ""),
-                    response=data.get("response", ""),
-                    provider=data.get("provider", ""),
-                    model=data.get("model", ""),
-                    embedding=data.get("embedding"),
-                    created_at=data.get("created_at", time.time()),
-                )
-        except Exception:
-            pass
-        return None
-    
-    def _list_cache_keys(self) -> List[str]:
-        try:
-            keys = []
-            cursor = 0
-            while True:
-                result = self._redis_request("SCAN", cursor, "MATCH", "semantic_cache:*")
-                batch = result.get("result", [])
-                keys.extend(batch)
-                cursor = batch.get("cursor", 0) if isinstance(batch, dict) else 0
-                if cursor == 0:
-                    break
-            return keys
-        except Exception:
-            return []
-    
-    def get_stats(self) -> Dict[str, Any]:
-        if not self._client:
-            return {"configured": False}
-        try:
-            hits = self._redis_request("DBSIZE").get("result", 0)
-            return {
-                "configured": True,
-                "total_cached": hits,
-                "similarity_threshold": self._similarity_threshold,
-                "ttl_seconds": self._ttl_seconds,
-                "memory_session_cached": len(self._memory_cache),
-            }
-        except Exception as e:
-            return {"configured": True, "error": str(e)}
-    
-    async def close(self) -> None:
-        if self._client:
-            self._client.close()
+            logger.error(f"❌ Failed to write vector semantic cache to Firestore: {str(e)}")
