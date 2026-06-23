@@ -235,6 +235,7 @@ async def execute_task(req: TaskRequest):
     try:
         admin_god.enforce("execute")
     except PermissionError as exc:
+        from fastapi import HTTPException
         raise HTTPException(
             status_code=403,
             detail=str(exc)
@@ -312,7 +313,7 @@ async def execute_task(req: TaskRequest):
         error_message=raw.get("error"),
         generated_code=raw.get("text") if ("```" in raw.get("text", "")) else None,
         what_worked=["Intent parsed successfully"] if raw.get("success") else [],
-        what_failed=[] if raw.get("success") else [raw.get("error", "Unknown error")]
+        what_failed=[] if raw.get("success") else [str(raw.get("error", "Unknown error"))]
     )
     try:
         app_mod.experience_db.record_experience(exp)
