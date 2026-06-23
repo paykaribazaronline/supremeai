@@ -57,7 +57,8 @@ RUN find /app/.venv -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null ||
     rm -rf /app/.venv/lib/python3.11/site-packages/caffe2 2>/dev/null || true
 
 # ── Pre-download EasyOCR models (bn + en) ──
-RUN /app/.venv/bin/python -c "import easyocr; easyocr.Reader(['bn', 'en'])" 2>/dev/null || true && \
+RUN mkdir -p /root/.EasyOCR/model && \
+    /app/.venv/bin/python -c "import easyocr; easyocr.Reader(['bn', 'en'])" 2>/dev/null || true && \
     rm -f /root/.EasyOCR/model/*.zip 2>/dev/null || true
 
 
