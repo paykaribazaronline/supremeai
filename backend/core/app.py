@@ -110,8 +110,9 @@ app = FastAPI(
     dependencies=docs_auth_dep,
 )
 
-app.add_middleware(
-    CORSMiddleware,
+from middleware.chaos_injector import ChaosInjectorMiddleware
+
+app.add_middleware(CORSMiddleware,
     allow_origins=settings.cors_origins + [
         "http://localhost:5173",
         "http://localhost:5174",
@@ -123,6 +124,7 @@ app.add_middleware(
     allow_headers=["Authorization", "Content-Type", "X-Request-ID"],
 )
 
+app.add_middleware(ChaosInjectorMiddleware)
 app.add_middleware(HoneypotMiddleware)
 app.add_middleware(RateLimitMiddleware, requests_per_minute=120, burst=20)
 app.add_middleware(IdempotencyMiddleware)
