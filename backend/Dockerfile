@@ -52,6 +52,8 @@ ENV PYTHONDONTWRITEBYTECODE=1
 RUN python -c "import easyocr; easyocr.Reader(['bn', 'en'])" && \
     rm -f /root/.EasyOCR/model/*.zip && \
     find /app/.venv -name "__pycache__" -type d -exec rm -rf {} + 2>/dev/null || true && \
+    find /app/.venv -name "tests" -type d -exec rm -rf {} + 2>/dev/null || true && \
+    find /app/.venv -name "test" -type d -exec rm -rf {} + 2>/dev/null || true && \
     find /app/.venv -name "*.pyc" -delete 2>/dev/null || true
 
 CMD ["sh", "-c", "uvicorn main:app --host 0.0.0.0 --port ${PORT:-8000}"]
