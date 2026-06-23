@@ -1,5 +1,8 @@
+import os
 import sys
+os.environ.setdefault("CORS_ORIGINS", "[]")
 from pydantic_settings import BaseSettings, SettingsConfigDict
+import json
 from pydantic import field_validator
 
 
@@ -96,6 +99,24 @@ class Settings(BaseSettings):
         if value.lower() not in allowed:
             raise ValueError(f"env must be one of {allowed}")
         return value.lower()
+
+    @field_validator("cors_origins", mode="before")
+    @classmethod
+    def parse_cors_origins(cls, v):
+        """Parse CORS_ORIGINS env var which may be a JSON list or empty.
+        If empty or not provided, fall back to default list defined in class.
+        """
+        import json
+        if isinstance(v, str):
+            v = v.strip()
+            if not v:
+                return []
+            try:
+                return json.loads(v)
+            except json.JSONDecodeError:
+                # fallback to comma-separated list
+                return [origin.strip() for origin in v.split(',') if origin.strip()]
+        return v
 
     def validate_config(self) -> None:
         if self.env.lower() == "production":
