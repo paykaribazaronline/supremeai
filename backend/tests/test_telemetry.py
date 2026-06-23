@@ -11,7 +11,7 @@ def test_setup_tracing_noop():
 
 
 def test_setup_tracing_with_endpoint():
-    with patch("core.telemetry.OTLPSpanExporter") as mock_exporter, \
+    with patch("opentelemetry.exporter.otlp.proto.grpc.trace_exporter.OTLPSpanExporter") as mock_exporter, \
          patch("core.telemetry.BatchSpanProcessor") as mock_processor, \
          patch("core.telemetry.TracerProvider") as mock_provider_class:
 
@@ -26,7 +26,7 @@ def test_setup_tracing_with_endpoint():
 
 
 def test_setup_tracing_without_endpoint_no_exporter():
-    with patch("core.telemetry.OTLPSpanExporter") as mock_exporter, \
+    with patch("opentelemetry.exporter.otlp.proto.grpc.trace_exporter.OTLPSpanExporter") as mock_exporter, \
          patch("core.telemetry.TracerProvider") as mock_provider_class:
         mock_provider = MagicMock()
         mock_provider_class.return_value = mock_provider
@@ -135,7 +135,7 @@ def test_real_span_delegates_record_exception():
 
 
 def test_tracer_shared_globally_after_setup():
-    with patch("core.telemetry.OTLPSpanExporter"), \
+    with patch("opentelemetry.exporter.otlp.proto.grpc.trace_exporter.OTLPSpanExporter"), \
          patch("core.telemetry.BatchSpanProcessor"), \
          patch("core.telemetry.TracerProvider"):
         setup_tracing("svc-a")

@@ -57,9 +57,10 @@ def test_actuator_health_endpoint():
     assert response.json()["status"] == "UP"
 
 def test_cloud_distribution_endpoint():
-    import os
-    os.environ["SUPREMEAI_API_TOKEN"] = "test-token"
-    response = client.get("/admin/cloud-distribution", headers={"Authorization": "Bearer test-token"})
+    from jose import jwt
+    from core.config import settings
+    token = jwt.encode({"role": "admin"}, settings.jwt_secret, algorithm="HS256")
+    response = client.get("/admin/cloud-distribution", headers={"Authorization": f"Bearer {token}"})
     assert response.status_code == 200
     data = response.json()
     assert "distribution" in data

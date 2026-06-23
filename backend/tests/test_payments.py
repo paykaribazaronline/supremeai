@@ -1,10 +1,13 @@
 import os
 from fastapi.testclient import TestClient
 from core.app import app
+from jose import jwt
+from core.config import settings
 
 client = TestClient(app)
 
-auth_headers = {"Authorization": "Bearer " + os.getenv("SUPREMEAI_API_TOKEN", "test-token")}
+mock_token = jwt.encode({"user_id": "test-user-id", "role": "admin"}, settings.jwt_secret, algorithm="HS256")
+auth_headers = {"Authorization": f"Bearer {mock_token}"}
 
 def test_get_plans():
     # Verify plans list

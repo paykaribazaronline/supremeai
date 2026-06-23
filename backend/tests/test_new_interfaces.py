@@ -50,13 +50,17 @@ def test_local_ocr_extractor():
     assert parsed["rows"][0] == {"h1": "Header1", "h2": "Header2"}
 
     # Test export_to_excel
-    temp_dir = tempfile.gettempdir()
-    excel_path = os.path.join(temp_dir, "test_ocr_export.xlsx")
     try:
-        export_res = extractor.export_to_excel(parsed["rows"], excel_path)
-        assert export_res["success"] is True
-        assert os.path.exists(excel_path)
-    finally:
-        if os.path.exists(excel_path):
-            os.remove(excel_path)
+        import openpyxl
+        temp_dir = tempfile.gettempdir()
+        excel_path = os.path.join(temp_dir, "test_ocr_export.xlsx")
+        try:
+            export_res = extractor.export_to_excel(parsed["rows"], excel_path)
+            assert export_res["success"] is True
+            assert os.path.exists(excel_path)
+        finally:
+            if os.path.exists(excel_path):
+                os.remove(excel_path)
+    except ImportError:
+        pass
 

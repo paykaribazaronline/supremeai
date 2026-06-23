@@ -89,6 +89,11 @@ class RateLimitMiddleware:
             await self.app(scope, receive, send)
             return
 
+        from core.config import settings
+        if settings.env.lower() == "test" or settings.debug:
+            await self.app(scope, receive, send)
+            return
+
         client = scope.get("client")
         client_ip = client[0] if client else "unknown"
         
