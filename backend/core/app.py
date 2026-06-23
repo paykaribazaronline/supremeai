@@ -161,28 +161,63 @@ platform_learner = PlatformLearner(model_router, platform_registry)
 from contextlib import asynccontextmanager
 import httpx
 
+# ব্রাউজার ক্লিনআপ ফাংশন ইম্পোর্ট করা হলো
+try:
+    from tools.browser_agent import shutdown_global_browser
+except ImportError:
+    # Fallback if browser_agent has not been reloaded yet
+    async def shutdown_global_browser():
+        pass
+
 global_http_client: httpx.AsyncClient = None
 
 @asynccontextmanager
 async def app_lifespan(app: FastAPI):
+    """
+    SupremeAI 2.0 Core Lifespan Manager.
+    Handles high-concurrency initialization and defensive teardowns.
+    """
+    logger.info("🌐 Core Infrastructure Bootstrapping Active...")
+    
     global global_http_client
-    limits = httpx.Limits(max_keepalive_connections=50, max_connections=100)
-    timeout = httpx.Timeout(10.0, connect=5.0, read=30.0)
-    global_http_client = httpx.AsyncClient(limits=limits, timeout=timeout)
+    # ১. গ্লোবাল এন্টারপ্রাইজ কানেকশন পুল তৈরি (Socket Leak & Latency Spike Prevention)
+    connection_limits = httpx.Limits(max_keepalive_connections=50, max_connections=200)
+    global_http_client = httpx.AsyncClient(
+        limits=connection_limits, 
+        timeout=httpx.Timeout(30.0),
+        headers={"User-Agent": "SupremeAI-Orchestrator/2.0"}
+    )
     app.state.http_client = global_http_client
     model_router._http_client = global_http_client
+    logger.info("✅ Global HTTP Connection Pool initialized [Max Cons: 200].")
+    
     try:
         from core.pgbouncer_pool import get_db_pool
         await get_db_pool()
         logger.info("PgBouncer connection pool initialized on startup")
     except Exception as e:
         logger.warning(f"PgBouncer pool initialization deferred: {e}")
-    yield
-    if global_http_client and global_http_client is not model_router._http_client:
-        try:
+        
+    yield  # ----------------- এখানে অ্যাপ্লিকেশন ট্রাফিক রিসিভ করবে -----------------
+    
+    logger.critical("🚨 Graceful Shutdown Sequence triggered via Cloud Run Orchestrator.")
+    
+    # ২. গ্লোবাল HTTP ক্লায়েন্ট কানেকশন পুল রিলিজ
+    try:
+        if global_http_client:
             await global_http_client.aclose()
-        except Exception as exc:
-            logger.warning(f"Shared HTTP client close failed: {exc}")
+        logger.info("✅ Global HTTP connection pool closed successfully.")
+    except Exception as e:
+        logger.error(f"Error during HTTP connection pool drainage: {str(e)}")
+        
+    # ৩. প্লে-রাইট ক্রোমিয়াম ওএস জম্বি প্রসেস কিলিং
+    try:
+        from tools.browser_agent import shutdown_global_browser
+        await shutdown_global_browser()
+    except Exception as e:
+        logger.error(f"Failed to shutdown global browser: {e}")
+    
+    logger.info("💀 Serverless runtime environment sequence successfully finalized.")
 
 app.router.lifespan_context = app_lifespan
 

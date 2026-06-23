@@ -25,6 +25,48 @@ def is_safe_url(url: str) -> bool:
         return True
     except Exception:
         return False
+# Global tracking references for runtime execution
+try:
+    from playwright.async_api import async_playwright, Browser, Playwright
+except ImportError:
+    Browser = Any
+    Playwright = Any
+    async_playwright = None
+
+_playwright_runner: Optional[Playwright] = None
+_global_browser: Optional[Browser] = None
+
+async def get_global_browser() -> Browser:
+    """গ্লোবাল ব্রাউজার ইনস্ট্যান্স রিটার্ন করে (Lazy Initialization Pattern)"""
+    global _playwright_runner, _global_browser
+    if _global_browser is None:
+        logger.info("🚀 Starting a new headless Global Chromium instance...")
+        if async_playwright is None:
+            raise RuntimeError("Playwright is not installed.")
+        _playwright_runner = await async_playwright().start()
+        _global_browser = await _playwright_runner.chromium.launch(
+            headless=True,
+            args=["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"]
+        )
+    return _global_browser
+
+async def shutdown_global_browser():
+    """Lifespan Hook দ্বারা কল করা হবে - কন্টেইনার শাটডাউনের সময় জম্বি প্রসেস ক্লিন করে"""
+    global _playwright_runner, _global_browser
+    logger.info("🛡️ Initiating Playwright Global Lifespan Cleanup...")
+    try:
+        if _global_browser:
+            logger.info("Closing active global Chromium engine...")
+            await _global_browser.close()
+        if _playwright_runner:
+            logger.info("Stopping playwright runner core context...")
+            await _playwright_runner.stop()
+        logger.info("✅ All Playwright OS processes terminated cleanly.")
+    except Exception as e:
+        logger.critical(f"❌ Error during global browser termination sequence: {str(e)}")
+    finally:
+        _global_browser = None
+        _playwright_runner = None
 
 
 class BrowseRequest(BaseModel):
@@ -69,16 +111,8 @@ class BrowserAgent:
 
     # ── Playwright (JS-heavy pages) ────────────────────────────────
     async def _get_playwright(self):
-        if self._pw_browser is None:
-            try:
-                from playwright.async_api import async_playwright
-                self._pw = await async_playwright().__aenter__()
-                self._pw_browser = await self._pw.chromium.launch(headless=True)
-                logger.info("Playwright browser launched")
-            except ImportError:
-                logger.warning("Playwright not installed. Run: pip install playwright && playwright install chromium")
-                return None
-        return self._pw_browser
+        # Delegate to the global browser singleton
+        return await get_global_browser()
 
     async def navigate_and_interact(
         self, url: str,
