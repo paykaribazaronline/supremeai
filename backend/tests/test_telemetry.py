@@ -4,7 +4,7 @@ from unittest.mock import patch, MagicMock
 # Conditional mock for opentelemetry exporter when running in environments
 # without ml dependencies (e.g. CI)
 try:
-    import opentelemetry.exporter.otlp.proto.grpc.trace_exporter as _
+    import opentelemetry.exporter.otlp.proto.grpc.trace_exporter as _  # noqa: F401
 except ImportError:
     import opentelemetry
     mock_exporter = MagicMock()
