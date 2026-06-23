@@ -93,7 +93,7 @@ def test_existing_gcp_roundtrip_coverage():
     import os
     env = os.environ.copy()
     env["PYTHONPATH"] = env.get("PYTHONPATH", "") + os.pathsep + "."
-    test_path_prefix = "tests" if os.path.exists("tests") else "backend/tests"
+    test_path_prefix = "tests" if os.path.exists("tests/test_gcp_integration.py") else "backend/tests"
     r = subprocess.run(
         [sys.executable, "-m", "pytest", 
          f"{test_path_prefix}/test_gcp_integration.py::test_gcp_firestore_integration_queue",
