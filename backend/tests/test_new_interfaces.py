@@ -51,7 +51,7 @@ def test_local_ocr_extractor():
 
     # Test export_to_excel
     try:
-        import openpyxl
+        import openpyxl  # noqa: F401
         temp_dir = tempfile.gettempdir()
         excel_path = os.path.join(temp_dir, "test_ocr_export.xlsx")
         try:
