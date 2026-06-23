@@ -1,35 +1,52 @@
 from __future__ import annotations
 
 import time
-
-from fastapi import Request
-from starlette.middleware.base import BaseHTTPMiddleware
-
+import uuid
+from loguru import logger
 from api.routes.metrics import record_error, record_request, record_request_duration
 from core.telemetry import setup_tracing, trace_span
 
-
-class ObservabilityMiddleware(BaseHTTPMiddleware):
+class ObservabilityMiddleware:
     def __init__(self, app) -> None:
-        super().__init__(app)
+        self.app = app
         setup_tracing()
 
-    async def dispatch(self, request: Request, call_next):
-        path = request.url.path
-        if path == "/metrics":
-            return await call_next(request)
+    async def __call__(self, scope, receive, send) -> None:
+        if scope["type"] != "http":
+            await self.app(scope, receive, send)
+            return
 
-        import uuid
-        
-        # Extract existing trace ID or generate a new one
-        trace_id = request.headers.get("x-trace-id") or request.headers.get("traceparent")
+        path = scope.get("path", "")
+        if path == "/metrics":
+            await self.app(scope, receive, send)
+            return
+
+        headers = scope.get("headers", [])
+        trace_id = ""
+        user_id = "anonymous_api_user"
+        for k, v in headers:
+            if k.lower() in (b"x-trace-id", b"traceparent"):
+                trace_id = v.decode("utf-8")
+            elif k.lower() == b"x-user-id":
+                user_id = v.decode("utf-8")
+
         if not trace_id:
-            trace_id = f"00-{uuid.uuid4().hex}-0000000000000001-01"  # Matches OTel traceparent spec
-        
-        method = request.method
+            trace_id = f"00-{uuid.uuid4().hex}-0000000000000001-01"
+
+        method = scope.get("method", "GET")
         started = time.perf_counter()
         status_code = 500
         error_type = None
+
+        async def custom_send(message):
+            nonlocal status_code
+            if message["type"] == "http.response.start":
+                status_code = message["status"]
+                start_headers = list(message.get("headers", []))
+                start_headers.append((b"X-Trace-ID", trace_id.encode("utf-8")))
+                start_headers.append((b"traceparent", trace_id.encode("utf-8")))
+                message["headers"] = start_headers
+            await send(message)
 
         try:
             with trace_span(
@@ -37,17 +54,13 @@ class ObservabilityMiddleware(BaseHTTPMiddleware):
                 attributes={
                     "http.method": method,
                     "http.route": path,
-                    "http.url": str(request.url),
+                    "http.url": f"{scope.get('scheme', 'http')}://{scope.get('server', ('localhost', 80))[0]}{path}",
                     "trace_id": trace_id,
                 },
                 kind="server",
             ):
-                response = await call_next(request)
-                status_code = response.status_code
-                response.headers["X-Trace-ID"] = trace_id
-                response.headers["traceparent"] = trace_id
-                return response
-        except Exception as exc:  # pylint: disable=broad-except
+                await self.app(scope, receive, custom_send)
+        except Exception as exc:
             error_type = type(exc).__name__
             record_error(error_type, path)
             raise
@@ -57,7 +70,6 @@ class ObservabilityMiddleware(BaseHTTPMiddleware):
             record_request_duration(method, path, duration)
             try:
                 from core.posthog_client import posthog_client
-                user_id = request.headers.get("x-user-id") or "anonymous_api_user"
                 posthog_client.capture(
                     distinct_id=user_id,
                     event="api_request",

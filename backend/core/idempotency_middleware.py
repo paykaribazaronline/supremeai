@@ -1,37 +1,53 @@
 from __future__ import annotations
 
 import json
-from fastapi import Request
-from starlette.middleware.base import BaseHTTPMiddleware
-from starlette.responses import Response, JSONResponse
+from fastapi.responses import JSONResponse
 
-class IdempotencyMiddleware(BaseHTTPMiddleware):
+class IdempotencyMiddleware:
     def __init__(self, app) -> None:
-        super().__init__(app)
+        self.app = app
 
-    async def dispatch(self, request: Request, call_next):
+    async def __call__(self, scope, receive, send) -> None:
+        if scope["type"] != "http":
+            await self.app(scope, receive, send)
+            return
+
         import sys
         import os
         if "pytest" in sys.modules or os.getenv("ENV") == "test":
-            return await call_next(request)
+            await self.app(scope, receive, send)
+            return
 
         # Only check idempotency for modifying operations
-        if request.method not in ("POST", "PUT", "PATCH"):
-            return await call_next(request)
+        method = scope.get("method")
+        if method not in ("POST", "PUT", "PATCH"):
+            await self.app(scope, receive, send)
+            return
 
-        idempotency_key = request.headers.get("idempotency-key") or request.headers.get("Idempotency-Key")
+        headers = scope.get("headers", [])
+        idempotency_key = None
+        for k, v in headers:
+            if k.lower() == b"idempotency-key":
+                idempotency_key = v.decode("utf-8")
+                break
+
+        path = scope.get("path", "")
         if not idempotency_key:
             # Reject critical requests missing Idempotency-Key header to prevent duplicate execution
-            if "/api/orchestrate/generate" in request.url.path or "/api/markdown/export" in request.url.path:
-                return JSONResponse(
+            if "/api/orchestrate/generate" in path or "/api/markdown/export" in path:
+                response = JSONResponse(
                     status_code=400,
                     content={"error": "Idempotency-Key header is required for this action."}
                 )
-            return await call_next(request)
+                await response(scope, receive, send)
+                return
+            await self.app(scope, receive, send)
+            return
 
         import core.app as app_mod
         if not hasattr(app_mod, "redis_queue") or not app_mod.redis_queue or not app_mod.redis_queue.configured:
-            return await call_next(request)
+            await self.app(scope, receive, send)
+            return
 
         redis = app_mod.redis_queue
         redis_key = f"idempotency:{idempotency_key}"
@@ -42,50 +58,62 @@ class IdempotencyMiddleware(BaseHTTPMiddleware):
             try:
                 data = json.loads(existing)
                 if data.get("status") == "processing":
-                    return JSONResponse(
+                    response = JSONResponse(
                         status_code=409,
                         content={"detail": "Conflict: Request is already being processed. Please wait."}
                     )
+                    await response(scope, receive, send)
+                    return
                 elif data.get("status") == "completed":
                     # Replay the cached response
-                    return Response(
+                    from starlette.responses import Response
+                    response = Response(
                         content=data.get("body"),
                         status_code=data.get("status_code"),
                         media_type=data.get("media_type")
                     )
+                    await response(scope, receive, send)
+                    return
             except Exception:
                 pass
 
         # 2. Lock the idempotency key (10 minute timeout to prevent deadlocks)
         redis.set(redis_key, json.dumps({"status": "processing"}), ex=600)
 
-        # 3. Call the next request handler
+        # 3. Call the next request handler and capture response
+        response_body = b""
+        response_headers = []
+        response_status = 200
+
+        async def custom_send(message):
+            nonlocal response_body, response_headers, response_status
+            if message["type"] == "http.response.start":
+                response_status = message["status"]
+                response_headers = message.get("headers", [])
+            elif message["type"] == "http.response.body":
+                response_body += message.get("body", b"")
+            await send(message)
+
         try:
-            response = await call_next(request)
-            
-            # Read response body safely without hanging
-            response_body = b""
-            async for chunk in response.body_iterator:
-                response_body += chunk
+            await self.app(scope, receive, custom_send)
+
+            # Get media_type from response headers if possible
+            media_type = "application/json"
+            for k, v in response_headers:
+                if k.lower() == b"content-type":
+                    media_type = v.decode("utf-8")
+                    break
 
             # Store completed response in redis (Cache for 24 hours)
             redis.set(
                 redis_key,
                 json.dumps({
                     "status": "completed",
-                    "status_code": response.status_code,
-                    "media_type": response.media_type,
+                    "status_code": response_status,
+                    "media_type": media_type,
                     "body": response_body.decode("utf-8", errors="replace")
                 }),
                 ex=86400
-            )
-
-            # Reconstruct the response since we consumed the body iterator
-            return Response(
-                content=response_body,
-                status_code=response.status_code,
-                headers=dict(response.headers),
-                media_type=response.media_type
             )
         except Exception as e:
             # Clear key on failure so the client can retry immediately

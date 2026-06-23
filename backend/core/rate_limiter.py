@@ -82,18 +82,26 @@ class RedisRateLimiter:
             return self.burst
 
 
-class RateLimitMiddleware(BaseHTTPMiddleware):
+class RateLimitMiddleware:
     def __init__(self, app, requests_per_minute: int = 60, burst: int = 10) -> None:
-        super().__init__(app)
+        self.app = app
         self.limiter = RedisRateLimiter(requests_per_minute=requests_per_minute, burst=burst)
 
-    async def dispatch(self, request: Request, call_next):
-        client = request.client.host if request.client else "unknown"
-        if not self.limiter.is_allowed(client):
-            logger.warning(f"Rate limit exceeded for {client}")
-            return JSONResponse(
+    async def __call__(self, scope, receive, send) -> None:
+        if scope["type"] != "http":
+            await self.app(scope, receive, send)
+            return
+
+        client = scope.get("client")
+        client_ip = client[0] if client else "unknown"
+        
+        if not self.limiter.is_allowed(client_ip):
+            logger.warning(f"Rate limit exceeded for {client_ip}")
+            response = JSONResponse(
                 status_code=429,
                 content={"detail": "Too many requests. Please try again later."},
             )
-        response = await call_next(request)
-        return response
+            await response(scope, receive, send)
+            return
+
+        await self.app(scope, receive, send)
