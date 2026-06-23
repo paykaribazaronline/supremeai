@@ -1,5 +1,5 @@
 import os
-from fastapi import APIRouter, Depends, Request, Header, HTTPException, BackgroundTasks
+from fastapi import APIRouter, Request, Header, HTTPException, BackgroundTasks
 from google.cloud import firestore
 from loguru import logger
 from typing import Dict, Any

@@ -28,7 +28,7 @@ class NightlyChaosAuditor:
             for code, _ in payloads[:20]: # টপ ২০টি ক্রিটিক্যাল পেলোড ফাজিং
                 try:
                     # স্যান্ডবক্স যদি কোনো ম্যালিশিয়াস কোডকে ট্রু (Safe) বলে দেয়, তবে সিকিউরিটি লিক!
-                    if run_sandbox_ast_check(code) == True:
+                    if run_sandbox_ast_check(code):
                         failures += 1
                         logger.critical("🚨 [SECURITY BREACH] Sandbox bypass detected during autonomous fuzzing!")
                 except Exception:

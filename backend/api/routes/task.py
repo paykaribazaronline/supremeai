@@ -241,7 +241,6 @@ async def execute_task(req: TaskRequest):
         )
 
     import anyio
-    import hashlib
 
     # Offload heavy CPU-bound Intent classification to background thread pool
     app_spec = await anyio.to_thread.run_sync(

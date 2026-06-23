@@ -6,7 +6,7 @@ from typing import Dict, Any, Optional
 import ipaddress
 import socket
 from urllib.parse import urlparse
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 
 from backend.api.routes.admin_dashboard import require_admin_token

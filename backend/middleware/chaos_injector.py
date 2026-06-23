@@ -1,7 +1,7 @@
 import asyncio
 import random
 import os
-from fastapi import Request, HTTPException
+from fastapi import Request
 from starlette.middleware.base import BaseHTTPMiddleware
 from fastapi.responses import JSONResponse
 from loguru import logger

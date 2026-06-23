@@ -1,6 +1,6 @@
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel
-from typing import List, Dict, Any
+from typing import List, Dict
 from loguru import logger
 
 router = APIRouter(prefix="/api/mobile/bff", tags=["mobile-bff"])
