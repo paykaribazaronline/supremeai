@@ -1,5 +1,5 @@
 import asyncio
-from unittest.mock import AsyncMock, MagicMock, patch, PropertyMock
+from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from backend.evolution.self_evolution_agent import SelfEvolutionAgent
 

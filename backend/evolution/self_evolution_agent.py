@@ -162,6 +162,13 @@ class SelfEvolutionAgent:
             return
         logger.info(f"No high-fitness path for '{skill_name}'. Triggering AutoSkillCreator.")
         result = await self.auto_skill_creator.generate_and_deploy_skill(task_demand, skill_name)
+        self._log_action({
+            "action": "generate",
+            "skill_name": skill_name,
+            "task_demand": task_demand,
+            "success": result.get("success", False),
+            "error": result.get("error"),
+        })
         if result.get("success"):
             logger.info(f"Auto-generated skill '{skill_name}' deployed.")
         else:
