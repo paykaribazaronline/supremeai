@@ -113,7 +113,7 @@ class Orchestrator:
         try:
             logger.info("Orchestrator: Running fitness scoring cycle")
             # The fitness engine maintains internal state and persists scores.
-            await self.fitness_engine.evaluate_pending()
+            self.fitness_engine.evaluate_pending()
         except Exception as exc:
             logger.exception(f"Fitness scoring failed: {exc}")
 
