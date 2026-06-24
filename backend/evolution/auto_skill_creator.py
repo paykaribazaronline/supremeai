@@ -7,14 +7,16 @@ from datetime import datetime, timezone
 
 # আমাদের হার্ডেনড স্যান্ডবক্স গেটকিপার ইম্পোর্ট
 from backend.tools.fuzz_sandbox import run_sandbox_ast_check, SecurityError
+from backend.core.tenant_db import TenantAwareFirestore
 
 class AutoSkillCreator:
     """
     Self-Evolution Engine Core.
     Autonomously generates, validates, and provisions dynamic AI skills/tools on-the-fly.
     """
-    def __init__(self):
-        self.db = firestore.Client()
+    def __init__(self, db: TenantAwareFirestore):
+        # 🛡️ এখন আর সরাসরি firestore.Client() কল হবে না!
+        self.db = db
         self.skills_ref = self.db.collection("supreme_dynamic_skills")
         # জেমিনি এপিআই কনফিগারেশন (Secret Vault থেকে মেমরিতে ইনজেক্টেড)
         genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
