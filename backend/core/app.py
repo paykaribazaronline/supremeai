@@ -46,7 +46,7 @@ from api.routes import (
     agents_router,
     markdown_router,
 )
-from core.auth_middleware import AuthMiddleware
+from middleware.auth_middleware import ZeroTrustAuthMiddleware
 from core.observability_middleware import ObservabilityMiddleware
 from core.rate_limiter import RateLimitMiddleware
 from middleware.idempotency import IdempotencyMiddleware
@@ -128,7 +128,7 @@ app.add_middleware(ChaosInjectorMiddleware)
 app.add_middleware(HoneypotMiddleware)
 app.add_middleware(RateLimitMiddleware, requests_per_minute=120, burst=20)
 app.add_middleware(IdempotencyMiddleware)
-app.add_middleware(AuthMiddleware)
+app.add_middleware(ZeroTrustAuthMiddleware)
 app.add_middleware(ObservabilityMiddleware)
 
 from fastapi import Request
