@@ -1,4 +1,3 @@
-import re
 from typing import Any, Dict, List, Optional
 from loguru import logger
 
@@ -47,6 +46,7 @@ class MedicalAgent:
         return self._generate(prompt, context=context, action="symptom_analysis")
 
     def drug_interaction(self, medications: List[str]) -> Dict[str, Any]:
+        import re
         found_interactions: List[Dict[str, Any]] = []
         med_lower = [m.lower() for m in medications]
         for (drug_a, interacts_with, warning) in self.DRUG_INTERACTION_PATTERNS:
