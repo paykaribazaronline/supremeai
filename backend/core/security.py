@@ -3,9 +3,10 @@ import jwt
 from datetime import datetime, timedelta, timezone
 from fastapi import HTTPException, status
 from loguru import logger
+from core.config import settings
 
 # স্ট্রিক্ট এনভায়রনমেন্ট ভেরিয়েবল (কখনোই হার্ডকোড করা যাবে না)
-SECRET_KEY = os.getenv("SUPREME_JWT_SECRET")
+SECRET_KEY = settings.jwt_secret
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60
 
@@ -13,7 +14,7 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 60
 ADMIN_WHITELIST = os.getenv("ADMIN_EMAILS", "admin@supremeai.com").split(",")
 
 if not SECRET_KEY:
-    logger.critical("🚨 FATAL: SUPREME_JWT_SECRET is missing! Halting boot process to prevent vulnerabilities.")
+    logger.critical("🚨 FATAL: JWT Secret is missing! Halting boot process to prevent vulnerabilities.")
     raise RuntimeError("Security misconfiguration: Missing JWT Secret.")
 
 def create_access_token(data: dict) -> str:

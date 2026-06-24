@@ -108,3 +108,84 @@ async def trigger_nightly_chaos(
         "success": True,
         "message": "Autonomous chaos audit successfully scheduled and running in background pipeline."
     }
+
+# Prometheus client instrumentation logic restored for ObservabilityMiddleware compatibility
+try:
+    from prometheus_client import Counter, Histogram, Gauge, generate_latest, REGISTRY
+    
+    def _safe_counter(name, documentation, labelnames):
+        if name in REGISTRY._names_to_collectors:
+            return REGISTRY._names_to_collectors[name]
+        return Counter(name, documentation, labelnames)
+
+    def _safe_histogram(name, documentation, labelnames, buckets):
+        if name in REGISTRY._names_to_collectors:
+            return REGISTRY._names_to_collectors[name]
+        return Histogram(name, documentation, labelnames, buckets=buckets)
+
+    http_requests_total = _safe_counter(
+        "http_requests_total",
+        "Total HTTP requests",
+        ["method", "endpoint", "status"],
+    )
+    request_duration_seconds = _safe_histogram(
+        "request_duration_seconds",
+        "HTTP request duration in seconds",
+        ["method", "endpoint"],
+        buckets=[0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5, 10],
+    )
+    error_total = _safe_counter(
+        "error_total",
+        "Total errors by type",
+        ["error_type", "endpoint"],
+    )
+    model_calls_total = _safe_counter(
+        "supremeai_model_calls_total",
+        "Model API calls",
+        ["provider", "model"],
+    )
+    supremeai_requests_total = _safe_counter(
+        "supremeai_requests_total",
+        "Total requests",
+        ["method", "endpoint"],
+    )
+    supremeai_response_seconds = _safe_histogram(
+        "supremeai_response_seconds",
+        "Response time",
+        ["method", "endpoint"],
+        buckets=[0.01, 0.05, 0.1, 0.5, 1, 2, 5, 10],
+    )
+    _PROMETHEUS_AVAILABLE = True
+except ImportError:
+    _PROMETHEUS_AVAILABLE = False
+
+def record_request(method: str, path: str, status: int) -> None:
+    if _PROMETHEUS_AVAILABLE:
+        try:
+            http_requests_total.labels(method=method, endpoint=path, status=str(status)).inc()
+            supremeai_requests_total.labels(method=method, endpoint=path).inc()
+        except Exception:
+            pass
+
+def record_error(error_type: str, endpoint: str) -> None:
+    if _PROMETHEUS_AVAILABLE:
+        try:
+            error_total.labels(error_type=error_type, endpoint=endpoint).inc()
+        except Exception:
+            pass
+
+def record_request_duration(method: str, path: str, duration: float) -> None:
+    if _PROMETHEUS_AVAILABLE:
+        try:
+            request_duration_seconds.labels(method=method, endpoint=path).observe(duration)
+            supremeai_response_seconds.labels(method=method, endpoint=path).observe(duration)
+        except Exception:
+            pass
+
+def record_model_call(provider: str, model: str) -> None:
+    if _PROMETHEUS_AVAILABLE:
+        try:
+            model_calls_total.labels(provider=provider, model=model).inc()
+        except Exception:
+            pass
+
