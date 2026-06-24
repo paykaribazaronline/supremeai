@@ -1,4 +1,6 @@
 import os
+import time
+from backend.evolution.fitness_engine import FitnessEngine
 from typing import Optional, Any
 import google.generativeai as genai
 from loguru import logger
@@ -30,6 +32,10 @@ class AutoSkillCreator:
         if db is not None:
             self.skills_ref = self.db.collection("supreme_dynamic_skills")
         else:
+            # existing fallback logic remains unchanged
+            pass
+        # Initialize FitnessEngine for telemetry
+        self.fitness_engine = FitnessEngine(db=self.db)
             # Fallback mock or default
             try:
                 from core.gcp_firestore import get_firestore_client
@@ -61,6 +67,7 @@ class AutoSkillCreator:
         import json
         import uuid
         import shutil
+        start_time = time.time()
         from pathlib import Path
         from skills.schema import UniversalSkillSchema
 
@@ -223,7 +230,9 @@ class AutoSkillCreator:
             self.skills_ref.document(skill_name).set(skill_meta)
             logger.info(f"🏆 Deployed dynamic skill '{skill_name}' into Firestore. Ready for live orchestration!")
             
-            return {
+            latency = time.time() - start_time
+        self.fitness_engine.track_execution(skill_name, success=True, latency=latency)
+        return {
                 "success": True,
                 "skill_name": skill_name,
                 "message": "Autonomous evolution loop successfully completed. Skill is live."
@@ -231,6 +240,8 @@ class AutoSkillCreator:
 
         except Exception as e:
             logger.error(f"❌ Self-Evolution loop crashed: {str(e)}")
+            latency = time.time() - start_time
+            self.fitness_engine.track_execution(skill_name, success=False, latency=latency)
             # Cleanup quarantine on failure
             if quarantine_dir.exists():
                 shutil.rmtree(quarantine_dir)
