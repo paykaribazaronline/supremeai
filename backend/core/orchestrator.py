@@ -16,6 +16,7 @@ from fastapi.responses import JSONResponse
 
 from core.telemetry import tracer  # Assuming OpenTelemetry tracer is set up in core.telemetry
 from evolution.fitness_engine import FitnessEngine
+from evolution.self_evolution_agent import SelfEvolutionAgent
 
 logger = logging.getLogger(__name__)
 
@@ -34,7 +35,8 @@ class Orchestrator:
         self._task: asyncio.Task | None = None
         self._running: bool = False
         self.fitness_engine = FitnessEngine()
-        self._tasks: List[Callable[[], Any]] = [self._run_fitness_scoring]
+        self.self_evolution = SelfEvolutionAgent(fitness_engine=self.fitness_engine, interval_seconds=interval_seconds)
+        self._tasks: List[Callable[[], Any]] = [self._run_fitness_scoring, self.self_evolution._tick]
         self.skill_graph = EvolutionSkillGraph()
 
     def decompose_intent(self, prompt: str, start_skill: str, end_skill: str, max_token_cost: float = 0.05) -> Dict[str, Any]:

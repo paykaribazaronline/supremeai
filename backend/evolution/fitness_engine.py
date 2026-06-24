@@ -146,3 +146,8 @@ class FitnessEngine:
                 logger.error(f"Failed to move files to deprecated zone: {e}")
                 
         return True
+
+    def evaluate_pending(self) -> None:
+        """Evaluate all skills currently tracked in metrics and prune those below threshold."""
+        for skill_name in list(self.metrics.keys()):
+            self.evaluate_and_prune(skill_name)
