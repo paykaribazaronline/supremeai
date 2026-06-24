@@ -795,6 +795,12 @@ try:
 except Exception as _e:
     logger.warning(f"onboarding API router not loaded: {_e}")
 
+try:
+    from backend.api.routes.evolution import router as evolution_router
+    app.include_router(evolution_router)
+except Exception as _e:
+    logger.warning(f"evolution API router not loaded: {_e}")
+
 if codeflow_router is not None:
     app.include_router(codeflow_router)
 if feedback_router is not None:
