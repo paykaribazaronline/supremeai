@@ -1,7 +1,6 @@
 import typing
 import os
 import httpx
-import google.generativeai as genai
 from github import Github
 from loguru import logger
 from tools.github_agent import GitHubAgent
@@ -10,8 +9,14 @@ class AutoRemediationEngine:
     def __init__(self):
         self.github_client = Github(os.getenv("GITHUB_TOKEN"))
         self.repo = self.github_client.get_repo(os.getenv("GITHUB_REPOSITORY", "paykaribazaronline/supremeai"))
-        genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
-        self.model = genai.GenerativeModel('gemini-2.0-flash')
+        self._model = None
+
+    def _get_model(self):
+        if self._model is None:
+            import google.generativeai as genai
+            genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
+            self._model = genai.GenerativeModel('gemini-2.0-flash')
+        return self._model
 
     def process_codeql_alert(self, file_path: str, line_number: int, vulnerability_details: str):
         """CodeQL অ্যালার্ট প্রসেস করে অটোমেটিক PR ওপেন করে"""
@@ -38,7 +43,7 @@ class AutoRemediationEngine:
         Original Code:
         {code}
         """
-        response = self.model.generate_content(prompt)
+        response = self._get_model().generate_content(prompt)
         return response.text.strip()
 
     def _create_remediation_pr(self, file_path: str, old_code: str, new_code: str, issue: str):

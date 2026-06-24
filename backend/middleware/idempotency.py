@@ -2,7 +2,10 @@ import json
 from fastapi import Request, HTTPException
 from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
-from google.cloud import firestore
+try:
+    from google.cloud import firestore
+except ImportError:
+    pass
 from loguru import logger
 from datetime import datetime, timedelta, timezone
 

@@ -513,7 +513,10 @@ async def admin_websocket(websocket: WebSocket):
         logger.error(f"Admin WebSocket error: {exc}")
 
 from pydantic import Field
-from google.cloud import firestore
+try:
+    from google.cloud import firestore
+except ImportError:
+    pass
 from datetime import datetime, timezone
 
 class GateOverridePayload(BaseModel):

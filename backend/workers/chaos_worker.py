@@ -1,7 +1,11 @@
 import os
 import httpx
 import asyncio
-from google.cloud import firestore
+try:
+    from google.cloud import firestore
+    HAS_FIRESTORE = True
+except ImportError:
+    HAS_FIRESTORE = False
 from loguru import logger
 from datetime import datetime, timezone
 
@@ -11,8 +15,12 @@ class NightlyChaosAuditor:
     Runs nightly security fuzzing and stress checks to guard the deployment pipeline.
     """
     def __init__(self):
-        self.db = firestore.Client()
-        self.gate_ref = self.db.collection("deploy_gate").document("status")
+        if HAS_FIRESTORE:
+            self.db = firestore.Client()
+            self.gate_ref = self.db.collection("deploy_gate").document("status")
+        else:
+            self.db = None
+            self.gate_ref = None
         # স্টেজ রেপ্লিকা ইউআরএল ম্যাপ (প্রোডাকশন থেকে আলাদা)
         self.target_url = os.getenv("STAGING_REPLICA_URL", "http://localhost:8000")
         

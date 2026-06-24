@@ -1,5 +1,8 @@
 # backend/core/tenant_db.py
-from google.cloud import firestore
+try:
+    from google.cloud import firestore
+except ImportError:
+    pass
 from fastapi import HTTPException, status
 from loguru import logger
 

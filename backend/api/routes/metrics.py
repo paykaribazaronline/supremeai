@@ -1,8 +1,13 @@
 import os
 from fastapi import APIRouter, Request, Header, HTTPException, BackgroundTasks
-from google.cloud import firestore
 from loguru import logger
 from typing import Dict, Any
+
+try:
+    from google.cloud import firestore
+    HAS_FIRESTORE = True
+except ImportError:
+    HAS_FIRESTORE = False
 
 from core.config import settings
 try:
@@ -15,7 +20,10 @@ auditor = NightlyChaosAuditor()
 
 class SupremeMetricsEngine:
     def __init__(self):
-        self.db = firestore.Client()
+        if HAS_FIRESTORE:
+            self.db = firestore.Client()
+        else:
+            self.db = None
         
     async def calculate_system_roi(self) -> Dict[str, Any]:
         """সিস্টেমের সেভ করা কস্ট এবং ব্লক করা অ্যাটাকের রিয়াল-টাইম ম্যাট্রিক্স ক্যালকুলেটর"""

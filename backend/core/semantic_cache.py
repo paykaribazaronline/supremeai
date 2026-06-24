@@ -1,9 +1,14 @@
 import os
 import math
-import google.generativeai as genai
-from google.cloud import firestore
 from loguru import logger
 from typing import Optional, List
+
+try:
+    import google.generativeai as genai
+    from google.cloud import firestore
+    HAS_GOOGLE_DEPS = True
+except ImportError:
+    HAS_GOOGLE_DEPS = False
 
 class VectorSemanticCache:
     """
@@ -11,10 +16,14 @@ class VectorSemanticCache:
     Saves up to 90% of AI Token costs by matching prompt meanings instead of exact strings.
     """
     def __init__(self):
-        self.db = firestore.Client()
-        self.collection = self.db.collection("supreme_semantic_cache")
-        # Gemini API Config
-        genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
+        if HAS_GOOGLE_DEPS:
+            self.db = firestore.Client()
+            self.collection = self.db.collection("supreme_semantic_cache")
+            # Gemini API Config
+            genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
+        else:
+            self.db = None
+            self.collection = None
 
     def _cosine_similarity(self, vec1: List[float], vec2: List[float]) -> float:
         """দুটি ভেক্টরের মধ্যে সিমিলারিটি স্কোর পরিমাপ করার বিশুদ্ধ গাণিতিক লজিক (Zero Dependencies)"""
