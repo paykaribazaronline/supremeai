@@ -1,4 +1,4 @@
-from fastapi import Request, HTTPException
+from fastapi import Request
 from starlette.middleware.base import BaseHTTPMiddleware
 try:
     from backend.core.security import verify_token
