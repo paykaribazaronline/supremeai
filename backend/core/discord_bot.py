@@ -1,4 +1,3 @@
-import os
 import discord
 import anyio
 from discord.ext import commands

@@ -111,7 +111,7 @@ async def trigger_nightly_chaos(
 
 # Prometheus client instrumentation logic restored for ObservabilityMiddleware compatibility
 try:
-    from prometheus_client import Counter, Histogram, Gauge, generate_latest, REGISTRY
+    from prometheus_client import Counter, Histogram, REGISTRY
     
     def _safe_counter(name, documentation, labelnames):
         if name in REGISTRY._names_to_collectors:

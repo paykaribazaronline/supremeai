@@ -1,7 +1,5 @@
 import os
-import ast
 import google.generativeai as genai
-from google.cloud import firestore
 from loguru import logger
 from datetime import datetime, timezone
 
