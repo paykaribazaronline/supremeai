@@ -9,8 +9,32 @@ def _run(code: str) -> subprocess.CompletedProcess:
     backend_root = os.path.join(project_root, "backend")
     env = os.environ.copy()
     env["PYTHONPATH"] = os.pathsep.join([project_root, backend_root])
+    
+    gcp_mock_code = textwrap.dedent(
+        """
+        import sys
+        from unittest.mock import MagicMock
+        import google.auth
+        google.auth.default = lambda *args, **kwargs: (MagicMock(), "dummy-project")
+        
+        # Patch clients to prevent network calls
+        try:
+            import google.cloud.firestore
+            google.cloud.firestore.Client = MagicMock
+        except ImportError:
+            sys.modules['google.cloud.firestore'] = MagicMock()
+        
+        try:
+            import google.cloud.secretmanager
+            google.cloud.secretmanager.SecretManagerServiceClient = MagicMock
+        except ImportError:
+            sys.modules['google.cloud.secretmanager'] = MagicMock()
+        """
+    )
+    full_code = gcp_mock_code + "\n" + code
+    
     return subprocess.run(
-        [sys.executable, "-c", code],
+        [sys.executable, "-c", full_code],
         cwd=project_root,
         env=env,
         capture_output=True,

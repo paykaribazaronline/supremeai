@@ -5,21 +5,28 @@ if ROOT not in sys.path:
     sys.path.insert(0, ROOT)
 os.environ.setdefault("OPENROUTER_API_KEY", "mock-key-value")
 
-# Mock Google Auth credentials globally during tests
+# Mock Google Auth credentials and services globally during tests
+from unittest.mock import MagicMock
 try:
     import google.auth
-    from unittest.mock import MagicMock
-    class MockCredentials:
-        def __init__(self, *args, **kwargs):
-            self.valid = True
-        def refresh(self, request):
-            pass
-        def before_request(self, *args, **kwargs):
-            pass
-    mock_creds = MagicMock(spec=MockCredentials)
-    google.auth.default = lambda *args, **kwargs: (mock_creds, "mock-project-id")
+    google.auth.default = lambda *args, **kwargs: (MagicMock(), "mock-project-id")
 except ImportError:
-    pass
+    sys.modules['google.auth'] = MagicMock()
+
+try:
+    import google.cloud.firestore
+    google.cloud.firestore.Client = MagicMock
+except ImportError:
+    sys.modules['google.cloud.firestore'] = MagicMock()
+
+try:
+    import google.cloud.secretmanager
+    google.cloud.secretmanager.SecretManagerServiceClient = MagicMock
+except ImportError:
+    sys.modules['google.cloud.secretmanager'] = MagicMock()
+
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "/dev/null"
+
 import pytest
 from core.rbac import RoleBasedAccessControl
 

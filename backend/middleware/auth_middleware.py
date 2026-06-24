@@ -10,8 +10,7 @@ import sys
 
 class ZeroTrustAuthMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
-        # পাবলিক রাউটগুলো বাইপাস করা (যেমন লগইন, হেলথ চেক)
-        public_paths = ["/docs", "/openapi.json", "/health", "/api/auth/login", "/api/admin/login", "/api/admin/verify"]
+        public_paths = ["/docs", "/redoc", "/openapi.json", "/health", "/api/auth/login", "/api/admin/login", "/api/admin/verify"]
         if any(request.url.path.startswith(path) for path in public_paths):
             return await call_next(request)
 
@@ -20,7 +19,7 @@ class ZeroTrustAuthMiddleware(BaseHTTPMiddleware):
         
         if not auth_header or not auth_header.startswith("Bearer "):
             # Simulator, browser, onboarding, smell-check, docs do not require auth in tests
-            bypass_paths = ["/api/simulator", "/api/browser", "/api/onboarding", "/api/smell-check", "/docs", "/openapi.json", "/health", "/api/auth/login", "/api/admin/login", "/api/admin/verify"]
+            bypass_paths = ["/api/simulator", "/api/browser", "/api/onboarding", "/api/smell-check", "/docs", "/redoc", "/openapi.json", "/health", "/api/auth/login", "/api/admin/login", "/api/admin/verify"]
             if is_test and any(request.url.path.startswith(path) for path in bypass_paths):
                 request.state.user = {"sub": "admin@supremeai.com", "role": "admin"}
                 return await call_next(request)
