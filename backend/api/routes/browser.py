@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import Dict, Any, Optional
-from datetime import datetime
+from datetime import datetime, timezone
 
 from core.audit_logger import AuditLogger
 from core.secure_credential_store import SecureCredentialStore
@@ -194,7 +194,7 @@ def create_task(req: GoalRequest):
         "id": task_id,
         "goal": req.goal,
         "status": "ACTIVE",
-        "createdAt": datetime.utcnow().isoformat()
+        "createdAt": datetime.now(timezone.utc).isoformat()
     }
     TASKS[task_id] = task
     return task
@@ -230,7 +230,7 @@ def navigate(req: NavigateRequest):
     RECENT_ACTIVITIES.append({
         "url": req.url,
         "action": "navigate",
-        "timestamp": datetime.utcnow().isoformat()
+        "timestamp": datetime.now(timezone.utc).isoformat()
     })
     return {"success": True}
 
@@ -239,7 +239,7 @@ def click(req: ClickRequest):
     RECENT_ACTIVITIES.append({
         "url": str(BROWSER_STATUS["currentUrl"]),
         "action": f"click {req.selector}",
-        "timestamp": datetime.utcnow().isoformat()
+        "timestamp": datetime.now(timezone.utc).isoformat()
     })
     return {"success": True}
 
@@ -248,7 +248,7 @@ def fill(req: FillRequest):
     RECENT_ACTIVITIES.append({
         "url": str(BROWSER_STATUS["currentUrl"]),
         "action": f"fill {req.selector} with {req.value}",
-        "timestamp": datetime.utcnow().isoformat()
+        "timestamp": datetime.now(timezone.utc).isoformat()
     })
     return {"success": True}
 
@@ -257,7 +257,7 @@ def click_at(req: ClickAtRequest):
     RECENT_ACTIVITIES.append({
         "url": str(BROWSER_STATUS["currentUrl"]),
         "action": f"click at {req.x}, {req.y}",
-        "timestamp": datetime.utcnow().isoformat()
+        "timestamp": datetime.now(timezone.utc).isoformat()
     })
     return {"success": True}
 
@@ -266,7 +266,7 @@ def type_key(req: KeyRequest):
     RECENT_ACTIVITIES.append({
         "url": str(BROWSER_STATUS["currentUrl"]),
         "action": f"type key {req.key}",
-        "timestamp": datetime.utcnow().isoformat()
+        "timestamp": datetime.now(timezone.utc).isoformat()
     })
     return {"success": True}
 
@@ -285,7 +285,7 @@ def simulate_activity(body: Dict[str, str]):
         "action": body.get("action", "surf"),
         "title": body.get("title", "Page Title"),
         "reasoning": body.get("reasoning", "Exploring content"),
-        "timestamp": datetime.utcnow().isoformat()
+        "timestamp": datetime.now(timezone.utc).isoformat()
     }
     RECENT_ACTIVITIES.append(activity)
     return activity

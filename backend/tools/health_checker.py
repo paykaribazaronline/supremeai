@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import os
 import sys
+from datetime import datetime, timezone, timedelta
 from typing import Any, Dict, List
 
 from loguru import logger
@@ -52,7 +53,7 @@ class HealthChecker:
 
     def log_error(self, error: Dict[str, Any]) -> None:
         record = {
-            "timestamp": __import__("datetime").datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             **error,
         }
         try:
@@ -69,12 +70,12 @@ class HealthChecker:
         failed_api_calls = 0
         if os.path.exists(self.error_history_path):
             recent_errors: List[Dict[str, Any]] = []
-            cutoff = __import__("datetime").datetime.utcnow() - __import__("datetime").timedelta(minutes=10)
+            cutoff = datetime.now(timezone.utc) - timedelta(minutes=10)
             with open(self.error_history_path, "r", encoding="utf-8") as f:
                 for line in f:
                     try:
                         record = json.loads(line)
-                        ts = __import__("datetime").datetime.fromisoformat(record["timestamp"])
+                        ts = datetime.fromisoformat(record["timestamp"])
                         if ts >= cutoff:
                             recent_errors.append(record)
                     except Exception:

@@ -11,6 +11,7 @@ import asyncio
 import subprocess
 from loguru import logger
 from api.routes.admin_dashboard import require_admin_token
+from backend.core.orchestrator import skill_graph
 
 router = APIRouter(prefix="/marketplace", tags=["marketplace"])
 
@@ -214,6 +215,8 @@ async def install_tool(payload: InstallRequest, admin_user: dict = Depends(requi
             "installed_at": __import__("time").time()
         }
         save_skill_registry(registry)
+        # Register skill in the semantic skill graph for dependency resolution
+        skill_graph.add_skill(clean_name, {"dependencies": [], "compatibility": []})
 
     return {
         "success": success,

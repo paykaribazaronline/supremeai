@@ -2,7 +2,7 @@ import typing
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import Dict, Any, Optional
-from datetime import datetime
+from datetime import datetime, timezone
 
 router = APIRouter(prefix="/api/simulator", tags=["simulator"])
 
@@ -88,7 +88,7 @@ def install_app(req: InstallRequest, userId: str = "default"):
         "appName": f"App {req.appId}",
         "version": "1.0.0",
         "previewUrl": f"http://127.0.0.1:8000/preview/{req.appId}",
-        "installedAt": datetime.utcnow().isoformat(),
+        "installedAt": datetime.now(timezone.utc).isoformat(),
         "launchCount": 0,
         "lastLaunchedAt": None,
         "status": "INSTALLED"
@@ -133,7 +133,7 @@ def start_session(appId: str, userId: str = "default"):
         raise HTTPException(status_code=404, detail="App not installed")
         
     app["launchCount"] += 1
-    app["lastLaunchedAt"] = datetime.utcnow().isoformat()
+    app["lastLaunchedAt"] = datetime.now(timezone.utc).isoformat()
     app["status"] = "RUNNING"
     
     session_id = f"sess_{userId}_{appId}"
@@ -142,9 +142,9 @@ def start_session(appId: str, userId: str = "default"):
         "websocketUrl": f"ws://127.0.0.1:8000/ws/simulator/{session_id}",
         "previewUrl": app["previewUrl"],
         "state": "RUNNING",
-        "startedAt": datetime.utcnow().isoformat(),
+        "startedAt": datetime.now(timezone.utc).isoformat(),
         "activeAppId": appId,
-        "lastHeartbeat": datetime.utcnow().isoformat()
+        "lastHeartbeat": datetime.now(timezone.utc).isoformat()
     }
     SESSIONS[userId] = session
     return session

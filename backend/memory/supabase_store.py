@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 import os
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional
 
 from memory.sqlite_store import SQLiteMemoryStore
@@ -37,7 +37,7 @@ class SupabaseStore(SQLiteMemoryStore):
             client.table("conversations").upsert({
                 "session_id": session_id,
                 "messages": json.dumps(messages),
-                "updated_at": datetime.utcnow().isoformat(),
+                "updated_at": datetime.now(timezone.utc).isoformat(),
             }).execute()
         else:
             rows = self.get_session_messages(session_id)
@@ -58,9 +58,9 @@ class SupabaseStore(SQLiteMemoryStore):
     def save_learned_fact(self, fact: dict) -> None:
         fact_id = fact.get("id")
         if not fact_id:
-            fact_id = f"fact_{datetime.utcnow().timestamp()}"
+            fact_id = f"fact_{datetime.now(timezone.utc).timestamp()}"
             fact["id"] = fact_id
-        fact["created_at"] = fact.get("created_at", datetime.utcnow().isoformat())
+        fact["created_at"] = fact.get("created_at", datetime.now(timezone.utc).isoformat())
         if self._provider == "supabase":
             client = self._get_supabase_client()
             client.table("learned_facts").upsert({

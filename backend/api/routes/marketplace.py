@@ -10,7 +10,7 @@ from pydantic import BaseModel
 
 from loguru import logger
 
-router = APIRouter(prefix="/api/skills", tags=["skills"])
+router = APIRouter(prefix="/marketplace", tags=["marketplace"])
 
 DB_PATH = os.environ.get("SUPREMEAI_MARKETPLACE_DB", "data/marketplace.db")
 
@@ -112,7 +112,9 @@ class SkillResponse(BaseModel):
 
 
 class InstallRequest(BaseModel):
-    skill: str
+    tool_id: str
+    target_environment: Optional[str] = None
+    sandbox: Optional[bool] = None
     version: Optional[str] = None
 
 

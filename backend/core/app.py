@@ -232,12 +232,17 @@ async def app_lifespan(app: FastAPI):
             app.state.discord_bot_task = asyncio.create_task(bot.start(settings.discord_bot_token))
             app.state.discord_bot = bot
             logger.info("🤖 Discord Bot background task initialized successfully.")
-            # Initialize Orchestrator
-            orchestrator = Orchestrator()
-            app.state.orchestrator = orchestrator
-            await orchestrator.start()
     except Exception as e:
         logger.warning(f"Deferred Discord Bot initialization: {e}")
+        
+    # ⚙️ Initialize Orchestrator independently to ensure background tasks are scheduled
+    try:
+        orchestrator = Orchestrator()
+        app.state.orchestrator = orchestrator
+        await orchestrator.start()
+        logger.info("⚙️ Orchestrator background tasks initialized successfully.")
+    except Exception as e:
+        logger.error(f"Failed to initialize Orchestrator: {e}")
         
     yield  # ----------------- এখানে অ্যাপ্লিকেশন ট্রাফিক রিসিভ করবে -----------------
     

@@ -1,7 +1,7 @@
 
 import sys
+from pydantic import Field, field_validator, ValidationInfo
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from pydantic import field_validator
 from loguru import logger
 from core.secret_vault import secret_vault
 
@@ -35,7 +35,7 @@ class Settings(BaseSettings):
         "https://supremeai-admin.firebaseapp.com",
     ]
 
-    jwt_secret: str = secret_vault.fetch_secret("JWT_SECRET", "np97Qpdqi9VdRyiANqjfKZn8/u7s/WCjtG8UsjbhhS0=")
+    jwt_secret: str | None = Field(default=None, env="SUPREMEAI_JWT_SECRET")
     
     # ⚡ ডাইনামিকলি সরাসরি ক্লাউড মেমরি থেকে সিক্রেট রিড করা হচ্ছে
     # ডিস্কে কোনো .env ফাইল না থাকলেও প্রোডাকশন এপিআই ১০০% স্মুথলি চলবে
@@ -92,6 +92,17 @@ class Settings(BaseSettings):
         if value.lower() not in allowed:
             raise ValueError(f"env must be one of {allowed}")
         return value.lower()
+
+    @field_validator("jwt_secret", mode="before")
+    @classmethod
+    def set_test_secret(cls, v: str | None, info: ValidationInfo) -> str | None:
+        # Require SUPREMEAI_JWT_SECRET in production. Provide a placeholder ONLY in local/test.
+        env = info.data.get("env", "local")
+        if not v:
+            if env == "production":
+                raise ValueError("SUPREMEAI_JWT_SECRET environment variable must be set in production")
+            return "test-secret-placeholder"
+        return v
 
     @field_validator("cors_origins", mode="before")
     @classmethod

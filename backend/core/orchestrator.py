@@ -7,6 +7,7 @@
 """
 import asyncio
 import logging
+# from .skill_graph import SkillGraph  # Deferred import to avoid heavy optional dependency
 from datetime import datetime, timezone
 from typing import Any, Callable, List
 
@@ -35,6 +36,7 @@ class Orchestrator:
         self._running: bool = False
         self.fitness_engine = FitnessEngine()
         self._tasks: List[Callable[[], Any]] = [self._run_fitness_scoring]
+# Placeholder removed; will add skill_graph later
 
     async def _run_fitness_scoring(self) -> None:
         """Trigger the fitness engine to evaluate recent skill executions.
@@ -50,19 +52,29 @@ class Orchestrator:
 
     async def _loop(self) -> None:
         """Main background loop that runs scheduled tasks at ``self.interval`` seconds.
+        Uses asyncio.TaskGroup to concurrently schedule and execute generation/validation tasks.
         """
         self._running = True
         while self._running:
             start = datetime.now(timezone.utc)
             logger.debug(f"Orchestrator loop tick at {start.isoformat()}")
-            with tracer.start_as_current_span("orchestrator.tick"):
-                for task_fn in self._tasks:
-                    await task_fn()
+            try:
+                with tracer.start_as_current_span("orchestrator.tick"):
+                    async with asyncio.TaskGroup() as tg:
+                        for task_fn in self._tasks:
+                            # Schedule task execution concurrently inside the TaskGroup
+                            tg.create_task(task_fn())
+            except* Exception as e:
+                logger.error(f"Error in orchestrator task group loop: {e}")
             # Sleep until next interval, taking into account execution time.
             elapsed = (datetime.now(timezone.utc) - start).total_seconds()
-            await asyncio.sleep(max(0, self.interval - elapsed))
+            try:
+                await asyncio.sleep(max(0, self.interval - elapsed))
+            except asyncio.CancelledError:
+                logger.info("Orchestrator loop sleep cancelled")
+                break
 
-    def start(self) -> None:
+    async def start(self) -> None:
         """Create and schedule the background asyncio task.
         """
         if self._task is None or self._task.done():
@@ -72,12 +84,18 @@ class Orchestrator:
             logger.warning("Orchestrator already running")
 
     async def stop(self) -> None:
-        """Gracefully stop the background loop.
+        """Gracefully stop the background loop, cancelling the task to prevent zombie threads.
         """
         logger.info("Stopping Orchestrator background task")
         self._running = False
         if self._task:
-            await self._task
+            self._task.cancel()
+            try:
+                await self._task
+            except asyncio.CancelledError:
+                logger.info("Orchestrator background task successfully cancelled")
+            except Exception as e:
+                logger.error(f"Error during orchestrator task cancellation: {e}")
             self._task = None
 
     def status(self) -> dict:
@@ -89,3 +107,5 @@ class Orchestrator:
 async def get_status(request: Request):
     orchestrator: Orchestrator = request.app.state.orchestrator  # type: ignore[attr-defined]
     return JSONResponse(content=orchestrator.status())
+
+# skill_graph = SkillGraph()  # Deferred creation to avoid optional dependency

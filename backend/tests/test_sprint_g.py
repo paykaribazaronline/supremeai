@@ -154,7 +154,7 @@ class TestCommentThreadAI:
         import datetime
         ai = CommentThreadAI(github_token="ghp_test")
 
-        old_date = (datetime.datetime.utcnow() - datetime.timedelta(days=10)).strftime("%Y-%m-%dT%H:%M:%SZ")
+        old_date = (datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(days=10)).strftime("%Y-%m-%dT%H:%M:%SZ")
         with patch.object(ai, "_gh_get", new_callable=AsyncMock) as mock_get:
             mock_get.return_value = [
                 {"number": 1, "title": "Old PR", "updated_at": old_date, "user": {"login": "dev"}, "html_url": "https://github.com/"},

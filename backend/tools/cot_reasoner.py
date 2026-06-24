@@ -52,9 +52,16 @@ def _eval_node(node):
 
 
 def safe_execute(code: str) -> Dict[str, Any]:
+    """Safely execute user‑provided Python code.
+
+    Uses :pyfunc:`backend.tools.safe_executor.run_restricted` which relies on
+    **RestrictedPython** to sandbox the execution environment. The function
+    returns a dictionary compatible with the previous contract.
+    """
     try:
-        local_vars: Dict[str, Any] = {}
-        exec(code, {"__builtins__": {}}, local_vars) # type: ignore[arg-type]
+        # ``run_restricted`` returns the locals dictionary after sandboxed exec.
+        from backend.tools.safe_executor import run_restricted
+        local_vars = run_restricted(code)
         if "result" in local_vars:
             return {"success": True, "value": local_vars["result"]}
         return {"success": True, "value": None}

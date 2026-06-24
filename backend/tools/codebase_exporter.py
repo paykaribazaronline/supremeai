@@ -19,7 +19,8 @@ IGNORE_EXTS: Set[str] = {
 }
 
 IGNORE_FILES: Set[str] = {
-    'package-lock.json', 'yarn.lock', 'pnpm-lock.yaml', 'poetry.lock'
+    'package-lock.json', 'yarn.lock', 'pnpm-lock.yaml', 'poetry.lock',
+    'service-account.json'
 }
 
 def get_language(file_name: str) -> str:
