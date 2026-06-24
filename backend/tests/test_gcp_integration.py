@@ -182,7 +182,7 @@ class FakePubSubClient:
 
 def test_gcp_cloud_run_router_route(monkeypatch):
     monkeypatch.setattr(httpx, "Client", lambda timeout: FakeClient(timeout))
-    router = GCPCloudRunRouter(base_url="https://supremeai-gcp.example.run.app")
+    router = GCPCloudRunRouter(base_url="https://supremeai-a.example.run.app")
 
     result = router.route("/api/v1/task/execute", {"task": "ping"})
 
@@ -193,7 +193,7 @@ def test_gcp_cloud_run_router_route(monkeypatch):
 
 def test_gcp_cloud_run_router_health(monkeypatch):
     monkeypatch.setattr(httpx, "Client", lambda timeout: FakeClient(timeout))
-    router = GCPCloudRunRouter(base_url="https://supremeai-gcp.example.run.app")
+    router = GCPCloudRunRouter(base_url="https://supremeai-a.example.run.app")
 
     result = router.health_check(timeout=3)
 
@@ -236,7 +236,7 @@ def test_gcp_pubsub_queue_local_roundtrip():
 
 
 def test_gcp_cloud_function_client_trigger(monkeypatch):
-    monkeypatch.setenv("GCP_PROJECT_ID", "supremeai-gcp")
+    monkeypatch.setenv("GCP_PROJECT_ID", "supremeai-a")
     monkeypatch.setenv("GCP_REGION", "us-central1")
     monkeypatch.setenv("GCP_CLOUD_FUNCTION_NAME", "processOCR")
     monkeypatch.setattr(httpx, "Client", lambda timeout: FakeClient(timeout))
@@ -290,7 +290,7 @@ def test_gcp_pubsub_publish_pull():
 def test_gcp_cloud_functions_ocr_trigger(monkeypatch):
     monkeypatch.setattr(httpx, "Client", lambda timeout: FakeClient(timeout))
     client = GCPCloudFunctionClient(
-        project_id="supremeai-gcp",
+        project_id="supremeai-a",
         region="us-central1",
         function_name="processOCR",
     )
