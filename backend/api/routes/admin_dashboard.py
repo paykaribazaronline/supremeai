@@ -161,6 +161,7 @@ async def logs_stream():
 
 @router.get("/costs")
 def get_costs():
+    """Real-time Cost/budget metrics from CostAuditor."""
     auditor = CostAuditor()
     try:
         reports = auditor.generate_report()
@@ -168,14 +169,19 @@ def get_costs():
         if os.path.exists(markdown_path):
             with open(markdown_path, "r", encoding="utf-8") as f:
                 content = f.read()
-            return {"status": "ok", "report": content}
+                return {"status": "ok", "report": content}
+        else:
+            # 🚫 নো মোর ফেক ডেটা! রিয়েল ওয়ার্নিং মেসেজ।
+            return {
+                "status": "ok", 
+                "report": "# 📊 Cost Data Unavailable\n\nNo tasks have been executed in the current billing cycle to generate a cost report."
+            }
     except Exception as e:
         logger.error(f"Failed to generate cost report: {e}")
-    
-    return {
-        "status": "error",
-        "report": "# 📊 Cost Audit Report\n\nNo task history available.\n"
-    }
+        return {
+            "status": "error", 
+            "report": f"# ⚠️ Cost Engine Error\n\nUnable to pull metrics from DB: {str(e)}"
+        }
 
 @router.get("/health-map")
 def get_health_map():
