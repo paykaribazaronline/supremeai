@@ -53,6 +53,9 @@ class EvolutionSkillGraph:
 
     def add_skill(self, skill_id: str, metadata: Dict[str, Any]) -> None:
         """Registers a skill node and scans for connections to other nodes in the graph."""
+        if self.graph is None:
+            return
+            
         self.graph.add_node(skill_id, metadata=metadata)
         
         # Register fallback if defined
@@ -89,14 +92,14 @@ class EvolutionSkillGraph:
 
     def remove_skill(self, skill_id: str) -> None:
         """Gracefully removes a skill and its associated edges and fallbacks."""
-        if self.graph.has_node(skill_id):
+        if self.graph is not None and self.graph.has_node(skill_id):
             self.graph.remove_node(skill_id)
         if skill_id in self.fallbacks:
             del self.fallbacks[skill_id]
 
     def update_edge_weight(self, source: str, target: str, success: bool) -> None:
         """Feedback-driven Weighting. Enhances or penalizes the edge weight based on usage."""
-        if self.graph.has_edge(source, target):
+        if self.graph is not None and self.graph.has_edge(source, target):
             current_weight = self.graph[source][target]["weight"]
             if success:
                 # Stronger connection (lower cost for shortest path algorithm)
@@ -107,9 +110,12 @@ class EvolutionSkillGraph:
 
     def find_execution_path(self, start_skill: str, end_skill: str) -> List[str]:
         """Finds the optimal path (lowest weight sum) from start to end skill."""
+        if self.graph is None or nx is None:
+            return []
         try:
             path = nx.shortest_path(self.graph, source=start_skill, target=end_skill, weight="weight")
             return path
+            
         except (nx.NetworkXNoPath, nx.NodeNotFound) as e:
             logger.warning(f"No semantic path found between {start_skill} and {end_skill}: {e}")
             return []

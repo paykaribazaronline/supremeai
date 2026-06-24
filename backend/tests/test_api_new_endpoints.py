@@ -106,7 +106,8 @@ def test_api_marketplace_endpoints():
         headers=auth_headers
     )
     assert resp.status_code == 200
-    assert resp.json()["status"] == "success"
+    # Search endpoint returns a list of tools
+    assert isinstance(resp.json(), list)
 
     # test /marketplace/install
     resp = client.post(

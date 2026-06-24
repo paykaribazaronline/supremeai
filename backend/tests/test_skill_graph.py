@@ -1,5 +1,8 @@
 # backend/tests/test_skill_graph.py
 import pytest
+
+pytest.importorskip("networkx")
+
 from evolution.skill_graph import EvolutionSkillGraph
 from core.orchestrator import Orchestrator
 

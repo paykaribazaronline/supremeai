@@ -46,6 +46,7 @@ def test_defaults():
     "admin_rules_db": "/tmp/rules.db",
     "memory_db_dir": "/tmp/memory",
     "skill_registry_path": "/tmp/skills.json",
+    "SUPREMEAI_JWT_SECRET": "mock-jwt-secret-for-production",
 }, clear=False)
 def test_env_override():
     s = Settings()

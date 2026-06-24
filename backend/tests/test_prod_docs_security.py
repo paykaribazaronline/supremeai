@@ -50,6 +50,7 @@ def test_docs_visible_in_local():
         os.environ["openrouter_api_key"] = "sk"
         os.environ["gemini_api_key"] = "sk"
         os.environ["sentry_dsn"] = "https://sentry.io/123"
+        os.environ["SUPREMEAI_JWT_SECRET"] = "secure_jwt_secret_value_at_least_32_chars_long_test"
         import core.app as app_mod
         from fastapi.testclient import TestClient
         client = TestClient(app_mod.app)
@@ -71,7 +72,7 @@ def test_docs_disabled_in_production():
         os.environ["openrouter_api_key"] = "sk"
         os.environ["gemini_api_key"] = "sk"
         os.environ["sentry_dsn"] = "https://sentry.io/123"
-        os.environ["jwt_secret"] = "secure_jwt_secret_value_at_least_32_chars_long_test"
+        os.environ["SUPREMEAI_JWT_SECRET"] = "secure_jwt_secret_value_at_least_32_chars_long_test"
         import core.app as app_mod
         from fastapi.testclient import TestClient
         client = TestClient(app_mod.app)
