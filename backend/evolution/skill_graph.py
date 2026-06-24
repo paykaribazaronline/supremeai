@@ -7,7 +7,10 @@ and fallback routing.
 """
 from __future__ import annotations
 
-import networkx as nx
+try:
+    import networkx as nx
+except ImportError:
+    nx = None
 from typing import List, Dict, Any, Optional
 from loguru import logger
 
@@ -20,7 +23,10 @@ class EvolutionSkillGraph:
     """
 
     def __init__(self) -> None:
-        self.graph = nx.DiGraph()
+        if nx is not None:
+            self.graph = nx.DiGraph()
+        else:
+            self.graph = None
         # Fallback dictionary mapping skill_id to fallback_skill_id
         self.fallbacks: Dict[str, str] = {}
 
