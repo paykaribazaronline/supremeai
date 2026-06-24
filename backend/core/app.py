@@ -63,11 +63,14 @@ from core.observability_middleware import ObservabilityMiddleware
 from core.rate_limiter import RateLimitMiddleware
 from middleware.idempotency import IdempotencyMiddleware
 from core.honeypot_middleware import HoneypotMiddleware
-from core.telemetry import setup_tracing
+from core.telemetry import tracer, setup_tracing
 from core.upstash_redis_queue import UpstashRedisQueue
 from loguru import logger
 import sentry_sdk
 import secrets
+
+# Import orchestrator
+from backend.core.orchestrator import Orchestrator, router as orchestrator_router
 
 setup_tracing()
 
@@ -229,6 +232,10 @@ async def app_lifespan(app: FastAPI):
             app.state.discord_bot_task = asyncio.create_task(bot.start(settings.discord_bot_token))
             app.state.discord_bot = bot
             logger.info("🤖 Discord Bot background task initialized successfully.")
+            # Initialize Orchestrator
+            orchestrator = Orchestrator()
+            app.state.orchestrator = orchestrator
+            await orchestrator.start()
     except Exception as e:
         logger.warning(f"Deferred Discord Bot initialization: {e}")
         
@@ -242,6 +249,10 @@ async def app_lifespan(app: FastAPI):
         if bot:
             await bot.close()
             logger.info("✅ Discord Bot connection closed successfully.")
+        # Stop Orchestrator
+        orchestrator = getattr(app.state, "orchestrator", None)
+        if orchestrator:
+            await orchestrator.stop()
     except Exception as e:
         logger.error(f"Error closing Discord Bot: {e}")
     
@@ -787,6 +798,9 @@ if payments_router is not None:
     app.include_router(payments_router)
 if sso_router is not None:
     app.include_router(sso_router)
+# Include Orchestrator router
+if orchestrator_router is not None:
+    app.include_router(orchestrator_router)
 from tools.image_to_code import router as image_to_code_router
 if image_to_code_router is not None:
     app.include_router(image_to_code_router)

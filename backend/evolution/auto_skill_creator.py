@@ -32,11 +32,7 @@ class AutoSkillCreator:
         if db is not None:
             self.skills_ref = self.db.collection("supreme_dynamic_skills")
         else:
-            # existing fallback logic remains unchanged
-            pass
-        # Initialize FitnessEngine for telemetry
-        self.fitness_engine = FitnessEngine(db=self.db)
-            # Fallback mock or default
+            # Try to obtain Firestore client; fall back to mock if unavailable
             try:
                 from core.gcp_firestore import get_firestore_client
                 client = get_firestore_client()
@@ -57,9 +53,10 @@ class AutoSkillCreator:
                             def set(self, *args, **kwargs):
                                 pass
                         return MockDoc()
-                self.skills_ref = MockRef()
-        
-        # জেমিনি এপিআই কনফিগারেশন (Secret Vault থেকে মেমরিতে ইনজেক্টেড)
+                    self.skills_ref = MockRef()
+        # Initialize FitnessEngine for telemetry
+        self.fitness_engine = FitnessEngine(db=self.db)
+        # Gemini API configuration (Secret Vault injects key into env)
         genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
         self.model = genai.GenerativeModel("gemini-1.5-pro")
 
@@ -231,8 +228,8 @@ class AutoSkillCreator:
             logger.info(f"🏆 Deployed dynamic skill '{skill_name}' into Firestore. Ready for live orchestration!")
             
             latency = time.time() - start_time
-        self.fitness_engine.track_execution(skill_name, success=True, latency=latency)
-        return {
+            self.fitness_engine.track_execution(skill_name, success=True, latency=latency)
+            return {
                 "success": True,
                 "skill_name": skill_name,
                 "message": "Autonomous evolution loop successfully completed. Skill is live."

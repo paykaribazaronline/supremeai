@@ -2,7 +2,21 @@ import os
 from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel
 from loguru import logger
-import stripe
+try:
+    import stripe
+except ImportError:
+    # Fallback mock stripe with minimal interface for testing
+    class _MockStripe:
+        class Checkout:
+            class Session:
+                @staticmethod
+                def create(*args, **kwargs):
+                    raise RuntimeError("Stripe not configured")
+        class Webhook:
+            @staticmethod
+            def construct_event(*args, **kwargs):
+                raise RuntimeError("Stripe webhook not configured")
+    stripe = _MockStripe
 from core.config import settings
 
 router = APIRouter(prefix="/payments", tags=["payments"])
@@ -41,9 +55,9 @@ async def create_checkout_session(request: Request, payload: CheckoutRequest):
     except Exception as e:
         raise HTTPException(status_code=401, detail=f"Invalid token: {e}")
     try:
-        stripe_key = os.getenv("STRIPE_SECRET_KEY")
+        stripe_key = settings.stripe_api_key
         if not stripe_key:
-            logger.warning("STRIPE_SECRET_KEY not set. Using mock checkout session.")
+            logger.warning("Stripe API key not set in settings. Using mock checkout session.")
             return {
                 "status": "mock",
                 "session_id": "mock_session_123",
@@ -85,8 +99,8 @@ async def create_checkout_session(request: Request, payload: CheckoutRequest):
 async def stripe_webhook(request: Request):
     payload = await request.body()
     sig_header = request.headers.get("stripe-signature")
-    endpoint_secret = os.getenv("STRIPE_WEBHOOK_SECRET")
-    stripe_key = os.getenv("STRIPE_SECRET_KEY")
+    endpoint_secret = settings.stripe_webhook_secret
+    stripe_key = settings.stripe_api_key
     
     if not sig_header or not endpoint_secret or not stripe_key:
         # Mock or fallback behavior for development/testing

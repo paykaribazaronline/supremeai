@@ -10,6 +10,7 @@ from opentelemetry.sdk.trace.export import (
 
 
 _tracer: Optional[Tracer] = None
+tracer: Optional[Tracer] = None
 
 
 def setup_tracing(service_name: str = "supremeai", otlp_endpoint: Optional[str] = None) -> None:
@@ -25,6 +26,7 @@ def setup_tracing(service_name: str = "supremeai", otlp_endpoint: Optional[str] 
             logger.warning(f"OTLP exporter not available: {exc}")
     otel_trace.set_tracer_provider(provider)
     globals()["_tracer"] = otel_trace.get_tracer(service_name)
+globals()["tracer"] = globals()["_tracer"]
 
 
 def get_tracer() -> Optional[Tracer]:
