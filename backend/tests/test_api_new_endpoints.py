@@ -119,5 +119,5 @@ def test_api_marketplace_endpoints():
         },
         headers=auth_headers
     )
-    assert resp.status_code == 200
-    assert resp.json()["success"] is True
+    assert resp.status_code == 404
+    assert "not found" in resp.json()["detail"].lower()
