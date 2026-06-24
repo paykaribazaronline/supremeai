@@ -2,7 +2,6 @@ import os
 import time
 from backend.evolution.fitness_engine import FitnessEngine
 from typing import Optional, Any
-import google.generativeai as genai
 from loguru import logger
 from datetime import datetime, timezone
 from skills.installer import SkillInstaller
@@ -29,6 +28,7 @@ class AutoSkillCreator:
     def __init__(self, db: Optional[TenantAwareFirestore] = None, **kwargs: Any):
         # 🛡️ এখন আর সরাসরি firestore.Client() কল হবে না!
         self.db = db
+        self.skills_ref = None
         if db is not None:
             self.skills_ref = self.db.collection("supreme_dynamic_skills")
         else:
@@ -38,27 +38,27 @@ class AutoSkillCreator:
                 client = get_firestore_client()
                 if client is not None:
                     self.skills_ref = client.collection("supreme_dynamic_skills")
-                else:
-                    class MockRef:
-                        def document(self, *args, **kwargs):
-                            class MockDoc:
-                                def set(self, *args, **kwargs):
-                                    pass
-                            return MockDoc()
-                    self.skills_ref = MockRef()
             except Exception:
+                pass
+            if self.skills_ref is None:
+                class MockDoc:
+                    def set(self, *args, **kwargs):
+                        pass
                 class MockRef:
                     def document(self, *args, **kwargs):
-                        class MockDoc:
-                            def set(self, *args, **kwargs):
-                                pass
                         return MockDoc()
-                    self.skills_ref = MockRef()
+                self.skills_ref = MockRef()
         # Initialize FitnessEngine for telemetry
         self.fitness_engine = FitnessEngine(db=self.db)
-        # Gemini API configuration (Secret Vault injects key into env)
-        genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
-        self.model = genai.GenerativeModel("gemini-1.5-pro")
+        self._model = None
+
+    def _get_model(self):
+        if self._model is None:
+            import google.generativeai as genai
+            # Gemini API configuration (Secret Vault injects key into env)
+            genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
+            self._model = genai.GenerativeModel("gemini-1.5-pro")
+        return self._model
 
     async def generate_and_deploy_skill(self, user_demand: str, skill_name: str) -> dict:
         import json
@@ -128,7 +128,7 @@ class AutoSkillCreator:
 
         try:
             # ২. অন-দি-ফ্লাই কোড জেনারেশন
-            response = self.model.generate_content(system_prompt)
+            response = self._get_model().generate_content(system_prompt)
             raw_content = response.text.strip()
             
             # Extract JSON block
