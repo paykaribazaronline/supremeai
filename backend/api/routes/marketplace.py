@@ -144,18 +144,18 @@ async def install_skill(req: InstallRequest) -> Dict[str, Any]:
         _seed(conn)
         row = conn.execute(
             "SELECT id, name, installed FROM skills WHERE name = ?",
-            (req.skill,),
+            (req.tool_id,),
         ).fetchone()
         if not row:
-            raise HTTPException(status_code=404, detail=f"Skill '{req.skill}' not found.")
+            raise HTTPException(status_code=404, detail=f"Skill '{req.tool_id}' not found.")
         if row["installed"]:
-            return {"success": True, "skill": req.skill, "installed": True, "message": "Already installed."}
+            return {"success": True, "skill": req.tool_id, "installed": True, "message": "Already installed."}
         conn.execute(
             "UPDATE skills SET installed = 1, installed_at = ? WHERE id = ?",
             (__import__("time").time(), row["id"]),
         )
         conn.commit()
-        return {"success": True, "skill": req.skill, "installed": True, "message": "Installed."}
+        return {"success": True, "skill": req.tool_id, "installed": True, "message": "Installed."}
     except HTTPException:
         raise
     except Exception as exc:
