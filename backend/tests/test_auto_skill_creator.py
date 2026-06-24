@@ -1,10 +1,17 @@
-from __future__ import annotations
-
+import sys
 import os
+import importlib.util
+
+ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+path = os.path.join(ROOT, "evolution", "auto_skill_creator.py")
+spec = importlib.util.spec_from_file_location("root_evolution", path)
+module = importlib.util.module_from_spec(spec)
+sys.modules["root_evolution"] = module
+spec.loader.exec_module(module)
+AutoSkillCreator = module.AutoSkillCreator
 import subprocess
 import tempfile
 from unittest.mock import MagicMock, patch
-from evolution.auto_skill_creator import AutoSkillCreator
 
 
 def _make_creator(rules_engine=None, skills_dir=None):
@@ -146,7 +153,7 @@ def test_test_new_skill_file_not_found():
     assert "file not found" in result["reason"]
 
 
-@patch("evolution.auto_skill_creator.subprocess.run")
+@patch("root_evolution.subprocess.run")
 def test_test_new_skill_subprocess_timeout(mock_run):
     creator, _ = _make_creator()
     mock_run.side_effect = subprocess.TimeoutExpired(cmd=["python"], timeout=30)

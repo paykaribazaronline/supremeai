@@ -31,7 +31,9 @@ class GCPFirestoreVerificationQueue:
         self.db_path = db_path or os.getenv("GCP_FIRESTORE_SQLITE_PATH")
         
 
-        if FIRESTORE_AVAILABLE and self.project_id:
+        import sys
+        is_test = "pytest" in sys.modules or os.getenv("ENV") == "test"
+        if FIRESTORE_AVAILABLE and self.project_id and not is_test:
             try:
                 if credentials:
                     self.client = firestore.Client(project=self.project_id, credentials=credentials)
@@ -266,6 +268,9 @@ class GCPFirestoreVerificationQueue:
 
 
 def get_firestore_client(project_id: Optional[str] = None):
+    import sys
+    if "pytest" in sys.modules or os.getenv("ENV") == "test":
+        return None
     project_id = project_id or os.getenv("GCP_PROJECT_ID") or "supremeai-a"
     try:
         if FIRESTORE_AVAILABLE:

@@ -49,6 +49,7 @@ def test_task_execute_allowed_and_success():
     admin = AdminGodLayer(str(db))
     admin.set_rule("admin_authorized", "true")
 
+    from unittest.mock import AsyncMock
     fake_router = MagicMock()
     fake_router.route_and_generate.return_value = {
         "success": True,
@@ -57,6 +58,13 @@ def test_task_execute_allowed_and_success():
         "text": "ok",
         "cost": 0.0,
     }
+    fake_router.async_route_and_generate = AsyncMock(return_value={
+        "success": True,
+        "provider": "openrouter",
+        "model": "fake-model",
+        "text": "ok",
+        "cost": 0.0,
+    })
     fake_intent = MagicMock()
     fake_intent.classify.return_value = type("Intent", (), {"task_type": TaskType.general, "confidence": 0.5})()
 
@@ -74,7 +82,7 @@ def test_task_execute_allowed_and_success():
         import json
         res_obj = json.loads(body["result"])
         assert res_obj["content"] == "ok"
-        fake_router.route_and_generate.assert_called_once_with(
+        fake_router.async_route_and_generate.assert_called_once_with(
             prompt="hello", task_type="general", max_cost=0.01
         )
 

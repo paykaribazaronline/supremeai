@@ -4,6 +4,22 @@ ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 if ROOT not in sys.path:
     sys.path.insert(0, ROOT)
 os.environ.setdefault("OPENROUTER_API_KEY", "mock-key-value")
+
+# Mock Google Auth credentials globally during tests
+try:
+    import google.auth
+    from unittest.mock import MagicMock
+    class MockCredentials:
+        def __init__(self, *args, **kwargs):
+            self.valid = True
+        def refresh(self, request):
+            pass
+        def before_request(self, *args, **kwargs):
+            pass
+    mock_creds = MagicMock(spec=MockCredentials)
+    google.auth.default = lambda *args, **kwargs: (mock_creds, "mock-project-id")
+except ImportError:
+    pass
 import pytest
 from core.rbac import RoleBasedAccessControl
 

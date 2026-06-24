@@ -18,7 +18,11 @@ class AdminGodLayer:
         # db_path is ignored for Firestore, kept for backward compatibility
         self.collection_name = "constitutional_rules"
         self._db = None
-        if firestore:
+        self.local_rules = {}
+        import os
+        import sys
+        is_test = "pytest" in sys.modules or os.getenv("ENV") == "test"
+        if firestore and not is_test:
             try:
                 # Firestore client auto-detects Cloud Run service account
                 self._db = firestore.Client()
@@ -26,7 +30,7 @@ class AdminGodLayer:
             except Exception as e:
                 logger.warning(f"Failed to initialize Firestore for AdminGodLayer: {e}")
         else:
-            logger.warning("google-cloud-firestore not installed. AdminGodLayer disabled.")
+            logger.warning("google-cloud-firestore not installed or in test mode. AdminGodLayer using local fallback.")
 
     def _init_db(self):
         if not self._db: return
@@ -38,8 +42,11 @@ class AdminGodLayer:
         except Exception as e:
             logger.error(f"Error initializing AdminGodLayer DB: {e}")
 
+
+
     def get_rule(self, key: str, default: Optional[str] = None) -> Optional[str]:
-        if not self._db: return default
+        if not self._db:
+            return self.local_rules.get(key, default)
         try:
             doc_ref = self._db.collection(self.collection_name).document(key)
             doc = doc_ref.get()
@@ -51,7 +58,9 @@ class AdminGodLayer:
             return default
 
     def set_rule(self, key: str, value: str) -> None:
-        if not self._db: return
+        if not self._db:
+            self.local_rules[key] = value
+            return
         try:
             doc_ref = self._db.collection(self.collection_name).document(key)
             doc_ref.set({

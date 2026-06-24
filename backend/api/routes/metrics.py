@@ -5,7 +5,10 @@ from loguru import logger
 from typing import Dict, Any
 
 from core.config import settings
-from backend.workers.chaos_worker import NightlyChaosAuditor
+try:
+    from backend.workers.chaos_worker import NightlyChaosAuditor
+except ImportError:
+    from workers.chaos_worker import NightlyChaosAuditor
 
 router = APIRouter(prefix="/api/admin/metrics", tags=["infrastructure-metrics"])
 auditor = NightlyChaosAuditor()

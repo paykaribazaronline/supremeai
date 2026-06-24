@@ -5,8 +5,18 @@ from loguru import logger
 from datetime import datetime, timezone
 
 # আমাদের হার্ডেনড স্যান্ডবক্স গেটকিপার ইম্পোর্ট
-from backend.tools.fuzz_sandbox import run_sandbox_ast_check, SecurityError
-from backend.core.tenant_db import TenantAwareFirestore
+try:
+    from fuzz_sandbox import run_sandbox_ast_check, SecurityError
+    from backend.core.tenant_db import TenantAwareFirestore
+except ImportError:
+    try:
+        from backend.tools.fuzz_sandbox import run_sandbox_ast_check, SecurityError
+    except ImportError:
+        from tools.fuzz_sandbox import run_sandbox_ast_check, SecurityError
+    try:
+        from backend.core.tenant_db import TenantAwareFirestore
+    except ImportError:
+        from core.tenant_db import TenantAwareFirestore
 
 class AutoSkillCreator:
     """
