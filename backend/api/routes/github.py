@@ -1,8 +1,9 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
 from typing import List, Optional
 from tools.github_agent import GitHubAgent
 from tools.repo_discovery_agent import RepoDiscoveryAgent
+from backend.api.dependencies import get_tenant_db
 
 router = APIRouter(prefix="/github", tags=["github"])
 github_agent = GitHubAgent()
@@ -35,20 +36,26 @@ class ImplementRequest(BaseModel):
     target_project: str
 
 @router.post("/connect")
-async def connect_repo(payload: ConnectRequest):
+async def connect_repo(payload: ConnectRequest, db=Depends(get_tenant_db)):
     try:
         inst_id = payload.installation_id if payload.installation_id is not None else ""
         github_agent.connect_repo(payload.repo_owner, payload.repo_name, inst_id)
+        # ট্যানান্টের প্রোফাইলে গিটহাব রেপো কানেকশন সেভ করা হচ্ছে
+        tenant_ref = db.tenant_root
+        tenant_ref.set({"github_repo": f"{payload.repo_owner}/{payload.repo_name}"}, merge=True)
         return {"status": "success", "message": f"Connected to {payload.repo_owner}/{payload.repo_name}"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/improve")
-async def improve_repo(payload: ImproveRequest):
+async def improve_repo(payload: ImproveRequest, db=Depends(get_tenant_db)):
     try:
         repo = payload.repo
         if not repo or repo.lower().strip() == "dummy/repo":
-            raise HTTPException(status_code=400, detail="Repository name cannot be empty or 'dummy/repo'")
+            profile = db.get_tenant_profile() or {}
+            repo = profile.get("github_repo")
+        if not repo:
+            raise HTTPException(status_code=400, detail="Repository not connected. Please connect your GitHub repository.")
         analysis = github_agent.analyze_repo(repo)
         return {"status": "success", "analysis": analysis}
     except HTTPException:
@@ -57,11 +64,14 @@ async def improve_repo(payload: ImproveRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/push")
-async def push_improvements(payload: PushRequest):
+async def push_improvements(payload: PushRequest, db=Depends(get_tenant_db)):
     try:
         repo = payload.repo
         if not repo or repo.lower().strip() == "dummy/repo":
-            raise HTTPException(status_code=400, detail="Repository name cannot be empty or 'dummy/repo'")
+            profile = db.get_tenant_profile() or {}
+            repo = profile.get("github_repo")
+        if not repo:
+            raise HTTPException(status_code=400, detail="Repository not connected. Please connect your GitHub repository.")
         # Enforce PR governance via agent
         improvements = {f: "Optimized" for f in payload.files_changed}
         res = github_agent.create_improvement_pr(repo, improvements, payload.branch)
