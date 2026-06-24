@@ -1,24 +1,14 @@
 import os
 import time
-from backend.evolution.fitness_engine import FitnessEngine
+from evolution.fitness_engine import FitnessEngine
 from typing import Optional, Any
 from loguru import logger
 from datetime import datetime, timezone
 from skills.installer import SkillInstaller
 
 # আমাদের হার্ডেনড স্যান্ডবক্স গেটকিপার ইম্পোর্ট
-try:
-    from fuzz_sandbox import run_sandbox_ast_check, SecurityError
-    from backend.core.tenant_db import TenantAwareFirestore
-except ImportError:
-    try:
-        from backend.tools.fuzz_sandbox import run_sandbox_ast_check, SecurityError
-    except ImportError:
-        from tools.fuzz_sandbox import run_sandbox_ast_check, SecurityError
-    try:
-        from backend.core.tenant_db import TenantAwareFirestore
-    except ImportError:
-        from core.tenant_db import TenantAwareFirestore
+from tools.fuzz_sandbox import run_sandbox_ast_check, SecurityError
+from core.tenant_db import TenantAwareFirestore
 
 class AutoSkillCreator:
     """

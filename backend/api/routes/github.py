@@ -3,7 +3,7 @@ from pydantic import BaseModel
 from typing import List, Optional
 from tools.github_agent import GitHubAgent
 from tools.repo_discovery_agent import RepoDiscoveryAgent
-from backend.api.dependencies import get_tenant_db
+from api.dependencies import get_tenant_db
 
 router = APIRouter(prefix="/github", tags=["github"])
 github_agent = GitHubAgent()

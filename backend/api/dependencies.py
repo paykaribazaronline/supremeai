@@ -1,7 +1,7 @@
 # backend/api/dependencies.py
 from fastapi import Depends, Request, HTTPException
-from backend.core.security import verify_token
-from backend.core.tenant_db import TenantAwareFirestore
+from core.security import verify_token
+from core.tenant_db import TenantAwareFirestore
 from loguru import logger
 
 def get_current_user_token(request: Request) -> dict:

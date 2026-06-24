@@ -1,7 +1,7 @@
 import pytest
 import json
 from unittest.mock import MagicMock, patch
-from backend.evolution.auto_skill_creator import AutoSkillCreator
+from evolution.auto_skill_creator import AutoSkillCreator
 from skills.installer import SkillInstaller
 from skills.registry import SkillRegistry
 from skill_loader import SkillLoader

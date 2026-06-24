@@ -1,9 +1,6 @@
 from fastapi import Request
 from starlette.middleware.base import BaseHTTPMiddleware
-try:
-    from backend.core.security import verify_token
-except ImportError:
-    from core.security import verify_token
+from core.security import verify_token
 from loguru import logger
 import os
 import sys

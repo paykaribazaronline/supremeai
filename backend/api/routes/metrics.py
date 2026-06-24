@@ -10,10 +10,7 @@ except ImportError:
     HAS_FIRESTORE = False
 
 from core.config import settings
-try:
-    from backend.workers.chaos_worker import NightlyChaosAuditor
-except ImportError:
-    from workers.chaos_worker import NightlyChaosAuditor
+from workers.chaos_worker import NightlyChaosAuditor
 
 router = APIRouter(prefix="/api/admin/metrics", tags=["infrastructure-metrics"])
 auditor = NightlyChaosAuditor()

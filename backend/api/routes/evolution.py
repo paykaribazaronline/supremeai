@@ -5,10 +5,10 @@ from loguru import logger
 from jose import jwt
 from typing import Optional
 from core.config import settings
-from backend.evolution.auto_skill_creator import AutoSkillCreator
-from backend.evolution.fitness_engine import FitnessEngine
-from backend.api.dependencies import get_tenant_db
-from backend.core.tenant_db import TenantAwareFirestore
+from evolution.auto_skill_creator import AutoSkillCreator
+from evolution.fitness_engine import FitnessEngine
+from api.dependencies import get_tenant_db
+from core.tenant_db import TenantAwareFirestore
 import os
 import json
 import secrets

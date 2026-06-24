@@ -11,7 +11,7 @@ import asyncio
 import subprocess
 from loguru import logger
 from api.routes.admin_dashboard import require_admin_token
-from backend.core.orchestrator import skill_graph
+from core.orchestrator import skill_graph
 
 router = APIRouter(prefix="/marketplace", tags=["marketplace"])
 

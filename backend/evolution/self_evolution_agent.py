@@ -21,8 +21,8 @@ class SelfEvolutionAgent:
         min_runs_before_action: int = 5,
         max_consecutive_penalties: int = 3,
     ) -> None:
-        from backend.evolution.fitness_engine import FitnessEngine
-        from backend.evolution.auto_skill_creator import AutoSkillCreator
+        from evolution.fitness_engine import FitnessEngine
+        from evolution.auto_skill_creator import AutoSkillCreator
 
         self.fitness_engine = fitness_engine or FitnessEngine()
         self.auto_skill_creator = auto_skill_creator or AutoSkillCreator()

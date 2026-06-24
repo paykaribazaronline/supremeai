@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import StreamingResponse
 import google.generativeai as genai
 from pydantic import BaseModel
-from backend.api.dependencies import get_tenant_db
+from api.dependencies import get_tenant_db
 from loguru import logger
 
 router = APIRouter(prefix="/api/chat", tags=["AI-Orchestration"])

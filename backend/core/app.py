@@ -70,7 +70,7 @@ import sentry_sdk
 import secrets
 
 # Import orchestrator
-from backend.core.orchestrator import Orchestrator, router as orchestrator_router
+from core.orchestrator import Orchestrator, router as orchestrator_router
 
 setup_tracing()
 
@@ -848,7 +848,7 @@ except Exception as _e:
     logger.warning(f"onboarding API router not loaded: {_e}")
 
 try:
-    from backend.api.routes.evolution import router as evolution_router
+    from api.routes.evolution import router as evolution_router
     app.include_router(evolution_router)
 except Exception as _e:
     logger.warning(f"evolution API router not loaded: {_e}")
