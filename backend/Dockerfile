@@ -79,11 +79,14 @@ COPY --from=builder /app/.venv /app/.venv
 COPY --from=builder /root/.EasyOCR /root/.EasyOCR
 
 # Copy application code (respects .dockerignore)
-COPY . .
+COPY . /app/backend
 
 ENV PATH="/app/.venv/bin:$PATH"
+ENV PYTHONPATH="/app"
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONDONTWRITEBYTECODE=1
+
+WORKDIR /app/backend
 
 # Healthcheck
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
