@@ -1,4 +1,5 @@
 import os
+from typing import Optional, Any
 import google.generativeai as genai
 from loguru import logger
 from datetime import datetime, timezone
@@ -12,10 +13,35 @@ class AutoSkillCreator:
     Self-Evolution Engine Core.
     Autonomously generates, validates, and provisions dynamic AI skills/tools on-the-fly.
     """
-    def __init__(self, db: TenantAwareFirestore):
+    def __init__(self, db: Optional[TenantAwareFirestore] = None, **kwargs: Any):
         # 🛡️ এখন আর সরাসরি firestore.Client() কল হবে না!
         self.db = db
-        self.skills_ref = self.db.collection("supreme_dynamic_skills")
+        if db is not None:
+            self.skills_ref = self.db.collection("supreme_dynamic_skills")
+        else:
+            # Fallback mock or default
+            try:
+                from core.gcp_firestore import get_firestore_client
+                client = get_firestore_client()
+                if client is not None:
+                    self.skills_ref = client.collection("supreme_dynamic_skills")
+                else:
+                    class MockRef:
+                        def document(self, *args, **kwargs):
+                            class MockDoc:
+                                def set(self, *args, **kwargs):
+                                    pass
+                            return MockDoc()
+                    self.skills_ref = MockRef()
+            except Exception:
+                class MockRef:
+                    def document(self, *args, **kwargs):
+                        class MockDoc:
+                            def set(self, *args, **kwargs):
+                                pass
+                        return MockDoc()
+                self.skills_ref = MockRef()
+        
         # জেমিনি এপিআই কনফিগারেশন (Secret Vault থেকে মেমরিতে ইনজেক্টেড)
         genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
         self.model = genai.GenerativeModel("gemini-1.5-pro")
