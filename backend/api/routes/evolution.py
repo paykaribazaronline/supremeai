@@ -3,6 +3,7 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel, Field
 from loguru import logger
 from jose import jwt
+from typing import Optional
 from core.config import settings
 from backend.evolution.auto_skill_creator import AutoSkillCreator
 from backend.evolution.fitness_engine import FitnessEngine
@@ -12,6 +13,7 @@ import os
 import json
 import secrets
 import shutil
+import time
 from pathlib import Path
 
 router = APIRouter(prefix="/api/evolution", tags=["self-evolution-engine"])
