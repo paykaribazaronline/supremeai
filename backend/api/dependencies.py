@@ -6,6 +6,7 @@ from loguru import logger
 
 def get_current_user_token(request: Request) -> dict:
     import sys
+    import os
     is_test = "pytest" in sys.modules or os.getenv("ENV") == "test"
     if is_test:
         return {"sub": "admin@supremeai.com", "role": "admin"}

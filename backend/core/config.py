@@ -35,7 +35,7 @@ class Settings(BaseSettings):
         "https://supremeai-admin.firebaseapp.com",
     ]
 
-    jwt_secret: str | None = Field(default=None, env="SUPREMEAI_JWT_SECRET")
+    jwt_secret: str | None = Field(default=None, validation_alias="SUPREMEAI_JWT_SECRET")
     
     # ⚡ ডাইনামিকলি সরাসরি ক্লাউড মেমরি থেকে সিক্রেট রিড করা হচ্ছে
     # ডিস্কে কোনো .env ফাইল না থাকলেও প্রোডাকশন এপিআই ১০০% স্মুথলি চলবে

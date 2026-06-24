@@ -2,6 +2,7 @@ import os
 import json
 from typing import Dict, Any, List, Optional
 from loguru import logger
+from database.supabase_client import db
 
 
 
