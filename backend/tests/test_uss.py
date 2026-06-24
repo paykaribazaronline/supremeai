@@ -1,6 +1,4 @@
 import pytest
-import os
-import shutil
 from skills.schema import UniversalSkillSchema
 from skills.installer import SkillInstaller
 from skills.registry import SkillRegistry

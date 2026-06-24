@@ -1,7 +1,4 @@
 import pytest
-import os
-import json
-import shutil
 from backend.evolution.fitness_engine import FitnessEngine
 from skills.registry import SkillRegistry
 

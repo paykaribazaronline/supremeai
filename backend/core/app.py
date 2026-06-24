@@ -63,7 +63,7 @@ from core.observability_middleware import ObservabilityMiddleware
 from core.rate_limiter import RateLimitMiddleware
 from middleware.idempotency import IdempotencyMiddleware
 from core.honeypot_middleware import HoneypotMiddleware
-from core.telemetry import tracer, setup_tracing
+from core.telemetry import setup_tracing
 from core.upstash_redis_queue import UpstashRedisQueue
 from loguru import logger
 import sentry_sdk

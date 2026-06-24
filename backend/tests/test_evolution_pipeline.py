@@ -1,7 +1,5 @@
 import pytest
 import json
-import os
-import shutil
 from unittest.mock import MagicMock, patch
 from backend.evolution.auto_skill_creator import AutoSkillCreator
 from skills.installer import SkillInstaller

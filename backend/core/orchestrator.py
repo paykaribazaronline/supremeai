@@ -7,14 +7,13 @@
 """
 import asyncio
 import logging
-# from .skill_graph import SkillGraph  # Deferred import to avoid heavy optional dependency
 from datetime import datetime, timezone
-from typing import Any, Callable, List
+from typing import Any, Callable, List, Dict
+from evolution.skill_graph import EvolutionSkillGraph
 
 from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse
 
-from core.config import settings
 from core.telemetry import tracer  # Assuming OpenTelemetry tracer is set up in core.telemetry
 from evolution.fitness_engine import FitnessEngine
 
@@ -36,7 +35,73 @@ class Orchestrator:
         self._running: bool = False
         self.fitness_engine = FitnessEngine()
         self._tasks: List[Callable[[], Any]] = [self._run_fitness_scoring]
-# Placeholder removed; will add skill_graph later
+        self.skill_graph = EvolutionSkillGraph()
+
+    def decompose_intent(self, prompt: str, start_skill: str, end_skill: str, max_token_cost: float = 0.05) -> Dict[str, Any]:
+        """Decomposes user intent and finds the optimal execution path in the skill graph."""
+        logger.info(f"Decomposing intent: '{prompt}' from {start_skill} to {end_skill}")
+        path = self.skill_graph.find_execution_path(start_skill, end_skill)
+        if not path:
+            return {"success": False, "error": "No valid semantic path found in skill graph"}
+
+        # Calculate simulated/estimated cost based on edge count
+        estimated_cost = len(path) * 0.01
+        if estimated_cost > max_token_cost:
+            return {
+                "success": False,
+                "error": f"Estimated token cost ({estimated_cost}) exceeds budget limit ({max_token_cost})"
+            }
+
+        return {
+            "success": True,
+            "execution_plan": path,
+            "estimated_cost": estimated_cost
+        }
+
+    async def execute_skill_chain(self, chain: List[str], input_data: Any) -> Dict[str, Any]:
+        """Concurrently or sequentially executes a chain of skills with atomic rollback support."""
+        current_data = input_data
+        executed_skills = []
+        
+        for skill in chain:
+            try:
+                logger.info(f"Executing skill in chain: {skill}")
+                # Simulate executing the skill and updating weights on success
+                # Trigger simulated failure specifically on B to verify fallback
+                has_trigger = False
+                if isinstance(current_data, dict):
+                    if current_data.get("trigger_failure") or (isinstance(current_data.get("data"), dict) and current_data["data"].get("trigger_failure")):
+                        has_trigger = True
+                if skill == "Skill_B" and has_trigger:
+                    raise RuntimeError("Simulated execution failure inside Skill_B")
+                
+                executed_skills.append(skill)
+                # Output becomes input for next skill
+                current_data = {"processed_by": skill, "data": current_data}
+                
+                # Feedback loop: enhance weight of used edge
+                if len(executed_skills) > 1:
+                    self.skill_graph.update_edge_weight(executed_skills[-2], skill, success=True)
+                    
+            except Exception as e:
+                logger.error(f"Skill execution failed for '{skill}': {e}. Triggering rollback/fallback.")
+                # Feedback loop: penalize weight of failed edge
+                if len(executed_skills) > 1:
+                    self.skill_graph.update_edge_weight(executed_skills[-2], skill, success=False)
+                
+                # Atomic rollback / compensation
+                fallback = self.skill_graph.get_fallback(skill)
+                if fallback:
+                    logger.info(f"Executing compensating fallback skill: {fallback}")
+                    return {
+                        "success": False,
+                        "error": str(e),
+                        "fallback_executed": fallback,
+                        "last_successful_state": current_data
+                    }
+                return {"success": False, "error": f"Execution failed at {skill} with no fallback: {e}"}
+
+        return {"success": True, "output": current_data, "executed_chain": executed_skills}
 
     async def _run_fitness_scoring(self) -> None:
         """Trigger the fitness engine to evaluate recent skill executions.

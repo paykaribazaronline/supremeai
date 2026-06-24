@@ -177,7 +177,6 @@ class AutoSkillCreator:
 
             # Load module from quarantine and execute validation tests
             import importlib.util
-            import sys
             
             # Isolated import to run test validation loop
             spec = importlib.util.spec_from_file_location(f"skills.quarantine.{skill_name}", str(entry_file))
