@@ -48,14 +48,15 @@ def test_task_execute_with_context():
     app_mod.admin_god = fake_admin
     
     # Mock model router
+    from unittest.mock import AsyncMock
     previous_router = app_mod.model_router
     fake_router = MagicMock()
-    fake_router.route_and_generate.return_value = {
+    fake_router.async_route_and_generate = AsyncMock(return_value={
         "success": True,
         "text": "```javascript\nconsole.log('hi');\n```",
         "provider": "gemini",
         "cost": 0.002
-    }
+    })
     app_mod.model_router = fake_router
     
     payload = {
@@ -80,7 +81,7 @@ def test_task_execute_with_context():
         assert res_data["success"] is True
         
         # Verify the router was called with history formatted in context
-        called_prompt = fake_router.route_and_generate.call_args[1]["prompt"]
+        called_prompt = fake_router.async_route_and_generate.call_args[1]["prompt"]
         assert "User: Make a function" in called_prompt
         assert "Assistant: Here is:" in called_prompt
         assert "User: Can you change that code?" in called_prompt

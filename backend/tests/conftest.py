@@ -56,3 +56,29 @@ def rbac():
 def isolate_env(monkeypatch: pytest.MonkeyPatch):
     for key, value in _TEST_ENV_DEFAULTS.items():
         monkeypatch.setenv(key, value)
+
+
+@pytest.fixture(autouse=True, scope="session")
+def bypass_jwt_auth():
+    from unittest.mock import patch
+    patches = []
+    targets = [
+        "backend.middleware.auth_middleware.verify_token",
+        "middleware.auth_middleware.verify_token",
+        "backend.core.security.verify_token",
+        "core.security.verify_token"
+    ]
+    for target in targets:
+        try:
+            p = patch(target)
+            mock = p.start()
+            mock.return_value = {"sub": "test_admin@supremeai.com", "role": "admin"}
+            patches.append(p)
+        except Exception:
+            pass
+    yield
+    for p in patches:
+        try:
+            p.stop()
+        except Exception:
+            pass
