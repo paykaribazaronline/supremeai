@@ -219,10 +219,31 @@ async def app_lifespan(app: FastAPI):
         logger.info("PgBouncer connection pool initialized on startup")
     except Exception as e:
         logger.warning(f"PgBouncer pool initialization deferred: {e}")
+
+    # 🤖 Discord Bot running as a background task in lifespan
+    try:
+        from core.discord_bot import SupremeDiscordBot
+        if settings.discord_bot_token and settings.discord_bot_token != "mock_token":
+            bot = SupremeDiscordBot()
+            import asyncio
+            app.state.discord_bot_task = asyncio.create_task(bot.start(settings.discord_bot_token))
+            app.state.discord_bot = bot
+            logger.info("🤖 Discord Bot background task initialized successfully.")
+    except Exception as e:
+        logger.warning(f"Deferred Discord Bot initialization: {e}")
         
     yield  # ----------------- এখানে অ্যাপ্লিকেশন ট্রাফিক রিসিভ করবে -----------------
     
     logger.critical("🚨 Graceful Shutdown Sequence triggered via Cloud Run Orchestrator.")
+
+    # Clean up Discord Bot
+    try:
+        bot = getattr(app.state, "discord_bot", None)
+        if bot:
+            await bot.close()
+            logger.info("✅ Discord Bot connection closed successfully.")
+    except Exception as e:
+        logger.error(f"Error closing Discord Bot: {e}")
     
     # ২. গ্লোবাল HTTP ক্লায়েন্ট কানেকশন পুল রিলিজ
     try:

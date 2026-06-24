@@ -51,6 +51,7 @@ class Settings(BaseSettings):
     groq_api_key: str = secret_vault.fetch_secret("GROQ_API_KEY", "")
     nvidia_api_key: str = secret_vault.fetch_secret("NVIDIA_API_KEY", "")
     firecrawl_api_key: str = secret_vault.fetch_secret("FIRECRAWL_API_KEY", "")
+    discord_bot_token: str = secret_vault.fetch_secret("DISCORD_BOT_TOKEN", "")
 
     claude_openrouter_model: str = "anthropic/claude-3.5-haiku:free"
 

@@ -1,8 +1,10 @@
 import os
 import discord
+import anyio
 from discord.ext import commands
 from loguru import logger
 from brain.langgraph_agent import SupremeOrchestrator
+from core.config import settings
 
 class SupremeDiscordBot(commands.Bot):
     def __init__(self, orchestrator: SupremeOrchestrator = None):
@@ -28,7 +30,10 @@ class SupremeDiscordBot(commands.Bot):
         
         async with message.channel.typing():
             try:
-                result = self.orchestrator.execute_task(message.content, task_type)
+                # CPU-bound task offloaded to non-blocking worker thread
+                result = await anyio.to_thread.run_sync(
+                    self.orchestrator.execute_task, message.content, task_type
+                )
                 response = result.get("result", "Sorry, I encountered an error.")
                 if len(response) > 2000:
                     for i in range(0, len(response), 2000):
@@ -40,7 +45,7 @@ class SupremeDiscordBot(commands.Bot):
                 await message.channel.send("Error executing request.")
 
 def run_discord_bot():
-    token = os.getenv("DISCORD_BOT_TOKEN")
+    token = settings.discord_bot_token
     if not token or token == "mock_token":
         logger.warning("DISCORD_BOT_TOKEN not set, skipping Discord bot startup.")
         return
