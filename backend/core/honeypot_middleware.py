@@ -108,7 +108,10 @@ class HoneypotMiddleware:
             return
 
         # নরমাল ইউজার হলে রেগুলার ফ্লো
-        await self.app(scope, new_receive, send)
+        if scope.get("method") in ("POST", "PUT", "PATCH"):
+            await self.app(scope, new_receive, send)
+        else:
+            await self.app(scope, receive, send)
 
     def _log_threat_intelligence(self, ip: str, payload: str, endpoint: str):
         logger.info(f"Threat studied and recorded for IP {ip}")
