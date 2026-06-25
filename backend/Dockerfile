@@ -13,7 +13,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     libpq-dev \
     curl \
-    && rm -rf /var/lib/apt/lists/*
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/* /var/cache/apt/*
 
 RUN pip install --no-cache-dir poetry && poetry config virtualenvs.in-project true
 
@@ -72,7 +73,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libpq5 \
     libglib2.0-0 \
     libgl1 \
-    && rm -rf /var/lib/apt/lists/*
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/* /var/cache/apt/*
 
 # Copy only what's needed from builder
 COPY --from=builder /app/.venv /app/.venv

@@ -122,17 +122,6 @@ class SupabaseDB:
             logger.error(f"Failed to upsert preferences: {e}")
             return None
 
-    def get_config(self, key: str) -> Optional[Any]:
-        if not self.client: return None
-        try:
-            res = self.client.table("system_config").select("value").eq("key", key).execute()
-            if res.data:
-                return res.data[0].get("value")
-            return None
-        except Exception as e:
-            logger.error(f"Failed to fetch config '{key}': {e}")
-            return None
-
     def get_configs_by_category(self, category: str) -> list[dict]:
         if not self.client: return []
         try:

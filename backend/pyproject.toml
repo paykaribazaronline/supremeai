@@ -68,6 +68,7 @@ qdrant-client = "^1.9.0"
 # ── Optional tools: browser, cloud, analytics (~500 MB) ──
 # Install with: poetry install --with tools
 playwright = "^1.60.0"
+playwright-stealth = "^1.0.0"
 pandas = "^2.2.0"
 openpyxl = "^3.1.0"
 matplotlib = "^3.8.0"
