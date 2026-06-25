@@ -84,16 +84,20 @@ class PreCommitAI:
             if not os.path.exists(filepath):
                 continue
             ext = os.path.splitext(filepath)[1].lower()
+            original_content = ""
+            try:
+                with open(filepath, "r", encoding="utf-8", errors="ignore") as f:
+                    original_content = f.read()
+            except Exception:
+                continue # Skip binary files that can't be read
+
+            new_content = original_content
             content_changed = False
 
             try:
+                # Python-specific fixes
                 if ext == ".py":
-                    with open(filepath, "r", encoding="utf-8", errors="ignore") as f:
-                        original_content = f.read()
-                    
-                    new_content = original_content
-
-                    if self.isort_available:
+                    if self.isort_available and self.AUTO_FIX_RULES.get("import_sort"):
                         import isort
                         sorted_content = isort.code(new_content)
                         if sorted_content != new_content:
@@ -108,10 +112,25 @@ class PreCommitAI:
                             new_content = formatted_content
                             fixes_applied.append({"file": filepath, "action": "black"})
                             content_changed = True
+                
+                # Generic fixes for all file types
+                if self.AUTO_FIX_RULES.get("trailing_whitespace"):
+                    # Use a regex to remove trailing whitespace from each line
+                    processed_content = re.sub(r'[ \t]+$', '', new_content, flags=re.MULTILINE)
+                    if processed_content != new_content:
+                        new_content = processed_content
+                        fixes_applied.append({"file": filepath, "action": "trim_trailing_whitespace"})
+                        content_changed = True
 
-                    if content_changed:
-                        with open(filepath, "w", encoding="utf-8") as f:
-                            f.write(new_content)
+                if self.AUTO_FIX_RULES.get("end_of_file_newline"):
+                    if not new_content.endswith('\n'):
+                        new_content += '\n'
+                        fixes_applied.append({"file": filepath, "action": "add_final_newline"})
+                        content_changed = True
+
+                if content_changed:
+                    with open(filepath, "w", encoding="utf-8") as f:
+                        f.write(new_content)
 
             except Exception as exc:
                 logger.debug(f"Auto-fix failed for {filepath}: {exc}")
