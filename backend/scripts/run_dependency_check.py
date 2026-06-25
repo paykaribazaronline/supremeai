@@ -30,6 +30,14 @@ async def main():
     else:
         logger.info("No outdated pip packages found.")
 
+    pip_vuln_results = agent.check_pip_vulnerabilities()
+    if pip_vuln_results.get("success") and pip_vuln_results.get("count", 0) > 0:
+        logger.warning(f"Found {pip_vuln_results['count']} vulnerabilities in pip packages.")
+        print("--- Pip Package Vulnerabilities (pip-audit) ---")
+        print(json.dumps(pip_vuln_results['vulnerabilities'], indent=2))
+    else:
+        logger.info("No vulnerabilities found in pip packages.")
+
     # --- Node.js (npm) dependencies ---
     # Assuming your frontend is in a directory like 'frontend'
     frontend_path = "./apps/studio-client" # Adjust if necessary
@@ -41,6 +49,13 @@ async def main():
             print(json.dumps(npm_results['outdated_packages'], indent=2))
         else:
             logger.info("No outdated npm packages found.")
+
+        npm_vuln_results = agent.check_npm_vulnerabilities(project_path=frontend_path)
+        if npm_vuln_results.get("success") and npm_vuln_results.get("audit_results"):
+            summary = npm_vuln_results["audit_results"].get("metadata", {}).get("vulnerabilities", {})
+            logger.warning(f"NPM audit found vulnerabilities: {summary}")
+            print("--- NPM Package Vulnerabilities (npm audit) ---")
+            print(json.dumps(npm_vuln_results['audit_results'], indent=2))
 
     logger.info("Dependency analysis complete.")
 

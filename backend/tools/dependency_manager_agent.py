@@ -1,6 +1,7 @@
 import subprocess
 import json
 from typing import Dict, Any, List
+import time
 from loguru import logger
 
 class DependencyManagerAgent:
@@ -19,23 +20,29 @@ class DependencyManagerAgent:
         except ImportError:
             self.pr_pipeline = None
 
-    def _run_command(self, command: List[str]) -> Dict[str, Any]:
+    def _run_command(self, command: List[str], check_exit_code: bool = True) -> Dict[str, Any]:
         """Runs a command and returns its JSON output."""
         try:
             result = subprocess.run(
                 command,
                 capture_output=True,
                 text=True,
-                check=True,
+                check=check_exit_code,
             )
-            return json.loads(result.stdout)
+            # For commands that return non-zero on success with findings (like npm audit)
+            # we might get here with check_exit_code=False. The output could be on stdout or stderr.
+            output_to_parse = result.stdout if result.stdout.strip() else result.stderr
+            if not output_to_parse.strip():
+                return {} # No output to parse, return empty dict
+
+            return json.loads(output_to_parse)
         except FileNotFoundError:
             logger.error(f"Command not found: {command[0]}. Is it installed?")
             return {"error": f"{command[0]} not found."}
         except subprocess.CalledProcessError as e:
             logger.error(f"Command failed: {e.stderr}")
             return {"error": e.stderr}
-        except json.JSONDecodeError:
+        except json.JSONDecodeError as e:
             logger.error("Failed to parse command output as JSON.")
             return {"error": "Invalid JSON output."}
         except Exception as e:
@@ -80,6 +87,42 @@ class DependencyManagerAgent:
             "count": len(outdated_data),
             "recommendation": "Run 'pip install --upgrade <package>' for each outdated package."
         }
+
+    def check_pip_vulnerabilities(self) -> Dict[str, Any]:
+        """
+        Scans for vulnerabilities in pip packages using pip-audit.
+        """
+        logger.info("Scanning pip dependencies for vulnerabilities with pip-audit...")
+        # Requires `pip install pip-audit`
+        vuln_command = ["pip-audit", "--format", "json"]
+        
+        # pip-audit exits with 1 if vulnerabilities are found, so we don't check exit code
+        vuln_data = self._run_command(vuln_command, check_exit_code=False)
+
+        if "error" in vuln_data:
+            return {"success": False, "error": vuln_data["error"]}
+
+        return {
+            "success": True,
+            "vulnerabilities": vuln_data.get("vulnerabilities", []),
+            "count": len(vuln_data.get("vulnerabilities", [])),
+        }
+
+    def check_npm_vulnerabilities(self, project_path: str) -> Dict[str, Any]:
+        """
+        Scans for vulnerabilities in npm packages using npm audit.
+        """
+        logger.info(f"Scanning npm dependencies for vulnerabilities in {project_path}")
+        vuln_command = ["npm", "audit", "--json", "--prefix", project_path]
+        
+        # npm audit exits with 1 if vulnerabilities are found
+        vuln_data = self._run_command(vuln_command, check_exit_code=False)
+
+        if "error" in vuln_data:
+            return {"success": False, "error": vuln_data["error"]}
+
+        # The summary is in the 'metadata' or 'summary' field
+        return {"success": True, "audit_results": vuln_data}
 
     async def auto_update_and_pr(self, repo_path: str, package_name: str, package_manager: str = "pip"):
         """Automates updating a dependency and creating a PR."""
