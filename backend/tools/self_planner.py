@@ -119,11 +119,22 @@ class SelfPlanner:
                     task_id, task_res = res
                     execution_results[task_id] = task_res
                     dag.nodes[task_id]["status"] = "completed"
-                    
+
+        # After all batches are complete, decide the next step automatically.
+        final_summary = "Completed all tasks. " + json.dumps(execution_results)
+        logger.info(f"Plan execution finished for objective. Summary: {final_summary[:200]}")
+
+        # Automatically generate and start the next plan based on the outcome.
+        next_objective = f"Based on the successful completion of the previous plan ({final_summary[:150]}...), determine the next logical step to achieve the overall goal."
+        logger.info(f"Automatically planning next step with objective: {next_objective}")
+        next_dag = await self.generate_plan(next_objective)
+        asyncio.create_task(self.parallel_agent_executor(next_dag))
+
         return {
             "status": "completed",
             "batches_executed": len(batches),
-            "results": execution_results
+            "results": execution_results,
+            "next_plan_started": True
         }
 
 planner = SelfPlanner()

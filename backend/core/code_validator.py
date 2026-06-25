@@ -111,7 +111,15 @@ class AICodeValidator:
             return False
 
     def _auto_fix(self, code: str) -> str:
-        # Simple auto-fix placeholder or basic indent correction
+        # Simple auto-fix for missing colons in function and class definitions
+        lines = code.split('\n')
+        fixed_lines = []
+        for line in lines:
+            stripped_line = line.strip()
+            if (stripped_line.startswith("def ") or stripped_line.startswith("class ")) and not stripped_line.endswith(":"):
+                line += ":"
+            fixed_lines.append(line)
+        code = "\n".join(fixed_lines)
         return code
 
 
@@ -167,4 +175,3 @@ class CodeValidator:
                 return {"is_valid": False, "reason": f"Invalid or disallowed URL: {url}"}
 
         return {"is_valid": True}
-

@@ -6,6 +6,7 @@ Fulfills SK-0065 in autonomous_seed_knowledge.json.
 """
 
 import subprocess
+import sqlite3
 import re
 import json
 import uuid
@@ -17,6 +18,24 @@ try:
 except ImportError:
     _feedback = None
 
+DB_PATH = "data/git_knowledge.db"
+
+def init_db():
+    """Initializes the SQLite database and table."""
+    with sqlite3.connect(DB_PATH) as conn:
+        cursor = conn.cursor()
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS git_fixes (
+                id TEXT PRIMARY KEY,
+                commit_hash TEXT,
+                subject TEXT,
+                body TEXT,
+                files_changed TEXT,
+                timestamp INTEGER
+            )
+        ''')
+        conn.commit()
+
 def run_git(args):
     try:
         return subprocess.check_output(['git'] + args, stderr=subprocess.STDOUT).decode('utf-8')
@@ -25,6 +44,7 @@ def run_git(args):
         return ""
 
 def extract_knowledge():
+    init_db()
     print("🔍 Analyzing git log for knowledge extraction...")
     # Get last 50 commits with diffs
     logs = run_git(['log', '-n', '50', '--pretty=format:COMMIT:%H%nSUBJECT:%s%nBODY:%b', '-p'])
@@ -62,18 +82,17 @@ def extract_knowledge():
         if any(kw in subject.lower() for kw in fix_keywords):
             print(f"  ✨ Found fix pattern in commit {commit_id[:8]}: {subject}")
             files_changed = re.findall(r'diff --git a/(.*?) b/', diff)
-            
-            knowledge_entries.append({
+
+            entry = {
                 "id": str(uuid.uuid4()),
-                "type": "ERROR",
-                "category": "GIT_EXTRACTED",
-                "content": f"Fix identified in git history: {subject}\n{body.strip()}",
-                "solutions": [f"Apply changes identified in commit {commit_id[:8]}"],
-                "context": {"commit_id": commit_id, "files": files_changed},
-                "timestamp": int(time.time() * 1000),
-                "confidenceScore": 0.85,
-                "resolved": True
-            })
+                "commit_hash": commit_id,
+                "subject": subject,
+                "body": body.strip(),
+                "files_changed": json.dumps(files_changed),
+                "timestamp": int(time.time())
+            }
+            knowledge_entries.append(entry)
+
             if _feedback is not None:
                 try:
                     _feedback.record_edit(
@@ -84,9 +103,11 @@ def extract_knowledge():
                     pass
 
     if knowledge_entries:
-        with open("scripts/tools/.extracted_git_knowledge.json", 'w') as f:
-            json.dump(knowledge_entries, f, indent=2)
-        print(f"✅ Extracted {len(knowledge_entries)} entries to .extracted_git_knowledge.json")
+        with sqlite3.connect(DB_PATH) as conn:
+            cursor = conn.cursor()
+            cursor.executemany("INSERT OR REPLACE INTO git_fixes VALUES (:id, :commit_hash, :subject, :body, :files_changed, :timestamp)", knowledge_entries)
+            conn.commit()
+        print(f"✅ Extracted and stored {len(knowledge_entries)} entries into {DB_PATH}")
 
 if __name__ == "__main__":
     extract_knowledge()

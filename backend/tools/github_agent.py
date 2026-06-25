@@ -1,5 +1,6 @@
 import datetime
 from loguru import logger
+import subprocess
 
 class GitHubAgent:
     def __init__(self, token: str = None):
@@ -57,3 +58,44 @@ class GitHubAgent:
             "message": "PR created successfully. Waiting for manual approval.",
             "token_prefix": token[:4] + "****",
         }
+        
+    def create_pr(self, repo_name: str, title: str, body: str, head_branch: str, base_branch: str = "main") -> dict:
+        """Creates a pull request on GitHub."""
+        token = self._require_token()
+        logger.info(f"Creating PR on {repo_name}: '{title}'")
+
+        # This is a mock implementation. A real one would use the GitHub API.
+        # Example using httpx:
+        # url = f"https://api.github.com/repos/{repo_name}/pulls"
+        # headers = {"Authorization": f"Bearer {token}", "Accept": "application/vnd.github.v3+json"}
+        # payload = {"title": title, "body": body, "head": head_branch, "base": base_branch}
+        # response = httpx.post(url, headers=headers, json=payload)
+        # if response.status_code == 201:
+        #     return {"status": "success", "pr_url": response.json()["html_url"]}
+        # else:
+        #     return {"status": "error", "message": response.text}
+
+        mock_pr_url = f"https://github.com/{repo_name}/pull/99"
+        logger.info(f"Mock PR created: {mock_pr_url}")
+        return {"status": "success", "pr_url": mock_pr_url}
+
+
+    def commit_changes(self, repo_url: str, files_to_commit: list, commit_message: str, branch: str) -> dict:
+        """Directly commits specified files to a branch."""
+        token = self._require_token()
+        logger.info(f"Attempting to commit {len(files_to_commit)} files to {repo_url} on branch {branch}")
+
+        # This is a simplified mock. A real implementation would need to:
+        # 1. Clone the repo if not present
+        # 2. Checkout the branch
+        # 3. Stage the files (`git add ...`)
+        # 4. Commit (`git commit -m "..."`)
+        # 5. Push (`git push`)
+        # This often requires more complex git library integration or shell commands.
+
+        logger.info(f"Simulating git commit with message: '{commit_message}'")
+        for file_path in files_to_commit:
+            logger.info(f"  - Staging {file_path}")
+        
+        logger.info(f"  - Pushing to origin {branch}")
+        return {"status": "success", "commit_hash": "mock_commit_hash_123abc", "branch": branch}

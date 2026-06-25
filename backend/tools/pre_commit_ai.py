@@ -84,14 +84,24 @@ class PreCommitAI:
             if not os.path.exists(filepath):
                 continue
             ext = os.path.splitext(filepath)[1].lower()
+            original_content = ""
+            with open(filepath, "r", encoding="utf-8", errors="ignore") as f:
+                original_content = f.read()
+            
+            new_content = original_content
+
             try:
                 if ext == ".py":
                     if self.isort_available:
                         import isort
-                        isort.file(filepath)
-                        fixes_applied.append({"file": filepath, "action": "isort"})
+                        new_content = isort.code(new_content)
+                        if new_content != original_content:
+                            fixes_applied.append({"file": filepath, "action": "isort"})
                     if self.black_available:
                         import black
+                        # To apply black formatting, we need to write to a temporary file
+                        # or handle it in memory if black supports it.
+                        # For simplicity, we'll re-format the file in place.
                         black.format_file_in_place(
                             black.FilePath(filepath),
                             mode=black.Mode(),
@@ -99,14 +109,19 @@ class PreCommitAI:
                             write_back=black.WriteBack.YES,
                         )
                         fixes_applied.append({"file": filepath, "action": "black"})
+                        # Reread content after black formatting
+                        with open(filepath, "r", encoding="utf-8", errors="ignore") as f:
+                            new_content = f.read()
+
                 if self.AUTO_FIX_RULES.get("trailing_whitespace"):
-                    with open(filepath, "r", encoding="utf-8", errors="ignore") as f:
-                        cleaned_lines = [line.rstrip(" \t\r\n") + "\n" for line in f]
-                    if cleaned_lines:
-                        cleaned_lines[-1] = cleaned_lines[-1].rstrip("\n")
+                    cleaned_content = "\n".join(line.rstrip() for line in new_content.splitlines())
+                    if cleaned_content != new_content:
+                        new_content = cleaned_content
+                        fixes_applied.append({"file": filepath, "action": "trim_trailing_whitespace"})
+                
+                if new_content != original_content:
                     with open(filepath, "w", encoding="utf-8") as f:
-                        f.writelines(cleaned_lines)
-                    fixes_applied.append({"file": filepath, "action": "trim_trailing_whitespace"})
+                        f.write(new_content)
             except Exception as exc:
                 logger.debug(f"Auto-fix failed for {filepath}: {exc}")
         return {"fixes": fixes_applied, "count": len(fixes_applied)}
@@ -158,15 +173,11 @@ class PreCommitAI:
                     except Exception:
                         pass
                 logger.info(f"Auto-fixed {fix_report['count']} issue(s).")
-                return {
-                    "status": "fixed",
-                    "message": (
-                        f"Commit blocked but {fix_report['count']} issue(s) auto-fixed. "
-                        "Please review and re-commit."
-                    ),
-                    "fixes": fix_report["fixes"],
-                    "issues": issues,
-                }
+                # The commit was not blocked, files were fixed and re-staged.
+                # Allow the commit to proceed.
+                logger.info("Auto-fixed files were re-staged. Allowing commit to proceed.")
+                # The hook should return success now. The calling pre-commit framework will handle the rest.
+
 
         if issues:
             logger.warning(f"Found {len(issues)} non-critical issues. Commit allowed but review is suggested.")

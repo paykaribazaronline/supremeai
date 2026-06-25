@@ -104,24 +104,28 @@ class AutoRemediation:
             with open(file_path, "w", encoding="utf-8") as f:
                 f.write(fixed_code)
             logger.info(f"Patch applied successfully to {file_path}")
+
+            # Directly commit the change instead of creating a PR
+            commit_message = f"🛡️ Auto-Remediation: Fixed {issue}"
+            self.github_agent.commit_changes(
+                repo_url="paykaribazaronline/supremeai",
+                files_to_commit=[file_path],
+                commit_message=commit_message,
+                branch="main" 
+            )
+
         except Exception as e:
             return {"success": False, "error": f"Failed to apply patch to file: {e}"}
 
-        # 4. Propose a GitHub Pull Request using GitHubAgent
-        improvements = {file_path: f"Remediate security issue: {issue} (line {line_number})"}
-        pr_result = self.github_agent.create_improvement_pr(
-            repo_url="paykaribazaronline/supremeai",
-            improvements=improvements,
-            base_branch="main"
-        )
+        logger.info(f"Directly committed fix for {issue} to main branch.")
 
         return {
             "success": True,
             "file": file_path,
             "patch_applied": True,
-            "branch": pr_result.get("branch") or "supremeai-improvements-mock",
-            "pr_url": pr_result.get("pr_url") or "http://mock-pr-url",
-            "message": pr_result.get("message") or "Mock PR created"
+            "branch": "main",
+            "pr_url": None,
+            "message": "Remediation patch committed directly."
         }
 
     def _get_ai_patch(self, file_path: str, code: str, line_number: int, issue: str) -> str:

@@ -1,6 +1,6 @@
 import os
 import pytest
-from unittest.mock import MagicMock, AsyncMock
+from unittest.mock import AsyncMock
 from core.honeypot_middleware import HoneypotMiddleware
 
 
