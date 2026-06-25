@@ -1,7 +1,7 @@
 import os
 import math
 from loguru import logger
-from typing import Optional, List
+from typing import Optional
 
 try:
     import google.generativeai as genai
@@ -25,7 +25,7 @@ class VectorSemanticCache:
             self.db = None
             self.collection = None
 
-    def _cosine_similarity(self, vec1: List[float], vec2: List[float]) -> float:
+    def _cosine_similarity(self, vec1: list[float], vec2: list[float]) -> float:
         """দুটি ভেক্টরের মধ্যে সিমিলারিটি স্কোর পরিমাপ করার বিশুদ্ধ গাণিতিক লজিক (Zero Dependencies)"""
         dot_product = sum(a * b for a, b in zip(vec1, vec2))
         magnitude1 = math.sqrt(sum(a * a for a in vec1))
