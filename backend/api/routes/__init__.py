@@ -93,7 +93,9 @@ except Exception:
 try:
     from .task import router as task_router
     _safe_imports["task_router"] = task_router
-except Exception:
+except Exception as e:
+    import traceback
+    traceback.print_exc()
     task_router = None
 
 try:

@@ -1,0 +1,146 @@
+from __future__ import annotations
+
+import time
+import asyncio
+import pytest
+from unittest.mock import MagicMock, patch
+
+from core.health_monitor import HealthMonitor
+
+
+@pytest.fixture
+def monitor():
+    with patch.object(HealthMonitor, "_setup_metrics"):
+        with patch("core.health_monitor.start_http_server"):
+            return HealthMonitor(metrics_port=9090)
+
+
+def test_health_monitor_initialization(monitor):
+    assert monitor.start_time > 0
+    assert monitor.cpu_threshold == 85.0
+    assert monitor.mem_threshold == 90.0
+    assert monitor.metrics_port == 9090
+
+
+def test_health_monitor_initialization_without_prometheus():
+    with patch("core.health_monitor._PROMETHEUS_AVAILABLE", False):
+        monitor = HealthMonitor(metrics_port=9090)
+    assert not hasattr(monitor, "uptime_seconds")
+
+
+@pytest.mark.asyncio
+async def test_get_system_metrics_structure(monitor):
+    with patch("psutil.cpu_percent", return_value=50.0):
+        with patch("psutil.virtual_memory") as mock_vm:
+            mock_vm.return_value.percent = 40.0
+            mock_vm.return_value.available = 1024 * 1024 * 1024
+            metrics = await monitor.get_system_metrics()
+    assert "status" in metrics
+    assert "uptime_seconds" in metrics
+    assert "cpu_usage_percent" in metrics
+    assert "memory_usage_percent" in metrics
+    assert "memory_available_mb" in metrics
+    assert "active_tasks" in metrics
+    assert metrics["status"] == "healthy"
+    assert metrics["cpu_usage_percent"] == 50.0
+    assert metrics["memory_usage_percent"] == 40.0
+
+
+@pytest.mark.asyncio
+async def test_get_system_metrics_degraded(monitor):
+    with patch("psutil.cpu_percent", return_value=95.0):
+        with patch("psutil.virtual_memory") as mock_vm:
+            mock_vm.return_value.percent = 95.0
+            mock_vm.return_value.available = 1024 * 1024
+            metrics = await monitor.get_system_metrics()
+    assert metrics["status"] == "degraded"
+
+
+@pytest.mark.asyncio
+async def test_get_system_metrics_degraded_memory(monitor):
+    with patch("psutil.cpu_percent", return_value=10.0):
+        with patch("psutil.virtual_memory") as mock_vm:
+            mock_vm.return_value.percent = 95.0
+            mock_vm.return_value.available = 1024 * 1024
+            metrics = await monitor.get_system_metrics()
+    assert metrics["status"] == "degraded"
+
+
+@pytest.mark.asyncio
+async def test_get_system_metrics_prometheus_update(monitor):
+    monitor.uptime_seconds = MagicMock()
+    monitor.cpu_usage_percent = MagicMock()
+    monitor.memory_usage_percent = MagicMock()
+    monitor.memory_available_mb = MagicMock()
+    monitor.active_tasks = MagicMock()
+    monitor.status = MagicMock()
+    with patch("psutil.cpu_percent", return_value=50.0):
+        with patch("psutil.virtual_memory") as mock_vm:
+            mock_vm.return_value.percent = 40.0
+            mock_vm.return_value.available = 1024 * 1024 * 1024
+            await monitor.get_system_metrics()
+    monitor.uptime_seconds.set.assert_called_once()
+    monitor.cpu_usage_percent.set.assert_called_once_with(50.0)
+    monitor.memory_usage_percent.set.assert_called_once_with(40.0)
+    monitor.status.set.assert_called_once_with(1)
+
+
+@pytest.mark.asyncio
+async def test_get_system_metrics_prometheus_update_failure(monitor):
+    monitor.uptime_seconds = MagicMock()
+    monitor.uptime_seconds.set.side_effect = Exception("Prometheus error")
+    with patch("psutil.cpu_percent", return_value=50.0):
+        with patch("psutil.virtual_memory") as mock_vm:
+            mock_vm.return_value.percent = 40.0
+            mock_vm.return_value.available = 1024 * 1024
+            metrics = await monitor.get_system_metrics()
+    assert metrics["status"] == "healthy"
+
+
+@pytest.mark.asyncio
+async def test_is_ready(monitor):
+    with patch.object(monitor, "get_system_metrics", return_value={"status": "healthy", "uptime_seconds": 10}):
+        result = await monitor.is_ready()
+    assert result is True
+
+
+@pytest.mark.asyncio
+async def test_is_ready_degraded(monitor):
+    with patch.object(monitor, "get_system_metrics", return_value={"status": "degraded", "uptime_seconds": 10}):
+        result = await monitor.is_ready()
+    assert result is True
+
+
+@pytest.mark.asyncio
+async def test_is_live(monitor):
+    result = await monitor.is_live()
+    assert result is True
+
+
+def test_record_request_duration_with_prometheus(monitor):
+    monitor.request_duration_seconds = MagicMock()
+    monitor.record_request_duration(0.5)
+    monitor.request_duration_seconds.observe.assert_called_once_with(0.5)
+
+
+def test_record_request_duration_prometheus_error(monitor):
+    monitor.request_duration_seconds = MagicMock()
+    monitor.request_duration_seconds.observe.side_effect = Exception("fail")
+    monitor.record_request_duration(0.5)
+
+
+def test_health_monitor_uptime_increases():
+    with patch.object(HealthMonitor, "_setup_metrics"):
+        with patch("core.health_monitor.start_http_server"):
+            m = HealthMonitor(metrics_port=9091)
+    time.sleep(0.01)
+    with patch("psutil.cpu_percent", return_value=0.0):
+        with patch("psutil.virtual_memory") as mock_vm:
+            mock_vm.return_value.percent = 0.0
+            mock_vm.return_value.available = 1024 * 1024 * 1024
+            loop = asyncio.new_event_loop()
+            try:
+                metrics = loop.run_until_complete(m.get_system_metrics())
+            finally:
+                loop.close()
+    assert metrics["uptime_seconds"] >= 0

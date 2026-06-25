@@ -1,9 +1,18 @@
 import typing
 import json
+import re
+import datetime
+import anyio
 
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException, BackgroundTasks
 from pydantic import BaseModel
 from fastapi.responses import StreamingResponse, JSONResponse
+
+# --- Local Imports ---
+# Moved imports to the top of the file to improve performance by avoiding repeated imports inside functions.
+import core.app as app_mod
+from core.prompt_helpers import format_unified_chat_prompt
+from adaptive_engine.experience_db import Experience
 
 
 router = APIRouter()
@@ -13,6 +22,7 @@ try:
     semantic_cache = VectorSemanticCache()
 except ImportError:
     semantic_cache = None
+
 # --- Agentic Security & Context: Task Request Schema ---
 # Added messages and session_id parameters on 2026-06-21 to prevent context loss.
 class TaskRequest(BaseModel):
@@ -78,7 +88,6 @@ def _build_chat_prompt(req: ChatStreamRequest) -> str:
 
 @router.post("/api/chat/completion", response_model=CompletionResponse)
 async def get_completion(req: CompletionRequest):
-    import core.app as app_mod
     model_router = app_mod.model_router
 
     prompt = _build_completion_prompt(req.prefix, req.suffix)
@@ -105,8 +114,6 @@ async def get_completion(req: CompletionRequest):
 
 @router.post("/api/chat/stream")
 async def stream_chat(req: ChatStreamRequest):
-    import core.app as app_mod
-
     model_router = app_mod.model_router
     prompt = _build_chat_prompt(req)
 
@@ -145,7 +152,7 @@ class ProblemDetailsResponse(JSONResponse):
 
 
 # --- Action Cards Helpers ---
-# Added by Agent Antigravity on 2026-06-21. Formats output as structured action card JSON.
+# Formats output as structured action card JSON.
 def format_chat_history(messages: list[dict]) -> str:
     lines = []
     for msg in messages:
@@ -161,7 +168,6 @@ def format_chat_history(messages: list[dict]) -> str:
         role_label = "User" if role == "user" else "Assistant"
         lines.append(f"{role_label}: {content}")
     return "\n".join(lines)
-
 
 
 def format_response(text: str, task_type: str) -> str:
@@ -199,7 +205,6 @@ def format_response(text: str, task_type: str) -> str:
         }, ensure_ascii=False)
         
     if task_type == "image" or "generate image" in text.lower():
-        import re
         urls = re.findall(r'http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+', text)
         image_url = urls[0] if urls else text
         return json.dumps({
@@ -226,8 +231,7 @@ def format_response(text: str, task_type: str) -> str:
 
 
 @router.post("/task/execute")
-async def execute_task(req: TaskRequest):
-    import core.app as app_mod
+async def execute_task(req: TaskRequest, background_tasks: BackgroundTasks):
     admin_god = app_mod.admin_god
     model_router = app_mod.model_router
     intent_clf = app_mod.intent_clf
@@ -235,13 +239,10 @@ async def execute_task(req: TaskRequest):
     try:
         admin_god.enforce("execute")
     except PermissionError as exc:
-        from fastapi import HTTPException
         raise HTTPException(
             status_code=403,
             detail=str(exc)
         )
-
-    import anyio
 
     # Offload heavy CPU-bound Intent classification to background thread pool
     app_spec = await anyio.to_thread.run_sync(
@@ -256,7 +257,6 @@ async def execute_task(req: TaskRequest):
         task_type = intent.task_type.value if hasattr(intent.task_type, "value") else str(intent.task_type)
 
     # Build prompt context if chat messages are provided
-    from core.prompt_helpers import format_unified_chat_prompt
     prompt = format_unified_chat_prompt(req.task, req.messages)
 
     # --- True Vector Semantic Caching ---
@@ -290,10 +290,7 @@ async def execute_task(req: TaskRequest):
             except Exception:
                 pass
 
-    # Log to ExperienceDatabase
-    from adaptive_engine.experience_db import Experience
-    import datetime
-    
+    # Log to ExperienceDatabase in the background to improve user-perceived latency.
     exp = Experience(
         timestamp=datetime.datetime.now(datetime.timezone.utc).isoformat(),
         user_id=req.session_id or "default-user",
@@ -315,10 +312,7 @@ async def execute_task(req: TaskRequest):
         what_worked=["Intent parsed successfully"] if raw.get("success") else [],
         what_failed=[] if raw.get("success") else [str(raw.get("error", "Unknown error"))]
     )
-    try:
-        app_mod.experience_db.record_experience(exp)
-    except Exception:
-        pass
+    background_tasks.add_task(app_mod.experience_db.record_experience, exp)
 
     if not raw.get("success"):
         return ProblemDetailsResponse(
@@ -340,5 +334,3 @@ async def execute_task(req: TaskRequest):
         provider=raw.get("provider"),
         cost=raw.get("cost", 0.0),
     )
-
-
