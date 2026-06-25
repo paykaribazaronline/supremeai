@@ -55,7 +55,7 @@ except Exception:
     knowledge_router = None
 
 try:
-    from .marketplace import router as marketplace_router
+    from .marketplace_endpoints import router as marketplace_router
     _safe_imports["marketplace_router"] = marketplace_router
 except Exception:
     marketplace_router = None
@@ -115,10 +115,10 @@ except Exception:
     internal_router = None
 
 try:
-    from api.marketplace import router as marketplace_endpoints_router
-    _safe_imports["marketplace_endpoints_router"] = marketplace_endpoints_router
+    from .config import router as config_router
+    _safe_imports["config_router"] = config_router
 except Exception:
-    marketplace_endpoints_router = None
+    config_router = None
 
 try:
     from .sso import router as sso_router

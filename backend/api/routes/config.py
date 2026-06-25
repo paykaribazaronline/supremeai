@@ -1,30 +1,41 @@
-from fastapi import APIRouter, HTTPException
-from typing import Optional
+from fastapi import APIRouter, Body, Depends, HTTPException
+from typing import Any, Optional
 from database.supabase_client import db
+from .admin_dashboard import require_admin_token, admin_rate_limit
 
-router = APIRouter(prefix="/config", tags=["config"])
+router = APIRouter(
+    prefix="/config",
+    tags=["config"],
+    dependencies=[Depends(require_admin_token), Depends(admin_rate_limit)],
+)
 
 @router.get("/{key}")
 async def get_config(key: str):
     if not db.client:
         raise HTTPException(status_code=503, detail="Database not configured")
-    res = db.client.table("system_config").select("*").eq("key", key).execute()
-    if not res.data:
+    value = db.get_config(key)
+    if value is None:
         raise HTTPException(status_code=404, detail="Config not found")
-    return res.data[0]
+    return {"key": key, "value": value}
 
 @router.put("/{key}")
-async def update_config(key: str, value: dict, category: Optional[str] = None, description: Optional[str] = None):
-    # TODO: Add admin dependency here
+async def update_config(
+    key: str,
+    value: Any = Body(...),
+    category: Optional[str] = None,
+    description: Optional[str] = None,
+):
     if not db.client:
         raise HTTPException(status_code=503, detail="Database not configured")
-        
+
     data = {"key": key, "value": value}
-    if category: data["category"] = category
-    if description: data["description"] = description
-        
-    res = db.client.table("system_config").upsert(data).execute()
-    return {"status": "success", "config": res.data[0] if res.data else None}
+    if category:
+        data["category"] = category
+    if description:
+        data["description"] = description
+
+    db.set_config(key, value, category=category or "general")
+    return {"status": "success", "config": data}
 
 @router.get("/category/{category}")
 async def get_configs_by_category(category: str):

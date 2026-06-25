@@ -46,7 +46,7 @@ from api.routes import (
     email_router,
     github_router,
     internal_router,
-    marketplace_endpoints_router,
+    config_router,
     onboarding_router,
     repos_router,
     tools_ops_router,
@@ -783,8 +783,8 @@ if github_router is not None:
     app.include_router(github_router)
 if internal_router is not None:
     app.include_router(internal_router)
-if marketplace_endpoints_router is not None:
-    app.include_router(marketplace_endpoints_router)
+if config_router is not None:
+    app.include_router(config_router)
 if onboarding_router is not None:
     app.include_router(onboarding_router)
 if repos_router is not None:

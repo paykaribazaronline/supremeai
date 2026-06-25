@@ -1,9 +1,11 @@
 from fastapi.testclient import TestClient
 import os
+from unittest.mock import MagicMock
 
 os.environ["OPENROUTER_API_KEY"] = "mock-key-value"
 os.environ["SUPREMEAI_API_TOKEN"] = "test-token"
 from core.app import app
+from backend.api.routes import config as config_route
 
 auth_headers = {"Authorization": "Bearer test-token"}
 client = TestClient(app)
@@ -107,7 +109,9 @@ def test_api_marketplace_endpoints():
     )
     assert resp.status_code == 200
     # Search endpoint returns a list of tools
-    assert isinstance(resp.json(), list)
+    assert isinstance(resp.json(), dict)
+    assert resp.json()["status"] == "success"
+    assert isinstance(resp.json()["tools"], list)
 
     # test /marketplace/install
     resp = client.post(
@@ -119,5 +123,25 @@ def test_api_marketplace_endpoints():
         },
         headers=auth_headers
     )
-    assert resp.status_code == 404
-    assert "not found" in resp.json()["detail"].lower()
+    assert resp.status_code == 200
+    assert resp.json()["success"] is True
+    assert resp.json()["status"] == "verified_and_installed"
+
+
+def test_config_endpoint_admin_control(monkeypatch):
+    monkeypatch.setattr(config_route.db, "client", MagicMock())
+    monkeypatch.setattr(config_route.db, "get_config", lambda key: ["awesome-selfhosted", "libraries.io"] if key == "marketplace.resource_sources" else None)
+    monkeypatch.setattr(config_route.db, "set_config", lambda key, value, category="general": None)
+
+    resp = client.get("/config/marketplace.resource_sources", headers=auth_headers)
+    assert resp.status_code == 200
+    assert resp.json()["key"] == "marketplace.resource_sources"
+    assert resp.json()["value"] == ["awesome-selfhosted", "libraries.io"]
+
+    resp = client.put(
+        "/config/marketplace.resource_sources",
+        json=["awesome-python", "ossinsight"],
+        headers=auth_headers
+    )
+    assert resp.status_code == 200
+    assert resp.json()["status"] == "success"

@@ -78,6 +78,29 @@ class SupabaseDB:
         except Exception as e:
             logger.error(f"Failed to add GitHub repo '{repo_name}': {e}")
 
+    # --- AI Model Behavior ---
+    def get_model_behavior(self, model_name: str) -> Optional[Any]:
+        if not self.client: return None
+        try:
+            res = self.client.table("ai_model_behavior").select("*").eq("model_name", model_name).single().execute()
+            if res.data:
+                return res.data
+            return None
+        except Exception as e:
+            # It's okay if a model is not found, so we can log this at a debug level.
+            logger.debug(f"Could not fetch AI model behavior for '{model_name}': {e}")
+            return None
+
+    def upsert_model_behavior(self, data: dict) -> Optional[Any]:
+        if not self.client: return None
+        try:
+            # Use upsert with on_conflict on 'model_name' if the table is set up for it.
+            res = self.client.table("ai_model_behavior").upsert(data).execute()
+            return res.data[0] if res.data else None
+        except Exception as e:
+            logger.error(f"Failed to upsert AI model behavior: {e}")
+            return None
+
     # --- User Preferences ---
     def get_user_preferences(self, user_id: str) -> Optional[Any]:
         if not self.client: return None
@@ -98,6 +121,26 @@ class SupabaseDB:
         except Exception as e:
             logger.error(f"Failed to upsert preferences: {e}")
             return None
+
+    def get_config(self, key: str) -> Optional[Any]:
+        if not self.client: return None
+        try:
+            res = self.client.table("system_config").select("value").eq("key", key).execute()
+            if res.data:
+                return res.data[0].get("value")
+            return None
+        except Exception as e:
+            logger.error(f"Failed to fetch config '{key}': {e}")
+            return None
+
+    def get_configs_by_category(self, category: str) -> list[dict]:
+        if not self.client: return []
+        try:
+            res = self.client.table("system_config").select("*").eq("category", category).execute()
+            return res.data or []
+        except Exception as e:
+            logger.error(f"Failed to fetch configs by category '{category}': {e}")
+            return []
 
     # --- Usage Metrics ---
     def upsert_usage_metric(self, data: dict) -> Optional[Any]:
