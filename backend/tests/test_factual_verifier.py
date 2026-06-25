@@ -1,6 +1,5 @@
 import pytest
-from core.factual_verifier import FactualVerifier, _safe_eval_math, _eval_node
-import ast
+from core.factual_verifier import FactualVerifier, _safe_eval_math
 
 
 def test_safe_eval_math_basic():
