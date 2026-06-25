@@ -1,6 +1,5 @@
 import datetime
 from loguru import logger
-import subprocess
 
 class GitHubAgent:
     def __init__(self, token: str = None):
