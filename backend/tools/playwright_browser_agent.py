@@ -1,14 +1,13 @@
 from __future__ import annotations
 
 import json
-import asyncio
 import random
 import time
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Callable, Dict, Optional
 
 from loguru import logger
-from playwright.sync_api import BrowserContext, Page, sync_playwright
+from playwright.sync_api import Page
 from playwright_stealth import stealth_sync
 
 from core.secure_credential_store import SecureCredentialStore

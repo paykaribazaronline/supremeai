@@ -1,5 +1,4 @@
 import ast
-import sys
 from loguru import logger
 
 # Testing Suite Color Codes

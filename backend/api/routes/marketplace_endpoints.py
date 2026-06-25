@@ -2,7 +2,7 @@ import json
 
 from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel
-from typing import Any, List, Optional
+from typing import List, Optional
 from database.supabase_client import db
 from tools.marketplace_agent import MarketplaceAgent
 from tools.resource_catalog import ResourceCatalog
