@@ -73,7 +73,7 @@ class CoverageAuditor:
 
                 lines_pct = summary.get("lines", {}).get("pct", 100.0)
                 if lines_pct < min_coverage:
-                    uncovered_lines = summary.get("lines", {}).get("uncovered_lines", [])
+                    uncovered_lines = summary.get("uncovered_lines", []) or summary.get("lines", {}).get("uncovered_lines", [])
                     gaps.append(
                         CoverageGap(
                             file_path=file_path,

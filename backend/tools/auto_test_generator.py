@@ -22,6 +22,8 @@ router = APIRouter(prefix="/test-gen", tags=["auto-test-generator"])
 # ── Request/Response models ───────────────────────────────────────────────────
 
 class TestGenRequest(BaseModel):
+    __test__ = False
+
     source_code: str
     file_path: str = "unknown.py"
     stack: Optional[str] = None          # python | typescript | dart | auto
@@ -32,6 +34,8 @@ class TestGenRequest(BaseModel):
 
 
 class TestGenResponse(BaseModel):
+    __test__ = False
+
     status: str
     file_path: str
     stack: str

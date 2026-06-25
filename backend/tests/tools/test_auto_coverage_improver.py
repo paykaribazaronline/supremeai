@@ -34,7 +34,7 @@ async def test_run_with_gaps(improver):
     assert report['status'] == 'completed'
     assert report['gaps_found'] == 2
     assert report['tests_generated'] == 2
-    improver.auditor.find_gaps.assert_called_once_with("coverage.xml", 80.0)
+    improver.auditor.find_gaps.assert_called_once_with("coverage.xml", min_coverage=80.0)
     assert improver.generator.generate_and_save.call_count == 2
 
 

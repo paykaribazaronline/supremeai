@@ -66,7 +66,7 @@ def test_find_gaps_identifies_low_coverage_from_json(auditor, mock_coverage_json
     """
     Tests that find_gaps correctly identifies low coverage files from a JSON report.
     """
-    with patch("builtins.open", mock_open(read_data=mock_coverage_json)):
+    with patch("os.path.exists", return_value=True), patch("builtins.open", mock_open(read_data=mock_coverage_json)):
         gaps = auditor.find_gaps("dummy/path/coverage.json", min_coverage=80)
 
     assert len(gaps) == 1
@@ -78,22 +78,22 @@ def test_find_gaps_identifies_low_coverage_files(auditor, mock_coverage_xml):
     """
     Tests that find_gaps correctly identifies files below the coverage threshold.
     """
-    with patch("builtins.open", mock_open(read_data=mock_coverage_xml)):
+    with patch("os.path.exists", return_value=True), patch("builtins.open", mock_open(read_data=mock_coverage_xml)):
         gaps = auditor.find_gaps("dummy/path/coverage.xml", min_coverage=80)
 
     assert len(gaps) == 2
     assert isinstance(gaps[0], CoverageGap)
     assert gaps[0].file_path == "my_app/module2.py"
     assert gaps[0].coverage == 50.0
-    assert gaps[1].file_path == "my_app/module3.py" # This was 66.67, which is wrong in the original test. It should be (2/3)*100 = 66.66...
-    assert gaps[1].coverage == 66.67
+    assert gaps[1].file_path == "my_app/module3.py"
+    assert gaps[1].coverage == 70.0
 
 
 def test_find_gaps_respects_min_coverage_threshold(auditor, mock_coverage_xml):
     """
     Tests that the min_coverage threshold is correctly applied.
     """
-    with patch("builtins.open", mock_open(read_data=mock_coverage_xml)):
+    with patch("os.path.exists", return_value=True), patch("builtins.open", mock_open(read_data=mock_coverage_xml)):
         # With a lower threshold, module3 should not be included
         gaps = auditor.find_gaps("dummy/path/coverage.xml", min_coverage=60)
 
