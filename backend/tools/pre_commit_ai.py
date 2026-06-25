@@ -1,5 +1,5 @@
 import subprocess
-import os
+import os, re
 from typing import Dict, Any, List
 from loguru import logger
 
@@ -84,44 +84,35 @@ class PreCommitAI:
             if not os.path.exists(filepath):
                 continue
             ext = os.path.splitext(filepath)[1].lower()
-            original_content = ""
-            with open(filepath, "r", encoding="utf-8", errors="ignore") as f:
-                original_content = f.read()
-            
-            new_content = original_content
+            content_changed = False
 
             try:
                 if ext == ".py":
+                    with open(filepath, "r", encoding="utf-8", errors="ignore") as f:
+                        original_content = f.read()
+                    
+                    new_content = original_content
+
                     if self.isort_available:
                         import isort
-                        new_content = isort.code(new_content)
-                        if new_content != original_content:
+                        sorted_content = isort.code(new_content)
+                        if sorted_content != new_content:
+                            new_content = sorted_content
                             fixes_applied.append({"file": filepath, "action": "isort"})
+                            content_changed = True
+
                     if self.black_available:
                         import black
-                        # To apply black formatting, we need to write to a temporary file
-                        # or handle it in memory if black supports it.
-                        # For simplicity, we'll re-format the file in place.
-                        black.format_file_in_place(
-                            black.FilePath(filepath),
-                            mode=black.Mode(),
-                            fast=False,
-                            write_back=black.WriteBack.YES,
-                        )
-                        fixes_applied.append({"file": filepath, "action": "black"})
-                        # Reread content after black formatting
-                        with open(filepath, "r", encoding="utf-8", errors="ignore") as f:
-                            new_content = f.read()
+                        formatted_content = black.format_str(new_content, mode=black.Mode())
+                        if formatted_content != new_content:
+                            new_content = formatted_content
+                            fixes_applied.append({"file": filepath, "action": "black"})
+                            content_changed = True
 
-                if self.AUTO_FIX_RULES.get("trailing_whitespace"):
-                    cleaned_content = "\n".join(line.rstrip() for line in new_content.splitlines())
-                    if cleaned_content != new_content:
-                        new_content = cleaned_content
-                        fixes_applied.append({"file": filepath, "action": "trim_trailing_whitespace"})
-                
-                if new_content != original_content:
-                    with open(filepath, "w", encoding="utf-8") as f:
-                        f.write(new_content)
+                    if content_changed:
+                        with open(filepath, "w", encoding="utf-8") as f:
+                            f.write(new_content)
+
             except Exception as exc:
                 logger.debug(f"Auto-fix failed for {filepath}: {exc}")
         return {"fixes": fixes_applied, "count": len(fixes_applied)}
@@ -187,8 +178,6 @@ class PreCommitAI:
 
     def _static_security_scan(self, diff_content: str) -> List[Dict[str, Any]]:
         """Regex-based fallback when PRReviewer/LLM is unavailable."""
-        import re
-
         issues: List[Dict[str, Any]] = []
         lines = diff_content.split("\n")
         current_file = "unknown"
