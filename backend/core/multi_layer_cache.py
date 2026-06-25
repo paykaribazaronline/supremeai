@@ -27,7 +27,7 @@ prefix_cache = redis.from_url(
 @lru_cache(maxsize=1000)
 def get_session_cache(session_id: str, prompt: str) -> Optional[str]:
     """In-memory session cache - returns None if not found"""
-    # This is a simplified implementation"""
+    # This is a simplified implementation
     return None
 
 # Level 5: AI Model Call (fallback)
@@ -124,8 +124,3 @@ class MultiLayerCache:
 
 # Global instance
 multi_layer_cache = MultiLayerCache()
-
-# Pro Tip (বাংলা): ক্যাশিং শুধুমাত্র খরচ বাঁচায় না, এটি আপনার সিস্টেমের রেসপন্স টাইম নাটকীয়ভাবে কমায়‌دهد।
-# এপроб টিপ: প্রতিটি ক্যাশ লেয়ারের TTL (Time To Live) ডেটার প্রকারের ভিত্তি করে সেট করুন।
-# ঘন ঘন পরিবর্তন না হওয়া ডেটার জন্য বেশি TTL সেট করুন, যেমন স্ট্যাটিক কন্টেন্টের জন্য 24 ঘন্টা,
-# প্র월에는 שבטের ডেটার জন্য 5-15 মিনিট, এবং রিয়েল-টাইম ডেটার জন্য 30 সেকেন্ড।

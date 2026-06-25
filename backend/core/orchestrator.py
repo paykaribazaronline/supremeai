@@ -26,7 +26,7 @@ router = APIRouter(prefix="/orchestrator", tags=["orchestrator"])
 class Orchestrator:
     """Central orchestrator responsible for coordinating scheduled pipelines.
 
-    It does **not** implement the pipelines themselves – those live in their respective modules.
+    It does **not** implement the pipelines themselves â€“ those live in their respective modules.
     The orchestrator merely triggers them at configured intervals and exposes a status endpoint.
     """
 
@@ -38,6 +38,24 @@ class Orchestrator:
         self.self_evolution = SelfEvolutionAgent(fitness_engine=self.fitness_engine, interval_seconds=interval_seconds)
         self._tasks: List[Callable[[], Any]] = [self._run_fitness_scoring, self.self_evolution._tick]
         self.skill_graph = EvolutionSkillGraph()
+        
+        # Add budget guardian task
+        try:
+            # Add the scripts directory to the path
+            import sys
+            import os
+            script_dir = os.path.join(os.path.dirname(__file__), '../../../scripts/orchestrator')
+            if script_dir not in sys.path:
+                sys.path.append(script_dir)
+            from auto_budget_guardian import run_budget_guardian_check
+            # Create an async wrapper that runs the synchronous function in a thread
+            async def async_budget_guardian_check():
+                loop = asyncio.get_event_loop()
+                await loop.run_in_executor(None, run_budget_guardian_check)
+            self._tasks.append(async_budget_guardian_check)
+            logger.info("Budget guardian task added to orchestrator")
+        except ImportError as e:
+            logger.warning(f"Failed to import budget guardian: {e}")
 
     def decompose_intent(self, prompt: str, start_skill: str, end_skill: str, max_token_cost: float = 0.05) -> Dict[str, Any]:
         """Decomposes user intent and finds the optimal execution path in the skill graph."""
@@ -108,7 +126,7 @@ class Orchestrator:
     async def _run_fitness_scoring(self) -> None:
         """Trigger the fitness engine to evaluate recent skill executions.
 
-        This is intentionally lightweight – the heavy‑lifting is performed inside the engine.
+        This is intentionally lightweight â€“ the heavyâ€“lifting is performed inside the engine.
         """
         try:
             logger.info("Orchestrator: Running fitness scoring cycle")
