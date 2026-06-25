@@ -245,7 +245,7 @@ def get_env_etag(redis_key: str = "config:env_etag") -> str:
     if os.path.exists(".env"):
         try:
             with open(".env", "rb") as f:
-                etag = hashlib.md5(f.read()).hexdigest()
+                etag = hashlib.md5(f.read(), usedforsecurity=False).hexdigest()  # nosec B324
             if redis_queue and getattr(redis_queue, "configured", False):
                 redis_queue.set(redis_key, etag, ex=300)
             return etag

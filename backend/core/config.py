@@ -23,7 +23,7 @@ class Settings(BaseSettings):
     docs_password: str = ""
 
     port: int = 8000
-    host: str = "0.0.0.0"
+    host: str = "0.0.0.0"  # nosec B104
     supremeai_admin_password_hash: str | None = None
 
     cors_origins: list[str] = [
