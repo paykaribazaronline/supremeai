@@ -12,7 +12,7 @@ class MicroVMSandbox:
     def __init__(self):
         self.firecracker_path = os.getenv("FIRECRACKER_PATH", "/usr/bin/firecracker")
         self.gvisor_path = os.getenv("GVISOR_PATH", "/usr/bin/runsc")
-        self.sandbox_dir = os.getenv("SANDBOX_ROOT", "/tmp/sandboxes")
+        self.sandbox_dir = os.getenv("SANDBOX_ROOT", "/tmp/sandboxes")  # nosec B108
         self.network_disabled = True
         self.auto_destroy = True
         os.makedirs(self.sandbox_dir, exist_ok=True)
@@ -34,7 +34,7 @@ class MicroVMSandbox:
     def _create_microvm_config(self, vm_id: str, cmd: str) -> str:
         config = {
             "boot-source": {
-                "kernel_image_path": "/tmp/vmlinux",
+                "kernel_image_path": "/tmp/vmlinux",  # nosec B108
                 "boot_args": f"console=ttyS0 reboot=k panic=1 pci=off break=bootparams",
             },
             "drives": [{

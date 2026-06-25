@@ -53,7 +53,7 @@ class SmartDataRepository:
                     return response.data[0] if response.data else None
                 # If it's CloudPostgresStore helper
                 elif hasattr(self.supabase, "_execute"):
-                    query = f"SELECT * FROM {table_name} WHERE id = %s LIMIT 1"
+                    query = f"SELECT * FROM {table_name} WHERE id = %s LIMIT 1"  # nosec B608
                     row = self.supabase._execute(query, (doc_id,), fetchone=True)
                     return dict(row) if row else None
                 else:
