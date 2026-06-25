@@ -42,8 +42,7 @@ def _eval_node(node):
         if isinstance(node.value, (int, float)):
             return node.value
         raise ValueError("Only numeric constants are allowed")
-    if isinstance(node, ast.Num):
-        return node.n
+    # ast.Num was removed in Python 3.14; ast.Constant covers all numeric nodes since Python 3.8
     raise ValueError(f"Unsupported expression node: {type(node).__name__}")
 
 
