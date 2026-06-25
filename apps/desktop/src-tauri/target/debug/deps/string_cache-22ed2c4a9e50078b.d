@@ -1,0 +1,9 @@
+C:\Users\n\supremeai\supremeai_2.0\apps\desktop\src-tauri\target\debug\deps\string_cache-22ed2c4a9e50078b.d: C:\Users\n\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\string_cache-0.8.9\src\lib.rs C:\Users\n\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\string_cache-0.8.9\src\atom.rs C:\Users\n\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\string_cache-0.8.9\src\dynamic_set.rs C:\Users\n\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\string_cache-0.8.9\src\static_sets.rs C:\Users\n\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\string_cache-0.8.9\src\trivial_impls.rs
+
+C:\Users\n\supremeai\supremeai_2.0\apps\desktop\src-tauri\target\debug\deps\libstring_cache-22ed2c4a9e50078b.rmeta: C:\Users\n\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\string_cache-0.8.9\src\lib.rs C:\Users\n\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\string_cache-0.8.9\src\atom.rs C:\Users\n\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\string_cache-0.8.9\src\dynamic_set.rs C:\Users\n\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\string_cache-0.8.9\src\static_sets.rs C:\Users\n\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\string_cache-0.8.9\src\trivial_impls.rs
+
+C:\Users\n\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\string_cache-0.8.9\src\lib.rs:
+C:\Users\n\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\string_cache-0.8.9\src\atom.rs:
+C:\Users\n\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\string_cache-0.8.9\src\dynamic_set.rs:
+C:\Users\n\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\string_cache-0.8.9\src\static_sets.rs:
+C:\Users\n\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\string_cache-0.8.9\src\trivial_impls.rs:

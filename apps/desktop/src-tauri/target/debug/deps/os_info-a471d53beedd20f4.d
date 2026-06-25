@@ -1,0 +1,11 @@
+C:\Users\n\supremeai\supremeai_2.0\apps\desktop\src-tauri\target\debug\deps\os_info-a471d53beedd20f4.d: C:\Users\n\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\os_info-3.15.0\src\lib.rs C:\Users\n\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\os_info-3.15.0\src\windows\mod.rs C:\Users\n\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\os_info-3.15.0\src\windows\winapi.rs C:\Users\n\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\os_info-3.15.0\src\bitness.rs C:\Users\n\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\os_info-3.15.0\src\info.rs C:\Users\n\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\os_info-3.15.0\src\os_type.rs C:\Users\n\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\os_info-3.15.0\src\version.rs
+
+C:\Users\n\supremeai\supremeai_2.0\apps\desktop\src-tauri\target\debug\deps\libos_info-a471d53beedd20f4.rmeta: C:\Users\n\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\os_info-3.15.0\src\lib.rs C:\Users\n\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\os_info-3.15.0\src\windows\mod.rs C:\Users\n\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\os_info-3.15.0\src\windows\winapi.rs C:\Users\n\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\os_info-3.15.0\src\bitness.rs C:\Users\n\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\os_info-3.15.0\src\info.rs C:\Users\n\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\os_info-3.15.0\src\os_type.rs C:\Users\n\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\os_info-3.15.0\src\version.rs
+
+C:\Users\n\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\os_info-3.15.0\src\lib.rs:
+C:\Users\n\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\os_info-3.15.0\src\windows\mod.rs:
+C:\Users\n\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\os_info-3.15.0\src\windows\winapi.rs:
+C:\Users\n\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\os_info-3.15.0\src\bitness.rs:
+C:\Users\n\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\os_info-3.15.0\src\info.rs:
+C:\Users\n\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\os_info-3.15.0\src\os_type.rs:
+C:\Users\n\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\os_info-3.15.0\src\version.rs:
