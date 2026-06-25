@@ -101,17 +101,30 @@ requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.ruff]
-line-length = 100
-target-version = "py311"
+line-length = 120
+target-version = "py310"
 
 [tool.ruff.lint]
-ignore = ["F821", "F841", "E402", "E401", "E731", "E701", "F811", "F541"]
+# Enable a curated rule set — customize per project needs
+select = ["E", "F", "W", "I", "UP", "B", "A", "C4", "SIM", "PL"]
+ignore = ["B008", "C901", "PLR0913"]
+fixable = ["ALL"]
+
+[tool.ruff.lint.isort]
+force-single-line = true
+lines-after-imports = 2
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"
 
 [tool.mypy]
-python_version = "3.11"
-warn_return_any = false
+python_version = "3.10"
+warn_return_any = true
 warn_unused_configs = true
-disable_error_code = ["assignment", "attr-defined", "no-any-return"]
+ignore_missing_imports = true
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
