@@ -10,18 +10,15 @@ router = APIRouter(prefix="/github", tags=["github"])
 github_agent = GitHubAgent()
 repo_discovery_agent = RepoDiscoveryAgent()
 
-# --- Dependency for getting the repository ---
-async def get_repository(
-    repo: Optional[str] = Body(None, embed=True),
-    db: firestore.Client = Depends(get_tenant_db)
-) -> str:
-    if repo and repo.strip():
-        return repo
-    profile = db.get_tenant_profile() or {}
-    db_repo = profile.get("github_repo")
-    if not db_repo:
+
+def _resolve_repo(payload_repo: Optional[str], db: firestore.Client) -> str:
+    repo = payload_repo
+    if not repo or not repo.strip():
+        profile = db.get_tenant_profile() or {}
+        repo = profile.get("github_repo")
+    if not repo or not repo.strip():
         raise HTTPException(status_code=400, detail="Repository not connected. Please connect your GitHub repository or provide one in the request.")
-    return db_repo
+    return repo.strip()
 
 class ConnectRequest(BaseModel):
     installation_id: Optional[str] = None
@@ -62,8 +59,9 @@ async def connect_repo(payload: ConnectRequest, db=Depends(get_tenant_db)):
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/improve")
-async def improve_repo(payload: ImproveRequest, repo: str = Depends(get_repository)):
+async def improve_repo(payload: ImproveRequest, db=Depends(get_tenant_db)):
     try:
+        repo = _resolve_repo(payload.repo, db)
         analysis = github_agent.analyze_repo(repo)
         return {"status": "success", "analysis": analysis}
     except HTTPException:
@@ -72,9 +70,9 @@ async def improve_repo(payload: ImproveRequest, repo: str = Depends(get_reposito
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/push")
-async def push_improvements(payload: PushRequest, repo: str = Depends(get_repository)):
+async def push_improvements(payload: PushRequest, db=Depends(get_tenant_db)):
     try:
-        # Enforce PR governance via agent
+        repo = _resolve_repo(payload.repo, db)
         improvements = {f: "Optimized" for f in payload.files_changed}
         res = github_agent.create_improvement_pr(repo, improvements, payload.branch)
         return res

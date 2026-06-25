@@ -132,6 +132,7 @@ class CodeSmellDetector:
                         })
 
             smells.extend(self._detect_duplicate_functions(tree, filepath))
+            smells.extend(self._detect_broad_exceptions(tree, filepath))
 
         except SyntaxError as e:
             smells.append({
@@ -188,6 +189,32 @@ class CodeSmellDetector:
                     "message": f"Potential duplicate logic detected in {len(items)} locations.",
                     "severity": "warning",
                 })
+        return smells
+
+    def _detect_broad_exceptions(self, tree: ast.AST, file_path: str) -> List[Dict[str, Any]]:
+        """Detects broad exception handlers like `except Exception:` or bare `except:`."""
+        smells: List[Dict[str, Any]] = []
+        for node in ast.walk(tree):
+            if isinstance(node, ast.ExceptHandler):
+                smell_type = ""
+                details = ""
+                # Check for bare `except:`
+                if node.type is None:
+                    smell_type = "Bare Except"
+                    details = "A bare `except:` clause can catch system-exiting exceptions and hide bugs. Be more specific."
+                # Check for `except Exception:` or `except BaseException:`
+                elif isinstance(node.type, ast.Name) and node.type.id in {"Exception", "BaseException"}:
+                    smell_type = "Broad Exception"
+                    details = f"Catching a broad exception '{node.type.id}' can hide unexpected errors. Catch a more specific exception."
+
+                if smell_type:
+                    smells.append({
+                        "type": smell_type,
+                        "line": node.lineno,
+                        "message": details,
+                        "severity": "warning",
+                        "source": "ast",
+                    })
         return smells
 
     def _normalize(self, dump: str) -> str:

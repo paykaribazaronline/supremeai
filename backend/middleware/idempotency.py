@@ -83,9 +83,11 @@ class IdempotencyMiddleware(BaseHTTPMiddleware):
             
             # ২. রেসপন্স সফল হলে স্ট্যাটাস "completed" করে সেভ রাখা
             if response.status_code == 200:
-                # রেসপন্স বডি এক্সট্রাক্ট করার জন্য স্ট্রিম রিড (Safely for FastAPI)
-                response_body = [section async for section in response.body_iterator]
-                response.body_iterator = __import__('anyio').from_thread.run(self._recreate_iterator, response_body)
+                if hasattr(response, 'body_iterator'):
+                    response_body = [section async for section in response.body_iterator]
+                    response.body_iterator = __import__('anyio').from_thread.run(self._recreate_iterator, response_body)
+                else:
+                    response_body = [response.body]
                 body_str = b"".join(response_body).decode("utf-8")
 
                 lock_ref.update({

@@ -1,3 +1,4 @@
+import os
 import pytest
 from unittest.mock import patch, MagicMock
 from tools.pr_reviewer import PRReviewer
@@ -18,19 +19,23 @@ async def test_static_security_scan_detects_secret():
     assert "AWS API Key" in comments[0]["body"]
 
 @pytest.mark.anyio
-@patch("httpx.AsyncClient.get")
-async def test_review_pr_trigger_changes(mock_get):
-    # Mock GitHub API returns a diff containing stripe secret key
-    mock_resp = MagicMock()
-    mock_resp.status_code = 200
-    mock_resp.text = (
+@patch("tools.pr_reviewer.Github")
+async def test_review_pr_trigger_changes(mock_github):
+    os.environ["GITHUB_TOKEN"] = "fake-token"
+    
+    mock_repo = MagicMock()
+    mock_pr = MagicMock()
+    mock_file = MagicMock()
+    mock_file.patch = (
         "diff --git a/src/db.py b/src/db.py\n"
         "--- a/src/db.py\n"
         "+++ b/src/db.py\n"
         "@@ -1,3 +1,4 @@\n"
-         "+stripe_secret = 'sk_test_REPLACED_DO_NOT_USE_IN_PROD'\n"
+        "+stripe_secret = 'sk_test_51ABC123XYZ789abcdefGHIjklMNOpqr'\n"
     )
-    mock_get.return_value = mock_resp
+    mock_pr.get_files.return_value = [mock_file]
+    mock_repo.get_pull.return_value = mock_pr
+    mock_github.return_value.get_repo.return_value = mock_repo
 
     reviewer = PRReviewer()
     res = await reviewer.review_pr("owner/repo", 42)

@@ -128,7 +128,7 @@ class AutoRemediation:
             "success": True,
             "file": file_path,
             "patch_applied": True,
-            "branch": "main",
+            "branch": "supremeai-improvements",
             "pr_url": None,
             "message": "Remediation patch applied and committed."
         }

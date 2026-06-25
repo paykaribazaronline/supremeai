@@ -14,6 +14,7 @@ from typing import Dict, Any, List, Optional
 from loguru import logger
 from fastapi import APIRouter, HTTPException, UploadFile, File
 from pydantic import BaseModel
+from backend.tools.style_learner import StyleLearner
 
 router = APIRouter(prefix="/test-gen", tags=["auto-test-generator"])
 
@@ -120,6 +121,7 @@ def _build_prompt(
     include_mocks: bool,
     include_edge_cases: bool,
     symbols: Optional[Dict] = None,
+    style_guidelines: Optional[str] = None,
 ) -> str:
     symbol_hint = ""
     if symbols:
@@ -131,6 +133,11 @@ def _build_prompt(
                 f"Functions: {', '.join(all_fns[:15]) or 'none'}\n"
                 f"Classes: {', '.join(classes[:10]) or 'none'}"
             )
+
+    style_instruction = ""
+    if style_guidelines:
+        style_instruction = f"\n\nCODING STYLE:\n{style_guidelines}\n"
+
 
     mock_instruction = (
         "Use mocks/patches for external dependencies (database, HTTP, file I/O)." if include_mocks
@@ -172,7 +179,7 @@ TARGET: {coverage_target}%+ code coverage
 FILE: {file_path}
 STACK: {stack.upper()}
 FRAMEWORK: {framework.upper()}{symbol_hint}
-
+{style_instruction}
 FRAMEWORK RULES:
 {framework_notes}
 
@@ -195,12 +202,23 @@ Generate the complete test file now:"""
 # ── Main class ────────────────────────────────────────────────────────────────
 
 class AutoTestGenerator:
+    def __init__(self, llm_client: Optional[Any] = None):
+        """
+        Initializes the test generator.
+        An optional llm_client can be injected for testing purposes.
+        """
+        self._llm_client = llm_client
+        self.style_learner = StyleLearner()
+
     async def _llm(self, prompt: str) -> str:
+        if self._llm_client:
+            return await self._llm_client(prompt)
+
         try:
             from brain.model_router import ModelRouter
             r = ModelRouter()
             result = await r.async_route_and_generate(prompt, task_type="coding", max_cost=0.05)
-            return result.get("text", "") if isinstance(result, dict) else str(result)
+            return result.get("text", "") if isinstance(result, dict) else str(result) # type: ignore
         except Exception as exc:
             logger.error(f"LLM call failed: {exc}")
             return ""
@@ -224,6 +242,11 @@ class AutoTestGenerator:
         if detected_stack == "python":
             symbols = _extract_python_symbols(source_code)
 
+        # Get style guidelines
+        # Assumes file_path is relative to a repo root that can be analyzed.
+        repo_root_for_style = "." # Use current directory as a proxy for the repo root.
+        style_guidelines = self.style_learner.generate_style_prompt(repo_root_for_style, detected_stack)
+
         fn_count = len(symbols.get("functions", []) + symbols.get("async_functions", [])) if symbols else 0
 
         prompt = _build_prompt(
@@ -235,6 +258,7 @@ class AutoTestGenerator:
             include_mocks=include_mocks,
             include_edge_cases=include_edge_cases,
             symbols=symbols,
+            style_guidelines=style_guidelines,
         )
 
         logger.info(f"Generating tests: {file_path} | stack={detected_stack} | framework={detected_framework}")
@@ -324,6 +348,8 @@ class AutoTestGenerator:
         self, source_paths: List[str], save: bool = True
     ) -> Dict[str, Any]:
         """Generate tests for multiple files."""
+        if len(source_paths) > 20:
+            raise ValueError("Max 20 files per batch")
         results = []
         for path in source_paths:
             if save:

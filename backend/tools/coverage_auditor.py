@@ -1,136 +1,84 @@
 import os
 import xml.etree.ElementTree as ET
-import re
+import json
+from typing import List, Dict, Any
+from dataclasses import dataclass
+from loguru import logger
 
-def print_header(text):
-    print(f"\n{'='*60}\n{text}\n{'='*60}")
 
-def analyze_java_jacoco(report_path): # Changed to return gaps
-    gaps = []
-    if not os.path.exists(report_path):
+@dataclass
+class CoverageGap:
+    file_path: str
+    coverage: float
+    uncovered_lines: List[int]
+
+
+class CoverageAuditor:
+    def find_gaps(self, report_path: str, min_coverage: float = 80.0) -> List[CoverageGap]:
+        if not os.path.exists(report_path):
+            logger.warning(f"Coverage report not found: {report_path}")
+            return []
+
+        try:
+            if report_path.endswith(".xml"):
+                return self._parse_xml(report_path, min_coverage)
+            elif report_path.endswith(".json"):
+                return self._parse_json(report_path, min_coverage)
+            else:
+                logger.warning(f"Unsupported coverage report format: {report_path}")
+                return []
+        except Exception as e:
+            logger.error(f"Failed to parse coverage report {report_path}: {e}")
+            return []
+
+    def _parse_xml(self, report_path: str, min_coverage: float) -> List[CoverageGap]:
+        gaps = []
+        tree = ET.parse(report_path)
+        root = tree.getroot()
+        for class_node in root.findall(".//class"):
+            line_rate_str = class_node.get("line-rate")
+            if line_rate_str is None:
+                continue
+
+            coverage = float(line_rate_str) * 100
+            if coverage < min_coverage:
+                file_path = class_node.get("filename")
+                if not file_path:
+                    continue
+
+                uncovered_lines = [
+                    int(line.get("number"))
+                    for line in class_node.findall(".//line")
+                    if line.get("hits") == "0"
+                ]
+                gaps.append(
+                    CoverageGap(
+                        file_path=file_path,
+                        coverage=round(coverage, 2),
+                        uncovered_lines=uncovered_lines,
+                    )
+                )
         return gaps
 
-    tree = ET.parse(report_path)
-    root = tree.getroot()
-    
-    found_gaps = False
-    for package in root.findall('package'):
-        package_name = package.get('name')
-        for sourcefile in package.findall('sourcefile'):
-            file_name = sourcefile.get('name')
-            # Look for line coverage
-            line_counter = sourcefile.find("counter[@type='LINE']")
-            if line_counter is not None:
-                covered = int(line_counter.get('covered'))
-                missed = int(line_counter.get('missed'))
-                total = covered + missed
-                percentage = (covered / total * 100) if total > 0 else 0
-                
-                if percentage < 50:  # Threshold for "Gap"
-                    status = "EMPTY" if covered == 0 else "LOW"
-                    gaps.append({
-                        'file': f"{package_name.replace('.', '/')}/{file_name}",
-                        'percentage': percentage,
-                        'status': status,
-                        'stack': 'Java'
-                    })
-    return gaps
+    def _parse_json(self, report_path: str, min_coverage: float) -> List[CoverageGap]:
+        gaps = []
+        with open(report_path, "r", encoding="utf-8") as f:
+            data = json.load(f)
 
-def analyze_lcov(report_path, label): # Changed to return gaps
-    gaps = []
-    if not os.path.exists(report_path):
+        # Handle Istanbul JSON summary format
+        if "total" in data and isinstance(data, dict):
+            for file_path, summary in data.items():
+                if file_path == "total":
+                    continue
+
+                lines_pct = summary.get("lines", {}).get("pct", 100.0)
+                if lines_pct < min_coverage:
+                    uncovered_lines = summary.get("lines", {}).get("uncovered_lines", [])
+                    gaps.append(
+                        CoverageGap(
+                            file_path=file_path,
+                            coverage=round(lines_pct, 2),
+                            uncovered_lines=uncovered_lines,
+                        )
+                    )
         return gaps
-
-    with open(report_path, 'r') as f:
-        content = f.read()
-
-    sections = content.split('SF:')
-    for section in sections[1:]:
-        lines = section.split('\n')
-        file_path = lines[0]
-        
-        # Match DA (Data) lines to find coverage
-        da_lines = re.findall(r'DA:\d+,(\d+)', section)
-        if da_lines:
-            hits = sum(1 for h in da_lines if int(h) > 0)
-            total = len(da_lines)
-            percentage = (hits / total * 100) if total > 0 else 0
-            
-            if percentage < 50:
-                status = "EMPTY" if hits == 0 else "LOW"
-                gaps.append({
-                    'file': file_path,
-                    'percentage': percentage,
-                    'status': status,
-                    'stack': label.capitalize()
-                })
-    return gaps
-
-def analyze_frontend_clover(report_path): # Changed to return gaps
-    gaps = []
-    if not os.path.exists(report_path):
-        return gaps
-
-    tree = ET.parse(report_path)
-    root = tree.getroot()
-    
-    for project in root.findall('project'):
-        for file in project.iter('file'):
-            metrics = file.find('metrics')
-            if metrics is not None:
-                statements = int(metrics.get('statements', 0))
-                covered = int(metrics.get('coveredstatements', 0))
-                percentage = (covered / statements * 100) if statements > 0 else 0
-                
-                if percentage < 50:
-                    status = "EMPTY" if covered == 0 else "LOW"
-                    gaps.append({
-                        'file': file.get('name'),
-                        'percentage': percentage,
-                        'status': status,
-                        'stack': 'Frontend'
-                    })
-    return gaps
-
-def get_coverage_gaps():
-    """
-    Aggregates coverage gaps from all configured report types.
-    Returns a list of dictionaries, each representing a gap.
-    """
-    all_gaps = []
-    
-    # 1. Backend
-    jacoco_xml = "build/reports/jacoco/test/jacocoTestReport.xml"
-    all_gaps.extend(analyze_java_jacoco(jacoco_xml))
-    
-    # 2. Frontend
-    frontend_clover = "dashboard/coverage/clover.xml"
-    all_gaps.extend(analyze_frontend_clover(frontend_clover))
-    
-    # 3. Mobile
-    mobile_lcov = "supremeai/coverage/lcov.info"
-    all_gaps.extend(analyze_lcov(mobile_lcov, "MOBILE"))
-
-    return all_gaps
-
-def main():
-    gaps = get_coverage_gaps()
-    
-    if not gaps:
-        print("✅ No critical coverage gaps found across all projects.")
-        return
-
-    print_header("AGGREGATED COVERAGE GAPS (Threshold < 50%)")
-    
-    # Group and print for better readability
-    for stack_type in ['Java', 'Frontend', 'Mobile']:
-        stack_gaps = [g for g in gaps if g['stack'] == stack_type]
-        if stack_gaps:
-            print(f"\n--- {stack_type.upper()} ---")
-            for gap in stack_gaps:
-                print(f"[{gap['status']:5}] {gap['percentage']:5.1f}% | {gap['file']}")
-
-    print(f"\nTotal critical gaps found: {len(gaps)}")
-
-if __name__ == "__main__":
-    main()
