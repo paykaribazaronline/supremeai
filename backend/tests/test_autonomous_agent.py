@@ -1,5 +1,4 @@
-import pytest
-from brain.autonomous_agent import AutonomousAgent, StepResult
+from brain.autonomous_agent import AutonomousAgent
 
 
 def test_plan_debug_keywords():

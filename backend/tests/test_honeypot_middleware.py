@@ -1,12 +1,11 @@
 import os
 import pytest
-from unittest.mock import MagicMock, AsyncMock, patch
+from unittest.mock import MagicMock, AsyncMock
 from core.honeypot_middleware import HoneypotMiddleware
 
 
 def make_middleware():
-    app = MagicMock()
-    app.__call__ = AsyncMock()
+    app = AsyncMock()
     return HoneypotMiddleware(app=app)
 
 
@@ -71,11 +70,10 @@ async def test_honeypot_blocks_sql_injection_prod():
         send = AsyncMock()
         await middleware(scope, receive, send)
         middleware.app.assert_not_called()
-        call_args = send.call_args
-        assert call_args is not None
-        message = call_args[0][0] if call_args[0] else {}
-        assert message.get("type") == "http.response.start"
-        assert message.get("status") == 200
+        assert send.await_args_list, "Expected the middleware to send a response"
+        start_event = send.await_args_list[0].args[0]
+        assert start_event.get("type") == "http.response.start"
+        assert start_event.get("status") == 200
     finally:
         if old_env is None:
             os.environ.pop("ENV", None)
@@ -105,10 +103,9 @@ async def test_honeypot_blocks_script_injection_prod():
         send = AsyncMock()
         await middleware(scope, receive, send)
         middleware.app.assert_not_called()
-        call_args = send.call_args
-        assert call_args is not None
-        message = call_args[0][0] if call_args[0] else {}
-        assert message.get("status") == 200
+        assert send.await_args_list, "Expected the middleware to send a response"
+        start_event = send.await_args_list[0].args[0]
+        assert start_event.get("status") == 200
     finally:
         if old_env is None:
             os.environ.pop("ENV", None)
@@ -138,10 +135,9 @@ async def test_honeypot_blocks_ignore_instructions_prod():
         send = AsyncMock()
         await middleware(scope, receive, send)
         middleware.app.assert_not_called()
-        call_args = send.call_args
-        assert call_args is not None
-        message = call_args[0][0] if call_args[0] else {}
-        assert message.get("status") == 200
+        assert send.await_args_list, "Expected the middleware to send a response"
+        start_event = send.await_args_list[0].args[0]
+        assert start_event.get("status") == 200
     finally:
         if old_env is None:
             os.environ.pop("ENV", None)

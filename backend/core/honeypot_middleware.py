@@ -23,7 +23,8 @@ class HoneypotMiddleware:
 
         import sys
         import os
-        if "pytest" in sys.modules or os.getenv("ENV") == "test":
+        env = os.getenv("ENV", "").lower()
+        if env == "test" or ("pytest" in sys.modules and env not in {"production", "prod"}):
             await self.app(scope, receive, send)
             return
 
