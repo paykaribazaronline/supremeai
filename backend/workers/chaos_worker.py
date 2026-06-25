@@ -30,7 +30,7 @@ class NightlyChaosAuditor:
         failures = 0
         try:
             # 🧪 টেস্ট ১: স্যান্ডবক্স ইন্টিগ্রিটি চেক (ফাস্ট এএসটি ভ্যালিডেশন)
-            from fuzz_sandbox import run_sandbox_ast_check, generate_fuzz_payloads
+            from tools.fuzz_sandbox import run_sandbox_ast_check, generate_fuzz_payloads
             payloads = generate_fuzz_payloads()
             
             for code, _ in payloads[:20]: # টপ ২০টি ক্রিটিক্যাল পেলোড ফাজিং
