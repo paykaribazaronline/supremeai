@@ -28,7 +28,7 @@ def test_health_monitor_initialization_without_prometheus():
     assert not hasattr(monitor, "uptime_seconds")
 
 
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_get_system_metrics_structure(monitor):
     with patch("psutil.cpu_percent", return_value=50.0):
         with patch("psutil.virtual_memory") as mock_vm:
@@ -46,7 +46,7 @@ async def test_get_system_metrics_structure(monitor):
     assert metrics["memory_usage_percent"] == 40.0
 
 
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_get_system_metrics_degraded(monitor):
     with patch("psutil.cpu_percent", return_value=95.0):
         with patch("psutil.virtual_memory") as mock_vm:
@@ -56,7 +56,7 @@ async def test_get_system_metrics_degraded(monitor):
     assert metrics["status"] == "degraded"
 
 
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_get_system_metrics_degraded_memory(monitor):
     with patch("psutil.cpu_percent", return_value=10.0):
         with patch("psutil.virtual_memory") as mock_vm:
@@ -66,7 +66,7 @@ async def test_get_system_metrics_degraded_memory(monitor):
     assert metrics["status"] == "degraded"
 
 
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_get_system_metrics_prometheus_update(monitor):
     monitor.uptime_seconds = MagicMock()
     monitor.cpu_usage_percent = MagicMock()
@@ -85,7 +85,7 @@ async def test_get_system_metrics_prometheus_update(monitor):
     monitor.status.set.assert_called_once_with(1)
 
 
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_get_system_metrics_prometheus_update_failure(monitor):
     monitor.uptime_seconds = MagicMock()
     monitor.uptime_seconds.set.side_effect = Exception("Prometheus error")
@@ -97,21 +97,21 @@ async def test_get_system_metrics_prometheus_update_failure(monitor):
     assert metrics["status"] == "healthy"
 
 
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_is_ready(monitor):
     with patch.object(monitor, "get_system_metrics", return_value={"status": "healthy", "uptime_seconds": 10}):
         result = await monitor.is_ready()
     assert result is True
 
 
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_is_ready_degraded(monitor):
     with patch.object(monitor, "get_system_metrics", return_value={"status": "degraded", "uptime_seconds": 10}):
         result = await monitor.is_ready()
     assert result is True
 
 
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_is_live(monitor):
     result = await monitor.is_live()
     assert result is True

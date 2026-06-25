@@ -58,21 +58,21 @@ class TestCreateAccessToken:
 
 
 class TestOptionalCurrentUser:
-    @pytest.mark.asyncio
+    @pytest.mark.anyio
     async def test_no_token_returns_none(self):
         with patch("api.routes.auth.jwt") as mock_jwt:
             result = await optional_current_user(token=None)
         assert result is None
         mock_jwt.decode.assert_not_called()
 
-    @pytest.mark.asyncio
+    @pytest.mark.anyio
     async def test_invalid_token_returns_none(self):
         with patch("api.routes.auth.jwt") as mock_jwt:
             mock_jwt.decode.side_effect = Exception("bad token")
             result = await optional_current_user(token="bad.token.here")
         assert result is None
 
-    @pytest.mark.asyncio
+    @pytest.mark.anyio
     async def test_valid_token_returns_user_context(self):
         with patch("api.routes.auth.jwt") as mock_jwt:
             mock_jwt.decode.return_value = {"sub": "user1", "role": "admin"}
@@ -82,14 +82,14 @@ class TestOptionalCurrentUser:
         assert result.user_id == "user1"
         assert result.role == "admin"
 
-    @pytest.mark.asyncio
+    @pytest.mark.anyio
     async def test_valid_token_defaults_role(self):
         with patch("api.routes.auth.jwt") as mock_jwt:
             mock_jwt.decode.return_value = {"sub": "user1"}
             result = await optional_current_user(token="valid.token.here")
         assert result.role == "viewer"
 
-    @pytest.mark.asyncio
+    @pytest.mark.anyio
     async def test_missing_jose_returns_none(self):
         import api.routes.auth as auth_module
         old_jwt = auth_module.jwt
@@ -121,13 +121,13 @@ class TestLoginEndpoint:
 
 
 class TestMeEndpoint:
-    @pytest.mark.asyncio
+    @pytest.mark.anyio
     async def test_me_without_token_returns_401(self, client):
         resp = client.get("/auth/me")
         assert resp.status_code == 401
         assert resp.json()["detail"] == "Not authenticated"
 
-    @pytest.mark.asyncio
+    @pytest.mark.anyio
     async def test_me_with_valid_token(self, client):
         with patch("api.routes.auth.jwt") as mock_jwt:
             mock_jwt.decode.return_value = {"sub": "user1", "role": "admin"}
@@ -138,7 +138,7 @@ class TestMeEndpoint:
         assert data["role"] == "admin"
         assert data["scopes"] == []
 
-    @pytest.mark.asyncio
+    @pytest.mark.anyio
     async def test_me_with_invalid_token(self, client):
         with patch("api.routes.auth.jwt") as mock_jwt:
             mock_jwt.decode.side_effect = Exception("bad token")
