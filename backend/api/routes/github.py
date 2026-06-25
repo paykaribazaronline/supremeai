@@ -29,10 +29,12 @@ class ConnectRequest(BaseModel):
     repo_name: str
 
 class ImproveRequest(BaseModel):
+    repo: Optional[str] = None
     branch: str
     improvement_type: str
 
 class PushRequest(BaseModel):
+    repo: Optional[str] = None
     branch: str = "main"
     commit_message: str = "AI: Automated improvements"
     files_changed: List[str]

@@ -42,6 +42,7 @@ class PgBouncerConnectionPool:
                     max_inactive_connection_lifetime=self._pool_config.max_inactive_connection_lifetime,
                     command_timeout=60.0,
                 )
+                self._initialized = True
             elif self._dsn:
                 self._pool = await asyncpg.create_pool(
                     self._dsn,
@@ -51,8 +52,12 @@ class PgBouncerConnectionPool:
                     max_inactive_connection_lifetime=self._pool_config.max_inactive_connection_lifetime,
                     command_timeout=60.0,
                 )
-            self._initialized = True
-            logger.info(f"PgBouncer connection pool initialized (min={self._pool_config.min_size}, max={self._pool_config.max_size})")
+                self._initialized = True
+            else:
+                logger.warning("No database URL configured. Connection pool initialization skipped.")
+                self._initialized = False
+            if self._initialized:
+                logger.info(f"PgBouncer connection pool initialized (min={self._pool_config.min_size}, max={self._pool_config.max_size})")
         except Exception as e:
             logger.warning(f"Failed to initialize PgBouncer pool, falling back to direct connections: {e}")
             self._initialized = False

@@ -1,5 +1,5 @@
 import sys
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock, patch, AsyncMock
 
 if "asyncpg" not in sys.modules:
     sys.modules["asyncpg"] = MagicMock()
@@ -50,7 +50,7 @@ async def test_acquire_without_initialization():
 async def test_close_resets_pool():
     pool = PgBouncerConnectionPool.__new__(PgBouncerConnectionPool)
     pool._initialized = True
-    mock_pool = MagicMock()
+    mock_pool = AsyncMock()
     pool._pool = mock_pool
     await pool.close()
     assert pool._pool is None
@@ -58,8 +58,9 @@ async def test_close_resets_pool():
     mock_pool.close.assert_called_once()
 
 
-def test_get_db_pool_returns_instance():
+@pytest.mark.asyncio
+async def test_get_db_pool_returns_instance():
     with patch("core.pgbouncer_pool.PgBouncerConnectionPool.initialize"):
         from core.pgbouncer_pool import get_db_pool
-        pool = get_db_pool()
+        pool = await get_db_pool()
         assert isinstance(pool, PgBouncerConnectionPool)

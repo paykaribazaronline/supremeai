@@ -50,7 +50,9 @@ class IdempotencyMiddleware(BaseHTTPMiddleware):
             lock_data = lock_doc.to_dict()
             status = lock_data.get("status")
             expires_at = lock_data.get("expires_at")
-
+            # Parse expires_at if it's a string (from Firestore)
+            if isinstance(expires_at, str):
+                expires_at = datetime.fromisoformat(expires_at.replace('Z', '+00:00'))
             # লক এক্সপায়ার হয়ে গেছে কি না চেক
             if expires_at and now > expires_at:
                 # এক্সপায়ারড লক ডিলিট করে নতুন ট্রাইয়ের সুযোগ দেওয়া
