@@ -10,9 +10,9 @@ from fastapi.responses import StreamingResponse, JSONResponse
 
 # --- Local Imports ---
 # Moved imports to the top of the file to improve performance by avoiding repeated imports inside functions.
-import core.app as app_mod
-from core.prompt_helpers import format_unified_chat_prompt
+
 from adaptive_engine.experience_db import Experience
+from core.prompt_helpers import format_unified_chat_prompt
 
 
 router = APIRouter()
@@ -88,6 +88,7 @@ def _build_chat_prompt(req: ChatStreamRequest) -> str:
 
 @router.post("/api/chat/completion", response_model=CompletionResponse)
 async def get_completion(req: CompletionRequest):
+    import core.app as app_mod
     model_router = app_mod.model_router
 
     prompt = _build_completion_prompt(req.prefix, req.suffix)
@@ -114,6 +115,7 @@ async def get_completion(req: CompletionRequest):
 
 @router.post("/api/chat/stream")
 async def stream_chat(req: ChatStreamRequest):
+    import core.app as app_mod
     model_router = app_mod.model_router
     prompt = _build_chat_prompt(req)
 
@@ -232,6 +234,7 @@ def format_response(text: str, task_type: str) -> str:
 
 @router.post("/task/execute")
 async def execute_task(req: TaskRequest, background_tasks: BackgroundTasks):
+    import core.app as app_mod
     admin_god = app_mod.admin_god
     model_router = app_mod.model_router
     intent_clf = app_mod.intent_clf
