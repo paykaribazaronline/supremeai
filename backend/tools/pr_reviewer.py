@@ -46,6 +46,7 @@ class PRReviewer:
         for i, line in enumerate(lines):
             if line.startswith('+'):
                 # Check for security patterns
+                found_security_issue = False
                 for pattern, info in security_patterns.items():
                     if re.search(pattern, line):
                         issues.append({
@@ -54,9 +55,10 @@ class PRReviewer:
                             "severity": info["severity"],
                             "body": f"Security Issue: {info['type']} detected in diff"
                         })
+                        found_security_issue = True
                         break
-                # Check for TODO comments
-                elif 'TODO' in line:
+                # Check for TODO comments if no security issue found
+                if not found_security_issue and 'TODO' in line:
                     issues.append({
                         "path": "unknown",
                         "line": i + 1,
@@ -98,6 +100,8 @@ class PRReviewer:
         except Exception as e:
             logger.error(f"Error reviewing PR: {e}")
             return {"status": "error", "error": str(e), "comments": []}
+
+    async def _post_pr_comment(self, repo_full_name: str, pr_number: int, comment_body: str) -> Dict[str, Any]:
         """Posts a comment on a pull request."""
         if not self.gh:
             logger.warning(f"Dry-run: Would post to {repo_full_name}#{pr_number}: {comment_body}")
