@@ -1,1 +1,1 @@
-All AI providers are unavailable right now.
+# All AI providers are unavailable right now.
