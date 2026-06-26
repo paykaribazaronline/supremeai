@@ -1,10 +1,15 @@
-from typing import Any
+from typing import Any, TypedDict
 
 from loguru import logger
 
 
+class ProviderHealth(TypedDict):
+    status: str
+    latency_ms: int
+
+
 # Health checker simulation - in production this would come from actual health checks
-PROVIDER_HEALTH = {
+PROVIDER_HEALTH: dict[str, ProviderHealth] = {
     "groq": {"status": "ok", "latency_ms": 50},
     "google": {"status": "ok", "latency_ms": 250},
     "openrouter": {"status": "degraded", "latency_ms": 1200},
@@ -46,8 +51,10 @@ class PerformanceAwareRouter:
 
     def _get_provider_latency(self, provider_name: str) -> int:
         """Get current latency for a provider from health checks"""
-        health = PROVIDER_HEALTH.get(provider_name, {"latency_ms": 9999})
-        return health.get("latency_ms", 9999)
+        health = PROVIDER_HEALTH.get(provider_name)
+        if health is None:
+            return 9999
+        return health["latency_ms"]
 
     def _calculate_score(self, provider_info: dict, latency_ms: int) -> float:
         """
