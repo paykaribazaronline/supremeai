@@ -3,24 +3,25 @@ from __future__ import annotations
 import logging
 import os
 import time
-from typing import Any, Dict, List, Optional
+from typing import Any
+
 
 logger = logging.getLogger(__name__)
 
 
 class VPNRotator:
-    def __init__(self, endpoints: Optional[List[str]] = None, current_index: int = 0) -> None:
+    def __init__(self, endpoints: list[str] | None = None, current_index: int = 0) -> None:
         self.endpoints = [item.strip() for item in (endpoints or []) if item.strip()]
         self.current_index = current_index
-        self.history: List[Dict[str, Any]] = []
+        self.history: list[dict[str, Any]] = []
         self.max_history = int(os.getenv("VPN_ROTATOR_HISTORY", "100"))
 
-    def _record(self, event: str, payload: Dict[str, Any]) -> None:
+    def _record(self, event: str, payload: dict[str, Any]) -> None:
         entry = {"event": event, "ts": time.time(), **payload}
         self.history.append(entry)
-        self.history = self.history[-self.max_history:]
+        self.history = self.history[-self.max_history :]
 
-    def rotate(self) -> Dict[str, Any]:
+    def rotate(self) -> dict[str, Any]:
         reason = "ok"
         if not self.endpoints:
             return {"rotated": False, "endpoint": None, "reason": "No endpoints configured", "next_index": 0}
@@ -37,12 +38,12 @@ class VPNRotator:
         self._record("rotate", result)
         return result
 
-    def current(self) -> Optional[str]:
+    def current(self) -> str | None:
         if not self.endpoints:
             return None
         return self.endpoints[self.current_index % len(self.endpoints)]
 
-    def rotate_agent(self, agent_id: str) -> Dict[str, Any]:
+    def rotate_agent(self, agent_id: str) -> dict[str, Any]:
         previous = "auto"
         if self.endpoints:
             previous = self.endpoints[(self.current_index - 1) % len(self.endpoints)]
@@ -59,7 +60,7 @@ class VPNRotator:
         logger.info("rotate_agent called agent=%s rotated=%s", agent_id, result["rotated"])
         return result
 
-    def configure_endpoints(self, endpoints: List[str]) -> Dict[str, Any]:
+    def configure_endpoints(self, endpoints: list[str]) -> dict[str, Any]:
         previous_count = len(self.endpoints)
         self.endpoints = [item.strip() for item in endpoints if item.strip()]
         self.current_index = 0
@@ -68,7 +69,7 @@ class VPNRotator:
         logger.info("VPN endpoints configured with %d endpoints", len(self.endpoints))
         return result
 
-    def add_endpoint(self, endpoint: str) -> Dict[str, Any]:
+    def add_endpoint(self, endpoint: str) -> dict[str, Any]:
         endpoint = endpoint.strip()
         if not endpoint:
             return {"added": False, "reason": "empty endpoint"}
@@ -80,12 +81,12 @@ class VPNRotator:
         logger.info("Added VPN endpoint: %s", endpoint)
         return result
 
-    def history_since(self, since: Optional[float] = None) -> List[Dict[str, Any]]:
+    def history_since(self, since: float | None = None) -> list[dict[str, Any]]:
         if since is None:
             return list(self.history)
         return [entry for entry in self.history if entry.get("ts", 0.0) >= float(since)]
 
-    def status(self) -> Dict[str, Any]:
+    def status(self) -> dict[str, Any]:
         return {
             "configured": bool(self.endpoints),
             "count": len(self.endpoints),
