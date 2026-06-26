@@ -37,7 +37,7 @@ class CloudSandboxOrchestrator:
     async def _get_docker_client(self):
         if self._docker_client:
             return self._docker_client
-        if self.provider != "docker" and self.provider != "local":
+        if self.provider not in {"docker", "local"}:
             return None
         try:
             import docker

@@ -1,3 +1,5 @@
+import contextlib
+
 import pytest
 
 from core.circuit_breaker import CircuitBreaker
@@ -51,10 +53,8 @@ def test_breaker_call_success_and_failure():
     assert breaker.state in {"OPEN", "HALF_OPEN", "CLOSED"}
 
     for _ in range(5):
-        try:
+        with contextlib.suppress(RuntimeError):
             asyncio.run(breaker.call(bad))
-        except RuntimeError:
-            pass
 
     assert breaker.state == "OPEN"
     with pytest.raises(RuntimeError, match="open"):

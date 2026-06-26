@@ -73,7 +73,7 @@ class AutoPRPipeline:
             pr_result = self.github_agent.create_pr(
                 repo_name=repo.split("/")[-2]
                 + "/"
-                + repo.split("/")[-1],  # Assumes repo is a path like 'owner/name'
+                + repo.rsplit("/", maxsplit=1)[-1],  # Assumes repo is a path like 'owner/name'
                 title=title,
                 body=body,
                 head_branch=branch,

@@ -9,7 +9,7 @@ class MultiAICodeGenerator:
 
         consensus_lines = lines_kimi.intersection(lines_gpt).intersection(lines_claude)
         consensus = (
-            "\n".join(sorted(list(consensus_lines))) if consensus_lines else code_kimi
+            "\n".join(sorted(consensus_lines)) if consensus_lines else code_kimi
         )
 
         all_lines = lines_kimi.union(lines_gpt).union(lines_claude)
@@ -78,9 +78,7 @@ class HumanReviewPolicy:
             return True
         if confidence["overall"] < 0.7:
             return True
-        if confidence.get("ai_reliability", 1.0) < 0.5:
-            return True
-        return False
+        return confidence.get("ai_reliability", 1.0) < 0.5
 
 
 class OutputValidator:

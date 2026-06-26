@@ -66,9 +66,6 @@ class BengaliNLP:
         bengali_chars = len(self.BENGALI_CHARS.findall(text))
         latin_chars = len(re.findall(r"[A-Za-z]", text))
         total = bengali_chars + latin_chars
-        if total == 0:
-            ratio = 0.0
-        else:
-            ratio = bengali_chars / total
+        ratio = 0.0 if total == 0 else bengali_chars / total
         primary = "bengali" if ratio >= 0.7 else "english" if ratio <= 0.3 else "mixed"
         return {"primary": primary, "bengali_ratio": round(ratio, 3)}

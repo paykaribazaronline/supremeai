@@ -34,6 +34,8 @@ except ImportError:
 
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "/dev/null"
 
+import contextlib
+
 import pytest
 
 from core.rbac import RoleBasedAccessControl
@@ -88,7 +90,5 @@ def bypass_jwt_auth():
             pass
     yield
     for p in patches:
-        try:
+        with contextlib.suppress(Exception):
             p.stop()
-        except Exception:
-            pass

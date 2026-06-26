@@ -146,15 +146,14 @@ async def test_perform_autonomous_signup():
             "playwright": mock_playwright_module,
             "playwright.async_api": mock_playwright_module.async_api,
         },
-    ):
-        with tempfile.TemporaryDirectory() as tmpdir:
-            config_path = os.path.join(tmpdir, "rotation_config.json")
-            rotator = MultiAccountRotator(config_file=config_path)
-            success = await rotator.perform_autonomous_signup("google")
-            assert success is True
-            assert "google" in rotator.providers
-            accounts = rotator.providers["google"].accounts
-            assert len(accounts) == 1
-            assert accounts[0].email.startswith("supremeai+")
-            assert accounts[0].password is not None
-            assert accounts[0].recovery_email == "recovery@yourdomain.com"
+    ), tempfile.TemporaryDirectory() as tmpdir:
+        config_path = os.path.join(tmpdir, "rotation_config.json")
+        rotator = MultiAccountRotator(config_file=config_path)
+        success = await rotator.perform_autonomous_signup("google")
+        assert success is True
+        assert "google" in rotator.providers
+        accounts = rotator.providers["google"].accounts
+        assert len(accounts) == 1
+        assert accounts[0].email.startswith("supremeai+")
+        assert accounts[0].password is not None
+        assert accounts[0].recovery_email == "recovery@yourdomain.com"

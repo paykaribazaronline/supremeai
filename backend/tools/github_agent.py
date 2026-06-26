@@ -85,7 +85,7 @@ class GitHubAgent:
         base_branch: str = "main",
     ) -> dict:
         """Creates a pull request on GitHub."""
-        token = self._require_token()
+        self._require_token()
         logger.info(f"Creating PR on {repo_name}: '{title}'")
 
         # This is a mock implementation. A real one would use the GitHub API.
@@ -107,7 +107,7 @@ class GitHubAgent:
         self, repo_url: str, files_to_commit: list, commit_message: str, branch: str
     ) -> dict:
         """Directly commits specified files to a branch."""
-        token = self._require_token()
+        self._require_token()
         logger.info(
             f"Attempting to commit {len(files_to_commit)} files to {repo_url} on branch {branch}"
         )

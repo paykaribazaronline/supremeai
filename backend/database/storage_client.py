@@ -41,7 +41,7 @@ class StorageClient:
         try:
             if self.provider == "supabase" and self.supabase_client:
                 with open(local_path, "rb") as f:
-                    res = self.supabase_client.storage.from_(self.bucket_name).upload(
+                    self.supabase_client.storage.from_(self.bucket_name).upload(
                         remote_path, f
                     )
                 return {

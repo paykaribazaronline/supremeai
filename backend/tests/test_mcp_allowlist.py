@@ -7,7 +7,7 @@ def test_get_mcp_servers_shape():
     assert "github" in servers
     assert "slack" in servers
     assert "filesystem" in servers
-    for name, config in servers.items():
+    for _name, config in servers.items():
         assert "command" in config
         assert "allowed_tools" in config
         assert "allowed_paths" in config

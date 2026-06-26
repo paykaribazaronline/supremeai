@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import ast
+import contextlib
 import hashlib
 import os
 from typing import Any
@@ -208,10 +209,8 @@ class KnowledgeBaseIndexer:
                         tags.append(elt.value)
                         text_parts.append(elt.value)
             if len(args) > 6:
-                try:
+                with contextlib.suppress(Exception):
                     confidence = float(args[6].value)
-                except Exception:
-                    pass
         except Exception:
             return None, None
 
@@ -343,12 +342,10 @@ class KnowledgeBaseIndexer:
             hasattr(self.vector_store, "_collection")
             and self.vector_store._collection is not None
         ):
-            try:
+            with contextlib.suppress(Exception):
                 self.vector_store._client.delete_collection(
                     self.vector_store.collection_name
                 )
-            except Exception:
-                pass
             self.vector_store._init_chroma()
         else:
             self.vector_store._fallback_docs.clear()

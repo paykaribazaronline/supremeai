@@ -1,4 +1,5 @@
 import ast
+import contextlib
 import operator
 import re
 
@@ -159,10 +160,8 @@ class FactualVerifier:
             claimed = sympy.sympify(claimed_result)
             is_correct = sympy.simplify(expr - claimed) == 0
             if not is_correct:
-                try:
+                with contextlib.suppress(Exception):
                     is_correct = abs(expr.evalf() - claimed.evalf()) < 1e-9
-                except Exception:
-                    pass
             return {
                 "is_verified": bool(is_correct),
                 "expression_sympy": str(expr),

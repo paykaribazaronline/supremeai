@@ -344,7 +344,7 @@ class AutoTestGenerator:
             "dart": "dart",
             "java": "java",
         }
-        lang = lang_map.get(stack, "")
+        lang_map.get(stack, "")
         lines = code.splitlines()
         # Strip leading ```lang and trailing ```
         if lines and lines[0].strip().startswith("```"):

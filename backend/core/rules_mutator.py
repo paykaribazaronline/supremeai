@@ -22,9 +22,7 @@ class RulesMutator:
             try:
                 val = app_mod.redis_queue.get(redis_key)
                 if val is not None:
-                    if val == "ok":
-                        return False
-                    return True
+                    return val != "ok"
             except Exception:
                 pass
         return False

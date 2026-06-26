@@ -319,7 +319,7 @@ class CommentThreadAI:
     async def handle_github_webhook(self, payload: dict[str, Any]) -> dict[str, Any]:
         """Process GitHub webhook events for PR comments."""
         action = payload.get("action", "")
-        event_type = (
+        (
             "pr_review_comment"
             if "pull_request_review_comment" in str(payload.keys())
             else "issue_comment"

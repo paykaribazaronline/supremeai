@@ -46,25 +46,22 @@ def run_sandbox_ast_check(code: str) -> bool:
                         raise SecurityError(f"Banned root import '{mod}' blocked.")
 
             # ৩. Dunder and Method Reflection Blocker
-            if isinstance(node, ast.Attribute):
-                if node.attr.startswith("__") or node.attr in banned_keys:
-                    raise SecurityError(
-                        f"Malicious attribute access '{node.attr}' detected."
-                    )
+            if isinstance(node, ast.Attribute) and (node.attr.startswith("__") or node.attr in banned_keys):
+                raise SecurityError(
+                    f"Malicious attribute access '{node.attr}' detected."
+                )
 
             # 💥 ৪. Global Identifier Protection
-            if isinstance(node, ast.Name):
-                if node.id in banned_keys:
-                    raise SecurityError(
-                        f"Attempted reference to banned identifier '{node.id}' blocked."
-                    )
+            if isinstance(node, ast.Name) and node.id in banned_keys:
+                raise SecurityError(
+                    f"Attempted reference to banned identifier '{node.id}' blocked."
+                )
 
             # ৫. Subscript Protection
-            if isinstance(node, ast.Constant) and isinstance(node.value, str):
-                if node.value in banned_keys:
-                    raise SecurityError(
-                        f"Obfuscated key reference '{node.value}' blocked."
-                    )
+            if isinstance(node, ast.Constant) and isinstance(node.value, str) and node.value in banned_keys:
+                raise SecurityError(
+                    f"Obfuscated key reference '{node.value}' blocked."
+                )
         return True
     except SyntaxError:
         return False

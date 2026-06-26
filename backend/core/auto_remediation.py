@@ -52,7 +52,7 @@ class AutoRemediationEngine:
         prompt = f"""You are an elite AI AppSec Engineer. Fix the following vulnerability.
         Issue: {issue} at line {line}.
         Return ONLY the fully corrected Python code. No markdown formatting blocks, no explanations.
-        
+
         Original Code:
         {code}
         """
@@ -176,9 +176,9 @@ class AutoRemediation:
         File: {file_path}
         Line Number of Vulnerability: {line_number}
         Vulnerability Description: {issue}
-        
+
         Provide the complete corrected file contents. Do NOT explain the changes. Return ONLY the code in plaintext with no markdown code blocks.
-        
+
         Original Code:
         {code}
         """

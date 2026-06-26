@@ -52,16 +52,15 @@ class TestBrowserAgent:
             agent,
             "fetch_page",
             return_value={"success": True, "title": "Test", "content": "Some content"},
-        ):
-            with patch("brain.model_router.ModelRouter") as mock_router_cls:
-                mock_router = AsyncMock()
-                mock_router.async_route_and_generate.return_value = {
-                    "text": '{"name": "Test"}'
-                }
-                mock_router_cls.return_value = mock_router
-                result = await agent.extract_data(
-                    "https://example.com", "Extract the name"
-                )
+        ), patch("brain.model_router.ModelRouter") as mock_router_cls:
+            mock_router = AsyncMock()
+            mock_router.async_route_and_generate.return_value = {
+                "text": '{"name": "Test"}'
+            }
+            mock_router_cls.return_value = mock_router
+            result = await agent.extract_data(
+                "https://example.com", "Extract the name"
+            )
         assert result["success"] is True
 
 

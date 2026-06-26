@@ -1,4 +1,5 @@
 import asyncio
+import contextlib
 import datetime
 import json
 import re
@@ -315,12 +316,10 @@ async def execute_task(req: TaskRequest, background_tasks: BackgroundTasks):
             max_cost=req.max_cost,
         )
         if raw.get("success") and semantic_cache:
-            try:
+            with contextlib.suppress(Exception):
                 await semantic_cache.set_cache_inference(
                     prompt=prompt, model_name=task_type, response_text=raw.get("text")
                 )
-            except Exception:
-                pass
 
     # Log to ExperienceDatabase in the background to improve user-perceived latency.
     exp = Experience(

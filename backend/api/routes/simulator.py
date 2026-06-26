@@ -204,7 +204,7 @@ def get_available_devices():
 @router.get("/admin/usage")
 def get_all_usage():
     deployments = []
-    for user_id, profile in PROFILES.items():
+    for _user_id, profile in PROFILES.items():
         for app in profile["installedApps"]:
             deployments.append(
                 {

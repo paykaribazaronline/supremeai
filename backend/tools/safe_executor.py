@@ -108,11 +108,10 @@ def validate_ast(source: str) -> None:
             raise ValueError("Security error: Import statements are strictly forbidden")
 
         # 3. Restrict attribute access to prevent double underscore tricks (e.g. __class__)
-        if isinstance(node, ast.Attribute):
-            if node.attr.startswith("__"):
-                raise ValueError(
-                    "Security error: Access to private/dunder attributes is forbidden"
-                )
+        if isinstance(node, ast.Attribute) and node.attr.startswith("__"):
+            raise ValueError(
+                "Security error: Access to private/dunder attributes is forbidden"
+            )
 
         # 4. Restrict Calls to only SAFE_BUILTINS
         if isinstance(node, ast.Call):

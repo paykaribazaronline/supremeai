@@ -1,4 +1,5 @@
 import asyncio
+import contextlib
 import datetime
 import json
 import os
@@ -57,7 +58,7 @@ def require_admin_token(credentials: HTTPAuthorizationCredentials = Depends(secu
             return {"uid": "admin", "role": "admin"}
         raise HTTPException(
             status_code=401, detail=f"Invalid Admin Authorization Token: {str(e)}"
-        )
+        ) from e
 
 
 def admin_rate_limit(request: Request):
@@ -182,10 +183,8 @@ async def logs_stream():
             logger.info("Log stream client disconnected")
         finally:
             if file_obj:
-                try:
+                with contextlib.suppress(Exception):
                     file_obj.close()
-                except Exception:
-                    pass
 
     return StreamingResponse(
         log_generator(),
@@ -317,10 +316,8 @@ def _acquire_env_lock(lock_path: str = ".env.lock") -> bool:
 
 
 def _release_env_lock(lock_path: str = ".env.lock"):
-    try:
+    with contextlib.suppress(Exception):
         os.remove(lock_path)
-    except Exception:
-        pass
 
 
 @router.post("/deploy")
@@ -643,10 +640,8 @@ async def admin_websocket(websocket: WebSocket):
 from pydantic import Field
 
 
-try:
+with contextlib.suppress(ImportError):
     from google.cloud import firestore
-except ImportError:
-    pass
 from datetime import datetime
 from datetime import timezone
 
@@ -718,4 +713,4 @@ async def execute_manual_gate_override(payload: GateOverridePayload):
         )
         raise HTTPException(
             status_code=500, detail=f"Infrastructure Sync Failure: {str(e)}"
-        )
+        ) from e

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import contextlib
 import json
 import random
 import time
@@ -13,6 +14,9 @@ from playwright_stealth import stealth_sync
 
 from core.secure_credential_store import SecureCredentialStore
 from database.supabase_client import db
+
+
+TRUST_SCORE_THRESHOLD = 0.95
 
 
 class PlaywrightBrowserAgent:
@@ -70,10 +74,8 @@ class PlaywrightBrowserAgent:
                 cookie_path,
                 exc,
             )
-            try:
+            with contextlib.suppress(OSError):
                 cookie_path.unlink()
-            except OSError:
-                pass
 
     def _save_cookies(self, context: Any, session_name: str) -> None:
         cookie_path = self._cookie_file_path(session_name)
@@ -313,7 +315,7 @@ class PlaywrightBrowserAgent:
                 trust_score = primary_behavior.get("trust_score", 0)
                 if (
                     primary_behavior.get("requires_verification") is False
-                    or trust_score > 0.95
+                    or trust_score > TRUST_SCORE_THRESHOLD
                 ):
                     requires_verification = False
 

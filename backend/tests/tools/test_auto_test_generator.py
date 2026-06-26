@@ -294,9 +294,8 @@ async def test_generate_llm_exception_returns_error(generator):
         "_llm",
         new_callable=AsyncMock,
         side_effect=RuntimeError("oops"),
-    ):
-        with pytest.raises(RuntimeError, match="oops"):
-            await generator.generate(source_code="def f(): pass", file_path="f.py")
+    ), pytest.raises(RuntimeError, match="oops"):
+        await generator.generate(source_code="def f(): pass", file_path="f.py")
 
 
 def test_request_response_models():
@@ -345,7 +344,7 @@ async def test_llm_method(monkeypatch):
 
     monkeypatch.setattr(
         "brain.model_router.ModelRouter",
-        lambda: type("R", (), {"async_route_and_generate": fake_route})(),
+        type("R", (), {"async_route_and_generate": fake_route}),
     )
     out = await generator._llm("prompt")
     assert out == "def test_foo():\n    pass"
@@ -387,7 +386,7 @@ async def test_llm_method_non_dict_result(monkeypatch):
         async def async_route_and_generate(self, *args, **kwargs):
             return "plain text"
 
-    monkeypatch.setattr("brain.model_router.ModelRouter", lambda: R())
+    monkeypatch.setattr("brain.model_router.ModelRouter", R)
     out = await generator._llm("prompt")
     assert out == "plain text"
 

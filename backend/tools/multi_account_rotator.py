@@ -5,6 +5,7 @@ Complete implementation for intelligent provider switching and account managemen
 """
 
 import asyncio
+import contextlib
 import hashlib
 import json
 import logging
@@ -72,10 +73,7 @@ class Account:
             return False
 
         # Check rate limiting
-        if self.reset_time and datetime.now() < self.reset_time:
-            return False
-
-        return True
+        return not (self.reset_time and datetime.now() < self.reset_time)
 
     def get_health_score(self) -> float:
         """Calculate account health score (0-100)"""
@@ -327,12 +325,10 @@ class MultiAccountRotator:
                             f"[SUPREME-AI] Verification filling warning/error (continuing): {verify_err}"
                         )
 
-                    try:
+                    with contextlib.suppress(Exception):
                         await page.wait_for_selector(
                             "text=Account Created Successfully", timeout=2000
                         )
-                    except Exception:
-                        pass
                     logger.info(
                         f"[SUPREME-AI] Account creation confirmed for {new_email}."
                     )
@@ -645,9 +641,8 @@ class MultiAccountRotator:
                 return False
 
         # Check model requirements
-        if "required_model" in requirements:
-            if requirements["required_model"] not in provider.models:
-                return False
+        if "required_model" in requirements and requirements["required_model"] not in provider.models:
+            return False
 
         # Check speed requirements (rough estimate)
         if "speed_priority" in requirements:

@@ -28,10 +28,9 @@ class CloudPostgresStore:
 
     def _init_tables(self):
         """Initialize tables if not exist."""
-        with self._get_conn() as conn:
-            with conn.cursor() as cur:
-                cur.execute(
-                    """
+        with self._get_conn() as conn, conn.cursor() as cur:
+            cur.execute(
+                """
                     CREATE TABLE IF NOT EXISTS task_history (
                         id SERIAL PRIMARY KEY,
                         task_type VARCHAR(50),
@@ -44,9 +43,9 @@ class CloudPostgresStore:
                         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                     )
                 """
-                )
-                cur.execute(
-                    """
+            )
+            cur.execute(
+                """
                     CREATE TABLE IF NOT EXISTS conversation_context (
                         id SERIAL PRIMARY KEY,
                         session_id VARCHAR(100),
@@ -57,9 +56,9 @@ class CloudPostgresStore:
                         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                     )
                 """
-                )
-                cur.execute(
-                    """
+            )
+            cur.execute(
+                """
                     CREATE TABLE IF NOT EXISTS verification_queue (
                         id SERIAL PRIMARY KEY,
                         email_target VARCHAR(255),
@@ -69,50 +68,48 @@ class CloudPostgresStore:
                         received_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                     )
                 """
-                )
-                conn.commit()
-                logger.info("PostgreSQL tables initialized")
+            )
+            conn.commit()
+            logger.info("PostgreSQL tables initialized")
 
     def save_task(self, task_data: dict[str, Any]) -> int:
         """Save task execution record."""
-        with self._get_conn() as conn:
-            with conn.cursor() as cur:
-                cur.execute(
-                    """
-                    INSERT INTO task_history 
+        with self._get_conn() as conn, conn.cursor() as cur:
+            cur.execute(
+                """
+                    INSERT INTO task_history
                     (task_type, prompt, result, provider, cost, latency_ms, success)
                     VALUES (%s, %s, %s, %s, %s, %s, %s)
                     RETURNING id
                 """,
-                    (
-                        task_data.get("task_type"),
-                        task_data.get("prompt"),
-                        task_data.get("result"),
-                        task_data.get("provider"),
-                        task_data.get("cost", 0.0),
-                        task_data.get("latency_ms", 0),
-                        task_data.get("success", True),
-                    ),
-                )
-                result = cur.fetchone()
-                conn.commit()
-                return result["id"]
+                (
+                    task_data.get("task_type"),
+                    task_data.get("prompt"),
+                    task_data.get("result"),
+                    task_data.get("provider"),
+                    task_data.get("cost", 0.0),
+                    task_data.get("latency_ms", 0),
+                    task_data.get("success", True),
+                ),
+            )
+            result = cur.fetchone()
+            conn.commit()
+            return result["id"]
 
     def get_conversation(self, session_id: str) -> dict[str, Any] | None:
         """Get conversation context by session."""
-        with self._get_conn() as conn:
-            with conn.cursor() as cur:
-                cur.execute(
-                    """
-                    SELECT * FROM conversation_context 
-                    WHERE session_id = %s 
-                    ORDER BY updated_at DESC 
+        with self._get_conn() as conn, conn.cursor() as cur:
+            cur.execute(
+                """
+                    SELECT * FROM conversation_context
+                    WHERE session_id = %s
+                    ORDER BY updated_at DESC
                     LIMIT 1
                 """,
-                    (session_id,),
-                )
-                result = cur.fetchone()
-                return dict(result) if result else None
+                (session_id,),
+            )
+            result = cur.fetchone()
+            return dict(result) if result else None
 
     def update_conversation(
         self, session_id: str, messages: list[dict], summary: str = ""
@@ -120,10 +117,9 @@ class CloudPostgresStore:
         """Update or create conversation context."""
         from psycopg2.extras import Json
 
-        with self._get_conn() as conn:
-            with conn.cursor() as cur:
-                cur.execute(
-                    """
+        with self._get_conn() as conn, conn.cursor() as cur:
+            cur.execute(
+                """
                     INSERT INTO conversation_context (session_id, messages, summary)
                     VALUES (%s, %s, %s)
                     ON CONFLICT (session_id) DO UPDATE SET
@@ -131,17 +127,16 @@ class CloudPostgresStore:
                         summary = EXCLUDED.summary,
                         updated_at = CURRENT_TIMESTAMP
                 """,
-                    (session_id, Json(messages), summary),
-                )
-                conn.commit()
+                (session_id, Json(messages), summary),
+            )
+            conn.commit()
 
     def get_stats(self) -> dict[str, Any]:
         """Get system statistics."""
-        with self._get_conn() as conn:
-            with conn.cursor() as cur:
-                cur.execute(
-                    """
-                    SELECT 
+        with self._get_conn() as conn, conn.cursor() as cur:
+            cur.execute(
+                """
+                    SELECT
                         COUNT(*) as total_tasks,
                         AVG(cost) as avg_cost,
                         SUM(cost) as total_cost,
@@ -149,9 +144,9 @@ class CloudPostgresStore:
                         COUNT(CASE WHEN success THEN 1 END)::FLOAT / COUNT(*) * 100 as success_rate
                     FROM task_history
                 """
-                )
-                result = cur.fetchone()
-                return dict(result) if result else {}
+            )
+            result = cur.fetchone()
+            return dict(result) if result else {}
 
 
 # Keep SQLite fallback for local dev

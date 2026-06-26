@@ -71,9 +71,8 @@ class SupabaseDB:
                 flag = res.data[0]
                 if not flag.get("enabled", False):
                     return False
-                if user_id and flag.get("allowed_users"):
-                    if user_id in flag["allowed_users"]:
-                        return True
+                if user_id and flag.get("allowed_users") and user_id in flag["allowed_users"]:
+                    return True
                 # Real implementation would hash user_id against rollout_percentage here
                 return True
             return False

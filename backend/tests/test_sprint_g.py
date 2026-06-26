@@ -143,20 +143,19 @@ class TestCommentThreadAI:
 
         with patch.object(
             ai, "_llm", new_callable=AsyncMock, return_value="Fix: use None check"
-        ):
-            with patch.object(
-                ai, "_post_pr_comment", new_callable=AsyncMock
-            ) as mock_post:
-                mock_post.return_value = {
-                    "status": "success",
-                    "comment_url": "https://github.com/...",
-                }
-                result = await ai.handle_pr_comment(
-                    repo_full_name="owner/repo",
-                    pr_number=1,
-                    comment_body="fix this please",
-                    auto_reply=True,
-                )
+        ), patch.object(
+            ai, "_post_pr_comment", new_callable=AsyncMock
+        ) as mock_post:
+            mock_post.return_value = {
+                "status": "success",
+                "comment_url": "https://github.com/...",
+            }
+            result = await ai.handle_pr_comment(
+                repo_full_name="owner/repo",
+                pr_number=1,
+                comment_body="fix this please",
+                auto_reply=True,
+            )
 
         assert result["status"] == "success"
         assert result["comment_posted"] is True
@@ -413,20 +412,19 @@ class TestTenantAdminAPI:
         from api.routes.tenant_admin import create_tenant
 
         _local_store.clear()
-        with patch("api.routes.tenant_admin._get_db", return_value=None):
-            with patch(
-                "api.routes.tenant_admin._db_get_tenant",
-                new_callable=AsyncMock,
-                return_value=None,
-            ):
-                payload = TenantLimitCreate(
-                    tenant_id="test-org", org_name="Test", billing_tier="pro"
-                )
-                try:
-                    result = await create_tenant(payload)
-                except Exception:
-                    # May fail on tier cache — check local store directly
-                    result = {"status": "partial"}
+        with patch("api.routes.tenant_admin._get_db", return_value=None), patch(
+            "api.routes.tenant_admin._db_get_tenant",
+            new_callable=AsyncMock,
+            return_value=None,
+        ):
+            payload = TenantLimitCreate(
+                tenant_id="test-org", org_name="Test", billing_tier="pro"
+            )
+            try:
+                await create_tenant(payload)
+            except Exception:
+                # May fail on tier cache — check local store directly
+                pass
 
         # Verify in local store
         tenants = _local_store.get("tenants", [])
@@ -453,23 +451,21 @@ class TestTenantAdminAPI:
             "api.routes.tenant_admin._db_get_tenant",
             new_callable=AsyncMock,
             return_value=existing,
-        ):
-            with patch(
-                "api.routes.tenant_admin._db_upsert_tenant",
-                new_callable=AsyncMock,
-                return_value=True,
-            ):
-                with patch("api.routes.tenant_admin._get_db", return_value=None):
-                    try:
-                        payload = TenantLimitUpdate(billing_tier="pro")
-                        result = await update_tenant("my-org", payload)
-                        assert result["tenant"]["billing_tier"] == "pro"
-                        assert (
-                            result["tenant"]["requests_per_minute"]
-                            == TIER_DEFAULTS["pro"]["requests_per_minute"]
-                        )
-                    except Exception:
-                        pass  # Redis cache failure OK
+        ), patch(
+            "api.routes.tenant_admin._db_upsert_tenant",
+            new_callable=AsyncMock,
+            return_value=True,
+        ), patch("api.routes.tenant_admin._get_db", return_value=None):
+            try:
+                payload = TenantLimitUpdate(billing_tier="pro")
+                result = await update_tenant("my-org", payload)
+                assert result["tenant"]["billing_tier"] == "pro"
+                assert (
+                    result["tenant"]["requests_per_minute"]
+                    == TIER_DEFAULTS["pro"]["requests_per_minute"]
+                )
+            except Exception:
+                pass  # Redis cache failure OK
 
     @pytest.mark.anyio
     async def test_delete_tenant(self):
@@ -480,13 +476,12 @@ class TestTenantAdminAPI:
             "api.routes.tenant_admin._db_get_tenant",
             new_callable=AsyncMock,
             return_value=existing,
+        ), patch(
+            "api.routes.tenant_admin._db_delete_tenant",
+            new_callable=AsyncMock,
+            return_value=True,
         ):
-            with patch(
-                "api.routes.tenant_admin._db_delete_tenant",
-                new_callable=AsyncMock,
-                return_value=True,
-            ):
-                result = await delete_tenant("gone-org")
+            result = await delete_tenant("gone-org")
         assert result["status"] == "deleted"
 
     @pytest.mark.anyio
@@ -499,9 +494,8 @@ class TestTenantAdminAPI:
             "api.routes.tenant_admin._db_get_tenant",
             new_callable=AsyncMock,
             return_value=None,
-        ):
-            with pytest.raises(HTTPException) as exc_info:
-                await get_tenant("nonexistent-id")
+        ), pytest.raises(HTTPException) as exc_info:
+            await get_tenant("nonexistent-id")
         assert exc_info.value.status_code == 404
 
     def test_tier_defaults_endpoint(self):

@@ -168,11 +168,10 @@ class TestOnboardingAPI:
             "api.routes.onboarding._validate_api_key",
             new_callable=AsyncMock,
             return_value=True,
+        ), patch(
+            "api.routes.onboarding._save_user_preferences", return_value=True
         ):
-            with patch(
-                "api.routes.onboarding._save_user_preferences", return_value=True
-            ):
-                result = await complete_onboarding(payload)
+            result = await complete_onboarding(payload)
         assert result.status == "success"
         assert result.user_id == "test-user"
         assert result.provider_valid is True
@@ -192,11 +191,10 @@ class TestOnboardingAPI:
             "api.routes.onboarding._validate_api_key",
             new_callable=AsyncMock,
             return_value=False,
+        ), patch(
+            "api.routes.onboarding._save_user_preferences", return_value=True
         ):
-            with patch(
-                "api.routes.onboarding._save_user_preferences", return_value=True
-            ):
-                result = await complete_onboarding(payload)
+            result = await complete_onboarding(payload)
         # Should not raise — gracefully returns warning
         assert result.status == "success"
         assert result.provider_valid is False
@@ -213,11 +211,10 @@ class TestViralReferralEngine:
         engine = ViralReferralEngine()
         with patch("tools.viral_referral_engine.db") as mock_db:
             mock_db.client = None  # Force local store
-            with patch.object(engine, "_save_local"):
-                with patch.object(
-                    engine, "_load_local", return_value={"codes": {}, "wallets": {}}
-                ):
-                    result = engine.generate_referral_code("user123")
+            with patch.object(engine, "_save_local"), patch.object(
+                engine, "_load_local", return_value={"codes": {}, "wallets": {}}
+            ):
+                result = engine.generate_referral_code("user123")
         assert result["status"] == "success"
         assert result["code"].startswith("SUPREME-")
         assert len(result["code"]) == 16  # SUPREME- + 8 hex chars

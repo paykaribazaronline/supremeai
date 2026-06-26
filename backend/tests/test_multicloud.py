@@ -25,7 +25,7 @@ def test_get_provider_for_request_fallback():
 def test_router_weight_calculations():
     router = ParallelCloudRouter()
     # Mock status active and valid URLs
-    for name, config in router.PROVIDERS.items():
+    for _name, config in router.PROVIDERS.items():
         config["status"] = "active"
         config["url"] = "http://127.0.0.1:8000"
         config["latency_ms"] = 100.0

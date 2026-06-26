@@ -70,9 +70,8 @@ def test_setup_tracing_without_endpoint_no_exporter():
 
 
 def test_trace_span_no_tracer():
-    with patch("core.telemetry.get_tracer", return_value=None):
-        with trace_span("test-span") as span:
-            assert isinstance(span, _NoOpSpan)
+    with patch("core.telemetry.get_tracer", return_value=None), trace_span("test-span") as span:
+        assert isinstance(span, _NoOpSpan)
 
 
 def test_trace_span_with_tracer():

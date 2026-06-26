@@ -1,6 +1,6 @@
 import httpx
 import pytest
-
+from typing import Dict
 
 try:
     from firebase_admin import auth as firebase_admin_auth
@@ -191,7 +191,7 @@ class FakePubSubClient:
 
 
 def test_gcp_cloud_run_router_route(monkeypatch):
-    monkeypatch.setattr(httpx, "Client", lambda timeout: FakeClient(timeout))
+    monkeypatch.setattr(httpx, "Client", FakeClient)
     router = GCPCloudRunRouter(base_url="https://supremeai-a.example.run.app")
 
     result = router.route("/api/v1/task/execute", {"task": "ping"})
@@ -202,7 +202,7 @@ def test_gcp_cloud_run_router_route(monkeypatch):
 
 
 def test_gcp_cloud_run_router_health(monkeypatch):
-    monkeypatch.setattr(httpx, "Client", lambda timeout: FakeClient(timeout))
+    monkeypatch.setattr(httpx, "Client", FakeClient)
     router = GCPCloudRunRouter(base_url="https://supremeai-a.example.run.app")
 
     result = router.health_check(timeout=3)
@@ -249,7 +249,7 @@ def test_gcp_cloud_function_client_trigger(monkeypatch):
     monkeypatch.setenv("GCP_PROJECT_ID", "supremeai-a")
     monkeypatch.setenv("GCP_REGION", "us-central1")
     monkeypatch.setenv("GCP_CLOUD_FUNCTION_NAME", "processOCR")
-    monkeypatch.setattr(httpx, "Client", lambda timeout: FakeClient(timeout))
+    monkeypatch.setattr(httpx, "Client", FakeClient)
     client = GCPCloudFunctionClient()
 
     result = client.trigger({"imageUrls": ["https://example.com/a.png"]})
@@ -302,7 +302,7 @@ def test_gcp_pubsub_publish_pull():
 
 @pytest.mark.skipif(not HAS_FIREBASE_DEPS, reason="firebase deps missing")
 def test_gcp_cloud_functions_ocr_trigger(monkeypatch):
-    monkeypatch.setattr(httpx, "Client", lambda timeout: FakeClient(timeout))
+    monkeypatch.setattr(httpx, "Client", FakeClient)
     client = GCPCloudFunctionClient(
         project_id="supremeai-a",
         region="us-central1",

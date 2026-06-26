@@ -1,3 +1,4 @@
+import contextlib
 import os
 import re
 import subprocess
@@ -140,13 +141,12 @@ class PreCommitAI:
                         )
                         content_changed = True
 
-                if self.AUTO_FIX_RULES.get("end_of_file_newline"):
-                    if not new_content.endswith("\n"):
-                        new_content += "\n"
-                        fixes_applied.append(
-                            {"file": filepath, "action": "add_final_newline"}
-                        )
-                        content_changed = True
+                if self.AUTO_FIX_RULES.get("end_of_file_newline") and not new_content.endswith("\n"):
+                    new_content += "\n"
+                    fixes_applied.append(
+                        {"file": filepath, "action": "add_final_newline"}
+                    )
+                    content_changed = True
 
                 if content_changed:
                     with open(filepath, "w", encoding="utf-8") as f:
@@ -201,12 +201,10 @@ class PreCommitAI:
             fix_report = self._auto_fix(files)
             if fix_report["count"] > 0:
                 for fp in files:
-                    try:
+                    with contextlib.suppress(Exception):
                         subprocess.run(
                             ["git", "add", fp], check=True, capture_output=True
                         )
-                    except Exception:
-                        pass
                 logger.info(f"Auto-fixed {fix_report['count']} issue(s).")
                 # The commit was not blocked, files were fixed and re-staged.
                 # Allow the commit to proceed.

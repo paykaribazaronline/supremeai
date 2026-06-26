@@ -44,7 +44,7 @@ class TestSwarmOrchestrator:
         agent2.execute.return_value = "ok"
 
         tasks = [MagicMock(description=f"t{i}") for i in range(4)]
-        results = orch.execute_swarm(tasks)
+        orch.execute_swarm(tasks)
 
         assert agent1.execute.call_count == 2
         assert agent2.execute.call_count == 2

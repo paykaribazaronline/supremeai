@@ -116,12 +116,11 @@ class Orchestrator:
                 # Simulate executing the skill and updating weights on success
                 # Trigger simulated failure specifically on B to verify fallback
                 has_trigger = False
-                if isinstance(current_data, dict):
-                    if current_data.get("trigger_failure") or (
-                        isinstance(current_data.get("data"), dict)
-                        and current_data["data"].get("trigger_failure")
-                    ):
-                        has_trigger = True
+                if isinstance(current_data, dict) and (current_data.get("trigger_failure") or (
+                    isinstance(current_data.get("data"), dict)
+                    and current_data["data"].get("trigger_failure")
+                )):
+                    has_trigger = True
                 if skill == "Skill_B" and has_trigger:
                     raise RuntimeError("Simulated execution failure inside Skill_B")
 
@@ -192,7 +191,7 @@ class Orchestrator:
                         for task_fn in self._tasks:
                             # Schedule task execution concurrently inside the TaskGroup
                             tg.create_task(task_fn())
-            except* Exception as e:
+            except Exception as e:
                 logger.error(f"Error in orchestrator task group loop: {e}")
             # Sleep until next interval, taking into account execution time.
             elapsed = (datetime.now(timezone.utc) - start).total_seconds()

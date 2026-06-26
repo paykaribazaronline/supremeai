@@ -24,7 +24,9 @@ class RAGPipeline:
                 break
         return chunks
 
-    def ingest_document(self, doc_id: str, content: str, metadata: dict[str, Any] = {}):
+    def ingest_document(self, doc_id: str, content: str, metadata: dict[str, Any] = None):
+        if metadata is None:
+            metadata = {}
         chunks = self.chunk_text(content)
         for idx, chunk in enumerate(chunks):
             chunk_id = f"{doc_id}_chunk_{idx}"
@@ -34,7 +36,7 @@ class RAGPipeline:
     def retrieve_context(self, query: str, limit: int = 3) -> str:
         results = self.vector_store.query(query, n_results=limit)
         context_parts = []
-        for doc_id, score, doc_data in results:
+        for _doc_id, score, doc_data in results:
             if score > 0.05:  # threshold
                 context_parts.append(doc_data["text"])
         return "\n---\n".join(context_parts)

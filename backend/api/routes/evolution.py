@@ -96,7 +96,7 @@ class QuarantineRequest(BaseModel):
 async def quarantine_skill(
     payload: QuarantineRequest,
     admin: dict = Depends(require_admin_token),
-    fitness_engine: FitnessEngine | None = Depends(lambda: FitnessEngine()),
+    fitness_engine: FitnessEngine | None = Depends(FitnessEngine),
 ):
     skill_name = payload.skill_name.strip()
     try:

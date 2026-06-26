@@ -1,3 +1,4 @@
+import contextlib
 import os
 from typing import Any
 
@@ -46,15 +47,13 @@ class SupremeOrchestrator:
         run = self.autonomous_agent.run(
             task_description=task_description, context=context
         )
-        try:
+        with contextlib.suppress(Exception):
             self.reasoning_orchestrator.episodic_memory.store_episode(
                 event_type="autonomous_run",
                 context=task_description,
                 outcome="success" if run.get("run", {}).get("success") else "failed",
                 importance=1.0 if run.get("run", {}).get("success") else 0.2,
             )
-        except Exception:
-            pass
         return run
 
     def route_reasoning(

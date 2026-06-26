@@ -30,9 +30,8 @@ class TestCreateAccessToken:
     def test_create_access_token_returns_string(self):
         mock_jwt = MagicMock()
         mock_jwt.encode.return_value = "token_string"
-        with patch("api.routes.auth.jwt", mock_jwt):
-            with patch("api.routes.auth.SECRET_KEY", "test_secret"):
-                token = create_access_token({"sub": "user1", "role": "admin"})
+        with patch("api.routes.auth.jwt", mock_jwt), patch("api.routes.auth.SECRET_KEY", "test_secret"):
+            token = create_access_token({"sub": "user1", "role": "admin"})
         assert token == "token_string"
         mock_jwt.encode.assert_called_once()
         args = mock_jwt.encode.call_args.args
@@ -41,9 +40,8 @@ class TestCreateAccessToken:
 
     def test_create_access_token_with_expires_delta(self):
         mock_jwt = MagicMock()
-        with patch("api.routes.auth.jwt", mock_jwt):
-            with patch("api.routes.auth.SECRET_KEY", "test_secret"):
-                create_access_token({"sub": "u"}, expires_delta=timedelta(minutes=30))
+        with patch("api.routes.auth.jwt", mock_jwt), patch("api.routes.auth.SECRET_KEY", "test_secret"):
+            create_access_token({"sub": "u"}, expires_delta=timedelta(minutes=30))
         assert mock_jwt.encode.call_args.kwargs["algorithm"] == "HS256"
 
     def test_create_access_token_missing_jose(self):

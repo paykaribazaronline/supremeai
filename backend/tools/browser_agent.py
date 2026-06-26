@@ -27,9 +27,7 @@ def is_safe_url(url: str) -> bool:
             return False
         ip = socket.gethostbyname(hostname)
         ip_obj = ipaddress.ip_address(ip)
-        if ip_obj.is_private or ip_obj.is_loopback or ip_obj.is_link_local:
-            return False
-        return True
+        return not (ip_obj.is_private or ip_obj.is_loopback or ip_obj.is_link_local)
     except Exception:
         return False
 

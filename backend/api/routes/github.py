@@ -92,7 +92,7 @@ async def improve_repo(payload: ImproveRequest, db=Depends(get_tenant_db)):
 async def push_improvements(payload: PushRequest, db=Depends(get_tenant_db)):
     try:
         repo = _resolve_repo(payload.repo, db)
-        improvements = {f: "Optimized" for f in payload.files_changed}
+        improvements = dict.fromkeys(payload.files_changed, "Optimized")
         res = github_agent.create_improvement_pr(repo, improvements, payload.branch)
         return res
     except HTTPException:

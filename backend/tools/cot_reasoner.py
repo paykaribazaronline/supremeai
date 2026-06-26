@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import ast
+import contextlib
 import operator
 import random
 from typing import Any
@@ -80,10 +81,8 @@ def verify_symbolic_math(expression: str, claimed_result: str) -> dict[str, Any]
         claimed = sympy.sympify(claimed_result)
         is_correct = sympy.simplify(expr - claimed) == 0
         if not is_correct:
-            try:
+            with contextlib.suppress(Exception):
                 is_correct = abs(expr.evalf() - claimed.evalf()) < 1e-9
-            except Exception:
-                pass
         return {
             "is_verified": bool(is_correct),
             "expression_sympy": str(expr),
@@ -237,7 +236,7 @@ class ChainOfThoughtReasoner:
         if depth == 0 or branches <= 0:
             return {"status": "ok", "best_branch": [], "best_score": 0.0}
 
-        prompt = self.build_prompt(problem, context)
+        self.build_prompt(problem, context)
         raw = __import__("os").environ.get("COT_DEBUG_INPUT", "")
         if not raw:
             raw = f"<thought>Initial analysis of: {problem}</thought>"
@@ -255,7 +254,7 @@ class ChainOfThoughtReasoner:
                 best_score = thought.score
                 best_branch = [thought.content]
             if depth > 1:
-                extension = self.build_prompt(
+                self.build_prompt(
                     f"{thought.content}\nContinue reasoning.", context
                 )
                 ext_raw = f"<thought>{thought.content} - continued</thought><answer>{problem}</answer>"
@@ -306,7 +305,7 @@ class ChainOfThoughtReasoner:
         for _ in range(simulations):
             path = list(seed_path)
             score = float(seed.get("best_score") or 0.0)
-            for depth_idx in range(max(0, depth - len(path))):
+            for _depth_idx in range(max(0, depth - len(path))):
                 node_text = path[-1] if path else problem
                 expansion = random.choice(rollout_nodes)
                 thought = Thought(
@@ -377,7 +376,7 @@ class DeepReasoningChain:
 
     def iterative_refinement(self, answer: str, iterations: int = 3) -> str:
         current = answer
-        for i in range(iterations):
+        for _i in range(iterations):
             critique = self.self_critique(current)
             refined_prompt = (
                 "Given the critique, refine the previous answer. "

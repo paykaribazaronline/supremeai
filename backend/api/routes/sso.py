@@ -106,9 +106,9 @@ async def oidc_provider_authorize(provider: str, payload: ProviderSSORequest):
 async def oidc_provider_callback(provider: str, payload: OIDCCallbackRequest):
     if sso is None:
         raise HTTPException(status_code=503, detail="SSO service is unavailable")
-    client_id = getattr(settings, "oidc_client_id", "")
-    client_secret = getattr(settings, "oidc_client_secret", "")
-    redirect_uri = getattr(settings, "oidc_redirect_uri", "")
+    getattr(settings, "oidc_client_id", "")
+    getattr(settings, "oidc_client_secret", "")
+    getattr(settings, "oidc_redirect_uri", "")
     if not payload.state or payload.state not in _oidc_state_store:
         raise HTTPException(
             status_code=400, detail="Invalid or expired OIDC state parameter"

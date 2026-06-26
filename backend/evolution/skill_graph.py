@@ -2,7 +2,7 @@
 """Semantic Skill Graph module for SupremeAI 2.0.
 
 Provides dynamic, directed graph representation of skills using networkx,
-including input-output type compatibility verification, dynamic weights, 
+including input-output type compatibility verification, dynamic weights,
 and fallback routing.
 """
 from __future__ import annotations

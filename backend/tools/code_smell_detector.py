@@ -74,7 +74,7 @@ class CodeSmellDetector:
         try:
             with open(filepath, encoding="utf-8") as f:
                 content = f.read()
-                lines = content.splitlines()
+                content.splitlines()
 
             tree = ast.parse(content)
 
@@ -384,17 +384,16 @@ class CodeSmellDetector:
             brace_depth = 0
             for line in lines:
                 stripped = line.strip()
-                if "function" in stripped or "=>" in stripped:
-                    if not in_func:
-                        in_func = True
-                        current_func_lines = 0
-                        func_count += 1
-                        if "(" in stripped:
-                            params = stripped.split("(")[1].split(")")[0]
-                            if len(
-                                [p.strip() for p in params.split(",") if p.strip()]
-                            ) > max_params and not stripped.startswith("//"):
-                                big_param_funcs += 1
+                if ("function" in stripped or "=>" in stripped) and not in_func:
+                    in_func = True
+                    current_func_lines = 0
+                    func_count += 1
+                    if "(" in stripped:
+                        params = stripped.split("(")[1].split(")")[0]
+                        if len(
+                            [p.strip() for p in params.split(",") if p.strip()]
+                        ) > max_params and not stripped.startswith("//"):
+                            big_param_funcs += 1
                 if in_func:
                     current_func_lines += 1
                     if current_func_lines > max_lines:
@@ -405,8 +404,7 @@ class CodeSmellDetector:
                         brace_depth = 0
                     else:
                         brace_depth += stripped.count("{") - stripped.count("}")
-                        if brace_depth < 0:
-                            brace_depth = 0
+                        brace_depth = max(brace_depth, 0)
                         if brace_depth == 0 and stripped:
                             brace_depth = 0
 
@@ -497,9 +495,8 @@ class CodeSmellDetector:
             if isinstance(node, ast.Import):
                 for alias in node.names:
                     imports.append(alias.name.split(".")[0])
-            elif isinstance(node, ast.ImportFrom):
-                if node.module:
-                    imports.append(node.module.split(".")[0])
+            elif isinstance(node, ast.ImportFrom) and node.module:
+                imports.append(node.module.split(".")[0])
         fan_out = len(imports)
         unique_modules = len(set(imports))
         return {

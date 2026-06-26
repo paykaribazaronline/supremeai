@@ -1,3 +1,4 @@
+import contextlib
 import json
 from pathlib import Path
 from typing import Any
@@ -163,12 +164,10 @@ class LocalSearchRAG:
 
     def _store_search(self, query: str, docs: dict[str, list[str]]) -> None:
         self._index[query] = [doc for fields in docs.values() for doc in fields]
-        try:
+        with contextlib.suppress(Exception):
             self.embeddings_path.write_text(
                 json.dumps(self._index, ensure_ascii=False, indent=2), encoding="utf-8"
             )
-        except Exception:
-            pass
 
         # Add to ChromaDB
         ids = []

@@ -134,8 +134,10 @@ async def api_dispatch(capability: str, payload: dict[str, Any]) -> JSONResponse
 
 @router.post("/n8n")
 async def trigger_n8n(
-    webhook_path: str = "", payload: dict[str, Any] = {}
+    webhook_path: str = "", payload: dict[str, Any] = None
 ) -> JSONResponse:
+    if payload is None:
+        payload = {}
     internal = InternalGateway()
     result = internal.trigger_n8n_workflow(webhook_path, payload)
     status = 200 if result.get("success") else 502
@@ -144,8 +146,10 @@ async def trigger_n8n(
 
 @router.post("/make")
 async def trigger_make(
-    webhook_url: str = "", payload: dict[str, Any] = {}
+    webhook_url: str = "", payload: dict[str, Any] = None
 ) -> JSONResponse:
+    if payload is None:
+        payload = {}
     internal = InternalGateway()
     result = internal.trigger_make_webhook(webhook_url, payload)
     status = 200 if result.get("success") else 502

@@ -720,19 +720,18 @@ def admin_firebase_totp_verify(payload: dict = Body(...)):
         raise HTTPException(status_code=401, detail="Invalid verification code")
 
     # Promote temporary secret on successful verification
-    if temp_totp_secret and not totp_secret:
-        if db:
-            try:
-                from google.cloud import firestore
+    if temp_totp_secret and not totp_secret and db:
+        try:
+            from google.cloud import firestore
 
-                db.collection("admin_users").document(uid).update(
-                    {
-                        "totp_secret": temp_totp_secret,
-                        "temp_totp_secret": firestore.DELETE_FIELD,
-                    }
-                )
-            except Exception as e:
-                logger.error(f"Failed to promote temp TOTP secret: {e}")
+            db.collection("admin_users").document(uid).update(
+                {
+                    "totp_secret": temp_totp_secret,
+                    "temp_totp_secret": firestore.DELETE_FIELD,
+                }
+            )
+        except Exception as e:
+            logger.error(f"Failed to promote temp TOTP secret: {e}")
 
     # Issue backend session JWT
     from jose import jwt

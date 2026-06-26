@@ -50,7 +50,7 @@ def _user_context(request: Request) -> dict[str, Any]:
 
 @agent_router.post("/execute", response_model=AgentExecuteResponse)
 async def execute_agent(request: Request, body: AgentExecuteRequest):
-    user = _user_context(request)
+    _user_context(request)
     if body.autonomous:
         run = autonomous_agent.run(body.task, body.task_type)
         monitor.track_agent_call(prompt=body.task, provider="autonomous")

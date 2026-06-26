@@ -146,5 +146,4 @@ class VoiceInterface:
 
     def stream_tts_chunks(self, text: str, chunk_size: int = 200):
         chunks = [text[i : i + chunk_size] for i in range(0, len(text), chunk_size)]
-        for chunk in chunks:
-            yield chunk
+        yield from chunks

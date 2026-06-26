@@ -1,8 +1,9 @@
 # backend/core/tenant_db.py
-try:
+import contextlib
+
+
+with contextlib.suppress(ImportError):
     from google.cloud import firestore
-except ImportError:
-    pass
 from fastapi import HTTPException
 from fastapi import status
 from loguru import logger

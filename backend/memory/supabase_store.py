@@ -45,7 +45,7 @@ class SupabaseStore(SQLiteMemoryStore):
                 }
             ).execute()
         else:
-            rows = self.get_session_messages(session_id)
+            self.get_session_messages(session_id)
             for msg in messages:
                 if isinstance(msg, dict):
                     self.save_message(

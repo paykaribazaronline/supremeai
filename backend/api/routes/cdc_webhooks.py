@@ -45,10 +45,7 @@ async def _delete_from_vector_db(user_id: str, doc_id: str | None = None) -> Non
     try:
         import httpx
 
-        if doc_id:
-            vector_id = f"{user_id}:{doc_id}"
-        else:
-            vector_id = user_id
+        vector_id = f"{user_id}:{doc_id}" if doc_id else user_id
 
         async with httpx.AsyncClient(timeout=10.0) as client:
             await client.request(

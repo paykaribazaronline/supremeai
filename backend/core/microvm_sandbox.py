@@ -92,7 +92,7 @@ class MicroVMSandbox:
     async def _run_firecracker(
         self, vm_id: str, cmd: str, language: str, timeout: int
     ) -> dict[str, Any]:
-        config_path = self._create_microvm_config(vm_id, cmd)
+        self._create_microvm_config(vm_id, cmd)
 
         try:
             result = subprocess.run(

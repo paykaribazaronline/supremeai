@@ -116,10 +116,9 @@ resource "{provider}_subnet" "public" {{
                     parts = line_stripped.split('"')
                     if len(parts) >= 2:
                         components.append({"type": "module", "details": parts[1]})
-            elif iac_tool in ("cloudformation", "cdk"):
-                if "Type:" in line_stripped:
-                    type_val = line_stripped.replace("Type:", "").strip()
-                    components.append({"type": type_val, "details": ""})
+            elif iac_tool in ("cloudformation", "cdk") and "Type:" in line_stripped:
+                type_val = line_stripped.replace("Type:", "").strip()
+                components.append({"type": type_val, "details": ""})
         return components
 
     async def generate_api_spec(self, diagram_path: str) -> dict[str, Any]:

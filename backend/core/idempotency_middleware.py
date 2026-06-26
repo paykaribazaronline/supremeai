@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import contextlib
 import json
 
 from fastapi.responses import JSONResponse
@@ -132,8 +133,6 @@ class IdempotencyMiddleware:
             )
         except Exception as e:
             # Clear key on failure so the client can retry immediately
-            try:
+            with contextlib.suppress(Exception):
                 redis.set(redis_key, "", ex=1)
-            except Exception:
-                pass
             raise e

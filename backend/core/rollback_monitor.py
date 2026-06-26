@@ -72,21 +72,20 @@ class RollbackMonitor:
         )
 
         # Threshold triggers (require at least 10 requests to prevent false alarms)
-        if total_requests >= 10:
-            if (
-                current_error_rate > self.error_rate_threshold
-                or current_avg_latency > self.latency_threshold_ms
-            ):
-                logger.error(
-                    f"HEALTH ALERT: Service {service_name} has breached health thresholds! Initiating automatic rollback..."
-                )
-                rollback_res = self.trigger_rollback(service_name)
-                return {
-                    "status": "rolled_back",
-                    "error_rate": current_error_rate,
-                    "avg_latency": current_avg_latency,
-                    "rollback_response": rollback_res,
-                }
+        if total_requests >= 10 and (
+            current_error_rate > self.error_rate_threshold
+            or current_avg_latency > self.latency_threshold_ms
+        ):
+            logger.error(
+                f"HEALTH ALERT: Service {service_name} has breached health thresholds! Initiating automatic rollback..."
+            )
+            rollback_res = self.trigger_rollback(service_name)
+            return {
+                "status": "rolled_back",
+                "error_rate": current_error_rate,
+                "avg_latency": current_avg_latency,
+                "rollback_response": rollback_res,
+            }
 
         return {
             "status": "ok",

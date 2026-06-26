@@ -18,6 +18,7 @@ Setup:
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import os
 from typing import Any
 
@@ -140,10 +141,8 @@ class TelegramBotHandler:
             asyncio.set_event_loop(loop)
             return loop.run_until_complete(self._ai_response(text, user_id))
         finally:
-            try:
+            with contextlib.suppress(Exception):
                 loop.close()
-            except Exception:
-                pass
 
     async def handle_update(self, update: dict[str, Any]) -> None:
         """Process a Telegram update payload (from webhook or polling)."""
@@ -159,7 +158,7 @@ class TelegramBotHandler:
         logger.info(f"Telegram message from @{username} ({user_id}): '{text}'")
 
         # Command handling
-        command = text.split()[0].lower() if text.startswith("/") else None
+        command = text.split(maxsplit=1)[0].lower() if text.startswith("/") else None
         if command:
             reply = self.COMMANDS.get(command)
             if reply:

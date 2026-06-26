@@ -16,6 +16,8 @@ try:
 except ImportError:
     HAS_FIRESTORE = False
 
+import contextlib
+
 from core.config import settings
 from workers.chaos_worker import NightlyChaosAuditor
 
@@ -88,7 +90,6 @@ async def get_admin_metrics_dashboard(request: Request):
     Feeds real-time infrastructure savings data directly to the Studio Client.
     """
     # গ্লোবাল কানেকশন পুলের কারেন্ট স্ট্যাটাস রিড (আমরা যে httpx pool বানিয়েছিলাম)
-    http_client = request.app.state.http_client
 
     # ক্লাউড ফায়ারস্টোর ডাটা এগ্রিগেশন
     report = await metrics_engine.calculate_system_roi()
@@ -204,10 +205,8 @@ def record_request(method: str, path: str, status: int) -> None:
 
 def record_error(error_type: str, endpoint: str) -> None:
     if _PROMETHEUS_AVAILABLE:
-        try:
+        with contextlib.suppress(Exception):
             error_total.labels(error_type=error_type, endpoint=endpoint).inc()
-        except Exception:
-            pass
 
 
 def record_request_duration(method: str, path: str, duration: float) -> None:
@@ -225,7 +224,5 @@ def record_request_duration(method: str, path: str, duration: float) -> None:
 
 def record_model_call(provider: str, model: str) -> None:
     if _PROMETHEUS_AVAILABLE:
-        try:
+        with contextlib.suppress(Exception):
             model_calls_total.labels(provider=provider, model=model).inc()
-        except Exception:
-            pass

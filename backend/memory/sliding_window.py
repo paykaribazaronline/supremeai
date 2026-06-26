@@ -103,10 +103,7 @@ class SlidingWindowMemory:
         if not text:
             return ""
         first_sentence_end = text.find(". ")
-        if first_sentence_end != -1:
-            snippet = text[: first_sentence_end + 2]
-        else:
-            snippet = text[:120]
+        snippet = text[:first_sentence_end + 2] if first_sentence_end != -1 else text[:120]
         return snippet.replace("\n", " ").strip()
 
     # ------------------------------------------------------------------
@@ -317,7 +314,7 @@ class SlidingWindowMemory:
         total = 0
         if query:
             first, rest = chunks[0], chunks[1:]
-            chunks = [first] + sorted(rest, key=lambda x: len(x))
+            chunks = [first] + sorted(rest, key=len)
         for part in chunks:
             tc = self._token_count(part)
             if total + tc <= budget:

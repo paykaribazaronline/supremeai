@@ -38,9 +38,7 @@ class AICodeValidator:
         except IndentationError:
             return False
         except SyntaxError as e:
-            if "unexpected indent" in str(e) or "unindent does not match" in str(e):
-                return False
-            return True
+            return not ("unexpected indent" in str(e) or "unindent does not match" in str(e))
 
     def _check_imports_exist(self, code: str) -> bool:
         try:
@@ -50,9 +48,8 @@ class AICodeValidator:
                     for alias in node.names:
                         if not self._module_exists(alias.name):
                             return False
-                elif isinstance(node, ast.ImportFrom):
-                    if not self._module_exists(node.module):
-                        return False
+                elif isinstance(node, ast.ImportFrom) and not self._module_exists(node.module):
+                    return False
             return True
         except Exception:
             return False
@@ -60,7 +57,7 @@ class AICodeValidator:
     def _module_exists(self, module_name: str) -> bool:
         if not module_name:
             return False
-        base_module = module_name.split(".")[0]
+        base_module = module_name.split(".", maxsplit=1)[0]
         # Ignore custom local modules that might not be in path
         if base_module in ["core", "brain", "interfaces", "skills"]:
             return True

@@ -372,7 +372,7 @@ class SSOIntegrator:
         email = claims.get("email", "")
         # Provider-specific groups extraction
         groups: list[str] = []
-        if provider == "okta" or provider == "azure":
+        if provider in {"okta", "azure"}:
             groups = claims.get("groups", [])
         elif provider == "google":
             groups = claims.get("hd", "").split(",") if claims.get("hd") else []

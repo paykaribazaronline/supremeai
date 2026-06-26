@@ -300,12 +300,12 @@ class TaskQueue:
                 return f"Executed {func_name} with args={args}, kwargs={kwargs}"
 
             # In practice, you'd have a task registry
-            task = celery_wrapper.apply_async(
+            celery_wrapper.apply_async(
                 args=[task_id, func.__name__, args, kwargs], priority=priority.value
             )
         else:
             # Function is already a Celery task
-            task = func.apply_async(args=args, kwargs=kwargs, priority=priority.value)
+            func.apply_async(args=args, kwargs=kwargs, priority=priority.value)
 
         # Store task ID for tracking
         # Note: In a real implementation, you'd map Celery task ID to your task_id

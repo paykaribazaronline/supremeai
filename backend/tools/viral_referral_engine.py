@@ -1,3 +1,4 @@
+import contextlib
 import os
 import time
 import uuid
@@ -84,7 +85,7 @@ class ViralReferralEngine:
                 logger.debug(f"Failed to list codes: {exc}")
         else:
             data = self._load_local()
-            for code, rec in data.get("codes", {}).items():
+            for _code, rec in data.get("codes", {}).items():
                 if rec.get("referrer_id") == user_id:
                     out.append(rec)
         return out
@@ -127,7 +128,7 @@ class ViralReferralEngine:
             return {"status": "skipped", "reason": "fraud_detected"}
 
         reward_info = self._calculate_reward(referrer_id)
-        credit_info = self._credit_wallet(
+        self._credit_wallet(
             referrer_id, reward_info["credit_bonus"], f"referral:{referral_code}"
         )
 
@@ -212,12 +213,10 @@ class ViralReferralEngine:
                 f"Fraud indicators for referrer {referrer_id}: same_ip={recent_same_ip}, same_device={recent_same_device}"
             )
             if db.client:
-                try:
+                with contextlib.suppress(Exception):
                     db.client.table("referral_codes").update({"fraud_score": 0.8}).eq(
                         "referrer_id", referrer_id
                     ).execute()
-                except Exception:
-                    pass
             return True
         return False
 

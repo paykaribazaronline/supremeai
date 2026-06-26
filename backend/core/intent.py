@@ -81,7 +81,7 @@ class IntentClassifier:
 
     def classify(self, prompt: str) -> Intent:
         text = prompt.lower()
-        scores = {t: 0 for t in TaskType}
+        scores = dict.fromkeys(TaskType, 0)
         for task_type, words in self.KEYWORDS.items():
             for w in words:
                 if re.search(r"(^|\W)" + re.escape(w) + r"(\W|$)", text):

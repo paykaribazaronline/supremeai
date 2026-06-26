@@ -64,7 +64,7 @@ class DocumentStub:
 
 
 def test_ocr_trigger_queue_to_firestore(mock_firebase_admin):
-    rtdb = MagicMock()
+    MagicMock()
     mock_firebase_admin[
         "rtdb"
     ].reference.return_value.reference.return_value.child.return_value.push.return_value = MagicMock(

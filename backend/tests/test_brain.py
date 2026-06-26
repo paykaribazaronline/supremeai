@@ -47,7 +47,7 @@ def test_orchestrator_admin_blocking():
     rules_engine.rules["image_generation"]["max_cost_per_image"] = 0.01
 
     admin_god = AdminGodLayer(rules_engine)
-    orchestrator = SupremeOrchestrator(admin_god=admin_god)
+    SupremeOrchestrator(admin_god=admin_god)
 
     context = {"task_type": "image_generation", "cost": 0.05}
     res = rules_engine.apply(context)

@@ -5,6 +5,7 @@ Analyzes git history to extract error-fix patterns and architecture learnings.
 Fulfills SK-0065 in autonomous_seed_knowledge.json.
 """
 
+import contextlib
 import json
 import re
 import sqlite3
@@ -106,13 +107,11 @@ def extract_knowledge():
             knowledge_entries.append(entry)
 
             if _feedback is not None:
-                try:
+                with contextlib.suppress(Exception):
                     _feedback.record_edit(
                         file_path=",".join(files_changed[:3]),
                         diff_summary=subject,
                     )
-                except Exception:
-                    pass
 
     if knowledge_entries:
         with sqlite3.connect(DB_PATH) as conn:

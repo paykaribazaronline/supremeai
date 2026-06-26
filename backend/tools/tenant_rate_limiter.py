@@ -127,7 +127,7 @@ class TenantRateLimiter:
         tokens: int,
     ) -> dict[str, Any]:
         tier_key = await self.get_tier(tenant_id)
-        tier = self.billing_tiers.get(tier_key, self.billing_tiers["free"])
+        self.billing_tiers.get(tier_key, self.billing_tiers["free"])
 
         if not self.queue or not getattr(self.queue, "configured", False):
             return {

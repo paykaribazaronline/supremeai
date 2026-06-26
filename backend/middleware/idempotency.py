@@ -1,3 +1,4 @@
+import contextlib
 import json
 
 from fastapi import HTTPException
@@ -6,10 +7,8 @@ from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 
 
-try:
+with contextlib.suppress(ImportError):
     from google.cloud import firestore
-except ImportError:
-    pass
 from datetime import datetime
 from datetime import timedelta
 from datetime import timezone
