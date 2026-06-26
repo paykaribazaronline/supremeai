@@ -219,7 +219,7 @@ class ModelRegistry:
             "tier": 0,
             "provider": "ollama",
             "name": "Qwen 0.5B (Local)",
-            "ollama_id": "qwen:0.5b",
+            "ollama_id": "qwen2.5:0.5b",
             "context_length": 32000,
             "cost_input_per_million": 0.00,
             "cost_output_per_million": 0.00,

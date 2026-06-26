@@ -7,20 +7,20 @@ from typing import Any
 import httpx
 from loguru import logger
 
-from brain.model_registry import ModelRegistry
-from core.agent_orchestrator import route_request
-from core.audit_logger import AuditLogger
-from core.circuit_breaker import CircuitBreaker
-from core.config import settings
-from core.free_tier_tracker import FreeTierTracker
-from core.free_tier_tracker import get_tracker
-from core.input_sanitizer import InputSanitizer
-from core.language_router import LanguageRouter
-from core.semantic_cache import SemanticCache
-from core.token_budget import TokenBudgetManager
-from core.token_budget import get_budget_manager
-from memory.long_term_memory import LongTermMemory
-from tools.cot_reasoner import ChainOfThoughtReasoner
+from .model_registry import ModelRegistry
+from ..core.agent_orchestrator import route_request
+from ..core.audit_logger import AuditLogger
+from ..core.circuit_breaker import CircuitBreaker
+from ..core.config import settings
+from ..core.free_tier_tracker import FreeTierTracker
+from ..core.free_tier_tracker import get_tracker
+from ..core.input_sanitizer import InputSanitizer
+from ..core.language_router import LanguageRouter
+from ..core.semantic_cache import SemanticCache
+from ..core.token_budget import TokenBudgetManager
+from ..core.token_budget import get_budget_manager
+from ..memory.long_term_memory import LongTermMemory
+from ..tools.cot_reasoner import ChainOfThoughtReasoner
 
 
 MAX_AGENT_TOKENS = 5000
@@ -28,12 +28,12 @@ MAX_AGENT_ITERATIONS = 5
 
 
 def _get_redis_queue():
-    try:
-        import core.app as app_mod
+        try:
+            from ..core import app as app_mod
 
-        return getattr(app_mod, "redis_queue", None)
-    except Exception:
-        return None
+            return getattr(app_mod, "redis_queue", None)
+        except Exception:
+            return None
 
 
 def run_async_as_sync(coro):
@@ -168,7 +168,7 @@ class ModelRouter:
     def _get_local_rag(self):
         if self._local_rag is None:
             try:
-                from tools.local_search_rag import LocalSearchRAG
+                from ..tools.local_search_rag import LocalSearchRAG
 
                 self._local_rag = LocalSearchRAG()
             except ImportError:
@@ -246,7 +246,7 @@ class ModelRouter:
         if provider == "cloudflare":
             return bool(self.cloudflare_api_token) and bool(self.cloudflare_account_id)
         if provider == "ollama":
-            from core.config import settings
+            from ..core.config import settings
 
             return settings.env.lower() != "production"
         return False
@@ -292,8 +292,8 @@ class ModelRouter:
             return self._select_model_by_tier(2)
         elif target_tier == 2:
             return self._select_model_by_tier(5)
-        elif target_tier == 5:
-            from core.config import settings
+elif target_tier == 5:
+            from ..core.config import settings
 
             if settings.env.lower() != "production":
                 return "ollama", self._registry.MODELS.get("local-qwen-0.5b", {}).get(
@@ -323,7 +323,7 @@ class ModelRouter:
     def _pick_provider(
         self, task_type: str, prompt: str, max_cost: float
     ) -> tuple[str, str]:
-        from core.config import settings
+        from ..core.config import settings
 
         is_production = settings.env.lower() == "production"
 
@@ -422,7 +422,7 @@ class ModelRouter:
             ext in prompt.lower() for ext in [".png", ".jpg", ".jpeg", ".pdf"]
         ):
             try:
-                from tools.vision_agent import VisionAgent
+                from ..tools.vision_agent import VisionAgent
 
                 vision_agent = VisionAgent()
                 file_path = ""
@@ -676,7 +676,7 @@ class ModelRouter:
         return await self._call_ollama(prompt, model)
 
     async def _fallback(self, prompt: str, failed: str, exc: Exception):
-        from core.config import settings
+        from ..core.config import settings
 
         is_production = settings.env.lower() == "production"
 
@@ -718,7 +718,7 @@ class ModelRouter:
     def _model_for(self, provider: str) -> str:
         # [2026-06-21] Updated all fallback model names to current versions
         # [2026-06-22] Added Claude via OpenRouter free tier
-        from core.config import settings
+        from ..core.config import settings
 
         return {
             "openrouter": self.default_model,
