@@ -46,8 +46,10 @@ class Settings(BaseSettings):
     # ⚡ ডাইনামিকলি সরাসরি ক্লাউড মেমরি থেকে সিক্রেট রিড করা হচ্ছে
     # ডিস্কে কোনো .env ফাইল না থাকলেও প্রোডাকশন এপিআই ১০০% স্মুথলি চলবে
     supabase_database_url: str = secret_vault.fetch_secret(
-        "SUPABASE_DATABASE_URL_POOLER", "postgresql://localhost:5432/postgres"
+        "SUPABASE_DATABASE_URL_POOLER",
+        "postgresql://localhost:5432/postgres",
     )
+    redis_url: str = secret_vault.fetch_secret("REDIS_URL", "redis://localhost:6379/0")
 
     openrouter_api_key: str = secret_vault.fetch_secret("OPENROUTER_API_KEY", "")
     hf_api_key: str = secret_vault.fetch_secret("HF_API_KEY", "")

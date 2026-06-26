@@ -61,6 +61,7 @@ from api.routes import memory_router
 from api.routes import metrics_router
 from api.routes import onboarding_router
 from api.routes import payments_router
+from api.routes import api_keys_router
 from api.routes import preferences_router
 from api.routes import repos_router
 from api.routes import simulator_router
@@ -83,6 +84,7 @@ from core.telemetry import setup_tracing
 from core.upstash_redis_queue import UpstashRedisQueue
 from middleware.auth_middleware import ZeroTrustAuthMiddleware
 from middleware.idempotency import IdempotencyMiddleware
+from core.api_key_middleware import APIKeyAuthMiddleware
 
 
 setup_tracing()
@@ -164,6 +166,7 @@ app.add_middleware(RateLimitMiddleware, requests_per_minute=120, burst=20)
 app.add_middleware(IdempotencyMiddleware)
 app.add_middleware(ZeroTrustAuthMiddleware)
 app.add_middleware(ObservabilityMiddleware)
+app.add_middleware(APIKeyAuthMiddleware)
 
 from fastapi import Request
 from fastapi.responses import JSONResponse
@@ -227,6 +230,59 @@ except ImportError:
 
 global_http_client: httpx.AsyncClient = None
 
+async def _ensure_api_key_tables() -> None:
+    from core.pgbouncer_pool import get_db_pool
+    pool = await get_db_pool()
+    await pool.execute(
+        """
+        CREATE TABLE IF NOT EXISTS api_keys (
+            id SERIAL PRIMARY KEY,
+            user_id TEXT NOT NULL,
+            name TEXT NOT NULL,
+            key_hash TEXT NOT NULL UNIQUE,
+            key_masked TEXT NOT NULL,
+            key_prefix TEXT NOT NULL,
+            rate_limit_rps INTEGER DEFAULT 6,
+            revoked BOOLEAN DEFAULT FALSE,
+            expires_at INTEGER,
+            last_used_at INTEGER,
+            created_at INTEGER NOT NULL,
+            updated_at INTEGER NOT NULL
+        )
+        """
+    )
+    await pool.execute(
+        """
+        CREATE TABLE IF NOT EXISTS api_key_usage (
+            id SERIAL PRIMARY KEY,
+            api_key_id INTEGER NOT NULL REFERENCES api_keys(id),
+            endpoint TEXT NOT NULL,
+            status_code INTEGER NOT NULL,
+            latency_ms DOUBLE PRECISION NOT NULL DEFAULT 0,
+            ip_address TEXT,
+            created_at INTEGER NOT NULL
+        )
+        """
+    )
+    await pool.execute(
+        """
+        CREATE TABLE IF NOT EXISTS api_key_events (
+            id SERIAL PRIMARY KEY,
+            api_key_id INTEGER NOT NULL REFERENCES api_keys(id),
+            event_type TEXT NOT NULL,
+            details TEXT,
+            ip_address TEXT,
+            created_at INTEGER NOT NULL
+        )
+        """
+    )
+    await pool.execute(
+        "CREATE INDEX IF NOT EXISTS idx_api_keys_hash ON api_keys(key_hash)"
+    )
+    await pool.execute(
+        "CREATE INDEX IF NOT EXISTS idx_api_key_usage_key ON api_key_usage(api_key_id, created_at DESC)"
+    )
+    logger.info("✅ API key tables ensured")
 
 @asynccontextmanager
 async def app_lifespan(app: FastAPI):
@@ -253,6 +309,7 @@ async def app_lifespan(app: FastAPI):
 
         await get_db_pool()
         logger.info("PgBouncer connection pool initialized on startup")
+        await _ensure_api_key_tables()
     except Exception as e:
         logger.warning(f"PgBouncer pool initialization deferred: {e}")
 
@@ -902,6 +959,8 @@ if payments_router is not None:
     app.include_router(payments_router)
 if sso_router is not None:
     app.include_router(sso_router)
+if api_keys_router is not None:
+    app.include_router(api_keys_router)
 # Include Orchestrator router
 if orchestrator_router is not None:
     app.include_router(orchestrator_router)

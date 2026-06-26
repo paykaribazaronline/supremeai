@@ -102,8 +102,8 @@ async def main():
     parser.add_argument(
         "--coverage-target",
         type=float,
-        default=100.0,
-        help="Minimum coverage percentage to aim for (default: 100.0)"
+        default=80.0,
+        help="Minimum coverage percentage to aim for (default: 80.0)"
     )
     parser.add_argument(
         "--coverage-report",
@@ -224,10 +224,10 @@ async def main():
         print("1. Review the generated test files")
         print("2. Run the tests to verify they pass")
         print("3. Run coverage again to see improved coverage")
-
+        
         if not args.dry_run:
             print("\nTo run tests with coverage again:")
-            print("  cd backend && poetry run pytest --cov=backend --cov-report=term-missing")
+            print("  poetry run pytest --cov=backend --cov-report=term-missing")
     
     return 0 if result.get('status') in ['success', 'completed'] else 1
 

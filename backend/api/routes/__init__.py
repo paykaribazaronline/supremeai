@@ -213,4 +213,11 @@ try:
 except Exception:
     markdown_router = None
 
+try:
+    from .api_keys import router as api_keys_router
+
+    _safe_imports["api_keys_router"] = api_keys_router
+except Exception:
+    api_keys_router = None
+
 __all__ = list(_safe_imports.keys())

@@ -53,18 +53,19 @@ class CloudSandboxOrchestrator:
 
     async def create_session(self, image: str = "ubuntu:22.04") -> str:
         session_id = f"sandbox-{uuid.uuid4().hex[:8]}"
-        logger.info(
-            f"Creating {self.provider} session: {session_id} with image {image}"
-        )
+        logger.info(f"Creating {self.provider} session: {session_id} with image {image}")
 
-        if self.provider == "docker" or self.provider == "local":
+        if self.provider in ["docker", "auto", "local"]:
             client = await self._get_docker_client()
             if client:
                 try:
                     container = client.containers.run(
-                        image, detach=True, tty=True, stdin_open=True
+                        image,
+                        detach=True,
+                        tty=True,
+                        stdin_open=True,
                     )
-                    self.active_sessions[session_id] = {
+                    session_data = {
                         "image": image,
                         "status": "running",
                         "provider": "docker",
@@ -72,58 +73,66 @@ class CloudSandboxOrchestrator:
                         "env": {"PYTHONUNBUFFERED": "1"},
                         "container_id": container.id,
                     }
+                    self.active_sessions[session_id] = session_data
+                    logger.success(
+                        f"Docker session created successfully: {session_id} (Container ID: {container.id})"
+                    )
                     return session_id
                 except Exception as e:
                     logger.error(f"Failed to create Docker container: {e}")
+                    if self.provider != "auto":
+                        raise  # Only fallback if in auto mode
 
-        if self.provider == "runpod":
+        if self.provider in ["runpod", "auto"]:
             api_key = os.getenv("RUNPOD_API_KEY")
             if not api_key:
-                raise RuntimeError(
-                    "RUNPOD_API_KEY is required for RunPod sandbox sessions."
-                )
-
-            # Create a pod using RunPod User API
-            headers = {
-                "Authorization": f"Bearer {api_key}",
-                "Content-Type": "application/json",
-            }
-            payload = {
-                "name": session_id,
-                "imageName": image,
-                "gpuTypeId": "cpu",  # Serverless/CPU pod for cost savings
-                "volumeInGb": 5,
-                "ports": "22/tcp,80/tcp",
-            }
-            async with httpx.AsyncClient() as http_client:
-                # We fetch standard user templates or spin up standard container
-                resp = await http_client.post(
-                    "https://api.runpod.io/v1/user/pod",
-                    json=payload,
-                    headers=headers,
-                    timeout=20.0,
-                )
-                if resp.status_code in (200, 201):
-                    data = resp.json()
-                    pod_id = data.get("id")
-                    self.active_sessions[session_id] = {
-                        "image": image,
-                        "status": "running",
-                        "provider": "runpod",
-                        "pod_id": pod_id,
-                        "cwd": "/workspace",
-                        "env": {"PYTHONUNBUFFERED": "1"},
-                    }
-                    logger.info(
-                        f"RunPod session created successfully: {session_id} (Pod ID: {pod_id})"
+                logger.warning("RUNPOD_API_KEY not found, cannot fallback to RunPod.")
+                if self.provider == "runpod":
+                    raise RuntimeError(
+                        "RUNPOD_API_KEY is required for RunPod sandbox sessions."
                     )
-                    return session_id
-                else:
-                    logger.error(
-                        f"RunPod pod creation API failed: {resp.text}. Falling back to local mock."
+            else:
+                headers = {
+                    "Authorization": f"Bearer {api_key}",
+                    "Content-Type": "application/json",
+                }
+                payload = {
+                    "name": session_id,
+                    "imageName": image,
+                    "gpuTypeId": "cpu",  # Serverless/CPU pod for cost savings
+                    "volumeInGb": 5,
+                    "ports": "22/tcp,80/tcp",
+                }
+                async with httpx.AsyncClient() as http_client:
+                    resp = await http_client.post(
+                        "https://api.runpod.io/v1/user/pod",
+                        json=payload,
+                        headers=headers,
+                        timeout=20.0,
                     )
+                    if resp.status_code in (200, 201):
+                        data = resp.json()
+                        pod_id = data.get("id")
+                        self.active_sessions[session_id] = {
+                            "image": image,
+                            "status": "running",
+                            "provider": "runpod",
+                            "pod_id": pod_id,
+                            "cwd": "/workspace",
+                            "env": {"PYTHONUNBUFFERED": "1"},
+                        }
+                        logger.success(
+                            f"RunPod session created successfully: {session_id} (Pod ID: {pod_id})"
+                        )
+                        return session_id
+                    else:
+                        logger.error(
+                            f"RunPod pod creation API failed: {resp.text}. Falling back to local mock."
+                        )
 
-        # Fallback Mock Session
+        logger.warning(
+            f"All providers failed. Creating a mock session for {session_id}."
+        )
         self.active_sessions[session_id] = {
             "image": image,
             "status": "running",
