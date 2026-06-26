@@ -18,7 +18,10 @@ Required variables for Supabase client usage include:
 - `SUPABASE_URL`
 - `SUPABASE_KEY`
 
-Optional values used in this repo for direct Postgres access include:
+Optional values used in this repo include:
+- `SUPABASE_PUBLISHABLE_KEY`
+- `SUPABASE_SECRET_KEY`
+- `SUPABASE_JWKS_URL`
 - `SUPABASE_DATABASE_URL`
 - `SUPABASE_DATABASE_URL_POOLER`
 - `DATABASE_URL`
