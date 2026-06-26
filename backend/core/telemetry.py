@@ -1,40 +1,50 @@
-from contextlib import contextmanager
 import os
-from typing import Optional, Dict, Any
+from contextlib import contextmanager
+from typing import Any
+
 from opentelemetry import trace as otel_trace
-from opentelemetry.trace import Span, Status, StatusCode, Tracer
 from opentelemetry.sdk.trace import TracerProvider
-from opentelemetry.sdk.trace.export import (
-    BatchSpanProcessor,
-)
+from opentelemetry.sdk.trace.export import BatchSpanProcessor
+from opentelemetry.trace import Span
+from opentelemetry.trace import Status
+from opentelemetry.trace import StatusCode
+from opentelemetry.trace import Tracer
 
 
-_tracer: Optional[Tracer] = None
-tracer: Optional[Tracer] = None
+_tracer: Tracer | None = None
+tracer: Tracer | None = None
 
 
-def setup_tracing(service_name: str = "supremeai", otlp_endpoint: Optional[str] = None) -> None:
+def setup_tracing(
+    service_name: str = "supremeai", otlp_endpoint: str | None = None
+) -> None:
     endpoint = otlp_endpoint or os.getenv("OTLP_ENDPOINT", "")
     provider = TracerProvider()
     if endpoint:
         try:
             from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
+
             exporter = OTLPSpanExporter(endpoint=endpoint, insecure=True)
             provider.add_span_processor(BatchSpanProcessor(exporter))
         except ImportError as exc:
             from loguru import logger
+
             logger.warning(f"OTLP exporter not available: {exc}")
     otel_trace.set_tracer_provider(provider)
     globals()["_tracer"] = otel_trace.get_tracer(service_name)
+
+
 globals()["tracer"] = globals()["_tracer"]
 
 
-def get_tracer() -> Optional[Tracer]:
+def get_tracer() -> Tracer | None:
     return _tracer
 
 
 @contextmanager
-def trace_span(name: str, attributes: Optional[Dict[str, Any]] = None, kind: str = "internal"):
+def trace_span(
+    name: str, attributes: dict[str, Any] | None = None, kind: str = "internal"
+):
     tracer = get_tracer()
     if tracer is None:
         yield _NoOpSpan()

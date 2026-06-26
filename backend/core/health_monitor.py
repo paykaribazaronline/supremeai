@@ -1,10 +1,15 @@
-import time
 import asyncio
-from typing import Any, Dict
+import time
+from typing import Any
+
 from loguru import logger
 
+
 try:
-    from prometheus_client import Gauge, Histogram, start_http_server
+    from prometheus_client import Gauge
+    from prometheus_client import Histogram
+    from prometheus_client import start_http_server
+
     _PROMETHEUS_AVAILABLE = True
 except ImportError:
     _PROMETHEUS_AVAILABLE = False
@@ -14,6 +19,7 @@ class HealthMonitor:
     """
     Monitors system health with Prometheus metrics export for Grafana dashboards.
     """
+
     def __init__(self, metrics_port: int = 9090):
         self.start_time = time.time()
         self.cpu_threshold = 85.0
@@ -52,8 +58,9 @@ class HealthMonitor:
             "supremeai_health_status", "Health status (1=healthy, 0=degraded)"
         )
 
-    async def get_system_metrics(self) -> Dict[str, Any]:
+    async def get_system_metrics(self) -> dict[str, Any]:
         import psutil
+
         cpu_percent = psutil.cpu_percent(interval=0.1)
         mem = psutil.virtual_memory()
         status = "healthy"

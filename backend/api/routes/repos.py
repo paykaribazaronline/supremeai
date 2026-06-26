@@ -1,7 +1,10 @@
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter
+from fastapi import HTTPException
+from fastapi import Query
 from pydantic import BaseModel
-from typing import Optional
+
 from database.supabase_client import db
+
 
 router = APIRouter(prefix="/repos", tags=["repos"])
 
@@ -12,31 +15,31 @@ class RepoCreate(BaseModel):
     url: str
     description: str = ""
     language: str = ""
-    category: Optional[str] = None
-    priority: Optional[str] = "medium"
-    purpose: Optional[str] = None
-    install_command: Optional[str] = None
-    status: Optional[str] = "active"
-    metadata: Optional[dict] = None
+    category: str | None = None
+    priority: str | None = "medium"
+    purpose: str | None = None
+    install_command: str | None = None
+    status: str | None = "active"
+    metadata: dict | None = None
 
 
 class RepoUpdate(BaseModel):
-    name: Optional[str] = None
-    url: Optional[str] = None
-    description: Optional[str] = None
-    language: Optional[str] = None
-    category: Optional[str] = None
-    priority: Optional[str] = None
-    purpose: Optional[str] = None
-    install_command: Optional[str] = None
-    status: Optional[str] = None
-    metadata: Optional[dict] = None
+    name: str | None = None
+    url: str | None = None
+    description: str | None = None
+    language: str | None = None
+    category: str | None = None
+    priority: str | None = None
+    purpose: str | None = None
+    install_command: str | None = None
+    status: str | None = None
+    metadata: dict | None = None
 
 
 @router.get("/")
 async def list_repos(
-    category: Optional[str] = None,
-    priority: Optional[str] = None,
+    category: str | None = None,
+    priority: str | None = None,
     status: str = "active",
     limit: int = Query(default=50, le=200),
     offset: int = 0,
@@ -76,5 +79,7 @@ async def update_repo(repo_id: str, payload: RepoUpdate):
 async def delete_repo(repo_id: str):
     if not db.client:
         raise HTTPException(status_code=503, detail="Database not configured")
-    db.client.table("github_repos").update({"status": "archived"}).eq("id", repo_id).execute()
+    db.client.table("github_repos").update({"status": "archived"}).eq(
+        "id", repo_id
+    ).execute()
     return {"status": "success", "message": "Repo archived"}

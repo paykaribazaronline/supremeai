@@ -1,15 +1,15 @@
 from __future__ import annotations
 
-import pytest
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
+from unittest.mock import patch
 
-from core.agent_orchestrator import (
-    SmartSemanticRouter,
-    AgentCircuitBreaker,
-    AsyncTaskManager,
-    route_request,
-    budget_aware_route,
-)
+import pytest
+
+from core.agent_orchestrator import AgentCircuitBreaker
+from core.agent_orchestrator import AsyncTaskManager
+from core.agent_orchestrator import SmartSemanticRouter
+from core.agent_orchestrator import budget_aware_route
+from core.agent_orchestrator import route_request
 
 
 @pytest.fixture
@@ -86,30 +86,33 @@ def test_circuit_breaker_get_status(circuit_breaker):
     assert status["locked"] is False
 
 
-@pytest.mark.parametrize("prompt,task_type,expected_intent,tier", [
-    ("code a python function", "general", "coding", 1),
-    ("build a react component", "general", "coding", 1),
-    ("debug my code", "general", "coding", 1),
-    ("refactor the class", "general", "coding", 1),
-    ("algorithm optimization", "general", "coding", 1),
-    ("reason about the logic", "general", "reasoning", 1),
-    ("analyze the math problem", "general", "reasoning", 1),
-    ("prove the theorem", "general", "reasoning", 1),
-    ("calculate the integral", "general", "reasoning", 1),
-    ("search for documentation", "general", "search", 2),
-    ("find the best practice", "general", "search", 2),
-    ("research the topic", "general", "search", 2),
-    ("lookup the API", "general", "search", 2),
-    ("query the database", "general", "search", 2),
-    ("summarize the article", "general", "search", 2),
-    ("translate to spanish", "general", "search", 2),
-    ("sentiment analysis", "general", "search", 2),
-    ("image recognition task", "general", "vision", 3),
-    ("ocr scan this document", "general", "vision", 3),
-    ("analyze the photo", "general", "reasoning", 1),
-    ("visualize the chart", "general", "vision", 3),
-    ("code this file.png", "general", "vision", 3),
-])
+@pytest.mark.parametrize(
+    "prompt,task_type,expected_intent,tier",
+    [
+        ("code a python function", "general", "coding", 1),
+        ("build a react component", "general", "coding", 1),
+        ("debug my code", "general", "coding", 1),
+        ("refactor the class", "general", "coding", 1),
+        ("algorithm optimization", "general", "coding", 1),
+        ("reason about the logic", "general", "reasoning", 1),
+        ("analyze the math problem", "general", "reasoning", 1),
+        ("prove the theorem", "general", "reasoning", 1),
+        ("calculate the integral", "general", "reasoning", 1),
+        ("search for documentation", "general", "search", 2),
+        ("find the best practice", "general", "search", 2),
+        ("research the topic", "general", "search", 2),
+        ("lookup the API", "general", "search", 2),
+        ("query the database", "general", "search", 2),
+        ("summarize the article", "general", "search", 2),
+        ("translate to spanish", "general", "search", 2),
+        ("sentiment analysis", "general", "search", 2),
+        ("image recognition task", "general", "vision", 3),
+        ("ocr scan this document", "general", "vision", 3),
+        ("analyze the photo", "general", "reasoning", 1),
+        ("visualize the chart", "general", "vision", 3),
+        ("code this file.png", "general", "vision", 3),
+    ],
+)
 def test_route_request_keyword_routing(prompt, task_type, expected_intent, tier):
     result = route_request(prompt, task_type)
     assert isinstance(result, SmartSemanticRouter)
@@ -217,7 +220,9 @@ def test_async_task_manager_simulate_image():
 
 
 def test_smart_semantic_router_model():
-    router = SmartSemanticRouter(intent="test_intent", requires_expensive=True, tier=2, reasoning="test")
+    router = SmartSemanticRouter(
+        intent="test_intent", requires_expensive=True, tier=2, reasoning="test"
+    )
     assert router.intent == "test_intent"
     assert router.requires_expensive is True
     assert router.tier == 2

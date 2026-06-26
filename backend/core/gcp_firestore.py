@@ -2,13 +2,16 @@ import json
 import os
 import sqlite3
 import uuid
-from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
+from datetime import datetime
+from datetime import timezone
+from typing import Any
 
 from loguru import logger
 
+
 try:
     from google.cloud import firestore  # type: ignore[import-untyped]
+
     FIRESTORE_AVAILABLE = True
 except Exception:
     FIRESTORE_AVAILABLE = False
@@ -19,24 +22,32 @@ class GCPFirestoreVerificationQueue:
 
     def __init__(
         self,
-        collection_name: Optional[str] = None,
-        project_id: Optional[str] = None,
-        db_path: Optional[str] = None,
+        collection_name: str | None = None,
+        project_id: str | None = None,
+        db_path: str | None = None,
         credentials: Any = None,
     ):
-        self.collection_name = collection_name or os.getenv("GCP_FIRESTORE_COLLECTION", "verification_queue")
-        self.project_id = project_id or os.getenv("GCP_PROJECT_ID") or os.getenv("GOOGLE_CLOUD_PROJECT")
+        self.collection_name = collection_name or os.getenv(
+            "GCP_FIRESTORE_COLLECTION", "verification_queue"
+        )
+        self.project_id = (
+            project_id
+            or os.getenv("GCP_PROJECT_ID")
+            or os.getenv("GOOGLE_CLOUD_PROJECT")
+        )
         self.client = None
         self.mode = "local_sqlite"
         self.db_path = db_path or os.getenv("GCP_FIRESTORE_SQLITE_PATH")
-        
 
         import sys
+
         is_test = "pytest" in sys.modules or os.getenv("ENV") == "test"
         if FIRESTORE_AVAILABLE and self.project_id and not is_test:
             try:
                 if credentials:
-                    self.client = firestore.Client(project=self.project_id, credentials=credentials)
+                    self.client = firestore.Client(
+                        project=self.project_id, credentials=credentials
+                    )
                 else:
                     self.client = firestore.Client(project=self.project_id)
                 self.mode = "gcp_firestore"
@@ -81,7 +92,9 @@ class GCPFirestoreVerificationQueue:
                 )
                 """
             )
-            conn.execute("CREATE INDEX IF NOT EXISTS idx_verification_status ON verification_queue(status, priority)")
+            conn.execute(
+                "CREATE INDEX IF NOT EXISTS idx_verification_status ON verification_queue(status, priority)"
+            )
             conn.commit()
         finally:
             if self.db_path != ":memory:":
@@ -95,10 +108,10 @@ class GCPFirestoreVerificationQueue:
     def enqueue(
         self,
         task_id: str,
-        payload: Dict[str, Any],
+        payload: dict[str, Any],
         priority: int = 50,
-        metadata: Optional[Dict[str, Any]] = None,
-    ) -> Dict[str, Any]:
+        metadata: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
         now = self._now()
         document = {
             "task_id": task_id,
@@ -147,7 +160,7 @@ class GCPFirestoreVerificationQueue:
             "status": "pending",
         }
 
-    def get_pending(self, limit: int = 10) -> List[Dict[str, Any]]:
+    def get_pending(self, limit: int = 10) -> list[dict[str, Any]]:
         if self.client is not None:
             rows = (
                 self.client.collection(str(self.collection_name))
@@ -172,10 +185,10 @@ class GCPFirestoreVerificationQueue:
             ).fetchall()
         return [self._row_to_dict(row) for row in rows]
 
-    def peek(self, limit: int = 10) -> List[Dict[str, Any]]:
+    def peek(self, limit: int = 10) -> list[dict[str, Any]]:
         return self.get_pending(limit=limit)
 
-    def mark_verified(self, task_id: str) -> Dict[str, Any]:
+    def mark_verified(self, task_id: str) -> dict[str, Any]:
         now = self._now()
         if self.client is not None:
             query = (
@@ -186,9 +199,16 @@ class GCPFirestoreVerificationQueue:
             )
             updated = 0
             for doc in query.stream():
-                doc.reference.update({"status": "verified", "updated_at": now, "verified_at": now})
+                doc.reference.update(
+                    {"status": "verified", "updated_at": now, "verified_at": now}
+                )
                 updated += 1
-            return {"success": True, "provider": "gcp_firestore", "task_id": task_id, "verified": updated}
+            return {
+                "success": True,
+                "provider": "gcp_firestore",
+                "task_id": task_id,
+                "verified": updated,
+            }
 
         with self._get_connection() as conn:
             cursor = conn.execute(
@@ -200,23 +220,52 @@ class GCPFirestoreVerificationQueue:
                 (now, now, task_id),
             )
             conn.commit()
-        return {"success": True, "provider": "local_sqlite", "task_id": task_id, "verified": cursor.rowcount}
+        return {
+            "success": True,
+            "provider": "local_sqlite",
+            "task_id": task_id,
+            "verified": cursor.rowcount,
+        }
 
-    def delete(self, queue_id: str) -> Dict[str, Any]:
+    def delete(self, queue_id: str) -> dict[str, Any]:
         if self.client is not None:
             doc = self.client.collection(str(self.collection_name)).document(queue_id)
             doc.delete()
-            return {"success": True, "provider": "gcp_firestore", "queue_id": queue_id, "deleted": True}
+            return {
+                "success": True,
+                "provider": "gcp_firestore",
+                "queue_id": queue_id,
+                "deleted": True,
+            }
 
         with self._get_connection() as conn:
-            cursor = conn.execute("DELETE FROM verification_queue WHERE queue_id = ?", (queue_id,))
+            cursor = conn.execute(
+                "DELETE FROM verification_queue WHERE queue_id = ?", (queue_id,)
+            )
             conn.commit()
-        return {"success": True, "provider": "local_sqlite", "queue_id": queue_id, "deleted": cursor.rowcount > 0}
+        return {
+            "success": True,
+            "provider": "local_sqlite",
+            "queue_id": queue_id,
+            "deleted": cursor.rowcount > 0,
+        }
 
-    def stats(self) -> Dict[str, Any]:
+    def stats(self) -> dict[str, Any]:
         if self.client is not None:
-            pending = len(list(self.client.collection(str(self.collection_name)).where("status", "==", "pending").stream()))
-            verified = len(list(self.client.collection(str(self.collection_name)).where("status", "==", "verified").stream()))
+            pending = len(
+                list(
+                    self.client.collection(str(self.collection_name))
+                    .where("status", "==", "pending")
+                    .stream()
+                )
+            )
+            verified = len(
+                list(
+                    self.client.collection(str(self.collection_name))
+                    .where("status", "==", "verified")
+                    .stream()
+                )
+            )
             return {
                 "provider": "gcp_firestore",
                 "collection": self.collection_name,
@@ -226,9 +275,15 @@ class GCPFirestoreVerificationQueue:
             }
 
         with self._get_connection() as conn:
-            pending = conn.execute("SELECT COUNT(*) FROM verification_queue WHERE status = 'pending'").fetchone()[0]
-            verified = conn.execute("SELECT COUNT(*) FROM verification_queue WHERE status = 'verified'").fetchone()[0]
-            total = conn.execute("SELECT COUNT(*) FROM verification_queue").fetchone()[0]
+            pending = conn.execute(
+                "SELECT COUNT(*) FROM verification_queue WHERE status = 'pending'"
+            ).fetchone()[0]
+            verified = conn.execute(
+                "SELECT COUNT(*) FROM verification_queue WHERE status = 'verified'"
+            ).fetchone()[0]
+            total = conn.execute("SELECT COUNT(*) FROM verification_queue").fetchone()[
+                0
+            ]
         return {
             "provider": "local_sqlite",
             "db_path": self.db_path,
@@ -242,14 +297,13 @@ class GCPFirestoreVerificationQueue:
             self.client = None
         if self._memory_conn is not None:
             self._memory_conn.close()
-            
 
-    def _firestore_doc_to_dict(self, doc: Any) -> Dict[str, Any]:
+    def _firestore_doc_to_dict(self, doc: Any) -> dict[str, Any]:
         data = doc.to_dict()
         data["queue_id"] = doc.id
         return data
 
-    def _row_to_dict(self, row: sqlite3.Row) -> Dict[str, Any]:
+    def _row_to_dict(self, row: sqlite3.Row) -> dict[str, Any]:
         return {
             "queue_id": row["queue_id"],
             "task_id": row["task_id"],
@@ -267,8 +321,9 @@ class GCPFirestoreVerificationQueue:
         return datetime.now(timezone.utc).isoformat()
 
 
-def get_firestore_client(project_id: Optional[str] = None):
+def get_firestore_client(project_id: str | None = None):
     import sys
+
     if "pytest" in sys.modules or os.getenv("ENV") == "test":
         return None
     project_id = project_id or os.getenv("GCP_PROJECT_ID") or "supremeai-a"

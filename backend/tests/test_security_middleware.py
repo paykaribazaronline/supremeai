@@ -1,4 +1,5 @@
 import os
+
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from starlette.responses import PlainTextResponse
@@ -46,6 +47,7 @@ def test_auth_middleware_blocks_protected_route_without_token():
 
 def test_auth_middleware_allows_with_valid_token():
     import os
+
     os.environ["SUPREMEAI_API_TOKEN"] = "test-token"
     app = FastAPI()
 
@@ -55,6 +57,8 @@ def test_auth_middleware_allows_with_valid_token():
 
     app.add_middleware(AuthMiddleware)
     client = TestClient(app)
-    resp = client.get("/api/task/execute", headers={"Authorization": "Bearer test-token"})
+    resp = client.get(
+        "/api/task/execute", headers={"Authorization": "Bearer test-token"}
+    )
     assert resp.status_code == 200
     del os.environ["SUPREMEAI_API_TOKEN"]

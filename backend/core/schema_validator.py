@@ -1,16 +1,18 @@
 from __future__ import annotations
 
-from typing import Any, Dict, List, Type, TypeVar
+from typing import Any
+from typing import TypeVar
 
-from pydantic import BaseModel, ValidationError
 from loguru import logger
+from pydantic import BaseModel
+from pydantic import ValidationError
 
 
 T = TypeVar("T", bound=BaseModel)
 
 
 class SchemaValidationError(Exception):
-    def __init__(self, model_name: str, errors: List[Dict[str, Any]]):
+    def __init__(self, model_name: str, errors: list[dict[str, Any]]):
         self.model_name = model_name
         self.errors = errors
         msg = f"Validation failed for {model_name}: {errors}"
@@ -19,12 +21,12 @@ class SchemaValidationError(Exception):
 
 class SchemaValidator:
     def __init__(self) -> None:
-        self._models: Dict[str, Type[BaseModel]] = {}
+        self._models: dict[str, type[BaseModel]] = {}
 
-    def register(self, name: str, model: Type[BaseModel]) -> None:
+    def register(self, name: str, model: type[BaseModel]) -> None:
         self._models[name] = model
 
-    def validate(self, name: str, payload: Dict[str, Any]) -> Dict[str, Any]:
+    def validate(self, name: str, payload: dict[str, Any]) -> dict[str, Any]:
         if name not in self._models:
             raise KeyError(f"Schema '{name}' is not registered.")
         model_cls = self._models[name]
@@ -44,13 +46,22 @@ class SchemaValidator:
             logger.error(f"Validation failed for {name}: {errors}")
             raise SchemaValidationError(name, errors) from exc
 
-    def _prepare_for_retry(self, name: str, payload: Dict[str, Any], attempt: int) -> Dict[str, Any]:
+    def _prepare_for_retry(
+        self, name: str, payload: dict[str, Any], attempt: int
+    ) -> dict[str, Any]:
         last = self.try_parse(name, payload)
         if last.get("status") == "ok":
             return last
-        return {"status": "retry", "schema": name, "attempt": attempt, "last_error": str(last.get("error"))}
+        return {
+            "status": "retry",
+            "schema": name,
+            "attempt": attempt,
+            "last_error": str(last.get("error")),
+        }
 
-    def validate_with_retry(self, name: str, payload: Dict[str, Any], max_attempts: int = 2) -> Dict[str, Any]:
+    def validate_with_retry(
+        self, name: str, payload: dict[str, Any], max_attempts: int = 2
+    ) -> dict[str, Any]:
         last = self.try_parse(name, payload)
         if last.get("status") == "ok":
             return last
@@ -58,9 +69,14 @@ class SchemaValidator:
             last = self._prepare_for_retry(name, payload, attempt)
             if last.get("status") == "ok":
                 return last
-        return {"status": "error", "schema": name, "error": str(last.get("last_error")), "attempts": max_attempts}
+        return {
+            "status": "error",
+            "schema": name,
+            "error": str(last.get("last_error")),
+            "attempts": max_attempts,
+        }
 
-    def try_parse(self, name: str, payload: Dict[str, Any]) -> Dict[str, Any]:
+    def try_parse(self, name: str, payload: dict[str, Any]) -> dict[str, Any]:
         try:
             return self.validate(name, payload)
         except (SchemaValidationError, KeyError) as exc:

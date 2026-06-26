@@ -1,12 +1,16 @@
 import os
-from unittest.mock import MagicMock, patch
-from tools.voice import VoiceInterface
+from unittest.mock import MagicMock
+from unittest.mock import patch
+
 from core.discord_bot import SupremeDiscordBot
+from tools.voice import VoiceInterface
+
 
 def test_voice_interface_stt_missing_file():
     vi = VoiceInterface()
     res = vi.speech_to_text("non_existent_file.wav")
     assert res == ""
+
 
 @patch("httpx.post")
 def test_voice_interface_stt_success(mock_post):
@@ -30,14 +34,17 @@ def test_voice_interface_stt_success(mock_post):
         if os.path.exists(dummy_path):
             os.remove(dummy_path)
 
+
 def test_discord_bot_initialization():
     bot = SupremeDiscordBot()
     assert bot is not None
 
+
 def test_local_ocr_extractor():
-    from tools.local_ocr_extractor import LocalOCRExtractor
-    import tempfile
     import os
+    import tempfile
+
+    from tools.local_ocr_extractor import LocalOCRExtractor
 
     extractor = LocalOCRExtractor()
     assert extractor.languages == ["en", "bn"]
@@ -52,6 +59,7 @@ def test_local_ocr_extractor():
     # Test export_to_excel
     try:
         import openpyxl  # noqa: F401
+
         temp_dir = tempfile.gettempdir()
         excel_path = os.path.join(temp_dir, "test_ocr_export.xlsx")
         try:
@@ -63,4 +71,3 @@ def test_local_ocr_extractor():
                 os.remove(excel_path)
     except ImportError:
         pass
-

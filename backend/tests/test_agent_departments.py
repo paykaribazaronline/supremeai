@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from unittest.mock import MagicMock
+
 from brain.agent_departments import AgentDepartment
 
 

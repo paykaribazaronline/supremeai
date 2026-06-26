@@ -2,29 +2,31 @@ from __future__ import annotations
 
 import os
 import sqlite3
-from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
-
+from datetime import datetime
+from datetime import timezone
+from typing import Any
 
 
 class EpisodicMemory:
     def __init__(
         self,
-        db_path: Optional[str] = None,
-        session_id: Optional[str] = None,
+        db_path: str | None = None,
+        session_id: str | None = None,
     ) -> None:
         base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         self.db_path = db_path or os.path.join(base_dir, "data", "episodic_memory.db")
         self.session_id = session_id or "default"
         if self.db_path != ":memory:":
             os.makedirs(os.path.dirname(self.db_path), exist_ok=True)
-        self._memory_conn: Optional[sqlite3.Connection] = None
+        self._memory_conn: sqlite3.Connection | None = None
         self._init_db()
 
     def _connect(self) -> sqlite3.Connection:
         if self.db_path == ":memory:":
             if self._memory_conn is None:
-                self._memory_conn = sqlite3.connect(self.db_path, check_same_thread=False)
+                self._memory_conn = sqlite3.connect(
+                    self.db_path, check_same_thread=False
+                )
             return self._memory_conn
         return sqlite3.connect(self.db_path, check_same_thread=False)
 
@@ -66,12 +68,12 @@ class EpisodicMemory:
         self,
         event_type: str,
         context: str,
-        outcome: Optional[str] = None,
+        outcome: str | None = None,
         importance: float = 1.0,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         now = self._now()
 
-        def _insert(conn: sqlite3.Connection) -> Dict[str, Any]:
+        def _insert(conn: sqlite3.Connection) -> dict[str, Any]:
             cursor = conn.execute(
                 """
                 INSERT INTO episodes (session_id, event_type, context, outcome, importance, created_at)
@@ -86,14 +88,14 @@ class EpisodicMemory:
 
     def recall_episodes(
         self,
-        event_type: Optional[str] = None,
+        event_type: str | None = None,
         min_importance: float = 0.0,
         limit: int = 20,
-    ) -> List[Dict[str, Any]]:
-        def _query(conn: sqlite3.Connection) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
+        def _query(conn: sqlite3.Connection) -> list[dict[str, Any]]:
             conn.row_factory = sqlite3.Row
             query = "SELECT * FROM episodes WHERE session_id = ? AND importance >= ?"
-            params: List[Any] = [self.session_id, min_importance]
+            params: list[Any] = [self.session_id, min_importance]
             if event_type:
                 query += " AND event_type = ?"
                 params.append(event_type)

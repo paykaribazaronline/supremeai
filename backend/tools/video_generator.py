@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 import os
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any
 
 import httpx
 from loguru import logger
@@ -12,14 +12,14 @@ from loguru import logger
 class VideoGenerator:
     def __init__(
         self,
-        runway_api_key: Optional[str] = None,
-        kling_api_key: Optional[str] = None,
+        runway_api_key: str | None = None,
+        kling_api_key: str | None = None,
     ) -> None:
         self.runway_api_key = runway_api_key or os.getenv("RUNWAY_API_KEY", "")
         self.kling_api_key = kling_api_key or os.getenv("KLING_API_KEY", "")
 
     @staticmethod
-    def _runway_payload(prompt: str, duration: int) -> Dict[str, Any]:
+    def _runway_payload(prompt: str, duration: int) -> dict[str, Any]:
         return {
             "prompt": prompt,
             "duration": duration,
@@ -27,7 +27,7 @@ class VideoGenerator:
         }
 
     @staticmethod
-    def _kling_payload(prompt: str, duration: int) -> Dict[str, Any]:
+    def _kling_payload(prompt: str, duration: int) -> dict[str, Any]:
         return {
             "prompt": prompt,
             "duration": duration,
@@ -35,7 +35,7 @@ class VideoGenerator:
             "aspect_ratio": "16:9",
         }
 
-    def _call_runway(self, prompt: str, duration: int) -> Dict[str, Any]:
+    def _call_runway(self, prompt: str, duration: int) -> dict[str, Any]:
         headers = {
             "Authorization": f"Bearer {self.runway_api_key}",
             "Content-Type": "application/json",
@@ -56,7 +56,7 @@ class VideoGenerator:
             "mock": False,
         }
 
-    def _call_kling(self, prompt: str, duration: int) -> Dict[str, Any]:
+    def _call_kling(self, prompt: str, duration: int) -> dict[str, Any]:
         headers = {
             "Authorization": f"Bearer {self.kling_api_key}",
             "Content-Type": "application/json",
@@ -82,9 +82,9 @@ class VideoGenerator:
         prompt: str,
         duration: int = 5,
         provider: str = "auto",
-        output_path: Optional[str] = None,
-        tried: Optional[set] = None,
-    ) -> Dict[str, Any]:
+        output_path: str | None = None,
+        tried: set | None = None,
+    ) -> dict[str, Any]:
         tried = tried or set()
         if provider == "auto":
             if self.runway_api_key and "runway" not in tried:
@@ -94,7 +94,9 @@ class VideoGenerator:
 
         if provider == "runway":
             if not self.runway_api_key:
-                logger.warning("Runway selected but RUNWAY_API_KEY is missing. Returning stub payload.")
+                logger.warning(
+                    "Runway selected but RUNWAY_API_KEY is missing. Returning stub payload."
+                )
                 return self._stub(prompt, duration, "runway", output_path=output_path)
             try:
                 return self._call_runway(prompt, duration)
@@ -102,12 +104,22 @@ class VideoGenerator:
                 logger.error(f"Runway failed: {exc}")
                 if self.kling_api_key and "kling" not in tried:
                     logger.info("Falling back to Kling provider.")
-                    return self.generate(prompt=prompt, duration=duration, provider="kling", output_path=output_path, tried={*tried, "runway"})
-                return self._stub(prompt, duration, "runway", output_path=output_path, error=str(exc))
+                    return self.generate(
+                        prompt=prompt,
+                        duration=duration,
+                        provider="kling",
+                        output_path=output_path,
+                        tried={*tried, "runway"},
+                    )
+                return self._stub(
+                    prompt, duration, "runway", output_path=output_path, error=str(exc)
+                )
 
         if provider == "kling":
             if not self.kling_api_key:
-                logger.warning("Kling selected but KLING_API_KEY is missing. Returning stub payload.")
+                logger.warning(
+                    "Kling selected but KLING_API_KEY is missing. Returning stub payload."
+                )
                 return self._stub(prompt, duration, "kling", output_path=output_path)
             try:
                 return self._call_kling(prompt, duration)
@@ -115,13 +127,29 @@ class VideoGenerator:
                 logger.error(f"Kling failed: {exc}")
                 if self.runway_api_key and "runway" not in tried:
                     logger.info("Falling back to Runway provider.")
-                    return self.generate(prompt=prompt, duration=duration, provider="runway", output_path=output_path, tried={*tried, "kling"})
-                return self._stub(prompt, duration, "kling", output_path=output_path, error=str(exc))
+                    return self.generate(
+                        prompt=prompt,
+                        duration=duration,
+                        provider="runway",
+                        output_path=output_path,
+                        tried={*tried, "kling"},
+                    )
+                return self._stub(
+                    prompt, duration, "kling", output_path=output_path, error=str(exc)
+                )
 
-        raise ValueError(f"Unknown provider: {provider!r}. Use 'runway', 'kling', or 'auto'.")
+        raise ValueError(
+            f"Unknown provider: {provider!r}. Use 'runway', 'kling', or 'auto'."
+        )
 
     @staticmethod
-    def _stub(prompt: str, duration: int, provider: str, output_path: Optional[str] = None, error: Optional[str] = None) -> Dict[str, Any]:
+    def _stub(
+        prompt: str,
+        duration: int,
+        provider: str,
+        output_path: str | None = None,
+        error: str | None = None,
+    ) -> dict[str, Any]:
         logger.info(f"Returning stub video payload for provider={provider}.")
         manifest = {
             "success": True,

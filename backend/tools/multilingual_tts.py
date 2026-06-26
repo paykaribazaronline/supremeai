@@ -1,21 +1,24 @@
-import os
-import httpx
 import hashlib
+import os
 import time
-from typing import Dict, Any, Optional
-from loguru import logger
-from fastapi import APIRouter, HTTPException
+from typing import Any
+
+import httpx
+from fastapi import APIRouter
+from fastapi import HTTPException
 from fastapi.responses import FileResponse
+from loguru import logger
 from pydantic import BaseModel
+
 
 router = APIRouter(prefix="/tts", tags=["multilingual-tts"])
 
 # ── ElevenLabs: per-language voice IDs ────────────────────────────────────────
 # eleven_multilingual_v2 supports 29 languages with ONE voice
 # Using "Rachel" (neutral, clear) as default for all languages
-ELEVENLABS_VOICES: Dict[str, str] = {
-    "en": "21m00Tcm4TlvDq8ikWAM",   # Rachel
-    "bn": "21m00Tcm4TlvDq8ikWAM",   # Bengali — same voice (multilingual v2)
+ELEVENLABS_VOICES: dict[str, str] = {
+    "en": "21m00Tcm4TlvDq8ikWAM",  # Rachel
+    "bn": "21m00Tcm4TlvDq8ikWAM",  # Bengali — same voice (multilingual v2)
     "ar": "21m00Tcm4TlvDq8ikWAM",
     "zh": "21m00Tcm4TlvDq8ikWAM",
     "es": "21m00Tcm4TlvDq8ikWAM",
@@ -48,7 +51,7 @@ ELEVENLABS_VOICES: Dict[str, str] = {
 
 # Unicode block ranges for language auto-detection
 LANG_SCRIPTS = [
-    ("bn", (0x0980, 0x09FF)),   # Bengali — highest priority
+    ("bn", (0x0980, 0x09FF)),  # Bengali — highest priority
     ("ar", (0x0600, 0x06FF)),
     ("he", (0x0590, 0x05FF)),
     ("hi", (0x0900, 0x097F)),
@@ -65,12 +68,12 @@ SUPPORTED_LANGUAGES = list(ELEVENLABS_VOICES.keys())
 
 class TTSRequest(BaseModel):
     text: str
-    language: Optional[str] = None          # auto-detect if None
-    voice_id: Optional[str] = None          # override ElevenLabs voice
-    provider: Optional[str] = "auto"        # auto | elevenlabs | gtts | edge-tts
+    language: str | None = None  # auto-detect if None
+    voice_id: str | None = None  # override ElevenLabs voice
+    provider: str | None = "auto"  # auto | elevenlabs | gtts | edge-tts
     stability: float = 0.5
     similarity_boost: float = 0.75
-    output_format: Optional[str] = "mp3"    # mp3 | wav
+    output_format: str | None = "mp3"  # mp3 | wav
 
 
 class TTSResponse(BaseModel):
@@ -80,15 +83,17 @@ class TTSResponse(BaseModel):
     audio_url: str
     text_length: int
     cached: bool = False
-    error: Optional[str] = None
+    error: str | None = None
 
 
 class MultilingualTTS:
-    def __init__(self, provider: str = "auto", api_key: Optional[str] = None):
+    def __init__(self, provider: str = "auto", api_key: str | None = None):
         self.provider = provider
         self.api_key = api_key or os.getenv("ELEVENLABS_API_KEY", "")
         self.model_id = "eleven_multilingual_v2"
-        logger.info(f"Initialized MultilingualTTS provider={self.provider} elevenlabs={'yes' if self.api_key else 'no'}")
+        logger.info(
+            f"Initialized MultilingualTTS provider={self.provider} elevenlabs={'yes' if self.api_key else 'no'}"
+        )
 
     # ── Language detection ────────────────────────────────────────────────────
     def _detect_language(self, text: str) -> str:
@@ -102,14 +107,13 @@ class MultilingualTTS:
     # ── Caching ───────────────────────────────────────────────────────────────
     def _output_path(self, text: str, lang: str, fmt: str = "mp3") -> str:
         base_dir = os.path.join(
-            os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-            "data", "tts"
+            os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data", "tts"
         )
         os.makedirs(base_dir, exist_ok=True)
         h = hashlib.sha256(f"{text}:{lang}:{self.provider}".encode()).hexdigest()[:16]
         return os.path.join(base_dir, f"tts_{lang}_{h}.{fmt}")
 
-    def _cache_hit(self, text: str, lang: str) -> Optional[str]:
+    def _cache_hit(self, text: str, lang: str) -> str | None:
         ttl = int(os.getenv("TTS_CACHE_TTL", "86400"))
         path = self._output_path(text, lang)
         if os.path.exists(path) and (time.time() - os.path.getmtime(path)) < ttl:
@@ -120,12 +124,12 @@ class MultilingualTTS:
     async def synthesize(
         self,
         text: str,
-        voice_id: Optional[str] = None,
-        language: Optional[str] = None,
-        output_path: Optional[str] = None,
+        voice_id: str | None = None,
+        language: str | None = None,
+        output_path: str | None = None,
         stability: float = 0.5,
         similarity_boost: float = 0.75,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         lang = language or self._detect_language(text)
         if lang not in SUPPORTED_LANGUAGES:
             logger.warning(f"Language '{lang}' not supported, falling back to 'en'")
@@ -135,16 +139,22 @@ class MultilingualTTS:
         if cached:
             logger.info(f"TTS cache hit: lang={lang}")
             return {
-                "status": "success", "language": lang, "provider": "cache",
-                "audio_path": cached, "audio_url": f"/api/tts/audio/{os.path.basename(cached)}",
-                "text_length": len(text), "cached": True,
+                "status": "success",
+                "language": lang,
+                "provider": "cache",
+                "audio_path": cached,
+                "audio_url": f"/api/tts/audio/{os.path.basename(cached)}",
+                "text_length": len(text),
+                "cached": True,
             }
 
         out_path = output_path or self._output_path(text, lang)
 
         # Try ElevenLabs first
         if self.api_key and self.provider in ("auto", "elevenlabs"):
-            result = await self._elevenlabs(text, out_path, lang, voice_id, stability, similarity_boost)
+            result = await self._elevenlabs(
+                text, out_path, lang, voice_id, stability, similarity_boost
+            )
             if result["status"] == "success":
                 result["audio_url"] = f"/api/tts/audio/{os.path.basename(out_path)}"
                 return result
@@ -161,20 +171,32 @@ class MultilingualTTS:
             result["audio_url"] = f"/api/tts/audio/{os.path.basename(out_path)}"
             return result
 
-        return {"status": "error", "language": lang, "error": "All TTS providers failed."}
+        return {
+            "status": "error",
+            "language": lang,
+            "error": "All TTS providers failed.",
+        }
 
     # ── ElevenLabs ────────────────────────────────────────────────────────────
     async def _elevenlabs(
-        self, text: str, out_path: str, lang: str,
-        voice_id: Optional[str], stability: float, similarity_boost: float
-    ) -> Dict[str, Any]:
+        self,
+        text: str,
+        out_path: str,
+        lang: str,
+        voice_id: str | None,
+        stability: float,
+        similarity_boost: float,
+    ) -> dict[str, Any]:
         v = voice_id or ELEVENLABS_VOICES.get(lang, ELEVENLABS_VOICES["en"])
         url = f"https://api.elevenlabs.io/v1/text-to-speech/{v}"
         headers = {"xi-api-key": self.api_key, "Content-Type": "application/json"}
         payload = {
             "text": text,
             "model_id": self.model_id,
-            "voice_settings": {"stability": stability, "similarity_boost": similarity_boost},
+            "voice_settings": {
+                "stability": stability,
+                "similarity_boost": similarity_boost,
+            },
         }
         try:
             async with httpx.AsyncClient(timeout=60.0) as client:
@@ -185,21 +207,29 @@ class MultilingualTTS:
                     f.write(res.content)
                 logger.info(f"ElevenLabs ✅ lang={lang} path={out_path}")
                 return {
-                    "status": "success", "language": lang, "provider": "elevenlabs",
-                    "audio_path": out_path, "text_length": len(text),
-                    "voice_id": v, "model_id": self.model_id,
+                    "status": "success",
+                    "language": lang,
+                    "provider": "elevenlabs",
+                    "audio_path": out_path,
+                    "text_length": len(text),
+                    "voice_id": v,
+                    "model_id": self.model_id,
                 }
             logger.warning(f"ElevenLabs {res.status_code}: {res.text[:200]}")
-            return {"status": "error", "language": lang, "error": f"ElevenLabs HTTP {res.status_code}"}
+            return {
+                "status": "error",
+                "language": lang,
+                "error": f"ElevenLabs HTTP {res.status_code}",
+            }
         except Exception as exc:
             logger.warning(f"ElevenLabs exception: {exc}")
             return {"status": "error", "language": lang, "error": str(exc)}
 
     # ── edge-tts (Microsoft, supports Bengali!) ───────────────────────────────
-    async def _edge_tts(self, text: str, out_path: str, lang: str) -> Dict[str, Any]:
+    async def _edge_tts(self, text: str, out_path: str, lang: str) -> dict[str, Any]:
         # Voice map for edge-tts — Bengali has excellent support
         EDGE_VOICES = {
-            "bn": "bn-BD-NabanitaNeural",    # Bangla Female (Bangladesh)
+            "bn": "bn-BD-NabanitaNeural",  # Bangla Female (Bangladesh)
             "hi": "hi-IN-SwaraNeural",
             "ar": "ar-SA-ZariyahNeural",
             "zh": "zh-CN-XiaoxiaoNeural",
@@ -224,30 +254,43 @@ class MultilingualTTS:
         mp3_path = out_path.replace(".wav", ".mp3")
         try:
             import edge_tts
+
             communicate = edge_tts.Communicate(text, voice)
             await communicate.save(mp3_path)
             logger.info(f"edge-tts ✅ lang={lang} voice={voice}")
             return {
-                "status": "success", "language": lang, "provider": "edge-tts",
-                "audio_path": mp3_path, "text_length": len(text), "voice": voice,
+                "status": "success",
+                "language": lang,
+                "provider": "edge-tts",
+                "audio_path": mp3_path,
+                "text_length": len(text),
+                "voice": voice,
             }
         except ImportError:
             logger.debug("edge-tts not installed. Run: pip install edge-tts")
-            return {"status": "error", "language": lang, "error": "edge-tts not installed"}
+            return {
+                "status": "error",
+                "language": lang,
+                "error": "edge-tts not installed",
+            }
         except Exception as exc:
             logger.debug(f"edge-tts failed: {exc}")
             return {"status": "error", "language": lang, "error": str(exc)}
 
     # ── gTTS (Google, free) ───────────────────────────────────────────────────
-    async def _gtts(self, text: str, out_path: str, lang: str) -> Dict[str, Any]:
+    async def _gtts(self, text: str, out_path: str, lang: str) -> dict[str, Any]:
         try:
             from gtts import gTTS
+
             tts = gTTS(text=text, lang=lang, slow=False)
             tts.save(out_path)
             logger.info(f"gTTS ✅ lang={lang}")
             return {
-                "status": "success", "language": lang, "provider": "gtts",
-                "audio_path": out_path, "text_length": len(text),
+                "status": "success",
+                "language": lang,
+                "provider": "gtts",
+                "audio_path": out_path,
+                "text_length": len(text),
             }
         except Exception as exc:
             logger.debug(f"gTTS failed: {exc}")
@@ -256,9 +299,9 @@ class MultilingualTTS:
     def synthesize_stream(self, text: str, chunk_size: int = 200):
         """Yield text chunks for streaming TTS."""
         for i in range(0, len(text), chunk_size):
-            yield text[i:i + chunk_size]
+            yield text[i : i + chunk_size]
 
-    async def get_voices(self) -> Dict[str, Any]:
+    async def get_voices(self) -> dict[str, Any]:
         """List available ElevenLabs voices."""
         if not self.api_key:
             return {"status": "error", "error": "ElevenLabs API key not configured"}
@@ -266,7 +309,7 @@ class MultilingualTTS:
             async with httpx.AsyncClient(timeout=10.0) as client:
                 res = await client.get(
                     "https://api.elevenlabs.io/v1/voices",
-                    headers={"xi-api-key": self.api_key}
+                    headers={"xi-api-key": self.api_key},
                 )
             if res.status_code == 200:
                 return {"status": "success", "voices": res.json().get("voices", [])}
@@ -280,6 +323,7 @@ _tts = MultilingualTTS()
 
 
 # ── REST Endpoints ────────────────────────────────────────────────────────────
+
 
 @router.post("/synthesize", response_model=TTSResponse)
 async def synthesize_text(request: TTSRequest):
@@ -298,18 +342,21 @@ async def synthesize_text(request: TTSRequest):
     )
     if result["status"] == "error":
         raise HTTPException(status_code=503, detail=result.get("error", "TTS failed"))
-    return TTSResponse(**{k: v for k, v in result.items() if k in TTSResponse.__fields__})
+    return TTSResponse(
+        **{k: v for k, v in result.items() if k in TTSResponse.__fields__}
+    )
 
 
 @router.get("/audio/{filename}")
 async def get_audio(filename: str):
     """Serve generated audio file."""
     base_dir = os.path.join(
-        os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-        "data", "tts"
+        os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data", "tts"
     )
     path = os.path.join(base_dir, filename)
-    if not os.path.exists(path) or not os.path.abspath(path).startswith(os.path.abspath(base_dir)):
+    if not os.path.exists(path) or not os.path.abspath(path).startswith(
+        os.path.abspath(base_dir)
+    ):
         raise HTTPException(status_code=404, detail="Audio file not found")
     return FileResponse(path, media_type="audio/mpeg")
 
@@ -324,7 +371,7 @@ async def list_languages():
         "notes": {
             "bn": "Bengali — supports edge-tts (bn-BD-NabanitaNeural) + ElevenLabs multilingual v2",
             "hi": "Hindi — edge-tts + ElevenLabs",
-        }
+        },
     }
 
 
@@ -338,8 +385,7 @@ async def list_voices():
 async def clear_cache():
     """Clear TTS audio cache."""
     base_dir = os.path.join(
-        os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-        "data", "tts"
+        os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data", "tts"
     )
     removed = 0
     if os.path.exists(base_dir):

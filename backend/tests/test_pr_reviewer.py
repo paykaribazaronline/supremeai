@@ -1,7 +1,11 @@
 import os
+from unittest.mock import MagicMock
+from unittest.mock import patch
+
 import pytest
-from unittest.mock import patch, MagicMock
+
 from tools.pr_reviewer import PRReviewer
+
 
 @pytest.mark.anyio
 async def test_static_security_scan_detects_secret():
@@ -18,11 +22,12 @@ async def test_static_security_scan_detects_secret():
     assert comments[0]["severity"] == "critical"
     assert "AWS API Key" in comments[0]["body"]
 
+
 @pytest.mark.anyio
 @patch("tools.pr_reviewer.Github")
 async def test_review_pr_trigger_changes(mock_github):
     os.environ["GITHUB_TOKEN"] = "fake-token"
-    
+
     mock_repo = MagicMock()
     mock_pr = MagicMock()
     mock_file = MagicMock()

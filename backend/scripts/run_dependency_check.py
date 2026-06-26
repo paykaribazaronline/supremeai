@@ -1,14 +1,16 @@
 import asyncio
 import json
-from loguru import logger
-import sys
 import os
+import sys
+
+from loguru import logger
+
 
 # Ensure the backend tools can be imported
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from tools.dependency_manager_agent import DependencyManagerAgent
-from tools.auto_pr_pipeline import AutoPRPipeline
+
 
 async def main():
     """
@@ -22,7 +24,7 @@ async def main():
     if pip_results.get("success") and pip_results.get("count", 0) > 0:
         logger.info(f"Found {pip_results['count']} outdated pip packages.")
         print("--- Outdated Pip Packages ---")
-        print(json.dumps(pip_results['outdated_packages'], indent=2))
+        print(json.dumps(pip_results["outdated_packages"], indent=2))
         # Here you could add logic to automatically update a specific package
         # For example, to update the first outdated package:
         # outdated_pkg = pip_results['outdated_packages'][0]
@@ -32,32 +34,39 @@ async def main():
 
     pip_vuln_results = agent.check_pip_vulnerabilities()
     if pip_vuln_results.get("success") and pip_vuln_results.get("count", 0) > 0:
-        logger.warning(f"Found {pip_vuln_results['count']} vulnerabilities in pip packages.")
+        logger.warning(
+            f"Found {pip_vuln_results['count']} vulnerabilities in pip packages."
+        )
         print("--- Pip Package Vulnerabilities (pip-audit) ---")
-        print(json.dumps(pip_vuln_results['vulnerabilities'], indent=2))
+        print(json.dumps(pip_vuln_results["vulnerabilities"], indent=2))
     else:
         logger.info("No vulnerabilities found in pip packages.")
 
     # --- Node.js (npm) dependencies ---
     # Assuming your frontend is in a directory like 'frontend'
-    frontend_path = "./apps/studio-client" # Adjust if necessary
+    frontend_path = "./apps/studio-client"  # Adjust if necessary
     if os.path.exists(os.path.join(frontend_path, "package.json")):
         npm_results = agent.check_npm_dependencies(project_path=frontend_path)
         if npm_results.get("success") and npm_results.get("count", 0) > 0:
             logger.info(f"Found {npm_results['count']} outdated npm packages.")
             print("--- Outdated NPM Packages ---")
-            print(json.dumps(npm_results['outdated_packages'], indent=2))
+            print(json.dumps(npm_results["outdated_packages"], indent=2))
         else:
             logger.info("No outdated npm packages found.")
 
         npm_vuln_results = agent.check_npm_vulnerabilities(project_path=frontend_path)
         if npm_vuln_results.get("success") and npm_vuln_results.get("audit_results"):
-            summary = npm_vuln_results["audit_results"].get("metadata", {}).get("vulnerabilities", {})
+            summary = (
+                npm_vuln_results["audit_results"]
+                .get("metadata", {})
+                .get("vulnerabilities", {})
+            )
             logger.warning(f"NPM audit found vulnerabilities: {summary}")
             print("--- NPM Package Vulnerabilities (npm audit) ---")
-            print(json.dumps(npm_vuln_results['audit_results'], indent=2))
+            print(json.dumps(npm_vuln_results["audit_results"], indent=2))
 
     logger.info("Dependency analysis complete.")
+
 
 if __name__ == "__main__":
     asyncio.run(main())

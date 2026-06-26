@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+
 import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
@@ -16,7 +17,9 @@ def stream_app() -> FastAPI:
 
 def test_stream_endpoint_requires_auth(stream_app: FastAPI):
     client = TestClient(stream_app)
-    resp = client.post("/api/stream/chat", json={"prompt": "hi", "task_type": "general"})
+    resp = client.post(
+        "/api/stream/chat", json={"prompt": "hi", "task_type": "general"}
+    )
     assert resp.status_code == 401
     os.environ.pop("SUPREMEAI_API_TOKEN", None)
 
@@ -31,4 +34,3 @@ def test_stream_endpoint_with_token(stream_app: FastAPI):
     assert resp.status_code == 200
     assert "text/event-stream" in resp.headers["content-type"]
     os.environ.pop("SUPREMEAI_API_TOKEN", None)
-

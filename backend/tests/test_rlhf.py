@@ -1,7 +1,10 @@
-import pytest
 import os
 import shutil
+
+import pytest
+
 from tools.rlhf_pipeline import RLHFPipeline
+
 
 @pytest.fixture
 def rlhf_pipeline():
@@ -10,6 +13,7 @@ def rlhf_pipeline():
     yield pipeline
     if os.path.exists(test_dir):
         shutil.rmtree(test_dir)
+
 
 @pytest.mark.anyio
 async def test_record_and_export(rlhf_pipeline):
@@ -21,6 +25,7 @@ async def test_record_and_export(rlhf_pipeline):
     assert export_res["status"] == "success"
     assert export_res["exported"] == 1
     assert os.path.exists(export_res["output_path"])
+
 
 @pytest.mark.anyio
 async def test_dpo_training_trigger(rlhf_pipeline):

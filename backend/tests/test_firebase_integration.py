@@ -1,15 +1,21 @@
-from unittest.mock import MagicMock, patch
-
 import importlib.util
+from unittest.mock import MagicMock
+from unittest.mock import patch
+
 import pytest
 
+
 HAS_FIREBASE_DEPS = importlib.util.find_spec("firebase_admin") is not None
-pytestmark = pytest.mark.skipif(not HAS_FIREBASE_DEPS, reason="firebase_admin not installed")
+pytestmark = pytest.mark.skipif(
+    not HAS_FIREBASE_DEPS, reason="firebase_admin not installed"
+)
 
 
 @pytest.fixture
 def mock_firebase_admin():
-    with patch("firebase_admin.initialize_app") as init_mock, patch("firebase_admin.db", create=True) as rtdb_mock, patch("firebase_admin.firestore", create=True) as fs_mock:
+    with patch("firebase_admin.initialize_app") as init_mock, patch(
+        "firebase_admin.db", create=True
+    ) as rtdb_mock, patch("firebase_admin.firestore", create=True) as fs_mock:
         init_mock.return_value = MagicMock()
         yield {
             "init": init_mock,
@@ -47,21 +53,31 @@ class DocumentStub:
 
     def get(self):
         outer = self
+
         class _Snap:
             exists = outer._id in outer._section
 
             def to_dict(self):
                 return outer._section.get(outer._id, {})
+
         return _Snap()
 
 
 def test_ocr_trigger_queue_to_firestore(mock_firebase_admin):
     rtdb = MagicMock()
-    mock_firebase_admin["rtdb"].reference.return_value.reference.return_value.child.return_value.push.return_value = MagicMock(key="push-123")
-    mock_firebase_admin["rtdb"].reference.return_value.reference.return_value.set = MagicMock()
+    mock_firebase_admin[
+        "rtdb"
+    ].reference.return_value.reference.return_value.child.return_value.push.return_value = MagicMock(
+        key="push-123"
+    )
+    mock_firebase_admin["rtdb"].reference.return_value.reference.return_value.set = (
+        MagicMock()
+    )
 
     ref = mock_firebase_admin["rtdb"].reference.return_value
-    ref.reference.return_value.child("ocr-queue").push.return_value = MagicMock(key="push-123")
+    ref.reference.return_value.child("ocr-queue").push.return_value = MagicMock(
+        key="push-123"
+    )
     ref.reference.return_value.child.return_value.set.assert_not_called()
 
     doc_ref = DocumentStub({}, "push-123")
@@ -88,19 +104,28 @@ def test_firebase_roundtrip_queue_result(mock_firebase_admin):
 
 
 def test_existing_gcp_roundtrip_coverage():
+    import os
     import subprocess
     import sys
-    import os
+
     env = os.environ.copy()
     env["PYTHONPATH"] = env.get("PYTHONPATH", "") + os.pathsep + "."
-    test_path_prefix = "tests" if os.path.exists("tests/test_gcp_integration.py") else "backend/tests"
+    test_path_prefix = (
+        "tests" if os.path.exists("tests/test_gcp_integration.py") else "backend/tests"
+    )
     r = subprocess.run(
-        [sys.executable, "-m", "pytest", 
-         f"{test_path_prefix}/test_gcp_integration.py::test_gcp_firestore_integration_queue",
-         f"{test_path_prefix}/test_gcp_integration.py::test_gcp_pubsub_publish_pull",
-         f"{test_path_prefix}/test_gcp_integration.py::test_gcp_cloud_run_router_route", "-q"],
+        [
+            sys.executable,
+            "-m",
+            "pytest",
+            f"{test_path_prefix}/test_gcp_integration.py::test_gcp_firestore_integration_queue",
+            f"{test_path_prefix}/test_gcp_integration.py::test_gcp_pubsub_publish_pull",
+            f"{test_path_prefix}/test_gcp_integration.py::test_gcp_cloud_run_router_route",
+            "-q",
+        ],
         capture_output=True,
         text=True,
         env=env,
+        check=False,
     )
     assert r.returncode == 0, "Roundtrip tests failed:\n" + r.stdout + "\n" + r.stderr

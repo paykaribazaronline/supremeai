@@ -1,19 +1,23 @@
-from typing import Dict, Any
+from typing import Any
+
 from loguru import logger
 
 
 class Model3DGenerator:
-    async def generate_model(self, prompt: str, format: str = "glb") -> Dict[str, Any]:
+    async def generate_model(self, prompt: str, format: str = "glb") -> dict[str, Any]:
         logger.info(f"Generating 3D model for: {prompt}")
         try:
             from brain.model_router import ModelRouter
+
             router = ModelRouter()
             llm_prompt = (
                 f"Create a detailed 3D model generation prompt for: {prompt}. "
                 "Include geometry, materials, lighting, and export settings. "
                 "Return only the prompt text."
             )
-            result = router.async_route_and_generate(llm_prompt, task_type="general", max_cost=0.01)
+            result = router.async_route_and_generate(
+                llm_prompt, task_type="general", max_cost=0.01
+            )
             text = result.get("text", "") if isinstance(result, dict) else ""
             return {
                 "status": "success",

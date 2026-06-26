@@ -1,6 +1,7 @@
 import os
-from typing import Any, Dict, Optional
-from datetime import datetime, timezone
+from datetime import datetime
+from datetime import timezone
+from typing import Any
 
 import httpx
 from loguru import logger
@@ -11,24 +12,23 @@ class GCPCloudRunRouter:
 
     def __init__(
         self,
-        base_url: Optional[str] = None,
-        region: Optional[str] = None,
-        service_name: Optional[str] = None,
+        base_url: str | None = None,
+        region: str | None = None,
+        service_name: str | None = None,
         timeout: float = 30.0,
     ):
-        self.base_url = (
-            base_url
-            or os.getenv("GCP_CLOUD_RUN_URL", "")
-        ).rstrip("/")
+        self.base_url = (base_url or os.getenv("GCP_CLOUD_RUN_URL", "")).rstrip("/")
         self.region = region or os.getenv("GCP_REGION", "us-central1")
-        self.service_name = service_name or os.getenv("GCP_SERVICE_NAME", "supremeai-api")
+        self.service_name = service_name or os.getenv(
+            "GCP_SERVICE_NAME", "supremeai-api"
+        )
         self.timeout = timeout
 
     @property
     def is_configured(self) -> bool:
         return bool(self.base_url)
 
-    def health_check(self, timeout: Optional[float] = None) -> Dict[str, Any]:
+    def health_check(self, timeout: float | None = None) -> dict[str, Any]:
         if not self.base_url:
             return {
                 "success": False,
@@ -68,10 +68,10 @@ class GCPCloudRunRouter:
     def route(
         self,
         endpoint: str,
-        payload: Dict[str, Any],
+        payload: dict[str, Any],
         method: str = "POST",
-        timeout: Optional[float] = None,
-    ) -> Dict[str, Any]:
+        timeout: float | None = None,
+    ) -> dict[str, Any]:
         if not self.base_url:
             return {
                 "success": False,
@@ -107,10 +107,10 @@ class GCPCloudRunRouter:
                 "error": str(exc),
             }
 
-    def route_task(self, payload: Dict[str, Any]) -> Dict[str, Any]:
+    def route_task(self, payload: dict[str, Any]) -> dict[str, Any]:
         return self.route("/api/v1/task/execute", payload)
 
-    def get_config(self) -> Dict[str, Any]:
+    def get_config(self) -> dict[str, Any]:
         return {
             "provider": "gcp_cloud_run",
             "base_url": self.base_url,

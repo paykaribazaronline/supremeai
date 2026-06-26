@@ -1,10 +1,10 @@
-
 import httpx
-
 import pytest
+
 
 try:
     from firebase_admin import auth as firebase_admin_auth
+
     HAS_FIREBASE_DEPS = True
 except ImportError:
     HAS_FIREBASE_DEPS = False
@@ -15,7 +15,9 @@ from core.gcp_pubsub_queue import GCPPubSubQueue
 from tools.gcp_cloud_functions import GCPCloudFunctionClient
 
 
-pytestmark = pytest.mark.skipif(not HAS_FIREBASE_DEPS, reason="firebase/google deps not installed")
+pytestmark = pytest.mark.skipif(
+    not HAS_FIREBASE_DEPS, reason="firebase/google deps not installed"
+)
 
 
 class FakeElapsed:
@@ -117,11 +119,17 @@ class FakeFirestoreQueue:
         self._store: Dict[str, dict] = {}
 
     def enqueue(self, task_id: str, payload: dict, priority: float = 1.0):
-        self._store[task_id] = {"task_id": task_id, "payload": payload, "priority": priority}
+        self._store[task_id] = {
+            "task_id": task_id,
+            "payload": payload,
+            "priority": priority,
+        }
         return {"enqueued": True, "task_id": task_id}
 
     def dequeue(self):
-        for item in sorted(self._store.values(), key=lambda x: x["priority"], reverse=True):
+        for item in sorted(
+            self._store.values(), key=lambda x: x["priority"], reverse=True
+        ):
             return item
         return None
 
@@ -155,7 +163,9 @@ class FakeSubscriber:
     def pull(self, max_messages: int = 1):
         messages = []
         for message in self._messages[:max_messages]:
-            msg_obj = type("FakeMessage", (), {"data": message, "ack_id": id(message)})()
+            msg_obj = type(
+                "FakeMessage", (), {"data": message, "ack_id": id(message)}
+            )()
             callback = getattr(self, "_callback", None)
             if callback:
                 callback(msg_obj)
@@ -252,7 +262,11 @@ def test_gcp_cloud_function_client_trigger(monkeypatch):
 def test_gcp_firebase_auth_token(monkeypatch):
     monkeypatch.setenv("GOOGLE_APPLICATION_CREDENTIALS", "/tmp/fake-sa.json")
     if HAS_FIREBASE_DEPS:
-        monkeypatch.setattr(firebase_admin_auth, "verify_id_token", lambda token: {"uid": "u1", "email": "u@example.com"})
+        monkeypatch.setattr(
+            firebase_admin_auth,
+            "verify_id_token",
+            lambda token: {"uid": "u1", "email": "u@example.com"},
+        )
         decoded = firebase_admin_auth.verify_id_token("fake-jwt")
         assert decoded["uid"] == "u1"
 

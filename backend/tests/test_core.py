@@ -1,7 +1,6 @@
 import os
 
 
-
 def _bootstrap():
     os.environ.setdefault("ENV", "test")
     os.environ.setdefault("OPENROUTER_API_KEY", "")
@@ -19,6 +18,7 @@ _bootstrap()
 
 def test_intent_classifier_general():
     from core.intent import IntentClassifier
+
     clf = IntentClassifier()
     intent = clf.classify("what is the capital of france?")
     assert intent.task_type.value == "general"
@@ -27,6 +27,7 @@ def test_intent_classifier_general():
 
 def test_intent_classifier_coding():
     from core.intent import IntentClassifier
+
     clf = IntentClassifier()
     intent = clf.classify("write a python function to sort a list")
     assert intent.task_type.value == "coding"
@@ -34,6 +35,7 @@ def test_intent_classifier_coding():
 
 def test_intent_classifier_admin():
     from core.intent import IntentClassifier
+
     clf = IntentClassifier()
     intent = clf.classify("run admin shutdown command now")
     assert intent.task_type.value == "admin"
@@ -41,6 +43,7 @@ def test_intent_classifier_admin():
 
 def test_intent_classifier_translation():
     from core.intent import IntentClassifier
+
     clf = IntentClassifier()
     intent = clf.classify("translate this to bengali")
     assert intent.task_type.value == "translation"
@@ -70,6 +73,7 @@ def test_model_router_fallback_chain(monkeypatch):
 
 def test_model_router_uses_registry_for_tier_selection(monkeypatch):
     from brain.model_router import ModelRouter
+
     mr = ModelRouter()
     mr.openrouter_api_key = "test-key"
 
@@ -82,8 +86,9 @@ def test_model_router_uses_registry_for_tier_selection(monkeypatch):
 
 
 def test_admin_rules_db_roundtrip():
-    import tempfile
     import pathlib
+    import tempfile
+
     from admin.god import AdminGodLayer
 
     db = pathlib.Path(tempfile.gettempdir()) / "supremeai_admin_test.db"
@@ -99,6 +104,7 @@ def test_admin_rules_db_roundtrip():
 
 def test_schema_validator_retry_on_validation_fail():
     from pydantic import BaseModel
+
     from core.schema_validator import SchemaValidator
 
     validator = SchemaValidator()

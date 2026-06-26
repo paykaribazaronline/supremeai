@@ -1,9 +1,9 @@
-
 import asyncio
 import json
 import time
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any
+
 from loguru import logger
 
 
@@ -13,16 +13,16 @@ class SelfEvolutionAgent:
 
     def __init__(
         self,
-        fitness_engine: Optional[Any] = None,
-        auto_skill_creator: Optional[Any] = None,
+        fitness_engine: Any | None = None,
+        auto_skill_creator: Any | None = None,
         interval_seconds: int = 300,
         fitness_threshold: float = 0.5,
         refactor_penalty_threshold: float = 0.3,
         min_runs_before_action: int = 5,
         max_consecutive_penalties: int = 3,
     ) -> None:
-        from evolution.fitness_engine import FitnessEngine
         from evolution.auto_skill_creator import AutoSkillCreator
+        from evolution.fitness_engine import FitnessEngine
 
         self.fitness_engine = fitness_engine or FitnessEngine()
         self.auto_skill_creator = auto_skill_creator or AutoSkillCreator()
@@ -36,8 +36,8 @@ class SelfEvolutionAgent:
         self.log_path = base_dir / "backend" / "data" / "evolution_logs.jsonl"
 
         self._running: bool = False
-        self._task: Optional[asyncio.Task] = None
-        self._consecutive_penalties: Dict[str, int] = {}
+        self._task: asyncio.Task | None = None
+        self._consecutive_penalties: dict[str, int] = {}
         self._pending_demands: asyncio.Queue = asyncio.Queue()
 
     async def start(self) -> None:
@@ -92,20 +92,31 @@ class SelfEvolutionAgent:
             return
 
         if score < self.refactor_penalty_threshold:
-            self._consecutive_penalties[skill_name] = self._consecutive_penalties.get(skill_name, 0) + 1
-            if self._consecutive_penalties[skill_name] >= self.max_consecutive_penalties:
+            self._consecutive_penalties[skill_name] = (
+                self._consecutive_penalties.get(skill_name, 0) + 1
+            )
+            if (
+                self._consecutive_penalties[skill_name]
+                >= self.max_consecutive_penalties
+            ):
                 await self._trigger_refactor(skill_name)
                 self._consecutive_penalties[skill_name] = 0
         else:
             self._consecutive_penalties.pop(skill_name, None)
 
         if score < self.fitness_threshold:
-            pruned = self.fitness_engine.evaluate_and_prune(skill_name, self.fitness_threshold, self.min_runs_before_action)
+            pruned = self.fitness_engine.evaluate_and_prune(
+                skill_name, self.fitness_threshold, self.min_runs_before_action
+            )
             if pruned:
-                self._log_action({"action": "prune", "skill_name": skill_name, "score": score})
+                self._log_action(
+                    {"action": "prune", "skill_name": skill_name, "score": score}
+                )
 
     async def _trigger_refactor(self, skill_name: str) -> None:
-        logger.warning(f"Skill '{skill_name}' hit consecutive penalty threshold. Refactoring...")
+        logger.warning(
+            f"Skill '{skill_name}' hit consecutive penalty threshold. Refactoring..."
+        )
         current_code = self._read_skill_code(skill_name)
         user_demand = (
             f"Refactor the existing skill '{skill_name}' to drastically improve its fitness score.\n"
@@ -113,14 +124,18 @@ class SelfEvolutionAgent:
             "Preserve the public interface (class name and async execute(self, kwargs) -> dict method).\n"
         )
         refactored_name = f"{skill_name}_v2"
-        result = await self.auto_skill_creator.generate_and_deploy_skill(user_demand, refactored_name)
-        self._log_action({
-            "action": "refactor",
-            "skill_name": skill_name,
-            "refactored_name": refactored_name,
-            "success": result.get("success", False),
-            "error": result.get("error"),
-        })
+        result = await self.auto_skill_creator.generate_and_deploy_skill(
+            user_demand, refactored_name
+        )
+        self._log_action(
+            {
+                "action": "refactor",
+                "skill_name": skill_name,
+                "refactored_name": refactored_name,
+                "success": result.get("success", False),
+                "error": result.get("error"),
+            }
+        )
         if result.get("success"):
             logger.info(f"Refactored skill deployed as '{refactored_name}'")
         else:
@@ -137,7 +152,7 @@ class SelfEvolutionAgent:
                 return path.read_text(encoding="utf-8")
         return "// Source code not found"
 
-    def _log_action(self, entry: Dict[str, Any]) -> None:
+    def _log_action(self, entry: dict[str, Any]) -> None:
         entry["timestamp"] = time.time()
         try:
             with open(self.log_path, "a", encoding="utf-8") as f:
@@ -147,29 +162,42 @@ class SelfEvolutionAgent:
 
     def has_high_fitness_path(self, skill_name: str) -> bool:
         if skill_name in self.fitness_engine.metrics:
-            return self.fitness_engine.calculate_fitness(skill_name) >= self.fitness_threshold
+            return (
+                self.fitness_engine.calculate_fitness(skill_name)
+                >= self.fitness_threshold
+            )
         skill_data = self.fitness_engine.registry.get_skill(skill_name)
         return skill_data is not None
 
     def register_missing_path(self, task_demand: str, skill_name: str) -> None:
         """External hook for orchestrators to register task demands lacking a high-fitness path."""
-        self._pending_demands.put_nowait({"task_demand": task_demand, "skill_name": skill_name})
+        self._pending_demands.put_nowait(
+            {"task_demand": task_demand, "skill_name": skill_name}
+        )
 
-    async def _process_demand(self, demand: Dict[str, str]) -> None:
+    async def _process_demand(self, demand: dict[str, str]) -> None:
         task_demand = demand["task_demand"]
         skill_name = demand["skill_name"]
         if self.has_high_fitness_path(skill_name):
             return
-        logger.info(f"No high-fitness path for '{skill_name}'. Triggering AutoSkillCreator.")
-        result = await self.auto_skill_creator.generate_and_deploy_skill(task_demand, skill_name)
-        self._log_action({
-            "action": "generate",
-            "skill_name": skill_name,
-            "task_demand": task_demand,
-            "success": result.get("success", False),
-            "error": result.get("error"),
-        })
+        logger.info(
+            f"No high-fitness path for '{skill_name}'. Triggering AutoSkillCreator."
+        )
+        result = await self.auto_skill_creator.generate_and_deploy_skill(
+            task_demand, skill_name
+        )
+        self._log_action(
+            {
+                "action": "generate",
+                "skill_name": skill_name,
+                "task_demand": task_demand,
+                "success": result.get("success", False),
+                "error": result.get("error"),
+            }
+        )
         if result.get("success"):
             logger.info(f"Auto-generated skill '{skill_name}' deployed.")
         else:
-            logger.error(f"Auto-skill generation failed for '{skill_name}': {result.get('error')}")
+            logger.error(
+                f"Auto-skill generation failed for '{skill_name}': {result.get('error')}"
+            )

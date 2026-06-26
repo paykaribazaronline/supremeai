@@ -1,10 +1,13 @@
 import os
-import uuid
 import time
-from typing import Dict, Any, List, Optional
+import uuid
+from typing import Any
+
 from loguru import logger
+
 from core.config import settings
 from database.supabase_client import db
+
 
 REWARD_TIERS = [
     {"name": "bronze", "threshold": 1, "reward": 5.0, "credit_bonus": 10},
@@ -30,7 +33,8 @@ class ViralReferralEngine:
             return {"codes": {}, "wallets": {}}
         try:
             import json
-            with open(path, "r", encoding="utf-8") as f:
+
+            with open(path, encoding="utf-8") as f:
                 return json.load(f)
         except Exception:
             return {"codes": {}, "wallets": {}}
@@ -38,10 +42,11 @@ class ViralReferralEngine:
     def _save_local(self, data):
         os.makedirs(os.path.dirname(self._local_store()), exist_ok=True)
         import json
+
         with open(self._local_store(), "w", encoding="utf-8") as f:
             json.dump(data, f, indent=2, default=str)
 
-    def generate_referral_code(self, user_id: str) -> Dict[str, Any]:
+    def generate_referral_code(self, user_id: str) -> dict[str, Any]:
         code = f"SUPREME-{uuid.uuid4().hex[:8].upper()}"
         record = {
             "code": code,
@@ -64,11 +69,16 @@ class ViralReferralEngine:
         logger.info(f"Generated referral code {code} for user {user_id}")
         return {"status": "success", "code": code, "expires_at": record["expires_at"]}
 
-    def list_user_codes(self, user_id: str) -> List[Dict[str, Any]]:
+    def list_user_codes(self, user_id: str) -> list[dict[str, Any]]:
         out = []
         if db.client:
             try:
-                res = db.client.table("referral_codes").select("*").eq("referrer_id", user_id).execute()
+                res = (
+                    db.client.table("referral_codes")
+                    .select("*")
+                    .eq("referrer_id", user_id)
+                    .execute()
+                )
                 out = res.data or []
             except Exception as exc:
                 logger.debug(f"Failed to list codes: {exc}")
@@ -79,13 +89,21 @@ class ViralReferralEngine:
                     out.append(rec)
         return out
 
-    async def process_signup(self, new_user_id: str, referral_code: str, meta: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    async def process_signup(
+        self, new_user_id: str, referral_code: str, meta: dict[str, Any] | None = None
+    ) -> dict[str, Any]:
         logger.info(f"Processing referral {referral_code} for new user {new_user_id}")
         referrer_id = None
         record = None
         if db.client:
             try:
-                res = db.client.table("referral_codes").select("*").eq("code", referral_code).eq("status", "active").execute()
+                res = (
+                    db.client.table("referral_codes")
+                    .select("*")
+                    .eq("code", referral_code)
+                    .eq("status", "active")
+                    .execute()
+                )
                 rows = res.data
                 if rows:
                     record = rows[0]
@@ -109,7 +127,9 @@ class ViralReferralEngine:
             return {"status": "skipped", "reason": "fraud_detected"}
 
         reward_info = self._calculate_reward(referrer_id)
-        credit_info = self._credit_wallet(referrer_id, reward_info["credit_bonus"], f"referral:{referral_code}")
+        credit_info = self._credit_wallet(
+            referrer_id, reward_info["credit_bonus"], f"referral:{referral_code}"
+        )
 
         redemption = {
             "code": referral_code,
@@ -123,14 +143,18 @@ class ViralReferralEngine:
         if db.client:
             try:
                 db.client.table("referral_redemptions").insert(redemption).execute()
-                db.client.table("referral_codes").update({"redeemed_count": record.get("redeemed_count", 0) + 1}).eq("code", referral_code).execute()
+                db.client.table("referral_codes").update(
+                    {"redeemed_count": record.get("redeemed_count", 0) + 1}
+                ).eq("code", referral_code).execute()
             except Exception as exc:
                 logger.debug(f"Referral redemption persistence failed: {exc}")
         else:
             data = self._load_local()
             data.setdefault("redemptions", []).append(redemption)
             if record.get("code") in data.get("codes", {}):
-                data["codes"][referral_code]["redeemed_count"] = data["codes"][referral_code].get("redeemed_count", 0) + 1
+                data["codes"][referral_code]["redeemed_count"] = (
+                    data["codes"][referral_code].get("redeemed_count", 0) + 1
+                )
             self._save_local(data)
 
         return {
@@ -141,17 +165,28 @@ class ViralReferralEngine:
             "tier": reward_info["tier"],
         }
 
-    def _is_fraudulent(self, referrer_id: str, new_user_id: str, meta: Dict[str, Any]) -> bool:
-        history: List[Dict[str, Any]] = []
+    def _is_fraudulent(
+        self, referrer_id: str, new_user_id: str, meta: dict[str, Any]
+    ) -> bool:
+        history: list[dict[str, Any]] = []
         if db.client:
             try:
-                res = db.client.table("referral_redemptions").select("*").eq("referrer_id", referrer_id).execute()
+                res = (
+                    db.client.table("referral_redemptions")
+                    .select("*")
+                    .eq("referrer_id", referrer_id)
+                    .execute()
+                )
                 history = res.data or []
             except Exception as exc:
                 logger.debug(f"Fraud history lookup failed: {exc}")
         else:
             data = self._load_local()
-            history = [r for r in data.get("redemptions", []) if r.get("referrer_id") == referrer_id]
+            history = [
+                r
+                for r in data.get("redemptions", [])
+                if r.get("referrer_id") == referrer_id
+            ]
 
         recent_same_ip = 0
         recent_same_device = 0
@@ -160,32 +195,58 @@ class ViralReferralEngine:
             if r.get("created_at", 0) < cutoff:
                 continue
             rm = r.get("metadata") or {}
-            if meta.get("ip_address") and rm.get("ip_address") == meta.get("ip_address"):
+            if meta.get("ip_address") and rm.get("ip_address") == meta.get(
+                "ip_address"
+            ):
                 recent_same_ip += 1
-            if meta.get("device_fingerprint") and rm.get("device_fingerprint") == meta.get("device_fingerprint"):
+            if meta.get("device_fingerprint") and rm.get(
+                "device_fingerprint"
+            ) == meta.get("device_fingerprint"):
                 recent_same_device += 1
 
-        if recent_same_ip >= FRAUD_INDICATOR_THRESHOLD or recent_same_device >= FRAUD_INDICATOR_THRESHOLD:
-            logger.warning(f"Fraud indicators for referrer {referrer_id}: same_ip={recent_same_ip}, same_device={recent_same_device}")
+        if (
+            recent_same_ip >= FRAUD_INDICATOR_THRESHOLD
+            or recent_same_device >= FRAUD_INDICATOR_THRESHOLD
+        ):
+            logger.warning(
+                f"Fraud indicators for referrer {referrer_id}: same_ip={recent_same_ip}, same_device={recent_same_device}"
+            )
             if db.client:
                 try:
-                    db.client.table("referral_codes").update({"fraud_score": 0.8}).eq("referrer_id", referrer_id).execute()
+                    db.client.table("referral_codes").update({"fraud_score": 0.8}).eq(
+                        "referrer_id", referrer_id
+                    ).execute()
                 except Exception:
                     pass
             return True
         return False
 
-    def _calculate_reward(self, referrer_id: str) -> Dict[str, Any]:
+    def _calculate_reward(self, referrer_id: str) -> dict[str, Any]:
         count = 0
         if db.client:
             try:
-                res = db.client.table("referral_redemptions").select("id", count="exact").eq("referrer_id", referrer_id).execute()
-                count = res.count if hasattr(res, "count") else (len(res.data) if res.data else 0)
+                res = (
+                    db.client.table("referral_redemptions")
+                    .select("id", count="exact")
+                    .eq("referrer_id", referrer_id)
+                    .execute()
+                )
+                count = (
+                    res.count
+                    if hasattr(res, "count")
+                    else (len(res.data) if res.data else 0)
+                )
             except Exception as exc:
                 logger.debug(f"Reward tier count failed: {exc}")
         else:
             data = self._load_local()
-            count = len([r for r in data.get("redemptions", []) if r.get("referrer_id") == referrer_id])
+            count = len(
+                [
+                    r
+                    for r in data.get("redemptions", [])
+                    if r.get("referrer_id") == referrer_id
+                ]
+            )
 
         tier = REWARD_TIERS[0]
         for t in REWARD_TIERS:
@@ -198,7 +259,9 @@ class ViralReferralEngine:
             "count": count,
         }
 
-    def _credit_wallet(self, user_id: str, amount: float, reason: str) -> Dict[str, Any]:
+    def _credit_wallet(
+        self, user_id: str, amount: float, reason: str
+    ) -> dict[str, Any]:
         wallet = self._get_wallet(user_id)
         new_balance = wallet.get("balance", 0.0) + amount
         ledger_entry = {
@@ -212,20 +275,38 @@ class ViralReferralEngine:
         if db.client:
             try:
                 db.client.table("credit_ledger").insert(ledger_entry).execute()
-                db.client.table("credit_wallets").upsert({"user_id": user_id, "balance": new_balance, "updated_at": time.time()}).execute()
+                db.client.table("credit_wallets").upsert(
+                    {
+                        "user_id": user_id,
+                        "balance": new_balance,
+                        "updated_at": time.time(),
+                    }
+                ).execute()
             except Exception as exc:
                 logger.debug(f"Credit wallet update failed: {exc}")
         else:
             data = self._load_local()
-            data.setdefault("wallets", {})[user_id] = {"user_id": user_id, "balance": new_balance}
+            data.setdefault("wallets", {})[user_id] = {
+                "user_id": user_id,
+                "balance": new_balance,
+            }
             data.setdefault("ledger", []).append(ledger_entry)
             self._save_local(data)
-        return {"balance": new_balance, "amount": amount, "tx_id": ledger_entry["tx_id"]}
+        return {
+            "balance": new_balance,
+            "amount": amount,
+            "tx_id": ledger_entry["tx_id"],
+        }
 
-    def _get_wallet(self, user_id: str) -> Dict[str, Any]:
+    def _get_wallet(self, user_id: str) -> dict[str, Any]:
         if db.client:
             try:
-                res = db.client.table("credit_wallets").select("*").eq("user_id", user_id).execute()
+                res = (
+                    db.client.table("credit_wallets")
+                    .select("*")
+                    .eq("user_id", user_id)
+                    .execute()
+                )
                 rows = res.data
                 if rows:
                     return rows[0]
@@ -238,15 +319,22 @@ class ViralReferralEngine:
                 return w
         return {"user_id": user_id, "balance": 0.0}
 
-    def get_wallet_balance(self, user_id: str) -> Dict[str, Any]:
+    def get_wallet_balance(self, user_id: str) -> dict[str, Any]:
         wallet = self._get_wallet(user_id)
         return {"user_id": user_id, "balance": wallet.get("balance", 0.0)}
 
-    def get_ledger(self, user_id: str, limit: int = 50) -> List[Dict[str, Any]]:
-        out: List[Dict[str, Any]] = []
+    def get_ledger(self, user_id: str, limit: int = 50) -> list[dict[str, Any]]:
+        out: list[dict[str, Any]] = []
         if db.client:
             try:
-                res = db.client.table("credit_ledger").select("*").eq("user_id", user_id).order("timestamp", desc=True).limit(limit).execute()
+                res = (
+                    db.client.table("credit_ledger")
+                    .select("*")
+                    .eq("user_id", user_id)
+                    .order("timestamp", desc=True)
+                    .limit(limit)
+                    .execute()
+                )
                 out = res.data or []
             except Exception as exc:
                 logger.debug(f"Ledger fetch failed: {exc}")
@@ -271,7 +359,13 @@ class ViralReferralEngine:
         }
         return links.get(platform.lower(), deep_link)
 
-    def record_social_share(self, user_id: str, referral_code: str, platform: str, meta: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    def record_social_share(
+        self,
+        user_id: str,
+        referral_code: str,
+        platform: str,
+        meta: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
         """Record a social share event for the referral code."""
         event = {
             "user_id": user_id,
@@ -290,15 +384,21 @@ class ViralReferralEngine:
             data.setdefault("social_shares", []).append(event)
             self._save_local(data)
         logger.info(f"Recorded social share on {platform} for user {user_id}")
-        return {"status": "success", "deep_link": self.generate_deep_link(referral_code, platform)}
+        return {
+            "status": "success",
+            "deep_link": self.generate_deep_link(referral_code, platform),
+        }
 
-    def _stripe_payout(self, user_id: str, amount_cents: int, currency: str = "usd") -> Dict[str, Any]:
+    def _stripe_payout(
+        self, user_id: str, amount_cents: int, currency: str = "usd"
+    ) -> dict[str, Any]:
         """Create a Stripe payout for a user's referral earnings."""
         if not settings.stripe_api_key:
             logger.debug("Stripe API key not configured; skipping payout")
             return {"status": "skipped", "reason": "stripe_not_configured"}
         try:
             import stripe
+
             stripe.api_key = settings.stripe_api_key
             # In production you would map user_id to a Stripe Connect account
             payout = stripe.Payout.create(
@@ -308,12 +408,19 @@ class ViralReferralEngine:
                 method="standard",
             )
             logger.info(f"Stripe payout created for {user_id}: {payout.id}")
-            return {"status": "success", "payout_id": payout.id, "amount": amount_cents, "currency": currency}
+            return {
+                "status": "success",
+                "payout_id": payout.id,
+                "amount": amount_cents,
+                "currency": currency,
+            }
         except Exception as exc:
             logger.error(f"Stripe payout failed for {user_id}: {exc}")
             return {"status": "error", "reason": str(exc)}
 
-    def _credit_stripe_payout(self, user_id: str, reward_info: Dict[str, Any]) -> Dict[str, Any]:
+    def _credit_stripe_payout(
+        self, user_id: str, reward_info: dict[str, Any]
+    ) -> dict[str, Any]:
         """Award referral reward and trigger Stripe payout when eligible."""
         wallet = self._get_wallet(user_id)
         current_balance = wallet.get("balance", 0.0)
@@ -321,7 +428,9 @@ class ViralReferralEngine:
         new_balance = current_balance + reward_amount
 
         # Credit wallet locally
-        self._credit_wallet(user_id, reward_amount, f"referral_payout:{int(time.time())}")
+        self._credit_wallet(
+            user_id, reward_amount, f"referral_payout:{int(time.time())}"
+        )
 
         # Payout threshold (e.g., $50)
         threshold_cents = 5000

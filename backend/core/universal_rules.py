@@ -1,14 +1,15 @@
-import os
 import json
+import os
 import tempfile
-from typing import Dict, Any
+from typing import Any
+
 
 class UniversalRulesEngine:
     """
     Admin-defined rules that override ALL agent behavior.
     These are Constitutional Laws - non-negotiable.
     """
-    
+
     def __init__(self, rules_path: str = None):
         if rules_path is None:
             # Default location
@@ -16,44 +17,44 @@ class UniversalRulesEngine:
             self.rules_path = os.path.join(base_dir, "data", "admin_rules.json")
         else:
             self.rules_path = rules_path
-            
+
         self.rules = self._load_rules()
-    
-    def _load_rules(self) -> Dict[str, Any]:
+
+    def _load_rules(self) -> dict[str, Any]:
         """Loads rules from secure JSON file. If file does not exist, uses default rules."""
         if os.path.exists(self.rules_path):
             try:
-                with open(self.rules_path, "r", encoding="utf-8") as f:
+                with open(self.rules_path, encoding="utf-8") as f:
                     return json.load(f)
-            except Exception as e:
+            except Exception:
                 # Fallback to default in case of corruption
                 pass
-                
+
         # Default fallback rules (Admin definitions)
         default_rules = {
             "directions": {
                 "count": 5,
                 "names": ["North", "South", "East", "West", "Center"],
-                "description": "Admin has defined 5 directions. Center is the reference point."
+                "description": "Admin has defined 5 directions. Center is the reference point.",
             },
             "image_generation": {
                 "allowed": True,
                 "max_cost_per_image": 0.01,
                 "require_consent": False,
-                "preferred_providers": ["pollinations", "huggingface", "local"]
+                "preferred_providers": ["pollinations", "huggingface", "local"],
             },
             "skill_installation": {
                 "sandbox_duration_hours": 24,
                 "auto_install": True,
-                "max_install_time_seconds": 30
+                "max_install_time_seconds": 30,
             },
             "cost_management": {
                 "monthly_budget": 30.00,
                 "alert_at_percent": 80.0,
-                "hard_stop_at_percent": 100.0
-            }
+                "hard_stop_at_percent": 100.0,
+            },
         }
-        
+
         # Save defaults if not present
         os.makedirs(os.path.dirname(self.rules_path), exist_ok=True)
         try:
@@ -61,10 +62,10 @@ class UniversalRulesEngine:
                 json.dump(default_rules, f, indent=4)
         except Exception:
             pass
-            
+
         return default_rules
-        
-    def save_rules(self, new_rules: Dict[str, Any]) -> bool:
+
+    def save_rules(self, new_rules: dict[str, Any]) -> bool:
         """Saves updated rules to the rules file."""
         self.rules = new_rules
         try:
@@ -72,15 +73,15 @@ class UniversalRulesEngine:
             os.makedirs(dir_name, exist_ok=True)
             # Atomic write using a temporary file
             fd, temp_path = tempfile.mkstemp(dir=dir_name, text=True)
-            with os.fdopen(fd, 'w', encoding='utf-8') as f:
+            with os.fdopen(fd, "w", encoding="utf-8") as f:
                 json.dump(new_rules, f, indent=4)
-            
+
             os.replace(temp_path, self.rules_path)
             return True
-        except Exception as e:
+        except Exception:
             return False
-    
-    def apply(self, decision_context: Dict[str, Any]) -> Dict[str, Any]:
+
+    def apply(self, decision_context: dict[str, Any]) -> dict[str, Any]:
         """
         Injects rules into EVERY decision.
         Returns modified context with rules enforced.
@@ -90,16 +91,18 @@ class UniversalRulesEngine:
             decision_context["direction_count"] = self.rules["directions"]["count"]
             decision_context["direction_names"] = self.rules["directions"]["names"]
             decision_context["direction_override_applied"] = True
-        
+
         # Rule: Cost check
         if "cost" in decision_context:
             task_type = decision_context.get("task_type", "")
             max_cost = float("inf")
             if task_type == "image_generation":
                 max_cost = self.rules["image_generation"]["max_cost_per_image"]
-                
+
             if decision_context["cost"] > max_cost:
                 decision_context["blocked"] = True
-                decision_context["reason"] = f"Exceeds Universal Rule: Max cost per task ({max_cost})"
-                
+                decision_context["reason"] = (
+                    f"Exceeds Universal Rule: Max cost per task ({max_cost})"
+                )
+
         return decision_context

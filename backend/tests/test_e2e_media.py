@@ -1,11 +1,14 @@
 import os
 import sys
+
 import pytest
 from fastapi.testclient import TestClient
+
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from core.app import app
+
 
 client = TestClient(app)
 
@@ -18,7 +21,9 @@ def _skip_if_media_deps_missing():
         pytest.skip(f"Media backend dependencies missing: {exc}")
 
 
-@pytest.mark.skip(reason="Placeholder: skip until media backends are wired in production")
+@pytest.mark.skip(
+    reason="Placeholder: skip until media backends are wired in production"
+)
 def test_generate_image_success():
     _skip_if_media_deps_missing()
     payload = {
@@ -33,7 +38,9 @@ def test_generate_image_success():
         assert "success" in body
 
 
-@pytest.mark.skip(reason="Placeholder: skip until media backends are wired in production")
+@pytest.mark.skip(
+    reason="Placeholder: skip until media backends are wired in production"
+)
 def test_generate_video_success():
     _skip_if_media_deps_missing()
     payload = {

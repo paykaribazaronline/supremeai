@@ -1,5 +1,7 @@
 import os
 import sys
+
+
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 if ROOT not in sys.path:
     sys.path.insert(0, ROOT)
@@ -7,28 +9,35 @@ os.environ.setdefault("OPENROUTER_API_KEY", "mock-key-value")
 
 # Mock Google Auth credentials and services globally during tests
 from unittest.mock import MagicMock
+
+
 try:
     import google.auth
+
     google.auth.default = lambda *args, **kwargs: (MagicMock(), "mock-project-id")
 except ImportError:
-    sys.modules['google.auth'] = MagicMock()
+    sys.modules["google.auth"] = MagicMock()
 
 try:
     import google.cloud.firestore
+
     google.cloud.firestore.Client = MagicMock
 except ImportError:
-    sys.modules['google.cloud.firestore'] = MagicMock()
+    sys.modules["google.cloud.firestore"] = MagicMock()
 
 try:
     import google.cloud.secretmanager
+
     google.cloud.secretmanager.SecretManagerServiceClient = MagicMock
 except ImportError:
-    sys.modules['google.cloud.secretmanager'] = MagicMock()
+    sys.modules["google.cloud.secretmanager"] = MagicMock()
 
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "/dev/null"
 
 import pytest
+
 from core.rbac import RoleBasedAccessControl
+
 
 _TEST_ENV_DEFAULTS = {
     "ENV": "test",
@@ -61,12 +70,13 @@ def isolate_env(monkeypatch: pytest.MonkeyPatch):
 @pytest.fixture(autouse=True, scope="session")
 def bypass_jwt_auth():
     from unittest.mock import patch
+
     patches = []
     targets = [
         "backend.middleware.auth_middleware.verify_token",
         "middleware.auth_middleware.verify_token",
         "backend.core.security.verify_token",
-        "core.security.verify_token"
+        "core.security.verify_token",
     ]
     for target in targets:
         try:

@@ -1,22 +1,23 @@
 import os
-from typing import Any, Dict, Optional
+from typing import Any
+
 from loguru import logger
 
-from brain.model_router import ModelRouter
 from admin.god import AdminGodLayer
-from core.intent import IntentClassifier
-from brain.reasoning_orchestrator import ReasoningOrchestrator
 from brain.autonomous_agent import AutonomousAgent
+from brain.model_router import ModelRouter
+from brain.reasoning_orchestrator import ReasoningOrchestrator
+from core.intent import IntentClassifier
 from tools.vpn_switcher import VPNRotator
 
 
 class SupremeOrchestrator:
     def __init__(
         self,
-        admin: Optional[AdminGodLayer] = None,
-        model_router: Optional[ModelRouter] = None,
-        intent_clf: Optional[IntentClassifier] = None,
-        admin_god: Optional[AdminGodLayer] = None,
+        admin: AdminGodLayer | None = None,
+        model_router: ModelRouter | None = None,
+        intent_clf: IntentClassifier | None = None,
+        admin_god: AdminGodLayer | None = None,
     ):
         self.admin = admin or admin_god
         self.model_router = model_router or ModelRouter()
@@ -38,9 +39,13 @@ class SupremeOrchestrator:
         except Exception as exc:
             logger.warning(f"VPN rotation skipped: {exc}")
 
-    def run_autonomous(self, task_description: str, context: Optional[str] = None) -> Dict[str, Any]:
+    def run_autonomous(
+        self, task_description: str, context: str | None = None
+    ) -> dict[str, Any]:
         self._maybe_rotate_vpn("general")
-        run = self.autonomous_agent.run(task_description=task_description, context=context)
+        run = self.autonomous_agent.run(
+            task_description=task_description, context=context
+        )
         try:
             self.reasoning_orchestrator.episodic_memory.store_episode(
                 event_type="autonomous_run",
@@ -52,11 +57,15 @@ class SupremeOrchestrator:
             pass
         return run
 
-    def route_reasoning(self, task_description: str, context: Optional[str] = None) -> Dict[str, Any]:
+    def route_reasoning(
+        self, task_description: str, context: str | None = None
+    ) -> dict[str, Any]:
         self._maybe_rotate_vpn("general")
-        return self.reasoning_orchestrator.route(task_description=task_description, context=context)
+        return self.reasoning_orchestrator.route(
+            task_description=task_description, context=context
+        )
 
-    def execute_task(self, task: str, task_type: str = "general") -> Dict[str, Any]:
+    def execute_task(self, task: str, task_type: str = "general") -> dict[str, Any]:
         self._maybe_rotate_vpn(task_type)
         try:
             if self.admin:

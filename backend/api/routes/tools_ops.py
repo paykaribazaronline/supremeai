@@ -1,33 +1,36 @@
 from __future__ import annotations
 
 import os
-from fastapi import APIRouter, HTTPException
+from typing import Any
+
+from fastapi import APIRouter
+from fastapi import HTTPException
 from pydantic import BaseModel
-from typing import Any, Dict, List, Optional
 
 from tools.code_smell_detector import CodeSmellDetector
-from tools.vulnerability_predictor import VulnerabilityPredictor
-from tools.skill_recommender import SkillRecommender
 from tools.domain_adapter import DomainAdapter
 from tools.on_premise_deployer import OnPremiseDeployer
+from tools.skill_recommender import SkillRecommender
+from tools.vulnerability_predictor import VulnerabilityPredictor
+
 
 router = APIRouter(prefix="/tools", tags=["tools-ops"])
 
 
 class SmellCheckRequest(BaseModel):
     path: str
-    thresholds: Optional[Dict[str, int]] = None
+    thresholds: dict[str, int] | None = None
 
 
 class SmellCheckResponse(BaseModel):
     path: str
-    smells: List[Dict[str, Any]]
-    summary: Dict[str, int]
+    smells: list[dict[str, Any]]
+    summary: dict[str, int]
 
 
 class VulnCheckRequest(BaseModel):
-    file_path: Optional[str] = None
-    diff: Optional[str] = None
+    file_path: str | None = None
+    diff: str | None = None
 
 
 class VulnCheckResponse(BaseModel):
@@ -37,7 +40,7 @@ class VulnCheckResponse(BaseModel):
     high_count: int
     medium_count: int
     low_count: int
-    findings: List[Dict[str, Any]]
+    findings: list[dict[str, Any]]
     recommendation: str
 
 
@@ -50,14 +53,14 @@ class SkillRecRequest(BaseModel):
 class SkillRecResponse(BaseModel):
     user_id: str
     task: str
-    recommendations: List[Dict[str, Any]]
+    recommendations: list[dict[str, Any]]
     count: int
 
 
 class DomainAdaptRequest(BaseModel):
     domain: str
     prompt: str
-    context: Optional[str] = None
+    context: str | None = None
 
 
 class DomainAdaptResponse(BaseModel):
@@ -69,7 +72,7 @@ class DomainAdaptResponse(BaseModel):
 
 
 class DeployComposeRequest(BaseModel):
-    overrides: Optional[Dict[str, Any]] = None
+    overrides: dict[str, Any] | None = None
 
 
 class DeployHelmRequest(BaseModel):
@@ -94,11 +97,15 @@ async def smell_check(payload: SmellCheckRequest):
         result = detector.analyze_directory(payload.path, thresholds=payload.thresholds)
         all_smells = [smell for smells in result.values() for smell in smells]
     else:
-        all_smells = detector.analyze_python_file(payload.path, thresholds=payload.thresholds)
+        all_smells = detector.analyze_python_file(
+            payload.path, thresholds=payload.thresholds
+        )
         if payload.path.endswith((".js", ".ts", ".jsx", ".tsx")):
-            all_smells.extend(detector.analyze_js_ts_file(payload.path, thresholds=payload.thresholds))
+            all_smells.extend(
+                detector.analyze_js_ts_file(payload.path, thresholds=payload.thresholds)
+            )
 
-    by_severity: Dict[str, int] = {"critical": 0, "warning": 0, "info": 0}
+    by_severity: dict[str, int] = {"critical": 0, "warning": 0, "info": 0}
     for s in all_smells:
         sev = s.get("severity", "info")
         by_severity[sev] = by_severity.get(sev, 0) + 1
@@ -123,14 +130,18 @@ async def vulnerability_check(payload: VulnCheckRequest):
 @router.post("/skills/recommend", response_model=SkillRecResponse)
 async def recommend_skills(payload: SkillRecRequest):
     recommender = SkillRecommender()
-    result = recommender.record_and_recommend(payload.user_id, payload.task_description, top_k=payload.top_k)
+    result = recommender.record_and_recommend(
+        payload.user_id, payload.task_description, top_k=payload.top_k
+    )
     return SkillRecResponse(**result)
 
 
 @router.post("/domain/adapt", response_model=DomainAdaptResponse)
 async def domain_adapt(payload: DomainAdaptRequest):
     adapter = DomainAdapter()
-    result = adapter.adapt_request(payload.domain, payload.prompt, context=payload.context)
+    result = adapter.adapt_request(
+        payload.domain, payload.prompt, context=payload.context
+    )
     return DomainAdaptResponse(
         domain=payload.domain,
         response=result.get("response", ""),

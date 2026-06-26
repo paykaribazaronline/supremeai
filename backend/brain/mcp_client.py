@@ -2,8 +2,10 @@ import json
 import signal
 import subprocess
 import time
-from typing import Dict, Any, List, Optional
+from typing import Any
+
 from loguru import logger
+
 
 DEFAULT_TIMEOUT = 30
 
@@ -14,11 +16,11 @@ class MCPClient:
     Discovers tools and prompts from registered MCP servers.
     """
 
-    def __init__(self, server_name: str, command: List[str], startup_timeout: int = 10):
+    def __init__(self, server_name: str, command: list[str], startup_timeout: int = 10):
         self.server_name = server_name
         self.command = command
         self.startup_timeout = startup_timeout
-        self.process: Optional[subprocess.Popen] = None
+        self.process: subprocess.Popen | None = None
         self.last_used: float = time.time()
 
     def _terminate(self) -> None:
@@ -40,7 +42,9 @@ class MCPClient:
             return True
         self._terminate()
         try:
-            logger.info(f"Connecting to MCP Server '{self.server_name}' using command: {self.command}")
+            logger.info(
+                f"Connecting to MCP Server '{self.server_name}' using command: {self.command}"
+            )
             self.process = subprocess.Popen(
                 self.command,
                 stdin=subprocess.PIPE,
@@ -52,7 +56,9 @@ class MCPClient:
             deadline = time.time() + self.startup_timeout
             while time.time() < deadline:
                 if self.process.poll() is not None:
-                    raise RuntimeError(f"MCP server exited with code {self.process.returncode}")
+                    raise RuntimeError(
+                        f"MCP server exited with code {self.process.returncode}"
+                    )
                 time.sleep(0.1)
             return True
         except Exception as exc:
@@ -60,14 +66,14 @@ class MCPClient:
             self._terminate()
             return False
 
-    def _write_request(self, request: Dict[str, Any]) -> None:
+    def _write_request(self, request: dict[str, Any]) -> None:
         if not self.process or not self.process.stdin:
             raise RuntimeError("MCP server is not connected")
         self.process.stdin.write(json.dumps(request) + "\n")
         self.process.stdin.flush()
         self.last_used = time.time()
 
-    def _read_response(self) -> Dict[str, Any]:
+    def _read_response(self) -> dict[str, Any]:
         if not self.process or not self.process.stdout:
             return {}
         line = self.process.stdout.readline()
@@ -79,7 +85,7 @@ class MCPClient:
         except json.JSONDecodeError as exc:
             raise RuntimeError(f"Invalid MCP response: {exc}") from exc
 
-    def list_tools(self) -> List[Dict[str, Any]]:
+    def list_tools(self) -> list[dict[str, Any]]:
         if not self.connect():
             return []
         try:
@@ -90,7 +96,9 @@ class MCPClient:
             logger.error(f"Error querying MCP tools: {exc}")
             return []
 
-    def call_tool(self, name: str, arguments: Dict[str, Any], timeout: int = DEFAULT_TIMEOUT) -> Dict[str, Any]:
+    def call_tool(
+        self, name: str, arguments: dict[str, Any], timeout: int = DEFAULT_TIMEOUT
+    ) -> dict[str, Any]:
         if not self.connect():
             return {"error": "Server not connected"}
         request = {

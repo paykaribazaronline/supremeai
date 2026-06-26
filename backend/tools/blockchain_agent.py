@@ -1,8 +1,12 @@
-from typing import Dict, Any, List
+from typing import Any
+
 from loguru import logger
 
+
 class BlockchainAgent:
-    async def generate_contract(self, description: str, language: str = "solidity") -> Dict[str, Any]:
+    async def generate_contract(
+        self, description: str, language: str = "solidity"
+    ) -> dict[str, Any]:
         logger.info(f"Generating {language} contract for: {description}")
         contract = """
 // SPDX-License-Identifier: MIT
@@ -35,27 +39,33 @@ contract GeneratedContract {
             "security_score": 85,
         }
 
-    async def audit_contract(self, source_code: str) -> Dict[str, Any]:
+    async def audit_contract(self, source_code: str) -> dict[str, Any]:
         logger.info("Auditing smart contract...")
-        issues: List[Dict[str, Any]] = []
+        issues: list[dict[str, Any]] = []
         if "tx.origin" in source_code:
-            issues.append({
-                "severity": "critical",
-                "line": source_code.index("tx.origin"),
-                "message": "Avoid using tx.origin for authorization; use msg.sender instead.",
-            })
+            issues.append(
+                {
+                    "severity": "critical",
+                    "line": source_code.index("tx.origin"),
+                    "message": "Avoid using tx.origin for authorization; use msg.sender instead.",
+                }
+            )
         if "selfdestruct" in source_code:
-            issues.append({
-                "severity": "medium",
-                "line": source_code.index("selfdestruct"),
-                "message": "selfdestruct is deprecated and potentially dangerous in newer Solidity versions.",
-            })
+            issues.append(
+                {
+                    "severity": "medium",
+                    "line": source_code.index("selfdestruct"),
+                    "message": "selfdestruct is deprecated and potentially dangerous in newer Solidity versions.",
+                }
+            )
         if "unchecked" in source_code.lower():
-            issues.append({
-                "severity": "high",
-                "line": 0,
-                "message": "Use unchecked blocks carefully; ensure overflow protection.",
-            })
+            issues.append(
+                {
+                    "severity": "high",
+                    "line": 0,
+                    "message": "Use unchecked blocks carefully; ensure overflow protection.",
+                }
+            )
         return {
             "status": "success",
             "issues_found": len(issues),

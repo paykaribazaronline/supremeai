@@ -107,7 +107,11 @@ def test_handle_feedback_edit():
 
 def test_handle_feedback_error_type():
     loop = FeedbackLoop()
-    payload = {"type": "error", "message": "network timeout", "context": {"endpoint": "api"}}
+    payload = {
+        "type": "error",
+        "message": "network timeout",
+        "context": {"endpoint": "api"},
+    }
     result = loop.handle_feedback(payload)
     assert result["stored"] is True
     assert "network timeout" in result["event"]["message"]
@@ -136,7 +140,11 @@ def test_handle_feedback_none_payload():
 
 def test_suggestion_feedback_with_message_field():
     loop = FeedbackLoop()
-    payload = {"type": "suggestion_feedback", "accepted": False, "message": "bad suggestion"}
+    payload = {
+        "type": "suggestion_feedback",
+        "accepted": False,
+        "message": "bad suggestion",
+    }
     result = loop.handle_feedback(payload)
     assert result["stored"] is True
     assert loop.metrics()["errors_reported"] == 1

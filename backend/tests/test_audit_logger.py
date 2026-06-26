@@ -1,6 +1,7 @@
 import os
 import sqlite3
 
+
 os.environ.setdefault("OPENROUTER_API_KEY", "")
 os.environ.setdefault("HF_API_KEY", "")
 os.environ.setdefault("OLLAMA_URL", "http://127.0.0.1:11434")
@@ -11,6 +12,7 @@ import pytest
 @pytest.fixture
 def audit_logger(tmp_path):
     from core.audit_logger import AuditLogger
+
     db_path = str(tmp_path / "audit_test.db")
     return AuditLogger(db_path), db_path
 

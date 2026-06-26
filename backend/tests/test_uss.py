@@ -1,8 +1,8 @@
 import pytest
-from skills.schema import UniversalSkillSchema
+from skill_loader import SkillLoader
 from skills.installer import SkillInstaller
 from skills.registry import SkillRegistry
-from skill_loader import SkillLoader
+from skills.schema import UniversalSkillSchema
 
 
 @pytest.fixture
@@ -23,38 +23,34 @@ VALID_USS_DATA = {
         "version": "1.2.3",
         "description": "Analyzes sentiment of reviews.",
         "author": "supremeai_agent_id",
-        "tags": ["nlp", "sentiment"]
+        "tags": ["nlp", "sentiment"],
     },
     "interface": {
         "input_schema": {
             "type": "object",
-            "properties": {
-                "text": {"type": "string"}
-            },
-            "required": ["text"]
+            "properties": {"text": {"type": "string"}},
+            "required": ["text"],
         },
         "output_schema": {
             "type": "object",
-            "properties": {
-                "sentiment": {"type": "string"}
-            }
-        }
+            "properties": {"sentiment": {"type": "string"}},
+        },
     },
     "execution": {
         "runtime": "python3.11",
         "entry_point": "main.run",
         "dependencies": [],
-        "timeout_seconds": 30
+        "timeout_seconds": 30,
     },
     "validation": {
         "tests": [
             {
                 "input": {"text": "I love this!"},
-                "expected_output": {"sentiment": "positive"}
+                "expected_output": {"sentiment": "positive"},
             }
         ],
-        "security_level": "sandboxed"
-    }
+        "security_level": "sandboxed",
+    },
 }
 
 
@@ -83,24 +79,24 @@ def test_uss_invalid_security():
 
 def test_installer_and_loader_with_uss(temp_skills_dir):
     loader, registry, installer = temp_skills_dir
-    
+
     code = "def run(text):\n    return {'sentiment': 'positive'}\n"
-    
+
     success = installer.install_skill_from_source(
         name="sentiment_analyzer",
         code=code,
         version="1.2.3",
         description="Analyzes sentiment",
         dependencies=[],
-        uss=VALID_USS_DATA
+        uss=VALID_USS_DATA,
     )
     assert success is True
-    
+
     # Check registration
     skill_meta = registry.get_skill("sentiment_analyzer")
     assert skill_meta is not None
     assert skill_meta["uss"]["metadata"]["name"] == "sentiment_analyzer"
-    
+
     # Load and verify
     mod = loader.load("sentiment_analyzer")
     assert mod is not None

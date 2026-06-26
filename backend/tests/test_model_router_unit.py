@@ -1,4 +1,3 @@
-
 import pytest
 
 from core.circuit_breaker import CircuitBreaker
@@ -39,6 +38,7 @@ def test_breaker_call_success_and_failure():
         return "ok"
 
     import asyncio
+
     assert asyncio.run(breaker.call(ok)) == "ok"
     assert breaker.state == "CLOSED"
 
@@ -95,12 +95,15 @@ def test_openai_compatible_helper_uses_first_key():
     router._http_client.post = fake_post
 
     import asyncio
-    result = asyncio.run(router._call_openai_compatible(
-        base_url="https://example.test/v1",
-        raw_keys="k1",
-        model="m",
-        prompt="p",
-        provider_name="unit",
-    ))
+
+    result = asyncio.run(
+        router._call_openai_compatible(
+            base_url="https://example.test/v1",
+            raw_keys="k1",
+            model="m",
+            prompt="p",
+            provider_name="unit",
+        )
+    )
     assert result["text"] == "text"
     assert result["provider"] == "unit"

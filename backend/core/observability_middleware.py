@@ -3,8 +3,12 @@ from __future__ import annotations
 import time
 import uuid
 
-from api.routes.metrics import record_error, record_request, record_request_duration
-from core.telemetry import setup_tracing, trace_span
+from api.routes.metrics import record_error
+from api.routes.metrics import record_request
+from api.routes.metrics import record_request_duration
+from core.telemetry import setup_tracing
+from core.telemetry import trace_span
+
 
 class ObservabilityMiddleware:
     def __init__(self, app) -> None:
@@ -70,6 +74,7 @@ class ObservabilityMiddleware:
             record_request_duration(method, path, duration)
             try:
                 from core.posthog_client import posthog_client
+
                 posthog_client.capture(
                     distinct_id=user_id,
                     event="api_request",
@@ -78,7 +83,7 @@ class ObservabilityMiddleware:
                         "method": method,
                         "status_code": status_code,
                         "duration": duration,
-                    }
+                    },
                 )
             except Exception:
                 pass

@@ -1,20 +1,25 @@
-from fastapi import APIRouter, HTTPException
-from tools.email_agent import EmailAgent
+from fastapi import APIRouter
+from fastapi import HTTPException
 from pydantic import BaseModel
-from typing import List
+
+from tools.email_agent import EmailAgent
+
 
 router = APIRouter(prefix="/integrations/email", tags=["email"])
 email_agent = EmailAgent()
 
+
 class GmailAuthRequest(BaseModel):
     provider: str
-    scopes: List[str]
+    scopes: list[str]
+
 
 class ImapAuthRequest(BaseModel):
     host: str
     port: int
     username: str
     app_password: str
+
 
 @router.post("/gmail")
 async def gmail_auth(payload: GmailAuthRequest):
@@ -25,6 +30,7 @@ async def gmail_auth(payload: GmailAuthRequest):
         raise HTTPException(status_code=400, detail="Failed to connect Gmail OAuth")
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
 
 @router.post("/imap")
 async def imap_auth(payload: ImapAuthRequest):

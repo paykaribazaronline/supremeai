@@ -1,12 +1,12 @@
 import os
-from typing import Any, Dict, List
-from unittest.mock import MagicMock, patch
-
+from typing import Any
+from unittest.mock import MagicMock
+from unittest.mock import patch
 
 
 class FakeVSCodeWorkspace:
     def __init__(self):
-        self._fs: Dict[str, str] = {}
+        self._fs: dict[str, str] = {}
 
     def open_text_document(self, uri: str) -> dict:
         self._fs.setdefault(uri, "")
@@ -21,12 +21,12 @@ class FakeVSCodeWorkspace:
 
 class FakeVSCodeWindow:
     def __init__(self):
-        self._visible_documents: List[dict] = []
+        self._visible_documents: list[dict] = []
         self._status_text: str = ""
-        self._palette_items: List[str] = []
-        self._notifications: List[dict] = []
-        self._selection: Dict[str, Any] = {}
-        self.terminals: List[Any] = []
+        self._palette_items: list[str] = []
+        self._notifications: list[dict] = []
+        self._selection: dict[str, Any] = {}
+        self.terminals: list[Any] = []
 
     def show_text_document(self, doc: dict, column=None):
         self._visible_documents.append(doc)
@@ -42,9 +42,8 @@ class FakeVSCodeWindow:
     def set_status_text(self, text: str):
         self._status_text = text
 
-    def show_quick_pick(self, items: List[Any]):
+    def show_quick_pick(self, items: list[Any]):
         self._palette_items = list(items) if isinstance(items, list) else []
-        return None
 
     def with_progress(self, location, task):
         mock = MagicMock()
@@ -66,9 +65,9 @@ class FakeVSCodeTerminal:
 
 class FakeInlineCompletionProvider:
     def __init__(self):
-        self._triggered: List[Dict[str, Any]] = []
+        self._triggered: list[dict[str, Any]] = []
 
-    def trigger(self, position: Dict[str, int], document: dict):
+    def trigger(self, position: dict[str, int], document: dict):
         self._triggered.append({"position": position, "document": document})
         return [
             {"text": "suggested completion from AI"},
@@ -78,7 +77,7 @@ class FakeInlineCompletionProvider:
 
 class FakeAuthenticationProvider:
     def __init__(self):
-        self._jwt_storage: Dict[str, str] = {}
+        self._jwt_storage: dict[str, str] = {}
 
     def get_session(self, options):
         session = MagicMock()
@@ -99,13 +98,13 @@ class FakeAuthenticationProvider:
 class FakeCodeFlowPanel:
     def __init__(self):
         self._rendered: bool = False
-        self._content: Dict[str, Any] = {}
+        self._content: dict[str, Any] = {}
         self._opened: bool = False
 
     def open(self):
         self._opened = True
 
-    def render(self, content: Dict[str, Any]):
+    def render(self, content: dict[str, Any]):
         self._rendered = True
         self._content = content
 
@@ -114,17 +113,23 @@ class FakeCodeFlowPanel:
         return self._rendered
 
     @property
-    def content(self) -> Dict[str, Any]:
+    def content(self) -> dict[str, Any]:
         return self._content
 
 
 class FakeSupremeAIService:
     def __init__(self):
-        self.checkpoints: Dict[str, Dict[str, Any]] = {}
-        self.memory_windows: Dict[str, List[Dict[str, Any]]] = {}
+        self.checkpoints: dict[str, dict[str, Any]] = {}
+        self.memory_windows: dict[str, list[dict[str, Any]]] = {}
 
-    async def saveCheckpoint(self, task_id: str, step_index: int, state: Dict[str, Any]) -> bool:
-        self.checkpoints[task_id] = {"step_index": step_index, "state": state, "resumed": False}
+    async def saveCheckpoint(
+        self, task_id: str, step_index: int, state: dict[str, Any]
+    ) -> bool:
+        self.checkpoints[task_id] = {
+            "step_index": step_index,
+            "state": state,
+            "resumed": False,
+        }
         return True
 
     async def loadCheckpoint(self, task_id: str) -> Any:
@@ -134,11 +139,15 @@ class FakeSupremeAIService:
         checkpoint["resumed"] = True
         return {"task_id": task_id, **checkpoint}
 
-    async def buildMemoryContext(self, documents: List[str], query: str, sessionId: str, budget: int = 4000) -> str:
+    async def buildMemoryContext(
+        self, documents: list[str], query: str, sessionId: str, budget: int = 4000
+    ) -> str:
         self.memory_windows.setdefault(sessionId, [])
         for doc in documents:
             text = doc if len(doc.split()) <= budget else " ".join(doc.split()[:budget])
-            self.memory_windows[sessionId].append({"text": text, "sessionId": sessionId})
+            self.memory_windows[sessionId].append(
+                {"text": text, "sessionId": sessionId}
+            )
         return "\n---\n".join(w["text"] for w in self.memory_windows.get(sessionId, []))
 
 
@@ -166,8 +175,17 @@ def test_vscode_inline_completion_triggers():
 def test_vscode_command_accept_reject_feedback():
     window = FakeVSCodeWindow()
 
-    accept_event = {"type": "command.accept", "commmand_id": "codeflow.accept", "item": "selected-state"}
-    reject_event = {"type": "command.reject", "command_id": "codeflow.reject", "item": "selected-state", "reason": "irrelevant"}
+    accept_event = {
+        "type": "command.accept",
+        "commmand_id": "codeflow.accept",
+        "item": "selected-state",
+    }
+    reject_event = {
+        "type": "command.reject",
+        "command_id": "codeflow.reject",
+        "item": "selected-state",
+        "reason": "irrelevant",
+    }
 
     events = [accept_event, reject_event]
 
@@ -228,11 +246,13 @@ def test_vscode_e2e_full_flow():
     assert "Accepted" in window._status_text
 
     panel.open()
-    panel.render({
-        "title": "CodeFlow",
-        "cards": [{"id": "c-1", "text": accepted["text"]}],
-        "loading": False,
-    })
+    panel.render(
+        {
+            "title": "CodeFlow",
+            "cards": [{"id": "c-1", "text": accepted["text"]}],
+            "loading": False,
+        }
+    )
     assert panel.is_rendered is True
     assert panel.content["cards"][0]["text"] == accepted["text"]
 
@@ -240,13 +260,17 @@ def test_vscode_e2e_full_flow():
     assert auth.retrieve_jwt(session.id) == "jwt-token-123"
 
     window.show_information_message("Full flow complete")
-    assert any(n["type"] == "info" and "complete" in n["text"] for n in window._notifications)
+    assert any(
+        n["type"] == "info" and "complete" in n["text"] for n in window._notifications
+    )
 
 
 def test_vscode_checkpoint_save_and_load():
     service = FakeSupremeAIService()
 
-    saved = __import__("asyncio").run(service.saveCheckpoint("task-1", 1, {"step": "done"}))
+    saved = __import__("asyncio").run(
+        service.saveCheckpoint("task-1", 1, {"step": "done"})
+    )
     assert saved is True
 
     loaded = __import__("asyncio").run(service.loadCheckpoint("task-1"))
@@ -262,8 +286,11 @@ def test_vscode_checkpoint_save_and_load():
 
 def test_vscode_memory_context_building():
     service = FakeSupremeAIService()
-    docs = ["first doc remembers the start", "second doc expands the idea further beyond the original context"]
-    context = __import__("asyncio").run(service.buildMemoryContext(docs, "", "session-1", budget=20))
+    docs = [
+        "first doc remembers the start",
+        "second doc expands the idea further beyond the original context",
+    ]
+    context = __import__("asyncio").run(
+        service.buildMemoryContext(docs, "", "session-1", budget=20)
+    )
     assert "first doc remembers the start" in context or "second doc" in context
-
-

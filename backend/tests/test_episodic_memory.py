@@ -1,4 +1,3 @@
-
 import pytest
 
 from memory.episodic_memory import EpisodicMemory
@@ -12,7 +11,12 @@ def memory_store():
 
 
 def test_store_episode_basic(memory_store):
-    result = memory_store.store_episode(event_type="task.completed", context="Ran OCR for document 1", outcome="success", importance=5.0)
+    result = memory_store.store_episode(
+        event_type="task.completed",
+        context="Ran OCR for document 1",
+        outcome="success",
+        importance=5.0,
+    )
     assert result["status"] == "ok"
     assert "episode_id" in result
 
@@ -39,7 +43,9 @@ def test_recall_episodes_with_filter(memory_store):
 
 def test_recall_episodes_limit(memory_store):
     for idx in range(25):
-        memory_store.store_episode("task.completed", f"doc-{idx}", "success", importance=float(idx))
+        memory_store.store_episode(
+            "task.completed", f"doc-{idx}", "success", importance=float(idx)
+        )
 
     episodes = memory_store.recall_episodes(limit=10)
     assert len(episodes) == 10
@@ -63,7 +69,9 @@ def test_summarize_recent_with_episodes(memory_store):
 
 def test_summarize_recent_limit(memory_store):
     for idx in range(10):
-        memory_store.store_episode("task.completed", f"doc-{idx}", "success", importance=float(idx))
+        memory_store.store_episode(
+            "task.completed", f"doc-{idx}", "success", importance=float(idx)
+        )
 
     text = memory_store.summarize_recent(limit=3)
     assert "Recent episodes:" in text

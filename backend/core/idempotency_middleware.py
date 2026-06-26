@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import json
+
 from fastapi.responses import JSONResponse
+
 
 class IdempotencyMiddleware:
     def __init__(self, app) -> None:
@@ -12,8 +14,9 @@ class IdempotencyMiddleware:
             await self.app(scope, receive, send)
             return
 
-        import sys
         import os
+        import sys
+
         if "pytest" in sys.modules or os.getenv("ENV") == "test":
             await self.app(scope, receive, send)
             return
@@ -37,7 +40,9 @@ class IdempotencyMiddleware:
             if "/api/orchestrate/generate" in path or "/api/markdown/export" in path:
                 response = JSONResponse(
                     status_code=400,
-                    content={"error": "Idempotency-Key header is required for this action."}
+                    content={
+                        "error": "Idempotency-Key header is required for this action."
+                    },
                 )
                 await response(scope, receive, send)
                 return
@@ -45,7 +50,12 @@ class IdempotencyMiddleware:
             return
 
         import core.app as app_mod
-        if not hasattr(app_mod, "redis_queue") or not app_mod.redis_queue or not app_mod.redis_queue.configured:
+
+        if (
+            not hasattr(app_mod, "redis_queue")
+            or not app_mod.redis_queue
+            or not app_mod.redis_queue.configured
+        ):
             await self.app(scope, receive, send)
             return
 
@@ -60,17 +70,20 @@ class IdempotencyMiddleware:
                 if data.get("status") == "processing":
                     response = JSONResponse(
                         status_code=409,
-                        content={"detail": "Conflict: Request is already being processed. Please wait."}
+                        content={
+                            "detail": "Conflict: Request is already being processed. Please wait."
+                        },
                     )
                     await response(scope, receive, send)
                     return
                 elif data.get("status") == "completed":
                     # Replay the cached response
                     from starlette.responses import Response
+
                     response = Response(
                         content=data.get("body"),
                         status_code=data.get("status_code"),
-                        media_type=data.get("media_type")
+                        media_type=data.get("media_type"),
                     )
                     await response(scope, receive, send)
                     return
@@ -107,13 +120,15 @@ class IdempotencyMiddleware:
             # Store completed response in redis (Cache for 24 hours)
             redis.set(
                 redis_key,
-                json.dumps({
-                    "status": "completed",
-                    "status_code": response_status,
-                    "media_type": media_type,
-                    "body": response_body.decode("utf-8", errors="replace")
-                }),
-                ex=86400
+                json.dumps(
+                    {
+                        "status": "completed",
+                        "status_code": response_status,
+                        "media_type": media_type,
+                        "body": response_body.decode("utf-8", errors="replace"),
+                    }
+                ),
+                ex=86400,
             )
         except Exception as e:
             # Clear key on failure so the client can retry immediately

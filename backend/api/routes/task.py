@@ -1,16 +1,17 @@
-import typing
+import datetime
 import json
 import re
-import datetime
-import anyio
 
-from fastapi import APIRouter, HTTPException, BackgroundTasks
+import anyio
+from fastapi import APIRouter
+from fastapi import BackgroundTasks
+from fastapi import HTTPException
+from fastapi.responses import JSONResponse
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
-from fastapi.responses import StreamingResponse, JSONResponse
 
 # --- Local Imports ---
 # Moved imports to the top of the file to improve performance by avoiding repeated imports inside functions.
-
 from adaptive_engine.experience_db import Experience
 from core.prompt_helpers import format_unified_chat_prompt
 
@@ -19,9 +20,11 @@ router = APIRouter()
 
 try:
     from core.semantic_cache import VectorSemanticCache
+
     semantic_cache = VectorSemanticCache()
 except ImportError:
     semantic_cache = None
+
 
 # --- Agentic Security & Context: Task Request Schema ---
 # Added messages and session_id parameters on 2026-06-21 to prevent context loss.
@@ -89,6 +92,7 @@ def _build_chat_prompt(req: ChatStreamRequest) -> str:
 @router.post("/api/chat/completion", response_model=CompletionResponse)
 async def get_completion(req: CompletionRequest):
     import core.app as app_mod
+
     model_router = app_mod.model_router
 
     prompt = _build_completion_prompt(req.prefix, req.suffix)
@@ -116,6 +120,7 @@ async def get_completion(req: CompletionRequest):
 @router.post("/api/chat/stream")
 async def stream_chat(req: ChatStreamRequest):
     import core.app as app_mod
+
     model_router = app_mod.model_router
     prompt = _build_chat_prompt(req)
 
@@ -135,13 +140,21 @@ async def stream_chat(req: ChatStreamRequest):
         headers={
             "Cache-Control": "no-cache, no-transform",
             "Connection": "keep-alive",
-            "X-Accel-Buffering": "no"
-        }
+            "X-Accel-Buffering": "no",
+        },
     )
 
 
 class ProblemDetailsResponse(JSONResponse):
-    def __init__(self, title: str, status: int, detail: str, type_url: str = "about:blank", instance: typing.Optional[str] = None, **kwargs):
+    def __init__(
+        self,
+        title: str,
+        status: int,
+        detail: str,
+        type_url: str = "about:blank",
+        instance: str | None = None,
+        **kwargs,
+    ):
         content = {
             "type": type_url,
             "title": title,
@@ -150,7 +163,9 @@ class ProblemDetailsResponse(JSONResponse):
             "instance": instance or "",
         }
         content.update(kwargs)
-        super().__init__(status_code=status, content=content, media_type="application/problem+json")
+        super().__init__(
+            status_code=status, content=content, media_type="application/problem+json"
+        )
 
 
 # --- Action Cards Helpers ---
@@ -182,7 +197,7 @@ def format_response(text: str, task_type: str) -> str:
                 if len(lines) > 0:
                     return "\n".join(lines[1:])
         return t
-        
+
     def detect_language(t: str) -> str:
         if "```" in t:
             lang = t.split("```")[1].splitlines()[0].strip()
@@ -191,50 +206,67 @@ def format_response(text: str, task_type: str) -> str:
         return "javascript"
 
     if "```" in text or task_type in ["code", "completion"]:
-        return json.dumps({
-            "type": "code",
-            "content": extract_code(text),
-            "metadata": {
-                "language": detect_language(text),
-                "filename": "index.html" if "html" in detect_language(text) else "component.tsx",
-                "actions": [
-                    {"id": "preview", "label": "👁️ Preview", "type": "preview"},
-                    {"id": "save", "label": "💾 Save to Project", "type": "save"},
-                    {"id": "run", "label": "▶️ Run Code", "type": "run"},
-                    {"id": "deploy", "label": "🚀 Deploy", "type": "deploy"}
-                ]
-            }
-        }, ensure_ascii=False)
-        
+        return json.dumps(
+            {
+                "type": "code",
+                "content": extract_code(text),
+                "metadata": {
+                    "language": detect_language(text),
+                    "filename": (
+                        "index.html"
+                        if "html" in detect_language(text)
+                        else "component.tsx"
+                    ),
+                    "actions": [
+                        {"id": "preview", "label": "👁️ Preview", "type": "preview"},
+                        {"id": "save", "label": "💾 Save to Project", "type": "save"},
+                        {"id": "run", "label": "▶️ Run Code", "type": "run"},
+                        {"id": "deploy", "label": "🚀 Deploy", "type": "deploy"},
+                    ],
+                },
+            },
+            ensure_ascii=False,
+        )
+
     if task_type == "image" or "generate image" in text.lower():
-        urls = re.findall(r'http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+', text)
+        urls = re.findall(
+            r"http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+",
+            text,
+        )
         image_url = urls[0] if urls else text
-        return json.dumps({
-            "type": "image",
-            "content": image_url,
+        return json.dumps(
+            {
+                "type": "image",
+                "content": image_url,
+                "metadata": {
+                    "actions": [
+                        {"id": "download", "label": "⬇️ Download", "type": "save"},
+                        {"id": "share", "label": "🔗 Share", "type": "share"},
+                    ]
+                },
+            },
+            ensure_ascii=False,
+        )
+
+    return json.dumps(
+        {
+            "type": "text",
+            "content": text,
             "metadata": {
                 "actions": [
-                    {"id": "download", "label": "⬇️ Download", "type": "save"},
-                    {"id": "share", "label": "🔗 Share", "type": "share"}
+                    {"id": "copy", "label": "📋 Copy", "type": "copy"},
+                    {"id": "share", "label": "🔗 Share", "type": "share"},
                 ]
-            }
-        }, ensure_ascii=False)
-        
-    return json.dumps({
-        "type": "text",
-        "content": text,
-        "metadata": {
-            "actions": [
-                {"id": "copy", "label": "📋 Copy", "type": "copy"},
-                {"id": "share", "label": "🔗 Share", "type": "share"}
-            ]
-        }
-    }, ensure_ascii=False)
+            },
+        },
+        ensure_ascii=False,
+    )
 
 
 @router.post("/task/execute")
 async def execute_task(req: TaskRequest, background_tasks: BackgroundTasks):
     import core.app as app_mod
+
     admin_god = app_mod.admin_god
     model_router = app_mod.model_router
     intent_clf = app_mod.intent_clf
@@ -242,22 +274,21 @@ async def execute_task(req: TaskRequest, background_tasks: BackgroundTasks):
     try:
         admin_god.enforce("execute")
     except PermissionError as exc:
-        raise HTTPException(
-            status_code=403,
-            detail=str(exc)
-        )
+        raise HTTPException(status_code=403, detail=str(exc))
 
     # Offload heavy CPU-bound Intent classification to background thread pool
     app_spec = await anyio.to_thread.run_sync(
         app_mod.intent_parser.parse_intent, req.task, req.messages
     )
-    intent = await anyio.to_thread.run_sync(
-        intent_clf.classify, req.task
-    )
-    
+    intent = await anyio.to_thread.run_sync(intent_clf.classify, req.task)
+
     task_type = req.task_type
     if intent.task_type != "general" and req.task_type == "general":
-        task_type = intent.task_type.value if hasattr(intent.task_type, "value") else str(intent.task_type)
+        task_type = (
+            intent.task_type.value
+            if hasattr(intent.task_type, "value")
+            else str(intent.task_type)
+        )
 
     # Build prompt context if chat messages are provided
     prompt = format_unified_chat_prompt(req.task, req.messages)
@@ -266,15 +297,14 @@ async def execute_task(req: TaskRequest, background_tasks: BackgroundTasks):
     raw = None
     if semantic_cache:
         cached_text = await semantic_cache.get_cached_inference(
-            prompt=prompt, 
-            model_name=task_type
+            prompt=prompt, model_name=task_type
         )
         if cached_text:
             raw = {
                 "success": True,
                 "text": cached_text,
                 "provider": "semantic-vector-hit",
-                "cost": 0.0
+                "cost": 0.0,
             }
 
     if not raw:
@@ -286,9 +316,7 @@ async def execute_task(req: TaskRequest, background_tasks: BackgroundTasks):
         if raw.get("success") and semantic_cache:
             try:
                 await semantic_cache.set_cache_inference(
-                    prompt=prompt,
-                    model_name=task_type,
-                    response_text=raw.get("text")
+                    prompt=prompt, model_name=task_type, response_text=raw.get("text")
                 )
             except Exception:
                 pass
@@ -306,14 +334,16 @@ async def execute_task(req: TaskRequest, background_tasks: BackgroundTasks):
             "tech_stack": app_spec.tech_stack,
             "pages": app_spec.pages,
             "integrations": app_spec.integrations,
-            "deployment_target": app_spec.deployment_target
+            "deployment_target": app_spec.deployment_target,
         },
         action_taken=f"Executed task on provider {raw.get('provider')}",
         result="success" if raw.get("success") else "failure",
         error_message=raw.get("error"),
         generated_code=raw.get("text") if ("```" in raw.get("text", "")) else None,
         what_worked=["Intent parsed successfully"] if raw.get("success") else [],
-        what_failed=[] if raw.get("success") else [str(raw.get("error", "Unknown error"))]
+        what_failed=(
+            [] if raw.get("success") else [str(raw.get("error", "Unknown error"))]
+        ),
     )
     background_tasks.add_task(app_mod.experience_db.record_experience, exp)
 
@@ -325,7 +355,7 @@ async def execute_task(req: TaskRequest, background_tasks: BackgroundTasks):
             type_url="https://supremeai.local/errors/bad-gateway",
             instance="/task/execute",
             provider=raw.get("provider"),
-            cost=raw.get("cost")
+            cost=raw.get("cost"),
         )
 
     # Format output as Action-Oriented JSON string

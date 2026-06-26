@@ -1,8 +1,10 @@
 import os
 import sqlite3
-from typing import Any, Dict, List, Optional
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import datetime
+from datetime import timezone
+from typing import Any
+
 from loguru import logger
 
 
@@ -21,7 +23,7 @@ class MemoryWindowRecord:
     window_index: int
     text: str
     token_count: int
-    summary: Optional[str] = None
+    summary: str | None = None
     created_at: str = ""
 
 
@@ -34,20 +36,23 @@ class SlidingWindowMemory:
         self.db_path = db_path
         if self.db_path != ":memory:":
             os.makedirs(os.path.dirname(self.db_path), exist_ok=True)
-        self._memory_conn: Optional[sqlite3.Connection] = None
+        self._memory_conn: sqlite3.Connection | None = None
         self._init_db()
 
     def _connect(self) -> sqlite3.Connection:
         if self.db_path == ":memory:":
             if self._memory_conn is None:
-                self._memory_conn = sqlite3.connect(self.db_path, check_same_thread=False)
+                self._memory_conn = sqlite3.connect(
+                    self.db_path, check_same_thread=False
+                )
             return self._memory_conn
         return sqlite3.connect(self.db_path, check_same_thread=False)
 
     def _init_db(self) -> None:
         conn = self._connect()
         try:
-            conn.executescript("""
+            conn.executescript(
+                """
                 CREATE TABLE IF NOT EXISTS conversation_windows (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     session_id TEXT NOT NULL,
@@ -66,7 +71,8 @@ class SlidingWindowMemory:
                     created_at TEXT NOT NULL
                 );
                 CREATE INDEX IF NOT EXISTS idx_windows_session ON conversation_windows(session_id, created_at);
-            """)
+            """
+            )
             conn.commit()
         finally:
             if self.db_path != ":memory:":
@@ -75,17 +81,17 @@ class SlidingWindowMemory:
     def _token_count(self, text: str) -> int:
         return max(1, len(text.split()))
 
-    def _make_windows(self, text: str) -> List[str]:
+    def _make_windows(self, text: str) -> list[str]:
         max_tokens = self.config.max_tokens
         words = text.split()
         if len(words) <= max_tokens:
             return [text]
         overlap = int(max_tokens * self.config.overlap_ratio)
         step = max(1, max_tokens - overlap)
-        windows: List[str] = []
+        windows: list[str] = []
         start = 0
         while start < len(words):
-            chunk = words[start:start + max_tokens]
+            chunk = words[start : start + max_tokens]
             windows.append(" ".join(chunk))
             start += step
         return windows
@@ -98,7 +104,7 @@ class SlidingWindowMemory:
             return ""
         first_sentence_end = text.find(". ")
         if first_sentence_end != -1:
-            snippet = text[:first_sentence_end + 2]
+            snippet = text[: first_sentence_end + 2]
         else:
             snippet = text[:120]
         return snippet.replace("\n", " ").strip()
@@ -106,7 +112,7 @@ class SlidingWindowMemory:
     # ------------------------------------------------------------------
     # Persistence
     # ------------------------------------------------------------------
-    def persist(self, session_id: str, records: List[MemoryWindowRecord]) -> bool:
+    def persist(self, session_id: str, records: list[MemoryWindowRecord]) -> bool:
         conn = self._connect()
         try:
             for rec in records:
@@ -136,7 +142,7 @@ class SlidingWindowMemory:
             if self.db_path != ":memory:":
                 conn.close()
 
-    def recall(self, session_id: str, limit: int = 20) -> List[Dict[str, Any]]:
+    def recall(self, session_id: str, limit: int = 20) -> list[dict[str, Any]]:
         conn = self._connect()
         try:
             conn.row_factory = sqlite3.Row
@@ -175,10 +181,10 @@ class SlidingWindowMemory:
             if self.db_path != ":memory:":
                 conn.close()
 
-    def chunk(self, text: str, session_id: str = "default") -> List[Dict[str, Any]]:
+    def chunk(self, text: str, session_id: str = "default") -> list[dict[str, Any]]:
         windows = self._make_windows(text)
-        records: List[MemoryWindowRecord] = []
-        items: List[Dict[str, Any]] = []
+        records: list[MemoryWindowRecord] = []
+        items: list[dict[str, Any]] = []
         for idx, win in enumerate(windows):
             summary = self._summarize_text(win) if self.config.summarize else None
             rec = MemoryWindowRecord(
@@ -230,10 +236,13 @@ class SlidingWindowMemory:
         existing_level = 0
         conn2 = self._connect()
         try:
-            existing_level = conn2.execute(
-                "SELECT MAX(level) FROM session_compact_summaries WHERE session_id = ?",
-                (session_id,),
-            ).fetchone()[0] or 0
+            existing_level = (
+                conn2.execute(
+                    "SELECT MAX(level) FROM session_compact_summaries WHERE session_id = ?",
+                    (session_id,),
+                ).fetchone()[0]
+                or 0
+            )
         finally:
             if self.db_path != ":memory:":
                 conn2.close()
@@ -263,7 +272,7 @@ class SlidingWindowMemory:
             if self.db_path != ":memory:":
                 conn3.close()
 
-    def get_compact_summaries(self, session_id: str) -> List[Dict[str, Any]]:
+    def get_compact_summaries(self, session_id: str) -> list[dict[str, Any]]:
         conn = self._connect()
         try:
             conn.row_factory = sqlite3.Row
@@ -286,13 +295,13 @@ class SlidingWindowMemory:
     # ------------------------------------------------------------------
     def build_context(
         self,
-        documents: List[str],
+        documents: list[str],
         query: str = "",
         session_id: str = "default",
-        budget: Optional[int] = None,
+        budget: int | None = None,
     ) -> str:
         budget = budget or self.config.max_tokens
-        chunks: List[str] = []
+        chunks: list[str] = []
         recalled = self.recall(session_id, limit=10)
         for rec in recalled:
             chunks.append(rec.get("summary") or rec.get("text", ""))
@@ -304,7 +313,7 @@ class SlidingWindowMemory:
                 chunks.append(w["text"])
         if not chunks:
             return ""
-        selected: List[str] = []
+        selected: list[str] = []
         total = 0
         if query:
             first, rest = chunks[0], chunks[1:]
@@ -316,7 +325,7 @@ class SlidingWindowMemory:
                 total += tc
         return "\n---\n".join(selected)
 
-    def get_session_stats(self, session_id: str) -> Dict[str, Any]:
+    def get_session_stats(self, session_id: str) -> dict[str, Any]:
         conn = self._connect()
         try:
             window_count = conn.execute(

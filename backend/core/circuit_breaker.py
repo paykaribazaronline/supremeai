@@ -1,10 +1,13 @@
 from __future__ import annotations
 
-import time
 import json
-from typing import Callable, Optional, TypeVar, Any
+import time
+from collections.abc import Callable
+from typing import Any
+from typing import TypeVar
 
-T = TypeVar('T')
+
+T = TypeVar("T")
 
 
 class CircuitBreaker:
@@ -21,9 +24,9 @@ class CircuitBreaker:
         self.recovery_timeout = recovery_timeout
         self.half_open_after = half_open_after
         self.failures = 0
-        self.state = 'CLOSED'
-        self.opened_at: Optional[float] = None
-        self.last_failure_at: Optional[float] = None
+        self.state = "CLOSED"
+        self.opened_at: float | None = None
+        self.last_failure_at: float | None = None
         self.redis_queue = redis_queue
         self._key_prefix = f"cb:{name}"
         self._restore_from_redis()
@@ -57,19 +60,22 @@ class CircuitBreaker:
             pass
 
     def allow_request(self) -> bool:
-        if self.state == 'OPEN':
-            if self.opened_at is not None and (time.time() - self.opened_at) >= self.recovery_timeout:
-                self.state = 'HALF_OPEN'
+        if self.state == "OPEN":
+            if (
+                self.opened_at is not None
+                and (time.time() - self.opened_at) >= self.recovery_timeout
+            ):
+                self.state = "HALF_OPEN"
                 self._persist_to_redis()
                 return True
             return False
-        if self.state == 'HALF_OPEN':
+        if self.state == "HALF_OPEN":
             return True
         return True
 
     def mark_success(self) -> None:
         self.failures = 0
-        self.state = 'CLOSED'
+        self.state = "CLOSED"
         self.opened_at = None
         self.last_failure_at = None
         self._persist_to_redis()
@@ -79,13 +85,13 @@ class CircuitBreaker:
         self.last_failure_at = now
         self.failures += 1
         if self.failures >= self.failure_threshold:
-            self.state = 'OPEN'
+            self.state = "OPEN"
             self.opened_at = now
         self._persist_to_redis()
 
     async def call(self, func: Callable[..., T], *args: object, **kwargs: object) -> T:
         if not self.allow_request():
-            raise RuntimeError(f'Circuit breaker {self.name} is open')
+            raise RuntimeError(f"Circuit breaker {self.name} is open")
         try:
             result = await func(*args, **kwargs)
             self.mark_success()

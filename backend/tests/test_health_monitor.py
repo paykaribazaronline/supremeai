@@ -1,9 +1,11 @@
 from __future__ import annotations
 
-import time
 import asyncio
+import time
+from unittest.mock import MagicMock
+from unittest.mock import patch
+
 import pytest
-from unittest.mock import MagicMock, patch
 
 from core.health_monitor import HealthMonitor
 
@@ -99,14 +101,22 @@ async def test_get_system_metrics_prometheus_update_failure(monitor):
 
 @pytest.mark.anyio
 async def test_is_ready(monitor):
-    with patch.object(monitor, "get_system_metrics", return_value={"status": "healthy", "uptime_seconds": 10}):
+    with patch.object(
+        monitor,
+        "get_system_metrics",
+        return_value={"status": "healthy", "uptime_seconds": 10},
+    ):
         result = await monitor.is_ready()
     assert result is True
 
 
 @pytest.mark.anyio
 async def test_is_ready_degraded(monitor):
-    with patch.object(monitor, "get_system_metrics", return_value={"status": "degraded", "uptime_seconds": 10}):
+    with patch.object(
+        monitor,
+        "get_system_metrics",
+        return_value={"status": "degraded", "uptime_seconds": 10},
+    ):
         result = await monitor.is_ready()
     assert result is True
 

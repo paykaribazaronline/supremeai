@@ -1,22 +1,24 @@
 from __future__ import annotations
 
-import time
 import logging
-from typing import Any, Dict, List, Optional
+import time
+from typing import Any
+
 
 logger = logging.getLogger(__name__)
 
+
 class FeedbackLoop:
     def __init__(self) -> None:
-        self._events: List[Dict[str, Any]] = []
-        self._metrics: Dict[str, Any] = {
+        self._events: list[dict[str, Any]] = []
+        self._metrics: dict[str, Any] = {
             "edits": 0,
             "accepts": 0,
             "rejects": 0,
             "errors_reported": 0,
         }
 
-    def record_edit(self, file_path: str, diff_summary: str) -> Dict[str, Any]:
+    def record_edit(self, file_path: str, diff_summary: str) -> dict[str, Any]:
         event = {
             "type": "edit",
             "file": file_path,
@@ -28,7 +30,9 @@ class FeedbackLoop:
         logger.debug("Recorded edit event: %s", file_path)
         return event
 
-    def record_suggestion_feedback(self, accepted: bool, context: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    def record_suggestion_feedback(
+        self, accepted: bool, context: dict[str, Any] | None = None
+    ) -> dict[str, Any]:
         event = {
             "type": "suggestion_feedback",
             "accepted": accepted,
@@ -43,7 +47,9 @@ class FeedbackLoop:
         logger.debug("Recorded suggestion feedback: accepted=%s", accepted)
         return event
 
-    def record_error_report(self, error: Exception, context: Dict[str, Any]) -> Dict[str, Any]:
+    def record_error_report(
+        self, error: Exception, context: dict[str, Any]
+    ) -> dict[str, Any]:
         event = {
             "type": "error",
             "message": str(error),
@@ -55,22 +61,26 @@ class FeedbackLoop:
         logger.debug("Recorded error report: %s", error)
         return event
 
-    def metrics(self) -> Dict[str, Any]:
+    def metrics(self) -> dict[str, Any]:
         return dict(self._metrics)
 
-    def events(self, event_type: Optional[str] = None) -> List[Dict[str, Any]]:
+    def events(self, event_type: str | None = None) -> list[dict[str, Any]]:
         if event_type is None:
             return list(self._events)
         return [e for e in self._events if e.get("type") == event_type]
 
-    def handle_feedback(self, payload: Dict[str, Any]) -> Dict[str, Any]:
+    def handle_feedback(self, payload: dict[str, Any]) -> dict[str, Any]:
         feedback_type = (payload or {}).get("type")
         if feedback_type == "suggestion_feedback":
             accepted = bool(payload.get("accepted"))
             context = payload.get("context") or {}
             event = self.record_suggestion_feedback(accepted=accepted, context=context)
             if not accepted:
-                error = payload.get("error") or payload.get("message") or Exception("Suggestion feedback rejected")
+                error = (
+                    payload.get("error")
+                    or payload.get("message")
+                    or Exception("Suggestion feedback rejected")
+                )
                 context = dict(context)
                 context.setdefault("payload", payload)
                 self.record_error_report(error=error, context=context)
@@ -85,4 +95,7 @@ class FeedbackLoop:
             context = payload.get("context") or payload
             event = self.record_error_report(error=error, context=context)
             return {"stored": True, "event": event}
-        return {"stored": False, "reason": f"Unsupported feedback type: {feedback_type}"}
+        return {
+            "stored": False,
+            "reason": f"Unsupported feedback type: {feedback_type}",
+        }

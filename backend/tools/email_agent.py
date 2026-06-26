@@ -1,5 +1,7 @@
 import re
+
 from loguru import logger
+
 
 class EmailAgent:
     def __init__(self, auth_method="oauth"):
@@ -13,7 +15,9 @@ class EmailAgent:
         self.connected = True
         return True
 
-    def connect_imap(self, host: str, port: int, username: str, app_password: str) -> bool:
+    def connect_imap(
+        self, host: str, port: int, username: str, app_password: str
+    ) -> bool:
         logger.info(f"Connecting to IMAP {host}:{port} for user {username}")
         self.auth_method = "imap"
         self.connected = True
@@ -28,7 +32,7 @@ class EmailAgent:
 
     def extract_otp(self, email_body: str) -> str:
         """Extract a 4 to 8 digit numeric OTP from email body text."""
-        match = re.search(r'\b\d{4,8}\b', email_body)
+        match = re.search(r"\b\d{4,8}\b", email_body)
         if match:
             return match.group(0)
         return ""

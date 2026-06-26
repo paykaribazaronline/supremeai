@@ -1,6 +1,7 @@
 import os
-from datetime import datetime, timezone
-from typing import Any, Dict, Optional
+from datetime import datetime
+from datetime import timezone
+from typing import Any
 
 import httpx
 from loguru import logger
@@ -11,17 +12,23 @@ class GCPCloudFunctionClient:
 
     def __init__(
         self,
-        project_id: Optional[str] = None,
-        region: Optional[str] = None,
-        function_name: Optional[str] = None,
-        base_url: Optional[str] = None,
-        bearer_token: Optional[str] = None,
+        project_id: str | None = None,
+        region: str | None = None,
+        function_name: str | None = None,
+        base_url: str | None = None,
+        bearer_token: str | None = None,
         timeout: float = 30.0,
     ):
-        self.project_id = project_id or os.getenv("GCP_PROJECT_ID") or os.getenv("GOOGLE_CLOUD_PROJECT")
+        self.project_id = (
+            project_id
+            or os.getenv("GCP_PROJECT_ID")
+            or os.getenv("GOOGLE_CLOUD_PROJECT")
+        )
         self.region = region or os.getenv("GCP_REGION", "us-central1")
         self.function_name = function_name or os.getenv("GCP_CLOUD_FUNCTION_NAME")
-        self.base_url = (base_url or os.getenv("GCP_CLOUD_FUNCTION_URL", "")).rstrip("/")
+        self.base_url = (base_url or os.getenv("GCP_CLOUD_FUNCTION_URL", "")).rstrip(
+            "/"
+        )
         self.bearer_token = bearer_token or os.getenv("GCP_CLOUD_FUNCTION_BEARER_TOKEN")
         self.timeout = timeout
 
@@ -30,7 +37,7 @@ class GCPCloudFunctionClient:
         return bool(self.function_url)
 
     @property
-    def function_url(self) -> Optional[str]:
+    def function_url(self) -> str | None:
         if self.base_url:
             return self.base_url
         if self.project_id and self.function_name:
@@ -39,11 +46,11 @@ class GCPCloudFunctionClient:
 
     def trigger(
         self,
-        payload: Dict[str, Any],
-        endpoint: Optional[str] = None,
+        payload: dict[str, Any],
+        endpoint: str | None = None,
         method: str = "POST",
-        timeout: Optional[float] = None,
-    ) -> Dict[str, Any]:
+        timeout: float | None = None,
+    ) -> dict[str, Any]:
         url = self._url_for(endpoint)
         if not url:
             return {
@@ -78,7 +85,9 @@ class GCPCloudFunctionClient:
                 "error": str(exc),
             }
 
-    def trigger_ocr(self, image_urls, project_id: str, user_id: str, languages=None) -> Dict[str, Any]:
+    def trigger_ocr(
+        self, image_urls, project_id: str, user_id: str, languages=None
+    ) -> dict[str, Any]:
         payload = {
             "imageUrls": image_urls,
             "projectId": project_id,
@@ -87,7 +96,7 @@ class GCPCloudFunctionClient:
         }
         return self.trigger(payload, endpoint="processOCR")
 
-    def get_config(self) -> Dict[str, Any]:
+    def get_config(self) -> dict[str, Any]:
         return {
             "provider": "gcp_cloud_functions",
             "project_id": self.project_id,
@@ -98,7 +107,7 @@ class GCPCloudFunctionClient:
             "timeout": self.timeout,
         }
 
-    def _url_for(self, endpoint: Optional[str]) -> Optional[str]:
+    def _url_for(self, endpoint: str | None) -> str | None:
         base = self.function_url
         if not base or not endpoint:
             return base

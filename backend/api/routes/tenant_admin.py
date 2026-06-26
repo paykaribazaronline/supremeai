@@ -7,75 +7,108 @@ DELETE /api/admin/tenant-limits/{id} — remove tenant
 GET  /api/admin/tenant-limits/{id}/usage — per-tenant usage stats
 POST /api/admin/tenant-limits/{id}/reset-usage — reset today's counters
 """
+
 from __future__ import annotations
 
 import time
-from typing import Dict, Any, List, Optional
+from typing import Any
+
+from fastapi import APIRouter
+from fastapi import HTTPException
 from loguru import logger
-from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
+
 
 router = APIRouter(prefix="/admin/tenant-limits", tags=["tenant-admin"])
 
 
 # ── Models ────────────────────────────────────────────────────────────────────
 
+
 class TenantLimitCreate(BaseModel):
     tenant_id: str
     org_name: str = ""
-    billing_tier: str = "free"          # free | starter | pro | enterprise
-    requests_per_minute: Optional[int] = None
-    max_tokens_per_day: Optional[int] = None
-    max_concurrent_sessions: Optional[int] = None
-    stripe_customer_id: Optional[str] = None
-    notes: Optional[str] = None
+    billing_tier: str = "free"  # free | starter | pro | enterprise
+    requests_per_minute: int | None = None
+    max_tokens_per_day: int | None = None
+    max_concurrent_sessions: int | None = None
+    stripe_customer_id: str | None = None
+    notes: str | None = None
 
 
 class TenantLimitUpdate(BaseModel):
-    org_name: Optional[str] = None
-    billing_tier: Optional[str] = None
-    requests_per_minute: Optional[int] = None
-    max_tokens_per_day: Optional[int] = None
-    max_concurrent_sessions: Optional[int] = None
-    stripe_customer_id: Optional[str] = None
-    notes: Optional[str] = None
+    org_name: str | None = None
+    billing_tier: str | None = None
+    requests_per_minute: int | None = None
+    max_tokens_per_day: int | None = None
+    max_concurrent_sessions: int | None = None
+    stripe_customer_id: str | None = None
+    notes: str | None = None
 
 
 # Tier defaults (match frontend TIER_LIMITS)
-TIER_DEFAULTS: Dict[str, Dict[str, int]] = {
-    "free":       {"requests_per_minute": 20,  "max_tokens_per_day": 50_000,    "max_concurrent_sessions": 2},
-    "starter":    {"requests_per_minute": 60,  "max_tokens_per_day": 200_000,   "max_concurrent_sessions": 5},
-    "pro":        {"requests_per_minute": 200, "max_tokens_per_day": 1_000_000, "max_concurrent_sessions": 20},
-    "enterprise": {"requests_per_minute": 999, "max_tokens_per_day": 9_999_999, "max_concurrent_sessions": 100},
+TIER_DEFAULTS: dict[str, dict[str, int]] = {
+    "free": {
+        "requests_per_minute": 20,
+        "max_tokens_per_day": 50_000,
+        "max_concurrent_sessions": 2,
+    },
+    "starter": {
+        "requests_per_minute": 60,
+        "max_tokens_per_day": 200_000,
+        "max_concurrent_sessions": 5,
+    },
+    "pro": {
+        "requests_per_minute": 200,
+        "max_tokens_per_day": 1_000_000,
+        "max_concurrent_sessions": 20,
+    },
+    "enterprise": {
+        "requests_per_minute": 999,
+        "max_tokens_per_day": 9_999_999,
+        "max_concurrent_sessions": 100,
+    },
 }
 
 
 # ── DB helpers ────────────────────────────────────────────────────────────────
 
+
 def _get_db():
     try:
         from database.supabase_client import db
+
         return db.client if db and db.client else None
     except Exception:
         return None
 
 
-async def _db_list_tenants() -> List[Dict[str, Any]]:
+async def _db_list_tenants() -> list[dict[str, Any]]:
     client = _get_db()
     if client:
         try:
-            res = client.table("tenant_limits").select("*").order("created_at", desc=True).execute()
+            res = (
+                client.table("tenant_limits")
+                .select("*")
+                .order("created_at", desc=True)
+                .execute()
+            )
             return res.data or []
         except Exception as exc:
             logger.warning(f"Supabase tenant list failed: {exc}")
     return _local_store.get("tenants", [])
 
 
-async def _db_get_tenant(tenant_id: str) -> Optional[Dict[str, Any]]:
+async def _db_get_tenant(tenant_id: str) -> dict[str, Any] | None:
     client = _get_db()
     if client:
         try:
-            res = client.table("tenant_limits").select("*").eq("tenant_id", tenant_id).execute()
+            res = (
+                client.table("tenant_limits")
+                .select("*")
+                .eq("tenant_id", tenant_id)
+                .execute()
+            )
             return res.data[0] if res.data else None
         except Exception as exc:
             logger.warning(f"Supabase tenant get failed: {exc}")
@@ -85,11 +118,13 @@ async def _db_get_tenant(tenant_id: str) -> Optional[Dict[str, Any]]:
     return None
 
 
-async def _db_upsert_tenant(data: Dict[str, Any]) -> bool:
+async def _db_upsert_tenant(data: dict[str, Any]) -> bool:
     client = _get_db()
     if client:
         try:
-            client.table("tenant_limits").upsert(data, on_conflict="tenant_id").execute()
+            client.table("tenant_limits").upsert(
+                data, on_conflict="tenant_id"
+            ).execute()
             return True
         except Exception as exc:
             logger.warning(f"Supabase tenant upsert failed: {exc}")
@@ -116,9 +151,9 @@ async def _db_delete_tenant(tenant_id: str) -> bool:
     return True
 
 
-async def _get_tenant_usage(tenant_id: str) -> Dict[str, Any]:
+async def _get_tenant_usage(tenant_id: str) -> dict[str, Any]:
     """Pull live usage from Redis (TenantRateLimiter) + Supabase (token totals)."""
-    usage: Dict[str, Any] = {
+    usage: dict[str, Any] = {
         "tenant_id": tenant_id,
         "requests_today": 0,
         "tokens_today": 0,
@@ -126,6 +161,7 @@ async def _get_tenant_usage(tenant_id: str) -> Dict[str, Any]:
     }
     try:
         import core.app as app_mod
+
         q = getattr(app_mod, "redis_queue", None)
         if q and getattr(q, "configured", False):
             now = int(time.time())
@@ -144,9 +180,13 @@ async def _get_tenant_usage(tenant_id: str) -> Dict[str, Any]:
         if client:
             try:
                 today = time.strftime("%Y-%m-%d")
-                res = client.table("tenant_usage")\
-                    .select("requests_count,tokens_used,cost_incurred")\
-                    .eq("tenant_id", tenant_id).eq("date", today).execute()
+                res = (
+                    client.table("tenant_usage")
+                    .select("requests_count,tokens_used,cost_incurred")
+                    .eq("tenant_id", tenant_id)
+                    .eq("date", today)
+                    .execute()
+                )
                 if res.data:
                     row = res.data[0]
                     usage["requests_today"] = row.get("requests_count", 0)
@@ -158,10 +198,11 @@ async def _get_tenant_usage(tenant_id: str) -> Dict[str, Any]:
 
 
 # Local in-memory fallback store
-_local_store: Dict[str, Any] = {}
+_local_store: dict[str, Any] = {}
 
 
 # ── Endpoints ─────────────────────────────────────────────────────────────────
+
 
 @router.get("")
 async def list_tenants(include_usage: bool = True):
@@ -178,7 +219,10 @@ async def list_tenants(include_usage: bool = True):
 
     if include_usage:
         import asyncio
-        usages = await asyncio.gather(*[_get_tenant_usage(t["tenant_id"]) for t in tenants])
+
+        usages = await asyncio.gather(
+            *[_get_tenant_usage(t["tenant_id"]) for t in tenants]
+        )
         usage_map = {u["tenant_id"]: u for u in usages}
     else:
         usage_map = {}
@@ -197,7 +241,9 @@ async def create_tenant(payload: TenantLimitCreate):
     """Create a new tenant with rate limits."""
     existing = await _db_get_tenant(payload.tenant_id)
     if existing:
-        raise HTTPException(status_code=409, detail=f"Tenant '{payload.tenant_id}' already exists")
+        raise HTTPException(
+            status_code=409, detail=f"Tenant '{payload.tenant_id}' already exists"
+        )
 
     tier = payload.billing_tier if payload.billing_tier in TIER_DEFAULTS else "free"
     defaults = TIER_DEFAULTS[tier]
@@ -206,9 +252,12 @@ async def create_tenant(payload: TenantLimitCreate):
         "tenant_id": payload.tenant_id,
         "org_name": payload.org_name,
         "billing_tier": tier,
-        "requests_per_minute": payload.requests_per_minute or defaults["requests_per_minute"],
-        "max_tokens_per_day": payload.max_tokens_per_day or defaults["max_tokens_per_day"],
-        "max_concurrent_sessions": payload.max_concurrent_sessions or defaults["max_concurrent_sessions"],
+        "requests_per_minute": payload.requests_per_minute
+        or defaults["requests_per_minute"],
+        "max_tokens_per_day": payload.max_tokens_per_day
+        or defaults["max_tokens_per_day"],
+        "max_concurrent_sessions": payload.max_concurrent_sessions
+        or defaults["max_concurrent_sessions"],
         "stripe_customer_id": payload.stripe_customer_id,
         "notes": payload.notes,
         "is_active": True,
@@ -221,6 +270,7 @@ async def create_tenant(payload: TenantLimitCreate):
     # Cache tier in Redis
     try:
         from tools.tenant_rate_limiter import TenantRateLimiter
+
         limiter = TenantRateLimiter()
         await limiter.set_tier(payload.tenant_id, tier)
     except Exception as exc:
@@ -247,7 +297,7 @@ async def update_tenant(tenant_id: str, payload: TenantLimitUpdate):
     if not existing:
         raise HTTPException(status_code=404, detail=f"Tenant '{tenant_id}' not found")
 
-    updates: Dict[str, Any] = payload.dict(exclude_none=True)
+    updates: dict[str, Any] = payload.dict(exclude_none=True)
 
     # If tier changed, apply new defaults (unless overridden explicitly)
     if "billing_tier" in updates:
@@ -261,6 +311,7 @@ async def update_tenant(tenant_id: str, payload: TenantLimitUpdate):
         # Update Redis tier cache
         try:
             from tools.tenant_rate_limiter import TenantRateLimiter
+
             limiter = TenantRateLimiter()
             await limiter.set_tier(tenant_id, new_tier)
         except Exception as exc:
@@ -296,7 +347,12 @@ async def get_usage(tenant_id: str):
         "requests_per_minute": tenant.get("requests_per_minute"),
         "max_tokens_per_day": tenant.get("max_tokens_per_day"),
     }
-    return {"status": "success", "tenant_id": tenant_id, "usage": usage, "limits": limits}
+    return {
+        "status": "success",
+        "tenant_id": tenant_id,
+        "usage": usage,
+        "limits": limits,
+    }
 
 
 @router.post("/{tenant_id}/reset-usage")
@@ -304,6 +360,7 @@ async def reset_usage(tenant_id: str):
     """Reset today's request/token counters for a tenant (Redis)."""
     try:
         import core.app as app_mod
+
         q = getattr(app_mod, "redis_queue", None)
         if q and getattr(q, "configured", False):
             now = int(time.time())
@@ -323,7 +380,9 @@ async def reset_usage(tenant_id: str):
     if client:
         try:
             today = time.strftime("%Y-%m-%d")
-            client.table("tenant_usage").delete().eq("tenant_id", tenant_id).eq("date", today).execute()
+            client.table("tenant_usage").delete().eq("tenant_id", tenant_id).eq(
+                "date", today
+            ).execute()
             return {"status": "reset", "tenant_id": tenant_id, "source": "supabase"}
         except Exception as exc:
             logger.warning(f"Supabase reset failed: {exc}")

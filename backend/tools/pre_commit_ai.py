@@ -1,10 +1,14 @@
+import os
+import re
 import subprocess
-import os, re
-from typing import Dict, Any, List
+from typing import Any
+
 from loguru import logger
+
 
 try:
     from tools.pr_reviewer import PRReviewer
+
     _PR_REVIEWER_AVAILABLE = True
 except Exception:
     _PR_REVIEWER_AVAILABLE = False
@@ -27,7 +31,9 @@ class PreCommitAI:
     }
 
     def __init__(self):
-        self.reviewer = PRReviewer() if _PR_REVIEWER_AVAILABLE and PRReviewer is not None else None
+        self.reviewer = (
+            PRReviewer() if _PR_REVIEWER_AVAILABLE and PRReviewer is not None else None
+        )
         self._check_tools()
         logger.info("Initialized PreCommitAI hook handler")
 
@@ -36,15 +42,19 @@ class PreCommitAI:
         self.black_available = False
         try:
             import isort  # noqa: F401
+
             self.isort_available = True
         except ImportError:
             pass
         try:
             import black  # noqa: F401
+
             self.black_available = True
         except ImportError:
             pass
-        logger.debug(f"PreCommit tools: isort={self.isort_available}, black={self.black_available}")
+        logger.debug(
+            f"PreCommit tools: isort={self.isort_available}, black={self.black_available}"
+        )
 
     def _get_staged_diff(self) -> str:
         """Gets the git diff for staged files."""
@@ -63,7 +73,7 @@ class PreCommitAI:
             logger.error("git not found in PATH.")
             return ""
 
-    def _get_staged_files(self) -> List[str]:
+    def _get_staged_files(self) -> list[str]:
         """Returns list of staged file paths."""
         try:
             result = subprocess.run(
@@ -77,19 +87,19 @@ class PreCommitAI:
             logger.error(f"Failed to list staged files: {exc}")
             return []
 
-    def _auto_fix(self, files: List[str]) -> Dict[str, Any]:
+    def _auto_fix(self, files: list[str]) -> dict[str, Any]:
         """Apply simple auto-fixes: trailing whitespace, import sort."""
-        fixes_applied: List[Dict[str, str]] = []
+        fixes_applied: list[dict[str, str]] = []
         for filepath in files:
             if not os.path.exists(filepath):
                 continue
             ext = os.path.splitext(filepath)[1].lower()
             original_content = ""
             try:
-                with open(filepath, "r", encoding="utf-8", errors="ignore") as f:
+                with open(filepath, encoding="utf-8", errors="ignore") as f:
                     original_content = f.read()
             except Exception:
-                continue # Skip binary files that can't be read
+                continue  # Skip binary files that can't be read
 
             new_content = original_content
             content_changed = False
@@ -99,6 +109,7 @@ class PreCommitAI:
                 if ext == ".py":
                     if self.isort_available and self.AUTO_FIX_RULES.get("import_sort"):
                         import isort
+
                         sorted_content = isort.code(new_content)
                         if sorted_content != new_content:
                             new_content = sorted_content
@@ -107,25 +118,34 @@ class PreCommitAI:
 
                     if self.black_available:
                         import black
-                        formatted_content = black.format_str(new_content, mode=black.Mode())
+
+                        formatted_content = black.format_str(
+                            new_content, mode=black.Mode()
+                        )
                         if formatted_content != new_content:
                             new_content = formatted_content
                             fixes_applied.append({"file": filepath, "action": "black"})
                             content_changed = True
-                
+
                 # Generic fixes for all file types
                 if self.AUTO_FIX_RULES.get("trailing_whitespace"):
                     # Use a regex to remove trailing whitespace from each line
-                    processed_content = re.sub(r'[ \t]+$', '', new_content, flags=re.MULTILINE)
+                    processed_content = re.sub(
+                        r"[ \t]+$", "", new_content, flags=re.MULTILINE
+                    )
                     if processed_content != new_content:
                         new_content = processed_content
-                        fixes_applied.append({"file": filepath, "action": "trim_trailing_whitespace"})
+                        fixes_applied.append(
+                            {"file": filepath, "action": "trim_trailing_whitespace"}
+                        )
                         content_changed = True
 
                 if self.AUTO_FIX_RULES.get("end_of_file_newline"):
-                    if not new_content.endswith('\n'):
-                        new_content += '\n'
-                        fixes_applied.append({"file": filepath, "action": "add_final_newline"})
+                    if not new_content.endswith("\n"):
+                        new_content += "\n"
+                        fixes_applied.append(
+                            {"file": filepath, "action": "add_final_newline"}
+                        )
                         content_changed = True
 
                 if content_changed:
@@ -136,7 +156,7 @@ class PreCommitAI:
                 logger.debug(f"Auto-fix failed for {filepath}: {exc}")
         return {"fixes": fixes_applied, "count": len(fixes_applied)}
 
-    async def run_hook(self, auto_fix: bool = True) -> Dict[str, Any]:
+    async def run_hook(self, auto_fix: bool = True) -> dict[str, Any]:
         """Runs the pre-commit analysis."""
         logger.info("Running AI Pre-Commit Hook...")
 
@@ -144,7 +164,7 @@ class PreCommitAI:
         if not diff:
             return {"status": "success", "message": "No staged changes to analyze."}
 
-        issues: List[Dict[str, Any]] = []
+        issues: list[dict[str, Any]] = []
         if self.reviewer is not None:
             try:
                 issues = await self.reviewer.analyze_diff(diff)
@@ -155,13 +175,16 @@ class PreCommitAI:
             issues = self._static_security_scan(diff)
 
         critical_issues = [
-            i for i in issues
+            i
+            for i in issues
             if "critical" in str(i.get("severity", "")).lower()
             or "SECURITY" in str(i.get("body", "")).upper()
         ]
 
         if critical_issues:
-            logger.error(f"Pre-commit blocked! Found {len(critical_issues)} critical security issues.")
+            logger.error(
+                f"Pre-commit blocked! Found {len(critical_issues)} critical security issues."
+            )
             for issue in critical_issues:
                 logger.error(
                     f"  - {issue.get('path', '?')}:{issue.get('line', '?')} -> {issue.get('body', issue.get('type', ''))}"
@@ -179,25 +202,34 @@ class PreCommitAI:
             if fix_report["count"] > 0:
                 for fp in files:
                     try:
-                        subprocess.run(["git", "add", fp], check=True, capture_output=True)
+                        subprocess.run(
+                            ["git", "add", fp], check=True, capture_output=True
+                        )
                     except Exception:
                         pass
                 logger.info(f"Auto-fixed {fix_report['count']} issue(s).")
                 # The commit was not blocked, files were fixed and re-staged.
                 # Allow the commit to proceed.
-                logger.info("Auto-fixed files were re-staged. Allowing commit to proceed.")
+                logger.info(
+                    "Auto-fixed files were re-staged. Allowing commit to proceed."
+                )
                 # The hook should return success now. The calling pre-commit framework will handle the rest.
 
-
         if issues:
-            logger.warning(f"Found {len(issues)} non-critical issues. Commit allowed but review is suggested.")
+            logger.warning(
+                f"Found {len(issues)} non-critical issues. Commit allowed but review is suggested."
+            )
 
         logger.info("Pre-commit checks passed.")
-        return {"status": "success", "message": "All checks passed.", "warnings": issues}
+        return {
+            "status": "success",
+            "message": "All checks passed.",
+            "warnings": issues,
+        }
 
-    def _static_security_scan(self, diff_content: str) -> List[Dict[str, Any]]:
+    def _static_security_scan(self, diff_content: str) -> list[dict[str, Any]]:
         """Regex-based fallback when PRReviewer/LLM is unavailable."""
-        issues: List[Dict[str, Any]] = []
+        issues: list[dict[str, Any]] = []
         lines = diff_content.split("\n")
         current_file = "unknown"
         line_num = 0
@@ -218,12 +250,14 @@ class PreCommitAI:
             if line.startswith("+") and not line.startswith("+++"):
                 for name, pat in secret_patterns.items():
                     if re.search(pat, line, re.IGNORECASE):
-                        issues.append({
-                            "path": current_file,
-                            "line": line_num,
-                            "severity": "critical",
-                            "body": f"SECURITY: Potential {name} exposure detected.",
-                        })
+                        issues.append(
+                            {
+                                "path": current_file,
+                                "line": line_num,
+                                "severity": "critical",
+                                "body": f"SECURITY: Potential {name} exposure detected.",
+                            }
+                        )
                 line_num += 1
             elif not line.startswith("-"):
                 line_num += 1
@@ -234,18 +268,25 @@ if __name__ == "__main__":
     import argparse
 
     parser = argparse.ArgumentParser(description="SupremeAI Pre-Commit AI Gate")
-    parser.add_argument("--no-fix", action="store_true", help="Run analysis without auto-fixing")
-    parser.add_argument("files", nargs="*", help="Optional file list (ignored; uses staged diff)")
+    parser.add_argument(
+        "--no-fix", action="store_true", help="Run analysis without auto-fixing"
+    )
+    parser.add_argument(
+        "files", nargs="*", help="Optional file list (ignored; uses staged diff)"
+    )
     args = parser.parse_args()
 
     hook = PreCommitAI()
     import asyncio
+
     result = asyncio.run(hook.run_hook(auto_fix=not args.no_fix))
     status = result.get("status", "error")
     if status == "blocked":
         print("❌ Commit blocked:", result.get("reason"))
         for issue in result.get("issues", []):
-            print(f"  - {issue.get('path', '?')}:{issue.get('line', '?')} -> {issue.get('body', '')}")
+            print(
+                f"  - {issue.get('path', '?')}:{issue.get('line', '?')} -> {issue.get('body', '')}"
+            )
         raise SystemExit(1)
     elif status == "fixed":
         print("⚠️  Auto-fixed issues. Review and re-commit.")

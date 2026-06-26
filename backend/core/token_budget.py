@@ -13,12 +13,14 @@ Key features:
 - Per-provider token budget awareness
 - Usage statistics
 """
+
 from __future__ import annotations
 
 import re
 import time
-from dataclasses import dataclass, field
-from typing import Any, Dict, Optional, Tuple
+from dataclasses import dataclass
+from dataclasses import field
+from typing import Any
 
 from loguru import logger
 
@@ -26,13 +28,13 @@ from loguru import logger
 # ---------------------------------------------------------------------------
 # Per-provider max token budgets (conservative — leaves headroom for system prompts)
 # ---------------------------------------------------------------------------
-PROVIDER_TOKEN_BUDGETS: Dict[str, Dict[str, int]] = {
+PROVIDER_TOKEN_BUDGETS: dict[str, dict[str, int]] = {
     "gemini": {
-        "max_input_tokens": 6_000,    # context window is much larger but TPM is the constraint
+        "max_input_tokens": 6_000,  # context window is much larger but TPM is the constraint
         "max_output_tokens": 2_000,
     },
     "groq": {
-        "max_input_tokens": 4_000,    # 30k TPM shared; keep inputs short
+        "max_input_tokens": 4_000,  # 30k TPM shared; keep inputs short
         "max_output_tokens": 1_500,
     },
     "openrouter": {
@@ -40,7 +42,7 @@ PROVIDER_TOKEN_BUDGETS: Dict[str, Dict[str, int]] = {
         "max_output_tokens": 1_500,
     },
     "cloudflare": {
-        "max_input_tokens": 3_000,    # Cloudflare Workers AI has smaller context
+        "max_input_tokens": 3_000,  # Cloudflare Workers AI has smaller context
         "max_output_tokens": 1_000,
     },
     "nvidia": {
@@ -48,11 +50,11 @@ PROVIDER_TOKEN_BUDGETS: Dict[str, Dict[str, int]] = {
         "max_output_tokens": 1_500,
     },
     "huggingface": {
-        "max_input_tokens": 1_500,    # HF inference API has small context windows
+        "max_input_tokens": 1_500,  # HF inference API has small context windows
         "max_output_tokens": 500,
     },
     "ollama": {
-        "max_input_tokens": 8_000,    # local — can handle larger context
+        "max_input_tokens": 8_000,  # local — can handle larger context
         "max_output_tokens": 4_000,
     },
     "deepseek": {
@@ -111,20 +113,21 @@ def truncate_to_token_limit(text: str, max_tokens: int, from_end: bool = False) 
         # Trim to first sentence boundary
         match = re.search(r"[.!?\n]", truncated)
         if match:
-            truncated = truncated[match.start() + 1:]
+            truncated = truncated[match.start() + 1 :]
         return truncated.strip()
     else:
         truncated = text[:target_chars]
         # Trim to last sentence boundary; fall back to hard cut if none found
         match = re.search(r"[.!?\n](?=[^.!?\n]*$)", truncated)
         if match:
-            truncated = truncated[:match.start() + 1]
+            truncated = truncated[: match.start() + 1]
         return truncated.strip()
 
 
 @dataclass
 class TokenBudgetStats:
     """Accumulates per-provider token usage stats."""
+
     provider: str
     total_input_tokens: int = 0
     total_output_tokens: int = 0
@@ -147,7 +150,7 @@ class TokenBudgetStats:
             self.truncated_calls += 1
             self.tokens_saved_by_truncation += tokens_saved
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "provider": self.provider,
             "total_calls": self.total_calls,
@@ -186,10 +189,10 @@ class TokenBudgetManager:
 
     def __init__(
         self,
-        custom_budgets: Optional[Dict[str, Dict[str, int]]] = None,
+        custom_budgets: dict[str, dict[str, int]] | None = None,
     ) -> None:
         self._budgets = {**PROVIDER_TOKEN_BUDGETS, **(custom_budgets or {})}
-        self._stats: Dict[str, TokenBudgetStats] = {}
+        self._stats: dict[str, TokenBudgetStats] = {}
 
     # ------------------------------------------------------------------
     # Public API
@@ -203,9 +206,9 @@ class TokenBudgetManager:
         self,
         prompt: str,
         provider: str = "default",
-        system_prompt: Optional[str] = None,
+        system_prompt: str | None = None,
         reserve_output_tokens: bool = True,
-    ) -> Tuple[str, Dict[str, Any]]:
+    ) -> tuple[str, dict[str, Any]]:
         """
         Validate and compress *prompt* to fit within *provider*'s input budget.
 
@@ -239,7 +242,7 @@ class TokenBudgetManager:
 
         final_tokens = estimate_tokens(prompt)
 
-        meta: Dict[str, Any] = {
+        meta: dict[str, Any] = {
             "provider": provider,
             "estimated_input_tokens": final_tokens,
             "original_tokens": original_tokens,
@@ -277,14 +280,11 @@ class TokenBudgetManager:
         limits = self._budgets.get(provider, self._budgets["default"])
         return estimate_tokens(prompt) <= limits["max_input_tokens"]
 
-    def get_stats(self) -> Dict[str, Any]:
+    def get_stats(self) -> dict[str, Any]:
         """Return token usage stats for all providers."""
-        return {
-            provider: stats.to_dict()
-            for provider, stats in self._stats.items()
-        }
+        return {provider: stats.to_dict() for provider, stats in self._stats.items()}
 
-    def get_provider_budget(self, provider: str) -> Dict[str, int]:
+    def get_provider_budget(self, provider: str) -> dict[str, int]:
         """Return token limits for a specific provider."""
         return self._budgets.get(provider, self._budgets["default"])
 
@@ -301,11 +301,11 @@ class TokenBudgetManager:
 # ---------------------------------------------------------------------------
 # Module-level singleton
 # ---------------------------------------------------------------------------
-_manager: Optional[TokenBudgetManager] = None
+_manager: TokenBudgetManager | None = None
 
 
 def get_budget_manager(
-    custom_budgets: Optional[Dict[str, Dict[str, int]]] = None,
+    custom_budgets: dict[str, dict[str, int]] | None = None,
 ) -> TokenBudgetManager:
     """Return the module-level singleton TokenBudgetManager."""
     global _manager

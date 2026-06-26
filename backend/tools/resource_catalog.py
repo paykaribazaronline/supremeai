@@ -1,7 +1,7 @@
 import os
 import re
 import uuid
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import httpx
 from loguru import logger
@@ -10,9 +10,7 @@ from loguru import logger
 class ResourceCatalog:
     """Searches open-source resource catalogs for external tool entries."""
 
-    AWESOME_SELFHOSTED_URL = (
-        "https://raw.githubusercontent.com/awesome-selfhosted/awesome-selfhosted/master/README.md"
-    )
+    AWESOME_SELFHOSTED_URL = "https://raw.githubusercontent.com/awesome-selfhosted/awesome-selfhosted/master/README.md"
     AWESOME_PYTHON_URL = (
         "https://raw.githubusercontent.com/vinta/awesome-python/master/README.md"
     )
@@ -24,7 +22,7 @@ class ResourceCatalog:
         re.IGNORECASE,
     )
 
-    def __init__(self, http_client: Optional[httpx.AsyncClient] = None):
+    def __init__(self, http_client: httpx.AsyncClient | None = None):
         self.http_client = http_client or httpx.AsyncClient(timeout=httpx.Timeout(30.0))
         self._managed_client = http_client is None
 
@@ -38,7 +36,7 @@ class ResourceCatalog:
         if self._managed_client and self.http_client is not None:
             await self.http_client.aclose()
 
-    def _build_headers(self) -> Dict[str, str]:
+    def _build_headers(self) -> dict[str, str]:
         headers = {
             "Accept": "application/vnd.github.v3+json",
             "User-Agent": "SupremeAI-ResourceCatalog/2.0",
@@ -50,9 +48,9 @@ class ResourceCatalog:
 
     def _parse_awesome_markdown(
         self, markdown: str, query: str, limit: int, source_name: str
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         query_lower = query.strip().lower()
-        results: List[Dict[str, Any]] = []
+        results: list[dict[str, Any]] = []
 
         for line in markdown.splitlines():
             if not line.startswith("- ["):
@@ -83,7 +81,7 @@ class ResourceCatalog:
 
     async def search_awesome_selfhosted(
         self, query: str, limit: int = 5
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         try:
             response = await self.http_client.get(self.AWESOME_SELFHOSTED_URL)
             response.raise_for_status()
@@ -98,7 +96,7 @@ class ResourceCatalog:
 
     async def search_awesome_python(
         self, query: str, limit: int = 5
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         try:
             response = await self.http_client.get(self.AWESOME_PYTHON_URL)
             response.raise_for_status()
@@ -113,7 +111,7 @@ class ResourceCatalog:
 
     async def search_github_repos(
         self, query: str, limit: int = 5
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         try:
             params = {
                 "q": f"{query} in:name,description",
@@ -128,7 +126,7 @@ class ResourceCatalog:
             )
             response.raise_for_status()
             payload = response.json()
-            results: List[Dict[str, Any]] = []
+            results: list[dict[str, Any]] = []
             for item in payload.get("items", []):
                 results.append(
                     {
@@ -147,12 +145,14 @@ class ResourceCatalog:
                 )
             return results
         except Exception as exc:
-            logger.warning(f"ResourceCatalog: failed to search ossinsight for '{query}': {exc}")
+            logger.warning(
+                f"ResourceCatalog: failed to search ossinsight for '{query}': {exc}"
+            )
             return []
 
     async def search_libraries_io(
         self, query: str, limit: int = 5
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         try:
             params = {
                 "q": query,
@@ -168,7 +168,7 @@ class ResourceCatalog:
             )
             response.raise_for_status()
             payload = response.json()
-            results: List[Dict[str, Any]] = []
+            results: list[dict[str, Any]] = []
             for item in payload:
                 results.append(
                     {
@@ -177,7 +177,11 @@ class ResourceCatalog:
                         "version": item.get("latest_release_number", ""),
                         "description": item.get("description") or "",
                         "url": item.get("homepage_url") or item.get("repository_url"),
-                        "dependencies": ", ".join(item.get("dependencies", [])) if item.get("dependencies") else None,
+                        "dependencies": (
+                            ", ".join(item.get("dependencies", []))
+                            if item.get("dependencies")
+                            else None
+                        ),
                         "installed": False,
                         "source": "libraries.io",
                         "stars": item.get("rank", 0),
@@ -185,7 +189,9 @@ class ResourceCatalog:
                 )
             return results
         except Exception as exc:
-            logger.warning(f"ResourceCatalog: failed to search libraries.io for '{query}': {exc}")
+            logger.warning(
+                f"ResourceCatalog: failed to search libraries.io for '{query}': {exc}"
+            )
             return []
 
     def _score_repo(self, repo_json: dict) -> float:
@@ -193,17 +199,23 @@ class ResourceCatalog:
         forks = max(0, int(repo_json.get("forks_count", 0)))
         issues = max(0, int(repo_json.get("open_issues_count", 0)))
         watchers = max(0, int(repo_json.get("watchers_count", 0)))
-        score = min(100.0, stars / 100.0 + forks / 50.0 + max(0.0, 20.0 - issues) + min(20.0, watchers / 100.0))
+        score = min(
+            100.0,
+            stars / 100.0
+            + forks / 50.0
+            + max(0.0, 20.0 - issues)
+            + min(20.0, watchers / 100.0),
+        )
         return round(score, 2)
 
     async def search(
         self,
         query: str,
-        sources: Optional[List[str]] = None,
+        sources: list[str] | None = None,
         limit: int = 10,
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         sources = sources or ["awesome-selfhosted", "awesome-python"]
-        results: List[Dict[str, Any]] = []
+        results: list[dict[str, Any]] = []
 
         if "awesome-selfhosted" in sources:
             results.extend(await self.search_awesome_selfhosted(query, limit=limit))
@@ -211,22 +223,16 @@ class ResourceCatalog:
         if "awesome-python" in sources:
             remaining = max(limit - len(results), 0)
             if remaining > 0:
-                results.extend(
-                    await self.search_awesome_python(query, limit=remaining)
-                )
+                results.extend(await self.search_awesome_python(query, limit=remaining))
 
         if "ossinsight" in sources:
             remaining = max(limit - len(results), 0)
             if remaining > 0:
-                results.extend(
-                    await self.search_github_repos(query, limit=remaining)
-                )
+                results.extend(await self.search_github_repos(query, limit=remaining))
 
         if "libraries.io" in sources:
             remaining = max(limit - len(results), 0)
             if remaining > 0:
-                results.extend(
-                    await self.search_libraries_io(query, limit=remaining)
-                )
+                results.extend(await self.search_libraries_io(query, limit=remaining))
 
         return results[:limit]

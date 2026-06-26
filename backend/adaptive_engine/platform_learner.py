@@ -1,29 +1,43 @@
-import httpx
-from adaptive_engine.registry import PlatformProfile, PlatformRegistry
-from brain.model_router import ModelRouter
-import json
 import datetime
+import json
+
+import httpx
 from loguru import logger
+
+from adaptive_engine.registry import PlatformProfile
+from adaptive_engine.registry import PlatformRegistry
+from brain.model_router import ModelRouter
+
 
 class PlatformLearner:
     def __init__(self, model_router: ModelRouter, registry: PlatformRegistry):
         self.model_router = model_router
         self.registry = registry
 
-    async def learn_from_docs(self, platform_name: str, docs_url: str) -> PlatformProfile:
-        logger.info(f"Learning platform '{platform_name}' from documentation: {docs_url}")
-        
+    async def learn_from_docs(
+        self, platform_name: str, docs_url: str
+    ) -> PlatformProfile:
+        logger.info(
+            f"Learning platform '{platform_name}' from documentation: {docs_url}"
+        )
+
         # 1. Fetch documentation content (with a fallback)
         html_content = ""
         try:
             async with httpx.AsyncClient(timeout=10.0) as client:
                 res = await client.get(docs_url, follow_redirects=True)
                 if res.status_code == 200:
-                    html_content = res.text[:15000]  # Take first 15k characters to fit context limits
+                    html_content = res.text[
+                        :15000
+                    ]  # Take first 15k characters to fit context limits
                 else:
-                    html_content = f"Failed to fetch content, status code: {res.status_code}"
+                    html_content = (
+                        f"Failed to fetch content, status code: {res.status_code}"
+                    )
         except Exception as e:
-            logger.warning(f"Failed to fetch live documentation: {e}. Falling back to LLM general knowledge.")
+            logger.warning(
+                f"Failed to fetch live documentation: {e}. Falling back to LLM general knowledge."
+            )
             html_content = f"Unreachable URL: {docs_url}. Please use general knowledge to guess the API structure."
 
         # 2. Extract API spec and platform capabilities using LLM
@@ -44,7 +58,9 @@ Return ONLY a JSON response in the following format (no markdown blocks, no text
   "api_endpoints": {{"endpoint_name": "path_or_description"}}
 }}
 """
-        response = await self.model_router.async_route_and_generate(prompt, task_type="general", max_cost=0.015)
+        response = await self.model_router.async_route_and_generate(
+            prompt, task_type="general", max_cost=0.015
+        )
         text = response.get("text", "{}").strip()
 
         # Clean markdown code block wraps
@@ -68,7 +84,7 @@ Return ONLY a JSON response in the following format (no markdown blocks, no text
                 "capabilities": ["web_hosting"],
                 "deploy_methods": ["git_push"],
                 "sdk_code": f"class {platform_name.capitalize()}Client:\n    pass",
-                "api_endpoints": {}
+                "api_endpoints": {},
             }
 
         profile = PlatformProfile(
@@ -84,7 +100,7 @@ Return ONLY a JSON response in the following format (no markdown blocks, no text
             status="beta",
             learned_at=datetime.datetime.now(datetime.timezone.utc),
             last_updated=datetime.datetime.now(datetime.timezone.utc),
-            success_rate=1.0
+            success_rate=1.0,
         )
 
         self.registry.register_platform(profile)

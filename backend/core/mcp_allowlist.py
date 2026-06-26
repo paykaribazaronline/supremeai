@@ -1,17 +1,21 @@
 from __future__ import annotations
 
 import os
-from typing import Any, Dict, List
+from typing import Any
 
 
-def get_mcp_servers() -> Dict[str, Any]:
-    settings: Dict[str, Any] = {
+def get_mcp_servers() -> dict[str, Any]:
+    settings: dict[str, Any] = {
         "github": {
             "command": "uvx",
             "args": ["mcp-server-github"],
             "env": {"GITHUB_TOKEN": os.getenv("GITHUB_TOKEN", "")},
             "allowed_paths": ["/api/v1/gateway"],
-            "allowed_tools": ["search_repositories", "get_file_contents", "create_issue"],
+            "allowed_tools": [
+                "search_repositories",
+                "get_file_contents",
+                "create_issue",
+            ],
         },
         "slack": {
             "command": "uvx",
@@ -22,7 +26,10 @@ def get_mcp_servers() -> Dict[str, Any]:
         },
         "filesystem": {
             "command": "uvx",
-            "args": ["mcp-server-filesystem", os.getenv("MCP_ALLOWED_DIR", os.getcwd())],
+            "args": [
+                "mcp-server-filesystem",
+                os.getenv("MCP_ALLOWED_DIR", os.getcwd()),
+            ],
             "allowed_paths": ["/api/v1/gateway"],
             "allowed_tools": ["read_file", "write_file", "list_directory"],
         },
@@ -32,15 +39,19 @@ def get_mcp_servers() -> Dict[str, Any]:
 
 class MCPAllowlist:
     @staticmethod
-    def validate_server(name: str) -> Dict[str, Any]:
+    def validate_server(name: str) -> dict[str, Any]:
         servers = get_mcp_servers()
         server = servers.get(name)
         if not server:
             return {"allowed": False, "reason": "unknown mcp server"}
-        return {"allowed": True, "server": name, "tools": server.get("allowed_tools", [])}
+        return {
+            "allowed": True,
+            "server": name,
+            "tools": server.get("allowed_tools", []),
+        }
 
     @staticmethod
-    def allowed_tools(server_name: str, requested: List[str]) -> Dict[str, Any]:
+    def allowed_tools(server_name: str, requested: list[str]) -> dict[str, Any]:
         info = MCPAllowlist.validate_server(server_name)
         if not info["allowed"]:
             return {"allowed": False, "denied": requested}

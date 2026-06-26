@@ -12,7 +12,7 @@ removing and topologically sorting skills.
 
 from __future__ import annotations
 
-from typing import List, Dict, Any
+from typing import Any
 
 import networkx as nx
 
@@ -28,7 +28,7 @@ class SkillGraph:
     def __init__(self) -> None:
         self._graph: nx.DiGraph = nx.DiGraph()
 
-    def add_skill(self, skill_id: str, metadata: Dict[str, Any] | None = None) -> None:
+    def add_skill(self, skill_id: str, metadata: dict[str, Any] | None = None) -> None:
         """Add a skill to the graph.
 
         Parameters
@@ -49,18 +49,20 @@ class SkillGraph:
             self._graph.add_edge(dep, skill_id)
         if not nx.is_directed_acyclic_graph(self._graph):
             self._graph.remove_node(skill_id)
-            raise ValueError(f"Adding skill '{skill_id}' creates a cycle in the skill graph")
+            raise ValueError(
+                f"Adding skill '{skill_id}' creates a cycle in the skill graph"
+            )
 
     def remove_skill(self, skill_id: str) -> None:
         """Remove a skill and all incident edges from the graph."""
         self._graph.remove_node(skill_id)
 
-    def get_skill_metadata(self, skill_id: str) -> Dict[str, Any] | None:
+    def get_skill_metadata(self, skill_id: str) -> dict[str, Any] | None:
         if self._graph.has_node(skill_id):
             return self._graph.nodes[skill_id].get("metadata")
         return None
 
-    def resolve_execution_order(self) -> List[str]:
+    def resolve_execution_order(self) -> list[str]:
         """Return a topologically sorted list of skill IDs respecting dependencies."""
         if not nx.is_directed_acyclic_graph(self._graph):
             raise ValueError("Skill graph contains cycles – cannot resolve order")

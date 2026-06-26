@@ -1,7 +1,10 @@
 from fastapi.testclient import TestClient
+
 from core.app import app
 
+
 client = TestClient(app)
+
 
 def test_simulator_profile_endpoints():
     # Get Profile
@@ -14,16 +17,19 @@ def test_simulator_profile_endpoints():
     # Update Profile
     resp = client.post(
         "/api/simulator/profile?userId=testuser",
-        json={"installQuota": 10, "device": {"type": "IPHONE_13"}}
+        json={"installQuota": 10, "device": {"type": "IPHONE_13"}},
     )
     assert resp.status_code == 200
     data = resp.json()
     assert data["installQuota"] == 10
     assert data["device"]["type"] == "IPHONE_13"
 
+
 def test_simulator_install_uninstall():
     # Install app
-    resp = client.post("/api/simulator/install?userId=testuser", json={"appId": "myapp"})
+    resp = client.post(
+        "/api/simulator/install?userId=testuser", json={"appId": "myapp"}
+    )
     assert resp.status_code == 200
     data = resp.json()
     assert data["success"] is True
@@ -58,6 +64,7 @@ def test_simulator_install_uninstall():
     resp = client.delete("/api/simulator/install/myapp?userId=testuser")
     assert resp.status_code == 200
     assert resp.json()["success"] is True
+
 
 def test_browser_endpoints():
     # Surf Status

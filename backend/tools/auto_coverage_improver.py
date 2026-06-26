@@ -1,11 +1,11 @@
-import os
-import asyncio
-from typing import Dict, Any, List
 import argparse
-from loguru import logger
+import asyncio
+import os
+from typing import Any
 
-from backend.tools.coverage_auditor import CoverageAuditor
 from backend.tools.auto_test_generator import AutoTestGenerator
+from backend.tools.coverage_auditor import CoverageAuditor
+from loguru import logger
 
 
 class AutoCoverageImprover:
@@ -24,7 +24,7 @@ class AutoCoverageImprover:
         coverage_report_path: str,
         min_coverage_target: float = 80.0,
         dry_run: bool = False,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Analyzes a coverage report, identifies gaps, and generates tests to fill them.
 
@@ -36,30 +36,47 @@ class AutoCoverageImprover:
         Returns:
             A report of the actions taken.
         """
-        logger.info(f"Starting coverage improvement run for report: {coverage_report_path}")
+        logger.info(
+            f"Starting coverage improvement run for report: {coverage_report_path}"
+        )
 
-        gaps = self.auditor.find_gaps(coverage_report_path, min_coverage=min_coverage_target)
+        gaps = self.auditor.find_gaps(
+            coverage_report_path, min_coverage=min_coverage_target
+        )
 
         if not gaps:
             logger.info("No coverage gaps found. Excellent work!")
-            return {"status": "success", "message": "No coverage gaps found.", "gaps_found": 0, "tests_generated": 0}
+            return {
+                "status": "success",
+                "message": "No coverage gaps found.",
+                "gaps_found": 0,
+                "tests_generated": 0,
+            }
 
-        logger.info(f"Found {len(gaps)} file(s) with coverage below {min_coverage_target}%.")
+        logger.info(
+            f"Found {len(gaps)} file(s) with coverage below {min_coverage_target}%."
+        )
 
         generation_results = []
         for gap in gaps:
-            logger.info(f"Attempting to generate tests for '{gap.file_path}' (Coverage: {gap.coverage}%)")
+            logger.info(
+                f"Attempting to generate tests for '{gap.file_path}' (Coverage: {gap.coverage}%)"
+            )
             if not os.path.exists(gap.file_path):
                 logger.warning(f"Source file not found, skipping: {gap.file_path}")
                 continue
 
-            result = await self.generator.generate_and_save(gap.file_path, run_tests=not dry_run)
+            result = await self.generator.generate_and_save(
+                gap.file_path, run_tests=not dry_run
+            )
             generation_results.append(result)
 
         return {
             "status": "completed",
             "gaps_found": len(gaps),
-            "tests_generated": sum(1 for r in generation_results if r.get("status") == "success"),
+            "tests_generated": sum(
+                1 for r in generation_results if r.get("status") == "success"
+            ),
             "results": generation_results,
         }
 
@@ -70,19 +87,18 @@ async def main():
         description="Automatically find and fix test coverage gaps."
     )
     parser.add_argument(
-        "coverage_report",
-        help="Path to the coverage.xml or coverage.json report file."
+        "coverage_report", help="Path to the coverage.xml or coverage.json report file."
     )
     parser.add_argument(
         "--min-target",
         type=float,
         default=80.0,
-        help="The minimum coverage percentage to aim for. Default: 80.0"
+        help="The minimum coverage percentage to aim for. Default: 80.0",
     )
     parser.add_argument(
         "--dry-run",
         action="store_true",
-        help="If set, will identify gaps and generate tests without saving files or running tests."
+        help="If set, will identify gaps and generate tests without saving files or running tests.",
     )
     args = parser.parse_args()
 
@@ -90,9 +106,10 @@ async def main():
     report = await improver.run(
         coverage_report_path=args.coverage_report,
         min_coverage_target=args.min_target,
-        dry_run=args.dry_run
+        dry_run=args.dry_run,
     )
     logger.info(f"Run completed. Report: {report}")
+
 
 if __name__ == "__main__":
     asyncio.run(main())

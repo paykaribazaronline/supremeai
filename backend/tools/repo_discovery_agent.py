@@ -1,19 +1,26 @@
 from loguru import logger
 
+
 class RepoDiscoveryAgent:
     def __init__(self, token: str = None):
         self.token = token or ""
         if not self.token:
-            logger.warning("RepoDiscoveryAgent initialized without a token; real API operations disabled.")
+            logger.warning(
+                "RepoDiscoveryAgent initialized without a token; real API operations disabled."
+            )
         else:
             logger.info("RepoDiscoveryAgent initialized with token.")
 
     def _require_token(self) -> str:
         if not self.token:
-            raise RuntimeError("GitHub token is required for repository discovery and integration.")
+            raise RuntimeError(
+                "GitHub token is required for repository discovery and integration."
+            )
         return self.token
 
-    def discover_repos(self, requirement: str, tech_stack: list, criteria: dict) -> list:
+    def discover_repos(
+        self, requirement: str, tech_stack: list, criteria: dict
+    ) -> list:
         logger.info(f"Discovering repos for '{requirement}' using stack {tech_stack}")
         return [
             {
@@ -39,7 +46,9 @@ class RepoDiscoveryAgent:
         }
 
     def implement_repo(self, repo_url: str, method: str, target_project: str) -> dict:
-        logger.info(f"Implementing repo {repo_url} via method '{method}' into {target_project}")
+        logger.info(
+            f"Implementing repo {repo_url} via method '{method}' into {target_project}"
+        )
         return {
             "status": "success",
             "repo_url": repo_url,

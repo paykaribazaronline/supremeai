@@ -19,9 +19,21 @@ class WebFallbackAgent:
         # and execute task actions (click, fill, screenshot, scrape).
         mock_steps = [
             {"step": 1, "action": f"Navigate to {url}", "status": "completed"},
-            {"step": 2, "action": "Auto-login using email service credentials", "status": "completed"},
-            {"step": 3, "action": f"Perform task: {task.get('action')}", "status": "completed"},
-            {"step": 4, "action": "Extract results from UI elements", "status": "completed"},
+            {
+                "step": 2,
+                "action": "Auto-login using email service credentials",
+                "status": "completed",
+            },
+            {
+                "step": 3,
+                "action": f"Perform task: {task.get('action')}",
+                "status": "completed",
+            },
+            {
+                "step": 4,
+                "action": "Extract results from UI elements",
+                "status": "completed",
+            },
         ]
 
         return {

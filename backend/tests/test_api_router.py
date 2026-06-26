@@ -1,16 +1,19 @@
 import os
 
+
 os.environ.setdefault("OPENROUTER_API_KEY", "")
 os.environ.setdefault("HF_API_KEY", "")
 os.environ.setdefault("OLLAMA_URL", "http://127.0.0.1:11434")
 
-import pytest
 from unittest.mock import MagicMock
+
+import pytest
 
 
 class TestApiRouter:
     def test_register_and_supports(self):
         from brain.api_router import ApiRouter
+
         router = ApiRouter()
         handler = MagicMock(return_value={"ok": True})
         router.register("echo", handler)
@@ -19,6 +22,7 @@ class TestApiRouter:
 
     def test_capabilities_returns_signatures(self):
         from brain.api_router import ApiRouter
+
         router = ApiRouter()
         fn = lambda x: x
         router.register("transform", fn)
@@ -27,6 +31,7 @@ class TestApiRouter:
 
     def test_dispatch_calls_handler(self):
         from brain.api_router import ApiRouter
+
         router = ApiRouter()
         handler = MagicMock(return_value={"result": 42})
         router.register("compute", handler)
@@ -36,12 +41,14 @@ class TestApiRouter:
 
     def test_dispatch_missing_capability_raises(self):
         from brain.api_router import ApiRouter
+
         router = ApiRouter()
         with pytest.raises(KeyError):
             router.dispatch("unknown", {})
 
     def test_dispatch_handler_exception_returns_error(self):
         from brain.api_router import ApiRouter
+
         router = ApiRouter()
         router.register("fail", MagicMock(side_effect=RuntimeError("boom")))
         out = router.dispatch("fail", {})
@@ -50,6 +57,7 @@ class TestApiRouter:
 
     def test_register_lambda_inspect_fails_stores_none_signature(self):
         from brain.api_router import ApiRouter
+
         router = ApiRouter()
         broken = "not callable"
         router.register("bad", broken)

@@ -1,11 +1,12 @@
-import typing
 import os
 import sqlite3
-from loguru import logger
 from contextlib import contextmanager
 
+from loguru import logger
+
+
 class AuditLogger:
-    def __init__(self, db_path: typing.Optional[str] = None):
+    def __init__(self, db_path: str | None = None):
         if db_path is None:
             base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
             self.db_path = os.path.join(base_dir, "data", "supreme_memory.db")
@@ -24,7 +25,8 @@ class AuditLogger:
     def _init_db(self):
         os.makedirs(os.path.dirname(self.db_path), exist_ok=True)
         with self._get_conn() as conn:
-            conn.execute("""
+            conn.execute(
+                """
                 CREATE TABLE IF NOT EXISTS audit_logs (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     action_type TEXT,
@@ -32,17 +34,20 @@ class AuditLogger:
                     reasoning TEXT,
                     timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
-            """)
+            """
+            )
             conn.commit()
 
     def log_decision(self, action_type: str, decision_details: str, reasoning: str):
         """Logs an autonomous decision or rotation details to the tamper-proof audit trail."""
-        logger.info(f"[AUDIT LOG] {action_type} - Details: {decision_details} - Reason: {reasoning}")
+        logger.info(
+            f"[AUDIT LOG] {action_type} - Details: {decision_details} - Reason: {reasoning}"
+        )
         try:
             with self._get_conn() as conn:
                 conn.execute(
                     "INSERT INTO audit_logs (action_type, decision_details, reasoning) VALUES (?, ?, ?)",
-                    (action_type, decision_details, reasoning)
+                    (action_type, decision_details, reasoning),
                 )
                 conn.commit()
         except Exception as e:

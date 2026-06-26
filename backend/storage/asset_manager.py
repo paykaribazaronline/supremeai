@@ -1,7 +1,8 @@
 import os
-from typing import Optional
-from loguru import logger
+
 from firebase_admin import storage as firebase_storage
+from loguru import logger
+
 
 class AssetManager:
     """
@@ -13,7 +14,7 @@ class AssetManager:
         self.bucket = bucket
         self._supabase_client = None
         self._firebase_bucket = None
-        
+
         # Initialize Firebase
         try:
             # Assumes firebase_admin.initialize_app() is called in app.py
@@ -27,6 +28,7 @@ class AssetManager:
         if self._supabase_client is None:
             try:
                 from supabase import create_client
+
                 url = os.getenv("SUPABASE_URL")
                 key = os.getenv("SUPABASE_KEY")
                 if url and key:
@@ -35,7 +37,7 @@ class AssetManager:
                 logger.warning(f"Supabase client unavailable: {exc}")
         return self._supabase_client
 
-    def get_asset_url(self, path: str, expires_in: int = 3600) -> Optional[str]:
+    def get_asset_url(self, path: str, expires_in: int = 3600) -> str | None:
         # Try Firebase first
         if self._firebase_bucket:
             try:
@@ -44,7 +46,7 @@ class AssetManager:
                 return blob.generate_signed_url(version="v4", expiration=expires_in)
             except Exception as exc:
                 logger.error(f"Failed to generate Firebase URL: {exc}")
-                
+
         # Fallback to Supabase
         supabase = self._get_supabase()
         if supabase:
@@ -55,9 +57,14 @@ class AssetManager:
                 logger.error(f"Failed to get Supabase public URL: {exc}")
         return None
 
-    def upload_asset(self, local_path: str, remote_path: str, content_type: str = "application/octet-stream") -> bool:
+    def upload_asset(
+        self,
+        local_path: str,
+        remote_path: str,
+        content_type: str = "application/octet-stream",
+    ) -> bool:
         success = False
-        
+
         # Primary: Firebase
         if self._firebase_bucket:
             try:
@@ -67,24 +74,26 @@ class AssetManager:
                 success = True
             except Exception as exc:
                 logger.error(f"Firebase upload failed: {exc}")
-                
+
         # Backup: Supabase
         supabase = self._get_supabase()
         if supabase:
             try:
                 with open(local_path, "rb") as f:
-                    supabase.storage.from_(self.bucket).upload(remote_path, f, {"content-type": content_type})
+                    supabase.storage.from_(self.bucket).upload(
+                        remote_path, f, {"content-type": content_type}
+                    )
                 logger.info(f"Uploaded to Supabase: {remote_path}")
                 success = True
             except Exception as exc:
                 # If Supabase fails but Firebase succeeded, we still consider it a success
                 logger.error(f"Supabase upload failed: {exc}")
-                
+
         return success
 
     def download_asset(self, remote_path: str, local_path: str) -> bool:
         os.makedirs(os.path.dirname(local_path), exist_ok=True)
-        
+
         # Try Firebase first
         if self._firebase_bucket:
             try:
@@ -94,7 +103,7 @@ class AssetManager:
                     return True
             except Exception as exc:
                 logger.error(f"Firebase download failed: {exc}")
-                
+
         # Fallback to Supabase
         supabase = self._get_supabase()
         if supabase:
@@ -105,12 +114,12 @@ class AssetManager:
                 return True
             except Exception as exc:
                 logger.error(f"Supabase download failed: {exc}")
-                
+
         return False
 
     def delete_asset(self, remote_path: str) -> bool:
         success = False
-        
+
         # Delete from Firebase
         if self._firebase_bucket:
             try:
@@ -120,7 +129,7 @@ class AssetManager:
                     success = True
             except Exception as exc:
                 logger.error(f"Firebase delete failed: {exc}")
-                
+
         # Delete from Supabase
         supabase = self._get_supabase()
         if supabase:
@@ -129,5 +138,5 @@ class AssetManager:
                 success = True
             except Exception as exc:
                 logger.error(f"Supabase delete failed: {exc}")
-                
+
         return success

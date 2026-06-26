@@ -1,20 +1,21 @@
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from loguru import logger
 
 
 class LocalOCRExtractor:
-    def __init__(self, languages: Optional[List[str]] = None):
+    def __init__(self, languages: list[str] | None = None):
         self.languages = languages or ["en", "bn"]
         self.ocr_available = False
 
-    def extract_text(self, image_path: str) -> Dict[str, Any]:
+    def extract_text(self, image_path: str) -> dict[str, Any]:
         try:
             import easyocr  # type: ignore[import-untyped]
+
             reader = easyocr.Reader(self.languages, gpu=False)
             raw_results = reader.readtext(image_path, detail=1)
             text_lines = []
-            for (_bbox, text, confidence) in raw_results:
+            for _bbox, text, confidence in raw_results:
                 text_lines.append({"text": text, "confidence": confidence})
             full_text = "\n".join(item["text"] for item in text_lines)
             return {"success": True, "text": full_text, "lines": text_lines}
@@ -22,14 +23,18 @@ class LocalOCRExtractor:
             logger.error(f"OCR failed: {exc}")
             return {"success": False, "error": str(exc), "text": ""}
 
-    def parse_to_rows(self, text: str, columns: Optional[List[str]] = None) -> Dict[str, Any]:
+    def parse_to_rows(
+        self, text: str, columns: list[str] | None = None
+    ) -> dict[str, Any]:
         try:
-            rows: List[Dict[str, Any]] = []
+            rows: list[dict[str, Any]] = []
             for raw_line in text.splitlines():
-                cells = [cell.strip() for cell in raw_line.strip().strip("|").split("|")]
+                cells = [
+                    cell.strip() for cell in raw_line.strip().strip("|").split("|")
+                ]
                 if columns:
                     if len(cells) == len(columns):
-                        rows.append(dict(zip(columns, cells)))
+                        rows.append(dict(zip(columns, cells, strict=False)))
                 else:
                     rows.append({"data": cells})
             return {"success": True, "rows": rows, "frame": None}
@@ -37,9 +42,10 @@ class LocalOCRExtractor:
             logger.error(f"Table parsing failed: {exc}")
             return {"success": False, "error": str(exc), "rows": []}
 
-    def export_to_excel(self, rows: List[Dict[str, Any]], path: str) -> Dict[str, Any]:
+    def export_to_excel(self, rows: list[dict[str, Any]], path: str) -> dict[str, Any]:
         try:
             from openpyxl import Workbook
+
             wb = Workbook()
             ws = wb.active
             if rows:

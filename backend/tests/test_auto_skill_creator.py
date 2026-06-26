@@ -1,6 +1,7 @@
-import sys
-import os
 import importlib.util
+import os
+import sys
+
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 path = os.path.join(ROOT, "evolution", "auto_skill_creator.py")
@@ -11,7 +12,8 @@ spec.loader.exec_module(module)
 AutoSkillCreator = module.AutoSkillCreator
 import subprocess
 import tempfile
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
+from unittest.mock import patch
 
 
 def _make_creator(rules_engine=None, skills_dir=None):
@@ -40,9 +42,7 @@ def test_generate_skill_code_special_chars():
 def test_analyze_demand_patterns_from_rules():
     mock_rules = MagicMock()
     mock_rules.rules = {
-        "patterns": {
-            "repeated_tasks": ["send_email", "process_invoice"]
-        }
+        "patterns": {"repeated_tasks": ["send_email", "process_invoice"]}
     }
     creator, _ = _make_creator(rules_engine=mock_rules)
     task_history = []
@@ -74,11 +74,7 @@ def test_analyze_demand_patterns_no_engine_no_failures():
 
 def test_analyze_demand_patterns_deduplicates():
     mock_rules = MagicMock()
-    mock_rules.rules = {
-        "patterns": {
-            "repeated_tasks": ["send_email", "send_email"]
-        }
-    }
+    mock_rules.rules = {"patterns": {"repeated_tasks": ["send_email", "send_email"]}}
     creator, _ = _make_creator(rules_engine=mock_rules)
     patterns = creator.analyze_demand_patterns([])
     assert patterns == ["send_email"]
@@ -88,7 +84,7 @@ def test_register_new_skill_with_generated_code():
     creator, skills_dir = _make_creator()
     skill = {
         "skill_name": "test_skill",
-        "generated_code": 'class TestSkill:\n    def run(self, payload): pass\n',
+        "generated_code": "class TestSkill:\n    def run(self, payload): pass\n",
     }
     result = creator.register_new_skill(skill)
     assert result["skill_name"] == "test_skill"
@@ -96,7 +92,7 @@ def test_register_new_skill_with_generated_code():
     assert result["filenae"] == "test_skill.py"
     path = result["path"]
     assert os.path.exists(path)
-    with open(path, "r", encoding="utf-8") as f:
+    with open(path, encoding="utf-8") as f:
         content = f.read()
     assert "class TestSkill:" in content
 
@@ -107,7 +103,7 @@ def test_register_new_skill_generates_code_when_missing():
     result = creator.register_new_skill(skill)
     assert result["status"] == "registered"
     assert os.path.exists(result["path"])
-    assert "class GenSkill:" in open(result["path"], "r", encoding="utf-8").read()
+    assert "class GenSkill:" in open(result["path"], encoding="utf-8").read()
 
 
 def test_register_new_skill_creates_directory():
@@ -122,7 +118,9 @@ def test_register_new_skill_creates_directory():
 
 def test_test_new_skill_passes_valid_code():
     creator, _ = _make_creator()
-    with tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False, encoding="utf-8") as f:
+    with tempfile.NamedTemporaryFile(
+        mode="w", suffix=".py", delete=False, encoding="utf-8"
+    ) as f:
         f.write("class GoodSkill:\n    def run(self, payload): return {}\n")
         path = f.name
     try:
@@ -135,7 +133,9 @@ def test_test_new_skill_passes_valid_code():
 
 def test_test_new_skill_fails_syntax_error():
     creator, _ = _make_creator()
-    with tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False, encoding="utf-8") as f:
+    with tempfile.NamedTemporaryFile(
+        mode="w", suffix=".py", delete=False, encoding="utf-8"
+    ) as f:
         f.write("class BadSkill:\n    def run(self, payload):\n        return }\n")
         path = f.name
     try:
@@ -157,7 +157,9 @@ def test_test_new_skill_file_not_found():
 def test_test_new_skill_subprocess_timeout(mock_run):
     creator, _ = _make_creator()
     mock_run.side_effect = subprocess.TimeoutExpired(cmd=["python"], timeout=30)
-    with tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False, encoding="utf-8") as f:
+    with tempfile.NamedTemporaryFile(
+        mode="w", suffix=".py", delete=False, encoding="utf-8"
+    ) as f:
         f.write("class Skill:\n    pass\n")
         path = f.name
     try:

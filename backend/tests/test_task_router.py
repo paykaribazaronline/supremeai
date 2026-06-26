@@ -1,28 +1,35 @@
 import os
 
+
 os.environ.setdefault("OPENROUTER_API_KEY", "")
 os.environ.setdefault("HF_API_KEY", "")
 os.environ.setdefault("OLLAMA_URL", "http://127.0.0.1:11434")
 
-import pytest
 import asyncio
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
+from unittest.mock import patch
+
+import pytest
 
 
 @pytest.fixture
 def router():
     from core.task_router import TaskRouter
+
     return TaskRouter()
 
 
 class TestTaskRouterProcessRequirement:
-    @pytest.mark.parametrize("desc,expected_type", [
-        ("write a python script to sort a list", "coding"),
-        ("scrape data from example.com", "web_scraping"),
-        ("run a system command to list files", "system_control"),
-        ("generate an image of a sunset", "image_generation"),
-        ("what is the weather today", "general"),
-    ])
+    @pytest.mark.parametrize(
+        "desc,expected_type",
+        [
+            ("write a python script to sort a list", "coding"),
+            ("scrape data from example.com", "web_scraping"),
+            ("run a system command to list files", "system_control"),
+            ("generate an image of a sunset", "image_generation"),
+            ("what is the weather today", "general"),
+        ],
+    )
     def test_task_type_detection(self, router, desc, expected_type):
         result = router.process_requirement(desc)
         assert result["task_type"] == expected_type
@@ -39,25 +46,31 @@ class TestTaskRouterProcessRequirement:
         result = router.process_requirement("x" * 2100, max_cost=0.01)
         assert result["token_budget"] == "large"
 
-    @pytest.mark.parametrize("desc,expected_modality", [
-        ("look at this image", "image"),
-        ("watch a video", "multimodal"),
-        ("speak this text", "text"),
-        ("analyze a photo", "image"),
-        ("just type some text", "text"),
-    ])
+    @pytest.mark.parametrize(
+        "desc,expected_modality",
+        [
+            ("look at this image", "image"),
+            ("watch a video", "multimodal"),
+            ("speak this text", "text"),
+            ("analyze a photo", "image"),
+            ("just type some text", "text"),
+        ],
+    )
     def test_modality_detection(self, router, desc, expected_modality):
         result = router.process_requirement(desc)
         assert result["modality"] == expected_modality
 
-    @pytest.mark.parametrize("desc,expected_depth", [
-        ("do some math homework", "high"),
-        ("analyze this dataset", "high"),
-        ("research the history of rome", "high"),
-        ("look at this picture", "medium"),
-        ("watch this video", "medium"),
-        ("say hello", "low"),
-    ])
+    @pytest.mark.parametrize(
+        "desc,expected_depth",
+        [
+            ("do some math homework", "high"),
+            ("analyze this dataset", "high"),
+            ("research the history of rome", "high"),
+            ("look at this picture", "medium"),
+            ("watch this video", "medium"),
+            ("say hello", "low"),
+        ],
+    )
     def test_reasoning_depth(self, router, desc, expected_depth):
         result = router.process_requirement(desc)
         assert result["reasoning_depth"] == expected_depth
@@ -120,7 +133,9 @@ class TestTaskRouterTriggerExternalSkill:
     @patch("core.task_router.httpx.AsyncClient")
     def test_trigger_success(self, mock_client_cls, router):
         mock_client_cls.return_value = FakeClient({"ok": True, "data": "mocked"})
-        result = asyncio.run(router.trigger_external_skill("http://example.com/webhook", {"key": "val"}))
+        result = asyncio.run(
+            router.trigger_external_skill("http://example.com/webhook", {"key": "val"})
+        )
         assert result.get("ok") is True
         assert "data" not in result.get("error", "")
         assert result.get("ok") is True

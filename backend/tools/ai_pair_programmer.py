@@ -1,15 +1,18 @@
-from typing import Dict, Any, Optional
+from typing import Any
+
+from fastapi import APIRouter
+from fastapi import HTTPException
 from loguru import logger
 from pydantic import BaseModel
-from fastapi import APIRouter, HTTPException
+
 
 router = APIRouter(prefix="/pair", tags=["ai-pair-programmer"])
 
 
 class IssueRequest(BaseModel):
     issue_description: str
-    repo: Optional[str] = None
-    branch: Optional[str] = "main"
+    repo: str | None = None
+    branch: str | None = "main"
     create_pr: bool = False
 
 
@@ -17,19 +20,30 @@ class AIPairProgrammer:
     def __init__(self):
         logger.info("Initialized AIPairProgrammer")
 
-    async def _call_llm(self, prompt: str, task_type: str = "reasoning", max_cost: float = 0.03) -> str:
+    async def _call_llm(
+        self, prompt: str, task_type: str = "reasoning", max_cost: float = 0.03
+    ) -> str:
         try:
             from brain.model_router import ModelRouter
+
             router = ModelRouter()
-            result = await router.async_route_and_generate(prompt, task_type=task_type, max_cost=max_cost)
+            result = await router.async_route_and_generate(
+                prompt, task_type=task_type, max_cost=max_cost
+            )
             return result.get("text", "") if isinstance(result, dict) else ""
         except Exception as exc:
             logger.error(f"LLM call failed: {exc}")
             return ""
 
-    async def solve_issue(self, issue_description: str, repo: Optional[str] = None, branch: str = "main", create_pr: bool = False) -> Dict[str, Any]:
+    async def solve_issue(
+        self,
+        issue_description: str,
+        repo: str | None = None,
+        branch: str = "main",
+        create_pr: bool = False,
+    ) -> dict[str, Any]:
         logger.info(f"Starting pair programming session for: {issue_description[:80]}")
-        
+
         # Step 1: Plan
         plan_prompt = (
             "You are a senior software engineer. Given the following issue, create a concise "
@@ -38,8 +52,8 @@ class AIPairProgrammer:
         )
         plan = await self._call_llm(plan_prompt, task_type="reasoning", max_cost=0.02)
         if not plan:
-            plan = f"1. Analyze issue\n2. Write fix\n3. Add tests\n4. Document changes"
-        
+            plan = "1. Analyze issue\n2. Write fix\n3. Add tests\n4. Document changes"
+
         # Step 2: Generate code
         code_prompt = (
             "You are a senior software engineer. Generate the minimal, clean, production-ready "
@@ -62,7 +76,9 @@ class AIPairProgrammer:
         # Step 4: Optionally create PR
         pr_result = None
         if create_pr and repo:
-            pr_result = await self._create_github_pr(repo, branch, issue_description, code)
+            pr_result = await self._create_github_pr(
+                repo, branch, issue_description, code
+            )
 
         return {
             "status": "success",
@@ -74,23 +90,28 @@ class AIPairProgrammer:
             "pr": pr_result,
         }
 
-    async def _create_github_pr(self, repo: str, branch: str, issue: str, code: str) -> Dict[str, Any]:
+    async def _create_github_pr(
+        self, repo: str, branch: str, issue: str, code: str
+    ) -> dict[str, Any]:
         """Delegate PR creation to the auto_pr_pipeline."""
         try:
             from tools.auto_pr_pipeline import AutoPRPipeline
+
             pipeline = AutoPRPipeline()
             return await pipeline.create_pr(
                 repo=repo,
                 branch=branch,
                 title=f"AI Fix: {issue[:60]}",
                 body=f"## AI Generated Fix\n\n**Issue:** {issue}\n\n**Changes:**\n```python\n{code[:500]}\n```",
-                files={"ai_fix.py": code}
+                files={"ai_fix.py": code},
             )
         except Exception as exc:
             logger.error(f"PR creation failed: {exc}")
             return {"status": "error", "error": str(exc)}
 
-    async def review_code(self, code: str, context: Optional[str] = None) -> Dict[str, Any]:
+    async def review_code(
+        self, code: str, context: str | None = None
+    ) -> dict[str, Any]:
         """Perform AI code review."""
         prompt = (
             "You are a senior code reviewer. Analyze the following code and provide:\n"
@@ -102,7 +123,7 @@ class AIPairProgrammer:
         )
         if context:
             prompt += f"\n\nContext: {context}"
-        
+
         review = await self._call_llm(prompt, task_type="reasoning", max_cost=0.03)
         return {
             "status": "success",
@@ -130,7 +151,7 @@ async def solve_issue(request: IssueRequest):
 
 
 @router.post("/review")
-async def review_code(payload: Dict[str, Any]):
+async def review_code(payload: dict[str, Any]):
     code = payload.get("code", "")
     context = payload.get("context")
     if not code:

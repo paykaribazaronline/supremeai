@@ -11,28 +11,26 @@ Tests cover:
 - Token estimation and prompt truncation
 - Budget manager prepare_prompt
 """
+
 from __future__ import annotations
 
 import time
 
-from core.free_tier_tracker import (
-    FreeTierTracker,
-    ProviderBudget,
-    _Window,
-    _DayWindow,
-    get_tracker,
-)
-from core.token_budget import (
-    TokenBudgetManager,
-    estimate_tokens,
-    truncate_to_token_limit,
-    get_budget_manager,
-)
+from core.free_tier_tracker import FreeTierTracker
+from core.free_tier_tracker import ProviderBudget
+from core.free_tier_tracker import _DayWindow
+from core.free_tier_tracker import _Window
+from core.free_tier_tracker import get_tracker
+from core.token_budget import TokenBudgetManager
+from core.token_budget import estimate_tokens
+from core.token_budget import get_budget_manager
+from core.token_budget import truncate_to_token_limit
 
 
 # ===========================================================================
 # _Window / _DayWindow unit tests
 # ===========================================================================
+
 
 class TestRollingWindow:
     def test_count_increments(self):
@@ -74,6 +72,7 @@ class TestDayWindow:
 # ===========================================================================
 # ProviderBudget
 # ===========================================================================
+
 
 class TestProviderBudget:
     def _make_budget(self, rpm=10, tpm=1000, rpd=100) -> ProviderBudget:
@@ -120,14 +119,17 @@ class TestProviderBudget:
 # FreeTierTracker
 # ===========================================================================
 
+
 class TestFreeTierTracker:
     def _make_tracker(self) -> FreeTierTracker:
         # Use tiny limits for easy testing
-        return FreeTierTracker(custom_limits={
-            "alpha": {"rpm": 2, "tpm": 100, "rpd": 10},
-            "beta":  {"rpm": 5, "tpm": 500, "rpd": 50},
-            "gamma": {"rpm": 1, "tpm": 50,  "rpd": 5},
-        })
+        return FreeTierTracker(
+            custom_limits={
+                "alpha": {"rpm": 2, "tpm": 100, "rpd": 10},
+                "beta": {"rpm": 5, "tpm": 500, "rpd": 50},
+                "gamma": {"rpm": 1, "tpm": 50, "rpd": 5},
+            }
+        )
 
     def test_record_and_availability(self):
         t = self._make_tracker()
@@ -198,6 +200,7 @@ class TestFreeTierTracker:
 # Token estimation and truncation
 # ===========================================================================
 
+
 class TestTokenEstimation:
     def test_empty_string(self):
         assert estimate_tokens("") == 0
@@ -227,12 +230,15 @@ class TestTokenEstimation:
 # TokenBudgetManager
 # ===========================================================================
 
+
 class TestTokenBudgetManager:
     def _make_manager(self) -> TokenBudgetManager:
-        return TokenBudgetManager(custom_budgets={
-            "test_provider": {"max_input_tokens": 50, "max_output_tokens": 20},
-            "large_provider": {"max_input_tokens": 200, "max_output_tokens": 100},
-        })
+        return TokenBudgetManager(
+            custom_budgets={
+                "test_provider": {"max_input_tokens": 50, "max_output_tokens": 20},
+                "large_provider": {"max_input_tokens": 200, "max_output_tokens": 100},
+            }
+        )
 
     def test_prepare_prompt_no_truncation_needed(self):
         m = self._make_manager()
@@ -245,9 +251,13 @@ class TestTokenBudgetManager:
         m = self._make_manager()
         long_prompt = "word " * 500  # ~625 estimated tokens
         # reserve_output_tokens=False so max_input_tokens=200 is applied directly
-        result, meta = m.prepare_prompt(long_prompt, provider="large_provider", reserve_output_tokens=False)
+        result, meta = m.prepare_prompt(
+            long_prompt, provider="large_provider", reserve_output_tokens=False
+        )
         assert meta["truncated"] is True
-        assert estimate_tokens(result) <= 205  # within 200 + small sentence-boundary buffer
+        assert (
+            estimate_tokens(result) <= 205
+        )  # within 200 + small sentence-boundary buffer
 
     def test_fits_in_budget_true_for_short(self):
         m = self._make_manager()

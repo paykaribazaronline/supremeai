@@ -1,14 +1,18 @@
 import typing
-from fastapi import APIRouter, HTTPException
+from datetime import datetime
+from datetime import timezone
+from typing import Any
+
+from fastapi import APIRouter
+from fastapi import HTTPException
 from pydantic import BaseModel
-from typing import Dict, Any, Optional
-from datetime import datetime, timezone
+
 
 router = APIRouter(prefix="/api/simulator", tags=["simulator"])
 
 # Mock database / state store
-PROFILES: typing.Dict[str, typing.Any] = {}
-SESSIONS: typing.Dict[str, typing.Any] = {}
+PROFILES: dict[str, typing.Any] = {}
+SESSIONS: dict[str, typing.Any] = {}
 
 # Default device profiles
 DEVICE_PROFILES = [
@@ -17,45 +21,51 @@ DEVICE_PROFILES = [
         "name": "Google Pixel 6",
         "osVersion": "Android 12",
         "screenResolution": "1080x2400",
-        "densityDpi": 411
+        "densityDpi": 411,
     },
     {
         "type": "IPHONE_13",
         "name": "Apple iPhone 13",
         "osVersion": "iOS 15",
         "screenResolution": "1170x2532",
-        "densityDpi": 460
-    }
+        "densityDpi": 460,
+    },
 ]
+
 
 class DeviceUpdateRequest(BaseModel):
     type: str
-    osVersion: Optional[str] = None
-    screenResolution: Optional[str] = None
-    densityDpi: Optional[int] = None
+    osVersion: str | None = None
+    screenResolution: str | None = None
+    densityDpi: int | None = None
+
 
 class ProfileUpdateRequest(BaseModel):
-    installQuota: Optional[int] = None
-    device: Optional[DeviceUpdateRequest] = None
+    installQuota: int | None = None
+    device: DeviceUpdateRequest | None = None
+
 
 class InstallRequest(BaseModel):
     appId: str
-    deviceProfile: Optional[str] = "PIXEL_6"
+    deviceProfile: str | None = "PIXEL_6"
 
-def get_or_create_profile(user_id: str) -> Dict[str, Any]:
+
+def get_or_create_profile(user_id: str) -> dict[str, Any]:
     if user_id not in PROFILES:
         PROFILES[user_id] = {
             "userId": user_id,
             "installQuota": 5,
             "activeInstalls": 0,
             "device": DEVICE_PROFILES[0],
-            "installedApps": []
+            "installedApps": [],
         }
     return PROFILES[user_id]
+
 
 @router.get("/profile")
 def get_profile(userId: str = "default"):
     return get_or_create_profile(userId)
+
 
 @router.post("/profile")
 def update_profile(updates: ProfileUpdateRequest, userId: str = "default"):
@@ -67,22 +77,28 @@ def update_profile(updates: ProfileUpdateRequest, userId: str = "default"):
         profile["device"].update(device_update)
     return profile
 
+
 @router.post("/install")
 def install_app(req: InstallRequest, userId: str = "default"):
     profile = get_or_create_profile(userId)
-    
+
     if profile["activeInstalls"] >= profile["installQuota"]:
         raise HTTPException(status_code=400, detail="Install quota exceeded")
-        
+
     # Check if already installed
-    existing = next((app for app in profile["installedApps"] if app["appId"] == req.appId), None)
+    existing = next(
+        (app for app in profile["installedApps"] if app["appId"] == req.appId), None
+    )
     if existing:
         return {
             "success": True,
             "app": existing,
-            "quota": {"used": profile["activeInstalls"], "total": profile["installQuota"]}
+            "quota": {
+                "used": profile["activeInstalls"],
+                "total": profile["installQuota"],
+            },
         }
-        
+
     app = {
         "appId": req.appId,
         "appName": f"App {req.appId}",
@@ -91,39 +107,41 @@ def install_app(req: InstallRequest, userId: str = "default"):
         "installedAt": datetime.now(timezone.utc).isoformat(),
         "launchCount": 0,
         "lastLaunchedAt": None,
-        "status": "INSTALLED"
+        "status": "INSTALLED",
     }
-    
+
     profile["installedApps"].append(app)
     profile["activeInstalls"] += 1
-    
+
     return {
         "success": True,
         "app": app,
-        "quota": {"used": profile["activeInstalls"], "total": profile["installQuota"]}
+        "quota": {"used": profile["activeInstalls"], "total": profile["installQuota"]},
     }
+
 
 @router.delete("/install/{appId}")
 def uninstall_app(appId: str, userId: str = "default"):
     profile = get_or_create_profile(userId)
     initial_len = len(profile["installedApps"])
-    profile["installedApps"] = [app for app in profile["installedApps"] if app["appId"] != appId]
-    
+    profile["installedApps"] = [
+        app for app in profile["installedApps"] if app["appId"] != appId
+    ]
+
     if len(profile["installedApps"]) < initial_len:
         profile["activeInstalls"] -= 1
-        
+
     return {"success": True}
+
 
 @router.get("/installed")
 def get_installed_apps(userId: str = "default"):
     profile = get_or_create_profile(userId)
     return {
         "installedApps": profile["installedApps"],
-        "quota": {
-            "used": profile["activeInstalls"],
-            "total": profile["installQuota"]
-        }
+        "quota": {"used": profile["activeInstalls"], "total": profile["installQuota"]},
     }
+
 
 @router.post("/session/start")
 def start_session(appId: str, userId: str = "default"):
@@ -131,11 +149,11 @@ def start_session(appId: str, userId: str = "default"):
     app = next((a for a in profile["installedApps"] if a["appId"] == appId), None)
     if not app:
         raise HTTPException(status_code=404, detail="App not installed")
-        
+
     app["launchCount"] += 1
     app["lastLaunchedAt"] = datetime.now(timezone.utc).isoformat()
     app["status"] = "RUNNING"
-    
+
     session_id = f"sess_{userId}_{appId}"
     session = {
         "sessionId": session_id,
@@ -144,10 +162,11 @@ def start_session(appId: str, userId: str = "default"):
         "state": "RUNNING",
         "startedAt": datetime.now(timezone.utc).isoformat(),
         "activeAppId": appId,
-        "lastHeartbeat": datetime.now(timezone.utc).isoformat()
+        "lastHeartbeat": datetime.now(timezone.utc).isoformat(),
     }
     SESSIONS[userId] = session
     return session
+
 
 @router.post("/session/stop")
 def stop_session(userId: str = "default"):
@@ -161,40 +180,43 @@ def stop_session(userId: str = "default"):
         del SESSIONS[userId]
     return {"success": True}
 
+
 @router.get("/session/status")
 def get_session_status(userId: str = "default"):
     if userId not in SESSIONS:
         return {"hasSession": False}
-        
+
     session = SESSIONS[userId]
     return {
         "hasSession": True,
         "sessionId": session["sessionId"],
         "activeAppId": session["activeAppId"],
         "state": session["state"],
-        "lastHeartbeat": session["lastHeartbeat"]
+        "lastHeartbeat": session["lastHeartbeat"],
     }
+
 
 @router.get("/devices")
 def get_available_devices():
     return DEVICE_PROFILES
+
 
 @router.get("/admin/usage")
 def get_all_usage():
     deployments = []
     for user_id, profile in PROFILES.items():
         for app in profile["installedApps"]:
-            deployments.append({
-                "appId": app["appId"],
-                "deviceType": profile["device"]["type"],
-                "previewUrl": app["previewUrl"],
-                "status": app["status"],
-                "deployedAt": app["installedAt"]
-            })
-    return {
-        "totalDeployments": len(deployments),
-        "deployments": deployments
-    }
+            deployments.append(
+                {
+                    "appId": app["appId"],
+                    "deviceType": profile["device"]["type"],
+                    "previewUrl": app["previewUrl"],
+                    "status": app["status"],
+                    "deployedAt": app["installedAt"],
+                }
+            )
+    return {"totalDeployments": len(deployments), "deployments": deployments}
+
 
 @router.post("/admin/set-quota/{userId}")
 def admin_set_quota(userId: str, quota: int):

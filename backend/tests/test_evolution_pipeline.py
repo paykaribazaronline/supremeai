@@ -1,10 +1,13 @@
-import pytest
 import json
-from unittest.mock import MagicMock, patch
-from evolution.auto_skill_creator import AutoSkillCreator
+from unittest.mock import MagicMock
+from unittest.mock import patch
+
+import pytest
+from skill_loader import SkillLoader
 from skills.installer import SkillInstaller
 from skills.registry import SkillRegistry
-from skill_loader import SkillLoader
+
+from evolution.auto_skill_creator import AutoSkillCreator
 
 
 @pytest.fixture
@@ -12,14 +15,14 @@ def clean_dynamic_skills(tmp_path):
     # Set up temp dir for registry, dynamic and quarantine folders
     reg_path = tmp_path / "skills_registry.json"
     registry = SkillRegistry(registry_path=str(reg_path))
-    
+
     # Configure custom installer with temp skills_dir
     installer = SkillInstaller(registry=registry, skills_dir=str(tmp_path / "dynamic"))
-    
+
     loader = SkillLoader(registry=registry, installer=installer)
     loader.skills_dir = tmp_path / "dynamic"
     loader.skills_dir.mkdir(parents=True, exist_ok=True)
-    
+
     # Mock SkillInstaller constructor to return our temp configured installer
     with patch("evolution.auto_skill_creator.SkillInstaller", return_value=installer):
         yield loader, registry, installer
@@ -33,25 +36,28 @@ MOCK_AI_RESPONSE_JSON = {
             "version": "1.0.0",
             "description": "Mocked sentiment analyzer.",
             "author": "supremeai_agent_id",
-            "tags": []
+            "tags": [],
         },
         "interface": {
             "input_schema": {"type": "object"},
-            "output_schema": {"type": "object"}
+            "output_schema": {"type": "object"},
         },
         "execution": {
             "runtime": "python3.11",
             "entry_point": "main.execute",
             "dependencies": [],
-            "timeout_seconds": 30
+            "timeout_seconds": 30,
         },
         "validation": {
             "tests": [
-                {"input": {"text": "I love this!"}, "expected_output": {"sentiment": "positive"}}
+                {
+                    "input": {"text": "I love this!"},
+                    "expected_output": {"sentiment": "positive"},
+                }
             ],
-            "security_level": "sandboxed"
-        }
-    }
+            "security_level": "sandboxed",
+        },
+    },
 }
 
 
@@ -70,8 +76,7 @@ async def test_pipeline_success(clean_dynamic_skills):
 
         creator = AutoSkillCreator()
         result = await creator.generate_and_deploy_skill(
-            user_demand="Analyze reviews sentiment",
-            skill_name="SentimentAnalyzer"
+            user_demand="Analyze reviews sentiment", skill_name="SentimentAnalyzer"
         )
 
         assert result["success"] is True
@@ -90,7 +95,9 @@ async def test_pipeline_validation_mismatch(clean_dynamic_skills):
 
     # Modify mock JSON so that execute return value mismatch validation expected output
     mismatch_json = MOCK_AI_RESPONSE_JSON.copy()
-    mismatch_json["code"] = "class SentimentAnalyzer:\n    async def execute(self, kwargs):\n        return {'sentiment': 'negative'}\n"
+    mismatch_json["code"] = (
+        "class SentimentAnalyzer:\n    async def execute(self, kwargs):\n        return {'sentiment': 'negative'}\n"
+    )
 
     mock_response = MagicMock()
     mock_response.text = json.dumps(mismatch_json)
@@ -102,8 +109,7 @@ async def test_pipeline_validation_mismatch(clean_dynamic_skills):
 
         creator = AutoSkillCreator()
         result = await creator.generate_and_deploy_skill(
-            user_demand="Analyze reviews sentiment",
-            skill_name="SentimentAnalyzer"
+            user_demand="Analyze reviews sentiment", skill_name="SentimentAnalyzer"
         )
 
         assert result["success"] is False
@@ -134,8 +140,7 @@ async def test_pipeline_invalid_uss_pydantic(clean_dynamic_skills):
 
         creator = AutoSkillCreator()
         result = await creator.generate_and_deploy_skill(
-            user_demand="Analyze reviews sentiment",
-            skill_name="SentimentAnalyzer"
+            user_demand="Analyze reviews sentiment", skill_name="SentimentAnalyzer"
         )
 
         assert result["success"] is False

@@ -1,24 +1,30 @@
 import json
-from dataclasses import dataclass, field
-from typing import List, Dict, Optional
-from brain.model_router import ModelRouter
+from dataclasses import dataclass
+from dataclasses import field
+
 from loguru import logger
+
+from brain.model_router import ModelRouter
+
 
 @dataclass
 class AppSpecification:
     app_type: str = "general"
-    features: List[str] = field(default_factory=list)
-    tech_stack: Dict[str, str] = field(default_factory=dict)
-    pages: List[str] = field(default_factory=list)
-    integrations: List[str] = field(default_factory=list)
-    deployment_target: Optional[str] = None
-    clarification_question: Optional[str] = None
+    features: list[str] = field(default_factory=list)
+    tech_stack: dict[str, str] = field(default_factory=dict)
+    pages: list[str] = field(default_factory=list)
+    integrations: list[str] = field(default_factory=list)
+    deployment_target: str | None = None
+    clarification_question: str | None = None
+
 
 class IntentParser:
     def __init__(self, model_router: ModelRouter):
         self.model_router = model_router
 
-    def parse_intent(self, task: str, history: Optional[List[Dict[str, str]]] = None) -> AppSpecification:
+    def parse_intent(
+        self, task: str, history: list[dict[str, str]] | None = None
+    ) -> AppSpecification:
         # Construct the context prompt
         context_str = ""
         if history:
@@ -48,7 +54,9 @@ Return ONLY a JSON object (no markdown blocks, no text around it) with the follo
   "clarification_question": "optional question to clarify if intent is highly ambiguous, otherwise null"
 }}
 """
-        response = self.model_router.route_and_generate(prompt, task_type="general", max_cost=0.01)
+        response = self.model_router.route_and_generate(
+            prompt, task_type="general", max_cost=0.01
+        )
         text = response.get("text", "{}").strip()
 
         # Clean markdown code block wraps if LLM returns them
@@ -69,12 +77,12 @@ Return ONLY a JSON object (no markdown blocks, no text around it) with the follo
                 pages=data.get("pages", []),
                 integrations=data.get("integrations", []),
                 deployment_target=data.get("deployment_target"),
-                clarification_question=data.get("clarification_question")
+                clarification_question=data.get("clarification_question"),
             )
         except Exception as e:
             logger.error(f"Failed to parse JSON specification from: {text}. Error: {e}")
             # Fallback to basic spec
             return AppSpecification(
                 app_type="general",
-                clarification_question="Can you describe your project in more detail?"
+                clarification_question="Can you describe your project in more detail?",
             )

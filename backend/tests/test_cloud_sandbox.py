@@ -1,24 +1,33 @@
+from unittest.mock import MagicMock
+from unittest.mock import patch
+
 import pytest
-from unittest.mock import patch, MagicMock
+
 from tools.cloud_sandbox_orchestrator import CloudSandboxOrchestrator
 
+
 @pytest.mark.anyio
-@patch("tools.cloud_sandbox_orchestrator.CloudSandboxOrchestrator._get_docker_client", return_value=None)
+@patch(
+    "tools.cloud_sandbox_orchestrator.CloudSandboxOrchestrator._get_docker_client",
+    return_value=None,
+)
 async def test_sandbox_local_flow(mock_get_docker):
     orchestrator = CloudSandboxOrchestrator(provider="local")
     session_id = await orchestrator.create_session()
     assert session_id is not None
     assert session_id in orchestrator.active_sessions
-    
+
     cmd_res = await orchestrator.run_command(session_id, "ls -la")
     assert cmd_res["exit_code"] == 0
     assert "Mock output" in cmd_res["stdout"]
-    
+
     term_res = await orchestrator.terminate_session(session_id)
     assert term_res is True
     assert session_id not in orchestrator.active_sessions
 
+
 import os
+
 
 @pytest.mark.anyio
 @patch("httpx.AsyncClient.post")
@@ -34,10 +43,10 @@ async def test_sandbox_runpod_flow(mock_post):
         session_id = await orchestrator.create_session()
         assert session_id is not None
         assert orchestrator.active_sessions[session_id]["pod_id"] == "pod-12345"
-        
+
         # Test command mock fallback/execution
         cmd_res = await orchestrator.run_command(session_id, "echo 'hello'")
         assert cmd_res["exit_code"] == 0
-        
+
         # Cleanup
         await orchestrator.terminate_session(session_id)

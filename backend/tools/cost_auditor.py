@@ -1,11 +1,12 @@
-import typing
 import os
-from typing import Dict
+
 from loguru import logger
+
 from memory.sqlite_store import SQLiteMemoryStore
 
+
 class CostAuditor:
-    def __init__(self, db_path: typing.Optional[str] = None, report_dir: typing.Optional[str] = None):
+    def __init__(self, db_path: str | None = None, report_dir: str | None = None):
         self.store = SQLiteMemoryStore(db_path)
         if report_dir:
             self.report_dir = report_dir
@@ -14,17 +15,17 @@ class CostAuditor:
             self.report_dir = os.path.join(base_dir, "data")
         os.makedirs(self.report_dir, exist_ok=True)
 
-    def generate_report(self) -> Dict[str, str]:
+    def generate_report(self) -> dict[str, str]:
         tasks = self.store.get_task_history()
         if not tasks:
             return {
                 "text_report": os.path.join(self.report_dir, "cost_report.md"),
                 "image_report": os.path.join(self.report_dir, "cost_report.png"),
-                "error": "No task history available for cost audit."
+                "error": "No task history available for cost audit.",
             }
 
         total_cost = sum(t.get("cost", 0.0) for t in tasks)
-        by_type: Dict[str, float] = {}
+        by_type: dict[str, float] = {}
         for t in tasks:
             t_type = t.get("task_type", "unknown")
             by_type[t_type] = by_type.get(t_type, 0.0) + t.get("cost", 0.0)
@@ -44,6 +45,7 @@ class CostAuditor:
         image_report_path = os.path.join(self.report_dir, "cost_report.png")
         try:
             import matplotlib.pyplot as plt
+
             fig, ax = plt.subplots(figsize=(6, 4))
             types = list(by_type.keys())
             costs = list(by_type.values())
@@ -54,11 +56,10 @@ class CostAuditor:
             plt.tight_layout()
             plt.savefig(image_report_path, dpi=150)
             plt.close()
-            logger.info(f"Cost reports generated. Image: {image_report_path}, Text: {text_report_path}")
+            logger.info(
+                f"Cost reports generated. Image: {image_report_path}, Text: {text_report_path}"
+            )
         except Exception as e:
             logger.error(f"Failed to generate cost report image: {e}")
 
-        return {
-            "text_report": text_report_path,
-            "image_report": image_report_path
-        }
+        return {"text_report": text_report_path, "image_report": image_report_path}

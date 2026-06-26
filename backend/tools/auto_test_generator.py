@@ -3,31 +3,38 @@ AutoTestGenerator — Real Implementation (Sprint G.3)
 Generates pytest / Vitest / Flutter tests using ModelRouter.
 Replaces old BanglaAiConnector pattern.
 """
+
 from __future__ import annotations
 
-import os
 import ast
-import sys
-import subprocess
+import os
 import pathlib
-from typing import Dict, Any, List, Optional
-from loguru import logger
-from fastapi import APIRouter, HTTPException, UploadFile, File
-from pydantic import BaseModel
+import subprocess
+import sys
+from typing import Any
+
 from backend.tools.style_learner import StyleLearner
+from fastapi import APIRouter
+from fastapi import File
+from fastapi import HTTPException
+from fastapi import UploadFile
+from loguru import logger
+from pydantic import BaseModel
+
 
 router = APIRouter(prefix="/test-gen", tags=["auto-test-generator"])
 
 
 # ── Request/Response models ───────────────────────────────────────────────────
 
+
 class TestGenRequest(BaseModel):
     __test__ = False
 
     source_code: str
     file_path: str = "unknown.py"
-    stack: Optional[str] = None          # python | typescript | dart | auto
-    framework: Optional[str] = None      # pytest | vitest | jest | flutter
+    stack: str | None = None  # python | typescript | dart | auto
+    framework: str | None = None  # pytest | vitest | jest | flutter
     coverage_target: int = 80
     include_mocks: bool = True
     include_edge_cases: bool = True
@@ -44,37 +51,47 @@ class TestGenResponse(BaseModel):
     test_file_path: str
     functions_found: int
     coverage_estimate: int
-    error: Optional[str] = None
+    error: str | None = None
 
 
 # ── Language / framework detection ────────────────────────────────────────────
 
+
 def _detect_stack(file_path: str, source_code: str) -> str:
     ext = pathlib.Path(file_path).suffix.lower()
-    if ext in (".py",):                        return "python"
-    if ext in (".ts", ".tsx"):                 return "typescript"
-    if ext in (".js", ".jsx"):                 return "javascript"
-    if ext in (".dart",):                      return "dart"
-    if ext in (".java",):                      return "java"
-    if ext in (".go",):                        return "go"
-    if ext in (".rs",):                        return "rust"
+    if ext in (".py",):
+        return "python"
+    if ext in (".ts", ".tsx"):
+        return "typescript"
+    if ext in (".js", ".jsx"):
+        return "javascript"
+    if ext in (".dart",):
+        return "dart"
+    if ext in (".java",):
+        return "java"
+    if ext in (".go",):
+        return "go"
+    if ext in (".rs",):
+        return "rust"
     # Fallback: inspect source content
-    if "import pytest" in source_code or "def test_" in source_code:  return "python"
-    if "describe(" in source_code or "it(" in source_code:             return "typescript"
+    if "import pytest" in source_code or "def test_" in source_code:
+        return "python"
+    if "describe(" in source_code or "it(" in source_code:
+        return "typescript"
     return "python"
 
 
-def _detect_framework(stack: str, framework: Optional[str]) -> str:
+def _detect_framework(stack: str, framework: str | None) -> str:
     if framework:
         return framework
     return {
-        "python":     "pytest",
+        "python": "pytest",
         "typescript": "vitest",
         "javascript": "jest",
-        "dart":       "flutter_test",
-        "java":       "junit5",
-        "go":         "testing",
-        "rust":       "cargo_test",
+        "dart": "flutter_test",
+        "java": "junit5",
+        "go": "testing",
+        "rust": "cargo_test",
     }.get(stack, "pytest")
 
 
@@ -87,13 +104,18 @@ def _get_test_file_path(source_path: str, stack: str) -> str:
     if stack == "dart":
         return str(p.parent.parent / "test" / f"{p.stem}_test.dart")
     if stack == "java":
-        return str(p).replace("src/main/java", "src/test/java").replace(".java", "Test.java")
+        return (
+            str(p)
+            .replace("src/main/java", "src/test/java")
+            .replace(".java", "Test.java")
+        )
     return str(p.parent / f"{p.stem}_test{p.suffix}")
 
 
 # ── Python AST analysis ───────────────────────────────────────────────────────
 
-def _extract_python_symbols(source_code: str) -> Dict[str, List[str]]:
+
+def _extract_python_symbols(source_code: str) -> dict[str, list[str]]:
     """Extract classes, functions, and their signatures from Python source."""
     try:
         tree = ast.parse(source_code)
@@ -116,6 +138,7 @@ def _extract_python_symbols(source_code: str) -> Dict[str, List[str]]:
 
 # ── Prompt builders ───────────────────────────────────────────────────────────
 
+
 def _build_prompt(
     source_code: str,
     file_path: str,
@@ -124,8 +147,8 @@ def _build_prompt(
     coverage_target: int,
     include_mocks: bool,
     include_edge_cases: bool,
-    symbols: Optional[Dict] = None,
-    style_guidelines: Optional[str] = None,
+    symbols: dict | None = None,
+    style_guidelines: str | None = None,
 ) -> str:
     symbol_hint = ""
     if symbols:
@@ -142,13 +165,14 @@ def _build_prompt(
     if style_guidelines:
         style_instruction = f"\n\nCODING STYLE:\n{style_guidelines}\n"
 
-
     mock_instruction = (
-        "Use mocks/patches for external dependencies (database, HTTP, file I/O)." if include_mocks
+        "Use mocks/patches for external dependencies (database, HTTP, file I/O)."
+        if include_mocks
         else "Do not add mocking — use real implementations."
     )
     edge_instruction = (
-        "Include edge cases: empty inputs, None values, large inputs, concurrent calls." if include_edge_cases
+        "Include edge cases: empty inputs, None values, large inputs, concurrent calls."
+        if include_edge_cases
         else "Focus on happy-path tests only."
     )
 
@@ -205,8 +229,9 @@ Generate the complete test file now:"""
 
 # ── Main class ────────────────────────────────────────────────────────────────
 
+
 class AutoTestGenerator:
-    def __init__(self, llm_client: Optional[Any] = None):
+    def __init__(self, llm_client: Any | None = None):
         """
         Initializes the test generator.
         An optional llm_client can be injected for testing purposes.
@@ -220,9 +245,12 @@ class AutoTestGenerator:
 
         try:
             from brain.model_router import ModelRouter
+
             r = ModelRouter()
-            result = await r.async_route_and_generate(prompt, task_type="coding", max_cost=0.05)
-            return result.get("text", "") if isinstance(result, dict) else str(result) # type: ignore
+            result = await r.async_route_and_generate(
+                prompt, task_type="coding", max_cost=0.05
+            )
+            return result.get("text", "") if isinstance(result, dict) else str(result)  # type: ignore
         except Exception as exc:
             logger.error(f"LLM call failed: {exc}")
             return ""
@@ -231,12 +259,12 @@ class AutoTestGenerator:
         self,
         source_code: str,
         file_path: str = "unknown.py",
-        stack: Optional[str] = None,
-        framework: Optional[str] = None,
+        stack: str | None = None,
+        framework: str | None = None,
         coverage_target: int = 80,
         include_mocks: bool = True,
         include_edge_cases: bool = True,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         detected_stack = stack or _detect_stack(file_path, source_code)
         detected_framework = _detect_framework(detected_stack, framework)
         test_file = _get_test_file_path(file_path, detected_stack)
@@ -248,10 +276,16 @@ class AutoTestGenerator:
 
         # Get style guidelines
         # Assumes file_path is relative to a repo root that can be analyzed.
-        repo_root_for_style = "." # Use current directory as a proxy for the repo root.
-        style_guidelines = self.style_learner.generate_style_prompt(repo_root_for_style, detected_stack)
+        repo_root_for_style = "."  # Use current directory as a proxy for the repo root.
+        style_guidelines = self.style_learner.generate_style_prompt(
+            repo_root_for_style, detected_stack
+        )
 
-        fn_count = len(symbols.get("functions", []) + symbols.get("async_functions", [])) if symbols else 0
+        fn_count = (
+            len(symbols.get("functions", []) + symbols.get("async_functions", []))
+            if symbols
+            else 0
+        )
 
         prompt = _build_prompt(
             source_code=source_code,
@@ -265,14 +299,21 @@ class AutoTestGenerator:
             style_guidelines=style_guidelines,
         )
 
-        logger.info(f"Generating tests: {file_path} | stack={detected_stack} | framework={detected_framework}")
+        logger.info(
+            f"Generating tests: {file_path} | stack={detected_stack} | framework={detected_framework}"
+        )
         test_code = await self._llm(prompt)
 
         if not test_code:
             return {
-                "status": "error", "file_path": file_path, "stack": detected_stack,
-                "framework": detected_framework, "test_code": "", "test_file_path": test_file,
-                "functions_found": fn_count, "coverage_estimate": 0,
+                "status": "error",
+                "file_path": file_path,
+                "stack": detected_stack,
+                "framework": detected_framework,
+                "test_code": "",
+                "test_file_path": test_file,
+                "functions_found": fn_count,
+                "coverage_estimate": 0,
                 "error": "LLM returned empty response",
             }
 
@@ -295,8 +336,13 @@ class AutoTestGenerator:
         }
 
     def _clean_code(self, code: str, stack: str) -> str:
-        lang_map = {"python": "python", "typescript": "typescript", "javascript": "javascript",
-                    "dart": "dart", "java": "java"}
+        lang_map = {
+            "python": "python",
+            "typescript": "typescript",
+            "javascript": "javascript",
+            "dart": "dart",
+            "java": "java",
+        }
         lang = lang_map.get(stack, "")
         lines = code.splitlines()
         # Strip leading ```lang and trailing ```
@@ -308,12 +354,12 @@ class AutoTestGenerator:
 
     async def generate_and_save(
         self, source_path: str, run_tests: bool = False
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Read file, generate tests, save to disk, optionally run them."""
         if not os.path.exists(source_path):
             return {"status": "error", "error": f"File not found: {source_path}"}
 
-        with open(source_path, "r", encoding="utf-8") as f:
+        with open(source_path, encoding="utf-8") as f:
             source_code = f.read()
 
         result = await self.generate(source_code=source_code, file_path=source_path)
@@ -333,11 +379,22 @@ class AutoTestGenerator:
 
         return result
 
-    def _run_pytest(self, test_file_path: str) -> Dict[str, Any]:
+    def _run_pytest(self, test_file_path: str) -> dict[str, Any]:
         try:
             proc = subprocess.run(
-                [sys.executable, "-m", "pytest", test_file_path, "-v", "--tb=short", "--timeout=30"],
-                capture_output=True, text=True, timeout=60,
+                [
+                    sys.executable,
+                    "-m",
+                    "pytest",
+                    test_file_path,
+                    "-v",
+                    "--tb=short",
+                    "--timeout=30",
+                ],
+                capture_output=True,
+                text=True,
+                timeout=60,
+                check=False,
             )
             return {
                 "returncode": proc.returncode,
@@ -349,8 +406,8 @@ class AutoTestGenerator:
             return {"returncode": -1, "passed": False, "error": str(exc)}
 
     async def batch_generate(
-        self, source_paths: List[str], save: bool = True
-    ) -> Dict[str, Any]:
+        self, source_paths: list[str], save: bool = True
+    ) -> dict[str, Any]:
         """Generate tests for multiple files."""
         if len(source_paths) > 20:
             raise ValueError("Max 20 files per batch")
@@ -359,7 +416,11 @@ class AutoTestGenerator:
             if save:
                 r = await self.generate_and_save(path)
             else:
-                code = pathlib.Path(path).read_text(encoding="utf-8") if os.path.exists(path) else ""
+                code = (
+                    pathlib.Path(path).read_text(encoding="utf-8")
+                    if os.path.exists(path)
+                    else ""
+                )
                 r = await self.generate(source_code=code, file_path=path)
             results.append({"path": path, **r})
         return {
@@ -376,6 +437,7 @@ _generator = AutoTestGenerator()
 
 # ── REST Endpoints ────────────────────────────────────────────────────────────
 
+
 @router.post("/generate", response_model=TestGenResponse)
 async def generate_tests(request: TestGenRequest):
     """Generate unit tests for submitted source code."""
@@ -391,7 +453,9 @@ async def generate_tests(request: TestGenRequest):
         include_edge_cases=request.include_edge_cases,
     )
     if result["status"] == "error":
-        raise HTTPException(status_code=503, detail=result.get("error", "Generation failed"))
+        raise HTTPException(
+            status_code=503, detail=result.get("error", "Generation failed")
+        )
     return TestGenResponse(**result)
 
 
@@ -404,12 +468,14 @@ async def generate_from_file(file: UploadFile = File(...)):
         file_path=file.filename or "uploaded.py",
     )
     if result["status"] == "error":
-        raise HTTPException(status_code=503, detail=result.get("error", "Generation failed"))
+        raise HTTPException(
+            status_code=503, detail=result.get("error", "Generation failed")
+        )
     return result
 
 
 @router.post("/batch")
-async def batch_generate(paths: List[str]):
+async def batch_generate(paths: list[str]):
     """Generate tests for multiple source file paths (server-side paths)."""
     if len(paths) > 20:
         raise HTTPException(status_code=400, detail="Max 20 files per batch")

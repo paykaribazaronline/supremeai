@@ -11,6 +11,4 @@ DEFAULT_CODE_SMELL_THRESHOLDS = {
 }
 
 # Common strings to ignore when detecting "magic strings"
-COMMON_STRINGS_TO_IGNORE = {
-    '', 'utf-8', 'rb', 'wb', 'r', 'w', 'a', 'x', 'b', 't', '+'
-}
+COMMON_STRINGS_TO_IGNORE = {"", "utf-8", "rb", "wb", "r", "w", "a", "x", "b", "t", "+"}

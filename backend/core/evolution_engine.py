@@ -2,23 +2,27 @@ from __future__ import annotations
 
 import os
 import sqlite3
-from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
+from datetime import datetime
+from datetime import timezone
+from typing import Any
 
 
 class EvolutionEngine:
     """Persists task outcomes, detects repeated failures, proposes and auto-generates skills."""
 
-    def __init__(self, db_path: Optional[str] = None):
+    def __init__(self, db_path: str | None = None):
         base = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        self.db_path = db_path or os.getenv("EVOLUTION_DB_PATH", os.path.join(base, "data", "evolution.db"))
+        self.db_path = db_path or os.getenv(
+            "EVOLUTION_DB_PATH", os.path.join(base, "data", "evolution.db")
+        )
         os.makedirs(os.path.dirname(str(self.db_path)), exist_ok=True)
         self._ensure_schema()
 
     def _ensure_schema(self) -> None:
         conn = sqlite3.connect(str(self.db_path))
         try:
-            conn.executescript("""
+            conn.executescript(
+                """
                 CREATE TABLE IF NOT EXISTS task_history (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     task TEXT NOT NULL,
@@ -54,12 +58,15 @@ class EvolutionEngine:
                     adjusted INTEGER DEFAULT 0,
                     created_at TEXT NOT NULL
                 );
-            """)
+            """
+            )
             conn.commit()
         finally:
             conn.close()
 
-    def learn_from_success(self, task: str, approach: str, result: str) -> Dict[str, Any]:
+    def learn_from_success(
+        self, task: str, approach: str, result: str
+    ) -> dict[str, Any]:
         created_at = datetime.now(timezone.utc).isoformat()
         conn = sqlite3.connect(str(self.db_path))
         try:
@@ -68,11 +75,18 @@ class EvolutionEngine:
                 (task, approach, result, 1, created_at),
             )
             conn.commit()
-            return {"stored": True, "task": task, "approach": approach, "result": result}
+            return {
+                "stored": True,
+                "task": task,
+                "approach": approach,
+                "result": result,
+            }
         finally:
             conn.close()
 
-    def learn_from_failure(self, task: str, approach: str, result: str) -> Dict[str, Any]:
+    def learn_from_failure(
+        self, task: str, approach: str, result: str
+    ) -> dict[str, Any]:
         created_at = datetime.now(timezone.utc).isoformat()
         conn = sqlite3.connect(str(self.db_path))
         try:
@@ -81,11 +95,18 @@ class EvolutionEngine:
                 (task, approach, result, 0, created_at),
             )
             conn.commit()
-            return {"stored": True, "task": task, "approach": approach, "result": result}
+            return {
+                "stored": True,
+                "task": task,
+                "approach": approach,
+                "result": result,
+            }
         finally:
             conn.close()
 
-    def detect_repeated_failures(self, min_occurrences: int = 3) -> List[Dict[str, Any]]:
+    def detect_repeated_failures(
+        self, min_occurrences: int = 3
+    ) -> list[dict[str, Any]]:
         conn = sqlite3.connect(str(self.db_path))
         try:
             cursor = conn.execute(
@@ -100,13 +121,18 @@ class EvolutionEngine:
                 (min_occurrences,),
             )
             return [
-                {"task": row[0], "approach": row[1], "failures": row[2], "last_failed": row[3]}
+                {
+                    "task": row[0],
+                    "approach": row[1],
+                    "failures": row[2],
+                    "last_failed": row[3],
+                }
                 for row in cursor.fetchall()
             ]
         finally:
             conn.close()
 
-    def propose_new_skill(self, pattern: str) -> Dict[str, Any]:
+    def propose_new_skill(self, pattern: str) -> dict[str, Any]:
         skill_name = f"auto_{pattern.strip().replace(' ', '_').lower()}"
         created_at = datetime.now(timezone.utc).isoformat()
         code = (
@@ -132,7 +158,9 @@ class EvolutionEngine:
         finally:
             conn.close()
 
-    def record_feedback(self, session_id: str, query: str, retrieved_chunks: str, user_rating: float) -> Dict[str, Any]:
+    def record_feedback(
+        self, session_id: str, query: str, retrieved_chunks: str, user_rating: float
+    ) -> dict[str, Any]:
         created_at = datetime.now(timezone.utc).isoformat()
         conn = sqlite3.connect(str(self.db_path))
         try:
@@ -145,7 +173,7 @@ class EvolutionEngine:
         finally:
             conn.close()
 
-    def run_daily_evolution(self, task_history: List[Dict[str, Any]]) -> Dict[str, Any]:
+    def run_daily_evolution(self, task_history: list[dict[str, Any]]) -> dict[str, Any]:
         total = len(task_history)
         successful = sum(1 for t in task_history if t.get("success"))
         success_rate = (successful / total * 100.0) if total > 0 else 100.0
@@ -160,9 +188,11 @@ class EvolutionEngine:
             "total_tasks_processed": total,
             "success_rate": success_rate,
             "repeated_failures": len(failures),
-            "optimizations": [
-                "Increase RAG context depth to reduce hallucination."
-            ] if success_rate < 95 else [],
+            "optimizations": (
+                ["Increase RAG context depth to reduce hallucination."]
+                if success_rate < 95
+                else []
+            ),
             "new_skills_proposed": new_skills,
         }
         return report

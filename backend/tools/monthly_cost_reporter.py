@@ -2,8 +2,9 @@ from __future__ import annotations
 
 import os
 import sqlite3
-from datetime import datetime, timedelta
-from typing import Any, Dict
+from datetime import datetime
+from datetime import timedelta
+from typing import Any
 
 from loguru import logger
 
@@ -22,7 +23,7 @@ class MonthlyCostReporter:
         conn.row_factory = sqlite3.Row
         return conn
 
-    def generate_report(self, month: str) -> Dict[str, Any]:
+    def generate_report(self, month: str) -> dict[str, Any]:
         start, end = self._month_range(month)
         conn = self._get_connection()
         cursor = conn.cursor()
@@ -46,12 +47,16 @@ class MonthlyCostReporter:
         }
 
     def _month_range(self, month: str) -> tuple[datetime, datetime]:
-        start = datetime.strptime(month, "%Y-%m") if "-" in month else datetime.strptime(month, "%Y%m")
+        start = (
+            datetime.strptime(month, "%Y-%m")
+            if "-" in month
+            else datetime.strptime(month, "%Y%m")
+        )
         next_month = (start.replace(day=28) + timedelta(days=4)).replace(day=1)
         end = next_month
         return start, end
 
-    def send_to_admin(self, report: Dict[str, Any]) -> bool:
+    def send_to_admin(self, report: dict[str, Any]) -> bool:
         text = (
             f"Monthly Cost Report - {report['month']}\n"
             f"Total cost: ${report['total_cost_usd']:.4f}\n"
@@ -63,8 +68,11 @@ class MonthlyCostReporter:
             return False
         try:
             import requests
+
             url = f"https://api.telegram.org/bot{self.telegram_bot_token}/sendMessage"
-            requests.post(url, json={"chat_id": self.admin_chat_id, "text": text}, timeout=10)
+            requests.post(
+                url, json={"chat_id": self.admin_chat_id, "text": text}, timeout=10
+            )
             return True
         except Exception as exc:
             logger.error(f"Failed to send monthly cost report: {exc}")

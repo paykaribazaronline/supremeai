@@ -1,8 +1,11 @@
-from typing import Any, Dict, List, Optional
+from typing import Any
+
 from loguru import logger
+
 
 try:
     from tools.domain_adapter import DomainAdapter
+
     _DOMAIN_ADAPTER_AVAILABLE = True
 except Exception:
     _DOMAIN_ADAPTER_AVAILABLE = False
@@ -22,20 +25,45 @@ class MedicalAgent:
     )
 
     DRUG_INTERACTION_PATTERNS = [
-        (r"warfarin", [r"aspirin", r"ibuprofen", r"nsaids"], "Increased bleeding risk with NSAIDs/antiplatelets"),
-        (r"maoi\w*", [r"ssri", r"snri", r"tramadol", r"meperidine"], "Serotonin syndrome risk"),
-        (r"ace\s+inhibitor", [r"potassium\s+supplement", r"spironolactone"], "Hyperkalemia risk"),
-        (r"statins?", [r"gemfibrozil", r"clarithromycin", r"itraconazole"], "Increased myopathy/rhabdomyolysis risk"),
-        (r"methotrexate", [r"nsaids", r"penicillin", r"sulfonamides"], "Enhanced toxicity risk"),
-        (r"lithium", [r"ace\s+inhibitor", r"diuretic", r"nsaid"], "Lithium toxicity risk"),
+        (
+            r"warfarin",
+            [r"aspirin", r"ibuprofen", r"nsaids"],
+            "Increased bleeding risk with NSAIDs/antiplatelets",
+        ),
+        (
+            r"maoi\w*",
+            [r"ssri", r"snri", r"tramadol", r"meperidine"],
+            "Serotonin syndrome risk",
+        ),
+        (
+            r"ace\s+inhibitor",
+            [r"potassium\s+supplement", r"spironolactone"],
+            "Hyperkalemia risk",
+        ),
+        (
+            r"statins?",
+            [r"gemfibrozil", r"clarithromycin", r"itraconazole"],
+            "Increased myopathy/rhabdomyolysis risk",
+        ),
+        (
+            r"methotrexate",
+            [r"nsaids", r"penicillin", r"sulfonamides"],
+            "Enhanced toxicity risk",
+        ),
+        (
+            r"lithium",
+            [r"ace\s+inhibitor", r"diuretic", r"nsaid"],
+            "Lithium toxicity risk",
+        ),
     ]
 
     def __init__(self):
         self.domain_adapter = DomainAdapter() if _DOMAIN_ADAPTER_AVAILABLE else None
         logger.info("Initialized MedicalAgent (disclaimer-first)")
 
-    def symptom_analysis(self, symptoms: str, age: Optional[int] = None,
-                         medical_history: Optional[str] = None) -> Dict[str, Any]:
+    def symptom_analysis(
+        self, symptoms: str, age: int | None = None, medical_history: str | None = None
+    ) -> dict[str, Any]:
         context = f"Patient age: {age or 'unknown'}\nHistory: {medical_history or 'none provided'}"
         prompt = (
             "Given the following symptoms and context, provide a structured differential diagnosis "
@@ -45,22 +73,25 @@ class MedicalAgent:
         )
         return self._generate(prompt, context=context, action="symptom_analysis")
 
-    def drug_interaction(self, medications: List[str]) -> Dict[str, Any]:
+    def drug_interaction(self, medications: list[str]) -> dict[str, Any]:
         import re
-        found_interactions: List[Dict[str, Any]] = []
+
+        found_interactions: list[dict[str, Any]] = []
         med_lower = [m.lower() for m in medications]
-        for (drug_a, interacts_with, warning) in self.DRUG_INTERACTION_PATTERNS:
+        for drug_a, interacts_with, warning in self.DRUG_INTERACTION_PATTERNS:
             for med in med_lower:
                 if re.search(drug_a, med):
                     for group in interacts_with:
                         for other in med_lower:
                             if re.search(group, other) and other != med:
-                                found_interactions.append({
-                                    "drug_a": med,
-                                    "drug_b": other,
-                                    "risk": warning,
-                                    "severity": "high",
-                                })
+                                found_interactions.append(
+                                    {
+                                        "drug_a": med,
+                                        "drug_b": other,
+                                        "risk": warning,
+                                        "severity": "high",
+                                    }
+                                )
         unique = {f"{i['drug_a']}+{i['drug_b']}": i for i in found_interactions}
         interactions = list(unique.values())
         prompt = (
@@ -68,7 +99,11 @@ class MedicalAgent:
             f"Rule-based findings: {json.dumps(interactions) if interactions else 'none detected'}. "
             "Expand with general pharmacological guidance. Always remind the patient to consult their doctor/pharmacist."
         )
-        result = self._generate(prompt, context=f"Medications: {', '.join(medications)}", action="drug_interaction")
+        result = self._generate(
+            prompt,
+            context=f"Medications: {', '.join(medications)}",
+            action="drug_interaction",
+        )
         result["interactions"] = interactions
         result["disclaimer"] = (
             "Disclaimer: This is not medical advice. Drug interactions are complex. "
@@ -76,10 +111,14 @@ class MedicalAgent:
         )
         return result
 
-    def _generate(self, prompt: str, context: Optional[str] = None, action: str = "general") -> Dict[str, Any]:
+    def _generate(
+        self, prompt: str, context: str | None = None, action: str = "general"
+    ) -> dict[str, Any]:
         if self.domain_adapter:
             try:
-                result = self.domain_adapter.adapt_request("medical", prompt, context=context)
+                result = self.domain_adapter.adapt_request(
+                    "medical", prompt, context=context
+                )
                 return {
                     "action": action,
                     "response": result.get("response", ""),

@@ -1,19 +1,25 @@
-from fastapi import APIRouter, Request, HTTPException, Response
-from fastapi.responses import JSONResponse
-from pydantic import BaseModel
-from loguru import logger
-import httpx
-from typing import Dict, Any, Optional
 import os
+from typing import Any
+
+import httpx
+from fastapi import APIRouter
+from fastapi import HTTPException
+from fastapi import Request
+from fastapi import Response
+from fastapi.responses import JSONResponse
+from loguru import logger
+from pydantic import BaseModel
 
 from core.auth_middleware import AuthMiddleware
 from core.rate_limiter import RateLimiter
+
 
 auth_middleware = AuthMiddleware.__new__(AuthMiddleware)
 auth_middleware.enabled = bool(os.getenv("SUPREMEAI_API_TOKEN"))
 rate_limiter = RateLimiter()
 
 from brain.api_router import ApiRouter
+
 
 api_router = ApiRouter()
 router = APIRouter(prefix="/api/v1/gateway", tags=["gateway"])
@@ -22,16 +28,18 @@ router = APIRouter(prefix="/api/v1/gateway", tags=["gateway"])
 class GatewayRequest(BaseModel):
     path: str
     method: str = "GET"
-    payload: Optional[Dict[str, Any]] = None
-    source: Optional[str] = None  # 'vscode' | 'flutter' | 'telegram' | 'web'
-    headers: Optional[Dict[str, str]] = None
+    payload: dict[str, Any] | None = None
+    source: str | None = None  # 'vscode' | 'flutter' | 'telegram' | 'web'
+    headers: dict[str, str] | None = None
 
 
 class InternalGateway:
     def __init__(self):
         self.n8n_url = os.getenv("N8N_URL", "http://127.0.0.1:5678")
 
-    def trigger_n8n_workflow(self, webhook_path: str, payload: Dict[str, Any]) -> Dict[str, Any]:
+    def trigger_n8n_workflow(
+        self, webhook_path: str, payload: dict[str, Any]
+    ) -> dict[str, Any]:
         url = f"{self.n8n_url}/{webhook_path.lstrip('/')}"
         logger.info(f"Triggering n8n workflow at {url}")
         try:
@@ -45,7 +53,9 @@ class InternalGateway:
             logger.error(f"n8n trigger failed: {exc}")
             return {"success": False, "error": str(exc)}
 
-    def trigger_make_webhook(self, webhook_url: str, payload: Dict[str, Any]) -> Dict[str, Any]:
+    def trigger_make_webhook(
+        self, webhook_url: str, payload: dict[str, Any]
+    ) -> dict[str, Any]:
         logger.info("Triggering Make.com webhook")
         try:
             response = httpx.post(webhook_url, json=payload, timeout=10.0)
@@ -56,7 +66,13 @@ class InternalGateway:
 
 APIGateway = InternalGateway
 ALLOWED_BACKEND_PATHS = {
-    "vscode": ["/api/chat/completion", "/api/chat/stream", "/api/knowledge/learn", "/api/memory/ingest", "/api/codeflow/analyze"],
+    "vscode": [
+        "/api/chat/completion",
+        "/api/chat/stream",
+        "/api/knowledge/learn",
+        "/api/memory/ingest",
+        "/api/codeflow/analyze",
+    ],
     "flutter": ["/api/chat/message", "/api/chat/history", "/api/knowledge/stats"],
     "telegram": ["/api/chat/message", "/api/knowledge/feedback"],
     "web": ["/api/chat/message", "/api/chat/stream"],
@@ -71,7 +87,11 @@ async def gateway_forward(request: GatewayRequest, http_request: Request) -> Res
 
     allowed = ALLOWED_BACKEND_PATHS.get(source, [])
     normalized = request.path.strip().lower()
-    if not any(normalized == allowed_path.lower() or normalized.startswith(allowed_path.lower() + "/") for allowed_path in allowed):
+    if not any(
+        normalized == allowed_path.lower()
+        or normalized.startswith(allowed_path.lower() + "/")
+        for allowed_path in allowed
+    ):
         logger.warning(f"Blocked path for source={source}: {request.path}")
         raise HTTPException(status_code=403, detail="path not allowed for source")
 
@@ -89,7 +109,9 @@ async def gateway_forward(request: GatewayRequest, http_request: Request) -> Res
         async with httpx.AsyncClient(timeout=10.0) as client:
             req_method = (request.method or "GET").upper()
             if req_method == "POST":
-                response = await client.post(target, json=request.payload or {}, headers=headers)
+                response = await client.post(
+                    target, json=request.payload or {}, headers=headers
+                )
             else:
                 response = await client.get(target, headers=headers)
         return JSONResponse(content=response.json(), status_code=response.status_code)
@@ -101,7 +123,7 @@ async def gateway_forward(request: GatewayRequest, http_request: Request) -> Res
 
 
 @router.post("/dispatch/{capability}")
-async def api_dispatch(capability: str, payload: Dict[str, Any]) -> JSONResponse:
+async def api_dispatch(capability: str, payload: dict[str, Any]) -> JSONResponse:
     try:
         result = api_router.dispatch(capability, payload or {})
     except KeyError as exc:
@@ -111,7 +133,9 @@ async def api_dispatch(capability: str, payload: Dict[str, Any]) -> JSONResponse
 
 
 @router.post("/n8n")
-async def trigger_n8n(webhook_path: str = "", payload: Dict[str, Any] = {}) -> JSONResponse:
+async def trigger_n8n(
+    webhook_path: str = "", payload: dict[str, Any] = {}
+) -> JSONResponse:
     internal = InternalGateway()
     result = internal.trigger_n8n_workflow(webhook_path, payload)
     status = 200 if result.get("success") else 502
@@ -119,7 +143,9 @@ async def trigger_n8n(webhook_path: str = "", payload: Dict[str, Any] = {}) -> J
 
 
 @router.post("/make")
-async def trigger_make(webhook_url: str = "", payload: Dict[str, Any] = {}) -> JSONResponse:
+async def trigger_make(
+    webhook_url: str = "", payload: dict[str, Any] = {}
+) -> JSONResponse:
     internal = InternalGateway()
     result = internal.trigger_make_webhook(webhook_url, payload)
     status = 200 if result.get("success") else 502

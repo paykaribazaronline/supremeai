@@ -3,8 +3,10 @@ from __future__ import annotations
 import json
 import os
 import sys
-from datetime import datetime, timezone, timedelta
-from typing import Any, Dict, List
+from datetime import datetime
+from datetime import timedelta
+from datetime import timezone
+from typing import Any
 
 from loguru import logger
 
@@ -18,8 +20,16 @@ class HealthChecker:
         self.telegram_bot_token = os.getenv("TELEGRAM_BOT_TOKEN", "")
         self.admin_chat_id = os.getenv("ADMIN_TELEGRAM_CHAT_ID", "")
 
-    def run_health_check(self) -> Dict[str, Any]:
-        dependencies = ["fastapi", "pydantic", "sqlite3", "sympy", "matplotlib", "PIL", "chromadb"]
+    def run_health_check(self) -> dict[str, Any]:
+        dependencies = [
+            "fastapi",
+            "pydantic",
+            "sqlite3",
+            "sympy",
+            "matplotlib",
+            "PIL",
+            "chromadb",
+        ]
         dep_status = {}
         for dep in dependencies:
             try:
@@ -51,7 +61,7 @@ class HealthChecker:
             logger.error(f"Failed to write health report: {exc}")
         return report
 
-    def log_error(self, error: Dict[str, Any]) -> None:
+    def log_error(self, error: dict[str, Any]) -> None:
         record = {
             "timestamp": datetime.now(timezone.utc).isoformat(),
             **error,
@@ -62,16 +72,16 @@ class HealthChecker:
         except Exception as exc:
             logger.error(f"Failed to log error: {exc}")
 
-    def detect_anomalies(self) -> List[Dict[str, Any]]:
-        anomalies: List[Dict[str, Any]] = []
+    def detect_anomalies(self) -> list[dict[str, Any]]:
+        anomalies: list[dict[str, Any]] = []
         error_count = 0
         rate_spike = False
         latency_delta = 0.0
         failed_api_calls = 0
         if os.path.exists(self.error_history_path):
-            recent_errors: List[Dict[str, Any]] = []
+            recent_errors: list[dict[str, Any]] = []
             cutoff = datetime.now(timezone.utc) - timedelta(minutes=10)
-            with open(self.error_history_path, "r", encoding="utf-8") as f:
+            with open(self.error_history_path, encoding="utf-8") as f:
                 for line in f:
                     try:
                         record = json.loads(line)
@@ -83,51 +93,81 @@ class HealthChecker:
             error_count = len(recent_errors)
             if error_count > 20:
                 rate_spike = True
-                anomalies.append({
-                    "type": "error_rate_spike",
-                    "details": f"{error_count} errors in last 10 minutes",
-                    "severity": "HIGH",
-                })
+                anomalies.append(
+                    {
+                        "type": "error_rate_spike",
+                        "details": f"{error_count} errors in last 10 minutes",
+                        "severity": "HIGH",
+                    }
+                )
         if rate_spike:
             failed_api_calls = error_count
-            anomalies.append({
-                "type": "failed_api_calls",
-                "details": f"Estimated {failed_api_calls} failed calls",
-                "severity": "MEDIUM",
-            })
+            anomalies.append(
+                {
+                    "type": "failed_api_calls",
+                    "details": f"Estimated {failed_api_calls} failed calls",
+                    "severity": "MEDIUM",
+                }
+            )
         if latency_delta > 2.0:
-            anomalies.append({
-                "type": "latency_increase",
-                "details": f"Latency increased by {latency_delta:.2f}s",
-                "severity": "MEDIUM",
-            })
+            anomalies.append(
+                {
+                    "type": "latency_increase",
+                    "details": f"Latency increased by {latency_delta:.2f}s",
+                    "severity": "MEDIUM",
+                }
+            )
         return anomalies
 
-    def report_to_admin(self, anomalies: List[Dict[str, Any]]) -> bool:
+    def report_to_admin(self, anomalies: list[dict[str, Any]]) -> bool:
         if not anomalies:
             return False
         lines = ["Anomaly Detection Alert"]
         for anomaly in anomalies:
-            lines.append("[" + anomaly["severity"] + "] " + anomaly["type"] + ": " + anomaly["details"])
+            lines.append(
+                "["
+                + anomaly["severity"]
+                + "] "
+                + anomaly["type"]
+                + ": "
+                + anomaly["details"]
+            )
         text = "\n".join(lines)
         if not self.telegram_bot_token or not self.admin_chat_id:
-            logger.warning("Telegram credentials not configured; anomaly report not sent")
+            logger.warning(
+                "Telegram credentials not configured; anomaly report not sent"
+            )
             return False
         try:
             import requests
+
             url = f"https://api.telegram.org/bot{self.telegram_bot_token}/sendMessage"
-            requests.post(url, json={"chat_id": self.admin_chat_id, "text": text}, timeout=10)
+            requests.post(
+                url, json={"chat_id": self.admin_chat_id, "text": text}, timeout=10
+            )
             return True
         except Exception as exc:
             logger.error(f"Failed to report anomaly: {exc}")
             return False
 
-    def propose_solutions(self, anomaly: Dict[str, Any]) -> List[str]:
+    def propose_solutions(self, anomaly: dict[str, Any]) -> list[str]:
         anomaly_type = anomaly.get("type")
         if anomaly_type == "error_rate_spike":
-            return ["Check logs for new exceptions", "Verify recent API deployments", "Enable circuit breaker"]
+            return [
+                "Check logs for new exceptions",
+                "Verify recent API deployments",
+                "Enable circuit breaker",
+            ]
         if anomaly_type == "failed_api_calls":
-            return ["Verify provider API keys", "Switch to fallback provider", "Review rate limits"]
+            return [
+                "Verify provider API keys",
+                "Switch to fallback provider",
+                "Review rate limits",
+            ]
         if anomaly_type == "latency_increase":
-            return ["Enable query caching", "Review database indexes", "Scale horizontally"]
+            return [
+                "Enable query caching",
+                "Review database indexes",
+                "Scale horizontally",
+            ]
         return ["Investigate system logs", "Run HealthChecker.run_health_check()"]

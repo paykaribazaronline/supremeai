@@ -4,13 +4,15 @@ import json
 import sqlite3
 import time
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any
 
-from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel
+from fastapi import APIRouter
+from fastapi import HTTPException
 from loguru import logger
+from pydantic import BaseModel
 
 from core.feedback_loop import FeedbackLoop
+
 
 DB_PATH = Path("data/feedback.db")
 _feedback_loop = FeedbackLoop()
@@ -35,7 +37,7 @@ def _ensure_db() -> None:
         conn.close()
 
 
-def _persist_feedback(event_type: str, payload: Dict[str, Any]) -> None:
+def _persist_feedback(event_type: str, payload: dict[str, Any]) -> None:
     try:
         conn = sqlite3.connect(DB_PATH, check_same_thread=False)
         conn.execute(
@@ -53,12 +55,12 @@ router = APIRouter(prefix="/api/feedback", tags=["feedback"])
 
 class FeedbackEvent(BaseModel):
     event_type: str
-    payload: Optional[Dict[str, Any]] = None
+    payload: dict[str, Any] | None = None
 
 
 class FeedbackResponse(BaseModel):
     success: bool
-    event_id: Optional[int] = None
+    event_id: int | None = None
 
 
 @router.on_event("startup")
@@ -74,7 +76,9 @@ async def ingest(event: FeedbackEvent) -> FeedbackResponse:
         if handled.get("stored"):
             _persist_feedback(event.event_type, payload)
             return FeedbackResponse(success=True)
-        raise HTTPException(status_code=400, detail=handled.get("reason", "Unsupported feedback type"))
+        raise HTTPException(
+            status_code=400, detail=handled.get("reason", "Unsupported feedback type")
+        )
     except HTTPException:
         raise
     except Exception as exc:

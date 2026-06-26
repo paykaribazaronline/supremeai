@@ -1,13 +1,13 @@
 from fastapi import APIRouter
 from pydantic import BaseModel
-from typing import Optional
+
 
 router = APIRouter(prefix="/api/codeflow", tags=["codeflow"])
 
 
 class CodeFlowRequest(BaseModel):
     path: str
-    depth: Optional[int] = 1
+    depth: int | None = 1
 
 
 class CodeFlowEdge(BaseModel):

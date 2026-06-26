@@ -5,15 +5,18 @@ Complete implementation for intelligent provider switching and account managemen
 """
 
 import asyncio
-import logging
-import time
-from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Tuple, Any
-from dataclasses import dataclass, field
-import json
-import os
 import hashlib
+import json
+import logging
+import os
+import time
+from dataclasses import dataclass
+from dataclasses import field
+from datetime import datetime
+from datetime import timedelta
 from enum import Enum
+from typing import Any
+
 
 # Configure logging
 logging.basicConfig(
@@ -46,18 +49,18 @@ class Account:
     id: str
     provider: str
     email: str
-    api_key: Optional[str] = None
-    password: Optional[str] = None  # Encrypted in real DB
-    recovery_email: Optional[str] = None
+    api_key: str | None = None
+    password: str | None = None  # Encrypted in real DB
+    recovery_email: str | None = None
     created_at: datetime = field(default_factory=datetime.now)
-    last_used: Optional[datetime] = None
+    last_used: datetime | None = None
     total_requests: int = 0
     failed_requests: int = 0
     rate_limit_hits: int = 0
-    status: ProviderStatus = ProviderStatus.INACTIVE # Starts as inactive
+    status: ProviderStatus = ProviderStatus.INACTIVE  # Starts as inactive
     quota_used: int = 0
     quota_limit: int = 1000
-    reset_time: Optional[datetime] = None
+    reset_time: datetime | None = None
 
     def is_available(self) -> bool:
         """Check if account is available for use"""
@@ -111,18 +114,18 @@ class Provider:
 
     name: str
     base_url: str
-    models: List[str]
+    models: list[str]
     rate_limit_rpm: int
     rate_limit_tpm: int
-    accounts: List[Account] = field(default_factory=list)
+    accounts: list[Account] = field(default_factory=list)
     status: ProviderStatus = ProviderStatus.ACTIVE
     cost_per_token: float = 0.0
 
-    def get_available_accounts(self) -> List[Account]:
+    def get_available_accounts(self) -> list[Account]:
         """Get all available accounts for this provider"""
         return [acc for acc in self.accounts if acc.is_available()]
 
-    def get_best_account(self) -> Optional[Account]:
+    def get_best_account(self) -> Account | None:
         """Get the best available account based on health score"""
         available = self.get_available_accounts()
         if not available:
@@ -141,28 +144,33 @@ class MultiAccountRotator:
 
     def __init__(self, config_file: str = "rotation_config.json"):
         self.config_file = config_file
-        self.providers: Dict[str, Provider] = {}
-        self.task_preferences: Dict[TaskType, List[str]] = {}
+        self.providers: dict[str, Provider] = {}
+        self.task_preferences: dict[TaskType, list[str]] = {}
         self.load_config()
 
-    async def _wait_for_verification(self, email: str, timeout: int = 10) -> Optional[Dict[str, Any]]:
+    async def _wait_for_verification(
+        self, email: str, timeout: int = 10
+    ) -> dict[str, Any] | None:
         # Try Firestore first
         try:
             from google.cloud import firestore
+
             db = firestore.Client()
             queue_ref = db.collection("verification_queue")
-            
+
             start_time = time.time()
             while time.time() - start_time < timeout:
-                query = queue_ref.where("email_target", "==", email)\
-                                 .where("processed", "==", False)\
-                                 .order_by("receivedAt", direction=firestore.Query.DESCENDING)\
-                                 .limit(1)
-                
+                query = (
+                    queue_ref.where("email_target", "==", email)
+                    .where("processed", "==", False)
+                    .order_by("receivedAt", direction=firestore.Query.DESCENDING)
+                    .limit(1)
+                )
+
                 docs = query.stream()
                 for doc in docs:
                     data = doc.to_dict()
-                    data['id'] = doc.id
+                    data["id"] = doc.id
                     # Mark as processed in Firestore
                     doc.reference.update({"processed": True})
                     return data
@@ -175,24 +183,30 @@ class MultiAccountRotator:
         try:
             base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
             db_path = os.path.join(base_dir, "data", "supreme_memory.db")
-            
+
             import sqlite3
+
             start_time = time.time()
             while time.time() - start_time < timeout:
                 if os.path.exists(db_path):
                     conn = sqlite3.connect(db_path)
                     conn.row_factory = sqlite3.Row
                     cursor = conn.cursor()
-                    cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='verification_queue'")
+                    cursor.execute(
+                        "SELECT name FROM sqlite_master WHERE type='table' AND name='verification_queue'"
+                    )
                     if cursor.fetchone():
                         cursor.execute(
                             "SELECT * FROM verification_queue WHERE email_target = ? AND processed = 0 ORDER BY timestamp DESC LIMIT 1",
-                            (email,)
+                            (email,),
                         )
                         row = cursor.fetchone()
                         if row:
                             data = dict(row)
-                            cursor.execute("UPDATE verification_queue SET processed = 1 WHERE id = ?", (data['id'],))
+                            cursor.execute(
+                                "UPDATE verification_queue SET processed = 1 WHERE id = ?",
+                                (data["id"],),
+                            )
                             conn.commit()
                             conn.close()
                             return data
@@ -211,23 +225,28 @@ class MultiAccountRotator:
         3. Wait for the Firebase Function to catch the email
         4. Retrieve the code and finalize the account
         """
-        logger.info(f"[SUPREME-AI] Initiating autonomous identity creation for {provider_name}")
-        
-        from playwright.async_api import async_playwright
+        logger.info(
+            f"[SUPREME-AI] Initiating autonomous identity creation for {provider_name}"
+        )
 
         import random
+
+        from playwright.async_api import async_playwright
+
         new_email = f"supremeai+{random.getrandbits(16)}@yourdomain.com"
         password = f"Pass-{random.getrandbits(32)}"
-        
+
         # Simulate incoming verification email (SQLite local queue for testing/local env)
         base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         db_path = os.path.join(base_dir, "data", "supreme_memory.db")
         os.makedirs(os.path.dirname(db_path), exist_ok=True)
-        
+
         import sqlite3
+
         conn = sqlite3.connect(db_path)
         cursor = conn.cursor()
-        cursor.execute("""
+        cursor.execute(
+            """
             CREATE TABLE IF NOT EXISTS verification_queue (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 sender TEXT,
@@ -238,14 +257,21 @@ class MultiAccountRotator:
                 processed INTEGER DEFAULT 0,
                 timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
-        """)
+        """
+        )
         cursor.execute(
             "INSERT INTO verification_queue (sender, subject, email_target, code, link) VALUES (?, ?, ?, ?, ?)",
-            ("verification@identity.com", f"Verify your {provider_name} account", new_email, "123456", "https://verify.com/link")
+            (
+                "verification@identity.com",
+                f"Verify your {provider_name} account",
+                new_email,
+                "123456",
+                "https://verify.com/link",
+            ),
         )
         conn.commit()
         conn.close()
-        
+
         # Playwright Automation Flow
         async with async_playwright() as p:
             browser = await p.chromium.launch(headless=True)
@@ -264,34 +290,52 @@ class MultiAccountRotator:
                     await page.click('button[id="signup-button"]')
                     logger.info(f"[SUPREME-AI] Submitted signup form for {new_email}")
                 except Exception as form_err:
-                    logger.warning(f"[SUPREME-AI] Form filling warning/error (continuing): {form_err}")
+                    logger.warning(
+                        f"[SUPREME-AI] Form filling warning/error (continuing): {form_err}"
+                    )
 
                 # Wait for verification (Firestore with SQLite fallback)
-                verification_data = await self._wait_for_verification(new_email, timeout=10)
+                verification_data = await self._wait_for_verification(
+                    new_email, timeout=10
+                )
 
                 if verification_data:
-                    logger.info(f"[SUPREME-AI] Verification data received for {new_email}!")
+                    logger.info(
+                        f"[SUPREME-AI] Verification data received for {new_email}!"
+                    )
 
                     try:
-                        if verification_data.get('code'):
-                            otp_code = verification_data['code']
-                            logger.info(f"[SUPREME-AI] OTP code: {otp_code}. Attempting to enter OTP.")
+                        if verification_data.get("code"):
+                            otp_code = verification_data["code"]
+                            logger.info(
+                                f"[SUPREME-AI] OTP code: {otp_code}. Attempting to enter OTP."
+                            )
                             await page.fill('input[id="otp-code"]', otp_code)
                             await page.click('button[id="verify-otp-button"]')
-                            logger.info(f"[SUPREME-AI] Entered OTP and submitted for verification.")
-                        elif verification_data.get('link'):
-                            verification_link = verification_data['link']
-                            logger.info(f"[SUPREME-AI] Verification link: {verification_link}. Navigating to link.")
+                            logger.info(
+                                "[SUPREME-AI] Entered OTP and submitted for verification."
+                            )
+                        elif verification_data.get("link"):
+                            verification_link = verification_data["link"]
+                            logger.info(
+                                f"[SUPREME-AI] Verification link: {verification_link}. Navigating to link."
+                            )
                             await page.goto(verification_link)
-                            logger.info(f"[SUPREME-AI] Navigated to verification link.")
+                            logger.info("[SUPREME-AI] Navigated to verification link.")
                     except Exception as verify_err:
-                        logger.warning(f"[SUPREME-AI] Verification filling warning/error (continuing): {verify_err}")
+                        logger.warning(
+                            f"[SUPREME-AI] Verification filling warning/error (continuing): {verify_err}"
+                        )
 
                     try:
-                        await page.wait_for_selector('text=Account Created Successfully', timeout=2000)
+                        await page.wait_for_selector(
+                            "text=Account Created Successfully", timeout=2000
+                        )
                     except Exception:
                         pass
-                    logger.info(f"[SUPREME-AI] Account creation confirmed for {new_email}.")
+                    logger.info(
+                        f"[SUPREME-AI] Account creation confirmed for {new_email}."
+                    )
 
                     # Add to rotator registry
                     account_id = f"{provider_name}-{random.getrandbits(16)}"
@@ -302,27 +346,39 @@ class MultiAccountRotator:
                         api_key="simulated_api_key_12345",
                         password=password,
                         recovery_email="recovery@yourdomain.com",
-                        status=ProviderStatus.ACTIVE
+                        status=ProviderStatus.ACTIVE,
                     )
-                    
+
                     if provider_name not in self.providers:
                         self.providers[provider_name] = Provider(
                             name=provider_name,
-                            base_url="https://api.openai.com/v1" if provider_name == "openai" else "https://api.groq.com/openai/v1",
-                            models=["gpt-4"] if provider_name == "openai" else ["llama-3.3-70b-versatile"],
+                            base_url=(
+                                "https://api.openai.com/v1"
+                                if provider_name == "openai"
+                                else "https://api.groq.com/openai/v1"
+                            ),
+                            models=(
+                                ["gpt-4"]
+                                if provider_name == "openai"
+                                else ["llama-3.3-70b-versatile"]
+                            ),
                             rate_limit_rpm=60,
                             rate_limit_tpm=40000,
-                            accounts=[]
+                            accounts=[],
                         )
-                    
+
                     self.providers[provider_name].add_account(new_acc)
                     self.save_config()
                     return True
                 else:
-                    logger.error(f"[SUPREME-AI] No verification data received for {new_email} within timeout.")
+                    logger.error(
+                        f"[SUPREME-AI] No verification data received for {new_email} within timeout."
+                    )
                     return False
             except Exception as e:
-                logger.error(f"[SUPREME-AI] Playwright automation failed for {provider_name}: {e}")
+                logger.error(
+                    f"[SUPREME-AI] Playwright automation failed for {provider_name}: {e}"
+                )
                 return False
             finally:
                 await browser.close()
@@ -332,7 +388,7 @@ class MultiAccountRotator:
         """Load configuration from file"""
         if os.path.exists(self.config_file):
             try:
-                with open(self.config_file, "r") as f:
+                with open(self.config_file) as f:
                     config = json.load(f)
                     self._load_providers_from_config(config)
             except Exception as e:
@@ -510,7 +566,7 @@ class MultiAccountRotator:
 
     def get_best_provider_for_task(
         self, task_type: TaskType, requirements: dict = None
-    ) -> Optional[Tuple[Provider, Account]]:
+    ) -> tuple[Provider, Account] | None:
         """Get the best provider and account for a specific task"""
         logger.info(f"Looking for provider/account for task: {task_type}")
 
@@ -602,7 +658,7 @@ class MultiAccountRotator:
 
     async def execute_task(
         self, task_type: TaskType, prompt: str, **kwargs
-    ) -> Optional[dict]:
+    ) -> dict | None:
         """Execute a task using the best available provider/account"""
         provider_account = self.get_best_provider_for_task(task_type, kwargs)
 
@@ -656,7 +712,7 @@ class MultiAccountRotator:
 
     async def _failover_execute(
         self, task_type: TaskType, prompt: str, **kwargs
-    ) -> Optional[dict]:
+    ) -> dict | None:
         """Execute task with failover logic"""
         # Try other providers/accounts
         tried_providers = set()

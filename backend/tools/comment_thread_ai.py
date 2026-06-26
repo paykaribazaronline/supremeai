@@ -6,14 +6,20 @@ Handles GitHub PR/issue comment threads:
 3. Post AI reply back to GitHub
 4. Detect stale/blocked PRs
 """
+
 from __future__ import annotations
 
 import os
-from typing import Dict, Any, List, Optional
-from loguru import logger
-from fastapi import APIRouter, HTTPException, Request, Header
-from pydantic import BaseModel
+from typing import Any
+
 import httpx
+from fastapi import APIRouter
+from fastapi import Header
+from fastapi import HTTPException
+from fastapi import Request
+from loguru import logger
+from pydantic import BaseModel
+
 
 router = APIRouter(prefix="/comment-ai", tags=["comment-thread-ai"])
 
@@ -23,57 +29,67 @@ _GITHUB_TOKEN = os.getenv("GITHUB_TOKEN", "")
 
 # ── Pydantic models ───────────────────────────────────────────────────────────
 
+
 class PRCommentPayload(BaseModel):
-    repo_full_name: str          # e.g. "owner/repo"
+    repo_full_name: str  # e.g. "owner/repo"
     pr_number: int
     comment_body: str
-    file_path: Optional[str] = None
-    line_number: Optional[int] = None
-    comment_id: Optional[int] = None
-    auto_reply: bool = True      # post reply to GitHub?
+    file_path: str | None = None
+    line_number: int | None = None
+    comment_id: int | None = None
+    auto_reply: bool = True  # post reply to GitHub?
 
 
 class ThreadSummaryRequest(BaseModel):
     repo_full_name: str
-    pr_number: Optional[int] = None
-    issue_number: Optional[int] = None
+    pr_number: int | None = None
+    issue_number: int | None = None
 
 
 class CommentThreadAI:
-    def __init__(self, github_token: Optional[str] = None):
+    def __init__(self, github_token: str | None = None):
         self.token = github_token or _GITHUB_TOKEN
         self._headers = {
             "Authorization": f"Bearer {self.token}",
             "Accept": "application/vnd.github.v3+json",
             "X-GitHub-Api-Version": "2022-11-28",
         }
-        logger.info(f"CommentThreadAI initialized (GitHub token: {'set' if self.token else 'MISSING'})")
+        logger.info(
+            f"CommentThreadAI initialized (GitHub token: {'set' if self.token else 'MISSING'})"
+        )
 
     # ── LLM call ─────────────────────────────────────────────────────────────
-    async def _llm(self, prompt: str, task_type: str = "coding", max_cost: float = 0.02) -> str:
+    async def _llm(
+        self, prompt: str, task_type: str = "coding", max_cost: float = 0.02
+    ) -> str:
         try:
             from brain.model_router import ModelRouter
+
             r = ModelRouter()
-            result = await r.async_route_and_generate(prompt, task_type=task_type, max_cost=max_cost)
+            result = await r.async_route_and_generate(
+                prompt, task_type=task_type, max_cost=max_cost
+            )
             return result.get("text", "") if isinstance(result, dict) else str(result)
         except Exception as exc:
             logger.error(f"LLM call failed: {exc}")
             return ""
 
     # ── GitHub API helpers ────────────────────────────────────────────────────
-    async def _gh_get(self, path: str) -> Dict[str, Any]:
+    async def _gh_get(self, path: str) -> dict[str, Any]:
         async with httpx.AsyncClient(timeout=15.0) as client:
             resp = await client.get(f"{GITHUB_API}{path}", headers=self._headers)
         resp.raise_for_status()
         return resp.json()
 
-    async def _gh_post(self, path: str, body: Dict) -> Dict[str, Any]:
+    async def _gh_post(self, path: str, body: dict) -> dict[str, Any]:
         async with httpx.AsyncClient(timeout=15.0) as client:
-            resp = await client.post(f"{GITHUB_API}{path}", headers=self._headers, json=body)
+            resp = await client.post(
+                f"{GITHUB_API}{path}", headers=self._headers, json=body
+            )
         resp.raise_for_status()
         return resp.json()
 
-    async def _get_pr_comments(self, repo: str, pr_number: int) -> List[Dict]:
+    async def _get_pr_comments(self, repo: str, pr_number: int) -> list[dict]:
         """Fetch all review + issue comments on a PR."""
         comments = []
         try:
@@ -90,20 +106,21 @@ class CommentThreadAI:
             pass
         return comments
 
-    async def _get_pr_files(self, repo: str, pr_number: int) -> List[Dict]:
+    async def _get_pr_files(self, repo: str, pr_number: int) -> list[dict]:
         try:
             return await self._gh_get(f"/repos/{repo}/pulls/{pr_number}/files")
         except Exception:
             return []
 
-    async def _post_pr_comment(self, repo: str, pr_number: int, body: str) -> Dict[str, Any]:
+    async def _post_pr_comment(
+        self, repo: str, pr_number: int, body: str
+    ) -> dict[str, Any]:
         """Post a general comment on a PR."""
         if not self.token:
             return {"status": "skipped", "reason": "No GitHub token"}
         try:
             result = await self._gh_post(
-                f"/repos/{repo}/issues/{pr_number}/comments",
-                {"body": body}
+                f"/repos/{repo}/issues/{pr_number}/comments", {"body": body}
             )
             logger.info(f"Posted comment on {repo}#{pr_number}")
             return {"status": "success", "comment_url": result.get("html_url")}
@@ -113,14 +130,14 @@ class CommentThreadAI:
 
     async def _reply_to_review_comment(
         self, repo: str, pr_number: int, comment_id: int, body: str
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Reply to a specific review comment thread."""
         if not self.token:
             return {"status": "skipped", "reason": "No GitHub token"}
         try:
             result = await self._gh_post(
                 f"/repos/{repo}/pulls/{pr_number}/comments/{comment_id}/replies",
-                {"body": body}
+                {"body": body},
             )
             return {"status": "success", "reply_url": result.get("html_url")}
         except Exception as exc:
@@ -134,18 +151,20 @@ class CommentThreadAI:
         repo_full_name: str,
         pr_number: int,
         comment_body: str,
-        file_path: Optional[str] = None,
-        line_number: Optional[int] = None,
-        comment_id: Optional[int] = None,
+        file_path: str | None = None,
+        line_number: int | None = None,
+        comment_id: int | None = None,
         auto_reply: bool = True,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Process a PR review comment:
         1. Generate a code fix
         2. Explain the reasoning
         3. Optionally post reply to GitHub
         """
-        logger.info(f"Handling PR comment: {repo_full_name}#{pr_number} file={file_path}:{line_number}")
+        logger.info(
+            f"Handling PR comment: {repo_full_name}#{pr_number} file={file_path}:{line_number}"
+        )
 
         location = ""
         if file_path:
@@ -172,7 +191,7 @@ class CommentThreadAI:
         if not ai_response:
             return {"status": "error", "error": "LLM returned empty response"}
 
-        result: Dict[str, Any] = {
+        result: dict[str, Any] = {
             "status": "success",
             "repo": repo_full_name,
             "pr_number": pr_number,
@@ -192,19 +211,23 @@ class CommentThreadAI:
                     repo_full_name, pr_number, comment_id, reply_body
                 )
             else:
-                post_result = await self._post_pr_comment(repo_full_name, pr_number, reply_body)
+                post_result = await self._post_pr_comment(
+                    repo_full_name, pr_number, reply_body
+                )
 
             result["comment_posted"] = post_result.get("status") == "success"
-            result["comment_url"] = post_result.get("comment_url") or post_result.get("reply_url")
+            result["comment_url"] = post_result.get("comment_url") or post_result.get(
+                "reply_url"
+            )
 
         return result
 
     async def summarize_thread(
         self,
         repo_full_name: str,
-        pr_number: Optional[int] = None,
-        issue_number: Optional[int] = None,
-    ) -> Dict[str, Any]:
+        pr_number: int | None = None,
+        issue_number: int | None = None,
+    ) -> dict[str, Any]:
         """Fetch all comments and produce an AI summary of the discussion."""
         target_number = pr_number or issue_number
         if not target_number:
@@ -216,12 +239,17 @@ class CommentThreadAI:
             return {"status": "error", "error": f"GitHub API failed: {exc}"}
 
         if not comments:
-            return {"status": "success", "summary": "No comments found on this PR/issue."}
+            return {
+                "status": "success",
+                "summary": "No comments found on this PR/issue.",
+            }
 
-        thread_text = "\n\n".join([
-            f"[{c.get('user', {}).get('login', 'unknown')}]: {c.get('body', '')[:500]}"
-            for c in comments[:30]  # cap at 30 comments
-        ])
+        thread_text = "\n\n".join(
+            [
+                f"[{c.get('user', {}).get('login', 'unknown')}]: {c.get('body', '')[:500]}"
+                for c in comments[:30]  # cap at 30 comments
+            ]
+        )
 
         prompt = (
             f"Summarize this GitHub PR/issue discussion thread.\n"
@@ -244,30 +272,39 @@ class CommentThreadAI:
             "summary": summary,
         }
 
-    async def detect_stale_prs(self, repo_full_name: str, days_threshold: int = 7) -> Dict[str, Any]:
+    async def detect_stale_prs(
+        self, repo_full_name: str, days_threshold: int = 7
+    ) -> dict[str, Any]:
         """Find PRs with no activity in N days."""
         try:
-            prs = await self._gh_get(f"/repos/{repo_full_name}/pulls?state=open&per_page=50")
+            prs = await self._gh_get(
+                f"/repos/{repo_full_name}/pulls?state=open&per_page=50"
+            )
         except Exception as exc:
             return {"status": "error", "error": str(exc)}
 
         import datetime
+
         now = datetime.datetime.now(datetime.timezone.utc)
         stale = []
-        for pr in (prs if isinstance(prs, list) else []):
+        for pr in prs if isinstance(prs, list) else []:
             updated = pr.get("updated_at", "")
             if updated:
                 try:
-                    dt = datetime.datetime.strptime(updated, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=datetime.timezone.utc)
+                    dt = datetime.datetime.strptime(
+                        updated, "%Y-%m-%dT%H:%M:%SZ"
+                    ).replace(tzinfo=datetime.timezone.utc)
                     days_idle = (now - dt).days
                     if days_idle >= days_threshold:
-                        stale.append({
-                            "number": pr["number"],
-                            "title": pr.get("title", ""),
-                            "author": pr.get("user", {}).get("login", ""),
-                            "days_idle": days_idle,
-                            "url": pr.get("html_url", ""),
-                        })
+                        stale.append(
+                            {
+                                "number": pr["number"],
+                                "title": pr.get("title", ""),
+                                "author": pr.get("user", {}).get("login", ""),
+                                "days_idle": days_idle,
+                                "url": pr.get("html_url", ""),
+                            }
+                        )
                 except Exception:
                     pass
 
@@ -279,10 +316,14 @@ class CommentThreadAI:
             "stale_prs": sorted(stale, key=lambda x: x["days_idle"], reverse=True),
         }
 
-    async def handle_github_webhook(self, payload: Dict[str, Any]) -> Dict[str, Any]:
+    async def handle_github_webhook(self, payload: dict[str, Any]) -> dict[str, Any]:
         """Process GitHub webhook events for PR comments."""
         action = payload.get("action", "")
-        event_type = "pr_review_comment" if "pull_request_review_comment" in str(payload.keys()) else "issue_comment"
+        event_type = (
+            "pr_review_comment"
+            if "pull_request_review_comment" in str(payload.keys())
+            else "issue_comment"
+        )
 
         if action not in ("created", "edited"):
             return {"status": "ignored", "action": action}
@@ -291,7 +332,13 @@ class CommentThreadAI:
         comment_body = comment.get("body", "")
 
         # Only respond if comment mentions @supremeai or contains trigger keywords
-        triggers = ["@supremeai", "fix this", "suggest a fix", "auto-fix", "what should"]
+        triggers = [
+            "@supremeai",
+            "fix this",
+            "suggest a fix",
+            "auto-fix",
+            "what should",
+        ]
         should_respond = any(t.lower() in comment_body.lower() for t in triggers)
 
         if not should_respond:
@@ -325,6 +372,7 @@ _comment_ai = CommentThreadAI()
 
 # ── REST Endpoints ────────────────────────────────────────────────────────────
 
+
 @router.post("/handle-comment")
 async def handle_comment(payload: PRCommentPayload):
     """Handle a PR review comment — propose fix and optionally auto-reply."""
@@ -356,7 +404,9 @@ async def detect_stale(owner: str, repo: str, days: int = 7):
 
 
 @router.post("/webhook")
-async def github_webhook(request: Request, x_github_event: str = Header(default="ping")):
+async def github_webhook(
+    request: Request, x_github_event: str = Header(default="ping")
+):
     """GitHub webhook receiver for PR comment events."""
     if x_github_event == "ping":
         return {"status": "pong"}

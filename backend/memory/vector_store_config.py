@@ -2,16 +2,15 @@ from __future__ import annotations
 
 import os
 from dataclasses import dataclass
-from typing import Optional
 
 
 @dataclass
 class VectorStoreConfig:
     backend: str = "chroma"
-    qdrant_url: Optional[str] = None
-    qdrant_api_key: Optional[str] = None
-    pinecone_api_key: Optional[str] = None
-    pinecone_index: Optional[str] = None
+    qdrant_url: str | None = None
+    qdrant_api_key: str | None = None
+    pinecone_api_key: str | None = None
+    pinecone_index: str | None = None
     default_collection: str = "supremeai_default"
     embedding_model: str = "BAAI/bge-small-en-v1.5"
     distance: str = "cosine"

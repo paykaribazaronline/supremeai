@@ -1,16 +1,19 @@
 import os
 
+
 os.environ.setdefault("OPENROUTER_API_KEY", "")
 os.environ.setdefault("HF_API_KEY", "")
 os.environ.setdefault("OLLAMA_URL", "http://127.0.0.1:11434")
 
-import pytest
 from unittest.mock import patch
+
+import pytest
 
 
 @pytest.fixture
 def validator():
     from core.code_validator import CodeValidator
+
     return CodeValidator()
 
 
@@ -18,13 +21,17 @@ class TestAICodeValidator:
     @pytest.fixture
     def ai(self):
         from core.code_validator import AICodeValidator
+
         return AICodeValidator()
 
-    @pytest.mark.parametrize("code", [
-        "x = 1",
-        "def foo():\n    return 1",
-        "for i in range(10):\n    print(i)",
-    ])
+    @pytest.mark.parametrize(
+        "code",
+        [
+            "x = 1",
+            "def foo():\n    return 1",
+            "for i in range(10):\n    print(i)",
+        ],
+    )
     def test_valid_code_passes(self, ai, code):
         res = ai.validate_before_use(code)
         assert res["can_use"] is True

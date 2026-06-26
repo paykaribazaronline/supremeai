@@ -1,30 +1,33 @@
+import datetime
 import json
 import sqlite3
-import datetime
-from dataclasses import dataclass, field
-from typing import List, Optional, Dict, Any
+from dataclasses import dataclass
+from dataclasses import field
+from typing import Any
+
 
 @dataclass
 class Experience:
-    id: Optional[int] = None
+    id: int | None = None
     timestamp: str = ""
     user_id: str = ""
     request: str = ""
-    context: Dict[str, Any] = field(default_factory=dict)
+    context: dict[str, Any] = field(default_factory=dict)
     action_taken: str = ""
     result: str = "success"  # "success", "partial", "failure"
-    error_message: Optional[str] = None
-    user_feedback: Optional[str] = None  # "great", "needs work", "failed"
-    generated_code: Optional[str] = None
-    deployment_logs: Optional[str] = None
-    what_worked: List[str] = field(default_factory=list)
-    what_failed: List[str] = field(default_factory=list)
-    suggested_improvements: List[str] = field(default_factory=list)
+    error_message: str | None = None
+    user_feedback: str | None = None  # "great", "needs work", "failed"
+    generated_code: str | None = None
+    deployment_logs: str | None = None
+    what_worked: list[str] = field(default_factory=list)
+    what_failed: list[str] = field(default_factory=list)
+    suggested_improvements: list[str] = field(default_factory=list)
 
 
 class ExperienceDatabase:
     def __init__(self, db_path: str = "data/experience.db"):
         import os
+
         os.makedirs(os.path.dirname(db_path), exist_ok=True)
         self.db_path = db_path
         self._init_db()
@@ -32,7 +35,8 @@ class ExperienceDatabase:
     def _init_db(self):
         with sqlite3.connect(self.db_path) as conn:
             cursor = conn.cursor()
-            cursor.execute("""
+            cursor.execute(
+                """
                 CREATE TABLE IF NOT EXISTS experiences (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     timestamp TEXT,
@@ -49,11 +53,14 @@ class ExperienceDatabase:
                     what_failed TEXT,
                     suggested_improvements TEXT
                 )
-            """)
+            """
+            )
             conn.commit()
 
     def record_experience(self, exp: Experience) -> int:
-        timestamp = exp.timestamp or datetime.datetime.now(datetime.timezone.utc).isoformat()
+        timestamp = (
+            exp.timestamp or datetime.datetime.now(datetime.timezone.utc).isoformat()
+        )
         context_json = json.dumps(exp.context or {})
         what_worked_json = json.dumps(exp.what_worked or [])
         what_failed_json = json.dumps(exp.what_failed or [])
@@ -61,43 +68,62 @@ class ExperienceDatabase:
 
         with sqlite3.connect(self.db_path) as conn:
             cursor = conn.cursor()
-            cursor.execute("""
+            cursor.execute(
+                """
                 INSERT INTO experiences (
                     timestamp, user_id, request, context, action_taken, result,
                     error_message, user_feedback, generated_code, deployment_logs,
                     what_worked, what_failed, suggested_improvements
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """, (
-                timestamp, exp.user_id, exp.request, context_json, exp.action_taken,
-                exp.result, exp.error_message, exp.user_feedback, exp.generated_code,
-                exp.deployment_logs, what_worked_json, what_failed_json, suggested_json
-            ))
+            """,
+                (
+                    timestamp,
+                    exp.user_id,
+                    exp.request,
+                    context_json,
+                    exp.action_taken,
+                    exp.result,
+                    exp.error_message,
+                    exp.user_feedback,
+                    exp.generated_code,
+                    exp.deployment_logs,
+                    what_worked_json,
+                    what_failed_json,
+                    suggested_json,
+                ),
+            )
             conn.commit()
             return int(cursor.lastrowid or 0)
 
-    def get_experiences(self, limit: int = 50) -> List[Experience]:
+    def get_experiences(self, limit: int = 50) -> list[Experience]:
         with sqlite3.connect(self.db_path) as conn:
             conn.row_factory = sqlite3.Row
             cursor = conn.cursor()
-            cursor.execute("SELECT * FROM experiences ORDER BY id DESC LIMIT ?", (limit,))
+            cursor.execute(
+                "SELECT * FROM experiences ORDER BY id DESC LIMIT ?", (limit,)
+            )
             rows = cursor.fetchall()
-            
+
             experiences = []
             for r in rows:
-                experiences.append(Experience(
-                    id=r["id"],
-                    timestamp=r["timestamp"],
-                    user_id=r["user_id"],
-                    request=r["request"],
-                    context=json.loads(r["context"] or "{}"),
-                    action_taken=r["action_taken"],
-                    result=r["result"],
-                    error_message=r["error_message"],
-                    user_feedback=r["user_feedback"],
-                    generated_code=r["generated_code"],
-                    deployment_logs=r["deployment_logs"],
-                    what_worked=json.loads(r["what_worked"] or "[]"),
-                    what_failed=json.loads(r["what_failed"] or "[]"),
-                    suggested_improvements=json.loads(r["suggested_improvements"] or "[]")
-                ))
+                experiences.append(
+                    Experience(
+                        id=r["id"],
+                        timestamp=r["timestamp"],
+                        user_id=r["user_id"],
+                        request=r["request"],
+                        context=json.loads(r["context"] or "{}"),
+                        action_taken=r["action_taken"],
+                        result=r["result"],
+                        error_message=r["error_message"],
+                        user_feedback=r["user_feedback"],
+                        generated_code=r["generated_code"],
+                        deployment_logs=r["deployment_logs"],
+                        what_worked=json.loads(r["what_worked"] or "[]"),
+                        what_failed=json.loads(r["what_failed"] or "[]"),
+                        suggested_improvements=json.loads(
+                            r["suggested_improvements"] or "[]"
+                        ),
+                    )
+                )
             return experiences

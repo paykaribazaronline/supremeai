@@ -1,8 +1,8 @@
+import json
 import os
 import xml.etree.ElementTree as ET
-import json
-from typing import List, Dict, Any
 from dataclasses import dataclass
+
 from loguru import logger
 
 
@@ -10,11 +10,13 @@ from loguru import logger
 class CoverageGap:
     file_path: str
     coverage: float
-    uncovered_lines: List[int]
+    uncovered_lines: list[int]
 
 
 class CoverageAuditor:
-    def find_gaps(self, report_path: str, min_coverage: float = 80.0) -> List[CoverageGap]:
+    def find_gaps(
+        self, report_path: str, min_coverage: float = 80.0
+    ) -> list[CoverageGap]:
         if not os.path.exists(report_path):
             logger.warning(f"Coverage report not found: {report_path}")
             return []
@@ -31,7 +33,7 @@ class CoverageAuditor:
             logger.error(f"Failed to parse coverage report {report_path}: {e}")
             return []
 
-    def _parse_xml(self, report_path: str, min_coverage: float) -> List[CoverageGap]:
+    def _parse_xml(self, report_path: str, min_coverage: float) -> list[CoverageGap]:
         gaps = []
         tree = ET.parse(report_path)
         root = tree.getroot()
@@ -60,9 +62,9 @@ class CoverageAuditor:
                 )
         return gaps
 
-    def _parse_json(self, report_path: str, min_coverage: float) -> List[CoverageGap]:
+    def _parse_json(self, report_path: str, min_coverage: float) -> list[CoverageGap]:
         gaps = []
-        with open(report_path, "r", encoding="utf-8") as f:
+        with open(report_path, encoding="utf-8") as f:
             data = json.load(f)
 
         # Handle Istanbul JSON summary format
@@ -73,7 +75,9 @@ class CoverageAuditor:
 
                 lines_pct = summary.get("lines", {}).get("pct", 100.0)
                 if lines_pct < min_coverage:
-                    uncovered_lines = summary.get("uncovered_lines", []) or summary.get("lines", {}).get("uncovered_lines", [])
+                    uncovered_lines = summary.get("uncovered_lines", []) or summary.get(
+                        "lines", {}
+                    ).get("uncovered_lines", [])
                     gaps.append(
                         CoverageGap(
                             file_path=file_path,

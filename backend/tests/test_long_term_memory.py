@@ -3,7 +3,12 @@ from memory.long_term_memory import LongTermMemory
 
 def test_long_term_memory_remember_and_recall():
     mem = LongTermMemory(db_path=":memory:", session_id="s1")
-    mem.remember_fact(content="User likes Bengali food", category="preference", importance=0.9, source="chat")
+    mem.remember_fact(
+        content="User likes Bengali food",
+        category="preference",
+        importance=0.9,
+        source="chat",
+    )
     facts = mem.recall_facts(category="preference")
     assert len(facts) == 1
     assert facts[0]["content"] == "User likes Bengali food"

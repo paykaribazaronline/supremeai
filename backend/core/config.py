@@ -1,8 +1,12 @@
-
 import sys
-from pydantic import Field, field_validator, ValidationInfo
-from pydantic_settings import BaseSettings, SettingsConfigDict
+
 from loguru import logger
+from pydantic import Field
+from pydantic import ValidationInfo
+from pydantic import field_validator
+from pydantic_settings import BaseSettings
+from pydantic_settings import SettingsConfigDict
+
 from core.secret_vault import secret_vault
 
 
@@ -35,13 +39,14 @@ class Settings(BaseSettings):
         "https://supremeai-admin.firebaseapp.com",
     ]
 
-    jwt_secret: str | None = Field(default=None, validation_alias="SUPREMEAI_JWT_SECRET")
-    
+    jwt_secret: str | None = Field(
+        default=None, validation_alias="SUPREMEAI_JWT_SECRET"
+    )
+
     # ⚡ ডাইনামিকলি সরাসরি ক্লাউড মেমরি থেকে সিক্রেট রিড করা হচ্ছে
     # ডিস্কে কোনো .env ফাইল না থাকলেও প্রোডাকশন এপিআই ১০০% স্মুথলি চলবে
     supabase_database_url: str = secret_vault.fetch_secret(
-        "SUPABASE_DATABASE_URL_POOLER", 
-        "postgresql://localhost:5432/postgres"
+        "SUPABASE_DATABASE_URL_POOLER", "postgresql://localhost:5432/postgres"
     )
 
     openrouter_api_key: str = secret_vault.fetch_secret("OPENROUTER_API_KEY", "")
@@ -100,7 +105,9 @@ class Settings(BaseSettings):
         env = info.data.get("env", "local")
         if not v:
             if env == "production":
-                raise ValueError("SUPREMEAI_JWT_SECRET environment variable must be set in production")
+                raise ValueError(
+                    "SUPREMEAI_JWT_SECRET environment variable must be set in production"
+                )
             return "test-secret-placeholder"
         return v
 
@@ -108,6 +115,7 @@ class Settings(BaseSettings):
     @classmethod
     def parse_cors_origins(cls, v):
         import json
+
         if isinstance(v, str):
             v = v.strip()
             if not v:
@@ -130,7 +138,9 @@ class Settings(BaseSettings):
             if not self.jwt_secret:
                 missing.append("secure JWT_SECRET")
             if missing:
-                raise RuntimeError(f"Missing required configurations for production: {', '.join(missing)}")
+                raise RuntimeError(
+                    f"Missing required configurations for production: {', '.join(missing)}"
+                )
 
 
 settings = Settings()

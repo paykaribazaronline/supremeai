@@ -1,9 +1,8 @@
 from __future__ import annotations
 
-
 import traceback
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from loguru import logger
 
@@ -13,22 +12,23 @@ class StepResult:
     name: str
     success: bool
     output: Any = None
-    error: Optional[str] = None
+    error: str | None = None
 
 
 class AutonomousAgent:
     def __init__(self, name: str = "autonomous-agent") -> None:
         self.name = name
-        self.history: List[Dict[str, Any]] = []
+        self.history: list[dict[str, Any]] = []
         try:
             from evolution.auto_skill_creator import AutoSkillCreator
+
             self.skill_creator = AutoSkillCreator()
         except Exception:
-            self.skill_creator = None # type: ignore
+            self.skill_creator = None  # type: ignore
 
-    def plan(self, task_description: str) -> Dict[str, Any]:
+    def plan(self, task_description: str) -> dict[str, Any]:
         lowered = (task_description or "").lower()
-        plan: Dict[str, Any] = {"steps": [], "summary": ""}
+        plan: dict[str, Any] = {"steps": [], "summary": ""}
         if any(word in lowered for word in ["fix", "debug", "error", "issue"]):
             plan["summary"] = "Investigate issue, propose fix, apply fix, verify."
             plan["steps"] = [
@@ -37,8 +37,12 @@ class AutonomousAgent:
                 "apply_fix",
                 "verify",
             ]
-        elif any(word in lowered for word in ["build", "create", "implement", "feature"]):
-            plan["summary"] = "Scaffold implementation, implement core, add basic tests."
+        elif any(
+            word in lowered for word in ["build", "create", "implement", "feature"]
+        ):
+            plan["summary"] = (
+                "Scaffold implementation, implement core, add basic tests."
+            )
             plan["steps"] = [
                 "scaffold",
                 "implement",
@@ -56,9 +60,11 @@ class AutonomousAgent:
             plan["steps"] = ["execute", "summarize"]
         return plan
 
-    def execute(self, task_description: str, context: Optional[str] = None) -> Dict[str, Any]:
+    def execute(
+        self, task_description: str, context: str | None = None
+    ) -> dict[str, Any]:
         plan = self.plan(task_description)
-        results: List[StepResult] = []
+        results: list[StepResult] = []
         for step in plan["steps"]:
             try:
                 step_result = self._run_step(step, task_description, context)
@@ -69,7 +75,9 @@ class AutonomousAgent:
                     StepResult(
                         name=step,
                         success=False,
-                        error="".join(traceback.format_exception_only(type(exc), exc)).strip(),
+                        error="".join(
+                            traceback.format_exception_only(type(exc), exc)
+                        ).strip(),
                     )
                 )
                 break
@@ -79,13 +87,22 @@ class AutonomousAgent:
                 "context": context,
                 "plan": plan,
                 "results": [
-                    {"name": r.name, "success": r.success, "output": r.output, "error": r.error}
+                    {
+                        "name": r.name,
+                        "success": r.success,
+                        "output": r.output,
+                        "error": r.error,
+                    }
                     for r in results
                 ],
             }
         )
         success = all(result.success for result in results)
-        outputs = [result.output for result in results if result.success and result.output is not None]
+        outputs = [
+            result.output
+            for result in results
+            if result.success and result.output is not None
+        ]
         errors = [result.error for result in results if result.error]
         return {
             "success": success,
@@ -96,7 +113,9 @@ class AutonomousAgent:
             "errors": errors,
         }
 
-    def _run_step(self, step: str, task_description: str, context: Optional[str]) -> StepResult:
+    def _run_step(
+        self, step: str, task_description: str, context: str | None
+    ) -> StepResult:
         if step == "investigate":
             output = {
                 "message": "Investigation complete.",
@@ -124,16 +143,23 @@ class AutonomousAgent:
                 "suggested_path": "tools/new_feature.py",
             }
         elif step == "implement":
-            output = {"message": "Implementation placeholder: delegate to coding tooling."}
+            output = {
+                "message": "Implementation placeholder: delegate to coding tooling."
+            }
         elif step == "basic_tests":
             output = {
                 "message": "Tests placeholder: add unit tests in tests/ for new feature.",
                 "suggested_path": "tests/test_new_feature.py",
             }
         elif step == "read_inputs":
-            output = {"message": "Inputs review placeholder: gather docs, code, data sources."}
+            output = {
+                "message": "Inputs review placeholder: gather docs, code, data sources."
+            }
         elif step == "analyze":
-            output = {"message": "Analysis placeholder: summarize current state and risks.", "risks": []}
+            output = {
+                "message": "Analysis placeholder: summarize current state and risks.",
+                "risks": [],
+            }
         elif step == "summarize":
             output = {
                 "message": "Summary",
@@ -164,16 +190,20 @@ class AutonomousAgent:
             output = {"message": f"Step `{step}` has no handler.", "step": step}
         return StepResult(name=step, success=True, output=output)
 
-    def reflect(self, run: Dict[str, Any]) -> Dict[str, Any]:
+    def reflect(self, run: dict[str, Any]) -> dict[str, Any]:
         failures = [err for err in run.get("errors", []) if err]
         return {
             "success": run.get("success", False),
             "completed_steps": run.get("steps", []),
             "failures": failures,
-            "improvements": ["Reduce broad step scope and add explicit verify step."] if failures else [],
+            "improvements": (
+                ["Reduce broad step scope and add explicit verify step."]
+                if failures
+                else []
+            ),
         }
 
-    def run(self, task_description: str, context: Optional[str] = None) -> Dict[str, Any]:
+    def run(self, task_description: str, context: str | None = None) -> dict[str, Any]:
         run = self.execute(task_description, context)
         reflection = self.reflect(run)
         return {"run": run, "reflection": reflection}

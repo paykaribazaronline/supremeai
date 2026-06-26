@@ -1,9 +1,15 @@
-import os
 import base64
-from typing import Dict, Any, List
-from loguru import logger
-from fastapi import APIRouter, HTTPException, UploadFile, File, Form
+import os
 import tempfile
+from typing import Any
+
+from fastapi import APIRouter
+from fastapi import File
+from fastapi import Form
+from fastapi import HTTPException
+from fastapi import UploadFile
+from loguru import logger
+
 
 router = APIRouter(prefix="/diagram", tags=["diagram-to-architecture"])
 
@@ -17,20 +23,21 @@ class DiagramToArchitecture:
         if not os.path.exists(image_path):
             raise FileNotFoundError(f"Diagram not found at {image_path}")
         with open(image_path, "rb") as image_file:
-            return base64.b64encode(image_file.read()).decode('utf-8')
+            return base64.b64encode(image_file.read()).decode("utf-8")
 
     async def generate_infrastructure(
-        self, diagram_path: str,
-        provider: str = "aws",
-        iac_tool: str = "terraform"
-    ) -> Dict[str, Any]:
-        logger.info(f"Generating {iac_tool} for {provider} from diagram: {diagram_path}")
+        self, diagram_path: str, provider: str = "aws", iac_tool: str = "terraform"
+    ) -> dict[str, Any]:
+        logger.info(
+            f"Generating {iac_tool} for {provider} from diagram: {diagram_path}"
+        )
         try:
             base64_image = self._encode_image(diagram_path)
             ext = os.path.splitext(diagram_path)[1].lower().lstrip(".")
             mime = "image/png" if ext in ("png", "") else f"image/{ext}"
 
             from brain.model_router import ModelRouter
+
             router_llm = ModelRouter()
             prompt = (
                 f"You are an expert infrastructure architect. Analyze the provided architecture diagram "
@@ -45,7 +52,7 @@ class DiagramToArchitecture:
                 prompt,
                 task_type="vision",
                 max_cost=0.08,
-                images=[{"base64": base64_image, "mime": mime}]
+                images=[{"base64": base64_image, "mime": mime}],
             )
             code = result.get("text", "") if isinstance(result, dict) else ""
 
@@ -67,8 +74,8 @@ class DiagramToArchitecture:
             logger.error(f"Architecture generation failed: {str(e)}")
             return {"status": "error", "error": str(e)}
 
-    def _mock_output(self, provider: str, iac_tool: str) -> Dict[str, Any]:
-        mock_code = f'''provider "{provider}" {{
+    def _mock_output(self, provider: str, iac_tool: str) -> dict[str, Any]:
+        mock_code = f"""provider "{provider}" {{
   region = "us-east-1"
 }}
 
@@ -82,7 +89,7 @@ resource "{provider}_subnet" "public" {{
   vpc_id            = {provider}_vpc.main.id
   cidr_block        = "10.0.1.0/24"
   availability_zone = "us-east-1a"
-}}'''
+}}"""
         return {
             "status": "success",
             "iac_tool": iac_tool,
@@ -94,8 +101,10 @@ resource "{provider}_subnet" "public" {{
             "code": mock_code,
         }
 
-    def _parse_components_from_code(self, code: str, iac_tool: str) -> List[Dict[str, str]]:
-        components: List[Dict[str, str]] = []
+    def _parse_components_from_code(
+        self, code: str, iac_tool: str
+    ) -> list[dict[str, str]]:
+        components: list[dict[str, str]] = []
         for line in code.splitlines():
             line_stripped = line.strip()
             if iac_tool == "terraform":
@@ -113,11 +122,12 @@ resource "{provider}_subnet" "public" {{
                     components.append({"type": type_val, "details": ""})
         return components
 
-    async def generate_api_spec(self, diagram_path: str) -> Dict[str, Any]:
+    async def generate_api_spec(self, diagram_path: str) -> dict[str, Any]:
         """Generate OpenAPI spec from a sequence/flowchart diagram."""
         base64_image = self._encode_image(diagram_path)
         try:
             from brain.model_router import ModelRouter
+
             router_llm = ModelRouter()
             prompt = (
                 "Analyze this sequence diagram or flowchart and generate a valid OpenAPI 3.0 YAML spec. "
@@ -125,8 +135,10 @@ resource "{provider}_subnet" "public" {{
                 "Return only the YAML, no markdown."
             )
             result = await router_llm.async_route_and_generate(
-                prompt, task_type="vision", max_cost=0.06,
-                images=[{"base64": base64_image, "mime": "image/png"}]
+                prompt,
+                task_type="vision",
+                max_cost=0.06,
+                images=[{"base64": base64_image, "mime": "image/png"}],
             )
             yaml_spec = result.get("text", "") if isinstance(result, dict) else ""
             return {"status": "success", "openapi_yaml": yaml_spec}
@@ -153,7 +165,9 @@ async def generate_from_diagram(
         tmp_path = tmp.name
 
     try:
-        result = await _converter.generate_infrastructure(tmp_path, provider=provider, iac_tool=iac_tool)
+        result = await _converter.generate_infrastructure(
+            tmp_path, provider=provider, iac_tool=iac_tool
+        )
     finally:
         os.unlink(tmp_path)
 

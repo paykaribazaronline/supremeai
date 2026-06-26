@@ -1,5 +1,5 @@
-
-from core.mcp_allowlist import MCPAllowlist, get_mcp_servers
+from core.mcp_allowlist import MCPAllowlist
+from core.mcp_allowlist import get_mcp_servers
 
 
 def test_get_mcp_servers_shape():
@@ -27,7 +27,9 @@ def test_validate_server_denied():
 
 
 def test_allowed_tools_all_granted():
-    result = MCPAllowlist.allowed_tools("github", ["search_repositories", "get_file_contents"])
+    result = MCPAllowlist.allowed_tools(
+        "github", ["search_repositories", "get_file_contents"]
+    )
     assert result["allowed"] is True
     assert result["denied"] == []
 

@@ -1,10 +1,15 @@
 import xml.etree.ElementTree as ET
-from typing import Dict, Any, List, Optional
-from urllib.parse import urlparse, parse_qs
+from typing import Any
+from urllib.parse import parse_qs
+from urllib.parse import urlparse
+
 from loguru import logger
 
+
 try:
-    from jose import JWTError, jwt as jose_jwt
+    from jose import JWTError
+    from jose import jwt as jose_jwt
+
     _JOSE_AVAILABLE = True
 except ImportError:
     _JOSE_AVAILABLE = False
@@ -13,44 +18,57 @@ except ImportError:
 
 
 class SSOIntegrator:
-    def __init__(self, saml_settings: Optional[Dict[str, Any]] = None):
+    def __init__(self, saml_settings: dict[str, Any] | None = None):
         self.saml_settings = saml_settings or {}
         self.onelogin = self._load_onelogin()
-        logger.info(f"Initialized SSOIntegrator (python-saml={'loaded' if self.onelogin else 'fallback'})")
+        logger.info(
+            f"Initialized SSOIntegrator (python-saml={'loaded' if self.onelogin else 'fallback'})"
+        )
 
     def _load_onelogin(self):
         try:
             from onelogin.saml2.auth import OneLogin_Saml2_Auth
             from onelogin.saml2.settings import OneLogin_Saml2_Settings
+
             self._OneLogin_Saml2_Auth = OneLogin_Saml2_Auth
             self._OneLogin_Saml2_Settings = OneLogin_Saml2_Settings
             return True
         except ImportError:
             return False
 
-    def _prepare_request(self, request_data: Dict[str, Any]) -> Dict[str, Any]:
+    def _prepare_request(self, request_data: dict[str, Any]) -> dict[str, Any]:
         if self.onelogin:
             return {
-                "https": "on" if self.saml_settings.get("sp_entity_id", "").startswith("https") else "off",
+                "https": (
+                    "on"
+                    if self.saml_settings.get("sp_entity_id", "").startswith("https")
+                    else "off"
+                ),
                 "http_host": self.saml_settings.get("sp_entity_id", "") or "localhost",
                 "script_name": self.saml_settings.get("acs_url", ""),
-                "get_data": parse_qs(urlparse(self.saml_settings.get("query_string", "")).query),
+                "get_data": parse_qs(
+                    urlparse(self.saml_settings.get("query_string", "")).query
+                ),
                 "post_data": request_data.get("post_data", {}),
             }
         return request_data
 
-    def get_metadata(self) -> Dict[str, Any]:
+    def get_metadata(self) -> dict[str, Any]:
         if self.onelogin:
             try:
                 settings_obj = self._build_settings()
                 metadata = settings_obj.get_sp_metadata()
-                return {"status": "success", "content_type": "application/xml", "body": metadata}
+                return {
+                    "status": "success",
+                    "content_type": "application/xml",
+                    "body": metadata,
+                }
             except Exception as exc:
                 logger.error(f"Metadata generation failed: {exc}")
         xml = self._fallback_metadata()
         return {"status": "fallback", "content_type": "application/xml", "body": xml}
 
-    def get_sso_url(self, relay_state: Optional[str] = None) -> str:
+    def get_sso_url(self, relay_state: str | None = None) -> str:
         if self.onelogin:
             try:
                 settings_obj = self._build_settings()
@@ -62,7 +80,9 @@ class SSOIntegrator:
                 logger.error(f"SSO URL generation failed: {exc}")
         return self.saml_settings.get("idp_sso_url", "")
 
-    async def process_sso_response(self, post_data: Dict[str, Any], relay_state: Optional[str] = None) -> Dict[str, Any]:
+    async def process_sso_response(
+        self, post_data: dict[str, Any], relay_state: str | None = None
+    ) -> dict[str, Any]:
         if self.onelogin:
             try:
                 settings_obj = self._build_settings()
@@ -77,11 +97,27 @@ class SSOIntegrator:
                 attributes = auth.get_attributes()
                 name_id = auth.get_nameid()
                 session_index = auth.get_session_index()
-                user_id = attributes.get("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier", [name_id])[0]
-                email = attributes.get("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress", [""])[0]
-                groups = attributes.get("http://schemas.microsoft.com/ws/2008/06/identity/claims/groups", []) or \
-                         attributes.get("groups", []) or \
-                         [v for k, v in attributes.items() if "group" in k.lower() for v in (v if isinstance(v, list) else [v])]
+                user_id = attributes.get(
+                    "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier",
+                    [name_id],
+                )[0]
+                email = attributes.get(
+                    "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress",
+                    [""],
+                )[0]
+                groups = (
+                    attributes.get(
+                        "http://schemas.microsoft.com/ws/2008/06/identity/claims/groups",
+                        [],
+                    )
+                    or attributes.get("groups", [])
+                    or [
+                        v
+                        for k, v in attributes.items()
+                        if "group" in k.lower()
+                        for v in (v if isinstance(v, list) else [v])
+                    ]
+                )
                 roles = self.map_roles(groups)
                 return {
                     "status": "success",
@@ -98,10 +134,17 @@ class SSOIntegrator:
         try:
             root = ET.fromstring(post_data.get("SAMLResponse", ""))
             logger.info("SAML XML parsed successfully.")
-            user_id = root.findtext(".//{urn:oasis:names:tc:SAML:2.0:assertion}Subject/{urn:oasis:names:tc:SAML:2.0:assertion}NameID", default="")
-            groups_el = root.findall(".//{urn:oasis:names:tc:SAML:2.0:assertion}AttributeStatement//{urn:oasis:names:tc:SAML:2.0:assertion}Attribute[@Name='groups']/{urn:oasis:names:tc:SAML:2.0:assertion}AttributeValue")
+            user_id = root.findtext(
+                ".//{urn:oasis:names:tc:SAML:2.0:assertion}Subject/{urn:oasis:names:tc:SAML:2.0:assertion}NameID",
+                default="",
+            )
+            groups_el = root.findall(
+                ".//{urn:oasis:names:tc:SAML:2.0:assertion}AttributeStatement//{urn:oasis:names:tc:SAML:2.0:assertion}Attribute[@Name='groups']/{urn:oasis:names:tc:SAML:2.0:assertion}AttributeValue"
+            )
             groups = [el.text for el in groups_el if el.text]
-            email_el = root.find(".//{urn:oasis:names:tc:SAML:2.0:assertion}AttributeStatement//{urn:oasis:names:tc:SAML:2.0:assertion}Attribute[@Name='email']/{urn:oasis:names:tc:SAML:2.0:assertion}AttributeValue")
+            email_el = root.find(
+                ".//{urn:oasis:names:tc:SAML:2.0:assertion}AttributeStatement//{urn:oasis:names:tc:SAML:2.0:assertion}Attribute[@Name='email']/{urn:oasis:names:tc:SAML:2.0:assertion}AttributeValue"
+            )
             email = email_el.text if email_el is not None else ""
             return {
                 "status": "success",
@@ -115,8 +158,8 @@ class SSOIntegrator:
             logger.error(f"Fallback SAML parsing failed: {exc}")
             return {"status": "error", "message": "Invalid SAML response"}
 
-    def map_roles(self, sso_groups: List[str]) -> List[str]:
-        internal_roles: List[str] = []
+    def map_roles(self, sso_groups: list[str]) -> list[str]:
+        internal_roles: list[str] = []
         mapping = {
             "Admin": "owner",
             "Administrators": "owner",
@@ -131,7 +174,9 @@ class SSOIntegrator:
                 internal_roles.append(role)
         return internal_roles or ["viewer"]
 
-    def get_logout_url(self, request: Optional[Dict[str, Any]] = None, relay_state: Optional[str] = None) -> str:
+    def get_logout_url(
+        self, request: dict[str, Any] | None = None, relay_state: str | None = None
+    ) -> str:
         if self.onelogin:
             try:
                 settings_obj = self._build_settings()
@@ -142,7 +187,7 @@ class SSOIntegrator:
                 logger.error(f"Logout URL generation failed: {exc}")
         return self.saml_settings.get("idp_slo_url", "")
 
-    async def process_slo_response(self, post_data: Dict[str, Any]) -> Dict[str, Any]:
+    async def process_slo_response(self, post_data: dict[str, Any]) -> dict[str, Any]:
         if self.onelogin:
             try:
                 settings_obj = self._build_settings()
@@ -159,12 +204,18 @@ class SSOIntegrator:
             "strict": False,
             "debug": True,
             "sp": {
-                "entityId": self.saml_settings.get("sp_entity_id", "https://supremeai.com/metadata"),
+                "entityId": self.saml_settings.get(
+                    "sp_entity_id", "https://supremeai.com/metadata"
+                ),
                 "assertionConsumerService": {
-                    "url": self.saml_settings.get("acs_url", "https://supremeai.com/acs"),
+                    "url": self.saml_settings.get(
+                        "acs_url", "https://supremeai.com/acs"
+                    ),
                 },
                 "singleLogoutService": {
-                    "url": self.saml_settings.get("sls_url", "https://supremeai.com/sls"),
+                    "url": self.saml_settings.get(
+                        "sls_url", "https://supremeai.com/sls"
+                    ),
                 },
                 "NameIDFormat": "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress",
                 "x509cert": self.saml_settings.get("sp_x509_cert", ""),
@@ -184,7 +235,9 @@ class SSOIntegrator:
             },
         }
         if self.onelogin:
-            return self._OneLogin_Saml2_Settings(settings=settings_dict, security=self.saml_settings.get("security", {}))
+            return self._OneLogin_Saml2_Settings(
+                settings=settings_dict, security=self.saml_settings.get("security", {})
+            )
         return settings_dict
 
     def _fallback_metadata(self) -> str:
@@ -227,7 +280,7 @@ class SSOIntegrator:
         redirect_uri: str,
         state: str,
         scope: str = "openid profile email",
-        extra_params: Optional[Dict[str, str]] = None,
+        extra_params: dict[str, str] | None = None,
     ) -> str:
         cfg = self.OIDC_PROVIDERS.get(provider.lower())
         if not cfg:
@@ -255,16 +308,20 @@ class SSOIntegrator:
         redirect_uri: str,
         client_id: str,
         client_secret: str,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         cfg = self.OIDC_PROVIDERS.get(provider.lower())
         if not cfg:
-            return {"status": "error", "message": f"Unsupported OIDC provider: {provider}"}
+            return {
+                "status": "error",
+                "message": f"Unsupported OIDC provider: {provider}",
+            }
         token_url = cfg["token_endpoint"].format(
             domain=self.saml_settings.get("oidc_domain", ""),
             tenant=self.saml_settings.get("oidc_tenant", ""),
         )
         try:
             import httpx
+
             payload = {
                 "grant_type": "authorization_code",
                 "code": code,
@@ -293,7 +350,9 @@ class SSOIntegrator:
             logger.error(f"OIDC code exchange failed: {exc}")
             return {"status": "error", "message": str(exc)}
 
-    async def process_oidc_response(self, provider: str, code: str, state: str) -> Dict[str, Any]:
+    async def process_oidc_response(
+        self, provider: str, code: str, state: str
+    ) -> dict[str, Any]:
         """Convenience wrapper: exchange code, fetch userinfo, map roles."""
         client_id = self.saml_settings.get("oidc_client_id", "")
         client_secret = self.saml_settings.get("oidc_client_secret", "")
@@ -312,10 +371,8 @@ class SSOIntegrator:
         user_id = claims.get("sub") or claims.get("email", "unknown")
         email = claims.get("email", "")
         # Provider-specific groups extraction
-        groups: List[str] = []
-        if provider == "okta":
-            groups = claims.get("groups", [])
-        elif provider == "azure":
+        groups: list[str] = []
+        if provider == "okta" or provider == "azure":
             groups = claims.get("groups", [])
         elif provider == "google":
             groups = claims.get("hd", "").split(",") if claims.get("hd") else []

@@ -1,7 +1,8 @@
 import ast
 import operator
-import httpx
 import re
+
+import httpx
 
 
 _ALLOWED_OPERATORS = {
@@ -55,18 +56,24 @@ class FactualVerifier:
     def _init_local_rag(self):
         try:
             from tools.local_search_rag import LocalSearchRAG
+
             self.local_rag = LocalSearchRAG()
         except ImportError:
             pass
 
     def verify_with_local_rag(self, claim: str) -> dict:
         if self.local_rag is None:
-            return {"claim": claim, "is_verified": True, "confidence": 0.5, "method": "no_local_rag"}
-        
+            return {
+                "claim": claim,
+                "is_verified": True,
+                "confidence": 0.5,
+                "method": "no_local_rag",
+            }
+
         try:
             rag_result = self.local_rag.semantic_search(claim)
             matches = rag_result.get("matches", [])
-            
+
             if matches:
                 supporting = [m.get("title", "") for m in matches[:3]]
                 return {
@@ -74,11 +81,22 @@ class FactualVerifier:
                     "is_verified": True,
                     "confidence": min(0.9, len(matches) * 0.3),
                     "supporting_sources": supporting,
-                    "method": "local_rag"
+                    "method": "local_rag",
                 }
-            return {"claim": claim, "is_verified": True, "confidence": 0.3, "method": "no_matches"}
+            return {
+                "claim": claim,
+                "is_verified": True,
+                "confidence": 0.3,
+                "method": "no_matches",
+            }
         except Exception as e:
-            return {"claim": claim, "is_verified": True, "confidence": 0.2, "error": str(e), "method": "rag_error"}
+            return {
+                "claim": claim,
+                "is_verified": True,
+                "confidence": 0.2,
+                "error": str(e),
+                "method": "rag_error",
+            }
 
     async def verify_with_web_search(self, claim: str) -> dict:
         if "france" in claim.lower() and "paris" in claim.lower():
@@ -88,9 +106,9 @@ class FactualVerifier:
                 "confidence": 1.0,
                 "supporting_sources": ["https://en.wikipedia.org/wiki/Paris"],
                 "contradicting_sources": [],
-                "method": "simulated"
+                "method": "simulated",
             }
-        
+
         # Prioritize local ChromaDB RAG search before external web search
         if self.local_rag is not None:
             try:
@@ -103,13 +121,13 @@ class FactualVerifier:
                         "is_verified": True,
                         "confidence": min(0.9, len(matches) * 0.3),
                         "supporting_sources": supporting,
-                        "method": "local_rag"
+                        "method": "local_rag",
                     }
             except Exception:
                 pass
-        
+
         try:
-            query = __import__('urllib.parse').parse.quote(claim)
+            query = __import__("urllib.parse").parse.quote(claim)
             url = f"https://api.duckduckgo.com/?q={query}&format=json&pretty=1"
             async with httpx.AsyncClient(timeout=10.0) as client:
                 response = await client.get(url)
@@ -121,16 +139,22 @@ class FactualVerifier:
                             "is_verified": True,
                             "confidence": 0.8,
                             "supporting_sources": [data.get("AbstractURL", "")],
-                            "method": "duckduckgo_api"
+                            "method": "duckduckgo_api",
                         }
         except Exception:
             pass
-        
-        return {"claim": claim, "is_verified": True, "confidence": 0.3, "method": "fallback"}
+
+        return {
+            "claim": claim,
+            "is_verified": True,
+            "confidence": 0.3,
+            "method": "fallback",
+        }
 
     def verify_math(self, expression: str, claimed_result: str) -> dict:
         try:
             import sympy
+
             expr = sympy.sympify(expression)
             claimed = sympy.sympify(claimed_result)
             is_correct = sympy.simplify(expr - claimed) == 0
@@ -142,7 +166,7 @@ class FactualVerifier:
             return {
                 "is_verified": bool(is_correct),
                 "expression_sympy": str(expr),
-                "claimed_result": str(claimed)
+                "claimed_result": str(claimed),
             }
         except Exception as e:
             try:
@@ -154,10 +178,13 @@ class FactualVerifier:
                     "is_verified": is_correct,
                     "numerical_result": result,
                     "claimed_result": claimed,
-                    "fallback_used": True
+                    "fallback_used": True,
                 }
             except Exception as inner_e:
-                return {"is_verified": False, "error": f"Sympy error: {e}, Fallback error: {inner_e}"}
+                return {
+                    "is_verified": False,
+                    "error": f"Sympy error: {e}, Fallback error: {inner_e}",
+                }
 
     def verify(self, text: str) -> dict:
         # Check simple math within the text
@@ -165,5 +192,8 @@ class FactualVerifier:
         for expr, claimed in math_matches:
             mv = self.verify_math(expr, claimed)
             if not mv["is_verified"]:
-                return {"is_verified": False, "reason": f"Math error: {expr} != {claimed}"}
+                return {
+                    "is_verified": False,
+                    "reason": f"Math error: {expr} != {claimed}",
+                }
         return {"is_verified": True}

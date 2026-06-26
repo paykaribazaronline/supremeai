@@ -1,11 +1,14 @@
-from typing import Dict, Any
+from typing import Any
+
 from loguru import logger
 
+
 class ScientificAgent:
-    async def solve_equation(self, equation: str) -> Dict[str, Any]:
+    async def solve_equation(self, equation: str) -> dict[str, Any]:
         logger.info(f"Solving equation: {equation}")
         try:
             import sympy as sp
+
             expr = sp.sympify(equation)
             solution = sp.solve(expr)
             method = "symbolic"
@@ -28,7 +31,7 @@ class ScientificAgent:
                 "method": "mock_fallback",
             }
 
-    async def generate_simulation_script(self, phenomenon: str) -> Dict[str, Any]:
+    async def generate_simulation_script(self, phenomenon: str) -> dict[str, Any]:
         logger.info(f"Generating simulation for: {phenomenon}")
         script = f"""
 import numpy as np

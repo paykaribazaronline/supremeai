@@ -1,5 +1,6 @@
 import re
 
+
 class InputSanitizer:
     def __init__(self):
         self.vague_patterns = [r"\bsomething\b", r"\banything\b", r"\betc\b"]
@@ -8,7 +9,7 @@ class InputSanitizer:
             r"hack into",
             r"generate fake news",
             r"create malware",
-            r"impersonate real person"
+            r"impersonate real person",
         ]
 
     def detect_ambiguity(self, prompt: str) -> dict:
@@ -16,11 +17,13 @@ class InputSanitizer:
         is_ambiguous = len(vague_matches) > 0
         clarifying_questions = []
         if is_ambiguous:
-            clarifying_questions.append("Could you specify exactly what you mean by 'something/anything/etc.'?")
+            clarifying_questions.append(
+                "Could you specify exactly what you mean by 'something/anything/etc.'?"
+            )
         return {
             "is_ambiguous": is_ambiguous,
             "vague_terms": vague_matches,
-            "clarifying_questions": clarifying_questions
+            "clarifying_questions": clarifying_questions,
         }
 
     def validate_scope(self, prompt: str) -> dict:
@@ -29,7 +32,7 @@ class InputSanitizer:
                 return {
                     "is_valid": False,
                     "reason": f"Request involves: {forbidden}",
-                    "suggestion": "I cannot help with this request."
+                    "suggestion": "I cannot help with this request.",
                 }
         return {"is_valid": True}
 
@@ -38,32 +41,34 @@ class InputSanitizer:
         time_match = re.search(r"in\s+(\d+)\s+(hour|day|week|minute)", prompt, re.I)
         return {
             "budget": float(budget_match.group(1)) if budget_match else None,
-            "time": time_match.group(0) if time_match else None
+            "time": time_match.group(0) if time_match else None,
         }
 
     def strip_pii(self, text: str) -> str:
         # Email pattern
         email_pattern = r"[\w\.-]+@[\w\.-]+\.\w+"
         text = re.sub(email_pattern, "[EMAIL]", text)
-        
+
         # IP Address pattern
         ip_pattern = r"\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b"
         text = re.sub(ip_pattern, "[IP_ADDRESS]", text)
-        
+
         # Phone pattern
-        phone_pattern = r"\b\+?\d{1,4}[-.\s]?\(?\d{1,3}?\)?[-.\s]?\d{3,4}[-.\s]?\d{3,4}\b"
+        phone_pattern = (
+            r"\b\+?\d{1,4}[-.\s]?\(?\d{1,3}?\)?[-.\s]?\d{3,4}[-.\s]?\d{3,4}\b"
+        )
         text = re.sub(phone_pattern, "[PHONE_NUMBER]", text)
-        
+
         return text
 
     def sanitize(self, prompt: str) -> dict:
         scope = self.validate_scope(prompt)
         if not scope["is_valid"]:
             return {"is_valid": False, "reason": scope["reason"]}
-        
+
         # Strip PII
         sanitized_prompt = self.strip_pii(prompt)
-        
+
         ambiguity = self.detect_ambiguity(sanitized_prompt)
         constraints = self.extract_constraints(sanitized_prompt)
         return {
@@ -71,6 +76,5 @@ class InputSanitizer:
             "is_ambiguous": ambiguity["is_ambiguous"],
             "clarifying_questions": ambiguity["clarifying_questions"],
             "constraints": constraints,
-            "prompt": sanitized_prompt
+            "prompt": sanitized_prompt,
         }
-

@@ -1,7 +1,8 @@
-import os
 import json
+import os
 import tempfile
 from unittest.mock import patch
+
 from core.universal_rules import UniversalRulesEngine
 
 
@@ -80,7 +81,9 @@ def test_apply_rules_no_cost_field_not_blocked():
 def test_load_rules_from_existing_file():
     with tempfile.TemporaryDirectory() as tmpdir:
         rules_path = os.path.join(tmpdir, "admin_rules.json")
-        custom = {"directions": {"count": 3, "names": ["A", "B", "C"], "description": "test"}}
+        custom = {
+            "directions": {"count": 3, "names": ["A", "B", "C"], "description": "test"}
+        }
         with open(rules_path, "w", encoding="utf-8") as f:
             json.dump(custom, f)
         engine = UniversalRulesEngine(rules_path=rules_path)
@@ -112,7 +115,7 @@ def test_save_rules_atomic_write():
         new_rules = engine.rules.copy()
         new_rules["cost_management"]["monthly_budget"] = 99.99
         engine.save_rules(new_rules)
-        with open(rules_path, "r", encoding="utf-8") as f:
+        with open(rules_path, encoding="utf-8") as f:
             loaded = json.load(f)
         assert loaded["cost_management"]["monthly_budget"] == 99.99
 
@@ -129,6 +132,7 @@ def test_default_rules_path_is_project_data_dir():
 
 def test_save_rules_returns_false_on_io_error():
     import os as _os
+
     engine = UniversalRulesEngine()
     with tempfile.TemporaryDirectory() as tmpdir:
         rules_path = _os.path.join(tmpdir, "admin_rules.json")

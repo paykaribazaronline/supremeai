@@ -1,7 +1,9 @@
 import os
 import sys
 import types
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock
+from unittest.mock import patch
+
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -14,8 +16,8 @@ def _bootstrap():
 
 _bootstrap()
 
-from brain.model_router import ModelRouter
 from brain.langgraph_agent import SupremeOrchestrator
+from brain.model_router import ModelRouter
 from core.admin_god import AdminGodLayer
 from core.universal_rules import UniversalRulesEngine
 
@@ -24,7 +26,16 @@ def test_model_router_fallback():
     router = ModelRouter()
     router.openrouter_api_key = ""
 
-    with patch.object(router, '_call_ollama', return_value={"success": True, "provider": "ollama", "text": "local response", "cost": 0.0}):
+    with patch.object(
+        router,
+        "_call_ollama",
+        return_value={
+            "success": True,
+            "provider": "ollama",
+            "text": "local response",
+            "cost": 0.0,
+        },
+    ):
         res = router.route_and_generate("hello", "coding")
         assert res["success"] is True
         assert res["provider"] == "ollama"
@@ -112,14 +123,17 @@ def test_query_local_rag():
     assert result["status"] == "ok"
     assert len(result.get("matches", [])) == 2
 
+
 def test_route_and_stream():
     router = ModelRouter()
+
     # Mock _stream_ollama
     def mock_stream(prompt, model):
         yield "chunk1"
         yield "chunk2"
+
     router._stream_ollama = mock_stream
-    
-    with patch.object(router, '_pick_provider', return_value=("ollama", "qwen")):
+
+    with patch.object(router, "_pick_provider", return_value=("ollama", "qwen")):
         chunks = list(router.route_and_stream("test prompt", "general"))
         assert chunks == ["chunk1", "chunk2"]

@@ -1,7 +1,11 @@
-import pytest
 import os
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock
+from unittest.mock import patch
+
+import pytest
+
 from tools.model_trainer import ModelTrainer
+
 
 @pytest.mark.anyio
 async def test_trigger_lora_finetune_local():
@@ -14,6 +18,7 @@ async def test_trigger_lora_finetune_local():
     if os.path.exists("tests/mock_dataset.jsonl"):
         os.remove("tests/mock_dataset.jsonl")
 
+
 @pytest.mark.anyio
 @patch("httpx.AsyncClient.post")
 async def test_trigger_lora_finetune_runpod(mock_post):
@@ -24,10 +29,12 @@ async def test_trigger_lora_finetune_runpod(mock_post):
 
     with patch.dict(os.environ, {"RUNPOD_API_KEY": "test-key"}):
         trainer = ModelTrainer(provider="runpod")
-        res = await trainer.trigger_lora_finetune("tests/mock_dataset.jsonl", "llama3-8b")
+        res = await trainer.trigger_lora_finetune(
+            "tests/mock_dataset.jsonl", "llama3-8b"
+        )
         assert res["status"] == "success"
         assert res["job_id"] == "runpod-job-123"
         assert res["provider"] == "runpod"
-        
+
     if os.path.exists("tests/mock_dataset.jsonl"):
         os.remove("tests/mock_dataset.jsonl")

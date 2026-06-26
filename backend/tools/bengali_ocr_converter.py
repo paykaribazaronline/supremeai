@@ -1,8 +1,8 @@
 import os
-import io
+
+import pandas as pd
 from google.cloud import vision
 from google.oauth2 import service_account
-import pandas as pd
 
 
 def setup_google_vision(credentials_path=None):
@@ -20,7 +20,7 @@ def setup_google_vision(credentials_path=None):
 
 def extract_text_from_image(client, image_path):
     """Extract text from image using Google Cloud Vision API"""
-    with io.open(image_path, "rb") as image_file:
+    with open(image_path, "rb") as image_file:
         content = image_file.read()
 
     image = vision.Image(content=content)

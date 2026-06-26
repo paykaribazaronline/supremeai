@@ -1,13 +1,15 @@
 from __future__ import annotations
 
-import os
 import json
 import math
+import os
 import uuid
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
+
 
 try:
     import chromadb
+
     _CHROMA_AVAILABLE = True
 except ImportError:
     _CHROMA_AVAILABLE = False
@@ -18,13 +20,16 @@ class ChromaDBStore:
     ChromaDB-backed vector store with local TF-IDF fallback.
     Provides add_document, add_documents, query, update, delete, and count APIs.
     """
-    def __init__(self, db_path: str = None, collection_name: str = "supremeai_knowledge"):
+
+    def __init__(
+        self, db_path: str = None, collection_name: str = "supremeai_knowledge"
+    ):
         if db_path is None:
             base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
             db_path = os.path.join(base_dir, "data", "chromadb_store")
         self.db_path = db_path
         self.collection_name = collection_name
-        self._fallback_docs: Dict[str, Dict[str, Any]] = {}
+        self._fallback_docs: dict[str, dict[str, Any]] = {}
         self._client = None
         self._collection = None
         self._init_chroma()
@@ -52,7 +57,7 @@ class ChromaDBStore:
         path = os.path.join(self.db_path, "fallback_docs.json")
         if os.path.exists(path):
             try:
-                with open(path, "r", encoding="utf-8") as f:
+                with open(path, encoding="utf-8") as f:
                     self._fallback_docs = json.load(f)
             except Exception:
                 self._fallback_docs = {}
@@ -69,33 +74,35 @@ class ChromaDBStore:
     # Tokenization / Similarity (fallback mode)
     # ------------------------------------------------------------------
     @staticmethod
-    def _tokenize(text: str) -> List[str]:
+    def _tokenize(text: str) -> list[str]:
         return [w.strip(".,!?;:()\"'").lower() for w in text.split() if w.strip()]
 
     @staticmethod
-    def _get_vector(text: str) -> Dict[str, int]:
+    def _get_vector(text: str) -> dict[str, int]:
         tokens = ChromaDBStore._tokenize(text)
-        vector: Dict[str, int] = {}
+        vector: dict[str, int] = {}
         for token in tokens:
             vector[token] = vector.get(token, 0) + 1
         return vector
 
     @staticmethod
-    def _cosine_similarity(vec1: Dict[str, int], vec2: Dict[str, int]) -> float:
+    def _cosine_similarity(vec1: dict[str, int], vec2: dict[str, int]) -> float:
         intersection = set(vec1.keys()) & set(vec2.keys())
         numerator = sum(vec1[x] * vec2[x] for x in intersection)
-        sum1 = sum(v ** 2 for v in vec1.values())
-        sum2 = sum(v ** 2 for v in vec2.values())
+        sum1 = sum(v**2 for v in vec1.values())
+        sum2 = sum(v**2 for v in vec2.values())
         denominator = math.sqrt(sum1) * math.sqrt(sum2)
         return float(numerator) / denominator if denominator else 0.0
 
     # ------------------------------------------------------------------
     # CRUD
     # ------------------------------------------------------------------
-    def add_document(self, doc_id: str, text: str, metadata: Dict[str, Any] = None) -> None:
+    def add_document(
+        self, doc_id: str, text: str, metadata: dict[str, Any] = None
+    ) -> None:
         self.add_documents([{"id": doc_id, "text": text, "metadata": metadata or {}}])
 
-    def add_documents(self, documents: List[Dict[str, Any]]) -> None:
+    def add_documents(self, documents: list[dict[str, Any]]) -> None:
         if self._collection is not None:
             ids = []
             texts = []
@@ -124,18 +131,36 @@ class ChromaDBStore:
             }
         self._save_fallback()
 
-    def query(self, query_text: str, n_results: int = 5, where: Dict[str, Any] = None) -> List[Tuple[str, float, Dict[str, Any]]]:
+    def query(
+        self, query_text: str, n_results: int = 5, where: dict[str, Any] = None
+    ) -> list[tuple[str, float, dict[str, Any]]]:
         if self._collection is not None:
             try:
-                results = self._collection.query(query_texts=[query_text], n_results=n_results)
-                matches: List[Tuple[str, float, Dict[str, Any]]] = []
+                results = self._collection.query(
+                    query_texts=[query_text], n_results=n_results
+                )
+                matches: list[tuple[str, float, dict[str, Any]]] = []
                 if results and results.get("ids") and results["ids"][0]:
                     for idx, doc_id in enumerate(results["ids"][0]):
-                        distance = results["distances"][0][idx] if results.get("distances") else 0.0
+                        distance = (
+                            results["distances"][0][idx]
+                            if results.get("distances")
+                            else 0.0
+                        )
                         score = float(1.0 - distance)
-                        meta = results["metadatas"][0][idx] if results.get("metadatas") else {}
-                        doc_text = results["documents"][0][idx] if results.get("documents") else ""
-                        matches.append((doc_id, score, {"text": doc_text, "metadata": meta}))
+                        meta = (
+                            results["metadatas"][0][idx]
+                            if results.get("metadatas")
+                            else {}
+                        )
+                        doc_text = (
+                            results["documents"][0][idx]
+                            if results.get("documents")
+                            else ""
+                        )
+                        matches.append(
+                            (doc_id, score, {"text": doc_text, "metadata": meta})
+                        )
                     return matches
             except Exception:
                 pass
@@ -165,7 +190,7 @@ class ChromaDBStore:
                 pass
         return len(self._fallback_docs)
 
-    def get_document(self, doc_id: str) -> Optional[Dict[str, Any]]:
+    def get_document(self, doc_id: str) -> dict[str, Any] | None:
         if self._collection is not None:
             try:
                 result = self._collection.get(ids=[doc_id])
@@ -173,7 +198,9 @@ class ChromaDBStore:
                     return {
                         "id": doc_id,
                         "text": result["documents"][0],
-                        "metadata": result["metadatas"][0] if result.get("metadatas") else {},
+                        "metadata": (
+                            result["metadatas"][0] if result.get("metadatas") else {}
+                        ),
                     }
             except Exception:
                 pass

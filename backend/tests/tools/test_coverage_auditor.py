@@ -1,7 +1,9 @@
+from unittest.mock import mock_open
+from unittest.mock import patch
+
 import pytest
-import os
-from unittest.mock import patch, mock_open
-from backend.tools.coverage_auditor import CoverageAuditor, CoverageGap
+from backend.tools.coverage_auditor import CoverageAuditor
+from backend.tools.coverage_auditor import CoverageGap
 
 
 @pytest.fixture
@@ -66,7 +68,9 @@ def test_find_gaps_identifies_low_coverage_from_json(auditor, mock_coverage_json
     """
     Tests that find_gaps correctly identifies low coverage files from a JSON report.
     """
-    with patch("os.path.exists", return_value=True), patch("builtins.open", mock_open(read_data=mock_coverage_json)):
+    with patch("os.path.exists", return_value=True), patch(
+        "builtins.open", mock_open(read_data=mock_coverage_json)
+    ):
         gaps = auditor.find_gaps("dummy/path/coverage.json", min_coverage=80)
 
     assert len(gaps) == 1
@@ -74,11 +78,14 @@ def test_find_gaps_identifies_low_coverage_from_json(auditor, mock_coverage_json
     assert gaps[0].coverage == 40.0
     assert gaps[0].uncovered_lines == [3, 4, 5]
 
+
 def test_find_gaps_identifies_low_coverage_files(auditor, mock_coverage_xml):
     """
     Tests that find_gaps correctly identifies files below the coverage threshold.
     """
-    with patch("os.path.exists", return_value=True), patch("builtins.open", mock_open(read_data=mock_coverage_xml)):
+    with patch("os.path.exists", return_value=True), patch(
+        "builtins.open", mock_open(read_data=mock_coverage_xml)
+    ):
         gaps = auditor.find_gaps("dummy/path/coverage.xml", min_coverage=80)
 
     assert len(gaps) == 2
@@ -93,7 +100,9 @@ def test_find_gaps_respects_min_coverage_threshold(auditor, mock_coverage_xml):
     """
     Tests that the min_coverage threshold is correctly applied.
     """
-    with patch("os.path.exists", return_value=True), patch("builtins.open", mock_open(read_data=mock_coverage_xml)):
+    with patch("os.path.exists", return_value=True), patch(
+        "builtins.open", mock_open(read_data=mock_coverage_xml)
+    ):
         # With a lower threshold, module3 should not be included
         gaps = auditor.find_gaps("dummy/path/coverage.xml", min_coverage=60)
 

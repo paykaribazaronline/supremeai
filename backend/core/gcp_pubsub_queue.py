@@ -2,13 +2,16 @@ import json
 import os
 import sqlite3
 import uuid
-from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
+from datetime import datetime
+from datetime import timezone
+from typing import Any
 
 from loguru import logger
 
+
 try:
     from google.cloud import pubsub_v1  # type: ignore[import-untyped]
+
     PUBSUB_AVAILABLE = True
 except Exception:
     PUBSUB_AVAILABLE = False
@@ -19,26 +22,37 @@ class GCPPubSubQueue:
 
     def __init__(
         self,
-        project_id: Optional[str] = None,
-        topic_id: Optional[str] = None,
-        subscription_id: Optional[str] = None,
-        db_path: Optional[str] = None,
+        project_id: str | None = None,
+        topic_id: str | None = None,
+        subscription_id: str | None = None,
+        db_path: str | None = None,
     ):
-        self.project_id = project_id or os.getenv("GCP_PROJECT_ID") or os.getenv("GOOGLE_CLOUD_PROJECT")
+        self.project_id = (
+            project_id
+            or os.getenv("GCP_PROJECT_ID")
+            or os.getenv("GOOGLE_CLOUD_PROJECT")
+        )
         self.topic_id = topic_id or os.getenv("GCP_PUBSUB_TOPIC", "supremeai-tasks")
-        self.subscription_id = subscription_id or os.getenv("GCP_PUBSUB_SUBSCRIPTION") or f"{self.topic_id}-sub"
+        self.subscription_id = (
+            subscription_id
+            or os.getenv("GCP_PUBSUB_SUBSCRIPTION")
+            or f"{self.topic_id}-sub"
+        )
         self.db_path = db_path or os.getenv("GCP_PUBSUB_SQLITE_PATH")
         self.publisher = None
         self.subscriber = None
         self.mode = "local_sqlite"
-        
 
         if PUBSUB_AVAILABLE and self.project_id:
             try:
                 self.publisher = pubsub_v1.PublisherClient()
                 self.subscriber = pubsub_v1.SubscriberClient()
-                self.topic_path = self.publisher.topic_path(self.project_id, self.topic_id)
-                self.subscription_path = self.subscriber.subscription_path(self.project_id, self.subscription_id)
+                self.topic_path = self.publisher.topic_path(
+                    self.project_id, self.topic_id
+                )
+                self.subscription_path = self.subscriber.subscription_path(
+                    self.project_id, self.subscription_id
+                )
                 self.mode = "gcp_pubsub"
                 logger.info("Using GCP Pub/Sub task queue")
             except Exception as exc:
@@ -58,7 +72,9 @@ class GCPPubSubQueue:
 
     def _init_db(self) -> None:
         if self.db_path == ":memory:":
-            self._memory_conn = sqlite3.connect(str(self.db_path), check_same_thread=False)
+            self._memory_conn = sqlite3.connect(
+                str(self.db_path), check_same_thread=False
+            )
             conn = self._memory_conn
         else:
             conn = sqlite3.connect(str(self.db_path), check_same_thread=False)
@@ -76,7 +92,9 @@ class GCPPubSubQueue:
                 )
                 """
             )
-            conn.execute("CREATE INDEX IF NOT EXISTS idx_pubsub_acked ON pubsub_queue(acked)")
+            conn.execute(
+                "CREATE INDEX IF NOT EXISTS idx_pubsub_acked ON pubsub_queue(acked)"
+            )
             conn.commit()
         finally:
             if self.db_path != ":memory:":
@@ -87,7 +105,7 @@ class GCPPubSubQueue:
             return self._memory_conn
         return sqlite3.connect(str(self.db_path), check_same_thread=False)
 
-    def publish(self, task_id: str, payload: Dict[str, Any]) -> Dict[str, Any]:
+    def publish(self, task_id: str, payload: dict[str, Any]) -> dict[str, Any]:
         now = self._now()
         if self.publisher is not None:
             data = json.dumps(
@@ -126,7 +144,7 @@ class GCPPubSubQueue:
             "task_id": task_id,
         }
 
-    def pull(self, max_messages: int = 10) -> List[Dict[str, Any]]:
+    def pull(self, max_messages: int = 10) -> list[dict[str, Any]]:
         if self.subscriber is not None:
             response = self.subscriber.pull(
                 request={
@@ -162,17 +180,29 @@ class GCPPubSubQueue:
             ).fetchall()
         return [self._row_to_dict(row) for row in rows]
 
-    def ack(self, message_id: str) -> Dict[str, Any]:
+    def ack(self, message_id: str) -> dict[str, Any]:
         if self.subscriber is not None:
             self.subscriber.acknowledge(self.subscription_path, [message_id])
-            return {"success": True, "provider": "gcp_pubsub", "message_id": message_id, "acked": True}
+            return {
+                "success": True,
+                "provider": "gcp_pubsub",
+                "message_id": message_id,
+                "acked": True,
+            }
 
         with self._get_connection() as conn:
-            cursor = conn.execute("UPDATE pubsub_queue SET acked = 1 WHERE message_id = ?", (message_id,))
+            cursor = conn.execute(
+                "UPDATE pubsub_queue SET acked = 1 WHERE message_id = ?", (message_id,)
+            )
             conn.commit()
-        return {"success": True, "provider": "local_sqlite", "message_id": message_id, "acked": cursor.rowcount > 0}
+        return {
+            "success": True,
+            "provider": "local_sqlite",
+            "message_id": message_id,
+            "acked": cursor.rowcount > 0,
+        }
 
-    def stats(self) -> Dict[str, Any]:
+    def stats(self) -> dict[str, Any]:
         if self.subscriber is not None:
             return {
                 "provider": "gcp_pubsub",
@@ -183,8 +213,12 @@ class GCPPubSubQueue:
             }
 
         with self._get_connection() as conn:
-            pending = conn.execute("SELECT COUNT(*) FROM pubsub_queue WHERE acked = 0").fetchone()[0]
-            acked = conn.execute("SELECT COUNT(*) FROM pubsub_queue WHERE acked = 1").fetchone()[0]
+            pending = conn.execute(
+                "SELECT COUNT(*) FROM pubsub_queue WHERE acked = 0"
+            ).fetchone()[0]
+            acked = conn.execute(
+                "SELECT COUNT(*) FROM pubsub_queue WHERE acked = 1"
+            ).fetchone()[0]
         return {
             "provider": "local_sqlite",
             "db_path": self.db_path,
@@ -204,9 +238,8 @@ class GCPPubSubQueue:
         self.subscriber = None
         if self._memory_conn is not None:
             self._memory_conn.close()
-            
 
-    def _row_to_dict(self, row: sqlite3.Row) -> Dict[str, Any]:
+    def _row_to_dict(self, row: sqlite3.Row) -> dict[str, Any]:
         return {
             "message_id": row["message_id"],
             "task_id": row["task_id"],

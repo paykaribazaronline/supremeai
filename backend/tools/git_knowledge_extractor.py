@@ -5,26 +5,30 @@ Analyzes git history to extract error-fix patterns and architecture learnings.
 Fulfills SK-0065 in autonomous_seed_knowledge.json.
 """
 
-import subprocess
-import sqlite3
-import re
 import json
-import uuid
+import re
+import sqlite3
+import subprocess
 import time
+import uuid
+
 
 try:
     from core.feedback_loop import FeedbackLoop
+
     _feedback = FeedbackLoop()
 except ImportError:
     _feedback = None
 
 DB_PATH = "data/git_knowledge.db"
 
+
 def init_db():
     """Initializes the SQLite database and table."""
     with sqlite3.connect(DB_PATH) as conn:
         cursor = conn.cursor()
-        cursor.execute('''
+        cursor.execute(
+            """
             CREATE TABLE IF NOT EXISTS git_fixes (
                 id TEXT PRIMARY KEY,
                 commit_hash TEXT,
@@ -33,55 +37,63 @@ def init_db():
                 files_changed TEXT,
                 timestamp INTEGER
             )
-        ''')
+        """
+        )
         conn.commit()
+
 
 def run_git(args):
     try:
-        return subprocess.check_output(['git'] + args, stderr=subprocess.STDOUT).decode('utf-8')
+        return subprocess.check_output(["git"] + args, stderr=subprocess.STDOUT).decode(
+            "utf-8"
+        )
     except Exception as e:
         print(f"Error running git: {e}")
         return ""
+
 
 def extract_knowledge():
     init_db()
     print("🔍 Analyzing git log for knowledge extraction...")
     # Get last 50 commits with diffs
-    logs = run_git(['log', '-n', '50', '--pretty=format:COMMIT:%H%nSUBJECT:%s%nBODY:%b', '-p'])
-    
+    logs = run_git(
+        ["log", "-n", "50", "--pretty=format:COMMIT:%H%nSUBJECT:%s%nBODY:%b", "-p"]
+    )
+
     knowledge_entries = []
-    commits = logs.split('COMMIT:')
-    fix_keywords = ['fix', 'solve', 'resolved', 'bug', 'patch', 'error']
-    
+    commits = logs.split("COMMIT:")
+    fix_keywords = ["fix", "solve", "resolved", "bug", "patch", "error"]
+
     for commit in commits:
-        if not commit.strip(): continue
-        lines = commit.split('\n')
+        if not commit.strip():
+            continue
+        lines = commit.split("\n")
         commit_id = lines[0]
         subject = ""
         body = ""
         diff = ""
-        
+
         in_body = False
         in_diff = False
-        
+
         for line in lines[1:]:
-            if line.startswith('SUBJECT:'):
+            if line.startswith("SUBJECT:"):
                 subject = line[8:]
-            elif line.startswith('BODY:'):
+            elif line.startswith("BODY:"):
                 body = line[5:]
                 in_body = True
-            elif line.startswith('diff --git'):
+            elif line.startswith("diff --git"):
                 in_body = False
                 in_diff = True
-                diff += line + '\n'
+                diff += line + "\n"
             elif in_diff:
-                diff += line + '\n'
+                diff += line + "\n"
             elif in_body:
-                body += line + '\n'
+                body += line + "\n"
 
         if any(kw in subject.lower() for kw in fix_keywords):
             print(f"  ✨ Found fix pattern in commit {commit_id[:8]}: {subject}")
-            files_changed = re.findall(r'diff --git a/(.*?) b/', diff)
+            files_changed = re.findall(r"diff --git a/(.*?) b/", diff)
 
             entry = {
                 "id": str(uuid.uuid4()),
@@ -89,7 +101,7 @@ def extract_knowledge():
                 "subject": subject,
                 "body": body.strip(),
                 "files_changed": json.dumps(files_changed),
-                "timestamp": int(time.time())
+                "timestamp": int(time.time()),
             }
             knowledge_entries.append(entry)
 
@@ -105,9 +117,15 @@ def extract_knowledge():
     if knowledge_entries:
         with sqlite3.connect(DB_PATH) as conn:
             cursor = conn.cursor()
-            cursor.executemany("INSERT OR REPLACE INTO git_fixes VALUES (:id, :commit_hash, :subject, :body, :files_changed, :timestamp)", knowledge_entries)
+            cursor.executemany(
+                "INSERT OR REPLACE INTO git_fixes VALUES (:id, :commit_hash, :subject, :body, :files_changed, :timestamp)",
+                knowledge_entries,
+            )
             conn.commit()
-        print(f"✅ Extracted and stored {len(knowledge_entries)} entries into {DB_PATH}")
+        print(
+            f"✅ Extracted and stored {len(knowledge_entries)} entries into {DB_PATH}"
+        )
+
 
 if __name__ == "__main__":
     extract_knowledge()

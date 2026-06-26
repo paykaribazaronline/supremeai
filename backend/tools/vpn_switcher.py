@@ -10,7 +10,9 @@ logger = logging.getLogger(__name__)
 
 
 class VPNRotator:
-    def __init__(self, endpoints: list[str] | None = None, current_index: int = 0) -> None:
+    def __init__(
+        self, endpoints: list[str] | None = None, current_index: int = 0
+    ) -> None:
         self.endpoints = [item.strip() for item in (endpoints or []) if item.strip()]
         self.current_index = current_index
         self.history: list[dict[str, Any]] = []
@@ -24,12 +26,22 @@ class VPNRotator:
     def rotate(self) -> dict[str, Any]:
         reason = "ok"
         if not self.endpoints:
-            return {"rotated": False, "endpoint": None, "reason": "No endpoints configured", "next_index": 0}
+            return {
+                "rotated": False,
+                "endpoint": None,
+                "reason": "No endpoints configured",
+                "next_index": 0,
+            }
 
         endpoint = self.endpoints[self.current_index % len(self.endpoints)]
         previous = self.endpoints[(self.current_index - 1) % len(self.endpoints)]
         self.current_index = (self.current_index + 1) % len(self.endpoints)
-        result = {"rotated": True, "endpoint": endpoint, "previous": previous, "next_index": self.current_index}
+        result = {
+            "rotated": True,
+            "endpoint": endpoint,
+            "previous": previous,
+            "next_index": self.current_index,
+        }
         if len(self.endpoints) <= 1 and previous == endpoint:
             reason = "single_endpoint_noop"
             result["reason"] = reason
@@ -57,14 +69,20 @@ class VPNRotator:
         reason = rotation.get("reason")
         if reason:
             result["reason"] = reason
-        logger.info("rotate_agent called agent=%s rotated=%s", agent_id, result["rotated"])
+        logger.info(
+            "rotate_agent called agent=%s rotated=%s", agent_id, result["rotated"]
+        )
         return result
 
     def configure_endpoints(self, endpoints: list[str]) -> dict[str, Any]:
         previous_count = len(self.endpoints)
         self.endpoints = [item.strip() for item in endpoints if item.strip()]
         self.current_index = 0
-        result = {"configured": True, "count": len(self.endpoints), "previous_count": previous_count}
+        result = {
+            "configured": True,
+            "count": len(self.endpoints),
+            "previous_count": previous_count,
+        }
         self._record("configure", result)
         logger.info("VPN endpoints configured with %d endpoints", len(self.endpoints))
         return result
@@ -74,7 +92,11 @@ class VPNRotator:
         if not endpoint:
             return {"added": False, "reason": "empty endpoint"}
         if endpoint in self.endpoints:
-            return {"added": False, "reason": "duplicate endpoint", "endpoint": endpoint}
+            return {
+                "added": False,
+                "reason": "duplicate endpoint",
+                "endpoint": endpoint,
+            }
         self.endpoints.append(endpoint)
         result = {"added": True, "endpoint": endpoint, "count": len(self.endpoints)}
         self._record("add", result)

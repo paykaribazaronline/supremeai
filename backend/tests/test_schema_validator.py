@@ -2,7 +2,9 @@ from __future__ import annotations
 
 import pytest
 from pydantic import BaseModel
-from core.schema_validator import SchemaValidator, SchemaValidationError
+
+from core.schema_validator import SchemaValidationError
+from core.schema_validator import SchemaValidator
 
 
 class SimpleModel(BaseModel):
@@ -42,7 +44,13 @@ def test_validate_validation_error(validator):
 
 
 def test_schema_validation_error_attributes():
-    errors = [{"loc": "value", "msg": "Input should be a valid integer", "type": "int_parsing"}]
+    errors = [
+        {
+            "loc": "value",
+            "msg": "Input should be a valid integer",
+            "type": "int_parsing",
+        }
+    ]
     err = SchemaValidationError("simple", errors)
     assert err.model_name == "simple"
     assert err.errors == errors

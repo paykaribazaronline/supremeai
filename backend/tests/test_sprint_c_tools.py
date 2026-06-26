@@ -6,19 +6,27 @@ Tests for Sprint C fixed tools:
 - style_learner
 - diagram_to_architecture
 """
+
+from unittest.mock import AsyncMock
+from unittest.mock import MagicMock
+from unittest.mock import patch
+
 import pytest
-from unittest.mock import AsyncMock, MagicMock, patch
 
 
 # ── BrowserAgent ─────────────────────────────────────────────────────────────
 
+
 class TestBrowserAgent:
     def test_fetch_page_success(self):
         from tools.browser_agent import BrowserAgent
+
         agent = BrowserAgent()
         with patch("httpx.get") as mock_get:
             mock_resp = MagicMock()
-            mock_resp.text = "<html><head><title>Test</title></head><body>Hello World</body></html>"
+            mock_resp.text = (
+                "<html><head><title>Test</title></head><body>Hello World</body></html>"
+            )
             mock_resp.status_code = 200
             mock_get.return_value = mock_resp
             result = agent.fetch_page("https://example.com")
@@ -28,6 +36,7 @@ class TestBrowserAgent:
 
     def test_fetch_page_error(self):
         from tools.browser_agent import BrowserAgent
+
         agent = BrowserAgent()
         with patch("httpx.get", side_effect=Exception("Connection refused")):
             result = agent.fetch_page("https://invalid-url.xyz")
@@ -37,62 +46,87 @@ class TestBrowserAgent:
     @pytest.mark.anyio
     async def test_extract_data(self):
         from tools.browser_agent import BrowserAgent
+
         agent = BrowserAgent()
-        with patch.object(agent, "fetch_page", return_value={"success": True, "title": "Test", "content": "Some content"}):
+        with patch.object(
+            agent,
+            "fetch_page",
+            return_value={"success": True, "title": "Test", "content": "Some content"},
+        ):
             with patch("brain.model_router.ModelRouter") as mock_router_cls:
                 mock_router = AsyncMock()
-                mock_router.async_route_and_generate.return_value = {"text": '{"name": "Test"}'}
+                mock_router.async_route_and_generate.return_value = {
+                    "text": '{"name": "Test"}'
+                }
                 mock_router_cls.return_value = mock_router
-                result = await agent.extract_data("https://example.com", "Extract the name")
+                result = await agent.extract_data(
+                    "https://example.com", "Extract the name"
+                )
         assert result["success"] is True
 
 
 # ── VoiceCoder ───────────────────────────────────────────────────────────────
 
+
 class TestVoiceCoder:
     @pytest.mark.anyio
     async def test_generate_code_from_instruction(self):
         from tools.voice_coder import VoiceCoder
+
         coder = VoiceCoder()
         with patch("brain.model_router.ModelRouter") as mock_router_cls:
             mock_router = AsyncMock()
-            mock_router.async_route_and_generate.return_value = {"text": "def hello(): pass"}
+            mock_router.async_route_and_generate.return_value = {
+                "text": "def hello(): pass"
+            }
             mock_router_cls.return_value = mock_router
-            result = await coder._generate_code_from_instruction("generate a hello function")
+            result = await coder._generate_code_from_instruction(
+                "generate a hello function"
+            )
         assert "hello" in result or "def" in result or "#" in result
 
     @pytest.mark.anyio
     async def test_classify_and_execute_generate(self):
         from tools.voice_coder import VoiceCoder
+
         coder = VoiceCoder()
-        with patch.object(coder, "_generate_code_from_instruction", new_callable=AsyncMock) as mock_gen:
+        with patch.object(
+            coder, "_generate_code_from_instruction", new_callable=AsyncMock
+        ) as mock_gen:
             mock_gen.return_value = "def hello(): pass"
-            action, code = await coder._classify_and_execute("generate a hello function")
+            action, code = await coder._classify_and_execute(
+                "generate a hello function"
+            )
         assert action == "generate_code"
         assert "def hello" in code
 
     @pytest.mark.anyio
     async def test_classify_and_execute_explain(self):
         from tools.voice_coder import VoiceCoder
+
         coder = VoiceCoder()
         with patch.object(coder, "_explain", new_callable=AsyncMock) as mock_exp:
             mock_exp.return_value = "This is a variable"
-            action, result = await coder._classify_and_execute("explain what is a variable")
+            action, result = await coder._classify_and_execute(
+                "explain what is a variable"
+            )
         assert action == "explanation"
 
 
 # ── AIPairProgrammer ─────────────────────────────────────────────────────────
 
+
 class TestAIPairProgrammer:
     @pytest.mark.anyio
     async def test_solve_issue_success(self):
         from tools.ai_pair_programmer import AIPairProgrammer
+
         programmer = AIPairProgrammer()
         with patch.object(programmer, "_call_llm", new_callable=AsyncMock) as mock_llm:
             mock_llm.side_effect = [
-                "1. Analyze\n2. Fix\n3. Test",   # plan
-                "def fixed(): pass",              # code
-                "def test_fixed(): pass",         # tests
+                "1. Analyze\n2. Fix\n3. Test",  # plan
+                "def fixed(): pass",  # code
+                "def test_fixed(): pass",  # tests
             ]
             result = await programmer.solve_issue("Fix the login bug")
         assert result["status"] == "success"
@@ -103,6 +137,7 @@ class TestAIPairProgrammer:
     @pytest.mark.anyio
     async def test_review_code(self):
         from tools.ai_pair_programmer import AIPairProgrammer
+
         programmer = AIPairProgrammer()
         with patch.object(programmer, "_call_llm", new_callable=AsyncMock) as mock_llm:
             mock_llm.return_value = "1. Security: No issues\n2. Logic: Looks good"
@@ -113,9 +148,11 @@ class TestAIPairProgrammer:
 
 # ── StyleLearner ─────────────────────────────────────────────────────────────
 
+
 class TestStyleLearner:
     def test_default_guidelines(self):
         from tools.style_learner import StyleLearner
+
         learner = StyleLearner()
         guidelines = learner._default_guidelines()
         assert "python" in guidelines
@@ -124,12 +161,14 @@ class TestStyleLearner:
 
     def test_generate_style_prompt_no_cache(self):
         from tools.style_learner import StyleLearner
+
         learner = StyleLearner()
         prompt = learner.generate_style_prompt("/nonexistent/repo", "python")
         assert "best practices" in prompt.lower()
 
     def test_generate_style_prompt_with_cache(self):
         from tools.style_learner import StyleLearner
+
         learner = StyleLearner()
         learner.learned_styles["/my/repo"] = {
             "python": {"naming_convention": "snake_case"},
@@ -142,6 +181,7 @@ class TestStyleLearner:
     @pytest.mark.anyio
     async def test_extract_style_no_files(self, tmp_path):
         from tools.style_learner import StyleLearner
+
         learner = StyleLearner()
         # Empty dir → should return default guidelines
         result = await learner.extract_style_guidelines(str(tmp_path))
@@ -150,9 +190,11 @@ class TestStyleLearner:
 
 # ── DiagramToArchitecture ────────────────────────────────────────────────────
 
+
 class TestDiagramToArchitecture:
     def test_mock_output(self):
         from tools.diagram_to_architecture import DiagramToArchitecture
+
         converter = DiagramToArchitecture()
         result = converter._mock_output("aws", "terraform")
         assert result["status"] == "success"
@@ -161,12 +203,13 @@ class TestDiagramToArchitecture:
 
     def test_parse_terraform_components(self):
         from tools.diagram_to_architecture import DiagramToArchitecture
+
         converter = DiagramToArchitecture()
-        code = '''
+        code = """
 resource "aws_vpc" "main" {}
 resource "aws_subnet" "public" {}
 module "eks_cluster" {}
-'''
+"""
         components = converter._parse_components_from_code(code, "terraform")
         types = [c["type"] for c in components]
         assert "aws_vpc" in types
@@ -176,6 +219,7 @@ module "eks_cluster" {}
     @pytest.mark.anyio
     async def test_generate_infrastructure_file_not_found(self):
         from tools.diagram_to_architecture import DiagramToArchitecture
+
         converter = DiagramToArchitecture()
         result = await converter.generate_infrastructure("/nonexistent/diagram.png")
         assert result["status"] == "error"

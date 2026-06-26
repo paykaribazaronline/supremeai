@@ -1,16 +1,19 @@
-import pytest
 import os
 import sys
+
+import pytest
+
 
 # Ensure supremeai root is in python path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from core.input_sanitizer import InputSanitizer
-from core.generation_monitor import GenerationMonitor
-from core.factual_verifier import FactualVerifier
 from core.code_validator import CodeValidator
-from core.output_validator import OutputValidator
 from core.error_pattern_db import ErrorPatternDB
+from core.factual_verifier import FactualVerifier
+from core.generation_monitor import GenerationMonitor
+from core.input_sanitizer import InputSanitizer
+from core.output_validator import OutputValidator
+
 
 def test_input_sanitizer():
     sanitizer = InputSanitizer()
@@ -23,10 +26,13 @@ def test_input_sanitizer():
     assert res2["is_ambiguous"] is True
 
     # Test PII Stripping
-    cleaned = sanitizer.strip_pii("Contact me at test@example.com or call +1-555-123-4567. My server is 192.168.1.1.")
+    cleaned = sanitizer.strip_pii(
+        "Contact me at test@example.com or call +1-555-123-4567. My server is 192.168.1.1."
+    )
     assert "[EMAIL]" in cleaned
     assert "[PHONE_NUMBER]" in cleaned
     assert "[IP_ADDRESS]" in cleaned
+
 
 def test_generation_monitor():
     monitor = GenerationMonitor()
@@ -35,6 +41,7 @@ def test_generation_monitor():
 
     sources = monitor.require_source_attribution("Paris is the capital. [Source: Wiki]")
     assert sources["must_add_sources"] is False
+
 
 @pytest.mark.anyio
 async def test_factual_verifier():
@@ -52,6 +59,7 @@ async def test_factual_verifier():
     symbolic_res = verifier.verify_math("x + x", "2*x")
     assert symbolic_res["is_verified"] is True
     assert symbolic_res.get("expression_sympy") == "2*x"
+
 
 def test_code_validator():
     validator = CodeValidator()
@@ -74,6 +82,7 @@ def test_code_validator():
     url_res = validator.validate_url("https://github.com/nadim9/supremeai.git")
     assert url_res["is_valid"] is False
 
+
 def test_output_validator():
     validator = OutputValidator()
     res = validator.validate("Repository: https://github.com/nadim9/supremeai.git")
@@ -85,13 +94,19 @@ def test_output_validator():
         "Generate a simple function",
         "def foo():\n    return 1",
         "def foo():\n    return 1",
-        "def foo():\n    return 2"
+        "def foo():\n    return 2",
     )
     assert "foo" in consensus_res["code"]
 
     # HumanReviewPolicy test
-    assert validator.human_policy.requires_human_review("python_code", {"overall": 0.9}) is True
-    assert validator.human_policy.requires_human_review("text", {"overall": 0.6}) is True
+    assert (
+        validator.human_policy.requires_human_review("python_code", {"overall": 0.9})
+        is True
+    )
+    assert (
+        validator.human_policy.requires_human_review("text", {"overall": 0.6}) is True
+    )
+
 
 def test_error_pattern_db():
     db = ErrorPatternDB("test_patterns.db")
@@ -99,19 +114,20 @@ def test_error_pattern_db():
     pattern = db.check_pattern("This is a repo: nadim9/supremeai")
     assert pattern["should_prevent"] is True
 
-    db.log_ai_mistake({
-        "model": "Kimi",
-        "type": "indentation",
-        "task": "writing validator",
-        "original": "def x():\n  pass",
-        "correct": "def x():\n    pass",
-        "root_cause": "nested block",
-        "prevention": "run ast validation"
-    })
+    db.log_ai_mistake(
+        {
+            "model": "Kimi",
+            "type": "indentation",
+            "task": "writing validator",
+            "original": "def x():\n  pass",
+            "correct": "def x():\n    pass",
+            "root_cause": "nested block",
+            "prevention": "run ast validation",
+        }
+    )
     strategy = db.get_prevention_strategy("Kimi", "writing validator")
     assert strategy == "run ast validation"
-    
+
     # Cleanup test db
     if os.path.exists("test_patterns.db"):
         os.remove("test_patterns.db")
-

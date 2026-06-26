@@ -5,11 +5,13 @@ import textwrap
 
 
 def _run(code: str) -> subprocess.CompletedProcess:
-    project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    project_root = os.path.dirname(
+        os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    )
     backend_root = os.path.join(project_root, "backend")
     env = os.environ.copy()
     env["PYTHONPATH"] = os.pathsep.join([project_root, backend_root])
-    
+
     gcp_mock_code = textwrap.dedent(
         """
         import sys
@@ -32,13 +34,14 @@ def _run(code: str) -> subprocess.CompletedProcess:
         """
     )
     full_code = gcp_mock_code + "\n" + code
-    
+
     return subprocess.run(
         [sys.executable, "-c", full_code],
         cwd=project_root,
         env=env,
         capture_output=True,
         text=True,
+        check=False,
     )
 
 

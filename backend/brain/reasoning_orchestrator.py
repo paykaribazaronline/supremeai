@@ -1,36 +1,54 @@
 from __future__ import annotations
 
-from typing import Any, Dict, Optional
+from typing import Any
 
 from loguru import logger
 
-from tools.cot_reasoner import ChainOfThoughtReasoner
-from memory.long_term_memory import LongTermMemory
 from memory.episodic_memory import EpisodicMemory
+from memory.long_term_memory import LongTermMemory
+from tools.cot_reasoner import ChainOfThoughtReasoner
 
 
 class ReasoningOrchestrator:
     def __init__(
         self,
-        long_term_memory: Optional[LongTermMemory] = None,
-        cot_reasoner: Optional[ChainOfThoughtReasoner] = None,
-        episodic_memory: Optional[EpisodicMemory] = None,
+        long_term_memory: LongTermMemory | None = None,
+        cot_reasoner: ChainOfThoughtReasoner | None = None,
+        episodic_memory: EpisodicMemory | None = None,
     ) -> None:
         self.long_term_memory = long_term_memory or LongTermMemory()
         self.cot_reasoner = cot_reasoner or ChainOfThoughtReasoner(max_iterations=2)
         self.episodic_memory = episodic_memory or EpisodicMemory()
 
-    def plan(self, task_description: str, context: Optional[str] = None) -> Dict[str, Any]:
+    def plan(self, task_description: str, context: str | None = None) -> dict[str, Any]:
         lowered = (task_description or "").lower()
         words = lowered.split()
-        is_simple = len(words) <= 2 and any(w in {"hello", "hi", "hey", "status", "health"} for w in words)
+        is_simple = len(words) <= 2 and any(
+            w in {"hello", "hi", "hey", "status", "health"} for w in words
+        )
         is_reasoning = any(
             word in lowered
-            for word in ["prove", "proof", "math", "logic", "analyze", "plan", "reason", "optimize"]
+            for word in [
+                "prove",
+                "proof",
+                "math",
+                "logic",
+                "analyze",
+                "plan",
+                "reason",
+                "optimize",
+            ]
         )
         is_advanced_reasoning = any(
             word in lowered
-            for word in ["tree", "mcts", "monte carlo", "multi-step", "strategy", "tradeoff"]
+            for word in [
+                "tree",
+                "mcts",
+                "monte carlo",
+                "multi-step",
+                "strategy",
+                "tradeoff",
+            ]
         )
         if is_simple:
             return {
@@ -56,7 +74,9 @@ class ReasoningOrchestrator:
             "reason": "Default task routing",
         }
 
-    def build_enriched_prompt(self, task_description: str, context: Optional[str] = None) -> str:
+    def build_enriched_prompt(
+        self, task_description: str, context: str | None = None
+    ) -> str:
         plan = self.plan(task_description, context)
         memory_context = self.long_term_memory.build_context()
         episodic_context = self.episodic_memory.summarize_recent(limit=3)
@@ -69,7 +89,9 @@ class ReasoningOrchestrator:
             return self.cot_reasoner.build_prompt("\n\n".join(parts), context)
         return "\n\n".join(parts)
 
-    def route(self, task_description: str, context: Optional[str] = None) -> Dict[str, Any]:
+    def route(
+        self, task_description: str, context: str | None = None
+    ) -> dict[str, Any]:
         plan = self.plan(task_description, context)
         logger.info(f"Reasoning plan: {plan}")
         reasoning_trace = None

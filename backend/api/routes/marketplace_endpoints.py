@@ -1,11 +1,14 @@
 import json
 
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter
+from fastapi import HTTPException
+from fastapi import Request
 from pydantic import BaseModel
-from typing import List, Optional
+
 from database.supabase_client import db
 from tools.marketplace_agent import MarketplaceAgent
 from tools.resource_catalog import ResourceCatalog
+
 
 router = APIRouter(prefix="/marketplace", tags=["marketplace"])
 marketplace_agent = MarketplaceAgent()
@@ -19,7 +22,7 @@ ALLOWED_CATALOG_SOURCES = {
 DEFAULT_CATALOG_SOURCES = ["awesome-selfhosted", "awesome-python"]
 
 
-def get_enabled_catalog_sources() -> List[str]:
+def get_enabled_catalog_sources() -> list[str]:
     if not db.client:
         return DEFAULT_CATALOG_SOURCES
 
@@ -41,18 +44,23 @@ def get_enabled_catalog_sources() -> List[str]:
     return enabled_sources or DEFAULT_CATALOG_SOURCES
 
 
-def filter_requested_catalog_sources(categories: List[str], enabled_sources: List[str]) -> List[str]:
+def filter_requested_catalog_sources(
+    categories: list[str], enabled_sources: list[str]
+) -> list[str]:
     return [c for c in categories if c in enabled_sources]
+
 
 class SearchRequest(BaseModel):
     query: str
-    categories: Optional[List[str]] = None
-    filters: Optional[dict] = None
+    categories: list[str] | None = None
+    filters: dict | None = None
+
 
 class InstallRequest(BaseModel):
     tool_id: str
     target_environment: str
     sandbox: bool = True
+
 
 @router.post("/search")
 async def search_marketplaces(payload: SearchRequest, request: Request):
@@ -81,6 +89,7 @@ async def search_marketplaces(payload: SearchRequest, request: Request):
         return {"status": "success", "tools": results}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
 
 @router.post("/install")
 async def install_tool(payload: InstallRequest):

@@ -46,10 +46,36 @@ class IntentClassifier:
             "stack",
             "syntax",
         ],
-        TaskType.translation: ["translate", "translation", "bengali", "hindi", "french", "spanish", "arabic", "japanese", "german"],
+        TaskType.translation: [
+            "translate",
+            "translation",
+            "bengali",
+            "hindi",
+            "french",
+            "spanish",
+            "arabic",
+            "japanese",
+            "german",
+        ],
         TaskType.sentiment: ["sentiment", "mood", "emotion", "positive", "negative"],
-        TaskType.vision: ["image", "picture", "screenshot", "photo", "vision", "see", "look"],
-        TaskType.reasoning: ["prove", "proof", "math", "logic", "deduce", "analyze", "plan"],
+        TaskType.vision: [
+            "image",
+            "picture",
+            "screenshot",
+            "photo",
+            "vision",
+            "see",
+            "look",
+        ],
+        TaskType.reasoning: [
+            "prove",
+            "proof",
+            "math",
+            "logic",
+            "deduce",
+            "analyze",
+            "plan",
+        ],
         TaskType.admin: ["admin", "rule", "kill switch", "stop", "shutdown", "disable"],
     }
 
@@ -58,7 +84,7 @@ class IntentClassifier:
         scores = {t: 0 for t in TaskType}
         for task_type, words in self.KEYWORDS.items():
             for w in words:
-                if re.search(r'(^|\W)' + re.escape(w) + r'(\W|$)', text):
+                if re.search(r"(^|\W)" + re.escape(w) + r"(\W|$)", text):
                     scores[task_type] += 1
         if max(scores.values()) == 0:
             return Intent(task_type=TaskType.general, confidence=0.5)

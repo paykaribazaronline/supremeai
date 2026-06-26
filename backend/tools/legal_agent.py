@@ -1,8 +1,12 @@
-from typing import Dict, Any
+from typing import Any
+
 from loguru import logger
 
+
 class LegalAgent:
-    async def generate_document(self, doc_type: str, context: Dict[str, str]) -> Dict[str, Any]:
+    async def generate_document(
+        self, doc_type: str, context: dict[str, str]
+    ) -> dict[str, Any]:
         logger.info(f"Generating legal document: {doc_type}")
         company = context.get("company_name", "[Company Name]")
         effective_date = context.get("effective_date", "[Date]")
@@ -31,9 +35,9 @@ These terms shall be governed by the laws of {jurisdiction}.
             "document": doc.strip(),
         }
 
-    async def extract_clauses(self, document_text: str) -> Dict[str, Any]:
+    async def extract_clauses(self, document_text: str) -> dict[str, Any]:
         logger.info("Extracting clauses from document...")
-        clauses: Dict[str, str] = {
+        clauses: dict[str, str] = {
             "liability": "Not explicitly stated.",
             "termination": "Not explicitly stated.",
             "governing_law": "Not explicitly stated.",

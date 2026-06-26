@@ -1,5 +1,6 @@
 import time
-from typing import Any, Dict
+from typing import Any
+
 from loguru import logger
 
 from core.config import settings
@@ -20,6 +21,7 @@ class TenantRateLimiter:
     def _resolve_redis_queue(self):
         try:
             import core.app as app_mod
+
             return getattr(app_mod, "redis_queue", None) or self.redis_client
         except Exception:
             return self.redis_client
@@ -72,7 +74,7 @@ class TenantRateLimiter:
         tenant_id: str,
         cost: float,
         admin_override: bool = False,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         tier_key = await self.get_tier(tenant_id)
         tier = self.billing_tiers.get(tier_key, self.billing_tiers["free"])
 
@@ -123,7 +125,7 @@ class TenantRateLimiter:
         tenant_id: str,
         cost: float,
         tokens: int,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         tier_key = await self.get_tier(tenant_id)
         tier = self.billing_tiers.get(tier_key, self.billing_tiers["free"])
 
@@ -151,7 +153,7 @@ class TenantRateLimiter:
                 pipe.incrbyfloat(cost_key, cost)
                 pipe.set(
                     tokens_key,
-                    str((int(self.queue.get(tokens_key) or 0) + tokens)),
+                    str(int(self.queue.get(tokens_key) or 0) + tokens),
                     ex=86400 + 300,
                 )
                 pipe.execute()
@@ -159,7 +161,9 @@ class TenantRateLimiter:
                 self.queue.incr(minute_key, 1)
                 self.queue.set(minute_key, str(self.queue.get(minute_key) or 1), ex=90)
                 self.queue.incr(day_key, 1)
-                self.queue.set(day_key, str(self.queue.get(day_key) or 1), ex=86400 + 300)
+                self.queue.set(
+                    day_key, str(self.queue.get(day_key) or 1), ex=86400 + 300
+                )
                 self.queue.set(
                     cost_key,
                     str(float(self.queue.get(cost_key) or 0.0) + cost),
@@ -193,12 +197,16 @@ class TenantRateLimiter:
             import stripe
 
             stripe.api_key = settings.stripe_api_key
-            customer_id = self.queue.get(f"stripe:customer:{tenant_id}") if self.queue else None
+            customer_id = (
+                self.queue.get(f"stripe:customer:{tenant_id}") if self.queue else None
+            )
             if not customer_id:
                 logger.debug(f"No Stripe customer for tenant {tenant_id}")
                 return
             customer_id = (
-                customer_id.decode("utf-8") if isinstance(customer_id, bytes) else str(customer_id)
+                customer_id.decode("utf-8")
+                if isinstance(customer_id, bytes)
+                else str(customer_id)
             )
             stripe.InvoiceItem.create(
                 customer=customer_id,

@@ -2,21 +2,24 @@ from __future__ import annotations
 
 import secrets
 import time
-from typing import List, Optional
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter
+from fastapi import HTTPException
 from pydantic import BaseModel
 
 from core.config import settings
 
+
 try:
-    from jose import JWTError, jwt
+    from jose import JWTError
+    from jose import jwt
 except ImportError:
     JWTError = Exception  # type: ignore[misc,assignment]
     jwt = None  # type: ignore[assignment]
 
 try:
     from tools.sso_integrator import SSOIntegrator
+
     sso = SSOIntegrator()
 except Exception:
     sso = None  # type: ignore[assignment]
@@ -45,7 +48,7 @@ class SSOLoginResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
     user_id: str
-    roles: List[str]
+    roles: list[str]
     email: str
     method: str
 
@@ -57,9 +60,9 @@ class OIDCCallbackRequest(BaseModel):
 
 
 class ProviderSSORequest(BaseModel):
-    client_id: Optional[str] = None
-    redirect_uri: Optional[str] = None
-    state: Optional[str] = None
+    client_id: str | None = None
+    redirect_uri: str | None = None
+    state: str | None = None
     scope: str = "openid profile email"
 
 
@@ -107,7 +110,9 @@ async def oidc_provider_callback(provider: str, payload: OIDCCallbackRequest):
     client_secret = getattr(settings, "oidc_client_secret", "")
     redirect_uri = getattr(settings, "oidc_redirect_uri", "")
     if not payload.state or payload.state not in _oidc_state_store:
-        raise HTTPException(status_code=400, detail="Invalid or expired OIDC state parameter")
+        raise HTTPException(
+            status_code=400, detail="Invalid or expired OIDC state parameter"
+        )
     _oidc_state_store.pop(payload.state, None)
     result = await sso.process_oidc_response(
         provider=provider,
@@ -115,7 +120,9 @@ async def oidc_provider_callback(provider: str, payload: OIDCCallbackRequest):
         state=payload.state,
     )
     if result.get("status") != "success":
-        raise HTTPException(status_code=401, detail=result.get("message", "OIDC authentication failed"))
+        raise HTTPException(
+            status_code=401, detail=result.get("message", "OIDC authentication failed")
+        )
     primary_role = (result.get("roles") or ["viewer"])[0]
     token_data = {
         "sub": result.get("user_id", "unknown"),
@@ -158,7 +165,9 @@ async def saml_login(payload: SAMLAssertionRequest):
         raise HTTPException(status_code=503, detail="SSO service is unavailable")
     result = await sso.process_sso_response({"SAMLResponse": payload.assertion})
     if result.get("status") != "success":
-        raise HTTPException(status_code=401, detail=result.get("message", "SAML authentication failed"))
+        raise HTTPException(
+            status_code=401, detail=result.get("message", "SAML authentication failed")
+        )
     roles = result.get("roles", ["viewer"])
     primary_role = roles[0] if roles else "viewer"
     token_data = {
@@ -185,6 +194,7 @@ async def sso_metadata():
         raise HTTPException(status_code=503, detail="SSO service is unavailable")
     metadata = sso.get_metadata()
     from fastapi.responses import PlainTextResponse
+
     return PlainTextResponse(
         content=metadata.get("body", ""),
         media_type=metadata.get("content_type", "application/xml"),

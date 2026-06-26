@@ -1,11 +1,15 @@
-from typing import Optional, Sequence
+from collections.abc import Sequence
+from typing import Optional
+
 from loguru import logger
 
 from brain.model_router import ModelRouter
 
 
 class CrewTask:
-    def __init__(self, description: str, agent: Optional["CrewAgent"] = None, context: str = ""):
+    def __init__(
+        self, description: str, agent: Optional["CrewAgent"] = None, context: str = ""
+    ):
         self.description = description
         self.agent = agent
         self.context = context
@@ -16,7 +20,7 @@ class CrewAgent:
     def __init__(
         self,
         role: str,
-        model_router: Optional[ModelRouter] = None,
+        model_router: ModelRouter | None = None,
         goal: str = "",
         backstory: str = "",
     ):

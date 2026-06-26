@@ -1,11 +1,13 @@
 import time
-from typing import Optional
+
 from loguru import logger
+
 
 try:
     from google.cloud import firestore
 except ImportError:
     firestore = None
+
 
 class AdminGodLayer:
     """
@@ -21,6 +23,7 @@ class AdminGodLayer:
         self.local_rules = {}
         import os
         import sys
+
         is_test = "pytest" in sys.modules or os.getenv("ENV") == "test"
         if firestore and not is_test:
             try:
@@ -30,21 +33,24 @@ class AdminGodLayer:
             except Exception as e:
                 logger.warning(f"Failed to initialize Firestore for AdminGodLayer: {e}")
         else:
-            logger.warning("google-cloud-firestore not installed or in test mode. AdminGodLayer using local fallback.")
+            logger.warning(
+                "google-cloud-firestore not installed or in test mode. AdminGodLayer using local fallback."
+            )
 
     def _init_db(self):
-        if not self._db: return
+        if not self._db:
+            return
         try:
             # Check if admin_authorized exists, if not initialize it
-            doc_ref = self._db.collection(self.collection_name).document("admin_authorized")
+            doc_ref = self._db.collection(self.collection_name).document(
+                "admin_authorized"
+            )
             if not doc_ref.get().exists:
                 self.set_rule("admin_authorized", "true")
         except Exception as e:
             logger.error(f"Error initializing AdminGodLayer DB: {e}")
 
-
-
-    def get_rule(self, key: str, default: Optional[str] = None) -> Optional[str]:
+    def get_rule(self, key: str, default: str | None = None) -> str | None:
         if not self._db:
             return self.local_rules.get(key, default)
         try:
@@ -63,10 +69,7 @@ class AdminGodLayer:
             return
         try:
             doc_ref = self._db.collection(self.collection_name).document(key)
-            doc_ref.set({
-                "value": value,
-                "updated_at": time.time()
-            })
+            doc_ref.set({"value": value, "updated_at": time.time()})
             logger.info(f"Constitutional rule updated in Firestore: {key} = {value}")
         except Exception as e:
             logger.error(f"Error setting rule {key}: {e}")

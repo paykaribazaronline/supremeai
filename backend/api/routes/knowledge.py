@@ -1,12 +1,17 @@
-from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel
-from typing import List, Optional, Dict, Any
 import os
 import sys
+from typing import Any
+
+from fastapi import APIRouter
+from fastapi import HTTPException
+from pydantic import BaseModel
+
 
 router = APIRouter(prefix="/api/knowledge", tags=["knowledge"])
 
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+sys.path.insert(
+    0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+)
 
 try:
     from tools.local_search_rag import LocalSearchRAG as LocalSearchRAGClass
@@ -21,23 +26,29 @@ except ImportError:
 try:
     import sqlite3
 except ImportError:
-    sqlite3 = None # type: ignore
+    sqlite3 = None  # type: ignore
 
-DB_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "knowledge_store.db")
+DB_PATH = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
+    "knowledge_store.db",
+)
+
 
 class KnowledgeSearchRequest(BaseModel):
     query: str
     limit: int = 5
     use_fts: bool = True
 
+
 class KnowledgeSearchResult(BaseModel):
     id: str
     title: str
     content: str
-    score: Optional[float] = None
-    source: Optional[str] = None
+    score: float | None = None
+    source: str | None = None
 
-def _fts_search(query: str, limit: int = 5) -> List[Dict[str, Any]]:
+
+def _fts_search(query: str, limit: int = 5) -> list[dict[str, Any]]:
     if sqlite3 is None:
         raise RuntimeError("sqlite3 module is not available")
     if not os.path.exists(DB_PATH):
@@ -57,6 +68,7 @@ def _fts_search(query: str, limit: int = 5) -> List[Dict[str, Any]]:
     finally:
         conn.close()
 
+
 @router.post("/seed")
 async def index_seed_data():
     if KnowledgeBaseIndexerClass is None:
@@ -65,9 +77,10 @@ async def index_seed_data():
     result = indexer.index_seed_data()
     return result
 
-@router.get("/search", response_model=List[KnowledgeSearchResult])
-async def search_knowledge(q: str, limit: int = 5) -> List[KnowledgeSearchResult]:
-    results: List[Dict[str, Any]] = []
+
+@router.get("/search", response_model=list[KnowledgeSearchResult])
+async def search_knowledge(q: str, limit: int = 5) -> list[KnowledgeSearchResult]:
+    results: list[dict[str, Any]] = []
     if sqlite3 is not None:
         try:
             results = _fts_search(q, limit)
@@ -77,19 +90,23 @@ async def search_knowledge(q: str, limit: int = 5) -> List[KnowledgeSearchResult
         try:
             rag = LocalSearchRAGClass()
             rag_results = rag.semantic_search(q)
-            matches = rag_results.get("matches", []) if isinstance(rag_results, dict) else []
+            matches = (
+                rag_results.get("matches", []) if isinstance(rag_results, dict) else []
+            )
             for m in matches:
-                results.append({
-                    "id": m.get("doc_id"),
-                    "title": m.get("title", ""),
-                    "content": m.get("text", ""),
-                    "score": m.get("score"),
-                    "source": "chromadb",
-                })
+                results.append(
+                    {
+                        "id": m.get("doc_id"),
+                        "title": m.get("title", ""),
+                        "content": m.get("text", ""),
+                        "score": m.get("score"),
+                        "source": "chromadb",
+                    }
+                )
         except Exception:
             pass
-    formatted: List[KnowledgeSearchResult] = []
-    for row in results[: limit]:
+    formatted: list[KnowledgeSearchResult] = []
+    for row in results[:limit]:
         formatted.append(
             KnowledgeSearchResult(
                 id=row.get("id", ""),
@@ -101,6 +118,9 @@ async def search_knowledge(q: str, limit: int = 5) -> List[KnowledgeSearchResult
         )
     return formatted
 
-@router.post("/search", response_model=List[KnowledgeSearchResult])
-async def knowledge_search(request: KnowledgeSearchRequest) -> List[KnowledgeSearchResult]:
+
+@router.post("/search", response_model=list[KnowledgeSearchResult])
+async def knowledge_search(
+    request: KnowledgeSearchRequest,
+) -> list[KnowledgeSearchResult]:
     return await search_knowledge(q=request.query, limit=request.limit)

@@ -1,5 +1,7 @@
 import pytest
-from core.factual_verifier import FactualVerifier, _safe_eval_math
+
+from core.factual_verifier import FactualVerifier
+from core.factual_verifier import _safe_eval_math
 
 
 def test_safe_eval_math_basic():
@@ -33,7 +35,15 @@ def test_verify_with_local_rag_no_rag(monkeypatch):
 
 def test_verify_with_local_rag_with_matches():
     verifier = FactualVerifier()
-    mock_rag = type("MockRAG", (), {"semantic_search": lambda self, q: {"matches": [{"title": "Doc1"}, {"title": "Doc2"}]}})()
+    mock_rag = type(
+        "MockRAG",
+        (),
+        {
+            "semantic_search": lambda self, q: {
+                "matches": [{"title": "Doc1"}, {"title": "Doc2"}]
+            }
+        },
+    )()
     verifier.local_rag = mock_rag
     result = verifier.verify_with_local_rag("test claim")
     assert result["is_verified"] is True
@@ -43,7 +53,9 @@ def test_verify_with_local_rag_with_matches():
 
 def test_verify_with_local_rag_no_matches():
     verifier = FactualVerifier()
-    mock_rag = type("MockRAG", (), {"semantic_search": lambda self, q: {"matches": []}})()
+    mock_rag = type(
+        "MockRAG", (), {"semantic_search": lambda self, q: {"matches": []}}
+    )()
     verifier.local_rag = mock_rag
     result = verifier.verify_with_local_rag("test claim")
     assert result["is_verified"] is True

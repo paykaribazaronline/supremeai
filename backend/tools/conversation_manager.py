@@ -1,10 +1,12 @@
 import uuid
-from typing import Dict, Any, List
+from typing import Any
+
 from loguru import logger
+
 
 class ConversationManager:
     def __init__(self):
-        self.sessions: Dict[str, Dict[str, Any]] = {}
+        self.sessions: dict[str, dict[str, Any]] = {}
         logger.info("Initialized ConversationManager")
 
     def create_session(self) -> str:
@@ -16,7 +18,9 @@ class ConversationManager:
         }
         return session_id
 
-    def add_message(self, session_id: str, role: str, content: str, max_history: int = 10):
+    def add_message(
+        self, session_id: str, role: str, content: str, max_history: int = 10
+    ):
         if session_id not in self.sessions:
             raise ValueError(f"Invalid session {session_id}")
         if len(content) > 4000:
@@ -26,20 +30,31 @@ class ConversationManager:
         if len(session["history"]) > max_history:
             old_msg = session["history"].pop(0)
             prev = session.get("summary", "")
-            session["summary"] = f"{prev} [{old_msg['role']}: {old_msg['content'][:60]}...]".strip()
+            session["summary"] = (
+                f"{prev} [{old_msg['role']}: {old_msg['content'][:60]}...]".strip()
+            )
             if len(session["summary"]) > 2000:
                 session["summary"] = session["summary"][:2000]
         if role == "user":
             for word in content.split():
-                if len(word) > 3 and word.lower() not in {"this", "that", "with", "have"}:
-                    session["entities"][word.lower()] = session["entities"].get(word.lower(), 0) + 1
+                if len(word) > 3 and word.lower() not in {
+                    "this",
+                    "that",
+                    "with",
+                    "have",
+                }:
+                    session["entities"][word.lower()] = (
+                        session["entities"].get(word.lower(), 0) + 1
+                    )
 
-    def get_context(self, session_id: str) -> List[Dict[str, str]]:
+    def get_context(self, session_id: str) -> list[dict[str, str]]:
         if session_id not in self.sessions:
             return []
         session = self.sessions[session_id]
-        context: List[Dict[str, str]] = []
+        context: list[dict[str, str]] = []
         if session.get("summary"):
-            context.append({"role": "system", "content": f"Previous context: {session['summary']}"})
+            context.append(
+                {"role": "system", "content": f"Previous context: {session['summary']}"}
+            )
         context.extend(session["history"])
         return context

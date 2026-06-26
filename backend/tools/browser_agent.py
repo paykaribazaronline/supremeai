@@ -1,40 +1,52 @@
 import asyncio
-import httpx
-from bs4 import BeautifulSoup
-from loguru import logger
-from typing import Dict, Any, Optional
 import ipaddress
 import socket
+from typing import Any
 from urllib.parse import urlparse
-from fastapi import APIRouter, Depends
+
+import httpx
+from bs4 import BeautifulSoup
+from fastapi import APIRouter
+from fastapi import Depends
+from loguru import logger
 from pydantic import BaseModel
 
 from api.routes.admin_dashboard import require_admin_token
 
+
 router = APIRouter(prefix="/browser", tags=["browser-agent"])
+
 
 def is_safe_url(url: str) -> bool:
     try:
         parsed = urlparse(url)
         hostname = parsed.hostname
-        if not hostname: return False
-        if hostname == "169.254.169.254" or hostname.endswith(".local"): return False
+        if not hostname:
+            return False
+        if hostname == "169.254.169.254" or hostname.endswith(".local"):
+            return False
         ip = socket.gethostbyname(hostname)
         ip_obj = ipaddress.ip_address(ip)
-        if ip_obj.is_private or ip_obj.is_loopback or ip_obj.is_link_local: return False
+        if ip_obj.is_private or ip_obj.is_loopback or ip_obj.is_link_local:
+            return False
         return True
     except Exception:
         return False
+
+
 # Global tracking references for runtime execution
 try:
-    from playwright.async_api import async_playwright, Browser, Playwright
+    from playwright.async_api import Browser
+    from playwright.async_api import Playwright
+    from playwright.async_api import async_playwright
 except ImportError:
     Browser = Any
     Playwright = Any
     async_playwright = None
 
-_playwright_runner: Optional[Playwright] = None
-_global_browser: Optional[Browser] = None
+_playwright_runner: Playwright | None = None
+_global_browser: Browser | None = None
+
 
 async def get_global_browser() -> Browser:
     """গ্লোবাল ব্রাউজার ইনস্ট্যান্স রিটার্ন করে (Lazy Initialization Pattern)"""
@@ -46,9 +58,14 @@ async def get_global_browser() -> Browser:
         _playwright_runner = await async_playwright().start()
         _global_browser = await _playwright_runner.chromium.launch(
             headless=True,
-            args=["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"]
+            args=[
+                "--no-sandbox",
+                "--disable-setuid-sandbox",
+                "--disable-dev-shm-usage",
+            ],
         )
     return _global_browser
+
 
 async def shutdown_global_browser():
     """Lifespan Hook দ্বারা কল করা হবে - কন্টেইনার শাটডাউনের সময় জম্বি প্রসেস ক্লিন করে"""
@@ -63,7 +80,9 @@ async def shutdown_global_browser():
             await _playwright_runner.stop()
         logger.info("✅ All Playwright OS processes terminated cleanly.")
     except Exception as e:
-        logger.critical(f"❌ Error during global browser termination sequence: {str(e)}")
+        logger.critical(
+            f"❌ Error during global browser termination sequence: {str(e)}"
+        )
     finally:
         _global_browser = None
         _playwright_runner = None
@@ -71,10 +90,10 @@ async def shutdown_global_browser():
 
 class BrowseRequest(BaseModel):
     url: str
-    action: Optional[str] = "fetch"   # fetch | click | screenshot | scroll | type
-    selector: Optional[str] = None
-    text: Optional[str] = None
-    wait_for: Optional[str] = None    # CSS selector to wait for
+    action: str | None = "fetch"  # fetch | click | screenshot | scroll | type
+    selector: str | None = None
+    text: str | None = None
+    wait_for: str | None = None  # CSS selector to wait for
 
 
 class BrowserAgent:
@@ -85,14 +104,22 @@ class BrowserAgent:
         logger.info("Initialized BrowserAgent")
 
     # ── Simple fetch (no JS needed) ────────────────────────────────
-    def fetch_page(self, url: str) -> Dict[str, Any]:
+    def fetch_page(self, url: str) -> dict[str, Any]:
         logger.info(f"Fetching page: {url}")
         if not is_safe_url(url):
             logger.error(f"SSRF Attempt Blocked: {url}")
-            return {"success": False, "error": "SSRF check failed: Unauthorized internal access", "url": url}
+            return {
+                "success": False,
+                "error": "SSRF check failed: Unauthorized internal access",
+                "url": url,
+            }
         try:
-            headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"}
-            response = httpx.get(url, headers=headers, timeout=15.0, follow_redirects=True)
+            headers = {
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+            }
+            response = httpx.get(
+                url, headers=headers, timeout=15.0, follow_redirects=True
+            )
             response.raise_for_status()
             soup = BeautifulSoup(response.text, "html.parser")
             title = soup.title.string.strip() if soup.title else "No Title"
@@ -101,8 +128,11 @@ class BrowserAgent:
             text = " ".join(soup.get_text(separator=" ").split())[:3000]
             links = [a.get("href", "") for a in soup.find_all("a", href=True)][:20]
             return {
-                "success": True, "url": url, "title": title,
-                "content": text, "links": links,
+                "success": True,
+                "url": url,
+                "title": title,
+                "content": text,
+                "links": links,
                 "status_code": response.status_code,
             }
         except Exception as e:
@@ -115,15 +145,20 @@ class BrowserAgent:
         return await get_global_browser()
 
     async def navigate_and_interact(
-        self, url: str,
+        self,
+        url: str,
         action: str = "fetch",
-        selector: Optional[str] = None,
-        text: Optional[str] = None,
-        wait_for: Optional[str] = None,
-    ) -> Dict[str, Any]:
+        selector: str | None = None,
+        text: str | None = None,
+        wait_for: str | None = None,
+    ) -> dict[str, Any]:
         if not is_safe_url(url):
             logger.error(f"SSRF Attempt Blocked: {url}")
-            return {"success": False, "error": "SSRF check failed: Unauthorized internal access", "url": url}
+            return {
+                "success": False,
+                "error": "SSRF check failed: Unauthorized internal access",
+                "url": url,
+            }
 
         browser = await self._get_playwright()
         if not browser:
@@ -151,9 +186,15 @@ class BrowserAgent:
             elif action == "screenshot":
                 screenshot = await page.screenshot(type="png")
                 import base64
+
                 b64 = base64.b64encode(screenshot).decode()
                 title = await page.title()
-                return {"success": True, "url": url, "title": title, "screenshot_base64": b64}
+                return {
+                    "success": True,
+                    "url": url,
+                    "title": title,
+                    "screenshot_base64": b64,
+                }
 
             title = await page.title()
             content_html = await page.content()
@@ -165,8 +206,12 @@ class BrowserAgent:
             current_url = page.url
 
             return {
-                "success": True, "url": current_url, "title": title,
-                "content": text_content, "links": links, "action": action,
+                "success": True,
+                "url": current_url,
+                "title": title,
+                "content": text_content,
+                "links": links,
+                "action": action,
             }
         except Exception as e:
             logger.error(f"Playwright action failed: {e}")
@@ -174,7 +219,7 @@ class BrowserAgent:
         finally:
             await page.close()
 
-    async def extract_data(self, url: str, extraction_prompt: str) -> Dict[str, Any]:
+    async def extract_data(self, url: str, extraction_prompt: str) -> dict[str, Any]:
         """Fetch page and use AI to extract structured data."""
         page_data = self.fetch_page(url)
         if not page_data["success"]:
@@ -182,6 +227,7 @@ class BrowserAgent:
 
         try:
             from brain.model_router import ModelRouter
+
             router = ModelRouter()
             prompt = (
                 f"Extract the following from this web page content:\n{extraction_prompt}\n\n"
@@ -189,9 +235,16 @@ class BrowserAgent:
                 f"Content: {page_data.get('content', '')[:2000]}\n\n"
                 "Return a clean JSON object with the extracted data."
             )
-            result = await router.async_route_and_generate(prompt, task_type="reasoning", max_cost=0.02)
+            result = await router.async_route_and_generate(
+                prompt, task_type="reasoning", max_cost=0.02
+            )
             extracted = result.get("text", "") if isinstance(result, dict) else ""
-            return {"success": True, "url": url, "extracted": extracted, "raw": page_data}
+            return {
+                "success": True,
+                "url": url,
+                "extracted": extracted,
+                "raw": page_data,
+            }
         except Exception as e:
             return {"success": False, "error": str(e)}
 

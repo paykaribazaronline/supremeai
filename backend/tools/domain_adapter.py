@@ -1,9 +1,10 @@
-import os
 import json
-from typing import Dict, Any, List, Optional
-from loguru import logger
-from database.supabase_client import db
+import os
+from typing import Any
 
+from loguru import logger
+
+from database.supabase_client import db
 
 
 class DomainAdapter:
@@ -55,9 +56,11 @@ class DomainAdapter:
     }
 
     def __init__(self):
-        self._profiles: Dict[str, Dict[str, Any]] = {}
+        self._profiles: dict[str, dict[str, Any]] = {}
         self._load_profiles()
-        logger.info(f"Initialized DomainAdapter with {len(self._profiles)} domain profiles")
+        logger.info(
+            f"Initialized DomainAdapter with {len(self._profiles)} domain profiles"
+        )
 
     def _local_path(self) -> str:
         base = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -67,12 +70,12 @@ class DomainAdapter:
         if db.client:
             try:
                 res = db.client.table("domain_profiles").select("*").execute()
-                for row in (res.data or []):
+                for row in res.data or []:
                     self._profiles[row["domain"]] = row
             except Exception as exc:
                 logger.debug(f"Domain profiles DB load failed: {exc}")
         try:
-            with open(self._local_path(), "r", encoding="utf-8") as f:
+            with open(self._local_path(), encoding="utf-8") as f:
                 data = json.load(f)
             self._profiles.update(data)
         except Exception:
@@ -80,11 +83,13 @@ class DomainAdapter:
         for domain, defaults in self.DOMAINS.items():
             self._profiles.setdefault(domain, defaults)
 
-    def _save_profile(self, domain: str, profile: Dict[str, Any]) -> None:
+    def _save_profile(self, domain: str, profile: dict[str, Any]) -> None:
         self._profiles[domain] = profile
         if db.client:
             try:
-                db.client.table("domain_profiles").upsert({"domain": domain, **profile}).execute()
+                db.client.table("domain_profiles").upsert(
+                    {"domain": domain, **profile}
+                ).execute()
             except Exception as exc:
                 logger.debug(f"Domain profile save failed: {exc}")
         try:
@@ -94,7 +99,9 @@ class DomainAdapter:
         except Exception as exc:
             logger.debug(f"Local domain profile save failed: {exc}")
 
-    def get_prompt(self, domain: str, user_prompt: str, context: Optional[str] = None) -> Dict[str, Any]:
+    def get_prompt(
+        self, domain: str, user_prompt: str, context: str | None = None
+    ) -> dict[str, Any]:
         profile = self._profiles.get(domain) or self.DOMAINS.get("code", {})
         system_prompt = profile.get("system_prompt", "")
         full_prompt = user_prompt
@@ -112,17 +119,22 @@ class DomainAdapter:
             "disclaimer": disclaimer,
         }
 
-    def adapt_request(self, domain: str, user_prompt: str, context: Optional[str] = None) -> Dict[str, Any]:
+    def adapt_request(
+        self, domain: str, user_prompt: str, context: str | None = None
+    ) -> dict[str, Any]:
         prompt_pkg = self.get_prompt(domain, user_prompt, context=context)
         try:
             from brain.model_router import ModelRouter
+
             router = ModelRouter()
             prompt = (
                 f"System: {prompt_pkg['system_prompt']}\n\n"
                 f"User: {prompt_pkg['user_prompt']}\n\n"
                 "Respond concisely with actionable detail."
             )
-            result = router.route_and_generate(prompt, task_type="coding" if domain == "code" else "reasoning")
+            result = router.route_and_generate(
+                prompt, task_type="coding" if domain == "code" else "reasoning"
+            )
             text = result.get("text", "") if isinstance(result, dict) else str(result)
             return {
                 "domain": domain,
@@ -139,11 +151,13 @@ class DomainAdapter:
                 "disclaimer": prompt_pkg.get("disclaimer", ""),
             }
 
-    def register_domain(self, domain: str, profile: Dict[str, Any]) -> Dict[str, Any]:
+    def register_domain(self, domain: str, profile: dict[str, Any]) -> dict[str, Any]:
         base = self.DOMAINS.get(domain, {})
         merged = {**base, **profile}
         self._save_profile(domain, merged)
         return {"status": "success", "domain": domain, "profile": merged}
 
-    def list_domains(self) -> List[str]:
-        return list(self.DOMAINS.keys()) + [d for d in self._profiles if d not in self.DOMAINS]
+    def list_domains(self) -> list[str]:
+        return list(self.DOMAINS.keys()) + [
+            d for d in self._profiles if d not in self.DOMAINS
+        ]

@@ -1,7 +1,7 @@
-import pytest
 import httpx
-from backend.tools.resource_catalog import ResourceCatalog
+import pytest
 from backend.api.routes import marketplace_endpoints
+from backend.tools.resource_catalog import ResourceCatalog
 
 
 @pytest.mark.anyio
@@ -33,7 +33,16 @@ async def test_resource_catalog_search_mock(monkeypatch):
 @pytest.mark.anyio
 async def test_resource_catalog_optional_sources(monkeypatch):
     expected = [
-        {"name": "repo1", "description": "A repo", "html_url": "https://github.com/example/repo1", "stargazers_count": 100, "forks_count": 10, "open_issues_count": 5, "watchers_count": 80, "default_branch": "main"}
+        {
+            "name": "repo1",
+            "description": "A repo",
+            "html_url": "https://github.com/example/repo1",
+            "stargazers_count": 100,
+            "forks_count": 10,
+            "open_issues_count": 5,
+            "watchers_count": 80,
+            "default_branch": "main",
+        }
     ]
 
     class FakeResponse:
@@ -81,9 +90,11 @@ async def test_enabled_catalog_sources_from_db(monkeypatch):
     monkeypatch.setattr(
         marketplace_endpoints.db,
         "get_config",
-        lambda key: ["awesome-python", "libraries.io"]
-        if key == "marketplace.resource_sources"
-        else None,
+        lambda key: (
+            ["awesome-python", "libraries.io"]
+            if key == "marketplace.resource_sources"
+            else None
+        ),
     )
 
     sources = marketplace_endpoints.get_enabled_catalog_sources()

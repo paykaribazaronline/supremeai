@@ -1,7 +1,10 @@
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter
+from fastapi import HTTPException
+from fastapi import Query
 from pydantic import BaseModel
-from typing import Optional, List
+
 from database.supabase_client import db
+
 
 router = APIRouter(prefix="/tools", tags=["tools"])
 
@@ -10,26 +13,26 @@ class ToolCreate(BaseModel):
     id: str
     name: str
     file_path: str
-    category: Optional[str] = None
-    dependencies: Optional[List[str]] = None
-    cost_per_call: Optional[float] = 0.0
-    description: Optional[str] = None
-    config_schema: Optional[dict] = None
+    category: str | None = None
+    dependencies: list[str] | None = None
+    cost_per_call: float | None = 0.0
+    description: str | None = None
+    config_schema: dict | None = None
 
 
 class ToolUpdate(BaseModel):
-    name: Optional[str] = None
-    category: Optional[str] = None
-    status: Optional[str] = None
-    dependencies: Optional[List[str]] = None
-    cost_per_call: Optional[float] = None
-    description: Optional[str] = None
-    config_schema: Optional[dict] = None
+    name: str | None = None
+    category: str | None = None
+    status: str | None = None
+    dependencies: list[str] | None = None
+    cost_per_call: float | None = None
+    description: str | None = None
+    config_schema: dict | None = None
 
 
 @router.get("/")
 async def list_tools(
-    category: Optional[str] = None,
+    category: str | None = None,
     status: str = "active",
     limit: int = Query(default=50, le=200),
     offset: int = 0,
@@ -67,5 +70,7 @@ async def update_tool(tool_id: str, payload: ToolUpdate):
 async def delete_tool(tool_id: str):
     if not db.client:
         raise HTTPException(status_code=503, detail="Database not configured")
-    db.client.table("tools_registry").update({"status": "archived"}).eq("id", tool_id).execute()
+    db.client.table("tools_registry").update({"status": "archived"}).eq(
+        "id", tool_id
+    ).execute()
     return {"status": "success", "message": "Tool archived"}

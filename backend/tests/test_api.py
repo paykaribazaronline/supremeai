@@ -3,12 +3,14 @@ from unittest.mock import MagicMock
 
 from fastapi.testclient import TestClient
 
+
 os.environ["OPENROUTER_API_KEY"] = "mock-key-value"
 os.environ.setdefault("HF_API_KEY", "")
 os.environ.setdefault("OLLAMA_URL", "http://127.0.0.1:11434")
 
 import core.app as app_mod
 from core.app import app
+
 
 auth_headers = {"Authorization": "Bearer test-token"}
 
@@ -24,8 +26,10 @@ def test_health_returns_ok():
 
 
 def test_task_execute_enforces_admin_block():
+    import pathlib
+    import tempfile
+
     from admin.god import AdminGodLayer
-    import tempfile, pathlib
 
     db = pathlib.Path(tempfile.gettempdir()) / "supremeai_test_rules.db"
     admin = AdminGodLayer(str(db))
@@ -34,15 +38,21 @@ def test_task_execute_enforces_admin_block():
     previous = app_mod.admin_god
     app_mod.admin_god = admin
     try:
-        resp = client.post("/task/execute", json={"task": "do anything", "task_type": "general"}, headers=auth_headers)
+        resp = client.post(
+            "/task/execute",
+            json={"task": "do anything", "task_type": "general"},
+            headers=auth_headers,
+        )
         assert resp.status_code == 403
     finally:
         app_mod.admin_god = previous
 
 
 def test_task_execute_allowed_and_success():
+    import pathlib
+    import tempfile
+
     from admin.god import AdminGodLayer
-    import tempfile, pathlib
     from core.intent import TaskType
 
     db = pathlib.Path(tempfile.gettempdir()) / "supremeai_test_rules2.db"
@@ -50,6 +60,7 @@ def test_task_execute_allowed_and_success():
     admin.set_rule("admin_authorized", "true")
 
     from unittest.mock import AsyncMock
+
     fake_router = MagicMock()
     fake_router.route_and_generate.return_value = {
         "success": True,
@@ -58,15 +69,19 @@ def test_task_execute_allowed_and_success():
         "text": "ok",
         "cost": 0.0,
     }
-    fake_router.async_route_and_generate = AsyncMock(return_value={
-        "success": True,
-        "provider": "openrouter",
-        "model": "fake-model",
-        "text": "ok",
-        "cost": 0.0,
-    })
+    fake_router.async_route_and_generate = AsyncMock(
+        return_value={
+            "success": True,
+            "provider": "openrouter",
+            "model": "fake-model",
+            "text": "ok",
+            "cost": 0.0,
+        }
+    )
     fake_intent = MagicMock()
-    fake_intent.classify.return_value = type("Intent", (), {"task_type": TaskType.general, "confidence": 0.5})()
+    fake_intent.classify.return_value = type(
+        "Intent", (), {"task_type": TaskType.general, "confidence": 0.5}
+    )()
 
     previous_admin = app_mod.admin_god
     previous_router = app_mod.model_router
@@ -75,11 +90,16 @@ def test_task_execute_allowed_and_success():
     app_mod.model_router = fake_router
     app_mod.intent_clf = fake_intent
     try:
-        resp = client.post("/task/execute", json={"task": "hello", "task_type": "general"}, headers=auth_headers)
+        resp = client.post(
+            "/task/execute",
+            json={"task": "hello", "task_type": "general"},
+            headers=auth_headers,
+        )
         assert resp.status_code == 200
         body = resp.json()
         assert body["success"] is True
         import json
+
         res_obj = json.loads(body["result"])
         assert res_obj["content"] == "ok"
         fake_router.async_route_and_generate.assert_called_once_with(

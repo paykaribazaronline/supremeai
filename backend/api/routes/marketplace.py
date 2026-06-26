@@ -3,12 +3,13 @@ from __future__ import annotations
 import os
 import sqlite3
 import uuid
-from typing import Any, Dict, List, Optional
+from typing import Any
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter
+from fastapi import HTTPException
+from loguru import logger
 from pydantic import BaseModel
 
-from loguru import logger
 
 router = APIRouter(prefix="/marketplace", tags=["marketplace"])
 
@@ -16,7 +17,11 @@ DB_PATH = os.environ.get("SUPREMEAI_MARKETPLACE_DB", "data/marketplace.db")
 
 
 def _get_conn() -> sqlite3.Connection:
-    os.makedirs(os.path.dirname(DB_PATH), exist_ok=True) if os.path.dirname(DB_PATH) else None
+    (
+        os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
+        if os.path.dirname(DB_PATH)
+        else None
+    )
     conn = sqlite3.connect(DB_PATH, check_same_thread=False)
     conn.row_factory = sqlite3.Row
     conn.execute(
@@ -37,7 +42,7 @@ def _get_conn() -> sqlite3.Connection:
     return conn
 
 
-def _row_to_skill(row: sqlite3.Row) -> Dict[str, Any]:
+def _row_to_skill(row: sqlite3.Row) -> dict[str, Any]:
     return {
         "id": row["id"],
         "name": row["name"],
@@ -105,27 +110,27 @@ class SkillResponse(BaseModel):
     id: str
     name: str
     version: str
-    description: Optional[str]
-    dependencies: Optional[str]
+    description: str | None
+    dependencies: str | None
     installed: bool
     source: str
 
 
 class InstallRequest(BaseModel):
     tool_id: str
-    target_environment: Optional[str] = None
-    sandbox: Optional[bool] = None
-    version: Optional[str] = None
+    target_environment: str | None = None
+    sandbox: bool | None = None
+    version: str | None = None
 
 
-@router.post("/search", response_model=List[SkillResponse])
-def search_skills(req: SearchRequest) -> List[Dict[str, Any]]:
+@router.post("/search", response_model=list[SkillResponse])
+def search_skills(req: SearchRequest) -> list[dict[str, Any]]:
     conn = _get_conn()
     try:
         _seed(conn)
         sql = "SELECT id, name, version, description, dependencies, installed, source FROM skills WHERE (name LIKE ? OR description LIKE ?)"
         like = f"%{req.query}%"
-        params: List[Any] = [like, like]
+        params: list[Any] = [like, like]
         if req.installed_only:
             sql += " AND installed = 1"
         rows = conn.execute(sql, params).fetchall()
@@ -137,8 +142,8 @@ def search_skills(req: SearchRequest) -> List[Dict[str, Any]]:
         conn.close()
 
 
-@router.post("/install", response_model=Dict[str, Any])
-async def install_skill(req: InstallRequest) -> Dict[str, Any]:
+@router.post("/install", response_model=dict[str, Any])
+async def install_skill(req: InstallRequest) -> dict[str, Any]:
     conn = _get_conn()
     try:
         _seed(conn)
@@ -147,15 +152,27 @@ async def install_skill(req: InstallRequest) -> Dict[str, Any]:
             (req.tool_id,),
         ).fetchone()
         if not row:
-            raise HTTPException(status_code=404, detail=f"Skill '{req.tool_id}' not found.")
+            raise HTTPException(
+                status_code=404, detail=f"Skill '{req.tool_id}' not found."
+            )
         if row["installed"]:
-            return {"success": True, "skill": req.tool_id, "installed": True, "message": "Already installed."}
+            return {
+                "success": True,
+                "skill": req.tool_id,
+                "installed": True,
+                "message": "Already installed.",
+            }
         conn.execute(
             "UPDATE skills SET installed = 1, installed_at = ? WHERE id = ?",
             (__import__("time").time(), row["id"]),
         )
         conn.commit()
-        return {"success": True, "skill": req.tool_id, "installed": True, "message": "Installed."}
+        return {
+            "success": True,
+            "skill": req.tool_id,
+            "installed": True,
+            "message": "Installed.",
+        }
     except HTTPException:
         raise
     except Exception as exc:

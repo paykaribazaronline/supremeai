@@ -14,11 +14,12 @@ Setup:
   4. Register webhook:
      curl "https://api.telegram.org/bot<TOKEN>/setWebhook?url=<WEBHOOK_URL>"
 """
+
 from __future__ import annotations
 
 import asyncio
 import os
-from typing import Any, Dict, Optional
+from typing import Any
 
 import httpx
 from loguru import logger
@@ -58,7 +59,9 @@ class TelegramBotHandler:
 
     # ── Telegram API helpers ──────────────────────────────────────
 
-    async def send_message(self, chat_id: int | str, text: str, parse_mode: str = "Markdown") -> bool:
+    async def send_message(
+        self, chat_id: int | str, text: str, parse_mode: str = "Markdown"
+    ) -> bool:
         if not self.configured:
             return False
         try:
@@ -93,7 +96,10 @@ class TelegramBotHandler:
             async with httpx.AsyncClient(timeout=10) as client:
                 resp = await client.post(
                     f"{self.api_base}/setWebhook",
-                    json={"url": webhook_url, "allowed_updates": ["message", "callback_query"]},
+                    json={
+                        "url": webhook_url,
+                        "allowed_updates": ["message", "callback_query"],
+                    },
                 )
                 data = resp.json()
                 if data.get("ok"):
@@ -105,7 +111,7 @@ class TelegramBotHandler:
             logger.error(f"set_webhook failed: {exc}")
             return False
 
-    async def get_me(self) -> Optional[Dict[str, Any]]:
+    async def get_me(self) -> dict[str, Any] | None:
         """Verify bot token and get bot info."""
         if not self.configured:
             return None
@@ -124,7 +130,9 @@ class TelegramBotHandler:
 
     def handle_message(self, text: str, user_id: str = "user") -> str:
         """Synchronous message handler used by tests and scripts."""
-        command = text.strip().split()[0].lower() if text.strip().startswith("/") else None
+        command = (
+            text.strip().split()[0].lower() if text.strip().startswith("/") else None
+        )
         if command and command in self.COMMANDS:
             return self.COMMANDS[command]
         try:
@@ -137,7 +145,7 @@ class TelegramBotHandler:
             except Exception:
                 pass
 
-    async def handle_update(self, update: Dict[str, Any]) -> None:
+    async def handle_update(self, update: dict[str, Any]) -> None:
         """Process a Telegram update payload (from webhook or polling)."""
         message = update.get("message")
         if not message:
@@ -168,6 +176,7 @@ class TelegramBotHandler:
 
     async def _handle_status(self, chat_id: int | str) -> None:
         import httpx as _httpx
+
         gcp_url = os.getenv("GCP_CLOUD_RUN_URL", "")
         status_lines = ["🔍 *System Status:*\n"]
         for name, url in [
@@ -190,7 +199,11 @@ class TelegramBotHandler:
     async def _ai_response(self, text: str, user_id: str) -> str:
         if self.orchestrator:
             try:
-                task_type = "coding" if any(k in text.lower() for k in ["code", "function", "script"]) else "general"
+                task_type = (
+                    "coding"
+                    if any(k in text.lower() for k in ["code", "function", "script"])
+                    else "general"
+                )
                 loop = asyncio.get_event_loop()
                 result = await loop.run_in_executor(
                     None, lambda: self.orchestrator.execute_task(text, task_type)
@@ -215,15 +228,20 @@ class TelegramBotHandler:
             return
 
         logger.info(f"🤖 Telegram bot @{me['username']} started (polling mode)")
-        offset: Optional[int] = None
+        offset: int | None = None
 
         while True:
             try:
                 async with httpx.AsyncClient(timeout=35) as client:
-                    params: Dict[str, Any] = {"timeout": 30, "allowed_updates": ["message"]}
+                    params: dict[str, Any] = {
+                        "timeout": 30,
+                        "allowed_updates": ["message"],
+                    }
                     if offset is not None:
                         params["offset"] = offset
-                    resp = await client.get(f"{self.api_base}/getUpdates", params=params)
+                    resp = await client.get(
+                        f"{self.api_base}/getUpdates", params=params
+                    )
                     data = resp.json()
 
                 if data.get("ok"):
@@ -239,9 +257,12 @@ class TelegramBotHandler:
 
 # ── FastAPI webhook endpoint helper ──────────────────────────────
 
+
 def create_telegram_router(handler: TelegramBotHandler):
     """Returns a FastAPI router for Telegram webhook endpoint."""
-    from fastapi import APIRouter, Request, Response
+    from fastapi import APIRouter
+    from fastapi import Request
+    from fastapi import Response
 
     router = APIRouter(prefix="/telegram", tags=["telegram"])
 

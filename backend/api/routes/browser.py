@@ -1,76 +1,94 @@
-from fastapi import APIRouter, HTTPException
+from datetime import datetime
+from datetime import timezone
+from typing import Any
+
+from fastapi import APIRouter
+from fastapi import HTTPException
 from pydantic import BaseModel
-from typing import Dict, Any, Optional
-from datetime import datetime, timezone
 
 from core.audit_logger import AuditLogger
 from core.secure_credential_store import SecureCredentialStore
+
 
 audit = AuditLogger()
 credential_store = SecureCredentialStore()
 
 router = APIRouter(prefix="/api/browser", tags=["browser"])
-BROWSER_STATUS: Dict[str, Any] = {"browsing": False, "currentUrl": "about:blank"}
-RECENT_ACTIVITIES: list[Dict[str, Any]] = []
-CREDENTIALS: list[Dict[str, Any]] = []
-PAUSED_STATE: Dict[str, Any] = {"paused": False}
-URL_PERMISSIONS: list[Dict[str, Any]] = []
-PERMISSION_REQUESTS: list[Dict[str, Any]] = []
-SYSTEM_LEARNING: Dict[str, Any] = {"enabled": True}
-TASKS: Dict[str, Dict[str, Any]] = {}
-FINDINGS: list[Dict[str, Any]] = []
+BROWSER_STATUS: dict[str, Any] = {"browsing": False, "currentUrl": "about:blank"}
+RECENT_ACTIVITIES: list[dict[str, Any]] = []
+CREDENTIALS: list[dict[str, Any]] = []
+PAUSED_STATE: dict[str, Any] = {"paused": False}
+URL_PERMISSIONS: list[dict[str, Any]] = []
+PERMISSION_REQUESTS: list[dict[str, Any]] = []
+SYSTEM_LEARNING: dict[str, Any] = {"enabled": True}
+TASKS: dict[str, dict[str, Any]] = {}
+FINDINGS: list[dict[str, Any]] = []
+
 
 class GoalRequest(BaseModel):
     goal: str
 
+
 class NavigateRequest(BaseModel):
     url: str
 
+
 class ClickRequest(BaseModel):
     selector: str
+
 
 class FillRequest(BaseModel):
     selector: str
     value: str
 
+
 class ClickAtRequest(BaseModel):
     x: int
     y: int
 
+
 class KeyRequest(BaseModel):
     key: str
+
 
 class CredentialRequest(BaseModel):
     serviceName: str
     username: str
     password: str
-    userId: Optional[str] = "default"
+    userId: str | None = "default"
+
 
 class UrlPermissionRequest(BaseModel):
     urlPattern: str
-    userId: Optional[str] = "default"
-    reason: Optional[str] = "None"
+    userId: str | None = "default"
+    reason: str | None = "None"
+
 
 class DecisionRequest(BaseModel):
     approved: bool
 
+
 @router.get("/surf/status")
 def get_status():
     return BROWSER_STATUS
+
 
 @router.post("/surf/start")
 def start_surf():
     BROWSER_STATUS["browsing"] = True
     return {"status": "started"}
 
+
 @router.post("/surf/stop")
 def stop_surf():
     BROWSER_STATUS["browsing"] = False
     return {"status": "stopped"}
 
+
 @router.get("/activity/recent")
 def get_recent_activity():
     return {"activities": RECENT_ACTIVITIES}
+
 
 @router.get("/credentials")
 def get_credentials(userId: str = "default"):
@@ -80,6 +98,7 @@ def get_credentials(userId: str = "default"):
             decrypted = credential_store.decrypt(c)
             user_creds.append(credential_store.mask(decrypted))
     return {"credentials": user_creds}
+
 
 @router.post("/credentials")
 def save_credential(cred: CredentialRequest):
@@ -93,40 +112,56 @@ def save_credential(cred: CredentialRequest):
     )
     return {"id": new_cred["id"], "serviceName": cred.serviceName}
 
+
 @router.delete("/credentials/{id}")
 def delete_credential(id: str):
     global CREDENTIALS
     CREDENTIALS = [c for c in CREDENTIALS if c.get("id") != id]
     return {"success": True}
 
+
 @router.post("/surf/resume")
-def resume_surf(body: Dict[str, str]):
+def resume_surf(body: dict[str, str]):
     PAUSED_STATE["paused"] = False
     return {"status": "resumed"}
 
+
 @router.post("/surf/skip-auth")
-def skip_auth(body: Dict[str, str]):
+def skip_auth(body: dict[str, str]):
     PAUSED_STATE["paused"] = False
     return {"status": "auth_skipped"}
 
+
 @router.post("/surf/pause-manual")
-def pause_manual(body: Dict[str, str]):
+def pause_manual(body: dict[str, str]):
     PAUSED_STATE["paused"] = True
     return {"status": "paused_for_manual"}
+
 
 @router.get("/surf/paused-state")
 def get_paused_state():
     return PAUSED_STATE
 
+
 @router.get("/urls/allowed")
 def get_allowed_urls(userId: str = "default"):
-    allowed = [u for u in URL_PERMISSIONS if u.get("type") == "allowed" and u.get("userId") == userId]
+    allowed = [
+        u
+        for u in URL_PERMISSIONS
+        if u.get("type") == "allowed" and u.get("userId") == userId
+    ]
     return {"urls": allowed}
+
 
 @router.get("/urls/denied")
 def get_denied_urls(userId: str = "default"):
-    denied = [u for u in URL_PERMISSIONS if u.get("type") == "denied" and u.get("userId") == userId]
+    denied = [
+        u
+        for u in URL_PERMISSIONS
+        if u.get("type") == "denied" and u.get("userId") == userId
+    ]
     return {"urls": denied}
+
 
 @router.post("/urls/allowed")
 def add_allowed_url(req: UrlPermissionRequest):
@@ -136,6 +171,7 @@ def add_allowed_url(req: UrlPermissionRequest):
     URL_PERMISSIONS.append(perm)
     return perm
 
+
 @router.post("/urls/denied")
 def add_denied_url(req: UrlPermissionRequest):
     perm = req.model_dump()
@@ -144,6 +180,7 @@ def add_denied_url(req: UrlPermissionRequest):
     URL_PERMISSIONS.append(perm)
     return perm
 
+
 @router.post("/urls/allowAll")
 def allow_all_urls(userId: str = "default"):
     perm = {
@@ -151,10 +188,11 @@ def allow_all_urls(userId: str = "default"):
         "urlPattern": "*",
         "userId": userId,
         "type": "allowAll",
-        "reason": "Allow all URLs"
+        "reason": "Allow all URLs",
     }
     URL_PERMISSIONS.append(perm)
     return perm
+
 
 @router.delete("/urls/{id}")
 def delete_url(id: str):
@@ -162,9 +200,11 @@ def delete_url(id: str):
     URL_PERMISSIONS = [u for u in URL_PERMISSIONS if u.get("id") != id]
     return {"success": True}
 
+
 @router.get("/urls/requests")
 def get_requests():
     return {"requests": PERMISSION_REQUESTS}
+
 
 @router.post("/urls/requests/{id}/decision")
 def decision(id: str, req: DecisionRequest):
@@ -174,18 +214,22 @@ def decision(id: str, req: DecisionRequest):
             return {"success": True}
     raise HTTPException(status_code=404, detail="Request not found")
 
+
 @router.get("/system-learning")
 def get_system_learning():
     return SYSTEM_LEARNING
 
+
 @router.post("/system-learning/toggle")
-def toggle_learning(body: Dict[str, bool]):
+def toggle_learning(body: dict[str, bool]):
     SYSTEM_LEARNING["enabled"] = body.get("enabled", True)
     return {"success": True}
+
 
 @router.get("/tasks")
 def get_tasks():
     return {"tasks": list(TASKS.values())}
+
 
 @router.post("/tasks")
 def create_task(req: GoalRequest):
@@ -194,10 +238,11 @@ def create_task(req: GoalRequest):
         "id": task_id,
         "goal": req.goal,
         "status": "ACTIVE",
-        "createdAt": datetime.now(timezone.utc).isoformat()
+        "createdAt": datetime.now(timezone.utc).isoformat(),
     }
     TASKS[task_id] = task
     return task
+
 
 @router.delete("/tasks/{id}")
 def delete_task(id: str):
@@ -206,93 +251,112 @@ def delete_task(id: str):
         return {"success": True}
     raise HTTPException(status_code=404, detail="Task not found")
 
+
 @router.get("/tasks/{id}/findings")
 def get_findings(id: str):
     task_findings = [f for f in FINDINGS if f.get("taskId") == id]
     return {"findings": task_findings}
 
+
 @router.post("/findings")
-def add_finding(finding: Dict[str, Any]):
+def add_finding(finding: dict[str, Any]):
     FINDINGS.append(finding)
     return finding
+
 
 @router.get("/surf/screenshot")
 def get_screenshot():
     # Return a mock transparent 1x1 PNG or read browser screenshot if initialized
-    mock_png = (
-        "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="
-    )
+    mock_png = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="
     return {"screenshot": mock_png}
+
 
 @router.post("/surf/navigate")
 def navigate(req: NavigateRequest):
     BROWSER_STATUS["currentUrl"] = req.url
-    RECENT_ACTIVITIES.append({
-        "url": req.url,
-        "action": "navigate",
-        "timestamp": datetime.now(timezone.utc).isoformat()
-    })
+    RECENT_ACTIVITIES.append(
+        {
+            "url": req.url,
+            "action": "navigate",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+        }
+    )
     return {"success": True}
+
 
 @router.post("/surf/click")
 def click(req: ClickRequest):
-    RECENT_ACTIVITIES.append({
-        "url": str(BROWSER_STATUS["currentUrl"]),
-        "action": f"click {req.selector}",
-        "timestamp": datetime.now(timezone.utc).isoformat()
-    })
+    RECENT_ACTIVITIES.append(
+        {
+            "url": str(BROWSER_STATUS["currentUrl"]),
+            "action": f"click {req.selector}",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+        }
+    )
     return {"success": True}
+
 
 @router.post("/surf/fill")
 def fill(req: FillRequest):
-    RECENT_ACTIVITIES.append({
-        "url": str(BROWSER_STATUS["currentUrl"]),
-        "action": f"fill {req.selector} with {req.value}",
-        "timestamp": datetime.now(timezone.utc).isoformat()
-    })
+    RECENT_ACTIVITIES.append(
+        {
+            "url": str(BROWSER_STATUS["currentUrl"]),
+            "action": f"fill {req.selector} with {req.value}",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+        }
+    )
     return {"success": True}
+
 
 @router.post("/surf/click-at")
 def click_at(req: ClickAtRequest):
-    RECENT_ACTIVITIES.append({
-        "url": str(BROWSER_STATUS["currentUrl"]),
-        "action": f"click at {req.x}, {req.y}",
-        "timestamp": datetime.now(timezone.utc).isoformat()
-    })
+    RECENT_ACTIVITIES.append(
+        {
+            "url": str(BROWSER_STATUS["currentUrl"]),
+            "action": f"click at {req.x}, {req.y}",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+        }
+    )
     return {"success": True}
+
 
 @router.post("/surf/type-key")
 def type_key(req: KeyRequest):
-    RECENT_ACTIVITIES.append({
-        "url": str(BROWSER_STATUS["currentUrl"]),
-        "action": f"type key {req.key}",
-        "timestamp": datetime.now(timezone.utc).isoformat()
-    })
+    RECENT_ACTIVITIES.append(
+        {
+            "url": str(BROWSER_STATUS["currentUrl"]),
+            "action": f"type key {req.key}",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+        }
+    )
     return {"success": True}
+
 
 @router.get("/surf/accessibility")
 def get_accessibility_tree():
-    return {
-        "role": "WebArea",
-        "name": "SupremeAI Console",
-        "children": []
-    }
+    return {"role": "WebArea", "name": "SupremeAI Console", "children": []}
+
 
 @router.post("/simulate-activity")
-def simulate_activity(body: Dict[str, str]):
+def simulate_activity(body: dict[str, str]):
     activity = {
         "url": body.get("url", "http://example.com"),
         "action": body.get("action", "surf"),
         "title": body.get("title", "Page Title"),
         "reasoning": body.get("reasoning", "Exploring content"),
-        "timestamp": datetime.now(timezone.utc).isoformat()
+        "timestamp": datetime.now(timezone.utc).isoformat(),
     }
     RECENT_ACTIVITIES.append(activity)
     return activity
+
 
 @router.post("/tasks/{id}/step")
 def execute_step(id: str):
     if id not in TASKS:
         raise HTTPException(status_code=404, detail="Task not found")
     # Simulate a step execution
-    return {"success": True, "action": "navigated to dashboard", "details": "Autonomous step succeeded"}
+    return {
+        "success": True,
+        "action": "navigated to dashboard",
+        "details": "Autonomous step succeeded",
+    }

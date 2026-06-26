@@ -1,16 +1,20 @@
 import os
 import sys
+
 import pytest
 from fastapi.testclient import TestClient
+
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from core.app import app
 from tools.voice import VoiceInterface
 
+
 @pytest.fixture
 def client():
     return TestClient(app)
+
 
 def test_e2e_vscode_completion_flow(client):
     """
@@ -22,9 +26,9 @@ def test_e2e_vscode_completion_flow(client):
         "suffix": "\n    return result",
         "filePath": "src/math_helper.py",
         "language": "python",
-        "sessionId": "session-12345"
+        "sessionId": "session-12345",
     }
-    
+
     response = client.post("/api/chat/completion", json=payload)
     assert response.status_code == 200
     data = response.json()
@@ -32,6 +36,7 @@ def test_e2e_vscode_completion_flow(client):
     assert data["success"] is True
     assert "suggestions" in data
     assert isinstance(data["suggestions"], list)
+
 
 def test_e2e_mobile_and_studio_task_execution(client):
     """
@@ -41,22 +46,23 @@ def test_e2e_mobile_and_studio_task_execution(client):
     payload = {
         "task": "Translate 'Hello' to Spanish",
         "task_type": "translation",
-        "max_cost": 0.05
+        "max_cost": 0.05,
     }
-    
+
     response = client.post("/task/execute", json=payload)
-    # The endpoint might return 200 or 502/403 depending on mocks/god layer, 
+    # The endpoint might return 200 or 502/403 depending on mocks/god layer,
     # but we verify it returns a valid JSON response matching our spec.
     assert response.status_code in (200, 403, 502)
     data = response.json()
     assert "title" in data or "success" in data
+
 
 def test_e2e_voice_interface_flow():
     """
     E2E Test validating VoiceInterface Speech-to-Text and Text-to-Speech fallbacks.
     """
     vi = VoiceInterface()
-    
+
     # 1. Test TTS generation (Google Translate TTS API fallback)
     output_path = "tests/e2e_test_output.mp3"
     try:

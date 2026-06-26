@@ -1,14 +1,16 @@
-import os
 import json
-from typing import Dict, Any, Optional
+import os
+from typing import Any
+
 from loguru import logger
+
 
 try:
     import yaml
+
     _YAML_AVAILABLE = True
 except ImportError:
     _YAML_AVAILABLE = False
-
 
 
 class OnPremiseDeployer:
@@ -17,12 +19,16 @@ class OnPremiseDeployer:
     Closes Gap #52
     """
 
-    def __init__(self, output_dir: Optional[str] = None):
-        self.output_dir = output_dir or os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "deploy")
+    def __init__(self, output_dir: str | None = None):
+        self.output_dir = output_dir or os.path.join(
+            os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "deploy"
+        )
         os.makedirs(self.output_dir, exist_ok=True)
         logger.info(f"Initialized OnPremiseDeployer (output_dir={self.output_dir})")
 
-    def generate_compose(self, overrides: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    def generate_compose(
+        self, overrides: dict[str, Any] | None = None
+    ) -> dict[str, Any]:
         cfg = {
             "version": "3.9",
             "services": {
@@ -40,7 +46,10 @@ class OnPremiseDeployer:
                 },
                 "frontend": {
                     "image": "supremeai/frontend:latest",
-                    "build": {"context": "./apps/studio-client", "dockerfile": "Dockerfile"},
+                    "build": {
+                        "context": "./apps/studio-client",
+                        "dockerfile": "Dockerfile",
+                    },
                     "ports": ["3000:3000"],
                     "depends_on": ["backend"],
                     "restart": "unless-stopped",
@@ -68,16 +77,21 @@ class OnPremiseDeployer:
             self._deep_merge(cfg, overrides)
         return cfg
 
-    def generate_helm_chart(self, release_name: str = "supremeai", namespace: str = "default",
-                            replicas: int = 3, image_tag: str = "latest") -> Dict[str, Any]:
-        chart: Dict[str, Any] = {
+    def generate_helm_chart(
+        self,
+        release_name: str = "supremeai",
+        namespace: str = "default",
+        replicas: int = 3,
+        image_tag: str = "latest",
+    ) -> dict[str, Any]:
+        chart: dict[str, Any] = {
             "apiVersion": "v2",
             "name": release_name,
             "description": "SupremeAI 2.0 Helm chart (air-gapped capable)",
             "version": "0.1.0",
             "appVersion": "2.0.0",
         }
-        values: Dict[str, Any] = {
+        values: dict[str, Any] = {
             "replicaCount": replicas,
             "image": {
                 "repository": "supremeai/backend",
@@ -85,12 +99,20 @@ class OnPremiseDeployer:
                 "pullPolicy": "IfNotPresent",
             },
             "frontend": {
-                "image": {"repository": "supremeai/frontend", "tag": image_tag, "pullPolicy": "IfNotPresent"},
+                "image": {
+                    "repository": "supremeai/frontend",
+                    "tag": image_tag,
+                    "pullPolicy": "IfNotPresent",
+                },
                 "replicaCount": max(1, replicas // 2),
             },
             "postgres": {
                 "image": {"repository": "postgres", "tag": "15-alpine"},
-                "auth": {"username": "supremeai", "password": "change-me", "database": "supremeai"},
+                "auth": {
+                    "username": "supremeai",
+                    "password": "change-me",
+                    "database": "supremeai",
+                },
                 "persistence": {"size": "20Gi", "storageClass": "standard"},
             },
             "redis": {
@@ -108,7 +130,11 @@ class OnPremiseDeployer:
         }
         return {"chart": chart, "values": values}
 
-    def write_compose(self, filename: str = "docker-compose.yml", overrides: Optional[Dict[str, Any]] = None) -> str:
+    def write_compose(
+        self,
+        filename: str = "docker-compose.yml",
+        overrides: dict[str, Any] | None = None,
+    ) -> str:
         cfg = self.generate_compose(overrides=overrides)
         path = os.path.join(self.output_dir, filename)
         if _YAML_AVAILABLE:
@@ -120,7 +146,7 @@ class OnPremiseDeployer:
         logger.info(f"Wrote docker-compose to {path}")
         return path
 
-    def write_helm(self, chart_dir: Optional[str] = None) -> str:
+    def write_helm(self, chart_dir: str | None = None) -> str:
         chart_dir = chart_dir or os.path.join(self.output_dir, "helm", "supremeai")
         os.makedirs(chart_dir, exist_ok=True)
         chart = self.generate_helm_chart()
@@ -140,14 +166,18 @@ class OnPremiseDeployer:
         os.makedirs(templates_dir, exist_ok=True)
         deploy = self._render_deployment(values)
         svc = self._render_service(values)
-        with open(os.path.join(templates_dir, "deployment.yaml"), "w", encoding="utf-8") as f:
+        with open(
+            os.path.join(templates_dir, "deployment.yaml"), "w", encoding="utf-8"
+        ) as f:
             f.write(deploy)
-        with open(os.path.join(templates_dir, "service.yaml"), "w", encoding="utf-8") as f:
+        with open(
+            os.path.join(templates_dir, "service.yaml"), "w", encoding="utf-8"
+        ) as f:
             f.write(svc)
         logger.info(f"Wrote Helm chart to {chart_dir}")
         return chart_dir
 
-    def _render_deployment(self, values: Dict[str, Any]) -> str:
+    def _render_deployment(self, values: dict[str, Any]) -> str:
         repo = values["image"]["repository"]
         tag = values["image"]["tag"]
         f_repo = values["frontend"]["image"]["repository"]
@@ -161,7 +191,7 @@ class OnPremiseDeployer:
             "kind: Deployment\n"
             "metadata:\n"
             "  name: supremeai-backend\n"
-            "  namespace: \"${RELEASE_NAMESPACE}\"\n"
+            '  namespace: "${RELEASE_NAMESPACE}"\n'
             "spec:\n"
             f"  replicas: {replicas}\n"
             "  selector:\n"
@@ -193,7 +223,7 @@ class OnPremiseDeployer:
             "kind: Deployment\n"
             "metadata:\n"
             "  name: supremeai-frontend\n"
-            "  namespace: \"${RELEASE_NAMESPACE}\"\n"
+            '  namespace: "${RELEASE_NAMESPACE}"\n'
             "spec:\n"
             f"  replicas: {values['frontend']['replicaCount']}\n"
             "  selector:\n"
@@ -212,7 +242,7 @@ class OnPremiseDeployer:
         )
         return f_str.replace("${RELEASE_NAMESPACE}", "{{ .Release.Namespace }}")
 
-    def _render_service(self, values: Dict[str, Any]) -> str:
+    def _render_service(self, values: dict[str, Any]) -> str:
         svc_type = values["service"]["type"]
         port = values["service"]["port"]
         return (
@@ -220,7 +250,7 @@ class OnPremiseDeployer:
             "kind: Service\n"
             "metadata:\n"
             "  name: supremeai-backend\n"
-            "  namespace: \"${RELEASE_NAMESPACE}\"\n"
+            '  namespace: "${RELEASE_NAMESPACE}"\n'
             "spec:\n"
             f"  type: {svc_type}\n"
             "  ports:\n"
@@ -230,7 +260,7 @@ class OnPremiseDeployer:
             "    app: supremeai-backend\n"
         ).replace("${RELEASE_NAMESPACE}", "{{ .Release.Namespace }}")
 
-    def _deep_merge(self, base: Dict[str, Any], overrides: Dict[str, Any]) -> None:
+    def _deep_merge(self, base: dict[str, Any], overrides: dict[str, Any]) -> None:
         for k, v in overrides.items():
             if isinstance(v, dict) and isinstance(base.get(k), dict):
                 self._deep_merge(base[k], v)

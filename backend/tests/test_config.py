@@ -24,30 +24,34 @@ def test_defaults():
     assert s.skill_registry_path == "data/skill_registry.json"
 
 
-@patch.dict(os.environ, {
-    "PROJECT_NAME": "TestApp",
-    "env": "production",
-    "debug": "false",
-    "port": "9000",
-    "host": "0.0.0.0",
-    "supremeai_admin_password_hash": "hashed123",
-    "openrouter_api_key": "sk-openrouter",
-    "hf_api_key": "sk-hf",
-    "gemini_api_key": "sk-gemini",
-    "deepseek_api_key": "sk-deepseek",
-    "groq_api_key": "sk-groq",
-    "nvidia_api_key": "sk-nvidia",
-    "firecrawl_api_key": "sk-firecrawl",
-    "sentry_dsn": "https://sentry.io/123",
-    "ollama_url": "http://ollama:11434",
-    "gcp_project_id": "test-project",
-    "gcp_region": "europe-west1",
-    "max_cost_per_task": "1.5",
-    "admin_rules_db": "/tmp/rules.db",
-    "memory_db_dir": "/tmp/memory",
-    "skill_registry_path": "/tmp/skills.json",
-    "SUPREMEAI_JWT_SECRET": "mock-jwt-secret-for-production",
-}, clear=False)
+@patch.dict(
+    os.environ,
+    {
+        "PROJECT_NAME": "TestApp",
+        "env": "production",
+        "debug": "false",
+        "port": "9000",
+        "host": "0.0.0.0",
+        "supremeai_admin_password_hash": "hashed123",
+        "openrouter_api_key": "sk-openrouter",
+        "hf_api_key": "sk-hf",
+        "gemini_api_key": "sk-gemini",
+        "deepseek_api_key": "sk-deepseek",
+        "groq_api_key": "sk-groq",
+        "nvidia_api_key": "sk-nvidia",
+        "firecrawl_api_key": "sk-firecrawl",
+        "sentry_dsn": "https://sentry.io/123",
+        "ollama_url": "http://ollama:11434",
+        "gcp_project_id": "test-project",
+        "gcp_region": "europe-west1",
+        "max_cost_per_task": "1.5",
+        "admin_rules_db": "/tmp/rules.db",
+        "memory_db_dir": "/tmp/memory",
+        "skill_registry_path": "/tmp/skills.json",
+        "SUPREMEAI_JWT_SECRET": "mock-jwt-secret-for-production",
+    },
+    clear=False,
+)
 def test_env_override():
     s = Settings()
     assert s.PROJECT_NAME == "TestApp"

@@ -2,13 +2,14 @@ from __future__ import annotations
 
 import os
 import secrets
-from typing import Optional
 
 from fastapi.responses import JSONResponse
 from loguru import logger
+
 from core.config import settings
 
-def _get_bearer_token(headers) -> Optional[str]:
+
+def _get_bearer_token(headers) -> str | None:
     for k, v in headers:
         if k.lower() == b"authorization":
             auth = v.decode("utf-8")
@@ -16,6 +17,7 @@ def _get_bearer_token(headers) -> Optional[str]:
             if len(parts) == 2 and parts[0].lower() == "bearer":
                 return parts[1]
     return None
+
 
 class AuthMiddleware:
     def __init__(self, app) -> None:
@@ -31,7 +33,9 @@ class AuthMiddleware:
 
         # Strict admin origin check to prevent security blast radius breach
         admin_paths = ["/admin/", "/admin-api/", "/gcp/"]
-        is_admin_path = any(path.startswith(admin_path) for admin_path in admin_paths) or path in {"/admin/rules", "/admin/cloud-distribution"}
+        is_admin_path = any(
+            path.startswith(admin_path) for admin_path in admin_paths
+        ) or path in {"/admin/rules", "/admin/cloud-distribution"}
 
         if is_admin_path:
             origin = ""
@@ -43,14 +47,20 @@ class AuthMiddleware:
                     referer = v.decode("utf-8")
 
             # Allow supremeai-admin domain
-            is_admin_domain = "supremeai-admin" in origin or "supremeai-admin" in referer
+            is_admin_domain = (
+                "supremeai-admin" in origin or "supremeai-admin" in referer
+            )
 
             # If request comes from general studio domain or unauthorized source, block it.
             if not is_admin_domain and (origin or referer):
-                logger.warning(f"Forbidden admin access to {path} from unauthorized origin/referer: {origin} / {referer}")
+                logger.warning(
+                    f"Forbidden admin access to {path} from unauthorized origin/referer: {origin} / {referer}"
+                )
                 response = JSONResponse(
                     status_code=403,
-                    content={"detail": "Forbidden: Admin endpoints are restricted to the admin console domain."},
+                    content={
+                        "detail": "Forbidden: Admin endpoints are restricted to the admin console domain."
+                    },
                 )
                 await response(scope, receive, send)
                 return
@@ -67,6 +77,7 @@ class AuthMiddleware:
                 return
             try:
                 from jose import jwt
+
                 jwt_secret = settings.jwt_secret
                 decoded = jwt.decode(token, jwt_secret, algorithms=["HS256"])
                 if decoded.get("role") != "admin":

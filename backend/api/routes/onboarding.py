@@ -2,16 +2,17 @@
 Onboarding API — POST /api/onboarding/complete
 Validates user's initial setup: API keys, preferred model, first chat confirmation.
 """
+
 from __future__ import annotations
 
-import time
 import pathlib
-from typing import Optional, Dict, Any
+import time
+from typing import Any
 
 import httpx
 from fastapi import APIRouter
-from pydantic import BaseModel
 from loguru import logger
+from pydantic import BaseModel
 
 
 router = APIRouter(prefix="/onboarding", tags=["onboarding"])
@@ -29,9 +30,9 @@ class OnboardingPayload(BaseModel):
     user_id: str
     provider: str = "openrouter"
     api_key: str
-    default_model: Optional[str] = "gpt-4o-mini"
-    theme: Optional[str] = "dark"
-    language: Optional[str] = "en"
+    default_model: str | None = "gpt-4o-mini"
+    theme: str | None = "dark"
+    language: str | None = "en"
     first_chat_sent: bool = False
 
 
@@ -75,6 +76,7 @@ def _save_user_preferences(payload: OnboardingPayload) -> bool:
     }
     try:
         from database.supabase_client import db
+
         if db.client:
             db.client.table("user_preferences").upsert(prefs).execute()
             logger.info(f"Onboarding prefs saved to Supabase for {payload.user_id}")
@@ -85,6 +87,7 @@ def _save_user_preferences(payload: OnboardingPayload) -> bool:
     # Local fallback
     try:
         import json
+
         p = pathlib.Path("data/user_prefs")
         p.mkdir(parents=True, exist_ok=True)
         safe = payload.user_id.replace("/", "_")[:40]
@@ -103,7 +106,9 @@ async def complete_onboarding(payload: OnboardingPayload):
     2. Save user preferences (theme, model, language)
     3. Return readiness status
     """
-    logger.info(f"Onboarding completion request for user={payload.user_id} provider={payload.provider}")
+    logger.info(
+        f"Onboarding completion request for user={payload.user_id} provider={payload.provider}"
+    )
 
     # 1. Validate API key
     provider_valid = await _validate_api_key(payload.provider, payload.api_key)
@@ -117,6 +122,7 @@ async def complete_onboarding(payload: OnboardingPayload):
     if provider_valid and payload.api_key:
         try:
             from core.secure_credential_store import SecureCredentialStore
+
             store = SecureCredentialStore()
             store.set(f"{payload.user_id}:{payload.provider}_api_key", payload.api_key)
         except Exception as exc:
@@ -149,15 +155,23 @@ async def complete_onboarding(payload: OnboardingPayload):
 
 
 @router.get("/status/{user_id}")
-async def get_onboarding_status(user_id: str) -> Dict[str, Any]:
+async def get_onboarding_status(user_id: str) -> dict[str, Any]:
     """Check if a user has completed onboarding."""
     try:
         from database.supabase_client import db
+
         if db.client:
-            res = db.client.table("user_preferences").select("*").eq("user_id", user_id).execute()
+            res = (
+                db.client.table("user_preferences")
+                .select("*")
+                .eq("user_id", user_id)
+                .execute()
+            )
             if res.data:
                 prefs = res.data[0]
-                completed_at = prefs.get("custom_shortcuts", {}).get("onboarding_completed_at")
+                completed_at = prefs.get("custom_shortcuts", {}).get(
+                    "onboarding_completed_at"
+                )
                 return {
                     "user_id": user_id,
                     "onboarding_complete": bool(completed_at),
@@ -165,8 +179,10 @@ async def get_onboarding_status(user_id: str) -> Dict[str, Any]:
                     "preferences": {
                         "theme": prefs.get("theme", "dark"),
                         "default_model": prefs.get("default_model", ""),
-                        "language": prefs.get("custom_shortcuts", {}).get("language", "en"),
-                    }
+                        "language": prefs.get("custom_shortcuts", {}).get(
+                            "language", "en"
+                        ),
+                    },
                 }
     except Exception as exc:
         logger.debug(f"Status check DB error: {exc}")
@@ -175,12 +191,15 @@ async def get_onboarding_status(user_id: str) -> Dict[str, Any]:
 
 
 @router.delete("/reset/{user_id}")
-async def reset_onboarding(user_id: str) -> Dict[str, str]:
+async def reset_onboarding(user_id: str) -> dict[str, str]:
     """Reset onboarding state (for testing/support)."""
     try:
         from database.supabase_client import db
+
         if db.client:
-            db.client.table("user_preferences").delete().eq("user_id", user_id).execute()
+            db.client.table("user_preferences").delete().eq(
+                "user_id", user_id
+            ).execute()
     except Exception:
         pass
     return {"status": "reset", "user_id": user_id}

@@ -9,12 +9,14 @@ the best available free provider for each request.
 
 Supports optional Redis persistence for multi-worker environments.
 """
+
 from __future__ import annotations
 
 import time
 from collections import deque
-from dataclasses import dataclass, field
-from typing import Any, Deque, Dict, List, Optional
+from dataclasses import dataclass
+from dataclasses import field
+from typing import Any
 
 from loguru import logger
 
@@ -24,51 +26,51 @@ from loguru import logger
 # These are intentionally conservative (5% buffer below official limits)
 # to avoid hitting rate-limit errors in production.
 # ---------------------------------------------------------------------------
-DEFAULT_LIMITS: Dict[str, Dict[str, int]] = {
+DEFAULT_LIMITS: dict[str, dict[str, int]] = {
     "gemini": {
-        "rpm": 9,          # official: 10  (buffer -1)
-        "tpm": 240_000,    # official: 250k
-        "rpd": 475,        # official: 500 (buffer -25)
+        "rpm": 9,  # official: 10  (buffer -1)
+        "tpm": 240_000,  # official: 250k
+        "rpd": 475,  # official: 500 (buffer -25)
     },
     "groq": {
-        "rpm": 28,         # official: 30  (buffer -2)
-        "tpm": 28_500,     # official: 30k
-        "rpd": 13_680,     # official: 14,400 (buffer -720)
+        "rpm": 28,  # official: 30  (buffer -2)
+        "tpm": 28_500,  # official: 30k
+        "rpd": 13_680,  # official: 14,400 (buffer -720)
     },
     "openrouter": {
-        "rpm": 19,         # official: 20  (buffer -1)
-        "tpm": 999_999,    # no enforced TPM
-        "rpd": 45,         # official: 50 (buffer -5); upgrade to 950 after $10 spend
+        "rpm": 19,  # official: 20  (buffer -1)
+        "tpm": 999_999,  # no enforced TPM
+        "rpd": 45,  # official: 50 (buffer -5); upgrade to 950 after $10 spend
     },
     "cloudflare": {
-        "rpm": 999_999,    # essentially unlimited
+        "rpm": 999_999,  # essentially unlimited
         "tpm": 999_999,
-        "rpd": 9_000,      # conservative estimate ~10k
+        "rpd": 9_000,  # conservative estimate ~10k
     },
     "nvidia": {
-        "rpm": 38,         # official: 40 (buffer -2)
-        "tpm": 38_000,     # official: 40k
-        "rpd": 999_999,    # no published daily limit
+        "rpm": 38,  # official: 40 (buffer -2)
+        "tpm": 38_000,  # official: 40k
+        "rpd": 999_999,  # no published daily limit
     },
     "huggingface": {
-        "rpm": 18,         # official: ~20 (buffer -2)
+        "rpm": 18,  # official: ~20 (buffer -2)
         "tpm": 999_999,
-        "rpd": 950,        # official: ~1,000 (buffer -50)
+        "rpd": 950,  # official: ~1,000 (buffer -50)
     },
     "ollama": {
-        "rpm": 999_999,    # local — unlimited
+        "rpm": 999_999,  # local — unlimited
         "tpm": 999_999,
         "rpd": 999_999,
     },
     "deepseek": {
-        "rpm": 999_999,    # pay-as-you-go — not a free tier; treated as unlimited
+        "rpm": 999_999,  # pay-as-you-go — not a free tier; treated as unlimited
         "tpm": 999_999,
         "rpd": 999_999,
     },
 }
 
 # Priority order: prefer highest-quality free providers first
-FREE_PROVIDER_PRIORITY: List[str] = [
+FREE_PROVIDER_PRIORITY: list[str] = [
     "gemini",
     "groq",
     "cloudflare",
@@ -82,9 +84,10 @@ FREE_PROVIDER_PRIORITY: List[str] = [
 @dataclass
 class _Window:
     """Rolling time-window counter."""
+
     window_seconds: int
-    timestamps: Deque[float] = field(default_factory=deque)
-    tokens: Deque[int] = field(default_factory=deque)   # parallel list for TPM
+    timestamps: deque[float] = field(default_factory=deque)
+    tokens: deque[int] = field(default_factory=deque)  # parallel list for TPM
 
     def _evict(self) -> None:
         cutoff = time.time() - self.window_seconds
@@ -112,7 +115,8 @@ class _Window:
 @dataclass
 class _DayWindow:
     """24-hour rolling request counter."""
-    timestamps: Deque[float] = field(default_factory=deque)
+
+    timestamps: deque[float] = field(default_factory=deque)
 
     def _evict(self) -> None:
         cutoff = time.time() - 86_400
@@ -138,7 +142,7 @@ class _DayWindow:
 class ProviderBudget:
     """Tracks RPM, TPM, and RPD for a single provider."""
 
-    def __init__(self, provider: str, limits: Dict[str, int]) -> None:
+    def __init__(self, provider: str, limits: dict[str, int]) -> None:
         self.provider = provider
         self.limits = limits
         self._rpm_window = _Window(window_seconds=60)
@@ -161,10 +165,14 @@ class ProviderBudget:
         if time.time() < self._paused_until:
             return False
         if self._rpm_window.count >= self.limits["rpm"]:
-            logger.warning(f"[FreeTier] {self.provider} RPM limit reached ({self.limits['rpm']})")
+            logger.warning(
+                f"[FreeTier] {self.provider} RPM limit reached ({self.limits['rpm']})"
+            )
             return False
         if self._tpm_window.token_sum >= self.limits["tpm"]:
-            logger.warning(f"[FreeTier] {self.provider} TPM limit reached ({self.limits['tpm']})")
+            logger.warning(
+                f"[FreeTier] {self.provider} TPM limit reached ({self.limits['tpm']})"
+            )
             return False
         if self._rpd_window.count >= self.limits["rpd"]:
             logger.warning(
@@ -179,7 +187,7 @@ class ProviderBudget:
         self._paused_until = time.time() + seconds
         logger.warning(f"[FreeTier] {self.provider} paused for {seconds:.0f}s")
 
-    def remaining(self) -> Dict[str, Any]:
+    def remaining(self) -> dict[str, Any]:
         """Return remaining capacity across all windows."""
         return {
             "provider": self.provider,
@@ -193,7 +201,9 @@ class ProviderBudget:
             "rpd_limit": self.limits["rpd"],
             "rpd_remaining": max(0, self.limits["rpd"] - self._rpd_window.count),
             "available": self.is_available(),
-            "paused_until": self._paused_until if self._paused_until > time.time() else None,
+            "paused_until": (
+                self._paused_until if self._paused_until > time.time() else None
+            ),
             "rpd_resets_in_seconds": self._rpd_window.seconds_until_oldest_expires(),
         }
 
@@ -221,10 +231,10 @@ class FreeTierTracker:
 
     def __init__(
         self,
-        custom_limits: Optional[Dict[str, Dict[str, int]]] = None,
+        custom_limits: dict[str, dict[str, int]] | None = None,
     ) -> None:
         limits = {**DEFAULT_LIMITS, **(custom_limits or {})}
-        self._budgets: Dict[str, ProviderBudget] = {
+        self._budgets: dict[str, ProviderBudget] = {
             provider: ProviderBudget(provider, provider_limits)
             for provider, provider_limits in limits.items()
         }
@@ -258,9 +268,9 @@ class FreeTierTracker:
 
     def get_best_provider(
         self,
-        candidates: Optional[List[str]] = None,
-        exclude: Optional[List[str]] = None,
-    ) -> Optional[str]:
+        candidates: list[str] | None = None,
+        exclude: list[str] | None = None,
+    ) -> str | None:
         """
         Return the highest-priority available provider from *candidates*.
 
@@ -284,24 +294,20 @@ class FreeTierTracker:
     def get_fallback_chain(
         self,
         failed_provider: str,
-        candidates: Optional[List[str]] = None,
-    ) -> List[str]:
+        candidates: list[str] | None = None,
+    ) -> list[str]:
         """Return an ordered list of available providers excluding the failed one."""
         order = candidates or FREE_PROVIDER_PRIORITY
-        return [
-            p for p in order
-            if p != failed_provider and self.is_available(p)
-        ]
+        return [p for p in order if p != failed_provider and self.is_available(p)]
 
     # ------------------------------------------------------------------
     # Status / introspection
     # ------------------------------------------------------------------
 
-    def get_status(self) -> Dict[str, Any]:
+    def get_status(self) -> dict[str, Any]:
         """Return full usage status for all providers (for admin dashboard)."""
         statuses = {
-            provider: budget.remaining()
-            for provider, budget in self._budgets.items()
+            provider: budget.remaining() for provider, budget in self._budgets.items()
         }
         available_providers = [p for p, s in statuses.items() if s["available"]]
         return {
@@ -310,12 +316,12 @@ class FreeTierTracker:
             "providers": statuses,
         }
 
-    def get_provider_status(self, provider: str) -> Optional[Dict[str, Any]]:
+    def get_provider_status(self, provider: str) -> dict[str, Any] | None:
         """Return usage status for a single provider."""
         budget = self._budgets.get(provider)
         return budget.remaining() if budget else None
 
-    def override_limits(self, provider: str, limits: Dict[str, int]) -> None:
+    def override_limits(self, provider: str, limits: dict[str, int]) -> None:
         """Dynamically override limits for a provider at runtime (e.g. after upgrade)."""
         if provider in self._budgets:
             self._budgets[provider].limits.update(limits)
@@ -325,10 +331,12 @@ class FreeTierTracker:
 # ---------------------------------------------------------------------------
 # Module-level singleton — import and use directly
 # ---------------------------------------------------------------------------
-_tracker: Optional[FreeTierTracker] = None
+_tracker: FreeTierTracker | None = None
 
 
-def get_tracker(custom_limits: Optional[Dict[str, Dict[str, int]]] = None) -> FreeTierTracker:
+def get_tracker(
+    custom_limits: dict[str, dict[str, int]] | None = None
+) -> FreeTierTracker:
     """Return the module-level singleton FreeTierTracker."""
     global _tracker
     if _tracker is None:

@@ -1,19 +1,16 @@
 from __future__ import annotations
 
 import time
-from typing import Dict
-
-
-from starlette.responses import JSONResponse
 
 from loguru import logger
+from starlette.responses import JSONResponse
 
 
 class RateLimiter:
     def __init__(self, requests_per_minute: int = 60, burst: int = 10) -> None:
         self.requests_per_minute = requests_per_minute
         self.burst = burst
-        self._hits: Dict[str, list[float]] = {}
+        self._hits: dict[str, list[float]] = {}
 
     def _cleanup(self, key: str, now: float) -> None:
         window = 60.0
@@ -35,7 +32,9 @@ class RateLimiter:
 
 
 class RedisRateLimiter:
-    def __init__(self, requests_per_minute: int = 60, burst: int = 10, window: int = 60) -> None:
+    def __init__(
+        self, requests_per_minute: int = 60, burst: int = 10, window: int = 60
+    ) -> None:
         self.requests_per_minute = requests_per_minute
         self.burst = burst
         self.window = window
@@ -46,9 +45,12 @@ class RedisRateLimiter:
     def _configure_redis(self) -> None:
         try:
             from core.upstash_redis_queue import UpstashRedisQueue
+
             self._redis = UpstashRedisQueue()
         except Exception as exc:
-            logger.warning(f"Redis rate limiter unavailable, falling back to in-memory: {exc}")
+            logger.warning(
+                f"Redis rate limiter unavailable, falling back to in-memory: {exc}"
+            )
             self._redis = None
 
     def is_allowed(self, key: str) -> bool:
@@ -82,7 +84,9 @@ class RedisRateLimiter:
 class RateLimitMiddleware:
     def __init__(self, app, requests_per_minute: int = 60, burst: int = 10) -> None:
         self.app = app
-        self.limiter = RedisRateLimiter(requests_per_minute=requests_per_minute, burst=burst)
+        self.limiter = RedisRateLimiter(
+            requests_per_minute=requests_per_minute, burst=burst
+        )
 
     async def __call__(self, scope, receive, send) -> None:
         if scope["type"] != "http":
@@ -90,13 +94,14 @@ class RateLimitMiddleware:
             return
 
         from core.config import settings
+
         if settings.env.lower() == "test" or settings.debug:
             await self.app(scope, receive, send)
             return
 
         client = scope.get("client")
         client_ip = client[0] if client else "unknown"
-        
+
         if not self.limiter.is_allowed(client_ip):
             logger.warning(f"Rate limit exceeded for {client_ip}")
             response = JSONResponse(

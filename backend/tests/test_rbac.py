@@ -2,25 +2,29 @@ import datetime
 
 import pytest
 
-from core.rbac import RoleBasedAccessControl, UserContext
+from core.rbac import RoleBasedAccessControl
+from core.rbac import UserContext
 
 
 def get_rbac():
     return RoleBasedAccessControl()
 
 
-@pytest.mark.parametrize("role,action,expected", [
-    ("owner", "read", True),
-    ("owner", "admin", True),
-    ("owner", "manage_users", True),
-    ("admin", "audit", True),
-    ("admin", "manage_users", False),
-    ("operator", "write", True),
-    ("operator", "admin", False),
-    ("viewer", "read", True),
-    ("viewer", "write", False),
-    ("viewer", "admin", False),
-])
+@pytest.mark.parametrize(
+    "role,action,expected",
+    [
+        ("owner", "read", True),
+        ("owner", "admin", True),
+        ("owner", "manage_users", True),
+        ("admin", "audit", True),
+        ("admin", "manage_users", False),
+        ("operator", "write", True),
+        ("operator", "admin", False),
+        ("viewer", "read", True),
+        ("viewer", "write", False),
+        ("viewer", "admin", False),
+    ],
+)
 def test_has_permission(rbac, role, action, expected):
     assert rbac.has_permission(role, action) == expected
 
@@ -58,7 +62,9 @@ def test_require_denied(rbac):
 
 def test_custom_role_matrix():
     custom = {
-        "custom": type("RBAC", (), {"role": "custom", "permissions": ("read", "custom_action")})()
+        "custom": type(
+            "RBAC", (), {"role": "custom", "permissions": ("read", "custom_action")}
+        )()
     }
     rbac = RoleBasedAccessControl(role_matrix=custom)
     assert rbac.has_permission("custom", "custom_action") is True

@@ -59,6 +59,7 @@ def test_validate_hallucinated(validator):
 
 def test_multi_ai_generator_consensus():
     from core.output_validator import MultiAICodeGenerator
+
     gen = MultiAICodeGenerator()
     code_a = "def add(a, b): return a + b"
     code_b = "def add(a, b):\n    return a + b"
@@ -71,6 +72,7 @@ def test_multi_ai_generator_consensus():
 
 def test_enhanced_confidence_scorer():
     from core.output_validator import EnhancedConfidenceScorer
+
     scorer = EnhancedConfidenceScorer()
     result = scorer.score("normal text", {"ai_reliability": 0.9, "external_score": 1.0})
     assert result["overall"] >= 0.7
@@ -78,6 +80,7 @@ def test_enhanced_confidence_scorer():
 
 def test_human_review_policy():
     from core.output_validator import HumanReviewPolicy
+
     policy = HumanReviewPolicy()
     assert policy.requires_human_review("python_code", {"overall": 0.9}) is True
     assert policy.requires_human_review("chat", {"overall": 0.3}) is True

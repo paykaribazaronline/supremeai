@@ -11,7 +11,9 @@ def test_plan_debug_keywords():
 def test_plan_build_keywords():
     agent = AutonomousAgent()
     plan = agent.plan("create new API endpoint")
-    assert plan["summary"] == "Scaffold implementation, implement core, add basic tests."
+    assert (
+        plan["summary"] == "Scaffold implementation, implement core, add basic tests."
+    )
     assert plan["steps"] == ["scaffold", "implement", "basic_tests"]
 
 

@@ -1,12 +1,13 @@
-from typing import Dict, Any, List
+from typing import Any
+
 
 class ModelRegistry:
     """
     Registry of AI Models categorized by Tiers.
     Provides metadata such as provider, tier, context length, estimated cost, and OpenRouter/Ollama IDs.
     """
-    
-    MODELS: Dict[str, Dict[str, Any]] = {
+
+    MODELS: dict[str, dict[str, Any]] = {
         # TIER 1: FRONTIER MODELS (Ranks 1-10)
         "claude-opus-4.7": {
             "rank": 1,
@@ -17,7 +18,7 @@ class ModelRegistry:
             "context_length": 200000,
             "cost_input_per_million": 15.00,
             "cost_output_per_million": 75.00,
-            "strengths": ["complex coding", "agentic workflows", "deep reasoning"]
+            "strengths": ["complex coding", "agentic workflows", "deep reasoning"],
         },
         "gpt-5.5": {
             "rank": 2,
@@ -28,7 +29,11 @@ class ModelRegistry:
             "context_length": 128000,
             "cost_input_per_million": 5.00,
             "cost_output_per_million": 15.00,
-            "strengths": ["general intelligence", "low hallucination", "structured output"]
+            "strengths": [
+                "general intelligence",
+                "low hallucination",
+                "structured output",
+            ],
         },
         "qwen-3.7-max": {
             "rank": 3,
@@ -39,7 +44,7 @@ class ModelRegistry:
             "context_length": 128000,
             "cost_input_per_million": 2.50,
             "cost_output_per_million": 7.50,
-            "strengths": ["tool calling", "long contexts", "coding"]
+            "strengths": ["tool calling", "long contexts", "coding"],
         },
         "claude-opus-4.6": {
             "rank": 4,
@@ -50,7 +55,7 @@ class ModelRegistry:
             "context_length": 1000000,
             "cost_input_per_million": 15.00,
             "cost_output_per_million": 75.00,
-            "strengths": ["large codebase", "agent teams"]
+            "strengths": ["large codebase", "agent teams"],
         },
         "claude-sonnet-4.6": {
             "rank": 5,
@@ -61,7 +66,7 @@ class ModelRegistry:
             "context_length": 1000000,
             "cost_input_per_million": 3.00,
             "cost_output_per_million": 15.00,
-            "strengths": ["coding", "balanced performance", "vision"]
+            "strengths": ["coding", "balanced performance", "vision"],
         },
         "deepseek-v4-pro": {
             "rank": 6,
@@ -72,7 +77,7 @@ class ModelRegistry:
             "context_length": 128000,
             "cost_input_per_million": 0.14,
             "cost_output_per_million": 0.28,
-            "strengths": ["math", "coding", "extreme cost efficiency"]
+            "strengths": ["math", "coding", "extreme cost efficiency"],
         },
         "gemini-3.1-pro": {
             "rank": 7,
@@ -83,7 +88,7 @@ class ModelRegistry:
             "context_length": 1000000,
             "cost_input_per_million": 1.25,
             "cost_output_per_million": 5.00,
-            "strengths": ["native tool calling", "massive context", "multimodal"]
+            "strengths": ["native tool calling", "massive context", "multimodal"],
         },
         "kimi-k2.6": {
             "rank": 8,
@@ -94,7 +99,7 @@ class ModelRegistry:
             "context_length": 128000,
             "cost_input_per_million": 1.00,
             "cost_output_per_million": 4.00,
-            "strengths": ["agent swarms", "autonomous tasks"]
+            "strengths": ["agent swarms", "autonomous tasks"],
         },
         "gpt-5.4-pro": {
             "rank": 9,
@@ -105,7 +110,7 @@ class ModelRegistry:
             "context_length": 128000,
             "cost_input_per_million": 10.00,
             "cost_output_per_million": 30.00,
-            "strengths": ["reasoning", "academic questions"]
+            "strengths": ["reasoning", "academic questions"],
         },
         "claude-opus-4.8": {
             "rank": 10,
@@ -116,9 +121,8 @@ class ModelRegistry:
             "context_length": 1000000,
             "cost_input_per_million": 15.00,
             "cost_output_per_million": 75.00,
-            "strengths": ["sustained coding", "ide assistance"]
+            "strengths": ["sustained coding", "ide assistance"],
         },
-
         # TIER 2: HIGH-PERFORMANCE (Ranks 11-20)
         "gemini-3.5-flash": {
             "rank": 11,
@@ -129,7 +133,7 @@ class ModelRegistry:
             "context_length": 1000000,
             "cost_input_per_million": 0.075,
             "cost_output_per_million": 0.30,
-            "strengths": ["speed", "multimodal", "value coding"]
+            "strengths": ["speed", "multimodal", "value coding"],
         },
         "gpt-5.2": {
             "rank": 12,
@@ -140,7 +144,7 @@ class ModelRegistry:
             "context_length": 128000,
             "cost_input_per_million": 0.15,
             "cost_output_per_million": 0.60,
-            "strengths": ["general knowledge", "agent routing"]
+            "strengths": ["general knowledge", "agent routing"],
         },
         "llama-4-maverick": {
             "rank": 13,
@@ -151,7 +155,7 @@ class ModelRegistry:
             "context_length": 1000000,
             "cost_input_per_million": 2.66,
             "cost_output_per_million": 2.66,
-            "strengths": ["open source", "vision", "complex reasoning"]
+            "strengths": ["open source", "vision", "complex reasoning"],
         },
         "grok-4.3": {
             "rank": 14,
@@ -162,7 +166,7 @@ class ModelRegistry:
             "context_length": 131000,
             "cost_input_per_million": 2.00,
             "cost_output_per_million": 10.00,
-            "strengths": ["real-time info", "fast chat"]
+            "strengths": ["real-time info", "fast chat"],
         },
         "glm-5": {
             "rank": 15,
@@ -173,9 +177,8 @@ class ModelRegistry:
             "context_length": 128000,
             "cost_input_per_million": 0.50,
             "cost_output_per_million": 1.50,
-            "strengths": ["multilingual", "chinese translation"]
+            "strengths": ["multilingual", "chinese translation"],
         },
-
         # TIER 5: FREE TIER (Ranks 41-50)
         "deepseek-r1-free": {
             "rank": 41,
@@ -186,7 +189,7 @@ class ModelRegistry:
             "context_length": 64000,
             "cost_input_per_million": 0.00,
             "cost_output_per_million": 0.00,
-            "strengths": ["reasoning", "math", "coding"]
+            "strengths": ["reasoning", "math", "coding"],
         },
         "llama-4-scout-free": {
             "rank": 42,
@@ -197,7 +200,7 @@ class ModelRegistry:
             "context_length": 1000000,
             "cost_input_per_million": 0.00,
             "cost_output_per_million": 0.00,
-            "strengths": ["zero cost vision", "summaries"]
+            "strengths": ["zero cost vision", "summaries"],
         },
         "qwen3-free": {
             "rank": 43,
@@ -208,7 +211,7 @@ class ModelRegistry:
             "context_length": 128000,
             "cost_input_per_million": 0.00,
             "cost_output_per_million": 0.00,
-            "strengths": ["coding", "general automation"]
+            "strengths": ["coding", "general automation"],
         },
         # Local Fallbacks (Tier 0)
         "local-qwen-0.5b": {
@@ -220,20 +223,20 @@ class ModelRegistry:
             "context_length": 32000,
             "cost_input_per_million": 0.00,
             "cost_output_per_million": 0.00,
-            "strengths": ["fast offline replies", "local security"]
-        }
+            "strengths": ["fast offline replies", "local security"],
+        },
     }
 
     @classmethod
-    def get_model(cls, model_id: str) -> Dict[str, Any]:
+    def get_model(cls, model_id: str) -> dict[str, Any]:
         return cls.MODELS.get(model_id, {})
 
     @classmethod
-    def get_by_tier(cls, tier: int) -> List[str]:
+    def get_by_tier(cls, tier: int) -> list[str]:
         return [mid for mid, m in cls.MODELS.items() if m["tier"] == tier]
 
     @classmethod
-    def validate(cls) -> List[str]:
+    def validate(cls) -> list[str]:
         issues = []
         for mid, meta in cls.MODELS.items():
             provider = meta.get("provider")

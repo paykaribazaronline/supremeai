@@ -1,14 +1,17 @@
-from fastapi import APIRouter, Request
+from typing import Any
+
+from fastapi import APIRouter
+from fastapi import Request
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
-from typing import Dict, Any, Optional
 
 from brain.agent_departments import AgentDepartment
-from brain.model_router import ModelRouter
-from brain.langgraph_agent import SupremeOrchestrator
 from brain.autonomous_agent import AutonomousAgent
-from core.rbac import RoleBasedAccessControl
+from brain.langgraph_agent import SupremeOrchestrator
+from brain.model_router import ModelRouter
 from core.generation_monitor import GenerationMonitor
+from core.rbac import RoleBasedAccessControl
+
 
 agent_router = APIRouter(prefix="/api/v1/agents", tags=["agents"])
 
@@ -23,22 +26,22 @@ monitor = GenerationMonitor()
 class AgentExecuteRequest(BaseModel):
     task: str
     task_type: str = "general"
-    role: Optional[str] = None
-    department: Optional[str] = None
+    role: str | None = None
+    department: str | None = None
     autonomous: bool = False
-    user_context: Optional[Dict[str, Any]] = None
+    user_context: dict[str, Any] | None = None
 
 
 class AgentExecuteResponse(BaseModel):
     success: bool
-    output: Optional[str] = None
-    role: Optional[str] = None
-    provider: Optional[str] = None
-    cost: Optional[float] = None
-    errors: Optional[list] = None
+    output: str | None = None
+    role: str | None = None
+    provider: str | None = None
+    cost: float | None = None
+    errors: list | None = None
 
 
-def _user_context(request: Request) -> Dict[str, Any]:
+def _user_context(request: Request) -> dict[str, Any]:
     return {
         "ip": request.client.host if request.client else None,
         "source": request.headers.get("X-Source"),
@@ -61,7 +64,9 @@ async def execute_agent(request: Request, body: AgentExecuteRequest):
 
     if body.department:
         result = agent_department.execute(body.department, body.task, body.task_type)
-        monitor.track_agent_call(prompt=body.task, provider=result.get("provider", "unknown"))
+        monitor.track_agent_call(
+            prompt=body.task, provider=result.get("provider", "unknown")
+        )
         return AgentExecuteResponse(
             success=result.get("success", False),
             output=result.get("output"),
@@ -72,7 +77,9 @@ async def execute_agent(request: Request, body: AgentExecuteRequest):
         )
 
     result = orchestrator.execute_task(body.task, body.task_type)
-    monitor.track_agent_call(prompt=body.task, provider=result.get("provider", "unknown"))
+    monitor.track_agent_call(
+        prompt=body.task, provider=result.get("provider", "unknown")
+    )
     return AgentExecuteResponse(
         success=result.get("success", False),
         output=result.get("result"),

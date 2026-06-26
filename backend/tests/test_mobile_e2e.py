@@ -1,18 +1,17 @@
-from typing import Any, Dict, List
-
+from typing import Any
 
 
 class FakeFlutterProject:
     def __init__(self):
-        self._routes: List[str] = []
-        self._pages: Dict[str, Dict[str, Any]] = {}
+        self._routes: list[str] = []
+        self._pages: dict[str, dict[str, Any]] = {}
 
-    def push(self, route: str, data: Dict[str, Any]):
+    def push(self, route: str, data: dict[str, Any]):
         self._routes.append(route)
         self._pages[route] = data
 
     @property
-    def pages(self) -> Dict[str, Dict[str, Any]]:
+    def pages(self) -> dict[str, dict[str, Any]]:
         return self._pages
 
     @property
@@ -20,15 +19,15 @@ class FakeFlutterProject:
         return self._routes[-1] if self._routes else ""
 
     @property
-    def route_history(self) -> List[str]:
+    def route_history(self) -> list[str]:
         return list(self._routes)
 
 
 class FakeChatGateway:
     def __init__(self):
         self._connected: bool = False
-        self._messages: List[str] = []
-        self._history: List[Dict[str, Any]] = []
+        self._messages: list[str] = []
+        self._history: list[dict[str, Any]] = []
 
     def connect(self):
         self._connected = True
@@ -38,20 +37,22 @@ class FakeChatGateway:
             raise RuntimeError("ChatGateway not connected")
         self._messages.append(message)
         self._history.append({"role": "user", "content": message})
-        self._history.append({"role": "assistant", "content": f"acknowledged: {message}"})
+        self._history.append(
+            {"role": "assistant", "content": f"acknowledged: {message}"}
+        )
         return "ack"
 
     def disconnect(self):
         self._connected = False
 
     @property
-    def history(self) -> List[Dict[str, Any]]:
+    def history(self) -> list[dict[str, Any]]:
         return list(self._history)
 
 
 class FakeNotificationService:
     def __init__(self):
-        self._announcements: List[str] = []
+        self._announcements: list[str] = []
         self._rendered: bool = False
 
     def show_new(self, announcement: str):
@@ -67,13 +68,13 @@ class FakeNotificationService:
 
 class FakeMobileChart:
     def __init__(self):
-        self._points: List[Dict[str, Any]] = []
+        self._points: list[dict[str, Any]] = []
 
-    def load_data(self, points: List[Dict[str, Any]]):
+    def load_data(self, points: list[dict[str, Any]]):
         self._points = list(points)
 
     @property
-    def points(self) -> List[Dict[str, Any]]:
+    def points(self) -> list[dict[str, Any]]:
         return list(self._points)
 
 
@@ -92,10 +93,10 @@ class FakeAuthGateway:
 
 
 class FakeProjectAPI:
-    def __init__(self, projects: List[Dict[str, Any]]):
+    def __init__(self, projects: list[dict[str, Any]]):
         self._projects = list(projects)
 
-    def fetch_projects(self, user_id: str) -> List[Dict[str, Any]]:
+    def fetch_projects(self, user_id: str) -> list[dict[str, Any]]:
         return self._projects
 
 
@@ -103,28 +104,40 @@ class FakeSlidingWindowMemory:
     def __init__(self, max_tokens: int = 20, overlap_ratio: float = 0.2):
         self.max_tokens = max_tokens
         self.overlap_ratio = overlap_ratio
-        self._history_window: List[str] = []
+        self._history_window: list[str] = []
 
-    def chunk(self, text: str) -> List[Dict[str, Any]]:
+    def chunk(self, text: str) -> list[dict[str, Any]]:
         words = text.split()
         if len(words) <= self.max_tokens:
             self._history_window.append(text)
             return [{"window_index": 0, "text": text, "token_count": len(words)}]
         chunk = " ".join(words[: self.max_tokens])
         self._history_window.append(chunk)
-        return [{"window_index": 0, "text": chunk, "token_count": min(len(words), self.max_tokens)}]
+        return [
+            {
+                "window_index": 0,
+                "text": chunk,
+                "token_count": min(len(words), self.max_tokens),
+            }
+        ]
 
-    def build_context(self, documents: List[str], query: str = "", budget: int = 20) -> str:
-        chunks: List[str] = []
+    def build_context(
+        self, documents: list[str], query: str = "", budget: int = 20
+    ) -> str:
+        chunks: list[str] = []
         for doc in documents:
             chunks.extend(item["text"] for item in self.chunk(doc))
         joined = "\n---\n".join(chunks)
-        return joined[:budget * 6]
+        return joined[: budget * 6]
 
 
 FAKE_DASHBOARD_WIDGETS = [
     {"type": "kpi", "title": "Tasks Completed", "value": 42},
-    {"type": "chart", "title": "Productivity", "points": [{"x": 1, "y": 10}, {"x": 2, "y": 15}]},
+    {
+        "type": "chart",
+        "title": "Productivity",
+        "points": [{"x": 1, "y": 10}, {"x": 2, "y": 15}],
+    },
 ]
 
 FAKE_PROJECTS = [
@@ -225,7 +238,9 @@ def test_mobile_chat_history_accumulates():
 
 def test_mobile_sliding_window_for_long_chat():
     memory = FakeSlidingWindowMemory(max_tokens=5)
-    summary = memory.build_context(["alpha beta gamma delta epsilon zeta eta theta iota kappa lambda mu"])
+    summary = memory.build_context(
+        ["alpha beta gamma delta epsilon zeta eta theta iota kappa lambda mu"]
+    )
     assert "\n---\n" in summary or len(summary.split()) <= 30
 
 
@@ -238,7 +253,9 @@ def test_mobile_e2e_full_flow():
 
     login_result = auth.authenticate("user@example.com", "password")
     assert login_result["token"] == FakeAuthGateway.VALID_TOKEN
-    project.push("/home", {"token": login_result["token"], "user": login_result["user"]})
+    project.push(
+        "/home", {"token": login_result["token"], "user": login_result["user"]}
+    )
 
     project.push("/dashboard", {"widgets": FAKE_DASHBOARD_WIDGETS})
     assert project.current_route == "/dashboard"

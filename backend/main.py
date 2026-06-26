@@ -1,11 +1,14 @@
 import os
-import sys
 import signal
+import sys
+
 import uvicorn
 from loguru import logger
+
 from core.app import app  # noqa: F401
-from core.logging_config import setup_logging
 from core.config import settings
+from core.logging_config import setup_logging
+
 
 setup_logging()
 

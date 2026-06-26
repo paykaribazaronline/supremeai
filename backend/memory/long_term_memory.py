@@ -2,29 +2,31 @@ from __future__ import annotations
 
 import os
 import sqlite3
-from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
-
+from datetime import datetime
+from datetime import timezone
+from typing import Any
 
 
 class LongTermMemory:
     def __init__(
         self,
-        db_path: Optional[str] = None,
-        session_id: Optional[str] = None,
+        db_path: str | None = None,
+        session_id: str | None = None,
     ) -> None:
         base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         self.db_path = db_path or os.path.join(base_dir, "data", "long_term_memory.db")
         if self.db_path != ":memory:":
             os.makedirs(os.path.dirname(self.db_path), exist_ok=True)
         self.session_id = session_id or "default"
-        self._memory_conn: Optional[sqlite3.Connection] = None
+        self._memory_conn: sqlite3.Connection | None = None
         self._init_db()
 
     def _connect(self) -> sqlite3.Connection:
         if self.db_path == ":memory:":
             if self._memory_conn is None:
-                self._memory_conn = sqlite3.connect(self.db_path, check_same_thread=False)
+                self._memory_conn = sqlite3.connect(
+                    self.db_path, check_same_thread=False
+                )
             return self._memory_conn
         return sqlite3.connect(self.db_path, check_same_thread=False)
 
@@ -72,8 +74,8 @@ class LongTermMemory:
         content: str,
         category: str = "general",
         importance: float = 1.0,
-        source: Optional[str] = None,
-    ) -> Dict[str, Any]:
+        source: str | None = None,
+    ) -> dict[str, Any]:
         now = self._now()
         conn = self._connect()
         try:
@@ -92,15 +94,15 @@ class LongTermMemory:
 
     def recall_facts(
         self,
-        category: Optional[str] = None,
+        category: str | None = None,
         min_importance: float = 0.0,
         limit: int = 20,
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         conn = self._connect()
         try:
             conn.row_factory = sqlite3.Row
             query = "SELECT * FROM facts WHERE session_id = ? AND importance >= ?"
-            params: List[Any] = [self.session_id, min_importance]
+            params: list[Any] = [self.session_id, min_importance]
             if category:
                 query += " AND category = ?"
                 params.append(category)
@@ -112,7 +114,7 @@ class LongTermMemory:
             if self.db_path != ":memory:":
                 conn.close()
 
-    def save_summary(self, summary: str, turn_count: int) -> Dict[str, Any]:
+    def save_summary(self, summary: str, turn_count: int) -> dict[str, Any]:
         now = self._now()
         conn = self._connect()
         try:
@@ -129,7 +131,7 @@ class LongTermMemory:
             if self.db_path != ":memory:":
                 conn.close()
 
-    def get_recent_summaries(self, limit: int = 5) -> List[Dict[str, Any]]:
+    def get_recent_summaries(self, limit: int = 5) -> list[dict[str, Any]]:
         conn = self._connect()
         try:
             conn.row_factory = sqlite3.Row
@@ -150,7 +152,7 @@ class LongTermMemory:
     def build_context(self, limit: int = 10) -> str:
         facts = self.recall_facts(limit=limit)
         summaries = self.get_recent_summaries(limit=3)
-        parts: List[str] = []
+        parts: list[str] = []
         if summaries:
             parts.append("Recent conversation summaries:")
             for item in summaries:

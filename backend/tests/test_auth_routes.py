@@ -1,21 +1,20 @@
 from __future__ import annotations
 
-import pytest
 from datetime import timedelta
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
+from unittest.mock import patch
 
+import pytest
 from fastapi import FastAPI
 from pydantic import ValidationError
 
-from api.routes.auth import (
-    router,
-    create_access_token,
-    optional_current_user,
-    LoginRequest,
-    TokenResponse,
-    MeResponse,
-    UserContext,
-)
+from api.routes.auth import LoginRequest
+from api.routes.auth import MeResponse
+from api.routes.auth import TokenResponse
+from api.routes.auth import UserContext
+from api.routes.auth import create_access_token
+from api.routes.auth import optional_current_user
+from api.routes.auth import router
 
 
 @pytest.fixture
@@ -23,6 +22,7 @@ def client():
     app = FastAPI()
     app.include_router(router)
     from fastapi.testclient import TestClient
+
     return TestClient(app)
 
 
@@ -48,6 +48,7 @@ class TestCreateAccessToken:
 
     def test_create_access_token_missing_jose(self):
         import api.routes.auth as auth_module
+
         old_jwt = auth_module.jwt
         try:
             auth_module.jwt = None
@@ -92,6 +93,7 @@ class TestOptionalCurrentUser:
     @pytest.mark.anyio
     async def test_missing_jose_returns_none(self):
         import api.routes.auth as auth_module
+
         old_jwt = auth_module.jwt
         try:
             auth_module.jwt = None
@@ -105,7 +107,10 @@ class TestLoginEndpoint:
     def test_login_returns_501(self, client):
         resp = client.post("/auth/login", json={"username": "test", "password": "test"})
         assert resp.status_code == 501
-        assert resp.json()["detail"] == "Direct login is not supported. Use the admin TOTP flow or an OAuth provider."
+        assert (
+            resp.json()["detail"]
+            == "Direct login is not supported. Use the admin TOTP flow or an OAuth provider."
+        )
 
     def test_login_missing_username(self, client):
         resp = client.post("/auth/login", json={"password": "test"})
@@ -131,7 +136,9 @@ class TestMeEndpoint:
     async def test_me_with_valid_token(self, client):
         with patch("api.routes.auth.jwt") as mock_jwt:
             mock_jwt.decode.return_value = {"sub": "user1", "role": "admin"}
-            resp = client.get("/auth/me", headers={"Authorization": "Bearer valid.token"})
+            resp = client.get(
+                "/auth/me", headers={"Authorization": "Bearer valid.token"}
+            )
         assert resp.status_code == 200
         data = resp.json()
         assert data["user_id"] == "user1"

@@ -1,8 +1,8 @@
-import typing
 from tools.checkpoint_manager import CheckpointManager
 
+
 class CheckpointResume:
-    def __init__(self, db_path: typing.Optional[str] = None):
+    def __init__(self, db_path: str | None = None):
         self.manager = CheckpointManager(db_path=db_path)
 
     def save(self, task_id: str, step_index: int, state: dict):
@@ -12,7 +12,12 @@ class CheckpointResume:
         checkpoint = self.manager.load(task_id)
         if not checkpoint:
             return None
-        return {"task_id": checkpoint.task_id, "step_index": checkpoint.step_index, "state": checkpoint.state, "resumed": checkpoint.resumed}
+        return {
+            "task_id": checkpoint.task_id,
+            "step_index": checkpoint.step_index,
+            "state": checkpoint.state,
+            "resumed": checkpoint.resumed,
+        }
 
     def list_all(self):
         return self.manager.list_all()

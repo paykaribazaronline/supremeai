@@ -2,14 +2,15 @@
 # Generated: 2026-05-04T23:05:42.197209
 # Auth type: Session-based
 
+from typing import Any
+
 import requests
-from typing import Dict, Any, Optional
 
 
 class BanglaAiConnector:
     """Auto-generated connector for bangla_ai"""
 
-    def __init__(self, credentials: Optional[Dict[str, str]] = None):
+    def __init__(self, credentials: dict[str, str] | None = None):
         self.base_url = "https://banglaai.example.com"
         self.session = requests.Session()
         self.auth_data = None
@@ -24,14 +25,14 @@ class BanglaAiConnector:
         resp = self.session.post(f"{self.base_url}/api/login", json=login_data)
         return resp.status_code == 200
 
-    def call_api(self, prompt: str) -> Dict[str, Any]:
+    def call_api(self, prompt: str) -> dict[str, Any]:
         """Call /api/generate endpoint"""
         url = f"{self.base_url}/api/generate"
         payload = {"prompt": prompt}
         resp = self.session.post(url, json=payload)
         return resp.json()
 
-    def _return_success(self, data: Any) -> Dict[str, Any]:
+    def _return_success(self, data: Any) -> dict[str, Any]:
         return {
             "success": True,
             "platform": "bangla_ai",

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import datetime
 from dataclasses import dataclass
-from typing import Any, Dict, Optional
+from typing import Any
 
 
 @dataclass
@@ -16,11 +16,13 @@ class UserContext:
     user_id: str
     role: str
     scopes: tuple[str, ...] = ()
-    expires_at: Optional[str] = None
+    expires_at: str | None = None
 
 
-ROLE_MATRIX: Dict[str, RBAC] = {
-    "owner": RBAC(role="owner", permissions=("read", "write", "admin", "audit", "manage_users")),
+ROLE_MATRIX: dict[str, RBAC] = {
+    "owner": RBAC(
+        role="owner", permissions=("read", "write", "admin", "audit", "manage_users")
+    ),
     "admin": RBAC(role="admin", permissions=("read", "write", "admin", "audit")),
     "operator": RBAC(role="operator", permissions=("read", "write")),
     "viewer": RBAC(role="viewer", permissions=("read",)),
@@ -28,7 +30,7 @@ ROLE_MATRIX: Dict[str, RBAC] = {
 
 
 class RoleBasedAccessControl:
-    def __init__(self, role_matrix: Optional[Dict[str, RBAC]] = None) -> None:
+    def __init__(self, role_matrix: dict[str, RBAC] | None = None) -> None:
         self.role_matrix = role_matrix or dict(ROLE_MATRIX)
 
     def has_permission(self, role: str, action: str) -> bool:
@@ -46,7 +48,7 @@ class RoleBasedAccessControl:
                 return False
         return self.has_permission(context.role, action)
 
-    def require(self, context: UserContext, action: str) -> Dict[str, Any]:
+    def require(self, context: UserContext, action: str) -> dict[str, Any]:
         if not self.check(context, action):
             return {
                 "allowed": False,

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import os
-from typing import Any, Dict, Optional
+from typing import Any
 
 import httpx
 from loguru import logger
@@ -10,22 +10,28 @@ from loguru import logger
 class UpstashRedisQueue:
     def __init__(
         self,
-        rest_url: Optional[str] = None,
-        token: Optional[str] = None,
+        rest_url: str | None = None,
+        token: str | None = None,
         timeout: float = 10.0,
     ) -> None:
-        self.rest_url = (rest_url or os.getenv("UPSTASH_REDIS_REST_URL", "")).rstrip("/")
+        self.rest_url = (rest_url or os.getenv("UPSTASH_REDIS_REST_URL", "")).rstrip(
+            "/"
+        )
         self.token = token or os.getenv("UPSTASH_REDIS_REST_TOKEN", "")
         self.timeout = timeout
-        self._client = httpx.Client(timeout=self.timeout) if self.rest_url and self.token else None
+        self._client = (
+            httpx.Client(timeout=self.timeout) if self.rest_url and self.token else None
+        )
 
     @property
     def configured(self) -> bool:
         return bool(self._client)
 
-    def _request(self, *args: str) -> Dict[str, Any]:
+    def _request(self, *args: str) -> dict[str, Any]:
         if not self._client:
-            raise RuntimeError("UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN are not configured")
+            raise RuntimeError(
+                "UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN are not configured"
+            )
         response = self._client.post(
             self.rest_url,
             headers={"Authorization": f"Bearer {self.token}"},
@@ -34,7 +40,7 @@ class UpstashRedisQueue:
         response.raise_for_status()
         return response.json()
 
-    def get(self, key: str) -> Optional[str]:
+    def get(self, key: str) -> str | None:
         if not self.configured:
             return None
         try:
@@ -43,7 +49,7 @@ class UpstashRedisQueue:
             logger.error(f"Upstash Redis GET failed: {exc}")
             return None
 
-    def set(self, key: str, value: str, ex: Optional[int] = None) -> bool:
+    def set(self, key: str, value: str, ex: int | None = None) -> bool:
         if not self.configured:
             return False
         try:
@@ -56,7 +62,7 @@ class UpstashRedisQueue:
             logger.error(f"Upstash Redis SET failed: {exc}")
             return False
 
-    def incr(self, key: str) -> Optional[int]:
+    def incr(self, key: str) -> int | None:
         if not self.configured:
             return None
         try:
@@ -66,7 +72,7 @@ class UpstashRedisQueue:
             logger.error(f"Upstash Redis INCR failed: {exc}")
             return None
 
-    def decr(self, key: str) -> Optional[int]:
+    def decr(self, key: str) -> int | None:
         if not self.configured:
             return None
         try:

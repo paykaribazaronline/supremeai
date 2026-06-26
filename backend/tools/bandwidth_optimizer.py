@@ -1,6 +1,8 @@
 import re
-from typing import Dict, Any
+from typing import Any
+
 from loguru import logger
+
 
 class BandwidthOptimizer:
     def __init__(self):
@@ -16,11 +18,15 @@ class BandwidthOptimizer:
         if new_len > original_len * max(target_ratio, 0.1):
             truncated = compressed[: int(original_len * target_ratio)]
             compressed = truncated.rstrip() + "..."
-        logger.debug(f"Compressed prompt from {original_len} to {len(compressed)} chars")
+        logger.debug(
+            f"Compressed prompt from {original_len} to {len(compressed)} chars"
+        )
         return compressed
 
-    def generate_delta_update(self, old_state: Dict[str, Any], new_state: Dict[str, Any]) -> Dict[str, Any]:
-        delta: Dict[str, Any] = {}
+    def generate_delta_update(
+        self, old_state: dict[str, Any], new_state: dict[str, Any]
+    ) -> dict[str, Any]:
+        delta: dict[str, Any] = {}
         for k, v in new_state.items():
             if k not in old_state or old_state[k] != v:
                 delta[k] = v
