@@ -44,7 +44,7 @@ async def run_daily_evolution(request: Request, payload: RunEvolutionRequest):
         report = engine.run_daily_evolution(task_history)
     except Exception as exc:
         logger.error(f"EvolutionEngine failed: {exc}")
-        raise HTTPException(status_code=500, detail=f"Evolution failed: {exc}")
+        raise HTTPException(status_code=500, detail=f"Evolution failed: {exc}") from exc
     try:
         from core.gcp_firestore import GCPFirestoreVerificationQueue
 

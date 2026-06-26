@@ -44,7 +44,7 @@ def require_admin_token(credentials: HTTPAuthorizationCredentials = Depends(secu
             return {"uid": "admin", "role": "admin"}
         raise HTTPException(
             status_code=401, detail=f"Invalid Admin Authorization Token: {str(e)}"
-        )
+        ) from e
 
 
 @router.get("/logs")
@@ -60,7 +60,7 @@ async def get_evolution_logs(admin: dict = Depends(require_admin_token)):
         return {"logs": logs}
     except Exception as e:
         logger.error(f"Failed to read evolution logs: {e}")
-        raise HTTPException(status_code=500, detail="Failed to read evolution logs")
+        raise HTTPException(status_code=500, detail="Failed to read evolution logs") from e
 
 
 class EvolutionRequest(BaseModel):

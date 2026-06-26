@@ -87,7 +87,10 @@ class AutoSkillCreator:
             "You must return ONLY a valid JSON block. No markdown explanations outside the JSON block.\n\n"
             "The JSON structure must match this template exactly:\n"
             "{\n"
-            '  "code": "python code containing a class matching the skill_name. The class must implement an async def execute(self, kwargs) -> dict method. Do not use banned keywords like eval, exec, compile, getattr, setattr, globals, locals.",\n'
+            '  "code": "python code containing a class matching the skill_name. '
+            'The class must implement an async def execute(self, kwargs) -> dict method. '
+            'Do not use banned keywords like eval, exec, compile, getattr, setattr, '
+            'globals, locals.",\n'
             '  "schema": {\n'
             '    "metadata": {\n'
             '      "name": "skill_name",\n'

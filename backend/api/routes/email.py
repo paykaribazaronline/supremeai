@@ -29,7 +29,7 @@ async def gmail_auth(payload: GmailAuthRequest):
             return {"status": "success", "message": "Connected Gmail via OAuth"}
         raise HTTPException(status_code=400, detail="Failed to connect Gmail OAuth")
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @router.post("/imap")
@@ -42,4 +42,4 @@ async def imap_auth(payload: ImapAuthRequest):
             return {"status": "success", "message": "Connected generic IMAP"}
         raise HTTPException(status_code=400, detail="Failed to connect generic IMAP")
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e

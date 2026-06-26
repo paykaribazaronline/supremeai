@@ -84,7 +84,7 @@ async def create_checkout_session(request: Request, payload: CheckoutRequest):
         ):
             raise HTTPException(status_code=403, detail="User mismatch")
     except Exception as e:
-        raise HTTPException(status_code=401, detail=f"Invalid token: {e}")
+        raise HTTPException(status_code=401, detail=f"Invalid token: {e}") from e
     try:
         stripe_key = settings.stripe_api_key
         if not stripe_key:
@@ -125,7 +125,7 @@ async def create_checkout_session(request: Request, payload: CheckoutRequest):
         return {"status": "success", "session_id": session.id, "url": session.url}
     except Exception as e:
         logger.error(f"Failed to create Stripe checkout session: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @router.post("/webhook")
@@ -145,7 +145,7 @@ async def stripe_webhook(request: Request):
         event = stripe.Webhook.construct_event(payload, sig_header, endpoint_secret)
     except Exception as e:
         logger.error(f"Webhook signature verification failed: {e}")
-        raise HTTPException(status_code=400, detail="Invalid signature")
+        raise HTTPException(status_code=400, detail="Invalid signature") from e
 
     if event["type"] == "checkout.session.completed":
         session = event["data"]["object"]

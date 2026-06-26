@@ -11,6 +11,9 @@ except Exception:
     _DOMAIN_ADAPTER_AVAILABLE = False
 
 
+import json
+
+
 class MedicalAgent:
     """
     Symptom analysis, drug interaction checker (disclaimer-first).
@@ -135,4 +138,3 @@ class MedicalAgent:
         }
 
 
-import json

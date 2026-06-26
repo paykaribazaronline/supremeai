@@ -6,16 +6,16 @@ from typing import Any
 import redis.asyncio as redis
 from loguru import logger
 
+from .semantic_cache import SemanticCache
+
 
 # Level 1: Exact Match Cache (Redis/Upstash)
 exact_match_cache = redis.from_url(
     os.getenv("REDIS_URL", "redis://localhost:6379"), decode_responses=True
 )
 
+
 # Level 2: Semantic Cache (using existing semantic_cache.py)
-from .semantic_cache import SemanticCache
-
-
 semantic_cache = SemanticCache()
 
 # Level 3: Prefix Cache (Redis with key prefixes)

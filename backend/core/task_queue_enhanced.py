@@ -19,8 +19,6 @@ from loguru import logger
 
 try:
     from celery import Celery
-    from celery import Task
-    from celery.result import AsyncResult
 
     CELERY_AVAILABLE = True
 except ImportError:
@@ -491,8 +489,7 @@ class TaskQueue:
 
         to_remove = []
         for task_id, result in self._results.items():
-            if result.status in ["completed", "failed"] and result.completed_at:
-                if result.completed_at < cutoff_time:
+            if result.status in ["completed", "failed"] and result.completed_at and result.completed_at < cutoff_time:
                     to_remove.append(task_id)
 
         for task_id in to_remove:

@@ -137,7 +137,7 @@ def search_skills(req: SearchRequest) -> list[dict[str, Any]]:
         return [_row_to_skill(r) for r in rows]
     except Exception as exc:
         logger.error(f"Marketplace search failed: {exc}")
-        raise HTTPException(status_code=500, detail=str(exc))
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
     finally:
         conn.close()
 
@@ -177,6 +177,6 @@ async def install_skill(req: InstallRequest) -> dict[str, Any]:
         raise
     except Exception as exc:
         logger.error(f"Skill install failed: {exc}")
-        raise HTTPException(status_code=500, detail=str(exc))
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
     finally:
         conn.close()

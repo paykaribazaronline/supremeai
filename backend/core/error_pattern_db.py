@@ -54,7 +54,9 @@ class ErrorPatternDB:
         conn = sqlite3.connect(self.db_path, check_same_thread=False)
         cursor = conn.cursor()
         cursor.execute(
-            "INSERT INTO ai_mistakes (model_name, mistake_type, task_description, original_output, correct_output, root_cause, prevention_strategy, timestamp) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+            "INSERT INTO ai_mistakes (model_name, mistake_type, task_description, "
+            "original_output, correct_output, root_cause, prevention_strategy, "
+            "timestamp) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
             (
                 mistake.get("model", "unknown"),
                 mistake.get("type", "unknown"),
@@ -73,7 +75,8 @@ class ErrorPatternDB:
         conn = sqlite3.connect(self.db_path, check_same_thread=False)
         cursor = conn.cursor()
         cursor.execute(
-            "SELECT prevention_strategy FROM ai_mistakes WHERE model_name = ? AND task_description LIKE ? GROUP BY prevention_strategy ORDER BY COUNT(*) DESC LIMIT 1",
+            "SELECT prevention_strategy FROM ai_mistakes WHERE model_name = ? AND "
+            "task_description LIKE ? GROUP BY prevention_strategy ORDER BY COUNT(*) DESC LIMIT 1",
             (model, f"%{task_type}%"),
         )
         result = cursor.fetchone()

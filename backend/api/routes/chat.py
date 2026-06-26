@@ -69,7 +69,7 @@ async def get_completion(
         }
     except Exception as e:
         logger.error(f"Async LLM Error: {str(e)}")
-        raise HTTPException(status_code=500, detail="AI Gateway Timeout.")
+        raise HTTPException(status_code=500, detail="AI Gateway Timeout.") from e
 
 
 # ⚡ ২. Fully Async Streaming Generator

@@ -137,10 +137,16 @@ async def compare_ranges(payload: CompareRequest):
         )
         return {
             "status": "success",
-            "compare_report": f"# 📊 Time Range Comparison\n\n## 🕐 Range A ({payload.range_a_since or 'start'} to {payload.range_a_until or 'end'})\n{markdown_a}\n\n## 🕑 Range B ({payload.range_b_since or 'start'} to {payload.range_b_until or 'end'})\n{markdown_b}",
+            "compare_report": (
+                f"# 📊 Time Range Comparison\n\n## 🕐 Range A "
+                f"({payload.range_a_since or 'start'} to {payload.range_a_until or 'end'})\n"
+                f"{markdown_a}\n\n## 🕑 Range B "
+                f"({payload.range_b_since or 'start'} to {payload.range_b_until or 'end'})\n"
+                f"{markdown_b}"
+            ),
         }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @router.post("/share")

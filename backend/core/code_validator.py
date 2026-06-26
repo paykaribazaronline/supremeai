@@ -100,13 +100,11 @@ class AICodeValidator:
         try:
             tree = ast.parse(code)
             for node in ast.walk(tree):
-                if isinstance(node, (ast.While, ast.For)):
+                if isinstance(node, (ast.While, ast.For)) and (
                     # Check if there is a break or return or if condition is not always True
-                    if (
-                        isinstance(node, ast.While)
-                        and isinstance(node.test, ast.Constant)
-                        and node.test.value is True
-                    ):
+                    isinstance(node.test, ast.Constant)
+                    and node.test.value is True
+                ):
                         has_break = False
                         for subnode in ast.walk(node):
                             if isinstance(subnode, (ast.Break, ast.Return)):

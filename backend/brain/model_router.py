@@ -260,7 +260,7 @@ class ModelRouter:
 
         tier_models.sort(key=lambda x: x[1].get("rank", 999))
 
-        for model_id, metadata in tier_models:
+        for _model_id, metadata in tier_models:
             provider = metadata.get("provider")
             if self._has_key_for_provider(provider):
                 if provider in ("openai", "anthropic") and self.openrouter_api_key:

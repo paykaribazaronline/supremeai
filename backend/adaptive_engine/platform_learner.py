@@ -42,7 +42,9 @@ class PlatformLearner:
 
         # 2. Extract API spec and platform capabilities using LLM
         prompt = f"""You are a Platform Learning Engine for an Adaptive AI System.
-Given the platform name "{platform_name}", the documentation URL "{docs_url}", and a sample of the fetched documentation text below, parse the capabilities, authentication methods, deployment methods, and generate a Python SDK client stub.
+Given the platform name "{platform_name}", the documentation URL "{docs_url}", and \
+a sample of the fetched documentation text below, parse the capabilities, \
+authentication methods, deployment methods, and generate a Python SDK client stub.
 
 Documentation Snippet:
 {html_content}

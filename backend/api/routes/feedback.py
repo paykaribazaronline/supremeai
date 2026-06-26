@@ -83,4 +83,4 @@ async def ingest(event: FeedbackEvent) -> FeedbackResponse:
         raise
     except Exception as exc:
         logger.error(f"feedback ingest failed: {exc}")
-        raise HTTPException(status_code=500, detail=str(exc))
+        raise HTTPException(status_code=500, detail=str(exc)) from exc

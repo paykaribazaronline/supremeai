@@ -49,7 +49,7 @@ async def get_preferences(user_id: str = Query(default="default")):
             "custom_shortcuts": {},
         }
     except Exception as exc:
-        raise HTTPException(status_code=500, detail=str(exc))
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
 
 
 @router.post("/")
@@ -66,4 +66,4 @@ async def upsert_preferences(
         res = db.client.table("user_preferences").upsert(data).execute()
         return {"status": "success", "preferences": res.data[0] if res.data else data}
     except Exception as exc:
-        raise HTTPException(status_code=500, detail=str(exc))
+        raise HTTPException(status_code=500, detail=str(exc)) from exc

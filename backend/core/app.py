@@ -565,7 +565,7 @@ def admin_firebase_login(payload: dict = Body(...)):
             logger.info(f"Extracted admin email from token: {email}")
     except Exception as e:
         logger.exception("Token decoding failed")
-        raise HTTPException(status_code=401, detail=f"Token decoding failed: {str(e)}")
+        raise HTTPException(status_code=401, detail=f"Token decoding failed: {str(e)}") from e
 
     db = get_firestore_client()
     role = "user"
@@ -633,7 +633,7 @@ def admin_firebase_totp_setup(payload: dict = Body(...)):
             uid = decoded_token.get("sub", "mock-admin-uid")
             email = decoded_token.get("email", "")
     except Exception as e:
-        raise HTTPException(status_code=401, detail=f"Token decoding failed: {str(e)}")
+        raise HTTPException(status_code=401, detail=f"Token decoding failed: {str(e)}") from e
     # Generate unique 16-char base32 secret key using base64/base32 encoding
     secret = base64.b32encode(os.urandom(10)).decode("utf-8")
 
@@ -671,7 +671,7 @@ def admin_firebase_totp_verify(payload: dict = Body(...)):
             decoded_token = json.loads(base64.b64decode(padded))
             uid = decoded_token.get("sub", "mock-admin-uid")
     except Exception as e:
-        raise HTTPException(status_code=401, detail=f"Token decoding failed: {str(e)}")
+        raise HTTPException(status_code=401, detail=f"Token decoding failed: {str(e)}") from e
 
     db = get_firestore_client()
     totp_secret = None

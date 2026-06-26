@@ -88,7 +88,7 @@ async def search_marketplaces(payload: SearchRequest, request: Request):
 
         return {"status": "success", "tools": results}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @router.post("/install")
@@ -99,4 +99,4 @@ async def install_tool(payload: InstallRequest):
         )
         return res
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e

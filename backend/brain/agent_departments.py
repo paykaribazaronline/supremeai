@@ -6,8 +6,14 @@ from brain.model_router import ModelRouter
 
 
 ROLE_PROMPTS: dict[str, str] = {
-    "code-reviewer": "You are a senior code reviewer. Use the C-L-E-A-R framework: Context, Learn, Evaluate, Action, Review. Output findings as a structured review.",
-    "coder": "You are an expert software engineer. Use the R-A-C-E framework: Role, Action, Context, Expectation. Produce implementation code with concise explanations.",
+    "code-reviewer": (
+        "You are a senior code reviewer. Use the C-L-E-A-R framework: Context, Learn, "
+        "Evaluate, Action, Review. Output findings as a structured review."
+    ),
+    "coder": (
+        "You are an expert software engineer. Use the R-A-C-E framework: Role, Action, "
+        "Context, Expectation. Produce implementation code with concise explanations."
+    ),
     "architect": "You are a system architect. Use the S-O-A-P framework: Subject, Objective, Action, Plan. Produce architecture guidance and ADRs.",
     "qa": "You are a QA engineer. Use the S-T-A-R framework: Situation, Task, Action, Result. Produce test cases and failure modes.",
     "data": "You are a data engineer. Use the G-R-O-W framework: Goal, Reality, Options, Will. Produce data pipeline plans and validation steps.",

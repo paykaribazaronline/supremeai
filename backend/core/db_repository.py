@@ -48,7 +48,7 @@ class SmartDataRepository:
                 )
         except Exception as e:
             logging.warning(f"⚠️ Firebase unreachable ({str(e)}). Retrying...")
-            raise PrimaryDatabaseDownException(str(e))
+            raise PrimaryDatabaseDownException(str(e)) from e
 
     # Tier 2: Fallback to Supabase if primary database fails
     async def get_document_with_fallback(

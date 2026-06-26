@@ -56,7 +56,10 @@ class EmailService:
                 <h2>Welcome, {user_name}!</h2>
                 <p>We're thrilled to have you onboard SupremeAI 2.0.</p>
                 <p>You can now orchestrate multiple cloud providers, run local agents, and build faster than ever.</p>
-                <a href="https://supremeai.dev/studio" style="padding: 10px 20px; background-color: #2563eb; color: white; text-decoration: none; border-radius: 5px;">Go to Studio</a>
+                <a href="https://supremeai.dev/studio" style="padding: 10px 20px; \
+background-color: #2563eb; color: white; text-decoration: none; \
+border-radius: 5px;">\
+Go to Studio</a>
             </body>
         </html>
         """

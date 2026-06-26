@@ -164,7 +164,7 @@ async def logs_stream():
         file_obj = None
         try:
             if os.path.exists(log_file):
-                file_obj = open(log_file)
+                file_obj = open(log_file)  # noqa: SIM115
                 file_obj.seek(0, os.SEEK_END)
 
             while True:
@@ -176,7 +176,7 @@ async def logs_stream():
                         await asyncio.sleep(0.5)
                 else:
                     if os.path.exists(log_file):
-                        file_obj = open(log_file)
+                        file_obj = open(log_file)  # noqa: SIM115
                         file_obj.seek(0, os.SEEK_END)
                     await asyncio.sleep(1.0)
         except asyncio.CancelledError:
@@ -465,7 +465,7 @@ def get_codebase_export():
         return {"success": True, "markdown": codebase_md}
     except Exception as e:
         logger.error(f"Failed to export codebase: {e}")
-        raise HTTPException(status_code=500, detail=f"Export failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Export failed: {str(e)}") from e
 
 
 COST_CAPS_FILE = "data/cost_caps.json"
@@ -551,6 +551,7 @@ def trigger_backup():
 
 @router.get("/data-export")
 def get_full_data_export():
+    from tools.codebase_exporter import export_codebase_to_markdown
     try:
         codebase_md = export_codebase_to_markdown("..")
         users = load_users()
@@ -563,7 +564,7 @@ def get_full_data_export():
         }
     except Exception as e:
         logger.error(f"Full data export failed: {e}")
-        raise HTTPException(status_code=500, detail=f"Export failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Export failed: {str(e)}") from e
 
 
 @router.get("/security-scan")

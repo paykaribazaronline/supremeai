@@ -73,7 +73,7 @@ async def connect_repo(payload: ConnectRequest, db=Depends(get_tenant_db)):
             "message": f"Connected to {payload.repo_owner}/{payload.repo_name}",
         }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @router.post("/improve")
@@ -85,7 +85,7 @@ async def improve_repo(payload: ImproveRequest, db=Depends(get_tenant_db)):
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @router.post("/push")
@@ -98,7 +98,7 @@ async def push_improvements(payload: PushRequest, db=Depends(get_tenant_db)):
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @router.post("/discover")
@@ -109,7 +109,7 @@ async def discover_repos(payload: DiscoverRequest):
         )
         return {"status": "success", "repos": repos}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @router.post("/implement")
@@ -120,4 +120,4 @@ async def implement_repo(payload: ImplementRequest):
         )
         return res
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e

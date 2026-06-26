@@ -276,7 +276,7 @@ async def execute_task(req: TaskRequest, background_tasks: BackgroundTasks):
     try:
         admin_god.enforce("execute")
     except PermissionError as exc:
-        raise HTTPException(status_code=403, detail=str(exc))
+        raise HTTPException(status_code=403, detail=str(exc)) from exc
 
     # Offload heavy CPU-bound Intent classification to background thread pool
     app_spec = await anyio.to_thread.run_sync(

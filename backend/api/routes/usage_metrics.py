@@ -36,7 +36,7 @@ async def get_usage_metrics(
         res = query.order("date", desc=True).limit(limit).execute()
         return {"items": res.data or [], "total": len(res.data or [])}
     except Exception as exc:
-        raise HTTPException(status_code=500, detail=str(exc))
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
 
 
 @router.post("/")
@@ -48,4 +48,4 @@ async def upsert_usage_metric(payload: UsageMetricUpsert):
         res = db.client.table("usage_metrics").upsert(data).execute()
         return {"status": "success", "metric": res.data[0] if res.data else data}
     except Exception as exc:
-        raise HTTPException(status_code=500, detail=str(exc))
+        raise HTTPException(status_code=500, detail=str(exc)) from exc

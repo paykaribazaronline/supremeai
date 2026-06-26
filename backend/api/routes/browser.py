@@ -114,9 +114,9 @@ def save_credential(cred: CredentialRequest):
 
 
 @router.delete("/credentials/{id}")
-def delete_credential(id: str):
+def delete_credential(credential_id: str):
     global CREDENTIALS
-    CREDENTIALS = [c for c in CREDENTIALS if c.get("id") != id]
+    CREDENTIALS = [c for c in CREDENTIALS if c.get("id") != credential_id]
     return {"success": True}
 
 
@@ -195,9 +195,9 @@ def allow_all_urls(userId: str = "default"):
 
 
 @router.delete("/urls/{id}")
-def delete_url(id: str):
+def delete_url(url_id: str):
     global URL_PERMISSIONS
-    URL_PERMISSIONS = [u for u in URL_PERMISSIONS if u.get("id") != id]
+    URL_PERMISSIONS = [u for u in URL_PERMISSIONS if u.get("id") != url_id]
     return {"success": True}
 
 
@@ -207,9 +207,9 @@ def get_requests():
 
 
 @router.post("/urls/requests/{id}/decision")
-def decision(id: str, req: DecisionRequest):
+def decision(request_id: str, req: DecisionRequest):
     for r in PERMISSION_REQUESTS:
-        if r["id"] == id:
+        if r["id"] == request_id:
             r["status"] = "APPROVED" if req.approved else "DENIED"
             return {"success": True}
     raise HTTPException(status_code=404, detail="Request not found")
@@ -245,16 +245,16 @@ def create_task(req: GoalRequest):
 
 
 @router.delete("/tasks/{id}")
-def delete_task(id: str):
-    if id in TASKS:
-        del TASKS[id]
+def delete_task(task_id: str):
+    if task_id in TASKS:
+        del TASKS[task_id]
         return {"success": True}
     raise HTTPException(status_code=404, detail="Task not found")
 
 
 @router.get("/tasks/{id}/findings")
-def get_findings(id: str):
-    task_findings = [f for f in FINDINGS if f.get("taskId") == id]
+def get_findings(task_id: str):
+    task_findings = [f for f in FINDINGS if f.get("taskId") == task_id]
     return {"findings": task_findings}
 
 
@@ -351,8 +351,8 @@ def simulate_activity(body: dict[str, str]):
 
 
 @router.post("/tasks/{id}/step")
-def execute_step(id: str):
-    if id not in TASKS:
+def execute_step(task_id: str):
+    if task_id not in TASKS:
         raise HTTPException(status_code=404, detail="Task not found")
     # Simulate a step execution
     return {

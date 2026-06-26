@@ -52,11 +52,11 @@ def verify_token(token: str) -> dict:
     except jwt.ExpiredSignatureError:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Token has expired"
-        )
+        ) from None
     except jwt.PyJWTError:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials"
-        )
+        ) from None
 
 
 # ── API Key Crypto ────────────────────────────────────────────────────────
