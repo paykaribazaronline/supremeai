@@ -54,19 +54,19 @@ asyncpg_stub.Pool = FakePool
 sys.modules["asyncpg"] = asyncpg_stub
 
 # Ensure `core.app` is reloaded fresh in test runs (avoid cached app state)
-for _mod in [m for m in list(sys.modules) if m == "core.app" or m.startswith("core.app.")]:
+for _mod in [
+    m for m in list(sys.modules) if m == "core.app" or m.startswith("core.app.")
+]:
     del sys.modules[_mod]
 
 from api.routes.api_keys import router
 from core.api_key_rate_limiter import APIKeyRateLimiter
 from core.app import app
-from core.security import (
-    API_KEY_PREFIX,
-    generate_api_key,
-    hash_api_key,
-    mask_api_key,
-    verify_api_key,
-)
+from core.security import API_KEY_PREFIX
+from core.security import generate_api_key
+from core.security import hash_api_key
+from core.security import mask_api_key
+from core.security import verify_api_key
 
 
 @pytest.fixture
