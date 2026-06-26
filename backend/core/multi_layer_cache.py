@@ -3,10 +3,39 @@ import os
 from functools import lru_cache
 from typing import Any
 
-import redis.asyncio as redis
+
+try:
+    import redis.asyncio as redis
+except ImportError:  # pragma: no cover
+    redis = None
+
 from loguru import logger
 
 from .semantic_cache import SemanticCache
+
+
+class _InMemoryRedisStub:
+    def __init__(self):
+        self._store: dict[str, str] = {}
+
+    async def get(self, key: str) -> str | None:
+        return self._store.get(key)
+
+    async def setex(self, key: str, ttl: int, value: str):
+        self._store[key] = value
+
+
+class _RedisFallback:
+    @staticmethod
+    def from_url(url: str, decode_responses: bool = True):
+        logger.warning(
+            "redis.asyncio is not installed; using in-memory fallback cache for multi-layer cache."
+        )
+        return _InMemoryRedisStub()
+
+
+if redis is None:
+    redis = _RedisFallback()
 
 
 # Level 1: Exact Match Cache (Redis/Upstash)

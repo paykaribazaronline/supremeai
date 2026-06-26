@@ -8,7 +8,7 @@ except Exception:
     admin_dashboard_router = None
 
 try:
-    from .agent_tasks import agent_router as agent_router
+    from .agent_tasks import agent_router
 
     _safe_imports["agent_router"] = agent_router
 except Exception:

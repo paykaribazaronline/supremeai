@@ -30,7 +30,7 @@ class Settings(BaseSettings):
     host: str = "0.0.0.0"  # nosec B104
     supremeai_admin_password_hash: str | None = None
 
-    cors_origins: list[str] = [
+    cors_origins: str | list[str] = [
         "http://127.0.0.1:3000",
         "http://127.0.0.1:8000",
         "http://localhost:5173",

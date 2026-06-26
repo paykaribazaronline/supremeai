@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from types import SimpleNamespace
-from unittest.mock import patch
 
 import pytest
 from fastapi import HTTPException
@@ -102,12 +101,14 @@ async def test_stream_chat_yields_sse_chunks(monkeypatch):
 
     monkeypatch.setattr("api.routes.chat.genai", SimpleNamespace(GenerativeModel=FakeStreamModel))
     request_payload = ChatPayload(prompt="stream-prompt")
-    response = stream_chat(request_payload, db=SimpleNamespace(tenant_id="tenant-4"))
+    response = await stream_chat(request_payload, db=SimpleNamespace(tenant_id="tenant-4"))
 
     assert response.media_type == "text/event-stream"
 
     body = b""
     async for chunk in response.body_iterator:
+        if isinstance(chunk, str):
+            chunk = chunk.encode("utf-8")
         body += chunk
 
     assert b"chunk-one" in body

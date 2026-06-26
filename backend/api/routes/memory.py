@@ -1,5 +1,4 @@
 from typing import Any
-from typing import Optional
 
 from fastapi import APIRouter
 from fastapi import HTTPException
@@ -82,11 +81,11 @@ def save_checkpoint(payload: CheckpointSaveRequest):
     )
 
 
-@router.get("/checkpoint/{task_id}", response_model=Optional[CheckpointResponse])
+@router.get("/checkpoint/{task_id}", response_model=CheckpointResponse | None)
 def load_checkpoint(task_id: str):
     store = get_checkpoint()
     result = store.load(task_id)
-    if not result:
+    if result is None:
         return None
     return CheckpointResponse(**result)
 

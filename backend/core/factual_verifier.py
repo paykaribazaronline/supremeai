@@ -41,7 +41,7 @@ def _eval_node(node):
         operand = _eval_node(node.operand)
         return _ALLOWED_OPERATORS[op_type](operand)
     if isinstance(node, ast.Constant):
-        if isinstance(node.value, (int, float)):
+        if isinstance(node.value, int | float):
             return node.value
         raise ValueError("Only numeric constants are allowed")
     # ast.Num was removed in Python 3.14; ast.Constant covers all numeric nodes since Python 3.8

@@ -1,11 +1,10 @@
 from __future__ import annotations
 
-import asyncio
 from types import SimpleNamespace
 
 import pytest
 
-from core.db_repository import PrimaryDatabaseDownException, SmartDataRepository
+from core.db_repository import SmartDataRepository
 
 
 class FakeDoc:
