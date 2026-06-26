@@ -2,6 +2,7 @@
 API Key Management Database Access Layer
 Uses raw asyncpg via PgBouncerConnectionPool
 """
+
 from __future__ import annotations
 
 from datetime import datetime
@@ -33,8 +34,15 @@ async def create_api_key(
         RETURNING id, user_id, name, key_masked, key_prefix, rate_limit_rps,
                   revoked, expires_at, created_at, updated_at
         """,
-        user_id, name, key_hash, key_masked, key_prefix, rate_limit_rps, expires_at,
-        now_epoch(), now_epoch(),
+        user_id,
+        name,
+        key_hash,
+        key_masked,
+        key_prefix,
+        rate_limit_rps,
+        expires_at,
+        now_epoch(),
+        now_epoch(),
     )
     return dict(row) if row else None
 
@@ -74,7 +82,9 @@ async def update_api_key_last_used(key_id: int) -> None:
     pool = await get_db_pool()
     await pool.execute(
         "UPDATE api_keys SET last_used_at = $1, updated_at = $2 WHERE id = $3",
-        now_epoch(), now_epoch(), key_id,
+        now_epoch(),
+        now_epoch(),
+        key_id,
     )
 
 
@@ -83,7 +93,8 @@ async def revoke_api_key(key_id: int) -> dict[str, Any] | None:
     row = await pool.fetchrow(
         "UPDATE api_keys SET revoked = TRUE, updated_at = $1 WHERE id = $2 "
         "RETURNING id, name, key_masked, revoked, updated_at",
-        now_epoch(), key_id,
+        now_epoch(),
+        key_id,
     )
     return dict(row) if row else None
 
@@ -95,7 +106,10 @@ async def delete_api_key(key_id: int) -> bool:
 
 
 async def rotate_api_key(
-    key_id: int, new_key_hash: str, new_key_masked: str, new_key_prefix: str,
+    key_id: int,
+    new_key_hash: str,
+    new_key_masked: str,
+    new_key_prefix: str,
 ) -> dict[str, Any] | None:
     pool = await get_db_pool()
     row = await pool.fetchrow(
@@ -104,13 +118,20 @@ async def rotate_api_key(
         WHERE id = $5
         RETURNING id, name, key_masked, key_prefix, revoked, created_at, updated_at
         """,
-        new_key_hash, new_key_masked, new_key_prefix, now_epoch(), key_id,
+        new_key_hash,
+        new_key_masked,
+        new_key_prefix,
+        now_epoch(),
+        key_id,
     )
     return dict(row) if row else None
 
 
 async def record_api_key_usage(
-    key_id: int, endpoint: str, status_code: int, latency_ms: float,
+    key_id: int,
+    endpoint: str,
+    status_code: int,
+    latency_ms: float,
     ip_address: str | None = None,
 ) -> None:
     pool = await get_db_pool()
@@ -119,7 +140,12 @@ async def record_api_key_usage(
         INSERT INTO api_key_usage (api_key_id, endpoint, status_code, latency_ms, ip_address, created_at)
         VALUES ($1, $2, $3, $4, $5, $6)
         """,
-        key_id, endpoint, status_code, latency_ms, ip_address, now_epoch(),
+        key_id,
+        endpoint,
+        status_code,
+        latency_ms,
+        ip_address,
+        now_epoch(),
     )
 
 
@@ -128,7 +154,8 @@ async def get_api_key_usage(key_id: int, limit: int = 100) -> list[dict[str, Any
     rows = await pool.fetch(
         "SELECT id, api_key_id, endpoint, status_code, latency_ms, ip_address, created_at "
         "FROM api_key_usage WHERE api_key_id = $1 ORDER BY created_at DESC LIMIT $2",
-        key_id, limit,
+        key_id,
+        limit,
     )
     return [dict(r) for r in rows]
 
@@ -152,14 +179,20 @@ async def get_api_key_usage_stats(key_id: int) -> dict[str, Any]:
 
 
 async def record_api_key_event(
-    key_id: int, event_type: str, details: str | None = None,
+    key_id: int,
+    event_type: str,
+    details: str | None = None,
     ip_address: str | None = None,
 ) -> None:
     pool = await get_db_pool()
     await pool.execute(
         "INSERT INTO api_key_events (api_key_id, event_type, details, ip_address, "
         "created_at) VALUES ($1, $2, $3, $4, $5)",
-        key_id, event_type, details, ip_address, now_epoch(),
+        key_id,
+        event_type,
+        details,
+        ip_address,
+        now_epoch(),
     )
 
 
@@ -169,6 +202,7 @@ async def get_all_api_keys(limit: int = 100, offset: int = 0) -> list[dict[str, 
         "SELECT id, user_id, name, key_masked, key_prefix, rate_limit_rps, revoked, "
         "expires_at, last_used_at, created_at FROM api_keys ORDER BY created_at DESC "
         "LIMIT $1 OFFSET $2",
-        limit, offset,
+        limit,
+        offset,
     )
     return [dict(r) for r in rows]

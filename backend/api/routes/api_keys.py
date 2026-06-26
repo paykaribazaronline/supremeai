@@ -1,6 +1,7 @@
 """
 API Key Management Routes
 """
+
 from __future__ import annotations
 
 import time
@@ -43,7 +44,9 @@ class CreateAPIKeyRequest(BaseModel):
     user_id: str = Field(..., min_length=1, description="Owner user ID (email or uid)")
     name: str = Field(..., min_length=1, max_length=255)
     rate_limit_rps: int = Field(default=6, ge=1, le=1000)
-    expires_in_days: int | None = Field(default=None, ge=1, description="Expires in N days, null = no expiry")
+    expires_in_days: int | None = Field(
+        default=None, ge=1, description="Expires in N days, null = no expiry"
+    )
 
     @field_validator("user_id", "name", mode="before")
     @classmethod
@@ -176,7 +179,9 @@ async def rotate_key(key_id: int, req: RotateAPIKeyRequest, request: Request):
 
     if not verify_api_key(req.old_key, rec["key_hash"]):
         await record_api_key_event(
-            key_id, "rotate_failed", "Old key mismatch",
+            key_id,
+            "rotate_failed",
+            "Old key mismatch",
             request.client.host if request.client else None,
         )
         raise HTTPException(status_code=400, detail="Old key verification failed")
@@ -191,7 +196,9 @@ async def rotate_key(key_id: int, req: RotateAPIKeyRequest, request: Request):
     if not updated:
         raise HTTPException(status_code=500, detail="Failed to rotate key")
 
-    await record_api_key_event(key_id, "rotated", f"Grace period: {req.grace_period_hours}h")
+    await record_api_key_event(
+        key_id, "rotated", f"Grace period: {req.grace_period_hours}h"
+    )
     logger.info(f"API key rotated: {key_id}")
     return {
         "status": "rotated",
@@ -227,7 +234,10 @@ async def record_usage_hook(key_id: int, request: Request, payload: dict):
     status_code = payload.get("status_code", 200)
     latency_ms = payload.get("latency_ms", 0.0)
     await record_api_key_usage(
-        key_id, endpoint, status_code, latency_ms,
+        key_id,
+        endpoint,
+        status_code,
+        latency_ms,
         request.client.host if request.client else None,
     )
     return {"recorded": True}
@@ -235,10 +245,18 @@ async def record_usage_hook(key_id: int, request: Request, payload: dict):
 
 @router.get("/{key_id}/admin/quota-alert")
 async def quota_alert(key_id: int):
-    _ = _get_current_user.__wrapped__ if hasattr(_get_current_user, "__wrapped__") else None
+    _ = (
+        _get_current_user.__wrapped__
+        if hasattr(_get_current_user, "__wrapped__")
+        else None
+    )
     alert = await get_api_key_usage_stats(key_id)
     rpm_used = alert.get("total_requests", 0)
-    return {"key_id": key_id, "rpm_used": rpm_used, "alert": rpm_used > ALERT_RPM_THRESHOLD}
+    return {
+        "key_id": key_id,
+        "rpm_used": rpm_used,
+        "alert": rpm_used > ALERT_RPM_THRESHOLD,
+    }
 
 
 @router.post("/admin/bulk-delete")

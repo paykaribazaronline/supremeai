@@ -1,4 +1,7 @@
+import hashlib
+import hmac
 import os
+import secrets
 from datetime import datetime
 from datetime import timedelta
 from datetime import timezone
@@ -9,9 +12,7 @@ from fastapi import status
 from loguru import logger
 
 from core.config import settings
-import secrets
-import hashlib
-import hmac
+
 
 # JWT
 SECRET_KEY = settings.jwt_secret
@@ -29,6 +30,7 @@ if not SECRET_KEY:
 # API Key settings
 API_KEY_PREFIX = "sk-supreme"
 API_KEY_RANDOM_BYTES = 32
+
 
 def create_access_token(data: dict) -> str:
     """ক্রিপটগ্রাফিক সাইনড JWT জেনারেট করবে"""
@@ -52,9 +54,13 @@ def verify_token(token: str) -> dict:
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Token has expired"
         )
     except jwt.PyJWTError:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials"
+        )
+
 
 # ── API Key Crypto ────────────────────────────────────────────────────────
+
 
 def _get_api_key_signing_secret() -> str:
     secret = os.getenv("API_KEY_SIGNING_SECRET") or settings.jwt_secret
@@ -62,20 +68,24 @@ def _get_api_key_signing_secret() -> str:
         raise RuntimeError("API_KEY_SIGNING_SECRET or JWT_SECRET must be set")
     return secret
 
+
 def generate_api_key(prefix: str = API_KEY_PREFIX) -> str:
     random_part = secrets.token_urlsafe(API_KEY_RANDOM_BYTES)
     key = f"{prefix}-{random_part}"
     parts = key.split("-", 2)
     return f"{parts[0]}-{parts[1]}-{parts[2][:4]}-{parts[2][4:8]}-{parts[2][8:]}"
 
+
 def hash_api_key(key: str) -> str:
     secret = _get_api_key_signing_secret()
     digest = hmac.new(secret.encode(), key.encode(), hashlib.sha256).hexdigest()
     return f"sha256${digest}"
 
+
 def verify_api_key(plain_key: str, stored_hash: str) -> bool:
     expected = hash_api_key(plain_key)
     return hmac.compare_digest(expected, stored_hash)
+
 
 def mask_api_key(key: str) -> str:
     parts = key.split("-")

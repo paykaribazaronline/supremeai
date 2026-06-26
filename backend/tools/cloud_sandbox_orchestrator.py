@@ -53,7 +53,9 @@ class CloudSandboxOrchestrator:
 
     async def create_session(self, image: str = "ubuntu:22.04") -> str:
         session_id = f"sandbox-{uuid.uuid4().hex[:8]}"
-        logger.info(f"Creating {self.provider} session: {session_id} with image {image}")
+        logger.info(
+            f"Creating {self.provider} session: {session_id} with image {image}"
+        )
 
         if self.provider in ["docker", "auto", "local"]:
             client = await self._get_docker_client()

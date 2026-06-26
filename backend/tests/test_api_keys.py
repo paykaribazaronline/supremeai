@@ -3,45 +3,72 @@ API Key Management Tests
 
 Mocks asyncpg so tests run without a live database.
 """
-from fastapi.testclient import TestClient
+
 import os
 import sys
 import types
+from unittest.mock import patch
+
 import pytest
-from unittest.mock import MagicMock, patch
-import time
+from fastapi.testclient import TestClient
+
 
 os.environ.setdefault("OPENROUTER_API_KEY", "mock-key-value")
 os.environ.setdefault("ENV", "test")
 
 asyncpg_stub = types.ModuleType("asyncpg")
+
+
 class FakeConn:
-    async def execute(self, *a, **k): return "OK"
-    async def fetch(self, *a, **k): return []
-    async def fetchrow(self, *a, **k): return None
+    async def execute(self, *a, **k):
+        return "OK"
+
+    async def fetch(self, *a, **k):
+        return []
+
+    async def fetchrow(self, *a, **k):
+        return None
+
+
 class FakePool:
     async def acquire(self):
         return FakeConn()
-    async def release(self, conn): pass
-    async def close(self): pass
-    async def execute(self, *a, **k): return "OK"
-    async def fetch(self, *a, **k): return []
-    async def fetchrow(self, *a, **k): return None
+
+    async def release(self, conn):
+        pass
+
+    async def close(self):
+        pass
+
+    async def execute(self, *a, **k):
+        return "OK"
+
+    async def fetch(self, *a, **k):
+        return []
+
+    async def fetchrow(self, *a, **k):
+        return None
+
+
 asyncpg_stub.Pool = FakePool
 sys.modules["asyncpg"] = asyncpg_stub
 
-from core.app import app
-from core.security import generate_api_key, hash_api_key, verify_api_key, mask_api_key, API_KEY_PREFIX
-from core.api_key_rate_limiter import APIKeyRateLimiter
 from api.routes.api_keys import router
+from core.api_key_rate_limiter import APIKeyRateLimiter
+from core.app import app
+from core.security import API_KEY_PREFIX
+from core.security import generate_api_key
+from core.security import hash_api_key
+from core.security import mask_api_key
+from core.security import verify_api_key
 
 
 @pytest.fixture
 def client():
     fake_pool = FakePool()
-    with patch("core.app._ensure_api_key_tables"), \
-         patch("core.pgbouncer_pool.get_db_pool", return_value=fake_pool), \
-         patch("models.api_key.get_db_pool", return_value=fake_pool):
+    with patch("core.app._ensure_api_key_tables"), patch(
+        "core.pgbouncer_pool.get_db_pool", return_value=fake_pool
+    ), patch("models.api_key.get_db_pool", return_value=fake_pool):
         yield TestClient(app)
 
 
@@ -111,16 +138,19 @@ class TestRouterStructure:
 
     def test_create_schema_requires_user_id(self):
         from api.routes.api_keys import CreateAPIKeyRequest
+
         with pytest.raises(Exception):
             CreateAPIKeyRequest(user_id="", name="Test")
 
     def test_rotate_schema_requires_old_key(self):
         from api.routes.api_keys import RotateAPIKeyRequest
+
         with pytest.raises(Exception):
             RotateAPIKeyRequest(old_key="")
 
     def test_bulk_delete_schema_limits_count(self):
         from api.routes.api_keys import BulkDeleteRequest
+
         with pytest.raises(Exception):
             BulkDeleteRequest(key_ids=list(range(51)))
 
@@ -131,8 +161,5 @@ class TestIntegrationViaHeaders:
         assert resp.status_code == 200
 
     def test_api_key_header_accepted_in_test_mode(self, client):
-        resp = client.get(
-            "/api/api-keys/",
-            headers={"x-api-key": "sk-supreme-test123"}
-        )
+        resp = client.get("/api/api-keys/", headers={"x-api-key": "sk-supreme-test123"})
         assert resp.status_code == 200

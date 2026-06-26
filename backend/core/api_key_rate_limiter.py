@@ -28,4 +28,3 @@ class APIKeyRateLimiter:
         now = time.time()
         self._cleanup(key_prefix, now)
         return max(0, self.burst - len(self._hits.get(key_prefix, [])))
-

@@ -1,11 +1,11 @@
-import pytest
 import os
-from unittest.mock import patch, AsyncMock
+from unittest.mock import AsyncMock
+from unittest.mock import patch
 
+import pytest
 import respx
-from httpx import Response
-
 from backend.tools.cloud_sandbox_orchestrator import CloudSandboxOrchestrator
+from httpx import Response
 
 
 @pytest.fixture
@@ -16,7 +16,9 @@ def mock_env_runpod():
 
 @pytest.fixture
 def mock_env_docker():
-    with patch.dict(os.environ, {"DOCKER_HOST": "unix:///var/run/docker.sock"}, clear=True):
+    with patch.dict(
+        os.environ, {"DOCKER_HOST": "unix:///var/run/docker.sock"}, clear=True
+    ):
         yield
 
 
@@ -24,7 +26,7 @@ def mock_env_docker():
 async def test_create_session_docker_success(mock_env_docker):
     orchestrator = CloudSandboxOrchestrator(provider="docker")
 
-    with patch('docker.from_env') as mock_from_env:
+    with patch("docker.from_env") as mock_from_env:
         mock_container = AsyncMock()
         mock_container.id = "test_container_id"
         mock_docker_client = AsyncMock()
@@ -38,7 +40,10 @@ async def test_create_session_docker_success(mock_env_docker):
         assert session_id is not None
         assert session_id.startswith("sandbox-")
         assert orchestrator.active_sessions[session_id]["provider"] == "docker"
-        assert orchestrator.active_sessions[session_id]["container_id"] == "test_container_id"
+        assert (
+            orchestrator.active_sessions[session_id]["container_id"]
+            == "test_container_id"
+        )
 
 
 @pytest.mark.asyncio
@@ -66,13 +71,15 @@ async def test_create_session_auto_fallback_to_runpod(mock_env_runpod):
     """
     # Mock the RunPod API endpoint for success
     respx.post("https://api.runpod.io/v1/user/pod").mock(
-        return_value=Response(200, json={"id": "test_pod_id_fallback", "status": "creating"})
+        return_value=Response(
+            200, json={"id": "test_pod_id_fallback", "status": "creating"}
+        )
     )
 
     orchestrator = CloudSandboxOrchestrator(provider="auto")
 
     # Mock Docker to fail
-    with patch('docker.from_env', side_effect=Exception("Docker daemon not running")):
+    with patch("docker.from_env", side_effect=Exception("Docker daemon not running")):
         session_id = await orchestrator.create_session()
 
     assert session_id is not None
@@ -89,7 +96,7 @@ async def test_create_session_all_fail_fallback_to_mock():
     orchestrator = CloudSandboxOrchestrator(provider="auto")
 
     # Mock Docker to fail
-    with patch('docker.from_env', side_effect=Exception("Docker daemon not running")):
+    with patch("docker.from_env", side_effect=Exception("Docker daemon not running")):
         session_id = await orchestrator.create_session()
 
     assert session_id is not None
@@ -101,16 +108,16 @@ async def test_create_session_all_fail_fallback_to_mock():
 @pytest.mark.asyncio
 async def test_run_command_docker(mock_env_docker):
     orchestrator = CloudSandboxOrchestrator(provider="docker")
-    
-    with patch('docker.from_env') as mock_from_env:
+
+    with patch("docker.from_env") as mock_from_env:
         # Setup mock container and exec_run result
         mock_exec_result = AsyncMock()
         mock_exec_result.exit_code = 0
         mock_exec_result.output = b"hello world"
-        
+
         mock_container = AsyncMock()
         mock_container.exec_run.return_value = mock_exec_result
-        
+
         mock_docker_client = AsyncMock()
         mock_docker_client.containers.get.return_value = mock_container
         mock_from_env.return_value = mock_docker_client
@@ -118,7 +125,10 @@ async def test_run_command_docker(mock_env_docker):
 
         # Create a fake active session
         session_id = "sandbox-test"
-        orchestrator.active_sessions[session_id] = {"provider": "docker", "container_id": "fake_id"}
+        orchestrator.active_sessions[session_id] = {
+            "provider": "docker",
+            "container_id": "fake_id",
+        }
 
         result = await orchestrator.run_command(session_id, "echo 'hello world'")
 

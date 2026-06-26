@@ -29,7 +29,10 @@ class APIKeyAuthMiddleware(BaseHTTPMiddleware):
 
         is_test = "pytest" in sys.modules or os.getenv("ENV") == "test"
         if is_test:
-            request.state.api_key = {"id": "test", "masked": mask_api_key(api_key_header)}
+            request.state.api_key = {
+                "id": "test",
+                "masked": mask_api_key(api_key_header),
+            }
             return await call_next(request)
 
         pool = await get_db_pool()
@@ -51,7 +54,10 @@ class APIKeyAuthMiddleware(BaseHTTPMiddleware):
         if not self.limiter.is_allowed(key_prefix, rps=rps):
             raise HTTPException(status_code=429, detail="API key rate limit exceeded")
 
-        request.state.api_key = {"id": row["id"], "masked": mask_api_key(api_key_header)}
+        request.state.api_key = {
+            "id": row["id"],
+            "masked": mask_api_key(api_key_header),
+        }
         with contextlib.suppress(Exception):
             await record_api_key_usage(
                 key_id=row["id"],

@@ -43,6 +43,7 @@ from admin.god import AdminGodLayer
 from api.routes import admin_dashboard_router
 from api.routes import agent_router
 from api.routes import agents_router
+from api.routes import api_keys_router
 from api.routes import async_task_router
 from api.routes import auth_router
 from api.routes import browser_router
@@ -61,7 +62,6 @@ from api.routes import memory_router
 from api.routes import metrics_router
 from api.routes import onboarding_router
 from api.routes import payments_router
-from api.routes import api_keys_router
 from api.routes import preferences_router
 from api.routes import repos_router
 from api.routes import simulator_router
@@ -72,6 +72,7 @@ from api.routes import tools_ops_router
 from api.routes import tools_registry_router
 from api.routes import usage_metrics_router
 from brain.model_router import ModelRouter
+from core.api_key_middleware import APIKeyAuthMiddleware
 from core.honeypot_middleware import HoneypotMiddleware
 from core.intent import IntentClassifier
 from core.observability_middleware import ObservabilityMiddleware
@@ -84,7 +85,6 @@ from core.telemetry import setup_tracing
 from core.upstash_redis_queue import UpstashRedisQueue
 from middleware.auth_middleware import ZeroTrustAuthMiddleware
 from middleware.idempotency import IdempotencyMiddleware
-from core.api_key_middleware import APIKeyAuthMiddleware
 
 
 setup_tracing()
@@ -230,8 +230,10 @@ except ImportError:
 
 global_http_client: httpx.AsyncClient = None
 
+
 async def _ensure_api_key_tables() -> None:
     from core.pgbouncer_pool import get_db_pool
+
     pool = await get_db_pool()
     await pool.execute(
         """
@@ -283,6 +285,7 @@ async def _ensure_api_key_tables() -> None:
         "CREATE INDEX IF NOT EXISTS idx_api_key_usage_key ON api_key_usage(api_key_id, created_at DESC)"
     )
     logger.info("✅ API key tables ensured")
+
 
 @asynccontextmanager
 async def app_lifespan(app: FastAPI):
