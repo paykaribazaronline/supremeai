@@ -7,7 +7,6 @@ from typing import Any
 import httpx
 from loguru import logger
 
-from .model_registry import ModelRegistry
 from core.agent_orchestrator import route_request
 from core.audit_logger import AuditLogger
 from core.circuit_breaker import CircuitBreaker
@@ -22,18 +21,20 @@ from core.token_budget import get_budget_manager
 from memory.long_term_memory import LongTermMemory
 from tools.cot_reasoner import ChainOfThoughtReasoner
 
+from .model_registry import ModelRegistry
+
 
 MAX_AGENT_TOKENS = 5000
 MAX_AGENT_ITERATIONS = 5
 
 
 def _get_redis_queue():
-        try:
-            from core import app as app_mod
+    try:
+        from core import app as app_mod
 
-            return getattr(app_mod, "redis_queue", None)
-        except Exception:
-            return None
+        return getattr(app_mod, "redis_queue", None)
+    except Exception:
+        return None
 
 
 def run_async_as_sync(coro):

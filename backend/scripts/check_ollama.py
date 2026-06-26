@@ -2,11 +2,12 @@
 """
 Ollama Auto-Fix / Health-Check Script
 """
-import httpx
-import sys
-import time
-import json
 import io
+import json
+import sys
+
+import httpx
+
 
 if sys.platform == "win32":
     sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
@@ -48,7 +49,9 @@ def check_server() -> bool:
             return False
     except httpx.ConnectError:
         bprint(f"❌ সার্ভারে কানেক্ট করা যাচ্ছে না! — {OLLAMA_URL}", RED)
-        bprint("   🔧 সমাধান: `ollama serve` চালু করুন বা Windows-তে Ollama এপ খুলুন", YELLOW)
+        bprint(
+            "   🔧 সমাধান: `ollama serve` চালু করুন বা Windows-তে Ollama এপ খুলুন", YELLOW
+        )
         return False
     except Exception as e:
         bprint(f"❌ এরর: {e}", RED)
@@ -76,7 +79,7 @@ def ensure_model(model_name: str) -> bool:
         return True
 
     bprint(f"  ⚠️  মডেল '{model_name}' পাওয়া যাচ্ছে না, pull শুরু হচ্ছে...", YELLOW)
-    bprint(f"     (এটাতে কিছু সময় লাগতে পারে, কিন্ডি অপেক্ষা করুন)", YELLOW)
+    bprint("     (এটাতে কিছু সময় লাগতে পারে, কিন্ডি অপেক্ষা করুন)", YELLOW)
 
     try:
         with httpx.Client(timeout=PULL_TIMEOUT) as client:
@@ -139,7 +142,7 @@ def test_generation(model_name: str) -> bool:
         data = resp.json()
         text = data.get("response", "").strip()
         if text:
-            bprint(f"  ✅ জেনারেশন করছে! উত্তর: \"{text[:120]}\"", GREEN)
+            bprint(f'  ✅ জেনারেশন করছে! উত্তর: "{text[:120]}"', GREEN)
             return True
         else:
             bprint("  ⚠️  রেসপন্স খালি পেলাম", YELLOW)
@@ -178,7 +181,9 @@ def main() -> int:
 
     # Step 4: Generation Test (সব মডেলের mixin এ কম/common model দ=strategy)
     bprint("\n🧪 [ধাপ 4] টেক্সট জেনারেশন চেক...", CYAN)
-    test_model = "qwen2.5:0.5b" if "qwen2.5:0.5b" in list_models() else MODELS_TO_CHECK[0]
+    test_model = (
+        "qwen2.5:0.5b" if "qwen2.5:0.5b" in list_models() else MODELS_TO_CHECK[0]
+    )
     if test_generation(test_model):
         bprint("\n🎉 সবকিছু ঠিক আছে! Ollama এই জবটি করতে পারবে।", GREEN)
         return 0

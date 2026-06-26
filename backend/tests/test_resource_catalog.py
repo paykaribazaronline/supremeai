@@ -1,5 +1,6 @@
 import httpx
 import pytest
+
 from backend.api.routes import marketplace_endpoints
 from backend.tools.resource_catalog import ResourceCatalog
 

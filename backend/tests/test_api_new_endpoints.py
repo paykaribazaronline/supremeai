@@ -7,7 +7,6 @@ from fastapi.testclient import TestClient
 os.environ["OPENROUTER_API_KEY"] = "mock-key-value"
 os.environ["SUPREMEAI_API_TOKEN"] = "test-token"
 from backend.api.routes import config as config_route
-
 from core.app import app
 
 

@@ -13,13 +13,14 @@ import subprocess
 import sys
 from typing import Any
 
-from backend.tools.style_learner import StyleLearner
 from fastapi import APIRouter
 from fastapi import File
 from fastapi import HTTPException
 from fastapi import UploadFile
 from loguru import logger
 from pydantic import BaseModel
+
+from backend.tools.style_learner import StyleLearner
 
 
 router = APIRouter(prefix="/test-gen", tags=["auto-test-generator"])

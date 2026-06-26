@@ -4,8 +4,9 @@ from unittest.mock import patch
 
 import pytest
 import respx
-from backend.tools.cloud_sandbox_orchestrator import CloudSandboxOrchestrator
 from httpx import Response
+
+from backend.tools.cloud_sandbox_orchestrator import CloudSandboxOrchestrator
 
 
 @pytest.fixture

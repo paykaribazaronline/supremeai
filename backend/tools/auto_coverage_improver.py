@@ -3,9 +3,10 @@ import asyncio
 import os
 from typing import Any
 
+from loguru import logger
+
 from backend.tools.auto_test_generator import AutoTestGenerator
 from backend.tools.coverage_auditor import CoverageAuditor
-from loguru import logger
 
 
 class AutoCoverageImprover:
