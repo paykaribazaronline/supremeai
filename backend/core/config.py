@@ -7,7 +7,7 @@ from pydantic import field_validator
 from pydantic_settings import BaseSettings
 from pydantic_settings import SettingsConfigDict
 
-from core.secret_vault import secret_vault
+from .secret_vault import secret_vault
 
 
 class Settings(BaseSettings):
@@ -33,6 +33,7 @@ class Settings(BaseSettings):
     cors_origins: list[str] = [
         "http://127.0.0.1:3000",
         "http://127.0.0.1:8000",
+        "http://localhost:5173",
         "https://supremeai-a.web.app",
         "https://supremeai-a.firebaseapp.com",
         "https://supremeai-admin.web.app",

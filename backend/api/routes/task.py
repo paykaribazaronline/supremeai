@@ -1,3 +1,4 @@
+import asyncio
 import datetime
 import json
 import re
@@ -366,4 +367,22 @@ async def execute_task(req: TaskRequest, background_tasks: BackgroundTasks):
         result=formatted_result,
         provider=raw.get("provider"),
         cost=raw.get("cost", 0.0),
+    )
+
+
+@router.get("/api/task/stream")
+async def task_stream():
+    async def keepalive():
+        while True:
+            yield f"data: {json.dumps({'status': 'alive', 'timestamp': datetime.datetime.utcnow().isoformat()})}\n\n"
+            await asyncio.sleep(15)
+
+    return StreamingResponse(
+        keepalive(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache, no-transform",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no",
+        },
     )

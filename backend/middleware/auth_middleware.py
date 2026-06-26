@@ -15,9 +15,11 @@ class ZeroTrustAuthMiddleware(BaseHTTPMiddleware):
             "/redoc",
             "/openapi.json",
             "/health",
+            "/api/health",
             "/api/auth/login",
             "/api/admin/login",
             "/api/admin/verify",
+            "/api/task/stream",
         ]
         if any(request.url.path.startswith(path) for path in public_paths):
             return await call_next(request)
