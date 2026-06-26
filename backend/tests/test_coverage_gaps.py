@@ -1,5 +1,5 @@
 import os
-from unittest.mock import MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
@@ -441,3 +441,249 @@ class TestTenantDB:
         db = TenantAwareFirestore("tenant-123")
         col = db.collection("items")
         assert col is not None
+
+
+class TestIdempotencyMiddleware:
+    def test_non_http_passthrough(self):
+        from core.idempotency_middleware import IdempotencyMiddleware
+
+        async_app = AsyncMock()
+        middleware = IdempotencyMiddleware(app=async_app)
+        scope = {"type": "websocket", "headers": []}
+        import asyncio
+
+        async def run():
+            return await middleware(scope, MagicMock(), MagicMock())
+
+        asyncio.run(run())
+        assert async_app.called
+
+    def test_get_method_passthrough(self):
+        from core.idempotency_middleware import IdempotencyMiddleware
+
+        async_app = AsyncMock()
+        middleware = IdempotencyMiddleware(app=async_app)
+        scope = {"type": "http", "method": "GET", "path": "/api/test", "headers": []}
+        import asyncio
+
+        async def run():
+            return await middleware(scope, MagicMock(), MagicMock())
+
+        asyncio.run(run())
+        assert async_app.called
+
+    def test_post_without_key_passthrough(self):
+        from core.idempotency_middleware import IdempotencyMiddleware
+
+        async_app = AsyncMock()
+        middleware = IdempotencyMiddleware(app=async_app)
+        scope = {"type": "http", "method": "POST", "path": "/api/test", "headers": []}
+        import asyncio
+
+        async def run():
+            return await middleware(scope, MagicMock(), MagicMock())
+
+        asyncio.run(run())
+        assert async_app.called
+
+
+class TestPromptHelpers:
+    def test_format_unified_chat_prompt_no_history(self):
+        from core.prompt_helpers import format_unified_chat_prompt
+
+        result = format_unified_chat_prompt("hello")
+        assert result == "hello"
+
+    def test_format_unified_chat_prompt_with_history(self):
+        from core.prompt_helpers import format_unified_chat_prompt
+
+        history = [
+            {"role": "user", "content": "hi"},
+            {"role": "assistant", "content": "hello!"},
+        ]
+        result = format_unified_chat_prompt("how are you?", history)
+        assert "User: hi" in result
+        assert "Assistant: hello!" in result
+
+
+class TestAuthMiddleware:
+    def test_get_bearer_token_present(self):
+        from core.auth_middleware import _get_bearer_token
+
+        headers = [(b"authorization", b"Bearer test-token-123")]
+        assert _get_bearer_token(headers) == "test-token-123"
+
+    def test_get_bearer_token_missing(self):
+        from core.auth_middleware import _get_bearer_token
+
+        headers = [(b"x-custom", b"value")]
+        assert _get_bearer_token(headers) is None
+
+    def test_get_bearer_token_invalid_format(self):
+        from core.auth_middleware import _get_bearer_token
+
+        headers = [(b"authorization", b"Basic test")]
+        assert _get_bearer_token(headers) is None
+
+    def test_auth_middleware_public_path(self):
+        from core.auth_middleware import AuthMiddleware
+
+        async_app = AsyncMock()
+        middleware = AuthMiddleware(app=async_app)
+        scope = {"type": "http", "path": "/health", "headers": []}
+        import asyncio
+
+        async def run():
+            return await middleware(scope, MagicMock(), MagicMock())
+
+        asyncio.run(run())
+        assert async_app.called
+
+    def test_auth_middleware_non_http(self):
+        from core.auth_middleware import AuthMiddleware
+
+        async_app = AsyncMock()
+        middleware = AuthMiddleware(app=async_app)
+        scope = {"type": "websocket", "headers": []}
+        import asyncio
+
+        async def run():
+            return await middleware(scope, MagicMock(), MagicMock())
+
+        asyncio.run(run())
+        assert async_app.called
+
+
+class TestCircuitBreaker:
+    def test_initial_state_closed(self):
+        from core.circuit_breaker import CircuitBreaker
+
+        cb = CircuitBreaker("test")
+        assert cb.state == "CLOSED"
+        assert cb.allow_request() is True
+
+    def test_mark_failure_opens_circuit(self):
+        from core.circuit_breaker import CircuitBreaker
+
+        cb = CircuitBreaker("test", failure_threshold=3)
+        cb.mark_failure()
+        cb.mark_failure()
+        cb.mark_failure()
+        assert cb.state == "OPEN"
+        assert cb.allow_request() is False
+
+    def test_mark_success_closes_circuit(self):
+        from core.circuit_breaker import CircuitBreaker
+
+        cb = CircuitBreaker("test", failure_threshold=3)
+        cb.mark_failure()
+        cb.mark_failure()
+        cb.mark_success()
+        assert cb.state == "CLOSED"
+
+    def test_half_open_after_timeout(self):
+        import time as _time
+        from core.circuit_breaker import CircuitBreaker
+
+        cb = CircuitBreaker("test", failure_threshold=2, recovery_timeout=0.1)
+        cb.mark_failure()
+        cb.mark_failure()
+        assert cb.state == "OPEN"
+        assert cb.allow_request() is False
+        _time.sleep(0.2)
+        assert cb.allow_request() is True
+        assert cb.state == "HALF_OPEN"
+
+    async def _async_success(self):
+        return "success"
+
+    async def _async_failure(self):
+        raise RuntimeError("fail")
+
+    def test_call_success(self):
+        from core.circuit_breaker import CircuitBreaker
+
+        cb = CircuitBreaker("test")
+        import asyncio
+
+        result = asyncio.run(cb.call(self._async_success))
+        assert result == "success"
+        assert cb.state == "CLOSED"
+
+    def test_call_failure(self):
+        from core.circuit_breaker import CircuitBreaker
+
+        cb = CircuitBreaker("test", failure_threshold=2)
+        import asyncio
+
+        with pytest.raises(RuntimeError):
+            asyncio.run(cb.call(self._async_failure))
+        assert cb.failures == 1
+
+
+class TestMultiLayerCache:
+    def test_in_memory_redis_stub(self):
+        from core.multi_layer_cache import _InMemoryRedisStub
+
+        stub = _InMemoryRedisStub()
+        import asyncio
+
+        assert asyncio.run(stub.get("nonexistent")) is None
+
+    def test_in_memory_redis_stub_set(self):
+        from core.multi_layer_cache import _InMemoryRedisStub
+
+        stub = _InMemoryRedisStub()
+        import asyncio
+
+        asyncio.run(stub.setex("key", 60, "value"))
+        assert asyncio.run(stub.get("key")) == "value"
+
+    def test_multi_layer_cache_get_miss(self):
+        from core.multi_layer_cache import MultiLayerCache
+
+        cache = MultiLayerCache()
+        import asyncio
+
+        result = asyncio.run(cache.get("test prompt", "model-1"))
+        assert result is None
+
+    def test_multi_layer_cache_set(self):
+        from core.multi_layer_cache import MultiLayerCache
+
+        cache = MultiLayerCache()
+        import asyncio
+
+        asyncio.run(cache.set("test prompt", "cached response", "model-1"))
+        # Setting should not raise
+
+
+class TestAutoRemediation:
+    def test_init(self):
+        from core.auto_remediation import AutoRemediationEngine
+
+        with patch("core.auto_remediation.Github"):
+            engine = AutoRemediationEngine()
+            assert engine is not None
+
+
+class TestDBRepository:
+    def test_smart_data_repository_init(self):
+        from core.db_repository import SmartDataRepository
+
+        mock_firebase = MagicMock()
+        mock_supabase = MagicMock()
+        repo = SmartDataRepository(mock_firebase, mock_supabase)
+        assert repo.firebase is mock_firebase
+        assert repo.supabase is mock_supabase
+
+
+class TestHealthMonitor:
+    def test_health_monitor_setup(self):
+        from core.health_monitor import HealthMonitor
+
+        with patch("core.health_monitor.Gauge"):
+            with patch("core.health_monitor.Histogram"):
+                with patch("core.health_monitor.start_http_server"):
+                    monitor = HealthMonitor()
+                    assert monitor is not None
