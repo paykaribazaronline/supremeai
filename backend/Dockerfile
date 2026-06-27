@@ -63,7 +63,8 @@ RUN mkdir -p /root/.EasyOCR/model && \
     rm -f /root/.EasyOCR/model/*.zip 2>/dev/null || true
 
 
-# Stage 2: Final minimal runner image
+# distroless ইমেজে curl/python নেই, তাই python:3.11-slim ব্যবহার করা হচ্ছে
+# এতে হেলথচেক ও ডিবাগিং সুবিধা পাওয়া যাবে
 FROM python:3.11-slim AS runner
 
 WORKDIR /app
@@ -92,8 +93,9 @@ WORKDIR /app/backend
 
 EXPOSE 8000
 
-# Healthcheck
-HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-    CMD python -c "import httpx; httpx.get('http://localhost:8000/health')" || exit 1
+# হেলথচেক — start-period বাড়ানো হয়েছে কারণ Redis, Firebase, EasyOCR মডেল
+# লোড হতে সময় লাগে। Railway/Render এর হেলথচেক টাইমআউটের সাথে সামঞ্জস্যপূর্ণ।
+HEALTHCHECK --interval=30s --timeout=10s --start-period=120s --retries=5 \
+    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')" || exit 1
 
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
