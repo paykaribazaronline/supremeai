@@ -1682,8 +1682,8 @@ class TestIdempotencyMiddleware:
         async def run():
             return await middleware(scope, MagicMock(), MagicMock())
 
-        result = asyncio.run(run())
-        assert result is not None
+        asyncio.run(run())
+        assert async_app.called
 
     def test_semantic_cache_init_no_gemini(self):
         import core.semantic_cache as sc

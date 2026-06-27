@@ -336,7 +336,7 @@ async def test_llm_method(monkeypatch):
         return {"text": "def test_foo():\n    pass"}
 
     monkeypatch.setattr(
-        "brain.model_router.ModelRouter",
+        "backend.brain.model_router.ModelRouter",
         type("R", (), {"async_route_and_generate": fake_route}),
     )
     out = await generator._llm("prompt")
@@ -366,7 +366,7 @@ def client(generator):
 @pytest.mark.anyio
 async def test_llm_method_exception():
     generator = AutoTestGenerator()
-    with patch("brain.model_router.ModelRouter", side_effect=RuntimeError("fail")):
+    with patch("backend.brain.model_router.ModelRouter", side_effect=RuntimeError("fail")):
         out = await generator._llm("prompt")
     assert out == ""
 
@@ -379,7 +379,7 @@ async def test_llm_method_non_dict_result(monkeypatch):
         async def async_route_and_generate(self, *args, **kwargs):
             return "plain text"
 
-    monkeypatch.setattr("brain.model_router.ModelRouter", R)
+    monkeypatch.setattr("backend.brain.model_router.ModelRouter", R)
     out = await generator._llm("prompt")
     assert out == "plain text"
 

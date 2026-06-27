@@ -56,8 +56,8 @@ class UniversalRulesEngine:
         }
 
         # Save defaults if not present
-        os.makedirs(os.path.dirname(self.rules_path), exist_ok=True)
         try:
+            os.makedirs(os.path.dirname(self.rules_path), exist_ok=True)
             with open(self.rules_path, "w", encoding="utf-8") as f:
                 json.dump(default_rules, f, indent=4)
         except Exception:
