@@ -4502,7 +4502,7 @@ version = "3.6"
 description = "Python package for creating and manipulating graphs and networks"
 optional = false
 python-versions = ">=3.11"
-groups = ["ml", "tools"]
+groups = ["main", "ml", "tools"]
 markers = "python_version == \"3.14\""
 files = [
     {file = "networkx-3.6-py3-none-any.whl", hash = "sha256:cdb395b105806062473d3be36458d8f1459a4e4b98e236a66c3a48996e07684f"},
@@ -4526,7 +4526,7 @@ version = "3.6.1"
 description = "Python package for creating and manipulating graphs and networks"
 optional = false
 python-versions = "!=3.14.1,>=3.11"
-groups = ["ml", "tools"]
+groups = ["main", "ml", "tools"]
 markers = "python_version <= \"3.13\" or python_version >= \"3.15\""
 files = [
     {file = "networkx-3.6.1-py3-none-any.whl", hash = "sha256:d47fbf302e7d9cbbb9e2555a0d267983d2aa476bac30e90dfbe5669bd57f3762"},
@@ -9607,4 +9607,4 @@ propcache = ">=0.2.1"
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.11"
-content-hash = "65b65e016f519fe36d0a73240b77bc6d1ef64e5553c3a4f7e5575e81c5d534dc"
+content-hash = "82568189c1899185e895508c05453973605c50fa63ee99c8e4938cdc90ca7044"
