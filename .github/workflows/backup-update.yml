@@ -48,7 +48,7 @@ jobs:
       hours_since_deploy: ${{ steps.read.outputs.hours_since_deploy }}
       should_update: ${{ steps.read.outputs.should_update }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 1
 
@@ -172,7 +172,7 @@ jobs:
       backup_status: ${{ steps.deploy.outputs.backup_status }}
       backup_revision: ${{ steps.deploy.outputs.backup_revision }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 1
 
