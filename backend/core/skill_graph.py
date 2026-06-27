@@ -49,9 +49,7 @@ class SkillGraph:
             self._graph.add_edge(dep, skill_id)
         if not nx.is_directed_acyclic_graph(self._graph):
             self._graph.remove_node(skill_id)
-            raise ValueError(
-                f"Adding skill '{skill_id}' creates a cycle in the skill graph"
-            )
+            raise ValueError(f"Adding skill '{skill_id}' creates a cycle in the skill graph")
 
     def remove_skill(self, skill_id: str) -> None:
         """Remove a skill and all incident edges from the graph."""

@@ -15,9 +15,7 @@ class CollaborativeEditor:
         self.active_sessions: dict[str, dict[str, Any]] = {}
         logger.info("Initialized CollaborativeEditor")
 
-    async def connect_client(
-        self, session_id: str, client_id: str, websocket: WebSocket
-    ):
+    async def connect_client(self, session_id: str, client_id: str, websocket: WebSocket):
         await websocket.accept()
         if session_id not in self.active_sessions:
             self.active_sessions[session_id] = {
@@ -33,16 +31,12 @@ class CollaborativeEditor:
             clients = self.active_sessions[session_id]["clients"]
             if client_id in clients:
                 del clients[client_id]
-                logger.info(
-                    f"Client {client_id} disconnected from session {session_id}"
-                )
+                logger.info(f"Client {client_id} disconnected from session {session_id}")
             if not clients:
                 del self.active_sessions[session_id]
                 logger.info(f"Session {session_id} closed as last client disconnected")
 
-    async def broadcast(
-        self, session_id: str, message: dict, sender_id: str | None = None
-    ):
+    async def broadcast(self, session_id: str, message: dict, sender_id: str | None = None):
         session = self.active_sessions.get(session_id)
         if not session:
             return
@@ -60,9 +54,7 @@ class CollaborativeEditor:
         for client_id in disconnected_clients:
             await self.disconnect_client(session_id, client_id)
 
-    async def broadcast_delta(
-        self, session_id: str, delta: dict[str, Any], sender_id: str | None = None
-    ):
+    async def broadcast_delta(self, session_id: str, delta: dict[str, Any], sender_id: str | None = None):
         session = self.active_sessions.get(session_id)
         if not session:
             logger.warning(f"Session {session_id} not found for broadcast.")
@@ -71,35 +63,25 @@ class CollaborativeEditor:
         # Basic state update for mock CRDT
         if "insert" in delta:
             pos = delta.get("position", len(session["document_state"]))
-            session["document_state"] = (
-                session["document_state"][:pos]
-                + delta["insert"]
-                + session["document_state"][pos:]
-            )
+            session["document_state"] = session["document_state"][:pos] + delta["insert"] + session["document_state"][pos:]
 
         logger.debug(f"Broadcasting delta in {session_id}")
         await self.broadcast(session_id, {"type": "delta", "delta": delta}, sender_id)
 
-    async def trigger_ai_edit(
-        self, session_id: str, prompt: str, sender_id: str | None = None
-    ):
+    async def trigger_ai_edit(self, session_id: str, prompt: str, sender_id: str | None = None):
         logger.info(f"AI edit triggered in {session_id} with prompt: {prompt}")
         session = self.active_sessions.get(session_id)
         if not session:
             return {"status": "error", "error": "Session not found"}
 
         session["ai_cursor"]["status"] = "generating"
-        await self.broadcast(
-            session_id, {"type": "ai_cursor", "cursor": session["ai_cursor"]}, sender_id
-        )
+        await self.broadcast(session_id, {"type": "ai_cursor", "cursor": session["ai_cursor"]}, sender_id)
 
         try:
             from brain.model_router import ModelRouter
 
             router = ModelRouter()
-            result = await router.async_route_and_generate(
-                prompt, task_type="coding", max_cost=0.03
-            )
+            result = await router.async_route_and_generate(prompt, task_type="coding", max_cost=0.03)
             text = result.get("text", "") if isinstance(result, dict) else ""
             if not text:
                 text = "// AI generated no output"
@@ -140,9 +122,7 @@ async def collaborate_ws(websocket: WebSocket, session_id: str, client_id: str):
                 msg_type = message.get("type")
 
                 if msg_type == "delta":
-                    await editor_manager.broadcast_delta(
-                        session_id, message.get("delta", {}), client_id
-                    )
+                    await editor_manager.broadcast_delta(session_id, message.get("delta", {}), client_id)
                 elif msg_type == "ai_request":
                     prompt = message.get("prompt", "")
                     await editor_manager.trigger_ai_edit(session_id, prompt, client_id)
@@ -162,7 +142,5 @@ async def collaborate_ws(websocket: WebSocket, session_id: str, client_id: str):
     except WebSocketDisconnect:
         await editor_manager.disconnect_client(session_id, client_id)
     except Exception as e:
-        logger.error(
-            f"WebSocket error in session {session_id} for client {client_id}: {e}"
-        )
+        logger.error(f"WebSocket error in session {session_id} for client {client_id}: {e}")
         await editor_manager.disconnect_client(session_id, client_id)

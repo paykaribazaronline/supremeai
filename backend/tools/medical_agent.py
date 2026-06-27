@@ -4,9 +4,7 @@ from loguru import logger
 
 
 class MedicalAgent:
-    async def analyze_symptoms(
-        self, symptoms: str, context: dict[str, Any] = None
-    ) -> dict[str, Any]:
+    async def analyze_symptoms(self, symptoms: str, context: dict[str, Any] = None) -> dict[str, Any]:
         logger.info(f"Analyzing medical symptoms: {symptoms}")
         try:
             from brain.model_router import ModelRouter
@@ -18,9 +16,7 @@ class MedicalAgent:
                 "Include a clear disclaimer that this is not medical advice. "
                 "Return only the analysis text."
             )
-            result = router.async_route_and_generate(
-                llm_prompt, task_type="general", max_cost=0.01
-            )
+            result = router.async_route_and_generate(llm_prompt, task_type="general", max_cost=0.01)
             text = result.get("text", "") if isinstance(result, dict) else ""
             return {
                 "status": "success",

@@ -20,18 +20,12 @@ class CloudSandboxOrchestrator:
         if self.provider == "auto":
             if os.getenv("RUNPOD_API_KEY"):
                 self.provider = "runpod"
-            elif (
-                os.getenv("DOCKER_HOST")
-                or os.path.exists("/var/run/docker.sock")
-                or os.name == "nt"
-            ):
+            elif os.getenv("DOCKER_HOST") or os.path.exists("/var/run/docker.sock") or os.name == "nt":
                 self.provider = "docker"
             else:
                 self.provider = "local"
 
-        logger.info(
-            f"Initialized CloudSandboxOrchestrator with provider: {self.provider}"
-        )
+        logger.info(f"Initialized CloudSandboxOrchestrator with provider: {self.provider}")
         self._docker_client = None
 
     async def _get_docker_client(self):
@@ -46,16 +40,12 @@ class CloudSandboxOrchestrator:
             self._docker_client.ping()
             return self._docker_client
         except Exception as e:
-            logger.warning(
-                f"Docker not available locally: {e}. Falling back to mock/local."
-            )
+            logger.warning(f"Docker not available locally: {e}. Falling back to mock/local.")
             return None
 
     async def create_session(self, image: str = "ubuntu:22.04") -> str:
         session_id = f"sandbox-{uuid.uuid4().hex[:8]}"
-        logger.info(
-            f"Creating {self.provider} session: {session_id} with image {image}"
-        )
+        logger.info(f"Creating {self.provider} session: {session_id} with image {image}")
 
         if self.provider in ["docker", "auto", "local"]:
             client = await self._get_docker_client()
@@ -76,9 +66,7 @@ class CloudSandboxOrchestrator:
                         "container_id": container.id,
                     }
                     self.active_sessions[session_id] = session_data
-                    logger.success(
-                        f"Docker session created successfully: {session_id} (Container ID: {container.id})"
-                    )
+                    logger.success(f"Docker session created successfully: {session_id} (Container ID: {container.id})")
                     return session_id
                 except Exception as e:
                     logger.error(f"Failed to create Docker container: {e}")
@@ -90,9 +78,7 @@ class CloudSandboxOrchestrator:
             if not api_key:
                 logger.warning("RUNPOD_API_KEY not found, cannot fallback to RunPod.")
                 if self.provider == "runpod":
-                    raise RuntimeError(
-                        "RUNPOD_API_KEY is required for RunPod sandbox sessions."
-                    )
+                    raise RuntimeError("RUNPOD_API_KEY is required for RunPod sandbox sessions.")
             else:
                 headers = {
                     "Authorization": f"Bearer {api_key}",
@@ -123,18 +109,12 @@ class CloudSandboxOrchestrator:
                             "cwd": "/workspace",
                             "env": {"PYTHONUNBUFFERED": "1"},
                         }
-                        logger.success(
-                            f"RunPod session created successfully: {session_id} (Pod ID: {pod_id})"
-                        )
+                        logger.success(f"RunPod session created successfully: {session_id} (Pod ID: {pod_id})")
                         return session_id
                     else:
-                        logger.error(
-                            f"RunPod pod creation API failed: {resp.text}. Falling back to local mock."
-                        )
+                        logger.error(f"RunPod pod creation API failed: {resp.text}. Falling back to local mock.")
 
-        logger.warning(
-            f"All providers failed. Creating a mock session for {session_id}."
-        )
+        logger.warning(f"All providers failed. Creating a mock session for {session_id}.")
         self.active_sessions[session_id] = {
             "image": image,
             "status": "running",
@@ -144,9 +124,7 @@ class CloudSandboxOrchestrator:
         }
         return session_id
 
-    async def run_command(
-        self, session_id: str, command: str, timeout: int = 60
-    ) -> dict[str, Any]:
+    async def run_command(self, session_id: str, command: str, timeout: int = 60) -> dict[str, Any]:
         if session_id not in self.active_sessions:
             raise ValueError(f"Session {session_id} not found or inactive.")
 
@@ -174,11 +152,7 @@ class CloudSandboxOrchestrator:
 
         if command.startswith("cd "):
             new_dir = command.split("cd ")[1].strip()
-            session["cwd"] = (
-                os.path.join(session["cwd"], new_dir)
-                if session["cwd"] != "/workspace"
-                else os.path.join("/workspace", new_dir)
-            )
+            session["cwd"] = os.path.join(session["cwd"], new_dir) if session["cwd"] != "/workspace" else os.path.join("/workspace", new_dir)
             return {"exit_code": 0, "stdout": "", "stderr": ""}
 
         if provider == "runpod":
@@ -227,12 +201,8 @@ class CloudSandboxOrchestrator:
                         container = client.containers.get(container_id)
                         import base64
 
-                        encoded = base64.b64encode(content.encode("utf-8")).decode(
-                            "utf-8"
-                        )
-                        exec_result = container.exec_run(
-                            f"echo '{encoded}' | base64 -d > {filepath}"
-                        )
+                        encoded = base64.b64encode(content.encode("utf-8")).decode("utf-8")
+                        exec_result = container.exec_run(f"echo '{encoded}' | base64 -d > {filepath}")
                         return exec_result.exit_code == 0
                     except Exception as e:
                         logger.error(f"Docker file write failed: {e}")

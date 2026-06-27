@@ -61,10 +61,7 @@ class CircuitBreaker:
 
     def allow_request(self) -> bool:
         if self.state == "OPEN":
-            if (
-                self.opened_at is not None
-                and (time.time() - self.opened_at) >= self.recovery_timeout
-            ):
+            if self.opened_at is not None and (time.time() - self.opened_at) >= self.recovery_timeout:
                 self.state = "HALF_OPEN"
                 self._persist_to_redis()
                 return True

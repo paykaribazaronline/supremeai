@@ -33,9 +33,7 @@ class AuthMiddleware:
 
         # Strict admin origin check to prevent security blast radius breach
         admin_paths = ["/admin/", "/admin-api/", "/gcp/"]
-        is_admin_path = any(
-            path.startswith(admin_path) for admin_path in admin_paths
-        ) or path in {"/admin/rules", "/admin/cloud-distribution"}
+        is_admin_path = any(path.startswith(admin_path) for admin_path in admin_paths) or path in {"/admin/rules", "/admin/cloud-distribution"}
 
         if is_admin_path:
             origin = ""
@@ -47,20 +45,14 @@ class AuthMiddleware:
                     referer = v.decode("utf-8")
 
             # Allow supremeai-admin domain
-            is_admin_domain = (
-                "supremeai-admin" in origin or "supremeai-admin" in referer
-            )
+            is_admin_domain = "supremeai-admin" in origin or "supremeai-admin" in referer
 
             # If request comes from general studio domain or unauthorized source, block it.
             if not is_admin_domain and (origin or referer):
-                logger.warning(
-                    f"Forbidden admin access to {path} from unauthorized origin/referer: {origin} / {referer}"
-                )
+                logger.warning(f"Forbidden admin access to {path} from unauthorized origin/referer: {origin} / {referer}")
                 response = JSONResponse(
                     status_code=403,
-                    content={
-                        "detail": "Forbidden: Admin endpoints are restricted to the admin console domain."
-                    },
+                    content={"detail": "Forbidden: Admin endpoints are restricted to the admin console domain."},
                 )
                 await response(scope, receive, send)
                 return

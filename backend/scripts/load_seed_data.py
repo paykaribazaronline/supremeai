@@ -3,6 +3,7 @@
 Load seed data from cloud storage (GCS/S3) at runtime.
 Replaces static seed_data/ in git.
 """
+
 import json
 import os
 from typing import Any

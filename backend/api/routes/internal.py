@@ -17,15 +17,9 @@ router = APIRouter()
 
 def _require_admin(request: Request):
     secret = request.headers.get("X-Admin-Secret")
-    expected = (
-        os.getenv("SUPREMEAI_ADMIN_SECRET", "")
-        or getattr(settings, "docs_password", "")
-        or ""
-    )
+    expected = os.getenv("SUPREMEAI_ADMIN_SECRET", "") or getattr(settings, "docs_password", "") or ""
     if not expected:
-        raise HTTPException(
-            status_code=500, detail="Admin secret not configured on server."
-        )
+        raise HTTPException(status_code=500, detail="Admin secret not configured on server.")
     if not secrets.compare_digest(secret or "", expected):
         raise HTTPException(status_code=403, detail="Forbidden: Invalid admin secret.")
 
@@ -55,4 +49,11 @@ async def run_daily_evolution(request: Request, payload: RunEvolutionRequest):
                 db.collection("evolution_logs").add(report)
     except Exception as exc:
         logger.debug(f"Failed to persist evolution log to Firestore: {exc}")
+    try:
+        from database.supabase_client import db as supabase_db
+
+        if supabase_db.client:
+            supabase_db.append_evolution_log(report)
+    except Exception as exc:
+        logger.debug(f"Failed to persist evolution log to Supabase: {exc}")
     return report

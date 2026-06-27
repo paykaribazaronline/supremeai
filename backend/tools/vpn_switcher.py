@@ -10,9 +10,7 @@ logger = logging.getLogger(__name__)
 
 
 class VPNRotator:
-    def __init__(
-        self, endpoints: list[str] | None = None, current_index: int = 0
-    ) -> None:
+    def __init__(self, endpoints: list[str] | None = None, current_index: int = 0) -> None:
         self.endpoints = [item.strip() for item in (endpoints or []) if item.strip()]
         self.current_index = current_index
         self.history: list[dict[str, Any]] = []
@@ -69,9 +67,7 @@ class VPNRotator:
         reason = rotation.get("reason")
         if reason:
             result["reason"] = reason
-        logger.info(
-            "rotate_agent called agent=%s rotated=%s", agent_id, result["rotated"]
-        )
+        logger.info("rotate_agent called agent=%s rotated=%s", agent_id, result["rotated"])
         return result
 
     def configure_endpoints(self, endpoints: list[str]) -> dict[str, Any]:

@@ -33,16 +33,12 @@ class PDFToSDKConverter:
                 pass
 
         if not text:
-            logger.warning(
-                "PDF text extraction libraries not available. Using empty spec."
-            )
+            logger.warning("PDF text extraction libraries not available. Using empty spec.")
             return {"base_url": "", "auth": "", "endpoints": []}
 
         endpoints = []
         for line in text.splitlines():
-            match = re.search(
-                r"(GET|POST|PUT|DELETE|PATCH)\s+([^\s]+)", line, re.IGNORECASE
-            )
+            match = re.search(r"(GET|POST|PUT|DELETE|PATCH)\s+([^\s]+)", line, re.IGNORECASE)
             if match:
                 endpoints.append(
                     {
@@ -66,17 +62,13 @@ class PDFToSDKConverter:
                 from brain.model_router import ModelRouter
 
                 router = ModelRouter()
-                endpoint_desc = ", ".join(
-                    f"{e['method']} {e['path']}" for e in spec.get("endpoints", [])[:10]
-                )
+                endpoint_desc = ", ".join(f"{e['method']} {e['path']}" for e in spec.get("endpoints", [])[:10])
                 prompt = (
                     f"You are a senior SDK engineer. Generate a full, production-ready client SDK in the requested language "
                     f"for this API spec. Base URL: {spec['base_url']}. Auth: {spec['auth']}. "
                     f"Endpoints: {endpoint_desc}. Return ONLY code, no markdown formatting."
                 )
-                result = router.async_route_and_generate(
-                    prompt, task_type="coding", max_cost=0.05
-                )
+                result = router.async_route_and_generate(prompt, task_type="coding", max_cost=0.05)
                 text = result.get("text", "") if isinstance(result, dict) else ""
                 if text:
                     return {
@@ -93,23 +85,19 @@ class PDFToSDKConverter:
                 for e in spec.get("endpoints", [])[:5]
             )
             if lang.lower() == "python":
-                results[
-                    lang
-                ] = f"""
+                results[lang] = f"""
 import httpx
 
 class ApiClient:
     def __init__(self, token: str):
         self.client = httpx.Client(
-            base_url="{spec['base_url']}",
+            base_url="{spec["base_url"]}",
             headers={{"Authorization": f"Bearer {{token}}"}}
         )
     {endpoint_str}
 """
             else:
-                results[lang] = (
-                    f"// SDK generation for {lang} requires manual implementation."
-                )
+                results[lang] = f"// SDK generation for {lang} requires manual implementation."
             return {"status": "success", "sdks": results}
         except Exception as e:
             logger.error(f"SDK Generation failed: {str(e)}")

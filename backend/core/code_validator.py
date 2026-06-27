@@ -17,11 +17,7 @@ class AICodeValidator:
         return {
             "can_use": all_passed,
             "checks": checks,
-            "fixed_code": (
-                self._auto_fix(ai_generated_code)
-                if not all_passed
-                else ai_generated_code
-            ),
+            "fixed_code": (self._auto_fix(ai_generated_code) if not all_passed else ai_generated_code),
         }
 
     def _check_syntax(self, code: str) -> bool:
@@ -102,16 +98,15 @@ class AICodeValidator:
             for node in ast.walk(tree):
                 if isinstance(node, ast.While | ast.For) and (
                     # Check if there is a break or return or if condition is not always True
-                    isinstance(node.test, ast.Constant)
-                    and node.test.value is True
+                    isinstance(node.test, ast.Constant) and node.test.value is True
                 ):
-                        has_break = False
-                        for subnode in ast.walk(node):
-                            if isinstance(subnode, ast.Break | ast.Return):
-                                has_break = True
-                                break
-                        if not has_break:
-                            return False
+                    has_break = False
+                    for subnode in ast.walk(node):
+                        if isinstance(subnode, ast.Break | ast.Return):
+                            has_break = True
+                            break
+                    if not has_break:
+                        return False
             return True
         except Exception:
             return False
@@ -122,9 +117,7 @@ class AICodeValidator:
         fixed_lines = []
         for line in lines:
             stripped_line = line.strip()
-            if (
-                stripped_line.startswith("def ") or stripped_line.startswith("class ")
-            ) and not stripped_line.endswith(":"):
+            if (stripped_line.startswith("def ") or stripped_line.startswith("class ")) and not stripped_line.endswith(":"):
                 line += ":"
             fixed_lines.append(line)
         code = "\n".join(fixed_lines)

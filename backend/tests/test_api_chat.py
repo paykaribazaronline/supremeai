@@ -37,12 +37,14 @@ class FakeModel:
 
 @pytest.mark.asyncio
 async def test_get_completion_returns_cached_result(monkeypatch):
-    fake_cache = FakeCache(value={
-        "success": True,
-        "response": "cached-response",
-        "source": "L5_CACHE",
-        "latency_ms": 10,
-    })
+    fake_cache = FakeCache(
+        value={
+            "success": True,
+            "response": "cached-response",
+            "source": "L5_CACHE",
+            "latency_ms": 10,
+        }
+    )
     monkeypatch.setattr("api.routes.chat.multi_layer_cache", fake_cache)
     request = SimpleNamespace(headers={"X-Session-ID": "session-1"})
     payload = ChatPayload(prompt="hello")

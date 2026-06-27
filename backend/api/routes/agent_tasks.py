@@ -64,9 +64,7 @@ async def execute_agent(request: Request, body: AgentExecuteRequest):
 
     if body.department:
         result = agent_department.execute(body.department, body.task, body.task_type)
-        monitor.track_agent_call(
-            prompt=body.task, provider=result.get("provider", "unknown")
-        )
+        monitor.track_agent_call(prompt=body.task, provider=result.get("provider", "unknown"))
         return AgentExecuteResponse(
             success=result.get("success", False),
             output=result.get("output"),
@@ -77,9 +75,7 @@ async def execute_agent(request: Request, body: AgentExecuteRequest):
         )
 
     result = orchestrator.execute_task(body.task, body.task_type)
-    monitor.track_agent_call(
-        prompt=body.task, provider=result.get("provider", "unknown")
-    )
+    monitor.track_agent_call(prompt=body.task, provider=result.get("provider", "unknown"))
     return AgentExecuteResponse(
         success=result.get("success", False),
         output=result.get("result"),

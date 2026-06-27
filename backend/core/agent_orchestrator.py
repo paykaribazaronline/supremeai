@@ -9,9 +9,7 @@ from pydantic import BaseModel
 
 MAX_AGENT_TOKENS = int(os.getenv("MAX_AGENT_TOKENS", "5000"))
 MAX_AGENT_ITERATIONS = int(os.getenv("MAX_AGENT_ITERATIONS", "5"))
-ADMIN_PERMISSIONS_REQUIRED = (
-    os.getenv("AGENT_ADMIN_PERMISSIONS_REQUIRED", "true").lower() == "true"
-)
+ADMIN_PERMISSIONS_REQUIRED = os.getenv("AGENT_ADMIN_PERMISSIONS_REQUIRED", "true").lower() == "true"
 
 # [Antigravity 2026-06-22] Import free-tier tracker for budget-aware routing
 try:
@@ -21,9 +19,7 @@ try:
     _free_tier_available = True
 except ImportError:
     _free_tier_available = False
-    logger.warning(
-        "[Orchestrator] free_tier_tracker not available — budget-aware routing disabled"
-    )
+    logger.warning("[Orchestrator] free_tier_tracker not available — budget-aware routing disabled")
 
 TIER_KEYWORDS = {
     1: [
@@ -88,9 +84,7 @@ def route_request(prompt: str, task_type: str = "general") -> "SmartSemanticRout
             reasoning=f"Explicit task_type={task_type}",
         )
 
-    if "VISION" in upper_task or any(
-        ext in prompt_lower for ext in [".png", ".jpg", ".jpeg", ".pdf"]
-    ):
+    if "VISION" in upper_task or any(ext in prompt_lower for ext in [".png", ".jpg", ".jpeg", ".pdf"]):
         return SmartSemanticRouter(
             intent="vision",
             requires_expensive=True,
@@ -99,11 +93,7 @@ def route_request(prompt: str, task_type: str = "general") -> "SmartSemanticRout
         )
 
     if _matches_any(prompt_lower, TIER_KEYWORDS[1]):
-        intent = (
-            "coding"
-            if _matches_any(prompt_lower, TIER_KEYWORDS[1][:10])
-            else "reasoning"
-        )
+        intent = "coding" if _matches_any(prompt_lower, TIER_KEYWORDS[1][:10]) else "reasoning"
         return SmartSemanticRouter(
             intent=intent,
             requires_expensive=True,
@@ -306,9 +296,7 @@ def budget_aware_route(
                     f"tier={semantic_route.tier}, best_free_provider={best_provider}"
                 )
             else:
-                logger.warning(
-                    "[Orchestrator] budget_aware_route: all free providers exhausted"
-                )
+                logger.warning("[Orchestrator] budget_aware_route: all free providers exhausted")
         except Exception as exc:
             logger.warning(f"[Orchestrator] budget_aware_route failed: {exc}")
 

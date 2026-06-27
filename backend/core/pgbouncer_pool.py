@@ -29,12 +29,8 @@ class PgBouncerConnectionPool:
         if getattr(self, "_initialized", False):
             return
         self._pool_config = pool_config or PoolConfig()
-        self._dsn = os.getenv("DATABASE_URL", "") or os.getenv(
-            "SUPABASE_DATABASE_URL", ""
-        )
-        self._pgbouncer_url = os.getenv("PGBOUNCER_URL", "") or os.getenv(
-            "DATABASE_URL", ""
-        )
+        self._dsn = os.getenv("DATABASE_URL", "") or os.getenv("SUPABASE_DATABASE_URL", "")
+        self._pgbouncer_url = os.getenv("PGBOUNCER_URL", "") or os.getenv("DATABASE_URL", "")
         self._initialized = False
 
     async def initialize(self) -> None:
@@ -62,26 +58,18 @@ class PgBouncerConnectionPool:
                 )
                 self._initialized = True
             else:
-                logger.warning(
-                    "No database URL configured. Connection pool initialization skipped."
-                )
+                logger.warning("No database URL configured. Connection pool initialization skipped.")
                 self._initialized = False
             if self._initialized:
-                logger.info(
-                    f"PgBouncer connection pool initialized (min={self._pool_config.min_size}, max={self._pool_config.max_size})"
-                )
+                logger.info(f"PgBouncer connection pool initialized (min={self._pool_config.min_size}, max={self._pool_config.max_size})")
         except Exception as e:
-            logger.warning(
-                f"Failed to initialize PgBouncer pool, falling back to direct connections: {e}"
-            )
+            logger.warning(f"Failed to initialize PgBouncer pool, falling back to direct connections: {e}")
             self._initialized = False
 
     @asynccontextmanager
     async def acquire(self) -> asyncpg.Connection:
         if not self._pool:
-            raise RuntimeError(
-                "Connection pool not initialized. Call initialize() first."
-            )
+            raise RuntimeError("Connection pool not initialized. Call initialize() first.")
         conn = None
         try:
             conn = await self._pool.acquire()

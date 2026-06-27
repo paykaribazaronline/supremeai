@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 import tempfile
+from unittest.mock import MagicMock
 
 from core.evolution_engine import EvolutionEngine
 
@@ -41,3 +42,28 @@ def test_run_daily_evolution_all_failure_triggers_repeated_failures():
         engine.learn_from_failure("flaky_task", "approach_a", "timeout")
     report = engine.run_daily_evolution([])
     assert report["repeated_failures"] >= 1
+
+
+def test_evolution_engine_uses_supabase_when_available(monkeypatch):
+    mock_db = MagicMock()
+    mock_db.client = True
+    mock_db.insert_task_history.return_value = {"id": 1, "task": "supabase_task"}
+    mock_db.get_repeated_failures.return_value = [
+        {
+            "task": "supabase_task",
+            "approach": "good_approach",
+            "failures": 3,
+            "last_failed": "2026-06-27T17:00:00Z",
+        }
+    ]
+
+    monkeypatch.setattr("database.supabase_client.db", mock_db)
+
+    engine, _, _ = _make_engine()
+    result = engine.learn_from_success("supabase_task", "good_approach", "ok")
+    assert result["stored"] is True
+    assert result["task"] == "supabase_task"
+    mock_db.insert_task_history.assert_called_once()
+
+    failures = engine.detect_repeated_failures(min_occurrences=1)
+    assert failures == mock_db.get_repeated_failures.return_value

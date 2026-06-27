@@ -34,9 +34,7 @@ class SelfPlanner:
                 "Return ONLY a valid JSON array without markdown wrapping or explanations.\n\n"
                 f"Objective: {objective}"
             )
-            result = await model_router.async_route_and_generate(
-                prompt, task_type="reasoning", max_cost=0.05
-            )
+            result = await model_router.async_route_and_generate(prompt, task_type="reasoning", max_cost=0.05)
             text = result.get("text", "") if isinstance(result, dict) else ""
 
             # Clean up JSON if it contains markdown blocks
@@ -106,9 +104,7 @@ class SelfPlanner:
         while in_degrees:
             current_batch = [node for node, degree in in_degrees.items() if degree == 0]
             if not current_batch:
-                raise RuntimeError(
-                    "Circular dependency detected during execution ordering"
-                )
+                raise RuntimeError("Circular dependency detected during execution ordering")
 
             batches.append(current_batch)
             for node in current_batch:
@@ -152,15 +148,11 @@ class SelfPlanner:
 
         # After all batches are complete, decide the next step automatically.
         final_summary = "Completed all tasks. " + json.dumps(execution_results)
-        logger.info(
-            f"Plan execution finished for objective. Summary: {final_summary[:200]}"
-        )
+        logger.info(f"Plan execution finished for objective. Summary: {final_summary[:200]}")
 
         # Automatically generate and start the next plan based on the outcome.
         next_objective = f"Based on the successful completion of the previous plan ({final_summary[:150]}...), determine the next logical step to achieve the overall goal."
-        logger.info(
-            f"Automatically planning next step with objective: {next_objective}"
-        )
+        logger.info(f"Automatically planning next step with objective: {next_objective}")
         next_dag = await self.generate_plan(next_objective)
         asyncio.create_task(self.parallel_agent_executor(next_dag))
 

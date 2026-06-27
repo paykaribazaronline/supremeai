@@ -1,4 +1,5 @@
-from typing import Any, TypedDict
+from typing import Any
+from typing import TypedDict
 
 from loguru import logger
 
@@ -77,19 +78,11 @@ class PerformanceAwareRouter:
         normalized_cost = min(provider_info["cost_per_1k"] / max_cost, 1.0)
 
         # Normalize quality (0 = worst, 1 = best) then invert for scoring
-        normalized_quality = (provider_info["quality"] - min_quality) / (
-            max_quality - min_quality
-        )
-        normalized_quality_inverse = (
-            1.0 - normalized_quality
-        )  # So higher quality = lower score
+        normalized_quality = (provider_info["quality"] - min_quality) / (max_quality - min_quality)
+        normalized_quality_inverse = 1.0 - normalized_quality  # So higher quality = lower score
 
         # Calculate weighted score
-        score = (
-            (normalized_latency * self.latency_weight)
-            + (normalized_cost * self.cost_weight)
-            + (normalized_quality_inverse * self.quality_weight)
-        )
+        score = (normalized_latency * self.latency_weight) + (normalized_cost * self.cost_weight) + (normalized_quality_inverse * self.quality_weight)
 
         return score
 
@@ -117,9 +110,7 @@ class PerformanceAwareRouter:
         if not healthy_providers:
             # Fallback to any available provider if all are unhealthy
             healthy_providers = scored_providers
-            if not healthy_providers or all(
-                s == float("inf") for _, s in healthy_providers
-            ):
+            if not healthy_providers or all(s == float("inf") for _, s in healthy_providers):
                 raise Exception("No healthy providers available")
 
         # Sort by score (ascending - lower is better)

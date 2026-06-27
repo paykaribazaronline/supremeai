@@ -69,9 +69,7 @@ def test_browser_agent():
     agent = BrowserAgent()
     with patch("httpx.get") as mock_get:
         mock_resp = MagicMock()
-        mock_resp.text = (
-            "<html><title>Sample Site</title><body>Hello world</body></html>"
-        )
+        mock_resp.text = "<html><title>Sample Site</title><body>Hello world</body></html>"
         mock_resp.is_success = True
         mock_get.return_value = mock_resp
 
@@ -140,13 +138,16 @@ async def test_perform_autonomous_signup():
     mock_playwright_module = MagicMock()
     mock_playwright_module.async_api.async_playwright = mock_playwright
 
-    with patch.dict(
-        "sys.modules",
-        {
-            "playwright": mock_playwright_module,
-            "playwright.async_api": mock_playwright_module.async_api,
-        },
-    ), tempfile.TemporaryDirectory() as tmpdir:
+    with (
+        patch.dict(
+            "sys.modules",
+            {
+                "playwright": mock_playwright_module,
+                "playwright.async_api": mock_playwright_module.async_api,
+            },
+        ),
+        tempfile.TemporaryDirectory() as tmpdir,
+    ):
         config_path = os.path.join(tmpdir, "rotation_config.json")
         rotator = MultiAccountRotator(config_file=config_path)
         success = await rotator.perform_autonomous_signup("google")

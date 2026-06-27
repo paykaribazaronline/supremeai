@@ -25,11 +25,11 @@ async def test_execute_audit_sequence_all_pass():
     mock_client = AsyncMock()
     mock_client.post.return_value = mock_response
 
-    with patch(
-        "tools.fuzz_sandbox.generate_fuzz_payloads", return_value=mock_payloads
-    ), patch("tools.fuzz_sandbox.run_sandbox_ast_check", return_value=False), patch(
-        "httpx.AsyncClient"
-    ) as mock_client_cls:
+    with (
+        patch("tools.fuzz_sandbox.generate_fuzz_payloads", return_value=mock_payloads),
+        patch("tools.fuzz_sandbox.run_sandbox_ast_check", return_value=False),
+        patch("httpx.AsyncClient") as mock_client_cls,
+    ):
         mock_client_cls.return_value.__aenter__ = AsyncMock(return_value=mock_client)
         mock_client_cls.return_value.__aexit__ = AsyncMock(return_value=False)
 
@@ -53,11 +53,11 @@ async def test_execute_audit_sequence_fuzz_failure():
     mock_client = AsyncMock()
     mock_client.post.return_value = mock_response
 
-    with patch(
-        "tools.fuzz_sandbox.generate_fuzz_payloads", return_value=mock_payloads
-    ), patch("tools.fuzz_sandbox.run_sandbox_ast_check", side_effect=fake_check), patch(
-        "httpx.AsyncClient"
-    ) as mock_client_cls:
+    with (
+        patch("tools.fuzz_sandbox.generate_fuzz_payloads", return_value=mock_payloads),
+        patch("tools.fuzz_sandbox.run_sandbox_ast_check", side_effect=fake_check),
+        patch("httpx.AsyncClient") as mock_client_cls,
+    ):
         mock_client_cls.return_value.__aenter__ = AsyncMock(return_value=mock_client)
         mock_client_cls.return_value.__aexit__ = AsyncMock(return_value=False)
 
@@ -77,9 +77,7 @@ async def test_execute_audit_sequence_network_failure():
     mock_client = AsyncMock()
     mock_client.post.side_effect = Exception("Network error")
 
-    with patch(
-        "tools.fuzz_sandbox.generate_fuzz_payloads", return_value=mock_payloads
-    ), patch("httpx.AsyncClient") as mock_client_cls:
+    with patch("tools.fuzz_sandbox.generate_fuzz_payloads", return_value=mock_payloads), patch("httpx.AsyncClient") as mock_client_cls:
         mock_client_cls.return_value.__aenter__ = AsyncMock(return_value=mock_client)
         mock_client_cls.return_value.__aexit__ = AsyncMock(return_value=False)
 

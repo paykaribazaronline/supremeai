@@ -32,9 +32,7 @@ class RateLimiter:
 
 
 class RedisRateLimiter:
-    def __init__(
-        self, requests_per_minute: int = 60, burst: int = 10, window: int = 60
-    ) -> None:
+    def __init__(self, requests_per_minute: int = 60, burst: int = 10, window: int = 60) -> None:
         self.requests_per_minute = requests_per_minute
         self.burst = burst
         self.window = window
@@ -48,9 +46,7 @@ class RedisRateLimiter:
 
             self._redis = UpstashRedisQueue()
         except Exception as exc:
-            logger.warning(
-                f"Redis rate limiter unavailable, falling back to in-memory: {exc}"
-            )
+            logger.warning(f"Redis rate limiter unavailable, falling back to in-memory: {exc}")
             self._redis = None
 
     def is_allowed(self, key: str) -> bool:
@@ -84,9 +80,7 @@ class RedisRateLimiter:
 class RateLimitMiddleware:
     def __init__(self, app, requests_per_minute: int = 60, burst: int = 10) -> None:
         self.app = app
-        self.limiter = RedisRateLimiter(
-            requests_per_minute=requests_per_minute, burst=burst
-        )
+        self.limiter = RedisRateLimiter(requests_per_minute=requests_per_minute, burst=burst)
 
     async def __call__(self, scope, receive, send) -> None:
         if scope["type"] != "http":

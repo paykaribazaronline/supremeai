@@ -60,9 +60,7 @@ class TelegramBotHandler:
 
     # ── Telegram API helpers ──────────────────────────────────────
 
-    async def send_message(
-        self, chat_id: int | str, text: str, parse_mode: str = "Markdown"
-    ) -> bool:
+    async def send_message(self, chat_id: int | str, text: str, parse_mode: str = "Markdown") -> bool:
         if not self.configured:
             return False
         try:
@@ -131,9 +129,7 @@ class TelegramBotHandler:
 
     def handle_message(self, text: str, user_id: str = "user") -> str:
         """Synchronous message handler used by tests and scripts."""
-        command = (
-            text.strip().split()[0].lower() if text.strip().startswith("/") else None
-        )
+        command = text.strip().split()[0].lower() if text.strip().startswith("/") else None
         if command and command in self.COMMANDS:
             return self.COMMANDS[command]
         try:
@@ -198,15 +194,9 @@ class TelegramBotHandler:
     async def _ai_response(self, text: str, user_id: str) -> str:
         if self.orchestrator:
             try:
-                task_type = (
-                    "coding"
-                    if any(k in text.lower() for k in ["code", "function", "script"])
-                    else "general"
-                )
+                task_type = "coding" if any(k in text.lower() for k in ["code", "function", "script"]) else "general"
                 loop = asyncio.get_event_loop()
-                result = await loop.run_in_executor(
-                    None, lambda: self.orchestrator.execute_task(text, task_type)
-                )
+                result = await loop.run_in_executor(None, lambda: self.orchestrator.execute_task(text, task_type))
                 return result.get("result", "Sorry, I couldn't process that.")
             except Exception as exc:
                 logger.error(f"Orchestrator error: {exc}")
@@ -238,9 +228,7 @@ class TelegramBotHandler:
                     }
                     if offset is not None:
                         params["offset"] = offset
-                    resp = await client.get(
-                        f"{self.api_base}/getUpdates", params=params
-                    )
+                    resp = await client.get(f"{self.api_base}/getUpdates", params=params)
                     data = resp.json()
 
                 if data.get("ok"):

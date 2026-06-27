@@ -24,8 +24,10 @@ class TestApiRouter:
         from brain.api_router import ApiRouter
 
         router = ApiRouter()
+
         def fn(x):
             return x
+
         router.register("transform", fn)
         caps = router.capabilities()
         assert "transform" in caps

@@ -21,9 +21,7 @@ def _skip_if_media_deps_missing():
         pytest.skip(f"Media backend dependencies missing: {exc}")
 
 
-@pytest.mark.skip(
-    reason="Placeholder: skip until media backends are wired in production"
-)
+@pytest.mark.skip(reason="Placeholder: skip until media backends are wired in production")
 def test_generate_image_success():
     _skip_if_media_deps_missing()
     payload = {
@@ -38,9 +36,7 @@ def test_generate_image_success():
         assert "success" in body
 
 
-@pytest.mark.skip(
-    reason="Placeholder: skip until media backends are wired in production"
-)
+@pytest.mark.skip(reason="Placeholder: skip until media backends are wired in production")
 def test_generate_video_success():
     _skip_if_media_deps_missing()
     payload = {

@@ -9,12 +9,38 @@ from loguru import logger
 class PromptFirewall:
     def __init__(self):
         self.llama_guard_url = os.getenv("LLAMA_GUARD_URL", "")
-        self.nemo_guardrails_enabled = (
-            os.getenv("NEMO_GUARDRAILS_ENABLED", "true").lower() == "true"
-        )
+        self.nemo_guardrails_enabled = os.getenv("NEMO_GUARDRAILS_ENABLED", "true").lower() == "true"
         self._local_patterns = self._load_local_patterns()
 
     def _load_local_patterns(self) -> list[dict[str, Any]]:
+        try:
+            from database.supabase_client import db
+
+            if db.client:
+                db_guardrails = db.get_db_guardrails()
+                if db_guardrails:
+                    mapped_patterns = []
+                    for row in db_guardrails:
+                        mapped_patterns.append({"name": row.get("layer_name"), "patterns": row.get("rule_definition", {}).get("patterns", [])})
+                    return mapped_patterns
+                else:
+                    defaults = self._get_default_patterns()
+                    for idx, category in enumerate(defaults):
+                        db.upsert_db_guardrail(
+                            {
+                                "layer_name": category["name"],
+                                "rule_definition": {"patterns": category["patterns"]},
+                                "priority": idx,
+                                "is_active": True,
+                            }
+                        )
+                    return defaults
+        except Exception as e:
+            logger.debug(f"Failed to fetch guardrails from Supabase: {e}")
+
+        return self._get_default_patterns()
+
+    def _get_default_patterns(self) -> list[dict[str, Any]]:
         return [
             {
                 "name": "prompt_injection",
@@ -66,9 +92,7 @@ class PromptFirewall:
                 if response.status_code == 200:
                     result = response.json()
                     if result.get("safety_category"):
-                        return (
-                            f"Blocked by Llama Guard: {result.get('safety_category')}"
-                        )
+                        return f"Blocked by Llama Guard: {result.get('safety_category')}"
         except Exception as e:
             logger.debug(f"Llama Guard scan failed (non-fatal): {e}")
         return None
@@ -92,18 +116,9 @@ class PromptFirewall:
 
     async def classify_intent(self, prompt: str) -> dict[str, Any]:
         complexity = "simple"
-        requires_coding = any(
-            kw in prompt.lower()
-            for kw in ["code", "function", "class", "debug", "refactor", "algorithm"]
-        )
-        requires_reasoning = any(
-            kw in prompt.lower()
-            for kw in ["reason", "logic", "analyze", "math", "calculate"]
-        )
-        requires_vision = any(
-            kw in prompt.lower()
-            for kw in ["image", "photo", "picture", "visual", "ocr"]
-        )
+        requires_coding = any(kw in prompt.lower() for kw in ["code", "function", "class", "debug", "refactor", "algorithm"])
+        requires_reasoning = any(kw in prompt.lower() for kw in ["reason", "logic", "analyze", "math", "calculate"])
+        requires_vision = any(kw in prompt.lower() for kw in ["image", "photo", "picture", "visual", "ocr"])
 
         if requires_coding:
             complexity = "coding"

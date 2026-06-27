@@ -61,9 +61,7 @@ class AutoSkillCreator:
             self._model = genai.GenerativeModel("gemini-1.5-pro")
         return self._model
 
-    async def generate_and_deploy_skill(
-        self, user_demand: str, skill_name: str
-    ) -> dict:
+    async def generate_and_deploy_skill(self, user_demand: str, skill_name: str) -> dict:
         import json
         import shutil
         import uuid
@@ -73,9 +71,7 @@ class AutoSkillCreator:
 
         from skills.schema import UniversalSkillSchema
 
-        logger.info(
-            f"🧠 Self-Evolution Triggered: Designing skill '{skill_name}' for demand: '{user_demand}'"
-        )
+        logger.info(f"🧠 Self-Evolution Triggered: Designing skill '{skill_name}' for demand: '{user_demand}'")
 
         trace_id = uuid.uuid4().hex
         generation_timestamp = datetime.now(timezone.utc).isoformat()
@@ -88,8 +84,8 @@ class AutoSkillCreator:
             "The JSON structure must match this template exactly:\n"
             "{\n"
             '  "code": "python code containing a class matching the skill_name. '
-            'The class must implement an async def execute(self, kwargs) -> dict method. '
-            'Do not use banned keywords like eval, exec, compile, getattr, setattr, '
+            "The class must implement an async def execute(self, kwargs) -> dict method. "
+            "Do not use banned keywords like eval, exec, compile, getattr, setattr, "
             'globals, locals.",\n'
             '  "schema": {\n'
             '    "metadata": {\n'
@@ -155,26 +151,17 @@ class AutoSkillCreator:
             schema_dict = data.get("schema", {})
 
             # Traceability enhancements
-            schema_dict["metadata"]["tags"] = schema_dict["metadata"].get(
-                "tags", []
-            ) + [f"trace_id:{trace_id}"]
+            schema_dict["metadata"]["tags"] = schema_dict["metadata"].get("tags", []) + [f"trace_id:{trace_id}"]
             schema_dict["metadata"]["author"] = f"supremeai_agent_id:{trace_id}"
-            schema_dict["metadata"]["description"] = (
-                schema_dict["metadata"].get("description", "")
-                + f" (Generated at {generation_timestamp})"
-            )
+            schema_dict["metadata"]["description"] = schema_dict["metadata"].get("description", "") + f" (Generated at {generation_timestamp})"
 
             # 🛡️ ৩. দ্য আলটিমেট স্যান্ডবক্স গেটকিপার ভ্যালিডেশন (The Iron Cage Check)
             try:
                 is_safe = run_sandbox_ast_check(code_block)
                 if not is_safe:
-                    raise SecurityError(
-                        "Generated code failed AST layout normalization."
-                    )
+                    raise SecurityError("Generated code failed AST layout normalization.")
             except SecurityError as sec_err:
-                logger.critical(
-                    f"🚨 [EVOLUTION BLOCKED] AI generated a dangerous skill payload! Threat defused: {str(sec_err)}"
-                )
+                logger.critical(f"🚨 [EVOLUTION BLOCKED] AI generated a dangerous skill payload! Threat defused: {str(sec_err)}")
                 return {
                     "success": False,
                     "error": f"Security Sandbox Violation: {str(sec_err)}",
@@ -204,9 +191,7 @@ class AutoSkillCreator:
             import importlib.util
 
             # Isolated import to run test validation loop
-            spec = importlib.util.spec_from_file_location(
-                f"skills.quarantine.{skill_name}", str(entry_file)
-            )
+            spec = importlib.util.spec_from_file_location(f"skills.quarantine.{skill_name}", str(entry_file))
             mod = importlib.util.module_from_spec(spec)
             spec.loader.exec_module(mod)
 
@@ -215,18 +200,12 @@ class AutoSkillCreator:
 
             # Execute validation tests loop
             for idx, test in enumerate(uss.validation.tests):
-                logger.info(
-                    f"Running validation test case {idx+1}/{len(uss.validation.tests)}..."
-                )
+                logger.info(f"Running validation test case {idx + 1}/{len(uss.validation.tests)}...")
                 result = await instance.execute(test.input)
                 if result != test.expected_output:
-                    raise ValueError(
-                        f"Validation test {idx+1} failed. Expected {test.expected_output}, got {result}"
-                    )
+                    raise ValueError(f"Validation test {idx + 1} failed. Expected {test.expected_output}, got {result}")
 
-            logger.info(
-                f"✅ All {len(uss.validation.tests)} validation tests passed for skill '{skill_name}'!"
-            )
+            logger.info(f"✅ All {len(uss.validation.tests)} validation tests passed for skill '{skill_name}'!")
 
             # ৬. Finalize Registration & Storage Deployment
             installer = SkillInstaller()
@@ -257,14 +236,10 @@ class AutoSkillCreator:
                 "uss": schema_dict,
             }
             self.skills_ref.document(skill_name).set(skill_meta)
-            logger.info(
-                f"🏆 Deployed dynamic skill '{skill_name}' into Firestore. Ready for live orchestration!"
-            )
+            logger.info(f"🏆 Deployed dynamic skill '{skill_name}' into Firestore. Ready for live orchestration!")
 
             latency = time.time() - start_time
-            self.fitness_engine.track_execution(
-                skill_name, success=True, latency=latency
-            )
+            self.fitness_engine.track_execution(skill_name, success=True, latency=latency)
             return {
                 "success": True,
                 "skill_name": skill_name,
@@ -274,9 +249,7 @@ class AutoSkillCreator:
         except Exception as e:
             logger.error(f"❌ Self-Evolution loop crashed: {str(e)}")
             latency = time.time() - start_time
-            self.fitness_engine.track_execution(
-                skill_name, success=False, latency=latency
-            )
+            self.fitness_engine.track_execution(skill_name, success=False, latency=latency)
             # Cleanup quarantine on failure
             if quarantine_dir.exists():
                 shutil.rmtree(quarantine_dir)

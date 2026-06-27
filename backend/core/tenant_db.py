@@ -17,9 +17,7 @@ class TenantAwareFirestore:
 
     def __init__(self, tenant_id: str):
         if not tenant_id:
-            logger.critical(
-                "🚨 SECURITY BREACH: Attempted to initialize DB without a tenant_id!"
-            )
+            logger.critical("🚨 SECURITY BREACH: Attempted to initialize DB without a tenant_id!")
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="Database access denied: Missing tenant isolation context.",

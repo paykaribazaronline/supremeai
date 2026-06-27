@@ -68,16 +68,12 @@ def test_orchestrator_integration():
     orchestrator.skill_graph.add_skill("Skill_B", skill_b)
 
     # Decompose intent within budget
-    res = orchestrator.decompose_intent(
-        "Process and format data", "Skill_A", "Skill_B", max_token_cost=0.05
-    )
+    res = orchestrator.decompose_intent("Process and format data", "Skill_A", "Skill_B", max_token_cost=0.05)
     assert res["success"] is True
     assert res["execution_plan"] == ["Skill_A", "Skill_B"]
 
     # Decompose intent exceeding budget
-    res_fail = orchestrator.decompose_intent(
-        "Process and format data", "Skill_A", "Skill_B", max_token_cost=0.01
-    )
+    res_fail = orchestrator.decompose_intent("Process and format data", "Skill_A", "Skill_B", max_token_cost=0.01)
     assert res_fail["success"] is False
     assert "exceeds budget" in res_fail["error"]
 
@@ -110,9 +106,7 @@ async def test_fallback_and_weight_updates():
     # 2. Failure and Fallback Execution
     # We will trigger the failure by passing input data with trigger_failure flag
     # This will simulate exception on the second skill in chain.
-    result_fail = await orchestrator.execute_skill_chain(
-        ["Skill_A", "Skill_B"], {"trigger_failure": True}
-    )
+    result_fail = await orchestrator.execute_skill_chain(["Skill_A", "Skill_B"], {"trigger_failure": True})
     assert result_fail["success"] is False
     assert result_fail["fallback_executed"] == "Skill_A"
 

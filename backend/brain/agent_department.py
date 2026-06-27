@@ -10,17 +10,9 @@ class CodingAgent:
         self.model_router = model_router
 
     def execute(self, description: str, context: str = "") -> dict[str, Any]:
-        prompt = (
-            "R-A-C-E Framework\n"
-            f"Role: {self.role}\n"
-            f"Action: {description}\n"
-            f"Context: {context}\n"
-            "Expectation: Return implementation with tests."
-        )
+        prompt = f"R-A-C-E Framework\nRole: {self.role}\nAction: {description}\nContext: {context}\nExpectation: Return implementation with tests."
         try:
-            raw = self.model_router.route_and_generate(
-                prompt=prompt, task_type="coding", max_cost=0.01
-            )
+            raw = self.model_router.route_and_generate(prompt=prompt, task_type="coding", max_cost=0.01)
             if raw.get("success") or raw.get("text"):
                 return {
                     "role": self.role,
@@ -53,9 +45,7 @@ class ReviewAgent:
             "Expectation: Review findings with severity and suggested fixes."
         )
         try:
-            raw = self.model_router.route_and_generate(
-                prompt=prompt, task_type="code", max_cost=0.01
-            )
+            raw = self.model_router.route_and_generate(prompt=prompt, task_type="code", max_cost=0.01)
             if raw.get("success") or raw.get("text"):
                 return {
                     "role": self.role,
@@ -89,9 +79,7 @@ class QAAgent:
             f"Context: {context}"
         )
         try:
-            raw = self.model_router.route_and_generate(
-                prompt=prompt, task_type="testing", max_cost=0.01
-            )
+            raw = self.model_router.route_and_generate(prompt=prompt, task_type="testing", max_cost=0.01)
             if raw.get("success") or raw.get("text"):
                 return {
                     "role": self.role,

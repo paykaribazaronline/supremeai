@@ -50,8 +50,7 @@ async def create_api_key(
 async def get_api_key_by_id(key_id: int) -> dict[str, Any] | None:
     pool = await get_db_pool()
     row = await pool.fetchrow(
-        "SELECT id, user_id, name, key_masked, key_prefix, rate_limit_rps, revoked, "
-        "expires_at, created_at, updated_at FROM api_keys WHERE id = $1",
+        "SELECT id, user_id, name, key_masked, key_prefix, rate_limit_rps, revoked, expires_at, created_at, updated_at FROM api_keys WHERE id = $1",
         key_id,
     )
     return dict(row) if row else None
@@ -71,8 +70,7 @@ async def get_api_keys_by_user(user_id: str) -> list[dict[str, Any]]:
 async def get_api_key_by_hash(key_hash: str) -> dict[str, Any] | None:
     pool = await get_db_pool()
     row = await pool.fetchrow(
-        "SELECT id, user_id, name, key_hash, key_masked, revoked, expires_at "
-        "FROM api_keys WHERE key_hash = $1",
+        "SELECT id, user_id, name, key_hash, key_masked, revoked, expires_at FROM api_keys WHERE key_hash = $1",
         key_hash,
     )
     return dict(row) if row else None
@@ -91,8 +89,7 @@ async def update_api_key_last_used(key_id: int) -> None:
 async def revoke_api_key(key_id: int) -> dict[str, Any] | None:
     pool = await get_db_pool()
     row = await pool.fetchrow(
-        "UPDATE api_keys SET revoked = TRUE, updated_at = $1 WHERE id = $2 "
-        "RETURNING id, name, key_masked, revoked, updated_at",
+        "UPDATE api_keys SET revoked = TRUE, updated_at = $1 WHERE id = $2 RETURNING id, name, key_masked, revoked, updated_at",
         now_epoch(),
         key_id,
     )
@@ -186,8 +183,7 @@ async def record_api_key_event(
 ) -> None:
     pool = await get_db_pool()
     await pool.execute(
-        "INSERT INTO api_key_events (api_key_id, event_type, details, ip_address, "
-        "created_at) VALUES ($1, $2, $3, $4, $5)",
+        "INSERT INTO api_key_events (api_key_id, event_type, details, ip_address, created_at) VALUES ($1, $2, $3, $4, $5)",
         key_id,
         event_type,
         details,

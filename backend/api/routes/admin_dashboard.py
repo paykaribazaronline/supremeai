@@ -33,9 +33,7 @@ def require_admin_token(credentials: HTTPAuthorizationCredentials = Depends(secu
         jwt_secret = settings.jwt_secret
         decoded = jwt.decode(token, jwt_secret, algorithms=["HS256"])
         if decoded.get("role") != "admin":
-            raise HTTPException(
-                status_code=403, detail="Forbidden: User does not have admin role."
-            )
+            raise HTTPException(status_code=403, detail="Forbidden: User does not have admin role.")
 
         jti = decoded.get("jti")
         if jti:
@@ -45,9 +43,7 @@ def require_admin_token(credentials: HTTPAuthorizationCredentials = Depends(secu
             if redis_queue and getattr(redis_queue, "configured", False):
                 blocked = redis_queue.get(f"jwt_blacklist:{jti}")
                 if blocked is not None:
-                    raise HTTPException(
-                        status_code=401, detail="Token has been revoked."
-                    )
+                    raise HTTPException(status_code=401, detail="Token has been revoked.")
             else:
                 logger.warning("Redis not configured; JWT blacklist check skipped.")
 
@@ -56,9 +52,7 @@ def require_admin_token(credentials: HTTPAuthorizationCredentials = Depends(secu
         expected = os.getenv("SUPREMEAI_API_TOKEN") or ""
         if expected and secrets.compare_digest(token, expected):
             return {"uid": "admin", "role": "admin"}
-        raise HTTPException(
-            status_code=401, detail=f"Invalid Admin Authorization Token: {str(e)}"
-        ) from e
+        raise HTTPException(status_code=401, detail=f"Invalid Admin Authorization Token: {str(e)}") from e
 
 
 def admin_rate_limit(request: Request):
@@ -262,9 +256,7 @@ def create_user(user: UserUpdate):
             save_users(users)
             return {"status": "success", "message": f"User {user.username} updated"}
 
-    users.append(
-        {"username": user.username, "role": user.role, "permissions": user.permissions}
-    )
+    users.append({"username": user.username, "role": user.role, "permissions": user.permissions})
     save_users(users)
     return {"status": "success", "message": f"User {user.username} created"}
 
@@ -293,9 +285,7 @@ def get_env_etag(redis_key: str = "config:env_etag") -> str:
     if os.path.exists(".env"):
         try:
             with open(".env", "rb") as f:
-                etag = hashlib.md5(
-                    f.read(), usedforsecurity=False
-                ).hexdigest()  # nosec B324
+                etag = hashlib.md5(f.read(), usedforsecurity=False).hexdigest()  # nosec B324
             if redis_queue and getattr(redis_queue, "configured", False):
                 redis_queue.set(redis_key, etag, ex=300)
             return etag
@@ -443,9 +433,7 @@ class RouterOverrideRequest(BaseModel):
 
 @router.post("/model-router/override")
 def set_router_override(payload: RouterOverrideRequest):
-    logger.info(
-        f"Router override set: {payload.provider}/{payload.model} for {payload.remaining_requests} requests"
-    )
+    logger.info(f"Router override set: {payload.provider}/{payload.model} for {payload.remaining_requests} requests")
     return {
         "status": "success",
         "override": {
@@ -501,9 +489,7 @@ def update_cost_caps(payload: dict[str, Any]):
 
 
 @router.post("/users/impersonate/{username}")
-async def impersonate_user(
-    username: str, current_admin: dict = Depends(require_admin_token)
-):
+async def impersonate_user(username: str, current_admin: dict = Depends(require_admin_token)):
     users = load_users()
     target = next((u for u in users if u["username"] == username), None)
     if not target:
@@ -552,6 +538,7 @@ def trigger_backup():
 @router.get("/data-export")
 def get_full_data_export():
     from tools.codebase_exporter import export_codebase_to_markdown
+
     try:
         codebase_md = export_codebase_to_markdown("..")
         users = load_users()
@@ -571,10 +558,7 @@ def get_full_data_export():
 def run_security_scan():
     findings = []
     try:
-        if (
-            not settings.jwt_secret
-            or settings.jwt_secret == "np97Qpdqi9VdRyiANqjfKZn8/u7s/WCjtG8UsjbhhS0="
-        ):
+        if not settings.jwt_secret or settings.jwt_secret == "np97Qpdqi9VdRyiANqjfKZn8/u7s/WCjtG8UsjbhhS0=":
             findings.append(
                 {
                     "item": "jwt_secret",
@@ -649,12 +633,8 @@ from datetime import timezone
 
 class GateOverridePayload(BaseModel):
     target_status: str = Field(..., description="Must be 'UNLOCKED' or 'LOCKED'")
-    reason: str = Field(
-        ..., min_length=10, description="Detailed justification for manual bypass"
-    )
-    admin_secret: str = Field(
-        ..., description="Master JWT/Vault secret key for authentication"
-    )
+    reason: str = Field(..., min_length=10, description="Detailed justification for manual bypass")
+    admin_secret: str = Field(..., description="Master JWT/Vault secret key for authentication")
 
 
 @router.post("/gate/override")
@@ -666,9 +646,7 @@ async def execute_manual_gate_override(payload: GateOverridePayload):
     """
     # 🛡️ ১. স্ট্রিক্ট সিকিউরিটি গেটকিপার (Master Token Cross-Matching)
     if payload.admin_secret != settings.jwt_secret:
-        logger.critical(
-            "🚨 [SECURITY BREACH ATTEMPT] Unauthorized attempt to access God-Mode Override Endpoint!"
-        )
+        logger.critical("🚨 [SECURITY BREACH ATTEMPT] Unauthorized attempt to access God-Mode Override Endpoint!")
         raise HTTPException(
             status_code=401,
             detail="Access Denied: Invalid Administrative Secret Key Key.",
@@ -697,9 +675,7 @@ async def execute_manual_gate_override(payload: GateOverridePayload):
         # ট্রানজেকশনাল রাইট ট্রিগার
         gate_ref.set(override_context)
 
-        logger.warning(
-            f"🔱 [GOD-MODE OVERRIDE] Admin has manually forced deploy_gate status to {requested_status}."
-        )
+        logger.warning(f"🔱 [GOD-MODE OVERRIDE] Admin has manually forced deploy_gate status to {requested_status}.")
 
         return {
             "success": True,
@@ -709,9 +685,5 @@ async def execute_manual_gate_override(payload: GateOverridePayload):
         }
 
     except Exception as e:
-        logger.error(
-            f"❌ Failed to commit manual gate override to Cloud Firestore: {str(e)}"
-        )
-        raise HTTPException(
-            status_code=500, detail=f"Infrastructure Sync Failure: {str(e)}"
-        ) from e
+        logger.error(f"❌ Failed to commit manual gate override to Cloud Firestore: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Infrastructure Sync Failure: {str(e)}") from e

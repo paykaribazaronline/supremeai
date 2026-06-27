@@ -69,9 +69,7 @@ class TestMigrationFiles:
             "tenant_usage",
         ]
         for table in required_tables:
-            assert (
-                table in content
-            ), f"Missing table: {table} in 07_tenant_sso_offline.sql"
+            assert table in content, f"Missing table: {table} in 07_tenant_sso_offline.sql"
 
     def test_referral_schema_has_indexes(self):
         content = (MIGRATIONS_DIR / "06_referral_system.sql").read_text().upper()
@@ -164,12 +162,13 @@ class TestOnboardingAPI:
             default_model="gpt-4o-mini",
             first_chat_sent=False,
         )
-        with patch(
-            "api.routes.onboarding._validate_api_key",
-            new_callable=AsyncMock,
-            return_value=True,
-        ), patch(
-            "api.routes.onboarding._save_user_preferences", return_value=True
+        with (
+            patch(
+                "api.routes.onboarding._validate_api_key",
+                new_callable=AsyncMock,
+                return_value=True,
+            ),
+            patch("api.routes.onboarding._save_user_preferences", return_value=True),
         ):
             result = await complete_onboarding(payload)
         assert result.status == "success"
@@ -187,12 +186,13 @@ class TestOnboardingAPI:
             provider="openai",
             api_key="invalid",
         )
-        with patch(
-            "api.routes.onboarding._validate_api_key",
-            new_callable=AsyncMock,
-            return_value=False,
-        ), patch(
-            "api.routes.onboarding._save_user_preferences", return_value=True
+        with (
+            patch(
+                "api.routes.onboarding._validate_api_key",
+                new_callable=AsyncMock,
+                return_value=False,
+            ),
+            patch("api.routes.onboarding._save_user_preferences", return_value=True),
         ):
             result = await complete_onboarding(payload)
         # Should not raise — gracefully returns warning
@@ -211,9 +211,7 @@ class TestViralReferralEngine:
         engine = ViralReferralEngine()
         with patch("tools.viral_referral_engine.db") as mock_db:
             mock_db.client = None  # Force local store
-            with patch.object(engine, "_save_local"), patch.object(
-                engine, "_load_local", return_value={"codes": {}, "wallets": {}}
-            ):
+            with patch.object(engine, "_save_local"), patch.object(engine, "_load_local", return_value={"codes": {}, "wallets": {}}):
                 result = engine.generate_referral_code("user123")
         assert result["status"] == "success"
         assert result["code"].startswith("SUPREME-")
@@ -269,9 +267,7 @@ class TestViralReferralEngine:
                 "_load_local",
                 return_value={"codes": {}, "wallets": {}, "redemptions": fake_history},
             ):
-                is_fraud = engine._is_fraudulent(
-                    "u1", "new_victim", {"ip_address": "1.2.3.4"}
-                )
+                is_fraud = engine._is_fraudulent("u1", "new_victim", {"ip_address": "1.2.3.4"})
         assert is_fraud is True
 
 
@@ -284,9 +280,7 @@ class TestTenantRateLimiter:
 
         p = pathlib.Path(__file__).parent.parent / "tools" / "tenant_rate_limiter.py"
         assert p.exists(), "tenant_rate_limiter.py must exist"
-        assert (
-            p.stat().st_size > 1000
-        ), "tenant_rate_limiter.py appears too small (stub?)"
+        assert p.stat().st_size > 1000, "tenant_rate_limiter.py appears too small (stub?)"
 
     def test_rate_limiter_has_class(self):
         import ast

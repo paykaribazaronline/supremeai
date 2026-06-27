@@ -4,9 +4,7 @@ from loguru import logger
 
 
 class BlockchainAgent:
-    async def generate_contract(
-        self, description: str, language: str = "solidity"
-    ) -> dict[str, Any]:
+    async def generate_contract(self, description: str, language: str = "solidity") -> dict[str, Any]:
         logger.info(f"Generating {language} contract for: {description}")
         contract = """
 // SPDX-License-Identifier: MIT

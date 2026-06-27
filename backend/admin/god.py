@@ -33,18 +33,14 @@ class AdminGodLayer:
             except Exception as e:
                 logger.warning(f"Failed to initialize Firestore for AdminGodLayer: {e}")
         else:
-            logger.warning(
-                "google-cloud-firestore not installed or in test mode. AdminGodLayer using local fallback."
-            )
+            logger.warning("google-cloud-firestore not installed or in test mode. AdminGodLayer using local fallback.")
 
     def _init_db(self):
         if not self._db:
             return
         try:
             # Check if admin_authorized exists, if not initialize it
-            doc_ref = self._db.collection(self.collection_name).document(
-                "admin_authorized"
-            )
+            doc_ref = self._db.collection(self.collection_name).document("admin_authorized")
             if not doc_ref.get().exists:
                 self.set_rule("admin_authorized", "true")
         except Exception as e:
@@ -88,7 +84,4 @@ class AdminGodLayer:
 
     def enforce(self, action: str) -> None:
         if not self.is_admin_action_allowed(action):
-            raise PermissionError(
-                "Action blocked by constitutional rules. "
-                "Admin authorization required."
-            )
+            raise PermissionError("Action blocked by constitutional rules. Admin authorization required.")

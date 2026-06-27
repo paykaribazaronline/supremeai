@@ -79,9 +79,7 @@ def test_task_execute_allowed_and_success():
         }
     )
     fake_intent = MagicMock()
-    fake_intent.classify.return_value = type(
-        "Intent", (), {"task_type": TaskType.general, "confidence": 0.5}
-    )()
+    fake_intent.classify.return_value = type("Intent", (), {"task_type": TaskType.general, "confidence": 0.5})()
 
     previous_admin = app_mod.admin_god
     previous_router = app_mod.model_router
@@ -102,9 +100,7 @@ def test_task_execute_allowed_and_success():
 
         res_obj = json.loads(body["result"])
         assert res_obj["content"] == "ok"
-        fake_router.async_route_and_generate.assert_called_once_with(
-            prompt="hello", task_type="general", max_cost=0.01
-        )
+        fake_router.async_route_and_generate.assert_called_once_with(prompt="hello", task_type="general", max_cost=0.01)
 
     finally:
         app_mod.admin_god = previous_admin

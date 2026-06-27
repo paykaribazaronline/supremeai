@@ -156,9 +156,7 @@ class TokenBudgetStats:
             "total_calls": self.total_calls,
             "total_input_tokens": self.total_input_tokens,
             "total_output_tokens": self.total_output_tokens,
-            "avg_input_tokens": (
-                self.total_input_tokens // self.total_calls if self.total_calls else 0
-            ),
+            "avg_input_tokens": (self.total_input_tokens // self.total_calls if self.total_calls else 0),
             "truncated_calls": self.truncated_calls,
             "tokens_saved_by_truncation": self.tokens_saved_by_truncation,
             "tracking_since": self.started_at,
@@ -269,11 +267,7 @@ class TokenBudgetManager:
     ) -> None:
         """Record actual token usage after a completed API call."""
         self._get_stats(provider).total_output_tokens += output_tokens
-        logger.debug(
-            f"[TokenBudget] {provider} usage: "
-            f"in={input_tokens} out={output_tokens} "
-            f"total_in={self._get_stats(provider).total_input_tokens}"
-        )
+        logger.debug(f"[TokenBudget] {provider} usage: in={input_tokens} out={output_tokens} total_in={self._get_stats(provider).total_input_tokens}")
 
     def fits_in_budget(self, prompt: str, provider: str = "default") -> bool:
         """Return True if *prompt* fits within provider's input token budget."""

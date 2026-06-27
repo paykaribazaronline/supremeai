@@ -105,10 +105,7 @@ class TestLoginEndpoint:
     def test_login_returns_501(self, client):
         resp = client.post("/auth/login", json={"username": "test", "password": "test"})
         assert resp.status_code == 501
-        assert (
-            resp.json()["detail"]
-            == "Direct login is not supported. Use the admin TOTP flow or an OAuth provider."
-        )
+        assert resp.json()["detail"] == "Direct login is not supported. Use the admin TOTP flow or an OAuth provider."
 
     def test_login_missing_username(self, client):
         resp = client.post("/auth/login", json={"password": "test"})
@@ -134,9 +131,7 @@ class TestMeEndpoint:
     async def test_me_with_valid_token(self, client):
         with patch("api.routes.auth.jwt") as mock_jwt:
             mock_jwt.decode.return_value = {"sub": "user1", "role": "admin"}
-            resp = client.get(
-                "/auth/me", headers={"Authorization": "Bearer valid.token"}
-            )
+            resp = client.get("/auth/me", headers={"Authorization": "Bearer valid.token"})
         assert resp.status_code == 200
         data = resp.json()
         assert data["user_id"] == "user1"

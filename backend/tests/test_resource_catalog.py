@@ -8,8 +8,7 @@ from backend.tools.resource_catalog import ResourceCatalog
 @pytest.mark.anyio
 async def test_resource_catalog_search_mock(monkeypatch):
     markdown = (
-        "- [LocalAI](https://localai.dev) - Local inference for open models.\n"
-        "- [Chroma](https://www.trychroma.com) - Embeddable vector database.\n"
+        "- [LocalAI](https://localai.dev) - Local inference for open models.\n- [Chroma](https://www.trychroma.com) - Embeddable vector database.\n"
     )
 
     class FakeResponse:
@@ -91,11 +90,7 @@ async def test_enabled_catalog_sources_from_db(monkeypatch):
     monkeypatch.setattr(
         marketplace_endpoints.db,
         "get_config",
-        lambda key: (
-            ["awesome-python", "libraries.io"]
-            if key == "marketplace.resource_sources"
-            else None
-        ),
+        lambda key: ["awesome-python", "libraries.io"] if key == "marketplace.resource_sources" else None,
     )
 
     sources = marketplace_endpoints.get_enabled_catalog_sources()

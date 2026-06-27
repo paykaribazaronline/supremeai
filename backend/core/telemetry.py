@@ -15,9 +15,7 @@ _tracer: Tracer | None = None
 tracer: Tracer | None = None
 
 
-def setup_tracing(
-    service_name: str = "supremeai", otlp_endpoint: str | None = None
-) -> None:
+def setup_tracing(service_name: str = "supremeai", otlp_endpoint: str | None = None) -> None:
     endpoint = otlp_endpoint or os.getenv("OTLP_ENDPOINT", "")
     provider = TracerProvider()
     if endpoint:
@@ -42,9 +40,7 @@ def get_tracer() -> Tracer | None:
 
 
 @contextmanager
-def trace_span(
-    name: str, attributes: dict[str, Any] | None = None, kind: str = "internal"
-):
+def trace_span(name: str, attributes: dict[str, Any] | None = None, kind: str = "internal"):
     tracer = get_tracer()
     if tracer is None:
         yield _NoOpSpan()

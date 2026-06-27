@@ -105,11 +105,7 @@ def _get_test_file_path(source_path: str, stack: str) -> str:
     if stack == "dart":
         return str(p.parent.parent / "test" / f"{p.stem}_test.dart")
     if stack == "java":
-        return (
-            str(p)
-            .replace("src/main/java", "src/test/java")
-            .replace(".java", "Test.java")
-        )
+        return str(p).replace("src/main/java", "src/test/java").replace(".java", "Test.java")
     return str(p.parent / f"{p.stem}_test{p.suffix}")
 
 
@@ -156,11 +152,7 @@ def _build_prompt(
         all_fns = symbols.get("functions", []) + symbols.get("async_functions", [])
         classes = symbols.get("classes", [])
         if all_fns or classes:
-            symbol_hint = (
-                f"\n\nDetected symbols:\n"
-                f"Functions: {', '.join(all_fns[:15]) or 'none'}\n"
-                f"Classes: {', '.join(classes[:10]) or 'none'}"
-            )
+            symbol_hint = f"\n\nDetected symbols:\nFunctions: {', '.join(all_fns[:15]) or 'none'}\nClasses: {', '.join(classes[:10]) or 'none'}"
 
     style_instruction = ""
     if style_guidelines:
@@ -172,9 +164,7 @@ def _build_prompt(
         else "Do not add mocking — use real implementations."
     )
     edge_instruction = (
-        "Include edge cases: empty inputs, None values, large inputs, concurrent calls."
-        if include_edge_cases
-        else "Focus on happy-path tests only."
+        "Include edge cases: empty inputs, None values, large inputs, concurrent calls." if include_edge_cases else "Focus on happy-path tests only."
     )
 
     framework_notes = {
@@ -188,18 +178,9 @@ def _build_prompt(
             "Use vi.mock() for module mocks. Use describe/it/expect.\n"
             "Import from 'vitest': { describe, it, expect, vi, beforeEach }."
         ),
-        "jest": (
-            "Use Jest. Use jest.mock() for mocks. describe/it/expect pattern.\n"
-            "Use beforeEach/afterEach for setup/teardown."
-        ),
-        "flutter_test": (
-            "Use flutter_test package. Use testWidgets for widget tests.\n"
-            "Use mockito or mocktail for mocking."
-        ),
-        "junit5": (
-            "Use JUnit 5 with @Test, @ExtendWith(MockitoExtension.class).\n"
-            "Use Mockito for mocks. Follow AAA pattern (Arrange/Act/Assert)."
-        ),
+        "jest": ("Use Jest. Use jest.mock() for mocks. describe/it/expect pattern.\nUse beforeEach/afterEach for setup/teardown."),
+        "flutter_test": ("Use flutter_test package. Use testWidgets for widget tests.\nUse mockito or mocktail for mocking."),
+        "junit5": ("Use JUnit 5 with @Test, @ExtendWith(MockitoExtension.class).\nUse Mockito for mocks. Follow AAA pattern (Arrange/Act/Assert)."),
     }.get(framework, f"Use {framework} testing conventions.")
 
     return f"""You are an expert software engineer. Generate a comprehensive test file for the following {stack} source code.
@@ -248,9 +229,7 @@ class AutoTestGenerator:
             from backend.brain.model_router import ModelRouter
 
             r = ModelRouter()
-            result = await r.async_route_and_generate(
-                prompt, task_type="coding", max_cost=0.05
-            )
+            result = await r.async_route_and_generate(prompt, task_type="coding", max_cost=0.05)
             return result.get("text", "") if isinstance(result, dict) else str(result)  # type: ignore
         except Exception as exc:
             logger.error(f"LLM call failed: {exc}")
@@ -278,15 +257,9 @@ class AutoTestGenerator:
         # Get style guidelines
         # Assumes file_path is relative to a repo root that can be analyzed.
         repo_root_for_style = "."  # Use current directory as a proxy for the repo root.
-        style_guidelines = self.style_learner.generate_style_prompt(
-            repo_root_for_style, detected_stack
-        )
+        style_guidelines = self.style_learner.generate_style_prompt(repo_root_for_style, detected_stack)
 
-        fn_count = (
-            len(symbols.get("functions", []) + symbols.get("async_functions", []))
-            if symbols
-            else 0
-        )
+        fn_count = len(symbols.get("functions", []) + symbols.get("async_functions", [])) if symbols else 0
 
         prompt = _build_prompt(
             source_code=source_code,
@@ -300,9 +273,7 @@ class AutoTestGenerator:
             style_guidelines=style_guidelines,
         )
 
-        logger.info(
-            f"Generating tests: {file_path} | stack={detected_stack} | framework={detected_framework}"
-        )
+        logger.info(f"Generating tests: {file_path} | stack={detected_stack} | framework={detected_framework}")
         test_code = await self._llm(prompt)
 
         if not test_code:
@@ -353,9 +324,7 @@ class AutoTestGenerator:
             lines = lines[:-1]
         return "\n".join(lines).strip()
 
-    async def generate_and_save(
-        self, source_path: str, run_tests: bool = False
-    ) -> dict[str, Any]:
+    async def generate_and_save(self, source_path: str, run_tests: bool = False) -> dict[str, Any]:
         """Read file, generate tests, save to disk, optionally run them."""
         if not os.path.exists(source_path):
             return {"status": "error", "error": f"File not found: {source_path}"}
@@ -406,9 +375,7 @@ class AutoTestGenerator:
         except Exception as exc:
             return {"returncode": -1, "passed": False, "error": str(exc)}
 
-    async def batch_generate(
-        self, source_paths: list[str], save: bool = True
-    ) -> dict[str, Any]:
+    async def batch_generate(self, source_paths: list[str], save: bool = True) -> dict[str, Any]:
         """Generate tests for multiple files."""
         if len(source_paths) > 20:
             raise ValueError("Max 20 files per batch")
@@ -417,11 +384,7 @@ class AutoTestGenerator:
             if save:
                 r = await self.generate_and_save(path)
             else:
-                code = (
-                    pathlib.Path(path).read_text(encoding="utf-8")
-                    if os.path.exists(path)
-                    else ""
-                )
+                code = pathlib.Path(path).read_text(encoding="utf-8") if os.path.exists(path) else ""
                 r = await self.generate(source_code=code, file_path=path)
             results.append({"path": path, **r})
         return {
@@ -454,9 +417,7 @@ async def generate_tests(request: TestGenRequest):
         include_edge_cases=request.include_edge_cases,
     )
     if result["status"] == "error":
-        raise HTTPException(
-            status_code=503, detail=result.get("error", "Generation failed")
-        )
+        raise HTTPException(status_code=503, detail=result.get("error", "Generation failed"))
     return TestGenResponse(**result)
 
 
@@ -469,9 +430,7 @@ async def generate_from_file(file: UploadFile = File(...)):
         file_path=file.filename or "uploaded.py",
     )
     if result["status"] == "error":
-        raise HTTPException(
-            status_code=503, detail=result.get("error", "Generation failed")
-        )
+        raise HTTPException(status_code=503, detail=result.get("error", "Generation failed"))
     return result
 
 

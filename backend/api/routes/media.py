@@ -36,9 +36,7 @@ class MediaResponse(BaseModel):
 @router.post("/generate/image", response_model=MediaResponse)
 async def generate_image(req: ImageRequest):
     out_path = req.output_path or "data/generated_image.png"
-    result = image_generator.generate_image(
-        req.prompt, model=req.model, output_path=out_path
-    )
+    result = image_generator.generate_image(req.prompt, model=req.model, output_path=out_path)
     return MediaResponse(
         success=result.get("success", False),
         provider=result.get("model", result.get("provider", "")),
@@ -54,9 +52,7 @@ async def generate_video(req: VideoRequest):
     out_path = req.output_path or "data/generated_video.mp4"
     duration = req.duration or 5
     provider = req.provider or "auto"
-    result = video_generator.generate(
-        req.prompt, duration=duration, provider=provider, output_path=out_path
-    )
+    result = video_generator.generate(req.prompt, duration=duration, provider=provider, output_path=out_path)
     return MediaResponse(
         success=result.get("success", False),
         provider=result.get("provider", ""),

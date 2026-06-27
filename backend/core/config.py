@@ -1,5 +1,7 @@
 import sys
+from pathlib import Path
 
+from dotenv import load_dotenv
 from loguru import logger
 from pydantic import Field
 from pydantic import ValidationInfo
@@ -8,6 +10,11 @@ from pydantic_settings import BaseSettings
 from pydantic_settings import SettingsConfigDict
 
 from .secret_vault import secret_vault
+
+
+if "pytest" not in sys.modules:
+    root_env = Path(__file__).resolve().parents[2] / ".env"
+    load_dotenv(root_env)
 
 
 class Settings(BaseSettings):
@@ -40,9 +47,7 @@ class Settings(BaseSettings):
         "https://supremeai-admin.firebaseapp.com",
     ]
 
-    jwt_secret: str | None = Field(
-        default=None, validation_alias="SUPREMEAI_JWT_SECRET"
-    )
+    jwt_secret: str | None = Field(default=None, validation_alias="SUPREMEAI_JWT_SECRET")
 
     # ⚡ ডাইনামিকলি সরাসরি ক্লাউড মেমরি থেকে সিক্রেট রিড করা হচ্ছে
     # ডিস্কে কোনো .env ফাইল না থাকলেও প্রোডাকশন এপিআই ১০০% স্মুথলি চলবে
@@ -108,9 +113,7 @@ class Settings(BaseSettings):
         env = info.data.get("env", "local")
         if not v:
             if env == "production":
-                raise ValueError(
-                    "SUPREMEAI_JWT_SECRET environment variable must be set in production"
-                )
+                raise ValueError("SUPREMEAI_JWT_SECRET environment variable must be set in production")
             return "test-secret-placeholder"
         return v
 
@@ -141,9 +144,7 @@ class Settings(BaseSettings):
             if not self.jwt_secret:
                 missing.append("secure JWT_SECRET")
             if missing:
-                raise RuntimeError(
-                    f"Missing required configurations for production: {', '.join(missing)}"
-                )
+                raise RuntimeError(f"Missing required configurations for production: {', '.join(missing)}")
 
 
 settings = Settings()

@@ -5,6 +5,7 @@
 - Provides a health/status endpoint.
 - Integrated with FastAPI lifespan (startup/shutdown).
 """
+
 import asyncio
 import logging
 from collections.abc import Callable
@@ -41,9 +42,7 @@ class Orchestrator:
         self._task: asyncio.Task | None = None
         self._running: bool = False
         self.fitness_engine = FitnessEngine()
-        self.self_evolution = SelfEvolutionAgent(
-            fitness_engine=self.fitness_engine, interval_seconds=interval_seconds
-        )
+        self.self_evolution = SelfEvolutionAgent(fitness_engine=self.fitness_engine, interval_seconds=interval_seconds)
         self._tasks: list[Callable[[], Any]] = [
             self._run_fitness_scoring,
             self.self_evolution._tick,
@@ -56,9 +55,7 @@ class Orchestrator:
             import os
             import sys
 
-            script_dir = os.path.join(
-                os.path.dirname(__file__), "../../../scripts/orchestrator"
-            )
+            script_dir = os.path.join(os.path.dirname(__file__), "../../../scripts/orchestrator")
             if script_dir not in sys.path:
                 sys.path.append(script_dir)
             from auto_budget_guardian import run_budget_guardian_check
@@ -103,9 +100,7 @@ class Orchestrator:
             "estimated_cost": estimated_cost,
         }
 
-    async def execute_skill_chain(
-        self, chain: list[str], input_data: Any
-    ) -> dict[str, Any]:
+    async def execute_skill_chain(self, chain: list[str], input_data: Any) -> dict[str, Any]:
         """Concurrently or sequentially executes a chain of skills with atomic rollback support."""
         current_data = input_data
         executed_skills = []
@@ -116,10 +111,10 @@ class Orchestrator:
                 # Simulate executing the skill and updating weights on success
                 # Trigger simulated failure specifically on B to verify fallback
                 has_trigger = False
-                if isinstance(current_data, dict) and (current_data.get("trigger_failure") or (
-                    isinstance(current_data.get("data"), dict)
-                    and current_data["data"].get("trigger_failure")
-                )):
+                if isinstance(current_data, dict) and (
+                    current_data.get("trigger_failure")
+                    or (isinstance(current_data.get("data"), dict) and current_data["data"].get("trigger_failure"))
+                ):
                     has_trigger = True
                 if skill == "Skill_B" and has_trigger:
                     raise RuntimeError("Simulated execution failure inside Skill_B")
@@ -130,19 +125,13 @@ class Orchestrator:
 
                 # Feedback loop: enhance weight of used edge
                 if len(executed_skills) > 1:
-                    self.skill_graph.update_edge_weight(
-                        executed_skills[-2], skill, success=True
-                    )
+                    self.skill_graph.update_edge_weight(executed_skills[-2], skill, success=True)
 
             except Exception as e:
-                logger.error(
-                    f"Skill execution failed for '{skill}': {e}. Triggering rollback/fallback."
-                )
+                logger.error(f"Skill execution failed for '{skill}': {e}. Triggering rollback/fallback.")
                 # Feedback loop: penalize weight of failed edge
                 if len(executed_skills) > 1:
-                    self.skill_graph.update_edge_weight(
-                        executed_skills[-2], skill, success=False
-                    )
+                    self.skill_graph.update_edge_weight(executed_skills[-2], skill, success=False)
 
                 # Atomic rollback / compensation
                 fallback = self.skill_graph.get_fallback(skill)

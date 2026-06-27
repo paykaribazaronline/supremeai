@@ -10,30 +10,20 @@ class RollbackMonitor:
     Cloud Run service revisions if a regression is detected.
     """
 
-    def __init__(
-        self, latency_threshold_ms: float = 2000.0, error_rate_threshold: float = 5.0
-    ) -> None:
+    def __init__(self, latency_threshold_ms: float = 2000.0, error_rate_threshold: float = 5.0) -> None:
         self.latency_threshold_ms = latency_threshold_ms
         self.error_rate_threshold = error_rate_threshold
 
-    def record_metrics_and_check(
-        self, service_name: str, latency_ms: float, is_error: bool
-    ) -> dict:
+    def record_metrics_and_check(self, service_name: str, latency_ms: float, is_error: bool) -> dict:
         """
         Record a latency and error point for a service revision.
         If thresholds are breached, trigger automatic rollback to previous revision.
         """
-        logger.info(
-            f"RollbackMonitor: Checking metrics for {service_name} - Latency: {latency_ms}ms, Error: {is_error}"
-        )
+        logger.info(f"RollbackMonitor: Checking metrics for {service_name} - Latency: {latency_ms}ms, Error: {is_error}")
 
         import core.app as app_mod
 
-        if (
-            not hasattr(app_mod, "redis_queue")
-            or not app_mod.redis_queue
-            or not app_mod.redis_queue.configured
-        ):
+        if not hasattr(app_mod, "redis_queue") or not app_mod.redis_queue or not app_mod.redis_queue.configured:
             return {
                 "status": "ok",
                 "message": "Redis not configured. Skipping automated rollback check.",
@@ -72,13 +62,8 @@ class RollbackMonitor:
         )
 
         # Threshold triggers (require at least 10 requests to prevent false alarms)
-        if total_requests >= 10 and (
-            current_error_rate > self.error_rate_threshold
-            or current_avg_latency > self.latency_threshold_ms
-        ):
-            logger.error(
-                f"HEALTH ALERT: Service {service_name} has breached health thresholds! Initiating automatic rollback..."
-            )
+        if total_requests >= 10 and (current_error_rate > self.error_rate_threshold or current_avg_latency > self.latency_threshold_ms):
+            logger.error(f"HEALTH ALERT: Service {service_name} has breached health thresholds! Initiating automatic rollback...")
             rollback_res = self.trigger_rollback(service_name)
             return {
                 "status": "rolled_back",
@@ -98,9 +83,7 @@ class RollbackMonitor:
         Triggers the Google Cloud Run rollback.
         Updates the Cloud Run service traffic to route 100% of traffic to the previous stable revision.
         """
-        logger.warning(
-            f"AUTO-ROLLBACK: Redirecting Cloud Run traffic away from current revision for {service_name} to stable revision."
-        )
+        logger.warning(f"AUTO-ROLLBACK: Redirecting Cloud Run traffic away from current revision for {service_name} to stable revision.")
 
         try:
             import subprocess
@@ -116,19 +99,13 @@ class RollbackMonitor:
                 "--format=value(metadata.name)",
                 "--sort-by=~metadata.creationTimestamp",
             ]
-            result = subprocess.run(
-                cmd_revisions, capture_output=True, text=True, check=True
-            )
-            revisions = [
-                rev.strip() for rev in result.stdout.strip().splitlines() if rev.strip()
-            ]
+            result = subprocess.run(cmd_revisions, capture_output=True, text=True, check=True)
+            revisions = [rev.strip() for rev in result.stdout.strip().splitlines() if rev.strip()]
 
             if len(revisions) >= 2:
                 # The second one is the previous stable revision
                 stable_revision = revisions[1]
-                logger.info(
-                    f"Detected previous stable revision: {stable_revision}. Shifting traffic..."
-                )
+                logger.info(f"Detected previous stable revision: {stable_revision}. Shifting traffic...")
 
                 # Update traffic: 100% to the stable revision
                 cmd_traffic = [

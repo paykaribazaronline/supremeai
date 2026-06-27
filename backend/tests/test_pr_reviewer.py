@@ -11,11 +11,7 @@ from tools.pr_reviewer import PRReviewer
 async def test_static_security_scan_detects_secret():
     reviewer = PRReviewer()
     diff = (
-        "diff --git a/src/config.py b/src/config.py\n"
-        "--- a/src/config.py\n"
-        "+++ b/src/config.py\n"
-        "@@ -1,3 +1,4 @@\n"
-        "+aws_key = 'AKIA1234567890123456'\n"
+        "diff --git a/src/config.py b/src/config.py\n--- a/src/config.py\n+++ b/src/config.py\n@@ -1,3 +1,4 @@\n+aws_key = 'AKIA1234567890123456'\n"
     )
     comments = await reviewer.analyze_diff(diff)
     assert len(comments) == 1

@@ -170,13 +170,9 @@ class ChainOfThoughtReasoner:
         answer = ""
         import re
 
-        for tag in re.findall(
-            r"<thought>(.*?)</thought>", raw, flags=re.DOTALL | re.IGNORECASE
-        ):
+        for tag in re.findall(r"<thought>(.*?)</thought>", raw, flags=re.DOTALL | re.IGNORECASE):
             thoughts.append(tag.strip())
-        answer_match = re.search(
-            r"<answer>(.*?)</answer>", raw, flags=re.DOTALL | re.IGNORECASE
-        )
+        answer_match = re.search(r"<answer>(.*?)</answer>", raw, flags=re.DOTALL | re.IGNORECASE)
         if answer_match:
             answer = answer_match.group(1).strip()
         return {
@@ -187,9 +183,7 @@ class ChainOfThoughtReasoner:
 
     def verify(self, answer: str, expected: str | None = None) -> dict[str, Any]:
         if expected is not None:
-            math_matches = __import__("re").findall(
-                r"(\d+[\+\-\*\/\(\)\d\s]+?)\s*=\s*(\S+)", answer
-            )
+            math_matches = __import__("re").findall(r"(\d+[\+\-\*\/\(\)\d\s]+?)\s*=\s*(\S+)", answer)
             for expr, claimed in math_matches:
                 mv = verify_symbolic_math(expr, claimed)
                 if not mv.get("is_verified"):
@@ -212,13 +206,9 @@ class ChainOfThoughtReasoner:
     def evaluate_thought(self, thought: Thought, context: str | None = None) -> float:
         score = 0.5
         text = thought.content.lower()
-        if any(
-            word in text for word in ["therefore", "thus", "conclusion", "final answer"]
-        ):
+        if any(word in text for word in ["therefore", "thus", "conclusion", "final answer"]):
             score += 0.2
-        if any(
-            word in text for word in ["however", "but", "although", "alternatively"]
-        ):
+        if any(word in text for word in ["however", "but", "although", "alternatively"]):
             score += 0.1
         if len(thought.content.split()) >= 8:
             score += 0.1
@@ -254,17 +244,13 @@ class ChainOfThoughtReasoner:
                 best_score = thought.score
                 best_branch = [thought.content]
             if depth > 1:
-                self.build_prompt(
-                    f"{thought.content}\nContinue reasoning.", context
-                )
+                self.build_prompt(f"{thought.content}\nContinue reasoning.", context)
                 ext_raw = f"<thought>{thought.content} - continued</thought><answer>{problem}</answer>"
                 ext_parsed = self.parse(ext_raw)
                 ext_thoughts = ext_parsed.get("thoughts", [])
                 if ext_thoughts:
                     ext = ext_thoughts[0]
-                    child = thought.add_child(
-                        ext, score=self.evaluate_thought(Thought(ext), context)
-                    )
+                    child = thought.add_child(ext, score=self.evaluate_thought(Thought(ext), context))
                     total_score = thought.score + child.score
                     if total_score > best_score:
                         best_score = total_score
@@ -280,9 +266,7 @@ class ChainOfThoughtReasoner:
         simulations: int = 8,
         context: str | None = None,
     ) -> dict[str, Any]:
-        seed = self.tree_search(
-            problem=problem, branches=branches, depth=2, context=context
-        )
+        seed = self.tree_search(problem=problem, branches=branches, depth=2, context=context)
         seed_path = seed.get("best_branch") or []
         if not seed_path:
             return {
@@ -332,9 +316,7 @@ class ChainOfThoughtReasoner:
             "simulations": simulations,
         }
 
-    def refine_loop(
-        self, problem: str, context: str | None = None, expected: str | None = None
-    ) -> dict[str, Any]:
+    def refine_loop(self, problem: str, context: str | None = None, expected: str | None = None) -> dict[str, Any]:
         last_output: dict[str, Any] = {"thoughts": [], "exec_results": []}
         for iteration in range(self.max_iterations):
             prompt = self.build_prompt(problem, context)
@@ -342,9 +324,7 @@ class ChainOfThoughtReasoner:
             last_output["iter"] = iteration
             last_output["prompt_used"] = prompt
             if "answer" in last_output:
-                exec_result = self._verify_execution(
-                    {"exec_code": str(last_output.get("answer"))}
-                )
+                exec_result = self._verify_execution({"exec_code": str(last_output.get("answer"))})
                 last_output["exec_results"].append(exec_result)
         return {
             "status": "ok",
@@ -380,10 +360,7 @@ class DeepReasoningChain:
             critique = self.self_critique(current)
             refined_prompt = (
                 "Given the critique, refine the previous answer. "
-                "Keep reasoning concise.\n\nCurrent Answer:\n"
-                + current
-                + "\n\nCritique:\n"
-                + critique
+                "Keep reasoning concise.\n\nCurrent Answer:\n" + current + "\n\nCritique:\n" + critique
             )
             current = refined_prompt
         return current

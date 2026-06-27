@@ -20,9 +20,7 @@ class AutoPRPipeline:
     async def _run_git_command(self, command: list[str], cwd: str = ".") -> str:
         """Helper to run git commands safely."""
         try:
-            process = await asyncio.create_subprocess_exec(
-                "git", *command, cwd=cwd, stdout=subprocess.PIPE, stderr=subprocess.PIPE
-            )
+            process = await asyncio.create_subprocess_exec("git", *command, cwd=cwd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             stdout, stderr = await process.communicate()
 
             if process.returncode != 0:
@@ -32,20 +30,14 @@ class AutoPRPipeline:
 
             return stdout.decode().strip()
         except FileNotFoundError:
-            logger.error(
-                "Git command not found. Ensure git is installed and in your PATH."
-            )
+            logger.error("Git command not found. Ensure git is installed and in your PATH.")
             raise
 
-    async def create_pr(
-        self, repo: str, branch: str, title: str, body: str, files: dict[str, str]
-    ) -> dict[str, Any]:
+    async def create_pr(self, repo: str, branch: str, title: str, body: str, files: dict[str, str]) -> dict[str, Any]:
         """
         A more robust pipeline that handles file changes, branching, committing, and PR creation.
         """
-        original_branch = await self._run_git_command(
-            ["rev-parse", "--abbrev-ref", "HEAD"], cwd=repo
-        )
+        original_branch = await self._run_git_command(["rev-parse", "--abbrev-ref", "HEAD"], cwd=repo)
         logger.info(f"Starting from branch: {original_branch}")
 
         try:
@@ -71,9 +63,7 @@ class AutoPRPipeline:
 
             # 5. Create the pull request
             pr_result = self.github_agent.create_pr(
-                repo_name=repo.split("/")[-2]
-                + "/"
-                + repo.rsplit("/", maxsplit=1)[-1],  # Assumes repo is a path like 'owner/name'
+                repo_name=repo.split("/")[-2] + "/" + repo.rsplit("/", maxsplit=1)[-1],  # Assumes repo is a path like 'owner/name'
                 title=title,
                 body=body,
                 head_branch=branch,
@@ -107,9 +97,7 @@ class AutoPRPipeline:
     ) -> dict[str, Any]:
         """Runs the full PR pipeline asynchronously."""
         logger.info(f"Starting Auto PR Pipeline for {repo_path}")
-        original_branch = await self._run_git_command(
-            ["rev-parse", "--abbrev-ref", "HEAD"], cwd=repo_path
-        )
+        original_branch = await self._run_git_command(["rev-parse", "--abbrev-ref", "HEAD"], cwd=repo_path)
 
         try:
             # 1. Checkout new branch
@@ -124,9 +112,7 @@ class AutoPRPipeline:
             logger.info(f"Committed changes: {commit_message}")
 
             # 4. Push
-            await self._run_git_command(
-                ["push", "-u", "origin", branch_name], cwd=repo_path
-            )
+            await self._run_git_command(["push", "-u", "origin", branch_name], cwd=repo_path)
             logger.info(f"Pushed branch {branch_name} to origin")
 
             # 5. Create PR via GitHub Agent

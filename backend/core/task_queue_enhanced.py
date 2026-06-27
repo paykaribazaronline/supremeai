@@ -148,9 +148,7 @@ class TaskQueue:
         # Celery backend
         if CELERY_AVAILABLE:
             try:
-                self.celery_app = Celery(
-                    "supremeai_tasks", broker=self.redis_url, backend=self.redis_url
-                )
+                self.celery_app = Celery("supremeai_tasks", broker=self.redis_url, backend=self.redis_url)
                 # Configure Celery
                 self.celery_app.conf.update(
                     task_serializer="json",
@@ -173,9 +171,7 @@ class TaskQueue:
         # Redis backend
         if REDIS_AVAILABLE:
             try:
-                self.redis_client = redis.from_url(
-                    self.redis_url, decode_responses=True
-                )
+                self.redis_client = redis.from_url(self.redis_url, decode_responses=True)
                 logger.info("Redis backend initialized")
             except Exception as e:
                 logger.warning(f"Failed to initialize Redis: {e}")
@@ -188,9 +184,7 @@ class TaskQueue:
             try:
                 self.publisher = pubsub_v1.PublisherClient()
                 self.subscriber = pubsub_v1.SubscriberClient()
-                self.topic_path = self.publisher.topic_path(
-                    self.project_id, "supremeai-tasks"
-                )
+                self.topic_path = self.publisher.topic_path(self.project_id, "supremeai-tasks")
                 logger.info("Pub/Sub backend initialized")
             except Exception as e:
                 logger.warning(f"Failed to initialize Pub/Sub: {e}")
@@ -298,9 +292,7 @@ class TaskQueue:
                 return f"Executed {func_name} with args={args}, kwargs={kwargs}"
 
             # In practice, you'd have a task registry
-            celery_wrapper.apply_async(
-                args=[task_id, func.__name__, args, kwargs], priority=priority.value
-            )
+            celery_wrapper.apply_async(args=[task_id, func.__name__, args, kwargs], priority=priority.value)
         else:
             # Function is already a Celery task
             func.apply_async(args=args, kwargs=kwargs, priority=priority.value)
@@ -374,9 +366,7 @@ class TaskQueue:
         message_id = future.result()
         logger.debug(f"Published message {message_id} for task {task_id}")
 
-    async def _submit_to_asyncio(
-        self, func: Callable, task_id: str, args: tuple, kwargs: dict
-    ):
+    async def _submit_to_asyncio(self, func: Callable, task_id: str, args: tuple, kwargs: dict):
         """Submit task to local asyncio queue"""
         await self.local_queue.put((func, task_id, args, kwargs))
 
@@ -385,9 +375,7 @@ class TaskQueue:
             worker_task = asyncio.create_task(self._asyncio_worker())
             self.local_workers.append(worker_task)
 
-    async def _execute_sync(
-        self, func: Callable, task_id: str, args: tuple, kwargs: dict
-    ):
+    async def _execute_sync(self, func: Callable, task_id: str, args: tuple, kwargs: dict):
         """Execute task synchronously (fallback)"""
         try:
             # Update status
@@ -478,9 +466,7 @@ class TaskQueue:
     def get_queue_depth(self) -> int:
         """Get approximate number of pending tasks"""
         # This would be backend-specific in a real implementation
-        pending = sum(
-            1 for r in self._results.values() if r.status in ["pending", "processing"]
-        )
+        pending = sum(1 for r in self._results.values() if r.status in ["pending", "processing"])
         return pending
 
     async def cleanup_old_tasks(self, max_age_hours: int = 24):
@@ -490,7 +476,7 @@ class TaskQueue:
         to_remove = []
         for task_id, result in self._results.items():
             if result.status in ["completed", "failed"] and result.completed_at and result.completed_at < cutoff_time:
-                    to_remove.append(task_id)
+                to_remove.append(task_id)
 
         for task_id in to_remove:
             self._tasks.pop(task_id, None)

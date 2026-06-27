@@ -28,9 +28,7 @@ class MetaArchitect:
         try:
             for dirpath, _, filenames in os.walk(root_dir):
                 for file in filenames:
-                    if file.startswith(".") or file.endswith(
-                        (".png", ".jpg", ".mp3", ".mp4")
-                    ):
+                    if file.startswith(".") or file.endswith((".png", ".jpg", ".mp3", ".mp4")):
                         continue
                     file_path = os.path.join(dirpath, file)
                     metrics["total_files"] += 1
@@ -40,15 +38,11 @@ class MetaArchitect:
                             metrics["total_lines"] += len(lines)
                             ext = os.path.splitext(file)[1].lower()
                             lang = ext.lstrip(".") or "unknown"
-                            metrics["languages"][lang] = metrics["languages"].get(
-                                lang, 0
-                            ) + len(lines)
+                            metrics["languages"][lang] = metrics["languages"].get(lang, 0) + len(lines)
                     except Exception:
                         pass
             if metrics["total_files"]:
-                metrics["avg_file_size"] = (
-                    metrics["total_lines"] / metrics["total_files"]
-                )
+                metrics["avg_file_size"] = metrics["total_lines"] / metrics["total_files"]
             if metrics["total_files"] > 500:
                 issues.append("Codebase is very large; consider modularization.")
                 suggestions.append("Split into microservices or feature modules.")
@@ -57,9 +51,7 @@ class MetaArchitect:
                 suggestions.append("Break down files larger than 500 lines.")
             py_files = metrics["languages"].get("py", 0)
             if py_files > 200:
-                suggestions.append(
-                    "Consider adding type hints to Python files for better maintainability."
-                )
+                suggestions.append("Consider adding type hints to Python files for better maintainability.")
         except Exception as exc:
             logger.error(f"Codebase analysis failed: {exc}")
             issues.append(f"Analysis error: {exc}")
@@ -82,9 +74,7 @@ class MetaArchitect:
                 "No markdown, no explanation.\n\n"
                 f"Analysis: {analysis}"
             )
-            result = router.async_route_and_generate(
-                prompt, task_type="reasoning", max_cost=0.03
-            )
+            result = router.async_route_and_generate(prompt, task_type="reasoning", max_cost=0.03)
             text = result.get("text", "") if isinstance(result, dict) else ""
             import json
 
@@ -110,9 +100,7 @@ class MetaArchitect:
             logger.error(f"Refactor proposal failed: {exc}")
             return {"status": "error", "error": str(exc)}
 
-    async def implement_refactor(
-        self, target_path: str, instruction: str
-    ) -> dict[str, Any]:
+    async def implement_refactor(self, target_path: str, instruction: str) -> dict[str, Any]:
         logger.info(f"Implementing refactor for {target_path}: {instruction}")
         try:
             from brain.model_router import ModelRouter
@@ -125,9 +113,7 @@ class MetaArchitect:
                 "Return ONLY the complete refactored code. No markdown, no explanations.\n\n"
                 f"Instruction: {instruction}\n\nCode:\n{original[:8000]}"
             )
-            result = router.async_route_and_generate(
-                prompt, task_type="coding", max_cost=0.05
-            )
+            result = router.async_route_and_generate(prompt, task_type="coding", max_cost=0.05)
             new_code = result.get("text", "") if isinstance(result, dict) else ""
             if not new_code:
                 return {"status": "error", "error": "Model returned empty response."}

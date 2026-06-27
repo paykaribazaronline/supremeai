@@ -17,13 +17,9 @@ class ParallelAgentExecutor:
     def __init__(self, redis_client=None):
         self.redis_client = redis_client
         self.execution_group = uuid.uuid4().hex[:8]
-        logger.info(
-            f"Initialized ParallelAgentExecutor (Group: {self.execution_group})"
-        )
+        logger.info(f"Initialized ParallelAgentExecutor (Group: {self.execution_group})")
 
-    async def _execute_agent_task(
-        self, agent_name: str, task: Callable, *args, **kwargs
-    ) -> dict[str, Any]:
+    async def _execute_agent_task(self, agent_name: str, task: Callable, *args, **kwargs) -> dict[str, Any]:
         """Wrapper to execute an individual agent's task."""
         logger.info(f"[Agent: {agent_name}] Starting task...")
 
@@ -69,13 +65,9 @@ class ParallelAgentExecutor:
             import inspect
 
             if inspect.iscoroutinefunction(redis.publish):
-                await redis.publish(
-                    f"supremeai:agents:{self.execution_group}", json.dumps(payload)
-                )
+                await redis.publish(f"supremeai:agents:{self.execution_group}", json.dumps(payload))
             else:
-                redis.publish(
-                    f"supremeai:agents:{self.execution_group}", json.dumps(payload)
-                )
+                redis.publish(f"supremeai:agents:{self.execution_group}", json.dumps(payload))
         except Exception as e:
             logger.warning(f"Failed to publish agent state: {e}")
 

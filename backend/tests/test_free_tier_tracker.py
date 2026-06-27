@@ -15,6 +15,7 @@ Tests cover:
 from __future__ import annotations
 
 import time
+from unittest.mock import MagicMock, patch
 
 from core.free_tier_tracker import FreeTierTracker
 from core.free_tier_tracker import ProviderBudget
@@ -251,13 +252,9 @@ class TestTokenBudgetManager:
         m = self._make_manager()
         long_prompt = "word " * 500  # ~625 estimated tokens
         # reserve_output_tokens=False so max_input_tokens=200 is applied directly
-        result, meta = m.prepare_prompt(
-            long_prompt, provider="large_provider", reserve_output_tokens=False
-        )
+        result, meta = m.prepare_prompt(long_prompt, provider="large_provider", reserve_output_tokens=False)
         assert meta["truncated"] is True
-        assert (
-            estimate_tokens(result) <= 205
-        )  # within 200 + small sentence-boundary buffer
+        assert estimate_tokens(result) <= 205  # within 200 + small sentence-boundary buffer
 
     def test_fits_in_budget_true_for_short(self):
         m = self._make_manager()
@@ -283,3 +280,16 @@ class TestTokenBudgetManager:
         m1 = get_budget_manager()
         m2 = get_budget_manager()
         assert m1 is m2
+
+
+def test_free_tier_tracker_database_loading():
+    mock_db = MagicMock()
+    mock_db.client = MagicMock()
+    mock_db.get_db_provider_configs.return_value = [
+        {"provider_name": "custom_provider", "rpm": 5, "tpm": 500, "rpd": 50, "priority": 0, "is_active": True}
+    ]
+    with patch("database.supabase_client.db", mock_db), patch("core.free_tier_tracker.FREE_PROVIDER_PRIORITY", ["custom_provider"]):
+        tracker = FreeTierTracker()
+        assert tracker.priority_list == ["custom_provider"]
+        assert tracker._budgets["custom_provider"].limits["rpm"] == 5
+        assert tracker._budgets["custom_provider"].limits["tpm"] == 500

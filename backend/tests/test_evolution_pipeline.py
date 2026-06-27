@@ -75,9 +75,7 @@ async def test_pipeline_success(clean_dynamic_skills):
         mock_model_class.return_value = mock_model
 
         creator = AutoSkillCreator()
-        result = await creator.generate_and_deploy_skill(
-            user_demand="Analyze reviews sentiment", skill_name="SentimentAnalyzer"
-        )
+        result = await creator.generate_and_deploy_skill(user_demand="Analyze reviews sentiment", skill_name="SentimentAnalyzer")
 
         assert result["success"] is True
         assert result["skill_name"] == "SentimentAnalyzer"
@@ -95,9 +93,7 @@ async def test_pipeline_validation_mismatch(clean_dynamic_skills):
 
     # Modify mock JSON so that execute return value mismatch validation expected output
     mismatch_json = MOCK_AI_RESPONSE_JSON.copy()
-    mismatch_json["code"] = (
-        "class SentimentAnalyzer:\n    async def execute(self, kwargs):\n        return {'sentiment': 'negative'}\n"
-    )
+    mismatch_json["code"] = "class SentimentAnalyzer:\n    async def execute(self, kwargs):\n        return {'sentiment': 'negative'}\n"
 
     mock_response = MagicMock()
     mock_response.text = json.dumps(mismatch_json)
@@ -108,9 +104,7 @@ async def test_pipeline_validation_mismatch(clean_dynamic_skills):
         mock_model_class.return_value = mock_model
 
         creator = AutoSkillCreator()
-        result = await creator.generate_and_deploy_skill(
-            user_demand="Analyze reviews sentiment", skill_name="SentimentAnalyzer"
-        )
+        result = await creator.generate_and_deploy_skill(user_demand="Analyze reviews sentiment", skill_name="SentimentAnalyzer")
 
         assert result["success"] is False
         assert "Validation test 1 failed" in result["error"]
@@ -139,9 +133,7 @@ async def test_pipeline_invalid_uss_pydantic(clean_dynamic_skills):
         mock_model_class.return_value = mock_model
 
         creator = AutoSkillCreator()
-        result = await creator.generate_and_deploy_skill(
-            user_demand="Analyze reviews sentiment", skill_name="SentimentAnalyzer"
-        )
+        result = await creator.generate_and_deploy_skill(user_demand="Analyze reviews sentiment", skill_name="SentimentAnalyzer")
 
         assert result["success"] is False
         assert "USS Validation Exception" in result["error"]

@@ -24,9 +24,7 @@ class LongTermMemory:
     def _connect(self) -> sqlite3.Connection:
         if self.db_path == ":memory:":
             if self._memory_conn is None:
-                self._memory_conn = sqlite3.connect(
-                    self.db_path, check_same_thread=False
-                )
+                self._memory_conn = sqlite3.connect(self.db_path, check_same_thread=False)
             return self._memory_conn
         return sqlite3.connect(self.db_path, check_same_thread=False)
 
@@ -58,12 +56,8 @@ class LongTermMemory:
                 )
                 """
             )
-            conn.execute(
-                "CREATE INDEX IF NOT EXISTS idx_facts_session ON facts(session_id, category)"
-            )
-            conn.execute(
-                "CREATE INDEX IF NOT EXISTS idx_summaries_session ON conversation_summaries(session_id)"
-            )
+            conn.execute("CREATE INDEX IF NOT EXISTS idx_facts_session ON facts(session_id, category)")
+            conn.execute("CREATE INDEX IF NOT EXISTS idx_summaries_session ON conversation_summaries(session_id)")
             conn.commit()
         finally:
             if self.db_path != ":memory:":

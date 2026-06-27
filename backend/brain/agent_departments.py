@@ -33,9 +33,7 @@ class AgentDepartment:
         system_prompt = ROLE_PROMPTS.get(role_key, ROLE_PROMPTS["coder"])
         prompt = f"{system_prompt}\n\nTask: {task}\nContext: {context or 'None'}\n"
         try:
-            result = self.model_router.route_and_generate(
-                prompt=prompt, task_type="general", max_cost=0.01
-            )
+            result = self.model_router.route_and_generate(prompt=prompt, task_type="general", max_cost=0.01)
             if result.get("success") or result.get("text"):
                 return {
                     "role": role_key,

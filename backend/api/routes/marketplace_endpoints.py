@@ -44,9 +44,7 @@ def get_enabled_catalog_sources() -> list[str]:
     return enabled_sources or DEFAULT_CATALOG_SOURCES
 
 
-def filter_requested_catalog_sources(
-    categories: list[str], enabled_sources: list[str]
-) -> list[str]:
+def filter_requested_catalog_sources(categories: list[str], enabled_sources: list[str]) -> list[str]:
     return [c for c in categories if c in enabled_sources]
 
 
@@ -68,9 +66,7 @@ async def search_marketplaces(payload: SearchRequest, request: Request):
         categories = payload.categories if payload.categories is not None else []
         filters = payload.filters if payload.filters is not None else {}
 
-        results = marketplace_agent.search_marketplaces(
-            payload.query, categories, filters
-        )
+        results = marketplace_agent.search_marketplaces(payload.query, categories, filters)
 
         enabled_sources = get_enabled_catalog_sources()
         catalog_sources = filter_requested_catalog_sources(categories, enabled_sources)
@@ -79,9 +75,7 @@ async def search_marketplaces(payload: SearchRequest, request: Request):
 
         http_client = getattr(request.app.state, "http_client", None)
         async with ResourceCatalog(http_client=http_client) as catalog:
-            resource_results = await catalog.search(
-                payload.query, sources=catalog_sources, limit=5
-            )
+            resource_results = await catalog.search(payload.query, sources=catalog_sources, limit=5)
 
         if resource_results:
             results.extend(resource_results)
@@ -94,9 +88,7 @@ async def search_marketplaces(payload: SearchRequest, request: Request):
 @router.post("/install")
 async def install_tool(payload: InstallRequest):
     try:
-        res = marketplace_agent.install_tool(
-            payload.tool_id, payload.target_environment, payload.sandbox
-        )
+        res = marketplace_agent.install_tool(payload.tool_id, payload.target_environment, payload.sandbox)
         return res
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e)) from e

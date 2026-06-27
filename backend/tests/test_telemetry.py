@@ -34,32 +34,26 @@ def test_setup_tracing_noop():
 
 
 def test_setup_tracing_with_endpoint():
-    with patch(
-        "opentelemetry.exporter.otlp.proto.grpc.trace_exporter.OTLPSpanExporter"
-    ) as mock_exporter, patch(
-        "core.telemetry.BatchSpanProcessor"
-    ) as mock_processor, patch(
-        "core.telemetry.TracerProvider"
-    ) as mock_provider_class:
-
+    with (
+        patch("opentelemetry.exporter.otlp.proto.grpc.trace_exporter.OTLPSpanExporter") as mock_exporter,
+        patch("core.telemetry.BatchSpanProcessor") as mock_processor,
+        patch("core.telemetry.TracerProvider") as mock_provider_class,
+    ):
         mock_provider = MagicMock()
         mock_provider_class.return_value = mock_provider
 
         setup_tracing("test-service", "http://127.0.0.1:4317")
 
-        mock_exporter.assert_called_once_with(
-            endpoint="http://127.0.0.1:4317", insecure=True
-        )
+        mock_exporter.assert_called_once_with(endpoint="http://127.0.0.1:4317", insecure=True)
         mock_processor.assert_called_once_with(mock_exporter.return_value)
-        mock_provider.add_span_processor.assert_called_once_with(
-            mock_processor.return_value
-        )
+        mock_provider.add_span_processor.assert_called_once_with(mock_processor.return_value)
 
 
 def test_setup_tracing_without_endpoint_no_exporter():
-    with patch(
-        "opentelemetry.exporter.otlp.proto.grpc.trace_exporter.OTLPSpanExporter"
-    ) as mock_exporter, patch("core.telemetry.TracerProvider") as mock_provider_class:
+    with (
+        patch("opentelemetry.exporter.otlp.proto.grpc.trace_exporter.OTLPSpanExporter") as mock_exporter,
+        patch("core.telemetry.TracerProvider") as mock_provider_class,
+    ):
         mock_provider = MagicMock()
         mock_provider_class.return_value = mock_provider
 
@@ -169,10 +163,10 @@ def test_real_span_delegates_record_exception():
 
 
 def test_tracer_shared_globally_after_setup():
-    with patch(
-        "opentelemetry.exporter.otlp.proto.grpc.trace_exporter.OTLPSpanExporter"
-    ), patch("core.telemetry.BatchSpanProcessor"), patch(
-        "core.telemetry.TracerProvider"
+    with (
+        patch("opentelemetry.exporter.otlp.proto.grpc.trace_exporter.OTLPSpanExporter"),
+        patch("core.telemetry.BatchSpanProcessor"),
+        patch("core.telemetry.TracerProvider"),
     ):
         setup_tracing("svc-a")
         t1 = get_tracer()

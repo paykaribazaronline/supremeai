@@ -58,9 +58,7 @@ class ExperienceDatabase:
             conn.commit()
 
     def record_experience(self, exp: Experience) -> int:
-        timestamp = (
-            exp.timestamp or datetime.datetime.now(datetime.timezone.utc).isoformat()
-        )
+        timestamp = exp.timestamp or datetime.datetime.now(datetime.timezone.utc).isoformat()
         context_json = json.dumps(exp.context or {})
         what_worked_json = json.dumps(exp.what_worked or [])
         what_failed_json = json.dumps(exp.what_failed or [])
@@ -99,9 +97,7 @@ class ExperienceDatabase:
         with sqlite3.connect(self.db_path) as conn:
             conn.row_factory = sqlite3.Row
             cursor = conn.cursor()
-            cursor.execute(
-                "SELECT * FROM experiences ORDER BY id DESC LIMIT ?", (limit,)
-            )
+            cursor.execute("SELECT * FROM experiences ORDER BY id DESC LIMIT ?", (limit,))
             rows = cursor.fetchall()
 
             experiences = []
@@ -121,9 +117,7 @@ class ExperienceDatabase:
                         deployment_logs=r["deployment_logs"],
                         what_worked=json.loads(r["what_worked"] or "[]"),
                         what_failed=json.loads(r["what_failed"] or "[]"),
-                        suggested_improvements=json.loads(
-                            r["suggested_improvements"] or "[]"
-                        ),
+                        suggested_improvements=json.loads(r["suggested_improvements"] or "[]"),
                     )
                 )
             return experiences

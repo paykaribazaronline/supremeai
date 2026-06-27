@@ -22,15 +22,11 @@ class PRReviewer:
     def __init__(self, github_token: str = None):
         self.github_token = github_token or os.getenv("GITHUB_TOKEN")
         if not self.github_token:
-            logger.warning(
-                "GITHUB_TOKEN not found. PR reviewer will run in dry-run mode."
-            )
+            logger.warning("GITHUB_TOKEN not found. PR reviewer will run in dry-run mode.")
             self.gh = None
         else:
             if not _GITHUB_AVAILABLE:
-                raise ImportError(
-                    "PyGithub is not installed. Please run 'pip install PyGithub'"
-                )
+                raise ImportError("PyGithub is not installed. Please run 'pip install PyGithub'")
             self.gh = Github(self.github_token)
 
     async def analyze_diff(self, diff_content: str) -> list[dict[str, Any]]:
@@ -126,14 +122,10 @@ class PRReviewer:
             logger.error(f"Error reviewing PR: {e}")
             return {"status": "error", "error": str(e), "comments": []}
 
-    async def _post_pr_comment(
-        self, repo_full_name: str, pr_number: int, comment_body: str
-    ) -> dict[str, Any]:
+    async def _post_pr_comment(self, repo_full_name: str, pr_number: int, comment_body: str) -> dict[str, Any]:
         """Posts a comment on a pull request."""
         if not self.gh:
-            logger.warning(
-                f"Dry-run: Would post to {repo_full_name}#{pr_number}: {comment_body}"
-            )
+            logger.warning(f"Dry-run: Would post to {repo_full_name}#{pr_number}: {comment_body}")
             return {"status": "success", "comment_url": "dry-run-url"}
 
         # This part would contain the actual GitHub API call to post a comment.

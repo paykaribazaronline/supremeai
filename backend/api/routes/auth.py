@@ -36,9 +36,7 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None) -> s
     if jwt is None:
         raise RuntimeError("python-jose[cryptography] is required for token issuance")
     to_encode = data.copy()
-    expire = datetime.now(timezone.utc) + (
-        expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    )
+    expire = datetime.now(timezone.utc) + (expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES))
     to_encode.update({"exp": expire})
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
@@ -86,9 +84,5 @@ async def login(body: LoginRequest):
 @router.get("/me", response_model=MeResponse)
 async def me(current_user: UserContext | None = Depends(optional_current_user)):
     if current_user is None:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated"
-        )
-    return MeResponse(
-        user_id=current_user.user_id, role=current_user.role, scopes=current_user.scopes
-    )
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated")
+    return MeResponse(user_id=current_user.user_id, role=current_user.role, scopes=current_user.scopes)

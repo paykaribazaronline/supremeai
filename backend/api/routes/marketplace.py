@@ -17,11 +17,7 @@ DB_PATH = os.environ.get("SUPREMEAI_MARKETPLACE_DB", "data/marketplace.db")
 
 
 def _get_conn() -> sqlite3.Connection:
-    (
-        os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
-        if os.path.dirname(DB_PATH)
-        else None
-    )
+    (os.makedirs(os.path.dirname(DB_PATH), exist_ok=True) if os.path.dirname(DB_PATH) else None)
     conn = sqlite3.connect(DB_PATH, check_same_thread=False)
     conn.row_factory = sqlite3.Row
     conn.execute(
@@ -85,8 +81,7 @@ def _seed(conn: sqlite3.Connection) -> None:
     now = os.path.getctime(DB_PATH) if os.path.exists(DB_PATH) else 0
     for item in _SEED_INDEX:
         conn.execute(
-            "INSERT INTO skills (id, name, version, description, dependencies, installed, source, installed_at) "
-            "VALUES (?, ?, ?, ?, ?, 0, ?, ?)",
+            "INSERT INTO skills (id, name, version, description, dependencies, installed, source, installed_at) VALUES (?, ?, ?, ?, ?, 0, ?, ?)",
             (
                 str(uuid.uuid4()),
                 item["name"],
@@ -152,9 +147,7 @@ async def install_skill(req: InstallRequest) -> dict[str, Any]:
             (req.tool_id,),
         ).fetchone()
         if not row:
-            raise HTTPException(
-                status_code=404, detail=f"Skill '{req.tool_id}' not found."
-            )
+            raise HTTPException(status_code=404, detail=f"Skill '{req.tool_id}' not found.")
         if row["installed"]:
             return {
                 "success": True,

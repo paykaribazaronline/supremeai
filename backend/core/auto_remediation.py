@@ -10,9 +10,7 @@ from tools.github_agent import GitHubAgent
 class AutoRemediationEngine:
     def __init__(self):
         self.github_client = Github(os.getenv("GITHUB_TOKEN"))
-        self.repo = self.github_client.get_repo(
-            os.getenv("GITHUB_REPOSITORY", "paykaribazaronline/supremeai")
-        )
+        self.repo = self.github_client.get_repo(os.getenv("GITHUB_REPOSITORY", "paykaribazaronline/supremeai"))
         self._model = None
 
     def _get_model(self):
@@ -23,26 +21,18 @@ class AutoRemediationEngine:
             self._model = genai.GenerativeModel("gemini-2.0-flash")
         return self._model
 
-    def process_codeql_alert(
-        self, file_path: str, line_number: int, vulnerability_details: str
-    ):
+    def process_codeql_alert(self, file_path: str, line_number: int, vulnerability_details: str):
         """CodeQL অ্যালার্ট প্রসেস করে অটোমেটিক PR ওপেন করে"""
         try:
             # 1. গিটহাব থেকে অরিজিনাল কোড ফেচ করা
-            file_content = self.repo.get_contents(file_path).decoded_content.decode(
-                "utf-8"
-            )
+            file_content = self.repo.get_contents(file_path).decoded_content.decode("utf-8")
 
             # 2. Gemini দিয়ে সিকিউর প্যাচ জেনারেট করা
-            patch_code = self._generate_ai_patch(
-                file_content, line_number, vulnerability_details
-            )
+            patch_code = self._generate_ai_patch(file_content, line_number, vulnerability_details)
 
             if patch_code:
                 # 3. অটোমেটিক Branch এবং PR তৈরি করা
-                self._create_remediation_pr(
-                    file_path, file_content, patch_code, vulnerability_details
-                )
+                self._create_remediation_pr(file_path, file_content, patch_code, vulnerability_details)
                 logger.info(f"✅ Auto-Remediation PR created for {file_path}")
 
         except Exception as e:
@@ -59,14 +49,10 @@ class AutoRemediationEngine:
         response = self._get_model().generate_content(prompt)
         return response.text.strip()
 
-    def _create_remediation_pr(
-        self, file_path: str, old_code: str, new_code: str, issue: str
-    ):
+    def _create_remediation_pr(self, file_path: str, old_code: str, new_code: str, issue: str):
         branch_name = f"auto-fix/security-patch-{os.urandom(4).hex()}"
         main_branch = self.repo.get_branch("main")
-        self.repo.create_git_ref(
-            ref=f"refs/heads/{branch_name}", sha=main_branch.commit.sha
-        )
+        self.repo.create_git_ref(ref=f"refs/heads/{branch_name}", sha=main_branch.commit.sha)
 
         self.repo.update_file(
             path=file_path,
@@ -95,12 +81,8 @@ class AutoRemediation:
         self.gemini_api_key = gemini_api_key or os.getenv("GEMINI_API_KEY", "")
         self.github_agent = GitHubAgent()
 
-    def process_security_alert(
-        self, file_path: str, line_number: int, issue: str, severity: str
-    ) -> dict:
-        logger.info(
-            f"Auto-Remediation triggered for {file_path}:{line_number} - Severity: {severity}. Issue: {issue}"
-        )
+    def process_security_alert(self, file_path: str, line_number: int, issue: str, severity: str) -> dict:
+        logger.info(f"Auto-Remediation triggered for {file_path}:{line_number} - Severity: {severity}. Issue: {issue}")
 
         # 1. Read the original vulnerable file content
         if not os.path.exists(file_path):
@@ -146,9 +128,7 @@ class AutoRemediation:
             logger.info(f"Directly committed fix for {issue} to main branch.")
         except RuntimeError as e:
             if "GitHub token is required" in str(e):
-                logger.warning(
-                    f"GitHub token not available; patch applied locally but not committed: {e}"
-                )
+                logger.warning(f"GitHub token not available; patch applied locally but not committed: {e}")
             else:
                 raise
 
@@ -161,13 +141,9 @@ class AutoRemediation:
             "message": "Remediation patch applied and committed.",
         }
 
-    def _get_ai_patch(
-        self, file_path: str, code: str, line_number: int, issue: str
-    ) -> str:
+    def _get_ai_patch(self, file_path: str, code: str, line_number: int, issue: str) -> str:
         if not self.gemini_api_key:
-            logger.warning(
-                "GEMINI_API_KEY not configured. Simulating patch generation."
-            )
+            logger.warning("GEMINI_API_KEY not configured. Simulating patch generation.")
             # Simple mock patch application (add a security comment)
             return f"# Secure Patch Applied for: {issue}\n" + code
 

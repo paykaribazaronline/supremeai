@@ -19,16 +19,10 @@ class GCPCloudFunctionClient:
         bearer_token: str | None = None,
         timeout: float = 30.0,
     ):
-        self.project_id = (
-            project_id
-            or os.getenv("GCP_PROJECT_ID")
-            or os.getenv("GOOGLE_CLOUD_PROJECT")
-        )
+        self.project_id = project_id or os.getenv("GCP_PROJECT_ID") or os.getenv("GOOGLE_CLOUD_PROJECT")
         self.region = region or os.getenv("GCP_REGION", "us-central1")
         self.function_name = function_name or os.getenv("GCP_CLOUD_FUNCTION_NAME")
-        self.base_url = (base_url or os.getenv("GCP_CLOUD_FUNCTION_URL", "")).rstrip(
-            "/"
-        )
+        self.base_url = (base_url or os.getenv("GCP_CLOUD_FUNCTION_URL", "")).rstrip("/")
         self.bearer_token = bearer_token or os.getenv("GCP_CLOUD_FUNCTION_BEARER_TOKEN")
         self.timeout = timeout
 
@@ -85,9 +79,7 @@ class GCPCloudFunctionClient:
                 "error": str(exc),
             }
 
-    def trigger_ocr(
-        self, image_urls, project_id: str, user_id: str, languages=None
-    ) -> dict[str, Any]:
+    def trigger_ocr(self, image_urls, project_id: str, user_id: str, languages=None) -> dict[str, Any]:
         payload = {
             "imageUrls": image_urls,
             "projectId": project_id,

@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import time
 import uuid
+from datetime import datetime
+from datetime import timezone
 
 from api.routes.metrics import record_error
 from api.routes.metrics import record_request
@@ -85,5 +87,20 @@ class ObservabilityMiddleware:
                         "duration": duration,
                     },
                 )
+            except Exception:
+                pass
+
+            try:
+                from database.supabase_client import db
+
+                if db.client:
+                    db.upsert_usage_metric(
+                        {
+                            "tenant_id": user_id,
+                            "metric_name": f"api_request_{method.lower()}_{path.replace('/', '_')}",
+                            "metric_value": duration,
+                            "collected_at": datetime.now(timezone.utc).isoformat(),
+                        }
+                    )
             except Exception:
                 pass
