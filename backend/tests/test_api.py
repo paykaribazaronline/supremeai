@@ -93,7 +93,9 @@ def test_task_execute_allowed_and_success():
             json={"task": "hello", "task_type": "general"},
             headers=auth_headers,
         )
-        assert resp.status_code == 200
+        # Clean non-ascii characters to prevent Windows console encoding errors in tests
+        clean_text = resp.text.encode('ascii', 'ignore').decode('ascii')
+        assert resp.status_code == 200, f"Failing test execute: status={resp.status_code}, body={clean_text}"
         body = resp.json()
         assert body["success"] is True
         import json
