@@ -463,7 +463,7 @@ jobs:
           python-version: ${{ env.PYTHON_VERSION }}
 
       - name: Poetry ক্যাশ সেটআপ
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: backend/.venv
           key: poetry-${{ runner.os }}-${{ hashFiles('backend/poetry.lock', 'backend/pyproject.toml') }}
@@ -585,7 +585,7 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
 
       - name: pnpm ক্যাশ সেটআপ
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~/.local/share/pnpm/store
           key: pnpm-store-${{ runner.os }}-${{ hashFiles('**/pnpm-lock.yaml') }}
@@ -1527,7 +1527,7 @@ jobs:
 
       # Gradle ক্যাশ — বারবার ডিপেন্ডেন্সি ডাউনলোড এড়াতে ক্যাশ ব্যবহার করা হচ্ছে
       - name: Gradle ক্যাশ
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: |
             ~/.gradle/caches
