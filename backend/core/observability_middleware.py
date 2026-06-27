@@ -94,12 +94,17 @@ class ObservabilityMiddleware:
                 from database.supabase_client import db
 
                 if db.client:
-                    db.upsert_usage_metric(
+                    db.append_evolution_log(
                         {
-                            "tenant_id": user_id,
-                            "metric_name": f"api_request_{method.lower()}_{path.replace('/', '_')}",
-                            "metric_value": duration,
-                            "collected_at": datetime.now(timezone.utc).isoformat(),
+                            "event_type": "api_request",
+                            "description": f"{method} {path} - {status_code}",
+                            "metadata": {
+                                "tenant_id": user_id,
+                                "path": path,
+                                "method": method,
+                                "status_code": status_code,
+                                "duration": duration,
+                            },
                         }
                     )
             except Exception:
