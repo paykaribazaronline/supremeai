@@ -2,8 +2,6 @@ from __future__ import annotations
 
 import time
 import uuid
-from datetime import datetime
-from datetime import timezone
 
 from api.routes.metrics import record_error
 from api.routes.metrics import record_request
