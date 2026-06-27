@@ -26,40 +26,19 @@ def test_health_returns_ok():
 
 
 def test_task_execute_enforces_admin_block():
-    import pathlib
-    import tempfile
-
-    from admin.god import AdminGodLayer
-
-    db = pathlib.Path(tempfile.gettempdir()) / "supremeai_test_rules.db"
-    admin = AdminGodLayer(str(db))
-    admin.set_rule("admin_authorized", "false")
-
-    previous = app_mod.admin_god
-    app_mod.admin_god = admin
-    try:
+    from unittest.mock import patch
+    with patch("admin.god.AdminGodLayer.is_admin_action_allowed", return_value=False):
         resp = client.post(
             "/task/execute",
             json={"task": "do anything", "task_type": "general"},
             headers=auth_headers,
         )
         assert resp.status_code == 403
-    finally:
-        app_mod.admin_god = previous
 
 
 def test_task_execute_allowed_and_success():
-    import pathlib
-    import tempfile
-
-    from admin.god import AdminGodLayer
     from core.intent import TaskType
-
-    db = pathlib.Path(tempfile.gettempdir()) / "supremeai_test_rules2.db"
-    admin = AdminGodLayer(str(db))
-    admin.set_rule("admin_authorized", "true")
-
-    from unittest.mock import AsyncMock
+    from unittest.mock import AsyncMock, patch
 
     fake_router = MagicMock()
     fake_router.route_and_generate.return_value = {
@@ -81,30 +60,28 @@ def test_task_execute_allowed_and_success():
     fake_intent = MagicMock()
     fake_intent.classify.return_value = type("Intent", (), {"task_type": TaskType.general, "confidence": 0.5})()
 
-    previous_admin = app_mod.admin_god
     previous_router = app_mod.model_router
     previous_intent = app_mod.intent_clf
-    app_mod.admin_god = admin
     app_mod.model_router = fake_router
     app_mod.intent_clf = fake_intent
     try:
-        resp = client.post(
-            "/task/execute",
-            json={"task": "hello", "task_type": "general"},
-            headers=auth_headers,
-        )
-        # Clean non-ascii characters to prevent Windows console encoding errors in tests
-        clean_text = resp.text.encode('ascii', 'ignore').decode('ascii')
-        assert resp.status_code == 200, f"Failing test execute: status={resp.status_code}, body={clean_text}"
-        body = resp.json()
-        assert body["success"] is True
-        import json
+        with patch("admin.god.AdminGodLayer.is_admin_action_allowed", return_value=True):
+            resp = client.post(
+                "/task/execute",
+                json={"task": "hello", "task_type": "general"},
+                headers=auth_headers,
+            )
+            # Clean non-ascii characters to prevent Windows console encoding errors in tests
+            clean_text = resp.text.encode('ascii', 'ignore').decode('ascii')
+            assert resp.status_code == 200, f"Failing test execute: status={resp.status_code}, body={clean_text}"
+            body = resp.json()
+            assert body["success"] is True
+            import json
 
-        res_obj = json.loads(body["result"])
-        assert res_obj["content"] == "ok"
-        fake_router.async_route_and_generate.assert_called_once_with(prompt="hello", task_type="general", max_cost=0.01)
+            res_obj = json.loads(body["result"])
+            assert res_obj["content"] == "ok"
+            fake_router.async_route_and_generate.assert_called_once_with(prompt="hello", task_type="general", max_cost=0.01)
 
     finally:
-        app_mod.admin_god = previous_admin
         app_mod.model_router = previous_router
         app_mod.intent_clf = previous_intent
