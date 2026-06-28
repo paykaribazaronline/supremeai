@@ -2,11 +2,13 @@
  * SupremeAI Activity Tree Provider - Shows recent learning activity
  */
 
-import * as vscode from 'vscode';
-import { getSupremeAIService } from '../services/SupremeAIService';
+import * as vscode from "vscode";
+import { getSupremeAIService } from "../services/SupremeAIService";
 
 export class SupremeAIActivityProvider implements vscode.TreeDataProvider<SupremeAIActivityItem> {
-  private _onDidChangeTreeData = new vscode.EventEmitter<SupremeAIActivityItem | undefined | null>();
+  private _onDidChangeTreeData = new vscode.EventEmitter<
+    SupremeAIActivityItem | undefined | null
+  >();
   readonly onDidChangeTreeData = this._onDidChangeTreeData.event;
 
   private activityItems: SupremeAIActivityItem[] = [];
@@ -33,14 +35,14 @@ export class SupremeAIActivityProvider implements vscode.TreeDataProvider<Suprem
       if (this.activityItems.length === 0) {
         this.activityItems = [
           new SupremeAIActivityItem({
-            type: 'INFO',
-            message: 'SupremeAI is running and learning in the background',
-            timestamp: new Date().toISOString()
-          })
+            type: "INFO",
+            message: "SupremeAI is running and learning in the background",
+            timestamp: new Date().toISOString(),
+          }),
         ];
       }
     } catch (error) {
-      console.error('[SupremeAI] Failed to load activity:', error);
+      console.error("[SupremeAI] Failed to load activity:", error);
     }
   }
 
@@ -48,7 +50,9 @@ export class SupremeAIActivityProvider implements vscode.TreeDataProvider<Suprem
     return element;
   }
 
-  async getChildren(element?: SupremeAIActivityItem): Promise<SupremeAIActivityItem[]> {
+  async getChildren(
+    element?: SupremeAIActivityItem,
+  ): Promise<SupremeAIActivityItem[]> {
     if (!element) {
       // Root level - return activity items
       return this.activityItems;
@@ -63,14 +67,14 @@ export class SupremeAIActivityItem extends vscode.TreeItem {
       type: string;
       message: string;
       timestamp: string;
-    }
+    },
   ) {
     super(activity.message, vscode.TreeItemCollapsibleState.None);
 
     this.description = this.formatTime(activity.timestamp);
     this.iconPath = this.getIcon(activity.type);
     this.tooltip = `${activity.type}: ${activity.message}`;
-    this.contextValue = 'supremeai.activityItem';
+    this.contextValue = "supremeai.activityItem";
   }
 
   private formatTime(timestamp: string): string {
@@ -80,7 +84,7 @@ export class SupremeAIActivityItem extends vscode.TreeItem {
     const minutes = Math.floor(diff / 60000);
     const hours = Math.floor(diff / 3600000);
 
-    if (minutes < 1) return 'now';
+    if (minutes < 1) return "now";
     if (minutes < 60) return `${minutes}m`;
     if (hours < 24) return `${hours}h`;
     return date.toLocaleDateString();
@@ -88,14 +92,14 @@ export class SupremeAIActivityItem extends vscode.TreeItem {
 
   private getIcon(type: string): vscode.ThemeIcon {
     switch (type) {
-      case 'CODE_EDIT':
-        return new vscode.ThemeIcon('edit');
-      case 'ERROR_REPORT':
-        return new vscode.ThemeIcon('error');
-      case 'SUGGESTION_FEEDBACK':
-        return new vscode.ThemeIcon('thumbsup');
+      case "CODE_EDIT":
+        return new vscode.ThemeIcon("edit");
+      case "ERROR_REPORT":
+        return new vscode.ThemeIcon("error");
+      case "SUGGESTION_FEEDBACK":
+        return new vscode.ThemeIcon("thumbsup");
       default:
-        return new vscode.ThemeIcon('info');
+        return new vscode.ThemeIcon("info");
     }
   }
 }

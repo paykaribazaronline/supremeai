@@ -47,7 +47,8 @@ class MockAuthProvider extends ChangeNotifier implements AuthProvider {
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  testWidgets('LoginScreen renders title and login button', (WidgetTester tester) async {
+  testWidgets('LoginScreen renders title and login button',
+      (WidgetTester tester) async {
     LocalizationService.setMockData({
       'app': {'title': 'SupremeAI'},
       'btn': {'login': 'Login'},
