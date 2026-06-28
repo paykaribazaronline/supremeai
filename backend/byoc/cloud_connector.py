@@ -1,5 +1,3 @@
-
-
 class CloudStatus:
     connected: bool = False
     provider: str = "gcp"
