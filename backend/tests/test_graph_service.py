@@ -1,5 +1,4 @@
 import pytest
-import os
 from unittest.mock import AsyncMock, MagicMock, patch
 from tools.graph_service import GraphService
 

@@ -102,5 +102,7 @@ class TestSmellCheck:
         assert resp.status_code == 422
 
     def test_smell_check_invalid_path(self):
-        resp = client.post("/tools/smell-check", json={"path": "/nonexistent/path"})
-        assert resp.status_code == 404
+        from unittest.mock import patch
+        with patch("os.path.exists", return_value=False):
+            resp = client.post("/tools/smell-check", json={"path": "/nonexistent/path"})
+            assert resp.status_code == 404

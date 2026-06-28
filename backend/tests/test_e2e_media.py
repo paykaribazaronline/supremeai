@@ -21,40 +21,22 @@ def _skip_if_media_deps_missing():
         pytest.skip(f"Media backend dependencies missing: {exc}")
 
 
-@pytest.mark.skip(reason="Placeholder: skip until media backends are wired in production")
-def test_generate_image_success():
-    _skip_if_media_deps_missing()
-    payload = {
-        "prompt": "a futuristic city at sunset",
-        "model": "stable-diffusion",
-        "output_path": "data/test_image.png",
-    }
-    response = client.post("/api/media/generate/image", json=payload)
-    assert response.status_code in (200, 422)
-    if response.status_code == 200:
+def test_generate_upload_url_requires_fields():
+    response = client.post("/api/v1/media/generate-upload-url", json={})
+    assert response.status_code == 422
+
+
+def test_generate_upload_url_success():
+    from unittest.mock import patch
+    with patch("storage.r2_storage_client.R2StorageClient.generate_presigned_upload_url", return_value="https://mock-upload-url.com"):
+        payload = {
+            "file_name": "test.png",
+            "file_type": "image/png",
+            "folder": "test_folder"
+        }
+        response = client.post("/api/v1/media/generate-upload-url", json=payload)
+        assert response.status_code == 200
         body = response.json()
-        assert "success" in body
-
-
-@pytest.mark.skip(reason="Placeholder: skip until media backends are wired in production")
-def test_generate_video_success():
-    _skip_if_media_deps_missing()
-    payload = {
-        "prompt": "a drone shot over mountains",
-        "output_path": "data/test_video.mp4",
-    }
-    response = client.post("/api/media/generate/video", json=payload)
-    assert response.status_code in (200, 422)
-    if response.status_code == 200:
-        body = response.json()
-        assert "success" in body
-
-
-def test_generate_image_requires_prompt():
-    response = client.post("/api/media/generate/image", json={})
-    assert response.status_code in (400, 422)
-
-
-def test_generate_video_requires_prompt():
-    response = client.post("/api/media/generate/video", json={})
-    assert response.status_code in (400, 422)
+        assert "upload_url" in body
+        assert "file_path" in body
+        assert "public_url" in body

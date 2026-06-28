@@ -1,4 +1,6 @@
 import traceback
+
+
 try:
     from core.app import app
     routes = [r.path for r in app.routes if hasattr(r, 'path')]
@@ -6,5 +8,5 @@ try:
     for path in routes:
         if 'voice' in path or 'tts' in path:
             print('Relevant route:', path)
-except Exception as e:
+except Exception:
     traceback.print_exc()

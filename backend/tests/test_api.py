@@ -57,13 +57,24 @@ def test_task_execute_allowed_and_success():
             "cost": 0.0,
         }
     )
+    fake_intent_parser = MagicMock()
+    fake_intent_parser.parse_intent.return_value = MagicMock(
+        app_type="general",
+        features=[],
+        tech_stack=[],
+        pages=[],
+        integrations=[],
+        deployment_target="local"
+    )
     fake_intent = MagicMock()
     fake_intent.classify.return_value = type("Intent", (), {"task_type": TaskType.general, "confidence": 0.5})()
 
     previous_router = app_mod.model_router
     previous_intent = app_mod.intent_clf
+    previous_intent_parser = app_mod.intent_parser
     app_mod.model_router = fake_router
     app_mod.intent_clf = fake_intent
+    app_mod.intent_parser = fake_intent_parser
     try:
         with patch("admin.god.AdminGodLayer.is_admin_action_allowed", return_value=True):
             resp = client.post(
@@ -85,3 +96,4 @@ def test_task_execute_allowed_and_success():
     finally:
         app_mod.model_router = previous_router
         app_mod.intent_clf = previous_intent
+        app_mod.intent_parser = previous_intent_parser

@@ -1,5 +1,4 @@
-import os
-from unittest.mock import AsyncMock, patch
+from unittest.mock import patch
 import pytest
 
 from tools.style_learner import StyleLearner

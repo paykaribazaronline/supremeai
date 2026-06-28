@@ -1,10 +1,15 @@
 import os
-import json
-from fastapi import APIRouter, HTTPException, Query, Depends
-from typing import List, Dict, Any
-from tools.graph_service import GraphService
-from api.routes.auth import optional_current_user
+from typing import Any
+
+from fastapi import APIRouter
+from fastapi import Depends
+from fastapi import HTTPException
+from fastapi import Query
 from loguru import logger
+
+from api.routes.auth import optional_current_user
+from tools.graph_service import GraphService
+
 
 # বাংলা মন্তব্য: ফ্রন্টএন্ডে নলেজ গ্রাফ ডেটা (Nodes & Edges) এবং লার্নিং পাথ এক্সপোজ করার API রাউটার।
 
@@ -17,7 +22,7 @@ async def require_auth_token(current_user = Depends(optional_current_user)):
         raise HTTPException(status_code=401, detail="Not authenticated")
     return current_user or {"user_id": "dummy_user"}
 
-@router.get("/skills", response_model=Dict[str, List[Dict[str, Any]]])
+@router.get("/skills", response_model=dict[str, list[dict[str, Any]]])
 async def get_skill_graph(user=Depends(require_auth_token)):
     """
     বাংলা মন্তব্য: ফ্রন্টএন্ডে ভিজ্যুয়ালাইজ করার জন্য গ্রাফের সমস্ত নোড এবং রিলেশনশিপ (Edges) ফেচ করবে।
@@ -70,7 +75,7 @@ async def get_skill_graph(user=Depends(require_auth_token)):
 
     except Exception as e:
         logger.error(f"Error fetching skill graph: {str(e)}")
-        raise HTTPException(status_code=500, detail="Failed to fetch knowledge graph")
+        raise HTTPException(status_code=500, detail="Failed to fetch knowledge graph") from e
 
 
 @router.get("/path")
@@ -87,4 +92,4 @@ async def get_learning_path(
         return {"path": path}
     except Exception as e:
         logger.error(f"Error finding path: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e

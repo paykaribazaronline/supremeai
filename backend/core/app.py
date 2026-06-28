@@ -38,14 +38,6 @@ import secrets
 import sentry_sdk
 
 from admin.god import AdminGodLayer
-from models.admin import (
-    AdminLoginRequest,
-    AdminVerifyRequest,
-    AdminFirebaseLoginRequest,
-    AdminFirebaseTotpSetupRequest,
-    AdminFirebaseTotpVerifyRequest,
-    AdminEasyLoginRequest,
-)
 from api.routes import admin_dashboard_router
 from api.routes import agent_router
 from api.routes import agents_router
@@ -92,6 +84,12 @@ from core.telemetry import setup_tracing
 from core.upstash_redis_queue import UpstashRedisQueue
 from middleware.auth_middleware import ZeroTrustAuthMiddleware
 from middleware.idempotency import IdempotencyMiddleware
+from models.admin import AdminEasyLoginRequest
+from models.admin import AdminFirebaseLoginRequest
+from models.admin import AdminFirebaseTotpSetupRequest
+from models.admin import AdminFirebaseTotpVerifyRequest
+from models.admin import AdminLoginRequest
+from models.admin import AdminVerifyRequest
 
 
 setup_tracing()

@@ -1,4 +1,3 @@
-import pytest
 from unittest.mock import patch, MagicMock
 from storage.r2_storage_client import R2StorageClient
 

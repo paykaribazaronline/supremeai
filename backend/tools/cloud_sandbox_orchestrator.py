@@ -12,7 +12,7 @@ import os
 import httpx
 import asyncio
 from loguru import logger
-from typing import Dict, Any, Optional
+from typing import Dict, Any
 
 
 class CloudSandboxOrchestrator:
@@ -44,7 +44,7 @@ class CloudSandboxOrchestrator:
         else:
             raise ValueError(f"Unsupported provider: {self.provider}")
 
-    async def create_sandbox(self, spec: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    async def create_sandbox(self, spec: Dict[str, Any]) -> Dict[str, Any] | None:
         if not self.api_key:
             logger.warning("Cannot create sandbox: API key is missing. Running in mock/dry-run mode.")
             return {
@@ -71,7 +71,7 @@ class CloudSandboxOrchestrator:
 
         return None
 
-    async def get_sandbox_status(self, sandbox_id: str) -> Optional[Dict[str, Any]]:
+    async def get_sandbox_status(self, sandbox_id: str) -> Dict[str, Any] | None:
         if not self.api_key:
             logger.info(f"Dry-run: Fetching status for sandbox {sandbox_id}")
             return {
@@ -90,7 +90,7 @@ class CloudSandboxOrchestrator:
             logger.error(f"Failed to get status for sandbox {sandbox_id}. Status: {e.response.status_code}")
         return None
 
-    async def run_command(self, sandbox_id: str, command: str, timeout: int = 300) -> Optional[Dict[str, Any]]:
+    async def run_command(self, sandbox_id: str, command: str, timeout: int = 300) -> Dict[str, Any] | None:
         if not self.api_key:
             logger.info(f"Dry-run: Running command '{command}' in sandbox {sandbox_id}")
             return {

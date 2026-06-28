@@ -1,7 +1,6 @@
 import json
 import asyncio
 import os
-from typing import Any
 import redis.asyncio as redis
 
 from fastapi import APIRouter

@@ -1,9 +1,8 @@
 # backend/tools/mcp_server.py
-import os
 import json
 import asyncio
 from mcp.server import Server
-import mcp.types as types
+from mcp import types
 from tools.graph_service import GraphService
 from loguru import logger
 

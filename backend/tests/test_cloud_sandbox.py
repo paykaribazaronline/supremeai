@@ -7,23 +7,19 @@ from tools.cloud_sandbox_orchestrator import CloudSandboxOrchestrator
 
 
 @pytest.mark.anyio
-@patch(
-    "tools.cloud_sandbox_orchestrator.CloudSandboxOrchestrator._get_docker_client",
-    return_value=None,
-)
-async def test_sandbox_local_flow(mock_get_docker):
-    orchestrator = CloudSandboxOrchestrator(provider="local")
-    session_id = await orchestrator.create_session()
-    assert session_id is not None
-    assert session_id in orchestrator.active_sessions
+async def test_sandbox_local_flow():
+    orchestrator = CloudSandboxOrchestrator(provider="runpod")
+    res = await orchestrator.create_sandbox(spec={})
+    assert res is not None
+    assert res["id"] == "mock-sandbox-id-12345"
+    assert res["status"] == "running"
 
-    cmd_res = await orchestrator.run_command(session_id, "ls -la")
-    assert cmd_res["exit_code"] == 0
+    cmd_res = await orchestrator.run_command(res["id"], "ls -la")
+    assert cmd_res["exitCode"] == 0
     assert "Mock output" in cmd_res["stdout"]
 
-    term_res = await orchestrator.terminate_session(session_id)
+    term_res = await orchestrator.destroy_sandbox(res["id"])
     assert term_res is True
-    assert session_id not in orchestrator.active_sessions
 
 
 import os
@@ -40,13 +36,21 @@ async def test_sandbox_runpod_flow(mock_post):
 
     with patch.dict(os.environ, {"RUNPOD_API_KEY": "test-api-key"}):
         orchestrator = CloudSandboxOrchestrator(provider="runpod")
-        session_id = await orchestrator.create_session()
-        assert session_id is not None
-        assert orchestrator.active_sessions[session_id]["pod_id"] == "pod-12345"
+        res = await orchestrator.create_sandbox(spec={"imageName": "ubuntu"})
+        assert res is not None
+        assert res["id"] == "pod-12345"
 
         # Test command mock fallback/execution
-        cmd_res = await orchestrator.run_command(session_id, "echo 'hello'")
-        assert cmd_res["exit_code"] == 0
+        mock_cmd_resp = MagicMock()
+        mock_cmd_resp.status_code = 200
+        mock_cmd_resp.json.return_value = {"status": "COMPLETED", "exitCode": 0}
+        mock_post.return_value = mock_cmd_resp
+
+        cmd_res = await orchestrator.run_command(res["id"], "echo 'hello'")
+        assert cmd_res["exitCode"] == 0
 
         # Cleanup
-        await orchestrator.terminate_session(session_id)
+        mock_destroy_resp = MagicMock()
+        mock_destroy_resp.status_code = 200
+        mock_post.return_value = mock_destroy_resp
+        await orchestrator.destroy_sandbox(res["id"])

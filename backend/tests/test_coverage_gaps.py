@@ -1523,21 +1523,29 @@ class TestMultiLayerCache:
 
     def test_multi_layer_cache_get_miss(self):
         from core.multi_layer_cache import MultiLayerCache
+        import core.multi_layer_cache as mlc
+        from core.multi_layer_cache import _InMemoryRedisStub
 
-        cache = MultiLayerCache()
-        import asyncio
+        with patch.object(mlc, "exact_match_cache", _InMemoryRedisStub()), \
+             patch.object(mlc, "prefix_cache", _InMemoryRedisStub()):
+            cache = MultiLayerCache()
+            import asyncio
 
-        result = asyncio.run(cache.get("test prompt", "model-1"))
-        assert result is None
+            result = asyncio.run(cache.get("test prompt", "model-1"))
+            assert result is None
 
     def test_multi_layer_cache_set(self):
         from core.multi_layer_cache import MultiLayerCache
+        import core.multi_layer_cache as mlc
+        from core.multi_layer_cache import _InMemoryRedisStub
 
-        cache = MultiLayerCache()
-        import asyncio
+        with patch.object(mlc, "exact_match_cache", _InMemoryRedisStub()), \
+             patch.object(mlc, "prefix_cache", _InMemoryRedisStub()):
+            cache = MultiLayerCache()
+            import asyncio
 
-        asyncio.run(cache.set("test prompt", "cached response", "model-1"))
-        # Setting should not raise
+            asyncio.run(cache.set("test prompt", "cached response", "model-1"))
+            # Setting should not raise
 
 
 class TestAutoRemediation:
@@ -1630,9 +1638,9 @@ class TestHealthMonitor:
     def test_health_monitor_setup(self):
         from core.health_monitor import HealthMonitor
 
-        with patch("core.health_monitor.Gauge"):
-            with patch("core.health_monitor.Histogram"):
-                with patch("core.health_monitor.start_http_server"):
+        with patch("core.health_monitor.Gauge", create=True):
+            with patch("core.health_monitor.Histogram", create=True):
+                with patch("core.health_monitor.start_http_server", create=True):
                     monitor = HealthMonitor()
                     assert monitor is not None
 

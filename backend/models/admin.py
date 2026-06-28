@@ -3,7 +3,9 @@ SupremeAI 2.0 — Admin Pydantic Models
 বাংলা মন্তব্য: অ্যাডমিন অথেন্টিকেশন ও ম্যানেজমেন্ট রাউটগুলোর জন্য ইনপুট ভ্যালিডেশন স্কিমা
 """
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
+from pydantic import Field
+
 
 class AdminLoginRequest(BaseModel):
     password: str = Field(..., description="Admin password")

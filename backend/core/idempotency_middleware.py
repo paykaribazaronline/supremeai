@@ -75,7 +75,6 @@ class IdempotencyMiddleware:
                     
                     body = data.get("body")
                     if isinstance(body, dict):
-                        from fastapi.responses import JSONResponse
                         response = JSONResponse(
                             content=body,
                             status_code=data.get("status_code")

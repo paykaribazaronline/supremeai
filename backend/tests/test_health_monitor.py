@@ -1,8 +1,10 @@
-from __future__ import annotations
+import sys
+from unittest.mock import MagicMock
+sys.modules["psutil"] = MagicMock()
+sys.modules["prometheus_client"] = MagicMock()
 
 import asyncio
 import time
-from unittest.mock import MagicMock
 from unittest.mock import patch
 
 import pytest
@@ -12,7 +14,7 @@ from core.health_monitor import HealthMonitor
 
 @pytest.fixture
 def monitor():
-    with patch.object(HealthMonitor, "_setup_metrics"), patch("core.health_monitor.start_http_server"):
+    with patch.object(HealthMonitor, "_setup_metrics"), patch("core.health_monitor.start_http_server", create=True):
         return HealthMonitor(metrics_port=9090)
 
 
@@ -134,7 +136,7 @@ def test_record_request_duration_prometheus_error(monitor):
 
 
 def test_health_monitor_uptime_increases():
-    with patch.object(HealthMonitor, "_setup_metrics"), patch("core.health_monitor.start_http_server"):
+    with patch.object(HealthMonitor, "_setup_metrics"), patch("core.health_monitor.start_http_server", create=True):
         m = HealthMonitor(metrics_port=9091)
     time.sleep(0.01)
     with patch("psutil.cpu_percent", return_value=0.0), patch("psutil.virtual_memory") as mock_vm:
