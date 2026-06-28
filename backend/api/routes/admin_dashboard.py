@@ -687,3 +687,15 @@ async def execute_manual_gate_override(payload: GateOverridePayload):
     except Exception as e:
         logger.error(f"❌ Failed to commit manual gate override to Cloud Firestore: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Infrastructure Sync Failure: {str(e)}") from e
+
+
+@router.get("/ci-logs")
+async def get_ci_logs(limit: int = 20):
+    # বাংলা মন্তব্য: ড্যাশবোর্ডে CI/CD পাইপলাইনের সাম্প্রতিক রিপোর্টগুলো দেখানোর জন্য এন্ডপয়েন্ট
+    from models.ci_report import get_recent_ci_reports
+    try:
+        reports = await get_recent_ci_reports(limit)
+        return reports
+    except Exception as e:
+        logger.error(f"❌ Failed to fetch CI logs: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Database query failure: {str(e)}") from e

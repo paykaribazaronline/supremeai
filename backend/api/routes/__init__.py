@@ -234,4 +234,11 @@ try:
 except Exception:
     graph_router = None
 
+try:
+    from .ci_webhooks import router as ci_webhooks_router
+
+    _safe_imports["ci_webhooks_router"] = ci_webhooks_router
+except Exception:
+    ci_webhooks_router = None
+
 __all__ = list(_safe_imports.keys()) + ["voice_router"]

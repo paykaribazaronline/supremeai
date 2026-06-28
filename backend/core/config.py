@@ -97,6 +97,7 @@ class Settings(BaseSettings):
     admin_rules_db: str = "data/constitutional_rules.db"
     memory_db_dir: str = "data/memory"
     skill_registry_path: str = "data/skill_registry.json"
+    ci_webhook_secret: str = secret_vault.fetch_secret("CI_WEBHOOK_SECRET", "supreme-ci-secret-2026")
 
     @field_validator("env")
     @classmethod

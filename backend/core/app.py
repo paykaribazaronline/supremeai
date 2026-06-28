@@ -42,6 +42,7 @@ from api.routes import admin_dashboard_router
 from api.routes import agent_router
 from api.routes import agents_router
 from api.routes import api_keys_router
+from api.routes import ci_webhooks_router
 from api.routes import async_task_router
 from api.routes import auth_router
 from api.routes import browser_router
@@ -931,6 +932,8 @@ if sso_router is not None:
     app.include_router(sso_router)
 if api_keys_router is not None:
     app.include_router(api_keys_router)
+if ci_webhooks_router is not None:
+    app.include_router(ci_webhooks_router)
 # Include Orchestrator router
 if orchestrator_router is not None:
     app.include_router(orchestrator_router)
