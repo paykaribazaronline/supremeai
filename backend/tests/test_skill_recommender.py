@@ -60,8 +60,14 @@ def test_recommend_no_history(recommender):
 
 def test_recommend_with_local_history():
     rec = SkillRecommender()
-    rec._record_task("user-1", {"description": "draft email", "type": "query", "skill_id": "skill-email"})
-    rec._record_task("user-1", {"description": "send report", "type": "query", "skill_id": "skill-report"})
+    rec._record_task(
+        "user-1",
+        {"description": "draft email", "type": "query", "skill_id": "skill-email"},
+    )
+    rec._record_task(
+        "user-1",
+        {"description": "send report", "type": "query", "skill_id": "skill-report"},
+    )
     recs = rec.recommend("user-1", "draft memo")
     assert len(recs) > 0
     scores = [r["match_score"] for r in recs]
@@ -72,9 +78,16 @@ def test_recommend_enriches_from_db(recommender):
     mock_db = MagicMock()
     mock_db.client = True
     with patch.dict("sys.modules", {"database.supabase_client": MagicMock(db=mock_db)}):
-        recommender._get_user_history = MagicMock(return_value=[
-            {"task": {"description": "invoice generation", "skill_id": "skill-invoice"}}
-        ])
+        recommender._get_user_history = MagicMock(
+            return_value=[
+                {
+                    "task": {
+                        "description": "invoice generation",
+                        "skill_id": "skill-invoice",
+                    }
+                }
+            ]
+        )
         mock_db.client.table.return_value.select.return_value.eq.return_value.execute.return_value.data = [
             {"id": "skill-invoice", "name": "Invoice Generator", "category": "billing"}
         ]
@@ -89,10 +102,14 @@ def test_recommend_db_failure_falls_back(recommender):
     mock_db = MagicMock()
     mock_db.client = True
     with patch.dict("sys.modules", {"database.supabase_client": MagicMock(db=mock_db)}):
-        recommender._get_user_history = MagicMock(return_value=[
-            {"task": {"description": "email task", "skill_id": "skill-email"}}
-        ])
-        mock_db.client.table.return_value.select.return_value.eq.return_value.execute.side_effect = Exception("db error")
+        recommender._get_user_history = MagicMock(
+            return_value=[
+                {"task": {"description": "email task", "skill_id": "skill-email"}}
+            ]
+        )
+        mock_db.client.table.return_value.select.return_value.eq.return_value.execute.side_effect = Exception(
+            "db error"
+        )
         recs = recommender.recommend("user-1", "send email")
         assert len(recs) == 1
         assert recs[0]["id"] == "skill-email"
