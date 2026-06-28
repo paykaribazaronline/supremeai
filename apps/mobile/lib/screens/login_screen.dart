@@ -19,7 +19,8 @@ class LoginScreen extends StatelessWidget {
                 header: true,
                 child: Text(
                   'app.title'.tr(),
-                  style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
+                  style: const TextStyle(
+                      fontSize: 32, fontWeight: FontWeight.bold),
                 ),
               ),
               const SizedBox(height: 48),
@@ -41,7 +42,8 @@ class LoginScreen extends StatelessWidget {
                         } else {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
-                              content: Text(provider.errorMessage ?? 'error.server'.tr()),
+                              content: Text(
+                                  provider.errorMessage ?? 'error.server'.tr()),
                             ),
                           );
                         }
@@ -71,11 +73,14 @@ class LoginScreen extends StatelessWidget {
                   label: 'Google Sign-In',
                   child: OutlinedButton.icon(
                     onPressed: () async {
-                      final success = await context.read<AuthProvider>().loginWithGoogle();
+                      final success =
+                          await context.read<AuthProvider>().loginWithGoogle();
                       if (context.mounted && !success) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
-                            content: Text(context.read<AuthProvider>().errorMessage ?? 'error.network'.tr()),
+                            content: Text(
+                                context.read<AuthProvider>().errorMessage ??
+                                    'error.network'.tr()),
                           ),
                         );
                       }

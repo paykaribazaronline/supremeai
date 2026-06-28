@@ -1,30 +1,30 @@
-import * as vscode from 'vscode';
-import { getSupremeAIService } from '../services/SupremeAIService';
-import { AuthService } from '../services/AuthService';
+import * as vscode from "vscode";
+import { getSupremeAIService } from "../services/SupremeAIService";
+import { AuthService } from "../services/AuthService";
 
-export class SupremeAIAdminDashboardProvider implements vscode.WebviewViewProvider {
+export class SupremeAIAdminDashboardProvider
+  implements vscode.WebviewViewProvider
+{
   private webview: vscode.WebviewView | null = null;
   private updateTimer: NodeJS.Timeout | null = null;
 
-  constructor(
-    private readonly _extensionUri: vscode.Uri
-  ) {}
+  constructor(private readonly _extensionUri: vscode.Uri) {}
 
   public resolveWebviewView(
     webviewView: vscode.WebviewView,
     _context: vscode.WebviewViewResolveContext,
-    _token: vscode.CancellationToken
+    _token: vscode.CancellationToken,
   ): void {
     this.webview = webviewView;
 
     webviewView.webview.options = {
       enableScripts: true,
-      localResourceRoots: [this._extensionUri]
+      localResourceRoots: [this._extensionUri],
     };
 
     this.setupWebviewMessageListener(webviewView);
     webviewView.webview.html = this.getLoadingHTML();
-    
+
     this.updateContent(webviewView);
     this.startPeriodicUpdates();
   }
@@ -34,25 +34,28 @@ export class SupremeAIAdminDashboardProvider implements vscode.WebviewViewProvid
   }
 
   private setupWebviewMessageListener(webviewView: vscode.WebviewView): void {
-    webviewView.webview.onDidReceiveMessage(
-      async (data) => {
-        switch (data.type) {
-          case 'analyzeCodeFlow':
-            vscode.commands.executeCommand('supremeai.analyzeCodeFlow');
-            break;
-          case 'runSecurityAudit':
-            vscode.commands.executeCommand('supremeai.sendMessageToChat', 'Please run a security audit on my current active codebase.');
-            break;
-          case 'openSettings':
-            vscode.commands.executeCommand('workbench.action.openSettings', 'supremeai');
-            break;
-          case 'refresh':
-            this.updateContent(webviewView);
-            break;
-        }
-      },
-      undefined
-    );
+    webviewView.webview.onDidReceiveMessage(async (data) => {
+      switch (data.type) {
+        case "analyzeCodeFlow":
+          vscode.commands.executeCommand("supremeai.analyzeCodeFlow");
+          break;
+        case "runSecurityAudit":
+          vscode.commands.executeCommand(
+            "supremeai.sendMessageToChat",
+            "Please run a security audit on my current active codebase.",
+          );
+          break;
+        case "openSettings":
+          vscode.commands.executeCommand(
+            "workbench.action.openSettings",
+            "supremeai",
+          );
+          break;
+        case "refresh":
+          this.updateContent(webviewView);
+          break;
+      }
+    }, undefined);
   }
 
   private async updateContent(webviewView: vscode.WebviewView): Promise<void> {
@@ -78,9 +81,10 @@ export class SupremeAIAdminDashboardProvider implements vscode.WebviewViewProvid
   }
 
   private getHTMLContent(stats: any): string {
-    const config = vscode.workspace.getConfiguration('supremeai');
-    const apiProvider = config.get<string>('apiProvider') || 'openrouter';
-    const model = config.get<string>('aiModel') || 'openrouter/anthropic/claude-3.5-sonnet';
+    const config = vscode.workspace.getConfiguration("supremeai");
+    const apiProvider = config.get<string>("apiProvider") || "openrouter";
+    const model =
+      config.get<string>("aiModel") || "openrouter/anthropic/claude-3.5-sonnet";
 
     return `<!DOCTYPE html>
 <html lang="bn">
@@ -180,7 +184,7 @@ export class SupremeAIAdminDashboardProvider implements vscode.WebviewViewProvid
     </div>
     <div class="stat-row">
       <span class="stat-label">Auto-Learn</span>
-      <span class="stat-value">${stats?.enabled ? '✅ Active' : '❌ Inactive'}</span>
+      <span class="stat-value">${stats?.enabled ? "✅ Active" : "❌ Inactive"}</span>
     </div>
   </div>
 

@@ -19,11 +19,16 @@ class NotificationsScreen extends StatelessWidget {
             child: Container(color: Colors.black.withValues(alpha: 0.5)),
           ),
         ),
-        title: Text('insights.title'.tr().toUpperCase(), 
-          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w900, letterSpacing: 2, color: Colors.white)
-        ),
+        title: Text('insights.title'.tr().toUpperCase(),
+            style: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w900,
+                letterSpacing: 2,
+                color: Colors.white)),
         actions: [
-          IconButton(icon: const Icon(Icons.history, color: Colors.white38), onPressed: () {}),
+          IconButton(
+              icon: const Icon(Icons.history, color: Colors.white38),
+              onPressed: () {}),
         ],
       ),
       body: Container(
@@ -70,15 +75,8 @@ class NotificationsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildInsightCard(
-    BuildContext context, 
-    String category, 
-    String title, 
-    String description, 
-    String tag, 
-    Color color,
-    IconData icon
-  ) {
+  Widget _buildInsightCard(BuildContext context, String category, String title,
+      String description, String tag, Color color, IconData icon) {
     return Container(
       margin: const EdgeInsets.only(bottom: 20),
       child: ClipRRect(
@@ -111,19 +109,33 @@ class NotificationsScreen extends StatelessWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(category, style: TextStyle(color: color, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1.2)),
+                            Text(category,
+                                style: TextStyle(
+                                    color: color,
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold,
+                                    letterSpacing: 1.2)),
                             const SizedBox(height: 4),
-                            Text(title, style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w900)),
+                            Text(title,
+                                style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w900)),
                           ],
                         ),
                       ),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 4),
                         decoration: BoxDecoration(
                           color: Colors.white.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(8),
                         ),
-                        child: Text(tag, style: const TextStyle(color: Colors.white60, fontSize: 8, fontWeight: FontWeight.bold)),
+                        child: Text(tag,
+                            style: const TextStyle(
+                                color: Colors.white60,
+                                fontSize: 8,
+                                fontWeight: FontWeight.bold)),
                       ),
                     ],
                   ),
@@ -132,7 +144,8 @@ class NotificationsScreen extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   child: Text(
                     description,
-                    style: const TextStyle(color: Colors.white54, fontSize: 13, height: 1.5),
+                    style: const TextStyle(
+                        color: Colors.white54, fontSize: 13, height: 1.5),
                   ),
                 ),
                 const SizedBox(height: 24),
@@ -140,16 +153,20 @@ class NotificationsScreen extends StatelessWidget {
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
                     color: Colors.white.withValues(alpha: 0.02),
-                    borderRadius: const BorderRadius.only(bottomLeft: Radius.circular(24), bottomRight: Radius.circular(24)),
+                    borderRadius: const BorderRadius.only(
+                        bottomLeft: Radius.circular(24),
+                        bottomRight: Radius.circular(24)),
                   ),
                   child: Row(
                     children: [
                       Expanded(
                         child: TextButton(
                           onPressed: () {},
-                          child: Text('btn.cancel'.tr().toUpperCase(), 
-                            style: const TextStyle(color: Colors.white38, fontSize: 12, fontWeight: FontWeight.bold)
-                          ),
+                          child: Text('btn.cancel'.tr().toUpperCase(),
+                              style: const TextStyle(
+                                  color: Colors.white38,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold)),
                         ),
                       ),
                       const SizedBox(width: 12),
@@ -158,24 +175,29 @@ class NotificationsScreen extends StatelessWidget {
                         child: Container(
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(12),
-                            gradient: LinearGradient(colors: [color, color.withValues(alpha: 0.7)]),
+                            gradient: LinearGradient(
+                                colors: [color, color.withValues(alpha: 0.7)]),
                           ),
                           child: ElevatedButton(
                             onPressed: () {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text('${'status.working'.tr()}: $title'),
-                                  backgroundColor: color,
-                                )
-                              );
+                              ScaffoldMessenger.of(context)
+                                  .showSnackBar(SnackBar(
+                                content:
+                                    Text('${'status.working'.tr()}: $title'),
+                                backgroundColor: color,
+                              ));
                             },
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.transparent,
                               shadowColor: Colors.transparent,
                               foregroundColor: Colors.black,
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12)),
                             ),
-                            child: Text('insights.grant_permission'.tr().toUpperCase(), style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w900)),
+                            child: Text(
+                                'insights.grant_permission'.tr().toUpperCase(),
+                                style: const TextStyle(
+                                    fontSize: 10, fontWeight: FontWeight.w900)),
                           ),
                         ),
                       ),
@@ -190,4 +212,3 @@ class NotificationsScreen extends StatelessWidget {
     );
   }
 }
-

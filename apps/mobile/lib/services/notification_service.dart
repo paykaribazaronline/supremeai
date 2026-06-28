@@ -7,7 +7,8 @@ class NotificationService {
   factory NotificationService() => _instance;
   NotificationService._internal();
 
-  final FlutterLocalNotificationsPlugin _local = FlutterLocalNotificationsPlugin();
+  final FlutterLocalNotificationsPlugin _local =
+      FlutterLocalNotificationsPlugin();
 
   Future<void> initialize() async {
     const android = AndroidInitializationSettings('@mipmap/ic_launcher');
@@ -32,7 +33,8 @@ class NotificationService {
           n.title,
           n.body,
           const NotificationDetails(
-            android: AndroidNotificationDetails('supremeai', 'SupremeAI Notifications'),
+            android: AndroidNotificationDetails(
+                'supremeai', 'SupremeAI Notifications'),
           ),
         );
       }

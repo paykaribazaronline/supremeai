@@ -1,4 +1,4 @@
-import { create } from 'zustand';
+import { create } from "zustand";
 
 interface AdminState {
   adminAuthenticated: boolean;
@@ -20,60 +20,68 @@ interface AdminState {
 
 export const useAdminStore = create<AdminState>((set, get) => ({
   adminAuthenticated: true,
-  adminPassword: '',
+  adminPassword: "",
   setAdminPassword: (val) => set({ adminPassword: val }),
-  adminError: '',
+  adminError: "",
   setAdminError: (val) => set({ adminError: val }),
-  actionStatus: '',
+  actionStatus: "",
   setActionStatus: (val) => set({ actionStatus: val }),
-  adminSubTab: 'command-center',
+  adminSubTab: "command-center",
   setAdminSubTab: (tab) => set({ adminSubTab: tab }),
   otpRequired: false,
   setOtpRequired: (val) => set({ otpRequired: val }),
-  adminOtp: '',
+  adminOtp: "",
   setAdminOtp: (val) => set({ adminOtp: val }),
   handleAdminLogin: async () => {
     const { adminPassword, otpRequired, adminOtp } = get();
     if (!adminPassword.trim()) return;
-    set({ adminError: '' });
+    set({ adminError: "" });
     try {
-      const API_BASE = import.meta.env.VITE_API_BASE || '';
+      const API_BASE = import.meta.env.VITE_API_BASE || "";
       if (!otpRequired) {
         const res = await fetch(`${API_BASE}/api/admin/login`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ password: adminPassword.trim() }),
         });
         if (res.ok) {
           const data = await res.json();
-          if (data.status === 'otp_required') {
+          if (data.status === "otp_required") {
             set({ otpRequired: true });
           }
         } else {
           const data = await res.json();
-          set({ adminError: data.detail || 'Invalid password.' });
+          set({ adminError: data.detail || "Invalid password." });
         }
       } else {
         const res = await fetch(`${API_BASE}/api/admin/verify`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ password: adminPassword.trim(), otp: adminOtp.trim() }),
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            password: adminPassword.trim(),
+            otp: adminOtp.trim(),
+          }),
         });
         if (res.ok) {
           const data = await res.json();
-          set({ adminAuthenticated: true, otpRequired: false, adminOtp: '' });
-          localStorage.setItem('supremeai_admin_token', data.token);
+          set({ adminAuthenticated: true, otpRequired: false, adminOtp: "" });
+          localStorage.setItem("supremeai_admin_token", data.token);
         } else {
           const data = await res.json();
-          set({ adminError: data.detail || 'Invalid verification code.' });
+          set({ adminError: data.detail || "Invalid verification code." });
         }
       }
     } catch (err: any) {
-      set({ adminError: 'Connection failed: ' + err.message });
+      set({ adminError: "Connection failed: " + err.message });
     }
   },
   handleAdminLogout: () => {
-    localStorage.removeItem('supremeai_admin_token');
-    set({ adminAuthenticated: false, adminPassword: '', otpRequired: false, adminOtp: '' });
+    localStorage.removeItem("supremeai_admin_token");
+    set({
+      adminAuthenticated: false,
+      adminPassword: "",
+      otpRequired: false,
+      adminOtp: "",
+    });
   },
 }));
