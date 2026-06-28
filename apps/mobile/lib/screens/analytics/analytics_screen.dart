@@ -12,35 +12,54 @@ class AnalyticsScreen extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: Colors.black,
         title: Text('analytics.title'.tr(),
-          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w900, letterSpacing: 1.5, color: Colors.white)
-        ),
+            style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w900,
+                letterSpacing: 1.5,
+                color: Colors.white)),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('analytics.system_health'.tr().toUpperCase(), 
-              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w900, letterSpacing: 2, color: Colors.white54)
-            ),
+            Text('analytics.system_health'.tr().toUpperCase(),
+                style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 2,
+                    color: Colors.white54)),
             const SizedBox(height: 16),
-            _buildMetricCard(context, 'analytics.cpu_usage'.tr(), '24%', Colors.blueAccent, Icons.memory),
-            _buildMetricCard(context, 'analytics.memory_usage'.tr(), '1.2 GB / 4 GB', Colors.greenAccent, Icons.storage),
-            _buildMetricCard(context, 'analytics.api_latency'.tr(), '120ms', Colors.orangeAccent, Icons.speed),
+            _buildMetricCard(context, 'analytics.cpu_usage'.tr(), '24%',
+                Colors.blueAccent, Icons.memory),
+            _buildMetricCard(context, 'analytics.memory_usage'.tr(),
+                '1.2 GB / 4 GB', Colors.greenAccent, Icons.storage),
+            _buildMetricCard(context, 'analytics.api_latency'.tr(), '120ms',
+                Colors.orangeAccent, Icons.speed),
             const SizedBox(height: 32),
-            Text('analytics.recent_alerts'.tr().toUpperCase(), 
-              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w900, letterSpacing: 2, color: Colors.white54)
-            ),
+            Text('analytics.recent_alerts'.tr().toUpperCase(),
+                style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 2,
+                    color: Colors.white54)),
             const SizedBox(height: 16),
-            _buildAlertTile(context, 'High Memory Warning', 'System memory usage exceeded 80%', '10 mins ago', Colors.redAccent),
-            _buildAlertTile(context, 'New AI Provider Connected', 'Groq Llama-3 now available', '1 hour ago', Colors.greenAccent),
+            _buildAlertTile(
+                context,
+                'High Memory Warning',
+                'System memory usage exceeded 80%',
+                '10 mins ago',
+                Colors.redAccent),
+            _buildAlertTile(context, 'New AI Provider Connected',
+                'Groq Llama-3 now available', '1 hour ago', Colors.greenAccent),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildMetricCard(BuildContext context, String title, String value, Color color, IconData icon) {
+  Widget _buildMetricCard(BuildContext context, String title, String value,
+      Color color, IconData icon) {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
@@ -66,9 +85,17 @@ class AnalyticsScreen extends StatelessWidget {
                 ),
                 const SizedBox(width: 16),
                 Expanded(
-                  child: Text(title, style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+                  child: Text(title,
+                      style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold)),
                 ),
-                Text(value, style: TextStyle(color: color, fontWeight: FontWeight.w900, fontSize: 18)),
+                Text(value,
+                    style: TextStyle(
+                        color: color,
+                        fontWeight: FontWeight.w900,
+                        fontSize: 18)),
               ],
             ),
           ),
@@ -77,7 +104,8 @@ class AnalyticsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildAlertTile(BuildContext context, String title, String desc, String time, Color color) {
+  Widget _buildAlertTile(BuildContext context, String title, String desc,
+      String time, Color color) {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
@@ -99,12 +127,22 @@ class AnalyticsScreen extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(title, style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold)),
-                      Text(time, style: const TextStyle(color: Colors.white38, fontSize: 11, fontWeight: FontWeight.w600)),
+                      Text(title,
+                          style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 15,
+                              fontWeight: FontWeight.bold)),
+                      Text(time,
+                          style: const TextStyle(
+                              color: Colors.white38,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600)),
                     ],
                   ),
                   const SizedBox(height: 6),
-                  Text(desc, style: const TextStyle(color: Colors.white54, fontSize: 13, height: 1.4)),
+                  Text(desc,
+                      style: const TextStyle(
+                          color: Colors.white54, fontSize: 13, height: 1.4)),
                 ],
               ),
             ),

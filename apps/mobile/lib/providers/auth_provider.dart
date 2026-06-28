@@ -24,7 +24,8 @@ class AuthProvider with ChangeNotifier {
     return role == 'admin' || tier == 'ADMIN';
   }
 
-  AuthProvider({ApiService? apiService}) : _apiService = apiService ?? ApiService() {
+  AuthProvider({ApiService? apiService})
+      : _apiService = apiService ?? ApiService() {
     _checkAuth();
   }
 
