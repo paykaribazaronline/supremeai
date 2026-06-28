@@ -1,39 +1,66 @@
-import { useState } from 'react';
-import { Card, Badge } from '../ui';
-import { Plus, Trash2, Play } from 'lucide-react';
+import { useState } from "react";
+import { Card, Badge } from "../ui";
+import { Plus, Trash2, Play } from "lucide-react";
 
 interface Rule {
   id: string;
   name: string;
   condition: string;
-  operator: 'equals' | 'contains' | 'starts_with' | 'regex';
+  operator: "equals" | "contains" | "starts_with" | "regex";
   value: string;
-  action: 'allow' | 'block' | 'warn' | 'log';
-  severity: 'low' | 'medium' | 'high' | 'critical';
+  action: "allow" | "block" | "warn" | "log";
+  severity: "low" | "medium" | "high" | "critical";
   enabled: boolean;
 }
 
 const MOCK_RULES: Rule[] = [
-  { id: '1', name: 'Block prompt injection', condition: 'user_input', operator: 'contains', value: 'ignore previous instructions', action: 'block', severity: 'critical', enabled: true },
-  { id: '2', name: 'Warn on PII', condition: 'user_input', operator: 'regex', value: '\\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Z|a-z]{2,}\\b', action: 'warn', severity: 'high', enabled: true },
-  { id: '3', name: 'Log medical queries', condition: 'user_input', operator: 'contains', value: 'medical advice', action: 'log', severity: 'medium', enabled: false },
+  {
+    id: "1",
+    name: "Block prompt injection",
+    condition: "user_input",
+    operator: "contains",
+    value: "ignore previous instructions",
+    action: "block",
+    severity: "critical",
+    enabled: true,
+  },
+  {
+    id: "2",
+    name: "Warn on PII",
+    condition: "user_input",
+    operator: "regex",
+    value: "\\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Z|a-z]{2,}\\b",
+    action: "warn",
+    severity: "high",
+    enabled: true,
+  },
+  {
+    id: "3",
+    name: "Log medical queries",
+    condition: "user_input",
+    operator: "contains",
+    value: "medical advice",
+    action: "log",
+    severity: "medium",
+    enabled: false,
+  },
 ];
 
 export function VisualRulesBuilder() {
   const [rules, setRules] = useState<Rule[]>(MOCK_RULES);
   const [selectedRule, setSelectedRule] = useState<Rule | null>(null);
-  const [testingInput, setTestingInput] = useState('');
+  const [testingInput, setTestingInput] = useState("");
   const [testResult, setTestResult] = useState<string | null>(null);
 
   const addRule = () => {
     const newRule: Rule = {
       id: Date.now().toString(),
-      name: 'New Rule',
-      condition: 'user_input',
-      operator: 'contains',
-      value: '',
-      action: 'log',
-      severity: 'medium',
+      name: "New Rule",
+      condition: "user_input",
+      operator: "contains",
+      value: "",
+      action: "log",
+      severity: "medium",
       enabled: true,
     };
     setRules([...rules, newRule]);
@@ -41,41 +68,50 @@ export function VisualRulesBuilder() {
   };
 
   const updateRule = (id: string, updates: Partial<Rule>) => {
-    setRules(rules.map(r => (r.id === id ? { ...r, ...updates } : r)));
+    setRules(rules.map((r) => (r.id === id ? { ...r, ...updates } : r)));
     if (selectedRule?.id === id) {
       setSelectedRule({ ...selectedRule, ...updates });
     }
   };
 
   const deleteRule = (id: string) => {
-    setRules(rules.filter(r => r.id !== id));
+    setRules(rules.filter((r) => r.id !== id));
     if (selectedRule?.id === id) setSelectedRule(null);
   };
 
   const testRule = () => {
-    const matched = rules.filter(r => {
+    const matched = rules.filter((r) => {
       if (!r.enabled) return false;
       const input = testingInput.toLowerCase();
       const value = r.value.toLowerCase();
       switch (r.operator) {
-        case 'contains': return input.includes(value);
-        case 'starts_with': return input.startsWith(value);
-        case 'regex': return new RegExp(r.value).test(testingInput);
-        default: return false;
+        case "contains":
+          return input.includes(value);
+        case "starts_with":
+          return input.startsWith(value);
+        case "regex":
+          return new RegExp(r.value).test(testingInput);
+        default:
+          return false;
       }
     });
     if (matched.length === 0) {
-      setTestResult('✅ No rules triggered');
+      setTestResult("✅ No rules triggered");
     } else {
-      setTestResult(`⚠️ ${matched.length} rule(s) triggered:\n${matched.map(r => `• ${r.name} → ${r.action.toUpperCase()}`).join('\n')}`);
+      setTestResult(
+        `⚠️ ${matched.length} rule(s) triggered:\n${matched.map((r) => `• ${r.name} → ${r.action.toUpperCase()}`).join("\n")}`,
+      );
     }
   };
 
-  const severityColors: Record<string, 'danger' | 'warning' | 'info' | 'default'> = {
-    critical: 'danger',
-    high: 'warning',
-    medium: 'info',
-    low: 'default',
+  const severityColors: Record<
+    string,
+    "danger" | "warning" | "info" | "default"
+  > = {
+    critical: "danger",
+    high: "warning",
+    medium: "info",
+    low: "default",
   };
 
   return (
@@ -95,32 +131,44 @@ export function VisualRulesBuilder() {
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
         <Card title="Rules Library" className="xl:col-span-2">
           <div className="flex flex-col gap-2">
-            {rules.map(rule => (
+            {rules.map((rule) => (
               <div
                 key={rule.id}
                 onClick={() => setSelectedRule(rule)}
                 className={`p-3 rounded-lg border cursor-pointer transition-all ${
                   selectedRule?.id === rule.id
-                    ? 'border-[#00f3ff]/50 bg-[#00f3ff]/10'
-                    : 'border-slate-800 bg-slate-900/30 hover:border-slate-700'
+                    ? "border-[#00f3ff]/50 bg-[#00f3ff]/10"
+                    : "border-slate-800 bg-slate-900/30 hover:border-slate-700"
                 }`}
               >
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
-                    <span className="text-xs font-bold text-white font-mono">{rule.name}</span>
-                    <Badge variant={severityColors[rule.severity]}>{rule.severity}</Badge>
+                    <span className="text-xs font-bold text-white font-mono">
+                      {rule.name}
+                    </span>
+                    <Badge variant={severityColors[rule.severity]}>
+                      {rule.severity}
+                    </Badge>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className={`text-[9px] px-1.5 py-0.5 rounded font-mono ${
-                      rule.action === 'block' ? 'bg-red-950 text-red-400' :
-                      rule.action === 'warn' ? 'bg-yellow-950 text-yellow-400' :
-                      rule.action === 'allow' ? 'bg-emerald-950 text-emerald-400' :
-                      'bg-slate-800 text-slate-400'
-                    }`}>
+                    <span
+                      className={`text-[9px] px-1.5 py-0.5 rounded font-mono ${
+                        rule.action === "block"
+                          ? "bg-red-950 text-red-400"
+                          : rule.action === "warn"
+                            ? "bg-yellow-950 text-yellow-400"
+                            : rule.action === "allow"
+                              ? "bg-emerald-950 text-emerald-400"
+                              : "bg-slate-800 text-slate-400"
+                      }`}
+                    >
                       {rule.action.toUpperCase()}
                     </span>
                     <button
-                      onClick={(e) => { e.stopPropagation(); deleteRule(rule.id); }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        deleteRule(rule.id);
+                      }}
                       className="text-red-400 hover:text-red-300 p-1"
                     >
                       <Trash2 size={10} />
@@ -128,31 +176,45 @@ export function VisualRulesBuilder() {
                   </div>
                 </div>
                 <div className="text-[10px] text-slate-400 font-mono">
-                  IF {rule.condition} {rule.operator} "{rule.value}" THEN {rule.action.toUpperCase()}
+                  IF {rule.condition} {rule.operator} "{rule.value}" THEN{" "}
+                  {rule.action.toUpperCase()}
                 </div>
               </div>
             ))}
           </div>
         </Card>
 
-        <Card title={selectedRule ? 'Edit Rule' : 'Test Rules'} className="xl:col-span-1">
+        <Card
+          title={selectedRule ? "Edit Rule" : "Test Rules"}
+          className="xl:col-span-1"
+        >
           {selectedRule ? (
             <div className="flex flex-col gap-3">
               <div className="flex flex-col gap-1.5">
-                <label className="text-[10px] text-slate-400 uppercase">Rule Name</label>
+                <label className="text-[10px] text-slate-400 uppercase">
+                  Rule Name
+                </label>
                 <input
                   type="text"
                   value={selectedRule.name}
-                  onChange={e => updateRule(selectedRule.id, { name: e.target.value })}
+                  onChange={(e) =>
+                    updateRule(selectedRule.id, { name: e.target.value })
+                  }
                   className="bg-[#06080b] border border-slate-800 rounded px-3 py-1.5 text-white outline-none focus:border-[#00f3ff] text-xs font-mono"
                 />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-[10px] text-slate-400 uppercase">Operator</label>
+                  <label className="text-[10px] text-slate-400 uppercase">
+                    Operator
+                  </label>
                   <select
                     value={selectedRule.operator}
-                    onChange={e => updateRule(selectedRule.id, { operator: e.target.value as Rule['operator'] })}
+                    onChange={(e) =>
+                      updateRule(selectedRule.id, {
+                        operator: e.target.value as Rule["operator"],
+                      })
+                    }
                     className="bg-[#06080b] border border-slate-800 rounded px-3 py-1.5 text-white outline-none text-xs font-mono"
                   >
                     <option value="contains">Contains</option>
@@ -161,10 +223,16 @@ export function VisualRulesBuilder() {
                   </select>
                 </div>
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-[10px] text-slate-400 uppercase">Action</label>
+                  <label className="text-[10px] text-slate-400 uppercase">
+                    Action
+                  </label>
                   <select
                     value={selectedRule.action}
-                    onChange={e => updateRule(selectedRule.id, { action: e.target.value as Rule['action'] })}
+                    onChange={(e) =>
+                      updateRule(selectedRule.id, {
+                        action: e.target.value as Rule["action"],
+                      })
+                    }
                     className="bg-[#06080b] border border-slate-800 rounded px-3 py-1.5 text-white outline-none text-xs font-mono"
                   >
                     <option value="allow">Allow</option>
@@ -175,31 +243,43 @@ export function VisualRulesBuilder() {
                 </div>
               </div>
               <div className="flex flex-col gap-1.5">
-                <label className="text-[10px] text-slate-400 uppercase">Pattern / Value</label>
+                <label className="text-[10px] text-slate-400 uppercase">
+                  Pattern / Value
+                </label>
                 <input
                   type="text"
                   value={selectedRule.value}
-                  onChange={e => updateRule(selectedRule.id, { value: e.target.value })}
+                  onChange={(e) =>
+                    updateRule(selectedRule.id, { value: e.target.value })
+                  }
                   className="bg-[#06080b] border border-slate-800 rounded px-3 py-1.5 text-white outline-none focus:border-[#00f3ff] text-xs font-mono"
                 />
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-[10px] text-slate-400">Enabled</span>
                 <button
-                  onClick={() => updateRule(selectedRule.id, { enabled: !selectedRule.enabled })}
-                  className={`w-8 h-4 rounded-full transition-colors ${selectedRule.enabled ? 'bg-[#00f3ff]' : 'bg-slate-700'}`}
+                  onClick={() =>
+                    updateRule(selectedRule.id, {
+                      enabled: !selectedRule.enabled,
+                    })
+                  }
+                  className={`w-8 h-4 rounded-full transition-colors ${selectedRule.enabled ? "bg-[#00f3ff]" : "bg-slate-700"}`}
                 >
-                  <div className={`w-3 h-3 rounded-full bg-white transition-transform ${selectedRule.enabled ? 'translate-x-4' : 'translate-x-0.5'}`} />
+                  <div
+                    className={`w-3 h-3 rounded-full bg-white transition-transform ${selectedRule.enabled ? "translate-x-4" : "translate-x-0.5"}`}
+                  />
                 </button>
               </div>
             </div>
           ) : (
             <div className="flex flex-col gap-3">
               <div className="flex flex-col gap-1.5">
-                <label className="text-[10px] text-slate-400 uppercase">Test Input</label>
+                <label className="text-[10px] text-slate-400 uppercase">
+                  Test Input
+                </label>
                 <textarea
                   value={testingInput}
-                  onChange={e => setTestingInput(e.target.value)}
+                  onChange={(e) => setTestingInput(e.target.value)}
                   placeholder="Enter text to test against rules..."
                   className="bg-[#06080b] border border-slate-800 rounded px-3 py-1.5 text-white outline-none focus:border-[#00f3ff] text-xs font-mono h-24 resize-none"
                 />
@@ -211,10 +291,13 @@ export function VisualRulesBuilder() {
                 <Play size={10} /> Test Rules
               </button>
               {testResult && (
-                <div className={`p-2.5 rounded text-[10px] font-mono whitespace-pre-wrap ${
-                  testResult.startsWith('✅') ? 'bg-emerald-950/30 text-emerald-400 border border-emerald-900/50' :
-                  'bg-yellow-950/30 text-yellow-400 border border-yellow-900/50'
-                }`}>
+                <div
+                  className={`p-2.5 rounded text-[10px] font-mono whitespace-pre-wrap ${
+                    testResult.startsWith("✅")
+                      ? "bg-emerald-950/30 text-emerald-400 border border-emerald-900/50"
+                      : "bg-yellow-950/30 text-yellow-400 border border-yellow-900/50"
+                  }`}
+                >
                   {testResult}
                 </div>
               )}

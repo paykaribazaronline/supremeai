@@ -16,21 +16,19 @@ class LearningScreen extends StatelessWidget {
             pinned: true,
             backgroundColor: Colors.black,
             flexibleSpace: FlexibleSpaceBar(
-              title: Text('learning.matrix'.tr().toUpperCase(), 
-                style: const TextStyle(
-                  fontSize: 12, 
-                  fontWeight: FontWeight.w900, 
-                  letterSpacing: 2,
-                  color: Colors.white
-                )
-              ),
+              title: Text('learning.matrix'.tr().toUpperCase(),
+                  style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 2,
+                      color: Colors.white)),
               background: Container(
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
                     colors: [
-Colors.tealAccent.withValues(alpha: 0.1),
+                      Colors.tealAccent.withValues(alpha: 0.1),
                       Colors.black,
                     ],
                   ),
@@ -48,14 +46,22 @@ Colors.tealAccent.withValues(alpha: 0.1),
                 const SizedBox(height: 24),
                 _buildSectionHeader('learning.skills_training'.tr()),
                 const SizedBox(height: 12),
-                _buildSkillItem('Supreme-Coder-V2', 0.85, 'Mastering Flutter/Dart optimization patterns', Colors.blue),
-                _buildSkillItem('Bengali-OCR-Pro', 0.94, 'Refining handwritten script recognition', Colors.pink),
-                _buildSkillItem('Nexus-Reverse-Eng', 0.62, 'Analyzing obfuscated API structures', Colors.orange),
+                _buildSkillItem(
+                    'Supreme-Coder-V2',
+                    0.85,
+                    'Mastering Flutter/Dart optimization patterns',
+                    Colors.blue),
+                _buildSkillItem('Bengali-OCR-Pro', 0.94,
+                    'Refining handwritten script recognition', Colors.pink),
+                _buildSkillItem('Nexus-Reverse-Eng', 0.62,
+                    'Analyzing obfuscated API structures', Colors.orange),
                 const SizedBox(height: 24),
                 _buildSectionHeader('learning.evolution_controls'.tr()),
                 const SizedBox(height: 12),
-                _buildControlTile('Autonomous Growth', 'Allow system to initiate research', true),
-                _buildControlTile('Neural Sync', 'Synchronize cross-agent knowledge', false),
+                _buildControlTile('Autonomous Growth',
+                    'Allow system to initiate research', true),
+                _buildControlTile(
+                    'Neural Sync', 'Synchronize cross-agent knowledge', false),
                 const SizedBox(height: 40),
               ]),
             ),
@@ -93,18 +99,31 @@ Colors.tealAccent.withValues(alpha: 0.1),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('learning.strategy'.tr().toUpperCase(), style: const TextStyle(color: Colors.white30, fontSize: 9, fontWeight: FontWeight.bold)),
+                  Text('learning.strategy'.tr().toUpperCase(),
+                      style: const TextStyle(
+                          color: Colors.white30,
+                          fontSize: 9,
+                          fontWeight: FontWeight.bold)),
                   const SizedBox(height: 4),
-                  Text('AGGRESSIVE_EVOLVE', style: TextStyle(color: Colors.tealAccent.shade400, fontWeight: FontWeight.w900, fontSize: 16)),
+                  Text('AGGRESSIVE_EVOLVE',
+                      style: TextStyle(
+                          color: Colors.tealAccent.shade400,
+                          fontWeight: FontWeight.w900,
+                          fontSize: 16)),
                 ],
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
                   color: Colors.tealAccent.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(20),
                 ),
-                child: const Text('OPTIMAL', style: TextStyle(color: Colors.tealAccent, fontSize: 9, fontWeight: FontWeight.bold)),
+                child: const Text('OPTIMAL',
+                    style: TextStyle(
+                        color: Colors.tealAccent,
+                        fontSize: 9,
+                        fontWeight: FontWeight.bold)),
               ),
             ],
           ),
@@ -125,14 +144,23 @@ Colors.tealAccent.withValues(alpha: 0.1),
   Widget _buildMetric(String value, String label) {
     return Column(
       children: [
-        Text(value, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 18)),
+        Text(value,
+            style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w900,
+                fontSize: 18)),
         const SizedBox(height: 4),
-        Text(label.toUpperCase(), style: const TextStyle(color: Colors.white24, fontSize: 8, fontWeight: FontWeight.bold)),
+        Text(label.toUpperCase(),
+            style: const TextStyle(
+                color: Colors.white24,
+                fontSize: 8,
+                fontWeight: FontWeight.bold)),
       ],
     );
   }
 
-  Widget _buildSkillItem(String name, double progress, String detail, Color color) {
+  Widget _buildSkillItem(
+      String name, double progress, String detail, Color color) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
@@ -147,8 +175,14 @@ Colors.tealAccent.withValues(alpha: 0.1),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(name, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
-              Text('${(progress * 100).toInt()}%', style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 11)),
+              Text(name,
+                  style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 13)),
+              Text('${(progress * 100).toInt()}%',
+                  style: TextStyle(
+                      color: color, fontWeight: FontWeight.bold, fontSize: 11)),
             ],
           ),
           const SizedBox(height: 8),
@@ -159,7 +193,8 @@ Colors.tealAccent.withValues(alpha: 0.1),
             minHeight: 2,
           ),
           const SizedBox(height: 8),
-          Text(detail, style: const TextStyle(color: Colors.white38, fontSize: 10)),
+          Text(detail,
+              style: const TextStyle(color: Colors.white38, fontSize: 10)),
         ],
       ),
     );
@@ -175,8 +210,13 @@ Colors.tealAccent.withValues(alpha: 0.1),
       child: Material(
         type: MaterialType.transparency,
         child: SwitchListTile(
-          title: Text(title, style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold)),
-          subtitle: Text(subtitle, style: const TextStyle(color: Colors.white24, fontSize: 10)),
+          title: Text(title,
+              style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold)),
+          subtitle: Text(subtitle,
+              style: const TextStyle(color: Colors.white24, fontSize: 10)),
           value: value,
           onChanged: (val) {},
           thumbColor: WidgetStateProperty.resolveWith<Color?>((states) {

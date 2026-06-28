@@ -14,7 +14,8 @@ class FakeApiService implements ApiService {
   String? registerError;
 
   @override
-  Future<Map<String, dynamic>> register(String email, String password, String displayName) async {
+  Future<Map<String, dynamic>> register(
+      String email, String password, String displayName) async {
     if (registerSuccess) {
       return {'success': true, 'data': registerData};
     } else {
@@ -26,7 +27,8 @@ class FakeApiService implements ApiService {
   Future<Map<String, dynamic>> getUserProfile() async => {'success': false};
 
   @override
-  Future<Map<String, dynamic>> firebaseLogin(String idToken) async => {'success': false};
+  Future<Map<String, dynamic>> firebaseLogin(String idToken) async =>
+      {'success': false};
 
   @override
   Future<void> logout() async {}
@@ -38,7 +40,9 @@ class FakeApiService implements ApiService {
   Future<String?> getToken() async => null;
 
   @override
-  Future<Map<String, dynamic>> executeAgentTask(String task, String taskType, {String? department}) async => {};
+  Future<Map<String, dynamic>> executeAgentTask(String task, String taskType,
+          {String? department}) async =>
+      {};
 
   @override
   Future<Map<String, dynamic>> getAgentStatus() async => {};
@@ -109,7 +113,8 @@ void main() {
     });
 
     test('logout clears auth state', () async {
-      SharedPreferences.setMockInitialValues({'auth_token': 'tok', 'user_json': '{"username":"admin"}'});
+      SharedPreferences.setMockInitialValues(
+          {'auth_token': 'tok', 'user_json': '{"username":"admin"}'});
       final auth = MockAuthProvider();
       await Future(() {});
       await Future(() {});

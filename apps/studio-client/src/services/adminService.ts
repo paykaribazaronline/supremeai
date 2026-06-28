@@ -1,7 +1,7 @@
 // Admin operations service for SupremeAI 2.0 Command Center
 // বাংলা মন্তব্য: অ্যাডমিন কমান্ড সেন্টার, ইউজার ম্যানেজমেন্ট ও খরচ মনিটর করার সার্ভিস।
 
-import { apiClient } from './apiClient';
+import { apiClient } from "./apiClient";
 
 export interface AdminUser {
   username: string;
@@ -11,19 +11,19 @@ export interface AdminUser {
 
 export const adminService = {
   getHealthMap: async (): Promise<any> => {
-    return apiClient.get<any>('/admin-api/health-map');
+    return apiClient.get<any>("/admin-api/health-map");
   },
 
   getCostsReport: async (): Promise<{ report: string }> => {
-    return apiClient.get<{ report: string }>('/admin-api/costs');
+    return apiClient.get<{ report: string }>("/admin-api/costs");
   },
 
   listUsers: async (): Promise<AdminUser[]> => {
-    return apiClient.get<AdminUser[]>('/admin-api/users');
+    return apiClient.get<AdminUser[]>("/admin-api/users");
   },
 
   createUser: async (user: AdminUser): Promise<AdminUser> => {
-    return apiClient.post<AdminUser>('/admin-api/users', user);
+    return apiClient.post<AdminUser>("/admin-api/users", user);
   },
 
   deleteUser: async (username: string): Promise<{ status: string }> => {
@@ -31,6 +31,6 @@ export const adminService = {
   },
 
   triggerDeploy: async (): Promise<{ status: string }> => {
-    return apiClient.post<{ status: string }>('/admin-api/deploy');
+    return apiClient.post<{ status: string }>("/admin-api/deploy");
   },
 };
