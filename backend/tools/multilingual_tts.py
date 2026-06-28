@@ -295,6 +295,102 @@ class MultilingualTTS:
         for i in range(0, len(text), chunk_size):
             yield text[i : i + chunk_size]
 
+    # --- Streaming synthesis methods (ElevenLabs and edge-tts) ---
+
+    async def _elevenlabs_stream(
+        self,
+        text: str,
+        lang: str,
+        voice_id: str | None,
+        stability: float,
+        similarity_boost: float,
+    ):
+        """Stream audio bytes from ElevenLabs TTS API."""
+        v = voice_id or ELEVENLABS_VOICES.get(lang, ELEVENLABS_VOICES["en"])
+        url = f"https://api.elevenlabs.io/v1/text-to-speech/{v}"
+        headers = {"xi-api-key": self.api_key, "Content-Type": "application/json"}
+        payload = {
+            "text": text,
+            "model_id": self.model_id,
+            "voice_settings": {
+                "stability": stability,
+                "similarity_boost": similarity_boost,
+            },
+        }
+        async with httpx.AsyncClient(timeout=60.0) as client:
+            async with client.stream("POST", url, headers=headers, json=payload) as response:
+                response.raise_for_status()
+                async for chunk in response.aiter_bytes():
+                    yield chunk
+
+    async def _edge_tts_stream(self, text: str, lang: str):
+        """Stream audio bytes from edge-tts."""
+        try:
+            import edge_tts
+        except ImportError:
+            logger.debug("edge-tts not installed. Run: pip install edge-tts")
+            return  # Yield nothing
+
+        EDGE_VOICES = {
+            "bn": "bn-BD-NabanitaNeural",
+            "hi": "hi-IN-SwaraNeural",
+            "ar": "ar-SA-ZariyahNeural",
+            "zh": "zh-CN-XiaoxiaoNeural",
+            "ja": "ja-JP-NanamiNeural",
+            "ko": "ko-KR-SunHiNeural",
+            "en": "en-US-JennyNeural",
+            "fr": "fr-FR-DeniseNeural",
+            "de": "de-DE-KatjaNeural",
+            "es": "es-ES-ElviraNeural",
+            "pt": "pt-BR-FranciscaNeural",
+            "ru": "ru-RU-SvetlanaNeural",
+            "it": "it-IT-ElsaNeural",
+            "tr": "tr-TR-EmelNeural",
+            "vi": "vi-VN-HoaiMyNeural",
+            "id": "id-ID-GadisNeural",
+            "th": "th-TH-PremwadeeNeural",
+            "pl": "pl-PL-ZofiaNeural",
+            "nl": "nl-NL-ColetteNeural",
+            "sv": "sv-SE-SofieNeural",
+        }
+        voice = EDGE_VOICES.get(lang, "en-US-JennyNeural")
+        communicate = edge_tts.Communicate(text, voice)
+        async for chunk in communicate.stream():
+            if chunk.get("type") == "audio":
+                yield chunk["data"]
+
+    async def synthesize_stream(
+        self,
+        text: str,
+        language: str | None = None,
+        voice_id: str | None = None,
+        stability: float = 0.5,
+        similarity_boost: float = 0.75,
+    ):
+        """
+        Stream audio bytes for the given text.
+        Tries ElevenLabs first, then falls back to edge-tts.
+        Yields audio bytes chunks.
+        """
+        lang = language or self._detect_language(text)
+        if lang not in SUPPORTED_LANGUAGES:
+            lang = "en"
+
+        # Try ElevenLabs first if API key is available
+        if self.api_key and self.provider in ("auto", "elevenlabs"):
+            try:
+                async for chunk in self._elevenlabs_stream(
+                    text, lang, voice_id, stability, similarity_boost
+                ):
+                    yield chunk
+                return  # Success, exit
+            except Exception as e:
+                logger.warning(f"ElevenLabs streaming failed: {e}. Falling back to edge-tts.")
+
+        # Fallback to edge-tts
+        async for chunk in self._edge_tts_stream(text, lang):
+            yield chunk
+
     async def get_voices(self) -> dict[str, Any]:
         """List available ElevenLabs voices."""
         if not self.api_key:

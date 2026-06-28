@@ -1,275 +1,184 @@
-import os
-import uuid
-from typing import Any
+#!/usr/bin/env python3
+"""
+Cloud Sandbox Orchestrator
+==========================
 
+Manages ephemeral but persistent cloud environments (VMs/pods) for complex,
+long-running AI tasks.
+Integrates 'Freebuff CLI' as a zero-cost headless AI worker.
+"""
+
+import os
 import httpx
+import asyncio
 from loguru import logger
+from typing import Dict, Any, Optional
 
 
 class CloudSandboxOrchestrator:
     """
-    Orchestrates persistent Ubuntu VMs/Containers for safe and isolated code execution.
-    Supports local Docker and RunPod for cloud-scale execution.
-    Maintains state across sessions.
+    Orchestrates ephemeral cloud sandboxes (VMs) for code execution and delegates tasks to Freebuff.
     """
 
-    def __init__(self, provider: str = "auto"):
-        self.provider = provider
-        self.active_sessions: dict[str, dict[str, Any]] = {}
+    def __init__(self, provider: str = "runpod"):
+        self.provider = provider.lower()
+        self.api_key = os.getenv(f"{self.provider.upper()}_API_KEY")
+        
+        self.base_url = self._get_base_url()
+        headers = {"Content-Type": "application/json"}
+        if self.api_key:
+            headers["Authorization"] = f"Bearer {self.api_key}"
 
-        if self.provider == "auto":
-            if os.getenv("RUNPOD_API_KEY"):
-                self.provider = "runpod"
-            elif os.getenv("DOCKER_HOST") or os.path.exists("/var/run/docker.sock") or os.name == "nt":
-                self.provider = "docker"
-            else:
-                self.provider = "local"
+        self.client = httpx.AsyncClient(
+            base_url=self.base_url,
+            headers=headers,
+            timeout=60.0,
+        )
+        logger.info(f"Initialized CloudSandboxOrchestrator (Provider: {self.provider})")
 
-        logger.info(f"Initialized CloudSandboxOrchestrator with provider: {self.provider}")
-        self._docker_client = None
+    def _get_base_url(self) -> str:
+        if self.provider == "runpod":
+            return "https://api.runpod.io/v2"
+        elif self.provider == "modal":
+            return "https://api.modal.com"
+        else:
+            raise ValueError(f"Unsupported provider: {self.provider}")
 
-    async def _get_docker_client(self):
-        if self._docker_client:
-            return self._docker_client
-        if self.provider not in {"docker", "local"}:
-            return None
+    async def create_sandbox(self, spec: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        if not self.api_key:
+            logger.warning("Cannot create sandbox: API key is missing. Running in mock/dry-run mode.")
+            return {
+                "id": "mock-sandbox-id-12345",
+                "status": "running",
+                "provider": self.provider,
+                "mock": True
+            }
+
+        endpoint = self._get_endpoint("create")
+        payload = self._prepare_creation_payload(spec)
+
         try:
-            import docker
-
-            self._docker_client = docker.from_env()
-            self._docker_client.ping()
-            return self._docker_client
+            logger.info(f"Requesting new sandbox creation with spec: {spec}")
+            response = await self.client.post(endpoint, json=payload)
+            response.raise_for_status()
+            data = response.json()
+            logger.success(f"Successfully created sandbox with ID: {data.get('id')}")
+            return data
+        except httpx.HTTPStatusError as e:
+            logger.error(f"Failed to create sandbox. Status: {e.response.status_code}, Body: {e.response.text}")
         except Exception as e:
-            logger.warning(f"Docker not available locally: {e}. Falling back to mock/local.")
-            return None
+            logger.error(f"An unexpected error occurred during sandbox creation: {e}")
 
-    async def create_session(self, image: str = "ubuntu:22.04") -> str:
-        session_id = f"sandbox-{uuid.uuid4().hex[:8]}"
-        logger.info(f"Creating {self.provider} session: {session_id} with image {image}")
+        return None
 
-        if self.provider in ["docker", "auto", "local"]:
-            client = await self._get_docker_client()
-            if client:
-                try:
-                    container = client.containers.run(
-                        image,
-                        detach=True,
-                        tty=True,
-                        stdin_open=True,
-                    )
-                    session_data = {
-                        "image": image,
-                        "status": "running",
-                        "provider": "docker",
-                        "cwd": "/workspace",
-                        "env": {"PYTHONUNBUFFERED": "1"},
-                        "container_id": container.id,
-                    }
-                    self.active_sessions[session_id] = session_data
-                    logger.success(f"Docker session created successfully: {session_id} (Container ID: {container.id})")
-                    return session_id
-                except Exception as e:
-                    logger.error(f"Failed to create Docker container: {e}")
-                    if self.provider != "auto":
-                        raise  # Only fallback if in auto mode
+    async def get_sandbox_status(self, sandbox_id: str) -> Optional[Dict[str, Any]]:
+        if not self.api_key:
+            logger.info(f"Dry-run: Fetching status for sandbox {sandbox_id}")
+            return {
+                "id": sandbox_id,
+                "status": "running",
+                "provider": self.provider,
+                "mock": True
+            }
 
-        if self.provider in ["runpod", "auto"]:
-            api_key = os.getenv("RUNPOD_API_KEY")
-            if not api_key:
-                logger.warning("RUNPOD_API_KEY not found, cannot fallback to RunPod.")
-                if self.provider == "runpod":
-                    raise RuntimeError("RUNPOD_API_KEY is required for RunPod sandbox sessions.")
-            else:
-                headers = {
-                    "Content-Type": "application/json",
-                }
-                query = f"""
-                mutation {{
-                  podFindAndDeployOnDemand(
-                    input: {{
-                      name: "{session_id}",
-                      imageName: "{image}",
-                      gpuCount: 0,
-                      volumeInGb: 5,
-                      ports: "22/tcp,80/tcp"
-                    }}
-                  ) {{
-                    id
-                  }}
-                }}
-                """
-                payload = {"query": query}
-                async with httpx.AsyncClient() as http_client:
-                    resp = await http_client.post(
-                        f"https://api.runpod.io/graphql?api_key={api_key}",
-                        json=payload,
-                        headers=headers,
-                        timeout=20.0,
-                    )
-                    if resp.status_code == 200:
-                        data = resp.json()
-                        if "errors" not in data and "data" in data and data["data"].get("podFindAndDeployOnDemand"):
-                            pod_id = data["data"]["podFindAndDeployOnDemand"].get("id")
-                            if pod_id:
-                                self.active_sessions[session_id] = {
-                                    "image": image,
-                                    "status": "running",
-                                    "provider": "runpod",
-                                    "pod_id": pod_id,
-                                    "cwd": "/workspace",
-                                    "env": {"PYTHONUNBUFFERED": "1"},
-                                }
-                                logger.success(f"RunPod session created successfully: {session_id} (Pod ID: {pod_id})")
-                                return session_id
-                        logger.error(f"RunPod GraphQL error: {data.get('errors')}. Falling back to local mock.")
-                    else:
-                        logger.error(f"RunPod pod creation API failed: {resp.text}. Falling back to local mock.")
+        endpoint = self._get_endpoint("status", sandbox_id)
+        try:
+            response = await self.client.get(endpoint)
+            response.raise_for_status()
+            return response.json()
+        except httpx.HTTPStatusError as e:
+            logger.error(f"Failed to get status for sandbox {sandbox_id}. Status: {e.response.status_code}")
+        return None
 
-        logger.warning(f"All providers failed. Creating a mock session for {session_id}.")
-        self.active_sessions[session_id] = {
-            "image": image,
-            "status": "running",
-            "provider": self.provider,
-            "cwd": "/workspace",
-            "env": {"PYTHONUNBUFFERED": "1"},
-        }
-        return session_id
+    async def run_command(self, sandbox_id: str, command: str, timeout: int = 300) -> Optional[Dict[str, Any]]:
+        if not self.api_key:
+            logger.info(f"Dry-run: Running command '{command}' in sandbox {sandbox_id}")
+            return {
+                "status": "COMPLETED",
+                "exitCode": 0,
+                "stdout": f"Mock output for execution of: {command}",
+                "stderr": "",
+                "mock": True
+            }
 
-    async def run_command(self, session_id: str, command: str, timeout: int = 60) -> dict[str, Any]:
-        if session_id not in self.active_sessions:
-            raise ValueError(f"Session {session_id} not found or inactive.")
+        endpoint = self._get_endpoint("run", sandbox_id)
+        payload = {"input": {"command": command, "timeout": timeout}}
 
-        session = self.active_sessions[session_id]
-        logger.info(f"[{session_id}] Executing: {command}")
+        try:
+            logger.info(f"Running command in sandbox {sandbox_id}: {command}")
+            response = await self.client.post(endpoint, json=payload)
+            response.raise_for_status()
+            return response.json()
+        except httpx.HTTPStatusError as e:
+            logger.error(f"Failed to run command in sandbox {sandbox_id}. Status: {e.response.status_code}")
+        return None
 
-        provider = session.get("provider", self.provider)
-        if provider == "docker":
-            container_id = session.get("container_id")
-            if container_id:
-                client = await self._get_docker_client()
-                if client:
-                    try:
-                        container = client.containers.get(container_id)
-                        exec_result = container.exec_run(
-                            f"bash -lc '{command}'",
-                            workdir=session.get("cwd", "/workspace"),
-                        )
-                        exit_code = exec_result.exit_code
-                        output = exec_result.output.decode("utf-8", errors="replace")
-                        return {"exit_code": exit_code, "stdout": output, "stderr": ""}
-                    except Exception as e:
-                        logger.error(f"Docker exec failed: {e}")
-                        return {"exit_code": 1, "stdout": "", "stderr": str(e)}
-
-        if command.startswith("cd "):
-            new_dir = command.split("cd ")[1].strip()
-            session["cwd"] = os.path.join(session["cwd"], new_dir) if session["cwd"] != "/workspace" else os.path.join("/workspace", new_dir)
-            return {"exit_code": 0, "stdout": "", "stderr": ""}
-
-        if provider == "runpod":
-            api_key = os.getenv("RUNPOD_API_KEY")
-            pod_id = session.get("pod_id")
-            if api_key and pod_id:
-                headers = {
-                    "Authorization": f"Bearer {api_key}",
-                    "Content-Type": "application/json",
-                }
-                payload = {"command": f"cd {session['cwd']} && {command}"}
-                async with httpx.AsyncClient() as http_client:
-                    # RunPod execute command endpoint
-                    resp = await http_client.post(
-                        f"https://api.runpod.io/v1/pod/{pod_id}/cmd",
-                        json=payload,
-                        headers=headers,
-                        timeout=float(timeout),
-                    )
-                    if resp.status_code == 200:
-                        data = resp.json()
-                        return {
-                            "exit_code": data.get("exitCode", 0),
-                            "stdout": data.get("stdout", ""),
-                            "stderr": data.get("stderr", ""),
-                        }
-
-        return {
-            "exit_code": 0,
-            "stdout": f"Mock output for '{command}' in {provider} sandbox at {session['cwd']}",
-            "stderr": "",
-        }
-
-    async def write_file(self, session_id: str, filepath: str, content: str) -> bool:
-        if session_id not in self.active_sessions:
-            raise ValueError(f"Session {session_id} not found.")
-        logger.info(f"[{session_id}] Writing file: {filepath}")
-
-        provider = self.active_sessions[session_id].get("provider", self.provider)
-        if provider == "docker":
-            container_id = self.active_sessions[session_id].get("container_id")
-            if container_id:
-                client = await self._get_docker_client()
-                if client:
-                    try:
-                        container = client.containers.get(container_id)
-                        import base64
-
-                        encoded = base64.b64encode(content.encode("utf-8")).decode("utf-8")
-                        exec_result = container.exec_run(f"echo '{encoded}' | base64 -d > {filepath}")
-                        return exec_result.exit_code == 0
-                    except Exception as e:
-                        logger.error(f"Docker file write failed: {e}")
-                        return False
-        return True
-
-    async def read_file(self, session_id: str, filepath: str) -> str:
-        if session_id not in self.active_sessions:
-            raise ValueError(f"Session {session_id} not found.")
-        logger.info(f"[{session_id}] Reading file: {filepath}")
-
-        provider = self.active_sessions[session_id].get("provider", self.provider)
-        if provider == "docker":
-            container_id = self.active_sessions[session_id].get("container_id")
-            if container_id:
-                client = await self._get_docker_client()
-                if client:
-                    try:
-                        container = client.containers.get(container_id)
-                        exec_result = container.exec_run(f"cat {filepath}")
-                        return exec_result.output.decode("utf-8", errors="replace")
-                    except Exception as e:
-                        logger.error(f"Docker file read failed: {e}")
-                        return ""
-        return f"# Content of {filepath}"
-
-    async def terminate_session(self, session_id: str):
-        if session_id in self.active_sessions:
-            logger.info(f"Terminating session {session_id}")
-            session = self.active_sessions[session_id]
-            provider = session.get("provider", self.provider)
-
-            if provider == "docker":
-                container_id = session.get("container_id")
-                if container_id:
-                    client = await self._get_docker_client()
-                    if client:
-                        try:
-                            container = client.containers.get(container_id)
-                            container.stop(timeout=5)
-                            container.remove()
-                        except Exception as e:
-                            logger.warning(f"Docker cleanup failed: {e}")
-
-            elif provider == "runpod":
-                api_key = os.getenv("RUNPOD_API_KEY")
-                pod_id = session.get("pod_id")
-                if api_key and pod_id:
-                    headers = {"Authorization": f"Bearer {api_key}"}
-                    async with httpx.AsyncClient() as http_client:
-                        await http_client.post(
-                            f"https://api.runpod.io/v1/pod/{pod_id}/stop",
-                            headers=headers,
-                            timeout=15.0,
-                        )
-
-            self.active_sessions.pop(session_id)
+    async def destroy_sandbox(self, sandbox_id: str) -> bool:
+        if not self.api_key:
+            logger.warning(f"Dry-run: Destroying sandbox {sandbox_id}")
             return True
+
+        endpoint = self._get_endpoint("destroy", sandbox_id)
+        try:
+            logger.warning(f"Destroying sandbox {sandbox_id}...")
+            response = await self.client.post(endpoint)
+            response.raise_for_status()
+            logger.success(f"Sandbox {sandbox_id} destroyed successfully.")
+            return True
+        except httpx.HTTPStatusError as e:
+            logger.error(f"Failed to destroy sandbox {sandbox_id}. Status: {e.response.status_code}")
         return False
+
+    # ------------------------------------------------------------------------
+    # 🤖 FREEBUFF AI WORKER INTEGRATION
+    # ------------------------------------------------------------------------
+    async def delegate_to_freebuff(self, prompt: str, working_dir: str = ".") -> Dict[str, Any]:
+        """
+        বাংলা মন্তব্য: Freebuff CLI-কে অসিঙ্ক্রোনাস সাব-প্রসেস হিসেবে কল করে জিরো-কস্টে কোডিং টাস্ক এক্সিকিউট করা হচ্ছে।
+        এটি SupremeAI-এর জন্য সম্পূর্ণ ফ্রি এআই ডেভেলপার হিসেবে কাজ করবে।
+        """
+        logger.info(f"🚀 Delegating task to Freebuff AI Worker in directory: {working_dir}")
+        try:
+            # বাংলা মন্তব্য: asyncio.create_subprocess_exec ব্যবহার করা হচ্ছে যাতে মূল ইভেন্ট লুপ ব্লক না হয়
+            # উইন্ডোজের জন্য .cmd সাফিক্স হ্যান্ডলিং করা হয়েছে
+            cmd = "freebuff.cmd" if os.name == "nt" else "freebuff"
+            process = await asyncio.create_subprocess_exec(
+                cmd, "--cwd", working_dir,
+                stdin=asyncio.subprocess.PIPE,
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE,
+            )
+
+            # প্রম্পট ইনপুট হিসেবে পাঠানো হচ্ছে
+            stdout, stderr = await process.communicate(input=prompt.encode('utf-8'))
+            
+            if process.returncode == 0:
+                logger.success("✅ Freebuff task completed successfully.")
+                return {"status": "success", "output": stdout.decode('utf-8')}
+            else:
+                logger.error(f"❌ Freebuff task failed: {stderr.decode('utf-8')}")
+                return {"status": "error", "error": stderr.decode('utf-8')}
+                
+        except FileNotFoundError:
+            logger.error("🚨 Freebuff CLI not found. Please ensure it is installed globally (npm install -g freebuff).")
+            return {"status": "error", "error": "Freebuff CLI not installed."}
+        except Exception as e:
+            logger.error(f"⚠️ Unexpected error running Freebuff: {e}")
+            return {"status": "error", "error": str(e)}
+
+    # --- Provider-specific helpers ---
+    def _get_endpoint(self, action: str, sandbox_id: str = "") -> str:
+        if self.provider == "runpod":
+            endpoints = {
+                "create": "/",
+                "status": f"/{sandbox_id}",
+                "run": f"/{sandbox_id}/run",
+                "destroy": f"/{sandbox_id}/terminate",
+            }
+            return endpoints[action]
+        raise NotImplementedError(f"Endpoints for provider '{self.provider}' not implemented.")
+
+    def _prepare_creation_payload(self, spec: Dict[str, Any]) -> Dict[str, Any]:
+        if self.provider == "runpod":
+            return {"pod": spec}
+        raise NotImplementedError(f"Payload preparation for provider '{self.provider}' not implemented.")

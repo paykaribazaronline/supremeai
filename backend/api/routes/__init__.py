@@ -165,6 +165,13 @@ except Exception:
     tools_ops_router = None
 
 try:
+    from .voice import router as voice_router
+
+    _safe_imports["voice_router"] = voice_router
+except Exception:
+    voice_router = None
+
+try:
     from .onboarding import router as onboarding_router
 
     _safe_imports["onboarding_router"] = onboarding_router
@@ -220,4 +227,11 @@ try:
 except Exception:
     api_keys_router = None
 
-__all__ = list(_safe_imports.keys())
+try:
+    from .graph import router as graph_router
+
+    _safe_imports["graph_router"] = graph_router
+except Exception:
+    graph_router = None
+
+__all__ = list(_safe_imports.keys()) + ["voice_router"]

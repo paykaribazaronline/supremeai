@@ -32,12 +32,12 @@ class PRReviewer:
     async def analyze_diff(self, diff_content: str) -> list[dict[str, Any]]:
         """
         Analyzes a diff content and returns a list of issues including security issues.
-        This is a placeholder for a more sophisticated analysis, potentially using an LLM.
+        Uses ModelRouter for LLM-based review, falling back to regex.
         """
+        # বাংলা মন্তব্য: প্রথমে লোকাল রেগুলার এক্সপ্রেশন (regex) প্যাটার্ন দিয়ে কিছু সাধারণ সিকিউরিটি ইস্যু চেক করা হচ্ছে।
         issues = []
         lines = diff_content.split("\n")
 
-        # Security patterns to detect
         security_patterns = {
             r"AKIA[0-9A-Z]{16}": {"type": "AWS API Key", "severity": "critical"},
             r"sk_(?:test|live)_[a-zA-Z0-9]{20,}": {
@@ -66,7 +66,6 @@ class PRReviewer:
 
         for i, line in enumerate(lines):
             if line.startswith("+"):
-                # Check for security patterns
                 found_security_issue = False
                 for pattern, info in security_patterns.items():
                     if re.search(pattern, line):
@@ -80,7 +79,6 @@ class PRReviewer:
                         )
                         found_security_issue = True
                         break
-                # Check for TODO comments if no security issue found
                 if not found_security_issue and "TODO" in line:
                     issues.append(
                         {
@@ -90,6 +88,45 @@ class PRReviewer:
                             "body": "Found a 'TODO' comment. Please add a ticket reference.",
                         }
                     )
+
+        # বাংলা মন্তব্য: যদি ModelRouter উপলব্ধ থাকে, তবে আমরা এআই দিয়ে ডিফটি আরও গভীরভাবে বিশ্লেষণ করব।
+        try:
+            from brain.model_router import ModelRouter
+            router = ModelRouter()
+            
+            prompt = (
+                "You are an expert code reviewer. Analyze the following Git diff and identify potential bugs, "
+                "performance issues, or security flaws. Format your findings as a JSON list of objects, "
+                "each containing 'severity' (low/high/critical) and 'body' (description of the issue). "
+                "Do not return any markdown wrapping or text, just the raw JSON list.\n\n"
+                f"Diff:\n{diff_content[:4000]}"
+            )
+            
+            result = await router.async_route_and_generate(prompt, task_type="coding", max_cost=0.03)
+            text = result.get("text", "") if isinstance(result, dict) else str(result)
+            
+            cleaned = text.strip()
+            if cleaned.startswith("```"):
+                cleaned = "\n".join(cleaned.splitlines()[1:])
+            if cleaned.endswith("```"):
+                cleaned = "\n".join(cleaned.splitlines()[:-1])
+            
+            try:
+                parsed = json.loads(cleaned)
+                if isinstance(parsed, list):
+                    for item in parsed:
+                        if isinstance(item, dict) and "body" in item:
+                            issues.append({
+                                "path": "unknown",
+                                "line": item.get("line", 0),
+                                "severity": item.get("severity", "low"),
+                                "body": item["body"]
+                            })
+            except Exception:
+                logger.warning("Failed to parse LLM response in PRReviewer.")
+        except Exception as e:
+            logger.warning(f"ModelRouter call failed in PRReviewer: {e}")
+
         return issues
 
     async def review_pr(self, repo_full_name: str, pr_number: int) -> dict[str, Any]:
@@ -100,6 +137,7 @@ class PRReviewer:
             logger.warning(f"Dry-run: Would review {repo_full_name}#{pr_number}")
             return {"status": "success", "action_taken": "COMMENT", "comments": []}
 
+        # বাংলা মন্তব্য: গিটহাব ক্লায়েন্ট ব্যবহার করে নির্দিষ্ট পুল রিকোয়েস্টের ফাইল এবং তাদের ডিফারেন্স সংগ্রহ করা হচ্ছে।
         try:
             repo = self.gh.get_repo(repo_full_name)
             pr = repo.get_pull(pr_number)
@@ -111,11 +149,22 @@ class PRReviewer:
             for file_diff in diff:
                 diff_content = file_diff.patch or ""
                 file_comments = await self.analyze_diff(diff_content)
+                for c in file_comments:
+                    c["path"] = file_diff.filename
                 comments.extend(file_comments)
                 if any(c["severity"] == "critical" for c in file_comments):
                     has_critical = True
 
             action = "REQUEST_CHANGES" if has_critical else "COMMENT"
+            
+            # বাংলা মন্তব্য: রিভিউয়ের ফলাফল একটি কমেন্ট আকারে পুল রিকোয়েস্টে পোস্ট করা হচ্ছে।
+            if comments:
+                summary_lines = ["### 🤖 AI Code Review Findings", ""]
+                for c in comments:
+                    sev_icon = "🔴" if c["severity"] == "critical" else ("🟡" if c["severity"] == "high" else "🔵")
+                    summary_lines.append(f"- {sev_icon} **[{c['severity'].upper()}]** in `{c['path']}`: {c['body']}")
+                
+                await self._post_pr_comment(repo_full_name, pr_number, "\n".join(summary_lines))
 
             return {"status": "success", "action_taken": action, "comments": comments}
         except Exception as e:
@@ -124,10 +173,17 @@ class PRReviewer:
 
     async def _post_pr_comment(self, repo_full_name: str, pr_number: int, comment_body: str) -> dict[str, Any]:
         """Posts a comment on a pull request."""
+        # বাংলা মন্তব্য: গিটহাব এপিআই দিয়ে পিআর-এ রিভিউ কমেন্ট পোস্ট করা হচ্ছে।
         if not self.gh:
             logger.warning(f"Dry-run: Would post to {repo_full_name}#{pr_number}: {comment_body}")
             return {"status": "success", "comment_url": "dry-run-url"}
 
-        # This part would contain the actual GitHub API call to post a comment.
-        # For now, it's a placeholder.
-        return {"status": "success", "comment_url": "https://github.com/..."}
+        try:
+            repo = self.gh.get_repo(repo_full_name)
+            pr = repo.get_pull(pr_number)
+            comment = pr.create_issue_comment(comment_body)
+            return {"status": "success", "comment_url": comment.html_url}
+        except Exception as e:
+            logger.error(f"Failed to post comment to GitHub: {e}")
+            return {"status": "error", "error": str(e)}
+

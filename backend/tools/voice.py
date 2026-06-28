@@ -128,6 +128,11 @@ class VoiceInterface:
         loop = asyncio.get_running_loop()
         return await loop.run_in_executor(None, self.text_to_speech, text, output_path)
 
-    def stream_tts_chunks(self, text: str, chunk_size: int = 200):
-        chunks = [text[i : i + chunk_size] for i in range(0, len(text), chunk_size)]
-        yield from chunks
+    async def stream_tts_chunks(self, text: str, chunk_size: int = 200):
+        """Stream audio bytes for the given text using the multilingual TTS engine.
+        Yields audio chunks as bytes.
+        """
+        from backend.tools.multilingual_tts import MultilingualTTS
+        tts = MultilingualTTS()
+        async for chunk in tts.synthesize_stream(text=text):
+            yield chunk

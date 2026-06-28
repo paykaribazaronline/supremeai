@@ -118,21 +118,27 @@ async def process_audio(file: UploadFile = File(...)):
 
 @router.websocket("/ws")
 async def voice_ws(websocket: WebSocket):
-    """WebSocket for real-time voice coding sessions."""
+    """Short-lived WebSocket for single-shot voice coding (trigger-based).
+
+    বাংলা মন্তব্য: ফ্রি-টায়ার কস্ট অপ্টিমাইজেশনের জন্য কানেকশনটি শুধুমাত্র
+    একটি অডিও চাংক প্রসেস করার পর বন্ধ হয় এবং আউটবাউন্ড স্ট্রিমিংয়ের জন্য
+    SSE (/api/task/stream) ব্যবহার করা হবে।
+    """
     await websocket.accept()
-    logger.info("Voice coder WebSocket connected")
+    logger.info("Voice coder WebSocket connected (short-lived)")
     try:
-        while True:
-            data = await websocket.receive_bytes()
-            # Save incoming audio chunk to temp file and process
-            with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as tmp:
-                tmp.write(data)
-                tmp_path = tmp.name
-            result = await voice_coder.process_voice_command(tmp_path)
-            os.unlink(tmp_path)
-            await websocket.send_json(result)
+        data = await websocket.receive_bytes()
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as tmp:
+            tmp.write(data)
+            tmp_path = tmp.name
+        result = await voice_coder.process_voice_command(tmp_path)
+        os.unlink(tmp_path)
+        await websocket.send_json(result)
     except WebSocketDisconnect:
-        logger.info("Voice coder WebSocket disconnected")
+        logger.info("Voice coder WebSocket disconnected before response")
     except Exception as e:
         logger.error(f"Voice WebSocket error: {e}")
         await websocket.close()
+    finally:
+        await websocket.close()
+        logger.info("Voice coder WebSocket closed (short-lived)")

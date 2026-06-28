@@ -20,6 +20,8 @@ class ZeroTrustAuthMiddleware(BaseHTTPMiddleware):
             "/api/admin/login",
             "/api/admin/verify",
             "/api/task/stream",
+            "/api/v1/collaborate",
+            "/api/v1/graph",
         ]
         if any(request.url.path.startswith(path) for path in public_paths):
             return await call_next(request)

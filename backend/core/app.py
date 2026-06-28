@@ -51,6 +51,7 @@ from api.routes import config_router
 from api.routes import email_router
 from api.routes import feedback_router
 from api.routes import github_router
+from api.routes import graph_router
 from api.routes import internal_router
 from api.routes import knowledge_router
 from api.routes import markdown_router
@@ -868,6 +869,8 @@ if cdc_router is not None:
     app.include_router(cdc_router)
 if media_router is not None:
     app.include_router(media_router)
+if graph_router is not None:
+    app.include_router(graph_router)
 if knowledge_router is not None:
     app.include_router(knowledge_router)
 if marketplace_router is not None:
@@ -909,6 +912,13 @@ if api_keys_router is not None:
 # Include Orchestrator router
 if orchestrator_router is not None:
     app.include_router(orchestrator_router)
+
+try:
+    from tools.collaborative_editor import router as collab_router
+    app.include_router(collab_router, prefix="/api/v1")
+except Exception as _e:
+    logger.warning(f"collaborative_editor router not loaded: {_e}")
+
 from tools.image_to_code import router as image_to_code_router
 
 
@@ -979,6 +989,13 @@ except Exception as _e:
     logger.warning(f"multilingual_tts router not loaded: {_e}")
 
 try:
+    from api.routes.voice import router as voice_stream_router
+
+    app.include_router(voice_stream_router, prefix="/api")
+except Exception as _e:
+    logger.warning(f"voice streaming router not loaded: {_e}")
+
+try:
     from tools.comment_thread_ai import router as comment_ai_router
 
     app.include_router(comment_ai_router, prefix="/api")
@@ -1008,6 +1025,13 @@ from api.routes.metrics import router as admin_metrics_router
 
 
 app.include_router(admin_metrics_router)
+
+try:
+    from api.routes.cloud_mesh import router as cloud_mesh_router
+
+    app.include_router(cloud_mesh_router)
+except Exception as _e:
+    logger.warning(f"cloud_mesh router not loaded: {_e}")
 
 from core.universal_rules import UniversalRulesEngine
 

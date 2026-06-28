@@ -51,6 +51,9 @@ opentelemetry-api = "^1.25.0"
 opentelemetry-sdk = "^1.25.0"
 discord-py = "^2.3.0"
 setuptools = "<82.0.0"
+# বাংলা মন্তব্য: গ্রাফ ডাটাবেস এবং মডেল কনটেক্সট প্রোটোকল ব্যবহারের জন্য ডিপেন্ডেন্সি যুক্ত করা হলো
+neo4j = "^5.14.0"
+mcp = "^0.1.0"
 
 [tool.poetry.group.ml.dependencies]
 # ── ML/AI: torch, OCR, whisper, embeddings (~3 GB) ──
