@@ -26,12 +26,13 @@ async def test_extract_style_guidelines():
     # বাংলা মন্তব্য: রিয়েল মডেল রাউটার কল বন্ধ করতে patch.object ব্যবহার করে ক্লাস মেথডটি মক করা হলো
     with patch.object(ModelRouter, "async_route_and_generate", new_callable=AsyncMock) as mock_generate:
         mock_generate.return_value = {
-            "text": '{"python": {"naming_convention": "pep8"}, "typescript": {"quotes": "double"}, "general_patterns": ["Test pattern"]}'
+            "text": '{"python": {"naming_convention": "snake_case"}, "typescript": {"quotes": "double"}, "general_patterns": ["Test pattern"]}'
         }
         
         learner = StyleLearner()
         # একটি অস্থায়ী ফোল্ডার পাথ দিয়ে টেস্ট রান করছি
         guidelines = await learner.extract_style_guidelines("backend/tools")
         
-        assert guidelines["python"]["naming_convention"] == "pep8"
+        # বাংলা মন্তব্য: মক রেসপন্স এবং অ্যাসাসরন মিলিয়ে snake_case দিয়ে টেস্ট করা হচ্ছে
+        assert guidelines["python"]["naming_convention"] == "snake_case"
         assert guidelines["typescript"]["quotes"] == "double"
