@@ -1,10 +1,10 @@
-import { getAIService, CodeSuggestion } from './AIService';
-import { getSupremeAIService } from '../services/SupremeAIService';
-import * as vscode from 'vscode';
+import { getAIService, CodeSuggestion } from "./AIService";
+import { getSupremeAIService } from "../services/SupremeAIService";
+import * as vscode from "vscode";
 
 export interface CodeReviewIssue {
   line: number;
-  severity: 'error' | 'warning' | 'info';
+  severity: "error" | "warning" | "info";
   message: string;
   suggestion: string;
   code?: string;
@@ -17,7 +17,7 @@ export class CodeReviewService {
   async reviewCode(
     code: string,
     language: string,
-    filePath: string
+    filePath: string,
   ): Promise<CodeReviewIssue[]> {
     if (!this.aiService.isAIEnabled()) {
       return this.getBasicReview(code, language);
@@ -25,7 +25,7 @@ export class CodeReviewService {
 
     const suggestion = await this.aiService.generateCodeCompletion(
       `Review this ${language} code for issues:\n${code}\n\nReturn JSON: {issues: [{line, severity, message, suggestion}]}`,
-      language
+      language,
     );
 
     if (suggestion) {
@@ -40,22 +40,25 @@ export class CodeReviewService {
     return this.getBasicReview(code, language);
   }
 
-  async reviewSelection(code: string, language: string): Promise<CodeSuggestion | null> {
+  async reviewSelection(
+    code: string,
+    language: string,
+  ): Promise<CodeSuggestion | null> {
     const prompt = `Review and improve this selected ${language} code:\n${code}`;
     try {
       const response = await this.backendService.sendChatMessage({
         message: prompt,
         sessionId: this.backendService.getSessionId(),
         messages: [],
-        context: { source: 'vscode', timestamp: new Date().toISOString() },
+        context: { source: "vscode", timestamp: new Date().toISOString() },
       });
       return {
         id: `vscode_review_${Date.now()}`,
-        type: 'refactor',
-        title: 'Code Review',
-        description: 'AI-powered review from backend',
+        type: "refactor",
+        title: "Code Review",
+        description: "AI-powered review from backend",
         code: response.response || response.message || code,
-        explanation: 'AI reviewed code from backend',
+        explanation: "AI reviewed code from backend",
         confidence: 0.9,
         language,
         context: null,
@@ -68,21 +71,24 @@ export class CodeReviewService {
 
   private getBasicReview(code: string, language: string): CodeReviewIssue[] {
     const issues: CodeReviewIssue[] = [];
-    code.split('\n').forEach((line: string, index: number) => {
-      if (line.includes('console.log') && language !== 'javascript') {
+    code.split("\n").forEach((line: string, index: number) => {
+      if (line.includes("console.log") && language !== "javascript") {
         issues.push({
           line: index + 1,
-          severity: 'warning',
-          message: 'Debug statement found',
-          suggestion: 'Remove console.log before production',
+          severity: "warning",
+          message: "Debug statement found",
+          suggestion: "Remove console.log before production",
         });
       }
-      if ((line.trim() || '').startsWith('TODO') || (line.trim() || '').startsWith('FIXME')) {
+      if (
+        (line.trim() || "").startsWith("TODO") ||
+        (line.trim() || "").startsWith("FIXME")
+      ) {
         issues.push({
           line: index + 1,
-          severity: 'info',
-          message: 'Todo/Fixme comment found',
-          suggestion: 'Address this item',
+          severity: "info",
+          message: "Todo/Fixme comment found",
+          suggestion: "Address this item",
         });
       }
     });

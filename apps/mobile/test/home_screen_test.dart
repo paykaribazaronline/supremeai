@@ -18,10 +18,13 @@ class FakeApiService implements ApiService {
   Future<Map<String, dynamic>> getUserProfile() async => {'success': false};
 
   @override
-  Future<Map<String, dynamic>> register(String email, String password, String displayName) async => {'success': false};
+  Future<Map<String, dynamic>> register(
+          String email, String password, String displayName) async =>
+      {'success': false};
 
   @override
-  Future<Map<String, dynamic>> firebaseLogin(String idToken) async => {'success': false};
+  Future<Map<String, dynamic>> firebaseLogin(String idToken) async =>
+      {'success': false};
 
   @override
   Future<void> logout() async {}
@@ -33,7 +36,9 @@ class FakeApiService implements ApiService {
   Future<String?> getToken() async => null;
 
   @override
-  Future<Map<String, dynamic>> executeAgentTask(String task, String taskType, {String? department}) async => {};
+  Future<Map<String, dynamic>> executeAgentTask(String task, String taskType,
+          {String? department}) async =>
+      {};
 
   @override
   Future<Map<String, dynamic>> getAgentStatus() async => {};
@@ -48,7 +53,9 @@ class MockAuthProvider extends ChangeNotifier implements AuthProvider {
     AuthStatus status = AuthStatus.guest,
     String? token,
     bool isGuest = true,
-  }) : _status = status, _token = token, _isGuest = isGuest;
+  })  : _status = status,
+        _token = token,
+        _isGuest = isGuest;
 
   @override
   AuthStatus get status => _status;
@@ -87,7 +94,8 @@ class MockAuthProvider extends ChangeNotifier implements AuthProvider {
   void clearError() {}
 }
 
-class MockOrchestrationProvider extends ChangeNotifier implements OrchestrationProvider {
+class MockOrchestrationProvider extends ChangeNotifier
+    implements OrchestrationProvider {
   bool _isLoading = false;
   OrchestrationError? _errorMessage;
 
@@ -112,12 +120,14 @@ class MockOrchestrationProvider extends ChangeNotifier implements OrchestrationP
   }
 
   void setError(String message) {
-    _errorMessage = OrchestrationError(message: message, type: OrchestrationErrorType.unknown);
+    _errorMessage = OrchestrationError(
+        message: message, type: OrchestrationErrorType.unknown);
     notifyListeners();
   }
 
   @override
-  Future<void> orchestrateRequirement(String requirement, String token, {String? geminiKey, String? activeModel}) async {
+  Future<void> orchestrateRequirement(String requirement, String token,
+      {String? geminiKey, String? activeModel}) async {
     _isLoading = true;
     notifyListeners();
     await Future<void>.delayed(const Duration(milliseconds: 10));
@@ -170,7 +180,8 @@ void main() {
     });
   });
 
-  Widget createHomeScreen({AuthProvider? authProvider, OrchestrationProvider? orchestration}) {
+  Widget createHomeScreen(
+      {AuthProvider? authProvider, OrchestrationProvider? orchestration}) {
     final auth = authProvider ?? MockAuthProvider();
     final orch = orchestration ?? MockOrchestrationProvider();
 
@@ -178,13 +189,15 @@ void main() {
       providers: [
         ChangeNotifierProvider<AuthProvider>.value(value: auth),
         ChangeNotifierProvider<OrchestrationProvider>.value(value: orch),
-        ChangeNotifierProvider<SettingsProvider>.value(value: MockSettingsProvider()),
+        ChangeNotifierProvider<SettingsProvider>.value(
+            value: MockSettingsProvider()),
       ],
       child: const MaterialApp(home: HomeScreen()),
     );
   }
 
-  testWidgets('HomeScreen renders title and chat input', (WidgetTester tester) async {
+  testWidgets('HomeScreen renders title and chat input',
+      (WidgetTester tester) async {
     await tester.pumpWidget(createHomeScreen());
     await tester.pumpAndSettle();
 
@@ -192,21 +205,24 @@ void main() {
     expect(find.byType(TextField), findsOneWidget);
   });
 
-  testWidgets('HomeScreen shows empty state prompt when no messages', (WidgetTester tester) async {
+  testWidgets('HomeScreen shows empty state prompt when no messages',
+      (WidgetTester tester) async {
     await tester.pumpWidget(createHomeScreen());
     await tester.pumpAndSettle();
 
     expect(find.text('Describe what you want to build...'), findsOneWidget);
   });
 
-  testWidgets('HomeScreen bottom navigation bar renders 5 destinations', (WidgetTester tester) async {
+  testWidgets('HomeScreen bottom navigation bar renders 5 destinations',
+      (WidgetTester tester) async {
     await tester.pumpWidget(createHomeScreen());
     await tester.pumpAndSettle();
 
     expect(find.byType(NavigationDestination), findsNWidgets(5));
   });
 
-  testWidgets('typing in chat input updates field value', (WidgetTester tester) async {
+  testWidgets('typing in chat input updates field value',
+      (WidgetTester tester) async {
     await tester.pumpWidget(createHomeScreen());
     await tester.pumpAndSettle();
 
@@ -217,7 +233,8 @@ void main() {
     expect(find.text('Build a todo app'), findsOneWidget);
   });
 
-  testWidgets('shows loading indicator when orchestration is loading', (WidgetTester tester) async {
+  testWidgets('shows loading indicator when orchestration is loading',
+      (WidgetTester tester) async {
     final orch = MockOrchestrationProvider();
     orch.setLoading(true);
 
@@ -227,7 +244,8 @@ void main() {
     expect(find.byType(LinearProgressIndicator), findsOneWidget);
   });
 
-  testWidgets('displays error banner when orchestration has error', (WidgetTester tester) async {
+  testWidgets('displays error banner when orchestration has error',
+      (WidgetTester tester) async {
     final orch = MockOrchestrationProvider();
     orch.setError('Network down');
 
@@ -237,20 +255,23 @@ void main() {
     expect(find.text('Network down'), findsOneWidget);
   });
 
-  testWidgets('logout button present in app bar when authenticated', (WidgetTester tester) async {
+  testWidgets('logout button present in app bar when authenticated',
+      (WidgetTester tester) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('auth_token', 'token-abc');
     await prefs.setString('user_json', '{"username":"admin","role":"admin"}');
 
     await tester.pumpWidget(createHomeScreen(
-      authProvider: MockAuthProvider(status: AuthStatus.authenticated, token: 'token-abc', isGuest: false),
+      authProvider: MockAuthProvider(
+          status: AuthStatus.authenticated, token: 'token-abc', isGuest: false),
     ));
     await tester.pumpAndSettle(const Duration(seconds: 1));
 
     expect(find.byIcon(Icons.logout), findsOneWidget);
   });
 
-  testWidgets('login icon shown when in guest mode', (WidgetTester tester) async {
+  testWidgets('login icon shown when in guest mode',
+      (WidgetTester tester) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('is_guest', true);
 
