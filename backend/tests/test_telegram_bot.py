@@ -99,7 +99,10 @@ async def test_set_webhook_error(handler):
 @pytest.mark.asyncio
 async def test_get_me_success(handler):
     mock_get = MagicMock()
-    mock_get.return_value.json.return_value = {"ok": True, "result": {"id": 1, "username": "bot"}}
+    mock_get.return_value.json.return_value = {
+        "ok": True,
+        "result": {"id": 1, "username": "bot"},
+    }
     with patch("httpx.AsyncClient.get", new_callable=lambda: mock_get):
         result = await handler.get_me()
     assert result == {"id": 1, "username": "bot"}
