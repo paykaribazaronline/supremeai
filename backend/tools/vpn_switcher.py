@@ -1,4 +1,4 @@
-import importlib.util
+import json
 import logging
 import os
 import random
@@ -11,10 +11,6 @@ try:
     HAS_HTTPX = True
 except ImportError:
     HAS_HTTPX = False
-
-HAS_BS4 = importlib.util.find_spec("bs4") is not None
-if HAS_BS4:
-    from bs4 import BeautifulSoup
 
 logger = logging.getLogger(__name__)
 
@@ -138,7 +134,7 @@ class VPNRotator:
             return {"proxy": None, "source": "premium", "reason": "httpx not installed"}
         config_path = os.getenv("PREMIUM_PROXY_CONFIG", "config/premium_proxy.json")
         try:
-            with open(config_path, "r", encoding="utf-8") as fh:
+            with open(config_path, encoding="utf-8") as fh:
                 cfg = json.load(fh)
             proxy = cfg.get(use_case) or cfg.get("default")
             return {"proxy": proxy, "source": "premium", "use_case": use_case}

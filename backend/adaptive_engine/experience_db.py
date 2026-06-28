@@ -1,9 +1,11 @@
 import importlib.util
 import json
 import sqlite3
-from dataclasses import dataclass, field
+from dataclasses import dataclass
+from dataclasses import field
 from pathlib import Path
 from typing import Any
+
 
 HAS_SENTENCE_TRANSFORMERS = importlib.util.find_spec("sentence_transformers") is not None
 HAS_CHROMADB = importlib.util.find_spec("chromadb") is not None
@@ -55,7 +57,8 @@ class ExperienceDatabase:
             try:
                 from qdrant_client import QdrantClient
                 self.qdrant_client = QdrantClient(":memory:")
-                from qdrant_client.models import Distance, VectorParams
+                from qdrant_client.models import Distance
+                from qdrant_client.models import VectorParams
                 self.qdrant_client.recreate_collection(
                     collection_name=self.qdrant_collection,
                     vectors_config=VectorParams(size=384, distance=Distance.COSINE),
@@ -160,7 +163,7 @@ class ExperienceDatabase:
 
     def _cosine_similarity(self, a: list[float], b: list[float]) -> float:
         import math
-        dot = sum(x * y for x, y in zip(a, b))
+        dot = sum(x * y for x, y in zip(a, b, strict=False))
         norm_a = math.sqrt(sum(x * x for x in a))
         norm_b = math.sqrt(sum(y * y for y in b))
         if not norm_a or not norm_b:
