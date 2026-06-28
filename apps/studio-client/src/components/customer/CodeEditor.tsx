@@ -1,4 +1,4 @@
-import Editor from '@monaco-editor/react';
+import Editor from "@monaco-editor/react";
 
 interface CodeEditorProps {
   code: string;
@@ -19,7 +19,7 @@ export function CodeEditor({ code, onChange }: CodeEditorProps) {
           defaultLanguage="javascript"
           theme="vs-dark"
           value={code}
-          onChange={(val) => onChange(val || '')}
+          onChange={(val) => onChange(val || "")}
           options={{
             minimap: { enabled: false },
             fontSize: 14,
@@ -28,8 +28,8 @@ export function CodeEditor({ code, onChange }: CodeEditorProps) {
             padding: { top: 16 },
             scrollBeyondLastLine: false,
             smoothScrolling: true,
-            cursorBlinking: 'smooth',
-            cursorSmoothCaretAnimation: 'on'
+            cursorBlinking: "smooth",
+            cursorSmoothCaretAnimation: "on",
           }}
         />
       </div>
