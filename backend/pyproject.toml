@@ -9,7 +9,9 @@ packages = [{include = "core"}, {include = "brain"}, {include = "api"}, {include
 
 [tool.poetry.dependencies]
 # ── Core API (always needed, ~500 MB) ──
-python = "^3.11"
+# বাংলা মন্তব্য: crewai প্যাকেজের সাথে সামঞ্জস্যপূর্ণ রাখতে পাইথন ভার্সন সর্বোচ্চ ৩.১২ (অর্থাৎ <৩.১৩) পর্যন্ত সীমাবদ্ধ করা হলো
+python = ">=3.11,<3.13"
+
 numpy = ">=1.24.0,<3.0.0"
 fastapi = "^0.111.0"
 networkx = "^3.2.0"
