@@ -1,30 +1,30 @@
-import * as vscode from 'vscode';
-import { getSupremeAIService } from '../services/SupremeAIService';
-import { AuthService } from '../services/AuthService';
+import * as vscode from "vscode";
+import { getSupremeAIService } from "../services/SupremeAIService";
+import { AuthService } from "../services/AuthService";
 
-export class SupremeAICustomerDashboardProvider implements vscode.WebviewViewProvider {
+export class SupremeAICustomerDashboardProvider
+  implements vscode.WebviewViewProvider
+{
   private webview: vscode.WebviewView | null = null;
   private updateTimer: NodeJS.Timeout | null = null;
 
-  constructor(
-    private readonly _extensionUri: vscode.Uri
-  ) {}
+  constructor(private readonly _extensionUri: vscode.Uri) {}
 
   public resolveWebviewView(
     webviewView: vscode.WebviewView,
     _context: vscode.WebviewViewResolveContext,
-    _token: vscode.CancellationToken
+    _token: vscode.CancellationToken,
   ): void {
     this.webview = webviewView;
 
     webviewView.webview.options = {
       enableScripts: true,
-      localResourceRoots: [this._extensionUri]
+      localResourceRoots: [this._extensionUri],
     };
 
     this.setupWebviewMessageListener(webviewView);
     webviewView.webview.html = this.getLoadingHTML();
-    
+
     this.updateContent(webviewView);
     this.startPeriodicUpdates();
   }
@@ -34,21 +34,18 @@ export class SupremeAICustomerDashboardProvider implements vscode.WebviewViewPro
   }
 
   private setupWebviewMessageListener(webviewView: vscode.WebviewView): void {
-    webviewView.webview.onDidReceiveMessage(
-      async (data) => {
-        switch (data.type) {
-          case 'newChat':
-            vscode.commands.executeCommand('supremeai.openChat');
-            break;
-          case 'logout':
-            vscode.commands.executeCommand('supremeai.logout').then(() => {
-              this.updateContent(webviewView);
-            });
-            break;
-        }
-      },
-      undefined
-    );
+    webviewView.webview.onDidReceiveMessage(async (data) => {
+      switch (data.type) {
+        case "newChat":
+          vscode.commands.executeCommand("supremeai.openChat");
+          break;
+        case "logout":
+          vscode.commands.executeCommand("supremeai.logout").then(() => {
+            this.updateContent(webviewView);
+          });
+          break;
+      }
+    }, undefined);
   }
 
   private async updateContent(webviewView: vscode.WebviewView): Promise<void> {
@@ -76,8 +73,8 @@ export class SupremeAICustomerDashboardProvider implements vscode.WebviewViewPro
   private getHTMLContent(stats: any): string {
     const authService = AuthService.getInstance();
     const user = authService?.getUser();
-    const username = user?.username || 'Guest User';
-    const email = user?.email || 'N/A';
+    const username = user?.username || "Guest User";
+    const email = user?.email || "N/A";
 
     return `<!DOCTYPE html>
 <html lang="bn">

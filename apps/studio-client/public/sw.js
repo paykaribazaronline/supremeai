@@ -1,34 +1,36 @@
-const CACHE_NAME = 'supremeai-pwa-cache-v1';
-const OFFLINE_URL = '/offline.html';
+const CACHE_NAME = "supremeai-pwa-cache-v1";
+const OFFLINE_URL = "/offline.html";
 
-self.addEventListener('install', (event) => {
+self.addEventListener("install", (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
       return cache.addAll([
-        '/',
-        '/index.html',
+        "/",
+        "/index.html",
         OFFLINE_URL,
-        '/manifest.json',
-        '/favicon.ico'
+        "/manifest.json",
+        "/favicon.ico",
       ]);
-    })
+    }),
   );
   self.skipWaiting();
 });
 
-self.addEventListener('activate', (event) => {
+self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
-        cacheNames.filter((name) => name !== CACHE_NAME).map((name) => caches.delete(name))
+        cacheNames
+          .filter((name) => name !== CACHE_NAME)
+          .map((name) => caches.delete(name)),
       );
-    })
+    }),
   );
   self.clients.claim();
 });
 
-self.addEventListener('fetch', (event) => {
-  if (event.request.method !== 'GET') {
+self.addEventListener("fetch", (event) => {
+  if (event.request.method !== "GET") {
     // For POST requests, ideally we'd queue them using Background Sync API
     return;
   }
@@ -52,30 +54,30 @@ self.addEventListener('fetch', (event) => {
             return response;
           }
           // If HTML request, return offline page
-          if (event.request.headers.get('accept').includes('text/html')) {
+          if (event.request.headers.get("accept").includes("text/html")) {
             return caches.match(OFFLINE_URL);
           }
         });
-      })
+      }),
   );
 });
 
 // Background Sync
-self.addEventListener('sync', (event) => {
-  if (event.tag === 'sync-offline-actions') {
+self.addEventListener("sync", (event) => {
+  if (event.tag === "sync-offline-actions") {
     event.waitUntil(syncOfflineActions());
   }
 });
 
 async function syncOfflineActions() {
-  console.log('Background Sync: Triggering offline sync to backend');
+  console.log("Background Sync: Triggering offline sync to backend");
   try {
-    const response = await fetch('/api/offline/sync', { method: 'POST' });
+    const response = await fetch("/api/offline/sync", { method: "POST" });
     if (!response.ok) {
-      throw new Error('Sync failed');
+      throw new Error("Sync failed");
     }
   } catch (error) {
-    console.error('Background sync failed:', error);
+    console.error("Background sync failed:", error);
     throw error;
   }
 }
