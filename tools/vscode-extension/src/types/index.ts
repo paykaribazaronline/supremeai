@@ -15,7 +15,7 @@ export interface CodeEdit {
 }
 
 export interface ErrorReport {
-  errorType: 'compilation' | 'runtime' | 'lint' | 'security' | 'performance';
+  errorType: "compilation" | "runtime" | "lint" | "security" | "performance";
   errorMessage: string;
   errorCode?: string;
   filePath: string;
@@ -23,7 +23,7 @@ export interface ErrorReport {
   columnNumber?: number;
   stackTrace?: string;
   codeSnippet?: string;
-  severity: 'error' | 'warning' | 'info';
+  severity: "error" | "warning" | "info";
   timestamp: string;
 }
 
@@ -34,12 +34,22 @@ export interface SuggestionFeedback {
   context: string;
   taskId: string;
   timestamp: string;
-  originalPosition?: import('vscode').Position;
+  originalPosition?: import("vscode").Position;
 }
 
 export interface LearningUpload {
-  type: 'CODE_EDIT' | 'ERROR_REPORT' | 'SUGGESTION_FEEDBACK' | 'CODE_ANALYSIS' | 'CHAT_MESSAGE';
-  data: CodeEdit | ErrorReport | SuggestionFeedback | ChatMessage | CodeAnalysis;
+  type:
+    | "CODE_EDIT"
+    | "ERROR_REPORT"
+    | "SUGGESTION_FEEDBACK"
+    | "CODE_ANALYSIS"
+    | "CHAT_MESSAGE";
+  data:
+    | CodeEdit
+    | ErrorReport
+    | SuggestionFeedback
+    | ChatMessage
+    | CodeAnalysis;
   sessionId: string;
   userId?: string;
 }
@@ -58,8 +68,8 @@ export interface SupremeAIConfig {
 }
 
 export interface NotificationMessage {
-  type: 'GITHUB_PIPELINE' | 'SYSTEM_ALERT' | 'LEARNING_UPDATE' | 'CHAT_MESSAGE';
-  status: 'success' | 'failure' | 'warning' | 'info';
+  type: "GITHUB_PIPELINE" | "SYSTEM_ALERT" | "LEARNING_UPDATE" | "CHAT_MESSAGE";
+  status: "success" | "failure" | "warning" | "info";
   message: string;
   timestamp: string;
   details?: Record<string, any>;
@@ -68,7 +78,7 @@ export interface NotificationMessage {
 // Chat Types
 export interface ChatMessage {
   id: string;
-  role: 'user' | 'assistant' | 'system';
+  role: "user" | "assistant" | "system";
   content: string;
   timestamp: string;
   error?: boolean;
@@ -93,7 +103,7 @@ export interface ChatRequest {
   sessionId: string;
   messages?: ChatMessage[];
   context?: {
-    source: 'vscode' | 'intellij' | 'web' | 'flutter';
+    source: "vscode" | "intellij" | "web" | "flutter";
     language?: string;
     filePath?: string;
     codeSnippet?: string;
@@ -111,7 +121,7 @@ export interface CodeFlowAnalysis {
   securityIssues: SecurityIssue[];
   healthScore: HealthScore;
   analysisTimestamp: string;
-  status: 'pending' | 'analyzing' | 'completed' | 'failed';
+  status: "pending" | "analyzing" | "completed" | "failed";
 }
 
 export interface CodeFlowFile {
@@ -154,7 +164,7 @@ export interface DependencyGraph {
 export interface DependencyNode {
   id: string;
   label: string;
-  type: 'file' | 'function' | 'class' | 'module';
+  type: "file" | "function" | "class" | "module";
   file?: string;
   metrics?: {
     complexity: number;
@@ -166,13 +176,19 @@ export interface DependencyNode {
 export interface DependencyEdge {
   source: string;
   target: string;
-  type: 'imports' | 'calls' | 'extends' | 'implements';
+  type: "imports" | "calls" | "extends" | "implements";
   weight?: number;
 }
 
 export interface PatternDetection {
-  type: 'singleton' | 'factory' | 'observer' | 'react_hooks' | 'god_object' | 'circular_dependency';
-  severity: 'low' | 'medium' | 'high' | 'critical';
+  type:
+    | "singleton"
+    | "factory"
+    | "observer"
+    | "react_hooks"
+    | "god_object"
+    | "circular_dependency";
+  severity: "low" | "medium" | "high" | "critical";
   file: string;
   line: number;
   description: string;
@@ -180,8 +196,13 @@ export interface PatternDetection {
 }
 
 export interface SecurityIssue {
-  type: 'hardcoded_secret' | 'eval_usage' | 'sql_injection' | 'debug_statement' | 'unsafe_import';
-  severity: 'critical' | 'high' | 'medium' | 'low';
+  type:
+    | "hardcoded_secret"
+    | "eval_usage"
+    | "sql_injection"
+    | "debug_statement"
+    | "unsafe_import";
+  severity: "critical" | "high" | "medium" | "low";
   file: string;
   line: number;
   code: string;
@@ -192,7 +213,7 @@ export interface SecurityIssue {
 
 export interface HealthScore {
   score: number;
-  grade: 'A' | 'B' | 'C' | 'D' | 'F';
+  grade: "A" | "B" | "C" | "D" | "F";
   breakdown: {
     security: number;
     maintainability: number;
@@ -247,7 +268,7 @@ export interface SuggestedFix {
   code: string;
   explanation: string;
   impact: string;
-  difficulty: 'easy' | 'medium' | 'hard';
+  difficulty: "easy" | "medium" | "hard";
 }
 
 export interface ChatResponse {
