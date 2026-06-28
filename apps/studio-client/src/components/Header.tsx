@@ -1,6 +1,6 @@
 export function Header() {
   const hostname = window.location.hostname;
-  const isAdminDomain = hostname.includes('admin');
+  const isAdminDomain = hostname.includes("admin");
 
   return (
     <div className="h-14 flex-shrink-0 bg-[var(--card-bg)] backdrop-blur-md border-b border-[var(--border-color)] flex items-center justify-between px-6 z-20">
@@ -17,8 +17,10 @@ export function Header() {
 
       {/* Global tab switch */}
       <div className="flex bg-[var(--sidebar-bg)] rounded-lg p-1 border border-[var(--border-color)]">
-        <span className={`px-4 py-1.5 text-xs font-semibold rounded-md ${isAdminDomain ? 'bg-[#bc13fe]/20 text-[#bc13fe] border border-[#bc13fe]/30' : 'bg-[#00f3ff]/20 text-[#00f3ff] border border-[#00f3ff]/30'}`}>
-          {isAdminDomain ? 'God Control Center' : 'Operator Studio'}
+        <span
+          className={`px-4 py-1.5 text-xs font-semibold rounded-md ${isAdminDomain ? "bg-[#bc13fe]/20 text-[#bc13fe] border border-[#bc13fe]/30" : "bg-[#00f3ff]/20 text-[#00f3ff] border border-[#00f3ff]/30"}`}
+        >
+          {isAdminDomain ? "God Control Center" : "Operator Studio"}
         </span>
       </div>
 
