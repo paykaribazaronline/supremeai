@@ -1,5 +1,5 @@
-import * as vscode from 'vscode';
-import { getSupremeAIService } from '../services/SupremeAIService';
+import * as vscode from "vscode";
+import { getSupremeAIService } from "../services/SupremeAIService";
 
 export class CodeFlowPanel {
   private static active: CodeFlowPanel | undefined;
@@ -11,19 +11,31 @@ export class CodeFlowPanel {
       CodeFlowPanel.active.panel.reveal(vscode.ViewColumn.Beside);
       return;
     }
-    const panel = vscode.window.createWebviewPanel('supremeaiCodeFlow', 'SupremeAI CodeFlow', vscode.ViewColumn.Beside, {
-      enableScripts: true,
-      retainContextWhenHidden: true,
-    });
+    const panel = vscode.window.createWebviewPanel(
+      "supremeaiCodeFlow",
+      "SupremeAI CodeFlow",
+      vscode.ViewColumn.Beside,
+      {
+        enableScripts: true,
+        retainContextWhenHidden: true,
+      },
+    );
     CodeFlowPanel.active = new CodeFlowPanel(panel, extensionUri);
   }
 
-  private constructor(panel: vscode.WebviewPanel, private readonly extensionUri: vscode.Uri) {
+  private constructor(
+    panel: vscode.WebviewPanel,
+    private readonly extensionUri: vscode.Uri,
+  ) {
     this.panel = panel;
-    panel.onDidDispose(() => {
-      this.dispose();
-      CodeFlowPanel.active = undefined;
-    }, undefined, this.disposables);
+    panel.onDidDispose(
+      () => {
+        this.dispose();
+        CodeFlowPanel.active = undefined;
+      },
+      undefined,
+      this.disposables,
+    );
     this.load();
   }
 
@@ -31,50 +43,71 @@ export class CodeFlowPanel {
     this.panel.webview.html = this.getLoadingHTML();
     try {
       const service = getSupremeAIService();
-      const dir = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath ?? '';
-      const files = await vscode.workspace.findFiles('**/*.{ts,js,py,java,go}', '**/node_modules/**', 500);
-      const mapped = files.slice(0, 60).map(uri => ({
+      const dir = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath ?? "";
+      const files = await vscode.workspace.findFiles(
+        "**/*.{ts,js,py,java,go}",
+        "**/node_modules/**",
+        500,
+      );
+      const mapped = files.slice(0, 60).map((uri) => ({
         path: uri.fsPath,
         query: this.labelForPath(uri.fsPath),
       }));
-      const grid = this.inferGrid(mapped.map(f => f.query));
+      const grid = this.inferGrid(mapped.map((f) => f.query));
       const graph = {
-        nodes: grid.nodes.map(n => ({ id: n, label: n, type: 'file' })),
-        edges: grid.edges.map(e => ({ source: e.from, target: e.to, type: e.kind })),
+        nodes: grid.nodes.map((n) => ({ id: n, label: n, type: "file" })),
+        edges: grid.edges.map((e) => ({
+          source: e.from,
+          target: e.to,
+          type: e.kind,
+        })),
       } as const;
-      const summary = { filesAnalyzed: mapped.length, dependencies: graph.nodes.length, relationships: graph.edges.length };
+      const summary = {
+        filesAnalyzed: mapped.length,
+        dependencies: graph.nodes.length,
+        relationships: graph.edges.length,
+      };
       this.panel.webview.html = this.getHTML({ files: mapped, graph, summary });
     } catch (error: any) {
-      this.panel.webview.html = this.getErrorHTML(error.message ?? 'Failed to load CodeFlow analysis');
+      this.panel.webview.html = this.getErrorHTML(
+        error.message ?? "Failed to load CodeFlow analysis",
+      );
     }
   }
 
   private labelForPath(path: string): string {
-    const url = new URL('file:///dummy');
-    const base = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath ?? '';
-    const rel = path.replace(base, '').replace(/^[\\/]/, '');
-    return rel.split(/[\\/]/).slice(0, 2).join('/');
+    const url = new URL("file:///dummy");
+    const base = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath ?? "";
+    const rel = path.replace(base, "").replace(/^[\\/]/, "");
+    return rel.split(/[\\/]/).slice(0, 2).join("/");
   }
 
   private inferGrid(labels: string[]) {
     const byPrefix = new Map<string, string[]>();
     for (const label of labels) {
-      const prefix = label.includes('/') ? label.split('/').slice(0, 2).join('/') : label;
+      const prefix = label.includes("/")
+        ? label.split("/").slice(0, 2).join("/")
+        : label;
       if (!byPrefix.has(prefix)) byPrefix.set(prefix, []);
       byPrefix.get(prefix)!.push(label);
     }
-    const edges: { from: string; to: string; kind: 'calls' | 'imports' | 'depends' }[] = [];
+    const edges: {
+      from: string;
+      to: string;
+      kind: "calls" | "imports" | "depends";
+    }[] = [];
     for (const [root, children] of byPrefix) {
       for (const child of children) {
-        if (child !== root) edges.push({ from: root, to: child, kind: 'imports' });
+        if (child !== root)
+          edges.push({ from: root, to: child, kind: "imports" });
       }
     }
     const nodes = Array.from(byPrefix.keys());
-    const more = labels.filter(l => !nodes.includes(l)).slice(0, 20);
+    const more = labels.filter((l) => !nodes.includes(l)).slice(0, 20);
     for (const node of more) {
       nodes.push(node);
-      const target = labels.find(l => l !== node && l.startsWith('src'));
-      if (target) edges.push({ from: node, to: target, kind: 'calls' });
+      const target = labels.find((l) => l !== node && l.startsWith("src"));
+      if (target) edges.push({ from: node, to: target, kind: "calls" });
     }
     return { nodes, edges };
   }
@@ -87,10 +120,16 @@ export class CodeFlowPanel {
     return `<html><body><div style="padding:20px;color:var(--vscode-errorForeground)">${message}</div></body></html>`;
   }
 
-  private getHTML(data: { files: { path: string; query: string }[]; graph: any; summary: Record<string, unknown> }): string {
+  private getHTML(data: {
+    files: { path: string; query: string }[];
+    graph: any;
+    summary: Record<string, unknown>;
+  }): string {
     const safe = encodeURIComponent(JSON.stringify(data.graph));
     const readiness = JSON.stringify(data.summary);
-    const files = data.files.map(f => `<li>${this.escapeHtml(f.path)}</li>`).join('');
+    const files = data.files
+      .map((f) => `<li>${this.escapeHtml(f.path)}</li>`)
+      .join("");
     return `<!DOCTYPE html>
 <html>
 <head>
@@ -126,11 +165,21 @@ export class CodeFlowPanel {
   }
 
   private escapeHtml(value: string): string {
-    return value.replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c] ?? c));
+    return value.replace(
+      /[&<>"']/g,
+      (c) =>
+        ({
+          "&": "&amp;",
+          "<": "&lt;",
+          ">": "&gt;",
+          '"': "&quot;",
+          "'": "&#39;",
+        })[c] ?? c,
+    );
   }
 
   dispose() {
-    this.disposables.forEach(d => d.dispose());
+    this.disposables.forEach((d) => d.dispose());
     this.disposables = [];
   }
 }

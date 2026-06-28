@@ -51,7 +51,8 @@ class OfflineSyncService {
     final raw = prefs.getStringList('offline_queue') ?? [];
     _queue.clear();
     for (final item in raw) {
-      _queue.add(QueuedRequest.fromJson(jsonDecode(item) as Map<String, dynamic>));
+      _queue.add(
+          QueuedRequest.fromJson(jsonDecode(item) as Map<String, dynamic>));
     }
   }
 
@@ -89,7 +90,8 @@ class OfflineSyncService {
     );
     _queue.add(queued);
     await _persistQueue();
-    return http.Response('{"status":"queued_offline"}', 202, headers: {"Content-Type": "application/json"});
+    return http.Response('{"status":"queued_offline"}', 202,
+        headers: {"Content-Type": "application/json"});
   }
 
   Future<void> _flushQueue() async {
