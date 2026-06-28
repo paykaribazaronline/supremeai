@@ -2,9 +2,9 @@
  * SupremeAI Sidebar Provider - Webview-based sidebar panels
  */
 
-import * as vscode from 'vscode';
-import { getSupremeAIService } from '../services/SupremeAIService';
-import { AuthService } from '../services/AuthService';
+import * as vscode from "vscode";
+import { getSupremeAIService } from "../services/SupremeAIService";
+import { AuthService } from "../services/AuthService";
 
 export class SupremeAISidebarProvider implements vscode.WebviewViewProvider {
   private webview: vscode.WebviewView | null = null;
@@ -12,26 +12,26 @@ export class SupremeAISidebarProvider implements vscode.WebviewViewProvider {
 
   constructor(
     private readonly _extensionUri: vscode.Uri,
-    private readonly _viewId: string
+    private readonly _viewId: string,
   ) {}
 
   public resolveWebviewView(
     webviewView: vscode.WebviewView,
     context: vscode.WebviewViewResolveContext,
-    _token: vscode.CancellationToken
+    _token: vscode.CancellationToken,
   ): void {
     this.webview = webviewView;
 
     webviewView.webview.options = {
       enableScripts: true,
-      localResourceRoots: [this._extensionUri]
+      localResourceRoots: [this._extensionUri],
     };
 
     this.setupWebviewMessageListener(webviewView);
-    
+
     // Set initial loading state to avoid blank screen
     webviewView.webview.html = this.getLoadingHTML();
-    
+
     this.updateContent(webviewView);
     this.startPeriodicUpdates();
   }
@@ -41,33 +41,33 @@ export class SupremeAISidebarProvider implements vscode.WebviewViewProvider {
   }
 
   private setupWebviewMessageListener(webviewView: vscode.WebviewView): void {
-    webviewView.webview.onDidReceiveMessage(
-      async (data) => {
-        switch (data.type) {
-          case 'forceLearn':
-            await this.handleForceLearn();
-            break;
-          case 'login':
-            vscode.commands.executeCommand('supremeai.login').then(() => {
-              this.updateContent(webviewView);
-            });
-            break;
-          case 'openSettings':
-            vscode.commands.executeCommand('workbench.action.openSettings', 'supremeai');
-            break;
-          case 'refresh':
+    webviewView.webview.onDidReceiveMessage(async (data) => {
+      switch (data.type) {
+        case "forceLearn":
+          await this.handleForceLearn();
+          break;
+        case "login":
+          vscode.commands.executeCommand("supremeai.login").then(() => {
             this.updateContent(webviewView);
-            break;
-        }
-      },
-      undefined
-    );
+          });
+          break;
+        case "openSettings":
+          vscode.commands.executeCommand(
+            "workbench.action.openSettings",
+            "supremeai",
+          );
+          break;
+        case "refresh":
+          this.updateContent(webviewView);
+          break;
+      }
+    }, undefined);
   }
 
   private async handleForceLearn(): Promise<void> {
     const editor = vscode.window.activeTextEditor;
     if (!editor) {
-      vscode.window.showWarningMessage('No active editor to learn from');
+      vscode.window.showWarningMessage("No active editor to learn from");
       return;
     }
 
@@ -77,22 +77,30 @@ export class SupremeAISidebarProvider implements vscode.WebviewViewProvider {
     vscode.window.withProgress(
       {
         location: vscode.ProgressLocation.Notification,
-        title: 'SupremeAI Learning',
+        title: "SupremeAI Learning",
         cancellable: false,
       },
       async (progress) => {
-        progress.report({ increment: 0, message: 'Analyzing code...' });
+        progress.report({ increment: 0, message: "Analyzing code..." });
         const service = getSupremeAIService();
-        const result = await service.sendCodeAnalysis(filePath, code, editor.document.languageId);
-        progress.report({ increment: 100, message: 'Complete!' });
+        const result = await service.sendCodeAnalysis(
+          filePath,
+          code,
+          editor.document.languageId,
+        );
+        progress.report({ increment: 100, message: "Complete!" });
 
         if (result.success) {
-          vscode.window.showInformationMessage('✅ Code analysis sent to SupremeAI learning engine');
+          vscode.window.showInformationMessage(
+            "✅ Code analysis sent to SupremeAI learning engine",
+          );
           this.updateContent(this.webview!);
         } else {
-          vscode.window.showErrorMessage(`❌ Learning failed: ${result.message}`);
+          vscode.window.showErrorMessage(
+            `❌ Learning failed: ${result.message}`,
+          );
         }
-      }
+      },
     );
   }
 
@@ -292,7 +300,7 @@ export class SupremeAISidebarProvider implements vscode.WebviewViewProvider {
   <div class="header">
     <span class="icon">$(circuit-board)</span>
     <span class="title">SupremeAI</span>
-    <span class="status ${stats?.enabled ? 'active' : 'inactive'}">${stats?.enabled ? 'Active' : 'Disabled'}</span>
+    <span class="status ${stats?.enabled ? "active" : "inactive"}">${stats?.enabled ? "Active" : "Disabled"}</span>
   </div>
 
   <div class="section">
@@ -366,15 +374,19 @@ export class SupremeAISidebarProvider implements vscode.WebviewViewProvider {
           <span>${icon}</span> ${activity.message} • ${time}
         </div>`;
       })
-      .join('');
+      .join("");
   }
 
   private getActivityIcon(type: string): string {
     switch (type) {
-      case 'CODE_EDIT': return '$(edit)';
-      case 'ERROR_REPORT': return '$(error)';
-      case 'SUGGESTION_FEEDBACK': return '$(thumbsup)';
-      default: return '$(info)';
+      case "CODE_EDIT":
+        return "$(edit)";
+      case "ERROR_REPORT":
+        return "$(error)";
+      case "SUGGESTION_FEEDBACK":
+        return "$(thumbsup)";
+      default:
+        return "$(info)";
     }
   }
 
@@ -385,7 +397,7 @@ export class SupremeAISidebarProvider implements vscode.WebviewViewProvider {
     const minutes = Math.floor(diff / 60000);
     const hours = Math.floor(diff / 3600000);
 
-    if (minutes < 1) return 'just now';
+    if (minutes < 1) return "just now";
     if (minutes < 60) return `${minutes}m`;
     if (hours < 24) return `${hours}h`;
     return date.toLocaleDateString();

@@ -13,8 +13,11 @@ class GitScreen extends StatelessWidget {
         backgroundColor: Colors.black,
         elevation: 0,
         title: Text('git.title'.tr(),
-          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w900, letterSpacing: 1.5, color: Colors.white)
-        ),
+            style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w900,
+                letterSpacing: 1.5,
+                color: Colors.white)),
         actions: [
           IconButton(
             icon: const Icon(Icons.sync, color: Colors.blueAccent),
@@ -41,13 +44,34 @@ class GitScreen extends StatelessWidget {
             children: [
               _buildHeaderCard(context),
               const SizedBox(height: 32),
-              Text('git.recent_commits'.tr().toUpperCase(), 
-                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w900, letterSpacing: 2, color: Colors.white54)
-              ),
+              Text('git.recent_commits'.tr().toUpperCase(),
+                  style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 2,
+                      color: Colors.white54)),
               const SizedBox(height: 16),
-              _buildCommitTile(context, 'Automated PR #42: Feature Sync', 'Merged by Architect-Agent', '15m ago', Icons.merge_type, Colors.purpleAccent),
-              _buildCommitTile(context, 'Branch: feature/ai-consensus', 'Updated model voting logic', '1h ago', Icons.history, Colors.blueAccent),
-              _buildCommitTile(context, 'Hotfix: API rate limit', 'In-memory fallback implemented', '3h ago', Icons.bug_report_outlined, Colors.orangeAccent),
+              _buildCommitTile(
+                  context,
+                  'Automated PR #42: Feature Sync',
+                  'Merged by Architect-Agent',
+                  '15m ago',
+                  Icons.merge_type,
+                  Colors.purpleAccent),
+              _buildCommitTile(
+                  context,
+                  'Branch: feature/ai-consensus',
+                  'Updated model voting logic',
+                  '1h ago',
+                  Icons.history,
+                  Colors.blueAccent),
+              _buildCommitTile(
+                  context,
+                  'Hotfix: API rate limit',
+                  'In-memory fallback implemented',
+                  '3h ago',
+                  Icons.bug_report_outlined,
+                  Colors.orangeAccent),
             ],
           ),
         ],
@@ -68,12 +92,16 @@ class GitScreen extends StatelessWidget {
         children: [
           const Icon(Icons.commit, color: Colors.orangeAccent, size: 48),
           const SizedBox(height: 16),
-          Text('git.subtitle'.tr(), 
-            style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+          Text(
+            'git.subtitle'.tr(),
+            style: const TextStyle(
+                color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 8),
-          Text('git.description'.tr(), 
-            style: const TextStyle(color: Colors.white54, fontSize: 13, height: 1.5),
+          Text(
+            'git.description'.tr(),
+            style: const TextStyle(
+                color: Colors.white54, fontSize: 13, height: 1.5),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 24),
@@ -92,14 +120,23 @@ class GitScreen extends StatelessWidget {
   Widget _buildMetric(String value, String label) {
     return Column(
       children: [
-        Text(value, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 16)),
+        Text(value,
+            style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w900,
+                fontSize: 16)),
         const SizedBox(height: 4),
-        Text(label.toUpperCase(), style: const TextStyle(color: Colors.white24, fontSize: 9, fontWeight: FontWeight.bold)),
+        Text(label.toUpperCase(),
+            style: const TextStyle(
+                color: Colors.white24,
+                fontSize: 9,
+                fontWeight: FontWeight.bold)),
       ],
     );
   }
 
-  Widget _buildCommitTile(BuildContext context, String title, String subtitle, String time, IconData icon, Color color) {
+  Widget _buildCommitTile(BuildContext context, String title, String subtitle,
+      String time, IconData icon, Color color) {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
@@ -128,13 +165,21 @@ class GitScreen extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(title, style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)),
+                      Text(title,
+                          style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold)),
                       const SizedBox(height: 4),
-                      Text(subtitle, style: const TextStyle(color: Colors.white38, fontSize: 12)),
+                      Text(subtitle,
+                          style: const TextStyle(
+                              color: Colors.white38, fontSize: 12)),
                     ],
                   ),
                 ),
-                Text(time, style: const TextStyle(color: Colors.white24, fontSize: 10)),
+                Text(time,
+                    style:
+                        const TextStyle(color: Colors.white24, fontSize: 10)),
               ],
             ),
           ),

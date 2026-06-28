@@ -1,46 +1,50 @@
-import { Card, Badge, BanglaHint } from '../ui';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useState } from 'react';
-import { GitBranch, ArrowRight, Settings } from 'lucide-react';
+import { Card, Badge, BanglaHint } from "../ui";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
+import { GitBranch, ArrowRight, Settings } from "lucide-react";
 
 const PROVIDER_LIST = [
-  { id: 'openrouter', label: 'OpenRouter', color: 'bg-cyan-500' },
-  { id: 'gemini', label: 'Gemini', color: 'bg-purple-500' },
-  { id: 'groq', label: 'Groq', color: 'bg-emerald-500' },
-  { id: 'deepseek', label: 'DeepSeek', color: 'bg-amber-500' },
+  { id: "openrouter", label: "OpenRouter", color: "bg-cyan-500" },
+  { id: "gemini", label: "Gemini", color: "bg-purple-500" },
+  { id: "groq", label: "Groq", color: "bg-emerald-500" },
+  { id: "deepseek", label: "DeepSeek", color: "bg-amber-500" },
 ];
 
 export function ModelRouter() {
   const routerQuery = useQuery({
-    queryKey: ['model-router'],
-    queryFn: () => fetch('/admin-api/model-router').then(r => r.json()),
+    queryKey: ["model-router"],
+    queryFn: () => fetch("/admin-api/model-router").then((r) => r.json()),
   });
   const providersQuery = useQuery({
-    queryKey: ['providers'],
-    queryFn: () => fetch('/admin-api/providers').then(r => r.json()),
+    queryKey: ["providers"],
+    queryFn: () => fetch("/admin-api/providers").then((r) => r.json()),
   });
 
   const config = routerQuery.data;
   const providers = providersQuery.data as any[] | undefined;
-  const [overrideProvider, setOverrideProvider] = useState('');
-  const [overrideModel, setOverrideModel] = useState('');
+  const [overrideProvider, setOverrideProvider] = useState("");
+  const [overrideModel, setOverrideModel] = useState("");
   const [overrideRemaining, setOverrideRemaining] = useState(10);
   const qc = useQueryClient();
 
   const overrideMutation = useMutation({
-    mutationFn: (payload: { provider: string; model: string; remaining_requests: number }) =>
-      fetch('/admin-api/model-router/override', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+    mutationFn: (payload: {
+      provider: string;
+      model: string;
+      remaining_requests: number;
+    }) =>
+      fetch("/admin-api/model-router/override", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
-      }).then(r => r.json()),
+      }).then((r) => r.json()),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['model-router'] });
+      qc.invalidateQueries({ queryKey: ["model-router"] });
     },
   });
 
   const activeProvider = config?.override_active
-    ? PROVIDER_LIST.find(p => p.id === config.override_provider)
+    ? PROVIDER_LIST.find((p) => p.id === config.override_provider)
     : null;
 
   return (
@@ -50,8 +54,8 @@ export function ModelRouter() {
           🔀 AI Model Router
           <BanglaHint text="কোন রিকোয়েস্ট কোন AI মডেলে (GPT-4/Gemini) যাবে, তা এখান থেকে কন্ট্রোল করুন।" />
         </h2>
-        <Badge variant={config?.ab_test_active ? 'warning' : 'info'}>
-          {config?.ab_test_active ? 'A/B TEST ACTIVE' : 'STANDARD MODE'}
+        <Badge variant={config?.ab_test_active ? "warning" : "info"}>
+          {config?.ab_test_active ? "A/B TEST ACTIVE" : "STANDARD MODE"}
         </Badge>
       </div>
 
@@ -77,7 +81,8 @@ export function ModelRouter() {
             </div>
             {activeProvider && (
               <div className="p-2 rounded bg-amber-950/30 border border-amber-900/50 text-[10px] font-mono text-amber-400">
-                ⚡ OVERRIDE ACTIVE: All traffic → {activeProvider.label} for {config?.override_remaining_requests} more requests
+                ⚡ OVERRIDE ACTIVE: All traffic → {activeProvider.label} for{" "}
+                {config?.override_remaining_requests} more requests
               </div>
             )}
           </div>
@@ -93,12 +98,14 @@ export function ModelRouter() {
                 </label>
                 <select
                   value={overrideProvider}
-                  onChange={e => setOverrideProvider(e.target.value)}
+                  onChange={(e) => setOverrideProvider(e.target.value)}
                   className="bg-[#06080b] border border-slate-800 rounded px-3 py-1.5 text-white outline-none text-xs font-mono"
                 >
                   <option value="">Select...</option>
-                  {PROVIDER_LIST.map(p => (
-                    <option key={p.id} value={p.id}>{p.label}</option>
+                  {PROVIDER_LIST.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.label}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -110,7 +117,7 @@ export function ModelRouter() {
                 <input
                   type="text"
                   value={overrideModel}
-                  onChange={e => setOverrideModel(e.target.value)}
+                  onChange={(e) => setOverrideModel(e.target.value)}
                   placeholder="e.g. gpt-4o"
                   className="bg-[#06080b] border border-slate-800 rounded px-3 py-1.5 text-white outline-none text-xs font-mono"
                 />
@@ -126,12 +133,20 @@ export function ModelRouter() {
                 min={1}
                 max={1000}
                 value={overrideRemaining}
-                onChange={e => setOverrideRemaining(parseInt(e.target.value) || 0)}
+                onChange={(e) =>
+                  setOverrideRemaining(parseInt(e.target.value) || 0)
+                }
                 className="bg-[#06080b] border border-slate-800 rounded px-3 py-1.5 text-white outline-none text-xs font-mono w-32"
               />
             </div>
             <button
-              onClick={() => overrideMutation.mutate({ provider: overrideProvider, model: overrideModel, remaining_requests: overrideRemaining })}
+              onClick={() =>
+                overrideMutation.mutate({
+                  provider: overrideProvider,
+                  model: overrideModel,
+                  remaining_requests: overrideRemaining,
+                })
+              }
               disabled={!overrideProvider || !overrideModel}
               className="bg-[#00f3ff] hover:bg-cyan-400 text-black font-bold px-4 py-1.5 rounded text-xs uppercase font-mono disabled:opacity-50 disabled:cursor-not-allowed"
             >
@@ -143,31 +158,47 @@ export function ModelRouter() {
 
       <Card title="Provider Health" icon={<GitBranch size={14} />}>
         {providersQuery.isLoading ? (
-          <div className="text-xs text-slate-400 font-mono">Loading provider status...</div>
+          <div className="text-xs text-slate-400 font-mono">
+            Loading provider status...
+          </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3">
-            {providers?.map(p => (
-              <div key={p.id} className="p-3 rounded-lg border border-slate-800 bg-slate-900/30">
+            {providers?.map((p) => (
+              <div
+                key={p.id}
+                className="p-3 rounded-lg border border-slate-800 bg-slate-900/30"
+              >
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-xs font-bold text-white">{p.name}</span>
-                  <Badge variant={p.status === 'healthy' ? 'success' : 'warning'}>{p.status}</Badge>
+                  <Badge
+                    variant={p.status === "healthy" ? "success" : "warning"}
+                  >
+                    {p.status}
+                  </Badge>
                 </div>
-                <div className="text-[10px] text-slate-400 font-mono mb-1">Latency: {p.latency_ms}ms</div>
+                <div className="text-[10px] text-slate-400 font-mono mb-1">
+                  Latency: {p.latency_ms}ms
+                </div>
                 <div className="w-full bg-slate-800 rounded-full h-1 mb-2">
                   <div
-                    className={`h-full rounded-full ${p.latency_ms < 200 ? 'bg-emerald-500' : p.latency_ms < 300 ? 'bg-amber-500' : 'bg-red-500'}`}
-                    style={{ width: `${Math.min(100, (p.latency_ms / 400) * 100)}%` }}
+                    className={`h-full rounded-full ${p.latency_ms < 200 ? "bg-emerald-500" : p.latency_ms < 300 ? "bg-amber-500" : "bg-red-500"}`}
+                    style={{
+                      width: `${Math.min(100, (p.latency_ms / 400) * 100)}%`,
+                    }}
                   />
                 </div>
                 <div className="text-[10px] text-slate-500 font-mono">
-                  API Key: {p.api_key_valid ? '✅ Valid' : '❌ Invalid'}
+                  API Key: {p.api_key_valid ? "✅ Valid" : "❌ Invalid"}
                 </div>
                 <div className="text-[10px] text-slate-500 font-mono">
                   Rate Limit: {p.rate_limit_remaining}/{p.rate_limit_max}
                 </div>
                 <div className="flex flex-wrap gap-1 mt-2">
                   {p.models.slice(0, 2).map((m: string) => (
-                    <span key={m} className="px-1.5 py-0.5 text-[9px] rounded bg-slate-800 text-slate-300 font-mono">
+                    <span
+                      key={m}
+                      className="px-1.5 py-0.5 text-[9px] rounded bg-slate-800 text-slate-300 font-mono"
+                    >
                       {m}
                     </span>
                   ))}

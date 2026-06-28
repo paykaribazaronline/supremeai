@@ -6,7 +6,6 @@ import 'dart:async';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:google_generative_ai/google_generative_ai.dart';
 
-
 enum OrchestrationErrorType {
   network,
   serverError,
@@ -100,7 +99,9 @@ class OrchestrationProvider with ChangeNotifier {
   );
 
   String _buildFullUrl(String path) {
-    final base = _baseUrl.endsWith('/') ? _baseUrl.substring(0, _baseUrl.length - 1) : _baseUrl;
+    final base = _baseUrl.endsWith('/')
+        ? _baseUrl.substring(0, _baseUrl.length - 1)
+        : _baseUrl;
     final cleanPath = path.startsWith('/') ? path : '/$path';
     if (cleanPath.startsWith('/api/chat/') || cleanPath.startsWith('/chat/')) {
       return '$base$_scrapeChatUrl';
@@ -181,7 +182,8 @@ class OrchestrationProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> orchestrateRequirement(String requirement, String token, {String? geminiKey, String? activeModel}) async {
+  Future<void> orchestrateRequirement(String requirement, String token,
+      {String? geminiKey, String? activeModel}) async {
     _isLoading = true;
     clearError();
     notifyListeners();
@@ -202,7 +204,8 @@ class OrchestrationProvider with ChangeNotifier {
             .post(
               Uri.parse(scrapeUrl),
               headers: headers,
-              body: json.encode({'message': requirement, 'userId': 'flutter-user'}),
+              body: json
+                  .encode({'message': requirement, 'userId': 'flutter-user'}),
             )
             .timeout(const Duration(seconds: 30));
 
@@ -224,7 +227,8 @@ class OrchestrationProvider with ChangeNotifier {
           return;
         }
       } catch (e) {
-        debugPrint('[SupremeAI] Scrape-backed chat failed, trying orchestrate: $e');
+        debugPrint(
+            '[SupremeAI] Scrape-backed chat failed, trying orchestrate: $e');
       }
     }
 
@@ -255,8 +259,12 @@ class OrchestrationProvider with ChangeNotifier {
 
     if (geminiKey != null && geminiKey.isNotEmpty) {
       try {
-        final model = GenerativeModel(model: activeModel ?? 'gemini-1.5-flash', apiKey: geminiKey);
-        final content = [Content.text('As an AI Orchestrator for SupremeAI, analyze this requirement and provide a structured JSON response with "tasks", "priority", and "estimatedComplexity": $requirement')];
+        final model = GenerativeModel(
+            model: activeModel ?? 'gemini-1.5-flash', apiKey: geminiKey);
+        final content = [
+          Content.text(
+              'As an AI Orchestrator for SupremeAI, analyze this requirement and provide a structured JSON response with "tasks", "priority", and "estimatedComplexity": $requirement')
+        ];
         final response = await model.generateContent(content);
         if (response.text != null) {
           final jsonStr = _extractJson(response.text!);
@@ -272,7 +280,9 @@ class OrchestrationProvider with ChangeNotifier {
           return;
         }
       } catch (e) {
-        _error = OrchestrationError(message: 'Native Gemini failed: $e', type: OrchestrationErrorType.unknown);
+        _error = OrchestrationError(
+            message: 'Native Gemini failed: $e',
+            type: OrchestrationErrorType.unknown);
       }
     }
 
