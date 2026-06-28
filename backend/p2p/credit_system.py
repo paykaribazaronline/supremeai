@@ -6,10 +6,22 @@ from loguru import logger
 
 class CreditLedger:
     async def earn(self, user_id: str, amount: float, reason: str) -> dict[str, Any]:
-        return {"tx_id": str(uuid.uuid4()), "user_id": user_id, "amount": amount, "reason": reason, "type": "credit"}
+        return {
+            "tx_id": str(uuid.uuid4()),
+            "user_id": user_id,
+            "amount": amount,
+            "reason": reason,
+            "type": "credit",
+        }
 
     async def spend(self, user_id: str, amount: float, reason: str) -> dict[str, Any]:
-        return {"tx_id": str(uuid.uuid4()), "user_id": user_id, "amount": -amount, "reason": reason, "type": "debit"}
+        return {
+            "tx_id": str(uuid.uuid4()),
+            "user_id": user_id,
+            "amount": -amount,
+            "reason": reason,
+            "type": "debit",
+        }
 
     async def opt_out(self, user_id: str) -> None:
         logger.info(f"User {user_id} opted out of P2P")

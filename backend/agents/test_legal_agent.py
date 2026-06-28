@@ -15,7 +15,10 @@ class TestLegalAgent:
     def test_init(self, legal_agent):
         # Arrange and Act
         # Assert
-        assert isinstance(legal_agent.domain_adapter, object) or legal_agent.domain_adapter is None
+        assert (
+            isinstance(legal_agent.domain_adapter, object)
+            or legal_agent.domain_adapter is None
+        )
 
     @pytest.mark.asyncio
     async def test_analyze(self, legal_agent):
