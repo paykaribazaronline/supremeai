@@ -63,7 +63,11 @@ class KnowledgeBaseIndexer:
         for node in ast.walk(tree):
             if isinstance(node, ast.ClassDef):
                 class_doc = ast.get_docstring(node) or ""
-                methods = [m.name for m in node.body if isinstance(m, (ast.FunctionDef, ast.AsyncFunctionDef))]
+                methods = [
+                    m.name
+                    for m in node.body
+                    if isinstance(m, (ast.FunctionDef, ast.AsyncFunctionDef))
+                ]
                 docs.append(
                     {
                         "id": f"{filename}::{node.name}",
@@ -78,7 +82,9 @@ class KnowledgeBaseIndexer:
                     }
                 )
                 for item in node.body:
-                    if isinstance(item, ast.FunctionDef) and (item_doc := ast.get_docstring(item) or ""):
+                    if isinstance(item, ast.FunctionDef) and (
+                        item_doc := ast.get_docstring(item) or ""
+                    ):
                         docs.append(
                             {
                                 "id": f"{filename}::{node.name}.{item.name}",
@@ -121,10 +127,14 @@ class KnowledgeBaseIndexer:
         "_best_practice",
     }
 
-    def _extract_seed_data_calls(self, tree: Any, filename: str, path: str, category: str) -> list[dict[str, Any]]:
+    def _extract_seed_data_calls(
+        self, tree: Any, filename: str, path: str, category: str
+    ) -> list[dict[str, Any]]:
         results: list[dict[str, Any]] = []
         seen_ids: set = set()
-        self._walk_for_factory_calls(tree, filename, path, category, results, seen_ids, parent_key=None)
+        self._walk_for_factory_calls(
+            tree, filename, path, category, results, seen_ids, parent_key=None
+        )
         return results
 
     def _walk_for_factory_calls(
@@ -138,9 +148,15 @@ class KnowledgeBaseIndexer:
         parent_key: str | None,
     ) -> None:
         if isinstance(node, ast.Call):
-            func_name = node.func.attr if isinstance(node.func, ast.Attribute) else (node.func.id if isinstance(node.func, ast.Name) else None)
+            func_name = (
+                node.func.attr
+                if isinstance(node.func, ast.Attribute)
+                else (node.func.id if isinstance(node.func, ast.Name) else None)
+            )
             if func_name in self._CALL_FACTORIES:
-                entry_id, doc = self._build_doc_from_call(node, filename, path, category, func_name, parent_key)
+                entry_id, doc = self._build_doc_from_call(
+                    node, filename, path, category, func_name, parent_key
+                )
                 if entry_id and doc and entry_id not in seen:
                     seen.add(entry_id)
                     out.append(doc)
@@ -151,7 +167,9 @@ class KnowledgeBaseIndexer:
                     if isinstance(k, ast.Constant) and isinstance(k.value, str):
                         child_parent_key = k.value
                         break
-            self._walk_for_factory_calls(child, filename, path, category, out, seen, child_parent_key)
+            self._walk_for_factory_calls(
+                child, filename, path, category, out, seen, child_parent_key
+            )
 
     def _build_doc_from_call(
         self,
@@ -167,11 +185,23 @@ class KnowledgeBaseIndexer:
         if not args:
             return None, None
         try:
-            if len(args) > 0 and isinstance(args[0], ast.Constant) and isinstance(args[0].value, str):
+            if (
+                len(args) > 0
+                and isinstance(args[0], ast.Constant)
+                and isinstance(args[0].value, str)
+            ):
                 name_key = doc_name or args[0].value
-            if len(args) > 2 and isinstance(args[2], ast.Constant) and isinstance(args[2].value, str):
+            if (
+                len(args) > 2
+                and isinstance(args[2], ast.Constant)
+                and isinstance(args[2].value, str)
+            ):
                 text_parts.append(args[2].value)
-            if len(args) > 1 and isinstance(args[1], ast.Constant) and isinstance(args[1].value, str):
+            if (
+                len(args) > 1
+                and isinstance(args[1], ast.Constant)
+                and isinstance(args[1].value, str)
+            ):
                 meta_parts.append(f"category={args[1].value}")
             if len(args) > 3 and isinstance(args[3], ast.List):
                 for elt in args[3].elts:
@@ -239,20 +269,22 @@ class KnowledgeBaseIndexer:
             text = item.get("text", "")
             if not text:
                 continue
-            
+
             metadata = item.get("metadata", {})
             metadata["type"] = "scraped_data"
             metadata["source_type"] = metadata.get("source_type", "external")
-            
+
             # Generate a unique ID based on the content or provided ID
             item_id = item.get("id") or hashlib.md5(text.encode("utf-8")).hexdigest()
-            
-            docs.append({
-                "id": f"scraped::{item_id}",
-                "text": text,
-                "metadata": metadata,
-            })
-            
+
+            docs.append(
+                {
+                    "id": f"scraped::{item_id}",
+                    "text": text,
+                    "metadata": metadata,
+                }
+            )
+
         total_docs = 0
         errors = []
         if docs:
@@ -261,7 +293,7 @@ class KnowledgeBaseIndexer:
                 total_docs = len(docs)
             except Exception as exc:
                 errors.append(str(exc))
-                
+
         return {
             "indexed": total_docs,
             "errors": errors[:10],
@@ -288,7 +320,9 @@ class KnowledgeBaseIndexer:
     # ------------------------------------------------------------------
     # Real-time feedback
     # ------------------------------------------------------------------
-    def record_search_feedback(self, session_id: str, query: str, top_k: int = 5, rating: float | None = None) -> dict[str, Any]:
+    def record_search_feedback(
+        self, session_id: str, query: str, top_k: int = 5, rating: float | None = None
+    ) -> dict[str, Any]:
         results = self.search_knowledge(query, n_results=top_k)
         retrieved_texts = "\n---\n".join(r["text"] for r in results)
         feedback: dict[str, Any] = {
@@ -302,13 +336,19 @@ class KnowledgeBaseIndexer:
         feedback["retrieved_chunks"] = retrieved_texts
         return feedback
 
-    def record_thumbs(self, session_id: str, query: str, doc_id: str, helpful: bool) -> dict[str, Any]:
+    def record_thumbs(
+        self, session_id: str, query: str, doc_id: str, helpful: bool
+    ) -> dict[str, Any]:
         rating = 1.0 if helpful else 0.0
         doc = self.vector_store.get_document(doc_id)
         if doc and doc.get("metadata"):
             metadata = dict(doc["metadata"])
-            metadata["helpful_votes"] = metadata.get("helpful_votes", 0) + (1 if helpful else 0)
-            metadata["negative_votes"] = metadata.get("negative_votes", 0) + (0 if helpful else 1)
+            metadata["helpful_votes"] = metadata.get("helpful_votes", 0) + (
+                1 if helpful else 0
+            )
+            metadata["negative_votes"] = metadata.get("negative_votes", 0) + (
+                0 if helpful else 1
+            )
             self.vector_store.add_document(doc_id, doc["text"], metadata)
         return {
             "recorded": True,
@@ -317,8 +357,13 @@ class KnowledgeBaseIndexer:
             "rating": rating,
         }
 
-    def prune_low_quality(self, min_helpful_ratio: float = 0.3, min_votes: int = 5) -> dict[str, Any]:
-        if hasattr(self.vector_store, "_collection") and self.vector_store._collection is not None:
+    def prune_low_quality(
+        self, min_helpful_ratio: float = 0.3, min_votes: int = 5
+    ) -> dict[str, Any]:
+        if (
+            hasattr(self.vector_store, "_collection")
+            and self.vector_store._collection is not None
+        ):
             return {
                 "pruned": 0,
                 "note": "prune not implemented for live ChromaDB collections in this pass",
@@ -336,9 +381,14 @@ class KnowledgeBaseIndexer:
         return {"pruned": len(to_remove)}
 
     def rebuild_index(self, seed_dir: str | None = None) -> dict[str, Any]:
-        if hasattr(self.vector_store, "_collection") and self.vector_store._collection is not None:
+        if (
+            hasattr(self.vector_store, "_collection")
+            and self.vector_store._collection is not None
+        ):
             with contextlib.suppress(Exception):
-                self.vector_store._client.delete_collection(self.vector_store.collection_name)
+                self.vector_store._client.delete_collection(
+                    self.vector_store.collection_name
+                )
             self.vector_store._init_chroma()
         else:
             self.vector_store._fallback_docs.clear()

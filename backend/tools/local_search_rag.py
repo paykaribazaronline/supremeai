@@ -46,16 +46,22 @@ class LocalSearchRAG:
 
             chroma_dir = self.storage_dir / "chroma"
             self.chroma_client = chromadb.PersistentClient(path=str(chroma_dir))
-            self.collection = self.chroma_client.get_or_create_collection(name="local_rag_collection")
+            self.collection = self.chroma_client.get_or_create_collection(
+                name="local_rag_collection"
+            )
         except ImportError:
             import loguru
 
-            loguru.logger.warning("chromadb package not installed. LocalSearchRAG will run with local TF-IDF fallback index.")
+            loguru.logger.warning(
+                "chromadb package not installed. LocalSearchRAG will run with local TF-IDF fallback index."
+            )
 
     def _load_index(self) -> None:
         if self.embeddings_path.exists():
             try:
-                self._index = json.loads(self.embeddings_path.read_text(encoding="utf-8"))
+                self._index = json.loads(
+                    self.embeddings_path.read_text(encoding="utf-8")
+                )
             except Exception:
                 self._index = {}
 
@@ -86,7 +92,9 @@ class LocalSearchRAG:
             fetched = self.browser.fetch_page(result["url"])
             if fetched.get("success"):
                 text = fetched.get("content", "")[: self.max_chars]
-                summaries.append(f"Title: {result['title']}\nURL: {result['url']}\n{text}")
+                summaries.append(
+                    f"Title: {result['title']}\nURL: {result['url']}\n{text}"
+                )
                 stored[result["url"]] = [result["title"], text]
         self._store_search(query, stored)
         return {
@@ -101,23 +109,36 @@ class LocalSearchRAG:
         try:
             if not self.collection:
                 raise Exception("ChromaDB not available")
-            results = self.collection.query(query_texts=[query], n_results=self.max_pages)
+            results = self.collection.query(
+                query_texts=[query], n_results=self.max_pages
+            )
             matches = []
             if results and results.get("ids") and results["ids"][0]:
                 for idx, doc_id in enumerate(results["ids"][0]):
-                    metadata = results["metadatas"][0][idx] if results.get("metadatas") else {}
+                    metadata = (
+                        results["metadatas"][0][idx] if results.get("metadatas") else {}
+                    )
                     matches.append(
                         {
                             "doc_id": doc_id,
                             "title": metadata.get("title", "Untitled"),
-                            "score": float(1.0 - (results["distances"][0][idx] if results.get("distances") else 0.0)),
+                            "score": float(
+                                1.0
+                                - (
+                                    results["distances"][0][idx]
+                                    if results.get("distances")
+                                    else 0.0
+                                )
+                            ),
                         }
                     )
                 return {"status": "ok", "query": query, "matches": matches}
         except Exception as exc:
             import loguru
 
-            loguru.logger.warning(f"ChromaDB semantic search failed: {exc}. Using local TF-IDF fallback.")
+            loguru.logger.warning(
+                f"ChromaDB semantic search failed: {exc}. Using local TF-IDF fallback."
+            )
 
         # Enhanced local TF-IDF fallback - works completely offline
         matches = []
@@ -144,7 +165,9 @@ class LocalSearchRAG:
     def _store_search(self, query: str, docs: dict[str, list[str]]) -> None:
         self._index[query] = [doc for fields in docs.values() for doc in fields]
         with contextlib.suppress(Exception):
-            self.embeddings_path.write_text(json.dumps(self._index, ensure_ascii=False, indent=2), encoding="utf-8")
+            self.embeddings_path.write_text(
+                json.dumps(self._index, ensure_ascii=False, indent=2), encoding="utf-8"
+            )
 
         # Add to ChromaDB
         ids = []
@@ -163,7 +186,9 @@ class LocalSearchRAG:
 
         if ids:
             try:
-                self.collection.upsert(ids=ids, documents=documents, metadatas=metadatas)
+                self.collection.upsert(
+                    ids=ids, documents=documents, metadatas=metadatas
+                )
             except Exception as exc:
                 import loguru
 
@@ -177,8 +202,12 @@ class LocalSearchRAG:
             title = lines[i]
             snippet = lines[i + 1]
             url = lines[i + 2]
-            if (url.startswith("http://") or url.startswith("https://")) and " " not in url.strip():
-                results.append(SearchResult(title=title, url=url, snippet=snippet, content=""))
+            if (
+                url.startswith("http://") or url.startswith("https://")
+            ) and " " not in url.strip():
+                results.append(
+                    SearchResult(title=title, url=url, snippet=snippet, content="")
+                )
                 i += 3
             else:
                 i += 1

@@ -220,7 +220,9 @@ def test_async_task_manager_simulate_image():
 
 
 def test_smart_semantic_router_model():
-    router = SmartSemanticRouter(intent="test_intent", requires_expensive=True, tier=2, reasoning="test")
+    router = SmartSemanticRouter(
+        intent="test_intent", requires_expensive=True, tier=2, reasoning="test"
+    )
     assert router.intent == "test_intent"
     assert router.requires_expensive is True
     assert router.tier == 2

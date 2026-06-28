@@ -9,7 +9,9 @@ from core.config import settings
 
 client = TestClient(app)
 
-mock_token = jwt.encode({"user_id": "test-user-id", "role": "admin"}, settings.jwt_secret, algorithm="HS256")
+mock_token = jwt.encode(
+    {"user_id": "test-user-id", "role": "admin"}, settings.jwt_secret, algorithm="HS256"
+)
 auth_headers = {"Authorization": f"Bearer {mock_token}"}
 
 

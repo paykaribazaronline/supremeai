@@ -13,7 +13,9 @@ class InterceptHandler(logging.Handler):
         while frame.f_code.co_filename == logging.__file__:
             frame = frame.f_back
             depth += 1
-        logger.opt(depth=depth, exception=record.exc_info).log(level, record.getMessage())
+        logger.opt(depth=depth, exception=record.exc_info).log(
+            level, record.getMessage()
+        )
 
 
 # স্ট্যান্ডার্ড লগকে লগুরুতে রাউট করার গ্লোবাল ক্লিনআপ
@@ -42,11 +44,11 @@ from api.routes import admin_dashboard_router
 from api.routes import agent_router
 from api.routes import agents_router
 from api.routes import api_keys_router
-from api.routes import ci_webhooks_router
 from api.routes import async_task_router
 from api.routes import auth_router
 from api.routes import browser_router
 from api.routes import cdc_router
+from api.routes import ci_webhooks_router
 from api.routes import codeflow_router
 from api.routes import config_router
 from api.routes import email_router
@@ -107,9 +109,9 @@ if settings.sentry_dsn:
 
 
 def _docs_auth(credentials: HTTPBasicCredentials = Depends(security)):
-    correct = secrets.compare_digest(credentials.username, settings.docs_username) and secrets.compare_digest(
-        credentials.password, settings.docs_password
-    )
+    correct = secrets.compare_digest(
+        credentials.username, settings.docs_username
+    ) and secrets.compare_digest(credentials.password, settings.docs_password)
     if not correct:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -284,8 +286,12 @@ async def _ensure_api_key_tables() -> None:
         )
         """
     )
-    await pool.execute("CREATE INDEX IF NOT EXISTS idx_api_keys_hash ON api_keys(key_hash)")
-    await pool.execute("CREATE INDEX IF NOT EXISTS idx_api_key_usage_key ON api_key_usage(api_key_id, created_at DESC)")
+    await pool.execute(
+        "CREATE INDEX IF NOT EXISTS idx_api_keys_hash ON api_keys(key_hash)"
+    )
+    await pool.execute(
+        "CREATE INDEX IF NOT EXISTS idx_api_key_usage_key ON api_key_usage(api_key_id, created_at DESC)"
+    )
     logger.info("✅ API key tables ensured")
 
 
@@ -326,7 +332,9 @@ async def app_lifespan(app: FastAPI):
             bot = SupremeDiscordBot()
             import asyncio
 
-            app.state.discord_bot_task = asyncio.create_task(bot.start(settings.discord_bot_token))
+            app.state.discord_bot_task = asyncio.create_task(
+                bot.start(settings.discord_bot_token)
+            )
             app.state.discord_bot = bot
             logger.info("🤖 Discord Bot background task initialized successfully.")
     except Exception as e:
@@ -343,7 +351,9 @@ async def app_lifespan(app: FastAPI):
 
     yield  # ----------------- এখানে অ্যাপ্লিকেশন ট্রাফিক রিসিভ করবে -----------------
 
-    logger.critical("🚨 Graceful Shutdown Sequence triggered via Cloud Run Orchestrator.")
+    logger.critical(
+        "🚨 Graceful Shutdown Sequence triggered via Cloud Run Orchestrator."
+    )
 
     # Clean up Discord Bot
     try:
@@ -394,13 +404,17 @@ def admin_login(payload: AdminLoginRequest):
     password = payload.password
     expected_password = settings.docs_password
     if not expected_password:
-        raise HTTPException(status_code=500, detail="Admin password not configured on server")
+        raise HTTPException(
+            status_code=500, detail="Admin password not configured on server"
+        )
     if password != expected_password:
         raise HTTPException(status_code=401, detail="Invalid password")
 
     totp_secret = os.getenv("SUPREMEAI_ADMIN_TOTP_SECRET")
     if not totp_secret:
-        raise HTTPException(status_code=500, detail="TOTP secret not configured on server")
+        raise HTTPException(
+            status_code=500, detail="TOTP secret not configured on server"
+        )
     return {"status": "otp_required", "message": "Google Authenticator code required."}
 
 
@@ -412,13 +426,17 @@ def admin_verify(payload: AdminVerifyRequest):
 
     expected_password = settings.docs_password
     if not expected_password:
-        raise HTTPException(status_code=500, detail="Admin password not configured on server")
+        raise HTTPException(
+            status_code=500, detail="Admin password not configured on server"
+        )
     if password != expected_password:
         raise HTTPException(status_code=401, detail="Invalid password")
 
     totp_secret = os.getenv("SUPREMEAI_ADMIN_TOTP_SECRET")
     if not totp_secret:
-        raise HTTPException(status_code=500, detail="TOTP secret not configured on server")
+        raise HTTPException(
+            status_code=500, detail="TOTP secret not configured on server"
+        )
 
     def verify_totp_code(user_otp: str, base32_secret: str) -> bool:
         try:
@@ -504,7 +522,9 @@ try:
             elif _gac and os.path.exists(_gac):
                 # Fallback to default credentials if service-account.json was not found
                 firebase_admin.initialize_app()
-                logger.info("Firebase Admin initialized via GOOGLE_APPLICATION_CREDENTIALS")
+                logger.info(
+                    "Firebase Admin initialized via GOOGLE_APPLICATION_CREDENTIALS"
+                )
             else:
                 logger.warning("Firebase Admin SDK: No credentials found.")
                 raise RuntimeError("No Firebase credentials configured")
@@ -514,7 +534,9 @@ try:
             logger.info("Firebase Admin initialized via GOOGLE_APPLICATION_CREDENTIALS")
         else:
             # No credentials found — Firebase verification will be unavailable
-            logger.warning("Firebase Admin SDK: No credentials found. Set FIREBASE_SERVICE_ACCOUNT_JSON or FIREBASE_SERVICE_ACCOUNT_PATH in .env")
+            logger.warning(
+                "Firebase Admin SDK: No credentials found. Set FIREBASE_SERVICE_ACCOUNT_JSON or FIREBASE_SERVICE_ACCOUNT_PATH in .env"
+            )
             raise RuntimeError("No Firebase credentials configured")
     auth = firebase_auth
     logger.info("Firebase Admin SDK ready ✅")
@@ -533,7 +555,9 @@ def admin_firebase_login(payload: AdminFirebaseLoginRequest):
         if id_token.startswith("mock-"):
             uid = "mock-admin-uid"
             email = "niloyjoy7@gmail.com"
-            logger.warning(f"Bypassing verification using mock token mode. Token: {id_token[:20]}...")
+            logger.warning(
+                f"Bypassing verification using mock token mode. Token: {id_token[:20]}..."
+            )
         elif auth:
             # বাংলা মন্তব্য: যদি ফায়ারবেস অথ এডমিন SDK উপলব্ধ থাকে, তবে সিগনেচার যাচাই করা হবে
             decoded_token = auth.verify_id_token(id_token)
@@ -553,10 +577,14 @@ def admin_firebase_login(payload: AdminFirebaseLoginRequest):
 
             uid = decoded_token.get("sub", "mock-admin-uid")
             email = decoded_token.get("email", "")
-            logger.info(f"Extracted admin email from token without verification: {email}")
+            logger.info(
+                f"Extracted admin email from token without verification: {email}"
+            )
     except Exception as e:
         logger.exception("Token verification/decoding failed")
-        raise HTTPException(status_code=401, detail=f"Token verification/decoding failed: {str(e)}") from e
+        raise HTTPException(
+            status_code=401, detail=f"Token verification/decoding failed: {str(e)}"
+        ) from e
 
     db = get_firestore_client()
     role = "user"
@@ -570,19 +598,33 @@ def admin_firebase_login(payload: AdminFirebaseLoginRequest):
                 data = doc.to_dict()
                 role = data.get("role", "user")
                 totp_secret = data.get("totp_secret")
-            elif "admin" in email.lower() or email.endswith("@supremeai.dev") or email == "niloyjoy7@gmail.com":
+            elif (
+                "admin" in email.lower()
+                or email.endswith("@supremeai.dev")
+                or email == "niloyjoy7@gmail.com"
+            ):
                 role = "admin"
-                doc_ref.set({"email": email, "role": "admin", "created_at": str(time.time())})
+                doc_ref.set(
+                    {"email": email, "role": "admin", "created_at": str(time.time())}
+                )
         except Exception as e:
             logger.error(f"Firestore admin lookup failed: {e}")
-            role = "admin"  # Fallback to admin for easy local setup if database errors out
-    elif "admin" in email.lower() or email.endswith("@supremeai.dev") or email == "niloyjoy7@gmail.com":
+            role = (
+                "admin"  # Fallback to admin for easy local setup if database errors out
+            )
+    elif (
+        "admin" in email.lower()
+        or email.endswith("@supremeai.dev")
+        or email == "niloyjoy7@gmail.com"
+    ):
         role = "admin"
     else:
         role = "user"
 
     if role != "admin":
-        raise HTTPException(status_code=403, detail="Forbidden: Not authorized as an admin role user")
+        raise HTTPException(
+            status_code=403, detail="Forbidden: Not authorized as an admin role user"
+        )
 
     if not totp_secret:
         return {"status": "totp_setup_required", "uid": uid, "email": email}
@@ -614,18 +656,24 @@ def admin_firebase_totp_setup(payload: AdminFirebaseTotpSetupRequest):
             uid = decoded_token.get("sub", "mock-admin-uid")
             email = decoded_token.get("email", "")
     except Exception as e:
-        raise HTTPException(status_code=401, detail=f"Token decoding failed: {str(e)}") from e
+        raise HTTPException(
+            status_code=401, detail=f"Token decoding failed: {str(e)}"
+        ) from e
     # Generate unique 16-char base32 secret key using base64/base32 encoding
     secret = base64.b32encode(os.urandom(10)).decode("utf-8")
 
     db = get_firestore_client()
     if db:
         try:
-            db.collection("admin_users").document(uid).update({"temp_totp_secret": secret})
+            db.collection("admin_users").document(uid).update(
+                {"temp_totp_secret": secret}
+            )
         except Exception as e:
             logger.error(f"Failed to store temp TOTP secret in Firestore: {e}")
 
-    provisioning_uri = f"otpauth://totp/SupremeAI:{email}?secret={secret}&issuer=SupremeAI"
+    provisioning_uri = (
+        f"otpauth://totp/SupremeAI:{email}?secret={secret}&issuer=SupremeAI"
+    )
     return {"secret": secret, "provisioning_uri": provisioning_uri}
 
 
@@ -651,7 +699,9 @@ def admin_firebase_totp_verify(payload: AdminFirebaseTotpVerifyRequest):
             decoded_token = json.loads(base64.b64decode(padded))
             uid = decoded_token.get("sub", "mock-admin-uid")
     except Exception as e:
-        raise HTTPException(status_code=401, detail=f"Token decoding failed: {str(e)}") from e
+        raise HTTPException(
+            status_code=401, detail=f"Token decoding failed: {str(e)}"
+        ) from e
 
     db = get_firestore_client()
     totp_secret = None
@@ -673,7 +723,9 @@ def admin_firebase_totp_verify(payload: AdminFirebaseTotpVerifyRequest):
         # Fallback to shared dev secret if none exists in Firestore
         secret_to_use = os.getenv("SUPREMEAI_ADMIN_TOTP_SECRET")
         if not secret_to_use:
-            raise HTTPException(status_code=500, detail="TOTP secret not configured on server")
+            raise HTTPException(
+                status_code=500, detail="TOTP secret not configured on server"
+            )
 
     def check_totp(user_otp: str, base32_secret: str) -> bool:
         try:
@@ -757,7 +809,11 @@ async def health():
     else:
         redis_ok = True
     api_keys_ok = bool(
-        settings.openrouter_api_key or settings.gemini_api_key or settings.deepseek_api_key or settings.groq_api_key or settings.nvidia_api_key
+        settings.openrouter_api_key
+        or settings.gemini_api_key
+        or settings.deepseek_api_key
+        or settings.groq_api_key
+        or settings.nvidia_api_key
     )
     checks = {
         "redis": redis_ok,
@@ -783,8 +839,12 @@ def actuator_health():
 def cloud_distribution():
     return {
         "distribution": parallel_router.get_distribution_stats(),
-        "total_requests": sum(p["current_requests"] for p in parallel_router.PROVIDERS.values()),
-        "active_providers": sum(1 for p in parallel_router.PROVIDERS.values() if p["status"] == "active"),
+        "total_requests": sum(
+            p["current_requests"] for p in parallel_router.PROVIDERS.values()
+        ),
+        "active_providers": sum(
+            1 for p in parallel_router.PROVIDERS.values() if p["status"] == "active"
+        ),
         "strategy": "parallel_active_active",
         "rebalance_interval": "1 hour",
     }
@@ -813,12 +873,16 @@ def free_tier_provider_status(provider: str):
     if status is None:
         from fastapi import HTTPException
 
-        raise HTTPException(status_code=404, detail=f"Provider '{provider}' not tracked")
+        raise HTTPException(
+            status_code=404, detail=f"Provider '{provider}' not tracked"
+        )
     return status
 
 
 @app.post("/admin/free-tier-pause/{provider}")
-def free_tier_pause_provider(provider: str, payload: dict = Body(default={"seconds": 60})):
+def free_tier_pause_provider(
+    provider: str, payload: dict = Body(default={"seconds": 60})
+):
     """Manually pause a provider for N seconds (useful after hitting external rate limits)."""
     from core.free_tier_tracker import get_tracker
 
@@ -940,6 +1004,7 @@ if orchestrator_router is not None:
 
 try:
     from tools.collaborative_editor import router as collab_router
+
     app.include_router(collab_router, prefix="/api/v1")
 except Exception as _e:
     logger.warning(f"collaborative_editor router not loaded: {_e}")
@@ -1016,6 +1081,7 @@ except Exception as _e:
 # বাংলা মন্তব্য: ভয়েস স্ট্রিম রাউটারটি সঠিকভাবে /api/voice প্রিফিক্স সহ লোড এবং রেজিস্টার করা হলো
 try:
     from api.routes import voice_router
+
     if voice_router is not None:
         app.include_router(voice_router, prefix="/api/voice")
 except Exception as _e:

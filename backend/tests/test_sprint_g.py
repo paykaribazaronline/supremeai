@@ -118,7 +118,9 @@ class TestCommentThreadAI:
         ai = CommentThreadAI(github_token="")
 
         with patch.object(ai, "_llm", new_callable=AsyncMock) as mock_llm:
-            mock_llm.return_value = "**Fix:**\n```python\ndef fixed(): pass\n```\n**Reason:** Fixed the bug"
+            mock_llm.return_value = (
+                "**Fix:**\n```python\ndef fixed(): pass\n```\n**Reason:** Fixed the bug"
+            )
             result = await ai.handle_pr_comment(
                 repo_full_name="owner/repo",
                 pr_number=42,
@@ -140,7 +142,9 @@ class TestCommentThreadAI:
         ai = CommentThreadAI(github_token="ghp_test_token")
 
         with (
-            patch.object(ai, "_llm", new_callable=AsyncMock, return_value="Fix: use None check"),
+            patch.object(
+                ai, "_llm", new_callable=AsyncMock, return_value="Fix: use None check"
+            ),
             patch.object(ai, "_post_pr_comment", new_callable=AsyncMock) as mock_post,
         ):
             mock_post.return_value = {
@@ -163,13 +167,17 @@ class TestCommentThreadAI:
 
         ai = CommentThreadAI(github_token="ghp_test")
 
-        with patch.object(ai, "_get_pr_comments", new_callable=AsyncMock) as mock_comments:
+        with patch.object(
+            ai, "_get_pr_comments", new_callable=AsyncMock
+        ) as mock_comments:
             mock_comments.return_value = [
                 {"user": {"login": "alice"}, "body": "This PR needs tests"},
                 {"user": {"login": "bob"}, "body": "Agreed, adding tests now"},
             ]
             with patch.object(ai, "_llm", new_callable=AsyncMock) as mock_llm:
-                mock_llm.return_value = "**Main topic:** Adding tests\n**Status:** in-progress"
+                mock_llm.return_value = (
+                    "**Main topic:** Adding tests\n**Status:** in-progress"
+                )
                 result = await ai.summarize_thread("owner/repo", pr_number=5)
 
         assert result["status"] == "success"
@@ -184,7 +192,9 @@ class TestCommentThreadAI:
 
         ai = CommentThreadAI(github_token="ghp_test")
 
-        old_date = (datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(days=10)).strftime("%Y-%m-%dT%H:%M:%SZ")
+        old_date = (
+            datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(days=10)
+        ).strftime("%Y-%m-%dT%H:%M:%SZ")
         with patch.object(ai, "_gh_get", new_callable=AsyncMock) as mock_get:
             mock_get.return_value = [
                 {
@@ -222,7 +232,9 @@ class TestCommentThreadAI:
         from tools.comment_thread_ai import CommentThreadAI
 
         ai = CommentThreadAI(github_token="ghp_test")
-        with patch.object(ai, "handle_pr_comment", new_callable=AsyncMock) as mock_handle:
+        with patch.object(
+            ai, "handle_pr_comment", new_callable=AsyncMock
+        ) as mock_handle:
             mock_handle.return_value = {
                 "status": "success",
                 "action": "code_fix_proposed",
@@ -378,7 +390,10 @@ class TestTenantAdminAPI:
         assert "starter" in TIER_DEFAULTS
         assert "pro" in TIER_DEFAULTS
         assert "enterprise" in TIER_DEFAULTS
-        assert TIER_DEFAULTS["enterprise"]["requests_per_minute"] > TIER_DEFAULTS["free"]["requests_per_minute"]
+        assert (
+            TIER_DEFAULTS["enterprise"]["requests_per_minute"]
+            > TIER_DEFAULTS["free"]["requests_per_minute"]
+        )
 
     @pytest.mark.anyio
     async def test_list_tenants_empty(self):
@@ -406,7 +421,9 @@ class TestTenantAdminAPI:
                 return_value=None,
             ),
         ):
-            payload = TenantLimitCreate(tenant_id="test-org", org_name="Test", billing_tier="pro")
+            payload = TenantLimitCreate(
+                tenant_id="test-org", org_name="Test", billing_tier="pro"
+            )
             try:
                 await create_tenant(payload)
             except Exception:
@@ -451,7 +468,10 @@ class TestTenantAdminAPI:
                 payload = TenantLimitUpdate(billing_tier="pro")
                 result = await update_tenant("my-org", payload)
                 assert result["tenant"]["billing_tier"] == "pro"
-                assert result["tenant"]["requests_per_minute"] == TIER_DEFAULTS["pro"]["requests_per_minute"]
+                assert (
+                    result["tenant"]["requests_per_minute"]
+                    == TIER_DEFAULTS["pro"]["requests_per_minute"]
+                )
             except Exception:
                 pass  # Redis cache failure OK
 

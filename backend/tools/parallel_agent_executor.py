@@ -15,33 +15,56 @@ class ParallelAgentExecutor:
     (Closes Devin Gap #2 - Parallel Processing)
     """
 
-    def __init__(self, redis_client=None, max_concurrent_tasks: int = 10, mcp_registry: dict[str, Any] | None = None):
+    def __init__(
+        self,
+        redis_client=None,
+        max_concurrent_tasks: int = 10,
+        mcp_registry: dict[str, Any] | None = None,
+    ):
         # বাংলা মন্তব্য: সমান্তরাল এক্সিকিউশনের জন্য সর্বোচ্চ টাস্ক লিমিট এবং গ্রুপ আইডি সেট করা হচ্ছে।
         self.redis_client = redis_client
         self.execution_group = uuid.uuid4().hex[:8]
         self.max_concurrent_tasks = max_concurrent_tasks
         self.active_tasks_count = 0
         self.mcp_registry = mcp_registry or {}
-        logger.info(f"Initialized ParallelAgentExecutor (Group: {self.execution_group}, Max Tasks: {self.max_concurrent_tasks})")
+        logger.info(
+            f"Initialized ParallelAgentExecutor (Group: {self.execution_group}, Max Tasks: {self.max_concurrent_tasks})"
+        )
 
-    async def _execute_agent_task(self, agent_name: str, task_def, *args, **kwargs) -> dict[str, Any]:
+    async def _execute_agent_task(
+        self, agent_name: str, task_def, *args, **kwargs
+    ) -> dict[str, Any]:
         """Wrapper to execute an individual agent's task with optional MCP context."""
         if callable(task_def):
             task_func = task_def
             mcp_servers = []
         else:
             task_func = task_def.get("task") if isinstance(task_def, dict) else None
-            mcp_servers = task_def.get("mcp_servers", []) if isinstance(task_def, dict) else []
+            mcp_servers = (
+                task_def.get("mcp_servers", []) if isinstance(task_def, dict) else []
+            )
 
         if task_func is None:
-            return {"agent": agent_name, "status": "error", "error": "Invalid task definition: 'task' callable missing"}
+            return {
+                "agent": agent_name,
+                "status": "error",
+                "error": "Invalid task definition: 'task' callable missing",
+            }
 
         if self.active_tasks_count >= self.max_concurrent_tasks:
-            logger.error(f"[Agent: {agent_name}] Task skipped: Concurrent task limit reached ({self.max_concurrent_tasks}).")
-            return {"agent": agent_name, "status": "error", "error": "Max concurrent task limit reached"}
+            logger.error(
+                f"[Agent: {agent_name}] Task skipped: Concurrent task limit reached ({self.max_concurrent_tasks})."
+            )
+            return {
+                "agent": agent_name,
+                "status": "error",
+                "error": "Max concurrent task limit reached",
+            }
 
         self.active_tasks_count += 1
-        logger.info(f"[Agent: {agent_name}] Starting task... (Active tasks: {self.active_tasks_count})")
+        logger.info(
+            f"[Agent: {agent_name}] Starting task... (Active tasks: {self.active_tasks_count})"
+        )
 
         mcp_clients = {}
         try:
@@ -49,18 +72,22 @@ class ParallelAgentExecutor:
             if redis is None:
                 try:
                     import core.app as app_mod
+
                     redis = app_mod.redis_queue
                 except Exception:
                     redis = None
 
             if mcp_servers:
-                mcp_clients = await self._initialize_mcp_clients(agent_name, mcp_servers)
+                mcp_clients = await self._initialize_mcp_clients(
+                    agent_name, mcp_servers
+                )
 
             if redis and getattr(redis, "configured", False):
                 await self._publish_state(redis, agent_name, "started")
 
             # বাংলা মন্তব্য: MCP ক্লায়েন্টগুলোকে কেবলমাত্র এমন টাস্কে ইনজেক্ট করা হচ্ছে যা সেটিকে রিসিভ করতে পারে
             import inspect
+
             sig = inspect.signature(task_func)
             task_kwargs = dict(kwargs)
             if "mcp_clients" in sig.parameters:
@@ -79,6 +106,7 @@ class ParallelAgentExecutor:
                 redis = self.redis_client
                 if redis is None:
                     import core.app as app_mod
+
                     redis = app_mod.redis_queue
                 if redis and getattr(redis, "configured", False):
                     await self._publish_state(redis, agent_name, "failed", error=str(e))
@@ -89,13 +117,17 @@ class ParallelAgentExecutor:
             await self._cleanup_mcp_clients(mcp_clients)
             self.active_tasks_count -= 1
 
-    async def _initialize_mcp_clients(self, agent_name: str, mcp_servers: list[str]) -> dict[str, Any]:
+    async def _initialize_mcp_clients(
+        self, agent_name: str, mcp_servers: list[str]
+    ) -> dict[str, Any]:
         """বাংলা মন্তব্য: এজেন্টের জন্য নির্দিষ্ট MCP সার্ভারগুলোর ক্লায়েন্ট সংযোগ স্থাপন করে।"""
         clients = {}
         for server_name in mcp_servers:
             config = self.mcp_registry.get(server_name)
             if not config:
-                logger.warning(f"[Agent: {agent_name}] Unknown MCP server: {server_name}")
+                logger.warning(
+                    f"[Agent: {agent_name}] Unknown MCP server: {server_name}"
+                )
                 continue
 
             try:
@@ -122,14 +154,20 @@ class ParallelAgentExecutor:
             try:
                 connected = await asyncio.to_thread(_connect)
             except RuntimeError as exc:
-                logger.error(f"[Agent: {agent_name}] MCP server '{server_name}' connection failed: {exc}")
+                logger.error(
+                    f"[Agent: {agent_name}] MCP server '{server_name}' connection failed: {exc}"
+                )
                 connected = False
 
             if connected:
                 clients[server_name] = client
-                logger.info(f"[Agent: {agent_name}] Connected to MCP server: {server_name}")
+                logger.info(
+                    f"[Agent: {agent_name}] Connected to MCP server: {server_name}"
+                )
             else:
-                logger.warning(f"[Agent: {agent_name}] Failed to connect to MCP server: {server_name}")
+                logger.warning(
+                    f"[Agent: {agent_name}] Failed to connect to MCP server: {server_name}"
+                )
 
         return clients
 
@@ -155,13 +193,21 @@ class ParallelAgentExecutor:
             import inspect
 
             if inspect.iscoroutinefunction(redis.publish):
-                await redis.publish(f"supremeai:agents:{self.execution_group}", json.dumps(payload))
+                await redis.publish(
+                    f"supremeai:agents:{self.execution_group}", json.dumps(payload)
+                )
             else:
-                redis.publish(f"supremeai:agents:{self.execution_group}", json.dumps(payload))
+                redis.publish(
+                    f"supremeai:agents:{self.execution_group}", json.dumps(payload)
+                )
         except Exception as e:
-            logger.warning(f"Failed to publish agent state: {e}. Running with local logger fallback.")
+            logger.warning(
+                f"Failed to publish agent state: {e}. Running with local logger fallback."
+            )
 
-    async def run_parallel(self, agent_tasks: dict[str, Callable | dict[str, Any]]) -> dict[str, Any]:
+    async def run_parallel(
+        self, agent_tasks: dict[str, Callable | dict[str, Any]]
+    ) -> dict[str, Any]:
         """
         Executes a dictionary of agent tasks in parallel.
         Supports both simple callables and task definitions with MCP servers.

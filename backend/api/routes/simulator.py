@@ -86,7 +86,9 @@ def install_app(req: InstallRequest, userId: str = "default"):
         raise HTTPException(status_code=400, detail="Install quota exceeded")
 
     # Check if already installed
-    existing = next((app for app in profile["installedApps"] if app["appId"] == req.appId), None)
+    existing = next(
+        (app for app in profile["installedApps"] if app["appId"] == req.appId), None
+    )
     if existing:
         return {
             "success": True,
@@ -122,7 +124,9 @@ def install_app(req: InstallRequest, userId: str = "default"):
 def uninstall_app(appId: str, userId: str = "default"):
     profile = get_or_create_profile(userId)
     initial_len = len(profile["installedApps"])
-    profile["installedApps"] = [app for app in profile["installedApps"] if app["appId"] != appId]
+    profile["installedApps"] = [
+        app for app in profile["installedApps"] if app["appId"] != appId
+    ]
 
     if len(profile["installedApps"]) < initial_len:
         profile["activeInstalls"] -= 1

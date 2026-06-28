@@ -8,7 +8,9 @@ from google.oauth2 import service_account
 def setup_google_vision(credentials_path=None):
     """Setup Google Cloud Vision client"""
     if credentials_path:
-        credentials = service_account.Credentials.from_service_account_file(credentials_path)
+        credentials = service_account.Credentials.from_service_account_file(
+            credentials_path
+        )
         client = vision.ImageAnnotatorClient(credentials=credentials)
     else:
         # Try to use default credentials
@@ -106,7 +108,9 @@ def convert_image_to_excel(image_path, excel_path, client):
             metadata_df.to_excel(writer, sheet_name="Metadata", index=False)
             df.to_excel(writer, sheet_name="Data", index=False)
 
-        print(f"Successfully converted {os.path.basename(image_path)} to {os.path.basename(excel_path)}")
+        print(
+            f"Successfully converted {os.path.basename(image_path)} to {os.path.basename(excel_path)}"
+        )
         return True
 
     except Exception as e:
@@ -134,7 +138,9 @@ def batch_convert_images(folder_path, credentials_path=None):
         if convert_image_to_excel(image_path, excel_path, client):
             success_count += 1
 
-    print(f"\nConversion completed: {success_count}/{len(image_files)} images processed successfully")
+    print(
+        f"\nConversion completed: {success_count}/{len(image_files)} images processed successfully"
+    )
 
 
 if __name__ == "__main__":

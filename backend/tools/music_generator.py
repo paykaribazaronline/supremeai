@@ -15,7 +15,9 @@ class MusicGenerator:
                 "Include genre, mood, instruments, tempo, and structure. "
                 "Return only the prompt text."
             )
-            result = router.async_route_and_generate(llm_prompt, task_type="general", max_cost=0.01)
+            result = router.async_route_and_generate(
+                llm_prompt, task_type="general", max_cost=0.01
+            )
             text = result.get("text", "") if isinstance(result, dict) else ""
             return {
                 "status": "success",

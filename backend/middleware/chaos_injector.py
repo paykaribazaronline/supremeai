@@ -29,12 +29,16 @@ class ChaosInjectorMiddleware(BaseHTTPMiddleware):
         # ১. কৃত্রিম ল্যাটেন্সি স্পাইক সিমুলেশন (Slow Network/API Gateway Latency)
         if random.random() < 0.30:  # ৩০% রিকোয়েস্টে নেটওয়ার্ক ল্যাগ তৈরি হবে
             delay = random.uniform(0.5, self.max_latency_spike)
-            logger.warning(f"🔌 [CHAOS ENGINE] Injecting artificial network lag: {delay:.2f}s on {request.url.path}")
+            logger.warning(
+                f"🔌 [CHAOS ENGINE] Injecting artificial network lag: {delay:.2f}s on {request.url.path}"
+            )
             await asyncio.sleep(delay)
 
         # ২. কৃত্রিম প্যাকেট ড্রপ/কানেকশন ফেইলর সিমুলেশন (Packet Loss / Upstream Outage)
         if random.random() < self.packet_drop_rate:
-            logger.critical(f"💥 [CHAOS ENGINE] Simulated Packet Drop! Severing connection for {request.url.path}")
+            logger.critical(
+                f"💥 [CHAOS ENGINE] Simulated Packet Drop! Severing connection for {request.url.path}"
+            )
             return JSONResponse(
                 status_code=504,
                 content={

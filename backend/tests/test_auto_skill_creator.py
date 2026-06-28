@@ -41,7 +41,9 @@ def test_generate_skill_code_special_chars():
 
 def test_analyze_demand_patterns_from_rules():
     mock_rules = MagicMock()
-    mock_rules.rules = {"patterns": {"repeated_tasks": ["send_email", "process_invoice"]}}
+    mock_rules.rules = {
+        "patterns": {"repeated_tasks": ["send_email", "process_invoice"]}
+    }
     creator, _ = _make_creator(rules_engine=mock_rules)
     task_history = []
     patterns = creator.analyze_demand_patterns(task_history)
@@ -116,7 +118,9 @@ def test_register_new_skill_creates_directory():
 
 def test_test_new_skill_passes_valid_code():
     creator, _ = _make_creator()
-    with tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False, encoding="utf-8") as f:
+    with tempfile.NamedTemporaryFile(
+        mode="w", suffix=".py", delete=False, encoding="utf-8"
+    ) as f:
         f.write("class GoodSkill:\n    def run(self, payload): return {}\n")
         path = f.name
     try:
@@ -129,7 +133,9 @@ def test_test_new_skill_passes_valid_code():
 
 def test_test_new_skill_fails_syntax_error():
     creator, _ = _make_creator()
-    with tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False, encoding="utf-8") as f:
+    with tempfile.NamedTemporaryFile(
+        mode="w", suffix=".py", delete=False, encoding="utf-8"
+    ) as f:
         f.write("class BadSkill:\n    def run(self, payload):\n        return }\n")
         path = f.name
     try:
@@ -151,7 +157,9 @@ def test_test_new_skill_file_not_found():
 def test_test_new_skill_subprocess_timeout(mock_run):
     creator, _ = _make_creator()
     mock_run.side_effect = subprocess.TimeoutExpired(cmd=["python"], timeout=30)
-    with tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False, encoding="utf-8") as f:
+    with tempfile.NamedTemporaryFile(
+        mode="w", suffix=".py", delete=False, encoding="utf-8"
+    ) as f:
         f.write("class Skill:\n    pass\n")
         path = f.name
     try:

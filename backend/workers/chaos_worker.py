@@ -51,13 +51,17 @@ class NightlyChaosAuditor:
                     # স্যান্ডবক্স যদি কোনো ম্যালিশিয়াস কোডকে ট্রু (Safe) বলে দেয়, তবে সিকিউরিটি লিক!
                     if run_sandbox_ast_check(code):
                         failures += 1
-                        logger.critical("🚨 [SECURITY BREACH] Sandbox bypass detected during autonomous fuzzing!")
+                        logger.critical(
+                            "🚨 [SECURITY BREACH] Sandbox bypass detected during autonomous fuzzing!"
+                        )
                 except Exception:
                     pass  # SecurityError আশা করা হচ্ছে, তাই এটি পাস
 
             # 🧪 টেস্ট ২: রানটাইম কানেকশন পুল স্ট্রেস চেক (Synthetic Heavy Requests)
             async with httpx.AsyncClient(timeout=5.0) as client:
-                headers = {"Idempotency-Key": f"auto-chaos-{datetime.now(timezone.utc).timestamp()}"}
+                headers = {
+                    "Idempotency-Key": f"auto-chaos-{datetime.now(timezone.utc).timestamp()}"
+                }
                 # একই টাইমে ব্যাক-টু-ব্যাক ৫টি রিকোয়েস্ট ফায়ার করে রাউটার স্টেট চেক
                 tasks = [
                     client.post(
@@ -70,7 +74,10 @@ class NightlyChaosAuditor:
                 responses = await asyncio.gather(*tasks, return_exceptions=True)
 
                 for res in responses:
-                    if isinstance(res, Exception) or res.status_code >= SERVER_ERROR_THRESHOLD:
+                    if (
+                        isinstance(res, Exception)
+                        or res.status_code >= SERVER_ERROR_THRESHOLD
+                    ):
                         failures += 1
                         logger.error(
                             "💥 Runtime Connection Failure or %d Server Error detected: %s",
@@ -81,7 +88,9 @@ class NightlyChaosAuditor:
             # ── 🔒 CLOSED-LOOP AUTOMATION DECISION ────────────────────────
             now = datetime.now(timezone.utc)
             if failures > 0:
-                logger.critical(f"💀 Chaos Audit FAILED with {failures} anomalies. LOCKING deployment gates!")
+                logger.critical(
+                    f"💀 Chaos Audit FAILED with {failures} anomalies. LOCKING deployment gates!"
+                )
                 self.gate_ref.set(
                     {
                         "status": "LOCKED",
@@ -91,7 +100,9 @@ class NightlyChaosAuditor:
                 )
                 return False
             else:
-                logger.info("🏆 Autonomous Chaos Audit PASSED perfectly. Deploy gate is UNLOCKED.")
+                logger.info(
+                    "🏆 Autonomous Chaos Audit PASSED perfectly. Deploy gate is UNLOCKED."
+                )
                 self.gate_ref.set(
                     {
                         "status": "UNLOCKED",
@@ -102,7 +113,9 @@ class NightlyChaosAuditor:
                 return True
 
         except Exception as global_err:
-            logger.critical(f"⚠️ Auditor crashed internally: {str(global_err)}. Locking pipeline for safety.")
+            logger.critical(
+                f"⚠️ Auditor crashed internally: {str(global_err)}. Locking pipeline for safety."
+            )
             self.gate_ref.set(
                 {
                     "status": "LOCKED",

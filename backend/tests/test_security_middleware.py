@@ -57,6 +57,8 @@ def test_auth_middleware_allows_with_valid_token():
 
     app.add_middleware(AuthMiddleware)
     client = TestClient(app)
-    resp = client.get("/api/task/execute", headers={"Authorization": "Bearer test-token"})
+    resp = client.get(
+        "/api/task/execute", headers={"Authorization": "Bearer test-token"}
+    )
     assert resp.status_code == 200
     del os.environ["SUPREMEAI_API_TOKEN"]

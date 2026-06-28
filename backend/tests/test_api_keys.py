@@ -54,7 +54,9 @@ asyncpg_stub.Pool = FakePool
 sys.modules["asyncpg"] = asyncpg_stub
 
 # Ensure `core.app` is reloaded fresh in test runs (avoid cached app state)
-for _mod in [m for m in list(sys.modules) if m == "core.app" or m.startswith("core.app.")]:
+for _mod in [
+    m for m in list(sys.modules) if m == "core.app" or m.startswith("core.app.")
+]:
     del sys.modules[_mod]
 
 from api.routes.api_keys import router

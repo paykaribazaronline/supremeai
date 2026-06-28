@@ -35,7 +35,9 @@ def test_setup_tracing_noop():
 
 def test_setup_tracing_with_endpoint():
     with (
-        patch("opentelemetry.exporter.otlp.proto.grpc.trace_exporter.OTLPSpanExporter") as mock_exporter,
+        patch(
+            "opentelemetry.exporter.otlp.proto.grpc.trace_exporter.OTLPSpanExporter"
+        ) as mock_exporter,
         patch("core.telemetry.BatchSpanProcessor") as mock_processor,
         patch("core.telemetry.TracerProvider") as mock_provider_class,
     ):
@@ -44,14 +46,20 @@ def test_setup_tracing_with_endpoint():
 
         setup_tracing("test-service", "http://127.0.0.1:4317")
 
-        mock_exporter.assert_called_once_with(endpoint="http://127.0.0.1:4317", insecure=True)
+        mock_exporter.assert_called_once_with(
+            endpoint="http://127.0.0.1:4317", insecure=True
+        )
         mock_processor.assert_called_once_with(mock_exporter.return_value)
-        mock_provider.add_span_processor.assert_called_once_with(mock_processor.return_value)
+        mock_provider.add_span_processor.assert_called_once_with(
+            mock_processor.return_value
+        )
 
 
 def test_setup_tracing_without_endpoint_no_exporter():
     with (
-        patch("opentelemetry.exporter.otlp.proto.grpc.trace_exporter.OTLPSpanExporter") as mock_exporter,
+        patch(
+            "opentelemetry.exporter.otlp.proto.grpc.trace_exporter.OTLPSpanExporter"
+        ) as mock_exporter,
         patch("core.telemetry.TracerProvider") as mock_provider_class,
     ):
         mock_provider = MagicMock()
@@ -64,7 +72,10 @@ def test_setup_tracing_without_endpoint_no_exporter():
 
 
 def test_trace_span_no_tracer():
-    with patch("core.telemetry.get_tracer", return_value=None), trace_span("test-span") as span:
+    with (
+        patch("core.telemetry.get_tracer", return_value=None),
+        trace_span("test-span") as span,
+    ):
         assert isinstance(span, _NoOpSpan)
 
 

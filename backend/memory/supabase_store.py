@@ -44,11 +44,15 @@ class SupabaseStore(SQLiteMemoryStore):
                         url = self.database_url.rstrip("/")
 
                 if not url:
-                    raise RuntimeError("Unable to derive a valid Supabase URL. Set SUPABASE_URL or use a direct Supabase DB URL.")
+                    raise RuntimeError(
+                        "Unable to derive a valid Supabase URL. Set SUPABASE_URL or use a direct Supabase DB URL."
+                    )
 
                 key = os.getenv("SUPABASE_KEY", "")
                 if not key:
-                    raise RuntimeError("SUPABASE_KEY is required for Supabase client initialization")
+                    raise RuntimeError(
+                        "SUPABASE_KEY is required for Supabase client initialization"
+                    )
 
                 self._supabase_client = create_client(url, key)
             except Exception as exc:
@@ -69,12 +73,19 @@ class SupabaseStore(SQLiteMemoryStore):
             self.get_session_messages(session_id)
             for msg in messages:
                 if isinstance(msg, dict):
-                    self.save_message(session_id, msg.get("role", "user"), msg.get("content", ""))
+                    self.save_message(
+                        session_id, msg.get("role", "user"), msg.get("content", "")
+                    )
 
     def get_conversation(self, session_id: str) -> list:
         if self._provider == "supabase":
             client = self._get_supabase_client()
-            result = client.table("conversations").select("messages").eq("session_id", session_id).execute()
+            result = (
+                client.table("conversations")
+                .select("messages")
+                .eq("session_id", session_id)
+                .execute()
+            )
             rows = result.data
             if rows:
                 return json.loads(rows[0]["messages"])
@@ -86,7 +97,9 @@ class SupabaseStore(SQLiteMemoryStore):
         if not fact_id:
             fact_id = f"fact_{datetime.now(timezone.utc).timestamp()}"
             fact["id"] = fact_id
-        fact["created_at"] = fact.get("created_at", datetime.now(timezone.utc).isoformat())
+        fact["created_at"] = fact.get(
+            "created_at", datetime.now(timezone.utc).isoformat()
+        )
         if self._provider == "supabase":
             client = self._get_supabase_client()
             client.table("learned_facts").upsert(
@@ -110,6 +123,11 @@ class SupabaseStore(SQLiteMemoryStore):
     def search_facts(self, query: str) -> list:
         if self._provider == "supabase":
             client = self._get_supabase_client()
-            result = client.table("learned_facts").select("content").ilike("content", f"%{query}%").execute()
+            result = (
+                client.table("learned_facts")
+                .select("content")
+                .ilike("content", f"%{query}%")
+                .execute()
+            )
             return [json.loads(row["content"]) for row in result.data]
         return []

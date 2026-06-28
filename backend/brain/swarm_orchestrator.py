@@ -19,7 +19,9 @@ class SwarmOrchestrator:
 
     def execute_swarm(self, tasks: list[CrewTask]) -> dict[str, str]:
         """Runs tasks concurrently using a ThreadPoolExecutor."""
-        logger.info(f"Swarm initiated with {len(self.agents)} agents and {len(tasks)} tasks.")
+        logger.info(
+            f"Swarm initiated with {len(self.agents)} agents and {len(tasks)} tasks."
+        )
         results: dict[str, str] = {}
 
         with ThreadPoolExecutor(max_workers=self.max_workers) as executor:
@@ -27,7 +29,9 @@ class SwarmOrchestrator:
             for idx, task in enumerate(tasks):
                 # Round robin assignment if tasks exceed agents
                 agent = self.agents[idx % len(self.agents)]
-                logger.info(f"Assigning task '{task.description[:30]}...' to agent {agent.role}")
+                logger.info(
+                    f"Assigning task '{task.description[:30]}...' to agent {agent.role}"
+                )
                 future = executor.submit(agent.execute, task.description, "")
                 future_to_task[future] = task
 
@@ -38,7 +42,9 @@ class SwarmOrchestrator:
                     task.output = output
                     results[task.description] = output
                 except Exception as exc:
-                    logger.error(f"Task '{task.description[:30]}' failed in swarm: {exc}")
+                    logger.error(
+                        f"Task '{task.description[:30]}' failed in swarm: {exc}"
+                    )
                     results[task.description] = f"Error: {exc}"
 
         return results

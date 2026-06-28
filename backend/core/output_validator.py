@@ -1,5 +1,7 @@
 class MultiAICodeGenerator:
-    def generate_with_consensus(self, task: str, code_kimi: str, code_gpt: str, code_claude: str) -> dict:
+    def generate_with_consensus(
+        self, task: str, code_kimi: str, code_gpt: str, code_claude: str
+    ) -> dict:
         # Compare and find common lines
         lines_kimi = set(code_kimi.splitlines())
         lines_gpt = set(code_gpt.splitlines())
@@ -89,7 +91,9 @@ class OutputValidator:
         disagreements = []
         if "nadim9/supremeai" in output.lower():
             score = 0.1
-            disagreements.append("Incorrect GitHub repository path detected (hallucinated).")
+            disagreements.append(
+                "Incorrect GitHub repository path detected (hallucinated)."
+            )
         return {
             "consensus_score": score,
             "disagreements": disagreements,

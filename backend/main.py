@@ -31,11 +31,15 @@ signal.signal(signal.SIGINT, _handle_sigterm)
 
 
 def bootstrap_supabase_schema_if_configured() -> None:
-    if os.environ.get("SUPABASE_DATABASE_URL") or os.environ.get("SUPABASE_DATABASE_URL_POOLER"):
+    if os.environ.get("SUPABASE_DATABASE_URL") or os.environ.get(
+        "SUPABASE_DATABASE_URL_POOLER"
+    ):
         try:
             supabase_db.bootstrap_schema()
         except Exception as exc:
-            logger.warning(f"Supabase bootstrap failed on startup: {exc}. Continuing without schema bootstrap.")
+            logger.warning(
+                f"Supabase bootstrap failed on startup: {exc}. Continuing without schema bootstrap."
+            )
 
 
 @app.on_event("startup")

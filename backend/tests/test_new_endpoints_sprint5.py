@@ -62,7 +62,9 @@ class TestOnboardingFlow:
                 "preferences": {"model_preference": "gpt-3.5-turbo"},
             }
         ]
-        _mock_db.table.return_value.select.return_value.eq.return_value.execute = existing
+        _mock_db.table.return_value.select.return_value.eq.return_value.execute = (
+            existing
+        )
         mock_upsert = MagicMock()
         _mock_db.table.return_value.upsert.return_value.execute = mock_upsert
 
@@ -87,7 +89,9 @@ class TestOnboardingFlow:
                 "default_model": "gpt-4o",
             }
         ]
-        _mock_db.table.return_value.select.return_value.eq.return_value.execute.return_value = existing
+        _mock_db.table.return_value.select.return_value.eq.return_value.execute.return_value = (
+            existing
+        )
 
         resp = client.get("/api/onboarding/status/user_abc")
         assert resp.status_code == 200
@@ -103,6 +107,7 @@ class TestSmellCheck:
 
     def test_smell_check_invalid_path(self):
         from unittest.mock import patch
+
         with patch("os.path.exists", return_value=False):
             resp = client.post("/tools/smell-check", json={"path": "/nonexistent/path"})
             assert resp.status_code == 404

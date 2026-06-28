@@ -36,7 +36,10 @@ def _import_main_with_stubs():
 
 def test_bootstrap_supabase_schema_if_configured_calls_bootstrap(monkeypatch):
     main = _import_main_with_stubs()
-    monkeypatch.setenv("SUPABASE_DATABASE_URL_POOLER", "postgresql://pooler_user:pooler_pass@localhost:6543/postgres")
+    monkeypatch.setenv(
+        "SUPABASE_DATABASE_URL_POOLER",
+        "postgresql://pooler_user:pooler_pass@localhost:6543/postgres",
+    )
     fake_supabase_db = MagicMock()
     main.supabase_db = fake_supabase_db
 

@@ -18,7 +18,9 @@ class CloudPostgresStore:
     """
 
     def __init__(self):
-        self.conn_string = os.getenv("DATABASE_URL", os.getenv("SUPABASE_DATABASE_URL", ""))
+        self.conn_string = os.getenv(
+            "DATABASE_URL", os.getenv("SUPABASE_DATABASE_URL", "")
+        )
         self._init_tables()
 
     def _get_conn(self):
@@ -109,7 +111,9 @@ class CloudPostgresStore:
             result = cur.fetchone()
             return dict(result) if result else None
 
-    def update_conversation(self, session_id: str, messages: list[dict], summary: str = ""):
+    def update_conversation(
+        self, session_id: str, messages: list[dict], summary: str = ""
+    ):
         """Update or create conversation context."""
         from psycopg2.extras import Json
 

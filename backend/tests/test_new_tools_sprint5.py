@@ -112,6 +112,7 @@ class TestTenantRateLimiter:
         monkeypatch.setattr(settings, "debug", False)
 
         called = False
+
         async def dummy_app(scope, receive, send):
             nonlocal called
             called = True
@@ -119,20 +120,21 @@ class TestTenantRateLimiter:
         middleware = RateLimitMiddleware(dummy_app)
 
         from tools.tenant_rate_limiter import TenantRateLimiter
+
         async def mock_check_quota(self, tenant_id, cost):
             return {"allowed": False, "reason": "rpm_exceeded"}
+
         monkeypatch.setattr(TenantRateLimiter, "check_quota", mock_check_quota)
 
         scope = {
             "type": "http",
-            "headers": [
-                (b"x-tenant-id", b"test-tenant")
-            ],
+            "headers": [(b"x-tenant-id", b"test-tenant")],
             "method": "GET",
             "path": "/api/test",
         }
 
         response_status = None
+
         async def mock_send(message):
             nonlocal response_status
             if message["type"] == "http.response.start":

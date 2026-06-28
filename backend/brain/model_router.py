@@ -207,9 +207,17 @@ class ModelRouter:
             "BIO",
             "CHEMISTRY",
         ]
-        is_specialized = "SPECIALIZED" in upper_task or any(kw in upper_task or kw in upper_prompt for kw in specialized_keywords)
+        is_specialized = "SPECIALIZED" in upper_task or any(
+            kw in upper_task or kw in upper_prompt for kw in specialized_keywords
+        )
 
-        if max_cost >= 0.25 or "MATH" in upper_task or "REASONING" in upper_task or prompt_len > 2000 or is_specialized:
+        if (
+            max_cost >= 0.25
+            or "MATH" in upper_task
+            or "REASONING" in upper_task
+            or prompt_len > 2000
+            or is_specialized
+        ):
             return "specialized" if is_specialized else "phd_math"
         if "CODE" in upper_task or "CODING" in upper_task or prompt_len > 1000:
             return "code"
@@ -289,14 +297,18 @@ class ModelRouter:
             from core.config import settings
 
             if settings.env.lower() != "production":
-                return "ollama", self._registry.MODELS.get("local-qwen-0.5b", {}).get("ollama_id", self.local_model)
+                return "ollama", self._registry.MODELS.get("local-qwen-0.5b", {}).get(
+                    "ollama_id", self.local_model
+                )
             else:
                 if self.gemini_api_key:
                     # [2026-06-21] gemini-1.5-flash deprecated, using gemini-3.5-flash
                     return "gemini", "gemini-3.5-flash"
                 if self.openrouter_api_key:
                     return "openrouter", self.default_model
-                raise RuntimeError("No available LLM providers configured in production.")
+                raise RuntimeError(
+                    "No available LLM providers configured in production."
+                )
         return "ollama", self.local_model
 
     def _quick_provider_hint(self, task_type: str) -> str:
@@ -309,7 +321,9 @@ class ModelRouter:
             return "openrouter"
         return "default"
 
-    def _pick_provider(self, task_type: str, prompt: str, max_cost: float) -> tuple[str, str]:
+    def _pick_provider(
+        self, task_type: str, prompt: str, max_cost: float
+    ) -> tuple[str, str]:
         from core.config import settings
 
         is_production = settings.env.lower() == "production"
@@ -325,7 +339,9 @@ class ModelRouter:
             if self.groq_api_key:
                 return "groq", "llama-3.3-70b-versatile"
             if is_production:
-                raise RuntimeError("Production mode requires cloud API keys. Ollama is disabled in production.")
+                raise RuntimeError(
+                    "Production mode requires cloud API keys. Ollama is disabled in production."
+                )
             reg_info = self._registry.get_model("local-qwen-0.5b")
             return "ollama", reg_info.get("ollama_id", self.local_model)
 
@@ -335,7 +351,10 @@ class ModelRouter:
             target_tier = 1
         elif complexity == "code":
             target_tier = 2
-        elif task_type in ("translation", "sentiment", "summaries") or complexity == "search":
+        elif (
+            task_type in ("translation", "sentiment", "summaries")
+            or complexity == "search"
+        ):
             target_tier = 5
         else:
             target_tier = 5
@@ -354,16 +373,28 @@ class ModelRouter:
         raw = key_map.get(provider, "")
         count = len(self._get_keys(raw))
         if count == 1:
-            logger.warning(f"Provider '{provider}' has only 1 API key configured. Add fallback keys to improve availability.")
+            logger.warning(
+                f"Provider '{provider}' has only 1 API key configured. Add fallback keys to improve availability."
+            )
 
-    def route_and_generate(self, prompt: str, task_type: str = "general", max_cost: float = 0.01) -> dict[str, Any]:
-        return run_async_as_sync(self.async_route_and_generate(prompt, task_type, max_cost))
+    def route_and_generate(
+        self, prompt: str, task_type: str = "general", max_cost: float = 0.01
+    ) -> dict[str, Any]:
+        return run_async_as_sync(
+            self.async_route_and_generate(prompt, task_type, max_cost)
+        )
 
-    async def async_route_and_generate(self, prompt: str, task_type: str = "general", max_cost: float = 0.01) -> dict[str, Any]:
-        logger.info(f"Routing task_type='{task_type}' max_cost={max_cost} openrouter={'yes' if self.openrouter_api_key else 'no'}")
+    async def async_route_and_generate(
+        self, prompt: str, task_type: str = "general", max_cost: float = 0.01
+    ) -> dict[str, Any]:
+        logger.info(
+            f"Routing task_type='{task_type}' max_cost={max_cost} openrouter={'yes' if self.openrouter_api_key else 'no'}"
+        )
 
         routing = route_request(prompt, task_type)
-        logger.info(f"Semantic routing: intent={routing.intent}, tier={routing.tier}, expensive={routing.requires_expensive}")
+        logger.info(
+            f"Semantic routing: intent={routing.intent}, tier={routing.tier}, expensive={routing.requires_expensive}"
+        )
 
         sanitized = self.input_sanitizer.sanitize(prompt)
         if not sanitized.get("is_valid", True):
@@ -379,20 +410,26 @@ class ModelRouter:
         # ---------------------------------------------------------------
         provider_hint = self._quick_provider_hint(task_type)
         if settings.enable_token_compression:
-            prompt, _budget_meta = self._budget.prepare_prompt(prompt, provider=provider_hint)
+            prompt, _budget_meta = self._budget.prepare_prompt(
+                prompt, provider=provider_hint
+            )
         # ---------------------------------------------------------------
 
         upper_task = (task_type or "general").upper()
 
         # Multi-modal routing: Detect image/pdf file paths or vision task type
-        if "VISION" in upper_task or any(ext in prompt.lower() for ext in [".png", ".jpg", ".jpeg", ".pdf"]):
+        if "VISION" in upper_task or any(
+            ext in prompt.lower() for ext in [".png", ".jpg", ".jpeg", ".pdf"]
+        ):
             try:
                 from tools.vision_agent import VisionAgent
 
                 vision_agent = VisionAgent()
                 file_path = ""
                 for w in prompt.split():
-                    if any(ext in w.lower() for ext in [".png", ".jpg", ".jpeg", ".pdf"]):
+                    if any(
+                        ext in w.lower() for ext in [".png", ".jpg", ".jpeg", ".pdf"]
+                    ):
                         file_path = w.strip("()[]\"'")
                         break
                 if file_path and os.path.exists(file_path):
@@ -407,7 +444,9 @@ class ModelRouter:
                         "success": res.get("success", False),
                         "provider": "local_vision",
                         "model": "VisionAgent",
-                        "text": res.get("text") or res.get("summary") or res.get("error", "No text found"),
+                        "text": res.get("text")
+                        or res.get("summary")
+                        or res.get("error", "No text found"),
                         "cost": 0.0,
                         "structured": res.get("structured", {}),
                     }
@@ -445,10 +484,17 @@ class ModelRouter:
                         for item in search_results.get("data", []):
                             title = item.get("title", "Web Result")
                             url = item.get("url", "")
-                            markdown_content = item.get("markdown", "") or item.get("snippet", "")
-                            web_docs.append(f"Source: {title} ({url})\nContent: {markdown_content[:1000]}")
+                            markdown_content = item.get("markdown", "") or item.get(
+                                "snippet", ""
+                            )
+                            web_docs.append(
+                                f"Source: {title} ({url})\nContent: {markdown_content[:1000]}"
+                            )
                         if web_docs:
-                            web_context = "\n\nWeb Search Context (Firecrawl):\n" + "\n\n".join(web_docs)
+                            web_context = (
+                                "\n\nWeb Search Context (Firecrawl):\n"
+                                + "\n\n".join(web_docs)
+                            )
                             logger.info("Firecrawl search context added successfully.")
                 except Exception as fe:
                     logger.warning(f"Firecrawl web search failed: {fe}")
@@ -468,7 +514,9 @@ class ModelRouter:
                     if web_context:
                         context_parts.append(web_context)
                     if sources:
-                        context_parts.append("\n\nLocal RAG Context:\n" + "\n\n".join(sources))
+                        context_parts.append(
+                            "\n\nLocal RAG Context:\n" + "\n\n".join(sources)
+                        )
                     enriched_prompt = f"{prompt}\n" + "\n".join(context_parts)
             except Exception as exc:
                 logger.warning(f"Local RAG search failed: {exc}")
@@ -478,7 +526,9 @@ class ModelRouter:
         # Integrate long-term memory context
         memory_context = self.long_term_memory.build_context()
         if memory_context:
-            enriched_prompt = f"{enriched_prompt}\n\nLong-term memory context:\n{memory_context}"
+            enriched_prompt = (
+                f"{enriched_prompt}\n\nLong-term memory context:\n{memory_context}"
+            )
 
         provider, model = self._pick_provider(task_type, prompt, max_cost)
 
@@ -487,7 +537,9 @@ class ModelRouter:
         lang_provider = lang_route.get("provider", "openrouter")
         if detected_lang != "english":
             provider = lang_provider
-            logger.info(f"Language override: detected {detected_lang} => provider {provider}")
+            logger.info(
+                f"Language override: detected {detected_lang} => provider {provider}"
+            )
 
         semantic_cache = SemanticCache()
         if semantic_cache.is_configured:
@@ -518,15 +570,25 @@ class ModelRouter:
                     importance=0.3,
                 )
                 if semantic_cache.is_configured:
-                    await semantic_cache.set(prompt, result.get("text", ""), provider, model)
-            if ("MATH" in upper_task or "REASONING" in upper_task) and result.get("success"):
+                    await semantic_cache.set(
+                        prompt, result.get("text", ""), provider, model
+                    )
+            if ("MATH" in upper_task or "REASONING" in upper_task) and result.get(
+                "success"
+            ):
                 parsed = self.cot_reasoner.parse(result.get("text", ""))
                 verification = self.cot_reasoner.verify(parsed.get("final_answer", ""))
 
                 # o1-style self-critique/refinement loop on verification failure
-                if verification.get("math_error") or not verification.get("matches", True):
-                    logger.info("CoT verification failed, initiating o1-style self-critique correction loop...")
-                    error_details = verification.get("math_error", "Answer does not match expected constraints.")
+                if verification.get("math_error") or not verification.get(
+                    "matches", True
+                ):
+                    logger.info(
+                        "CoT verification failed, initiating o1-style self-critique correction loop..."
+                    )
+                    error_details = verification.get(
+                        "math_error", "Answer does not match expected constraints."
+                    )
                     critique_prompt = (
                         f"Original Problem: {prompt}\n\n"
                         f"Your previous response:\n{result.get('text', '')}\n\n"
@@ -536,7 +598,9 @@ class ModelRouter:
                     retry_result = await self._call(provider, model, critique_prompt)
                     if retry_result.get("success"):
                         parsed = self.cot_reasoner.parse(retry_result.get("text", ""))
-                        verification = self.cot_reasoner.verify(parsed.get("final_answer", ""))
+                        verification = self.cot_reasoner.verify(
+                            parsed.get("final_answer", "")
+                        )
                         result = retry_result
 
                 result["reasoning"] = parsed
@@ -555,7 +619,10 @@ class ModelRouter:
                 res = await self._call_with_breaker(provider, model, prompt)
 
                 # If rate limited — pause provider in free-tier tracker
-                if not res.get("success") and ("rate limit" in str(res.get("error", "")).lower() or "429" in str(res.get("error", ""))):
+                if not res.get("success") and (
+                    "rate limit" in str(res.get("error", "")).lower()
+                    or "429" in str(res.get("error", ""))
+                ):
                     self._free_tier.mark_rate_limited(provider, pause_seconds=60.0)
                     raise RuntimeError(f"Rate limited: {res.get('error')}")
 
@@ -564,12 +631,16 @@ class ModelRouter:
                 last_exc = exc
                 if i == retries - 1:
                     break
-                logger.warning(f"Provider {provider} failed (attempt {i + 1}/{retries}). Retrying in {delay}s... Error: {exc}")
+                logger.warning(
+                    f"Provider {provider} failed (attempt {i + 1}/{retries}). Retrying in {delay}s... Error: {exc}"
+                )
                 await asyncio.sleep(delay)
                 delay *= 2
         raise last_exc or RuntimeError(f"Failed to call provider {provider}")
 
-    async def _call_with_breaker(self, provider: str, model: str, prompt: str) -> dict[str, Any]:
+    async def _call_with_breaker(
+        self, provider: str, model: str, prompt: str
+    ) -> dict[str, Any]:
         breaker = self._breakers.get(provider)
         if not breaker:
             return await self._execute_call(provider, model, prompt)
@@ -585,7 +656,9 @@ class ModelRouter:
             breaker.mark_failure()
             raise
 
-    async def _execute_call(self, provider: str, model: str, prompt: str) -> dict[str, Any]:
+    async def _execute_call(
+        self, provider: str, model: str, prompt: str
+    ) -> dict[str, Any]:
         if provider == "openrouter":
             return await self._call_openrouter(prompt, model)
         if provider == "huggingface":
@@ -671,7 +744,9 @@ class ModelRouter:
         payload = {"messages": [{"role": "user", "content": prompt}]}
         try:
             start_time = time.time()
-            response = await self._http_client.post(url, headers=headers, json=payload, timeout=30.0)
+            response = await self._http_client.post(
+                url, headers=headers, json=payload, timeout=30.0
+            )
             latency = time.time() - start_time
             if response.status_code == 200:
                 res_json = response.json()
@@ -824,10 +899,16 @@ class ModelRouter:
             try:
                 headers = {"Authorization": f"Bearer {key}"}
                 url = f"https://api-inference.huggingface.co/models/{model}"
-                res = await self._http_client.post(url, headers=headers, json={"inputs": prompt}, timeout=20.0)
+                res = await self._http_client.post(
+                    url, headers=headers, json={"inputs": prompt}, timeout=20.0
+                )
                 res.raise_for_status()
                 data = res.json()
-                text = data[0].get("generated_text", str(data)) if isinstance(data, list) else str(data)
+                text = (
+                    data[0].get("generated_text", str(data))
+                    if isinstance(data, list)
+                    else str(data)
+                )
                 return {
                     "success": True,
                     "provider": "huggingface",
@@ -861,10 +942,16 @@ class ModelRouter:
         max_cost: float = 0.01,
         expected: str | None = None,
     ) -> dict[str, Any]:
-        reasoning = self.cot_reasoner.refine_loop(prompt, context=task_type, expected=expected)
-        generated = self.route_and_generate(prompt, task_type=task_type, max_cost=max_cost)
+        reasoning = self.cot_reasoner.refine_loop(
+            prompt, context=task_type, expected=expected
+        )
+        generated = self.route_and_generate(
+            prompt, task_type=task_type, max_cost=max_cost
+        )
         if generated.get("success") and reasoning.get("final_answer"):
-            generated["cot_verification"] = self.cot_reasoner.verify(reasoning["final_answer"], expected)
+            generated["cot_verification"] = self.cot_reasoner.verify(
+                reasoning["final_answer"], expected
+            )
             generated["reasoning"] = reasoning
         return generated
 
@@ -875,10 +962,16 @@ class ModelRouter:
             logger.error(f"Local RAG semantic search failed: {exc}")
             return {"status": "error", "error": str(exc), "query": query, "matches": []}
 
-    def route_and_stream(self, prompt: str, task_type: str = "general", max_cost: float = 0.01):
-        return run_async_gen_as_sync(self.async_route_and_stream(prompt, task_type, max_cost))
+    def route_and_stream(
+        self, prompt: str, task_type: str = "general", max_cost: float = 0.01
+    ):
+        return run_async_gen_as_sync(
+            self.async_route_and_stream(prompt, task_type, max_cost)
+        )
 
-    async def async_route_and_stream(self, prompt: str, task_type: str = "general", max_cost: float = 0.01):
+    async def async_route_and_stream(
+        self, prompt: str, task_type: str = "general", max_cost: float = 0.01
+    ):
         provider, model = self._pick_provider(task_type, prompt, max_cost)
         logger.info(f"Streaming from provider={provider}, model={model}")
         try:
@@ -929,7 +1022,9 @@ class ModelRouter:
             logger.error(f"Streaming failed for {provider}: {exc}")
             yield f"Error during streaming: {exc}"
 
-    async def _stream_openai_compatible(self, url: str, key: str, model: str, prompt: str):
+    async def _stream_openai_compatible(
+        self, url: str, key: str, model: str, prompt: str
+    ):
         headers = {
             "Authorization": f"Bearer {key}",
             "Content-Type": "application/json",
@@ -941,7 +1036,9 @@ class ModelRouter:
         }
         import json
 
-        async with self._http_client.stream("POST", url, headers=headers, json=payload) as response:
+        async with self._http_client.stream(
+            "POST", url, headers=headers, json=payload
+        ) as response:
             response.raise_for_status()
             async for line in response.iter_lines():
                 if line.startswith("data: "):
@@ -969,13 +1066,20 @@ class ModelRouter:
         payload = {"contents": [{"parts": [{"text": prompt}]}]}
         import json
 
-        async with self._http_client.stream("POST", url, headers=headers, json=payload) as response:
+        async with self._http_client.stream(
+            "POST", url, headers=headers, json=payload
+        ) as response:
             response.raise_for_status()
             async for line in response.iter_lines():
                 if line:
                     try:
                         data = json.loads(line)
-                        chunk = data.get("candidates", [{}])[0].get("content", {}).get("parts", [{}])[0].get("text", "")
+                        chunk = (
+                            data.get("candidates", [{}])[0]
+                            .get("content", {})
+                            .get("parts", [{}])[0]
+                            .get("text", "")
+                        )
                         if chunk:
                             yield chunk
                     except Exception:

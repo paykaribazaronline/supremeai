@@ -28,11 +28,15 @@ def test_generate_upload_url_requires_fields():
 
 def test_generate_upload_url_success():
     from unittest.mock import patch
-    with patch("storage.r2_storage_client.R2StorageClient.generate_presigned_upload_url", return_value="https://mock-upload-url.com"):
+
+    with patch(
+        "storage.r2_storage_client.R2StorageClient.generate_presigned_upload_url",
+        return_value="https://mock-upload-url.com",
+    ):
         payload = {
             "file_name": "test.png",
             "file_type": "image/png",
-            "folder": "test_folder"
+            "folder": "test_folder",
         }
         response = client.post("/api/v1/media/generate-upload-url", json=payload)
         assert response.status_code == 200

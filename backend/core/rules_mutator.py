@@ -13,7 +13,11 @@ class RulesMutator:
     def is_ip_blocked(self, ip_address: str) -> bool:
         import core.app as app_mod
 
-        if hasattr(app_mod, "redis_queue") and app_mod.redis_queue and app_mod.redis_queue.configured:
+        if (
+            hasattr(app_mod, "redis_queue")
+            and app_mod.redis_queue
+            and app_mod.redis_queue.configured
+        ):
             redis_key = f"blocklist:ip:{ip_address}"
             try:
                 val = app_mod.redis_queue.get(redis_key)
@@ -27,9 +31,15 @@ class RulesMutator:
         logger.warning(f"RulesMutator: Blocking IP {ip_address} due to {reason}.")
         import core.app as app_mod
 
-        if hasattr(app_mod, "redis_queue") and app_mod.redis_queue and app_mod.redis_queue.configured:
+        if (
+            hasattr(app_mod, "redis_queue")
+            and app_mod.redis_queue
+            and app_mod.redis_queue.configured
+        ):
             redis_key = f"blocklist:ip:{ip_address}"
-            app_mod.redis_queue.set(redis_key, f"blocked:{reason}", ex=self.cooldown_seconds)
+            app_mod.redis_queue.set(
+                redis_key, f"blocked:{reason}", ex=self.cooldown_seconds
+            )
             return True
         return False
 
@@ -37,7 +47,11 @@ class RulesMutator:
         logger.info(f"RulesMutator: Releasing block on IP {ip_address}.")
         import core.app as app_mod
 
-        if hasattr(app_mod, "redis_queue") and app_mod.redis_queue and app_mod.redis_queue.configured:
+        if (
+            hasattr(app_mod, "redis_queue")
+            and app_mod.redis_queue
+            and app_mod.redis_queue.configured
+        ):
             redis_key = f"blocklist:ip:{ip_address}"
             app_mod.redis_queue.set(redis_key, "", ex=1)
             return True

@@ -24,16 +24,27 @@ class IdempotencyMiddleware(BaseHTTPMiddleware):
         import os
         import sys
 
-        is_test = "pytest" in sys.modules or os.getenv("ENV") == "test" or os.getenv("env") == "local" or os.getenv("env") == "production"
+        is_test = (
+            "pytest" in sys.modules
+            or os.getenv("ENV") == "test"
+            or os.getenv("env") == "local"
+            or os.getenv("env") == "production"
+        )
         if not is_test:
             try:
                 self.db = firestore.Client()
             except Exception as e:
-                logger.warning(f"Failed to initialize Firestore for IdempotencyMiddleware: {e}")
+                logger.warning(
+                    f"Failed to initialize Firestore for IdempotencyMiddleware: {e}"
+                )
 
     async def dispatch(self, request: Request, call_next):
         # শুধুমাত্র POST রিকোয়েস্ট এবং জেনারেশন এন্ডপয়েন্টের জন্য চেক করবে
-        if request.method != "POST" or "/api/task" not in request.url.path or not self.db:
+        if (
+            request.method != "POST"
+            or "/api/task" not in request.url.path
+            or not self.db
+        ):
             return await call_next(request)
 
         idempotency_key = request.headers.get("Idempotency-Key")
@@ -41,7 +52,9 @@ class IdempotencyMiddleware(BaseHTTPMiddleware):
             # ক্রিটিক্যাল এআই জেনারেশন রিকোয়েস্টে কি (Key) না থাকলে রিজেক্ট
             return JSONResponse(
                 status_code=400,
-                content={"error": "Bad Request: 'Idempotency-Key' header is strictly required for mutating tasks."},
+                content={
+                    "error": "Bad Request: 'Idempotency-Key' header is strictly required for mutating tasks."
+                },
             )
 
         lock_ref = self.db.collection(self.collection_name).document(idempotency_key)
@@ -61,14 +74,18 @@ class IdempotencyMiddleware(BaseHTTPMiddleware):
                 # এক্সপায়ারড লক ডিলিট করে নতুন ট্রাইয়ের সুযোগ দেওয়া
                 lock_ref.delete()
             elif status == "processing":
-                logger.warning(f"🛡️ Idempotency Block: Request {idempotency_key} is already being processed. Dropping concurrent call.")
+                logger.warning(
+                    f"🛡️ Idempotency Block: Request {idempotency_key} is already being processed. Dropping concurrent call."
+                )
                 raise HTTPException(
                     status_code=409,
                     detail="Conflict: Request is already being processed. Duplicate execution blocked.",
                 )
 
             elif status == "completed":
-                logger.info(f"⚡ Idempotency Hit: Serving cached response for key {idempotency_key} directly from state.")
+                logger.info(
+                    f"⚡ Idempotency Hit: Serving cached response for key {idempotency_key} directly from state."
+                )
                 return JSONResponse(
                     status_code=200,
                     content=json.loads(lock_data.get("response_body", "{}")),
@@ -91,8 +108,12 @@ class IdempotencyMiddleware(BaseHTTPMiddleware):
             # ২. রেসপন্স সফল হলে স্ট্যাটাস "completed" করে সেভ রাখা
             if response.status_code == 200:
                 if hasattr(response, "body_iterator"):
-                    response_body = [section async for section in response.body_iterator]
-                    response.body_iterator = __import__("anyio").from_thread.run(self._recreate_iterator, response_body)
+                    response_body = [
+                        section async for section in response.body_iterator
+                    ]
+                    response.body_iterator = __import__("anyio").from_thread.run(
+                        self._recreate_iterator, response_body
+                    )
                 else:
                     response_body = [response.body]
                 body_str = b"".join(response_body).decode("utf-8")

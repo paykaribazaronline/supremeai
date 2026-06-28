@@ -40,7 +40,9 @@ class AuditLogger:
 
     def log_decision(self, action_type: str, decision_details: str, reasoning: str):
         """Logs an autonomous decision or rotation details to the tamper-proof audit trail."""
-        logger.info(f"[AUDIT LOG] {action_type} - Details: {decision_details} - Reason: {reasoning}")
+        logger.info(
+            f"[AUDIT LOG] {action_type} - Details: {decision_details} - Reason: {reasoning}"
+        )
         try:
             with self._get_conn() as conn:
                 conn.execute(

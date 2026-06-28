@@ -23,7 +23,9 @@ class ReasoningOrchestrator:
     def plan(self, task_description: str, context: str | None = None) -> dict[str, Any]:
         lowered = (task_description or "").lower()
         words = lowered.split()
-        is_simple = len(words) <= 2 and any(w in {"hello", "hi", "hey", "status", "health"} for w in words)
+        is_simple = len(words) <= 2 and any(
+            w in {"hello", "hi", "hey", "status", "health"} for w in words
+        )
         is_reasoning = any(
             word in lowered
             for word in [
@@ -72,7 +74,9 @@ class ReasoningOrchestrator:
             "reason": "Default task routing",
         }
 
-    def build_enriched_prompt(self, task_description: str, context: str | None = None) -> str:
+    def build_enriched_prompt(
+        self, task_description: str, context: str | None = None
+    ) -> str:
         plan = self.plan(task_description, context)
         memory_context = self.long_term_memory.build_context()
         episodic_context = self.episodic_memory.summarize_recent(limit=3)
@@ -85,7 +89,9 @@ class ReasoningOrchestrator:
             return self.cot_reasoner.build_prompt("\n\n".join(parts), context)
         return "\n\n".join(parts)
 
-    def route(self, task_description: str, context: str | None = None) -> dict[str, Any]:
+    def route(
+        self, task_description: str, context: str | None = None
+    ) -> dict[str, Any]:
         plan = self.plan(task_description, context)
         logger.info(f"Reasoning plan: {plan}")
         reasoning_trace = None

@@ -27,9 +27,17 @@ class GCPPubSubQueue:
         subscription_id: str | None = None,
         db_path: str | None = None,
     ):
-        self.project_id = project_id or os.getenv("GCP_PROJECT_ID") or os.getenv("GOOGLE_CLOUD_PROJECT")
+        self.project_id = (
+            project_id
+            or os.getenv("GCP_PROJECT_ID")
+            or os.getenv("GOOGLE_CLOUD_PROJECT")
+        )
         self.topic_id = topic_id or os.getenv("GCP_PUBSUB_TOPIC", "supremeai-tasks")
-        self.subscription_id = subscription_id or os.getenv("GCP_PUBSUB_SUBSCRIPTION") or f"{self.topic_id}-sub"
+        self.subscription_id = (
+            subscription_id
+            or os.getenv("GCP_PUBSUB_SUBSCRIPTION")
+            or f"{self.topic_id}-sub"
+        )
         self.db_path = db_path or os.getenv("GCP_PUBSUB_SQLITE_PATH")
         self.publisher = None
         self.subscriber = None
@@ -39,8 +47,12 @@ class GCPPubSubQueue:
             try:
                 self.publisher = pubsub_v1.PublisherClient()
                 self.subscriber = pubsub_v1.SubscriberClient()
-                self.topic_path = self.publisher.topic_path(self.project_id, self.topic_id)
-                self.subscription_path = self.subscriber.subscription_path(self.project_id, self.subscription_id)
+                self.topic_path = self.publisher.topic_path(
+                    self.project_id, self.topic_id
+                )
+                self.subscription_path = self.subscriber.subscription_path(
+                    self.project_id, self.subscription_id
+                )
                 self.mode = "gcp_pubsub"
                 logger.info("Using GCP Pub/Sub task queue")
             except Exception as exc:
@@ -60,7 +72,9 @@ class GCPPubSubQueue:
 
     def _init_db(self) -> None:
         if self.db_path == ":memory:":
-            self._memory_conn = sqlite3.connect(str(self.db_path), check_same_thread=False)
+            self._memory_conn = sqlite3.connect(
+                str(self.db_path), check_same_thread=False
+            )
             conn = self._memory_conn
         else:
             conn = sqlite3.connect(str(self.db_path), check_same_thread=False)
@@ -78,7 +92,9 @@ class GCPPubSubQueue:
                 )
                 """
             )
-            conn.execute("CREATE INDEX IF NOT EXISTS idx_pubsub_acked ON pubsub_queue(acked)")
+            conn.execute(
+                "CREATE INDEX IF NOT EXISTS idx_pubsub_acked ON pubsub_queue(acked)"
+            )
             conn.commit()
         finally:
             if self.db_path != ":memory:":
@@ -175,7 +191,9 @@ class GCPPubSubQueue:
             }
 
         with self._get_connection() as conn:
-            cursor = conn.execute("UPDATE pubsub_queue SET acked = 1 WHERE message_id = ?", (message_id,))
+            cursor = conn.execute(
+                "UPDATE pubsub_queue SET acked = 1 WHERE message_id = ?", (message_id,)
+            )
             conn.commit()
         return {
             "success": True,
@@ -195,8 +213,12 @@ class GCPPubSubQueue:
             }
 
         with self._get_connection() as conn:
-            pending = conn.execute("SELECT COUNT(*) FROM pubsub_queue WHERE acked = 0").fetchone()[0]
-            acked = conn.execute("SELECT COUNT(*) FROM pubsub_queue WHERE acked = 1").fetchone()[0]
+            pending = conn.execute(
+                "SELECT COUNT(*) FROM pubsub_queue WHERE acked = 0"
+            ).fetchone()[0]
+            acked = conn.execute(
+                "SELECT COUNT(*) FROM pubsub_queue WHERE acked = 1"
+            ).fetchone()[0]
         return {
             "provider": "local_sqlite",
             "db_path": self.db_path,

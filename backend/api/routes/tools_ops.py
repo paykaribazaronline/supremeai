@@ -97,9 +97,13 @@ async def smell_check(payload: SmellCheckRequest):
         result = detector.analyze_directory(payload.path, thresholds=payload.thresholds)
         all_smells = [smell for smells in result.values() for smell in smells]
     else:
-        all_smells = detector.analyze_python_file(payload.path, thresholds=payload.thresholds)
+        all_smells = detector.analyze_python_file(
+            payload.path, thresholds=payload.thresholds
+        )
         if payload.path.endswith((".js", ".ts", ".jsx", ".tsx")):
-            all_smells.extend(detector.analyze_js_ts_file(payload.path, thresholds=payload.thresholds))
+            all_smells.extend(
+                detector.analyze_js_ts_file(payload.path, thresholds=payload.thresholds)
+            )
 
     by_severity: dict[str, int] = {"critical": 0, "warning": 0, "info": 0}
     for s in all_smells:
@@ -126,14 +130,18 @@ async def vulnerability_check(payload: VulnCheckRequest):
 @router.post("/skills/recommend", response_model=SkillRecResponse)
 async def recommend_skills(payload: SkillRecRequest):
     recommender = SkillRecommender()
-    result = recommender.record_and_recommend(payload.user_id, payload.task_description, top_k=payload.top_k)
+    result = recommender.record_and_recommend(
+        payload.user_id, payload.task_description, top_k=payload.top_k
+    )
     return SkillRecResponse(**result)
 
 
 @router.post("/domain/adapt", response_model=DomainAdaptResponse)
 async def domain_adapt(payload: DomainAdaptRequest):
     adapter = DomainAdapter()
-    result = adapter.adapt_request(payload.domain, payload.prompt, context=payload.context)
+    result = adapter.adapt_request(
+        payload.domain, payload.prompt, context=payload.context
+    )
     return DomainAdaptResponse(
         domain=payload.domain,
         response=result.get("response", ""),

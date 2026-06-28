@@ -47,7 +47,9 @@ class Settings(BaseSettings):
         "https://supremeai-admin.firebaseapp.com",
     ]
 
-    jwt_secret: str | None = Field(default=None, validation_alias="SUPREMEAI_JWT_SECRET")
+    jwt_secret: str | None = Field(
+        default=None, validation_alias="SUPREMEAI_JWT_SECRET"
+    )
 
     # ⚡ ডাইনামিকলি সরাসরি ক্লাউড মেমরি থেকে সিক্রেট রিড করা হচ্ছে
     # ডিস্কে কোনো .env ফাইল না থাকলেও প্রোডাকশন এপিআই ১০০% স্মুথলি চলবে
@@ -97,7 +99,9 @@ class Settings(BaseSettings):
     admin_rules_db: str = "data/constitutional_rules.db"
     memory_db_dir: str = "data/memory"
     skill_registry_path: str = "data/skill_registry.json"
-    ci_webhook_secret: str = secret_vault.fetch_secret("CI_WEBHOOK_SECRET", "supreme-ci-secret-2026")
+    ci_webhook_secret: str = secret_vault.fetch_secret(
+        "CI_WEBHOOK_SECRET", "supreme-ci-secret-2026"
+    )
 
     @field_validator("env")
     @classmethod
@@ -114,7 +118,9 @@ class Settings(BaseSettings):
         env = info.data.get("env", "local")
         if not v:
             if env == "production":
-                raise ValueError("SUPREMEAI_JWT_SECRET environment variable must be set in production")
+                raise ValueError(
+                    "SUPREMEAI_JWT_SECRET environment variable must be set in production"
+                )
             return "test-secret-placeholder"
         return v
 
@@ -145,7 +151,9 @@ class Settings(BaseSettings):
             if not self.jwt_secret:
                 missing.append("secure JWT_SECRET")
             if missing:
-                raise RuntimeError(f"Missing required configurations for production: {', '.join(missing)}")
+                raise RuntimeError(
+                    f"Missing required configurations for production: {', '.join(missing)}"
+                )
 
 
 settings = Settings()

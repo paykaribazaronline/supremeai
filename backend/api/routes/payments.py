@@ -78,14 +78,19 @@ async def create_checkout_session(request: Request, payload: CheckoutRequest):
         from jose import jwt
 
         decoded = jwt.decode(token, settings.jwt_secret, algorithms=["HS256"])
-        if decoded.get("user_id") != payload.user_id and decoded.get("sub") != payload.user_id:
+        if (
+            decoded.get("user_id") != payload.user_id
+            and decoded.get("sub") != payload.user_id
+        ):
             raise HTTPException(status_code=403, detail="User mismatch")
     except Exception as e:
         raise HTTPException(status_code=401, detail=f"Invalid token: {e}") from e
     try:
         stripe_key = settings.stripe_api_key
         if not stripe_key:
-            logger.warning("Stripe API key not set in settings. Using mock checkout session.")
+            logger.warning(
+                "Stripe API key not set in settings. Using mock checkout session."
+            )
             return {
                 "status": "mock",
                 "session_id": "mock_session_123",
@@ -160,7 +165,9 @@ async def stripe_webhook(request: Request):
                     }
                 )
             except Exception as e:
-                logger.error(f"Failed to update user subscription status in Firestore: {e}")
+                logger.error(
+                    f"Failed to update user subscription status in Firestore: {e}"
+                )
         try:
             from core.posthog_client import posthog_client
 

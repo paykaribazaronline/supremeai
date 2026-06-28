@@ -9,7 +9,9 @@ class RAGPipeline:
     def __init__(self, vector_store: ChromaDBStore = None):
         self.vector_store = vector_store or ChromaDBStore()
 
-    def chunk_text(self, text: str, chunk_size: int = 500, overlap: int = 100) -> list[str]:
+    def chunk_text(
+        self, text: str, chunk_size: int = 500, overlap: int = 100
+    ) -> list[str]:
         words = text.split()
         chunks = []
         i = 0
@@ -22,7 +24,9 @@ class RAGPipeline:
                 break
         return chunks
 
-    def ingest_document(self, doc_id: str, content: str, metadata: dict[str, Any] = None):
+    def ingest_document(
+        self, doc_id: str, content: str, metadata: dict[str, Any] = None
+    ):
         if metadata is None:
             metadata = {}
         chunks = self.chunk_text(content)

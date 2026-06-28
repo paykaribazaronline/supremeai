@@ -55,11 +55,15 @@ class ParallelCloudRouter:
                 import redis
 
                 self.redis_client = redis.from_url(redis_url, decode_responses=True)
-                logger.info("Connected to Redis for ParallelCloudRouter state tracking.")
+                logger.info(
+                    "Connected to Redis for ParallelCloudRouter state tracking."
+                )
             except Exception as e:
                 logger.error(f"Failed to connect to Redis: {e}")
         if self.upstash.configured:
-            logger.info("Connected to Upstash Redis REST for ParallelCloudRouter state tracking.")
+            logger.info(
+                "Connected to Upstash Redis REST for ParallelCloudRouter state tracking."
+            )
         self._health_check_all(force=True)
 
     def _get_current_requests(self, provider: str) -> int:
@@ -96,7 +100,9 @@ class ParallelCloudRouter:
                 return max(0, val)
             except Exception as e:
                 logger.error(f"Redis decr requests failed: {e}")
-        self.PROVIDERS[provider]["current_requests"] = max(0, self.PROVIDERS[provider]["current_requests"] - 1)
+        self.PROVIDERS[provider]["current_requests"] = max(
+            0, self.PROVIDERS[provider]["current_requests"] - 1
+        )
         return self.PROVIDERS[provider]["current_requests"]
 
     def _get_status(self, provider: str) -> str:
@@ -154,15 +160,24 @@ class ParallelCloudRouter:
         self._health_check_all()
 
         active_providers = {
-            name: config for name, config in self.PROVIDERS.items() if self._get_status(name) in ["active", "degraded"] and config["url"]
+            name: config
+            for name, config in self.PROVIDERS.items()
+            if self._get_status(name) in ["active", "degraded"] and config["url"]
         }
 
         if not active_providers:
-            logger.warning("ALL PROVIDERS DOWN or unconfigured! Falling back to local/default.")
-            configured = [name for name, config in self.PROVIDERS.items() if config["url"]]
+            logger.warning(
+                "ALL PROVIDERS DOWN or unconfigured! Falling back to local/default."
+            )
+            configured = [
+                name for name, config in self.PROVIDERS.items() if config["url"]
+            ]
             return configured[0] if configured else "gcp_cloud_run"
 
-        is_latency_sensitive = task_type in ["completion", "voice", "realtime"] or "realtime" in (task_type or "").lower()
+        is_latency_sensitive = (
+            task_type in ["completion", "voice", "realtime"]
+            or "realtime" in (task_type or "").lower()
+        )
 
         total_weight = 0.0
         weights = {}
@@ -221,8 +236,13 @@ class ParallelCloudRouter:
             name: {
                 "status": self._get_status(name),
                 "current_requests": self._get_current_requests(name),
-                "capacity_remaining": max(0, config["capacity"] - self._get_current_requests(name)),
-                "utilization_pct": (self._get_current_requests(name) / max(config["capacity"], 1)) * 100.0,
+                "capacity_remaining": max(
+                    0, config["capacity"] - self._get_current_requests(name)
+                ),
+                "utilization_pct": (
+                    self._get_current_requests(name) / max(config["capacity"], 1)
+                )
+                * 100.0,
                 "latency_ms": config["latency_ms"],
                 "region": config["region"],
             }
@@ -246,7 +266,11 @@ class ParallelCloudRouter:
                 config["weight"] = min(config["weight"] * 1.2, 50.0)
                 logger.info(f"Increased weight for {name} due to low utilization")
 
-        active_provs = [c for name, c in self.PROVIDERS.items() if self._get_status(name) == "active"]
+        active_provs = [
+            c
+            for name, c in self.PROVIDERS.items()
+            if self._get_status(name) == "active"
+        ]
         total = sum(p["weight"] for p in active_provs)
         if total > 0:
             for name, config in self.PROVIDERS.items():

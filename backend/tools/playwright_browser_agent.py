@@ -20,7 +20,9 @@ TRUST_SCORE_THRESHOLD = 0.95
 
 
 class PlaywrightBrowserAgent:
-    COOKIE_STORAGE_BASE = Path(__file__).resolve().parents[1] / ".cache" / "playwright_cookies"
+    COOKIE_STORAGE_BASE = (
+        Path(__file__).resolve().parents[1] / ".cache" / "playwright_cookies"
+    )
 
     def __init__(self, headless: bool = True, timeout_ms: int = 30000) -> None:
         self.headless = headless
@@ -36,7 +38,9 @@ class PlaywrightBrowserAgent:
         return importlib.util.find_spec("playwright") is not None
 
     def _cookie_file_path(self, session_name: str) -> Path:
-        safe_name = "".join(ch if ch.isalnum() or ch in "-_" else "_" for ch in session_name)
+        safe_name = "".join(
+            ch if ch.isalnum() or ch in "-_" else "_" for ch in session_name
+        )
         return self.COOKIE_STORAGE_BASE / f"{safe_name}_cookies.json"
 
     def _load_cookies(self, context: Any, session_name: str) -> None:
@@ -47,7 +51,11 @@ class PlaywrightBrowserAgent:
         try:
             raw = cookie_path.read_text()
             payload = json.loads(raw)
-            cookies = self.secure_store.decrypt(payload) if isinstance(payload, dict) else payload
+            cookies = (
+                self.secure_store.decrypt(payload)
+                if isinstance(payload, dict)
+                else payload
+            )
             if isinstance(cookies, dict) and cookies.get("__enc__"):
                 cookies = self.secure_store.decrypt(cookies)
 
@@ -74,7 +82,9 @@ class PlaywrightBrowserAgent:
         cookies = context.cookies()
         payload = self.secure_store.encrypt(cookies)
         cookie_path.write_text(json.dumps(payload, indent=2))
-        logger.info("Saved Playwright cookies for session '%s' to %s", session_name, cookie_path)
+        logger.info(
+            "Saved Playwright cookies for session '%s' to %s", session_name, cookie_path
+        )
 
     def _human_like_type(self, page: Page, selector: str, text: str):
         """Types text into a field character by character with random delays."""
@@ -89,7 +99,9 @@ class PlaywrightBrowserAgent:
 
     def _new_context(self, session_name: str | None = None) -> Any:
         if self.browser is None:
-            raise RuntimeError("Browser is not started. Call start() before creating a context.")
+            raise RuntimeError(
+                "Browser is not started. Call start() before creating a context."
+            )
 
         context = self.browser.new_context(
             user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36",
@@ -213,7 +225,9 @@ class PlaywrightBrowserAgent:
             page.close()
             context.close()
 
-    def click(self, url: str, selector: str, session_name: str | None = None) -> dict[str, Any]:
+    def click(
+        self, url: str, selector: str, session_name: str | None = None
+    ) -> dict[str, Any]:
         self.start()
         context = self._new_context(session_name)
         page = context.new_page()
@@ -228,7 +242,9 @@ class PlaywrightBrowserAgent:
             page.close()
             context.close()
 
-    def text(self, url: str, selector: str, session_name: str | None = None) -> dict[str, Any]:
+    def text(
+        self, url: str, selector: str, session_name: str | None = None
+    ) -> dict[str, Any]:
         self.start()
         context = self._new_context(session_name)
         page = context.new_page()
@@ -243,7 +259,9 @@ class PlaywrightBrowserAgent:
             page.close()
             context.close()
 
-    def _update_model_behavior_in_background(self, model_name: str, latency_ms: float, success: bool):
+    def _update_model_behavior_in_background(
+        self, model_name: str, latency_ms: float, success: bool
+    ):
         """Runs the DB update in a background thread to avoid blocking."""
         try:
             import threading
@@ -254,7 +272,9 @@ class PlaywrightBrowserAgent:
             )
             thread.start()
         except Exception as e:
-            logger.warning(f"Failed to spawn background thread for model behavior update: {e}")
+            logger.warning(
+                f"Failed to spawn background thread for model behavior update: {e}"
+            )
 
     def _update_model_behavior(self, model_name: str, latency_ms: float, success: bool):
         """The actual database update logic."""
@@ -293,25 +313,40 @@ class PlaywrightBrowserAgent:
                 # Trust score could be a mix of success rate, latency, etc.
                 # For now, we use a simple flag.
                 trust_score = primary_behavior.get("trust_score", 0)
-                if primary_behavior.get("requires_verification") is False or trust_score > TRUST_SCORE_THRESHOLD:
+                if (
+                    primary_behavior.get("requires_verification") is False
+                    or trust_score > TRUST_SCORE_THRESHOLD
+                ):
                     requires_verification = False
 
-            logger.info(f"Checking primary AI '{primary_site['name']}'. Verification required: {requires_verification}")
+            logger.info(
+                f"Checking primary AI '{primary_site['name']}'. Verification required: {requires_verification}"
+            )
 
             # Step 1: Get response from the primary AI site
             logger.info(f"Querying Primary AI: {primary_site['name']}")
             start_time = time.time()
-            initial_response, primary_success = self._query_ai_site(page, primary_site, prompt)
+            initial_response, primary_success = self._query_ai_site(
+                page, primary_site, prompt
+            )
             latency_ms = (time.time() - start_time) * 1000
-            self._update_model_behavior_in_background(primary_site["name"], latency_ms, primary_success)
+            self._update_model_behavior_in_background(
+                primary_site["name"], latency_ms, primary_success
+            )
 
             if not primary_success:
-                raise RuntimeError(f"Failed to get a response from {primary_site['name']}")
-            logger.info(f"Got initial response from {primary_site['name']}: '{initial_response[:100]}...'")
+                raise RuntimeError(
+                    f"Failed to get a response from {primary_site['name']}"
+                )
+            logger.info(
+                f"Got initial response from {primary_site['name']}: '{initial_response[:100]}...'"
+            )
 
             # If verification is not required, return early
             if not requires_verification:
-                logger.info(f"Skipping verification for trusted AI: {primary_site['name']}")
+                logger.info(
+                    f"Skipping verification for trusted AI: {primary_site['name']}"
+                )
                 return {
                     "success": True,
                     "prompt": prompt,
@@ -329,13 +364,21 @@ class PlaywrightBrowserAgent:
             )
 
             start_time_verifier = time.time()
-            verification_result, verifier_success = self._query_ai_site(page, verifier_site, verification_prompt)
+            verification_result, verifier_success = self._query_ai_site(
+                page, verifier_site, verification_prompt
+            )
             latency_ms_verifier = (time.time() - start_time_verifier) * 1000
-            self._update_model_behavior_in_background(verifier_site["name"], latency_ms_verifier, verifier_success)
+            self._update_model_behavior_in_background(
+                verifier_site["name"], latency_ms_verifier, verifier_success
+            )
 
             if not verifier_success:
-                raise RuntimeError(f"Failed to get a response from {verifier_site['name']}")
-            logger.info(f"Got verification result from {verifier_site['name']}: '{verification_result}'")
+                raise RuntimeError(
+                    f"Failed to get a response from {verifier_site['name']}"
+                )
+            logger.info(
+                f"Got verification result from {verifier_site['name']}: '{verification_result}'"
+            )
 
             # Step 3: Analyze the verification and return the final result
             is_confirmed = "correct" in verification_result.lower()
@@ -356,11 +399,15 @@ class PlaywrightBrowserAgent:
             page.close()
             context.close()
 
-    def _query_ai_site(self, page: Page, site_config: dict[str, str], prompt: str) -> tuple[str, bool]:
+    def _query_ai_site(
+        self, page: Page, site_config: dict[str, str], prompt: str
+    ) -> tuple[str, bool]:
         """Helper function to interact with a single AI chat website."""
         try:
             page.goto(site_config["url"])
-            page.wait_for_selector(site_config["input_selector"], state="visible", timeout=20000)
+            page.wait_for_selector(
+                site_config["input_selector"], state="visible", timeout=20000
+            )
 
             # Use human-like typing
             self._human_like_type(page, site_config["input_selector"], prompt)
@@ -392,7 +439,9 @@ class PlaywrightBrowserAgent:
             )
 
             # Extract the text from the last message element
-            response_text = page.evaluate(f"Array.from(document.querySelectorAll('{site_config['output_selector']}')).pop()?.textContent")
+            response_text = page.evaluate(
+                f"Array.from(document.querySelectorAll('{site_config['output_selector']}')).pop()?.textContent"
+            )
 
             if response_text and response_text.strip():
                 return response_text.strip(), True

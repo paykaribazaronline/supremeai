@@ -14,10 +14,14 @@ class UpstashRedisQueue:
         token: str | None = None,
         timeout: float = 10.0,
     ) -> None:
-        self.rest_url = (rest_url or os.getenv("UPSTASH_REDIS_REST_URL", "")).rstrip("/")
+        self.rest_url = (rest_url or os.getenv("UPSTASH_REDIS_REST_URL", "")).rstrip(
+            "/"
+        )
         self.token = token or os.getenv("UPSTASH_REDIS_REST_TOKEN", "")
         self.timeout = timeout
-        self._client = httpx.Client(timeout=self.timeout) if self.rest_url and self.token else None
+        self._client = (
+            httpx.Client(timeout=self.timeout) if self.rest_url and self.token else None
+        )
 
     @property
     def configured(self) -> bool:
@@ -25,7 +29,9 @@ class UpstashRedisQueue:
 
     def _request(self, *args: str) -> dict[str, Any]:
         if not self._client:
-            raise RuntimeError("UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN are not configured")
+            raise RuntimeError(
+                "UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN are not configured"
+            )
         response = self._client.post(
             self.rest_url,
             headers={"Authorization": f"Bearer {self.token}"},

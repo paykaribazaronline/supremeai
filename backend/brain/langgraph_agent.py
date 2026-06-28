@@ -40,9 +40,13 @@ class SupremeOrchestrator:
         except Exception as exc:
             logger.warning(f"VPN rotation skipped: {exc}")
 
-    def run_autonomous(self, task_description: str, context: str | None = None) -> dict[str, Any]:
+    def run_autonomous(
+        self, task_description: str, context: str | None = None
+    ) -> dict[str, Any]:
         self._maybe_rotate_vpn("general")
-        run = self.autonomous_agent.run(task_description=task_description, context=context)
+        run = self.autonomous_agent.run(
+            task_description=task_description, context=context
+        )
         with contextlib.suppress(Exception):
             self.reasoning_orchestrator.episodic_memory.store_episode(
                 event_type="autonomous_run",
@@ -52,9 +56,13 @@ class SupremeOrchestrator:
             )
         return run
 
-    def route_reasoning(self, task_description: str, context: str | None = None) -> dict[str, Any]:
+    def route_reasoning(
+        self, task_description: str, context: str | None = None
+    ) -> dict[str, Any]:
         self._maybe_rotate_vpn("general")
-        return self.reasoning_orchestrator.route(task_description=task_description, context=context)
+        return self.reasoning_orchestrator.route(
+            task_description=task_description, context=context
+        )
 
     def execute_task(self, task: str, task_type: str = "general") -> dict[str, Any]:
         self._maybe_rotate_vpn(task_type)

@@ -64,7 +64,9 @@ class MedicalAgent:
         self.domain_adapter = DomainAdapter() if _DOMAIN_ADAPTER_AVAILABLE else None
         logger.info("Initialized MedicalAgent (disclaimer-first)")
 
-    def symptom_analysis(self, symptoms: str, age: int | None = None, medical_history: str | None = None) -> dict[str, Any]:
+    def symptom_analysis(
+        self, symptoms: str, age: int | None = None, medical_history: str | None = None
+    ) -> dict[str, Any]:
         context = f"Patient age: {age or 'unknown'}\nHistory: {medical_history or 'none provided'}"
         prompt = (
             "Given the following symptoms and context, provide a structured differential diagnosis "
@@ -112,10 +114,14 @@ class MedicalAgent:
         )
         return result
 
-    def _generate(self, prompt: str, context: str | None = None, action: str = "general") -> dict[str, Any]:
+    def _generate(
+        self, prompt: str, context: str | None = None, action: str = "general"
+    ) -> dict[str, Any]:
         if self.domain_adapter:
             try:
-                result = self.domain_adapter.adapt_request("medical", prompt, context=context)
+                result = self.domain_adapter.adapt_request(
+                    "medical", prompt, context=context
+                )
                 return {
                     "action": action,
                     "response": result.get("response", ""),

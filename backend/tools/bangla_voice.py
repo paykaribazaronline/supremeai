@@ -44,7 +44,9 @@ class BanglaVoice:
         except Exception as exc:  # pylint: disable=broad-except
             raise RuntimeError(f"Bangla STT failed: {exc}") from exc
 
-    def speak(self, text: str, output_path: str = "bangla_speech.mp3") -> BanglaVoiceResult:
+    def speak(
+        self, text: str, output_path: str = "bangla_speech.mp3"
+    ) -> BanglaVoiceResult:
         if not text:
             raise ValueError("Empty text")
         try:
@@ -79,6 +81,8 @@ class BanglaVoice:
             from TTS.api import TTS  # type: ignore
         except ImportError as exc:
             raise RuntimeError("Coqui TTS is not installed") from exc
-        tts = TTS(model_name="tts_models/bn/bn-IN/indic-tts-coqui-medium", progress_bar=False)
+        tts = TTS(
+            model_name="tts_models/bn/bn-IN/indic-tts-coqui-medium", progress_bar=False
+        )
         tts.tts_to_file(text=text, file_path=output_path)
         return BanglaVoiceResult(text=text, source="coqui", language="bn")

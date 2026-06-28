@@ -69,7 +69,9 @@ def test_browser_agent():
     agent = BrowserAgent()
     with patch("httpx.get") as mock_get:
         mock_resp = MagicMock()
-        mock_resp.text = "<html><title>Sample Site</title><body>Hello world</body></html>"
+        mock_resp.text = (
+            "<html><title>Sample Site</title><body>Hello world</body></html>"
+        )
         mock_resp.is_success = True
         mock_get.return_value = mock_resp
 

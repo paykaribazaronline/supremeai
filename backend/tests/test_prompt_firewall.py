@@ -180,14 +180,18 @@ async def test_pre_flight_check_llama_guard_violation(firewall_with_guard):
 
 @pytest.mark.anyio
 async def test_classify_intent_coding(firewall):
-    result = await firewall.classify_intent("Write a Python function to calculate fibonacci")
+    result = await firewall.classify_intent(
+        "Write a Python function to calculate fibonacci"
+    )
     assert result["intent"] == "coding"
     assert result["requires_expensive_model"] is True
 
 
 @pytest.mark.anyio
 async def test_classify_intent_reasoning(firewall):
-    result = await firewall.classify_intent("Analyze the logic and reason about this proof")
+    result = await firewall.classify_intent(
+        "Analyze the logic and reason about this proof"
+    )
     assert result["intent"] == "reasoning"
     assert result["requires_expensive_model"] is True
 
@@ -226,7 +230,13 @@ async def test_classify_intent_convenience():
 def test_local_patterns_database_loading():
     mock_db = MagicMock()
     mock_db.client = MagicMock()
-    mock_db.get_db_guardrails.return_value = [{"layer_name": "custom_injection", "rule_definition": {"patterns": [r"jailbreak_test"]}, "priority": 0}]
+    mock_db.get_db_guardrails.return_value = [
+        {
+            "layer_name": "custom_injection",
+            "rule_definition": {"patterns": [r"jailbreak_test"]},
+            "priority": 0,
+        }
+    ]
     with patch("database.supabase_client.db", mock_db):
         firewall = PromptFirewall()
         patterns = firewall._load_local_patterns()

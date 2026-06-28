@@ -52,5 +52,7 @@ async def update_config(
 async def get_configs_by_category(category: str):
     if not db.client:
         raise HTTPException(status_code=503, detail="Database not configured")
-    res = db.client.table("system_config").select("*").eq("category", category).execute()
+    res = (
+        db.client.table("system_config").select("*").eq("category", category).execute()
+    )
     return {"items": res.data or [], "total": len(res.data or [])}

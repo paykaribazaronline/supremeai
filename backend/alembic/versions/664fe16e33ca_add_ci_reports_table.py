@@ -5,17 +5,17 @@ Revises:
 Create Date: 2026-06-29 02:10:12.661696
 
 """
-from typing import Sequence, Union
+
+from collections.abc import Sequence
 
 from alembic import op
-import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = '664fe16e33ca'
-down_revision: Union[str, Sequence[str], None] = None
-branch_labels: Union[str, Sequence[str], None] = None
-depends_on: Union[str, Sequence[str], None] = None
+revision: str = "664fe16e33ca"
+down_revision: str | Sequence[str] | None = None
+branch_labels: str | Sequence[str] | None = None
+depends_on: str | Sequence[str] | None = None
 
 
 def upgrade() -> None:
@@ -41,7 +41,9 @@ def upgrade() -> None:
         """
     )
     op.execute("CREATE INDEX IF NOT EXISTS idx_ci_reports_run_id ON ci_reports(run_id)")
-    op.execute("CREATE INDEX IF NOT EXISTS idx_ci_reports_created ON ci_reports(created_at DESC)")
+    op.execute(
+        "CREATE INDEX IF NOT EXISTS idx_ci_reports_created ON ci_reports(created_at DESC)"
+    )
 
 
 def downgrade() -> None:

@@ -38,7 +38,11 @@ def test_verify_with_local_rag_with_matches():
     mock_rag = type(
         "MockRAG",
         (),
-        {"semantic_search": lambda self, q: {"matches": [{"title": "Doc1"}, {"title": "Doc2"}]}},
+        {
+            "semantic_search": lambda self, q: {
+                "matches": [{"title": "Doc1"}, {"title": "Doc2"}]
+            }
+        },
     )()
     verifier.local_rag = mock_rag
     result = verifier.verify_with_local_rag("test claim")
@@ -49,7 +53,9 @@ def test_verify_with_local_rag_with_matches():
 
 def test_verify_with_local_rag_no_matches():
     verifier = FactualVerifier()
-    mock_rag = type("MockRAG", (), {"semantic_search": lambda self, q: {"matches": []}})()
+    mock_rag = type(
+        "MockRAG", (), {"semantic_search": lambda self, q: {"matches": []}}
+    )()
     verifier.local_rag = mock_rag
     result = verifier.verify_with_local_rag("test claim")
     assert result["is_verified"] is True

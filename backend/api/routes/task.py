@@ -165,7 +165,9 @@ class ProblemDetailsResponse(JSONResponse):
             "instance": instance or "",
         }
         content.update(kwargs)
-        super().__init__(status_code=status, content=content, media_type="application/problem+json")
+        super().__init__(
+            status_code=status, content=content, media_type="application/problem+json"
+        )
 
 
 # --- Action Cards Helpers ---
@@ -212,7 +214,11 @@ def format_response(text: str, task_type: str) -> str:
                 "content": extract_code(text),
                 "metadata": {
                     "language": detect_language(text),
-                    "filename": ("index.html" if "html" in detect_language(text) else "component.tsx"),
+                    "filename": (
+                        "index.html"
+                        if "html" in detect_language(text)
+                        else "component.tsx"
+                    ),
                     "actions": [
                         {"id": "preview", "label": "👁️ Preview", "type": "preview"},
                         {"id": "save", "label": "💾 Save to Project", "type": "save"},
@@ -273,12 +279,18 @@ async def execute_task(req: TaskRequest, background_tasks: BackgroundTasks):
         raise HTTPException(status_code=403, detail=str(exc)) from exc
 
     # Offload heavy CPU-bound Intent classification to background thread pool
-    app_spec = await anyio.to_thread.run_sync(app_mod.intent_parser.parse_intent, req.task, req.messages)
+    app_spec = await anyio.to_thread.run_sync(
+        app_mod.intent_parser.parse_intent, req.task, req.messages
+    )
     intent = await anyio.to_thread.run_sync(intent_clf.classify, req.task)
 
     task_type = req.task_type
     if intent.task_type != "general" and req.task_type == "general":
-        task_type = intent.task_type.value if hasattr(intent.task_type, "value") else str(intent.task_type)
+        task_type = (
+            intent.task_type.value
+            if hasattr(intent.task_type, "value")
+            else str(intent.task_type)
+        )
 
     # Build prompt context if chat messages are provided
     prompt = format_unified_chat_prompt(req.task, req.messages)
@@ -286,7 +298,9 @@ async def execute_task(req: TaskRequest, background_tasks: BackgroundTasks):
     # --- True Vector Semantic Caching ---
     raw = None
     if semantic_cache:
-        cached_text = await semantic_cache.get_cached_inference(prompt=prompt, model_name=task_type)
+        cached_text = await semantic_cache.get_cached_inference(
+            prompt=prompt, model_name=task_type
+        )
         if cached_text:
             raw = {
                 "success": True,
@@ -303,7 +317,9 @@ async def execute_task(req: TaskRequest, background_tasks: BackgroundTasks):
         )
         if raw.get("success") and semantic_cache:
             with contextlib.suppress(Exception):
-                await semantic_cache.set_cache_inference(prompt=prompt, model_name=task_type, response_text=raw.get("text"))
+                await semantic_cache.set_cache_inference(
+                    prompt=prompt, model_name=task_type, response_text=raw.get("text")
+                )
 
     # Log to ExperienceDatabase in the background to improve user-perceived latency.
     exp = Experience(
@@ -325,7 +341,9 @@ async def execute_task(req: TaskRequest, background_tasks: BackgroundTasks):
         error_message=raw.get("error"),
         generated_code=raw.get("text") if ("```" in raw.get("text", "")) else None,
         what_worked=["Intent parsed successfully"] if raw.get("success") else [],
-        what_failed=([] if raw.get("success") else [str(raw.get("error", "Unknown error"))]),
+        what_failed=(
+            [] if raw.get("success") else [str(raw.get("error", "Unknown error"))]
+        ),
     )
     background_tasks.add_task(app_mod.experience_db.record_experience, exp)
 

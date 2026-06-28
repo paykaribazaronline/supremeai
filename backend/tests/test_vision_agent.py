@@ -45,7 +45,9 @@ def test_vision_agent_pdf_extraction():
         mock_pdf.pages = [mock_page]
 
         mock_plumber = MagicMock()
-        mock_plumber.open.return_value = MagicMock(__enter__=MagicMock(return_value=mock_pdf))
+        mock_plumber.open.return_value = MagicMock(
+            __enter__=MagicMock(return_value=mock_pdf)
+        )
 
         with patch.dict("sys.modules", {"pdfplumber": mock_plumber, "fitz": None}):
             agent = VisionAgent()

@@ -9,9 +9,7 @@ import json
 from datetime import datetime
 from datetime import timezone
 from typing import Any
-from typing import Dict
-from typing import List
-from typing import Optional
+
 from pydantic import BaseModel
 from pydantic import Field
 
@@ -25,24 +23,32 @@ def now_epoch() -> int:
 class CIReportPayload(BaseModel):
     run_id: int = Field(..., description="GitHub Actions workflow run ID")
     run_number: int = Field(..., description="GitHub Actions workflow run number")
-    event_name: str = Field(..., description="Trigger event name (push, pr, schedule, etc.)")
+    event_name: str = Field(
+        ..., description="Trigger event name (push, pr, schedule, etc.)"
+    )
     actor: str = Field(..., description="GHA runner user/actor who triggered the run")
     workflow_name: str = Field(..., description="Name of the workflow")
     status: str = Field(..., description="Status (success, failure, cancelled, etc.)")
     runtime_seconds: int = Field(..., description="Total execution time in seconds")
     commit_sha: str = Field(..., description="Commit SHA of the run")
     branch: str = Field(..., description="Branch name of the run")
-    jobs_summary: Optional[Dict[str, Any]] = Field(default=None, description="Detailed status of all GHA jobs run")
-    error_logs: Optional[str] = Field(default=None, description="Logs/error information for failed runs")
+    jobs_summary: dict[str, Any] | None = Field(
+        default=None, description="Detailed status of all GHA jobs run"
+    )
+    error_logs: str | None = Field(
+        default=None, description="Logs/error information for failed runs"
+    )
 
 
-async def create_ci_report(payload: CIReportPayload) -> Dict[str, Any] | None:
+async def create_ci_report(payload: CIReportPayload) -> dict[str, Any] | None:
     # বাংলা মন্তব্য: গিটহাব রানার থেকে পাঠানো ওয়েবহুক পেলোড ডাটাবেসে সেভ করার ফাংশন
     pool = await get_db_pool()
-    
+
     # JSONB ফিল্ড হিসেবে jobs_summary কনভার্ট করা হচ্ছে
-    jobs_summary_json = json.dumps(payload.jobs_summary) if payload.jobs_summary else None
-    
+    jobs_summary_json = (
+        json.dumps(payload.jobs_summary) if payload.jobs_summary else None
+    )
+
     row = await pool.fetchrow(
         """
         INSERT INTO ci_reports (
@@ -70,7 +76,7 @@ async def create_ci_report(payload: CIReportPayload) -> Dict[str, Any] | None:
         payload.branch,
         jobs_summary_json,
         payload.error_logs,
-        now_epoch()
+        now_epoch(),
     )
     if row:
         res = dict(row)
@@ -80,7 +86,7 @@ async def create_ci_report(payload: CIReportPayload) -> Dict[str, Any] | None:
     return None
 
 
-async def get_recent_ci_reports(limit: int = 20) -> List[Dict[str, Any]]:
+async def get_recent_ci_reports(limit: int = 20) -> list[dict[str, Any]]:
     # বাংলা মন্তব্য: ড্যাশবোর্ডে প্রদর্শনের জন্য সাম্প্রতিকতম সিআই রিপোর্টগুলো ফেচ করা হচ্ছে
     pool = await get_db_pool()
     rows = await pool.fetch(
@@ -91,7 +97,7 @@ async def get_recent_ci_reports(limit: int = 20) -> List[Dict[str, Any]]:
         ORDER BY created_at DESC
         LIMIT $1
         """,
-        limit
+        limit,
     )
     results = []
     for r in rows:
@@ -102,7 +108,7 @@ async def get_recent_ci_reports(limit: int = 20) -> List[Dict[str, Any]]:
     return results
 
 
-async def get_ci_report_by_run_id(run_id: int) -> Dict[str, Any] | None:
+async def get_ci_report_by_run_id(run_id: int) -> dict[str, Any] | None:
     # বাংলা মন্তব্য: নির্দিষ্ট রান আইডির জন্য ডাটাবেস থেকে রিপোর্ট খোঁজা হচ্ছে
     pool = await get_db_pool()
     row = await pool.fetchrow(
@@ -112,7 +118,7 @@ async def get_ci_report_by_run_id(run_id: int) -> Dict[str, Any] | None:
         FROM ci_reports
         WHERE run_id = $1
         """,
-        run_id
+        run_id,
     )
     if row:
         d = dict(row)

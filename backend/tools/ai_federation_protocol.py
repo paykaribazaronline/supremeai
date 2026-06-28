@@ -18,7 +18,9 @@ class AIFederationProtocol:
         self.task_history: list[dict[str, Any]] = []
         logger.info(f"Initialized AIFederationProtocol node: {self.node_id}")
 
-    def register_skill(self, skill_name: str, provider_node: str, metadata: dict[str, Any]) -> dict[str, Any]:
+    def register_skill(
+        self, skill_name: str, provider_node: str, metadata: dict[str, Any]
+    ) -> dict[str, Any]:
         skill_id = f"skill-{uuid.uuid4().hex[:8]}"
         entry = {
             "skill_id": skill_id,
@@ -40,7 +42,9 @@ class AIFederationProtocol:
                 matches.append(skill)
         return matches
 
-    async def delegate_task(self, target_node: str, task: dict[str, Any]) -> dict[str, Any]:
+    async def delegate_task(
+        self, target_node: str, task: dict[str, Any]
+    ) -> dict[str, Any]:
         task_id = task.get("task_id") or f"task-{uuid.uuid4().hex[:8]}"
         task.setdefault("task_id", task_id)
         task.setdefault("delegated_from", self.node_id)
@@ -69,7 +73,11 @@ class AIFederationProtocol:
             "node_id": self.node_id,
             "skills_registered": len(self.registry),
             "tasks_total": len(self.task_history),
-            "tasks_completed": sum(1 for t in self.task_history if t.get("status") == "completed"),
-            "tasks_pending": sum(1 for t in self.task_history if t.get("status") == "pending"),
+            "tasks_completed": sum(
+                1 for t in self.task_history if t.get("status") == "completed"
+            ),
+            "tasks_pending": sum(
+                1 for t in self.task_history if t.get("status") == "pending"
+            ),
             "peers": list({s.get("provider_node") for s in self.registry.values()}),
         }

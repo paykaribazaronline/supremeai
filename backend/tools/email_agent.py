@@ -15,7 +15,9 @@ class EmailAgent:
         self.connected = True
         return True
 
-    def connect_imap(self, host: str, port: int, username: str, app_password: str) -> bool:
+    def connect_imap(
+        self, host: str, port: int, username: str, app_password: str
+    ) -> bool:
         logger.info(f"Connecting to IMAP {host}:{port} for user {username}")
         self.auth_method = "imap"
         self.connected = True

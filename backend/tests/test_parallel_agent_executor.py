@@ -6,26 +6,24 @@ from tools.parallel_agent_executor import ParallelAgentExecutor
 
 # বাংলা মন্তব্য: প্যারালাল এজেন্ট এক্সিকিউটর টেস্ট করা হচ্ছে।
 
+
 @pytest.mark.anyio
 async def test_parallel_agent_execution_success():
     # বাংলা মন্তব্য: সমান্তরাল এক্সিকিউশন সফলভাবে সম্পন্ন হচ্ছে কিনা তা যাচাইয়ের টেস্ট।
     executor = ParallelAgentExecutor(max_concurrent_tasks=2)
-    
+
     async def mock_task_1():
         await asyncio.sleep(0.1)
         return "result1"
-        
+
     async def mock_task_2():
         await asyncio.sleep(0.1)
         return "result2"
 
-    tasks = {
-        "agent1": mock_task_1,
-        "agent2": mock_task_2
-    }
-    
+    tasks = {"agent1": mock_task_1, "agent2": mock_task_2}
+
     results = await executor.run_parallel(tasks)
-    
+
     assert results["agent1"]["status"] == "success"
     assert results["agent1"]["result"] == "result1"
     assert results["agent2"]["status"] == "success"
@@ -36,22 +34,19 @@ async def test_parallel_agent_execution_success():
 async def test_parallel_agent_execution_limit():
     # বাংলা মন্তব্য: সমান্তরাল এক্সিকিউশনের সর্বোচ্চ সীমা (limit) চেক টেস্ট।
     executor = ParallelAgentExecutor(max_concurrent_tasks=1)
-    
+
     async def mock_task_1():
         await asyncio.sleep(0.2)
         return "result1"
-        
+
     async def mock_task_2():
         await asyncio.sleep(0.2)
         return "result2"
 
-    tasks = {
-        "agent1": mock_task_1,
-        "agent2": mock_task_2
-    }
-    
+    tasks = {"agent1": mock_task_1, "agent2": mock_task_2}
+
     results = await executor.run_parallel(tasks)
-    
+
     # যেহেতু লিমিট ১, তাই একটি এজেন্ট স্কিপ হবে বা এরর দেখাবে।
     assert results["agent1"]["status"] == "success"
     assert results["agent2"]["status"] == "error"
@@ -89,7 +84,10 @@ async def test_mcp_aware_task_execution():
         }
     }
 
-    with unittest.mock.patch("tools.parallel_agent_executor.asyncio.to_thread", side_effect=lambda f, *a, **k: asyncio.to_thread(f, *a, **k)):
+    with unittest.mock.patch(
+        "tools.parallel_agent_executor.asyncio.to_thread",
+        side_effect=lambda f, *a, **k: asyncio.to_thread(f, *a, **k),
+    ):
         # Since we can't easily mock asyncio.to_thread here without breaking, just check task runs with params
         results = await executor.run_parallel(tasks)
         assert results["agent_mcp"]["status"] == "success"

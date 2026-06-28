@@ -82,7 +82,9 @@ class EvolutionSkillGraph:
                 for s_in in inputs:
                     s_in_type = s_in.get("type", "str")
                     if self.is_type_compatible(e_out_type, s_in_type):
-                        self.graph.add_edge(existing_id, skill_id, weight=1.0, type=s_in_type)
+                        self.graph.add_edge(
+                            existing_id, skill_id, weight=1.0, type=s_in_type
+                        )
 
             # Can skill_id feed into existing_id?
             existing_inputs = node_data.get("metadata", {}).get("inputs", [])
@@ -91,7 +93,9 @@ class EvolutionSkillGraph:
                 for e_in in existing_inputs:
                     e_in_type = e_in.get("type", "str")
                     if self.is_type_compatible(s_out_type, e_in_type):
-                        self.graph.add_edge(skill_id, existing_id, weight=1.0, type=e_in_type)
+                        self.graph.add_edge(
+                            skill_id, existing_id, weight=1.0, type=e_in_type
+                        )
 
     def remove_skill(self, skill_id: str) -> None:
         """Gracefully removes a skill and its associated edges and fallbacks."""
@@ -116,11 +120,15 @@ class EvolutionSkillGraph:
         if self.graph is None or nx is None:
             return []
         try:
-            path = nx.shortest_path(self.graph, source=start_skill, target=end_skill, weight="weight")
+            path = nx.shortest_path(
+                self.graph, source=start_skill, target=end_skill, weight="weight"
+            )
             return path
 
         except (nx.NetworkXNoPath, nx.NodeNotFound) as e:
-            logger.warning(f"No semantic path found between {start_skill} and {end_skill}: {e}")
+            logger.warning(
+                f"No semantic path found between {start_skill} and {end_skill}: {e}"
+            )
             return []
 
     def get_fallback(self, skill_id: str) -> str | None:

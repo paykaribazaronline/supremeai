@@ -23,11 +23,15 @@ class PRReviewer:
     def __init__(self, github_token: str = None):
         self.github_token = github_token or os.getenv("GITHUB_TOKEN")
         if not self.github_token:
-            logger.warning("GITHUB_TOKEN not found. PR reviewer will run in dry-run mode.")
+            logger.warning(
+                "GITHUB_TOKEN not found. PR reviewer will run in dry-run mode."
+            )
             self.gh = None
         else:
             if not _GITHUB_AVAILABLE:
-                raise ImportError("PyGithub is not installed. Please run 'pip install PyGithub'")
+                raise ImportError(
+                    "PyGithub is not installed. Please run 'pip install PyGithub'"
+                )
             self.gh = Github(self.github_token)
 
     async def analyze_diff(self, diff_content: str) -> list[dict[str, Any]]:
@@ -93,8 +97,9 @@ class PRReviewer:
         # বাংলা মন্তব্য: যদি ModelRouter উপলব্ধ থাকে, তবে আমরা এআই দিয়ে ডিফটি আরও গভীরভাবে বিশ্লেষণ করব।
         try:
             from brain.model_router import ModelRouter
+
             router = ModelRouter()
-            
+
             prompt = (
                 "You are an expert code reviewer. Analyze the following Git diff and identify potential bugs, "
                 "performance issues, or security flaws. Format your findings as a JSON list of objects, "
@@ -102,27 +107,31 @@ class PRReviewer:
                 "Do not return any markdown wrapping or text, just the raw JSON list.\n\n"
                 f"Diff:\n{diff_content[:4000]}"
             )
-            
-            result = await router.async_route_and_generate(prompt, task_type="coding", max_cost=0.03)
+
+            result = await router.async_route_and_generate(
+                prompt, task_type="coding", max_cost=0.03
+            )
             text = result.get("text", "") if isinstance(result, dict) else str(result)
-            
+
             cleaned = text.strip()
             if cleaned.startswith("```"):
                 cleaned = "\n".join(cleaned.splitlines()[1:])
             if cleaned.endswith("```"):
                 cleaned = "\n".join(cleaned.splitlines()[:-1])
-            
+
             try:
                 parsed = json.loads(cleaned)
                 if isinstance(parsed, list):
                     for item in parsed:
                         if isinstance(item, dict) and "body" in item:
-                            issues.append({
-                                "path": "unknown",
-                                "line": item.get("line", 0),
-                                "severity": item.get("severity", "low"),
-                                "body": item["body"]
-                            })
+                            issues.append(
+                                {
+                                    "path": "unknown",
+                                    "line": item.get("line", 0),
+                                    "severity": item.get("severity", "low"),
+                                    "body": item["body"],
+                                }
+                            )
             except Exception:
                 logger.warning("Failed to parse LLM response in PRReviewer.")
         except Exception as e:
@@ -157,26 +166,38 @@ class PRReviewer:
                     has_critical = True
 
             action = "REQUEST_CHANGES" if has_critical else "COMMENT"
-            
+
             # বাংলা মন্তব্য: রিভিউয়ের ফলাফল একটি কমেন্ট আকারে পুল রিকোয়েস্টে পোস্ট করা হচ্ছে।
             if comments:
                 summary_lines = ["### 🤖 AI Code Review Findings", ""]
                 for c in comments:
-                    sev_icon = "🔴" if c["severity"] == "critical" else ("🟡" if c["severity"] == "high" else "🔵")
-                    summary_lines.append(f"- {sev_icon} **[{c['severity'].upper()}]** in `{c['path']}`: {c['body']}")
-                
-                await self._post_pr_comment(repo_full_name, pr_number, "\n".join(summary_lines))
+                    sev_icon = (
+                        "🔴"
+                        if c["severity"] == "critical"
+                        else ("🟡" if c["severity"] == "high" else "🔵")
+                    )
+                    summary_lines.append(
+                        f"- {sev_icon} **[{c['severity'].upper()}]** in `{c['path']}`: {c['body']}"
+                    )
+
+                await self._post_pr_comment(
+                    repo_full_name, pr_number, "\n".join(summary_lines)
+                )
 
             return {"status": "success", "action_taken": action, "comments": comments}
         except Exception as e:
             logger.error(f"Error reviewing PR: {e}")
             return {"status": "error", "error": str(e), "comments": []}
 
-    async def _post_pr_comment(self, repo_full_name: str, pr_number: int, comment_body: str) -> dict[str, Any]:
+    async def _post_pr_comment(
+        self, repo_full_name: str, pr_number: int, comment_body: str
+    ) -> dict[str, Any]:
         """Posts a comment on a pull request."""
         # বাংলা মন্তব্য: গিটহাব এপিআই দিয়ে পিআর-এ রিভিউ কমেন্ট পোস্ট করা হচ্ছে।
         if not self.gh:
-            logger.warning(f"Dry-run: Would post to {repo_full_name}#{pr_number}: {comment_body}")
+            logger.warning(
+                f"Dry-run: Would post to {repo_full_name}#{pr_number}: {comment_body}"
+            )
             return {"status": "success", "comment_url": "dry-run-url"}
 
         try:
@@ -187,4 +208,3 @@ class PRReviewer:
         except Exception as e:
             logger.error(f"Failed to post comment to GitHub: {e}")
             return {"status": "error", "error": str(e)}
-

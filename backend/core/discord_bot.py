@@ -26,13 +26,17 @@ class SupremeDiscordBot(commands.Bot):
             return
 
         # Default fallback: Execute task via SupremeOrchestrator
-        logger.info(f"Discord Bot received message from {message.author}: '{message.content}'")
+        logger.info(
+            f"Discord Bot received message from {message.author}: '{message.content}'"
+        )
         task_type = "coding" if "code" in message.content.lower() else "general"
 
         async with message.channel.typing():
             try:
                 # CPU-bound task offloaded to non-blocking worker thread
-                result = await anyio.to_thread.run_sync(self.orchestrator.execute_task, message.content, task_type)
+                result = await anyio.to_thread.run_sync(
+                    self.orchestrator.execute_task, message.content, task_type
+                )
                 response = result.get("result", "Sorry, I encountered an error.")
                 if len(response) > 2000:
                     for i in range(0, len(response), 2000):

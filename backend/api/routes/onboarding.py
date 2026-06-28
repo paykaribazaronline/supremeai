@@ -106,7 +106,9 @@ async def complete_onboarding(payload: OnboardingPayload):
     2. Save user preferences (theme, model, language)
     3. Return readiness status
     """
-    logger.info(f"Onboarding completion request for user={payload.user_id} provider={payload.provider}")
+    logger.info(
+        f"Onboarding completion request for user={payload.user_id} provider={payload.provider}"
+    )
 
     # 1. Validate API key
     provider_valid = await _validate_api_key(payload.provider, payload.api_key)
@@ -156,10 +158,17 @@ async def get_onboarding_status(user_id: str) -> dict[str, Any]:
         from database.supabase_client import db
 
         if db.client:
-            res = db.client.table("user_preferences").select("*").eq("user_id", user_id).execute()
+            res = (
+                db.client.table("user_preferences")
+                .select("*")
+                .eq("user_id", user_id)
+                .execute()
+            )
             if res.data:
                 prefs = res.data[0]
-                completed_at = prefs.get("custom_shortcuts", {}).get("onboarding_completed_at")
+                completed_at = prefs.get("custom_shortcuts", {}).get(
+                    "onboarding_completed_at"
+                )
                 return {
                     "user_id": user_id,
                     "onboarding_complete": bool(completed_at),
@@ -167,7 +176,9 @@ async def get_onboarding_status(user_id: str) -> dict[str, Any]:
                     "preferences": {
                         "theme": prefs.get("theme", "dark"),
                         "default_model": prefs.get("default_model", ""),
-                        "language": prefs.get("custom_shortcuts", {}).get("language", "en"),
+                        "language": prefs.get("custom_shortcuts", {}).get(
+                            "language", "en"
+                        ),
                     },
                 }
     except Exception as exc:
@@ -183,7 +194,9 @@ async def reset_onboarding(user_id: str) -> dict[str, str]:
         from database.supabase_client import db
 
         if db.client:
-            db.client.table("user_preferences").delete().eq("user_id", user_id).execute()
+            db.client.table("user_preferences").delete().eq(
+                "user_id", user_id
+            ).execute()
     except Exception:
         pass
     return {"status": "reset", "user_id": user_id}

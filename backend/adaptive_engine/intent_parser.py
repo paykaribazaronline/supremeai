@@ -22,7 +22,9 @@ class IntentParser:
     def __init__(self, model_router: ModelRouter):
         self.model_router = model_router
 
-    def parse_intent(self, task: str, history: list[dict[str, str]] | None = None) -> AppSpecification:
+    def parse_intent(
+        self, task: str, history: list[dict[str, str]] | None = None
+    ) -> AppSpecification:
         # Construct the context prompt
         context_str = ""
         if history:
@@ -52,7 +54,9 @@ Return ONLY a JSON object (no markdown blocks, no text around it) with the follo
   "clarification_question": "optional question to clarify if intent is highly ambiguous, otherwise null"
 }}
 """
-        response = self.model_router.route_and_generate(prompt, task_type="general", max_cost=0.01)
+        response = self.model_router.route_and_generate(
+            prompt, task_type="general", max_cost=0.01
+        )
         text = response.get("text", "{}").strip()
 
         # Clean markdown code block wraps if LLM returns them

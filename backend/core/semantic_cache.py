@@ -38,7 +38,9 @@ class VectorSemanticCache:
             return 0.0
         return dot_product / (magnitude1 * magnitude2)
 
-    async def get_cached_inference(self, prompt: str, model_name: str, threshold: float = 0.95) -> str | None:
+    async def get_cached_inference(
+        self, prompt: str, model_name: str, threshold: float = 0.95
+    ) -> str | None:
         """প্রম্পটের অর্থ বিশ্লেষণ করে ৯৫% ম্যাচিং পেলে ক্যাশড রেসপন্স রিটার্ন করে"""
         try:
             # ১. Gemini Embedding API দিয়ে প্রম্পটের ভেক্টর জেনারেট করা (Lightweight & High-Accuracy)
@@ -62,7 +64,9 @@ class VectorSemanticCache:
                     # ৩. কসাইন সিমিলারিটি ক্যালকুলেট করা
                     score = self._cosine_similarity(query_vector, cached_vector)
                     if score >= threshold:
-                        logger.info(f"⚡ [SEMANTIC CACHE HIT] Score: {score:.4f}. Token saved for model {model_name}!")
+                        logger.info(
+                            f"⚡ [SEMANTIC CACHE HIT] Score: {score:.4f}. Token saved for model {model_name}!"
+                        )
                         return data.get("response_text")
 
             return None
@@ -70,7 +74,9 @@ class VectorSemanticCache:
             logger.error(f"⚠️ Semantic cache lookup failed silently: {str(e)}")
             return None
 
-    async def set_cache_inference(self, prompt: str, model_name: str, response_text: str):
+    async def set_cache_inference(
+        self, prompt: str, model_name: str, response_text: str
+    ):
         """ভবিষ্যতের ম্যাচিংয়ের জন্য রেসপন্স টেক্সট ভেক্টরসহ সেভ করে রাখা"""
         try:
             response = genai.embed_content(
@@ -91,9 +97,13 @@ class VectorSemanticCache:
                     "created_at": firestore.SERVER_TIMESTAMP,
                 }
             )
-            logger.info(f"💾 Successfully vectorized and cached new semantic context for {model_name}.")
+            logger.info(
+                f"💾 Successfully vectorized and cached new semantic context for {model_name}."
+            )
         except Exception as e:
-            logger.error(f"❌ Failed to write vector semantic cache to Firestore: {str(e)}")
+            logger.error(
+                f"❌ Failed to write vector semantic cache to Firestore: {str(e)}"
+            )
 
 
 class CacheEntry:
@@ -138,7 +148,9 @@ class SemanticCache:
                 data = doc.to_dict()
                 cached_vector = data.get("embedding")
                 if cached_vector:
-                    score = self._vector_cache._cosine_similarity(query_vector, cached_vector)
+                    score = self._vector_cache._cosine_similarity(
+                        query_vector, cached_vector
+                    )
                     if score >= threshold and score > best_score:
                         best_score = score
                         best_doc = data
@@ -178,6 +190,8 @@ class SemanticCache:
                     "created_at": firestore.SERVER_TIMESTAMP,
                 }
             )
-            logger.info(f"💾 Successfully cached new semantic context for {model} (provider={provider}).")
+            logger.info(
+                f"💾 Successfully cached new semantic context for {model} (provider={provider})."
+            )
         except Exception as e:
             logger.error(f"❌ SemanticCache set failed: {e}")

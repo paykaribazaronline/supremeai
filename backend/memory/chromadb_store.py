@@ -21,7 +21,9 @@ class ChromaDBStore:
     Provides add_document, add_documents, query, update, delete, and count APIs.
     """
 
-    def __init__(self, db_path: str = None, collection_name: str = "supremeai_knowledge"):
+    def __init__(
+        self, db_path: str = None, collection_name: str = "supremeai_knowledge"
+    ):
         if db_path is None:
             base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
             db_path = os.path.join(base_dir, "data", "chromadb_store")
@@ -95,7 +97,9 @@ class ChromaDBStore:
     # ------------------------------------------------------------------
     # CRUD
     # ------------------------------------------------------------------
-    def add_document(self, doc_id: str, text: str, metadata: dict[str, Any] = None) -> None:
+    def add_document(
+        self, doc_id: str, text: str, metadata: dict[str, Any] = None
+    ) -> None:
         self.add_documents([{"id": doc_id, "text": text, "metadata": metadata or {}}])
 
     def add_documents(self, documents: list[dict[str, Any]]) -> None:
@@ -127,18 +131,36 @@ class ChromaDBStore:
             }
         self._save_fallback()
 
-    def query(self, query_text: str, n_results: int = 5, where: dict[str, Any] = None) -> list[tuple[str, float, dict[str, Any]]]:
+    def query(
+        self, query_text: str, n_results: int = 5, where: dict[str, Any] = None
+    ) -> list[tuple[str, float, dict[str, Any]]]:
         if self._collection is not None:
             try:
-                results = self._collection.query(query_texts=[query_text], n_results=n_results)
+                results = self._collection.query(
+                    query_texts=[query_text], n_results=n_results
+                )
                 matches: list[tuple[str, float, dict[str, Any]]] = []
                 if results and results.get("ids") and results["ids"][0]:
                     for idx, doc_id in enumerate(results["ids"][0]):
-                        distance = results["distances"][0][idx] if results.get("distances") else 0.0
+                        distance = (
+                            results["distances"][0][idx]
+                            if results.get("distances")
+                            else 0.0
+                        )
                         score = float(1.0 - distance)
-                        meta = results["metadatas"][0][idx] if results.get("metadatas") else {}
-                        doc_text = results["documents"][0][idx] if results.get("documents") else ""
-                        matches.append((doc_id, score, {"text": doc_text, "metadata": meta}))
+                        meta = (
+                            results["metadatas"][0][idx]
+                            if results.get("metadatas")
+                            else {}
+                        )
+                        doc_text = (
+                            results["documents"][0][idx]
+                            if results.get("documents")
+                            else ""
+                        )
+                        matches.append(
+                            (doc_id, score, {"text": doc_text, "metadata": meta})
+                        )
                     return matches
             except Exception:
                 pass
@@ -176,7 +198,9 @@ class ChromaDBStore:
                     return {
                         "id": doc_id,
                         "text": result["documents"][0],
-                        "metadata": (result["metadatas"][0] if result.get("metadatas") else {}),
+                        "metadata": (
+                            result["metadatas"][0] if result.get("metadatas") else {}
+                        ),
                     }
             except Exception:
                 pass

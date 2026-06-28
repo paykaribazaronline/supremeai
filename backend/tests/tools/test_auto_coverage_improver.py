@@ -11,7 +11,9 @@ def improver():
     """Provides an instance of AutoCoverageImprover with mocked dependencies."""
     with (
         patch("backend.tools.auto_coverage_improver.CoverageAuditor") as MockAuditor,
-        patch("backend.tools.auto_coverage_improver.AutoTestGenerator") as MockGenerator,
+        patch(
+            "backend.tools.auto_coverage_improver.AutoTestGenerator"
+        ) as MockGenerator,
     ):
         improver_instance = AutoCoverageImprover()
         improver_instance.auditor = MockAuditor()
@@ -37,7 +39,9 @@ async def test_run_with_gaps(improver):
     assert report["status"] == "completed"
     assert report["gaps_found"] == 2
     assert report["tests_generated"] == 2
-    improver.auditor.find_gaps.assert_called_once_with("coverage.xml", min_coverage=80.0)
+    improver.auditor.find_gaps.assert_called_once_with(
+        "coverage.xml", min_coverage=80.0
+    )
     assert improver.generator.generate_and_save.call_count == 2
 
 
@@ -60,7 +64,9 @@ async def test_run_skips_non_existent_files(improver):
     """
     Tests that files that don't exist on disk are skipped.
     """
-    mock_gaps = [CoverageGap(file_path="src/non_existent.py", coverage=40.0, uncovered_lines=[1])]
+    mock_gaps = [
+        CoverageGap(file_path="src/non_existent.py", coverage=40.0, uncovered_lines=[1])
+    ]
     improver.auditor.find_gaps.return_value = mock_gaps
 
     with patch("os.path.exists", return_value=False):
@@ -77,7 +83,9 @@ async def test_run_with_dry_run_enabled(improver):
     """
     Tests that `run_tests` is False when `dry_run` is True.
     """
-    mock_gaps = [CoverageGap(file_path="src/module1.py", coverage=50.0, uncovered_lines=[10])]
+    mock_gaps = [
+        CoverageGap(file_path="src/module1.py", coverage=50.0, uncovered_lines=[10])
+    ]
     improver.auditor.find_gaps.return_value = mock_gaps
     improver.generator.generate_and_save = AsyncMock(return_value={"status": "success"})
 
@@ -85,4 +93,6 @@ async def test_run_with_dry_run_enabled(improver):
         await improver.run("coverage.xml", dry_run=True)
 
     # Check that generate_and_save was called with run_tests=False
-    improver.generator.generate_and_save.assert_called_once_with("src/module1.py", run_tests=False)
+    improver.generator.generate_and_save.assert_called_once_with(
+        "src/module1.py", run_tests=False
+    )

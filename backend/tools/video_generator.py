@@ -94,7 +94,9 @@ class VideoGenerator:
 
         if provider == "runway":
             if not self.runway_api_key:
-                logger.warning("Runway selected but RUNWAY_API_KEY is missing. Returning stub payload.")
+                logger.warning(
+                    "Runway selected but RUNWAY_API_KEY is missing. Returning stub payload."
+                )
                 return self._stub(prompt, duration, "runway", output_path=output_path)
             try:
                 return self._call_runway(prompt, duration)
@@ -109,11 +111,15 @@ class VideoGenerator:
                         output_path=output_path,
                         tried={*tried, "runway"},
                     )
-                return self._stub(prompt, duration, "runway", output_path=output_path, error=str(exc))
+                return self._stub(
+                    prompt, duration, "runway", output_path=output_path, error=str(exc)
+                )
 
         if provider == "kling":
             if not self.kling_api_key:
-                logger.warning("Kling selected but KLING_API_KEY is missing. Returning stub payload.")
+                logger.warning(
+                    "Kling selected but KLING_API_KEY is missing. Returning stub payload."
+                )
                 return self._stub(prompt, duration, "kling", output_path=output_path)
             try:
                 return self._call_kling(prompt, duration)
@@ -128,9 +134,13 @@ class VideoGenerator:
                         output_path=output_path,
                         tried={*tried, "kling"},
                     )
-                return self._stub(prompt, duration, "kling", output_path=output_path, error=str(exc))
+                return self._stub(
+                    prompt, duration, "kling", output_path=output_path, error=str(exc)
+                )
 
-        raise ValueError(f"Unknown provider: {provider!r}. Use 'runway', 'kling', or 'auto'.")
+        raise ValueError(
+            f"Unknown provider: {provider!r}. Use 'runway', 'kling', or 'auto'."
+        )
 
     @staticmethod
     def _stub(

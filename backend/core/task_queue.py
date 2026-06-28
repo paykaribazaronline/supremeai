@@ -27,7 +27,9 @@ if CELERY_AVAILABLE:
     )
 else:
     celery_app = None
-    logger.warning("Celery is not installed. Task queue running in synchronous fallback mode.")
+    logger.warning(
+        "Celery is not installed. Task queue running in synchronous fallback mode."
+    )
 
 
 # Task definitions

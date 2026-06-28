@@ -87,8 +87,15 @@ class LegalAgent:
                             "category": category,
                             "pattern": pat,
                             "line": line,
-                            "snippet": text[max(0, m.start() - 40) : m.end() + 40].strip(),
-                            "severity": ("high" if category in {"unlimited_liability", "indemnification"} else "medium"),
+                            "snippet": text[
+                                max(0, m.start() - 40) : m.end() + 40
+                            ].strip(),
+                            "severity": (
+                                "high"
+                                if category
+                                in {"unlimited_liability", "indemnification"}
+                                else "medium"
+                            ),
                         }
                     )
         return findings
@@ -107,7 +114,9 @@ class LegalAgent:
                 score -= 0.01
         return max(0.0, round(score, 2))
 
-    def _llm_summary(self, text: str, doc_type: str, risks: list[dict[str, Any]]) -> str:
+    def _llm_summary(
+        self, text: str, doc_type: str, risks: list[dict[str, Any]]
+    ) -> str:
         if self.domain_adapter:
             summary_prompt = (
                 f"Analyze this {doc_type}. First state the disclaimer. "

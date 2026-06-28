@@ -19,14 +19,18 @@ class ModelTrainer:
             self.provider = "local"
         logger.info(f"Initialized ModelTrainer with provider {self.provider}")
 
-    async def trigger_lora_finetune(self, dataset_path: str, base_model: str = "llama3-8b") -> dict[str, Any]:
+    async def trigger_lora_finetune(
+        self, dataset_path: str, base_model: str = "llama3-8b"
+    ) -> dict[str, Any]:
         if not os.path.exists(dataset_path):
             # Ensure the directory exists
             os.makedirs(os.path.dirname(dataset_path) or ".", exist_ok=True)
             with open(dataset_path, "w") as f:
                 f.write('{"prompt": "hello", "completion": "world"}')
 
-        logger.info(f"Triggering {base_model} LoRA fine-tune on {self.provider} using {dataset_path}")
+        logger.info(
+            f"Triggering {base_model} LoRA fine-tune on {self.provider} using {dataset_path}"
+        )
         job_id = f"ft-job-{uuid.uuid4().hex[:8]}"
 
         if self.provider == "runpod":

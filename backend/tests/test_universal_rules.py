@@ -81,7 +81,9 @@ def test_apply_rules_no_cost_field_not_blocked():
 def test_load_rules_from_existing_file():
     with tempfile.TemporaryDirectory() as tmpdir:
         rules_path = os.path.join(tmpdir, "admin_rules.json")
-        custom = {"directions": {"count": 3, "names": ["A", "B", "C"], "description": "test"}}
+        custom = {
+            "directions": {"count": 3, "names": ["A", "B", "C"], "description": "test"}
+        }
         with open(rules_path, "w", encoding="utf-8") as f:
             json.dump(custom, f)
         engine = UniversalRulesEngine(rules_path=rules_path)

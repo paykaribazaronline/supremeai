@@ -12,7 +12,9 @@ class EvolutionEngine:
 
     def __init__(self, db_path: str | None = None):
         base = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        self.db_path = db_path or os.getenv("EVOLUTION_DB_PATH", os.path.join(base, "data", "evolution.db"))
+        self.db_path = db_path or os.getenv(
+            "EVOLUTION_DB_PATH", os.path.join(base, "data", "evolution.db")
+        )
         os.makedirs(os.path.dirname(str(self.db_path)), exist_ok=True)
         self._ensure_schema()
 
@@ -62,7 +64,9 @@ class EvolutionEngine:
         finally:
             conn.close()
 
-    def learn_from_success(self, task: str, approach: str, result: str) -> dict[str, Any]:
+    def learn_from_success(
+        self, task: str, approach: str, result: str
+    ) -> dict[str, Any]:
         created_at = datetime.now(timezone.utc).isoformat()
         try:
             from database.supabase_client import db
@@ -88,7 +92,9 @@ class EvolutionEngine:
         finally:
             conn.close()
 
-    def learn_from_failure(self, task: str, approach: str, result: str) -> dict[str, Any]:
+    def learn_from_failure(
+        self, task: str, approach: str, result: str
+    ) -> dict[str, Any]:
         created_at = datetime.now(timezone.utc).isoformat()
         try:
             from database.supabase_client import db
@@ -114,7 +120,9 @@ class EvolutionEngine:
         finally:
             conn.close()
 
-    def detect_repeated_failures(self, min_occurrences: int = 3) -> list[dict[str, Any]]:
+    def detect_repeated_failures(
+        self, min_occurrences: int = 3
+    ) -> list[dict[str, Any]]:
         try:
             from database.supabase_client import db
 
@@ -190,7 +198,9 @@ class EvolutionEngine:
         finally:
             conn.close()
 
-    def record_feedback(self, session_id: str, query: str, retrieved_chunks: str, user_rating: float) -> dict[str, Any]:
+    def record_feedback(
+        self, session_id: str, query: str, retrieved_chunks: str, user_rating: float
+    ) -> dict[str, Any]:
         created_at = datetime.now(timezone.utc).isoformat()
         try:
             from database.supabase_client import db
@@ -232,7 +242,11 @@ class EvolutionEngine:
             "total_tasks_processed": total,
             "success_rate": success_rate,
             "repeated_failures": len(failures),
-            "optimizations": (["Increase RAG context depth to reduce hallucination."] if success_rate < 95 else []),
+            "optimizations": (
+                ["Increase RAG context depth to reduce hallucination."]
+                if success_rate < 95
+                else []
+            ),
             "new_skills_proposed": new_skills,
         }
         try:

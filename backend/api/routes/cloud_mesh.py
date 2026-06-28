@@ -6,17 +6,20 @@ from loguru import logger
 from pydantic import BaseModel
 
 
-# For this demo/implementation we use dummy functions that would hook into actual services 
+# For this demo/implementation we use dummy functions that would hook into actual services
 # (e.g. GCP, Cloudflare, Upstash, OpenAI keys manager).
 
 router = APIRouter(prefix="/api/admin/cloud-mesh", tags=["cloud-mesh"])
 
+
 class CloudNodeTarget(BaseModel):
     target_node: str
+
 
 class DefconPayload(BaseModel):
     level: int
     reason: str
+
 
 # 1. Kill Switch
 @router.post("/kill-switch")
@@ -33,28 +36,34 @@ async def kill_switch(payload: CloudNodeTarget):
         "action": "kill_switch",
         "node": node,
         "message": f"Traffic to {node} has been redirected. Traffic allocation is now 0%.",
-        "timestamp": time.time()
+        "timestamp": time.time(),
     }
+
 
 # 2. DEFCON 1
 @router.post("/defcon")
 async def set_defcon(payload: DefconPayload):
     """
-    Elevates system security level. DEFCON 1 enables strict WAF rules and puts 
+    Elevates system security level. DEFCON 1 enables strict WAF rules and puts
     the system into maintenance mode, locking out non-admin traffic.
     """
     if payload.level not in [1, 2, 3, 4, 5]:
-        raise HTTPException(status_code=400, detail="Invalid DEFCON level. Must be 1-5.")
-    
-    logger.warning(f"Setting system to DEFCON {payload.level}. Reason: {payload.reason}")
+        raise HTTPException(
+            status_code=400, detail="Invalid DEFCON level. Must be 1-5."
+        )
+
+    logger.warning(
+        f"Setting system to DEFCON {payload.level}. Reason: {payload.reason}"
+    )
     # Integration with WAF, API gateway limits, and system global states.
     return {
         "status": "success",
         "action": "defcon_update",
         "level": payload.level,
         "message": f"System updated to DEFCON {payload.level}. Strict WAF rules applied.",
-        "timestamp": time.time()
+        "timestamp": time.time(),
     }
+
 
 # 3. Purge Cache
 @router.post("/purge-cache")
@@ -68,8 +77,9 @@ async def purge_cache():
         "status": "success",
         "action": "purge_cache",
         "message": "Global semantic cache has been successfully purged.",
-        "timestamp": time.time()
+        "timestamp": time.time(),
     }
+
 
 # 4. Rotate Keys
 @router.post("/rotate-keys")
@@ -85,5 +95,5 @@ async def rotate_keys(payload: CloudNodeTarget):
         "action": "rotate_keys",
         "provider": provider,
         "message": f"API keys for {provider} have been rotated successfully.",
-        "timestamp": time.time()
+        "timestamp": time.time(),
     }

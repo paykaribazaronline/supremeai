@@ -14,7 +14,9 @@ class CoverageGap:
 
 
 class CoverageAuditor:
-    def find_gaps(self, report_path: str, min_coverage: float = 80.0) -> list[CoverageGap]:
+    def find_gaps(
+        self, report_path: str, min_coverage: float = 80.0
+    ) -> list[CoverageGap]:
         if not os.path.exists(report_path):
             logger.warning(f"Coverage report not found: {report_path}")
             return []
@@ -46,7 +48,11 @@ class CoverageAuditor:
                 if not file_path:
                     continue
 
-                uncovered_lines = [int(line.get("number")) for line in class_node.findall(".//line") if line.get("hits") == "0"]
+                uncovered_lines = [
+                    int(line.get("number"))
+                    for line in class_node.findall(".//line")
+                    if line.get("hits") == "0"
+                ]
                 gaps.append(
                     CoverageGap(
                         file_path=file_path,
@@ -69,7 +75,9 @@ class CoverageAuditor:
 
                 lines_pct = summary.get("lines", {}).get("pct", 100.0)
                 if lines_pct < min_coverage:
-                    uncovered_lines = summary.get("uncovered_lines", []) or summary.get("lines", {}).get("uncovered_lines", [])
+                    uncovered_lines = summary.get("uncovered_lines", []) or summary.get(
+                        "lines", {}
+                    ).get("uncovered_lines", [])
                     gaps.append(
                         CoverageGap(
                             file_path=file_path,

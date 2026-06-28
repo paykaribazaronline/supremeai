@@ -25,21 +25,27 @@ class HFImageGenerator:
         """
         model = model or self.default_model
         if not self.api_key:
-            logger.warning("HF_API_KEY is not set. Image generation will fall back to mock mode.")
+            logger.warning(
+                "HF_API_KEY is not set. Image generation will fall back to mock mode."
+            )
             return self._mock_generation(prompt, output_path)
 
         headers = {"Authorization": f"Bearer {self.api_key}"}
         url = f"https://api-inference.huggingface.co/models/{model}"
 
         try:
-            logger.info(f"Generating image via HF Model '{model}' with prompt: {prompt}")
+            logger.info(
+                f"Generating image via HF Model '{model}' with prompt: {prompt}"
+            )
             with httpx.Client(timeout=60.0) as client:
                 res = client.post(url, headers=headers, json={"inputs": prompt})
 
                 # Check for model loading
                 if res.status_code == 503:
                     estimated_time = res.json().get("estimated_time", 20.0)
-                    logger.warning(f"HF Model is loading. Estimated time: {estimated_time}s. Retrying once...")
+                    logger.warning(
+                        f"HF Model is loading. Estimated time: {estimated_time}s. Retrying once..."
+                    )
                     import time
 
                     time.sleep(estimated_time)
@@ -49,7 +55,9 @@ class HFImageGenerator:
                 image_data = res.content
 
                 # Ensure directories exist
-                os.makedirs(os.path.dirname(os.path.abspath(output_path)), exist_ok=True)
+                os.makedirs(
+                    os.path.dirname(os.path.abspath(output_path)), exist_ok=True
+                )
                 with open(output_path, "wb") as f:
                     f.write(image_data)
 
@@ -61,10 +69,14 @@ class HFImageGenerator:
                     "mock": False,
                 }
         except Exception as e:
-            logger.error(f"HuggingFace image generation failed: {e}. Falling back to mock generation.")
+            logger.error(
+                f"HuggingFace image generation failed: {e}. Falling back to mock generation."
+            )
             return self._mock_generation(prompt, output_path, error=str(e))
 
-    def _mock_generation(self, prompt: str, output_path: str, error: str | None = None) -> dict[str, Any]:
+    def _mock_generation(
+        self, prompt: str, output_path: str, error: str | None = None
+    ) -> dict[str, Any]:
         """Creates a placeholder image if API is offline or key is missing."""
         try:
             from PIL import Image

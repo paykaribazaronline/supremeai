@@ -53,7 +53,9 @@ class CloudVectorStore:
             logger.error(f"Vector upsert failed: {e}")
             return False
 
-    def query(self, vector: list[float], top_k: int = 5, namespace: str = "default") -> list[dict]:
+    def query(
+        self, vector: list[float], top_k: int = 5, namespace: str = "default"
+    ) -> list[dict]:
         """Query similar vectors."""
         if not self.index:
             return []

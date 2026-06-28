@@ -23,11 +23,15 @@ class LocalOCRExtractor:
             logger.error(f"OCR failed: {exc}")
             return {"success": False, "error": str(exc), "text": ""}
 
-    def parse_to_rows(self, text: str, columns: list[str] | None = None) -> dict[str, Any]:
+    def parse_to_rows(
+        self, text: str, columns: list[str] | None = None
+    ) -> dict[str, Any]:
         try:
             rows: list[dict[str, Any]] = []
             for raw_line in text.splitlines():
-                cells = [cell.strip() for cell in raw_line.strip().strip("|").split("|")]
+                cells = [
+                    cell.strip() for cell in raw_line.strip().strip("|").split("|")
+                ]
                 if columns:
                     if len(cells) == len(columns):
                         rows.append(dict(zip(columns, cells, strict=False)))

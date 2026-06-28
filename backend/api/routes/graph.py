@@ -16,11 +16,13 @@ from tools.graph_service import GraphService
 router = APIRouter(prefix="/api/v1/graph", tags=["knowledge-graph"])
 graph_service = GraphService()
 
+
 # বাংলা মন্তব্য: কাস্টম অথরাইজেশন ডিপেন্ডেন্সি হেল্পার
-async def require_auth_token(current_user = Depends(optional_current_user)):
+async def require_auth_token(current_user=Depends(optional_current_user)):
     if os.getenv("SUPREMEAI_API_TOKEN") and current_user is None:
         raise HTTPException(status_code=401, detail="Not authenticated")
     return current_user or {"user_id": "dummy_user"}
+
 
 @router.get("/skills", response_model=dict[str, list[dict[str, Any]]])
 async def get_skill_graph(user=Depends(require_auth_token)):
@@ -33,14 +35,30 @@ async def get_skill_graph(user=Depends(require_auth_token)):
         if graph_service.dry_run:
             return {
                 "nodes": [
-                    {"id": "python", "data": {"label": "Python", "category": "Language"}},
-                    {"id": "fastapi", "data": {"label": "FastAPI", "category": "Framework"}},
-                    {"id": "redis", "data": {"label": "Redis", "category": "Database"}}
+                    {
+                        "id": "python",
+                        "data": {"label": "Python", "category": "Language"},
+                    },
+                    {
+                        "id": "fastapi",
+                        "data": {"label": "FastAPI", "category": "Framework"},
+                    },
+                    {"id": "redis", "data": {"label": "Redis", "category": "Database"}},
                 ],
                 "edges": [
-                    {"id": "e1", "source": "python", "target": "fastapi", "label": "PREREQUISITE"},
-                    {"id": "e2", "source": "fastapi", "target": "redis", "label": "INTEGRATES_WITH"}
-                ]
+                    {
+                        "id": "e1",
+                        "source": "python",
+                        "target": "fastapi",
+                        "label": "PREREQUISITE",
+                    },
+                    {
+                        "id": "e2",
+                        "source": "fastapi",
+                        "target": "redis",
+                        "label": "INTEGRATES_WITH",
+                    },
+                ],
             }
 
         # রিয়েল ডাটাবেস থেকে ফেচ করার লজিক (Cypher Query)
@@ -50,45 +68,61 @@ async def get_skill_graph(user=Depends(require_auth_token)):
                 "RETURN n, r, m LIMIT 100"
             )
             records = await result.data()
-            
+
             nodes_dict = {}
             edges = []
-            
+
             for record in records:
                 n = record.get("n")
                 if n and n.get("id") not in nodes_dict:
-                    nodes_dict[n.get("id")] = {"id": n.get("id"), "data": {"label": n.get("name"), "category": n.get("category")}}
-                
+                    nodes_dict[n.get("id")] = {
+                        "id": n.get("id"),
+                        "data": {"label": n.get("name"), "category": n.get("category")},
+                    }
+
                 m = record.get("m")
                 r = record.get("r")
                 if m and r:
                     if m.get("id") not in nodes_dict:
-                        nodes_dict[m.get("id")] = {"id": m.get("id"), "data": {"label": m.get("name"), "category": m.get("category")}}
-                    edges.append({
-                        "id": f"{n.get('id')}-{m.get('id')}",
-                        "source": n.get("id"),
-                        "target": m.get("id"),
-                        "label": type(r).__name__
-                    })
+                        nodes_dict[m.get("id")] = {
+                            "id": m.get("id"),
+                            "data": {
+                                "label": m.get("name"),
+                                "category": m.get("category"),
+                            },
+                        }
+                    edges.append(
+                        {
+                            "id": f"{n.get('id')}-{m.get('id')}",
+                            "source": n.get("id"),
+                            "target": m.get("id"),
+                            "label": type(r).__name__,
+                        }
+                    )
 
             return {"nodes": list(nodes_dict.values()), "edges": edges}
 
     except Exception as e:
         logger.error(f"Error fetching skill graph: {str(e)}")
-        raise HTTPException(status_code=500, detail="Failed to fetch knowledge graph") from e
+        raise HTTPException(
+            status_code=500, detail="Failed to fetch knowledge graph"
+        ) from e
 
 
 @router.get("/path")
 async def get_learning_path(
     start_skill: str = Query(..., description="Starting skill name"),
     end_skill: str = Query(..., description="Target skill name"),
-    user=Depends(require_auth_token)
+    user=Depends(require_auth_token),
 ):
     """বাংলা মন্তব্য: দুটি স্কিলের মধ্যে অপ্টিমাইজড লার্নিং পাথ বের করবে।"""
     try:
         path = await graph_service.get_skill_path(start_skill, end_skill)
         if not path:
-            raise HTTPException(status_code=404, detail=f"No path found between {start_skill} and {end_skill}")
+            raise HTTPException(
+                status_code=404,
+                detail=f"No path found between {start_skill} and {end_skill}",
+            )
         return {"path": path}
     except Exception as e:
         logger.error(f"Error finding path: {str(e)}")

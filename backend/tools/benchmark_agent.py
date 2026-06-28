@@ -37,7 +37,9 @@ class BenchmarkAgent:
 
     def __init__(self):
         if not _DEPENDENCIES_AVAILABLE:
-            raise ImportError("BenchmarkAgent requires ModelRouter and Supabase client.")
+            raise ImportError(
+                "BenchmarkAgent requires ModelRouter and Supabase client."
+            )
         self.model_router = ModelRouter()
         self.db_client = db.client
         logger.info("Initialized BenchmarkAgent")

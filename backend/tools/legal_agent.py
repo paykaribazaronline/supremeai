@@ -4,7 +4,9 @@ from loguru import logger
 
 
 class LegalAgent:
-    async def generate_document(self, doc_type: str, context: dict[str, str]) -> dict[str, Any]:
+    async def generate_document(
+        self, doc_type: str, context: dict[str, str]
+    ) -> dict[str, Any]:
         logger.info(f"Generating legal document: {doc_type}")
         company = context.get("company_name", "[Company Name]")
         effective_date = context.get("effective_date", "[Date]")

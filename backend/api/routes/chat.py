@@ -21,7 +21,9 @@ class ChatPayload(BaseModel):
 
 # ⚡ ১. Fully Async Standard Completion with Multi-Layer Caching
 @router.post("/get_completion")
-async def get_completion(request: Request, payload: ChatPayload, db=Depends(get_tenant_db)):
+async def get_completion(
+    request: Request, payload: ChatPayload, db=Depends(get_tenant_db)
+):
     """Non-blocking Async LLM Completion with 5-Layer Caching"""
     logger.info(f"⚡ Async API Hit: Generating completion for tenant: {db.tenant_id}")
 
@@ -29,7 +31,9 @@ async def get_completion(request: Request, payload: ChatPayload, db=Depends(get_
     session_id = request.headers.get("X-Session-ID")
 
     # Check multi-layer cache first
-    cached_result = await multi_layer_cache.get(prompt=payload.prompt, model_name=payload.model_name, session_id=session_id)
+    cached_result = await multi_layer_cache.get(
+        prompt=payload.prompt, model_name=payload.model_name, session_id=session_id
+    )
 
     if cached_result:
         logger.info(f"🚀 CACHE HIT: {cached_result['source']}")

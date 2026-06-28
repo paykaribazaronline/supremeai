@@ -87,7 +87,12 @@ async def _db_list_tenants() -> list[dict[str, Any]]:
     client = _get_db()
     if client:
         try:
-            res = client.table("tenant_limits").select("*").order("created_at", desc=True).execute()
+            res = (
+                client.table("tenant_limits")
+                .select("*")
+                .order("created_at", desc=True)
+                .execute()
+            )
             return res.data or []
         except Exception as exc:
             logger.warning(f"Supabase tenant list failed: {exc}")
@@ -98,7 +103,12 @@ async def _db_get_tenant(tenant_id: str) -> dict[str, Any] | None:
     client = _get_db()
     if client:
         try:
-            res = client.table("tenant_limits").select("*").eq("tenant_id", tenant_id).execute()
+            res = (
+                client.table("tenant_limits")
+                .select("*")
+                .eq("tenant_id", tenant_id)
+                .execute()
+            )
             return res.data[0] if res.data else None
         except Exception as exc:
             logger.warning(f"Supabase tenant get failed: {exc}")
@@ -112,7 +122,9 @@ async def _db_upsert_tenant(data: dict[str, Any]) -> bool:
     client = _get_db()
     if client:
         try:
-            client.table("tenant_limits").upsert(data, on_conflict="tenant_id").execute()
+            client.table("tenant_limits").upsert(
+                data, on_conflict="tenant_id"
+            ).execute()
             return True
         except Exception as exc:
             logger.warning(f"Supabase tenant upsert failed: {exc}")
@@ -208,7 +220,9 @@ async def list_tenants(include_usage: bool = True):
     if include_usage:
         import asyncio
 
-        usages = await asyncio.gather(*[_get_tenant_usage(t["tenant_id"]) for t in tenants])
+        usages = await asyncio.gather(
+            *[_get_tenant_usage(t["tenant_id"]) for t in tenants]
+        )
         usage_map = {u["tenant_id"]: u for u in usages}
     else:
         usage_map = {}
@@ -227,7 +241,9 @@ async def create_tenant(payload: TenantLimitCreate):
     """Create a new tenant with rate limits."""
     existing = await _db_get_tenant(payload.tenant_id)
     if existing:
-        raise HTTPException(status_code=409, detail=f"Tenant '{payload.tenant_id}' already exists")
+        raise HTTPException(
+            status_code=409, detail=f"Tenant '{payload.tenant_id}' already exists"
+        )
 
     tier = payload.billing_tier if payload.billing_tier in TIER_DEFAULTS else "free"
     defaults = TIER_DEFAULTS[tier]
@@ -236,9 +252,12 @@ async def create_tenant(payload: TenantLimitCreate):
         "tenant_id": payload.tenant_id,
         "org_name": payload.org_name,
         "billing_tier": tier,
-        "requests_per_minute": payload.requests_per_minute or defaults["requests_per_minute"],
-        "max_tokens_per_day": payload.max_tokens_per_day or defaults["max_tokens_per_day"],
-        "max_concurrent_sessions": payload.max_concurrent_sessions or defaults["max_concurrent_sessions"],
+        "requests_per_minute": payload.requests_per_minute
+        or defaults["requests_per_minute"],
+        "max_tokens_per_day": payload.max_tokens_per_day
+        or defaults["max_tokens_per_day"],
+        "max_concurrent_sessions": payload.max_concurrent_sessions
+        or defaults["max_concurrent_sessions"],
         "stripe_customer_id": payload.stripe_customer_id,
         "notes": payload.notes,
         "is_active": True,
@@ -361,7 +380,9 @@ async def reset_usage(tenant_id: str):
     if client:
         try:
             today = time.strftime("%Y-%m-%d")
-            client.table("tenant_usage").delete().eq("tenant_id", tenant_id).eq("date", today).execute()
+            client.table("tenant_usage").delete().eq("tenant_id", tenant_id).eq(
+                "date", today
+            ).execute()
             return {"status": "reset", "tenant_id": tenant_id, "source": "supabase"}
         except Exception as exc:
             logger.warning(f"Supabase reset failed: {exc}")

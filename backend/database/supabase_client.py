@@ -15,7 +15,8 @@ class SupabaseDB:
 
     def __init__(self):
         self.url = os.environ.get("SUPABASE_URL") or self._derive_supabase_url(
-            os.environ.get("SUPABASE_DATABASE_URL") or os.environ.get("SUPABASE_DATABASE_URL_POOLER")
+            os.environ.get("SUPABASE_DATABASE_URL")
+            or os.environ.get("SUPABASE_DATABASE_URL_POOLER")
         )
         self.key = os.environ.get("SUPABASE_KEY")
         self.client: Client | None = None
@@ -27,7 +28,9 @@ class SupabaseDB:
             except Exception as e:
                 logger.error(f"Failed to initialize Supabase client: {e}")
         else:
-            logger.warning("SUPABASE_URL or SUPABASE_KEY not found. Running in offline/mock mode.")
+            logger.warning(
+                "SUPABASE_URL or SUPABASE_KEY not found. Running in offline/mock mode."
+            )
 
     @staticmethod
     def _derive_supabase_url(database_url: str | None) -> str | None:
@@ -268,7 +271,9 @@ class SupabaseDB:
         db_url = os.environ.get("SUPABASE_DATABASE_URL")
         pooler_url = os.environ.get("SUPABASE_DATABASE_URL_POOLER")
         if not db_url and not pooler_url:
-            logger.error("SUPABASE_DATABASE_URL or SUPABASE_DATABASE_URL_POOLER is required for schema bootstrap.")
+            logger.error(
+                "SUPABASE_DATABASE_URL or SUPABASE_DATABASE_URL_POOLER is required for schema bootstrap."
+            )
             return
 
         statements = self.get_bootstrap_statements()
@@ -290,13 +295,21 @@ class SupabaseDB:
                     conn.close()
                 logger.info(
                     "Supabase schema bootstrap completed using %s.",
-                    "SUPABASE_DATABASE_URL_POOLER" if candidate_url == pooler_url else "SUPABASE_DATABASE_URL",
+                    (
+                        "SUPABASE_DATABASE_URL_POOLER"
+                        if candidate_url == pooler_url
+                        else "SUPABASE_DATABASE_URL"
+                    ),
                 )
                 return
             except Exception as e:
                 logger.warning(
                     "Supabase schema bootstrap failed for %s: %s",
-                    "SUPABASE_DATABASE_URL_POOLER" if candidate_url == pooler_url else "SUPABASE_DATABASE_URL",
+                    (
+                        "SUPABASE_DATABASE_URL_POOLER"
+                        if candidate_url == pooler_url
+                        else "SUPABASE_DATABASE_URL"
+                    ),
                     e,
                 )
 
@@ -307,7 +320,11 @@ class SupabaseDB:
 
     def _is_schema_cache_error(self, error: Exception) -> bool:
         message = str(error) if error is not None else ""
-        return "Could not find the table" in message or "PGRST205" in message or "schema cache" in message.lower()
+        return (
+            "Could not find the table" in message
+            or "PGRST205" in message
+            or "schema cache" in message.lower()
+        )
 
     def _execute_response_with_retry(self, operation, fallback=None):
         try:
@@ -337,7 +354,12 @@ class SupabaseDB:
         if not self.client:
             return None
         try:
-            res = self.client.table("system_config").select("value").eq("key", key).execute()
+            res = (
+                self.client.table("system_config")
+                .select("value")
+                .eq("key", key)
+                .execute()
+            )
             if res.data:
                 return res.data[0].get("value")
             return None
@@ -349,7 +371,9 @@ class SupabaseDB:
         if not self.client:
             return
         try:
-            self.client.table("system_config").upsert({"key": key, "value": value, "category": category}).execute()
+            self.client.table("system_config").upsert(
+                {"key": key, "value": value, "category": category}
+            ).execute()
         except Exception as e:
             logger.error(f"Failed to set config '{key}': {e}")
 
@@ -358,12 +382,21 @@ class SupabaseDB:
         if not self.client:
             return False
         try:
-            res = self.client.table("feature_flags").select("*").eq("feature_name", feature_name).execute()
+            res = (
+                self.client.table("feature_flags")
+                .select("*")
+                .eq("feature_name", feature_name)
+                .execute()
+            )
             if res.data:
                 flag = res.data[0]
                 if not flag.get("enabled", False):
                     return False
-                if user_id and flag.get("allowed_users") and user_id in flag["allowed_users"]:
+                if (
+                    user_id
+                    and flag.get("allowed_users")
+                    and user_id in flag["allowed_users"]
+                ):
                     return True
                 # Real implementation would hash user_id against rollout_percentage here
                 return True
@@ -373,7 +406,9 @@ class SupabaseDB:
             return False
 
     # --- GitHub Repos ---
-    def add_github_repo(self, repo_name: str, owner: str, description: str = "", language: str = ""):
+    def add_github_repo(
+        self, repo_name: str, owner: str, description: str = "", language: str = ""
+    ):
         if not self.client:
             return
         try:
@@ -393,7 +428,13 @@ class SupabaseDB:
         if not self.client:
             return None
         try:
-            res = self.client.table("ai_model_behavior").select("*").eq("model_name", model_name).single().execute()
+            res = (
+                self.client.table("ai_model_behavior")
+                .select("*")
+                .eq("model_name", model_name)
+                .single()
+                .execute()
+            )
             if res.data:
                 return res.data
             return None
@@ -418,7 +459,12 @@ class SupabaseDB:
         if not self.client:
             return None
         try:
-            res = self.client.table("user_preferences").select("*").eq("user_id", user_id).execute()
+            res = (
+                self.client.table("user_preferences")
+                .select("*")
+                .eq("user_id", user_id)
+                .execute()
+            )
             if res.data:
                 return res.data[0]
             return None
@@ -440,7 +486,12 @@ class SupabaseDB:
         if not self.client:
             return []
         try:
-            res = self.client.table("system_config").select("*").eq("category", category).execute()
+            res = (
+                self.client.table("system_config")
+                .select("*")
+                .eq("category", category)
+                .execute()
+            )
             return res.data or []
         except Exception as e:
             logger.error(f"Failed to fetch configs by category '{category}': {e}")
@@ -474,7 +525,10 @@ class SupabaseDB:
         if not self.client:
             return []
         rows = self._execute_response_with_retry(
-            lambda: self.client.table("task_history").select("*").eq("success", False).execute(),
+            lambda: self.client.table("task_history")
+            .select("*")
+            .eq("success", False)
+            .execute(),
             fallback=[],
         )
         rows = rows or []
@@ -489,8 +543,12 @@ class SupabaseDB:
                     "last_failed": row.get("created_at"),
                 }
             groups[key]["failures"] += 1
-            groups[key]["last_failed"] = max(groups[key]["last_failed"], row.get("created_at"))
-        return [value for value in groups.values() if value["failures"] >= min_occurrences]
+            groups[key]["last_failed"] = max(
+                groups[key]["last_failed"], row.get("created_at")
+            )
+        return [
+            value for value in groups.values() if value["failures"] >= min_occurrences
+        ]
 
     def insert_skill_proposal(
         self,
@@ -554,7 +612,13 @@ class SupabaseDB:
         if not self.client:
             return []
         try:
-            res = self.client.table("evolution_logs").select("*").order("created_at", desc=True).limit(limit).execute()
+            res = (
+                self.client.table("evolution_logs")
+                .select("*")
+                .order("created_at", desc=True)
+                .limit(limit)
+                .execute()
+            )
             return res.data or []
         except Exception as e:
             logger.debug(f"Supabase get_evolution_logs failed: {e}")
@@ -617,7 +681,13 @@ class SupabaseDB:
         if not self.client:
             return []
         try:
-            res = self.client.table("guardrails").select("*").eq("is_active", True).order("priority", desc=False).execute()
+            res = (
+                self.client.table("guardrails")
+                .select("*")
+                .eq("is_active", True)
+                .order("priority", desc=False)
+                .execute()
+            )
             return res.data or []
         except Exception as e:
             logger.error(f"Failed to fetch active guardrails: {e}")
@@ -638,7 +708,13 @@ class SupabaseDB:
         if not self.client:
             return []
         try:
-            res = self.client.table("provider_configs").select("*").eq("is_active", True).order("priority", desc=False).execute()
+            res = (
+                self.client.table("provider_configs")
+                .select("*")
+                .eq("is_active", True)
+                .order("priority", desc=False)
+                .execute()
+            )
             return res.data or []
         except Exception as e:
             logger.error(f"Failed to fetch active provider configs: {e}")

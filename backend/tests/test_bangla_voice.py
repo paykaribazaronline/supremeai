@@ -44,7 +44,9 @@ def test_bangla_voice_speak_gtts():
     mock_tts_obj = MagicMock()
     mock_gtts.gTTS.return_value = mock_tts_obj
 
-    with patch("tools.bangla_voice.BanglaVoice._check_tts_available", return_value=False), patch.dict("sys.modules", {"gtts": mock_gtts}):
+    with patch(
+        "tools.bangla_voice.BanglaVoice._check_tts_available", return_value=False
+    ), patch.dict("sys.modules", {"gtts": mock_gtts}):
         voice = BanglaVoice()
         res = voice.speak("কেমন আছেন?", "output.mp3")
         assert res.text == "কেমন আছেন?"
@@ -65,4 +67,6 @@ def test_bangla_voice_speak_coqui():
         res = voice.speak("শুভ সকাল", "output.mp3")
         assert res.text == "শুভ সকাল"
         assert res.source == "coqui"
-        mock_tts_obj.tts_to_file.assert_called_with(text="শুভ সকাল", file_path="output.mp3")
+        mock_tts_obj.tts_to_file.assert_called_with(
+            text="শুভ সকাল", file_path="output.mp3"
+        )

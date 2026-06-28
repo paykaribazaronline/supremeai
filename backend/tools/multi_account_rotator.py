@@ -20,7 +20,9 @@ from typing import Any
 
 
 # Configure logging
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+)
 logger = logging.getLogger(__name__)
 
 
@@ -144,7 +146,9 @@ class MultiAccountRotator:
         self.task_preferences: dict[TaskType, list[str]] = {}
         self.load_config()
 
-    async def _wait_for_verification(self, email: str, timeout: int = 10) -> dict[str, Any] | None:
+    async def _wait_for_verification(
+        self, email: str, timeout: int = 10
+    ) -> dict[str, Any] | None:
         # Try Firestore first
         try:
             from google.cloud import firestore
@@ -186,7 +190,9 @@ class MultiAccountRotator:
                     conn = sqlite3.connect(db_path)
                     conn.row_factory = sqlite3.Row
                     cursor = conn.cursor()
-                    cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='verification_queue'")
+                    cursor.execute(
+                        "SELECT name FROM sqlite_master WHERE type='table' AND name='verification_queue'"
+                    )
                     if cursor.fetchone():
                         cursor.execute(
                             "SELECT * FROM verification_queue WHERE email_target = ? AND processed = 0 ORDER BY timestamp DESC LIMIT 1",
@@ -217,7 +223,9 @@ class MultiAccountRotator:
         3. Wait for the Firebase Function to catch the email
         4. Retrieve the code and finalize the account
         """
-        logger.info(f"[SUPREME-AI] Initiating autonomous identity creation for {provider_name}")
+        logger.info(
+            f"[SUPREME-AI] Initiating autonomous identity creation for {provider_name}"
+        )
 
         import random
 
@@ -280,32 +288,50 @@ class MultiAccountRotator:
                     await page.click('button[id="signup-button"]')
                     logger.info(f"[SUPREME-AI] Submitted signup form for {new_email}")
                 except Exception as form_err:
-                    logger.warning(f"[SUPREME-AI] Form filling warning/error (continuing): {form_err}")
+                    logger.warning(
+                        f"[SUPREME-AI] Form filling warning/error (continuing): {form_err}"
+                    )
 
                 # Wait for verification (Firestore with SQLite fallback)
-                verification_data = await self._wait_for_verification(new_email, timeout=10)
+                verification_data = await self._wait_for_verification(
+                    new_email, timeout=10
+                )
 
                 if verification_data:
-                    logger.info(f"[SUPREME-AI] Verification data received for {new_email}!")
+                    logger.info(
+                        f"[SUPREME-AI] Verification data received for {new_email}!"
+                    )
 
                     try:
                         if verification_data.get("code"):
                             otp_code = verification_data["code"]
-                            logger.info(f"[SUPREME-AI] OTP code: {otp_code}. Attempting to enter OTP.")
+                            logger.info(
+                                f"[SUPREME-AI] OTP code: {otp_code}. Attempting to enter OTP."
+                            )
                             await page.fill('input[id="otp-code"]', otp_code)
                             await page.click('button[id="verify-otp-button"]')
-                            logger.info("[SUPREME-AI] Entered OTP and submitted for verification.")
+                            logger.info(
+                                "[SUPREME-AI] Entered OTP and submitted for verification."
+                            )
                         elif verification_data.get("link"):
                             verification_link = verification_data["link"]
-                            logger.info(f"[SUPREME-AI] Verification link: {verification_link}. Navigating to link.")
+                            logger.info(
+                                f"[SUPREME-AI] Verification link: {verification_link}. Navigating to link."
+                            )
                             await page.goto(verification_link)
                             logger.info("[SUPREME-AI] Navigated to verification link.")
                     except Exception as verify_err:
-                        logger.warning(f"[SUPREME-AI] Verification filling warning/error (continuing): {verify_err}")
+                        logger.warning(
+                            f"[SUPREME-AI] Verification filling warning/error (continuing): {verify_err}"
+                        )
 
                     with contextlib.suppress(Exception):
-                        await page.wait_for_selector("text=Account Created Successfully", timeout=2000)
-                    logger.info(f"[SUPREME-AI] Account creation confirmed for {new_email}.")
+                        await page.wait_for_selector(
+                            "text=Account Created Successfully", timeout=2000
+                        )
+                    logger.info(
+                        f"[SUPREME-AI] Account creation confirmed for {new_email}."
+                    )
 
                     # Add to rotator registry
                     account_id = f"{provider_name}-{random.getrandbits(16)}"
@@ -322,8 +348,16 @@ class MultiAccountRotator:
                     if provider_name not in self.providers:
                         self.providers[provider_name] = Provider(
                             name=provider_name,
-                            base_url=("https://api.openai.com/v1" if provider_name == "openai" else "https://api.groq.com/openai/v1"),
-                            models=(["gpt-4"] if provider_name == "openai" else ["llama-3.3-70b-versatile"]),
+                            base_url=(
+                                "https://api.openai.com/v1"
+                                if provider_name == "openai"
+                                else "https://api.groq.com/openai/v1"
+                            ),
+                            models=(
+                                ["gpt-4"]
+                                if provider_name == "openai"
+                                else ["llama-3.3-70b-versatile"]
+                            ),
                             rate_limit_rpm=60,
                             rate_limit_tpm=40000,
                             accounts=[],
@@ -333,10 +367,14 @@ class MultiAccountRotator:
                     self.save_config()
                     return True
                 else:
-                    logger.error(f"[SUPREME-AI] No verification data received for {new_email} within timeout.")
+                    logger.error(
+                        f"[SUPREME-AI] No verification data received for {new_email} within timeout."
+                    )
                     return False
             except Exception as e:
-                logger.error(f"[SUPREME-AI] Playwright automation failed for {provider_name}: {e}")
+                logger.error(
+                    f"[SUPREME-AI] Playwright automation failed for {provider_name}: {e}"
+                )
                 return False
             finally:
                 await browser.close()
@@ -455,7 +493,9 @@ class MultiAccountRotator:
             self._create_provider_if_missing(provider_name)
 
         if provider_name not in self.providers:
-            raise ValueError(f"Provider {provider_name} not found even after creation attempt")
+            raise ValueError(
+                f"Provider {provider_name} not found even after creation attempt"
+            )
 
         provider = self.providers[provider_name]
 
@@ -520,7 +560,9 @@ class MultiAccountRotator:
         self.providers[provider_name] = provider
         logger.info(f"Created missing provider: {provider_name}")
 
-    def get_best_provider_for_task(self, task_type: TaskType, requirements: dict = None) -> tuple[Provider, Account] | None:
+    def get_best_provider_for_task(
+        self, task_type: TaskType, requirements: dict = None
+    ) -> tuple[Provider, Account] | None:
         """Get the best provider and account for a specific task"""
         logger.info(f"Looking for provider/account for task: {task_type}")
 
@@ -546,7 +588,9 @@ class MultiAccountRotator:
         logger.info(f"Mapped task key: {task_key}")
 
         if task_key not in self.task_preferences:
-            logger.warning(f"No task preferences found for {task_key}, using all providers")
+            logger.warning(
+                f"No task preferences found for {task_key}, using all providers"
+            )
             # Default to first available
             preferred_providers = list(self.providers.keys())
         else:
@@ -566,14 +610,20 @@ class MultiAccountRotator:
                 continue
 
             available_accounts = provider.get_available_accounts()
-            logger.info(f"Provider {provider_name} has {len(available_accounts)} available accounts")
+            logger.info(
+                f"Provider {provider_name} has {len(available_accounts)} available accounts"
+            )
 
             account = provider.get_best_account()
             if account:
-                logger.info(f"Selected account {account.id} for provider {provider_name}")
+                logger.info(
+                    f"Selected account {account.id} for provider {provider_name}"
+                )
                 # Check if meets requirements
                 if self._meets_requirements(provider, account, requirements):
-                    logger.info(f"Account meets requirements, returning {provider_name}/{account.id}")
+                    logger.info(
+                        f"Account meets requirements, returning {provider_name}/{account.id}"
+                    )
                     return provider, account
             else:
                 logger.warning(f"No best account found for provider {provider_name}")
@@ -581,7 +631,9 @@ class MultiAccountRotator:
         logger.error("No available provider/account found")
         return None
 
-    def _meets_requirements(self, provider: Provider, account: Account, requirements: dict) -> bool:
+    def _meets_requirements(
+        self, provider: Provider, account: Account, requirements: dict
+    ) -> bool:
         """Check if provider/account meets specific requirements"""
         # Check cost requirements
         if "max_cost_per_token" in requirements:
@@ -589,7 +641,10 @@ class MultiAccountRotator:
                 return False
 
         # Check model requirements
-        if "required_model" in requirements and requirements["required_model"] not in provider.models:
+        if (
+            "required_model" in requirements
+            and requirements["required_model"] not in provider.models
+        ):
             return False
 
         # Check speed requirements (rough estimate)
@@ -599,7 +654,9 @@ class MultiAccountRotator:
 
         return True
 
-    async def execute_task(self, task_type: TaskType, prompt: str, **kwargs) -> dict | None:
+    async def execute_task(
+        self, task_type: TaskType, prompt: str, **kwargs
+    ) -> dict | None:
         """Execute a task using the best available provider/account"""
         provider_account = self.get_best_provider_for_task(task_type, kwargs)
 
@@ -632,7 +689,9 @@ class MultiAccountRotator:
             # Try failover to another account/provider
             return await self._failover_execute(task_type, prompt, **kwargs)
 
-    async def _call_api(self, provider: Provider, account: Account, prompt: str, **kwargs) -> str:
+    async def _call_api(
+        self, provider: Provider, account: Account, prompt: str, **kwargs
+    ) -> str:
         """Make actual API call (placeholder implementation)"""
         # This would contain the actual API integration code
         # For now, return a mock response
@@ -649,7 +708,9 @@ class MultiAccountRotator:
         else:
             return f"Response from {provider.name}: {prompt[:50]}..."
 
-    async def _failover_execute(self, task_type: TaskType, prompt: str, **kwargs) -> dict | None:
+    async def _failover_execute(
+        self, task_type: TaskType, prompt: str, **kwargs
+    ) -> dict | None:
         """Execute task with failover logic"""
         # Try other providers/accounts
         tried_providers = set()
@@ -685,7 +746,9 @@ class MultiAccountRotator:
     def get_system_status(self) -> dict:
         """Get comprehensive system status"""
         total_accounts = sum(len(p.accounts) for p in self.providers.values())
-        active_accounts = sum(len(p.get_available_accounts()) for p in self.providers.values())
+        active_accounts = sum(
+            len(p.get_available_accounts()) for p in self.providers.values()
+        )
 
         provider_status = {}
         for name, provider in self.providers.items():
@@ -713,7 +776,9 @@ class MultiAccountRotator:
             "total_providers": len(self.providers),
             "total_accounts": total_accounts,
             "active_accounts": active_accounts,
-            "system_health": ((active_accounts / total_accounts * 100) if total_accounts > 0 else 0),
+            "system_health": (
+                (active_accounts / total_accounts * 100) if total_accounts > 0 else 0
+            ),
             "providers": provider_status,
         }
 
@@ -746,7 +811,9 @@ async def main():
     for task_type, prompt in tasks:
         result = await rotator.execute_task(task_type, prompt)
         if result:
-            print(f"✅ {task_type.value}: {result['provider']} - {result['result'][:100]}...")
+            print(
+                f"✅ {task_type.value}: {result['provider']} - {result['result'][:100]}..."
+            )
         else:
             print(f"❌ {task_type.value}: Failed to execute")
 

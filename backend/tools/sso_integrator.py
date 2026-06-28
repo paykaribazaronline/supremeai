@@ -21,7 +21,9 @@ class SSOIntegrator:
     def __init__(self, saml_settings: dict[str, Any] | None = None):
         self.saml_settings = saml_settings or {}
         self.onelogin = self._load_onelogin()
-        logger.info(f"Initialized SSOIntegrator (python-saml={'loaded' if self.onelogin else 'fallback'})")
+        logger.info(
+            f"Initialized SSOIntegrator (python-saml={'loaded' if self.onelogin else 'fallback'})"
+        )
 
     def _load_onelogin(self):
         try:
@@ -37,10 +39,16 @@ class SSOIntegrator:
     def _prepare_request(self, request_data: dict[str, Any]) -> dict[str, Any]:
         if self.onelogin:
             return {
-                "https": ("on" if self.saml_settings.get("sp_entity_id", "").startswith("https") else "off"),
+                "https": (
+                    "on"
+                    if self.saml_settings.get("sp_entity_id", "").startswith("https")
+                    else "off"
+                ),
                 "http_host": self.saml_settings.get("sp_entity_id", "") or "localhost",
                 "script_name": self.saml_settings.get("acs_url", ""),
-                "get_data": parse_qs(urlparse(self.saml_settings.get("query_string", "")).query),
+                "get_data": parse_qs(
+                    urlparse(self.saml_settings.get("query_string", "")).query
+                ),
                 "post_data": request_data.get("post_data", {}),
             }
         return request_data
@@ -72,7 +80,9 @@ class SSOIntegrator:
                 logger.error(f"SSO URL generation failed: {exc}")
         return self.saml_settings.get("idp_sso_url", "")
 
-    async def process_sso_response(self, post_data: dict[str, Any], relay_state: str | None = None) -> dict[str, Any]:
+    async def process_sso_response(
+        self, post_data: dict[str, Any], relay_state: str | None = None
+    ) -> dict[str, Any]:
         if self.onelogin:
             try:
                 settings_obj = self._build_settings()
@@ -101,7 +111,12 @@ class SSOIntegrator:
                         [],
                     )
                     or attributes.get("groups", [])
-                    or [v for k, v in attributes.items() if "group" in k.lower() for v in (v if isinstance(v, list) else [v])]
+                    or [
+                        v
+                        for k, v in attributes.items()
+                        if "group" in k.lower()
+                        for v in (v if isinstance(v, list) else [v])
+                    ]
                 )
                 roles = self.map_roles(groups)
                 return {
@@ -159,7 +174,9 @@ class SSOIntegrator:
                 internal_roles.append(role)
         return internal_roles or ["viewer"]
 
-    def get_logout_url(self, request: dict[str, Any] | None = None, relay_state: str | None = None) -> str:
+    def get_logout_url(
+        self, request: dict[str, Any] | None = None, relay_state: str | None = None
+    ) -> str:
         if self.onelogin:
             try:
                 settings_obj = self._build_settings()
@@ -187,12 +204,18 @@ class SSOIntegrator:
             "strict": False,
             "debug": True,
             "sp": {
-                "entityId": self.saml_settings.get("sp_entity_id", "https://supremeai.com/metadata"),
+                "entityId": self.saml_settings.get(
+                    "sp_entity_id", "https://supremeai.com/metadata"
+                ),
                 "assertionConsumerService": {
-                    "url": self.saml_settings.get("acs_url", "https://supremeai.com/acs"),
+                    "url": self.saml_settings.get(
+                        "acs_url", "https://supremeai.com/acs"
+                    ),
                 },
                 "singleLogoutService": {
-                    "url": self.saml_settings.get("sls_url", "https://supremeai.com/sls"),
+                    "url": self.saml_settings.get(
+                        "sls_url", "https://supremeai.com/sls"
+                    ),
                 },
                 "NameIDFormat": "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress",
                 "x509cert": self.saml_settings.get("sp_x509_cert", ""),
@@ -212,7 +235,9 @@ class SSOIntegrator:
             },
         }
         if self.onelogin:
-            return self._OneLogin_Saml2_Settings(settings=settings_dict, security=self.saml_settings.get("security", {}))
+            return self._OneLogin_Saml2_Settings(
+                settings=settings_dict, security=self.saml_settings.get("security", {})
+            )
         return settings_dict
 
     def _fallback_metadata(self) -> str:
@@ -325,7 +350,9 @@ class SSOIntegrator:
             logger.error(f"OIDC code exchange failed: {exc}")
             return {"status": "error", "message": str(exc)}
 
-    async def process_oidc_response(self, provider: str, code: str, state: str) -> dict[str, Any]:
+    async def process_oidc_response(
+        self, provider: str, code: str, state: str
+    ) -> dict[str, Any]:
         """Convenience wrapper: exchange code, fetch userinfo, map roles."""
         client_id = self.saml_settings.get("oidc_client_id", "")
         client_secret = self.saml_settings.get("oidc_client_secret", "")

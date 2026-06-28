@@ -38,7 +38,9 @@ class GenerationMonitor:
         claims = self.flag_factual_claims(text)
         unattributed = []
         for claim in claims:
-            surrounding_text = text[max(0, claim["position"][0] - 100) : claim["position"][1] + 100]
+            surrounding_text = text[
+                max(0, claim["position"][0] - 100) : claim["position"][1] + 100
+            ]
             if not re.search(r"\[Source:\s*\w+\]", surrounding_text):
                 unattributed.append(claim)
         return {
@@ -50,9 +52,15 @@ class GenerationMonitor:
         has_contradictions = False
         contradictions = []
         for prev in conversation_history[-5:]:
-            if "not" in new_text.lower() and "not" not in prev.lower() and len(set(new_text.split()) & set(prev.split())) > 5:
+            if (
+                "not" in new_text.lower()
+                and "not" not in prev.lower()
+                and len(set(new_text.split()) & set(prev.split())) > 5
+            ):
                 has_contradictions = True
-                contradictions.append(f"Potential contradiction between: '{new_text}' and '{prev}'")
+                contradictions.append(
+                    f"Potential contradiction between: '{new_text}' and '{prev}'"
+                )
         return {
             "has_contradictions": has_contradictions,
             "contradictions": contradictions,

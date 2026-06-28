@@ -165,10 +165,14 @@ class ProviderBudget:
         if time.time() < self._paused_until:
             return False
         if self._rpm_window.count >= self.limits["rpm"]:
-            logger.warning(f"[FreeTier] {self.provider} RPM limit reached ({self.limits['rpm']})")
+            logger.warning(
+                f"[FreeTier] {self.provider} RPM limit reached ({self.limits['rpm']})"
+            )
             return False
         if self._tpm_window.token_sum >= self.limits["tpm"]:
-            logger.warning(f"[FreeTier] {self.provider} TPM limit reached ({self.limits['tpm']})")
+            logger.warning(
+                f"[FreeTier] {self.provider} TPM limit reached ({self.limits['tpm']})"
+            )
             return False
         if self._rpd_window.count >= self.limits["rpd"]:
             logger.warning(
@@ -197,7 +201,9 @@ class ProviderBudget:
             "rpd_limit": self.limits["rpd"],
             "rpd_remaining": max(0, self.limits["rpd"] - self._rpd_window.count),
             "available": self.is_available(),
-            "paused_until": (self._paused_until if self._paused_until > time.time() else None),
+            "paused_until": (
+                self._paused_until if self._paused_until > time.time() else None
+            ),
             "rpd_resets_in_seconds": self._rpd_window.seconds_until_oldest_expires(),
         }
 
@@ -265,7 +271,8 @@ class FreeTierTracker:
             logger.debug(f"Failed to fetch provider configs from Supabase: {e}")
 
         self._budgets: dict[str, ProviderBudget] = {
-            provider: ProviderBudget(provider, provider_limits) for provider, provider_limits in limits.items()
+            provider: ProviderBudget(provider, provider_limits)
+            for provider, provider_limits in limits.items()
         }
 
     # ------------------------------------------------------------------
@@ -335,7 +342,9 @@ class FreeTierTracker:
 
     def get_status(self) -> dict[str, Any]:
         """Return full usage status for all providers (for admin dashboard)."""
-        statuses = {provider: budget.remaining() for provider, budget in self._budgets.items()}
+        statuses = {
+            provider: budget.remaining() for provider, budget in self._budgets.items()
+        }
         available_providers = [p for p, s in statuses.items() if s["available"]]
         return {
             "available_providers": available_providers,
@@ -361,7 +370,9 @@ class FreeTierTracker:
 _tracker: FreeTierTracker | None = None
 
 
-def get_tracker(custom_limits: dict[str, dict[str, int]] | None = None) -> FreeTierTracker:
+def get_tracker(
+    custom_limits: dict[str, dict[str, int]] | None = None
+) -> FreeTierTracker:
     """Return the module-level singleton FreeTierTracker."""
     global _tracker
     if _tracker is None:
