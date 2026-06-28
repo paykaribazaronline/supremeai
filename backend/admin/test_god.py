@@ -1,15 +1,16 @@
 import asyncio
-import os
 import sys
-import time
-from unittest.mock import patch, MagicMock
-from loguru import logger
+from unittest.mock import patch
+
 import pytest
+
 from backend.admin.god import AdminGodLayer
+
 
 @pytest.fixture
 def admin_god_layer():
     return AdminGodLayer()
+
 
 class TestAdminGodLayer:
     def test_init_db_path(self):
@@ -22,10 +23,10 @@ class TestAdminGodLayer:
         # Test initializing AdminGodLayer without db_path
         admin_god_layer = AdminGodLayer()
         assert admin_god_layer.collection_name == "constitutional_rules"
-        if 'pytest' in sys.modules:
+        if "pytest" in sys.modules:
             assert admin_god_layer._db is None
 
-    @patch('backend.admin.god.firestore')
+    @patch("backend.admin.god.firestore")
     def test_init_db_with_firestore(self, mock_firestore):
         # Test initializing AdminGodLayer with Firestore
         mock_db = mock_firestore.Client()
@@ -36,12 +37,12 @@ class TestAdminGodLayer:
 
     def test_init_db_no_firestore(self):
         # Test initializing AdminGodLayer without Firestore
-        with patch('backend.admin.god.firestore', None):
+        with patch("backend.admin.god.firestore", None):
             admin_god_layer = AdminGodLayer()
             admin_god_layer._init_db()
             assert admin_god_layer._db is None
 
-    @patch('backend.admin.god.firestore')
+    @patch("backend.admin.god.firestore")
     def test_get_rule(self, mock_firestore):
         # Test getting a rule
         mock_db = mock_firestore.Client()
@@ -54,7 +55,7 @@ class TestAdminGodLayer:
         rule = admin_god_layer.get_rule("test_key")
         assert rule == "test_value"
 
-    @patch('backend.admin.god.firestore')
+    @patch("backend.admin.god.firestore")
     def test_get_rule_not_found(self, mock_firestore):
         # Test getting a rule that is not found
         mock_db = mock_firestore.Client()
@@ -66,7 +67,7 @@ class TestAdminGodLayer:
         rule = admin_god_layer.get_rule("test_key")
         assert rule is None
 
-    @patch('backend.admin.god.firestore')
+    @patch("backend.admin.god.firestore")
     def test_get_rule_with_default(self, mock_firestore):
         # Test getting a rule with a default value
         mock_db = mock_firestore.Client()
@@ -78,7 +79,7 @@ class TestAdminGodLayer:
         rule = admin_god_layer.get_rule("test_key", default="default_value")
         assert rule == "default_value"
 
-    @patch('backend.admin.god.firestore')
+    @patch("backend.admin.god.firestore")
     def test_set_rule(self, mock_firestore):
         # Test setting a rule
         mock_db = mock_firestore.Client()
@@ -87,7 +88,7 @@ class TestAdminGodLayer:
         admin_god_layer.set_rule("test_key", "test_value")
         mock_db.collection.assert_called_once_with(admin_god_layer.collection_name)
 
-    @patch('backend.admin.god.firestore')
+    @patch("backend.admin.god.firestore")
     def test_set_rule_no_firestore(self, mock_firestore):
         # Test setting a rule without Firestore
         admin_god_layer = AdminGodLayer()
@@ -130,7 +131,7 @@ class TestAdminGodLayer:
         with pytest.raises(PermissionError):
             admin_god_layer.enforce("not_whitelist")
 
-    @patch('backend.admin.god.firestore')
+    @patch("backend.admin.god.firestore")
     def test_init_db_concurrent(self, mock_firestore):
         # Test initializing AdminGodLayer with Firestore concurrently
         mock_db = mock_firestore.Client()
@@ -138,13 +139,10 @@ class TestAdminGodLayer:
         admin_god_layer1._db = mock_db
         admin_god_layer2 = AdminGodLayer()
         admin_god_layer2._db = mock_db
-        asyncio.gather(
-            admin_god_layer1._init_db(),
-            admin_god_layer2._init_db()
-        )
+        asyncio.gather(admin_god_layer1._init_db(), admin_god_layer2._init_db())
         mock_db.collection.assert_called_with(admin_god_layer1.collection_name)
 
-    @patch('backend.admin.god.firestore')
+    @patch("backend.admin.god.firestore")
     def test_get_rule_concurrent(self, mock_firestore):
         # Test getting a rule concurrently
         mock_db = mock_firestore.Client()
@@ -153,12 +151,11 @@ class TestAdminGodLayer:
         admin_god_layer2 = AdminGodLayer()
         admin_god_layer2._db = mock_db
         asyncio.gather(
-            admin_god_layer1.get_rule("test_key"),
-            admin_god_layer2.get_rule("test_key")
+            admin_god_layer1.get_rule("test_key"), admin_god_layer2.get_rule("test_key")
         )
         mock_db.collection.return_value.document.assert_called_with("test_key")
 
-    @patch('backend.admin.god.firestore')
+    @patch("backend.admin.god.firestore")
     def test_set_rule_concurrent(self, mock_firestore):
         # Test setting a rule concurrently
         mock_db = mock_firestore.Client()
@@ -168,7 +165,7 @@ class TestAdminGodLayer:
         admin_god_layer2._db = mock_db
         asyncio.gather(
             admin_god_layer1.set_rule("test_key", "test_value"),
-            admin_god_layer2.set_rule("test_key", "test_value")
+            admin_god_layer2.set_rule("test_key", "test_value"),
         )
         mock_db.collection.return_value.document.assert_called_with("test_key")
 
@@ -177,10 +174,7 @@ class TestAdminGodLayer:
         # Test initializing AdminGodLayer with Firestore concurrently using asyncio
         admin_god_layer1 = AdminGodLayer()
         admin_god_layer2 = AdminGodLayer()
-        await asyncio.gather(
-            admin_god_layer1._init_db(),
-            admin_god_layer2._init_db()
-        )
+        await asyncio.gather(admin_god_layer1._init_db(), admin_god_layer2._init_db())
 
     @pytest.mark.asyncio
     async def test_get_rule_concurrent_async(self):
@@ -188,8 +182,7 @@ class TestAdminGodLayer:
         admin_god_layer1 = AdminGodLayer()
         admin_god_layer2 = AdminGodLayer()
         await asyncio.gather(
-            admin_god_layer1.get_rule("test_key"),
-            admin_god_layer2.get_rule("test_key")
+            admin_god_layer1.get_rule("test_key"), admin_god_layer2.get_rule("test_key")
         )
 
     @pytest.mark.asyncio
@@ -199,7 +192,7 @@ class TestAdminGodLayer:
         admin_god_layer2 = AdminGodLayer()
         await asyncio.gather(
             admin_god_layer1.set_rule("test_key", "test_value"),
-            admin_god_layer2.set_rule("test_key", "test_value")
+            admin_god_layer2.set_rule("test_key", "test_value"),
         )
 
     def test_init_db_empty_db_path(self):
