@@ -2,7 +2,7 @@ export interface UserProfile {
   id: string;
   username: string;
   email: string;
-  role: 'viewer' | 'operator' | 'developer' | 'admin' | 'god';
+  role: "viewer" | "operator" | "developer" | "admin" | "god";
   avatar_url?: string;
   preferences: UserPreferences;
   created_at: string;
@@ -10,13 +10,13 @@ export interface UserProfile {
 }
 
 export interface UserPreferences {
-  theme: 'dark' | 'light';
+  theme: "dark" | "light";
   sidebar_collapsed: boolean;
   default_project_id?: string;
   notification_enabled: boolean;
   sound_enabled: boolean;
   compact_mode: boolean;
-  font_size: 'small' | 'medium' | 'large';
+  font_size: "small" | "medium" | "large";
 }
 
 export interface Project {
@@ -39,7 +39,7 @@ export interface ProjectSettings {
 
 export interface Widget {
   id: string;
-  type: 'chat' | 'metrics' | 'history' | 'skills' | 'files' | 'preview';
+  type: "chat" | "metrics" | "history" | "skills" | "files" | "preview";
   title: string;
   position: { x: number; y: number; w: number; h: number };
   settings: Record<string, unknown>;
@@ -47,7 +47,7 @@ export interface Widget {
 
 export interface ChatMessage {
   id: string;
-  role: 'user' | 'assistant';
+  role: "user" | "assistant";
   content: string;
   timestamp: string;
   project_id?: string;

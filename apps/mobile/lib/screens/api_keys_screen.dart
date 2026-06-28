@@ -64,7 +64,8 @@ class _ApiKeysScreenState extends State<ApiKeysScreen> {
         final result = json.decode(response.body);
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(result['message'] ?? 'api_keys.test_success'.tr())),
+          SnackBar(
+              content: Text(result['message'] ?? 'api_keys.test_success'.tr())),
         );
         _loadApiKeys();
       }
@@ -128,8 +129,11 @@ class _ApiKeysScreenState extends State<ApiKeysScreen> {
           ),
         ),
         title: Text('api_keys.title'.tr().toUpperCase(),
-          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w900, letterSpacing: 2, color: Colors.white)
-        ),
+            style: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w900,
+                letterSpacing: 2,
+                color: Colors.white)),
         actions: [
           IconButton(
             icon: const Icon(Icons.bolt, color: Colors.blueAccent),
@@ -147,18 +151,21 @@ class _ApiKeysScreenState extends State<ApiKeysScreen> {
           ),
         ),
         child: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: Colors.blueAccent))
-          : _apiKeys.isEmpty
-            ? Center(child: Text('api_keys.empty'.tr(), style: const TextStyle(color: Colors.white38)))
-            : ListView.builder(
-                padding: const EdgeInsets.fromLTRB(16, 120, 16, 16),
-                itemCount: _apiKeys.length,
-                itemBuilder: (context, index) {
-                  final apiKey = _apiKeys[index];
-                  final status = apiKey['status'] ?? 'unknown';
-                  return _buildKeyCard(apiKey, status);
-                },
-              ),
+            ? const Center(
+                child: CircularProgressIndicator(color: Colors.blueAccent))
+            : _apiKeys.isEmpty
+                ? Center(
+                    child: Text('api_keys.empty'.tr(),
+                        style: const TextStyle(color: Colors.white38)))
+                : ListView.builder(
+                    padding: const EdgeInsets.fromLTRB(16, 120, 16, 16),
+                    itemCount: _apiKeys.length,
+                    itemBuilder: (context, index) {
+                      final apiKey = _apiKeys[index];
+                      final status = apiKey['status'] ?? 'unknown';
+                      return _buildKeyCard(apiKey, status);
+                    },
+                  ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {},
@@ -189,7 +196,8 @@ class _ApiKeysScreenState extends State<ApiKeysScreen> {
                   width: 48,
                   height: 48,
                   decoration: BoxDecoration(
-                    color: (isActive ? Colors.green : Colors.red).withValues(alpha: 0.1),
+                    color: (isActive ? Colors.green : Colors.red)
+                        .withValues(alpha: 0.1),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
@@ -203,12 +211,15 @@ class _ApiKeysScreenState extends State<ApiKeysScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(apiKey['label'] ?? apiKey['provider'],
-                        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)
-                      ),
+                          style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16)),
                       const SizedBox(height: 4),
                       Text('${'status.working'.tr()}: ${status.toUpperCase()}',
-                        style: TextStyle(color: Colors.white.withValues(alpha: 0.5), fontSize: 12)
-                      ),
+                          style: TextStyle(
+                              color: Colors.white.withValues(alpha: 0.5),
+                              fontSize: 12)),
                     ],
                   ),
                 ),
@@ -216,11 +227,13 @@ class _ApiKeysScreenState extends State<ApiKeysScreen> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     IconButton(
-                      icon: const Icon(Icons.science_outlined, color: Colors.blueAccent),
+                      icon: const Icon(Icons.science_outlined,
+                          color: Colors.blueAccent),
                       onPressed: () => _testSingleKey(apiKey['id']),
                     ),
                     IconButton(
-                      icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
+                      icon: const Icon(Icons.delete_outline,
+                          color: Colors.redAccent),
                       onPressed: () => _deleteApiKey(apiKey['id']),
                     ),
                   ],
@@ -233,4 +246,3 @@ class _ApiKeysScreenState extends State<ApiKeysScreen> {
     );
   }
 }
-

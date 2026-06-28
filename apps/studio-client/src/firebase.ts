@@ -1,14 +1,14 @@
-import { initializeApp, getApps, getApp } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
+import { initializeApp, getApps, getApp } from "firebase/app";
+import { getAuth } from "firebase/auth";
 
 // Helper to fetch configuration dynamically or fallback to Vite env vars
 const getFirebaseConfig = async () => {
   try {
-    const res = await fetch('/__/firebase/init.json');
+    const res = await fetch("/__/firebase/init.json");
     if (res.ok) {
       const data = await res.json();
       if (!data.projectId && data.authDomain) {
-        data.projectId = data.authDomain.replace('.firebaseapp.com', '');
+        data.projectId = data.authDomain.replace(".firebaseapp.com", "");
       }
       return data;
     }
@@ -18,18 +18,26 @@ const getFirebaseConfig = async () => {
   const apiKey = import.meta.env.VITE_FIREBASE_API_KEY;
   if (!apiKey) {
     if (import.meta.env.PROD) {
-      console.error("🔥 VITE_FIREBASE_API_KEY is missing in production environment!");
+      console.error(
+        "🔥 VITE_FIREBASE_API_KEY is missing in production environment!",
+      );
     } else {
-      console.warn("⚠️ Using fake Firebase API key for local development. Please copy .env.example to .env and configure Firebase.");
+      console.warn(
+        "⚠️ Using fake Firebase API key for local development. Please copy .env.example to .env and configure Firebase.",
+      );
     }
   }
   return {
     apiKey: apiKey || "AIzaSyFakeKeyForDevelopmentOnly",
-    authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "supremeai-a.firebaseapp.com",
+    authDomain:
+      import.meta.env.VITE_FIREBASE_AUTH_DOMAIN ||
+      "supremeai-a.firebaseapp.com",
     projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "supremeai-a",
-    storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "supremeai-a.appspot.com",
-    messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "1234567890",
-    appId: import.meta.env.VITE_FIREBASE_APP_ID || "1:1234567890:web:fakeappid"
+    storageBucket:
+      import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "supremeai-a.appspot.com",
+    messagingSenderId:
+      import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "1234567890",
+    appId: import.meta.env.VITE_FIREBASE_APP_ID || "1:1234567890:web:fakeappid",
   };
 };
 
