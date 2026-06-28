@@ -1,7 +1,7 @@
-export { useChat } from './useChat';
-export { useAuth } from './useAuth';
-export { useWebSocket } from './useWebSocket';
-export { useTranslation } from './useTranslation';
+export { useChat } from "./useChat";
+export { useAuth } from "./useAuth";
+export { useWebSocket } from "./useWebSocket";
+export { useTranslation } from "./useTranslation";
 export {
   useAdminRules,
   useSaveRules,
@@ -19,4 +19,4 @@ export {
   useTriggerDeploy,
   useGcpHealth,
   useCloudStats,
-} from './useAdminApi';
+} from "./useAdminApi";
