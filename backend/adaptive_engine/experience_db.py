@@ -8,6 +8,7 @@ from typing import Any
 
 try:
     import chromadb
+
     HAS_VECTOR_DB = True
 except ImportError:
     HAS_VECTOR_DB = False
@@ -42,7 +43,9 @@ class ExperienceDatabase:
         if HAS_VECTOR_DB:
             try:
                 self.chroma_client = chromadb.Client()
-                self.vector_collection = self.chroma_client.get_or_create_collection("experience")
+                self.vector_collection = self.chroma_client.get_or_create_collection(
+                    "experience"
+                )
             except Exception as exc:
                 logger = __import__("loguru").logger
                 logger.debug(f"ChromaDB init failed: {exc}")
@@ -142,4 +145,3 @@ class ExperienceDatabase:
                     )
                 )
             return experiences
-
