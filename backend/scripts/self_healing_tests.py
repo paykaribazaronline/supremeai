@@ -24,7 +24,9 @@ async def send_to_approval_queue(state: HealingState) -> HealingState:
     return state
 
 
-async def run_healing_loop(code: str, tests: str, max_retries: int = 3) -> dict[str, Any]:
+async def run_healing_loop(
+    code: str, tests: str, max_retries: int = 3
+) -> dict[str, Any]:
     state = HealingState(code=code, tests=tests, retries=0)
     while state.retries < max_retries:
         state = await run_sandbox_tests(state)

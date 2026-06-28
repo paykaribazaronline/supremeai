@@ -1,6 +1,3 @@
-
-
-
 APPROVED_DOMAINS = ["github.com", "arxiv.org", "docs.python.org", "huggingface.co"]
 
 
