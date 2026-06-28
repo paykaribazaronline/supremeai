@@ -96,6 +96,25 @@ class UpstashRedisQueue:
             logger.error(f"Upstash Redis PUBLISH failed: {exc}")
             return False
 
+    def lpush(self, key: str, value: str) -> int | None:
+        if not self.configured:
+            return None
+        try:
+            result = self._request("LPUSH", key, value).get("result")
+            return int(result) if result is not None else None
+        except Exception as exc:
+            logger.error(f"Upstash Redis LPUSH failed: {exc}")
+            return None
+
+    def rpop(self, key: str) -> str | None:
+        if not self.configured:
+            return None
+        try:
+            return self._request("RPOP", key).get("result")
+        except Exception as exc:
+            logger.error(f"Upstash Redis RPOP failed: {exc}")
+            return None
+
     def close(self) -> None:
         if self._client is not None:
             self._client.close()

@@ -97,6 +97,30 @@ async def gateway_forward(request: GatewayRequest, http_request: Request) -> Res
     headers = dict(request.headers or {})
     headers.setdefault("X-Source", source)
 
+    # API Key Rotation & Free Tier Tracking Integration
+    if any(endpoint in normalized for endpoint in ["chat/completion", "chat/stream", "chat/message"]):
+        try:
+            from tools.multi_account_rotator import get_rotator, TaskType
+            from core.free_tier_tracker import get_tracker
+
+            tracker = get_tracker()
+            rotator = get_rotator()
+
+            best_provider_name = tracker.get_best_provider()
+            if best_provider_name:
+                # Tell rotator to get an account (task=CHAT)
+                provider_account = rotator.get_best_provider_for_task(TaskType.CHAT)
+                if provider_account:
+                    provider, account = provider_account
+                    if account and account.api_key:
+                        headers["X-Dynamic-Provider"] = provider.name
+                        headers["X-Dynamic-API-Key"] = account.api_key
+                        # Record a basic hit (backend should ideally report exact tokens later)
+                        tracker.record(provider.name, token_count=100)
+                        logger.info(f"Injected {provider.name} key from rotator for {normalized}")
+        except Exception as e:
+            logger.warning(f"Failed to inject dynamic API key: {e}")
+
     try:
         async with httpx.AsyncClient(timeout=10.0) as client:
             req_method = (request.method or "GET").upper()
@@ -104,6 +128,16 @@ async def gateway_forward(request: GatewayRequest, http_request: Request) -> Res
                 response = await client.post(target, json=request.payload or {}, headers=headers)
             else:
                 response = await client.get(target, headers=headers)
+                
+            # If rate limited (429), pause the provider
+            if response.status_code == 429 and "X-Dynamic-Provider" in headers:
+                try:
+                    failed_provider = headers["X-Dynamic-Provider"]
+                    tracker.mark_rate_limited(failed_provider, pause_seconds=60)
+                    logger.warning(f"Provider {failed_provider} hit 429, paused for 60s.")
+                except Exception:
+                    pass
+                    
         return JSONResponse(content=response.json(), status_code=response.status_code)
     except httpx.HTTPStatusError as exc:
         raise HTTPException(status_code=exc.response.status_code)

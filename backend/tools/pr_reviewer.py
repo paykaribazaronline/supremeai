@@ -44,7 +44,7 @@ class PRReviewer:
                 "type": "Stripe Secret Key",
                 "severity": "critical",
             },
-            r"ghp_[0-9a-zA-Z]{36}": {
+            r"(gh[pua]_[0-9a-zA-Z]{36}|github_pat_[a-zA-Z0-9]{22}_[a-zA-Z0-9]{59})": {
                 "type": "GitHub Personal Access Token",
                 "severity": "critical",
             },

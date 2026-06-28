@@ -226,6 +226,47 @@ class KnowledgeBaseIndexer:
             "errors": errors[:10],
         }
 
+    def index_scraped_data(self, data: list[dict[str, Any]]) -> dict[str, Any]:
+        """
+        Indexes data scraped from external sources (OSSInsight, awesome-lists, etc.)
+        Expects a list of dicts with at least 'text' and 'metadata'.
+        """
+        if not data:
+            return {"indexed": 0, "reason": "No data provided"}
+
+        docs: list[dict[str, Any]] = []
+        for i, item in enumerate(data):
+            text = item.get("text", "")
+            if not text:
+                continue
+            
+            metadata = item.get("metadata", {})
+            metadata["type"] = "scraped_data"
+            metadata["source_type"] = metadata.get("source_type", "external")
+            
+            # Generate a unique ID based on the content or provided ID
+            item_id = item.get("id") or hashlib.md5(text.encode("utf-8")).hexdigest()
+            
+            docs.append({
+                "id": f"scraped::{item_id}",
+                "text": text,
+                "metadata": metadata,
+            })
+            
+        total_docs = 0
+        errors = []
+        if docs:
+            try:
+                self.vector_store.add_documents(docs)
+                total_docs = len(docs)
+            except Exception as exc:
+                errors.append(str(exc))
+                
+        return {
+            "indexed": total_docs,
+            "errors": errors[:10],
+        }
+
     # ------------------------------------------------------------------
     # Search
     # ------------------------------------------------------------------

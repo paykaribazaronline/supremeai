@@ -72,12 +72,20 @@ class IdempotencyMiddleware:
                 elif data.get("status") == "completed":
                     # Replay the cached response
                     from starlette.responses import Response
-
-                    response = Response(
-                        content=data.get("body"),
-                        status_code=data.get("status_code"),
-                        media_type=data.get("media_type"),
-                    )
+                    
+                    body = data.get("body")
+                    if isinstance(body, dict):
+                        from fastapi.responses import JSONResponse
+                        response = JSONResponse(
+                            content=body,
+                            status_code=data.get("status_code")
+                        )
+                    else:
+                        response = Response(
+                            content=body,
+                            status_code=data.get("status_code"),
+                            media_type=data.get("media_type"),
+                        )
                     await response(scope, receive, send)
                     return
             except Exception:

@@ -81,36 +81,47 @@ class CloudSandboxOrchestrator:
                     raise RuntimeError("RUNPOD_API_KEY is required for RunPod sandbox sessions.")
             else:
                 headers = {
-                    "Authorization": f"Bearer {api_key}",
                     "Content-Type": "application/json",
                 }
-                payload = {
-                    "name": session_id,
-                    "imageName": image,
-                    "gpuTypeId": "cpu",  # Serverless/CPU pod for cost savings
-                    "volumeInGb": 5,
-                    "ports": "22/tcp,80/tcp",
-                }
+                query = f"""
+                mutation {{
+                  podFindAndDeployOnDemand(
+                    input: {{
+                      name: "{session_id}",
+                      imageName: "{image}",
+                      gpuCount: 0,
+                      volumeInGb: 5,
+                      ports: "22/tcp,80/tcp"
+                    }}
+                  ) {{
+                    id
+                  }}
+                }}
+                """
+                payload = {"query": query}
                 async with httpx.AsyncClient() as http_client:
                     resp = await http_client.post(
-                        "https://api.runpod.io/v1/user/pod",
+                        f"https://api.runpod.io/graphql?api_key={api_key}",
                         json=payload,
                         headers=headers,
                         timeout=20.0,
                     )
-                    if resp.status_code in (200, 201):
+                    if resp.status_code == 200:
                         data = resp.json()
-                        pod_id = data.get("id")
-                        self.active_sessions[session_id] = {
-                            "image": image,
-                            "status": "running",
-                            "provider": "runpod",
-                            "pod_id": pod_id,
-                            "cwd": "/workspace",
-                            "env": {"PYTHONUNBUFFERED": "1"},
-                        }
-                        logger.success(f"RunPod session created successfully: {session_id} (Pod ID: {pod_id})")
-                        return session_id
+                        if "errors" not in data and "data" in data and data["data"].get("podFindAndDeployOnDemand"):
+                            pod_id = data["data"]["podFindAndDeployOnDemand"].get("id")
+                            if pod_id:
+                                self.active_sessions[session_id] = {
+                                    "image": image,
+                                    "status": "running",
+                                    "provider": "runpod",
+                                    "pod_id": pod_id,
+                                    "cwd": "/workspace",
+                                    "env": {"PYTHONUNBUFFERED": "1"},
+                                }
+                                logger.success(f"RunPod session created successfully: {session_id} (Pod ID: {pod_id})")
+                                return session_id
+                        logger.error(f"RunPod GraphQL error: {data.get('errors')}. Falling back to local mock.")
                     else:
                         logger.error(f"RunPod pod creation API failed: {resp.text}. Falling back to local mock.")
 
