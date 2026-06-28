@@ -1,7 +1,7 @@
-import type { AdminSubTab, GcpHealth, CloudStats } from '../../types';
-import { SidebarNav } from './AdminSidebar';
-import { TabBar } from './AdminTabBar';
-import { SubTabContent } from './AdminSubTabContent';
+import type { AdminSubTab, GcpHealth, CloudStats } from "../../types";
+import { SidebarNav } from "./AdminSidebar";
+import { TabBar } from "./AdminTabBar";
+import { SubTabContent } from "./AdminSubTabContent";
 
 interface AuthenticatedViewProps {
   gcpHealth: GcpHealth | null;
@@ -42,16 +42,22 @@ interface AuthenticatedViewProps {
   handleSaveConfig: () => void;
   actionStatus: string;
   handleAdminLogout: () => void;
-  theme: 'dark' | 'light';
+  theme: "dark" | "light";
   toggleTheme: () => void;
 }
 
 export function AuthenticatedView(props: AuthenticatedViewProps) {
-  const { 
-    adminSubTab, setAdminSubTab, handleAdminLogout, 
-    actionStatus, gcpHealth, cloudStats, theme, toggleTheme,
+  const {
+    adminSubTab,
+    setAdminSubTab,
+    handleAdminLogout,
+    actionStatus,
+    gcpHealth,
+    cloudStats,
+    theme,
+    toggleTheme,
   } = props;
-  
+
   return (
     <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
       <SidebarNav
@@ -67,10 +73,10 @@ export function AuthenticatedView(props: AuthenticatedViewProps) {
         checkpoints={props.checkpoints}
         handleDeleteCheckpoint={props.handleDeleteCheckpoint}
       />
-      
+
       <div className="flex-1 flex flex-col min-w-0">
         <TabBar adminSubTab={adminSubTab} setAdminSubTab={setAdminSubTab} />
-        
+
         <SubTabContent {...props} />
       </div>
     </div>

@@ -1,12 +1,18 @@
-import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { AlertTriangle, CheckCircle2, XCircle, MessageSquare, Terminal } from 'lucide-react';
-import './AethelCoreStyles.css';
+import React, { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  AlertTriangle,
+  CheckCircle2,
+  XCircle,
+  MessageSquare,
+  Terminal,
+} from "lucide-react";
+import "./AethelCoreStyles.css";
 
 interface ConsentRequest {
   id: string;
   taskPurpose: string;
-  riskLevel: 'Low' | 'High' | 'Critical';
+  riskLevel: "Low" | "High" | "Critical";
   diffPreview?: string;
 }
 
@@ -29,17 +35,21 @@ export const ConsentMatrixModal: React.FC<ConsentMatrixModalProps> = ({
   onRejectWithFeedback,
   onHardReject,
 }) => {
-  const [feedback, setFeedback] = useState('');
+  const [feedback, setFeedback] = useState("");
   const [showFeedbackInput, setShowFeedbackInput] = useState(false);
 
   if (!request) return null;
 
   const getRiskColor = (level: string) => {
     switch (level) {
-      case 'Critical': return 'text-red-500 border-red-500/50 shadow-[0_0_15px_rgba(239,68,68,0.5)]';
-      case 'High': return 'text-orange-500 border-orange-500/50 shadow-[0_0_15px_rgba(249,115,22,0.5)]';
-      case 'Low': return 'text-[#00f3ff] border-[#00f3ff]/50 shadow-[0_0_15px_rgba(0,243,255,0.5)]';
-      default: return 'text-[#00f3ff] border-[#00f3ff]/50';
+      case "Critical":
+        return "text-red-500 border-red-500/50 shadow-[0_0_15px_rgba(239,68,68,0.5)]";
+      case "High":
+        return "text-orange-500 border-orange-500/50 shadow-[0_0_15px_rgba(249,115,22,0.5)]";
+      case "Low":
+        return "text-[#00f3ff] border-[#00f3ff]/50 shadow-[0_0_15px_rgba(0,243,255,0.5)]";
+      default:
+        return "text-[#00f3ff] border-[#00f3ff]/50";
     }
   };
 
@@ -55,14 +65,24 @@ export const ConsentMatrixModal: React.FC<ConsentMatrixModalProps> = ({
           >
             {/* Header */}
             <div className="flex items-center gap-3 border-b border-white/10 pb-4 mb-4">
-              <AlertTriangle className={`w-8 h-8 ${request.riskLevel === 'Critical' ? 'text-red-500 animate-pulse' : 'text-orange-500'}`} />
+              <AlertTriangle
+                className={`w-8 h-8 ${request.riskLevel === "Critical" ? "text-red-500 animate-pulse" : "text-orange-500"}`}
+              />
               <div>
-                <h2 className="text-xl font-mono font-bold text-white tracking-wider uppercase">Authorization Required</h2>
-                <p className="text-xs font-mono text-slate-400">System paused. Awaiting human validation.</p>
+                <h2 className="text-xl font-mono font-bold text-white tracking-wider uppercase">
+                  Authorization Required
+                </h2>
+                <p className="text-xs font-mono text-slate-400">
+                  System paused. Awaiting human validation.
+                </p>
               </div>
               <div className="ml-auto flex items-center gap-2">
-                <span className="text-xs font-mono text-slate-400 uppercase tracking-widest">Risk:</span>
-                <span className={`text-xs font-bold font-mono px-2 py-1 rounded border ${getRiskColor(request.riskLevel)}`}>
+                <span className="text-xs font-mono text-slate-400 uppercase tracking-widest">
+                  Risk:
+                </span>
+                <span
+                  className={`text-xs font-bold font-mono px-2 py-1 rounded border ${getRiskColor(request.riskLevel)}`}
+                >
                   {request.riskLevel}
                 </span>
               </div>
@@ -71,7 +91,9 @@ export const ConsentMatrixModal: React.FC<ConsentMatrixModalProps> = ({
             {/* Content */}
             <div className="space-y-4 mb-6">
               <div>
-                <h3 className="text-sm font-mono text-[#00f3ff] mb-1">Task Purpose:</h3>
+                <h3 className="text-sm font-mono text-[#00f3ff] mb-1">
+                  Task Purpose:
+                </h3>
                 <p className="text-sm text-slate-300 bg-black/40 p-3 rounded border border-white/5">
                   {request.taskPurpose}
                 </p>
@@ -94,7 +116,7 @@ export const ConsentMatrixModal: React.FC<ConsentMatrixModalProps> = ({
               {showFeedbackInput && (
                 <motion.div
                   initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: 'auto', opacity: 1 }}
+                  animate={{ height: "auto", opacity: 1 }}
                   exit={{ height: 0, opacity: 0 }}
                   className="mb-4 overflow-hidden"
                 >
@@ -106,13 +128,13 @@ export const ConsentMatrixModal: React.FC<ConsentMatrixModalProps> = ({
                     onChange={(e) => setFeedback(e.target.value)}
                   />
                   <div className="flex justify-end gap-2 mt-2">
-                    <button 
+                    <button
                       onClick={() => setShowFeedbackInput(false)}
                       className="px-3 py-1.5 text-xs font-mono text-slate-400 hover:text-white transition-colors"
                     >
                       Cancel
                     </button>
-                    <button 
+                    <button
                       onClick={() => onRejectWithFeedback(request.id, feedback)}
                       className="px-3 py-1.5 text-xs font-mono bg-[#00f3ff]/20 text-[#00f3ff] border border-[#00f3ff]/50 rounded hover:bg-[#00f3ff]/40 transition-colors"
                     >
@@ -136,7 +158,8 @@ export const ConsentMatrixModal: React.FC<ConsentMatrixModalProps> = ({
                   onClick={() => onApproveAlways(request.id)}
                   className="flex items-center justify-center gap-2 py-3 px-4 rounded border border-[#00f3ff]/50 text-[#00f3ff] hover:bg-[#00f3ff]/20 transition-all font-mono text-sm glow-cyan"
                 >
-                  <CheckCircle2 className="w-4 h-4" /> Approve Always (Save Rule)
+                  <CheckCircle2 className="w-4 h-4" /> Approve Always (Save
+                  Rule)
                 </button>
                 <button
                   onClick={() => setShowFeedbackInput(true)}

@@ -3,16 +3,19 @@
  * Handles CodeFlow analysis requests and visualization
  */
 
-import * as vscode from 'vscode';
-import { SupremeAIService, getSupremeAIService } from '../services/SupremeAIService';
-import { 
-  CodeFlowAnalysisRequest, 
+import * as vscode from "vscode";
+import {
+  SupremeAIService,
+  getSupremeAIService,
+} from "../services/SupremeAIService";
+import {
+  CodeFlowAnalysisRequest,
   CodeFlowAnalysisResponse,
   ErrorResolutionRequest,
   SecurityIssue,
   HealthScore,
-  DependencyGraph 
-} from '../types';
+  DependencyGraph,
+} from "../types";
 
 export class CodeFlowHandler {
   private context: vscode.ExtensionContext;
@@ -23,24 +26,43 @@ export class CodeFlowHandler {
   constructor(context: vscode.ExtensionContext) {
     this.context = context;
     this.supremeAIService = getSupremeAIService();
-    this.outputChannel = vscode.window.createOutputChannel('SupremeAI CodeFlow');
-    
+    this.outputChannel =
+      vscode.window.createOutputChannel("SupremeAI CodeFlow");
+
     // Create status bar item for health score
-    this.statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
-    this.statusBarItem.text = '$(graph) CodeFlow';
-    this.statusBarItem.tooltip = 'SupremeAI CodeFlow Analysis';
-    this.statusBarItem.command = 'supremeai.openCodeFlowDashboard';
+    this.statusBarItem = vscode.window.createStatusBarItem(
+      vscode.StatusBarAlignment.Right,
+      100,
+    );
+    this.statusBarItem.text = "$(graph) CodeFlow";
+    this.statusBarItem.tooltip = "SupremeAI CodeFlow Analysis";
+    this.statusBarItem.command = "supremeai.openCodeFlowDashboard";
   }
 
   public register(): void {
     this.context.subscriptions.push(
-      vscode.commands.registerCommand('supremeai.resolveError', this.resolveError.bind(this)),
-      vscode.commands.registerCommand('supremeai.showSecurityIssues', this.showSecurityIssues.bind(this)),
-      vscode.commands.registerCommand('supremeai.showDependencies', this.showDependencies.bind(this)),
-      vscode.commands.registerCommand('supremeai.openCodeFlowDashboard', this.openCodeFlowDashboard.bind(this)),
-      vscode.commands.registerCommand('supremeai.refreshCodeFlow', this.refreshAnalysis.bind(this)),
+      vscode.commands.registerCommand(
+        "supremeai.resolveError",
+        this.resolveError.bind(this),
+      ),
+      vscode.commands.registerCommand(
+        "supremeai.showSecurityIssues",
+        this.showSecurityIssues.bind(this),
+      ),
+      vscode.commands.registerCommand(
+        "supremeai.showDependencies",
+        this.showDependencies.bind(this),
+      ),
+      vscode.commands.registerCommand(
+        "supremeai.openCodeFlowDashboard",
+        this.openCodeFlowDashboard.bind(this),
+      ),
+      vscode.commands.registerCommand(
+        "supremeai.refreshCodeFlow",
+        this.refreshAnalysis.bind(this),
+      ),
       vscode.workspace.onDidSaveTextDocument(this.onFileSave.bind(this)),
-      this.statusBarItem
+      this.statusBarItem,
     );
 
     this.statusBarItem.show();
@@ -56,66 +78,83 @@ export class CodeFlowHandler {
    */
   public async analyzeCodeFlow(uri?: vscode.Uri): Promise<void> {
     try {
-      vscode.window.withProgress({
-        location: vscode.ProgressLocation.Notification,
-        title: 'Running CodeFlow Analysis...',
-        cancellable: true
-      }, async (progress, token) => {
-        progress.report({ increment: 0, message: 'Preparing files...' });
+      vscode.window.withProgress(
+        {
+          location: vscode.ProgressLocation.Notification,
+          title: "Running CodeFlow Analysis...",
+          cancellable: true,
+        },
+        async (progress, token) => {
+          progress.report({ increment: 0, message: "Preparing files..." });
 
-        const workspaceFolders = vscode.workspace.workspaceFolders;
-        if (!workspaceFolders) {
-          vscode.window.showErrorMessage('No workspace folder open');
-          return;
-        }
-
-        const files = await this.collectFiles(workspaceFolders[0].uri);
-        
-        progress.report({ increment: 30, message: `Analyzing ${files.length} files...` });
-
-        const request: CodeFlowAnalysisRequest = {
-          files: files.map(f => ({ path: f.path, content: f.content })),
-          options: {
-            includePatterns: true,
-            includeSecurity: true,
-            includeDependencies: true,
-            depth: 3
+          const workspaceFolders = vscode.workspace.workspaceFolders;
+          if (!workspaceFolders) {
+            vscode.window.showErrorMessage("No workspace folder open");
+            return;
           }
-        };
 
-        token.onCancellationRequested(() => {
-          this.outputChannel.appendLine('Analysis cancelled by user');
-        });
+          const files = await this.collectFiles(workspaceFolders[0].uri);
 
-        const response = await this.supremeAIService.analyzeRepository(request);
-
-        if (response.success && response.data) {
-          progress.report({ increment: 40, message: 'Processing results...' });
-          
-          await this.storeAnalysisResults(response.data);
-          await this.updateHealthScore(response.data.healthScore);
-          
-          progress.report({ increment: 30, message: 'Displaying results...' });
-          
-          this.displayAnalysisResults(response.data);
-          
-          vscode.window.showInformationMessage(
-            `CodeFlow Analysis Complete! Health Score: ${response.data.healthScore.grade} (${response.data.healthScore.score}/100)`,
-            'View Dashboard',
-            'View Security Issues'
-          ).then(selection => {
-            if (selection === 'View Dashboard') {
-              this.openCodeFlowDashboard();
-            } else if (selection === 'View Security Issues') {
-              this.showSecurityIssues();
-            }
+          progress.report({
+            increment: 30,
+            message: `Analyzing ${files.length} files...`,
           });
-        } else {
-          throw new Error(response.message || 'Analysis failed');
-        }
-      });
+
+          const request: CodeFlowAnalysisRequest = {
+            files: files.map((f) => ({ path: f.path, content: f.content })),
+            options: {
+              includePatterns: true,
+              includeSecurity: true,
+              includeDependencies: true,
+              depth: 3,
+            },
+          };
+
+          token.onCancellationRequested(() => {
+            this.outputChannel.appendLine("Analysis cancelled by user");
+          });
+
+          const response =
+            await this.supremeAIService.analyzeRepository(request);
+
+          if (response.success && response.data) {
+            progress.report({
+              increment: 40,
+              message: "Processing results...",
+            });
+
+            await this.storeAnalysisResults(response.data);
+            await this.updateHealthScore(response.data.healthScore);
+
+            progress.report({
+              increment: 30,
+              message: "Displaying results...",
+            });
+
+            this.displayAnalysisResults(response.data);
+
+            vscode.window
+              .showInformationMessage(
+                `CodeFlow Analysis Complete! Health Score: ${response.data.healthScore.grade} (${response.data.healthScore.score}/100)`,
+                "View Dashboard",
+                "View Security Issues",
+              )
+              .then((selection) => {
+                if (selection === "View Dashboard") {
+                  this.openCodeFlowDashboard();
+                } else if (selection === "View Security Issues") {
+                  this.showSecurityIssues();
+                }
+              });
+          } else {
+            throw new Error(response.message || "Analysis failed");
+          }
+        },
+      );
     } catch (error: any) {
-      vscode.window.showErrorMessage(`CodeFlow Analysis Failed: ${error.message}`);
+      vscode.window.showErrorMessage(
+        `CodeFlow Analysis Failed: ${error.message}`,
+      );
       this.outputChannel.appendLine(`Error: ${error.message}`);
     }
   }
@@ -126,7 +165,7 @@ export class CodeFlowHandler {
   public async resolveError(): Promise<void> {
     const editor = vscode.window.activeTextEditor;
     if (!editor) {
-      vscode.window.showWarningMessage('No active editor');
+      vscode.window.showWarningMessage("No active editor");
       return;
     }
 
@@ -135,13 +174,13 @@ export class CodeFlowHandler {
     const codeSnippet = document.getText(selection);
 
     if (!codeSnippet) {
-      vscode.window.showWarningMessage('Please select the code with the error');
+      vscode.window.showWarningMessage("Please select the code with the error");
       return;
     }
 
     const errorMessage = await vscode.window.showInputBox({
-      prompt: 'Enter the error message or description',
-      placeHolder: 'e.g., TypeError: Cannot read property of undefined'
+      prompt: "Enter the error message or description",
+      placeHolder: "e.g., TypeError: Cannot read property of undefined",
     });
 
     if (!errorMessage) {
@@ -149,29 +188,36 @@ export class CodeFlowHandler {
     }
 
     const request: ErrorResolutionRequest = {
-      errorType: 'runtime',
+      errorType: "runtime",
       errorMessage,
       codeSnippet,
       filePath: document.uri.fsPath,
-      context: `File: ${document.fileName}\nLanguage: ${document.languageId}\nLine: ${selection.start.line + 1}`
+      context: `File: ${document.fileName}\nLanguage: ${document.languageId}\nLine: ${selection.start.line + 1}`,
     };
 
     try {
-      vscode.window.withProgress({
-        location: vscode.ProgressLocation.Notification,
-        title: 'Analyzing error...',
-        cancellable: false
-      }, async () => {
-        const response = await this.supremeAIService.resolveError(request);
+      vscode.window.withProgress(
+        {
+          location: vscode.ProgressLocation.Notification,
+          title: "Analyzing error...",
+          cancellable: false,
+        },
+        async () => {
+          const response = await this.supremeAIService.resolveError(request);
 
-        if (response.success && response.suggestedFixes.length > 0) {
-          this.displayErrorResolution(response);
-        } else {
-          vscode.window.showInformationMessage('No fixes available. Try manual debugging.');
-        }
-      });
+          if (response.success && response.suggestedFixes.length > 0) {
+            this.displayErrorResolution(response);
+          } else {
+            vscode.window.showInformationMessage(
+              "No fixes available. Try manual debugging.",
+            );
+          }
+        },
+      );
     } catch (error: any) {
-      vscode.window.showErrorMessage(`Error resolution failed: ${error.message}`);
+      vscode.window.showErrorMessage(
+        `Error resolution failed: ${error.message}`,
+      );
     }
   }
 
@@ -188,15 +234,15 @@ export class CodeFlowHandler {
     const issues = await this.supremeAIService.getSecurityIssues(repositoryId);
 
     if (issues.length === 0) {
-      vscode.window.showInformationMessage('No security issues found!');
+      vscode.window.showInformationMessage("No security issues found!");
       return;
     }
 
     const panel = vscode.window.createWebviewPanel(
-      'securityIssues',
-      'Security Issues',
+      "securityIssues",
+      "Security Issues",
       vscode.ViewColumn.One,
-      { enableScripts: true }
+      { enableScripts: true },
     );
 
     panel.webview.html = this.getSecurityIssuesHtml(issues);
@@ -215,15 +261,17 @@ export class CodeFlowHandler {
     const graph = await this.supremeAIService.getDependencyGraph(repositoryId);
 
     if (!graph) {
-      vscode.window.showInformationMessage('Run analysis first to generate dependency graph');
+      vscode.window.showInformationMessage(
+        "Run analysis first to generate dependency graph",
+      );
       return;
     }
 
     const panel = vscode.window.createWebviewPanel(
-      'dependencyGraph',
-      'Dependency Graph',
+      "dependencyGraph",
+      "Dependency Graph",
       vscode.ViewColumn.One,
-      { enableScripts: true }
+      { enableScripts: true },
     );
 
     panel.webview.html = this.getDependencyGraphHtml(graph);
@@ -239,29 +287,30 @@ export class CodeFlowHandler {
     }
 
     const repositoryId = this.getRepositoryId(workspaceFolders[0].uri);
-    const analysis = await this.supremeAIService.getRepositoryAnalysis(repositoryId);
+    const analysis =
+      await this.supremeAIService.getRepositoryAnalysis(repositoryId);
 
     if (!analysis) {
       const runAnalysis = await vscode.window.showInformationMessage(
-        'No analysis found. Run CodeFlow analysis?',
-        'Run Analysis',
-        'Cancel'
+        "No analysis found. Run CodeFlow analysis?",
+        "Run Analysis",
+        "Cancel",
       );
 
-      if (runAnalysis === 'Run Analysis') {
+      if (runAnalysis === "Run Analysis") {
         await this.analyzeCodeFlow();
       }
       return;
     }
 
     const panel = vscode.window.createWebviewPanel(
-      'codeFlowDashboard',
-      'CodeFlow Dashboard',
+      "codeFlowDashboard",
+      "CodeFlow Dashboard",
       vscode.ViewColumn.One,
       {
         enableScripts: true,
-        retainContextWhenHidden: true
-      }
+        retainContextWhenHidden: true,
+      },
     );
 
     panel.webview.html = this.getDashboardHtml(analysis);
@@ -283,21 +332,33 @@ export class CodeFlowHandler {
 
     try {
       const files = await this.collectFiles(workspaceFolders[0].uri);
-      this.outputChannel.appendLine(`[SupremeAI] প্রারম্ভিক ইনডেক্সিং শুরু (ব্যাকগ্রাউন্ড ও লো-প্রায়োরিটি): ${files.length} ফাইল পাওয়া গেছে`);
-      
+      this.outputChannel.appendLine(
+        `[SupremeAI] প্রারম্ভিক ইনডেক্সিং শুরু (ব্যাকগ্রাউন্ড ও লো-প্রায়োরিটি): ${files.length} ফাইল পাওয়া গেছে`,
+      );
+
       for (const file of files) {
-        const ext = file.path.split('.').pop() || 'txt';
+        const ext = file.path.split(".").pop() || "txt";
         try {
-          await this.supremeAIService.syncFileToMemory(file.path, file.content, ext);
+          await this.supremeAIService.syncFileToMemory(
+            file.path,
+            file.content,
+            ext,
+          );
         } catch (fileErr: any) {
-          this.outputChannel.appendLine(`[SupremeAI] ফাইল সিঙ্ক ব্যর্থ: ${file.path} (${fileErr.message})`);
+          this.outputChannel.appendLine(
+            `[SupremeAI] ফাইল সিঙ্ক ব্যর্থ: ${file.path} (${fileErr.message})`,
+          );
         }
         // পিসি মন্থর না করতে প্রতি ফাইলের মাঝে ১.৫ সেকেন্ড বিরতি
-        await new Promise(resolve => setTimeout(resolve, 1500));
+        await new Promise((resolve) => setTimeout(resolve, 1500));
       }
-      this.outputChannel.appendLine('[SupremeAI] প্রারম্ভিক ইনডেক্সিং সফলভাবে সম্পন্ন হয়েছে');
+      this.outputChannel.appendLine(
+        "[SupremeAI] প্রারম্ভিক ইনডেক্সিং সফলভাবে সম্পন্ন হয়েছে",
+      );
     } catch (err: any) {
-      this.outputChannel.appendLine(`[SupremeAI] প্রারম্ভিক ইনডেক্সিং ব্যর্থ হয়েছে: ${err.message}`);
+      this.outputChannel.appendLine(
+        `[SupremeAI] প্রারম্ভিক ইনডেক্সিং ব্যর্থ হয়েছে: ${err.message}`,
+      );
     }
   }
 
@@ -306,25 +367,44 @@ export class CodeFlowHandler {
    */
   private async onFileSave(e: vscode.TextDocument): Promise<void> {
     // ফাইলটি ভেক্টর মেমোরিতে সিঙ্ক করার ব্যাকগ্রাউন্ড টাস্ক
-    const allowedLanguages = ['javascript', 'typescript', 'python', 'go', 'rust', 'java', 'cpp', 'c'];
+    const allowedLanguages = [
+      "javascript",
+      "typescript",
+      "python",
+      "go",
+      "rust",
+      "java",
+      "cpp",
+      "c",
+    ];
     if (allowedLanguages.includes(e.languageId)) {
-      this.supremeAIService.syncFileToMemory(
-        vscode.workspace.asRelativePath(e.uri),
-        e.getText(),
-        e.languageId
-      ).then(res => {
-        if (res && res.success) {
-          console.log(`[SupremeAI] ভেক্টর মেমোরি অটো-সিঙ্ক সম্পন্ন: ${e.fileName}`);
-        }
-      }).catch(err => {
-        console.error(`[SupremeAI] ভেক্টর মেমোরি অটো-সিঙ্ক ব্যর্থ: ${err.message}`);
-      });
+      this.supremeAIService
+        .syncFileToMemory(
+          vscode.workspace.asRelativePath(e.uri),
+          e.getText(),
+          e.languageId,
+        )
+        .then((res) => {
+          if (res && res.success) {
+            console.log(
+              `[SupremeAI] ভেক্টর মেমোরি অটো-সিঙ্ক সম্পন্ন: ${e.fileName}`,
+            );
+          }
+        })
+        .catch((err) => {
+          console.error(
+            `[SupremeAI] ভেক্টর মেমোরি অটো-সিঙ্ক ব্যর্থ: ${err.message}`,
+          );
+        });
     }
 
-    const config = vscode.workspace.getConfiguration('supremeai');
-    const autoAnalyze = config.get<boolean>('autoAnalyzeOnSave', false);
+    const config = vscode.workspace.getConfiguration("supremeai");
+    const autoAnalyze = config.get<boolean>("autoAnalyzeOnSave", false);
 
-    if (autoAnalyze && (e.languageId === 'javascript' || e.languageId === 'typescript')) {
+    if (
+      autoAnalyze &&
+      (e.languageId === "javascript" || e.languageId === "typescript")
+    ) {
       // Debounced analysis
       setTimeout(() => {
         this.analyzeCodeFlow(e.uri);
@@ -335,19 +415,34 @@ export class CodeFlowHandler {
   /**
    * Collect files from workspace
    */
-  private async collectFiles(workspaceUri: vscode.Uri): Promise<Array<{ path: string; content: string }>> {
+  private async collectFiles(
+    workspaceUri: vscode.Uri,
+  ): Promise<Array<{ path: string; content: string }>> {
     const files: Array<{ path: string; content: string }> = [];
-    const patterns = ['**/*.js', '**/*.ts', '**/*.py', '**/*.go', '**/*.rs', '**/*.java', '**/*.rb', '**/*.cpp', '**/*.c'];
+    const patterns = [
+      "**/*.js",
+      "**/*.ts",
+      "**/*.py",
+      "**/*.go",
+      "**/*.rs",
+      "**/*.java",
+      "**/*.rb",
+      "**/*.cpp",
+      "**/*.c",
+    ];
 
     for (const pattern of patterns) {
-      const uris = await vscode.workspace.findFiles(new vscode.RelativePattern(workspaceUri, pattern), '**/node_modules/**');
-      
+      const uris = await vscode.workspace.findFiles(
+        new vscode.RelativePattern(workspaceUri, pattern),
+        "**/node_modules/**",
+      );
+
       for (const uri of uris) {
         try {
           const document = await vscode.workspace.openTextDocument(uri);
           files.push({
             path: vscode.workspace.asRelativePath(uri),
-            content: document.getText()
+            content: document.getText(),
           });
         } catch (error) {
           // Skip files that can't be read
@@ -362,8 +457,11 @@ export class CodeFlowHandler {
    * Store analysis results
    */
   private async storeAnalysisResults(data: any): Promise<void> {
-    await this.context.workspaceState.update('codeflow.lastAnalysis', data);
-    await this.context.workspaceState.update('codeflow.lastAnalysisTime', new Date().toISOString());
+    await this.context.workspaceState.update("codeflow.lastAnalysis", data);
+    await this.context.workspaceState.update(
+      "codeflow.lastAnalysisTime",
+      new Date().toISOString(),
+    );
   }
 
   /**
@@ -373,18 +471,20 @@ export class CodeFlowHandler {
     const color = this.getScoreColor(score.score);
     this.statusBarItem.color = color;
     this.statusBarItem.text = `$(graph) ${score.grade} ${score.score}/100`;
-    this.statusBarItem.backgroundColor = new vscode.ThemeColor('statusBarItem.warningBackground');
+    this.statusBarItem.backgroundColor = new vscode.ThemeColor(
+      "statusBarItem.warningBackground",
+    );
   }
 
   /**
    * Get color based on score
    */
   private getScoreColor(score: number): string {
-    if (score >= 90) return '#00ff9d';
-    if (score >= 80) return '#00d4ff';
-    if (score >= 70) return '#ffd700';
-    if (score >= 60) return '#ff8c00';
-    return '#ff4444';
+    if (score >= 90) return "#00ff9d";
+    if (score >= 80) return "#00d4ff";
+    if (score >= 70) return "#ffd700";
+    if (score >= 60) return "#ff8c00";
+    return "#ff4444";
   }
 
   /**
@@ -392,16 +492,22 @@ export class CodeFlowHandler {
    */
   private displayAnalysisResults(data: any): void {
     this.outputChannel.clear();
-    this.outputChannel.appendLine('=== CodeFlow Analysis Results ===\n');
-    this.outputChannel.appendLine(`Health Score: ${data.healthScore.grade} (${data.healthScore.score}/100)`);
+    this.outputChannel.appendLine("=== CodeFlow Analysis Results ===\n");
+    this.outputChannel.appendLine(
+      `Health Score: ${data.healthScore.grade} (${data.healthScore.score}/100)`,
+    );
     this.outputChannel.appendLine(`Files Analyzed: ${data.files.length}`);
-    this.outputChannel.appendLine(`Security Issues: ${data.securityIssues.length}`);
+    this.outputChannel.appendLine(
+      `Security Issues: ${data.securityIssues.length}`,
+    );
     this.outputChannel.appendLine(`Patterns Found: ${data.patterns.length}\n`);
 
     if (data.securityIssues.length > 0) {
-      this.outputChannel.appendLine('--- Security Issues ---');
+      this.outputChannel.appendLine("--- Security Issues ---");
       data.securityIssues.forEach((issue: SecurityIssue) => {
-        this.outputChannel.appendLine(`  [${issue.severity.toUpperCase()}] ${issue.type} in ${issue.file}:${issue.line}`);
+        this.outputChannel.appendLine(
+          `  [${issue.severity.toUpperCase()}] ${issue.type} in ${issue.file}:${issue.line}`,
+        );
       });
     }
 
@@ -413,10 +519,10 @@ export class CodeFlowHandler {
    */
   private displayErrorResolution(response: any): void {
     const panel = vscode.window.createWebviewPanel(
-      'errorResolution',
-      'Error Resolution',
+      "errorResolution",
+      "Error Resolution",
       vscode.ViewColumn.Beside,
-      { enableScripts: true }
+      { enableScripts: true },
     );
 
     panel.webview.html = this.getErrorResolutionHtml(response);
@@ -426,8 +532,9 @@ export class CodeFlowHandler {
    * Get repository ID
    */
   private getRepositoryId(uri: vscode.Uri): string {
-    const workspacePath = vscode.workspace.getWorkspaceFolder(uri)?.uri.fsPath || '';
-    return Buffer.from(workspacePath).toString('base64');
+    const workspacePath =
+      vscode.workspace.getWorkspaceFolder(uri)?.uri.fsPath || "";
+    return Buffer.from(workspacePath).toString("base64");
   }
 
   /**
@@ -457,7 +564,9 @@ export class CodeFlowHandler {
       </head>
       <body>
         <h1>🔒 Security Issues (${issues.length})</h1>
-        ${issues.map(issue => `
+        ${issues
+          .map(
+            (issue) => `
           <div class="issue ${issue.severity}">
             <span class="severity ${issue.severity}">${issue.severity.toUpperCase()}</span>
             <strong>${issue.type}</strong> in <code>${issue.file}:${issue.line}</code>
@@ -467,7 +576,9 @@ export class CodeFlowHandler {
               <strong>💡 Fix:</strong> ${issue.fix}
             </div>
           </div>
-        `).join('')}
+        `,
+          )
+          .join("")}
       </body>
       </html>
     `;
@@ -606,37 +717,59 @@ export class CodeFlowHandler {
         
         <div class="section">
           <h3>Health Score Breakdown</h3>
-          ${Object.entries(analysis.healthScore.breakdown).map(([key, value]) => `
+          ${Object.entries(analysis.healthScore.breakdown)
+            .map(
+              ([key, value]) => `
             <div style="margin: 5px 0;">
               <span style="text-transform: capitalize;">${key}</span>: ${value}%
             </div>
-          `).join('')}
+          `,
+            )
+            .join("")}
         </div>
         
-        ${analysis.securityIssues.length > 0 ? `
+        ${
+          analysis.securityIssues.length > 0
+            ? `
           <div class="section">
             <h3>Security Issues</h3>
-            ${analysis.securityIssues.slice(0, 5).map((issue: any) => `
+            ${analysis.securityIssues
+              .slice(0, 5)
+              .map(
+                (issue: any) => `
               <div class="issue">
                 <strong>${issue.type}</strong> in ${issue.file}:${issue.line}<br>
                 <small>${issue.description}</small>
               </div>
-            `).join('')}
-            ${analysis.securityIssues.length > 5 ? `<p>... and ${analysis.securityIssues.length - 5} more</p>` : ''}
+            `,
+              )
+              .join("")}
+            ${analysis.securityIssues.length > 5 ? `<p>... and ${analysis.securityIssues.length - 5} more</p>` : ""}
           </div>
-        ` : ''}
+        `
+            : ""
+        }
         
-        ${analysis.patterns.length > 0 ? `
+        ${
+          analysis.patterns.length > 0
+            ? `
           <div class="section">
             <h3>Design Patterns Detected</h3>
-            ${analysis.patterns.slice(0, 5).map((pattern: any) => `
+            ${analysis.patterns
+              .slice(0, 5)
+              .map(
+                (pattern: any) => `
               <div class="pattern">
                 <strong>${pattern.type}</strong> in ${pattern.file}:${pattern.line}<br>
                 <small>${pattern.description}</small>
               </div>
-            `).join('')}
+            `,
+              )
+              .join("")}
           </div>
-        ` : ''}
+        `
+            : ""
+        }
         
         <button onclick="acquireVsCodeApi().postMessage({ command: 'refresh' })">🔄 Refresh Analysis</button>
       </body>
@@ -673,22 +806,30 @@ export class CodeFlowHandler {
           <p><strong>Confidence:</strong> ${Math.round(response.confidence * 100)}%</p>
         </div>
         
-        ${response.affectedFiles.length > 0 ? `
+        ${
+          response.affectedFiles.length > 0
+            ? `
           <div class="root-cause">
             <h3>Affected Files</h3>
-            ${response.affectedFiles.map((file: string) => `<code>${file}</code>`).join('<br>')}
+            ${response.affectedFiles.map((file: string) => `<code>${file}</code>`).join("<br>")}
           </div>
-        ` : ''}
+        `
+            : ""
+        }
         
         <h3>Suggested Fixes</h3>
-        ${response.suggestedFixes.map((fix: any) => `
+        ${response.suggestedFixes
+          .map(
+            (fix: any) => `
           <div class="fix ${fix.difficulty}">
             <h4>${fix.description} <span style="font-size: 12px; color: #888;">(${fix.difficulty})</span></h4>
             <p>${fix.explanation}</p>
             <pre><code>${fix.code}</code></pre>
             <p><strong>Impact:</strong> ${fix.impact}</p>
           </div>
-        `).join('')}
+        `,
+          )
+          .join("")}
       </body>
       </html>
     `;
