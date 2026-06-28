@@ -19,7 +19,8 @@ class ScreenApiService {
     return _localFallback(screen);
   }
 
-  Future<Map<String, dynamic>> action(String screen, Map<String, dynamic> payload) async {
+  Future<Map<String, dynamic>> action(
+      String screen, Map<String, dynamic> payload) async {
     try {
       final response = await http
           .post(

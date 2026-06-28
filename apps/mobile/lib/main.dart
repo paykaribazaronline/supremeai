@@ -46,9 +46,12 @@ class SupremeAIApp extends StatelessWidget {
 
   ThemeMode _getThemeMode(String mode) {
     switch (mode) {
-      case 'light': return ThemeMode.light;
-      case 'dark': return ThemeMode.dark;
-      default: return ThemeMode.system;
+      case 'light':
+        return ThemeMode.light;
+      case 'dark':
+        return ThemeMode.dark;
+      default:
+        return ThemeMode.system;
     }
   }
 }
@@ -59,8 +62,9 @@ class AuthWrapper extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final auth = context.watch<AuthProvider>();
-    
-    if (auth.status == AuthStatus.authenticated || auth.status == AuthStatus.guest) {
+
+    if (auth.status == AuthStatus.authenticated ||
+        auth.status == AuthStatus.guest) {
       return const HomeScreen();
     }
     return const LoginScreen();

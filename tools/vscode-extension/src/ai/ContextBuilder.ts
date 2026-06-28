@@ -1,5 +1,5 @@
-import * as vscode from 'vscode';
-import * as path from 'path';
+import * as vscode from "vscode";
+import * as path from "path";
 
 export interface AIContext {
   language: string;
@@ -18,11 +18,11 @@ export interface AIContext {
 export class ContextBuilder {
   async buildContext(document: vscode.TextDocument): Promise<AIContext> {
     const workspaceFolders = vscode.workspace.workspaceFolders;
-    const projectRoot = workspaceFolders?.[0]?.uri.fsPath || '';
+    const projectRoot = workspaceFolders?.[0]?.uri.fsPath || "";
 
     const openTexts = vscode.window.visibleTextEditors
-      .filter(editor => editor.document.languageId === document.languageId)
-      .map(editor => editor.document.uri.fsPath);
+      .filter((editor) => editor.document.languageId === document.languageId)
+      .map((editor) => editor.document.uri.fsPath);
 
     const currentContent = document.getText();
     const imports = this.extractImports(currentContent, document.languageId);
@@ -32,7 +32,7 @@ export class ContextBuilder {
     const activeEditor = vscode.window.activeTextEditor;
     const selectedText = activeEditor?.selection
       ? document.getText(activeEditor.selection)
-      : '';
+      : "";
 
     return {
       language: document.languageId,
@@ -49,12 +49,12 @@ export class ContextBuilder {
     };
   }
 
-  buildMemoryPrompt(context: AIContext, memoryContext: string = ''): string {
-    return `${memoryContext ? `[Memory Context]\n${memoryContext}\n\n` : ''}[Current File Context]
+  buildMemoryPrompt(context: AIContext, memoryContext: string = ""): string {
+    return `${memoryContext ? `[Memory Context]\n${memoryContext}\n\n` : ""}[Current File Context]
 - Language: ${context.language}
 - File: ${context.fileName}
-- Project: ${context.projectRoot || 'Unknown'}
-- Imports: ${context.imports.slice(0, 5).join(', ')}
+- Project: ${context.projectRoot || "Unknown"}
+- Imports: ${context.imports.slice(0, 5).join(", ")}
 - Selected: ${context.selectedText.slice(0, 200)}
 
 [currentFileContent]
@@ -64,13 +64,13 @@ ${context.currentFileContent.slice(0, 4000)}`;
   extractImports(code: string, language: string): string[] {
     const imports: string[] = [];
 
-    if (language === 'typescript' || language === 'javascript') {
+    if (language === "typescript" || language === "javascript") {
       const importRegex = /import\s+.*\s+from\s+['"]([^'"]+)['"]/g;
       let match;
       while ((match = importRegex.exec(code)) !== null) {
         imports.push(match[1]);
       }
-    } else if (language === 'python') {
+    } else if (language === "python") {
       const importRegex = /^(?:import|from)\s+([^\s]+)/gm;
       let match;
       while ((match = importRegex.exec(code)) !== null) {
@@ -84,8 +84,9 @@ ${context.currentFileContent.slice(0, 4000)}`;
   extractExports(code: string, language: string): string[] {
     const exports: string[] = [];
 
-    if (language === 'typescript' || language === 'javascript') {
-      const exportRegex = /export\s+(?:default\s+)?(?:class|function|const|let|var)\s+(\w+)/g;
+    if (language === "typescript" || language === "javascript") {
+      const exportRegex =
+        /export\s+(?:default\s+)?(?:class|function|const|let|var)\s+(\w+)/g;
       let match;
       while ((match = exportRegex.exec(code)) !== null) {
         exports.push(match[1]);
@@ -98,10 +99,12 @@ ${context.currentFileContent.slice(0, 4000)}`;
   private async extractDependencies(projectRoot: string): Promise<string[]> {
     const deps: string[] = [];
 
-    if (!projectRoot) { return deps; }
+    if (!projectRoot) {
+      return deps;
+    }
 
     try {
-      const packageJsonPath = path.join(projectRoot, 'package.json');
+      const packageJsonPath = path.join(projectRoot, "package.json");
       // eslint-disable-next-line @typescript-eslint/no-var-requires
       const packageJson = require(packageJsonPath);
 
@@ -120,8 +123,8 @@ ${context.currentFileContent.slice(0, 4000)}`;
     return `Context:
 - Language: ${context.language}
 - File: ${context.fileName}
-- Project: ${context.projectRoot || 'Unknown'}
-- Imports: ${context.imports.slice(0, 5).join(', ')}
+- Project: ${context.projectRoot || "Unknown"}
+- Imports: ${context.imports.slice(0, 5).join(", ")}
 - Selected: ${context.selectedText.slice(0, 200)}
 
 Prompt: ${userPrompt}`;
