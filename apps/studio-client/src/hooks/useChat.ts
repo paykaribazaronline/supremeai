@@ -1,9 +1,9 @@
-import { useState, useCallback, useRef, useEffect } from 'react';
-import { useStore } from '../store/useStore';
-import { useCustomerStore } from '../store/customerStore';
-import type { ChatMessage } from '../types/customer';
+import { useState, useCallback, useRef, useEffect } from "react";
+import { useStore } from "../store/useStore";
+import { useCustomerStore } from "../store/customerStore";
+import type { ChatMessage } from "../types/customer";
 
-const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:8000';
+const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:8000";
 
 interface UseChatOptions {
   projectId?: string;
@@ -26,7 +26,7 @@ export function useChat(options: UseChatOptions = {}): UseChatReturn {
   const { addMessage: addStoreMessage, triggerOrchestration } = useStore();
 
   const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [input, setInput] = useState('');
+  const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const abortRef = useRef<AbortController | null>(null);
@@ -42,16 +42,16 @@ export function useChat(options: UseChatOptions = {}): UseChatReturn {
 
     const userMsg: ChatMessage = {
       id: crypto.randomUUID(),
-      role: 'user',
+      role: "user",
       content: input.trim(),
       timestamp: new Date().toISOString(),
       project_id: projectId,
     };
 
-    setMessages(prev => [...prev, userMsg]);
+    setMessages((prev) => [...prev, userMsg]);
     addCustomerMessage(userMsg);
-    addStoreMessage({ role: 'user', content: input.trim() });
-    setInput('');
+    addStoreMessage({ role: "user", content: input.trim() });
+    setInput("");
     setLoading(true);
     setError(null);
     triggerOrchestration(true);
@@ -61,8 +61,8 @@ export function useChat(options: UseChatOptions = {}): UseChatReturn {
 
       try {
         const res = await fetch(`${API_BASE}/api/chat/stream`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             message: userMsg.content,
             project_id: projectId,
@@ -75,7 +75,7 @@ export function useChat(options: UseChatOptions = {}): UseChatReturn {
 
         const reader = res.body?.getReader();
         const decoder = new TextDecoder();
-        let assistantContent = '';
+        let assistantContent = "";
         const assistantId = crypto.randomUUID();
 
         if (reader) {
@@ -88,14 +88,14 @@ export function useChat(options: UseChatOptions = {}): UseChatReturn {
 
             const partialMsg: ChatMessage = {
               id: assistantId,
-              role: 'assistant',
+              role: "assistant",
               content: assistantContent,
               timestamp: new Date().toISOString(),
               project_id: projectId,
             };
 
-            setMessages(prev => {
-              const existing = prev.findIndex(m => m.id === assistantId);
+            setMessages((prev) => {
+              const existing = prev.findIndex((m) => m.id === assistantId);
               if (existing >= 0) {
                 const updated = [...prev];
                 updated[existing] = partialMsg;
@@ -108,17 +108,17 @@ export function useChat(options: UseChatOptions = {}): UseChatReturn {
 
         const finalMsg: ChatMessage = {
           id: assistantId,
-          role: 'assistant',
-          content: assistantContent || 'No response received.',
+          role: "assistant",
+          content: assistantContent || "No response received.",
           timestamp: new Date().toISOString(),
           project_id: projectId,
         };
 
         addCustomerMessage(finalMsg);
-        addStoreMessage({ role: 'assistant', content: finalMsg.content });
+        addStoreMessage({ role: "assistant", content: finalMsg.content });
       } catch (err: any) {
-        if (err.name !== 'AbortError') {
-          setError(err.message || 'Unknown error occurred');
+        if (err.name !== "AbortError") {
+          setError(err.message || "Unknown error occurred");
         }
       } finally {
         setLoading(false);
@@ -128,8 +128,8 @@ export function useChat(options: UseChatOptions = {}): UseChatReturn {
     } else {
       try {
         const res = await fetch(`${API_BASE}/api/chat`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             message: userMsg.content,
             project_id: projectId,
@@ -141,28 +141,36 @@ export function useChat(options: UseChatOptions = {}): UseChatReturn {
         const data = await res.json();
         const assistantMsg: ChatMessage = {
           id: crypto.randomUUID(),
-          role: 'assistant',
-          content: data.response || data.message || 'No response received.',
+          role: "assistant",
+          content: data.response || data.message || "No response received.",
           timestamp: new Date().toISOString(),
           project_id: projectId,
           metadata: { model: data.model, tokens: data.tokens },
         };
 
-        setMessages(prev => [...prev, assistantMsg]);
+        setMessages((prev) => [...prev, assistantMsg]);
         addCustomerMessage(assistantMsg);
-        addStoreMessage({ role: 'assistant', content: assistantMsg.content });
+        addStoreMessage({ role: "assistant", content: assistantMsg.content });
       } catch (err: any) {
-        setError(err.message || 'Unknown error occurred');
+        setError(err.message || "Unknown error occurred");
       } finally {
         setLoading(false);
         triggerOrchestration(false);
       }
     }
-  }, [input, loading, projectId, streaming, addCustomerMessage, addStoreMessage, triggerOrchestration]);
+  }, [
+    input,
+    loading,
+    projectId,
+    streaming,
+    addCustomerMessage,
+    addStoreMessage,
+    triggerOrchestration,
+  ]);
 
   const clear = useCallback(() => {
     setMessages([]);
-    setInput('');
+    setInput("");
     setError(null);
   }, []);
 

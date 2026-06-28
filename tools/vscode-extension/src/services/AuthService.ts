@@ -1,6 +1,6 @@
-import * as vscode from 'vscode';
+import * as vscode from "vscode";
 
-import { SupremeAIConfig } from '../types';
+import { SupremeAIConfig } from "../types";
 
 export class AuthService {
   private static instance: AuthService;
@@ -17,10 +17,17 @@ export class AuthService {
     if (secrets) {
       this.secrets = secrets;
     }
-    vscode.commands.executeCommand('setContext', 'supremeai.authenticated', false);
+    vscode.commands.executeCommand(
+      "setContext",
+      "supremeai.authenticated",
+      false,
+    );
   }
 
-  public static getInstance(config?: SupremeAIConfig, secrets?: vscode.SecretStorage): AuthService {
+  public static getInstance(
+    config?: SupremeAIConfig,
+    secrets?: vscode.SecretStorage,
+  ): AuthService {
     if (!AuthService.instance && config) {
       AuthService.instance = new AuthService(config, secrets);
     }
@@ -33,17 +40,21 @@ export class AuthService {
 
   public async initialize(): Promise<void> {
     if (this.secrets) {
-      const storedToken = await this.secrets.get('supremeai.aiApiKey');
+      const storedToken = await this.secrets.get("supremeai.aiApiKey");
       if (storedToken) {
         this.token = storedToken;
-        await vscode.commands.executeCommand('setContext', 'supremeai.authenticated', true);
+        await vscode.commands.executeCommand(
+          "setContext",
+          "supremeai.authenticated",
+          true,
+        );
       }
     }
   }
 
   private resolveBaseUrl(): string {
-    let baseUrl = (this.config.backendUrl || '').trim().replace(/\/$/, '');
-    if (!baseUrl.startsWith('http')) {
+    let baseUrl = (this.config.backendUrl || "").trim().replace(/\/$/, "");
+    if (!baseUrl.startsWith("http")) {
       baseUrl = `https://${baseUrl}`;
     }
     return baseUrl;
@@ -52,17 +63,19 @@ export class AuthService {
   public async login(): Promise<boolean> {
     try {
       if (!this.config.backendUrl) {
-        throw new Error('Backend URL is not configured in settings.');
+        throw new Error("Backend URL is not configured in settings.");
       }
 
       const baseUrl = this.resolveBaseUrl();
       const loginUrl = `${baseUrl}/auth/login`;
-      console.log('[SupremeAI] Opening browser for login:', loginUrl);
+      console.log("[SupremeAI] Opening browser for login:", loginUrl);
       await vscode.env.openExternal(vscode.Uri.parse(loginUrl));
-      vscode.window.showInformationMessage('Login page opened in your browser. After signing in, the extension will detect the callback and complete authentication.');
+      vscode.window.showInformationMessage(
+        "Login page opened in your browser. After signing in, the extension will detect the callback and complete authentication.",
+      );
       return false;
     } catch (error: any) {
-      console.error('[SupremeAI] Login error:', error);
+      console.error("[SupremeAI] Login error:", error);
       vscode.window.showErrorMessage(`Login failed: ${error.message}`);
       return false;
     }
@@ -72,8 +85,8 @@ export class AuthService {
     try {
       const baseUrl = this.resolveBaseUrl();
       const response = await fetch(`${baseUrl}/auth/register`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password }),
       });
       if (!response.ok) {
@@ -82,39 +95,56 @@ export class AuthService {
       }
       return true;
     } catch (error: any) {
-      console.error('[SupremeAI] Register error:', error);
+      console.error("[SupremeAI] Register error:", error);
       vscode.window.showErrorMessage(`Registration failed: ${error.message}`);
       return false;
     }
   }
 
-  public async completeLogin(token: string, user: Record<string, any>): Promise<void> {
+  public async completeLogin(
+    token: string,
+    user: Record<string, any>,
+  ): Promise<void> {
     const store = vscode.workspace.isTrusted;
     if (this.secrets) {
-      await this.secrets.store('supremeai.aiApiKey', token);
+      await this.secrets.store("supremeai.aiApiKey", token);
     } else {
-      await vscode.workspace.getConfiguration('supremeai').update('aiApiKey', token, true);
+      await vscode.workspace
+        .getConfiguration("supremeai")
+        .update("aiApiKey", token, true);
     }
     this.token = token;
     this.user = user;
-    await vscode.commands.executeCommand('setContext', 'supremeai.authenticated', true);
+    await vscode.commands.executeCommand(
+      "setContext",
+      "supremeai.authenticated",
+      true,
+    );
   }
 
   public async loginAsGuest(): Promise<boolean> {
     this.token = null;
     this.user = null;
-    await vscode.commands.executeCommand('setContext', 'supremeai.authenticated', false);
+    await vscode.commands.executeCommand(
+      "setContext",
+      "supremeai.authenticated",
+      false,
+    );
     return false;
   }
 
   public async logout(): Promise<void> {
     if (this.secrets) {
-      await this.secrets.delete('supremeai.aiApiKey');
+      await this.secrets.delete("supremeai.aiApiKey");
     }
     this.token = null;
     this.user = null;
-    await vscode.commands.executeCommand('setContext', 'supremeai.authenticated', false);
-    vscode.window.showInformationMessage('Logged out successfully.');
+    await vscode.commands.executeCommand(
+      "setContext",
+      "supremeai.authenticated",
+      false,
+    );
+    vscode.window.showInformationMessage("Logged out successfully.");
   }
 
   public getToken(): string | null {
@@ -133,10 +163,12 @@ export class AuthService {
     try {
       const baseUrl = this.resolveBaseUrl();
       const response = await fetch(`${baseUrl}/admin/keys/rotate`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
-          ...(this.isAuthenticated() && this.token ? { Authorization: `Bearer ${this.token}` } : {}),
+          "Content-Type": "application/json",
+          ...(this.isAuthenticated() && this.token
+            ? { Authorization: `Bearer ${this.token}` }
+            : {}),
         },
       });
       if (!response.ok) {
@@ -144,21 +176,29 @@ export class AuthService {
       }
       const data = (await response.json()) as any;
       const newKey = data.api_key ?? data.access_token;
-      if (typeof newKey === 'string') {
+      if (typeof newKey === "string") {
         this.token = newKey;
-        await vscode.workspace.getConfiguration('supremeai').update('aiApiKey', newKey, true);
+        await vscode.workspace
+          .getConfiguration("supremeai")
+          .update("aiApiKey", newKey, true);
       }
       return this.token;
     } catch (error: any) {
-      console.error('[SupremeAI] API key rotation failed:', error);
-      vscode.window.showErrorMessage(`API key rotation failed: ${error.message}`);
+      console.error("[SupremeAI] API key rotation failed:", error);
+      vscode.window.showErrorMessage(
+        `API key rotation failed: ${error.message}`,
+      );
       return null;
     }
   }
 
   public setToken(token: string): void {
     this.token = token;
-    vscode.commands.executeCommand('setContext', 'supremeai.authenticated', true);
+    vscode.commands.executeCommand(
+      "setContext",
+      "supremeai.authenticated",
+      true,
+    );
   }
 
   public setUser(user: any): void {
