@@ -1,9 +1,10 @@
+from unittest.mock import patch
+
 import pytest
-from unittest.mock import patch, MagicMock
 from loguru import logger
-import json
-from typing import Any
+
 from backend.agents.medical_agent import MedicalAgent
+
 
 @pytest.mark.asyncio
 class TestMedicalAgent:
@@ -16,7 +17,7 @@ class TestMedicalAgent:
         assert medical_agent.domain_adapter is not None or logger.info.called
 
     @pytest.mark.asyncio
-    @patch('backend.agents.medical_agent.logger')
+    @patch("backend.agents.medical_agent.logger")
     async def test_symptom_analysis(self, mock_logger, medical_agent):
         symptoms = "headache"
         age = 30
@@ -30,7 +31,7 @@ class TestMedicalAgent:
         assert "disclaimer" in result
 
     @pytest.mark.asyncio
-    @patch('backend.agents.medical_agent.logger')
+    @patch("backend.agents.medical_agent.logger")
     async def test_symptom_analysis_empty_input(self, mock_logger, medical_agent):
         symptoms = ""
         age = None
@@ -44,7 +45,7 @@ class TestMedicalAgent:
         assert "disclaimer" in result
 
     @pytest.mark.asyncio
-    @patch('backend.agents.medical_agent.logger')
+    @patch("backend.agents.medical_agent.logger")
     async def test_symptom_analysis_large_input(self, mock_logger, medical_agent):
         symptoms = "a" * 1000
         age = 30
@@ -58,7 +59,7 @@ class TestMedicalAgent:
         assert "disclaimer" in result
 
     @pytest.mark.asyncio
-    @patch('backend.agents.medical_agent.logger')
+    @patch("backend.agents.medical_agent.logger")
     async def test_drug_interaction(self, mock_logger, medical_agent):
         medications = ["aspirin", "ibuprofen"]
         result = medical_agent.drug_interaction(medications)
@@ -71,7 +72,7 @@ class TestMedicalAgent:
         assert "interactions" in result
 
     @pytest.mark.asyncio
-    @patch('backend.agents.medical_agent.logger')
+    @patch("backend.agents.medical_agent.logger")
     async def test_drug_interaction_empty_input(self, mock_logger, medical_agent):
         medications = []
         result = medical_agent.drug_interaction(medications)
@@ -84,7 +85,7 @@ class TestMedicalAgent:
         assert "interactions" in result
 
     @pytest.mark.asyncio
-    @patch('backend.agents.medical_agent.logger')
+    @patch("backend.agents.medical_agent.logger")
     async def test_drug_interaction_large_input(self, mock_logger, medical_agent):
         medications = ["a" * 1000] * 10
         result = medical_agent.drug_interaction(medications)
@@ -97,7 +98,7 @@ class TestMedicalAgent:
         assert "interactions" in result
 
     @pytest.mark.asyncio
-    @patch('backend.agents.medical_agent.logger')
+    @patch("backend.agents.medical_agent.logger")
     async def test_generate(self, mock_logger, medical_agent):
         prompt = "test prompt"
         context = "test context"
@@ -111,7 +112,7 @@ class TestMedicalAgent:
         assert "disclaimer" in result
 
     @pytest.mark.asyncio
-    @patch('backend.agents.medical_agent.logger')
+    @patch("backend.agents.medical_agent.logger")
     async def test_generate_empty_input(self, mock_logger, medical_agent):
         prompt = ""
         context = None
@@ -125,9 +126,11 @@ class TestMedicalAgent:
         assert "disclaimer" in result
 
     @pytest.mark.asyncio
-    @patch('backend.agents.medical_agent.DomainAdapter')
+    @patch("backend.agents.medical_agent.DomainAdapter")
     async def test_domain_adapter(self, mock_domain_adapter):
-        mock_domain_adapter.return_value.adapt_request.return_value = {"response": "test response"}
+        mock_domain_adapter.return_value.adapt_request.return_value = {
+            "response": "test response"
+        }
         medical_agent = MedicalAgent()
         medical_agent.domain_adapter = mock_domain_adapter.return_value
         prompt = "test prompt"
@@ -142,9 +145,11 @@ class TestMedicalAgent:
         assert "disclaimer" in result
 
     @pytest.mark.asyncio
-    @patch('backend.agents.medical_agent.DomainAdapter')
+    @patch("backend.agents.medical_agent.DomainAdapter")
     async def test_domain_adapter_exception(self, mock_domain_adapter):
-        mock_domain_adapter.return_value.adapt_request.side_effect = Exception("test exception")
+        mock_domain_adapter.return_value.adapt_request.side_effect = Exception(
+            "test exception"
+        )
         medical_agent = MedicalAgent()
         medical_agent.domain_adapter = mock_domain_adapter.return_value
         prompt = "test prompt"
@@ -159,7 +164,7 @@ class TestMedicalAgent:
         assert "disclaimer" in result
 
     @pytest.mark.asyncio
-    @patch('backend.agents.medical_agent.DomainAdapter')
+    @patch("backend.agents.medical_agent.DomainAdapter")
     async def test_domain_adapter_none(self, mock_domain_adapter):
         medical_agent = MedicalAgent()
         medical_agent.domain_adapter = None
