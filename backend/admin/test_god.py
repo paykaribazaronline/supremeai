@@ -1,11 +1,12 @@
+# বাংলা মন্তব্য: অব্যবহৃত ইম্পোর্ট (os, time, MagicMock, logger) মুছে ফেলা হলো।
 import asyncio
-import os
 import sys
-import time
-from unittest.mock import patch, MagicMock
-from loguru import logger
+from unittest.mock import patch
+
 import pytest
+
 from backend.admin.god import AdminGodLayer
+
 
 @pytest.fixture
 def admin_god_layer():
@@ -121,7 +122,8 @@ class TestAdminGodLayer:
         try:
             admin_god_layer.enforce("not_whitelist")
         except PermissionError:
-            assert False, "PermissionError should not be raised"
+            # বাংলা মন্তব্য: assert False এর পরিবর্তে pytest.fail ব্যবহার করা হলো
+            pytest.fail("PermissionError should not be raised")
 
     def test_enforce_not_allowed(self):
         # Test enforce with a not allowed action
@@ -224,7 +226,8 @@ class TestAdminGodLayer:
         # Test setting a rule with a None value
         admin_god_layer = AdminGodLayer()
         admin_god_layer.set_rule("test_key", None)
-        assert admin_god_layer.local_rules["test_key"] == None
+        # বাংলা মন্তব্য: None এর সাথে তুলনার জন্য 'is None' ব্যবহার করা হলো
+        assert admin_god_layer.local_rules["test_key"] is None
 
     def test_enforce_none_action(self):
         # Test enforce with a None action

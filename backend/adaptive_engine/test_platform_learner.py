@@ -1,10 +1,12 @@
+# বাংলা মন্তব্য: টেস্টে ব্যবহৃত httpx প্যাকেজ আমদানি করা হলো এবং অব্যবহৃত ইম্পোর্টগুলো মুছে ফেলা হলো।
+from unittest.mock import patch
+
+import httpx
 import pytest
-from unittest.mock import patch, Mock
-import json
-from loguru import logger
-from adaptive_engine.registry import PlatformProfile, PlatformRegistry
-from brain.model_router import ModelRouter
 from platform_learner import PlatformLearner
+
+from adaptive_engine.registry import PlatformProfile
+
 
 @pytest.mark.asyncio
 class TestPlatformLearner:

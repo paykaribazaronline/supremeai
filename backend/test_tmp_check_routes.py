@@ -1,7 +1,9 @@
-import pytest
-from unittest.mock import MagicMock, patch
-import sys
 import io
+from unittest.mock import MagicMock
+from unittest.mock import patch
+
+import pytest
+
 
 # Since the source code is a script that executes on import, 
 # we need to mock the dependencies before importing it.
@@ -13,6 +15,7 @@ def run_target_module():
     Because the code is at the module level, we use importlib to reload it.
     """
     import importlib
+
     import tmp_check_routes
     importlib.reload(tmp_check_routes)
 

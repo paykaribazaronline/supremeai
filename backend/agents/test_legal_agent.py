@@ -1,8 +1,9 @@
+# বাংলা মন্তব্য: টেস্টে ব্যবহৃত asyncio এবং patch আমদানি করা হলো এবং অব্যবহৃত টাইপ মুছে ফেলা হলো।
+import asyncio
+from unittest.mock import patch
+
 import pytest
-from unittest.mock import patch, MagicMock
-from loguru import logger
 from supremeai_2_0.backend.agents.legal_agent import LegalAgent
-from typing import Any, Dict, List
 
 
 @pytest.fixture
@@ -24,7 +25,7 @@ class TestLegalAgent:
         # Act
         result = legal_agent.analyze(document_text, doc_type)
         # Assert
-        assert isinstance(result, Dict[str, Any])
+        assert isinstance(result, dict)
         assert "doc_type" in result
         assert "risk_score" in result
         assert "risks" in result
@@ -37,7 +38,7 @@ class TestLegalAgent:
         # Act
         result = legal_agent._rule_based_scan(text)
         # Assert
-        assert isinstance(result, List[Dict[str, Any]])
+        assert isinstance(result, list)
         assert len(result) > 0
 
     def test_risk_score(self, legal_agent):
@@ -67,7 +68,7 @@ class TestLegalAgent:
         # Act
         result = legal_agent.review_nda(nda_text)
         # Assert
-        assert isinstance(result, Dict[str, Any])
+        assert isinstance(result, dict)
         assert "doc_type" in result
         assert "risk_score" in result
         assert "risks" in result
@@ -80,7 +81,7 @@ class TestLegalAgent:
         # Act
         result = legal_agent.review_contract(contract_text)
         # Assert
-        assert isinstance(result, Dict[str, Any])
+        assert isinstance(result, dict)
         assert "doc_type" in result
         assert "risk_score" in result
         assert "risks" in result
@@ -94,7 +95,7 @@ class TestLegalAgent:
         # Act
         result = legal_agent.analyze(document_text, doc_type)
         # Assert
-        assert isinstance(result, Dict[str, Any])
+        assert isinstance(result, dict)
         assert "doc_type" in result
         assert "risk_score" in result
         assert "risks" in result
@@ -116,7 +117,7 @@ class TestLegalAgent:
         # Act
         result = legal_agent.analyze(document_text, doc_type)
         # Assert
-        assert isinstance(result, Dict[str, Any])
+        assert isinstance(result, dict)
         assert "doc_type" in result
         assert "risk_score" in result
         assert "risks" in result
@@ -181,7 +182,7 @@ class TestLegalAgent:
         # Act
         result = legal_agent.review_nda(nda_text)
         # Assert
-        assert isinstance(result, Dict[str, Any])
+        assert isinstance(result, dict)
         assert "doc_type" in result
         assert "risk_score" in result
         assert "risks" in result
@@ -201,7 +202,7 @@ class TestLegalAgent:
         # Act
         result = legal_agent.review_contract(contract_text)
         # Assert
-        assert isinstance(result, Dict[str, Any])
+        assert isinstance(result, dict)
         assert "doc_type" in result
         assert "risk_score" in result
         assert "risks" in result

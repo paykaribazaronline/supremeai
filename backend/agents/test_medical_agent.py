@@ -1,9 +1,11 @@
+# বাংলা মন্তব্য: টেস্টে ব্যবহৃত logger ইম্পোর্টটি ফিরিয়ে আনা হলো।
+from unittest.mock import patch
+
 import pytest
-from unittest.mock import patch, MagicMock
 from loguru import logger
-import json
-from typing import Any
+
 from backend.agents.medical_agent import MedicalAgent
+
 
 @pytest.mark.asyncio
 class TestMedicalAgent:
