@@ -3,9 +3,9 @@
  * Handles all real-time learning data transmission
  */
 
-import * as vscode from 'vscode';
-import axios, { AxiosInstance } from 'axios';
-import { AuthService } from './AuthService';
+import * as vscode from "vscode";
+import axios, { AxiosInstance } from "axios";
+import { AuthService } from "./AuthService";
 import {
   LearningUpload,
   LearningResponse,
@@ -24,8 +24,8 @@ import {
   ErrorResolutionResponse,
   SecurityIssue,
   HealthScore,
-  DependencyGraph
-} from '../types';
+  DependencyGraph,
+} from "../types";
 
 export class SupremeAIService {
   private client: AxiosInstance;
@@ -41,7 +41,7 @@ export class SupremeAIService {
       baseURL: config.backendUrl,
       timeout: 10000,
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
     });
 
@@ -51,10 +51,12 @@ export class SupremeAIService {
       if (authService && authService.isAuthenticated()) {
         const token = authService.getToken();
         if (token) {
-          request.headers['Authorization'] = `Bearer ${token}`;
+          request.headers["Authorization"] = `Bearer ${token}`;
         }
       }
-      console.log(`[SupremeAI] Sending ${request.method?.toUpperCase()} to ${request.url}`);
+      console.log(
+        `[SupremeAI] Sending ${request.method?.toUpperCase()} to ${request.url}`,
+      );
       return request;
     });
 
@@ -64,7 +66,7 @@ export class SupremeAIService {
       (error) => {
         console.error(`[SupremeAI] API Error: ${error.message}`);
         return Promise.reject(error);
-      }
+      },
     );
   }
 
@@ -74,24 +76,27 @@ export class SupremeAIService {
    */
   async sendCodeEdit(edit: CodeEdit): Promise<LearningResponse> {
     if (!this.config.enableRealTimeLearning) {
-      return { success: false, message: 'Real-time learning disabled' };
+      return { success: false, message: "Real-time learning disabled" };
     }
 
     try {
       const payload: LearningUpload = {
-        type: 'CODE_EDIT',
+        type: "CODE_EDIT",
         data: edit,
         sessionId: this.sessionId,
       };
 
-      const response = await this.client.post<LearningResponse>('/api/knowledge/learn', payload);
+      const response = await this.client.post<LearningResponse>(
+        "/api/knowledge/learn",
+        payload,
+      );
       console.log(`[SupremeAI] Code edit learned: ${edit.taskId}`);
       return response.data;
     } catch (error: any) {
       console.error(`[SupremeAI] Failed to send code edit: ${error.message}`);
       return {
         success: false,
-        message: error.message || 'Failed to send code edit',
+        message: error.message || "Failed to send code edit",
       };
     }
   }
@@ -102,24 +107,29 @@ export class SupremeAIService {
    */
   async reportError(error: ErrorReport): Promise<LearningResponse> {
     if (!this.config.autoReportErrors) {
-      return { success: false, message: 'Auto-error reporting disabled' };
+      return { success: false, message: "Auto-error reporting disabled" };
     }
 
     try {
       const payload: LearningUpload = {
-        type: 'ERROR_REPORT',
+        type: "ERROR_REPORT",
         data: error,
         sessionId: this.sessionId,
       };
 
-      const response = await this.client.post<LearningResponse>('/api/knowledge/failure', payload);
-      console.log(`[SupremeAI] Error reported: ${error.errorType} at ${error.filePath}:${error.lineNumber}`);
+      const response = await this.client.post<LearningResponse>(
+        "/api/knowledge/failure",
+        payload,
+      );
+      console.log(
+        `[SupremeAI] Error reported: ${error.errorType} at ${error.filePath}:${error.lineNumber}`,
+      );
       return response.data;
     } catch (error: any) {
       console.error(`[SupremeAI] Failed to report error: ${error.message}`);
       return {
         success: false,
-        message: error.message || 'Failed to report error',
+        message: error.message || "Failed to report error",
       };
     }
   }
@@ -131,19 +141,24 @@ export class SupremeAIService {
   async sendFeedback(feedback: SuggestionFeedback): Promise<LearningResponse> {
     try {
       const payload: LearningUpload = {
-        type: 'SUGGESTION_FEEDBACK',
+        type: "SUGGESTION_FEEDBACK",
         data: feedback,
         sessionId: this.sessionId,
       };
 
-      const response = await this.client.post<LearningResponse>('/api/knowledge/feedback', payload);
-      console.log(`[SupremeAI] Feedback sent: ${feedback.accepted ? 'accepted' : 'rejected'}`);
+      const response = await this.client.post<LearningResponse>(
+        "/api/knowledge/feedback",
+        payload,
+      );
+      console.log(
+        `[SupremeAI] Feedback sent: ${feedback.accepted ? "accepted" : "rejected"}`,
+      );
       return response.data;
     } catch (error: any) {
       console.error(`[SupremeAI] Failed to send feedback: ${error.message}`);
       return {
         success: false,
-        message: error.message || 'Failed to send feedback',
+        message: error.message || "Failed to send feedback",
       };
     }
   }
@@ -152,9 +167,13 @@ export class SupremeAIService {
    * Send code analysis snapshot
    * POST /api/knowledge/analysis
    */
-  async sendCodeAnalysis(filePath: string, code: string, language: string): Promise<LearningResponse> {
+  async sendCodeAnalysis(
+    filePath: string,
+    code: string,
+    language: string,
+  ): Promise<LearningResponse> {
     if (!this.config.enableRealTimeLearning) {
-      return { success: false, message: 'Real-time learning disabled' };
+      return { success: false, message: "Real-time learning disabled" };
     }
 
     try {
@@ -166,10 +185,13 @@ export class SupremeAIService {
         metrics: this.analyzeCodeMetrics(code, language),
       };
 
-      const response = await this.client.post<LearningResponse>('/api/knowledge/analysis', {
-        ...analysis,
-        sessionId: this.sessionId,
-      });
+      const response = await this.client.post<LearningResponse>(
+        "/api/knowledge/analysis",
+        {
+          ...analysis,
+          sessionId: this.sessionId,
+        },
+      );
 
       return response.data;
     } catch (error: any) {
@@ -182,25 +204,39 @@ export class SupremeAIService {
    * ভেক্টর মেমোরিতে ফাইল সিঙ্ক করার ফাংশন
    * POST /api/memory/ingest
    */
-  async syncFileToMemory(filePath: string, content: string, language: string): Promise<any> {
+  async syncFileToMemory(
+    filePath: string,
+    content: string,
+    language: string,
+  ): Promise<any> {
     try {
-      const response = await this.client.post('/api/memory/ingest', {
+      const response = await this.client.post("/api/memory/ingest", {
         filePath,
         content,
         language,
         sessionId: this.sessionId,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
       return response.data;
     } catch (error: any) {
-      console.error(`[SupremeAI] ভেক্টর মেমোরি সিঙ্ক ব্যর্থ হয়েছে: ${error.message}`);
+      console.error(
+        `[SupremeAI] ভেক্টর মেমোরি সিঙ্ক ব্যর্থ হয়েছে: ${error.message}`,
+      );
       return { success: false, message: error.message };
     }
   }
 
-  async getInlineCompletions(prefix: string, suffix: string, filePath: string, language: string): Promise<{ success: boolean; suggestions: string[] }> {
+  async getInlineCompletions(
+    prefix: string,
+    suffix: string,
+    filePath: string,
+    language: string,
+  ): Promise<{ success: boolean; suggestions: string[] }> {
     try {
-      const response = await this.client.post<{ success: boolean; suggestions: string[] }>('/api/chat/completion', {
+      const response = await this.client.post<{
+        success: boolean;
+        suggestions: string[];
+      }>("/api/chat/completion", {
         prefix,
         suffix,
         filePath,
@@ -209,7 +245,9 @@ export class SupremeAIService {
       });
       return response.data;
     } catch (error: any) {
-      console.error(`[SupremeAI] Inline completion request failed: ${error.message}`);
+      console.error(
+        `[SupremeAI] Inline completion request failed: ${error.message}`,
+      );
       return { success: false, suggestions: [] };
     }
   }
@@ -220,30 +258,37 @@ export class SupremeAIService {
    */
   async sendChatMessage(request: ChatRequest): Promise<ChatResponse> {
     try {
-      const response = await this.client.post<ChatResponse>('/api/chat/message', {
-        ...request,
-        sessionId: this.sessionId,
-      });
+      const response = await this.client.post<ChatResponse>(
+        "/api/chat/message",
+        {
+          ...request,
+          sessionId: this.sessionId,
+        },
+      );
       return response.data;
     } catch (error: any) {
       console.error(`[SupremeAI] Chat error: ${error.message}`);
       try {
-        const fallbackReply = await this.tryFreeModelFallback(this.buildContextAwareMessage(request));
+        const fallbackReply = await this.tryFreeModelFallback(
+          this.buildContextAwareMessage(request),
+        );
         return {
           success: true,
-          message: 'Success (Fallback)',
+          message: "Success (Fallback)",
           response: fallbackReply,
           sessionId: this.sessionId,
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
         };
       } catch (fallbackError: any) {
-        throw new Error(`Backend error: ${error.message}. Fallback failed: ${fallbackError.message}`);
+        throw new Error(
+          `Backend error: ${error.message}. Fallback failed: ${fallbackError.message}`,
+        );
       }
     }
   }
 
   private buildContextAwareMessage(request: ChatRequest): string {
-    let fullMessage = request.message || '';
+    let fullMessage = request.message || "";
     const contextParts: string[] = [];
     const filePath = request.context?.filePath || (request as any).filePath;
     const language = request.context?.language || (request as any).language;
@@ -254,30 +299,35 @@ export class SupremeAIService {
       contextParts.push(`Code:\n\`\`\`\n${code}\n\`\`\``);
     }
     if (contextParts.length > 0) {
-      fullMessage += '\n\n--- Context ---\n' + contextParts.join('\n');
+      fullMessage += "\n\n--- Context ---\n" + contextParts.join("\n");
     }
     return fullMessage;
   }
 
-  private async tryFreeModelFallback(message: string, onToken?: (token: string) => void): Promise<string> {
-    const config = vscode.workspace.getConfiguration('supremeai');
-    const provider = config.get<string>('apiProvider') || 'openrouter';
-    const apiKey = config.get<string>('aiApiKey') || '';
-    const model = config.get<string>('aiModel') || 'openrouter/anthropic/claude-3.5-sonnet';
+  private async tryFreeModelFallback(
+    message: string,
+    onToken?: (token: string) => void,
+  ): Promise<string> {
+    const config = vscode.workspace.getConfiguration("supremeai");
+    const provider = config.get<string>("apiProvider") || "openrouter";
+    const apiKey = config.get<string>("aiApiKey") || "";
+    const model =
+      config.get<string>("aiModel") || "openrouter/anthropic/claude-3.5-sonnet";
 
-    if (provider === 'ollama') {
+    if (provider === "ollama") {
       try {
-        console.log('[SupremeAI] Fallback to Ollama local...');
-        const response = await fetch('http://localhost:11434/api/chat', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+        console.log("[SupremeAI] Fallback to Ollama local...");
+        const response = await fetch("http://localhost:11434/api/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            model: model || 'codellama',
-            messages: [{ role: 'user', content: message }],
-            stream: !!onToken
-          })
+            model: model || "codellama",
+            messages: [{ role: "user", content: message }],
+            stream: !!onToken,
+          }),
         });
-        if (!response.ok) throw new Error(`Ollama returned status ${response.status}`);
+        if (!response.ok)
+          throw new Error(`Ollama returned status ${response.status}`);
         if (onToken && response.body) {
           const reader = response.body.getReader();
           const decoder = new TextDecoder();
@@ -286,12 +336,12 @@ export class SupremeAIService {
             const { done, value } = await reader.read();
             if (done) break;
             const chunk = decoder.decode(value, { stream: true });
-            const parts = chunk.split('\n');
+            const parts = chunk.split("\n");
             for (const part of parts) {
               if (!part.trim()) continue;
               try {
                 const parsed = JSON.parse(part);
-                const token = parsed.message?.content || '';
+                const token = parsed.message?.content || "";
                 fullText += token;
                 onToken(token);
               } catch {
@@ -301,54 +351,59 @@ export class SupremeAIService {
           }
           return fullText;
         } else {
-          const data = await response.json() as any;
-          return data.message?.content || '';
+          const data = (await response.json()) as any;
+          return data.message?.content || "";
         }
       } catch (err: any) {
-        console.error('[SupremeAI] Ollama fallback failed:', err.message);
+        console.error("[SupremeAI] Ollama fallback failed:", err.message);
         throw err;
       }
     } else {
       try {
-        console.log('[SupremeAI] Fallback to OpenRouter/External API...');
-        const actualApiKey = apiKey || '';
-        const actualModel = model || 'openrouter/anthropic/claude-3.5-sonnet';
-        const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${actualApiKey}`,
-            'HTTP-Referer': 'https://github.com/paykaribazaronline/supremeai',
-            'X-Title': 'SupremeAI VS Code Extension'
+        console.log("[SupremeAI] Fallback to OpenRouter/External API...");
+        const actualApiKey = apiKey || "";
+        const actualModel = model || "openrouter/anthropic/claude-3.5-sonnet";
+        const response = await fetch(
+          "https://openrouter.ai/api/v1/chat/completions",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${actualApiKey}`,
+              "HTTP-Referer": "https://github.com/paykaribazaronline/supremeai",
+              "X-Title": "SupremeAI VS Code Extension",
+            },
+            body: JSON.stringify({
+              model: actualModel,
+              messages: [{ role: "user", content: message }],
+              stream: !!onToken,
+            }),
           },
-          body: JSON.stringify({
-            model: actualModel,
-            messages: [{ role: 'user', content: message }],
-            stream: !!onToken
-          })
-        });
+        );
         if (!response.ok) {
           const errText = await response.text();
-          throw new Error(`OpenRouter returned status ${response.status}: ${errText}`);
+          throw new Error(
+            `OpenRouter returned status ${response.status}: ${errText}`,
+          );
         }
         if (onToken && response.body) {
           const reader = response.body.getReader();
           const decoder = new TextDecoder();
-          let fullText = '';
+          let fullText = "";
           // বাংলা মন্তব্য: 'no-constant-condition' এড়াতে 'for (;;)' ব্যবহার করা হলো
           for (;;) {
             const { done, value } = await reader.read();
             if (done) break;
             const chunk = decoder.decode(value, { stream: true });
-            const parts = chunk.split('\n');
+            const parts = chunk.split("\n");
             for (const part of parts) {
               const trimmed = part.trim();
-              if (!trimmed.startsWith('data:')) continue;
+              if (!trimmed.startsWith("data:")) continue;
               const payload = trimmed.slice(5).trim();
-              if (payload === '[DONE]') break;
+              if (payload === "[DONE]") break;
               try {
                 const parsed = JSON.parse(payload);
-                const token = parsed.choices?.[0]?.delta?.content || '';
+                const token = parsed.choices?.[0]?.delta?.content || "";
                 fullText += token;
                 onToken(token);
               } catch {
@@ -358,11 +413,11 @@ export class SupremeAIService {
           }
           return fullText;
         } else {
-          const data = await response.json() as any;
-          return data.choices?.[0]?.message?.content || '';
+          const data = (await response.json()) as any;
+          return data.choices?.[0]?.message?.content || "";
         }
       } catch (err: any) {
-        console.error('[SupremeAI] OpenRouter fallback failed:', err.message);
+        console.error("[SupremeAI] OpenRouter fallback failed:", err.message);
         throw err;
       }
     }
@@ -372,19 +427,29 @@ export class SupremeAIService {
    * Stream chat response
    * POST /api/chat/stream
    */
-  async streamChatResponse(request: ChatRequest, onToken?: (token: string) => void): Promise<string> {
+  async streamChatResponse(
+    request: ChatRequest,
+    onToken?: (token: string) => void,
+  ): Promise<string> {
     return this.streamChatCompletion(request, onToken);
   }
 
-  async streamChatCompletion(request: ChatRequest, onToken?: (token: string) => void): Promise<string> {
+  async streamChatCompletion(
+    request: ChatRequest,
+    onToken?: (token: string) => void,
+  ): Promise<string> {
     try {
-      const base = this.config.backendUrl.replace(/\/$/, '');
+      const base = this.config.backendUrl.replace(/\/$/, "");
       const url = `${base}/api/chat/stream`;
       const response = await fetch(url, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
-          ...(AuthService.getInstance()?.getToken() ? { Authorization: `Bearer ${AuthService.getInstance()!.getToken()!}` } : {})
+          "Content-Type": "application/json",
+          ...(AuthService.getInstance()?.getToken()
+            ? {
+                Authorization: `Bearer ${AuthService.getInstance()!.getToken()!}`,
+              }
+            : {}),
         },
         body: JSON.stringify({ ...request, stream: true }),
       });
@@ -395,11 +460,11 @@ export class SupremeAIService {
 
       const reader = response.body?.getReader();
       if (!reader) {
-        throw new Error('No readable stream in response');
+        throw new Error("No readable stream in response");
       }
 
       const decoder = new TextDecoder();
-      let fullText = '';
+      let fullText = "";
 
       // বাংলা মন্তব্য: 'no-constant-condition' এড়াতে 'for (;;)' ব্যবহার করা হলো
       for (;;) {
@@ -407,16 +472,16 @@ export class SupremeAIService {
         if (done) break;
 
         const chunk = decoder.decode(value, { stream: true });
-        const parts = chunk.split('\n');
+        const parts = chunk.split("\n");
         for (const part of parts) {
           const trimmed = part.trim();
-          if (!trimmed.startsWith('data:')) continue;
+          if (!trimmed.startsWith("data:")) continue;
           const payload = trimmed.slice(5).trim();
-          if (payload === '[DONE]') break;
+          if (payload === "[DONE]") break;
           try {
             const parsed = JSON.parse(payload);
-            const token = parsed.token ?? parsed.content ?? parsed.text ?? '';
-            if (typeof token === 'string' && token) {
+            const token = parsed.token ?? parsed.content ?? parsed.text ?? "";
+            if (typeof token === "string" && token) {
               fullText += token;
               onToken?.(token);
             }
@@ -433,9 +498,14 @@ export class SupremeAIService {
     } catch (error: any) {
       console.error(`[SupremeAI] Completion stream error: ${error.message}`);
       try {
-        return await this.tryFreeModelFallback(this.buildContextAwareMessage(request), onToken);
+        return await this.tryFreeModelFallback(
+          this.buildContextAwareMessage(request),
+          onToken,
+        );
       } catch (fallbackError: any) {
-        throw new Error(`Backend stream error: ${error.message}. Fallback failed: ${fallbackError.message}`);
+        throw new Error(
+          `Backend stream error: ${error.message}. Fallback failed: ${fallbackError.message}`,
+        );
       }
     }
   }
@@ -446,8 +516,8 @@ export class SupremeAIService {
    */
   async getChatHistory(sessionId?: string): Promise<ChatMessage[]> {
     try {
-      const response = await this.client.get('/api/chat/history', {
-        params: { sessionId: sessionId || this.sessionId }
+      const response = await this.client.get("/api/chat/history", {
+        params: { sessionId: sessionId || this.sessionId },
       });
       return response.data.messages || [];
     } catch (error: any) {
@@ -456,9 +526,13 @@ export class SupremeAIService {
     }
   }
 
-  async saveCheckpoint(taskId: string, stepIndex: number, state: Record<string, any>): Promise<boolean> {
+  async saveCheckpoint(
+    taskId: string,
+    stepIndex: number,
+    state: Record<string, any>,
+  ): Promise<boolean> {
     try {
-      const response = await this.client.post('/api/memory/checkpoint', {
+      const response = await this.client.post("/api/memory/checkpoint", {
         task_id: taskId,
         step_index: stepIndex,
         state,
@@ -473,7 +547,9 @@ export class SupremeAIService {
 
   async loadCheckpoint(taskId: string): Promise<any | null> {
     try {
-      const response = await this.client.get(`/api/memory/checkpoint/${taskId}`);
+      const response = await this.client.get(
+        `/api/memory/checkpoint/${taskId}`,
+      );
       return response.data ?? null;
     } catch (error: any) {
       console.error(`[SupremeAI] Failed to load checkpoint: ${error.message}`);
@@ -481,18 +557,25 @@ export class SupremeAIService {
     }
   }
 
-  async buildMemoryContext(documents: string[], query: string, sessionId: string, budget = 4000): Promise<string> {
+  async buildMemoryContext(
+    documents: string[],
+    query: string,
+    sessionId: string,
+    budget = 4000,
+  ): Promise<string> {
     try {
-      const response = await this.client.post('/api/memory/context', {
+      const response = await this.client.post("/api/memory/context", {
         documents,
         query,
         session_id: sessionId,
         budget,
       });
-      return response.data?.context || '';
+      return response.data?.context || "";
     } catch (error: any) {
-      console.error(`[SupremeAI] Failed to build memory context: ${error.message}`);
-      return '';
+      console.error(
+        `[SupremeAI] Failed to build memory context: ${error.message}`,
+      );
+      return "";
     }
   }
 
@@ -502,12 +585,14 @@ export class SupremeAIService {
    */
   async clearChatHistory(sessionId?: string): Promise<boolean> {
     try {
-      await this.client.delete('/api/chat/history', {
-        data: { sessionId: sessionId || this.sessionId }
+      await this.client.delete("/api/chat/history", {
+        data: { sessionId: sessionId || this.sessionId },
       });
       return true;
     } catch (error: any) {
-      console.error(`[SupremeAI] Failed to clear chat history: ${error.message}`);
+      console.error(
+        `[SupremeAI] Failed to clear chat history: ${error.message}`,
+      );
       return false;
     }
   }
@@ -518,33 +603,47 @@ export class SupremeAIService {
   private generateFallbackResponse(message: string): string {
     const lowerMsg = message.toLowerCase();
 
-    if (lowerMsg.includes('bangla') || lowerMsg.includes('বাংলা')) {
-      return 'হ্যাঁ, আমি বাংলায় কথা বলতে পারি! আমি আপনার সুপ্রিমএআই (SupremeAI) অ্যাসিস্ট্যান্ট। আমি আপনাকে কোডিং, বাগ ফিক্সিং এবং কোড রিফ্যাক্টরিংয়ে সাহায্য করতে পারি। আপনার প্রশ্নটি বাংলায় করতে পারেন।';
+    if (lowerMsg.includes("bangla") || lowerMsg.includes("বাংলা")) {
+      return "হ্যাঁ, আমি বাংলায় কথা বলতে পারি! আমি আপনার সুপ্রিমএআই (SupremeAI) অ্যাসিস্ট্যান্ট। আমি আপনাকে কোডিং, বাগ ফিক্সিং এবং কোড রিফ্যাক্টরিংয়ে সাহায্য করতে পারি। আপনার প্রশ্নটি বাংলায় করতে পারেন।";
     }
 
-    if (lowerMsg.includes('hello') || lowerMsg.includes('hi') || lowerMsg.includes('hey')) {
-      return 'Hello! I\'m your SupremeAI assistant. How can I help you with your code today?';
+    if (
+      lowerMsg.includes("hello") ||
+      lowerMsg.includes("hi") ||
+      lowerMsg.includes("hey")
+    ) {
+      return "Hello! I'm your SupremeAI assistant. How can I help you with your code today?";
     }
 
-    if (lowerMsg.includes('bug') || lowerMsg.includes('error') || lowerMsg.includes('fix')) {
-      return 'I can help you debug! Please share the error message or the problematic code, and I\'ll analyze it for you.';
+    if (
+      lowerMsg.includes("bug") ||
+      lowerMsg.includes("error") ||
+      lowerMsg.includes("fix")
+    ) {
+      return "I can help you debug! Please share the error message or the problematic code, and I'll analyze it for you.";
     }
 
-    if (lowerMsg.includes('refactor') || lowerMsg.includes('improve') || lowerMsg.includes('optimize')) {
-      return 'I can help refactor your code! Please share the code you\'d like to improve, and I\'ll suggest optimizations.';
+    if (
+      lowerMsg.includes("refactor") ||
+      lowerMsg.includes("improve") ||
+      lowerMsg.includes("optimize")
+    ) {
+      return "I can help refactor your code! Please share the code you'd like to improve, and I'll suggest optimizations.";
     }
 
-    if (lowerMsg.includes('explain') || lowerMsg.includes('understand')) {
-      return 'I can explain code concepts! Please share the code or concept you\'d like me to explain.';
+    if (lowerMsg.includes("explain") || lowerMsg.includes("understand")) {
+      return "I can explain code concepts! Please share the code or concept you'd like me to explain.";
     }
 
-    return 'I\'m here to help with your coding needs! You can ask me to:\n' +
-      '• Explain code\n' +
-      '• Fix bugs\n' +
-      '• Refactor code\n' +
-      '• Review code\n' +
-      '• Answer programming questions\n\n' +
-      'Please share your code or question, and I\'ll do my best to help!';
+    return (
+      "I'm here to help with your coding needs! You can ask me to:\n" +
+      "• Explain code\n" +
+      "• Fix bugs\n" +
+      "• Refactor code\n" +
+      "• Review code\n" +
+      "• Answer programming questions\n\n" +
+      "Please share your code or question, and I'll do my best to help!"
+    );
   }
 
   /**
@@ -553,7 +652,7 @@ export class SupremeAIService {
    */
   async getLearningStats(): Promise<any> {
     try {
-      const response = await this.client.get('/api/knowledge/stats');
+      const response = await this.client.get("/api/knowledge/stats");
       return response.data;
     } catch (error: any) {
       console.error(`[SupremeAI] Failed to get stats: ${error.message}`);
@@ -574,27 +673,43 @@ export class SupremeAIService {
    * Run CodeFlow analysis on repository
    * POST /api/codeflow/analyze
    */
-  async analyzeRepository(request: CodeFlowAnalysisRequest): Promise<CodeFlowAnalysisResponse> {
+  async analyzeRepository(
+    request: CodeFlowAnalysisRequest,
+  ): Promise<CodeFlowAnalysisResponse> {
     try {
-      const response = await this.client.post<CodeFlowAnalysisResponse>('/api/codeflow/analyze', {
-        ...request,
-        sessionId: this.sessionId,
-      });
+      const response = await this.client.post<CodeFlowAnalysisResponse>(
+        "/api/codeflow/analyze",
+        {
+          ...request,
+          sessionId: this.sessionId,
+        },
+      );
       return response.data;
     } catch (error: any) {
       console.error(`[SupremeAI] CodeFlow analysis failed: ${error.message}`);
       return {
         success: false,
-        analysisId: '',
+        analysisId: "",
         data: {
-          repositoryId: '',
+          repositoryId: "",
           files: [],
           dependencies: { nodes: [], edges: [] },
           patterns: [],
           securityIssues: [],
-          healthScore: { score: 0, grade: 'F', breakdown: { security: 0, maintainability: 0, complexity: 0, documentation: 0, testing: 0 }, details: [] },
+          healthScore: {
+            score: 0,
+            grade: "F",
+            breakdown: {
+              security: 0,
+              maintainability: 0,
+              complexity: 0,
+              documentation: 0,
+              testing: 0,
+            },
+            details: [],
+          },
           analysisTimestamp: new Date().toISOString(),
-          status: 'failed',
+          status: "failed",
         },
         message: error.message,
       };
@@ -605,12 +720,18 @@ export class SupremeAIService {
    * Get CodeFlow analysis results
    * GET /api/codeflow/analysis/:id
    */
-  async getAnalysisResults(analysisId: string): Promise<CodeFlowAnalysis | null> {
+  async getAnalysisResults(
+    analysisId: string,
+  ): Promise<CodeFlowAnalysis | null> {
     try {
-      const response = await this.client.get<CodeFlowAnalysis>(`/api/codeflow/analysis/${analysisId}`);
+      const response = await this.client.get<CodeFlowAnalysis>(
+        `/api/codeflow/analysis/${analysisId}`,
+      );
       return response.data;
     } catch (error: any) {
-      console.error(`[SupremeAI] Failed to get analysis results: ${error.message}`);
+      console.error(
+        `[SupremeAI] Failed to get analysis results: ${error.message}`,
+      );
       return null;
     }
   }
@@ -619,12 +740,18 @@ export class SupremeAIService {
    * Get cached analysis for repository
    * GET /api/codeflow/repository/:id/analysis
    */
-  async getRepositoryAnalysis(repositoryId: string): Promise<CodeFlowAnalysis | null> {
+  async getRepositoryAnalysis(
+    repositoryId: string,
+  ): Promise<CodeFlowAnalysis | null> {
     try {
-      const response = await this.client.get<CodeFlowAnalysis>(`/api/codeflow/repository/${repositoryId}/analysis`);
+      const response = await this.client.get<CodeFlowAnalysis>(
+        `/api/codeflow/repository/${repositoryId}/analysis`,
+      );
       return response.data;
     } catch (error: any) {
-      console.error(`[SupremeAI] Failed to get repository analysis: ${error.message}`);
+      console.error(
+        `[SupremeAI] Failed to get repository analysis: ${error.message}`,
+      );
       return null;
     }
   }
@@ -633,18 +760,23 @@ export class SupremeAIService {
    * Resolve error with AI-powered suggestions
    * POST /api/codeflow/error/resolve
    */
-  async resolveError(request: ErrorResolutionRequest): Promise<ErrorResolutionResponse> {
+  async resolveError(
+    request: ErrorResolutionRequest,
+  ): Promise<ErrorResolutionResponse> {
     try {
-      const response = await this.client.post<ErrorResolutionResponse>('/api/codeflow/error/resolve', {
-        ...request,
-        sessionId: this.sessionId,
-      });
+      const response = await this.client.post<ErrorResolutionResponse>(
+        "/api/codeflow/error/resolve",
+        {
+          ...request,
+          sessionId: this.sessionId,
+        },
+      );
       return response.data;
     } catch (error: any) {
       console.error(`[SupremeAI] Error resolution failed: ${error.message}`);
       return {
         success: false,
-        rootCause: 'Unable to determine root cause',
+        rootCause: "Unable to determine root cause",
         affectedFiles: [],
         blastRadius: [],
         suggestedFixes: [],
@@ -657,14 +789,22 @@ export class SupremeAIService {
    * Get security issues for repository
    * GET /api/codeflow/repository/:id/security
    */
-  async getSecurityIssues(repositoryId: string, severity?: string): Promise<SecurityIssue[]> {
+  async getSecurityIssues(
+    repositoryId: string,
+    severity?: string,
+  ): Promise<SecurityIssue[]> {
     try {
-      const response = await this.client.get<SecurityIssue[]>(`/api/codeflow/repository/${repositoryId}/security`, {
-        params: { severity },
-      });
+      const response = await this.client.get<SecurityIssue[]>(
+        `/api/codeflow/repository/${repositoryId}/security`,
+        {
+          params: { severity },
+        },
+      );
       return response.data;
     } catch (error: any) {
-      console.error(`[SupremeAI] Failed to get security issues: ${error.message}`);
+      console.error(
+        `[SupremeAI] Failed to get security issues: ${error.message}`,
+      );
       return [];
     }
   }
@@ -673,12 +813,18 @@ export class SupremeAIService {
    * Get dependency graph for repository
    * GET /api/codeflow/repository/:id/dependencies
    */
-  async getDependencyGraph(repositoryId: string): Promise<DependencyGraph | null> {
+  async getDependencyGraph(
+    repositoryId: string,
+  ): Promise<DependencyGraph | null> {
     try {
-      const response = await this.client.get<DependencyGraph>(`/api/codeflow/repository/${repositoryId}/dependencies`);
+      const response = await this.client.get<DependencyGraph>(
+        `/api/codeflow/repository/${repositoryId}/dependencies`,
+      );
       return response.data;
     } catch (error: any) {
-      console.error(`[SupremeAI] Failed to get dependency graph: ${error.message}`);
+      console.error(
+        `[SupremeAI] Failed to get dependency graph: ${error.message}`,
+      );
       return null;
     }
   }
@@ -689,7 +835,9 @@ export class SupremeAIService {
    */
   async getHealthScore(repositoryId: string): Promise<HealthScore | null> {
     try {
-      const response = await this.client.get<HealthScore>(`/api/codeflow/repository/${repositoryId}/health`);
+      const response = await this.client.get<HealthScore>(
+        `/api/codeflow/repository/${repositoryId}/health`,
+      );
       return response.data;
     } catch (error: any) {
       console.error(`[SupremeAI] Failed to get health score: ${error.message}`);
@@ -699,22 +847,30 @@ export class SupremeAIService {
 
   /**
    * Quick metrics analysis for code
-    */
-  private analyzeCodeMetrics(code: string, language: string): Record<string, number> {
-    const lines = code.split('\n');
+   */
+  private analyzeCodeMetrics(
+    code: string,
+    language: string,
+  ): Record<string, number> {
+    const lines = code.split("\n");
     return {
       linesOfCode: lines.length,
-      nonEmptyLines: lines.filter(l => l.trim().length > 0).length,
-      commentLines: language === 'typescript' || language === 'javascript'
-        ? lines.filter(l => l.trim().startsWith('//') || l.trim().startsWith('/*')).length
-        : 0,
+      nonEmptyLines: lines.filter((l) => l.trim().length > 0).length,
+      commentLines:
+        language === "typescript" || language === "javascript"
+          ? lines.filter(
+              (l) => l.trim().startsWith("//") || l.trim().startsWith("/*"),
+            ).length
+          : 0,
       complexityEstimate: this.estimateComplexity(code),
     };
   }
 
   private estimateComplexity(code: string): number {
     // Simple cyclomatic complexity approximation
-    const decisionPoints = (code.match(/\b(if|else|for|while|switch|case|catch)\b/g) || []).length;
+    const decisionPoints = (
+      code.match(/\b(if|else|for|while|switch|case|catch)\b/g) || []
+    ).length;
     return decisionPoints + 1;
   }
 
@@ -730,10 +886,12 @@ export class SupremeAIService {
    */
   async registerProposedFeature(feature: any): Promise<any> {
     try {
-      const response = await this.client.post('/api/features/propose', feature);
+      const response = await this.client.post("/api/features/propose", feature);
       return response.data;
     } catch (error: any) {
-      console.error(`[SupremeAI] Failed to register proposed feature: ${error.message}`);
+      console.error(
+        `[SupremeAI] Failed to register proposed feature: ${error.message}`,
+      );
       return { success: false, message: error.message };
     }
   }
@@ -751,12 +909,16 @@ export class SupremeAIService {
  */
 let supremeAIService: SupremeAIService | null = null;
 
-export function getSupremeAIService(config?: SupremeAIConfig): SupremeAIService {
+export function getSupremeAIService(
+  config?: SupremeAIConfig,
+): SupremeAIService {
   if (!supremeAIService && config) {
     supremeAIService = new SupremeAIService(config);
   }
   if (!supremeAIService) {
-    throw new Error('SupremeAIService not initialized. Call getSupremeAIService(config) first.');
+    throw new Error(
+      "SupremeAIService not initialized. Call getSupremeAIService(config) first.",
+    );
   }
   return supremeAIService;
 }
