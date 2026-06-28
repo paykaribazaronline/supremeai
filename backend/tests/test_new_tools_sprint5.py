@@ -1,5 +1,6 @@
 import os
 import sys
+import pytest
 
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
@@ -100,3 +101,44 @@ class TestTenantRateLimiter:
         limiter = TenantRateLimiter(redis_client=None)
         assert "pro" in limiter.billing_tiers
         assert "enterprise" in limiter.billing_tiers
+
+    @pytest.mark.asyncio
+    async def test_middleware_tenant_rate_limiting(self, monkeypatch):
+        # বাংলা মন্তব্য: রেট লিমিট মিডলওয়্যার টেন্যান্ট রেট লিমিটিং প্রোটোকল মেনে রিকোয়েস্ট ব্লক করে কিনা তা পরীক্ষা করা হচ্ছে
+        from core.rate_limiter import RateLimitMiddleware
+        from core.config import settings
+
+        monkeypatch.setattr(settings, "env", "production")
+        monkeypatch.setattr(settings, "debug", False)
+
+        called = False
+        async def dummy_app(scope, receive, send):
+            nonlocal called
+            called = True
+
+        middleware = RateLimitMiddleware(dummy_app)
+
+        from tools.tenant_rate_limiter import TenantRateLimiter
+        async def mock_check_quota(self, tenant_id, cost):
+            return {"allowed": False, "reason": "rpm_exceeded"}
+        monkeypatch.setattr(TenantRateLimiter, "check_quota", mock_check_quota)
+
+        scope = {
+            "type": "http",
+            "headers": [
+                (b"x-tenant-id", b"test-tenant")
+            ],
+            "method": "GET",
+            "path": "/api/test",
+        }
+
+        response_status = None
+        async def mock_send(message):
+            nonlocal response_status
+            if message["type"] == "http.response.start":
+                response_status = message["status"]
+
+        await middleware(scope, None, mock_send)
+
+        assert called is False
+        assert response_status == 429

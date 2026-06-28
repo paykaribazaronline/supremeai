@@ -38,6 +38,14 @@ import secrets
 import sentry_sdk
 
 from admin.god import AdminGodLayer
+from models.admin import (
+    AdminLoginRequest,
+    AdminVerifyRequest,
+    AdminFirebaseLoginRequest,
+    AdminFirebaseTotpSetupRequest,
+    AdminFirebaseTotpVerifyRequest,
+    AdminEasyLoginRequest,
+)
 from api.routes import admin_dashboard_router
 from api.routes import agent_router
 from api.routes import agents_router
@@ -382,8 +390,9 @@ import time
 
 
 @app.post("/api/admin/login")
-def admin_login(payload: dict = Body(...)):
-    password = payload.get("password")
+def admin_login(payload: AdminLoginRequest):
+    # বাংলা মন্তব্য: Pydantic স্কিমা ব্যবহার করে পাসওয়ার্ড প্রপার্টি রিড করা হচ্ছে
+    password = payload.password
     expected_password = settings.docs_password
     if not expected_password:
         raise HTTPException(status_code=500, detail="Admin password not configured on server")
@@ -397,9 +406,10 @@ def admin_login(payload: dict = Body(...)):
 
 
 @app.post("/api/admin/verify")
-def admin_verify(payload: dict = Body(...)):
-    password = payload.get("password")
-    otp = payload.get("otp")
+def admin_verify(payload: AdminVerifyRequest):
+    # বাংলা মন্তব্য: Pydantic স্কিমা ব্যবহার করে পাসওয়ার্ড ও ওটিপি প্রপার্টি রিড করা হচ্ছে
+    password = payload.password
+    otp = payload.otp
 
     expected_password = settings.docs_password
     if not expected_password:
@@ -515,10 +525,9 @@ except Exception as e:
 
 
 @app.post("/api/admin/firebase-login")
-def admin_firebase_login(payload: dict = Body(...)):
-    id_token = payload.get("id_token")
-    if not id_token:
-        raise HTTPException(status_code=400, detail="Missing Firebase ID token")
+def admin_firebase_login(payload: AdminFirebaseLoginRequest):
+    # বাংলা মন্তব্য: Pydantic স্কিমা ব্যবহার করে আইডি টোকেন রিড করা হচ্ছে
+    id_token = payload.id_token
 
     # ── Easy Login: Decode Google/Firebase ID Token without strict verification for now ──
     try:
@@ -526,8 +535,15 @@ def admin_firebase_login(payload: dict = Body(...)):
             uid = "mock-admin-uid"
             email = "niloyjoy7@gmail.com"
             logger.warning(f"Bypassing verification using mock token mode. Token: {id_token[:20]}...")
+        elif auth:
+            # বাংলা মন্তব্য: যদি ফায়ারবেস অথ এডমিন SDK উপলব্ধ থাকে, তবে সিগনেচার যাচাই করা হবে
+            decoded_token = auth.verify_id_token(id_token)
+            uid = decoded_token.get("uid", decoded_token.get("sub", "mock-admin-uid"))
+            email = decoded_token.get("email", "")
+            logger.info(f"Verified Firebase token for email: {email}")
         else:
             # Decode JWT without signature verification (easy mode for now, relying on Google login from frontend)
+            # বাংলা মন্তব্য: ফায়ারবেস এডমিন SDK না থাকলে সিগনেচার ছাড়াই ডিকোড করে এগিয়ে যাওয়া হবে (লোকাল বা টেস্ট এনভায়রনমেন্ট)
             import base64
             import json
 
@@ -538,10 +554,10 @@ def admin_firebase_login(payload: dict = Body(...)):
 
             uid = decoded_token.get("sub", "mock-admin-uid")
             email = decoded_token.get("email", "")
-            logger.info(f"Extracted admin email from token: {email}")
+            logger.info(f"Extracted admin email from token without verification: {email}")
     except Exception as e:
-        logger.exception("Token decoding failed")
-        raise HTTPException(status_code=401, detail=f"Token decoding failed: {str(e)}") from e
+        logger.exception("Token verification/decoding failed")
+        raise HTTPException(status_code=401, detail=f"Token verification/decoding failed: {str(e)}") from e
 
     db = get_firestore_client()
     role = "user"
@@ -576,15 +592,19 @@ def admin_firebase_login(payload: dict = Body(...)):
 
 
 @app.post("/api/admin/firebase-totp-setup")
-def admin_firebase_totp_setup(payload: dict = Body(...)):
-    id_token = payload.get("id_token")
-    if not id_token:
-        raise HTTPException(status_code=400, detail="Missing Firebase ID token")
+def admin_firebase_totp_setup(payload: AdminFirebaseTotpSetupRequest):
+    # বাংলা মন্তব্য: Pydantic স্কিমা ব্যবহার করে আইডি টোকেন রিড করা হচ্ছে
+    id_token = payload.id_token
 
     try:
         if id_token.startswith("mock-"):
             uid = "mock-admin-uid"
             email = "niloyjoy7@gmail.com"
+        elif auth:
+            # বাংলা মন্তব্য: যদি ফায়ারবেস অথ এডমিন SDK উপলব্ধ থাকে, তবে সিগনেচার যাচাই করা হবে
+            decoded_token = auth.verify_id_token(id_token)
+            uid = decoded_token.get("uid", decoded_token.get("sub", "mock-admin-uid"))
+            email = decoded_token.get("email", "")
         else:
             import base64
             import json
@@ -611,15 +631,18 @@ def admin_firebase_totp_setup(payload: dict = Body(...)):
 
 
 @app.post("/api/admin/firebase-totp-verify")
-def admin_firebase_totp_verify(payload: dict = Body(...)):
-    id_token = payload.get("id_token")
-    otp = payload.get("otp")
-    if not id_token or not otp:
-        raise HTTPException(status_code=400, detail="Missing credentials")
+def admin_firebase_totp_verify(payload: AdminFirebaseTotpVerifyRequest):
+    # বাংলা মন্তব্য: Pydantic স্কিমা ব্যবহার করে আইডি টোকেন ও ওটিপি রিড করা হচ্ছে
+    id_token = payload.id_token
+    otp = payload.otp
 
     try:
         if id_token.startswith("mock-"):
             uid = "mock-admin-uid"
+        elif auth:
+            # বাংলা মন্তব্য: যদি ফায়ারবেস অথ এডমিন SDK উপলব্ধ থাকে, তবে সিগনেচার যাচাই করা হবে
+            decoded_token = auth.verify_id_token(id_token)
+            uid = decoded_token.get("uid", decoded_token.get("sub", "mock-admin-uid"))
         else:
             import base64
             import json
@@ -700,8 +723,9 @@ def admin_firebase_totp_verify(payload: dict = Body(...)):
 
 
 @app.post("/api/admin/easy-login")
-def admin_easy_login(payload: dict = Body(...)):
-    code = payload.get("code")
+def admin_easy_login(payload: AdminEasyLoginRequest):
+    # বাংলা মন্তব্য: Pydantic স্কিমা ব্যবহার করে লগইন কোড রিড করা হচ্ছে
+    code = payload.code
     expected_code = os.getenv("SUPREMEAI_ADMIN_CODE", "supreme2026")
 
     if code != expected_code:
@@ -988,10 +1012,11 @@ try:
 except Exception as _e:
     logger.warning(f"multilingual_tts router not loaded: {_e}")
 
+# বাংলা মন্তব্য: ভয়েস স্ট্রিম রাউটারটি সঠিকভাবে /api/voice প্রিফিক্স সহ লোড এবং রেজিস্টার করা হলো
 try:
-    from api.routes.voice import router as voice_stream_router
-
-    app.include_router(voice_stream_router, prefix="/api")
+    from api.routes import voice_router
+    if voice_router is not None:
+        app.include_router(voice_router, prefix="/api/voice")
 except Exception as _e:
     logger.warning(f"voice streaming router not loaded: {_e}")
 

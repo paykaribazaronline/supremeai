@@ -1,4 +1,5 @@
--- SupremeAI 2.0 — Migration 07: Multi-Tenant Rate Limiting & Config
+-- SupremeAI 2.0 — Migration 10: Multi-Tenant Rate Limiting & Config
+-- বাংলা মন্তব্য: মাইগ্রেশন কনফ্লিক্ট এড়ানোর জন্য ০৭ থেকে ১০ এ রিনেম করা হয়েছে।
 
 DROP TABLE IF EXISTS tenant_usage CASCADE;
 DROP TABLE IF EXISTS tenant_limits CASCADE;

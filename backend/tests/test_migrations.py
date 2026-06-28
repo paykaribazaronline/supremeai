@@ -6,7 +6,8 @@ MIGRATIONS_DIR = os.path.join(os.path.dirname(__file__), "..", "database", "migr
 
 
 def test_migrations_are_numbered_sequentially():
-    files = [f for f in os.listdir(MIGRATIONS_DIR) if f.endswith(".sql") and f.startswith("0") and f != "07_tenant_sso_offline.sql"]
+    # বাংলা মন্তব্য: সব সংখ্যার মাইগ্রেশন ফাইল চেক করার জন্য f[0].isdigit() ব্যবহার করা হলো এবং কনফ্লিক্ট রিনেমের পর বাইপাসটি বাদ দেওয়া হলো
+    files = [f for f in os.listdir(MIGRATIONS_DIR) if f.endswith(".sql") and f[0].isdigit()]
     numbers = sorted(re.match(r"(\d+)", f).group(1) for f in files)
     assert numbers[0] == "01"
     for i in range(len(numbers) - 1):
@@ -16,7 +17,8 @@ def test_migrations_are_numbered_sequentially():
 
 
 def test_migrations_contain_required_tables():
-    files = sorted(f for f in os.listdir(MIGRATIONS_DIR) if f.endswith(".sql") and f.startswith("0"))
+    # বাংলা মন্তব্য: ১০ নম্বর মাইগ্রেশন ফাইল সহ সকল ফাইল পড়ার জন্য f[0].isdigit() ব্যবহার করা হলো
+    files = sorted(f for f in os.listdir(MIGRATIONS_DIR) if f.endswith(".sql") and f[0].isdigit())
     all_sql = "\n".join(open(os.path.join(MIGRATIONS_DIR, f), encoding="utf-8").read() for f in files)
     required_tables = [
         "referral_codes",

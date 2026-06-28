@@ -93,16 +93,58 @@ class RateLimitMiddleware:
             await self.app(scope, receive, send)
             return
 
-        client = scope.get("client")
-        client_ip = client[0] if client else "unknown"
+        headers = scope.get("headers", [])
+        tenant_id = None
+        for k, v in headers:
+            if k.lower() == b"x-tenant-id":
+                tenant_id = v.decode("utf-8")
+                break
 
-        if not self.limiter.is_allowed(client_ip):
-            logger.warning(f"Rate limit exceeded for {client_ip}")
-            response = JSONResponse(
-                status_code=429,
-                content={"detail": "Too many requests. Please try again later."},
-            )
-            await response(scope, receive, send)
-            return
+        if not tenant_id:
+            for k, v in headers:
+                if k.lower() == b"authorization":
+                    auth_val = v.decode("utf-8")
+                    if auth_val.startswith("Bearer "):
+                        token = auth_val.split(" ")[1]
+                        try:
+                            from core.security import verify_token
+                            payload = verify_token(token)
+                            tenant_id = payload.get("tenant_id") or payload.get("sub")
+                        except Exception:
+                            pass
+                    break
+
+        if tenant_id:
+            try:
+                from tools.tenant_rate_limiter import TenantRateLimiter
+
+                if not hasattr(self, "_tenant_limiter"):
+                    self._tenant_limiter = TenantRateLimiter()
+
+                # বাংলা মন্তব্য: টেন্যান্ট লেভেল রেট লিমিট এবং কোটা চেক করা হচ্ছে
+                quota_status = await self._tenant_limiter.check_quota(tenant_id, cost=0.0)
+                if not quota_status.get("allowed", True):
+                    logger.warning(f"Tenant rate limit exceeded for {tenant_id}: {quota_status}")
+                    response = JSONResponse(
+                        status_code=429,
+                        content={"detail": f"Tenant rate limit exceeded: {quota_status.get('reason')}"},
+                    )
+                    await response(scope, receive, send)
+                    return
+            except Exception as exc:
+                logger.error(f"Error checking tenant rate limit: {exc}")
+
+        else:
+            client = scope.get("client")
+            client_ip = client[0] if client else "unknown"
+
+            if not self.limiter.is_allowed(client_ip):
+                logger.warning(f"Rate limit exceeded for {client_ip}")
+                response = JSONResponse(
+                    status_code=429,
+                    content={"detail": "Too many requests. Please try again later."},
+                )
+                await response(scope, receive, send)
+                return
 
         await self.app(scope, receive, send)

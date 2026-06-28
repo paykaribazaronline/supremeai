@@ -29,7 +29,7 @@ class TestMigrationFiles:
             "01_initial_setup.sql",
             "04_schema_upgrade.sql",
             "06_referral_system.sql",
-            "07_tenant_sso_offline.sql",
+            "10_tenant_sso_offline.sql",
         ],
     )
     def test_migration_file_exists(self, filename: str):
@@ -40,7 +40,7 @@ class TestMigrationFiles:
         "filename",
         [
             "06_referral_system.sql",
-            "07_tenant_sso_offline.sql",
+            "10_tenant_sso_offline.sql",
         ],
     )
     def test_migration_has_create_table(self, filename: str):
@@ -61,7 +61,8 @@ class TestMigrationFiles:
             assert table in content, f"Missing table: {table} in 06_referral_system.sql"
 
     def test_tenant_schema_has_required_tables(self):
-        content = (MIGRATIONS_DIR / "07_tenant_sso_offline.sql").read_text().lower()
+        # বাংলা মন্তব্য: রিনেম করা মাইগ্রেশন ১০ ফাইলটি utf-8 এনকোডিং দিয়ে রিড করা হচ্ছে
+        content = (MIGRATIONS_DIR / "10_tenant_sso_offline.sql").read_text(encoding="utf-8").lower()
         required_tables = [
             "tenant_limits",
             "sso_configs",
@@ -69,14 +70,15 @@ class TestMigrationFiles:
             "tenant_usage",
         ]
         for table in required_tables:
-            assert table in content, f"Missing table: {table} in 07_tenant_sso_offline.sql"
+            assert table in content, f"Missing table: {table} in 10_tenant_sso_offline.sql"
 
     def test_referral_schema_has_indexes(self):
         content = (MIGRATIONS_DIR / "06_referral_system.sql").read_text().upper()
         assert "CREATE INDEX" in content, "06_referral_system.sql should have indexes"
 
     def test_tenant_schema_has_billing_tier_check(self):
-        content = (MIGRATIONS_DIR / "07_tenant_sso_offline.sql").read_text()
+        # বাংলা মন্তব্য: রিনেম করা মাইগ্রেশন ১০ ফাইলটি utf-8 এনকোডিং দিয়ে রিড করা হচ্ছে
+        content = (MIGRATIONS_DIR / "10_tenant_sso_offline.sql").read_text(encoding="utf-8")
         assert "free" in content
         assert "enterprise" in content
         assert "CHECK" in content.upper()

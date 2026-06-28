@@ -11,7 +11,8 @@ tts_engine = MultilingualTTS()
 
 
 @router.get("/stream_audio")
-async def stream_audio(text: str, voice: str | None = None):
+async def stream_audio(text: str = "", voice: str | None = None):
+    # বাংলা মন্তব্য: text প্যারামিটারটি ঐচ্ছিক করা হলো যাতে টেক্সট না থাকলে ৪২২ এর বদলে ৪০০ রেসপন্স জেনারেট হয়
     """Stream TTS audio bytes in real-time for the given text.
     Uses ElevenLabs for primary synthesis (if API key configured) with fallback to edge-tts.
     """
