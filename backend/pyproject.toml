@@ -10,7 +10,7 @@ packages = [{include = "core"}, {include = "brain"}, {include = "api"}, {include
 [tool.poetry.dependencies]
 # ── Core API (always needed, ~500 MB) ──
 python = "^3.11"
-numpy = ">=1.24.0,<2.0.0"
+numpy = ">=1.24.0,<3.0.0"
 fastapi = "^0.111.0"
 networkx = "^3.2.0"
 uvicorn = {extras = ["standard"], version = "^0.30.0"}
