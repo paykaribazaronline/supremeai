@@ -127,4 +127,3 @@ class VPNRotator:
 
     async def get_premium_proxy(self, use_case: str) -> dict[str, Any]:
         return {"proxy": None, "source": "premium", "use_case": use_case}
-

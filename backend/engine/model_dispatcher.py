@@ -5,12 +5,14 @@ from loguru import logger
 
 try:
     import litellm
+
     HAS_LITELLM = True
 except ImportError:
     HAS_LITELLM = False
 
 try:
     from langsmith import traceable
+
     HAS_LANGSMITH = True
 except ImportError:
     HAS_LANGSMITH = False
@@ -41,6 +43,7 @@ def get_fallback_chain(model: str) -> list[str]:
 
 
 if HAS_LANGSMITH:
+
     @traceable(name="model_dispatch")
     async def dispatch(task: str, complexity: int, user_mode: str) -> dict[str, Any]:
         model = select_model(complexity, user_mode)
@@ -56,7 +59,9 @@ if HAS_LANGSMITH:
         except Exception as exc:
             logger.error(f"Model dispatch failed: {exc}")
             return {"model": model, "text": "", "error": str(exc)}
+
 else:
+
     async def dispatch(task: str, complexity: int, user_mode: str) -> dict[str, Any]:
         model = select_model(complexity, user_mode)
         return {"model": model, "text": "", "error": "langsmith not installed"}

@@ -33,7 +33,13 @@ def approve_task(task_id: str, req: ApproveRequest):
         return {"status": "error", "detail": "not_found"}
     task.status = TaskStatus.APPROVED
     task.resolved_by = req.resolved_by
-    task.resolved_at = json.dumps({"ts": __import__("datetime").datetime.now(__import__("datetime").timezone.utc).isoformat()})
+    task.resolved_at = json.dumps(
+        {
+            "ts": __import__("datetime")
+            .datetime.now(__import__("datetime").timezone.utc)
+            .isoformat()
+        }
+    )
     return {"status": "approved", "task": task.model_dump()}
 
 
