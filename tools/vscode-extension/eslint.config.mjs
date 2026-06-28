@@ -18,11 +18,11 @@ export default [
       },
     },
     rules: {
-      "semi": ["error", "always"],
-      "quotes": ["error", "single"],
+      semi: ["error", "always"],
+      quotes: ["error", "single"],
       "no-console": "off",
       "@typescript-eslint/no-unused-vars": "off",
-      "@typescript-eslint/no-explicit-any": "off"
+      "@typescript-eslint/no-explicit-any": "off",
     },
   },
 ];
