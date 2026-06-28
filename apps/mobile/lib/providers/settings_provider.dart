@@ -64,8 +64,8 @@ class SupremeAISettings {
   factory SupremeAISettings.fromJson(Map<String, dynamic> json) {
     final rawPermissions = (json['permissions'] as Map<String, dynamic>?) ?? {};
     return SupremeAISettings(
-      apiEndpoint: json['apiEndpoint'] as String? ??
-          'https://supremeai-a.web.app',
+      apiEndpoint:
+          json['apiEndpoint'] as String? ?? 'https://supremeai-a.web.app',
       apiKey: json['apiKey'] as String? ?? '',
       model: json['activeModel'] as String? ??
           json['model'] as String? ??
