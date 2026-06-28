@@ -54,6 +54,7 @@ setuptools = "<82.0.0"
 # বাংলা মন্তব্য: গ্রাফ ডাটাবেস এবং মডেল কনটেক্সট প্রোটোকল ব্যবহারের জন্য ডিপেন্ডেন্সি যুক্ত করা হলো
 neo4j = "^5.14.0"
 mcp = ">=0.9.1"
+litellm = "^1.40.0"
 
 [tool.poetry.group.ml.dependencies]
 # ── ML/AI: torch, OCR, whisper, embeddings (~3 GB) ──
@@ -69,6 +70,8 @@ openai-whisper = "^20240930"
 chromadb = "^0.4.0"
 pinecone-client = "^5.0.0"
 qdrant-client = "^1.9.0"
+langgraph = "^0.2.0"
+crewai = "^0.80.0"
 
 [tool.poetry.group.tools.dependencies]
 # ── Optional tools: browser, cloud, analytics (~500 MB) ──
@@ -89,6 +92,7 @@ redis = ">=5,<9"
 radon = "^6.0.0"
 networkx = "^3.2.0"
 onelogin = "^1.1.0"
+langsmith = "^0.1.0"
 
 
 [tool.poetry.group.dev.dependencies]
@@ -102,6 +106,9 @@ mypy = "^1.10.0"
 black = "^24.0.0"
 isort = "^5.13.0"
 pytest-xdist = "^3.6.1"
+# বাংলা মন্তব্য: টেস্ট রান করার সময় সমান্তরাল জটিলতায় ডেডলক এড়াতে pytest-timeout যুক্ত করা হলো
+pytest-timeout = "^2.2.0"
+
 
 [build-system]
 requires = ["poetry-core"]

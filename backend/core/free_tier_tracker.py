@@ -302,6 +302,9 @@ class FreeTierTracker:
         budget = self._budgets.get(provider)
         return budget.is_available() if budget else False
 
+    def is_free_available(self, provider: str) -> bool:
+        return self.is_available(provider)
+
     def get_best_provider(
         self,
         candidates: list[str] | None = None,

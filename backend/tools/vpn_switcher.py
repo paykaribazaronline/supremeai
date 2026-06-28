@@ -116,3 +116,15 @@ class VPNRotator:
             "current_endpoint": self.current(),
             "history_count": len(self.history),
         }
+
+    async def rotate_on_block(self, status_code: int) -> dict[str, Any]:
+        if status_code in (403, 429):
+            return self.rotate()
+        return {"rotated": False, "reason": "no_block"}
+
+    async def get_free_proxy(self) -> dict[str, Any]:
+        return {"proxy": None, "source": "free"}
+
+    async def get_premium_proxy(self, use_case: str) -> dict[str, Any]:
+        return {"proxy": None, "source": "premium", "use_case": use_case}
+

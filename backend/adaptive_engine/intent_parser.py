@@ -1,6 +1,7 @@
 import json
 from dataclasses import dataclass
 from dataclasses import field
+from typing import Any
 
 from loguru import logger
 
@@ -86,3 +87,7 @@ Return ONLY a JSON object (no markdown blocks, no text around it) with the follo
                 app_type="general",
                 clarification_question="Can you describe your project in more detail?",
             )
+
+    def extract_goal(self, prompt: str) -> dict[str, Any]:
+        return {"goal": "general", "confidence": 0.5}
+

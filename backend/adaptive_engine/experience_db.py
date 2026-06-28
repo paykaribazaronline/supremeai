@@ -6,6 +6,13 @@ from dataclasses import field
 from typing import Any
 
 
+try:
+    import chromadb
+    HAS_VECTOR_DB = True
+except ImportError:
+    HAS_VECTOR_DB = False
+
+
 @dataclass
 class Experience:
     id: int | None = None
@@ -31,6 +38,14 @@ class ExperienceDatabase:
         os.makedirs(os.path.dirname(db_path), exist_ok=True)
         self.db_path = db_path
         self._init_db()
+        self.vector_collection = None
+        if HAS_VECTOR_DB:
+            try:
+                self.chroma_client = chromadb.Client()
+                self.vector_collection = self.chroma_client.get_or_create_collection("experience")
+            except Exception as exc:
+                logger = __import__("loguru").logger
+                logger.debug(f"ChromaDB init failed: {exc}")
 
     def _init_db(self):
         with sqlite3.connect(self.db_path) as conn:
@@ -127,3 +142,4 @@ class ExperienceDatabase:
                     )
                 )
             return experiences
+

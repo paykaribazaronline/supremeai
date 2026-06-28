@@ -1,6 +1,13 @@
 _safe_imports = {}
 
 try:
+    from .approval_manager import router as approval_manager_router
+
+    _safe_imports["approval_manager_router"] = approval_manager_router
+except Exception:
+    approval_manager_router = None
+
+try:
     from .admin_dashboard import router as admin_dashboard_router
 
     _safe_imports["admin_dashboard_router"] = admin_dashboard_router

@@ -195,3 +195,4 @@ class SemanticCache:
             )
         except Exception as e:
             logger.error(f"❌ SemanticCache set failed: {e}")
+
