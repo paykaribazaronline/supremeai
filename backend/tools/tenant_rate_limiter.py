@@ -19,12 +19,15 @@ class TenantRateLimiter:
         logger.info("Initialized TenantRateLimiter with Redis and Stripe billing tiers")
 
     def _resolve_redis_queue(self):
+        # বাংলা মন্তব্য: যদি কনস্ট্রাক্টরে নির্দিষ্ট কোনো redis_client দেওয়া থাকে (যেমন টেস্টে), তবে সেটিকেই অগ্রাধিকার দেওয়া হলো
+        if self.redis_client is not None:
+            return self.redis_client
         try:
             import core.app as app_mod
 
-            return getattr(app_mod, "redis_queue", None) or self.redis_client
+            return getattr(app_mod, "redis_queue", None)
         except Exception:
-            return self.redis_client
+            return None
 
     def _init_billing_tiers(self) -> None:
         self.billing_tiers = {

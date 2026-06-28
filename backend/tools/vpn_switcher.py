@@ -1,18 +1,26 @@
-from __future__ import annotations
-
+import importlib.util
 import logging
 import os
+import random
 import time
 from typing import Any
 
+try:
+    import httpx
+
+    HAS_HTTPX = True
+except ImportError:
+    HAS_HTTPX = False
+
+HAS_BS4 = importlib.util.find_spec("bs4") is not None
+if HAS_BS4:
+    from bs4 import BeautifulSoup
 
 logger = logging.getLogger(__name__)
 
 
 class VPNRotator:
-    def __init__(
-        self, endpoints: list[str] | None = None, current_index: int = 0
-    ) -> None:
+    def __init__(self, endpoints: list[str] | None = None, current_index: int = 0) -> None:
         self.endpoints = [item.strip() for item in (endpoints or []) if item.strip()]
         self.current_index = current_index
         self.history: list[dict[str, Any]] = []
@@ -32,7 +40,6 @@ class VPNRotator:
                 "reason": "No endpoints configured",
                 "next_index": 0,
             }
-
         endpoint = self.endpoints[self.current_index % len(self.endpoints)]
         previous = self.endpoints[(self.current_index - 1) % len(self.endpoints)]
         self.current_index = (self.current_index + 1) % len(self.endpoints)
@@ -69,9 +76,6 @@ class VPNRotator:
         reason = rotation.get("reason")
         if reason:
             result["reason"] = reason
-        logger.info(
-            "rotate_agent called agent=%s rotated=%s", agent_id, result["rotated"]
-        )
         return result
 
     def configure_endpoints(self, endpoints: list[str]) -> dict[str, Any]:
@@ -84,7 +88,6 @@ class VPNRotator:
             "previous_count": previous_count,
         }
         self._record("configure", result)
-        logger.info("VPN endpoints configured with %d endpoints", len(self.endpoints))
         return result
 
     def add_endpoint(self, endpoint: str) -> dict[str, Any]:
@@ -92,15 +95,10 @@ class VPNRotator:
         if not endpoint:
             return {"added": False, "reason": "empty endpoint"}
         if endpoint in self.endpoints:
-            return {
-                "added": False,
-                "reason": "duplicate endpoint",
-                "endpoint": endpoint,
-            }
+            return {"added": False, "reason": "duplicate endpoint", "endpoint": endpoint}
         self.endpoints.append(endpoint)
         result = {"added": True, "endpoint": endpoint, "count": len(self.endpoints)}
         self._record("add", result)
-        logger.info("Added VPN endpoint: %s", endpoint)
         return result
 
     def history_since(self, since: float | None = None) -> list[dict[str, Any]]:
@@ -123,8 +121,26 @@ class VPNRotator:
         return {"rotated": False, "reason": "no_block"}
 
     async def get_free_proxy(self) -> dict[str, Any]:
-        return {"proxy": None, "source": "free"}
+        if not HAS_HTTPX:
+            return {"proxy": None, "source": "free", "reason": "httpx not installed"}
+        try:
+            async with httpx.AsyncClient(timeout=5) as client:
+                resp = await client.get("https://www.proxy-list.download/api/v1/get?type=https")
+                text = resp.text.strip().splitlines()
+                if text:
+                    return {"proxy": random.choice(text).strip(), "source": "free"}
+        except Exception as exc:
+            logger.debug(f"free proxy fetch failed: {exc}")
+        return {"proxy": None, "source": "free", "reason": "empty"}
 
     async def get_premium_proxy(self, use_case: str) -> dict[str, Any]:
-        return {"proxy": None, "source": "premium", "use_case": use_case}
-
+        if not HAS_HTTPX:
+            return {"proxy": None, "source": "premium", "reason": "httpx not installed"}
+        config_path = os.getenv("PREMIUM_PROXY_CONFIG", "config/premium_proxy.json")
+        try:
+            with open(config_path, "r", encoding="utf-8") as fh:
+                cfg = json.load(fh)
+            proxy = cfg.get(use_case) or cfg.get("default")
+            return {"proxy": proxy, "source": "premium", "use_case": use_case}
+        except Exception:
+            return {"proxy": None, "source": "premium", "reason": "not configured"}

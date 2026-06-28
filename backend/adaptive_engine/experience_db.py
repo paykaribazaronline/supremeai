@@ -1,16 +1,13 @@
-import datetime
+import importlib.util
 import json
 import sqlite3
-from dataclasses import dataclass
-from dataclasses import field
+from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Any
 
-
-try:
-    import chromadb
-    HAS_VECTOR_DB = True
-except ImportError:
-    HAS_VECTOR_DB = False
+HAS_SENTENCE_TRANSFORMERS = importlib.util.find_spec("sentence_transformers") is not None
+HAS_CHROMADB = importlib.util.find_spec("chromadb") is not None
+HAS_QDRANT = importlib.util.find_spec("qdrant_client") is not None
 
 
 @dataclass
@@ -21,9 +18,9 @@ class Experience:
     request: str = ""
     context: dict[str, Any] = field(default_factory=dict)
     action_taken: str = ""
-    result: str = "success"  # "success", "partial", "failure"
+    result: str = "success"
     error_message: str | None = None
-    user_feedback: str | None = None  # "great", "needs work", "failed"
+    user_feedback: str | None = None
     generated_code: str | None = None
     deployment_logs: str | None = None
     what_worked: list[str] = field(default_factory=list)
@@ -33,21 +30,42 @@ class Experience:
 
 class ExperienceDatabase:
     def __init__(self, db_path: str = "data/experience.db"):
-        import os
-
-        os.makedirs(os.path.dirname(db_path), exist_ok=True)
-        self.db_path = db_path
+        self.db_path = Path(db_path)
+        self.db_path.parent.mkdir(parents=True, exist_ok=True)
         self._init_db()
-        self.vector_collection = None
-        if HAS_VECTOR_DB:
+        self.encoder = None
+        self.chroma_collection = None
+        self.qdrant_client = None
+        self.qdrant_collection = "experience"
+        if HAS_SENTENCE_TRANSFORMERS:
             try:
-                self.chroma_client = chromadb.Client()
-                self.vector_collection = self.chroma_client.get_or_create_collection("experience")
+                from sentence_transformers import SentenceTransformer
+                self.encoder = SentenceTransformer("all-MiniLM-L6-v2")
             except Exception as exc:
-                logger = __import__("loguru").logger
-                logger.debug(f"ChromaDB init failed: {exc}")
+                import loguru
+                loguru.logger.debug(f"SentenceTransformer init failed: {exc}")
+        if HAS_CHROMADB:
+            try:
+                import chromadb
+                self.chroma_collection = chromadb.EphemeralClient().get_or_create_collection("experience")
+            except Exception as exc:
+                import loguru
+                loguru.logger.debug(f"ChromaDB init failed: {exc}")
+        if HAS_QDRANT:
+            try:
+                from qdrant_client import QdrantClient
+                self.qdrant_client = QdrantClient(":memory:")
+                from qdrant_client.models import Distance, VectorParams
+                self.qdrant_client.recreate_collection(
+                    collection_name=self.qdrant_collection,
+                    vectors_config=VectorParams(size=384, distance=Distance.COSINE),
+                )
+            except Exception as exc:
+                import loguru
 
-    def _init_db(self):
+                loguru.logger.debug(f"Qdrant init failed: {exc}")
+
+    def _init_db(self) -> None:
         with sqlite3.connect(self.db_path) as conn:
             cursor = conn.cursor()
             cursor.execute(
@@ -66,21 +84,26 @@ class ExperienceDatabase:
                     deployment_logs TEXT,
                     what_worked TEXT,
                     what_failed TEXT,
-                    suggested_improvements TEXT
+                    suggested_improvements TEXT,
+                    embedding BLOB
                 )
-            """
+                """
             )
             conn.commit()
 
-    def record_experience(self, exp: Experience) -> int:
-        timestamp = (
-            exp.timestamp or datetime.datetime.now(datetime.timezone.utc).isoformat()
-        )
-        context_json = json.dumps(exp.context or {})
-        what_worked_json = json.dumps(exp.what_worked or [])
-        what_failed_json = json.dumps(exp.what_failed or [])
-        suggested_json = json.dumps(exp.suggested_improvements or [])
+    def _embed(self, text: str) -> list[float] | None:
+        if self.encoder:
+            try:
+                return self.encoder.encode(text).tolist()
+            except Exception:
+                return None
+        return None
 
+    def record_experience(self, exp: Experience) -> int:
+        timestamp = exp.timestamp or __import__("datetime").datetime.now(__import__("datetime").timezone.utc).isoformat()
+        request_text = exp.request or ""
+        embedding = self._embed(request_text)
+        embedding_blob = json.dumps(embedding).encode() if embedding else None
         with sqlite3.connect(self.db_path) as conn:
             cursor = conn.cursor()
             cursor.execute(
@@ -88,58 +111,103 @@ class ExperienceDatabase:
                 INSERT INTO experiences (
                     timestamp, user_id, request, context, action_taken, result,
                     error_message, user_feedback, generated_code, deployment_logs,
-                    what_worked, what_failed, suggested_improvements
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """,
+                    what_worked, what_failed, suggested_improvements, embedding
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
                 (
                     timestamp,
                     exp.user_id,
-                    exp.request,
-                    context_json,
+                    request_text,
+                    json.dumps(exp.context or {}),
                     exp.action_taken,
                     exp.result,
                     exp.error_message,
                     exp.user_feedback,
                     exp.generated_code,
                     exp.deployment_logs,
-                    what_worked_json,
-                    what_failed_json,
-                    suggested_json,
+                    json.dumps(exp.what_worked or []),
+                    json.dumps(exp.what_failed or []),
+                    json.dumps(exp.suggested_improvements or []),
+                    embedding_blob,
                 ),
             )
             conn.commit()
-            return int(cursor.lastrowid or 0)
+            exp_id = int(cursor.lastrowid or 0)
+        if embedding:
+            self._upsert_vector_db(exp_id, request_text, embedding, exp.result)
+        return exp_id
+
+    def _upsert_vector_db(self, exp_id: int, text: str, embedding: list[float], result: str) -> None:
+        try:
+            if self.chroma_collection:
+                self.chroma_collection.upsert(
+                    ids=[str(exp_id)],
+                    embeddings=[embedding],
+                    metadatas=[{"result": result}],
+                    documents=[text],
+                )
+        except Exception:
+            pass
+        try:
+            if self.qdrant_client:
+                from qdrant_client.models import PointStruct
+                self.qdrant_client.upsert(
+                    collection_name=self.qdrant_collection,
+                    points=[PointStruct(id=exp_id, vector=embedding, payload={"result": result, "text": text})],
+                )
+        except Exception:
+            pass
+
+    def _cosine_similarity(self, a: list[float], b: list[float]) -> float:
+        import math
+        dot = sum(x * y for x, y in zip(a, b))
+        norm_a = math.sqrt(sum(x * x for x in a))
+        norm_b = math.sqrt(sum(y * y for y in b))
+        if not norm_a or not norm_b:
+            return 0.0
+        return dot / (norm_a * norm_b)
+
+    def find_similar(self, query: str, limit: int = 5, threshold: float = 0.7) -> list[dict[str, Any]]:
+        embedding = self._embed(query)
+        if not embedding:
+            return []
+        hits: list[dict[str, Any]] = []
+        try:
+            if self.chroma_collection:
+                res = self.chroma_collection.query(query_embeddings=[embedding], n_results=limit)
+                ids = res.get("ids", [[]])[0]
+                metadatas = res.get("metadatas", [[]])[0]
+                distances = res.get("distances", [[]])[0]
+                for idx, meta, dist in zip(ids, metadatas, distances, strict=True):
+                    score = 1 - dist
+                    if score >= threshold:
+                        hits.append({"source": "chroma", "id": idx, "score": score, "meta": meta})
+        except Exception:
+            pass
+        return hits
 
     def get_experiences(self, limit: int = 50) -> list[Experience]:
         with sqlite3.connect(self.db_path) as conn:
             conn.row_factory = sqlite3.Row
             cursor = conn.cursor()
-            cursor.execute(
-                "SELECT * FROM experiences ORDER BY id DESC LIMIT ?", (limit,)
-            )
+            cursor.execute("SELECT * FROM experiences ORDER BY id DESC LIMIT ?", (limit,))
             rows = cursor.fetchall()
-
-            experiences = []
-            for r in rows:
-                experiences.append(
-                    Experience(
-                        id=r["id"],
-                        timestamp=r["timestamp"],
-                        user_id=r["user_id"],
-                        request=r["request"],
-                        context=json.loads(r["context"] or "{}"),
-                        action_taken=r["action_taken"],
-                        result=r["result"],
-                        error_message=r["error_message"],
-                        user_feedback=r["user_feedback"],
-                        generated_code=r["generated_code"],
-                        deployment_logs=r["deployment_logs"],
-                        what_worked=json.loads(r["what_worked"] or "[]"),
-                        what_failed=json.loads(r["what_failed"] or "[]"),
-                        suggested_improvements=json.loads(
-                            r["suggested_improvements"] or "[]"
-                        ),
-                    )
+            return [
+                Experience(
+                    id=r["id"],
+                    timestamp=r["timestamp"],
+                    user_id=r["user_id"],
+                    request=r["request"],
+                    context=json.loads(r["context"] or "{}"),
+                    action_taken=r["action_taken"],
+                    result=r["result"],
+                    error_message=r["error_message"],
+                    user_feedback=r["user_feedback"],
+                    generated_code=r["generated_code"],
+                    deployment_logs=r["deployment_logs"],
+                    what_worked=json.loads(r["what_worked"] or "[]"),
+                    what_failed=json.loads(r["what_failed"] or "[]"),
+                    suggested_improvements=json.loads(r["suggested_improvements"] or "[]"),
                 )
-            return experiences
-
+                for r in rows
+            ]
