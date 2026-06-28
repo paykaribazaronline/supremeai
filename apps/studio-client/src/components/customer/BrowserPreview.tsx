@@ -1,13 +1,16 @@
-import { useState } from 'react';
-import { Card } from '../ui';
-import { RefreshCw, ExternalLink } from 'lucide-react';
+import { useState } from "react";
+import { Card } from "../ui";
+import { RefreshCw, ExternalLink } from "lucide-react";
 
 interface BrowserPreviewProps {
   url?: string;
   html?: string;
 }
 
-export function BrowserPreview({ url = 'https://supremeai.web.app', html }: BrowserPreviewProps) {
+export function BrowserPreview({
+  url = "https://supremeai.web.app",
+  html,
+}: BrowserPreviewProps) {
   const [currentUrl, setCurrentUrl] = useState(url);
   const [loading, setLoading] = useState(false);
 
@@ -31,7 +34,7 @@ export function BrowserPreview({ url = 'https://supremeai.web.app', html }: Brow
             <input
               type="text"
               value={currentUrl}
-              onChange={e => setCurrentUrl(e.target.value)}
+              onChange={(e) => setCurrentUrl(e.target.value)}
               className="flex-1 bg-transparent text-xs text-white outline-none font-mono"
             />
           </div>
@@ -39,7 +42,7 @@ export function BrowserPreview({ url = 'https://supremeai.web.app', html }: Brow
             onClick={handleRefresh}
             className="p-1.5 rounded border border-slate-800 text-slate-400 hover:text-white hover:border-slate-700 transition-colors"
           >
-            <RefreshCw size={12} className={loading ? 'animate-spin' : ''} />
+            <RefreshCw size={12} className={loading ? "animate-spin" : ""} />
           </button>
         </div>
 

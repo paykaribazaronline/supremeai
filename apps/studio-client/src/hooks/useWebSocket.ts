@@ -1,6 +1,6 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback } from "react";
 
-type ConnectionStatus = 'connecting' | 'open' | 'closed' | 'error';
+type ConnectionStatus = "connecting" | "open" | "closed" | "error";
 
 interface UseWebSocketOptions {
   url?: string;
@@ -22,7 +22,9 @@ interface UseWebSocketReturn {
   lastMessage: MessageEvent | null;
 }
 
-export function useWebSocket(options: UseWebSocketOptions = {}): UseWebSocketReturn {
+export function useWebSocket(
+  options: UseWebSocketOptions = {},
+): UseWebSocketReturn {
   const {
     url,
     autoConnect = false,
@@ -34,7 +36,7 @@ export function useWebSocket(options: UseWebSocketOptions = {}): UseWebSocketRet
     onError,
   } = options;
 
-  const [status, setStatus] = useState<ConnectionStatus>('closed');
+  const [status, setStatus] = useState<ConnectionStatus>("closed");
   const [data, setData] = useState<any | null>(null);
   const [lastMessage, setLastMessage] = useState<MessageEvent | null>(null);
 
@@ -45,15 +47,15 @@ export function useWebSocket(options: UseWebSocketOptions = {}): UseWebSocketRet
 
   const resolveUrl = useCallback(() => {
     if (url) return url;
-    const proto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    return `${proto}//${window.location.host.startsWith('localhost') ? 'localhost:8000' : window.location.host}/ws`;
+    const proto = window.location.protocol === "https:" ? "wss:" : "ws:";
+    return `${proto}//${window.location.host.startsWith("localhost") ? "localhost:8000" : window.location.host}/ws`;
   }, [url]);
 
   const connect = useCallback(() => {
     if (wsRef.current?.readyState === WebSocket.OPEN) return;
 
     try {
-      setStatus('connecting');
+      setStatus("connecting");
       const socketUrl = resolveUrl();
       const ws = new WebSocket(socketUrl);
       wsRef.current = ws;
@@ -61,7 +63,7 @@ export function useWebSocket(options: UseWebSocketOptions = {}): UseWebSocketRet
       ws.onopen = () => {
         if (!mountedRef.current) return;
         attemptsRef.current = 0;
-        setStatus('open');
+        setStatus("open");
         onOpen?.();
       };
 
@@ -80,7 +82,7 @@ export function useWebSocket(options: UseWebSocketOptions = {}): UseWebSocketRet
 
       ws.onclose = () => {
         if (!mountedRef.current) return;
-        setStatus('closed');
+        setStatus("closed");
         onClose?.();
 
         if (attemptsRef.current < reconnectAttempts) {
@@ -93,14 +95,22 @@ export function useWebSocket(options: UseWebSocketOptions = {}): UseWebSocketRet
 
       ws.onerror = (event: Event) => {
         if (!mountedRef.current) return;
-        setStatus('error');
+        setStatus("error");
         onError?.(event);
       };
     } catch (err) {
       if (!mountedRef.current) return;
-      setStatus('error');
+      setStatus("error");
     }
-  }, [resolveUrl, reconnectAttempts, reconnectInterval, onMessage, onOpen, onClose, onError]);
+  }, [
+    resolveUrl,
+    reconnectAttempts,
+    reconnectInterval,
+    onMessage,
+    onOpen,
+    onClose,
+    onError,
+  ]);
 
   const disconnect = useCallback(() => {
     if (reconnectTimerRef.current) {
@@ -110,15 +120,16 @@ export function useWebSocket(options: UseWebSocketOptions = {}): UseWebSocketRet
     attemptsRef.current = reconnectAttempts;
     wsRef.current?.close();
     wsRef.current = null;
-    setStatus('closed');
+    setStatus("closed");
   }, [reconnectAttempts]);
 
   const send = useCallback((message: unknown) => {
     if (wsRef.current?.readyState === WebSocket.OPEN) {
-      const payload = typeof message === 'string' ? message : JSON.stringify(message);
+      const payload =
+        typeof message === "string" ? message : JSON.stringify(message);
       wsRef.current.send(payload);
     } else {
-      console.warn('WebSocket is not connected. Cannot send message.');
+      console.warn("WebSocket is not connected. Cannot send message.");
     }
   }, []);
 

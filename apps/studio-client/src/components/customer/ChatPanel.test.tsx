@@ -1,15 +1,15 @@
-import { describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
-import { ChatPanel } from './ChatPanel';
-import type { ChatMessage } from '../../types';
+import { describe, it, expect, vi } from "vitest";
+import { render, screen, fireEvent } from "@testing-library/react";
+import { ChatPanel } from "./ChatPanel";
+import type { ChatMessage } from "../../types";
 
 const baseMessages: ChatMessage[] = [
-  { id: '1', sender: 'user', text: 'Hello AI', timestamp: '10:00 AM' },
-  { id: '2', sender: 'ai', text: 'Hi user!', timestamp: '10:01 AM' },
+  { id: "1", sender: "user", text: "Hello AI", timestamp: "10:00 AM" },
+  { id: "2", sender: "ai", text: "Hi user!", timestamp: "10:01 AM" },
 ];
 
-describe('ChatPanel', () => {
-  it('renders the SupremeAI Chat header', () => {
+describe("ChatPanel", () => {
+  it("renders the SupremeAI Chat header", () => {
     render(
       <ChatPanel
         messages={baseMessages}
@@ -19,10 +19,10 @@ describe('ChatPanel', () => {
         loading={false}
       />,
     );
-    expect(screen.getByText('SupremeAI Chat')).toBeInTheDocument();
+    expect(screen.getByText("SupremeAI Chat")).toBeInTheDocument();
   });
 
-  it('renders the ONLINE status badge', () => {
+  it("renders the ONLINE status badge", () => {
     render(
       <ChatPanel
         messages={baseMessages}
@@ -32,10 +32,10 @@ describe('ChatPanel', () => {
         loading={false}
       />,
     );
-    expect(screen.getByText('ONLINE')).toBeInTheDocument();
+    expect(screen.getByText("ONLINE")).toBeInTheDocument();
   });
 
-  it('renders user and AI messages', () => {
+  it("renders user and AI messages", () => {
     render(
       <ChatPanel
         messages={baseMessages}
@@ -45,11 +45,11 @@ describe('ChatPanel', () => {
         loading={false}
       />,
     );
-    expect(screen.getByText('Hello AI')).toBeInTheDocument();
-    expect(screen.getByText('Hi user!')).toBeInTheDocument();
+    expect(screen.getByText("Hello AI")).toBeInTheDocument();
+    expect(screen.getByText("Hi user!")).toBeInTheDocument();
   });
 
-  it('calls onInputChange when typing in the input', () => {
+  it("calls onInputChange when typing in the input", () => {
     const onInputChange = vi.fn();
     render(
       <ChatPanel
@@ -60,12 +60,14 @@ describe('ChatPanel', () => {
         loading={false}
       />,
     );
-    const input = screen.getByPlaceholderText('Ask anything or generate code...');
-    fireEvent.change(input, { target: { value: 'test' } });
-    expect(onInputChange).toHaveBeenCalledWith('test');
+    const input = screen.getByPlaceholderText(
+      "Ask anything or generate code...",
+    );
+    fireEvent.change(input, { target: { value: "test" } });
+    expect(onInputChange).toHaveBeenCalledWith("test");
   });
 
-  it('calls onSend when clicking the Send button', () => {
+  it("calls onSend when clicking the Send button", () => {
     const onSend = vi.fn();
     render(
       <ChatPanel
@@ -76,11 +78,11 @@ describe('ChatPanel', () => {
         loading={false}
       />,
     );
-    fireEvent.click(screen.getByText('Send'));
+    fireEvent.click(screen.getByText("Send"));
     expect(onSend).toHaveBeenCalled();
   });
 
-  it('calls onSend when pressing Enter in the input', () => {
+  it("calls onSend when pressing Enter in the input", () => {
     const onSend = vi.fn();
     render(
       <ChatPanel
@@ -91,12 +93,14 @@ describe('ChatPanel', () => {
         loading={false}
       />,
     );
-    const input = screen.getByPlaceholderText('Ask anything or generate code...');
-    fireEvent.keyDown(input, { key: 'Enter' });
+    const input = screen.getByPlaceholderText(
+      "Ask anything or generate code...",
+    );
+    fireEvent.keyDown(input, { key: "Enter" });
     expect(onSend).toHaveBeenCalled();
   });
 
-  it('renders the thinking indicator when loading', () => {
+  it("renders the thinking indicator when loading", () => {
     render(
       <ChatPanel
         messages={baseMessages}
@@ -106,10 +110,10 @@ describe('ChatPanel', () => {
         loading={true}
       />,
     );
-    expect(screen.getByText('SupremeAI is thinking...')).toBeInTheDocument();
+    expect(screen.getByText("SupremeAI is thinking...")).toBeInTheDocument();
   });
 
-  it('renders timestamps for messages', () => {
+  it("renders timestamps for messages", () => {
     render(
       <ChatPanel
         messages={baseMessages}
@@ -119,11 +123,11 @@ describe('ChatPanel', () => {
         loading={false}
       />,
     );
-    expect(screen.getByText('10:00 AM')).toBeInTheDocument();
-    expect(screen.getByText('10:01 AM')).toBeInTheDocument();
+    expect(screen.getByText("10:00 AM")).toBeInTheDocument();
+    expect(screen.getByText("10:01 AM")).toBeInTheDocument();
   });
 
-  it('calls onSend when pressing Enter in the input even if empty', () => {
+  it("calls onSend when pressing Enter in the input even if empty", () => {
     const onSend = vi.fn();
     render(
       <ChatPanel
@@ -134,12 +138,14 @@ describe('ChatPanel', () => {
         loading={false}
       />,
     );
-    const input = screen.getByPlaceholderText('Ask anything or generate code...');
-    fireEvent.keyDown(input, { key: 'Enter' });
+    const input = screen.getByPlaceholderText(
+      "Ask anything or generate code...",
+    );
+    fireEvent.keyDown(input, { key: "Enter" });
     expect(onSend).toHaveBeenCalled();
   });
 
-  it('shows an empty messages container when there are no messages', () => {
+  it("shows an empty messages container when there are no messages", () => {
     const { container } = render(
       <ChatPanel
         messages={[]}
@@ -149,7 +155,7 @@ describe('ChatPanel', () => {
         loading={false}
       />,
     );
-    const messagesArea = container.querySelector('.overflow-y-auto');
+    const messagesArea = container.querySelector(".overflow-y-auto");
     expect(messagesArea).toBeInTheDocument();
   });
 });
