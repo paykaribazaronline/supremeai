@@ -58,6 +58,8 @@ mcp = ">=0.9.1"
 [tool.poetry.group.ml.dependencies]
 # ── ML/AI: torch, OCR, whisper, embeddings (~3 GB) ──
 # Install with: poetry install --with ml
+# বাংলা মন্তব্য: trl প্যাকেজটি torch এবং transformers এর উপর নির্ভরশীল হওয়ায় এটিকে ml গ্রুপে রাখা হলো যাতে CI/CD-তে এটি এড়ানো যায়।
+trl = "^0.9.0"
 torch = {version = "^2.0.0", optional = true}
 torchvision = {version = ">=0.19.1", optional = true}
 easyocr = "^1.7.0"
@@ -87,7 +89,7 @@ redis = ">=5,<9"
 radon = "^6.0.0"
 networkx = "^3.2.0"
 onelogin = "^1.1.0"
-trl = "^0.9.0"
+
 
 [tool.poetry.group.dev.dependencies]
 pytest = ">=8,<10"
