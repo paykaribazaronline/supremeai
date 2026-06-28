@@ -39,24 +39,11 @@ def test_task_execute_enforces_admin_block():
 def test_task_execute_allowed_and_success():
     from core.intent import TaskType
     from unittest.mock import AsyncMock, patch
+    try:
+        from brain.model_router import ModelRouter
+    except ImportError:
+        from backend.brain.model_router import ModelRouter
 
-    fake_router = MagicMock()
-    fake_router.route_and_generate.return_value = {
-        "success": True,
-        "provider": "openrouter",
-        "model": "fake-model",
-        "text": "ok",
-        "cost": 0.0,
-    }
-    fake_router.async_route_and_generate = AsyncMock(
-        return_value={
-            "success": True,
-            "provider": "openrouter",
-            "model": "fake-model",
-            "text": "ok",
-            "cost": 0.0,
-        }
-    )
     fake_intent_parser = MagicMock()
     fake_intent_parser.parse_intent.return_value = MagicMock(
         app_type="general",
@@ -69,31 +56,37 @@ def test_task_execute_allowed_and_success():
     fake_intent = MagicMock()
     fake_intent.classify.return_value = type("Intent", (), {"task_type": TaskType.general, "confidence": 0.5})()
 
-    previous_router = app_mod.model_router
     previous_intent = app_mod.intent_clf
     previous_intent_parser = app_mod.intent_parser
-    app_mod.model_router = fake_router
     app_mod.intent_clf = fake_intent
     app_mod.intent_parser = fake_intent_parser
     try:
-        with patch("admin.god.AdminGodLayer.is_admin_action_allowed", return_value=True):
-            resp = client.post(
-                "/task/execute",
-                json={"task": "hello", "task_type": "general"},
-                headers=auth_headers,
-            )
-            # Clean non-ascii characters to prevent Windows console encoding errors in tests
-            clean_text = resp.text.encode('ascii', 'ignore').decode('ascii')
-            assert resp.status_code == 200, f"Failing test execute: status={resp.status_code}, body={clean_text}"
-            body = resp.json()
-            assert body["success"] is True
-            import json
+        # বাংলা মন্তব্য: রিয়েল নেটওয়ার্ক কল বন্ধ করতে সরাসরি ModelRouter.async_route_and_generate মেথডটি মক করা হলো
+        with patch.object(ModelRouter, "async_route_and_generate", new_callable=AsyncMock) as mock_async_generate:
+            mock_async_generate.return_value = {
+                "success": True,
+                "provider": "openrouter",
+                "model": "fake-model",
+                "text": "ok",
+                "cost": 0.0,
+            }
+            with patch("admin.god.AdminGodLayer.is_admin_action_allowed", return_value=True):
+                resp = client.post(
+                    "/task/execute",
+                    json={"task": "hello", "task_type": "general"},
+                    headers=auth_headers,
+                )
+                # Clean non-ascii characters to prevent Windows console encoding errors in tests
+                clean_text = resp.text.encode('ascii', 'ignore').decode('ascii')
+                assert resp.status_code == 200, f"Failing test execute: status={resp.status_code}, body={clean_text}"
+                body = resp.json()
+                assert body["success"] is True
+                import json
 
-            res_obj = json.loads(body["result"])
-            assert res_obj["content"] == "ok"
-            fake_router.async_route_and_generate.assert_called_once_with(prompt="hello", task_type="general", max_cost=0.01)
+                res_obj = json.loads(body["result"])
+                assert res_obj["content"] == "ok"
+                mock_async_generate.assert_called_once_with(prompt="hello", task_type="general", max_cost=0.01)
 
     finally:
-        app_mod.model_router = previous_router
         app_mod.intent_clf = previous_intent
         app_mod.intent_parser = previous_intent_parser
