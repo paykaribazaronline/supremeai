@@ -90,4 +90,3 @@ Return ONLY a JSON object (no markdown blocks, no text around it) with the follo
 
     def extract_goal(self, prompt: str) -> dict[str, Any]:
         return {"goal": "general", "confidence": 0.5}
-
