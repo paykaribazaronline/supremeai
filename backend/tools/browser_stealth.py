@@ -7,6 +7,7 @@ from loguru import logger
 try:
     from playwright.async_api import BrowserContext, Page, async_playwright
     from playwright_stealth import stealth_async
+
     HAS_PLAYWRIGHT = True
 except ImportError:
     HAS_PLAYWRIGHT = False

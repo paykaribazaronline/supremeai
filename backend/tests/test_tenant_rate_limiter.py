@@ -104,7 +104,9 @@ async def test_check_quota_rpm_exceeded(limiter):
 
 @pytest.mark.asyncio
 async def test_check_quota_rpd_exceeded(limiter):
-    limiter.queue.get.side_effect = lambda key: b"0" if key.endswith(":rpm") else b"100000"
+    limiter.queue.get.side_effect = lambda key: (
+        b"0" if key.endswith(":rpm") else b"100000"
+    )
     res = await limiter.check_quota("tenant-1", cost=0.0)
     assert res["allowed"] is False
     assert res["reason"] == "rpd_exceeded"
@@ -191,6 +193,9 @@ async def test_record_usage_stripe_failure(limiter):
     limiter.queue.pipeline.return_value = mock_pipe
     with patch("tools.tenant_rate_limiter.settings") as mock_settings:
         mock_settings.stripe_api_key = "sk-test"
-        with patch("tools.tenant_rate_limiter.stripe.InvoiceItem.create", side_effect=Exception("stripe error")):
+        with patch(
+            "tools.tenant_rate_limiter.stripe.InvoiceItem.create",
+            side_effect=Exception("stripe error"),
+        ):
             res = await limiter.record_usage("tenant-1", cost=1.5, tokens=10)
     assert res["status"] == "success"
