@@ -63,7 +63,9 @@ async def create_ci_report(payload: CIReportPayload) -> dict[str, Any] | None:
             jobs_summary = EXCLUDED.jobs_summary,
             error_logs = EXCLUDED.error_logs,
             created_at = EXCLUDED.created_at
-        RETURNING id, run_id, run_number, event_name, actor, workflow_name, status, runtime_seconds, commit_sha, branch, jobs_summary, error_logs, created_at
+        # বাংলা মন্তব্য: Ruff E501 (Line too long) এরর এড়াতে RETURNING স্টেটমেন্ট একাধিক লাইনে ভাঙা হলো
+        RETURNING id, run_id, run_number, event_name, actor, workflow_name, status,
+                  runtime_seconds, commit_sha, branch, jobs_summary, error_logs, created_at
         """,
         payload.run_id,
         payload.run_number,
