@@ -3,11 +3,7 @@
     "module": "commonjs",
     "target": "ES2022",
     "outDir": "out",
-    "lib": [
-      "ES2022",
-      "DOM",
-      "DOM.Iterable"
-    ],
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "sourceMap": false,
     "rootDir": "src",
     "strict": true,
@@ -19,17 +15,8 @@
     "declarationMap": false,
     "noImplicitOverride": true,
     "incremental": true,
-    "types": [
-      "node",
-      "jest"
-    ]
+    "types": ["node", "jest"]
   },
-  "include": [
-    "src/**/*"
-  ],
-  "exclude": [
-    "node_modules",
-    ".vscode-test",
-    "test"
-  ]
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", ".vscode-test", "test"]
 }
