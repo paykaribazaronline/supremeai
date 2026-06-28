@@ -1,5 +1,5 @@
-import '@testing-library/jest-dom/vitest';
-import { vi } from 'vitest';
+import "@testing-library/jest-dom/vitest";
+import { vi } from "vitest";
 
 const localStorageMock = (() => {
   let store: Record<string, string> = {};
@@ -17,9 +17,9 @@ const localStorageMock = (() => {
   };
 })();
 
-Object.defineProperty(global, 'localStorage', {
+Object.defineProperty(global, "localStorage", {
   value: localStorageMock,
-  writable: true
+  writable: true,
 });
 
 class EventSourceMock {
@@ -32,7 +32,7 @@ class EventSourceMock {
     this.url = url;
   }
 }
-Object.defineProperty(global, 'EventSource', {
+Object.defineProperty(global, "EventSource", {
   value: EventSourceMock,
   writable: true,
 });
