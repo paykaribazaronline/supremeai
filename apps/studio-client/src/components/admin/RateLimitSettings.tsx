@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";
 
 interface RateLimitConfig {
   tenant_id: string;
@@ -9,7 +9,7 @@ interface RateLimitConfig {
   admin_override: boolean;
 }
 
-const TIER_OPTIONS = ['free', 'pro', 'enterprise'] as const;
+const TIER_OPTIONS = ["free", "pro", "enterprise"] as const;
 const TIER_LIMITS: Record<string, Partial<RateLimitConfig>> = {
   free: { requests_per_minute: 60, max_tokens_per_day: 100000 },
   pro: { requests_per_minute: 500, max_tokens_per_day: 50000 },
@@ -20,42 +20,50 @@ export function RateLimitSettings({ tenantId }: { tenantId: string }) {
   const [config, setConfig] = useState<RateLimitConfig | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [overrideReason, setOverrideReason] = useState('');
+  const [overrideReason, setOverrideReason] = useState("");
 
   const fetchConfig = async () => {
     setLoading(true);
     try {
       const res = await fetch(`/api/tools/tenant-limits/${tenantId}`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('access_token') || ''}` },
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("access_token") || ""}`,
+        },
       });
       if (res.ok) {
         const data = await res.json();
         setConfig(data);
       }
     } catch (err) {
-      console.error('Failed to fetch rate limit config', err);
+      console.error("Failed to fetch rate limit config", err);
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => { fetchConfig(); }, [tenantId]);
+  useEffect(() => {
+    fetchConfig();
+  }, [tenantId]);
 
   const handleTierChange = async (tier: string) => {
     if (!config) return;
     setSaving(true);
     try {
       await fetch(`/api/tools/tenant-limits/${tenantId}/tier`, {
-        method: 'PATCH',
+        method: "PATCH",
         headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('access_token') || ''}`,
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("access_token") || ""}`,
         },
         body: JSON.stringify({ billing_tier: tier }),
       });
-      setConfig({ ...config, billing_tier: tier, ...TIER_LIMITS[tier as keyof typeof TIER_LIMITS] });
+      setConfig({
+        ...config,
+        billing_tier: tier,
+        ...TIER_LIMITS[tier as keyof typeof TIER_LIMITS],
+      });
     } catch (err) {
-      console.error('Failed to update tier', err);
+      console.error("Failed to update tier", err);
     } finally {
       setSaving(false);
     }
@@ -66,33 +74,42 @@ export function RateLimitSettings({ tenantId }: { tenantId: string }) {
     setSaving(true);
     try {
       const res = await fetch(`/api/tools/tenant-limits/${tenantId}/override`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('access_token') || ''}`,
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("access_token") || ""}`,
         },
-        body: JSON.stringify({ admin_override: !config.admin_override, reason: overrideReason || 'Admin override' }),
+        body: JSON.stringify({
+          admin_override: !config.admin_override,
+          reason: overrideReason || "Admin override",
+        }),
       });
       if (res.ok) {
         setConfig({ ...config, admin_override: !config.admin_override });
-        setOverrideReason('');
+        setOverrideReason("");
       }
     } catch (err) {
-      console.error('Override failed', err);
+      console.error("Override failed", err);
     } finally {
       setSaving(false);
     }
   };
 
   if (loading) {
-    return <div className="p-4 text-slate-400 font-mono text-sm">Loading rate limit config…</div>;
+    return (
+      <div className="p-4 text-slate-400 font-mono text-sm">
+        Loading rate limit config…
+      </div>
+    );
   }
 
   if (!config) {
     return (
       <div className="p-4 bg-red-900/30 border border-red-800 rounded-lg text-red-300 font-mono text-sm">
         Failed to load rate limit configuration.
-        <button onClick={fetchConfig} className="ml-4 underline">Retry</button>
+        <button onClick={fetchConfig} className="ml-4 underline">
+          Retry
+        </button>
       </div>
     );
   }
@@ -106,7 +123,9 @@ export function RateLimitSettings({ tenantId }: { tenantId: string }) {
       <div className="space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-[10px] text-slate-400 font-mono uppercase mb-1">Billing Tier</label>
+            <label className="block text-[10px] text-slate-400 font-mono uppercase mb-1">
+              Billing Tier
+            </label>
             <select
               value={config.billing_tier}
               onChange={(e) => handleTierChange(e.target.value)}
@@ -114,33 +133,46 @@ export function RateLimitSettings({ tenantId }: { tenantId: string }) {
               className="w-full bg-slate-900 border border-slate-800 rounded px-3 py-2 text-sm text-slate-200 font-mono disabled:opacity-50"
             >
               {TIER_OPTIONS.map((tier) => (
-                <option key={tier} value={tier}>{tier.toUpperCase()}</option>
+                <option key={tier} value={tier}>
+                  {tier.toUpperCase()}
+                </option>
               ))}
             </select>
           </div>
 
           <div>
-            <label className="block text-[10px] text-slate-400 font-mono uppercase mb-1">RPM Limit</label>
+            <label className="block text-[10px] text-slate-400 font-mono uppercase mb-1">
+              RPM Limit
+            </label>
             <div className="bg-slate-900 border border-slate-800 rounded px-3 py-2 text-sm text-slate-200 font-mono">
               {config.requests_per_minute}
             </div>
           </div>
 
           <div>
-            <label className="block text-[10px] text-slate-400 font-mono uppercase mb-1">Max Tokens / Day</label>
+            <label className="block text-[10px] text-slate-400 font-mono uppercase mb-1">
+              Max Tokens / Day
+            </label>
             <div className="bg-slate-900 border border-slate-800 rounded px-3 py-2 text-sm text-slate-200 font-mono">
               {config.max_tokens_per_day.toLocaleString()}
             </div>
           </div>
 
           <div>
-            <label className="block text-[10px] text-slate-400 font-mono uppercase mb-1">Custom Limits (JSON)</label>
+            <label className="block text-[10px] text-slate-400 font-mono uppercase mb-1">
+              Custom Limits (JSON)
+            </label>
             <textarea
               value={JSON.stringify(config.custom_limits, null, 2)}
               onChange={(e) => {
                 try {
-                  setConfig({ ...config, custom_limits: JSON.parse(e.target.value) });
-                } catch { /* ignore invalid JSON */ }
+                  setConfig({
+                    ...config,
+                    custom_limits: JSON.parse(e.target.value),
+                  });
+                } catch {
+                  /* ignore invalid JSON */
+                }
               }}
               rows={3}
               className="w-full bg-slate-900 border border-slate-800 rounded px-3 py-2 text-sm text-slate-200 font-mono"
@@ -154,7 +186,9 @@ export function RateLimitSettings({ tenantId }: { tenantId: string }) {
             <div>
               <p className="text-xs font-bold text-slate-300">Admin Override</p>
               <p className="text-[10px] text-slate-500 font-mono">
-                {config.admin_override ? 'Active — rate limits suspended' : 'Inactive — normal limits apply'}
+                {config.admin_override
+                  ? "Active — rate limits suspended"
+                  : "Inactive — normal limits apply"}
               </p>
             </div>
             <button
@@ -162,11 +196,11 @@ export function RateLimitSettings({ tenantId }: { tenantId: string }) {
               disabled={saving}
               className={`px-4 py-2 rounded text-xs font-bold font-mono disabled:opacity-50 ${
                 config.admin_override
-                  ? 'bg-red-900/50 text-red-300 border border-red-800'
-                  : 'bg-blue-900/50 text-blue-300 border border-blue-800'
+                  ? "bg-red-900/50 text-red-300 border border-red-800"
+                  : "bg-blue-900/50 text-blue-300 border border-blue-800"
               }`}
             >
-              {config.admin_override ? 'Revoke Override' : 'Grant Override'}
+              {config.admin_override ? "Revoke Override" : "Grant Override"}
             </button>
           </div>
           {config.admin_override && (
