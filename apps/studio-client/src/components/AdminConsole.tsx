@@ -1,7 +1,14 @@
-import type { ChatMessage, Skill, Checkpoint, CloudStats, GcpHealth, AdminSubTab } from '../types';
-import { useHydrated } from '../store/customerStore';
-import { LoginView } from './admin/AdminLogin';
-import { AuthenticatedView } from './admin/AdminAuthenticated';
+import type {
+  ChatMessage,
+  Skill,
+  Checkpoint,
+  CloudStats,
+  GcpHealth,
+  AdminSubTab,
+} from "../types";
+import { useHydrated } from "../store/customerStore";
+import { LoginView } from "./admin/AdminLogin";
+import { AuthenticatedView } from "./admin/AdminAuthenticated";
 
 interface AdminConsoleProps {
   adminAuthenticated: boolean;
@@ -53,15 +60,15 @@ interface AdminConsoleProps {
   otpRequired: boolean;
   adminOtp: string;
   setAdminOtp: (val: string) => void;
-  theme: 'dark' | 'light';
+  theme: "dark" | "light";
   toggleTheme: () => void;
 }
 
 export function AdminConsole(props: AdminConsoleProps) {
   const hydrated = useHydrated();
-  
+
   if (!hydrated) return null;
-  
+
   return (
     <div className="flex-grow flex flex-col overflow-hidden bg-[var(--background)] text-[var(--foreground)]">
       {!props.adminAuthenticated ? (
