@@ -303,6 +303,6 @@ class TestTenantRateLimiter:
         import pathlib
 
         p = pathlib.Path(__file__).parent.parent / "tools" / "tenant_rate_limiter.py"
-        tree = ast.parse(p.read_text())
+        tree = ast.parse(p.read_text(encoding="utf-8"))
         classes = [n.name for n in ast.walk(tree) if isinstance(n, ast.ClassDef)]
         assert len(classes) > 0, "tenant_rate_limiter.py should have at least one class"

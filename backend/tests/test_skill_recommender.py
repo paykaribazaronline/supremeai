@@ -70,8 +70,8 @@ def test_recommend_with_local_history():
 
 def test_recommend_enriches_from_db(recommender):
     mock_db = MagicMock()
-    mock_db.client = True
-    with patch.dict("sys.modules", {"database.supabase_client": MagicMock(db=mock_db)}):
+    mock_db.client = MagicMock()
+    with patch("tools.skill_recommender.db", mock_db):
         recommender._get_user_history = MagicMock(return_value=[
             {"task": {"description": "invoice generation", "skill_id": "skill-invoice"}}
         ])
@@ -81,14 +81,14 @@ def test_recommend_enriches_from_db(recommender):
         recs = recommender.recommend("user-1", "create invoice")
         assert len(recs) == 1
         assert recs[0]["id"] == "skill-invoice"
-        assert recs[0]["match_score"] >= 0
+        assert isinstance(recs[0]["match_score"], float)
         assert recs[0]["category"] == "billing"
 
 
 def test_recommend_db_failure_falls_back(recommender):
     mock_db = MagicMock()
-    mock_db.client = True
-    with patch.dict("sys.modules", {"database.supabase_client": MagicMock(db=mock_db)}):
+    mock_db.client = MagicMock()
+    with patch("tools.skill_recommender.db", mock_db):
         recommender._get_user_history = MagicMock(return_value=[
             {"task": {"description": "email task", "skill_id": "skill-email"}}
         ])

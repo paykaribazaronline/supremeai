@@ -31,9 +31,13 @@ class Experience:
 
 
 class ExperienceDatabase:
-    def __init__(self, db_path: str = "data/experience.db"):
+    def __init__(self, db_path: str = None):
+        import os
+        if db_path is None:
+            db_path = os.getenv("EXPERIENCE_DB_PATH", "data/experience.db")
         self.db_path = Path(db_path)
-        self.db_path.parent.mkdir(parents=True, exist_ok=True)
+        if str(self.db_path) != ":memory:":
+            self.db_path.parent.mkdir(parents=True, exist_ok=True)
         self._init_db()
         self.encoder = None
         self.chroma_collection = None

@@ -61,6 +61,7 @@ _TEST_ENV_DEFAULTS = {
     "SENTRY_DSN": "",
     "GCP_PROJECT_ID": "",
     "GCP_REGION": "",
+    "EXPERIENCE_DB_PATH": f"data/test_experience_{os.getpid()}.db",
 }
 
 

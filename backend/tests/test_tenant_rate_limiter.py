@@ -178,19 +178,23 @@ async def test_record_usage_stripe_charge(limiter):
     mapper = {"rate:tenant-1:cost": b"10"}
     mock_queue.get.side_effect = lambda key: mapper.get(key, b"0")
     limiter.queue = mock_queue
+    mock_stripe = MagicMock()
     with patch("tools.tenant_rate_limiter.settings") as mock_settings:
         mock_settings.stripe_api_key = "sk-test"
-        with patch("tools.tenant_rate_limiter.stripe.InvoiceItem.create"):
+        with patch.dict("sys.modules", {"stripe": mock_stripe}):
             res = await limiter.record_usage("tenant-1", cost=1.5, tokens=10)
-    assert res["billed"] == 1.5
+    assert res["total_cost"] == 10.0
+    mock_stripe.InvoiceItem.create.assert_called_once()
 
 
 @pytest.mark.asyncio
 async def test_record_usage_stripe_failure(limiter):
     mock_pipe = MagicMock()
     limiter.queue.pipeline.return_value = mock_pipe
+    mock_stripe = MagicMock()
+    mock_stripe.InvoiceItem.create.side_effect = Exception("stripe error")
     with patch("tools.tenant_rate_limiter.settings") as mock_settings:
         mock_settings.stripe_api_key = "sk-test"
-        with patch("tools.tenant_rate_limiter.stripe.InvoiceItem.create", side_effect=Exception("stripe error")):
+        with patch.dict("sys.modules", {"stripe": mock_stripe}):
             res = await limiter.record_usage("tenant-1", cost=1.5, tokens=10)
     assert res["status"] == "success"

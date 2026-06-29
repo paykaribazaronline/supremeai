@@ -7,7 +7,8 @@ from memory.supabase_store import SupabaseStore
 
 def test_supabase_store_sqlite_fallback():
     # If no URL, defaults to SQLite
-    store = SupabaseStore(database_url=None, local_path=":memory:")
+    with patch.dict(os.environ, {}, clear=True):
+        store = SupabaseStore(database_url=None, local_path=":memory:")
     assert store.provider == "sqlite"
 
     # Save/get conversation

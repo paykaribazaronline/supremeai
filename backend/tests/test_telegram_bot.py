@@ -7,6 +7,8 @@ import pytest
 from tools.telegram_bot import TelegramBotHandler
 
 
+from unittest.mock import AsyncMock
+
 @pytest.fixture
 def handler():
     with patch.dict(os.environ, {"TELEGRAM_BOT_TOKEN": "test-token"}):
@@ -63,53 +65,57 @@ async def test_get_me_disabled():
 
 @pytest.mark.asyncio
 async def test_send_message_success(handler):
-    mock_post = MagicMock()
+    mock_post = AsyncMock()
     mock_post.return_value.raise_for_status = MagicMock()
-    with patch("httpx.AsyncClient.post", new_callable=lambda: mock_post):
+    with patch("httpx.AsyncClient.post", mock_post):
         result = await handler.send_message(chat_id=123, text="hi")
     assert result is True
 
 
 @pytest.mark.asyncio
 async def test_send_message_failure(handler):
-    mock_post = MagicMock(side_effect=Exception("network error"))
-    with patch("httpx.AsyncClient.post", new_callable=lambda: mock_post):
+    mock_post = AsyncMock(side_effect=Exception("network error"))
+    with patch("httpx.AsyncClient.post", mock_post):
         result = await handler.send_message(chat_id=123, text="hi")
     assert result is False
 
 
 @pytest.mark.asyncio
 async def test_set_webhook_success(handler):
-    mock_post = MagicMock()
-    mock_post.return_value.json.return_value = {"ok": True}
-    with patch("httpx.AsyncClient.post", new_callable=lambda: mock_post):
+    mock_resp = MagicMock()
+    mock_resp.json.return_value = {"ok": True}
+    mock_post = AsyncMock(return_value=mock_resp)
+    with patch("httpx.AsyncClient.post", mock_post):
         result = await handler.set_webhook("https://example.com")
     assert result is True
 
 
 @pytest.mark.asyncio
 async def test_set_webhook_error(handler):
-    mock_post = MagicMock()
-    mock_post.return_value.json.return_value = {"ok": False, "description": "bad url"}
-    with patch("httpx.AsyncClient.post", new_callable=lambda: mock_post):
+    mock_resp = MagicMock()
+    mock_resp.json.return_value = {"ok": False, "description": "bad url"}
+    mock_post = AsyncMock(return_value=mock_resp)
+    with patch("httpx.AsyncClient.post", mock_post):
         result = await handler.set_webhook("https://example.com")
     assert result is False
 
 
 @pytest.mark.asyncio
 async def test_get_me_success(handler):
-    mock_get = MagicMock()
-    mock_get.return_value.json.return_value = {"ok": True, "result": {"id": 1, "username": "bot"}}
-    with patch("httpx.AsyncClient.get", new_callable=lambda: mock_get):
+    mock_resp = MagicMock()
+    mock_resp.json.return_value = {"ok": True, "result": {"id": 1, "username": "bot"}}
+    mock_get = AsyncMock(return_value=mock_resp)
+    with patch("httpx.AsyncClient.get", mock_get):
         result = await handler.get_me()
     assert result == {"id": 1, "username": "bot"}
 
 
 @pytest.mark.asyncio
 async def test_get_me_failure(handler):
-    mock_get = MagicMock()
-    mock_get.return_value.json.return_value = {"ok": False}
-    with patch("httpx.AsyncClient.get", new_callable=lambda: mock_get):
+    mock_resp = MagicMock()
+    mock_resp.json.return_value = {"ok": False}
+    mock_get = AsyncMock(return_value=mock_resp)
+    with patch("httpx.AsyncClient.get", mock_get):
         result = await handler.get_me()
     assert result is None
 
@@ -168,7 +174,7 @@ async def test_handle_update_no_message(handler):
 
 @pytest.mark.asyncio
 async def test_handle_update_command(handler):
-    mock_send = MagicMock()
+    mock_send = AsyncMock()
     handler.send_message = mock_send
     update = {
         "update_id": 1,
@@ -184,11 +190,11 @@ async def test_handle_update_command(handler):
 
 @pytest.mark.asyncio
 async def test_handle_update_ai_fallback(handler):
-    mock_send = MagicMock()
-    mock_send_typing = MagicMock()
+    mock_send = AsyncMock()
+    mock_send_typing = AsyncMock()
     handler.send_message = mock_send
     handler.send_typing = mock_send_typing
-    handler._ai_response = MagicMock(return_value="AI reply")
+    handler._ai_response = AsyncMock(return_value="AI reply")
     update = {
         "update_id": 1,
         "message": {
@@ -204,7 +210,7 @@ async def test_handle_update_ai_fallback(handler):
 
 @pytest.mark.asyncio
 async def test_handle_status_no_urls(handler):
-    mock_send = MagicMock()
+    mock_send = AsyncMock()
     handler.send_message = mock_send
     await handler._handle_status(chat_id=1)
     mock_send.assert_called_once()
@@ -234,6 +240,6 @@ async def test_run_polling_valid_token():
         h = TelegramBotHandler()
     with patch.object(h, "get_me", return_value={"username": "bot", "id": 1}):
         with patch.object(h, "handle_update"):
-            with patch("httpx.AsyncClient.get", side_effect=Exception("stop loop")):
-                with pytest.raises(Exception):
+            with patch("httpx.AsyncClient.get", side_effect=KeyboardInterrupt("stop loop")):
+                with pytest.raises(KeyboardInterrupt):
                     await h.run_polling()

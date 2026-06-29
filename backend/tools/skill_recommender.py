@@ -47,7 +47,7 @@ class SkillRecommender:
     def _embedding(self, text: str) -> list[float]:
         text = re.sub(r"\s+", " ", text.lower()).strip()
         vec = [0.0] * 64
-        h = hashlib.md5(text.encode()).hexdigest()
+        h = hashlib.sha512(text.encode()).hexdigest()
         for i in range(64):
             byte_val = int(h[i * 2 : i * 2 + 2], 16)
             vec[i] = (byte_val / 255.0) * 2 - 1
@@ -102,8 +102,8 @@ class SkillRecommender:
         if not enriched:
             enriched = [
                 {
-                    "id": s,
-                    "name": s,
+                    "id": s["skill_id"],
+                    "name": s["skill_id"],
                     "match_score": round(s["score"], 3),
                     "category": "inferred",
                 }
