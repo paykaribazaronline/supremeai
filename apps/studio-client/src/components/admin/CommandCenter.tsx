@@ -18,6 +18,7 @@ import {
   FileText
 } from 'lucide-react';
 import AethelNode from './AethelNode';
+import { useAdminStore } from '../../store/adminStore';
 
 // বাংলা মন্তব্য: চ্যাট এবং ভয়েস ওভাররাইডের জন্য ডামি কথোপকথন ডাটা ডিক্লেয়ার করা হচ্ছে
 const initialChat = [
@@ -32,6 +33,8 @@ export function CommandCenter() {
   const [chatMessages, setChatMessages] = useState(initialChat);
   const [chatInput, setChatInput] = useState('');
   const [voiceActive] = useState(true);
+  const [isCentralPanelOpen, setIsCentralPanelOpen] = useState(false);
+  const setAdminSubTab = useAdminStore(state => state.setAdminSubTab);
 
   // Custom node types for ReactFlow
   const nodeTypes = useMemo(() => ({ aethel: AethelNode }), []);
@@ -44,6 +47,29 @@ export function CommandCenter() {
       { id: Date.now() + 1, sender: 'Aethel', text: `Processing command "${chatInput}"... Authorization confirmed.` }
     ]);
     setChatInput('');
+  };
+
+  const handleNodeClick = (_, node) => {
+    if (node.id === 'central-orb') {
+      setIsCentralPanelOpen(prev => !prev);
+    } else if (node.data?.type) {
+      // Map node types to tabs
+      const typeMap: Record<string, string> = {
+        security: 'threats',
+        analytics: 'logs',
+        storage: 'cloud',
+        kubernetes: 'cloud',
+        aplgw: 'cloud',
+        network: 'cloud',
+        deploy: 'cicd',
+        mesh: 'cloud',
+        instances: 'cloud',
+        aplsw: 'cloud'
+      };
+      if (typeMap[node.data.type]) {
+        setAdminSubTab(typeMap[node.data.type]);
+      }
+    }
   };
 
   useEffect(() => {
@@ -199,6 +225,7 @@ export function CommandCenter() {
               preventScrolling={true}
               panOnDrag={false}
               nodesDraggable={true}
+              onNodeClick={handleNodeClick}
             >
               <Background color="#00f3ff" gap={24} style={{ opacity: 0.03 }} />
             </ReactFlow>
@@ -233,17 +260,20 @@ export function CommandCenter() {
           </div>
         </div>
 
-        {/* Right Sidebar: AI Assistant Glassmorphic Chat Panel */}
-        <div className="w-[300px] flex flex-col bg-[#050917]/60 border border-[#00f3ff]/15 rounded-xl backdrop-blur-md overflow-hidden">
-          <div className="border-b border-[#00f3ff]/15 p-3 flex justify-between items-center bg-[#070d22]">
-            <span className="text-xs font-black tracking-widest text-[#00f3ff] uppercase">AETHEL | AI ASSISTANT</span>
-            <Maximize2 size={12} className="text-[#00f3ff] cursor-pointer" />
+        {/* Right Sidebar: AI Assistant Glassmorphic Chat Panel (SLIDING OVERLAY) */}
+        <div className={`absolute top-0 right-0 h-full w-[350px] bg-[#050917]/80 border-l border-[#00f3ff]/30 shadow-[-10px_0_30px_rgba(0,243,255,0.05)] backdrop-blur-xl transform transition-transform duration-500 ease-in-out z-50 flex flex-col ${isCentralPanelOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+          <div className="border-b border-[#00f3ff]/20 p-4 flex justify-between items-center bg-[#070d22]/80">
+            <div className="flex items-center gap-2">
+              <Cpu size={16} className="text-[#00f3ff] animate-pulse" />
+              <span className="text-sm font-black tracking-widest text-[#00f3ff] uppercase drop-shadow-[0_0_8px_#00f3ff]">AETHEL NEXUS</span>
+            </div>
+            <Maximize2 size={14} className="text-[#00f3ff] cursor-pointer hover:scale-110 transition-transform" onClick={() => setIsCentralPanelOpen(false)} />
           </div>
 
-          <div className="flex-1 overflow-y-auto p-3 space-y-3">
+          <div className="flex-1 overflow-y-auto p-4 space-y-4">
             {chatMessages.map(msg => (
-              <div key={msg.id} className="text-[10px] leading-relaxed border-b border-cyan-900/10 pb-2">
-                <span className={`font-bold tracking-wider mr-1 ${
+              <div key={msg.id} className="text-[11px] leading-relaxed border-b border-cyan-900/10 pb-3">
+                <span className={`font-bold tracking-wider mr-1.5 ${
                   msg.sender === 'Admin' ? 'text-slate-300' : msg.sender === 'Aethel' ? 'text-[#00f3ff]' : 'text-emerald-500'
                 }`}>
                   {msg.sender}:
@@ -253,17 +283,17 @@ export function CommandCenter() {
             ))}
           </div>
 
-          <div className="p-3 border-t border-[#00f3ff]/15 bg-[#060b1c]/80 flex gap-2">
+          <div className="p-4 border-t border-[#00f3ff]/20 bg-[#060b1c]/90 flex gap-2">
             <input
               type="text"
               value={chatInput}
               onChange={e => setChatInput(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && handleSendChat()}
-              placeholder="[Type command...]"
-              className="flex-grow bg-[#030611] border border-cyan-500/20 focus:border-[#00f3ff]/60 rounded px-2.5 py-1.5 text-[10px] text-slate-100 outline-none placeholder:text-slate-600"
+              placeholder="[Aethel Nexus Command...]"
+              className="flex-grow bg-[#030611] border border-cyan-500/30 focus:border-[#00f3ff]/80 rounded-lg px-3 py-2 text-[11px] text-[#00f3ff] outline-none placeholder:text-slate-600 font-mono tracking-wide"
             />
-            <button onClick={handleSendChat} className="bg-[#00f3ff]/20 hover:bg-[#00f3ff]/40 text-[#00f3ff] p-1.5 rounded transition-all">
-              <Send size={12} />
+            <button onClick={handleSendChat} className="bg-[#00f3ff]/20 hover:bg-[#00f3ff]/40 hover:shadow-[0_0_10px_#00f3ff] text-[#00f3ff] p-2 rounded-lg transition-all">
+              <Send size={14} />
             </button>
           </div>
         </div>
