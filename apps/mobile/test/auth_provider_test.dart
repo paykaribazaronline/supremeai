@@ -62,6 +62,5 @@ void main() {
       final prefs = await SharedPreferences.getInstance();
       expect(prefs.getBool('is_guest'), null); // key removed after clear
     });
-
   });
 }
