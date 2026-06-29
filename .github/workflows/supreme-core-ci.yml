@@ -85,14 +85,17 @@ jobs:
           poetry config virtualenvs.in-project true
           poetry install --sync --with dev --without ml
       
-      - name: Lint & Test
+      - name: 🧹 Lint Code
         working-directory: backend
-        run: |
-          poetry run ruff check .
-          poetry run pytest -n auto --cov=core --cov-fail-under=24 -q
+        run: poetry run ruff check .
+
+      - name: 🧪 Run Tests
+        id: backend_tests
+        working-directory: backend
+        run: poetry run pytest -n auto --cov=core --cov-fail-under=24 -q
           
       - name: 🔧 SupremeAI Auto-Fix Engine
-        if: failure()
+        if: failure() && steps.backend_tests.outcome == 'failure'
         working-directory: backend
         env:
           SUPREMEAI_API_KEY: ${{ secrets.SUPREMEAI_API_KEY }}
