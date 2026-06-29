@@ -1,8 +1,13 @@
-import os
 import asyncio
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect
+import os
+
 import google.generativeai as genai
+from fastapi import APIRouter
+from fastapi import WebSocket
+from fastapi import WebSocketDisconnect
+
 from tools.agent_tools import SUPREME_TOOLS
+
 
 router = APIRouter(prefix="/ws", tags=["Neural Engine Stream"])
 

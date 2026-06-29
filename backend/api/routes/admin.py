@@ -1,6 +1,9 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter
+from fastapi import HTTPException
 from pydantic import BaseModel
-from admin.god import AdminGodLayer # Your existing god.py
+
+from admin.god import AdminGodLayer  # Your existing god.py
+
 
 router = APIRouter(prefix="/api/admin", tags=["Admin Control Center"])
 god_layer = AdminGodLayer(db_path="data/admin_rules.db")
@@ -16,7 +19,7 @@ async def update_constitutional_rule(payload: RuleUpdate):
         god_layer.set_rule(payload.key, payload.value)
         return {"status": "success", "message": f"Rule {payload.key} updated to {payload.value}"}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 @router.post("/actions/{action_type}")
 async def trigger_quick_action(action_type: str):

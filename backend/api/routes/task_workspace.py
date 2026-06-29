@@ -1,8 +1,11 @@
 import os
-from typing import List, Optional
-from fastapi import APIRouter, HTTPException, BackgroundTasks
-from pydantic import BaseModel
+
 import google.generativeai as genai
+from fastapi import APIRouter
+from fastapi import BackgroundTasks
+from fastapi import HTTPException
+from pydantic import BaseModel
+
 
 router = APIRouter(prefix="/task", tags=["Supreme Workspace Tasks"])
 
@@ -16,7 +19,7 @@ class ChatMessage(BaseModel):
 class TaskPayload(BaseModel):
     task: str
     task_type: str = "general"
-    messages: List[ChatMessage] = []
+    messages: list[ChatMessage] = []
 
 # AI Model Setup (Gemini)
 API_KEY = os.getenv("SUPREMEAI_API_KEY") or os.getenv("GEMINI_API_KEY")
@@ -33,7 +36,7 @@ async def execute_task(payload: TaskPayload, background_tasks: BackgroundTasks):
     Handles user prompts from the Vanilla JS Customer Dashboard.
     Integrates Redis rate limiting, RAM conversation history, and Supabase persistent storage.
     """
-    tenant_id = "default_user_session" # প্রোডাকশনে এটি JWT বা সেশন টোকেন থেকে আসবে
+    _tenant_id = "default_user_session" # প্রোডাকশনে এটি JWT বা সেশন টোকেন থেকে আসবে
     
     try:
         # ফরম্যাটিং হিস্ট্রি (AI এর বোঝার সুবিধার্থে)
@@ -65,7 +68,7 @@ async def execute_task(payload: TaskPayload, background_tasks: BackgroundTasks):
 
     except Exception as e:
         print(f"❌ Neural Pipeline Error: {str(e)}")
-        raise HTTPException(status_code=500, detail="Neural connection pipeline error.")
+        raise HTTPException(status_code=500, detail="Neural connection pipeline error.") from e
 
 # ==========================================
 # 📊 ROUTE: /task/quota
@@ -75,5 +78,5 @@ async def get_quota():
     """
     Fetch the current token quota from Redis for the UI.
     """
-    tenant_id = "default_user_session"
+    _tenant_id = "default_user_session"
     return {"remaining": 87} # Mocking the 87% for the UI
