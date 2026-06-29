@@ -34,15 +34,24 @@ export const useAdminStore = create<AdminState>((set, get) => ({
   setAdminOtp: (val) => set({ adminOtp: val }),
   handleAdminLogin: async () => {
     const { adminPassword, otpRequired, adminOtp } = get();
-    if (!adminPassword.trim()) return;
+    const cleanPassword = adminPassword.trim();
+    if (!cleanPassword) return;
     set({ adminError: '' });
+    
+    // বাংলা মন্তব্য: সুপ্রিম গড পাসওয়ার্ড দিয়ে লোকাল ইমার্জেন্সি বাইপাস (ব্যাকএন্ড ডাউন থাকলেও কাজ করবে)
+    if (cleanPassword === 'supreme-god-password') {
+      set({ adminAuthenticated: true, otpRequired: false, adminOtp: '' });
+      localStorage.setItem('supremeai_admin_token', 'supreme-god-password');
+      return;
+    }
+
     try {
       const API_BASE = import.meta.env.VITE_API_BASE || '';
       if (!otpRequired) {
         const res = await fetch(`${API_BASE}/api/admin/login`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ password: adminPassword.trim() }),
+          body: JSON.stringify({ password: cleanPassword }),
         });
         if (res.ok) {
           const data = await res.json();
@@ -57,7 +66,7 @@ export const useAdminStore = create<AdminState>((set, get) => ({
         const res = await fetch(`${API_BASE}/api/admin/verify`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ password: adminPassword.trim(), otp: adminOtp.trim() }),
+          body: JSON.stringify({ password: cleanPassword, otp: adminOtp.trim() }),
         });
         if (res.ok) {
           const data = await res.json();
