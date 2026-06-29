@@ -130,18 +130,29 @@ export function CommandCenter() {
 
   const handleSendChat = () => {
     if (!chatInput.trim()) return;
+    const msgText = chatInput.trim();
     setChatMessages(prev => [
       ...prev,
-      { id: Date.now(), sender: 'Admin', text: chatInput }
+      { id: Date.now(), sender: 'Admin', text: msgText }
     ]);
     
-    if (recorderRef.current && (recorderRef.current as any).sendText) {
-      (recorderRef.current as any).sendText(chatInput);
+    // Check if websocket is actually connected
+    const isConnected = recorderRef.current && typeof recorderRef.current.isConnected === 'function' && recorderRef.current.isConnected();
+
+    if (isConnected && recorderRef.current) {
+      recorderRef.current.sendText(msgText);
     } else {
-      setChatMessages(prev => [
-        ...prev,
-        { id: Date.now() + 1, sender: 'SupremeAI', text: `Text module not connected. Offline processing command "${chatInput}"...` }
-      ]);
+      // বাংলা মন্তব্য: ব্যাকএন্ড অফলাইন থাকলে লোকাল সিমুলেশন রেসপন্স প্রোভাইড করা হচ্ছে
+      setTimeout(() => {
+        setChatMessages(prev => [
+          ...prev,
+          { 
+            id: Date.now(), 
+            sender: 'SupremeAI', 
+            text: `[Offline Mode] Hello! I received your message: "${msgText}". Since the WebSocket gateway is offline, I am running in local fallback mode.` 
+          }
+        ]);
+      }, 800);
     }
     
     setChatInput('');

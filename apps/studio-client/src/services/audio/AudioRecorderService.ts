@@ -69,6 +69,10 @@ export class AudioRecorderService {
     }
   }
 
+  public isConnected(): boolean {
+    return this.websocket !== null && this.websocket.readyState === WebSocket.OPEN;
+  }
+
   private connectWebSocket() {
     if (this.websocket && this.websocket.readyState === WebSocket.OPEN) return;
 
