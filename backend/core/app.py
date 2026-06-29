@@ -998,6 +998,12 @@ if api_keys_router is not None:
     app.include_router(api_keys_router)
 if ci_webhooks_router is not None:
     app.include_router(ci_webhooks_router)
+try:
+    from api.routes import websocket_voice_router
+    if websocket_voice_router is not None:
+        app.include_router(websocket_voice_router)
+except Exception as _e:
+    logger.warning(f"websocket_voice router not loaded: {_e}")
 # Include Orchestrator router
 if orchestrator_router is not None:
     app.include_router(orchestrator_router)

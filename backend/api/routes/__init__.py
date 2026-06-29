@@ -248,4 +248,10 @@ try:
 except Exception:
     ci_webhooks_router = None
 
-__all__ = list(_safe_imports.keys()) + ["voice_router"]
+try:
+    from .websocket_voice import router as websocket_voice_router
+    _safe_imports["websocket_voice_router"] = websocket_voice_router
+except Exception:
+    websocket_voice_router = None
+
+__all__ = list(_safe_imports.keys()) + ["voice_router", "websocket_voice_router"]

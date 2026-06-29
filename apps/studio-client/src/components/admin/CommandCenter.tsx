@@ -22,6 +22,9 @@ import {
 import AethelNode from './AethelNode';
 import { useAdminStore } from '../../store/adminStore';
 import { useTheme } from '../../contexts/ThemeContext';
+import { AudioRecorderService } from '../../services/audio/AudioRecorderService';
+import { AudioPlaybackService } from '../../services/audio/AudioPlaybackService';
+import { WaveformVisualizer } from '../audio/WaveformVisualizer';
 
 // বাংলা মন্তব্য: চ্যাট এবং ভয়েস ওভাররাইডের জন্য ডামি কথোপকথন ডাটা ডিক্লেয়ার করা হচ্ছে
 const initialChat = [
@@ -39,6 +42,61 @@ export function CommandCenter() {
   const [isCentralPanelOpen, setIsCentralPanelOpen] = useState(false);
   const setAdminSubTab = useAdminStore(state => state.setAdminSubTab);
   const { theme, toggleTheme } = useTheme();
+
+  // Audio Engine State
+  const [isRecording, setIsRecording] = useState(false);
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const recorderRef = useRef<AudioRecorderService | null>(null);
+  const playbackRef = useRef<AudioPlaybackService | null>(null);
+
+  useEffect(() => {
+    // Initialize Audio Services
+    playbackRef.current = new AudioPlaybackService();
+    
+    // Using relative URL or assuming backend runs on same domain + /api/voice/ws/voice or ws://localhost:8000/api/voice/ws/voice
+    const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const wsHost = import.meta.env.VITE_API_URL ? new URL(import.meta.env.VITE_API_URL).host : '127.0.0.1:8000';
+    const wsUrl = `${wsProtocol}//${wsHost}/api/voice/ws/voice`;
+    
+    recorderRef.current = new AudioRecorderService(wsUrl);
+
+    recorderRef.current.onTranscript((text) => {
+      setChatMessages(prev => [
+        ...prev,
+        { id: Date.now(), sender: 'Admin', text: text }
+      ]);
+    });
+
+    const handleAethelSpeak = (e: any) => {
+      const text = e.detail;
+      setIsSpeaking(true);
+      setChatMessages(prev => [
+        ...prev,
+        { id: Date.now(), sender: 'Aethel', text: text }
+      ]);
+      playbackRef.current?.play(text);
+      
+      // Rough estimation to stop visualizer (in a real app, bind to onend)
+      setTimeout(() => setIsSpeaking(false), text.length * 50 + 1000);
+    };
+
+    window.addEventListener('aethel_speak', handleAethelSpeak);
+    return () => {
+      window.removeEventListener('aethel_speak', handleAethelSpeak);
+    };
+  }, []);
+
+  const toggleVoiceRecording = async () => {
+    if (!recorderRef.current) return;
+    
+    if (isRecording) {
+      recorderRef.current.stopRecording();
+      setIsRecording(false);
+    } else {
+      await recorderRef.current.startRecording();
+      setIsRecording(true);
+    }
+  };
 
   // Custom node types for ReactFlow
   const nodeTypes = useMemo(() => ({ aethel: AethelNode }), []);
@@ -200,26 +258,30 @@ export function CommandCenter() {
           <div className="absolute bottom-4 left-1/2 -translate-x-1/2 w-[380px] bg-[#060b1b]/90 border border-[#00f3ff]/25 rounded-lg p-3 shadow-[0_0_20px_rgba(0,243,255,0.15)] backdrop-blur-md z-20 flex flex-col items-center">
             <div className="flex justify-between w-full text-[9px] text-slate-400 font-bold mb-1">
               <span>CMD | v3.0</span>
-              <div className="flex items-center gap-1.5">
-                <Mic size={10} className={voiceActive ? 'text-[#00f3ff] animate-pulse' : 'text-slate-500'} />
-                <span>VOICE CONTROLS</span>
-              </div>
+              <button 
+                onClick={toggleVoiceRecording}
+                className="flex items-center gap-1.5 hover:bg-[#00f3ff]/10 p-1 rounded transition-colors"
+              >
+                <Mic size={10} className={isRecording ? 'text-[#ef4444] animate-pulse' : 'text-[#00f3ff]'} />
+                <span className={isRecording ? 'text-[#ef4444]' : 'text-slate-300'}>
+                  {isRecording ? 'RECORDING...' : 'VOICE CONTROLS'}
+                </span>
+              </button>
             </div>
 
             {/* Glowing Waveform representation */}
             <div className="flex items-center justify-center h-8 my-1 w-full">
-              <span className="waveform-bar" style={{ height: '8px' }} />
-              <span className="waveform-bar pulse-delay-1" style={{ height: '14px' }} />
-              <span className="waveform-bar pulse-delay-2" style={{ height: '22px' }} />
-              <span className="waveform-bar pulse-delay-3" style={{ height: '12px' }} />
-              <span className="waveform-bar pulse-delay-4" style={{ height: '26px' }} />
-              <span className="waveform-bar pulse-delay-5" style={{ height: '10px' }} />
-              <span className="waveform-bar pulse-delay-1" style={{ height: '18px' }} />
-              <span className="waveform-bar pulse-delay-2" style={{ height: '6px' }} />
+              <WaveformVisualizer 
+                analyser={playbackRef.current?.getAnalyser() || null} 
+                isActive={isRecording || isSpeaking} 
+                color={isRecording ? '#ef4444' : '#00f3ff'}
+              />
             </div>
 
             <div className="flex justify-between w-full text-[8px] text-slate-500 font-bold mt-1">
-              <span className="text-[#00ff66]">Voice Recognition: Listening...</span>
+              <span className={isRecording ? "text-[#ef4444]" : "text-[#00ff66]"}>
+                {isRecording ? "Voice Recognition: Listening..." : "Voice Recognition: Standby"}
+              </span>
               <span>CPU: 74% MEM: 68%</span>
             </div>
           </div>
