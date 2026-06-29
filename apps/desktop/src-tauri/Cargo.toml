@@ -12,10 +12,10 @@ authors = ["SupremeAI Team"]
 custom-protocol = ["tauri/custom-protocol"]
 
 [build-dependencies]
-tauri-build = "=1.5.4"
+tauri-build = { version = "=1.5.4", features = [] }
 
 [dependencies]
-tauri = { version = "=1.5.4", features = ["api-all"] }
+tauri = { version = "=1.5.4", features = [ "window-maximize", "window-start-dragging", "window-unminimize", "window-unmaximize", "window-hide", "window-show", "window-minimize", "updater", "window-close"] }
 serde_json = "1"
 num_cpus = "1"
 ntapi = "0.4.3"

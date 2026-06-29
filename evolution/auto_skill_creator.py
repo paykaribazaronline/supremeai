@@ -4,12 +4,15 @@ import os
 import subprocess
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
+from evolution.evolution_react_agent import EvolutionReActAgent
 
 
 class AutoSkillCreator:
     def __init__(self, rules_engine: Optional[Any] = None):
         self.rules_engine = rules_engine
         self.skills_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "skills")
+        # Initialize ReAct Agent
+        self.react_agent = EvolutionReActAgent()
 
     def analyze_demand_patterns(self, task_history: List[Dict[str, Any]]) -> List[str]:
         pattern_source = []
@@ -18,7 +21,16 @@ class AutoSkillCreator:
         failed = list({t.get("task") for t in task_history if t.get("success") is False})
         return list(set(pattern_source + failed))
 
-    def generate_skill_code(self, skill_name: str) -> str:
+    def generate_skill_code(self, skill_name: str, requirement: str = "") -> str:
+        """
+        Uses the ReAct agent to autonomously generate code. Falls back to static template on failure.
+        """
+        req = requirement or f"Generate a helper module for executing repeated task: {skill_name}"
+        result = self.react_agent.generate_skill(skill_name, req)
+        if result["success"]:
+            return result["code"]
+        
+        # Fallback to static template
         class_name = "".join(part.capitalize() for part in skill_name.split("_"))
         return (
             f"class {class_name}:\n"
@@ -31,14 +43,14 @@ class AutoSkillCreator:
     def register_new_skill(self, skill: Dict[str, Any]) -> Dict[str, Any]:
         skill_name = skill.get("skill_name", "unknown")
         filename = f"{skill_name}.py"
-        code = skill.get("generated_code") or self.generate_skill_code(skill_name)
+        code = skill.get("generated_code") or self.generate_skill_code(skill_name, skill.get("requirement", ""))
         os.makedirs(self.skills_dir, exist_ok=True)
         path = os.path.join(self.skills_dir, filename)
         with open(path, "w", encoding="utf-8") as f:
             f.write(code)
         return {
             "skill_name": skill_name,
-            "filenae": filename,
+            "filename": filename,
             "path": path,
             "status": "registered",
             "registered_at": datetime.now(timezone.utc).isoformat(),
@@ -64,10 +76,13 @@ class AutoSkillCreator:
         patterns = self.analyze_demand_patterns(task_history)
         created = []
         for pattern in patterns:
+            skill_name = f"auto_{pattern.strip().replace(' ', '_').lower()}"
+            requirement = f"Create an automated skill that handles resolving task failure related to: {pattern}"
+            
             proposal = {
-                "skill_name": f"auto_{pattern.strip().replace(' ', '_').lower()}",
+                "skill_name": skill_name,
                 "source_pattern": pattern,
-                "generated_code": self.generate_skill_code(f"auto_{pattern.strip().replace(' ', '_').lower()}"),
+                "requirement": requirement,
                 "status": "generated",
                 "generated_at": datetime.now(timezone.utc).isoformat(),
             }
