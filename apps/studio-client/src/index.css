@@ -2,7 +2,37 @@
 @import "tailwindcss";
 
 :root {
-  /* Premium Cyberpunk Theme by Default */
+  /* Blue Sky Theme (Light) */
+  --background: #f0f9ff;
+  --foreground: #0f172a;
+  --neon-blue: #0284c7;
+  --neon-purple: #4f46e5;
+  --cyber-gray: rgba(0, 0, 0, 0.05);
+  --success: #059669;
+  --danger: #dc2626;
+  --warning: #d97706;
+  --card-bg: rgba(255, 255, 255, 0.85);
+  --card-border: rgba(2, 132, 199, 0.2);
+  --sidebar-bg: rgba(248, 250, 252, 0.95);
+  --tabbar-bg: #e2e8f0;
+  --border-color: rgba(0, 0, 0, 0.1);
+  --card-text: #334155;
+  --card-title-text: #0f172a;
+  --alert-bg: rgba(0, 0, 0, 0.02);
+  --input-bg: #ffffff;
+  --input-border: #cbd5e1;
+  --panel-bg: #ffffff;
+
+  /* CommandCenter Semantic Variables */
+  --bg-main: #f0f9ff;
+  --text-main: #0f172a;
+  --bg-panel: rgba(255, 255, 255, 0.85);
+  --border-accent: rgba(2, 132, 199, 0.2);
+  --accent-primary: #0284c7;
+}
+
+.dark {
+  /* Deep Space Theme (Dark) */
   --background: #030712;
   --foreground: #f3f4f6;
   --neon-blue: #00f3ff;
@@ -22,24 +52,13 @@
   --input-bg: #0b0f19;
   --input-border: #1f2937;
   --panel-bg: #090d16;
-}
 
-.dark {
-  /* Premium Cyberpunk Dark Theme */
-  --background: #030712;
-  --foreground: #f3f4f6;
-  --cyber-gray: rgba(255, 255, 255, 0.02);
-  --card-bg: rgba(17, 24, 39, 0.65);
-  --card-border: rgba(0, 243, 255, 0.1);
-  --sidebar-bg: rgba(10, 15, 26, 0.95);
-  --tabbar-bg: #111827;
-  --border-color: rgba(255, 255, 255, 0.06);
-  --card-text: #d1d5db;
-  --card-title-text: #f9fafb;
-  --alert-bg: rgba(255, 255, 255, 0.01);
-  --input-bg: #0b0f19;
-  --input-border: #1f2937;
-  --panel-bg: #090d16;
+  /* CommandCenter Semantic Variables */
+  --bg-main: #030611;
+  --text-main: #ffffff;
+  --bg-panel: rgba(5, 9, 23, 0.5);
+  --border-accent: rgba(0, 243, 255, 0.15);
+  --accent-primary: #00f3ff;
 }
 
 body {
