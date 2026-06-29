@@ -16,11 +16,16 @@ def client():
     return TestClient(app)
 
 
-def test_e2e_vscode_completion_flow(client):
+from unittest.mock import AsyncMock, patch
+
+@patch("core.app.model_router.async_route_and_generate", new_callable=AsyncMock)
+def test_e2e_vscode_completion_flow(mock_generate, client):
     """
     E2E Test simulating the VS Code Extension auto-completion flow.
     It hits the /api/chat/completion endpoint and checks the suggestion response.
     """
+    mock_generate.return_value = {"text": "    return a + b"}
+    
     payload = {
         "prefix": "def calculate_sum(a, b):\n",
         "suffix": "\n    return result",
