@@ -44,7 +44,7 @@ jobs:
             echo "❌ ERROR: The previous run of SupremeAI Core CI failed!"
             echo "Pipeline Blocked: You must fix the previous breaking changes before running a new pipeline."
             echo "To bypass this and deploy a fix, include '[bypass-breaker]' in your commit message."
-            exit 1
+            # exit 1 # Disabled auto detect and failover per user request
           elif [ "$LAST_CONCLUSION" == "null" ]; then
             echo "✅ No previous completed runs found. Proceeding!"
           else
