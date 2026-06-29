@@ -9,7 +9,9 @@ from core.app import app  # noqa: F401
 from core.config import settings
 from core.logging_config import setup_logging
 from database import db as supabase_db
+from api.routes.task_workspace import router as workspace_task_router
 
+app.include_router(workspace_task_router)
 
 setup_logging()
 
