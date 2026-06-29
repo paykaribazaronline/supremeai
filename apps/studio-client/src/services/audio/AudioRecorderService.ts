@@ -55,6 +55,20 @@ export class AudioRecorderService {
     }
   }
 
+  public sendText(text: string) {
+    this.connectWebSocket();
+    const payload = JSON.stringify({ action: 'text_chat', text });
+    
+    if (this.websocket && this.websocket.readyState === WebSocket.OPEN) {
+      this.websocket.send(payload);
+    } else if (this.websocket) {
+      // If it's still connecting, wait for open
+      this.websocket.addEventListener('open', () => {
+        this.websocket?.send(payload);
+      }, { once: true });
+    }
+  }
+
   private connectWebSocket() {
     if (this.websocket && this.websocket.readyState === WebSocket.OPEN) return;
 

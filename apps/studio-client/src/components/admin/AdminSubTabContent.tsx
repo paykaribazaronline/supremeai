@@ -1,9 +1,11 @@
 import type { AdminSubTab, ChatMessage } from '../../types';
 import { CommandCenter, LiveLogs, CostAuditor, HealthMap, UserManager, ConfigEditor, ModelRouter, EnhancedSkillMarketplace, MemoryBrowser, CloudOrchestrator, ObservabilityDashboard, ThreatDetection, VisualRulesBuilder, CICDVisualizer, GithubIntegration, BackupRestore } from '.';
 import { RateLimitManager } from './RateLimitManager';
+import { X } from 'lucide-react';
 
 interface SubTabContentProps {
   adminSubTab: AdminSubTab;
+  setAdminSubTab: (tab: AdminSubTab) => void;
   adminMessages: ChatMessage[];
   loading: boolean;
   adminInput: string;
@@ -33,43 +35,68 @@ interface SubTabContentProps {
 }
 
 export function SubTabContent(props: SubTabContentProps) {
-  const { adminSubTab, adminMessages, loading, adminInput, setAdminInput, handleSendAdmin, rulesJson, setRulesJson, saveStatus, handleSaveRules } = props;
+  const { adminSubTab, setAdminSubTab, adminMessages, loading, adminInput, setAdminInput, handleSendAdmin, rulesJson, setRulesJson, saveStatus, handleSaveRules } = props;
   
-  // বাংলা মন্তব্য: সকল ট্যাব কন্টেন্টকে একটি কনসিস্টেন্ট ডার্ক ব্যাকগ্রাউন্ড র‍্যাপারে রাখা হচ্ছে যাতে হোম পেজের সাথে মিলে এবং সাদা ফাঁকা জায়গা না দেখায়
+  const isOverlayOpen = adminSubTab !== 'command-center';
+
   return (
-    <div className="flex-1 flex flex-col overflow-hidden bg-[#030611]">
-      {adminSubTab === 'command-center' && <CommandCenter />}
-      
-      {adminSubTab === 'sandbox' && (
-        <SandboxView
-          adminMessages={adminMessages}
-          loading={loading}
-          adminInput={adminInput}
-          setAdminInput={setAdminInput}
-          handleSendAdmin={handleSendAdmin}
-          rulesJson={rulesJson}
-          setRulesJson={setRulesJson}
-          saveStatus={saveStatus}
-          handleSaveRules={handleSaveRules}
-        />
+    <div className="flex-1 flex flex-col overflow-hidden bg-[#030611] relative">
+      {/* Background Canvas always rendered */}
+      <div className={`absolute inset-0 transition-opacity duration-300 ${isOverlayOpen ? 'opacity-50 pointer-events-none' : 'opacity-100'}`}>
+        <CommandCenter />
+      </div>
+
+      {/* Glassmorphic Modal Overlay for other modules */}
+      {isOverlayOpen && (
+        <div className="absolute inset-4 z-50 flex flex-col bg-[#050917]/95 border border-[#00f3ff]/30 shadow-[0_0_50px_rgba(0,243,255,0.15)] backdrop-blur-xl rounded-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+          
+          <div className="flex justify-between items-center p-4 border-b border-[#00f3ff]/20 bg-[#0c1222]/80">
+            <span className="text-sm font-bold tracking-widest text-[#00f3ff] uppercase flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-[#00ff66] animate-pulse"></span>
+              MODULE: {adminSubTab.replace('-', ' ')}
+            </span>
+            <button 
+              onClick={() => setAdminSubTab('command-center')}
+              className="p-1.5 hover:bg-white/10 rounded-lg transition-colors group"
+            >
+              <X className="w-5 h-5 text-slate-400 group-hover:text-white transition-colors" />
+            </button>
+          </div>
+
+          <div className="flex-1 overflow-auto relative">
+            {adminSubTab === 'sandbox' && (
+              <SandboxView
+                adminMessages={adminMessages}
+                loading={loading}
+                adminInput={adminInput}
+                setAdminInput={setAdminInput}
+                handleSendAdmin={handleSendAdmin}
+                rulesJson={rulesJson}
+                setRulesJson={setRulesJson}
+                saveStatus={saveStatus}
+                handleSaveRules={handleSaveRules}
+              />
+            )}
+            
+            {adminSubTab === 'logs' && <LiveLogs liveLogs={props.liveLogs} setLiveLogs={props.setLiveLogs} />}
+            {adminSubTab === 'costs' && <CostAuditor costReport={props.costReport} />}
+            {adminSubTab === 'health' && <HealthMap healthMap={props.healthMap} />}
+            {adminSubTab === 'users' && <UserManager {...props} />}
+            {adminSubTab === 'config' && <ConfigEditor envConfig={props.envConfig} setEnvConfig={props.setEnvConfig} handleSaveConfig={props.handleSaveConfig} />}
+            {adminSubTab === 'model-router' && <ModelRouter />}
+            {adminSubTab === 'skills' && <EnhancedSkillMarketplace />}
+            {adminSubTab === 'memory' && <MemoryBrowser />}
+            {adminSubTab === 'cloud' && <CloudOrchestrator />}
+            {adminSubTab === 'observability' && <ObservabilityDashboard />}
+            {adminSubTab === 'threats' && <ThreatDetection />}
+            {adminSubTab === 'rules' && <VisualRulesBuilder />}
+            {adminSubTab === 'cicd' && <CICDVisualizer />}
+            {adminSubTab === 'github' && <GithubIntegration />}
+            {adminSubTab === 'backups' && <BackupRestore />}
+            {adminSubTab === 'rate-limits' && <RateLimitManager />}
+          </div>
+        </div>
       )}
-      
-      {adminSubTab === 'logs' && <LiveLogs liveLogs={props.liveLogs} setLiveLogs={props.setLiveLogs} />}
-      {adminSubTab === 'costs' && <CostAuditor costReport={props.costReport} />}
-      {adminSubTab === 'health' && <HealthMap healthMap={props.healthMap} />}
-      {adminSubTab === 'users' && <UserManager {...props} />}
-      {adminSubTab === 'config' && <ConfigEditor envConfig={props.envConfig} setEnvConfig={props.setEnvConfig} handleSaveConfig={props.handleSaveConfig} />}
-      {adminSubTab === 'model-router' && <ModelRouter />}
-      {adminSubTab === 'skills' && <EnhancedSkillMarketplace />}
-      {adminSubTab === 'memory' && <MemoryBrowser />}
-      {adminSubTab === 'cloud' && <CloudOrchestrator />}
-      {adminSubTab === 'observability' && <ObservabilityDashboard />}
-      {adminSubTab === 'threats' && <ThreatDetection />}
-      {adminSubTab === 'rules' && <VisualRulesBuilder />}
-      {adminSubTab === 'cicd' && <CICDVisualizer />}
-      {adminSubTab === 'github' && <GithubIntegration />}
-      {adminSubTab === 'backups' && <BackupRestore />}
-      {adminSubTab === 'rate-limits' && <RateLimitManager />}
     </div>
   );
 }

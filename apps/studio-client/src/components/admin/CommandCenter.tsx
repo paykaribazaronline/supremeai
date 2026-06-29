@@ -107,9 +107,18 @@ export function CommandCenter() {
     if (!chatInput.trim()) return;
     setChatMessages(prev => [
       ...prev,
-      { id: Date.now(), sender: 'Admin', text: chatInput },
-      { id: Date.now() + 1, sender: 'SupremeAI', text: `Processing command "${chatInput}"... Authorization confirmed.` }
+      { id: Date.now(), sender: 'Admin', text: chatInput }
     ]);
+    
+    if (recorderRef.current && (recorderRef.current as any).sendText) {
+      (recorderRef.current as any).sendText(chatInput);
+    } else {
+      setChatMessages(prev => [
+        ...prev,
+        { id: Date.now() + 1, sender: 'SupremeAI', text: `Text module not connected. Offline processing command "${chatInput}"...` }
+      ]);
+    }
+    
     setChatInput('');
   };
 
@@ -138,6 +147,14 @@ export function CommandCenter() {
         'config': 'config'
       };
       if (typeMap[node.data.type]) {
+        // Open the chat panel
+        setIsCentralPanelOpen(true);
+        // Add a message
+        setChatMessages(prev => [
+          ...prev,
+          { id: Date.now(), sender: 'System', text: `Accessing diagnostics for ${node.data.label}...` }
+        ]);
+        // Open the overlay
         setAdminSubTab(typeMap[node.data.type]);
       }
     }

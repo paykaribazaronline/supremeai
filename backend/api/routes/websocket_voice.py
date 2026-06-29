@@ -58,6 +58,39 @@ async def process_audio_with_groq(audio_bytes: bytes) -> str:
             print(f"❌ [Groq STT Error]: {e}")
             return f"Error processing audio: {str(e)}"
 
+async def handle_intent(transcript: str, websocket: WebSocket, start_time: float):
+    # Intent Router
+    transcript_clean = transcript.strip()
+    
+    # Check if it's a command
+    if transcript_clean.startswith("/"):
+        supremeai_response = f"Executing system command: {transcript_clean}... Authorization confirmed."
+    else:
+        # Natural Language Processing (Simulating conversational Groq/LLM)
+        supremeai_response = f"Hello! You said: '{transcript_clean}'. I am Aethel, your SupremeAI orchestrator. How can I assist you with the cluster today?"
+        
+    # Log to database
+    if db.client:
+        latency_ms = int((time.time() - start_time) * 1000)
+        log_entry = VoiceInteractionLog(
+            user_id="admin-01",
+            transcript=transcript_clean,
+            supremeai_response=supremeai_response,
+            latency_ms=latency_ms
+        )
+        try:
+            db.client.table("voice_interactions").insert(log_entry.dict(exclude_none=True)).execute()
+        except Exception as db_err:
+            print(f"⚠️ [DB Logging Error]: {db_err}")
+    
+    # Stream text response back for Web Speech API TTS
+    words = supremeai_response.split(" ")
+    for word in words:
+        await websocket.send_json({"type": "response_chunk", "text": word + " "})
+        await asyncio.sleep(0.05)
+    
+    await websocket.send_json({"type": "response_complete"})
+
 @router.websocket("/voice")
 async def websocket_voice_endpoint(websocket: WebSocket):
     """
@@ -81,7 +114,9 @@ async def websocket_voice_endpoint(websocket: WebSocket):
             elif "text" in message:
                 try:
                     payload = json.loads(message["text"])
-                    if payload.get("action") == "process":
+                    action = payload.get("action")
+                    
+                    if action == "process":
                         if len(audio_buffer) == 0:
                             await websocket.send_json({"error": "Empty audio buffer"})
                             continue
@@ -89,7 +124,7 @@ async def websocket_voice_endpoint(websocket: WebSocket):
                         # 1. Process STT using Groq
                         print(f"🎙️ [WS] Processing audio buffer ({len(audio_buffer)} bytes)...")
                         transcript = await process_audio_with_groq(bytes(audio_buffer))
-                        print(f"🗣️ [User]: {transcript}")
+                        print(f"🗣️ [User Voice]: {transcript}")
                         
                         # Clear buffer for next recording
                         audio_buffer.clear()
@@ -97,33 +132,18 @@ async def websocket_voice_endpoint(websocket: WebSocket):
                         # Send transcript to UI
                         await websocket.send_json({"type": "transcript", "text": transcript})
                         
-                        # 2. Simulate AI Processing (Mocking SupremeAI logic for now)
-                        # In production, this would route to the AI engine / tools
-                        supremeai_response = f"I heard you say: '{transcript}'. Processing command now."
-                        
-                        # Log to database
-                        if db.client:
-                            latency_ms = int((time.time() - start_time) * 1000)
-                            log_entry = VoiceInteractionLog(
-                                user_id="admin-01",
-                                transcript=transcript,
-                                supremeai_response=supremeai_response,
-                                latency_ms=latency_ms
-                            )
-                            try:
-                                db.client.table("voice_interactions").insert(log_entry.dict(exclude_none=True)).execute()
-                            except Exception as db_err:
-                                print(f"⚠️ [DB Logging Error]: {db_err}")
-                        
-                        # 3. Stream text response back for Web Speech API TTS
-                        # Send word by word to simulate streaming
-                        words = supremeai_response.split(" ")
-                        for word in words:
-                            await websocket.send_json({"type": "response_chunk", "text": word + " "})
-                            await asyncio.sleep(0.05)
-                        
-                        await websocket.send_json({"type": "response_complete"})
+                        # 2. Intent Router
+                        await handle_intent(transcript, websocket, start_time)
                         start_time = time.time() # Reset timer
+                        
+                    elif action == "text_chat":
+                        transcript = payload.get("text", "")
+                        print(f"💬 [User Text]: {transcript}")
+                        
+                        # Process text intent directly
+                        await handle_intent(transcript, websocket, start_time)
+                        start_time = time.time() # Reset timer
+                        
                 except json.JSONDecodeError:
                     print("⚠️ [WS] Received invalid text message.")
                     

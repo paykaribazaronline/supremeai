@@ -154,6 +154,14 @@ app = FastAPI(
 from middleware.chaos_injector import ChaosInjectorMiddleware
 
 
+app.add_middleware(ChaosInjectorMiddleware)
+app.add_middleware(HoneypotMiddleware)
+app.add_middleware(RateLimitMiddleware, requests_per_minute=120, burst=20)
+app.add_middleware(IdempotencyMiddleware)
+app.add_middleware(ZeroTrustAuthMiddleware)
+app.add_middleware(ObservabilityMiddleware)
+app.add_middleware(APIKeyAuthMiddleware)
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origins
@@ -167,14 +175,6 @@ app.add_middleware(
     allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allow_headers=["Authorization", "Content-Type", "X-Request-ID"],
 )
-
-app.add_middleware(ChaosInjectorMiddleware)
-app.add_middleware(HoneypotMiddleware)
-app.add_middleware(RateLimitMiddleware, requests_per_minute=120, burst=20)
-app.add_middleware(IdempotencyMiddleware)
-app.add_middleware(ZeroTrustAuthMiddleware)
-app.add_middleware(ObservabilityMiddleware)
-app.add_middleware(APIKeyAuthMiddleware)
 
 from fastapi import Request
 from fastapi.responses import JSONResponse
