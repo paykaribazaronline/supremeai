@@ -1,4 +1,4 @@
-import { ChatMessage } from '../types';
+import { ChatMessage } from "../types";
 
 /**
  * SupremeAIChatView - Generates the HTML templates for the Chat Webview.
@@ -62,10 +62,20 @@ export class SupremeAIChatView {
   /**
    * Returns the main chat interface HTML.
    */
-  public static getHTMLContent(isGuest: boolean, username: string, hasApiKey: boolean, messageHistory: ChatMessage[]): string {
-    const safeUsername = username || 'User';
-    const messagesHtml = (messageHistory || []).map(msg => this.renderMessage(msg)).join('');
-    const emptyState = (!messageHistory || messageHistory.length === 0) ? this.getEmptyState(safeUsername) : '';
+  public static getHTMLContent(
+    isGuest: boolean,
+    username: string,
+    hasApiKey: boolean,
+    messageHistory: ChatMessage[],
+  ): string {
+    const safeUsername = username || "User";
+    const messagesHtml = (messageHistory || [])
+      .map((msg) => this.renderMessage(msg))
+      .join("");
+    const emptyState =
+      !messageHistory || messageHistory.length === 0
+        ? this.getEmptyState(safeUsername)
+        : "";
 
     return `<!DOCTYPE html>
 <html lang="en">
@@ -123,8 +133,8 @@ export class SupremeAIChatView {
   </div>
   <div style="padding: 6px 16px; font-size: 11px; background: var(--vscode-input-background, #1e1e1e); border-bottom: 1px solid var(--vscode-panel-border); color: var(--vscode-descriptionForeground); display: flex; justify-content: space-between; align-items: center;">
     <span>🔑 API Key:</span>
-    <span style="font-weight: bold; color: ${hasApiKey ? 'var(--vscode-testing-iconPassedColor, #73c991)' : 'var(--vscode-testing-iconFailedColor, #f14c4c)'};">
-      ${hasApiKey ? 'Active' : 'Missing'}
+    <span style="font-weight: bold; color: ${hasApiKey ? "var(--vscode-testing-iconPassedColor, #73c991)" : "var(--vscode-testing-iconFailedColor, #f14c4c)"};">
+      ${hasApiKey ? "Active" : "Missing"}
     </span>
   </div>
   <div class="messages" id="messages">
@@ -222,7 +232,7 @@ export class SupremeAIChatView {
    * Renders a single message for the initial server-side load.
    */
   public static renderMessage(msg: ChatMessage): string {
-    let time = '';
+    let time = "";
     try {
       time = new Date(msg.timestamp).toLocaleTimeString();
     } catch (e) {
@@ -231,20 +241,20 @@ export class SupremeAIChatView {
 
     const isThinking = msg.thinking;
     const isError = msg.error;
-    const role = msg.role || 'assistant';
-    const content = msg.content || '';
+    const role = msg.role || "assistant";
+    const content = msg.content || "";
 
     return `
-      <div class="message-container" ${isThinking ? 'id="thinking-message-container"' : ''}>
+      <div class="message-container" ${isThinking ? 'id="thinking-message-container"' : ""}>
         <div class="message ${role}">
           <div class="avatar ${role}-avatar">
-            ${role === 'user' ? 'U' : 'AI'}
+            ${role === "user" ? "U" : "AI"}
           </div>
-          <div class="message-content ${isError ? 'error' : ''} ${isThinking ? 'thinking' : ''}">
+          <div class="message-content ${isError ? "error" : ""} ${isThinking ? "thinking" : ""}">
             ${content}
           </div>
         </div>
-        <div class="message-meta" style="margin-left: ${role === 'user' ? 'auto' : '44px'}; text-align: ${role === 'user' ? 'right' : 'left'};">
+        <div class="message-meta" style="margin-left: ${role === "user" ? "auto" : "44px"}; text-align: ${role === "user" ? "right" : "left"};">
           ${time}
         </div>
       </div>
@@ -252,12 +262,12 @@ export class SupremeAIChatView {
   }
 
   private static getEmptyState(username: string): string {
-    const welcomeMsg = 'Your intelligent coding companion is ready to help!';
+    const welcomeMsg = "Your intelligent coding companion is ready to help!";
     const quickActions = [
-      { icon: '📄', label: 'Explain Code', action: 'explain' },
-      { icon: '🐛', label: 'Fix Code', action: 'fix' },
-      { icon: '🔄', label: 'Refactor', action: 'refactor' },
-      { icon: '👀', label: 'Review', action: 'review' }
+      { icon: "📄", label: "Explain Code", action: "explain" },
+      { icon: "🐛", label: "Fix Code", action: "fix" },
+      { icon: "🔄", label: "Refactor", action: "refactor" },
+      { icon: "👀", label: "Review", action: "review" },
     ];
 
     return `
@@ -266,7 +276,7 @@ export class SupremeAIChatView {
         <h3>Welcome, ${username}</h3>
         <p>${welcomeMsg}</p>
         <div class="quick-actions">
-          ${quickActions.map(a => '<button class="quick-btn" onclick="quickAction(\'' + a.action + '\')">' + a.icon + ' ' + a.label + '</button>').join('')}
+          ${quickActions.map((a) => '<button class="quick-btn" onclick="quickAction(\'' + a.action + "')\">" + a.icon + " " + a.label + "</button>").join("")}
         </div>
       </div>
     `;

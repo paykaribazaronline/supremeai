@@ -1,14 +1,16 @@
-import { create } from 'zustand';
-import { persist, createJSONStorage } from 'zustand/middleware';
-import type { CustomerState } from '../types/customer';
+import { create } from "zustand";
+import { persist, createJSONStorage } from "zustand/middleware";
+import type { CustomerState } from "../types/customer";
 
-const STORAGE_KEY = 'supremeai_customer_state';
-const ENCRYPTION_KEY = 'supremeai_god_salt_key_2026';
+const STORAGE_KEY = "supremeai_customer_state";
+const ENCRYPTION_KEY = "supremeai_god_salt_key_2026";
 
 function encrypt(text: string): string {
-  let result = '';
+  let result = "";
   for (let i = 0; i < text.length; i++) {
-    result += String.fromCharCode(text.charCodeAt(i) ^ ENCRYPTION_KEY.charCodeAt(i % ENCRYPTION_KEY.length));
+    result += String.fromCharCode(
+      text.charCodeAt(i) ^ ENCRYPTION_KEY.charCodeAt(i % ENCRYPTION_KEY.length),
+    );
   }
   // Convert binary string to Base64 safely in browser environment
   return btoa(unescape(encodeURIComponent(result)));
@@ -17,13 +19,16 @@ function encrypt(text: string): string {
 function decrypt(encoded: string): string {
   try {
     const text = decodeURIComponent(escape(atob(encoded)));
-    let result = '';
+    let result = "";
     for (let i = 0; i < text.length; i++) {
-      result += String.fromCharCode(text.charCodeAt(i) ^ ENCRYPTION_KEY.charCodeAt(i % ENCRYPTION_KEY.length));
+      result += String.fromCharCode(
+        text.charCodeAt(i) ^
+          ENCRYPTION_KEY.charCodeAt(i % ENCRYPTION_KEY.length),
+      );
     }
     return result;
   } catch (e) {
-    return '';
+    return "";
   }
 }
 
@@ -38,7 +43,7 @@ const secureStorage = {
   },
   removeItem: (name: string): void => {
     localStorage.removeItem(name);
-  }
+  },
 };
 
 interface CustomerStoreState extends CustomerState {
@@ -84,8 +89,8 @@ export const useCustomerStore = create<CustomerStoreState>()(
       onRehydrateStorage: () => (state) => {
         state?.setHydrated(true);
       },
-    }
-  )
+    },
+  ),
 );
 
 export function useHydrated() {
