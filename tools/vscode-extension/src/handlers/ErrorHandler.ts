@@ -3,9 +3,9 @@
  * Reports compilation, lint, and runtime errors to SupremeAI backend
  */
 
-import * as vscode from 'vscode';
-import { getSupremeAIService } from '../services/SupremeAIService';
-import { ErrorReport } from '../types';
+import * as vscode from "vscode";
+import { getSupremeAIService } from "../services/SupremeAIService";
+import { ErrorReport } from "../types";
 
 export class ErrorHandler {
   private context: vscode.ExtensionContext;
@@ -20,7 +20,7 @@ export class ErrorHandler {
     // Listen to diagnostic collection changes
     vscode.languages.onDidChangeDiagnostics(this.onDiagnosticsChanged, this);
 
-    console.log('[SupremeAI] ErrorHandler registered');
+    console.log("[SupremeAI] ErrorHandler registered");
   }
 
   private onDiagnosticsChanged(event: vscode.DiagnosticChangeEvent): void {
@@ -32,7 +32,10 @@ export class ErrorHandler {
     }
   }
 
-  private processDiagnostic(uri: vscode.Uri, diagnostic: vscode.Diagnostic): void {
+  private processDiagnostic(
+    uri: vscode.Uri,
+    diagnostic: vscode.Diagnostic,
+  ): void {
     const filePath = uri.fsPath;
     const range = diagnostic.range;
     const lineNumber = range.start.line + 1;
@@ -69,46 +72,77 @@ export class ErrorHandler {
       const service = getSupremeAIService();
       const result = await service.reportError(report);
       if (result.success) {
-        console.log(`[SupremeAI] Error reported: ${report.filePath}:${report.lineNumber}`);
+        console.log(
+          `[SupremeAI] Error reported: ${report.filePath}:${report.lineNumber}`,
+        );
       }
     } catch (error: any) {
-      console.error(`[SupremeAI] Failed to send error report: ${error.message}`);
+      console.error(
+        `[SupremeAI] Failed to send error report: ${error.message}`,
+      );
     }
   }
 
-  private mapSeverity(severity?: vscode.DiagnosticSeverity): 'error' | 'warning' | 'info' {
+  private mapSeverity(
+    severity?: vscode.DiagnosticSeverity,
+  ): "error" | "warning" | "info" {
     switch (severity) {
-      case vscode.DiagnosticSeverity.Error: return 'error';
-      case vscode.DiagnosticSeverity.Warning: return 'warning';
-      case vscode.DiagnosticSeverity.Information: return 'info';
-      default: return 'info';
+      case vscode.DiagnosticSeverity.Error:
+        return "error";
+      case vscode.DiagnosticSeverity.Warning:
+        return "warning";
+      case vscode.DiagnosticSeverity.Information:
+        return "info";
+      default:
+        return "info";
     }
   }
 
-  private classifyError(diagnostic: vscode.Diagnostic): 'compilation' | 'runtime' | 'lint' | 'security' | 'performance' {
-    const source = diagnostic.source?.toLowerCase() || '';
+  private classifyError(
+    diagnostic: vscode.Diagnostic,
+  ): "compilation" | "runtime" | "lint" | "security" | "performance" {
+    const source = diagnostic.source?.toLowerCase() || "";
     const message = diagnostic.message.toLowerCase();
 
     // Use error codes for more specific classification
-    const code = typeof diagnostic.code === 'object' ? String(diagnostic.code.value) : String(diagnostic.code);
-    if (code?.startsWith('ts')) {
-      return 'compilation';
+    const code =
+      typeof diagnostic.code === "object"
+        ? String(diagnostic.code.value)
+        : String(diagnostic.code);
+    if (code?.startsWith("ts")) {
+      return "compilation";
     }
 
-    if (source.includes('ts') || source.includes('eslint') || source.includes('compiler')) {
-      return 'compilation';
+    if (
+      source.includes("ts") ||
+      source.includes("eslint") ||
+      source.includes("compiler")
+    ) {
+      return "compilation";
     }
-    if (source.includes('lint') || source.includes('eslint') || source.includes('style')) {
-      return 'lint';
+    if (
+      source.includes("lint") ||
+      source.includes("eslint") ||
+      source.includes("style")
+    ) {
+      return "lint";
     }
-    if (source.includes('security') || message.includes('security') || message.includes('vulnerability')) {
-      return 'security';
+    if (
+      source.includes("security") ||
+      message.includes("security") ||
+      message.includes("vulnerability")
+    ) {
+      return "security";
     }
-    if (message.includes('performance') || message.includes('slow') || message.includes('memory')) {
-      return 'performance';
+    if (
+      message.includes("performance") ||
+      message.includes("slow") ||
+      message.includes("memory")
+    ) {
+      return "performance";
     }
 
-    return 'compilation'; // Default to compilation for syntax errors
+    return "compilation"; // Default to compilation for syntax errors
   }
 
   /**
@@ -118,14 +152,14 @@ export class ErrorHandler {
     filePath: string,
     lineNumber: number,
     message: string,
-    errorType: ErrorReport['errorType'] = 'compilation'
+    errorType: ErrorReport["errorType"] = "compilation",
   ): Promise<void> {
     const report: ErrorReport = {
       errorType,
       errorMessage: message,
       filePath,
       lineNumber,
-      severity: 'error',
+      severity: "error",
       timestamp: new Date().toISOString(),
     };
 
