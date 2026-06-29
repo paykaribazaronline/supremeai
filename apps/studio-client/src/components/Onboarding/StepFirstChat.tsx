@@ -1,4 +1,3 @@
-
 const StepFirstChat = ({ data, updateData, prevStep }: any) => {
   const completeOnboarding = () => {
     // In real app, we'd send data to backend here
@@ -9,10 +8,12 @@ const StepFirstChat = ({ data, updateData, prevStep }: any) => {
   return (
     <div className="flex flex-col space-y-4 animate-fadeIn">
       <h3 className="text-xl font-semibold">Step 3: Ready for launch 🚀</h3>
-      <p className="text-gray-400 text-sm">What would you like SupremeAI to build or help you with today?</p>
-      
+      <p className="text-gray-400 text-sm">
+        What would you like SupremeAI to build or help you with today?
+      </p>
+
       <div className="space-y-2 mt-4">
-        <textarea 
+        <textarea
           rows={4}
           placeholder="e.g. Build a fully functional e-commerce backend in FastAPI..."
           className="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all resize-none"
@@ -22,13 +23,13 @@ const StepFirstChat = ({ data, updateData, prevStep }: any) => {
       </div>
 
       <div className="flex justify-between pt-6">
-        <button 
+        <button
           onClick={prevStep}
           className="px-6 py-2 text-gray-400 hover:text-white transition-colors"
         >
           Back
         </button>
-        <button 
+        <button
           onClick={completeOnboarding}
           className="px-6 py-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white rounded-lg transition-all font-bold shadow-lg shadow-purple-500/30 transform hover:scale-105"
         >

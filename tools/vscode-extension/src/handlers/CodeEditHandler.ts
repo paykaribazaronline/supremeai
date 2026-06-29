@@ -3,9 +3,9 @@
  * Listens to text document changes and debounces them
  */
 
-import * as vscode from 'vscode';
-import { getSupremeAIService } from '../services/SupremeAIService';
-import { CodeEdit } from '../types';
+import * as vscode from "vscode";
+import { getSupremeAIService } from "../services/SupremeAIService";
+import { CodeEdit } from "../types";
 
 export class CodeEditHandler {
   private context: vscode.ExtensionContext;
@@ -23,12 +23,12 @@ export class CodeEditHandler {
   register(): void {
     // Listen to text document changes
     vscode.workspace.onDidChangeTextDocument(this.onDocumentChanged, this);
-    
+
     // Also listen to document open/close for session tracking
     vscode.workspace.onDidOpenTextDocument(this.onDocumentOpened, this);
     vscode.workspace.onDidCloseTextDocument(this.onDocumentClosed, this);
 
-    console.log('[SupremeAI] CodeEditHandler registered');
+    console.log("[SupremeAI] CodeEditHandler registered");
   }
 
   private onDocumentChanged(event: vscode.TextDocumentChangeEvent): void {
@@ -52,10 +52,13 @@ export class CodeEditHandler {
     }, this.debounceDelay);
   }
 
-  private async processDocumentChange(document: vscode.TextDocument, filePath: string): Promise<void> {
+  private async processDocumentChange(
+    document: vscode.TextDocument,
+    filePath: string,
+  ): Promise<void> {
     try {
       const code = document.getText();
-      
+
       // Check if code actually changed (avoid sending identical content)
       const lastCode = this.lastSentCode.get(filePath);
       if (lastCode === code) {
@@ -64,7 +67,7 @@ export class CodeEditHandler {
 
       // Get original code (could be stored in workspace state or from git diff)
       const originalCode = await this.getOriginalCode(filePath, document);
-      
+
       if (originalCode !== null && originalCode !== code) {
         const edit: CodeEdit = {
           taskId: this.generateTaskId(filePath),
@@ -78,27 +81,32 @@ export class CodeEditHandler {
 
         const service = getSupremeAIService();
         const result = await service.sendCodeEdit(edit);
-        
+
         if (result.success) {
           console.log(`[SupremeAI] Learned from edit in ${filePath}`);
           this.lastSentCode.set(filePath, code);
         }
       }
     } catch (error: any) {
-      console.error(`[SupremeAI] Error processing document change: ${error.message}`);
+      console.error(
+        `[SupremeAI] Error processing document change: ${error.message}`,
+      );
     }
   }
 
-  private async getOriginalCode(filePath: string, document: vscode.TextDocument): Promise<string | null> {
+  private async getOriginalCode(
+    filePath: string,
+    document: vscode.TextDocument,
+  ): Promise<string | null> {
     // Try to get original from:
     // 1. Undo stack (if available)
     // 2. Git diff (if file is tracked)
     // 3. Saved version from workspace state
-    
+
     // For now, use workspace state to store baseline on file open
     const stateKey = `original_code_${filePath}`;
     const saved = this.context.globalState.get<string>(stateKey);
-    
+
     if (saved) {
       return saved;
     }
@@ -113,7 +121,7 @@ export class CodeEditHandler {
 
   private onDocumentOpened(document: vscode.TextDocument): void {
     const filePath = document.uri.fsPath;
-    
+
     // Store initial version as baseline after 1 second (ensure file is settled)
     setTimeout(() => {
       if (!document.isDirty) {
@@ -131,10 +139,36 @@ export class CodeEditHandler {
 
   private isCodeFile(languageId: string): boolean {
     const codeLanguages = [
-      'typescript', 'javascript', 'python', 'java', 'cpp', 'c', 'csharp',
-      'go', 'rust', 'kotlin', 'scala', 'swift', 'php', 'ruby', 'perl',
-      'lua', 'r', 'matlab', 'sql', 'html', 'css', 'scss', 'less',
-      'json', 'yaml', 'xml', 'shell', 'bash', 'powershell', 'dockerfile'
+      "typescript",
+      "javascript",
+      "python",
+      "java",
+      "cpp",
+      "c",
+      "csharp",
+      "go",
+      "rust",
+      "kotlin",
+      "scala",
+      "swift",
+      "php",
+      "ruby",
+      "perl",
+      "lua",
+      "r",
+      "matlab",
+      "sql",
+      "html",
+      "css",
+      "scss",
+      "less",
+      "json",
+      "yaml",
+      "xml",
+      "shell",
+      "bash",
+      "powershell",
+      "dockerfile",
     ];
     return codeLanguages.includes(languageId);
   }
@@ -147,7 +181,7 @@ export class CodeEditHandler {
   private simpleHash(str: string): number {
     let hash = 0;
     for (let i = 0; i < str.length; i++) {
-      hash = ((hash << 5) - hash) + str.charCodeAt(i);
+      hash = (hash << 5) - hash + str.charCodeAt(i);
       hash |= 0;
     }
     return Math.abs(hash);

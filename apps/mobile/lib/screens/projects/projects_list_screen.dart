@@ -15,7 +15,11 @@ class _ProjectsListScreenState extends State<ProjectsListScreen> {
   final TextEditingController _instructionController = TextEditingController();
 
   final List<Map<String, String>> _taskTypes = [
-    {'id': 'REVERSE_ENGINEER', 'key': 'projects.reverse_engineer', 'icon': '🔎'},
+    {
+      'id': 'REVERSE_ENGINEER',
+      'key': 'projects.reverse_engineer',
+      'icon': '🔎'
+    },
     {'id': 'DATA_EXTRACTION', 'key': 'projects.data_extraction', 'icon': '📊'},
     {'id': 'AUTOMATION', 'key': 'projects.automation', 'icon': '🤖'},
     {'id': 'SECURITY_AUDIT', 'key': 'projects.security_audit', 'icon': '🛡️'},
@@ -35,9 +39,12 @@ class _ProjectsListScreenState extends State<ProjectsListScreen> {
             child: Container(color: Colors.black.withValues(alpha: 0.5)),
           ),
         ),
-        title: Text('projects.title'.tr().toUpperCase(), 
-          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w900, letterSpacing: 2, color: Colors.white)
-        ),
+        title: Text('projects.title'.tr().toUpperCase(),
+            style: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w900,
+                letterSpacing: 2,
+                color: Colors.white)),
       ),
       body: Container(
         decoration: BoxDecoration(
@@ -83,17 +90,21 @@ class _ProjectsListScreenState extends State<ProjectsListScreen> {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           const SizedBox(width: 12),
-                          Text(task['icon']!, style: const TextStyle(fontSize: 18)),
+                          Text(task['icon']!,
+                              style: const TextStyle(fontSize: 18)),
                           const SizedBox(width: 8),
                           Expanded(
-                            child: Text(task['key']!.tr(), 
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                color: isSelected ? Colors.white : Colors.white60,
-                                fontWeight: isSelected ? FontWeight.w900 : FontWeight.bold,
-                                fontSize: 11,
-                              )
-                            ),
+                            child: Text(task['key']!.tr(),
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  color: isSelected
+                                      ? Colors.white
+                                      : Colors.white60,
+                                  fontWeight: isSelected
+                                      ? FontWeight.w900
+                                      : FontWeight.bold,
+                                  fontSize: 11,
+                                )),
                           ),
                         ],
                       ),
@@ -142,14 +153,14 @@ class _ProjectsListScreenState extends State<ProjectsListScreen> {
         filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
         child: Container(
           decoration: BoxDecoration(
-            color: isSelected 
-              ? Colors.blueAccent.withValues(alpha: 0.15) 
-              : Colors.white.withValues(alpha: 0.05),
+            color: isSelected
+                ? Colors.blueAccent.withValues(alpha: 0.15)
+                : Colors.white.withValues(alpha: 0.05),
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
-              color: isSelected 
-                ? Colors.blueAccent.withValues(alpha: 0.5) 
-                : Colors.white.withValues(alpha: 0.1),
+              color: isSelected
+                  ? Colors.blueAccent.withValues(alpha: 0.5)
+                  : Colors.white.withValues(alpha: 0.1),
               width: 1.5,
             ),
           ),
@@ -200,21 +211,22 @@ class _ProjectsListScreenState extends State<ProjectsListScreen> {
       ),
       child: ElevatedButton(
         onPressed: () {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('projects.initiating'.tr()),
-              backgroundColor: Colors.blueAccent,
-            )
-          );
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text('projects.initiating'.tr()),
+            backgroundColor: Colors.blueAccent,
+          ));
         },
         style: ElevatedButton.styleFrom(
           backgroundColor: Colors.transparent,
           shadowColor: Colors.transparent,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         ),
-        child: Text('projects.initiate'.tr().toUpperCase(), 
-          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, letterSpacing: 1.5)
-        ),
+        child: Text('projects.initiate'.tr().toUpperCase(),
+            style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w900,
+                letterSpacing: 1.5)),
       ),
     );
   }
@@ -236,19 +248,25 @@ class _ProjectsListScreenState extends State<ProjectsListScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('projects.alternative'.tr().toUpperCase(), 
-                    style: const TextStyle(color: Colors.amber, fontSize: 10, fontWeight: FontWeight.bold)
-                  ),
+                  Text('projects.alternative'.tr().toUpperCase(),
+                      style: const TextStyle(
+                          color: Colors.amber,
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold)),
                   const SizedBox(height: 4),
-                  Text('projects.suggestion_desc'.tr(), 
-                    style: const TextStyle(color: Colors.white70, fontSize: 11)
-                  ),
+                  Text('projects.suggestion_desc'.tr(),
+                      style:
+                          const TextStyle(color: Colors.white70, fontSize: 11)),
                 ],
               ),
             ),
             TextButton(
               onPressed: () {},
-              child: Text('projects.use'.tr().toUpperCase(), style: const TextStyle(color: Colors.amber, fontWeight: FontWeight.bold, fontSize: 11)),
+              child: Text('projects.use'.tr().toUpperCase(),
+                  style: const TextStyle(
+                      color: Colors.amber,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 11)),
             ),
           ],
         ),
@@ -256,4 +274,3 @@ class _ProjectsListScreenState extends State<ProjectsListScreen> {
     );
   }
 }
-
