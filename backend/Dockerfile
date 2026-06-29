@@ -30,7 +30,7 @@ RUN python -m venv /app/.venv && \
 COPY pyproject.toml ./
 COPY poetry.lock* ./
 
-RUN poetry lock --no-update || true
+RUN poetry lock
 RUN poetry install --no-interaction --no-ansi --no-root --only main --with ml || \
     poetry install --no-interaction --no-ansi --no-root
 
