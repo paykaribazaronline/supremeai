@@ -1,11 +1,13 @@
-import grpc
 import json
 import logging
-from typing import Dict, Any, Optional
+from typing import Any
+
+import grpc
 
 # We assume the protobuf compiler (protoc) will generate these files inside backend/protos
 import protos.supreme_engine_pb2 as pb2
 import protos.supreme_engine_pb2_grpc as pb2_grpc
+
 
 logger = logging.getLogger(__name__)
 
@@ -14,7 +16,7 @@ class WorkerGrpcClient:
         self.channel = grpc.insecure_channel(f"{host}:{port}")
         self.stub = pb2_grpc.WorkerServiceStub(self.channel)
         
-    def submit_task(self, task_type: str, payload: Dict[str, Any], requested_by: str = "fastapi-engine") -> Optional[str]:
+    def submit_task(self, task_type: str, payload: dict[str, Any], requested_by: str = "fastapi-engine") -> str | None:
         try:
             req = pb2.TaskRequest(
                 task_type=task_type,
@@ -28,7 +30,7 @@ class WorkerGrpcClient:
             logger.error(f"gRPC call failed: {e}")
             return None
 
-    def get_task_status(self, task_id: str) -> Dict[str, Any]:
+    def get_task_status(self, task_id: str) -> dict[str, Any]:
         try:
             req = pb2.TaskStatusRequest(task_id=task_id)
             response = self.stub.GetTaskStatus(req)
@@ -42,7 +44,7 @@ class WorkerGrpcClient:
             logger.error(f"gRPC call failed: {e}")
             return {"status": "ERROR", "error_message": str(e)}
 
-    def log_audit_event(self, event_type: str, user_id: str, resource: str, details: Dict[str, Any]) -> bool:
+    def log_audit_event(self, event_type: str, user_id: str, resource: str, details: dict[str, Any]) -> bool:
         try:
             req = pb2.AuditLogRequest(
                 event_type=event_type,
