@@ -55,16 +55,23 @@ export function CommandCenter() {
     } else if (node.data?.type) {
       // Map node types to tabs
       const typeMap: Record<string, string> = {
-        security: 'threats',
-        analytics: 'logs',
-        storage: 'cloud',
-        kubernetes: 'cloud',
-        aplgw: 'cloud',
-        network: 'cloud',
-        deploy: 'cicd',
-        mesh: 'cloud',
-        instances: 'cloud',
-        aplsw: 'cloud'
+        'model-router': 'model-router',
+        'provider-map': 'model-router',
+        'skills': 'skills',
+        'memory': 'memory',
+        'real-time-logs': 'logs',
+        'observability': 'observability',
+        'threats': 'threats',
+        'rules': 'rules',
+        'rate-limits': 'rate-limits',
+        'cloud': 'cloud',
+        'cicd': 'cicd',
+        'github': 'github',
+        'backups': 'backups',
+        'sandbox': 'sandbox',
+        'costs': 'costs',
+        'users': 'users',
+        'config': 'config'
       };
       if (typeMap[node.data.type]) {
         setAdminSubTab(typeMap[node.data.type]);
@@ -80,111 +87,76 @@ export function CommandCenter() {
         data: {
           label: (
             <div className="flex flex-col items-center justify-center p-2 text-center h-full w-full">
-              <span className="font-bold text-[9px] tracking-widest text-[#00f3ff] uppercase mb-3">AETHEL CENTRAL ORC</span>
-              <div className="central-orb-outer">
-                <div className="central-orb-inner">
-                  <div className="central-orb-core flex items-center justify-center bg-[#00f3ff] w-[45px] h-[45px] rounded-full shadow-[0_0_25px_#00f3ff]">
-                    <Cpu size={22} className="text-slate-950" />
+              <span className="font-bold text-[10px] tracking-widest text-[#00f3ff] uppercase mb-4">AETHEL CENTRAL ORC</span>
+              <div className="central-orb-outer" style={{ width: '80px', height: '80px' }}>
+                <div className="central-orb-inner" style={{ width: '60px', height: '60px' }}>
+                  <div className="central-orb-core flex items-center justify-center bg-[#00f3ff] w-[45px] h-[45px] rounded-full shadow-[0_0_35px_#00f3ff]">
+                    <Cpu size={24} className="text-slate-950" />
                   </div>
                 </div>
               </div>
-              <div className="mt-3 flex flex-col gap-0.5">
-                <span className="text-[9px] text-[#00ff66] font-mono">v.9.2</span>
-                <span className="text-[8px] text-slate-500 font-mono">ACTIVE TELEMETRY</span>
+              <div className="mt-4 flex flex-col gap-1">
+                <span className="text-[10px] text-[#00ff66] font-mono font-bold">v.10.0</span>
+                <span className="text-[9px] text-slate-400 font-mono tracking-widest">NEXUS ONLINE</span>
               </div>
             </div>
           )
         },
-        position: { x: 320, y: 90 },
-        className: 'border-none flex items-center justify-center bg-transparent',
-        style: { width: 220, height: 280 }
+        position: { x: 450, y: 250 },
+        className: 'border-none flex items-center justify-center bg-transparent z-50',
+        style: { width: 240, height: 280 }
       },
-      // Left Nodes
-      {
-        id: 'node-deploy',
-        type: 'aethel',
-        data: { type: 'deploy', status: 'Nominal', label: 'DEPLOY' },
-        position: { x: 20, y: 30 }
-      },
-      {
-        id: 'node-analytics',
-        type: 'aethel',
-        data: { type: 'analytics', status: 'Nominal', label: 'ANALYTICS' },
-        position: { x: 180, y: 70 }
-      },
-      {
-        id: 'node-mesh',
-        type: 'aethel',
-        data: { type: 'mesh', status: 'Nominal', label: 'MESH_A1' },
-        position: { x: 180, y: 170 }
-      },
-      {
-        id: 'node-network',
-        type: 'aethel',
-        data: { type: 'network', status: 'Nominal', label: 'NETWORK' },
-        position: { x: 20, y: 220 }
-      },
-      {
-        id: 'node-kubernetes',
-        type: 'aethel',
-        data: { type: 'kubernetes', status: 'Nominal', label: 'KUBERNETES' },
-        position: { x: 20, y: 320 }
-      },
-      {
-        id: 'node-security',
-        type: 'aethel',
-        data: { type: 'security', status: 'Nominal', label: 'SECURITY' },
-        position: { x: 180, y: 270 }
-      },
-      // Right Nodes
-      {
-        id: 'node-api-gw',
-        type: 'aethel',
-        data: { type: 'aplgw', status: 'Nominal', label: 'API_GW' },
-        position: { x: 740, y: 30 }
-      },
-      {
-        id: 'node-rubernetes',
-        type: 'aethel',
-        data: { type: 'kubernetes', status: 'Nominal', label: 'RUBERNETES' },
-        position: { x: 570, y: 70 }
-      },
-      {
-        id: 'node-instances',
-        type: 'aethel',
-        data: { type: 'instances', status: 'Nominal', label: 'INSTANCES' },
-        position: { x: 570, y: 170 }
-      },
-      {
-        id: 'node-storage',
-        type: 'aethel',
-        data: { type: 'storage', status: 'Nominal', label: 'STORAGE' },
-        position: { x: 740, y: 270 }
-      },
-      {
-        id: 'node-aplsw',
-        type: 'aethel',
-        data: { type: 'aplsw', status: 'Nominal', label: 'APLSW' },
-        position: { x: 570, y: 270 }
-      }
+      // 🌌 CLUSTER 1: AI & Brain (Top Left)
+      { id: 'node-models', type: 'aethel', data: { type: 'model-router', status: 'Nominal', label: 'MODELS' }, position: { x: 150, y: 80 } },
+      { id: 'node-providers', type: 'aethel', data: { type: 'provider-map', status: 'Nominal', label: 'PROVIDERS' }, position: { x: 300, y: 30 } },
+      { id: 'node-skills', type: 'aethel', data: { type: 'skills', status: 'Nominal', label: 'SKILLS' }, position: { x: 450, y: -20 } },
+      { id: 'node-memory', type: 'aethel', data: { type: 'memory', status: 'Nominal', label: 'MEMORY' }, position: { x: 600, y: 30 } },
+
+      // 🛡️ CLUSTER 2: Security & Ops (Bottom Left)
+      { id: 'node-logs', type: 'aethel', data: { type: 'real-time-logs', status: 'Nominal', label: 'RT_LOGS' }, position: { x: 50, y: 200 } },
+      { id: 'node-obs', type: 'aethel', data: { type: 'observability', status: 'Nominal', label: 'OBSERVE' }, position: { x: 100, y: 320 } },
+      { id: 'node-threats', type: 'aethel', data: { type: 'threats', status: 'Nominal', label: 'THREATS' }, position: { x: 200, y: 420 } },
+      { id: 'node-rules', type: 'aethel', data: { type: 'rules', status: 'Nominal', label: 'RULES' }, position: { x: 350, y: 500 } },
+      { id: 'node-limits', type: 'aethel', data: { type: 'rate-limits', status: 'Nominal', label: 'LIMITS' }, position: { x: 500, y: 540 } },
+
+      // ⚙️ CLUSTER 3: DevOps & Infra (Top Right)
+      { id: 'node-cloud', type: 'aethel', data: { type: 'cloud', status: 'Nominal', label: 'CLOUD' }, position: { x: 750, y: 80 } },
+      { id: 'node-cicd', type: 'aethel', data: { type: 'cicd', status: 'Nominal', label: 'CI/CD' }, position: { x: 900, y: 160 } },
+      { id: 'node-github', type: 'aethel', data: { type: 'github', status: 'Nominal', label: 'GITHUB' }, position: { x: 980, y: 280 } },
+      { id: 'node-backups', type: 'aethel', data: { type: 'backups', status: 'Nominal', label: 'BACKUPS' }, position: { x: 900, y: 400 } },
+      { id: 'node-sandbox', type: 'aethel', data: { type: 'sandbox', status: 'Nominal', label: 'SANDBOX' }, position: { x: 750, y: 480 } },
+
+      // 👥 CLUSTER 4: Management & Finance (Bottom Right)
+      { id: 'node-costs', type: 'aethel', data: { type: 'costs', status: 'Nominal', label: 'FINANCE' }, position: { x: 300, y: 220 } },
+      { id: 'node-users', type: 'aethel', data: { type: 'users', status: 'Nominal', label: 'USERS' }, position: { x: 250, y: 320 } },
+      { id: 'node-config', type: 'aethel', data: { type: 'config', status: 'Nominal', label: 'CONFIG' }, position: { x: 650, y: 480 } }
     ];
 
     const initialEdges = [
-      // Left side connections
-      { id: 'e-deploy-analytics', source: 'node-deploy', target: 'node-analytics', animated: true, style: { stroke: '#00f3ff', strokeWidth: 1.5 } },
-      { id: 'e-analytics-mesh', source: 'node-analytics', target: 'node-mesh', animated: true, style: { stroke: '#00f3ff', strokeWidth: 1.5 } },
-      { id: 'e-network-mesh', source: 'node-network', target: 'node-mesh', animated: true, style: { stroke: '#00ff66', strokeWidth: 1.5 } },
-      { id: 'e-kubernetes-security', source: 'node-kubernetes', target: 'node-security', animated: true, style: { stroke: '#ffbd2e', strokeWidth: 1.5 } },
-      { id: 'e-mesh-security', source: 'node-mesh', target: 'node-security', animated: true, style: { stroke: '#00ff66', strokeWidth: 1.5 } },
-      { id: 'e-security-central', source: 'node-security', target: 'central-orb', animated: true, style: { stroke: '#ffbd2e', strokeWidth: 2 } },
-      { id: 'e-analytics-central', source: 'node-analytics', target: 'central-orb', animated: true, style: { stroke: '#00f3ff', strokeWidth: 2 } },
+      // Cluster 1 Edges (AI) - Cyan
+      { id: 'e-nexus-models', source: 'central-orb', target: 'node-models', animated: true, style: { stroke: '#00f3ff', strokeWidth: 1.5 } },
+      { id: 'e-nexus-providers', source: 'central-orb', target: 'node-providers', animated: true, style: { stroke: '#00f3ff', strokeWidth: 1.5 } },
+      { id: 'e-nexus-skills', source: 'central-orb', target: 'node-skills', animated: true, style: { stroke: '#00f3ff', strokeWidth: 2 } },
+      { id: 'e-nexus-memory', source: 'central-orb', target: 'node-memory', animated: true, style: { stroke: '#00f3ff', strokeWidth: 1.5 } },
+      
+      // Cluster 2 Edges (Security) - Green/Red
+      { id: 'e-nexus-logs', source: 'central-orb', target: 'node-logs', animated: true, style: { stroke: '#00ff66', strokeWidth: 1.5 } },
+      { id: 'e-nexus-obs', source: 'central-orb', target: 'node-obs', animated: true, style: { stroke: '#00ff66', strokeWidth: 1.5 } },
+      { id: 'e-nexus-threats', source: 'central-orb', target: 'node-threats', animated: true, style: { stroke: '#ff003c', strokeWidth: 2 } },
+      { id: 'e-nexus-rules', source: 'central-orb', target: 'node-rules', animated: true, style: { stroke: '#ffbd2e', strokeWidth: 1.5 } },
+      { id: 'e-nexus-limits', source: 'central-orb', target: 'node-limits', animated: true, style: { stroke: '#ffbd2e', strokeWidth: 1.5 } },
 
-      // Right side connections
-      { id: 'e-apigw-rubernetes', source: 'node-api-gw', target: 'node-rubernetes', animated: true, style: { stroke: '#00f3ff', strokeWidth: 1.5 } },
-      { id: 'e-rubernetes-central', source: 'node-rubernetes', target: 'central-orb', animated: true, style: { stroke: '#00ff66', strokeWidth: 2 } },
-      { id: 'e-instances-central', source: 'node-instances', target: 'central-orb', animated: true, style: { stroke: '#00ff66', strokeWidth: 2 } },
-      { id: 'e-storage-aplsw', source: 'node-storage', target: 'node-aplsw', animated: true, style: { stroke: '#ffbd2e', strokeWidth: 1.5 } },
-      { id: 'e-aplsw-central', source: 'node-aplsw', target: 'central-orb', animated: true, style: { stroke: '#ffbd2e', strokeWidth: 2 } }
+      // Cluster 3 Edges (Infra) - Blue/Purple
+      { id: 'e-nexus-cloud', source: 'central-orb', target: 'node-cloud', animated: true, style: { stroke: '#8b5cf6', strokeWidth: 2 } },
+      { id: 'e-nexus-cicd', source: 'central-orb', target: 'node-cicd', animated: true, style: { stroke: '#8b5cf6', strokeWidth: 1.5 } },
+      { id: 'e-nexus-github', source: 'central-orb', target: 'node-github', animated: true, style: { stroke: '#8b5cf6', strokeWidth: 1.5 } },
+      { id: 'e-nexus-backups', source: 'central-orb', target: 'node-backups', animated: true, style: { stroke: '#3b82f6', strokeWidth: 1.5 } },
+      { id: 'e-nexus-sandbox', source: 'central-orb', target: 'node-sandbox', animated: true, style: { stroke: '#3b82f6', strokeWidth: 2 } },
+
+      // Cluster 4 Edges (Management) - Yellow
+      { id: 'e-nexus-costs', source: 'central-orb', target: 'node-costs', animated: true, style: { stroke: '#f59e0b', strokeWidth: 1.5 } },
+      { id: 'e-nexus-users', source: 'central-orb', target: 'node-users', animated: true, style: { stroke: '#f59e0b', strokeWidth: 1.5 } },
+      { id: 'e-nexus-config', source: 'central-orb', target: 'node-config', animated: true, style: { stroke: '#f59e0b', strokeWidth: 1.5 } }
     ];
 
     setNodes(initialNodes);
