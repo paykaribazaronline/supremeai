@@ -1,5 +1,4 @@
 import asyncio
-import io
 import json
 import time
 
@@ -22,7 +21,7 @@ class VoiceConnectionManager:
     async def connect(self, websocket: WebSocket):
         await websocket.accept()
         self.active_connections.append(websocket)
-        print("🟢 [WS] Voice Client Connected to Aethel Nexus.")
+        print("🟢 [WS] Voice Client Connected to SupremeAI Nexus.")
 
     def disconnect(self, websocket: WebSocket):
         if websocket in self.active_connections:
@@ -98,9 +97,9 @@ async def websocket_voice_endpoint(websocket: WebSocket):
                         # Send transcript to UI
                         await websocket.send_json({"type": "transcript", "text": transcript})
                         
-                        # 2. Simulate AI Processing (Mocking Aethel logic for now)
+                        # 2. Simulate AI Processing (Mocking SupremeAI logic for now)
                         # In production, this would route to the AI engine / tools
-                        aethel_response = f"I heard you say: '{transcript}'. Processing command now."
+                        supremeai_response = f"I heard you say: '{transcript}'. Processing command now."
                         
                         # Log to database
                         if db.client:
@@ -108,7 +107,7 @@ async def websocket_voice_endpoint(websocket: WebSocket):
                             log_entry = VoiceInteractionLog(
                                 user_id="admin-01",
                                 transcript=transcript,
-                                aethel_response=aethel_response,
+                                supremeai_response=supremeai_response,
                                 latency_ms=latency_ms
                             )
                             try:
@@ -118,7 +117,7 @@ async def websocket_voice_endpoint(websocket: WebSocket):
                         
                         # 3. Stream text response back for Web Speech API TTS
                         # Send word by word to simulate streaming
-                        words = aethel_response.split(" ")
+                        words = supremeai_response.split(" ")
                         for word in words:
                             await websocket.send_json({"type": "response_chunk", "text": word + " "})
                             await asyncio.sleep(0.05)

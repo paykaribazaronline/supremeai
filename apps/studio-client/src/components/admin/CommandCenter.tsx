@@ -47,11 +47,12 @@ export function CommandCenter() {
   const [isRecording, setIsRecording] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const recorderRef = useRef<AudioRecorderService | null>(null);
-  const playbackRef = useRef<AudioPlaybackService | null>(null);
+  const [playbackService, setPlaybackService] = useState<AudioPlaybackService | null>(null);
 
   useEffect(() => {
     // Initialize Audio Services
-    playbackRef.current = new AudioPlaybackService();
+    const service = new AudioPlaybackService();
+    setPlaybackService(service);
     
     // Using relative URL or assuming backend runs on same domain + /api/voice/ws/voice or ws://localhost:8000/api/voice/ws/voice
     const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
@@ -74,7 +75,7 @@ export function CommandCenter() {
         ...prev,
         { id: Date.now(), sender: 'SupremeAI', text: text }
       ]);
-      playbackRef.current?.play(text);
+      service.play(text);
       
       // Rough estimation to stop visualizer (in a real app, bind to onend)
       setTimeout(() => setIsSpeaking(false), text.length * 50 + 1000);
@@ -272,7 +273,7 @@ export function CommandCenter() {
             {/* Glowing Waveform representation */}
             <div className="flex items-center justify-center h-8 my-1 w-full">
               <WaveformVisualizer 
-                analyser={playbackRef.current?.getAnalyser() || null} 
+                analyser={playbackService ? playbackService.getAnalyser() : null} 
                 isActive={isRecording || isSpeaking} 
                 color={isRecording ? '#ef4444' : '#00f3ff'}
               />
