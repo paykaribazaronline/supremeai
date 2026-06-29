@@ -6,7 +6,8 @@ class ApiScaffold extends StatefulWidget {
   final String screen;
   final String titleKey;
   final String emptyMessageKey;
-  final Widget Function(BuildContext context, Map<String, dynamic> data, bool loading, Future<void> Function() refresh) builder;
+  final Widget Function(BuildContext context, Map<String, dynamic> data,
+      bool loading, Future<void> Function() refresh) builder;
 
   const ApiScaffold({
     super.key,
@@ -60,9 +61,16 @@ class _ApiScaffoldState extends State<ApiScaffold> {
       appBar: AppBar(
         backgroundColor: Colors.black,
         elevation: 0,
-        title: Text(widget.titleKey.tr(), style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w900, letterSpacing: 1.5, color: Colors.white)),
+        title: Text(widget.titleKey.tr(),
+            style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w900,
+                letterSpacing: 1.5,
+                color: Colors.white)),
         actions: [
-          IconButton(onPressed: _load, icon: const Icon(Icons.refresh, color: Colors.white70)),
+          IconButton(
+              onPressed: _load,
+              icon: const Icon(Icons.refresh, color: Colors.white70)),
         ],
       ),
       body: _buildBody(context),
@@ -71,7 +79,8 @@ class _ApiScaffoldState extends State<ApiScaffold> {
 
   Widget _buildBody(BuildContext context) {
     if (_loading && _data.isEmpty) {
-      return const Center(child: CircularProgressIndicator(color: Colors.blueAccent));
+      return const Center(
+          child: CircularProgressIndicator(color: Colors.blueAccent));
     }
     if (_error != null) {
       return Center(
@@ -80,11 +89,16 @@ class _ApiScaffoldState extends State<ApiScaffold> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.error_outline, color: Colors.redAccent, size: 48),
+              const Icon(Icons.error_outline,
+                  color: Colors.redAccent, size: 48),
               const SizedBox(height: 16),
-              Text('Failed to load ${widget.screen} data', style: const TextStyle(color: Colors.redAccent)),
+              Text('Failed to load ${widget.screen} data',
+                  style: const TextStyle(color: Colors.redAccent)),
               const SizedBox(height: 16),
-              ElevatedButton.icon(onPressed: _load, icon: const Icon(Icons.refresh), label: Text('Retry'.tr())),
+              ElevatedButton.icon(
+                  onPressed: _load,
+                  icon: const Icon(Icons.refresh),
+                  label: Text('Retry'.tr())),
             ],
           ),
         ),
