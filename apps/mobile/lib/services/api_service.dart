@@ -41,7 +41,10 @@ class ApiService {
           return {'success': true, 'data': data};
         }
       }
-      return {'success': false, 'error': 'Login failed (${response.statusCode})'};
+      return {
+        'success': false,
+        'error': 'Login failed (${response.statusCode})'
+      };
     } catch (e) {
       return {'success': false, 'error': 'Connection error: $e'};
     }
@@ -63,7 +66,10 @@ class ApiService {
         final data = jsonDecode(response.body) as Map<String, dynamic>;
         return {'success': true, 'data': data};
       }
-      return {'success': false, 'error': 'Registration failed (${response.statusCode})'};
+      return {
+        'success': false,
+        'error': 'Registration failed (${response.statusCode})'
+      };
     } catch (e) {
       return {'success': false, 'error': 'Connection error: $e'};
     }
@@ -100,9 +106,11 @@ class ApiService {
       );
       if (response.statusCode == 200) {
         final decoded = jsonDecode(response.body);
-        final list = decoded['data']?['providers'] ?? decoded['data'] ?? decoded;
+        final list =
+            decoded['data']?['providers'] ?? decoded['data'] ?? decoded;
         if (list is List) {
-          return List<Map<String, dynamic>>.from(list.map((e) => Map<String, dynamic>.from(e)));
+          return List<Map<String, dynamic>>.from(
+              list.map((e) => Map<String, dynamic>.from(e)));
         }
       }
     } catch (_) {}
@@ -119,15 +127,16 @@ class ApiService {
           if (token != null) 'Authorization': 'Bearer $token',
         },
       );
-      if (response.statusCode == 200) return {'success': true, 'data': jsonDecode(response.body)};
+      if (response.statusCode == 200)
+        return {'success': true, 'data': jsonDecode(response.body)};
       return {'success': false, 'error': 'Failed to load agent status'};
     } catch (e) {
       return {'success': false, 'error': '$e'};
     }
   }
 
-  Future<Map<String, dynamic>> executeAgentTask(
-      String task, String taskType, {String? department}) async {
+  Future<Map<String, dynamic>> executeAgentTask(String task, String taskType,
+      {String? department}) async {
     try {
       final token = await getToken();
       final response = await client.post(
@@ -142,7 +151,10 @@ class ApiService {
           'department': department,
         }),
       );
-      return {'success': response.statusCode == 200, 'data': jsonDecode(response.body)};
+      return {
+        'success': response.statusCode == 200,
+        'data': jsonDecode(response.body)
+      };
     } catch (e) {
       return {'success': false, 'error': '$e'};
     }

@@ -1,14 +1,14 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from "react";
 import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signOut as firebaseSignOut,
   onAuthStateChanged,
   type User,
-} from 'firebase/auth';
-import { getFirebaseAuth } from '../firebase';
-import { useCustomerStore } from '../store/customerStore';
-import type { UserProfile } from '../types/customer';
+} from "firebase/auth";
+import { getFirebaseAuth } from "../firebase";
+import { useCustomerStore } from "../store/customerStore";
+import type { UserProfile } from "../types/customer";
 
 interface UseAuthReturn {
   user: UserProfile | null;
@@ -23,20 +23,24 @@ interface UseAuthReturn {
 function mapFirebaseUser(firebaseUser: User): UserProfile {
   return {
     id: firebaseUser.uid,
-    username: firebaseUser.displayName || firebaseUser.email?.split('@')[0] || 'Anonymous',
-    email: firebaseUser.email || '',
-    role: 'operator',
+    username:
+      firebaseUser.displayName ||
+      firebaseUser.email?.split("@")[0] ||
+      "Anonymous",
+    email: firebaseUser.email || "",
+    role: "operator",
     avatar_url: firebaseUser.photoURL || undefined,
     preferences: {
-      theme: 'dark',
+      theme: "dark",
       sidebar_collapsed: false,
       notification_enabled: true,
       sound_enabled: false,
       compact_mode: false,
-      font_size: 'medium',
+      font_size: "medium",
     },
     created_at: firebaseUser.metadata.creationTime || new Date().toISOString(),
-    last_login: firebaseUser.metadata.lastSignInTime || new Date().toISOString(),
+    last_login:
+      firebaseUser.metadata.lastSignInTime || new Date().toISOString(),
   };
 }
 
@@ -66,63 +70,81 @@ export function useAuth(): UseAuthReturn {
         });
       } catch (err: any) {
         if (!cancelled) {
-          console.warn('Firebase auth initialization failed:', err.message);
+          console.warn("Firebase auth initialization failed:", err.message);
           setAuthReady(true);
           setLoading(false);
         }
       }
     })();
 
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [setUser]);
 
-  const signIn = useCallback(async (email: string, password: string) => {
-    setError(null);
-    setLoading(true);
-    try {
-      const auth = await getFirebaseAuth();
-      const credential = await signInWithEmailAndPassword(auth, email, password);
-      const profile = mapFirebaseUser(credential.user);
-      setUser(profile);
-      setFirebaseUser(credential.user);
-    } catch (err: any) {
-      const message = err.code === 'auth/invalid-credential'
-        ? 'Invalid email or password.'
-        : err.code === 'auth/too-many-requests'
-          ? 'Too many attempts. Please try again later.'
-          : err.message || 'Sign in failed.';
-      setError(message);
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  }, [setUser]);
+  const signIn = useCallback(
+    async (email: string, password: string) => {
+      setError(null);
+      setLoading(true);
+      try {
+        const auth = await getFirebaseAuth();
+        const credential = await signInWithEmailAndPassword(
+          auth,
+          email,
+          password,
+        );
+        const profile = mapFirebaseUser(credential.user);
+        setUser(profile);
+        setFirebaseUser(credential.user);
+      } catch (err: any) {
+        const message =
+          err.code === "auth/invalid-credential"
+            ? "Invalid email or password."
+            : err.code === "auth/too-many-requests"
+              ? "Too many attempts. Please try again later."
+              : err.message || "Sign in failed.";
+        setError(message);
+        throw err;
+      } finally {
+        setLoading(false);
+      }
+    },
+    [setUser],
+  );
 
-  const signUp = useCallback(async (email: string, password: string, username: string) => {
-    setError(null);
-    setLoading(true);
-    try {
-      const auth = await getFirebaseAuth();
-      const credential = await createUserWithEmailAndPassword(auth, email, password);
-      const profile: UserProfile = {
-        ...mapFirebaseUser(credential.user),
-        username,
-        role: 'developer',
-      };
-      setUser(profile);
-      setFirebaseUser(credential.user);
-    } catch (err: any) {
-      const message = err.code === 'auth/email-already-in-use'
-        ? 'An account with this email already exists.'
-        : err.code === 'auth/weak-password'
-          ? 'Password must be at least 6 characters.'
-          : err.message || 'Sign up failed.';
-      setError(message);
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  }, [setUser]);
+  const signUp = useCallback(
+    async (email: string, password: string, username: string) => {
+      setError(null);
+      setLoading(true);
+      try {
+        const auth = await getFirebaseAuth();
+        const credential = await createUserWithEmailAndPassword(
+          auth,
+          email,
+          password,
+        );
+        const profile: UserProfile = {
+          ...mapFirebaseUser(credential.user),
+          username,
+          role: "developer",
+        };
+        setUser(profile);
+        setFirebaseUser(credential.user);
+      } catch (err: any) {
+        const message =
+          err.code === "auth/email-already-in-use"
+            ? "An account with this email already exists."
+            : err.code === "auth/weak-password"
+              ? "Password must be at least 6 characters."
+              : err.message || "Sign up failed.";
+        setError(message);
+        throw err;
+      } finally {
+        setLoading(false);
+      }
+    },
+    [setUser],
+  );
 
   const signOut = useCallback(async () => {
     setError(null);
@@ -132,7 +154,7 @@ export function useAuth(): UseAuthReturn {
       setUser(null);
       setFirebaseUser(null);
     } catch (err: any) {
-      setError(err.message || 'Sign out failed.');
+      setError(err.message || "Sign out failed.");
       throw err;
     }
   }, [setUser]);
