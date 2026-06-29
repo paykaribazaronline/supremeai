@@ -8,6 +8,7 @@
     "build:affected": "turbo run build --filter=[origin/main]",
     "test": "turbo run test",
     "test:affected": "turbo run test --filter=[origin/main]",
+    "test:e2e": "playwright test",
     "lint": "turbo run lint",
     "dev": "turbo run dev",
     "clean": "turbo run clean && rm -rf node_modules",
@@ -26,7 +27,8 @@
     "prettier": "^3.2.0",
     "typescript": "^5.4.0",
     "@types/react": "^19.0.0",
-    "@types/react-dom": "^19.0.0"
+    "@types/react-dom": "^19.0.0",
+    "@playwright/test": "^1.42.0"
   },
   "packageManager": "pnpm@9.0.0",
   "engines": {
