@@ -35,6 +35,7 @@ import { AudioRecorderService } from '../../services/audio/AudioRecorderService'
 import { AudioPlaybackService } from '../../services/audio/AudioPlaybackService';
 import { WaveformVisualizer } from '../audio/WaveformVisualizer';
 import { ServiceHealthMetrics } from './ServiceHealthMetrics';
+import { mockAiService } from '../../services/mockAiService';
 
 // বাংলা মন্তব্য: চ্যাট এবং ভয়েস ওভাররাইডের জন্য ডামি কথোপকথন ডাটা ডিক্লেয়ার করা হচ্ছে
 const initialChat = [
@@ -144,12 +145,13 @@ export function CommandCenter() {
     } else {
       // বাংলা মন্তব্য: ব্যাকএন্ড অফলাইন থাকলে লোকাল সিমুলেশন রেসপন্স প্রোভাইড করা হচ্ছে
       setTimeout(() => {
+        const response = mockAiService.generateResponse(msgText);
         setChatMessages(prev => [
           ...prev,
           { 
             id: Date.now(), 
             sender: 'SupremeAI', 
-            text: `[Offline Mode] Hello! I received your message: "${msgText}". Since the WebSocket gateway is offline, I am running in local fallback mode.` 
+            text: response.text 
           }
         ]);
       }, 800);
