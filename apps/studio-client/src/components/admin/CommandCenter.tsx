@@ -25,6 +25,7 @@ import { useTheme } from '../../contexts/ThemeContext';
 import { AudioRecorderService } from '../../services/audio/AudioRecorderService';
 import { AudioPlaybackService } from '../../services/audio/AudioPlaybackService';
 import { WaveformVisualizer } from '../audio/WaveformVisualizer';
+import { ServiceHealthMetrics } from './ServiceHealthMetrics';
 
 // বাংলা মন্তব্য: চ্যাট এবং ভয়েস ওভাররাইডের জন্য ডামি কথোপকথন ডাটা ডিক্লেয়ার করা হচ্ছে
 const initialChat = [
@@ -253,6 +254,11 @@ export function CommandCenter() {
             >
               <Background color="var(--accent-primary)" gap={24} style={{ opacity: theme === 'dark' ? 0.03 : 0.1 }} />
             </ReactFlow>
+          </div>
+
+          {/* Java Worker Metrics Widget Overlay */}
+          <div className="absolute top-4 left-4 w-80 z-20">
+            <ServiceHealthMetrics />
           </div>
 
           {/* Floating Telemetry Waveform Panel at Bottom of Canvas */}
