@@ -104,7 +104,9 @@ async def test_check_quota_rpm_exceeded(limiter):
 
 @pytest.mark.asyncio
 async def test_check_quota_rpd_exceeded(limiter):
-    limiter.queue.get.side_effect = lambda key: b"0" if key.endswith(":rpm") else b"100000"
+    limiter.queue.get.side_effect = lambda key: (
+        b"0" if key.endswith(":rpm") else b"100000"
+    )
     res = await limiter.check_quota("tenant-1", cost=0.0)
     assert res["allowed"] is False
     assert res["reason"] == "rpd_exceeded"
