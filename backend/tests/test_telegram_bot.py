@@ -9,6 +9,7 @@ from tools.telegram_bot import TelegramBotHandler
 
 from unittest.mock import AsyncMock
 
+
 @pytest.fixture
 def handler():
     with patch.dict(os.environ, {"TELEGRAM_BOT_TOKEN": "test-token"}):
@@ -240,6 +241,8 @@ async def test_run_polling_valid_token():
         h = TelegramBotHandler()
     with patch.object(h, "get_me", return_value={"username": "bot", "id": 1}):
         with patch.object(h, "handle_update"):
-            with patch("httpx.AsyncClient.get", side_effect=KeyboardInterrupt("stop loop")):
+            with patch(
+                "httpx.AsyncClient.get", side_effect=KeyboardInterrupt("stop loop")
+            ):
                 with pytest.raises(KeyboardInterrupt):
                     await h.run_polling()
