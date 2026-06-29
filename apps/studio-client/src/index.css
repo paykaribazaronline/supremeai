@@ -65,13 +65,49 @@ body {
   font-family: 'Outfit', sans-serif;
   background-color: var(--background);
   color: var(--foreground);
-  background-image: 
-    radial-gradient(circle at 10% 20%, rgba(0, 243, 255, 0.06) 0%, transparent 40%),
-    radial-gradient(circle at 90% 80%, rgba(188, 19, 254, 0.05) 0%, transparent 40%);
   margin: 0;
   overflow: hidden;
   height: 100vh;
   transition: background-color 0.4s ease, color 0.4s ease;
+  position: relative;
+}
+
+body.dark {
+  background-image: 
+    radial-gradient(circle at 10% 20%, rgba(0, 243, 255, 0.06) 0%, transparent 40%),
+    radial-gradient(circle at 90% 80%, rgba(188, 19, 254, 0.05) 0%, transparent 40%);
+}
+
+/* Animated Clouds for Light Theme */
+body:not(.dark) {
+  background: linear-gradient(180deg, #60a5fa 0%, #e0f2fe 100%);
+}
+
+body:not(.dark)::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  z-index: -2;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg width='400' height='200' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M60,140 Q80,80 140,100 Q180,60 220,100 Q280,80 300,140 Z' fill='%23ffffff' opacity='0.7'/%3E%3C/svg%3E");
+  background-size: 600px 300px;
+  animation: clouds-drift 80s linear infinite;
+}
+
+body:not(.dark)::after {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg width='300' height='150' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M40,100 Q60,50 100,70 Q130,30 170,70 Q210,50 230,100 Z' fill='%23ffffff' opacity='0.5'/%3E%3C/svg%3E");
+  background-size: 450px 225px;
+  animation: clouds-drift 120s linear infinite reverse;
+}
+
+@keyframes clouds-drift {
+  from { background-position: 0 0; }
+  to { background-position: 1800px 0; }
 }
 
 /* Custom Sleek Scrollbar */

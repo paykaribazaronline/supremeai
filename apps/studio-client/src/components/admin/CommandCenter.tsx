@@ -244,7 +244,13 @@ export function CommandCenter() {
           </button>
         </div>
         <div className="flex items-center gap-4 text-[10px] text-[var(--accent-primary)] font-bold">
-          <span>14:32 | OCT 26</span>
+          <span 
+            onClick={useAdminStore(state => state.handleAdminLogout)}
+            className="cursor-pointer hover:opacity-80 transition-opacity"
+            title="Return to Login"
+          >
+            14:32 | OCT 26
+          </span>
           <span className="text-[#00ff66]">📶 SYSTEM ONLINE</span>
         </div>
       </header>

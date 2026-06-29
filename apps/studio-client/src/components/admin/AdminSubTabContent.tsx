@@ -40,7 +40,7 @@ export function SubTabContent(props: SubTabContentProps) {
   const isOverlayOpen = adminSubTab !== 'command-center';
 
   return (
-    <div className="flex-1 flex flex-col overflow-hidden bg-[#030611] relative">
+    <div className="flex-1 flex flex-col overflow-hidden bg-[var(--bg-main)] relative transition-colors duration-500">
       {/* Background Canvas always rendered */}
       <div className={`absolute inset-0 transition-opacity duration-300 ${isOverlayOpen ? 'opacity-50 pointer-events-none' : 'opacity-100'}`}>
         <CommandCenter />
@@ -48,18 +48,19 @@ export function SubTabContent(props: SubTabContentProps) {
 
       {/* Glassmorphic Modal Overlay for other modules */}
       {isOverlayOpen && (
-        <div className="absolute inset-4 z-50 flex flex-col bg-[#050917]/95 border border-[#00f3ff]/30 shadow-[0_0_50px_rgba(0,243,255,0.15)] backdrop-blur-xl rounded-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+        <div className="absolute inset-4 z-50 flex flex-col bg-[var(--bg-panel)] border border-[var(--border-accent)] shadow-2xl backdrop-blur-xl rounded-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200 transition-colors">
           
-          <div className="flex justify-between items-center p-4 border-b border-[#00f3ff]/20 bg-[#0c1222]/80">
-            <span className="text-sm font-bold tracking-widest text-[#00f3ff] uppercase flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-[#00ff66] animate-pulse"></span>
+          <div className="flex justify-between items-center p-4 border-b border-[var(--border-accent)] bg-black/5 dark:bg-[#0c1222]/80 transition-colors">
+            <span className="text-sm font-bold tracking-widest text-[var(--accent-primary)] uppercase flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-green-500 dark:bg-[#00ff66] animate-pulse"></span>
               MODULE: {adminSubTab.replace('-', ' ')}
             </span>
             <button 
               onClick={() => setAdminSubTab('command-center')}
-              className="p-1.5 hover:bg-white/10 rounded-lg transition-colors group"
+              className="p-1.5 hover:bg-black/10 dark:hover:bg-white/10 rounded-lg transition-colors group"
+              title="Close Module & Return to Canvas"
             >
-              <X className="w-5 h-5 text-slate-400 group-hover:text-white transition-colors" />
+              <X size={18} className="text-gray-500 dark:text-gray-400 group-hover:text-red-500" />
             </button>
           </div>
 
