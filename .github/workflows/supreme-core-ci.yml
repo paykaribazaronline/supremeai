@@ -219,9 +219,10 @@ jobs:
     name: 📤 Sync to Secondary Repo
     needs: [detect-changes, deploy-backend, deploy-frontend]
     if: |
-      always() && 
       github.ref == 'refs/heads/main' &&
-      (needs.detect-changes.outputs.backend == 'true' || needs.detect-changes.outputs.frontend == 'true')
+      (needs.detect-changes.outputs.backend == 'true' || needs.detect-changes.outputs.frontend == 'true') &&
+      needs.deploy-backend.result != 'failure' && needs.deploy-backend.result != 'cancelled' &&
+      needs.deploy-frontend.result != 'failure' && needs.deploy-frontend.result != 'cancelled'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
