@@ -17,7 +17,9 @@ import {
   LifeBuoy,
   FileText,
   Sun,
-  Moon
+  Moon,
+  Flame,
+  Binary
 } from 'lucide-react';
 import AethelNode from './AethelNode';
 import { useAdminStore } from '../../store/adminStore';
@@ -238,9 +240,12 @@ export function CommandCenter() {
           <button 
             onClick={toggleTheme} 
             className="p-1.5 rounded-full bg-[var(--bg-panel)] border border-[var(--border-accent)] hover:scale-110 transition-transform cursor-pointer"
-            title="Toggle Dimension"
+            title="Cycle Theme"
           >
-            {theme === 'dark' ? <Sun size={14} className="text-yellow-400" /> : <Moon size={14} className="text-indigo-600" />}
+            {theme === 'dark' && <Sun size={14} className="text-yellow-400" />}
+            {theme === 'light' && <Flame size={14} className="text-orange-500" />}
+            {theme === 'sunset' && <Binary size={14} className="text-emerald-400" />}
+            {theme === 'matrix' && <Moon size={14} className="text-indigo-400" />}
           </button>
         </div>
         <div className="flex items-center gap-4 text-[10px] text-[var(--accent-primary)] font-bold">
@@ -251,7 +256,7 @@ export function CommandCenter() {
           >
             14:32 | OCT 26
           </span>
-          <span className="text-[#00ff66]">📶 SYSTEM ONLINE</span>
+          <span className="text-[var(--accent-secondary)]">📶 SYSTEM ONLINE</span>
         </div>
       </header>
 
@@ -285,15 +290,15 @@ export function CommandCenter() {
           </div>
 
           {/* Floating Telemetry Waveform Panel at Bottom of Canvas */}
-          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 w-[380px] bg-[#060b1b]/90 border border-[#00f3ff]/25 rounded-lg p-3 shadow-[0_0_20px_rgba(0,243,255,0.15)] backdrop-blur-md z-20 flex flex-col items-center">
-            <div className="flex justify-between w-full text-[9px] text-slate-400 font-bold mb-1">
+          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 w-[380px] bg-[var(--waveform-bg)] border border-[var(--border-accent)] rounded-lg p-3 shadow-lg backdrop-blur-md z-20 flex flex-col items-center transition-colors duration-500">
+            <div className="flex justify-between w-full text-[9px] text-[var(--text-secondary)] font-bold mb-1">
               <span>CMD | v3.0</span>
               <button 
                 onClick={toggleVoiceRecording}
-                className="flex items-center gap-1.5 hover:bg-[#00f3ff]/10 p-1 rounded transition-colors"
+                className="flex items-center gap-1.5 hover:opacity-80 p-1 rounded transition-colors"
               >
-                <Mic size={10} className={isRecording ? 'text-[#ef4444] animate-pulse' : 'text-[#00f3ff]'} />
-                <span className={isRecording ? 'text-[#ef4444]' : 'text-slate-300'}>
+                <Mic size={10} className={isRecording ? 'text-[var(--danger)] animate-pulse' : 'text-[var(--accent-primary)]'} />
+                <span className={isRecording ? 'text-[var(--danger)]' : 'text-[var(--text-secondary)]'}>
                   {isRecording ? 'RECORDING...' : 'VOICE CONTROLS'}
                 </span>
               </button>
@@ -308,8 +313,8 @@ export function CommandCenter() {
               />
             </div>
 
-            <div className="flex justify-between w-full text-[8px] text-slate-500 font-bold mt-1">
-              <span className={isRecording ? "text-[#ef4444]" : "text-[#00ff66]"}>
+            <div className="flex justify-between w-full text-[8px] text-[var(--text-secondary)] font-bold mt-1">
+              <span className={isRecording ? "text-[var(--danger)]" : "text-[var(--accent-secondary)]"}>
                 {isRecording ? "Voice Recognition: Listening..." : "Voice Recognition: Standby"}
               </span>
               <span>CPU: 74% MEM: 68%</span>
@@ -318,38 +323,38 @@ export function CommandCenter() {
         </div>
 
         {/* Right Sidebar: AI Assistant Glassmorphic Chat Panel (SLIDING OVERLAY) */}
-        <div className={`absolute top-0 right-0 h-full w-[350px] bg-[#050917]/80 border-l border-[#00f3ff]/30 shadow-[-10px_0_30px_rgba(0,243,255,0.05)] backdrop-blur-xl transform transition-transform duration-500 ease-in-out z-50 flex flex-col ${isCentralPanelOpen ? 'translate-x-0' : 'translate-x-full'}`}>
-          <div className="border-b border-[#00f3ff]/20 p-4 flex justify-between items-center bg-[#070d22]/80">
+        <div className={`absolute top-0 right-0 h-full w-[350px] bg-[var(--chat-bg)] border-l border-[var(--border-accent)] shadow-lg backdrop-blur-xl transform transition-all duration-500 ease-in-out z-50 flex flex-col ${isCentralPanelOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+          <div className="border-b border-[var(--border-accent)] p-4 flex justify-between items-center bg-[var(--bg-cell)] transition-colors duration-500">
             <div className="flex items-center gap-2">
-              <Cpu size={16} className="text-[#00f3ff] animate-pulse" />
-              <span className="text-sm font-black tracking-widest text-[#00f3ff] uppercase drop-shadow-[0_0_8px_#00f3ff]">SUPREMEAI NEXUS</span>
+              <Cpu size={16} className="text-[var(--accent-primary)] animate-pulse" />
+              <span className="text-sm font-black tracking-widest text-[var(--accent-primary)] uppercase">SUPREMEAI NEXUS</span>
             </div>
-            <Maximize2 size={14} className="text-[#00f3ff] cursor-pointer hover:scale-110 transition-transform" onClick={() => setIsCentralPanelOpen(false)} />
+            <Maximize2 size={14} className="text-[var(--accent-primary)] cursor-pointer hover:scale-110 transition-transform" onClick={() => setIsCentralPanelOpen(false)} />
           </div>
 
           <div className="flex-1 overflow-y-auto p-4 space-y-4">
             {chatMessages.map(msg => (
-              <div key={msg.id} className="text-[11px] leading-relaxed border-b border-cyan-900/10 pb-3">
+              <div key={msg.id} className="text-[11px] leading-relaxed border-b border-[var(--border-accent)] pb-3">
                 <span className={`font-bold tracking-wider mr-1.5 ${
-                  msg.sender === 'Admin' ? 'text-slate-300' : msg.sender === 'SupremeAI' ? 'text-[#00f3ff]' : 'text-emerald-500'
+                  msg.sender === 'Admin' ? 'text-[var(--text-secondary)]' : msg.sender === 'SupremeAI' ? 'text-[var(--accent-primary)]' : 'text-[var(--accent-secondary)]'
                 }`}>
                   {msg.sender}:
                 </span>
-                <span className="text-slate-300">{msg.text}</span>
+                <span className="text-[var(--text-secondary)]">{msg.text}</span>
               </div>
             ))}
           </div>
 
-          <div className="p-4 border-t border-[#00f3ff]/20 bg-[#060b1c]/90 flex gap-2">
+          <div className="p-4 border-t border-[var(--border-accent)] bg-[var(--bg-cell)] flex gap-2 transition-colors duration-500">
             <input
               type="text"
               value={chatInput}
               onChange={e => setChatInput(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && handleSendChat()}
               placeholder="[SupremeAI Nexus Command...]"
-              className="flex-grow bg-[#030611] border border-cyan-500/30 focus:border-[#00f3ff]/80 rounded-lg px-3 py-2 text-[11px] text-[#00f3ff] outline-none placeholder:text-slate-600 font-mono tracking-wide"
+              className="flex-grow bg-[var(--chat-input-bg)] border border-[var(--border-accent)] focus:border-[var(--accent-primary)] rounded-lg px-3 py-2 text-[11px] text-[var(--accent-primary)] outline-none placeholder:text-[var(--text-secondary)] font-mono tracking-wide transition-colors duration-500"
             />
-            <button onClick={handleSendChat} className="bg-[#00f3ff]/20 hover:bg-[#00f3ff]/40 hover:shadow-[0_0_10px_#00f3ff] text-[#00f3ff] p-2 rounded-lg transition-all">
+            <button onClick={handleSendChat} className="bg-[var(--accent-primary)]/20 hover:bg-[var(--accent-primary)]/40 text-[var(--accent-primary)] p-2 rounded-lg transition-all">
               <Send size={14} />
             </button>
           </div>
@@ -358,35 +363,35 @@ export function CommandCenter() {
       </div>
 
       {/* ── BOTTOM DECK CONTROLLER / ICON PANELS ──────────────────── */}
-      <footer className="flex justify-between items-center border-t border-[#00f3ff]/15 pt-2 text-[10px] text-slate-400 font-bold">
+      <footer className="flex justify-between items-center border-t border-[var(--border-accent)] pt-2 text-[10px] text-[var(--text-secondary)] font-bold transition-colors duration-500">
         {/* Left Deck Actions */}
         <div className="flex gap-4">
-          <button className="flex items-center gap-1.5 hover:text-white transition-colors">
-            <Settings size={12} className="text-[#00f3ff]" />
+          <button onClick={() => setAdminSubTab('config')} className="flex items-center gap-1.5 hover:text-[var(--text-main)] transition-colors">
+            <Settings size={12} className="text-[var(--accent-primary)]" />
             <span>Settings</span>
           </button>
-          <button className="flex items-center gap-1.5 hover:text-white transition-colors">
-            <Activity size={12} className="text-[#00ff66]" />
+          <button onClick={() => setAdminSubTab('observability')} className="flex items-center gap-1.5 hover:text-[var(--text-main)] transition-colors">
+            <Activity size={12} className="text-[var(--accent-secondary)]" />
             <span>Metrics</span>
           </button>
-          <button className="flex items-center gap-1.5 hover:text-white transition-colors">
-            <FileText size={12} className="text-yellow-500" />
+          <button onClick={() => setAdminSubTab('logs')} className="flex items-center gap-1.5 hover:text-[var(--text-main)] transition-colors">
+            <FileText size={12} className="text-[var(--warning)]" />
             <span>Logs</span>
           </button>
         </div>
 
         {/* Right Deck Status Indicator */}
         <div className="flex gap-4">
-          <button className="flex items-center gap-1.5 hover:text-white transition-colors">
-            <FileText size={12} className="text-[#00f3ff]" />
-            <span>Logs</span>
+          <button onClick={() => setAdminSubTab('costs')} className="flex items-center gap-1.5 hover:text-[var(--text-main)] transition-colors">
+            <FileText size={12} className="text-[var(--accent-primary)]" />
+            <span>Costs</span>
           </button>
-          <button className="flex items-center gap-1.5 hover:text-white transition-colors">
-            <Shield size={12} className="text-[#00ff66]" />
+          <button onClick={() => setAdminSubTab('threats')} className="flex items-center gap-1.5 hover:text-[var(--text-main)] transition-colors">
+            <Shield size={12} className="text-[var(--accent-secondary)]" />
             <span>Security</span>
           </button>
-          <button className="flex items-center gap-1.5 hover:text-white transition-colors">
-            <LifeBuoy size={12} className="text-yellow-500" />
+          <button onClick={() => setAdminSubTab('health')} className="flex items-center gap-1.5 hover:text-[var(--text-main)] transition-colors">
+            <LifeBuoy size={12} className="text-[var(--warning)]" />
             <span>Health</span>
           </button>
         </div>

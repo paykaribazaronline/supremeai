@@ -1,6 +1,10 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 
-type Theme = 'dark' | 'light';
+// বাংলা মন্তব্য: ৪টি থিম সাপোর্ট করা হচ্ছে — Dark Space, Sky Blue, Sunset Ember, Emerald Matrix
+type Theme = 'dark' | 'light' | 'sunset' | 'matrix';
+
+// থিম সাইকেল অর্ডার (টগল বাটনে ক্লিক করলে পরবর্তী থিমে যাবে)
+const THEME_ORDER: Theme[] = ['dark', 'light', 'sunset', 'matrix'];
 
 interface ThemeContextType {
   theme: Theme;
@@ -10,20 +14,18 @@ interface ThemeContextType {
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [theme, setTheme] = useState<Theme>('dark'); // Default to Deep Space (dark)
+  const [theme, setTheme] = useState<Theme>('dark'); // ডিফল্ট Deep Space (dark)
 
   useEffect(() => {
-    // 1. Check local storage first (Optimistic Load)
+    // 1. লোকাল স্টোরেজ থেকে থিম পড়া (Optimistic Load)
     const localTheme = localStorage.getItem('supremeai_theme') as Theme | null;
-    if (localTheme) {
+    if (localTheme && THEME_ORDER.includes(localTheme)) {
       setTheme(localTheme);
     }
     
-    // 2. Fetch from backend (Cross-device sync / Incognito)
+    // 2. ব্যাকএন্ড থেকে ফেচ করা (Cross-device sync)
     fetch('/api/v1/preferences', {
-      headers: {
-        // Typically credentials include cookies or Authorization headers
-      }
+      headers: {}
     })
       .then(res => res.json())
       .then(data => {
@@ -36,23 +38,24 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   }, []);
 
   useEffect(() => {
-    // Apply theme to document element
+    // বাংলা মন্তব্য: HTML root এলিমেন্টে থিম ক্লাস অ্যাড করা হচ্ছে
     const root = window.document.documentElement;
-    root.classList.remove('light', 'dark');
+    root.classList.remove('light', 'dark', 'sunset', 'matrix');
     root.classList.add(theme);
-    
-    // For React Flow or custom variables
     root.setAttribute('data-theme', theme);
   }, [theme]);
 
   const toggleTheme = () => {
-    const newTheme = theme === 'dark' ? 'light' : 'dark';
+    // বাংলা মন্তব্য: পরবর্তী থিমে সাইকেল করা হচ্ছে (dark → light → sunset → matrix → dark)
+    const currentIndex = THEME_ORDER.indexOf(theme);
+    const nextIndex = (currentIndex + 1) % THEME_ORDER.length;
+    const newTheme = THEME_ORDER[nextIndex];
     
     // Optimistic UI Update
     setTheme(newTheme);
     localStorage.setItem('supremeai_theme', newTheme);
 
-    // Sync back to backend async
+    // ব্যাকএন্ডে async সিঙ্ক করা
     fetch('/api/v1/preferences', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

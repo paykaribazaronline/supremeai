@@ -1,8 +1,10 @@
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Space+Grotesk:wght@400;700&family=JetBrains+Mono:wght@400;600&family=Hind+Siliguri:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
 
+/* ═══════════════════════════════════════════════════════
+   THEME 1: SKY BLUE (Light) — ডিফল্ট :root থিম
+   ═══════════════════════════════════════════════════════ */
 :root {
-  /* Blue Sky Theme (Light) */
   --background: #f0f9ff;
   --foreground: #0f172a;
   --neon-blue: #0284c7;
@@ -26,13 +28,24 @@
   /* CommandCenter Semantic Variables */
   --bg-main: #f0f9ff;
   --text-main: #0f172a;
+  --text-secondary: #475569;
   --bg-panel: rgba(255, 255, 255, 0.85);
+  --bg-cell: rgba(0, 0, 0, 0.04);
   --border-accent: rgba(2, 132, 199, 0.2);
   --accent-primary: #0284c7;
+  --accent-secondary: #059669;
+  --node-bg: rgba(255, 255, 255, 0.92);
+  --node-text: #0f172a;
+  --node-border: rgba(2, 132, 199, 0.3);
+  --chat-bg: rgba(255, 255, 255, 0.9);
+  --chat-input-bg: #f1f5f9;
+  --waveform-bg: rgba(255, 255, 255, 0.9);
 }
 
+/* ═══════════════════════════════════════════════════════
+   THEME 2: DEEP SPACE (Dark) — সায়েন্স-ফিকশন নিয়ন থিম
+   ═══════════════════════════════════════════════════════ */
 .dark {
-  /* Deep Space Theme (Dark) */
   --background: #030712;
   --foreground: #f3f4f6;
   --neon-blue: #00f3ff;
@@ -53,14 +66,105 @@
   --input-border: #1f2937;
   --panel-bg: #090d16;
 
-  /* CommandCenter Semantic Variables */
   --bg-main: #030611;
   --text-main: #ffffff;
+  --text-secondary: #94a3b8;
   --bg-panel: rgba(5, 9, 23, 0.5);
+  --bg-cell: rgba(12, 18, 34, 0.8);
   --border-accent: rgba(0, 243, 255, 0.15);
   --accent-primary: #00f3ff;
+  --accent-secondary: #00ff66;
+  --node-bg: rgba(6, 10, 24, 0.9);
+  --node-text: #e2e8f0;
+  --node-border: rgba(0, 243, 255, 0.35);
+  --chat-bg: rgba(5, 9, 23, 0.8);
+  --chat-input-bg: #030611;
+  --waveform-bg: rgba(6, 11, 27, 0.9);
 }
 
+/* ═══════════════════════════════════════════════════════
+   THEME 3: SUNSET EMBER — উষ্ণ সূর্যাস্তের থিম
+   ═══════════════════════════════════════════════════════ */
+.sunset {
+  --background: #1a0a0a;
+  --foreground: #fef2f2;
+  --neon-blue: #f97316;
+  --neon-purple: #e11d48;
+  --cyber-gray: rgba(255, 255, 255, 0.02);
+  --success: #10b981;
+  --danger: #ef4444;
+  --warning: #fbbf24;
+  --card-bg: rgba(30, 15, 10, 0.65);
+  --card-border: rgba(249, 115, 22, 0.15);
+  --sidebar-bg: rgba(20, 8, 5, 0.95);
+  --tabbar-bg: #1c0a04;
+  --border-color: rgba(255, 255, 255, 0.06);
+  --card-text: #fed7aa;
+  --card-title-text: #fff7ed;
+  --alert-bg: rgba(255, 255, 255, 0.01);
+  --input-bg: #140804;
+  --input-border: #7c2d12;
+  --panel-bg: #120703;
+
+  --bg-main: #0f0503;
+  --text-main: #fff7ed;
+  --text-secondary: #fdba74;
+  --bg-panel: rgba(20, 8, 4, 0.6);
+  --bg-cell: rgba(30, 12, 6, 0.8);
+  --border-accent: rgba(249, 115, 22, 0.2);
+  --accent-primary: #f97316;
+  --accent-secondary: #fbbf24;
+  --node-bg: rgba(20, 8, 4, 0.9);
+  --node-text: #fed7aa;
+  --node-border: rgba(249, 115, 22, 0.4);
+  --chat-bg: rgba(20, 8, 4, 0.85);
+  --chat-input-bg: #0f0503;
+  --waveform-bg: rgba(15, 6, 3, 0.9);
+}
+
+/* ═══════════════════════════════════════════════════════
+   THEME 4: EMERALD MATRIX — সবুজ হ্যাকার ম্যাট্রিক্স থিম
+   ═══════════════════════════════════════════════════════ */
+.matrix {
+  --background: #020a02;
+  --foreground: #d1fae5;
+  --neon-blue: #10b981;
+  --neon-purple: #059669;
+  --cyber-gray: rgba(16, 185, 129, 0.02);
+  --success: #34d399;
+  --danger: #ef4444;
+  --warning: #fbbf24;
+  --card-bg: rgba(5, 20, 10, 0.65);
+  --card-border: rgba(16, 185, 129, 0.15);
+  --sidebar-bg: rgba(2, 12, 5, 0.95);
+  --tabbar-bg: #041408;
+  --border-color: rgba(16, 185, 129, 0.06);
+  --card-text: #a7f3d0;
+  --card-title-text: #ecfdf5;
+  --alert-bg: rgba(16, 185, 129, 0.01);
+  --input-bg: #030d05;
+  --input-border: #065f46;
+  --panel-bg: #020c04;
+
+  --bg-main: #010802;
+  --text-main: #ecfdf5;
+  --text-secondary: #6ee7b7;
+  --bg-panel: rgba(3, 14, 5, 0.5);
+  --bg-cell: rgba(5, 20, 8, 0.8);
+  --border-accent: rgba(16, 185, 129, 0.2);
+  --accent-primary: #10b981;
+  --accent-secondary: #34d399;
+  --node-bg: rgba(3, 14, 5, 0.9);
+  --node-text: #a7f3d0;
+  --node-border: rgba(16, 185, 129, 0.4);
+  --chat-bg: rgba(3, 14, 5, 0.85);
+  --chat-input-bg: #010802;
+  --waveform-bg: rgba(2, 10, 3, 0.9);
+}
+
+/* ═══════════════════════════════════════════════════════
+   BODY STYLES (সব থিমের জন্য)
+   ═══════════════════════════════════════════════════════ */
 body {
   font-family: 'Outfit', sans-serif;
   background-color: var(--background);
@@ -68,22 +172,23 @@ body {
   margin: 0;
   overflow: hidden;
   height: 100vh;
-  transition: background-color 0.4s ease, color 0.4s ease;
+  transition: background-color 0.6s ease, color 0.6s ease;
   position: relative;
 }
 
+/* Deep Space — নিয়ন গ্র্যাডিয়েন্ট ব্যাকগ্রাউন্ড */
 body.dark {
   background-image: 
     radial-gradient(circle at 10% 20%, rgba(0, 243, 255, 0.06) 0%, transparent 40%),
     radial-gradient(circle at 90% 80%, rgba(188, 19, 254, 0.05) 0%, transparent 40%);
 }
 
-/* Animated Clouds for Light Theme */
-body:not(.dark) {
-  background: linear-gradient(180deg, #60a5fa 0%, #e0f2fe 100%);
+/* Sky Blue — অ্যানিমেটেড ক্লাউড ব্যাকগ্রাউন্ড */
+body.light {
+  background: linear-gradient(180deg, #60a5fa 0%, #93c5fd 40%, #e0f2fe 100%);
 }
 
-body:not(.dark)::before {
+body.light::before {
   content: "";
   position: absolute;
   top: 0; left: 0; right: 0; bottom: 0;
@@ -94,7 +199,7 @@ body:not(.dark)::before {
   animation: clouds-drift 80s linear infinite;
 }
 
-body:not(.dark)::after {
+body.light::after {
   content: "";
   position: absolute;
   top: 0; left: 0; right: 0; bottom: 0;
@@ -105,12 +210,29 @@ body:not(.dark)::after {
   animation: clouds-drift 120s linear infinite reverse;
 }
 
+/* Sunset Ember — আগুন-কণা ইফেক্ট */
+body.sunset {
+  background-image:
+    radial-gradient(circle at 20% 80%, rgba(249, 115, 22, 0.08) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(225, 29, 72, 0.06) 0%, transparent 50%),
+    radial-gradient(circle at 50% 50%, rgba(251, 191, 36, 0.04) 0%, transparent 60%);
+}
+
+/* Matrix — ডিজিটাল রেইন ইফেক্ট */
+body.matrix {
+  background-image:
+    radial-gradient(circle at 30% 30%, rgba(16, 185, 129, 0.08) 0%, transparent 40%),
+    radial-gradient(circle at 70% 70%, rgba(5, 150, 105, 0.06) 0%, transparent 40%);
+}
+
 @keyframes clouds-drift {
   from { background-position: 0 0; }
   to { background-position: 1800px 0; }
 }
 
-/* Custom Sleek Scrollbar */
+/* ═══════════════════════════════════════════════════════
+   SCROLLBAR
+   ═══════════════════════════════════════════════════════ */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -129,7 +251,9 @@ body:not(.dark)::after {
   background: var(--neon-blue);
 }
 
-/* Glassmorphism Styles */
+/* ═══════════════════════════════════════════════════════
+   GLASSMORPHISM & COMPONENTS
+   ═══════════════════════════════════════════════════════ */
 .glass-card {
   background: var(--card-bg);
   backdrop-filter: blur(16px);
@@ -141,8 +265,8 @@ body:not(.dark)::after {
 }
 
 .glass-card:hover {
-  border-color: rgba(0, 243, 255, 0.3);
-  box-shadow: 0 10px 40px rgba(0, 243, 255, 0.08);
+  border-color: var(--accent-primary);
+  box-shadow: 0 10px 40px color-mix(in srgb, var(--accent-primary) 15%, transparent);
   transform: translateY(-2px);
 }
 
@@ -155,27 +279,27 @@ body:not(.dark)::after {
 
 /* Cyber Buttons & Inputs */
 .cyber-button {
-  background: linear-gradient(135deg, rgba(0, 243, 255, 0.15), rgba(188, 19, 254, 0.15));
+  background: linear-gradient(135deg, color-mix(in srgb, var(--neon-blue) 15%, transparent), color-mix(in srgb, var(--neon-purple) 15%, transparent));
   border: 1px solid var(--neon-blue);
-  color: #ffffff;
+  color: var(--text-main);
   padding: 10px 20px;
   border-radius: 10px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 0 12px rgba(0, 243, 255, 0.2);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--neon-blue) 20%, transparent);
 }
 
 .cyber-button:hover {
-  background: linear-gradient(135deg, rgba(0, 243, 255, 0.3), rgba(188, 19, 254, 0.3));
-  box-shadow: 0 0 20px rgba(0, 243, 255, 0.5);
+  background: linear-gradient(135deg, color-mix(in srgb, var(--neon-blue) 30%, transparent), color-mix(in srgb, var(--neon-purple) 30%, transparent));
+  box-shadow: 0 0 20px color-mix(in srgb, var(--neon-blue) 50%, transparent);
   transform: translateY(-1px);
 }
 
 .glass-action-button {
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  color: #9ca3af;
+  background: var(--bg-cell);
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
   padding: 8px 16px;
   border-radius: 8px;
   cursor: pointer;
@@ -184,14 +308,14 @@ body:not(.dark)::after {
 
 .glass-action-button:hover {
   border-color: var(--neon-blue);
-  background: rgba(0, 243, 255, 0.08);
-  color: #ffffff;
+  background: color-mix(in srgb, var(--accent-primary) 8%, transparent);
+  color: var(--text-main);
 }
 
 .cyber-danger-button {
   background: rgba(239, 68, 68, 0.15);
   border: 1px solid var(--danger);
-  color: #ffffff;
+  color: var(--text-main);
   padding: 10px 20px;
   border-radius: 10px;
   font-weight: 600;
@@ -226,7 +350,7 @@ body:not(.dark)::after {
 .glow-input:focus {
   outline: none;
   border-color: var(--neon-blue);
-  box-shadow: 0 0 10px rgba(0, 243, 255, 0.25);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--accent-primary) 25%, transparent);
 }
 
 .technical-data {

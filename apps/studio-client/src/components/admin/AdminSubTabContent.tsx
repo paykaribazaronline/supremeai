@@ -50,17 +50,17 @@ export function SubTabContent(props: SubTabContentProps) {
       {isOverlayOpen && (
         <div className="absolute inset-4 z-50 flex flex-col bg-[var(--bg-panel)] border border-[var(--border-accent)] shadow-2xl backdrop-blur-xl rounded-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200 transition-colors">
           
-          <div className="flex justify-between items-center p-4 border-b border-[var(--border-accent)] bg-black/5 dark:bg-[#0c1222]/80 transition-colors">
+          <div className="flex justify-between items-center p-4 border-b border-[var(--border-accent)] bg-[var(--bg-cell)] transition-colors duration-500">
             <span className="text-sm font-bold tracking-widest text-[var(--accent-primary)] uppercase flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-green-500 dark:bg-[#00ff66] animate-pulse"></span>
+              <span className="w-2 h-2 rounded-full bg-[var(--accent-secondary)] animate-pulse"></span>
               MODULE: {adminSubTab.replace('-', ' ')}
             </span>
             <button 
               onClick={() => setAdminSubTab('command-center')}
-              className="p-1.5 hover:bg-black/10 dark:hover:bg-white/10 rounded-lg transition-colors group"
+              className="p-1.5 hover:opacity-80 rounded-lg transition-colors group"
               title="Close Module & Return to Canvas"
             >
-              <X size={18} className="text-gray-500 dark:text-gray-400 group-hover:text-red-500" />
+              <X size={18} className="text-[var(--text-secondary)] group-hover:text-red-500" />
             </button>
           </div>
 
