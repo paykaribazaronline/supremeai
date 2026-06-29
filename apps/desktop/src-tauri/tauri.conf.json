@@ -19,12 +19,6 @@
       "notification": {
         "all": false
       },
-      "global-shortcut": {
-        "all": false
-      },
-      "system-tray": {
-        "all": false
-      },
       "window": {
         "all": false,
         "close": true,
@@ -35,10 +29,6 @@
         "unmaximize": true,
         "unminimize": true,
         "startDragging": true
-      },
-      "updater": {
-        "all": false,
-        "check": true
       },
       "http": {
         "all": false,
@@ -60,11 +50,7 @@
       "copyright": "© 2026 SupremeAI",
       "category": "DeveloperTool",
       "shortDescription": "Windows desktop client for SupremeAI 2.0",
-      "longDescription": "A native Windows desktop application for SupremeAI 2.0 built with Tauri, featuring chat, skills, and evolution workflows.",
-      "msi": {
-        "installScope": "perMachine",
-        "upgradeGuid": "f7b2f6c4-7e8a-4c5a-b3d9-123456789abc"
-      }
+      "longDescription": "A native Windows desktop application for SupremeAI 2.0 built with Tauri, featuring chat, skills, and evolution workflows."
     },
     "security": {
       "csp": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self';"
@@ -79,8 +65,7 @@
         "minHeight": 600,
         "resizable": true,
         "fullscreen": false,
-        "hiddenTitle": false,
-        "appUserModelId": "com.supremeai.app"
+        "hiddenTitle": false
       }
     ],
     "updater": {
