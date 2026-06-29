@@ -150,21 +150,18 @@ jobs:
             apps/web-chat/dist
           retention-days: 1
 
-  deploy-and-sync:
-    name: 🚀 Deploy & Mirror Sync
-    needs: [detect-changes, backend-core, frontend-core]
+  deploy-backend:
+    name: 🚀 Deploy Backend (Cloud Run)
+    needs: [detect-changes, backend-core]
     if: |
       always() && 
       github.ref == 'refs/heads/main' && 
       needs.backend-core.result != 'failure' && needs.backend-core.result != 'cancelled' &&
-      needs.frontend-core.result != 'failure' && needs.frontend-core.result != 'cancelled' &&
-      (needs.detect-changes.outputs.backend == 'true' || needs.detect-changes.outputs.frontend == 'true')
+      needs.detect-changes.outputs.backend == 'true'
     runs-on: ubuntu-latest
     environment: production
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0 # Required for mirror sync
       
       - name: GCP Auth
         uses: google-github-actions/auth@v2
@@ -177,7 +174,9 @@ jobs:
           registry: ${{ vars.GCP_REGION || 'us-central1' }}-docker.pkg.dev
           username: _json_key
           password: ${{ secrets.GCP_SA_KEY }}
+      
       - uses: docker/setup-buildx-action@v3
+      
       - name: Build & Push API Image
         uses: docker/build-push-action@v5
         with:
@@ -192,19 +191,43 @@ jobs:
           GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
           GCP_REGION: ${{ vars.GCP_REGION || 'us-central1' }}
         run: python .github/scripts/deploy-backend.py
-          
+
+  deploy-frontend:
+    name: 🌐 Deploy Frontend (Firebase)
+    needs: [detect-changes, frontend-core]
+    if: |
+      always() && 
+      github.ref == 'refs/heads/main' && 
+      needs.frontend-core.result != 'failure' && needs.frontend-core.result != 'cancelled' &&
+      needs.detect-changes.outputs.frontend == 'true'
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+      
       - name: 📥 Download Frontend Artifacts
-        if: needs.frontend-core.result == 'success'
         uses: actions/download-artifact@v4
         with:
           name: frontend-dist
           path: apps
 
       - name: 🌐 Deploy to Firebase
-        if: needs.frontend-core.result == 'success'
         run: |
           npx -y firebase-tools deploy --only hosting --project ${{ secrets.GCP_PROJECT_ID }} --token "${{ secrets.FIREBASE_TOKEN }}" || true
 
+  sync-mirror:
+    name: 📤 Sync to Secondary Repo
+    needs: [detect-changes, deploy-backend, deploy-frontend]
+    if: |
+      always() && 
+      github.ref == 'refs/heads/main' &&
+      (needs.detect-changes.outputs.backend == 'true' || needs.detect-changes.outputs.frontend == 'true')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
       - name: 📤 Sync to Secondary Repo (Staging Dispatch)
         if: env.MIRROR_REPO_TOKEN != ''
         env:
@@ -215,7 +238,7 @@ jobs:
 
   ci-report:
     name: 📊 Generate Smart CI Report
-    needs: [deploy-and-sync]
+    needs: [deploy-backend, deploy-frontend, sync-mirror]
     if: always()
     runs-on: ubuntu-latest
     steps:
