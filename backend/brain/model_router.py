@@ -35,13 +35,33 @@ class ModelRouter:
         )
 
     async def async_route_and_generate(
-        self, prompt: str, task_type: str = "general", max_cost: float = 0.01
+        self, prompt: Any, task_type: str = "general", max_cost: float = 0.01
     ) -> Dict[str, Any]:
         logger.info(f"[ModelRouter] Forwarding task_type='{task_type}' to LLMGateway")
         try:
+            # বাংলা মন্তব্য: পেলোড নরমালাইজেশন — র-ইনপুট বিশ্লেষণ করে স্ট্রিং বা চ্যাট লিস্টে কনভার্ট করা হচ্ছে
+            normalized_prompt: str | list[dict[str, Any]] = ""
+            
+            if isinstance(prompt, str):
+                normalized_prompt = prompt
+            elif isinstance(prompt, list):
+                # If it's a messages list, verify structure
+                normalized_prompt = [
+                    {"role": item.get("role", "user"), "content": str(item.get("content", ""))}
+                    for item in prompt if isinstance(item, dict)
+                ]
+            elif isinstance(prompt, dict):
+                # Extract prompt text or list from dictionary
+                if "messages" in prompt:
+                    normalized_prompt = prompt["messages"]
+                else:
+                    normalized_prompt = str(prompt.get("prompt", prompt.get("content", str(prompt))))
+            else:
+                normalized_prompt = str(prompt)
+
             # Delegate directly to our new LiteLLM universal gateway
             response = await llm_gateway.acompletion(
-                prompt=prompt,
+                prompt=normalized_prompt,
                 task_type=task_type,
                 stream=False
             )

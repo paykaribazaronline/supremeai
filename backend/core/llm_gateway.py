@@ -85,7 +85,7 @@ class LLMGateway:
 
     async def acompletion(
         self,
-        prompt: str,
+        prompt: str | list[dict[str, Any]],
         task_type: str = "general",
         stream: bool = False,
         timeout: float = 12.0
@@ -95,9 +95,17 @@ class LLMGateway:
         """
         # Determine initial models by task difficulty
         difficulty = "easy"
+        
+        # Determine prompt text for complexity checking if it's a list
+        prompt_text = ""
+        if isinstance(prompt, str):
+            prompt_text = prompt
+        elif isinstance(prompt, list) and len(prompt) > 0:
+            prompt_text = str(prompt[-1].get("content", ""))
+
         if "reasoning" in task_type.lower() or "math" in task_type.lower() or "code" in task_type.lower():
             difficulty = "hard"
-        elif "agent" in task_type.lower():
+        elif "agent" in task_type.lower() or "analysis" in task_type.lower():
             difficulty = "medium"
 
         model_candidates = self.routing_policy.get("complexity_rules", {}).get(difficulty, [])
@@ -109,7 +117,11 @@ class LLMGateway:
             if m not in call_chain:
                 call_chain.append(m)
 
-        messages = [{"role": "user", "content": prompt}]
+        # বাংলা মন্তব্য: পেলোড নরমালাইজেশন — স্ট্রিং অথবা মেসেজ লিস্ট দুই ফরম্যাটই সাপোর্ট করে
+        if isinstance(prompt, list):
+            messages = prompt
+        else:
+            messages = [{"role": "user", "content": prompt}]
         
         if stream:
             return self._stream_completion(messages, call_chain, timeout)
