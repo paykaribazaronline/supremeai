@@ -29,7 +29,7 @@ import { WaveformVisualizer } from '../audio/WaveformVisualizer';
 // বাংলা মন্তব্য: চ্যাট এবং ভয়েস ওভাররাইডের জন্য ডামি কথোপকথন ডাটা ডিক্লেয়ার করা হচ্ছে
 const initialChat = [
   { id: 1, sender: 'Admin', text: 'Execute deployment check on Node 47.' },
-  { id: 2, sender: 'Aethel', text: 'Analyzing Node 47 (Analytics). Status: Nominal. Load: 38%. Connected.' },
+  { id: 2, sender: 'SupremeAI', text: 'Analyzing Node 47 (Analytics). Status: Nominal. Load: 38%. Connected.' },
   { id: 3, sender: 'System', text: 'Optimizing cluster nodes...' },
 ];
 
@@ -72,7 +72,7 @@ export function CommandCenter() {
       setIsSpeaking(true);
       setChatMessages(prev => [
         ...prev,
-        { id: Date.now(), sender: 'Aethel', text: text }
+        { id: Date.now(), sender: 'SupremeAI', text: text }
       ]);
       playbackRef.current?.play(text);
       
@@ -80,9 +80,9 @@ export function CommandCenter() {
       setTimeout(() => setIsSpeaking(false), text.length * 50 + 1000);
     };
 
-    window.addEventListener('aethel_speak', handleAethelSpeak);
+    window.addEventListener('supremeai_speak', handleAethelSpeak);
     return () => {
-      window.removeEventListener('aethel_speak', handleAethelSpeak);
+      window.removeEventListener('supremeai_speak', handleAethelSpeak);
     };
   }, []);
 
@@ -106,7 +106,7 @@ export function CommandCenter() {
     setChatMessages(prev => [
       ...prev,
       { id: Date.now(), sender: 'Admin', text: chatInput },
-      { id: Date.now() + 1, sender: 'Aethel', text: `Processing command "${chatInput}"... Authorization confirmed.` }
+      { id: Date.now() + 1, sender: 'SupremeAI', text: `Processing command "${chatInput}"... Authorization confirmed.` }
     ]);
     setChatInput('');
   };
@@ -147,7 +147,7 @@ export function CommandCenter() {
         id: 'central-orb',
         type: 'aethel',
         position: { x: 450, y: 250 },
-        data: { label: 'AETHEL CENTRAL ORC', isCentral: true },
+        data: { label: 'SUPREMEAI CENTRAL ORC', isCentral: true },
       },
       // Cluster 1: AI & Brain (Top Left)
       { id: 'node-router', type: 'aethel', position: { x: 250, y: 100 }, data: { label: 'Model Router', type: 'model-router' } },
@@ -212,10 +212,10 @@ export function CommandCenter() {
       <header className="flex justify-between items-center border-b border-[var(--border-accent)] pb-2 mb-4 transition-colors duration-500">
         <div className="flex items-center gap-2">
           <span className="text-[var(--accent-primary)] animate-pulse">▲</span>
-          <span className="text-xs font-bold tracking-widest text-[var(--accent-primary)] uppercase">AETHEL ORCHESTRATOR | ADM-01</span>
+          <span className="text-xs font-bold tracking-widest text-[var(--accent-primary)] uppercase">SUPREMEAI ORCHESTRATOR | ADM-01</span>
         </div>
         <div className="text-sm font-bold tracking-widest text-[var(--accent-primary)] uppercase flex items-center gap-4">
-          AETHEL CORE
+          SUPREMEAI CORE
           <button 
             onClick={toggleTheme} 
             className="p-1.5 rounded-full bg-[var(--bg-panel)] border border-[var(--border-accent)] hover:scale-110 transition-transform cursor-pointer"
@@ -292,7 +292,7 @@ export function CommandCenter() {
           <div className="border-b border-[#00f3ff]/20 p-4 flex justify-between items-center bg-[#070d22]/80">
             <div className="flex items-center gap-2">
               <Cpu size={16} className="text-[#00f3ff] animate-pulse" />
-              <span className="text-sm font-black tracking-widest text-[#00f3ff] uppercase drop-shadow-[0_0_8px_#00f3ff]">AETHEL NEXUS</span>
+              <span className="text-sm font-black tracking-widest text-[#00f3ff] uppercase drop-shadow-[0_0_8px_#00f3ff]">SUPREMEAI NEXUS</span>
             </div>
             <Maximize2 size={14} className="text-[#00f3ff] cursor-pointer hover:scale-110 transition-transform" onClick={() => setIsCentralPanelOpen(false)} />
           </div>
@@ -301,7 +301,7 @@ export function CommandCenter() {
             {chatMessages.map(msg => (
               <div key={msg.id} className="text-[11px] leading-relaxed border-b border-cyan-900/10 pb-3">
                 <span className={`font-bold tracking-wider mr-1.5 ${
-                  msg.sender === 'Admin' ? 'text-slate-300' : msg.sender === 'Aethel' ? 'text-[#00f3ff]' : 'text-emerald-500'
+                  msg.sender === 'Admin' ? 'text-slate-300' : msg.sender === 'SupremeAI' ? 'text-[#00f3ff]' : 'text-emerald-500'
                 }`}>
                   {msg.sender}:
                 </span>
@@ -316,7 +316,7 @@ export function CommandCenter() {
               value={chatInput}
               onChange={e => setChatInput(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && handleSendChat()}
-              placeholder="[Aethel Nexus Command...]"
+              placeholder="[SupremeAI Nexus Command...]"
               className="flex-grow bg-[#030611] border border-cyan-500/30 focus:border-[#00f3ff]/80 rounded-lg px-3 py-2 text-[11px] text-[#00f3ff] outline-none placeholder:text-slate-600 font-mono tracking-wide"
             />
             <button onClick={handleSendChat} className="bg-[#00f3ff]/20 hover:bg-[#00f3ff]/40 hover:shadow-[0_0_10px_#00f3ff] text-[#00f3ff] p-2 rounded-lg transition-all">

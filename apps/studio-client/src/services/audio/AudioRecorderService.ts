@@ -72,7 +72,7 @@ export class AudioRecorderService {
         } else if (data.type === 'response_chunk') {
           // This goes to the playback service via global event or store, 
           // but for simplicity, we dispatch a custom event
-          window.dispatchEvent(new CustomEvent('aethel_speak', { detail: data.text }));
+          window.dispatchEvent(new CustomEvent('supremeai_speak', { detail: data.text }));
         }
       } catch (e) {
         console.warn('⚠️ [AudioRecorderService] Received non-JSON message or error parsing.', e);

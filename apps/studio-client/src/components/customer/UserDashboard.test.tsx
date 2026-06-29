@@ -5,7 +5,7 @@ import { UserDashboard } from './UserDashboard';
 const defaultProps = {
   customerMessages: [
     { id: 1, sender: 'User', text: 'Hello', timestamp: '10:00 AM' },
-    { id: 2, sender: 'Aethel', text: 'Hi there', timestamp: '10:01 AM' },
+    { id: 2, sender: 'SupremeAI', text: 'Hi there', timestamp: '10:01 AM' },
   ],
   customerInput: '',
   setCustomerInput: vi.fn(),

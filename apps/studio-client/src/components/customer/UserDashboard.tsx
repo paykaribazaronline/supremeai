@@ -54,7 +54,7 @@ export interface Project {
 
 export interface ChatMessage {
   id: number;
-  sender: 'User' | 'Aethel';
+  sender: 'User' | 'SupremeAI';
   text: string;
   timestamp?: string;
 }

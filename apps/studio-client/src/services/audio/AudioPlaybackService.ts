@@ -20,7 +20,7 @@ export class AudioPlaybackService {
 
   private loadVoices() {
     const voices = this.synth.getVoices();
-    // Try to find a robotic or British female voice for Aethel
+    // Try to find a robotic or British female voice for SupremeAI
     this.voice = voices.find(v => v.name.includes('Google UK English Female') || v.name.includes('Zira') || v.name.includes('Samantha')) || voices[0];
   }
 
@@ -38,7 +38,7 @@ export class AudioPlaybackService {
       utterance.voice = this.voice;
     }
     
-    // Cyber-Filter adjustments (Pitch & Rate) to simulate JARVIS/Aethel
+    // Cyber-Filter adjustments (Pitch & Rate) to simulate JARVIS/SupremeAI
     utterance.pitch = 0.8; // Slightly lower pitch
     utterance.rate = 1.1;  // Slightly faster
 
@@ -49,7 +49,7 @@ export class AudioPlaybackService {
     let osc: OscillatorNode | null = null;
 
     utterance.onstart = () => {
-      console.log('🗣️ [AudioPlaybackService] Aethel started speaking.');
+      console.log('🗣️ [AudioPlaybackService] SupremeAI started speaking.');
       // Create a dummy oscillator to feed the analyser so the visualizer moves
       if (this.audioContext.state === 'suspended') {
         this.audioContext.resume();
@@ -70,7 +70,7 @@ export class AudioPlaybackService {
     };
 
     utterance.onend = () => {
-      console.log('🛑 [AudioPlaybackService] Aethel finished speaking.');
+      console.log('🛑 [AudioPlaybackService] SupremeAI finished speaking.');
       if (osc) {
         osc.stop();
         osc.disconnect();
