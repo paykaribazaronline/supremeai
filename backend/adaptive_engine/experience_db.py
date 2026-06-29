@@ -111,6 +111,10 @@ class ExperienceDatabase:
         request_text = exp.request or ""
         embedding = self._embed(request_text)
         embedding_blob = json.dumps(embedding).encode() if embedding else None
+        
+        # Determine the code or response text to save in vector metadata
+        response_text = exp.generated_code or exp.action_taken or ""
+        
         with sqlite3.connect(self.db_path) as conn:
             cursor = conn.cursor()
             cursor.execute(
@@ -141,16 +145,16 @@ class ExperienceDatabase:
             conn.commit()
             exp_id = int(cursor.lastrowid or 0)
         if embedding:
-            self._upsert_vector_db(exp_id, request_text, embedding, exp.result)
+            self._upsert_vector_db(exp_id, request_text, embedding, exp.result, response_text)
         return exp_id
 
-    def _upsert_vector_db(self, exp_id: int, text: str, embedding: list[float], result: str) -> None:
+    def _upsert_vector_db(self, exp_id: int, text: str, embedding: list[float], result: str, response_text: str = "") -> None:
         try:
             if self.chroma_collection:
                 self.chroma_collection.upsert(
                     ids=[str(exp_id)],
                     embeddings=[embedding],
-                    metadatas=[{"result": result}],
+                    metadatas=[{"result": result, "response": response_text}],
                     documents=[text],
                 )
         except Exception:
@@ -160,7 +164,7 @@ class ExperienceDatabase:
                 from qdrant_client.models import PointStruct
                 self.qdrant_client.upsert(
                     collection_name=self.qdrant_collection,
-                    points=[PointStruct(id=exp_id, vector=embedding, payload={"result": result, "text": text})],
+                    points=[PointStruct(id=exp_id, vector=embedding, payload={"result": result, "text": text, "response": response_text})],
                 )
         except Exception:
             pass
@@ -185,10 +189,35 @@ class ExperienceDatabase:
                 ids = res.get("ids", [[]])[0]
                 metadatas = res.get("metadatas", [[]])[0]
                 distances = res.get("distances", [[]])[0]
-                for idx, meta, dist in zip(ids, metadatas, distances, strict=True):
-                    score = 1 - dist
+                documents = res.get("documents", [[]])[0]
+                for idx, meta, dist, doc in zip(ids, metadatas, distances, documents, strict=True):
+                    # ChromaDB distance can be Euclidean (L2). Convert to approximate similarity
+                    score = 1.0 - float(dist)
                     if score >= threshold:
-                        hits.append({"source": "chroma", "id": idx, "score": score, "meta": meta})
+                        hits.append({
+                            "source": "chroma",
+                            "id": idx,
+                            "score": score,
+                            "meta": meta,
+                            "response": meta.get("response", ""),
+                            "text": doc
+                        })
+            elif self.qdrant_client:
+                res = self.qdrant_client.search(
+                    collection_name=self.qdrant_collection,
+                    query_vector=embedding,
+                    limit=limit
+                )
+                for hit in res:
+                    if hit.score >= threshold:
+                        hits.append({
+                            "source": "qdrant",
+                            "id": hit.id,
+                            "score": hit.score,
+                            "meta": hit.payload,
+                            "response": hit.payload.get("response", ""),
+                            "text": hit.payload.get("text", "")
+                        })
         except Exception:
             pass
         return hits

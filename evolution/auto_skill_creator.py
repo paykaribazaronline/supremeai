@@ -70,6 +70,20 @@ class AutoSkillCreator:
                 "generated_code": code,
                 "requirement": skill.get("requirement", "")
             }
+            
+            # বাংলা মন্তব্য: সফল প্রম্পট ও কোড প্যাটার্ন এক্সপেরিয়েন্স ডাটাবেসে ভেক্টরাইজড আকারে সেভ করা হলো
+            try:
+                from adaptive_engine.experience_db import ExperienceDatabase, Experience
+                db = ExperienceDatabase()
+                db.record_experience(Experience(
+                    request=skill.get("requirement", "") or f"Generate skill: {skill_name}",
+                    generated_code=code,
+                    result="success"
+                ))
+            except Exception as e:
+                import loguru
+                loguru.logger.error(f"Failed to record verified skill experience: {e}")
+
             task = create_pending_task(
                 task_type=TaskType.SKILL_GENERATION,
                 payload=payload,

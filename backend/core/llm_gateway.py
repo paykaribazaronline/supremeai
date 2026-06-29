@@ -21,6 +21,10 @@ class LLMGateway:
         litellm.drop_params = True
         litellm.telemetry = False
 
+        # Initialize semantic cache engine
+        from core.semantic_cache import SemanticCache
+        self.cache = SemanticCache()
+
     def _load_routing_policy(self) -> Dict[str, Any]:
         try:
             if os.path.exists(POLICY_PATH):
@@ -107,6 +111,19 @@ class LLMGateway:
             difficulty = "hard"
         elif "agent" in task_type.lower() or "analysis" in task_type.lower():
             difficulty = "medium"
+
+        # ── Intercept Semantic Cache ──
+        # বাংলা মন্তব্য: এপিআই কল করার পূর্বে সেমান্টিক ক্যাশ চেক করা হচ্ছে
+        if prompt_text and not stream:
+            cached_res = await self.cache.query_similar(prompt_text, task_type=task_type)
+            if cached_res:
+                return {
+                    "success": True,
+                    "text": cached_res.response,
+                    "model": cached_res.model,
+                    "cost": 0.0,
+                    "cached": True
+                }
 
         model_candidates = self.routing_policy.get("complexity_rules", {}).get(difficulty, [])
         fallbacks = self.routing_policy.get("fallback_chain", [])
