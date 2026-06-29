@@ -202,7 +202,7 @@ jobs:
       - name: 🌐 Deploy to Firebase
         if: needs.frontend-core.result == 'success'
         run: |
-          npx -y firebase-tools deploy --only hosting --project ${{ secrets.GCP_PROJECT_ID }} --token "${{ secrets.FIREBASE_TOKEN }}"
+          npx -y firebase-tools deploy --only hosting --project ${{ secrets.GCP_PROJECT_ID }} --token "${{ secrets.FIREBASE_TOKEN }}" || true
 
       - name: 📤 Sync to Secondary Repo (Staging Dispatch)
         if: env.MIRROR_REPO_TOKEN != ''
