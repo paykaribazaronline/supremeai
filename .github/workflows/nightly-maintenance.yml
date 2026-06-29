@@ -17,8 +17,8 @@ jobs:
     name: 🤖 AI Code Review
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v6
         with: { python-version: '${{ env.PYTHON_VERSION }}', cache: 'pip' }
       - run: pip install google-generativeai
       - env: { GEMINI_API_KEY: '${{ secrets.GEMINI_API_KEY }}' }
@@ -28,8 +28,8 @@ jobs:
     name: 🧪 AI Validation (DeepEval)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v6
         with: { python-version: '${{ env.PYTHON_VERSION }}', cache: 'pip' }
       - run: pip install deepeval google-generativeai openai
       - env: { GEMINI_API_KEY: '${{ secrets.GEMINI_API_KEY }}', OPENAI_API_KEY: '${{ secrets.OPENAI_API_KEY }}' }
@@ -40,10 +40,10 @@ jobs:
     runs-on: ubuntu-latest
     permissions: { contents: read, id-token: write }
     steps:
-      - uses: actions/checkout@v4
-      - uses: google-github-actions/auth@v2
+      - uses: actions/checkout@v7
+      - uses: google-github-actions/auth@v3
         with: { credentials_json: '${{ secrets.GCP_SA_KEY }}' }
-      - uses: google-github-actions/setup-gcloud@v2
+      - uses: google-github-actions/setup-gcloud@v3
       - run: |
           gcloud run revisions list --service=supremeai-api --region=${{ vars.GCP_REGION || 'us-central1' }} --format="value(name)" --sort-by="~createTime" | tail -n +6 | xargs -r -I {} gcloud run revisions delete {} --region=${{ vars.GCP_REGION || 'us-central1' }} --quiet
 
@@ -71,7 +71,7 @@ jobs:
     name: 🔄 24h Failover Server Update
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Verify 24h Stability and Deploy
         env:
           GCP_BACKUP_REGION: ${{ vars.GCP_BACKUP_REGION || 'us-east1' }}
@@ -86,8 +86,8 @@ jobs:
     runs-on: ubuntu-latest
     permissions: { contents: write }
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v6
         with: { python-version: '${{ env.PYTHON_VERSION }}', cache: 'pip' }
       - name: Run Test Generator
         env: { GEMINI_API_KEY: '${{ secrets.GEMINI_API_KEY }}' }

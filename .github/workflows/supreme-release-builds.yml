@@ -19,7 +19,7 @@ jobs:
           - target: exe
             os: windows-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           lfs: true
 
@@ -37,7 +37,7 @@ jobs:
            dart run flutter_launcher_icons
            flutter build apk --release --target-platform android-arm64
       - if: matrix.target == 'apk'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: supremeai-mobile-apk
           path: apps/mobile/build/app/outputs/flutter-apk/*release*.apk
@@ -51,7 +51,7 @@ jobs:
            pnpm turbo run build --filter=supremeai-vscode
            cd tools/vscode-extension && npx @vscode/vsce package --no-dependencies
       - if: matrix.target == 'vsix'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: supremeai-vscode-vsix
           path: tools/vscode-extension/*.vsix
@@ -66,7 +66,7 @@ jobs:
           cd apps/studio-client
           npx electron-builder --publish=never --config.compression=store
       - if: matrix.target == 'exe'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: supremeai-studio-windows-exe
           path: apps/studio-client/dist/*.exe
