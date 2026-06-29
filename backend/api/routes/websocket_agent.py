@@ -5,10 +5,13 @@ import json
 import os
 
 import google.generativeai as genai
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter
+from fastapi import WebSocket
+from fastapi import WebSocketDisconnect
 from PIL import Image
 
 from tools.agent_tools import SUPREME_TOOLS
+
 
 router = APIRouter(prefix="/ws", tags=["Neural Engine Stream"])
 
