@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "npx serve",
     "start": "npx serve",
-    "build": "echo 'No build required for Vanilla JS'"
+    "build": "mkdir -p dist && cp index.html admin.html customer.html script.js style.css api.js dist/ 2>/dev/null || true"
   },
   "dependencies": {},
   "devDependencies": {}
