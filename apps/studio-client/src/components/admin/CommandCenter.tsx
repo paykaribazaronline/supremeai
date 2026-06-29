@@ -128,7 +128,7 @@ export function CommandCenter() {
     if (node.id === 'central-orb') {
       setIsCentralPanelOpen(prev => !prev);
     } else if (node.data?.type) {
-      // Map node types to tabs
+      // বাংলা মন্তব্য: নোড ক্লিকে সরাসরি সংশ্লিষ্ট ট্যাবে নেভিগেট করা হচ্ছে
       const typeMap: Record<string, string> = {
         'model-router': 'model-router',
         'provider-map': 'model-router',
@@ -149,14 +149,7 @@ export function CommandCenter() {
         'config': 'config'
       };
       if (typeMap[node.data.type]) {
-        // Open the chat panel
-        setIsCentralPanelOpen(true);
-        // Add a message
-        setChatMessages(prev => [
-          ...prev,
-          { id: Date.now(), sender: 'System', text: `Accessing diagnostics for ${node.data.label}...` }
-        ]);
-        // Open the overlay
+        // সরাসরি ট্যাবে নেভিগেট — চ্যাট প্যানেল ওপেন করার দরকার নেই
         setAdminSubTab(typeMap[node.data.type]);
       }
     }
@@ -284,8 +277,8 @@ export function CommandCenter() {
             </ReactFlow>
           </div>
 
-          {/* Java Worker Metrics Widget Overlay */}
-          <div className="absolute top-4 left-4 w-80 z-20">
+          {/* Java Worker Metrics Widget Overlay — ক্লিক ইভেন্ট ReactFlow-এ যাবে না */}
+          <div className="absolute top-4 left-4 w-80 z-20" onPointerDown={e => e.stopPropagation()} onClick={e => e.stopPropagation()}>
             <ServiceHealthMetrics />
           </div>
 
