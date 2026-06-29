@@ -1,6 +1,10 @@
 import asyncio
 import os
+import json
+import base64
+import io
 
+from PIL import Image
 import google.generativeai as genai
 from fastapi import APIRouter
 from fastapi import WebSocket
@@ -50,6 +54,7 @@ manager = ConnectionManager()
 async def websocket_chat_endpoint(websocket: WebSocket):
     """
     Real-time bidirectional WebSocket for Token-by-Token streaming and Agentic Tool execution.
+    Supports both plain text (Flutter) and JSON payloads with base64 images (Web Chat).
     """
     await manager.connect(websocket)
     
@@ -60,7 +65,36 @@ async def websocket_chat_endpoint(websocket: WebSocket):
         while True:
             # ১. ফ্রন্টএন্ড থেকে ইউজার প্রম্পট রিসিভ করা
             user_message = await websocket.receive_text()
-            print(f"👤 [USER]: {user_message}")
+            
+            # ==========================================
+            # 👁️ MULTI-MODAL PAYLOAD PARSING
+            # ==========================================
+            try:
+                # Attempt to parse as JSON (New Web Client)
+                payload = json.loads(user_message)
+                text_prompt = payload.get("text", "")
+                image_base64 = payload.get("image_base64", None)
+                
+                content_to_send = [text_prompt] if text_prompt else []
+                
+                if image_base64:
+                    # Strip the data URL prefix if it exists (e.g., "data:image/jpeg;base64,")
+                    if "," in image_base64:
+                        image_base64 = image_base64.split(",")[1]
+                        
+                    image_data = base64.b64decode(image_base64)
+                    image_obj = Image.open(io.BytesIO(image_data))
+                    content_to_send.append(image_obj)
+                    print("📸 [WS] Image payload received and decoded.")
+                    
+                # If only text was sent in JSON
+                if len(content_to_send) == 1 and isinstance(content_to_send[0], str):
+                    content_to_send = content_to_send[0]
+
+            except json.JSONDecodeError:
+                # Fallback to plain text (Existing Flutter Client)
+                print(f"👤 [USER - Text Only]: {user_message}")
+                content_to_send = user_message
 
             if not API_KEY:
                 await websocket.send_text("⚠️ API Key is missing! Cannot process request.\n[DONE]")
@@ -69,7 +103,7 @@ async def websocket_chat_endpoint(websocket: WebSocket):
             try:
                 # ২. AI-কে প্রম্পট পাঠানো (Stream = True)
                 response = await chat_session.send_message_async(
-                    user_message, 
+                    content_to_send, 
                     stream=True
                 )
 
