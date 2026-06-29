@@ -10,8 +10,10 @@ from core.config import settings
 from core.logging_config import setup_logging
 from database import db as supabase_db
 from api.routes.task_workspace import router as workspace_task_router
+from api.routes import websocket_agent
 
 app.include_router(workspace_task_router)
+app.include_router(websocket_agent.router)
 
 setup_logging()
 
