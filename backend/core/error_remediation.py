@@ -5,6 +5,7 @@ from loguru import logger
 
 try:
     from qdrant_client import QdrantClient
+
     HAS_QDRANT = True
 except ImportError:
     HAS_QDRANT = False
