@@ -93,9 +93,10 @@ jobs:
           
       - name: 🔧 SupremeAI Auto-Fix Engine
         if: failure()
+        working-directory: backend
         env:
           SUPREMEAI_API_KEY: ${{ secrets.SUPREMEAI_API_KEY }}
-        run: python .github/scripts/ci-auto-fix-v3.py --job backend-test --mode fix
+        run: poetry run python ../.github/scripts/ci-auto-fix-v3.py --job backend-test --mode fix
 
   security-audit:
     name: 🛡️ CodeQL Security Scan
