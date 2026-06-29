@@ -551,8 +551,13 @@ def admin_firebase_login(payload: AdminFirebaseLoginRequest):
     id_token = payload.id_token
 
     # ── Easy Login: Decode Google/Firebase ID Token without strict verification for now ──
+    is_production = getattr(settings, "env", "local").lower() == "production"
+
     try:
+        # বাংলা মন্তব্য: প্রোডাকশন এনভায়রনমেন্টে মক টোকেন বাইপাস সম্পূর্ণ নিষিদ্ধ করা হলো
         if id_token.startswith("mock-"):
+            if is_production:
+                raise HTTPException(status_code=403, detail="Mock tokens are strictly forbidden in production.")
             uid = "mock-admin-uid"
             email = "niloyjoy7@gmail.com"
             logger.warning(
@@ -565,8 +570,11 @@ def admin_firebase_login(payload: AdminFirebaseLoginRequest):
             email = decoded_token.get("email", "")
             logger.info(f"Verified Firebase token for email: {email}")
         else:
-            # Decode JWT without signature verification (easy mode for now, relying on Google login from frontend)
-            # বাংলা মন্তব্য: ফায়ারবেস এডমিন SDK না থাকলে সিগনেচার ছাড়াই ডিকোড করে এগিয়ে যাওয়া হবে (লোকাল বা টেস্ট এনভায়রনমেন্ট)
+            # Decode JWT without signature verification (easy mode for local/dev, blocked in production)
+            # বাংলা মন্তব্য: ফায়ারবেস এডমিন SDK না থাকলে প্রোডাকশনে সরাসরি রিজেক্ট করা হবে
+            if is_production:
+                raise HTTPException(status_code=401, detail="Firebase Admin SDK is offline. Cannot authenticate.")
+            
             import base64
             import json
 
@@ -578,8 +586,10 @@ def admin_firebase_login(payload: AdminFirebaseLoginRequest):
             uid = decoded_token.get("sub", "mock-admin-uid")
             email = decoded_token.get("email", "")
             logger.info(
-                f"Extracted admin email from token without verification: {email}"
+                f"Extracted admin email from token without verification (Dev Mode): {email}"
             )
+    except HTTPException:
+        raise
     except Exception as e:
         logger.exception("Token verification/decoding failed")
         raise HTTPException(

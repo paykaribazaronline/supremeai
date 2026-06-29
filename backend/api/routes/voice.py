@@ -3,7 +3,7 @@ from fastapi import HTTPException
 from fastapi.responses import StreamingResponse
 from loguru import logger
 
-from backend.tools.multilingual_tts import MultilingualTTS
+from tools.multilingual_tts import MultilingualTTS
 
 
 router = APIRouter()
