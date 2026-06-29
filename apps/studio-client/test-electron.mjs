@@ -1,1 +1,2 @@
-import { app, BrowserWindow } from 'electron'; console.log('works')
+import { app, BrowserWindow } from "electron";
+console.log("works");
