@@ -65,7 +65,7 @@ jobs:
         with:
           filters: |
             backend: ['backend/**', 'packages/shared-types/**', 'Dockerfile', '.github/workflows/**', '.github/scripts/**']
-            frontend: ['apps/studio-client/**', 'apps/web-chat/**', 'tools/vscode-extension/**', 'packages/**', '.github/workflows/**', '.github/scripts/**']
+            frontend: ['apps/studio-client/**', 'apps/web-chat/**', 'apps/desktop/**', 'tools/vscode-extension/**', 'packages/**', '.github/workflows/**', '.github/scripts/**']
 
   backend-core:
     name: 🐍 Backend (Test & Auto-Fix)
