@@ -41,20 +41,58 @@ class AutoSkillCreator:
         )
 
     def register_new_skill(self, skill: Dict[str, Any]) -> Dict[str, Any]:
+        # বাংলা মন্তব্য: কোড সরাসরি ফাইলে সেভ না করে সাময়িকভাবে কম্পাইল টেস্ট করা হচ্ছে
+        from models.pending_tasks import create_pending_task, TaskType
         skill_name = skill.get("skill_name", "unknown")
         filename = f"{skill_name}.py"
         code = skill.get("generated_code") or self.generate_skill_code(skill_name, skill.get("requirement", ""))
+        
+        # Write to temporary file for testing
+        temp_filename = f".temp_{skill_name}.py"
         os.makedirs(self.skills_dir, exist_ok=True)
-        path = os.path.join(self.skills_dir, filename)
-        with open(path, "w", encoding="utf-8") as f:
+        temp_path = os.path.join(self.skills_dir, temp_filename)
+        with open(temp_path, "w", encoding="utf-8") as f:
             f.write(code)
-        return {
-            "skill_name": skill_name,
-            "filename": filename,
-            "path": path,
-            "status": "registered",
-            "registered_at": datetime.now(timezone.utc).isoformat(),
-        }
+            
+        test_result = self.test_new_skill(temp_path)
+        
+        # Clean up temp file
+        if os.path.exists(temp_path):
+            try:
+                os.remove(temp_path)
+            except Exception:
+                pass
+                
+        if test_result["passed"]:
+            # বাংলা মন্তব্য: টেস্ট পাস হলে সরাসরি রাইট না করে HITL Approval Manager-এ পেন্ডিং কিউতে পাঠানো হচ্ছে
+            payload = {
+                "skill_name": skill_name,
+                "generated_code": code,
+                "requirement": skill.get("requirement", "")
+            }
+            task = create_pending_task(
+                task_type=TaskType.SKILL_GENERATION,
+                payload=payload,
+                created_by="auto_skill_creator"
+            )
+            return {
+                "skill_name": skill_name,
+                "filename": filename,
+                "status": "pending_approval",
+                "task_id": task.task_id,
+                "registered_at": datetime.now(timezone.utc).isoformat(),
+                "test_passed": True,
+                "test_result": test_result
+            }
+        else:
+            return {
+                "skill_name": skill_name,
+                "filename": filename,
+                "status": "failed_verification",
+                "registered_at": datetime.now(timezone.utc).isoformat(),
+                "test_passed": False,
+                "test_result": test_result
+            }
 
     def test_new_skill(self, skill_path: str) -> Dict[str, Any]:
         if not os.path.exists(skill_path):
@@ -86,9 +124,6 @@ class AutoSkillCreator:
                 "status": "generated",
                 "generated_at": datetime.now(timezone.utc).isoformat(),
             }
-            registered = self.register_new_skill(proposal)
-            tested = self.test_new_skill(registered["path"])
-            registered["test_passed"] = tested.get("passed", False)
-            registered["test_result"] = tested
-            created.append(registered)
+            res = self.register_new_skill(proposal)
+            created.append(res)
         return created

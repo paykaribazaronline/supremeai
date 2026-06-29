@@ -51,8 +51,8 @@ Reason through the requirements and any previous failure errors. Then output:
 1. Thought: Your logical reasoning of how to build or fix the skill.
 2. Code: The complete Python script inside a single block enclosed in ```python and ```. Do not include markdown text inside the python block.
 """
-            # Initial code generation uses hard model; subsequent self-correction turns use analysis model to save cost
-            task_type = "code_generation" if turn == 1 else "analysis"
+            # Turn 1 is hard, Turn 2 is medium/easy (analysis), Turn 3 escalates back to hard (code_generation) to fix complex logical bugs
+            task_type = "code_generation" if turn in (1, 3) else "analysis"
             
             try:
                 # Call LLM router
