@@ -11,6 +11,7 @@ import {
   Send,
   Mic,
   Maximize2,
+  Minimize2,
   Settings,
   Activity,
   Shield,
@@ -19,7 +20,13 @@ import {
   Sun,
   Moon,
   Flame,
-  Binary
+  Binary,
+  MessageSquare,
+  Globe,
+  TerminalSquare,
+  X,
+  Eye,
+  EyeOff
 } from 'lucide-react';
 import AethelNode from './AethelNode';
 import { useAdminStore } from '../../store/adminStore';
@@ -43,6 +50,14 @@ export function CommandCenter() {
   const [chatInput, setChatInput] = useState('');
   const [voiceActive] = useState(true);
   const [isCentralPanelOpen, setIsCentralPanelOpen] = useState(false);
+
+  // বাংলা মন্তব্য: ৩টি প্যানেলের (চ্যাট, ব্রাউজার, টার্মিনাল) ভিজিবিলিটি স্টেট
+  const [showChat, setShowChat] = useState(true);
+  const [showBrowser, setShowBrowser] = useState(true);
+  const [showTerminal, setShowTerminal] = useState(true);
+  const [terminalHistory, setTerminalHistory] = useState<string[]>(['$ SupremeAI Terminal v3.0 — Ready.', '$ Type a command and press Enter...']);
+  const [terminalInput, setTerminalInput] = useState('');
+  const [browserUrl, setBrowserUrl] = useState('https://supremeai-a.web.app');
   const setAdminSubTab = useAdminStore(state => state.setAdminSubTab);
   const { theme, toggleTheme } = useTheme();
 
@@ -104,6 +119,14 @@ export function CommandCenter() {
 
   // Custom node types for ReactFlow
   const nodeTypes = useMemo(() => ({ aethel: AethelNode }), []);
+
+  // বাংলা মন্তব্য: টার্মিনাল কমান্ড সাবমিট হ্যান্ডলার
+  const handleTerminalSubmit = () => {
+    if (!terminalInput.trim()) return;
+    const cmd = terminalInput.trim();
+    setTerminalHistory(prev => [...prev, `$ ${cmd}`, `[SupremeAI] Executing: "${cmd}"...`, `[SupremeAI] Command completed.`]);
+    setTerminalInput('');
+  };
 
   const handleSendChat = () => {
     if (!chatInput.trim()) return;
@@ -315,43 +338,142 @@ export function CommandCenter() {
           </div>
         </div>
 
-        {/* Right Sidebar: AI Assistant Glassmorphic Chat Panel (SLIDING OVERLAY) */}
-        <div className={`absolute top-0 right-0 h-full w-[350px] bg-[var(--chat-bg)] border-l border-[var(--border-accent)] shadow-lg backdrop-blur-xl transform transition-all duration-500 ease-in-out z-50 flex flex-col ${isCentralPanelOpen ? 'translate-x-0' : 'translate-x-full'}`}>
-          <div className="border-b border-[var(--border-accent)] p-4 flex justify-between items-center bg-[var(--bg-cell)] transition-colors duration-500">
-            <div className="flex items-center gap-2">
-              <Cpu size={16} className="text-[var(--accent-primary)] animate-pulse" />
-              <span className="text-sm font-black tracking-widest text-[var(--accent-primary)] uppercase">SUPREMEAI NEXUS</span>
-            </div>
-            <Maximize2 size={14} className="text-[var(--accent-primary)] cursor-pointer hover:scale-110 transition-transform" onClick={() => setIsCentralPanelOpen(false)} />
-          </div>
-
-          <div className="flex-1 overflow-y-auto p-4 space-y-4">
-            {chatMessages.map(msg => (
-              <div key={msg.id} className="text-[11px] leading-relaxed border-b border-[var(--border-accent)] pb-3">
-                <span className={`font-bold tracking-wider mr-1.5 ${
-                  msg.sender === 'Admin' ? 'text-[var(--text-secondary)]' : msg.sender === 'SupremeAI' ? 'text-[var(--accent-primary)]' : 'text-[var(--accent-secondary)]'
-                }`}>
-                  {msg.sender}:
-                </span>
-                <span className="text-[var(--text-secondary)]">{msg.text}</span>
+        {/* ═══ CENTRAL ORC WORKSPACE — চ্যাট, ব্রাউজার, টার্মিনাল ═══ */}
+        {isCentralPanelOpen && (
+          <div className="absolute inset-0 z-50 flex flex-col bg-[var(--bg-main)]/95 backdrop-blur-xl" onPointerDown={e => e.stopPropagation()} onClick={e => e.stopPropagation()}>
+            {/* Header Bar */}
+            <div className="flex items-center justify-between px-4 py-2 border-b border-[var(--border-accent)] bg-[var(--bg-cell)] transition-colors duration-500">
+              <div className="flex items-center gap-2">
+                <Cpu size={14} className="text-[var(--accent-primary)] animate-pulse" />
+                <span className="text-xs font-black tracking-widest text-[var(--accent-primary)] uppercase">SUPREMEAI CENTRAL ORC</span>
               </div>
-            ))}
-          </div>
+              
+              {/* Panel Toggle Buttons */}
+              <div className="flex items-center gap-2">
+                <button onClick={() => setShowChat(p => !p)} className={`flex items-center gap-1 px-2 py-1 rounded text-[9px] font-bold uppercase tracking-wider transition-all ${showChat ? 'bg-[var(--accent-primary)]/20 text-[var(--accent-primary)] border border-[var(--accent-primary)]/30' : 'text-[var(--text-secondary)] border border-transparent hover:border-[var(--border-accent)]'}`} title="Toggle Chat">
+                  <MessageSquare size={10} />
+                  {showChat ? <Eye size={9} /> : <EyeOff size={9} />}
+                  Chat
+                </button>
+                <button onClick={() => setShowBrowser(p => !p)} className={`flex items-center gap-1 px-2 py-1 rounded text-[9px] font-bold uppercase tracking-wider transition-all ${showBrowser ? 'bg-[var(--accent-primary)]/20 text-[var(--accent-primary)] border border-[var(--accent-primary)]/30' : 'text-[var(--text-secondary)] border border-transparent hover:border-[var(--border-accent)]'}`} title="Toggle Browser">
+                  <Globe size={10} />
+                  {showBrowser ? <Eye size={9} /> : <EyeOff size={9} />}
+                  Browser
+                </button>
+                <button onClick={() => setShowTerminal(p => !p)} className={`flex items-center gap-1 px-2 py-1 rounded text-[9px] font-bold uppercase tracking-wider transition-all ${showTerminal ? 'bg-[var(--accent-primary)]/20 text-[var(--accent-primary)] border border-[var(--accent-primary)]/30' : 'text-[var(--text-secondary)] border border-transparent hover:border-[var(--border-accent)]'}`} title="Toggle Terminal">
+                  <TerminalSquare size={10} />
+                  {showTerminal ? <Eye size={9} /> : <EyeOff size={9} />}
+                  Terminal
+                </button>
+              </div>
 
-          <div className="p-4 border-t border-[var(--border-accent)] bg-[var(--bg-cell)] flex gap-2 transition-colors duration-500">
-            <input
-              type="text"
-              value={chatInput}
-              onChange={e => setChatInput(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && handleSendChat()}
-              placeholder="[SupremeAI Nexus Command...]"
-              className="flex-grow bg-[var(--chat-input-bg)] border border-[var(--border-accent)] focus:border-[var(--accent-primary)] rounded-lg px-3 py-2 text-[11px] text-[var(--accent-primary)] outline-none placeholder:text-[var(--text-secondary)] font-mono tracking-wide transition-colors duration-500"
-            />
-            <button onClick={handleSendChat} className="bg-[var(--accent-primary)]/20 hover:bg-[var(--accent-primary)]/40 text-[var(--accent-primary)] p-2 rounded-lg transition-all">
-              <Send size={14} />
-            </button>
+              <button onClick={() => setIsCentralPanelOpen(false)} className="p-1.5 hover:opacity-80 rounded-lg transition-colors" title="Close Workspace">
+                <X size={16} className="text-[var(--text-secondary)] hover:text-red-500" />
+              </button>
+            </div>
+
+            {/* Panels Container */}
+            <div className="flex-1 flex gap-2 p-2 overflow-hidden">
+              
+              {/* CHAT PANEL */}
+              {showChat && (
+                <div className="flex-1 flex flex-col bg-[var(--bg-panel)] border border-[var(--border-accent)] rounded-xl overflow-hidden transition-all duration-300">
+                  <div className="px-3 py-2 border-b border-[var(--border-accent)] bg-[var(--bg-cell)] flex items-center gap-2">
+                    <MessageSquare size={12} className="text-[var(--accent-primary)]" />
+                    <span className="text-[10px] font-bold text-[var(--accent-primary)] uppercase tracking-wider">AI Chat</span>
+                  </div>
+                  <div className="flex-1 overflow-y-auto p-3 space-y-3">
+                    {chatMessages.map(msg => (
+                      <div key={msg.id} className="text-[11px] leading-relaxed border-b border-[var(--border-accent)] pb-2">
+                        <span className={`font-bold tracking-wider mr-1.5 ${msg.sender === 'Admin' ? 'text-[var(--text-secondary)]' : msg.sender === 'SupremeAI' ? 'text-[var(--accent-primary)]' : 'text-[var(--accent-secondary)]'}`}>
+                          {msg.sender}:
+                        </span>
+                        <span className="text-[var(--text-secondary)]">{msg.text}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="p-2 border-t border-[var(--border-accent)] bg-[var(--bg-cell)] flex gap-2">
+                    <input
+                      type="text"
+                      value={chatInput}
+                      onChange={e => setChatInput(e.target.value)}
+                      onKeyDown={e => e.key === 'Enter' && handleSendChat()}
+                      placeholder="Ask SupremeAI..."
+                      className="flex-grow bg-[var(--chat-input-bg)] border border-[var(--border-accent)] focus:border-[var(--accent-primary)] rounded-lg px-3 py-1.5 text-[11px] text-[var(--accent-primary)] outline-none placeholder:text-[var(--text-secondary)] font-mono transition-colors"
+                    />
+                    <button onClick={handleSendChat} className="text-[var(--accent-primary)] p-1.5 rounded-lg hover:opacity-80 transition-all">
+                      <Send size={14} />
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* BROWSER PREVIEW PANEL */}
+              {showBrowser && (
+                <div className="flex-1 flex flex-col bg-[var(--bg-panel)] border border-[var(--border-accent)] rounded-xl overflow-hidden transition-all duration-300">
+                  <div className="px-3 py-2 border-b border-[var(--border-accent)] bg-[var(--bg-cell)] flex items-center gap-2">
+                    <Globe size={12} className="text-[var(--accent-primary)]" />
+                    <input
+                      type="text"
+                      value={browserUrl}
+                      onChange={e => setBrowserUrl(e.target.value)}
+                      onKeyDown={e => { if (e.key === 'Enter') { const el = document.getElementById('preview-iframe') as HTMLIFrameElement; if (el) el.src = browserUrl; }}}
+                      className="flex-grow bg-[var(--chat-input-bg)] border border-[var(--border-accent)] rounded px-2 py-0.5 text-[10px] text-[var(--text-main)] outline-none font-mono"
+                    />
+                  </div>
+                  <div className="flex-1 relative">
+                    <iframe
+                      id="preview-iframe"
+                      src={browserUrl}
+                      className="w-full h-full border-0"
+                      sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
+                      title="Browser Preview"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* TERMINAL PANEL */}
+              {showTerminal && (
+                <div className="flex-1 flex flex-col bg-[#0a0a0a] border border-[var(--border-accent)] rounded-xl overflow-hidden transition-all duration-300">
+                  <div className="px-3 py-2 border-b border-[var(--border-accent)] bg-[#111] flex items-center gap-2">
+                    <TerminalSquare size={12} className="text-green-400" />
+                    <span className="text-[10px] font-bold text-green-400 uppercase tracking-wider">Terminal</span>
+                    <div className="flex gap-1 ml-auto">
+                      <span className="w-2 h-2 rounded-full bg-red-500"></span>
+                      <span className="w-2 h-2 rounded-full bg-yellow-500"></span>
+                      <span className="w-2 h-2 rounded-full bg-green-500"></span>
+                    </div>
+                  </div>
+                  <div className="flex-1 overflow-y-auto p-3 font-mono text-[11px] text-green-400 space-y-0.5">
+                    {terminalHistory.map((line, i) => (
+                      <div key={i} className={line.startsWith('$') ? 'text-green-300' : 'text-green-500/70'}>{line}</div>
+                    ))}
+                  </div>
+                  <div className="p-2 border-t border-green-900/30 bg-[#0d0d0d] flex items-center gap-2">
+                    <span className="text-green-400 text-[11px] font-mono">$</span>
+                    <input
+                      type="text"
+                      value={terminalInput}
+                      onChange={e => setTerminalInput(e.target.value)}
+                      onKeyDown={e => e.key === 'Enter' && handleTerminalSubmit()}
+                      placeholder="Enter command..."
+                      className="flex-grow bg-transparent border-none text-[11px] text-green-400 outline-none placeholder:text-green-800 font-mono"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* কোনো প্যানেল নেই — সব হাইড করা অবস্থায় */}
+              {!showChat && !showBrowser && !showTerminal && (
+                <div className="flex-1 flex items-center justify-center text-[var(--text-secondary)] text-sm font-mono">
+                  All panels hidden. Use the toggle buttons above to show them.
+                </div>
+              )}
+
+            </div>
           </div>
-        </div>
+        )}
 
       </div>
 
