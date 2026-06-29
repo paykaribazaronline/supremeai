@@ -32,9 +32,17 @@ jobs:
           
           echo "Previous run conclusion: $LAST_CONCLUSION"
           
+          # Check if the commit message contains [bypass-breaker]
+          COMMIT_MSG="${{ github.event.head_commit.message }}"
+          if [[ "$COMMIT_MSG" == *"[bypass-breaker]"* ]]; then
+            echo "⚠️ Bypass flag detected in commit message. Skipping circuit breaker check!"
+            exit 0
+          fi
+          
           if [ "$LAST_CONCLUSION" == "failure" ]; then
             echo "❌ ERROR: The previous run of SupremeAI Core CI failed!"
             echo "Pipeline Blocked: You must fix the previous breaking changes before running a new pipeline."
+            echo "To bypass this and deploy a fix, include '[bypass-breaker]' in your commit message."
             exit 1
           elif [ "$LAST_CONCLUSION" == "null" ]; then
             echo "✅ No previous completed runs found. Proceeding!"
