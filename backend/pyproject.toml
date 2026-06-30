@@ -110,6 +110,7 @@ isort = "^5.13.0"
 pytest-xdist = "^3.6.1"
 # বাংলা মন্তব্য: টেস্ট রান করার সময় সমান্তরাল জটিলতায় ডেডলক এড়াতে pytest-timeout যুক্ত করা হলো
 pytest-timeout = "^2.2.0"
+pylint = "^3.2.0"
 
 
 [build-system]

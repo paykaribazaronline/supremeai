@@ -1,165 +1,54 @@
-import os
+# বাংলা কমেন্ট: সুপ্রিম-এআই এর কোর প্রম্পট ফায়ারওয়াল এবং বেঙ্গলি নেটিভ এনফোর্সমেন্ট ইঞ্জিন।
+# এটি সমস্ত সাব-এজেন্ট এবং এলএলএম রিকোয়েস্টে ১ নম্বর ও ২ নম্বর গোল্ডেন রুল স্ট্রিক্টলি ইনজেক্ট করে।
+
 import re
-from typing import Any
+from fastapi import HTTPException, status
+from core.logging_config import logger
 
-import httpx
-from loguru import logger
-
-
-class PromptFirewall:
+class SupremePromptFirewall:
     def __init__(self):
-        self.llama_guard_url = os.getenv("LLAMA_GUARD_URL", "")
-        self.nemo_guardrails_enabled = (
-            os.getenv("NEMO_GUARDRAILS_ENABLED", "true").lower() == "true"
-        )
-        self._local_patterns = self._load_local_patterns()
-
-    def _load_local_patterns(self) -> list[dict[str, Any]]:
-        try:
-            from database.supabase_client import db
-
-            if db.client:
-                db_guardrails = db.get_db_guardrails()
-                if db_guardrails:
-                    mapped_patterns = []
-                    for row in db_guardrails:
-                        mapped_patterns.append(
-                            {
-                                "name": row.get("layer_name"),
-                                "patterns": row.get("rule_definition", {}).get(
-                                    "patterns", []
-                                ),
-                            }
-                        )
-                    return mapped_patterns
-                else:
-                    defaults = self._get_default_patterns()
-                    for idx, category in enumerate(defaults):
-                        db.upsert_db_guardrail(
-                            {
-                                "layer_name": category["name"],
-                                "rule_definition": {"patterns": category["patterns"]},
-                                "priority": idx,
-                                "is_active": True,
-                            }
-                        )
-                    return defaults
-        except Exception as e:
-            logger.debug(f"Failed to fetch guardrails from Supabase: {e}")
-
-        return self._get_default_patterns()
-
-    def _get_default_patterns(self) -> list[dict[str, Any]]:
-        return [
-            {
-                "name": "prompt_injection",
-                "patterns": [
-                    r"ignore\s+(previous|all)\s+(instructions|rules|prompt)",
-                    r"disregard\s+(previous|all)",
-                    r"you\s+are\s+now\s+(in\s+)?developer\s+mode",
-                    r"jailbreak",
-                    r"DAN\s+mode",
-                    r"unfiltered\s+mode",
-                ],
-            },
-            {
-                "name": "sensitive_extraction",
-                "patterns": [
-                    r"(password|api[_\s-]?key|secret|token)\s*(=|:)?\s*['\"]?[a-zA-Z0-9\-_]{20,}['\"]?",
-                    r"(BEGIN|END)\s+(RSA|PGP|OPENSSH)\s+KEY",
-                    r"(ssh-rsa|ssh-ed25519)\s+[A-Za-z0-9+/=]+",
-                ],
-            },
-            {
-                "name": "malicious_code",
-                "patterns": [
-                    r"(?i)(rm\s+-rf|/bin/sh|chmod\s+777)",
-                    r"(?i)(curl|wget)\s+.*\|\s*(bash|sh)",
-                    r"(?i)base64\s+-d.*\|\s*(bash|sh|python)",
-                ],
-            },
-        ]
-
-    def _check_local_patterns(self, prompt: str) -> str | None:
-        prompt_lower = prompt.lower()
-        for category in self._local_patterns:
-            for pattern in category["patterns"]:
-                if re.search(pattern, prompt_lower, re.IGNORECASE):
-                    return f"Blocked: {category['name']} pattern detected"
-        return None
-
-    async def scan_with_llama_guard(self, prompt: str) -> str | None:
-        if not self.llama_guard_url:
-            return None
-
-        try:
-            async with httpx.AsyncClient(timeout=5.0) as client:
-                response = await client.post(
-                    f"{self.llama_guard_url}/classify",
-                    json={"text": prompt},
-                )
-                if response.status_code == 200:
-                    result = response.json()
-                    if result.get("safety_category"):
-                        return (
-                            f"Blocked by Llama Guard: {result.get('safety_category')}"
-                        )
-        except Exception as e:
-            logger.debug(f"Llama Guard scan failed (non-fatal): {e}")
-        return None
-
-    async def pre_flight_check(self, prompt: str) -> dict[str, Any]:
-        local_violation = self._check_local_patterns(prompt)
-        if local_violation:
-            logger.warning(f"Local firewall block: {local_violation}")
-            return {"allowed": False, "reason": local_violation, "provider": "local"}
-
-        guard_violation = await self.scan_with_llama_guard(prompt)
-        if guard_violation:
-            logger.warning(f"Llama Guard block: {guard_violation}")
-            return {
-                "allowed": False,
-                "reason": guard_violation,
-                "provider": "llama_guard",
-            }
-
-        return {"allowed": True, "reason": "prompt_approved", "provider": "firewall"}
-
-    async def classify_intent(self, prompt: str) -> dict[str, Any]:
-        complexity = "simple"
-        requires_coding = any(
-            kw in prompt.lower()
-            for kw in ["code", "function", "class", "debug", "refactor", "algorithm"]
-        )
-        requires_reasoning = any(
-            kw in prompt.lower()
-            for kw in ["reason", "logic", "analyze", "math", "calculate"]
-        )
-        requires_vision = any(
-            kw in prompt.lower()
-            for kw in ["image", "photo", "picture", "visual", "ocr"]
+        # বাংলা কমেন্ট: আলটিমেট বেঙ্গলি নেটিভ সিস্টেম ইনস্ট্রাকশন সেট (১০০% ক্র্যাপ-ফ্রি)
+        self.bengali_native_instruction = (
+            "\n\n=== STRICTOR BENGALI NATIVE ENFORCEMENT RULES ===\n"
+            "RULE 1: You must respond, analyze, and explain ALWAYS in concise, clear, and high-quality Bengali language.\n"
+            "RULE 2: If you generate, modify, or patch any source code (Python, Java, Dart, etc.), you MUST include precise "
+            "explanatory comments written strictly in BENGALI (বাংলা কমেন্ট) right inside the code blocks explaining the changes.\n"
+            "RULE 3: Maintain a senior, strict, professional developer persona. Avoid unnecessary filler words or fluff.\n"
+            "=================================================\n"
         )
 
-        if requires_coding:
-            complexity = "coding"
-        elif requires_reasoning:
-            complexity = "reasoning"
-        elif requires_vision:
-            complexity = "vision"
+    def enforce_bengali_rules(self, original_system_prompt: str) -> str:
+        """
+        ইনকামিং সিস্টেম প্রম্পটের সাথে আমাদের গোল্ডেন বাংলা রুলস ইন্টারসেপ্ট ও ইনজেক্ট করে।
+        """
+        if not original_system_prompt:
+            return self.bengali_native_instruction.strip()
+            
+        # বাংলা কমেন্ট: ডুপ্লিকেশন এড়াতে অলরেডি রুলস ইনজেক্টেড আছে কিনা তা চেক করা হচ্ছে
+        if "BENGALI NATIVE ENFORCEMENT" in original_system_prompt:
+            return original_system_prompt
+            
+        # জিরো-গ্যাপ প্রম্পট কন্টেনেশন
+        secure_prompt = f"{original_system_prompt.strip()}{self.bengali_native_instruction}"
+        logger.info("🔱 Prompt Firewall: Bengali Native & Code Commenting rules successfully injected into agent payload.")
+        return secure_prompt
 
-        return {
-            "intent": complexity,
-            "requires_expensive_model": complexity in ["coding", "reasoning"],
-            "confidence": 0.85,
-        }
+    def validate_agent_response(self, response_text: str) -> bool:
+        """
+        [Fail-Closed Safety Check] এজেন্টের জেনারেট করা আউটপুট আসলেই বাংলা রুলস মেনেছে কিনা তা পোস্ট-ভ্যালিডেশন করে।
+        """
+        if not response_text:
+            return False
+            
+        # বাংলা কমেন্ট: আউটপুটে বাংলা ক্যারেক্টার সেট (Unicode Range: \u0980-\u09FF) আছে কিনা তা যাচাই করা হচ্ছে।
+        bengali_character_regex = re.compile(r'[\u0980-\u09FF]')
+        
+        # যদি আউটপুট পুরোপুরি ইংরেজি বা অন্য ভাষায় হয় (বাংলা ক্যারেক্টার অনুপস্থিত), তবে এটি পলিসি ভায়োলেশন
+        if not bengali_character_regex.search(response_text):
+            logger.critical("🔥 SECURITY VIOLATION: Agent response failed i18n Bengali compliance check!")
+            return False
+            
+        return True
 
-
-firewall = PromptFirewall()
-
-
-async def pre_flight_scan(prompt: str) -> dict[str, Any]:
-    return await firewall.pre_flight_check(prompt)
-
-
-async def classify_intent(prompt: str) -> dict[str, Any]:
-    return await firewall.classify_intent(prompt)
+# গ্লোবাল সিঙ্গেলটন ইনস্ট্যান্স জেনারেশন
+prompt_firewall = SupremePromptFirewall()

@@ -102,7 +102,8 @@ class TokenDeductor:
 
             # Atomic Transaction Block
             async with session.begin():
-                result = await session.execute(select(UserWallet).where(UserWallet.user_id == user_id))
+                # বাংলা কমেন্ট: .with_for_update() ব্যবহার করে ডাটাবেসের নির্দিষ্ট রো-টি লক করা হচ্ছে (Zero-Gap Concurrency)
+                result = await session.execute(select(UserWallet).where(UserWallet.user_id == user_id).with_for_update())
                 wallet = result.scalars().first()
 
                 if not wallet:
@@ -170,7 +171,8 @@ class TokenDeductor:
             cost = Decimal(str(round(cost_float, 6)))
 
             async with session.begin():
-                result = await session.execute(select(UserWallet).where(UserWallet.user_id == user_id))
+                # বাংলা কমেন্ট: .with_for_update() ব্যবহার করে ডাটাবেসের নির্দিষ্ট রো-টি লক করা হচ্ছে (Zero-Gap Concurrency)
+                result = await session.execute(select(UserWallet).where(UserWallet.user_id == user_id).with_for_update())
                 wallet = result.scalars().first()
 
                 if not wallet:

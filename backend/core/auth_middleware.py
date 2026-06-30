@@ -128,3 +128,69 @@ class AuthMiddleware:
             await response(scope, receive, send)
             return
         await self.app(scope, receive, send)
+
+# বাংলা কমেন্ট: সুপ্রিম-এআই এর ফেল-ক্লোজড অথেনটিকেশন এনফোর্সমেন্ট ইঞ্জিন।
+# যেকোনো ভেরিফিকেশন ফেইলিওর বা এক্সেপশনে এটি সরাসরি রিকোয়েস্ট হার্ড-ব্লক করে (Fail-Closed)।
+
+import jwt
+from fastapi import Request, HTTPException, status
+from core.config import settings
+from core.logging_config import logger
+
+async def verify_admin_session_fail_closed(request: Request) -> dict:
+    """
+    টোকেন অথেনটিকেশন এবং ডিকোডিং মেকানিজম। 
+    সামান্যতম গ্যাপ বা এক্সেপশন দেখা দিলে এটি সরাসরি Fail-Closed প্রোটোকল ট্রিগার করে।
+    """
+    # বাংলা কমেন্ট: Authorization হেডার এক্সট্রাকশন
+    auth_header = request.headers.get("Authorization")
+    if not auth_header or not auth_header.startswith("Bearer "):
+        logger.warning(f"🔒 Access Denied: Missing or malformed Bearer token from IP: {request.client.host}")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Authentication credentials missing or malformed."
+        )
+
+    token = auth_header.split(" ")[1]
+    jwt_secret = settings.jwt_secret  # ক্লাউড সিক্রেট ভল্ট থেকে লোডকৃত
+    
+    if not jwt_secret:
+        logger.critical("🔥 Security Emergency: SUPREMEAI_JWT_SECRET is unconfigured! Fail-Closed triggered.")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Security authentication cluster is hard-locked."
+        )
+
+    try:
+        # P2 ফিক্স: টোকেন ডিকোড এবং ভ্যালিডেশন ওয়ান-শট এক্সিকিউশন
+        payload = jwt.decode(token, jwt_secret, algorithms=["HS256"])
+        
+        user_id = payload.get("sub")
+        role = payload.get("role")
+        
+        # ০% গ্যাপ পলিসি: পেলোডে যদি প্রয়োজনীয় ফিল্ড মিসিং থাকে, সরাসরি রিজেক্ট
+        if not user_id or role != "master_admin":
+            logger.critical(f"🚨 Security Alert: Token payload identity mismatch or unauthorized role: {role}")
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Administrative identity verification failed."
+            )
+            
+        logger.success(f"🔱 Admin Session Authorized for User: {user_id}")
+        return payload
+
+    except (jwt.ExpiredSignatureError, jwt.InvalidTokenError) as jwt_err:
+        logger.warning(f"🔒 Fail-Closed: Invalid or expired JWT token blocked -> {str(jwt_err)}")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Session has expired or token is invalid."
+        )
+        
+    except Exception as fatal_exception:
+        # ❌ পুরানো ভুল পদ্ধতি (Fail-Open): return None বা পাস করা
+        # ✅ নতুন সঠিক পদ্ধতি: P1/P2 Fail-Closed এনফোর্সমেন্ট। যেকোনো আননোন ক্র্যাশে রিকোয়েস্ট হার্ড-ব্লক।
+        logger.critical(f"🔥 FATAL AUTH EXCEPTION: Dynamic crash detected during auth flow -> {str(fatal_exception)}")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Security handshake verification failure. Access safely denied."
+        )

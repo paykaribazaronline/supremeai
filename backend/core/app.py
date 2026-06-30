@@ -162,19 +162,8 @@ app.add_middleware(ZeroTrustAuthMiddleware)
 app.add_middleware(ObservabilityMiddleware)
 app.add_middleware(APIKeyAuthMiddleware)
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=settings.cors_origins
-    + [
-        "http://localhost:5173",
-        "http://localhost:5174",
-        "http://127.0.0.1:5173",
-        "http://127.0.0.1:5174",
-    ],
-    allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-    allow_headers=["Authorization", "Content-Type", "X-Request-ID"],
-)
+from core.origin_validator import TrustedOriginMiddleware
+app.add_middleware(TrustedOriginMiddleware)
 
 from fastapi import Request
 from fastapi.responses import JSONResponse
@@ -323,6 +312,13 @@ async def app_lifespan(app: FastAPI):
         await _ensure_api_key_tables()
     except Exception as e:
         logger.warning(f"PgBouncer pool initialization deferred: {e}")
+
+    # 🔴 Redis Async Connection Pool Initialization
+    try:
+        from core.redis_manager import redis_manager
+        await redis_manager.initialize()
+    except Exception as e:
+        logger.error(f"Failed to initialize Redis Manager: {e}")
 
     # 🤖 Discord Bot running as a background task in lifespan
     try:
