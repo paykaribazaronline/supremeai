@@ -95,7 +95,8 @@ class CloudSandboxOrchestrator:
                     ["python", "-c", code],
                     capture_output=True,
                     text=True,
-                    timeout=5
+                    timeout=5,
+                    check=False
                 )
                 return {
                     "success": res.returncode == 0,
