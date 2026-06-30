@@ -69,7 +69,7 @@ data/frontier/
 
 # Package locks (pnpm/yarn/npm)
 package-lock.json
-pnpm-lock.yaml
+
 yarn.lock
 
 # Local dev scripts and configs
