@@ -8,9 +8,9 @@ if ROOT not in sys.path:
 os.environ.setdefault("OPENROUTER_API_KEY", "mock-key-value")
 
 # বাংলা মন্তব্য: টেস্ট রান করার সময় রিয়াল ডাটাবেস এড়াতে এবং লক হওয়া রোধ করতে ইন-মেমোরি ডাটাবেস সেট করা হলো
-os.environ["DATABASE_URL"] = "sqlite:///:memory:"
-os.environ["SUPABASE_DATABASE_URL"] = "sqlite:///:memory:"
-os.environ["SUPABASE_DATABASE_URL_POOLER"] = "sqlite:///:memory:"
+os.environ["DATABASE_URL"] = "sqlite+aiosqlite:///:memory:"
+os.environ["SUPABASE_DATABASE_URL"] = "sqlite+aiosqlite:///:memory:"
+os.environ["SUPABASE_DATABASE_URL_POOLER"] = "sqlite+aiosqlite:///:memory:"
 
 
 # Mock Google Auth credentials and services globally during tests

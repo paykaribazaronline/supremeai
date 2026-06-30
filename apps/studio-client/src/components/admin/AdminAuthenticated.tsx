@@ -83,7 +83,8 @@ export function AuthenticatedView(props: AuthenticatedViewProps) {
     { id: 'cicd', label: 'CI/CD Pipelines' },
     { id: 'github', label: 'GitHub Integration' },
     { id: 'backups', label: 'Backup & Restore' },
-    { id: 'rate-limits', label: 'Rate Limits' }
+    { id: 'rate-limits', label: 'Rate Limits' },
+    { id: 'security-dashboard', label: '🧠 Security & Memory Dashboard' }
   ];
 
   const filteredOptions = navigationOptions.filter(opt => 

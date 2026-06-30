@@ -1,5 +1,5 @@
 import type { AdminSubTab, ChatMessage } from '../../types';
-import { CommandCenter, LiveLogs, CostAuditor, HealthMap, UserManager, ConfigEditor, ModelRouter, EnhancedSkillMarketplace, MemoryBrowser, CloudOrchestrator, ObservabilityDashboard, ThreatDetection, VisualRulesBuilder, CICDVisualizer, GithubIntegration, BackupRestore } from '.';
+import { CommandCenter, LiveLogs, CostAuditor, HealthMap, UserManager, ConfigEditor, ModelRouter, EnhancedSkillMarketplace, MemoryBrowser, CloudOrchestrator, ObservabilityDashboard, ThreatDetection, VisualRulesBuilder, CICDVisualizer, GithubIntegration, BackupRestore, SecurityDashboard } from '.';
 import { RateLimitManager } from './RateLimitManager';
 import { X } from 'lucide-react';
 
@@ -95,6 +95,7 @@ export function SubTabContent(props: SubTabContentProps) {
             {adminSubTab === 'github' && <GithubIntegration />}
             {adminSubTab === 'backups' && <BackupRestore />}
             {adminSubTab === 'rate-limits' && <RateLimitManager />}
+            {adminSubTab === 'security-dashboard' && <SecurityDashboard />}
           </div>
         </div>
       )}

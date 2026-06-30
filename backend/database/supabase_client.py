@@ -285,7 +285,34 @@ class SupabaseDB:
             "timestamp TIMESTAMP WITH TIME ZONE DEFAULT NOW()"
             ");",
             "CREATE INDEX IF NOT EXISTS idx_user_time ON transaction_ledger (user_id, timestamp);",
+            # বাংলা মন্তব্য: স্বয়ংক্রিয় স্কিল ইভোলিউশন ফিটনেস ট্র্যাকিং ও প্রপোজাল ম্যানেজমেন্ট DDL
+            "CREATE TABLE IF NOT EXISTS skill_fitness ("
+            "id UUID PRIMARY KEY DEFAULT gen_random_uuid(),"
+            "skill_name VARCHAR(255) NOT NULL UNIQUE,"
+            "success_count INTEGER NOT NULL DEFAULT 0,"
+            "failure_count INTEGER NOT NULL DEFAULT 0,"
+            "fitness_score DOUBLE PRECISION NOT NULL DEFAULT 0.0,"
+            "last_run_at TIMESTAMP WITH TIME ZONE,"
+            "version INTEGER NOT NULL DEFAULT 1,"
+            "created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),"
+            "updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()"
+            ");",
+            "CREATE TABLE IF NOT EXISTS code_proposals ("
+            "id UUID PRIMARY KEY DEFAULT gen_random_uuid(),"
+            "proposal_id VARCHAR(255) NOT NULL UNIQUE,"
+            "skill_name VARCHAR(255) NOT NULL,"
+            "generated_code TEXT NOT NULL,"
+            "ast_validated BOOLEAN NOT NULL DEFAULT FALSE,"
+            "ci_passed BOOLEAN NOT NULL DEFAULT FALSE,"
+            "status VARCHAR(50) NOT NULL DEFAULT 'proposed',"
+            "metadata_json JSONB DEFAULT '{}'::jsonb,"
+            "version INTEGER NOT NULL DEFAULT 1,"
+            "created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()"
+            ");",
+            "CREATE INDEX IF NOT EXISTS idx_proposal_status ON code_proposals (status);",
+            "CREATE INDEX IF NOT EXISTS idx_skill_fitness_score ON skill_fitness (fitness_score DESC);",
         ]
+
 
 
     def bootstrap_schema(self):

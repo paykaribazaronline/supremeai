@@ -14,6 +14,7 @@ import { VisualRulesBuilder } from './VisualRulesBuilder';
 import { CICDVisualizer } from './CICDVisualizer';
 import { GithubIntegration } from './GithubIntegration';
 import { BackupRestore } from './BackupRestore';
+import { SecurityDashboard } from './SecurityDashboard';
 
 export {
   CommandCenter,
@@ -32,4 +33,5 @@ export {
   CICDVisualizer,
   GithubIntegration,
   BackupRestore,
+  SecurityDashboard,
 };

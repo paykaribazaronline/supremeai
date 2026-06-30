@@ -1,4 +1,5 @@
 import sys
+import os
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -157,3 +158,14 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
+# 🛑 ZERO-GAP: Fast Fail on missing production configuration keys
+if settings.env == "production" or os.getenv("ENV") == "production":
+    try:
+        settings.validate_config()
+        # Verify encryption key is configured
+        if not os.getenv("SUPREMEAI_ENCRYPTION_KEY"):
+            raise RuntimeError("SUPREMEAI_ENCRYPTION_KEY environment variable must be set in production")
+    except Exception as exc:
+        logger.critical(f"FATAL CONFIG ERROR: {exc}")
+        sys.exit(1)
+

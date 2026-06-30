@@ -10,7 +10,7 @@ import stripe
 from fastapi import APIRouter, HTTPException, Depends, Request, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from sqlalchemy.exc import StaleDataError
+from sqlalchemy.orm.exc import StaleDataError
 from loguru import logger
 
 from models.wallet import UserWallet, TransactionLedgerEntry

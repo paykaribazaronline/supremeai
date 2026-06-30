@@ -13,7 +13,7 @@ from decimal import Decimal
 from loguru import logger
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from sqlalchemy.exc import StaleDataError
+from sqlalchemy.orm.exc import StaleDataError
 
 from core.upstash_redis_queue import UpstashRedisQueue
 from models.transaction_ledger import TransactionLedgerEntry

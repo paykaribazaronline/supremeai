@@ -11,8 +11,8 @@ from google.oauth2 import service_account
 # বাংলা মন্তব্য: Fernet এনক্রিপশনের জন্য ৩২ বাইটের কী জেনারেট বা লোড করা হচ্ছে
 _KEY = os.getenv("SUPREMEAI_ENCRYPTION_KEY")
 if not _KEY:
-    # Fallback key for testing/local
-    _KEY = Fernet.generate_key().decode()
+    # 🛑 ZERO-GAP: Fast Fail on missing encryption key. Do not generate random fallback key.
+    raise RuntimeError("SUPREMEAI_ENCRYPTION_KEY environment variable is not configured. Fast failing startup.")
 
 cipher = Fernet(_KEY.encode())
 

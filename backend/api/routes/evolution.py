@@ -3,26 +3,24 @@ import os
 import secrets
 import shutil
 import time
-from datetime import datetime
-from datetime import timezone
+from datetime import datetime, timezone
 from pathlib import Path
 
-from fastapi import APIRouter
-from fastapi import Depends
-from fastapi import HTTPException
-from fastapi import status
-from fastapi.security import HTTPAuthorizationCredentials
-from fastapi.security import HTTPBearer
+from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from jose import jwt
 from loguru import logger
-from pydantic import BaseModel
-from pydantic import Field
+from pydantic import BaseModel, Field
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.future import select
 
 from api.dependencies import get_tenant_db
 from core.config import settings
 from core.tenant_db import TenantAwareFirestore
 from evolution.auto_skill_creator import AutoSkillCreator
 from evolution.fitness_engine import FitnessEngine
+from database.session import get_db_session
+from models.evolution import CodeProposal
 
 
 router = APIRouter(prefix="/api/evolution", tags=["self-evolution-engine"])
@@ -181,3 +179,56 @@ async def quarantine_skill(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Quarantine failed",
         ) from exc
+
+
+# 🛑 ZERO-GAP: Admin Evolution Proposals API Routing
+@router.get("/proposals")
+async def list_proposals(
+    admin: dict = Depends(require_admin_token),
+    session: AsyncSession = Depends(get_db_session)
+):
+    """
+    List all pending AI code proposals for admin review.
+    """
+    result = await session.execute(
+        select(CodeProposal).order_by(CodeProposal.created_at.desc())
+    )
+    proposals = result.scalars().all()
+    # Serialize to keep Pydantic serialization happy
+    return [
+        {
+            "id": str(p.id),
+            "proposal_id": p.proposal_id,
+            "skill_name": p.skill_name,
+            "generated_code": p.generated_code,
+            "ast_validated": p.ast_validated,
+            "ci_passed": p.ci_passed,
+            "status": p.status,
+            "metadata_json": p.metadata_json,
+            "created_at": p.created_at.isoformat() if p.created_at else None
+        }
+        for p in proposals
+    ]
+
+
+@router.post("/proposals/{proposal_id}/approve")
+async def approve_proposal(
+    proposal_id: str,
+    admin: dict = Depends(require_admin_token),
+    session: AsyncSession = Depends(get_db_session)
+):
+    """
+    Manually approve a proposal after security review.
+    """
+    async with session.begin():
+        result = await session.execute(
+            select(CodeProposal).where(CodeProposal.proposal_id == proposal_id)
+        )
+        proposal = result.scalars().first()
+        if not proposal:
+            raise HTTPException(status_code=404, detail="Proposal not found")
+        
+        proposal.status = "approved"
+        # এখানে ভবিষ্যতে আমাদের অটোনোমাস মার্জ লজিক বা GitOps ট্রিগার কল হবে।
+        
+    return {"status": "success", "message": f"Proposal {proposal_id} approved."}
