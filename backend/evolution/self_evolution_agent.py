@@ -142,6 +142,17 @@ class SelfEvolutionAgent:
         task_demand = demand["task_demand"]
         skill_name = demand["skill_name"]
         logger.info(f"Processing demand for missing skill: {skill_name}")
+        if not self._has_high_fitness_path(skill_name):
+            await self.auto_skill_creator.generate_and_deploy_skill(task_demand, skill_name)
+
+    def _register_missing_path(self, task_demand: str, skill_name: str) -> None:
+        if not self._has_high_fitness_path(skill_name):
+            self._pending_demands.put_nowait({"task_demand": task_demand, "skill_name": skill_name})
+
+    def _has_high_fitness_path(self, skill_name: str) -> bool:
+        if not hasattr(self.fitness_engine, 'registry'):
+            return False
+        return self.fitness_engine.registry.get_skill(skill_name) is not None
 
     # 🛑 ZERO-GAP: Core Database and Security validation pipeline
     async def process_new_skill_proposal(
