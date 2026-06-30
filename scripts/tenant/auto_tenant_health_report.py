@@ -118,7 +118,7 @@ def get_tenant_usage_stats(db: firestore.Client, tenant_id: str) -> Dict[str, An
 def get_tenant_limits(db: firestore.Client, tenant_id: str) -> Dict[str, Any]:
     """Get quota limits for a specific tenant."""
     try:
-        limits_doc = db:bents').document(tenant_id).collection('limits').document('default').get()
+        limits_doc = db.collection('tenants').document(tenant_id).collection('limits').document('default').get()
         if limits_doc.exists:
             return limits_doc.to_dict()
         else:

@@ -11,7 +11,7 @@
     "lint": "turbo run lint",
     "dev": "turbo run dev",
     "clean": "turbo run clean && rm -rf node_modules",
-    "format": "prettier --write "**/*.{ts,tsx,js,jsx,json,md}"",
+    "format": "prettier --write '**/*.{ts,tsx,js,jsx,json,md}'",
     "backend:dev": "cd backend && poetry run uvicorn core.app:app --reload",
     "backend:test": "cd backend && poetry run pytest",
     "docker:build": "docker-compose -f infrastructure/docker/docker-compose.yml build",

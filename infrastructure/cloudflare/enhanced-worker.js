@@ -417,7 +417,7 @@ async function checkAndSetDuplicate(env, key, ttlSeconds) {
 /**
  * Helper to put response in cache with expiration
  */
-async function caches.default.put(request, response, options = {}) {
+async function putInCache(request, response, options = {}) {
   const cache = await caches.open(options.cacheName || 'default');
   return await cache.put(request, response);
 }

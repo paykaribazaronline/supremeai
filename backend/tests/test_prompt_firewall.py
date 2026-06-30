@@ -7,7 +7,7 @@ from unittest.mock import patch
 
 import pytest
 
-from core.prompt_firewall import PromptFirewall
+from core.prompt_firewall import SupremePromptFirewall as PromptFirewall
 from core.prompt_firewall import classify_intent
 from core.prompt_firewall import pre_flight_scan
 

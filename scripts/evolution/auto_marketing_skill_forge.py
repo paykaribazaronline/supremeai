@@ -93,10 +93,6 @@ def get_pending_requests(db: firestore.Client) -> List[dict]:
     Returns a list of request documents that need processing.
     """
     try:
-        # Check if not in the marketing.platform lower in the recently created_at - Exactly the user.
-        we
-    to
-    try:
         # Check if already initialized
         app = firebase_admin.get_app()
     except ValueError:
@@ -110,9 +106,6 @@ def get_pending_requests(db: firestore.Client) -> List[dict]:
         
         app = firebase_admin.initialize_app(cred, options)
     return firestore.client()
-except Exception as e:
-        logger.error(f"Error fetching pending requests: {e}")
-        return []
 
 def forge_skill(request_data: dict) -> bool:
     """
@@ -258,7 +251,7 @@ def main() -> None:
             time.sleep(POLL_INTERVAL)
             
     except KeyboardInterrupt:
-        print("\n� received. Shutting down gracefully...")
+        print(r"\nCtrl+C received. Shutting down gracefully...")
     except Exception as e:
         print(f"💥 Unexpected error: {e}")
         raise

@@ -96,6 +96,8 @@ jobs:
       - name: 🧪 Run Tests
         id: backend_tests
         working-directory: backend
+        env:
+          SUPREMEAI_ENCRYPTION_KEY: "mock_test_secret_encryption_key_value_32_chars"
         run: poetry run pytest -n auto --cov=core --cov-fail-under=1 -q
           
       - name: 🔧 SupremeAI Auto-Fix Engine
@@ -116,11 +118,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@v3
+        uses: github/codeql-action/init@v4
         with:
           languages: 'python, javascript'
       - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v3
+        uses: github/codeql-action/analyze@v4
         with:
           category: "/language:python,javascript"
 
@@ -138,6 +140,7 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'pnpm'
+          cache-dependency-path: 'pnpm-lock.yaml'
       
       - name: Install & Turbo Run
         run: |
