@@ -1,10 +1,10 @@
 import os
 
-import google.generativeai as genai
 from fastapi import APIRouter
 from fastapi import BackgroundTasks
 from fastapi import HTTPException
 from pydantic import BaseModel
+from core.llm_gateway import llm_gateway
 
 
 router = APIRouter(prefix="/task", tags=["Supreme Workspace Tasks"])
@@ -21,11 +21,6 @@ class TaskPayload(BaseModel):
     task_type: str = "general"
     messages: list[ChatMessage] = []
 
-# AI Model Setup (Gemini)
-API_KEY = os.getenv("SUPREMEAI_API_KEY") or os.getenv("GEMINI_API_KEY")
-if API_KEY:
-    genai.configure(api_key=API_KEY)
-    model = genai.GenerativeModel('gemini-1.5-pro')
 
 # ==========================================
 # 🚀 ROUTE: /task/execute
@@ -39,23 +34,27 @@ async def execute_task(payload: TaskPayload, background_tasks: BackgroundTasks):
     _tenant_id = "default_user_session" # প্রোডাকশনে এটি JWT বা সেশন টোকেন থেকে আসবে
     
     try:
-        # ফরম্যাটিং হিস্ট্রি (AI এর বোঝার সুবিধার্থে)
-        chat_history_text = "\n".join([f"{msg.role}: {msg.content}" for msg in payload.messages[-5:]])
+        # বাংলা মন্তব্য: মেসেজ হিস্ট্রি এবং নতুন টাস্ক প্রম্পটকে গেটওয়ের উপযোগী মেসেজ লিস্ট স্কিমায় কনভার্ট করা হচ্ছে
+        messages_payload = []
+        for msg in payload.messages[-5:]:
+            messages_payload.append({
+                "role": "user" if msg.role.lower() == "user" else "assistant",
+                "content": msg.content
+            })
         
-        prompt = f"""
-        Previous Context:
-        {chat_history_text}
-        
-        Current Task ({payload.task_type}): {payload.task}
-        """
+        messages_payload.append({
+            "role": "user",
+            "content": f"Current Task ({payload.task_type}): {payload.task}"
+        })
 
         # ৩. Generate AI Response
-        if API_KEY:
-            response = model.generate_content(prompt)
-            result_text = response.text
-        else:
-            # Fallback for local testing if API key is missing
-            result_text = f"আপনার '{payload.task}' টাস্কটি (টাইপ: {payload.task_type}) সফলভাবে রিসিভ করা হয়েছে! (API Key Not Set)"
+        # বাংলা মন্তব্য: সরাসরি গুগল নেটিভ ক্লায়েন্ট কল না করে ইউনিভার্সাল llm_gateway ব্যবহার করে এপিআই কল করা হচ্ছে
+        response = await llm_gateway.acompletion(
+            prompt=messages_payload,
+            task_type=payload.task_type,
+            stream=False
+        )
+        result_text = response.get("text", "") if isinstance(response, dict) else str(response)
 
         # ৫. Save to Supabase (Database - Long Term) - Background Task
         # রেসপন্স যেন ফাস্ট হয়, তাই ডাটাবেসে সেভ করার কাজটি ব্যাকগ্রাউন্ডে দেওয়া হলো

@@ -1,4 +1,3 @@
-import google.generativeai as genai
 from fastapi import APIRouter
 from fastapi import Depends
 from fastapi import HTTPException
@@ -9,6 +8,7 @@ from pydantic import BaseModel
 
 from api.dependencies import get_tenant_db
 from core.multi_layer_cache import multi_layer_cache
+from core.llm_gateway import llm_gateway
 
 
 router = APIRouter(prefix="/api/chat", tags=["AI-Orchestration"])
@@ -48,10 +48,13 @@ async def get_completion(
     # Cache miss - generate response from AI model
     logger.info("❌ CACHE MISS: Generating new response from AI model")
     try:
-        model = genai.GenerativeModel(payload.model_name)
-        # নেটিভ await 콜 ( পুরো ইভেন্ট লুপ ফ্রি থাকবে )
-        response = await model.generate_content_async(payload.prompt)
-        response_text = response.text
+        # বাংলা মন্তব্য: সরাসরি গুগল নেটিভ ক্লায়েন্ট কল না করে ইউনিভার্সাল llm_gateway ব্যবহার করে এপিআই কল করা হচ্ছে
+        response = await llm_gateway.acompletion(
+            prompt=payload.prompt,
+            task_type="chat",
+            stream=False
+        )
+        response_text = response.get("text", "") if isinstance(response, dict) else str(response)
 
         # Store response in multi-layer cache for future requests
         await multi_layer_cache.set(
@@ -80,15 +83,17 @@ async def stream_chat(payload: ChatPayload, db=Depends(get_tenant_db)):
 
     async def async_generator():
         try:
-            model = genai.GenerativeModel(payload.model_name)
-            # অ্যাসিঙ্ক স্ট্রিমিং কল
-            response = await model.generate_content_async(payload.prompt, stream=True)
+            # বাংলা মন্তব্য: ইউনিভার্সাল llm_gateway ব্যবহার করে স্ট্রিমিং সম্পন্ন করা হচ্ছে
+            response_stream = await llm_gateway.acompletion(
+                prompt=payload.prompt,
+                task_type="chat",
+                stream=True
+            )
 
-            # ইটারেট করার জন্য async for লুপ
-            async for chunk in response:
-                if chunk.text:
+            async for chunk in response_stream:
+                if chunk:
                     # SSE (Server-Sent Events) স্ট্যান্ডার্ড ফরম্যাট
-                    yield f"data: {chunk.text}\n\n"
+                    yield f"data: {chunk}\n\n"
 
             yield "data: [DONE]\n\n"
         except Exception as e:

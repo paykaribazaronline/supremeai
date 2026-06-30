@@ -15,14 +15,6 @@ class AutoRemediationEngine:
         )
         self._model = None
 
-    def _get_model(self):
-        if self._model is None:
-            import google.generativeai as genai
-
-            genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
-            self._model = genai.GenerativeModel("gemini-2.0-flash")
-        return self._model
-
     def process_codeql_alert(
         self, file_path: str, line_number: int, vulnerability_details: str
     ):
@@ -56,8 +48,16 @@ class AutoRemediationEngine:
         Original Code:
         {code}
         """
-        response = self._get_model().generate_content(prompt)
-        return response.text.strip()
+        # বাংলা মন্তব্য: সরাসরি গুগল নেটিভ ক্লায়েন্ট কল না করে ইউনিভার্সাল llm_gateway ব্যবহার করে এপিআই কল করা হচ্ছে
+        import asyncio
+        from core.llm_gateway import llm_gateway
+        response = asyncio.run(llm_gateway.acompletion(
+            prompt=prompt,
+            task_type="coding",
+            stream=False
+        ))
+        result = response.get("text", "") if isinstance(response, dict) else str(response)
+        return result.strip()
 
     def _create_remediation_pr(
         self, file_path: str, old_code: str, new_code: str, issue: str
@@ -164,14 +164,6 @@ class AutoRemediation:
     def _get_ai_patch(
         self, file_path: str, code: str, line_number: int, issue: str
     ) -> str:
-        if not self.gemini_api_key:
-            logger.warning(
-                "GEMINI_API_KEY not configured. Simulating patch generation."
-            )
-            # Simple mock patch application (add a security comment)
-            return f"# Secure Patch Applied for: {issue}\n" + code
-
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={self.gemini_api_key}"
         prompt = f"""You are an elite secure coding assistant. Correct the security vulnerability in this file.
         File: {file_path}
         Line Number of Vulnerability: {line_number}
@@ -184,12 +176,15 @@ class AutoRemediation:
         """
 
         try:
-            headers = {"Content-Type": "application/json"}
-            payload = {"contents": [{"parts": [{"text": prompt}]}]}
-            res = httpx.post(url, headers=headers, json=payload, timeout=30.0)
-            res.raise_for_status()
-            data = res.json()
-            raw_text = data["candidates"][0]["content"]["parts"][0]["text"]
+            # বাংলা মন্তব্য: সরাসরি গুগল নেটিভ API রিকোয়েস্ট না পাঠিয়ে ইউনিভার্সাল llm_gateway ব্যবহার করে এপিআই কল করা হচ্ছে
+            import asyncio
+            from core.llm_gateway import llm_gateway
+            response = asyncio.run(llm_gateway.acompletion(
+                prompt=prompt,
+                task_type="coding",
+                stream=False
+            ))
+            raw_text = response.get("text", "") if isinstance(response, dict) else str(response)
 
             # Strip markdown formatting if the model returned any
             if raw_text.strip().startswith("```"):

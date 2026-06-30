@@ -40,6 +40,34 @@ class UpstashRedisQueue:
         response.raise_for_status()
         return response.json()
 
+    # বাংলা মন্তব্য: SET NX EX মেকানিজম ইমপ্লিমেন্ট করা হলো যা শুধুমাত্র কী না থাকলে লক সেট করবে
+    def set_nx(self, key: str, value: str, ex: int | None = None) -> bool:
+        if not self.configured:
+            return False
+        try:
+            command: list[Any] = ["SET", key, value, "NX"]
+            if ex:
+                command.extend(["EX", str(ex)])
+            response = self._request(*command)
+            # Upstash REST-এর ক্ষেত্রে সেট সফল হলে {"result": "OK"} অন্যথায় {"result": null} আসে
+            return response.get("result") == "OK"
+        except Exception as exc:
+            logger.error(f"Upstash Redis SET NX failed: {exc}")
+            return False
+
+    # বাংলা মন্তব্য: Lua Script এক্সিকিউট করার জন্য EVAL কমান্ড সাপোর্ট যুক্ত করা হলো
+    def eval(self, script: str, numkeys: int, *args: str) -> Any:
+        if not self.configured:
+            return None
+        try:
+            command: list[Any] = ["EVAL", script, str(numkeys)]
+            command.extend(args)
+            response = self._request(*command)
+            return response.get("result")
+        except Exception as exc:
+            logger.error(f"Upstash Redis EVAL failed: {exc}")
+            return None
+
     def get(self, key: str) -> str | None:
         if not self.configured:
             return None

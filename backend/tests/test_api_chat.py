@@ -61,9 +61,13 @@ async def test_get_completion_returns_cached_result(monkeypatch):
 async def test_get_completion_generates_response_and_saves_cache(monkeypatch):
     fake_cache = FakeCache(value=None)
     monkeypatch.setattr("api.routes.chat.multi_layer_cache", fake_cache)
-    monkeypatch.setattr(
-        "api.routes.chat.genai", SimpleNamespace(GenerativeModel=FakeModel)
-    )
+
+    async def mock_acompletion(prompt, task_type, stream):
+        if prompt == "raise-error":
+            raise RuntimeError("boom")
+        return {"text": f"generated:{prompt}"}
+
+    monkeypatch.setattr("api.routes.chat.llm_gateway", SimpleNamespace(acompletion=mock_acompletion))
 
     request = SimpleNamespace(headers={"X-Session-ID": "session-2"})
     payload = ChatPayload(prompt="live-prompt")
@@ -81,9 +85,11 @@ async def test_get_completion_generates_response_and_saves_cache(monkeypatch):
 async def test_get_completion_raises_http_exception_on_model_failure(monkeypatch):
     fake_cache = FakeCache(value=None)
     monkeypatch.setattr("api.routes.chat.multi_layer_cache", fake_cache)
-    monkeypatch.setattr(
-        "api.routes.chat.genai", SimpleNamespace(GenerativeModel=FakeModel)
-    )
+
+    async def mock_acompletion(prompt, task_type, stream):
+        raise RuntimeError("boom")
+
+    monkeypatch.setattr("api.routes.chat.llm_gateway", SimpleNamespace(acompletion=mock_acompletion))
 
     request = SimpleNamespace(headers={"X-Session-ID": "session-3"})
     payload = ChatPayload(prompt="raise-error")
@@ -94,23 +100,15 @@ async def test_get_completion_raises_http_exception_on_model_failure(monkeypatch
 
 @pytest.mark.asyncio
 async def test_stream_chat_yields_sse_chunks(monkeypatch):
-    async def fake_generate_content_async(prompt: str, stream: bool = False):
+    async def mock_acompletion(prompt, task_type, stream):
         class Response:
             async def __aiter__(self):
-                yield SimpleNamespace(text="chunk-one")
-                yield SimpleNamespace(text="chunk-two")
-
+                yield "chunk-one"
+                yield "chunk-two"
         return Response()
 
-    class FakeStreamModel:
-        def __init__(self, model_name: str):
-            self.model_name = model_name
-
-        async def generate_content_async(self, prompt: str, stream: bool = False):
-            return await fake_generate_content_async(prompt, stream=stream)
-
     monkeypatch.setattr(
-        "api.routes.chat.genai", SimpleNamespace(GenerativeModel=FakeStreamModel)
+        "api.routes.chat.llm_gateway", SimpleNamespace(acompletion=mock_acompletion)
     )
     request_payload = ChatPayload(prompt="stream-prompt")
     response = await stream_chat(

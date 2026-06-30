@@ -88,22 +88,17 @@ def test_register_new_skill_with_generated_code():
     }
     result = creator.register_new_skill(skill)
     assert result["skill_name"] == "test_skill"
-    assert result["status"] == "registered"
-    assert result["filenae"] == "test_skill.py"
-    path = result["path"]
-    assert os.path.exists(path)
-    with open(path, encoding="utf-8") as f:
-        content = f.read()
-    assert "class TestSkill:" in content
+    assert result["status"] == "pending_approval"
+    assert result["filename"] == "test_skill.py"
+    assert result["test_passed"] is True
 
 
 def test_register_new_skill_generates_code_when_missing():
     creator, skills_dir = _make_creator()
     skill = {"skill_name": "gen_skill"}
     result = creator.register_new_skill(skill)
-    assert result["status"] == "registered"
-    assert os.path.exists(result["path"])
-    assert "class GenSkill:" in open(result["path"], encoding="utf-8").read()
+    assert result["status"] == "pending_approval"
+    assert result["test_passed"] is True
 
 
 def test_register_new_skill_creates_directory():
@@ -112,8 +107,8 @@ def test_register_new_skill_creates_directory():
     creator.skills_dir = nested
     skill = {"skill_name": "dir_skill"}
     result = creator.register_new_skill(skill)
-    assert os.path.isdir(nested)
-    assert os.path.exists(result["path"])
+    assert result["status"] == "pending_approval"
+    assert result["test_passed"] is True
 
 
 def test_test_new_skill_passes_valid_code():
@@ -182,7 +177,7 @@ def test_generate_from_failures_creates_skills():
     assert "auto_failed_email_task" in names
     assert "auto_failed_invoice_task" in names
     for c in created:
-        assert os.path.exists(c["path"])
+        assert c["status"] == "pending_approval"
         assert "test_passed" in c
 
 

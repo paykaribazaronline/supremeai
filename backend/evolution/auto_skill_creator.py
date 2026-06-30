@@ -50,17 +50,6 @@ class AutoSkillCreator:
                 self.skills_ref = MockRef()
         # Initialize FitnessEngine for telemetry
         self.fitness_engine = FitnessEngine(db=self.db)
-        self._model = None
-
-    def _get_model(self):
-        if self._model is None:
-            import google.generativeai as genai
-
-            # Gemini API configuration (Secret Vault injects key into env)
-            genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
-            self._model = genai.GenerativeModel("gemini-1.5-pro")
-        return self._model
-
     async def generate_and_deploy_skill(
         self, user_demand: str, skill_name: str
     ) -> dict:
@@ -72,6 +61,7 @@ class AutoSkillCreator:
         from pathlib import Path
 
         from skills.schema import UniversalSkillSchema
+        from core.llm_gateway import llm_gateway
 
         logger.info(
             f"🧠 Self-Evolution Triggered: Designing skill '{skill_name}' for demand: '{user_demand}'"
@@ -138,8 +128,14 @@ class AutoSkillCreator:
 
         try:
             # ২. অন-দি-ফ্লাই কোড জেনারেশন
-            response = self._get_model().generate_content(system_prompt)
-            raw_content = response.text.strip()
+            # বাংলা মন্তব্য: সরাসরি গুগল নেটিভ ক্লায়েন্ট কল না করে ইউনিভার্সাল llm_gateway ব্যবহার করে এপিআই কল করা হচ্ছে
+            response = await llm_gateway.acompletion(
+                prompt=system_prompt,
+                task_type="coding",
+                stream=False
+            )
+            raw_content = response.get("text", "") if isinstance(response, dict) else str(response)
+            raw_content = raw_content.strip()
 
             # Extract JSON block
             if "```json" in raw_content:
@@ -200,32 +196,52 @@ class AutoSkillCreator:
             with open(schema_file, "w", encoding="utf-8") as f:
                 json.dump(schema_dict, f, indent=4)
 
-            # Load module from quarantine and execute validation tests
-            import importlib.util
+            # Load module from quarantine and execute validation tests inside the restricted Docker Sandbox
+            # বাংলা মন্তব্য: এআই জেনারেটেড কোডটি সরাসরি লোকাল ইন্টারপ্রেটারে রান না করিয়ে Dockerized Cloud Sandbox এর সাহায্যে সিকিউর এনভায়রনমেন্টে রান করানো হচ্ছে।
+            from tools.cloud_sandbox_orchestrator import CloudSandboxOrchestrator
+            sandbox = CloudSandboxOrchestrator()
 
-            # Isolated import to run test validation loop
-            spec = importlib.util.spec_from_file_location(
-                f"skills.quarantine.{skill_name}", str(entry_file)
-            )
-            mod = importlib.util.module_from_spec(spec)
-            spec.loader.exec_module(mod)
-
-            cls = getattr(mod, skill_name)
-            instance = cls()
-
-            # Execute validation tests loop
+            # Execute validation tests loop inside the sandbox
             for idx, test in enumerate(uss.validation.tests):
                 logger.info(
-                    f"Running validation test case {idx + 1}/{len(uss.validation.tests)}..."
+                    f"Running validation test case {idx + 1}/{len(uss.validation.tests)} inside the secure sandbox..."
                 )
-                result = await instance.execute(test.input)
-                if result != test.expected_output:
+                
+                # Construct executable script to evaluate inputs and output results to stdout as JSON
+                sandbox_script = f"""
+{code_block}
+
+import json
+import asyncio
+
+async def run():
+    instance = {skill_name}()
+    res = await instance.execute({repr(test.input)})
+    print("RESULT:" + json.dumps(res))
+
+asyncio.run(run())
+"""
+                run_res = sandbox.run_code(sandbox_script)
+                if not run_res["success"]:
                     raise ValueError(
-                        f"Validation test {idx + 1} failed. Expected {test.expected_output}, got {result}"
+                        f"Validation test {idx + 1} crashed or timed out in sandbox. Error: {run_res['stderr']}"
+                    )
+                
+                # Parse stdout logs for output result
+                output_line = [line for line in run_res["stdout"].splitlines() if line.startswith("RESULT:")]
+                if not output_line:
+                    raise ValueError(
+                        f"Validation test {idx + 1} did not produce executable result in sandbox. Stdout: {run_res['stdout']}"
+                    )
+                
+                res_val = json.loads(output_line[0][7:])
+                if res_val != test.expected_output:
+                    raise ValueError(
+                        f"Validation test {idx + 1} failed in sandbox. Expected {test.expected_output}, got {res_val}"
                     )
 
             logger.info(
-                f"✅ All {len(uss.validation.tests)} validation tests passed for skill '{skill_name}'!"
+                f"✅ All {len(uss.validation.tests)} validation tests passed for skill '{skill_name}' inside the sandbox!"
             )
 
             # ৬. Finalize Registration & Storage Deployment

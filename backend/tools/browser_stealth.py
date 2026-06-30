@@ -34,20 +34,29 @@ class BrowserStealth:
             "--disable-component-update",
             "--disable-popup-blocking",
         ]
-        self.context = await browser.new_context(
-            user_agent=os.getenv(
+        from tools.proxy_manager import ProxyManager
+        proxy_mgr = ProxyManager()
+        next_proxy = proxy_mgr.get_next_proxy()
+        
+        context_kwargs = {
+            "user_agent": os.getenv(
                 "STEALTH_USER_AGENT",
                 "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36",
             ),
-            locale="en-US",
-            java_script_enabled=True,
-            bypass_csp=True,
-            extra_http_headers={
+            "locale": "en-US",
+            "java_script_enabled": True,
+            "bypass_csp": True,
+            "extra_http_headers": {
                 "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
                 "Accept-Language": "en-US,en;q=0.9",
                 "Upgrade-Insecure-Requests": "1",
-            },
-        )
+            }
+        }
+        if next_proxy:
+            context_kwargs["proxy"] = {"server": next_proxy}
+            logger.info(f"Playwright stealth browser launching via proxy: {next_proxy}")
+            
+        self.context = await browser.new_context(**context_kwargs)
         await self.context.route("**/*.{png,jpg,jpeg,gif,svg,woff,woff2}", lambda route: route.abort())
         await self.context.add_init_script(
             """

@@ -65,15 +65,10 @@ MOCK_AI_RESPONSE_JSON = {
 async def test_pipeline_success(clean_dynamic_skills):
     loader, registry, installer = clean_dynamic_skills
 
-    # Mock Gemini model generate_content to return our structured JSON
-    mock_response = MagicMock()
-    mock_response.text = json.dumps(MOCK_AI_RESPONSE_JSON)
+    async def mock_acompletion(*args, **kwargs):
+        return {"text": json.dumps(MOCK_AI_RESPONSE_JSON)}
 
-    with patch("google.generativeai.GenerativeModel") as mock_model_class:
-        mock_model = MagicMock()
-        mock_model.generate_content.return_value = mock_response
-        mock_model_class.return_value = mock_model
-
+    with patch("core.llm_gateway.llm_gateway.acompletion", new=mock_acompletion):
         creator = AutoSkillCreator()
         result = await creator.generate_and_deploy_skill(
             user_demand="Analyze reviews sentiment", skill_name="SentimentAnalyzer"
@@ -99,14 +94,10 @@ async def test_pipeline_validation_mismatch(clean_dynamic_skills):
         "class SentimentAnalyzer:\n    async def execute(self, kwargs):\n        return {'sentiment': 'negative'}\n"
     )
 
-    mock_response = MagicMock()
-    mock_response.text = json.dumps(mismatch_json)
+    async def mock_acompletion(*args, **kwargs):
+        return {"text": json.dumps(mismatch_json)}
 
-    with patch("google.generativeai.GenerativeModel") as mock_model_class:
-        mock_model = MagicMock()
-        mock_model.generate_content.return_value = mock_response
-        mock_model_class.return_value = mock_model
-
+    with patch("core.llm_gateway.llm_gateway.acompletion", new=mock_acompletion):
         creator = AutoSkillCreator()
         result = await creator.generate_and_deploy_skill(
             user_demand="Analyze reviews sentiment", skill_name="SentimentAnalyzer"
@@ -130,14 +121,10 @@ async def test_pipeline_invalid_uss_pydantic(clean_dynamic_skills):
     bad_uss_json["schema"]["metadata"] = bad_uss_json["schema"]["metadata"].copy()
     bad_uss_json["schema"]["metadata"]["version"] = "1.0"
 
-    mock_response = MagicMock()
-    mock_response.text = json.dumps(bad_uss_json)
+    async def mock_acompletion(*args, **kwargs):
+        return {"text": json.dumps(bad_uss_json)}
 
-    with patch("google.generativeai.GenerativeModel") as mock_model_class:
-        mock_model = MagicMock()
-        mock_model.generate_content.return_value = mock_response
-        mock_model_class.return_value = mock_model
-
+    with patch("core.llm_gateway.llm_gateway.acompletion", new=mock_acompletion):
         creator = AutoSkillCreator()
         result = await creator.generate_and_deploy_skill(
             user_demand="Analyze reviews sentiment", skill_name="SentimentAnalyzer"

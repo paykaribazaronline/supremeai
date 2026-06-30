@@ -1,66 +1,31 @@
-import os
-
-
-os.environ.setdefault("OPENROUTER_API_KEY", "")
-os.environ.setdefault("HF_API_KEY", "")
-os.environ.setdefault("OLLAMA_URL", "http://127.0.0.1:11434")
-
-from unittest.mock import MagicMock
-
 import pytest
+from unittest.mock import patch, AsyncMock
+from core.swarm_orchestrator import SwarmOrchestrator
 
-
-@pytest.fixture
-def orchestrator():
-    from brain.crewai_agents import CrewAgent
-    from brain.swarm_orchestrator import SwarmOrchestrator
-
-    agent1 = MagicMock(spec=CrewAgent)
-    agent1.role = "planner"
-    agent2 = MagicMock(spec=CrewAgent)
-    agent2.role = "executor"
-    orch = SwarmOrchestrator(agents=[agent1, agent2], max_workers=2)
-    return orch, agent1, agent2
-
-
-class TestSwarmOrchestrator:
-    def test_execute_swarm_returns_all_results(self, orchestrator):
-        orch, agent1, agent2 = orchestrator
-        agent1.execute.return_value = "result-a"
-        agent2.execute.return_value = "result-b"
-
-        task_a = MagicMock()
-        task_a.description = "task alpha"
-        task_b = MagicMock()
-        task_b.description = "task beta"
-        results = orch.execute_swarm([task_a, task_b])
-
-        assert "task alpha" in results
-        assert "task beta" in results
-
-    def test_execute_swarm_assigns_round_robin(self, orchestrator):
-        orch, agent1, agent2 = orchestrator
-        agent1.execute.return_value = "ok"
-        agent2.execute.return_value = "ok"
-
-        tasks = [MagicMock(description=f"t{i}") for i in range(4)]
-        orch.execute_swarm(tasks)
-
-        assert agent1.execute.call_count == 2
-        assert agent2.execute.call_count == 2
-
-    def test_execute_swarm_task_output_set(self, orchestrator):
-        orch, agent1, _ = orchestrator
-        agent1.execute.return_value = "output-1"
-        task = MagicMock()
-        task.description = "my task"
-        orch.execute_swarm([task])
-        assert task.output == "output-1"
-
-    def test_execute_swarm_handles_failure(self, orchestrator):
-        orch, agent1, _ = orchestrator
-        agent1.execute.side_effect = RuntimeError("agent crashed")
-        task = MagicMock()
-        task.description = "failing task"
-        results = orch.execute_swarm([task])
-        assert "Error:" in results["failing task"]
+@pytest.mark.anyio
+async def test_swarm_orchestrator_runs_entire_graph():
+    orchestrator = SwarmOrchestrator()
+    
+    # Mock LLM Gateway response to bypass actual internet LLM calls during pytest
+    mock_response = {
+        "choices": [
+            {
+                "message": {
+                    "content": "class TestModel: pass"
+                }
+            }
+        ]
+    }
+    
+    with patch("core.llm_gateway.llm_gateway.acompletion", new_callable=AsyncMock, return_value=mock_response) as mock_call:
+        workspace = await orchestrator.execute_task(
+            prompt="Build a simple key-value database model class in Python",
+            user_id="default_user_session"
+        )
+        
+        # Verify all agents were called
+        assert mock_call.call_count == 3
+        assert workspace.architecture_design == "class TestModel: pass"
+        assert workspace.generated_code["main.py"] == "class TestModel: pass"
+        assert len(workspace.execution_logs) > 0
+        assert workspace.test_results["safe"] is True

@@ -101,28 +101,31 @@ class HoneypotMiddleware:
                 and app_mod.redis_queue
                 and app_mod.redis_queue.configured
             ):
-                # Log attacker payload
-                log_entry = {
-                    "ip": hacker_ip,
-                    "url": f"{scope.get('scheme', 'http')}://{hacker_ip}{scope.get('path', '')}",
-                    "method": scope.get("method", "GET"),
-                    "timestamp": time.time(),
-                }
-                app_mod.redis_queue.set(
-                    f"honeypot_attacker:{hacker_ip}:{int(time.time())}",
-                    json.dumps(log_entry),
-                    ex=86400,
-                )
-
-                threat_key = f"threat_level:{hacker_ip}"
-                hits = app_mod.redis_queue.incr(threat_key)
-                if hits == 1:
-                    app_mod.redis_queue.expire(threat_key, 300)
-                elif hits and hits >= 3:
-                    # Dynamically block IP using RulesMutator
-                    RulesMutator().block_ip(
-                        hacker_ip, reason="honeypot_threat_threshold_exceeded"
+                try:
+                    # Log attacker payload
+                    log_entry = {
+                        "ip": hacker_ip,
+                        "url": f"{scope.get('scheme', 'http')}://{hacker_ip}{scope.get('path', '')}",
+                        "method": scope.get("method", "GET"),
+                        "timestamp": time.time(),
+                    }
+                    app_mod.redis_queue.set(
+                        f"honeypot_attacker:{hacker_ip}:{int(time.time())}",
+                        json.dumps(log_entry),
+                        ex=86400,
                     )
+
+                    threat_key = f"threat_level:{hacker_ip}"
+                    hits = app_mod.redis_queue.incr(threat_key)
+                    if hits == 1:
+                        app_mod.redis_queue.expire(threat_key, 300)
+                    elif hits and hits >= 3:
+                        # Dynamically block IP using RulesMutator
+                        RulesMutator().block_ip(
+                            hacker_ip, reason="honeypot_threat_threshold_exceeded"
+                        )
+                except Exception as e:
+                    logger.error(f"Redis operation failed in HoneypotMiddleware: {e}")
 
             # হ্যাকারকে ফেক সাকসেস রেসপন্স দেওয়া
             response = JSONResponse(

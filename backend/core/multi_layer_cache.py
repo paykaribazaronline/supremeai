@@ -145,7 +145,7 @@ class MultiLayerCache:
         await exact_match_cache.setex(exact_cache_key, 3600, response)  # 1 hour TTL
 
         # Layer 2: Semantic Cache
-        await semantic_cache.set(prompt, response, "provider-name", model_name)
+        await semantic_cache.set(prompt, response, task_type="general")
 
         # Layer 3: Prefix Cache (cache all prefixes)
         words = prompt.split()

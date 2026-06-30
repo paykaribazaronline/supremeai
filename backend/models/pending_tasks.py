@@ -40,16 +40,11 @@ DB_PATH = Path(__file__).resolve().parent.parent / "data" / "pending_tasks.db"
 
 
 def _get_conn():
+    # বাংলা মন্তব্য: ডাটাবেস ডিরেক্টরি তৈরি এবং অটোমেটিক টেবিল ইনিশিয়ালাইজেশন
     DB_PATH.parent.mkdir(parents=True, exist_ok=True)
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
-    return conn
-
-
-def init_db():
-    conn = _get_conn()
-    cursor = conn.cursor()
-    cursor.execute(
+    conn.execute(
         """
         CREATE TABLE IF NOT EXISTS pending_tasks (
             task_id TEXT PRIMARY KEY,
@@ -63,8 +58,7 @@ def init_db():
         )
         """
     )
-    conn.commit()
-    conn.close()
+    return conn
 
 
 def create_pending_task(task_type: TaskType, payload: dict, created_by: str = "system") -> PendingTask:
@@ -119,11 +113,12 @@ def update_task_status(task_id: str, status: TaskStatus, resolved_by: str, reaso
         (status, resolved_by, resolved_at, reason, task_id),
     )
     conn.commit()
-    conn.close()
+    # conn.close()  <-- বাংলা মন্তব্য: এখানে ডাবল কানেকশন ক্লোজ বাগ ফিক্স করা হলো
     cursor.execute("SELECT * FROM pending_tasks WHERE task_id = ?", (task_id,))
     row = cursor.fetchone()
     conn.close()
     return row_to_task(row) if row else None
+
 
 
 def row_to_task(row: sqlite3.Row) -> PendingTask:

@@ -618,10 +618,9 @@ def admin_firebase_login(payload: AdminFirebaseLoginRequest):
                     {"email": email, "role": "admin", "created_at": str(time.time())}
                 )
         except Exception as e:
-            logger.error(f"Firestore admin lookup failed: {e}")
-            role = (
-                "admin"  # Fallback to admin for easy local setup if database errors out
-            )
+            # 🛑 ZERO-GAP: Fail-Closed. ডাটাবেজ ফেইল করলে কখনোই অ্যাডমিন এক্সেস দেওয়া যাবে না।
+            logger.critical(f"Firestore admin lookup failed (Possible DB connection issue/attack): {e}")
+            role = "user"
     elif (
         "admin" in email.lower()
         or email.endswith("@supremeai.dev")
@@ -632,6 +631,7 @@ def admin_firebase_login(payload: AdminFirebaseLoginRequest):
         role = "user"
 
     if role != "admin":
+        logger.warning(f"Unauthorized admin access attempt by UID: {uid}, Email: {email}")
         raise HTTPException(
             status_code=403, detail="Forbidden: Not authorized as an admin role user"
         )
@@ -785,15 +785,27 @@ def admin_firebase_totp_verify(payload: AdminFirebaseTotpVerifyRequest):
 
 @app.post("/api/admin/easy-login")
 def admin_easy_login(payload: AdminEasyLoginRequest):
+    # 🛑 ZERO-GAP: Production Environment Guard (Fail-Closed)
+    # settings.env যদি 'production' হয়, তবে এই এন্ডপয়েন্টটি কাজ করবে না।
+    if getattr(settings, "env", "development") == "production":
+        logger.critical("CRITICAL: Easy-login bypass attempt blocked in production.")
+        raise HTTPException(status_code=403, detail="Endpoint disabled in production environment")
+
     # বাংলা মন্তব্য: Pydantic স্কিমা ব্যবহার করে লগইন কোড রিড করা হচ্ছে
     code = payload.code
-    expected_code = os.getenv("SUPREMEAI_ADMIN_CODE", "supreme2026")
+    expected_code = os.getenv("SUPREMEAI_ADMIN_CODE")
 
-    if code != expected_code:
+    if not expected_code:
+        logger.error("SUPREMEAI_ADMIN_CODE is missing in environment variables.")
+        raise HTTPException(status_code=500, detail="Server configuration error")
+
+    # 🛑 ZERO-GAP: Constant-time comparison to prevent Timing Attacks (V5-07 Fix)
+    import secrets
+    if not secrets.compare_digest(code, expected_code):
+        logger.warning("Failed easy-login attempt with invalid code.")
         raise HTTPException(status_code=401, detail="Invalid authentication code")
 
     import time
-
     from jose import jwt
 
     jwt_payload = {
@@ -1125,9 +1137,26 @@ except Exception as _e:
     logger.warning(f"tenant_admin router not loaded: {_e}")
 
 from api.routes.mobile_bff import router as mobile_bff_router
-
-
 app.include_router(mobile_bff_router)
+
+# Register Universal BYOC Router
+# বাংলা মন্তব্য: BYOC এডমিন ম্যানেজমেন্ট এপিআই রাউটার রেজিস্টার করা হলো
+try:
+    from api.routes.byoc_api import router as byoc_api_router
+    app.include_router(byoc_api_router)
+    logger.info("Universal BYOC management router loaded successfully ✅")
+except Exception as _e:
+    logger.critical(f"Failed to load Universal BYOC router: {_e}")
+
+# Register billing API Router
+# বাংলা মন্তব্য: ক্রেডিট ওয়ালেট ও ট্রানজেকশন বিলিং রাউটার রেজিস্টার করা হলো
+try:
+    from api.routes.byoc_api import router as byoc_api_router
+    from api.routes.billing_api import router as billing_api_router
+    app.include_router(billing_api_router)
+    logger.info("P2P Credit System billing router loaded successfully ✅")
+except Exception as _e:
+    logger.critical(f"Failed to load Billing router: {_e}")
 
 from api.routes.metrics import router as admin_metrics_router
 

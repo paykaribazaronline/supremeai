@@ -1,6 +1,6 @@
 import asyncio
 import json
-from typing import Any
+from typing import Any, Set
 
 import networkx as nx
 from fastapi import APIRouter
@@ -19,6 +19,8 @@ class PlanRequest(BaseModel):
 class SelfPlanner:
     def __init__(self, llm_client=None):
         self.llm_client = llm_client
+        # বাংলা মন্তব্য: রানিং ব্যাকগ্রাউন্ড টাস্কগুলোর স্ট্রং রেফারেন্স ধরে রাখার জন্য সেট ইনিশিয়ালাইজেশন
+        self.active_tasks: Set[asyncio.Task] = set()
         logger.info("Initialized SelfPlanner")
 
     async def generate_plan(self, objective: str) -> nx.DiGraph:
@@ -150,26 +152,34 @@ class SelfPlanner:
                     execution_results[task_id] = task_res
                     dag.nodes[task_id]["status"] = "completed"
 
-        # After all batches are complete, decide the next step automatically.
+        # After all batches are complete, log the summary and return.
+        # 🛑 ZERO-GAP: Removed recursive self-generating planning logic to avoid OOM loop leaks.
         final_summary = "Completed all tasks. " + json.dumps(execution_results)
         logger.info(
             f"Plan execution finished for objective. Summary: {final_summary[:200]}"
         )
 
-        # Automatically generate and start the next plan based on the outcome.
-        next_objective = f"Based on the successful completion of the previous plan ({final_summary[:150]}...), determine the next logical step to achieve the overall goal."
-        logger.info(
-            f"Automatically planning next step with objective: {next_objective}"
-        )
-        next_dag = await self.generate_plan(next_objective)
-        asyncio.create_task(self.parallel_agent_executor(next_dag))
-
         return {
             "status": "completed",
             "batches_executed": len(batches),
             "results": execution_results,
-            "next_plan_started": True,
+            "next_plan_started": False,
         }
+
+    # বাংলা মন্তব্য: কন্টেইনার শাটডাউনে জম্বি প্রসেস কিল করার জন্য গ্রেসফুল টিয়ারডাউন মেথড
+    async def shutdown(self):
+        """Cancels all currently active running planner tasks."""
+        if not self.active_tasks:
+            return
+        logger.warning(f"Shutting down SelfPlanner. Cancelling {len(self.active_tasks)} active tasks...")
+        for task in list(self.active_tasks):
+            if not task.done():
+                task.cancel()
+        
+        # Wait for all tasks to finalize cancellations safely
+        await asyncio.gather(*self.active_tasks, return_exceptions=True)
+        self.active_tasks.clear()
+        logger.info("SelfPlanner cleanup finalized.")
 
 
 planner = SelfPlanner()
@@ -181,8 +191,11 @@ async def create_plan(request: PlanRequest):
         dag = await planner.generate_plan(request.objective)
         batches = planner.get_execution_order(dag)
 
-        # We start the execution in the background to avoid blocking the HTTP request
-        asyncio.create_task(planner.parallel_agent_executor(dag))
+        # 🛑 ZERO-GAP: active_tasks সেট-এ টাস্কটি এড করে স্ট্রং রেফারেন্স ট্র্যাকিং নিশ্চিত করা হলো
+        task = asyncio.create_task(planner.parallel_agent_executor(dag))
+        planner.active_tasks.add(task)
+        # টাস্ক সম্পন্ন হলে সেট থেকে অটো-ডিসকার্ডের কলব্যাক রেজিস্টার
+        task.add_done_callback(planner.active_tasks.discard)
 
         nodes = []
         for n in dag.nodes(data=True):

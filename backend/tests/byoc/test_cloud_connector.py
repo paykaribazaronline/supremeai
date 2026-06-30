@@ -1,4 +1,5 @@
 import sys
+import json
 
 
 sys.path.append("../..")
@@ -18,3 +19,28 @@ class TestCloudConnector:
         result = asyncio.run(list_resources())
         assert isinstance(result, list)
         assert len(result) == 0
+
+    def test_credential_encryption_and_decryption(self):
+        from byoc.cloud_connector import GCPCredentialManager
+        
+        sa_data = {
+            "type": "service_account",
+            "project_id": "test-project-123",
+            "private_key_id": "abcd123",
+            "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQC3\n-----END PRIVATE KEY-----\n",
+            "client_email": "test-sa@test-project-123.iam.gserviceaccount.com"
+        }
+        
+        encrypted = GCPCredentialManager.encrypt_credentials(sa_data)
+        assert isinstance(encrypted, bytes)
+        assert encrypted != json.dumps(sa_data).encode()
+        
+        decrypted = GCPCredentialManager.decrypt_credentials(encrypted)
+        assert decrypted["project_id"] == "test-project-123"
+        assert decrypted["private_key_id"] == "abcd123"
+        
+    def test_credential_validation_returns_false_for_malformed(self):
+        from byoc.cloud_connector import GCPCredentialManager
+        sa_data = {"invalid": "data"}
+        is_valid = GCPCredentialManager.validate_service_account(sa_data)
+        assert is_valid is False

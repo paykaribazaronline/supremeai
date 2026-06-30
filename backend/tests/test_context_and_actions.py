@@ -60,14 +60,17 @@ def test_task_execute_with_context():
 
     previous_router = app_mod.model_router
     fake_router = MagicMock()
-    fake_router.async_route_and_generate = AsyncMock(
-        return_value={
-            "success": True,
-            "text": "```javascript\nconsole.log('hi');\n```",
-            "provider": "gemini",
-            "cost": 0.002,
-        }
-    )
+    
+    mock_val = {
+        "success": True,
+        "text": "```javascript\nconsole.log('hi');\n```",
+        "provider": "gemini",
+        "cost": 0.002,
+    }
+    
+    # বাংলা মন্তব্য: টেস্টে ব্যবহৃত মক রাউটারকে সিনক্রোনাস ও অ্যাসিনক্রোনাস উভয়ের জন্যই কনফিগার করা হলো
+    fake_router.async_route_and_generate = AsyncMock(return_value=mock_val)
+    fake_router.route_and_generate = MagicMock(return_value=mock_val)
     app_mod.model_router = fake_router
 
     payload = {

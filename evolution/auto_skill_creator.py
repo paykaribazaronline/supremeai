@@ -4,7 +4,17 @@ import os
 import subprocess
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
-from evolution.evolution_react_agent import EvolutionReActAgent
+# বাংলা মন্তব্য: প্যাকেজ ও ডিরেক্টরি ইম্পোর্টের সামঞ্জস্যতা নিশ্চিত করতে ট্রাই-ক্যাচ ব্লক ব্যবহার করা হলো
+try:
+    from .evolution_react_agent import EvolutionReActAgent
+except ImportError:
+    try:
+        from evolution.evolution_react_agent import EvolutionReActAgent
+    except ImportError:
+        import sys
+        import os
+        sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+        from evolution_react_agent import EvolutionReActAgent
 
 
 class AutoSkillCreator:

@@ -23,8 +23,8 @@ class RulesMutator:
                 val = app_mod.redis_queue.get(redis_key)
                 if val is not None:
                     return val != "ok"
-            except Exception:
-                pass
+            except Exception as e:
+                logger.error(f"Redis connection failed during is_ip_blocked: {e}")
         return False
 
     def block_ip(self, ip_address: str, reason: str = "suspicious_activity") -> bool:
@@ -37,10 +37,13 @@ class RulesMutator:
             and app_mod.redis_queue.configured
         ):
             redis_key = f"blocklist:ip:{ip_address}"
-            app_mod.redis_queue.set(
-                redis_key, f"blocked:{reason}", ex=self.cooldown_seconds
-            )
-            return True
+            try:
+                app_mod.redis_queue.set(
+                    redis_key, f"blocked:{reason}", ex=self.cooldown_seconds
+                )
+                return True
+            except Exception as e:
+                logger.error(f"Redis connection failed during block_ip: {e}")
         return False
 
     def release_ip(self, ip_address: str) -> bool:
@@ -53,6 +56,9 @@ class RulesMutator:
             and app_mod.redis_queue.configured
         ):
             redis_key = f"blocklist:ip:{ip_address}"
-            app_mod.redis_queue.set(redis_key, "", ex=1)
-            return True
+            try:
+                app_mod.redis_queue.set(redis_key, "", ex=1)
+                return True
+            except Exception as e:
+                logger.error(f"Redis connection failed during release_ip: {e}")
         return False

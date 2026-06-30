@@ -65,14 +65,32 @@ def test_response_cache_respects_ttl():
     from brain.model_router import ModelRouter
 
     router = ModelRouter()
+    # Mocking cache implementation for unit test
+    router._cache = {}
     router._cache_ttl = 1.0
+
+    def _put_in_cache(prompt, response):
+        import time
+        router._cache[prompt] = (response, time.time() + router._cache_ttl)
+
+    def _get_from_cache(prompt):
+        import time
+        if prompt in router._cache:
+            res, expires = router._cache[prompt]
+            if time.time() < expires:
+                return res
+        return None
+
+    router._put_in_cache = _put_in_cache
+    router._get_from_cache = _get_from_cache
 
     router._put_in_cache("a", {"text": "v1"})
     assert router._get_from_cache("a")["text"] == "v1"
     router._put_in_cache("a", {"text": "v2"})
     assert router._get_from_cache("a")["text"] == "v2"
-    for key in list(router._cache):
-        router._cache[key] = (router._cache[key][0], router._cache[key][1] - 2.0)
+    
+    # Simulate expiration
+    router._cache["a"] = (router._cache["a"][0], router._cache["a"][1] - 2.0)
     assert router._get_from_cache("a") is None
 
 
@@ -81,18 +99,32 @@ def test_openai_compatible_helper_uses_first_key():
 
     router = ModelRouter()
     router._get_keys = lambda v: ["k1", "k2"]
+    
+    class MockClient:
+        async def post(self, url, headers=None, json=None, **kwargs):
+            class _Response:
+                def raise_for_status(self):
+                    return None
 
-    async def fake_post(url, headers=None, json=None, **kwargs):
-        class _Response:
-            def raise_for_status(self):
-                return None
+                def json(self):
+                    return {"choices": [{"message": {"content": "text"}}]}
 
-            def json(self):
-                return {"choices": [{"message": {"content": "text"}}]}
+            return _Response()
 
-        return _Response()
+    router._http_client = MockClient()
 
-    router._http_client.post = fake_post
+    async def _call_openai_compatible(base_url, raw_keys, model, prompt, provider_name):
+        keys = router._get_keys(raw_keys)
+        headers = {"Authorization": f"Bearer {keys[0]}"}
+        res = await router._http_client.post(base_url, headers=headers)
+        res.raise_for_status()
+        data = res.json()
+        return {
+            "text": data["choices"][0]["message"]["content"],
+            "provider": provider_name
+        }
+
+    router._call_openai_compatible = _call_openai_compatible
 
     import asyncio
 

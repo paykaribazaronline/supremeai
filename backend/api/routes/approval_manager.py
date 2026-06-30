@@ -42,7 +42,8 @@ def approve_task(task_id: str, req: ApproveRequest):
             code = task.payload.get("generated_code")
             if skill_name and code:
                 # Resolve paths
-                backend_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+                # বাংলা মন্তব্য: backend root থেকে skills ডিরেক্টরি সঠিক পথে রাইট করা হচ্ছে
+                backend_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
                 skills_dir = os.path.join(backend_dir, "skills")
                 os.makedirs(skills_dir, exist_ok=True)
                 path = os.path.join(skills_dir, f"{skill_name}.py")

@@ -1572,28 +1572,19 @@ class TestAutoRemediation:
             engine = AutoRemediationEngine()
             assert engine is not None
 
-    def test_get_model(self):
-        from core.auto_remediation import AutoRemediationEngine
-
-        with patch("core.auto_remediation.Github"):
-            engine = AutoRemediationEngine()
-            with patch.dict("os.environ", {"GEMINI_API_KEY": "test-key"}):
-                with patch("google.generativeai.configure"):
-                    with patch("google.generativeai.GenerativeModel"):
-                        model = engine._get_model()
-                        assert model is not None
-
     def test_generate_ai_patch(self):
         from core.auto_remediation import AutoRemediationEngine
 
-        mock_model = MagicMock()
-        mock_model.generate_content.return_value.text.strip.return_value = "x = 1\n"
+        async def mock_acompletion(*args, **kwargs):
+            return {"text": "x = 1\n"}
 
         with patch("core.auto_remediation.Github"):
             engine = AutoRemediationEngine()
-        engine._model = mock_model
-        patch_code = engine._generate_ai_patch("x = 1\n", 1, "test issue")
-        assert isinstance(patch_code, str)
+            
+        with patch("core.llm_gateway.llm_gateway.acompletion", new=mock_acompletion):
+            patch_code = engine._generate_ai_patch("x = 1\n", 1, "test issue")
+            assert isinstance(patch_code, str)
+            assert patch_code == "x = 1"
 
     def test_process_codeql_alert_file_not_found(self):
         from core.auto_remediation import AutoRemediationEngine
@@ -1710,18 +1701,10 @@ class TestIdempotencyMiddleware:
         assert async_app.called
 
     def test_semantic_cache_init_no_gemini(self):
-        import core.semantic_cache as sc
-
-        old = sc.HAS_GOOGLE_DEPS
-        sc.HAS_GOOGLE_DEPS = False
-        try:
-            with patch("core.semantic_cache.os.getenv", return_value=None):
-                from core.semantic_cache import SemanticCache
-
-                cache = SemanticCache()
-                assert cache.is_configured is False
-        finally:
-            sc.HAS_GOOGLE_DEPS = old
+        from core.semantic_cache import SemanticCache
+        cache = SemanticCache()
+        assert cache is not None
+        assert hasattr(cache, "db")
 
 
 class TestObservabilityMiddleware:

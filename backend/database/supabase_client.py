@@ -265,7 +265,28 @@ class SupabaseDB:
             "created_at TIMESTAMP WITH TIME ZONE NOT NULL"
             ");",
             "CREATE TABLE IF NOT EXISTS evolution_logs (id SERIAL PRIMARY KEY,event JSONB NOT NULL,created_at TIMESTAMP WITH TIME ZONE NOT NULL);",
+            # বাংলা মন্তব্য: ডিস্ট্রিবিউটেড এবং সার্ভারলেস ব্যালেন্স ট্র্যাকিং ও অপটিমিস্টিক লক সাপোর্টের জন্য স্কিমা বুটস্ট্র্যাপ
+            "CREATE TABLE IF NOT EXISTS user_wallets ("
+            "id UUID PRIMARY KEY DEFAULT gen_random_uuid(),"
+            "user_id VARCHAR(255) NOT NULL UNIQUE,"
+            "balance_usd NUMERIC(10, 6) NOT NULL DEFAULT 0.000000,"
+            "monthly_allowance_usd NUMERIC(10, 6) NOT NULL DEFAULT 0.000000,"
+            "version INTEGER NOT NULL DEFAULT 1,"
+            "created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),"
+            "updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()"
+            ");",
+            "CREATE TABLE IF NOT EXISTS transaction_ledger ("
+            "id UUID PRIMARY KEY DEFAULT gen_random_uuid(),"
+            "transaction_id VARCHAR(255) NOT NULL UNIQUE,"
+            "user_id VARCHAR(255) NOT NULL,"
+            "amount_usd NUMERIC(10, 6) NOT NULL,"
+            "transaction_type VARCHAR(50) NOT NULL,"
+            "description VARCHAR(500),"
+            "timestamp TIMESTAMP WITH TIME ZONE DEFAULT NOW()"
+            ");",
+            "CREATE INDEX IF NOT EXISTS idx_user_time ON transaction_ledger (user_id, timestamp);",
         ]
+
 
     def bootstrap_schema(self):
         db_url = os.environ.get("SUPABASE_DATABASE_URL")

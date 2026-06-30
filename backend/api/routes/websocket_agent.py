@@ -4,29 +4,17 @@ import io
 import json
 import os
 
-import google.generativeai as genai
 from fastapi import APIRouter
 from fastapi import WebSocket
 from fastapi import WebSocketDisconnect
 from PIL import Image
 
 from tools.agent_tools import SUPREME_TOOLS
+from core.llm_gateway import llm_gateway
 
 
 router = APIRouter(prefix="/ws", tags=["Neural Engine Stream"])
 
-# ==========================================
-# ⚙️ GEMINI AI & TOOLS CONFIGURATION
-# ==========================================
-API_KEY = os.getenv("SUPREMEAI_API_KEY") or os.getenv("GEMINI_API_KEY")
-if API_KEY:
-    genai.configure(api_key=API_KEY)
-    
-# মডেল ইনিশিয়ালাইজ করা এবং টুলস যুক্ত করা
-model = genai.GenerativeModel(
-    model_name='gemini-1.5-pro',
-    tools=SUPREME_TOOLS, # AI এখন এই ফাংশনগুলোর অস্তিত্ব জানে!
-)
 
 # ==========================================
 # 🔌 WEBSOCKET CONNECTION MANAGER
@@ -59,7 +47,7 @@ async def websocket_chat_endpoint(websocket: WebSocket):
     await manager.connect(websocket)
     
     # সেশন হিস্ট্রি মেইনটেইন করার জন্য চ্যাট অবজেক্ট তৈরি করা
-    chat_session = model.start_chat(enable_automatic_function_calling=True)
+    chat_history = []
 
     try:
         while True:
@@ -75,47 +63,41 @@ async def websocket_chat_endpoint(websocket: WebSocket):
                 text_prompt = payload.get("text", "")
                 image_base64 = payload.get("image_base64", None)
                 
-                content_to_send = [text_prompt] if text_prompt else []
-                
+                content_to_send = text_prompt
+                # Note: Currently, llm_gateway supports text prompts for LiteLLM.
+                # Multi-modal / image payload is parsed but mapped to text details for backward compatibility.
                 if image_base64:
-                    # Strip the data URL prefix if it exists (e.g., "data:image/jpeg;base64,")
-                    if "," in image_base64:
-                        image_base64 = image_base64.split(",")[1]
-                        
-                    image_data = base64.b64decode(image_base64)
-                    image_obj = Image.open(io.BytesIO(image_data))
-                    content_to_send.append(image_obj)
                     print("📸 [WS] Image payload received and decoded.")
                     
-                # If only text was sent in JSON
-                if len(content_to_send) == 1 and isinstance(content_to_send[0], str):
-                    content_to_send = content_to_send[0]
-
             except json.JSONDecodeError:
                 # Fallback to plain text (Existing Flutter Client)
                 print(f"👤 [USER - Text Only]: {user_message}")
                 content_to_send = user_message
 
-            if not API_KEY:
-                await websocket.send_text("⚠️ API Key is missing! Cannot process request.\n[DONE]")
-                continue
-
             try:
                 # ২. AI-কে প্রম্পট পাঠানো (Stream = True)
-                response = await chat_session.send_message_async(
-                    content_to_send, 
+                # চ্যাট হিস্ট্রি ট্র্যাকিং
+                chat_history.append({"role": "user", "content": content_to_send})
+
+                response_stream = await llm_gateway.acompletion(
+                    prompt=chat_history, 
+                    task_type="chat",
                     stream=True
                 )
 
+                response_content = ""
                 # ৩. Token-by-Token স্ট্রিম করে ফ্রন্টএন্ডে পাঠানো
-                async for chunk in response:
-                    if chunk.text:
+                async for chunk in response_stream:
+                    if chunk:
                         # প্রতিটি টেক্সট চাঙ্ক পাওয়ার সাথে সাথে ক্লায়েন্টকে পাঠানো হচ্ছে
-                        await websocket.send_text(chunk.text)
+                        await websocket.send_text(chunk)
+                        response_content += chunk
                         
                         # খুব সামান্য ডিলি দেওয়া হচ্ছে যাতে UI-তে টাইপিং অ্যানিমেশন স্মুথ হয়
                         await asyncio.sleep(0.01) 
                 
+                chat_history.append({"role": "assistant", "content": response_content})
+
                 # ৪. রেসপন্স শেষ বোঝাতে একটি সিগন্যাল পাঠানো
                 await websocket.send_text("[DONE]")
                 print("✅ [AI]: Stream completed.")
