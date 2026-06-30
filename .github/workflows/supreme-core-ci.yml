@@ -70,7 +70,7 @@ jobs:
   backend-core:
     name: 🐍 Backend (Test & Auto-Fix)
     needs: detect-changes
-    if: needs.detect-changes.outputs.backend == 'true'
+    # if: needs.detect-changes.outputs.backend == 'true' # বাংলা কমেন্ট: অটো ডিটেক্ট সাময়িকভাবে বন্ধ রাখা হলো, সব জব রান করবে
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -124,7 +124,7 @@ jobs:
   frontend-core:
     name: 🌐 Frontend Monorepo (Turbo)
     needs: detect-changes
-    if: needs.detect-changes.outputs.frontend == 'true'
+    # if: needs.detect-changes.outputs.frontend == 'true' # বাংলা কমেন্ট: অটো ডিটেক্ট সাময়িকভাবে বন্ধ রাখা হলো, সব জব রান করবে
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -156,8 +156,8 @@ jobs:
     if: |
       always() && 
       github.ref == 'refs/heads/main' && 
-      needs.backend-core.result != 'failure' && needs.backend-core.result != 'cancelled' &&
-      needs.detect-changes.outputs.backend == 'true'
+      needs.backend-core.result != 'failure' && needs.backend-core.result != 'cancelled'
+      # && needs.detect-changes.outputs.backend == 'true' # বাংলা কমেন্ট: অটো ডিটেক্ট রুল রিমুভ করা হলো
     runs-on: ubuntu-latest
     environment: production
     steps:
@@ -198,8 +198,8 @@ jobs:
     if: |
       always() && 
       github.ref == 'refs/heads/main' && 
-      needs.frontend-core.result != 'failure' && needs.frontend-core.result != 'cancelled' &&
-      needs.detect-changes.outputs.frontend == 'true'
+      needs.frontend-core.result != 'failure' && needs.frontend-core.result != 'cancelled'
+      # && needs.detect-changes.outputs.frontend == 'true' # বাংলা কমেন্ট: অটো ডিটেক্ট রুল রিমুভ করা হলো
     runs-on: ubuntu-latest
     environment: production
     steps:
@@ -220,9 +220,9 @@ jobs:
     needs: [detect-changes, deploy-backend, deploy-frontend]
     if: |
       github.ref == 'refs/heads/main' &&
-      (needs.detect-changes.outputs.backend == 'true' || needs.detect-changes.outputs.frontend == 'true') &&
       needs.deploy-backend.result != 'failure' && needs.deploy-backend.result != 'cancelled' &&
       needs.deploy-frontend.result != 'failure' && needs.deploy-frontend.result != 'cancelled'
+      # && (needs.detect-changes.outputs.backend == 'true' || needs.detect-changes.outputs.frontend == 'true') # বাংলা কমেন্ট: অটো ডিটেক্ট বাইপাস করা হলো
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
