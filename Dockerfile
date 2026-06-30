@@ -26,7 +26,7 @@ RUN python -m venv /app/backend/.venv && \
 
 COPY backend/pyproject.toml ./
 COPY backend/poetry.lock* ./
-RUN poetry lock
+
 RUN poetry install --no-interaction --no-ansi --no-root --only main --with ml || \
     poetry install --no-interaction --no-ansi --no-root --only main
 

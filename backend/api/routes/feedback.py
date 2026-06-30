@@ -10,6 +10,7 @@ from fastapi import APIRouter
 from fastapi import HTTPException
 from loguru import logger
 from pydantic import BaseModel
+from contextlib import asynccontextmanager
 
 from core.feedback_loop import FeedbackLoop
 
@@ -50,7 +51,12 @@ def _persist_feedback(event_type: str, payload: dict[str, Any]) -> None:
         logger.error(f"feedback persist failed: {exc}")
 
 
-router = APIRouter(prefix="/api/feedback", tags=["feedback"])
+@asynccontextmanager
+async def feedback_lifespan(router: APIRouter):
+    _ensure_db()
+    yield
+
+router = APIRouter(prefix="/api/feedback", tags=["feedback"], lifespan=feedback_lifespan)
 
 
 class FeedbackEvent(BaseModel):
@@ -61,12 +67,6 @@ class FeedbackEvent(BaseModel):
 class FeedbackResponse(BaseModel):
     success: bool
     event_id: int | None = None
-
-
-@router.on_event("startup")
-def _startup() -> None:
-    _ensure_db()
-
 
 @router.post("/ingest", response_model=FeedbackResponse)
 async def ingest(event: FeedbackEvent) -> FeedbackResponse:

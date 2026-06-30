@@ -86,7 +86,7 @@ async def test_mcp_aware_task_execution():
 
     with unittest.mock.patch(
         "tools.parallel_agent_executor.asyncio.to_thread",
-        side_effect=lambda f, *a, **k: asyncio.to_thread(f, *a, **k),
+        wraps=asyncio.to_thread,
     ):
         # Since we can't easily mock asyncio.to_thread here without breaking, just check task runs with params
         results = await executor.run_parallel(tasks)

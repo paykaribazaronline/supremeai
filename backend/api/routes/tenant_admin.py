@@ -297,7 +297,7 @@ async def update_tenant(tenant_id: str, payload: TenantLimitUpdate):
     if not existing:
         raise HTTPException(status_code=404, detail=f"Tenant '{tenant_id}' not found")
 
-    updates: dict[str, Any] = payload.dict(exclude_none=True)
+    updates: dict[str, Any] = payload.model_dump(exclude_none=True)
 
     # If tier changed, apply new defaults (unless overridden explicitly)
     if "billing_tier" in updates:
