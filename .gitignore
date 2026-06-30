@@ -13,18 +13,21 @@ build/
 node_modules/
 **/node_modules/
 
-# Secrets and sensitive files (NEVER commit)
+# 🛑 CRITICAL SECRETS & CREDENTIALS - DO NOT COMMIT 🛑
 .env
 .env.*
-.env.local
-.env.*.local
+!.env.example
 service-account.json
+backend/service-account.json
+firebase-adminsdk-*.json
+gcp-key.json
 *.pem
 *.key
 *.p12
 *.pfx
 firebase-service-account.json
 *.secret
+
 
 # Python caches and venvs
 .venv/
