@@ -98,6 +98,7 @@ jobs:
         working-directory: backend
         env:
           SUPREMEAI_ENCRYPTION_KEY: "CwE60g_bA67m-mock-encryption-key-padded-len="
+          PYTHONPATH: ${{ github.workspace }}/backend
         run: poetry run pytest -n auto --cov=core --cov-fail-under=1 -q
           
       - name: 🔧 SupremeAI Auto-Fix Engine

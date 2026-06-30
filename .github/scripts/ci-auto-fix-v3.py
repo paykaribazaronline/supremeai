@@ -77,6 +77,11 @@ def apply_and_validate_fix(ai_response):
         
     file_path = path_match.group(1).strip()
     
+    import os
+    base_path = os.getcwd()
+    if 'backend' in base_path:
+        file_path = file_path.replace('backend/', '')
+
     # Extract code
     code_match = re.search(r'```python\n(.*?)\n```', ai_response, re.DOTALL)
     if not code_match:

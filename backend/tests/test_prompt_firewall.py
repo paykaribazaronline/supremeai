@@ -7,7 +7,7 @@ from unittest.mock import patch
 
 import pytest
 
-from core.prompt_firewall import SupremePromptFirewall
+from core.prompt_firewall import PromptFirewall
 from core.prompt_firewall import classify_intent
 from core.prompt_firewall import pre_flight_scan
 
@@ -19,7 +19,7 @@ def firewall():
         {"LLAMA_GUARD_URL": "", "NEMO_GUARDRAILS_ENABLED": "false"},
         clear=False,
     ):
-        return SupremePromptFirewall()
+        return PromptFirewall()
 
 
 @pytest.fixture
@@ -29,7 +29,7 @@ def firewall_with_guard():
         {"LLAMA_GUARD_URL": "http://guard.local", "NEMO_GUARDRAILS_ENABLED": "false"},
         clear=False,
     ):
-        return SupremePromptFirewall()
+        return PromptFirewall()
 
 
 def test_local_patterns_loaded(firewall):
@@ -238,6 +238,6 @@ def test_local_patterns_database_loading():
         }
     ]
     with patch("database.supabase_client.db", mock_db):
-        firewall = SupremePromptFirewall()
+        firewall = PromptFirewall()
         patterns = firewall._load_local_patterns()
         assert len(patterns) == 3

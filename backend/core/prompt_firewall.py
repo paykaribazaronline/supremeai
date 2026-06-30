@@ -5,7 +5,7 @@ import re
 from fastapi import HTTPException, status
 from core.logging_config import logger
 
-class SupremePromptFirewall:
+class PromptFirewall:
     def __init__(self):
         # বাংলা কমেন্ট: আলটিমেট বেঙ্গলি নেটিভ সিস্টেম ইনস্ট্রাকশন সেট (১০০% ক্র্যাপ-ফ্রি)
         self.bengali_native_instruction = (
@@ -85,4 +85,4 @@ async def classify_intent(prompt: str):
     return {"intent": "coding"}
 
 # গ্লোবাল সিঙ্গেলটন ইনস্ট্যান্স জেনারেশন
-prompt_firewall = SupremePromptFirewall()
+prompt_firewall = PromptFirewall()

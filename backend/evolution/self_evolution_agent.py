@@ -126,6 +126,7 @@ class SelfEvolutionAgent:
         refactored_name = f"{skill_name}_v2"
         # In actual execution, we route through process_new_skill_proposal with DB session
         logger.info(f"Refactor triggered for {skill_name}. New proposal will be processed.")
+        await self.auto_skill_creator.generate_and_deploy_skill(user_demand, refactored_name)
 
     def _read_skill_code(self, skill_name: str) -> str:
         base_dir = Path(__file__).resolve().parent.parent.parent
