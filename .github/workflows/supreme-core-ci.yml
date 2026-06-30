@@ -146,6 +146,8 @@ jobs:
           cache-dependency-path: '**/pnpm-lock.yaml'
       
       - name: Install & Turbo Run
+        env:
+          VITE_API_URL: ${{ env.SUPREMEAI_API_URL }}
         run: |
           pnpm install --frozen-lockfile
           pnpm turbo run build lint test --filter=supremeai-studio-client --filter=@supremeai/web-chat --filter=supremeai-vscode
