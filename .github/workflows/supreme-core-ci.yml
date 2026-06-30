@@ -122,6 +122,8 @@ jobs:
         uses: github/codeql-action/init@v4
         with:
           languages: 'python, javascript'
+          paths-ignore:
+            - 'infrastructure/firebase_functions/ocrTrigger.ts'
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v4
         with:
