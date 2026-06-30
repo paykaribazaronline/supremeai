@@ -283,18 +283,18 @@
     "package-ext": "esbuild src/extension.ts --bundle --outfile=out/extension.js --external:vscode --format=cjs --platform=node --minify"
   },
   "devDependencies": {
-    "@types/node": "18.x",
+    "@types/node": "26.x",
     "@types/vscode": "^1.85.0",
-    "@typescript-eslint/eslint-plugin": "^6.0.0",
-    "@typescript-eslint/parser": "^6.0.0",
-    "eslint": "^8.0.0",
-    "jest": "^29.7.0",
-    "@types/jest": "^29.5.0",
+    "@typescript-eslint/eslint-plugin": "^8.62.1",
+    "@typescript-eslint/parser": "^8.62.1",
+    "eslint": "^10.6.0",
+    "jest": "^30.4.2",
+    "@types/jest": "^30.0.0",
     "ts-jest": "^29.1.0",
-    "typescript": "^5.0.0",
+    "typescript": "^6.0.3",
     "esbuild": "^0.28.0",
     "axios": "^1.6.0",
-    "openai": "^4.0.0"
+    "openai": "^6.45.0"
   },
   "dependencies": {
     "@dataconnect/generated": "file:src/dataconnect-generated"
