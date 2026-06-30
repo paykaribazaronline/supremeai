@@ -30,7 +30,6 @@ RUN python -m venv /app/.venv && \
 COPY pyproject.toml ./
 COPY poetry.lock* ./
 
-RUN poetry lock
 RUN poetry install --no-interaction --no-ansi --no-root --only main --with ml || \
     poetry install --no-interaction --no-ansi --no-root
 
@@ -81,8 +80,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY --from=builder /app/.venv /app/.venv
 COPY --from=builder /root/.EasyOCR /root/.EasyOCR
 
-# Copy only backend source code into the runtime image
-COPY backend /app/backend
+COPY . /app/backend
 
 ENV PATH="/app/.venv/bin:$PATH"
 ENV PYTHONPATH="/app/backend"

@@ -24,8 +24,12 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
     
     // 2. ব্যাকএন্ড থেকে ফেচ করা (Cross-device sync)
-    fetch('/api/v1/preferences', {
-      headers: {}
+    const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:8000';
+    const token = localStorage.getItem('supremeai_admin_token') || '';
+    fetch(`${API_BASE}/api/v1/preferences`, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
     })
       .then(res => res.json())
       .then(data => {
@@ -56,9 +60,14 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     localStorage.setItem('supremeai_theme', newTheme);
 
     // ব্যাকএন্ডে async সিঙ্ক করা
-    fetch('/api/v1/preferences', {
+    const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:8000';
+    const token = localStorage.getItem('supremeai_admin_token') || '';
+    fetch(`${API_BASE}/api/v1/preferences`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
       body: JSON.stringify({ theme: newTheme })
     }).catch(err => console.error('Failed to sync theme to DB:', err));
   };

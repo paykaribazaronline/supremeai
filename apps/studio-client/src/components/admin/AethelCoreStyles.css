@@ -1,86 +1,145 @@
 /* 
   Aethel Core - Custom Futuristic CSS Styles 
-  বাংলা মন্তব্য: সব থিমের সাথে সামঞ্জস্যপূর্ণ CSS ভ্যারিয়েবল-ভিত্তিক স্টাইলিং।
-  ৪টি থিমে কাজ করবে: Deep Space, Sky Blue, Sunset Ember, Emerald Matrix
+  বাংলা মন্তব্য: একদম অরিজিনাল সাই-ফাই মুভির মতো প্রিমিয়াম গ্লাসমরফিজম ও অ্যানিমেশন।
 */
 
-/* নিওন গ্লো ইফেক্ট — থিম ভ্যারিয়েবল ব্যবহার করে */
-.glow-cyan {
-  box-shadow: 0 0 15px color-mix(in srgb, var(--accent-primary) 45%, transparent), inset 0 0 10px color-mix(in srgb, var(--accent-primary) 25%, transparent);
-  border-color: var(--accent-primary) !important;
+/* ═══════════════════════════════════════════════════════
+   PREMIUM GLASSMORPHISM & HUD ELEMENTS
+   ═══════════════════════════════════════════════════════ */
+.sci-fi-glass {
+  background: rgba(10, 15, 30, 0.45) !important;
+  backdrop-filter: blur(24px) saturate(150%) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(150%) !important;
+  border: 1px solid rgba(0, 243, 255, 0.15) !important;
+  box-shadow: 
+    0 8px 32px 0 rgba(0, 0, 0, 0.5),
+    inset 0 0 20px rgba(0, 243, 255, 0.05),
+    0 0 15px rgba(0, 243, 255, 0.2) !important;
+  border-radius: 12px;
+  position: relative;
+  overflow: hidden;
 }
 
-.glow-gold {
-  box-shadow: 0 0 15px color-mix(in srgb, var(--warning) 45%, transparent), inset 0 0 10px color-mix(in srgb, var(--warning) 25%, transparent);
-  border-color: var(--warning) !important;
+.sci-fi-glass::before {
+  content: "";
+  position: absolute;
+  top: 0; left: -100%; width: 50%; height: 100%;
+  background: linear-gradient(to right, transparent, rgba(0, 243, 255, 0.1), transparent);
+  transform: skewX(-20deg);
+  animation: shimmer 6s infinite;
 }
 
-.glow-green {
-  box-shadow: 0 0 15px color-mix(in srgb, var(--accent-secondary) 45%, transparent), inset 0 0 10px color-mix(in srgb, var(--accent-secondary) 25%, transparent);
-  border-color: var(--accent-secondary) !important;
-}
-
-/* গ্লাসমরফিক ব্যাকড্রপ ব্লার */
-.glass-panel {
-  background: var(--bg-panel) !important;
+.sci-fi-glass-panel {
+  background: linear-gradient(135deg, rgba(6, 11, 25, 0.8) 0%, rgba(13, 22, 45, 0.6) 100%) !important;
   backdrop-filter: blur(20px) !important;
-  -webkit-backdrop-filter: blur(20px) !important;
-  border: 1px solid var(--border-accent) !important;
-  box-shadow: 0 0 20px color-mix(in srgb, var(--accent-primary) 20%, transparent), 0 8px 32px 0 rgba(0, 0, 0, 0.4) !important;
-  font-family: 'JetBrains Mono', 'Space Grotesk', monospace !important;
+  border-left: 2px solid #00f3ff !important;
+  border-right: 1px solid rgba(0, 243, 255, 0.2) !important;
+  border-top: 1px solid rgba(0, 243, 255, 0.2) !important;
+  border-bottom: 1px solid rgba(0, 243, 255, 0.2) !important;
+  box-shadow: 0 0 30px rgba(0, 243, 255, 0.15) !important;
+  border-radius: 4px 16px 4px 16px;
 }
 
-/* সেন্ট্রাল অরবিটাল অ্যানিমেশন */
+.sci-fi-glass-danger {
+  border-left: 2px solid #ff0055 !important;
+  box-shadow: 0 0 30px rgba(255, 0, 85, 0.15) !important;
+}
+
+.sci-fi-glass-success {
+  border-left: 2px solid #00ff66 !important;
+  box-shadow: 0 0 30px rgba(0, 255, 102, 0.15) !important;
+}
+
+/* ═══════════════════════════════════════════════════════
+   NODE SHAPES (Hexagon / Angled)
+   ═══════════════════════════════════════════════════════ */
+.hud-node {
+  clip-path: polygon(10% 0, 100% 0, 100% 80%, 90% 100%, 0 100%, 0 20%);
+  background: rgba(5, 10, 20, 0.85);
+  border: 1px solid rgba(0, 255, 102, 0.4);
+  padding: 15px;
+  position: relative;
+  transition: all 0.3s ease;
+}
+.hud-node:hover {
+  transform: scale(1.05);
+  filter: drop-shadow(0 0 15px rgba(0, 255, 102, 0.6));
+}
+
+/* ═══════════════════════════════════════════════════════
+   CENTRAL ORBITAL CORE
+   ═══════════════════════════════════════════════════════ */
 .central-orb-outer {
   position: relative;
-  width: 170px;
-  height: 170px;
+  width: 220px;
+  height: 220px;
   border-radius: 50%;
-  border: 2px dashed var(--accent-primary);
+  border: 2px dashed rgba(0, 243, 255, 0.6);
   display: flex;
   align-items: center;
   justify-content: center;
-  animation: spin-clockwise 25s linear infinite;
-  box-shadow: 0 0 35px color-mix(in srgb, var(--accent-primary) 45%, transparent), inset 0 0 25px color-mix(in srgb, var(--accent-primary) 25%, transparent);
+  animation: spin-clockwise 30s linear infinite;
+  box-shadow: 0 0 40px rgba(0, 243, 255, 0.2), inset 0 0 30px rgba(0, 243, 255, 0.2);
 }
 
 .central-orb-inner {
-  width: 130px;
-  height: 130px;
+  width: 160px;
+  height: 160px;
   border-radius: 50%;
-  border: 3px double var(--accent-secondary);
-  background: radial-gradient(circle, color-mix(in srgb, var(--accent-primary) 25%, transparent) 0%, var(--bg-main) 70%);
+  border: 4px double rgba(188, 19, 254, 0.8);
+  background: radial-gradient(circle, rgba(0, 243, 255, 0.15) 0%, rgba(5, 10, 20, 0.9) 70%);
   display: flex;
   align-items: center;
   justify-content: center;
-  animation: spin-counter-clockwise 12s linear infinite;
-  box-shadow: 0 0 25px color-mix(in srgb, var(--accent-secondary) 35%, transparent);
+  animation: spin-counter-clockwise 15s linear infinite;
+  box-shadow: 0 0 30px rgba(188, 19, 254, 0.4);
 }
 
 .central-orb-core {
-  width: 80px;
-  height: 80px;
+  width: 100px;
+  height: 100px;
   border-radius: 50%;
-  background: var(--accent-primary);
-  box-shadow: 0 0 45px var(--accent-primary), 0 0 90px color-mix(in srgb, var(--accent-primary) 95%, transparent);
+  background: rgba(0, 243, 255, 0.9);
+  box-shadow: 0 0 60px #00f3ff, 0 0 100px rgba(0, 243, 255, 0.6);
   display: flex;
   align-items: center;
   justify-content: center;
-  animation: pulse-glow 1.8s ease-in-out infinite alternate;
+  animation: pulse-glow 2s ease-in-out infinite alternate;
 }
 
-/* স্ক্যানার লাইন ইফেক্ট */
-.scanline::before {
-  content: " ";
-  display: block;
+.central-orb-core-icon {
+  animation: spin-counter-clockwise 30s linear infinite;
+}
+
+/* ═══════════════════════════════════════════════════════
+   BACKGROUND HEX GRID
+   ═══════════════════════════════════════════════════════ */
+.hex-grid-bg {
+  background-color: #030712;
+  background-image: 
+    linear-gradient(rgba(0, 243, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 243, 255, 0.05) 1px, transparent 1px);
+  background-size: 40px 40px;
+  background-position: center center;
+}
+
+.scanlines {
+  background: linear-gradient(
+    to bottom,
+    transparent 50%,
+    rgba(0, 243, 255, 0.04) 50%
+  );
+  background-size: 100% 4px;
   position: absolute;
-  top: 0; left: 0; bottom: 0; right: 0;
-  background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.15) 50%), linear-gradient(90deg, color-mix(in srgb, var(--accent-primary) 4%, transparent), color-mix(in srgb, var(--accent-secondary) 2%, transparent), color-mix(in srgb, var(--warning) 3%, transparent));
-  z-index: 5;
-  background-size: 100% 3px, 6px 100%;
+  top: 0; left: 0; right: 0; bottom: 0;
   pointer-events: none;
+  z-index: 10;
+  animation: scanlines-scroll 10s linear infinite;
 }
 
+/* ═══════════════════════════════════════════════════════
+   ANIMATIONS
+   ═══════════════════════════════════════════════════════ */
 @keyframes spin-clockwise {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
@@ -92,74 +151,41 @@
 }
 
 @keyframes pulse-glow {
-  0% {
-    transform: scale(0.92);
-    box-shadow: 0 0 25px var(--accent-primary), 0 0 50px color-mix(in srgb, var(--accent-primary) 70%, transparent);
-  }
-  100% {
-    transform: scale(1.08);
-    box-shadow: 0 0 45px var(--accent-primary), 0 0 90px var(--accent-primary);
-  }
+  0% { transform: scale(0.95); box-shadow: 0 0 40px #00f3ff; }
+  100% { transform: scale(1.05); box-shadow: 0 0 80px #00f3ff, 0 0 120px rgba(0, 243, 255, 0.5); }
 }
 
-/* ফ্লো নোড স্টাইলসমূহ — থিম-অ্যাওয়ার */
-.aethel-node {
-  background: var(--node-bg);
-  border: 1px solid var(--node-border);
-  border-radius: 4px;
-  padding: 8px 12px;
-  font-family: 'JetBrains Mono', 'Orbitron', monospace;
-  font-size: 10px;
-  color: var(--node-text);
-  text-align: left;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  min-width: 140px;
-  box-shadow: 0 0 15px color-mix(in srgb, var(--accent-primary) 15%, transparent), 0 4px 12px rgba(0, 0, 0, 0.3);
-  letter-spacing: 0.05em;
+@keyframes shimmer {
+  0% { left: -100%; }
+  20% { left: 200%; }
+  100% { left: 200%; }
 }
 
-.aethel-node:hover {
-  transform: translateY(-2px) scale(1.02);
-  border-color: var(--accent-primary);
-  box-shadow: 0 0 20px color-mix(in srgb, var(--accent-primary) 55%, transparent);
+@keyframes scanlines-scroll {
+  0% { background-position: 0 0; }
+  100% { background-position: 0 600px; }
 }
 
-/* ওয়েভফর্ম অ্যানিমেশন */
-.waveform-bar {
-  display: inline-block;
-  width: 3px;
-  background-color: var(--accent-primary);
-  margin: 0 2px;
-  border-radius: 2px;
-  animation: pulse-bar 1s ease-in-out infinite alternate;
+/* Overriding React Flow Edges for intensely glowing paths */
+.react-flow__edge-path {
+  stroke-width: 3 !important;
+  filter: drop-shadow(0 0 8px rgba(0, 243, 255, 0.8)) !important;
 }
 
-@keyframes pulse-bar {
-  0% { height: 4px; }
-  100% { height: 24px; }
+.edge-threat .react-flow__edge-path {
+  filter: drop-shadow(0 0 10px rgba(255, 0, 85, 0.8)) !important;
+  stroke: #ff0055 !important;
 }
 
-.pulse-delay-1 { animation-delay: 0.15s; }
-.pulse-delay-2 { animation-delay: 0.3s; }
-.pulse-delay-3 { animation-delay: 0.45s; }
-.pulse-delay-4 { animation-delay: 0.6s; }
-.pulse-delay-5 { animation-delay: 0.75s; }
+.edge-success .react-flow__edge-path {
+  filter: drop-shadow(0 0 10px rgba(0, 255, 102, 0.8)) !important;
+  stroke: #00ff66 !important;
+}
 
-/* React Flow default node overrides to hide default box wrapper on central orb */
+/* Hiding default react flow node backgrounds */
 .react-flow__node-default {
   background: transparent !important;
   border: none !important;
   box-shadow: none !important;
   padding: 0 !important;
-}
-
-/* গ্লোবাল সাই-ফাই ফন্ট ও ট্র্যাকিং ওভাররাইড */
-.font-mono {
-  font-family: 'JetBrains Mono', monospace !important;
-  letter-spacing: 0.08em !important;
-}
-
-.font-orbitron {
-  font-family: 'Orbitron', sans-serif !important;
-  letter-spacing: 0.1em !important;
 }

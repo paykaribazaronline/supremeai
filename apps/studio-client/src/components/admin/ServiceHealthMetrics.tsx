@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Activity, Server, Database, Cpu, CheckCircle, Terminal, DollarSign, Users, Settings, Zap, Cloud, Eye, ShieldAlert, FileText, GitMerge, GitBranch, Save, Clock, Network } from 'lucide-react';
-import { fetchJavaWorkerHealth, JavaWorkerHealth } from '../../services/api/microserviceMonitor';
+import { fetchJavaWorkerHealth, type JavaWorkerHealth } from '../../services/api/microserviceMonitor';
 import { useAdminStore } from '../../store/adminStore';
 import type { AdminSubTab } from '../../types';
 

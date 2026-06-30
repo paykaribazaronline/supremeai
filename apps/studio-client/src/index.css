@@ -1,6 +1,10 @@
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Space+Grotesk:wght@400;700&family=JetBrains+Mono:wght@400;600&family=Hind+Siliguri:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
 
+@theme {
+  --color-supreme-bg: #0f172a;
+  --color-supreme-accent: #f97316;
+}
 /* ═══════════════════════════════════════════════════════
    THEME 1: SKY BLUE (Light) — ডিফল্ট :root থিম
    ═══════════════════════════════════════════════════════ */
@@ -383,4 +387,27 @@ body.matrix {
 .drag-region button,
 .drag-region input {
   -webkit-app-region: no-drag;
+}
+
+/* CRT Scanlines Effect */
+.scanlines {
+  background: linear-gradient(
+    to bottom,
+    transparent 50%,
+    rgba(34, 211, 238, 0.03) 50%
+  );
+  background-size: 100% 4px;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  z-index: 40;
+  animation: scanlines-scroll 15s linear infinite;
+}
+
+@keyframes scanlines-scroll {
+  0% { background-position: 0 0; }
+  100% { background-position: 0 600px; }
 }

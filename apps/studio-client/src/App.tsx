@@ -9,6 +9,7 @@ import ReactFlow, { Background, useNodesState, useEdgesState } from 'reactflow';
 import 'reactflow/dist/style.css';
 import './components/admin/AethelCoreStyles.css';
 import AethelNode from './components/admin/AethelNode';
+import RedesignedDashboardMockup from './components/admin/RedesignedDashboardMockup';
 
 function AdminShell() {
   const {
@@ -237,6 +238,9 @@ function AdminShell() {
 }
 
 export const App: React.FC = () => {
+  // Temporary bypass for mockup testing
+  return <RedesignedDashboardMockup />;
+  
   const {
     isServerOnline, setServerStatus, deployGate, fetchGateStatus
   } = useStore();

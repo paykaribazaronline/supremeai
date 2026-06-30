@@ -23,7 +23,7 @@ class ZeroTrustAuthMiddleware(BaseHTTPMiddleware):
             "/api/v1/collaborate",
             "/api/v1/graph",
         ]
-        if any(request.url.path.startswith(path) for path in public_paths):
+        if request.method == "OPTIONS" or any(request.url.path.startswith(path) for path in public_paths):
             return await call_next(request)
 
         is_test = "pytest" in sys.modules or os.getenv("ENV") == "test"
