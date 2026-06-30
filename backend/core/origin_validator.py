@@ -13,6 +13,7 @@ class TrustedOriginMiddleware(BaseHTTPMiddleware):
         self.allowed_origins = {
             "https://supremeai.njel.com.bd",
             "https://studio.njel.com.bd",
+            "https://supremeai-admin.web.app",
             "http://localhost:5173",  # Web Chat Client পোর্ট
             "http://localhost:5174",  # Studio Client পোর্ট
             "testserver",
@@ -20,7 +21,7 @@ class TrustedOriginMiddleware(BaseHTTPMiddleware):
         }
 
     async def dispatch(self, request: Request, call_next):
-        # বাংলা কমেন্ট: এপিআই রিকোয়েস্টের Origin এবং Host হেডার রিড করা হচ্ছে।
+        # বাংলা মন্তব্য: এপিআই রিকোয়েস্টের Origin এবং Host হেডার রিড করা হচ্ছে।
         origin = request.headers.get("Origin")
         
         # যদি রিকোয়েস্টে অরিজিন হেডার থাকে (যেমন ব্রাউজার বেসড রিকোয়েস্ট), তবে সেটি হোয়াইটলিস্টে থাকতে হবে
@@ -32,9 +33,9 @@ class TrustedOriginMiddleware(BaseHTTPMiddleware):
                     detail="Cross-Origin Request Blocked. Device identity unauthorized."
                 )
                 
-        # বাংলা কমেন্ট: যদি অরিজিন না থাকে (যেমন ডিরেক্ট কার্ল বা এক্সটেনশন রিকোয়েস্ট), তবে হোস্ট হেডার ভ্যালিডেশন
+        # বাংলা মন্তব্য: যদি অরিজিন না থাকে (যেমন ডিরেক্ট কার্ল বা এক্সটেনশন রিকোয়েস্ট), তবে হোস্ট হেডার ভ্যালিডেশন
         host = request.headers.get("Host")
-        if host and "localhost" not in host and "njel.com.bd" not in host and "testserver" not in host:
+        if host and "localhost" not in host and "njel.com.bd" not in host and "testserver" not in host and "run.app" not in host:
             logger.critical(f"🚨 Security Intrusion: Host Header Tampering Detected -> {host}")
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,

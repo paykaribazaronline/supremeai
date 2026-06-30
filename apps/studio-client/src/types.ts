@@ -48,7 +48,7 @@ export interface AdminUser {
   permissions: string[];
 }
 
-export type AdminSubTab = 'sandbox' | 'logs' | 'costs' | 'health' | 'users' | 'config' | 'command-center' | 'model-router' | 'skills' | 'memory' | 'cloud' | 'observability' | 'threats' | 'rules' | 'cicd' | 'github' | 'backups' | 'rate-limits' | 'security-dashboard';
+export type AdminSubTab = 'dashboard' | 'sandbox' | 'logs' | 'costs' | 'health' | 'users' | 'config' | 'command-center' | 'model-router' | 'skills' | 'memory' | 'cloud' | 'observability' | 'threats' | 'rules' | 'cicd' | 'github' | 'backups' | 'rate-limits' | 'security-dashboard';
 
 export interface CIReport {
   id: number;

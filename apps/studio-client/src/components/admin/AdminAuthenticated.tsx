@@ -1,7 +1,18 @@
 import { useEffect, useState } from 'react';
 import type { AdminSubTab, GcpHealth, CloudStats } from '../../types';
 import { SubTabContent } from './AdminSubTabContent';
-import { Search } from 'lucide-react';
+import { AdminTopNav } from './AdminTopNav';
+import { 
+  Search, 
+  LayoutDashboard, 
+  FileCode, 
+  GitMerge, 
+  Server, 
+  BarChart3, 
+  Users, 
+  Settings,
+  Terminal
+} from 'lucide-react';
 
 interface AuthenticatedViewProps {
   gcpHealth: GcpHealth | null;
@@ -46,8 +57,10 @@ interface AuthenticatedViewProps {
   toggleTheme: () => void;
 }
 
+// বাংলা মন্তব্য: সুপ্রিম গড মোড অথেনটিকেটেড লেআউট (Authenticated Dashboard Layout)
+// এটি ওপরের টপ নেভিগেশন বার, বাম পাশের ৭-আইটেম সাইডবার এবং মূল কন্টেন্ট প্যানেল যুক্ত করে রিডিজাইন করা হয়েছে।
 export function AuthenticatedView(props: AuthenticatedViewProps) {
-  const { adminSubTab, setAdminSubTab } = props;
+  const { adminSubTab, setAdminSubTab, handleAdminLogout } = props;
   const [isPaletteOpen, setIsPaletteOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -66,12 +79,25 @@ export function AuthenticatedView(props: AuthenticatedViewProps) {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isPaletteOpen]);
 
+  // ৭টি ড্যাশবোর্ড সাইডবার আইটেম (রেফারেন্স ইমেজ অনুযায়ী)
+  const sidebarItems = [
+    { id: 'dashboard', label: 'DASHBOARD', icon: <LayoutDashboard size={16} /> },
+    { id: 'model-router', label: 'MODEL REGISTRY', icon: <FileCode size={16} /> },
+    { id: 'cicd', label: 'WORKFLOWS', icon: <GitMerge size={16} /> },
+    { id: 'cloud', label: 'COMPUTING', icon: <Server size={16} /> },
+    { id: 'observability', label: 'ANALYTICS', icon: <BarChart3 size={16} /> },
+    { id: 'users', label: 'AGENTS', icon: <Users size={16} /> },
+    { id: 'config', label: 'SETTINGS', icon: <Settings size={16} /> },
+  ];
+
+  // কমান্ড প্যালেট অপশনসমূহ
   const navigationOptions = [
+    { id: 'dashboard', label: 'Dashboard Overview' },
     { id: 'command-center', label: 'SupremeAI Nexus (Canvas)' },
     { id: 'logs', label: 'Real-time Logs' },
     { id: 'costs', label: 'Cost Auditor' },
     { id: 'health', label: 'Health Map' },
-    { id: 'users', label: 'User Manager' },
+    { id: 'users', label: 'User Manager / Agents' },
     { id: 'config', label: 'Config Editor' },
     { id: 'model-router', label: 'Model Router' },
     { id: 'skills', label: 'Skill Marketplace' },
@@ -92,13 +118,61 @@ export function AuthenticatedView(props: AuthenticatedViewProps) {
   );
 
   return (
-    <div className="flex-1 flex flex-col overflow-hidden relative">
-      {/* Main Content Area (Full Screen) */}
-      <div className="flex-1 flex flex-col min-w-0">
-        <SubTabContent {...props} />
+    <div className="flex-1 flex flex-col overflow-hidden bg-[#030407]">
+      {/* ১. টপ নেভিগেশন বার */}
+      <AdminTopNav onLogout={handleAdminLogout} />
+
+      {/* নিচের অংশ: সাইডবার + মূল কন্টেন্ট */}
+      <div className="flex-1 flex overflow-hidden relative">
+        
+        {/* ২. বাম পাশের নেভিগেশন সাইডবার */}
+        <aside className="w-64 bg-[#040814]/90 border-r border-[#00f3ff]/15 flex flex-col justify-between py-6 font-sans text-slate-400 select-none z-20">
+          <div className="space-y-1 px-3">
+            {sidebarItems.map(item => {
+              const isActive = adminSubTab === item.id;
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => setAdminSubTab(item.id as AdminSubTab)}
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-xs font-semibold tracking-wider transition-all duration-300 ${
+                    isActive 
+                      ? 'bg-[#00f3ff]/10 text-[#00f3ff] border-l-2 border-[#00f3ff] shadow-[inset_0_0_12px_rgba(0,243,255,0.05)]' 
+                      : 'hover:bg-slate-900/50 hover:text-slate-200'
+                  }`}
+                >
+                  <span className={isActive ? 'text-[#00f3ff]' : 'text-slate-500'}>
+                    {item.icon}
+                  </span>
+                  <span>{item.label}</span>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* অতিরিক্ত অ্যাডমিন টুলস (অরবিট ক্যানভাস লিঙ্ক) */}
+          <div className="px-6 border-t border-slate-900 pt-4">
+            <button
+              onClick={() => setAdminSubTab('command-center')}
+              className={`w-full flex items-center justify-center gap-2 px-3 py-2 rounded border border-[#00f3ff]/30 text-[#00f3ff] hover:bg-[#00f3ff]/10 text-xs font-mono font-bold tracking-widest uppercase transition-all duration-300 ${
+                adminSubTab === 'command-center' ? 'bg-[#00f3ff]/20' : ''
+              }`}
+            >
+              <Terminal size={14} />
+              <span>Core Canvas</span>
+            </button>
+            <div className="text-[9px] text-slate-600 text-center mt-3 font-mono">
+              CTRL+K for command menu
+            </div>
+          </div>
+        </aside>
+
+        {/* ৩. মূল কন্টেন্ট প্যানেল */}
+        <main className="flex-1 flex flex-col min-w-0 bg-[#030611] overflow-hidden">
+          <SubTabContent {...props} />
+        </main>
       </div>
 
-      {/* Command Palette Overlay */}
+      {/* ৪. কমান্ড প্যালেট ওভারলে (Cmd+K) */}
       {isPaletteOpen && (
         <div className="absolute inset-0 z-[100] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="w-full max-w-lg bg-[#050917] border border-[#00f3ff]/30 rounded-xl shadow-[0_0_40px_rgba(0,243,255,0.15)] flex flex-col overflow-hidden">

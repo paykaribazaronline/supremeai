@@ -30,7 +30,7 @@ function AdminShell() {
   const [totpSetupRequired] = useState(false);
   const [totpSecret] = useState("JBSWY3DPEHPK3PXP");
   const [provisioningUri] = useState("");
-  const [adminSubTab, setAdminSubTab] = useState<any>("command-center");
+  const [adminSubTab, setAdminSubTab] = useState<any>("dashboard");
   const [skillQuery, setSkillQuery] = useState("");
   const [skillsList] = useState<any[]>([]);
   const [checkpointsList] = useState<any[]>([]);
@@ -238,9 +238,6 @@ function AdminShell() {
 }
 
 export const App: React.FC = () => {
-  // Temporary bypass for mockup testing
-  return <RedesignedDashboardMockup />;
-  
   const {
     isServerOnline, setServerStatus, deployGate, fetchGateStatus
   } = useStore();

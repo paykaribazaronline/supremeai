@@ -1,6 +1,7 @@
 import type { AdminSubTab, ChatMessage } from '../../types';
 import { CommandCenter, LiveLogs, CostAuditor, HealthMap, UserManager, ConfigEditor, ModelRouter, EnhancedSkillMarketplace, MemoryBrowser, CloudOrchestrator, ObservabilityDashboard, ThreatDetection, VisualRulesBuilder, CICDVisualizer, GithubIntegration, BackupRestore, SecurityDashboard } from '.';
 import { RateLimitManager } from './RateLimitManager';
+import { AdminDashboardHome } from './AdminDashboardHome';
 import { X } from 'lucide-react';
 
 interface SubTabContentProps {
@@ -37,13 +38,13 @@ interface SubTabContentProps {
 export function SubTabContent(props: SubTabContentProps) {
   const { adminSubTab, setAdminSubTab, adminMessages, loading, adminInput, setAdminInput, handleSendAdmin, rulesJson, setRulesJson, saveStatus, handleSaveRules } = props;
   
-  const isOverlayOpen = adminSubTab !== 'command-center';
+  const isOverlayOpen = adminSubTab !== 'dashboard' && adminSubTab !== 'command-center';
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden bg-[var(--bg-main)] relative transition-colors duration-500">
-      {/* Background Canvas always rendered */}
-      <div className={`absolute inset-0 transition-opacity duration-300 ${isOverlayOpen ? 'opacity-50 pointer-events-none' : 'opacity-100'}`}>
-        <CommandCenter />
+      {/* Background Canvas or Dashboard Home always rendered */}
+      <div className={`absolute inset-0 transition-opacity duration-300 ${isOverlayOpen ? 'opacity-40 pointer-events-none' : 'opacity-100'}`}>
+        {adminSubTab === 'command-center' ? <CommandCenter /> : <AdminDashboardHome />}
       </div>
 
       {/* Glassmorphic Modal Overlay for other modules */}
