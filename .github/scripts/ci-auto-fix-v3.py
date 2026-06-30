@@ -2,7 +2,7 @@ import os
 import sys
 import subprocess
 import re
-import google.generativeai as genai
+from google import genai
 
 # ==========================================
 # ⚙️ CONFIGURATION & API SETUP
@@ -12,8 +12,7 @@ if not API_KEY:
     print("❌ ERROR: SUPREMEAI_API_KEY or GEMINI_API_KEY is not set.")
     sys.exit(1)
 
-genai.configure(api_key=API_KEY)
-model = genai.GenerativeModel('gemini-1.5-pro') # Using Pro for coding accuracy
+client = genai.Client(api_key=API_KEY)
 
 def run_cmd(cmd):
     """Run a shell command and return output."""
@@ -63,7 +62,7 @@ def get_ai_fix(error_log):
     # FILE_PATH: backend/core/example.py
     """
     
-    response = model.generate_content(prompt)
+    response = client.models.generate_content(model='gemini-2.5-flash', contents=prompt)
     return response.text
 
 # ==========================================

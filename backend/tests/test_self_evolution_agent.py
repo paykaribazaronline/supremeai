@@ -82,8 +82,8 @@ async def test_evaluate_skill_skips_below_min_runs(agent, mock_fitness_engine):
 async def test_register_missing_path_triggers_generation(
     agent, mock_auto_skill_creator
 ):
-    agent.has_high_fitness_path = MagicMock(return_value=False)
-    agent.register_missing_path("some demand", "NewSkill")
+    agent._has_high_fitness_path = MagicMock(return_value=False)
+    agent._register_missing_path("some demand", "NewSkill")
     await asyncio.sleep(0)
     await agent._process_demand(
         {"task_demand": "some demand", "skill_name": "NewSkill"}
@@ -97,8 +97,8 @@ async def test_register_missing_path_triggers_generation(
 async def test_register_missing_path_skips_existing_skill(
     agent, mock_auto_skill_creator
 ):
-    agent.has_high_fitness_path = MagicMock(return_value=True)
-    agent.register_missing_path("some demand", "NewSkill")
+    agent._has_high_fitness_path = MagicMock(return_value=True)
+    agent._register_missing_path("some demand", "NewSkill")
     await agent._process_demand(
         {"task_demand": "some demand", "skill_name": "NewSkill"}
     )
@@ -136,5 +136,5 @@ async def test_refactor_prompt_contains_source_code(
 async def test_has_high_fitness_path_from_registry(agent, mock_fitness_engine):
     mock_fitness_engine.metrics = {}
     mock_fitness_engine.registry.get_skill.return_value = {"name": "Skill_B"}
-    assert agent.has_high_fitness_path("Skill_B") is True
+    assert agent._has_high_fitness_path("Skill_B") is True
     mock_fitness_engine.registry.get_skill.assert_called_once_with("Skill_B")
