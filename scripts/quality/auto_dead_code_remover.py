@@ -243,7 +243,8 @@ def parse_radon_mi_output(output: str) -> list:
 
 def generate_report(dead_code: list, complex_functions: list, low_maintainability: list) -> str:
     """Generate a markdown report of the findings."""
-    report = f"""# Dead Code and Code Quality Report
+    # ইউনিকোড (unicodeescape) এরর এড়াতে র-স্ট্রিং (raw string) ও f-string ব্যবহার করা হয়েছে
+    report = fr"""# Dead Code and Code Quality Report
 
 Generated on: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
 
@@ -272,8 +273,8 @@ Generated on: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
     report += "\n---\n\n"
     
     ## Complex Functions
-    report += "## ⚠️ Complex Functions (High Cyclomatic Complexity)\n\n"
-    report += f"({('None found' if not complex_functions else f'Found {len(complex_functions)} complex functions'}) )\n\n"
+    report += r"## ⚠️ Complex Functions (High Cyclomatic Complexity)" + "\n\n"
+    report += f"({('None found' if not complex_functions else f'Found {len(complex_functions)} complex functions')})\n\n"
     
     if complex_functions:
         report += "| File | Line | Function | Class | Complexity | Description |\n"
@@ -288,8 +289,8 @@ Generated on: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
     report += "\n---\n\n"
     
     ## Low Maintainability
-    report += "## 📉 Low Maintainability Index\n\n"
-    report += f"({('None found' if not low_maintainability else f'Found {len(low_maintainability)} files with low maintainability'}) )\n\n"
+    report += r"## 📉 Low Maintainability Index" + "\n\n"
+    report += f"({('None found' if not low_maintainability else f'Found {len(low_maintainability)} files with low maintainability')})\n\n"
     
     if low_maintainability:
         report += "| File | Line | MI Score | Grade | Description |\n"
@@ -303,7 +304,7 @@ Generated on: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
     report += "\n---\n\n"
     
     ## Recommendations
-    report += "## 🔧 Recommendations\n\n"
+    report += r"## 🔧 Recommendations" + "\n\n"
     
     if dead_code:
         report += "### Dead Code Removal\n"
@@ -328,7 +329,7 @@ Generated on: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
         report += "3. Consider splitting large files into multiple modules.\n\n"
     
     if not any([dead_code, complex_functions, low_maintainability]):
-        report += "🎉 Excellent! No significant code quality issues detected.\n"
+        report += r"🎉 Excellent! No significant code quality issues detected." + "\n"
     
     return report
 
@@ -358,63 +359,63 @@ def create_github_issue(report_content: str) -> bool:
         temp_file.unlink()
         
         if result.returncode == 0:
-            print(f"✅ Created GitHub issue: {result.stdout.strip()}")
+            print(fr"✅ Created GitHub issue: {result.stdout.strip()}")
             return True
         else:
-            print(f"❌ Failed to create GitHub issue: {result.stderr}")
+            print(fr"❌ Failed to create GitHub issue: {result.stderr}")
             return False
             
     except FileNotFoundError:
-        print("⚠️  GitHub CLI not found. Install with: brew install gh (macOS) or sudo apt-get install gh (Linux)")
+        print(r"⚠️  GitHub CLI not found. Install with: brew install gh (macOS) or sudo apt-get install gh (Linux)")
         return False
     except Exception as e:
-        print(f"❌ Error creating GitHub issue: {e}")
+        print(fr"❌ Error creating GitHub issue: {e}")
         return False
 
 def main() -> int:
     """Main function to run dead code detection and generate report."""
-    print("🔍 Starting dead code and code quality analysis...")
-    print(f"📂 Scanning directories: {', '.join(TARGET_DIRS)}")
-    print(f"🚫 Excluding patterns: {', '.join(EXCLUDE)}")
-    print(f"🎯 Minimum confidence: {MIN_CONFIDENCE}%")
+    print(r"🔍 Starting dead code and code quality analysis...")
+    print(fr"📂 Scanning directories: {', '.join(TARGET_DIRS)}")
+    print(fr"🚫 Excluding patterns: {', '.join(EXCLUDE)}")
+    print(fr"🎯 Minimum confidence: {MIN_CONFIDENCE}%")
     
     # Run analysis tools
-    print("\n📊 Running vulture (dead code detection)...")
+    print(r"\n📊 Running vulture (dead code detection)...")
     vulture_output = run_vulture()
     
-    print("📊 Running radon cc (cyclomatic complexity)...")
+    print(r"📊 Running radon cc (cyclomatic complexity)...")
     radon_cc_output = run_radon_cc()
     
-    print("📊 Running radon mi (maintainability index)...")
+    print(r"📊 Running radon mi (maintainability index)...")
     radon_mi_output = run_radon_mi()
     
     # Parse results
-    print("\n🔍 Parsing results...")
+    print(r"\n🔍 Parsing results...")
     dead_code = parse_vulture_output(vulture_output)
     complex_functions = parse_radon_cc_output(radon_cc_output)
     low_maintainability = parse_radon_mi_output(radon_mi_output)
     
     # Generate report
-    print("📝 Generating report...")
+    print(r"📝 Generating report...")
     report = generate_report(dead_code, complex_functions, low_maintainability)
     
     # Save report
     output_path = Path(OUTPUT_FILE)
     output_path.write_text(report, encoding="utf-8")
-    print(f"📄 Report saved to: {output_path}")
+    print(fr"📄 Report saved to: {output_path}")
     
     # Print summary
-    print("\n📈 Summary:")
-    print(f"   🐛 Dead code items: {len(dead_code)}")
-    print(f"   ⚠️  Complex functions: {len(complex_functions)}")
-    print(f"   📉 Low maintainability: {len(low_maintainability)}")
+    print(r"\n📈 Summary:")
+    print(fr"   🐛 Dead code items: {len(dead_code)}")
+    print(fr"   ⚠️  Complex functions: {len(complex_functions)}")
+    print(fr"   📉 Low maintainability: {len(low_maintainability)}")
     
     # Optionally create GitHub issue
     if CREATE_PR:
-        print("\n🐙 Creating GitHub issue...")
+        print(r"\n🐙 Creating GitHub issue...")
         create_github_issue(report)
     
-    print("\n✅ Analysis complete!")
+    print(r"\n✅ Analysis complete!")
     return 0
 
 if __name__ == "__main__":

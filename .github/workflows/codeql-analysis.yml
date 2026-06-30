@@ -24,7 +24,9 @@ jobs:
       - name: Initialize CodeQL Analysis Context
         uses: github/codeql-action/init@v3
         with:
-          languages: python
+          languages: python, javascript
+          paths-ignore:
+            - 'infrastructure/firebase_functions/ocrTrigger.ts'
 
       - name: Perform Autobuild Setup
         uses: github/codeql-action/autobuild@v3

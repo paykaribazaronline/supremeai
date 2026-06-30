@@ -97,7 +97,7 @@ jobs:
         id: backend_tests
         working-directory: backend
         env:
-          SUPREMEAI_ENCRYPTION_KEY: "mock_test_secret_encryption_key_value_32_chars"
+          SUPREMEAI_ENCRYPTION_KEY: "CwE60g_bA67m-mock-encryption-key-padded-len="
         run: poetry run pytest -n auto --cov=core --cov-fail-under=1 -q
           
       - name: 🔧 SupremeAI Auto-Fix Engine

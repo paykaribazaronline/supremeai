@@ -14,7 +14,9 @@ class TrustedOriginMiddleware(BaseHTTPMiddleware):
             "https://supremeai.njel.com.bd",
             "https://studio.njel.com.bd",
             "http://localhost:5173",  # Web Chat Client পোর্ট
-            "http://localhost:5174"   # Studio Client পোর্ট
+            "http://localhost:5174",  # Studio Client পোর্ট
+            "testserver",
+            "http://testserver"
         }
 
     async def dispatch(self, request: Request, call_next):

@@ -1142,17 +1142,18 @@ try:
     app.include_router(byoc_api_router)
     logger.info("Universal BYOC management router loaded successfully ✅")
 except Exception as _e:
-    logger.critical(f"Failed to load Universal BYOC router: {_e}")
+    import traceback
+    logger.critical(f"Failed to load Universal BYOC router: {traceback.format_exc()}")
 
 # Register billing API Router
 # বাংলা মন্তব্য: ক্রেডিট ওয়ালেট ও ট্রানজেকশন বিলিং রাউটার রেজিস্টার করা হলো
 try:
-    from api.routes.byoc_api import router as byoc_api_router
     from api.routes.billing_api import router as billing_api_router
     app.include_router(billing_api_router)
     logger.info("P2P Credit System billing router loaded successfully ✅")
 except Exception as _e:
-    logger.critical(f"Failed to load Billing router: {_e}")
+    import traceback
+    logger.critical(f"Failed to load Billing router: {traceback.format_exc()}")
 
 from api.routes.metrics import router as admin_metrics_router
 

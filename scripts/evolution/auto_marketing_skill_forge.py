@@ -40,7 +40,7 @@ try:
     FIREBASE_AVAILABLE = True
 except ImportError:
     FIREBASE_AVAILABLE = False
-    print("⚠️  Firebase Admin SDK not installed. Install with: pip install firebase-admin")
+    print(r"⚠️  Firebase Admin SDK not installed. Install with: pip install firebase-admin")
 
 # Configure logging
 logging.basicConfig(
@@ -125,7 +125,8 @@ def forge_skill(request_data: dict) -> bool:
             "user_demand": request_data.get('description', 
                                           f"Create a {request_data.get('platform')} marketing automation skill"),
             "category": "marketing",
-            "platform": request_data.get('platform =_get('platform'),
+            # সিনট্যাক্স এরর ঠিক করা হয়েছে এবং ইউনিকোড সাপোর্ট নিশ্চিত করা হয়েছে
+            "platform": request_data.get('platform'),
             "requested_by": request_data.get('user_id', 'anonymous'),
             "priority": request_data.get('priority', 'medium')
         }
@@ -199,41 +200,41 @@ def mark_request_as_processed(db: firestore.Client, request_id: str, success: bo
 def main() -> None:
     """Main loop that polls for requests and processes them."""
     if not PROJECT_ID:
-        print("❌ Error: GOOGLE_CLOUD_PROJECT environment variable is not set")
+        print(r"❌ Error: GOOGLE_CLOUD_PROJECT environment variable is not set")
         return
     
     if not API_KEY:
-        print("⚠️  Warning: SUPREMEAI_API_KEY not set - API calls may fail")
+        print(r"⚠️  Warning: SUPREMEAI_API_KEY not set - API calls may fail")
     
-    print(f"🤖 Starting Marketing Skill Forger")
-    print(f"📊 Monitoring for platforms: {', '.join(MARKETING_PLATFORMS)}")
-    print(f"⏱️  Polling interval: {POLL_INTERVAL} seconds")
-    print(f"🔗 API endpoint: {API_BASE_URL}/api/evolution/forge")
+    print(r"🤖 Starting Marketing Skill Forger")
+    print(fr"📊 Monitoring for platforms: {', '.join(MARKETING_PLATFORMS)}")
+    print(fr"⏱️  Polling interval: {POLL_INTERVAL} seconds")
+    print(fr"🔗 API endpoint: {API_BASE_URL}/api/evolution/forge")
     
     # Initialize Firebase
     db = initialize_firebase()
     if not db:
-        print("❌ Failed to initialize Firebase. Exiting.")
+        print(r"❌ Failed to initialize Firebase. Exiting.")
         return
     
-    print("✅ Firebase initialized successfully")
+    print(r"✅ Firebase initialized successfully")
     
     try:
         while True:
-            print(f"\n🔍 [{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Checking for new requests...")
+            print(fr"\n🔍 [{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Checking for new requests...")
             
             # Get pending requests
             pending_requests = get_pending_requests(db)
             
             if not pending_requests:
-                print("📭 No pending requests found")
+                print(r"📭 No pending requests found")
             else:
-                print(f"📥 Found {len(pending_requests)} pending request(s)")
+                print(fr"📥 Found {len(pending_requests)} pending request(s)")
                 
                 for request in pending_requests:
                     request_id = request.get('doc_id')
                     platform = request.get('platform', 'unknown')
-                    print(f"  ⚙️  Processing request {request_id} for platform '{platform}'")
+                    print(fr"  ⚙️  Processing request {request_id} for platform '{platform}'")
                     
                     # Attempt to forge the skill
                     success = forge_skill(request)
@@ -242,18 +243,18 @@ def main() -> None:
                     mark_request_as_processed(db, request_id, success)
                     
                     if success:
-                        print(f"  ✅ Successfully processed request {request_id}")
+                        print(fr"  ✅ Successfully processed request {request_id}")
                     else:
-                        print(f"  ❌ Failed to process request {request_id}")
+                        print(fr"  ❌ Failed to process request {request_id}")
             
             # Wait for the next poll
-            print(f"😴 Sleeping for {POLL_INTERVAL} seconds...")
+            print(fr"😴 Sleeping for {POLL_INTERVAL} seconds...")
             time.sleep(POLL_INTERVAL)
             
     except KeyboardInterrupt:
         print(r"\nCtrl+C received. Shutting down gracefully...")
     except Exception as e:
-        print(f"💥 Unexpected error: {e}")
+        print(fr"💥 Unexpected error: {e}")
         raise
 
 if __name__ == "__main__":
