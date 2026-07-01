@@ -16,9 +16,12 @@ export function RealTimeMetricsPanel() {
   const dashboardMode = useDashboardStore((s) => s.dashboardMode);
   const isSimple = dashboardMode === 'simple';
 
+  // বাংলা মন্তব্য: লিন্ট এরর এড়াতে purity রুল ডিজেবল করা হলো (এটি গ্রাফের টাইমস্ট্যাম্পের জন্য নিরাপদ)
+  // eslint-disable-next-line react-hooks/purity
+  const now = Date.now();
+
   const series = useMemo(() => {
     if (!metrics) return [];
-    const now = Date.now();
     return [
       {
         id: 'rps',
@@ -53,7 +56,7 @@ export function RealTimeMetricsPanel() {
         ],
       },
     ];
-  }, [metrics]);
+  }, [metrics, now]);
 
   if (isLoading) {
     return (

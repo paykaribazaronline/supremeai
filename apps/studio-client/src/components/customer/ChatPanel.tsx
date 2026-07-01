@@ -1,5 +1,5 @@
 import type { ChatMessage } from '../../types';
-import { ActionCard } from '../admin/ActionCard';
+import { UnifiedChatBubble } from '../chat';
 
 interface ChatPanelProps {
   messages: ChatMessage[];
@@ -15,26 +15,23 @@ export function ChatPanel({ messages, input, onInputChange, onSend, loading, onS
     <div className="w-96 flex-shrink-0 bg-[#050608]/90 border-l border-slate-800 flex flex-col">
       <div className="h-10 border-b border-slate-800 flex items-center px-4 justify-between bg-[#0a0c12]">
         {/* বাংলা মন্তব্য: চ্যাট প্যানেল লোড হয়েছে কিনা তা টেস্টে যাচাই করার জন্য chat-header data-testid দেওয়া হলো */}
-        <span data-testid="chat-header" className="text-xs font-semibold text-slate-200 uppercase tracking-wider">SupremeAI Chat</span>
+        <span data-testid="chat-header" className="text-xs font-semibold text-slate-200 uppercase tracking-wider">Unified Command Portal</span>
         <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-950/30 text-emerald-400 border border-emerald-900/30 font-mono">ONLINE</span>
       </div>
       <div className="flex-1 p-4 overflow-y-auto flex flex-col gap-4">
-        {messages.map(msg => (
-          <div key={msg.id} className={`max-w-[85%] flex flex-col gap-1 ${msg.sender === 'user' ? 'self-end items-end' : 'self-start w-full'}`}>
-            <div className={`p-3.5 rounded-2xl text-[13.5px] leading-relaxed ${
-              msg.sender === 'user'
-                ? 'bg-gradient-to-br from-[#bc13fe] to-[#8b5cf6] text-white rounded-tr-none shadow-[0_4px_15px_rgba(188,19,254,0.2)]'
-                : 'bg-[#12141c]/80 border border-[rgba(138,92,246,0.15)] text-slate-200 rounded-tl-none'
-            }`}>
-              {msg.sender === 'user' ? (
-                msg.text
-              ) : (
-                <ActionCard rawContent={msg.text} onSaveToProject={onSaveToProject} />
-              )}
-            </div>
-            <span className="text-[9px] text-slate-500 px-1">{msg.timestamp}</span>
-          </div>
-        ))}
+        {messages.map(msg => {
+          const isUser = msg.sender === 'User' || msg.sender === 'user';
+          return (
+            <UnifiedChatBubble
+              key={msg.id}
+              text={msg.text}
+              sender={isUser ? 'user' : 'system'}
+              timestamp={msg.timestamp}
+              action={msg.action}
+              onSaveToProject={onSaveToProject}
+            />
+          );
+        })}
 
         {loading && (
           <div className="text-xs text-slate-500 animate-pulse font-mono flex items-center gap-2">
@@ -49,7 +46,7 @@ export function ChatPanel({ messages, input, onInputChange, onSend, loading, onS
           <input
             data-testid="chat-input"
             type="text"
-            placeholder="Ask anything or generate code..."
+            placeholder="Ask anything or execute a command…"
             value={input}
             onChange={e => onInputChange(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && onSend()}

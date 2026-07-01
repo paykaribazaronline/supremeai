@@ -411,3 +411,13 @@ body.matrix {
   0% { background-position: 0 0; }
   100% { background-position: 0 600px; }
 }
+
+@keyframes pulse-glow-border {
+  0%   { box-shadow: 0 0 8px  rgba(188,19,254,0.25),  inset 0 0 6px rgba(188,19,254,0.06); }
+  50%  { box-shadow: 0 0 20px rgba(188,19,254,0.55), inset 0 0 14px rgba(188,19,254,0.12); }
+  100% { box-shadow: 0 0 8px  rgba(188,19,254,0.25),  inset 0 0 6px rgba(188,19,254,0.06); }
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow-border 1.6s ease-in-out infinite;
+}

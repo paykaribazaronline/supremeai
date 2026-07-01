@@ -48,9 +48,16 @@ class Settings(BaseSettings):
         "https://supremeai-admin.firebaseapp.com",
     ]
 
-    admin_emails: list[str] = [
-        "niloyjoy7@gmail.com",
-    ]
+    # বাংলা মন্তব্য: এডমিন ইমেইল লিস্ট সরাসরি .env ফাইল থেকে লোড করা হবে
+    admin_emails: list[str] = Field(
+        default=["niloyjoy7@gmail.com"], validation_alias="ADMIN_EMAILS"
+    )
+
+    # বাংলা মন্তব্য: অনুমোদিত হোস্ট লিস্ট সরাসরি .env ফাইল থেকে লোড করা হবে
+    allowed_hosts: list[str] = Field(
+        default=["localhost", "njel.com.bd", "testserver", "run.app"],
+        validation_alias="ALLOWED_HOSTS",
+    )
 
     jwt_secret: str | None = Field(
         default=None, validation_alias="SUPREMEAI_JWT_SECRET"
@@ -115,6 +122,28 @@ class Settings(BaseSettings):
         if value.lower() not in allowed:
             raise ValueError(f"env must be one of {allowed}")
         return value.lower()
+
+    @field_validator("admin_emails", mode="before")
+    @classmethod
+    def parse_admin_emails(cls, v) -> list[str]:
+        # বাংলা মন্তব্য: কমা দ্বারা পৃথকীকৃত ইমেইল স্ট্রিংকে লিস্টে কনভার্ট করা হলো
+        if isinstance(v, str):
+            v = v.strip()
+            if not v:
+                return []
+            return [email.strip() for email in v.split(",") if email.strip()]
+        return v
+
+    @field_validator("allowed_hosts", mode="before")
+    @classmethod
+    def parse_allowed_hosts(cls, v) -> list[str]:
+        # বাংলা মন্তব্য: কমা দ্বারা পৃথকীকৃত ডোমেইন স্ট্রিংকে লিস্টে কনভার্ট করা হলো
+        if isinstance(v, str):
+            v = v.strip()
+            if not v:
+                return []
+            return [host.strip() for host in v.split(",") if host.strip()]
+        return v
 
     @field_validator("jwt_secret", mode="before")
     @classmethod

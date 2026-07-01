@@ -65,6 +65,15 @@ export interface ChatMessage {
   sender: 'User' | 'SupremeAI';
   text: string;
   timestamp?: string;
+  action?: {
+    type: string;
+    target?: string;
+    label?: string;
+    icon?: string;
+    confidence?: number;
+    requires_confirmation?: boolean;
+    payload?: Record<string, unknown>;
+  };
 }
 
 export interface Widget {
@@ -91,6 +100,8 @@ interface UserDashboardProps {
   projects?: Project[];
   chatHistory?: ChatMessage[];
   widgets?: Widget[];
+  onSaveToProject?: (code: string) => void;
+  onPreview?: (code: string) => void;
 }
 
 export function UserDashboard({
@@ -108,7 +119,9 @@ export function UserDashboard({
   user = null,
   projects = [],
   chatHistory = [],
-  widgets = []
+  widgets = [],
+  onSaveToProject,
+  onPreview
 }: UserDashboardProps) {
   // বাংলা মন্তব্য: অ্যাক্টিভ ট্যাব স্টেট ইউনিয়ন টাইপ বাড়ানো হলো
   const [activeTab, setActiveTab] = useState<'overview' | 'feed' | 'presets' | 'chat' | 'browser' | 'mobile'>('overview');
@@ -289,7 +302,12 @@ export function UserDashboard({
                   <div key={idx} className="flex items-center gap-3 p-2.5 rounded-lg bg-black/20 border border-white/[0.03] text-[10px] font-mono">
                     <Clock size={10} className="text-slate-500" />
                     <span className="text-slate-400">{msg.sender === 'User' ? 'You' : 'AI'}:</span>
-                    <span className="text-slate-300 flex-1 truncate">{msg.text}</span>
+                    <span className="text-slate-300 flex-1 truncate">
+                      {msg.text}
+                      {msg.action?.label && (
+                        <span className="ml-1 text-[9px] text-[#bc13fe]">[{msg.action.icon} {msg.action.label}]</span>
+                      )}
+                    </span>
                   </div>
                 ))
               ) : (
@@ -322,6 +340,8 @@ export function UserDashboard({
             onInputChange={setCustomerInput}
             onSend={handleSendCustomer}
             loading={loading}
+            onSaveToProject={onSaveToProject}
+            onPreview={onPreview}
           />
         </div>
       )}

@@ -15,6 +15,7 @@ from pydantic import BaseModel
 # --- Local Imports ---
 # Moved imports to the top of the file to improve performance by avoiding repeated imports inside functions.
 from adaptive_engine.experience_db import Experience
+from core.intent_router import intent_router, PromptAction
 from core.prompt_helpers import format_unified_chat_prompt
 
 
@@ -46,6 +47,8 @@ class TaskResponse(BaseModel):
     provider: str | None = None
     cost: float | None = None
     error: str | None = None
+    action: dict[str, Any] | None = None
+    intent: dict[str, Any] | None = None
 
 
 class CompletionRequest(BaseModel):
@@ -66,6 +69,11 @@ class ChatStreamRequest(BaseModel):
     sessionId: str | None = None
     messages: list[dict] | None = None
     context: dict | None = None
+
+
+class ActionStreamRequest(BaseModel):
+    message: str
+    messages: list[dict] | None = None
 
 
 def _build_completion_prompt(prefix: str, suffix: str) -> str:
@@ -278,6 +286,10 @@ async def execute_task(req: TaskRequest, background_tasks: BackgroundTasks):
     except PermissionError as exc:
         raise HTTPException(status_code=403, detail=str(exc)) from exc
 
+    # --- Prompt-to-Action: Intent Routing ---
+    # বাংলা মন্তব্য: ইনপুটকে ক্যাটাগরি রূপে চিহ্নিত করে ফ্রন্টএন্ডকে ডাইনামিক অ্যাকশন টিপ দিচ্ছে
+    prompt_action: PromptAction = intent_router.route(req.task)
+
     # Offload heavy CPU-bound Intent classification to background thread pool
     app_spec = await anyio.to_thread.run_sync(
         app_mod.intent_parser.parse_intent, req.task, req.messages
@@ -362,20 +374,30 @@ async def execute_task(req: TaskRequest, background_tasks: BackgroundTasks):
     formatted_result = format_response(raw.get("text", ""), task_type)
 
     return TaskResponse(
-        success=True,
-        result=formatted_result,
-        provider=raw.get("provider"),
-        cost=raw.get("cost", 0.0),
-    )
+            success=True,
+            result=formatted_result,
+            provider=raw.get("provider"),
+            cost=raw.get("cost", 0.0),
+            action={
+                "type": prompt_action.action_type,
+                "target": prompt_action.target_module,
+                "label": prompt_action.label,
+                "icon": prompt_action.icon,
+                "confidence": prompt_action.confidence,
+                "requires_confirmation": prompt_action.requires_confirmation,
+                "payload": prompt_action.payload,
+            },
+            intent={
+                "task_type": intent.task_type.value if hasattr(intent.task_type, "value") else str(intent.task_type),
+                "confidence": intent.confidence,
+            },
+        )
 
 
 @router.get("/api/task/stream")
 async def task_stream():
     async def keepalive():
-        while True:
-            # বাংলা মন্তব্য: Python 3.12+ এর অবচয় সতর্কবার্তা এড়াতে timezone-aware datetime ব্যবহার করা হলো
-            yield f"data: {json.dumps({'status': 'alive', 'timestamp': datetime.datetime.now(datetime.timezone.utc).isoformat()})}\n\n"
-            await asyncio.sleep(15)
+        yield f"data: {json.dumps({'status': 'alive', 'timestamp': datetime.datetime.now(datetime.timezone.utc).isoformat()})}\n\n"
 
     return StreamingResponse(
         keepalive(),
@@ -386,3 +408,29 @@ async def task_stream():
             "X-Accel-Buffering": "no",
         },
     )
+
+
+@router.post("/api/chat/prompt-action")
+async def prompt_action(req: ActionStreamRequest):
+    from core.intent_router import intent_router
+    from core.intent import IntentClassifier
+
+    action = intent_router.route(req.message)
+    intent_clf = IntentClassifier()
+    intent = intent_clf.classify(req.message)
+
+    return JSONResponse({
+        "action": {
+            "type": action.action_type,
+            "target": action.target_module,
+            "label": action.label,
+            "icon": action.icon,
+            "confidence": action.confidence,
+            "requires_confirmation": action.requires_confirmation,
+            "payload": action.payload,
+        },
+        "intent": {
+            "task_type": intent.task_type.value,
+            "confidence": intent.confidence,
+        },
+    })

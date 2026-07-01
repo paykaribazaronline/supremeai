@@ -111,7 +111,8 @@ describe('UserDashboard', () => {
   it('switches to chat tab when clicked', () => {
     render(<UserDashboard {...defaultProps} />);
     fireEvent.click(getTabButton(/Chat/i));
-    expect(screen.getByText('SupremeAI Chat')).toBeInTheDocument();
+    // বাংলা মন্তব্য: টেস্টে ব্যবহৃত হেডার টেক্সট আপডেট করা হলো
+    expect(screen.getByText('Unified Command Portal')).toBeInTheDocument();
   });
 
   it('switches to feed tab when clicked', () => {
@@ -142,7 +143,8 @@ describe('UserDashboard', () => {
   it('shows quick actions and navigates to chat', () => {
     render(<UserDashboard {...defaultProps} />);
     fireEvent.click(screen.getByText('New Chat Session'));
-    expect(screen.getByText('SupremeAI Chat')).toBeInTheDocument();
+    // বাংলা মন্তব্য: টেস্টে ব্যবহৃত হেডার টেক্সট আপডেট করা হলো
+    expect(screen.getByText('Unified Command Portal')).toBeInTheDocument();
   });
 
   it('shows recent activity from customerMessages', () => {
@@ -161,7 +163,8 @@ describe('UserDashboard', () => {
   it('calls setCustomerInput when chat input changes', () => {
     render(<UserDashboard {...defaultProps} />);
     fireEvent.click(getTabButton(/Chat/i));
-    const input = screen.getByPlaceholderText('Ask anything or generate code...');
+    // বাংলা মন্তব্য: টেস্টে ব্যবহৃত প্লেসহোল্ডার টেক্সট আপডেট করা হলো
+    const input = screen.getByPlaceholderText('Ask anything or execute a command…');
     fireEvent.change(input, { target: { value: 'test input' } });
     expect(defaultProps.setCustomerInput).toHaveBeenCalledWith('test input');
   });

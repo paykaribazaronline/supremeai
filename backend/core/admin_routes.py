@@ -89,7 +89,8 @@ def admin_firebase_login(payload: AdminFirebaseLoginRequest):
                     status_code=403, detail="Mock tokens are strictly forbidden in production."
                 )
             uid = "mock-admin-uid"
-            email = "niloyjoy7@gmail.com"
+            # বাংলা মন্তব্য: সরাসরি হার্ডকোড ইমেইলের পরিবর্তে সেটিংস থেকে ডাইনামিকলি প্রথম এডমিন ইমেইল রিড করা হলো
+            email = settings.admin_emails[0] if settings.admin_emails else "admin@example.com"
             logger.warning(
                 f"Bypassing verification using mock token mode. Token: {id_token[:20]}..."
             )
@@ -166,7 +167,8 @@ def admin_firebase_totp_setup(payload: AdminFirebaseTotpSetupRequest):
     try:
         if id_token.startswith("mock-"):
             uid = "mock-admin-uid"
-            email = "niloyjoy7@gmail.com"
+            # বাংলা মন্তব্য: সরাসরি হার্ডকোড ইমেইলের পরিবর্তে সেটিংস থেকে ডাইনামিকলি প্রথম এডমিন ইমেইল রিড করা হলো
+            email = settings.admin_emails[0] if settings.admin_emails else "admin@example.com"
         elif auth:
             decoded_token = auth.verify_id_token(id_token)
             uid = decoded_token.get("uid", decoded_token.get("sub", "mock-admin-uid"))

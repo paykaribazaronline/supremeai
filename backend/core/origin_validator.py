@@ -29,8 +29,9 @@ class TrustedOriginMiddleware(BaseHTTPMiddleware):
                 )
                 
         # বাংলা মন্তব্য: যদি অরিজিন না থাকে (যেমন ডিরেক্ট কার্ল বা এক্সটেনশন রিকোয়েস্ট), তবে হোস্ট হেডার ভ্যালিডেশন
-        host = request.headers.get("Host")
-        if host and "localhost" not in host and "njel.com.bd" not in host and "testserver" not in host and "run.app" not in host:
+        # বাংলা মন্তব্য: ডাইনামিকলি সেটিংস থেকে অনুমোদিত হোস্ট চেক করা হচ্ছে (হার্ডকোড মুক্ত)
+        is_allowed = any(allowed_host in host for allowed_host in settings.allowed_hosts) if host else True
+        if host and not is_allowed:
             logger.critical(f"🚨 Security Intrusion: Host Header Tampering Detected -> {host}")
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,

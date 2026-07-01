@@ -19,7 +19,8 @@ describe('ChatPanel', () => {
         loading={false}
       />,
     );
-    expect(screen.getByText('SupremeAI Chat')).toBeInTheDocument();
+    // বাংলা মন্তব্য: টেস্টে ব্যবহৃত হেডার টেক্সট আপডেট করা হলো
+    expect(screen.getByText('Unified Command Portal')).toBeInTheDocument();
   });
 
   it('renders the ONLINE status badge', () => {
@@ -60,7 +61,8 @@ describe('ChatPanel', () => {
         loading={false}
       />,
     );
-    const input = screen.getByPlaceholderText('Ask anything or generate code...');
+    // বাংলা মন্তব্য: টেস্টে ব্যবহৃত প্লেসহোল্ডার টেক্সট আপডেট করা হলো
+    const input = screen.getByPlaceholderText('Ask anything or execute a command…');
     fireEvent.change(input, { target: { value: 'test' } });
     expect(onInputChange).toHaveBeenCalledWith('test');
   });
@@ -91,7 +93,8 @@ describe('ChatPanel', () => {
         loading={false}
       />,
     );
-    const input = screen.getByPlaceholderText('Ask anything or generate code...');
+    // বাংলা মন্তব্য: টেস্টে ব্যবহৃত প্লেসহোল্ডার টেক্সট আপডেট করা হলো
+    const input = screen.getByPlaceholderText('Ask anything or execute a command…');
     fireEvent.keyDown(input, { key: 'Enter' });
     expect(onSend).toHaveBeenCalled();
   });
@@ -134,7 +137,8 @@ describe('ChatPanel', () => {
         loading={false}
       />,
     );
-    const input = screen.getByPlaceholderText('Ask anything or generate code...');
+    // বাংলা মন্তব্য: টেস্টে ব্যবহৃত প্লেসহোল্ডার টেক্সট আপডেট করা হলো
+    const input = screen.getByPlaceholderText('Ask anything or execute a command…');
     fireEvent.keyDown(input, { key: 'Enter' });
     expect(onSend).toHaveBeenCalled();
   });
