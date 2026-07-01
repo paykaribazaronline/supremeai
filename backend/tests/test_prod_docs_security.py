@@ -11,6 +11,8 @@ def _run(code: str) -> subprocess.CompletedProcess:
     backend_root = os.path.join(project_root, "backend")
     env = os.environ.copy()
     env["PYTHONPATH"] = os.pathsep.join([project_root, backend_root])
+    # ক্যাওস ইঞ্জিন যাতে টেস্টে বিঘ্ন না ঘটায়, তাই LOCAL_CHAOS_MODE নিষ্ক্রিয় করা হলো
+    env["LOCAL_CHAOS_MODE"] = "false"
 
     gcp_mock_code = textwrap.dedent(
         """
@@ -78,6 +80,8 @@ def test_docs_disabled_in_production():
         os.environ["gemini_api_key"] = "sk"
         os.environ["sentry_dsn"] = "https://sentry.io/123"
         os.environ["SUPREMEAI_JWT_SECRET"] = "secure_jwt_secret_value_at_least_32_chars_long_test"
+        # প্রোডাকশনে ইন্টিগ্রেশন টেস্ট চালানোর জন্য এনক্রিপশন কী সেট করা আবশ্যক
+        os.environ["SUPREMEAI_ENCRYPTION_KEY"] = "secure_encryption_key_value_at_least_32_chars"
         import core.app as app_mod
         import core.services as services
 
@@ -90,3 +94,4 @@ def test_docs_disabled_in_production():
     )
     result = _run(code)
     assert result.returncode == 0, result.stdout + result.stderr
+
