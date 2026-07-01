@@ -155,11 +155,7 @@ from middleware.chaos_injector import ChaosInjectorMiddleware
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "https://supremeai-admin.web.app",
-        "http://localhost:5173",
-        "http://localhost:3000"
-    ],
+    allow_origins=settings.cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -350,12 +346,21 @@ async def app_lifespan(app: FastAPI):
 
     # ⚙️ Initialize Orchestrator independently to ensure background tasks are scheduled
     try:
-        orchestrator = Orchestrator()
-        app.state.orchestrator = orchestrator
-        await orchestrator.start()
+        orch_inst = Orchestrator()
+        app.state.orchestrator = orch_inst
+        await orch_inst.start()
         logger.info("⚙️ Orchestrator background tasks initialized successfully.")
     except Exception as e:
         logger.error(f"Failed to initialize Orchestrator: {e}")
+
+    # Supabase schema bootstrap
+    try:
+        from database import db as supabase_db
+        if os.environ.get("SUPABASE_DATABASE_URL") or os.environ.get("SUPABASE_DATABASE_URL_POOLER"):
+            supabase_db.bootstrap_schema()
+            logger.info("Supabase schema bootstrap complete")
+    except Exception as exc:
+        logger.warning(f"Supabase bootstrap failed on startup: {exc}. Continuing without schema bootstrap.")
 
     yield  # ----------------- এখানে অ্যাপ্লিকেশন ট্রাফিক রিসিভ করবে -----------------
 
@@ -601,7 +606,7 @@ def admin_firebase_login(payload: AdminFirebaseLoginRequest):
     except Exception as e:
         logger.exception("Token verification/decoding failed")
         raise HTTPException(
-            status_code=401, detail=f"Token verification/decoding failed: {str(e)}"
+            status_code=401, detail="Authentication failed"
         ) from e
 
     db = get_firestore_client()
@@ -616,11 +621,7 @@ def admin_firebase_login(payload: AdminFirebaseLoginRequest):
                 data = doc.to_dict()
                 role = data.get("role", "user")
                 totp_secret = data.get("totp_secret")
-            elif (
-                "admin" in email.lower()
-                or email.endswith("@supremeai.dev")
-                or email == "niloyjoy7@gmail.com"
-            ):
+            elif email.lower() in [e.lower() for e in settings.admin_emails]:
                 role = "admin"
                 doc_ref.set(
                     {"email": email, "role": "admin", "created_at": str(time.time())}
@@ -629,11 +630,7 @@ def admin_firebase_login(payload: AdminFirebaseLoginRequest):
             # 🛑 ZERO-GAP: Fail-Closed. ডাটাবেজ ফেইল করলে কখনোই অ্যাডমিন এক্সেস দেওয়া যাবে না।
             logger.critical(f"Firestore admin lookup failed (Possible DB connection issue/attack): {e}")
             role = "user"
-    elif (
-        "admin" in email.lower()
-        or email.endswith("@supremeai.dev")
-        or email == "niloyjoy7@gmail.com"
-    ):
+    elif email.lower() in [e.lower() for e in settings.admin_emails]:
         role = "admin"
     else:
         role = "user"

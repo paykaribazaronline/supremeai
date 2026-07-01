@@ -10,7 +10,6 @@ from api.routes.task_workspace import router as workspace_task_router
 from core.app import app  # noqa: F401
 from core.config import settings
 from core.logging_config import setup_logging
-from database import db as supabase_db
 
 
 app.include_router(workspace_task_router)
@@ -33,24 +32,6 @@ def _handle_sigterm(signum, frame):
 
 signal.signal(signal.SIGTERM, _handle_sigterm)
 signal.signal(signal.SIGINT, _handle_sigterm)
-
-
-def bootstrap_supabase_schema_if_configured() -> None:
-    if os.environ.get("SUPABASE_DATABASE_URL") or os.environ.get(
-        "SUPABASE_DATABASE_URL_POOLER"
-    ):
-        try:
-            supabase_db.bootstrap_schema()
-        except Exception as exc:
-            logger.warning(
-                f"Supabase bootstrap failed on startup: {exc}. Continuing without schema bootstrap."
-            )
-
-
-@app.on_event("startup")
-def startup_bootstrap_supabase_schema() -> None:
-    """Ensure Supabase schema bootstrap runs when the FastAPI app starts."""
-    bootstrap_supabase_schema_if_configured()
 
 
 def run_server() -> None:
@@ -79,5 +60,4 @@ def run_server() -> None:
 
 
 if __name__ == "__main__":
-    bootstrap_supabase_schema_if_configured()
     run_server()

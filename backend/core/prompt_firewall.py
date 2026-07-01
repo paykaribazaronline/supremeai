@@ -2,8 +2,9 @@
 # এটি সমস্ত সাব-এজেন্ট এবং এলএলএম রিকোয়েস্টে ১ নম্বর ও ২ নম্বর গোল্ডেন রুল স্ট্রিক্টলি ইনজেক্ট করে।
 
 import re
-from fastapi import HTTPException, status
+
 from core.logging_config import logger
+
 
 class PromptFirewall:
     def __init__(self):
@@ -58,24 +59,38 @@ class PromptFirewall:
         ]
         
     def _check_local_patterns(self, prompt: str):
-        if "Disregard" in prompt or "mode" in prompt or "Ignore" in prompt: return "prompt_injection"
-        if "=" in prompt or "KEY" in prompt or "ssh-" in prompt: return "sensitive_extraction"
-        if "rm " in prompt or "bash" in prompt or "sh" in prompt or "chmod" in prompt or "python" in prompt: return "malicious_code"
+        """
+        Updated to use word-boundary regex patterns instead of broad substring checks.
+        Prevents false positives on common words like 'python', 'bash', 'KEY', 'mode', etc.
+        """
+        import re as _re
+        if _re.search(r"\b(disregard|ignore)\b", prompt, _re.IGNORECASE):
+            return "prompt_injection"
+        if _re.search(r"\b(KEY|SECRET)\b", prompt) or _re.search(r"\bssh-\w+\b", prompt):
+            return "sensitive_extraction"
+        if _re.search(r"\b(rm\s+-rf|chmod\s+\d|bash\s+-c|sudo\s+\w+)\b", prompt):
+            return "malicious_code"
         return None
 
     async def scan_with_llama_guard(self, prompt: str):
-        if "violent" in prompt: return "Llama Guard"
+        if "violent" in prompt:
+            return "Llama Guard"
         return None
         
     async def pre_flight_check(self, prompt: str):
-        if "Disregard" in prompt: return {"allowed": False, "provider": "local", "reason": "Blocked"}
-        if "test prompt" in prompt: return {"allowed": False, "provider": "llama_guard", "reason": "Blocked"}
+        if "Disregard" in prompt:
+            return {"allowed": False, "provider": "local", "reason": "Blocked"}
+        if "test prompt" in prompt:
+            return {"allowed": False, "provider": "llama_guard", "reason": "Blocked"}
         return {"allowed": True, "reason": "prompt_approved", "provider": "firewall"}
         
     async def classify_intent(self, prompt: str):
-        if "Python" in prompt: return {"intent": "coding", "requires_expensive_model": True}
-        if "reason" in prompt: return {"intent": "reasoning", "requires_expensive_model": True}
-        if "image" in prompt: return {"intent": "vision", "requires_expensive_model": False}
+        if "Python" in prompt:
+            return {"intent": "coding", "requires_expensive_model": True}
+        if "reason" in prompt:
+            return {"intent": "reasoning", "requires_expensive_model": True}
+        if "image" in prompt:
+            return {"intent": "vision", "requires_expensive_model": False}
         return {"intent": "simple", "requires_expensive_model": False}
 
 async def pre_flight_scan(prompt: str):

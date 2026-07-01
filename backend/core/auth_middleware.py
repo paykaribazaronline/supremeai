@@ -3,7 +3,13 @@ from __future__ import annotations
 import os
 import secrets
 
+from fastapi import HTTPException
+from fastapi import Request
+from fastapi import status
 from fastapi.responses import JSONResponse
+from jose import JWTError
+from jose import jwt
+from jose.exceptions import ExpiredSignatureError
 from loguru import logger
 
 from core.config import settings
@@ -76,8 +82,6 @@ class AuthMiddleware:
                 await response(scope, receive, send)
                 return
             try:
-                from jose import jwt
-
                 jwt_secret = settings.jwt_secret
                 decoded = jwt.decode(token, jwt_secret, algorithms=["HS256"])
                 if decoded.get("role") != "admin":
@@ -88,10 +92,10 @@ class AuthMiddleware:
                     await response(scope, receive, send)
                     return
             except Exception as e:
-                logger.error(f"JWT validation failed for admin path: {e}")
+                logger.error(f"Admin JWT validation failed: {e}")
                 response = JSONResponse(
                     status_code=401,
-                    content={"detail": f"Invalid Admin Authorization Token: {str(e)}"},
+                    content={"detail": "Invalid authorization token"},
                 )
                 await response(scope, receive, send)
                 return
@@ -132,11 +136,6 @@ class AuthMiddleware:
 # বাংলা কমেন্ট: সুপ্রিম-এআই এর ফেল-ক্লোজড অথেনটিকেশন এনফোর্সমেন্ট ইঞ্জিন।
 # যেকোনো ভেরিফিকেশন ফেইলিওর বা এক্সেপশনে এটি সরাসরি রিকোয়েস্ট হার্ড-ব্লক করে (Fail-Closed)।
 
-import jwt
-from fastapi import Request, HTTPException, status
-from core.config import settings
-from core.logging_config import logger
-
 async def verify_admin_session_fail_closed(request: Request) -> dict:
     """
     টোকেন অথেনটিকেশন এবং ডিকোডিং মেকানিজম। 
@@ -145,7 +144,8 @@ async def verify_admin_session_fail_closed(request: Request) -> dict:
     # বাংলা কমেন্ট: Authorization হেডার এক্সট্রাকশন
     auth_header = request.headers.get("Authorization")
     if not auth_header or not auth_header.startswith("Bearer "):
-        logger.warning(f"🔒 Access Denied: Missing or malformed Bearer token from IP: {request.client.host}")
+        client_ip = request.client.host if request.client else "unknown"
+        logger.warning(f"🔒 Access Denied: Missing or malformed Bearer token from IP: {client_ip}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Authentication credentials missing or malformed."
@@ -179,18 +179,25 @@ async def verify_admin_session_fail_closed(request: Request) -> dict:
         logger.success(f"🔱 Admin Session Authorized for User: {user_id}")
         return payload
 
-    except (jwt.ExpiredSignatureError, jwt.InvalidTokenError) as jwt_err:
-        logger.warning(f"🔒 Fail-Closed: Invalid or expired JWT token blocked -> {str(jwt_err)}")
+    except ExpiredSignatureError as jwt_err:
+        logger.warning(f"🔒 Fail-Closed: Expired JWT token blocked -> {str(jwt_err)}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Session has expired or token is invalid."
-        )
-        
+            detail="Session has expired or token is invalid.",
+        ) from None
+
+    except JWTError as jwt_err:
+        logger.warning(f"🔒 Fail-Closed: Invalid JWT token blocked -> {str(jwt_err)}")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Session has expired or token is invalid.",
+        ) from None
+
     except Exception as fatal_exception:
         # ❌ পুরানো ভুল পদ্ধতি (Fail-Open): return None বা পাস করা
         # ✅ নতুন সঠিক পদ্ধতি: P1/P2 Fail-Closed এনফোর্সমেন্ট। যেকোনো আননোন ক্র্যাশে রিকোয়েস্ট হার্ড-ব্লক।
         logger.critical(f"🔥 FATAL AUTH EXCEPTION: Dynamic crash detected during auth flow -> {str(fatal_exception)}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Security handshake verification failure. Access safely denied."
-        )
+            detail="Security handshake verification failure. Access safely denied.",
+        ) from None

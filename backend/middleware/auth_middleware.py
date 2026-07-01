@@ -23,7 +23,14 @@ class ZeroTrustAuthMiddleware(BaseHTTPMiddleware):
             "/api/v1/collaborate",
             "/api/v1/graph",
         ]
-        if request.method == "OPTIONS" or any(request.url.path.startswith(path) for path in public_paths):
+        if request.method == "OPTIONS":
+            return await call_next(request)
+
+        matched = (
+            request.url.path in public_paths
+            or any(request.url.path.startswith(p + "/") for p in public_paths)
+        )
+        if matched:
             return await call_next(request)
 
         is_test = "pytest" in sys.modules or os.getenv("ENV") == "test"
@@ -73,6 +80,7 @@ class ZeroTrustAuthMiddleware(BaseHTTPMiddleware):
         except Exception as e:
             from fastapi.responses import JSONResponse
 
-            return JSONResponse(status_code=401, content={"detail": str(e)})
+            logger.error(f"Token validation failed: {e}")
+            return JSONResponse(status_code=401, content={"detail": "Invalid or missing API token."})
 
         return await call_next(request)

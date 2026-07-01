@@ -48,6 +48,10 @@ class Settings(BaseSettings):
         "https://supremeai-admin.firebaseapp.com",
     ]
 
+    admin_emails: list[str] = [
+        "niloyjoy7@gmail.com",
+    ]
+
     jwt_secret: str | None = Field(
         default=None, validation_alias="SUPREMEAI_JWT_SECRET"
     )

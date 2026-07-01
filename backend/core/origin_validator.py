@@ -1,33 +1,28 @@
 # বাংলা কমেন্ট: সুপ্রিম-এআই এর ট্রাস্টেড অরিজিন ভ্যালিডেশন মিডলওয়্যার।
 # এটি ওয়াইল্ডকার্ড CORS বাইপাস রোধ করে এবং শুধুমাত্র অনুমোদিত ডোমেইন থেকে এপিআই অ্যাক্সেস নিশ্চিত করে।
 
-from fastapi import Request, HTTPException, status
+from fastapi import HTTPException
+from fastapi import Request
+from fastapi import status
 from starlette.middleware.base import BaseHTTPMiddleware
+
 from core.config import settings
 from core.logging_config import logger
+
 
 class TrustedOriginMiddleware(BaseHTTPMiddleware):
     def __init__(self, app):
         super().__init__(app)
-        # বাংলা কমেন্ট: শুধুমাত্র আমাদের অনুমোদিত প্রোডাকশন ডোমেইন এবং ডেভেলপমেন্ট লোকালহোস্টের হোয়াইটলিস্ট
-        self.allowed_origins = {
-            "https://supremeai.njel.com.bd",
-            "https://studio.njel.com.bd",
-            "https://supremeai-admin.web.app",
-            "http://localhost:5173",  # Web Chat Client পোর্ট
-            "http://localhost:5174",  # Studio Client পোর্ট
-            "testserver",
-            "http://testserver"
-        }
+        self.allowed_origins = set(settings.cors_origins)
 
     async def dispatch(self, request: Request, call_next):
         # বাংলা মন্তব্য: এপিআই রিকোয়েস্টের Origin এবং Host হেডার রিড করা হচ্ছে।
         origin = request.headers.get("Origin")
         
         # যদি রিকোয়েস্টে অরিজিন হেডার থাকে (যেমন ব্রাউজার বেসড রিকোয়েস্ট), তবে সেটি হোয়াইটলিস্টে থাকতে হবে
-        if origin:
-            if origin not in self.allowed_origins:
-                logger.critical(f"🔥 CSRF ALERT: Unauthorized Origin Access Blocked! Malicious Origin: {origin} from IP: {request.client.host}")
+        if origin and origin not in self.allowed_origins:
+                client_ip = request.client.host if request.client else "unknown"
+                logger.critical(f"🔥 CSRF ALERT: Unauthorized Origin Access Blocked! Malicious Origin: {origin} from IP: {client_ip}")
                 raise HTTPException(
                     status_code=status.HTTP_403_FORBIDDEN,
                     detail="Cross-Origin Request Blocked. Device identity unauthorized."
