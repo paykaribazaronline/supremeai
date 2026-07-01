@@ -1,7 +1,7 @@
 # 🧠 SupremeAI 2.0 Codebase Analysis
 # বাংলা মন্তব্য: এটি একটি স্বয়ংক্রিয়ভাবে জেনারেট করা কোডবেস ডাম্প ফাইল যা প্রজেক্টের সামগ্রিক বিশ্লেষণের জন্য ব্যবহৃত হয়।
 
-Generated at: 2026-07-01T20:36:38.955714 UTC
+Generated at: 2026-07-01T20:49:17.632607 UTC
 
 ## File: `.github/actions/setup-backend/action.yml`
 ```yaml
@@ -75358,6 +75358,103 @@ class KnowledgeBaseIndexer:
             self.vector_store._save_fallback()
         self._indexed_hashes.clear()
         return self.index_seed_data(seed_dir)
+
+```
+
+## File: `backend/tools/langchain_agent_example.py`
+```python
+# LangChain and LaunchDarkly AgentControl Integration Example
+# বাংলা মন্তব্য: লঞ্চডার্কলি এজেন্টস কন্ট্রোল এবং ল্যাংচেইন ইন্টিগ্রেশনের একটি পূর্ণাঙ্গ ও কার্যকরী উদাহরণ
+
+import os
+import sys
+from loguru import logger
+
+# Add backend directory to sys.path
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+try:
+    import ldclient
+    from ldclient.config import Config
+    from ldclient.context import Context
+    from ldai import LDAIClient, AIAgentConfig, AIAgentConfigDefault, ModelConfig
+    from langchain_anthropic import ChatAnthropic
+    from langchain_core.messages import HumanMessage, SystemMessage
+    from langchain_community.callbacks import get_openai_callback
+    from ldai.tracker import TokenUsage
+    INTEGRATION_OK = True
+except ImportError as e:
+    logger.error(f"Failed to import required libraries: {e}")
+    INTEGRATION_OK = False
+
+def handle_agent_call_langchain(
+    config: "AIAgentConfig",
+    user_input: str,
+) -> str:
+    """
+    LaunchDarkly AgentConfig এবং LangChain এর সাহায্যে এজেন্ট কল হ্যান্ডেল করে।
+    """
+    tracker = config.create_tracker()
+    
+    # বাংলা মন্তব্য: লঞ্চডার্কলি থেকে ডায়নামিক মডেল নির্ধারণ, অন্যথায় ডিফল্ট মডেল ব্যবহার
+    model_name = config.model.name if (config.model and config.model.name) else "claude-3-5-sonnet-20241022"
+    
+    # LangChain ChatAnthropic ইনিশিয়েট করা হচ্ছে
+    llm = ChatAnthropic(model=model_name)
+    
+    messages = []
+    if config.instructions:
+        messages.append(SystemMessage(content=config.instructions))
+    messages.append(HumanMessage(content=user_input))
+    
+    try:
+        # বাংলা মন্তব্য: টোকেন ট্র্যাকিংয়ের জন্য ল্যাংচেইন কলব্যাক প্রোভাইডার ব্যবহার করা হচ্ছে
+        with get_openai_callback() as cb:
+            response = llm.invoke(messages)
+            
+        # লঞ্চডার্কলি ট্র্যাকার ব্যবহার করে ম্যাট্রিক্স রেকর্ড করা হচ্ছে
+        tracker.track_tokens(TokenUsage(
+            input=cb.prompt_tokens,
+            output=cb.completion_tokens,
+            total=cb.total_tokens,
+        ))
+        tracker.track_success()
+        return str(response.content)
+    except Exception as exc:
+        tracker.track_error()
+        logger.error(f"LangChain invocation failed: {exc}")
+        raise exc
+
+if __name__ == "__main__":
+    if not INTEGRATION_OK:
+        print("❌ Setup failed: missing packages.")
+        sys.exit(1)
+        
+    # বাংলা মন্তব্য: লঞ্চডার্কলি ক্লায়েন্ট কনফিগারেশন এবং ডামি টেস্ট রান
+    sdk_key = os.getenv("LAUNCHDARKLY_SDK_KEY", "sdk-3ef38a9e-21ff-4ed6-9b04-dc0b0e28f7b2")
+    ldclient.set_config(Config(sdk_key))
+    aiclient = LDAIClient(ldclient.get())
+    context = Context.builder("user-123").kind("user").build()
+    
+    config = aiclient.agent_config(
+        'supremes-writing-assistant', 
+        context, 
+        default=AIAgentConfigDefault(
+            enabled=True,
+            model=ModelConfig(name="claude-3-5-sonnet-20241022"),
+            instructions="You are a helpful writing assistant."
+        )
+    )
+    
+    print("Evaluating AgentConfig...")
+    if config.enabled:
+        try:
+            result = handle_agent_call_langchain(config, "Hello, write a short tagline for SupremeAI.")
+            print(f"Result: {result}")
+        except Exception as e:
+            print(f"Error during runtime execution: {e}")
+    else:
+        print("Config is disabled in LaunchDarkly.")
 
 ```
 
