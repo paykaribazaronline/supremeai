@@ -163,8 +163,8 @@ describe('UserDashboard', () => {
   it('calls setCustomerInput when chat input changes', () => {
     render(<UserDashboard {...defaultProps} />);
     fireEvent.click(getTabButton(/Chat/i));
-    // বাংলা মন্তব্য: টেস্টে ব্যবহৃত প্লেসহোল্ডার টেক্সট আপডেট করা হলো
-    const input = screen.getByPlaceholderText('Ask anything or execute a command…');
+    // বাংলা মন্তব্য: ছোটখাটো টেক্সট পরিবর্তন বা এলিপসিস চরিত্রের পার্থক্য এড়াতে প্লেসহোল্ডারে Regex ম্যাচিং ব্যবহার করা হলো
+    const input = screen.getByPlaceholderText(/Ask anything or execute/i);
     fireEvent.change(input, { target: { value: 'test input' } });
     expect(defaultProps.setCustomerInput).toHaveBeenCalledWith('test input');
   });
