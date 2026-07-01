@@ -1,4 +1,5 @@
 import os
+os.environ["SUPREMEAI_ENCRYPTION_KEY"] = "Y2hvc2VuX3JhbmRvbV9iYXNlNjRfa2V5XzMyX2J5dGVz="
 import sys
 
 
