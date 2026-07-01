@@ -9,7 +9,7 @@ os.environ.setdefault("HF_API_KEY", "")
 os.environ.setdefault("OLLAMA_URL", "http://127.0.0.1:11434")
 
 import core.app as app_mod
-    import core.services as services
+import core.services as services
 
 from core.app import app
 

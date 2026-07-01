@@ -55,7 +55,7 @@ def test_docs_visible_in_local():
         os.environ["sentry_dsn"] = "https://sentry.io/123"
         os.environ["SUPREMEAI_JWT_SECRET"] = "secure_jwt_secret_value_at_least_32_chars_long_test"
         import core.app as app_mod
-    import core.services as services
+        import core.services as services
 
         from fastapi.testclient import TestClient
         client = TestClient(app_mod.app)
@@ -79,7 +79,7 @@ def test_docs_disabled_in_production():
         os.environ["sentry_dsn"] = "https://sentry.io/123"
         os.environ["SUPREMEAI_JWT_SECRET"] = "secure_jwt_secret_value_at_least_32_chars_long_test"
         import core.app as app_mod
-    import core.services as services
+        import core.services as services
 
         from fastapi.testclient import TestClient
         client = TestClient(app_mod.app)

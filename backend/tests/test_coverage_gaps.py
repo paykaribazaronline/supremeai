@@ -345,14 +345,14 @@ class TestRulesMutator:
 class TestRollbackMonitor:
     def setup_method(self):
         import core.app as app_mod
-    import core.services as services
+        import core.services as services
 
 
         self._original_redis = getattr(app_mod, "redis_queue", None)
 
     def teardown_method(self):
         import core.app as app_mod
-    import core.services as services
+        import core.services as services
 
 
         app_mod.redis_queue = self._original_redis
@@ -374,7 +374,7 @@ class TestRollbackMonitor:
         mock_redis.get.return_value = "7500.0"
 
         import core.app as app_mod
-    import core.services as services
+        import core.services as services
 
 
         app_mod.redis_queue = mock_redis
@@ -391,7 +391,7 @@ class TestRollbackMonitor:
         mock_redis.get.return_value = "7500.0"
 
         import core.app as app_mod
-    import core.services as services
+        import core.services as services
 
 
         app_mod.redis_queue = mock_redis
