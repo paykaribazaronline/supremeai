@@ -79,9 +79,10 @@ export function AuthenticatedView(props: AuthenticatedViewProps) {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isPaletteOpen]);
 
-  // ৭টি ড্যাশবোর্ড সাইডবার আইটেম (রেফারেন্স ইমেজ অনুযায়ী)
+  // ৭টি ড্যাশবোর্ড সাইডবার আইটেম (রেফারেন্স ইমেজ অনুযায়ী) + ১টি নতুন ইন্টারেক্টিভ চ্যাট ট্যাব
   const sidebarItems = [
     { id: 'dashboard', label: 'DASHBOARD', icon: <LayoutDashboard size={16} /> },
+    { id: 'interactive-chat', label: 'INTERACTIVE CHAT', icon: <Terminal size={16} /> },
     { id: 'model-router', label: 'MODEL REGISTRY', icon: <FileCode size={16} /> },
     { id: 'cicd', label: 'WORKFLOWS', icon: <GitMerge size={16} /> },
     { id: 'cloud', label: 'COMPUTING', icon: <Server size={16} /> },
@@ -93,6 +94,7 @@ export function AuthenticatedView(props: AuthenticatedViewProps) {
   // কমান্ড প্যালেট অপশনসমূহ
   const navigationOptions = [
     { id: 'dashboard', label: 'Dashboard Overview' },
+    { id: 'interactive-chat', label: 'Interactive Chat (Browser & Terminal)' },
     { id: 'command-center', label: 'SupremeAI Nexus (Canvas)' },
     { id: 'logs', label: 'Real-time Logs' },
     { id: 'costs', label: 'Cost Auditor' },

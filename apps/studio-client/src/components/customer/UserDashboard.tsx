@@ -15,6 +15,8 @@ import { HomeFeed } from './HomeFeed';
 import { QuickPresets } from './QuickPresets';
 import { CodeEditor } from './CodeEditor';
 import { ChatPanel } from './ChatPanel';
+// বাংলা মন্তব্য: নতুন ইন্টারঅ্যাক্টিভ চ্যাট ট্যাব ইম্পোর্ট করা হলো
+import { InteractiveChatTab } from '../admin/InteractiveChatTab';
 import './UserDashboard.css';
 
 export interface UserProfile {
@@ -303,17 +305,15 @@ export function UserDashboard({
       )}
 
       {activeTab === 'chat' && (
-        <div className="px-6 max-w-3xl mx-auto">
-          <div className="dashboard-section" style={{ minHeight: '500px' }}>
-            <ChatPanel
-              messages={customerMessages}
-              input={customerInput}
-              onInputChange={setCustomerInput}
-              onSend={handleSendCustomer}
-              loading={loading}
-              onSaveToProject={setCode}
-            />
-          </div>
+        <div className="px-6 w-full">
+          {/* বাংলা মন্তব্য: ইন্টারেক্টিভ চ্যাট ট্যাব (চ্যাট, টার্মিনাল ও ব্রাউজারসহ) এখানে রেন্ডার করা হলো */}
+          <InteractiveChatTab
+            messages={customerMessages}
+            input={customerInput}
+            onInputChange={setCustomerInput}
+            onSend={handleSendCustomer}
+            loading={loading}
+          />
         </div>
       )}
     </div>

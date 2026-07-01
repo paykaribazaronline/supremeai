@@ -2,6 +2,8 @@ import type { AdminSubTab, ChatMessage } from '../../types';
 import { CommandCenter, LiveLogs, CostAuditor, HealthMap, UserManager, ConfigEditor, ModelRouter, EnhancedSkillMarketplace, MemoryBrowser, CloudOrchestrator, ObservabilityDashboard, ThreatDetection, VisualRulesBuilder, CICDVisualizer, GithubIntegration, BackupRestore, SecurityDashboard } from '.';
 import { RateLimitManager } from './RateLimitManager';
 import { AdminDashboardHome } from './AdminDashboardHome';
+// বাংলা মন্তব্য: ইন্টারেক্টিভ চ্যাট ট্যাব ইম্পোর্ট করা হলো
+import { InteractiveChatTab } from './InteractiveChatTab';
 import { X } from 'lucide-react';
 
 interface SubTabContentProps {
@@ -97,6 +99,8 @@ export function SubTabContent(props: SubTabContentProps) {
             {adminSubTab === 'backups' && <BackupRestore />}
             {adminSubTab === 'rate-limits' && <RateLimitManager />}
             {adminSubTab === 'security-dashboard' && <SecurityDashboard />}
+            {/* বাংলা মন্তব্য: ইন্টারেক্টিভ চ্যাট ট্যাব অ্যাডমিন প্যানেলে রেন্ডার করা হলো */}
+            {adminSubTab === 'interactive-chat' && <InteractiveChatTab />}
           </div>
         </div>
       )}
