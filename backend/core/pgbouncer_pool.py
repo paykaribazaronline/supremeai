@@ -39,7 +39,7 @@ class PgBouncerConnectionPool:
 
 _db_pool_instance = None
 
-def get_db_pool() -> PgBouncerConnectionPool:
+async def get_db_pool() -> PgBouncerConnectionPool:
     """Provides a singleton instance of the PgBouncerConnectionPool."""
     global _db_pool_instance
     if _db_pool_instance is None:

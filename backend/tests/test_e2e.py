@@ -18,7 +18,7 @@ def client():
 
 from unittest.mock import AsyncMock, patch
 
-@patch("core.app.model_router.async_route_and_generate", new_callable=AsyncMock)
+@patch("core.services.model_router.async_route_and_generate", new_callable=AsyncMock)
 def test_e2e_vscode_completion_flow(mock_generate, client):
     """
     E2E Test simulating the VS Code Extension auto-completion flow.

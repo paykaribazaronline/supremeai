@@ -8,7 +8,7 @@ os.environ["OPENROUTER_API_KEY"] = "mock-key-value"
 os.environ.setdefault("HF_API_KEY", "")
 os.environ.setdefault("OLLAMA_URL", "http://127.0.0.1:11434")
 
-import core.app as app_mod
+import core.services as services_mod
 import core.services as services
 
 from core.app import app
@@ -63,9 +63,9 @@ def test_task_execute_allowed_and_success():
     )()
 
     previous_intent = services.intent_clf
-    previous_intent_parser = app_mod.intent_parser
+    previous_intent_parser = services_mod.intent_parser
     services.intent_clf = fake_intent
-    app_mod.intent_parser = fake_intent_parser
+    services_mod.intent_parser = fake_intent_parser
     try:
         # বাংলা মন্তব্য: রিয়েল নেটওয়ার্ক কল বন্ধ করতে সরাসরি ModelRouter.async_route_and_generate মেথডটি মক করা হলো
         with patch.object(
@@ -104,4 +104,4 @@ def test_task_execute_allowed_and_success():
 
     finally:
         services.intent_clf = previous_intent
-        app_mod.intent_parser = previous_intent_parser
+        services_mod.intent_parser = previous_intent_parser

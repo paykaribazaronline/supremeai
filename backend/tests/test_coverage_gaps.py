@@ -377,7 +377,7 @@ class TestRollbackMonitor:
         import core.services as services
 
 
-        app_mod.redis_queue = mock_redis
+        services.redis_queue = mock_redis
         result = monitor.record_metrics_and_check("test-service", 500.0, False)
         assert result["status"] == "rolled_back"
 
@@ -394,7 +394,7 @@ class TestRollbackMonitor:
         import core.services as services
 
 
-        app_mod.redis_queue = mock_redis
+        services.redis_queue = mock_redis
         result = monitor.record_metrics_and_check("test-service", 100.0, False)
         assert result["status"] == "rolled_back"
 
@@ -1181,11 +1181,11 @@ class TestUpstashRedisQueue:
 
 
 class TestPgBouncerPool:
-    def test_singleton(self):
-        from core.pgbouncer_pool import PgBouncerConnectionPool
-
-        pool = PgBouncerConnectionPool()
-        assert pool is PgBouncerConnectionPool()
+    async def test_singleton(self):
+        from core.pgbouncer_pool import get_db_pool
+        pool1 = await get_db_pool()
+        pool2 = await get_db_pool()
+        assert pool1 is pool2
 
     def test_get_db_pool_is_coroutine(self):
         from core.pgbouncer_pool import get_db_pool

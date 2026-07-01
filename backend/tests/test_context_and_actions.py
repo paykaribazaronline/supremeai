@@ -47,7 +47,7 @@ def test_format_response_text():
 def test_task_execute_with_context():
     from unittest.mock import MagicMock
 
-    import core.app as app_mod
+    import core.services as services_mod
     import core.services as services
 
 
@@ -60,7 +60,7 @@ def test_task_execute_with_context():
     # Mock model router
     from unittest.mock import AsyncMock
 
-    previous_router = app_mod.model_router
+    previous_router = services_mod.model_router
     fake_router = MagicMock()
     
     mock_val = {
@@ -73,7 +73,7 @@ def test_task_execute_with_context():
     # বাংলা মন্তব্য: টেস্টে ব্যবহৃত মক রাউটারকে সিনক্রোনাস ও অ্যাসিনক্রোনাস উভয়ের জন্যই কনফিগার করা হলো
     fake_router.async_route_and_generate = AsyncMock(return_value=mock_val)
     fake_router.route_and_generate = MagicMock(return_value=mock_val)
-    app_mod.model_router = fake_router
+    services_mod.model_router = fake_router
 
     payload = {
         "task": "Can you change that code?",
@@ -107,4 +107,4 @@ def test_task_execute_with_context():
 
     finally:
         services.admin_god = previous_admin
-        app_mod.model_router = previous_router
+        services_mod.model_router = previous_router
