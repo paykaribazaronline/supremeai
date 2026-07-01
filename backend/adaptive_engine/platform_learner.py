@@ -100,8 +100,8 @@ Return ONLY a JSON response in the following format (no markdown blocks, no text
             api_endpoints=data.get("api_endpoints", {}),
             docs_url=docs_url,
             status="beta",
-            learned_at=datetime.datetime.now(datetime.timezone.utc),
-            last_updated=datetime.datetime.now(datetime.timezone.utc),
+            learned_at=datetime.datetime.now(datetime.UTC),
+            last_updated=datetime.datetime.now(datetime.UTC),
             success_rate=1.0,
         )
 

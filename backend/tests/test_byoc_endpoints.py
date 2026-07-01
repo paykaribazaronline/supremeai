@@ -1,6 +1,3 @@
-import pytest
-import os
-import json
 from unittest.mock import patch
 from fastapi.testclient import TestClient
 from core.app import app

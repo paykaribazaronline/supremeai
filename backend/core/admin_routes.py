@@ -20,6 +20,7 @@ from models.admin import AdminFirebaseTotpVerifyRequest
 from models.admin import AdminLoginRequest
 from models.admin import AdminVerifyRequest
 
+
 try:
     import bcrypt
 except Exception:  # pragma: no cover - optional fallback

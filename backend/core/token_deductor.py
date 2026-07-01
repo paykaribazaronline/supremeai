@@ -4,10 +4,7 @@
 import asyncio  # বাংলা মন্তব্য: ফাইলের শুরুতে asyncio ইম্পোর্ট নেওয়া হলো
 import json
 import os
-import time
 import uuid
-from datetime import datetime, timezone
-from typing import Dict
 from decimal import Decimal
 
 from loguru import logger
@@ -18,6 +15,7 @@ from sqlalchemy.orm.exc import StaleDataError
 from core.upstash_redis_queue import UpstashRedisQueue
 from models.transaction_ledger import TransactionLedgerEntry
 from models.wallet import UserWallet
+
 
 redis_queue = UpstashRedisQueue()
 
@@ -32,7 +30,7 @@ class TokenDeductor:
         base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         config_path = os.path.join(base_dir, "config", "pricing_tiers.json")
         try:
-            with open(config_path, "r", encoding="utf-8") as f:
+            with open(config_path, encoding="utf-8") as f:
                 self.config = json.load(f)
         except Exception:
             self.config = {

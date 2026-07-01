@@ -1,6 +1,6 @@
 import typing
+from datetime import UTC
 from datetime import datetime
-from datetime import timezone
 from typing import Any
 
 from fastapi import APIRouter
@@ -104,7 +104,7 @@ def install_app(req: InstallRequest, userId: str = "default"):
         "appName": f"App {req.appId}",
         "version": "1.0.0",
         "previewUrl": f"http://127.0.0.1:8000/preview/{req.appId}",
-        "installedAt": datetime.now(timezone.utc).isoformat(),
+        "installedAt": datetime.now(UTC).isoformat(),
         "launchCount": 0,
         "lastLaunchedAt": None,
         "status": "INSTALLED",
@@ -151,7 +151,7 @@ def start_session(appId: str, userId: str = "default"):
         raise HTTPException(status_code=404, detail="App not installed")
 
     app["launchCount"] += 1
-    app["lastLaunchedAt"] = datetime.now(timezone.utc).isoformat()
+    app["lastLaunchedAt"] = datetime.now(UTC).isoformat()
     app["status"] = "RUNNING"
 
     session_id = f"sess_{userId}_{appId}"
@@ -160,9 +160,9 @@ def start_session(appId: str, userId: str = "default"):
         "websocketUrl": f"ws://127.0.0.1:8000/ws/simulator/{session_id}",
         "previewUrl": app["previewUrl"],
         "state": "RUNNING",
-        "startedAt": datetime.now(timezone.utc).isoformat(),
+        "startedAt": datetime.now(UTC).isoformat(),
         "activeAppId": appId,
-        "lastHeartbeat": datetime.now(timezone.utc).isoformat(),
+        "lastHeartbeat": datetime.now(UTC).isoformat(),
     }
     SESSIONS[userId] = session
     return session

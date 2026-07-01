@@ -1,8 +1,8 @@
 import json
 import sqlite3
 import uuid
+from datetime import UTC
 from datetime import datetime
-from datetime import timezone
 from enum import Enum
 from pathlib import Path
 
@@ -67,7 +67,7 @@ def create_pending_task(task_type: TaskType, payload: dict, created_by: str = "s
         task_type=task_type,
         payload=payload,
         status=TaskStatus.PENDING,
-        created_at=datetime.now(timezone.utc).isoformat(),
+        created_at=datetime.now(UTC).isoformat(),
     )
     conn = _get_conn()
     cursor = conn.cursor()
@@ -104,7 +104,7 @@ def list_pending() -> list[PendingTask]:
 def update_task_status(task_id: str, status: TaskStatus, resolved_by: str, reason: str | None = None) -> PendingTask | None:
     conn = _get_conn()
     cursor = conn.cursor()
-    resolved_at = datetime.now(timezone.utc).isoformat() if status != TaskStatus.PENDING else None
+    resolved_at = datetime.now(UTC).isoformat() if status != TaskStatus.PENDING else None
     cursor.execute(
         """
         UPDATE pending_tasks SET status = ?, resolved_by = ?, resolved_at = ?, reason = ?

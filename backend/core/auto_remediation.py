@@ -1,6 +1,5 @@
 import os
 
-import httpx
 from github import Github
 from loguru import logger
 
@@ -50,6 +49,7 @@ class AutoRemediationEngine:
         """
         # বাংলা মন্তব্য: সরাসরি গুগল নেটিভ ক্লায়েন্ট কল না করে ইউনিভার্সাল llm_gateway ব্যবহার করে এপিআই কল করা হচ্ছে
         import asyncio
+
         from core.llm_gateway import llm_gateway
         response = asyncio.run(llm_gateway.acompletion(
             prompt=prompt,
@@ -178,6 +178,7 @@ class AutoRemediation:
         try:
             # বাংলা মন্তব্য: সরাসরি গুগল নেটিভ API রিকোয়েস্ট না পাঠিয়ে ইউনিভার্সাল llm_gateway ব্যবহার করে এপিআই কল করা হচ্ছে
             import asyncio
+
             from core.llm_gateway import llm_gateway
             response = asyncio.run(llm_gateway.acompletion(
                 prompt=prompt,

@@ -7,8 +7,8 @@ from loguru import logger
 from pydantic import BaseModel
 
 from api.dependencies import get_tenant_db
-from core.multi_layer_cache import multi_layer_cache
 from core.llm_gateway import llm_gateway
+from core.multi_layer_cache import multi_layer_cache
 
 
 router = APIRouter(prefix="/api/chat", tags=["AI-Orchestration"])

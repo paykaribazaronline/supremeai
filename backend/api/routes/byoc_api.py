@@ -1,24 +1,29 @@
 # Secure Endpoints for Universal BYOC Management
 # বাংলা মন্তব্য: সিকিউর প্রক্সি, রোটেশন, ক্রেডেনশিয়াল ম্যানেজমেন্ট ও টেরাফর্ম রানার ট্রিগার এপিআই।
 
+import json
 import os
 import uuid
-import json
-from datetime import datetime, timezone
-from fastapi import APIRouter, HTTPException, BackgroundTasks, Depends
-from typing import Dict, Any
+from datetime import UTC
+from datetime import datetime
 
-from models.byoc_payloads import BYOCCredentialsPayload, BYOCDeployRequest
-from models.deployment_logs import DeploymentJob
+from fastapi import APIRouter
+from fastapi import BackgroundTasks
+from fastapi import HTTPException
+
 from byoc.cloud_connector import GCPCredentialManager
 from byoc.container_orchestrator import ContainerOrchestrator
+from models.byoc_payloads import BYOCCredentialsPayload
+from models.byoc_payloads import BYOCDeployRequest
+from models.deployment_logs import DeploymentJob
+
 
 router = APIRouter(prefix="/api/byoc", tags=["BYOC Management"])
 orchestrator = ContainerOrchestrator()
 
 # Memory database for tracking deployment jobs (simulating live backend db)
-active_jobs: Dict[str, DeploymentJob] = {}
-encrypted_vault: Dict[str, bytes] = {}
+active_jobs: dict[str, DeploymentJob] = {}
+encrypted_vault: dict[str, bytes] = {}
 
 
 # ==========================================
@@ -50,7 +55,7 @@ async def save_credentials(payload: BYOCCredentialsPayload):
             "provider": payload.provider
         }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to encrypt credentials: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to encrypt credentials: {str(e)}") from e
 
 
 # ==========================================
@@ -69,7 +74,7 @@ async def deploy_container(payload: BYOCDeployRequest, background_tasks: Backgro
     base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     config_path = os.path.join(base_dir, "config", "byoc_limits.json")
     try:
-        with open(config_path, "r", encoding="utf-8") as f:
+        with open(config_path, encoding="utf-8") as f:
             limits = json.load(f)["limits"]
             user_limits = limits.get(user_tier, limits["free"])
     except Exception:
@@ -98,7 +103,7 @@ async def deploy_container(payload: BYOCDeployRequest, background_tasks: Backgro
         skill_name=payload.skill_name,
         provider=payload.provider,
         status="deploying",
-        started_at=datetime.now(timezone.utc),
+        started_at=datetime.now(UTC),
         logs=["Initializing Terraform build pipeline...", "Spinning up GCP Cloud Run service context..."]
     )
     active_jobs[job_id] = job
@@ -109,17 +114,17 @@ async def deploy_container(payload: BYOCDeployRequest, background_tasks: Backgro
             res = await orchestrator.deploy(user_id, payload.skill_name)
             if res.get("status") == "deployed":
                 job.status = "success"
-                job.finished_at = datetime.now(timezone.utc)
+                job.finished_at = datetime.now(UTC)
                 job.service_url = f"https://byoc-skill-{payload.skill_name}-mock-url.a.run.app"
                 job.logs.append("✅ Cloud Run deployment finished successfully.")
             else:
                 job.status = "failed"
-                job.finished_at = datetime.now(timezone.utc)
+                job.finished_at = datetime.now(UTC)
                 job.error_message = res.get("error", "Deployment failed")
                 job.logs.append(f"❌ Deployment failed: {job.error_message}")
         except Exception as ex:
             job.status = "failed"
-            job.finished_at = datetime.now(timezone.utc)
+            job.finished_at = datetime.now(UTC)
             job.error_message = str(ex)
             job.logs.append(f"❌ Pipeline crashed: {str(ex)}")
 

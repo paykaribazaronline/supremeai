@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import os
 import sqlite3
+from datetime import UTC
 from datetime import datetime
-from datetime import timezone
 from typing import Any
 
 
@@ -67,7 +67,7 @@ class EvolutionEngine:
     def learn_from_success(
         self, task: str, approach: str, result: str
     ) -> dict[str, Any]:
-        created_at = datetime.now(timezone.utc).isoformat()
+        created_at = datetime.now(UTC).isoformat()
         try:
             from database.supabase_client import db
 
@@ -95,7 +95,7 @@ class EvolutionEngine:
     def learn_from_failure(
         self, task: str, approach: str, result: str
     ) -> dict[str, Any]:
-        created_at = datetime.now(timezone.utc).isoformat()
+        created_at = datetime.now(UTC).isoformat()
         try:
             from database.supabase_client import db
 
@@ -160,7 +160,7 @@ class EvolutionEngine:
 
     def propose_new_skill(self, pattern: str) -> dict[str, Any]:
         skill_name = f"auto_{pattern.strip().replace(' ', '_').lower()}"
-        created_at = datetime.now(timezone.utc).isoformat()
+        created_at = datetime.now(UTC).isoformat()
         code = (
             f"class {''.join(part.capitalize() for part in skill_name.split('_'))}:\n"
             f"    def __init__(self): ...\n"
@@ -201,7 +201,7 @@ class EvolutionEngine:
     def record_feedback(
         self, session_id: str, query: str, retrieved_chunks: str, user_rating: float
     ) -> dict[str, Any]:
-        created_at = datetime.now(timezone.utc).isoformat()
+        created_at = datetime.now(UTC).isoformat()
         try:
             from database.supabase_client import db
 
@@ -238,7 +238,7 @@ class EvolutionEngine:
             proposal = self.propose_new_skill(task)
             new_skills.append(proposal["skill_name"])
         report = {
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "total_tasks_processed": total,
             "success_rate": success_rate,
             "repeated_failures": len(failures),

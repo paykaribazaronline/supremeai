@@ -1,10 +1,11 @@
 # Vector Semantic Cache Engine for SupremeAI 2.0
 # বাংলা মন্তব্য: এটি ফায়ারস্টোর বাদ দিয়ে সরাসরি experience_db.py (ChromaDB/Qdrant) ব্যবহার করে এবং ডাইনামিক থ্রেশহোল্ড সেট করে।
 
-import os
-from typing import Any, Optional
 from loguru import logger
-from adaptive_engine.experience_db import ExperienceDatabase, Experience
+
+from adaptive_engine.experience_db import Experience
+from adaptive_engine.experience_db import ExperienceDatabase
+
 
 class CacheEntry:
     def __init__(self, provider: str, model: str, response: str):
@@ -18,7 +19,7 @@ class SemanticCache:
         self.db = ExperienceDatabase()
         logger.info("SemanticCache initialized using ExperienceDatabase vector backend")
 
-    async def query_similar(self, prompt: str, task_type: str = "general") -> Optional[CacheEntry]:
+    async def query_similar(self, prompt: str, task_type: str = "general") -> CacheEntry | None:
         try:
             # বাংলা মন্তব্য: কাজের ধরণের ওপর ভিত্তি করে ডাইনামিক থ্রেশহোল্ড সেট করা হচ্ছে
             if "code" in task_type.lower() or "generation" in task_type.lower():

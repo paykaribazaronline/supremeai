@@ -1,5 +1,3 @@
-import os
-import sys
 
 from fastapi import Request
 from loguru import logger
@@ -33,7 +31,6 @@ class ZeroTrustAuthMiddleware(BaseHTTPMiddleware):
         if matched:
             return await call_next(request)
 
-        is_test = "pytest" in sys.modules or os.getenv("ENV") == "test"
         auth_header = request.headers.get("Authorization")
 
         if not auth_header or not auth_header.startswith("Bearer "):

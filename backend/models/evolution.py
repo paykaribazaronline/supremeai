@@ -2,10 +2,21 @@
 # বাংলা মন্তব্য: এআই কর্তৃক জেনারেটেড নতুন স্কিল, স্বয়ংক্রিয় প্রপোজাল ট্র্যাকিং এবং ফিটনেস স্কোরিং মডেল।
 
 import uuid
-from datetime import datetime, timezone
-from sqlalchemy import String, Integer, Float, DateTime, Text, Boolean
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
-from sqlalchemy.dialects.postgresql import UUID, JSONB
+from datetime import UTC
+from datetime import datetime
+
+from sqlalchemy import Boolean
+from sqlalchemy import DateTime
+from sqlalchemy import Float
+from sqlalchemy import Integer
+from sqlalchemy import String
+from sqlalchemy import Text
+from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.orm import DeclarativeBase
+from sqlalchemy.orm import Mapped
+from sqlalchemy.orm import mapped_column
+
 
 class Base(DeclarativeBase):
     pass
@@ -23,8 +34,8 @@ class SkillFitness(Base):
     # Optimistic Concurrency Control (OCC)
     version: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
     
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
-    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(UTC))
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(UTC), onupdate=lambda: datetime.now(UTC))
 
     __mapper_args__ = {
         "version_id_col": version  # SQLAlchemy অটোমেটিকভাবে ভার্সন ট্র্যাকিং এবং রেস-কন্ডিশন ব্লক করবে
@@ -46,7 +57,7 @@ class CodeProposal(Base):
     # Pro Tip: JSONB is highly optimized for PostgreSQL query matching.
     metadata_json: Mapped[dict] = mapped_column(JSONB, default=dict, nullable=True)
     version: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(UTC))
 
     __mapper_args__ = {
         "version_id_col": version

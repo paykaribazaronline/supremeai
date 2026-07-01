@@ -36,7 +36,7 @@ class RLHFPipeline:
             "prompt": prompt,
             "chosen": chosen_response,
             "rejected": rejected_response,
-            "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat() + "Z",
+            "timestamp": datetime.datetime.now(datetime.UTC).isoformat() + "Z",
         }
         self.preference_logs.append(record)
         path = os.path.join(self.storage_dir, "preferences.jsonl")

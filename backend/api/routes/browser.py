@@ -1,5 +1,5 @@
+from datetime import UTC
 from datetime import datetime
-from datetime import timezone
 from typing import Any
 
 from fastapi import APIRouter
@@ -238,7 +238,7 @@ def create_task(req: GoalRequest):
         "id": task_id,
         "goal": req.goal,
         "status": "ACTIVE",
-        "createdAt": datetime.now(timezone.utc).isoformat(),
+        "createdAt": datetime.now(UTC).isoformat(),
     }
     TASKS[task_id] = task
     return task
@@ -278,7 +278,7 @@ def navigate(req: NavigateRequest):
         {
             "url": req.url,
             "action": "navigate",
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
         }
     )
     return {"success": True}
@@ -290,7 +290,7 @@ def click(req: ClickRequest):
         {
             "url": str(BROWSER_STATUS["currentUrl"]),
             "action": f"click {req.selector}",
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
         }
     )
     return {"success": True}
@@ -302,7 +302,7 @@ def fill(req: FillRequest):
         {
             "url": str(BROWSER_STATUS["currentUrl"]),
             "action": f"fill {req.selector} with {req.value}",
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
         }
     )
     return {"success": True}
@@ -314,7 +314,7 @@ def click_at(req: ClickAtRequest):
         {
             "url": str(BROWSER_STATUS["currentUrl"]),
             "action": f"click at {req.x}, {req.y}",
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
         }
     )
     return {"success": True}
@@ -326,7 +326,7 @@ def type_key(req: KeyRequest):
         {
             "url": str(BROWSER_STATUS["currentUrl"]),
             "action": f"type key {req.key}",
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
         }
     )
     return {"success": True}
@@ -344,7 +344,7 @@ def simulate_activity(body: dict[str, str]):
         "action": body.get("action", "surf"),
         "title": body.get("title", "Page Title"),
         "reasoning": body.get("reasoning", "Exploring content"),
-        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "timestamp": datetime.now(UTC).isoformat(),
     }
     RECENT_ACTIVITIES.append(activity)
     return activity

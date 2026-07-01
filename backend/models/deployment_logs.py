@@ -1,9 +1,11 @@
 # Pydantic schemas for tracking BYOC deployment jobs
 # বাংলা মন্তব্য: কন্টেইনার সার্ভিস ডেপ্লয়মেন্টের লাইভ ট্র্যাক করার মডেল স্কিমা।
 
-from typing import Literal, Optional, Dict, Any
-from pydantic import BaseModel, Field
 from datetime import datetime
+from typing import Literal
+
+from pydantic import BaseModel
+from pydantic import Field
 
 
 class DeploymentJob(BaseModel):
@@ -13,7 +15,7 @@ class DeploymentJob(BaseModel):
     provider: Literal["gcp", "aws", "azure"] = "gcp"
     status: Literal["pending", "deploying", "success", "failed"] = "pending"
     started_at: datetime
-    finished_at: Optional[datetime] = None
-    service_url: Optional[str] = None
-    error_message: Optional[str] = None
+    finished_at: datetime | None = None
+    service_url: str | None = None
+    error_message: str | None = None
     logs: list[str] = []

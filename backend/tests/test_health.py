@@ -25,7 +25,7 @@ class _DownRedisQueue:
 
 @pytest.fixture()
 def healthy_app(monkeypatch: pytest.MonkeyPatch):
-    import core.services as services
+    from core import services
 
     importlib.reload(services)
     queue = _FakeRedisQueue()
@@ -36,7 +36,7 @@ def healthy_app(monkeypatch: pytest.MonkeyPatch):
 
 @pytest.fixture()
 def down_app(monkeypatch: pytest.MonkeyPatch):
-    import core.services as services
+    from core import services
 
     importlib.reload(services)
     queue = _DownRedisQueue()
@@ -47,7 +47,7 @@ def down_app(monkeypatch: pytest.MonkeyPatch):
 
 @pytest.fixture()
 def unconfigured_app(monkeypatch: pytest.MonkeyPatch):
-    import core.services as services
+    from core import services
 
     importlib.reload(services)
     queue = _FakeRedisQueue()

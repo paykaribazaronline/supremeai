@@ -1,6 +1,6 @@
 import sqlite3
+from datetime import UTC
 from datetime import datetime
-from datetime import timezone
 
 
 class ErrorPatternDB:
@@ -45,7 +45,7 @@ class ErrorPatternDB:
         cursor = conn.cursor()
         cursor.execute(
             "INSERT INTO errors (output, error_type, correction, timestamp) VALUES (?, ?, ?, ?)",
-            (output, error_type, correction, datetime.now(timezone.utc).isoformat()),
+            (output, error_type, correction, datetime.now(UTC).isoformat()),
         )
         conn.commit()
         conn.close()
@@ -65,7 +65,7 @@ class ErrorPatternDB:
                 mistake.get("correct", ""),
                 mistake.get("root_cause", ""),
                 mistake.get("prevention", ""),
-                datetime.now(timezone.utc).isoformat(),
+                datetime.now(UTC).isoformat(),
             ),
         )
         conn.commit()

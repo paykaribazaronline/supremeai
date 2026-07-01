@@ -1,5 +1,6 @@
 import os
 
+
 test_files = [
     'test_api.py', 
     'test_e2e.py', 
@@ -9,9 +10,10 @@ test_files = [
 
 for filename in test_files:
     filepath = os.path.join(r'c:\Users\n\supremeai\supremeai_2.0\backend\tests', filename)
-    if not os.path.exists(filepath): continue
+    if not os.path.exists(filepath):
+        continue
     
-    with open(filepath, 'r', encoding='utf-8') as f:
+    with open(filepath, encoding='utf-8') as f:
         content = f.read()
     
     content = content.replace('import core.app as app_mod', 'import core.services as services_mod')

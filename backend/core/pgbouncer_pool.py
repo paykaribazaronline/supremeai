@@ -1,13 +1,13 @@
 # FILE_PATH: backend/core/pgbouncer_pool.py
 
-import asyncpg
 import logging
+
+import asyncpg
+from asyncpg.connection import Connection  # Corrected import
+
 
 logger = logging.getLogger(__name__)
 
-# Original problematic line was: from asyncpg import Connection
-# The 'Connection' type is reliably found within the 'asyncpg.connection' submodule.
-from asyncpg.connection import Connection # Corrected import
 
 class PgBouncerConnectionPool:
     def __init__(self, dsn: str):

@@ -1,10 +1,10 @@
 import sqlite3
-import time
 import threading
+import time
 from pathlib import Path
-from typing import Optional
 
 from loguru import logger
+
 
 try:
     from google.cloud import firestore

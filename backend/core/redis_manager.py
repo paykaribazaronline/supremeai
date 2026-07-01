@@ -2,9 +2,12 @@
 # রেডিস ডাউন থাকলে এটি কোনো সিকিউরিটি গেট বাইপাস করতে দেবে না (Fail-Closed)।
 
 import redis.asyncio as aioredis
-from fastapi import HTTPException, status
+from fastapi import HTTPException
+from fastapi import status
+
 from core.config import settings
 from core.logging_config import logger
+
 
 class SecureRedisManager:
     def __init__(self):
@@ -65,7 +68,7 @@ class SecureRedisManager:
             raise HTTPException(
                 status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
                 detail="Authentication and rate verification engine failure. Access blocked."
-            )
+            ) from redis_err
 
 # গ্লোবাল সিঙ্গেলটন ইনস্ট্যান্স জেনারেশন
 redis_manager = SecureRedisManager()

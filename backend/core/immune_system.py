@@ -2,7 +2,7 @@
 # বাংলা মন্তব্য: এআই জেনারেটেড কোডের সিকিউরিটি স্ক্যানার ও এএসটি ভ্যালিডেশন গেটকিপার।
 
 import ast
-from typing import Set
+
 from loguru import logger
 
 
@@ -14,7 +14,7 @@ class SecuritySandboxError(Exception):
 class ASTSecurityScanner(ast.NodeVisitor):
     def __init__(self):
         # 🛑 ZERO-GAP: Extended Banned Imports
-        self.banned_imports: Set[str] = {
+        self.banned_imports: set[str] = {
             "os", "sys", "subprocess", "pty", "shlex",
             "importlib", "code", "runpy", "multiprocessing",
             "pickle", "marshal", "tempfile", "socket", 
@@ -22,14 +22,14 @@ class ASTSecurityScanner(ast.NodeVisitor):
         }
         
         # 🛑 ZERO-GAP: Banned Built-in Functions for Introspection & Execution
-        self.banned_functions: Set[str] = {
+        self.banned_functions: set[str] = {
             "eval", "exec", "compile", "globals", "locals",
             "vars", "dir", "type", "chr", "ord", "breakpoint",
             "__import__", "getattr", "setattr", "delattr", "hasattr", "open"
         }
         
         # 🛑 ZERO-GAP: Prevent Sandbox Escapes via Dunder Attributes
-        self.banned_attributes: Set[str] = {
+        self.banned_attributes: set[str] = {
             "__class__", "__bases__", "__subclasses__",
             "__globals__", "__builtins__", "__dict__", "__mro__",
             "__code__", "__closure__", "__func__"
@@ -51,14 +51,12 @@ class ASTSecurityScanner(ast.NodeVisitor):
 
     def visit_Call(self, node: ast.Call):
         # Block direct function calls like eval(), __import__()
-        if isinstance(node.func, ast.Name):
-            if node.func.id in self.banned_functions:
-                raise SecuritySandboxError(f"Banned function call detected: {node.func.id}")
+        if isinstance(node.func, ast.Name) and node.func.id in self.banned_functions:
+            raise SecuritySandboxError(f"Banned function call detected: {node.func.id}")
         
         # Block malicious module methods like importlib.import_module() or os.system()
-        elif isinstance(node.func, ast.Attribute):
-            if node.func.attr in {"import_module", "system", "popen", "spawn", "fork"}:
-                raise SecuritySandboxError(f"Banned method invocation detected: {node.func.attr}")
+        elif isinstance(node.func, ast.Attribute) and node.func.attr in {"import_module", "system", "popen", "spawn", "fork"}:
+            raise SecuritySandboxError(f"Banned method invocation detected: {node.func.attr}")
         
         self.generic_visit(node)
 

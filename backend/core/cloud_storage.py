@@ -2,9 +2,12 @@
 # সার্ভারলেস এনভায়রনমেন্টে ডেটা লস রুখতে এটি লোকাল ফাইল রাইটের বদলে সরাসরি ক্লাউড বাকেটে ফাইল আপলোড ও রিড করে।
 
 import httpx
-from fastapi import HTTPException, status
+from fastapi import HTTPException
+from fastapi import status
+
 from core.config import settings
 from core.logging_config import logger
+
 
 class CloudStorageManager:
     def __init__(self):
@@ -53,7 +56,7 @@ class CloudStorageManager:
             raise HTTPException(
                 status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
                 detail="Storage cluster network timeout."
-            )
+            ) from http_err
 
 # গ্লোবাল সিঙ্গেলটন ইনস্ট্যান্স জেনারেশন
 cloud_storage = CloudStorageManager()

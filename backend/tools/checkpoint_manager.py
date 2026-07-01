@@ -2,7 +2,7 @@ import json
 import sqlite3
 from dataclasses import dataclass
 from datetime import datetime
-from datetime import timezone
+from datetime import UTC
 from typing import Any
 
 from loguru import logger
@@ -98,7 +98,7 @@ class CheckpointManager:
                         task_id,
                         step_index,
                         json.dumps(state),
-                        datetime.now(timezone.utc).isoformat(),
+                        datetime.now(UTC).isoformat(),
                         resumed,
                     ),
                 )
@@ -121,7 +121,7 @@ class CheckpointManager:
                     "task_id": task_id,
                     "step_index": step_index,
                     "state": json.dumps(state),
-                    "created_at": datetime.now(timezone.utc).isoformat(),
+                    "created_at": datetime.now(UTC).isoformat(),
                     "resumed": resumed,
                 }
             )

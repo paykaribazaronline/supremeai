@@ -5,15 +5,15 @@ Uses raw asyncpg via PgBouncerConnectionPool
 
 from __future__ import annotations
 
+from datetime import UTC
 from datetime import datetime
-from datetime import timezone
 from typing import Any
 
 from core.pgbouncer_pool import get_db_pool
 
 
 def now_epoch() -> int:
-    return int(datetime.now(timezone.utc).timestamp())
+    return int(datetime.now(UTC).timestamp())
 
 
 async def create_api_key(

@@ -4,11 +4,10 @@ import time
 
 import httpx
 from fastapi import APIRouter
+from fastapi import Query
 from fastapi import WebSocket
 from fastapi import WebSocketDisconnect
 from fastapi import status
-from fastapi import Query
-from jose import JWTError
 
 from core.config import settings
 from core.security import verify_token

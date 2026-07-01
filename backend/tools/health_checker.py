@@ -5,7 +5,7 @@ import os
 import sys
 from datetime import datetime
 from datetime import timedelta
-from datetime import timezone
+from datetime import UTC
 from typing import Any
 
 from loguru import logger
@@ -63,7 +63,7 @@ class HealthChecker:
 
     def log_error(self, error: dict[str, Any]) -> None:
         record = {
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             **error,
         }
         try:
@@ -80,7 +80,7 @@ class HealthChecker:
         failed_api_calls = 0
         if os.path.exists(self.error_history_path):
             recent_errors: list[dict[str, Any]] = []
-            cutoff = datetime.now(timezone.utc) - timedelta(minutes=10)
+            cutoff = datetime.now(UTC) - timedelta(minutes=10)
             with open(self.error_history_path, encoding="utf-8") as f:
                 for line in f:
                     try:

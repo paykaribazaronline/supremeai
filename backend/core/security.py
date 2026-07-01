@@ -2,9 +2,9 @@ import hashlib
 import hmac
 import os
 import secrets
+from datetime import UTC
 from datetime import datetime
 from datetime import timedelta
-from datetime import timezone
 
 import jwt
 from fastapi import HTTPException
@@ -35,7 +35,7 @@ API_KEY_RANDOM_BYTES = 32
 def create_access_token(data: dict) -> str:
     """ক্রিপটগ্রাফিক সাইনড JWT জেনারেট করবে"""
     to_encode = data.copy()
-    expire = datetime.now(timezone.utc) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    expire = datetime.now(UTC) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     to_encode.update({"exp": expire})
     user_email = to_encode.get("sub")
     role = "admin" if user_email in ADMIN_WHITELIST else "user"

@@ -1,20 +1,14 @@
 import asyncio
-import base64
-import io
 import json
-import os
 
 from fastapi import APIRouter
+from fastapi import Query
 from fastapi import WebSocket
 from fastapi import WebSocketDisconnect
 from fastapi import status
-from fastapi import Query
-from PIL import Image
-from jose import JWTError
 
-from core.security import verify_token
-from tools.agent_tools import SUPREME_TOOLS
 from core.llm_gateway import llm_gateway
+from core.security import verify_token
 
 
 router = APIRouter(prefix="/ws", tags=["Neural Engine Stream"])

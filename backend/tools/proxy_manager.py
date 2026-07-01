@@ -1,7 +1,6 @@
 import os
 import json
-import random
-from typing import List, Optional
+from typing import List
 from loguru import logger
 
 class ProxyManager:
@@ -25,7 +24,7 @@ class ProxyManager:
 
         if os.path.exists(self.config_path):
             try:
-                with open(self.config_path, "r", encoding="utf-8") as f:
+                with open(self.config_path, encoding="utf-8") as f:
                     data = json.load(f)
                     self.proxies = data.get("proxies", [])
                     logger.info(f"Loaded {len(self.proxies)} proxies from {self.config_path}.")
@@ -36,7 +35,7 @@ class ProxyManager:
         if not self.proxies:
             logger.warning("No proxies configured. Requests will route via host IP directly.")
 
-    def get_next_proxy(self) -> Optional[str]:
+    def get_next_proxy(self) -> str | None:
         if not self.proxies:
             return None
         # Round-robin selection

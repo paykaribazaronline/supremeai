@@ -1,7 +1,7 @@
 import json
 from datetime import datetime
 from datetime import timedelta
-from datetime import timezone
+from datetime import UTC
 from unittest.mock import AsyncMock
 from unittest.mock import MagicMock
 
@@ -78,7 +78,7 @@ async def test_idempotency_passes_non_task_path():
 @pytest.mark.asyncio
 async def test_idempotency_cache_hit_completed():
     middleware = make_middleware()
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     future = now + timedelta(hours=2)
     doc_data = {
         "status": "completed",
@@ -108,7 +108,7 @@ async def test_idempotency_cache_hit_completed():
 @pytest.mark.asyncio
 async def test_idempotency_processing_conflict():
     middleware = make_middleware()
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     future = now + timedelta(hours=2)
     doc_data = {
         "status": "processing",

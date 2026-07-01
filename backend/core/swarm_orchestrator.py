@@ -2,9 +2,11 @@
 # বাংলা মন্তব্য: মাল্টি-এজেন্ট সিকোয়েন্সিয়াল সোয়ার্ম কোঅর্ডিনেটর ও টাস্ক রানার।
 
 import uuid
-from loguru import logger
+
+from agents.crew_departments import ArchitectureAgent
+from agents.crew_departments import CodeGeneratorAgent
+from agents.crew_departments import QAAgent
 from models.shared_workspace import SharedWorkspace
-from agents.crew_departments import ArchitectureAgent, CodeGeneratorAgent, QAAgent
 
 
 class SwarmOrchestrator:

@@ -10,10 +10,11 @@ from typing import Any
 from fastapi import APIRouter
 from fastapi import Depends
 from fastapi import HTTPException
-from fastapi import Request
-from fastapi import WebSocket
+
 # বাংলা মন্তব্য: কোয়েরি প্যারামিটার হ্যান্ডেল করার জন্য Query ক্লাস ইম্পোর্ট করা হলো
 from fastapi import Query
+from fastapi import Request
+from fastapi import WebSocket
 from fastapi.responses import StreamingResponse
 from fastapi.security import HTTPAuthorizationCredentials
 from fastapi.security import HTTPBearer
@@ -23,9 +24,10 @@ from loguru import logger
 from pydantic import BaseModel
 
 from core.config import settings
+from models.ci_report import CIReportPayload
+from models.ci_report import create_ci_report
 from tools.cost_auditor import CostAuditor
 
-from models.ci_report import CIReportPayload, create_ci_report
 
 security = HTTPBearer()
 
@@ -647,8 +649,8 @@ from pydantic import Field
 
 with contextlib.suppress(ImportError):
     from google.cloud import firestore
+from datetime import UTC
 from datetime import datetime
-from datetime import timezone
 
 
 class GateOverridePayload(BaseModel):
@@ -690,7 +692,7 @@ async def execute_manual_gate_override(payload: GateOverridePayload):
         db = firestore.Client()
         gate_ref = db.collection("deploy_gate").document("status")
 
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         override_context = {
             "status": requested_status,
             "reason": f"👑 [MANUAL OVERRIDE] {payload.reason}",
@@ -743,7 +745,7 @@ async def receive_ci_report(report: CIReportPayload, request: Request):
     This endpoint is protected by a constitutional rule.
     """
     # Constitutional Gatekeeper for this endpoint
-    import core.services as services
+    from core import services
     if not services.god.get_rule("autofix_reporting_authorized", "false") == "true":
         raise HTTPException(
             status_code=403,
@@ -763,7 +765,7 @@ async def receive_ci_report(report: CIReportPayload, request: Request):
         return {"status": "success", "report_id": report_id}
     except Exception as e:
         logger.error(f"❌ Failed to save CI report: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Failed to save CI report: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to save CI report: {str(e)}") from e
 
 
 @router.get("/events")
@@ -777,7 +779,7 @@ async def get_events(limit: int = Query(50, ge=1, le=200)):
         return []
 
     try:
-        with open(events_log_path, "r", encoding="utf-8") as f:
+        with open(events_log_path, encoding="utf-8") as f:
             lines = f.readlines()
 
         events = []
@@ -790,7 +792,7 @@ async def get_events(limit: int = Query(50, ge=1, le=200)):
         return events[:limit]
     except Exception as e:
         logger.error(f"Error reading events log: {e}")
-        raise HTTPException(status_code=500, detail="Could not read event logs.")
+        raise HTTPException(status_code=500, detail="Could not read event logs.") from e
 
 
 @router.get("/reports")
@@ -807,7 +809,7 @@ async def list_reports(report_name: str = None):
         file_path = os.path.join(reports_dir, f"{report_name}.md")
         if not os.path.exists(file_path):
             raise HTTPException(status_code=404, detail="Report not found.")
-        with open(file_path, "r", encoding="utf-8") as f:
+        with open(file_path, encoding="utf-8") as f:
             return {"name": report_name, "content": f.read()}
     else:
         import glob

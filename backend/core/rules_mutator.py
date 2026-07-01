@@ -11,7 +11,7 @@ class RulesMutator:
         self.cooldown_seconds = 1800  # Default 30 minutes block
 
     def is_ip_blocked(self, ip_address: str) -> bool:
-        import core.services as services
+        from core import services
 
         if (
             hasattr(services, "redis_queue")
@@ -29,7 +29,7 @@ class RulesMutator:
 
     def block_ip(self, ip_address: str, reason: str = "suspicious_activity") -> bool:
         logger.warning(f"RulesMutator: Blocking IP {ip_address} due to {reason}.")
-        import core.services as services
+        from core import services
 
         if (
             hasattr(services, "redis_queue")
@@ -48,7 +48,7 @@ class RulesMutator:
 
     def release_ip(self, ip_address: str) -> bool:
         logger.info(f"RulesMutator: Releasing block on IP {ip_address}.")
-        import core.services as services
+        from core import services
 
         if (
             hasattr(services, "redis_queue")

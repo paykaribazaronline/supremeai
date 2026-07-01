@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 import json
-import time
 import threading
+import time
 from collections.abc import Callable
 from typing import Any
 from typing import TypeVar

@@ -281,7 +281,7 @@ class CommentThreadAI:
 
         import datetime
 
-        now = datetime.datetime.now(datetime.timezone.utc)
+        now = datetime.datetime.now(datetime.UTC)
         stale = []
         for pr in prs if isinstance(prs, list) else []:
             updated = pr.get("updated_at", "")
@@ -289,7 +289,7 @@ class CommentThreadAI:
                 try:
                     dt = datetime.datetime.strptime(
                         updated, "%Y-%m-%dT%H:%M:%SZ"
-                    ).replace(tzinfo=datetime.timezone.utc)
+                    ).replace(tzinfo=datetime.UTC)
                     days_idle = (now - dt).days
                     if days_idle >= days_threshold:
                         stale.append(

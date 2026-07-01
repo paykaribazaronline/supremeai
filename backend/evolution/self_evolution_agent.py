@@ -1,18 +1,16 @@
 import asyncio
 import contextlib
-import json
-import os
-import uuid
 import time
+import uuid
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 from loguru import logger
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
-from models.evolution import CodeProposal, SkillFitness
 from core.immune_system import ImmuneSystemScanner
+from models.evolution import CodeProposal
 
 
 class SelfEvolutionAgent:

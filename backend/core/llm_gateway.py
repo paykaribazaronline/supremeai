@@ -1,12 +1,16 @@
 # Universal LLM Gateway for SupremeAI 2.0 (LiteLLM Integration)
 # বাংলা মন্তব্য: এটি লাইটএলএলএম ব্যবহার করে মাল্টিপল এআই ভেন্ডর রাউটিং, ফলব্যাক চেইন এবং কস্ট ট্র্যাকিং হ্যান্ডেল করে।
 
-import os
 import json
-from typing import Any, AsyncGenerator, Dict, List, Optional
+import os
+from collections.abc import AsyncGenerator
+from typing import Any
+
 import litellm
 from loguru import logger
+
 from core.config import settings
+
 
 # Load routing policy configuration
 POLICY_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "config", "routing_policy.json")
@@ -25,7 +29,7 @@ class LLMGateway:
         from core.semantic_cache import SemanticCache
         self.cache = SemanticCache()
 
-    def _load_routing_policy(self) -> Dict[str, Any]:
+    def _load_routing_policy(self) -> dict[str, Any]:
         try:
             if os.path.exists(POLICY_PATH):
                 with open(POLICY_PATH, encoding="utf-8") as f:
@@ -167,7 +171,7 @@ class LLMGateway:
 
         raise last_exception or RuntimeError("All routing models failed to produce a completion.")
 
-    async def _stream_completion(self, messages: List[Dict[str, str]], call_chain: List[str], timeout: float) -> AsyncGenerator[str, None]:
+    async def _stream_completion(self, messages: list[dict[str, str]], call_chain: list[str], timeout: float) -> AsyncGenerator[str, None]:
         # Handle streaming responses with fallback failover support
         # বাংলা মন্তব্য: স্ট্রিমিং সম্পন্ন করার জন্য জেনারেটর মেথড
         last_exception = None

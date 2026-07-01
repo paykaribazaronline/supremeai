@@ -1,7 +1,7 @@
 import asyncio
 import os
+from datetime import UTC
 from datetime import datetime
-from datetime import timezone
 
 import httpx
 from google.cloud import firestore
@@ -60,7 +60,7 @@ class NightlyChaosAuditor:
             # 🧪 টেস্ট ২: রানটাইম কানেকশন পুল স্ট্রেস চেক (Synthetic Heavy Requests)
             async with httpx.AsyncClient(timeout=5.0) as client:
                 headers = {
-                    "Idempotency-Key": f"auto-chaos-{datetime.now(timezone.utc).timestamp()}"
+                    "Idempotency-Key": f"auto-chaos-{datetime.now(UTC).timestamp()}"
                 }
                 # একই টাইমে ব্যাক-টু-ব্যাক ৫টি রিকোয়েস্ট ফায়ার করে রাউটার স্টেট চেক
                 tasks = [
@@ -86,7 +86,7 @@ class NightlyChaosAuditor:
                         )
 
             # ── 🔒 CLOSED-LOOP AUTOMATION DECISION ────────────────────────
-            now = datetime.now(timezone.utc)
+            now = datetime.now(UTC)
             if failures > 0:
                 logger.critical(
                     f"💀 Chaos Audit FAILED with {failures} anomalies. LOCKING deployment gates!"

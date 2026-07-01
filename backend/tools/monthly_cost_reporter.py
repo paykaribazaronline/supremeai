@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import os
 import sqlite3
-from datetime import datetime, timezone
-from datetime import timedelta
+from datetime import datetime
+from datetime import timedelta, UTC
 from typing import Any
 
 from loguru import logger
@@ -43,7 +43,7 @@ class MonthlyCostReporter:
             "total_cost_usd": round(total_cost, 4),
             "total_calls": total_calls,
             "average_cost_per_call": round(avg_cost, 4),
-            "generated_at": datetime.now(timezone.utc).isoformat(),
+            "generated_at": datetime.now(UTC).isoformat(),
         }
 
     def _month_range(self, month: str) -> tuple[datetime, datetime]:
@@ -79,5 +79,5 @@ class MonthlyCostReporter:
             return False
 
     def schedule_monthly(self) -> None:
-        next_run, _ = self._month_range(datetime.now(timezone.utc).strftime("%Y-%m"))
+        next_run, _ = self._month_range(datetime.now(UTC).strftime("%Y-%m"))
         logger.info(f"Monthly cost run scheduled for {next_run.isoformat()}")

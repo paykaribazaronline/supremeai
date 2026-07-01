@@ -9,6 +9,7 @@ so callers can retrieve a ``result`` variable if they set one.
 """
 
 import ast
+import logging
 from typing import Any
 
 from RestrictedPython import compile_restricted

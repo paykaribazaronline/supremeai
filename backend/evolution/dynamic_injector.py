@@ -1,13 +1,15 @@
 # বাংলা কমেন্ট: সুপ্রিম-এআই এর ডাইনামিক স্কিল ইনজেক্টর ইঞ্জিন।
 # এটি জেনারেটেড কোডকে স্যান্ডবক্সে ভেরিফাই করে সফল হলে সিস্টেমে ইনজেক্ট করে, আর ফেইল করলে কোয়ারেন্টাইনে পাঠায়।
 
-import os
-import sys
 import importlib
 import importlib.util
+import os
+import sys
 from datetime import datetime
-from core.logging_config import logger
+
 from backend.evolution.security_sandbox import execute_secure_sandbox
+from core.logging_config import logger
+
 
 class DynamicSkillInjector:
     def __init__(self):

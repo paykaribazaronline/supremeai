@@ -1,7 +1,6 @@
-import os
 import time
+from datetime import UTC
 from datetime import datetime
-from datetime import timezone
 from typing import Any
 
 from loguru import logger
@@ -60,15 +59,15 @@ class AutoSkillCreator:
         start_time = time.time()
         from pathlib import Path
 
-        from skills.schema import UniversalSkillSchema
         from core.llm_gateway import llm_gateway
+        from skills.schema import UniversalSkillSchema
 
         logger.info(
             f"🧠 Self-Evolution Triggered: Designing skill '{skill_name}' for demand: '{user_demand}'"
         )
 
         trace_id = uuid.uuid4().hex
-        generation_timestamp = datetime.now(timezone.utc).isoformat()
+        generation_timestamp = datetime.now(UTC).isoformat()
 
         # ১. এআই ডিরেক্টিভ প্রম্পট - যা সুনির্দিষ্ট ও কঠোর JSON ফরম্যাটে কোড ও USS জেনারেট করবে
         system_prompt = (
@@ -197,7 +196,8 @@ class AutoSkillCreator:
                 json.dump(schema_dict, f, indent=4)
 
             # Load module from quarantine and execute validation tests inside the restricted Docker Sandbox
-            # বাংলা মন্তব্য: এআই জেনারেটেড কোডটি সরাসরি লোকাল ইন্টারপ্রেটারে রান না করিয়ে Dockerized Cloud Sandbox এর সাহায্যে সিকিউর এনভায়রনমেন্টে রান করানো হচ্ছে।
+            # বাংলা মন্তব্য: এআই জেনারেটেড কোডটি সরাসরি লোকাল ইন্টারপ্রেটারে রান না করিয়ে
+            # Dockerized Cloud Sandbox এর সাহায্যে সিকিউর এনভায়রনমেন্টে রান করানো হচ্ছে।
             from tools.cloud_sandbox_orchestrator import CloudSandboxOrchestrator
             sandbox = CloudSandboxOrchestrator()
 
@@ -263,7 +263,7 @@ asyncio.run(run())
                 shutil.rmtree(quarantine_dir)
 
             # Firestore live deployment
-            now = datetime.now(timezone.utc)
+            now = datetime.now(UTC)
             skill_meta = {
                 "skill_name": skill_name,
                 "demand_justification": user_demand,

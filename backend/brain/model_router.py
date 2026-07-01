@@ -2,9 +2,12 @@
 # বাংলা মন্তব্য: এটি পুরানো রাউটিং লজিকগুলোর বদলে সরাসরি নতুন llm_gateway.py এর মাধ্যমে রিকোয়েস্ট ফরোয়ার্ড করে।
 
 import asyncio
-from typing import Any, Dict
+from typing import Any
+
 from loguru import logger
+
 from core.llm_gateway import llm_gateway
+
 
 def run_async_as_sync(coro):
     from concurrent.futures import ThreadPoolExecutor
@@ -34,7 +37,7 @@ class ModelRouter:
 
     def route_and_generate_with_cot(
         self, prompt: str, task_type: str = "general", max_cost: float = 0.01
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         # বাংলা মন্তব্য: CoT সাপোর্টের জন্য cot_reasoner এর মকিং প্রপার্টিসমূহ রিটার্ন করা হলো
         res = self.route_and_generate(prompt, task_type, max_cost)
         
@@ -64,14 +67,14 @@ class ModelRouter:
 
     def route_and_generate(
         self, prompt: str, task_type: str = "general", max_cost: float = 0.01
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         # বাংলা মন্তব্য: টেস্টে যদি async_route_and_generate কে mock করা হয়, তবে সেটিকেও সাপোর্ট করার জন্য ডাইনামিক কলিং
         res = None
         async_func = getattr(self, "async_route_and_generate", None)
-        if async_func and async_func != ModelRouter.async_route_and_generate:
-            # Check if it is an AsyncMock
-            if asyncio.iscoroutinefunction(async_func) or hasattr(async_func, "assert_called_with") or type(async_func).__name__ == "AsyncMock":
-                res = run_async_as_sync(async_func(prompt, task_type, max_cost))
+        if (async_func and 
+            async_func != ModelRouter.async_route_and_generate and 
+            (asyncio.iscoroutinefunction(async_func) or hasattr(async_func, "assert_called_with") or type(async_func).__name__ == "AsyncMock")):
+            res = run_async_as_sync(async_func(prompt, task_type, max_cost))
         
         if res is None:
             res = run_async_as_sync(
@@ -98,7 +101,7 @@ class ModelRouter:
 
     async def async_route_and_generate(
         self, prompt: Any, task_type: str = "general", max_cost: float = 0.01
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         logger.info(f"[ModelRouter] Forwarding task_type='{task_type}' to LLMGateway")
         
         # বাংলা মন্তব্য: টেস্ট কেসে যদি monkeypatch করা মেথডসমূহ থাকে, তবে ফলব্যাক রান করানো হচ্ছে
@@ -117,6 +120,7 @@ class ModelRouter:
 
         # বাংলা মন্তব্য: pytest রানিং মোডে থাকলে বা এপিআই কী না থাকলে লাইভ গেটওয়ে এড়াতে ফলব্যাক রিটার্ন
         import sys
+
         from core.config import settings
         if "pytest" in sys.modules or settings.env == "test" or (not settings.gemini_api_key and not settings.openrouter_api_key):
             import json
@@ -177,7 +181,7 @@ class ModelRouter:
                 "error": str(e)
             }
 
-    def query_local_rag(self, query: str) -> Dict[str, Any]:
+    def query_local_rag(self, query: str) -> dict[str, Any]:
         # বাংলা মন্তব্য: RAG কোয়েরি মেথড ব্যাকওয়ার্ড কমপ্যাটিবিলিটির জন্য যুক্ত করা হলো
         if hasattr(self, "_local_rag") and hasattr(self._local_rag, "semantic_search"):
             return self._local_rag.semantic_search(query)

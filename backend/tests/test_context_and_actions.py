@@ -48,7 +48,7 @@ def test_task_execute_with_context():
     from unittest.mock import MagicMock
 
     import core.services as services_mod
-    import core.services as services
+    from core import services
 
 
     # Mock admin_god layer check

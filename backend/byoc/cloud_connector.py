@@ -1,11 +1,13 @@
 # Encryption and GCP Service Account Manager
 # বাংলা মন্তব্য: GCP ক্রেডেনশিয়াল ম্যানেজমেন্ট ও সেফ-স্টোরেজ এনক্রিপশন ডিক্রিপশন মডিউল।
 
-import os
 import json
+import os
+
 from cryptography.fernet import Fernet
-from loguru import logger
 from google.oauth2 import service_account
+from loguru import logger
+
 
 # Global encryption key management
 # বাংলা মন্তব্য: Fernet এনক্রিপশনের জন্য ৩২ বাইটের কী জেনারেট বা লোড করা হচ্ছে
@@ -25,9 +27,9 @@ class CloudStatus:
 
 
 class CloudResource:
-    def __init__(self, id: str, type: str, name: str, status: str):
-        self.id = id
-        self.type = type
+    def __init__(self, res_id: str, res_type: str, name: str, status: str):
+        self.id = res_id
+        self.type = res_type
         self.name = name
         self.status = status
 

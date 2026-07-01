@@ -1,4 +1,3 @@
-import pytest
 from core.immune_system import ImmuneSystemScanner
 
 def test_immune_system_passes_safe_code():

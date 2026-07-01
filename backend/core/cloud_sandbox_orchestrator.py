@@ -8,11 +8,12 @@ long-running AI tasks.
 Integrates 'Freebuff CLI' as a zero-cost headless AI worker.
 """
 
-import os
-import httpx
 import asyncio
+import os
+from typing import Any
+
+import httpx
 from loguru import logger
-from typing import Dict, Any, Optional
 
 
 class CloudSandboxOrchestrator:
@@ -44,7 +45,7 @@ class CloudSandboxOrchestrator:
         else:
             raise ValueError(f"Unsupported provider: {self.provider}")
 
-    async def create_sandbox(self, spec: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    async def create_sandbox(self, spec: dict[str, Any]) -> dict[str, Any] | None:
         if not self.api_key:
             logger.warning("Cannot create sandbox: API key is missing. Running in mock/dry-run mode.")
             return {
@@ -71,7 +72,7 @@ class CloudSandboxOrchestrator:
 
         return None
 
-    async def get_sandbox_status(self, sandbox_id: str) -> Optional[Dict[str, Any]]:
+    async def get_sandbox_status(self, sandbox_id: str) -> dict[str, Any] | None:
         if not self.api_key:
             logger.info(f"Dry-run: Fetching status for sandbox {sandbox_id}")
             return {
@@ -90,7 +91,7 @@ class CloudSandboxOrchestrator:
             logger.error(f"Failed to get status for sandbox {sandbox_id}. Status: {e.response.status_code}")
         return None
 
-    async def run_command(self, sandbox_id: str, command: str, timeout: int = 300) -> Optional[Dict[str, Any]]:
+    async def run_command(self, sandbox_id: str, command: str, timeout: int = 300) -> dict[str, Any] | None:
         if not self.api_key:
             logger.info(f"Dry-run: Running command '{command}' in sandbox {sandbox_id}")
             return {
@@ -132,7 +133,7 @@ class CloudSandboxOrchestrator:
     # ------------------------------------------------------------------------
     # 🤖 FREEBUFF AI WORKER INTEGRATION
     # ------------------------------------------------------------------------
-    async def delegate_to_freebuff(self, prompt: str, working_dir: str = ".") -> Dict[str, Any]:
+    async def delegate_to_freebuff(self, prompt: str, working_dir: str = ".") -> dict[str, Any]:
         """
         বাংলা মন্তব্য: Freebuff CLI-কে অসিঙ্ক্রোনাস সাব-প্রসেস হিসেবে কল করে জিরো-কস্টে কোডিং টাস্ক এক্সিকিউট করা হচ্ছে।
         এটি SupremeAI-এর জন্য সম্পূর্ণ ফ্রি এআই ডেভেলপার হিসেবে কাজ করবে।
@@ -178,7 +179,7 @@ class CloudSandboxOrchestrator:
             return endpoints[action]
         raise NotImplementedError(f"Endpoints for provider '{self.provider}' not implemented.")
 
-    def _prepare_creation_payload(self, spec: Dict[str, Any]) -> Dict[str, Any]:
+    def _prepare_creation_payload(self, spec: dict[str, Any]) -> dict[str, Any]:
         if self.provider == "runpod":
             return {"pod": spec}
         raise NotImplementedError(f"Payload preparation for provider '{self.provider}' not implemented.")

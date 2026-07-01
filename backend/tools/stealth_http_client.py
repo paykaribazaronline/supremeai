@@ -1,6 +1,6 @@
 import httpx
 import random
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 from loguru import logger
 from tools.proxy_manager import ProxyManager
 
@@ -17,10 +17,10 @@ class StealthHTTPClient:
     HTTP client wrapper for executing stealth, anonymized web requests.
     Enforces proxy rotation, fallback retries, and browser headers emulation.
     """
-    def __init__(self, proxy_manager: Optional[ProxyManager] = None):
+    def __init__(self, proxy_manager: ProxyManager | None = None):
         self.proxy_manager = proxy_manager or ProxyManager()
 
-    def _get_headers(self, custom_headers: Optional[Dict[str, str]] = None) -> Dict[str, str]:
+    def _get_headers(self, custom_headers: Dict[str, str] | None = None) -> Dict[str, str]:
         headers = {
             "User-Agent": random.choice(USER_AGENTS),
             "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",

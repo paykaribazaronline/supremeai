@@ -1,12 +1,10 @@
 import pytest
 import os
-import httpx
 from unittest.mock import patch
 from core.config import settings
 from tools.cloud_sandbox_orchestrator import CloudSandboxOrchestrator
 from tools.proxy_manager import ProxyManager
 from tools.stealth_http_client import StealthHTTPClient
-from tools.browser_stealth import BrowserStealth
 
 def test_production_sandbox_fails_without_docker():
     # Enforce production mode

@@ -3,6 +3,7 @@
 from fastapi import HTTPException
 from fastapi import status
 
+
 MAX_UPLOAD_BYTES = 10 * 1024 * 1024  # 10MB
 ALLOWED_EXTENSIONS = {
     ".py": ["text/x-python", "application/octet-stream"],

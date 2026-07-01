@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import sqlite3
 import time
+from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Any
 
@@ -10,7 +11,6 @@ from fastapi import APIRouter
 from fastapi import HTTPException
 from loguru import logger
 from pydantic import BaseModel
-from contextlib import asynccontextmanager
 
 from core.feedback_loop import FeedbackLoop
 

@@ -13,7 +13,7 @@ client = TestClient(app)
 @pytest.fixture
 def mock_dependencies():
     import core.services as services_mod
-    import core.services as services
+    from core import services
 
 
     previous_admin = services.admin_god
@@ -49,7 +49,7 @@ def mock_dependencies():
 @pytest.fixture
 def mock_session():
     import core.services as services_mod
-    import core.services as services
+    from core import services
 
 
     previous_admin = services.admin_god
@@ -122,7 +122,6 @@ def test_task_execute_with_session_id(mock_session):
 
 def test_task_execute_upstream_failure(mock_session):
     import core.services as services_mod
-    import core.services as services
 
 
     previous_router = services_mod.model_router
@@ -150,7 +149,6 @@ def test_task_execute_upstream_failure(mock_session):
 
 def test_chat_completion_streaming():
     import core.services as services_mod
-    import core.services as services
 
 
     previous_router = services_mod.model_router

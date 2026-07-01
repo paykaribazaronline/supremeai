@@ -1,10 +1,18 @@
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC
+from datetime import datetime
 from decimal import Decimal
 
-from sqlalchemy import String, Numeric, Integer, DateTime, Index
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
+from sqlalchemy import DateTime
+from sqlalchemy import Index
+from sqlalchemy import Integer
+from sqlalchemy import Numeric
+from sqlalchemy import String
 from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.orm import DeclarativeBase
+from sqlalchemy.orm import Mapped
+from sqlalchemy.orm import mapped_column
+
 
 class Base(DeclarativeBase):
     pass
@@ -22,8 +30,8 @@ class UserWallet(Base):
     # Optimistic Concurrency Control (Second Layer of Defense against Double-Spending)
     version: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
     
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
-    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(UTC))
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(UTC), onupdate=lambda: datetime.now(UTC))
 
     __mapper_args__ = {
         "version_id_col": version  # SQLAlchemy অটোমেটিকভাবে ভার্সন ট্র্যাকিং এবং রেস-কন্ডিশন ব্লক করবে
@@ -38,7 +46,7 @@ class TransactionLedgerEntry(Base):
     amount_usd: Mapped[Decimal] = mapped_column(Numeric(10, 6), nullable=False)
     transaction_type: Mapped[str] = mapped_column(String(50), nullable=False)
     description: Mapped[str] = mapped_column(String(500), nullable=True)
-    timestamp: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+    timestamp: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(UTC))
 
     # Pro Tip: Composite Index
     __table_args__ = (

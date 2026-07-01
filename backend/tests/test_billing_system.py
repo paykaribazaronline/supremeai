@@ -7,14 +7,12 @@ os.environ["SUPREMEAI_ENCRYPTION_KEY"] = "4vW8yO_tWn8_bM6W_vW7LDw8qddv6QRw2wKKyJ
 os.environ["STRIPE_SECRET_KEY"] = "sk_test_key"
 os.environ["STRIPE_WEBHOOK_SECRET"] = "whsec_test"
 
-import asyncio
-from datetime import datetime, timezone
 from decimal import Decimal
 from fastapi.testclient import TestClient
-from unittest.mock import AsyncMock, patch
+from unittest.mock import patch
 
 from core.app import app
-from models.wallet import UserWallet, TransactionLedgerEntry
+from models.wallet import UserWallet
 from database.session import get_db_session
 
 client = TestClient(app)

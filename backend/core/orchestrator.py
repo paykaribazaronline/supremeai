@@ -9,8 +9,8 @@
 import asyncio
 import logging
 from collections.abc import Callable
+from datetime import UTC
 from datetime import datetime
-from datetime import timezone
 from typing import Any
 
 from fastapi import APIRouter
@@ -187,7 +187,7 @@ class Orchestrator:
         """
         self._running = True
         while self._running:
-            start = datetime.now(timezone.utc)
+            start = datetime.now(UTC)
             logger.debug(f"Orchestrator loop tick at {start.isoformat()}")
             try:
                 with tracer.start_as_current_span("orchestrator.tick"):
@@ -198,7 +198,7 @@ class Orchestrator:
             except Exception as e:
                 logger.error(f"Error in orchestrator task group loop: {e}")
             # Sleep until next interval, taking into account execution time.
-            elapsed = (datetime.now(timezone.utc) - start).total_seconds()
+            elapsed = (datetime.now(UTC) - start).total_seconds()
             try:
                 await asyncio.sleep(max(0, self.interval - elapsed))
             except asyncio.CancelledError:

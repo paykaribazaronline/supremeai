@@ -3,23 +3,29 @@ import os
 import secrets
 import shutil
 import time
-from datetime import datetime, timezone
+from datetime import UTC
+from datetime import datetime
 from pathlib import Path
 
-from fastapi import APIRouter, Depends, HTTPException, status
-from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from fastapi import APIRouter
+from fastapi import Depends
+from fastapi import HTTPException
+from fastapi import status
+from fastapi.security import HTTPAuthorizationCredentials
+from fastapi.security import HTTPBearer
 from jose import jwt
 from loguru import logger
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
+from pydantic import Field
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
 from api.dependencies import get_tenant_db
 from core.config import settings
 from core.tenant_db import TenantAwareFirestore
+from database.session import get_db_session
 from evolution.auto_skill_creator import AutoSkillCreator
 from evolution.fitness_engine import FitnessEngine
-from database.session import get_db_session
 from models.evolution import CodeProposal
 
 
@@ -148,7 +154,7 @@ async def quarantine_skill(
                             "admin_uid": admin.get("uid"),
                             "timestamp": time.time(),
                         },
-                        "created_at": datetime.now(timezone.utc).isoformat(),
+                        "created_at": datetime.now(UTC).isoformat(),
                     }
                 )
         except Exception as db_err:

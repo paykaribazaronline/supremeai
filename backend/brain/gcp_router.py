@@ -1,6 +1,6 @@
 import os
+from datetime import UTC
 from datetime import datetime
-from datetime import timezone
 from typing import Any
 
 import httpx
@@ -39,11 +39,11 @@ class GCPCloudRunRouter:
                 "error": "GCP_CLOUD_RUN_URL is not configured",
             }
 
-        started = datetime.now(timezone.utc)
+        started = datetime.now(UTC)
         try:
             with httpx.Client(timeout=timeout or self.timeout) as client:
                 response = client.get(f"{self.base_url}/health")
-            latency_ms = (datetime.now(timezone.utc) - started).total_seconds() * 1000
+            latency_ms = (datetime.now(UTC) - started).total_seconds() * 1000
             return {
                 "success": 200 <= response.status_code < 300,
                 "provider": "gcp_cloud_run",
@@ -82,11 +82,11 @@ class GCPCloudRunRouter:
             }
 
         url = f"{self.base_url}/{endpoint.lstrip('/')}"
-        started = datetime.now(timezone.utc)
+        started = datetime.now(UTC)
         try:
             with httpx.Client(timeout=timeout or self.timeout) as client:
                 response = client.request(method, url, json=payload)
-            latency_ms = (datetime.now(timezone.utc) - started).total_seconds() * 1000
+            latency_ms = (datetime.now(UTC) - started).total_seconds() * 1000
             data = self._safe_json(response)
             return {
                 "success": 200 <= response.status_code < 300,

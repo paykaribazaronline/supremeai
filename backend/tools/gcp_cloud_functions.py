@@ -1,6 +1,6 @@
 import os
 from datetime import datetime
-from datetime import timezone
+from datetime import UTC
 from typing import Any
 
 import httpx
@@ -63,11 +63,11 @@ class GCPCloudFunctionClient:
         if self.bearer_token:
             headers["Authorization"] = f"Bearer {self.bearer_token}"
 
-        started = datetime.now(timezone.utc)
+        started = datetime.now(UTC)
         try:
             with httpx.Client(timeout=timeout or self.timeout) as client:
                 response = client.request(method, url, json=payload, headers=headers)
-            latency_ms = (datetime.now(timezone.utc) - started).total_seconds() * 1000
+            latency_ms = (datetime.now(UTC) - started).total_seconds() * 1000
             return {
                 "success": 200 <= response.status_code < 300,
                 "provider": "gcp_cloud_functions",

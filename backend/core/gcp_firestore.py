@@ -2,8 +2,8 @@ import json
 import os
 import sqlite3
 import uuid
+from datetime import UTC
 from datetime import datetime
-from datetime import timezone
 from typing import Any
 
 from loguru import logger
@@ -318,7 +318,7 @@ class GCPFirestoreVerificationQueue:
 
     @staticmethod
     def _now() -> str:
-        return datetime.now(timezone.utc).isoformat()
+        return datetime.now(UTC).isoformat()
 
 
 def get_firestore_client(project_id: str | None = None):

@@ -3,19 +3,24 @@
 
 import os
 import uuid
-from datetime import datetime, timezone
 from decimal import Decimal
-import stripe
 
-from fastapi import APIRouter, HTTPException, Depends, Request, status
+import stripe
+from fastapi import APIRouter
+from fastapi import Depends
+from fastapi import HTTPException
+from fastapi import Request
+from fastapi import status
+from loguru import logger
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.orm.exc import StaleDataError
-from loguru import logger
 
-from models.wallet import UserWallet, TransactionLedgerEntry
 from core.token_deductor import TokenDeductor
 from database.session import get_db_session
+from models.wallet import TransactionLedgerEntry
+from models.wallet import UserWallet
+
 
 router = APIRouter(prefix="/api/billing", tags=["Billing & Credit Wallet"])
 token_deductor = TokenDeductor()
@@ -117,12 +122,12 @@ async def stripe_webhook(request: Request, session: AsyncSession = Depends(get_d
 
     try:
         event = stripe.Webhook.construct_event(payload, sig_header, STRIPE_WEBHOOK_SECRET)
-    except stripe.error.SignatureVerificationError:
+    except stripe.error.SignatureVerificationError as e:
         logger.warning("Invalid Stripe signature detected. Dropping request.")
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid signature")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid signature") from e
     except Exception as e:
         logger.error(f"Webhook payload validation error: {str(e)}")
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Payload validation failed")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Payload validation failed") from e
 
     try:
         if event["type"] == "payment_intent.succeeded":
@@ -155,12 +160,12 @@ async def stripe_webhook(request: Request, session: AsyncSession = Depends(get_d
             
             logger.success(f"Successfully credited ${amount_received} to user {user_id}")
 
-    except StaleDataError:
+    except StaleDataError as e:
         logger.critical(f"Concurrency Failure on Webhook for user {user_id}. Requires manual intervention.")
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Transaction conflict. Please contact support.")
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Transaction conflict. Please contact support.") from e
     except Exception as e:
         logger.error(f"Internal server error during webhook processing: {str(e)}")
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error") from e
 
     return {"status": "success"}
 
@@ -204,9 +209,9 @@ async def sslcommerz_webhook_listener(request: Request, session: AsyncSession = 
             return {"status": "processed", "message": f"Successfully credited ${amount_usd} (BDT {amount_bdt}) via SSLCommerz."}
 
         return {"status": "ignored", "message": "SSLCommerz payment not VALID."}
-    except StaleDataError:
+    except StaleDataError as e:
         logger.critical(f"Concurrency Failure on SSLCommerz Webhook for user {user_id}.")
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Transaction conflict.")
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Transaction conflict.") from e
     except Exception as e:
         logger.error(f"SSLCommerz Webhook processing failed: {str(e)}")
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error") from e

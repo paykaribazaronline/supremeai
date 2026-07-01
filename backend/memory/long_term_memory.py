@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import os
 import sqlite3
+from datetime import UTC
 from datetime import datetime
-from datetime import timezone
 from typing import Any
 
 
@@ -165,4 +165,4 @@ class LongTermMemory:
 
     @staticmethod
     def _now() -> str:
-        return datetime.now(timezone.utc).isoformat()
+        return datetime.now(UTC).isoformat()

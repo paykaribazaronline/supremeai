@@ -1,8 +1,8 @@
 from __future__ import annotations
 
+from datetime import UTC
 from datetime import datetime
 from datetime import timedelta
-from datetime import timezone
 
 from fastapi import APIRouter
 from fastapi import Depends
@@ -36,7 +36,7 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None) -> s
     if jwt is None:
         raise RuntimeError("python-jose[cryptography] is required for token issuance")
     to_encode = data.copy()
-    expire = datetime.now(timezone.utc) + (
+    expire = datetime.now(UTC) + (
         expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     )
     to_encode.update({"exp": expire})

@@ -1,9 +1,9 @@
-import os
 
 from fastapi import APIRouter
 from fastapi import BackgroundTasks
 from fastapi import HTTPException
 from pydantic import BaseModel
+
 from core.llm_gateway import llm_gateway
 
 

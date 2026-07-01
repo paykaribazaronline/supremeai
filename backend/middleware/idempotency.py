@@ -9,9 +9,9 @@ from starlette.middleware.base import BaseHTTPMiddleware
 
 with contextlib.suppress(ImportError):
     from google.cloud import firestore
+from datetime import UTC
 from datetime import datetime
 from datetime import timedelta
-from datetime import timezone
 
 from loguru import logger
 
@@ -60,7 +60,7 @@ class IdempotencyMiddleware(BaseHTTPMiddleware):
         lock_ref = self.db.collection(self.collection_name).document(idempotency_key)
         lock_doc = lock_ref.get()
 
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
 
         if lock_doc.exists:
             lock_data = lock_doc.to_dict()
@@ -122,7 +122,7 @@ class IdempotencyMiddleware(BaseHTTPMiddleware):
                     {
                         "status": "completed",
                         "response_body": body_str,
-                        "completed_at": datetime.now(timezone.utc),
+                        "completed_at": datetime.now(UTC),
                     }
                 )
             else:

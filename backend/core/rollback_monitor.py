@@ -27,7 +27,7 @@ class RollbackMonitor:
             f"RollbackMonitor: Checking metrics for {service_name} - Latency: {latency_ms}ms, Error: {is_error}"
         )
 
-        import core.services as services
+        from core import services
 
         if (
             not hasattr(services, "redis_queue")

@@ -1,8 +1,8 @@
-import asyncio
 import contextlib
 import datetime
 import json
 import re
+
 # বাংলা মন্তব্য: টাইপিং এরর এড়ানোর জন্য Any ইমপোর্ট করা হলো
 from typing import Any
 
@@ -17,7 +17,8 @@ from pydantic import BaseModel
 # --- Local Imports ---
 # Moved imports to the top of the file to improve performance by avoiding repeated imports inside functions.
 from adaptive_engine.experience_db import Experience
-from core.intent_router import intent_router, PromptAction
+from core.intent_router import PromptAction
+from core.intent_router import intent_router
 from core.prompt_helpers import format_unified_chat_prompt
 
 
@@ -337,7 +338,7 @@ async def execute_task(req: TaskRequest, background_tasks: BackgroundTasks):
 
     # Log to ExperienceDatabase in the background to improve user-perceived latency.
     exp = Experience(
-        timestamp=datetime.datetime.now(datetime.timezone.utc).isoformat(),
+        timestamp=datetime.datetime.now(datetime.UTC).isoformat(),
         user_id=req.session_id or "default-user",
         request=req.task,
         context={
@@ -399,7 +400,7 @@ async def execute_task(req: TaskRequest, background_tasks: BackgroundTasks):
 @router.get("/api/task/stream")
 async def task_stream():
     async def keepalive():
-        yield f"data: {json.dumps({'status': 'alive', 'timestamp': datetime.datetime.now(datetime.timezone.utc).isoformat()})}\n\n"
+        yield f"data: {json.dumps({'status': 'alive', 'timestamp': datetime.datetime.now(datetime.UTC).isoformat()})}\n\n"
 
     return StreamingResponse(
         keepalive(),
@@ -414,8 +415,8 @@ async def task_stream():
 
 @router.post("/api/chat/prompt-action")
 async def prompt_action(req: ActionStreamRequest):
-    from core.intent_router import intent_router
     from core.intent import IntentClassifier
+    from core.intent_router import intent_router
 
     action = intent_router.route(req.message)
     intent_clf = IntentClassifier()

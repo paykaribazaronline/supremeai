@@ -1,8 +1,8 @@
 import os
 import sqlite3
 from dataclasses import dataclass
+from datetime import UTC
 from datetime import datetime
-from datetime import timezone
 from typing import Any
 
 from loguru import logger
@@ -97,7 +97,7 @@ class SlidingWindowMemory:
         return windows
 
     def _now(self) -> str:
-        return datetime.now(timezone.utc).isoformat()
+        return datetime.now(UTC).isoformat()
 
     def _summarize_text(self, text: str) -> str:
         if not text:
