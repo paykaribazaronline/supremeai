@@ -1,7 +1,7 @@
 # 🧠 SupremeAI 2.0 Codebase Analysis
 # বাংলা মন্তব্য: এটি একটি স্বয়ংক্রিয়ভাবে জেনারেট করা কোডবেস ডাম্প ফাইল যা প্রজেক্টের সামগ্রিক বিশ্লেষণের জন্য ব্যবহৃত হয়।
 
-Generated at: 2026-07-01T21:20:45.839936 UTC
+Generated at: 2026-07-01T21:44:02.717233 UTC
 
 ## File: `.github/actions/setup-backend/action.yml`
 ```yaml
@@ -75401,6 +75401,7 @@ try:
     from ldobserve import ObservabilityConfig, ObservabilityPlugin, observe
     import logging
     from langchain_anthropic import ChatAnthropic
+    from langchain_google_genai import ChatGoogleGenerativeAI
     from langchain_core.messages import HumanMessage, SystemMessage
     from langchain_community.callbacks import get_openai_callback
     from ldai.tracker import TokenUsage
@@ -75419,10 +75420,18 @@ def handle_agent_call_langchain(
     tracker = config.create_tracker()
     
     # বাংলা মন্তব্য: লঞ্চডার্কলি থেকে ডায়নামিক মডেল নির্ধারণ, অন্যথায় ডিফল্ট মডেল ব্যবহার
-    model_name = config.model.name if (config.model and config.model.name) else "claude-3-5-sonnet-20241022"
+    default_model = "gemini-1.5-flash" if os.getenv("GEMINI_API_KEY") else "claude-3-5-sonnet-20241022"
+    model_name = config.model.name if (config.model and config.model.name) else default_model
     
-    # LangChain ChatAnthropic ইনিশিয়েট করা হচ্ছে
-    llm = ChatAnthropic(model=model_name)
+    # বাংলা মন্তব্য: লঞ্চডার্কলি মডেল প্রোভাইডার প্রিফিক্স (যেমন: "Gemini.") থাকলে তা বাদ দেওয়া হচ্ছে
+    if "." in model_name:
+        model_name = model_name.split(".")[-1]
+        
+    # বাংলা মন্তব্য: মডেল টাইপ অনুযায়ী সঠিক ল্যাংচেইন লাইব্রেরি সিলেক্ট করা হচ্ছে
+    if "gemini" in model_name.lower():
+        llm = ChatGoogleGenerativeAI(model=model_name)
+    else:
+        llm = ChatAnthropic(model=model_name)
     
     messages = []
     if config.instructions:
@@ -75474,12 +75483,13 @@ if __name__ == "__main__":
     aiclient = LDAIClient(ldclient.get())
     context = Context.builder("user-123").kind("user").build()
     
+    default_model = "gemini-1.5-flash" if os.getenv("GEMINI_API_KEY") else "claude-3-5-sonnet-20241022"
     config = aiclient.agent_config(
         'supremes-writing-assistant', 
         context, 
         default=AIAgentConfigDefault(
             enabled=True,
-            model=ModelConfig(name="claude-3-5-sonnet-20241022"),
+            model=ModelConfig(name=default_model),
             instructions="You are a helpful writing assistant."
         )
     )
