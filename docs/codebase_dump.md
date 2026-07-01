@@ -1,7 +1,7 @@
 # 🧠 SupremeAI 2.0 Codebase Analysis
 # বাংলা মন্তব্য: এটি একটি স্বয়ংক্রিয়ভাবে জেনারেট করা কোডবেস ডাম্প ফাইল যা প্রজেক্টের সামগ্রিক বিশ্লেষণের জন্য ব্যবহৃত হয়।
 
-Generated at: 2026-07-01T21:13:35.494810 UTC
+Generated at: 2026-07-01T21:20:45.839936 UTC
 
 ## File: `.github/actions/setup-backend/action.yml`
 ```yaml
@@ -75398,6 +75398,8 @@ try:
     from ldclient.config import Config
     from ldclient.context import Context
     from ldai import LDAIClient, AIAgentConfig, AIAgentConfigDefault, ModelConfig
+    from ldobserve import ObservabilityConfig, ObservabilityPlugin, observe
+    import logging
     from langchain_anthropic import ChatAnthropic
     from langchain_core.messages import HumanMessage, SystemMessage
     from langchain_community.callbacks import get_openai_callback
@@ -75427,19 +75429,25 @@ def handle_agent_call_langchain(
         messages.append(SystemMessage(content=config.instructions))
     messages.append(HumanMessage(content=user_input))
     
+    # বাংলা মন্তব্য: লঞ্চডার্কলি অবজারভেবিলিটি ব্যবহার করে কাস্টম লগ রেকর্ড এবং স্প্যান স্টার্ট করা হচ্ছে
+    observe.record_log("Executing LangChain Agent Call", logging.INFO, {"model": model_name})
+    
     try:
-        # বাংলা মন্তব্য: টোকেন ট্র্যাকিংয়ের জন্য ল্যাংচেইন কলব্যাক প্রোভাইডার ব্যবহার করা হচ্ছে
-        with get_openai_callback() as cb:
-            response = llm.invoke(messages)
+        with observe.start_span("langchain-invoke", attributes={"model": model_name}) as span:
+            span.set_attribute("custom-langchain-attribute", "custom-value")
             
-        # লঞ্চডার্কলি ট্র্যাকার ব্যবহার করে ম্যাট্রিক্স রেকর্ড করা হচ্ছে
-        tracker.track_tokens(TokenUsage(
-            input=cb.prompt_tokens,
-            output=cb.completion_tokens,
-            total=cb.total_tokens,
-        ))
-        tracker.track_success()
-        return str(response.content)
+            # বাংলা মন্তব্য: টোকেন ট্র্যাকিংয়ের জন্য ল্যাংচেইন কলব্যাক প্রোভাইডার ব্যবহার করা হচ্ছে
+            with get_openai_callback() as cb:
+                response = llm.invoke(messages)
+                
+            # লঞ্চডার্কলি ট্র্যাকার ব্যবহার করে ম্যাট্রিক্স রেকর্ড করা হচ্ছে
+            tracker.track_tokens(TokenUsage(
+                input=cb.prompt_tokens,
+                output=cb.completion_tokens,
+                total=cb.total_tokens,
+            ))
+            tracker.track_success()
+            return str(response.content)
     except Exception as exc:
         tracker.track_error()
         logger.error(f"LangChain invocation failed: {exc}")
@@ -75450,9 +75458,19 @@ if __name__ == "__main__":
         print("❌ Setup failed: missing packages.")
         sys.exit(1)
         
-    # বাংলা মন্তব্য: লঞ্চডার্কলি ক্লায়েন্ট কনফিগারেশন এবং ডামি টেস্ট রান
-    sdk_key = os.getenv("LAUNCHDARKLY_SDK_KEY", "sdk-3ef38a9e-21ff-4ed6-9b04-dc0b0e28f7b2")
-    ldclient.set_config(Config(sdk_key))
+    # বাংলা মন্তব্য: লঞ্চডার্কলি ক্লায়েন্ট কনফিগারেশন এবং অবজারভেবিলিটি প্লাগইন ইনিশিয়ালাইজেশন
+    sdk_key = os.getenv("LAUNCHDARKLY_SDK_KEY", "sdk-85f22e74-cb85-481b-8fd9-bfb2dd5f0e10")
+    ldclient.set_config(Config(
+        sdk_key,
+        plugins=[
+            ObservabilityPlugin(
+                ObservabilityConfig(
+                    service_name="supremeai-langchain-example",
+                    service_version="1.0.0",
+                )
+            )
+        ]
+    ))
     aiclient = LDAIClient(ldclient.get())
     context = Context.builder("user-123").kind("user").build()
     
