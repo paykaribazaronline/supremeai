@@ -10,6 +10,7 @@ import 'reactflow/dist/style.css';
 import './components/admin/AethelCoreStyles.css';
 import AethelNode from './components/admin/AethelNode';
 import RedesignedDashboardMockup from './components/admin/RedesignedDashboardMockup';
+import ErrorBoundary from './components/admin/DashboardErrorBoundary';
 
 function AdminShell() {
   const {
@@ -367,7 +368,11 @@ export const App: React.FC = () => {
   }, []);
 
   if (isAdminMode()) {
-    return <AdminShell />;
+    return (
+      <ErrorBoundary>
+        <AdminShell />
+      </ErrorBoundary>
+    );
   }
 
   const handleSendCustomer = () => {

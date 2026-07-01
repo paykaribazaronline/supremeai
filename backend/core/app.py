@@ -1,6 +1,28 @@
 import logging
+import secrets
 
+from fastapi import Depends
+from fastapi import FastAPI
+from fastapi import HTTPException
+from fastapi import Request
+from fastapi import status
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from fastapi.security import HTTPBasic
+from fastapi.security import HTTPBasicCredentials
 from loguru import logger
+
+from core import lifespan
+from core import services
+from core.admin_routes import router as admin_router
+from core.api_key_middleware import APIKeyAuthMiddleware
+from core.config import settings
+from core.honeypot_middleware import HoneypotMiddleware
+from core.observability_middleware import ObservabilityMiddleware
+from core.rate_limiter import RateLimitMiddleware
+from core.telemetry import setup_tracing
+from middleware.auth_middleware import ZeroTrustAuthMiddleware
+from middleware.idempotency import IdempotencyMiddleware
 
 
 class InterceptHandler(logging.Handler):
@@ -18,84 +40,14 @@ class InterceptHandler(logging.Handler):
         )
 
 
-# স্ট্যান্ডার্ড লগকে লগুরুতে রাউট করার গ্লোবাল ক্লিনআপ
 logging.basicConfig(handlers=[InterceptHandler()], level=0, force=True)
-
-from fastapi import Body
-from fastapi import Depends
-from fastapi import FastAPI
-from fastapi import HTTPException
-from fastapi import status
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.security import HTTPBasic
-from fastapi.security import HTTPBasicCredentials
-
-from core.config import settings
-
 
 security = HTTPBasic()
 
-import secrets
+setup_tracing()
 
 import sentry_sdk
 
-from admin.god import AdminGodLayer
-from api.routes import admin_dashboard_router
-from api.routes import agent_router
-from api.routes import agents_router
-from api.routes import api_keys_router
-from api.routes import async_task_router
-from api.routes import auth_router
-from api.routes import browser_router
-from api.routes import cdc_router
-from api.routes import ci_webhooks_router
-from api.routes import codeflow_router
-from api.routes import config_router
-from api.routes import email_router
-from api.routes import feedback_router
-from api.routes import github_router
-from api.routes import graph_router
-from api.routes import internal_router
-from api.routes import knowledge_router
-from api.routes import markdown_router
-from api.routes import marketplace_router
-from api.routes import media_router
-from api.routes import memory_router
-from api.routes import metrics_router
-from api.routes import onboarding_router
-from api.routes import payments_router
-from api.routes import preferences_router
-from api.routes import repos_router
-from api.routes import simulator_router
-from api.routes import sso_router
-from api.routes import stream_router
-from api.routes import task_router
-from api.routes import tools_ops_router
-from api.routes import tools_registry_router
-from api.routes import usage_metrics_router
-from brain.model_router import ModelRouter
-from core.api_key_middleware import APIKeyAuthMiddleware
-from core.honeypot_middleware import HoneypotMiddleware
-from core.intent import IntentClassifier
-from core.observability_middleware import ObservabilityMiddleware
-
-# Import orchestrator
-from core.orchestrator import Orchestrator
-from core.orchestrator import router as orchestrator_router
-from core.rate_limiter import RateLimitMiddleware
-from core.telemetry import setup_tracing
-from core.upstash_redis_queue import UpstashRedisQueue
-from middleware.auth_middleware import ZeroTrustAuthMiddleware
-from middleware.idempotency import IdempotencyMiddleware
-from models.admin import AdminEasyLoginRequest
-from models.admin import AdminFirebaseLoginRequest
-from models.admin import AdminFirebaseTotpSetupRequest
-from models.admin import AdminFirebaseTotpVerifyRequest
-from models.admin import AdminLoginRequest
-from models.admin import AdminVerifyRequest
-
-
-setup_tracing()
 
 if settings.sentry_dsn:
     try:
@@ -151,7 +103,9 @@ app = FastAPI(
     dependencies=docs_auth_dep,
 )
 
+from core.origin_validator import TrustedOriginMiddleware
 from middleware.chaos_injector import ChaosInjectorMiddleware
+
 
 app.add_middleware(
     CORSMiddleware,
@@ -161,7 +115,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
 app.add_middleware(ChaosInjectorMiddleware)
 app.add_middleware(HoneypotMiddleware)
 app.add_middleware(RateLimitMiddleware, requests_per_minute=120, burst=20)
@@ -169,12 +122,7 @@ app.add_middleware(IdempotencyMiddleware)
 app.add_middleware(ZeroTrustAuthMiddleware)
 app.add_middleware(ObservabilityMiddleware)
 app.add_middleware(APIKeyAuthMiddleware)
-
-from core.origin_validator import TrustedOriginMiddleware
 app.add_middleware(TrustedOriginMiddleware)
-
-from fastapi import Request
-from fastapi.responses import JSONResponse
 
 
 @app.exception_handler(HTTPException)
@@ -189,648 +137,13 @@ async def custom_http_exception_handler(request: Request, exc: HTTPException):
     )
 
 
-from brain.gcp_router import GCPCloudRunRouter
-from brain.parallel_cloud_router import ParallelCloudRouter
-from core.gcp_firestore import GCPFirestoreVerificationQueue
-from core.gcp_firestore import get_firestore_client
-from core.gcp_pubsub_queue import GCPPubSubQueue
-from tools.gcp_cloud_functions import GCPCloudFunctionClient
-
-
-model_router = ModelRouter()
-intent_clf = IntentClassifier()
-admin_god = AdminGodLayer(db_path=settings.admin_rules_db)
-parallel_router = ParallelCloudRouter()
-gcp_router = GCPCloudRunRouter()
-verification_queue = GCPFirestoreVerificationQueue()
-gcp_pubsub_queue = GCPPubSubQueue()
-cloud_function_client = GCPCloudFunctionClient()
-redis_queue = UpstashRedisQueue()
-
-from adaptive_engine.experience_db import ExperienceDatabase
-from adaptive_engine.intent_parser import IntentParser
-from adaptive_engine.platform_learner import PlatformLearner
-from adaptive_engine.registry import PlatformRegistry
-
-
-platform_registry = PlatformRegistry()
-experience_db = ExperienceDatabase()
-intent_parser = IntentParser(model_router)
-platform_learner = PlatformLearner(model_router, platform_registry)
-
-
-from contextlib import asynccontextmanager
-
-import httpx
-
-
-# ব্রাউজার ক্লিনআপ ফাংশন ইম্পোর্ট করা হলো
-try:
-    from tools.browser_agent import shutdown_global_browser
-except ImportError:
-    # Fallback if browser_agent has not been reloaded yet
-    async def shutdown_global_browser():
-        pass
-
-
-global_http_client: httpx.AsyncClient = None
-
-
-async def _ensure_api_key_tables() -> None:
-    from core.pgbouncer_pool import get_db_pool
-
-    pool = await get_db_pool()
-    await pool.execute(
-        """
-        CREATE TABLE IF NOT EXISTS api_keys (
-            id SERIAL PRIMARY KEY,
-            user_id TEXT NOT NULL,
-            name TEXT NOT NULL,
-            key_hash TEXT NOT NULL UNIQUE,
-            key_masked TEXT NOT NULL,
-            key_prefix TEXT NOT NULL,
-            rate_limit_rps INTEGER DEFAULT 6,
-            revoked BOOLEAN DEFAULT FALSE,
-            expires_at INTEGER,
-            last_used_at INTEGER,
-            created_at INTEGER NOT NULL,
-            updated_at INTEGER NOT NULL
-        )
-        """
-    )
-    await pool.execute(
-        """
-        CREATE TABLE IF NOT EXISTS api_key_usage (
-            id SERIAL PRIMARY KEY,
-            api_key_id INTEGER NOT NULL REFERENCES api_keys(id),
-            endpoint TEXT NOT NULL,
-            status_code INTEGER NOT NULL,
-            latency_ms DOUBLE PRECISION NOT NULL DEFAULT 0,
-            ip_address TEXT,
-            created_at INTEGER NOT NULL
-        )
-        """
-    )
-    await pool.execute(
-        """
-        CREATE TABLE IF NOT EXISTS api_key_events (
-            id SERIAL PRIMARY KEY,
-            api_key_id INTEGER NOT NULL REFERENCES api_keys(id),
-            event_type TEXT NOT NULL,
-            details TEXT,
-            ip_address TEXT,
-            created_at INTEGER NOT NULL
-        )
-        """
-    )
-    await pool.execute(
-        "CREATE INDEX IF NOT EXISTS idx_api_keys_hash ON api_keys(key_hash)"
-    )
-    await pool.execute(
-        "CREATE INDEX IF NOT EXISTS idx_api_key_usage_key ON api_key_usage(api_key_id, created_at DESC)"
-    )
-    logger.info("✅ API key tables ensured")
-
-
-@asynccontextmanager
-async def app_lifespan(app: FastAPI):
-    """
-    SupremeAI 2.0 Core Lifespan Manager.
-    Handles high-concurrency initialization and defensive teardowns.
-    """
-    logger.info("🌐 Core Infrastructure Bootstrapping Active...")
-
-    global global_http_client
-    # ১. গ্লোবাল এন্টারপ্রাইজ কানেকশন পুল তৈরি (Socket Leak & Latency Spike Prevention)
-    connection_limits = httpx.Limits(max_keepalive_connections=50, max_connections=200)
-    global_http_client = httpx.AsyncClient(
-        limits=connection_limits,
-        timeout=httpx.Timeout(30.0),
-        headers={"User-Agent": "SupremeAI-Orchestrator/2.0"},
-    )
-    app.state.http_client = global_http_client
-    model_router._http_client = global_http_client
-    logger.info("✅ Global HTTP Connection Pool initialized [Max Cons: 200].")
-
-    try:
-        from core.pgbouncer_pool import get_db_pool
-
-        await get_db_pool()
-        logger.info("PgBouncer connection pool initialized on startup")
-        await _ensure_api_key_tables()
-    except Exception as e:
-        logger.warning(f"PgBouncer pool initialization deferred: {e}")
-
-    # 🔴 Redis Async Connection Pool Initialization
-    try:
-        from core.redis_manager import redis_manager
-        await redis_manager.initialize()
-    except Exception as e:
-        logger.error(f"Failed to initialize Redis Manager: {e}")
-
-    # 🤖 Discord Bot running as a background task in lifespan
-    try:
-        from core.discord_bot import SupremeDiscordBot
-
-        if settings.discord_bot_token and settings.discord_bot_token != "mock_token":
-            bot = SupremeDiscordBot()
-            import asyncio
-
-            app.state.discord_bot_task = asyncio.create_task(
-                bot.start(settings.discord_bot_token)
-            )
-            app.state.discord_bot = bot
-            logger.info("🤖 Discord Bot background task initialized successfully.")
-    except Exception as e:
-        logger.warning(f"Deferred Discord Bot initialization: {e}")
-
-    # ⚙️ Initialize Orchestrator independently to ensure background tasks are scheduled
-    try:
-        orch_inst = Orchestrator()
-        app.state.orchestrator = orch_inst
-        await orch_inst.start()
-        logger.info("⚙️ Orchestrator background tasks initialized successfully.")
-    except Exception as e:
-        logger.error(f"Failed to initialize Orchestrator: {e}")
-
-    # Supabase schema bootstrap
-    try:
-        from database import db as supabase_db
-        if os.environ.get("SUPABASE_DATABASE_URL") or os.environ.get("SUPABASE_DATABASE_URL_POOLER"):
-            supabase_db.bootstrap_schema()
-            logger.info("Supabase schema bootstrap complete")
-    except Exception as exc:
-        logger.warning(f"Supabase bootstrap failed on startup: {exc}. Continuing without schema bootstrap.")
-
-    yield  # ----------------- এখানে অ্যাপ্লিকেশন ট্রাফিক রিসিভ করবে -----------------
-
-    logger.critical(
-        "🚨 Graceful Shutdown Sequence triggered via Cloud Run Orchestrator."
-    )
-
-    # Clean up Discord Bot
-    try:
-        bot = getattr(app.state, "discord_bot", None)
-        if bot:
-            await bot.close()
-            logger.info("✅ Discord Bot connection closed successfully.")
-        # Stop Orchestrator
-        orchestrator = getattr(app.state, "orchestrator", None)
-        if orchestrator:
-            await orchestrator.stop()
-    except Exception as e:
-        logger.error(f"Error closing Discord Bot: {e}")
-
-    # ২. গ্লোবাল HTTP ক্লায়েন্ট কানেকশন পুল রিলিজ
-    try:
-        if global_http_client:
-            await global_http_client.aclose()
-        logger.info("✅ Global HTTP connection pool closed successfully.")
-    except Exception as e:
-        logger.error(f"Error during HTTP connection pool drainage: {str(e)}")
-
-    # ৩. প্লে-রাইট ক্রোমিয়াম ওএস জম্বি প্রসেস কিলিং
-    try:
-        from tools.browser_agent import shutdown_global_browser
-
-        await shutdown_global_browser()
-    except Exception as e:
-        logger.error(f"Failed to shutdown global browser: {e}")
-
-    logger.info("💀 Serverless runtime environment sequence successfully finalized.")
-
-
-app.router.lifespan_context = app_lifespan
-
-
-import base64
-import hashlib
-import hmac
-import os
-import struct
-import time
-
-
-@app.post("/api/admin/login")
-def admin_login(payload: AdminLoginRequest):
-    # বাংলা মন্তব্য: Pydantic স্কিমা ব্যবহার করে পাসওয়ার্ড প্রপার্টি রিড করা হচ্ছে
-    password = payload.password
-    expected_password = settings.docs_password
-    if not expected_password:
-        raise HTTPException(
-            status_code=500, detail="Admin password not configured on server"
-        )
-    if password != expected_password:
-        raise HTTPException(status_code=401, detail="Invalid password")
-
-    totp_secret = os.getenv("SUPREMEAI_ADMIN_TOTP_SECRET")
-    if not totp_secret:
-        raise HTTPException(
-            status_code=500, detail="TOTP secret not configured on server"
-        )
-    return {"status": "otp_required", "message": "Google Authenticator code required."}
-
-
-@app.post("/api/admin/verify")
-def admin_verify(payload: AdminVerifyRequest):
-    # বাংলা মন্তব্য: Pydantic স্কিমা ব্যবহার করে পাসওয়ার্ড ও ওটিপি প্রপার্টি রিড করা হচ্ছে
-    password = payload.password
-    otp = payload.otp
-
-    expected_password = settings.docs_password
-    if not expected_password:
-        raise HTTPException(
-            status_code=500, detail="Admin password not configured on server"
-        )
-    if password != expected_password:
-        raise HTTPException(status_code=401, detail="Invalid password")
-
-    totp_secret = os.getenv("SUPREMEAI_ADMIN_TOTP_SECRET")
-    if not totp_secret:
-        raise HTTPException(
-            status_code=500, detail="TOTP secret not configured on server"
-        )
-
-    def verify_totp_code(user_otp: str, base32_secret: str) -> bool:
-        try:
-            missing_padding = len(base32_secret) % 8
-            if missing_padding:
-                base32_secret += "=" * (8 - missing_padding)
-            key = base64.b32decode(base32_secret.upper())
-
-            # Allow current, previous (-30s), and next (+30s) windows to handle clock drift
-            current_time = int(time.time() // 30)
-            for drift in [-1, 0, 1]:
-                msg = struct.pack(">Q", current_time + drift)
-                h = hmac.new(key, msg, hashlib.sha1).digest()
-                o = h[19] & 15
-                h_num = struct.unpack(">I", h[o : o + 4])[0] & 0x7FFFFFFF
-                code = f"{h_num % 1000000:06d}"
-                if code == user_otp:
-                    return True
-            return False
-        except Exception:
-            return False
-
-    if not otp or not verify_totp_code(otp.strip(), totp_secret):
-        raise HTTPException(status_code=401, detail="Invalid Google Authenticator code")
-
-    # Issue backend session JWT for secure session management
-    from jose import jwt
-
-    jwt_payload = {"uid": "admin", "role": "admin", "exp": int(time.time()) + 3600 * 24}
-    jwt_secret = settings.jwt_secret
-    token = jwt.encode(jwt_payload, jwt_secret, algorithm="HS256")
-    return {"status": "success", "token": token}
-
-
-# --- Agentic Security: Firebase Authentication & Unique TOTP MFA ---
-# Added by Agent Antigravity on 2026-06-21 to enable personalized admin role verification and unique TOTP secrets.
-
-
-# Initialize Firebase Admin SDK — tries multiple credential sources
-try:
-    import firebase_admin
-    from firebase_admin import auth as firebase_auth
-    from firebase_admin import credentials as fb_credentials
-
-    if not firebase_admin._apps:
-        # 1. GOOGLE_APPLICATION_CREDENTIALS env var (path to service account JSON)
-        _gac = os.getenv("GOOGLE_APPLICATION_CREDENTIALS", "")
-        # 2. FIREBASE_SERVICE_ACCOUNT_JSON env var (inline JSON string)
-        _sa_json = os.getenv("FIREBASE_SERVICE_ACCOUNT_JSON", "")
-        # 3. FIREBASE_SERVICE_ACCOUNT_PATH env var (path to JSON file, defaults to service-account.json)
-        _sa_path = os.getenv("FIREBASE_SERVICE_ACCOUNT_PATH") or "service-account.json"
-
-        if _sa_json:
-            import json as _json
-
-            _cred = fb_credentials.Certificate(_json.loads(_sa_json))
-            firebase_admin.initialize_app(_cred)
-            logger.info("Firebase Admin initialized from FIREBASE_SERVICE_ACCOUNT_JSON")
-        elif _sa_path:
-            # Try multiple locations to find the service account file robustly
-            _resolved_path = None
-            for p in [
-                _sa_path,
-                os.path.join("backend", _sa_path),
-                os.path.join("..", _sa_path),
-            ]:
-                # Strip backend/ prefix if we're already inside backend folder to prevent duplicate pathing
-                clean_p = p.replace("backend/backend/", "backend/")
-                if not os.path.exists(clean_p) and clean_p.startswith("backend/"):
-                    clean_p = clean_p[8:]
-                if os.path.exists(clean_p):
-                    _resolved_path = clean_p
-                    break
-
-            if _resolved_path:
-                _cred = fb_credentials.Certificate(_resolved_path)
-                firebase_admin.initialize_app(_cred)
-                logger.info(f"Firebase Admin initialized from file: {_resolved_path}")
-            elif _sa_path != "service-account.json":
-                # Only raise error if they explicitly configured a custom path that wasn't found
-                logger.warning(f"Firebase service account file not found at {_sa_path}")
-                raise RuntimeError(f"Service account file not found: {_sa_path}")
-            elif _gac and os.path.exists(_gac):
-                # Fallback to default credentials if service-account.json was not found
-                firebase_admin.initialize_app()
-                logger.info(
-                    "Firebase Admin initialized via GOOGLE_APPLICATION_CREDENTIALS"
-                )
-            else:
-                logger.warning("Firebase Admin SDK: No credentials found.")
-                raise RuntimeError("No Firebase credentials configured")
-        elif _gac and os.path.exists(_gac):
-            # GOOGLE_APPLICATION_CREDENTIALS is set — SDK picks it up automatically
-            firebase_admin.initialize_app()
-            logger.info("Firebase Admin initialized via GOOGLE_APPLICATION_CREDENTIALS")
-        else:
-            # No credentials found — Firebase verification will be unavailable
-            logger.warning(
-                "Firebase Admin SDK: No credentials found. Set FIREBASE_SERVICE_ACCOUNT_JSON or FIREBASE_SERVICE_ACCOUNT_PATH in .env"
-            )
-            raise RuntimeError("No Firebase credentials configured")
-    auth = firebase_auth
-    logger.info("Firebase Admin SDK ready ✅")
-except Exception as e:
-    logger.warning(f"Firebase Admin SDK not available: {e}")
-    auth = None
-
-
-@app.post("/api/admin/firebase-login")
-def admin_firebase_login(payload: AdminFirebaseLoginRequest):
-    # বাংলা মন্তব্য: Pydantic স্কিমা ব্যবহার করে আইডি টোকেন রিড করা হচ্ছে
-    id_token = payload.id_token
-
-    # ── Easy Login: Decode Google/Firebase ID Token without strict verification for now ──
-    is_production = getattr(settings, "env", "local").lower() == "production"
-
-    try:
-        # বাংলা মন্তব্য: প্রোডাকশন এনভায়রনমেন্টে মক টোকেন বাইপাস সম্পূর্ণ নিষিদ্ধ করা হলো
-        if id_token.startswith("mock-"):
-            if is_production:
-                raise HTTPException(status_code=403, detail="Mock tokens are strictly forbidden in production.")
-            uid = "mock-admin-uid"
-            email = "niloyjoy7@gmail.com"
-            logger.warning(
-                f"Bypassing verification using mock token mode. Token: {id_token[:20]}..."
-            )
-        elif auth:
-            # বাংলা মন্তব্য: যদি ফায়ারবেস অথ এডমিন SDK উপলব্ধ থাকে, তবে সিগনেচার যাচাই করা হবে
-            decoded_token = auth.verify_id_token(id_token)
-            uid = decoded_token.get("uid", decoded_token.get("sub", "mock-admin-uid"))
-            email = decoded_token.get("email", "")
-            logger.info(f"Verified Firebase token for email: {email}")
-        else:
-            # Decode JWT without signature verification (easy mode for local/dev, blocked in production)
-            # বাংলা মন্তব্য: ফায়ারবেস এডমিন SDK না থাকলে প্রোডাকশনে সরাসরি রিজেক্ট করা হবে
-            if is_production:
-                raise HTTPException(status_code=401, detail="Firebase Admin SDK is offline. Cannot authenticate.")
-            
-            import base64
-            import json
-
-            payload_part = id_token.split(".")[1]
-            padded = payload_part + "=" * (4 - len(payload_part) % 4)
-            decoded = base64.b64decode(padded)
-            decoded_token = json.loads(decoded)
-
-            uid = decoded_token.get("sub", "mock-admin-uid")
-            email = decoded_token.get("email", "")
-            logger.info(
-                f"Extracted admin email from token without verification (Dev Mode): {email}"
-            )
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.exception("Token verification/decoding failed")
-        raise HTTPException(
-            status_code=401, detail="Authentication failed"
-        ) from e
-
-    db = get_firestore_client()
-    role = "user"
-    totp_secret = None
-
-    if db:
-        try:
-            doc_ref = db.collection("admin_users").document(uid)
-            doc = doc_ref.get()
-            if doc.exists:
-                data = doc.to_dict()
-                role = data.get("role", "user")
-                totp_secret = data.get("totp_secret")
-            elif email.lower() in [e.lower() for e in settings.admin_emails]:
-                role = "admin"
-                doc_ref.set(
-                    {"email": email, "role": "admin", "created_at": str(time.time())}
-                )
-        except Exception as e:
-            # 🛑 ZERO-GAP: Fail-Closed. ডাটাবেজ ফেইল করলে কখনোই অ্যাডমিন এক্সেস দেওয়া যাবে না।
-            logger.critical(f"Firestore admin lookup failed (Possible DB connection issue/attack): {e}")
-            role = "user"
-    elif email.lower() in [e.lower() for e in settings.admin_emails]:
-        role = "admin"
-    else:
-        role = "user"
-
-    if role != "admin":
-        logger.warning(f"Unauthorized admin access attempt by UID: {uid}, Email: {email}")
-        raise HTTPException(
-            status_code=403, detail="Forbidden: Not authorized as an admin role user"
-        )
-
-    if not totp_secret:
-        return {"status": "totp_setup_required", "uid": uid, "email": email}
-
-    return {"status": "totp_required", "uid": uid}
-
-
-@app.post("/api/admin/firebase-totp-setup")
-def admin_firebase_totp_setup(payload: AdminFirebaseTotpSetupRequest):
-    # বাংলা মন্তব্য: Pydantic স্কিমা ব্যবহার করে আইডি টোকেন রিড করা হচ্ছে
-    id_token = payload.id_token
-
-    try:
-        if id_token.startswith("mock-"):
-            uid = "mock-admin-uid"
-            email = "niloyjoy7@gmail.com"
-        elif auth:
-            # বাংলা মন্তব্য: যদি ফায়ারবেস অথ এডমিন SDK উপলব্ধ থাকে, তবে সিগনেচার যাচাই করা হবে
-            decoded_token = auth.verify_id_token(id_token)
-            uid = decoded_token.get("uid", decoded_token.get("sub", "mock-admin-uid"))
-            email = decoded_token.get("email", "")
-        else:
-            import base64
-            import json
-
-            payload_part = id_token.split(".")[1]
-            padded = payload_part + "=" * (4 - len(payload_part) % 4)
-            decoded_token = json.loads(base64.b64decode(padded))
-            uid = decoded_token.get("sub", "mock-admin-uid")
-            email = decoded_token.get("email", "")
-    except Exception as e:
-        raise HTTPException(
-            status_code=401, detail=f"Token decoding failed: {str(e)}"
-        ) from e
-    # Generate unique 16-char base32 secret key using base64/base32 encoding
-    secret = base64.b32encode(os.urandom(10)).decode("utf-8")
-
-    db = get_firestore_client()
-    if db:
-        try:
-            db.collection("admin_users").document(uid).update(
-                {"temp_totp_secret": secret}
-            )
-        except Exception as e:
-            logger.error(f"Failed to store temp TOTP secret in Firestore: {e}")
-
-    provisioning_uri = (
-        f"otpauth://totp/SupremeAI:{email}?secret={secret}&issuer=SupremeAI"
-    )
-    return {"secret": secret, "provisioning_uri": provisioning_uri}
-
-
-@app.post("/api/admin/firebase-totp-verify")
-def admin_firebase_totp_verify(payload: AdminFirebaseTotpVerifyRequest):
-    # বাংলা মন্তব্য: Pydantic স্কিমা ব্যবহার করে আইডি টোকেন ও ওটিপি রিড করা হচ্ছে
-    id_token = payload.id_token
-    otp = payload.otp
-
-    try:
-        if id_token.startswith("mock-"):
-            uid = "mock-admin-uid"
-        elif auth:
-            # বাংলা মন্তব্য: যদি ফায়ারবেস অথ এডমিন SDK উপলব্ধ থাকে, তবে সিগনেচার যাচাই করা হবে
-            decoded_token = auth.verify_id_token(id_token)
-            uid = decoded_token.get("uid", decoded_token.get("sub", "mock-admin-uid"))
-        else:
-            import base64
-            import json
-
-            payload_part = id_token.split(".")[1]
-            padded = payload_part + "=" * (4 - len(payload_part) % 4)
-            decoded_token = json.loads(base64.b64decode(padded))
-            uid = decoded_token.get("sub", "mock-admin-uid")
-    except Exception as e:
-        raise HTTPException(
-            status_code=401, detail=f"Token decoding failed: {str(e)}"
-        ) from e
-
-    db = get_firestore_client()
-    totp_secret = None
-    temp_totp_secret = None
-
-    if db:
-        try:
-            doc = db.collection("admin_users").document(uid).get()
-            if doc.exists:
-                data = doc.to_dict()
-                totp_secret = data.get("totp_secret")
-                temp_totp_secret = data.get("temp_totp_secret")
-        except Exception as e:
-            logger.error(f"Failed to retrieve TOTP secret: {e}")
-
-    # Verify OTP against our custom RFC 6238 implementation
-    secret_to_use = totp_secret or temp_totp_secret
-    if not secret_to_use:
-        # Fallback to shared dev secret if none exists in Firestore
-        secret_to_use = os.getenv("SUPREMEAI_ADMIN_TOTP_SECRET")
-        if not secret_to_use:
-            raise HTTPException(
-                status_code=500, detail="TOTP secret not configured on server"
-            )
-
-    def check_totp(user_otp: str, base32_secret: str) -> bool:
-        try:
-            missing_padding = len(base32_secret) % 8
-            if missing_padding:
-                base32_secret += "=" * (8 - missing_padding)
-            key = base64.b32decode(base32_secret.upper())
-            current_time = int(time.time() // 30)
-            for drift in [-1, 0, 1]:
-                msg = struct.pack(">Q", current_time + drift)
-                h = hmac.new(key, msg, hashlib.sha1).digest()
-                o = h[19] & 15
-                h_num = struct.unpack(">I", h[o : o + 4])[0] & 0x7FFFFFFF
-                code = f"{h_num % 1000000:06d}"
-                if code == user_otp:
-                    return True
-            return False
-        except Exception:
-            return False
-
-    if not check_totp(otp.strip(), secret_to_use):
-        raise HTTPException(status_code=401, detail="Invalid verification code")
-
-    # Promote temporary secret on successful verification
-    if temp_totp_secret and not totp_secret and db:
-        try:
-            from google.cloud import firestore
-
-            db.collection("admin_users").document(uid).update(
-                {
-                    "totp_secret": temp_totp_secret,
-                    "temp_totp_secret": firestore.DELETE_FIELD,
-                }
-            )
-        except Exception as e:
-            logger.error(f"Failed to promote temp TOTP secret: {e}")
-
-    # Issue backend session JWT
-    from jose import jwt
-
-    jwt_payload = {"uid": uid, "role": "admin", "exp": int(time.time()) + 3600 * 24}
-    jwt_secret = settings.jwt_secret
-    token = jwt.encode(jwt_payload, jwt_secret, algorithm="HS256")
-
-    return {"status": "success", "token": token}
-
-
-@app.post("/api/admin/easy-login")
-def admin_easy_login(payload: AdminEasyLoginRequest):
-    # 🛑 ZERO-GAP: Production Environment Guard (Fail-Closed)
-    # settings.env যদি 'production' হয়, তবে এই এন্ডপয়েন্টটি কাজ করবে না।
-    if getattr(settings, "env", "development") == "production":
-        logger.critical("CRITICAL: Easy-login bypass attempt blocked in production.")
-        raise HTTPException(status_code=403, detail="Endpoint disabled in production environment")
-
-    # বাংলা মন্তব্য: Pydantic স্কিমা ব্যবহার করে লগইন কোড রিড করা হচ্ছে
-    code = payload.code
-    expected_code = os.getenv("SUPREMEAI_ADMIN_CODE")
-
-    if not expected_code:
-        logger.error("SUPREMEAI_ADMIN_CODE is missing in environment variables.")
-        raise HTTPException(status_code=500, detail="Server configuration error")
-
-    # 🛑 ZERO-GAP: Constant-time comparison to prevent Timing Attacks (V5-07 Fix)
-    import secrets
-    if not secrets.compare_digest(code, expected_code):
-        logger.warning("Failed easy-login attempt with invalid code.")
-        raise HTTPException(status_code=401, detail="Invalid authentication code")
-
-    import time
-    from jose import jwt
-
-    jwt_payload = {
-        "uid": "easy-admin-uid",
-        "role": "admin",
-        "exp": int(time.time()) + 3600 * 24,
-    }
-    jwt_secret = settings.jwt_secret
-    token = jwt.encode(jwt_payload, jwt_secret, algorithm="HS256")
-
-    return {"status": "success", "token": token}
-
-
 @app.get("/health")
 async def health():
     redis_ok = False
-    if redis_queue.configured:
+    if services.redis_queue.configured:
         try:
-            redis_queue.set("health", "ok", ex=5)
-            redis_ok = redis_queue.get("health") == "ok"
+            services.redis_queue.set("health", "ok", ex=5)
+            redis_ok = services.redis_queue.get("health") == "ok"
         except Exception:
             redis_ok = False
     else:
@@ -862,106 +175,42 @@ def actuator_health():
     }
 
 
-@app.get("/admin/cloud-distribution")
-def cloud_distribution():
-    return {
-        "distribution": parallel_router.get_distribution_stats(),
-        "total_requests": sum(
-            p["current_requests"] for p in parallel_router.PROVIDERS.values()
-        ),
-        "active_providers": sum(
-            1 for p in parallel_router.PROVIDERS.values() if p["status"] == "active"
-        ),
-        "strategy": "parallel_active_active",
-        "rebalance_interval": "1 hour",
-    }
+from api.routes import admin_dashboard_router
+from api.routes import agent_router
+from api.routes import agents_router
+from api.routes import api_keys_router
+from api.routes import async_task_router
+from api.routes import auth_router
+from api.routes import browser_router
+from api.routes import cdc_router
+from api.routes import ci_webhooks_router
+from api.routes import codeflow_router
+from api.routes import config_router
+from api.routes import email_router
+from api.routes import feedback_router
+from api.routes import github_router
+from api.routes import graph_router
+from api.routes import internal_router
+from api.routes import knowledge_router
+from api.routes import markdown_router
+from api.routes import marketplace_router
+from api.routes import media_router
+from api.routes import memory_router
+from api.routes import metrics_router
+from api.routes import onboarding_router
+from api.routes import payments_router
+from api.routes import preferences_router
+from api.routes import repos_router
+from api.routes import simulator_router
+from api.routes import sso_router
+from api.routes import stream_router
+from api.routes import task_router
+from api.routes import tools_ops_router
+from api.routes import tools_registry_router
+from api.routes import usage_metrics_router
 
 
-# [Antigravity 2026-06-22] Free-tier usage monitoring endpoints
-@app.get("/admin/free-tier-status")
-def free_tier_status():
-    """
-    Returns real-time free-tier usage for all AI providers.
-    Shows RPM/TPM/RPD used vs limits and remaining budget.
-    """
-    from core.free_tier_tracker import get_tracker
-
-    tracker = get_tracker()
-    return tracker.get_status()
-
-
-@app.get("/admin/free-tier-status/{provider}")
-def free_tier_provider_status(provider: str):
-    """Returns free-tier status for a specific provider."""
-    from core.free_tier_tracker import get_tracker
-
-    tracker = get_tracker()
-    status = tracker.get_provider_status(provider)
-    if status is None:
-        from fastapi import HTTPException
-
-        raise HTTPException(
-            status_code=404, detail=f"Provider '{provider}' not tracked"
-        )
-    return status
-
-
-@app.post("/admin/free-tier-pause/{provider}")
-def free_tier_pause_provider(
-    provider: str, payload: dict = Body(default={"seconds": 60})
-):
-    """Manually pause a provider for N seconds (useful after hitting external rate limits)."""
-    from core.free_tier_tracker import get_tracker
-
-    seconds = float(payload.get("seconds", 60))
-    tracker = get_tracker()
-    tracker.mark_rate_limited(provider, pause_seconds=seconds)
-    return {"status": "paused", "provider": provider, "seconds": seconds}
-
-
-@app.post("/admin/free-tier-override/{provider}")
-def free_tier_override_limits(provider: str, payload: dict = Body(...)):
-    """
-    Override free-tier limits for a provider at runtime.
-    Payload example: {"rpm": 50, "rpd": 1000}
-    Useful after upgrading an OpenRouter account ($10 spend → 1000 RPD).
-    """
-    from core.free_tier_tracker import get_tracker
-
-    tracker = get_tracker()
-    tracker.override_limits(provider, payload)
-    return {"status": "updated", "provider": provider, "new_limits": payload}
-
-
-@app.get("/admin/token-budget-stats")
-def token_budget_stats():
-    """Returns token usage and compression stats per provider."""
-    from core.token_budget import get_budget_manager
-
-    manager = get_budget_manager()
-    return manager.get_stats()
-
-
-@app.get("/gcp/health")
-def gcp_health():
-    return {
-        "status": "ok",
-        "cloud_run": gcp_router.health_check(timeout=3),
-        "firestore_mode": verification_queue.provider,
-        "pubsub_mode": gcp_pubsub_queue.provider,
-        "cloud_functions": cloud_function_client.get_config(),
-    }
-
-
-@app.get("/gcp/verification-queue/stats")
-def gcp_verification_queue_stats():
-    return verification_queue.stats()
-
-
-@app.get("/gcp/pubsub/stats")
-def gcp_pubsub_stats():
-    return gcp_pubsub_queue.stats()
-
+app.include_router(admin_router)
 
 if memory_router is not None:
     app.include_router(memory_router)
@@ -1027,11 +276,15 @@ if ci_webhooks_router is not None:
     app.include_router(ci_webhooks_router)
 try:
     from api.routes import websocket_voice_router
+
     if websocket_voice_router is not None:
         app.include_router(websocket_voice_router)
 except Exception as _e:
     logger.warning(f"websocket_voice router not loaded: {_e}")
 # Include Orchestrator router
+from core.orchestrator import router as orchestrator_router
+
+
 if orchestrator_router is not None:
     app.include_router(orchestrator_router)
 
@@ -1111,7 +364,7 @@ try:
 except Exception as _e:
     logger.warning(f"multilingual_tts router not loaded: {_e}")
 
-# বাংলা মন্তব্য: ভয়েস স্ট্রিম রাউটারটি সঠিকভাবে /api/voice প্রিফিক্স সহ লোড এবং রেজিস্টার করা হলো
+# bhasa mourontto: voice streaming router properly loaded with /api/voice prefix
 try:
     from api.routes import voice_router
 
@@ -1142,26 +395,30 @@ except Exception as _e:
     logger.warning(f"tenant_admin router not loaded: {_e}")
 
 from api.routes.mobile_bff import router as mobile_bff_router
+
+
 app.include_router(mobile_bff_router)
 
 # Register Universal BYOC Router
-# বাংলা মন্তব্য: BYOC এডমিন ম্যানেজমেন্ট এপিআই রাউটার রেজিস্টার করা হলো
 try:
     from api.routes.byoc_api import router as byoc_api_router
+
     app.include_router(byoc_api_router)
     logger.info("Universal BYOC management router loaded successfully ✅")
 except Exception as _e:
     import traceback
+
     logger.critical(f"Failed to load Universal BYOC router: {traceback.format_exc()}")
 
 # Register billing API Router
-# বাংলা মন্তব্য: ক্রেডিট ওয়ালেট ও ট্রানজেকশন বিলিং রাউটার রেজিস্টার করা হলো
 try:
     from api.routes.billing_api import router as billing_api_router
+
     app.include_router(billing_api_router)
     logger.info("P2P Credit System billing router loaded successfully ✅")
 except Exception as _e:
     import traceback
+
     logger.critical(f"Failed to load Billing router: {traceback.format_exc()}")
 
 from api.routes.metrics import router as admin_metrics_router
@@ -1176,38 +433,4 @@ try:
 except Exception as _e:
     logger.warning(f"cloud_mesh router not loaded: {_e}")
 
-from core.universal_rules import UniversalRulesEngine
-
-
-rules_engine = UniversalRulesEngine()
-
-
-@app.get("/admin/rules")
-def get_admin_rules():
-    return rules_engine.rules
-
-
-@app.post("/admin/rules")
-def post_admin_rules(payload: dict = Body(...)):
-    new_rules = payload.get("rules")
-    if new_rules:
-        success = rules_engine.save_rules(new_rules)
-        if success:
-            return {"status": "success"}
-    return {"status": "error", "message": "Failed to save rules"}
-
-
-@app.get("/skills")
-def get_skills():
-    return {
-        "web_scraper": {
-            "name": "web_scraper",
-            "version": "1.0.0",
-            "description": "Scrapes website contents using BeautifulSoup.",
-        },
-        "csv_exporter": {
-            "name": "csv_exporter",
-            "version": "1.0.0",
-            "description": "Exports tabular data to CSV using pandas.",
-        },
-    }
+app.router.lifespan_context = lifespan.app_lifespan

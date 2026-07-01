@@ -11,5 +11,19 @@ export default defineConfig({
   ],
   resolve: {
     dedupe: ['react', 'react-dom']
-  }
+  },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'vendor-ui': ['framer-motion', 'lucide-react', 'recharts'],
+          'vendor-flow': ['reactflow'],
+          'vendor-query': ['@tanstack/react-query'],
+        },
+      },
+    },
+    chunkSizeWarningLimit: 600,
+    sourcemap: false,
+  },
+  envPrefix: ['VITE_', 'NEXT_PUBLIC_'],
 })

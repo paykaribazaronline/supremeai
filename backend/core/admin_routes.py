@@ -1,0 +1,459 @@
+import base64
+import hashlib
+import hmac
+import os
+import struct
+import time
+
+from fastapi import APIRouter
+from fastapi import Body
+from fastapi import HTTPException
+from loguru import logger
+
+from core import services
+from core.config import settings
+from core.events import get_firebase_auth
+from core.gcp_firestore import get_firestore_client
+from models.admin import AdminEasyLoginRequest
+from models.admin import AdminFirebaseLoginRequest
+from models.admin import AdminFirebaseTotpSetupRequest
+from models.admin import AdminFirebaseTotpVerifyRequest
+from models.admin import AdminLoginRequest
+from models.admin import AdminVerifyRequest
+
+
+router = APIRouter()
+
+auth = get_firebase_auth()
+
+
+@router.post("/api/admin/login")
+def admin_login(payload: AdminLoginRequest):
+    password = payload.password
+    expected_password = settings.docs_password
+    if not expected_password:
+        raise HTTPException(
+            status_code=500, detail="Admin password not configured on server"
+        )
+    if password != expected_password:
+        raise HTTPException(status_code=401, detail="Invalid password")
+
+    totp_secret = os.getenv("SUPREMEAI_ADMIN_TOTP_SECRET")
+    if not totp_secret:
+        raise HTTPException(
+            status_code=500, detail="TOTP secret not configured on server"
+        )
+    return {"status": "otp_required", "message": "Google Authenticator code required."}
+
+
+@router.post("/api/admin/verify")
+def admin_verify(payload: AdminVerifyRequest):
+    password = payload.password
+    otp = payload.otp
+
+    expected_password = settings.docs_password
+    if not expected_password:
+        raise HTTPException(
+            status_code=500, detail="Admin password not configured on server"
+        )
+    if password != expected_password:
+        raise HTTPException(status_code=401, detail="Invalid password")
+
+    totp_secret = os.getenv("SUPREMEAI_ADMIN_TOTP_SECRET")
+    if not totp_secret:
+        raise HTTPException(
+            status_code=500, detail="TOTP secret not configured on server"
+        )
+
+    if not otp or not verify_totp_code(otp.strip(), totp_secret):
+        raise HTTPException(status_code=401, detail="Invalid Google Authenticator code")
+
+    from jose import jwt
+
+    jwt_payload = {"uid": "admin", "role": "admin", "exp": int(time.time()) + 3600 * 24}
+    jwt_secret = settings.jwt_secret
+    token = jwt.encode(jwt_payload, jwt_secret, algorithm="HS256")
+    return {"status": "success", "token": token}
+
+
+@router.post("/api/admin/firebase-login")
+def admin_firebase_login(payload: AdminFirebaseLoginRequest):
+    id_token = payload.id_token
+    is_production = getattr(settings, "env", "local").lower() == "production"
+
+    try:
+        if id_token.startswith("mock-"):
+            if is_production:
+                raise HTTPException(
+                    status_code=403, detail="Mock tokens are strictly forbidden in production."
+                )
+            uid = "mock-admin-uid"
+            email = "niloyjoy7@gmail.com"
+            logger.warning(
+                f"Bypassing verification using mock token mode. Token: {id_token[:20]}..."
+            )
+        elif auth:
+            decoded_token = auth.verify_id_token(id_token)
+            uid = decoded_token.get("uid", decoded_token.get("sub", "mock-admin-uid"))
+            email = decoded_token.get("email", "")
+            logger.info(f"Verified Firebase token for email: {email}")
+        else:
+            if is_production:
+                raise HTTPException(
+                    status_code=401, detail="Firebase Admin SDK is offline. Cannot authenticate."
+                )
+
+            payload_part = id_token.split(".")[1]
+            padded = payload_part + "=" * (4 - len(payload_part) % 4)
+            decoded = base64.b64decode(padded)
+            decoded_token = __import__("json").loads(decoded)
+
+            uid = decoded_token.get("sub", "mock-admin-uid")
+            email = decoded_token.get("email", "")
+            logger.info(
+                f"Extracted admin email from token without verification (Dev Mode): {email}"
+            )
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.exception("Token verification/decoding failed")
+        raise HTTPException(status_code=401, detail="Authentication failed") from e
+
+    db = get_firestore_client()
+    role = "user"
+    totp_secret = None
+
+    if db:
+        try:
+            doc_ref = db.collection("admin_users").document(uid)
+            doc = doc_ref.get()
+            if doc.exists:
+                data = doc.to_dict()
+                role = data.get("role", "user")
+                totp_secret = data.get("totp_secret")
+            elif email.lower() in [e.lower() for e in settings.admin_emails]:
+                role = "admin"
+                doc_ref.set(
+                    {"email": email, "role": "admin", "created_at": str(time.time())}
+                )
+        except Exception as e:
+            logger.critical(
+                f"Firestore admin lookup failed (Possible DB connection issue/attack): {e}"
+            )
+            role = "user"
+    elif email.lower() in [e.lower() for e in settings.admin_emails]:
+        role = "admin"
+    else:
+        role = "user"
+
+    if role != "admin":
+        logger.warning(f"Unauthorized admin access attempt by UID: {uid}, Email: {email}")
+        raise HTTPException(
+            status_code=403, detail="Forbidden: Not authorized as an admin role user"
+        )
+
+    if not totp_secret:
+        return {"status": "totp_setup_required", "uid": uid, "email": email}
+
+    return {"status": "totp_required", "uid": uid}
+
+
+@router.post("/api/admin/firebase-totp-setup")
+def admin_firebase_totp_setup(payload: AdminFirebaseTotpSetupRequest):
+    id_token = payload.id_token
+
+    try:
+        if id_token.startswith("mock-"):
+            uid = "mock-admin-uid"
+            email = "niloyjoy7@gmail.com"
+        elif auth:
+            decoded_token = auth.verify_id_token(id_token)
+            uid = decoded_token.get("uid", decoded_token.get("sub", "mock-admin-uid"))
+            email = decoded_token.get("email", "")
+        else:
+            payload_part = id_token.split(".")[1]
+            padded = payload_part + "=" * (4 - len(payload_part) % 4)
+            decoded_token = __import__("json").loads(
+                base64.b64decode(padded)
+            )
+            uid = decoded_token.get("sub", "mock-admin-uid")
+            email = decoded_token.get("email", "")
+    except Exception as e:
+        raise HTTPException(
+            status_code=401, detail=f"Token decoding failed: {str(e)}"
+        ) from e
+
+    secret = base64.b32encode(os.urandom(10)).decode("utf-8")
+
+    db = get_firestore_client()
+    if db:
+        try:
+            db.collection("admin_users").document(uid).update({"temp_totp_secret": secret})
+        except Exception as e:
+            logger.error(f"Failed to store temp TOTP secret in Firestore: {e}")
+
+    provisioning_uri = (
+        f"otpauth://totp/SupremeAI:{email}?secret={secret}&issuer=SupremeAI"
+    )
+    return {"secret": secret, "provisioning_uri": provisioning_uri}
+
+
+@router.post("/api/admin/firebase-totp-verify")
+def admin_firebase_totp_verify(payload: AdminFirebaseTotpVerifyRequest):
+    id_token = payload.id_token
+    otp = payload.otp
+
+    try:
+        if id_token.startswith("mock-"):
+            uid = "mock-admin-uid"
+        elif auth:
+            decoded_token = auth.verify_id_token(id_token)
+            uid = decoded_token.get("uid", decoded_token.get("sub", "mock-admin-uid"))
+        else:
+            payload_part = id_token.split(".")[1]
+            padded = payload_part + "=" * (4 - len(payload_part) % 4)
+            decoded_token = __import__("json").loads(
+                base64.b64decode(padded)
+            )
+            uid = decoded_token.get("sub", "mock-admin-uid")
+    except Exception as e:
+        raise HTTPException(
+            status_code=401, detail=f"Token decoding failed: {str(e)}"
+        ) from e
+
+    db = get_firestore_client()
+    totp_secret = None
+    temp_totp_secret = None
+
+    if db:
+        try:
+            doc = db.collection("admin_users").document(uid).get()
+            if doc.exists:
+                data = doc.to_dict()
+                totp_secret = data.get("totp_secret")
+                temp_totp_secret = data.get("temp_totp_secret")
+        except Exception as e:
+            logger.error(f"Failed to retrieve TOTP secret: {e}")
+
+    secret_to_use = totp_secret or temp_totp_secret
+    if not secret_to_use:
+        secret_to_use = os.getenv("SUPREMEAI_ADMIN_TOTP_SECRET")
+        if not secret_to_use:
+            raise HTTPException(
+                status_code=500, detail="TOTP secret not configured on server"
+            )
+
+    if not check_totp(otp.strip(), secret_to_use):
+        raise HTTPException(status_code=401, detail="Invalid verification code")
+
+    if temp_totp_secret and not totp_secret and db:
+        try:
+            from google.cloud import firestore
+
+            db.collection("admin_users").document(uid).update(
+                {
+                    "totp_secret": temp_totp_secret,
+                    "temp_totp_secret": firestore.DELETE_FIELD,
+                }
+            )
+        except Exception as e:
+            logger.error(f"Failed to promote temp TOTP secret: {e}")
+
+    from jose import jwt
+
+    jwt_payload = {"uid": uid, "role": "admin", "exp": int(time.time()) + 3600 * 24}
+    jwt_secret = settings.jwt_secret
+    token = jwt.encode(jwt_payload, jwt_secret, algorithm="HS256")
+
+    return {"status": "success", "token": token}
+
+
+@router.post("/api/admin/easy-login")
+def admin_easy_login(payload: AdminEasyLoginRequest):
+    if getattr(settings, "env", "development") == "production":
+        logger.critical("CRITICAL: Easy-login bypass attempt blocked in production.")
+        raise HTTPException(
+            status_code=403, detail="Endpoint disabled in production environment"
+        )
+
+    code = payload.code
+    expected_code = os.getenv("SUPREMEAI_ADMIN_CODE")
+
+    if not expected_code:
+        logger.error("SUPREMEAI_ADMIN_CODE is missing in environment variables.")
+        raise HTTPException(status_code=500, detail="Server configuration error")
+
+    if not __import__("secrets").compare_digest(code, expected_code):
+        logger.warning("Failed easy-login attempt with invalid code.")
+        raise HTTPException(status_code=401, detail="Invalid authentication code")
+
+    from jose import jwt
+
+    jwt_payload = {
+        "uid": "easy-admin-uid",
+        "role": "admin",
+        "exp": int(time.time()) + 3600 * 24,
+    }
+    jwt_secret = settings.jwt_secret
+    token = jwt.encode(jwt_payload, jwt_secret, algorithm="HS256")
+
+    return {"status": "success", "token": token}
+
+
+@router.get("/admin/cloud-distribution")
+def cloud_distribution():
+    return {
+        "distribution": services.parallel_router.get_distribution_stats(),
+        "total_requests": sum(
+            p["current_requests"] for p in services.parallel_router.PROVIDERS.values()
+        ),
+        "active_providers": sum(
+            1
+            for p in services.parallel_router.PROVIDERS.values()
+            if p["status"] == "active"
+        ),
+        "strategy": "parallel_active_active",
+        "rebalance_interval": "1 hour",
+    }
+
+
+@router.get("/admin/free-tier-status")
+def free_tier_status():
+    from core.free_tier_tracker import get_tracker
+
+    tracker = get_tracker()
+    return tracker.get_status()
+
+
+@router.get("/admin/free-tier-status/{provider}")
+def free_tier_provider_status(provider: str):
+    from fastapi import HTTPException
+
+    from core.free_tier_tracker import get_tracker
+
+    tracker = get_tracker()
+    status = tracker.get_provider_status(provider)
+    if status is None:
+        raise HTTPException(
+            status_code=404, detail=f"Provider '{provider}' not tracked"
+        )
+    return status
+
+
+@router.post("/admin/free-tier-pause/{provider}")
+def free_tier_pause_provider(provider: str, payload: dict = Body(default={"seconds": 60})):
+    from core.free_tier_tracker import get_tracker
+
+    seconds = float(payload.get("seconds", 60))
+    tracker = get_tracker()
+    tracker.mark_rate_limited(provider, pause_seconds=seconds)
+    return {"status": "paused", "provider": provider, "seconds": seconds}
+
+
+@router.post("/admin/free-tier-override/{provider}")
+def free_tier_override_limits(provider: str, payload: dict = Body(...)):
+    from core.free_tier_tracker import get_tracker
+
+    tracker = get_tracker()
+    tracker.override_limits(provider, payload)
+    return {"status": "updated", "provider": provider, "new_limits": payload}
+
+
+@router.get("/admin/token-budget-stats")
+def token_budget_stats():
+    from core.token_budget import get_budget_manager
+
+    manager = get_budget_manager()
+    return manager.get_stats()
+
+
+@router.get("/gcp/health")
+def gcp_health():
+    return {
+        "status": "ok",
+        "cloud_run": services.gcp_router.health_check(timeout=3),
+        "firestore_mode": services.verification_queue.provider,
+        "pubsub_mode": services.gcp_pubsub_queue.provider,
+        "cloud_functions": services.cloud_function_client.get_config(),
+    }
+
+
+@router.get("/gcp/verification-queue/stats")
+def gcp_verification_queue_stats():
+    return services.verification_queue.stats()
+
+
+@router.get("/gcp/pubsub/stats")
+def gcp_pubsub_stats():
+    return services.gcp_pubsub_queue.stats()
+
+
+@router.get("/admin/rules")
+def get_admin_rules():
+    return services.rules_engine.rules
+
+
+@router.post("/admin/rules")
+def post_admin_rules(payload: dict = Body(...)):
+    new_rules = payload.get("rules")
+    if new_rules:
+        success = services.rules_engine.save_rules(new_rules)
+        if success:
+            return {"status": "success"}
+    return {"status": "error", "message": "Failed to save rules"}
+
+
+@router.get("/skills")
+def get_skills():
+    return {
+        "web_scraper": {
+            "name": "web_scraper",
+            "version": "1.0.0",
+            "description": "Scrapes website contents using BeautifulSoup.",
+        },
+        "csv_exporter": {
+            "name": "csv_exporter",
+            "version": "1.0.0",
+            "description": "Exports tabular data to CSV using pandas.",
+        },
+    }
+
+
+def verify_totp_code(user_otp: str, base32_secret: str) -> bool:
+    try:
+        missing_padding = len(base32_secret) % 8
+        if missing_padding:
+            base32_secret += "=" * (8 - missing_padding)
+        key = base64.b32decode(base32_secret.upper())
+        current_time = int(time.time() // 30)
+        for drift in [-1, 0, 1]:
+            msg = struct.pack(">Q", current_time + drift)
+            h = hmac.new(key, msg, hashlib.sha1).digest()
+            o = h[19] & 15
+            h_num = struct.unpack(">I", h[o : o + 4])[0] & 0x7FFFFFFF
+            code = f"{h_num % 1000000:06d}"
+            if code == user_otp:
+                return True
+        return False
+    except Exception:
+        return False
+
+
+def check_totp(user_otp: str, base32_secret: str) -> bool:
+    try:
+        missing_padding = len(base32_secret) % 8
+        if missing_padding:
+            base32_secret += "=" * (8 - missing_padding)
+        key = base64.b32decode(base32_secret.upper())
+        current_time = int(time.time() // 30)
+        for drift in [-1, 0, 1]:
+            msg = struct.pack(">Q", current_time + drift)
+            h = hmac.new(key, msg, hashlib.sha1).digest()
+            o = h[19] & 15
+            h_num = struct.unpack(">I", h[o : o + 4])[0] & 0x7FFFFFFF
+            code = f"{h_num % 1000000:06d}"
+            if code == user_otp:
+                return True
+        return False
+    except Exception:
+        return False
