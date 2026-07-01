@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Play, Activity, Server, AlertTriangle, Monitor, Sparkles, Cpu, Layers } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { RealTimeMetricsPanel } from './RealTimeMetricsPanel';
 
 // বাংলা মন্তব্য: এডমিন ড্যাশবোর্ডের মূল ৬টি প্যানেল গ্রিড লেআউট (Admin Dashboard Home)
 // এটি রেফারেন্স ইমেজ অনুযায়ী রিচ ভিজ্যুয়াল ও ডাটা ইন্ডিকেটর দিয়ে সাজানো হয়েছে।
@@ -78,6 +79,11 @@ export const AdminDashboardHome: React.FC = () => {
           </div>
         </div>
       </section>
+
+      {/* 1.5 Real-Time Metrics Panel (Mini-Grafana) */}
+      <div className="mb-6">
+        <RealTimeMetricsPanel />
+      </div>
 
       {/* 2. MIDDLE ROW: 3 Columns Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">

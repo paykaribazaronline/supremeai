@@ -14,6 +14,9 @@ from core import services
 from core.config import settings
 from core.events import get_firebase_auth
 from core.gcp_firestore import get_firestore_client
+from models.admin import AdminFirebaseLoginRequest
+from models.admin import AdminFirebaseTotpSetupRequest
+from models.admin import AdminFirebaseTotpVerifyRequest
 from models.admin import AdminLoginRequest
 from models.admin import AdminVerifyRequest
 
@@ -71,7 +74,201 @@ def admin_verify(payload: AdminVerifyRequest):
     token = jwt.encode(jwt_payload, jwt_secret, algorithm="HS256")
     return {"status": "success", "token": token}
 
-# বাংলা মন্তব্য: শুধুমাত্র স্ট্যান্ডার্ড ২-স্টেপ পাসওয়ার্ড + TOTP ফ্লোটি সক্রিয় রাখা হয়েছে। অন্যান্য মেথড বাতিল করা হলো।
+# বাংলা মন্তব্য: শুধুমাত্র স্ট্যান্ডার্ড ২-স্টেপ পাসওয়ার্ড + TOTP ফ্লো এবং ৭-ডিজিট ফায়ারবেস অথেনটিকেশন ফ্লোটি সক্রিয় রাখা হয়েছে।
+
+
+@router.post("/api/admin/firebase-login")
+def admin_firebase_login(payload: AdminFirebaseLoginRequest):
+    id_token = payload.id_token
+    is_production = getattr(settings, "env", "local").lower() == "production"
+
+    try:
+        if id_token.startswith("mock-"):
+            if is_production:
+                raise HTTPException(
+                    status_code=403, detail="Mock tokens are strictly forbidden in production."
+                )
+            uid = "mock-admin-uid"
+            email = "niloyjoy7@gmail.com"
+            logger.warning(
+                f"Bypassing verification using mock token mode. Token: {id_token[:20]}..."
+            )
+        elif auth:
+            decoded_token = auth.verify_id_token(id_token)
+            uid = decoded_token.get("uid", decoded_token.get("sub", "mock-admin-uid"))
+            email = decoded_token.get("email", "")
+            logger.info(f"Verified Firebase token for email: {email}")
+        else:
+            if is_production:
+                raise HTTPException(
+                    status_code=401, detail="Firebase Admin SDK is offline. Cannot authenticate."
+                )
+
+            payload_part = id_token.split(".")[1]
+            padded = payload_part + "=" * (4 - len(payload_part) % 4)
+            decoded = base64.b64decode(padded)
+            decoded_token = __import__("json").loads(decoded)
+
+            uid = decoded_token.get("sub", "mock-admin-uid")
+            email = decoded_token.get("email", "")
+            logger.info(
+                f"Extracted admin email from token without verification (Dev Mode): {email}"
+            )
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.exception("Token verification/decoding failed")
+        raise HTTPException(status_code=401, detail="Authentication failed") from e
+
+    db = get_firestore_client()
+    role = "user"
+    totp_secret = None
+
+    if db:
+        try:
+            doc_ref = db.collection("admin_users").document(uid)
+            doc = doc_ref.get()
+            if doc.exists:
+                data = doc.to_dict()
+                role = data.get("role", "user")
+                totp_secret = data.get("totp_secret")
+            elif email.lower() in [e.lower() for e in settings.admin_emails]:
+                role = "admin"
+                doc_ref.set(
+                    {"email": email, "role": "admin", "created_at": str(time.time())}
+                )
+        except Exception as e:
+            logger.critical(
+                f"Firestore admin lookup failed (Possible DB connection issue/attack): {e}"
+            )
+            role = "user"
+    elif email.lower() in [e.lower() for e in settings.admin_emails]:
+        role = "admin"
+    else:
+        role = "user"
+
+    if role != "admin":
+        logger.warning(f"Unauthorized admin access attempt by UID: {uid}, Email: {email}")
+        raise HTTPException(
+            status_code=403, detail="Forbidden: Not authorized as an admin role user"
+        )
+
+    if not totp_secret:
+        return {"status": "totp_setup_required", "uid": uid, "email": email}
+
+    return {"status": "totp_required", "uid": uid}
+
+
+@router.post("/api/admin/firebase-totp-setup")
+def admin_firebase_totp_setup(payload: AdminFirebaseTotpSetupRequest):
+    id_token = payload.id_token
+
+    try:
+        if id_token.startswith("mock-"):
+            uid = "mock-admin-uid"
+            email = "niloyjoy7@gmail.com"
+        elif auth:
+            decoded_token = auth.verify_id_token(id_token)
+            uid = decoded_token.get("uid", decoded_token.get("sub", "mock-admin-uid"))
+            email = decoded_token.get("email", "")
+        else:
+            payload_part = id_token.split(".")[1]
+            padded = payload_part + "=" * (4 - len(payload_part) % 4)
+            decoded_token = __import__("json").loads(
+                base64.b64decode(padded)
+            )
+            uid = decoded_token.get("sub", "mock-admin-uid")
+            email = decoded_token.get("email", "")
+    except Exception as e:
+        raise HTTPException(
+            status_code=401, detail=f"Token decoding failed: {str(e)}"
+        ) from e
+
+    secret = base64.b32encode(os.urandom(10)).decode("utf-8")
+
+    db = get_firestore_client()
+    if db:
+        try:
+            db.collection("admin_users").document(uid).update({"temp_totp_secret": secret})
+        except Exception as e:
+            logger.error(f"Failed to store temp TOTP secret in Firestore: {e}")
+
+    # বাংলা মন্তব্য: ৭ ডিজিটের ওটিপি রিকোয়েস্ট করার জন্য digits=7 যোগ করা হলো
+    provisioning_uri = (
+        f"otpauth://totp/SupremeAI:{email}?secret={secret}&issuer=SupremeAI&digits=7"
+    )
+    return {"secret": secret, "provisioning_uri": provisioning_uri}
+
+
+@router.post("/api/admin/firebase-totp-verify")
+def admin_firebase_totp_verify(payload: AdminFirebaseTotpVerifyRequest):
+    id_token = payload.id_token
+    otp = payload.otp
+
+    try:
+        if id_token.startswith("mock-"):
+            uid = "mock-admin-uid"
+        elif auth:
+            decoded_token = auth.verify_id_token(id_token)
+            uid = decoded_token.get("uid", decoded_token.get("sub", "mock-admin-uid"))
+        else:
+            payload_part = id_token.split(".")[1]
+            padded = payload_part + "=" * (4 - len(payload_part) % 4)
+            decoded_token = __import__("json").loads(
+                base64.b64decode(padded)
+            )
+            uid = decoded_token.get("sub", "mock-admin-uid")
+    except Exception as e:
+        raise HTTPException(
+            status_code=401, detail=f"Token decoding failed: {str(e)}"
+        ) from e
+
+    db = get_firestore_client()
+    totp_secret = None
+    temp_totp_secret = None
+
+    if db:
+        try:
+            doc = db.collection("admin_users").document(uid).get()
+            if doc.exists:
+                data = doc.to_dict()
+                totp_secret = data.get("totp_secret")
+                temp_totp_secret = data.get("temp_totp_secret")
+        except Exception as e:
+            logger.error(f"Failed to retrieve TOTP secret: {e}")
+
+    secret_to_use = totp_secret or temp_totp_secret
+    if not secret_to_use:
+        secret_to_use = os.getenv("SUPREMEAI_ADMIN_TOTP_SECRET")
+        if not secret_to_use:
+            raise HTTPException(
+                status_code=500, detail="TOTP secret not configured on server"
+            )
+
+    # বাংলা মন্তব্য: ৭ ডিজিটের কোড ভেরিফিকেশন করা হবে check_totp মেথডের মাধ্যমে
+    if not check_totp(otp.strip(), secret_to_use):
+        raise HTTPException(status_code=401, detail="Invalid verification code")
+
+    if temp_totp_secret and not totp_secret and db:
+        try:
+            from google.cloud import firestore
+
+            db.collection("admin_users").document(uid).update(
+                {
+                    "totp_secret": temp_totp_secret,
+                    "temp_totp_secret": firestore.DELETE_FIELD,
+                }
+            )
+        except Exception as e:
+            logger.error(f"Failed to promote temp TOTP secret: {e}")
+
+    from jose import jwt
+
+    jwt_payload = {"uid": uid, "role": "admin", "exp": int(time.time()) + 3600 * 24}
+    jwt_secret = settings.jwt_secret
+    token = jwt.encode(jwt_payload, jwt_secret, algorithm="HS256")
+
+    return {"status": "success", "token": token}
 
 
 @router.get("/admin/cloud-distribution")
@@ -195,17 +392,20 @@ def get_skills():
 
 def verify_totp_code(user_otp: str, base32_secret: str) -> bool:
     try:
+        # বাংলা মন্তব্য: বেস-৩২ সিক্রেট কি প্যাডিং ঠিক করা হলো
         missing_padding = len(base32_secret) % 8
         if missing_padding:
             base32_secret += "=" * (8 - missing_padding)
         key = base64.b32decode(base32_secret.upper())
         current_time = int(time.time() // 30)
+        # বাংলা মন্তব্য: ওটিপি ড্র্রিফট উইন্ডো হ্যান্ডেল করা হলো অতিরিক্ত ৩টি স্লটের জন্য
         for drift in [-1, 0, 1]:
             msg = struct.pack(">Q", current_time + drift)
             h = hmac.new(key, msg, hashlib.sha1).digest()
             o = h[19] & 15
             h_num = struct.unpack(">I", h[o : o + 4])[0] & 0x7FFFFFFF
-            code = f"{h_num % 1000000:06d}"
+            # বাংলা মন্তব্য: ৭ ডিজিটের ওটিপি জেনারেট করা হলো এন্টারপ্রাইজ গ্রেড সিকিউরিটির জন্য
+            code = f"{h_num % 10000000:07d}"
             if code == user_otp:
                 return True
         return False
@@ -215,6 +415,7 @@ def verify_totp_code(user_otp: str, base32_secret: str) -> bool:
 
 def check_totp(user_otp: str, base32_secret: str) -> bool:
     try:
+        # বাংলা মন্তব্য: বেস-৩২ সিক্রেট কি প্যাডিং ঠিক করা হলো
         missing_padding = len(base32_secret) % 8
         if missing_padding:
             base32_secret += "=" * (8 - missing_padding)
@@ -225,7 +426,8 @@ def check_totp(user_otp: str, base32_secret: str) -> bool:
             h = hmac.new(key, msg, hashlib.sha1).digest()
             o = h[19] & 15
             h_num = struct.unpack(">I", h[o : o + 4])[0] & 0x7FFFFFFF
-            code = f"{h_num % 1000000:06d}"
+            # বাংলা মন্তব্য: ৭ ডিজিটের ওটিপি জেনারেট করা হলো এন্টারপ্রাইজ গ্রেড সিকিউরিটির জন্য
+            code = f"{h_num % 10000000:07d}"
             if code == user_otp:
                 return True
         return False
