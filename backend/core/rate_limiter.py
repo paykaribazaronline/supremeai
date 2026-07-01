@@ -6,29 +6,35 @@ from loguru import logger
 from starlette.responses import JSONResponse
 
 
+import threading
+
 class RateLimiter:
+    # বাংলা মন্তব্য: মেমরি ভিত্তিক রেট লিমিটারের থ্রেড-সেফটি নিশ্চিত করার জন্য লক ব্যবহার করা হলো
     def __init__(self, requests_per_minute: int = 60, burst: int = 10) -> None:
         self.requests_per_minute = requests_per_minute
         self.burst = burst
         self._hits: dict[str, list[float]] = {}
+        self._lock = threading.Lock()
 
     def _cleanup(self, key: str, now: float) -> None:
         window = 60.0
         self._hits[key] = [t for t in self._hits.get(key, []) if now - t < window]
 
     def is_allowed(self, key: str) -> bool:
-        now = time.time()
-        self._cleanup(key, now)
-        hits = self._hits.setdefault(key, [])
-        if len(hits) >= self.burst:
-            return False
-        hits.append(now)
-        return True
+        with self._lock:
+            now = time.time()
+            self._cleanup(key, now)
+            hits = self._hits.setdefault(key, [])
+            if len(hits) >= self.burst:
+                return False
+            hits.append(now)
+            return True
 
     def remaining(self, key: str) -> int:
-        now = time.time()
-        self._cleanup(key, now)
-        return max(0, self.burst - len(self._hits.get(key, [])))
+        with self._lock:
+            now = time.time()
+            self._cleanup(key, now)
+            return max(0, self.burst - len(self._hits.get(key, [])))
 
 
 class RedisRateLimiter:
@@ -65,8 +71,8 @@ class RedisRateLimiter:
                 return False
             return True
         except Exception as exc:
-            logger.warning(f"Redis rate limit check failed, allowing request: {exc}")
-            return True
+            logger.error(f"Redis rate limit check failed, blocking request: {exc}")
+            return self._fallback_limiter.is_allowed(key)
 
     def remaining(self, key: str) -> int:
         if not self._redis or not self._redis.configured:
@@ -78,7 +84,7 @@ class RedisRateLimiter:
             return max(0, self.burst - count)
         except Exception as exc:
             logger.warning(f"Redis rate limit remaining check failed: {exc}")
-            return self.burst
+            return self._fallback_limiter.remaining(key)
 
 
 class RateLimitMiddleware:

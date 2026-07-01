@@ -1,17 +1,20 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import type { AdminSubTab, GcpHealth, CloudStats } from '../../types';
 import { SubTabContent } from './AdminSubTabContent';
 import { AdminTopNav } from './AdminTopNav';
-import { 
-  Search, 
-  LayoutDashboard, 
-  FileCode, 
-  GitMerge, 
-  Server, 
-  BarChart3, 
-  Users, 
+import {
+  Search,
+  LayoutDashboard,
+  FileCode,
+  GitMerge,
+  Server,
+  BarChart3,
+  Users,
   Settings,
-  Terminal
+  Terminal,
+  Shield,
+  BrainCircuit,
+  HardDrive
 } from 'lucide-react';
 
 interface AuthenticatedViewProps {
@@ -57,8 +60,17 @@ interface AuthenticatedViewProps {
   toggleTheme: () => void;
 }
 
-// বাংলা মন্তব্য: সুপ্রিম গড মোড অথেনটিকেটেড লেআউট (Authenticated Dashboard Layout)
-// এটি ওপরের টপ নেভিগেশন বার, বাম পাশের ৭-আইটেম সাইডবার এবং মূল কন্টেন্ট প্যানেল যুক্ত করে রিডিজাইন করা হয়েছে।
+/**
+ * Supreme God Mode - Authenticated Layout (Redesigned)
+ * This component implements the vision from the SUPREMEAI_GOD_CONTROL_CENTER_PLAN.md,
+ * featuring a top navigation bar, a multi-module sidebar, and a main content panel.
+ * It also integrates a command palette for quick navigation.
+ *
+ * বাংলা মন্তব্য: সুপ্রিম গড মোড অথেনটিকেটেড লেআউট (পুনঃডিজাইনকৃত)
+ * এই কম্পোনেন্টটি SUPREMEAI_GOD_CONTROL_CENTER_PLAN.md-এর পরিকল্পনাকে বাস্তবায়ন করে।
+ * এতে একটি টপ নেভিগেশন বার, একাধিক মডিউলসহ সাইডবার এবং মূল কন্টেন্ট প্যানেল রয়েছে।
+ * দ্রুত নেভিগেশনের জন্য একটি কমান্ড প্যালেটও যুক্ত করা হয়েছে।
+ */
 export function AuthenticatedView(props: AuthenticatedViewProps) {
   const { adminSubTab, setAdminSubTab, handleAdminLogout } = props;
   const [isPaletteOpen, setIsPaletteOpen] = useState(false);
@@ -79,16 +91,18 @@ export function AuthenticatedView(props: AuthenticatedViewProps) {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isPaletteOpen]);
 
-  // ৭টি ড্যাশবোর্ড সাইডবার আইটেম (রেফারেন্স ইমেজ অনুযায়ী) + ১টি নতুন ইন্টারেক্টিভ চ্যাট ট্যাব
+  // As per SUPREMEAI_GOD_CONTROL_CENTER_PLAN.md, the sidebar is module-driven.
   const sidebarItems = [
     { id: 'dashboard', label: 'DASHBOARD', icon: <LayoutDashboard size={16} /> },
-    { id: 'interactive-chat', label: 'INTERACTIVE CHAT', icon: <Terminal size={16} /> },
-    { id: 'model-router', label: 'MODEL REGISTRY', icon: <FileCode size={16} /> },
-    { id: 'cicd', label: 'WORKFLOWS', icon: <GitMerge size={16} /> },
-    { id: 'cloud', label: 'COMPUTING', icon: <Server size={16} /> },
-    { id: 'observability', label: 'ANALYTICS', icon: <BarChart3 size={16} /> },
-    { id: 'users', label: 'AGENTS', icon: <Users size={16} /> },
+    { id: 'model-router', label: 'AI CORE', icon: <BrainCircuit size={16} /> },
+    { id: 'skills', label: 'SKILLS & AGENTS', icon: <Users size={16} /> },
+    { id: 'memory', label: 'MEMORY', icon: <HardDrive size={16} /> },
+    { id: 'cloud', label: 'INFRASTRUCTURE', icon: <Server size={16} /> },
+    { id: 'cicd', label: 'DEPLOYMENTS', icon: <GitMerge size={16} /> },
+    { id: 'observability', label: 'OBSERVABILITY', icon: <BarChart3 size={16} /> },
+    { id: 'threats', label: 'SECURITY', icon: <Shield size={16} /> },
     { id: 'config', label: 'SETTINGS', icon: <Settings size={16} /> },
+    { id: 'interactive-chat', label: 'TERMINAL', icon: <Terminal size={16} /> },
   ];
 
   // কমান্ড প্যালেট অপশনসমূহ
@@ -115,7 +129,7 @@ export function AuthenticatedView(props: AuthenticatedViewProps) {
     { id: 'security-dashboard', label: '🧠 Security & Memory Dashboard' }
   ];
 
-  const filteredOptions = navigationOptions.filter(opt => 
+  const filteredOptions = navigationOptions.filter(opt =>
     opt.label.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
@@ -126,9 +140,9 @@ export function AuthenticatedView(props: AuthenticatedViewProps) {
 
       {/* নিচের অংশ: সাইডবার + মূল কন্টেন্ট */}
       <div className="flex-1 flex overflow-hidden relative">
-        
+
         {/* ২. বাম পাশের নেভিগেশন সাইডবার */}
-        <aside className="w-64 bg-[#040814]/90 border-r border-[#00f3ff]/15 flex flex-col justify-between py-6 font-sans text-slate-400 select-none z-20">
+        <aside className="w-56 bg-[#040814]/90 border-r border-[#00f3ff]/15 flex flex-col justify-between py-6 font-sans text-slate-400 select-none z-20">
           <div className="space-y-1 px-3">
             {sidebarItems.map(item => {
               const isActive = adminSubTab === item.id;
@@ -136,11 +150,10 @@ export function AuthenticatedView(props: AuthenticatedViewProps) {
                 <button
                   key={item.id}
                   onClick={() => setAdminSubTab(item.id as AdminSubTab)}
-                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-xs font-semibold tracking-wider transition-all duration-300 ${
-                    isActive 
-                      ? 'bg-[#00f3ff]/10 text-[#00f3ff] border-l-2 border-[#00f3ff] shadow-[inset_0_0_12px_rgba(0,243,255,0.05)]' 
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-xs font-semibold tracking-wider transition-all duration-300 ${isActive
+                      ? 'bg-[#00f3ff]/10 text-[#00f3ff] border-l-2 border-[#00f3ff] shadow-[inset_0_0_12px_rgba(0,243,255,0.05)]'
                       : 'hover:bg-slate-900/50 hover:text-slate-200'
-                  }`}
+                    }`}
                 >
                   <span className={isActive ? 'text-[#00f3ff]' : 'text-slate-500'}>
                     {item.icon}
@@ -155,9 +168,8 @@ export function AuthenticatedView(props: AuthenticatedViewProps) {
           <div className="px-6 border-t border-slate-900 pt-4">
             <button
               onClick={() => setAdminSubTab('command-center')}
-              className={`w-full flex items-center justify-center gap-2 px-3 py-2 rounded border border-[#00f3ff]/30 text-[#00f3ff] hover:bg-[#00f3ff]/10 text-xs font-mono font-bold tracking-widest uppercase transition-all duration-300 ${
-                adminSubTab === 'command-center' ? 'bg-[#00f3ff]/20' : ''
-              }`}
+              className={`w-full flex items-center justify-center gap-2 px-3 py-2 rounded border border-[#00f3ff]/30 text-[#00f3ff] hover:bg-[#00f3ff]/10 text-xs font-mono font-bold tracking-widest uppercase transition-all duration-300 ${adminSubTab === 'command-center' ? 'bg-[#00f3ff]/20' : ''
+                }`}
             >
               <Terminal size={14} />
               <span>Core Canvas</span>
@@ -199,9 +211,8 @@ export function AuthenticatedView(props: AuthenticatedViewProps) {
                     setIsPaletteOpen(false);
                     setSearchQuery('');
                   }}
-                  className={`w-full text-left px-4 py-3 rounded-lg font-mono transition-colors flex items-center gap-3 ${
-                    i === 0 && searchQuery ? 'bg-[#00f3ff]/10 text-[#00f3ff]' : 'hover:bg-white/5 text-slate-300'
-                  }`}
+                  className={`w-full text-left px-4 py-3 rounded-lg font-mono transition-colors flex items-center gap-3 ${i === 0 && searchQuery ? 'bg-[#00f3ff]/10 text-[#00f3ff]' : 'hover:bg-white/5 text-slate-300'
+                    }`}
                 >
                   {opt.label}
                 </button>

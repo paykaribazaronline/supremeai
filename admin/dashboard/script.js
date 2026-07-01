@@ -144,6 +144,28 @@ document.getElementById('toggleAdminAuth').addEventListener('change', async (e) 
     }
 });
 
+// বাংলা মন্তব্য: AI Auto-Fix ইঞ্জিনের অনুমতি পরিবর্তনের জন্য ইভেন্ট লিসেনার যুক্ত করা হলো
+document.getElementById('toggleAutoFix').addEventListener('change', async (e) => {
+    const isEnabled = e.target.checked;
+    if (confirm(isEnabled ? "ENABLE AI Auto-Fix Engine?" : "DISABLE AI Auto-Fix Engine?")) {
+        try {
+            const res = await fetch(`${API_BASE}/api/admin/rules`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ key: 'autofix_authorized', value: isEnabled ? 'true' : 'false' })
+            });
+            if(!res.ok) throw new Error('Backend rejected rule change');
+            console.log(`[SupremeAI] Rule 'autofix_authorized' synced to: ${isEnabled}`);
+        } catch (error) {
+            alert('❌ Failed to update constitutional rule in god.py');
+            e.target.checked = !isEnabled; // Revert switch
+        }
+    } else {
+        e.target.checked = !isEnabled;
+    }
+});
+
+
 // Auto-Refresh Binding
 document.getElementById('btnRefresh').addEventListener('click', () => {
     fetchLiveJobs();

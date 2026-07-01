@@ -53,7 +53,7 @@ export const RateLimitManager: React.FC = () => {
     setLoading(true);
     try {
       const resp = await fetch(`${API_BASE}/admin/tenant-limits`, {
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('admin_token') || ''}` }
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('supremeai_supremeai_admin_token') || ''}` }
       });
       if (resp.ok) {
         const data = await resp.json();
@@ -91,7 +91,7 @@ export const RateLimitManager: React.FC = () => {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('admin_token') || ''}`,
+          'Authorization': `Bearer ${localStorage.getItem('supremeai_admin_token') || ''}`,
         },
         body: JSON.stringify(editValues),
       });
@@ -120,7 +120,7 @@ export const RateLimitManager: React.FC = () => {
     try {
       await fetch(`${API_BASE}/admin/tenant-limits`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('admin_token') || ''}` },
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('supremeai_admin_token') || ''}` },
         body: JSON.stringify(record),
       });
     } catch (e) {

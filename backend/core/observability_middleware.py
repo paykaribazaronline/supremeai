@@ -28,11 +28,16 @@ class ObservabilityMiddleware:
         headers = scope.get("headers", [])
         trace_id = ""
         user_id = "anonymous_api_user"
+        authenticated_user = None
         for k, v in headers:
             if k.lower() in (b"x-trace-id", b"traceparent"):
                 trace_id = v.decode("utf-8")
             elif k.lower() == b"x-user-id":
-                user_id = v.decode("utf-8")
+                continue
+        if "state" in scope and hasattr(scope.get("state", object()), "user"):
+            authenticated_user = scope["state"].user if hasattr(scope.get("state"), "user") else None
+        if authenticated_user:
+            user_id = authenticated_user.get("sub") or authenticated_user.get("user_id") or user_id
 
         if not trace_id:
             trace_id = f"00-{uuid.uuid4().hex}-0000000000000001-01"

@@ -9,9 +9,8 @@ from skills.marketplace import SkillMarketplace
 
 class SkillLoader:
     # Centralize security configuration for clarity and reusability.
-    BANNED_IMPORTS = {"os", "sys", "subprocess", "shutil", "socket", "pty"}
-    # Added 'open' to prevent arbitrary file I/O.
-    BANNED_BUILTINS = {"eval", "exec", "compile", "__import__", "getattr", "setattr", "delattr", "globals", "locals", "open"}
+    BANNED_IMPORTS = {"os", "sys", "subprocess", "shutil", "socket", "pty", "importlib", "code", "runpy", "pickle", "marshal", "tempfile", "urllib", "http", "requests", "ctypes", "__builtins__"}
+    BANNED_BUILTINS = {"eval", "exec", "compile", "__import__", "getattr", "setattr", "delattr", "globals", "locals", "open", "input", "breakpoint"}
 
     """Dynamically discovers and loads skill modules at runtime."""
     def __init__(self, registry: SkillRegistry = None, installer: SkillInstaller = None):

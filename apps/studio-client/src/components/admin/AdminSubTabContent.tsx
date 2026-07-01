@@ -1,5 +1,5 @@
 import type { AdminSubTab, ChatMessage } from '../../types';
-import { CommandCenter, LiveLogs, CostAuditor, HealthMap, UserManager, ConfigEditor, ModelRouter, EnhancedSkillMarketplace, MemoryBrowser, CloudOrchestrator, ObservabilityDashboard, ThreatDetection, VisualRulesBuilder, CICDVisualizer, GithubIntegration, BackupRestore, SecurityDashboard } from '.';
+import { CommandCenter, LiveLogs, CostAuditor, HealthMap, UserManager, ConfigEditor, ModelRouter, EnhancedSkillMarketplace, MemoryBrowser, CloudOrchestrator, ObservabilityDashboard, ThreatDetection, VisualRulesBuilder, CICDVisualizer, GithubIntegration, BackupRestore, SecurityDashboard, RedesignedDashboardMockup } from '.';
 import { RateLimitManager } from './RateLimitManager';
 import { AdminDashboardHome } from './AdminDashboardHome';
 // বাংলা মন্তব্য: ইন্টারেক্টিভ চ্যাট ট্যাব ইম্পোর্ট করা হলো
@@ -45,8 +45,9 @@ export function SubTabContent(props: SubTabContentProps) {
   return (
     <div className="flex-1 flex flex-col overflow-hidden bg-[var(--bg-main)] relative transition-colors duration-500">
       {/* Background Canvas or Dashboard Home always rendered */}
+      {/* বাংলা মন্তব্য: লেগ্যাসি ড্যাশবোর্ড হোমের পরিবর্তে নতুন রিডিজাইনকৃত মকআপ রেন্ডার করা হচ্ছে */}
       <div className={`absolute inset-0 transition-opacity duration-300 ${isOverlayOpen ? 'opacity-40 pointer-events-none' : 'opacity-100'}`}>
-        {adminSubTab === 'command-center' ? <CommandCenter /> : <AdminDashboardHome />}
+        {adminSubTab === 'command-center' ? <CommandCenter /> : <RedesignedDashboardMockup />}
       </div>
 
       {/* Glassmorphic Modal Overlay for other modules */}

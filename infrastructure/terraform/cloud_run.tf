@@ -71,17 +71,4 @@ resource "google_cloud_run_service" "api" {
   }
 }
 
-data "google_iam_policy" "noauth" {
-  binding {
-    role = "roles/run.invoker"
-    members = [
-      "allUsers",
-    ]
-  }
-}
 
-resource "google_cloud_run_service_iam_policy" "public" {
-  service  = google_cloud_run_service.api.name
-  location = google_cloud_run_service.api.location
-  policy   = data.google_iam_policy.noauth.policy
-}

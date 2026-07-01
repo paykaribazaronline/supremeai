@@ -15,6 +15,8 @@ import { CICDVisualizer } from './CICDVisualizer';
 import { GithubIntegration } from './GithubIntegration';
 import { BackupRestore } from './BackupRestore';
 import { SecurityDashboard } from './SecurityDashboard';
+// বাংলা মন্তব্য: রিডিজাইনকৃত ককপিট ড্যাশবোর্ড মকআপ ইম্পোর্ট করা হলো
+import RedesignedDashboardMockup from './RedesignedDashboardMockup';
 
 export {
   CommandCenter,
@@ -34,4 +36,5 @@ export {
   GithubIntegration,
   BackupRestore,
   SecurityDashboard,
+  RedesignedDashboardMockup,
 };

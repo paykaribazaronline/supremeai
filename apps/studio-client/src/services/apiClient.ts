@@ -4,7 +4,7 @@
 const API_BASE_URL = import.meta.env.VITE_API_BASE || 'http://localhost:8000';
 
 export const getAuthHeaders = (): Record<string, string> => {
-  const token = localStorage.getItem('supremeai_admin_token') || localStorage.getItem('token') || '';
+  const token = localStorage.getItem('supremeai_admin_token') || '';
   return {
     'Content-Type': 'application/json',
     'Authorization': token ? `Bearer ${token}` : '',

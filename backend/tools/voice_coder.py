@@ -9,6 +9,8 @@ from fastapi import WebSocket
 from fastapi import WebSocketDisconnect
 from loguru import logger
 
+from core.upload_validator import validate_upload
+
 
 router = APIRouter(prefix="/voice", tags=["voice-coder"])
 
@@ -108,6 +110,7 @@ voice_coder = VoiceCoder()
 @router.post("/process-audio")
 async def process_audio(file: UploadFile = File(...)):
     """Upload an audio file and get code generated from it."""
+    await validate_upload(file)
     try:
         suffix = os.path.splitext(file.filename or "audio.wav")[1] or ".wav"
         with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:

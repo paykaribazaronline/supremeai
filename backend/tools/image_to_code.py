@@ -9,6 +9,8 @@ from fastapi import HTTPException
 from fastapi import UploadFile
 from loguru import logger
 
+from core.upload_validator import validate_upload
+
 
 router = APIRouter(prefix="/tools", tags=["tools", "image-to-code"])
 
@@ -112,6 +114,7 @@ async def api_image_to_code(
     styling: str = Form("tailwind"),
 ):
     try:
+        await validate_upload(file)
         contents = await file.read()
         if not contents:
             raise HTTPException(status_code=400, detail="Empty file provided")

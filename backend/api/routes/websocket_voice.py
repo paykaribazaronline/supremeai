@@ -6,13 +6,18 @@ import httpx
 from fastapi import APIRouter
 from fastapi import WebSocket
 from fastapi import WebSocketDisconnect
+from fastapi import status
+from fastapi import Query
+from jose import JWTError
 
 from core.config import settings
+from core.security import verify_token
 from database.supabase_client import db
 from models.voice_interaction import VoiceInteractionLog
 
 
 router = APIRouter(prefix="/ws", tags=["Voice Engine Stream"])
+
 
 class VoiceConnectionManager:
     def __init__(self):
@@ -27,6 +32,15 @@ class VoiceConnectionManager:
         if websocket in self.active_connections:
             self.active_connections.remove(websocket)
         print("🔴 [WS] Voice Client Disconnected.")
+
+    async def _authenticate(self, websocket: WebSocket) -> dict | None:
+        token = websocket.query_params.get("token")
+        if not token:
+            return None
+        try:
+            return verify_token(token)
+        except Exception:
+            return None
 
 manager = VoiceConnectionManager()
 
@@ -95,13 +109,21 @@ async def handle_intent(transcript: str, websocket: WebSocket, start_time: float
     await websocket.send_json({"type": "response_complete"})
 
 @router.websocket("/voice")
-async def websocket_voice_endpoint(websocket: WebSocket):
+async def websocket_voice_endpoint(
+    websocket: WebSocket,
+    token: str | None = Query(default=None),
+):
     """
     Real-time WebSocket for Voice-to-Voice Streaming.
     Receives binary audio chunks, uses Groq Whisper for STT, and returns the response.
     """
+    auth_payload = await manager._authenticate(websocket)
+    if not auth_payload:
+        await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
+        return
+
     await manager.connect(websocket)
-    
+
     # Store audio chunks in memory
     audio_buffer = bytearray()
     start_time = time.time()
@@ -110,7 +132,7 @@ async def websocket_voice_endpoint(websocket: WebSocket):
         while True:
             # We accept both text (commands like {"action": "process"}) and binary (audio chunks)
             message = await websocket.receive()
-            
+
             if "bytes" in message:
                 # Append binary chunk to buffer
                 audio_buffer.extend(message["bytes"])
@@ -118,38 +140,38 @@ async def websocket_voice_endpoint(websocket: WebSocket):
                 try:
                     payload = json.loads(message["text"])
                     action = payload.get("action")
-                    
+
                     if action == "process":
                         if len(audio_buffer) == 0:
                             await websocket.send_json({"error": "Empty audio buffer"})
                             continue
-                            
+
                         # 1. Process STT using Groq
                         print(f"🎙️ [WS] Processing audio buffer ({len(audio_buffer)} bytes)...")
                         transcript = await process_audio_with_groq(bytes(audio_buffer))
                         print(f"🗣️ [User Voice]: {transcript}")
-                        
+
                         # Clear buffer for next recording
                         audio_buffer.clear()
-                        
+
                         # Send transcript to UI
                         await websocket.send_json({"type": "transcript", "text": transcript})
-                        
+
                         # 2. Intent Router
                         await handle_intent(transcript, websocket, start_time)
                         start_time = time.time() # Reset timer
-                        
+
                     elif action == "text_chat":
                         transcript = payload.get("text", "")
                         print(f"💬 [User Text]: {transcript}")
-                        
+
                         # Process text intent directly
                         await handle_intent(transcript, websocket, start_time)
                         start_time = time.time() # Reset timer
-                        
+
                 except json.JSONDecodeError:
                     print("⚠️ [WS] Received invalid text message.")
-                    
+
     except WebSocketDisconnect:
         manager.disconnect(websocket)
     except Exception as e:

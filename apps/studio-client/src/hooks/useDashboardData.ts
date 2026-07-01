@@ -100,3 +100,39 @@ export function useUpdateRules() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ['dashboard'] }),
   });
 }
+
+export interface DashboardEvent {
+  timestamp: string;
+  level: string;
+  message: string;
+  source: string;
+}
+
+export interface ReportsResponse {
+  reports: string[];
+}
+
+export interface ReportDetail {
+  name: string;
+  content: string;
+}
+
+// বাংলা মন্তব্য: রিয়েল-টাইম ইভেন্ট ডেটা ফেচ করার জন্য রিয়্যাক্ট কোয়েরি হুক
+export function useDashboardEvents(limit = 50, intervalMs = 10000) {
+  return useQuery({
+    queryKey: ['dashboard', 'events', limit],
+    queryFn: () => apiClient.get<DashboardEvent[]>(`/admin-api/events?limit=${limit}`),
+    refetchInterval: intervalMs,
+  });
+}
+
+// বাংলা মন্তব্য: দৈনিক রিপোর্ট ও তার কন্টেন্ট রিট্রিভ করার জন্য রিয়্যাক্ট কোয়েরি হুক
+export function useDashboardReports(reportName?: string) {
+  return useQuery({
+    queryKey: ['dashboard', 'reports', reportName],
+    queryFn: () => {
+      const url = reportName ? `/admin-api/reports?report_name=${reportName}` : '/admin-api/reports';
+      return apiClient.get<any>(url);
+    },
+  });
+}

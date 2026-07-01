@@ -1,5 +1,6 @@
 import sqlite3
 import time
+import threading
 from pathlib import Path
 from typing import Optional
 
@@ -16,6 +17,7 @@ class AdminGodLayer:
     def __init__(self, db_path: str):
         self.db_path = Path(db_path)
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
+        self.sqlite_lock = threading.Lock()
         import os
         self.use_firestore = os.getenv("USE_FIRESTORE", "true").lower() == "true"
         if self.use_firestore:
@@ -41,8 +43,13 @@ class AdminGodLayer:
                 """
             )
             conn.commit()
+            # বাংলা মন্তব্য: admin_authorized নিয়মের মতো autofix_authorized নিয়মের ডিফল্ট মান 'true' সেট করা হচ্ছে।
             if not self.get_rule("admin_authorized"):
                 self.set_rule("admin_authorized", "true")
+            if not self.get_rule("autofix_authorized"):
+                self.set_rule("autofix_authorized", "true")
+            if not self.get_rule("autofix_reporting_authorized"):
+                self.set_rule("autofix_reporting_authorized", "true")
 
     def get_rule(self, key: str, default: Optional[str] = None) -> Optional[str]:
         if self.use_firestore:
@@ -53,10 +60,12 @@ class AdminGodLayer:
             except Exception as e:
                 logger.error(f"Firestore get_rule failed: {e}")
         
-        with sqlite3.connect(self.db_path, check_same_thread=False) as conn:
-            cur = conn.execute("SELECT value FROM rules WHERE key = ?", (key,))
-            row = cur.fetchone()
-            return row[0] if row else default
+        # বাংলা মন্তব্য: রিড করার সময় কনকারেন্ট রাইট অপারেশনের সংঘাত এড়াতে লক ব্যবহার করা হলো
+        with self.sqlite_lock:
+            with sqlite3.connect(self.db_path, check_same_thread=False) as conn:
+                cur = conn.execute("SELECT value FROM rules WHERE key = ?", (key,))
+                row = cur.fetchone()
+                return row[0] if row else default
 
     def set_rule(self, key: str, value: str) -> None:
         if self.use_firestore:
@@ -70,16 +79,17 @@ class AdminGodLayer:
             except Exception as e:
                 logger.error(f"Firestore set_rule failed: {e}. Falling back to SQLite.")
 
-        with sqlite3.connect(self.db_path, check_same_thread=False) as conn:
-            conn.execute(
-                """
-                INSERT INTO rules(key, value, updated_at)
-                VALUES(?, ?, ?)
-                ON CONFLICT(key) DO UPDATE SET value=excluded.value, updated_at=excluded.updated_at
-                """,
-                (key, value, time.time()),
-            )
-            conn.commit()
+        with self.sqlite_lock:
+            with sqlite3.connect(self.db_path, check_same_thread=False) as conn:
+                conn.execute(
+                    """
+                    INSERT INTO rules(key, value, updated_at)
+                    VALUES(?, ?, ?)
+                    ON CONFLICT(key) DO UPDATE SET value=excluded.value, updated_at=excluded.updated_at
+                    """,
+                    (key, value, time.time()),
+                )
+                conn.commit()
         logger.info(f"Constitutional rule updated in SQLite: {key} = {value}")
 
     def is_admin_action_allowed(self, action: str) -> bool:

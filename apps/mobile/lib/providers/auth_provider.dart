@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import '../services/api_service.dart';
 
@@ -28,13 +29,14 @@ class AuthProvider with ChangeNotifier {
     _checkAuth();
   }
 
+  static const _secureStorage = FlutterSecureStorage();
+
   Future<void> _checkAuth() async {
     _status = AuthStatus.authenticating;
     notifyListeners();
 
     try {
-      final prefs = await SharedPreferences.getInstance();
-      _token = prefs.getString('auth_token');
+      _token = await _secureStorage.read(key: 'auth_token');
 
       if (_token != null) {
         // Fetch user profile from backend
@@ -44,11 +46,12 @@ class AuthProvider with ChangeNotifier {
           _status = AuthStatus.authenticated;
         } else {
           // Token invalid, clear
-          await prefs.clear();
+          await _secureStorage.delete(key: 'auth_token');
           _token = null;
           _status = AuthStatus.unauthenticated;
         }
       } else {
+        final prefs = await SharedPreferences.getInstance();
         final isGuest = prefs.getBool('is_guest') ?? false;
         _status = isGuest ? AuthStatus.guest : AuthStatus.unauthenticated;
       }
@@ -76,9 +79,8 @@ class AuthProvider with ChangeNotifier {
         _status = AuthStatus.authenticated;
         notifyListeners();
 
-        final prefs = await SharedPreferences.getInstance();
         if (_token != null) {
-          await prefs.setString('auth_token', _token!);
+          await _secureStorage.write(key: 'auth_token', value: _token!);
         }
         return true;
       } else {
@@ -132,9 +134,8 @@ class AuthProvider with ChangeNotifier {
         _status = AuthStatus.authenticated;
         notifyListeners();
 
-        final prefs = await SharedPreferences.getInstance();
         if (_token != null) {
-          await prefs.setString('auth_token', _token!);
+          await _secureStorage.write(key: 'auth_token', value: _token!);
         }
         return true;
       } else {

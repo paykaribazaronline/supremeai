@@ -37,11 +37,6 @@ class ZeroTrustAuthMiddleware(BaseHTTPMiddleware):
         auth_header = request.headers.get("Authorization")
 
         if not auth_header or not auth_header.startswith("Bearer "):
-            # Test mode bypass for all paths except stream endpoint
-            if is_test and not request.url.path.startswith("/api/stream/"):
-                request.state.user = {"sub": "admin@supremeai.com", "role": "admin"}
-                return await call_next(request)
-
             logger.warning(f"🚨 Blocked unauthorized request to {request.url.path}")
             from fastapi.responses import JSONResponse
 
@@ -53,11 +48,7 @@ class ZeroTrustAuthMiddleware(BaseHTTPMiddleware):
         token = auth_header.split(" ")[1]
 
         try:
-            if is_test:
-                payload = {"sub": "admin@supremeai.com", "role": "admin"}
-            else:
-                # ক্রিপ্টোগ্রাফিক ভেরিফিকেশন কল
-                payload = verify_token(token)
+            payload = verify_token(token)
             request.state.user = payload
 
             # অ্যাডমিন রাউটের জন্য স্ট্রিক্ট রোল চেক

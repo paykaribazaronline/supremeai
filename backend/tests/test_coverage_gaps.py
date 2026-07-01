@@ -67,10 +67,10 @@ class TestMcpAllowlist:
 
 class TestAdminGodLayer:
     def test_verify_admin_success(self):
-        layer = AdminGodLayer(rules_engine=MagicMock())
         os.environ["SUPREMEAI_ADMIN_PASSWORD_HASH"] = (
-            "8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918"
+            "$2b$12$5Pt67tWgr4ne/XsD5.CZLuHOLJ9mYBrAKC/1NOkVI3YfTj0bG32Ym"
         )
+        layer = AdminGodLayer(rules_engine=MagicMock())
         assert layer.verify_admin("admin123") is True
 
     def test_verify_admin_failure(self):

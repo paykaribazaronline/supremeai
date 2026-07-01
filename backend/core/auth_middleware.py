@@ -52,9 +52,15 @@ class AuthMiddleware:
                 elif k.lower() == b"referer":
                     referer = v.decode("utf-8")
 
-            # Allow supremeai-admin domain
+            # Allow supremeai-admin domain - exact domain check
+            def _is_allowed_admin_domain(value: str) -> bool:
+                cleaned = value.lower().strip()
+                return cleaned == "https://supremeai-admin.com" or cleaned.startswith(
+                    "https://supremeai-admin.com/"
+                )
+
             is_admin_domain = (
-                "supremeai-admin" in origin or "supremeai-admin" in referer
+                _is_allowed_admin_domain(origin) or _is_allowed_admin_domain(referer)
             )
 
             # If request comes from general studio domain or unauthorized source, block it.
@@ -168,8 +174,9 @@ async def verify_admin_session_fail_closed(request: Request) -> dict:
         user_id = payload.get("sub")
         role = payload.get("role")
         
-        # ০% গ্যাপ পলিসি: পেলোডে যদি প্রয়োজনীয় ফিল্ড মিসিং থাকে, সরাসরি রিজেক্ট
-        if not user_id or role != "master_admin":
+        # বাংলা মন্তব্য: ০% গ্যাপ পলিসি — পেলোডে যদি প্রয়োজনীয় ফিল্ড মিসিং থাকে বা রোল অসঙ্গতি থাকে, সরাসরি রিজেক্ট।
+        # এখানে 'admin' এবং 'master_admin' উভয় রোলকেই অনুমতি প্রদান করা হলো।
+        if not user_id or role not in {"admin", "master_admin"}:
             logger.critical(f"🚨 Security Alert: Token payload identity mismatch or unauthorized role: {role}")
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,

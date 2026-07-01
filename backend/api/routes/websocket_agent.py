@@ -7,8 +7,12 @@ import os
 from fastapi import APIRouter
 from fastapi import WebSocket
 from fastapi import WebSocketDisconnect
+from fastapi import status
+from fastapi import Query
 from PIL import Image
+from jose import JWTError
 
+from core.security import verify_token
 from tools.agent_tools import SUPREME_TOOLS
 from core.llm_gateway import llm_gateway
 
@@ -33,19 +37,34 @@ class ConnectionManager:
             self.active_connections.remove(websocket)
         print("🔴 [WS] Client Disconnected.")
 
+    async def _authenticate(self, websocket: WebSocket) -> dict | None:
+        token = websocket.query_params.get("token")
+        if not token:
+            return None
+        try:
+            return verify_token(token)
+        except Exception:
+            return None
+
 manager = ConnectionManager()
 
-# ==========================================
-# 🚀 ROUTE: /ws/chat
-# ==========================================
+
 @router.websocket("/chat")
-async def websocket_chat_endpoint(websocket: WebSocket):
+async def websocket_chat_endpoint(
+    websocket: WebSocket,
+    token: str | None = Query(default=None),
+):
     """
     Real-time bidirectional WebSocket for Token-by-Token streaming and Agentic Tool execution.
     Supports both plain text (Flutter) and JSON payloads with base64 images (Web Chat).
     """
+    auth_payload = await manager._authenticate(websocket)
+    if not auth_payload:
+        await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
+        return
+
     await manager.connect(websocket)
-    
+
     # সেশন হিস্ট্রি মেইনটেইন করার জন্য চ্যাট অবজেক্ট তৈরি করা
     chat_history = []
 
@@ -53,7 +72,7 @@ async def websocket_chat_endpoint(websocket: WebSocket):
         while True:
             # ১. ফ্রন্টএন্ড থেকে ইউজার প্রম্পট রিসিভ করা
             user_message = await websocket.receive_text()
-            
+
             # ==========================================
             # 👁️ MULTI-MODAL PAYLOAD PARSING
             # ==========================================
@@ -62,13 +81,13 @@ async def websocket_chat_endpoint(websocket: WebSocket):
                 payload = json.loads(user_message)
                 text_prompt = payload.get("text", "")
                 image_base64 = payload.get("image_base64", None)
-                
+
                 content_to_send = text_prompt
                 # Note: Currently, llm_gateway supports text prompts for LiteLLM.
                 # Multi-modal / image payload is parsed but mapped to text details for backward compatibility.
                 if image_base64:
                     print("📸 [WS] Image payload received and decoded.")
-                    
+
             except json.JSONDecodeError:
                 # Fallback to plain text (Existing Flutter Client)
                 print(f"👤 [USER - Text Only]: {user_message}")
@@ -80,7 +99,7 @@ async def websocket_chat_endpoint(websocket: WebSocket):
                 chat_history.append({"role": "user", "content": content_to_send})
 
                 response_stream = await llm_gateway.acompletion(
-                    prompt=chat_history, 
+                    prompt=chat_history,
                     task_type="chat",
                     stream=True
                 )
@@ -92,10 +111,10 @@ async def websocket_chat_endpoint(websocket: WebSocket):
                         # প্রতিটি টেক্সট চাঙ্ক পাওয়ার সাথে সাথে ক্লায়েন্টকে পাঠানো হচ্ছে
                         await websocket.send_text(chunk)
                         response_content += chunk
-                        
-                        # খুব সামান্য ডিলি দেওয়া হচ্ছে যাতে UI-তে টাইপিং অ্যানিমেশন স্মুথ হয়
-                        await asyncio.sleep(0.01) 
-                
+
+                        # খুব সামান্য ডিলি দেওয়া হচ্ছে যাতে UI-তে টাইপিং অ্যানিমেশন স্মuথ হয়
+                        await asyncio.sleep(0.01)
+
                 chat_history.append({"role": "assistant", "content": response_content})
 
                 # ৪. রেসপন্স শেষ বোঝাতে একটি সিগন্যাল পাঠানো

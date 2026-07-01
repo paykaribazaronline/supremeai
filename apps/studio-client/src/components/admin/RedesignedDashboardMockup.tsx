@@ -3,7 +3,7 @@ import ReactFlow, { Background, Controls, useNodesState, useEdgesState, Panel } 
 import { motion, AnimatePresence } from 'framer-motion';
 import 'reactflow/dist/style.css';
 import './AethelCoreStyles.css';
-import { useMetrics, useHealthMap, useThreatScan, useCostReport, useCIReports } from '../../hooks/useDashboardData';
+import { useMetrics, useHealthMap, useThreatScan, useCostReport, useCIReports, useDashboardEvents, useDashboardReports } from '../../hooks/useDashboardData';
 import { useDashboardStore } from '../../store/dashboardStore';
 import HealthBanner from './HealthBanner';
 import DeploymentModal from './DeploymentModal';
@@ -29,6 +29,12 @@ const RedesignedDashboardMockup: React.FC = () => {
   const { data: threats } = useThreatScan();
   const { data: costs } = useCostReport();
   const { data: ciReports } = useCIReports();
+
+  const [selectedReportName, setSelectedReportName] = React.useState<string | undefined>();
+  // বাংলা মন্তব্য: রিয়েল-টাইম ইভেন্ট এবং দৈনিক স্ট্যান্ডআপ রিপোর্ট ডেটা ফেচ করা হচ্ছে
+  const { data: events } = useDashboardEvents(10);
+  const { data: reportsData } = useDashboardReports();
+  const { data: activeReport } = useDashboardReports(selectedReportName);
 
   const [isOptimizing, setIsOptimizing] = React.useState(false);
   const [optimizeStatus, setOptimizeStatus] = React.useState('');
@@ -231,23 +237,32 @@ const RedesignedDashboardMockup: React.FC = () => {
             <div className="lg:col-span-8 bg-white border border-slate-100 rounded-3xl p-6 shadow-sm">
               <h2 className="text-sm font-bold text-slate-900 mb-4 flex items-center gap-2">
                 <Sparkles size={16} className="text-indigo-500" />
-                সিস্টেম আপডেট ও কার্যক্রম
+                সিস্টেম আপডেট ও কার্যক্রম (Real-time Events)
               </h2>
-              <div className="flex flex-col gap-4">
-                <div className="flex items-start gap-4 p-4 rounded-xl bg-slate-50 border border-slate-100">
-                  <span className="p-2 bg-indigo-50 rounded-lg text-indigo-600">✓</span>
-                  <div>
-                    <p className="text-xs font-bold text-slate-800">স্বয়ংক্রিয় সমাধান</p>
-                    <p className="text-[11px] text-slate-500 mt-1">আজ সকালে সিস্টেম একটি ছোট এরর ঠিক করেছে, আপনার কোনো হস্তক্ষেপের প্রয়োজন নেই।</p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-4 p-4 rounded-xl bg-slate-50 border border-slate-100">
-                  <span className="p-2 bg-emerald-50 rounded-lg text-emerald-600">⚡</span>
-                  <div>
-                    <p className="text-xs font-bold text-slate-800">সার্ভার হেলথ আপডেট</p>
-                    <p className="text-[11px] text-slate-500 mt-1">ক্লাউড ক্লাস্টার রিকভারি সফল হয়েছে। ল্যাটেন্সি এখন স্বাভাবিক সীমার নিচে।</p>
-                  </div>
-                </div>
+              <div className="flex flex-col gap-4 max-h-[300px] overflow-y-auto pr-2">
+                {events && events.length > 0 ? (
+                  events.map((evt, idx) => {
+                    const isError = evt.level?.toLowerCase() === 'error' || evt.level?.toLowerCase() === 'critical';
+                    const isWarn = evt.level?.toLowerCase() === 'warning' || evt.level?.toLowerCase() === 'warn';
+                    const iconColor = isError ? 'text-rose-600 bg-rose-50' : (isWarn ? 'text-amber-600 bg-amber-50' : 'text-[#00f3ff] bg-[#00f3ff]/10');
+                    const iconStr = isError ? '🚨' : (isWarn ? '⚠️' : 'ℹ️');
+
+                    return (
+                      <div key={idx} className="flex items-start gap-4 p-3 rounded-xl bg-slate-50 border border-slate-100">
+                        <span className={`p-2 rounded-lg ${iconColor} text-xs font-mono`}>{iconStr}</span>
+                        <div className="flex-1">
+                          <div className="flex justify-between items-center">
+                            <p className="text-xs font-bold text-slate-800">{evt.source || 'SYSTEM'}</p>
+                            <span className="text-[9px] text-slate-400 font-mono">{evt.timestamp}</span>
+                          </div>
+                          <p className="text-[11px] text-slate-600 mt-0.5">{evt.message}</p>
+                        </div>
+                      </div>
+                    );
+                  })
+                ) : (
+                  <p className="text-xs text-slate-400 font-mono text-center py-8">কোনো ইভেন্ট রেকর্ড পাওয়া যায়নি।</p>
+                )}
               </div>
             </div>
 
@@ -289,6 +304,65 @@ const RedesignedDashboardMockup: React.FC = () => {
                   {optimizeStatus}
                 </div>
               )}
+            </div>
+          </div>
+
+          {/* Reports Section */}
+          <div className="mt-8 bg-white border border-slate-100 rounded-3xl p-6 shadow-sm">
+            <h2 className="text-sm font-bold text-slate-900 mb-4 flex items-center gap-2">
+              <HardDrive size={16} className="text-indigo-500" />
+              দৈনিক স্ট্যান্ডআপ ও সিস্টেম রিপোর্টস (Daily Reports)
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+              {/* Report List */}
+              <div className="md:col-span-1 border-r border-slate-150 pr-4 flex flex-col gap-2">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest font-mono mb-2">Available Reports</span>
+                {reportsData && reportsData.reports && reportsData.reports.length > 0 ? (
+                  reportsData.reports.map((report: string) => (
+                    <button
+                      key={report}
+                      onClick={() => setSelectedReportName(report)}
+                      className={`text-left px-3 py-2 rounded-lg text-xs font-mono transition-colors ${
+                        selectedReportName === report
+                          ? 'bg-indigo-50 text-indigo-700 font-bold border-l-2 border-indigo-600'
+                          : 'hover:bg-slate-50 text-slate-600'
+                      }`}
+                    >
+                      📄 {report}
+                    </button>
+                  ))
+                ) : (
+                  <p className="text-xs text-slate-400 font-mono">কোনো রিপোর্ট পাওয়া যায়নি।</p>
+                )}
+              </div>
+              
+              {/* Report Viewer */}
+              <div className="md:col-span-3 pl-2">
+                {selectedReportName ? (
+                  activeReport && activeReport.content ? (
+                    <div className="bg-slate-50 border border-slate-100 rounded-2xl p-5 max-h-[300px] overflow-y-auto">
+                      <div className="flex justify-between items-center border-b border-slate-200 pb-2 mb-4">
+                        <span className="text-xs font-bold text-slate-800">{activeReport.name}</span>
+                        <button 
+                          onClick={() => setSelectedReportName(undefined)}
+                          className="text-[10px] text-slate-400 hover:text-slate-600 font-bold"
+                        >
+                          বন্ধ করুন ×
+                        </button>
+                      </div>
+                      <pre className="text-xs font-mono text-slate-700 whitespace-pre-wrap leading-relaxed">
+                        {activeReport.content}
+                      </pre>
+                    </div>
+                  ) : (
+                    <p className="text-xs text-slate-400 font-mono animate-pulse">রিপোর্ট লোড হচ্ছে...</p>
+                  )
+                ) : (
+                  <div className="h-full flex items-center justify-center border border-dashed border-slate-200 rounded-2xl p-8 text-center">
+                    <p className="text-xs text-slate-400 font-mono">বাম পাশের তালিকা থেকে একটি রিপোর্ট নির্বাচন করুন।</p>
+                  </div>
+                )}
+              </div>
             </div>
 
           </div>

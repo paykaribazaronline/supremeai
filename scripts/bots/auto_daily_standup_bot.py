@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 """
+DEPRECATED: This bot is being replaced by the new Admin God Control Center's reporting module.
 auto_daily_standup_bot.py
 =========================
 Automatically posts daily standup summaries to Discord and Slack channels.
@@ -18,6 +19,7 @@ Environment Variables:
 - SERVICE_NAME: Name of this service instance (default: "SupremeAI-Standup")
 """
 
+import sys
 import os
 import time
 import json
@@ -43,61 +45,32 @@ INCLUDE_METRICS = os.getenv("INCLUDE_METRICS", "true").lower() == "true"
 INCLUDE_ERRORS = os.getenv("INCLUDE_ERRORS", "true").lower() == "true"
 SERVICE_NAME = os.getenv("SERVICE_NAME", "SupremeAI-Standup")
 
-def send_discord_message(message: str, username: str = None) -> bool:
-    """Send a message to Discord via webhook."""
-    if not DISCORD_WEBHOOK_URL:
-        logger.debug("Discord webhook not configured")
-        return False
-    
+def save_standup_report(report_content: str) -> bool:
+    """Saves the generated standup report to a shared location for the dashboard."""
+    logger.info("Saving daily standup report for the admin dashboard.")
     try:
-        payload = {
-            "content": message
-        }
-        if username:
-            payload["username"] = username
-        
-        response = requests.post(DISCORD_WEBHOOK_URL, json=payload, timeout=10)
-        response.raise_for_status()
-        logger.info("Standup message sent to Discord successfully")
+        # In a real implementation, this would save to a database or a file store like S3/GCS.
+        # For now, we'll save it to a local file.
+        report_dir = "/app/data/reports"
+        os.makedirs(report_dir, exist_ok=True)
+        report_path = os.path.join(report_dir, f"standup_{datetime.now(timezone.utc).strftime('%Y-%m-%d')}.md")
+        with open(report_path, "w", encoding="utf-8") as f:
+            f.write(report_content)
+        logger.info(f"Standup report saved to {report_path}")
         return True
     except Exception as e:
-        logger.error(f"Failed to send Discord message: {e}")
-        return False
-
-def send_slack_message(message: str, username: str = None) -> bool:
-    """Send a message to Slack via webhook."""
-    if not SLACK_WEBHOOK_URL:
-        logger.debug("Slack webhook not configured")
-        return False
-    
-    try:
-        payload = {
-            "text": message
-        }
-        if username:
-            payload["username"] = username
-        
-        response = requests.post(SLACK_WEBHOOK_URL, json=payload, timeout=10)
-        response.raise_for_status()
-        logger.info("Standup message sent to Slack successfully")
-        return True
-    except Exception as e:
-        logger.error(f"Failed to send Slack message: {e}")
+        logger.error(f"Failed to save standup report: {e}")
         return False
 
 def send_standup(message: str) -> bool:
-    """Send standup message to all configured platforms."""
-    success = True
-    
-    # Send to Discord
-    if not send_discord_message(message, SERVICE_NAME):
-        success = False
-    
-    # Send to Slack
-    if not send_slack_message(message, SERVICE_NAME):
-        success = False
-    
-    return success
+    """Generate and save the standup report for the dashboard."""
+    logger.info("Processing daily standup...")
+    if save_standup_report(message):
+        logger.info("Standup report successfully generated and stored.")
+        return True
+    else:
+        logger.error("Failed to store standup report.")
+        return False
 
 def get_yesterday_stats() -> Dict[str, Any]:
     """Get statistics for yesterday."""

@@ -3,6 +3,11 @@ import hmac
 import os
 from typing import Any
 
+try:
+    import bcrypt
+except Exception:  # pragma: no cover - optional fallback
+    bcrypt = None
+
 from .rbac import RoleBasedAccessControl
 from .rbac import UserContext
 from .universal_rules import UniversalRulesEngine
@@ -18,16 +23,20 @@ class AdminGodLayer:
     def __init__(self, rules_engine: UniversalRulesEngine = None):
         self.rules_engine = rules_engine or UniversalRulesEngine()
         self.rbac = RoleBasedAccessControl()
-        self.admin_password_hash = os.getenv(
-            "SUPREMEAI_ADMIN_PASSWORD_HASH", hashlib.sha256(b"admin123").hexdigest()
-        )
+        self.admin_password_hash = os.getenv("SUPREMEAI_ADMIN_PASSWORD_HASH", "")
 
     def verify_admin(self, password_raw: str) -> bool:
         """Verifies admin password hash."""
         if not password_raw:
             return False
-        hashed = hashlib.sha256(password_raw.encode()).hexdigest()
-        return hmac.compare_digest(hashed, self.admin_password_hash)
+        if not self.admin_password_hash:
+            return False
+        if not bcrypt:
+            return False
+        try:
+            return bcrypt.checkpw(password_raw.encode(), self.admin_password_hash.encode())
+        except Exception:
+            return False
 
     def enforce(self, action: str, user_context: UserContext | str) -> dict[str, Any]:
         role = (

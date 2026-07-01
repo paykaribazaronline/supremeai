@@ -30,7 +30,7 @@ class Settings(BaseSettings):
     app_name: str = "SupremeAI 2.0"
     env: str = "local"
     debug: bool = True
-    docs_auth_enabled: bool = False
+    docs_auth_enabled: bool = True
     docs_username: str = "admin"
     docs_password: str = ""
 
@@ -47,6 +47,27 @@ class Settings(BaseSettings):
         "https://supremeai-admin.web.app",
         "https://supremeai-admin.firebaseapp.com",
     ]
+
+    @field_validator("cors_origins", mode="before")
+    @classmethod
+    def sanitize_cors_origins(cls, v):
+        import json
+
+        if isinstance(v, str):
+            v = v.strip()
+            if not v:
+                return []
+            try:
+                v = json.loads(v)
+            except json.JSONDecodeError:
+                v = [origin.strip() for origin in v.split(",") if origin.strip()]
+        if not isinstance(v, list):
+            return v
+        localhost_origins = {"http://127.0.0.1:3000", "http://127.0.0.1:8000", "http://localhost:5173"}
+        env = getattr(cls, "_env_context", "local")
+        if env == "production":
+            return [origin for origin in v if origin not in localhost_origins]
+        return v
 
     # বাংলা মন্তব্য: এডমিন ইমেইল লিস্ট সরাসরি .env ফাইল থেকে লোড করা হবে
     admin_emails: list[str] = Field(
@@ -148,7 +169,6 @@ class Settings(BaseSettings):
     @field_validator("jwt_secret", mode="before")
     @classmethod
     def set_test_secret(cls, v: str | None, info: ValidationInfo) -> str | None:
-        # Require SUPREMEAI_JWT_SECRET in production. Provide a placeholder ONLY in local/test.
         env = info.data.get("env", "local")
         if not v:
             if env == "production":
@@ -156,6 +176,14 @@ class Settings(BaseSettings):
                     "SUPREMEAI_JWT_SECRET environment variable must be set in production"
                 )
             return "test-secret-placeholder"
+        return v
+
+    @field_validator("debug")
+    @classmethod
+    def debug_must_be_false_in_production(cls, v: bool, info: ValidationInfo) -> bool:
+        env = info.data.get("env", "local")
+        if env == "production" and v:
+            return False
         return v
 
     @field_validator("cors_origins", mode="before")

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import time
+import threading
 from collections.abc import Callable
 from typing import Any
 from typing import TypeVar
@@ -30,6 +31,8 @@ class CircuitBreaker:
         self.redis_queue = redis_queue
         self._key_prefix = f"cb:{name}"
         self._restore_from_redis()
+        self._lock = threading.Lock()
+        self._half_open_in_flight = 0
 
     def _restore_from_redis(self) -> None:
         if not self.redis_queue or not getattr(self.redis_queue, "configured", False):
@@ -70,10 +73,16 @@ class CircuitBreaker:
                 return True
             return False
         if self.state == "HALF_OPEN":
-            return True
+            with self._lock:
+                if self._half_open_in_flight >= 1:
+                    return False
+                self._half_open_in_flight += 1
+                return True
         return True
 
     def mark_success(self) -> None:
+        with self._lock:
+            self._half_open_in_flight = max(0, self._half_open_in_flight - 1)
         self.failures = 0
         self.state = "CLOSED"
         self.opened_at = None
@@ -81,6 +90,8 @@ class CircuitBreaker:
         self._persist_to_redis()
 
     def mark_failure(self) -> None:
+        with self._lock:
+            self._half_open_in_flight = max(0, self._half_open_in_flight - 1)
         now = time.time()
         self.last_failure_at = now
         self.failures += 1

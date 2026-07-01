@@ -14,6 +14,7 @@ from typing import Any
 from RestrictedPython import compile_restricted
 from RestrictedPython.Eval import default_globals
 
+logger = logging.getLogger(__name__)
 
 # Define a minimal safe builtins whitelist. Adjust as needed for the
 # application – currently only ``range`` and ``len`` are allowed because the
@@ -129,7 +130,7 @@ def validate_ast(source: str) -> None:
 
 def run_restricted(
     source: str, locals_: dict[str, Any] | None = None
-) -> dict[str, Any]:
+) -> tuple[bool, dict[str, Any] | str]:
     """Execute *source* in a RestrictedPython sandbox after AST validation.
 
     Parameters
@@ -143,25 +144,35 @@ def run_restricted(
 
     Returns
     -------
-    dict
-        The locals dictionary after execution. Callers can inspect ``result``
-        or any other variables they deliberately expose.
+    tuple[bool, dict[str, Any] | str]
+        A tuple containing a success flag and either the locals dictionary
+        on success or an error message string on failure.
     """
     if locals_ is None:
         locals_ = {}
 
-    # Pre-execution AST verification
-    validate_ast(source)
+    try:
+        # Pre-execution AST verification
+        validate_ast(source)
 
-    # Compile the code with RestrictedPython. The ``compile_restricted``
-    # function returns a code object that can be safely ``exec``ed.
-    byte_code = compile_restricted(source, "<string>", "exec")
+        # Compile the code with RestrictedPython. The ``compile_restricted``
+        # function returns a code object that can be safely ``exec``ed.
+        byte_code = compile_restricted(source, "<string>", "exec")
 
-    # Merge the default globals with our safe builtins whitelist.
-    globals_ = dict(default_globals)
-    globals_["__builtins__"] = SAFE_BUILTINS
+        # Merge the default globals with our safe builtins whitelist.
+        globals_ = dict(default_globals)
+        globals_["__builtins__"] = SAFE_BUILTINS
 
-    # Execute the sandboxed code. RestrictedPython will raise an exception if
-    # the code attempts to use disallowed operations.
-    exec(byte_code, globals_, locals_)
-    return locals_
+        # Execute the sandboxed code. RestrictedPython will raise an exception if
+        # the code attempts to use disallowed operations.
+        exec(byte_code, globals_, locals_)
+        return True, locals_
+
+    except (ValueError, SyntaxError, NameError, TypeError) as e:
+        error_message = f"Restricted execution failed: {type(e).__name__}: {e}"
+        logger.error(error_message)
+        return False, error_message
+    except Exception as e:
+        error_message = f"An unexpected error occurred during restricted execution: {e}"
+        logger.error(error_message)
+        return False, error_message

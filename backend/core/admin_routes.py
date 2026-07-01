@@ -20,8 +20,38 @@ from models.admin import AdminFirebaseTotpVerifyRequest
 from models.admin import AdminLoginRequest
 from models.admin import AdminVerifyRequest
 
+try:
+    import bcrypt
+except Exception:  # pragma: no cover - optional fallback
+    bcrypt = None
+
 
 router = APIRouter()
+
+
+def _hash_password(password: str) -> str:
+    if not bcrypt:
+        raise RuntimeError("bcrypt is required but not installed")
+    return bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
+
+
+def _verify_password(password: str, hashed: str) -> bool:
+    if not bcrypt or not hashed:
+        return False
+    try:
+        return bcrypt.checkpw(password.encode(), hashed.encode())
+    except Exception:
+        return False
+
+
+def _get_admin_credentials():
+    expected_hash = os.getenv("SUPREMEAI_ADMIN_PASSWORD_HASH")
+    if not expected_hash:
+        raise HTTPException(
+            status_code=500, detail="Admin password hash is not configured on server"
+        )
+    return expected_hash
+
 
 auth = get_firebase_auth()
 
@@ -29,12 +59,8 @@ auth = get_firebase_auth()
 @router.post("/api/admin/login")
 def admin_login(payload: AdminLoginRequest):
     password = payload.password
-    expected_password = settings.docs_password
-    if not expected_password:
-        raise HTTPException(
-            status_code=500, detail="Admin password not configured on server"
-        )
-    if password != expected_password:
+    expected_hash = _get_admin_credentials()
+    if not _verify_password(password, expected_hash):
         raise HTTPException(status_code=401, detail="Invalid password")
 
     totp_secret = os.getenv("SUPREMEAI_ADMIN_TOTP_SECRET")
@@ -50,12 +76,8 @@ def admin_verify(payload: AdminVerifyRequest):
     password = payload.password
     otp = payload.otp
 
-    expected_password = settings.docs_password
-    if not expected_password:
-        raise HTTPException(
-            status_code=500, detail="Admin password not configured on server"
-        )
-    if password != expected_password:
+    expected_hash = _get_admin_credentials()
+    if not _verify_password(password, expected_hash):
         raise HTTPException(status_code=401, detail="Invalid password")
 
     totp_secret = os.getenv("SUPREMEAI_ADMIN_TOTP_SECRET")
@@ -89,7 +111,6 @@ def admin_firebase_login(payload: AdminFirebaseLoginRequest):
                     status_code=403, detail="Mock tokens are strictly forbidden in production."
                 )
             uid = "mock-admin-uid"
-            # বাংলা মন্তব্য: সরাসরি হার্ডকোড ইমেইলের পরিবর্তে সেটিংস থেকে ডাইনামিকলি প্রথম এডমিন ইমেইল রিড করা হলো
             email = settings.admin_emails[0] if settings.admin_emails else "admin@example.com"
             logger.warning(
                 f"Bypassing verification using mock token mode. Token: {id_token[:20]}..."
@@ -100,20 +121,9 @@ def admin_firebase_login(payload: AdminFirebaseLoginRequest):
             email = decoded_token.get("email", "")
             logger.info(f"Verified Firebase token for email: {email}")
         else:
-            if is_production:
-                raise HTTPException(
-                    status_code=401, detail="Firebase Admin SDK is offline. Cannot authenticate."
-                )
-
-            payload_part = id_token.split(".")[1]
-            padded = payload_part + "=" * (4 - len(payload_part) % 4)
-            decoded = base64.b64decode(padded)
-            decoded_token = __import__("json").loads(decoded)
-
-            uid = decoded_token.get("sub", "mock-admin-uid")
-            email = decoded_token.get("email", "")
-            logger.info(
-                f"Extracted admin email from token without verification (Dev Mode): {email}"
+            # Always enforce signature verification; offline verification bypass removed
+            raise HTTPException(
+                status_code=401, detail="Firebase Admin SDK is unavailable. Cannot authenticate."
             )
     except HTTPException:
         raise
@@ -167,20 +177,17 @@ def admin_firebase_totp_setup(payload: AdminFirebaseTotpSetupRequest):
     try:
         if id_token.startswith("mock-"):
             uid = "mock-admin-uid"
-            # বাংলা মন্তব্য: সরাসরি হার্ডকোড ইমেইলের পরিবর্তে সেটিংস থেকে ডাইনামিকলি প্রথম এডমিন ইমেইল রিড করা হলো
             email = settings.admin_emails[0] if settings.admin_emails else "admin@example.com"
         elif auth:
             decoded_token = auth.verify_id_token(id_token)
             uid = decoded_token.get("uid", decoded_token.get("sub", "mock-admin-uid"))
             email = decoded_token.get("email", "")
         else:
-            payload_part = id_token.split(".")[1]
-            padded = payload_part + "=" * (4 - len(payload_part) % 4)
-            decoded_token = __import__("json").loads(
-                base64.b64decode(padded)
+            raise HTTPException(
+                status_code=401, detail="Firebase Admin SDK is unavailable. Cannot authenticate."
             )
-            uid = decoded_token.get("sub", "mock-admin-uid")
-            email = decoded_token.get("email", "")
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(
             status_code=401, detail=f"Token decoding failed: {str(e)}"
@@ -214,12 +221,11 @@ def admin_firebase_totp_verify(payload: AdminFirebaseTotpVerifyRequest):
             decoded_token = auth.verify_id_token(id_token)
             uid = decoded_token.get("uid", decoded_token.get("sub", "mock-admin-uid"))
         else:
-            payload_part = id_token.split(".")[1]
-            padded = payload_part + "=" * (4 - len(payload_part) % 4)
-            decoded_token = __import__("json").loads(
-                base64.b64decode(padded)
+            raise HTTPException(
+                status_code=401, detail="Firebase Admin SDK is unavailable. Cannot authenticate."
             )
-            uid = decoded_token.get("sub", "mock-admin-uid")
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(
             status_code=401, detail=f"Token decoding failed: {str(e)}"

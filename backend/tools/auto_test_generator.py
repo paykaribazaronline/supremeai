@@ -21,6 +21,7 @@ from loguru import logger
 from pydantic import BaseModel
 
 from backend.tools.style_learner import StyleLearner
+from core.upload_validator import validate_upload
 
 
 router = APIRouter(prefix="/test-gen", tags=["auto-test-generator"])
@@ -456,6 +457,7 @@ async def generate_tests(request: TestGenRequest):
 @router.post("/generate-file")
 async def generate_from_file(file: UploadFile = File(...)):
     """Upload a source file and get back a test file."""
+    await validate_upload(file)
     content = (await file.read()).decode("utf-8", errors="replace")
     result = await _generator.generate(
         source_code=content,

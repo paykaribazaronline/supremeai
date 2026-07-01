@@ -10,6 +10,8 @@ from fastapi import HTTPException
 from fastapi import UploadFile
 from loguru import logger
 
+from core.upload_validator import validate_upload
+
 
 router = APIRouter(prefix="/diagram", tags=["diagram-to-architecture"])
 
@@ -155,6 +157,7 @@ async def generate_from_diagram(
     iac_tool: str = Form("terraform"),
 ):
     """Upload a diagram image and get infrastructure-as-code."""
+    await validate_upload(file)
     if not file.content_type or not file.content_type.startswith("image/"):
         raise HTTPException(status_code=400, detail="File must be an image")
 
@@ -176,6 +179,7 @@ async def generate_from_diagram(
 @router.post("/api-spec")
 async def generate_api_spec(file: UploadFile = File(...)):
     """Upload sequence diagram and get OpenAPI spec."""
+    await validate_upload(file)
     suffix = os.path.splitext(file.filename or "diagram.png")[1] or ".png"
     with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
         tmp.write(await file.read())

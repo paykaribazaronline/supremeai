@@ -29,7 +29,7 @@ export default function SkillGraph() {
     try {
       const response = await fetch(`${API_BASE_URL}/api/v1/graph/skills`, {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('auth_token')}` // আপনার অথ টোকেন মেকানিজম (যদি থাকে)
+          'Authorization': `Bearer ${localStorage.getItem('supremeai_admin_token')}`
         }
       });
       

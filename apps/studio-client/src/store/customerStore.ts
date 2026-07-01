@@ -3,38 +3,13 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import type { CustomerState } from '../types/customer';
 
 const STORAGE_KEY = 'supremeai_customer_state';
-const ENCRYPTION_KEY = 'supremeai_god_salt_key_2026';
 
-function encrypt(text: string): string {
-  let result = '';
-  for (let i = 0; i < text.length; i++) {
-    result += String.fromCharCode(text.charCodeAt(i) ^ ENCRYPTION_KEY.charCodeAt(i % ENCRYPTION_KEY.length));
-  }
-  // Convert binary string to Base64 safely in browser environment
-  return btoa(unescape(encodeURIComponent(result)));
-}
-
-function decrypt(encoded: string): string {
-  try {
-    const text = decodeURIComponent(escape(atob(encoded)));
-    let result = '';
-    for (let i = 0; i < text.length; i++) {
-      result += String.fromCharCode(text.charCodeAt(i) ^ ENCRYPTION_KEY.charCodeAt(i % ENCRYPTION_KEY.length));
-    }
-    return result;
-  } catch (e) {
-    return '';
-  }
-}
-
-const secureStorage = {
+const plainStorage = {
   getItem: (name: string): string | null => {
-    const value = localStorage.getItem(name);
-    if (!value) return null;
-    return decrypt(value);
+    return localStorage.getItem(name);
   },
   setItem: (name: string, value: string): void => {
-    localStorage.setItem(name, encrypt(value));
+    localStorage.setItem(name, value);
   },
   removeItem: (name: string): void => {
     localStorage.removeItem(name);
@@ -73,7 +48,7 @@ export const useCustomerStore = create<CustomerStoreState>()(
     }),
     {
       name: STORAGE_KEY,
-      storage: createJSONStorage(() => secureStorage),
+      storage: createJSONStorage(() => plainStorage),
       partialize: (state) => ({
         user: state.user,
         projects: state.projects,

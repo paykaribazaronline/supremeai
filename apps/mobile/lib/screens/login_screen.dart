@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../services/localization_service.dart';
@@ -8,13 +9,42 @@ class LoginScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final emailCtrl = TextEditingController();
+    final passCtrl = TextEditingController();
+
     return Scaffold(
       body: Semantics(
         label: 'app.title'.tr(),
         child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const SizedBox(height: 48),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 32),
+                  child: TextField(
+                    controller: emailCtrl,
+                    keyboardType: TextInputType.emailAddress,
+                    decoration: const InputDecoration(
+                      labelText: 'Email',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 32),
+                  child: TextField(
+                    controller: passCtrl,
+                    obscureText: true,
+                    decoration: const InputDecoration(
+                      labelText: 'Password',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 24),
               Semantics(
                 header: true,
                 child: Text(
@@ -30,11 +60,19 @@ class LoginScreen extends StatelessWidget {
                   label: 'btn.login'.tr(),
                   child: ElevatedButton(
                     onPressed: () async {
-                      final provider = context.read<AuthProvider>();
-                      final success = await provider.login(
-                        'demo@supremeai.com',
-                        'Demo@123456',
+                    if (emailCtrl.text.trim().isEmpty || passCtrl.text.isEmpty) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Please enter email and password'),
+                        ),
                       );
+                      return;
+                    }
+                    final provider = context.read<AuthProvider>();
+                    final success = await provider.login(
+                      emailCtrl.text.trim(),
+                      passCtrl.text,
+                    );
                       if (context.mounted) {
                         if (success) {
                           // AuthProvider state change triggers UI update via Consumer

@@ -53,7 +53,7 @@ export function CICDVisualizer() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('supremeai_admin_token') || 'supreme-god-password'}`
+          'Authorization': `Bearer ${localStorage.getItem('supremeai_admin_token') || ''}`
         }
       });
       if (res.ok) {

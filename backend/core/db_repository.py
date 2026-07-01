@@ -1,10 +1,14 @@
 import logging
+import re
 from typing import Any
 
 from tenacity import retry
 from tenacity import retry_if_exception_type
 from tenacity import stop_after_attempt
 from tenacity import wait_exponential
+
+
+_VALID_TABLE_PATTERN = re.compile(r"^[A-Za-z0-9_]+$")
 
 
 # Custom Exception for Circuit Breaking
@@ -16,6 +20,11 @@ class SmartDataRepository:
     def __init__(self, firebase_client: Any, supabase_client: Any):
         self.firebase = firebase_client
         self.supabase = supabase_client
+
+    @staticmethod
+    def _validate_table_name(table_name: str) -> None:
+        if not table_name or not _VALID_TABLE_PATTERN.match(table_name):
+            raise ValueError(f"Invalid table name: {table_name}")
 
     # Tier 1: Try Firebase 3 times with exponential backoff
     @retry(
@@ -64,6 +73,7 @@ class SmartDataRepository:
             try:
                 # If Supabase client has the execute API (standard Supabase-py)
                 if hasattr(self.supabase, "table"):
+                    self._validate_table_name(table_name)
                     response = (
                         self.supabase.table(table_name)
                         .select("*")
@@ -73,7 +83,8 @@ class SmartDataRepository:
                     return response.data[0] if response.data else None
                 # If it's CloudPostgresStore helper
                 elif hasattr(self.supabase, "_execute"):
-                    query = f"SELECT * FROM {table_name} WHERE id = %s LIMIT 1"  # nosec B608
+                    self._validate_table_name(table_name)
+                    query = f"SELECT * FROM {table_name} WHERE id = %s LIMIT 1"
                     row = self.supabase._execute(query, (doc_id,), fetchone=True)
                     return dict(row) if row else None
                 else:

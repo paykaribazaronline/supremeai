@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 """
+DEPRECATED: This bot is being replaced by the new Admin God Control Center.
 auto_alert_bot.py
 =================
 Automatically sends alerts to Discord and Slack channels for system events.
@@ -17,6 +18,7 @@ Environment Variables:
 - SERVICE_NAME: Name of this service instance (default: "SupremeAI-Bot")
 """
 
+import sys
 import os
 import time
 import json
@@ -41,115 +43,33 @@ BUDGET_ALERT_THRESHOLD = float(os.getenv("BUDGET_ALERT_THRESHOLD", "0.8"))  # 80
 SYSTEM_HEALTH_CHECK_URL = os.getenv("SYSTEM_HEALTH_CHECK_URL")
 SERVICE_NAME = os.getenv("SERVICE_NAME", "SupremeAI-Bot")
 
-def send_discord_alert(message: str, title: str = None, color: int = 0x00ff00) -> bool:
-    """Send an alert to Discord via webhook."""
-    if not DISCORD_WEBHOOK_URL:
-        logger.debug("Discord webhook not configured")
-        return False
-    
+def record_event_to_db(message: str, title: str, alert_type: str) -> bool:
+    """Records an event to the database for the new Admin Dashboard."""
+    logger.info(f"Recording event: [{alert_type.upper()}] {title} - {message}")
     try:
-        embed = {}
-        if title:
-            embed["title"] = title
-        if color is not None:
-            embed["color"] = color
-        
-        embed["description"] = message
-        embed["timestamp"] = datetime.now(timezone.utc).isoformat()
-        
-        payload = {
-            "username": SERVICE_NAME,
-            "embeds": [embed]
-        }
-        
-        response = requests.post(DISCORD_WEBHOOK_URL, json=payload, timeout=10)
-        response.raise_for_status()
-        logger.info("Discord alert sent successfully")
+        # In a real implementation, this would use a proper DB client.
+        # For now, we'll just log it to a file as a placeholder.
+        log_path = "/app/data/dashboard_events.jsonl"
+        os.makedirs(os.path.dirname(log_path), exist_ok=True)
+        with open(log_path, "a") as f:
+            f.write(json.dumps({
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "type": alert_type,
+                "title": title,
+                "message": message,
+                "source": SERVICE_NAME
+            }) + "\n")
         return True
     except Exception as e:
-        logger.error(f"Failed to send Discord alert: {e}")
-        return False
-
-def send_slack_alert(message: str, title: str = None, color: str = "good") -> bool:
-    """Send an alert to Slack via webhook."""
-    if not SLACK_WEBHOOK_URL:
-        logger.debug("Slack webhook not configured")
-        return False
-    
-    try:
-        # Map our color names to Slack attachment colors
-        color_map = {
-            "good": "good",      # Green
-            "warning": "warning", # Yellow
-            "danger": "danger",   # Red
-            "#00ff00": "good",
-            "#ffff00": "warning",
-            "#ff0000": "danger"
-        }
-        slack_color = color_map.get(color, "good")
-        
-        attachment = {
-            "color": slack_color,
-            "fields": [
-                {
-                    "title": "Message",
-                    "value": message,
-                    "short": False
-                }
-            ],
-            "ts": int(datetime.now(timezone.utc).timestamp())
-        }
-        
-        if title:
-            attachment["title"] = title
-        
-        payload = {
-            "username": SERVICE_NAME,
-            "attachments": [attachment]
-        }
-        
-        response = requests.post(SLACK_WEBHOOK_URL, json=payload, timeout=10)
-        response.raise_for_status()
-        logger.info("Slack alert sent successfully")
-        return True
-    except Exception as e:
-        logger.error(f"Failed to send Slack alert: {e}")
+        logger.error(f"Failed to record event to DB: {e}")
         return False
 
 def send_alert(message: str, title: str = None, alert_type: str = "info") -> bool:
-    """Send an alert to all configured platforms."""
+    """Records an alert to the internal system for the dashboard."""
     if not ALERTS_ENABLED:
         logger.debug("Alerts are disabled")
         return False
-    
-    # Determine color based on alert type
-    color_map = {
-        "info": 0x0099ff,      # Blue
-        "warning": 0xff9900,   # Orange
-        "error": 0xff0000,     # Red
-        "success": 0x00ff00    # Green
-    }
-    color = color_map.get(alert_type.lower(), 0x0099ff)
-    
-    success = True
-    
-    # Send to Discord
-    if not send_discord_alert(message, title, color):
-        success = False
-    
-    # Send to Slack
-    slack_color_map = {
-        "info": "good",
-        "warning": "warning",
-        "error": "danger",
-        "success": "good"
-    }
-    slack_color = slack_color_map.get(alert_type.lower(), "good")
-    
-    if not send_slack_alert(message, title, slack_color):
-        success = False
-    
-    return success
+    return record_event_to_db(message, title, alert_type)
 
 def check_budget_alerts() -> bool:
     """Check for budget-related alerts."""

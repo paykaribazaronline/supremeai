@@ -38,13 +38,6 @@ export const useAdminStore = create<AdminState>((set, get) => ({
     if (!cleanPassword) return;
     set({ adminError: '' });
     
-    // বাংলা মন্তব্য: সুপ্রিম গড পাসওয়ার্ড দিয়ে লোকাল ইমার্জেন্সি বাইপাস (ব্যাকএন্ড ডাউন থাকলেও কাজ করবে)
-    if (cleanPassword === 'supreme-god-password') {
-      set({ adminAuthenticated: true, otpRequired: false, adminOtp: '' });
-      localStorage.setItem('supremeai_admin_token', 'supreme-god-password');
-      return;
-    }
-
     try {
       const API_BASE = import.meta.env.VITE_API_BASE || '';
       if (!otpRequired) {

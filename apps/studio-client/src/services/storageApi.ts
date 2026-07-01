@@ -1,10 +1,9 @@
-// Frontend R2 Storage API
+// FrR2 Storage API
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
-// Mock auth token getter
 const getAuthToken = () => {
-    return localStorage.getItem('token') || 'dummy-token';
+    return localStorage.getItem('supremeai_admin_token') || '';
 };
 
 export const uploadFileToR2 = async (file: File) => {

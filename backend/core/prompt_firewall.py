@@ -80,31 +80,61 @@ class PromptFirewall:
         return None
 
     async def scan_with_llama_guard(self, prompt: str):
-        if "violent" in prompt:
-            return "Llama Guard"
+        lowered = prompt.lower()
+        banned = [
+            "violent", "harm", "kill", "attack", "weapon",
+            "bomb", "terror", "murder", "abuse", "exploit",
+            "hack", "malware", "ransomware", "phishing",
+        ]
+        for token in banned:
+            if token in lowered:
+                return "LlamaGuard"
         return None
-        
+
     async def pre_flight_check(self, prompt: str):
-        if "Disregard" in prompt:
-            return {"allowed": False, "provider": "local", "reason": "Blocked"}
-        if "test prompt" in prompt:
+        lowered = prompt.lower().strip()
+        blocked = [
+            "disregard", "developer mode", "jailbreak",
+            "dan mode", "unfiltered", "ignore previous",
+        ]
+        for token in blocked:
+            if token in lowered:
+                return {"allowed": False, "provider": "local", "reason": "Blocked"}
+        if "test prompt" in lowered:
             return {"allowed": False, "provider": "llama_guard", "reason": "Blocked"}
         return {"allowed": True, "reason": "prompt_approved", "provider": "firewall"}
         
     async def classify_intent(self, prompt: str):
-        if "Python" in prompt:
+        lowered = prompt.lower()
+        if "python" in lowered or "java" in lowered or "dart" in lowered:
             return {"intent": "coding", "requires_expensive_model": True}
-        if "reason" in prompt:
+        if "reason" in lowered or "logic" in lowered:
             return {"intent": "reasoning", "requires_expensive_model": True}
-        if "image" in prompt:
+        if "image" in lowered or "photo" in lowered:
             return {"intent": "vision", "requires_expensive_model": False}
         return {"intent": "simple", "requires_expensive_model": False}
 
 async def pre_flight_scan(prompt: str):
+    lowered = prompt.lower().strip()
+    blocked = [
+        "disregard", "developer mode", "jailbreak",
+        "dan mode", "unfiltered", "ignore previous",
+    ]
+    for token in blocked:
+        if token in lowered:
+            return {"allowed": False}
     return {"allowed": True}
 
+
 async def classify_intent(prompt: str):
-    return {"intent": "coding"}
+    lowered = prompt.lower()
+    if "python" in lowered or "java" in lowered or "dart" in lowered:
+        return {"intent": "coding", "requires_expensive_model": True}
+    if "reason" in lowered or "logic" in lowered:
+        return {"intent": "reasoning", "requires_expensive_model": True}
+    if "image" in lowered or "photo" in lowered:
+        return {"intent": "vision", "requires_expensive_model": False}
+    return {"intent": "simple", "requires_expensive_model": False}
 
 # গ্লোবাল সিঙ্গেলটন ইনস্ট্যান্স জেনারেশন
 prompt_firewall = PromptFirewall()

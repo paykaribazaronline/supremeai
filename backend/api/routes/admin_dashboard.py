@@ -12,6 +12,8 @@ from fastapi import Depends
 from fastapi import HTTPException
 from fastapi import Request
 from fastapi import WebSocket
+# বাংলা মন্তব্য: কোয়েরি প্যারামিটার হ্যান্ডেল করার জন্য Query ক্লাস ইম্পোর্ট করা হলো
+from fastapi import Query
 from fastapi.responses import StreamingResponse
 from fastapi.security import HTTPAuthorizationCredentials
 from fastapi.security import HTTPBearer
@@ -23,6 +25,7 @@ from pydantic import BaseModel
 from core.config import settings
 from tools.cost_auditor import CostAuditor
 
+from models.ci_report import CIReportPayload, create_ci_report
 
 security = HTTPBearer()
 
@@ -731,3 +734,82 @@ async def get_ci_logs(limit: int = 20):
         raise HTTPException(
             status_code=500, detail=f"Database query failure: {str(e)}"
         ) from e
+
+
+@router.post("/ci-report")
+async def receive_ci_report(report: CIReportPayload, request: Request):
+    """
+    Receives and stores a structured CI/CD report from a GitHub Actions workflow.
+    This endpoint is protected by a constitutional rule.
+    """
+    # Constitutional Gatekeeper for this endpoint
+    import core.services as services
+    if not services.god.get_rule("autofix_reporting_authorized", "false") == "true":
+        raise HTTPException(
+            status_code=403,
+            detail="Forbidden: CI/CD reporting is disabled by constitutional rule."
+        )
+
+    # Optional: Verify the request is coming from GitHub Actions
+    # This could be improved with a shared secret or webhook signature validation
+    if "github.com" not in request.headers.get("host", "") and "localhost" not in request.headers.get("host", ""):
+         logger.warning(f"CI Report received from non-GitHub host: {request.headers.get('host')}")
+
+    try:
+        # বাংলা মন্তব্য: নতুন CI রিপোর্ট ডাটাবেসে ইনসার্ট বা আপডেট করা হচ্ছে
+        res = await create_ci_report(report)
+        report_id = res.get("id") if res else None
+        logger.info(f"Successfully saved CI report with ID: {report_id}")
+        return {"status": "success", "report_id": report_id}
+    except Exception as e:
+        logger.error(f"❌ Failed to save CI report: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to save CI report: {str(e)}")
+
+
+@router.get("/events")
+async def get_events(limit: int = Query(50, ge=1, le=200)):
+    # বাংলা মন্তব্য: রিয়েল-টাইম সিস্টেম ইভেন্টগুলো (যা আগে Slack/Discord এ যেত) JSONL ফাইল থেকে রিটার্ন করার এন্ডপয়েন্ট
+    events_log_path = "data/dashboard_events.jsonl"
+    if not os.path.exists(events_log_path):
+        events_log_path = "/app/data/dashboard_events.jsonl"
+    
+    if not os.path.exists(events_log_path):
+        return []
+
+    try:
+        with open(events_log_path, "r", encoding="utf-8") as f:
+            lines = f.readlines()
+
+        events = []
+        for line in reversed(lines):
+            try:
+                events.append(json.loads(line))
+            except json.JSONDecodeError:
+                logger.warning(f"Skipping malformed event log line: {line.strip()}")
+
+        return events[:limit]
+    except Exception as e:
+        logger.error(f"Error reading events log: {e}")
+        raise HTTPException(status_code=500, detail="Could not read event logs.")
+
+
+@router.get("/reports")
+async def list_reports(report_name: str = None):
+    # বাংলা মন্তব্য: ডিরেক্টরি থেকে দৈনিক স্ট্যান্ডআপ রিপোর্টের মতো ফাইলগুলো তালিকাভুক্ত বা নির্দিষ্ট রিপোর্ট রিট্রিভ করার এন্ডপয়েন্ট
+    reports_dir = "data/reports"
+    if not os.path.isdir(reports_dir):
+        reports_dir = "/app/data/reports"
+
+    if not os.path.isdir(reports_dir):
+        return {"reports": []}
+
+    if report_name:
+        file_path = os.path.join(reports_dir, f"{report_name}.md")
+        if not os.path.exists(file_path):
+            raise HTTPException(status_code=404, detail="Report not found.")
+        with open(file_path, "r", encoding="utf-8") as f:
+            return {"name": report_name, "content": f.read()}
+    else:
+        import glob
+        report_files = glob.glob(f"{reports_dir}/*.md")
+        return {"reports": [os.path.basename(f).replace('.md', '') for f in report_files]}

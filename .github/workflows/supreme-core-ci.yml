@@ -70,7 +70,7 @@ jobs:
   backend-core:
     name: 🐍 Backend (Test & Auto-Fix)
     needs: detect-changes
-    # if: needs.detect-changes.outputs.backend == 'true' # বাংলা কমেন্ট: অটো ডিটেক্ট সাময়িকভাবে বন্ধ রাখা হলো, সব জব রান করবে
+    if: needs.detect-changes.outputs.backend == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -88,10 +88,9 @@ jobs:
       
       - name: 🧹 Lint Code (Auto-Fix & Warning Mode)
         working-directory: backend
-        # বাংলা কমেন্ট: লিন্টার এররের কারণে যেন বিল্ড ফেইল না করে, তাই || true যোগ করা হলো।
         run: |
-          poetry run ruff check . --fix || true
-          poetry run ruff format . || true
+          poetry run ruff check . --fix
+          poetry run ruff format .
 
       - name: 🧪 Run Tests
         id: backend_tests
@@ -99,7 +98,7 @@ jobs:
         env:
           SUPREMEAI_ENCRYPTION_KEY: "CwE60g_bA67m-mock-encryption-key-padded-len="
           PYTHONPATH: ${{ github.workspace }}/backend
-        run: poetry run pytest -n auto --cov=core --cov-fail-under=1 -q
+        run: poetry run pytest -n auto --cov=core --cov-fail-under=80 -q
           
       - name: 🔧 SupremeAI Auto-Fix Engine
         if: failure() && steps.backend_tests.outcome == 'failure'
@@ -132,7 +131,7 @@ jobs:
   frontend-core:
     name: 🌐 Frontend Monorepo (Turbo)
     needs: detect-changes
-    # if: needs.detect-changes.outputs.frontend == 'true' # বাংলা কমেন্ট: অটো ডিটেক্ট সাময়িকভাবে বন্ধ রাখা হলো, সব জব রান করবে
+    if: needs.detect-changes.outputs.frontend == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
