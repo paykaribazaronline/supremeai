@@ -1,7 +1,7 @@
 # 🧠 SupremeAI 2.0 Codebase Analysis
 # বাংলা মন্তব্য: এটি একটি স্বয়ংক্রিয়ভাবে জেনারেট করা কোডবেস ডাম্প ফাইল যা প্রজেক্টের সামগ্রিক বিশ্লেষণের জন্য ব্যবহৃত হয়।
 
-Generated at: 2026-07-01T18:09:23.800452 UTC
+Generated at: 2026-07-01T18:10:39.464148 UTC
 
 ## File: `.github/actions/setup-backend/action.yml`
 ```yaml
@@ -41525,6 +41525,7 @@ class TrustedOriginMiddleware(BaseHTTPMiddleware):
                 
         # বাংলা মন্তব্য: যদি অরিজিন না থাকে (যেমন ডিরেক্ট কার্ল বা এক্সটেনশন রিকোয়েস্ট), তবে হোস্ট হেডার ভ্যালিডেশন
         # বাংলা মন্তব্য: ডাইনামিকলি সেটিংস থেকে অনুমোদিত হোস্ট চেক করা হচ্ছে (হার্ডকোড মুক্ত)
+        host = request.headers.get("Host")
         is_allowed = any(allowed_host in host for allowed_host in settings.allowed_hosts) if host else True
         if host and not is_allowed:
             logger.critical(f"🚨 Security Intrusion: Host Header Tampering Detected -> {host}")
