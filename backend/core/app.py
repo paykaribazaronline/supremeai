@@ -76,7 +76,7 @@ def _docs_auth(credentials: HTTPBasicCredentials = Depends(security)):
 
 def _maybe_docs_auth():
     if settings.docs_auth_enabled and not settings.debug:
-        return [_docs_auth]
+        return [Depends(_docs_auth)]
     return []
 
 

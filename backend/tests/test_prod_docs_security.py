@@ -13,6 +13,10 @@ def _run(code: str) -> subprocess.CompletedProcess:
     env["PYTHONPATH"] = os.pathsep.join([project_root, backend_root])
     # ক্যাওস ইঞ্জিন যাতে টেস্টে বিঘ্ন না ঘটায়, তাই LOCAL_CHAOS_MODE নিষ্ক্রিয় করা হলো
     env["LOCAL_CHAOS_MODE"] = "false"
+    # সূপাবেস কানেকশন নিষ্ক্রিয় করা হলো যেন টেস্টের সময় রিয়েল ডাটাবেসে হিট না করে
+    env.pop("SUPABASE_URL", None)
+    env.pop("SUPABASE_KEY", None)
+    env.pop("SUPABASE_SECRET_KEY", None)
 
     gcp_mock_code = textwrap.dedent(
         """
@@ -33,6 +37,9 @@ def _run(code: str) -> subprocess.CompletedProcess:
             google.cloud.secretmanager.SecretManagerServiceClient = MagicMock
         except ImportError:
             sys.modules['google.cloud.secretmanager'] = MagicMock()
+
+        # Patch Supabase client to prevent database network calls
+        sys.modules['database.supabase_client'] = MagicMock()
         """
     )
     full_code = gcp_mock_code + "\n" + code
@@ -81,7 +88,8 @@ def test_docs_disabled_in_production():
         os.environ["sentry_dsn"] = "https://sentry.io/123"
         os.environ["SUPREMEAI_JWT_SECRET"] = "secure_jwt_secret_value_at_least_32_chars_long_test"
         # প্রোডাকশনে ইন্টিগ্রেশন টেস্ট চালানোর জন্য এনক্রিপশন কী সেট করা আবশ্যক
-        os.environ["SUPREMEAI_ENCRYPTION_KEY"] = "secure_encryption_key_value_at_least_32_chars"
+        os.environ["SUPREMEAI_ENCRYPTION_KEY"] = "CwE60g_bA67m-mock-encryption-key-padded-len="
+        os.environ["docs_auth_enabled"] = "false"
         import core.app as app_mod
         import core.services as services
 

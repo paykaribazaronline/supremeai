@@ -43,11 +43,18 @@ def test_e2e_vscode_completion_flow(mock_generate, client):
     assert isinstance(data["suggestions"], list)
 
 
-def test_e2e_mobile_and_studio_task_execution(client):
+@patch("core.services.model_router.async_route_and_generate", new_callable=AsyncMock)
+def test_e2e_mobile_and_studio_task_execution(mock_generate, client):
     """
     E2E Test simulating the Mobile App / Studio client executing a task.
     It hits the /task/execute endpoint and verifies the JSONResponse structure.
     """
+    mock_generate.return_value = {
+        "success": True,
+        "text": "Hola",
+        "provider": "mock-translation-provider",
+        "cost": 0.001
+    }
     payload = {
         "task": "Translate 'Hello' to Spanish",
         "task_type": "translation",

@@ -649,6 +649,14 @@ class SupabaseDB:
     def append_evolution_log(self, entry: dict[str, Any]) -> Any | None:
         if not self.client:
             return None
+        # বাংলা মন্তব্য: যদি এন্ট্রিতে 'event' কী না থাকে, তবে পুরো এন্ট্রিকে 'event' ফিল্ডে র‍্যাপ করা হচ্ছে
+        if "event" not in entry:
+            entry = {"event": entry}
+        # created_at যদি না থাকে তবে স্বয়ংক্রিয়ভাবে কারেন্ট টাইম এড করা হচ্ছে
+        if "created_at" not in entry:
+            from datetime import UTC
+            from datetime import datetime
+            entry["created_at"] = datetime.now(UTC).isoformat()
         try:
             res = self.client.table("evolution_logs").insert(entry).execute()
             return res.data[0] if res.data else None
