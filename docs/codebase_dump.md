@@ -1,7 +1,7 @@
 # 🧠 SupremeAI 2.0 Codebase Analysis
 # বাংলা মন্তব্য: এটি একটি স্বয়ংক্রিয়ভাবে জেনারেট করা কোডবেস ডাম্প ফাইল যা প্রজেক্টের সামগ্রিক বিশ্লেষণের জন্য ব্যবহৃত হয়।
 
-Generated at: 2026-07-01T18:10:39.464148 UTC
+Generated at: 2026-07-01T18:18:07.242513 UTC
 
 ## File: `.github/actions/setup-backend/action.yml`
 ```yaml
@@ -17926,8 +17926,8 @@ describe('ChatPanel', () => {
         loading={false}
       />,
     );
-    // বাংলা মন্তব্য: ছোটখাটো টেক্সট পরিবর্তন বা এলিপসিস চরিত্রের পার্থক্য এড়াতে প্লেসহোল্ডারে Regex ম্যাচিং ব্যবহার করা হলো
-    const input = screen.getByPlaceholderText(/Ask anything or execute/i);
+    // বাংলা মন্তব্য: স্ট্যাবল টেস্টিং নিশ্চিত করতে প্লেসহোল্ডার স্ট্রিংয়ের পরিবর্তে data-testid ব্যবহার করা হলো
+    const input = screen.getByTestId('chat-input');
     fireEvent.change(input, { target: { value: 'test' } });
     expect(onInputChange).toHaveBeenCalledWith('test');
   });
@@ -17958,8 +17958,8 @@ describe('ChatPanel', () => {
         loading={false}
       />,
     );
-    // বাংলা মন্তব্য: ছোটখাটো টেক্সট পরিবর্তন বা এলিপসিস চরিত্রের পার্থক্য এড়াতে প্লেসহোল্ডারে Regex ম্যাচিং ব্যবহার করা হলো
-    const input = screen.getByPlaceholderText(/Ask anything or execute/i);
+    // বাংলা মন্তব্য: স্ট্যাবল টেস্টিং নিশ্চিত করতে প্লেসহোল্ডার স্ট্রিংয়ের পরিবর্তে data-testid ব্যবহার করা হলো
+    const input = screen.getByTestId('chat-input');
     fireEvent.keyDown(input, { key: 'Enter' });
     expect(onSend).toHaveBeenCalled();
   });
@@ -18002,8 +18002,8 @@ describe('ChatPanel', () => {
         loading={false}
       />,
     );
-    // বাংলা মন্তব্য: ছোটখাটো টেক্সট পরিবর্তন বা এলিপসিস চরিত্রের পার্থক্য এড়াতে প্লেসহোল্ডারে Regex ম্যাচিং ব্যবহার করা হলো
-    const input = screen.getByPlaceholderText(/Ask anything or execute/i);
+    // বাংলা মন্তব্য: স্ট্যাবল টেস্টিং নিশ্চিত করতে প্লেসহোল্ডার স্ট্রিংয়ের পরিবর্তে data-testid ব্যবহার করা হলো
+    const input = screen.getByTestId('chat-input');
     fireEvent.keyDown(input, { key: 'Enter' });
     expect(onSend).toHaveBeenCalled();
   });
@@ -18713,8 +18713,8 @@ describe('UserDashboard', () => {
   it('calls setCustomerInput when chat input changes', () => {
     render(<UserDashboard {...defaultProps} />);
     fireEvent.click(getTabButton(/Chat/i));
-    // বাংলা মন্তব্য: ছোটখাটো টেক্সট পরিবর্তন বা এলিপসিস চরিত্রের পার্থক্য এড়াতে প্লেসহোল্ডারে Regex ম্যাচিং ব্যবহার করা হলো
-    const input = screen.getByPlaceholderText(/Ask anything or execute/i);
+    // বাংলা মন্তব্য: স্ট্যাবল টেস্টিং নিশ্চিত করতে প্লেসহোল্ডার স্ট্রিংয়ের পরিবর্তে data-testid ব্যবহার করা হলো
+    const input = screen.getByTestId('chat-input');
     fireEvent.change(input, { target: { value: 'test input' } });
     expect(defaultProps.setCustomerInput).toHaveBeenCalledWith('test input');
   });
