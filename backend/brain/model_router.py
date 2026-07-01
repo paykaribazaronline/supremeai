@@ -34,6 +34,20 @@ class ModelRouter:
         self._local_rag = None
         self._pick_provider = None
         self._stream_ollama = None
+        self._breakers = {}
+
+    def _get_breaker(self, task_type: str):
+        # বাংলা মন্তব্য: প্রতিটি টাস্ক টাইপের জন্য গ্লোবাল রেডিস-ব্যাকড সার্কিট ব্রেকার তৈরি
+        from core.circuit_breaker import CircuitBreaker
+        from core.services import redis_queue
+        if task_type not in self._breakers:
+            self._breakers[task_type] = CircuitBreaker(
+                name=f"router_task_{task_type}",
+                failure_threshold=5,
+                recovery_timeout=30.0,
+                redis_queue=redis_queue
+            )
+        return self._breakers[task_type]
 
     def route_and_generate_with_cot(
         self, prompt: str, task_type: str = "general", max_cost: float = 0.01
@@ -160,19 +174,37 @@ class ModelRouter:
             else:
                 normalized_prompt = str(prompt)
 
-            # Delegate directly to our new LiteLLM universal gateway
-            response = await llm_gateway.acompletion(
-                prompt=normalized_prompt,
-                task_type=task_type,
-                stream=False
-            )
-            if response is None:
+            breaker = self._get_breaker(task_type)
+            if not breaker.allow_request():
+                logger.warning(f"[ModelRouter] Circuit Breaker OPEN for task_type='{task_type}'. Blocking request.")
                 return {
                     "success": False,
                     "text": "{}",
-                    "error": "LLM Gateway returned None"
+                    "error": f"Circuit breaker open for {task_type}"
                 }
-            return response
+
+            # Delegate directly to our new LiteLLM universal gateway
+            try:
+                response = await llm_gateway.acompletion(
+                    prompt=normalized_prompt,
+                    task_type=task_type,
+                    stream=False
+                )
+                if response and response.get("success"):
+                    breaker.mark_success()
+                else:
+                    breaker.mark_failure()
+                
+                if response is None:
+                    return {
+                        "success": False,
+                        "text": "{}",
+                        "error": "LLM Gateway returned None"
+                    }
+                return response
+            except Exception as exc:
+                breaker.mark_failure()
+                raise exc
         except Exception as e:
             logger.error(f"[ModelRouter] Gateway completion failed: {e}")
             return {
