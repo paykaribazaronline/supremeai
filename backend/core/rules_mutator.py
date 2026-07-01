@@ -11,16 +11,16 @@ class RulesMutator:
         self.cooldown_seconds = 1800  # Default 30 minutes block
 
     def is_ip_blocked(self, ip_address: str) -> bool:
-        import core.app as app_mod
+        import core.services as services
 
         if (
-            hasattr(app_mod, "redis_queue")
-            and app_mod.redis_queue
-            and app_mod.redis_queue.configured
+            hasattr(services, "redis_queue")
+            and services.redis_queue
+            and services.redis_queue.configured
         ):
             redis_key = f"blocklist:ip:{ip_address}"
             try:
-                val = app_mod.redis_queue.get(redis_key)
+                val = services.redis_queue.get(redis_key)
                 if val is not None:
                     return val != "ok"
             except Exception as e:
@@ -29,16 +29,16 @@ class RulesMutator:
 
     def block_ip(self, ip_address: str, reason: str = "suspicious_activity") -> bool:
         logger.warning(f"RulesMutator: Blocking IP {ip_address} due to {reason}.")
-        import core.app as app_mod
+        import core.services as services
 
         if (
-            hasattr(app_mod, "redis_queue")
-            and app_mod.redis_queue
-            and app_mod.redis_queue.configured
+            hasattr(services, "redis_queue")
+            and services.redis_queue
+            and services.redis_queue.configured
         ):
             redis_key = f"blocklist:ip:{ip_address}"
             try:
-                app_mod.redis_queue.set(
+                services.redis_queue.set(
                     redis_key, f"blocked:{reason}", ex=self.cooldown_seconds
                 )
                 return True
@@ -48,16 +48,16 @@ class RulesMutator:
 
     def release_ip(self, ip_address: str) -> bool:
         logger.info(f"RulesMutator: Releasing block on IP {ip_address}.")
-        import core.app as app_mod
+        import core.services as services
 
         if (
-            hasattr(app_mod, "redis_queue")
-            and app_mod.redis_queue
-            and app_mod.redis_queue.configured
+            hasattr(services, "redis_queue")
+            and services.redis_queue
+            and services.redis_queue.configured
         ):
             redis_key = f"blocklist:ip:{ip_address}"
             try:
-                app_mod.redis_queue.set(redis_key, "", ex=1)
+                services.redis_queue.set(redis_key, "", ex=1)
                 return True
             except Exception as e:
                 logger.error(f"Redis connection failed during release_ip: {e}")

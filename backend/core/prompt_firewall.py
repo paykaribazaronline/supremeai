@@ -59,17 +59,19 @@ class PromptFirewall:
         ]
         
     def _check_local_patterns(self, prompt: str):
-        """
-        Updated to use word-boundary regex patterns instead of broad substring checks.
-        Prevents false positives on common words like 'python', 'bash', 'KEY', 'mode', etc.
-        """
-        import re as _re
-        if _re.search(r"\b(disregard|ignore)\b", prompt, _re.IGNORECASE):
-            return "prompt_injection"
-        if _re.search(r"\b(KEY|SECRET)\b", prompt) or _re.search(r"\bssh-\w+\b", prompt):
-            return "sensitive_extraction"
-        if _re.search(r"\b(rm\s+-rf|chmod\s+\d|bash\s+-c|sudo\s+\w+)\b", prompt):
-            return "malicious_code"
+        # সব ইনপুট লোয়ারকেস এবং ট্রিম করা হয়েছে যাতে প্যাটার্ন ম্যাচিং মিস না হয়
+        cleaned_prompt = prompt.lower().strip()
+        
+        # ইনজেকশন প্যাটার্ন লিস্ট
+        patterns = [
+            "disregard", "developer mode", "jailbreak", 
+            "dan mode", "unfiltered", "ignore previous"
+        ]
+        
+        for pattern in patterns:
+            if pattern in cleaned_prompt:
+                return {"type": "prompt_injection", "pattern": pattern}
+                
         return None
 
     async def scan_with_llama_guard(self, prompt: str):

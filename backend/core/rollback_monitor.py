@@ -27,19 +27,19 @@ class RollbackMonitor:
             f"RollbackMonitor: Checking metrics for {service_name} - Latency: {latency_ms}ms, Error: {is_error}"
         )
 
-        import core.app as app_mod
+        import core.services as services
 
         if (
-            not hasattr(app_mod, "redis_queue")
-            or not app_mod.redis_queue
-            or not app_mod.redis_queue.configured
+            not hasattr(services, "redis_queue")
+            or not services.redis_queue
+            or not services.redis_queue.configured
         ):
             return {
                 "status": "ok",
                 "message": "Redis not configured. Skipping automated rollback check.",
             }
 
-        redis = app_mod.redis_queue
+        redis = services.redis_queue
 
         # Track sliding window counts using Redis
         total_key = f"monitor:total:{service_name}"
