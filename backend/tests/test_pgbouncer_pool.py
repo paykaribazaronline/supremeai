@@ -12,10 +12,11 @@ if "asyncpg" not in sys.modules:
 
 from core.pgbouncer_pool import PgBouncerConnectionPool
 
-def test_singleton_pattern():
+@pytest.mark.asyncio
+async def test_singleton_pattern():
     from core.pgbouncer_pool import get_db_pool
-    pool1 = get_db_pool()
-    pool2 = get_db_pool()
+    pool1 = await get_db_pool()
+    pool2 = await get_db_pool()
     assert pool1 is pool2
 
 @pytest.mark.asyncio

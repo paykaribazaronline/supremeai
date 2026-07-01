@@ -1181,6 +1181,8 @@ class TestUpstashRedisQueue:
 
 
 class TestPgBouncerPool:
+    import pytest
+    @pytest.mark.asyncio
     async def test_singleton(self):
         from core.pgbouncer_pool import get_db_pool
         pool1 = await get_db_pool()
