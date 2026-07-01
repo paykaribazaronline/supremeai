@@ -1,7 +1,7 @@
 # 🧠 SupremeAI 2.0 Codebase Analysis
 # বাংলা মন্তব্য: এটি একটি স্বয়ংক্রিয়ভাবে জেনারেট করা কোডবেস ডাম্প ফাইল যা প্রজেক্টের সামগ্রিক বিশ্লেষণের জন্য ব্যবহৃত হয়।
 
-Generated at: 2026-07-01T18:18:07.242513 UTC
+Generated at: 2026-07-01T19:26:54.992315 UTC
 
 ## File: `.github/actions/setup-backend/action.yml`
 ```yaml
@@ -772,7 +772,7 @@ def check_infinite_loop():
         sys.exit(1)
 
 # ==========================================
-# 🔍 STEP 1: EXTRACT ERROR LOGS
+# 🔍 STEP 1: EXTRACT ERROR LOGS & FILE PATH
 # ==========================================
 def extract_errors():
     print("🔍 Extracting failed test logs...")
@@ -783,25 +783,60 @@ def extract_errors():
         print("✅ No failing tests found. Exiting Auto-Fix.")
         sys.exit(0)
         
-    return stdout
+    # বাংলা মন্তব্য: এরর লগ থেকে ভুল হওয়া ফাইলের নাম ও পাথ খুঁজে বের করার চেষ্টা করা হচ্ছে
+    from pathlib import Path
+    failing_file = None
+    matches = re.findall(r'([a-zA-Z0-9_\-/]+\.py)', stdout)
+    existing_files = []
+    for m in matches:
+        p = Path(m)
+        if p.exists() and p.is_file():
+            existing_files.append(m)
+        elif (Path("backend") / m).exists() and (Path("backend") / m).is_file():
+            existing_files.append(f"backend/{m}")
+
+    # টেস্ট ফাইল বাদ দিয়ে সোর্স ফাইলকে অগ্রাধিকার দেওয়া হচ্ছে
+    source_files = [f for f in existing_files if "test_" not in f and "/tests/" not in f]
+    if source_files:
+        failing_file = source_files[0]
+    elif existing_files:
+        failing_file = existing_files[0]
+
+    if failing_file:
+        print(f"🎯 Identified potential failing file: {failing_file}")
+    else:
+        print("⚠️ Could not identify specific failing file from logs.")
+
+    return stdout, failing_file
 
 # ==========================================
 # 🧠 STEP 2: CALL AI FOR THE FIX
 # ==========================================
-def get_ai_fix(error_log):
+def get_ai_fix(error_log, file_path=None):
     print("🧠 Analyzing error and generating fix via SupremeAI...")
     
+    # বাংলা মন্তব্য: ভুল হওয়া ফাইলের মূল সোর্স কোডটি AI প্রম্পটের সাথে যুক্ত করা হচ্ছে যাতে সঠিক সমাধান পাওয়া যায়
+    file_context = ""
+    if file_path and os.path.exists(file_path):
+        try:
+            with open(file_path, "r", encoding="utf-8") as f:
+                content = f.read()
+            file_context = f"\nORIGINAL FILE CONTENT ({file_path}):\n```python\n{content}\n```\n"
+        except Exception as e:
+            print(f"⚠️ Could not read source file {file_path}: {e}")
+            
     prompt = f"""
     You are an expert Senior Python Developer. The CI pipeline just failed.
-    Analyze the following Pytest error log. 
+    Analyze the following Pytest error log and original file content. 
     
     ERROR LOG:
     {error_log}
+    {file_context}
     
     Provide the fixed complete code for the file that caused the error. 
     Output ONLY valid Python code inside a markdown block. Do not include explanations.
     Add a comment at the top containing the exact file path like this:
-    # FILE_PATH: backend/core/example.py
+    # FILE_PATH: {file_path or 'backend/core/example.py'}
     """
     
     response = client.models.generate_content(model='gemini-2.5-flash', contents=prompt)
@@ -874,8 +909,8 @@ if __name__ == "__main__":
     print("========================================")
     
     check_infinite_loop()
-    error_logs = extract_errors()
-    ai_response = get_ai_fix(error_logs)
+    error_logs, failing_file = extract_errors()
+    ai_response = get_ai_fix(error_logs, failing_file)
     fixed_file = apply_and_validate_fix(ai_response)
     push_fix_to_repo(fixed_file)
 
@@ -3917,7 +3952,7 @@ jobs:
   backend-core:
     name: 🐍 Backend (Test & Auto-Fix)
     needs: detect-changes
-    # if: needs.detect-changes.outputs.backend == 'true' # বাংলা কমেন্ট: অটো ডিটেক্ট সাময়িকভাবে বন্ধ রাখা হলো, সব জব রান করবে
+    if: needs.detect-changes.outputs.backend == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -3935,10 +3970,9 @@ jobs:
       
       - name: 🧹 Lint Code (Auto-Fix & Warning Mode)
         working-directory: backend
-        # বাংলা কমেন্ট: লিন্টার এররের কারণে যেন বিল্ড ফেইল না করে, তাই || true যোগ করা হলো।
         run: |
-          poetry run ruff check . --fix || true
-          poetry run ruff format . || true
+          poetry run ruff check . --fix
+          poetry run ruff format .
 
       - name: 🧪 Run Tests
         id: backend_tests
@@ -3946,7 +3980,7 @@ jobs:
         env:
           SUPREMEAI_ENCRYPTION_KEY: "CwE60g_bA67m-mock-encryption-key-padded-len="
           PYTHONPATH: ${{ github.workspace }}/backend
-        run: poetry run pytest -n auto --cov=core --cov-fail-under=1 -q
+        run: poetry run pytest -n auto --cov=core --cov-fail-under=80 -q
           
       - name: 🔧 SupremeAI Auto-Fix Engine
         if: failure() && steps.backend_tests.outcome == 'failure'
@@ -3979,7 +4013,7 @@ jobs:
   frontend-core:
     name: 🌐 Frontend Monorepo (Turbo)
     needs: detect-changes
-    # if: needs.detect-changes.outputs.frontend == 'true' # বাংলা কমেন্ট: অটো ডিটেক্ট সাময়িকভাবে বন্ধ রাখা হলো, সব জব রান করবে
+    if: needs.detect-changes.outputs.frontend == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -4883,6 +4917,28 @@ document.getElementById('toggleAdminAuth').addEventListener('change', async (e) 
     }
 });
 
+// বাংলা মন্তব্য: AI Auto-Fix ইঞ্জিনের অনুমতি পরিবর্তনের জন্য ইভেন্ট লিসেনার যুক্ত করা হলো
+document.getElementById('toggleAutoFix').addEventListener('change', async (e) => {
+    const isEnabled = e.target.checked;
+    if (confirm(isEnabled ? "ENABLE AI Auto-Fix Engine?" : "DISABLE AI Auto-Fix Engine?")) {
+        try {
+            const res = await fetch(`${API_BASE}/api/admin/rules`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ key: 'autofix_authorized', value: isEnabled ? 'true' : 'false' })
+            });
+            if(!res.ok) throw new Error('Backend rejected rule change');
+            console.log(`[SupremeAI] Rule 'autofix_authorized' synced to: ${isEnabled}`);
+        } catch (error) {
+            alert('❌ Failed to update constitutional rule in god.py');
+            e.target.checked = !isEnabled; // Revert switch
+        }
+    } else {
+        e.target.checked = !isEnabled;
+    }
+});
+
+
 // Auto-Refresh Binding
 document.getElementById('btnRefresh').addEventListener('click', () => {
     fetchLiveJobs();
@@ -5002,6 +5058,7 @@ input:checked + .slider:before { transform: translateX(24px); }
 ```python
 import sqlite3
 import time
+import threading
 from pathlib import Path
 from typing import Optional
 
@@ -5018,6 +5075,7 @@ class AdminGodLayer:
     def __init__(self, db_path: str):
         self.db_path = Path(db_path)
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
+        self.sqlite_lock = threading.Lock()
         import os
         self.use_firestore = os.getenv("USE_FIRESTORE", "true").lower() == "true"
         if self.use_firestore:
@@ -5043,8 +5101,13 @@ class AdminGodLayer:
                 """
             )
             conn.commit()
+            # বাংলা মন্তব্য: admin_authorized নিয়মের মতো autofix_authorized নিয়মের ডিফল্ট মান 'true' সেট করা হচ্ছে।
             if not self.get_rule("admin_authorized"):
                 self.set_rule("admin_authorized", "true")
+            if not self.get_rule("autofix_authorized"):
+                self.set_rule("autofix_authorized", "true")
+            if not self.get_rule("autofix_reporting_authorized"):
+                self.set_rule("autofix_reporting_authorized", "true")
 
     def get_rule(self, key: str, default: Optional[str] = None) -> Optional[str]:
         if self.use_firestore:
@@ -5055,10 +5118,12 @@ class AdminGodLayer:
             except Exception as e:
                 logger.error(f"Firestore get_rule failed: {e}")
         
-        with sqlite3.connect(self.db_path, check_same_thread=False) as conn:
-            cur = conn.execute("SELECT value FROM rules WHERE key = ?", (key,))
-            row = cur.fetchone()
-            return row[0] if row else default
+        # বাংলা মন্তব্য: রিড করার সময় কনকারেন্ট রাইট অপারেশনের সংঘাত এড়াতে লক ব্যবহার করা হলো
+        with self.sqlite_lock:
+            with sqlite3.connect(self.db_path, check_same_thread=False) as conn:
+                cur = conn.execute("SELECT value FROM rules WHERE key = ?", (key,))
+                row = cur.fetchone()
+                return row[0] if row else default
 
     def set_rule(self, key: str, value: str) -> None:
         if self.use_firestore:
@@ -5072,16 +5137,17 @@ class AdminGodLayer:
             except Exception as e:
                 logger.error(f"Firestore set_rule failed: {e}. Falling back to SQLite.")
 
-        with sqlite3.connect(self.db_path, check_same_thread=False) as conn:
-            conn.execute(
-                """
-                INSERT INTO rules(key, value, updated_at)
-                VALUES(?, ?, ?)
-                ON CONFLICT(key) DO UPDATE SET value=excluded.value, updated_at=excluded.updated_at
-                """,
-                (key, value, time.time()),
-            )
-            conn.commit()
+        with self.sqlite_lock:
+            with sqlite3.connect(self.db_path, check_same_thread=False) as conn:
+                conn.execute(
+                    """
+                    INSERT INTO rules(key, value, updated_at)
+                    VALUES(?, ?, ?)
+                    ON CONFLICT(key) DO UPDATE SET value=excluded.value, updated_at=excluded.updated_at
+                    """,
+                    (key, value, time.time()),
+                )
+                conn.commit()
         logger.info(f"Constitutional rule updated in SQLite: {key} = {value}")
 
     def is_admin_action_allowed(self, action: str) -> bool:
@@ -5145,7 +5211,9 @@ class AdminGodLayer:
       "all": false,
       "fs": {
         "all": false,
-        "scope": ["$APPDIR/**"]
+        "scope": [
+          "$APPDIR/**"
+        ]
       },
       "notification": {
         "all": false
@@ -5163,12 +5231,16 @@ class AdminGodLayer:
       },
       "http": {
         "all": false,
-        "scope": ["http://*/*", "https://*/*"]
+        "scope": [
+          "https://*.supremeai.dev/*"
+        ]
       }
     },
     "bundle": {
       "active": true,
-      "targets": ["msi"],
+      "targets": [
+        "msi"
+      ],
       "identifier": "com.supremeai.app",
       "icon": [
         "icons/32x32.png",
@@ -8844,6 +8916,7 @@ export default defineConfig([
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://www.gstatic.com https://cdn.firebase.com https://*.firebaseio.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https: blob:; connect-src 'self' wss: https: http://localhost:* http://127.0.0.1:* https://*.firebaseapp.com https://*.web.app https://api.openai.com https://generativelanguage.googleapis.com https://*.supremeai.dev https://*.firebaseio.com; frame-src 'self' https://*; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests;">
     
     <!-- Primary Meta Tags -->
     <title>SupremeAI Studio — Universal Self-Learning AI Agent</title>
@@ -10567,7 +10640,7 @@ export function ActionCard({ rawContent, onSaveToProject, onPreview }: ActionCar
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
-              'Authorization': `Bearer ${localStorage.getItem('supremeai_admin_token') || 'supreme-god-password'}`
+              'Authorization': `Bearer ${localStorage.getItem('supremeai_admin_token') || ''}`
             }
           });
           if (res.ok) {
@@ -10665,20 +10738,23 @@ export function ActionCard({ rawContent, onSaveToProject, onPreview }: ActionCar
 
 ## File: `apps/studio-client/src/components/admin/AdminAuthenticated.tsx`
 ```typescript
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import type { AdminSubTab, GcpHealth, CloudStats } from '../../types';
 import { SubTabContent } from './AdminSubTabContent';
 import { AdminTopNav } from './AdminTopNav';
-import { 
-  Search, 
-  LayoutDashboard, 
-  FileCode, 
-  GitMerge, 
-  Server, 
-  BarChart3, 
-  Users, 
+import {
+  Search,
+  LayoutDashboard,
+  FileCode,
+  GitMerge,
+  Server,
+  BarChart3,
+  Users,
   Settings,
-  Terminal
+  Terminal,
+  Shield,
+  BrainCircuit,
+  HardDrive
 } from 'lucide-react';
 
 interface AuthenticatedViewProps {
@@ -10724,8 +10800,17 @@ interface AuthenticatedViewProps {
   toggleTheme: () => void;
 }
 
-// বাংলা মন্তব্য: সুপ্রিম গড মোড অথেনটিকেটেড লেআউট (Authenticated Dashboard Layout)
-// এটি ওপরের টপ নেভিগেশন বার, বাম পাশের ৭-আইটেম সাইডবার এবং মূল কন্টেন্ট প্যানেল যুক্ত করে রিডিজাইন করা হয়েছে।
+/**
+ * Supreme God Mode - Authenticated Layout (Redesigned)
+ * This component implements the vision from the SUPREMEAI_GOD_CONTROL_CENTER_PLAN.md,
+ * featuring a top navigation bar, a multi-module sidebar, and a main content panel.
+ * It also integrates a command palette for quick navigation.
+ *
+ * বাংলা মন্তব্য: সুপ্রিম গড মোড অথেনটিকেটেড লেআউট (পুনঃডিজাইনকৃত)
+ * এই কম্পোনেন্টটি SUPREMEAI_GOD_CONTROL_CENTER_PLAN.md-এর পরিকল্পনাকে বাস্তবায়ন করে।
+ * এতে একটি টপ নেভিগেশন বার, একাধিক মডিউলসহ সাইডবার এবং মূল কন্টেন্ট প্যানেল রয়েছে।
+ * দ্রুত নেভিগেশনের জন্য একটি কমান্ড প্যালেটও যুক্ত করা হয়েছে।
+ */
 export function AuthenticatedView(props: AuthenticatedViewProps) {
   const { adminSubTab, setAdminSubTab, handleAdminLogout } = props;
   const [isPaletteOpen, setIsPaletteOpen] = useState(false);
@@ -10746,16 +10831,18 @@ export function AuthenticatedView(props: AuthenticatedViewProps) {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isPaletteOpen]);
 
-  // ৭টি ড্যাশবোর্ড সাইডবার আইটেম (রেফারেন্স ইমেজ অনুযায়ী) + ১টি নতুন ইন্টারেক্টিভ চ্যাট ট্যাব
+  // As per SUPREMEAI_GOD_CONTROL_CENTER_PLAN.md, the sidebar is module-driven.
   const sidebarItems = [
     { id: 'dashboard', label: 'DASHBOARD', icon: <LayoutDashboard size={16} /> },
-    { id: 'interactive-chat', label: 'INTERACTIVE CHAT', icon: <Terminal size={16} /> },
-    { id: 'model-router', label: 'MODEL REGISTRY', icon: <FileCode size={16} /> },
-    { id: 'cicd', label: 'WORKFLOWS', icon: <GitMerge size={16} /> },
-    { id: 'cloud', label: 'COMPUTING', icon: <Server size={16} /> },
-    { id: 'observability', label: 'ANALYTICS', icon: <BarChart3 size={16} /> },
-    { id: 'users', label: 'AGENTS', icon: <Users size={16} /> },
+    { id: 'model-router', label: 'AI CORE', icon: <BrainCircuit size={16} /> },
+    { id: 'skills', label: 'SKILLS & AGENTS', icon: <Users size={16} /> },
+    { id: 'memory', label: 'MEMORY', icon: <HardDrive size={16} /> },
+    { id: 'cloud', label: 'INFRASTRUCTURE', icon: <Server size={16} /> },
+    { id: 'cicd', label: 'DEPLOYMENTS', icon: <GitMerge size={16} /> },
+    { id: 'observability', label: 'OBSERVABILITY', icon: <BarChart3 size={16} /> },
+    { id: 'threats', label: 'SECURITY', icon: <Shield size={16} /> },
     { id: 'config', label: 'SETTINGS', icon: <Settings size={16} /> },
+    { id: 'interactive-chat', label: 'TERMINAL', icon: <Terminal size={16} /> },
   ];
 
   // কমান্ড প্যালেট অপশনসমূহ
@@ -10782,7 +10869,7 @@ export function AuthenticatedView(props: AuthenticatedViewProps) {
     { id: 'security-dashboard', label: '🧠 Security & Memory Dashboard' }
   ];
 
-  const filteredOptions = navigationOptions.filter(opt => 
+  const filteredOptions = navigationOptions.filter(opt =>
     opt.label.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
@@ -10793,9 +10880,9 @@ export function AuthenticatedView(props: AuthenticatedViewProps) {
 
       {/* নিচের অংশ: সাইডবার + মূল কন্টেন্ট */}
       <div className="flex-1 flex overflow-hidden relative">
-        
+
         {/* ২. বাম পাশের নেভিগেশন সাইডবার */}
-        <aside className="w-64 bg-[#040814]/90 border-r border-[#00f3ff]/15 flex flex-col justify-between py-6 font-sans text-slate-400 select-none z-20">
+        <aside className="w-56 bg-[#040814]/90 border-r border-[#00f3ff]/15 flex flex-col justify-between py-6 font-sans text-slate-400 select-none z-20">
           <div className="space-y-1 px-3">
             {sidebarItems.map(item => {
               const isActive = adminSubTab === item.id;
@@ -10803,11 +10890,10 @@ export function AuthenticatedView(props: AuthenticatedViewProps) {
                 <button
                   key={item.id}
                   onClick={() => setAdminSubTab(item.id as AdminSubTab)}
-                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-xs font-semibold tracking-wider transition-all duration-300 ${
-                    isActive 
-                      ? 'bg-[#00f3ff]/10 text-[#00f3ff] border-l-2 border-[#00f3ff] shadow-[inset_0_0_12px_rgba(0,243,255,0.05)]' 
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-xs font-semibold tracking-wider transition-all duration-300 ${isActive
+                      ? 'bg-[#00f3ff]/10 text-[#00f3ff] border-l-2 border-[#00f3ff] shadow-[inset_0_0_12px_rgba(0,243,255,0.05)]'
                       : 'hover:bg-slate-900/50 hover:text-slate-200'
-                  }`}
+                    }`}
                 >
                   <span className={isActive ? 'text-[#00f3ff]' : 'text-slate-500'}>
                     {item.icon}
@@ -10822,9 +10908,8 @@ export function AuthenticatedView(props: AuthenticatedViewProps) {
           <div className="px-6 border-t border-slate-900 pt-4">
             <button
               onClick={() => setAdminSubTab('command-center')}
-              className={`w-full flex items-center justify-center gap-2 px-3 py-2 rounded border border-[#00f3ff]/30 text-[#00f3ff] hover:bg-[#00f3ff]/10 text-xs font-mono font-bold tracking-widest uppercase transition-all duration-300 ${
-                adminSubTab === 'command-center' ? 'bg-[#00f3ff]/20' : ''
-              }`}
+              className={`w-full flex items-center justify-center gap-2 px-3 py-2 rounded border border-[#00f3ff]/30 text-[#00f3ff] hover:bg-[#00f3ff]/10 text-xs font-mono font-bold tracking-widest uppercase transition-all duration-300 ${adminSubTab === 'command-center' ? 'bg-[#00f3ff]/20' : ''
+                }`}
             >
               <Terminal size={14} />
               <span>Core Canvas</span>
@@ -10866,9 +10951,8 @@ export function AuthenticatedView(props: AuthenticatedViewProps) {
                     setIsPaletteOpen(false);
                     setSearchQuery('');
                   }}
-                  className={`w-full text-left px-4 py-3 rounded-lg font-mono transition-colors flex items-center gap-3 ${
-                    i === 0 && searchQuery ? 'bg-[#00f3ff]/10 text-[#00f3ff]' : 'hover:bg-white/5 text-slate-300'
-                  }`}
+                  className={`w-full text-left px-4 py-3 rounded-lg font-mono transition-colors flex items-center gap-3 ${i === 0 && searchQuery ? 'bg-[#00f3ff]/10 text-[#00f3ff]' : 'hover:bg-white/5 text-slate-300'
+                    }`}
                 >
                   {opt.label}
                 </button>
@@ -11370,7 +11454,7 @@ export function LoginView({
 ## File: `apps/studio-client/src/components/admin/AdminSubTabContent.tsx`
 ```typescript
 import type { AdminSubTab, ChatMessage } from '../../types';
-import { CommandCenter, LiveLogs, CostAuditor, HealthMap, UserManager, ConfigEditor, ModelRouter, EnhancedSkillMarketplace, MemoryBrowser, CloudOrchestrator, ObservabilityDashboard, ThreatDetection, VisualRulesBuilder, CICDVisualizer, GithubIntegration, BackupRestore, SecurityDashboard } from '.';
+import { CommandCenter, LiveLogs, CostAuditor, HealthMap, UserManager, ConfigEditor, ModelRouter, EnhancedSkillMarketplace, MemoryBrowser, CloudOrchestrator, ObservabilityDashboard, ThreatDetection, VisualRulesBuilder, CICDVisualizer, GithubIntegration, BackupRestore, SecurityDashboard, RedesignedDashboardMockup } from '.';
 import { RateLimitManager } from './RateLimitManager';
 import { AdminDashboardHome } from './AdminDashboardHome';
 // বাংলা মন্তব্য: ইন্টারেক্টিভ চ্যাট ট্যাব ইম্পোর্ট করা হলো
@@ -11416,8 +11500,9 @@ export function SubTabContent(props: SubTabContentProps) {
   return (
     <div className="flex-1 flex flex-col overflow-hidden bg-[var(--bg-main)] relative transition-colors duration-500">
       {/* Background Canvas or Dashboard Home always rendered */}
+      {/* বাংলা মন্তব্য: লেগ্যাসি ড্যাশবোর্ড হোমের পরিবর্তে নতুন রিডিজাইনকৃত মকআপ রেন্ডার করা হচ্ছে */}
       <div className={`absolute inset-0 transition-opacity duration-300 ${isOverlayOpen ? 'opacity-40 pointer-events-none' : 'opacity-100'}`}>
-        {adminSubTab === 'command-center' ? <CommandCenter /> : <AdminDashboardHome />}
+        {adminSubTab === 'command-center' ? <CommandCenter /> : <RedesignedDashboardMockup />}
       </div>
 
       {/* Glassmorphic Modal Overlay for other modules */}
@@ -12307,7 +12392,7 @@ export function CICDVisualizer() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('supremeai_admin_token') || 'supreme-god-password'}`
+          'Authorization': `Bearer ${localStorage.getItem('supremeai_admin_token') || ''}`
         }
       });
       if (res.ok) {
@@ -15551,7 +15636,7 @@ export const RateLimitManager: React.FC = () => {
     setLoading(true);
     try {
       const resp = await fetch(`${API_BASE}/admin/tenant-limits`, {
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('admin_token') || ''}` }
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('supremeai_supremeai_admin_token') || ''}` }
       });
       if (resp.ok) {
         const data = await resp.json();
@@ -15589,7 +15674,7 @@ export const RateLimitManager: React.FC = () => {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('admin_token') || ''}`,
+          'Authorization': `Bearer ${localStorage.getItem('supremeai_admin_token') || ''}`,
         },
         body: JSON.stringify(editValues),
       });
@@ -15618,7 +15703,7 @@ export const RateLimitManager: React.FC = () => {
     try {
       await fetch(`${API_BASE}/admin/tenant-limits`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('admin_token') || ''}` },
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('supremeai_admin_token') || ''}` },
         body: JSON.stringify(record),
       });
     } catch (e) {
@@ -16097,7 +16182,7 @@ import ReactFlow, { Background, Controls, useNodesState, useEdgesState, Panel } 
 import { motion, AnimatePresence } from 'framer-motion';
 import 'reactflow/dist/style.css';
 import './AethelCoreStyles.css';
-import { useMetrics, useHealthMap, useThreatScan, useCostReport, useCIReports } from '../../hooks/useDashboardData';
+import { useMetrics, useHealthMap, useThreatScan, useCostReport, useCIReports, useDashboardEvents, useDashboardReports } from '../../hooks/useDashboardData';
 import { useDashboardStore } from '../../store/dashboardStore';
 import HealthBanner from './HealthBanner';
 import DeploymentModal from './DeploymentModal';
@@ -16123,6 +16208,12 @@ const RedesignedDashboardMockup: React.FC = () => {
   const { data: threats } = useThreatScan();
   const { data: costs } = useCostReport();
   const { data: ciReports } = useCIReports();
+
+  const [selectedReportName, setSelectedReportName] = React.useState<string | undefined>();
+  // বাংলা মন্তব্য: রিয়েল-টাইম ইভেন্ট এবং দৈনিক স্ট্যান্ডআপ রিপোর্ট ডেটা ফেচ করা হচ্ছে
+  const { data: events } = useDashboardEvents(10);
+  const { data: reportsData } = useDashboardReports();
+  const { data: activeReport } = useDashboardReports(selectedReportName);
 
   const [isOptimizing, setIsOptimizing] = React.useState(false);
   const [optimizeStatus, setOptimizeStatus] = React.useState('');
@@ -16325,23 +16416,32 @@ const RedesignedDashboardMockup: React.FC = () => {
             <div className="lg:col-span-8 bg-white border border-slate-100 rounded-3xl p-6 shadow-sm">
               <h2 className="text-sm font-bold text-slate-900 mb-4 flex items-center gap-2">
                 <Sparkles size={16} className="text-indigo-500" />
-                সিস্টেম আপডেট ও কার্যক্রম
+                সিস্টেম আপডেট ও কার্যক্রম (Real-time Events)
               </h2>
-              <div className="flex flex-col gap-4">
-                <div className="flex items-start gap-4 p-4 rounded-xl bg-slate-50 border border-slate-100">
-                  <span className="p-2 bg-indigo-50 rounded-lg text-indigo-600">✓</span>
-                  <div>
-                    <p className="text-xs font-bold text-slate-800">স্বয়ংক্রিয় সমাধান</p>
-                    <p className="text-[11px] text-slate-500 mt-1">আজ সকালে সিস্টেম একটি ছোট এরর ঠিক করেছে, আপনার কোনো হস্তক্ষেপের প্রয়োজন নেই।</p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-4 p-4 rounded-xl bg-slate-50 border border-slate-100">
-                  <span className="p-2 bg-emerald-50 rounded-lg text-emerald-600">⚡</span>
-                  <div>
-                    <p className="text-xs font-bold text-slate-800">সার্ভার হেলথ আপডেট</p>
-                    <p className="text-[11px] text-slate-500 mt-1">ক্লাউড ক্লাস্টার রিকভারি সফল হয়েছে। ল্যাটেন্সি এখন স্বাভাবিক সীমার নিচে।</p>
-                  </div>
-                </div>
+              <div className="flex flex-col gap-4 max-h-[300px] overflow-y-auto pr-2">
+                {events && events.length > 0 ? (
+                  events.map((evt, idx) => {
+                    const isError = evt.level?.toLowerCase() === 'error' || evt.level?.toLowerCase() === 'critical';
+                    const isWarn = evt.level?.toLowerCase() === 'warning' || evt.level?.toLowerCase() === 'warn';
+                    const iconColor = isError ? 'text-rose-600 bg-rose-50' : (isWarn ? 'text-amber-600 bg-amber-50' : 'text-[#00f3ff] bg-[#00f3ff]/10');
+                    const iconStr = isError ? '🚨' : (isWarn ? '⚠️' : 'ℹ️');
+
+                    return (
+                      <div key={idx} className="flex items-start gap-4 p-3 rounded-xl bg-slate-50 border border-slate-100">
+                        <span className={`p-2 rounded-lg ${iconColor} text-xs font-mono`}>{iconStr}</span>
+                        <div className="flex-1">
+                          <div className="flex justify-between items-center">
+                            <p className="text-xs font-bold text-slate-800">{evt.source || 'SYSTEM'}</p>
+                            <span className="text-[9px] text-slate-400 font-mono">{evt.timestamp}</span>
+                          </div>
+                          <p className="text-[11px] text-slate-600 mt-0.5">{evt.message}</p>
+                        </div>
+                      </div>
+                    );
+                  })
+                ) : (
+                  <p className="text-xs text-slate-400 font-mono text-center py-8">কোনো ইভেন্ট রেকর্ড পাওয়া যায়নি।</p>
+                )}
               </div>
             </div>
 
@@ -16383,6 +16483,65 @@ const RedesignedDashboardMockup: React.FC = () => {
                   {optimizeStatus}
                 </div>
               )}
+            </div>
+          </div>
+
+          {/* Reports Section */}
+          <div className="mt-8 bg-white border border-slate-100 rounded-3xl p-6 shadow-sm">
+            <h2 className="text-sm font-bold text-slate-900 mb-4 flex items-center gap-2">
+              <HardDrive size={16} className="text-indigo-500" />
+              দৈনিক স্ট্যান্ডআপ ও সিস্টেম রিপোর্টস (Daily Reports)
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+              {/* Report List */}
+              <div className="md:col-span-1 border-r border-slate-150 pr-4 flex flex-col gap-2">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest font-mono mb-2">Available Reports</span>
+                {reportsData && reportsData.reports && reportsData.reports.length > 0 ? (
+                  reportsData.reports.map((report: string) => (
+                    <button
+                      key={report}
+                      onClick={() => setSelectedReportName(report)}
+                      className={`text-left px-3 py-2 rounded-lg text-xs font-mono transition-colors ${
+                        selectedReportName === report
+                          ? 'bg-indigo-50 text-indigo-700 font-bold border-l-2 border-indigo-600'
+                          : 'hover:bg-slate-50 text-slate-600'
+                      }`}
+                    >
+                      📄 {report}
+                    </button>
+                  ))
+                ) : (
+                  <p className="text-xs text-slate-400 font-mono">কোনো রিপোর্ট পাওয়া যায়নি।</p>
+                )}
+              </div>
+              
+              {/* Report Viewer */}
+              <div className="md:col-span-3 pl-2">
+                {selectedReportName ? (
+                  activeReport && activeReport.content ? (
+                    <div className="bg-slate-50 border border-slate-100 rounded-2xl p-5 max-h-[300px] overflow-y-auto">
+                      <div className="flex justify-between items-center border-b border-slate-200 pb-2 mb-4">
+                        <span className="text-xs font-bold text-slate-800">{activeReport.name}</span>
+                        <button 
+                          onClick={() => setSelectedReportName(undefined)}
+                          className="text-[10px] text-slate-400 hover:text-slate-600 font-bold"
+                        >
+                          বন্ধ করুন ×
+                        </button>
+                      </div>
+                      <pre className="text-xs font-mono text-slate-700 whitespace-pre-wrap leading-relaxed">
+                        {activeReport.content}
+                      </pre>
+                    </div>
+                  ) : (
+                    <p className="text-xs text-slate-400 font-mono animate-pulse">রিপোর্ট লোড হচ্ছে...</p>
+                  )
+                ) : (
+                  <div className="h-full flex items-center justify-center border border-dashed border-slate-200 rounded-2xl p-8 text-center">
+                    <p className="text-xs text-slate-400 font-mono">বাম পাশের তালিকা থেকে একটি রিপোর্ট নির্বাচন করুন।</p>
+                  </div>
+                )}
+              </div>
             </div>
 
           </div>
@@ -17449,6 +17608,8 @@ import { CICDVisualizer } from './CICDVisualizer';
 import { GithubIntegration } from './GithubIntegration';
 import { BackupRestore } from './BackupRestore';
 import { SecurityDashboard } from './SecurityDashboard';
+// বাংলা মন্তব্য: রিডিজাইনকৃত ককপিট ড্যাশবোর্ড মকআপ ইম্পোর্ট করা হলো
+import RedesignedDashboardMockup from './RedesignedDashboardMockup';
 
 export {
   CommandCenter,
@@ -17468,6 +17629,7 @@ export {
   GithubIntegration,
   BackupRestore,
   SecurityDashboard,
+  RedesignedDashboardMockup,
 };
 ```
 
@@ -19293,7 +19455,7 @@ export default function SkillGraph() {
     try {
       const response = await fetch(`${API_BASE_URL}/api/v1/graph/skills`, {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('auth_token')}` // আপনার অথ টোকেন মেকানিজম (যদি থাকে)
+          'Authorization': `Bearer ${localStorage.getItem('supremeai_admin_token')}`
         }
       });
       
@@ -21116,6 +21278,42 @@ export function useUpdateRules() {
   });
 }
 
+export interface DashboardEvent {
+  timestamp: string;
+  level: string;
+  message: string;
+  source: string;
+}
+
+export interface ReportsResponse {
+  reports: string[];
+}
+
+export interface ReportDetail {
+  name: string;
+  content: string;
+}
+
+// বাংলা মন্তব্য: রিয়েল-টাইম ইভেন্ট ডেটা ফেচ করার জন্য রিয়্যাক্ট কোয়েরি হুক
+export function useDashboardEvents(limit = 50, intervalMs = 10000) {
+  return useQuery({
+    queryKey: ['dashboard', 'events', limit],
+    queryFn: () => apiClient.get<DashboardEvent[]>(`/admin-api/events?limit=${limit}`),
+    refetchInterval: intervalMs,
+  });
+}
+
+// বাংলা মন্তব্য: দৈনিক রিপোর্ট ও তার কন্টেন্ট রিট্রিভ করার জন্য রিয়্যাক্ট কোয়েরি হুক
+export function useDashboardReports(reportName?: string) {
+  return useQuery({
+    queryKey: ['dashboard', 'reports', reportName],
+    queryFn: () => {
+      const url = reportName ? `/admin-api/reports?report_name=${reportName}` : '/admin-api/reports';
+      return apiClient.get<any>(url);
+    },
+  });
+}
+
 ```
 
 ## File: `apps/studio-client/src/hooks/useTranslation.ts`
@@ -21940,7 +22138,7 @@ export const fetchJavaWorkerHealth = async (): Promise<JavaWorkerHealth> => {
 const API_BASE_URL = import.meta.env.VITE_API_BASE || 'http://localhost:8000';
 
 export const getAuthHeaders = (): Record<string, string> => {
-  const token = localStorage.getItem('supremeai_admin_token') || localStorage.getItem('token') || '';
+  const token = localStorage.getItem('supremeai_admin_token') || '';
   return {
     'Content-Type': 'application/json',
     'Authorization': token ? `Bearer ${token}` : '',
@@ -22488,13 +22686,12 @@ export const mockAiService = {
 
 ## File: `apps/studio-client/src/services/storageApi.ts`
 ```typescript
-// Frontend R2 Storage API
+// FrR2 Storage API
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
-// Mock auth token getter
 const getAuthToken = () => {
-    return localStorage.getItem('token') || 'dummy-token';
+    return localStorage.getItem('supremeai_admin_token') || '';
 };
 
 export const uploadFileToR2 = async (file: File) => {
@@ -22585,13 +22782,6 @@ export const useAdminStore = create<AdminState>((set, get) => ({
     if (!cleanPassword) return;
     set({ adminError: '' });
     
-    // বাংলা মন্তব্য: সুপ্রিম গড পাসওয়ার্ড দিয়ে লোকাল ইমার্জেন্সি বাইপাস (ব্যাকএন্ড ডাউন থাকলেও কাজ করবে)
-    if (cleanPassword === 'supreme-god-password') {
-      set({ adminAuthenticated: true, otpRequired: false, adminOtp: '' });
-      localStorage.setItem('supremeai_admin_token', 'supreme-god-password');
-      return;
-    }
-
     try {
       const API_BASE = import.meta.env.VITE_API_BASE || '';
       if (!otpRequired) {
@@ -22643,38 +22833,13 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import type { CustomerState } from '../types/customer';
 
 const STORAGE_KEY = 'supremeai_customer_state';
-const ENCRYPTION_KEY = 'supremeai_god_salt_key_2026';
 
-function encrypt(text: string): string {
-  let result = '';
-  for (let i = 0; i < text.length; i++) {
-    result += String.fromCharCode(text.charCodeAt(i) ^ ENCRYPTION_KEY.charCodeAt(i % ENCRYPTION_KEY.length));
-  }
-  // Convert binary string to Base64 safely in browser environment
-  return btoa(unescape(encodeURIComponent(result)));
-}
-
-function decrypt(encoded: string): string {
-  try {
-    const text = decodeURIComponent(escape(atob(encoded)));
-    let result = '';
-    for (let i = 0; i < text.length; i++) {
-      result += String.fromCharCode(text.charCodeAt(i) ^ ENCRYPTION_KEY.charCodeAt(i % ENCRYPTION_KEY.length));
-    }
-    return result;
-  } catch (e) {
-    return '';
-  }
-}
-
-const secureStorage = {
+const plainStorage = {
   getItem: (name: string): string | null => {
-    const value = localStorage.getItem(name);
-    if (!value) return null;
-    return decrypt(value);
+    return localStorage.getItem(name);
   },
   setItem: (name: string, value: string): void => {
-    localStorage.setItem(name, encrypt(value));
+    localStorage.setItem(name, value);
   },
   removeItem: (name: string): void => {
     localStorage.removeItem(name);
@@ -22713,7 +22878,7 @@ export const useCustomerStore = create<CustomerStoreState>()(
     }),
     {
       name: STORAGE_KEY,
-      storage: createJSONStorage(() => secureStorage),
+      storage: createJSONStorage(() => plainStorage),
       partialize: (state) => ({
         user: state.user,
         projects: state.projects,
@@ -24780,10 +24945,13 @@ class TestPlatformLearner:
 
 ## File: `backend/admin/god.py`
 ```python
+import sqlite3
 import time
+import threading
+from pathlib import Path
+from typing import Optional
 
 from loguru import logger
-
 
 try:
     from google.cloud import firestore
@@ -24795,14 +24963,25 @@ class AdminGodLayer:
     """
     Constitutional enforcement layer.
     Every write action requires admin approval unless explicitly whitelisted.
-    Reads from Google Cloud Firestore (Distributed & Serverless).
+    Reads from Google Cloud Firestore (Distributed & Serverless) with SQLite local fallback.
     """
 
     def __init__(self, db_path: str = None):
-        # db_path is ignored for Firestore, kept for backward compatibility
+        if db_path is None:
+            # বাংলা মন্তব্য: settings থেকে রুলস ডাটাবেস পাথ রিড করা হচ্ছে
+            try:
+                from core.config import settings
+                db_path = settings.admin_rules_db
+            except ImportError:
+                db_path = "data/constitutional_rules.db"
+
+        self.db_path = Path(db_path)
+        self.db_path.parent.mkdir(parents=True, exist_ok=True)
+        self.sqlite_lock = threading.Lock()
+        
         self.collection_name = "constitutional_rules"
         self._db = None
-        self.local_rules = {}
+        
         import os
         import sys
 
@@ -24813,55 +24992,100 @@ class AdminGodLayer:
                 self._db = firestore.Client()
                 self._init_db()
             except Exception as e:
-                logger.warning(f"Failed to initialize Firestore for AdminGodLayer: {e}")
+                logger.warning(f"Failed to initialize Firestore for AdminGodLayer: {e}. Falling back to SQLite.")
+                self._db = None
         else:
             logger.warning(
-                "google-cloud-firestore not installed or in test mode. AdminGodLayer using local fallback."
+                "google-cloud-firestore not installed or in test mode. AdminGodLayer using local SQLite fallback."
             )
+        
+        self._init_sqlite_db()
+
+    def _init_sqlite_db(self):
+        # বাংলা মন্তব্য: লোকাল SQLite ডাটাবেস এবং ডিফল্ট রুলস সেটআপ
+        with self.sqlite_lock:
+            with sqlite3.connect(self.db_path, check_same_thread=False) as conn:
+                conn.execute(
+                    """
+                    CREATE TABLE IF NOT EXISTS rules (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        key TEXT UNIQUE NOT NULL,
+                        value TEXT NOT NULL,
+                        updated_at REAL NOT NULL
+                    )
+                    """
+                )
+                conn.commit()
+
+        if not self.get_rule("admin_authorized"):
+            self.set_rule("admin_authorized", "true")
+        if not self.get_rule("autofix_authorized"):
+            self.set_rule("autofix_authorized", "true")
+        if not self.get_rule("autofix_reporting_authorized"):
+            self.set_rule("autofix_reporting_authorized", "true")
 
     def _init_db(self):
         if not self._db:
             return
         try:
-            # Check if admin_authorized exists, if not initialize it
+            # বাংলা মন্তব্য: Firestore-এ autofix_authorized নিয়মটি না থাকলে সেটি 'true' দিয়ে ইনিশিয়ালাইজ করা হচ্ছে।
             doc_ref = self._db.collection(self.collection_name).document(
                 "admin_authorized"
             )
             if not doc_ref.get().exists:
                 self.set_rule("admin_authorized", "true")
+            
+            autofix_ref = self._db.collection(self.collection_name).document(
+                "autofix_authorized"
+            )
+            if not autofix_ref.get().exists:
+                self.set_rule("autofix_authorized", "true")
         except Exception as e:
             logger.error(f"Error initializing AdminGodLayer DB: {e}")
 
     def get_rule(self, key: str, default: str | None = None) -> str | None:
-        if not self._db:
-            return self.local_rules.get(key, default)
-        try:
-            doc_ref = self._db.collection(self.collection_name).document(key)
-            doc = doc_ref.get()
-            if doc.exists:
-                return doc.to_dict().get("value", default)
-            return default
-        except Exception as e:
-            logger.error(f"Error fetching rule {key}: {e}")
-            return default
+        if self._db:
+            try:
+                doc_ref = self._db.collection(self.collection_name).document(key)
+                doc = doc_ref.get()
+                if doc.exists:
+                    return doc.to_dict().get("value", default)
+                return default
+            except Exception as e:
+                logger.error(f"Error fetching rule {key} from Firestore: {e}")
+
+        # বাংলা মন্তব্য: ফায়ারস্টোর নিষ্ক্রিয় বা টেস্ট মোডে থাকলে SQLite ব্যাকআপ থেকে রিড হবে
+        with self.sqlite_lock:
+            with sqlite3.connect(self.db_path, check_same_thread=False) as conn:
+                cur = conn.execute("SELECT value FROM rules WHERE key = ?", (key,))
+                row = cur.fetchone()
+                return row[0] if row else default
 
     def set_rule(self, key: str, value: str) -> None:
-        if not self._db:
-            self.local_rules[key] = value
-            return
-        try:
-            doc_ref = self._db.collection(self.collection_name).document(key)
-            doc_ref.set({"value": value, "updated_at": time.time()})
-            logger.info(f"Constitutional rule updated in Firestore: {key} = {value}")
-        except Exception as e:
-            logger.error(f"Error setting rule {key}: {e}")
+        if self._db:
+            try:
+                doc_ref = self._db.collection(self.collection_name).document(key)
+                doc_ref.set({"value": value, "updated_at": time.time()})
+                logger.info(f"Constitutional rule updated in Firestore: {key} = {value}")
+                return
+            except Exception as e:
+                logger.error(f"Error setting rule {key} in Firestore: {e}. Falling back to SQLite.")
+
+        # বাংলা মন্তব্য: SQLite ব্যাকআপ ডাটাবেসে রুল সংরক্ষণ করা হচ্ছে
+        with self.sqlite_lock:
+            with sqlite3.connect(self.db_path, check_same_thread=False) as conn:
+                conn.execute(
+                    """
+                    INSERT INTO rules(key, value, updated_at)
+                    VALUES(?, ?, ?)
+                    ON CONFLICT(key) DO UPDATE SET value=excluded.value, updated_at=excluded.updated_at
+                    """,
+                    (key, value, time.time()),
+                )
+                conn.commit()
+        logger.info(f"Constitutional rule updated in SQLite: {key} = {value}")
 
     def is_admin_action_allowed(self, action: str) -> bool:
-        """
-        Returns True if the action is allowed under current rules.
-        Blocked actions require explicit admin_authorized flip,
-        except whitelisted bootstrap keys.
-        """
         whitelist = {"health", "read", "learn", "ping"}
         if action in whitelist:
             return True
@@ -26808,6 +27032,8 @@ from fastapi import Depends
 from fastapi import HTTPException
 from fastapi import Request
 from fastapi import WebSocket
+# বাংলা মন্তব্য: কোয়েরি প্যারামিটার হ্যান্ডেল করার জন্য Query ক্লাস ইম্পোর্ট করা হলো
+from fastapi import Query
 from fastapi.responses import StreamingResponse
 from fastapi.security import HTTPAuthorizationCredentials
 from fastapi.security import HTTPBearer
@@ -26819,6 +27045,7 @@ from pydantic import BaseModel
 from core.config import settings
 from tools.cost_auditor import CostAuditor
 
+from models.ci_report import CIReportPayload, create_ci_report
 
 security = HTTPBearer()
 
@@ -27527,6 +27754,85 @@ async def get_ci_logs(limit: int = 20):
         raise HTTPException(
             status_code=500, detail=f"Database query failure: {str(e)}"
         ) from e
+
+
+@router.post("/ci-report")
+async def receive_ci_report(report: CIReportPayload, request: Request):
+    """
+    Receives and stores a structured CI/CD report from a GitHub Actions workflow.
+    This endpoint is protected by a constitutional rule.
+    """
+    # Constitutional Gatekeeper for this endpoint
+    import core.services as services
+    if not services.god.get_rule("autofix_reporting_authorized", "false") == "true":
+        raise HTTPException(
+            status_code=403,
+            detail="Forbidden: CI/CD reporting is disabled by constitutional rule."
+        )
+
+    # Optional: Verify the request is coming from GitHub Actions
+    # This could be improved with a shared secret or webhook signature validation
+    if "github.com" not in request.headers.get("host", "") and "localhost" not in request.headers.get("host", ""):
+         logger.warning(f"CI Report received from non-GitHub host: {request.headers.get('host')}")
+
+    try:
+        # বাংলা মন্তব্য: নতুন CI রিপোর্ট ডাটাবেসে ইনসার্ট বা আপডেট করা হচ্ছে
+        res = await create_ci_report(report)
+        report_id = res.get("id") if res else None
+        logger.info(f"Successfully saved CI report with ID: {report_id}")
+        return {"status": "success", "report_id": report_id}
+    except Exception as e:
+        logger.error(f"❌ Failed to save CI report: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to save CI report: {str(e)}")
+
+
+@router.get("/events")
+async def get_events(limit: int = Query(50, ge=1, le=200)):
+    # বাংলা মন্তব্য: রিয়েল-টাইম সিস্টেম ইভেন্টগুলো (যা আগে Slack/Discord এ যেত) JSONL ফাইল থেকে রিটার্ন করার এন্ডপয়েন্ট
+    events_log_path = "data/dashboard_events.jsonl"
+    if not os.path.exists(events_log_path):
+        events_log_path = "/app/data/dashboard_events.jsonl"
+    
+    if not os.path.exists(events_log_path):
+        return []
+
+    try:
+        with open(events_log_path, "r", encoding="utf-8") as f:
+            lines = f.readlines()
+
+        events = []
+        for line in reversed(lines):
+            try:
+                events.append(json.loads(line))
+            except json.JSONDecodeError:
+                logger.warning(f"Skipping malformed event log line: {line.strip()}")
+
+        return events[:limit]
+    except Exception as e:
+        logger.error(f"Error reading events log: {e}")
+        raise HTTPException(status_code=500, detail="Could not read event logs.")
+
+
+@router.get("/reports")
+async def list_reports(report_name: str = None):
+    # বাংলা মন্তব্য: ডিরেক্টরি থেকে দৈনিক স্ট্যান্ডআপ রিপোর্টের মতো ফাইলগুলো তালিকাভুক্ত বা নির্দিষ্ট রিপোর্ট রিট্রিভ করার এন্ডপয়েন্ট
+    reports_dir = "data/reports"
+    if not os.path.isdir(reports_dir):
+        reports_dir = "/app/data/reports"
+
+    if not os.path.isdir(reports_dir):
+        return {"reports": []}
+
+    if report_name:
+        file_path = os.path.join(reports_dir, f"{report_name}.md")
+        if not os.path.exists(file_path):
+            raise HTTPException(status_code=404, detail="Report not found.")
+        with open(file_path, "r", encoding="utf-8") as f:
+            return {"name": report_name, "content": f.read()}
+    else:
+        import glob
+        report_files = glob.glob(f"{reports_dir}/*.md")
+        return {"reports": [os.path.basename(f).replace('.md', '') for f in report_files]}
 
 ```
 
@@ -33666,8 +33972,12 @@ import os
 from fastapi import APIRouter
 from fastapi import WebSocket
 from fastapi import WebSocketDisconnect
+from fastapi import status
+from fastapi import Query
 from PIL import Image
+from jose import JWTError
 
+from core.security import verify_token
 from tools.agent_tools import SUPREME_TOOLS
 from core.llm_gateway import llm_gateway
 
@@ -33692,19 +34002,34 @@ class ConnectionManager:
             self.active_connections.remove(websocket)
         print("🔴 [WS] Client Disconnected.")
 
+    async def _authenticate(self, websocket: WebSocket) -> dict | None:
+        token = websocket.query_params.get("token")
+        if not token:
+            return None
+        try:
+            return verify_token(token)
+        except Exception:
+            return None
+
 manager = ConnectionManager()
 
-# ==========================================
-# 🚀 ROUTE: /ws/chat
-# ==========================================
+
 @router.websocket("/chat")
-async def websocket_chat_endpoint(websocket: WebSocket):
+async def websocket_chat_endpoint(
+    websocket: WebSocket,
+    token: str | None = Query(default=None),
+):
     """
     Real-time bidirectional WebSocket for Token-by-Token streaming and Agentic Tool execution.
     Supports both plain text (Flutter) and JSON payloads with base64 images (Web Chat).
     """
+    auth_payload = await manager._authenticate(websocket)
+    if not auth_payload:
+        await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
+        return
+
     await manager.connect(websocket)
-    
+
     # সেশন হিস্ট্রি মেইনটেইন করার জন্য চ্যাট অবজেক্ট তৈরি করা
     chat_history = []
 
@@ -33712,7 +34037,7 @@ async def websocket_chat_endpoint(websocket: WebSocket):
         while True:
             # ১. ফ্রন্টএন্ড থেকে ইউজার প্রম্পট রিসিভ করা
             user_message = await websocket.receive_text()
-            
+
             # ==========================================
             # 👁️ MULTI-MODAL PAYLOAD PARSING
             # ==========================================
@@ -33721,13 +34046,13 @@ async def websocket_chat_endpoint(websocket: WebSocket):
                 payload = json.loads(user_message)
                 text_prompt = payload.get("text", "")
                 image_base64 = payload.get("image_base64", None)
-                
+
                 content_to_send = text_prompt
                 # Note: Currently, llm_gateway supports text prompts for LiteLLM.
                 # Multi-modal / image payload is parsed but mapped to text details for backward compatibility.
                 if image_base64:
                     print("📸 [WS] Image payload received and decoded.")
-                    
+
             except json.JSONDecodeError:
                 # Fallback to plain text (Existing Flutter Client)
                 print(f"👤 [USER - Text Only]: {user_message}")
@@ -33739,7 +34064,7 @@ async def websocket_chat_endpoint(websocket: WebSocket):
                 chat_history.append({"role": "user", "content": content_to_send})
 
                 response_stream = await llm_gateway.acompletion(
-                    prompt=chat_history, 
+                    prompt=chat_history,
                     task_type="chat",
                     stream=True
                 )
@@ -33751,10 +34076,10 @@ async def websocket_chat_endpoint(websocket: WebSocket):
                         # প্রতিটি টেক্সট চাঙ্ক পাওয়ার সাথে সাথে ক্লায়েন্টকে পাঠানো হচ্ছে
                         await websocket.send_text(chunk)
                         response_content += chunk
-                        
-                        # খুব সামান্য ডিলি দেওয়া হচ্ছে যাতে UI-তে টাইপিং অ্যানিমেশন স্মুথ হয়
-                        await asyncio.sleep(0.01) 
-                
+
+                        # খুব সামান্য ডিলি দেওয়া হচ্ছে যাতে UI-তে টাইপিং অ্যানিমেশন স্মuথ হয়
+                        await asyncio.sleep(0.01)
+
                 chat_history.append({"role": "assistant", "content": response_content})
 
                 # ৪. রেসপন্স শেষ বোঝাতে একটি সিগন্যাল পাঠানো
@@ -33780,13 +34105,18 @@ import httpx
 from fastapi import APIRouter
 from fastapi import WebSocket
 from fastapi import WebSocketDisconnect
+from fastapi import status
+from fastapi import Query
+from jose import JWTError
 
 from core.config import settings
+from core.security import verify_token
 from database.supabase_client import db
 from models.voice_interaction import VoiceInteractionLog
 
 
 router = APIRouter(prefix="/ws", tags=["Voice Engine Stream"])
+
 
 class VoiceConnectionManager:
     def __init__(self):
@@ -33801,6 +34131,15 @@ class VoiceConnectionManager:
         if websocket in self.active_connections:
             self.active_connections.remove(websocket)
         print("🔴 [WS] Voice Client Disconnected.")
+
+    async def _authenticate(self, websocket: WebSocket) -> dict | None:
+        token = websocket.query_params.get("token")
+        if not token:
+            return None
+        try:
+            return verify_token(token)
+        except Exception:
+            return None
 
 manager = VoiceConnectionManager()
 
@@ -33869,13 +34208,21 @@ async def handle_intent(transcript: str, websocket: WebSocket, start_time: float
     await websocket.send_json({"type": "response_complete"})
 
 @router.websocket("/voice")
-async def websocket_voice_endpoint(websocket: WebSocket):
+async def websocket_voice_endpoint(
+    websocket: WebSocket,
+    token: str | None = Query(default=None),
+):
     """
     Real-time WebSocket for Voice-to-Voice Streaming.
     Receives binary audio chunks, uses Groq Whisper for STT, and returns the response.
     """
+    auth_payload = await manager._authenticate(websocket)
+    if not auth_payload:
+        await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
+        return
+
     await manager.connect(websocket)
-    
+
     # Store audio chunks in memory
     audio_buffer = bytearray()
     start_time = time.time()
@@ -33884,7 +34231,7 @@ async def websocket_voice_endpoint(websocket: WebSocket):
         while True:
             # We accept both text (commands like {"action": "process"}) and binary (audio chunks)
             message = await websocket.receive()
-            
+
             if "bytes" in message:
                 # Append binary chunk to buffer
                 audio_buffer.extend(message["bytes"])
@@ -33892,38 +34239,38 @@ async def websocket_voice_endpoint(websocket: WebSocket):
                 try:
                     payload = json.loads(message["text"])
                     action = payload.get("action")
-                    
+
                     if action == "process":
                         if len(audio_buffer) == 0:
                             await websocket.send_json({"error": "Empty audio buffer"})
                             continue
-                            
+
                         # 1. Process STT using Groq
                         print(f"🎙️ [WS] Processing audio buffer ({len(audio_buffer)} bytes)...")
                         transcript = await process_audio_with_groq(bytes(audio_buffer))
                         print(f"🗣️ [User Voice]: {transcript}")
-                        
+
                         # Clear buffer for next recording
                         audio_buffer.clear()
-                        
+
                         # Send transcript to UI
                         await websocket.send_json({"type": "transcript", "text": transcript})
-                        
+
                         # 2. Intent Router
                         await handle_intent(transcript, websocket, start_time)
                         start_time = time.time() # Reset timer
-                        
+
                     elif action == "text_chat":
                         transcript = payload.get("text", "")
                         print(f"💬 [User Text]: {transcript}")
-                        
+
                         # Process text intent directly
                         await handle_intent(transcript, websocket, start_time)
                         start_time = time.time() # Reset timer
-                        
+
                 except json.JSONDecodeError:
                     print("⚠️ [WS] Received invalid text message.")
-                    
+
     except WebSocketDisconnect:
         manager.disconnect(websocket)
     except Exception as e:
@@ -34163,6 +34510,11 @@ import hmac
 import os
 from typing import Any
 
+try:
+    import bcrypt
+except Exception:  # pragma: no cover - optional fallback
+    bcrypt = None
+
 from .rbac import RoleBasedAccessControl
 from .rbac import UserContext
 from .universal_rules import UniversalRulesEngine
@@ -34178,16 +34530,20 @@ class AdminGodLayer:
     def __init__(self, rules_engine: UniversalRulesEngine = None):
         self.rules_engine = rules_engine or UniversalRulesEngine()
         self.rbac = RoleBasedAccessControl()
-        self.admin_password_hash = os.getenv(
-            "SUPREMEAI_ADMIN_PASSWORD_HASH", hashlib.sha256(b"admin123").hexdigest()
-        )
+        self.admin_password_hash = os.getenv("SUPREMEAI_ADMIN_PASSWORD_HASH", "")
 
     def verify_admin(self, password_raw: str) -> bool:
         """Verifies admin password hash."""
         if not password_raw:
             return False
-        hashed = hashlib.sha256(password_raw.encode()).hexdigest()
-        return hmac.compare_digest(hashed, self.admin_password_hash)
+        if not self.admin_password_hash:
+            return False
+        if not bcrypt:
+            return False
+        try:
+            return bcrypt.checkpw(password_raw.encode(), self.admin_password_hash.encode())
+        except Exception:
+            return False
 
     def enforce(self, action: str, user_context: UserContext | str) -> dict[str, Any]:
         role = (
@@ -34260,8 +34616,38 @@ from models.admin import AdminFirebaseTotpVerifyRequest
 from models.admin import AdminLoginRequest
 from models.admin import AdminVerifyRequest
 
+try:
+    import bcrypt
+except Exception:  # pragma: no cover - optional fallback
+    bcrypt = None
+
 
 router = APIRouter()
+
+
+def _hash_password(password: str) -> str:
+    if not bcrypt:
+        raise RuntimeError("bcrypt is required but not installed")
+    return bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
+
+
+def _verify_password(password: str, hashed: str) -> bool:
+    if not bcrypt or not hashed:
+        return False
+    try:
+        return bcrypt.checkpw(password.encode(), hashed.encode())
+    except Exception:
+        return False
+
+
+def _get_admin_credentials():
+    expected_hash = os.getenv("SUPREMEAI_ADMIN_PASSWORD_HASH")
+    if not expected_hash:
+        raise HTTPException(
+            status_code=500, detail="Admin password hash is not configured on server"
+        )
+    return expected_hash
+
 
 auth = get_firebase_auth()
 
@@ -34269,12 +34655,8 @@ auth = get_firebase_auth()
 @router.post("/api/admin/login")
 def admin_login(payload: AdminLoginRequest):
     password = payload.password
-    expected_password = settings.docs_password
-    if not expected_password:
-        raise HTTPException(
-            status_code=500, detail="Admin password not configured on server"
-        )
-    if password != expected_password:
+    expected_hash = _get_admin_credentials()
+    if not _verify_password(password, expected_hash):
         raise HTTPException(status_code=401, detail="Invalid password")
 
     totp_secret = os.getenv("SUPREMEAI_ADMIN_TOTP_SECRET")
@@ -34290,12 +34672,8 @@ def admin_verify(payload: AdminVerifyRequest):
     password = payload.password
     otp = payload.otp
 
-    expected_password = settings.docs_password
-    if not expected_password:
-        raise HTTPException(
-            status_code=500, detail="Admin password not configured on server"
-        )
-    if password != expected_password:
+    expected_hash = _get_admin_credentials()
+    if not _verify_password(password, expected_hash):
         raise HTTPException(status_code=401, detail="Invalid password")
 
     totp_secret = os.getenv("SUPREMEAI_ADMIN_TOTP_SECRET")
@@ -34329,7 +34707,6 @@ def admin_firebase_login(payload: AdminFirebaseLoginRequest):
                     status_code=403, detail="Mock tokens are strictly forbidden in production."
                 )
             uid = "mock-admin-uid"
-            # বাংলা মন্তব্য: সরাসরি হার্ডকোড ইমেইলের পরিবর্তে সেটিংস থেকে ডাইনামিকলি প্রথম এডমিন ইমেইল রিড করা হলো
             email = settings.admin_emails[0] if settings.admin_emails else "admin@example.com"
             logger.warning(
                 f"Bypassing verification using mock token mode. Token: {id_token[:20]}..."
@@ -34340,20 +34717,9 @@ def admin_firebase_login(payload: AdminFirebaseLoginRequest):
             email = decoded_token.get("email", "")
             logger.info(f"Verified Firebase token for email: {email}")
         else:
-            if is_production:
-                raise HTTPException(
-                    status_code=401, detail="Firebase Admin SDK is offline. Cannot authenticate."
-                )
-
-            payload_part = id_token.split(".")[1]
-            padded = payload_part + "=" * (4 - len(payload_part) % 4)
-            decoded = base64.b64decode(padded)
-            decoded_token = __import__("json").loads(decoded)
-
-            uid = decoded_token.get("sub", "mock-admin-uid")
-            email = decoded_token.get("email", "")
-            logger.info(
-                f"Extracted admin email from token without verification (Dev Mode): {email}"
+            # Always enforce signature verification; offline verification bypass removed
+            raise HTTPException(
+                status_code=401, detail="Firebase Admin SDK is unavailable. Cannot authenticate."
             )
     except HTTPException:
         raise
@@ -34407,20 +34773,17 @@ def admin_firebase_totp_setup(payload: AdminFirebaseTotpSetupRequest):
     try:
         if id_token.startswith("mock-"):
             uid = "mock-admin-uid"
-            # বাংলা মন্তব্য: সরাসরি হার্ডকোড ইমেইলের পরিবর্তে সেটিংস থেকে ডাইনামিকলি প্রথম এডমিন ইমেইল রিড করা হলো
             email = settings.admin_emails[0] if settings.admin_emails else "admin@example.com"
         elif auth:
             decoded_token = auth.verify_id_token(id_token)
             uid = decoded_token.get("uid", decoded_token.get("sub", "mock-admin-uid"))
             email = decoded_token.get("email", "")
         else:
-            payload_part = id_token.split(".")[1]
-            padded = payload_part + "=" * (4 - len(payload_part) % 4)
-            decoded_token = __import__("json").loads(
-                base64.b64decode(padded)
+            raise HTTPException(
+                status_code=401, detail="Firebase Admin SDK is unavailable. Cannot authenticate."
             )
-            uid = decoded_token.get("sub", "mock-admin-uid")
-            email = decoded_token.get("email", "")
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(
             status_code=401, detail=f"Token decoding failed: {str(e)}"
@@ -34454,12 +34817,11 @@ def admin_firebase_totp_verify(payload: AdminFirebaseTotpVerifyRequest):
             decoded_token = auth.verify_id_token(id_token)
             uid = decoded_token.get("uid", decoded_token.get("sub", "mock-admin-uid"))
         else:
-            payload_part = id_token.split(".")[1]
-            padded = payload_part + "=" * (4 - len(payload_part) % 4)
-            decoded_token = __import__("json").loads(
-                base64.b64decode(padded)
+            raise HTTPException(
+                status_code=401, detail="Firebase Admin SDK is unavailable. Cannot authenticate."
             )
-            uid = decoded_token.get("sub", "mock-admin-uid")
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(
             status_code=401, detail=f"Token decoding failed: {str(e)}"
@@ -35687,9 +36049,15 @@ class AuthMiddleware:
                 elif k.lower() == b"referer":
                     referer = v.decode("utf-8")
 
-            # Allow supremeai-admin domain
+            # Allow supremeai-admin domain - exact domain check
+            def _is_allowed_admin_domain(value: str) -> bool:
+                cleaned = value.lower().strip()
+                return cleaned == "https://supremeai-admin.com" or cleaned.startswith(
+                    "https://supremeai-admin.com/"
+                )
+
             is_admin_domain = (
-                "supremeai-admin" in origin or "supremeai-admin" in referer
+                _is_allowed_admin_domain(origin) or _is_allowed_admin_domain(referer)
             )
 
             # If request comes from general studio domain or unauthorized source, block it.
@@ -35803,8 +36171,9 @@ async def verify_admin_session_fail_closed(request: Request) -> dict:
         user_id = payload.get("sub")
         role = payload.get("role")
         
-        # ০% গ্যাপ পলিসি: পেলোডে যদি প্রয়োজনীয় ফিল্ড মিসিং থাকে, সরাসরি রিজেক্ট
-        if not user_id or role != "master_admin":
+        # বাংলা মন্তব্য: ০% গ্যাপ পলিসি — পেলোডে যদি প্রয়োজনীয় ফিল্ড মিসিং থাকে বা রোল অসঙ্গতি থাকে, সরাসরি রিজেক্ট।
+        # এখানে 'admin' এবং 'master_admin' উভয় রোলকেই অনুমতি প্রদান করা হলো।
+        if not user_id or role not in {"admin", "master_admin"}:
             logger.critical(f"🚨 Security Alert: Token payload identity mismatch or unauthorized role: {role}")
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
@@ -36052,6 +36421,7 @@ from __future__ import annotations
 
 import json
 import time
+import threading
 from collections.abc import Callable
 from typing import Any
 from typing import TypeVar
@@ -36080,6 +36450,8 @@ class CircuitBreaker:
         self.redis_queue = redis_queue
         self._key_prefix = f"cb:{name}"
         self._restore_from_redis()
+        self._lock = threading.Lock()
+        self._half_open_in_flight = 0
 
     def _restore_from_redis(self) -> None:
         if not self.redis_queue or not getattr(self.redis_queue, "configured", False):
@@ -36120,10 +36492,16 @@ class CircuitBreaker:
                 return True
             return False
         if self.state == "HALF_OPEN":
-            return True
+            with self._lock:
+                if self._half_open_in_flight >= 1:
+                    return False
+                self._half_open_in_flight += 1
+                return True
         return True
 
     def mark_success(self) -> None:
+        with self._lock:
+            self._half_open_in_flight = max(0, self._half_open_in_flight - 1)
         self.failures = 0
         self.state = "CLOSED"
         self.opened_at = None
@@ -36131,6 +36509,8 @@ class CircuitBreaker:
         self._persist_to_redis()
 
     def mark_failure(self) -> None:
+        with self._lock:
+            self._half_open_in_flight = max(0, self._half_open_in_flight - 1)
         now = time.time()
         self.last_failure_at = now
         self.failures += 1
@@ -36642,7 +37022,7 @@ class Settings(BaseSettings):
     app_name: str = "SupremeAI 2.0"
     env: str = "local"
     debug: bool = True
-    docs_auth_enabled: bool = False
+    docs_auth_enabled: bool = True
     docs_username: str = "admin"
     docs_password: str = ""
 
@@ -36659,6 +37039,27 @@ class Settings(BaseSettings):
         "https://supremeai-admin.web.app",
         "https://supremeai-admin.firebaseapp.com",
     ]
+
+    @field_validator("cors_origins", mode="before")
+    @classmethod
+    def sanitize_cors_origins(cls, v):
+        import json
+
+        if isinstance(v, str):
+            v = v.strip()
+            if not v:
+                return []
+            try:
+                v = json.loads(v)
+            except json.JSONDecodeError:
+                v = [origin.strip() for origin in v.split(",") if origin.strip()]
+        if not isinstance(v, list):
+            return v
+        localhost_origins = {"http://127.0.0.1:3000", "http://127.0.0.1:8000", "http://localhost:5173"}
+        env = getattr(cls, "_env_context", "local")
+        if env == "production":
+            return [origin for origin in v if origin not in localhost_origins]
+        return v
 
     # বাংলা মন্তব্য: এডমিন ইমেইল লিস্ট সরাসরি .env ফাইল থেকে লোড করা হবে
     admin_emails: list[str] = Field(
@@ -36760,7 +37161,6 @@ class Settings(BaseSettings):
     @field_validator("jwt_secret", mode="before")
     @classmethod
     def set_test_secret(cls, v: str | None, info: ValidationInfo) -> str | None:
-        # Require SUPREMEAI_JWT_SECRET in production. Provide a placeholder ONLY in local/test.
         env = info.data.get("env", "local")
         if not v:
             if env == "production":
@@ -36768,6 +37168,14 @@ class Settings(BaseSettings):
                     "SUPREMEAI_JWT_SECRET environment variable must be set in production"
                 )
             return "test-secret-placeholder"
+        return v
+
+    @field_validator("debug")
+    @classmethod
+    def debug_must_be_false_in_production(cls, v: bool, info: ValidationInfo) -> bool:
+        env = info.data.get("env", "local")
+        if env == "production" and v:
+            return False
         return v
 
     @field_validator("cors_origins", mode="before")
@@ -36839,12 +37247,16 @@ COMMON_STRINGS_TO_IGNORE = {"", "utf-8", "rb", "wb", "r", "w", "a", "x", "b", "t
 ## File: `backend/core/db_repository.py`
 ```python
 import logging
+import re
 from typing import Any
 
 from tenacity import retry
 from tenacity import retry_if_exception_type
 from tenacity import stop_after_attempt
 from tenacity import wait_exponential
+
+
+_VALID_TABLE_PATTERN = re.compile(r"^[A-Za-z0-9_]+$")
 
 
 # Custom Exception for Circuit Breaking
@@ -36856,6 +37268,11 @@ class SmartDataRepository:
     def __init__(self, firebase_client: Any, supabase_client: Any):
         self.firebase = firebase_client
         self.supabase = supabase_client
+
+    @staticmethod
+    def _validate_table_name(table_name: str) -> None:
+        if not table_name or not _VALID_TABLE_PATTERN.match(table_name):
+            raise ValueError(f"Invalid table name: {table_name}")
 
     # Tier 1: Try Firebase 3 times with exponential backoff
     @retry(
@@ -36904,6 +37321,7 @@ class SmartDataRepository:
             try:
                 # If Supabase client has the execute API (standard Supabase-py)
                 if hasattr(self.supabase, "table"):
+                    self._validate_table_name(table_name)
                     response = (
                         self.supabase.table(table_name)
                         .select("*")
@@ -36913,7 +37331,8 @@ class SmartDataRepository:
                     return response.data[0] if response.data else None
                 # If it's CloudPostgresStore helper
                 elif hasattr(self.supabase, "_execute"):
-                    query = f"SELECT * FROM {table_name} WHERE id = %s LIMIT 1"  # nosec B608
+                    self._validate_table_name(table_name)
+                    query = f"SELECT * FROM {table_name} WHERE id = %s LIMIT 1"
                     row = self.supabase._execute(query, (doc_id,), fetchone=True)
                     return dict(row) if row else None
                 else:
@@ -41163,11 +41582,16 @@ class ObservabilityMiddleware:
         headers = scope.get("headers", [])
         trace_id = ""
         user_id = "anonymous_api_user"
+        authenticated_user = None
         for k, v in headers:
             if k.lower() in (b"x-trace-id", b"traceparent"):
                 trace_id = v.decode("utf-8")
             elif k.lower() == b"x-user-id":
-                user_id = v.decode("utf-8")
+                continue
+        if "state" in scope and hasattr(scope.get("state", object()), "user"):
+            authenticated_user = scope["state"].user if hasattr(scope.get("state"), "user") else None
+        if authenticated_user:
+            user_id = authenticated_user.get("sub") or authenticated_user.get("user_id") or user_id
 
         if not trace_id:
             trace_id = f"00-{uuid.uuid4().hex}-0000000000000001-01"
@@ -41523,10 +41947,9 @@ class TrustedOriginMiddleware(BaseHTTPMiddleware):
                     detail="Cross-Origin Request Blocked. Device identity unauthorized."
                 )
                 
-        # বাংলা মন্তব্য: যদি অরিজিন না থাকে (যেমন ডিরেক্ট কার্ল বা এক্সটেনশন রিকোয়েস্ট), তবে হোস্ট হেডার ভ্যালিডেশন
-        # বাংলা মন্তব্য: ডাইনামিকলি সেটিংস থেকে অনুমোদিত হোস্ট চেক করা হচ্ছে (হার্ডকোড মুক্ত)
+        # বাংলা মন্তব্য: হোস্ট হেডার ভ্যালিডেশন - WHOLE DOMAIN ম্যাচিং, substring vulnerability removed
         host = request.headers.get("Host")
-        is_allowed = any(allowed_host in host for allowed_host in settings.allowed_hosts) if host else True
+        is_allowed = host in set(settings.allowed_hosts) if host else True
         if host and not is_allowed:
             logger.critical(f"🚨 Security Intrusion: Host Header Tampering Detected -> {host}")
             raise HTTPException(
@@ -41865,31 +42288,61 @@ class PromptFirewall:
         return None
 
     async def scan_with_llama_guard(self, prompt: str):
-        if "violent" in prompt:
-            return "Llama Guard"
+        lowered = prompt.lower()
+        banned = [
+            "violent", "harm", "kill", "attack", "weapon",
+            "bomb", "terror", "murder", "abuse", "exploit",
+            "hack", "malware", "ransomware", "phishing",
+        ]
+        for token in banned:
+            if token in lowered:
+                return "LlamaGuard"
         return None
-        
+
     async def pre_flight_check(self, prompt: str):
-        if "Disregard" in prompt:
-            return {"allowed": False, "provider": "local", "reason": "Blocked"}
-        if "test prompt" in prompt:
+        lowered = prompt.lower().strip()
+        blocked = [
+            "disregard", "developer mode", "jailbreak",
+            "dan mode", "unfiltered", "ignore previous",
+        ]
+        for token in blocked:
+            if token in lowered:
+                return {"allowed": False, "provider": "local", "reason": "Blocked"}
+        if "test prompt" in lowered:
             return {"allowed": False, "provider": "llama_guard", "reason": "Blocked"}
         return {"allowed": True, "reason": "prompt_approved", "provider": "firewall"}
         
     async def classify_intent(self, prompt: str):
-        if "Python" in prompt:
+        lowered = prompt.lower()
+        if "python" in lowered or "java" in lowered or "dart" in lowered:
             return {"intent": "coding", "requires_expensive_model": True}
-        if "reason" in prompt:
+        if "reason" in lowered or "logic" in lowered:
             return {"intent": "reasoning", "requires_expensive_model": True}
-        if "image" in prompt:
+        if "image" in lowered or "photo" in lowered:
             return {"intent": "vision", "requires_expensive_model": False}
         return {"intent": "simple", "requires_expensive_model": False}
 
 async def pre_flight_scan(prompt: str):
+    lowered = prompt.lower().strip()
+    blocked = [
+        "disregard", "developer mode", "jailbreak",
+        "dan mode", "unfiltered", "ignore previous",
+    ]
+    for token in blocked:
+        if token in lowered:
+            return {"allowed": False}
     return {"allowed": True}
 
+
 async def classify_intent(prompt: str):
-    return {"intent": "coding"}
+    lowered = prompt.lower()
+    if "python" in lowered or "java" in lowered or "dart" in lowered:
+        return {"intent": "coding", "requires_expensive_model": True}
+    if "reason" in lowered or "logic" in lowered:
+        return {"intent": "reasoning", "requires_expensive_model": True}
+    if "image" in lowered or "photo" in lowered:
+        return {"intent": "vision", "requires_expensive_model": False}
+    return {"intent": "simple", "requires_expensive_model": False}
 
 # গ্লোবাল সিঙ্গেলটন ইনস্ট্যান্স জেনারেশন
 prompt_firewall = PromptFirewall()
@@ -41927,29 +42380,35 @@ from loguru import logger
 from starlette.responses import JSONResponse
 
 
+import threading
+
 class RateLimiter:
+    # বাংলা মন্তব্য: মেমরি ভিত্তিক রেট লিমিটারের থ্রেড-সেফটি নিশ্চিত করার জন্য লক ব্যবহার করা হলো
     def __init__(self, requests_per_minute: int = 60, burst: int = 10) -> None:
         self.requests_per_minute = requests_per_minute
         self.burst = burst
         self._hits: dict[str, list[float]] = {}
+        self._lock = threading.Lock()
 
     def _cleanup(self, key: str, now: float) -> None:
         window = 60.0
         self._hits[key] = [t for t in self._hits.get(key, []) if now - t < window]
 
     def is_allowed(self, key: str) -> bool:
-        now = time.time()
-        self._cleanup(key, now)
-        hits = self._hits.setdefault(key, [])
-        if len(hits) >= self.burst:
-            return False
-        hits.append(now)
-        return True
+        with self._lock:
+            now = time.time()
+            self._cleanup(key, now)
+            hits = self._hits.setdefault(key, [])
+            if len(hits) >= self.burst:
+                return False
+            hits.append(now)
+            return True
 
     def remaining(self, key: str) -> int:
-        now = time.time()
-        self._cleanup(key, now)
-        return max(0, self.burst - len(self._hits.get(key, [])))
+        with self._lock:
+            now = time.time()
+            self._cleanup(key, now)
+            return max(0, self.burst - len(self._hits.get(key, [])))
 
 
 class RedisRateLimiter:
@@ -41986,8 +42445,8 @@ class RedisRateLimiter:
                 return False
             return True
         except Exception as exc:
-            logger.warning(f"Redis rate limit check failed, allowing request: {exc}")
-            return True
+            logger.error(f"Redis rate limit check failed, blocking request: {exc}")
+            return self._fallback_limiter.is_allowed(key)
 
     def remaining(self, key: str) -> int:
         if not self._redis or not self._redis.configured:
@@ -41999,7 +42458,7 @@ class RedisRateLimiter:
             return max(0, self.burst - count)
         except Exception as exc:
             logger.warning(f"Redis rate limit remaining check failed: {exc}")
-            return self.burst
+            return self._fallback_limiter.remaining(key)
 
 
 class RateLimitMiddleware:
@@ -44666,6 +45125,68 @@ class UniversalRulesEngine:
                 )
 
         return decision_context
+
+```
+
+## File: `backend/core/upload_validator.py`
+```python
+# বাংলা কমেন্ট: ফাইল আপলোড ভ্যালিডেশন লজিক — সাইজ + কনটেন্ট টাইপ + অ্যLLOWলিস্টিং
+
+from fastapi import HTTPException
+from fastapi import status
+
+MAX_UPLOAD_BYTES = 10 * 1024 * 1024  # 10MB
+ALLOWED_EXTENSIONS = {
+    ".py": ["text/x-python", "application/octet-stream"],
+    ".ts": ["text/typescript", "application/typescript", "application/octet-stream"],
+    ".tsx": ["text/typescript", "application/octet-stream"],
+    ".js": ["text/javascript", "application/javascript", "application/octet-stream"],
+    ".jsx": ["text/javascript", "application/octet-stream"],
+    ".dart": ["text/dart", "application/octet-stream"],
+    ".java": ["text/x-java", "application/octet-stream"],
+    ".go": ["text/x-go", "application/octet-stream"],
+    ".rs": ["text/x-rust", "application/octet-stream"],
+    ".png": ["image/png"],
+    ".jpg": ["image/jpeg"],
+    ".jpeg": ["image/jpeg"],
+    ".gif": ["image/gif"],
+    ".webp": ["image/webp"],
+    ".mp3": ["audio/mpeg"],
+    ".wav": ["audio/wav"],
+    ".mp4": ["video/mp4"],
+    ".pdf": ["application/pdf"],
+    ".txt": ["text/plain"],
+    ".json": ["application/json"],
+}
+
+
+class UploadValidationError(HTTPException):
+    def __init__(self, detail: str):
+        super().__init__(status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE, detail=detail)
+
+
+async def validate_upload(file: object) -> None:
+    file_obj = file
+    filename = getattr(file_obj, "filename", "") or ""
+    content_type = getattr(file_obj, "content_type", "") or ""
+    ext = filename.lower().split(".")[-1]
+    if not ext or "." not in filename:
+        raise UploadValidationError("Unsupported file type.")
+    ext = "." + ext
+    allowed = ALLOWED_EXTENSIONS.get(ext)
+    if not allowed:
+        raise UploadValidationError(f"Extension '{ext}' is not allowed.")
+    if content_type and content_type not in allowed:
+        raise UploadValidationError(
+            f"Content type '{content_type}' does not match allowed types for '{ext}'."
+        )
+    body = await file_obj.read()
+    if len(body) > MAX_UPLOAD_BYTES:
+        raise HTTPException(
+            status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+            detail=f"Upload exceeds maximum allowed size of {MAX_UPLOAD_BYTES // (1024*1024)}MB.",
+        )
+    await file_obj.seek(0)
 
 ```
 
@@ -48682,11 +49203,6 @@ class ZeroTrustAuthMiddleware(BaseHTTPMiddleware):
         auth_header = request.headers.get("Authorization")
 
         if not auth_header or not auth_header.startswith("Bearer "):
-            # Test mode bypass for all paths except stream endpoint
-            if is_test and not request.url.path.startswith("/api/stream/"):
-                request.state.user = {"sub": "admin@supremeai.com", "role": "admin"}
-                return await call_next(request)
-
             logger.warning(f"🚨 Blocked unauthorized request to {request.url.path}")
             from fastapi.responses import JSONResponse
 
@@ -48698,11 +49214,7 @@ class ZeroTrustAuthMiddleware(BaseHTTPMiddleware):
         token = auth_header.split(" ")[1]
 
         try:
-            if is_test:
-                payload = {"sub": "admin@supremeai.com", "role": "admin"}
-            else:
-                # ক্রিপ্টোগ্রাফিক ভেরিফিকেশন কল
-                payload = verify_token(token)
+            payload = verify_token(token)
             request.state.user = payload
 
             # অ্যাডমিন রাউটের জন্য স্ট্রিক্ট রোল চেক
@@ -55534,10 +56046,10 @@ class TestMcpAllowlist:
 
 class TestAdminGodLayer:
     def test_verify_admin_success(self):
-        layer = AdminGodLayer(rules_engine=MagicMock())
         os.environ["SUPREMEAI_ADMIN_PASSWORD_HASH"] = (
-            "8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918"
+            "$2b$12$5Pt67tWgr4ne/XsD5.CZLuHOLJ9mYBrAKC/1NOkVI3YfTj0bG32Ym"
         )
+        layer = AdminGodLayer(rules_engine=MagicMock())
         assert layer.verify_admin("admin123") is True
 
     def test_verify_admin_failure(self):
@@ -69387,6 +69899,7 @@ from loguru import logger
 from pydantic import BaseModel
 
 from backend.tools.style_learner import StyleLearner
+from core.upload_validator import validate_upload
 
 
 router = APIRouter(prefix="/test-gen", tags=["auto-test-generator"])
@@ -69822,6 +70335,7 @@ async def generate_tests(request: TestGenRequest):
 @router.post("/generate-file")
 async def generate_from_file(file: UploadFile = File(...)):
     """Upload a source file and get back a test file."""
+    await validate_upload(file)
     content = (await file.read()).decode("utf-8", errors="replace")
     result = await _generator.generate(
         source_code=content,
@@ -73926,6 +74440,8 @@ from fastapi import HTTPException
 from fastapi import UploadFile
 from loguru import logger
 
+from core.upload_validator import validate_upload
+
 
 router = APIRouter(prefix="/diagram", tags=["diagram-to-architecture"])
 
@@ -74071,6 +74587,7 @@ async def generate_from_diagram(
     iac_tool: str = Form("terraform"),
 ):
     """Upload a diagram image and get infrastructure-as-code."""
+    await validate_upload(file)
     if not file.content_type or not file.content_type.startswith("image/"):
         raise HTTPException(status_code=400, detail="File must be an image")
 
@@ -74092,6 +74609,7 @@ async def generate_from_diagram(
 @router.post("/api-spec")
 async def generate_api_spec(file: UploadFile = File(...)):
     """Upload sequence diagram and get OpenAPI spec."""
+    await validate_upload(file)
     suffix = os.path.splitext(file.filename or "diagram.png")[1] or ".png"
     with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
         tmp.write(await file.read())
@@ -75801,6 +76319,8 @@ from fastapi import HTTPException
 from fastapi import UploadFile
 from loguru import logger
 
+from core.upload_validator import validate_upload
+
 
 router = APIRouter(prefix="/tools", tags=["tools", "image-to-code"])
 
@@ -75904,6 +76424,7 @@ async def api_image_to_code(
     styling: str = Form("tailwind"),
 ):
     try:
+        await validate_upload(file)
         contents = await file.read()
         if not contents:
             raise HTTPException(status_code=400, detail="Empty file provided")
@@ -81215,6 +81736,7 @@ from typing import Any
 from RestrictedPython import compile_restricted
 from RestrictedPython.Eval import default_globals
 
+logger = logging.getLogger(__name__)
 
 # Define a minimal safe builtins whitelist. Adjust as needed for the
 # application – currently only ``range`` and ``len`` are allowed because the
@@ -81330,7 +81852,7 @@ def validate_ast(source: str) -> None:
 
 def run_restricted(
     source: str, locals_: dict[str, Any] | None = None
-) -> dict[str, Any]:
+) -> tuple[bool, dict[str, Any] | str]:
     """Execute *source* in a RestrictedPython sandbox after AST validation.
 
     Parameters
@@ -81344,28 +81866,38 @@ def run_restricted(
 
     Returns
     -------
-    dict
-        The locals dictionary after execution. Callers can inspect ``result``
-        or any other variables they deliberately expose.
+    tuple[bool, dict[str, Any] | str]
+        A tuple containing a success flag and either the locals dictionary
+        on success or an error message string on failure.
     """
     if locals_ is None:
         locals_ = {}
 
-    # Pre-execution AST verification
-    validate_ast(source)
+    try:
+        # Pre-execution AST verification
+        validate_ast(source)
 
-    # Compile the code with RestrictedPython. The ``compile_restricted``
-    # function returns a code object that can be safely ``exec``ed.
-    byte_code = compile_restricted(source, "<string>", "exec")
+        # Compile the code with RestrictedPython. The ``compile_restricted``
+        # function returns a code object that can be safely ``exec``ed.
+        byte_code = compile_restricted(source, "<string>", "exec")
 
-    # Merge the default globals with our safe builtins whitelist.
-    globals_ = dict(default_globals)
-    globals_["__builtins__"] = SAFE_BUILTINS
+        # Merge the default globals with our safe builtins whitelist.
+        globals_ = dict(default_globals)
+        globals_["__builtins__"] = SAFE_BUILTINS
 
-    # Execute the sandboxed code. RestrictedPython will raise an exception if
-    # the code attempts to use disallowed operations.
-    exec(byte_code, globals_, locals_)
-    return locals_
+        # Execute the sandboxed code. RestrictedPython will raise an exception if
+        # the code attempts to use disallowed operations.
+        exec(byte_code, globals_, locals_)
+        return True, locals_
+
+    except (ValueError, SyntaxError, NameError, TypeError) as e:
+        error_message = f"Restricted execution failed: {type(e).__name__}: {e}"
+        logger.error(error_message)
+        return False, error_message
+    except Exception as e:
+        error_message = f"An unexpected error occurred during restricted execution: {e}"
+        logger.error(error_message)
+        return False, error_message
 
 ```
 
@@ -84236,6 +84768,8 @@ from fastapi import WebSocket
 from fastapi import WebSocketDisconnect
 from loguru import logger
 
+from core.upload_validator import validate_upload
+
 
 router = APIRouter(prefix="/voice", tags=["voice-coder"])
 
@@ -84335,6 +84869,7 @@ voice_coder = VoiceCoder()
 @router.post("/process-audio")
 async def process_audio(file: UploadFile = File(...)):
     """Upload an audio file and get code generated from it."""
+    await validate_upload(file)
     try:
         suffix = os.path.splitext(file.filename or "audio.wav")[1] or ".wav"
         with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
@@ -88449,34 +88984,49 @@ Reason through the requirements and any previous failure errors. Then output:
 ## File: `evolution/self_updater.py`
 ```python
 import os
+from pathlib import Path
 from loguru import logger
+
+_ALLOWED_BASE_DIR = Path(__file__).resolve().parent.parent
+
 
 class SelfUpdater:
     """
     Self-Updater module for SupremeAI 2.0.
     Applies patches, updates code modules, and keeps components up-to-date.
     """
-    def __init__(self):
-        pass
-        
+    def __init__(self, authorized: bool = False):
+        self.authorized = authorized
+
+    def _validate_path(self, file_path: str) -> Path:
+        target = Path(file_path).resolve()
+        if not str(target).startswith(str(_ALLOWED_BASE_DIR)):
+            raise ValueError(f"Hotfix target '{file_path}' is outside allowed project directory.")
+        if not target.exists():
+            raise ValueError(f"Target file does not exist: {file_path}")
+        return target
+
     def apply_hotfix(self, file_path: str, new_content: str) -> bool:
         """Applies a hotpatch directly to an active file."""
         logger.info(f"Applying self-evolution hotfix to {file_path}")
-        if not os.path.exists(file_path):
-            logger.error("Target file does not exist")
+        try:
+            target = self._validate_path(file_path)
+        except Exception as e:
+            logger.error(f"Hotfix path validation failed: {e}")
+            return False
+
+        if not self.authorized:
+            logger.error("Hotfix rejected: updater is not authorized.")
             return False
             
         try:
             # Backup original
-            backup_path = file_path + ".bak"
-            with open(file_path, "r", encoding="utf-8") as f:
-                original = f.read()
-            with open(backup_path, "w", encoding="utf-8") as f:
-                f.write(original)
+            backup_path = target.with_suffix(target.suffix + ".bak")
+            original = target.read_text(encoding="utf-8")
+            backup_path.write_text(original, encoding="utf-8")
                 
             # Write new version
-            with open(file_path, "w", encoding="utf-8") as f:
-                f.write(new_content)
+            target.write_text(new_content, encoding="utf-8")
                 
             logger.info("Hotfix successfully applied.")
             return True
@@ -97327,6 +97877,7 @@ if __name__ == "__main__":
 ```python
 #!/usr/bin/env python
 """
+DEPRECATED: This bot is being replaced by the new Admin God Control Center.
 auto_alert_bot.py
 =================
 Automatically sends alerts to Discord and Slack channels for system events.
@@ -97344,6 +97895,7 @@ Environment Variables:
 - SERVICE_NAME: Name of this service instance (default: "SupremeAI-Bot")
 """
 
+import sys
 import os
 import time
 import json
@@ -97368,115 +97920,33 @@ BUDGET_ALERT_THRESHOLD = float(os.getenv("BUDGET_ALERT_THRESHOLD", "0.8"))  # 80
 SYSTEM_HEALTH_CHECK_URL = os.getenv("SYSTEM_HEALTH_CHECK_URL")
 SERVICE_NAME = os.getenv("SERVICE_NAME", "SupremeAI-Bot")
 
-def send_discord_alert(message: str, title: str = None, color: int = 0x00ff00) -> bool:
-    """Send an alert to Discord via webhook."""
-    if not DISCORD_WEBHOOK_URL:
-        logger.debug("Discord webhook not configured")
-        return False
-    
+def record_event_to_db(message: str, title: str, alert_type: str) -> bool:
+    """Records an event to the database for the new Admin Dashboard."""
+    logger.info(f"Recording event: [{alert_type.upper()}] {title} - {message}")
     try:
-        embed = {}
-        if title:
-            embed["title"] = title
-        if color is not None:
-            embed["color"] = color
-        
-        embed["description"] = message
-        embed["timestamp"] = datetime.now(timezone.utc).isoformat()
-        
-        payload = {
-            "username": SERVICE_NAME,
-            "embeds": [embed]
-        }
-        
-        response = requests.post(DISCORD_WEBHOOK_URL, json=payload, timeout=10)
-        response.raise_for_status()
-        logger.info("Discord alert sent successfully")
+        # In a real implementation, this would use a proper DB client.
+        # For now, we'll just log it to a file as a placeholder.
+        log_path = "/app/data/dashboard_events.jsonl"
+        os.makedirs(os.path.dirname(log_path), exist_ok=True)
+        with open(log_path, "a") as f:
+            f.write(json.dumps({
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "type": alert_type,
+                "title": title,
+                "message": message,
+                "source": SERVICE_NAME
+            }) + "\n")
         return True
     except Exception as e:
-        logger.error(f"Failed to send Discord alert: {e}")
-        return False
-
-def send_slack_alert(message: str, title: str = None, color: str = "good") -> bool:
-    """Send an alert to Slack via webhook."""
-    if not SLACK_WEBHOOK_URL:
-        logger.debug("Slack webhook not configured")
-        return False
-    
-    try:
-        # Map our color names to Slack attachment colors
-        color_map = {
-            "good": "good",      # Green
-            "warning": "warning", # Yellow
-            "danger": "danger",   # Red
-            "#00ff00": "good",
-            "#ffff00": "warning",
-            "#ff0000": "danger"
-        }
-        slack_color = color_map.get(color, "good")
-        
-        attachment = {
-            "color": slack_color,
-            "fields": [
-                {
-                    "title": "Message",
-                    "value": message,
-                    "short": False
-                }
-            ],
-            "ts": int(datetime.now(timezone.utc).timestamp())
-        }
-        
-        if title:
-            attachment["title"] = title
-        
-        payload = {
-            "username": SERVICE_NAME,
-            "attachments": [attachment]
-        }
-        
-        response = requests.post(SLACK_WEBHOOK_URL, json=payload, timeout=10)
-        response.raise_for_status()
-        logger.info("Slack alert sent successfully")
-        return True
-    except Exception as e:
-        logger.error(f"Failed to send Slack alert: {e}")
+        logger.error(f"Failed to record event to DB: {e}")
         return False
 
 def send_alert(message: str, title: str = None, alert_type: str = "info") -> bool:
-    """Send an alert to all configured platforms."""
+    """Records an alert to the internal system for the dashboard."""
     if not ALERTS_ENABLED:
         logger.debug("Alerts are disabled")
         return False
-    
-    # Determine color based on alert type
-    color_map = {
-        "info": 0x0099ff,      # Blue
-        "warning": 0xff9900,   # Orange
-        "error": 0xff0000,     # Red
-        "success": 0x00ff00    # Green
-    }
-    color = color_map.get(alert_type.lower(), 0x0099ff)
-    
-    success = True
-    
-    # Send to Discord
-    if not send_discord_alert(message, title, color):
-        success = False
-    
-    # Send to Slack
-    slack_color_map = {
-        "info": "good",
-        "warning": "warning",
-        "error": "danger",
-        "success": "good"
-    }
-    slack_color = slack_color_map.get(alert_type.lower(), "good")
-    
-    if not send_slack_alert(message, title, slack_color):
-        success = False
-    
-    return success
+    return record_event_to_db(message, title, alert_type)
 
 def check_budget_alerts() -> bool:
     """Check for budget-related alerts."""
@@ -97642,6 +98112,7 @@ if __name__ == "__main__":
 ```python
 #!/usr/bin/env python
 """
+DEPRECATED: This bot is being replaced by the new Admin God Control Center's reporting module.
 auto_daily_standup_bot.py
 =========================
 Automatically posts daily standup summaries to Discord and Slack channels.
@@ -97660,6 +98131,7 @@ Environment Variables:
 - SERVICE_NAME: Name of this service instance (default: "SupremeAI-Standup")
 """
 
+import sys
 import os
 import time
 import json
@@ -97685,61 +98157,32 @@ INCLUDE_METRICS = os.getenv("INCLUDE_METRICS", "true").lower() == "true"
 INCLUDE_ERRORS = os.getenv("INCLUDE_ERRORS", "true").lower() == "true"
 SERVICE_NAME = os.getenv("SERVICE_NAME", "SupremeAI-Standup")
 
-def send_discord_message(message: str, username: str = None) -> bool:
-    """Send a message to Discord via webhook."""
-    if not DISCORD_WEBHOOK_URL:
-        logger.debug("Discord webhook not configured")
-        return False
-    
+def save_standup_report(report_content: str) -> bool:
+    """Saves the generated standup report to a shared location for the dashboard."""
+    logger.info("Saving daily standup report for the admin dashboard.")
     try:
-        payload = {
-            "content": message
-        }
-        if username:
-            payload["username"] = username
-        
-        response = requests.post(DISCORD_WEBHOOK_URL, json=payload, timeout=10)
-        response.raise_for_status()
-        logger.info("Standup message sent to Discord successfully")
+        # In a real implementation, this would save to a database or a file store like S3/GCS.
+        # For now, we'll save it to a local file.
+        report_dir = "/app/data/reports"
+        os.makedirs(report_dir, exist_ok=True)
+        report_path = os.path.join(report_dir, f"standup_{datetime.now(timezone.utc).strftime('%Y-%m-%d')}.md")
+        with open(report_path, "w", encoding="utf-8") as f:
+            f.write(report_content)
+        logger.info(f"Standup report saved to {report_path}")
         return True
     except Exception as e:
-        logger.error(f"Failed to send Discord message: {e}")
-        return False
-
-def send_slack_message(message: str, username: str = None) -> bool:
-    """Send a message to Slack via webhook."""
-    if not SLACK_WEBHOOK_URL:
-        logger.debug("Slack webhook not configured")
-        return False
-    
-    try:
-        payload = {
-            "text": message
-        }
-        if username:
-            payload["username"] = username
-        
-        response = requests.post(SLACK_WEBHOOK_URL, json=payload, timeout=10)
-        response.raise_for_status()
-        logger.info("Standup message sent to Slack successfully")
-        return True
-    except Exception as e:
-        logger.error(f"Failed to send Slack message: {e}")
+        logger.error(f"Failed to save standup report: {e}")
         return False
 
 def send_standup(message: str) -> bool:
-    """Send standup message to all configured platforms."""
-    success = True
-    
-    # Send to Discord
-    if not send_discord_message(message, SERVICE_NAME):
-        success = False
-    
-    # Send to Slack
-    if not send_slack_message(message, SERVICE_NAME):
-        success = False
-    
-    return success
+    """Generate and save the standup report for the dashboard."""
+    logger.info("Processing daily standup...")
+    if save_standup_report(message):
+        logger.info("Standup report successfully generated and stored.")
+        return True
+    else:
+        logger.error("Failed to store standup report.")
+        return False
 
 def get_yesterday_stats() -> Dict[str, Any]:
     """Get statistics for yesterday."""
@@ -106035,9 +106478,8 @@ from skills.marketplace import SkillMarketplace
 
 class SkillLoader:
     # Centralize security configuration for clarity and reusability.
-    BANNED_IMPORTS = {"os", "sys", "subprocess", "shutil", "socket", "pty"}
-    # Added 'open' to prevent arbitrary file I/O.
-    BANNED_BUILTINS = {"eval", "exec", "compile", "__import__", "getattr", "setattr", "delattr", "globals", "locals", "open"}
+    BANNED_IMPORTS = {"os", "sys", "subprocess", "shutil", "socket", "pty", "importlib", "code", "runpy", "pickle", "marshal", "tempfile", "urllib", "http", "requests", "ctypes", "__builtins__"}
+    BANNED_BUILTINS = {"eval", "exec", "compile", "__import__", "getattr", "setattr", "delattr", "globals", "locals", "open", "input", "breakpoint"}
 
     """Dynamically discovers and loads skill modules at runtime."""
     def __init__(self, registry: SkillRegistry = None, installer: SkillInstaller = None):
@@ -106220,22 +106662,56 @@ def run(url: str):
 
 ## File: `skills/installer.py`
 ```python
+import os
+import re
 import sys
 import subprocess
 from typing import List
 from loguru import logger
 from .registry import SkillRegistry
 
+_SKILL_NAME_PATTERN = re.compile(r'^[a-zA-Z0-9_-]+$')
+
+
 class SkillInstaller:
     """Installs dependencies and registers code packages as dynamic skills."""
     def __init__(self, registry: SkillRegistry = None, skills_dir: str = None):
         self.registry = registry or SkillRegistry()
-        import os
         if skills_dir is None:
             base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
             self.skills_dir = os.path.join(base_dir, "skills", "dynamic")
         else:
             self.skills_dir = skills_dir
+
+    def _sanitize_skill_name(self, name: str) -> str:
+        if not name or not isinstance(name, str):
+            raise ValueError("Invalid skill name.")
+        if not _SKILL_NAME_PATTERN.match(name):
+            raise ValueError("Skill name contains invalid characters.")
+        if '..' in name or name.startswith('/') or name.startswith('\\'):
+            raise ValueError("Path traversal detected in skill name.")
+        return name
+
+    def _pre_write_security_scan(self, code: str) -> None:
+        try:
+            import ast
+            tree = ast.parse(code, filename="<skill>")
+        except SyntaxError as e:
+            raise ValueError(f"Syntax error in skill code: {e}") from e
+
+        banned_modules = {"os", "sys", "subprocess", "shutil", "socket", "pty", "importlib", "code", "runpy", "pickle", "marshal", "tempfile", "urllib", "http", "requests", "ctypes", "__builtins__"}
+        banned_names = {"eval", "exec", "compile", "__import__", "getattr", "setattr", "delattr", "globals", "locals", "open", "input", "breakpoint"}
+
+        for node in ast.walk(tree):
+            if isinstance(node, (ast.Import, ast.ImportFrom)):
+                modules = [alias.name for alias in node.names] if isinstance(node, ast.Import) else [node.module]
+                for mod_name in modules:
+                    if mod_name and mod_name.split('.')[0] in banned_modules:
+                        raise SecurityError(f"Banned import '{mod_name}' blocked in skill install.")
+            elif isinstance(node, ast.Attribute) and (node.attr.startswith('__') or node.attr in banned_names):
+                raise SecurityError(f"Malicious attribute access '{node.attr}' blocked in skill install.")
+            elif isinstance(node, ast.Call) and isinstance(node.func, ast.Name) and node.func.id in banned_names:
+                raise SecurityError(f"Call to banned function '{node.func.id}' blocked in skill install.")
         
     def install_dependencies(self, dependencies: List[str]) -> bool:
         """Executes pip to install missing libraries dynamically."""
@@ -106263,11 +106739,23 @@ class SkillInstaller:
                 logger.error(f"USS validation failed before installing skill '{name}': {e}")
                 return False
 
+        try:
+            safe_name = self._sanitize_skill_name(name)
+        except Exception as e:
+            logger.error(f"Skill name validation failed: {e}")
+            return False
+
+        try:
+            self._pre_write_security_scan(code)
+        except Exception as e:
+            logger.error(f"Security scan failed before writing skill '{name}': {e}")
+            return False
+
         success = self.install_dependencies(dependencies)
         if not success:
             return False
             
-        skill_dir = os.path.join(self.skills_dir, name)
+        skill_dir = os.path.join(self.skills_dir, safe_name)
         os.makedirs(skill_dir, exist_ok=True)
         
         entry_file = os.path.join(skill_dir, "main.py")
@@ -106281,7 +106769,7 @@ class SkillInstaller:
                 with open(schema_file, "w", encoding="utf-8") as sf:
                     json.dump(uss, sf, indent=4)
 
-            self.registry.register_skill(name, version, description, entry_file, dependencies, uss=uss)
+            self.registry.register_skill(safe_name, version, description, entry_file, dependencies, uss=uss)
             return True
         except Exception as e:
             logger.error(f"Error saving skill source code: {e}")
