@@ -108,13 +108,15 @@ from core.origin_validator import TrustedOriginMiddleware
 from middleware.chaos_injector import ChaosInjectorMiddleware
 
 
+# বাংলা মন্তব্য: সিকিউরিটি জোরদার করতে CORS পলিসিতে ওয়াইল্ডকার্ড (*) বাদ দিয়ে নির্দিষ্ট মেথড এবং হেডার ডিফাইন করা হলো
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origins,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+    allow_headers=["Authorization", "Content-Type", "X-Request-ID", "X-Tenant-ID", "X-API-Key"],
 )
+
 
 app.add_middleware(ChaosInjectorMiddleware)
 app.add_middleware(HoneypotMiddleware)
