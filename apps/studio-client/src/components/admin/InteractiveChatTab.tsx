@@ -130,13 +130,20 @@ export function InteractiveChatTab({
     e.preventDefault();
     if (!terminalInput.trim()) return;
     const cmd = terminalInput.trim();
-    const newHistory = [...terminalHistory, `supremeai-user$ ${cmd}`];
 
+    // বাংলা মন্তব্য: clear কমান্ডটি আগে হ্যান্ডেল করা হলো যেন ESLint কোনো অব্যবহৃত অ্যাসাইনমেন্ট ট্র্যাকিং এরর না দেয়
+    if (cmd.toLowerCase() === 'clear') {
+      setTerminalHistory([]);
+      setTerminalInput('');
+      return;
+    }
+
+    const newHistory = [...terminalHistory, `supremeai-user$ ${cmd}`];
     const args = cmd.toLowerCase().split(' ');
     const primaryCmd = args[0];
 
     // রিড-অনলি কমান্ডের লজিক (নিরাপত্তা নিশ্চিতকরণের জন্য)
-    let output = '';
+    let output: string;
     switch (primaryCmd) {
       case 'help':
         output = 'Available Commands:\n  help          - Show this screen\n  status        - Show global system status\n  system-check  - Run automated diagnostics\n  clear         - Clear terminal history\n  neofetch      - Show system branding\n  list-skills   - Show registered AI agent skills';
@@ -147,10 +154,6 @@ export function InteractiveChatTab({
       case 'system-check':
         output = 'Running diagnostics...\n[OK] Database (Redis Pub/Sub)\n[OK] Celery Workers\n[OK] Firebase Cloud Authentication\n[OK] OpenAI/Gemini/Anthropic Gateways\nAll subsystems normal.';
         break;
-      case 'clear':
-        setTerminalHistory([]);
-        setTerminalInput('');
-        return;
       case 'neofetch':
         output = `
    ______                            __  ___    ____
