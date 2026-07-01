@@ -70,8 +70,13 @@ class PromptFirewall:
         
         for pattern in patterns:
             if pattern in cleaned_prompt:
-                return {"type": "prompt_injection", "pattern": pattern}
+                return "prompt_injection"
                 
+        import re as _re
+        if _re.search(r"(?i)\b(password|api_key|secret|token)\s*=|BEGIN RSA KEY|END PGP KEY|ssh-(rsa|ed25519)", prompt):
+            return "sensitive_extraction"
+        if _re.search(r"(?i)(rm\s+-rf|/bin/sh|chmod\s+\d|curl\s+.*\|\s*bash|wget\s+.*\|\s*sh|base64\s+-d\s+.*\|\s*python)", prompt):
+            return "malicious_code"
         return None
 
     async def scan_with_llama_guard(self, prompt: str):

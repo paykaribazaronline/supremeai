@@ -1,72 +1,59 @@
 import sys
-from unittest.mock import AsyncMock
-from unittest.mock import MagicMock
-from unittest.mock import patch
-
-
-if "asyncpg" not in sys.modules:
-    sys.modules["asyncpg"] = MagicMock()
-
+from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
+if "asyncpg" not in sys.modules:
+    mock_asyncpg = MagicMock()
+    mock_connection = MagicMock()
+    sys.modules["asyncpg"] = mock_asyncpg
+    sys.modules["asyncpg.connection"] = mock_connection
+
 from core.pgbouncer_pool import PgBouncerConnectionPool
-from core.pgbouncer_pool import PoolConfig
-
-
-def test_pool_config_defaults():
-    config = PoolConfig()
-    assert config.min_size == 10
-    assert config.max_size == 100
-    assert config.max_queries == 50000
-    assert config.max_inactive_connection_lifetime == 300.0
-
 
 def test_singleton_pattern():
-    pool1 = PgBouncerConnectionPool()
-    pool2 = PgBouncerConnectionPool()
+    from core.pgbouncer_pool import get_db_pool
+    pool1 = get_db_pool()
+    pool2 = get_db_pool()
     assert pool1 is pool2
 
-
 @pytest.mark.asyncio
-async def test_initialize_no_env_vars():
-    pool = PgBouncerConnectionPool.__new__(PgBouncerConnectionPool)
-    pool._pool_config = PoolConfig()
-    pool._dsn = ""
-    pool._pgbouncer_url = ""
-    pool._initialized = False
-    pool._pool = None
-
-    await pool.initialize()
-    assert pool._initialized is False
-    assert pool._pool is None
-
+async def test_connect():
+    pool = PgBouncerConnectionPool("test_dsn")
+    with patch("core.pgbouncer_pool.asyncpg.create_pool", new_callable=AsyncMock) as mock_create_pool:
+        mock_pool = MagicMock()
+        mock_create_pool.return_value = mock_pool
+        await pool.connect()
+        mock_create_pool.assert_called_once_with(dsn="test_dsn", min_size=1, max_size=10)
+        assert pool._pool is mock_pool
 
 @pytest.mark.asyncio
 async def test_acquire_without_initialization():
-    pool = PgBouncerConnectionPool.__new__(PgBouncerConnectionPool)
-    pool._initialized = False
-    pool._pool = None
+    pool = PgBouncerConnectionPool("test_dsn")
     with pytest.raises(RuntimeError, match="Connection pool not initialized"):
-        async with pool.acquire():
-            pass
+        await pool.acquire()
 
+@pytest.mark.asyncio
+async def test_acquire_and_release():
+    pool = PgBouncerConnectionPool("test_dsn")
+    mock_pool = MagicMock()
+    mock_pool.acquire = AsyncMock(return_value="mock_connection")
+    mock_pool.release = AsyncMock()
+    pool._pool = mock_pool
+
+    conn = await pool.acquire()
+    assert conn == "mock_connection"
+    mock_pool.acquire.assert_called_once()
+
+    await pool.release(conn)
+    mock_pool.release.assert_called_once_with("mock_connection")
 
 @pytest.mark.asyncio
 async def test_close_resets_pool():
-    pool = PgBouncerConnectionPool.__new__(PgBouncerConnectionPool)
-    pool._initialized = True
-    mock_pool = AsyncMock()
+    pool = PgBouncerConnectionPool("test_dsn")
+    mock_pool = MagicMock()
+    mock_pool.close = AsyncMock()
     pool._pool = mock_pool
+
     await pool.close()
     assert pool._pool is None
-    assert pool._initialized is False
     mock_pool.close.assert_called_once()
-
-
-@pytest.mark.asyncio
-async def test_get_db_pool_returns_instance():
-    with patch("core.pgbouncer_pool.PgBouncerConnectionPool.initialize"):
-        from core.pgbouncer_pool import get_db_pool
-
-        pool = await get_db_pool()
-        assert isinstance(pool, PgBouncerConnectionPool)

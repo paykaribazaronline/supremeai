@@ -2,7 +2,6 @@
 
 import asyncpg
 import logging
-from .config import PoolConfig
 
 logger = logging.getLogger(__name__)
 
