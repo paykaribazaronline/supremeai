@@ -1,7 +1,7 @@
 # 🧠 SupremeAI 2.0 Codebase Analysis
 # বাংলা মন্তব্য: এটি একটি স্বয়ংক্রিয়ভাবে জেনারেট করা কোডবেস ডাম্প ফাইল যা প্রজেক্টের সামগ্রিক বিশ্লেষণের জন্য ব্যবহৃত হয়।
 
-Generated at: 2026-07-01T18:04:09.331823 UTC
+Generated at: 2026-07-01T18:06:18.311301 UTC
 
 ## File: `.github/actions/setup-backend/action.yml`
 ```yaml
@@ -100971,6 +100971,8 @@ def sync_to_supabase(file_path: Path, env: dict):
             data=json.dumps({"id": bucket_name, "name": bucket_name, "public": False}).encode('utf-8'),
             headers={
                 "Authorization": f"Bearer {supabase_key}",
+                "apikey": supabase_key,
+                "API-Key": supabase_key,
                 "Content-Type": "application/json"
             },
             method="POST"
@@ -100987,6 +100989,8 @@ def sync_to_supabase(file_path: Path, env: dict):
             data=file_path.read_bytes(),
             headers={
                 "Authorization": f"Bearer {supabase_key}",
+                "apikey": supabase_key,
+                "API-Key": supabase_key,
                 "Content-Type": "text/markdown"
             },
             method="POST"
@@ -101002,6 +101006,8 @@ def sync_to_supabase(file_path: Path, env: dict):
             data=json.dumps({"limit": 100, "sortBy": {"column": "name", "order": "asc"}}).encode('utf-8'),
             headers={
                 "Authorization": f"Bearer {supabase_key}",
+                "apikey": supabase_key,
+                "API-Key": supabase_key,
                 "Content-Type": "application/json"
             },
             method="POST"
