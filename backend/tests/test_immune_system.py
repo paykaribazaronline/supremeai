@@ -15,9 +15,9 @@ def mock_redis(monkeypatch):
     queue.get.return_value = None
     queue.incr.return_value = 1
 
-    import core.app as core_app
+    import core.services as services
 
-    monkeypatch.setattr(core_app, "redis_queue", queue, raising=True)
+    monkeypatch.setattr(services, "redis_queue", queue, raising=True)
     return queue
 
 

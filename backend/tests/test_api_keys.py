@@ -73,7 +73,7 @@ from core.security import verify_api_key
 def client():
     fake_pool = FakePool()
     with (
-        patch("core.app._ensure_api_key_tables"),
+        patch("core.lifespan._ensure_api_key_tables"),
         patch("core.pgbouncer_pool.get_db_pool", return_value=fake_pool),
         patch("models.api_key.get_db_pool", return_value=fake_pool),
     ):

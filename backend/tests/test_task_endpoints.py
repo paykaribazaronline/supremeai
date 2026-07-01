@@ -13,10 +13,12 @@ client = TestClient(app)
 @pytest.fixture
 def mock_dependencies():
     import core.app as app_mod
+    import core.services as services
 
-    previous_admin = app_mod.admin_god
+
+    previous_admin = services.admin_god
     previous_router = app_mod.model_router
-    previous_intent = app_mod.intent_clf
+    previous_intent = services.intent_clf
 
     fake_admin = MagicMock()
     fake_admin.enforce.return_value = None
@@ -32,14 +34,14 @@ def mock_dependencies():
     fake_intent = MagicMock()
     fake_intent.classify.return_value = MagicMock(task_type="general", confidence=1.0)
 
-    app_mod.admin_god = fake_admin
+    services.admin_god = fake_admin
     app_mod.model_router = fake_router
-    app_mod.intent_clf = fake_intent
+    services.intent_clf = fake_intent
 
     def resolve():
-        app_mod.admin_god = previous_admin
+        services.admin_god = previous_admin
         app_mod.model_router = previous_router
-        app_mod.intent_clf = previous_intent
+        services.intent_clf = previous_intent
 
     return resolve
 
@@ -47,10 +49,12 @@ def mock_dependencies():
 @pytest.fixture
 def mock_session():
     import core.app as app_mod
+    import core.services as services
 
-    previous_admin = app_mod.admin_god
+
+    previous_admin = services.admin_god
     previous_router = app_mod.model_router
-    previous_intent = app_mod.intent_clf
+    previous_intent = services.intent_clf
 
     fake_admin = MagicMock()
     fake_admin.enforce.return_value = None
@@ -66,15 +70,15 @@ def mock_session():
     fake_intent = MagicMock()
     fake_intent.classify.return_value = MagicMock(task_type="general", confidence=1.0)
 
-    app_mod.admin_god = fake_admin
+    services.admin_god = fake_admin
     app_mod.model_router = fake_router
-    app_mod.intent_clf = fake_intent
+    services.intent_clf = fake_intent
 
     yield
 
-    app_mod.admin_god = previous_admin
+    services.admin_god = previous_admin
     app_mod.model_router = previous_router
-    app_mod.intent_clf = previous_intent
+    services.intent_clf = previous_intent
 
 
 def test_task_execute_returns_200(mock_session):
@@ -118,6 +122,8 @@ def test_task_execute_with_session_id(mock_session):
 
 def test_task_execute_upstream_failure(mock_session):
     import core.app as app_mod
+    import core.services as services
+
 
     previous_router = app_mod.model_router
     fake_router = MagicMock()
@@ -144,6 +150,8 @@ def test_task_execute_upstream_failure(mock_session):
 
 def test_chat_completion_streaming():
     import core.app as app_mod
+    import core.services as services
+
 
     previous_router = app_mod.model_router
     fake_router = MagicMock()

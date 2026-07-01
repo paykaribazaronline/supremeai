@@ -48,12 +48,14 @@ def test_task_execute_with_context():
     from unittest.mock import MagicMock
 
     import core.app as app_mod
+    import core.services as services
+
 
     # Mock admin_god layer check
-    previous_admin = app_mod.admin_god
+    previous_admin = services.admin_god
     fake_admin = MagicMock()
     fake_admin.enforce.return_value = True
-    app_mod.admin_god = fake_admin
+    services.admin_god = fake_admin
 
     # Mock model router
     from unittest.mock import AsyncMock
@@ -104,5 +106,5 @@ def test_task_execute_with_context():
         assert "User: Can you change that code?" in called_prompt
 
     finally:
-        app_mod.admin_god = previous_admin
+        services.admin_god = previous_admin
         app_mod.model_router = previous_router

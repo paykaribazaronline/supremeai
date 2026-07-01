@@ -25,33 +25,33 @@ class _DownRedisQueue:
 
 @pytest.fixture()
 def healthy_app(monkeypatch: pytest.MonkeyPatch):
-    import core.app as core_app
+    import core.services as services
 
-    importlib.reload(core_app)
+    importlib.reload(services)
     queue = _FakeRedisQueue()
-    monkeypatch.setattr(core_app, "redis_queue", queue, raising=True)
-    return core_app
+    monkeypatch.setattr(services, "redis_queue", queue, raising=True)
+    return services
 
 
 @pytest.fixture()
 def down_app(monkeypatch: pytest.MonkeyPatch):
-    import core.app as core_app
+    import core.services as services
 
-    importlib.reload(core_app)
+    importlib.reload(services)
     queue = _DownRedisQueue()
-    monkeypatch.setattr(core_app, "redis_queue", queue, raising=True)
-    return core_app
+    monkeypatch.setattr(services, "redis_queue", queue, raising=True)
+    return services
 
 
 @pytest.fixture()
 def unconfigured_app(monkeypatch: pytest.MonkeyPatch):
-    import core.app as core_app
+    import core.services as services
 
-    importlib.reload(core_app)
+    importlib.reload(services)
     queue = _FakeRedisQueue()
     queue.configured = False
-    monkeypatch.setattr(core_app, "redis_queue", queue, raising=True)
-    return core_app
+    monkeypatch.setattr(services, "redis_queue", queue, raising=True)
+    return services
 
 
 def test_health_when_redis_healthy(healthy_app):
