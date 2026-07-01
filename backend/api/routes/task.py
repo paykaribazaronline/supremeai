@@ -373,7 +373,8 @@ async def execute_task(req: TaskRequest, background_tasks: BackgroundTasks):
 async def task_stream():
     async def keepalive():
         while True:
-            yield f"data: {json.dumps({'status': 'alive', 'timestamp': datetime.datetime.utcnow().isoformat()})}\n\n"
+            # বাংলা মন্তব্য: Python 3.12+ এর অবচয় সতর্কবার্তা এড়াতে timezone-aware datetime ব্যবহার করা হলো
+            yield f"data: {json.dumps({'status': 'alive', 'timestamp': datetime.datetime.now(datetime.timezone.utc).isoformat()})}\n\n"
             await asyncio.sleep(15)
 
     return StreamingResponse(
