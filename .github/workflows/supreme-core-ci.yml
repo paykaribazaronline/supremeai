@@ -226,11 +226,13 @@ jobs:
 
   sync-mirror:
     name: 📤 Sync to Secondary Repo
-    needs: [detect-changes, deploy-backend, deploy-frontend]
+    # বাংলা মন্তব্য: সিকিউরিটি অডিট (CodeQL) সফল হওয়ার পর সেকেন্ডারি রিপোতে সিঙ্ক হবে
+    needs: [detect-changes, deploy-backend, deploy-frontend, security-audit]
     if: |
       github.ref == 'refs/heads/main' &&
       needs.deploy-backend.result != 'failure' && needs.deploy-backend.result != 'cancelled' &&
-      needs.deploy-frontend.result != 'failure' && needs.deploy-frontend.result != 'cancelled'
+      needs.deploy-frontend.result != 'failure' && needs.deploy-frontend.result != 'cancelled' &&
+      needs.security-audit.result != 'failure' && needs.security-audit.result != 'cancelled'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -245,9 +247,31 @@ jobs:
           git remote add mirror https://x-access-token:${MIRROR_REPO_TOKEN}@github.com/SaifulHaqueNiloy/supremeai.git
           git push mirror main:refs/heads/main
 
+  generate-codebase-docs:
+    name: 📝 Auto-Generate Codebase Docs
+    # বাংলা মন্তব্য: মেইন বা ডেভেলপ ব্রাঞ্চে পুশ করা হলে স্বয়ংক্রিয়ভাবে কোডবেসের মার্কডাউন ফাইল জেনারেট হয়ে পুশ হবে
+    runs-on: ubuntu-latest
+    if: |
+      github.event_name == 'push' &&
+      (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Generate Codebase Markdown
+        run: python scripts/generate_codebase_markdown.py
+      - name: Commit and Push Docs
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/codebase_dump.md
+          git diff-index --quiet HEAD || (git commit -m "docs: auto-generate codebase markdown analysis [skip ci]" && git push)
+
   ci-report:
     name: 📊 Generate Smart CI Report
-    needs: [deploy-backend, deploy-frontend, sync-mirror]
+    needs: [deploy-backend, deploy-frontend, sync-mirror, generate-codebase-docs]
     if: always()
     runs-on: ubuntu-latest
     steps:
