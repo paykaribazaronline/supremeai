@@ -1,7 +1,7 @@
 # 🧠 SupremeAI 2.0 Codebase Analysis
 # বাংলা মন্তব্য: এটি একটি স্বয়ংক্রিয়ভাবে জেনারেট করা কোডবেস ডাম্প ফাইল যা প্রজেক্টের সামগ্রিক বিশ্লেষণের জন্য ব্যবহৃত হয়।
 
-Generated at: 2026-07-01T20:49:17.632607 UTC
+Generated at: 2026-07-01T21:13:35.494810 UTC
 
 ## File: `.github/actions/setup-backend/action.yml`
 ```yaml
@@ -5413,7 +5413,6 @@ class AdminGodLayer:
     "@types/node": "^16.18.0",
     "@types/react": "^18.0.0",
     "@types/react-dom": "^18.0.0",
-    "@types/react-router-dom": "^6.0.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.4.0",
@@ -17137,7 +17136,8 @@ export function SecurityDashboard() {
 ```typescript
 import React, { useEffect, useState } from 'react';
 import { Activity, Server, Database, Cpu, CheckCircle, Terminal, DollarSign, Users, Settings, Zap, Cloud, Eye, ShieldAlert, FileText, GitMerge, GitBranch, Save, Clock, Network } from 'lucide-react';
-import { fetchJavaWorkerHealth, type JavaWorkerHealth } from '../../services/api/microserviceMonitor';
+import { fetchJavaWorkerHealth } from '../../services/api/microserviceMonitor';
+import type { JavaWorkerHealth } from '../../services/api/microserviceMonitor';
 import { useAdminStore } from '../../store/adminStore';
 import type { AdminSubTab } from '../../types';
 
@@ -27149,6 +27149,9 @@ from tools.cost_auditor import CostAuditor
 
 security = HTTPBearer()
 
+# বাংলা মন্তব্য: রেডিস বন্ধ থাকলে টোকেন ব্ল্যাকলিস্ট চেকের জন্য ইন-মেমোরি ব্যাকআপ
+_in_memory_jwt_blacklist = set()
+
 
 def require_admin_token(credentials: HTTPAuthorizationCredentials = Depends(security)):
     token = credentials.credentials
@@ -27172,7 +27175,11 @@ def require_admin_token(credentials: HTTPAuthorizationCredentials = Depends(secu
                         status_code=401, detail="Token has been revoked."
                     )
             else:
-                logger.warning("Redis not configured; JWT blacklist check skipped.")
+                if jti in _in_memory_jwt_blacklist:
+                    raise HTTPException(
+                        status_code=401, detail="Token has been revoked."
+                    )
+                logger.warning("Redis not configured; falling back to in-memory JWT blacklist check.")
 
         return decoded
     except Exception as e:
@@ -27427,7 +27434,15 @@ def get_env_etag(redis_key: str = "config:env_etag") -> str:
     return "empty-env"
 
 
+# বাংলা মন্তব্য: মাল্টি-ইনস্ট্যান্স রেস কন্ডিশন এড়ানোর জন্য রেডিস-ব্যাকড লক ও ফাইল-লকের ফিজিবল কম্বিনেশন
 def _acquire_env_lock(lock_path: str = ".env.lock") -> bool:
+    import core.services as app_mod
+    redis_queue = getattr(app_mod, "redis_queue", None)
+    if redis_queue and getattr(redis_queue, "configured", False):
+        try:
+            return redis_queue.set_nx("lock:env_write", "locked", ex=10)
+        except Exception:
+            pass
     try:
         fd = os.open(lock_path, os.O_CREAT | os.O_EXCL | os.O_RDWR)
         os.close(fd)
@@ -27439,6 +27454,11 @@ def _acquire_env_lock(lock_path: str = ".env.lock") -> bool:
 
 
 def _release_env_lock(lock_path: str = ".env.lock"):
+    import core.services as app_mod
+    redis_queue = getattr(app_mod, "redis_queue", None)
+    if redis_queue and getattr(redis_queue, "configured", False):
+        with contextlib.suppress(Exception):
+            redis_queue._request("DEL", "lock:env_write")
     with contextlib.suppress(Exception):
         os.remove(lock_path)
 
@@ -94891,6 +94911,7 @@ export { ChatBubble } from './ChatBubble';
 ```yaml
 packages:
   - 'apps/*'
+  - 'apps/desktop/*'
   - 'packages/*'
   - 'tools/*'
 
