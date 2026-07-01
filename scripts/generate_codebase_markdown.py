@@ -151,6 +151,8 @@ def sync_to_supabase(file_path: Path, env: dict):
             data=json.dumps({"id": bucket_name, "name": bucket_name, "public": False}).encode('utf-8'),
             headers={
                 "Authorization": f"Bearer {supabase_key}",
+                "apikey": supabase_key,
+                "API-Key": supabase_key,
                 "Content-Type": "application/json"
             },
             method="POST"
@@ -167,6 +169,8 @@ def sync_to_supabase(file_path: Path, env: dict):
             data=file_path.read_bytes(),
             headers={
                 "Authorization": f"Bearer {supabase_key}",
+                "apikey": supabase_key,
+                "API-Key": supabase_key,
                 "Content-Type": "text/markdown"
             },
             method="POST"
@@ -182,6 +186,8 @@ def sync_to_supabase(file_path: Path, env: dict):
             data=json.dumps({"limit": 100, "sortBy": {"column": "name", "order": "asc"}}).encode('utf-8'),
             headers={
                 "Authorization": f"Bearer {supabase_key}",
+                "apikey": supabase_key,
+                "API-Key": supabase_key,
                 "Content-Type": "application/json"
             },
             method="POST"
