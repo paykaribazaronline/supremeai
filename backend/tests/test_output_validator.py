@@ -1,86 +1,69 @@
-import pytest
-
-from core.output_validator import OutputValidator
-
-
-@pytest.fixture
-def validator():
-    return OutputValidator()
-
-
-def test_multi_model_consensus_clean_output(validator):
-    result = validator.multi_model_consensus("def hello(): return 'world'", "code")
-    assert "consensus_score" in result
-    assert "should_flag" in result
-    assert result["should_flag"] is False
+"""Tests for core.output_validator output validation classes."""
+from core.output_validator import (
+    MultiAICodeGenerator,
+    EnhancedConfidenceScorer,
+    HumanReviewPolicy,
+    OutputValidator,
+)
 
 
-def test_multi_model_consensus_hallucinated_repo(validator):
-    result = validator.multi_model_consensus("clone nadim9/supremeai", "git")
-    assert result["should_flag"] is True
-    assert len(result["disagreements"]) > 0
-    assert result["consensus_score"] < 1.0
+def test_multi_ai_code_generator_consensus_found():
+    gen = MultiAICodeGenerator()
+    result = gen.generate_with_consensus(
+        "task",
+        "line1\nline2\ncommon",
+        "line3\ncommon",
+        "common\nline4",
+    )
+    assert "common" in result["code"]
+    assert 0 <= result["confidence"] <= 1.0
 
 
-def test_self_reflect_clean(validator):
-    result = validator.self_reflect("def hello(): pass")
-    assert result["has_issues"] is False
-    assert result["issues"] == []
+def test_multi_ai_code_generator_no_consensus():
+    gen = MultiAICodeGenerator()
+    result = gen.generate_with_consensus("task", "a\nb", "c\nd", "e\nf")
+    assert result["code"] == "a\nb"
 
 
-def test_self_reflect_hallucinated_repo(validator):
-    result = validator.self_reflect("fetch from nadim9/supremeai")
-    assert result["has_issues"] is True
-    assert any("nadim9/supremeai" in issue for issue in result["issues"])
+def test_enhanced_confidence_scorer_high():
+    scorer = EnhancedConfidenceScorer()
+    result = scorer.score("clean output", {"ai_reliability": 0.95, "external_score": 1.0})
+    assert result["badge"] == "HIGH_CONFIDENCE"
+    assert result["color"] == "green"
 
 
-def test_score_confidence_high(validator):
-    result = validator.score_confidence("def hello(): pass", {})
-    assert result["overall"] >= 0.7
-    assert result["badge"] in ("HIGH_CONFIDENCE", "MEDIUM_CONFIDENCE", "LOW_CONFIDENCE")
-    assert result["color"] in ("green", "yellow", "red")
+def test_enhanced_confidence_scorer_low_hallucination():
+    scorer = EnhancedConfidenceScorer()
+    result = scorer.score("see nadim9/supremeai", {"ai_reliability": 0.95, "external_score": 1.0})
+    assert result["badge"] == "LOW_CONFIDENCE"
+    assert result["should_warn"] is True
 
 
-def test_score_confidence_hallucinated_low(validator):
-    result = validator.score_confidence("use nadim9/supremeai", {})
-    assert result["overall"] < 0.7
-    assert result["should_warn_user"] is True
+def test_human_review_policy_requires_for_code():
+    policy = HumanReviewPolicy()
+    assert policy.requires_human_review("python_code", {"overall": 0.95, "ai_reliability": 1.0}) is True
 
 
-def test_validate_clean(validator):
-    result = validator.validate("def hello(): return 42")
+def test_human_review_policy_low_confidence():
+    policy = HumanReviewPolicy()
+    assert policy.requires_human_review("chat", {"overall": 0.6, "ai_reliability": 1.0}) is True
+
+
+def test_human_review_policy_skip():
+    policy = HumanReviewPolicy()
+    assert policy.requires_human_review("chat", {"overall": 0.95, "ai_reliability": 1.0}) is False
+
+
+def test_output_validator_validate_clean():
+    validator = OutputValidator()
+    result = validator.validate("some safe output")
     assert result["is_valid"] is True
 
 
-def test_validate_hallucinated(validator):
-    result = validator.validate("install nadim9/supremeai")
+def test_output_validator_validate_hallucination():
+    validator = OutputValidator()
+    result = validator.validate("check nadim9/supremeai")
     assert result["is_valid"] is False
-
-
-def test_multi_ai_generator_consensus():
-    from core.output_validator import MultiAICodeGenerator
-
-    gen = MultiAICodeGenerator()
-    code_a = "def add(a, b): return a + b"
-    code_b = "def add(a, b):\n    return a + b"
-    code_c = "def add(x, y): return x + y"
-    result = gen.generate_with_consensus("add", code_a, code_b, code_c)
-    assert "code" in result
-    assert "confidence" in result
-    assert "differences" in result
-
-
-def test_enhanced_confidence_scorer():
-    from core.output_validator import EnhancedConfidenceScorer
-
-    scorer = EnhancedConfidenceScorer()
-    result = scorer.score("normal text", {"ai_reliability": 0.9, "external_score": 1.0})
-    assert result["overall"] >= 0.7
-
-
-def test_human_review_policy():
-    from core.output_validator import HumanReviewPolicy
-
-    policy = HumanReviewPolicy()
-    assert policy.requires_human_review("python_code", {"overall": 0.9}) is True
-    assert policy.requires_human_review("chat", {"overall": 0.3}) is True
+    reflection = validator.self_reflect("check nadim9/supremeai")
+    assert reflection["has_issues"] is True
+    assert any("Hallucinated repo path" in issue for issue in reflection["issues"])

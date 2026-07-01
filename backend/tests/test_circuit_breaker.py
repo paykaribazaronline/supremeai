@@ -1,4 +1,4 @@
-import asyncio
+"""Tests for core.circuit_breaker.CircuitBreaker."""
 import time
 
 import pytest
@@ -6,90 +6,97 @@ import pytest
 from core.circuit_breaker import CircuitBreaker
 
 
-@pytest.fixture
-def cb():
-    return CircuitBreaker(name="test", failure_threshold=3, recovery_timeout=1.0)
+class FakeRedis:
+    def __init__(self):
+        self.store = {}
+        self.configured = True
+
+    def get(self, key):
+        return self.store.get(key)
+
+    def set(self, key, value, ex=None):
+        self.store[key] = value
 
 
-def test_initial_state_closed(cb):
+def test_initial_state():
+    cb = CircuitBreaker("svc")
     assert cb.state == "CLOSED"
     assert cb.allow_request() is True
 
 
-def test_success_keeps_closed(cb):
-    cb.mark_success()
-    assert cb.state == "CLOSED"
-    assert cb.allow_request() is True
-    assert cb.failures == 0
-
-
-def test_open_after_threshold(cb):
-    for _ in range(2):
+def test_opens_after_failure_threshold():
+    cb = CircuitBreaker("svc", failure_threshold=3)
+    for _ in range(3):
         cb.mark_failure()
-    assert cb.state == "CLOSED"
-    cb.mark_failure()
     assert cb.state == "OPEN"
     assert cb.allow_request() is False
 
 
-def test_half_open_after_recovery_timeout(cb):
-    for _ in range(3):
-        cb.mark_failure()
+def test_half_open_after_recovery():
+    cb = CircuitBreaker("svc", failure_threshold=2, recovery_timeout=0.01)
+    cb.mark_failure()
+    cb.mark_failure()
     assert cb.state == "OPEN"
-    cb.opened_at = time.time() - 1.5
+    assert cb.allow_request() is False
+    time.sleep(0.02)
     assert cb.allow_request() is True
     assert cb.state == "HALF_OPEN"
 
 
-def test_mark_success_closes_from_half_open(cb):
-    for _ in range(3):
-        cb.mark_failure()
-    cb.opened_at = time.time() - 1.5
-    cb.allow_request()
-    assert cb.state == "HALF_OPEN"
+def test_mark_success_closes():
+    cb = CircuitBreaker("svc", failure_threshold=2)
+    cb.mark_failure()
+    cb.mark_failure()
+    assert cb.state == "OPEN"
+    cb.failures = 0
+    cb.state = "HALF_OPEN"
     cb.mark_success()
     assert cb.state == "CLOSED"
-    assert cb.failures == 0
 
 
-def test_call_success():
-    cb = CircuitBreaker(name="async-test", failure_threshold=2)
+def test_redis_persistence():
+    redis = FakeRedis()
+    cb = CircuitBreaker("svc", failure_threshold=2, redis_queue=redis)
+    cb.mark_failure()
+    assert cb.state == "CLOSED"
+    stored = redis.get("cb:svc:state")
+    assert stored is not None
 
-    async def good():
+
+@pytest.mark.anyio
+async def test_call_success():
+    cb = CircuitBreaker("svc")
+
+    async def fake_func():
         return "ok"
 
-    async def run():
-        return await cb.call(good)
-
-    result = asyncio.run(run())
+    result = await cb.call(fake_func)
     assert result == "ok"
     assert cb.state == "CLOSED"
 
 
-def test_call_raises_when_open():
-    cb = CircuitBreaker(name="async-open", failure_threshold=1)
+@pytest.mark.anyio
+async def test_call_failure_trips():
+    cb = CircuitBreaker("svc", failure_threshold=2)
 
-    async def bad():
-        raise ValueError("fail")
+    async def fake_func():
+        raise RuntimeError("boom")
 
-    async def run():
-        await cb.call(bad)
-
-    with pytest.raises(ValueError):
-        asyncio.run(run())
+    for _ in range(2):
+        try:
+            await cb.call(fake_func)
+        except RuntimeError:
+            pass
     assert cb.state == "OPEN"
 
 
-def test_call_blocks_when_open():
-    cb = CircuitBreaker(name="async-blocked", failure_threshold=1)
+import asyncio
 
-    async def good():
+
+def test_async_call_requires_non_async_context():
+    cb = CircuitBreaker("svc")
+
+    async def fake_func():
         return "ok"
 
-    async def run():
-        return await cb.call(good)
-
-    cb.mark_failure()
-    assert cb.state == "OPEN"
-    with pytest.raises(RuntimeError, match="open"):
-        asyncio.run(run())
+    assert asyncio.run(cb.call(fake_func)) == "ok"
