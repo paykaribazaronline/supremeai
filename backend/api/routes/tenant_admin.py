@@ -160,7 +160,7 @@ async def _get_tenant_usage(tenant_id: str) -> dict[str, Any]:
         "cost_today": 0.0,
     }
     try:
-        import core.app as app_mod
+        import core.services as app_mod
 
         q = getattr(app_mod, "redis_queue", None)
         if q and getattr(q, "configured", False):
@@ -359,7 +359,7 @@ async def get_usage(tenant_id: str):
 async def reset_usage(tenant_id: str):
     """Reset today's request/token counters for a tenant (Redis)."""
     try:
-        import core.app as app_mod
+        import core.services as app_mod
 
         q = getattr(app_mod, "redis_queue", None)
         if q and getattr(q, "configured", False):

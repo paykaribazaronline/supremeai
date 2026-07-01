@@ -401,10 +401,12 @@ app.include_router(mobile_bff_router)
 
 # Register Universal BYOC Router
 try:
-    from api.routes.byoc_api import router as byoc_api_router
-
-    app.include_router(byoc_api_router)
-    logger.info("Universal BYOC management router loaded successfully ✅")
+    if os.getenv("SUPREMEAI_ENCRYPTION_KEY"):
+        from api.routes.byoc_api import router as byoc_api_router
+        app.include_router(byoc_api_router)
+        logger.info("Universal BYOC management router loaded successfully ✅")
+    else:
+        logger.warning("Universal BYOC router not loaded: SUPREMEAI_ENCRYPTION_KEY missing")
 except Exception as _e:
     import traceback
 

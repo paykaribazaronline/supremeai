@@ -50,7 +50,7 @@ class IdempotencyMiddleware:
             await self.app(scope, receive, send)
             return
 
-        import core.app as app_mod
+        import core.services as app_mod
 
         if (
             not hasattr(app_mod, "redis_queue")

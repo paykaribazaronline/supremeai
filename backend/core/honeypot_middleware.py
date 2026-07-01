@@ -94,7 +94,7 @@ class HoneypotMiddleware:
             )
 
             # Increment threat level & block if threshold reached
-            import core.app as app_mod
+            import core.services as app_mod
 
             if (
                 hasattr(app_mod, "redis_queue")

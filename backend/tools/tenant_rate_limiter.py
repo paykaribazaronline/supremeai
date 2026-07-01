@@ -23,7 +23,7 @@ class TenantRateLimiter:
         if self.redis_client is not None:
             return self.redis_client
         try:
-            import core.app as app_mod
+            import core.services as app_mod
 
             return getattr(app_mod, "redis_queue", None)
         except Exception:

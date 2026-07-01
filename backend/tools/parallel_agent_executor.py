@@ -71,7 +71,7 @@ class ParallelAgentExecutor:
             redis = self.redis_client
             if redis is None:
                 try:
-                    import core.app as app_mod
+                    import core.services as app_mod
 
                     redis = app_mod.redis_queue
                 except Exception:
@@ -105,7 +105,7 @@ class ParallelAgentExecutor:
             try:
                 redis = self.redis_client
                 if redis is None:
-                    import core.app as app_mod
+                    import core.services as app_mod
 
                     redis = app_mod.redis_queue
                 if redis and getattr(redis, "configured", False):

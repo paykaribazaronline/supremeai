@@ -20,7 +20,7 @@ async def proxy_mobile_ai_request(request: Request, payload: MobileChatRequest):
     BFF (Backend for Frontend) Router for Flutter Mobile Client.
     Eliminates the need for hardcoded API keys in the mobile source code.
     """
-    import core.app as app_mod
+    import core.services as app_mod
 
     model_router = app_mod.model_router
 

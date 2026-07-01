@@ -39,7 +39,7 @@ def require_admin_token(credentials: HTTPAuthorizationCredentials = Depends(secu
 
         jti = decoded.get("jti")
         if jti:
-            import core.app as app_mod
+            import core.services as app_mod
 
             redis_queue = getattr(app_mod, "redis_queue", None)
             if redis_queue and getattr(redis_queue, "configured", False):
@@ -62,7 +62,7 @@ def require_admin_token(credentials: HTTPAuthorizationCredentials = Depends(secu
 
 
 def admin_rate_limit(request: Request):
-    import core.app as app_mod
+    import core.services as app_mod
 
     client_ip = request.client.host if request.client else "unknown"
     key = f"rate_limit:admin:{client_ip}"
@@ -283,7 +283,7 @@ import hashlib
 
 
 def get_env_etag(redis_key: str = "config:env_etag") -> str:
-    import core.app as app_mod
+    import core.services as app_mod
 
     redis_queue = getattr(app_mod, "redis_queue", None)
     if redis_queue and getattr(redis_queue, "configured", False):
