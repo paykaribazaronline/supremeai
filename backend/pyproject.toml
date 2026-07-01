@@ -57,6 +57,11 @@ setuptools = "<82.0.0"
 neo4j = "^5.14.0"
 mcp = ">=0.9.1"
 litellm = "^1.40.0"
+# বাংলা মন্তব্য: লঞ্চডার্কলি এজেন্টস কন্ট্রোল এবং অবজারভেবিলিটি প্লাগইন ডিপেন্ডেন্সি যুক্ত করা হলো
+launchdarkly-server-sdk = "^9.8.0"
+launchdarkly-server-sdk-ai = "^1.0.0"
+launchdarkly-observability = "^1.0.0"
+
 
 [tool.poetry.group.ml.dependencies]
 # ── ML/AI: torch, OCR, whisper, embeddings (~3 GB) ──

@@ -40,21 +40,62 @@ class AutoRemediationEngine:
             logger.error(f"❌ Remediation failed: {str(e)}")
 
     def _generate_ai_patch(self, code: str, line: int, issue: str) -> str:
-        prompt = f"""You are an elite AI AppSec Engineer. Fix the following vulnerability.
+        # বাংলা মন্তব্য: লঞ্চডার্কলি এজেন্টস কন্ট্রোল এবং ভ্যারিয়েবল ইভ্যালুয়েশন লজিক যুক্ত করা হলো
+        from ldai import AICompletionConfigDefault
+        from ldai import LDMessage
+        from ldai import ModelConfig
+        from ldclient.context import Context
+
+        from core.ld_client import ld_ai_client
+
+        default_prompt_template = """You are an elite AI AppSec Engineer. Fix the following vulnerability.
         Issue: {issue} at line {line}.
         Return ONLY the fully corrected Python code. No markdown formatting blocks, no explanations.
 
         Original Code:
         {code}
         """
-        # বাংলা মন্তব্য: সরাসরি গুগল নেটিভ ক্লায়েন্ট কল না করে ইউনিভার্সাল llm_gateway ব্যবহার করে এপিআই কল করা হচ্ছে
+
+        context = Context.builder("auto-remediation-engine").kind("service").build()
+        prompt_vars = {
+            "issue": issue,
+            "line": str(line),
+            "code": code
+        }
+
+        config = None
+        if ld_ai_client:
+            try:
+                config = ld_ai_client.completion_config(
+                    os.getenv("LAUNCHDARKLY_AI_CONFIG_KEY", "auto-remediation-patch"),
+                    context,
+                    default=AICompletionConfigDefault(
+                        enabled=True,
+                        model=ModelConfig(name="gemini/gemini-1.5-pro"),
+                        messages=[
+                            LDMessage(role="system", content=default_prompt_template)
+                        ]
+                    ),
+                    variables=prompt_vars
+                )
+            except Exception as exc:
+                logger.warning(f"LaunchDarkly config evaluation failed, falling back: {exc}")
+
+        if config and config.enabled:
+            model_name = config.model.name if config.model else "gemini/gemini-1.5-pro"
+            prompt = config.messages[0].content if config.messages else default_prompt_template.format(**prompt_vars)
+        else:
+            model_name = "gemini/gemini-1.5-pro"
+            prompt = default_prompt_template.format(**prompt_vars)
+
         import asyncio
 
         from core.llm_gateway import llm_gateway
         response = asyncio.run(llm_gateway.acompletion(
             prompt=prompt,
             task_type="coding",
-            stream=False
+            stream=False,
+            model=model_name
         ))
         result = response.get("text", "") if isinstance(response, dict) else str(response)
         return result.strip()
@@ -164,7 +205,15 @@ class AutoRemediation:
     def _get_ai_patch(
         self, file_path: str, code: str, line_number: int, issue: str
     ) -> str:
-        prompt = f"""You are an elite secure coding assistant. Correct the security vulnerability in this file.
+        # বাংলা মন্তব্য: লঞ্চডার্কলি এজেন্টস কন্ট্রোল এবং ভ্যারিয়েবল ইভ্যালুয়েশন লজিক যুক্ত করা হলো
+        from ldai import AICompletionConfigDefault
+        from ldai import LDMessage
+        from ldai import ModelConfig
+        from ldclient.context import Context
+
+        from core.ld_client import ld_ai_client
+
+        default_prompt_template = """You are an elite secure coding assistant. Correct the security vulnerability in this file.
         File: {file_path}
         Line Number of Vulnerability: {line_number}
         Vulnerability Description: {issue}
@@ -175,15 +224,48 @@ class AutoRemediation:
         {code}
         """
 
+        context = Context.builder("auto-remediation-helper").kind("service").build()
+        prompt_vars = {
+            "file_path": file_path,
+            "line_number": str(line_number),
+            "issue": issue,
+            "code": code
+        }
+
+        config = None
+        if ld_ai_client:
+            try:
+                config = ld_ai_client.completion_config(
+                    os.getenv("LAUNCHDARKLY_AI_CONFIG_KEY", "auto-remediation-patch"),
+                    context,
+                    default=AICompletionConfigDefault(
+                        enabled=True,
+                        model=ModelConfig(name="gemini/gemini-1.5-pro"),
+                        messages=[
+                            LDMessage(role="system", content=default_prompt_template)
+                        ]
+                    ),
+                    variables=prompt_vars
+                )
+            except Exception as exc:
+                logger.warning(f"LaunchDarkly config evaluation failed, falling back: {exc}")
+
+        if config and config.enabled:
+            model_name = config.model.name if config.model else "gemini/gemini-1.5-pro"
+            prompt = config.messages[0].content if config.messages else default_prompt_template.format(**prompt_vars)
+        else:
+            model_name = "gemini/gemini-1.5-pro"
+            prompt = default_prompt_template.format(**prompt_vars)
+
         try:
-            # বাংলা মন্তব্য: সরাসরি গুগল নেটিভ API রিকোয়েস্ট না পাঠিয়ে ইউনিভার্সাল llm_gateway ব্যবহার করে এপিআই কল করা হচ্ছে
             import asyncio
 
             from core.llm_gateway import llm_gateway
             response = asyncio.run(llm_gateway.acompletion(
                 prompt=prompt,
                 task_type="coding",
-                stream=False
+                stream=False,
+                model=model_name
             ))
             raw_text = response.get("text", "") if isinstance(response, dict) else str(response)
 

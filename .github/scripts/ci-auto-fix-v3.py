@@ -2,6 +2,7 @@ import os
 import sys
 import subprocess
 import re
+import litellm
 from google import genai
 
 # ==========================================
@@ -70,6 +71,77 @@ def extract_errors():
 # ==========================================
 # 🧠 STEP 2: CALL AI FOR THE FIX
 # ==========================================
+# বাংলা মন্তব্য: লঞ্চডার্কলি এজেন্টস কন্ট্রোল এবং ভ্যারিয়েবল ইভ্যালুয়েশন লজিক
+
+def get_fixing_instruction_and_model(file_path, error_log):
+    """
+    লঞ্চডার্কলি থেকে ডাইনামিক প্রম্পট এবং মডেল রাউটিং ডেটা নিয়ে আসে।
+    যদি কোটা শেষ হয়ে যায় বা এপিআই ফেইল করে, তবে সার্কিট ব্রেকার ট্রিগার হবে
+    এবং লোকাল ফ্রি ডিফল্ট প্রম্পট ও মডেল রিটার্ন করবে।
+    """
+    default_model = "gemini/gemini-2.5-flash"
+    default_prompt_template = """You are an expert Senior Python Developer. The CI pipeline just failed.
+    Analyze the following Pytest error log and original file content. 
+
+    ERROR LOG:
+    {error_log}
+    {file_context}
+
+    Provide the fixed complete code for the file that caused the error. 
+    Output ONLY valid Python code inside a markdown block. Do not include explanations.
+    Add a comment at the top containing the exact file path like this:
+    # FILE_PATH: {file_path}"""
+
+    # Add path to sys.path
+    import sys
+    import os
+    scripts_dir = os.path.dirname(os.path.abspath(__file__))
+    root_dir = os.path.abspath(os.path.join(scripts_dir, "..", ".."))
+    backend_dir = os.path.join(root_dir, "backend")
+    if backend_dir not in sys.path:
+        sys.path.append(backend_dir)
+    if root_dir not in sys.path:
+        sys.path.append(root_dir)
+
+    try:
+        from core.ld_client import ld_ai_client
+        from ldclient.context import Context
+        from ldai import AICompletionConfigDefault, ModelConfig, LDMessage
+    except ImportError as e:
+        print(f"🔌 Circuit Breaker Active: LaunchDarkly SDK or core.ld_client not available ({e}). Using Free Fallback.")
+        return default_prompt_template, default_model
+
+    if not ld_ai_client:
+        print("🔌 Circuit Breaker Active: LaunchDarkly client not initialized. Using Free Fallback.")
+        return default_prompt_template, default_model
+
+    try:
+        # লঞ্চডার্কলি কনটেক্সট সেটআপ
+        context = Context.builder("supremeai-ci-pipeline").kind("service").name("CI Auto-Fixer").build()
+
+        config = ld_ai_client.completion_config(
+            os.getenv("LAUNCHDARKLY_AI_CONFIG_KEY", "auto-fix-engine-flag"),
+            context,
+            default=AICompletionConfigDefault(
+                enabled=True,
+                model=ModelConfig(name="gemini/gemini-2.5-flash"),
+                messages=[
+                    LDMessage(role="system", content=default_prompt_template)
+                ]
+            )
+        )
+
+        if config and config.enabled:
+            prompt = config.messages[0].content if config.messages else default_prompt_template
+            model = config.model.name if config.model else default_model
+            print(f"🚀 LaunchDarkly Routing: Using model '{model}' with dynamic cloud prompts.")
+            return prompt, model
+    except Exception as e:
+        print(f"⚠️ LaunchDarkly Quota Exhausted or API Error: {str(e)}")
+
+    print("🔄 Automatically shifting to Free Cloud Fallback node...")
+    return default_prompt_template, default_model
+
 def get_ai_fix(error_log, file_path=None):
     print("🧠 Analyzing error and generating fix via SupremeAI...")
     
@@ -83,22 +155,35 @@ def get_ai_fix(error_log, file_path=None):
         except Exception as e:
             print(f"⚠️ Could not read source file {file_path}: {e}")
             
-    prompt = f"""
-    You are an expert Senior Python Developer. The CI pipeline just failed.
-    Analyze the following Pytest error log and original file content. 
+    prompt_template, target_model = get_fixing_instruction_and_model(file_path or 'backend/core/example.py', error_log)
     
-    ERROR LOG:
-    {error_log}
-    {file_context}
-    
-    Provide the fixed complete code for the file that caused the error. 
-    Output ONLY valid Python code inside a markdown block. Do not include explanations.
-    Add a comment at the top containing the exact file path like this:
-    # FILE_PATH: {file_path or 'backend/core/example.py'}
-    """
-    
-    response = client.models.generate_content(model='gemini-2.5-flash', contents=prompt)
-    return response.text
+    try:
+        prompt = prompt_template.format(error_log=error_log, file_context=file_context, file_path=file_path or 'backend/core/example.py')
+    except Exception:
+        prompt = f"{prompt_template}\n\nERROR LOG:\n{error_log}\n{file_context}\nFILE_PATH: {file_path or 'backend/core/example.py'}"
+
+    # Use litellm for universal routing and fallback
+    print(f"Calling model: {target_model} via LiteLLM...")
+    try:
+        # Inject GEMINI_API_KEY into litellm if it's there
+        api_key = os.getenv("SUPREMEAI_API_KEY") or os.getenv("GEMINI_API_KEY")
+        if api_key:
+            os.environ["GEMINI_API_KEY"] = api_key
+        response = litellm.completion(
+            model=target_model,
+            messages=[{"role": "user", "content": prompt}],
+            timeout=45.0
+        )
+        return response.choices[0].message.content
+    except Exception as e:
+        print(f"⚠️ Primary model {target_model} call failed: {e}")
+        print("🔄 Shifting to fallback model gemini/gemini-2.5-flash...")
+        response = litellm.completion(
+            model="gemini/gemini-2.5-flash",
+            messages=[{"role": "user", "content": prompt}],
+            timeout=45.0
+        )
+        return response.choices[0].message.content
 
 # ==========================================
 # 🔧 STEP 3: APPLY & VALIDATE FIX
@@ -159,7 +244,7 @@ def push_fix_to_repo(file_path):
         print(f"❌ ERROR: Failed to push to GitHub. {stderr}")
         sys.exit(1)
         
-    print(f"🎉 Auto-Fix successfully pushed! The CI pipeline will restart.")
+    print("🎉 Auto-Fix successfully pushed! The CI pipeline will restart.")
 
 if __name__ == "__main__":
     print("========================================")

@@ -96,7 +96,8 @@ class LLMGateway:
         prompt: str | list[dict[str, Any]],
         task_type: str = "general",
         stream: bool = False,
-        timeout: float = 12.0
+        timeout: float = 12.0,
+        model: str | None = None
     ) -> Any:
         """
         Main async completion interface with robust fallback routing.
@@ -134,6 +135,8 @@ class LLMGateway:
         
         # Merge target candidate with the fallback chain to prevent duplication
         call_chain = []
+        if model:
+            call_chain.append(model)
         for m in (model_candidates + fallbacks):
             if m not in call_chain:
                 call_chain.append(m)
