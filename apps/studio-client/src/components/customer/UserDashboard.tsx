@@ -9,7 +9,10 @@ import {
   ChevronRight,
   Activity,
   Clock,
-  Sparkles
+  Sparkles,
+  // বাংলা মন্তব্য: নতুন ম্যাপিং ট্যাবের জন্য আইকন
+  Globe,
+  Smartphone
 } from 'lucide-react';
 import { HomeFeed } from './HomeFeed';
 import { QuickPresets } from './QuickPresets';
@@ -17,6 +20,9 @@ import { CodeEditor } from './CodeEditor';
 import { ChatPanel } from './ChatPanel';
 // বাংলা মন্তব্য: নতুন ইন্টারঅ্যাক্টিভ চ্যাট ট্যাব ইম্পোর্ট করা হলো
 import { InteractiveChatTab } from '../admin/InteractiveChatTab';
+// বাংলা মন্তব্য: ব্রাউজার প্রিভিউ ও মোবাইল সিমুলেটর অ্যাক্টিভেট করা হলো
+import { BrowserPreview } from './BrowserPreview';
+import { MobileSimulator } from './MobileSimulator';
 import './UserDashboard.css';
 
 export interface UserProfile {
@@ -104,7 +110,8 @@ export function UserDashboard({
   chatHistory = [],
   widgets = []
 }: UserDashboardProps) {
-  const [activeTab, setActiveTab] = useState<'overview' | 'feed' | 'presets' | 'chat'>('overview');
+  // বাংলা মন্তব্য: অ্যাক্টিভ ট্যাব স্টেট ইউনিয়ন টাইপ বাড়ানো হলো
+  const [activeTab, setActiveTab] = useState<'overview' | 'feed' | 'presets' | 'chat' | 'browser' | 'mobile'>('overview');
 
   const formatDate = (dateStr: string) => {
     const d = new Date(dateStr);
@@ -149,9 +156,9 @@ export function UserDashboard({
         </div>
       </header>
 
-      <div className="flex gap-2 px-6 mb-4">
+      <div className="flex gap-2 px-6 mb-4 flex-wrap">
         {/* বাংলা মন্তব্য: টেস্টে নির্দিষ্ট ট্যাবে ক্লিক করার জন্য tab-* ডায়নামিক data-testid দেওয়া হলো */}
-        {(['overview', 'feed', 'presets', 'chat'] as const).map((tab) => (
+        {(['overview', 'feed', 'presets', 'chat', 'browser', 'mobile'] as const).map((tab) => (
           <button
             key={tab}
             data-testid={`tab-${tab}`}
@@ -166,6 +173,8 @@ export function UserDashboard({
             {tab === 'feed' && <><Sparkles size={10} className="inline mr-1" /> Home Feed</>}
             {tab === 'presets' && <><Play size={10} className="inline mr-1" /> Quick Presets</>}
             {tab === 'chat' && <><MessageSquare size={10} className="inline mr-1" /> Chat</>}
+            {tab === 'browser' && <><Globe size={10} className="inline mr-1" /> Browser Preview</>}
+            {tab === 'mobile' && <><Smartphone size={10} className="inline mr-1" /> Mobile Simulator</>}
           </button>
         ))}
       </div>
@@ -314,6 +323,20 @@ export function UserDashboard({
             onSend={handleSendCustomer}
             loading={loading}
           />
+        </div>
+      )}
+
+      {activeTab === 'browser' && (
+        <div className="px-6 w-full">
+          {/* বাংলা মন্তব্য: ব্রাউজার প্রিভিউ ট্যাব রেন্ডার করা হলো যেখানে কোড এডিটর এর এইচটিএমএল আউটপুট দেখা যাবে */}
+          <BrowserPreview html={code} />
+        </div>
+      )}
+
+      {activeTab === 'mobile' && (
+        <div className="px-6 w-full">
+          {/* বাংলা মন্তব্য: মোবাইল সিমুলেটর ট্যাব রেন্ডার করা হলো যেখানে কোড এডিটর এর এইচটিএমএল বিভিন্ন ডিভাইসে রেসপনসিভ টেস্ট করা যাবে */}
+          <MobileSimulator html={code} />
         </div>
       )}
     </div>
