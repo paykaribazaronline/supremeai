@@ -1,7 +1,7 @@
 # 🧠 SupremeAI 2.0 Codebase Analysis
 # বাংলা মন্তব্য: এটি একটি স্বয়ংক্রিয়ভাবে জেনারেট করা কোডবেস ডাম্প ফাইল যা প্রজেক্টের সামগ্রিক বিশ্লেষণের জন্য ব্যবহৃত হয়।
 
-Generated at: 2026-07-01T19:30:32.201641 UTC
+Generated at: 2026-07-01T19:38:38.897425 UTC
 
 ## File: `.github/actions/setup-backend/action.yml`
 ```yaml
@@ -24570,8 +24570,8 @@ Return ONLY a JSON response in the following format (no markdown blocks, no text
             api_endpoints=data.get("api_endpoints", {}),
             docs_url=docs_url,
             status="beta",
-            learned_at=datetime.datetime.now(datetime.timezone.utc),
-            last_updated=datetime.datetime.now(datetime.timezone.utc),
+            learned_at=datetime.datetime.now(datetime.UTC),
+            last_updated=datetime.datetime.now(datetime.UTC),
             success_rate=1.0,
         )
 
@@ -24946,12 +24946,12 @@ class TestPlatformLearner:
 ## File: `backend/admin/god.py`
 ```python
 import sqlite3
-import time
 import threading
+import time
 from pathlib import Path
-from typing import Optional
 
 from loguru import logger
+
 
 try:
     from google.cloud import firestore
@@ -27030,10 +27030,11 @@ from typing import Any
 from fastapi import APIRouter
 from fastapi import Depends
 from fastapi import HTTPException
-from fastapi import Request
-from fastapi import WebSocket
+
 # বাংলা মন্তব্য: কোয়েরি প্যারামিটার হ্যান্ডেল করার জন্য Query ক্লাস ইম্পোর্ট করা হলো
 from fastapi import Query
+from fastapi import Request
+from fastapi import WebSocket
 from fastapi.responses import StreamingResponse
 from fastapi.security import HTTPAuthorizationCredentials
 from fastapi.security import HTTPBearer
@@ -27043,9 +27044,10 @@ from loguru import logger
 from pydantic import BaseModel
 
 from core.config import settings
+from models.ci_report import CIReportPayload
+from models.ci_report import create_ci_report
 from tools.cost_auditor import CostAuditor
 
-from models.ci_report import CIReportPayload, create_ci_report
 
 security = HTTPBearer()
 
@@ -27667,8 +27669,8 @@ from pydantic import Field
 
 with contextlib.suppress(ImportError):
     from google.cloud import firestore
+from datetime import UTC
 from datetime import datetime
-from datetime import timezone
 
 
 class GateOverridePayload(BaseModel):
@@ -27710,7 +27712,7 @@ async def execute_manual_gate_override(payload: GateOverridePayload):
         db = firestore.Client()
         gate_ref = db.collection("deploy_gate").document("status")
 
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         override_context = {
             "status": requested_status,
             "reason": f"👑 [MANUAL OVERRIDE] {payload.reason}",
@@ -27763,7 +27765,7 @@ async def receive_ci_report(report: CIReportPayload, request: Request):
     This endpoint is protected by a constitutional rule.
     """
     # Constitutional Gatekeeper for this endpoint
-    import core.services as services
+    from core import services
     if not services.god.get_rule("autofix_reporting_authorized", "false") == "true":
         raise HTTPException(
             status_code=403,
@@ -27783,7 +27785,7 @@ async def receive_ci_report(report: CIReportPayload, request: Request):
         return {"status": "success", "report_id": report_id}
     except Exception as e:
         logger.error(f"❌ Failed to save CI report: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Failed to save CI report: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to save CI report: {str(e)}") from e
 
 
 @router.get("/events")
@@ -27797,7 +27799,7 @@ async def get_events(limit: int = Query(50, ge=1, le=200)):
         return []
 
     try:
-        with open(events_log_path, "r", encoding="utf-8") as f:
+        with open(events_log_path, encoding="utf-8") as f:
             lines = f.readlines()
 
         events = []
@@ -27810,7 +27812,7 @@ async def get_events(limit: int = Query(50, ge=1, le=200)):
         return events[:limit]
     except Exception as e:
         logger.error(f"Error reading events log: {e}")
-        raise HTTPException(status_code=500, detail="Could not read event logs.")
+        raise HTTPException(status_code=500, detail="Could not read event logs.") from e
 
 
 @router.get("/reports")
@@ -27827,7 +27829,7 @@ async def list_reports(report_name: str = None):
         file_path = os.path.join(reports_dir, f"{report_name}.md")
         if not os.path.exists(file_path):
             raise HTTPException(status_code=404, detail="Report not found.")
-        with open(file_path, "r", encoding="utf-8") as f:
+        with open(file_path, encoding="utf-8") as f:
             return {"name": report_name, "content": f.read()}
     else:
         import glob
@@ -28518,9 +28520,9 @@ def get_task_stats() -> dict[str, Any]:
 ```python
 from __future__ import annotations
 
+from datetime import UTC
 from datetime import datetime
 from datetime import timedelta
-from datetime import timezone
 
 from fastapi import APIRouter
 from fastapi import Depends
@@ -28554,7 +28556,7 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None) -> s
     if jwt is None:
         raise RuntimeError("python-jose[cryptography] is required for token issuance")
     to_encode = data.copy()
-    expire = datetime.now(timezone.utc) + (
+    expire = datetime.now(UTC) + (
         expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     )
     to_encode.update({"exp": expire})
@@ -28620,19 +28622,24 @@ async def me(current_user: UserContext | None = Depends(optional_current_user)):
 
 import os
 import uuid
-from datetime import datetime, timezone
 from decimal import Decimal
-import stripe
 
-from fastapi import APIRouter, HTTPException, Depends, Request, status
+import stripe
+from fastapi import APIRouter
+from fastapi import Depends
+from fastapi import HTTPException
+from fastapi import Request
+from fastapi import status
+from loguru import logger
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.orm.exc import StaleDataError
-from loguru import logger
 
-from models.wallet import UserWallet, TransactionLedgerEntry
 from core.token_deductor import TokenDeductor
 from database.session import get_db_session
+from models.wallet import TransactionLedgerEntry
+from models.wallet import UserWallet
+
 
 router = APIRouter(prefix="/api/billing", tags=["Billing & Credit Wallet"])
 token_deductor = TokenDeductor()
@@ -28734,12 +28741,12 @@ async def stripe_webhook(request: Request, session: AsyncSession = Depends(get_d
 
     try:
         event = stripe.Webhook.construct_event(payload, sig_header, STRIPE_WEBHOOK_SECRET)
-    except stripe.error.SignatureVerificationError:
+    except stripe.error.SignatureVerificationError as e:
         logger.warning("Invalid Stripe signature detected. Dropping request.")
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid signature")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid signature") from e
     except Exception as e:
         logger.error(f"Webhook payload validation error: {str(e)}")
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Payload validation failed")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Payload validation failed") from e
 
     try:
         if event["type"] == "payment_intent.succeeded":
@@ -28772,12 +28779,12 @@ async def stripe_webhook(request: Request, session: AsyncSession = Depends(get_d
             
             logger.success(f"Successfully credited ${amount_received} to user {user_id}")
 
-    except StaleDataError:
+    except StaleDataError as e:
         logger.critical(f"Concurrency Failure on Webhook for user {user_id}. Requires manual intervention.")
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Transaction conflict. Please contact support.")
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Transaction conflict. Please contact support.") from e
     except Exception as e:
         logger.error(f"Internal server error during webhook processing: {str(e)}")
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error") from e
 
     return {"status": "success"}
 
@@ -28821,19 +28828,19 @@ async def sslcommerz_webhook_listener(request: Request, session: AsyncSession = 
             return {"status": "processed", "message": f"Successfully credited ${amount_usd} (BDT {amount_bdt}) via SSLCommerz."}
 
         return {"status": "ignored", "message": "SSLCommerz payment not VALID."}
-    except StaleDataError:
+    except StaleDataError as e:
         logger.critical(f"Concurrency Failure on SSLCommerz Webhook for user {user_id}.")
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Transaction conflict.")
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Transaction conflict.") from e
     except Exception as e:
         logger.error(f"SSLCommerz Webhook processing failed: {str(e)}")
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error") from e
 
 ```
 
 ## File: `backend/api/routes/browser.py`
 ```python
+from datetime import UTC
 from datetime import datetime
-from datetime import timezone
 from typing import Any
 
 from fastapi import APIRouter
@@ -29072,7 +29079,7 @@ def create_task(req: GoalRequest):
         "id": task_id,
         "goal": req.goal,
         "status": "ACTIVE",
-        "createdAt": datetime.now(timezone.utc).isoformat(),
+        "createdAt": datetime.now(UTC).isoformat(),
     }
     TASKS[task_id] = task
     return task
@@ -29112,7 +29119,7 @@ def navigate(req: NavigateRequest):
         {
             "url": req.url,
             "action": "navigate",
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
         }
     )
     return {"success": True}
@@ -29124,7 +29131,7 @@ def click(req: ClickRequest):
         {
             "url": str(BROWSER_STATUS["currentUrl"]),
             "action": f"click {req.selector}",
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
         }
     )
     return {"success": True}
@@ -29136,7 +29143,7 @@ def fill(req: FillRequest):
         {
             "url": str(BROWSER_STATUS["currentUrl"]),
             "action": f"fill {req.selector} with {req.value}",
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
         }
     )
     return {"success": True}
@@ -29148,7 +29155,7 @@ def click_at(req: ClickAtRequest):
         {
             "url": str(BROWSER_STATUS["currentUrl"]),
             "action": f"click at {req.x}, {req.y}",
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
         }
     )
     return {"success": True}
@@ -29160,7 +29167,7 @@ def type_key(req: KeyRequest):
         {
             "url": str(BROWSER_STATUS["currentUrl"]),
             "action": f"type key {req.key}",
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
         }
     )
     return {"success": True}
@@ -29178,7 +29185,7 @@ def simulate_activity(body: dict[str, str]):
         "action": body.get("action", "surf"),
         "title": body.get("title", "Page Title"),
         "reasoning": body.get("reasoning", "Exploring content"),
-        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "timestamp": datetime.now(UTC).isoformat(),
     }
     RECENT_ACTIVITIES.append(activity)
     return activity
@@ -29202,24 +29209,29 @@ def execute_step(task_id: str):
 # Secure Endpoints for Universal BYOC Management
 # বাংলা মন্তব্য: সিকিউর প্রক্সি, রোটেশন, ক্রেডেনশিয়াল ম্যানেজমেন্ট ও টেরাফর্ম রানার ট্রিগার এপিআই।
 
+import json
 import os
 import uuid
-import json
-from datetime import datetime, timezone
-from fastapi import APIRouter, HTTPException, BackgroundTasks, Depends
-from typing import Dict, Any
+from datetime import UTC
+from datetime import datetime
 
-from models.byoc_payloads import BYOCCredentialsPayload, BYOCDeployRequest
-from models.deployment_logs import DeploymentJob
+from fastapi import APIRouter
+from fastapi import BackgroundTasks
+from fastapi import HTTPException
+
 from byoc.cloud_connector import GCPCredentialManager
 from byoc.container_orchestrator import ContainerOrchestrator
+from models.byoc_payloads import BYOCCredentialsPayload
+from models.byoc_payloads import BYOCDeployRequest
+from models.deployment_logs import DeploymentJob
+
 
 router = APIRouter(prefix="/api/byoc", tags=["BYOC Management"])
 orchestrator = ContainerOrchestrator()
 
 # Memory database for tracking deployment jobs (simulating live backend db)
-active_jobs: Dict[str, DeploymentJob] = {}
-encrypted_vault: Dict[str, bytes] = {}
+active_jobs: dict[str, DeploymentJob] = {}
+encrypted_vault: dict[str, bytes] = {}
 
 
 # ==========================================
@@ -29251,7 +29263,7 @@ async def save_credentials(payload: BYOCCredentialsPayload):
             "provider": payload.provider
         }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to encrypt credentials: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to encrypt credentials: {str(e)}") from e
 
 
 # ==========================================
@@ -29270,7 +29282,7 @@ async def deploy_container(payload: BYOCDeployRequest, background_tasks: Backgro
     base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     config_path = os.path.join(base_dir, "config", "byoc_limits.json")
     try:
-        with open(config_path, "r", encoding="utf-8") as f:
+        with open(config_path, encoding="utf-8") as f:
             limits = json.load(f)["limits"]
             user_limits = limits.get(user_tier, limits["free"])
     except Exception:
@@ -29299,7 +29311,7 @@ async def deploy_container(payload: BYOCDeployRequest, background_tasks: Backgro
         skill_name=payload.skill_name,
         provider=payload.provider,
         status="deploying",
-        started_at=datetime.now(timezone.utc),
+        started_at=datetime.now(UTC),
         logs=["Initializing Terraform build pipeline...", "Spinning up GCP Cloud Run service context..."]
     )
     active_jobs[job_id] = job
@@ -29310,17 +29322,17 @@ async def deploy_container(payload: BYOCDeployRequest, background_tasks: Backgro
             res = await orchestrator.deploy(user_id, payload.skill_name)
             if res.get("status") == "deployed":
                 job.status = "success"
-                job.finished_at = datetime.now(timezone.utc)
+                job.finished_at = datetime.now(UTC)
                 job.service_url = f"https://byoc-skill-{payload.skill_name}-mock-url.a.run.app"
                 job.logs.append("✅ Cloud Run deployment finished successfully.")
             else:
                 job.status = "failed"
-                job.finished_at = datetime.now(timezone.utc)
+                job.finished_at = datetime.now(UTC)
                 job.error_message = res.get("error", "Deployment failed")
                 job.logs.append(f"❌ Deployment failed: {job.error_message}")
         except Exception as ex:
             job.status = "failed"
-            job.finished_at = datetime.now(timezone.utc)
+            job.finished_at = datetime.now(UTC)
             job.error_message = str(ex)
             job.logs.append(f"❌ Pipeline crashed: {str(ex)}")
 
@@ -29462,8 +29474,8 @@ from loguru import logger
 from pydantic import BaseModel
 
 from api.dependencies import get_tenant_db
-from core.multi_layer_cache import multi_layer_cache
 from core.llm_gateway import llm_gateway
+from core.multi_layer_cache import multi_layer_cache
 
 
 router = APIRouter(prefix="/api/chat", tags=["AI-Orchestration"])
@@ -29862,23 +29874,29 @@ import os
 import secrets
 import shutil
 import time
-from datetime import datetime, timezone
+from datetime import UTC
+from datetime import datetime
 from pathlib import Path
 
-from fastapi import APIRouter, Depends, HTTPException, status
-from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from fastapi import APIRouter
+from fastapi import Depends
+from fastapi import HTTPException
+from fastapi import status
+from fastapi.security import HTTPAuthorizationCredentials
+from fastapi.security import HTTPBearer
 from jose import jwt
 from loguru import logger
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
+from pydantic import Field
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
 from api.dependencies import get_tenant_db
 from core.config import settings
 from core.tenant_db import TenantAwareFirestore
+from database.session import get_db_session
 from evolution.auto_skill_creator import AutoSkillCreator
 from evolution.fitness_engine import FitnessEngine
-from database.session import get_db_session
 from models.evolution import CodeProposal
 
 
@@ -30007,7 +30025,7 @@ async def quarantine_skill(
                             "admin_uid": admin.get("uid"),
                             "timestamp": time.time(),
                         },
-                        "created_at": datetime.now(timezone.utc).isoformat(),
+                        "created_at": datetime.now(UTC).isoformat(),
                     }
                 )
         except Exception as db_err:
@@ -30101,6 +30119,7 @@ from __future__ import annotations
 import json
 import sqlite3
 import time
+from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Any
 
@@ -30108,7 +30127,6 @@ from fastapi import APIRouter
 from fastapi import HTTPException
 from loguru import logger
 from pydantic import BaseModel
-from contextlib import asynccontextmanager
 
 from core.feedback_loop import FeedbackLoop
 
@@ -32196,8 +32214,8 @@ async def delete_repo(repo_id: str):
 ## File: `backend/api/routes/simulator.py`
 ```python
 import typing
+from datetime import UTC
 from datetime import datetime
-from datetime import timezone
 from typing import Any
 
 from fastapi import APIRouter
@@ -32301,7 +32319,7 @@ def install_app(req: InstallRequest, userId: str = "default"):
         "appName": f"App {req.appId}",
         "version": "1.0.0",
         "previewUrl": f"http://127.0.0.1:8000/preview/{req.appId}",
-        "installedAt": datetime.now(timezone.utc).isoformat(),
+        "installedAt": datetime.now(UTC).isoformat(),
         "launchCount": 0,
         "lastLaunchedAt": None,
         "status": "INSTALLED",
@@ -32348,7 +32366,7 @@ def start_session(appId: str, userId: str = "default"):
         raise HTTPException(status_code=404, detail="App not installed")
 
     app["launchCount"] += 1
-    app["lastLaunchedAt"] = datetime.now(timezone.utc).isoformat()
+    app["lastLaunchedAt"] = datetime.now(UTC).isoformat()
     app["status"] = "RUNNING"
 
     session_id = f"sess_{userId}_{appId}"
@@ -32357,9 +32375,9 @@ def start_session(appId: str, userId: str = "default"):
         "websocketUrl": f"ws://127.0.0.1:8000/ws/simulator/{session_id}",
         "previewUrl": app["previewUrl"],
         "state": "RUNNING",
-        "startedAt": datetime.now(timezone.utc).isoformat(),
+        "startedAt": datetime.now(UTC).isoformat(),
         "activeAppId": appId,
-        "lastHeartbeat": datetime.now(timezone.utc).isoformat(),
+        "lastHeartbeat": datetime.now(UTC).isoformat(),
     }
     SESSIONS[userId] = session
     return session
@@ -32676,11 +32694,11 @@ def stream_chat(req: StreamRequest):
 
 ## File: `backend/api/routes/task.py`
 ```python
-import asyncio
 import contextlib
 import datetime
 import json
 import re
+
 # বাংলা মন্তব্য: টাইপিং এরর এড়ানোর জন্য Any ইমপোর্ট করা হলো
 from typing import Any
 
@@ -32695,7 +32713,8 @@ from pydantic import BaseModel
 # --- Local Imports ---
 # Moved imports to the top of the file to improve performance by avoiding repeated imports inside functions.
 from adaptive_engine.experience_db import Experience
-from core.intent_router import intent_router, PromptAction
+from core.intent_router import PromptAction
+from core.intent_router import intent_router
 from core.prompt_helpers import format_unified_chat_prompt
 
 
@@ -33015,7 +33034,7 @@ async def execute_task(req: TaskRequest, background_tasks: BackgroundTasks):
 
     # Log to ExperienceDatabase in the background to improve user-perceived latency.
     exp = Experience(
-        timestamp=datetime.datetime.now(datetime.timezone.utc).isoformat(),
+        timestamp=datetime.datetime.now(datetime.UTC).isoformat(),
         user_id=req.session_id or "default-user",
         request=req.task,
         context={
@@ -33077,7 +33096,7 @@ async def execute_task(req: TaskRequest, background_tasks: BackgroundTasks):
 @router.get("/api/task/stream")
 async def task_stream():
     async def keepalive():
-        yield f"data: {json.dumps({'status': 'alive', 'timestamp': datetime.datetime.now(datetime.timezone.utc).isoformat()})}\n\n"
+        yield f"data: {json.dumps({'status': 'alive', 'timestamp': datetime.datetime.now(datetime.UTC).isoformat()})}\n\n"
 
     return StreamingResponse(
         keepalive(),
@@ -33092,8 +33111,8 @@ async def task_stream():
 
 @router.post("/api/chat/prompt-action")
 async def prompt_action(req: ActionStreamRequest):
-    from core.intent_router import intent_router
     from core.intent import IntentClassifier
+    from core.intent_router import intent_router
 
     action = intent_router.route(req.message)
     intent_clf = IntentClassifier()
@@ -33119,12 +33138,12 @@ async def prompt_action(req: ActionStreamRequest):
 
 ## File: `backend/api/routes/task_workspace.py`
 ```python
-import os
 
 from fastapi import APIRouter
 from fastapi import BackgroundTasks
 from fastapi import HTTPException
 from pydantic import BaseModel
+
 from core.llm_gateway import llm_gateway
 
 
@@ -33964,22 +33983,16 @@ async def stream_audio(text: str = "", voice: str | None = None):
 ## File: `backend/api/routes/websocket_agent.py`
 ```python
 import asyncio
-import base64
-import io
 import json
-import os
 
 from fastapi import APIRouter
+from fastapi import Query
 from fastapi import WebSocket
 from fastapi import WebSocketDisconnect
 from fastapi import status
-from fastapi import Query
-from PIL import Image
-from jose import JWTError
 
-from core.security import verify_token
-from tools.agent_tools import SUPREME_TOOLS
 from core.llm_gateway import llm_gateway
+from core.security import verify_token
 
 
 router = APIRouter(prefix="/ws", tags=["Neural Engine Stream"])
@@ -34103,11 +34116,10 @@ import time
 
 import httpx
 from fastapi import APIRouter
+from fastapi import Query
 from fastapi import WebSocket
 from fastapi import WebSocketDisconnect
 from fastapi import status
-from fastapi import Query
-from jose import JWTError
 
 from core.config import settings
 from core.security import verify_token
@@ -34289,11 +34301,13 @@ async def websocket_voice_endpoint(
 # Encryption and GCP Service Account Manager
 # বাংলা মন্তব্য: GCP ক্রেডেনশিয়াল ম্যানেজমেন্ট ও সেফ-স্টোরেজ এনক্রিপশন ডিক্রিপশন মডিউল।
 
-import os
 import json
+import os
+
 from cryptography.fernet import Fernet
-from loguru import logger
 from google.oauth2 import service_account
+from loguru import logger
+
 
 # Global encryption key management
 # বাংলা মন্তব্য: Fernet এনক্রিপশনের জন্য ৩২ বাইটের কী জেনারেট বা লোড করা হচ্ছে
@@ -34313,9 +34327,9 @@ class CloudStatus:
 
 
 class CloudResource:
-    def __init__(self, id: str, type: str, name: str, status: str):
-        self.id = id
-        self.type = type
+    def __init__(self, res_id: str, res_type: str, name: str, status: str):
+        self.id = res_id
+        self.type = res_type
         self.name = name
         self.status = status
 
@@ -34362,10 +34376,9 @@ async def list_resources() -> list[CloudResource]:
 # Container Orchestrator and Deployment Bridge
 # বাংলা মন্তব্য: GCP Cloud Run এবং Terraform এর মাধ্যমে ইউজারের প্রজেক্টে এআই কন্টেইনার সার্ভিস ডেপ্লয়মেন্ট ব্রিজ।
 
-import os
-import subprocess
 import shutil
 from typing import Any
+
 from loguru import logger
 
 
@@ -34505,10 +34518,9 @@ class ResourceManager:
 
 ## File: `backend/core/admin_god.py`
 ```python
-import hashlib
-import hmac
 import os
 from typing import Any
+
 
 try:
     import bcrypt
@@ -34615,6 +34627,7 @@ from models.admin import AdminFirebaseTotpSetupRequest
 from models.admin import AdminFirebaseTotpVerifyRequest
 from models.admin import AdminLoginRequest
 from models.admin import AdminVerifyRequest
+
 
 try:
     import bcrypt
@@ -35478,8 +35491,8 @@ class APIKeyRateLimiter:
 
 ## File: `backend/core/app.py`
 ```python
-import os
 import logging
+import os
 import secrets
 
 from fastapi import Depends
@@ -36212,7 +36225,6 @@ async def verify_admin_session_fail_closed(request: Request) -> dict:
 ```python
 import os
 
-import httpx
 from github import Github
 from loguru import logger
 
@@ -36262,6 +36274,7 @@ class AutoRemediationEngine:
         """
         # বাংলা মন্তব্য: সরাসরি গুগল নেটিভ ক্লায়েন্ট কল না করে ইউনিভার্সাল llm_gateway ব্যবহার করে এপিআই কল করা হচ্ছে
         import asyncio
+
         from core.llm_gateway import llm_gateway
         response = asyncio.run(llm_gateway.acompletion(
             prompt=prompt,
@@ -36390,6 +36403,7 @@ class AutoRemediation:
         try:
             # বাংলা মন্তব্য: সরাসরি গুগল নেটিভ API রিকোয়েস্ট না পাঠিয়ে ইউনিভার্সাল llm_gateway ব্যবহার করে এপিআই কল করা হচ্ছে
             import asyncio
+
             from core.llm_gateway import llm_gateway
             response = asyncio.run(llm_gateway.acompletion(
                 prompt=prompt,
@@ -36420,8 +36434,8 @@ class AutoRemediation:
 from __future__ import annotations
 
 import json
-import time
 import threading
+import time
 from collections.abc import Callable
 from typing import Any
 from typing import TypeVar
@@ -36544,11 +36558,12 @@ long-running AI tasks.
 Integrates 'Freebuff CLI' as a zero-cost headless AI worker.
 """
 
-import os
-import httpx
 import asyncio
+import os
+from typing import Any
+
+import httpx
 from loguru import logger
-from typing import Dict, Any, Optional
 
 
 class CloudSandboxOrchestrator:
@@ -36580,7 +36595,7 @@ class CloudSandboxOrchestrator:
         else:
             raise ValueError(f"Unsupported provider: {self.provider}")
 
-    async def create_sandbox(self, spec: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    async def create_sandbox(self, spec: dict[str, Any]) -> dict[str, Any] | None:
         if not self.api_key:
             logger.warning("Cannot create sandbox: API key is missing. Running in mock/dry-run mode.")
             return {
@@ -36607,7 +36622,7 @@ class CloudSandboxOrchestrator:
 
         return None
 
-    async def get_sandbox_status(self, sandbox_id: str) -> Optional[Dict[str, Any]]:
+    async def get_sandbox_status(self, sandbox_id: str) -> dict[str, Any] | None:
         if not self.api_key:
             logger.info(f"Dry-run: Fetching status for sandbox {sandbox_id}")
             return {
@@ -36626,7 +36641,7 @@ class CloudSandboxOrchestrator:
             logger.error(f"Failed to get status for sandbox {sandbox_id}. Status: {e.response.status_code}")
         return None
 
-    async def run_command(self, sandbox_id: str, command: str, timeout: int = 300) -> Optional[Dict[str, Any]]:
+    async def run_command(self, sandbox_id: str, command: str, timeout: int = 300) -> dict[str, Any] | None:
         if not self.api_key:
             logger.info(f"Dry-run: Running command '{command}' in sandbox {sandbox_id}")
             return {
@@ -36668,7 +36683,7 @@ class CloudSandboxOrchestrator:
     # ------------------------------------------------------------------------
     # 🤖 FREEBUFF AI WORKER INTEGRATION
     # ------------------------------------------------------------------------
-    async def delegate_to_freebuff(self, prompt: str, working_dir: str = ".") -> Dict[str, Any]:
+    async def delegate_to_freebuff(self, prompt: str, working_dir: str = ".") -> dict[str, Any]:
         """
         বাংলা মন্তব্য: Freebuff CLI-কে অসিঙ্ক্রোনাস সাব-প্রসেস হিসেবে কল করে জিরো-কস্টে কোডিং টাস্ক এক্সিকিউট করা হচ্ছে।
         এটি SupremeAI-এর জন্য সম্পূর্ণ ফ্রি এআই ডেভেলপার হিসেবে কাজ করবে।
@@ -36714,10 +36729,11 @@ class CloudSandboxOrchestrator:
             return endpoints[action]
         raise NotImplementedError(f"Endpoints for provider '{self.provider}' not implemented.")
 
-    def _prepare_creation_payload(self, spec: Dict[str, Any]) -> Dict[str, Any]:
+    def _prepare_creation_payload(self, spec: dict[str, Any]) -> dict[str, Any]:
         if self.provider == "runpod":
             return {"pod": spec}
         raise NotImplementedError(f"Payload preparation for provider '{self.provider}' not implemented.")
+
 ```
 
 ## File: `backend/core/cloud_storage.py`
@@ -36726,9 +36742,12 @@ class CloudSandboxOrchestrator:
 # সার্ভারলেস এনভায়রনমেন্টে ডেটা লস রুখতে এটি লোকাল ফাইল রাইটের বদলে সরাসরি ক্লাউড বাকেটে ফাইল আপলোড ও রিড করে।
 
 import httpx
-from fastapi import HTTPException, status
+from fastapi import HTTPException
+from fastapi import status
+
 from core.config import settings
 from core.logging_config import logger
+
 
 class CloudStorageManager:
     def __init__(self):
@@ -36777,7 +36796,7 @@ class CloudStorageManager:
             raise HTTPException(
                 status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
                 detail="Storage cluster network timeout."
-            )
+            ) from http_err
 
 # গ্লোবাল সিঙ্গেলটন ইনস্ট্যান্স জেনারেশন
 cloud_storage = CloudStorageManager()
@@ -36990,8 +37009,8 @@ class CodeValidator:
 
 ## File: `backend/core/config.py`
 ```python
-import sys
 import os
+import sys
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -37619,8 +37638,8 @@ email_service = EmailService()
 ## File: `backend/core/error_pattern_db.py`
 ```python
 import sqlite3
+from datetime import UTC
 from datetime import datetime
-from datetime import timezone
 
 
 class ErrorPatternDB:
@@ -37665,7 +37684,7 @@ class ErrorPatternDB:
         cursor = conn.cursor()
         cursor.execute(
             "INSERT INTO errors (output, error_type, correction, timestamp) VALUES (?, ?, ?, ?)",
-            (output, error_type, correction, datetime.now(timezone.utc).isoformat()),
+            (output, error_type, correction, datetime.now(UTC).isoformat()),
         )
         conn.commit()
         conn.close()
@@ -37685,7 +37704,7 @@ class ErrorPatternDB:
                 mistake.get("correct", ""),
                 mistake.get("root_cause", ""),
                 mistake.get("prevention", ""),
-                datetime.now(timezone.utc).isoformat(),
+                datetime.now(UTC).isoformat(),
             ),
         )
         conn.commit()
@@ -37837,8 +37856,8 @@ from __future__ import annotations
 
 import os
 import sqlite3
+from datetime import UTC
 from datetime import datetime
-from datetime import timezone
 from typing import Any
 
 
@@ -37902,7 +37921,7 @@ class EvolutionEngine:
     def learn_from_success(
         self, task: str, approach: str, result: str
     ) -> dict[str, Any]:
-        created_at = datetime.now(timezone.utc).isoformat()
+        created_at = datetime.now(UTC).isoformat()
         try:
             from database.supabase_client import db
 
@@ -37930,7 +37949,7 @@ class EvolutionEngine:
     def learn_from_failure(
         self, task: str, approach: str, result: str
     ) -> dict[str, Any]:
-        created_at = datetime.now(timezone.utc).isoformat()
+        created_at = datetime.now(UTC).isoformat()
         try:
             from database.supabase_client import db
 
@@ -37995,7 +38014,7 @@ class EvolutionEngine:
 
     def propose_new_skill(self, pattern: str) -> dict[str, Any]:
         skill_name = f"auto_{pattern.strip().replace(' ', '_').lower()}"
-        created_at = datetime.now(timezone.utc).isoformat()
+        created_at = datetime.now(UTC).isoformat()
         code = (
             f"class {''.join(part.capitalize() for part in skill_name.split('_'))}:\n"
             f"    def __init__(self): ...\n"
@@ -38036,7 +38055,7 @@ class EvolutionEngine:
     def record_feedback(
         self, session_id: str, query: str, retrieved_chunks: str, user_rating: float
     ) -> dict[str, Any]:
-        created_at = datetime.now(timezone.utc).isoformat()
+        created_at = datetime.now(UTC).isoformat()
         try:
             from database.supabase_client import db
 
@@ -38073,7 +38092,7 @@ class EvolutionEngine:
             proposal = self.propose_new_skill(task)
             new_skills.append(proposal["skill_name"])
         report = {
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "total_tasks_processed": total,
             "success_rate": success_rate,
             "repeated_failures": len(failures),
@@ -38799,8 +38818,8 @@ import json
 import os
 import sqlite3
 import uuid
+from datetime import UTC
 from datetime import datetime
-from datetime import timezone
 from typing import Any
 
 from loguru import logger
@@ -39115,7 +39134,7 @@ class GCPFirestoreVerificationQueue:
 
     @staticmethod
     def _now() -> str:
-        return datetime.now(timezone.utc).isoformat()
+        return datetime.now(UTC).isoformat()
 
 
 def get_firestore_client(project_id: str | None = None):
@@ -39139,8 +39158,8 @@ import json
 import os
 import sqlite3
 import uuid
+from datetime import UTC
 from datetime import datetime
-from datetime import timezone
 from typing import Any
 
 from loguru import logger
@@ -39386,7 +39405,7 @@ class GCPPubSubQueue:
 
     @staticmethod
     def _now() -> str:
-        return datetime.now(timezone.utc).isoformat()
+        return datetime.now(UTC).isoformat()
 
 ```
 
@@ -39984,7 +40003,7 @@ class IdempotencyMiddleware:
 # বাংলা মন্তব্য: এআই জেনারেটেড কোডের সিকিউরিটি স্ক্যানার ও এএসটি ভ্যালিডেশন গেটকিপার।
 
 import ast
-from typing import Set
+
 from loguru import logger
 
 
@@ -39996,7 +40015,7 @@ class SecuritySandboxError(Exception):
 class ASTSecurityScanner(ast.NodeVisitor):
     def __init__(self):
         # 🛑 ZERO-GAP: Extended Banned Imports
-        self.banned_imports: Set[str] = {
+        self.banned_imports: set[str] = {
             "os", "sys", "subprocess", "pty", "shlex",
             "importlib", "code", "runpy", "multiprocessing",
             "pickle", "marshal", "tempfile", "socket", 
@@ -40004,14 +40023,14 @@ class ASTSecurityScanner(ast.NodeVisitor):
         }
         
         # 🛑 ZERO-GAP: Banned Built-in Functions for Introspection & Execution
-        self.banned_functions: Set[str] = {
+        self.banned_functions: set[str] = {
             "eval", "exec", "compile", "globals", "locals",
             "vars", "dir", "type", "chr", "ord", "breakpoint",
             "__import__", "getattr", "setattr", "delattr", "hasattr", "open"
         }
         
         # 🛑 ZERO-GAP: Prevent Sandbox Escapes via Dunder Attributes
-        self.banned_attributes: Set[str] = {
+        self.banned_attributes: set[str] = {
             "__class__", "__bases__", "__subclasses__",
             "__globals__", "__builtins__", "__dict__", "__mro__",
             "__code__", "__closure__", "__func__"
@@ -40033,14 +40052,12 @@ class ASTSecurityScanner(ast.NodeVisitor):
 
     def visit_Call(self, node: ast.Call):
         # Block direct function calls like eval(), __import__()
-        if isinstance(node.func, ast.Name):
-            if node.func.id in self.banned_functions:
-                raise SecuritySandboxError(f"Banned function call detected: {node.func.id}")
+        if isinstance(node.func, ast.Name) and node.func.id in self.banned_functions:
+            raise SecuritySandboxError(f"Banned function call detected: {node.func.id}")
         
         # Block malicious module methods like importlib.import_module() or os.system()
-        elif isinstance(node.func, ast.Attribute):
-            if node.func.attr in {"import_module", "system", "popen", "spawn", "fork"}:
-                raise SecuritySandboxError(f"Banned method invocation detected: {node.func.attr}")
+        elif isinstance(node.func, ast.Attribute) and node.func.attr in {"import_module", "system", "popen", "spawn", "fork"}:
+            raise SecuritySandboxError(f"Banned method invocation detected: {node.func.attr}")
         
         self.generic_visit(node)
 
@@ -40283,9 +40300,9 @@ class IntentClassifier:
 
 ## File: `backend/core/intent_router.py`
 ```python
-import json
 import re
-from dataclasses import dataclass, field
+from dataclasses import dataclass
+from dataclasses import field
 from typing import Any
 
 
@@ -40710,12 +40727,16 @@ async def app_lifespan(app):
 # Universal LLM Gateway for SupremeAI 2.0 (LiteLLM Integration)
 # বাংলা মন্তব্য: এটি লাইটএলএলএম ব্যবহার করে মাল্টিপল এআই ভেন্ডর রাউটিং, ফলব্যাক চেইন এবং কস্ট ট্র্যাকিং হ্যান্ডেল করে।
 
-import os
 import json
-from typing import Any, AsyncGenerator, Dict, List, Optional
+import os
+from collections.abc import AsyncGenerator
+from typing import Any
+
 import litellm
 from loguru import logger
+
 from core.config import settings
+
 
 # Load routing policy configuration
 POLICY_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "config", "routing_policy.json")
@@ -40734,7 +40755,7 @@ class LLMGateway:
         from core.semantic_cache import SemanticCache
         self.cache = SemanticCache()
 
-    def _load_routing_policy(self) -> Dict[str, Any]:
+    def _load_routing_policy(self) -> dict[str, Any]:
         try:
             if os.path.exists(POLICY_PATH):
                 with open(POLICY_PATH, encoding="utf-8") as f:
@@ -40876,7 +40897,7 @@ class LLMGateway:
 
         raise last_exception or RuntimeError("All routing models failed to produce a completion.")
 
-    async def _stream_completion(self, messages: List[Dict[str, str]], call_chain: List[str], timeout: float) -> AsyncGenerator[str, None]:
+    async def _stream_completion(self, messages: list[dict[str, str]], call_chain: list[str], timeout: float) -> AsyncGenerator[str, None]:
         # Handle streaming responses with fallback failover support
         # বাংলা মন্তব্য: স্ট্রিমিং সম্পন্ন করার জন্য জেনারেটর মেথড
         last_exception = None
@@ -41682,8 +41703,8 @@ class ObservabilityMiddleware:
 import asyncio
 import logging
 from collections.abc import Callable
+from datetime import UTC
 from datetime import datetime
-from datetime import timezone
 from typing import Any
 
 from fastapi import APIRouter
@@ -41860,7 +41881,7 @@ class Orchestrator:
         """
         self._running = True
         while self._running:
-            start = datetime.now(timezone.utc)
+            start = datetime.now(UTC)
             logger.debug(f"Orchestrator loop tick at {start.isoformat()}")
             try:
                 with tracer.start_as_current_span("orchestrator.tick"):
@@ -41871,7 +41892,7 @@ class Orchestrator:
             except Exception as e:
                 logger.error(f"Error in orchestrator task group loop: {e}")
             # Sleep until next interval, taking into account execution time.
-            elapsed = (datetime.now(timezone.utc) - start).total_seconds()
+            elapsed = (datetime.now(UTC) - start).total_seconds()
             try:
                 await asyncio.sleep(max(0, self.interval - elapsed))
             except asyncio.CancelledError:
@@ -42107,14 +42128,14 @@ class OutputValidator:
 ```python
 # FILE_PATH: backend/core/pgbouncer_pool.py
 
-import asyncpg
 import logging
+
+import asyncpg
+from asyncpg.connection import Connection  # Corrected import
+
 
 logger = logging.getLogger(__name__)
 
-# Original problematic line was: from asyncpg import Connection
-# The 'Connection' type is reliably found within the 'asyncpg.connection' submodule.
-from asyncpg.connection import Connection # Corrected import
 
 class PgBouncerConnectionPool:
     def __init__(self, dsn: str):
@@ -42159,6 +42180,7 @@ async def get_db_pool() -> PgBouncerConnectionPool:
         # during application startup, not implicitly here on first access.
         logger.warning("DB pool accessed via get_db_pool without explicit async connect. Ensure proper initialization in main app lifecycle.")
     return _db_pool_instance
+
 ```
 
 ## File: `backend/core/posthog_client.py`
@@ -42374,13 +42396,12 @@ def format_unified_chat_prompt(
 ```python
 from __future__ import annotations
 
+import threading
 import time
 
 from loguru import logger
 from starlette.responses import JSONResponse
 
-
-import threading
 
 class RateLimiter:
     # বাংলা মন্তব্য: মেমরি ভিত্তিক রেট লিমিটারের থ্রেড-সেফটি নিশ্চিত করার জন্য লক ব্যবহার করা হলো
@@ -42616,9 +42637,12 @@ class RoleBasedAccessControl:
 # রেডিস ডাউন থাকলে এটি কোনো সিকিউরিটি গেট বাইপাস করতে দেবে না (Fail-Closed)।
 
 import redis.asyncio as aioredis
-from fastapi import HTTPException, status
+from fastapi import HTTPException
+from fastapi import status
+
 from core.config import settings
 from core.logging_config import logger
+
 
 class SecureRedisManager:
     def __init__(self):
@@ -42679,7 +42703,7 @@ class SecureRedisManager:
             raise HTTPException(
                 status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
                 detail="Authentication and rate verification engine failure. Access blocked."
-            )
+            ) from redis_err
 
 # গ্লোবাল সিঙ্গেলটন ইনস্ট্যান্স জেনারেশন
 redis_manager = SecureRedisManager()
@@ -42717,7 +42741,7 @@ class RollbackMonitor:
             f"RollbackMonitor: Checking metrics for {service_name} - Latency: {latency_ms}ms, Error: {is_error}"
         )
 
-        import core.services as services
+        from core import services
 
         if (
             not hasattr(services, "redis_queue")
@@ -42871,7 +42895,7 @@ class RulesMutator:
         self.cooldown_seconds = 1800  # Default 30 minutes block
 
     def is_ip_blocked(self, ip_address: str) -> bool:
-        import core.services as services
+        from core import services
 
         if (
             hasattr(services, "redis_queue")
@@ -42889,7 +42913,7 @@ class RulesMutator:
 
     def block_ip(self, ip_address: str, reason: str = "suspicious_activity") -> bool:
         logger.warning(f"RulesMutator: Blocking IP {ip_address} due to {reason}.")
-        import core.services as services
+        from core import services
 
         if (
             hasattr(services, "redis_queue")
@@ -42908,7 +42932,7 @@ class RulesMutator:
 
     def release_ip(self, ip_address: str) -> bool:
         logger.info(f"RulesMutator: Releasing block on IP {ip_address}.")
-        import core.services as services
+        from core import services
 
         if (
             hasattr(services, "redis_queue")
@@ -43168,9 +43192,9 @@ import hashlib
 import hmac
 import os
 import secrets
+from datetime import UTC
 from datetime import datetime
 from datetime import timedelta
-from datetime import timezone
 
 import jwt
 from fastapi import HTTPException
@@ -43201,7 +43225,7 @@ API_KEY_RANDOM_BYTES = 32
 def create_access_token(data: dict) -> str:
     """ক্রিপটগ্রাফিক সাইনড JWT জেনারেট করবে"""
     to_encode = data.copy()
-    expire = datetime.now(timezone.utc) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    expire = datetime.now(UTC) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     to_encode.update({"exp": expire})
     user_email = to_encode.get("sub")
     role = "admin" if user_email in ADMIN_WHITELIST else "user"
@@ -43305,10 +43329,11 @@ async def run_health_loop() -> None:
 # Vector Semantic Cache Engine for SupremeAI 2.0
 # বাংলা মন্তব্য: এটি ফায়ারস্টোর বাদ দিয়ে সরাসরি experience_db.py (ChromaDB/Qdrant) ব্যবহার করে এবং ডাইনামিক থ্রেশহোল্ড সেট করে।
 
-import os
-from typing import Any, Optional
 from loguru import logger
-from adaptive_engine.experience_db import ExperienceDatabase, Experience
+
+from adaptive_engine.experience_db import Experience
+from adaptive_engine.experience_db import ExperienceDatabase
+
 
 class CacheEntry:
     def __init__(self, provider: str, model: str, response: str):
@@ -43322,7 +43347,7 @@ class SemanticCache:
         self.db = ExperienceDatabase()
         logger.info("SemanticCache initialized using ExperienceDatabase vector backend")
 
-    async def query_similar(self, prompt: str, task_type: str = "general") -> Optional[CacheEntry]:
+    async def query_similar(self, prompt: str, task_type: str = "general") -> CacheEntry | None:
         try:
             # বাংলা মন্তব্য: কাজের ধরণের ওপর ভিত্তি করে ডাইনামিক থ্রেশহোল্ড সেট করা হচ্ছে
             if "code" in task_type.lower() or "generation" in task_type.lower():
@@ -43487,9 +43512,11 @@ class SkillGraph:
 # বাংলা মন্তব্য: মাল্টি-এজেন্ট সিকোয়েন্সিয়াল সোয়ার্ম কোঅর্ডিনেটর ও টাস্ক রানার।
 
 import uuid
-from loguru import logger
+
+from agents.crew_departments import ArchitectureAgent
+from agents.crew_departments import CodeGeneratorAgent
+from agents.crew_departments import QAAgent
 from models.shared_workspace import SharedWorkspace
-from agents.crew_departments import ArchitectureAgent, CodeGeneratorAgent, QAAgent
 
 
 class SwarmOrchestrator:
@@ -44806,10 +44833,7 @@ def get_budget_manager(
 import asyncio  # বাংলা মন্তব্য: ফাইলের শুরুতে asyncio ইম্পোর্ট নেওয়া হলো
 import json
 import os
-import time
 import uuid
-from datetime import datetime, timezone
-from typing import Dict
 from decimal import Decimal
 
 from loguru import logger
@@ -44820,6 +44844,7 @@ from sqlalchemy.orm.exc import StaleDataError
 from core.upstash_redis_queue import UpstashRedisQueue
 from models.transaction_ledger import TransactionLedgerEntry
 from models.wallet import UserWallet
+
 
 redis_queue = UpstashRedisQueue()
 
@@ -44834,7 +44859,7 @@ class TokenDeductor:
         base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         config_path = os.path.join(base_dir, "config", "pricing_tiers.json")
         try:
-            with open(config_path, "r", encoding="utf-8") as f:
+            with open(config_path, encoding="utf-8") as f:
                 self.config = json.load(f)
         except Exception:
             self.config = {
@@ -45135,6 +45160,7 @@ class UniversalRulesEngine:
 from fastapi import HTTPException
 from fastapi import status
 
+
 MAX_UPLOAD_BYTES = 10 * 1024 * 1024  # 10MB
 ALLOWED_EXTENSIONS = {
     ".py": ["text/x-python", "application/octet-stream"],
@@ -45398,9 +45424,13 @@ __all__ = ["db"]
 ## File: `backend/database/session.py`
 ```python
 import os
-from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
-from sqlalchemy.pool import NullPool
+
 from loguru import logger
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.ext.asyncio import async_sessionmaker
+from sqlalchemy.ext.asyncio import create_async_engine
+from sqlalchemy.pool import NullPool
+
 
 # Cloud Run-এর জন্য PgBouncer Transaction Mode URL ব্যবহার করা বাধ্যতামূলক
 DATABASE_URL = os.getenv("SUPABASE_DATABASE_URL_POOLER", "")
@@ -46436,10 +46466,9 @@ else:
 
 ## File: `backend/evolution/auto_skill_creator.py`
 ```python
-import os
 import time
+from datetime import UTC
 from datetime import datetime
-from datetime import timezone
 from typing import Any
 
 from loguru import logger
@@ -46498,15 +46527,15 @@ class AutoSkillCreator:
         start_time = time.time()
         from pathlib import Path
 
-        from skills.schema import UniversalSkillSchema
         from core.llm_gateway import llm_gateway
+        from skills.schema import UniversalSkillSchema
 
         logger.info(
             f"🧠 Self-Evolution Triggered: Designing skill '{skill_name}' for demand: '{user_demand}'"
         )
 
         trace_id = uuid.uuid4().hex
-        generation_timestamp = datetime.now(timezone.utc).isoformat()
+        generation_timestamp = datetime.now(UTC).isoformat()
 
         # ১. এআই ডিরেক্টিভ প্রম্পট - যা সুনির্দিষ্ট ও কঠোর JSON ফরম্যাটে কোড ও USS জেনারেট করবে
         system_prompt = (
@@ -46635,7 +46664,8 @@ class AutoSkillCreator:
                 json.dump(schema_dict, f, indent=4)
 
             # Load module from quarantine and execute validation tests inside the restricted Docker Sandbox
-            # বাংলা মন্তব্য: এআই জেনারেটেড কোডটি সরাসরি লোকাল ইন্টারপ্রেটারে রান না করিয়ে Dockerized Cloud Sandbox এর সাহায্যে সিকিউর এনভায়রনমেন্টে রান করানো হচ্ছে।
+            # বাংলা মন্তব্য: এআই জেনারেটেড কোডটি সরাসরি লোকাল ইন্টারপ্রেটারে রান না করিয়ে
+            # Dockerized Cloud Sandbox এর সাহায্যে সিকিউর এনভায়রনমেন্টে রান করানো হচ্ছে।
             from tools.cloud_sandbox_orchestrator import CloudSandboxOrchestrator
             sandbox = CloudSandboxOrchestrator()
 
@@ -46701,7 +46731,7 @@ asyncio.run(run())
                 shutil.rmtree(quarantine_dir)
 
             # Firestore live deployment
-            now = datetime.now(timezone.utc)
+            now = datetime.now(UTC)
             skill_meta = {
                 "skill_name": skill_name,
                 "demand_justification": user_demand,
@@ -46751,7 +46781,7 @@ class AutoUpdateManager:
     TARGET_BRANCH = "develop"
 
     async def on_approval(self, proposal_id: str) -> dict[str, Any]:
-        ts = int(datetime.datetime.now(datetime.timezone.utc).timestamp())
+        ts = int(datetime.datetime.now(datetime.UTC).timestamp())
         branch = f"{self.BRANCH_PREFIX}{ts}"
         logger.info(f"Applying approved proposal {proposal_id} to branch {branch}")
         return {"branch": branch, "status": "applied"}
@@ -46763,13 +46793,15 @@ class AutoUpdateManager:
 # বাংলা কমেন্ট: সুপ্রিম-এআই এর ডাইনামিক স্কিল ইনজেক্টর ইঞ্জিন।
 # এটি জেনারেটেড কোডকে স্যান্ডবক্সে ভেরিফাই করে সফল হলে সিস্টেমে ইনজেক্ট করে, আর ফেইল করলে কোয়ারেন্টাইনে পাঠায়।
 
-import os
-import sys
 import importlib
 import importlib.util
+import os
+import sys
 from datetime import datetime
-from core.logging_config import logger
+
 from backend.evolution.security_sandbox import execute_secure_sandbox
+from core.logging_config import logger
+
 
 class DynamicSkillInjector:
     def __init__(self):
@@ -47044,8 +47076,9 @@ class MasterPlanner:
 # এটি ডাইনামিক কোড এক্সিকিউশনের আগে পাইথনের AST (Abstract Syntax Tree) লেভেলে আরসিই (RCE) ভেক্টর ব্লক করে।
 
 import ast
-import sys
+
 from core.logging_config import logger
+
 
 class ASTGatekeeper(ast.NodeVisitor):
     """
@@ -47144,19 +47177,17 @@ def execute_secure_sandbox(code_source: str, local_scope: dict = None) -> dict:
 ```python
 import asyncio
 import contextlib
-import json
-import os
-import uuid
 import time
+import uuid
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 from loguru import logger
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
-from models.evolution import CodeProposal, SkillFitness
 from core.immune_system import ImmuneSystemScanner
+from models.evolution import CodeProposal
 
 
 class SelfEvolutionAgent:
@@ -47523,6 +47554,7 @@ class EvolutionSkillGraph:
 ```python
 import os
 
+
 test_files = [
     'test_api.py', 
     'test_e2e.py', 
@@ -47532,9 +47564,10 @@ test_files = [
 
 for filename in test_files:
     filepath = os.path.join(r'c:\Users\n\supremeai\supremeai_2.0\backend\tests', filename)
-    if not os.path.exists(filepath): continue
+    if not os.path.exists(filepath):
+        continue
     
-    with open(filepath, 'r', encoding='utf-8') as f:
+    with open(filepath, encoding='utf-8') as f:
         content = f.read()
     
     content = content.replace('import core.app as app_mod', 'import core.services as services_mod')
@@ -48131,8 +48164,8 @@ from __future__ import annotations
 
 import os
 import sqlite3
+from datetime import UTC
 from datetime import datetime
-from datetime import timezone
 from typing import Any
 
 
@@ -48246,7 +48279,7 @@ class EpisodicMemory:
 
     @staticmethod
     def _now() -> str:
-        return datetime.now(timezone.utc).isoformat()
+        return datetime.now(UTC).isoformat()
 
 ```
 
@@ -48256,8 +48289,8 @@ from __future__ import annotations
 
 import os
 import sqlite3
+from datetime import UTC
 from datetime import datetime
-from datetime import timezone
 from typing import Any
 
 
@@ -48419,7 +48452,7 @@ class LongTermMemory:
 
     @staticmethod
     def _now() -> str:
-        return datetime.now(timezone.utc).isoformat()
+        return datetime.now(UTC).isoformat()
 
 ```
 
@@ -48477,8 +48510,8 @@ class RAGPipeline:
 import os
 import sqlite3
 from dataclasses import dataclass
+from datetime import UTC
 from datetime import datetime
-from datetime import timezone
 from typing import Any
 
 from loguru import logger
@@ -48573,7 +48606,7 @@ class SlidingWindowMemory:
         return windows
 
     def _now(self) -> str:
-        return datetime.now(timezone.utc).isoformat()
+        return datetime.now(UTC).isoformat()
 
     def _summarize_text(self, text: str) -> str:
         if not text:
@@ -48999,8 +49032,8 @@ from __future__ import annotations
 
 import json
 import os
+from datetime import UTC
 from datetime import datetime
-from datetime import timezone
 from urllib.parse import urlparse
 
 from memory.sqlite_store import SQLiteMemoryStore
@@ -49063,7 +49096,7 @@ class SupabaseStore(SQLiteMemoryStore):
                 {
                     "session_id": session_id,
                     "messages": json.dumps(messages),
-                    "updated_at": datetime.now(timezone.utc).isoformat(),
+                    "updated_at": datetime.now(UTC).isoformat(),
                 }
             ).execute()
         else:
@@ -49092,10 +49125,10 @@ class SupabaseStore(SQLiteMemoryStore):
     def save_learned_fact(self, fact: dict) -> None:
         fact_id = fact.get("id")
         if not fact_id:
-            fact_id = f"fact_{datetime.now(timezone.utc).timestamp()}"
+            fact_id = f"fact_{datetime.now(UTC).timestamp()}"
             fact["id"] = fact_id
         fact["created_at"] = fact.get(
-            "created_at", datetime.now(timezone.utc).isoformat()
+            "created_at", datetime.now(UTC).isoformat()
         )
         if self._provider == "supabase":
             client = self._get_supabase_client()
@@ -49164,8 +49197,6 @@ def get_vector_store_config() -> VectorStoreConfig:
 
 ## File: `backend/middleware/auth_middleware.py`
 ```python
-import os
-import sys
 
 from fastapi import Request
 from loguru import logger
@@ -49199,7 +49230,6 @@ class ZeroTrustAuthMiddleware(BaseHTTPMiddleware):
         if matched:
             return await call_next(request)
 
-        is_test = "pytest" in sys.modules or os.getenv("ENV") == "test"
         auth_header = request.headers.get("Authorization")
 
         if not auth_header or not auth_header.startswith("Bearer "):
@@ -49314,9 +49344,9 @@ from starlette.middleware.base import BaseHTTPMiddleware
 
 with contextlib.suppress(ImportError):
     from google.cloud import firestore
+from datetime import UTC
 from datetime import datetime
 from datetime import timedelta
-from datetime import timezone
 
 from loguru import logger
 
@@ -49365,7 +49395,7 @@ class IdempotencyMiddleware(BaseHTTPMiddleware):
         lock_ref = self.db.collection(self.collection_name).document(idempotency_key)
         lock_doc = lock_ref.get()
 
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
 
         if lock_doc.exists:
             lock_data = lock_doc.to_dict()
@@ -49427,7 +49457,7 @@ class IdempotencyMiddleware(BaseHTTPMiddleware):
                     {
                         "status": "completed",
                         "response_body": body_str,
-                        "completed_at": datetime.now(timezone.utc),
+                        "completed_at": datetime.now(UTC),
                     }
                 )
             else:
@@ -49500,15 +49530,15 @@ Uses raw asyncpg via PgBouncerConnectionPool
 
 from __future__ import annotations
 
+from datetime import UTC
 from datetime import datetime
-from datetime import timezone
 from typing import Any
 
 from core.pgbouncer_pool import get_db_pool
 
 
 def now_epoch() -> int:
-    return int(datetime.now(timezone.utc).timestamp())
+    return int(datetime.now(UTC).timestamp())
 
 
 async def create_api_key(
@@ -49706,8 +49736,11 @@ async def get_all_api_keys(limit: int = 100, offset: int = 0) -> list[dict[str, 
 # বাংলা মন্তব্য: BYOC ক্রেডেনশিয়াল এবং কন্টেইনার ডিপ্লয়মেন্ট রিকোয়েস্ট ভ্যালিডেশন স্কিমা।
 
 import re
-from typing import Literal, Dict, Any, List
-from pydantic import BaseModel, Field, field_validator
+from typing import Literal
+
+from pydantic import BaseModel
+from pydantic import Field
+from pydantic import field_validator
 
 
 class GCPServiceAccountPayload(BaseModel):
@@ -49756,8 +49789,8 @@ Uses raw asyncpg via PgBouncerConnectionPool
 from __future__ import annotations
 
 import json
+from datetime import UTC
 from datetime import datetime
-from datetime import timezone
 from typing import Any
 
 from pydantic import BaseModel
@@ -49767,7 +49800,7 @@ from core.pgbouncer_pool import get_db_pool
 
 
 def now_epoch() -> int:
-    return int(datetime.now(timezone.utc).timestamp())
+    return int(datetime.now(UTC).timestamp())
 
 
 class CIReportPayload(BaseModel):
@@ -49886,9 +49919,11 @@ async def get_ci_report_by_run_id(run_id: int) -> dict[str, Any] | None:
 # Pydantic schemas for tracking BYOC deployment jobs
 # বাংলা মন্তব্য: কন্টেইনার সার্ভিস ডেপ্লয়মেন্টের লাইভ ট্র্যাক করার মডেল স্কিমা।
 
-from typing import Literal, Optional, Dict, Any
-from pydantic import BaseModel, Field
 from datetime import datetime
+from typing import Literal
+
+from pydantic import BaseModel
+from pydantic import Field
 
 
 class DeploymentJob(BaseModel):
@@ -49898,9 +49933,9 @@ class DeploymentJob(BaseModel):
     provider: Literal["gcp", "aws", "azure"] = "gcp"
     status: Literal["pending", "deploying", "success", "failed"] = "pending"
     started_at: datetime
-    finished_at: Optional[datetime] = None
-    service_url: Optional[str] = None
-    error_message: Optional[str] = None
+    finished_at: datetime | None = None
+    service_url: str | None = None
+    error_message: str | None = None
     logs: list[str] = []
 
 ```
@@ -49911,10 +49946,21 @@ class DeploymentJob(BaseModel):
 # বাংলা মন্তব্য: এআই কর্তৃক জেনারেটেড নতুন স্কিল, স্বয়ংক্রিয় প্রপোজাল ট্র্যাকিং এবং ফিটনেস স্কোরিং মডেল।
 
 import uuid
-from datetime import datetime, timezone
-from sqlalchemy import String, Integer, Float, DateTime, Text, Boolean
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
-from sqlalchemy.dialects.postgresql import UUID, JSONB
+from datetime import UTC
+from datetime import datetime
+
+from sqlalchemy import Boolean
+from sqlalchemy import DateTime
+from sqlalchemy import Float
+from sqlalchemy import Integer
+from sqlalchemy import String
+from sqlalchemy import Text
+from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.orm import DeclarativeBase
+from sqlalchemy.orm import Mapped
+from sqlalchemy.orm import mapped_column
+
 
 class Base(DeclarativeBase):
     pass
@@ -49932,8 +49978,8 @@ class SkillFitness(Base):
     # Optimistic Concurrency Control (OCC)
     version: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
     
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
-    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(UTC))
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(UTC), onupdate=lambda: datetime.now(UTC))
 
     __mapper_args__ = {
         "version_id_col": version  # SQLAlchemy অটোমেটিকভাবে ভার্সন ট্র্যাকিং এবং রেস-কন্ডিশন ব্লক করবে
@@ -49955,7 +50001,7 @@ class CodeProposal(Base):
     # Pro Tip: JSONB is highly optimized for PostgreSQL query matching.
     metadata_json: Mapped[dict] = mapped_column(JSONB, default=dict, nullable=True)
     version: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(UTC))
 
     __mapper_args__ = {
         "version_id_col": version
@@ -49988,8 +50034,8 @@ class LocalModelHandler:
 import json
 import sqlite3
 import uuid
+from datetime import UTC
 from datetime import datetime
-from datetime import timezone
 from enum import Enum
 from pathlib import Path
 
@@ -50054,7 +50100,7 @@ def create_pending_task(task_type: TaskType, payload: dict, created_by: str = "s
         task_type=task_type,
         payload=payload,
         status=TaskStatus.PENDING,
-        created_at=datetime.now(timezone.utc).isoformat(),
+        created_at=datetime.now(UTC).isoformat(),
     )
     conn = _get_conn()
     cursor = conn.cursor()
@@ -50091,7 +50137,7 @@ def list_pending() -> list[PendingTask]:
 def update_task_status(task_id: str, status: TaskStatus, resolved_by: str, reason: str | None = None) -> PendingTask | None:
     conn = _get_conn()
     cursor = conn.cursor()
-    resolved_at = datetime.now(timezone.utc).isoformat() if status != TaskStatus.PENDING else None
+    resolved_at = datetime.now(UTC).isoformat() if status != TaskStatus.PENDING else None
     cursor.execute(
         """
         UPDATE pending_tasks SET status = ?, resolved_by = ?, resolved_at = ?, reason = ?
@@ -50127,17 +50173,19 @@ def row_to_task(row: sqlite3.Row) -> PendingTask:
 # Shared state workspace memory for Multi-Agent Swarm Orchestrations
 # বাংলা মন্তব্য: সোয়ার্ম এজেন্টদের মধ্যে কাজের ফলাফল ও ফাইল স্টেট শেয়ার করার শেয়ার্ড মেমরি ক্লাস।
 
-from pydantic import BaseModel, Field
-from typing import Dict, Any, List
+from typing import Any
+
+from pydantic import BaseModel
+from pydantic import Field
 
 
 class SharedWorkspace(BaseModel):
     task_id: str = Field(..., description="Unique Master Task ID")
     original_prompt: str = Field(..., description="User query context")
     architecture_design: str = ""
-    generated_code: Dict[str, str] = Field(default_factory=dict, description="File path to content map")
-    test_results: Dict[str, Any] = Field(default_factory=dict)
-    execution_logs: List[str] = Field(default_factory=list)
+    generated_code: dict[str, str] = Field(default_factory=dict, description="File path to content map")
+    test_results: dict[str, Any] = Field(default_factory=dict)
+    execution_logs: list[str] = Field(default_factory=list)
 
     def log(self, message: str):
         self.execution_logs.append(message)
@@ -50149,9 +50197,11 @@ class SharedWorkspace(BaseModel):
 # Pydantic schemas for tracking Immutable Billing Ledgers
 # বাংলা মন্তব্য: প্রতিটি ট্রানজেকশন ট্র্যাক করার ইমিউটেবল লেজার স্কিমা।
 
-from typing import Literal, Optional
-from pydantic import BaseModel, Field
 from datetime import datetime
+from typing import Literal
+
+from pydantic import BaseModel
+from pydantic import Field
 
 
 class TransactionLedgerEntry(BaseModel):
@@ -50167,9 +50217,11 @@ class TransactionLedgerEntry(BaseModel):
 
 ## File: `backend/models/voice_interaction.py`
 ```python
-from datetime import datetime, timezone
+from datetime import UTC
+from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel
+from pydantic import ConfigDict
 from pydantic import Field
 
 
@@ -50186,7 +50238,7 @@ class VoiceInteractionLog(BaseModel):
     supremeai_response: str = Field(..., description="The textual response generated by the AI")
     stt_provider: str = Field(default="groq-whisper", description="Engine used for STT")
     latency_ms: int = Field(default=0, description="Total round-trip latency")
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
     model_config = ConfigDict(
         json_schema_extra={
@@ -50206,12 +50258,20 @@ class VoiceInteractionLog(BaseModel):
 ## File: `backend/models/wallet.py`
 ```python
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC
+from datetime import datetime
 from decimal import Decimal
 
-from sqlalchemy import String, Numeric, Integer, DateTime, Index
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
+from sqlalchemy import DateTime
+from sqlalchemy import Index
+from sqlalchemy import Integer
+from sqlalchemy import Numeric
+from sqlalchemy import String
 from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.orm import DeclarativeBase
+from sqlalchemy.orm import Mapped
+from sqlalchemy.orm import mapped_column
+
 
 class Base(DeclarativeBase):
     pass
@@ -50229,8 +50289,8 @@ class UserWallet(Base):
     # Optimistic Concurrency Control (Second Layer of Defense against Double-Spending)
     version: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
     
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
-    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(UTC))
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(UTC), onupdate=lambda: datetime.now(UTC))
 
     __mapper_args__ = {
         "version_id_col": version  # SQLAlchemy অটোমেটিকভাবে ভার্সন ট্র্যাকিং এবং রেস-কন্ডিশন ব্লক করবে
@@ -50245,7 +50305,7 @@ class TransactionLedgerEntry(Base):
     amount_usd: Mapped[Decimal] = mapped_column(Numeric(10, 6), nullable=False)
     transaction_type: Mapped[str] = mapped_column(String(50), nullable=False)
     description: Mapped[str] = mapped_column(String(500), nullable=True)
-    timestamp: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+    timestamp: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(UTC))
 
     # Pro Tip: Composite Index
     __table_args__ = (
@@ -53300,7 +53360,7 @@ os.environ.setdefault("HF_API_KEY", "")
 os.environ.setdefault("OLLAMA_URL", "http://127.0.0.1:11434")
 
 import core.services as services_mod
-import core.services as services
+from core import services
 
 from core.app import app
 
@@ -54622,14 +54682,12 @@ os.environ["SUPREMEAI_ENCRYPTION_KEY"] = "4vW8yO_tWn8_bM6W_vW7LDw8qddv6QRw2wKKyJ
 os.environ["STRIPE_SECRET_KEY"] = "sk_test_key"
 os.environ["STRIPE_WEBHOOK_SECRET"] = "whsec_test"
 
-import asyncio
-from datetime import datetime, timezone
 from decimal import Decimal
 from fastapi.testclient import TestClient
-from unittest.mock import AsyncMock, patch
+from unittest.mock import patch
 
 from core.app import app
-from models.wallet import UserWallet, TransactionLedgerEntry
+from models.wallet import UserWallet
 from database.session import get_db_session
 
 client = TestClient(app)
@@ -54974,9 +55032,6 @@ def test_browser_save_and_list_credentials():
 
 ## File: `backend/tests/test_byoc_endpoints.py`
 ```python
-import pytest
-import os
-import json
 from unittest.mock import patch
 from fastapi.testclient import TestClient
 from core.app import app
@@ -55783,7 +55838,7 @@ def test_task_execute_with_context():
     from unittest.mock import MagicMock
 
     import core.services as services_mod
-    import core.services as services
+    from core import services
 
 
     # Mock admin_god layer check
@@ -55977,122 +56032,29 @@ def test_schema_validator_retry_on_validation_fail():
 
 ## File: `backend/tests/test_coverage_gaps.py`
 ```python
-class TestCloudStorageManager:
+import pytest
+from unittest.mock import patch
+
+class TestDecisionEngine:
     def test_init(self):
-        from core.cloud_storage import CloudStorageManager
-        from core.config import settings
-        from unittest.mock import patch
-
-        with patch('core.cloud_storage.settings') as mock_settings:
-            mock_settings.supabase_url = "https://example.supabase.co"
-            mock_settings.supabase_key = "secret-key"
-            storage = CloudStorageManager()
-            assert storage.supabase_url == "https://example.supabase.co"
-            assert storage.supabase_key == "secret-key"
-            assert storage.bucket_name == "supremeai-assets"
-
-    def test_init_missing_credentials(self):
-        from core.cloud_storage import CloudStorageManager
-        from core.config import settings
-        from unittest.mock import patch
-
-        with patch('core.cloud_storage.settings') as mock_settings:
-            mock_settings.supabase_url = None
-            mock_settings.supabase_key = None
-            storage = CloudStorageManager()
-            assert storage.supabase_url is None
-            assert storage.supabase_key is None
+        from core.decision_engine import DecisionEngine
+        # Actually, let's test with and without env var
+        with patch.dict('os.environ', {}, clear=True):
+            engine = DecisionEngine()
+            assert engine.langsmith_api_key is None
+        with patch.dict('os.environ', {'LANGSMITH_API_KEY': 'test-key'}):
+            engine = DecisionEngine()
+            assert engine.langsmith_api_key == 'test-key'
 
     @pytest.mark.asyncio
-    async def test_upload_file_async_missing_credentials(self):
-        from core.cloud_storage import CloudStorageManager
-        from fastapi import HTTPException, status
-        from core.config import settings
-        from unittest.mock import patch
+    async def test_decide(self):
+        from core.decision_engine import DecisionEngine
+        engine = DecisionEngine()
+        with patch('core.decision_engine.logger') as mock_logger:
+            result = await engine.decide({"key": "value"})
+            assert result == {"action": "proceed", "confidence": 1.0, "trace": None}
+            mock_logger.debug.assert_called_once_with("Decision engine processing context")
 
-        with patch('core.cloud_storage.settings') as mock_settings:
-            mock_settings.supabase_url = None
-            mock_settings.supabase_key = None
-            storage = CloudStorageManager()
-            with pytest.raises(HTTPException) as exc_info:
-                await storage.upload_file_async("test/path", b"data")
-            assert exc_info.value.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
-            assert "Cloud storage infrastructure is unconfigured" in str(exc_info.value.detail)
-
-    @pytest.mark.asyncio
-    async def test_upload_file_async_success(self):
-        from core.cloud_storage import CloudStorageManager
-        from core.config import settings
-        from unittest.mock import patch, AsyncMock
-        import httpx
-
-        with patch('core.cloud_storage.settings') as mock_settings:
-            mock_settings.supabase_url = "https://example.supabase.co"
-            mock_settings.supabase_key = "secret-key"
-            storage = CloudStorageManager()
-            # Mock httpx.AsyncClient
-            mock_response = AsyncMock()
-            mock_response.status_code = 200
-            mock_response.text = "OK"
-            mock_client = AsyncMock()
-            mock_client.__aenter__.return_value.post.return_value = mock_response
-            with patch('core.cloud_storage.httpx.AsyncClient', return_value=mock_client):
-                url = await storage.upload_file_async("test/file.txt", b"hello world", "text/plain")
-                expected_url = "https://example.supabase.co/storage/v1/object/public/supremeai-assets/test/file.txt"
-                assert url == expected_url
-                # Check that the request was made with the correct parameters
-                mock_client.__aenter__.return_value.post.assert_called_once()
-                args, kwargs = mock_client.__aenter__.return_value.post.call_args
-                assert args[0] == "https://example.supabase.co/storage/v1/object/supremeai-assets/test/file.txt"
-                assert kwargs["content"] == b"hello world"
-                assert kwargs["headers"]["Authorization"] == "Bearer secret-key"
-                assert kwargs["headers"]["API-Key"] == "secret-key"
-                assert kwargs["headers"]["Content-Type"] == "text/plain"
-
-    @pytest.mark.asyncio
-    async def test_upload_file_async_http_error_400(self):
-        from core.cloud_storage import CloudStorageManager
-        from fastapi import HTTPException, status
-        from core.config import settings
-        from unittest.mock import patch, AsyncMock
-        import httpx
-
-        with patch('core.cloud_storage.settings') as mock_settings:
-            mock_settings.supabase_url = "https://example.supabase.co"
-            mock_settings.supabase_key = "secret-key"
-            storage = CloudStorageManager()
-            # Mock httpx.AsyncClient to return a 400 response
-            mock_response = AsyncMock()
-            mock_response.status_code = 400
-            mock_response.text = "Bad Request"
-            mock_client = AsyncMock()
-            mock_client.__aenter__.return_value.post.return_value = mock_response
-            with patch('core.cloud_storage.httpx.AsyncClient', return_value=mock_client):
-                with pytest.raises(HTTPException) as exc_info:
-                    await storage.upload_file_async("test/file.txt", b"data")
-                assert exc_info.value.status_code == status.HTTP_400_BAD_REQUEST
-                assert "Cloud storage engine rejected the asset package" in str(exc_info.value.detail)
-
-    @pytest.mark.asyncio
-    async def test_upload_file_async_http_error_503(self):
-        from core.cloud_storage import CloudStorageManager
-        from fastapi import HTTPException, status
-        from core.config import settings
-        from unittest.mock import patch, AsyncMock
-        import httpx
-
-        with patch('core.cloud_storage.settings') as mock_settings:
-            mock_settings.supabase_url = "https://example.supabase.co"
-            mock_settings.supabase_key = "secret-key"
-            storage = CloudStorageManager()
-            # Mock httpx.AsyncClient to raise an HTTPError
-            mock_client = AsyncMock()
-            mock_client.__aenter__.return_value.post.side_effect = httpx.HTTPError("Network error")
-            with patch('core.cloud_storage.httpx.AsyncClient', return_value=mock_client):
-                with pytest.raises(HTTPException) as exc_info:
-                    await storage.upload_file_async("test/file.txt", b"data")
-                assert exc_info.value.status_code == status.HTTP_503_SERVICE_UNAVAILABLE
-                assert "Storage cluster network timeout" in str(exc_info.value.detail)
 ```
 
 ## File: `backend/tests/test_crew_mcp.py`
@@ -56692,7 +56654,6 @@ def test_evolution_engine_uses_supabase_when_available(monkeypatch):
 ## File: `backend/tests/test_evolution_pipeline.py`
 ```python
 import json
-from unittest.mock import MagicMock
 from unittest.mock import patch
 
 import pytest
@@ -58388,7 +58349,7 @@ class _DownRedisQueue:
 
 @pytest.fixture()
 def healthy_app(monkeypatch: pytest.MonkeyPatch):
-    import core.services as services
+    from core import services
 
     importlib.reload(services)
     queue = _FakeRedisQueue()
@@ -58399,7 +58360,7 @@ def healthy_app(monkeypatch: pytest.MonkeyPatch):
 
 @pytest.fixture()
 def down_app(monkeypatch: pytest.MonkeyPatch):
-    import core.services as services
+    from core import services
 
     importlib.reload(services)
     queue = _DownRedisQueue()
@@ -58410,7 +58371,7 @@ def down_app(monkeypatch: pytest.MonkeyPatch):
 
 @pytest.fixture()
 def unconfigured_app(monkeypatch: pytest.MonkeyPatch):
-    import core.services as services
+    from core import services
 
     importlib.reload(services)
     queue = _FakeRedisQueue()
@@ -58877,7 +58838,7 @@ async def test_honeypot_allows_clean_body_after_cleanup():
 import json
 from datetime import datetime
 from datetime import timedelta
-from datetime import timezone
+from datetime import UTC
 from unittest.mock import AsyncMock
 from unittest.mock import MagicMock
 
@@ -58954,7 +58915,7 @@ async def test_idempotency_passes_non_task_path():
 @pytest.mark.asyncio
 async def test_idempotency_cache_hit_completed():
     middleware = make_middleware()
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     future = now + timedelta(hours=2)
     doc_data = {
         "status": "completed",
@@ -58984,7 +58945,7 @@ async def test_idempotency_cache_hit_completed():
 @pytest.mark.asyncio
 async def test_idempotency_processing_conflict():
     middleware = make_middleware()
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     future = now + timedelta(hours=2)
     doc_data = {
         "status": "processing",
@@ -59057,7 +59018,7 @@ def mock_redis(monkeypatch):
     queue.get.return_value = None
     queue.incr.return_value = 1
 
-    import core.services as services
+    from core import services
 
     monkeypatch.setattr(services, "redis_queue", queue, raising=True)
     return queue
@@ -59129,7 +59090,6 @@ def test_rollback_monitor_triggers_rollback(mock_redis):
 
 ## File: `backend/tests/test_immune_system_scanner.py`
 ```python
-import pytest
 from core.immune_system import ImmuneSystemScanner
 
 def test_immune_system_passes_safe_code():
@@ -62281,7 +62241,6 @@ async def test_dpo_training_trigger(rlhf_pipeline):
 
 ## File: `backend/tests/test_sandbox_orchestration_run.py`
 ```python
-import pytest
 from tools.cloud_sandbox_orchestrator import CloudSandboxOrchestrator
 
 def test_sandbox_run_code_success():
@@ -63708,7 +63667,7 @@ class TestCommentThreadAI:
         ai = CommentThreadAI(github_token="ghp_test")
 
         old_date = (
-            datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(days=10)
+            datetime.datetime.now(datetime.UTC) - datetime.timedelta(days=10)
         ).strftime("%Y-%m-%dT%H:%M:%SZ")
         with patch.object(ai, "_gh_get", new_callable=AsyncMock) as mock_get:
             mock_get.return_value = [
@@ -64043,13 +64002,11 @@ class TestTenantAdminAPI:
 ```python
 import pytest
 import os
-import httpx
 from unittest.mock import patch
 from core.config import settings
 from tools.cloud_sandbox_orchestrator import CloudSandboxOrchestrator
 from tools.proxy_manager import ProxyManager
 from tools.stealth_http_client import StealthHTTPClient
-from tools.browser_stealth import BrowserStealth
 
 def test_production_sandbox_fails_without_docker():
     # Enforce production mode
@@ -64479,7 +64436,7 @@ client = TestClient(app)
 @pytest.fixture
 def mock_dependencies():
     import core.services as services_mod
-    import core.services as services
+    from core import services
 
 
     previous_admin = services.admin_god
@@ -64515,7 +64472,7 @@ def mock_dependencies():
 @pytest.fixture
 def mock_session():
     import core.services as services_mod
-    import core.services as services
+    from core import services
 
 
     previous_admin = services.admin_god
@@ -64588,7 +64545,6 @@ def test_task_execute_with_session_id(mock_session):
 
 def test_task_execute_upstream_failure(mock_session):
     import core.services as services_mod
-    import core.services as services
 
 
     previous_router = services_mod.model_router
@@ -64616,7 +64572,6 @@ def test_task_execute_upstream_failure(mock_session):
 
 def test_chat_completion_streaming():
     import core.services as services_mod
-    import core.services as services
 
 
     previous_router = services_mod.model_router
@@ -69647,7 +69602,7 @@ import json
 import sqlite3
 from dataclasses import dataclass
 from datetime import datetime
-from datetime import timezone
+from datetime import UTC
 from typing import Any
 
 from loguru import logger
@@ -69743,7 +69698,7 @@ class CheckpointManager:
                         task_id,
                         step_index,
                         json.dumps(state),
-                        datetime.now(timezone.utc).isoformat(),
+                        datetime.now(UTC).isoformat(),
                         resumed,
                     ),
                 )
@@ -69766,7 +69721,7 @@ class CheckpointManager:
                     "task_id": task_id,
                     "step_index": step_index,
                     "state": json.dumps(state),
-                    "created_at": datetime.now(timezone.utc).isoformat(),
+                    "created_at": datetime.now(UTC).isoformat(),
                     "resumed": resumed,
                 }
             )
@@ -71713,7 +71668,7 @@ class CommentThreadAI:
 
         import datetime
 
-        now = datetime.datetime.now(datetime.timezone.utc)
+        now = datetime.datetime.now(datetime.UTC)
         stale = []
         for pr in prs if isinstance(prs, list) else []:
             updated = pr.get("updated_at", "")
@@ -71721,7 +71676,7 @@ class CommentThreadAI:
                 try:
                     dt = datetime.datetime.strptime(
                         updated, "%Y-%m-%dT%H:%M:%SZ"
-                    ).replace(tzinfo=datetime.timezone.utc)
+                    ).replace(tzinfo=datetime.UTC)
                     days_idle = (now - dt).days
                     if days_idle >= days_threshold:
                         stale.append(
@@ -73580,7 +73535,7 @@ class GameDevAgent:
 ```python
 import os
 from datetime import datetime
-from datetime import timezone
+from datetime import UTC
 from typing import Any
 
 import httpx
@@ -73643,11 +73598,11 @@ class GCPCloudFunctionClient:
         if self.bearer_token:
             headers["Authorization"] = f"Bearer {self.bearer_token}"
 
-        started = datetime.now(timezone.utc)
+        started = datetime.now(UTC)
         try:
             with httpx.Client(timeout=timeout or self.timeout) as client:
                 response = client.request(method, url, json=payload, headers=headers)
-            latency_ms = (datetime.now(timezone.utc) - started).total_seconds() * 1000
+            latency_ms = (datetime.now(UTC) - started).total_seconds() * 1000
             return {
                 "success": 200 <= response.status_code < 300,
                 "provider": "gcp_cloud_functions",
@@ -74319,7 +74274,7 @@ import os
 import sys
 from datetime import datetime
 from datetime import timedelta
-from datetime import timezone
+from datetime import UTC
 from typing import Any
 
 from loguru import logger
@@ -74377,7 +74332,7 @@ class HealthChecker:
 
     def log_error(self, error: dict[str, Any]) -> None:
         record = {
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             **error,
         }
         try:
@@ -74394,7 +74349,7 @@ class HealthChecker:
         failed_api_calls = 0
         if os.path.exists(self.error_history_path):
             recent_errors: list[dict[str, Any]] = []
-            cutoff = datetime.now(timezone.utc) - timedelta(minutes=10)
+            cutoff = datetime.now(UTC) - timedelta(minutes=10)
             with open(self.error_history_path, encoding="utf-8") as f:
                 for line in f:
                     try:
@@ -76024,8 +75979,8 @@ from __future__ import annotations
 
 import os
 import sqlite3
-from datetime import datetime, timezone
-from datetime import timedelta
+from datetime import datetime
+from datetime import timedelta, UTC
 from typing import Any
 
 from loguru import logger
@@ -76065,7 +76020,7 @@ class MonthlyCostReporter:
             "total_cost_usd": round(total_cost, 4),
             "total_calls": total_calls,
             "average_cost_per_call": round(avg_cost, 4),
-            "generated_at": datetime.now(timezone.utc).isoformat(),
+            "generated_at": datetime.now(UTC).isoformat(),
         }
 
     def _month_range(self, month: str) -> tuple[datetime, datetime]:
@@ -76101,7 +76056,7 @@ class MonthlyCostReporter:
             return False
 
     def schedule_monthly(self) -> None:
-        next_run, _ = self._month_range(datetime.now(timezone.utc).strftime("%Y-%m"))
+        next_run, _ = self._month_range(datetime.now(UTC).strftime("%Y-%m"))
         logger.info(f"Monthly cost run scheduled for {next_run.isoformat()}")
 
 ```
@@ -79438,8 +79393,7 @@ class PresentationGenerator:
 ```python
 import os
 import json
-import random
-from typing import List, Optional
+from typing import List
 from loguru import logger
 
 class ProxyManager:
@@ -79463,7 +79417,7 @@ class ProxyManager:
 
         if os.path.exists(self.config_path):
             try:
-                with open(self.config_path, "r", encoding="utf-8") as f:
+                with open(self.config_path, encoding="utf-8") as f:
                     data = json.load(f)
                     self.proxies = data.get("proxies", [])
                     logger.info(f"Loaded {len(self.proxies)} proxies from {self.config_path}.")
@@ -79474,7 +79428,7 @@ class ProxyManager:
         if not self.proxies:
             logger.warning("No proxies configured. Requests will route via host IP directly.")
 
-    def get_next_proxy(self) -> Optional[str]:
+    def get_next_proxy(self) -> str | None:
         if not self.proxies:
             return None
         # Round-robin selection
@@ -79926,7 +79880,7 @@ class RLHFPipeline:
             "prompt": prompt,
             "chosen": chosen_response,
             "rejected": rejected_response,
-            "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat() + "Z",
+            "timestamp": datetime.datetime.now(datetime.UTC).isoformat() + "Z",
         }
         self.preference_logs.append(record)
         path = os.path.join(self.storage_dir, "preferences.jsonl")
@@ -80020,6 +79974,7 @@ so callers can retrieve a ``result`` variable if they set one.
 """
 
 import ast
+import logging
 from typing import Any
 
 from RestrictedPython import compile_restricted
@@ -81169,7 +81124,7 @@ class SSOIntegrator:
 ```python
 import httpx
 import random
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 from loguru import logger
 from tools.proxy_manager import ProxyManager
 
@@ -81186,10 +81141,10 @@ class StealthHTTPClient:
     HTTP client wrapper for executing stealth, anonymized web requests.
     Enforces proxy rotation, fallback retries, and browser headers emulation.
     """
-    def __init__(self, proxy_manager: Optional[ProxyManager] = None):
+    def __init__(self, proxy_manager: ProxyManager | None = None):
         self.proxy_manager = proxy_manager or ProxyManager()
 
-    def _get_headers(self, custom_headers: Optional[Dict[str, str]] = None) -> Dict[str, str]:
+    def _get_headers(self, custom_headers: Dict[str, str] | None = None) -> Dict[str, str]:
         headers = {
             "User-Agent": random.choice(USER_AGENTS),
             "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
@@ -83750,8 +83705,8 @@ app = celery_app
 ```python
 import asyncio
 import os
+from datetime import UTC
 from datetime import datetime
-from datetime import timezone
 
 import httpx
 from google.cloud import firestore
@@ -83810,7 +83765,7 @@ class NightlyChaosAuditor:
             # 🧪 টেস্ট ২: রানটাইম কানেকশন পুল স্ট্রেস চেক (Synthetic Heavy Requests)
             async with httpx.AsyncClient(timeout=5.0) as client:
                 headers = {
-                    "Idempotency-Key": f"auto-chaos-{datetime.now(timezone.utc).timestamp()}"
+                    "Idempotency-Key": f"auto-chaos-{datetime.now(UTC).timestamp()}"
                 }
                 # একই টাইমে ব্যাক-টু-ব্যাক ৫টি রিকোয়েস্ট ফায়ার করে রাউটার স্টেট চেক
                 tasks = [
@@ -83836,7 +83791,7 @@ class NightlyChaosAuditor:
                         )
 
             # ── 🔒 CLOSED-LOOP AUTOMATION DECISION ────────────────────────
-            now = datetime.now(timezone.utc)
+            now = datetime.now(UTC)
             if failures > 0:
                 logger.critical(
                     f"💀 Chaos Audit FAILED with {failures} anomalies. LOCKING deployment gates!"
