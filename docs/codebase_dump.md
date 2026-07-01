@@ -1,7 +1,7 @@
 # 🧠 SupremeAI 2.0 Codebase Analysis
 # বাংলা মন্তব্য: এটি একটি স্বয়ংক্রিয়ভাবে জেনারেট করা কোডবেস ডাম্প ফাইল যা প্রজেক্টের সামগ্রিক বিশ্লেষণের জন্য ব্যবহৃত হয়।
 
-Generated at: 2026-07-01T20:19:03.368124 UTC
+Generated at: 2026-07-01T20:36:38.955714 UTC
 
 ## File: `.github/actions/setup-backend/action.yml`
 ```yaml
@@ -744,6 +744,7 @@ import os
 import sys
 import subprocess
 import re
+import litellm
 from google import genai
 
 # ==========================================
@@ -812,6 +813,77 @@ def extract_errors():
 # ==========================================
 # 🧠 STEP 2: CALL AI FOR THE FIX
 # ==========================================
+# বাংলা মন্তব্য: লঞ্চডার্কলি এজেন্টস কন্ট্রোল এবং ভ্যারিয়েবল ইভ্যালুয়েশন লজিক
+
+def get_fixing_instruction_and_model(file_path, error_log):
+    """
+    লঞ্চডার্কলি থেকে ডাইনামিক প্রম্পট এবং মডেল রাউটিং ডেটা নিয়ে আসে।
+    যদি কোটা শেষ হয়ে যায় বা এপিআই ফেইল করে, তবে সার্কিট ব্রেকার ট্রিগার হবে
+    এবং লোকাল ফ্রি ডিফল্ট প্রম্পট ও মডেল রিটার্ন করবে।
+    """
+    default_model = "gemini/gemini-2.5-flash"
+    default_prompt_template = """You are an expert Senior Python Developer. The CI pipeline just failed.
+    Analyze the following Pytest error log and original file content. 
+
+    ERROR LOG:
+    {error_log}
+    {file_context}
+
+    Provide the fixed complete code for the file that caused the error. 
+    Output ONLY valid Python code inside a markdown block. Do not include explanations.
+    Add a comment at the top containing the exact file path like this:
+    # FILE_PATH: {file_path}"""
+
+    # Add path to sys.path
+    import sys
+    import os
+    scripts_dir = os.path.dirname(os.path.abspath(__file__))
+    root_dir = os.path.abspath(os.path.join(scripts_dir, "..", ".."))
+    backend_dir = os.path.join(root_dir, "backend")
+    if backend_dir not in sys.path:
+        sys.path.append(backend_dir)
+    if root_dir not in sys.path:
+        sys.path.append(root_dir)
+
+    try:
+        from core.ld_client import ld_ai_client
+        from ldclient.context import Context
+        from ldai import AICompletionConfigDefault, ModelConfig, LDMessage
+    except ImportError as e:
+        print(f"🔌 Circuit Breaker Active: LaunchDarkly SDK or core.ld_client not available ({e}). Using Free Fallback.")
+        return default_prompt_template, default_model
+
+    if not ld_ai_client:
+        print("🔌 Circuit Breaker Active: LaunchDarkly client not initialized. Using Free Fallback.")
+        return default_prompt_template, default_model
+
+    try:
+        # লঞ্চডার্কলি কনটেক্সট সেটআপ
+        context = Context.builder("supremeai-ci-pipeline").kind("service").name("CI Auto-Fixer").build()
+
+        config = ld_ai_client.completion_config(
+            os.getenv("LAUNCHDARKLY_AI_CONFIG_KEY", "auto-fix-engine-flag"),
+            context,
+            default=AICompletionConfigDefault(
+                enabled=True,
+                model=ModelConfig(name="gemini/gemini-2.5-flash"),
+                messages=[
+                    LDMessage(role="system", content=default_prompt_template)
+                ]
+            )
+        )
+
+        if config and config.enabled:
+            prompt = config.messages[0].content if config.messages else default_prompt_template
+            model = config.model.name if config.model else default_model
+            print(f"🚀 LaunchDarkly Routing: Using model '{model}' with dynamic cloud prompts.")
+            return prompt, model
+    except Exception as e:
+        print(f"⚠️ LaunchDarkly Quota Exhausted or API Error: {str(e)}")
+
+    print("🔄 Automatically shifting to Free Cloud Fallback node...")
+    return default_prompt_template, default_model
+
 def get_ai_fix(error_log, file_path=None):
     print("🧠 Analyzing error and generating fix via SupremeAI...")
     
@@ -825,22 +897,35 @@ def get_ai_fix(error_log, file_path=None):
         except Exception as e:
             print(f"⚠️ Could not read source file {file_path}: {e}")
             
-    prompt = f"""
-    You are an expert Senior Python Developer. The CI pipeline just failed.
-    Analyze the following Pytest error log and original file content. 
+    prompt_template, target_model = get_fixing_instruction_and_model(file_path or 'backend/core/example.py', error_log)
     
-    ERROR LOG:
-    {error_log}
-    {file_context}
-    
-    Provide the fixed complete code for the file that caused the error. 
-    Output ONLY valid Python code inside a markdown block. Do not include explanations.
-    Add a comment at the top containing the exact file path like this:
-    # FILE_PATH: {file_path or 'backend/core/example.py'}
-    """
-    
-    response = client.models.generate_content(model='gemini-2.5-flash', contents=prompt)
-    return response.text
+    try:
+        prompt = prompt_template.format(error_log=error_log, file_context=file_context, file_path=file_path or 'backend/core/example.py')
+    except Exception:
+        prompt = f"{prompt_template}\n\nERROR LOG:\n{error_log}\n{file_context}\nFILE_PATH: {file_path or 'backend/core/example.py'}"
+
+    # Use litellm for universal routing and fallback
+    print(f"Calling model: {target_model} via LiteLLM...")
+    try:
+        # Inject GEMINI_API_KEY into litellm if it's there
+        api_key = os.getenv("SUPREMEAI_API_KEY") or os.getenv("GEMINI_API_KEY")
+        if api_key:
+            os.environ["GEMINI_API_KEY"] = api_key
+        response = litellm.completion(
+            model=target_model,
+            messages=[{"role": "user", "content": prompt}],
+            timeout=45.0
+        )
+        return response.choices[0].message.content
+    except Exception as e:
+        print(f"⚠️ Primary model {target_model} call failed: {e}")
+        print("🔄 Shifting to fallback model gemini/gemini-2.5-flash...")
+        response = litellm.completion(
+            model="gemini/gemini-2.5-flash",
+            messages=[{"role": "user", "content": prompt}],
+            timeout=45.0
+        )
+        return response.choices[0].message.content
 
 # ==========================================
 # 🔧 STEP 3: APPLY & VALIDATE FIX
@@ -901,7 +986,7 @@ def push_fix_to_repo(file_path):
         print(f"❌ ERROR: Failed to push to GitHub. {stderr}")
         sys.exit(1)
         
-    print(f"🎉 Auto-Fix successfully pushed! The CI pipeline will restart.")
+    print("🎉 Auto-Fix successfully pushed! The CI pipeline will restart.")
 
 if __name__ == "__main__":
     print("========================================")
@@ -36278,21 +36363,62 @@ class AutoRemediationEngine:
             logger.error(f"❌ Remediation failed: {str(e)}")
 
     def _generate_ai_patch(self, code: str, line: int, issue: str) -> str:
-        prompt = f"""You are an elite AI AppSec Engineer. Fix the following vulnerability.
+        # বাংলা মন্তব্য: লঞ্চডার্কলি এজেন্টস কন্ট্রোল এবং ভ্যারিয়েবল ইভ্যালুয়েশন লজিক যুক্ত করা হলো
+        from ldai import AICompletionConfigDefault
+        from ldai import LDMessage
+        from ldai import ModelConfig
+        from ldclient.context import Context
+
+        from core.ld_client import ld_ai_client
+
+        default_prompt_template = """You are an elite AI AppSec Engineer. Fix the following vulnerability.
         Issue: {issue} at line {line}.
         Return ONLY the fully corrected Python code. No markdown formatting blocks, no explanations.
 
         Original Code:
         {code}
         """
-        # বাংলা মন্তব্য: সরাসরি গুগল নেটিভ ক্লায়েন্ট কল না করে ইউনিভার্সাল llm_gateway ব্যবহার করে এপিআই কল করা হচ্ছে
+
+        context = Context.builder("auto-remediation-engine").kind("service").build()
+        prompt_vars = {
+            "issue": issue,
+            "line": str(line),
+            "code": code
+        }
+
+        config = None
+        if ld_ai_client:
+            try:
+                config = ld_ai_client.completion_config(
+                    os.getenv("LAUNCHDARKLY_AI_CONFIG_KEY", "auto-remediation-patch"),
+                    context,
+                    default=AICompletionConfigDefault(
+                        enabled=True,
+                        model=ModelConfig(name="gemini/gemini-1.5-pro"),
+                        messages=[
+                            LDMessage(role="system", content=default_prompt_template)
+                        ]
+                    ),
+                    variables=prompt_vars
+                )
+            except Exception as exc:
+                logger.warning(f"LaunchDarkly config evaluation failed, falling back: {exc}")
+
+        if config and config.enabled:
+            model_name = config.model.name if config.model else "gemini/gemini-1.5-pro"
+            prompt = config.messages[0].content if config.messages else default_prompt_template.format(**prompt_vars)
+        else:
+            model_name = "gemini/gemini-1.5-pro"
+            prompt = default_prompt_template.format(**prompt_vars)
+
         import asyncio
 
         from core.llm_gateway import llm_gateway
         response = asyncio.run(llm_gateway.acompletion(
             prompt=prompt,
             task_type="coding",
-            stream=False
+            stream=False,
+            model=model_name
         ))
         result = response.get("text", "") if isinstance(response, dict) else str(response)
         return result.strip()
@@ -36402,7 +36528,15 @@ class AutoRemediation:
     def _get_ai_patch(
         self, file_path: str, code: str, line_number: int, issue: str
     ) -> str:
-        prompt = f"""You are an elite secure coding assistant. Correct the security vulnerability in this file.
+        # বাংলা মন্তব্য: লঞ্চডার্কলি এজেন্টস কন্ট্রোল এবং ভ্যারিয়েবল ইভ্যালুয়েশন লজিক যুক্ত করা হলো
+        from ldai import AICompletionConfigDefault
+        from ldai import LDMessage
+        from ldai import ModelConfig
+        from ldclient.context import Context
+
+        from core.ld_client import ld_ai_client
+
+        default_prompt_template = """You are an elite secure coding assistant. Correct the security vulnerability in this file.
         File: {file_path}
         Line Number of Vulnerability: {line_number}
         Vulnerability Description: {issue}
@@ -36413,15 +36547,48 @@ class AutoRemediation:
         {code}
         """
 
+        context = Context.builder("auto-remediation-helper").kind("service").build()
+        prompt_vars = {
+            "file_path": file_path,
+            "line_number": str(line_number),
+            "issue": issue,
+            "code": code
+        }
+
+        config = None
+        if ld_ai_client:
+            try:
+                config = ld_ai_client.completion_config(
+                    os.getenv("LAUNCHDARKLY_AI_CONFIG_KEY", "auto-remediation-patch"),
+                    context,
+                    default=AICompletionConfigDefault(
+                        enabled=True,
+                        model=ModelConfig(name="gemini/gemini-1.5-pro"),
+                        messages=[
+                            LDMessage(role="system", content=default_prompt_template)
+                        ]
+                    ),
+                    variables=prompt_vars
+                )
+            except Exception as exc:
+                logger.warning(f"LaunchDarkly config evaluation failed, falling back: {exc}")
+
+        if config and config.enabled:
+            model_name = config.model.name if config.model else "gemini/gemini-1.5-pro"
+            prompt = config.messages[0].content if config.messages else default_prompt_template.format(**prompt_vars)
+        else:
+            model_name = "gemini/gemini-1.5-pro"
+            prompt = default_prompt_template.format(**prompt_vars)
+
         try:
-            # বাংলা মন্তব্য: সরাসরি গুগল নেটিভ API রিকোয়েস্ট না পাঠিয়ে ইউনিভার্সাল llm_gateway ব্যবহার করে এপিআই কল করা হচ্ছে
             import asyncio
 
             from core.llm_gateway import llm_gateway
             response = asyncio.run(llm_gateway.acompletion(
                 prompt=prompt,
                 task_type="coding",
-                stream=False
+                stream=False,
+                model=model_name
             ))
             raw_text = response.get("text", "") if isinstance(response, dict) else str(response)
 
@@ -40568,6 +40735,61 @@ class LanguageRouter:
 
 ```
 
+## File: `backend/core/ld_client.py`
+```python
+# Central LaunchDarkly Client Initialization
+# বাংলা মন্তব্য: লঞ্চডার্কলি এজেন্টস কন্ট্রোল এবং ওপেনটেলিমেট্রি মনিটরিং কনফিগার করার জন্য সেন্ট্রাল ক্লায়েন্ট ফাইল
+
+import os
+
+from loguru import logger
+
+
+# Safe import to handle missing packages or environments
+try:
+    import ldclient
+    from ldai import LDAIClient
+    from ldclient.config import Config
+    from ldobserve import ObservabilityConfig
+    from ldobserve import ObservabilityPlugin
+    LD_SUPPORTED = True
+except ImportError as e:
+    logger.warning(f"LaunchDarkly SDK libraries not fully installed or import failed: {e}")
+    LD_SUPPORTED = False
+
+def init_ld_client() -> "LDAIClient | None":
+    if not LD_SUPPORTED:
+        return None
+    
+    sdk_key = os.getenv("LAUNCHDARKLY_SDK_KEY")
+    if not sdk_key:
+        logger.warning("LAUNCHDARKLY_SDK_KEY is not set in environment. LaunchDarkly integration disabled.")
+        return None
+        
+    try:
+        # বাংলা মন্তব্য: লঞ্চডার্কলি কোর ক্লায়েন্ট কনফিগারেশন এবং অবজারভেবিলিটি প্লাগইন ইন্টিগ্রেশন
+        ldclient.set_config(Config(
+            sdk_key,
+            plugins=[
+                ObservabilityPlugin(
+                    ObservabilityConfig(
+                        service_name=os.getenv("SERVICE_NAME", "supremeai-backend"),
+                        service_version=os.getenv("SERVICE_VERSION", "2.0.0"),
+                    )
+                )
+            ],
+        ))
+        logger.info("LaunchDarkly AI Client successfully initialized with Observability.")
+        return LDAIClient(ldclient.get())
+    except Exception as e:
+        logger.error(f"Failed to initialize LaunchDarkly client: {e}")
+        return None
+
+# গ্লোবাল ক্লায়েন্ট রেফারেন্স (Global Client Reference)
+ld_ai_client = init_ld_client()
+
+```
+
 ## File: `backend/core/lifespan.py`
 ```python
 import asyncio
@@ -40835,7 +41057,8 @@ class LLMGateway:
         prompt: str | list[dict[str, Any]],
         task_type: str = "general",
         stream: bool = False,
-        timeout: float = 12.0
+        timeout: float = 12.0,
+        model: str | None = None
     ) -> Any:
         """
         Main async completion interface with robust fallback routing.
@@ -40873,6 +41096,8 @@ class LLMGateway:
         
         # Merge target candidate with the fallback chain to prevent duplication
         call_chain = []
+        if model:
+            call_chain.append(model)
         for m in (model_candidates + fallbacks):
             if m not in call_chain:
                 call_chain.append(m)
