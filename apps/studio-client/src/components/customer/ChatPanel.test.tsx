@@ -61,8 +61,8 @@ describe('ChatPanel', () => {
         loading={false}
       />,
     );
-    // বাংলা মন্তব্য: ছোটখাটো টেক্সট পরিবর্তন বা এলিপসিস চরিত্রের পার্থক্য এড়াতে প্লেসহোল্ডারে Regex ম্যাচিং ব্যবহার করা হলো
-    const input = screen.getByPlaceholderText(/Ask anything or execute/i);
+    // বাংলা মন্তব্য: স্ট্যাবল টেস্টিং নিশ্চিত করতে প্লেসহোল্ডার স্ট্রিংয়ের পরিবর্তে data-testid ব্যবহার করা হলো
+    const input = screen.getByTestId('chat-input');
     fireEvent.change(input, { target: { value: 'test' } });
     expect(onInputChange).toHaveBeenCalledWith('test');
   });
@@ -93,8 +93,8 @@ describe('ChatPanel', () => {
         loading={false}
       />,
     );
-    // বাংলা মন্তব্য: ছোটখাটো টেক্সট পরিবর্তন বা এলিপসিস চরিত্রের পার্থক্য এড়াতে প্লেসহোল্ডারে Regex ম্যাচিং ব্যবহার করা হলো
-    const input = screen.getByPlaceholderText(/Ask anything or execute/i);
+    // বাংলা মন্তব্য: স্ট্যাবল টেস্টিং নিশ্চিত করতে প্লেসহোল্ডার স্ট্রিংয়ের পরিবর্তে data-testid ব্যবহার করা হলো
+    const input = screen.getByTestId('chat-input');
     fireEvent.keyDown(input, { key: 'Enter' });
     expect(onSend).toHaveBeenCalled();
   });
@@ -137,8 +137,8 @@ describe('ChatPanel', () => {
         loading={false}
       />,
     );
-    // বাংলা মন্তব্য: ছোটখাটো টেক্সট পরিবর্তন বা এলিপসিস চরিত্রের পার্থক্য এড়াতে প্লেসহোল্ডারে Regex ম্যাচিং ব্যবহার করা হলো
-    const input = screen.getByPlaceholderText(/Ask anything or execute/i);
+    // বাংলা মন্তব্য: স্ট্যাবল টেস্টিং নিশ্চিত করতে প্লেসহোল্ডার স্ট্রিংয়ের পরিবর্তে data-testid ব্যবহার করা হলো
+    const input = screen.getByTestId('chat-input');
     fireEvent.keyDown(input, { key: 'Enter' });
     expect(onSend).toHaveBeenCalled();
   });
