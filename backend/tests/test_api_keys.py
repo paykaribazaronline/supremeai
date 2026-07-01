@@ -16,9 +16,6 @@ from fastapi.testclient import TestClient
 os.environ.setdefault("OPENROUTER_API_KEY", "mock-key-value")
 os.environ.setdefault("ENV", "test")
 
-asyncpg_stub = types.ModuleType("asyncpg")
-
-
 class FakeConn:
     async def execute(self, *a, **k):
         return "OK"
@@ -48,10 +45,6 @@ class FakePool:
 
     async def fetchrow(self, *a, **k):
         return None
-
-
-asyncpg_stub.Pool = FakePool
-sys.modules["asyncpg"] = asyncpg_stub
 
 # Ensure `core.app` is reloaded fresh in test runs (avoid cached app state)
 for _mod in [

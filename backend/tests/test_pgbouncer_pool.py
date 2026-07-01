@@ -2,14 +2,6 @@ import sys
 from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
-if "asyncpg" not in sys.modules:
-    mock_asyncpg = MagicMock()
-    mock_pool_mod = MagicMock()
-    mock_connection = MagicMock()
-    sys.modules["asyncpg"] = mock_asyncpg
-    sys.modules["asyncpg.pool"] = mock_pool_mod
-    sys.modules["asyncpg.connection"] = mock_connection
-
 from core.pgbouncer_pool import PgBouncerConnectionPool
 
 @pytest.mark.asyncio
