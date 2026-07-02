@@ -19,13 +19,11 @@ from mcp.server.fastmcp import FastMCP
 mcp = FastMCP("supabase_mcp")
 
 CHARACTER_LIMIT = 25000
-SUPABASE_DB_URL = os.getenv("SUPABASE_DATABASE_URL", "")
 
-# বাংলা মন্তব্য: ডাটাবেস ইউআরএল ফরম্যাট ও উপস্থিতি যাচাই
-if not SUPABASE_DB_URL:
-    logger.warning("SUPABASE_DATABASE_URL is not set in environment variables.")
-elif not (SUPABASE_DB_URL.startswith("postgres://") or SUPABASE_DB_URL.startswith("postgresql://")):
-    logger.error("SUPABASE_DATABASE_URL must start with 'postgres://' or 'postgresql://'")
+
+def _get_supabase_db_url() -> str:
+    return os.getenv("SUPABASE_DATABASE_URL", "")
+
 
 
 class ResponseFormat(str, Enum):
@@ -63,10 +61,11 @@ class MigrationInput(BaseModel):
 
 def _get_connection():
     """PostgreSQL কানেকশন পায়।"""
-    if not SUPABASE_DB_URL:
+    supabase_db_url = _get_supabase_db_url()
+    if not supabase_db_url:
         return None
     try:
-        conn = psycopg2.connect(SUPABASE_DB_URL)
+        conn = psycopg2.connect(supabase_db_url)
         return conn
     except Exception:
         return None
@@ -119,7 +118,7 @@ async def supabase_execute_sql(params: ExecuteQueryInput) -> str:
             "message": "Set ADMIN_AUTHORIZED=true in environment"
         }, ensure_ascii=False)
 
-    if not SUPABASE_DB_URL:
+    if not _get_supabase_db_url():
         return json.dumps({"error": "SUPABASE_DATABASE_URL not configured"}, ensure_ascii=False)
 
     conn = None
@@ -206,7 +205,7 @@ async def supabase_create_table(params: CreateTableInput) -> str:
             "error": "Admin authorization required for table creation"
         }, ensure_ascii=False)
 
-    if not SUPABASE_DB_URL:
+    if not _get_supabase_db_url():
         return json.dumps({"error": "SUPABASE_DATABASE_URL not configured"}, ensure_ascii=False)
 
     if_not_exists = "IF NOT EXISTS" if params.if_not_exists else ""
@@ -271,7 +270,7 @@ async def supabase_run_migration(params: MigrationInput) -> str:
             "error": "Admin authorization required for migrations"
         }, ensure_ascii=False)
 
-    if not SUPABASE_DB_URL:
+    if not _get_supabase_db_url():
         return json.dumps({"error": "SUPABASE_DATABASE_URL not configured"}, ensure_ascii=False)
 
     conn = None
@@ -340,7 +339,7 @@ async def supabase_list_tables() -> str:
     Returns:
         str: টেবিল তালিকা JSON ফরম্যাটে
     """
-    if not SUPABASE_DB_URL:
+    if not _get_supabase_db_url():
         return json.dumps({"error": "SUPABASE_DATABASE_URL not configured"}, ensure_ascii=False)
 
     conn = None

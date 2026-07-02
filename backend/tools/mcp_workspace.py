@@ -63,7 +63,10 @@ def _load_workspace_config() -> Dict[str, Any]:
     """ওয়ার্কস্পেস কনফিগারেশন লোড করে।"""
     config_path = Path(WORKSPACE_CONFIG_FILE)
     if config_path.exists():
-        config = json.loads(config_path.read_text(encoding="utf-8"))
+        try:
+            config = json.loads(config_path.read_text(encoding="utf-8"))
+        except (json.JSONDecodeError, OSError):
+            return {}
         # বাংলা মন্তব্য: কনফিগারেশনয় থাকা পাথগুলো সর্বদা প্রোজেক্ট রুটের সাপেক্ষে করে রূপান্তর করা হচ্ছে
         workspace_config = config.get("workspace", {})
         for key, value in workspace_config.items():

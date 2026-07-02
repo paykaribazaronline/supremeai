@@ -17,9 +17,13 @@ from mcp.server.fastmcp import FastMCP
 mcp = FastMCP("github_cicd_mcp")
 
 CHARACTER_LIMIT = 25000
-GITHUB_TOKEN = os.getenv("GITHUB_TOKEN", "")
 GITHUB_REPO = os.getenv("GITHUB_REPOSITORY", "supremeai/supremeai_2.0")
 GITHUB_API_URL = "https://api.github.com"
+
+
+def _get_github_token() -> str:
+    """Get the current GitHub token from environment variables."""
+    return os.getenv("GITHUB_TOKEN", "")
 
 
 class ResponseFormat(str, Enum):
@@ -96,7 +100,8 @@ async def github_create_pull_request(params: CreatePRInput) -> str:
             "error": "Admin authorization required for PR creation"
         }, ensure_ascii=False)
 
-    if not GITHUB_TOKEN:
+    github_token = _get_github_token()
+    if not github_token:
         return json.dumps({"error": "GITHUB_TOKEN not configured"}, ensure_ascii=False)
 
     try:
@@ -104,7 +109,7 @@ async def github_create_pull_request(params: CreatePRInput) -> str:
             response = await client.post(
                 f"{GITHUB_API_URL}/repos/{GITHUB_REPO}/pulls",
                 headers={
-                    "Authorization": f"token {GITHUB_TOKEN}",
+                    "Authorization": f"token {github_token}",
                     "Accept": "application/vnd.github.v3+json"
                 },
                 json={
@@ -162,7 +167,8 @@ async def github_run_auto_fix(params: FixIssueInput) -> str:
             "message": "Set AUTOFIX_AUTHORIZED=true in environment"
         }, ensure_ascii=False)
 
-    if not GITHUB_TOKEN:
+    github_token = _get_github_token()
+    if not github_token:
         return json.dumps({"error": "GITHUB_TOKEN not configured"}, ensure_ascii=False)
 
     try:
@@ -170,7 +176,7 @@ async def github_run_auto_fix(params: FixIssueInput) -> str:
             response = await client.post(
                 f"{GITHUB_API_URL}/repos/{GITHUB_REPO}/actions/workflows/ci-auto-fix-v3.yml/dispatches",
                 headers={
-                    "Authorization": f"token {GITHUB_TOKEN}",
+                    "Authorization": f"token {github_token}",
                     "Accept": "application/vnd.github.v3+json"
                 },
                 json={
@@ -215,7 +221,8 @@ async def github_list_issues(state: str = "open", labels: str | None = None) -> 
     Returns:
         str: ইস্যু তালিকা
     """
-    if not GITHUB_TOKEN:
+    github_token = _get_github_token()
+    if not github_token:
         return json.dumps({"error": "GITHUB_TOKEN not configured"}, ensure_ascii=False)
 
     valid_states = {"open", "closed", "all"}
@@ -231,7 +238,7 @@ async def github_list_issues(state: str = "open", labels: str | None = None) -> 
             response = await client.get(
                 f"{GITHUB_API_URL}/repos/{GITHUB_REPO}/issues",
                 headers={
-                    "Authorization": f"token {GITHUB_TOKEN}",
+                    "Authorization": f"token {github_token}",
                     "Accept": "application/vnd.github.v3+json"
                 },
                 params=params
@@ -279,7 +286,8 @@ async def github_get_ci_status(branch: str = "main") -> str:
     Returns:
         str: CI স্ট্যাটাস ও রিজাল্ট
     """
-    if not GITHUB_TOKEN:
+    github_token = _get_github_token()
+    if not github_token:
         return json.dumps({"error": "GITHUB_TOKEN not configured"}, ensure_ascii=False)
 
     try:
@@ -287,7 +295,7 @@ async def github_get_ci_status(branch: str = "main") -> str:
             response = await client.get(
                 f"{GITHUB_API_URL}/repos/{GITHUB_REPO}/commits/{branch}/status",
                 headers={
-                    "Authorization": f"token {GITHUB_TOKEN}",
+                    "Authorization": f"token {github_token}",
                     "Accept": "application/vnd.github.v3+json"
                 }
             )

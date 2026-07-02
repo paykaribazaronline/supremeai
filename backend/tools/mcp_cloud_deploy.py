@@ -19,24 +19,28 @@ from mcp.server.fastmcp import FastMCP
 mcp = FastMCP("cloud_deploy_mcp")
 
 CHARACTER_LIMIT = 25000
-RENDER_API_KEY = os.getenv("RENDER_API_KEY", "")
-RAILWAY_TOKEN = os.getenv("RAILWAY_TOKEN", "")
-ORACLE_API_KEY = os.getenv("ORACLE_CLOUD_API_KEY", "")
 
-# বাংলা মন্তব্য: ক্লাউড প্রোভাইডারের এনভায়রনমেন্ট ভ্যারিয়েবল ভ্যালিডেশন ও সতর্কতা
-if not RENDER_API_KEY:
-    logger.warning("RENDER_API_KEY is not set in environment variables.")
-if not RAILWAY_TOKEN:
-    logger.warning("RAILWAY_TOKEN is not set in environment variables.")
-if not ORACLE_API_KEY:
-    logger.warning("ORACLE_CLOUD_API_KEY is not set in environment variables.")
 
-ORACLE_REGION = os.getenv("ORACLE_REGION", "")
-if not ORACLE_REGION:
-    logger.warning("ORACLE_REGION is not set, defaulting to 'us-phoenix-1'.")
-    ORACLE_REGION = "us-phoenix-1"
-elif not re.match(r"^[a-z0-9\-]+$", ORACLE_REGION):
-    logger.error(f"Invalid ORACLE_REGION format: '{ORACLE_REGION}'. It should only contain lowercase letters, numbers, and hyphens.")
+def _get_render_api_key() -> str:
+    return os.getenv("RENDER_API_KEY", "")
+
+
+def _get_railway_token() -> str:
+    return os.getenv("RAILWAY_TOKEN", "")
+
+
+def _get_oracle_api_key() -> str:
+    return os.getenv("ORACLE_CLOUD_API_KEY", "")
+
+
+def _get_oracle_region() -> str:
+    region = os.getenv("ORACLE_REGION", "us-phoenix-1")
+    if not region:
+        return "us-phoenix-1"
+    if not re.match(r"^[a-z0-9\-]+$", region):
+        logger.error(f"Invalid ORACLE_REGION format: '{region}'. It should only contain lowercase letters, numbers, and hyphens.")
+        return "us-phoenix-1"
+    return region
 
 
 class CloudProvider(str, Enum):
@@ -64,7 +68,7 @@ class DeployServiceInput(BaseModel):
         max_length=100, 
         pattern=r"^[a-zA-Z0-9\-_]+$"
     )
-    branch: str | None = Field(default="main", description="ডিপ্লয় ব্রাঞ্চ")
+    branch: str | None = Field(default="main", description="ডিপ্লয় ব্রাঞ্চ", pattern=r"^[^\s;]+$")
 
 
 class GetLogsInput(BaseModel):
@@ -133,22 +137,25 @@ async def cloud_deploy_service(params: DeployServiceInput) -> str:
     api_url = ""
 
     if params.provider == CloudProvider.RENDER:
-        if not RENDER_API_KEY:
+        render_api_key = _get_render_api_key()
+        if not render_api_key:
             return json.dumps({"error": "RENDER_API_KEY not configured"}, ensure_ascii=False)
         api_url = "https://api.render.com/v1/services"
-        headers = {"Authorization": f"Bearer {RENDER_API_KEY}"}
+        headers = {"Authorization": f"Bearer {render_api_key}"}
 
     elif params.provider == CloudProvider.RAILWAY:
-        if not RAILWAY_TOKEN:
+        railway_token = _get_railway_token()
+        if not railway_token:
             return json.dumps({"error": "RAILWAY_TOKEN not configured"}, ensure_ascii=False)
         api_url = "https://back-end.railway.app/v2/services"
-        headers = {"Authorization": f"Bearer {RAILWAY_TOKEN}"}
+        headers = {"Authorization": f"Bearer {railway_token}"}
 
     elif params.provider == CloudProvider.ORACLE:
-        if not ORACLE_API_KEY:
+        oracle_key = _get_oracle_api_key()
+        if not oracle_key:
             return json.dumps({"error": "ORACLE_CLOUD_API_KEY not configured"}, ensure_ascii=False)
-        api_url = f"https://containerengine.{ORACLE_REGION}.oraclecloud.com/api/v1/deploy"
-        headers = {"Authorization": f"Bearer {ORACLE_API_KEY}"}
+        api_url = f"https://containerengine.{_get_oracle_region()}.oraclecloud.com/api/v1/deploy"
+        headers = {"Authorization": f"Bearer {oracle_key}"}
 
     try:
         async with httpx.AsyncClient(timeout=60.0) as client:
@@ -202,22 +209,25 @@ async def cloud_get_deployment_logs(params: GetLogsInput) -> str:
     headers = {}
 
     if params.provider == CloudProvider.RENDER:
-        if not RENDER_API_KEY:
+        render_api_key = _get_render_api_key()
+        if not render_api_key:
             return json.dumps({"error": "RENDER_API_KEY not configured"}, ensure_ascii=False)
         api_url = f"https://api.render.com/v1/services/{params.service_name}/logs"
-        headers = {"Authorization": f"Bearer {RENDER_API_KEY}"}
+        headers = {"Authorization": f"Bearer {render_api_key}"}
 
     elif params.provider == CloudProvider.RAILWAY:
-        if not RAILWAY_TOKEN:
+        railway_token = _get_railway_token()
+        if not railway_token:
             return json.dumps({"error": "RAILWAY_TOKEN not configured"}, ensure_ascii=False)
         api_url = f"https://back-end.railway.app/v2/services/{params.service_name}/logs"
-        headers = {"Authorization": f"Bearer {RAILWAY_TOKEN}"}
+        headers = {"Authorization": f"Bearer {railway_token}"}
 
     elif params.provider == CloudProvider.ORACLE:
-        if not ORACLE_API_KEY:
+        oracle_key = _get_oracle_api_key()
+        if not oracle_key:
             return json.dumps({"error": "ORACLE_CLOUD_API_KEY not configured"}, ensure_ascii=False)
-        api_url = f"https://logging.{ORACLE_REGION}.oraclecloud.com/api/v1/logs"
-        headers = {"Authorization": f"Bearer {ORACLE_API_KEY}"}
+        api_url = f"https://logging.{_get_oracle_region()}.oraclecloud.com/api/v1/logs"
+        headers = {"Authorization": f"Bearer {oracle_key}"}
 
     try:
         async with httpx.AsyncClient(timeout=30.0) as client:
@@ -263,12 +273,13 @@ async def cloud_list_services() -> str:
     """
     services = []
 
-    if RENDER_API_KEY:
+    render_api_key = _get_render_api_key()
+    if render_api_key:
         try:
             async with httpx.AsyncClient(timeout=30.0) as client:
                 response = await client.get(
                     "https://api.render.com/v1/services",
-                    headers={"Authorization": f"Bearer {RENDER_API_KEY}"}
+                    headers={"Authorization": f"Bearer {render_api_key}"}
                 )
                 if response.status_code == 200:
                     for svc in response.json():
@@ -281,12 +292,13 @@ async def cloud_list_services() -> str:
         except Exception as e:
             logger.error(f"Failed to list services from Render: {e}")
 
-    if RAILWAY_TOKEN:
+    railway_token = _get_railway_token()
+    if railway_token:
         try:
             async with httpx.AsyncClient(timeout=30.0) as client:
                 response = await client.get(
                     "https://back-end.railway.app/v2/services",
-                    headers={"Authorization": f"Bearer {RAILWAY_TOKEN}"}
+                    headers={"Authorization": f"Bearer {railway_token}"}
                 )
                 if response.status_code == 200:
                     for svc in response.json():

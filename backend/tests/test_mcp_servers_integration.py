@@ -2315,6 +2315,7 @@ class TestInputValidation:
     @pytest.mark.asyncio
     async def test_supabase_execute_sql_truncate(self, monkeypatch):
         """TRUNCATE কুয়েরি রিজেক্ট হয় অথেন্টিকেশন দরকার।"""
+        monkeypatch.setenv("ADMIN_AUTHORIZED", "false")
         from tools.mcp_supabase import supabase_execute_sql, ExecuteQueryInput, ResponseFormat
         
         params = ExecuteQueryInput(query="TRUNCATE users", response_format=ResponseFormat.JSON)
@@ -2325,6 +2326,7 @@ class TestInputValidation:
     @pytest.mark.asyncio
     async def test_supabase_execute_sql_delete(self, monkeypatch):
         """DELETE কুয়েরি রিজেক্ট হয় অথেন্টিকেশন দরকার।"""
+        monkeypatch.setenv("ADMIN_AUTHORIZED", "false")
         from tools.mcp_supabase import supabase_execute_sql, ExecuteQueryInput, ResponseFormat
         
         params = ExecuteQueryInput(query="DELETE FROM users WHERE id = 1", response_format=ResponseFormat.JSON)
@@ -2335,6 +2337,7 @@ class TestInputValidation:
     @pytest.mark.asyncio
     async def test_supabase_execute_sql_alter(self, monkeypatch):
         """ALTER কুয়েরি রিজেক্ট হয় অথেন্টিকেশন দরকার।"""
+        monkeypatch.setenv("ADMIN_AUTHORIZED", "false")
         from tools.mcp_supabase import supabase_execute_sql, ExecuteQueryInput, ResponseFormat
         
         params = ExecuteQueryInput(query="ALTER TABLE users ADD COLUMN email VARCHAR(100)", response_format=ResponseFormat.JSON)
@@ -2345,6 +2348,7 @@ class TestInputValidation:
     @pytest.mark.asyncio
     async def test_supabase_execute_sql_destructive_keyword_case_insensitive(self, monkeypatch):
         """ডেস্ট্রাকটিভ কিওয়েরগুলো কেস-ইনসেন্সিটিভ হ্যান্ডল হয়।"""
+        monkeypatch.setenv("ADMIN_AUTHORIZED", "false")
         from tools.mcp_supabase import supabase_execute_sql, ExecuteQueryInput, ResponseFormat
         
         # DROP keyword বড় হাতের অক্ষরে
@@ -2587,7 +2591,7 @@ class TestInputValidation:
         
         try:
             path = _get_workspace_path(WorkspaceType.ECOMMERCE_BACKEND)
-            assert "custom/backend" in str(path)
+            assert "custom/backend" in str(path).replace("\\", "/")
         finally:
             if WORKSPACE_CONFIG_FILE.exists():
                 WORKSPACE_CONFIG_FILE.unlink()
