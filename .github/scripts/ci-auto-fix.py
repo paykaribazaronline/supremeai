@@ -215,6 +215,43 @@ def is_critical_structural_change(filepath: str) -> bool:
     return True
 
 
+def request_admin_approval(filepath: str, diff: str) -> bool:
+    """অডমিন অনুমোদন রিকোয়েস্ট করা - HITL গেটওয়ে"""
+    try:
+        import urllib.request
+        import json
+        
+        repo = os.environ.get("GITHUB_REPOSITORY", "")
+        token = os.environ.get("GITHUB_TOKEN", "")
+        
+        if repo and token:
+            payload = json.dumps({
+                "title": f"🛡️ Critical File Auto-Fix Request: {filepath}",
+                "body": f"SupremeAI CI অটো-ফিক্স এই ক্রিটিক্যাল ফাইলে পরিবর্তন করার জন্য অনুমোদন চাইছে:\n\n**File:** `{filepath}`\n\n**Diff Preview:**\n```\n{diff[:1000]}...\n```\n\nঅনুমোদন করতে: গিটহাব ইস্যু কমেন্টে `/approve` লিখুন",
+                "labels": ["auto-fix-pending", "admin-approval"]
+            }).encode()
+            
+            req = urllib.request.Request(
+                f"https://api.github.com/repos/{repo}/issues",
+                data=payload,
+                headers={
+                    "Authorization": f"Bearer {token}",
+                    "Accept": "application/vnd.github+json",
+                    "Content-Type": "application/json"
+                },
+                method="POST"
+            )
+            
+            with urllib.request.urlopen(req) as resp:
+                issue_url = json.loads(resp.read().decode()).get("html_url", "")
+                print(f"📋 Admin approval issue created: {issue_url}")
+                return True
+    except Exception as e:
+        print(f"⚠️ Failed to create approval request: {e}")
+    
+    return False
+
+
 def open_github_issue(title: str, body: str = ""):
     """Create a GitHub Issue when auto-fix is blocked."""
     token = os.environ.get("GITHUB_TOKEN", "")

@@ -2,6 +2,7 @@
 // বাংলা মонтаব্য: চ্যাট ইন্টারফেস ও স্ট্রিমিং এপিআই এর সাথে যোগাযোগের জন্য ব্যবহৃত সার্ভিস। Prompt-to-Action সাপোর্ট সহ।
 
 import { apiClient } from './apiClient';
+import { getApiBaseUrl } from '../utils/api';
 
 export interface ChatMessage {
   role: 'user' | 'assistant' | 'system';
@@ -32,8 +33,6 @@ export interface ChatResponse {
     payload?: Record<string, unknown>;
   };
 }
-
-import { getApiBaseUrl } from './utils/api';
 
 // বাংলা মন্তব্য: ফাংশন ডিক্লেয়ারেশন সিনট্যাক্স এরর ঠিক করা হলো
 export async function sendMessageStream(

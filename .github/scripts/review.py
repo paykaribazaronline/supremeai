@@ -3,7 +3,9 @@ import sys
 import json
 import subprocess
 import urllib.request
-import time
+import asyncio
+import aiohttp
+from typing import List, Dict, Optional
 import google.generativeai as genai
 from google.api_core.exceptions import ResourceExhausted, GoogleAPICallError
 import importlib.util
@@ -14,27 +16,64 @@ code_smell_detector_module = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(code_smell_detector_module)
 CodeSmellDetector = code_smell_detector_module.CodeSmellDetector
 
-def call_gemini_with_fallback(api_keys, prompt):
+# রেট লিমিট সেটিংস - 15 RPM মেনে চলার জন্য
+RPM_LIMIT = 15
+MAX_CONCURRENT_REQUESTS = 5
+
+async def call_gemini_async(api_key: str, model_name: str, prompt: str, session: aiohttp.ClientSession) -> Optional[str]:
+    """Async Gemini API call with proper rate limiting."""
+    try:
+        print(f"Attempting async review with {model_name}...", file=sys.stderr)
+        genai.configure(api_key=api_key)
+        model = genai.GenerativeModel(model_name)
+        
+        # Async API call
+        response = await asyncio.get_event_loop().run_in_executor(
+            None, lambda: model.generate_content(prompt)
+        )
+        print(f"Success with {model_name}!", file=sys.stderr)
+        return response.text
+    except ResourceExhausted:
+        print(f"Rate limit exhausted for {model_name}.", file=sys.stderr)
+        return None
+    except Exception as e:
+        print(f"{model_name} failed: {e}", file=sys.stderr)
+        return None
+
+async def call_gemini_with_fallback_async(api_keys: List[str], prompt: str) -> Optional[str]:
+    """Async parallel API calls with fallback and rate limit handling."""
     fallback_models = ['gemini-2.5-flash', 'gemini-1.5-flash', 'gemini-2.0-flash', 'gemini-1.5-pro', 'gemini-1.0-pro']
-    for i, key in enumerate(api_keys):
+    
+    semaphore = asyncio.Semaphore(MAX_CONCURRENT_REQUESTS)
+    
+    async def try_model(key: str, model: str) -> Optional[str]:
+        async with semaphore:
+            return await call_gemini_async(key, model, prompt, aiohttp.ClientSession())
+    
+    tasks = []
+    for key in api_keys:
         for model_name in fallback_models:
-            try:
-                print(f"Attempting review with Key {i+1} using {model_name}...", file=sys.stderr)
-                genai.configure(api_key=key)
-                model = genai.GenerativeModel(model_name)
-                response = model.generate_content(prompt)
-                print(f"Success with Key {i+1} using {model_name}!", file=sys.stderr)
-                return response.text
-            except ResourceExhausted:
-                print(f"Key {i+1} rate limit exhausted for {model_name}. Trying next...", file=sys.stderr)
-            except GoogleAPICallError as e:
-                if "not found" in str(e).lower() or "not supported" in str(e).lower():
-                    print(f"Model {model_name} not supported by Key {i+1}. Trying next model...", file=sys.stderr)
-                    continue
-                print(f"Key {i+1} failed with API error for {model_name}: {e}. Trying next...", file=sys.stderr)
-            except Exception as e:
-                print(f"Key {i+1} failed for {model_name}: {e}. Trying next...", file=sys.stderr)
+            tasks.append(try_model(key, model_name))
+    
+    # Process tasks with timeout and rate limit awareness
+    for task in asyncio.as_completed(tasks):
+        result = await task
+        if result:
+            return result
+    
     return None
+
+def call_gemini_with_fallback(api_keys: List[str], prompt: str) -> Optional[str]:
+    """Synchronous wrapper for async implementation."""
+    try:
+        loop = asyncio.get_event_loop()
+        if loop.is_running():
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+        return loop.run_until_complete(call_gemini_with_fallback_async(api_keys, prompt))
+    except Exception as e:
+        print(f"Async fallback failed: {e}", file=sys.stderr)
+        return None
 
 def get_failed_jobs_logs():
     repo = os.environ.get("GITHUB_REPOSITORY")
@@ -165,78 +204,112 @@ def main():
 
     allowed_extensions = ('.java', '.dart', '.py', '.ts', '.js', '.tsx', '.jsx', '.json', '.yml', '.yaml')
     relevant_files = [f for f in changed_files if f.endswith(allowed_extensions)]
-
+    
     full_report = "## 🤖 Gemini AI Code Review Report\n\n"
     has_changes = False
 
+    # অ্যাসিঙ্ক পারালেল প্রসেসিং - ফাইলগুলো একসাথে রিভিউ করা
     if relevant_files:
         print(f"Found {len(relevant_files)} relevant files to review.", file=sys.stderr)
-        for file_path in relevant_files:
-            print(f"Reviewing: {file_path}", file=sys.stderr)
+        
+        # লজ ট্রাঙ্কেশন - শুধু এরর কন্টেক্সট ফিল্টার করে পাঠানো
+        def truncate_log_to_error_context(log_text: str) -> str:
+            """এরর লগ থেকে শুধু মূল এরর কন্টেক্সট এক্সট্র্যাক্ট করে রাখা"""
+            lines = log_text.splitlines()
+            error_lines = []
+            capture = False
+            for line in lines:
+                if any(keyword in line.lower() for keyword in ['error:', 'exception:', 'failed', 'traceback', 'error at', 'error in']):
+                    capture = True
+                if capture:
+                    error_lines.append(line)
+                    if len(error_lines) > 100:  # শুধু প্রথম 100 এরর লাইন
+                        break
+            return '\n'.join(error_lines) if error_lines else log_text[-2000:]  # বাকি লাস্ট 2000 অক্ষর
+        
+        # পারালেল রিভিউ জেনারেটর
+        async def process_files_async():
+            semaphore = asyncio.Semaphore(MAX_CONCURRENT_REQUESTS)
             
-            try:
-                file_diff = subprocess.check_output(["git", "diff", "HEAD~1", "HEAD", "--", file_path]).decode("utf-8")
-            except Exception:
-                try:
-                    file_diff = subprocess.check_output(["git", "diff-tree", "--no-commit-id", "--cc", "HEAD", "--", file_path]).decode("utf-8")
-                except Exception as ex:
-                    print(f"Error getting diff for {file_path}: {ex}", file=sys.stderr)
-                    continue
+            async def process_single_file(file_path: str) -> tuple:
+                async with semaphore:
+                    try:
+                        file_diff = subprocess.check_output(["git", "diff", "HEAD~1", "HEAD", "--", file_path]).decode("utf-8")
+                    except Exception:
+                        try:
+                            file_diff = subprocess.check_output(["git", "diff-tree", "--no-commit-id", "--cc", "HEAD", "--", file_path]).decode("utf-8")
+                        except Exception as ex:
+                            print(f"Error getting diff for {file_path}: {ex}", file=sys.stderr)
+                            return (file_path, "")
+                    
+                    if not file_diff.strip():
+                        return (file_path, "")
+                    
+                    if len(file_diff.splitlines()) > 3000:
+                        return (file_path, f"### 📄 File: `{file_path}`\n*⚠️ Skipped: File diff is too large (>3000 lines) for automated review.*\n\n---\n\n")
+                    
+                    # এরর লগ ট্রাঙ্কেশন যুক্ত করা
+                    prompt = f"""
+                    You are an expert Senior Software Engineer specializing in Python/Java backends, Flutter mobile/web applications, and cloud deployments (Google Cloud Run, Firebase). Your task is to perform a strict, highly actionable code review on the provided git diff.
 
-            if not file_diff.strip():
-                continue
+                    ### 🛠️ Tech Stack Context
+                    - Backend: Python / Java
+                    - Frontend/Admin: Flutter
+                    - Infrastructure: Firebase, Google Cloud Run
 
-            has_changes = True
+                    ### ⚠️ Review Guidelines & Anti-Hallucination Rules
+                    1. ONLY analyze the exact code provided in the diff below. Do not guess or assume the existence of code outside this diff.
+                    2. If the diff lacks sufficient context to make a definitive judgment, explicitly state: "Need more context to verify."
+                    3. Ignore minor stylistic formatting (like tabs vs spaces). Focus purely on bugs, performance, security, and architectural flaws.
 
-            if len(file_diff.splitlines()) > 3000:
-                full_report += f"### 📄 File: `{file_path}`\n*⚠️ Skipped: File diff is too large (>3000 lines) for automated review.*\n\n---\n\n"
-                continue
+                    ### 🔍 Focus Areas
+                    - Python/Java: Look for memory leaks, unhandled exceptions, thread safety issues, and REST API best practices.
+                    - Flutter: Evaluate state management efficiency, widget tree optimization (avoiding unnecessary rebuilds), and proper disposal of controllers.
+                    - Infrastructure: Flag any changes that might negatively impact Firebase connections, break Cloud Run deployments, or compromise CI/CD pipelines.
 
-            prompt = f"""
-            You are an expert Senior Software Engineer specializing in Python/Java backends, Flutter mobile/web applications, and cloud deployments (Google Cloud Run, Firebase). Your task is to perform a strict, highly actionable code review on the provided git diff.
+                    ### 📝 Output Format
+                    Use clear Markdown. Group your feedback into the following categories if applicable:
+                    - 🛑 **Bugs / Errors**
+                    - 🔒 **Security Vulnerabilities**
+                    - ⚡ **Performance Improvements**
+                    - 💡 **Best Practices / Code Smells**
+                    Provide short, correct code snippets for any fixes you suggest. Keep explanations concise.
+                    **CRITICAL**: You MUST write the entire review in Bengali (বাংলা).
 
-            ### 🛠️ Tech Stack Context
-            - Backend: Python / Java
-            - Frontend/Admin: Flutter
-            - Infrastructure: Firebase, Google Cloud Run
-
-            ### ⚠️ Review Guidelines & Anti-Hallucination Rules
-            1. ONLY analyze the exact code provided in the diff below. Do not guess or assume the existence of code outside this diff.
-            2. If the diff lacks sufficient context to make a definitive judgment, explicitly state: "Need more context to verify."
-            3. Ignore minor stylistic formatting (like tabs vs spaces). Focus purely on bugs, performance, security, and architectural flaws.
-
-            ### 🔍 Focus Areas
-            - Python/Java: Look for memory leaks, unhandled exceptions, thread safety issues, and REST API best practices.
-            - Flutter: Evaluate state management efficiency, widget tree optimization (avoiding unnecessary rebuilds), and proper disposal of controllers.
-            - Infrastructure: Flag any changes that might negatively impact Firebase connections, break Cloud Run deployments, or compromise CI/CD pipelines.
-
-            ### 📝 Output Format
-            Use clear Markdown. Group your feedback into the following categories if applicable:
-            - 🛑 **Bugs / Errors**
-            - 🔒 **Security Vulnerabilities**
-            - ⚡ **Performance Improvements**
-            - 💡 **Best Practices / Code Smells**
-            Provide short, correct code snippets for any fixes you suggest. Keep explanations concise.
-            **CRITICAL**: You MUST write the entire review in Bengali (বাংলা).
-
-            Here are the code changes to review in file `{file_path}`:
-            {file_diff}
-            """
-
-            response_text = call_gemini_with_fallback(api_keys, prompt)
-            if response_text:
-                full_report += f"### 📄 File: `{file_path}`\n{response_text}\n\n---\n\n"
-
-                # Add code smell analysis for Python files
-                smell_suggestions = get_code_smell_suggestions(file_path, api_keys)
-                if smell_suggestions:
-                    full_report += smell_suggestions
-            else:
-                full_report += f"### 📄 File: `{file_path}`\n*⚠️ Review skipped or rate-limited for this file.*\n\n---\n\n"
+                    Here are the code changes to review in file `{file_path}`:
+                    {file_diff}
+                    """
+                    
+                    response_text = await call_gemini_with_fallback_async(api_keys, prompt)
+                    if response_text:
+                        result = f"### 📄 File: `{file_path}`\n{response_text}\n\n---\n\n"
+                        # কোড স্মেল বিশ্লেষণ
+                        smell_suggestions = get_code_smell_suggestions(file_path, api_keys)
+                        if smell_suggestions:
+                            result += smell_suggestions
+                        return (file_path, result)
+                    else:
+                        return (file_path, f"### 📄 File: `{file_path}`\n*⚠️ Review skipped or rate-limited for this file.*\n\n---\n\n")
             
-            # Rate limit protection for free API keys (15 RPM limit)
-            print("Waiting 5 seconds to prevent rate limits...", file=sys.stderr)
-            time.sleep(5)
+            # পারালেল টাস্কস চালানো
+            tasks = [process_single_file(fp) for fp in relevant_files]
+            results = await asyncio.gather(*tasks, return_exceptions=True)
+            
+            report_parts = []
+            for result in results:
+                if isinstance(result, tuple):
+                    report_parts.append(result[1])
+            
+            return report_parts
+        
+        # অ্যাসিঙ্ক রন চালানো
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        try:
+            report_parts = loop.run_until_complete(process_files_async())
+            full_report += ''.join(report_parts)
+        finally:
+            loop.close()
     else:
         print("No relevant files changed to review.", file=sys.stderr)
 

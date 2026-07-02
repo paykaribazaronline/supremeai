@@ -39,6 +39,22 @@
     "sqlite": {
       "command": "npx",
       "args": ["-y", "@modelcontextprotocol/server-sqlite"]
+    },
+    "workspace": {
+      "command": "python",
+      "args": ["backend/tools/mcp_workspace.py"]
+    },
+    "supabase": {
+      "command": "python",
+      "args": ["backend/tools/mcp_supabase.py"]
+    },
+    "cloud-deploy": {
+      "command": "python",
+      "args": ["backend/tools/mcp_cloud_deploy.py"]
+    },
+    "github-cicd": {
+      "command": "python",
+      "args": ["backend/tools/mcp_github_cicd.py"]
     }
   }
 }

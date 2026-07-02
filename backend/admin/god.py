@@ -70,29 +70,35 @@ class AdminGodLayer:
                 )
                 conn.commit()
 
+        # বাংলা মন্তব্য: নিরাপত্তার জন্য প্রথমবার চালানোর সময় সকল অ্যাডমিন অথরাইজেশন ডিফল্টভাবে 'false' রাখা হচ্ছে এবং সতর্কতা লগ করা হচ্ছে।
         if not self.get_rule("admin_authorized"):
-            self.set_rule("admin_authorized", "true")
+            self.set_rule("admin_authorized", "false")
+            logger.warning("Defaulting 'admin_authorized' to 'false' for security. Please configure explicitly.")
         if not self.get_rule("autofix_authorized"):
-            self.set_rule("autofix_authorized", "true")
+            self.set_rule("autofix_authorized", "false")
+            logger.warning("Defaulting 'autofix_authorized' to 'false' for security.")
         if not self.get_rule("autofix_reporting_authorized"):
-            self.set_rule("autofix_reporting_authorized", "true")
+            self.set_rule("autofix_reporting_authorized", "false")
+            logger.warning("Defaulting 'autofix_reporting_authorized' to 'false' for security.")
 
     def _init_db(self):
         if not self._db:
             return
         try:
-            # বাংলা মন্তব্য: Firestore-এ autofix_authorized নিয়মটি না থাকলে সেটি 'true' দিয়ে ইনিশিয়ালাইজ করা হচ্ছে।
+            # বাংলা মন্তব্য: Firestore-এ autofix_authorized এবং admin_authorized নিয়মগুলো না থাকলে সেগুলো 'false' দিয়ে ইনিশিয়ালাইজ করা হচ্ছে।
             doc_ref = self._db.collection(self.collection_name).document(
                 "admin_authorized"
             )
             if not doc_ref.get().exists:
-                self.set_rule("admin_authorized", "true")
+                self.set_rule("admin_authorized", "false")
+                logger.warning("Firestore: Defaulting 'admin_authorized' to 'false' for security.")
             
             autofix_ref = self._db.collection(self.collection_name).document(
                 "autofix_authorized"
             )
             if not autofix_ref.get().exists:
-                self.set_rule("autofix_authorized", "true")
+                self.set_rule("autofix_authorized", "false")
+                logger.warning("Firestore: Defaulting 'autofix_authorized' to 'false' for security.")
         except Exception as e:
             logger.error(f"Error initializing AdminGodLayer DB: {e}")
 

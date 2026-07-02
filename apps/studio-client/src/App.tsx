@@ -3,7 +3,7 @@ import { useStore } from "./store/useStore";
 import { useAdminStore } from "./store/adminStore";
 import { AdminConsole } from "./components/admin/AdminConsole";
 import { UserDashboard } from "./components/customer/UserDashboard";
-import { sendMessageStream } from "./services/chatService";
+import { getAethelResponse } from "./services/chatService";
 import type { ChatMessage } from "./services/chatService";
 import { getApiBaseUrl } from "./utils/api";
 import { Cpu, Send } from 'lucide-react';
@@ -127,15 +127,33 @@ function AdminShell() {
       });
   };
 
-  const handleSendAdmin = () => {
+  const handleSendAdmin = async () => {
     if (!adminInput.trim()) return;
-    setAdminMessages(prev => [...prev, { id: crypto.randomUUID(), sender: 'user', text: adminInput, timestamp: new Date().toLocaleTimeString() }]);
+    const now = new Date().toLocaleTimeString();
+    const requestId = crypto.randomUUID();
+    const userMessage = { id: requestId, sender: 'user', text: adminInput, timestamp: now };
+    const responseId = crypto.randomUUID();
+
+    setAdminMessages(prev => [
+      ...prev,
+      userMessage,
+      { id: responseId, sender: 'bot', text: `Processing admin command: "${adminInput}"...`, timestamp: now }
+    ]);
     setAdminInput("");
     setLoading(true);
-    setTimeout(() => {
-      setAdminMessages(prev => [...prev, { id: crypto.randomUUID(), sender: 'bot', text: `Command processed: "${adminInput}". Status: SUCCESS.`, timestamp: new Date().toLocaleTimeString() }]);
+
+    try {
+      const history = [...adminMessages, userMessage].map(msg => ({
+        role: msg.sender === 'user' ? 'user' : 'assistant',
+        content: msg.text,
+      }));
+      const responseText = await getAethelResponse(adminInput, history as any);
+      setAdminMessages(prev => prev.map(msg => msg.id === responseId ? { ...msg, text: responseText } : msg));
+    } catch (error: any) {
+      setAdminMessages(prev => prev.map(msg => msg.id === responseId ? { ...msg, text: `AI backend error: ${error?.message || 'Unable to process command.'}` } : msg));
+    } finally {
       setLoading(false);
-    }, 1000);
+    }
   };
 
   const handleSaveRules = () => {
@@ -381,15 +399,29 @@ export const App: React.FC = () => {
   }
 
   // বাংলা মন্তব্য: ইউনিট টেস্ট পাস করানোর জন্য হ্যান্ডলারটি পুনরায় সহজ মক হ্যান্ডলারে রূপান্তর করা হলো
-  const handleSendCustomer = () => {
+  const handleSendCustomer = async () => {
     if (!chatInput.trim()) return;
     const now = new Date().toLocaleTimeString();
+    const userMessage = { id: Date.now(), sender: 'User', text: chatInput, timestamp: now };
+    const responseId = Date.now() + 1;
+
     setChatMessages(prev => [
       ...prev,
-      { id: Date.now(), sender: 'User', text: chatInput, timestamp: now },
-      { id: Date.now() + 1, sender: 'Aethel', text: `Analyzing request "${chatInput}"... Processing on central core.`, timestamp: now }
+      userMessage,
+      { id: responseId, sender: 'Aethel', text: `Analyzing request "${chatInput}"... Processing on central core.`, timestamp: now }
     ]);
     setChatInput('');
+
+    try {
+      const history = [...chatMessages, userMessage].map(msg => ({
+        role: msg.sender === 'User' ? 'user' : 'assistant',
+        content: msg.text,
+      }));
+      const responseText = await getAethelResponse(chatInput, history as any);
+      setChatMessages(prev => prev.map(msg => msg.id === responseId ? { ...msg, text: responseText } : msg));
+    } catch (error: any) {
+      setChatMessages(prev => prev.map(msg => msg.id === responseId ? { ...msg, text: `AI backend error: ${error?.message || 'Unable to fetch response.'}` } : msg));
+    }
   };
 
   const handleSaveToProject = (code: string) => {

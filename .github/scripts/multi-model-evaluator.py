@@ -60,13 +60,16 @@ Git diff to review:
 
 
 # ═══════════════════════════════════════════════════════════════
-# Rate-limited retry with exponential backoff
+# Rate-limited retry with optimized exponential backoff
 # ═══════════════════════════════════════════════════════════════
-def retry_with_backoff(fn, max_retries: int = 5, base_wait: int = 4):
+def retry_with_backoff(fn, max_retries: int = 3, base_wait: int = 2):
     """
-    Exponential backoff: 4s, 8s, 16s, 32s, 64s.
+    Optimized exponential backoff: 2s, 4s, 8s (max 3 retries).
     Only retries on rate-limit errors (429 / "rate" in message).
     Other errors re-raise immediately.
+    
+    মন্তব্য: মূল রেট লিমিট হ্যান্ডলিংয়ের জন্য দ্রুত ব্যাকঅফ রাখা হলো
+    যাতে 64 সেকেন্ডের দেরি এড়ানো যায়
     """
     for attempt in range(max_retries):
         try:

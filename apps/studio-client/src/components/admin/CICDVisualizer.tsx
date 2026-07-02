@@ -3,6 +3,7 @@ import { GitBranch, Play, RotateCcw, FlaskConical, CheckCircle2, AlertTriangle, 
 import { useState, useEffect } from 'react';
 import { useStore } from '../../store/useStore';
 import { useCIReports } from '../../hooks/useAdminApi';
+import { getApiBaseUrl } from '../../utils/api';
 import type { CIReport } from '../../types';
 
 interface FeatureFlag {
@@ -45,8 +46,6 @@ export function CICDVisualizer() {
     if (s === 'running' || s === 'in_progress') return 'warning';
     return 'info';
   };
-
-import { getApiBaseUrl } from '../../utils/api';
 
   const handleDeploy = async () => {
     try {

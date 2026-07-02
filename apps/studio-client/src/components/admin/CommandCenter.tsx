@@ -130,47 +130,37 @@ export function CommandCenter() {
     if (!chatInput.trim()) return;
     const msgText = chatInput.trim();
 
+    const requestId = Date.now();
+    const placeholderId = requestId + 1;
     const nextMessages = [
       ...chatMessages,
-      { id: Date.now(), sender: 'Admin', text: msgText }
+      { id: requestId, sender: 'Admin', text: msgText },
+      { id: placeholderId, sender: 'SupremeAI', text: 'Thinking... Please wait.' }
     ];
+
     setChatMessages(nextMessages);
-    
-    // Check if websocket is actually connected
-    const isConnected = recorderRef.current && typeof recorderRef.current.isConnected === 'function' && recorderRef.current.isConnected();
+    setChatInput('');
 
-    if (isConnected && recorderRef.current) {
-      recorderRef.current.sendText(msgText);
-    } else {
-      setChatMessages(prev => [
-        ...prev,
-        { id: Date.now(), sender: 'SupremeAI', text: 'Thinking... Please wait.' }
-      ]);
-
-      const history = nextMessages.map(message => ({
+    const history = nextMessages
+      .filter(message => message.sender !== 'SupremeAI' || message.id !== placeholderId)
+      .map(message => ({
         role: message.sender === 'Admin' ? 'user' : 'assistant',
         content: message.text,
       }));
 
-      try {
-        const responseText = await getAethelResponse(msgText, history);
-        setChatMessages(prev => [
-          ...prev,
-          { id: Date.now(), sender: 'SupremeAI', text: responseText }
-        ]);
-      } catch (error: any) {
-        setChatMessages(prev => [
-          ...prev,
-          {
-            id: Date.now(),
-            sender: 'SupremeAI',
-            text: `AI backend error: ${error?.message || 'Unable to reach the model.'}`,
-          }
-        ]);
-      }
+    if (recorderRef.current && typeof recorderRef.current.isConnected === 'function' && recorderRef.current.isConnected()) {
+      recorderRef.current.sendText(msgText);
     }
-    
-    setChatInput('');
+
+    try {
+      const responseText = await getAethelResponse(msgText, history);
+      setChatMessages(prev => prev.map(msg => msg.id === placeholderId ? { ...msg, text: responseText } : msg));
+    } catch (error: any) {
+      setChatMessages(prev => prev.map(msg => msg.id === placeholderId ? {
+        ...msg,
+        text: `AI backend error: ${error?.message || 'Unable to reach the model.'}`,
+      } : msg));
+    }
   };
 
   const handleNodeClick = (_, node) => {

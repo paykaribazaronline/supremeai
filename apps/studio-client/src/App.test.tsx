@@ -1,6 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+
+vi.mock('./services/chatService', () => ({
+  getAethelResponse: vi.fn().mockResolvedValue('Mock Aethel backend response'),
+}));
+
 import { App } from './App';
+import { getAethelResponse } from './services/chatService';
 
 // Mock ResizeObserver for ReactFlow in JSDOM
 class MockResizeObserver {
@@ -101,5 +107,6 @@ describe('App component', () => {
 
     expect(screen.getByText('Test message')).toBeInTheDocument();
     expect(screen.getByText('Analyzing request "Test message"... Processing on central core.')).toBeInTheDocument();
+    expect(getAethelResponse).toHaveBeenCalledWith('Test message', expect.any(Array));
   });
 });

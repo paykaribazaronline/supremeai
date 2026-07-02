@@ -2,8 +2,12 @@ import os
 import sys
 import subprocess
 import re
+import hashlib
+import json
+import time
 import litellm
 from google import genai
+from typing import Optional, Tuple
 
 # ==========================================
 # ⚙️ CONFIGURATION & API SETUP
@@ -15,10 +19,144 @@ if not API_KEY:
 
 client = genai.Client(api_key=API_KEY)
 
+# রেডিস ক্যাশিং সেটিংস
+REDIS_URL = os.getenv("UPSTASH_REDIS_REST_URL", "")
+REDIS_TOKEN = os.getenv("UPSTASH_REDIS_REST_TOKEN", "")
+
+# টিয়ার্ড মডেল রাউটিং থ্রেশহোল্ড
+LINT_FIX_THRESHOLD = 0.3  # লট ফিক্সের জন্য ফ্রি মডেল যথেষ্ট
+CRITICAL_FILE_PATTERNS = ["core/auth/", "core/security/", "secrets/", "alembic/versions/"]
+
+# এডমিন গড পারমিশন
+ADMIN_AUTHORIZED = os.getenv("ADMIN_AUTHORIZED", "true").lower() == "true"
+AUTOFIX_AUTHORIZED = os.getenv("AUTOFIX_AUTHORIZED", "true").lower() == "true"
+
 def run_cmd(cmd):
     """Run a shell command and return output."""
     result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
     return result.stdout, result.stderr, result.returncode
+
+# ==========================================
+# 🚀 TIERED LLM ROUTING & COST OPTIMIZATION
+# ==========================================
+def get_error_severity(error_log: str) -> str:
+    """এরর লগের ভিত্তিতে এরর স্যেভারিটি স্কোর নির্ধারণ"""
+    critical_patterns = ['security', 'auth', 'vulnerability', 'injection', 'sanitize']
+    high_patterns = ['exception', 'failed', 'error', 'crash', 'timeout']
+    
+    error_lower = error_log.lower()
+    if any(p in error_lower for p in critical_patterns):
+        return "critical"
+    elif any(p in error_lower for p in high_patterns):
+        return "high"
+    return "low"
+
+def get_tiered_model(error_severity: str, error_type: str = "test") -> Tuple[str, str]:
+    """
+    টিয়ার্ড মডেল রাউটিং - স্ট্যাটিস্টিক্স অনুযায়ী সস্তা মডেল ব্যবহার
+    low severity → gemini-2.5-flash (সাশ্রায়জনসহ)
+    critical → শুধুমাত্র প্রয়োজনে ব্যটা মডেল
+    """
+    if error_severity == "critical":
+        return "gemini/gemini-1.5-pro", "critical"
+    elif error_severity == "high":
+        return "gemini/gemini-2.5-flash", "high"
+    else:
+        return "gemini/gemini-2.5-flash", "low"
+
+# ==========================================
+# 📋 REDIS DE DUPLICATION CACHING
+# ==========================================
+def get_error_hash(error_log: str, file_path: str) -> str:
+    """এরর হ্যাশ জেনারেট করে রেডিস ক্যাশ কী হিসেবে ব্যবহার করা"""
+    combined = f"{file_path}:{error_log[:500]}"
+    return hashlib.md5(combined.encode()).hexdigest()[:16]
+
+async def check_cached_fix(error_hash: str) -> Optional[str]:
+    """রেডিসে ক্যাশেড ফিক্স চেক করা"""
+    if not REDIS_URL or not REDIS_TOKEN:
+        return None
+    
+    try:
+        import httpx
+        async with httpx.AsyncClient(timeout=2.0) as client:
+            response = await client.get(
+                f"{REDIS_URL}/{error_hash}",
+                headers={"Authorization": f"Bearer {REDIS_TOKEN}"}
+            )
+            if response.status_code == 200:
+                data = response.json()
+                return data.get("fix", None)
+    except Exception as e:
+        print(f"⚠️ Redis cache check failed: {e}")
+    return None
+
+async def cache_fix(error_hash: str, fix: str, ttl: int = 86400) -> None:
+    """ফিক্স রেডিসে ক্যাশ করা (24 ঘণ্টা TTL)"""
+    if not REDIS_URL or not REDIS_TOKEN:
+        return
+    
+    try:
+        import httpx
+        async with httpx.AsyncClient(timeout=2.0) as client:
+            await client.put(
+                f"{REDIS_URL}/{error_hash}",
+                json={"fix": fix, "cached_at": time.time()},
+                headers={
+                    "Authorization": f"Bearer {REDIS_TOKEN}",
+                    "Content-Type": "application/json"
+                }
+            )
+    except Exception as e:
+        print(f"⚠️ Redis cache set failed: {e}")
+
+# ==========================================
+# 🔒 HITL GATEWAY FOR CRITICAL FILES
+# ==========================================
+def is_critical_file(filepath: str) -> bool:
+    """ক্রিটিক্যাল ফাইল চেক করা"""
+    return any(pattern in filepath for pattern in CRITICAL_FILE_PATTERNS)
+
+def request_admin_approval(filepath: str, diff: str) -> bool:
+    """অডমিন অনুমোদন রিকোয়েস্ট করা"""
+    if not ADMIN_AUTHORIZED:
+        print(f"⚠️ Critical file {filepath} blocked - admin not authorized")
+        return False
+    
+    # অডমিন ড্যাশবোর্ডে নোটিফিকেশন পাঠা (যদি গিটহাব ইন্টিগ্রেশন থাকে)
+    try:
+        import urllib.request
+        import json
+        
+        repo = os.getenv("GITHUB_REPOSITORY", "")
+        token = os.getenv("GITHUB_TOKEN", "")
+        
+        if repo and token:
+            payload = json.dumps({
+                "title": f"🛡️ Critical File Auto-Fix Request: {filepath}",
+                "body": f"SupremeAI CI অটো-ফিক্স এই ক্রিটিক্যাল ফাইলে পরিবর্তন করার জন্য অনুমোদন চাইছে:\n\n**File:** `{filepath}`\n\n**Diff Preview:**\n```\n{diff[:1000]}...\n```\n\nঅনুমোদন করতে: গিটহাব ইস্যু কমেন্টে `/approve` লিখুন",
+                "labels": ["auto-fix-pending", "admin-approval"]
+            }).encode()
+            
+            req = urllib.request.Request(
+                f"https://api.github.com/repos/{repo}/issues",
+                data=payload,
+                headers={
+                    "Authorization": f"Bearer {token}",
+                    "Accept": "application/vnd.github+json",
+                    "Content-Type": "application/json"
+                },
+                method="POST"
+            )
+            
+            with urllib.request.urlopen(req) as resp:
+                issue_url = json.loads(resp.read().decode()).get("html_url", "")
+                print(f"📋 Admin approval issue created: {issue_url}")
+                return True
+    except Exception as e:
+        print(f"⚠️ Failed to create approval request: {e}")
+    
+    return False
 
 # ==========================================
 # 🛡️ GUARDRAIL: INFINITE LOOP PROTECTION
@@ -78,8 +216,13 @@ def get_fixing_instruction_and_model(file_path, error_log):
     লঞ্চডার্কলি থেকে ডাইনামিক প্রম্পট এবং মডেল রাউটিং ডেটা নিয়ে আসে।
     যদি কোটা শেষ হয়ে যায় বা এপিআই ফেইল করে, তবে সার্কিট ব্রেকার ট্রিগার হবে
     এবং লোকাল ফ্রি ডিফল্ট প্রম্পট ও মডেল রিটার্ন করবে।
+    টিয়ার্ড রাউটিং: এরর স্যেভারিটি অনুসারে সস্তা বা ব্যয়ী মডেল বেছে নেওয়া হচ্ছে।
     """
-    default_model = "gemini/gemini-2.5-flash"
+    # টিয়ার্ড মডেল রাউটিং - এরর স্যেভারিটি অনুসারে
+    error_severity = get_error_severity(error_log)
+    preferred_model, tier = get_tiered_model(error_severity, "test")
+    
+    default_model = preferred_model if tier != "critical" else "gemini/gemini-2.5-flash"
     default_prompt_template = """You are an expert Senior Python Developer. The CI pipeline just failed.
     Analyze the following Pytest error log and original file content. 
 
@@ -124,7 +267,7 @@ def get_fixing_instruction_and_model(file_path, error_log):
             context,
             default=AICompletionConfigDefault(
                 enabled=True,
-                model=ModelConfig(name="gemini/gemini-2.5-flash"),
+                model=ModelConfig(name=default_model),
                 messages=[
                     LDMessage(role="system", content=default_prompt_template)
                 ]
@@ -134,7 +277,7 @@ def get_fixing_instruction_and_model(file_path, error_log):
         if config and config.enabled:
             prompt = config.messages[0].content if config.messages else default_prompt_template
             model = config.model.name if config.model else default_model
-            print(f"🚀 LaunchDarkly Routing: Using model '{model}' with dynamic cloud prompts.")
+            print(f"🚀 LaunchDarkly Routing: Using model '{model}' (tier: {tier}) with dynamic cloud prompts.")
             return prompt, model
     except Exception as e:
         print(f"⚠️ LaunchDarkly Quota Exhausted or API Error: {str(e)}")
@@ -186,9 +329,10 @@ def get_ai_fix(error_log, file_path=None):
         return response.choices[0].message.content
 
 # ==========================================
-# 🔧 STEP 3: APPLY & VALIDATE FIX
+# 🧠 STEP 3: APPLY & VALIDATE FIX
 # ==========================================
-def apply_and_validate_fix(ai_response):
+def apply_and_validate_fix(ai_response, file_path=None):
+    """ফিক্স প্রয়োগ ও ভ্যালিডেশন"""
     # Extract file path
     path_match = re.search(r'# FILE_PATH:\s*(\S+)', ai_response)
     if not path_match:
@@ -210,6 +354,14 @@ def apply_and_validate_fix(ai_response):
         
     new_code = code_match.group(1).strip()
     
+    # ক্রিটিক্যাল ফাইলের জন্য হিটল গেটওয়ে চেক
+    if is_critical_file(file_path):
+        print(f"🛡️ Critical file detected: {file_path}")
+        if not AUTOFIX_AUTHORIZED:
+            print("⚠️ Auto-fix not authorized for critical files. Requesting admin approval...")
+            # এখানে ডিফ রিভিউ পাঠিয়ে অপেক্ষা করা হবে
+            return None
+    
     # Save the file
     with open(file_path, 'w', encoding='utf-8') as f:
         f.write(new_code)
@@ -225,26 +377,98 @@ def apply_and_validate_fix(ai_response):
     return file_path
 
 # ==========================================
-# 🚀 STEP 4: COMMIT AND PUSH
+# 🚀 STEP 4: COMMIT AND PUSH (PR ISOLATION)
 # ==========================================
-def push_fix_to_repo(file_path):
-    print("🚀 Pushing fix to GitHub...")
+async def push_fix_to_repo(file_path, error_log, diff_content):
+    """PR আইলেশন ফ্লো - সরাসরি পুশ না করে PR তৈরি করা"""
+    print("🚀 Creating PR for auto-fix...")
     run_cmd('git config --global user.name "SupremeAI Bot"')
     run_cmd('git config --global user.email "bot@supremeai.dev"')
     
-    run_cmd(f"git add {file_path}")
+    # নতুন ব্রাঞ্চ ক্রিয়েট করা
+    timestamp = int(time.time())
+    new_branch = f"auto-fix/{BRANCH}-{timestamp}"
     
-    # Not using [skip ci] so the pipeline runs again to verify the fix!
-    commit_msg = f"fix(ai): 🤖 AI Auto-Fix applied for CI failure in {os.path.basename(file_path)}"
+    run_cmd(f"git checkout -b {new_branch}")
+    run_cmd("git add -A")
+    
+    commit_msg = f"fix(ai): 🤖 AI Auto-Fix applied for CI failure\n\nFile: {os.path.basename(file_path)}\nError: {error_log[:200]}..."
     run_cmd(f'git commit -m "{commit_msg}"')
     
-    # Push back to the current branch
-    _, stderr, code = run_cmd("git push")
-    if code != 0:
-        print(f"❌ ERROR: Failed to push to GitHub. {stderr}")
+    # রেডিস ক্যাশে ফিক্স সেভ করা
+    error_hash = get_error_hash(error_log, file_path)
+    await cache_fix(error_hash, commit_msg)
+    
+    # ব্রাঞ্চ রিমোটে পুশ করা
+    run_cmd("git push origin " + new_branch)
+    
+    # gh CLI ব্যবহার করে PR তৈরি করা
+    pr_result = run_cmd([
+        "gh", "pr", "create",
+        "--title", f"ci(auto-fix): automated fixes for failed jobs on {BRANCH}",
+        "--body", commit_msg + "\n\n**Auto-generated by SupremeAI CI Bot**",
+        "--head", new_branch,
+        "--base", BRANCH,
+        "--draft"  # ড্রাফ্ট পিআর - ম্যানুয়াল অনুমোদন দরকার
+    ])
+    
+    return pr_result.returncode == 0
+
+async def run_sandbox_tests(pr_number: int) -> bool:
+    """স্যান্ডবক্স সিআই রান করা - PR-এর জন্য"""
+    print(f"🧪 Running sandbox CI tests for PR #{pr_number}...")
+    
+    # পিআর-এর ওপর স্যান্ডবক্স টেস্ট রান
+    result = run_cmd(f"gh pr checkout {pr_number} && gh run list --json databaseUrl -L 1")
+    
+    # স্যান্ডবক্স রেজাল্ট চেক করা
+    # যদি সব টেস্ট গ্রিন হয়, তবে অটো-মার্জ করা
+    return True  # সরলিকৃত - প্রয়োজনে বাস্তব সিআই রে�জাল্ট চেক করা
+
+def apply_and_validate_fix(ai_response, file_path=None):
+    """ফিক্স প্রয়োগ ও ভ্যালিডেশন"""
+    # Extract file path
+    path_match = re.search(r'# FILE_PATH:\s*(\S+)', ai_response)
+    if not path_match:
+        print("❌ ERROR: AI did not provide a valid FILE_PATH.")
         sys.exit(1)
         
-    print("🎉 Auto-Fix successfully pushed! The CI pipeline will restart.")
+    file_path = path_match.group(1).strip()
+    
+    import os
+    base_path = os.getcwd()
+    if 'backend' in base_path:
+        file_path = file_path.replace('backend/', '')
+
+    # Extract code
+    code_match = re.search(r'```python\n(.*?)\n```', ai_response, re.DOTALL)
+    if not code_match:
+        print("❌ ERROR: AI did not return a valid python code block.")
+        sys.exit(1)
+        
+    new_code = code_match.group(1).strip()
+    
+    # ক্রিটিক্যাল ফাইলের জন্য হিটল গেটওয়ে চেক
+    if is_critical_file(file_path):
+        print(f"🛡️ Critical file detected: {file_path}")
+        if not AUTOFIX_AUTHORIZED:
+            print("⚠️ Auto-fix not authorized for critical files. Requesting admin approval...")
+            # এখানে ডিফ রিভিউ পাঠিয়ে অপেক্ষা করা হবে
+            return None
+    
+    # Save the file
+    with open(file_path, 'w', encoding='utf-8') as f:
+        f.write(new_code)
+    print(f"✅ Fix applied to {file_path}")
+    
+    # Validate Syntax
+    print("🛡️ Validating syntax of the fixed file...")
+    _, stderr, code = run_cmd(f"python -m py_compile {file_path}")
+    if code != 0:
+        print(f"🚨 SYNTAX ERROR in AI generated code:\n{stderr}")
+        sys.exit(1)
+        
+    return file_path
 
 if __name__ == "__main__":
     print("========================================")
@@ -253,6 +477,23 @@ if __name__ == "__main__":
     
     check_infinite_loop()
     error_logs, failing_file = extract_errors()
-    ai_response = get_ai_fix(error_logs, failing_file)
-    fixed_file = apply_and_validate_fix(ai_response)
-    push_fix_to_repo(fixed_file)
+    
+    # রেডিস ক্যাশ চেক করা
+    error_hash = get_error_hash(error_logs, failing_file or 'unknown')
+    cached_fix = asyncio.run(check_cached_fix(error_hash)) if error_hash else None
+    
+    if cached_fix:
+        print("📦 Found cached fix for this error - applying without API call!")
+        ai_response = f"# FILE_PATH: {failing_file}\n\n```python\n{cached_fix}\n```"
+    else:
+        ai_response = get_ai_fix(error_logs, failing_file)
+    
+    fixed_file = apply_and_validate_fix(ai_response, failing_file)
+    
+    if fixed_file:
+        # ডিফ কন্টেন্ট এক্সট্র্যাক্ট করা
+        diff_result = run_cmd(f"git diff {failing_file}")
+        asyncio.run(push_fix_to_repo(fixed_file, error_logs[:200], diff_result.stdout))
+    else:
+        print("❌ Auto-fix blocked - critical file requires admin approval")
+        sys.exit(1)

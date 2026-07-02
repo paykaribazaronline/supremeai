@@ -43,13 +43,16 @@ class AdminGodLayer:
                 """
             )
             conn.commit()
-            # বাংলা মন্তব্য: admin_authorized নিয়মের মতো autofix_authorized নিয়মের ডিফল্ট মান 'true' সেট করা হচ্ছে।
+            # বাংলা মন্তব্য: নিরাপত্তার জন্য প্রথমবার চালানোর সময় সকল অ্যাডমিন অথরাইজেশন ডিফল্টভাবে 'false' রাখা হচ্ছে এবং সতর্কতা লগ করা হচ্ছে।
             if not self.get_rule("admin_authorized"):
-                self.set_rule("admin_authorized", "true")
+                self.set_rule("admin_authorized", "false")
+                logger.warning("Defaulting 'admin_authorized' to 'false' for security. Please configure explicitly.")
             if not self.get_rule("autofix_authorized"):
-                self.set_rule("autofix_authorized", "true")
+                self.set_rule("autofix_authorized", "false")
+                logger.warning("Defaulting 'autofix_authorized' to 'false' for security.")
             if not self.get_rule("autofix_reporting_authorized"):
-                self.set_rule("autofix_reporting_authorized", "true")
+                self.set_rule("autofix_reporting_authorized", "false")
+                logger.warning("Defaulting 'autofix_reporting_authorized' to 'false' for security.")
 
     def get_rule(self, key: str, default: Optional[str] = None) -> Optional[str]:
         if self.use_firestore:
@@ -101,7 +104,19 @@ class AdminGodLayer:
         whitelist = {"health", "read", "learn", "ping"}
         if action in whitelist:
             return True
+
+        # বাংলা মন্তব্য: ডেস্ট্রাকটিভ অ্যাকশনের জন্য অতিরিক্ত যাচাই
+        destructive_actions = {"delete", "drop", "truncate", "destroy", "remove"}
+        if action in destructive_actions:
+            flag = self.get_rule("admin_authorized")
+            return flag == "true"
+
         flag = self.get_rule("admin_authorized")
+        return flag == "true"
+
+    def is_autofix_allowed(self) -> bool:
+        """স্বয়ংক্রিয় ফিক্সিং অনুমোদিত কিনা চেক করে।"""
+        flag = self.get_rule("autofix_authorized")
         return flag == "true"
 
     def enforce(self, action: str) -> None:
