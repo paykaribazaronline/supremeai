@@ -1,7 +1,7 @@
 # 🧠 SupremeAI 2.0 Codebase Analysis
 # বাংলা মন্তব্য: এটি একটি স্বয়ংক্রিয়ভাবে জেনারেট করা কোডবেস ডাম্প ফাইল যা প্রজেক্টের সামগ্রিক বিশ্লেষণের জন্য ব্যবহৃত হয়।
 
-Generated at: 2026-07-02T15:49:08.399194 UTC
+Generated at: 2026-07-02T17:02:44.362542 UTC
 
 ## File: `.github/actions/setup-backend/action.yml`
 ```yaml
@@ -24689,6 +24689,8 @@ import datetime
 from dataclasses import dataclass
 from dataclasses import field
 
+# বাংলা মন্তব্য: টাইমজোন-অ্যাওয়ার টেম্পোরাল ডিফল্ট ব্যবহার করলে Python-ভিত্তিক কমপ্যাটিবিলিটি ও প্রোডাকশন লগিং আরও স্থিতিশীল হয়।
+
 
 @dataclass
 class PlatformProfile:
@@ -24704,8 +24706,8 @@ class PlatformProfile:
     pricing_tier: str = "free"
     docs_url: str = ""
     status: str = "active"  # "active", "beta", "deprecated"
-    learned_at: datetime.datetime = field(default_factory=datetime.datetime.utcnow)
-    last_updated: datetime.datetime = field(default_factory=datetime.datetime.utcnow)
+    learned_at: datetime.datetime = field(default_factory=lambda: datetime.datetime.now(datetime.timezone.utc))
+    last_updated: datetime.datetime = field(default_factory=lambda: datetime.datetime.now(datetime.timezone.utc))
     success_rate: float = 1.0
 
 
@@ -31568,7 +31570,7 @@ class SupremeMetricsEngine:
 metrics_engine = SupremeMetricsEngine()
 
 
-@router.get("/dashboard")
+@router.get("/dashboard", operation_id="supreme_admin_metrics_dashboard")
 async def get_admin_metrics_dashboard(request: Request):
     """
     Secure Admin Metrics Endpoint.
@@ -31592,7 +31594,7 @@ async def run_bg_audit():
     await auditor.execute_audit_sequence()
 
 
-@router.post("/trigger-nightly-chaos")
+@router.post("/trigger-nightly-chaos", operation_id="supreme_trigger_nightly_chaos")
 async def trigger_nightly_chaos(
     background_tasks: BackgroundTasks, x_chaos_key: str = Header(None)
 ):
@@ -35938,8 +35940,6 @@ if knowledge_router is not None:
     app.include_router(knowledge_router)
 if marketplace_router is not None:
     app.include_router(marketplace_router)
-if metrics_router is not None:
-    app.include_router(metrics_router)
 if auth_router is not None:
     app.include_router(auth_router)
 if admin_dashboard_router is not None:
@@ -44001,6 +44001,7 @@ Supports multiple queue backends with automatic fallback and monitoring
 """
 
 import asyncio
+import inspect
 import json
 import os
 import time
@@ -44392,7 +44393,7 @@ class TaskQueue:
             self._results[task_id].started_at = time.time()
 
             # Execute function
-            if asyncio.iscoroutinefunction(func):
+            if inspect.iscoroutinefunction(func):
                 result = await func(*args, **kwargs)
             else:
                 result = func(*args, **kwargs)
@@ -50601,6 +50602,7 @@ class SharedWorkspace(BaseModel):
 # বাংলা মন্তব্য: প্রতিটি ট্রানজেকশন ট্র্যাক করার ইমিউটেবল লেজার স্কিমা।
 
 from datetime import datetime
+from datetime import timezone
 from typing import Literal
 
 from pydantic import BaseModel
@@ -50613,7 +50615,7 @@ class TransactionLedgerEntry(BaseModel):
     amount_usd: float = Field(..., description="Amount charged (negative) or credited (positive)")
     transaction_type: Literal["token_usage", "byoc_deployment", "topup", "monthly_grant"]
     description: str = Field(..., description="Context description (e.g. model name, tokens, or invoice ID)")
-    timestamp: datetime = Field(default_factory=datetime.utcnow)
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     status: Literal["success", "failed", "pending"] = "success"
 
 ```
@@ -95286,6 +95288,27 @@ if __name__ == "__main__":
 
 ```
 
+## File: `scratch/smoke_check.py`
+```python
+import os
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+BACKEND = ROOT / 'backend'
+sys.path.insert(0, str(BACKEND))
+os.environ.setdefault('SUPABASE_DATABASE_URL_POOLER', 'sqlite+aiosqlite:///:memory:')
+
+from fastapi.testclient import TestClient
+from core.app import app
+
+client = TestClient(app)
+for path in ['/health', '/actuator/health', '/openapi.json']:
+    response = client.get(path, timeout=30)
+    print(path, response.status_code)
+
+```
+
 ## File: `scratch/supremeai_skill_ecosystem/app.py`
 ```python
 from fastapi import FastAPI, HTTPException
@@ -95627,6 +95650,50 @@ doc_ref.set({
     "R2_BUCKET_NAME": "supremeai-db-backups"
 }, merge=True)
 print("Updated R2 secrets in primary_vault!")
+
+```
+
+## File: `scratch/verify_project_health.py`
+```python
+import os
+import subprocess
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+BACKEND = ROOT / 'backend'
+FRONTEND = ROOT / 'apps' / 'studio-client'
+
+os.environ.setdefault('SUPABASE_DATABASE_URL_POOLER', 'sqlite+aiosqlite:///:memory:')
+sys.path.insert(0, str(BACKEND))
+os.environ['PYTHONPATH'] = str(BACKEND) + os.pathsep + os.environ.get('PYTHONPATH', '')
+
+from fastapi.testclient import TestClient
+from core.app import app
+
+client = TestClient(app)
+print('=== FastAPI smoke checks ===')
+for path in ['/health', '/actuator/health', '/docs', '/openapi.json']:
+    try:
+        response = client.get(path, timeout=30)
+        print(path, response.status_code)
+        print(response.text[:400].replace('\n', ' ')[:400])
+    except Exception as exc:
+        print(path, 'ERROR', exc)
+
+print('\n=== Frontend production build ===')
+result = subprocess.run(
+    ['npm', 'run', 'build'],
+    cwd=FRONTEND,
+    capture_output=True,
+    text=True,
+    timeout=1800,
+)
+print('exit_code=', result.returncode)
+if result.stdout:
+    print(result.stdout[-4000:])
+if result.stderr:
+    print(result.stderr[-4000:])
 
 ```
 
