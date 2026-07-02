@@ -62,6 +62,14 @@ _TEST_ENV_DEFAULTS = {
     "SENTRY_DSN": "",
     "GCP_PROJECT_ID": "",
     "GCP_REGION": "",
+    "SUPABASE_DATABASE_URL": "sqlite+aiosqlite:///:memory:",
+    "SUPABASE_DATABASE_URL_POOLER": "sqlite+aiosqlite:///:memory:",
+    "GITHUB_TOKEN": "mock_dummy_token",
+    "RENDER_API_KEY": "mock_render_key",
+    "ADMIN_AUTHORIZED": "true",
+    "RAILWAY_TOKEN": "mock_railway_token",
+    "ORACLE_CLOUD_API_KEY": "mock_oracle_key",
+    "AUTOFIX_AUTHORIZED": "true",
     "EXPERIENCE_DB_PATH": f"data/test_experience_{os.getpid()}.db",
 }
 
