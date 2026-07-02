@@ -107,6 +107,10 @@ jobs:
         env:
           SUPREMEAI_ENCRYPTION_KEY: "CwE60g_bA67m-mock-encryption-key-padded-len="
           PYTHONPATH: ${{ github.workspace }}/backend
+          GITHUB_TOKEN: "mock_dummy_token"
+          RENDER_API_KEY: "mock_render_key"
+          SUPABASE_DATABASE_URL: "postgresql://mock_user:mock_pass@localhost:5432/mock_db"
+          ADMIN_AUTHORIZED: "true"
         run: poetry run pytest -n auto --cov=core --cov-fail-under=50 -q
           
       - name: 🔧 SupremeAI Auto-Fix Engine

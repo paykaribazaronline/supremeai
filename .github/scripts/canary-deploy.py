@@ -130,22 +130,35 @@ def save_stable_revision(revision: str):
 # ═══════════════════════════════════════════════════════════════
 # Cloud Run traffic management
 # ═══════════════════════════════════════════════════════════════
-def set_traffic(revision: str, percent: int):
-    """Route `percent`% traffic to the specified revision."""
+def set_traffic(revision: str, stable_rev: str, percent: int):
+    """Route `percent`% traffic to the new revision and the rest to the stable revision."""
     if DRY_RUN:
-        print(f"🔍 [DRY RUN] Would route {percent}% → {revision}")
+        if percent < 100 and stable_rev:
+            print(f"🔍 [DRY RUN] Would route {percent}% → {revision}, {100-percent}% → {stable_rev}")
+        else:
+            print(f"🔍 [DRY RUN] Would route {percent}% → {revision}")
         return
+
     cmd = [
         "gcloud", "run", "services", "update-traffic", SERVICE,
-        "--region", REGION, "--project", PROJECT,
-        f"--to-revisions={revision}={percent}"
+        "--region", REGION, "--project", PROJECT
     ]
+
+    if percent < 100 and stable_rev:
+        remaining = 100 - percent
+        cmd.append(f"--to-revisions={revision}={percent},{stable_rev}={remaining}")
+    else:
+        cmd.append(f"--to-revisions={revision}=100")
+
     print(f"$ {' '.join(cmd)}")
     result = subprocess.run(cmd, capture_output=True, text=True)
     if result.returncode != 0:
         print(f"❌ Traffic update failed: {result.stderr}")
         raise RuntimeError(f"Failed to set traffic to {percent}%")
-    print(f"✅ Traffic set: {percent}% → {revision}")
+    if percent < 100 and stable_rev:
+        print(f"✅ Traffic set: {percent}% → {revision} / {100-percent}% → {stable_rev}")
+    else:
+        print(f"✅ Traffic set: {percent}% → {revision}")
 
 
 def rollback(stable_rev: str):
@@ -275,7 +288,7 @@ def main():
     # ── Emergency bypass ──────────────────────────────────────
     if SKIP_CANARY:
         print("\n⚡ Emergency bypass — skipping canary, routing 100% directly")
-        set_traffic(CANDIDATE_REV, 100)
+        set_traffic(CANDIDATE_REV, stable_rev, 100)
         save_stable_revision(CANDIDATE_REV)
         send_alert("deploy_complete", f"Emergency deploy: {CANDIDATE_REV} → 100%")
         return 0
@@ -290,7 +303,7 @@ def main():
         print(f"{'='*50}")
 
         try:
-            set_traffic(CANDIDATE_REV, percent)
+            set_traffic(CANDIDATE_REV, stable_rev, percent)
         except RuntimeError:
             send_alert("canary_step_fail", f"Failed to set {percent}% traffic")
             rollback(stable_rev)

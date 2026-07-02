@@ -87,6 +87,26 @@ def retry_with_backoff(fn, max_retries: int = 3, base_wait: int = 2):
 
 
 # ═══════════════════════════════════════════════════════════════
+# JSON parsing helper
+# ═══════════════════════════════════════════════════════════════
+def safe_parse_json(raw: str) -> dict:
+    try:
+        if "```json" in raw:
+            raw = raw.split("```json", 1)[1].split("```", 1)[0]
+        elif "```" in raw:
+            raw = raw.split("```", 1)[1].split("```", 1)[0]
+        return json.loads(raw.strip())
+    except json.JSONDecodeError as e:
+        print(f"⚠️ JSON Parse Error: {e} - Raw output: {raw[:100]}...")
+        return {
+            "verdict": "unsafe",
+            "confidence": 0.0,
+            "reason": "AI returned invalid JSON formatting.",
+            "critical_issues": ["JSON Parse Error"]
+        }
+
+
+# ═══════════════════════════════════════════════════════════════
 # Gemini evaluator
 # ═══════════════════════════════════════════════════════════════
 def evaluate_with_gemini(diff: str) -> dict:
@@ -106,7 +126,7 @@ def evaluate_with_gemini(diff: str) -> dict:
         if raw.endswith("```"):
             raw = raw[:-3]
         raw = raw.strip()
-        return json.loads(raw)
+        return safe_parse_json(raw)
 
     result = retry_with_backoff(call)
     result["model"] = "gemini-2.0-flash"
@@ -130,7 +150,7 @@ def evaluate_with_openai(diff: str) -> dict:
             response_format={"type": "json_object"},
             temperature=0.1,
         )
-        return json.loads(resp.choices[0].message.content)
+        return safe_parse_json(resp.choices[0].message.content)
 
     result = retry_with_backoff(call)
     result["model"] = "gpt-4o-mini"

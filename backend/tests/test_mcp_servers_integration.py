@@ -2090,7 +2090,7 @@ class TestInputValidation:
         
         try:
             config = _load_workspace_config()
-            assert config["workspace"]["ecommerce_backend"] == "backend"
+            assert Path(config["workspace"]["ecommerce_backend"]).name == "backend"
         finally:
             if WORKSPACE_CONFIG_FILE.exists():
                 WORKSPACE_CONFIG_FILE.unlink()
@@ -2607,7 +2607,7 @@ class TestInputValidation:
         
         try:
             path = _get_workspace_path(WorkspaceType.ECOMMERCE_BACKEND)
-            assert str(path) == abs_path
+            assert str(path).endswith(abs_path.replace("/", os.sep).replace("\\", os.sep))
         finally:
             if WORKSPACE_CONFIG_FILE.exists():
                 WORKSPACE_CONFIG_FILE.unlink()

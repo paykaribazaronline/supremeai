@@ -319,7 +319,7 @@ def get_ai_fix(error_log, file_path=None):
         response = litellm.completion(
             model=target_model,
             messages=[{"role": "user", "content": prompt}],
-            timeout=45.0
+            timeout=60.0
         )
         return response.choices[0].message.content
     except Exception as e:
@@ -328,7 +328,7 @@ def get_ai_fix(error_log, file_path=None):
         response = litellm.completion(
             model="gemini/gemini-2.5-flash",
             messages=[{"role": "user", "content": prompt}],
-            timeout=45.0
+            timeout=60.0
         )
         return response.choices[0].message.content
 
