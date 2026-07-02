@@ -96,6 +96,11 @@ class ExperienceDatabase:
                 )
                 """
             )
+            cursor.execute("PRAGMA table_info(experiences)")
+            columns = {row[1] for row in cursor.fetchall()}
+            if "embedding" not in columns:
+                # বাংলা মন্তব্য: পুরনো SQLite ডাটাবেসে embedding কলাম না থাকলে সেটি স্বয়ংক্রিয়ভাবে যোগ করা হচ্ছে
+                cursor.execute("ALTER TABLE experiences ADD COLUMN embedding BLOB")
             conn.commit()
 
     def _embed(self, text: str) -> list[float] | None:
