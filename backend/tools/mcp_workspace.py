@@ -77,21 +77,24 @@ def _load_workspace_config() -> Dict[str, Any]:
 def _get_workspace_path(project_type: WorkspaceType) -> Path:
     """প্রোজেক্টের ধরন থেকে ডাইনামিক ওয়ার্কস্পেস পাথ গণনা করে।"""
     config = _load_workspace_config()
+    workspace_config = config.get("workspace", {})
 
     path_mapping = {
-        WorkspaceType.ECOMMERCE_BACKEND: config.get("ecommerce_backend", "backend"),
-        WorkspaceType.ECOMMERCE_FRONTEND: config.get("ecommerce_frontend", "apps/studio-client"),
-        WorkspaceType.MOBILE_FLUTTER: config.get("mobile_flutter", "apps/mobile"),
-        WorkspaceType.ANDROID_JAVA: config.get("android_java", "apps/android"),
-        WorkspaceType.ADMIN_PANEL: config.get("admin_panel", "admin"),
-        WorkspaceType.INFRASTRUCTURE: config.get("infrastructure", "infrastructure"),
+        WorkspaceType.ECOMMERCE_BACKEND: workspace_config.get("ecommerce_backend", "backend"),
+        WorkspaceType.ECOMMERCE_FRONTEND: workspace_config.get("ecommerce_frontend", "apps/studio-client"),
+        WorkspaceType.MOBILE_FLUTTER: workspace_config.get("mobile_flutter", "apps/mobile"),
+        WorkspaceType.ANDROID_JAVA: workspace_config.get("android_java", "apps/android"),
+        WorkspaceType.ADMIN_PANEL: workspace_config.get("admin_panel", "admin"),
+        WorkspaceType.INFRASTRUCTURE: workspace_config.get("infrastructure", "infrastructure"),
     }
 
     path = path_mapping.get(project_type, "backend")
-    # বাংলা মন্তব্য: পাথ কে সর্বদা প্রোজেক্ট রুটের সাপেক্ষে করে রূপান্তর করা হচ্ছে
-    if not Path(path).is_absolute():
-        return _workspace_root / path
-    return Path(path)
+    # বাংলা মন্তব্য: কনফিগার্ড পাথ যদি অ্যাবসলুট হয়, সেটাই রিটার্ন করা হবে
+    if Path(path).is_absolute():
+        return Path(path)
+
+    # অন্যথায় প্রোজেক্ট রুটের সাপেক্ষে পাথ তৈরি করা হবে
+    return _workspace_root / path
 
 
 def _ensure_session_dir():
