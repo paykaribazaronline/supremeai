@@ -21,14 +21,7 @@ class SkillRecommender:
     def _get_user_history(self, user_id: str) -> list[dict[str, Any]]:
         if db.client:
             try:
-                res = (
-                    db.client.table("task_history")
-                    .select("*")
-                    .eq("user_id", user_id)
-                    .order("created_at", desc=True)
-                    .limit(50)
-                    .execute()
-                )
+                res = db.client.table("task_history").select("*").eq("user_id", user_id).order("created_at", desc=True).limit(50).execute()
                 return res.data or []
             except Exception as exc:
                 logger.debug(f"History fetch from DB failed: {exc}")
@@ -58,17 +51,13 @@ class SkillRecommender:
         den = (sum(x * x for x in a) ** 0.5) * (sum(y * y for y in b) ** 0.5)
         return num / den if den > 0 else 0.0
 
-    def recommend(
-        self, user_id: str, current_task: str, top_k: int = 5
-    ) -> list[dict[str, Any]]:
+    def recommend(self, user_id: str, current_task: str, top_k: int = 5) -> list[dict[str, Any]]:
         history = self._get_user_history(user_id)
         current_vec = self._embedding(current_task)
         scored: list[dict[str, Any]] = []
         seen_skills: dict[str, dict[str, Any]] = {}
         for entry in history:
-            task_text = entry.get("task", {}).get("description", "") or entry.get(
-                "task", {}
-            ).get("text", "")
+            task_text = entry.get("task", {}).get("description", "") or entry.get("task", {}).get("text", "")
             skill_id = entry.get("task", {}).get("skill_id")
             if not skill_id:
                 continue
@@ -80,23 +69,14 @@ class SkillRecommender:
                     "score": sim,
                     "task_text": task_text,
                 }
-        scored = sorted(seen_skills.values(), key=lambda x: x["score"], reverse=True)[
-            :top_k
-        ]
+        scored = sorted(seen_skills.values(), key=lambda x: x["score"], reverse=True)[:top_k]
         enriched: list[dict[str, Any]] = []
         if db.client:
             for item in scored:
                 try:
-                    res = (
-                        db.client.table("tools_registry")
-                        .select("*")
-                        .eq("id", item["skill_id"])
-                        .execute()
-                    )
+                    res = db.client.table("tools_registry").select("*").eq("id", item["skill_id"]).execute()
                     if res.data:
-                        enriched.append(
-                            {**res.data[0], "match_score": round(item["score"], 3)}
-                        )
+                        enriched.append({**res.data[0], "match_score": round(item["score"], 3)})
                 except Exception:
                     pass
         if not enriched:
@@ -111,12 +91,8 @@ class SkillRecommender:
             ]
         return enriched
 
-    def record_and_recommend(
-        self, user_id: str, task_description: str, top_k: int = 5
-    ) -> dict[str, Any]:
-        self._record_task(
-            user_id, {"description": task_description, "type": "user_query"}
-        )
+    def record_and_recommend(self, user_id: str, task_description: str, top_k: int = 5) -> dict[str, Any]:
+        self._record_task(user_id, {"description": task_description, "type": "user_query"})
         self._record_task(user_id, {"description": task_description, "type": "search"})
         recs = self.recommend(user_id, task_description, top_k=top_k)
         return {

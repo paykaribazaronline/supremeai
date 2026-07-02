@@ -35,7 +35,6 @@ class TestCreditLedger:
         ledger = CreditLedger()
         await ledger.opt_in("user1")
 
-
     @pytest.mark.asyncio
     async def test_opt_out(self):
         ledger = CreditLedger()

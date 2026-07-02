@@ -24,9 +24,7 @@ def build_scope(path="/api/task/execute", method="POST", headers=None):
         "type": "http",
         "method": method,
         "path": path,
-        "headers": [
-            (k.lower().encode(), v.encode()) for k, v in (headers or {}).items()
-        ],
+        "headers": [(k.lower().encode(), v.encode()) for k, v in (headers or {}).items()],
         "query_string": b"",
     }
 
@@ -35,9 +33,7 @@ def build_scope(path="/api/task/execute", method="POST", headers=None):
 async def test_idempotency_requires_key_for_post():
     middleware = make_middleware()
     scope = build_scope(headers={})
-    receive = AsyncMock(
-        return_value={"type": "http.request", "body": b"", "more_body": False}
-    )
+    receive = AsyncMock(return_value={"type": "http.request", "body": b"", "more_body": False})
     request = Request(scope, receive=receive)
 
     async def fake_next(req):
@@ -88,9 +84,7 @@ async def test_idempotency_cache_hit_completed():
     mock_doc = MagicMock()
     mock_doc.exists = True
     mock_doc.to_dict.return_value = doc_data
-    middleware.db.collection.return_value.document.return_value.get.return_value = (
-        mock_doc
-    )
+    middleware.db.collection.return_value.document.return_value.get.return_value = mock_doc
 
     scope = build_scope(headers={"idempotency-key": "test-key-1"})
     receive = AsyncMock(return_value={"type": "http.disconnect"})
@@ -118,14 +112,10 @@ async def test_idempotency_processing_conflict():
     mock_doc = MagicMock()
     mock_doc.exists = True
     mock_doc.to_dict.return_value = doc_data
-    middleware.db.collection.return_value.document.return_value.get.return_value = (
-        mock_doc
-    )
+    middleware.db.collection.return_value.document.return_value.get.return_value = mock_doc
 
     scope = build_scope(headers={"idempotency-key": "test-key-2"})
-    receive = AsyncMock(
-        return_value={"type": "http.request", "body": b"", "more_body": False}
-    )
+    receive = AsyncMock(return_value={"type": "http.request", "body": b"", "more_body": False})
     request = Request(scope, receive=receive)
 
     async def fake_next(req):
@@ -141,9 +131,7 @@ async def test_idempotency_new_request_sets_processing():
     middleware = make_middleware()
     mock_doc = MagicMock()
     mock_doc.exists = False
-    middleware.db.collection.return_value.document.return_value.get.return_value = (
-        mock_doc
-    )
+    middleware.db.collection.return_value.document.return_value.get.return_value = mock_doc
 
     scope = build_scope(headers={"idempotency-key": "test-key-3"})
     receive = AsyncMock(return_value={"type": "http.disconnect"})
@@ -155,7 +143,5 @@ async def test_idempotency_new_request_sets_processing():
     response = await middleware.dispatch(request, fake_next)
     assert response.status_code == 200
     middleware.db.collection.return_value.document.return_value.set.assert_called_once()
-    set_args = (
-        middleware.db.collection.return_value.document.return_value.set.call_args[0][0]
-    )
+    set_args = middleware.db.collection.return_value.document.return_value.set.call_args[0][0]
     assert set_args["status"] == "processing"

@@ -9,14 +9,16 @@ USER_AGENTS = [
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36",
     "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Safari/605.1.15",
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:127.0) Gecko/20100101 Firefox/127.0",
-    "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
+    "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36",
 ]
+
 
 class StealthHTTPClient:
     """
     HTTP client wrapper for executing stealth, anonymized web requests.
     Enforces proxy rotation, fallback retries, and browser headers emulation.
     """
+
     def __init__(self, proxy_manager: ProxyManager | None = None):
         self.proxy_manager = proxy_manager or ProxyManager()
 
@@ -27,29 +29,19 @@ class StealthHTTPClient:
             "Accept-Language": "en-US,en;q=0.5",
             "Accept-Encoding": "gzip, deflate, br, zstd",
             "Connection": "keep-alive",
-            "Upgrade-Insecure-Requests": "1"
+            "Upgrade-Insecure-Requests": "1",
         }
         if custom_headers:
             headers.update(custom_headers)
         return headers
 
-    async def request(
-        self,
-        method: str,
-        url: str,
-        retries: int = 3,
-        **kwargs: Any
-    ) -> httpx.Response:
+    async def request(self, method: str, url: str, retries: int = 3, **kwargs: Any) -> httpx.Response:
         # বাংলা মন্তব্য: প্রতিটি রিকোয়েস্টের জন্য নতুন প্রক্সি নির্বাচন ও র্যান্ডম ব্রাউজার হেডার এমুলেট করা হচ্ছে।
         headers = self._get_headers(kwargs.pop("headers", None))
-        
+
         for attempt in range(retries):
             proxy = self.proxy_manager.get_next_proxy()
-            client_kwargs = {
-                "headers": headers,
-                "timeout": kwargs.pop("timeout", 10.0),
-                **kwargs
-            }
+            client_kwargs = {"headers": headers, "timeout": kwargs.pop("timeout", 10.0), **kwargs}
             if proxy:
                 client_kwargs["proxy"] = proxy
                 logger.info(f"Stealth request via proxy: {proxy} (Attempt {attempt+1}/{retries})")
@@ -65,10 +57,10 @@ class StealthHTTPClient:
                 logger.warning(f"Request attempt {attempt+1} failed: {e}")
                 if proxy:
                     self.proxy_manager.report_failed_proxy(proxy)
-                
+
                 if attempt == retries - 1:
                     raise e
-        
+
         raise httpx.RequestError("Stealth requests failed all retries.")
 
     async def get(self, url: str, **kwargs: Any) -> httpx.Response:

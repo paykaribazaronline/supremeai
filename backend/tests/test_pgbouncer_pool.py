@@ -4,12 +4,15 @@ import pytest
 
 from core.pgbouncer_pool import PgBouncerConnectionPool
 
+
 @pytest.mark.asyncio
 async def test_singleton_pattern():
     from core.pgbouncer_pool import get_db_pool
+
     pool1 = await get_db_pool()
     pool2 = await get_db_pool()
     assert pool1 is pool2
+
 
 @pytest.mark.asyncio
 async def test_connect():
@@ -21,11 +24,13 @@ async def test_connect():
         mock_create_pool.assert_called_once_with(dsn="test_dsn", min_size=1, max_size=10)
         assert pool._pool is mock_pool
 
+
 @pytest.mark.asyncio
 async def test_acquire_without_initialization():
     pool = PgBouncerConnectionPool("test_dsn")
     with pytest.raises(RuntimeError, match="Connection pool not initialized"):
         await pool.acquire()
+
 
 @pytest.mark.asyncio
 async def test_acquire_and_release():
@@ -41,6 +46,7 @@ async def test_acquire_and_release():
 
     await pool.release(conn)
     mock_pool.release.assert_called_once_with("mock_connection")
+
 
 @pytest.mark.asyncio
 async def test_close_resets_pool():

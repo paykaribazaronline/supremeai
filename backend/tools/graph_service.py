@@ -16,14 +16,10 @@ class GraphService:
         self.dry_run = not self.password
 
         if self.dry_run:
-            logger.warning(
-                "NEO4J_PASSWORD missing. GraphService will run in dry-run/mock mode."
-            )
+            logger.warning("NEO4J_PASSWORD missing. GraphService will run in dry-run/mock mode.")
             self.driver = None
         else:
-            self.driver = AsyncGraphDatabase.driver(
-                self.uri, auth=(self.user, self.password)
-            )
+            self.driver = AsyncGraphDatabase.driver(self.uri, auth=(self.user, self.password))
             logger.info("Initialized Neo4j GraphService")
 
     async def close(self):
@@ -39,8 +35,7 @@ class GraphService:
         async with self.driver.session() as session:
             for skill in skills:
                 await session.run(
-                    "MERGE (s:Skill {id: $id}) "
-                    "SET s.name = $name, s.category = $category, s.success_rate = $success_rate",
+                    "MERGE (s:Skill {id: $id}) " "SET s.name = $name, s.category = $category, s.success_rate = $success_rate",
                     id=skill["id"],
                     name=skill["name"],
                     category=skill["category"],
@@ -48,25 +43,15 @@ class GraphService:
                 )
         return True
 
-    async def create_relationship(
-        self, source_id: str, target_id: str, rel_type: str, strength: float = 1.0
-    ):
+    async def create_relationship(self, source_id: str, target_id: str, rel_type: str, strength: float = 1.0):
         """বাংলা মন্তব্য: দুটি স্কিলের মধ্যে রিলেশনシップ (Edge) তৈরি করবে।"""
         if self.dry_run:
-            logger.info(
-                f"Dry-run: Would create {rel_type} between {source_id} and {target_id}."
-            )
+            logger.info(f"Dry-run: Would create {rel_type} between {source_id} and {target_id}.")
             return True
 
         async with self.driver.session() as session:
-            query = (
-                f"MATCH (s1:Skill {{id: $source}}), (s2:Skill {{id: $target}}) "
-                f"MERGE (s1)-[r:{rel_type}]->(s2) "
-                f"SET r.strength = $strength"
-            )
-            await session.run(
-                query, source=source_id, target=target_id, strength=strength
-            )
+            query = f"MATCH (s1:Skill {{id: $source}}), (s2:Skill {{id: $target}}) " f"MERGE (s1)-[r:{rel_type}]->(s2) " f"SET r.strength = $strength"
+            await session.run(query, source=source_id, target=target_id, strength=strength)
         return True
 
     async def get_skill_path(self, start_name: str, end_name: str) -> list[str]:

@@ -24,12 +24,14 @@ GITHUB_API_URL = "https://api.github.com"
 
 class ResponseFormat(str, Enum):
     """আউটপুট ফরম্যাট।"""
+
     MARKDOWN = "markdown"
     JSON = "json"
 
 
 class CreatePRInput(BaseModel):
     """PR তৈরির জন্য ইনপুট।"""
+
     model_config = ConfigDict(str_strip_whitespace=True, validate_assignment=True)
 
     title: str = Field(..., description="PR এর শিরোনাম", min_length=1, max_length=200)
@@ -40,6 +42,7 @@ class CreatePRInput(BaseModel):
 
 class FixIssueInput(BaseModel):
     """Issue ফিক্স করার জন্য ইনপুট।"""
+
     model_config = ConfigDict(str_strip_whitespace=True, validate_assignment=True)
 
     issue_number: int = Field(..., description="ফিক্স করার Issue নম্বর", ge=1)
@@ -75,7 +78,7 @@ def _handle_api_error(e: Exception, status_code: int = None) -> str:
         "destructiveHint": False,
         "idempotentHint": False,
         "openWorldHint": True,
-    }
+    },
 )
 async def github_create_pull_request(params: CreatePRInput) -> str:
     """
@@ -92,9 +95,7 @@ async def github_create_pull_request(params: CreatePRInput) -> str:
         str: PR স্ট্যাটাস ও লিংক
     """
     if not _check_admin_auth():
-        return json.dumps({
-            "error": "Admin authorization required for PR creation"
-        }, ensure_ascii=False)
+        return json.dumps({"error": "Admin authorization required for PR creation"}, ensure_ascii=False)
 
     if not GITHUB_TOKEN:
         return json.dumps({"error": "GITHUB_TOKEN not configured"}, ensure_ascii=False)
@@ -103,27 +104,22 @@ async def github_create_pull_request(params: CreatePRInput) -> str:
         async with httpx.AsyncClient(timeout=30.0) as client:
             response = await client.post(
                 f"{GITHUB_API_URL}/repos/{GITHUB_REPO}/pulls",
-                headers={
-                    "Authorization": f"token {GITHUB_TOKEN}",
-                    "Accept": "application/vnd.github.v3+json"
-                },
-                json={
-                    "title": params.title,
-                    "body": params.body,
-                    "head": params.head,
-                    "base": params.base
-                }
+                headers={"Authorization": f"token {GITHUB_TOKEN}", "Accept": "application/vnd.github.v3+json"},
+                json={"title": params.title, "body": params.body, "head": params.head, "base": params.base},
             )
             response.raise_for_status()
             data = response.json()
 
-            return json.dumps({
-                "success": True,
-                "pr_number": data.get("number"),
-                "pr_url": data.get("html_url"),
-                "status": data.get("state", "open"),
-                "message": f"PR #{data.get('number')} created successfully"
-            }, ensure_ascii=False)
+            return json.dumps(
+                {
+                    "success": True,
+                    "pr_number": data.get("number"),
+                    "pr_url": data.get("html_url"),
+                    "status": data.get("state", "open"),
+                    "message": f"PR #{data.get('number')} created successfully",
+                },
+                ensure_ascii=False,
+            )
 
     except httpx.HTTPStatusError as e:
         return _handle_api_error(e, e.response.status_code)
@@ -139,7 +135,7 @@ async def github_create_pull_request(params: CreatePRInput) -> str:
         "destructiveHint": False,
         "idempotentHint": False,
         "openWorldHint": True,
-    }
+    },
 )
 async def github_run_auto_fix(params: FixIssueInput) -> str:
     """
@@ -157,10 +153,7 @@ async def github_run_auto_fix(params: FixIssueInput) -> str:
         str: অটো-ফিক্স স্ট্যাটাস
     """
     if not _check_autofix_auth():
-        return json.dumps({
-            "error": "Auto-fix authorization required",
-            "message": "Set AUTOFIX_AUTHORIZED=true in environment"
-        }, ensure_ascii=False)
+        return json.dumps({"error": "Auto-fix authorization required", "message": "Set AUTOFIX_AUTHORIZED=true in environment"}, ensure_ascii=False)
 
     if not GITHUB_TOKEN:
         return json.dumps({"error": "GITHUB_TOKEN not configured"}, ensure_ascii=False)
@@ -169,24 +162,21 @@ async def github_run_auto_fix(params: FixIssueInput) -> str:
         async with httpx.AsyncClient(timeout=60.0) as client:
             response = await client.post(
                 f"{GITHUB_API_URL}/repos/{GITHUB_REPO}/actions/workflows/ci-auto-fix-v3.yml/dispatches",
-                headers={
-                    "Authorization": f"token {GITHUB_TOKEN}",
-                    "Accept": "application/vnd.github.v3+json"
-                },
-                json={
-                    "ref": params.branch,
-                    "inputs": {"issue_number": str(params.issue_number)}
-                }
+                headers={"Authorization": f"token {GITHUB_TOKEN}", "Accept": "application/vnd.github.v3+json"},
+                json={"ref": params.branch, "inputs": {"issue_number": str(params.issue_number)}},
             )
             response.raise_for_status()
 
-            return json.dumps({
-                "success": True,
-                "issue_number": params.issue_number,
-                "branch": params.branch,
-                "workflow": "ci-auto-fix-v3",
-                "message": f"Auto-fix workflow triggered for issue #{params.issue_number}"
-            }, ensure_ascii=False)
+            return json.dumps(
+                {
+                    "success": True,
+                    "issue_number": params.issue_number,
+                    "branch": params.branch,
+                    "workflow": "ci-auto-fix-v3",
+                    "message": f"Auto-fix workflow triggered for issue #{params.issue_number}",
+                },
+                ensure_ascii=False,
+            )
 
     except httpx.HTTPStatusError as e:
         return _handle_api_error(e, e.response.status_code)
@@ -202,7 +192,7 @@ async def github_run_auto_fix(params: FixIssueInput) -> str:
         "destructiveHint": False,
         "idempotentHint": True,
         "openWorldHint": True,
-    }
+    },
 )
 async def github_list_issues(state: str = "open", labels: str | None = None) -> str:
     """
@@ -230,28 +220,28 @@ async def github_list_issues(state: str = "open", labels: str | None = None) -> 
         async with httpx.AsyncClient(timeout=30.0) as client:
             response = await client.get(
                 f"{GITHUB_API_URL}/repos/{GITHUB_REPO}/issues",
-                headers={
-                    "Authorization": f"token {GITHUB_TOKEN}",
-                    "Accept": "application/vnd.github.v3+json"
-                },
-                params=params
+                headers={"Authorization": f"token {GITHUB_TOKEN}", "Accept": "application/vnd.github.v3+json"},
+                params=params,
             )
             response.raise_for_status()
             issues = response.json()
 
-            return json.dumps({
-                "issues": [
-                    {
-                        "number": i.get("number"),
-                        "title": i.get("title"),
-                        "state": i.get("state"),
-                        "labels": [lbl.get("name") for lbl in i.get("labels", [])],
-                        "url": i.get("html_url")
-                    }
-                    for i in issues
-                ],
-                "count": len(issues)
-            }, ensure_ascii=False)
+            return json.dumps(
+                {
+                    "issues": [
+                        {
+                            "number": i.get("number"),
+                            "title": i.get("title"),
+                            "state": i.get("state"),
+                            "labels": [lbl.get("name") for lbl in i.get("labels", [])],
+                            "url": i.get("html_url"),
+                        }
+                        for i in issues
+                    ],
+                    "count": len(issues),
+                },
+                ensure_ascii=False,
+            )
 
     except httpx.HTTPStatusError as e:
         return _handle_api_error(e, e.response.status_code)
@@ -267,7 +257,7 @@ async def github_list_issues(state: str = "open", labels: str | None = None) -> 
         "destructiveHint": False,
         "idempotentHint": True,
         "openWorldHint": True,
-    }
+    },
 )
 async def github_get_ci_status(branch: str = "main") -> str:
     """
@@ -286,20 +276,15 @@ async def github_get_ci_status(branch: str = "main") -> str:
         async with httpx.AsyncClient(timeout=30.0) as client:
             response = await client.get(
                 f"{GITHUB_API_URL}/repos/{GITHUB_REPO}/commits/{branch}/status",
-                headers={
-                    "Authorization": f"token {GITHUB_TOKEN}",
-                    "Accept": "application/vnd.github.v3+json"
-                }
+                headers={"Authorization": f"token {GITHUB_TOKEN}", "Accept": "application/vnd.github.v3+json"},
             )
             response.raise_for_status()
             data = response.json()
 
-            return json.dumps({
-                "branch": branch,
-                "state": data.get("state"),
-                "statuses": data.get("statuses", []),
-                "total_count": data.get("total_count", 0)
-            }, ensure_ascii=False)
+            return json.dumps(
+                {"branch": branch, "state": data.get("state"), "statuses": data.get("statuses", []), "total_count": data.get("total_count", 0)},
+                ensure_ascii=False,
+            )
 
     except httpx.HTTPStatusError as e:
         return _handle_api_error(e, e.response.status_code)

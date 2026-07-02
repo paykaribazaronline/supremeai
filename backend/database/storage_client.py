@@ -34,16 +34,12 @@ class StorageClient:
         if not os.path.exists(local_path):
             raise FileNotFoundError(f"File {local_path} not found.")
 
-        logger.info(
-            f"Uploading {local_path} to {self.provider}://{self.bucket_name}/{remote_path}"
-        )
+        logger.info(f"Uploading {local_path} to {self.provider}://{self.bucket_name}/{remote_path}")
 
         try:
             if self.provider == "supabase" and self.supabase_client:
                 with open(local_path, "rb") as f:
-                    self.supabase_client.storage.from_(self.bucket_name).upload(
-                        remote_path, f
-                    )
+                    self.supabase_client.storage.from_(self.bucket_name).upload(remote_path, f)
                 return {
                     "status": "success",
                     "provider": "supabase",
@@ -61,9 +57,7 @@ class StorageClient:
     def get_public_url(self, remote_path: str) -> str:
         """Returns the public CDN URL for a file."""
         if self.provider == "supabase" and self.supabase_client:
-            return self.supabase_client.storage.from_(self.bucket_name).get_public_url(
-                remote_path
-            )
+            return self.supabase_client.storage.from_(self.bucket_name).get_public_url(remote_path)
         elif self.provider == "s3":
             # Very basic S3 URL format
             region = os.getenv("AWS_REGION", "us-east-1")

@@ -36,9 +36,7 @@ class TestResearchAssistant:
         with patch("httpx.get") as mock_get:
             mock_get.return_value.raise_for_status = lambda: None
             mock_get.return_value.json.return_value = {
-                "data": [
-                    {"title": "SS Paper", "authors": [{"name": "A1"}], "abstract": "abs", "year": 2024, "url": "u", "citationCount": 10}
-                ]
+                "data": [{"title": "SS Paper", "authors": [{"name": "A1"}], "abstract": "abs", "year": 2024, "url": "u", "citationCount": 10}]
             }
             results = assistant.search("test", source="semantic_scholar", max_results=1)
             assert len(results) == 1
@@ -55,7 +53,9 @@ class TestResearchAssistant:
         paper = {"title": "T", "abstract": "This is an abstract about AI.", "source": "arxiv", "url": "http://e.c"}
         with patch("brain.model_router.ModelRouter") as MockRouter:
             mock_router = MockRouter.return_value
-            mock_router.route_and_generate.return_value = {"text": '```json\n{"summary": "AI paper", "key_points": ["a", "b"], "limitations": ["l"]}\n```'}
+            mock_router.route_and_generate.return_value = {
+                "text": '```json\n{"summary": "AI paper", "key_points": ["a", "b"], "limitations": ["l"]}\n```'
+            }
             result = assistant.summarize(paper)
             assert "summary" in result
             assert "key_points" in result

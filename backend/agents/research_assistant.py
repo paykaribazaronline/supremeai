@@ -17,9 +17,7 @@ class ResearchAssistant:
     def __init__(self):
         logger.info("Initialized ResearchAssistant")
 
-    def search(
-        self, query: str, source: str = "arxiv", max_results: int = 5
-    ) -> list[dict[str, Any]]:
+    def search(self, query: str, source: str = "arxiv", max_results: int = 5) -> list[dict[str, Any]]:
         if source == "semantic_scholar":
             return self._search_semantic_scholar(query, max_results)
         return self._search_arxiv(query, max_results)
@@ -53,20 +51,11 @@ class ResearchAssistant:
             if id_el is not None and id_el.text:
                 m = re.search(r"abs/([^/\s]+)", id_el.text)
                 arxiv_id = m.group(1) if m else (id_el.text or "")
-            title = (
-                entry.findtext("atom:title", default="", namespaces=ns) or ""
-            ).strip()
+            title = (entry.findtext("atom:title", default="", namespaces=ns) or "").strip()
             title = re.sub(r"\s+", " ", title)
-            summary = (
-                entry.findtext("atom:summary", default="", namespaces=ns) or ""
-            ).strip()
-            published = (
-                entry.findtext("atom:published", default="", namespaces=ns) or ""
-            )
-            authors = [
-                a.findtext("atom:name", default="", namespaces=ns) or ""
-                for a in entry.findall("atom:author", ns)
-            ]
+            summary = (entry.findtext("atom:summary", default="", namespaces=ns) or "").strip()
+            published = entry.findtext("atom:published", default="", namespaces=ns) or ""
+            authors = [a.findtext("atom:name", default="", namespaces=ns) or "" for a in entry.findall("atom:author", ns)]
             link = ""
             for link_el in entry.findall("atom:link", ns):
                 if link_el.get("rel") == "alternate":
@@ -86,9 +75,7 @@ class ResearchAssistant:
             )
         return papers
 
-    def _search_semantic_scholar(
-        self, query: str, max_results: int = 5
-    ) -> list[dict[str, Any]]:
+    def _search_semantic_scholar(self, query: str, max_results: int = 5) -> list[dict[str, Any]]:
         try:
             params = {
                 "query": query,
@@ -105,9 +92,7 @@ class ResearchAssistant:
                         "source": "semantic_scholar",
                         "arxiv_id": "",
                         "title": item.get("title", ""),
-                        "authors": [
-                            a.get("name", "") for a in (item.get("authors") or [])[:5]
-                        ],
+                        "authors": [a.get("name", "") for a in (item.get("authors") or [])[:5]],
                         "abstract": (item.get("abstract") or "")[:1000],
                         "published": str(item.get("year", ""))[:4],
                         "url": item.get("url", ""),
@@ -136,9 +121,7 @@ class ResearchAssistant:
                 'Return JSON: {"summary": "...", "key_points": [...], "limitations": ["..."]}.\n\n'
                 f"Title: {paper.get('title', 'N/A')}\nAbstract: {abstract}"
             )
-            result = router.route_and_generate(
-                prompt, task_type="reasoning", max_cost=0.02
-            )
+            result = router.route_and_generate(prompt, task_type="reasoning", max_cost=0.02)
             text = result.get("text", "") if isinstance(result, dict) else ""
             text = text.strip()
             if "```json" in text:

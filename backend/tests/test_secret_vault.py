@@ -17,9 +17,7 @@ def vault_local():
 
 @pytest.fixture
 def vault_production():
-    with patch.dict(
-        os.environ, {"ENV": "production", "GCP_PROJECT_ID": "proj-1"}, clear=False
-    ):
+    with patch.dict(os.environ, {"ENV": "production", "GCP_PROJECT_ID": "proj-1"}, clear=False):
         mock_client = MagicMock()
         with patch("core.secret_vault.secretmanager", create=True):
             with patch.object(ProductionSecretVault, "__init__", lambda self: None):
@@ -59,9 +57,7 @@ def test_production_mode_fetch_secret(vault_production):
         result = vault_production.fetch_secret("SECRET_ID")
     assert result == "secret_value"
     vault_production.client.access_secret_version.assert_called_once()
-    called_name = vault_production.client.access_secret_version.call_args[1]["request"][
-        "name"
-    ]
+    called_name = vault_production.client.access_secret_version.call_args[1]["request"]["name"]
     assert called_name == "projects/proj-1/secrets/SECRET_ID/versions/latest"
 
 
