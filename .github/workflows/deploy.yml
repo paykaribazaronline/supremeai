@@ -2,6 +2,11 @@ name: Multi-Cloud Terraform Provisioning
 
 on:
   workflow_dispatch:
+    inputs:
+      confirm_apply:
+        description: 'Type "yes" to apply Terraform changes to production'
+        required: true
+        default: 'no'
 
 jobs:
   terraform-deploy:
@@ -29,8 +34,23 @@ jobs:
       - name: 🚀 Terraform Init
         run: terraform init
 
-      - name: 🌍 Terraform Apply (Auto-Approve)
-        run: terraform apply -auto-approve
+      - name: 📝 Terraform Plan
+        run: terraform plan
+        env:
+          TF_VAR_gcp_project_id: ${{ secrets.GCP_PROJECT_ID }}
+          TF_VAR_gcp_region: "us-central1"
+          TF_VAR_render_api_key: ${{ secrets.RENDER_API_KEY }}
+
+      - name: 🌍 Terraform Apply (Conditional)
+        run: |
+          if [ "${{ github.event.inputs.confirm_apply }}" = "yes" ]; then
+            echo "✅ Confirmation received. Applying changes..."
+            terraform apply -auto-approve
+          else
+            echo "⚠️ Dry Run Notice: 'confirm_apply' input was not 'yes'."
+            echo "Skipping the apply step gracefully without failing the pipeline."
+            exit 0
+          fi
         env:
           TF_VAR_gcp_project_id: ${{ secrets.GCP_PROJECT_ID }}
           TF_VAR_gcp_region: "us-central1"

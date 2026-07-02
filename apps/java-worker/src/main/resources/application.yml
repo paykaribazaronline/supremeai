@@ -5,7 +5,9 @@ spring:
     password: ${DATABASE_PASSWORD:postgres}
   jpa:
     hibernate:
-      ddl-auto: update
+      # ✅ প্রোডাকশনে স্কিমা অটো-মডিফাই বন্ধ করার জন্য ডিফল্ট 'validate' সেট করা হলো
+      # লোকাল ডেভেলপমেন্টে চাইলে SPRING_JPA_HIBERNATE_DDL_AUTO=update করে ওভাররাইড করা যাবে
+      ddl-auto: ${SPRING_JPA_HIBERNATE_DDL_AUTO:validate}
     show-sql: false
     properties:
       hibernate:
@@ -15,7 +17,8 @@ grpc:
   server:
     port: 9090
     security:
-      enabled: false # Ensure secure connection setup in production
+      # ✅ প্রোডাকশনে ইন্টারনাল API সুরক্ষিত রাখতে gRPC সিকিউরিটি এনাবল করা হলো
+      enabled: ${GRPC_SERVER_SECURITY_ENABLED:true}
 
 server:
   port: 8080 # For health checks and metrics via standard HTTP

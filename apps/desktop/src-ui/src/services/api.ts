@@ -44,10 +44,52 @@ interface LogEntry {
   message: string;
 }
 
+// ✅ XSS আক্রমণ থেকে রক্ষা পেতে প্রোডাকশনে Memory-based Token স্টোরেজ
+let memoryToken: string | null = null;
+
+// পরিবেশ নির্ধারণ করা হচ্ছে
+const isDevelopment = import.meta.env?.DEV;
+
+export const setToken = (token: string | null) => {
+  if (isDevelopment) {
+    if (token) {
+      localStorage.setItem('jwt', token);
+    } else {
+      localStorage.removeItem('jwt');
+    }
+  } else {
+    memoryToken = token;
+    // প্রোডাকশনে লোকাল স্টোরেজ থেকে মুছে ফেলা হচ্ছে
+    try {
+      localStorage.removeItem('jwt');
+    } catch (e) {}
+  }
+};
+
+export const getToken = (): string | null => {
+  if (isDevelopment) {
+    try {
+      return localStorage.getItem('jwt');
+    } catch (e) {
+      return null;
+    }
+  }
+  return memoryToken;
+};
+
+export const clearToken = () => {
+  if (isDevelopment) {
+    try {
+      localStorage.removeItem('jwt');
+    } catch (e) {}
+  }
+  memoryToken = null;
+};
+
 const API_BASE = import.meta.env.VITE_API_BASE || 'https://api.supremeai.dev';
 
 const getAuthHeaders = (includeJson = false) => {
-  const token = localStorage.getItem('jwt');
+  const token = getToken();
   const headers: Record<string, string> = {};
   if (token) {
     headers['Authorization'] = `Bearer ${token}`;

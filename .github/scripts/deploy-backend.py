@@ -48,26 +48,38 @@ print("✅ Deployment successful. Container started successfully.")
 # 🧪 3. DEEP HEALTH-CHECK (Application Level)
 # ==========================================
 print("🧪 Initiating deep health-check on the live API...")
-time.sleep(10) # Give the server a few seconds to warm up
 
 health_endpoint = f"{API_URL.rstrip('/')}/health" if API_URL else None
 is_healthy = False
 
 if health_endpoint:
-    for attempt in range(1, 4): # Try 3 times
+    # বাংলা মন্তব্য: কোল্ড স্টার্টের কারণে সর্বোচ্চ ৬০ সেকেন্ড পর্যন্ত প্রতি ২.৫ সেকেন্ডে পোলিং করা হবে
+    timeout = 60
+    poll_interval = 2.5
+    start_time = time.time()
+    attempt = 1
+    
+    print(f"Checking health for {health_endpoint} (Timeout: {timeout}s)...")
+    while time.time() - start_time < timeout:
         try:
-            print(f"   -> Health check attempt {attempt}/3 at {health_endpoint}...")
+            print(f"   -> Health check attempt {attempt} (Elapsed: {int(time.time() - start_time)}s) at {health_endpoint}...")
             req = urllib.request.Request(health_endpoint, headers={'User-Agent': 'SupremeAI-CI-Bot'})
-            with urllib.request.urlopen(req, timeout=15) as response:
+            with urllib.request.urlopen(req, timeout=5) as response:
                 if response.getcode() == 200:
                     data = json.loads(response.read().decode())
-                    if data.get("status") == "healthy" or data.get("status") == "ok":
+                    if data.get("status") in ("healthy", "ok", "success"):
                         is_healthy = True
                         print("✅ API is perfectly healthy and accepting traffic!")
                         break
-        except Exception as e:
-            print(f"   ⚠️ Attempt {attempt} failed: {e}")
-        time.sleep(5)
+        except Exception:
+            # এখনো রেডি হয়নি, কিছুক্ষণ অপেক্ষা করে আবার চেষ্টা করবে
+            pass
+        
+        attempt += 1
+        time.sleep(poll_interval)
+    
+    if not is_healthy:
+        print("❌ Health check failed: Timeout reached.")
 else:
     print("⚠️ SUPREMEAI_API_URL is not set. Skipping deep health check.")
     is_healthy = True # Assume healthy if no URL provided to check

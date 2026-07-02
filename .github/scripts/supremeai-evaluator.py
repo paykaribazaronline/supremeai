@@ -262,14 +262,40 @@ def get_evaluator_result(error_logs: str = "", fixed_code: str = "", job_context
     }, "none"
 
 
+def get_diff():
+    # বাংলা মন্তব্য: অটো-ফিক্স ডিফ ফাইল এবং গিট ডিফ থেকে ফিক্সড কোড পাওয়া
+    diff_path = "/tmp/auto-fix-diff.txt"
+    if os.path.exists(diff_path):
+        try:
+            with open(diff_path, "r", encoding="utf-8") as f:
+                content = f.read().strip()
+                return content if content else "No diff available."
+        except Exception as e:
+            print(f"Error reading diff file: {e}")
+    
+    import subprocess
+    try:
+        result = subprocess.run(["git", "diff", "HEAD~1"], capture_output=True, text=True)
+        if result.returncode == 0 and result.stdout.strip():
+            return result.stdout.strip()
+        
+        result_unstaged = subprocess.run(["git", "diff", "HEAD"], capture_output=True, text=True)
+        if result_unstaged.returncode == 0 and result_unstaged.stdout.strip():
+            return result_unstaged.stdout.strip()
+    except Exception as e:
+        print(f"Error executing git diff: {e}")
+        
+    return "No diff available."
+
+
 def main():
     print("=" * 60)
     print("🧠 SupremeAI Evaluator — Phase 4")
     print("=" * 60)
 
-    # Error logs সংগ্রহ (CI report থেকে)
-    error_logs = ""
-    fixed_code = ""
+    # বাংলা মন্তব্য: হার্ডকোড করা empty string-এর বদলে ডায়নামিক ডেটা ক্যাপচার
+    error_logs = os.getenv("ERROR_LOGS") or os.getenv("FAILED_JOBS") or "No error logs found."
+    fixed_code = get_diff()
     job_context = f"""
 Repository: {GITHUB_REPOSITORY}
 Branch: {GITHUB_REF_NAME}

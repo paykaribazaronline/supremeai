@@ -5,9 +5,13 @@ import re
 import hashlib
 import json
 import time
+import asyncio
 import litellm
 from google import genai
 from typing import Optional, Tuple
+
+# বাংলা মন্তব্য: গিট ব্রাঞ্চ সনাক্তকরণ
+BRANCH = os.getenv("BRANCH") or os.getenv("GITHUB_REF_NAME") or "main"
 
 # ==========================================
 # ⚙️ CONFIGURATION & API SETUP
@@ -425,50 +429,6 @@ async def run_sandbox_tests(pr_number: int) -> bool:
     # যদি সব টেস্ট গ্রিন হয়, তবে অটো-মার্জ করা
     return True  # সরলিকৃত - প্রয়োজনে বাস্তব সিআই রে�জাল্ট চেক করা
 
-def apply_and_validate_fix(ai_response, file_path=None):
-    """ফিক্স প্রয়োগ ও ভ্যালিডেশন"""
-    # Extract file path
-    path_match = re.search(r'# FILE_PATH:\s*(\S+)', ai_response)
-    if not path_match:
-        print("❌ ERROR: AI did not provide a valid FILE_PATH.")
-        sys.exit(1)
-        
-    file_path = path_match.group(1).strip()
-    
-    import os
-    base_path = os.getcwd()
-    if 'backend' in base_path:
-        file_path = file_path.replace('backend/', '')
-
-    # Extract code
-    code_match = re.search(r'```python\n(.*?)\n```', ai_response, re.DOTALL)
-    if not code_match:
-        print("❌ ERROR: AI did not return a valid python code block.")
-        sys.exit(1)
-        
-    new_code = code_match.group(1).strip()
-    
-    # ক্রিটিক্যাল ফাইলের জন্য হিটল গেটওয়ে চেক
-    if is_critical_file(file_path):
-        print(f"🛡️ Critical file detected: {file_path}")
-        if not AUTOFIX_AUTHORIZED:
-            print("⚠️ Auto-fix not authorized for critical files. Requesting admin approval...")
-            # এখানে ডিফ রিভিউ পাঠিয়ে অপেক্ষা করা হবে
-            return None
-    
-    # Save the file
-    with open(file_path, 'w', encoding='utf-8') as f:
-        f.write(new_code)
-    print(f"✅ Fix applied to {file_path}")
-    
-    # Validate Syntax
-    print("🛡️ Validating syntax of the fixed file...")
-    _, stderr, code = run_cmd(f"python -m py_compile {file_path}")
-    if code != 0:
-        print(f"🚨 SYNTAX ERROR in AI generated code:\n{stderr}")
-        sys.exit(1)
-        
-    return file_path
 
 if __name__ == "__main__":
     print("========================================")

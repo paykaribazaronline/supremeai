@@ -6,7 +6,7 @@
   "private": true,
   "version": "0.0.1",
   "type": "module",
-  "main": "main.cjs",
+  "main": "main.js",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
