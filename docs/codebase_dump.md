@@ -1,7 +1,7 @@
 # 🧠 SupremeAI 2.0 Codebase Analysis
 # বাংলা মন্তব্য: এটি একটি স্বয়ংক্রিয়ভাবে জেনারেট করা কোডবেস ডাম্প ফাইল যা প্রজেক্টের সামগ্রিক বিশ্লেষণের জন্য ব্যবহৃত হয়।
 
-Generated at: 2026-07-02T21:01:45.760687 UTC
+Generated at: 2026-07-02T21:16:46.864529 UTC
 
 ## File: `.github/actions/setup-backend/action.yml`
 ```yaml
@@ -764,6 +764,18 @@ import asyncio
 import litellm
 from google import genai
 from typing import Optional, Tuple
+from dataclasses import dataclass
+
+
+@dataclass
+class CmdResult:
+    stdout: str
+    stderr: str
+    exit_code: int
+
+    @property
+    def success(self) -> bool:
+        return self.exit_code == 0
 
 # বাংলা মন্তব্য: গিট ব্রাঞ্চ সনাক্তকরণ
 BRANCH = os.getenv("BRANCH") or os.getenv("GITHUB_REF_NAME") or "main"
@@ -791,9 +803,16 @@ ADMIN_AUTHORIZED = os.getenv("ADMIN_AUTHORIZED", "true").lower() == "true"
 AUTOFIX_AUTHORIZED = os.getenv("AUTOFIX_AUTHORIZED", "true").lower() == "true"
 
 def run_cmd(cmd):
-    """Run a shell command and return output."""
-    result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
-    return result.stdout, result.stderr, result.returncode
+    """Run a shell command and return structured output."""
+    if isinstance(cmd, list):
+        result = subprocess.run(cmd, capture_output=True, text=True)
+    else:
+        result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
+    return CmdResult(
+        stdout=result.stdout,
+        stderr=result.stderr,
+        exit_code=result.returncode,
+    )
 
 # ==========================================
 # 🚀 TIERED LLM ROUTING & COST OPTIMIZATION
@@ -922,8 +941,8 @@ def request_admin_approval(filepath: str, diff: str) -> bool:
 # ==========================================
 def check_infinite_loop():
     """Prevent AI from endlessly fixing and failing."""
-    stdout, _, _ = run_cmd("git log -3 --pretty=%B")
-    if stdout.count("🤖 AI Auto-Fix") >= 2:
+    result = run_cmd("git log -3 --pretty=%B")
+    if result.stdout.count("🤖 AI Auto-Fix") >= 2:
         print("🚨 GUARDRAIL TRIGGERED: 2 consecutive AI fixes failed. Aborting to prevent infinite CI loop.")
         sys.exit(1)
 
@@ -933,7 +952,9 @@ def check_infinite_loop():
 def extract_errors():
     print("🔍 Extracting failed test logs...")
     # Run pytest on last failed tests only to get a clean error log
-    stdout, stderr, _ = run_cmd("poetry run pytest --lf -q --tb=short")
+    result = run_cmd("poetry run pytest --lf -q --tb=short")
+    stdout = result.stdout
+    stderr = result.stderr
     
     if "no tests ran" in stdout.lower() or "passed" in stdout.lower() and "failed" not in stdout.lower():
         print("✅ No failing tests found. Exiting Auto-Fix.")
@@ -1128,9 +1149,9 @@ def apply_and_validate_fix(ai_response, file_path=None):
     
     # Validate Syntax
     print("🛡️ Validating syntax of the fixed file...")
-    _, stderr, code = run_cmd(f"python -m py_compile {file_path}")
-    if code != 0:
-        print(f"🚨 SYNTAX ERROR in AI generated code:\n{stderr}")
+    result = run_cmd(f"python -m py_compile {file_path}")
+    if result.exit_code != 0:
+        print(f"🚨 SYNTAX ERROR in AI generated code:\n{result.stderr}")
         sys.exit(1)
         
     return file_path
@@ -1182,7 +1203,7 @@ async def run_sandbox_tests(pr_number: int) -> bool:
     
     # স্যান্ডবক্স রেজাল্ট চেক করা
     # যদি সব টেস্ট গ্রিন হয়, তবে অটো-মার্জ করা
-    return True  # সরলিকৃত - প্রয়োজনে বাস্তব সিআই রে�জাল্ট চেক করা
+    return result.success  # সরলিকৃত - প্রয়োজনে বাস্তব সিআই রেজাল্ট চেক করা
 
 
 if __name__ == "__main__":
