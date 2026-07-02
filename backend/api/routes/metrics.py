@@ -83,7 +83,7 @@ class SupremeMetricsEngine:
 metrics_engine = SupremeMetricsEngine()
 
 
-@router.get("/dashboard")
+@router.get("/dashboard", operation_id="supreme_admin_metrics_dashboard")
 async def get_admin_metrics_dashboard(request: Request):
     """
     Secure Admin Metrics Endpoint.
@@ -107,7 +107,7 @@ async def run_bg_audit():
     await auditor.execute_audit_sequence()
 
 
-@router.post("/trigger-nightly-chaos")
+@router.post("/trigger-nightly-chaos", operation_id="supreme_trigger_nightly_chaos")
 async def trigger_nightly_chaos(
     background_tasks: BackgroundTasks, x_chaos_key: str = Header(None)
 ):

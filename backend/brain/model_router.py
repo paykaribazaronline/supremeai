@@ -2,6 +2,7 @@
 # বাংলা মন্তব্য: এটি পুরানো রাউটিং লজিকগুলোর বদলে সরাসরি নতুন llm_gateway.py এর মাধ্যমে রিকোয়েস্ট ফরোয়ার্ড করে।
 
 import asyncio
+import inspect
 from typing import Any
 
 from loguru import logger
@@ -87,7 +88,7 @@ class ModelRouter:
         async_func = getattr(self, "async_route_and_generate", None)
         if (async_func and 
             async_func != ModelRouter.async_route_and_generate and 
-            (asyncio.iscoroutinefunction(async_func) or hasattr(async_func, "assert_called_with") or type(async_func).__name__ == "AsyncMock")):
+            (inspect.iscoroutinefunction(async_func) or hasattr(async_func, "assert_called_with") or type(async_func).__name__ == "AsyncMock")):
             res = run_async_as_sync(async_func(prompt, task_type, max_cost))
         
         if res is None:
@@ -125,7 +126,7 @@ class ModelRouter:
                 val = getattr(self, attr, None)
                 if val and val != getattr(ModelRouter, attr, None):
                     # Check if it's an async helper or sync
-                    if asyncio.iscoroutinefunction(val):
+                    if inspect.iscoroutinefunction(val):
                         return await val(p_str, "model")
                     else:
                         return val(p_str, "model")

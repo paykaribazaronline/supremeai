@@ -4,6 +4,7 @@ Supports multiple queue backends with automatic fallback and monitoring
 """
 
 import asyncio
+import inspect
 import json
 import os
 import time
@@ -395,7 +396,7 @@ class TaskQueue:
             self._results[task_id].started_at = time.time()
 
             # Execute function
-            if asyncio.iscoroutinefunction(func):
+            if inspect.iscoroutinefunction(func):
                 result = await func(*args, **kwargs)
             else:
                 result = func(*args, **kwargs)

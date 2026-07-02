@@ -241,8 +241,6 @@ if knowledge_router is not None:
     app.include_router(knowledge_router)
 if marketplace_router is not None:
     app.include_router(marketplace_router)
-if metrics_router is not None:
-    app.include_router(metrics_router)
 if auth_router is not None:
     app.include_router(auth_router)
 if admin_dashboard_router is not None:
