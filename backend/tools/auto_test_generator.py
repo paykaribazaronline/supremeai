@@ -11,7 +11,14 @@ import os
 import pathlib
 import subprocess
 import sys
+from pathlib import Path
 from typing import Any
+
+# বাংলা মন্তব্য: মডিউলটি সরাসরি ইমপোর্ট করার সুবিধার্থে sys.path এ ব্যাকএন্ড ও প্রজেক্ট রুট পাথ যুক্ত করা হলো
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from _bootstrap import bootstrap
+
+bootstrap()
 
 from fastapi import APIRouter
 from fastapi import File

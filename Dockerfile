@@ -54,13 +54,16 @@ RUN find /app/backend/.venv -type d -name "__pycache__" -exec rm -rf {} + 2>/dev
     rm -rf /app/backend/.venv/lib/python3.11/site-packages/caffe2 2>/dev/null || true
 
 
-# Stage 2: Final minimal runner (Google Distroless)
-FROM gcr.io/distroless/python3-debian12 AS runner
+# Stage 2: Final minimal runner
+FROM python:3.11-slim AS runner
+
+RUN apt-get update && apt-get install -y --no-install-recommends libpq5 && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
 COPY --from=builder /app/backend/.venv /app/backend/.venv
 COPY backend /app/backend
+COPY .env /app/.env
 COPY --from=builder /root/.EasyOCR /home/nonroot/.EasyOCR
 
 ENV PATH="/app/backend/.venv/bin:$PATH"

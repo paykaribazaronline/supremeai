@@ -46,13 +46,13 @@ class PreCommitAI:
 
             self.isort_available = True
         except ImportError:
-            pass
+            logger.warning("isort is not installed. Some auto-fixes will be unavailable. Run 'pip install isort'")
         try:
             import black  # noqa: F401
 
             self.black_available = True
         except ImportError:
-            pass
+            logger.warning("black is not installed. Some auto-fixes will be unavailable. Run 'pip install black'")
         logger.debug(
             f"PreCommit tools: isort={self.isort_available}, black={self.black_available}"
         )

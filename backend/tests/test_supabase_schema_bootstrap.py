@@ -169,7 +169,7 @@ def test_live_supabase_schema_bootstrap_and_task_history_write():
         "live_task",
         "integration_approach",
         "works",
-        True,
+        False,  # বাংলা মন্তব্য: get_repeated_failures সফল রেকর্ড রিটার্ন করে না, তাই success=False দেওয়া হলো
         "2026-06-27T17:05:00Z",
     )
 

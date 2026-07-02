@@ -27,8 +27,8 @@ supremeai_1.0
 *.gif
 .DS_Store
 Thumbs.db
-.env*
-.env.example
+# .env*
+# .env.example
 *.md
 README*
 LICENSE

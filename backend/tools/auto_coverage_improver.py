@@ -1,7 +1,15 @@
 import argparse
 import asyncio
 import os
+import sys
+from pathlib import Path
 from typing import Any
+
+# বাংলা মন্তব্য: স্ক্রিপ্টটি যেকোনো ডিরেক্টরি থেকে সরাসরি রান করার সুবিধার্থে sys.path এ প্রজেক্ট রুট ও ব্যাকএন্ড পাথ যুক্ত করা হচ্ছে
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from _bootstrap import bootstrap
+
+bootstrap()
 
 from loguru import logger
 
@@ -23,7 +31,7 @@ class AutoCoverageImprover:
     async def run(
         self,
         coverage_report_path: str,
-        min_coverage_target: float = 80.0,
+        min_coverage_target: float = 80.0, # লক্ষ্যমাত্রা ৮০% এ উন্নীত করা হলো
         dry_run: bool = False,
     ) -> dict[str, Any]:
         """
@@ -93,7 +101,7 @@ async def main():
     parser.add_argument(
         "--min-target",
         type=float,
-        default=80.0,
+        default=80.0, # ডিফল্ট লক্ষ্যমাত্রা ৮০% করা হলো
         help="The minimum coverage percentage to aim for. Default: 80.0",
     )
     parser.add_argument(

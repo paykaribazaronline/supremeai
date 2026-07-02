@@ -7,16 +7,23 @@ from sqlalchemy.ext.asyncio import create_async_engine
 from sqlalchemy.pool import NullPool
 
 
-# Cloud Run-এর জন্য PgBouncer Transaction Mode URL ব্যবহার করা বাধ্যতামূলক
 DATABASE_URL = os.getenv("SUPABASE_DATABASE_URL_POOLER", "")
 
 if not DATABASE_URL:
     logger.warning("SUPABASE_DATABASE_URL_POOLER is missing. Database operations will fail.")
 
-# Pro Tip: PgBouncer যখন কানেকশন পুলিং করছে, তখন SQLAlchemy-কে নিজস্ব পুল মেইনটেইন করতে দেওয়াটা ডেডলকের কারণ হতে পারে। 
-# তাই 'poolclass=NullPool' ব্যবহার করা হলো, যাতে প্রতিটি রিকোয়েস্ট সরাসরি PgBouncer থেকে কানেকশন নেয় এবং কাজ শেষে ছেড়ে দেয়।
+# বাংলা মন্তব্য: কানেকশন স্ট্রিংয়ে postgresql:// বা postgres:// থাকলে তা asyncpg-এর জন্য postgresql+asyncpg:// দিয়ে প্রতিস্থাপন করা হচ্ছে
+def get_async_url(url: str) -> str:
+    if not url:
+        return "sqlite+aiosqlite:///:memory:"
+    if url.startswith("postgresql://"):
+        return url.replace("postgresql://", "postgresql+asyncpg://", 1)
+    if url.startswith("postgres://"):
+        return url.replace("postgres://", "postgresql+asyncpg://", 1)
+    return url
+
 engine = create_async_engine(
-    DATABASE_URL.replace("postgres://", "postgresql+asyncpg://") if DATABASE_URL else "sqlite+aiosqlite:///:memory:",
+    get_async_url(DATABASE_URL),
     poolclass=NullPool,
     echo=False
 )

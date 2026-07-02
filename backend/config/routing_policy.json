@@ -1,20 +1,22 @@
 {
   "complexity_rules": {
     "easy": [
-      "ollama/llama3",
+      "ollama/qwen2.5-coder:1.5b",
       "groq/llama-3.3-70b-versatile"
     ],
     "medium": [
-      "gemini/gemini-1.5-flash",
-      "deepseek/deepseek-chat"
+      "deepseek/deepseek-chat",
+      "gemini/gemini-1.5-flash"
     ],
     "hard": [
-      "openai/gpt-4o-mini",
+      "deepseek/deepseek-chat",
       "gemini/gemini-3.5-flash",
-      "gemini/gemini-1.5-pro"
+      "gemini/gemini-1.5-pro",
+      "openai/gpt-4o-mini"
     ]
   },
   "fallback_chain": [
+    "deepseek/deepseek-chat",
     "groq/llama-3.3-70b-versatile",
     "gemini/gemini-3.5-flash",
     "openai/gpt-4o-mini"

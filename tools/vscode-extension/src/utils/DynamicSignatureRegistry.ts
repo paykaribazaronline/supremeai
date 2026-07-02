@@ -17,7 +17,7 @@ export class DynamicSignatureRegistry {
   loadDefaultSignatures(): void {
     this.signatures.set('GREETING_PATTERNS', [
       'hello', 'hi', 'hey', 'greetings', 'hola', 'good morning', 'good afternoon', 'good evening',
-      'assalamualaikum', 'namaste', 'হ্যালো', 'হাই', 'নমস্কার'
+      'assalamualaikum', 'namaste', 'হ্যালো', 'হাই', 'নমস্কার', 'কেমন আছেন', 'শুভ সকাল'
     ]);
     this.signatures.set('DEBUG_PATTERNS', [
       'bug', 'error', 'fix', 'debug', 'issue', 'problem', 'crash'
@@ -32,7 +32,9 @@ export class DynamicSignatureRegistry {
       'time', 'current time', 'what time', 'hour', 'clock'
     ]);
     this.signatures.set('GREETING_RESPONSES', [
-      'Hello! I\'m SupremeAI, your autonomous coding assistant. How can I help you today?'
+      'Hello! I\'m SupremeAI, your autonomous coding assistant. How can I help you today?',
+      'হ্যালো! আমি সুপ্রিমএআই, আপনার স্বয়ংক্রিয় কোডিং সহকারী। আমি আজ আপনাকে কিভাবে সাহায্য করতে পারি?',
+      'নমস্কার! আমি সুপ্রিমএআই। আপনার কোডিং যাত্রায় সাহায্য করতে প্রস্তুত।'
     ]);
     this.signatures.set('DEBUG_RESPONSES', [
       'I can help you debug! Please share the error message or the problematic code, and I\'ll analyze it.'
