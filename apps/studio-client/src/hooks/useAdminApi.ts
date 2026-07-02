@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { getApiBaseUrl } from '../utils/api';
 
-const API_BASE = import.meta.env.VITE_API_BASE || '';
+const API_BASE = getApiBaseUrl();
 
 async function fetchJSON<T>(url: string): Promise<T> {
   const res = await fetch(`${API_BASE}${url}`);

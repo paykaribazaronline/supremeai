@@ -5,7 +5,7 @@ import { AdminConsole } from "./components/admin/AdminConsole";
 import { UserDashboard } from "./components/customer/UserDashboard";
 import { sendMessageStream } from "./services/chatService";
 import type { ChatMessage } from "./services/chatService";
-
+import { getApiBaseUrl } from "./utils/api";
 import { Cpu, Send } from 'lucide-react';
 import ReactFlow, { Background, useNodesState, useEdgesState } from 'reactflow';
 import 'reactflow/dist/style.css';
@@ -66,7 +66,7 @@ function AdminShell() {
   useEffect(() => {
     if (!adminAuthenticated) return;
 
-    const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:8000';
+    const API_BASE = getApiBaseUrl();
     const headers = {
       "Authorization": `Bearer ${localStorage.getItem('supremeai_admin_token') || ''}`,
       "Content-Type": "application/json"
@@ -110,7 +110,7 @@ function AdminShell() {
 
   const handleTriggerDeploy = () => {
     setActionStatus("TRIGGERING DEPLOY...");
-    const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:8000';
+    const API_BASE = getApiBaseUrl();
     const headers = {
       "Authorization": `Bearer ${localStorage.getItem('supremeai_admin_token') || ''}`,
       "Content-Type": "application/json"
@@ -145,7 +145,7 @@ function AdminShell() {
 
   const handleSaveUser = () => {
     if (!newUsername) return;
-    const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:8000';
+    const API_BASE = getApiBaseUrl();
     const headers = {
       "Authorization": `Bearer ${localStorage.getItem('supremeai_admin_token') || ''}`,
       "Content-Type": "application/json"
@@ -164,7 +164,7 @@ function AdminShell() {
   };
 
   const handleDeleteUser = (username: string) => {
-    const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:8000';
+    const API_BASE = getApiBaseUrl();
     const headers = {
       "Authorization": `Bearer ${localStorage.getItem('supremeai_admin_token') || ''}`,
       "Content-Type": "application/json"
@@ -278,7 +278,7 @@ export const App: React.FC = () => {
   };
 
   useEffect(() => {
-    const API_BASE_URL = import.meta.env.VITE_API_BASE || "http://localhost:8000";
+    const API_BASE_URL = getApiBaseUrl();
     const sseEndpoint = `${API_BASE_URL}/api/task/stream`;
     
     console.log("🔌 Initializing SupremeAI Unified Lifespan SSE Stream...");

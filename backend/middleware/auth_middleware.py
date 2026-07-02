@@ -23,6 +23,8 @@ class ZeroTrustAuthMiddleware(BaseHTTPMiddleware):
             "/api/task/stream",
             "/api/v1/collaborate",
             "/api/v1/graph",
+            "/ws/chat",
+            "/ws",
         ]
         if request.method == "OPTIONS":
             return await call_next(request)

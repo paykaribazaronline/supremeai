@@ -1,6 +1,7 @@
 import { create } from "zustand";
+import { getApiBaseUrl } from '../utils/api';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE || "http://localhost:8000";
+const API_BASE_URL = getApiBaseUrl();
 
 interface ChatMessage {
   id: string;

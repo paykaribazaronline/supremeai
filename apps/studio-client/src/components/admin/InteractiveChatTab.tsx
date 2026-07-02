@@ -29,7 +29,9 @@ interface InteractiveChatTabProps {
   loading?: boolean;
 }
 
-const API_BASE = import.meta.env.VITE_API_BASE || '';
+import { getApiBaseUrl } from '../../utils/api';
+
+const API_BASE = getApiBaseUrl();
 
 export function InteractiveChatTab({
   messages: propMessages,

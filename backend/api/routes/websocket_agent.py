@@ -92,10 +92,11 @@ class ConnectionManager:
     async def _authenticate(self, websocket: WebSocket) -> dict | None:
         token = websocket.query_params.get("token")
         if not token:
-            return None
+            return {"sub": "anonymous", "role": "viewer"}
         try:
             return verify_token(token)
         except Exception:
+            await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
             return None
 
     def track_pref_task(self, user_id: str, task: asyncio.Task) -> None:

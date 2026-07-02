@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { getWebSocketBaseUrl } from '../utils/api';
 
 type ConnectionStatus = 'connecting' | 'open' | 'closed' | 'error';
 
@@ -45,8 +46,7 @@ export function useWebSocket(options: UseWebSocketOptions = {}): UseWebSocketRet
 
   const resolveUrl = useCallback(() => {
     if (url) return url;
-    const proto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    return `${proto}//${window.location.host.startsWith('localhost') ? 'localhost:8000' : window.location.host}/ws`;
+    return `${getWebSocketBaseUrl()}/ws`;
   }, [url]);
 
   const connect = useCallback(() => {

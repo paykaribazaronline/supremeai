@@ -35,7 +35,8 @@ import { AudioRecorderService } from '../../services/audio/AudioRecorderService'
 import { AudioPlaybackService } from '../../services/audio/AudioPlaybackService';
 import { WaveformVisualizer } from '../audio/WaveformVisualizer';
 import { ServiceHealthMetrics } from './ServiceHealthMetrics';
-import { mockAiService } from '../../services/mockAiService';
+import { getAethelResponse } from '../../services/chatService';
+import { getWebSocketBaseUrl } from '../../utils/api';
 
 // বাংলা মন্তব্য: চ্যাট এবং ভয়েস ওভাররাইডের জন্য ডামি কথোপকথন ডাটা ডিক্লেয়ার করা হচ্ছে
 const initialChat = [
@@ -73,11 +74,7 @@ export function CommandCenter() {
     const service = new AudioPlaybackService();
     setPlaybackService(service);
     
-    // Using relative URL or assuming backend runs on same domain + /api/voice/ws/voice or ws://localhost:8000/api/voice/ws/voice
-    const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const wsHost = import.meta.env.VITE_API_URL ? new URL(import.meta.env.VITE_API_URL).host : '127.0.0.1:8000';
-    const wsUrl = `${wsProtocol}//${wsHost}/api/voice/ws/voice`;
-    
+    const wsUrl = `${getWebSocketBaseUrl()}/api/voice/ws/voice`;
     recorderRef.current = new AudioRecorderService(wsUrl);
 
     recorderRef.current.onTranscript((text) => {
@@ -129,13 +126,15 @@ export function CommandCenter() {
     setTerminalInput('');
   };
 
-  const handleSendChat = () => {
+  const handleSendChat = async () => {
     if (!chatInput.trim()) return;
     const msgText = chatInput.trim();
-    setChatMessages(prev => [
-      ...prev,
+
+    const nextMessages = [
+      ...chatMessages,
       { id: Date.now(), sender: 'Admin', text: msgText }
-    ]);
+    ];
+    setChatMessages(nextMessages);
     
     // Check if websocket is actually connected
     const isConnected = recorderRef.current && typeof recorderRef.current.isConnected === 'function' && recorderRef.current.isConnected();
@@ -143,18 +142,32 @@ export function CommandCenter() {
     if (isConnected && recorderRef.current) {
       recorderRef.current.sendText(msgText);
     } else {
-      // বাংলা মন্তব্য: ব্যাকএন্ড অফলাইন থাকলে লোকাল সিমুলেশন রেসপন্স প্রোভাইড করা হচ্ছে
-      setTimeout(() => {
-        const response = mockAiService.generateResponse(msgText);
+      setChatMessages(prev => [
+        ...prev,
+        { id: Date.now(), sender: 'SupremeAI', text: 'Thinking... Please wait.' }
+      ]);
+
+      const history = nextMessages.map(message => ({
+        role: message.sender === 'Admin' ? 'user' : 'assistant',
+        content: message.text,
+      }));
+
+      try {
+        const responseText = await getAethelResponse(msgText, history);
         setChatMessages(prev => [
           ...prev,
-          { 
-            id: Date.now(), 
-            sender: 'SupremeAI', 
-            text: response.text 
+          { id: Date.now(), sender: 'SupremeAI', text: responseText }
+        ]);
+      } catch (error: any) {
+        setChatMessages(prev => [
+          ...prev,
+          {
+            id: Date.now(),
+            sender: 'SupremeAI',
+            text: `AI backend error: ${error?.message || 'Unable to reach the model.'}`,
           }
         ]);
-      }, 800);
+      }
     }
     
     setChatInput('');

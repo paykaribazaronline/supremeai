@@ -39,7 +39,7 @@ export const useAdminStore = create<AdminState>((set, get) => ({
     set({ adminError: '' });
     
     try {
-      const API_BASE = import.meta.env.VITE_API_BASE || '';
+      const API_BASE = getApiBaseUrl();
       if (!otpRequired) {
         const res = await fetch(`${API_BASE}/api/admin/login`, {
           method: 'POST',

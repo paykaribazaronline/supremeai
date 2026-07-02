@@ -2,8 +2,10 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import Editor from '@monaco-editor/react';
 
+import { getWebSocketBaseUrl } from '../utils/api';
+
 // ব্যাকএন্ডের WebSocket URL (আপনার এনভায়রনমেন্ট অনুযায়ী পরিবর্তন হতে পারে)
-const WS_BASE_URL = import.meta.env.VITE_WS_BASE_URL || 'ws://localhost:8000';
+const WS_BASE_URL = getWebSocketBaseUrl();
 
 interface CollabEditorProps {
   sessionId: string;

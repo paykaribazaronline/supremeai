@@ -33,6 +33,8 @@ export interface ChatResponse {
   };
 }
 
+import { getApiBaseUrl } from './utils/api';
+
 // বাংলা মন্তব্য: ফাংশন ডিক্লেয়ারেশন সিনট্যাক্স এরর ঠিক করা হলো
 export async function sendMessageStream(
   message: string,
@@ -41,7 +43,7 @@ export async function sendMessageStream(
   onError: (error: string) => void,
   abortSignal?: AbortSignal,
 ): Promise<void> {
-  const API_BASE = import.meta.env.VITE_API_BASE || '';
+  const API_BASE = getApiBaseUrl();
   try {
     const res = await fetch(`${API_BASE}/api/chat/stream`, {
       method: 'POST',
@@ -125,3 +127,12 @@ export const chatService = {
     return apiClient.get<any[]>('/api/voice/voices');
   },
 };
+
+export async function getAethelResponse(message: string, history: ChatMessage[] = []): Promise<string> {
+  const response = await apiClient.post<{ result: string }>('/task/execute', {
+    task: message,
+    task_type: 'general',
+    messages: history,
+  });
+  return response.result || 'No response from AI backend.';
+}

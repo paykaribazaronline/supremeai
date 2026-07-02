@@ -2,8 +2,9 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import { useStore } from '../store/useStore';
 import { useCustomerStore } from '../store/customerStore';
 import type { ChatMessage } from '../types/customer';
+import { getApiBaseUrl } from '../utils/api';
 
-const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:8000';
+const API_BASE = getApiBaseUrl();
 
 interface UseChatOptions {
   projectId?: string;

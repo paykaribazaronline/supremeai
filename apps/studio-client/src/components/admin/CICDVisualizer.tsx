@@ -46,9 +46,11 @@ export function CICDVisualizer() {
     return 'info';
   };
 
+import { getApiBaseUrl } from '../../utils/api';
+
   const handleDeploy = async () => {
     try {
-      const API_BASE = import.meta.env.VITE_API_BASE || '';
+      const API_BASE = getApiBaseUrl();
       const res = await fetch(`${API_BASE}/admin-api/deploy`, {
         method: 'POST',
         headers: {
