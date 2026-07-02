@@ -4,7 +4,7 @@
 # ══════════════════════════════════════════════════════════
 
 # Stage 1: Build dependencies
-FROM python:3.11-slim AS builder
+FROM python:3.14-slim AS builder
 
 WORKDIR /app
 
@@ -55,7 +55,7 @@ RUN find /app/backend/.venv -type d -name "__pycache__" -exec rm -rf {} + 2>/dev
 
 
 # Stage 2: Final minimal runner
-FROM python:3.11-slim AS runner
+FROM python:3.14-slim AS runner
 
 RUN apt-get update && apt-get install -y --no-install-recommends libpq5 && rm -rf /var/lib/apt/lists/*
 
