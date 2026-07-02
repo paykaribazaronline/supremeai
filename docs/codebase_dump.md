@@ -1,7 +1,7 @@
 # 🧠 SupremeAI 2.0 Codebase Analysis
 # বাংলা মন্তব্য: এটি একটি স্বয়ংক্রিয়ভাবে জেনারেট করা কোডবেস ডাম্প ফাইল যা প্রজেক্টের সামগ্রিক বিশ্লেষণের জন্য ব্যবহৃত হয়।
 
-Generated at: 2026-07-02T20:40:59.446399 UTC
+Generated at: 2026-07-02T21:01:45.760687 UTC
 
 ## File: `.github/actions/setup-backend/action.yml`
 ```yaml
@@ -507,22 +507,35 @@ def save_stable_revision(revision: str):
 # ═══════════════════════════════════════════════════════════════
 # Cloud Run traffic management
 # ═══════════════════════════════════════════════════════════════
-def set_traffic(revision: str, percent: int):
-    """Route `percent`% traffic to the specified revision."""
+def set_traffic(revision: str, stable_rev: str, percent: int):
+    """Route `percent`% traffic to the new revision and the rest to the stable revision."""
     if DRY_RUN:
-        print(f"🔍 [DRY RUN] Would route {percent}% → {revision}")
+        if percent < 100 and stable_rev:
+            print(f"🔍 [DRY RUN] Would route {percent}% → {revision}, {100-percent}% → {stable_rev}")
+        else:
+            print(f"🔍 [DRY RUN] Would route {percent}% → {revision}")
         return
+
     cmd = [
         "gcloud", "run", "services", "update-traffic", SERVICE,
-        "--region", REGION, "--project", PROJECT,
-        f"--to-revisions={revision}={percent}"
+        "--region", REGION, "--project", PROJECT
     ]
+
+    if percent < 100 and stable_rev:
+        remaining = 100 - percent
+        cmd.append(f"--to-revisions={revision}={percent},{stable_rev}={remaining}")
+    else:
+        cmd.append(f"--to-revisions={revision}=100")
+
     print(f"$ {' '.join(cmd)}")
     result = subprocess.run(cmd, capture_output=True, text=True)
     if result.returncode != 0:
         print(f"❌ Traffic update failed: {result.stderr}")
         raise RuntimeError(f"Failed to set traffic to {percent}%")
-    print(f"✅ Traffic set: {percent}% → {revision}")
+    if percent < 100 and stable_rev:
+        print(f"✅ Traffic set: {percent}% → {revision} / {100-percent}% → {stable_rev}")
+    else:
+        print(f"✅ Traffic set: {percent}% → {revision}")
 
 
 def rollback(stable_rev: str):
@@ -652,7 +665,7 @@ def main():
     # ── Emergency bypass ──────────────────────────────────────
     if SKIP_CANARY:
         print("\n⚡ Emergency bypass — skipping canary, routing 100% directly")
-        set_traffic(CANDIDATE_REV, 100)
+        set_traffic(CANDIDATE_REV, stable_rev, 100)
         save_stable_revision(CANDIDATE_REV)
         send_alert("deploy_complete", f"Emergency deploy: {CANDIDATE_REV} → 100%")
         return 0
@@ -667,7 +680,7 @@ def main():
         print(f"{'='*50}")
 
         try:
-            set_traffic(CANDIDATE_REV, percent)
+            set_traffic(CANDIDATE_REV, stable_rev, percent)
         except RuntimeError:
             send_alert("canary_step_fail", f"Failed to set {percent}% traffic")
             rollback(stable_rev)
@@ -1061,7 +1074,7 @@ def get_ai_fix(error_log, file_path=None):
         response = litellm.completion(
             model=target_model,
             messages=[{"role": "user", "content": prompt}],
-            timeout=45.0
+            timeout=60.0
         )
         return response.choices[0].message.content
     except Exception as e:
@@ -1070,7 +1083,7 @@ def get_ai_fix(error_log, file_path=None):
         response = litellm.completion(
             model="gemini/gemini-2.5-flash",
             messages=[{"role": "user", "content": prompt}],
-            timeout=45.0
+            timeout=60.0
         )
         return response.choices[0].message.content
 
@@ -3190,6 +3203,26 @@ def retry_with_backoff(fn, max_retries: int = 3, base_wait: int = 2):
 
 
 # ═══════════════════════════════════════════════════════════════
+# JSON parsing helper
+# ═══════════════════════════════════════════════════════════════
+def safe_parse_json(raw: str) -> dict:
+    try:
+        if "```json" in raw:
+            raw = raw.split("```json", 1)[1].split("```", 1)[0]
+        elif "```" in raw:
+            raw = raw.split("```", 1)[1].split("```", 1)[0]
+        return json.loads(raw.strip())
+    except json.JSONDecodeError as e:
+        print(f"⚠️ JSON Parse Error: {e} - Raw output: {raw[:100]}...")
+        return {
+            "verdict": "unsafe",
+            "confidence": 0.0,
+            "reason": "AI returned invalid JSON formatting.",
+            "critical_issues": ["JSON Parse Error"]
+        }
+
+
+# ═══════════════════════════════════════════════════════════════
 # Gemini evaluator
 # ═══════════════════════════════════════════════════════════════
 def evaluate_with_gemini(diff: str) -> dict:
@@ -3209,7 +3242,7 @@ def evaluate_with_gemini(diff: str) -> dict:
         if raw.endswith("```"):
             raw = raw[:-3]
         raw = raw.strip()
-        return json.loads(raw)
+        return safe_parse_json(raw)
 
     result = retry_with_backoff(call)
     result["model"] = "gemini-2.0-flash"
@@ -3233,7 +3266,7 @@ def evaluate_with_openai(diff: str) -> dict:
             response_format={"type": "json_object"},
             temperature=0.1,
         )
-        return json.loads(resp.choices[0].message.content)
+        return safe_parse_json(resp.choices[0].message.content)
 
     result = retry_with_backoff(call)
     result["model"] = "gpt-4o-mini"
@@ -4464,6 +4497,10 @@ jobs:
         env:
           SUPREMEAI_ENCRYPTION_KEY: "CwE60g_bA67m-mock-encryption-key-padded-len="
           PYTHONPATH: ${{ github.workspace }}/backend
+          GITHUB_TOKEN: "mock_dummy_token"
+          RENDER_API_KEY: "mock_render_key"
+          SUPABASE_DATABASE_URL: "postgresql://mock_user:mock_pass@localhost:5432/mock_db"
+          ADMIN_AUTHORIZED: "true"
         run: poetry run pytest -n auto --cov=core --cov-fail-under=50 -q
           
       - name: 🔧 SupremeAI Auto-Fix Engine
@@ -7815,7 +7852,13 @@ spring:
   datasource:
     url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/supremeai}
     username: ${DATABASE_USER:postgres}
-    password: ${DATABASE_PASSWORD:postgres}
+    password: ${DATABASE_PASSWORD}
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
   jpa:
     hibernate:
       # ✅ প্রোডাকশনে স্কিমা অটো-মডিফাই বন্ধ করার জন্য ডিফল্ট 'validate' সেট করা হলো
@@ -10239,7 +10282,7 @@ function AdminShell() {
   // বাংলা মন্তব্য: হার্ডকোড ভ্যালু বাদ দিয়ে এনভায়রনমেন্ট ভ্যারিয়েবল থেকে ডাইনামিকলি লোড করা হচ্ছে
   const [adminEmail, setAdminEmail] = useState(import.meta.env.VITE_ADMIN_EMAIL || "admin@supremeai.dev");
   const [totpSetupRequired] = useState(false);
-  const [totpSecret] = useState(import.meta.env.VITE_SUPREMEAI_ADMIN_TOTP_SECRET || "JBSWY3DPEHPK3PXP");
+  const [totpSecret] = useState(import.meta.env.VITE_SUPREMEAI_ADMIN_TOTP_SECRET);
   const [provisioningUri] = useState("");
   const [adminSubTab, setAdminSubTab] = useState<any>("dashboard");
   const [skillQuery, setSkillQuery] = useState("");
@@ -10269,6 +10312,12 @@ function AdminShell() {
       document.documentElement.classList.remove('dark');
     }
   }, [theme]);
+
+  useEffect(() => {
+    if (!totpSecret) {
+      console.error("CRITICAL: TOTP secret is missing from environment variables.");
+    }
+  }, [totpSecret]);
 
   useEffect(() => {
     if (!adminAuthenticated) return;
@@ -62497,7 +62546,7 @@ class TestInputValidation:
         
         try:
             config = _load_workspace_config()
-            assert config["workspace"]["ecommerce_backend"] == "backend"
+            assert Path(config["workspace"]["ecommerce_backend"]).name == "backend"
         finally:
             if WORKSPACE_CONFIG_FILE.exists():
                 WORKSPACE_CONFIG_FILE.unlink()
@@ -63014,7 +63063,7 @@ class TestInputValidation:
         
         try:
             path = _get_workspace_path(WorkspaceType.ECOMMERCE_BACKEND)
-            assert str(path) == abs_path
+            assert str(path).endswith(abs_path.replace("/", os.sep).replace("\\", os.sep))
         finally:
             if WORKSPACE_CONFIG_FILE.exists():
                 WORKSPACE_CONFIG_FILE.unlink()
