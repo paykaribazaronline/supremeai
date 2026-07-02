@@ -46,9 +46,7 @@ async def validate_upload(file: object) -> None:
     if not allowed:
         raise UploadValidationError(f"Extension '{ext}' is not allowed.")
     if content_type and content_type not in allowed:
-        raise UploadValidationError(
-            f"Content type '{content_type}' does not match allowed types for '{ext}'."
-        )
+        raise UploadValidationError(f"Content type '{content_type}' does not match allowed types for '{ext}'.")
     body = await file_obj.read()
     if len(body) > MAX_UPLOAD_BYTES:
         raise HTTPException(

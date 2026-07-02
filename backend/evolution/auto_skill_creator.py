@@ -49,9 +49,8 @@ class AutoSkillCreator:
                 self.skills_ref = MockRef()
         # Initialize FitnessEngine for telemetry
         self.fitness_engine = FitnessEngine(db=self.db)
-    async def generate_and_deploy_skill(
-        self, user_demand: str, skill_name: str
-    ) -> dict:
+
+    async def generate_and_deploy_skill(self, user_demand: str, skill_name: str) -> dict:
         import json
         import shutil
         import uuid
@@ -62,9 +61,7 @@ class AutoSkillCreator:
         from core.llm_gateway import llm_gateway
         from skills.schema import UniversalSkillSchema
 
-        logger.info(
-            f"🧠 Self-Evolution Triggered: Designing skill '{skill_name}' for demand: '{user_demand}'"
-        )
+        logger.info(f"🧠 Self-Evolution Triggered: Designing skill '{skill_name}' for demand: '{user_demand}'")
 
         trace_id = uuid.uuid4().hex
         generation_timestamp = datetime.now(UTC).isoformat()
@@ -128,11 +125,7 @@ class AutoSkillCreator:
         try:
             # ২. অন-দি-ফ্লাই কোড জেনারেশন
             # বাংলা মন্তব্য: সরাসরি গুগল নেটিভ ক্লায়েন্ট কল না করে ইউনিভার্সাল llm_gateway ব্যবহার করে এপিআই কল করা হচ্ছে
-            response = await llm_gateway.acompletion(
-                prompt=system_prompt,
-                task_type="coding",
-                stream=False
-            )
+            response = await llm_gateway.acompletion(prompt=system_prompt, task_type="coding", stream=False)
             raw_content = response.get("text", "") if isinstance(response, dict) else str(response)
             raw_content = raw_content.strip()
 
@@ -150,26 +143,17 @@ class AutoSkillCreator:
             schema_dict = data.get("schema", {})
 
             # Traceability enhancements
-            schema_dict["metadata"]["tags"] = schema_dict["metadata"].get(
-                "tags", []
-            ) + [f"trace_id:{trace_id}"]
+            schema_dict["metadata"]["tags"] = schema_dict["metadata"].get("tags", []) + [f"trace_id:{trace_id}"]
             schema_dict["metadata"]["author"] = f"supremeai_agent_id:{trace_id}"
-            schema_dict["metadata"]["description"] = (
-                schema_dict["metadata"].get("description", "")
-                + f" (Generated at {generation_timestamp})"
-            )
+            schema_dict["metadata"]["description"] = schema_dict["metadata"].get("description", "") + f" (Generated at {generation_timestamp})"
 
             # 🛡️ ৩. দ্য আলটিমেট স্যান্ডবক্স গেটকিপার ভ্যালিডেশন (The Iron Cage Check)
             try:
                 is_safe = run_sandbox_ast_check(code_block)
                 if not is_safe:
-                    raise SecurityError(
-                        "Generated code failed AST layout normalization."
-                    )
+                    raise SecurityError("Generated code failed AST layout normalization.")
             except SecurityError as sec_err:
-                logger.critical(
-                    f"🚨 [EVOLUTION BLOCKED] AI generated a dangerous skill payload! Threat defused: {str(sec_err)}"
-                )
+                logger.critical(f"🚨 [EVOLUTION BLOCKED] AI generated a dangerous skill payload! Threat defused: {str(sec_err)}")
                 return {
                     "success": False,
                     "error": f"Security Sandbox Violation: {str(sec_err)}",
@@ -199,14 +183,13 @@ class AutoSkillCreator:
             # বাংলা মন্তব্য: এআই জেনারেটেড কোডটি সরাসরি লোকাল ইন্টারপ্রেটারে রান না করিয়ে
             # Dockerized Cloud Sandbox এর সাহায্যে সিকিউর এনভায়রনমেন্টে রান করানো হচ্ছে।
             from tools.cloud_sandbox_orchestrator import CloudSandboxOrchestrator
+
             sandbox = CloudSandboxOrchestrator()
 
             # Execute validation tests loop inside the sandbox
             for idx, test in enumerate(uss.validation.tests):
-                logger.info(
-                    f"Running validation test case {idx + 1}/{len(uss.validation.tests)} inside the secure sandbox..."
-                )
-                
+                logger.info(f"Running validation test case {idx + 1}/{len(uss.validation.tests)} inside the secure sandbox...")
+
                 # Construct executable script to evaluate inputs and output results to stdout as JSON
                 sandbox_script = f"""
 {code_block}
@@ -223,26 +206,18 @@ asyncio.run(run())
 """
                 run_res = sandbox.run_code(sandbox_script)
                 if not run_res["success"]:
-                    raise ValueError(
-                        f"Validation test {idx + 1} crashed or timed out in sandbox. Error: {run_res['stderr']}"
-                    )
-                
+                    raise ValueError(f"Validation test {idx + 1} crashed or timed out in sandbox. Error: {run_res['stderr']}")
+
                 # Parse stdout logs for output result
                 output_line = [line for line in run_res["stdout"].splitlines() if line.startswith("RESULT:")]
                 if not output_line:
-                    raise ValueError(
-                        f"Validation test {idx + 1} did not produce executable result in sandbox. Stdout: {run_res['stdout']}"
-                    )
-                
+                    raise ValueError(f"Validation test {idx + 1} did not produce executable result in sandbox. Stdout: {run_res['stdout']}")
+
                 res_val = json.loads(output_line[0][7:])
                 if res_val != test.expected_output:
-                    raise ValueError(
-                        f"Validation test {idx + 1} failed in sandbox. Expected {test.expected_output}, got {res_val}"
-                    )
+                    raise ValueError(f"Validation test {idx + 1} failed in sandbox. Expected {test.expected_output}, got {res_val}")
 
-            logger.info(
-                f"✅ All {len(uss.validation.tests)} validation tests passed for skill '{skill_name}' inside the sandbox!"
-            )
+            logger.info(f"✅ All {len(uss.validation.tests)} validation tests passed for skill '{skill_name}' inside the sandbox!")
 
             # ৬. Finalize Registration & Storage Deployment
             installer = SkillInstaller()
@@ -273,14 +248,10 @@ asyncio.run(run())
                 "uss": schema_dict,
             }
             self.skills_ref.document(skill_name).set(skill_meta)
-            logger.info(
-                f"🏆 Deployed dynamic skill '{skill_name}' into Firestore. Ready for live orchestration!"
-            )
+            logger.info(f"🏆 Deployed dynamic skill '{skill_name}' into Firestore. Ready for live orchestration!")
 
             latency = time.time() - start_time
-            self.fitness_engine.track_execution(
-                skill_name, success=True, latency=latency
-            )
+            self.fitness_engine.track_execution(skill_name, success=True, latency=latency)
             return {
                 "success": True,
                 "skill_name": skill_name,
@@ -290,9 +261,7 @@ asyncio.run(run())
         except Exception as e:
             logger.error(f"❌ Self-Evolution loop crashed: {str(e)}")
             latency = time.time() - start_time
-            self.fitness_engine.track_execution(
-                skill_name, success=False, latency=latency
-            )
+            self.fitness_engine.track_execution(skill_name, success=False, latency=latency)
             # Cleanup quarantine on failure
             if quarantine_dir.exists():
                 shutil.rmtree(quarantine_dir)

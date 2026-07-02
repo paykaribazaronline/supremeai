@@ -9,6 +9,7 @@ from tools.telegram_bot import TelegramBotHandler
 
 from unittest.mock import AsyncMock
 
+
 @pytest.fixture
 def handler():
     with patch.dict(os.environ, {"TELEGRAM_BOT_TOKEN": "test-token"}):

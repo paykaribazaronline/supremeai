@@ -3,11 +3,13 @@ import json
 from typing import List
 from loguru import logger
 
+
 class ProxyManager:
     """
     Manages and rotates proxies for stealth requests.
     Supports config loading and round-robin scheduling.
     """
+
     def __init__(self, config_path: str = "config/proxy_list.json"):
         self.config_path = config_path
         self.proxies: List[str] = []

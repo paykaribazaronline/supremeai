@@ -1,4 +1,3 @@
-
 import os
 import sys
 
@@ -29,10 +28,7 @@ class ZeroTrustAuthMiddleware(BaseHTTPMiddleware):
         if request.method == "OPTIONS":
             return await call_next(request)
 
-        matched = (
-            request.url.path in public_paths
-            or any(request.url.path.startswith(p + "/") for p in public_paths)
-        )
+        matched = request.url.path in public_paths or any(request.url.path.startswith(p + "/") for p in public_paths)
         if matched:
             return await call_next(request)
 
@@ -63,20 +59,13 @@ class ZeroTrustAuthMiddleware(BaseHTTPMiddleware):
             request.state.user = payload
 
             # অ্যাডমিন রাউটের জন্য স্ট্রিক্ট রোল চেক
-            if (
-                request.url.path.startswith("/api/admin")
-                and payload.get("role") != "admin"
-            ):
-                logger.critical(
-                    f"🔒 Privilege Escalation Blocked for user: {payload.get('sub')}"
-                )
+            if request.url.path.startswith("/api/admin") and payload.get("role") != "admin":
+                logger.critical(f"🔒 Privilege Escalation Blocked for user: {payload.get('sub')}")
                 from fastapi.responses import JSONResponse
 
                 return JSONResponse(
                     status_code=403,
-                    content={
-                        "detail": "Insufficient privileges. Admin access required."
-                    },
+                    content={"detail": "Insufficient privileges. Admin access required."},
                 )
 
         except Exception as e:

@@ -11,12 +11,13 @@ class ContainerOrchestrator:
     """
     Deploys AI skill Docker containers to Google Cloud Run utilizing Terraform or GCP APIs.
     """
+
     def __init__(self, tf_dir: str = "infrastructure/terraform/byoc_gcp"):
         self.tf_dir = tf_dir
 
     async def deploy(self, user_id: str, skill: str) -> dict[str, Any]:
         logger.info(f"Deploying skill '{skill}' for user '{user_id}' on Google Cloud Run...")
-        
+
         # Simulating running terraform deploy internally
         tf_executable = shutil.which("terraform")
         if tf_executable:

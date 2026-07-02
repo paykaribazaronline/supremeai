@@ -40,17 +40,13 @@ def require_admin_token(credentials: HTTPAuthorizationCredentials = Depends(secu
         jwt_secret = settings.jwt_secret
         decoded = jwt.decode(token, jwt_secret, algorithms=["HS256"])
         if decoded.get("role") != "admin":
-            raise HTTPException(
-                status_code=403, detail="Forbidden: User does not have admin role."
-            )
+            raise HTTPException(status_code=403, detail="Forbidden: User does not have admin role.")
         return decoded
     except Exception as e:
         expected = os.getenv("SUPREMEAI_API_TOKEN") or ""
         if expected and secrets.compare_digest(token, expected):
             return {"uid": "admin", "role": "admin"}
-        raise HTTPException(
-            status_code=401, detail=f"Invalid Admin Authorization Token: {str(e)}"
-        ) from e
+        raise HTTPException(status_code=401, detail=f"Invalid Admin Authorization Token: {str(e)}") from e
 
 
 @router.get("/logs")
@@ -75,9 +71,7 @@ async def get_evolution_logs(admin: dict = Depends(require_admin_token)):
         return {"logs": logs}
     except Exception as e:
         logger.error(f"Failed to read evolution logs: {e}")
-        raise HTTPException(
-            status_code=500, detail="Failed to read evolution logs"
-        ) from e
+        raise HTTPException(status_code=500, detail="Failed to read evolution logs") from e
 
 
 class EvolutionRequest(BaseModel):
@@ -86,21 +80,15 @@ class EvolutionRequest(BaseModel):
 
 
 @router.post("/forge")
-async def forge_dynamic_skill(
-    payload: EvolutionRequest, db: TenantAwareFirestore = Depends(get_tenant_db)
-):
+async def forge_dynamic_skill(payload: EvolutionRequest, db: TenantAwareFirestore = Depends(get_tenant_db)):
     """
     On-the-fly AI Skill Generation and Sandbox Deployed Gate.
     """
     creator = AutoSkillCreator(db=db)
-    result = await creator.generate_and_deploy_skill(
-        user_demand=payload.user_demand, skill_name=payload.skill_name
-    )
+    result = await creator.generate_and_deploy_skill(user_demand=payload.user_demand, skill_name=payload.skill_name)
 
     if not result["success"]:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail=result["error"]
-        )
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=result["error"])
 
     return result
 
@@ -137,9 +125,7 @@ async def quarantine_skill(
             shutil.move(str(src), str(dst))
             logger.info(f"Skill '{skill_name}' quarantined: {src} -> {dst}")
         else:
-            logger.info(
-                f"Skill '{skill_name}' marked QUARANTINED in registry (no dynamic directory found)"
-            )
+            logger.info(f"Skill '{skill_name}' marked QUARANTINED in registry (no dynamic directory found)")
         base_dir_for_logs = Path(__file__).resolve().parent.parent.parent
         log_path = base_dir_for_logs / "backend" / "data" / "evolution_logs.jsonl"
         try:
@@ -189,16 +175,11 @@ async def quarantine_skill(
 
 # 🛑 ZERO-GAP: Admin Evolution Proposals API Routing
 @router.get("/proposals")
-async def list_proposals(
-    admin: dict = Depends(require_admin_token),
-    session: AsyncSession = Depends(get_db_session)
-):
+async def list_proposals(admin: dict = Depends(require_admin_token), session: AsyncSession = Depends(get_db_session)):
     """
     List all pending AI code proposals for admin review.
     """
-    result = await session.execute(
-        select(CodeProposal).order_by(CodeProposal.created_at.desc())
-    )
+    result = await session.execute(select(CodeProposal).order_by(CodeProposal.created_at.desc()))
     proposals = result.scalars().all()
     # Serialize to keep Pydantic serialization happy
     return [
@@ -211,30 +192,24 @@ async def list_proposals(
             "ci_passed": p.ci_passed,
             "status": p.status,
             "metadata_json": p.metadata_json,
-            "created_at": p.created_at.isoformat() if p.created_at else None
+            "created_at": p.created_at.isoformat() if p.created_at else None,
         }
         for p in proposals
     ]
 
 
 @router.post("/proposals/{proposal_id}/approve")
-async def approve_proposal(
-    proposal_id: str,
-    admin: dict = Depends(require_admin_token),
-    session: AsyncSession = Depends(get_db_session)
-):
+async def approve_proposal(proposal_id: str, admin: dict = Depends(require_admin_token), session: AsyncSession = Depends(get_db_session)):
     """
     Manually approve a proposal after security review.
     """
     async with session.begin():
-        result = await session.execute(
-            select(CodeProposal).where(CodeProposal.proposal_id == proposal_id)
-        )
+        result = await session.execute(select(CodeProposal).where(CodeProposal.proposal_id == proposal_id))
         proposal = result.scalars().first()
         if not proposal:
             raise HTTPException(status_code=404, detail="Proposal not found")
-        
+
         proposal.status = "approved"
         # এখানে ভবিষ্যতে আমাদের অটোনোমাস মার্জ লজিক বা GitOps ট্রিগার কল হবে।
-        
+
     return {"status": "success", "message": f"Proposal {proposal_id} approved."}
