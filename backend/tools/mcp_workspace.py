@@ -12,7 +12,7 @@ import time
 import tempfile
 import contextlib
 from pathlib import Path
-from typing import Optional, List, Dict, Any
+from typing import Dict, Any
 from enum import Enum
 
 from pydantic import BaseModel, Field, ConfigDict
@@ -45,7 +45,7 @@ class WorkspaceContextInput(BaseModel):
     )
 
     project_type: WorkspaceType = Field(..., description="কাজ করা বর্তমান প্রোজেক্টের ধরন")
-    tenant_id: Optional[str] = Field(default=None, description="টেন্যান্ট আইডি (যদি মাল্টি-টেন্যান্ট)")
+    tenant_id: str | None = Field(default=None, description="টেন্যান্ট আইডি (যদি মাল্টি-টেন্যান্ট)")
 
 
 class ScopedFilePathInput(BaseModel):
@@ -53,7 +53,7 @@ class ScopedFilePathInput(BaseModel):
     model_config = ConfigDict(str_strip_whitespace=True, validate_assignment=True)
 
     relative_path: str = Field(..., description="কাজ করা ফাইলের রিলেটিভ পাথ")
-    project_type: Optional[WorkspaceType] = Field(default=None, description="প্রোজেক্টের ধরন")
+    project_type: WorkspaceType | None = Field(default=None, description="প্রোজেক্টের ধরন")
 
 
 _workspace_config: Dict[str, Any] = {}
@@ -120,7 +120,7 @@ def _session_file_lock(lock_path: Path):
             except OSError:
                 pass
 
-def _save_workspace_session(project_type: WorkspaceType, tenant_id: Optional[str] = None):
+def _save_workspace_session(project_type: WorkspaceType, tenant_id: str | None = None):
     """ওয়ার্কস্পেস সেশন সংরক্ষণ করে।"""
     _ensure_session_dir()
     session = {

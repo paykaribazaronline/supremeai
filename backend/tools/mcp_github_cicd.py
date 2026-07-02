@@ -8,7 +8,6 @@ CI/CD অপারেশন (Issue, PR, Auto-fix) সরাসরে চ্য�
 
 import os
 import json
-from typing import Optional, List, Dict, Any
 from enum import Enum
 
 import httpx
@@ -205,13 +204,13 @@ async def github_run_auto_fix(params: FixIssueInput) -> str:
         "openWorldHint": True,
     }
 )
-async def github_list_issues(state: str = "open", labels: Optional[str] = None) -> str:
+async def github_list_issues(state: str = "open", labels: str | None = None) -> str:
     """
     রিপোজিটরিতে ইস্যু তালিকা দেখায়।
 
     Args:
         state (str): ইস্যু স্টেট ('open', 'closed', 'all')
-        labels (Optional[str]): ফিল্টার করার জন্য লেবেল
+        labels (str | None): ফিল্টার করার জন্য লেবেল
 
     Returns:
         str: ইস্যু তালিকা
@@ -246,7 +245,7 @@ async def github_list_issues(state: str = "open", labels: Optional[str] = None) 
                         "number": i.get("number"),
                         "title": i.get("title"),
                         "state": i.get("state"),
-                        "labels": [l.get("name") for l in i.get("labels", [])],
+                        "labels": [lbl.get("name") for lbl in i.get("labels", [])],
                         "url": i.get("html_url")
                     }
                     for i in issues

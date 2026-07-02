@@ -9,7 +9,6 @@ MCP Server for Cloud Deployment Integration in SupremeAI 2.0.
 import os
 import json
 import re
-from typing import Optional, List, Dict, Any
 from enum import Enum
 
 import httpx
@@ -36,9 +35,8 @@ ORACLE_REGION = os.getenv("ORACLE_REGION", "")
 if not ORACLE_REGION:
     logger.warning("ORACLE_REGION is not set, defaulting to 'us-phoenix-1'.")
     ORACLE_REGION = "us-phoenix-1"
-else:
-    if not re.match(r"^[a-z0-9\-]+$", ORACLE_REGION):
-        logger.error(f"Invalid ORACLE_REGION format: '{ORACLE_REGION}'. It should only contain lowercase letters, numbers, and hyphens.")
+elif not re.match(r"^[a-z0-9\-]+$", ORACLE_REGION):
+    logger.error(f"Invalid ORACLE_REGION format: '{ORACLE_REGION}'. It should only contain lowercase letters, numbers, and hyphens.")
 
 
 class CloudProvider(str, Enum):
@@ -66,7 +64,7 @@ class DeployServiceInput(BaseModel):
         max_length=100, 
         pattern=r"^[a-zA-Z0-9\-_]+$"
     )
-    branch: Optional[str] = Field(default="main", description="ডিপ্লয় ব্রাঞ্চ")
+    branch: str | None = Field(default="main", description="ডিপ্লয় ব্রাঞ্চ")
 
 
 class GetLogsInput(BaseModel):

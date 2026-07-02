@@ -8,15 +8,12 @@ MCP Server for Supabase/Postgres Database Integration in SupremeAI 2.0.
 
 import os
 import json
-import asyncio
-from typing import Optional, List, Dict, Any
+from typing import List, Any
 from enum import Enum
 
-import httpx
 import psycopg2
-from psycopg2 import sql
 from loguru import logger
-from pydantic import BaseModel, Field, ConfigDict, field_validator
+from pydantic import BaseModel, Field, ConfigDict
 from mcp.server.fastmcp import FastMCP
 
 mcp = FastMCP("supabase_mcp")
@@ -27,9 +24,8 @@ SUPABASE_DB_URL = os.getenv("SUPABASE_DATABASE_URL", "")
 # বাংলা মন্তব্য: ডাটাবেস ইউআরএল ফরম্যাট ও উপস্থিতি যাচাই
 if not SUPABASE_DB_URL:
     logger.warning("SUPABASE_DATABASE_URL is not set in environment variables.")
-else:
-    if not (SUPABASE_DB_URL.startswith("postgres://") or SUPABASE_DB_URL.startswith("postgresql://")):
-        logger.error("SUPABASE_DATABASE_URL must start with 'postgres://' or 'postgresql://'")
+elif not (SUPABASE_DB_URL.startswith("postgres://") or SUPABASE_DB_URL.startswith("postgresql://")):
+    logger.error("SUPABASE_DATABASE_URL must start with 'postgres://' or 'postgresql://'")
 
 
 class ResponseFormat(str, Enum):
@@ -43,7 +39,7 @@ class ExecuteQueryInput(BaseModel):
     model_config = ConfigDict(str_strip_whitespace=True, validate_assignment=True)
 
     query: str = Field(..., description="এক্সিকিউট করার SQL কুয়েরি", min_length=1)
-    params: Optional[List[Any]] = Field(default_factory=list, description="কুয়েরি প্যারামিটারস (ঐচ্ছিক)")
+    params: List[Any] | None = Field(default_factory=list, description="কুয়েরি প্যারামিটারস (ঐচ্ছিক)")
     response_format: ResponseFormat = Field(default=ResponseFormat.MARKDOWN, description="আউটপুট ফরম্যাট")
 
 

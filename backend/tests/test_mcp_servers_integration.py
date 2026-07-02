@@ -211,14 +211,12 @@ class TestMCPServerSync:
 
     def test_all_mcp_servers_importable(self):
         """সব MCP সার্ভার ইম্পোর্ট করা যায় কিনা টেস্ট।"""
-        try:
-            from tools import mcp_cloud_deploy
-            from tools import mcp_github_cicd
-            from tools import mcp_supabase
-            from tools import mcp_workspace
-            assert True
-        except ImportError as e:
-            pytest.fail(f"MCP সার্ভার ইম্পোর্ট ব্যর্থ: {e}")
+        import importlib.util
+        
+        servers = ["mcp_cloud_deploy", "mcp_github_cicd", "mcp_supabase", "mcp_workspace"]
+        for server in servers:
+            spec = importlib.util.find_spec(f"tools.{server}")
+            assert spec is not None, f"tools.{server} module not found"
 
     def test_mcp_servers_have_fastmcp_instance(self):
         """MCP সার্ভারগুলোতে FastMCP ইনস্ট্যান্স আছে কিনা টেস্ট।"""
@@ -250,7 +248,7 @@ class TestMCPServerSync:
         assert hasattr(mcp_supabase, 'supabase_run_migration')
         assert hasattr(mcp_supabase, 'supabase_list_tables')
         
-        # workspace_mcpツールス
+        # workspace_mcp টুলস
         assert hasattr(mcp_workspace, 'workspace_set_context')
         assert hasattr(mcp_workspace, 'workspace_get_scoped_path')
         assert hasattr(mcp_workspace, 'workspace_list_projects')
