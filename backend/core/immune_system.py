@@ -8,6 +8,7 @@ from loguru import logger
 
 class SecuritySandboxError(Exception):
     """Exception thrown when code violates AST security constraints."""
+
     pass
 
 
@@ -15,36 +16,72 @@ class ASTSecurityScanner(ast.NodeVisitor):
     def __init__(self):
         # 🛑 ZERO-GAP: Extended Banned Imports
         self.banned_imports: set[str] = {
-            "os", "sys", "subprocess", "pty", "shlex",
-            "importlib", "code", "runpy", "multiprocessing",
-            "pickle", "marshal", "tempfile", "socket", 
-            "urllib", "urllib3", "requests", "http", "ctypes", "builtins"
+            "os",
+            "sys",
+            "subprocess",
+            "pty",
+            "shlex",
+            "importlib",
+            "code",
+            "runpy",
+            "multiprocessing",
+            "pickle",
+            "marshal",
+            "tempfile",
+            "socket",
+            "urllib",
+            "urllib3",
+            "requests",
+            "http",
+            "ctypes",
+            "builtins",
         }
-        
+
         # 🛑 ZERO-GAP: Banned Built-in Functions for Introspection & Execution
         self.banned_functions: set[str] = {
-            "eval", "exec", "compile", "globals", "locals",
-            "vars", "dir", "type", "chr", "ord", "breakpoint",
-            "__import__", "getattr", "setattr", "delattr", "hasattr", "open"
+            "eval",
+            "exec",
+            "compile",
+            "globals",
+            "locals",
+            "vars",
+            "dir",
+            "type",
+            "chr",
+            "ord",
+            "breakpoint",
+            "__import__",
+            "getattr",
+            "setattr",
+            "delattr",
+            "hasattr",
+            "open",
         }
-        
+
         # 🛑 ZERO-GAP: Prevent Sandbox Escapes via Dunder Attributes
         self.banned_attributes: set[str] = {
-            "__class__", "__bases__", "__subclasses__",
-            "__globals__", "__builtins__", "__dict__", "__mro__",
-            "__code__", "__closure__", "__func__"
+            "__class__",
+            "__bases__",
+            "__subclasses__",
+            "__globals__",
+            "__builtins__",
+            "__dict__",
+            "__mro__",
+            "__code__",
+            "__closure__",
+            "__func__",
         }
 
     def visit_Import(self, node: ast.Import):
         for alias in node.names:
-            base_module = alias.name.split('.')[0]
+            base_module = alias.name.split(".")[0]
             if base_module in self.banned_imports:
                 raise SecuritySandboxError(f"Banned import detected: {alias.name}")
         self.generic_visit(node)
 
     def visit_ImportFrom(self, node: ast.ImportFrom):
         if node.module:
-            base_module = node.module.split('.')[0]
+            base_module = node.module.split(".")[0]
             if base_module in self.banned_imports:
                 raise SecuritySandboxError(f"Banned import detected: {node.module}")
         self.generic_visit(node)
@@ -53,11 +90,11 @@ class ASTSecurityScanner(ast.NodeVisitor):
         # Block direct function calls like eval(), __import__()
         if isinstance(node.func, ast.Name) and node.func.id in self.banned_functions:
             raise SecuritySandboxError(f"Banned function call detected: {node.func.id}")
-        
+
         # Block malicious module methods like importlib.import_module() or os.system()
         elif isinstance(node.func, ast.Attribute) and node.func.attr in {"import_module", "system", "popen", "spawn", "fork"}:
             raise SecuritySandboxError(f"Banned method invocation detected: {node.func.attr}")
-        
+
         self.generic_visit(node)
 
     def visit_Attribute(self, node: ast.Attribute):
@@ -71,6 +108,7 @@ class ImmuneSystemScanner:
     """
     Scans generated python code using AST parser to block execution of unsafe or malicious code before execution.
     """
+
     def __init__(self):
         # Preserve public interface configs if needed by test suite or other modules
         self.scanner = ASTSecurityScanner()

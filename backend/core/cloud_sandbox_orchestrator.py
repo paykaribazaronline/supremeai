@@ -24,7 +24,7 @@ class CloudSandboxOrchestrator:
     def __init__(self, provider: str = "runpod"):
         self.provider = provider.lower()
         self.api_key = os.getenv(f"{self.provider.upper()}_API_KEY")
-        
+
         self.base_url = self._get_base_url()
         headers = {"Content-Type": "application/json"}
         if self.api_key:
@@ -48,12 +48,7 @@ class CloudSandboxOrchestrator:
     async def create_sandbox(self, spec: dict[str, Any]) -> dict[str, Any] | None:
         if not self.api_key:
             logger.warning("Cannot create sandbox: API key is missing. Running in mock/dry-run mode.")
-            return {
-                "id": "mock-sandbox-id-12345",
-                "status": "running",
-                "provider": self.provider,
-                "mock": True
-            }
+            return {"id": "mock-sandbox-id-12345", "status": "running", "provider": self.provider, "mock": True}
 
         endpoint = self._get_endpoint("create")
         payload = self._prepare_creation_payload(spec)
@@ -75,12 +70,7 @@ class CloudSandboxOrchestrator:
     async def get_sandbox_status(self, sandbox_id: str) -> dict[str, Any] | None:
         if not self.api_key:
             logger.info(f"Dry-run: Fetching status for sandbox {sandbox_id}")
-            return {
-                "id": sandbox_id,
-                "status": "running",
-                "provider": self.provider,
-                "mock": True
-            }
+            return {"id": sandbox_id, "status": "running", "provider": self.provider, "mock": True}
 
         endpoint = self._get_endpoint("status", sandbox_id)
         try:
@@ -94,13 +84,7 @@ class CloudSandboxOrchestrator:
     async def run_command(self, sandbox_id: str, command: str, timeout: int = 300) -> dict[str, Any] | None:
         if not self.api_key:
             logger.info(f"Dry-run: Running command '{command}' in sandbox {sandbox_id}")
-            return {
-                "status": "COMPLETED",
-                "exitCode": 0,
-                "stdout": f"Mock output for execution of: {command}",
-                "stderr": "",
-                "mock": True
-            }
+            return {"status": "COMPLETED", "exitCode": 0, "stdout": f"Mock output for execution of: {command}", "stderr": "", "mock": True}
 
         endpoint = self._get_endpoint("run", sandbox_id)
         payload = {"input": {"command": command, "timeout": timeout}}
@@ -144,22 +128,24 @@ class CloudSandboxOrchestrator:
             # উইন্ডোজের জন্য .cmd সাফিক্স হ্যান্ডলিং করা হয়েছে
             cmd = "freebuff.cmd" if os.name == "nt" else "freebuff"
             process = await asyncio.create_subprocess_exec(
-                cmd, "--cwd", working_dir,
+                cmd,
+                "--cwd",
+                working_dir,
                 stdin=asyncio.subprocess.PIPE,
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE,
             )
 
             # প্রম্পট ইনপুট হিসেবে পাঠানো হচ্ছে
-            stdout, stderr = await process.communicate(input=prompt.encode('utf-8'))
-            
+            stdout, stderr = await process.communicate(input=prompt.encode("utf-8"))
+
             if process.returncode == 0:
                 logger.success("✅ Freebuff task completed successfully.")
-                return {"status": "success", "output": stdout.decode('utf-8')}
+                return {"status": "success", "output": stdout.decode("utf-8")}
             else:
                 logger.error(f"❌ Freebuff task failed: {stderr.decode('utf-8')}")
-                return {"status": "error", "error": stderr.decode('utf-8')}
-                
+                return {"status": "error", "error": stderr.decode("utf-8")}
+
         except FileNotFoundError:
             logger.error("🚨 Freebuff CLI not found. Please ensure it is installed globally (npm install -g freebuff).")
             return {"status": "error", "error": "Freebuff CLI not installed."}

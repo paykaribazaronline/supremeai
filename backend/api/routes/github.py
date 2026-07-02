@@ -65,9 +65,7 @@ async def connect_repo(payload: ConnectRequest, db=Depends(get_tenant_db)):
         github_agent.connect_repo(payload.repo_owner, payload.repo_name, inst_id)
         # ট্যানান্টের প্রোফাইলে গিটহাব রেপো কানেকশন সেভ করা হচ্ছে
         tenant_ref = db.tenant_root
-        tenant_ref.set(
-            {"github_repo": f"{payload.repo_owner}/{payload.repo_name}"}, merge=True
-        )
+        tenant_ref.set({"github_repo": f"{payload.repo_owner}/{payload.repo_name}"}, merge=True)
         return {
             "status": "success",
             "message": f"Connected to {payload.repo_owner}/{payload.repo_name}",
@@ -104,9 +102,7 @@ async def push_improvements(payload: PushRequest, db=Depends(get_tenant_db)):
 @router.post("/discover")
 async def discover_repos(payload: DiscoverRequest):
     try:
-        repos = repo_discovery_agent.discover_repos(
-            payload.requirement, payload.tech_stack, payload.criteria
-        )
+        repos = repo_discovery_agent.discover_repos(payload.requirement, payload.tech_stack, payload.criteria)
         return {"status": "success", "repos": repos}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e)) from e
@@ -115,9 +111,7 @@ async def discover_repos(payload: DiscoverRequest):
 @router.post("/implement")
 async def implement_repo(payload: ImplementRequest):
     try:
-        res = repo_discovery_agent.implement_repo(
-            payload.repo_url, payload.integration_method, payload.target_project
-        )
+        res = repo_discovery_agent.implement_repo(payload.repo_url, payload.integration_method, payload.target_project)
         return res
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e)) from e

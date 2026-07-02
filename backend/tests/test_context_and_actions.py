@@ -50,7 +50,6 @@ def test_task_execute_with_context():
     import core.services as services_mod
     from core import services
 
-
     # Mock admin_god layer check
     previous_admin = services.admin_god
     fake_admin = MagicMock()
@@ -62,14 +61,14 @@ def test_task_execute_with_context():
 
     previous_router = services_mod.model_router
     fake_router = MagicMock()
-    
+
     mock_val = {
         "success": True,
         "text": "```javascript\nconsole.log('hi');\n```",
         "provider": "gemini",
         "cost": 0.002,
     }
-    
+
     # বাংলা মন্তব্য: টেস্টে ব্যবহৃত মক রাউটারকে সিনক্রোনাস ও অ্যাসিনক্রোনাস উভয়ের জন্যই কনফিগার করা হলো
     fake_router.async_route_and_generate = AsyncMock(return_value=mock_val)
     fake_router.route_and_generate = MagicMock(return_value=mock_val)

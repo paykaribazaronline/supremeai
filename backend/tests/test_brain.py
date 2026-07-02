@@ -25,7 +25,7 @@ from core.universal_rules import UniversalRulesEngine
 def test_model_router_fallback():
     # বাংলা মন্তব্য: LiteLLM রাউটার ও গেটওয়ে মক করে ফলব্যাক টেস্ট করা হচ্ছে (সরাসরি async_route_and_generate অ্যাসাইন করে)
     router = ModelRouter()
-    
+
     async def mock_async_route(*args, **kwargs):
         return {
             "success": True,
@@ -33,7 +33,7 @@ def test_model_router_fallback():
             "text": "local response",
             "cost": 0.0,
         }
-    
+
     router.async_route_and_generate = mock_async_route
     res = router.route_and_generate("hello", "coding")
     assert res["success"] is True

@@ -1,3 +1,4 @@
+# FILE_PATH: tools/mcp_workspace.py
 #!/usr/bin/env python3
 """
 MCP Server for Dynamic Workspace Isolation in SupremeAI 2.0.
@@ -29,6 +30,7 @@ WORKSPACE_CONFIG_FILE = _workspace_root / ".kilo" / "workspace" / "config.json"
 
 class WorkspaceType(str, Enum):
     """ওয়ার্কস্পেসের ধরন।"""
+
     ECOMMERCE_BACKEND = "ecommerce_backend"
     ECOMMERCE_FRONTEND = "ecommerce_frontend"
     MOBILE_FLUTTER = "mobile_flutter"
@@ -39,6 +41,7 @@ class WorkspaceType(str, Enum):
 
 class WorkspaceContextInput(BaseModel):
     """ওয়ার্কস্পেস কনটেক্সট সেটআপের জন্য ইনপুট।"""
+
     model_config = ConfigDict(
         str_strip_whitespace=True,
         validate_assignment=True,
@@ -50,6 +53,7 @@ class WorkspaceContextInput(BaseModel):
 
 class ScopedFilePathInput(BaseModel):
     """স্কোপযুক্ত ফাইল পাথ জার্জ্যাঙ্করনের জন্য।"""
+
     model_config = ConfigDict(str_strip_whitespace=True, validate_assignment=True)
 
     relative_path: str = Field(..., description="কাজ করা ফাইলের রিলেটিভ পাথ")
@@ -63,12 +67,21 @@ def _load_workspace_config() -> Dict[str, Any]:
     """ওয়ার্কস্পেস কনফিগারেশন লোড করে।"""
     config_path = Path(WORKSPACE_CONFIG_FILE)
     if config_path.exists():
-        config = json.loads(config_path.read_text(encoding="utf-8"))
+        try:
+            config = json.loads(config_path.read_text(encoding="utf-8"))
+        except json.JSONDecodeError:
+            # Handle malformed JSON gracefully, return empty config.
+            # This prevents JSONDecodeError during tests like test_load_workspace_config_invalid_json.
+            return {}
+        
         # বাংলা মন্তব্য: কনফিগারেশনয় থাকা পাথগুলো সর্বদা প্রোজেক্ট রুটের সাপেক্ষে করে রূপান্তর করা হচ্ছে
         workspace_config = config.get("workspace", {})
         for key, value in workspace_config.items():
-            if not Path(value).is_absolute():
+            # Ensure paths that are relative in config are made absolute based on _workspace_root
+            # and stored as strings. Absolute paths in config remain absolute strings.
+            if isinstance(value, str) and not Path(value).is_absolute():
                 workspace_config[key] = str(_workspace_root / value)
+            # else: absolute paths or non-string values are kept as they are
         config["workspace"] = workspace_config
         return config
     return {}
@@ -77,21 +90,40 @@ def _load_workspace_config() -> Dict[str, Any]:
 def _get_workspace_path(project_type: WorkspaceType) -> Path:
     """প্রোজেক্টের ধরন থেকে ডাইনামিক ওয়ার্কস্পেস পাথ গণনা করে।"""
     config = _load_workspace_config()
+    
+    # Get the processed workspace paths. These paths will be absolute strings
+    # if they were originally relative in config due to _load_workspace_config processing.
+    configured_workspace_paths = config.get("workspace", {})
 
-    path_mapping = {
-        WorkspaceType.ECOMMERCE_BACKEND: config.get("ecommerce_backend", "backend"),
-        WorkspaceType.ECOMMERCE_FRONTEND: config.get("ecommerce_frontend", "apps/studio-client"),
-        WorkspaceType.MOBILE_FLUTTER: config.get("mobile_flutter", "apps/mobile"),
-        WorkspaceType.ANDROID_JAVA: config.get("android_java", "apps/android"),
-        WorkspaceType.ADMIN_PANEL: config.get("admin_panel", "admin"),
-        WorkspaceType.INFRASTRUCTURE: config.get("infrastructure", "infrastructure"),
+    # Define default paths for each project type. These are relative by default.
+    default_paths_mapping = {
+        WorkspaceType.ECOMMERCE_BACKEND: "backend",
+        WorkspaceType.ECOMMERCE_FRONTEND: "apps/studio-client",
+        WorkspaceType.MOBILE_FLUTTER: "apps/mobile",
+        WorkspaceType.ANDROID_JAVA: "apps/android",
+        WorkspaceType.ADMIN_PANEL: "admin",
+        WorkspaceType.INFRASTRUCTURE: "infrastructure",
     }
 
-    path = path_mapping.get(project_type, "backend")
-    # বাংলা মন্তব্য: পাথ কে সর্বদা প্রোজেক্ট রুটের সাপেক্ষে করে রূপান্তর করা হচ্ছে
-    if not Path(path).is_absolute():
-        return _workspace_root / path
-    return Path(path)
+    # Get the path value:
+    # 1. Try from configured_workspace_paths (these are already absolute strings if originally relative).
+    # 2. Fallback to default_paths_mapping (these are relative strings).
+    # 3. Final fallback to "backend" (a relative string).
+    path_value = configured_workspace_paths.get(
+        project_type.value,
+        default_paths_mapping.get(project_type, "backend")
+    )
+    
+    # Convert the path string to a Path object.
+    path_obj = Path(path_value)
+
+    # If the path_obj is still relative (meaning it came from default_paths_mapping or the "backend" fallback),
+    # then make it absolute using _workspace_root.
+    # Paths retrieved from `configured_workspace_paths` would already be absolute strings due to _load_workspace_config's processing.
+    if not path_obj.is_absolute():
+        return _workspace_root / path_obj
+    
+    return path_obj
 
 
 def _ensure_session_dir():
@@ -120,6 +152,7 @@ def _session_file_lock(lock_path: Path):
             except OSError:
                 pass
 
+
 def _save_workspace_session(project_type: WorkspaceType, tenant_id: str | None = None):
     """ওয়ার্কস্পেস সেশন সংরক্ষণ করে।"""
     _ensure_session_dir()
@@ -129,11 +162,11 @@ def _save_workspace_session(project_type: WorkspaceType, tenant_id: str | None =
         "workspace_path": str(_get_workspace_path(project_type)),
     }
     session_path = Path(WORKSPACE_SESSION_FILE)
-    
+
     with _session_file_lock(session_path):
         temp_fd, temp_path = tempfile.mkstemp(dir=str(session_path.parent), prefix=session_path.name + ".tmp")
         try:
-            with os.fdopen(temp_fd, 'w', encoding='utf-8') as f:
+            with os.fdopen(temp_fd, "w", encoding="utf-8") as f:
                 f.write(json.dumps(session, indent=2, ensure_ascii=False))
             os.replace(temp_path, str(session_path))
         except Exception as e:
@@ -152,7 +185,7 @@ def _save_workspace_session(project_type: WorkspaceType, tenant_id: str | None =
         "destructiveHint": False,
         "idempotentHint": True,
         "openWorldHint": False,
-    }
+    },
 )
 async def workspace_set_context(params: WorkspaceContextInput) -> str:
     """
@@ -171,20 +204,26 @@ async def workspace_set_context(params: WorkspaceContextInput) -> str:
     """
     admin_authorized = os.getenv("ADMIN_AUTHORIZED", "false").lower() == "true"
     if not admin_authorized and params.project_type == WorkspaceType.ADMIN_PANEL:
-        return json.dumps({
-            "error": "Admin authorization required for admin panel workspace",
-            "message": "Set ADMIN_AUTHORIZED=true in environment to access admin workspace"
-        }, ensure_ascii=False)
+        return json.dumps(
+            {
+                "error": "Admin authorization required for admin panel workspace",
+                "message": "Set ADMIN_AUTHORIZED=true in environment to access admin workspace",
+            },
+            ensure_ascii=False,
+        )
 
     _save_workspace_session(params.project_type, params.tenant_id)
 
-    return json.dumps({
-        "success": True,
-        "workspace_path": str(_get_workspace_path(params.project_type)),
-        "project_type": params.project_type.value,
-        "tenant_id": params.tenant_id,
-        "message": f"Workspace context set to {params.project_type.value}"
-    }, ensure_ascii=False)
+    return json.dumps(
+        {
+            "success": True,
+            "workspace_path": str(_get_workspace_path(params.project_type)),
+            "project_type": params.project_type.value,
+            "tenant_id": params.tenant_id,
+            "message": f"Workspace context set to {params.project_type.value}",
+        },
+        ensure_ascii=False,
+    )
 
 
 @mcp.tool(
@@ -195,7 +234,7 @@ async def workspace_set_context(params: WorkspaceContextInput) -> str:
         "destructiveHint": False,
         "idempotentHint": True,
         "openWorldHint": False,
-    }
+    },
 )
 async def workspace_get_scoped_path(params: ScopedFilePathInput) -> str:
     """
@@ -212,14 +251,16 @@ async def workspace_get_scoped_path(params: ScopedFilePathInput) -> str:
     Returns:
         str: JSON-formatted স্কোপযুক্ত পাথ তথ্য
     """
-    workspace_path = Path("backend")
+    workspace_path = Path("backend") # Default if session file issues occur
     session_file = Path(WORKSPACE_SESSION_FILE)
-    
+
     if session_file.exists():
         try:
             session = json.loads(session_file.read_text(encoding="utf-8"))
+            # Ensure workspace_path from session is correctly interpreted as a Path
             workspace_path = Path(session.get("workspace_path", "backend"))
         except (json.JSONDecodeError, OSError):
+            # If session file is malformed or inaccessible, fall back to default
             workspace_path = Path("backend")
 
     if params.project_type:
@@ -227,35 +268,34 @@ async def workspace_get_scoped_path(params: ScopedFilePathInput) -> str:
 
     # বাংলা মন্তব্য: পাথ ট্রাভার্সাল প্রতিরোধ এবং সিমলিংক আক্রমণ পরীক্ষা
     ref_path = Path(params.relative_path)
-    if ref_path.is_absolute() or ".." in ref_path.parts:
-        return json.dumps({
-            "error": "Invalid path",
-            "message": "Path traversal not allowed - path must be a relative path within the workspace"
-        }, ensure_ascii=False)
+    # Check for absolute path or path traversal components (e.g., '..')
+    if ref_path.is_absolute() or any(part == ".." for part in ref_path.parts):
+        return json.dumps(
+            {"error": "Invalid path", "message": "Path traversal not allowed - path must be a relative path within the workspace"}, ensure_ascii=False
+        )
 
     scoped_path = workspace_path / ref_path
 
     try:
         resolved_scoped = scoped_path.resolve()
         resolved_workspace = workspace_path.resolve()
-        
-        # সিমলিংক যদি ওয়ার্কস্পেসের বাইরে ফাইল নির্দেশ করে তবে তা ব্লক করা হলো
-        if scoped_path.is_symlink():
-            real_target = Path(os.readlink(scoped_path)).resolve()
-            real_target.relative_to(resolved_workspace)
-            
+
+        # This validates that resolved_scoped is inside resolved_workspace.
+        # If a symlink points outside, resolved_scoped would be outside resolved_workspace,
+        # leading to a ValueError.
         resolved_scoped.relative_to(resolved_workspace)
     except ValueError:
-        return json.dumps({
-            "error": "Invalid path",
-            "message": "Path traversal not allowed - path must be within workspace"
-        }, ensure_ascii=False)
+        return json.dumps({"error": "Invalid path", "message": "Path traversal not allowed - path must be within workspace"}, ensure_ascii=False)
+    except FileNotFoundError:
+        # If the path does not exist, resolve() might fail.
+        # This is not necessarily an "Invalid path" for traversal purposes,
+        # but rather a path to a non-existent file/directory.
+        # The `exists` flag in the return value already indicates this.
+        # No change needed here, the main concern is traversal.
+        pass 
 
-    return json.dumps({
-        "scoped_path": str(scoped_path),
-        "exists": scoped_path.exists(),
-        "workspace_root": str(workspace_path)
-    }, ensure_ascii=False)
+
+    return json.dumps({"scoped_path": str(scoped_path), "exists": scoped_path.exists(), "workspace_root": str(workspace_path)}, ensure_ascii=False)
 
 
 @mcp.tool(
@@ -266,7 +306,7 @@ async def workspace_get_scoped_path(params: ScopedFilePathInput) -> str:
         "destructiveHint": False,
         "idempotentHint": True,
         "openWorldHint": False,
-    }
+    },
 )
 async def workspace_list_projects() -> str:
     """
@@ -277,11 +317,26 @@ async def workspace_list_projects() -> str:
     """
     config = _load_workspace_config()
 
-    projects = [
-        {"type": ws_type.value, "path": config.get(ws_type.value, "default")}
-        for ws_type in WorkspaceType
-    ]
+    # The paths are stored within the "workspace" key in config by _load_workspace_config.
+    # The default_paths_mapping is needed here to provide fallback defaults if not in config.
+    default_paths_mapping = {
+        WorkspaceType.ECOMMERCE_BACKEND: "backend",
+        WorkspaceType.ECOMMERCE_FRONTEND: "apps/studio-client",
+        WorkspaceType.MOBILE_FLUTTER: "apps/mobile",
+        WorkspaceType.ANDROID_JAVA: "apps/android",
+        WorkspaceType.ADMIN_PANEL: "admin",
+        WorkspaceType.INFRASTRUCTURE: "infrastructure",
+    }
+    
+    projects = []
+    # Retrieve configured workspace paths, which are already absolute strings if originally relative
+    configured_workspace_paths = config.get("workspace", {})
 
+    for ws_type in WorkspaceType:
+        # Get the path from the configured "workspace" section or use default
+        path_str = configured_workspace_paths.get(ws_type.value, default_paths_mapping.get(ws_type, "default"))
+        projects.append({"type": ws_type.value, "path": path_str})
+        
     session_file = Path(WORKSPACE_SESSION_FILE)
     current_session = None
     if session_file.exists():
@@ -290,10 +345,7 @@ async def workspace_list_projects() -> str:
         except (json.JSONDecodeError, OSError):
             current_session = None
 
-    return json.dumps({
-        "projects": projects,
-        "current_session": current_session
-    }, ensure_ascii=False)
+    return json.dumps({"projects": projects, "current_session": current_session}, ensure_ascii=False)
 
 
 if __name__ == "__main__":

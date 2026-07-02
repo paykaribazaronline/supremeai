@@ -23,10 +23,6 @@ class NineRouter:
         return {
             "provider": provider,
             "model": model,
-            "route": (
-                "cheap"
-                if "flash" in model or "free" in model or estimated_cost == 0
-                else "premium"
-            ),
+            "route": ("cheap" if "flash" in model or "free" in model or estimated_cost == 0 else "premium"),
             "estimated_cost": estimated_cost,
         }

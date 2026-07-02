@@ -37,7 +37,9 @@ class PgBouncerConnectionPool:
             logger.info("PgBouncer connection pool closed.")
             self._pool = None
 
+
 _db_pool_instance = None
+
 
 async def get_db_pool() -> PgBouncerConnectionPool:
     """Provides a singleton instance of the PgBouncerConnectionPool."""
@@ -46,7 +48,7 @@ async def get_db_pool() -> PgBouncerConnectionPool:
         # In a production environment, DSN should be loaded securely from
         # environment variables or a configuration service.
         # This is a placeholder for demonstration.
-        dsn = "postgresql://user:password@localhost:5432/dbname" # Placeholder DSN
+        dsn = "postgresql://user:password@localhost:5432/dbname"  # Placeholder DSN
         _db_pool_instance = PgBouncerConnectionPool(dsn)
         # In a real async application, `_db_pool_instance.connect()` should be awaited
         # during application startup, not implicitly here on first access.

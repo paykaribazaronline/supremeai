@@ -17,9 +17,7 @@ def mock_env_runpod():
 
 @pytest.fixture
 def mock_env_docker():
-    with patch.dict(
-        os.environ, {"DOCKER_HOST": "unix:///var/run/docker.sock"}, clear=True
-    ):
+    with patch.dict(os.environ, {"DOCKER_HOST": "unix:///var/run/docker.sock"}, clear=True):
         yield
 
 
@@ -41,19 +39,14 @@ async def test_create_session_docker_success(mock_env_docker):
         assert session_id is not None
         assert session_id.startswith("sandbox-")
         assert orchestrator.active_sessions[session_id]["provider"] == "docker"
-        assert (
-            orchestrator.active_sessions[session_id]["container_id"]
-            == "test_container_id"
-        )
+        assert orchestrator.active_sessions[session_id]["container_id"] == "test_container_id"
 
 
 @pytest.mark.asyncio
 @respx.mock
 async def test_create_session_runpod_success(mock_env_runpod):
     # Mock the RunPod API endpoint
-    respx.post("https://api.runpod.io/v1/user/pod").mock(
-        return_value=Response(200, json={"id": "test_pod_id", "status": "creating"})
-    )
+    respx.post("https://api.runpod.io/v1/user/pod").mock(return_value=Response(200, json={"id": "test_pod_id", "status": "creating"}))
 
     orchestrator = CloudSandboxOrchestrator(provider="runpod")
     session_id = await orchestrator.create_session()
@@ -71,11 +64,7 @@ async def test_create_session_auto_fallback_to_runpod(mock_env_runpod):
     Test that when provider is 'auto' and Docker fails, it falls back to RunPod.
     """
     # Mock the RunPod API endpoint for success
-    respx.post("https://api.runpod.io/v1/user/pod").mock(
-        return_value=Response(
-            200, json={"id": "test_pod_id_fallback", "status": "creating"}
-        )
-    )
+    respx.post("https://api.runpod.io/v1/user/pod").mock(return_value=Response(200, json={"id": "test_pod_id_fallback", "status": "creating"}))
 
     orchestrator = CloudSandboxOrchestrator(provider="auto")
 
