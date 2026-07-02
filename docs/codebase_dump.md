@@ -1,7 +1,7 @@
 # 🧠 SupremeAI 2.0 Codebase Analysis
 # বাংলা মন্তব্য: এটি একটি স্বয়ংক্রিয়ভাবে জেনারেট করা কোডবেস ডাম্প ফাইল যা প্রজেক্টের সামগ্রিক বিশ্লেষণের জন্য ব্যবহৃত হয়।
 
-Generated at: 2026-07-02T19:49:59.154065 UTC
+Generated at: 2026-07-02T20:00:01.864528 UTC
 
 ## File: `.github/actions/setup-backend/action.yml`
 ```yaml
@@ -60573,14 +60573,12 @@ class TestMCPServerSync:
 
     def test_all_mcp_servers_importable(self):
         """সব MCP সার্ভার ইম্পোর্ট করা যায় কিনা টেস্ট।"""
-        try:
-            from tools import mcp_cloud_deploy
-            from tools import mcp_github_cicd
-            from tools import mcp_supabase
-            from tools import mcp_workspace
-            assert True
-        except ImportError as e:
-            pytest.fail(f"MCP সার্ভার ইম্পোর্ট ব্যর্থ: {e}")
+        import importlib.util
+        
+        servers = ["mcp_cloud_deploy", "mcp_github_cicd", "mcp_supabase", "mcp_workspace"]
+        for server in servers:
+            spec = importlib.util.find_spec(f"tools.{server}")
+            assert spec is not None, f"tools.{server} module not found"
 
     def test_mcp_servers_have_fastmcp_instance(self):
         """MCP সার্ভারগুলোতে FastMCP ইনস্ট্যান্স আছে কিনা টেস্ট।"""
@@ -60612,7 +60610,7 @@ class TestMCPServerSync:
         assert hasattr(mcp_supabase, 'supabase_run_migration')
         assert hasattr(mcp_supabase, 'supabase_list_tables')
         
-        # workspace_mcpツールス
+        # workspace_mcp টুলস
         assert hasattr(mcp_workspace, 'workspace_set_context')
         assert hasattr(mcp_workspace, 'workspace_get_scoped_path')
         assert hasattr(mcp_workspace, 'workspace_list_projects')
@@ -60647,6 +60645,7 @@ class TestMCPServerSync:
         params = ScopedFilePathInput(relative_path="../../sensitive_file.txt")
         result = await workspace_get_scoped_path(params)
         assert "Path traversal not allowed" in result
+
 ```
 
 ## File: `backend/tests/test_media_r2.py`
@@ -76855,7 +76854,6 @@ MCP Server for Cloud Deployment Integration in SupremeAI 2.0.
 import os
 import json
 import re
-from typing import Optional, List, Dict, Any
 from enum import Enum
 
 import httpx
@@ -76882,9 +76880,8 @@ ORACLE_REGION = os.getenv("ORACLE_REGION", "")
 if not ORACLE_REGION:
     logger.warning("ORACLE_REGION is not set, defaulting to 'us-phoenix-1'.")
     ORACLE_REGION = "us-phoenix-1"
-else:
-    if not re.match(r"^[a-z0-9\-]+$", ORACLE_REGION):
-        logger.error(f"Invalid ORACLE_REGION format: '{ORACLE_REGION}'. It should only contain lowercase letters, numbers, and hyphens.")
+elif not re.match(r"^[a-z0-9\-]+$", ORACLE_REGION):
+    logger.error(f"Invalid ORACLE_REGION format: '{ORACLE_REGION}'. It should only contain lowercase letters, numbers, and hyphens.")
 
 
 class CloudProvider(str, Enum):
@@ -76912,7 +76909,7 @@ class DeployServiceInput(BaseModel):
         max_length=100, 
         pattern=r"^[a-zA-Z0-9\-_]+$"
     )
-    branch: Optional[str] = Field(default="main", description="ডিপ্লয় ব্রাঞ্চ")
+    branch: str | None = Field(default="main", description="ডিপ্লয় ব্রাঞ্চ")
 
 
 class GetLogsInput(BaseModel):
@@ -77155,6 +77152,7 @@ async def cloud_list_services() -> str:
 
 if __name__ == "__main__":
     mcp.run()
+
 ```
 
 ## File: `backend/tools/mcp_github_cicd.py`
@@ -77169,7 +77167,6 @@ CI/CD অপারেশন (Issue, PR, Auto-fix) সরাসরে চ্য�
 
 import os
 import json
-from typing import Optional, List, Dict, Any
 from enum import Enum
 
 import httpx
@@ -77366,13 +77363,13 @@ async def github_run_auto_fix(params: FixIssueInput) -> str:
         "openWorldHint": True,
     }
 )
-async def github_list_issues(state: str = "open", labels: Optional[str] = None) -> str:
+async def github_list_issues(state: str = "open", labels: str | None = None) -> str:
     """
     রিপোজিটরিতে ইস্যু তালিকা দেখায়।
 
     Args:
         state (str): ইস্যু স্টেট ('open', 'closed', 'all')
-        labels (Optional[str]): ফিল্টার করার জন্য লেবেল
+        labels (str | None): ফিল্টার করার জন্য লেবেল
 
     Returns:
         str: ইস্যু তালিকা
@@ -77407,7 +77404,7 @@ async def github_list_issues(state: str = "open", labels: Optional[str] = None) 
                         "number": i.get("number"),
                         "title": i.get("title"),
                         "state": i.get("state"),
-                        "labels": [l.get("name") for l in i.get("labels", [])],
+                        "labels": [lbl.get("name") for lbl in i.get("labels", [])],
                         "url": i.get("html_url")
                     }
                     for i in issues
@@ -77471,6 +77468,7 @@ async def github_get_ci_status(branch: str = "main") -> str:
 
 if __name__ == "__main__":
     mcp.run()
+
 ```
 
 ## File: `backend/tools/mcp_server.py`
@@ -77602,15 +77600,12 @@ MCP Server for Supabase/Postgres Database Integration in SupremeAI 2.0.
 
 import os
 import json
-import asyncio
-from typing import Optional, List, Dict, Any
+from typing import List, Any
 from enum import Enum
 
-import httpx
 import psycopg2
-from psycopg2 import sql
 from loguru import logger
-from pydantic import BaseModel, Field, ConfigDict, field_validator
+from pydantic import BaseModel, Field, ConfigDict
 from mcp.server.fastmcp import FastMCP
 
 mcp = FastMCP("supabase_mcp")
@@ -77621,9 +77616,8 @@ SUPABASE_DB_URL = os.getenv("SUPABASE_DATABASE_URL", "")
 # বাংলা মন্তব্য: ডাটাবেস ইউআরএল ফরম্যাট ও উপস্থিতি যাচাই
 if not SUPABASE_DB_URL:
     logger.warning("SUPABASE_DATABASE_URL is not set in environment variables.")
-else:
-    if not (SUPABASE_DB_URL.startswith("postgres://") or SUPABASE_DB_URL.startswith("postgresql://")):
-        logger.error("SUPABASE_DATABASE_URL must start with 'postgres://' or 'postgresql://'")
+elif not (SUPABASE_DB_URL.startswith("postgres://") or SUPABASE_DB_URL.startswith("postgresql://")):
+    logger.error("SUPABASE_DATABASE_URL must start with 'postgres://' or 'postgresql://'")
 
 
 class ResponseFormat(str, Enum):
@@ -77637,7 +77631,7 @@ class ExecuteQueryInput(BaseModel):
     model_config = ConfigDict(str_strip_whitespace=True, validate_assignment=True)
 
     query: str = Field(..., description="এক্সিকিউট করার SQL কুয়েরি", min_length=1)
-    params: Optional[List[Any]] = Field(default_factory=list, description="কুয়েরি প্যারামিটারস (ঐচ্ছিক)")
+    params: List[Any] | None = Field(default_factory=list, description="কুয়েরি প্যারামিটারস (ঐচ্ছিক)")
     response_format: ResponseFormat = Field(default=ResponseFormat.MARKDOWN, description="আউটপুট ফরম্যাট")
 
 
@@ -77974,6 +77968,7 @@ async def supabase_list_tables() -> str:
 
 if __name__ == "__main__":
     mcp.run()
+
 ```
 
 ## File: `backend/tools/mcp_workspace.py`
@@ -77992,7 +77987,7 @@ import time
 import tempfile
 import contextlib
 from pathlib import Path
-from typing import Optional, List, Dict, Any
+from typing import Dict, Any
 from enum import Enum
 
 from pydantic import BaseModel, Field, ConfigDict
@@ -78025,7 +78020,7 @@ class WorkspaceContextInput(BaseModel):
     )
 
     project_type: WorkspaceType = Field(..., description="কাজ করা বর্তমান প্রোজেক্টের ধরন")
-    tenant_id: Optional[str] = Field(default=None, description="টেন্যান্ট আইডি (যদি মাল্টি-টেন্যান্ট)")
+    tenant_id: str | None = Field(default=None, description="টেন্যান্ট আইডি (যদি মাল্টি-টেন্যান্ট)")
 
 
 class ScopedFilePathInput(BaseModel):
@@ -78033,7 +78028,7 @@ class ScopedFilePathInput(BaseModel):
     model_config = ConfigDict(str_strip_whitespace=True, validate_assignment=True)
 
     relative_path: str = Field(..., description="কাজ করা ফাইলের রিলেটিভ পাথ")
-    project_type: Optional[WorkspaceType] = Field(default=None, description="প্রোজেক্টের ধরন")
+    project_type: WorkspaceType | None = Field(default=None, description="প্রোজেক্টের ধরন")
 
 
 _workspace_config: Dict[str, Any] = {}
@@ -78100,7 +78095,7 @@ def _session_file_lock(lock_path: Path):
             except OSError:
                 pass
 
-def _save_workspace_session(project_type: WorkspaceType, tenant_id: Optional[str] = None):
+def _save_workspace_session(project_type: WorkspaceType, tenant_id: str | None = None):
     """ওয়ার্কস্পেস সেশন সংরক্ষণ করে।"""
     _ensure_session_dir()
     session = {
@@ -78278,6 +78273,7 @@ async def workspace_list_projects() -> str:
 
 if __name__ == "__main__":
     mcp.run()
+
 ```
 
 ## File: `backend/tools/medical_agent.py`
