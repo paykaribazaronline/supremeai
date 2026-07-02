@@ -1,7 +1,7 @@
 # 🧠 SupremeAI 2.0 Codebase Analysis
 # বাংলা মন্তব্য: এটি একটি স্বয়ংক্রিয়ভাবে জেনারেট করা কোডবেস ডাম্প ফাইল যা প্রজেক্টের সামগ্রিক বিশ্লেষণের জন্য ব্যবহৃত হয়।
 
-Generated at: 2026-07-02T22:33:12.151945 UTC
+Generated at: 2026-07-02T22:40:50.416003 UTC
 
 ## File: `.github/actions/setup-backend/action.yml`
 ```yaml
@@ -82015,6 +82015,12 @@ async def workspace_get_scoped_path(params: ScopedFilePathInput) -> str:
         workspace_path = _get_workspace_path(params.project_type)
 
     # বাংলা মন্তব্য: পাথ ট্রাভার্সাল প্রতিরোধ এবং সিমলিংক আক্রমণ পরীক্ষা
+    if "\\" in params.relative_path:
+        return json.dumps({
+            "error": "Invalid path",
+            "message": "Path traversal not allowed - path must be a relative path within the workspace"
+        }, ensure_ascii=False)
+
     ref_path = Path(params.relative_path)
     if ref_path.is_absolute() or ".." in ref_path.parts:
         return json.dumps({
