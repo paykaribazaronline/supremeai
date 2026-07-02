@@ -1,7 +1,7 @@
 # 🧠 SupremeAI 2.0 Codebase Analysis
 # বাংলা মন্তব্য: এটি একটি স্বয়ংক্রিয়ভাবে জেনারেট করা কোডবেস ডাম্প ফাইল যা প্রজেক্টের সামগ্রিক বিশ্লেষণের জন্য ব্যবহৃত হয়।
 
-Generated at: 2026-07-01T21:44:02.717233 UTC
+Generated at: 2026-07-01T21:59:05.298623 UTC
 
 ## File: `.github/actions/setup-backend/action.yml`
 ```yaml
@@ -53889,9 +53889,6 @@ from fastapi.testclient import TestClient
 os.environ.setdefault("OPENROUTER_API_KEY", "mock-key-value")
 os.environ.setdefault("ENV", "test")
 
-asyncpg_stub = types.ModuleType("asyncpg")
-
-
 class FakeConn:
     async def execute(self, *a, **k):
         return "OK"
@@ -53921,10 +53918,6 @@ class FakePool:
 
     async def fetchrow(self, *a, **k):
         return None
-
-
-asyncpg_stub.Pool = FakePool
-sys.modules["asyncpg"] = asyncpg_stub
 
 # Ensure `core.app` is reloaded fresh in test runs (avoid cached app state)
 for _mod in [
@@ -61914,14 +61907,6 @@ async def test_route_fallback_when_all_unhealthy_but_score_inf():
 import sys
 from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
-
-if "asyncpg" not in sys.modules:
-    mock_asyncpg = MagicMock()
-    mock_pool_mod = MagicMock()
-    mock_connection = MagicMock()
-    sys.modules["asyncpg"] = mock_asyncpg
-    sys.modules["asyncpg.pool"] = mock_pool_mod
-    sys.modules["asyncpg.connection"] = mock_connection
 
 from core.pgbouncer_pool import PgBouncerConnectionPool
 
