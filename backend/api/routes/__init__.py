@@ -250,6 +250,7 @@ except Exception:
 
 try:
     from .websocket_voice import router as websocket_voice_router
+
     _safe_imports["websocket_voice_router"] = websocket_voice_router
 except Exception:
     websocket_voice_router = None

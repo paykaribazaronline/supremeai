@@ -11,9 +11,7 @@ class EmailService:
         self.api_url = "https://api.resend.com/emails"
 
         if not self.api_key:
-            logger.warning(
-                "RESEND_API_KEY is not set. Email service will run in mock mode."
-            )
+            logger.warning("RESEND_API_KEY is not set. Email service will run in mock mode.")
 
     async def _send_email(self, to_email: str, subject: str, html_body: str) -> bool:
         if not self.api_key:
@@ -46,9 +44,7 @@ class EmailService:
             logger.error(f"Exception while sending email: {e}")
             return False
 
-    async def send_welcome_email(
-        self, user_email: str, user_name: str = "Developer"
-    ) -> bool:
+    async def send_welcome_email(self, user_email: str, user_name: str = "Developer") -> bool:
         subject = "Welcome to SupremeAI 2.0 🚀"
         html = f"""
         <html>
@@ -78,9 +74,7 @@ Go to Studio</a>
         """
         return await self._send_email(user_email, subject, html)
 
-    async def send_billing_notification(
-        self, user_email: str, amount: float, usage: str
-    ) -> bool:
+    async def send_billing_notification(self, user_email: str, amount: float, usage: str) -> bool:
         subject = "SupremeAI - Upcoming Invoice Notification"
         html = f"""
         <html>

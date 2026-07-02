@@ -59,12 +59,8 @@ class DockerSandbox:
         ]
 
         cmd_lower = cmd.lower()
-        if any(kw in cmd_lower for kw in harmful_keywords) or any(
-            pat in cmd_lower for pat in forbidden_patterns
-        ):
-            logger.warning(
-                "Security Firewall: Command blocked due to high-risk pattern."
-            )
+        if any(kw in cmd_lower for kw in harmful_keywords) or any(pat in cmd_lower for pat in forbidden_patterns):
+            logger.warning("Security Firewall: Command blocked due to high-risk pattern.")
             return {
                 "success": False,
                 "error": "Security Firewall block: command contains forbidden patterns.",
@@ -72,17 +68,13 @@ class DockerSandbox:
 
         if not self.docker_available:
             if os.getenv("ALLOW_LOCAL_SANDBOX_FALLBACK") != "true":
-                logger.error(
-                    "Docker is not available and local execution fallback is disabled."
-                )
+                logger.error("Docker is not available and local execution fallback is disabled.")
                 return {
                     "success": False,
                     "error": "Sandbox execution failed: Docker is not running and local execution is disabled for safety.",
                 }
 
-            logger.warning(
-                "Docker is not available. Simulating command execution in local process."
-            )
+            logger.warning("Docker is not available. Simulating command execution in local process.")
             try:
                 res = subprocess.run(
                     cmd,
@@ -115,9 +107,7 @@ class DockerSandbox:
                 "-c",
                 cmd,
             ]
-            res = subprocess.run(
-                docker_cmd, capture_output=True, text=True, timeout=10, check=False
-            )
+            res = subprocess.run(docker_cmd, capture_output=True, text=True, timeout=10, check=False)
             return {
                 "success": res.returncode == 0,
                 "stdout": res.stdout,

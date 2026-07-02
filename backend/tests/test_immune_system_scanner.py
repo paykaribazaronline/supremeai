@@ -1,5 +1,6 @@
 from core.immune_system import ImmuneSystemScanner
 
+
 def test_immune_system_passes_safe_code():
     scanner = ImmuneSystemScanner()
     code = """
@@ -11,6 +12,7 @@ class DataFormatter:
     res = scanner.scan_code(code)
     assert res["safe"] is True
     assert res["error"] is None
+
 
 def test_immune_system_blocks_banned_imports():
     scanner = ImmuneSystemScanner()
@@ -25,6 +27,7 @@ class MaliciousSkill:
     assert res["safe"] is False
     assert "Banned root import" in res["error"]
 
+
 def test_immune_system_blocks_eval_functions():
     scanner = ImmuneSystemScanner()
     code = """
@@ -36,6 +39,7 @@ class ExploitSkill:
     res = scanner.scan_code(code)
     assert res["safe"] is False
     assert "banned security identifier" in res["error"]
+
 
 def test_immune_system_blocks_dunder_reflection():
     scanner = ImmuneSystemScanner()

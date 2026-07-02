@@ -16,9 +16,7 @@ class VoiceInterface:
 
     def __init__(self):
         self.hf_token = os.getenv("HF_API_KEY", settings.hf_api_key)
-        self.api_url = (
-            "https://api-inference.huggingface.co/models/openai/whisper-large-v3"
-        )
+        self.api_url = "https://api-inference.huggingface.co/models/openai/whisper-large-v3"
 
     def speech_to_text(self, audio_path: str) -> str:
         if not os.path.exists(audio_path):
@@ -36,9 +34,7 @@ class VoiceInterface:
                 logger.info(f"Locally transcribed audio: {transcription}")
                 return transcription
         except Exception as e:
-            logger.warning(
-                f"Local Whisper not available or failed: {e}. Falling back to HuggingFace API..."
-            )
+            logger.warning(f"Local Whisper not available or failed: {e}. Falling back to HuggingFace API...")
 
         if not self.hf_token:
             logger.warning("HF_API_KEY not set. Cannot transcribe audio via API.")
@@ -48,18 +44,14 @@ class VoiceInterface:
         try:
             with open(audio_path, "rb") as f:
                 data = f.read()
-            response = httpx.post(
-                self.api_url, headers=headers, content=data, timeout=30.0
-            )
+            response = httpx.post(self.api_url, headers=headers, content=data, timeout=30.0)
             if response.status_code == 200:
                 result = response.json()
                 transcription = result.get("text", "")
                 logger.info(f"Transcribed audio via API: {transcription}")
                 return transcription
             else:
-                logger.error(
-                    f"Whisper API error: {response.status_code} - {response.text}"
-                )
+                logger.error(f"Whisper API error: {response.status_code} - {response.text}")
                 return f"Error transcribing audio (status code: {response.status_code})"
         except Exception as api_err:
             logger.error(f"Exception during speech to text API fallback: {api_err}")
@@ -97,16 +89,12 @@ class VoiceInterface:
                 try:
                     tts.to(device)
                 except Exception as device_err:
-                    logger.warning(
-                        f"Coqui TTS device set failed ({device_err}); using default device."
-                    )
+                    logger.warning(f"Coqui TTS device set failed ({device_err}); using default device.")
             tts.tts_to_file(text=text, file_path=output_path, language=lang)
             logger.info(f"Generated offline speech file at: {output_path}")
             return True
         except Exception as e:
-            logger.warning(
-                f"Coqui TTS unavailable or failed: {e}. Falling back to gTTS..."
-            )
+            logger.warning(f"Coqui TTS unavailable or failed: {e}. Falling back to gTTS...")
 
         try:
             from gtts import gTTS
@@ -117,9 +105,7 @@ class VoiceInterface:
             logger.info(f"Generated speech file locally at: {output_path}")
             return True
         except Exception as e:
-            logger.warning(
-                f"gTTS library not available or failed: {e}. Falling back to Google TTS API..."
-            )
+            logger.warning(f"gTTS library not available or failed: {e}. Falling back to Google TTS API...")
 
         import urllib.parse
 
@@ -138,9 +124,7 @@ class VoiceInterface:
             logger.error(f"Exception during text to speech API fallback: {api_err}")
             return False
 
-    async def text_to_speech_async(
-        self, text: str, output_path: str = "data/output.mp3"
-    ) -> bool:
+    async def text_to_speech_async(self, text: str, output_path: str = "data/output.mp3") -> bool:
         loop = asyncio.get_running_loop()
         return await loop.run_in_executor(None, self.text_to_speech, text, output_path)
 

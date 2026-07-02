@@ -24,6 +24,7 @@ class AdminGodLayer:
             # বাংলা মন্তব্য: settings থেকে রুলস ডাটাবেস পাথ রিড করা হচ্ছে
             try:
                 from core.config import settings
+
                 db_path = settings.admin_rules_db
             except ImportError:
                 db_path = "data/constitutional_rules.db"
@@ -31,10 +32,10 @@ class AdminGodLayer:
         self.db_path = Path(db_path)
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
         self.sqlite_lock = threading.Lock()
-        
+
         self.collection_name = "constitutional_rules"
         self._db = None
-        
+
         import os
         import sys
 
@@ -48,10 +49,8 @@ class AdminGodLayer:
                 logger.warning(f"Failed to initialize Firestore for AdminGodLayer: {e}. Falling back to SQLite.")
                 self._db = None
         else:
-            logger.warning(
-                "google-cloud-firestore not installed or in test mode. AdminGodLayer using local SQLite fallback."
-            )
-        
+            logger.warning("google-cloud-firestore not installed or in test mode. AdminGodLayer using local SQLite fallback.")
+
         self._init_sqlite_db()
 
     def _init_sqlite_db(self):
@@ -86,16 +85,12 @@ class AdminGodLayer:
             return
         try:
             # বাংলা মন্তব্য: Firestore-এ autofix_authorized এবং admin_authorized নিয়মগুলো না থাকলে সেগুলো 'false' দিয়ে ইনিশিয়ালাইজ করা হচ্ছে।
-            doc_ref = self._db.collection(self.collection_name).document(
-                "admin_authorized"
-            )
+            doc_ref = self._db.collection(self.collection_name).document("admin_authorized")
             if not doc_ref.get().exists:
                 self.set_rule("admin_authorized", "false")
                 logger.warning("Firestore: Defaulting 'admin_authorized' to 'false' for security.")
-            
-            autofix_ref = self._db.collection(self.collection_name).document(
-                "autofix_authorized"
-            )
+
+            autofix_ref = self._db.collection(self.collection_name).document("autofix_authorized")
             if not autofix_ref.get().exists:
                 self.set_rule("autofix_authorized", "false")
                 logger.warning("Firestore: Defaulting 'autofix_authorized' to 'false' for security.")
@@ -153,6 +148,4 @@ class AdminGodLayer:
 
     def enforce(self, action: str) -> None:
         if not self.is_admin_action_allowed(action):
-            raise PermissionError(
-                "Action blocked by constitutional rules. Admin authorization required."
-            )
+            raise PermissionError("Action blocked by constitutional rules. Admin authorization required.")
