@@ -232,6 +232,12 @@ async def workspace_get_scoped_path(params: ScopedFilePathInput) -> str:
         workspace_path = _get_workspace_path(params.project_type)
 
     # বাংলা মন্তব্য: পাথ ট্রাভার্সাল প্রতিরোধ এবং সিমলিংক আক্রমণ পরীক্ষা
+    if "\\" in params.relative_path:
+        return json.dumps({
+            "error": "Invalid path",
+            "message": "Path traversal not allowed - path must be a relative path within the workspace"
+        }, ensure_ascii=False)
+
     ref_path = Path(params.relative_path)
     if ref_path.is_absolute() or ".." in ref_path.parts:
         return json.dumps({
