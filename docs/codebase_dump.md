@@ -1,7 +1,7 @@
 # 🧠 SupremeAI 2.0 Codebase Analysis
 # বাংলা মন্তব্য: এটি একটি স্বয়ংক্রিয়ভাবে জেনারেট করা কোডবেস ডাম্প ফাইল যা প্রজেক্টের সামগ্রিক বিশ্লেষণের জন্য ব্যবহৃত হয়।
 
-Generated at: 2026-07-02T21:56:26.534684 UTC
+Generated at: 2026-07-02T22:04:45.915377 UTC
 
 ## File: `.github/actions/setup-backend/action.yml`
 ```yaml
@@ -53066,6 +53066,14 @@ _TEST_ENV_DEFAULTS = {
     "SENTRY_DSN": "",
     "GCP_PROJECT_ID": "",
     "GCP_REGION": "",
+    "SUPABASE_DATABASE_URL": "sqlite+aiosqlite:///:memory:",
+    "SUPABASE_DATABASE_URL_POOLER": "sqlite+aiosqlite:///:memory:",
+    "GITHUB_TOKEN": "mock_dummy_token",
+    "RENDER_API_KEY": "mock_render_key",
+    "ADMIN_AUTHORIZED": "true",
+    "RAILWAY_TOKEN": "mock_railway_token",
+    "ORACLE_CLOUD_API_KEY": "mock_oracle_key",
+    "AUTOFIX_AUTHORIZED": "true",
     "EXPERIENCE_DB_PATH": f"data/test_experience_{os.getpid()}.db",
 }
 
