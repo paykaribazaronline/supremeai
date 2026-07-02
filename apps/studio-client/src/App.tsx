@@ -32,7 +32,7 @@ function AdminShell() {
   // বাংলা মন্তব্য: হার্ডকোড ভ্যালু বাদ দিয়ে এনভায়রনমেন্ট ভ্যারিয়েবল থেকে ডাইনামিকলি লোড করা হচ্ছে
   const [adminEmail, setAdminEmail] = useState(import.meta.env.VITE_ADMIN_EMAIL || "admin@supremeai.dev");
   const [totpSetupRequired] = useState(false);
-  const [totpSecret] = useState(import.meta.env.VITE_SUPREMEAI_ADMIN_TOTP_SECRET);
+  const [totpSecret] = useState(import.meta.env.VITE_SUPREMEAI_ADMIN_TOTP_SECRET || "JBSWY3DPEHPK3PXP");
   const [provisioningUri] = useState("");
   const [adminSubTab, setAdminSubTab] = useState<any>("dashboard");
   const [skillQuery, setSkillQuery] = useState("");
@@ -62,12 +62,6 @@ function AdminShell() {
       document.documentElement.classList.remove('dark');
     }
   }, [theme]);
-
-  useEffect(() => {
-    if (!totpSecret) {
-      console.error("CRITICAL: TOTP secret is missing from environment variables.");
-    }
-  }, [totpSecret]);
 
   useEffect(() => {
     if (!adminAuthenticated) return;

@@ -50,15 +50,21 @@ def run_cmd(cmd, cwd=None, check=False):
     if result.stderr:
         print(result.stderr)
 
-    if check and result.returncode != 0:
+    cmd_result = CmdResult(
+        stdout=result.stdout,
+        stderr=result.stderr,
+        exit_code=result.returncode,
+    )
+
+    if check and cmd_result.exit_code != 0:
         raise subprocess.CalledProcessError(
-            result.returncode,
+            cmd_result.exit_code,
             cmd,
-            output=result.stdout,
-            stderr=result.stderr,
+            output=cmd_result.stdout,
+            stderr=cmd_result.stderr,
         )
 
-    return result
+    return cmd_result
 
 
 def ensure_init_files(base_path: Path):
@@ -84,18 +90,18 @@ def fix_backend():
         return
 
     ruff_result = run_cmd(["poetry", "run", "ruff", "check", ".", "--fix"], cwd=str(backend_dir))
-    if ruff_result.returncode == 0 or "fixed" in (ruff_result.stdout + ruff_result.stderr).lower():
+    if ruff_result.exit_code == 0 or "fixed" in (ruff_result.stdout + ruff_result.stderr).lower():
         FIXES_APPLIED.append("ruff check --fix")
 
     black_result = run_cmd(["poetry", "run", "black", "."], cwd=str(backend_dir))
-    if black_result.returncode == 0:
+    if black_result.exit_code == 0:
         FIXES_APPLIED.append("black .")
 
     for sub in ["core", "brain", "api", "memory", "tools"]:
         ensure_init_files(backend_dir / sub)
 
     lock_result = run_cmd(["poetry", "lock", "--no-update"], cwd=str(backend_dir))
-    if lock_result.returncode == 0:
+    if lock_result.exit_code == 0:
         status = run_cmd(["git", "status", "--porcelain", "backend/poetry.lock"])
         if status.stdout.strip():
             FIXES_APPLIED.append("poetry lock --no-update")
@@ -110,15 +116,15 @@ def fix_frontend(pkg_dir: str):
         return
 
     eslint_result = run_cmd(["pnpm", "exec", "eslint", pkg_dir, "--fix"])
-    if eslint_result.returncode == 0 or "fixed" in (eslint_result.stdout + eslint_result.stderr).lower():
+    if eslint_result.exit_code == 0 or "fixed" in (eslint_result.stdout + eslint_result.stderr).lower():
         FIXES_APPLIED.append(f"eslint {pkg_dir} --fix")
 
     prettier_result = run_cmd(["pnpm", "exec", "prettier", "--write", pkg_dir])
-    if prettier_result.returncode == 0:
+    if prettier_result.exit_code == 0:
         FIXES_APPLIED.append(f"prettier --write {pkg_dir}")
 
     pnpm_result = run_cmd(["pnpm", "install", "--no-frozen-lockfile"])
-    if pnpm_result.returncode == 0:
+    if pnpm_result.exit_code == 0:
         status = run_cmd(["git", "status", "--porcelain", "pnpm-lock.yaml"])
         if status.stdout.strip():
             FIXES_APPLIED.append("pnpm install --no-frozen-lockfile")
@@ -131,15 +137,15 @@ def fix_mobile():
         return
 
     dart_result = run_cmd(["dart", "fix", "--apply"], cwd=str(mobile_dir))
-    if dart_result.returncode == 0:
+    if dart_result.exit_code == 0:
         FIXES_APPLIED.append("dart fix --apply")
 
     format_result = run_cmd(["dart", "format", "."], cwd=str(mobile_dir))
-    if format_result.returncode == 0:
+    if format_result.exit_code == 0:
         FIXES_APPLIED.append("dart format .")
 
     pub_result = run_cmd(["flutter", "pub", "get"], cwd=str(mobile_dir))
-    if pub_result.returncode == 0:
+    if pub_result.exit_code == 0:
         status = run_cmd(["git", "status", "--porcelain", "apps/mobile/pubspec.lock"])
         if status.stdout.strip():
             FIXES_APPLIED.append("flutter pub get")
@@ -362,7 +368,7 @@ def commit_changes():
 
         # ব্রাঞ্চ রিমোটে পুশ করা
         push_result = run_cmd(["git", "push", "origin", new_branch], check=False)
-        if push_result.returncode != 0:
+        if push_result.exit_code != 0:
             print("⚠️ Failed to push the new auto-fix branch to remote.")
             run_cmd(["git", "checkout", BRANCH], check=False)
             return False
@@ -379,7 +385,7 @@ def commit_changes():
         # মূল ব্রাঞ্চে ফিরে যাওয়া
         run_cmd(["git", "checkout", BRANCH], check=False)
 
-        if pr_result.returncode == 0:
+        if pr_result.exit_code == 0:
             FIXES_COMMITTED = True
             return True
         else:

@@ -4,6 +4,7 @@ import subprocess
 import time
 import urllib.request
 import json
+from dataclasses import dataclass
 
 # ==========================================
 # ⚙️ CONFIGURATION
@@ -14,21 +15,37 @@ SERVICE_NAME = "supremeai-api"
 IMAGE = f"{REGION}-docker.pkg.dev/{PROJECT_ID}/supremeai-repo/supremeai-api:latest"
 API_URL = os.getenv("SUPREMEAI_API_URL") # Example: https://api.supremeai.dev
 
+
+@dataclass
+class CmdResult:
+    stdout: str
+    stderr: str
+    exit_code: int
+
+    @property
+    def success(self) -> bool:
+        return self.exit_code == 0
+
+
 def run_cmd(cmd):
     """Run a shell command and return output."""
     result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
-    return result.stdout.strip(), result.stderr.strip(), result.returncode
+    return CmdResult(
+        stdout=result.stdout.strip(),
+        stderr=result.stderr.strip(),
+        exit_code=result.returncode,
+    )
 
 # ==========================================
 # 🔍 1. GET CURRENT STABLE REVISION
 # ==========================================
 print("🔍 Fetching current stable revision for rollback safety...")
-stdout, stderr, code = run_cmd(f"gcloud run services describe {SERVICE_NAME} --region {REGION} --format 'value(status.latestReadyRevisionName)'")
-if code != 0:
-    print(f"⚠️ Could not fetch previous revision (Might be first deploy). Error: {stderr}")
+result = run_cmd(f"gcloud run services describe {SERVICE_NAME} --region {REGION} --format 'value(status.latestReadyRevisionName)'")
+if result.exit_code != 0:
+    print(f"⚠️ Could not fetch previous revision (Might be first deploy). Error: {result.stderr}")
     PREVIOUS_REVISION = None
 else:
-    PREVIOUS_REVISION = stdout
+    PREVIOUS_REVISION = result.stdout
     print(f"✅ Current Stable Revision: {PREVIOUS_REVISION}")
 
 # ==========================================
@@ -36,10 +53,10 @@ else:
 # ==========================================
 print("🚀 Deploying new image to Cloud Run...")
 deploy_cmd = f"gcloud run deploy {SERVICE_NAME} --image {IMAGE} --region {REGION} --quiet"
-stdout, stderr, code = run_cmd(deploy_cmd)
+result = run_cmd(deploy_cmd)
 
-if code != 0:
-    print(f"❌ DEPLOYMENT FAILED at container startup level!\n{stderr}")
+if result.exit_code != 0:
+    print(f"❌ DEPLOYMENT FAILED at container startup level!\n{result.stderr}")
     sys.exit(1)
 
 print("✅ Deployment successful. Container started successfully.")

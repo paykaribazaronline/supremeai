@@ -437,7 +437,7 @@ async def push_fix_to_repo(file_path, error_log, diff_content):
         "--draft"  # ড্রাফ্ট পিআর - ম্যানুয়াল অনুমোদন দরকার
     ])
     
-    return pr_result.returncode == 0
+    return pr_result.exit_code == 0
 
 async def run_sandbox_tests(pr_number: int) -> bool:
     """স্যান্ডবক্স সিআই রান করা - PR-এর জন্য"""
