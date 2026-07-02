@@ -1,7 +1,7 @@
 # 🧠 SupremeAI 2.0 Codebase Analysis
 # বাংলা মন্তব্য: এটি একটি স্বয়ংক্রিয়ভাবে জেনারেট করা কোডবেস ডাম্প ফাইল যা প্রজেক্টের সামগ্রিক বিশ্লেষণের জন্য ব্যবহৃত হয়।
 
-Generated at: 2026-07-02T22:04:45.915377 UTC
+Generated at: 2026-07-02T22:33:12.151945 UTC
 
 ## File: `.github/actions/setup-backend/action.yml`
 ```yaml
@@ -53070,10 +53070,10 @@ _TEST_ENV_DEFAULTS = {
     "SUPABASE_DATABASE_URL_POOLER": "sqlite+aiosqlite:///:memory:",
     "GITHUB_TOKEN": "mock_dummy_token",
     "RENDER_API_KEY": "mock_render_key",
-    "ADMIN_AUTHORIZED": "true",
+    "ADMIN_AUTHORIZED": "false",
     "RAILWAY_TOKEN": "mock_railway_token",
     "ORACLE_CLOUD_API_KEY": "mock_oracle_key",
-    "AUTOFIX_AUTHORIZED": "true",
+    "AUTOFIX_AUTHORIZED": "false",
     "EXPERIENCE_DB_PATH": f"data/test_experience_{os.getpid()}.db",
 }
 
@@ -53684,6 +53684,321 @@ def test_admin_firebase_totp_verify_request():
 def test_admin_easy_login_request():
     req = AdminEasyLoginRequest(code="easy-code")
     assert req.code == "easy-code"
+
+```
+
+## File: `backend/tests/test_admin_routes.py`
+```python
+"""Admin routes tests for SupremeAI 2.0."""
+import base64
+import hmac
+import hashlib
+import os
+import struct
+import time
+from unittest.mock import AsyncMock
+from unittest.mock import MagicMock
+from unittest.mock import patch
+
+import pytest
+from fastapi import HTTPException
+from fastapi.testclient import TestClient
+
+from core.admin_routes import router
+from models.admin import AdminLoginRequest
+from models.admin import AdminVerifyRequest
+from models.admin import AdminFirebaseLoginRequest
+from models.admin import AdminFirebaseTotpSetupRequest
+from models.admin import AdminFirebaseTotpVerifyRequest
+
+
+class TestHelperFunctions:
+    """Tests for admin route helper functions."""
+
+    def test_hash_password_requires_bcrypt(self):
+        """bcrypt ছাড়া হ্যাশ fails."""
+        try:
+            from core.admin_routes import _hash_password
+
+            # If bcrypt is installed, this should work
+            import bcrypt
+
+            hashed = _hash_password("password")
+            assert isinstance(hashed, str)
+            assert len(hashed) > 0
+        except ImportError:
+            pytest.skip("bcrypt not installed")
+        except RuntimeError as e:
+            assert "bcrypt is required" in str(e)
+
+    def test_verify_password_no_bcrypt(self):
+        """bcrypt ছাড়া ভেরিফিকেশন False রিটার্ন করে।"""
+        with patch.dict("sys.modules", {"bcrypt": None}):
+            import importlib
+
+            import core.admin_routes as admin_routes
+
+            importlib.reload(admin_routes)
+            assert admin_routes._verify_password("pass", "hash") is False
+
+    def test_verify_password_empty_hash(self):
+        """খালি হ্যাশে ভেরিফিকেশন False রিটার্ন করে।"""
+        from core.admin_routes import _verify_password
+
+        assert _verify_password("password", "") is False
+        assert _verify_password("password", None) is False
+
+    def test_get_admin_credentials_missing_hash(self):
+        """এডমিন পাসওয়ার্ড হ্যাশ নেই থাকলে 500 রিটার্ন করে।"""
+        with patch.dict(os.environ, {}, clear=False):
+            from core.admin_routes import _get_admin_credentials
+
+            with pytest.raises(HTTPException) as exc_info:
+                _get_admin_credentials()
+
+            assert exc_info.value.status_code == 500
+
+    def test_get_admin_credentials_returns_hash(self):
+        """যোগ্য এডমিন হ্যাশ রিটার্ন করে।"""
+        test_hash = "test-admin-hash-value"
+        with patch.dict(os.environ, {"SUPREMEAI_ADMIN_PASSWORD_HASH": test_hash}, clear=False):
+            from core.admin_routes import _get_admin_credentials
+
+            assert _get_admin_credentials() == test_hash
+
+
+class TestVerifyTotpCode:
+    """Tests for TOTP verification functions."""
+
+    def test_verify_totp_code_valid(self):
+        """বৈধ TOTP কোড ভেরিফিকেশন."""
+        from core.admin_routes import verify_totp_code
+
+        secret = base64.b32encode(os.urandom(10)).decode("utf-8")
+
+        current_time = int(time.time() // 30)
+        msg = struct.pack(">Q", current_time)
+        key = base64.b32decode(secret.upper())
+        h = hmac.new(key, msg, hashlib.sha1).digest()
+        o = h[19] & 15
+        h_num = struct.unpack(">I", h[o : o + 4])[0] & 0x7FFFFFFF
+        valid_otp = f"{h_num % 10000000:07d}"
+
+        assert verify_totp_code(valid_otp, secret) is True
+
+    def test_verify_totp_code_invalid(self):
+        """অবৈধ TOTP কোড রিজেক্স করা হচ্ছে।"""
+        from core.admin_routes import verify_totp_code
+
+        secret = base64.b32encode(os.urandom(10)).decode("utf-8")
+        assert verify_totp_code("0000000", secret) is False
+
+    def test_check_totp_valid(self):
+        """check_totp বৈধ কোড ভেরিফাই করে."""
+        from core.admin_routes import check_totp
+
+        secret = base64.b32encode(os.urandom(10)).decode("utf-8")
+
+        current_time = int(time.time() // 30)
+        msg = struct.pack(">Q", current_time)
+        key = base64.b32decode(secret.upper())
+        h = hmac.new(key, msg, hashlib.sha1).digest()
+        o = h[19] & 15
+        h_num = struct.unpack(">I", h[o : o + 4])[0] & 0x7FFFFFFF
+        valid_otp = f"{h_num % 10000000:07d}"
+
+        assert check_totp(valid_otp, secret) is True
+
+    def test_check_totp_invalid(self):
+        """check_totp অবৈধ কোড রিজেক্স করে."""
+        from core.admin_routes import check_totp
+
+        secret = base64.b32encode(os.urandom(10)).decode("utf-8")
+        assert check_totp("1234567", secret) is False
+
+    def test_verify_totp_code_bad_secret(self):
+        """খারাপ সিক্রেটে TOTP False রিটার্ন করে।"""
+        from core.admin_routes import verify_totp_code
+
+        assert verify_totp_code("1234567", "not-valid-base32-!@#$") is False
+
+
+class TestAdminRoutes:
+    """Tests for admin FastAPI routes using TestClient."""
+
+    @pytest.fixture
+    def client(self):
+        """TestClient with mocked dependencies."""
+        from core.app import app as fastapi_app
+
+        return TestClient(fastapi_app)
+
+    def test_health(self, client):
+        """Health endpoint."""
+        response = client.get("/health")
+        assert response.status_code in [200, 503]
+
+    def test_actuator_health(self, client):
+        """Actuator health check."""
+        response = client.get("/actuator/health")
+        assert response.status_code == 200
+
+    def test_admin_login_no_password(self, client):
+        """পাসওয়ার্ড ছাড়া লগইন 422."""
+        response = client.post("/api/admin/login", json={})
+        assert response.status_code == 422
+
+    def test_admin_login_invalid_password(self, client):
+        """ভুল পাসওয়ার্ডে 401."""
+        with patch.dict(os.environ, {"SUPREMEAI_ADMIN_PASSWORD_HASH": "dummy-hash", "SUPREMEAI_ADMIN_TOTP_SECRET": "dummy-secret"}, clear=False):
+            response = client.post("/api/admin/login", json={"password": "wrong-password"})
+            assert response.status_code == 401
+
+    def test_admin_verify_no_password(self, client):
+        """পাসওয়ার্ড ছাড়া ভেরিফাই 422."""
+        response = client.post("/api/admin/verify", json={})
+        assert response.status_code == 422
+
+    def test_admin_verify_invalid_password(self, client):
+        """ভুল পাসওয়ার্ডে ভেরিফাই 401."""
+        with patch.dict(os.environ, {"SUPREMEAI_ADMIN_PASSWORD_HASH": "dummy-hash", "SUPREMEAI_ADMIN_TOTP_SECRET": "dummy-secret"}, clear=False):
+            response = client.post("/api/admin/verify", json={"password": "wrong", "otp": "1234567"})
+            assert response.status_code == 401
+
+    def test_admin_firebase_login_no_token(self, client):
+        """Firebase login with no token returns 422."""
+        response = client.post("/api/admin/firebase-login", json={})
+        assert response.status_code == 422
+
+    def test_admin_firebase_login_mock_token_non_production(self, client):
+        """মক ফায়ারবেস টোকেন লগইন non-production."""
+        with patch("core.config.settings.env", "local"):
+            response = client.post("/api/admin/firebase-login", json={"id_token": "mock-test-token"})
+            assert response.status_code in [200, 403]
+
+    def test_admin_firebase_login_mock_token_production(self, client):
+        """মক টোকেন প্রোডাকশন নিষিদ্ধ."""
+        with patch("core.config.settings.env", "production"):
+            response = client.post("/api/admin/firebase-login", json={"id_token": "mock-test-token"})
+            assert response.status_code == 403
+
+    def test_admin_firebase_totp_setup_no_token(self, client):
+        """TOTP setup missing token returns 422."""
+        response = client.post("/api/admin/firebase-totp-setup", json={})
+        assert response.status_code == 422
+
+    def test_admin_firebase_totp_verify_no_token(self, client):
+        """TOTP verify missing token returns 422."""
+        response = client.post("/api/admin/firebase-totp-verify", json={})
+        assert response.status_code == 422
+
+    def test_cloud_distribution(self, client):
+        """Cloud distribution endpoint."""
+        with patch("core.admin_routes.services") as mock_services:
+            mock_provider = {"status": "active", "current_requests": 0}
+            mock_services.parallel_router.PROVIDERS = {"provider1": mock_provider}
+            mock_services.parallel_router.get_distribution_stats = MagicMock(return_value={})
+
+            response = client.get("/admin/cloud-distribution")
+            assert response.status_code == 200
+
+    def test_free_tier_status(self, client):
+        """Free tier status endpoint."""
+        mock_tracker = MagicMock()
+        mock_tracker.get_status.return_value = {"status": "active"}
+
+        with patch("core.admin_routes.services") as mock_services:
+            mock_services.get_tracker = MagicMock(return_value=mock_tracker)
+            with patch.dict("sys.modules", {"core.free_tier_tracker": MagicMock(get_tracker=MagicMock(return_value=mock_tracker))}):
+                response = client.get("/admin/free-tier-status")
+                assert response.status_code == 200
+
+    def test_free_tier_provider_status_not_found(self, client):
+        """অন tracked provider."""
+        mock_tracker = MagicMock()
+        mock_tracker.get_provider_status.return_value = None
+
+        with patch.dict("sys.modules", {"core.free_tier_tracker": MagicMock(get_tracker=MagicMock(return_value=mock_tracker))}):
+            response = client.get("/admin/free-tier-status/nonexistent")
+            assert response.status_code == 404
+
+    def test_free_tier_pause_provider(self, client):
+        """Free tier pause provider endpoint."""
+        mock_tracker = MagicMock()
+        mock_tracker.mark_rate_limited.return_value = None
+
+        with patch.dict("sys.modules", {"core.free_tier_tracker": MagicMock(get_tracker=MagicMock(return_value=mock_tracker))}):
+            response = client.post("/admin/free-tier-pause/provider1")
+            assert response.status_code == 200
+
+    def test_free_tier_override_limits(self, client):
+        """free tier override limits."""
+        mock_tracker = MagicMock()
+        mock_tracker.override_limits.return_value = None
+
+        with patch.dict("sys.modules", {"core.free_tier_tracker": MagicMock(get_tracker=MagicMock(return_value=mock_tracker))}):
+            response = client.post("/admin/free-tier-override/provider1", json={"limit": 100})
+            assert response.status_code == 200
+
+    def test_token_budget_stats(self, client):
+        """Token budget stats endpoint."""
+        mock_manager = MagicMock()
+        mock_manager.get_stats.return_value = {"total": 1000}
+
+        with patch.dict("sys.modules", {"core.token_budget": MagicMock(get_budget_manager=MagicMock(return_value=mock_manager))}):
+            response = client.get("/admin/token-budget-stats")
+            assert response.status_code == 200
+
+    def test_gcp_health(self, client):
+        """GCP health endpoint."""
+        with patch("core.admin_routes.services") as mock_services:
+            mock_services.gcp_router.health_check.return_value = {"status": "ok"}
+            mock_services.verification_queue.provider = "firestore"
+            mock_services.gcp_pubsub_queue.provider = "pubsub"
+            mock_services.cloud_function_client.get_config.return_value = {}
+
+            response = client.get("/gcp/health")
+            assert response.status_code == 200
+
+    def test_gcp_verification_queue_stats(self, client):
+        """GCP verification queue stats."""
+        with patch("core.admin_routes.services") as mock_services:
+            mock_services.verification_queue.stats.return_value = {"total": 0}
+            response = client.get("/gcp/verification-queue/stats")
+            assert response.status_code == 200
+
+    def test_gcp_pubsub_stats(self, client):
+        """GCP pubsub stats."""
+        with patch("core.admin_routes.services") as mock_services:
+            mock_services.gcp_pubsub_queue.stats.return_value = {"messages": 0}
+            response = client.get("/gcp/pubsub/stats")
+            assert response.status_code == 200
+
+    def test_get_admin_rules(self, client):
+        """Get admin rules endpoint."""
+        with patch("core.admin_routes.services") as mock_services:
+            mock_services.rules_engine.rules = {"test": "rule"}
+            response = client.get("/admin/rules")
+            assert response.status_code == 200
+
+    def test_post_admin_rules(self, client):
+        """Post admin rules endpoint."""
+        with patch("core.admin_routes.services") as mock_services:
+            mock_services.rules_engine.save_rules.return_value = True
+            response = client.post("/admin/rules", json={"rules": {"new": "rule"}})
+            assert response.status_code == 200
+
+    def test_post_admin_rules_failure(self, client):
+        """Post admin rules failure."""
+        with patch("core.admin_routes.services") as mock_services:
+            mock_services.rules_engine.save_rules.return_value = False
+            response = client.post("/admin/rules", json={"rules": {"new": "rule"}})
+            assert response.status_code == 200
+
+    def test_get_skills(self, client):
+        """Skills endpoint."""
+        response = client.get("/skills")
+        assert response.status_code == 200
 
 ```
 
@@ -63819,6 +64134,7 @@ class TestInputValidation:
     @pytest.mark.asyncio
     async def test_supabase_execute_sql_truncate(self, monkeypatch):
         """TRUNCATE কুয়েরি রিজেক্ট হয় অথেন্টিকেশন দরকার।"""
+        monkeypatch.setenv("ADMIN_AUTHORIZED", "false")
         from tools.mcp_supabase import supabase_execute_sql, ExecuteQueryInput, ResponseFormat
         
         params = ExecuteQueryInput(query="TRUNCATE users", response_format=ResponseFormat.JSON)
@@ -63829,6 +64145,7 @@ class TestInputValidation:
     @pytest.mark.asyncio
     async def test_supabase_execute_sql_delete(self, monkeypatch):
         """DELETE কুয়েরি রিজেক্ট হয় অথেন্টিকেশন দরকার।"""
+        monkeypatch.setenv("ADMIN_AUTHORIZED", "false")
         from tools.mcp_supabase import supabase_execute_sql, ExecuteQueryInput, ResponseFormat
         
         params = ExecuteQueryInput(query="DELETE FROM users WHERE id = 1", response_format=ResponseFormat.JSON)
@@ -63839,6 +64156,7 @@ class TestInputValidation:
     @pytest.mark.asyncio
     async def test_supabase_execute_sql_alter(self, monkeypatch):
         """ALTER কুয়েরি রিজেক্ট হয় অথেন্টিকেশন দরকার।"""
+        monkeypatch.setenv("ADMIN_AUTHORIZED", "false")
         from tools.mcp_supabase import supabase_execute_sql, ExecuteQueryInput, ResponseFormat
         
         params = ExecuteQueryInput(query="ALTER TABLE users ADD COLUMN email VARCHAR(100)", response_format=ResponseFormat.JSON)
@@ -63849,6 +64167,7 @@ class TestInputValidation:
     @pytest.mark.asyncio
     async def test_supabase_execute_sql_destructive_keyword_case_insensitive(self, monkeypatch):
         """ডেস্ট্রাকটিভ কিওয়েরগুলো কেস-ইনসেন্সিটিভ হ্যান্ডল হয়।"""
+        monkeypatch.setenv("ADMIN_AUTHORIZED", "false")
         from tools.mcp_supabase import supabase_execute_sql, ExecuteQueryInput, ResponseFormat
         
         # DROP keyword বড় হাতের অক্ষরে
@@ -64091,7 +64410,7 @@ class TestInputValidation:
         
         try:
             path = _get_workspace_path(WorkspaceType.ECOMMERCE_BACKEND)
-            assert "custom/backend" in str(path)
+            assert "custom/backend" in str(path).replace("\\", "/")
         finally:
             if WORKSPACE_CONFIG_FILE.exists():
                 WORKSPACE_CONFIG_FILE.unlink()
@@ -80334,24 +80653,28 @@ from mcp.server.fastmcp import FastMCP
 mcp = FastMCP("cloud_deploy_mcp")
 
 CHARACTER_LIMIT = 25000
-RENDER_API_KEY = os.getenv("RENDER_API_KEY", "")
-RAILWAY_TOKEN = os.getenv("RAILWAY_TOKEN", "")
-ORACLE_API_KEY = os.getenv("ORACLE_CLOUD_API_KEY", "")
 
-# বাংলা মন্তব্য: ক্লাউড প্রোভাইডারের এনভায়রনমেন্ট ভ্যারিয়েবল ভ্যালিডেশন ও সতর্কতা
-if not RENDER_API_KEY:
-    logger.warning("RENDER_API_KEY is not set in environment variables.")
-if not RAILWAY_TOKEN:
-    logger.warning("RAILWAY_TOKEN is not set in environment variables.")
-if not ORACLE_API_KEY:
-    logger.warning("ORACLE_CLOUD_API_KEY is not set in environment variables.")
 
-ORACLE_REGION = os.getenv("ORACLE_REGION", "")
-if not ORACLE_REGION:
-    logger.warning("ORACLE_REGION is not set, defaulting to 'us-phoenix-1'.")
-    ORACLE_REGION = "us-phoenix-1"
-elif not re.match(r"^[a-z0-9\-]+$", ORACLE_REGION):
-    logger.error(f"Invalid ORACLE_REGION format: '{ORACLE_REGION}'. It should only contain lowercase letters, numbers, and hyphens.")
+def _get_render_api_key() -> str:
+    return os.getenv("RENDER_API_KEY", "")
+
+
+def _get_railway_token() -> str:
+    return os.getenv("RAILWAY_TOKEN", "")
+
+
+def _get_oracle_api_key() -> str:
+    return os.getenv("ORACLE_CLOUD_API_KEY", "")
+
+
+def _get_oracle_region() -> str:
+    region = os.getenv("ORACLE_REGION", "us-phoenix-1")
+    if not region:
+        return "us-phoenix-1"
+    if not re.match(r"^[a-z0-9\-]+$", region):
+        logger.error(f"Invalid ORACLE_REGION format: '{region}'. It should only contain lowercase letters, numbers, and hyphens.")
+        return "us-phoenix-1"
+    return region
 
 
 class CloudProvider(str, Enum):
@@ -80379,7 +80702,7 @@ class DeployServiceInput(BaseModel):
         max_length=100, 
         pattern=r"^[a-zA-Z0-9\-_]+$"
     )
-    branch: str | None = Field(default="main", description="ডিপ্লয় ব্রাঞ্চ")
+    branch: str | None = Field(default="main", description="ডিপ্লয় ব্রাঞ্চ", pattern=r"^[^\s;]+$")
 
 
 class GetLogsInput(BaseModel):
@@ -80448,22 +80771,25 @@ async def cloud_deploy_service(params: DeployServiceInput) -> str:
     api_url = ""
 
     if params.provider == CloudProvider.RENDER:
-        if not RENDER_API_KEY:
+        render_api_key = _get_render_api_key()
+        if not render_api_key:
             return json.dumps({"error": "RENDER_API_KEY not configured"}, ensure_ascii=False)
         api_url = "https://api.render.com/v1/services"
-        headers = {"Authorization": f"Bearer {RENDER_API_KEY}"}
+        headers = {"Authorization": f"Bearer {render_api_key}"}
 
     elif params.provider == CloudProvider.RAILWAY:
-        if not RAILWAY_TOKEN:
+        railway_token = _get_railway_token()
+        if not railway_token:
             return json.dumps({"error": "RAILWAY_TOKEN not configured"}, ensure_ascii=False)
         api_url = "https://back-end.railway.app/v2/services"
-        headers = {"Authorization": f"Bearer {RAILWAY_TOKEN}"}
+        headers = {"Authorization": f"Bearer {railway_token}"}
 
     elif params.provider == CloudProvider.ORACLE:
-        if not ORACLE_API_KEY:
+        oracle_key = _get_oracle_api_key()
+        if not oracle_key:
             return json.dumps({"error": "ORACLE_CLOUD_API_KEY not configured"}, ensure_ascii=False)
-        api_url = f"https://containerengine.{ORACLE_REGION}.oraclecloud.com/api/v1/deploy"
-        headers = {"Authorization": f"Bearer {ORACLE_API_KEY}"}
+        api_url = f"https://containerengine.{_get_oracle_region()}.oraclecloud.com/api/v1/deploy"
+        headers = {"Authorization": f"Bearer {oracle_key}"}
 
     try:
         async with httpx.AsyncClient(timeout=60.0) as client:
@@ -80517,22 +80843,25 @@ async def cloud_get_deployment_logs(params: GetLogsInput) -> str:
     headers = {}
 
     if params.provider == CloudProvider.RENDER:
-        if not RENDER_API_KEY:
+        render_api_key = _get_render_api_key()
+        if not render_api_key:
             return json.dumps({"error": "RENDER_API_KEY not configured"}, ensure_ascii=False)
         api_url = f"https://api.render.com/v1/services/{params.service_name}/logs"
-        headers = {"Authorization": f"Bearer {RENDER_API_KEY}"}
+        headers = {"Authorization": f"Bearer {render_api_key}"}
 
     elif params.provider == CloudProvider.RAILWAY:
-        if not RAILWAY_TOKEN:
+        railway_token = _get_railway_token()
+        if not railway_token:
             return json.dumps({"error": "RAILWAY_TOKEN not configured"}, ensure_ascii=False)
         api_url = f"https://back-end.railway.app/v2/services/{params.service_name}/logs"
-        headers = {"Authorization": f"Bearer {RAILWAY_TOKEN}"}
+        headers = {"Authorization": f"Bearer {railway_token}"}
 
     elif params.provider == CloudProvider.ORACLE:
-        if not ORACLE_API_KEY:
+        oracle_key = _get_oracle_api_key()
+        if not oracle_key:
             return json.dumps({"error": "ORACLE_CLOUD_API_KEY not configured"}, ensure_ascii=False)
-        api_url = f"https://logging.{ORACLE_REGION}.oraclecloud.com/api/v1/logs"
-        headers = {"Authorization": f"Bearer {ORACLE_API_KEY}"}
+        api_url = f"https://logging.{_get_oracle_region()}.oraclecloud.com/api/v1/logs"
+        headers = {"Authorization": f"Bearer {oracle_key}"}
 
     try:
         async with httpx.AsyncClient(timeout=30.0) as client:
@@ -80578,12 +80907,13 @@ async def cloud_list_services() -> str:
     """
     services = []
 
-    if RENDER_API_KEY:
+    render_api_key = _get_render_api_key()
+    if render_api_key:
         try:
             async with httpx.AsyncClient(timeout=30.0) as client:
                 response = await client.get(
                     "https://api.render.com/v1/services",
-                    headers={"Authorization": f"Bearer {RENDER_API_KEY}"}
+                    headers={"Authorization": f"Bearer {render_api_key}"}
                 )
                 if response.status_code == 200:
                     for svc in response.json():
@@ -80596,12 +80926,13 @@ async def cloud_list_services() -> str:
         except Exception as e:
             logger.error(f"Failed to list services from Render: {e}")
 
-    if RAILWAY_TOKEN:
+    railway_token = _get_railway_token()
+    if railway_token:
         try:
             async with httpx.AsyncClient(timeout=30.0) as client:
                 response = await client.get(
                     "https://back-end.railway.app/v2/services",
-                    headers={"Authorization": f"Bearer {RAILWAY_TOKEN}"}
+                    headers={"Authorization": f"Bearer {railway_token}"}
                 )
                 if response.status_code == 200:
                     for svc in response.json():
@@ -80646,9 +80977,13 @@ from mcp.server.fastmcp import FastMCP
 mcp = FastMCP("github_cicd_mcp")
 
 CHARACTER_LIMIT = 25000
-GITHUB_TOKEN = os.getenv("GITHUB_TOKEN", "")
 GITHUB_REPO = os.getenv("GITHUB_REPOSITORY", "supremeai/supremeai_2.0")
 GITHUB_API_URL = "https://api.github.com"
+
+
+def _get_github_token() -> str:
+    """Get the current GitHub token from environment variables."""
+    return os.getenv("GITHUB_TOKEN", "")
 
 
 class ResponseFormat(str, Enum):
@@ -80725,7 +81060,8 @@ async def github_create_pull_request(params: CreatePRInput) -> str:
             "error": "Admin authorization required for PR creation"
         }, ensure_ascii=False)
 
-    if not GITHUB_TOKEN:
+    github_token = _get_github_token()
+    if not github_token:
         return json.dumps({"error": "GITHUB_TOKEN not configured"}, ensure_ascii=False)
 
     try:
@@ -80733,7 +81069,7 @@ async def github_create_pull_request(params: CreatePRInput) -> str:
             response = await client.post(
                 f"{GITHUB_API_URL}/repos/{GITHUB_REPO}/pulls",
                 headers={
-                    "Authorization": f"token {GITHUB_TOKEN}",
+                    "Authorization": f"token {github_token}",
                     "Accept": "application/vnd.github.v3+json"
                 },
                 json={
@@ -80791,7 +81127,8 @@ async def github_run_auto_fix(params: FixIssueInput) -> str:
             "message": "Set AUTOFIX_AUTHORIZED=true in environment"
         }, ensure_ascii=False)
 
-    if not GITHUB_TOKEN:
+    github_token = _get_github_token()
+    if not github_token:
         return json.dumps({"error": "GITHUB_TOKEN not configured"}, ensure_ascii=False)
 
     try:
@@ -80799,7 +81136,7 @@ async def github_run_auto_fix(params: FixIssueInput) -> str:
             response = await client.post(
                 f"{GITHUB_API_URL}/repos/{GITHUB_REPO}/actions/workflows/ci-auto-fix-v3.yml/dispatches",
                 headers={
-                    "Authorization": f"token {GITHUB_TOKEN}",
+                    "Authorization": f"token {github_token}",
                     "Accept": "application/vnd.github.v3+json"
                 },
                 json={
@@ -80844,7 +81181,8 @@ async def github_list_issues(state: str = "open", labels: str | None = None) -> 
     Returns:
         str: ইস্যু তালিকা
     """
-    if not GITHUB_TOKEN:
+    github_token = _get_github_token()
+    if not github_token:
         return json.dumps({"error": "GITHUB_TOKEN not configured"}, ensure_ascii=False)
 
     valid_states = {"open", "closed", "all"}
@@ -80860,7 +81198,7 @@ async def github_list_issues(state: str = "open", labels: str | None = None) -> 
             response = await client.get(
                 f"{GITHUB_API_URL}/repos/{GITHUB_REPO}/issues",
                 headers={
-                    "Authorization": f"token {GITHUB_TOKEN}",
+                    "Authorization": f"token {github_token}",
                     "Accept": "application/vnd.github.v3+json"
                 },
                 params=params
@@ -80908,7 +81246,8 @@ async def github_get_ci_status(branch: str = "main") -> str:
     Returns:
         str: CI স্ট্যাটাস ও রিজাল্ট
     """
-    if not GITHUB_TOKEN:
+    github_token = _get_github_token()
+    if not github_token:
         return json.dumps({"error": "GITHUB_TOKEN not configured"}, ensure_ascii=False)
 
     try:
@@ -80916,7 +81255,7 @@ async def github_get_ci_status(branch: str = "main") -> str:
             response = await client.get(
                 f"{GITHUB_API_URL}/repos/{GITHUB_REPO}/commits/{branch}/status",
                 headers={
-                    "Authorization": f"token {GITHUB_TOKEN}",
+                    "Authorization": f"token {github_token}",
                     "Accept": "application/vnd.github.v3+json"
                 }
             )
@@ -81081,13 +81420,11 @@ from mcp.server.fastmcp import FastMCP
 mcp = FastMCP("supabase_mcp")
 
 CHARACTER_LIMIT = 25000
-SUPABASE_DB_URL = os.getenv("SUPABASE_DATABASE_URL", "")
 
-# বাংলা মন্তব্য: ডাটাবেস ইউআরএল ফরম্যাট ও উপস্থিতি যাচাই
-if not SUPABASE_DB_URL:
-    logger.warning("SUPABASE_DATABASE_URL is not set in environment variables.")
-elif not (SUPABASE_DB_URL.startswith("postgres://") or SUPABASE_DB_URL.startswith("postgresql://")):
-    logger.error("SUPABASE_DATABASE_URL must start with 'postgres://' or 'postgresql://'")
+
+def _get_supabase_db_url() -> str:
+    return os.getenv("SUPABASE_DATABASE_URL", "")
+
 
 
 class ResponseFormat(str, Enum):
@@ -81125,10 +81462,11 @@ class MigrationInput(BaseModel):
 
 def _get_connection():
     """PostgreSQL কানেকশন পায়।"""
-    if not SUPABASE_DB_URL:
+    supabase_db_url = _get_supabase_db_url()
+    if not supabase_db_url:
         return None
     try:
-        conn = psycopg2.connect(SUPABASE_DB_URL)
+        conn = psycopg2.connect(supabase_db_url)
         return conn
     except Exception:
         return None
@@ -81181,7 +81519,7 @@ async def supabase_execute_sql(params: ExecuteQueryInput) -> str:
             "message": "Set ADMIN_AUTHORIZED=true in environment"
         }, ensure_ascii=False)
 
-    if not SUPABASE_DB_URL:
+    if not _get_supabase_db_url():
         return json.dumps({"error": "SUPABASE_DATABASE_URL not configured"}, ensure_ascii=False)
 
     conn = None
@@ -81268,7 +81606,7 @@ async def supabase_create_table(params: CreateTableInput) -> str:
             "error": "Admin authorization required for table creation"
         }, ensure_ascii=False)
 
-    if not SUPABASE_DB_URL:
+    if not _get_supabase_db_url():
         return json.dumps({"error": "SUPABASE_DATABASE_URL not configured"}, ensure_ascii=False)
 
     if_not_exists = "IF NOT EXISTS" if params.if_not_exists else ""
@@ -81333,7 +81671,7 @@ async def supabase_run_migration(params: MigrationInput) -> str:
             "error": "Admin authorization required for migrations"
         }, ensure_ascii=False)
 
-    if not SUPABASE_DB_URL:
+    if not _get_supabase_db_url():
         return json.dumps({"error": "SUPABASE_DATABASE_URL not configured"}, ensure_ascii=False)
 
     conn = None
@@ -81402,7 +81740,7 @@ async def supabase_list_tables() -> str:
     Returns:
         str: টেবিল তালিকা JSON ফরম্যাটে
     """
-    if not SUPABASE_DB_URL:
+    if not _get_supabase_db_url():
         return json.dumps({"error": "SUPABASE_DATABASE_URL not configured"}, ensure_ascii=False)
 
     conn = None
@@ -81508,7 +81846,10 @@ def _load_workspace_config() -> Dict[str, Any]:
     """ওয়ার্কস্পেস কনফিগারেশন লোড করে।"""
     config_path = Path(WORKSPACE_CONFIG_FILE)
     if config_path.exists():
-        config = json.loads(config_path.read_text(encoding="utf-8"))
+        try:
+            config = json.loads(config_path.read_text(encoding="utf-8"))
+        except (json.JSONDecodeError, OSError):
+            return {}
         # বাংলা মন্তব্য: কনফিগারেশনয় থাকা পাথগুলো সর্বদা প্রোজেক্ট রুটের সাপেক্ষে করে রূপান্তর করা হচ্ছে
         workspace_config = config.get("workspace", {})
         for key, value in workspace_config.items():
