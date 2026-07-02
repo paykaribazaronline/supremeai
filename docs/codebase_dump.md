@@ -1,7 +1,7 @@
 # 🧠 SupremeAI 2.0 Codebase Analysis
 # বাংলা মন্তব্য: এটি একটি স্বয়ংক্রিয়ভাবে জেনারেট করা কোডবেস ডাম্প ফাইল যা প্রজেক্টের সামগ্রিক বিশ্লেষণের জন্য ব্যবহৃত হয়।
 
-Generated at: 2026-07-02T08:41:00.472650 UTC
+Generated at: 2026-07-02T15:49:08.399194 UTC
 
 ## File: `.github/actions/setup-backend/action.yml`
 ```yaml
@@ -24298,6 +24298,11 @@ class ExperienceDatabase:
                 )
                 """
             )
+            cursor.execute("PRAGMA table_info(experiences)")
+            columns = {row[1] for row in cursor.fetchall()}
+            if "embedding" not in columns:
+                # বাংলা মন্তব্য: পুরনো SQLite ডাটাবেসে embedding কলাম না থাকলে সেটি স্বয়ংক্রিয়ভাবে যোগ করা হচ্ছে
+                cursor.execute("ALTER TABLE experiences ADD COLUMN embedding BLOB")
             conn.commit()
 
     def _embed(self, text: str) -> list[float] | None:
@@ -36465,12 +36470,26 @@ class AutoRemediationEngine:
 
     def _generate_ai_patch(self, code: str, line: int, issue: str) -> str:
         # বাংলা মন্তব্য: লঞ্চডার্কলি এজেন্টস কন্ট্রোল এবং ভ্যারিয়েবল ইভ্যালুয়েশন লজিক যুক্ত করা হলো
-        from ldai import AICompletionConfigDefault
-        from ldai import LDMessage
-        from ldai import ModelConfig
-        from ldclient.context import Context
+        ld_ai_client = None
+        AICompletionConfigDefault = None
+        LDMessage = None
+        ModelConfig = None
+        Context = None
 
-        from core.ld_client import ld_ai_client
+        try:
+            from ldai import AICompletionConfigDefault as _AICompletionConfigDefault
+            from ldai import LDMessage as _LDMessage
+            from ldai import ModelConfig as _ModelConfig
+            from ldclient.context import Context as _Context
+            from core.ld_client import ld_ai_client as _ld_ai_client
+
+            AICompletionConfigDefault = _AICompletionConfigDefault
+            LDMessage = _LDMessage
+            ModelConfig = _ModelConfig
+            Context = _Context
+            ld_ai_client = _ld_ai_client
+        except Exception as exc:
+            logger.warning(f"LaunchDarkly auto-remediation modules unavailable, using fallback path: {exc}")
 
         default_prompt_template = """You are an elite AI AppSec Engineer. Fix the following vulnerability.
         Issue: {issue} at line {line}.
@@ -36480,7 +36499,9 @@ class AutoRemediationEngine:
         {code}
         """
 
-        context = Context.builder("auto-remediation-engine").kind("service").build()
+        context = None
+        if Context is not None:
+            context = Context.builder("auto-remediation-engine").kind("service").build()
         prompt_vars = {
             "issue": issue,
             "line": str(line),
@@ -36488,7 +36509,7 @@ class AutoRemediationEngine:
         }
 
         config = None
-        if ld_ai_client:
+        if ld_ai_client and AICompletionConfigDefault and LDMessage and ModelConfig and context:
             try:
                 config = ld_ai_client.completion_config(
                     os.getenv("LAUNCHDARKLY_AI_CONFIG_KEY", "auto-remediation-patch"),
@@ -36629,13 +36650,27 @@ class AutoRemediation:
     def _get_ai_patch(
         self, file_path: str, code: str, line_number: int, issue: str
     ) -> str:
-        # বাংলা মন্তব্য: লঞ্চডার্কলি এজেন্টস কন্ট্রোল এবং ভ্যারিয়েবল ইভ্যালুয়েশন লজিক যুক্ত করা হলো
-        from ldai import AICompletionConfigDefault
-        from ldai import LDMessage
-        from ldai import ModelConfig
-        from ldclient.context import Context
+        # বাংলাコメント: লঞ্চডার্কলি এজেন্টস কন্ট্রোল এবং ভ্যারিয়েবল ইভ্যালুয়েশন লজিক যুক্ত করা হলো
+        ld_ai_client = None
+        AICompletionConfigDefault = None
+        LDMessage = None
+        ModelConfig = None
+        Context = None
 
-        from core.ld_client import ld_ai_client
+        try:
+            from ldai import AICompletionConfigDefault as _AICompletionConfigDefault
+            from ldai import LDMessage as _LDMessage
+            from ldai import ModelConfig as _ModelConfig
+            from ldclient.context import Context as _Context
+            from core.ld_client import ld_ai_client as _ld_ai_client
+
+            AICompletionConfigDefault = _AICompletionConfigDefault
+            LDMessage = _LDMessage
+            ModelConfig = _ModelConfig
+            Context = _Context
+            ld_ai_client = _ld_ai_client
+        except Exception as exc:
+            logger.warning(f"LaunchDarkly remediation modules unavailable, using fallback path: {exc}")
 
         default_prompt_template = """You are an elite secure coding assistant. Correct the security vulnerability in this file.
         File: {file_path}
@@ -36648,7 +36683,9 @@ class AutoRemediation:
         {code}
         """
 
-        context = Context.builder("auto-remediation-helper").kind("service").build()
+        context = None
+        if Context is not None:
+            context = Context.builder("auto-remediation-helper").kind("service").build()
         prompt_vars = {
             "file_path": file_path,
             "line_number": str(line_number),
@@ -36657,7 +36694,7 @@ class AutoRemediation:
         }
 
         config = None
-        if ld_ai_client:
+        if ld_ai_client and AICompletionConfigDefault and LDMessage and ModelConfig and context:
             try:
                 config = ld_ai_client.completion_config(
                     os.getenv("LAUNCHDARKLY_AI_CONFIG_KEY", "auto-remediation-patch"),
