@@ -63,7 +63,7 @@ WORKDIR /app
 
 COPY --from=builder /app/backend/.venv /app/backend/.venv
 COPY backend /app/backend
-COPY .env /app/.env
+# বাংলা মন্তব্য: প্রোডাকশন রানটাইমে সিক্রেট ক্লাউড থেকে লোড করা হয়, তাই বিল্ডে .env ফাইল কপি করা লাগবে না
 COPY --from=builder /root/.EasyOCR /home/nonroot/.EasyOCR
 
 ENV PATH="/app/backend/.venv/bin:$PATH"
