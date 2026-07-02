@@ -1,7 +1,7 @@
 # 🧠 SupremeAI 2.0 Codebase Analysis
 # বাংলা মন্তব্য: এটি একটি স্বয়ংক্রিয়ভাবে জেনারেট করা কোডবেস ডাম্প ফাইল যা প্রজেক্টের সামগ্রিক বিশ্লেষণের জন্য ব্যবহৃত হয়।
 
-Generated at: 2026-07-02T17:02:44.362542 UTC
+Generated at: 2026-07-02T18:25:36.000616 UTC
 
 ## File: `.github/actions/setup-backend/action.yml`
 ```yaml
@@ -9739,7 +9739,7 @@ import { AdminConsole } from "./components/admin/AdminConsole";
 import { UserDashboard } from "./components/customer/UserDashboard";
 import { sendMessageStream } from "./services/chatService";
 import type { ChatMessage } from "./services/chatService";
-
+import { getApiBaseUrl } from "./utils/api";
 import { Cpu, Send } from 'lucide-react';
 import ReactFlow, { Background, useNodesState, useEdgesState } from 'reactflow';
 import 'reactflow/dist/style.css';
@@ -9800,7 +9800,7 @@ function AdminShell() {
   useEffect(() => {
     if (!adminAuthenticated) return;
 
-    const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:8000';
+    const API_BASE = getApiBaseUrl();
     const headers = {
       "Authorization": `Bearer ${localStorage.getItem('supremeai_admin_token') || ''}`,
       "Content-Type": "application/json"
@@ -9844,7 +9844,7 @@ function AdminShell() {
 
   const handleTriggerDeploy = () => {
     setActionStatus("TRIGGERING DEPLOY...");
-    const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:8000';
+    const API_BASE = getApiBaseUrl();
     const headers = {
       "Authorization": `Bearer ${localStorage.getItem('supremeai_admin_token') || ''}`,
       "Content-Type": "application/json"
@@ -9879,7 +9879,7 @@ function AdminShell() {
 
   const handleSaveUser = () => {
     if (!newUsername) return;
-    const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:8000';
+    const API_BASE = getApiBaseUrl();
     const headers = {
       "Authorization": `Bearer ${localStorage.getItem('supremeai_admin_token') || ''}`,
       "Content-Type": "application/json"
@@ -9898,7 +9898,7 @@ function AdminShell() {
   };
 
   const handleDeleteUser = (username: string) => {
-    const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:8000';
+    const API_BASE = getApiBaseUrl();
     const headers = {
       "Authorization": `Bearer ${localStorage.getItem('supremeai_admin_token') || ''}`,
       "Content-Type": "application/json"
@@ -10012,7 +10012,7 @@ export const App: React.FC = () => {
   };
 
   useEffect(() => {
-    const API_BASE_URL = import.meta.env.VITE_API_BASE || "http://localhost:8000";
+    const API_BASE_URL = getApiBaseUrl();
     const sseEndpoint = `${API_BASE_URL}/api/task/stream`;
     
     console.log("🔌 Initializing SupremeAI Unified Lifespan SSE Stream...");
@@ -10732,7 +10732,7 @@ export function ActionCard({ rawContent, onSaveToProject, onPreview }: ActionCar
       } else if (action.type === 'deploy') {
         setActionStatus('🚀 Deploying code component...');
         try {
-          const API_BASE = import.meta.env.VITE_API_BASE || '';
+          const API_BASE = getApiBaseUrl();
           const res = await fetch(`${API_BASE}/admin-api/deploy`, {
             method: 'POST',
             headers: {
@@ -12482,9 +12482,11 @@ export function CICDVisualizer() {
     return 'info';
   };
 
+import { getApiBaseUrl } from '../../utils/api';
+
   const handleDeploy = async () => {
     try {
-      const API_BASE = import.meta.env.VITE_API_BASE || '';
+      const API_BASE = getApiBaseUrl();
       const res = await fetch(`${API_BASE}/admin-api/deploy`, {
         method: 'POST',
         headers: {
@@ -12818,7 +12820,8 @@ import { AudioRecorderService } from '../../services/audio/AudioRecorderService'
 import { AudioPlaybackService } from '../../services/audio/AudioPlaybackService';
 import { WaveformVisualizer } from '../audio/WaveformVisualizer';
 import { ServiceHealthMetrics } from './ServiceHealthMetrics';
-import { mockAiService } from '../../services/mockAiService';
+import { getAethelResponse } from '../../services/chatService';
+import { getWebSocketBaseUrl } from '../../utils/api';
 
 // বাংলা মন্তব্য: চ্যাট এবং ভয়েস ওভাররাইডের জন্য ডামি কথোপকথন ডাটা ডিক্লেয়ার করা হচ্ছে
 const initialChat = [
@@ -12856,11 +12859,7 @@ export function CommandCenter() {
     const service = new AudioPlaybackService();
     setPlaybackService(service);
     
-    // Using relative URL or assuming backend runs on same domain + /api/voice/ws/voice or ws://localhost:8000/api/voice/ws/voice
-    const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const wsHost = import.meta.env.VITE_API_URL ? new URL(import.meta.env.VITE_API_URL).host : '127.0.0.1:8000';
-    const wsUrl = `${wsProtocol}//${wsHost}/api/voice/ws/voice`;
-    
+    const wsUrl = `${getWebSocketBaseUrl()}/api/voice/ws/voice`;
     recorderRef.current = new AudioRecorderService(wsUrl);
 
     recorderRef.current.onTranscript((text) => {
@@ -12912,13 +12911,15 @@ export function CommandCenter() {
     setTerminalInput('');
   };
 
-  const handleSendChat = () => {
+  const handleSendChat = async () => {
     if (!chatInput.trim()) return;
     const msgText = chatInput.trim();
-    setChatMessages(prev => [
-      ...prev,
+
+    const nextMessages = [
+      ...chatMessages,
       { id: Date.now(), sender: 'Admin', text: msgText }
-    ]);
+    ];
+    setChatMessages(nextMessages);
     
     // Check if websocket is actually connected
     const isConnected = recorderRef.current && typeof recorderRef.current.isConnected === 'function' && recorderRef.current.isConnected();
@@ -12926,18 +12927,32 @@ export function CommandCenter() {
     if (isConnected && recorderRef.current) {
       recorderRef.current.sendText(msgText);
     } else {
-      // বাংলা মন্তব্য: ব্যাকএন্ড অফলাইন থাকলে লোকাল সিমুলেশন রেসপন্স প্রোভাইড করা হচ্ছে
-      setTimeout(() => {
-        const response = mockAiService.generateResponse(msgText);
+      setChatMessages(prev => [
+        ...prev,
+        { id: Date.now(), sender: 'SupremeAI', text: 'Thinking... Please wait.' }
+      ]);
+
+      const history = nextMessages.map(message => ({
+        role: message.sender === 'Admin' ? 'user' : 'assistant',
+        content: message.text,
+      }));
+
+      try {
+        const responseText = await getAethelResponse(msgText, history);
         setChatMessages(prev => [
           ...prev,
-          { 
-            id: Date.now(), 
-            sender: 'SupremeAI', 
-            text: response.text 
+          { id: Date.now(), sender: 'SupremeAI', text: responseText }
+        ]);
+      } catch (error: any) {
+        setChatMessages(prev => [
+          ...prev,
+          {
+            id: Date.now(),
+            sender: 'SupremeAI',
+            text: `AI backend error: ${error?.message || 'Unable to reach the model.'}`,
           }
         ]);
-      }, 800);
+      }
     }
     
     setChatInput('');
@@ -14532,7 +14547,9 @@ interface InteractiveChatTabProps {
   loading?: boolean;
 }
 
-const API_BASE = import.meta.env.VITE_API_BASE || '';
+import { getApiBaseUrl } from '../../utils/api';
+
+const API_BASE = getApiBaseUrl();
 
 export function InteractiveChatTab({
   messages: propMessages,
@@ -19383,8 +19400,10 @@ export { UserDashboard } from './UserDashboard';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import Editor from '@monaco-editor/react';
 
+import { getWebSocketBaseUrl } from '../utils/api';
+
 // ব্যাকএন্ডের WebSocket URL (আপনার এনভায়রনমেন্ট অনুযায়ী পরিবর্তন হতে পারে)
-const WS_BASE_URL = import.meta.env.VITE_WS_BASE_URL || 'ws://localhost:8000';
+const WS_BASE_URL = getWebSocketBaseUrl();
 
 interface CollabEditorProps {
   sessionId: string;
@@ -19542,7 +19561,8 @@ interface GraphData {
   edges: { id: string; source: string; target: string; label: string }[];
 }
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+import { getApiBaseUrl } from '../../utils/api';
+const API_BASE_URL = getApiBaseUrl();
 
 export default function SkillGraph() {
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
@@ -19804,7 +19824,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
     
     // 2. ব্যাকএন্ড থেকে ফেচ করা (Cross-device sync)
-    const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:8000';
+    const API_BASE = getApiBaseUrl();
     const token = localStorage.getItem('supremeai_admin_token') || '';
     fetch(`${API_BASE}/api/v1/preferences`, {
       headers: {
@@ -19840,7 +19860,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     localStorage.setItem('supremeai_theme', newTheme);
 
     // ব্যাকএন্ডে async সিঙ্ক করা
-    const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:8000';
+    const API_BASE = getApiBaseUrl();
     const token = localStorage.getItem('supremeai_admin_token') || '';
     fetch(`${API_BASE}/api/v1/preferences`, {
       method: 'POST',
@@ -20784,8 +20804,9 @@ export {
 ## File: `apps/studio-client/src/hooks/useAdminApi.ts`
 ```typescript
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { getApiBaseUrl } from '../utils/api';
 
-const API_BASE = import.meta.env.VITE_API_BASE || '';
+const API_BASE = getApiBaseUrl();
 
 async function fetchJSON<T>(url: string): Promise<T> {
   const res = await fetch(`${API_BASE}${url}`);
@@ -21102,8 +21123,9 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import { useStore } from '../store/useStore';
 import { useCustomerStore } from '../store/customerStore';
 import type { ChatMessage } from '../types/customer';
+import { getApiBaseUrl } from '../utils/api';
 
-const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:8000';
+const API_BASE = getApiBaseUrl();
 
 interface UseChatOptions {
   projectId?: string;
@@ -21433,6 +21455,7 @@ export function useTranslation(locale: Locale = 'en') {
 ## File: `apps/studio-client/src/hooks/useWebSocket.ts`
 ```typescript
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { getWebSocketBaseUrl } from '../utils/api';
 
 type ConnectionStatus = 'connecting' | 'open' | 'closed' | 'error';
 
@@ -21479,8 +21502,7 @@ export function useWebSocket(options: UseWebSocketOptions = {}): UseWebSocketRet
 
   const resolveUrl = useCallback(() => {
     if (url) return url;
-    const proto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    return `${proto}//${window.location.host.startsWith('localhost') ? 'localhost:8000' : window.location.host}/ws`;
+    return `${getWebSocketBaseUrl()}/ws`;
   }, [url]);
 
   const connect = useCallback(() => {
@@ -22233,7 +22255,9 @@ export const fetchJavaWorkerHealth = async (): Promise<JavaWorkerHealth> => {
 // Centralized API Client for SupremeAI 2.0
 // বাংলা মন্তব্য: এটি অ্যাপ্লিকেশনের সেন্ট্রাল এপিআই ক্লায়েন্ট যা হেডার, টোকেন এবং সিকিউর রেট লিমিট (429) / ভ্যালিডেশন এরর ইন্টারসেপ্ট করে।
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE || 'http://localhost:8000';
+import { getApiBaseUrl } from '../utils/api';
+
+const API_BASE_URL = getApiBaseUrl();
 
 export const getAuthHeaders = (): Record<string, string> => {
   const token = localStorage.getItem('supremeai_admin_token') || '';
@@ -22586,6 +22610,8 @@ export interface ChatResponse {
   };
 }
 
+import { getApiBaseUrl } from './utils/api';
+
 // বাংলা মন্তব্য: ফাংশন ডিক্লেয়ারেশন সিনট্যাক্স এরর ঠিক করা হলো
 export async function sendMessageStream(
   message: string,
@@ -22594,7 +22620,7 @@ export async function sendMessageStream(
   onError: (error: string) => void,
   abortSignal?: AbortSignal,
 ): Promise<void> {
-  const API_BASE = import.meta.env.VITE_API_BASE || '';
+  const API_BASE = getApiBaseUrl();
   try {
     const res = await fetch(`${API_BASE}/api/chat/stream`, {
       method: 'POST',
@@ -22679,6 +22705,15 @@ export const chatService = {
   },
 };
 
+export async function getAethelResponse(message: string, history: ChatMessage[] = []): Promise<string> {
+  const response = await apiClient.post<{ result: string }>('/task/execute', {
+    task: message,
+    task_type: 'general',
+    messages: history,
+  });
+  return response.result || 'No response from AI backend.';
+}
+
 ```
 
 ## File: `apps/studio-client/src/services/ciReportService.ts`
@@ -22713,80 +22748,13 @@ export const ciReportService = {
 
 ```
 
-## File: `apps/studio-client/src/services/mockAiService.ts`
-```typescript
-// Mock AI Orchestrator Service for SupremeAI 2.0 (Offline/Local Fallback Mode)
-// বাংলা মন্তব্য: এটি ব্যাকএন্ড অফলাইন থাকলে ক্লায়েন্ট-সাইডে Aethel AI এর বুদ্ধিমান আচরণ ও রেসপন্স সিমুলেট করে।
-
-export interface MockAIResponse {
-  text: string;
-  isSystem?: boolean;
-}
-
-const ORCHESTRATOR_RESPONSES = [
-  "All core clusters (Node 47, Node 12, Swarm-Alpha) are currently running at nominal capacity.",
-  "Warning: Minor latency detected in Cloud Orchestrator gateway. Automatically balancing traffic.",
-  "Security status: Threat level low. Central ORC firewall active.",
-  "Aethel cognitive pipeline is fully synced. Waiting for orchestrator directives.",
-];
-
-export const mockAiService = {
-  generateResponse: (userInput: string): MockAIResponse => {
-    const input = userInput.toLowerCase().trim();
-
-    // 1. Greet Intents
-    if (input.match(/^(hello|hi|hey|halo|greetings)/)) {
-      return {
-        text: `Greetings, Operator. I am Aethel, your SupremeAI Core Orchestrator. How can I assist you with the cluster orchestration today?`
-      };
-    }
-
-    // 2. Status / Diagnostics
-    if (input.includes('status') || input.includes('diagnose') || input.includes('health')) {
-      const cpu = Math.floor(Math.random() * 25) + 30; // 30-55%
-      const mem = Math.floor(Math.random() * 15) + 60; // 60-75%
-      return {
-        text: `[System Status: NOMINAL]\n- CPU Load: ${cpu}%\n- Memory Usage: ${mem}%\n- Active Clusters: 4/4\n- All telemetry streams synced. Firewall status: SECURE.`
-      };
-    }
-
-    // 3. Deployment / Node command
-    if (input.includes('deploy') || input.includes('node') || input.includes('run')) {
-      const nodeId = input.match(/\d+/) ? `Node ${input.match(/\d+/)?.[0]}` : "Node 47 (Analytics)";
-      return {
-        text: `Initiating diagnostic probe on ${nodeId}...\nTelemetry reports nominal load. Automatic failover active. CI/CD pipeline triggered successfully.`
-      };
-    }
-
-    // 4. Help
-    if (input === 'help' || input === 'command' || input === '?') {
-      return {
-        text: `Aethel Command Registry:\n- "status" / "health": Check cluster telemetry\n- "deploy [node_id]": Trigger node check\n- "optimize": Optimize cluster nodes\n- "theme [name]": Switch visual dimension`
-      };
-    }
-
-    // 5. Optimization
-    if (input.includes('optimize') || input.includes('fix')) {
-      return {
-        text: `Optimization sequence initiated. Re-allocating workloads from Cloud Orchestrator to Java Background Worker... Workload balanced successfully.`
-      };
-    }
-
-    // 6. Fallback (Intelligent random response)
-    const randomReply = ORCHESTRATOR_RESPONSES[Math.floor(Math.random() * ORCHESTRATOR_RESPONSES.length)];
-    return {
-      text: `Processing: "${userInput}"...\n${randomReply}`
-    };
-  }
-};
-
-```
-
 ## File: `apps/studio-client/src/services/storageApi.ts`
 ```typescript
 // FrR2 Storage API
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+import { getApiBaseUrl } from './utils/api';
+
+const API_BASE_URL = getApiBaseUrl();
 
 const getAuthToken = () => {
     return localStorage.getItem('supremeai_admin_token') || '';
@@ -22881,7 +22849,7 @@ export const useAdminStore = create<AdminState>((set, get) => ({
     set({ adminError: '' });
     
     try {
-      const API_BASE = import.meta.env.VITE_API_BASE || '';
+      const API_BASE = getApiBaseUrl();
       if (!otpRequired) {
         const res = await fetch(`${API_BASE}/api/admin/login`, {
           method: 'POST',
@@ -23066,8 +23034,9 @@ export const useThemeStore = create<ThemeState>()(
 ## File: `apps/studio-client/src/store/useStore.ts`
 ```typescript
 import { create } from "zustand";
+import { getApiBaseUrl } from '../utils/api';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE || "http://localhost:8000";
+const API_BASE_URL = getApiBaseUrl();
 
 interface ChatMessage {
   id: string;
@@ -23424,6 +23393,39 @@ export interface CIReport {
 
 ```
 
+## File: `apps/studio-client/src/utils/api.ts`
+```typescript
+export const getApiBaseUrl = (): string => {
+  if (typeof window === 'undefined') {
+    return import.meta.env.VITE_API_BASE || import.meta.env.VITE_API_URL || 'http://localhost:8000';
+  }
+
+  if (import.meta.env.VITE_API_BASE) {
+    return import.meta.env.VITE_API_BASE;
+  }
+
+  if (import.meta.env.VITE_API_URL) {
+    return import.meta.env.VITE_API_URL;
+  }
+
+  return window.location.origin;
+};
+
+export const getWebSocketBaseUrl = (): string => {
+  if (typeof window === 'undefined') {
+    return import.meta.env.VITE_WS_BASE_URL || 'ws://localhost:8000';
+  }
+
+  if (import.meta.env.VITE_WS_BASE_URL) {
+    return import.meta.env.VITE_WS_BASE_URL;
+  }
+
+  const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+  return `${protocol}//${window.location.host}`;
+};
+
+```
+
 ## File: `apps/studio-client/src/vite-env.d.ts`
 ```typescript
 /// <reference types="vite/client" />
@@ -23723,13 +23725,13 @@ export const api = {
 <html lang="en" data-theme="dark">
 <head>
     <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>SupremeAI 2.0 — Workspace</title>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Space+Grotesk:wght@400;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="style.css" />
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; connect-src 'self' http://127.0.0.1:8000 ws://127.0.0.1:8000; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:;">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; connect-src 'self' http://127.0.0.1:8000 ws://127.0.0.1:8000 wss: https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:;">
     <meta http-equiv="X-XSS-Protection" content="1; mode=block">
-    <meta http-equiv="X-Frame-Options" content="DENY">
     <meta http-equiv="X-Content-Type-Options" content="nosniff">
 </head>
 <body>
@@ -34201,10 +34203,11 @@ class ConnectionManager:
     async def _authenticate(self, websocket: WebSocket) -> dict | None:
         token = websocket.query_params.get("token")
         if not token:
-            return None
+            return {"sub": "anonymous", "role": "viewer"}
         try:
             return verify_token(token)
         except Exception:
+            await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
             return None
 
     def track_pref_task(self, user_id: str, task: asyncio.Task) -> None:
@@ -49614,6 +49617,8 @@ class ZeroTrustAuthMiddleware(BaseHTTPMiddleware):
             "/api/task/stream",
             "/api/v1/collaborate",
             "/api/v1/graph",
+            "/ws/chat",
+            "/ws",
         ]
         if request.method == "OPTIONS":
             return await call_next(request)
