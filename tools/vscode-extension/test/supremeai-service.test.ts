@@ -30,7 +30,6 @@ vi.mock('axios', () => ({
     mockAxios.create.mockClear();
   }
 }));
-});
 
 const axios = require('axios');
 const { SupremeAIService, getSupremeAIService, setSupremeAIService } = require('../src/services/SupremeAIService');
