@@ -1,15 +1,25 @@
 # 📄 ফাইল: backend/scripts/self_healing_tests.py
 
 **প্রকার:** .py  
-**সাইজ:** 3,297 বাইট  
-**আপডেট:** 2026-07-03T21:37:07.668221
+**সাইজ:** 3,457 বাইট  
+**আপডেট:** 2026-07-03T22:32:10.819129
 
 ---
 
 ## কোড
 
 ```py
+import asyncio
+import json
+from datetime import datetime
+from pathlib import Path
 from typing import Any
+
+
+# dangerous patterns চেক করার পাইথনিক ও ফাস্ট মেকানিজম (Ruff SIM110 Fix)
+def check_dangerous_code(code: str) -> bool:
+    dangerous_patterns = ["os.system", "subprocess.Popen", "eval(", "exec(", "shutil.rmtree"]
+    return any(pattern in code for pattern in dangerous_patterns)
 
 
 class HealingState:
@@ -35,20 +45,11 @@ async def send_to_approval_queue(state: HealingState) -> HealingState:
     return state
 
 
-import asyncio
-import json
-from datetime import datetime
-from pathlib import Path
-
 class VulnerabilityPredictor:
     @staticmethod
     def scan(code: str) -> bool:
-        # Dummy implementation for OS Command Injection (CWE-78) or SQL Injection (CWE-89)
         dangerous_patterns = ["os.system", "subprocess.call", "DROP TABLE", "eval("]
-        for pattern in dangerous_patterns:
-            if pattern in code:
-                return True # Vulnerability found
-        return False
+        return any(pattern in code for pattern in dangerous_patterns)
 
 async def _single_healing_iteration(state: HealingState) -> HealingState:
     if VulnerabilityPredictor.scan(state.code):
@@ -100,7 +101,7 @@ async def run_healing_loop(code: str, tests: str, max_retries: int = 3) -> dict[
             if state.result == "success":
                 return {"status": "healed", "attempts": state.retries}
                 
-        except asyncio.TimeoutError:
+        except TimeoutError:
             _quarantine_and_diagnose(state, "Healing Loop Timeout (5s exceeded)")
             return {"status": "quarantined", "reason": "timeout", "attempts": state.retries}
             

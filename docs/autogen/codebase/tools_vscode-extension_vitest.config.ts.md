@@ -1,8 +1,8 @@
 # 📄 ফাইল: tools/vscode-extension/vitest.config.ts
 
 **প্রকার:** .ts  
-**সাইজ:** 387 বাইট  
-**আপডেট:** 2026-07-03T21:37:07.773601
+**সাইজ:** 450 বাইট  
+**আপডেট:** 2026-07-03T22:32:10.925897
 
 ---
 
@@ -17,6 +17,10 @@ export default {
     globals: true,
     include: ['test/**/*.test.ts'],
     setupFiles: ['./test/setup.ts'],
+    ssr: false,
+    deps: {
+      interopDefault: true,
+    },
   },
   resolve: {
     alias: [
