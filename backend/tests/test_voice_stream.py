@@ -13,10 +13,11 @@ from core.app import app as base_app
 def test_app() -> FastAPI:
     os.environ["SUPREMEAI_API_TOKEN"] = "test-token"
     from api.routes.voice import router as voice_router
+
     try:
         base_app.include_router(voice_router, prefix="/api/voice")
     except ValueError:
-        pass # Router already added
+        pass  # Router already added
     return base_app
 
 

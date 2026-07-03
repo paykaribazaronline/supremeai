@@ -79,20 +79,14 @@ class TestCloudSandboxOrchestrator:
         with patch.dict(os.environ, {"RUNPOD_API_KEY": "test-api-key"}, clear=False):
             orchestrator = CloudSandboxOrchestrator(provider="runpod")
 
-            with patch.object(
-                orchestrator, "_get_endpoint", return_value="/"
-            ):
+            with patch.object(orchestrator, "_get_endpoint", return_value="/"):
                 mock_response = MagicMock()
                 mock_response.status_code = 200
                 mock_response.json.return_value = {"id": "pod-12345", "status": "created"}
                 mock_response.raise_for_status = MagicMock()
 
-                with patch.object(
-                    orchestrator.client, "post", new_callable=AsyncMock, return_value=mock_response
-                ):
-                    with patch.object(
-                        orchestrator, "_prepare_creation_payload", return_value={"pod": {"imageName": "ubuntu"}}
-                    ):
+                with patch.object(orchestrator.client, "post", new_callable=AsyncMock, return_value=mock_response):
+                    with patch.object(orchestrator, "_prepare_creation_payload", return_value={"pod": {"imageName": "ubuntu"}}):
                         result = await orchestrator.create_sandbox(spec={"imageName": "ubuntu"})
                         assert result is not None
                         assert result["id"] == "pod-12345"
@@ -108,9 +102,7 @@ class TestCloudSandboxOrchestrator:
             mock_response.json.return_value = {"status": "COMPLETED", "exitCode": 0, "stdout": "output"}
             mock_response.raise_for_status = MagicMock()
 
-            with patch.object(
-                orchestrator.client, "post", new_callable=AsyncMock, return_value=mock_response
-            ):
+            with patch.object(orchestrator.client, "post", new_callable=AsyncMock, return_value=mock_response):
                 with patch.object(orchestrator, "_get_endpoint", return_value="/pod-12345/run"):
                     result = await orchestrator.run_command("pod-12345", "echo hello")
                     assert result is not None
@@ -127,13 +119,9 @@ class TestCloudSandboxOrchestrator:
             mock_response = MagicMock()
             mock_response.status_code = 500
             mock_response.text = "Internal Server Error"
-            mock_response.raise_for_status.side_effect = httpx.HTTPStatusError(
-                "Error", request=MagicMock(), response=mock_response
-            )
+            mock_response.raise_for_status.side_effect = httpx.HTTPStatusError("Error", request=MagicMock(), response=mock_response)
 
-            with patch.object(
-                orchestrator.client, "post", new_callable=AsyncMock, return_value=mock_response
-            ):
+            with patch.object(orchestrator.client, "post", new_callable=AsyncMock, return_value=mock_response):
                 with patch.object(orchestrator, "_get_endpoint", return_value="/pod-12345/run"):
                     result = await orchestrator.run_command("pod-12345", "echo hello")
                     assert result is None

@@ -7,9 +7,7 @@ from loguru import logger
 class PlanSorter:
     def __init__(self, admin_plan_dir: str = None, output_dir: str = None):
         base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        self.admin_plan_dir = admin_plan_dir or os.path.join(
-            base_dir, "document", "admin's_plan"
-        )
+        self.admin_plan_dir = admin_plan_dir or os.path.join(base_dir, "document", "admin's_plan")
         self.output_dir = output_dir or os.path.join(base_dir, "document")
         os.makedirs(self.admin_plan_dir, exist_ok=True)
 
@@ -28,11 +26,7 @@ class PlanSorter:
                         content = f.read().lower()
 
                     # Determine category
-                    if (
-                        "urgent" in content
-                        or "critical" in content
-                        or "asap" in content
-                    ):
+                    if "urgent" in content or "critical" in content or "asap" in content:
                         category = "Urgent"
                     elif "bug" in content or "fix" in content or "error" in content:
                         category = "Bug"
@@ -42,11 +36,7 @@ class PlanSorter:
                     categorized[category].append(filename)
 
                     # Move to appropriate subfolder (e.g. status_and_tracking or plans_and_guides)
-                    dest_subfolder = (
-                        "status_and_tracking"
-                        if category in ("Urgent", "Bug")
-                        else "plans_and_guides"
-                    )
+                    dest_subfolder = "status_and_tracking" if category in ("Urgent", "Bug") else "plans_and_guides"
                     dest_dir = os.path.join(self.output_dir, dest_subfolder)
                     os.makedirs(dest_dir, exist_ok=True)
 
@@ -55,9 +45,7 @@ class PlanSorter:
                         file_path,
                         os.path.join(dest_dir, f"sorted_{category.lower()}_{filename}"),
                     )
-                    logger.info(
-                        f"Organized plan '{filename}' as {category} -> {dest_subfolder}"
-                    )
+                    logger.info(f"Organized plan '{filename}' as {category} -> {dest_subfolder}")
                 except Exception as e:
                     logger.error(f"Failed to process plan file '{filename}': {e}")
 

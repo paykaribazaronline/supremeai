@@ -38,6 +38,7 @@ class GCPCredentialManager:
     """
     Encrypts, decrypts, and validates Google Cloud Service Account JSON credentials.
     """
+
     @staticmethod
     def encrypt_credentials(sa_dict: dict) -> bytes:
         # বাংলা মন্তব্য: সার্ভিস অ্যাকাউন্ট ডিকশনারি এনক্রিপ্ট করে সিকিউরড বাইটসে কনভার্ট করা হচ্ছে

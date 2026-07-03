@@ -1,4 +1,5 @@
 """Admin God Layer tests for SupremeAI 2.0."""
+
 import pytest
 
 from core.admin_god import AdminGodLayer

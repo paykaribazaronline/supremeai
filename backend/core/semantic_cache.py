@@ -13,6 +13,7 @@ class CacheEntry:
         self.model = model
         self.response = response
 
+
 class SemanticCache:
     def __init__(self):
         # Initialize Experience Database as the vector backend
@@ -30,14 +31,8 @@ class SemanticCache:
             hits = self.db.find_similar(prompt, limit=1, threshold=threshold)
             if hits:
                 best_hit = hits[0]
-                logger.info(
-                    f"⚡ [SEMANTIC CACHE HIT] Task: {task_type} | Score: {best_hit['score']:.4f} | Source: {best_hit['source']}"
-                )
-                return CacheEntry(
-                    provider=best_hit.get("source", "chroma"),
-                    model="cached_semantic",
-                    response=best_hit.get("response", "")
-                )
+                logger.info(f"⚡ [SEMANTIC CACHE HIT] Task: {task_type} | Score: {best_hit['score']:.4f} | Source: {best_hit['source']}")
+                return CacheEntry(provider=best_hit.get("source", "chroma"), model="cached_semantic", response=best_hit.get("response", ""))
             return None
         except Exception as e:
             logger.error(f"⚠️ SemanticCache lookup failed: {e}")
@@ -50,7 +45,7 @@ class SemanticCache:
                 request=prompt,
                 generated_code=response if "code" in task_type.lower() else None,
                 action_taken=response if "code" not in task_type.lower() else "Code Generated",
-                result="success"
+                result="success",
             )
             self.db.record_experience(exp)
             logger.info(f"💾 Successfully recorded successful experience pattern for {task_type}")

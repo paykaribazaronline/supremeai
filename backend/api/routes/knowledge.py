@@ -9,9 +9,7 @@ from pydantic import BaseModel
 
 router = APIRouter(prefix="/api/knowledge", tags=["knowledge"])
 
-sys.path.insert(
-    0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-)
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
 try:
     from tools.local_search_rag import LocalSearchRAG as LocalSearchRAGClass
@@ -90,9 +88,7 @@ async def search_knowledge(q: str, limit: int = 5) -> list[KnowledgeSearchResult
         try:
             rag = LocalSearchRAGClass()
             rag_results = rag.semantic_search(q)
-            matches = (
-                rag_results.get("matches", []) if isinstance(rag_results, dict) else []
-            )
+            matches = rag_results.get("matches", []) if isinstance(rag_results, dict) else []
             for m in matches:
                 results.append(
                     {
