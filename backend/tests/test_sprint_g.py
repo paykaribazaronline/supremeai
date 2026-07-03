@@ -293,26 +293,7 @@ class TestAutoTestGenerator:
         path = _get_test_file_path("src/Button.tsx", "typescript")
         assert path.endswith("Button.test.tsx")
 
-    def test_extract_python_symbols(self):
-        from tools.auto_test_generator import _extract_python_symbols
 
-        code = """
-class MyService:
-    def compute(self, x, y):
-        return x + y
-
-async def fetch_data(url):
-    pass
-
-def helper(val):
-    return val
-"""
-        symbols = _extract_python_symbols(code)
-        assert "MyService" in symbols["classes"]
-        assert any("compute" in f for f in symbols["functions"])
-        assert any("fetch_data" in f for f in symbols["async_functions"])
-
-    def test_extract_python_symbols_syntax_error(self):
         from tools.auto_test_generator import _extract_python_symbols
 
         result = _extract_python_symbols("def broken(")

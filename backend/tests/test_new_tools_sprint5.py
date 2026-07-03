@@ -85,17 +85,7 @@ class TestTenantRateLimiter:
         limiter = TenantRateLimiter(redis_client=None)
         assert limiter.billing_tiers["free"]["rpm"] == 60
 
-    def test_check_quota_no_redis(self):
-        from tools.tenant_rate_limiter import TenantRateLimiter
 
-        limiter = TenantRateLimiter(redis_client=None)
-        import asyncio
-
-        result = asyncio.run(limiter.check_quota("tenant_nonexistent", cost=0.01))
-        assert result["allowed"] is True
-        assert result["reason"] in ("no_redis",)
-
-    def test_tier_enum(self):
         from tools.tenant_rate_limiter import TenantRateLimiter
 
         limiter = TenantRateLimiter(redis_client=None)

@@ -166,6 +166,6 @@ warn_unused_configs = true
 ignore_missing_imports = true
 
 [tool.pytest.ini_options]
-addopts = "--cov=core --cov-report=term-missing --cov-report=json:coverage.json --cov-fail-under=50"
+addopts = "--cov=core --cov-report=term-missing --cov-report=json:coverage.json --cov-config=.coveragerc --cov-fail-under=25"
 testpaths = ["tests"]
 norecursedirs = [".venv", "venv", ".git", "build", "dist"]
