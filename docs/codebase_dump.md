@@ -1,7 +1,7 @@
 # 🧠 SupremeAI 2.0 Codebase Analysis
 # বাংলা মন্তব্য: এটি একটি স্বয়ংক্রিয়ভাবে জেনারেট করা কোডবেস ডাম্প ফাইল যা প্রজেক্টের সামগ্রিক বিশ্লেষণের জন্য ব্যবহৃত হয়।
 
-Generated at: 2026-07-02T22:40:50.416003 UTC
+Generated at: 2026-07-03T00:06:52.885451 UTC
 
 ## File: `.github/actions/setup-backend/action.yml`
 ```yaml
@@ -4285,6 +4285,7 @@ jobs:
   terraform-deploy:
     name: 'Terraform IaC Multi-Cloud Provisioning'
     runs-on: ubuntu-latest
+    environment: production
 
     defaults:
       run:
@@ -4308,17 +4309,23 @@ jobs:
         run: terraform init
 
       - name: 📝 Terraform Plan
-        run: terraform plan
+        id: plan
+        run: terraform plan -no-color -out=tfplan
         env:
           TF_VAR_gcp_project_id: ${{ secrets.GCP_PROJECT_ID }}
           TF_VAR_gcp_region: "us-central1"
           TF_VAR_render_api_key: ${{ secrets.RENDER_API_KEY }}
 
+      - name: 📋 Post Plan to Job Summary
+        run: |
+          terraform show -no-color tfplan >> $GITHUB_STEP_SUMMARY
+
       - name: 🌍 Terraform Apply (Conditional)
+        if: github.event.inputs.confirm_apply == 'yes'
         run: |
           if [ "${{ github.event.inputs.confirm_apply }}" = "yes" ]; then
             echo "✅ Confirmation received. Applying changes..."
-            terraform apply -auto-approve
+            terraform apply -auto-approve tfplan
           else
             echo "⚠️ Dry Run Notice: 'confirm_apply' input was not 'yes'."
             echo "Skipping the apply step gracefully without failing the pipeline."
@@ -9687,13 +9694,17 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+const PRELOAD_PATH = path.join(__dirname, 'preload.js');
+
 function createWindow() {
   const win = new BrowserWindow({
     width: 1200,
     height: 800,
     webPreferences: {
-      nodeIntegration: true,
-      contextIsolation: false
+      nodeIntegration: false,
+      contextIsolation: true,
+      sandbox: true,
+      preload: PRELOAD_PATH
     },
     titleBarStyle: 'hidden', // Modern look
     titleBarOverlay: {
@@ -9805,7 +9816,8 @@ app.on('window-all-closed', () => {
       "dist/**/*",
       "node_modules/**/*",
       "package.json",
-      "main.cjs"
+      "preload.js",
+      "main.js"
     ],
     "win": {
       "target": [
@@ -9822,6 +9834,15 @@ app.on('window-all-closed', () => {
   }
 }
  
+
+```
+
+## File: `apps/studio-client/preload.js`
+```javascript
+const { contextBridge } = require('electron');
+
+contextBridge.exposeInMainWorld('electronAPI', {
+});
 
 ```
 
@@ -30287,6 +30308,8 @@ async def stream_chat(payload: ChatPayload, db=Depends(get_tenant_db)):
 
 ## File: `backend/api/routes/ci_webhooks.py`
 ```python
+import hmac
+
 from fastapi import APIRouter
 from fastapi import Header
 from fastapi import HTTPException
@@ -30311,7 +30334,7 @@ async def ci_webhook(
             status_code=500, detail="CI Webhook Secret not configured on server"
         )
 
-    if x_ci_webhook_secret != settings.ci_webhook_secret:
+    if not hmac.compare_digest(x_ci_webhook_secret, settings.ci_webhook_secret):
         raise HTTPException(status_code=401, detail="Unauthorized webhook request")
 
     report = await create_ci_report(payload)
@@ -36406,14 +36429,14 @@ app.add_middleware(
 )
 
 
+app.add_middleware(TrustedOriginMiddleware)
 app.add_middleware(ChaosInjectorMiddleware)
+app.add_middleware(ObservabilityMiddleware)
 app.add_middleware(HoneypotMiddleware)
 app.add_middleware(RateLimitMiddleware, requests_per_minute=120, burst=20)
 app.add_middleware(IdempotencyMiddleware)
 app.add_middleware(ZeroTrustAuthMiddleware)
-app.add_middleware(ObservabilityMiddleware)
 app.add_middleware(APIKeyAuthMiddleware)
-app.add_middleware(TrustedOriginMiddleware)
 
 
 @app.exception_handler(HTTPException)
@@ -36487,7 +36510,6 @@ from api.routes import markdown_router
 from api.routes import marketplace_router
 from api.routes import media_router
 from api.routes import memory_router
-from api.routes import metrics_router
 from api.routes import onboarding_router
 from api.routes import payments_router
 from api.routes import preferences_router
@@ -38130,6 +38152,8 @@ class Settings(BaseSettings):
                 logger.warning("Sentry DSN is not configured (strongly recommended)")
             if not self.jwt_secret:
                 missing.append("secure JWT_SECRET")
+            if not self.ci_webhook_secret or self.ci_webhook_secret == "supreme-ci-secret-2026":
+                missing.append("secure CI_WEBHOOK_SECRET")
             if missing:
                 raise RuntimeError(
                     f"Missing required configurations for production: {', '.join(missing)}"
@@ -41607,10 +41631,21 @@ async def app_lifespan(app):
 
     try:
         await get_db_pool()
-        logger.info("PgBouncer connection pool initialized on startup")
+        logger.info("PgBouncer connection pool accessed on startup")
         await _ensure_api_key_tables()
-    except Exception as e:
-        logger.warning(f"PgBouncer pool initialization deferred: {e}")
+    except RuntimeError:
+        try:
+            from core.pgbouncer_pool import init_db_pool
+
+            db_url = settings.supabase_database_url
+            if isinstance(db_url, str) and db_url.startswith(("postgresql://", "postgres://")):
+                await init_db_pool(db_url)
+                logger.info("PgBouncer connection pool initialized on startup")
+                await _ensure_api_key_tables()
+            else:
+                logger.warning("PgBouncer pool initialization deferred: non-PostgreSQL DSN")
+        except RuntimeError as exc:
+            logger.warning(f"PgBouncer pool initialization deferred: {exc}")
 
     try:
         await redis_manager.initialize()
@@ -43109,7 +43144,14 @@ class PgBouncerConnectionPool:
 
     async def connect(self):
         """Initializes the asyncpg connection pool."""
-        self._pool = await asyncpg.create_pool(dsn=self._dsn, min_size=1, max_size=10)
+        self._pool = await asyncpg.create_pool(
+            dsn=self._dsn,
+            min_size=5,
+            max_size=30,
+            max_inactive_connection_lifetime=300,
+            statement_cache_size=0,
+            command_timeout=30,
+        )
         logger.info("PgBouncer connection pool initialized.")
 
     async def acquire(self) -> Connection:
@@ -43132,18 +43174,28 @@ class PgBouncerConnectionPool:
 
 _db_pool_instance = None
 
+
 async def get_db_pool() -> PgBouncerConnectionPool:
-    """Provides a singleton instance of the PgBouncerConnectionPool."""
+    """Provides a singleton instance of the PgBouncerConnectionPool.
+
+    RuntimeError is raised if the pool has not been initialized yet.
+    """
     global _db_pool_instance
     if _db_pool_instance is None:
-        # In a production environment, DSN should be loaded securely from
-        # environment variables or a configuration service.
-        # This is a placeholder for demonstration.
-        dsn = "postgresql://user:password@localhost:5432/dbname" # Placeholder DSN
-        _db_pool_instance = PgBouncerConnectionPool(dsn)
-        # In a real async application, `_db_pool_instance.connect()` should be awaited
-        # during application startup, not implicitly here on first access.
-        logger.warning("DB pool accessed via get_db_pool without explicit async connect. Ensure proper initialization in main app lifecycle.")
+        raise RuntimeError(
+            "DB pool was accessed before app startup initialized it. "
+            "Call init_db_pool() explicitly during the FastAPI lifespan."
+        )
+    return _db_pool_instance
+
+
+async def init_db_pool(dsn: str) -> PgBouncerConnectionPool:
+    """Initializes the DB pool singleton and returns it."""
+    global _db_pool_instance
+    if _db_pool_instance is None:
+        pool = PgBouncerConnectionPool(dsn)
+        await pool.connect()
+        _db_pool_instance = pool
     return _db_pool_instance
 
 ```
@@ -43361,6 +43413,7 @@ def format_unified_chat_prompt(
 ```python
 from __future__ import annotations
 
+import os
 import threading
 import time
 
@@ -43460,32 +43513,25 @@ class RateLimitMiddleware:
             return
 
         from core.config import settings
+        from core.security import verify_token
 
-        if settings.env.lower() == "test" or settings.debug:
+        if os.getenv("ENV", "").lower() == "test" or settings.env.lower() == "test":
             await self.app(scope, receive, send)
             return
 
         headers = scope.get("headers", [])
         tenant_id = None
         for k, v in headers:
-            if k.lower() == b"x-tenant-id":
-                tenant_id = v.decode("utf-8")
+            if k.lower() == b"authorization":
+                auth_val = v.decode("utf-8")
+                if auth_val.startswith("Bearer "):
+                    token = auth_val.split(" ")[1]
+                    try:
+                        payload = verify_token(token)
+                        tenant_id = payload.get("tenant_id") or payload.get("sub")
+                    except Exception:
+                        pass
                 break
-
-        if not tenant_id:
-            for k, v in headers:
-                if k.lower() == b"authorization":
-                    auth_val = v.decode("utf-8")
-                    if auth_val.startswith("Bearer "):
-                        token = auth_val.split(" ")[1]
-                        try:
-                            from core.security import verify_token
-
-                            payload = verify_token(token)
-                            tenant_id = payload.get("tenant_id") or payload.get("sub")
-                        except Exception:
-                            pass
-                    break
 
         if tenant_id:
             try:
@@ -43494,7 +43540,6 @@ class RateLimitMiddleware:
                 if not hasattr(self, "_tenant_limiter"):
                     self._tenant_limiter = TenantRateLimiter()
 
-                # বাংলা মন্তব্য: টেন্যান্ট লেভেল রেট লিমিট এবং কোটা চেক করা হচ্ছে
                 quota_status = await self._tenant_limiter.check_quota(
                     tenant_id, cost=0.0
                 )
@@ -44174,7 +44219,7 @@ SECRET_KEY = settings.jwt_secret
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60
 
-ADMIN_WHITELIST = os.getenv("ADMIN_EMAILS", "admin@supremeai.com").split(",")
+ADMIN_WHITELIST = settings.admin_emails
 
 if not SECRET_KEY:
     logger.critical(
@@ -50290,7 +50335,12 @@ class ChaosInjectorMiddleware(BaseHTTPMiddleware):
 
     def __init__(self, app):
         super().__init__(app)
-        self.chaos_enabled = os.getenv("LOCAL_CHAOS_MODE", "false").lower() == "true"
+        from core.config import settings
+
+        self.chaos_enabled = (
+            os.getenv("LOCAL_CHAOS_MODE", "false").lower() == "true"
+            and settings.env.lower() != "production"
+        )
         # ক্যাওস প্যারামিটারস (প্রোডাকশন গ্রেড ফল্ট সিমুলেশন)
         self.packet_drop_rate = 0.20  # ২০% চান্স যে রিকোয়েস্ট মাঝপথে ড্রপ/ফেইল করবে
         self.max_latency_spike = 3.5  # সর্বোচ্চ ৩.৫ সেকেন্ড পর্যন্ত কৃত্রিম ডিলে
@@ -66193,49 +66243,6 @@ class TestTenantRateLimiter:
         assert "pro" in limiter.billing_tiers
         assert "enterprise" in limiter.billing_tiers
 
-    @pytest.mark.asyncio
-    async def test_middleware_tenant_rate_limiting(self, monkeypatch):
-        # বাংলা মন্তব্য: রেট লিমিট মিডলওয়্যার টেন্যান্ট রেট লিমিটিং প্রোটোকল মেনে রিকোয়েস্ট ব্লক করে কিনা তা পরীক্ষা করা হচ্ছে
-        from core.rate_limiter import RateLimitMiddleware
-        from core.config import settings
-
-        monkeypatch.setattr(settings, "env", "production")
-        monkeypatch.setattr(settings, "debug", False)
-
-        called = False
-
-        async def dummy_app(scope, receive, send):
-            nonlocal called
-            called = True
-
-        middleware = RateLimitMiddleware(dummy_app)
-
-        from tools.tenant_rate_limiter import TenantRateLimiter
-
-        async def mock_check_quota(self, tenant_id, cost):
-            return {"allowed": False, "reason": "rpm_exceeded"}
-
-        monkeypatch.setattr(TenantRateLimiter, "check_quota", mock_check_quota)
-
-        scope = {
-            "type": "http",
-            "headers": [(b"x-tenant-id", b"test-tenant")],
-            "method": "GET",
-            "path": "/api/test",
-        }
-
-        response_status = None
-
-        async def mock_send(message):
-            nonlocal response_status
-            if message["type"] == "http.response.start":
-                response_status = message["status"]
-
-        await middleware(scope, None, mock_send)
-
-        assert called is False
-        assert response_status == 429
-
 ```
 
 ## File: `backend/tests/test_optimization_engine.py`
@@ -66577,10 +66584,13 @@ from core.pgbouncer_pool import PgBouncerConnectionPool
 
 @pytest.mark.asyncio
 async def test_singleton_pattern():
-    from core.pgbouncer_pool import get_db_pool
-    pool1 = await get_db_pool()
-    pool2 = await get_db_pool()
-    assert pool1 is pool2
+    from core.pgbouncer_pool import get_db_pool, init_db_pool, PgBouncerConnectionPool
+
+    with patch.object(PgBouncerConnectionPool, "connect", new_callable=AsyncMock):
+        await init_db_pool("test_dsn")
+        pool1 = await get_db_pool()
+        pool2 = await get_db_pool()
+        assert pool1 is pool2
 
 @pytest.mark.asyncio
 async def test_connect():
@@ -66589,7 +66599,7 @@ async def test_connect():
         mock_pool = MagicMock()
         mock_create_pool.return_value = mock_pool
         await pool.connect()
-        mock_create_pool.assert_called_once_with(dsn="test_dsn", min_size=1, max_size=10)
+        mock_create_pool.assert_called_once_with(dsn="test_dsn", min_size=5, max_size=30, max_inactive_connection_lifetime=300, statement_cache_size=0, command_timeout=30)
         assert pool._pool is mock_pool
 
 @pytest.mark.asyncio
@@ -66787,8 +66797,8 @@ def test_docs_disabled_in_production():
         os.environ["gemini_api_key"] = "sk"
         os.environ["sentry_dsn"] = "https://sentry.io/123"
         os.environ["SUPREMEAI_JWT_SECRET"] = "secure_jwt_secret_value_at_least_32_chars_long_test"
-        # প্রোডাকশনে ইন্টিগ্রেশন টেস্ট চালানোর জন্য এনক্রিপশন কী সেট করা আবশ্যক
         os.environ["SUPREMEAI_ENCRYPTION_KEY"] = "CwE60g_bA67m-mock-encryption-key-padded-len="
+        os.environ["CI_WEBHOOK_SECRET"] = "secure-ci-webhook-secret-for-testing-2026"
         os.environ["docs_auth_enabled"] = "false"
         import core.app as app_mod
         import core.services as services
@@ -92055,15 +92065,15 @@ services:
     image: postgres:16-alpine
     restart: always
     environment:
-      - POSTGRES_USER=${POSTGRES_USER:-n8n_user}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-n8n_password}
-      - POSTGRES_DB=${POSTGRES_DB:-n8n_db}
+      - POSTGRES_USER=${POSTGRES_USER:?POSTGRES_USER must be set}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set}
+      - POSTGRES_DB=${POSTGRES_DB:?POSTGRES_DB must be set}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
       - supreme_network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER:-n8n_user} -d $${POSTGRES_DB:-n8n_db}"]
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -92077,10 +92087,10 @@ services:
       - DB_TYPE=postgresdb
       - DB_POSTGRESDB_HOST=db
       - DB_POSTGRESDB_PORT=5432
-      - DB_POSTGRESDB_DATABASE=${POSTGRES_DB:-n8n_db}
-      - DB_POSTGRESDB_USER=${POSTGRES_USER:-n8n_user}
-      - DB_POSTGRESDB_PASSWORD=${POSTGRES_PASSWORD:-n8n_password}
-      - N8N_ENCRYPTION_KEY=${N8N_ENCRYPTION_KEY:-supreme_secret_key}
+      - DB_POSTGRESDB_DATABASE=${POSTGRES_DB:?POSTGRES_DB must be set}
+      - DB_POSTGRESDB_USER=${POSTGRES_USER:?POSTGRES_USER must be set}
+      - DB_POSTGRESDB_PASSWORD=${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set}
+      - N8N_ENCRYPTION_KEY=${N8N_ENCRYPTION_KEY:?N8N_ENCRYPTION_KEY must be set}
       - WEBHOOK_URL=http://${CLOUD_SERVER_IP:-127.0.0.1}:5678/
     depends_on:
       - db
@@ -92109,7 +92119,14 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
     depends_on:
-      - n8n
+      n8n:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://127.0.0.1:8000/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
     volumes:
       - ./backend/data:/app/data
       - ./backend/logs:/app/logs
