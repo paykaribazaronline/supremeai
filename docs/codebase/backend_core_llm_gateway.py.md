@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/llm_gateway.py
 
 **প্রকার:** .py  
-**সাইজ:** 9,552 বাইট  
-**আপডেট:** 2026-07-03T12:40:01.128596
+**সাইজ:** 9,765 বাইট  
+**আপডেট:** 2026-07-03T12:47:23.306024
 
 ---
 
@@ -35,6 +35,8 @@ class LLMGateway:
         # Configure litellm global settings
         litellm.drop_params = True
         litellm.telemetry = False
+        # বাংলা মন্তব্য: লিটেলএলএম প্রক্সি সেটিংস নিশ্চিত করা (test compatibility)
+        litellm.use_litellm_proxy = False
 
         # Initialize semantic cache engine
         from core.semantic_cache import SemanticCache

@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/conftest.py
 
 **প্রকার:** .py  
-**সাইজ:** 3,682 বাইট  
-**আপডেট:** 2026-07-03T12:40:01.175737
+**সাইজ:** 4,222 বাইট  
+**আপডেট:** 2026-07-03T12:47:23.339689
 
 ---
 
@@ -126,5 +126,20 @@ def bypass_jwt_auth():
     for p in patches:
         with contextlib.suppress(Exception):
             p.stop()
+
+
+@pytest.fixture(autouse=True)
+def configure_litellm():
+    """টেস্টের জন্য litellm সেটিংস কনফিগার করুন"""
+    # বাংলা মন্তব্য: লিটেলএলএম প্রক্সি এবং টেলিমেট্রি সেটিংস নিশ্চিত করা
+    try:
+        import litellm
+        litellm.use_litellm_proxy = False
+        litellm.drop_params = True
+        litellm.telemetry = False
+    except Exception:
+        pass
+    yield
+
 
 ```
