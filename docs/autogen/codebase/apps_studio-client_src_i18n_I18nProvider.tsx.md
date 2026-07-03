@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps/studio-client/src/i18n/I18nProvider.tsx
+# 📄 ফাইল: apps\studio-client\src\i18n\I18nProvider.tsx
 
 **প্রকার:** .tsx  
 **সাইজ:** 659 বাইট  
-**আপডেট:** 2026-07-03T15:08:06.649119
+**আপডেট:** 2026-07-03T21:20:51.702356
 
 ---
 

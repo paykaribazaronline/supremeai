@@ -1,8 +1,8 @@
-# 📄 ফাইল: packages/shared-types/src/message.ts
+# 📄 ফাইল: packages\shared-types\src\message.ts
 
 **প্রকার:** .ts  
 **সাইজ:** 558 বাইট  
-**আপডেট:** 2026-07-03T15:08:06.542688
+**আপডেট:** 2026-07-03T21:21:01.700215
 
 ---
 

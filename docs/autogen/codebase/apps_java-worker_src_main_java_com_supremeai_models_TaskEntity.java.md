@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps/java-worker/src/main/java/com/supremeai/models/TaskEntity.java
+# 📄 ফাইল: apps\java-worker\src\main\java\com\supremeai\models\TaskEntity.java
 
 **প্রকার:** .java  
 **সাইজ:** 1,158 বাইট  
-**আপডেট:** 2026-07-03T15:08:06.671210
+**আপডেট:** 2026-07-03T21:20:49.491955
 
 ---
 

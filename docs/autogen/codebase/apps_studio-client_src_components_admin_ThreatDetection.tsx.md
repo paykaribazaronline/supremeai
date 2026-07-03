@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps/studio-client/src/components/admin/ThreatDetection.tsx
+# 📄 ফাইল: apps\studio-client\src\components\admin\ThreatDetection.tsx
 
 **প্রকার:** .tsx  
 **সাইজ:** 4,552 বাইট  
-**আপডেট:** 2026-07-03T15:08:06.655140
+**আপডেট:** 2026-07-03T21:20:51.121516
 
 ---
 

@@ -1,8 +1,8 @@
-# 📄 ফাইল: scripts/resource_collection/ossinsight/__init__.py
+# 📄 ফাইল: scripts\resource_collection\ossinsight\__init__.py
 
 **প্রকার:** .py  
 **সাইজ:** 37 বাইট  
-**আপডেট:** 2026-07-03T15:08:06.541648
+**আপডেট:** 2026-07-03T21:21:03.972233
 
 ---
 

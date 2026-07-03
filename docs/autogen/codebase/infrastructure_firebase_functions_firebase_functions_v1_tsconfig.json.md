@@ -1,8 +1,8 @@
-# 📄 ফাইল: infrastructure/firebase_functions/firebase_functions_v1/tsconfig.json
+# 📄 ফাইল: infrastructure\firebase_functions\firebase_functions_v1\tsconfig.json
 
 **প্রকার:** .json  
 **সাইজ:** 603 বাইট  
-**আপডেট:** 2026-07-03T15:08:06.547438
+**আপডেট:** 2026-07-03T21:21:00.830274
 
 ---
 

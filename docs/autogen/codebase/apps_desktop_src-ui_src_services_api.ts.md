@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps/desktop/src-ui/src/services/api.ts
+# 📄 ফাইল: apps\desktop\src-ui\src\services\api.ts
 
 **প্রকার:** .ts  
 **সাইজ:** 4,273 বাইট  
-**আপডেট:** 2026-07-03T15:08:06.669379
+**আপডেট:** 2026-07-03T21:20:49.432961
 
 ---
 

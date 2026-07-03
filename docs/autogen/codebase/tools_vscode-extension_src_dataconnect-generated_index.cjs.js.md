@@ -1,8 +1,8 @@
-# 📄 ফাইল: tools/vscode-extension/src/dataconnect-generated/index.cjs.js
+# 📄 ফাইল: tools\vscode-extension\src\dataconnect-generated\index.cjs.js
 
 **প্রকার:** .js  
 **সাইজ:** 5,818 বাইট  
-**আপডেট:** 2026-07-03T15:08:06.691768
+**আপডেট:** 2026-07-03T21:21:05.182905
 
 ---
 

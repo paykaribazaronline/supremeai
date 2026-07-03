@@ -1,8 +1,8 @@
-# 📄 ফাইল: infrastructure/firebase_functions/ocrTrigger.ts
+# 📄 ফাইল: infrastructure\firebase_functions\ocrTrigger.ts
 
 **প্রকার:** .ts  
 **সাইজ:** 456 বাইট  
-**আপডেট:** 2026-07-03T15:08:06.546163
+**আপডেট:** 2026-07-03T21:21:00.605251
 
 ---
 

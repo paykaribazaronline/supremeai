@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps/studio-client/src/components/admin/DashboardErrorBoundary.tsx
+# 📄 ফাইল: apps\studio-client\src\components\admin\DashboardErrorBoundary.tsx
 
 **প্রকার:** .tsx  
 **সাইজ:** 2,041 বাইট  
-**আপডেট:** 2026-07-03T15:08:06.658198
+**আপডেট:** 2026-07-03T21:20:50.869968
 
 ---
 

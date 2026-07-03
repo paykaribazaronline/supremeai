@@ -1,8 +1,8 @@
-# 📄 ফাইল: infrastructure/firebase_functions/firebase_functions_v1/lib/scrapeHistoryManager.d.ts
+# 📄 ফাইল: infrastructure\firebase_functions\firebase_functions_v1\lib\scrapeHistoryManager.d.ts
 
 **প্রকার:** .ts  
 **সাইজ:** 2,526 বাইট  
-**আপডেট:** 2026-07-03T15:08:06.550706
+**আপডেট:** 2026-07-03T21:21:01.268599
 
 ---
 

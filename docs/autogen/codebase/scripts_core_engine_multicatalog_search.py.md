@@ -1,8 +1,8 @@
-# 📄 ফাইল: scripts/core_engine/multicatalog_search.py
+# 📄 ফাইল: scripts\core_engine\multicatalog_search.py
 
 **প্রকার:** .py  
 **সাইজ:** 14,563 বাইট  
-**আপডেট:** 2026-07-03T15:08:06.540377
+**আপডেট:** 2026-07-03T21:21:02.687342
 
 ---
 

@@ -1,8 +1,8 @@
-# 📄 ফাইল: backend/scout/web_crawler_agent.py
+# 📄 ফাইল: backend\scout\web_crawler_agent.py
 
 **প্রকার:** .py  
 **সাইজ:** 358 বাইট  
-**আপডেট:** 2026-07-03T15:08:06.623206
+**আপডেট:** 2026-07-03T21:20:55.330032
 
 ---
 

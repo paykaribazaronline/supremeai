@@ -1,8 +1,8 @@
-# 📄 ফাইল: scripts/bots/auto_daily_standup_bot.py
+# 📄 ফাইল: scripts\bots\auto_daily_standup_bot.py
 
 **প্রকার:** .py  
 **সাইজ:** 10,063 বাইট  
-**আপডেট:** 2026-07-03T15:08:06.539544
+**আপডেট:** 2026-07-03T21:21:02.671609
 
 ---
 

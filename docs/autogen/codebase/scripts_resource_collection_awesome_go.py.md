@@ -1,8 +1,8 @@
-# 📄 ফাইল: scripts/resource_collection/awesome_go.py
+# 📄 ফাইল: scripts\resource_collection\awesome_go.py
 
 **প্রকার:** .py  
 **সাইজ:** 1,148 বাইট  
-**আপডেট:** 2026-07-03T15:08:06.540890
+**আপডেট:** 2026-07-03T21:21:03.653832
 
 ---
 

@@ -1,8 +1,8 @@
-# 📄 ফাইল: infrastructure/cloudflare/enhanced-worker.js
+# 📄 ফাইল: infrastructure\cloudflare\enhanced-worker.js
 
 **প্রকার:** .js  
 **সাইজ:** 12,883 বাইট  
-**আপডেট:** 2026-07-03T15:08:06.545211
+**আপডেট:** 2026-07-03T21:21:00.509705
 
 ---
 

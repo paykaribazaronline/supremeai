@@ -1,8 +1,8 @@
-# 📄 ফাইল: tools/vscode-extension/src/types/index.ts
+# 📄 ফাইল: tools\vscode-extension\src\types\index.ts
 
 **প্রকার:** .ts  
 **সাইজ:** 5,844 বাইট  
-**আপডেট:** 2026-07-03T15:08:06.695890
+**আপডেট:** 2026-07-03T21:21:05.846979
 
 ---
 

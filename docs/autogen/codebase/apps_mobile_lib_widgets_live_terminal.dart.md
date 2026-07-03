@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps/mobile/lib/widgets/live_terminal.dart
+# 📄 ফাইল: apps\mobile\lib\widgets\live_terminal.dart
 
 **প্রকার:** .dart  
 **সাইজ:** 1,698 বাইট  
-**আপডেট:** 2026-07-03T15:08:06.686422
+**আপডেট:** 2026-07-03T21:20:50.370534
 
 ---
 

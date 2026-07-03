@@ -82,9 +82,10 @@ jobs:
     needs: circuit-breaker
     runs-on: ubuntu-latest
     outputs:
-      backend: ${{ steps.filter.outputs.backend }}
-      frontend: ${{ steps.filter.outputs.frontend }}
-      any_changed: ${{ steps.filter.outputs.changes }}
+      # বাংলা মন্তব্য: প্রতিটি পুশে সকল জব সচল রাখার জন্য ডাইনামিক চেঞ্জ ডিটেকশন সাময়িকভাবে ডিজেবল করে হার্ডকোডেড 'true' করা হলো
+      backend: 'true'
+      frontend: 'true'
+      any_changed: 'true'
     steps:
       - uses: actions/checkout@v4
         with:

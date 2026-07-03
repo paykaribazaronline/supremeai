@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps/mobile/lib/dataconnect_generated/list_movies.dart
+# 📄 ফাইল: apps\mobile\lib\dataconnect_generated\list_movies.dart
 
 **প্রকার:** .dart  
 **সাইজ:** 2,718 বাইট  
-**আপডেট:** 2026-07-03T15:08:06.683120
+**আপডেট:** 2026-07-03T21:20:49.878197
 
 ---
 

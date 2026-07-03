@@ -1,8 +1,8 @@
-# 📄 ফাইল: backend/models/deployment_logs.py
+# 📄 ফাইল: backend\models\deployment_logs.py
 
 **প্রকার:** .py  
 **সাইজ:** 905 বাইট  
-**আপডেট:** 2026-07-03T15:08:06.581426
+**আপডেট:** 2026-07-03T21:20:55.161642
 
 ---
 

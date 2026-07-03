@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps/mobile/lib/services/offline_sync_service.dart
+# 📄 ফাইল: apps\mobile\lib\services\offline_sync_service.dart
 
 **প্রকার:** .dart  
 **সাইজ:** 3,714 বাইট  
-**আপডেট:** 2026-07-03T15:08:06.685055
+**আপডেট:** 2026-07-03T21:20:50.249297
 
 ---
 

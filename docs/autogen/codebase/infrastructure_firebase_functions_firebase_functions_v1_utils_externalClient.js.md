@@ -1,8 +1,8 @@
-# 📄 ফাইল: infrastructure/firebase_functions/firebase_functions_v1/utils/externalClient.js
+# 📄 ফাইল: infrastructure\firebase_functions\firebase_functions_v1\utils\externalClient.js
 
 **প্রকার:** .js  
 **সাইজ:** 1,098 বাইট  
-**আপডেট:** 2026-07-03T15:08:06.548439
+**আপডেট:** 2026-07-03T21:21:01.593575
 
 ---
 

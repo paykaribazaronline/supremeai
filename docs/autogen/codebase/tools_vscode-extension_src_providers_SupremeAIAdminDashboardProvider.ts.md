@@ -1,8 +1,8 @@
-# 📄 ফাইল: tools/vscode-extension/src/providers/SupremeAIAdminDashboardProvider.ts
+# 📄 ফাইল: tools\vscode-extension\src\providers\SupremeAIAdminDashboardProvider.ts
 
 **প্রকার:** .ts  
 **সাইজ:** 6,486 বাইট  
-**আপডেট:** 2026-07-03T15:08:06.693038
+**আপডেট:** 2026-07-03T21:21:05.598390
 
 ---
 

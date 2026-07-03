@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps/studio-client/src/components/editor/CollabEditor.tsx
+# 📄 ফাইল: apps\studio-client\src\components\editor\CollabEditor.tsx
 
 **প্রকার:** .tsx  
 **সাইজ:** 5,887 বাইট  
-**আপডেট:** 2026-07-03T15:08:06.653579
+**আপডেট:** 2026-07-03T21:20:51.374835
 
 ---
 

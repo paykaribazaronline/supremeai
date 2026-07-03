@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps/mobile/lib/screens/agent_chat_screen.dart
+# 📄 ফাইল: apps\mobile\lib\screens\agent_chat_screen.dart
 
 **প্রকার:** .dart  
 **সাইজ:** 3,949 বাইট  
-**আপডেট:** 2026-07-03T15:08:06.678271
+**আপডেট:** 2026-07-03T21:20:49.989644
 
 ---
 

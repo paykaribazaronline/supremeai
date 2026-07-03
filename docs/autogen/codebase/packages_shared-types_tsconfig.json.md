@@ -1,8 +1,8 @@
-# 📄 ফাইল: packages/shared-types/tsconfig.json
+# 📄 ফাইল: packages\shared-types\tsconfig.json
 
 **প্রকার:** .json  
 **সাইজ:** 528 বাইট  
-**আপডেট:** 2026-07-03T15:08:06.542127
+**আপডেট:** 2026-07-03T21:21:01.655843
 
 ---
 

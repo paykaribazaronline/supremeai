@@ -1,8 +1,8 @@
-# 📄 ফাইল: infrastructure/firebase_functions/firebase_functions_v1/lib/scrapeHistoryManager.js
+# 📄 ফাইল: infrastructure\firebase_functions\firebase_functions_v1\lib\scrapeHistoryManager.js
 
 **প্রকার:** .js  
 **সাইজ:** 6,667 বাইট  
-**আপডেট:** 2026-07-03T15:08:06.550999
+**আপডেট:** 2026-07-03T21:21:01.302686
 
 ---
 

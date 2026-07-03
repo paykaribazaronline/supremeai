@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps/studio-client/src/services/storageApi.ts
+# 📄 ফাইল: apps\studio-client\src\services\storageApi.ts
 
 **প্রকার:** .ts  
 **সাইজ:** 1,914 বাইট  
-**আপডেট:** 2026-07-03T15:08:06.664713
+**আপডেট:** 2026-07-03T21:20:51.810937
 
 ---
 

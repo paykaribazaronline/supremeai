@@ -1,8 +1,8 @@
-# 📄 ফাইল: backend/tests/test_email_service.py
+# 📄 ফাইল: backend\tests\test_email_service.py
 
 **প্রকার:** .py  
 **সাইজ:** 6,076 বাইট  
-**আপডেট:** 2026-07-03T15:08:06.592838
+**আপডেট:** 2026-07-03T21:20:56.232087
 
 ---
 

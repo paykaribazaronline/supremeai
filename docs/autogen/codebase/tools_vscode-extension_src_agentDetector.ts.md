@@ -1,8 +1,8 @@
-# 📄 ফাইল: tools/vscode-extension/src/agentDetector.ts
+# 📄 ফাইল: tools\vscode-extension\src\agentDetector.ts
 
 **প্রকার:** .ts  
 **সাইজ:** 1,635 বাইট  
-**আপডেট:** 2026-07-03T15:08:06.690830
+**আপডেট:** 2026-07-03T21:21:04.986348
 
 ---
 

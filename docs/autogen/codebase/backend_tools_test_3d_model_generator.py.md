@@ -1,8 +1,8 @@
-# 📄 ফাইল: backend/tools/test_3d_model_generator.py
+# 📄 ফাইল: backend\tools\test_3d_model_generator.py
 
 **প্রকার:** .py  
 **সাইজ:** 46 বাইট  
-**আপডেট:** 2026-07-03T15:08:06.629192
+**আপডেট:** 2026-07-03T21:20:59.875222
 
 ---
 

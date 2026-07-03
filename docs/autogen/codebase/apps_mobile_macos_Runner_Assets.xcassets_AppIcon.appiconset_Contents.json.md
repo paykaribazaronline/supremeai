@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps/mobile/macos/Runner/Assets.xcassets/AppIcon.appiconset/Contents.json
+# 📄 ফাইল: apps\mobile\macos\Runner\Assets.xcassets\AppIcon.appiconset\Contents.json
 
 **প্রকার:** .json  
 **সাইজ:** 1,247 বাইট  
-**আপডেট:** 2026-07-03T15:08:06.687620
+**আপডেট:** 2026-07-03T21:20:50.437562
 
 ---
 

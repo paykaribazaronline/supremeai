@@ -1,8 +1,8 @@
-# 📄 ফাইল: backend/tools/gcp_cloud_functions.py
+# 📄 ফাইল: backend\tools\gcp_cloud_functions.py
 
 **প্রকার:** .py  
 **সাইজ:** 4,067 বাইট  
-**আপডেট:** 2026-07-03T15:08:06.634414
+**আপডেট:** 2026-07-03T21:20:58.958019
 
 ---
 

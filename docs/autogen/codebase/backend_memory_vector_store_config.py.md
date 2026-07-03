@@ -1,8 +1,8 @@
-# 📄 ফাইল: backend/memory/vector_store_config.py
+# 📄 ফাইল: backend\memory\vector_store_config.py
 
 **প্রকার:** .py  
 **সাইজ:** 776 বাইট  
-**আপডেট:** 2026-07-03T15:08:06.583439
+**আপডেট:** 2026-07-03T21:20:55.026846
 
 ---
 

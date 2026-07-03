@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps/java-worker/src/main/java/com/supremeai/grpc/WorkerServiceImpl.java
+# 📄 ফাইল: apps\java-worker\src\main\java\com\supremeai\grpc\WorkerServiceImpl.java
 
 **প্রকার:** .java  
 **সাইজ:** 3,300 বাইট  
-**আপডেট:** 2026-07-03T15:08:06.671395
+**আপডেট:** 2026-07-03T21:20:49.476692
 
 ---
 

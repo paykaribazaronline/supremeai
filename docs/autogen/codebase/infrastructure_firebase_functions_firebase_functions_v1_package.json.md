@@ -1,8 +1,8 @@
-# 📄 ফাইল: infrastructure/firebase_functions/firebase_functions_v1/package.json
+# 📄 ফাইল: infrastructure\firebase_functions\firebase_functions_v1\package.json
 
 **প্রকার:** .json  
 **সাইজ:** 910 বাইট  
-**আপডেট:** 2026-07-03T15:08:06.548250
+**আপডেট:** 2026-07-03T21:21:00.710087
 
 ---
 

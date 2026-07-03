@@ -1,8 +1,8 @@
-# 📄 ফাইল: backend/adaptive_engine/learning_loop.py
+# 📄 ফাইল: backend\adaptive_engine\learning_loop.py
 
 **প্রকার:** .py  
 **সাইজ:** 252 বাইট  
-**আপডেট:** 2026-07-03T15:08:06.623966
+**আপডেট:** 2026-07-03T21:20:52.249169
 
 ---
 
