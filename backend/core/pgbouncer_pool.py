@@ -16,7 +16,14 @@ class PgBouncerConnectionPool:
 
     async def connect(self):
         """Initializes the asyncpg connection pool."""
-        self._pool = await asyncpg.create_pool(dsn=self._dsn, min_size=1, max_size=10)
+        self._pool = await asyncpg.create_pool(
+            dsn=self._dsn,
+            min_size=5,
+            max_size=30,
+            max_inactive_connection_lifetime=300,
+            statement_cache_size=0,
+            command_timeout=30,
+        )
         logger.info("PgBouncer connection pool initialized.")
 
     async def acquire(self) -> Connection:
@@ -39,16 +46,26 @@ class PgBouncerConnectionPool:
 
 _db_pool_instance = None
 
+
 async def get_db_pool() -> PgBouncerConnectionPool:
-    """Provides a singleton instance of the PgBouncerConnectionPool."""
+    """Provides a singleton instance of the PgBouncerConnectionPool.
+
+    RuntimeError is raised if the pool has not been initialized yet.
+    """
     global _db_pool_instance
     if _db_pool_instance is None:
-        # In a production environment, DSN should be loaded securely from
-        # environment variables or a configuration service.
-        # This is a placeholder for demonstration.
-        dsn = "postgresql://user:password@localhost:5432/dbname" # Placeholder DSN
-        _db_pool_instance = PgBouncerConnectionPool(dsn)
-        # In a real async application, `_db_pool_instance.connect()` should be awaited
-        # during application startup, not implicitly here on first access.
-        logger.warning("DB pool accessed via get_db_pool without explicit async connect. Ensure proper initialization in main app lifecycle.")
+        raise RuntimeError(
+            "DB pool was accessed before app startup initialized it. "
+            "Call init_db_pool() explicitly during the FastAPI lifespan."
+        )
+    return _db_pool_instance
+
+
+async def init_db_pool(dsn: str) -> PgBouncerConnectionPool:
+    """Initializes the DB pool singleton and returns it."""
+    global _db_pool_instance
+    if _db_pool_instance is None:
+        pool = PgBouncerConnectionPool(dsn)
+        await pool.connect()
+        _db_pool_instance = pool
     return _db_pool_instance

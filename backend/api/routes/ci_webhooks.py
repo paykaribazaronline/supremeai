@@ -1,3 +1,5 @@
+import hmac
+
 from fastapi import APIRouter
 from fastapi import Header
 from fastapi import HTTPException
@@ -22,7 +24,7 @@ async def ci_webhook(
             status_code=500, detail="CI Webhook Secret not configured on server"
         )
 
-    if x_ci_webhook_secret != settings.ci_webhook_secret:
+    if not hmac.compare_digest(x_ci_webhook_secret, settings.ci_webhook_secret):
         raise HTTPException(status_code=401, detail="Unauthorized webhook request")
 
     report = await create_ci_report(payload)

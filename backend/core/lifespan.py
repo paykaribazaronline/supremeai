@@ -86,10 +86,21 @@ async def app_lifespan(app):
 
     try:
         await get_db_pool()
-        logger.info("PgBouncer connection pool initialized on startup")
+        logger.info("PgBouncer connection pool accessed on startup")
         await _ensure_api_key_tables()
-    except Exception as e:
-        logger.warning(f"PgBouncer pool initialization deferred: {e}")
+    except RuntimeError:
+        try:
+            from core.pgbouncer_pool import init_db_pool
+
+            db_url = settings.supabase_database_url
+            if isinstance(db_url, str) and db_url.startswith(("postgresql://", "postgres://")):
+                await init_db_pool(db_url)
+                logger.info("PgBouncer connection pool initialized on startup")
+                await _ensure_api_key_tables()
+            else:
+                logger.warning("PgBouncer pool initialization deferred: non-PostgreSQL DSN")
+        except RuntimeError as exc:
+            logger.warning(f"PgBouncer pool initialization deferred: {exc}")
 
     try:
         await redis_manager.initialize()

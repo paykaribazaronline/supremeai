@@ -212,6 +212,8 @@ class Settings(BaseSettings):
                 logger.warning("Sentry DSN is not configured (strongly recommended)")
             if not self.jwt_secret:
                 missing.append("secure JWT_SECRET")
+            if not self.ci_webhook_secret or self.ci_webhook_secret == "supreme-ci-secret-2026":
+                missing.append("secure CI_WEBHOOK_SECRET")
             if missing:
                 raise RuntimeError(
                     f"Missing required configurations for production: {', '.join(missing)}"

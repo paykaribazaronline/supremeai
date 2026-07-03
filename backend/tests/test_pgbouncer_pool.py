@@ -6,10 +6,13 @@ from core.pgbouncer_pool import PgBouncerConnectionPool
 
 @pytest.mark.asyncio
 async def test_singleton_pattern():
-    from core.pgbouncer_pool import get_db_pool
-    pool1 = await get_db_pool()
-    pool2 = await get_db_pool()
-    assert pool1 is pool2
+    from core.pgbouncer_pool import get_db_pool, init_db_pool, PgBouncerConnectionPool
+
+    with patch.object(PgBouncerConnectionPool, "connect", new_callable=AsyncMock):
+        await init_db_pool("test_dsn")
+        pool1 = await get_db_pool()
+        pool2 = await get_db_pool()
+        assert pool1 is pool2
 
 @pytest.mark.asyncio
 async def test_connect():
@@ -18,7 +21,7 @@ async def test_connect():
         mock_pool = MagicMock()
         mock_create_pool.return_value = mock_pool
         await pool.connect()
-        mock_create_pool.assert_called_once_with(dsn="test_dsn", min_size=1, max_size=10)
+        mock_create_pool.assert_called_once_with(dsn="test_dsn", min_size=5, max_size=30, max_inactive_connection_lifetime=300, statement_cache_size=0, command_timeout=30)
         assert pool._pool is mock_pool
 
 @pytest.mark.asyncio

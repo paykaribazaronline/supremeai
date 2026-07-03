@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import threading
 import time
 
@@ -99,32 +100,25 @@ class RateLimitMiddleware:
             return
 
         from core.config import settings
+        from core.security import verify_token
 
-        if settings.env.lower() == "test" or settings.debug:
+        if os.getenv("ENV", "").lower() == "test" or settings.env.lower() == "test":
             await self.app(scope, receive, send)
             return
 
         headers = scope.get("headers", [])
         tenant_id = None
         for k, v in headers:
-            if k.lower() == b"x-tenant-id":
-                tenant_id = v.decode("utf-8")
+            if k.lower() == b"authorization":
+                auth_val = v.decode("utf-8")
+                if auth_val.startswith("Bearer "):
+                    token = auth_val.split(" ")[1]
+                    try:
+                        payload = verify_token(token)
+                        tenant_id = payload.get("tenant_id") or payload.get("sub")
+                    except Exception:
+                        pass
                 break
-
-        if not tenant_id:
-            for k, v in headers:
-                if k.lower() == b"authorization":
-                    auth_val = v.decode("utf-8")
-                    if auth_val.startswith("Bearer "):
-                        token = auth_val.split(" ")[1]
-                        try:
-                            from core.security import verify_token
-
-                            payload = verify_token(token)
-                            tenant_id = payload.get("tenant_id") or payload.get("sub")
-                        except Exception:
-                            pass
-                    break
 
         if tenant_id:
             try:
@@ -133,7 +127,6 @@ class RateLimitMiddleware:
                 if not hasattr(self, "_tenant_limiter"):
                     self._tenant_limiter = TenantRateLimiter()
 
-                # বাংলা মন্তব্য: টেন্যান্ট লেভেল রেট লিমিট এবং কোটা চেক করা হচ্ছে
                 quota_status = await self._tenant_limiter.check_quota(
                     tenant_id, cost=0.0
                 )

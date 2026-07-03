@@ -19,7 +19,7 @@ SECRET_KEY = settings.jwt_secret
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60
 
-ADMIN_WHITELIST = os.getenv("ADMIN_EMAILS", "admin@supremeai.com").split(",")
+ADMIN_WHITELIST = settings.admin_emails
 
 if not SECRET_KEY:
     logger.critical(

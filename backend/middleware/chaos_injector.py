@@ -17,7 +17,12 @@ class ChaosInjectorMiddleware(BaseHTTPMiddleware):
 
     def __init__(self, app):
         super().__init__(app)
-        self.chaos_enabled = os.getenv("LOCAL_CHAOS_MODE", "false").lower() == "true"
+        from core.config import settings
+
+        self.chaos_enabled = (
+            os.getenv("LOCAL_CHAOS_MODE", "false").lower() == "true"
+            and settings.env.lower() != "production"
+        )
         # ক্যাওস প্যারামিটারস (প্রোডাকশন গ্রেড ফল্ট সিমুলেশন)
         self.packet_drop_rate = 0.20  # ২০% চান্স যে রিকোয়েস্ট মাঝপথে ড্রপ/ফেইল করবে
         self.max_latency_spike = 3.5  # সর্বোচ্চ ৩.৫ সেকেন্ড পর্যন্ত কৃত্রিম ডিলে

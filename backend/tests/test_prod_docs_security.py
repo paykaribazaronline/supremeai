@@ -87,8 +87,8 @@ def test_docs_disabled_in_production():
         os.environ["gemini_api_key"] = "sk"
         os.environ["sentry_dsn"] = "https://sentry.io/123"
         os.environ["SUPREMEAI_JWT_SECRET"] = "secure_jwt_secret_value_at_least_32_chars_long_test"
-        # প্রোডাকশনে ইন্টিগ্রেশন টেস্ট চালানোর জন্য এনক্রিপশন কী সেট করা আবশ্যক
         os.environ["SUPREMEAI_ENCRYPTION_KEY"] = "CwE60g_bA67m-mock-encryption-key-padded-len="
+        os.environ["CI_WEBHOOK_SECRET"] = "secure-ci-webhook-secret-for-testing-2026"
         os.environ["docs_auth_enabled"] = "false"
         import core.app as app_mod
         import core.services as services

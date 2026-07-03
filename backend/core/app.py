@@ -118,14 +118,14 @@ app.add_middleware(
 )
 
 
+app.add_middleware(TrustedOriginMiddleware)
 app.add_middleware(ChaosInjectorMiddleware)
+app.add_middleware(ObservabilityMiddleware)
 app.add_middleware(HoneypotMiddleware)
 app.add_middleware(RateLimitMiddleware, requests_per_minute=120, burst=20)
 app.add_middleware(IdempotencyMiddleware)
 app.add_middleware(ZeroTrustAuthMiddleware)
-app.add_middleware(ObservabilityMiddleware)
 app.add_middleware(APIKeyAuthMiddleware)
-app.add_middleware(TrustedOriginMiddleware)
 
 
 @app.exception_handler(HTTPException)
@@ -199,7 +199,6 @@ from api.routes import markdown_router
 from api.routes import marketplace_router
 from api.routes import media_router
 from api.routes import memory_router
-from api.routes import metrics_router
 from api.routes import onboarding_router
 from api.routes import payments_router
 from api.routes import preferences_router

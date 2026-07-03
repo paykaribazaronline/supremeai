@@ -70,7 +70,8 @@
       "dist/**/*",
       "node_modules/**/*",
       "package.json",
-      "main.cjs"
+      "preload.js",
+      "main.js"
     ],
     "win": {
       "target": [

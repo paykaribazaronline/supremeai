@@ -12,6 +12,7 @@ jobs:
   terraform-deploy:
     name: 'Terraform IaC Multi-Cloud Provisioning'
     runs-on: ubuntu-latest
+    environment: production
 
     defaults:
       run:
@@ -35,17 +36,23 @@ jobs:
         run: terraform init
 
       - name: 📝 Terraform Plan
-        run: terraform plan
+        id: plan
+        run: terraform plan -no-color -out=tfplan
         env:
           TF_VAR_gcp_project_id: ${{ secrets.GCP_PROJECT_ID }}
           TF_VAR_gcp_region: "us-central1"
           TF_VAR_render_api_key: ${{ secrets.RENDER_API_KEY }}
 
+      - name: 📋 Post Plan to Job Summary
+        run: |
+          terraform show -no-color tfplan >> $GITHUB_STEP_SUMMARY
+
       - name: 🌍 Terraform Apply (Conditional)
+        if: github.event.inputs.confirm_apply == 'yes'
         run: |
           if [ "${{ github.event.inputs.confirm_apply }}" = "yes" ]; then
             echo "✅ Confirmation received. Applying changes..."
-            terraform apply -auto-approve
+            terraform apply -auto-approve tfplan
           else
             echo "⚠️ Dry Run Notice: 'confirm_apply' input was not 'yes'."
             echo "Skipping the apply step gracefully without failing the pipeline."
