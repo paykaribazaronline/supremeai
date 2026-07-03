@@ -1,7 +1,7 @@
 # 🧠 SupremeAI 2.0 Codebase Analysis
 # বাংলা মন্তব্য: এটি একটি স্বয়ংক্রিয়ভাবে জেনারেট করা কোডবেস ডাম্প ফাইল যা প্রজেক্টের সামগ্রিক বিশ্লেষণের জন্য ব্যবহৃত হয়।
 
-Generated at: 2026-07-03T10:42:56.026688 UTC
+Generated at: 2026-07-03T10:47:15.254970 UTC
 
 ## File: `.github/actions/setup-backend/action.yml`
 ```yaml
@@ -4677,7 +4677,7 @@ jobs:
           ADMIN_AUTHORIZED: "true"
         run: |
           poetry run pytest --md pytest-report.md \
-            --cov=core --cov-report=json:coverage.json --cov-report=term-missing --cov-fail-under=66 -q
+            --cov=core --cov-report=json:coverage.json --cov-report=term-missing --cov-fail-under=80 -q
 
       - name: Add Backend Test Results to GitHub Summary
         if: always()
@@ -112367,18 +112367,35 @@ test('Chat sends message', async ({ page }) => {
 ```typescript
 import { defineConfig, devices } from '@playwright/test';
 
+/**
+ * আপনার Playwright E2E টেস্ট কনফিগারেশন
+ * এটি স্বয়ংক্রিয়ভাবে ডেভ সার্ভার চালু করবে এবং তারপর E2E টেস্ট রান করবে।
+ * 
+ * CI-তে রান করার জন্য: pnpm exec playwright test
+ * লোকালে চালানোর জন্য: pnpm exec playwright test --headed
+ */
+
 export default defineConfig({
-  testDir: './',
+  testDir: './tests',
+  testMatch: '**/*.spec.ts',
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 1 : undefined,
-  reporter: 'html',
+  reporter: [
+    ['html', { outputFolder: 'playwright-report' }],
+    ['json', { outputFile: 'test-results/e2e-report.json' }],
+    ['list'],
+  ],
+  
   use: {
-    baseURL: process.env.BASE_URL || 'http://localhost:5173', // Adjust for your frontend dev port
+    // বাংলা মন্তব্য: ডেভেলপমেন্ট সার্ভারের জন্য ডিফল্ট URL
+    baseURL: process.env.BASE_URL || 'http://localhost:5173',
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
+    video: 'retain-on-failure',
   },
+
   projects: [
     {
       name: 'chromium',
@@ -112392,12 +112409,23 @@ export default defineConfig({
       name: 'webkit',
       use: { ...devices['Desktop Safari'] },
     },
+    // মোবাইল ডিভাইসের জন্য টেস্ট
+    {
+      name: 'Mobile Chrome',
+      use: { ...devices['Pixel 5'] },
+    },
+    {
+      name: 'Mobile Safari',
+      use: { ...devices['iPhone 12'] },
+    },
   ],
-  // Run your local dev server before starting the tests
+
+  // বাংলা মন্তব্য: ডেভেলপমেন্ট সার্ভার চালু করা, এটি ব্যাকগ্রাউন্ডে থাকবে সমস্ত টেস্ট জুড়ে
   webServer: {
     command: 'pnpm --dir apps/studio-client dev --host 0.0.0.0 --port 5173',
     url: 'http://127.0.0.1:5173',
     reuseExistingServer: !process.env.CI,
+    timeout: 120 * 1000,
   },
 });
 
