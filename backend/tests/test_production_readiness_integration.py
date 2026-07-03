@@ -40,7 +40,7 @@ class TestProductionReadinessSystems:
                 file_path=file_path,
                 ai_authored=True
             )
-            assert result["allowed"] == False or result["requires_approval"] == True
+            assert not result["allowed"] or result["requires_approval"]
 
     def test_multi_model_validator_returns_json(self):
         """Multi-Model Validator JSON রিপোর্ট ফেরত দেয়"""
