@@ -1,7 +1,7 @@
 # 🧠 SupremeAI 2.0 Codebase Analysis
 # বাংলা মন্তব্য: এটি একটি স্বয়ংক্রিয়ভাবে জেনারেট করা কোডবেস ডাম্প ফাইল যা প্রজেক্টের সামগ্রিক বিশ্লেষণের জন্য ব্যবহৃত হয়।
 
-Generated at: 2026-07-03T01:24:32.344960 UTC
+Generated at: 2026-07-03T01:48:41.697064 UTC
 
 ## File: `.github/actions/setup-backend/action.yml`
 ```yaml
@@ -4428,7 +4428,14 @@ jobs:
       - uses: google-github-actions/setup-gcloud@v2
       - name: Delete old Cloud Run revisions
         run: |
-          gcloud run revisions list --service=supremeai-api --region=${{ vars.GCP_REGION || 'us-central1' }} --format="value(name)" --sort-by="~createTime" | tail -n +6 | xargs -r -I {} gcloud run revisions delete {} --region=${{ vars.GCP_REGION || 'us-central1' }} --quiet
+          gcloud run revisions list --service=supremeai-api --region=${{ vars.GCP_REGION || 'us-central1' }} --filter="traffic.percent=0" --format="value(name)" --sort-by="~createTime" | tail -n +6 | xargs -r -I {} gcloud run revisions delete {} --region=${{ vars.GCP_REGION || 'us-central1' }} --quiet
+      - name: Install Redis client
+        run: python -m pip install redis
+      - name: Run Cache Cleanup
+        env:
+          REDIS_URL: ${{ secrets.REDIS_URL }}
+        run: |
+          python tools/cache_cleanup.py
       - name: Prune stale GitHub caches
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -9761,8 +9768,8 @@ app.on('window-all-closed', () => {
     "build:report": "vite build --mode production --reporter=json",
     "lint": "eslint .",
     "preview": "vite preview",
-    "electron:dev": "concurrently -k \"cross-env BROWSER=none npm run dev\" \"wait-on http://127.0.0.1:5173 && electron .\"",
-    "electron:build": "npm run build && electron-builder",
+    "electron:dev": "concurrently -k \"cross-env BROWSER=none pnpm run dev\" \"wait-on http://127.0.0.1:5173 && electron .\"",
+    "electron:build": "pnpm run build && electron-builder",
     "test": "vitest run",
     "test:watch": "vitest"
   },
@@ -43206,7 +43213,6 @@ async def get_db_pool() -> PgBouncerConnectionPool:
 
     RuntimeError is raised if the pool has not been initialized yet.
     """
-    global _db_pool_instance
     if _db_pool_instance is None:
         raise RuntimeError(
             "DB pool was accessed before app startup initialized it. "
@@ -97813,7 +97819,7 @@ async function recordFeedback(sessionId, feedback) {
   "scripts": {
     "serve": "firebase emulators:start --only functions",
     "shell": "firebase functions:shell",
-    "start": "npm run shell",
+    "start": "pnpm run shell",
     "deploy": "firebase deploy --only functions",
     "lint": "echo 'Linting functions...'",
     "logs": "firebase functions:log",
@@ -100532,7 +100538,8 @@ Generate a concise alert message:`;
     "resolveJsonModule": true,
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
-    "noUnusedLocals": true
+    "noUnusedLocals": true,
+    "ignoreDeprecations": "6.0"
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "lib"]
@@ -112114,6 +112121,61 @@ export default defineConfig({
 
 ```
 
+## File: `tools/cache_cleanup.py`
+```python
+#!/usr/bin/env python3
+import os
+import sys
+
+try:
+    import redis
+except ImportError:  # pragma: no cover
+    print('ERROR: redis package is required. Install with `python -m pip install redis`.')
+    sys.exit(1)
+
+
+def scan_keys(client, pattern: str) -> list[str]:
+    try:
+        return list(client.scan_iter(match=pattern, count=1000))
+    except Exception:
+        return client.keys(pattern)
+
+
+def clear_stale_cache() -> int:
+    redis_url = os.getenv('REDIS_URL')
+    if not redis_url:
+        print('REDIS_URL is not configured. Skipping cache cleanup.')
+        return 0
+
+    client = redis.from_url(redis_url, decode_responses=True)
+    patterns = ['temp_cache:*']
+    deleted_keys = []
+
+    for pattern in patterns:
+        print(f'Scanning Redis for keys matching: {pattern}')
+        keys = scan_keys(client, pattern)
+        if not keys:
+            print(f'  No keys found for pattern: {pattern}')
+            continue
+        deleted_keys.extend(keys)
+
+    if not deleted_keys:
+        print('No stale cache keys found.')
+        return 0
+
+    print(f'Deleting {len(deleted_keys)} stale cache key(s)...')
+    client.delete(*deleted_keys)
+    return len(deleted_keys)
+
+
+if __name__ == '__main__':
+    count = clear_stale_cache()
+    if count > 0:
+        print(f'Deleted {count} stale cache key(s).')
+    sys.exit(0)
+
+```
+
 ## File: `tools/vscode-extension/jest.config.js`
 ```javascript
 module.exports = {
@@ -112411,11 +112473,11 @@ module.exports = {
     }
   },
   "scripts": {
-    "vscode:prepublish": "npm run package-ext",
+    "vscode:prepublish": "pnpm run package-ext",
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
     "lint": "eslint src",
-    "pretest": "npm run compile",
+    "pretest": "pnpm run compile",
     "test": "jest --passWithNoTests",
     "unit": "jest --passWithNoTests",
     "package-ext": "esbuild src/extension.ts --bundle --outfile=out/extension.js --external:vscode --format=cjs --platform=node --minify"
@@ -113720,6 +113782,25 @@ let codeGenService: CodeGenerationService;
 let codeReviewService: CodeReviewService;
 let codeFlowHandler: CodeFlowHandler;
 
+function escapeHtml(value: string): string {
+  return String(value).replace(/[&<>"']/g, (c) => {
+    switch (c) {
+      case '&':
+        return '&amp;';
+      case '<':
+        return '&lt;';
+      case '>':
+        return '&gt;';
+      case '"':
+        return '&quot;';
+      case "'":
+        return '&#39;';
+      default:
+        return c;
+    }
+  });
+}
+
 export async function activate(context: vscode.ExtensionContext) {
   console.log('[SupremeAI] VS Code Extension activating...');
 
@@ -114074,7 +114155,7 @@ function registerCommands(context: vscode.ExtensionContext): void {
           vscode.ViewColumn.Two,
           {}
         );
-        panel.webview.html = `<html><body><pre style="white-space: pre-wrap; font-family: sans-serif; padding: 15px;">${response.response}</pre></body></html>`;
+        panel.webview.html = `<html><body><pre style="white-space: pre-wrap; font-family: sans-serif; padding: 15px;">${escapeHtml(response.response)}</pre></body></html>`;
       } catch (error) {
         vscode.window.showErrorMessage(`Failed to explain code: ${error}`);
       }
@@ -114110,7 +114191,7 @@ function registerCommands(context: vscode.ExtensionContext): void {
           vscode.ViewColumn.Two,
           {}
         );
-        panel.webview.html = `<html><body><pre style="white-space: pre-wrap; font-family: sans-serif; padding: 15px;">${response.response}</pre></body></html>`;
+        panel.webview.html = `<html><body><pre style="white-space: pre-wrap; font-family: sans-serif; padding: 15px;">${escapeHtml(response.response)}</pre></body></html>`;
       } catch (error) {
         vscode.window.showErrorMessage(`Failed to review code: ${error}`);
       }
@@ -115593,7 +115674,7 @@ export class CodeFlowPanel {
   }
 
   private getErrorHTML(message: string): string {
-    return `<html><body><div style="padding:20px;color:var(--vscode-errorForeground)">${message}</div></body></html>`;
+    return `<html><body><div style="padding:20px;color:var(--vscode-errorForeground)">${this.escapeHtml(message)}</div></body></html>`;
   }
 
   private getHTML(data: { files: { path: string; query: string }[]; graph: any; summary: Record<string, unknown> }): string {
@@ -117224,10 +117305,29 @@ export class SupremeAISidebarProvider implements vscode.WebviewViewProvider {
         const icon = this.getActivityIcon(activity.type);
         const time = this.formatTime(activity.timestamp);
         return `<div class="activity-item">
-          <span>${icon}</span> ${activity.message} • ${time}
+          <span>${icon}</span> ${this.escapeHtml(activity.message)} • ${this.escapeHtml(time)}
         </div>`;
       })
       .join('');
+  }
+
+  private escapeHtml(value: string): string {
+    return String(value).replace(/[&<>"']/g, (c) => {
+      switch (c) {
+        case '&':
+          return '&amp;';
+        case '<':
+          return '&lt;';
+        case '>':
+          return '&gt;';
+        case '"':
+          return '&quot;';
+        case "'":
+          return '&#39;';
+        default:
+          return c;
+      }
+    });
   }
 
   private getActivityIcon(type: string): string {
