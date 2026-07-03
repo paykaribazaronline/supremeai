@@ -76,9 +76,7 @@ async def run_export_task(job_id: str, payload: MarkdownExportRequest):
 
 
 @router.post("/export")
-async def export_markdown(
-    payload: MarkdownExportRequest, background_tasks: BackgroundTasks
-):
+async def export_markdown(payload: MarkdownExportRequest, background_tasks: BackgroundTasks):
     job_id = str(uuid.uuid4())
     jobs_db[job_id] = {
         "job_id": job_id,
@@ -170,21 +168,13 @@ async def get_history():
     history = []
     try:
         if supabase_db.client:
-            res = (
-                supabase_db.client.table("markdown_exports")
-                .select("*")
-                .order("timestamp", desc=True)
-                .limit(50)
-                .execute()
-            )
+            res = supabase_db.client.table("markdown_exports").select("*").order("timestamp", desc=True).limit(50).execute()
             if res.data:
                 return {"status": "success", "history": res.data}
     except Exception:
         pass
 
-    for job_id, job in sorted(
-        jobs_db.items(), key=lambda x: x[1]["timestamp"], reverse=True
-    ):
+    for job_id, job in sorted(jobs_db.items(), key=lambda x: x[1]["timestamp"], reverse=True):
         history.append(
             {
                 "job_id": job_id,

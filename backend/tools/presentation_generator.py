@@ -15,9 +15,7 @@ class PresentationGenerator:
                 "Return JSON array with objects having: title, bullet_points (array). "
                 "No markdown, no explanations."
             )
-            result = router.async_route_and_generate(
-                prompt, task_type="general", max_cost=0.02
-            )
+            result = router.async_route_and_generate(prompt, task_type="general", max_cost=0.02)
             text = result.get("text", "") if isinstance(result, dict) else ""
             slides: list[dict[str, Any]] = []
             import json
@@ -56,9 +54,7 @@ class PresentationGenerator:
                 file_url = out_path
             except Exception as pptx_err:
                 logger.warning(f"PPTX generation failed: {pptx_err}")
-                file_url = (
-                    f"https://cdn.supremeai.example/presentations/{hash(topic)}.pptx"
-                )
+                file_url = f"https://cdn.supremeai.example/presentations/{hash(topic)}.pptx"
             return {
                 "status": "success",
                 "topic": topic,

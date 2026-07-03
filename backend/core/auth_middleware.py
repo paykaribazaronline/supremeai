@@ -39,9 +39,7 @@ class AuthMiddleware:
 
         # Strict admin origin check to prevent security blast radius breach
         admin_paths = ["/admin/", "/admin-api/", "/gcp/"]
-        is_admin_path = any(
-            path.startswith(admin_path) for admin_path in admin_paths
-        ) or path in {"/admin/rules", "/admin/cloud-distribution"}
+        is_admin_path = any(path.startswith(admin_path) for admin_path in admin_paths) or path in {"/admin/rules", "/admin/cloud-distribution"}
 
         if is_admin_path:
             origin = ""
@@ -55,24 +53,16 @@ class AuthMiddleware:
             # Allow supremeai-admin domain - exact domain check
             def _is_allowed_admin_domain(value: str) -> bool:
                 cleaned = value.lower().strip()
-                return cleaned == "https://supremeai-admin.com" or cleaned.startswith(
-                    "https://supremeai-admin.com/"
-                )
+                return cleaned == "https://supremeai-admin.com" or cleaned.startswith("https://supremeai-admin.com/")
 
-            is_admin_domain = (
-                _is_allowed_admin_domain(origin) or _is_allowed_admin_domain(referer)
-            )
+            is_admin_domain = _is_allowed_admin_domain(origin) or _is_allowed_admin_domain(referer)
 
             # If request comes from general studio domain or unauthorized source, block it.
             if not is_admin_domain and (origin or referer):
-                logger.warning(
-                    f"Forbidden admin access to {path} from unauthorized origin/referer: {origin} / {referer}"
-                )
+                logger.warning(f"Forbidden admin access to {path} from unauthorized origin/referer: {origin} / {referer}")
                 response = JSONResponse(
                     status_code=403,
-                    content={
-                        "detail": "Forbidden: Admin endpoints are restricted to the admin console domain."
-                    },
+                    content={"detail": "Forbidden: Admin endpoints are restricted to the admin console domain."},
                 )
                 await response(scope, receive, send)
                 return
@@ -139,12 +129,14 @@ class AuthMiddleware:
             return
         await self.app(scope, receive, send)
 
+
 # বাংলা কমেন্ট: সুপ্রিম-এআই এর ফেল-ক্লোজড অথেনটিকেশন এনফোর্সমেন্ট ইঞ্জিন।
 # যেকোনো ভেরিফিকেশন ফেইলিওর বা এক্সেপশনে এটি সরাসরি রিকোয়েস্ট হার্ড-ব্লক করে (Fail-Closed)।
 
+
 async def verify_admin_session_fail_closed(request: Request) -> dict:
     """
-    টোকেন অথেনটিকেশন এবং ডিকোডিং মেকানিজম। 
+    টোকেন অথেনটিকেশন এবং ডিকোডিং মেকানিজম।
     সামান্যতম গ্যাপ বা এক্সেপশন দেখা দিলে এটি সরাসরি Fail-Closed প্রোটোকল ট্রিগার করে।
     """
     # বাংলা কমেন্ট: Authorization হেডার এক্সট্রাকশন
@@ -152,37 +144,28 @@ async def verify_admin_session_fail_closed(request: Request) -> dict:
     if not auth_header or not auth_header.startswith("Bearer "):
         client_ip = request.client.host if request.client else "unknown"
         logger.warning(f"🔒 Access Denied: Missing or malformed Bearer token from IP: {client_ip}")
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Authentication credentials missing or malformed."
-        )
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Authentication credentials missing or malformed.")
 
     token = auth_header.split(" ")[1]
     jwt_secret = settings.jwt_secret  # ক্লাউড সিক্রেট ভল্ট থেকে লোডকৃত
-    
+
     if not jwt_secret:
         logger.critical("🔥 Security Emergency: SUPREMEAI_JWT_SECRET is unconfigured! Fail-Closed triggered.")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Security authentication cluster is hard-locked."
-        )
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Security authentication cluster is hard-locked.")
 
     try:
         # P2 ফিক্স: টোকেন ডিকোড এবং ভ্যালিডেশন ওয়ান-শট এক্সিকিউশন
         payload = jwt.decode(token, jwt_secret, algorithms=["HS256"])
-        
+
         user_id = payload.get("sub")
         role = payload.get("role")
-        
+
         # বাংলা মন্তব্য: ০% গ্যাপ পলিসি — পেলোডে যদি প্রয়োজনীয় ফিল্ড মিসিং থাকে বা রোল অসঙ্গতি থাকে, সরাসরি রিজেক্ট।
         # এখানে 'admin' এবং 'master_admin' উভয় রোলকেই অনুমতি প্রদান করা হলো।
         if not user_id or role not in {"admin", "master_admin"}:
             logger.critical(f"🚨 Security Alert: Token payload identity mismatch or unauthorized role: {role}")
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="Administrative identity verification failed."
-            )
-            
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Administrative identity verification failed.")
+
         logger.success(f"🔱 Admin Session Authorized for User: {user_id}")
         return payload
 

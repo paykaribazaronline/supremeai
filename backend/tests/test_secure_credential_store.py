@@ -22,9 +22,7 @@ class TestSecureCredentialStoreDisable:
         from core.secure_credential_store import SecureCredentialStore
 
         store = SecureCredentialStore()
-        masked = store.mask(
-            {"username": "u", "password": "s", "token": "t", "other": "v"}
-        )
+        masked = store.mask({"username": "u", "password": "s", "token": "t", "other": "v"})
         assert masked["password"] == "***masked***"
         assert masked["token"] == "***masked***"
         assert masked["username"] == "u"
@@ -38,10 +36,7 @@ class TestSecureCredentialStoreDisable:
 
 
 @pytest.mark.skipif(
-    __import__(
-        "core.secure_credential_store", fromlist=["CRYPTO_AVAILABLE"]
-    ).CRYPTO_AVAILABLE
-    is False,
+    __import__("core.secure_credential_store", fromlist=["CRYPTO_AVAILABLE"]).CRYPTO_AVAILABLE is False,
     reason="cryptography not installed",
 )
 class TestSecureCredentialStoreEncrypted:

@@ -94,27 +94,18 @@ class SelfEvolutionAgent:
             return
 
         if score < self.refactor_penalty_threshold:
-            self._consecutive_penalties[skill_name] = (
-                self._consecutive_penalties.get(skill_name, 0) + 1
-            )
-            if (
-                self._consecutive_penalties[skill_name]
-                >= self.max_consecutive_penalties
-            ):
+            self._consecutive_penalties[skill_name] = self._consecutive_penalties.get(skill_name, 0) + 1
+            if self._consecutive_penalties[skill_name] >= self.max_consecutive_penalties:
                 await self._trigger_refactor(skill_name)
                 self._consecutive_penalties[skill_name] = 0
         else:
             self._consecutive_penalties.pop(skill_name, None)
 
         if score < self.fitness_threshold:
-            self.fitness_engine.evaluate_and_prune(
-                skill_name, self.fitness_threshold, self.min_runs_before_action
-            )
+            self.fitness_engine.evaluate_and_prune(skill_name, self.fitness_threshold, self.min_runs_before_action)
 
     async def _trigger_refactor(self, skill_name: str) -> None:
-        logger.warning(
-            f"Skill '{skill_name}' hit consecutive penalty threshold. Refactoring..."
-        )
+        logger.warning(f"Skill '{skill_name}' hit consecutive penalty threshold. Refactoring...")
         current_code = self._read_skill_code(skill_name)
         user_demand = (
             f"Refactor the existing skill '{skill_name}' to drastically improve its fitness score.\n"
@@ -149,37 +140,27 @@ class SelfEvolutionAgent:
             self._pending_demands.put_nowait({"task_demand": task_demand, "skill_name": skill_name})
 
     def _has_high_fitness_path(self, skill_name: str) -> bool:
-        if not hasattr(self.fitness_engine, 'registry'):
+        if not hasattr(self.fitness_engine, "registry"):
             return False
         return self.fitness_engine.registry.get_skill(skill_name) is not None
 
     # 🛑 ZERO-GAP: Core Database and Security validation pipeline
-    async def process_new_skill_proposal(
-        self, 
-        session: AsyncSession, 
-        skill_name: str, 
-        generated_code: str, 
-        metadata: dict = None
-    ) -> bool:
+    async def process_new_skill_proposal(self, session: AsyncSession, skill_name: str, generated_code: str, metadata: dict = None) -> bool:
         """
         Zero-Gap Pipeline for evaluating and integrating AI-generated code.
         """
         proposal_id = f"prop-{uuid.uuid4().hex[:8]}"
         metadata = metadata or {}
-        
+
         # Step 1: Record Proposal (Atomic Transaction)
         async with session.begin():
             proposal = CodeProposal(
-                proposal_id=proposal_id,
-                skill_name=skill_name,
-                generated_code=generated_code,
-                status="proposed",
-                metadata_json=metadata
+                proposal_id=proposal_id, skill_name=skill_name, generated_code=generated_code, status="proposed", metadata_json=metadata
             )
             session.add(proposal)
-            
+
         logger.info(f"New skill proposal recorded: {proposal_id} for {skill_name}")
-        
+
         # Step 2: Strict AST Security Scan
         # scan_code will check using ASTSecurityScanner under the hood
         res = self.scanner.scan_code(generated_code)
@@ -187,23 +168,23 @@ class SelfEvolutionAgent:
             logger.critical(f"AST Scanner BLOCKED proposal {proposal_id}: {res['error']}")
             await self._update_proposal_status(session, proposal_id, "rejected_by_ast")
             return False
-            
+
         # If we reach here, AST is safe. Update state.
         await self._update_proposal_status(session, proposal_id, "ast_validated", ast_validated=True)
         logger.success(f"Proposal {proposal_id} passed AST Security Scan.")
-        
+
         # Step 3: CI/CD Dry Run (MicroVM / Sandbox Execution)
         ci_passed = await self._run_ci_cd_dry_run(proposal_id, skill_name, generated_code)
-        
+
         if not ci_passed:
             logger.error(f"CI/CD dry-run FAILED for proposal {proposal_id}")
             await self._update_proposal_status(session, proposal_id, "rejected_by_ci")
             return False
-            
+
         # Step 4: Final Approval for Merge/Apply
         await self._update_proposal_status(session, proposal_id, "ci_passed", ci_passed=True)
         logger.success(f"Evolution successful: {skill_name} ({proposal_id}) passed all zero-gap gates.")
-        
+
         return True
 
     async def _update_proposal_status(self, session: AsyncSession, proposal_id: str, new_status: str, **kwargs):
@@ -213,11 +194,11 @@ class SelfEvolutionAgent:
             proposal = result.scalars().first()
             if proposal:
                 proposal.status = new_status
-                if 'ast_validated' in kwargs:
-                    proposal.ast_validated = kwargs['ast_validated']
-                if 'ci_passed' in kwargs:
-                    proposal.ci_passed = kwargs['ci_passed']
-                    
+                if "ast_validated" in kwargs:
+                    proposal.ast_validated = kwargs["ast_validated"]
+                if "ci_passed" in kwargs:
+                    proposal.ci_passed = kwargs["ci_passed"]
+
     async def _run_ci_cd_dry_run(self, proposal_id: str, skill_name: str, code: str) -> bool:
         """
         Simulates a sandboxed test run.
@@ -225,7 +206,7 @@ class SelfEvolutionAgent:
         logger.info(f"Triggering Sandbox/CI dry run for {proposal_id}...")
         try:
             compile(code, f"<supremeai_sandbox_{skill_name}>", "exec")
-            await asyncio.sleep(1) # Network/Sandbox latency mock
+            await asyncio.sleep(1)  # Network/Sandbox latency mock
             return True
         except SyntaxError as e:
             logger.error(f"Syntax Error in AI generated code: {e}")

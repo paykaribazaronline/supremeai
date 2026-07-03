@@ -34,17 +34,13 @@ class SecureCredentialStore:
                 except Exception as exc:
                     logger.warning(f"Invalid credential encryption key: {exc}")
         if not self.enabled:
-            logger.warning(
-                "Credential encryption is disabled. Credentials will be stored as plaintext."
-            )
+            logger.warning("Credential encryption is disabled. Credentials will be stored as plaintext.")
 
     def encrypt(self, payload: dict[str, Any]) -> dict[str, Any]:
         if not self.enabled or self.fernet is None:
             return payload
         try:
-            data = base64.b64encode(
-                __import__("json").dumps(payload, default=str).encode()
-            ).decode()
+            data = base64.b64encode(__import__("json").dumps(payload, default=str).encode()).decode()
             token = self.fernet.encrypt(data.encode()).decode()
             return {"__enc__": True, "payload": token}
         except Exception as exc:

@@ -1,4 +1,5 @@
 """Admin routes tests for SupremeAI 2.0."""
+
 import base64
 import hmac
 import hashlib
@@ -45,7 +46,7 @@ class TestHelperFunctions:
         with patch.dict("sys.modules", {"bcrypt": None}):
             import importlib
 
-            import core.admin_routes as admin_routes
+            from core import admin_routes
 
             importlib.reload(admin_routes)
             assert admin_routes._verify_password("pass", "hash") is False
