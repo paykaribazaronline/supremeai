@@ -109,6 +109,7 @@ aiosqlite = "^0.20.0"
 pytest-asyncio = ">=0.23.5"
 anyio = "^4.0.0"
 pytest-cov = "^5.0.0"
+pytest-json-report = "^3.0.0"
 httpx = "^0.28.1"
 ruff = "^0.4.0"
 mypy = "^1.10.0"
@@ -165,5 +166,6 @@ warn_unused_configs = true
 ignore_missing_imports = true
 
 [tool.pytest.ini_options]
+addopts = "--cov=core --cov-report=term-missing --cov-fail-under=50"
 testpaths = ["tests"]
 norecursedirs = [".venv", "venv", ".git", "build", "dist"]

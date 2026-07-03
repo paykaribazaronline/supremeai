@@ -111,8 +111,19 @@ jobs:
           RENDER_API_KEY: "mock_render_key"
           SUPABASE_DATABASE_URL: "postgresql://mock_user:mock_pass@localhost:5432/mock_db"
           ADMIN_AUTHORIZED: "true"
-        run: poetry run pytest -n auto --cov=core --cov-fail-under=50 -q
-          
+        run: |
+          poetry run pytest --json-report --json-report-file=backend/pytest-report.json \
+            --cov=core --cov-report=json:backend/coverage.json --cov-report=term-missing --cov-fail-under=50 -q
+
+      - name: Add Backend Test Results to GitHub Summary
+        if: always()
+        working-directory: backend
+        run: |
+          python ../.github/scripts/generate-ci-report.py \
+            --pytest-json pytest-report.json \
+            --coverage-json coverage.json \
+            --label Backend
+
       - name: 🔧 SupremeAI Auto-Fix Engine
         if: failure() && steps.backend_tests.outcome == 'failure'
         working-directory: backend
@@ -159,13 +170,35 @@ jobs:
           cache: 'pnpm'
           cache-dependency-path: '**/pnpm-lock.yaml'
       
-      - name: Install & Turbo Run
+      - name: Install Frontend Dependencies
         env:
           VITE_API_URL: ${{ env.SUPREMEAI_API_URL }}
         run: |
           pnpm install --frozen-lockfile
-          pnpm turbo run build lint test --filter=supremeai-studio-client --filter=@supremeai/web-chat --filter=supremeai-vscode
-          
+
+      - name: Build & Lint Frontend Packages
+        run: pnpm turbo run build lint --filter=supremeai-studio-client --filter=@supremeai/web-chat --filter=supremeai-vscode
+
+      - name: Run Studio Client Vitest with JSON Report
+        run: pnpm --dir apps/studio-client exec vitest run --reporter=json > apps/studio-client/vitest-report.json
+
+      - name: Add Studio Client Test Results to GitHub Summary
+        run: python .github/scripts/generate-ci-report.py --vitest-json apps/studio-client/vitest-report.json --label "Studio Client"
+
+      - name: Run Web Chat Vitest with JSON Report
+        run: pnpm --dir apps/web-chat exec vitest run --reporter=json > apps/web-chat/vitest-report.json
+
+      - name: Add Web Chat Test Results to GitHub Summary
+        run: python .github/scripts/generate-ci-report.py --vitest-json apps/web-chat/vitest-report.json --label "Web Chat"
+
+      - name: Run VS Code Extension Tests
+        run: pnpm turbo run test --filter=supremeai-vscode
+
+      - name: Playwright Install & Test
+        run: |
+          pnpm exec playwright install --with-deps
+          pnpm exec playwright test
+
       - name: Upload Build Artifacts
         uses: actions/upload-artifact@v4
         with:

@@ -1,3 +1,4 @@
+import argparse
 import os
 import sys
 import json
@@ -55,6 +56,85 @@ def write_github_summary():
         f.write(md_content)
     print("✅ GitHub Step Summary generated successfully.")
 
+
+def append_text_to_summary(text: str):
+    summary_file = os.getenv("GITHUB_STEP_SUMMARY")
+    if not summary_file:
+        return
+    with open(summary_file, "a", encoding="utf-8") as f:
+        f.write(text)
+
+
+def add_pytest_results_to_summary(json_path: str, label: str = "Backend"):
+    if not os.path.exists(json_path):
+        print(f"⚠️ Pytest JSON report not found: {json_path}")
+        return
+
+    with open(json_path, encoding="utf-8") as f:
+        data = json.load(f)
+
+    summary = data.get('summary', {})
+    total = summary.get('total', 0)
+    passed = summary.get('passed', 0)
+    failed = summary.get('failed', 0)
+    skipped = summary.get('skipped', 0)
+    duration = summary.get('duration', 0.0)
+
+    append_text_to_summary(f"\n### 🧪 {label} Pytest Results\n")
+    append_text_to_summary(f"- Total: {total} | Passed: {passed} | Failed: {failed} | Skipped: {skipped} | Duration: {duration:.1f}s\n")
+
+    failures = [test for test in data.get('tests', []) if test.get('outcome') == 'failed']
+    if failures:
+        append_text_to_summary("\n#### Failed Tests\n")
+        for failure in failures[:5]:
+            append_text_to_summary(f"- {failure.get('nodeid', 'unknown')}\n")
+        if len(failures) > 5:
+            append_text_to_summary(f"- ...and {len(failures) - 5} more failed tests\n")
+
+
+def add_vitest_results_to_summary(json_path: str, label: str = "Frontend"):
+    if not os.path.exists(json_path):
+        print(f"⚠️ Vitest JSON report not found: {json_path}")
+        return
+
+    with open(json_path, encoding="utf-8") as f:
+        data = json.load(f)
+
+    stats = data.get('stats', {})
+    total = stats.get('tests', 0)
+    passed = stats.get('passes', 0)
+    failed = stats.get('failures', 0)
+    skipped = stats.get('pending', 0)
+    duration = stats.get('duration', 0.0)
+
+    append_text_to_summary(f"\n### 🧪 {label} Vitest Results\n")
+    append_text_to_summary(f"- Total: {total} | Passed: {passed} | Failed: {failed} | Skipped: {skipped} | Duration: {duration:.1f}ms\n")
+
+    errors = data.get('errors', []) or []
+    if errors:
+        append_text_to_summary("\n#### Errors\n")
+        for error in errors[:5]:
+            append_text_to_summary(f"- {error.get('name', 'unknown')}: {error.get('message', '').splitlines()[0]}\n")
+        if len(errors) > 5:
+            append_text_to_summary(f"- ...and {len(errors) - 5} more errors\n")
+
+
+def add_coverage_results_to_summary(json_path: str, label: str = "Backend"):
+    if not os.path.exists(json_path):
+        print(f"⚠️ Coverage JSON report not found: {json_path}")
+        return
+
+    with open(json_path, encoding="utf-8") as f:
+        data = json.load(f)
+
+    totals = data.get('totals', {})
+    percent = totals.get('percent_covered', totals.get('percent_covered', 0.0))
+    covered = totals.get('covered_lines', 0)
+    total = totals.get('num_lines', 0)
+
+    append_text_to_summary(f"\n### 📊 {label} Coverage Summary\n")
+    append_text_to_summary(f"- Coverage: {percent:.1f}% ({covered}/{total} lines)\n")
+
 # ==========================================
 # 🔔 2. SEND DISCORD RICH EMBED
 # ==========================================
@@ -101,6 +181,24 @@ def send_discord_alert():
 # 🚀 EXECUTION
 # ==========================================
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Generate smart CI report summary for SupremeAI.")
+    parser.add_argument("--type", default="core", help="Report type or category")
+    parser.add_argument("--pytest-json", help="Path to a pytest JSON report")
+    parser.add_argument("--coverage-json", help="Path to a coverage JSON report")
+    parser.add_argument("--vitest-json", action="append", help="Path to a Vitest JSON report")
+    parser.add_argument("--label", default=None, help="Label for the test result block")
+
+    args = parser.parse_args()
+
     print(f"Generating CI/CD Report for {REPO}...")
     write_github_summary()
+
+    if args.pytest_json:
+        add_pytest_results_to_summary(args.pytest_json, args.label or "Backend")
+    if args.coverage_json:
+        add_coverage_results_to_summary(args.coverage_json, args.label or "Backend")
+    if args.vitest_json:
+        for report_path in args.vitest_json:
+            add_vitest_results_to_summary(report_path, args.label or "Frontend")
+
     send_discord_alert()
