@@ -1,0 +1,13 @@
+# 📄 ফাইল: apps\desktop\src-tauri\target\debug\.fingerprint\displaydoc-5fb481233f0b771b\lib-displaydoc.json
+
+**প্রকার:** .json  
+**সাইজ:** 578 বাইট  
+**আপডেট:** 2026-07-03T19:44:01.624628
+
+---
+
+## কোড
+
+```json
+{"rustc":1562763049001146449,"features":"[]","declared_features":"[\"default\", \"std\"]","target":12413876779241186693,"profile":3033921117576893,"path":7340295049248606263,"deps":[[1108254298283712113,"quote",false,17441433039075890357],[4289358735036141001,"proc_macro2",false,2920662269846900396],[14607138199358211871,"syn",false,18426061812581588592]],"local":[{"CheckDepInfo":{"dep_info":"debug\\.fingerprint\\displaydoc-5fb481233f0b771b\\dep-lib-displaydoc","checksum":false}}],"rustflags":["-C","link-arg=/DEBUG:FASTLINK"],"config":8247474407144887393,"compile_kind":0}
+```

@@ -1,0 +1,13 @@
+# 📄 ফাইল: apps\desktop\src-tauri\target\debug\.fingerprint\zerofrom-d8cb48daec883324\lib-zerofrom.json
+
+**প্রকার:** .json  
+**সাইজ:** 492 বাইট  
+**আপডেট:** 2026-07-03T19:44:03.775696
+
+---
+
+## কোড
+
+```json
+{"rustc":1562763049001146449,"features":"[\"derive\"]","declared_features":"[\"alloc\", \"default\", \"derive\"]","target":723370850876025358,"profile":12092341610846217234,"path":8987216077511978776,"deps":[[8736710335745631552,"zerofrom_derive",false,12271843050220382321]],"local":[{"CheckDepInfo":{"dep_info":"debug\\.fingerprint\\zerofrom-d8cb48daec883324\\dep-lib-zerofrom","checksum":false}}],"rustflags":["-C","link-arg=/DEBUG:FASTLINK"],"config":8247474407144887393,"compile_kind":0}
+```

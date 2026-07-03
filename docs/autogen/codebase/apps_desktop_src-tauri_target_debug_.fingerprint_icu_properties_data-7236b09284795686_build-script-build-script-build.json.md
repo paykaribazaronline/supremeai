@@ -1,0 +1,13 @@
+# 📄 ফাইল: apps\desktop\src-tauri\target\debug\.fingerprint\icu_properties_data-7236b09284795686\build-script-build-script-build.json
+
+**প্রকার:** .json  
+**সাইজ:** 414 বাইট  
+**আপডেট:** 2026-07-03T19:44:01.922836
+
+---
+
+## কোড
+
+```json
+{"rustc":1562763049001146449,"features":"[]","declared_features":"[]","target":5408242616063297496,"profile":12587308339056959103,"path":10624946633841906785,"deps":[],"local":[{"CheckDepInfo":{"dep_info":"debug\\.fingerprint\\icu_properties_data-7236b09284795686\\dep-build-script-build-script-build","checksum":false}}],"rustflags":["-C","link-arg=/DEBUG:FASTLINK"],"config":8247474407144887393,"compile_kind":0}
+```

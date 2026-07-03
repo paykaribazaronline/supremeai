@@ -1,0 +1,13 @@
+# 📄 ফাইল: apps\desktop\src-tauri\target\debug\.fingerprint\zmij-630aa4297c815b0a\run-build-script-build-script-build.json
+
+**প্রকার:** .json  
+**সাইজ:** 359 বাইট  
+**আপডেট:** 2026-07-03T19:44:03.809410
+
+---
+
+## কোড
+
+```json
+{"rustc":1562763049001146449,"features":"","declared_features":"","target":0,"profile":0,"path":0,"deps":[[12347024475581975995,"build_script_build",false,16290999000580195490]],"local":[{"RerunIfChanged":{"output":"debug\\build\\zmij-630aa4297c815b0a\\output","paths":["build.rs"]}}],"rustflags":["-C","link-arg=/DEBUG:FASTLINK"],"config":0,"compile_kind":0}
+```

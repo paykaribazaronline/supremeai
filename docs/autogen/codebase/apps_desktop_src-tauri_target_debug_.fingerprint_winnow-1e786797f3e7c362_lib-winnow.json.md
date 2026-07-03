@@ -1,0 +1,13 @@
+# 📄 ফাইল: apps\desktop\src-tauri\target\debug\.fingerprint\winnow-1e786797f3e7c362\lib-winnow.json
+
+**প্রকার:** .json  
+**সাইজ:** 503 বাইট  
+**আপডেট:** 2026-07-03T19:44:03.671858
+
+---
+
+## কোড
+
+```json
+{"rustc":1562763049001146449,"features":"[\"alloc\", \"default\", \"std\"]","declared_features":"[\"alloc\", \"debug\", \"default\", \"simd\", \"std\", \"unstable-doc\", \"unstable-recover\"]","target":13376497836617006023,"profile":17710752046913464473,"path":6629867264483835584,"deps":[],"local":[{"CheckDepInfo":{"dep_info":"debug\\.fingerprint\\winnow-1e786797f3e7c362\\dep-lib-winnow","checksum":false}}],"rustflags":["-C","link-arg=/DEBUG:FASTLINK"],"config":8247474407144887393,"compile_kind":0}
+```

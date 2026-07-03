@@ -140,3 +140,7 @@ chroma.sqlite3
 backend-tests.log
 .coverage.DESKTOP-*
 backend/.coverage.DESKTOP-*
+
+# Auto-generated docs may contain secrets
+docs/autogen/codebase/scripts_repair_env.py.md
+docs/autogen/codebase_full.md

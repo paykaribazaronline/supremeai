@@ -1,0 +1,13 @@
+# 📄 ফাইল: apps\desktop\src-tauri\target\debug\.fingerprint\toml_write-a73082245dc1352b\lib-toml_write.json
+
+**প্রকার:** .json  
+**সাইজ:** 450 বাইট  
+**আপডেট:** 2026-07-03T19:44:03.238188
+
+---
+
+## কোড
+
+```json
+{"rustc":1562763049001146449,"features":"[\"alloc\", \"default\", \"std\"]","declared_features":"[\"alloc\", \"default\", \"std\"]","target":15943748010645046320,"profile":10451410135023846467,"path":5834044622146658366,"deps":[],"local":[{"CheckDepInfo":{"dep_info":"debug\\.fingerprint\\toml_write-a73082245dc1352b\\dep-lib-toml_write","checksum":false}}],"rustflags":["-C","link-arg=/DEBUG:FASTLINK"],"config":8247474407144887393,"compile_kind":0}
+```

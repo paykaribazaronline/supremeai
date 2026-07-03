@@ -1,0 +1,13 @@
+# 📄 ফাইল: apps\desktop\src-tauri\target\release\.fingerprint\serde-f6f2cecc52bc495e\lib-serde.json
+
+**প্রকার:** .json  
+**সাইজ:** 721 বাইট  
+**আপডেট:** 2026-07-03T19:44:04.973864
+
+---
+
+## কোড
+
+```json
+{"rustc":1562763049001146449,"features":"[\"alloc\", \"default\", \"derive\", \"serde_derive\", \"std\"]","declared_features":"[\"alloc\", \"default\", \"derive\", \"rc\", \"serde_derive\", \"std\", \"unstable\"]","target":11327258112168116673,"profile":2040997289075261528,"path":18223733172624199381,"deps":[[3051629642231505422,"serde_derive",false,18061815017427777009],[11899261697793765154,"serde_core",false,13501016215713242753],[13548984313718623784,"build_script_build",false,10934954714428972502]],"local":[{"CheckDepInfo":{"dep_info":"release\\.fingerprint\\serde-f6f2cecc52bc495e\\dep-lib-serde","checksum":false}}],"rustflags":["-C","link-arg=/DEBUG:FASTLINK"],"config":8247474407144887393,"compile_kind":0}
+```

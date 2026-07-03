@@ -1,0 +1,158 @@
+# 📄 ফাইল: backend\tests\test_firebase_integration.py
+
+**প্রকার:** .py  
+**সাইজ:** 4,523 বাইট  
+**আপডেট:** 2026-07-03T19:44:11.995575
+
+---
+
+## কোড
+
+```py
+import importlib.util
+from unittest.mock import MagicMock
+from unittest.mock import patch
+
+import pytest
+
+
+HAS_FIREBASE_DEPS = importlib.util.find_spec("firebase_admin") is not None
+pytestmark = pytest.mark.skipif(
+    not HAS_FIREBASE_DEPS, reason="firebase_admin not installed"
+)
+
+
+@pytest.fixture
+def mock_firebase_admin():
+    with (
+        patch("firebase_admin.initialize_app") as init_mock,
+        patch("firebase_admin.db", create=True) as rtdb_mock,
+        patch("firebase_admin.firestore", create=True) as fs_mock,
+    ):
+        init_mock.return_value = MagicMock()
+        yield {
+            "init": init_mock,
+            "rtdb": rtdb_mock,
+            "firestore": fs_mock,
+            "app": MagicMock(),
+        }
+
+
+class FirestoreStub:
+    def __init__(self):
+        self._store: dict[str, dict] = {}
+
+    def as_collection(self, name: str):
+        return CollectionStub(self._store, name)
+
+
+class CollectionStub:
+    def __init__(self, store, name):
+        self._store = store
+        self._name = name
+        self._store.setdefault(name, {})
+
+    def document(self, doc_id: str):
+        return DocumentStub(self._store[self._name], doc_id)
+
+
+class DocumentStub:
+    def __init__(self, section, doc_id):
+        self._section = section
+        self._id = doc_id
+
+    def set(self, payload):
+        self._section[self._id] = payload
+
+    def get(self):
+        outer = self
+
+        class _Snap:
+            exists = outer._id in outer._section
+
+            def to_dict(self):
+                return outer._section.get(outer._id, {})
+
+        return _Snap()
+
+
+def test_ocr_trigger_queue_to_firestore(mock_firebase_admin):
+    MagicMock()
+    mock_firebase_admin[
+        "rtdb"
+    ].reference.return_value.reference.return_value.child.return_value.push.return_value = MagicMock(
+        key="push-123"
+    )
+    mock_firebase_admin["rtdb"].reference.return_value.reference.return_value.set = (
+        MagicMock()
+    )
+
+    ref = mock_firebase_admin["rtdb"].reference.return_value
+    ref.reference.return_value.child("ocr-queue").push.return_value = MagicMock(
+        key="push-123"
+    )
+    ref.reference.return_value.child.return_value.set.assert_not_called()
+
+    doc_ref = DocumentStub({}, "push-123")
+    doc_ref.set({"status": "queued", "file_path": "d.pdf", "mime": "application/pdf"})
+    assert doc_ref.get().to_dict()["status"] == "queued"
+
+
+def test_ocr_result_written_to_firestore(mock_firebase_admin):
+    stub = FirestoreStub()
+    col = stub.as_collection("ocr-results")
+    col.document("push-123").set({"status": "completed", "result": {"text": "hello"}})
+    assert stub._store["ocr-results"]["push-123"]["result"]["text"] == "hello"
+
+
+def test_firebase_roundtrip_queue_result(mock_firebase_admin):
+    def ocr_trigger(snap):
+        payload = snap.val()
+        payload["status"] = "completed"
+        return payload
+
+    snap = MagicMock()
+    snap.val.return_value = {"task": "ocr"}
+    assert ocr_trigger(snap)["status"] == "completed"
+
+
+def test_existing_gcp_roundtrip_coverage():
+    import os
+    import subprocess
+    import sys
+
+    env = os.environ.copy()
+    # Ensure subprocess pytest can import repository-level modules moved to scripts/
+    repo_root = os.path.abspath(os.path.join(os.getcwd(), ".."))
+    scripts_dir = os.path.join(repo_root, "scripts")
+    paths = [".", repo_root, scripts_dir]
+    existing = env.get("PYTHONPATH", "")
+    env["PYTHONPATH"] = os.pathsep.join([p for p in ([existing] + paths) if p])
+    # Ensure subprocess pytest does not inherit any global pytest addopts that enable
+    # coverage enforcement (this can cause isolated roundtrip runs to fail due to
+    # overall project coverage thresholds).
+    env.pop("PYTEST_ADDOPTS", None)
+    test_path_prefix = (
+        "tests" if os.path.exists("tests/test_gcp_integration.py") else "backend/tests"
+    )
+    r = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "pytest",
+            "-p",
+            "no:pytest_cov",
+            "--override-ini=addopts=",
+            f"{test_path_prefix}/test_gcp_integration.py::test_gcp_firestore_integration_queue",
+            f"{test_path_prefix}/test_gcp_integration.py::test_gcp_pubsub_publish_pull",
+            f"{test_path_prefix}/test_gcp_integration.py::test_gcp_cloud_run_router_route",
+            "-q",
+        ],
+        capture_output=True,
+        text=True,
+        env=env,
+        check=False,
+    )
+    assert r.returncode == 0, "Roundtrip tests failed:\n" + r.stdout + "\n" + r.stderr
+
+```

@@ -1,0 +1,13 @@
+# 📄 ফাইল: apps\desktop\src-tauri\target\debug\.fingerprint\generic-array-32429e4739bc6e1c\build-script-build-script-build.json
+
+**প্রকার:** .json  
+**সাইজ:** 524 বাইট  
+**আপডেট:** 2026-07-03T19:44:01.746158
+
+---
+
+## কোড
+
+```json
+{"rustc":1562763049001146449,"features":"[\"more_lengths\"]","declared_features":"[\"more_lengths\", \"serde\", \"zeroize\"]","target":12318548087768197662,"profile":3033921117576893,"path":6126155220725473206,"deps":[[5398981501050481332,"version_check",false,10625264957924704912]],"local":[{"CheckDepInfo":{"dep_info":"debug\\.fingerprint\\generic-array-32429e4739bc6e1c\\dep-build-script-build-script-build","checksum":false}}],"rustflags":["-C","link-arg=/DEBUG:FASTLINK"],"config":8247474407144887393,"compile_kind":0}
+```

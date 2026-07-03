@@ -1,0 +1,23 @@
+# 📄 ফাইল: data\styles\backend_tools.json
+
+**প্রকার:** .json  
+**সাইজ:** 153 বাইট  
+**আপডেট:** 2026-07-03T19:44:15.643836
+
+---
+
+## কোড
+
+```json
+{
+  "python": {
+    "naming_convention": "snake_case"
+  },
+  "typescript": {
+    "quotes": "single"
+  },
+  "general_patterns": [
+    "Test pattern"
+  ]
+}
+```

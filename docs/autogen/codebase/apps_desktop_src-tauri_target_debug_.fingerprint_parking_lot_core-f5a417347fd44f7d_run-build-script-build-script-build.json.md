@@ -1,0 +1,13 @@
+# 📄 ফাইল: apps\desktop\src-tauri\target\debug\.fingerprint\parking_lot_core-f5a417347fd44f7d\run-build-script-build-script-build.json
+
+**প্রকার:** .json  
+**সাইজ:** 370 বাইট  
+**আপডেট:** 2026-07-03T19:44:02.190441
+
+---
+
+## কোড
+
+```json
+{"rustc":1562763049001146449,"features":"","declared_features":"","target":0,"profile":0,"path":0,"deps":[[6545091685033313457,"build_script_build",false,16515603237184570564]],"local":[{"RerunIfChanged":{"output":"debug\\build\\parking_lot_core-f5a417347fd44f7d\\output","paths":["build.rs"]}}],"rustflags":["-C","link-arg=/DEBUG:FASTLINK"],"config":0,"compile_kind":0}
+```

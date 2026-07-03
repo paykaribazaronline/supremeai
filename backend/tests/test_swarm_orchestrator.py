@@ -14,6 +14,13 @@ def setup_litellm():
     yield
 
 
+def test_swarm_orchestrator_initializes_agents():
+    orchestrator = SwarmOrchestrator()
+    assert orchestrator.architect is not None
+    assert orchestrator.coder is not None
+    assert orchestrator.qa is not None
+
+
 @pytest.mark.anyio
 async def test_swarm_orchestrator_runs_entire_graph():
     orchestrator = SwarmOrchestrator()

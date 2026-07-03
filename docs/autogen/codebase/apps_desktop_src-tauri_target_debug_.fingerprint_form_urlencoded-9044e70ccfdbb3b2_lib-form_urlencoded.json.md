@@ -1,0 +1,13 @@
+# 📄 ফাইল: apps\desktop\src-tauri\target\debug\.fingerprint\form_urlencoded-9044e70ccfdbb3b2\lib-form_urlencoded.json
+
+**প্রকার:** .json  
+**সাইজ:** 508 বাইট  
+**আপডেট:** 2026-07-03T19:44:01.689497
+
+---
+
+## কোড
+
+```json
+{"rustc":1562763049001146449,"features":"[\"alloc\", \"std\"]","declared_features":"[\"alloc\", \"default\", \"std\"]","target":6496257856677244489,"profile":3033921117576893,"path":434681907990124694,"deps":[[6803352382179706244,"percent_encoding",false,17384573052939532840]],"local":[{"CheckDepInfo":{"dep_info":"debug\\.fingerprint\\form_urlencoded-9044e70ccfdbb3b2\\dep-lib-form_urlencoded","checksum":false}}],"rustflags":["-C","link-arg=/DEBUG:FASTLINK"],"config":8247474407144887393,"compile_kind":0}
+```

@@ -1,0 +1,13 @@
+# 📄 ফাইল: apps\desktop\src-tauri\target\debug\.fingerprint\crc32fast-6d5d545d7fe6359c\build-script-build-script-build.json
+
+**প্রকার:** .json  
+**সাইজ:** 452 বাইট  
+**আপডেট:** 2026-07-03T19:44:01.535388
+
+---
+
+## কোড
+
+```json
+{"rustc":1562763049001146449,"features":"[\"default\", \"std\"]","declared_features":"[\"default\", \"nightly\", \"std\"]","target":5408242616063297496,"profile":3033921117576893,"path":6409766691811126068,"deps":[],"local":[{"CheckDepInfo":{"dep_info":"debug\\.fingerprint\\crc32fast-6d5d545d7fe6359c\\dep-build-script-build-script-build","checksum":false}}],"rustflags":["-C","link-arg=/DEBUG:FASTLINK"],"config":8247474407144887393,"compile_kind":0}
+```

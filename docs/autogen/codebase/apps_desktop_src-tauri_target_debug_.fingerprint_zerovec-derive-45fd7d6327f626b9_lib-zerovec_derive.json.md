@@ -1,0 +1,13 @@
+# 📄 ফাইল: apps\desktop\src-tauri\target\debug\.fingerprint\zerovec-derive-45fd7d6327f626b9\lib-zerovec_derive.json
+
+**প্রকার:** .json  
+**সাইজ:** 571 বাইট  
+**আপডেট:** 2026-07-03T19:44:03.799247
+
+---
+
+## কোড
+
+```json
+{"rustc":1562763049001146449,"features":"[]","declared_features":"[]","target":14030368369369144574,"profile":14953448158103937843,"path":14903610182301825361,"deps":[[1108254298283712113,"quote",false,17441433039075890357],[4289358735036141001,"proc_macro2",false,2920662269846900396],[14607138199358211871,"syn",false,18426061812581588592]],"local":[{"CheckDepInfo":{"dep_info":"debug\\.fingerprint\\zerovec-derive-45fd7d6327f626b9\\dep-lib-zerovec_derive","checksum":false}}],"rustflags":["-C","link-arg=/DEBUG:FASTLINK"],"config":8247474407144887393,"compile_kind":0}
+```

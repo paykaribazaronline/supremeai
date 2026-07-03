@@ -1,0 +1,13 @@
+# 📄 ফাইল: apps\desktop\src-tauri\target\debug\.fingerprint\proc-macro2-c56d194435204a58\build-script-build-script-build.json
+
+**প্রকার:** .json  
+**সাইজ:** 509 বাইট  
+**আপডেট:** 2026-07-03T19:44:02.372322
+
+---
+
+## কোড
+
+```json
+{"rustc":1562763049001146449,"features":"[\"default\", \"proc-macro\", \"span-locations\"]","declared_features":"[\"default\", \"nightly\", \"proc-macro\", \"span-locations\"]","target":5408242616063297496,"profile":3033921117576893,"path":15901993445615183079,"deps":[],"local":[{"CheckDepInfo":{"dep_info":"debug\\.fingerprint\\proc-macro2-c56d194435204a58\\dep-build-script-build-script-build","checksum":false}}],"rustflags":["-C","link-arg=/DEBUG:FASTLINK"],"config":8247474407144887393,"compile_kind":0}
+```

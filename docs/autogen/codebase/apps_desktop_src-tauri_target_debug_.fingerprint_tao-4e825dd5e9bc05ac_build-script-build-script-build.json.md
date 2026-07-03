@@ -1,0 +1,13 @@
+# 📄 ফাইল: apps\desktop\src-tauri\target\debug\.fingerprint\tao-4e825dd5e9bc05ac\build-script-build-script-build.json
+
+**প্রকার:** .json  
+**সাইজ:** 531 বাইট  
+**আপডেট:** 2026-07-03T19:44:02.870123
+
+---
+
+## কোড
+
+```json
+{"rustc":1562763049001146449,"features":"[\"serde\"]","declared_features":"[\"default\", \"dirs-next\", \"dox\", \"libappindicator\", \"serde\", \"tray\"]","target":5408242616063297496,"profile":3033921117576893,"path":9018378909689174437,"deps":[[3532340086532947515,"cc",false,5749464396037002731]],"local":[{"CheckDepInfo":{"dep_info":"debug\\.fingerprint\\tao-4e825dd5e9bc05ac\\dep-build-script-build-script-build","checksum":false}}],"rustflags":["-C","link-arg=/DEBUG:FASTLINK"],"config":8247474407144887393,"compile_kind":0}
+```

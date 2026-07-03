@@ -1,0 +1,13 @@
+# 📄 ফাইল: apps\desktop\src-tauri\target\debug\.fingerprint\proc-macro-hack-a84ea56f3be61000\build-script-build-script-build.json
+
+**প্রকার:** .json  
+**সাইজ:** 405 বাইট  
+**আপডেট:** 2026-07-03T19:44:02.319756
+
+---
+
+## কোড
+
+```json
+{"rustc":1562763049001146449,"features":"[]","declared_features":"[]","target":17883862002600103897,"profile":3033921117576893,"path":592029544534681694,"deps":[],"local":[{"CheckDepInfo":{"dep_info":"debug\\.fingerprint\\proc-macro-hack-a84ea56f3be61000\\dep-build-script-build-script-build","checksum":false}}],"rustflags":["-C","link-arg=/DEBUG:FASTLINK"],"config":8247474407144887393,"compile_kind":0}
+```

@@ -1,0 +1,13 @@
+# 📄 ফাইল: apps\desktop\src-tauri\target\debug\.fingerprint\windows-metadata-da9dbd2f6dcf3548\lib-windows_metadata.json
+
+**প্রকার:** .json  
+**সাইজ:** 396 বাইট  
+**আপডেট:** 2026-07-03T19:44:03.518550
+
+---
+
+## কোড
+
+```json
+{"rustc":1562763049001146449,"features":"[]","declared_features":"[]","target":13127094933285751050,"profile":3033921117576893,"path":3315743154595491029,"deps":[],"local":[{"CheckDepInfo":{"dep_info":"debug\\.fingerprint\\windows-metadata-da9dbd2f6dcf3548\\dep-lib-windows_metadata","checksum":false}}],"rustflags":["-C","link-arg=/DEBUG:FASTLINK"],"config":8247474407144887393,"compile_kind":0}
+```

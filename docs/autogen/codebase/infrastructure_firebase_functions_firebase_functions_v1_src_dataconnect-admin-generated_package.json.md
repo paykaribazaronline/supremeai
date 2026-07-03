@@ -1,0 +1,38 @@
+# 📄 ফাইল: infrastructure\firebase_functions\firebase_functions_v1\src\dataconnect-admin-generated\package.json
+
+**প্রকার:** .json  
+**সাইজ:** 633 বাইট  
+**আপডেট:** 2026-07-03T19:44:16.824637
+
+---
+
+## কোড
+
+```json
+{
+  "name": "@dataconnect/admin-generated",
+  "version": "0.0.1",
+  "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
+  "description": "Generated Admin SDK For example",
+  "license": "Apache-2.0",
+  "engines": {
+    "node": " >=18.0"
+  },
+  "typings": "index.d.ts",
+  "module": "esm/index.esm.js",
+  "main": "index.cjs.js",
+  "browser": "esm/index.esm.js",
+  "exports": {
+    ".": {
+      "types": "./index.d.ts",
+      "require": "./index.cjs.js",
+      "default": "./esm/index.esm.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "peerDependencies": {
+    "firebase-admin": "^13.4.0"
+  }
+}
+
+```

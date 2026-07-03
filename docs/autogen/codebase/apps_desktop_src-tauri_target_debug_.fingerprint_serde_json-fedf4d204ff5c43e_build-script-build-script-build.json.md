@@ -1,0 +1,13 @@
+# 📄 ফাইল: apps\desktop\src-tauri\target\debug\.fingerprint\serde_json-fedf4d204ff5c43e\build-script-build-script-build.json
+
+**প্রকার:** .json  
+**সাইজ:** 594 বাইট  
+**আপডেট:** 2026-07-03T19:44:02.625929
+
+---
+
+## কোড
+
+```json
+{"rustc":1562763049001146449,"features":"[\"alloc\", \"default\", \"raw_value\", \"std\"]","declared_features":"[\"alloc\", \"arbitrary_precision\", \"default\", \"float_roundtrip\", \"indexmap\", \"preserve_order\", \"raw_value\", \"std\", \"unbounded_depth\"]","target":5408242616063297496,"profile":3033921117576893,"path":10122732924344192268,"deps":[],"local":[{"CheckDepInfo":{"dep_info":"debug\\.fingerprint\\serde_json-fedf4d204ff5c43e\\dep-build-script-build-script-build","checksum":false}}],"rustflags":["-C","link-arg=/DEBUG:FASTLINK"],"config":8247474407144887393,"compile_kind":0}
+```

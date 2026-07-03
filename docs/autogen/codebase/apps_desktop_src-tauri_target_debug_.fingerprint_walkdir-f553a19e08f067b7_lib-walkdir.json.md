@@ -1,0 +1,13 @@
+# 📄 ফাইল: apps\desktop\src-tauri\target\debug\.fingerprint\walkdir-f553a19e08f067b7\lib-walkdir.json
+
+**প্রকার:** .json  
+**সাইজ:** 504 বাইট  
+**আপডেট:** 2026-07-03T19:44:03.352154
+
+---
+
+## কোড
+
+```json
+{"rustc":1562763049001146449,"features":"[]","declared_features":"[]","target":3552558796056091662,"profile":16604713326390954280,"path":11831721351792164586,"deps":[[5785418864289862565,"winapi_util",false,8144022018436506403],[11781824977070132858,"same_file",false,4574806477742982716]],"local":[{"CheckDepInfo":{"dep_info":"debug\\.fingerprint\\walkdir-f553a19e08f067b7\\dep-lib-walkdir","checksum":false}}],"rustflags":["-C","link-arg=/DEBUG:FASTLINK"],"config":8247474407144887393,"compile_kind":0}
+```
