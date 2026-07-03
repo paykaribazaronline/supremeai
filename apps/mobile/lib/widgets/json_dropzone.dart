@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'package:flutter/material';
+import 'package:flutter/material.dart';
 
 class JsonDropzone extends StatefulWidget {
   final Function(Map<String, dynamic> jsonContent) onFileLoaded;
@@ -12,7 +12,7 @@ class JsonDropzone extends StatefulWidget {
 
 class _JsonDropzoneState extends State<JsonDropzone> {
   String? _statusText;
-  bool _isHovering = false;
+  final bool _isHovering = false;
 
   // Zero-Trust: Handle files directly in memory (RAM).
   // Device caches are completely bypassed for absolute credential isolation.
@@ -58,10 +58,10 @@ class _JsonDropzoneState extends State<JsonDropzone> {
           child: Container(
             height: 180,
             decoration: BoxDecoration(
-              color: _isHovering ? theme.colorScheme.primary.withOpacity(0.08) : theme.colorScheme.surface,
+              color: _isHovering ? theme.colorScheme.primary.withValues(alpha: 0.08) : theme.colorScheme.surface,
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: _isHovering ? theme.colorScheme.primary : theme.colorScheme.outline.withOpacity(0.5),
+                color: _isHovering ? theme.colorScheme.primary : theme.colorScheme.outline.withValues(alpha: 0.5),
                 width: 2,
               ),
             ),
@@ -103,8 +103,8 @@ class _JsonDropzoneState extends State<JsonDropzone> {
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
               color: _statusText!.startsWith("Error")
-                  ? theme.colorScheme.error.withOpacity(0.1)
-                  : theme.colorScheme.primary.withOpacity(0.1),
+                  ? theme.colorScheme.error.withValues(alpha: 0.1)
+                  : theme.colorScheme.primary.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Text(

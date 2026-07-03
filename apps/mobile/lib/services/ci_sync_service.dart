@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:flutter/foundation.dart';
 import '../models/ci_job_model.dart';
 
 class CiSyncService {
@@ -21,7 +22,7 @@ class CiSyncService {
         throw Exception('Failed to load jobs');
       }
     } catch (e) {
-      print('CI Sync Error: $e');
+      debugPrint('CI Sync Error: $e');
       return [];
     }
   }

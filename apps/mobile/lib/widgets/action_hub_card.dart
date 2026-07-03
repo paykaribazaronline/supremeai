@@ -7,12 +7,12 @@ class ActionHubCard extends StatelessWidget {
   final VoidCallback onTap;
 
   const ActionHubCard({
-    Key? key,
+    super.key,
     required this.title,
     required this.subtitle,
     required this.icon,
     required this.onTap,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -24,10 +24,10 @@ class ActionHubCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: const Color(0xFF1F2937), // Dark Surface
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.white.withOpacity(0.1)),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
           boxShadow: [
             BoxShadow(
-              color: Colors.blueAccent.withOpacity(0.05),
+              color: Colors.blueAccent.withValues(alpha: 0.05),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),

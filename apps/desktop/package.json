@@ -2,12 +2,9 @@
   "name": "supremeai-desktop",
   "version": "0.1.0",
   "private": true,
-  "workspaces": [
-    "src-ui"
-  ],
   "scripts": {
-    "dev": "pnpm --dir . tauri dev",
-    "build": "pnpm --dir . tauri build",
+    "dev": "tauri dev",
+    "build": "tauri build",
     "dev:ui": "pnpm --dir src-ui dev",
     "build:ui": "pnpm --dir src-ui build"
   },

@@ -7,7 +7,7 @@ class NeuralStreamService {
   
   // প্রোডাকশন (Release) এবং লোকাল (Debug) মোডের জন্য ডায়নামিক URL
   final String wsUrl = kReleaseMode 
-      ? 'wss://api.supremeai.dev/ws/chat' // TODO: আপনার আসল প্রোডাকশন URL বসান
+      ? 'wss://api.supremeai.dev/ws/chat'
       : 'ws://10.0.2.2:8000/ws/chat';
 
   // ব্রডকাস্ট স্ট্রিম কন্ট্রোলার (মাল্টিপল লিসেনার এবং রিকানেকশনের জন্য)
@@ -20,18 +20,18 @@ class NeuralStreamService {
     _isIntentionalDisconnect = false;
     try {
       _channel = WebSocketChannel.connect(Uri.parse(wsUrl));
-      print('🟢 [WS] Connected to Neural Engine ($wsUrl)');
+      debugPrint('🟢 [WS] Connected to Neural Engine ($wsUrl)');
       
       _channel!.stream.listen(
         (data) {
           _streamController.add(data);
         },
         onDone: () {
-          print('🔴 [WS] Connection closed.');
+          debugPrint('🔴 [WS] Connection closed.');
           _reconnect();
         },
         onError: (error) {
-          print('⚠️ [WS] Error: $error');
+          debugPrint('⚠️ [WS] Error: $error');
           _reconnect();
         },
       );
@@ -42,7 +42,7 @@ class NeuralStreamService {
 
   void _reconnect() {
     if (_isIntentionalDisconnect) return;
-    print('🔄 [WS] Connection lost. Reconnecting in 3 seconds...');
+    debugPrint('🔄 [WS] Connection lost. Reconnecting in 3 seconds...');
     Future.delayed(const Duration(seconds: 3), () => connect());
   }
 
@@ -55,6 +55,6 @@ class NeuralStreamService {
   void disconnect() {
     _isIntentionalDisconnect = true;
     _channel?.sink.close();
-    print('🛑 [WS] Disconnected manually');
+    debugPrint('🛑 [WS] Disconnected manually');
   }
 }

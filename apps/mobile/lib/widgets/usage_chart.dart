@@ -1,4 +1,4 @@
-import 'package:flutter/material';
+import 'package:flutter/material.dart';
 
 class UsageChart extends StatelessWidget {
   final List<Map<String, dynamic>> history;

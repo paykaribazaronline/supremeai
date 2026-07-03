@@ -1,4 +1,4 @@
-import 'package:flutter/material';
+import 'package:flutter/material.dart';
 
 class TransactionHistoryList extends StatelessWidget {
   final List<Map<String, dynamic>> history;
@@ -34,7 +34,7 @@ class TransactionHistoryList extends StatelessWidget {
         return ListTile(
           contentPadding: EdgeInsets.zero,
           leading: CircleAvatar(
-            backgroundColor: isCredit ? Colors.green.withOpacity(0.1) : Colors.red.withOpacity(0.1),
+            backgroundColor: isCredit ? Colors.green.withValues(alpha: 0.1) : Colors.red.withValues(alpha: 0.1),
             child: Icon(
               isCredit ? Icons.add_circle_outline : Icons.remove_circle_outline,
               color: isCredit ? Colors.green : Colors.red,

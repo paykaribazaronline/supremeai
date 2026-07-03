@@ -2,17 +2,17 @@ import 'package:flutter/material.dart';
 import '../services/neural_stream_service.dart';
 
 class AgentChatScreen extends StatefulWidget {
-  const AgentChatScreen({Key? key}) : super(key: key);
+  const AgentChatScreen({super.key});
 
   @override
-  _AgentChatScreenState createState() => _AgentChatScreenState();
+  State<AgentChatScreen> createState() => _AgentChatScreenState();
 }
 
 class _AgentChatScreenState extends State<AgentChatScreen> {
   final NeuralStreamService _wsService = NeuralStreamService();
   final TextEditingController _controller = TextEditingController();
   
-  List<Map<String, String>> _messages = [];
+  final List<Map<String, String>> _messages = [];
   String _currentStream = "";
   bool _isGenerating = false;
 

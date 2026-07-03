@@ -8,7 +8,7 @@ export default {
   "tagline": "Multi-cloud AI orchestration platform",
   "favicon": "img/favicon.ico",
   "url": "https://docs.supremeai.dev",
-  "baseUrl": "/",
+  "baseUrl": "/bn/",
   "organizationName": "paykaribazaronline",
   "projectName": "supremeai",
   "onBrokenLinks": "warn",

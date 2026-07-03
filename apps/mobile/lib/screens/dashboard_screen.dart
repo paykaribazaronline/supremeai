@@ -5,10 +5,10 @@ import '../widgets/action_hub_card.dart';
 import 'terminal_view.dart';
 
 class DashboardScreen extends StatefulWidget {
-  const DashboardScreen({Key? key}) : super(key: key);
+  const DashboardScreen({super.key});
 
   @override
-  _DashboardScreenState createState() => _DashboardScreenState();
+  State<DashboardScreen> createState() => _DashboardScreenState();
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
@@ -56,15 +56,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       decoration: BoxDecoration(
                         color: const Color(0xFF1F2937),
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.redAccent.withOpacity(0.3)),
+                        border: Border.all(color: Colors.redAccent.withValues(alpha: 0.3)),
                       ),
                       child: SwitchListTile(
                         title: const Text('Admin Authorized', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                         subtitle: const Text('Allow critical write actions globally.', style: TextStyle(color: Colors.grey, fontSize: 12)),
                         value: provider.isAdminAuthorized,
-                        activeColor: Colors.redAccent,
-                        onChanged: (bool value) async {
-                          await provider.toggleGodMode(value);
+                        activeThumbColor: Colors.redAccent,
+                        onChanged: (bool value) {
+                          provider.toggleGodMode(value);
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(content: Text(value ? 'System Unlocked' : 'Read-Only Mode Enforced')),
                           );
@@ -114,7 +114,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         
                         return ListTile(
                           tileColor: const Color(0xFF1F2937),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8), side: BorderSide(color: Colors.white.withOpacity(0.05))),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8), side: BorderSide(color: Colors.white.withValues(alpha: 0.05))),
                           leading: Icon(
                             isSuccess ? Icons.check_circle : Icons.error,
                             color: isSuccess ? Colors.greenAccent : Colors.redAccent,

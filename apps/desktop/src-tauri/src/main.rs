@@ -3,7 +3,7 @@
     windows_subsystem = "windows"
 )]
 
-use tauri::{Manager, Runtime, SystemTray, SystemTrayEvent, SystemTrayMenu, SystemTrayMenuItem, CustomMenuItem, SystemTrayEvent::MenuEvent};
+use tauri::{Manager, SystemTray, SystemTrayEvent, SystemTrayMenu, SystemTrayMenuItem, CustomMenuItem, SystemTrayEvent::MenuEvent};
 use tauri::api::{fs::read_text_file, notification::{Notification, NotificationAction}, updater};
 use std::sync::Mutex;
 
@@ -28,7 +28,7 @@ fn show_notification(title: String, body: String) -> Result<(), String> {
     Ok(())
 }
 
-fn toggle_window_visibility(app: &tauri::App) -> Result<(), String> {
+fn toggle_window_visibility(app: &tauri::AppHandle) -> Result<(), String> {
     let window = app.get_window("main").ok_or("Main window not found")?;
     let is_visible = window.is_visible().map_err(|e| e.to_string())?;
     if is_visible {
@@ -38,12 +38,6 @@ fn toggle_window_visibility(app: &tauri::App) -> Result<(), String> {
         window.set_focus().map_err(|e| e.to_string())?;
     }
     Ok(())
-}
-
-#[tauri::command]
-fn toggle_window(app_handle: tauri::AppHandle) -> Result<(), String> {
-    let app = app_handle.app_handle();
-    toggle_window_visibility(&app)
 }
 
 #[tauri::command]
@@ -95,7 +89,7 @@ fn main() {
         .invoke_handler(tauri::generate_handler![
             read_local_file,
             show_notification,
-            toggle_window,
+            toggle_window_visibility,
             check_for_updates
         ])
         .setup(|app| {

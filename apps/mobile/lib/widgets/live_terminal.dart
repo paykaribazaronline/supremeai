@@ -1,4 +1,4 @@
-import 'package:flutter/material';
+import 'package:flutter/material.dart';
 
 class LiveTerminal extends StatelessWidget {
   final List<String> logs;
@@ -7,7 +7,6 @@ class LiveTerminal extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
 
     // বাংলা মন্তব্য: লাইভ টার্মিনাল লগ রেন্ডারিং - জ্যাঙ্ক এড়াতে এখানে কাস্টম স্ক্রল অপ্টিমাইজেশন যুক্ত করা হয়েছে।
     return Container(

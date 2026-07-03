@@ -1,30 +1,30 @@
-﻿# SupremeAI 2.0 ðŸš€
+﻿# SupremeAI 2.0 🚀
 **Autonomic CI/CD Command Center & Neural Agentic Workspace**
 
 SupremeAI is a production-grade, highly scalable ecosystem featuring a Hub-and-Spoke CI/CD pipeline, an AI-powered CodeQL audited backend, and dual real-time client interfaces.
 
-## ðŸŒŸ Core Architecture
+## 🌟 Core Architecture
 
-### ðŸ§  The Brain (Backend)
+### 🧠 The Brain (Backend)
 - **Framework:** FastAPI (Python)
 - **AI Engine:** Google Gemini 1.5 Pro (Generative AI)
 - **Streaming:** Native WebSockets (`wss://`) for token-by-token generation.
 - **Agentic Tools:** Autonomous tool calling (Database Search, System Health, Code Execution).
 - **Security:** `god.py` Constitutional Enforcement (Real-time global write-access toggle).
 
-### ðŸ’» Command Center (Web)
+### 💻 Command Center (Web)
 - **Tech Stack:** Pure Vanilla HTML/CSS/JS (Zero framework overhead for maximum speed).
 - **Features:** Real-time CI/CD Job Sync (GitHub Raw APIs), Interactive Hacker-style Terminal for logs, 1-Click Quick Actions (Rollback, Cache Flush).
 
-### ðŸ“± Supreme Workspace (Mobile)
+### 📱 Supreme Workspace (Mobile)
 - **Tech Stack:** Flutter & Dart (Provider + HTTP + WebSocket Channel).
 - **Features:** Real-time AI chat stream, System Monitoring, God Mode enforcement UI.
 
-### âš™ï¸ CI/CD Pipeline (GitHub Actions)
+### ⚙️ CI/CD Pipeline (GitHub Actions)
 - **Matrix Builds:** Automatically builds Android APK, Windows EXE, and VS Code VSIX concurrently.
 - **Security:** Integrated GitHub CodeQL Semantic Security Analysis on every push.
 
-## ðŸš€ Getting Started
+## 🚀 Getting Started
 
 **Web Dashboard (Dev Mode):**
 ```bash
@@ -39,7 +39,46 @@ flutter pub get
 flutter run
 ```
 
-Built with â¤ï¸ for zero-latency DevSecOps.
+## 📦 Monorepo & Package Management (pnpm Migration)
+
+SupremeAI 2.0 uses **pnpm** as the package manager for the frontend monorepo. The migration was completed to improve install determinism and reduce disk usage across `apps/`, `packages/`, and `tools/`.
+
+### Prerequisites
+- **Node.js**: >= 20.0.0
+- **pnpm**: >= 9.0.0
+
+### Installation
+```bash
+pnpm install --frozen-lockfile
+```
+
+### Scripts
+| Command | Description |
+|---------|-------------|
+| `pnpm turbo run build` | Build all workspaces |
+| `pnpm turbo run lint` | Lint all workspaces |
+| `pnpm turbo run test` | Run all tests |
+| `pnpm backend:dev` | Start FastAPI dev server |
+| `pnpm backend:test` | Run backend tests |
+
+### Workspace Structure
+- **apps/studio-client** — React/Vite workspace
+- **apps/web-chat** — Chat interface
+- **apps/desktop** — Electron/Tauri desktop app
+- **apps/docs** — Docusaurus docs
+- **packages/ui-components** — Shared UI library
+- **packages/shared-types** — Shared Zod types
+- **tools/vscode-extension** — VS Code extension
+
+### Dependency Overrides
+The root `package.json` enforces consistent versions across the monorepo:
+- `typescript`: 5.4.5
+- `vite`: 7.3.5
+- `react` / `react-dom`: 18.2.0
+
+### CI/CD Updates
+- `supreme-core-ci.yml` and `supreme-release-builds.yml` now use `pnpm/action-setup@v3` with Node.js `actions/setup-node@v4` cache set to `pnpm`.
+- Frontend jobs use `pnpm install --frozen-lockfile` and `pnpm turbo run build lint test`.
 
 ## 🔒 Security Enhancements & Production Readiness (July 2026)
 
@@ -67,7 +106,7 @@ As part of the SupremeAI 2.0 production readiness audit, the following security 
   - `command_timeout=30` seconds
 - **Lifecycle Management**: Pool initialization moved to `backend/core/lifespan.py` with PostgreSQL DSN validation to avoid breaking tests (skips initialization in test environments)
 - **Singleton Enforcement**: `get_db_pool()` raises `RuntimeError` if called before initialization
-- **Test Fix**: Updated `test_pgbouncer_pool.py` to mock `asyncpg.connect` for isolated unit tests
+- **Test Fix**: Updated `test_pgbouncer_pool.py` to mock `asyncpg.Connection` for isolated unit tests
 
 ### 🐳 Docker & CI/CD Hardening
 - **docker-compose.yml**:
@@ -75,8 +114,8 @@ As part of the SupremeAI 2.0 production readiness audit, the following security 
   - Added service healthchecks (backend on port 8000)
   - Explicit `depends_on` with `condition: service_healthy` for frontend services
 - **GitHub Actions (deploy.yml)**:
-  - note)**: 
- 0 apply step uses the plan artifact from the plan job.
+  - note): 
+  0 apply step uses the plan artifact from the plan job.
     - Deployment job uses `environment: production` for protection rules and secrets
     - Added validation for required `CI_WEBHOOK_SECRET` in production
 
@@ -96,4 +135,3 @@ As part of the SupremeAI 2.0 production readiness audit, the following security 
 - **Linting**: All modified files pass `ruff check`
 - **Type Safety**: MyPy shows no new errors in modified files (pre-existing issues in unrelated modules remain)
 - **Test Coverage**: Maintained >38% overall coverage target
-

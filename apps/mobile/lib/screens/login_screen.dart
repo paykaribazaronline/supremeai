@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../services/localization_service.dart';
@@ -60,19 +59,19 @@ class LoginScreen extends StatelessWidget {
                   label: 'btn.login'.tr(),
                   child: ElevatedButton(
                     onPressed: () async {
-                    if (emailCtrl.text.trim().isEmpty || passCtrl.text.isEmpty) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Please enter email and password'),
-                        ),
+                      if (emailCtrl.text.trim().isEmpty || passCtrl.text.isEmpty) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Please enter email and password'),
+                          ),
+                        );
+                        return;
+                      }
+                      final provider = context.read<AuthProvider>();
+                      final success = await provider.login(
+                        emailCtrl.text.trim(),
+                        passCtrl.text,
                       );
-                      return;
-                    }
-                    final provider = context.read<AuthProvider>();
-                    final success = await provider.login(
-                      emailCtrl.text.trim(),
-                      passCtrl.text,
-                    );
                       if (context.mounted) {
                         if (success) {
                           // AuthProvider state change triggers UI update via Consumer

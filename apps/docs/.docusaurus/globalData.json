@@ -1,26 +1,26 @@
 {
   "docusaurus-plugin-content-docs": {
     "default": {
-      "path": "/docs",
+      "path": "/bn/docs",
       "versions": [
         {
           "name": "current",
           "label": "Next",
           "isLast": true,
-          "path": "/docs",
+          "path": "/bn/docs",
           "mainDocId": "intro",
           "docs": [
             {
               "id": "api-reference",
-              "path": "/docs/api-reference"
+              "path": "/bn/docs/api-reference"
             },
             {
               "id": "bangla-guide",
-              "path": "/docs/bangla-guide"
+              "path": "/bn/docs/bangla-guide"
             },
             {
               "id": "intro",
-              "path": "/docs/intro",
+              "path": "/bn/docs/intro",
               "sidebar": "tutorialSidebar"
             }
           ],
@@ -28,7 +28,7 @@
           "sidebars": {
             "tutorialSidebar": {
               "link": {
-                "path": "/docs/intro",
+                "path": "/bn/docs/intro",
                 "label": "intro"
               }
             }

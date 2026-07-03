@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:flutter/foundation.dart';
 
 class ApiClient {
   static const String baseUrl = 'https://api.supremeai.dev'; // আপনার প্রোডাকশন URL দিন
@@ -10,7 +11,7 @@ class ApiClient {
       final response = await http.post(Uri.parse('$baseUrl/api/admin/actions/$actionType'));
       return response.statusCode == 200;
     } catch (e) {
-      print('Action Trigger Error: $e');
+      debugPrint('Action Trigger Error: $e');
       return false;
     }
   }
@@ -25,7 +26,7 @@ class ApiClient {
       );
       return response.statusCode == 200;
     } catch (e) {
-      print('God Mode Error: $e');
+      debugPrint('God Mode Error: $e');
       return false;
     }
   }

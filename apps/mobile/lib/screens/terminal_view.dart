@@ -5,15 +5,15 @@ class TerminalView extends StatefulWidget {
   final String jobId;
   final String status;
 
-  const TerminalView({Key? key, required this.jobId, required this.status}) : super(key: key);
+  const TerminalView({super.key, required this.jobId, required this.status});
 
   @override
-  _TerminalViewState createState() => _TerminalViewState();
+  State<TerminalView> createState() => _TerminalViewState();
 }
 
 class _TerminalViewState extends State<TerminalView> {
   final CiSyncService _syncService = CiSyncService();
-  List<String> _logs = [];
+  final List<String> _logs = [];
   bool _isLoading = true;
 
   @override
