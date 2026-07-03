@@ -66,6 +66,11 @@ def append_text_to_summary(text: str):
 
 
 def add_pytest_results_to_summary(json_path: str, label: str = "Backend"):
+    # Try JSON format first (pytest-json-report), fall back to markdown (pytest-md)
+    if json_path.endswith('.md') or not json_path.endswith('.json'):
+        add_pytest_markdown_results(json_path, label)
+        return
+    
     if not os.path.exists(json_path):
         print(f"⚠️ Pytest JSON report not found: {json_path}")
         return
@@ -90,6 +95,19 @@ def add_pytest_results_to_summary(json_path: str, label: str = "Backend"):
             append_text_to_summary(f"- {failure.get('nodeid', 'unknown')}\n")
         if len(failures) > 5:
             append_text_to_summary(f"- ...and {len(failures) - 5} more failed tests\n")
+
+
+def add_pytest_markdown_results(md_path: str, label: str = "Backend"):
+    """Parse markdown test report from pytest-md and append to summary."""
+    if not os.path.exists(md_path):
+        print(f"⚠️ Pytest markdown report not found: {md_path}")
+        return
+
+    with open(md_path, encoding="utf-8") as f:
+        md_content = f.read()
+
+    append_text_to_summary(f"\n### 🧪 {label} Pytest Results\n")
+    append_text_to_summary(md_content)
 
 
 def add_vitest_results_to_summary(json_path: str, label: str = "Frontend"):
