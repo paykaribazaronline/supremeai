@@ -277,19 +277,28 @@ export async function activate(context: vscode.ExtensionContext) {
                 case 'updateImage':
                     previewImage.src = 'data:image/png;base64,' + message.data;
                     break;
-                case 'updateLog':
-                    logOutput.innerHTML += \`<p>\${message.data}</p>\`;
+                case 'updateLog': {
+                    const logEntry = document.createElement('p');
+                    logEntry.textContent = message.data;
+                    logOutput.appendChild(logEntry);
                     logOutput.scrollTop = logOutput.scrollHeight; // Scroll to bottom
                     break;
+                }
                 case 'askUser':
                     promptText.innerText = message.data;
                     interactionBox.classList.add('active');
                     userInput.focus();
                     break;
-                case 'taskComplete':
-                    logOutput.innerHTML += \`<p><b>টাস্ক সম্পন্ন হয়েছে:</b> \${message.result}</p>\`;
+                case 'taskComplete': {
+                    const taskEntry = document.createElement('p');
+                    const taskLabel = document.createElement('b');
+                    taskLabel.textContent = 'টাস্ক সম্পন্ন হয়েছে:';
+                    taskEntry.appendChild(taskLabel);
+                    taskEntry.appendChild(document.createTextNode(' ' + message.result));
+                    logOutput.appendChild(taskEntry);
                     vscode.window.showInformationMessage('ব্রাউজার টাস্ক সম্পন্ন হয়েছে!');
                     break;
+                }
             }
         });
     </script>

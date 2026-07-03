@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { setAdminToken, clearAdminToken } from '../services/adminTokenStore';
 
 interface AdminState {
   adminAuthenticated: boolean;
@@ -64,7 +65,7 @@ export const useAdminStore = create<AdminState>((set, get) => ({
         if (res.ok) {
           const data = await res.json();
           set({ adminAuthenticated: true, otpRequired: false, adminOtp: '' });
-          localStorage.setItem('supremeai_admin_token', data.token);
+          setAdminToken(data.token);
         } else {
           const data = await res.json();
           set({ adminError: data.detail || 'Invalid verification code.' });
@@ -75,7 +76,7 @@ export const useAdminStore = create<AdminState>((set, get) => ({
     }
   },
   handleAdminLogout: () => {
-    localStorage.removeItem('supremeai_admin_token');
+    clearAdminToken();
     set({ adminAuthenticated: false, adminPassword: '', otpRequired: false, adminOtp: '' });
   },
 }));

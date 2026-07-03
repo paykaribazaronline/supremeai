@@ -6,11 +6,12 @@
     "src-ui"
   ],
   "scripts": {
-    "dev": "npx tauri dev",
-    "build": "npx tauri build",
-    "dev:ui": "npm run dev --workspace=src-ui",
-    "build:ui": "npm run build --workspace=src-ui"
+    "dev": "pnpm --dir . tauri dev",
+    "build": "pnpm --dir . tauri build",
+    "dev:ui": "pnpm --dir src-ui dev",
+    "build:ui": "pnpm --dir src-ui build"
   },
+  "packageManager": "pnpm@9.0.0",
   "devDependencies": {
     "@tauri-apps/cli": "^1.5.0"
   }

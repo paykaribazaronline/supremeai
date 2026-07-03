@@ -2,11 +2,12 @@
 // বাংলা মন্তব্য: এটি অ্যাপ্লিকেশনের সেন্ট্রাল এপিআই ক্লায়েন্ট যা হেডার, টোকেন এবং সিকিউর রেট লিমিট (429) / ভ্যালিডেশন এরর ইন্টারসেপ্ট করে।
 
 import { getApiBaseUrl } from '../utils/api';
+import { getAdminToken } from './adminTokenStore';
 
 const API_BASE_URL = getApiBaseUrl();
 
 export const getAuthHeaders = (): Record<string, string> => {
-  const token = localStorage.getItem('supremeai_admin_token') || '';
+  const token = getAdminToken();
   return {
     'Content-Type': 'application/json',
     'Authorization': token ? `Bearer ${token}` : '',

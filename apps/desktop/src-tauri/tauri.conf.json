@@ -75,7 +75,7 @@
       }
     ],
     "updater": {
-      "active": true,
+      "active": false,
       "endpoints": [
         "https://github.com/supremeai/supremeai_2.0/releases/latest/download/latest.json"
       ],

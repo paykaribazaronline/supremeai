@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useStore } from '../../store/useStore';
 import { useCIReports } from '../../hooks/useAdminApi';
 import { getApiBaseUrl } from '../../utils/api';
+import { getAdminToken } from '../../services/adminTokenStore';
 import type { CIReport } from '../../types';
 
 interface FeatureFlag {
@@ -54,7 +55,7 @@ export function CICDVisualizer() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('supremeai_admin_token') || ''}`
+          'Authorization': `Bearer ${getAdminToken()}`
         }
       });
       if (res.ok) {

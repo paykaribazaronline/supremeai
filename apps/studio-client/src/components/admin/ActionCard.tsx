@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { getApiBaseUrl } from '../../utils/api';
+import { getAdminToken } from '../../services/adminTokenStore';
 
 interface Action {
   id: string;
@@ -62,7 +64,7 @@ export function ActionCard({ rawContent, onSaveToProject, onPreview }: ActionCar
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
-              'Authorization': `Bearer ${localStorage.getItem('supremeai_admin_token') || ''}`
+              'Authorization': `Bearer ${getAdminToken()}`
             }
           });
           if (res.ok) {

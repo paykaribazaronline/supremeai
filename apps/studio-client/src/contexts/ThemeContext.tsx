@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
+import { getAdminToken } from '../services/adminTokenStore';
 
 // বাংলা মন্তব্য: ৪টি থিম সাপোর্ট করা হচ্ছে — Dark Space, Sky Blue, Sunset Ember, Emerald Matrix
 type Theme = 'dark' | 'light' | 'sunset' | 'matrix';
@@ -25,7 +26,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     
     // 2. ব্যাকএন্ড থেকে ফেচ করা (Cross-device sync)
     const API_BASE = getApiBaseUrl();
-    const token = localStorage.getItem('supremeai_admin_token') || '';
+    const token = getAdminToken();
     fetch(`${API_BASE}/api/v1/preferences`, {
       headers: {
         'Authorization': `Bearer ${token}`
@@ -61,7 +62,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
     // ব্যাকএন্ডে async সিঙ্ক করা
     const API_BASE = getApiBaseUrl();
-    const token = localStorage.getItem('supremeai_admin_token') || '';
+    const token = getAdminToken();
     fetch(`${API_BASE}/api/v1/preferences`, {
       method: 'POST',
       headers: { 

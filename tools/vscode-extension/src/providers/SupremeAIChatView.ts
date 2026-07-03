@@ -62,8 +62,17 @@ export class SupremeAIChatView {
   /**
    * Returns the main chat interface HTML.
    */
+  private static escapeHtml(value: string): string {
+    return value
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
   public static getHTMLContent(isGuest: boolean, username: string, hasApiKey: boolean, messageHistory: ChatMessage[]): string {
-    const safeUsername = username || 'User';
+    const safeUsername = this.escapeHtml(username || 'User');
     const messagesHtml = (messageHistory || []).map(msg => this.renderMessage(msg)).join('');
     const emptyState = (!messageHistory || messageHistory.length === 0) ? this.getEmptyState(safeUsername) : '';
 
@@ -147,6 +156,20 @@ export class SupremeAIChatView {
     const vscode = acquireVsCodeApi();
     const messagesDiv = document.getElementById('messages');
     let currentStreamingEl: HTMLElement | null = null;
+    const escapeHtml = (value) => {
+      return String(value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    };
+
+    const appendMessageElement = (element) => {
+      messagesDiv.appendChild(element);
+      messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    };
+
     window.addEventListener('message', event => {
       const data = event.data;
       if (data.type === 'addMessage' || data.type === 'showThinking') {
@@ -155,20 +178,19 @@ export class SupremeAIChatView {
           const existing = document.getElementById('thinking-message-container');
           if (existing) existing.remove();
         }
-        const msgHtml = renderMessage(msgData);
+        const msgElement = renderMessage(msgData);
         const emptyState = document.querySelector('.empty-state');
         if (emptyState) emptyState.remove();
-        messagesDiv.insertAdjacentHTML('beforeend', msgHtml);
-        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        appendMessageElement(msgElement);
       } else if (data.type === 'removeThinking') {
         const indicators = document.querySelectorAll('[id="thinking-message-container"]');
         indicators.forEach(el => el.remove());
       } else if (data.type === 'streamChunk') {
         const text = data.text || '';
         if (!currentStreamingEl) {
-          const thinkingMsg: any = { id: 'streaming', role: 'assistant', content: text, timestamp: new Date().toISOString(), thinking: false };
-          const msgHtml = renderMessage(thinkingMsg);
-          messagesDiv.insertAdjacentHTML('beforeend', msgHtml);
+          const thinkingMsg = { id: 'streaming', role: 'assistant', content: text, timestamp: new Date().toISOString(), thinking: false };
+          const msgElement = renderMessage(thinkingMsg);
+          appendMessageElement(msgElement);
           currentStreamingEl = document.getElementById('thinking-message-container');
           if (currentStreamingEl) currentStreamingEl.removeAttribute('id');
           const aiContentEl = currentStreamingEl ? currentStreamingEl.querySelector('.message-content') : null;
@@ -178,7 +200,7 @@ export class SupremeAIChatView {
         } else {
           const aiContentEl = currentStreamingEl.querySelector('.message-content');
           if (aiContentEl) {
-            aiContentEl.innerHTML += text;
+            aiContentEl.textContent += text;
           }
         }
         messagesDiv.scrollTop = messagesDiv.scrollHeight;
@@ -194,7 +216,36 @@ export class SupremeAIChatView {
       const time = new Date(msg.timestamp || Date.now()).toLocaleTimeString();
       const role = msg.role || 'assistant';
       const isThinking = msg.thinking;
-      return '<div class="message-container" ' + (isThinking ? 'id="thinking-message-container"' : '') + '><div class="message ' + role + '"><div class="avatar ' + role + '-avatar">' + (role === 'user' ? 'U' : 'AI') + '</div><div class="message-content ' + (msg.error ? 'error' : '') + ' ' + (isThinking ? 'thinking' : '') + '">' + (msg.content || '') + '</div></div><div class="message-meta" style="margin-left: ' + (role === 'user' ? 'auto' : '44px') + '; text-align: ' + (role === 'user' ? 'right' : 'left') + ';">' + time + '</div></div>';
+
+      const container = document.createElement('div');
+      container.className = 'message-container';
+      if (isThinking) {
+        container.id = 'thinking-message-container';
+      }
+
+      const messageDiv = document.createElement('div');
+      messageDiv.className = 'message ' + role;
+
+      const avatar = document.createElement('div');
+      avatar.className = 'avatar ' + role + '-avatar';
+      avatar.textContent = role === 'user' ? 'U' : 'AI';
+
+      const contentDiv = document.createElement('div');
+      contentDiv.className = 'message-content ' + (msg.error ? 'error' : '') + ' ' + (isThinking ? 'thinking' : '');
+      contentDiv.textContent = msg.content || '';
+
+      const metaDiv = document.createElement('div');
+      metaDiv.className = 'message-meta';
+      metaDiv.style.marginLeft = role === 'user' ? 'auto' : '44px';
+      metaDiv.style.textAlign = role === 'user' ? 'right' : 'left';
+      metaDiv.textContent = time;
+
+      messageDiv.appendChild(avatar);
+      messageDiv.appendChild(contentDiv);
+      container.appendChild(messageDiv);
+      container.appendChild(metaDiv);
+
+      return container;
     }
     function sendMessage() {
       const input = document.getElementById('messageInput');
@@ -232,7 +283,7 @@ export class SupremeAIChatView {
     const isThinking = msg.thinking;
     const isError = msg.error;
     const role = msg.role || 'assistant';
-    const content = msg.content || '';
+    const content = this.escapeHtml(msg.content || '');
 
     return `
       <div class="message-container" ${isThinking ? 'id="thinking-message-container"' : ''}>

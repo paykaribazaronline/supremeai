@@ -6,6 +6,7 @@ import { UserDashboard } from "./components/customer/UserDashboard";
 import { getAethelResponse } from "./services/chatService";
 import type { ChatMessage } from "./services/chatService";
 import { getApiBaseUrl } from "./utils/api";
+import { getAdminToken } from './services/adminTokenStore';
 import { Cpu, Send } from 'lucide-react';
 import ReactFlow, { Background, useNodesState, useEdgesState } from 'reactflow';
 import 'reactflow/dist/style.css';
@@ -68,7 +69,7 @@ function AdminShell() {
 
     const API_BASE = getApiBaseUrl();
     const headers = {
-      "Authorization": `Bearer ${localStorage.getItem('supremeai_admin_token') || ''}`,
+      "Authorization": `Bearer ${getAdminToken()}`,
       "Content-Type": "application/json"
     };
 
@@ -112,7 +113,7 @@ function AdminShell() {
     setActionStatus("TRIGGERING DEPLOY...");
     const API_BASE = getApiBaseUrl();
     const headers = {
-      "Authorization": `Bearer ${localStorage.getItem('supremeai_admin_token') || ''}`,
+      "Authorization": `Bearer ${getAdminToken()}`,
       "Content-Type": "application/json"
     };
     fetch(`${API_BASE}/admin-api/deploy`, { method: "POST", headers })
@@ -165,7 +166,7 @@ function AdminShell() {
     if (!newUsername) return;
     const API_BASE = getApiBaseUrl();
     const headers = {
-      "Authorization": `Bearer ${localStorage.getItem('supremeai_admin_token') || ''}`,
+      "Authorization": `Bearer ${getAdminToken()}`,
       "Content-Type": "application/json"
     };
     fetch(`${API_BASE}/admin-api/users`, {
@@ -184,7 +185,7 @@ function AdminShell() {
   const handleDeleteUser = (username: string) => {
     const API_BASE = getApiBaseUrl();
     const headers = {
-      "Authorization": `Bearer ${localStorage.getItem('supremeai_admin_token') || ''}`,
+      "Authorization": `Bearer ${getAdminToken()}`,
       "Content-Type": "application/json"
     };
     fetch(`${API_BASE}/admin-api/users/${username}`, { method: "DELETE", headers })

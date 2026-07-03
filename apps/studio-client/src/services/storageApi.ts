@@ -1,11 +1,12 @@
 // FrR2 Storage API
 
 import { getApiBaseUrl } from './utils/api';
+import { getAdminToken } from './adminTokenStore';
 
 const API_BASE_URL = getApiBaseUrl();
 
 const getAuthToken = () => {
-    return localStorage.getItem('supremeai_admin_token') || '';
+    return getAdminToken();
 };
 
 export const uploadFileToR2 = async (file: File) => {
