@@ -429,8 +429,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      # বাংলা মন্তব্য: k6io/setup-k6 রিপোজিটরি অপসারিত হওয়ায় grafana/setup-k6-action@v1 ব্যবহার করা হলো
       - name: Install k6
-        uses: k6io/setup-k6@v1
+        uses: grafana/setup-k6-action@v1
       - name: Run k6 load test
         env:
           SUPREMEAI_URL: ${{ env.SUPREMEAI_API_URL }}
