@@ -17,19 +17,23 @@ DOCUMENT_EXTENSIONS = {
     '.go', '.rs', '.java', '.rb', '.cpp', '.c'
 }
 
-# এড়িয়ে যাওয়ার ফোল্ডার (বাংলা মন্তব্য: যেসব ফোল্ডার আমাদের ডকুমেন্টে অন্তর্ভুক্ত করার প্রয়োজন নেই)
+# এড়িয়ে যাওয়ার ফোল্ডার (বাংলা মন্তব্য: যেসব ফোল্ডার আমাদের ডকুমেন্টে অন্তর্ভুক্ত করার প্রয়োজন নেই, মরিচা বা রাস্টের target ডিরেক্টরি সহ)
 IGNORE_DIRS = {
     '.git', 'node_modules', '.venv', '.env',
     '.docusaurus', 'docs', '.next', 'dist',
     'build', 'out', '__pycache__', '.pytest_cache',
     '.mypy_cache', 'venv', 'env', '.idea',
-    '.vscode', 'coverage', 'logs', 'artifacts', 'brain', '.agents'
+    '.vscode', 'coverage', 'logs', 'artifacts', 'brain', '.agents',
+    'target'
 }
 
 def should_skip_path(path_str: str) -> bool:
-    """পাথ স্কিপ করা উচিত কিনা চেক করুন (বাংলা মন্তব্য: স্কিপ ফোল্ডারগুলো চেক করার ফাংশন)"""
-    for ignore in IGNORE_DIRS:
-        if f"{os.sep}{ignore}{os.sep}" in f"{os.sep}{path_str}{os.sep}":
+    """পাথ স্কিপ করা উচিত কিনা চেক করুন (বাংলা মন্তব্য: পাথ পার্টস চেক করে ডট ফোল্ডার ও ইগনোর লিস্টের ফোল্ডারগুলো স্কিপ করার ফাংশন)"""
+    parts = Path(path_str).parts
+    for part in parts:
+        if part in IGNORE_DIRS:
+            return True
+        if part.startswith('.') and part != '.github':
             return True
     return False
 
@@ -94,6 +98,8 @@ def generate_docs():
     print(f"Documented {file_count} files ({total_size:,} bytes)")
 
     # ২. লাস্ট ১৫টি কমিটের চেঞ্জলগ তৈরি (বাংলা মন্তব্য: গিট থেকে শেষ ১৫টি কমিটের ডিটেইলস নিয়ে ফাইল তৈরি)
+    # বাংলা মন্তব্য: ডিফ সাইজ ৫০০ কেবি-তে সীমাবদ্ধ রাখা হচ্ছে যাতে চেঞ্জলগ ফাইল খুব বড় না হয়ে পেজেস ডিপ্লয়মেন্ট ব্যর্থ না হয়
+    MAX_DIFF_SIZE = 500 * 1024  # ৫০০ কেবি সর্বোচ্চ ডিফ সাইজ
     print("Generating changelogs for the last 15 commits...")
     try:
         commits = subprocess.check_output(["git", "log", "-n", "15", "--format=%H"]).decode().splitlines()
@@ -101,6 +107,10 @@ def generate_docs():
             try:
                 commit_info = subprocess.check_output(["git", "show", "--stat", commit]).decode('utf-8', errors='replace')
                 diff = subprocess.check_output(["git", "show", commit]).decode('utf-8', errors='replace')
+                
+                # বাংলা মন্তব্য: ডিফ খুব বড় হলে ছেঁটে ফেলা হচ্ছে যাতে GitHub Pages লিমিট অতিক্রম না করে
+                if len(diff) > MAX_DIFF_SIZE:
+                    diff = diff[:MAX_DIFF_SIZE] + f"\n\n... [TRUNCATED — diff was {len(diff):,} bytes, capped at {MAX_DIFF_SIZE:,}] ...\n"
                 
                 changelog_content = f"# 📋 Commit {commit}\n\n## Commit Stats\n```\n{commit_info}\n```\n\n## Diff Detail\n```diff\n{diff}\n```\n"
                 (changes_dir / f"change_{commit}.md").write_text(changelog_content, encoding='utf-8')

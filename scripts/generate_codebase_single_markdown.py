@@ -16,19 +16,23 @@ DOCUMENT_EXTENSIONS = {
     '.go', '.rs', '.java', '.rb', '.cpp', '.c'
 }
 
-# এড়িয়ে যাওয়ার ফোল্ডার (বাংলা মন্তব্য: যেসব ফোল্ডার আমাদের ডকুমেন্টে অন্তর্ভুক্ত করার প্রয়োজন নেই)
+# এড়িয়ে যাওয়ার ফোল্ডার (বাংলা মন্তব্য: যেসব ফোল্ডার আমাদের ডকুমেন্টে অন্তর্ভুক্ত করার প্রয়োজন নেই, রাস্টের target ডিরেক্টরি সহ)
 IGNORE_DIRS = {
     '.git', 'node_modules', '.venv', '.env',
     '.docusaurus', 'docs', '.next', 'dist',
     'build', 'out', '__pycache__', '.pytest_cache',
     '.mypy_cache', 'venv', 'env', '.idea',
-    '.vscode', 'coverage', 'logs', 'artifacts', 'brain', '.agents'
+    '.vscode', 'coverage', 'logs', 'artifacts', 'brain', '.agents',
+    'target'
 }
 
 def should_skip_path(path_str: str) -> bool:
-    """পাথ স্কিপ করা উচিত কিনা চেক করুন (বাংলা মন্তব্য: স্কিপ ফোল্ডারগুলো চেক করার ফাংশন)"""
-    for ignore in IGNORE_DIRS:
-        if f"{os.sep}{ignore}{os.sep}" in f"{os.sep}{path_str}{os.sep}":
+    """পাথ স্কিপ করা উচিত কিনা চেক করুন (বাংলা মন্তব্য: পাথ পার্টস চেক করে ডট ফোল্ডার ও ইগনোর লিস্টের ফোল্ডারগুলো স্কিপ করার ফাংশন)"""
+    parts = Path(path_str).parts
+    for part in parts:
+        if part in IGNORE_DIRS:
+            return True
+        if part.startswith('.') and part != '.github':
             return True
     return False
 

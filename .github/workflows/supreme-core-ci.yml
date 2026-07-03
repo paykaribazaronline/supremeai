@@ -530,6 +530,11 @@ jobs:
         run: |
           # বাংলা মন্তব্য: codebase_full.md ফাইলটি ১৩MB+ বড় হওয়ায় GitHub Pages limit অতিক্রম করে, তাই বাদ দেওয়া হচ্ছে
           find docs/autogen -name "codebase_full.md" -delete || true
+          # বাংলা মন্তব্য: ১ MB-র বেশি সাইজের চেঞ্জলগ ফাইলগুলো বাদ দেওয়া হচ্ছে — বড় কমিট ডিফ পেজেস ডিপ্লয়মেন্ট ব্যর্থ করে
+          find docs/autogen/changes -name "change_*.md" -size +1M -delete || true
+          # বাংলা মন্তব্য: ফাইনাল সাইজ দেখানো হচ্ছে যাতে ডিবাগ করা সহজ হয়
+          echo "📦 Final docs/autogen size for Pages:"
+          du -sh docs/autogen/ || true
           echo "✅ Large files excluded from Pages deployment"
       - name: Upload Artifact to Pages
         if: github.ref == 'refs/heads/main'
