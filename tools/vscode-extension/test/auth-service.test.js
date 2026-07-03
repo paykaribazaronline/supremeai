@@ -1,20 +1,20 @@
 "use strict";
-jest.mock('axios');
-jest.mock('vscode');
+vi.mock('axios');
+vi.mock('vscode');
 const axios = require('axios');
 const vscode = require('vscode');
 const { AuthService } = require('../src/services/AuthService');
 beforeAll(() => {
     vscode.window = {
-        showInformationMessage: jest.fn(),
-        showErrorMessage: jest.fn(),
-        showWarningMessage: jest.fn(),
+        showInformationMessage: vi.fn(),
+        showErrorMessage: vi.fn(),
+        showWarningMessage: vi.fn(),
     };
     vscode.commands = {
-        executeCommand: jest.fn().mockResolvedValue(undefined),
+        executeCommand: vi.fn().mockResolvedValue(undefined),
     };
     vscode.authentication = {
-        getSession: jest.fn(),
+        getSession: vi.fn(),
     };
 });
 describe('AuthService', () => {
@@ -26,7 +26,7 @@ describe('AuthService', () => {
             enableRealTimeLearning: true,
             autoReportErrors: true,
         });
-        jest.clearAllMocks();
+        vi.clearAllMocks();
     });
     afterEach(() => {
         authService.logout();

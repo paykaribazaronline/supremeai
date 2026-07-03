@@ -1,22 +1,22 @@
 export declare const window: {
-    showInformationMessage: jest.Mock<any, any, any>;
-    showErrorMessage: jest.Mock<any, any, any>;
-    showWarningMessage: jest.Mock<any, any, any>;
-    createWebviewPanel: jest.Mock<any, any, any>;
+    showInformationMessage: any;
+    showErrorMessage: any;
+    showWarningMessage: any;
+    createWebviewPanel: any;
     activeTextEditor: undefined;
     visibleTextEditors: never[];
 };
 export declare const workspace: {
-    getConfiguration: jest.Mock<any, any, any>;
-    onDidChangeTextDocument: jest.Mock<any, any, any>;
-    onDidSaveTextDocument: jest.Mock<any, any, any>;
+    getConfiguration: any;
+    onDidChangeTextDocument: any;
+    onDidSaveTextDocument: any;
 };
 export declare const commands: {
-    executeCommand: jest.Mock<any, any, any>;
-    registerCommand: jest.Mock<any, any, any>;
+    executeCommand: any;
+    registerCommand: any;
 };
 export declare const authentication: {
-    getSession: jest.Mock<any, any, any>;
+    getSession: any;
 };
 export declare class Range {
     start: any;
@@ -33,4 +33,4 @@ export declare class Selection {
     active: any;
     constructor(anchor: any, active: any);
 }
-export declare const ExtensionContext: jest.Mock<any, any, any>;
+export declare const ExtensionContext: any;

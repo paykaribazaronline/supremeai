@@ -1,12 +1,12 @@
 "use strict";
-jest.mock('axios', () => {
+vi.mock('axios', () => {
     const mockAxios = {
-        create: jest.fn((config) => {
+        create: vi.fn((config) => {
             const baseURL = config?.baseURL || '';
             return {
                 interceptors: {
-                    request: { use: jest.fn() },
-                    response: { use: jest.fn() },
+                    request: { use: vi.fn() },
+                    response: { use: vi.fn() },
                 },
                 post: (url, data, options) => {
                     const fullUrl = url.startsWith('http') ? url : (baseURL + url);
@@ -22,9 +22,9 @@ jest.mock('axios', () => {
                 },
             };
         }),
-        post: jest.fn(),
-        get: jest.fn(),
-        delete: jest.fn(),
+        post: vi.fn(),
+        get: vi.fn(),
+        delete: vi.fn(),
         mockReset: () => {
             mockAxios.post.mockReset();
             mockAxios.get.mockReset();

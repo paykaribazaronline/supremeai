@@ -1,5 +1,5 @@
-jest.mock('axios');
-jest.mock('vscode');
+vi.mock('axios');
+vi.mock('vscode');
 
 const axios = require('axios');
 const vscode = require('vscode');
@@ -8,31 +8,31 @@ const { AuthService } = require('../src/services/AuthService');
 
 beforeAll(() => {
   vscode.window = {
-    showInformationMessage: jest.fn(),
-    showErrorMessage: jest.fn(),
-    showWarningMessage: jest.fn(),
+    showInformationMessage: vi.fn(),
+    showErrorMessage: vi.fn(),
+    showWarningMessage: vi.fn(),
   };
   vscode.commands = {
-    executeCommand: jest.fn().mockResolvedValue(undefined),
+    executeCommand: vi.fn().mockResolvedValue(undefined),
   };
   vscode.authentication = {
-    getSession: jest.fn(),
+    getSession: vi.fn(),
   };
   vscode.env = {
-    openExternal: jest.fn().mockResolvedValue(true),
+    openExternal: vi.fn().mockResolvedValue(true),
   };
   vscode.Uri = {
-    parse: jest.fn().mockImplementation((val) => ({ toString: () => val })),
+    parse: vi.fn().mockImplementation((val) => ({ toString: () => val })),
   };
   vscode.workspace = {
-    getConfiguration: jest.fn().mockReturnValue({
-      update: jest.fn().mockResolvedValue(undefined),
-      get: jest.fn().mockReturnValue(''),
+    getConfiguration: vi.fn().mockReturnValue({
+      update: vi.fn().mockResolvedValue(undefined),
+      get: vi.fn().mockReturnValue(''),
     }),
     isTrusted: true,
   };
   vscode.extensions = {
-    getExtension: jest.fn().mockReturnValue({
+    getExtension: vi.fn().mockReturnValue({
       extensionKind: 1,
     }),
   };
@@ -48,7 +48,7 @@ describe('AuthService', () => {
       enableRealTimeLearning: true,
       autoReportErrors: true,
     });
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   afterEach(() => {

@@ -1,37 +1,35 @@
-jest.mock('axios', () => {
-  const mockAxios = {
-    create: jest.fn((config) => {
+vi.mock('axios', () => ({
+  create: vi.fn((config) => ({
+    interceptors: {
+      request: { use: vi.fn() },
+      response: { use: vi.fn() },
+    },
+    post: (url: string, data: any, options: any) => {
       const baseURL = config?.baseURL || '';
-      return {
-        interceptors: {
-          request: { use: jest.fn() },
-          response: { use: jest.fn() },
-        },
-        post: (url: string, data: any, options: any) => {
-          const fullUrl = url.startsWith('http') ? url : (baseURL + url);
-          return mockAxios.post(fullUrl, data, options || {});
-        },
-        get: (url: string, options: any) => {
-          const fullUrl = url.startsWith('http') ? url : (baseURL + url);
-          return mockAxios.get(fullUrl, options || {});
-        },
-        delete: (url: string, options: any) => {
-          const fullUrl = url.startsWith('http') ? url : (baseURL + url);
-          return mockAxios.delete(fullUrl, options || {});
-        },
-      };
-    }),
-    post: jest.fn(),
-    get: jest.fn(),
-    delete: jest.fn(),
-    mockReset: () => {
-      mockAxios.post.mockReset();
-      mockAxios.get.mockReset();
-      mockAxios.delete.mockReset();
-      mockAxios.create.mockClear();
-    }
-  };
-  return mockAxios;
+      const fullUrl = url.startsWith('http') ? url : (baseURL + url);
+      return mockAxios.post(fullUrl, data, options || {});
+    },
+    get: (url: string, options: any) => {
+      const baseURL = config?.baseURL || '';
+      const fullUrl = url.startsWith('http') ? url : (baseURL + url);
+      return mockAxios.get(fullUrl, options || {});
+    },
+    delete: (url: string, options: any) => {
+      const baseURL = config?.baseURL || '';
+      const fullUrl = url.startsWith('http') ? url : (baseURL + url);
+      return mockAxios.delete(fullUrl, options || {});
+    },
+  })),
+  post: vi.fn(),
+  get: vi.fn(),
+  delete: vi.fn(),
+  mockReset: () => {
+    mockAxios.post.mockReset();
+    mockAxios.get.mockReset();
+    mockAxios.delete.mockReset();
+    mockAxios.create.mockClear();
+  }
+}));
 });
 
 const axios = require('axios');

@@ -61,34 +61,34 @@ export class Selection extends Range {
 
 // ⚡ Active Functional Namespaces using Jest Spies with proper type structures
 export const window = {
-    showInformationMessage: jest.fn().mockResolvedValue(undefined),
-    showErrorMessage: jest.fn().mockResolvedValue(undefined),
-    showWarningMessage: jest.fn().mockResolvedValue(undefined),
+    showInformationMessage: vi.fn().mockResolvedValue(undefined),
+    showErrorMessage: vi.fn().mockResolvedValue(undefined),
+    showWarningMessage: vi.fn().mockResolvedValue(undefined),
     activeTextEditor: undefined,
     visibleTextEditors: [],
-    createStatusBarItem: jest.fn().mockReturnValue({
+    createStatusBarItem: vi.fn().mockReturnValue({
         command: undefined,
         text: "",
-        show: jest.fn(),
-        hide: jest.fn(),
-        dispose: jest.fn()
+        show: vi.fn(),
+        hide: vi.fn(),
+        dispose: vi.fn()
     })
 };
 
 export const workspace = {
-    getConfiguration: jest.fn().mockReturnValue({
-        get: jest.fn(),
-        update: jest.fn(),
-        has: jest.fn()
+    getConfiguration: vi.fn().mockReturnValue({
+        get: vi.fn(),
+        update: vi.fn(),
+        has: vi.fn()
     }),
     textDocuments: [],
-    onDidChangeTextDocument: jest.fn().mockReturnValue({ dispose: jest.fn() }),
-    onDidSaveTextDocument: jest.fn().mockReturnValue({ dispose: jest.fn() })
+    onDidChangeTextDocument: vi.fn().mockReturnValue({ dispose: vi.fn() }),
+    onDidSaveTextDocument: vi.fn().mockReturnValue({ dispose: vi.fn() })
 };
 
 export const commands = {
-    registerCommand: jest.fn().mockReturnValue({ dispose: jest.fn() }),
-    executeCommand: jest.fn().mockResolvedValue(undefined)
+    registerCommand: vi.fn().mockReturnValue({ dispose: vi.fn() }),
+    executeCommand: vi.fn().mockResolvedValue(undefined)
 };
 
 export enum StatusBarAlignment {
@@ -103,10 +103,10 @@ export enum OverviewRulerLane {
     Full = 7
 }
 
-export const ExtensionContext = jest.fn().mockImplementation(() => ({
+export const ExtensionContext = vi.fn().mockImplementation(() => ({
     subscriptions: [],
-    workspaceState: { get: jest.fn(), update: jest.fn() },
-    globalState: { get: jest.fn(), update: jest.fn(), setKeysForSync: jest.fn() },
+    workspaceState: { get: vi.fn(), update: vi.fn() },
+    globalState: { get: vi.fn(), update: vi.fn(), setKeysForSync: vi.fn() },
     extensionPath: "/mock/extension/path",
     storagePath: "/mock/storage/path",
     globalStoragePath: "/mock/global/storage/path",
