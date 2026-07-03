@@ -46,11 +46,7 @@ Return ONLY a valid JSON object matching this structure (merge with existing if 
 JSON:"""
 
         try:
-            response = await llm_gateway.acompletion(
-                prompt=analysis_prompt,
-                task_type="analysis",
-                stream=False
-            )
+            response = await llm_gateway.acompletion(prompt=analysis_prompt, task_type="analysis", stream=False)
             text = response.get("text", "{}") if isinstance(response, dict) else str(response)
 
             if "```" in text:
@@ -62,10 +58,7 @@ JSON:"""
             new_prefs = json.loads(text.strip())
             if new_prefs:
                 merged_prefs = {**existing_prefs, **new_prefs}
-                await asyncio.to_thread(db.upsert_user_preferences, {
-                    "user_id": user_id,
-                    "preferences": merged_prefs
-                })
+                await asyncio.to_thread(db.upsert_user_preferences, {"user_id": user_id, "preferences": merged_prefs})
                 print(f"🤖 [WS] Updated user preferences for {user_id}: {merged_prefs}")
         except Exception:
             print("⚠️ [WS] Failed to analyze user preferences")
@@ -172,11 +165,7 @@ async def websocket_chat_endpoint(
 
                 messages_payload = [{"role": "system", "content": system_instructions}] + chat_history
 
-                response_stream = await llm_gateway.acompletion(
-                    prompt=messages_payload,
-                    task_type="chat",
-                    stream=True
-                )
+                response_stream = await llm_gateway.acompletion(prompt=messages_payload, task_type="chat", stream=True)
 
                 response_content = ""
                 async for chunk in response_stream:

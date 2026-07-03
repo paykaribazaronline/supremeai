@@ -58,12 +58,8 @@ async def _ensure_api_key_tables() -> None:
         )
         """
     )
-    await pool.execute(
-        "CREATE INDEX IF NOT EXISTS idx_api_keys_hash ON api_keys(key_hash)"
-    )
-    await pool.execute(
-        "CREATE INDEX IF NOT EXISTS idx_api_key_usage_key ON api_key_usage(api_key_id, created_at DESC)"
-    )
+    await pool.execute("CREATE INDEX IF NOT EXISTS idx_api_keys_hash ON api_keys(key_hash)")
+    await pool.execute("CREATE INDEX IF NOT EXISTS idx_api_key_usage_key ON api_key_usage(api_key_id, created_at DESC)")
     logger.info("✅ API key tables ensured")
 
 
@@ -110,9 +106,7 @@ async def app_lifespan(app):
     try:
         if settings.discord_bot_token and settings.discord_bot_token != "mock_token":
             bot = SupremeDiscordBot()
-            app.state.discord_bot_task = asyncio.create_task(
-                bot.start(settings.discord_bot_token)
-            )
+            app.state.discord_bot_task = asyncio.create_task(bot.start(settings.discord_bot_token))
             app.state.discord_bot = bot
             logger.info("🤖 Discord Bot background task initialized successfully.")
     except Exception as e:
@@ -129,21 +123,15 @@ async def app_lifespan(app):
     try:
         from database import db as supabase_db
 
-        if os.environ.get("SUPABASE_DATABASE_URL") or os.environ.get(
-            "SUPABASE_DATABASE_URL_POOLER"
-        ):
+        if os.environ.get("SUPABASE_DATABASE_URL") or os.environ.get("SUPABASE_DATABASE_URL_POOLER"):
             supabase_db.bootstrap_schema()
             logger.info("Supabase schema bootstrap complete")
     except Exception as exc:
-        logger.warning(
-            f"Supabase bootstrap failed on startup: {exc}. Continuing without schema bootstrap."
-        )
+        logger.warning(f"Supabase bootstrap failed on startup: {exc}. Continuing without schema bootstrap.")
 
     yield  # এখানে অ্যাপ্লিকেশন ট্রাফিক রিসিভ করবে
 
-    logger.critical(
-        "🚨 Graceful Shutdown Sequence triggered via Cloud Run Orchestrator."
-    )
+    logger.critical("🚨 Graceful Shutdown Sequence triggered via Cloud Run Orchestrator.")
 
     try:
         bot = getattr(app.state, "discord_bot", None)
