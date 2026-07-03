@@ -50,11 +50,7 @@ class BengaliNLP:
             score = 0.5
         else:
             score = pos / total
-            label = (
-                "positive"
-                if score >= 0.6
-                else "negative" if score <= 0.4 else "neutral"
-            )
+            label = "positive" if score >= 0.6 else "negative" if score <= 0.4 else "neutral"
         return {
             "label": label,
             "score": round(score, 3),
