@@ -96,11 +96,15 @@ jobs:
           REDIS_URL: ${{ secrets.REDIS_URL }}
         run: |
           python tools/cache_cleanup.py
-      - name: Prune stale GitHub caches
+      - name: Clean Caches
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh cache list --repo ${{ github.repository }} --limit 100 | awk '{print $1}' | xargs -r -I {} gh cache delete {} --repo ${{ github.repository }}
+          # শুধুমাত্র নির্দিষ্ট কিছু ক্যাশ ডিলিট করার চেষ্টা করুন
+          gh cache list --limit 100 --json key -q '.[].key' | while read key; do
+            echo "Deleting cache: $key"
+            gh cache delete "$key" --confirm || echo "Could not delete $key - Skipping"
+          done
 
   # ----------------------------------------------------
   # 📦 DEPENDENCY UPDATE (Dependabot বিকল্প)
