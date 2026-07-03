@@ -1,0 +1,124 @@
+# 📄 ফাইল: tools/vscode-extension/test/auth-service.test.ts
+
+**প্রকার:** .ts  
+**সাইজ:** 3,079 বাইট  
+**আপডেট:** 2026-07-03T11:21:08.678905
+
+---
+
+## কোড
+
+```ts
+vi.mock('axios');
+vi.mock('vscode');
+
+const axios = require('axios');
+const vscode = require('vscode');
+
+const { AuthService } = require('../src/services/AuthService');
+
+beforeAll(() => {
+  vscode.window = {
+    showInformationMessage: vi.fn(),
+    showErrorMessage: vi.fn(),
+    showWarningMessage: vi.fn(),
+  };
+  vscode.commands = {
+    executeCommand: vi.fn().mockResolvedValue(undefined),
+  };
+  vscode.authentication = {
+    getSession: vi.fn(),
+  };
+  vscode.env = {
+    openExternal: vi.fn().mockResolvedValue(true),
+  };
+  vscode.Uri = {
+    parse: vi.fn().mockImplementation((val) => ({ toString: () => val })),
+  };
+  vscode.workspace = {
+    getConfiguration: vi.fn().mockReturnValue({
+      update: vi.fn().mockResolvedValue(undefined),
+      get: vi.fn().mockReturnValue(''),
+    }),
+    isTrusted: true,
+  };
+  vscode.extensions = {
+    getExtension: vi.fn().mockReturnValue({
+      extensionKind: 1,
+    }),
+  };
+});
+
+describe('AuthService', () => {
+  let authService: any;
+
+  beforeEach(() => {
+    AuthService.resetInstance();
+    authService = AuthService.getInstance({
+      backendUrl: 'http://127.0.0.1:8080',
+      enableRealTimeLearning: true,
+      autoReportErrors: true,
+    });
+    vi.clearAllMocks();
+  });
+
+  afterEach(() => {
+    authService.logout();
+  });
+
+  describe('initialization', () => {
+    test('initial state is unauthenticated', () => {
+      expect(authService.isAuthenticated()).toBe(false);
+      expect(authService.getToken()).toBeNull();
+      expect(authService.getUser()).toBeNull();
+    });
+  });
+
+  describe('login', () => {
+    test('opens browser URL and returns false', async () => {
+      const result = await authService.login();
+      expect(result).toBe(false);
+      expect(vscode.env.openExternal).toHaveBeenCalled();
+    });
+  });
+
+  describe('completeLogin', () => {
+    test('completes login, sets token/user and sets context to authenticated', async () => {
+      const mockToken = 'mock-jwt-token';
+      const mockUser = { username: 'dev-user' };
+      await authService.completeLogin(mockToken, mockUser);
+
+      expect(authService.isAuthenticated()).toBe(true);
+      expect(authService.getToken()).toBe(mockToken);
+      expect(authService.getUser()).toEqual(mockUser);
+      expect(vscode.commands.executeCommand).toHaveBeenCalledWith(
+        'setContext',
+        'supremeai.authenticated',
+        true
+      );
+    });
+  });
+
+  describe('logout', () => {
+    test('clears token and user, resets VS Code context', async () => {
+      authService.setToken('existing-token');
+      authService.setUser({ username: 'dev' });
+
+      await authService.logout();
+
+      expect(authService.isAuthenticated()).toBe(false);
+      expect(authService.getToken()).toBeNull();
+      expect(authService.getUser()).toBeNull();
+      expect(vscode.commands.executeCommand).toHaveBeenCalledWith(
+        'setContext',
+        'supremeai.authenticated',
+        false
+      );
+      expect(vscode.window.showInformationMessage).toHaveBeenCalledWith(
+        expect.stringContaining('Logged out')
+      );
+    });
+  });
+});
+
+```

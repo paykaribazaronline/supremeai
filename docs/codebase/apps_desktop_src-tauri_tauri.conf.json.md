@@ -1,0 +1,98 @@
+# 📄 ফাইল: apps/desktop/src-tauri/tauri.conf.json
+
+**প্রকার:** .json  
+**সাইজ:** 2,091 বাইট  
+**আপডেট:** 2026-07-03T11:21:08.656122
+
+---
+
+## কোড
+
+```json
+{
+  "build": {
+    "beforeBuildCommand": "npm run build:ui",
+    "beforeDevCommand": "npm run dev:ui",
+    "devPath": "http://localhost:1420",
+    "distDir": "../src-ui/dist"
+  },
+  "package": {
+    "productName": "SupremeAI 2.0",
+    "version": "0.1.0"
+  },
+  "tauri": {
+    "allowlist": {
+      "all": false,
+      "fs": {
+        "all": false,
+        "scope": [
+          "$APPDIR/**"
+        ]
+      },
+      "notification": {
+        "all": false
+      },
+      "window": {
+        "all": false,
+        "close": true,
+        "hide": true,
+        "show": true,
+        "maximize": true,
+        "minimize": true,
+        "unmaximize": true,
+        "unminimize": true,
+        "startDragging": true
+      },
+      "http": {
+        "all": false,
+        "scope": [
+          "https://*.supremeai.dev/*"
+        ]
+      }
+    },
+    "bundle": {
+      "active": true,
+      "targets": [
+        "msi"
+      ],
+      "identifier": "com.supremeai.app",
+      "icon": [
+        "icons/32x32.png",
+        "icons/128x128.png",
+        "icons/128x128@2x.png",
+        "icons/icon.icns",
+        "icons/icon.ico"
+      ],
+      "resources": [],
+      "copyright": "© 2026 SupremeAI",
+      "category": "DeveloperTool",
+      "shortDescription": "Windows desktop client for SupremeAI 2.0",
+      "longDescription": "A native Windows desktop application for SupremeAI 2.0 built with Tauri, featuring chat, skills, and evolution workflows."
+    },
+    "security": {
+      "csp": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self';"
+    },
+    "windows": [
+      {
+        "label": "main",
+        "title": "SupremeAI 2.0",
+        "width": 1200,
+        "height": 800,
+        "minWidth": 800,
+        "minHeight": 600,
+        "resizable": true,
+        "fullscreen": false,
+        "hiddenTitle": false
+      }
+    ],
+    "updater": {
+      "active": false,
+      "endpoints": [
+        "https://github.com/supremeai/supremeai_2.0/releases/latest/download/latest.json"
+      ],
+      "dialog": true,
+      "pubkey": ""
+    }
+  }
+}
+```
