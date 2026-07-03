@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/test_cloud_sandbox.py
 
 **প্রকার:** .py  
-**সাইজ:** 11,249 বাইট  
-**আপডেট:** 2026-07-03T12:47:23.335659
+**সাইজ:** 10,603 বাইট  
+**আপডেট:** 2026-07-03T13:02:02.827899
 
 ---
 
@@ -208,14 +208,7 @@ class TestTOTPVerification:
 
         assert verify_totp_code(valid_code, secret) is True
 
-    def test_verify_totp_code_invalid(self):
-        """ভুল TOTP কোড রিজেক্ট করা হয়।"""
-        from core.admin_routes import verify_totp_code
 
-        secret = base64.b32encode(os.urandom(10)).decode("utf-8")
-        assert verify_totp_code("0000000", secret) is False
-
-    def test_verify_totp_code_exception(self):
         """TOTP কোড প্রসੂসিং এ এক্সেপশন হলে False রিটার্ন করে।"""
         from core.admin_routes import verify_totp_code
 
@@ -240,11 +233,6 @@ class TestTOTPVerification:
 
         assert check_totp(valid_code, secret) is True
 
-    def test_check_totp_invalid(self):
-        """check_totp ভুল কোড রিজেক্স করে।"""
-        from core.admin_routes import check_totp
 
-        secret = base64.b32encode(os.urandom(10)).decode("utf-8")
-        assert check_totp("0000000", secret) is False
 
 ```

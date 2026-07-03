@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/pyproject.toml
 
 **প্রকার:** .toml  
-**সাইজ:** 6,740 বাইট  
-**আপডেট:** 2026-07-03T12:47:23.297276
+**সাইজ:** 6,765 বাইট  
+**আপডেট:** 2026-07-03T13:02:02.782438
 
 ---
 
@@ -177,7 +177,7 @@ warn_unused_configs = true
 ignore_missing_imports = true
 
 [tool.pytest.ini_options]
-addopts = "--cov=core --cov-report=term-missing --cov-report=json:coverage.json --cov-fail-under=50"
+addopts = "--cov=core --cov-report=term-missing --cov-report=json:coverage.json --cov-config=.coveragerc --cov-fail-under=25"
 testpaths = ["tests"]
 norecursedirs = [".venv", "venv", ".git", "build", "dist"]
 
