@@ -1,7 +1,7 @@
 # 🧠 SupremeAI 2.0 Codebase Analysis
 # বাংলা মন্তব্য: এটি একটি স্বয়ংক্রিয়ভাবে জেনারেট করা কোডবেস ডাম্প ফাইল যা প্রজেক্টের সামগ্রিক বিশ্লেষণের জন্য ব্যবহৃত হয়।
 
-Generated at: 2026-07-03T04:22:59.987145 UTC
+Generated at: 2026-07-03T10:35:42.382437 UTC
 
 ## File: `.github/actions/setup-backend/action.yml`
 ```yaml
@@ -4658,8 +4658,8 @@ jobs:
           SUPABASE_DATABASE_URL: "postgresql://mock_user:mock_pass@localhost:5432/mock_db"
           ADMIN_AUTHORIZED: "true"
         run: |
-          poetry run pytest --json-report --json-report-file=backend/pytest-report.json \
-            --cov=core --cov-report=json:backend/coverage.json --cov-report=term-missing --cov-fail-under=50 -q
+          poetry run pytest --json-report --json-report-file=pytest-report.json \
+            --cov=core --cov-report=json:coverage.json --cov-report=term-missing --cov-fail-under=50 -q
 
       - name: Add Backend Test Results to GitHub Summary
         if: always()
