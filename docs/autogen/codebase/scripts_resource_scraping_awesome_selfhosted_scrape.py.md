@@ -1,8 +1,8 @@
-# 📄 ফাইল: scripts\resource_scraping\awesome_selfhosted\scrape.py
+# 📄 ফাইল: scripts/resource_scraping/awesome_selfhosted/scrape.py
 
 **প্রকার:** .py  
 **সাইজ:** 2,369 বাইট  
-**আপডেট:** 2026-07-03T21:21:04.047491
+**আপডেট:** 2026-07-03T15:24:11.476075
 
 ---
 

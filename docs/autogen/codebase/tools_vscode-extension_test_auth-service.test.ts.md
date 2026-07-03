@@ -1,8 +1,8 @@
-# 📄 ফাইল: tools\vscode-extension\test\auth-service.test.ts
+# 📄 ফাইল: tools/vscode-extension/test/auth-service.test.ts
 
 **প্রকার:** .ts  
 **সাইজ:** 2,268 বাইট  
-**আপডেট:** 2026-07-03T21:21:05.917949
+**আপডেট:** 2026-07-03T15:24:11.643002
 
 ---
 

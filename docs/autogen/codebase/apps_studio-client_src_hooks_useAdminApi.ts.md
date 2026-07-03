@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps\studio-client\src\hooks\useAdminApi.ts
+# 📄 ফাইল: apps/studio-client/src/hooks/useAdminApi.ts
 
 **প্রকার:** .ts  
 **সাইজ:** 4,723 বাইট  
-**আপডেট:** 2026-07-03T21:20:51.626906
+**আপডেট:** 2026-07-03T15:24:11.606758
 
 ---
 

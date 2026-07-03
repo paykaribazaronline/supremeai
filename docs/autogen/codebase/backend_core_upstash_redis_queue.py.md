@@ -1,8 +1,8 @@
-# 📄 ফাইল: backend\core\upstash_redis_queue.py
+# 📄 ফাইল: backend/core/upstash_redis_queue.py
 
 **প্রকার:** .py  
 **সাইজ:** 5,566 বাইট  
-**আপডেট:** 2026-07-03T21:20:54.447887
+**আপডেট:** 2026-07-03T15:24:11.509400
 
 ---
 

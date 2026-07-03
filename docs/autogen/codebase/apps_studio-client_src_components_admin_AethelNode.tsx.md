@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps\studio-client\src\components\admin\AethelNode.tsx
+# 📄 ফাইল: apps/studio-client/src/components/admin/AethelNode.tsx
 
 **প্রকার:** .tsx  
 **সাইজ:** 3,886 বাইট  
-**আপডেট:** 2026-07-03T21:20:50.772804
+**আপডেট:** 2026-07-03T15:24:11.600852
 
 ---
 

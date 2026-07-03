@@ -1,8 +1,8 @@
-# 📄 ফাইল: backend\tests\workers\test_celery_app.py
+# 📄 ফাইল: backend/tests/workers/test_celery_app.py
 
 **প্রকার:** .py  
 **সাইজ:** 343 বাইট  
-**আপডেট:** 2026-07-03T21:20:58.129696
+**আপডেট:** 2026-07-03T15:24:11.557196
 
 ---
 

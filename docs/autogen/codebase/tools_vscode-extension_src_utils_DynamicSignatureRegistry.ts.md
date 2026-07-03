@@ -1,8 +1,8 @@
-# 📄 ফাইল: tools\vscode-extension\src\utils\DynamicSignatureRegistry.ts
+# 📄 ফাইল: tools/vscode-extension/src/utils/DynamicSignatureRegistry.ts
 
 **প্রকার:** .ts  
 **সাইজ:** 4,091 বাইট  
-**আপডেট:** 2026-07-03T21:21:05.881782
+**আপডেট:** 2026-07-03T15:24:11.639053
 
 ---
 

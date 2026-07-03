@@ -1,8 +1,8 @@
-# 📄 ফাইল: infrastructure\check_deploy_gate.py
+# 📄 ফাইল: infrastructure/check_deploy_gate.py
 
 **প্রকার:** .py  
 **সাইজ:** 1,629 বাইট  
-**আপডেট:** 2026-07-03T21:21:00.467524
+**আপডেট:** 2026-07-03T15:24:11.483680
 
 ---
 

@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps\mobile\lib\services\screen_api_service.dart
+# 📄 ফাইল: apps/mobile/lib/services/screen_api_service.dart
 
 **প্রকার:** .dart  
 **সাইজ:** 1,496 বাইট  
-**আপডেট:** 2026-07-03T21:20:50.266883
+**আপডেট:** 2026-07-03T15:24:11.629559
 
 ---
 

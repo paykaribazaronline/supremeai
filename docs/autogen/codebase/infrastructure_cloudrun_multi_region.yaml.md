@@ -1,8 +1,8 @@
-# 📄 ফাইল: infrastructure\cloudrun\multi_region.yaml
+# 📄 ফাইল: infrastructure/cloudrun/multi_region.yaml
 
 **প্রকার:** .yaml  
 **সাইজ:** 1,479 বাইট  
-**আপডেট:** 2026-07-03T21:21:00.584727
+**আপডেট:** 2026-07-03T15:24:11.484545
 
 ---
 

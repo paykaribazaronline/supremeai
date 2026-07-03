@@ -1,8 +1,8 @@
-# 📄 ফাইল: tools\vscode-extension\src\providers\SupremeAICustomerDashboardProvider.ts
+# 📄 ফাইল: tools/vscode-extension/src/providers/SupremeAICustomerDashboardProvider.ts
 
 **প্রকার:** .ts  
 **সাইজ:** 6,110 বাইট  
-**আপডেট:** 2026-07-03T21:21:05.704221
+**আপডেট:** 2026-07-03T15:24:11.639851
 
 ---
 

@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps\mobile\lib\providers\dashboard_provider.dart
+# 📄 ফাইল: apps/mobile/lib/providers/dashboard_provider.dart
 
 **প্রকার:** .dart  
 **সাইজ:** 1,283 বাইট  
-**আপডেট:** 2026-07-03T21:20:49.965924
+**আপডেট:** 2026-07-03T15:24:11.625719
 
 ---
 

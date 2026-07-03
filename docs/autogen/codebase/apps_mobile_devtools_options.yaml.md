@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps\mobile\devtools_options.yaml
+# 📄 ফাইল: apps/mobile/devtools_options.yaml
 
 **প্রকার:** .yaml  
 **সাইজ:** 184 বাইট  
-**আপডেট:** 2026-07-03T21:20:49.550036
+**আপডেট:** 2026-07-03T15:24:11.616285
 
 ---
 

@@ -1,8 +1,8 @@
-# 📄 ফাইল: infrastructure\firebase_functions\firebase_functions_v1\providers-smart.js
+# 📄 ফাইল: infrastructure/firebase_functions/firebase_functions_v1/providers-smart.js
 
 **প্রকার:** .js  
 **সাইজ:** 3,323 বাইট  
-**আপডেট:** 2026-07-03T21:21:00.730154
+**আপডেট:** 2026-07-03T15:24:11.486830
 
 ---
 

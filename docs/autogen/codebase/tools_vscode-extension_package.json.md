@@ -1,8 +1,8 @@
-# 📄 ফাইল: tools\vscode-extension\package.json
+# 📄 ফাইল: tools/vscode-extension/package.json
 
 **প্রকার:** .json  
 **সাইজ:** 9,220 বাইট  
-**আপডেট:** 2026-07-03T21:21:04.828419
+**আপডেট:** 2026-07-03T15:24:11.636606
 
 ---
 

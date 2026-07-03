@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps\studio-client\src\components\chat\TypingIndicator.tsx
+# 📄 ফাইল: apps/studio-client/src/components/chat/TypingIndicator.tsx
 
 **প্রকার:** .tsx  
 **সাইজ:** 1,074 বাইট  
-**আপডেট:** 2026-07-03T21:20:51.176535
+**আপডেট:** 2026-07-03T15:24:11.592732
 
 ---
 

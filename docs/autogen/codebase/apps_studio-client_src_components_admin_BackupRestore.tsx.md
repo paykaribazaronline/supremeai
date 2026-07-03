@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps\studio-client\src\components\admin\BackupRestore.tsx
+# 📄 ফাইল: apps/studio-client/src/components/admin/BackupRestore.tsx
 
 **প্রকার:** .tsx  
 **সাইজ:** 7,685 বাইট  
-**আপডেট:** 2026-07-03T21:20:50.801106
+**আপডেট:** 2026-07-03T15:24:11.596513
 
 ---
 

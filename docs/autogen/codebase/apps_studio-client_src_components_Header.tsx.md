@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps\studio-client\src\components\Header.tsx
+# 📄 ফাইল: apps/studio-client/src/components/Header.tsx
 
 **প্রকার:** .tsx  
 **সাইজ:** 1,508 বাইট  
-**আপডেট:** 2026-07-03T21:20:50.693102
+**আপডেট:** 2026-07-03T15:24:11.592223
 
 ---
 
