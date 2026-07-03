@@ -267,13 +267,6 @@ jobs:
         uses: github/codeql-action/analyze@v4
         with:
           category: "/language:python,javascript"
-          upload: false
-      
-      - name: Upload CodeQL SARIF Reports
-        uses: github/codeql-action/upload-sarif@v4
-        if: always()
-        with:
-          category: 'codeql'
 
       - name: 🔍 Trivy Scan - Python Dependencies
         uses: aquasecurity/trivy-action@master
@@ -436,8 +429,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-- name: Install k6
-  uses: k6io/setup-k6@v1
+      - name: Install k6
+        uses: k6io/setup-k6@v1
       - name: Run k6 load test
         env:
           SUPREMEAI_URL: ${{ env.SUPREMEAI_API_URL }}
