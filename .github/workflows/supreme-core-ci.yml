@@ -112,8 +112,8 @@ jobs:
           SUPABASE_DATABASE_URL: "postgresql://mock_user:mock_pass@localhost:5432/mock_db"
           ADMIN_AUTHORIZED: "true"
         run: |
-          poetry run pytest --json-report --json-report-file=backend/pytest-report.json \
-            --cov=core --cov-report=json:backend/coverage.json --cov-report=term-missing --cov-fail-under=50 -q
+          poetry run pytest --json-report --json-report-file=pytest-report.json \
+            --cov=core --cov-report=json:coverage.json --cov-report=term-missing --cov-fail-under=50 -q
 
       - name: Add Backend Test Results to GitHub Summary
         if: always()
