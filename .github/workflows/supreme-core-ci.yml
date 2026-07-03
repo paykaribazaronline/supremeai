@@ -433,12 +433,19 @@ jobs:
           python-version: '3.11'
       - name: Start Backend for Testing
         working-directory: backend
+        env:
+          GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
         run: |
           pip install poetry
           poetry config virtualenvs.in-project true
           poetry install --sync --without ml
+          
+          # Create credentials file for Google Cloud/Firestore
+          echo "$GCP_SA_KEY" > $HOME/gcp_key.json
+          export GOOGLE_APPLICATION_CREDENTIALS="$HOME/gcp_key.json"
+          
           poetry run python main.py &
-          sleep 10
+          sleep 12
       # বাংলা মন্তব্য: k6io/setup-k6 রিপোজিটরি অপসারিত হওয়ায় grafana/setup-k6-action@v1 ব্যবহার করা হলো
       - name: Install k6
         uses: grafana/setup-k6-action@v1
