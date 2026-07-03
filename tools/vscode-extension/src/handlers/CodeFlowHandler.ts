@@ -340,7 +340,7 @@ export class CodeFlowHandler {
     const patterns = ['**/*.js', '**/*.ts', '**/*.py', '**/*.go', '**/*.rs', '**/*.java', '**/*.rb', '**/*.cpp', '**/*.c'];
 
     for (const pattern of patterns) {
-      const uris = await vscode.workspace.findFiles(new vscode.RelativePattern(workspaceUri, pattern), '**/node_modules/**');
+      const uris = await vscode.workspace.findFiles(new vscode.RelativePattern(workspaceUri.fsPath, pattern), '**/node_modules/**');
       
       for (const uri of uris) {
         try {

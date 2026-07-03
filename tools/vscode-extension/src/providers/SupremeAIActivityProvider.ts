@@ -86,16 +86,16 @@ export class SupremeAIActivityItem extends vscode.TreeItem {
     return date.toLocaleDateString();
   }
 
-  private getIcon(type: string): vscode.ThemeIcon {
+  private getIcon(type: string): string {
     switch (type) {
       case 'CODE_EDIT':
-        return new vscode.ThemeIcon('edit');
+        return '$(edit)';
       case 'ERROR_REPORT':
-        return new vscode.ThemeIcon('error');
+        return '$(error)';
       case 'SUGGESTION_FEEDBACK':
-        return new vscode.ThemeIcon('thumbsup');
+        return '$(thumbsup)';
       default:
-        return new vscode.ThemeIcon('info');
+        return '$(info)';
     }
   }
 }

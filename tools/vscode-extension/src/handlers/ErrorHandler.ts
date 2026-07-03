@@ -90,7 +90,7 @@ export class ErrorHandler {
     const message = diagnostic.message.toLowerCase();
 
     // Use error codes for more specific classification
-    const code = typeof diagnostic.code === 'object' ? String(diagnostic.code.value) : String(diagnostic.code);
+    const code = typeof diagnostic.code === 'object' && 'value' in diagnostic.code ? String((diagnostic.code as any).value) : String(diagnostic.code);
     if (code?.startsWith('ts')) {
       return 'compilation';
     }

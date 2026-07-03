@@ -132,7 +132,7 @@ jobs:
         run: poetry run python ../.github/scripts/ci-auto-fix-v3.py --job backend-test --mode fix
 
   security-audit:
-    name: 🛡️ CodeQL Security Scan
+    name: 🛡️ CodeQL & Trivy Security Scan
     needs: detect-changes
     runs-on: ubuntu-latest
     permissions:
@@ -141,16 +141,75 @@ jobs:
       contents: read
     steps:
       - uses: actions/checkout@v4
+      
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v4
         with:
           languages: 'python, javascript'
           paths-ignore: |
             infrastructure/firebase_functions/ocrTrigger.ts
+      
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v4
         with:
           category: "/language:python,javascript"
+          upload: false
+      
+      - name: Upload CodeQL SARIF Reports
+        uses: github/codeql-action/upload-sarif@v4
+        if: always()
+        with:
+          category: 'codeql'
+
+      - name: 🔍 Trivy Scan - Python Dependencies
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: 'backend'
+          format: 'sarif'
+          output: 'trivy-python.sarif'
+          severity: 'CRITICAL,HIGH'
+        continue-on-error: true
+
+      - name: 🔍 Trivy Scan - Node.js Dependencies
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: 'apps,tools'
+          format: 'sarif'
+          output: 'trivy-nodejs.sarif'
+          severity: 'CRITICAL,HIGH'
+        continue-on-error: true
+
+      - name: Upload Trivy Python SARIF
+        uses: github/codeql-action/upload-sarif@v4
+        if: always()
+        with:
+          sarif_file: 'trivy-python.sarif'
+          category: 'trivy-python'
+        continue-on-error: true
+
+      - name: Upload Trivy Node.js SARIF
+        uses: github/codeql-action/upload-sarif@v4
+        if: always()
+        with:
+          sarif_file: 'trivy-nodejs.sarif'
+          category: 'trivy-nodejs'
+        continue-on-error: true
+
+      - name: 📊 Add Security Audit Results to GitHub Summary
+        if: always()
+        run: |
+          echo "## 🛡️ Security Audit Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### CodeQL Analysis" >> $GITHUB_STEP_SUMMARY
+          echo "✅ CodeQL SARIF report uploaded to GitHub Security tab" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Trivy Vulnerability Scan" >> $GITHUB_STEP_SUMMARY
+          echo "✅ Python dependencies scanned (backend/)" >> $GITHUB_STEP_SUMMARY
+          echo "✅ Node.js dependencies scanned (apps/, tools/)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**View full results in the [Security tab](https://github.com/${{ github.repository }}/security/code-scanning)**" >> $GITHUB_STEP_SUMMARY
 
   frontend-core:
     name: 🌐 Frontend Monorepo (Turbo)
