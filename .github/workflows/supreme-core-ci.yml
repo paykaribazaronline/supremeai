@@ -250,6 +250,31 @@ jobs:
           GCP_REGION: ${{ vars.GCP_REGION || 'us-central1' }}
         run: python .github/scripts/deploy-backend.py
 
+  load-test:
+    name: ⏱️ Load Test (k6)
+    needs: [backend-core, frontend-core]
+    runs-on: ubuntu-latest
+    if: |
+      needs.detect-changes.outputs.backend == 'true' ||
+      needs.circuit-breaker.outputs.previous_failed == 'true'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install k6
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y k6
+      - name: Run k6 load test
+        env:
+          SUPREMEAI_URL: ${{ env.SUPREMEAI_API_URL }}
+        run: |
+          echo "Running k6 load test against ${SUPREMEAI_URL}"
+          k6 run --out json=load-test-output.json scripts/k6/load_test.js
+      - name: Upload k6 results
+        uses: actions/upload-artifact@v4
+        with:
+          name: k6-load-test
+          path: load-test-output.json
+
   deploy-frontend:
     name: 🌐 Deploy Frontend (Firebase)
     needs: [detect-changes, circuit-breaker, frontend-core]
