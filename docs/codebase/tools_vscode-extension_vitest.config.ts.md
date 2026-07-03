@@ -1,8 +1,8 @@
 # 📄 ফাইল: tools/vscode-extension/vitest.config.ts
 
 **প্রকার:** .ts  
-**সাইজ:** 287 বাইট  
-**আপডেট:** 2026-07-03T11:34:56.016209
+**সাইজ:** 387 বাইট  
+**আপডেট:** 2026-07-03T12:12:03.506449
 
 ---
 
@@ -16,10 +16,16 @@ export default {
     environment: 'node',
     globals: true,
     include: ['test/**/*.test.ts'],
+    setupFiles: ['./test/setup.ts'],
   },
-  alias: [
-    { find: /^vscode$/, replacement: fileURLToPath(new URL('./test/mocks/vscode.ts', import.meta.url)) },
-  ],
+  resolve: {
+    alias: [
+      { find: /^vscode$/, replacement: fileURLToPath(new URL('./test/mocks/vscode.ts', import.meta.url)) },
+    ],
+  },
+  coverage: {
+    provider: 'v8',
+  },
 } as any;
 
 ```

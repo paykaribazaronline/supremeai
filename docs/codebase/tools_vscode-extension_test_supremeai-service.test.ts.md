@@ -1,49 +1,61 @@
 # 📄 ফাইল: tools/vscode-extension/test/supremeai-service.test.ts
 
 **প্রকার:** .ts  
-**সাইজ:** 8,028 বাইট  
-**আপডেট:** 2026-07-03T11:34:56.024130
+**সাইজ:** 8,335 বাইট  
+**আপডেট:** 2026-07-03T12:12:03.513468
 
 ---
 
 ## কোড
 
 ```ts
-vi.mock('axios', () => ({
-  create: vi.fn((config) => ({
-    interceptors: {
-      request: { use: vi.fn() },
-      response: { use: vi.fn() },
-    },
-    post: (url: string, data: any, options: any) => {
-      const baseURL = config?.baseURL || '';
-      const fullUrl = url.startsWith('http') ? url : (baseURL + url);
-      return mockAxios.post(fullUrl, data, options || {});
-    },
-    get: (url: string, options: any) => {
-      const baseURL = config?.baseURL || '';
-      const fullUrl = url.startsWith('http') ? url : (baseURL + url);
-      return mockAxios.get(fullUrl, options || {});
-    },
-    delete: (url: string, options: any) => {
-      const baseURL = config?.baseURL || '';
-      const fullUrl = url.startsWith('http') ? url : (baseURL + url);
-      return mockAxios.delete(fullUrl, options || {});
-    },
-  })),
-  post: vi.fn(),
-  get: vi.fn(),
-  delete: vi.fn(),
-  mockReset: () => {
-    mockAxios.post.mockReset();
-    mockAxios.get.mockReset();
-    mockAxios.delete.mockReset();
-    mockAxios.create.mockClear();
-  }
-}));
+import { vi } from 'vitest';
 
-const axios = require('axios');
-const { SupremeAIService, getSupremeAIService, setSupremeAIService } = require('../src/services/SupremeAIService');
+vi.mock('axios', () => {
+  const mockAxios = {
+    post: vi.fn(),
+    get: vi.fn(),
+    delete: vi.fn(),
+  };
+
+  return {
+    default: {
+      create: vi.fn((config: any) => ({
+        interceptors: {
+          request: { use: vi.fn() },
+          response: { use: vi.fn() },
+        },
+        post: vi.fn((url: string, data: any, options: any) => {
+          const baseURL = config?.baseURL || '';
+          const fullUrl = url.startsWith('http') ? url : (baseURL + url);
+          return mockAxios.post(fullUrl, data, options || {});
+        }),
+        get: vi.fn((url: string, options: any) => {
+          const baseURL = config?.baseURL || '';
+          const fullUrl = url.startsWith('http') ? url : (baseURL + url);
+          return mockAxios.get(fullUrl, options || {});
+        }),
+        delete: vi.fn((url: string, options: any) => {
+          const baseURL = config?.baseURL || '';
+          const fullUrl = url.startsWith('http') ? url : (baseURL + url);
+          return mockAxios.delete(fullUrl, options || {});
+        }),
+      })),
+      post: mockAxios.post,
+      get: mockAxios.get,
+      delete: mockAxios.delete,
+      mockReset: vi.fn(() => {
+        mockAxios.post.mockReset();
+        mockAxios.get.mockReset();
+        mockAxios.delete.mockReset();
+      }),
+    },
+    AxiosInstance: Object,
+  };
+});
+
+import axios from 'axios';
+import { SupremeAIService, getSupremeAIService, setSupremeAIService } from '../src/services/SupremeAIService';
 
 describe('SupremeAIService', () => {
   let service: any;
