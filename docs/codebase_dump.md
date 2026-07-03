@@ -1,7 +1,7 @@
 # 🧠 SupremeAI 2.0 Codebase Analysis
 # বাংলা মন্তব্য: এটি একটি স্বয়ংক্রিয়ভাবে জেনারেট করা কোডবেস ডাম্প ফাইল যা প্রজেক্টের সামগ্রিক বিশ্লেষণের জন্য ব্যবহৃত হয়।
 
-Generated at: 2026-07-03T00:06:52.885451 UTC
+Generated at: 2026-07-03T00:32:11.096609 UTC
 
 ## File: `.github/actions/setup-backend/action.yml`
 ```yaml
@@ -9694,7 +9694,7 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const PRELOAD_PATH = path.join(__dirname, 'preload.js');
+const PRELOAD_PATH = path.join(__dirname, 'preload.cjs');
 
 function createWindow() {
   const win = new BrowserWindow({
@@ -9816,7 +9816,7 @@ app.on('window-all-closed', () => {
       "dist/**/*",
       "node_modules/**/*",
       "package.json",
-      "preload.js",
+      "preload.cjs",
       "main.js"
     ],
     "win": {
@@ -9834,15 +9834,6 @@ app.on('window-all-closed', () => {
   }
 }
  
-
-```
-
-## File: `apps/studio-client/preload.js`
-```javascript
-const { contextBridge } = require('electron');
-
-contextBridge.exposeInMainWorld('electronAPI', {
-});
 
 ```
 
@@ -36433,9 +36424,9 @@ app.add_middleware(TrustedOriginMiddleware)
 app.add_middleware(ChaosInjectorMiddleware)
 app.add_middleware(ObservabilityMiddleware)
 app.add_middleware(HoneypotMiddleware)
+app.add_middleware(ZeroTrustAuthMiddleware)
 app.add_middleware(RateLimitMiddleware, requests_per_minute=120, burst=20)
 app.add_middleware(IdempotencyMiddleware)
-app.add_middleware(ZeroTrustAuthMiddleware)
 app.add_middleware(APIKeyAuthMiddleware)
 
 
@@ -42434,6 +42425,10 @@ class _RedisFallback:
 
 
 if redis is None:
+    if os.getenv("ENV", "local").lower() == "production":
+        raise RuntimeError(
+            "redis.asyncio is required in production but is not installed."
+        )
     redis = _RedisFallback()
 
 
@@ -43418,6 +43413,7 @@ import threading
 import time
 
 from loguru import logger
+from starlette.requests import Request
 from starlette.responses import JSONResponse
 
 
@@ -43513,25 +43509,17 @@ class RateLimitMiddleware:
             return
 
         from core.config import settings
-        from core.security import verify_token
 
         if os.getenv("ENV", "").lower() == "test" or settings.env.lower() == "test":
             await self.app(scope, receive, send)
             return
 
-        headers = scope.get("headers", [])
-        tenant_id = None
-        for k, v in headers:
-            if k.lower() == b"authorization":
-                auth_val = v.decode("utf-8")
-                if auth_val.startswith("Bearer "):
-                    token = auth_val.split(" ")[1]
-                    try:
-                        payload = verify_token(token)
-                        tenant_id = payload.get("tenant_id") or payload.get("sub")
-                    except Exception:
-                        pass
-                break
+        request = Request(scope, receive=receive)
+        tenant_id = getattr(request.state, "tenant_id", None)
+        if tenant_id is None:
+            user_info = getattr(request.state, "user", None)
+            if isinstance(user_info, dict):
+                tenant_id = user_info.get("tenant_id") or user_info.get("sub")
 
         if tenant_id:
             try:
@@ -50268,6 +50256,7 @@ class ZeroTrustAuthMiddleware(BaseHTTPMiddleware):
             # বাংলা মন্তব্য: টেস্ট মোড বাইপাস লজিক — স্ট্রিম এন্ডপয়েন্ট ছাড়া সব পাথের জন্য অটো-লগইন
             if is_test and not request.url.path.startswith("/api/stream/"):
                 request.state.user = {"sub": "admin@supremeai.com", "role": "admin"}
+                request.state.tenant_id = "admin@supremeai.com"
                 return await call_next(request)
 
             logger.warning(f"🚨 Blocked unauthorized request to {request.url.path}")
@@ -50286,6 +50275,7 @@ class ZeroTrustAuthMiddleware(BaseHTTPMiddleware):
             else:
                 payload = verify_token(token)
             request.state.user = payload
+            request.state.tenant_id = payload.get("tenant_id") or payload.get("sub")
 
             # অ্যাডমিন রাউটের জন্য স্ট্রিক্ট রোল চেক
             if (
@@ -95977,13 +95967,28 @@ Respond in JSON:
 ```javascript
 // Simple health + stats endpoints for emulator stability
 
+const allowedOrigins = [
+  'https://supremeai-dashboard.web.app',
+  'http://localhost:5173',
+  'https://studio.supremeai.com',
+];
+
+const getAllowedOrigin = (req) => {
+  const origin = req.get('origin');
+  return origin && (allowedOrigins.includes(origin) || origin.includes('supremeai'))
+    ? origin
+    : 'https://supremeai-dashboard.web.app';
+};
+
 exports.healthCheck = (req, res) => {
-  res.set('Access-Control-Allow-Origin', '*');
+  const allowedOrigin = getAllowedOrigin(req);
+  res.set('Access-Control-Allow-Origin', allowedOrigin);
   res.json({ status: 'ok', timestamp: new Date().toISOString(), mode: 'emulator' });
 };
 
 exports.getProviderHealthStats = (req, res) => {
-  res.set('Access-Control-Allow-Origin', '*');
+  const allowedOrigin = getAllowedOrigin(req);
+  res.set('Access-Control-Allow-Origin', allowedOrigin);
   res.json({
     success: true,
     data: {
@@ -97812,6 +97817,19 @@ async function recordFeedback(sessionId, feedback) {
 const functions = require('firebase-functions');
 const admin = require('firebase-admin');
 
+const allowedOrigins = [
+  'https://supremeai-dashboard.web.app',
+  'http://localhost:5173',
+  'https://studio.supremeai.com',
+];
+
+const getAllowedOrigin = (req) => {
+  const origin = req.get('origin');
+  return origin && (allowedOrigins.includes(origin) || origin.includes('supremeai'))
+    ? origin
+    : 'https://supremeai-dashboard.web.app';
+};
+
 // ============ SMART PROVIDER DISCOVERY ============
 // Discovers AI models from multiple sources:
 // 1. Firestore (user-added API keys)
@@ -97853,7 +97871,8 @@ async function discoverProviders() {
 // ============ API ENDPOINTS ============
 
 exports.getConfiguredProviders = functions.https.onRequest(async (req, res) => {
-  res.set('Access-Control-Allow-Origin', '*');
+  const allowedOrigin = getAllowedOrigin(req);
+  res.set('Access-Control-Allow-Origin', allowedOrigin);
   res.set('Access-Control-Allow-Methods', 'GET, OPTIONS');
   res.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   if (req.method === 'OPTIONS') return res.status(204).send('');
@@ -97875,7 +97894,8 @@ exports.getConfiguredProviders = functions.https.onRequest(async (req, res) => {
 });
 
 exports.getProviderHealthStats = functions.https.onRequest(async (req, res) => {
-  res.set('Access-Control-Allow-Origin', '*');
+  const allowedOrigin = getAllowedOrigin(req);
+  res.set('Access-Control-Allow-Origin', allowedOrigin);
   if (req.method === 'OPTIONS') return res.status(204).send('');
 
   try {
