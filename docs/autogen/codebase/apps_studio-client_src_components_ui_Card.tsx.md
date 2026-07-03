@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps/studio-client/src/components/ui/Card.tsx
+# 📄 ফাইল: apps\studio-client\src\components\ui\Card.tsx
 
 **প্রকার:** .tsx  
 **সাইজ:** 1,073 বাইট  
-**আপডেট:** 2026-07-03T14:04:42.663669
+**আপডেট:** 2026-07-03T20:44:22.253226
 
 ---
 

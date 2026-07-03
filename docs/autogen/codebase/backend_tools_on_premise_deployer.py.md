@@ -1,8 +1,8 @@
-# 📄 ফাইল: backend/tools/on_premise_deployer.py
+# 📄 ফাইল: backend\tools\on_premise_deployer.py
 
 **প্রকার:** .py  
 **সাইজ:** 10,228 বাইট  
-**আপডেট:** 2026-07-03T14:04:42.640306
+**আপডেট:** 2026-07-03T20:44:28.826375
 
 ---
 

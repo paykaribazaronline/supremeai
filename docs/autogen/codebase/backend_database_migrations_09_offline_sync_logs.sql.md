@@ -1,8 +1,8 @@
-# 📄 ফাইল: backend/database/migrations/09_offline_sync_logs.sql
+# 📄 ফাইল: backend\database\migrations\09_offline_sync_logs.sql
 
 **প্রকার:** .sql  
 **সাইজ:** 1,108 বাইট  
-**আপডেট:** 2026-07-03T14:04:42.631827
+**আপডেট:** 2026-07-03T20:44:24.984619
 
 ---
 

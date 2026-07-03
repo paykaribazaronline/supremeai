@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps/desktop/src-ui/src/pages/ChatPage.tsx
+# 📄 ফাইল: apps\desktop\src-ui\src\pages\ChatPage.tsx
 
 **প্রকার:** .tsx  
 **সাইজ:** 2,158 বাইট  
-**আপডেট:** 2026-07-03T14:04:42.682231
+**আপডেট:** 2026-07-03T20:44:19.786841
 
 ---
 

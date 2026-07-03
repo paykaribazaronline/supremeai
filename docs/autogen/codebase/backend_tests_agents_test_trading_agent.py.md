@@ -1,8 +1,8 @@
-# 📄 ফাইল: backend/tests/agents/test_trading_agent.py
+# 📄 ফাইল: backend\tests\agents\test_trading_agent.py
 
 **প্রকার:** .py  
 **সাইজ:** 3,817 বাইট  
-**আপডেট:** 2026-07-03T14:04:42.627650
+**আপডেট:** 2026-07-03T20:44:27.738042
 
 ---
 

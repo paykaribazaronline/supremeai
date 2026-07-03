@@ -1,8 +1,8 @@
-# 📄 ফাইল: backend/agents/research_assistant.py
+# 📄 ফাইল: backend\agents\research_assistant.py
 
 **প্রকার:** .py  
 **সাইজ:** 7,094 বাইট  
-**আপডেট:** 2026-07-03T14:04:42.599618
+**আপডেট:** 2026-07-03T20:44:23.005682
 
 ---
 

@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps/mobile/lib/screens/settings_screen.dart
+# 📄 ফাইল: apps\mobile\lib\screens\settings_screen.dart
 
 **প্রকার:** .dart  
 **সাইজ:** 8,406 বাইট  
-**আপডেট:** 2026-07-03T14:04:42.691476
+**আপডেট:** 2026-07-03T20:44:20.339103
 
 ---
 

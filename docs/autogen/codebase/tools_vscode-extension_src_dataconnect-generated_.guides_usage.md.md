@@ -1,8 +1,8 @@
-# 📄 ফাইল: tools/vscode-extension/src/dataconnect-generated/.guides/usage.md
+# 📄 ফাইল: tools\vscode-extension\src\dataconnect-generated\.guides\usage.md
 
 **প্রকার:** .md  
 **সাইজ:** 1,716 বাইট  
-**আপডেট:** 2026-07-03T14:04:42.708075
+**আপডেট:** 2026-07-03T20:44:33.857673
 
 ---
 

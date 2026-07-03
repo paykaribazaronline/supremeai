@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps/studio-client/src/dataconnect-generated/react/README.md
+# 📄 ফাইল: apps\studio-client\src\dataconnect-generated\react\README.md
 
 **প্রকার:** .md  
 **সাইজ:** 48,408 বাইট  
-**আপডেট:** 2026-07-03T14:04:42.658684
+**আপডেট:** 2026-07-03T20:44:22.405614
 
 ---
 

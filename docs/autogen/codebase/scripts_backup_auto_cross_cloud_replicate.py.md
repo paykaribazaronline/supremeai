@@ -1,8 +1,8 @@
-# 📄 ফাইল: scripts/backup/auto_cross_cloud_replicate.py
+# 📄 ফাইল: scripts\backup\auto_cross_cloud_replicate.py
 
 **প্রকার:** .py  
 **সাইজ:** 13,182 বাইট  
-**আপডেট:** 2026-07-03T14:04:42.545269
+**আপডেট:** 2026-07-03T20:44:31.071813
 
 ---
 

@@ -1,8 +1,8 @@
-# 📄 ফাইল: scripts/resource_collection/run_all_collectors.py
+# 📄 ফাইল: scripts\resource_collection\run_all_collectors.py
 
 **প্রকার:** .py  
 **সাইজ:** 3,462 বাইট  
-**আপডেট:** 2026-07-03T14:04:42.547499
+**আপডেট:** 2026-07-03T20:44:32.355335
 
 ---
 

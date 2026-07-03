@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps/studio-client/components.json
+# 📄 ফাইল: apps\studio-client\components.json
 
 **প্রকার:** .json  
 **সাইজ:** 287 বাইট  
-**আপডেট:** 2026-07-03T14:04:42.655059
+**আপডেট:** 2026-07-03T20:44:21.215297
 
 ---
 

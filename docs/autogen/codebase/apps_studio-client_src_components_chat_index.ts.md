@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps/studio-client/src/components/chat/index.ts
+# 📄 ফাইল: apps\studio-client\src\components\chat\index.ts
 
 **প্রকার:** .ts  
 **সাইজ:** 110 বাইট  
-**আপডেট:** 2026-07-03T14:04:42.662765
+**আপডেট:** 2026-07-03T20:44:21.986910
 
 ---
 

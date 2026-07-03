@@ -1,8 +1,8 @@
-# 📄 ফাইল: backend/database/migrations/01_initial_setup.sql
+# 📄 ফাইল: backend\database\migrations\01_initial_setup.sql
 
 **প্রকার:** .sql  
 **সাইজ:** 1,121 বাইট  
-**আপডেট:** 2026-07-03T14:04:42.631377
+**আপডেট:** 2026-07-03T20:44:24.872958
 
 ---
 

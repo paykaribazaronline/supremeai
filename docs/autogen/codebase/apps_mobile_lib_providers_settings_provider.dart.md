@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps/mobile/lib/providers/settings_provider.dart
+# 📄 ফাইল: apps\mobile\lib\providers\settings_provider.dart
 
 **প্রকার:** .dart  
 **সাইজ:** 5,916 বাইট  
-**আপডেট:** 2026-07-03T14:04:42.695613
+**আপডেট:** 2026-07-03T20:44:20.237245
 
 ---
 

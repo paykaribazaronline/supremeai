@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps/studio-client/src/components/admin/RBACManager.tsx
+# 📄 ফাইল: apps\studio-client\src\components\admin\RBACManager.tsx
 
 **প্রকার:** .tsx  
 **সাইজ:** 7,382 বাইট  
-**আপডেট:** 2026-07-03T14:04:42.669067
+**আপডেট:** 2026-07-03T20:44:21.784981
 
 ---
 

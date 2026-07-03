@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps/studio-client/src/components/AdminConsole.tsx
+# 📄 ফাইল: apps\studio-client\src\components\AdminConsole.tsx
 
 **প্রকার:** .tsx  
 **সাইজ:** 2,288 বাইট  
-**আপডেট:** 2026-07-03T14:04:42.661901
+**আপডেট:** 2026-07-03T20:44:21.408383
 
 ---
 

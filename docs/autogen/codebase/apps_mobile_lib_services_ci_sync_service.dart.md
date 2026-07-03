@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps/mobile/lib/services/ci_sync_service.dart
+# 📄 ফাইল: apps\mobile\lib\services\ci_sync_service.dart
 
 **প্রকার:** .dart  
 **সাইজ:** 1,490 বাইট  
-**আপডেট:** 2026-07-03T14:04:42.700119
+**আপডেট:** 2026-07-03T20:44:20.677871
 
 ---
 

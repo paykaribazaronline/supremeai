@@ -1,8 +1,8 @@
-# 📄 ফাইল: scripts/generate_smart_docs.py
+# 📄 ফাইল: scripts\generate_smart_docs.py
 
 **প্রকার:** .py  
-**সাইজ:** 7,909 বাইট  
-**আপডেট:** 2026-07-03T14:04:42.541157
+**সাইজ:** 7,908 বাইট  
+**আপডেট:** 2026-07-03T20:44:30.757878
 
 ---
 
@@ -151,5 +151,4 @@ def generate_docs():
 if __name__ == "__main__":
     generate_docs()
     print("Documentation generated successfully in docs/autogen/")
-
 ```

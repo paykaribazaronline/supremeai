@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps/studio-client/src/components/admin/GithubIntegration.tsx
+# 📄 ফাইল: apps\studio-client\src\components\admin\GithubIntegration.tsx
 
 **প্রকার:** .tsx  
 **সাইজ:** 4,483 বাইট  
-**আপডেট:** 2026-07-03T14:04:42.669248
+**আপডেট:** 2026-07-03T20:44:21.663817
 
 ---
 

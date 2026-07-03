@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps/mobile/lib/screens/analytics/analytics_screen.dart
+# 📄 ফাইল: apps\mobile\lib\screens\analytics\analytics_screen.dart
 
 **প্রকার:** .dart  
 **সাইজ:** 4,733 বাইট  
-**আপডেট:** 2026-07-03T14:04:42.694510
+**আপডেট:** 2026-07-03T20:44:20.406564
 
 ---
 

@@ -1,8 +1,8 @@
-# 📄 ফাইল: packages/shared-types/package.json
+# 📄 ফাইল: packages\shared-types\package.json
 
 **প্রকার:** .json  
 **সাইজ:** 328 বাইট  
-**আপডেট:** 2026-07-03T14:04:42.549278
+**আপডেট:** 2026-07-03T20:44:30.245258
 
 ---
 

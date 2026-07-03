@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps/studio-client/src/components/admin/ActionCard.tsx
+# 📄 ফাইল: apps\studio-client\src\components\admin\ActionCard.tsx
 
 **প্রকার:** .tsx  
 **সাইজ:** 5,708 বাইট  
-**আপডেট:** 2026-07-03T14:04:42.669469
+**আপডেট:** 2026-07-03T20:44:21.454264
 
 ---
 

@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps/studio-client/src/firebase.ts
+# 📄 ফাইল: apps\studio-client\src\firebase.ts
 
 **প্রকার:** .ts  
 **সাইজ:** 1,761 বাইট  
-**আপডেট:** 2026-07-03T14:04:42.656907
+**আপডেট:** 2026-07-03T20:44:21.365443
 
 ---
 

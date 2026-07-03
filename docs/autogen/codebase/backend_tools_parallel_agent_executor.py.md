@@ -1,8 +1,8 @@
-# 📄 ফাইল: backend/tools/parallel_agent_executor.py
+# 📄 ফাইল: backend\tools\parallel_agent_executor.py
 
 **প্রকার:** .py  
 **সাইজ:** 9,797 বাইট  
-**আপডেট:** 2026-07-03T14:04:42.652018
+**আপডেট:** 2026-07-03T20:44:28.839524
 
 ---
 

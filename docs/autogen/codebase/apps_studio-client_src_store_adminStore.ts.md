@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps/studio-client/src/store/adminStore.ts
+# 📄 ফাইল: apps\studio-client\src\store\adminStore.ts
 
 **প্রকার:** .ts  
 **সাইজ:** 2,820 বাইট  
-**আপডেট:** 2026-07-03T14:04:42.675387
+**আপডেট:** 2026-07-03T20:44:22.648166
 
 ---
 

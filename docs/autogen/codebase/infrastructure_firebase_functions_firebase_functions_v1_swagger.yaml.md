@@ -1,8 +1,8 @@
-# 📄 ফাইল: infrastructure/firebase_functions/firebase_functions_v1/swagger.yaml
+# 📄 ফাইল: infrastructure\firebase_functions\firebase_functions_v1\swagger.yaml
 
 **প্রকার:** .yaml  
 **সাইজ:** 2,281 বাইট  
-**আপডেট:** 2026-07-03T14:04:42.554573
+**আপডেট:** 2026-07-03T20:44:29.828014
 
 ---
 

@@ -1,8 +1,8 @@
-# 📄 ফাইল: scripts/resource_collection/ossinsight/test.py
+# 📄 ফাইল: scripts\resource_collection\ossinsight\test.py
 
 **প্রকার:** .py  
 **সাইজ:** 581 বাইট  
-**আপডেট:** 2026-07-03T14:04:42.548929
+**আপডেট:** 2026-07-03T20:44:32.428441
 
 ---
 

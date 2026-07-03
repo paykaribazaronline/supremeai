@@ -1,8 +1,8 @@
-# 📄 ফাইল: tools/vscode-extension/src/providers/SupremeAIActivityProvider.ts
+# 📄 ফাইল: tools\vscode-extension\src\providers\SupremeAIActivityProvider.ts
 
 **প্রকার:** .ts  
 **সাইজ:** 2,904 বাইট  
-**আপডেট:** 2026-07-03T14:04:42.709576
+**আপডেট:** 2026-07-03T20:44:34.097796
 
 ---
 

@@ -62,7 +62,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         title: const Text('Admin Authorized', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                         subtitle: const Text('Allow critical write actions globally.', style: TextStyle(color: Colors.grey, fontSize: 12)),
                         value: provider.isAdminAuthorized,
-                        activeThumbColor: Colors.redAccent,
+                        activeColor: Colors.redAccent, // বাংলা মন্তব্য: Flutter ৩.২৯.০ সংস্করণে activeThumbColor সাপোর্ট করে না, তাই activeColor ব্যবহার করা হলো।
                         onChanged: (bool value) {
                           provider.toggleGodMode(value);
                           ScaffoldMessenger.of(context).showSnackBar(

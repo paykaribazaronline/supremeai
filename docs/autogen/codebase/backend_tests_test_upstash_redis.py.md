@@ -1,8 +1,8 @@
-# 📄 ফাইল: backend/tests/test_upstash_redis.py
+# 📄 ফাইল: backend\tests\test_upstash_redis.py
 
 **প্রকার:** .py  
 **সাইজ:** 2,476 বাইট  
-**আপডেট:** 2026-07-03T14:04:42.612483
+**আপডেট:** 2026-07-03T20:44:27.589379
 
 ---
 

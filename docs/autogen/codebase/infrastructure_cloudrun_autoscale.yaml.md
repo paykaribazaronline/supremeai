@@ -1,8 +1,8 @@
-# 📄 ফাইল: infrastructure/cloudrun/autoscale.yaml
+# 📄 ফাইল: infrastructure\cloudrun\autoscale.yaml
 
 **প্রকার:** .yaml  
 **সাইজ:** 958 বাইট  
-**আপডেট:** 2026-07-03T14:04:42.553023
+**আপডেট:** 2026-07-03T20:44:29.657643
 
 ---
 

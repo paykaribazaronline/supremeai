@@ -1,8 +1,8 @@
-# 📄 ফাইল: backend/tests/byoc/test_cloud_connector.py
+# 📄 ফাইল: backend\tests\byoc\test_cloud_connector.py
 
 **প্রকার:** .py  
 **সাইজ:** 1,803 বাইট  
-**আপডেট:** 2026-07-03T14:04:42.628405
+**আপডেট:** 2026-07-03T20:44:27.751310
 
 ---
 

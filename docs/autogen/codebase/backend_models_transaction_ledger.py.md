@@ -1,8 +1,8 @@
-# 📄 ফাইল: backend/models/transaction_ledger.py
+# 📄 ফাইল: backend\models\transaction_ledger.py
 
 **প্রকার:** .py  
 **সাইজ:** 1,021 বাইট  
-**আপডেট:** 2026-07-03T14:04:42.592266
+**আপডেট:** 2026-07-03T20:44:25.455849
 
 ---
 

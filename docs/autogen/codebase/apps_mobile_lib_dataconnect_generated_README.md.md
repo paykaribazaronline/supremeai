@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps/mobile/lib/dataconnect_generated/README.md
+# 📄 ফাইল: apps\mobile\lib\dataconnect_generated\README.md
 
 **প্রকার:** .md  
 **সাইজ:** 11,592 বাইট  
-**আপডেট:** 2026-07-03T14:04:42.696390
+**আপডেট:** 2026-07-03T20:44:20.123775
 
 ---
 

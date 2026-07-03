@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps/studio-client/src/components/admin/LiveLogs.tsx
+# 📄 ফাইল: apps\studio-client\src\components\admin\LiveLogs.tsx
 
 **প্রকার:** .tsx  
 **সাইজ:** 4,373 বাইট  
-**আপডেট:** 2026-07-03T14:04:42.667274
+**আপডেট:** 2026-07-03T20:44:21.713679
 
 ---
 

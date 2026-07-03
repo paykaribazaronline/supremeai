@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps/studio-client/src/dataconnect-generated/README.md
+# 📄 ফাইল: apps\studio-client\src\dataconnect-generated\README.md
 
 **প্রকার:** .md  
 **সাইজ:** 41,293 বাইট  
-**আপডেট:** 2026-07-03T14:04:42.657789
+**আপডেট:** 2026-07-03T20:44:22.323684
 
 ---
 

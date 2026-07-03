@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps/studio-client/src/hooks/__tests__/useTranslation.test.ts
+# 📄 ফাইল: apps\studio-client\src\hooks\__tests__\useTranslation.test.ts
 
 **প্রকার:** .ts  
 **সাইজ:** 923 বাইট  
-**আপডেট:** 2026-07-03T14:04:42.677035
+**আপডেট:** 2026-07-03T20:44:22.502271
 
 ---
 

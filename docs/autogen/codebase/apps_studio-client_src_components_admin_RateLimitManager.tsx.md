@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps/studio-client/src/components/admin/RateLimitManager.tsx
+# 📄 ফাইল: apps\studio-client\src\components\admin\RateLimitManager.tsx
 
 **প্রকার:** .tsx  
 **সাইজ:** 18,347 বাইট  
-**আপডেট:** 2026-07-03T14:04:42.672204
+**আপডেট:** 2026-07-03T20:44:21.772186
 
 ---
 

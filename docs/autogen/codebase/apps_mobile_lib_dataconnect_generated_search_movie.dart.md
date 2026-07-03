@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps/mobile/lib/dataconnect_generated/search_movie.dart
+# 📄 ফাইল: apps\mobile\lib\dataconnect_generated\search_movie.dart
 
 **প্রকার:** .dart  
 **সাইজ:** 4,743 বাইট  
-**আপডেট:** 2026-07-03T14:04:42.696199
+**আপডেট:** 2026-07-03T20:44:20.158002
 
 ---
 

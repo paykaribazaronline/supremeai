@@ -1,8 +1,8 @@
-# 📄 ফাইল: scripts/resource_collection/run_all.py
+# 📄 ফাইল: scripts\resource_collection\run_all.py
 
 **প্রকার:** .py  
 **সাইজ:** 1,944 বাইট  
-**আপডেট:** 2026-07-03T14:04:42.548067
+**আপডেট:** 2026-07-03T20:44:32.314734
 
 ---
 

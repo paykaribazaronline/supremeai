@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps/mobile/lib/widgets/loading_widgets.dart
+# 📄 ফাইল: apps\mobile\lib\widgets\loading_widgets.dart
 
 **প্রকার:** .dart  
 **সাইজ:** 3,722 বাইট  
-**আপডেট:** 2026-07-03T14:04:42.701287
+**আপডেট:** 2026-07-03T20:44:20.904172
 
 ---
 

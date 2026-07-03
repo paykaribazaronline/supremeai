@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps/studio-client/src/components/customer/MobileSimulator.tsx
+# 📄 ফাইল: apps\studio-client\src\components\customer\MobileSimulator.tsx
 
 **প্রকার:** .tsx  
 **সাইজ:** 3,499 বাইট  
-**আপডেট:** 2026-07-03T14:04:42.665741
+**আপডেট:** 2026-07-03T20:44:22.080134
 
 ---
 

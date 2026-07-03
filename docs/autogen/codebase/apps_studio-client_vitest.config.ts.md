@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps/studio-client/vitest.config.ts
+# 📄 ফাইল: apps\studio-client\vitest.config.ts
 
 **প্রকার:** .ts  
 **সাইজ:** 1,042 বাইট  
-**আপডেট:** 2026-07-03T14:04:42.655507
+**আপডেট:** 2026-07-03T20:44:21.313258
 
 ---
 

@@ -1,8 +1,8 @@
-# 📄 ফাইল: scripts/tenant/auto_tenant_setup.py
+# 📄 ফাইল: scripts\tenant\auto_tenant_setup.py
 
 **প্রকার:** .py  
 **সাইজ:** 16,333 বাইট  
-**আপডেট:** 2026-07-03T14:04:42.542384
+**আপডেট:** 2026-07-03T20:44:32.635075
 
 ---
 

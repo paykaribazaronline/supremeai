@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps/desktop/src-tauri/Cargo.toml
+# 📄 ফাইল: apps\desktop\src-tauri\Cargo.toml
 
 **প্রকার:** .toml  
 **সাইজ:** 699 বাইট  
-**আপডেট:** 2026-07-03T14:04:42.683641
+**আপডেট:** 2026-07-03T20:44:13.710676
 
 ---
 

@@ -1,8 +1,8 @@
-# 📄 ফাইল: tools/vscode-extension/FeatureRegistryService.java
+# 📄 ফাইল: tools\vscode-extension\FeatureRegistryService.java
 
 **প্রকার:** .java  
 **সাইজ:** 2,305 বাইট  
-**আপডেট:** 2026-07-03T14:04:42.704958
+**আপডেট:** 2026-07-03T20:44:33.137359
 
 ---
 

@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps/studio-client/src/components/admin/RulesEnginePanel.tsx
+# 📄 ফাইল: apps\studio-client\src\components\admin\RulesEnginePanel.tsx
 
 **প্রকার:** .tsx  
 **সাইজ:** 9,676 বাইট  
-**আপডেট:** 2026-07-03T14:04:42.668479
+**আপডেট:** 2026-07-03T20:44:21.814163
 
 ---
 

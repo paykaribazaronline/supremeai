@@ -1,8 +1,8 @@
-# 📄 ফাইল: backend/tests/test_telegram_bot.py
+# 📄 ফাইল: backend\tests\test_telegram_bot.py
 
 **প্রকার:** .py  
 **সাইজ:** 7,567 বাইট  
-**আপডেট:** 2026-07-03T14:04:42.625235
+**আপডেট:** 2026-07-03T20:44:27.536458
 
 ---
 

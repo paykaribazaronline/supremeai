@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps/studio-client/src/components/customer/ChatPanel.tsx
+# 📄 ফাইল: apps\studio-client\src\components\customer\ChatPanel.tsx
 
 **প্রকার:** .tsx  
 **সাইজ:** 3,293 বাইট  
-**আপডেট:** 2026-07-03T14:04:42.665444
+**আপডেট:** 2026-07-03T20:44:22.030478
 
 ---
 

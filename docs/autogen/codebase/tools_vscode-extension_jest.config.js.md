@@ -1,8 +1,8 @@
-# 📄 ফাইল: tools/vscode-extension/jest.config.js
+# 📄 ফাইল: tools\vscode-extension\jest.config.js
 
 **প্রকার:** .js  
 **সাইজ:** 413 বাইট  
-**আপডেট:** 2026-07-03T14:04:42.705432
+**আপডেট:** 2026-07-03T20:44:33.271303
 
 ---
 

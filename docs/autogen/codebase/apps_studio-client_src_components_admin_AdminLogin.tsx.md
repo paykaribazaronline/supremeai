@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps/studio-client/src/components/admin/AdminLogin.tsx
+# 📄 ফাইল: apps\studio-client\src\components\admin\AdminLogin.tsx
 
 **প্রকার:** .tsx  
 **সাইজ:** 2,580 বাইট  
-**আপডেট:** 2026-07-03T14:04:42.670182
+**আপডেট:** 2026-07-03T20:44:21.506295
 
 ---
 
