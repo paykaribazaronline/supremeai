@@ -1,7 +1,7 @@
 # 🧠 SupremeAI 2.0 Codebase Analysis
 # বাংলা মন্তব্য: এটি একটি স্বয়ংক্রিয়ভাবে জেনারেট করা কোডবেস ডাম্প ফাইল যা প্রজেক্টের সামগ্রিক বিশ্লেষণের জন্য ব্যবহৃত হয়।
 
-Generated at: 2026-07-03T03:06:37.636083 UTC
+Generated at: 2026-07-03T04:22:59.987145 UTC
 
 ## File: `.github/actions/setup-backend/action.yml`
 ```yaml
@@ -5947,12 +5947,9 @@ class AdminGodLayer:
   "name": "supremeai-desktop",
   "version": "0.1.0",
   "private": true,
-  "workspaces": [
-    "src-ui"
-  ],
   "scripts": {
-    "dev": "pnpm --dir . tauri dev",
-    "build": "pnpm --dir . tauri build",
+    "dev": "tauri dev",
+    "build": "tauri build",
     "dev:ui": "pnpm --dir src-ui dev",
     "build:ui": "pnpm --dir src-ui build"
   },
@@ -7557,12 +7554,95 @@ export default [
 
 ## File: `apps/docs/.docusaurus/codeTranslations.json`
 ```json
-{}
+{
+  "theme.AnnouncementBar.closeButtonAriaLabel": "বন্ধ করুন",
+  "theme.BackToTopButton.buttonAriaLabel": "Scroll back to top",
+  "theme.CodeBlock.copied": "কপিড",
+  "theme.CodeBlock.copy": "কপি",
+  "theme.CodeBlock.copyButtonAriaLabel": "ক্লিপবোর্ডে কোড কপি করুন",
+  "theme.CodeBlock.wordWrapToggle": "Toggle word wrap",
+  "theme.DocSidebarItem.collapseCategoryAriaLabel": "Collapse sidebar category '{label}'",
+  "theme.DocSidebarItem.expandCategoryAriaLabel": "Expand sidebar category '{label}'",
+  "theme.ErrorPageContent.title": "This page crashed.",
+  "theme.ErrorPageContent.tryAgain": "Try again",
+  "theme.IconExternalLink.ariaLabel": "(opens in new tab)",
+  "theme.NavBar.navAriaLabel": "Main",
+  "theme.NotFound.p1": "আপনি যা খুঁজছিলেন তা আমরা খুঁজে পাইনি।",
+  "theme.NotFound.p2": "দয়া করে সাইটের মালিকের সাথে যোগাযোগ করুন যা আপনাকে মূল URL এর সাথে যুক্ত করেছে এবং তাদের লিঙ্কটি ভাঙ্গা রয়েছে তা তাদের জানান।",
+  "theme.NotFound.title": "পেজটি খুঁজে পাওয়া যায়নি",
+  "theme.TOCCollapsible.toggleButtonLabel": "এই পেজ এ রয়েছে",
+  "theme.admonition.caution": "caution",
+  "theme.admonition.danger": "danger",
+  "theme.admonition.info": "info",
+  "theme.admonition.note": "note",
+  "theme.admonition.tip": "tip",
+  "theme.admonition.warning": "warning",
+  "theme.blog.archive.description": "Archive",
+  "theme.blog.archive.title": "Archive",
+  "theme.blog.author.noPosts": "This author has not written any posts yet.",
+  "theme.blog.author.pageTitle": "{authorName} - {nPosts}",
+  "theme.blog.authorsList.pageTitle": "Authors",
+  "theme.blog.authorsList.viewAll": "View All Authors",
+  "theme.blog.paginator.navAriaLabel": "ব্লগ তালিকা পেজ নেভিগেশন",
+  "theme.blog.paginator.newerEntries": "নতুন এন্ট্রি",
+  "theme.blog.paginator.olderEntries": "পুরানো এন্ট্রি",
+  "theme.blog.post.paginator.navAriaLabel": "ব্লগ পোস্ট পেজ নেভিগেশন",
+  "theme.blog.post.paginator.newerPost": "নতুন পোস্ট",
+  "theme.blog.post.paginator.olderPost": "পুরানো পোস্ট",
+  "theme.blog.post.plurals": "একটি পোস্ট|{count} পোস্টস",
+  "theme.blog.post.readMore": "আরও পড়ুন",
+  "theme.blog.post.readMoreLabel": "Read more about {title}",
+  "theme.blog.post.readingTime.plurals": "এক মিনিট পড়া|{readingTime} মিনিট পড়া",
+  "theme.blog.sidebar.navAriaLabel": "সাম্প্রতিক ব্লগ পোস্ট নেভিগেশন",
+  "theme.blog.tagTitle": "{nPosts} সঙ্গে ট্যাগ্গেড \"{tagName}\" ",
+  "theme.colorToggle.ariaLabel": "Switch between dark and light mode (currently {mode})",
+  "theme.colorToggle.ariaLabel.mode.dark": "dark mode",
+  "theme.colorToggle.ariaLabel.mode.light": "light mode",
+  "theme.colorToggle.ariaLabel.mode.system": "system mode",
+  "theme.common.editThisPage": "এই পেজটি এডিট করুন",
+  "theme.common.headingLinkTitle": "{heading} এর সঙ্গে সরাসরি লিংকড",
+  "theme.common.skipToMainContent": "স্কিপ করে মূল কন্টেন্ট এ যান",
+  "theme.contentVisibility.draftBanner.message": "This page is a draft. It will only be visible in dev and be excluded from the production build.",
+  "theme.contentVisibility.draftBanner.title": "Draft page",
+  "theme.contentVisibility.unlistedBanner.message": "This page is unlisted. Search engines will not index it, and only users having a direct link can access it.",
+  "theme.contentVisibility.unlistedBanner.title": "Unlisted page",
+  "theme.docs.DocCard.categoryDescription.plurals": "1 item|{count} items",
+  "theme.docs.breadcrumbs.home": "Home page",
+  "theme.docs.breadcrumbs.navAriaLabel": "Breadcrumbs",
+  "theme.docs.paginator.navAriaLabel": "ডক্স পেজ",
+  "theme.docs.paginator.next": "পরবর্তী",
+  "theme.docs.paginator.previous": "পূর্ববর্তী",
+  "theme.docs.sidebar.closeSidebarButtonAriaLabel": "Close navigation bar",
+  "theme.docs.sidebar.collapseButtonAriaLabel": "সাইডবারটি সঙ্কুচিত করুন",
+  "theme.docs.sidebar.collapseButtonTitle": "সাইডবারটি সঙ্কুচিত করুন",
+  "theme.docs.sidebar.expandButtonAriaLabel": "সাইডবারটি প্রসারিত করুন",
+  "theme.docs.sidebar.expandButtonTitle": "সাইডবারটি প্রসারিত করুন",
+  "theme.docs.sidebar.navAriaLabel": "Docs sidebar",
+  "theme.docs.sidebar.toggleSidebarButtonAriaLabel": "Toggle navigation bar",
+  "theme.docs.tagDocListPageTitle": "{nDocsTagged} with \"{tagName}\"",
+  "theme.docs.tagDocListPageTitle.nDocsTagged": "One doc tagged|{count} docs tagged",
+  "theme.docs.versionBadge.label": "Version: {versionLabel}",
+  "theme.docs.versions.latestVersionLinkLabel": "লেটেস্ট ভার্সন",
+  "theme.docs.versions.latestVersionSuggestionLabel": "আপ-টু-ডেট ডকুমেন্টেশনের জন্য, {latestVersionLink} ({versionLabel}) দেখুন।",
+  "theme.docs.versions.unmaintainedVersionLabel": "এটি {siteTitle} {versionLabel} এর জন্যে ডকুমেন্টেশন, যা আর সক্রিয়ভাবে রক্ষণাবেক্ষণ করা হয় না।",
+  "theme.docs.versions.unreleasedVersionLabel": "এটি {siteTitle} {versionLabel} এর জন্যে অপ্রকাশিত ডকুমেন্টেশন।",
+  "theme.lastUpdated.atDate": " {date} তারিখে",
+  "theme.lastUpdated.byUser": "{user} দ্বারা",
+  "theme.lastUpdated.lastUpdatedAtBy": "সর্বশেষ সংষ্করণ{atDate}{byUser}",
+  "theme.navbar.mobileDropdown.collapseButton.collapseAriaLabel": "Collapse the dropdown",
+  "theme.navbar.mobileDropdown.collapseButton.expandAriaLabel": "Expand the dropdown",
+  "theme.navbar.mobileLanguageDropdown.label": "Languages",
+  "theme.navbar.mobileSidebarSecondaryMenu.backButtonLabel": "← মেন মেনুতে যান",
+  "theme.navbar.mobileVersionsDropdown.label": "Versions",
+  "theme.tags.tagsListLabel": "ট্যাগ্স:",
+  "theme.tags.tagsPageLink": "সমস্ত ট্যাগ্স দেখুন",
+  "theme.tags.tagsPageTitle": "ট্যাগ্স"
+}
 ```
 
 ## File: `apps/docs/.docusaurus/docusaurus-plugin-content-docs/default/__mdx-loader-dependency.json`
 ```json
-{"options":{"sidebarPath":"C:\\Users\\n\\supremeai\\supremeai_2.0\\apps\\docs\\sidebars.ts","path":"docs","editCurrentVersion":false,"editLocalizedFiles":false,"routeBasePath":"docs","tagsBasePath":"tags","include":["**/*.{md,mdx}"],"exclude":["**/_*.{js,jsx,ts,tsx,md,mdx}","**/_*/**","**/*.test.{js,jsx,ts,tsx}","**/__tests__/**"],"sidebarCollapsible":true,"sidebarCollapsed":true,"docsRootComponent":"@theme/DocsRoot","docVersionRootComponent":"@theme/DocVersionRoot","docRootComponent":"@theme/DocRoot","docItemComponent":"@theme/DocItem","docTagsListComponent":"@theme/DocTagsListPage","docTagDocListComponent":"@theme/DocTagDocListPage","docCategoryGeneratedIndexComponent":"@theme/DocCategoryGeneratedIndexPage","remarkPlugins":[],"rehypePlugins":[],"recmaPlugins":[],"beforeDefaultRemarkPlugins":[],"beforeDefaultRehypePlugins":[],"admonitions":true,"showLastUpdateTime":false,"showLastUpdateAuthor":false,"includeCurrentVersion":true,"disableVersioning":false,"versions":{},"breadcrumbs":true,"onInlineTags":"warn","id":"default"},"versionsMetadata":[{"versionName":"current","label":"Next","banner":null,"badge":false,"noIndex":false,"className":"docs-version-current","path":"/docs","tagsPath":"/docs/tags","isLast":true,"routePriority":-1,"sidebarFilePath":"C:\\Users\\n\\supremeai\\supremeai_2.0\\apps\\docs\\sidebars.ts","contentPath":"C:\\Users\\n\\supremeai\\supremeai_2.0\\apps\\docs\\docs"}]}
+{"options":{"sidebarPath":"C:\\Users\\n\\supremeai\\supremeai_2.0\\apps\\docs\\sidebars.ts","path":"docs","editCurrentVersion":false,"editLocalizedFiles":false,"routeBasePath":"docs","tagsBasePath":"tags","include":["**/*.{md,mdx}"],"exclude":["**/_*.{js,jsx,ts,tsx,md,mdx}","**/_*/**","**/*.test.{js,jsx,ts,tsx}","**/__tests__/**"],"sidebarCollapsible":true,"sidebarCollapsed":true,"docsRootComponent":"@theme/DocsRoot","docVersionRootComponent":"@theme/DocVersionRoot","docRootComponent":"@theme/DocRoot","docItemComponent":"@theme/DocItem","docTagsListComponent":"@theme/DocTagsListPage","docTagDocListComponent":"@theme/DocTagDocListPage","docCategoryGeneratedIndexComponent":"@theme/DocCategoryGeneratedIndexPage","remarkPlugins":[],"rehypePlugins":[],"recmaPlugins":[],"beforeDefaultRemarkPlugins":[],"beforeDefaultRehypePlugins":[],"admonitions":true,"showLastUpdateTime":false,"showLastUpdateAuthor":false,"includeCurrentVersion":true,"disableVersioning":false,"versions":{},"breadcrumbs":true,"onInlineTags":"warn","id":"default"},"versionsMetadata":[{"versionName":"current","label":"Next","banner":null,"badge":false,"noIndex":false,"className":"docs-version-current","path":"/bn/docs","tagsPath":"/bn/docs/tags","isLast":true,"routePriority":-1,"sidebarFilePath":"C:\\Users\\n\\supremeai\\supremeai_2.0\\apps\\docs\\sidebars.ts","contentPath":"C:\\Users\\n\\supremeai\\supremeai_2.0\\apps\\docs\\docs"}]}
 ```
 
 ## File: `apps/docs/.docusaurus/docusaurus-plugin-content-docs/default/__plugin.json`
@@ -7592,7 +7672,7 @@ export default [
   "source": "@site/docs/api-reference.md",
   "sourceDirName": ".",
   "slug": "/api-reference",
-  "permalink": "/docs/api-reference",
+  "permalink": "/bn/docs/api-reference",
   "draft": false,
   "unlisted": false,
   "tags": [],
@@ -7610,7 +7690,7 @@ export default [
   "source": "@site/docs/bangla-guide.md",
   "sourceDirName": ".",
   "slug": "/bangla-guide",
-  "permalink": "/docs/bangla-guide",
+  "permalink": "/bn/docs/bangla-guide",
   "draft": false,
   "unlisted": false,
   "tags": [],
@@ -7628,7 +7708,7 @@ export default [
   "source": "@site/docs/intro.md",
   "sourceDirName": ".",
   "slug": "/intro",
-  "permalink": "/docs/intro",
+  "permalink": "/bn/docs/intro",
   "draft": false,
   "unlisted": false,
   "tags": [],
@@ -7651,26 +7731,26 @@ export default [
 {
   "docusaurus-plugin-content-docs": {
     "default": {
-      "path": "/docs",
+      "path": "/bn/docs",
       "versions": [
         {
           "name": "current",
           "label": "Next",
           "isLast": true,
-          "path": "/docs",
+          "path": "/bn/docs",
           "mainDocId": "intro",
           "docs": [
             {
               "id": "api-reference",
-              "path": "/docs/api-reference"
+              "path": "/bn/docs/api-reference"
             },
             {
               "id": "bangla-guide",
-              "path": "/docs/bangla-guide"
+              "path": "/bn/docs/bangla-guide"
             },
             {
               "id": "intro",
-              "path": "/docs/intro",
+              "path": "/bn/docs/intro",
               "sidebar": "tutorialSidebar"
             }
           ],
@@ -7678,7 +7758,7 @@ export default [
           "sidebars": {
             "tutorialSidebar": {
               "link": {
-                "path": "/docs/intro",
+                "path": "/bn/docs/intro",
                 "label": "intro"
               }
             }
@@ -7700,7 +7780,7 @@ export default [
     "bn"
   ],
   "path": "i18n",
-  "currentLocale": "en",
+  "currentLocale": "bn",
   "localeConfigs": {
     "en": {
       "label": "English",
@@ -7729,11 +7809,11 @@ export default [
 ## File: `apps/docs/.docusaurus/registry.js`
 ```javascript
 export default {
-  "0058b4c6": [() => import(/* webpackChunkName: "0058b4c6" */ "@generated/docusaurus-plugin-content-docs/default/p/docs-175.json"), "@generated/docusaurus-plugin-content-docs/default/p/docs-175.json", require.resolveWeak("@generated/docusaurus-plugin-content-docs/default/p/docs-175.json")],
   "0e384e19": [() => import(/* webpackChunkName: "0e384e19" */ "@site/docs/intro.md"), "@site/docs/intro.md", require.resolveWeak("@site/docs/intro.md")],
   "17896441": [() => import(/* webpackChunkName: "17896441" */ "@theme/DocItem"), "@theme/DocItem", require.resolveWeak("@theme/DocItem")],
   "5e95c892": [() => import(/* webpackChunkName: "5e95c892" */ "@theme/DocsRoot"), "@theme/DocsRoot", require.resolveWeak("@theme/DocsRoot")],
   "5eb850a8": [() => import(/* webpackChunkName: "5eb850a8" */ "@site/docs/bangla-guide.md"), "@site/docs/bangla-guide.md", require.resolveWeak("@site/docs/bangla-guide.md")],
+  "84236e78": [() => import(/* webpackChunkName: "84236e78" */ "@generated/docusaurus-plugin-content-docs/default/p/bn-docs-ec5.json"), "@generated/docusaurus-plugin-content-docs/default/p/bn-docs-ec5.json", require.resolveWeak("@generated/docusaurus-plugin-content-docs/default/p/bn-docs-ec5.json")],
   "964ae018": [() => import(/* webpackChunkName: "964ae018" */ "@site/docs/api-reference.md"), "@site/docs/api-reference.md", require.resolveWeak("@site/docs/api-reference.md")],
   "a7bd4aaa": [() => import(/* webpackChunkName: "a7bd4aaa" */ "@theme/DocVersionRoot"), "@theme/DocVersionRoot", require.resolveWeak("@theme/DocVersionRoot")],
   "a94703ab": [() => import(/* webpackChunkName: "a94703ab" */ "@theme/DocRoot"), "@theme/DocRoot", require.resolveWeak("@theme/DocRoot")],
@@ -7748,30 +7828,30 @@ import ComponentCreator from '@docusaurus/ComponentCreator';
 
 export default [
   {
-    path: '/docs',
-    component: ComponentCreator('/docs', 'd49'),
+    path: '/bn/docs',
+    component: ComponentCreator('/bn/docs', '8e4'),
     routes: [
       {
-        path: '/docs',
-        component: ComponentCreator('/docs', 'bb4'),
+        path: '/bn/docs',
+        component: ComponentCreator('/bn/docs', 'b01'),
         routes: [
           {
-            path: '/docs',
-            component: ComponentCreator('/docs', '1da'),
+            path: '/bn/docs',
+            component: ComponentCreator('/bn/docs', '418'),
             routes: [
               {
-                path: '/docs/api-reference',
-                component: ComponentCreator('/docs/api-reference', '67f'),
+                path: '/bn/docs/api-reference',
+                component: ComponentCreator('/bn/docs/api-reference', '11f'),
                 exact: true
               },
               {
-                path: '/docs/bangla-guide',
-                component: ComponentCreator('/docs/bangla-guide', 'e71'),
+                path: '/bn/docs/bangla-guide',
+                component: ComponentCreator('/bn/docs/bangla-guide', '048'),
                 exact: true
               },
               {
-                path: '/docs/intro',
-                component: ComponentCreator('/docs/intro', '61d'),
+                path: '/bn/docs/intro',
+                component: ComponentCreator('/bn/docs/intro', 'd80'),
                 exact: true,
                 sidebar: "tutorialSidebar"
               }
@@ -7792,28 +7872,28 @@ export default [
 ## File: `apps/docs/.docusaurus/routesChunkNames.json`
 ```json
 {
-  "/docs-d49": {
+  "/bn/docs-8e4": {
     "__comp": "5e95c892",
     "__context": {
       "plugin": "aba21aa0"
     }
   },
-  "/docs-bb4": {
+  "/bn/docs-b01": {
     "__comp": "a7bd4aaa",
-    "__props": "0058b4c6"
+    "__props": "84236e78"
   },
-  "/docs-1da": {
+  "/bn/docs-418": {
     "__comp": "a94703ab"
   },
-  "/docs/api-reference-67f": {
+  "/bn/docs/api-reference-11f": {
     "__comp": "17896441",
     "content": "964ae018"
   },
-  "/docs/bangla-guide-e71": {
+  "/bn/docs/bangla-guide-048": {
     "__comp": "17896441",
     "content": "5eb850a8"
   },
-  "/docs/intro-61d": {
+  "/bn/docs/intro-d80": {
     "__comp": "17896441",
     "content": "0e384e19"
   }
