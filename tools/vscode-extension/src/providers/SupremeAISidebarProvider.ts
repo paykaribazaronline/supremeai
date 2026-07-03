@@ -363,10 +363,29 @@ export class SupremeAISidebarProvider implements vscode.WebviewViewProvider {
         const icon = this.getActivityIcon(activity.type);
         const time = this.formatTime(activity.timestamp);
         return `<div class="activity-item">
-          <span>${icon}</span> ${activity.message} • ${time}
+          <span>${icon}</span> ${this.escapeHtml(activity.message)} • ${this.escapeHtml(time)}
         </div>`;
       })
       .join('');
+  }
+
+  private escapeHtml(value: string): string {
+    return String(value).replace(/[&<>"']/g, (c) => {
+      switch (c) {
+        case '&':
+          return '&amp;';
+        case '<':
+          return '&lt;';
+        case '>':
+          return '&gt;';
+        case '"':
+          return '&quot;';
+        case "'":
+          return '&#39;';
+        default:
+          return c;
+      }
+    });
   }
 
   private getActivityIcon(type: string): string {

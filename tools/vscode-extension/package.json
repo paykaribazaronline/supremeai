@@ -273,11 +273,11 @@
     }
   },
   "scripts": {
-    "vscode:prepublish": "npm run package-ext",
+    "vscode:prepublish": "pnpm run package-ext",
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
     "lint": "eslint src",
-    "pretest": "npm run compile",
+    "pretest": "pnpm run compile",
     "test": "jest --passWithNoTests",
     "unit": "jest --passWithNoTests",
     "package-ext": "esbuild src/extension.ts --bundle --outfile=out/extension.js --external:vscode --format=cjs --platform=node --minify"

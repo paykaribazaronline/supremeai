@@ -52,7 +52,6 @@ async def get_db_pool() -> PgBouncerConnectionPool:
 
     RuntimeError is raised if the pool has not been initialized yet.
     """
-    global _db_pool_instance
     if _db_pool_instance is None:
         raise RuntimeError(
             "DB pool was accessed before app startup initialized it. "

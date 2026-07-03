@@ -30,6 +30,25 @@ let codeGenService: CodeGenerationService;
 let codeReviewService: CodeReviewService;
 let codeFlowHandler: CodeFlowHandler;
 
+function escapeHtml(value: string): string {
+  return String(value).replace(/[&<>"']/g, (c) => {
+    switch (c) {
+      case '&':
+        return '&amp;';
+      case '<':
+        return '&lt;';
+      case '>':
+        return '&gt;';
+      case '"':
+        return '&quot;';
+      case "'":
+        return '&#39;';
+      default:
+        return c;
+    }
+  });
+}
+
 export async function activate(context: vscode.ExtensionContext) {
   console.log('[SupremeAI] VS Code Extension activating...');
 
@@ -384,7 +403,7 @@ function registerCommands(context: vscode.ExtensionContext): void {
           vscode.ViewColumn.Two,
           {}
         );
-        panel.webview.html = `<html><body><pre style="white-space: pre-wrap; font-family: sans-serif; padding: 15px;">${response.response}</pre></body></html>`;
+        panel.webview.html = `<html><body><pre style="white-space: pre-wrap; font-family: sans-serif; padding: 15px;">${escapeHtml(response.response)}</pre></body></html>`;
       } catch (error) {
         vscode.window.showErrorMessage(`Failed to explain code: ${error}`);
       }
@@ -420,7 +439,7 @@ function registerCommands(context: vscode.ExtensionContext): void {
           vscode.ViewColumn.Two,
           {}
         );
-        panel.webview.html = `<html><body><pre style="white-space: pre-wrap; font-family: sans-serif; padding: 15px;">${response.response}</pre></body></html>`;
+        panel.webview.html = `<html><body><pre style="white-space: pre-wrap; font-family: sans-serif; padding: 15px;">${escapeHtml(response.response)}</pre></body></html>`;
       } catch (error) {
         vscode.window.showErrorMessage(`Failed to review code: ${error}`);
       }

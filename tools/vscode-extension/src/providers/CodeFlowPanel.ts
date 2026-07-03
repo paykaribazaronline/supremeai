@@ -84,7 +84,7 @@ export class CodeFlowPanel {
   }
 
   private getErrorHTML(message: string): string {
-    return `<html><body><div style="padding:20px;color:var(--vscode-errorForeground)">${message}</div></body></html>`;
+    return `<html><body><div style="padding:20px;color:var(--vscode-errorForeground)">${this.escapeHtml(message)}</div></body></html>`;
   }
 
   private getHTML(data: { files: { path: string; query: string }[]; graph: any; summary: Record<string, unknown> }): string {

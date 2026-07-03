@@ -86,7 +86,14 @@ jobs:
       - uses: google-github-actions/setup-gcloud@v2
       - name: Delete old Cloud Run revisions
         run: |
-          gcloud run revisions list --service=supremeai-api --region=${{ vars.GCP_REGION || 'us-central1' }} --format="value(name)" --sort-by="~createTime" | tail -n +6 | xargs -r -I {} gcloud run revisions delete {} --region=${{ vars.GCP_REGION || 'us-central1' }} --quiet
+          gcloud run revisions list --service=supremeai-api --region=${{ vars.GCP_REGION || 'us-central1' }} --filter="traffic.percent=0" --format="value(name)" --sort-by="~createTime" | tail -n +6 | xargs -r -I {} gcloud run revisions delete {} --region=${{ vars.GCP_REGION || 'us-central1' }} --quiet
+      - name: Install Redis client
+        run: python -m pip install redis
+      - name: Run Cache Cleanup
+        env:
+          REDIS_URL: ${{ secrets.REDIS_URL }}
+        run: |
+          python tools/cache_cleanup.py
       - name: Prune stale GitHub caches
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
