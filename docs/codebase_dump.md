@@ -1,7 +1,7 @@
 # 🧠 SupremeAI 2.0 Codebase Analysis
 # বাংলা মন্তব্য: এটি একটি স্বয়ংক্রিয়ভাবে জেনারেট করা কোডবেস ডাম্প ফাইল যা প্রজেক্টের সামগ্রিক বিশ্লেষণের জন্য ব্যবহৃত হয়।
 
-Generated at: 2026-07-03T10:39:08.655775 UTC
+Generated at: 2026-07-03T10:42:56.026688 UTC
 
 ## File: `.github/actions/setup-backend/action.yml`
 ```yaml
@@ -112769,18 +112769,17 @@ module.exports = {
     "@types/vscode": "^1.85.0",
     "@typescript-eslint/eslint-plugin": "^6.0.0",
     "@typescript-eslint/parser": "^6.0.0",
-    "eslint": "^8.0.0",
-    "vitest": "^2.0.0",
-    "typescript": "^5.0.0",
-    "esbuild": "^0.28.0",
     "axios": "^1.6.0",
-    "openai": "^4.0.0"
+    "esbuild": "^0.28.0",
+    "eslint": "^8.0.0",
+    "openai": "^4.0.0",
+    "typescript": "^5.0.0",
+    "vitest": "^2.1.9"
   },
   "dependencies": {
     "@dataconnect/generated": "file:src/dataconnect-generated"
   }
 }
-          
 ```
 
 ## File: `tools/vscode-extension/package.nls.bn.json`
@@ -119352,6 +119351,43 @@ describe('AuthService', () => {
 
 ```
 
+## File: `tools/vscode-extension/test/mocks/vscode.ts`
+```typescript
+export const window = {
+  showInformationMessage: () => {},
+  showErrorMessage: () => {},
+  showWarningMessage: () => {},
+};
+
+export const commands = {
+  executeCommand: async () => {},
+};
+
+export const authentication = {
+  getSession: () => undefined,
+};
+
+export const env = {
+  openExternal: async () => true,
+};
+
+export const Uri = {
+  parse: (val: string) => ({ toString: () => val }),
+};
+
+export const workspace = {
+  getConfiguration: () => ({
+    get: () => '',
+    update: async () => {},
+  }),
+};
+
+export const extensions = {
+  getExtension: () => undefined,
+};
+
+```
+
 ## File: `tools/vscode-extension/test/supremeai-service.test.d.ts`
 ```typescript
 declare const axios: any;
@@ -119622,7 +119658,6 @@ vi.mock('axios', () => ({
     mockAxios.create.mockClear();
   }
 }));
-});
 
 const axios = require('axios');
 const { SupremeAIService, getSupremeAIService, setSupremeAIService } = require('../src/services/SupremeAIService');
@@ -119899,11 +119934,18 @@ describe('SupremeAIService', () => {
 ## File: `tools/vscode-extension/vitest.config.ts`
 ```typescript
 import { defineConfig } from 'vitest/config';
+import { fileURLToPath, URL } from 'url';
 
 export default defineConfig({
   test: {
     environment: 'node',
+    globals: true,
     include: ['test/**/*.test.ts'],
+  },
+  resolve: {
+    alias: {
+      vscode: fileURLToPath(new URL('./test/mocks/vscode.ts', import.meta.url)),
+    },
   },
 });
 
