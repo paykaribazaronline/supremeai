@@ -1,7 +1,7 @@
 # 🧠 SupremeAI 2.0 Codebase Analysis
 # বাংলা মন্তব্য: এটি একটি স্বয়ংক্রিয়ভাবে জেনারেট করা কোডবেস ডাম্প ফাইল যা প্রজেক্টের সামগ্রিক বিশ্লেষণের জন্য ব্যবহৃত হয়।
 
-Generated at: 2026-07-03T10:47:15.254970 UTC
+Generated at: 2026-07-03T10:54:59.706030 UTC
 
 ## File: `.github/actions/setup-backend/action.yml`
 ```yaml
@@ -4677,7 +4677,7 @@ jobs:
           ADMIN_AUTHORIZED: "true"
         run: |
           poetry run pytest --md pytest-report.md \
-            --cov=core --cov-report=json:coverage.json --cov-report=term-missing --cov-fail-under=80 -q
+            --cov=core --cov-report=json:coverage.json --cov-report=term-missing --cov-fail-under=50 -q
 
       - name: Add Backend Test Results to GitHub Summary
         if: always()
@@ -112802,7 +112802,8 @@ module.exports = {
     "eslint": "^8.0.0",
     "openai": "^4.0.0",
     "typescript": "^5.0.0",
-    "vitest": "^2.1.9"
+    "vitest": "^2.1.9",
+    "vscode": "^1.1.37"
   },
   "dependencies": {
     "@dataconnect/generated": "file:src/dataconnect-generated"
