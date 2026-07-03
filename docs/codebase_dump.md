@@ -1,7 +1,7 @@
 # 🧠 SupremeAI 2.0 Codebase Analysis
 # বাংলা মন্তব্য: এটি একটি স্বয়ংক্রিয়ভাবে জেনারেট করা কোডবেস ডাম্প ফাইল যা প্রজেক্টের সামগ্রিক বিশ্লেষণের জন্য ব্যবহৃত হয়।
 
-Generated at: 2026-07-03T11:07:31.269094 UTC
+Generated at: 2026-07-03T11:13:35.451487 UTC
 
 ## File: `.github/actions/setup-backend/action.yml`
 ```yaml
@@ -4654,6 +4654,22 @@ on:
   pull_request:
     branches: [main, develop]
   workflow_dispatch:
+    inputs:
+      force_backend:
+        description: 'Force backend tests to run'
+        required: false
+        default: 'false'
+        type: boolean
+      force_frontend:
+        description: 'Force frontend tests to run'
+        required: false
+        default: 'false'
+        type: boolean
+      force_security:
+        description: 'Force security scan to run'
+        required: false
+        default: 'false'
+        type: boolean
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -4692,18 +4708,21 @@ jobs:
           fi
           
           if [ "$LAST_CONCLUSION" == "failure" ]; then
-            echo "❌ ERROR: The previous run of SupremeAI Core CI failed!"
-            echo "Pipeline Blocked: You must fix the previous breaking changes before running a new pipeline."
-            echo "To bypass this and deploy a fix, include '[bypass-breaker]' in your commit message."
+            echo "❌ Previous run FAILED - Force running all tests"
             echo "previous_failed=true" >> $GITHUB_OUTPUT
-            # exit 1 # Disabled auto detect and failover per user request
           elif [ "$LAST_CONCLUSION" == "null" ]; then
-            echo "✅ No previous completed runs found. Proceeding!"
+            echo "⏭️ No previous completed runs found - First run detected"
             echo "previous_failed=false" >> $GITHUB_OUTPUT
           else
-            echo "✅ Previous run was successful. Proceeding with the pipeline!"
+            echo "✅ Previous run succeeded"
             echo "previous_failed=false" >> $GITHUB_OUTPUT
           fi
+          
+          # Debug output
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 🛡️ Circuit Breaker Status" >> $GITHUB_STEP_SUMMARY
+          echo "- Last Conclusion: $LAST_CONCLUSION" >> $GITHUB_STEP_SUMMARY
+          echo "- Will Force Tests: $(grep 'previous_failed' $GITHUB_OUTPUT | cut -d= -f2)" >> $GITHUB_STEP_SUMMARY
 
   detect-changes:
     name: 🔍 Smart Router
@@ -4712,19 +4731,33 @@ jobs:
     outputs:
       backend: ${{ steps.filter.outputs.backend }}
       frontend: ${{ steps.filter.outputs.frontend }}
+      any_changed: ${{ steps.filter.outputs.changes }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
       - uses: dorny/paths-filter@v3
         id: filter
         with:
           filters: |
-            backend: ['backend/**', 'packages/shared-types/**', 'Dockerfile', '.github/workflows/**', '.github/scripts/**']
-            frontend: ['apps/studio-client/**', 'apps/web-chat/**', 'apps/desktop/**', 'tools/vscode-extension/**', 'packages/**', '.github/workflows/**', '.github/scripts/**']
+            backend: ['backend/**', 'packages/shared-types/**', 'Dockerfile', 'pyproject.toml', 'poetry.lock']
+            frontend: ['apps/**', 'tools/vscode-extension/**', 'packages/**', 'pnpm-lock.yaml', '.github/workflows/**', '.github/scripts/**']
+            changes: ['**']
+      
+      - name: 📋 Log Change Detection
+        run: |
+          echo "## 🔍 Change Detection Results" >> $GITHUB_STEP_SUMMARY
+          echo "- Backend Changed: ${{ steps.filter.outputs.backend }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Frontend Changed: ${{ steps.filter.outputs.frontend }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Any Files Changed: ${{ steps.filter.outputs.changes }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Circuit Breaker (Previous Failed): ${{ needs.circuit-breaker.outputs.previous_failed }}" >> $GITHUB_STEP_SUMMARY
 
   backend-core:
     name: 🐍 Backend (Test & Auto-Fix)
     needs: [detect-changes, circuit-breaker]
     if: |
+      (github.event_name == 'workflow_dispatch' && fromJson(inputs.force_backend || 'false')) ||
       needs.detect-changes.outputs.backend == 'true' || 
       needs.circuit-breaker.outputs.previous_failed == 'true'
     runs-on: ubuntu-latest
@@ -4781,6 +4814,10 @@ jobs:
   security-audit:
     name: 🛡️ CodeQL & Trivy Security Scan
     needs: detect-changes
+    if: |
+      (github.event_name == 'workflow_dispatch' && fromJson(inputs.force_security || 'false')) ||
+      needs.detect-changes.outputs.backend == 'true' ||
+      needs.detect-changes.outputs.frontend == 'true'
     runs-on: ubuntu-latest
     permissions:
       security-events: write
@@ -4862,6 +4899,7 @@ jobs:
     name: 🌐 Frontend Monorepo (Turbo)
     needs: [detect-changes, circuit-breaker]
     if: |
+      (github.event_name == 'workflow_dispatch' && fromJson(inputs.force_frontend || 'false')) ||
       needs.detect-changes.outputs.frontend == 'true' || 
       needs.circuit-breaker.outputs.previous_failed == 'true'
     runs-on: ubuntu-latest
