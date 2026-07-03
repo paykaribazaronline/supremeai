@@ -5,6 +5,7 @@ import threading
 import time
 
 from loguru import logger
+from starlette.requests import Request
 from starlette.responses import JSONResponse
 
 
@@ -100,25 +101,17 @@ class RateLimitMiddleware:
             return
 
         from core.config import settings
-        from core.security import verify_token
 
         if os.getenv("ENV", "").lower() == "test" or settings.env.lower() == "test":
             await self.app(scope, receive, send)
             return
 
-        headers = scope.get("headers", [])
-        tenant_id = None
-        for k, v in headers:
-            if k.lower() == b"authorization":
-                auth_val = v.decode("utf-8")
-                if auth_val.startswith("Bearer "):
-                    token = auth_val.split(" ")[1]
-                    try:
-                        payload = verify_token(token)
-                        tenant_id = payload.get("tenant_id") or payload.get("sub")
-                    except Exception:
-                        pass
-                break
+        request = Request(scope, receive=receive)
+        tenant_id = getattr(request.state, "tenant_id", None)
+        if tenant_id is None:
+            user_info = getattr(request.state, "user", None)
+            if isinstance(user_info, dict):
+                tenant_id = user_info.get("tenant_id") or user_info.get("sub")
 
         if tenant_id:
             try:

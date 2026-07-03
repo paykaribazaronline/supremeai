@@ -1,6 +1,19 @@
 const functions = require('firebase-functions');
 const admin = require('firebase-admin');
 
+const allowedOrigins = [
+  'https://supremeai-dashboard.web.app',
+  'http://localhost:5173',
+  'https://studio.supremeai.com',
+];
+
+const getAllowedOrigin = (req) => {
+  const origin = req.get('origin');
+  return origin && (allowedOrigins.includes(origin) || origin.includes('supremeai'))
+    ? origin
+    : 'https://supremeai-dashboard.web.app';
+};
+
 // ============ SMART PROVIDER DISCOVERY ============
 // Discovers AI models from multiple sources:
 // 1. Firestore (user-added API keys)
@@ -42,7 +55,8 @@ async function discoverProviders() {
 // ============ API ENDPOINTS ============
 
 exports.getConfiguredProviders = functions.https.onRequest(async (req, res) => {
-  res.set('Access-Control-Allow-Origin', '*');
+  const allowedOrigin = getAllowedOrigin(req);
+  res.set('Access-Control-Allow-Origin', allowedOrigin);
   res.set('Access-Control-Allow-Methods', 'GET, OPTIONS');
   res.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   if (req.method === 'OPTIONS') return res.status(204).send('');
@@ -64,7 +78,8 @@ exports.getConfiguredProviders = functions.https.onRequest(async (req, res) => {
 });
 
 exports.getProviderHealthStats = functions.https.onRequest(async (req, res) => {
-  res.set('Access-Control-Allow-Origin', '*');
+  const allowedOrigin = getAllowedOrigin(req);
+  res.set('Access-Control-Allow-Origin', allowedOrigin);
   if (req.method === 'OPTIONS') return res.status(204).send('');
 
   try {

@@ -122,9 +122,9 @@ app.add_middleware(TrustedOriginMiddleware)
 app.add_middleware(ChaosInjectorMiddleware)
 app.add_middleware(ObservabilityMiddleware)
 app.add_middleware(HoneypotMiddleware)
+app.add_middleware(ZeroTrustAuthMiddleware)
 app.add_middleware(RateLimitMiddleware, requests_per_minute=120, burst=20)
 app.add_middleware(IdempotencyMiddleware)
-app.add_middleware(ZeroTrustAuthMiddleware)
 app.add_middleware(APIKeyAuthMiddleware)
 
 

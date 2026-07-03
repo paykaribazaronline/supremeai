@@ -43,6 +43,7 @@ class ZeroTrustAuthMiddleware(BaseHTTPMiddleware):
             # বাংলা মন্তব্য: টেস্ট মোড বাইপাস লজিক — স্ট্রিম এন্ডপয়েন্ট ছাড়া সব পাথের জন্য অটো-লগইন
             if is_test and not request.url.path.startswith("/api/stream/"):
                 request.state.user = {"sub": "admin@supremeai.com", "role": "admin"}
+                request.state.tenant_id = "admin@supremeai.com"
                 return await call_next(request)
 
             logger.warning(f"🚨 Blocked unauthorized request to {request.url.path}")
@@ -61,6 +62,7 @@ class ZeroTrustAuthMiddleware(BaseHTTPMiddleware):
             else:
                 payload = verify_token(token)
             request.state.user = payload
+            request.state.tenant_id = payload.get("tenant_id") or payload.get("sub")
 
             # অ্যাডমিন রাউটের জন্য স্ট্রিক্ট রোল চেক
             if (

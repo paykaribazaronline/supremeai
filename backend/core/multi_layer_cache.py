@@ -35,6 +35,10 @@ class _RedisFallback:
 
 
 if redis is None:
+    if os.getenv("ENV", "local").lower() == "production":
+        raise RuntimeError(
+            "redis.asyncio is required in production but is not installed."
+        )
     redis = _RedisFallback()
 
 
