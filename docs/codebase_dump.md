@@ -1,7 +1,7 @@
 # 🧠 SupremeAI 2.0 Codebase Analysis
 # বাংলা মন্তব্য: এটি একটি স্বয়ংক্রিয়ভাবে জেনারেট করা কোডবেস ডাম্প ফাইল যা প্রজেক্টের সামগ্রিক বিশ্লেষণের জন্য ব্যবহৃত হয়।
 
-Generated at: 2026-07-03T11:04:51.726986 UTC
+Generated at: 2026-07-03T11:07:31.269094 UTC
 
 ## File: `.github/actions/setup-backend/action.yml`
 ```yaml
@@ -42,9 +42,9 @@ runs:
 
 ## File: `.github/dependabot.yml`
 ```yaml
-# ডিপেন্ডাবট কনফিগারেশন
-# রুল ১৬ (Zero Cost) অনুযায়ী সাপ্তাহিক আপডেট সোমবার সকাল ৬টায় (UTC) একসাথে চেক হবে
-# PR এর সংখ্যা এবং সিআই (CI) রান কমানোর জন্য প্রতিটি ইকোসিস্টেমের সব আপডেটকে একটি একক গ্রুপ পিআর (Single Grouped PR)-এ নেওয়া হয়েছে।
+# 🤖 ডিপেন্ডাবট কনফিগারেশন — SupremeAI 2.0
+# রুল ১৬ (Zero Cost) অনুযায়ী সাপ্তাহিক আপডেট চেক হবে
+# SARIF + Security-first approach: প্রতিটি ইকোসিস্টেমে নিরাপত্তা প্যাচ সর্বোচ্চ অগ্রাধিকার
 version: 2
 updates:
   # Node.js / pnpm (Frontend, WebChat, VS Code Extension)
@@ -52,13 +52,32 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
-      day: "monday"
+      day: "tuesday"
       time: "06:00"
       timezone: "UTC"
+    open-pull-requests-limit: 10
+    pull-request-branch-name:
+      separator: "/"
+    labels:
+      - "dependencies"
+      - "frontend"
+      - "javascript"
+    commit-message:
+      prefix: "chore(deps): "
     groups:
-      node-deps:
-        patterns:
-          - "*"
+      security-updates:
+        dependency-types:
+          - "direct"
+        update-types:
+          - "patch:security"
+          - "minor:security"
+      node-minor-patch:
+        dependency-types:
+          - "direct"
+        update-types:
+          - "patch"
+          - "minor"
+    rebase-strategy: "auto"
 
   # Python / Poetry (Backend)
   - package-ecosystem: "pip"
@@ -68,49 +87,113 @@ updates:
       day: "monday"
       time: "06:00"
       timezone: "UTC"
+    open-pull-requests-limit: 10
+    pull-request-branch-name:
+      separator: "/"
+    reviewers:
+      - "paykaribazaronline"
+    labels:
+      - "dependencies"
+      - "backend"
+      - "python"
+    commit-message:
+      prefix: "chore(deps): "
     groups:
-      python-deps:
-        patterns:
-          - "*"
+      security-updates:
+        dependency-types:
+          - "direct"
+          - "indirect"
+        update-types:
+          - "patch:security"
+          - "minor:security"
+      python-minor-patch:
+        dependency-types:
+          - "direct"
+        update-types:
+          - "patch"
+          - "minor"
+      python-indirect:
+        dependency-types:
+          - "indirect"
+        update-types:
+          - "patch"
+          - "minor"
+    rebase-strategy: "auto"
 
   # Flutter / Dart (Mobile App)
   - package-ecosystem: "pub"
     directory: "/apps/mobile"
     schedule:
       interval: "weekly"
-      day: "monday"
+      day: "wednesday"
       time: "06:00"
       timezone: "UTC"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "mobile"
+      - "flutter"
+    commit-message:
+      prefix: "chore(mobile): "
     groups:
+      security-updates:
+        update-types:
+          - "patch:security"
+          - "minor:security"
       flutter-deps:
         patterns:
           - "*"
+    rebase-strategy: "auto"
 
   # GitHub Actions
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "weekly"
-      day: "monday"
+      day: "thursday"
       time: "06:00"
       timezone: "UTC"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "ci-cd"
+      - "github-actions"
+    commit-message:
+      prefix: "ci(actions): "
     groups:
-      github-actions-deps:
+      security-actions:
+        patterns:
+          - "github/codeql-action"
+          - "aquasecurity/*"
+          - "trufflesecurity/*"
+      action-updates:
         patterns:
           - "*"
+    rebase-strategy: "auto"
 
   # Dockerfile
   - package-ecosystem: "docker"
     directory: "/"
     schedule:
       interval: "weekly"
-      day: "monday"
+      day: "friday"
       time: "06:00"
       timezone: "UTC"
+    open-pull-requests-limit: 3
+    labels:
+      - "dependencies"
+      - "docker"
+      - "infrastructure"
+    commit-message:
+      prefix: "build(docker): "
     groups:
-      docker-deps:
+      docker-base-images:
         patterns:
-          - "*"
+          - "python*"
+          - "node*"
+          - "ubuntu*"
+          - "debian*"
+    rebase-strategy: "auto"
 
 
 ```
