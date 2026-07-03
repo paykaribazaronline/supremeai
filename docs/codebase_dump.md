@@ -1,7 +1,7 @@
 # 🧠 SupremeAI 2.0 Codebase Analysis
 # বাংলা মন্তব্য: এটি একটি স্বয়ংক্রিয়ভাবে জেনারেট করা কোডবেস ডাম্প ফাইল যা প্রজেক্টের সামগ্রিক বিশ্লেষণের জন্য ব্যবহৃত হয়।
 
-Generated at: 2026-07-03T02:58:40.685485 UTC
+Generated at: 2026-07-03T03:05:19.802394 UTC
 
 ## File: `.github/actions/setup-backend/action.yml`
 ```yaml
@@ -118870,24 +118870,24 @@ export class DynamicSignatureRegistry {
 ## File: `tools/vscode-extension/test/__mocks__/vscode.d.ts`
 ```typescript
 export declare const window: {
-    showInformationMessage: jest.Mock<any, any, any>;
-    showErrorMessage: jest.Mock<any, any, any>;
-    showWarningMessage: jest.Mock<any, any, any>;
-    createWebviewPanel: jest.Mock<any, any, any>;
+    showInformationMessage: any;
+    showErrorMessage: any;
+    showWarningMessage: any;
+    createWebviewPanel: any;
     activeTextEditor: undefined;
     visibleTextEditors: never[];
 };
 export declare const workspace: {
-    getConfiguration: jest.Mock<any, any, any>;
-    onDidChangeTextDocument: jest.Mock<any, any, any>;
-    onDidSaveTextDocument: jest.Mock<any, any, any>;
+    getConfiguration: any;
+    onDidChangeTextDocument: any;
+    onDidSaveTextDocument: any;
 };
 export declare const commands: {
-    executeCommand: jest.Mock<any, any, any>;
-    registerCommand: jest.Mock<any, any, any>;
+    executeCommand: any;
+    registerCommand: any;
 };
 export declare const authentication: {
-    getSession: jest.Mock<any, any, any>;
+    getSession: any;
 };
 export declare class Range {
     start: any;
@@ -118904,7 +118904,7 @@ export declare class Selection {
     active: any;
     constructor(anchor: any, active: any);
 }
-export declare const ExtensionContext: jest.Mock<any, any, any>;
+export declare const ExtensionContext: any;
 
 ```
 
@@ -118973,34 +118973,34 @@ export class Selection extends Range {
 
 // ⚡ Active Functional Namespaces using Jest Spies with proper type structures
 export const window = {
-    showInformationMessage: jest.fn().mockResolvedValue(undefined),
-    showErrorMessage: jest.fn().mockResolvedValue(undefined),
-    showWarningMessage: jest.fn().mockResolvedValue(undefined),
+    showInformationMessage: vi.fn().mockResolvedValue(undefined),
+    showErrorMessage: vi.fn().mockResolvedValue(undefined),
+    showWarningMessage: vi.fn().mockResolvedValue(undefined),
     activeTextEditor: undefined,
     visibleTextEditors: [],
-    createStatusBarItem: jest.fn().mockReturnValue({
+    createStatusBarItem: vi.fn().mockReturnValue({
         command: undefined,
         text: "",
-        show: jest.fn(),
-        hide: jest.fn(),
-        dispose: jest.fn()
+        show: vi.fn(),
+        hide: vi.fn(),
+        dispose: vi.fn()
     })
 };
 
 export const workspace = {
-    getConfiguration: jest.fn().mockReturnValue({
-        get: jest.fn(),
-        update: jest.fn(),
-        has: jest.fn()
+    getConfiguration: vi.fn().mockReturnValue({
+        get: vi.fn(),
+        update: vi.fn(),
+        has: vi.fn()
     }),
     textDocuments: [],
-    onDidChangeTextDocument: jest.fn().mockReturnValue({ dispose: jest.fn() }),
-    onDidSaveTextDocument: jest.fn().mockReturnValue({ dispose: jest.fn() })
+    onDidChangeTextDocument: vi.fn().mockReturnValue({ dispose: vi.fn() }),
+    onDidSaveTextDocument: vi.fn().mockReturnValue({ dispose: vi.fn() })
 };
 
 export const commands = {
-    registerCommand: jest.fn().mockReturnValue({ dispose: jest.fn() }),
-    executeCommand: jest.fn().mockResolvedValue(undefined)
+    registerCommand: vi.fn().mockReturnValue({ dispose: vi.fn() }),
+    executeCommand: vi.fn().mockResolvedValue(undefined)
 };
 
 export enum StatusBarAlignment {
@@ -119015,10 +119015,10 @@ export enum OverviewRulerLane {
     Full = 7
 }
 
-export const ExtensionContext = jest.fn().mockImplementation(() => ({
+export const ExtensionContext = vi.fn().mockImplementation(() => ({
     subscriptions: [],
-    workspaceState: { get: jest.fn(), update: jest.fn() },
-    globalState: { get: jest.fn(), update: jest.fn(), setKeysForSync: jest.fn() },
+    workspaceState: { get: vi.fn(), update: vi.fn() },
+    globalState: { get: vi.fn(), update: vi.fn(), setKeysForSync: vi.fn() },
     extensionPath: "/mock/extension/path",
     storagePath: "/mock/storage/path",
     globalStoragePath: "/mock/global/storage/path",
@@ -119038,22 +119038,22 @@ declare const AuthService: any;
 ## File: `tools/vscode-extension/test/auth-service.test.js`
 ```javascript
 "use strict";
-jest.mock('axios');
-jest.mock('vscode');
+vi.mock('axios');
+vi.mock('vscode');
 const axios = require('axios');
 const vscode = require('vscode');
 const { AuthService } = require('../src/services/AuthService');
 beforeAll(() => {
     vscode.window = {
-        showInformationMessage: jest.fn(),
-        showErrorMessage: jest.fn(),
-        showWarningMessage: jest.fn(),
+        showInformationMessage: vi.fn(),
+        showErrorMessage: vi.fn(),
+        showWarningMessage: vi.fn(),
     };
     vscode.commands = {
-        executeCommand: jest.fn().mockResolvedValue(undefined),
+        executeCommand: vi.fn().mockResolvedValue(undefined),
     };
     vscode.authentication = {
-        getSession: jest.fn(),
+        getSession: vi.fn(),
     };
 });
 describe('AuthService', () => {
@@ -119065,7 +119065,7 @@ describe('AuthService', () => {
             enableRealTimeLearning: true,
             autoReportErrors: true,
         });
-        jest.clearAllMocks();
+        vi.clearAllMocks();
     });
     afterEach(() => {
         authService.logout();
@@ -119142,8 +119142,8 @@ describe('AuthService', () => {
 
 ## File: `tools/vscode-extension/test/auth-service.test.ts`
 ```typescript
-jest.mock('axios');
-jest.mock('vscode');
+vi.mock('axios');
+vi.mock('vscode');
 
 const axios = require('axios');
 const vscode = require('vscode');
@@ -119152,31 +119152,31 @@ const { AuthService } = require('../src/services/AuthService');
 
 beforeAll(() => {
   vscode.window = {
-    showInformationMessage: jest.fn(),
-    showErrorMessage: jest.fn(),
-    showWarningMessage: jest.fn(),
+    showInformationMessage: vi.fn(),
+    showErrorMessage: vi.fn(),
+    showWarningMessage: vi.fn(),
   };
   vscode.commands = {
-    executeCommand: jest.fn().mockResolvedValue(undefined),
+    executeCommand: vi.fn().mockResolvedValue(undefined),
   };
   vscode.authentication = {
-    getSession: jest.fn(),
+    getSession: vi.fn(),
   };
   vscode.env = {
-    openExternal: jest.fn().mockResolvedValue(true),
+    openExternal: vi.fn().mockResolvedValue(true),
   };
   vscode.Uri = {
-    parse: jest.fn().mockImplementation((val) => ({ toString: () => val })),
+    parse: vi.fn().mockImplementation((val) => ({ toString: () => val })),
   };
   vscode.workspace = {
-    getConfiguration: jest.fn().mockReturnValue({
-      update: jest.fn().mockResolvedValue(undefined),
-      get: jest.fn().mockReturnValue(''),
+    getConfiguration: vi.fn().mockReturnValue({
+      update: vi.fn().mockResolvedValue(undefined),
+      get: vi.fn().mockReturnValue(''),
     }),
     isTrusted: true,
   };
   vscode.extensions = {
-    getExtension: jest.fn().mockReturnValue({
+    getExtension: vi.fn().mockReturnValue({
       extensionKind: 1,
     }),
   };
@@ -119192,7 +119192,7 @@ describe('AuthService', () => {
       enableRealTimeLearning: true,
       autoReportErrors: true,
     });
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   afterEach(() => {
@@ -119266,14 +119266,14 @@ declare const SupremeAIService: any, getSupremeAIService: any, setSupremeAIServi
 ## File: `tools/vscode-extension/test/supremeai-service.test.js`
 ```javascript
 "use strict";
-jest.mock('axios', () => {
+vi.mock('axios', () => {
     const mockAxios = {
-        create: jest.fn((config) => {
+        create: vi.fn((config) => {
             const baseURL = config?.baseURL || '';
             return {
                 interceptors: {
-                    request: { use: jest.fn() },
-                    response: { use: jest.fn() },
+                    request: { use: vi.fn() },
+                    response: { use: vi.fn() },
                 },
                 post: (url, data, options) => {
                     const fullUrl = url.startsWith('http') ? url : (baseURL + url);
@@ -119289,9 +119289,9 @@ jest.mock('axios', () => {
                 },
             };
         }),
-        post: jest.fn(),
-        get: jest.fn(),
-        delete: jest.fn(),
+        post: vi.fn(),
+        get: vi.fn(),
+        delete: vi.fn(),
         mockReset: () => {
             mockAxios.post.mockReset();
             mockAxios.get.mockReset();
@@ -119494,40 +119494,38 @@ describe('SupremeAIService', () => {
 
 ## File: `tools/vscode-extension/test/supremeai-service.test.ts`
 ```typescript
-jest.mock('axios', () => {
-  const mockAxios = {
-    create: jest.fn((config) => {
+vi.mock('axios', () => ({
+  create: vi.fn((config) => ({
+    interceptors: {
+      request: { use: vi.fn() },
+      response: { use: vi.fn() },
+    },
+    post: (url: string, data: any, options: any) => {
       const baseURL = config?.baseURL || '';
-      return {
-        interceptors: {
-          request: { use: jest.fn() },
-          response: { use: jest.fn() },
-        },
-        post: (url: string, data: any, options: any) => {
-          const fullUrl = url.startsWith('http') ? url : (baseURL + url);
-          return mockAxios.post(fullUrl, data, options || {});
-        },
-        get: (url: string, options: any) => {
-          const fullUrl = url.startsWith('http') ? url : (baseURL + url);
-          return mockAxios.get(fullUrl, options || {});
-        },
-        delete: (url: string, options: any) => {
-          const fullUrl = url.startsWith('http') ? url : (baseURL + url);
-          return mockAxios.delete(fullUrl, options || {});
-        },
-      };
-    }),
-    post: jest.fn(),
-    get: jest.fn(),
-    delete: jest.fn(),
-    mockReset: () => {
-      mockAxios.post.mockReset();
-      mockAxios.get.mockReset();
-      mockAxios.delete.mockReset();
-      mockAxios.create.mockClear();
-    }
-  };
-  return mockAxios;
+      const fullUrl = url.startsWith('http') ? url : (baseURL + url);
+      return mockAxios.post(fullUrl, data, options || {});
+    },
+    get: (url: string, options: any) => {
+      const baseURL = config?.baseURL || '';
+      const fullUrl = url.startsWith('http') ? url : (baseURL + url);
+      return mockAxios.get(fullUrl, options || {});
+    },
+    delete: (url: string, options: any) => {
+      const baseURL = config?.baseURL || '';
+      const fullUrl = url.startsWith('http') ? url : (baseURL + url);
+      return mockAxios.delete(fullUrl, options || {});
+    },
+  })),
+  post: vi.fn(),
+  get: vi.fn(),
+  delete: vi.fn(),
+  mockReset: () => {
+    mockAxios.post.mockReset();
+    mockAxios.get.mockReset();
+    mockAxios.delete.mockReset();
+    mockAxios.create.mockClear();
+  }
+}));
 });
 
 const axios = require('axios');
