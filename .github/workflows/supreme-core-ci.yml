@@ -108,11 +108,6 @@ jobs:
 
   backend-core:
     name: 🐍 Backend (Test & Auto-Fix)
-    needs: [detect-changes, circuit-breaker]
-    if: |
-      (github.event_name == 'workflow_dispatch' && fromJson(inputs.force_backend || 'false')) ||
-      needs.detect-changes.outputs.backend == 'true' || 
-      needs.circuit-breaker.outputs.previous_failed == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -166,11 +161,6 @@ jobs:
 
   security-audit:
     name: 🛡️ CodeQL & Trivy Security Scan
-    needs: detect-changes
-    if: |
-      (github.event_name == 'workflow_dispatch' && fromJson(inputs.force_security || 'false')) ||
-      needs.detect-changes.outputs.backend == 'true' ||
-      needs.detect-changes.outputs.frontend == 'true'
     runs-on: ubuntu-latest
     permissions:
       security-events: write
@@ -250,11 +240,6 @@ jobs:
 
   frontend-core:
     name: 🌐 Frontend Monorepo (Turbo)
-    needs: [detect-changes, circuit-breaker]
-    if: |
-      (github.event_name == 'workflow_dispatch' && fromJson(inputs.force_frontend || 'false')) ||
-      needs.detect-changes.outputs.frontend == 'true' || 
-      needs.circuit-breaker.outputs.previous_failed == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -312,11 +297,10 @@ jobs:
 
   deploy-backend:
     name: 🚀 Deploy Backend (Cloud Run)
-    needs: [detect-changes, circuit-breaker, backend-core]
+    needs: backend-core
     if: |
       always() && 
-      github.ref == 'refs/heads/main' && 
-      (needs.detect-changes.outputs.backend == 'true' || needs.circuit-breaker.outputs.previous_failed == 'true') &&
+      github.ref == 'refs/heads/main' &&
       needs.backend-core.result != 'failure' && needs.backend-core.result != 'cancelled'
     runs-on: ubuntu-latest
     environment: production
@@ -356,9 +340,6 @@ jobs:
     name: ⏱️ Load Test (k6)
     needs: [backend-core, frontend-core]
     runs-on: ubuntu-latest
-    if: |
-      needs.detect-changes.outputs.backend == 'true' ||
-      needs.circuit-breaker.outputs.previous_failed == 'true'
     steps:
       - uses: actions/checkout@v4
       - name: Install k6
@@ -379,11 +360,10 @@ jobs:
 
   deploy-frontend:
     name: 🌐 Deploy Frontend (Firebase)
-    needs: [detect-changes, circuit-breaker, frontend-core]
+    needs: frontend-core
     if: |
       always() && 
-      github.ref == 'refs/heads/main' && 
-      (needs.detect-changes.outputs.frontend == 'true' || needs.circuit-breaker.outputs.previous_failed == 'true') &&
+      github.ref == 'refs/heads/main' &&
       needs.frontend-core.result != 'failure' && needs.frontend-core.result != 'cancelled'
     runs-on: ubuntu-latest
     environment: production
@@ -402,9 +382,9 @@ jobs:
 
   sync-mirror:
     name: 📤 Sync to Secondary Repo
-    # বাংলা মন্তব্য: সিকিউরিটি অডিট (CodeQL) সফল হওয়ার পর সেকেন্ডারি রিপোতে সিঙ্ক হবে
-    needs: [detect-changes, deploy-backend, deploy-frontend, security-audit]
+    needs: [deploy-backend, deploy-frontend, security-audit]
     if: |
+      always() &&
       github.ref == 'refs/heads/main' &&
       needs.deploy-backend.result != 'failure' && needs.deploy-backend.result != 'cancelled' &&
       needs.deploy-frontend.result != 'failure' && needs.deploy-frontend.result != 'cancelled' &&
