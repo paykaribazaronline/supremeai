@@ -87,9 +87,16 @@ async def app_lifespan(app):
 
     try:
         db_url = settings.supabase_database_url
-        await init_db_pool(db_url)
-        logger.info("⚡ PgBouncer connection pool successfully initialized at startup.")
-        await _ensure_api_key_tables()
+        if "sqlite" in db_url:
+            logger.info(
+                "💾 SQLite Memory Database Detected for Agent Telemetry. "
+                "Skipping PostgreSQL asyncpg pool initialization."
+            )
+            app.state.db_pool = None
+        else:
+            await init_db_pool(db_url)
+            logger.info("⚡ PgBouncer connection pool successfully initialized at startup.")
+            await _ensure_api_key_tables()
     except Exception as exc:
         logger.error(f"❌ Failed to initialize DB Pool: {exc}")
         raise exc
