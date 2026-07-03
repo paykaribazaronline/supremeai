@@ -1,15 +1,12 @@
-import { defineConfig } from 'vitest/config';
 import { fileURLToPath, URL } from 'url';
 
-export default defineConfig({
+export default {
   test: {
     environment: 'node',
     globals: true,
     include: ['test/**/*.test.ts'],
   },
-  resolve: {
-    alias: {
-      vscode: fileURLToPath(new URL('./test/mocks/vscode.ts', import.meta.url)),
-    },
-  },
-});
+  alias: [
+    { find: /^vscode$/, replacement: fileURLToPath(new URL('./test/mocks/vscode.ts', import.meta.url)) },
+  ],
+} as any;
