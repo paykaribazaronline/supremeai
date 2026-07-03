@@ -432,18 +432,20 @@ jobs:
       (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
       - name: Generate Codebase Markdown
-        run: python scripts/generate_codebase_markdown.py
+        run: python scripts/generate_smart_docs.py
       - name: Commit and Push Docs
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add docs/codebase_dump.md
-          git diff-index --quiet HEAD || (git commit -m "docs: auto-generate codebase markdown analysis [skip ci]" && git push)
+          git add docs/
+          git diff-index --quiet HEAD || (git commit -m "docs: auto-generate smart codebase docs & changelog [skip ci]" && git push) || echo "No changes to commit"
 
   ci-report:
     name: 📊 Generate Smart CI Report
