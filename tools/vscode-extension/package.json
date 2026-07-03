@@ -278,8 +278,8 @@
     "watch": "tsc -watch -p ./",
     "lint": "eslint src",
     "pretest": "pnpm run compile",
-    "test": "jest --passWithNoTests",
-    "unit": "jest --passWithNoTests",
+    "test": "vitest run",
+    "unit": "vitest run",
     "package-ext": "esbuild src/extension.ts --bundle --outfile=out/extension.js --external:vscode --format=cjs --platform=node --minify"
   },
   "devDependencies": {
@@ -288,9 +288,7 @@
     "@typescript-eslint/eslint-plugin": "^6.0.0",
     "@typescript-eslint/parser": "^6.0.0",
     "eslint": "^8.0.0",
-    "jest": "^29.7.0",
-    "@types/jest": "^29.5.0",
-    "ts-jest": "^29.1.0",
+    "vitest": "^2.0.0",
     "typescript": "^5.0.0",
     "esbuild": "^0.28.0",
     "axios": "^1.6.0",
