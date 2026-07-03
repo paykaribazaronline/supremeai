@@ -1,7 +1,7 @@
 # 🧠 SupremeAI 2.0 Codebase Analysis
 # বাংলা মন্তব্য: এটি একটি স্বয়ংক্রিয়ভাবে জেনারেট করা কোডবেস ডাম্প ফাইল যা প্রজেক্টের সামগ্রিক বিশ্লেষণের জন্য ব্যবহৃত হয়।
 
-Generated at: 2026-07-03T01:48:41.697064 UTC
+Generated at: 2026-07-03T02:03:14.773461 UTC
 
 ## File: `.github/actions/setup-backend/action.yml`
 ```yaml
@@ -113793,7 +113793,7 @@ function escapeHtml(value: string): string {
         return '&gt;';
       case '"':
         return '&quot;';
-      case "'":
+      case '\'':
         return '&#39;';
       default:
         return c;
@@ -117322,7 +117322,7 @@ export class SupremeAISidebarProvider implements vscode.WebviewViewProvider {
           return '&gt;';
         case '"':
           return '&quot;';
-        case "'":
+        case '\'':
           return '&#39;';
         default:
           return c;
