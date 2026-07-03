@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps\mobile\ios\Runner\Assets.xcassets\LaunchImage.imageset\README.md
+# 📄 ফাইল: apps/mobile/ios/Runner/Assets.xcassets/LaunchImage.imageset/README.md
 
 **প্রকার:** .md  
 **সাইজ:** 337 বাইট  
-**আপডেট:** 2026-07-03T20:44:20.005809
+**আপডেট:** 2026-07-03T14:55:14.213403
 
 ---
 

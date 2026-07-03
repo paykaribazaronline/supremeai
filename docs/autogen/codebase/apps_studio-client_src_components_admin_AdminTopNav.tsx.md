@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps\studio-client\src\components\admin\AdminTopNav.tsx
+# 📄 ফাইল: apps/studio-client/src/components/admin/AdminTopNav.tsx
 
 **প্রকার:** .tsx  
 **সাইজ:** 4,394 বাইট  
-**আপডেট:** 2026-07-03T20:44:21.525062
+**আপডেট:** 2026-07-03T14:55:14.196611
 
 ---
 

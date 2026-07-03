@@ -1,8 +1,8 @@
-# 📄 ফাইল: backend\config\pricing_tiers.json
+# 📄 ফাইল: backend/config/pricing_tiers.json
 
 **প্রকার:** .json  
 **সাইজ:** 801 বাইট  
-**আপডেট:** 2026-07-03T20:44:23.795098
+**আপডেট:** 2026-07-03T14:55:14.131818
 
 ---
 

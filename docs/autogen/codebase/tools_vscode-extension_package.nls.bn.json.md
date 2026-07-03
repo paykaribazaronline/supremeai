@@ -1,8 +1,8 @@
-# 📄 ফাইল: tools\vscode-extension\package.nls.bn.json
+# 📄 ফাইল: tools/vscode-extension/package.nls.bn.json
 
 **প্রকার:** .json  
 **সাইজ:** 3,343 বাইট  
-**আপডেট:** 2026-07-03T20:44:33.340462
+**আপডেট:** 2026-07-03T14:55:14.225263
 
 ---
 

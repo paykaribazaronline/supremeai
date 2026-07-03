@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps\studio-client\src\components\admin\AdminAuthenticated.tsx
+# 📄 ফাইল: apps/studio-client/src/components/admin/AdminAuthenticated.tsx
 
 **প্রকার:** .tsx  
 **সাইজ:** 10,323 বাইট  
-**আপডেট:** 2026-07-03T20:44:21.465256
+**আপডেট:** 2026-07-03T14:55:14.196778
 
 ---
 

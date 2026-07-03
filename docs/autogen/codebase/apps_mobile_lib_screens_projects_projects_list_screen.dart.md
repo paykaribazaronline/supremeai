@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps\mobile\lib\screens\projects\projects_list_screen.dart
+# 📄 ফাইল: apps/mobile/lib/screens/projects/projects_list_screen.dart
 
 **প্রকার:** .dart  
 **সাইজ:** 9,158 বাইট  
-**আপডেট:** 2026-07-03T20:44:20.543887
+**আপডেট:** 2026-07-03T14:55:14.217632
 
 ---
 

@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps\mobile\lib\dataconnect_generated\generated.dart
+# 📄 ফাইল: apps/mobile/lib/dataconnect_generated/generated.dart
 
 **প্রকার:** .dart  
 **সাইজ:** 2,467 বাইট  
-**আপডেট:** 2026-07-03T20:44:20.058447
+**আপডেট:** 2026-07-03T14:55:14.220105
 
 ---
 

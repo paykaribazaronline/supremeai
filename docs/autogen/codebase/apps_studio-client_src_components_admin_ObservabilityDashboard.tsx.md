@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps\studio-client\src\components\admin\ObservabilityDashboard.tsx
+# 📄 ফাইল: apps/studio-client/src/components/admin/ObservabilityDashboard.tsx
 
 **প্রকার:** .tsx  
 **সাইজ:** 7,053 বাইট  
-**আপডেট:** 2026-07-03T20:44:21.753762
+**আপডেট:** 2026-07-03T14:55:14.196017
 
 ---
 

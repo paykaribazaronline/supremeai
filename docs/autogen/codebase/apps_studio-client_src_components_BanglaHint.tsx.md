@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps\studio-client\src\components\BanglaHint.tsx
+# 📄 ফাইল: apps/studio-client/src/components/BanglaHint.tsx
 
 **প্রকার:** .tsx  
 **সাইজ:** 1,014 বাইট  
-**আপডেট:** 2026-07-03T20:44:21.419585
+**আপডেট:** 2026-07-03T14:55:14.188961
 
 ---
 

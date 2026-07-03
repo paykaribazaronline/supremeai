@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps\studio-client\src\services\adminService.ts
+# 📄 ফাইল: apps/studio-client/src/services/adminService.ts
 
 **প্রকার:** .ts  
 **সাইজ:** 1,239 বাইট  
-**আপডেট:** 2026-07-03T20:44:22.541296
+**আপডেট:** 2026-07-03T14:55:14.202858
 
 ---
 

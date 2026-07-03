@@ -1,8 +1,8 @@
-# 📄 ফাইল: backend\evolution\auto_update_manager.py
+# 📄 ফাইল: backend/evolution/auto_update_manager.py
 
 **প্রকার:** .py  
 **সাইজ:** 479 বাইট  
-**আপডেট:** 2026-07-03T20:44:25.041136
+**আপডেট:** 2026-07-03T14:55:14.132543
 
 ---
 

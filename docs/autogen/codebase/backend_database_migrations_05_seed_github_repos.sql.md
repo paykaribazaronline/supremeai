@@ -1,8 +1,8 @@
-# 📄 ফাইল: backend\database\migrations\05_seed_github_repos.sql
+# 📄 ফাইল: backend/database/migrations/05_seed_github_repos.sql
 
 **প্রকার:** .sql  
 **সাইজ:** 27,841 বাইট  
-**আপডেট:** 2026-07-03T20:44:24.920056
+**আপডেট:** 2026-07-03T14:55:14.162153
 
 ---
 

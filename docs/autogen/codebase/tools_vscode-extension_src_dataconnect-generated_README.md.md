@@ -1,8 +1,8 @@
-# 📄 ফাইল: tools\vscode-extension\src\dataconnect-generated\README.md
+# 📄 ফাইল: tools/vscode-extension/src/dataconnect-generated/README.md
 
 **প্রকার:** .md  
 **সাইজ:** 41,166 বাইট  
-**আপডেট:** 2026-07-03T20:44:33.790600
+**আপডেট:** 2026-07-03T14:55:14.228071
 
 ---
 

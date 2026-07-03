@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps\desktop\src-ui\src\pages\LoginPage.tsx
+# 📄 ফাইল: apps/desktop/src-ui/src/pages/LoginPage.tsx
 
 **প্রকার:** .tsx  
 **সাইজ:** 1,512 বাইট  
-**আপডেট:** 2026-07-03T20:44:19.798062
+**আপডেট:** 2026-07-03T14:55:14.206515
 
 ---
 

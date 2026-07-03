@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps\studio-client\src\components\admin\CICDVisualizer.tsx
+# 📄 ফাইল: apps/studio-client/src/components/admin/CICDVisualizer.tsx
 
 **প্রকার:** .tsx  
 **সাইজ:** 12,157 বাইট  
-**আপডেট:** 2026-07-03T20:44:21.562199
+**আপডেট:** 2026-07-03T14:55:14.196960
 
 ---
 

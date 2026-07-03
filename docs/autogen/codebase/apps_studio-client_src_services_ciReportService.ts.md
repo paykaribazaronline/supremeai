@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps\studio-client\src\services\ciReportService.ts
+# 📄 ফাইল: apps/studio-client/src/services/ciReportService.ts
 
 **প্রকার:** .ts  
 **সাইজ:** 1,040 বাইট  
-**আপডেট:** 2026-07-03T20:44:22.595364
+**আপডেট:** 2026-07-03T14:55:14.202490
 
 ---
 

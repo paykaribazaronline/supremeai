@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps\studio-client\src\components\admin\ServiceHealthMetrics.tsx
+# 📄 ফাইল: apps/studio-client/src/components/admin/ServiceHealthMetrics.tsx
 
 **প্রকার:** .tsx  
 **সাইজ:** 6,357 বাইট  
-**আপডেট:** 2026-07-03T20:44:21.857472
+**আপডেট:** 2026-07-03T14:55:14.196192
 
 ---
 

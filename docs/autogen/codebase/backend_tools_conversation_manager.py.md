@@ -1,8 +1,8 @@
-# 📄 ফাইল: backend\tools\conversation_manager.py
+# 📄 ফাইল: backend/tools/conversation_manager.py
 
 **প্রকার:** .py  
 **সাইজ:** 2,141 বাইট  
-**আপডেট:** 2026-07-03T20:44:28.265256
+**আপডেট:** 2026-07-03T14:55:14.171261
 
 ---
 

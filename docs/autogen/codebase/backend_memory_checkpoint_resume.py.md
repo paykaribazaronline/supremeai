@@ -1,8 +1,8 @@
-# 📄 ফাইল: backend\memory\checkpoint_resume.py
+# 📄 ফাইল: backend/memory/checkpoint_resume.py
 
 **প্রকার:** .py  
 **সাইজ:** 795 বাইট  
-**আপডেট:** 2026-07-03T20:44:25.124838
+**আপডেট:** 2026-07-03T14:55:14.130426
 
 ---
 

@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps\mobile\lib\theme\app_theme.dart
+# 📄 ফাইল: apps/mobile/lib/theme/app_theme.dart
 
 **প্রকার:** .dart  
 **সাইজ:** 521 বাইট  
-**আপডেট:** 2026-07-03T20:44:20.769004
+**আপডেট:** 2026-07-03T14:55:14.221234
 
 ---
 

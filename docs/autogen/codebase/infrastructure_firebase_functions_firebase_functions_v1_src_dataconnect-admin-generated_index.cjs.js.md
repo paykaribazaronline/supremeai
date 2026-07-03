@@ -1,8 +1,8 @@
-# 📄 ফাইল: infrastructure\firebase_functions\firebase_functions_v1\src\dataconnect-admin-generated\index.cjs.js
+# 📄 ফাইল: infrastructure/firebase_functions/firebase_functions_v1/src/dataconnect-admin-generated/index.cjs.js
 
 **প্রকার:** .js  
 **সাইজ:** 3,279 বাইট  
-**আপডেট:** 2026-07-03T20:44:30.135906
+**আপডেট:** 2026-07-03T14:55:14.098633
 
 ---
 

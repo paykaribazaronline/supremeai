@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps\studio-client\src\services\chatService.ts
+# 📄 ফাইল: apps/studio-client/src/services/chatService.ts
 
 **প্রকার:** .ts  
 **সাইজ:** 3,942 বাইট  
-**আপডেট:** 2026-07-03T20:44:22.584684
+**আপডেট:** 2026-07-03T14:55:14.202344
 
 ---
 

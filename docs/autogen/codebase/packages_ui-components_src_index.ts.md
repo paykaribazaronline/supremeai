@@ -1,8 +1,8 @@
-# 📄 ফাইল: packages\ui-components\src\index.ts
+# 📄 ফাইল: packages/ui-components/src/index.ts
 
 **প্রকার:** .ts  
 **সাইজ:** 43 বাইট  
-**আপডেট:** 2026-07-03T20:44:30.330411
+**আপডেট:** 2026-07-03T14:55:14.092119
 
 ---
 

@@ -1,8 +1,8 @@
-# 📄 ফাইল: backend\database\migrations\02_phase2_setup.sql
+# 📄 ফাইল: backend/database/migrations/02_phase2_setup.sql
 
 **প্রকার:** .sql  
 **সাইজ:** 1,783 বাইট  
-**আপডেট:** 2026-07-03T20:44:24.885397
+**আপডেট:** 2026-07-03T14:55:14.162770
 
 ---
 

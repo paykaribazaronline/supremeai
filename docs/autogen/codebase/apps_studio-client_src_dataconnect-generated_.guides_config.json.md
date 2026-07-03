@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps\studio-client\src\dataconnect-generated\.guides\config.json
+# 📄 ফাইল: apps/studio-client/src/dataconnect-generated/.guides/config.json
 
 **প্রকার:** .json  
 **সাইজ:** 236 বাইট  
-**আপডেট:** 2026-07-03T20:44:22.336733
+**আপডেট:** 2026-07-03T14:55:14.187071
 
 ---
 

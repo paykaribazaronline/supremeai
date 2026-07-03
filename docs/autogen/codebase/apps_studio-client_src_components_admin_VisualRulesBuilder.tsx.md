@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps\studio-client\src\components\admin\VisualRulesBuilder.tsx
+# 📄 ফাইল: apps/studio-client/src/components/admin/VisualRulesBuilder.tsx
 
 **প্রকার:** .tsx  
 **সাইজ:** 10,411 বাইট  
-**আপডেট:** 2026-07-03T20:44:21.960642
+**আপডেট:** 2026-07-03T14:55:14.197864
 
 ---
 

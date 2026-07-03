@@ -1,8 +1,8 @@
-# 📄 ফাইল: backend\agents\crew_departments.py
+# 📄 ফাইল: backend/agents/crew_departments.py
 
 **প্রকার:** .py  
 **সাইজ:** 3,737 বাইট  
-**আপডেট:** 2026-07-03T20:44:22.976263
+**আপডেট:** 2026-07-03T14:55:14.134891
 
 ---
 

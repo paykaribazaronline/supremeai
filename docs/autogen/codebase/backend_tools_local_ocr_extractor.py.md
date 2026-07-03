@@ -1,8 +1,8 @@
-# 📄 ফাইল: backend\tools\local_ocr_extractor.py
+# 📄 ফাইল: backend/tools/local_ocr_extractor.py
 
 **প্রকার:** .py  
 **সাইজ:** 2,363 বাইট  
-**আপডেট:** 2026-07-03T20:44:28.597355
+**আপডেট:** 2026-07-03T14:55:14.173377
 
 ---
 

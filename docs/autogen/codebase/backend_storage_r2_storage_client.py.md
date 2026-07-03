@@ -1,8 +1,8 @@
-# 📄 ফাইল: backend\storage\r2_storage_client.py
+# 📄 ফাইল: backend/storage/r2_storage_client.py
 
 **প্রকার:** .py  
 **সাইজ:** 3,592 বাইট  
-**আপডেট:** 2026-07-03T20:44:25.654593
+**আপডেট:** 2026-07-03T14:55:14.127469
 
 ---
 

@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps\mobile\lib\screens\quota\quota_screen.dart
+# 📄 ফাইল: apps/mobile/lib/screens/quota/quota_screen.dart
 
 **প্রকার:** .dart  
 **সাইজ:** 5,116 বাইট  
-**আপডেট:** 2026-07-03T20:44:20.574705
+**আপডেট:** 2026-07-03T14:55:14.215804
 
 ---
 

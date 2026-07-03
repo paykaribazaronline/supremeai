@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps\studio-client\src\store\dashboardStore.ts
+# 📄 ফাইল: apps/studio-client/src/store/dashboardStore.ts
 
 **প্রকার:** .ts  
 **সাইজ:** 1,873 বাইট  
-**আপডেট:** 2026-07-03T20:44:22.668856
+**আপডেট:** 2026-07-03T14:55:14.200065
 
 ---
 

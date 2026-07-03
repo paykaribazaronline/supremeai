@@ -1,8 +1,8 @@
-# 📄 ফাইল: tools\vscode-extension\INTEGRATION_GUIDE_BN.md
+# 📄 ফাইল: tools/vscode-extension/INTEGRATION_GUIDE_BN.md
 
 **প্রকার:** .md  
 **সাইজ:** 5,623 বাইট  
-**আপডেট:** 2026-07-03T20:44:33.237970
+**আপডেট:** 2026-07-03T14:55:14.225415
 
 ---
 

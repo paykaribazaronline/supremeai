@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps\studio-client\src\components\admin\MemoryBrowser.tsx
+# 📄 ফাইল: apps/studio-client/src/components/admin/MemoryBrowser.tsx
 
 **প্রকার:** .tsx  
 **সাইজ:** 5,735 বাইট  
-**আপডেট:** 2026-07-03T20:44:21.722421
+**আপডেট:** 2026-07-03T14:55:14.192270
 
 ---
 

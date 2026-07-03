@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps\desktop\src-ui\src\types\index.ts
+# 📄 ফাইল: apps/desktop/src-ui/src/types/index.ts
 
 **প্রকার:** .ts  
 **সাইজ:** 559 বাইট  
-**আপডেট:** 2026-07-03T20:44:19.824169
+**আপডেট:** 2026-07-03T14:55:14.206895
 
 ---
 

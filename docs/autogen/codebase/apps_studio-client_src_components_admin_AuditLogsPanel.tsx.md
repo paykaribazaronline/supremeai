@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps\studio-client\src\components\admin\AuditLogsPanel.tsx
+# 📄 ফাইল: apps/studio-client/src/components/admin/AuditLogsPanel.tsx
 
 **প্রকার:** .tsx  
 **সাইজ:** 4,249 বাইট  
-**আপডেট:** 2026-07-03T20:44:21.543397
+**আপডেট:** 2026-07-03T14:55:14.198554
 
 ---
 

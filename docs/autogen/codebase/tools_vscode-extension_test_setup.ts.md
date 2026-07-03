@@ -1,8 +1,8 @@
-# 📄 ফাইল: tools\vscode-extension\test\setup.ts
+# 📄 ফাইল: tools/vscode-extension/test/setup.ts
 
 **প্রকার:** .ts  
 **সাইজ:** 755 বাইট  
-**আপডেট:** 2026-07-03T20:44:34.462014
+**আপডেট:** 2026-07-03T14:55:14.233417
 
 ---
 

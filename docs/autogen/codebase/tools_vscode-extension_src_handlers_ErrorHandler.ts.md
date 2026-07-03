@@ -1,8 +1,8 @@
-# 📄 ফাইল: tools\vscode-extension\src\handlers\ErrorHandler.ts
+# 📄 ফাইল: tools/vscode-extension/src/handlers/ErrorHandler.ts
 
 **প্রকার:** .ts  
 **সাইজ:** 4,487 বাইট  
-**আপডেট:** 2026-07-03T20:44:33.966662
+**আপডেট:** 2026-07-03T14:55:14.231804
 
 ---
 

@@ -1,8 +1,8 @@
-# 📄 ফাইল: backend\tools\resource_catalog.py
+# 📄 ফাইল: backend/tools/resource_catalog.py
 
 **প্রকার:** .py  
 **সাইজ:** 8,817 বাইট  
-**আপডেট:** 2026-07-03T20:44:28.997007
+**আপডেট:** 2026-07-03T14:55:14.179728
 
 ---
 

@@ -1,8 +1,8 @@
-# 📄 ফাইল: backend\tools\bandwidth_optimizer.py
+# 📄 ফাইল: backend/tools/bandwidth_optimizer.py
 
 **প্রকার:** .py  
 **সাইজ:** 1,122 বাইট  
-**আপডেট:** 2026-07-03T20:44:28.028838
+**আপডেট:** 2026-07-03T14:55:14.176545
 
 ---
 

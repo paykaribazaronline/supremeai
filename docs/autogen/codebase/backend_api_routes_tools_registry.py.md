@@ -1,8 +1,8 @@
-# 📄 ফাইল: backend\api\routes\tools_registry.py
+# 📄 ফাইল: backend/api/routes/tools_registry.py
 
 **প্রকার:** .py  
 **সাইজ:** 2,453 বাইট  
-**আপডেট:** 2026-07-03T20:44:23.674910
+**আপডেট:** 2026-07-03T14:55:14.126231
 
 ---
 

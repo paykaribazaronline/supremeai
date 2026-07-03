@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps\mobile\lib\screens\alerts\alerts_screen.dart
+# 📄 ফাইল: apps/mobile/lib/screens/alerts/alerts_screen.dart
 
 **প্রকার:** .dart  
 **সাইজ:** 3,411 বাইট  
-**আপডেট:** 2026-07-03T20:44:20.386369
+**আপডেট:** 2026-07-03T14:55:14.216535
 
 ---
 

@@ -1,8 +1,8 @@
-# 📄 ফাইল: infrastructure\firebase_functions\firebase_functions_v1\lib\scrapeEngine.d.ts
+# 📄 ফাইল: infrastructure/firebase_functions/firebase_functions_v1/lib/scrapeEngine.d.ts
 
 **প্রকার:** .ts  
 **সাইজ:** 849 বাইট  
-**আপডেট:** 2026-07-03T20:44:29.950587
+**আপডেট:** 2026-07-03T14:55:14.099382
 
 ---
 

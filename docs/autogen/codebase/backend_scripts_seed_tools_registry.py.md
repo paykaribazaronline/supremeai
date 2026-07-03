@@ -1,8 +1,8 @@
-# 📄 ফাইল: backend\scripts\seed_tools_registry.py
+# 📄 ফাইল: backend/scripts/seed_tools_registry.py
 
 **প্রকার:** .py  
 **সাইজ:** 9,326 বাইট  
-**আপডেট:** 2026-07-03T20:44:25.606523
+**আপডেট:** 2026-07-03T14:55:14.118711
 
 ---
 

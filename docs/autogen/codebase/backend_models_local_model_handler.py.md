@@ -1,8 +1,8 @@
-# 📄 ফাইল: backend\models\local_model_handler.py
+# 📄 ফাইল: backend/models/local_model_handler.py
 
 **প্রকার:** .py  
 **সাইজ:** 362 বাইট  
-**আপডেট:** 2026-07-03T20:44:25.409487
+**আপডেট:** 2026-07-03T14:55:14.128709
 
 ---
 

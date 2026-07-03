@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps\mobile\lib\screens\wallet_screen.dart
+# 📄 ফাইল: apps/mobile/lib/screens/wallet_screen.dart
 
 **প্রকার:** .dart  
 **সাইজ:** 8,225 বাইট  
-**আপডেট:** 2026-07-03T20:44:20.374327
+**আপডেট:** 2026-07-03T14:55:14.214328
 
 ---
 

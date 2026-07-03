@@ -1,8 +1,8 @@
-# 📄 ফাইল: backend\database\migrations\07_tenant_config.sql
+# 📄 ফাইল: backend/database/migrations/07_tenant_config.sql
 
 **প্রকার:** .sql  
 **সাইজ:** 1,118 বাইট  
-**আপডেট:** 2026-07-03T20:44:24.962811
+**আপডেট:** 2026-07-03T14:55:14.161709
 
 ---
 

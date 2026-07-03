@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps\studio-client\src\dataconnect-generated\react\esm\index.esm.js
+# 📄 ফাইল: apps/studio-client/src/dataconnect-generated/react/esm/index.esm.js
 
 **প্রকার:** .js  
 **সাইজ:** 3,269 বাইট  
-**আপডেট:** 2026-07-03T20:44:22.416569
+**আপডেট:** 2026-07-03T14:55:14.186504
 
 ---
 

@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps\studio-client\src\components\Onboarding\StepFirstChat.tsx
+# 📄 ফাইল: apps/studio-client/src/components/Onboarding/StepFirstChat.tsx
 
 **প্রকার:** .tsx  
 **সাইজ:** 1,586 বাইট  
-**আপডেট:** 2026-07-03T20:44:22.189680
+**আপডেট:** 2026-07-03T14:55:14.199313
 
 ---
 

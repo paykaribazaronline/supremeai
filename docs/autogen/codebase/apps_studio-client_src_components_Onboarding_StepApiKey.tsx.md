@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps\studio-client\src\components\Onboarding\StepApiKey.tsx
+# 📄 ফাইল: apps/studio-client/src/components/Onboarding/StepApiKey.tsx
 
 **প্রকার:** .tsx  
 **সাইজ:** 1,222 বাইট  
-**আপডেট:** 2026-07-03T20:44:22.181486
+**আপডেট:** 2026-07-03T14:55:14.199556
 
 ---
 

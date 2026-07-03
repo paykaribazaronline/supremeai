@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps\mobile\lib\screens\dashboard_screen.dart
+# 📄 ফাইল: apps/mobile/lib/screens/dashboard_screen.dart
 
 **প্রকার:** .dart  
-**সাইজ:** 6,544 বাইট  
-**আপডেট:** 2026-07-03T20:44:20.310894
+**সাইজ:** 6,753 বাইট  
+**আপডেট:** 2026-07-03T14:55:14.215272
 
 ---
 
@@ -73,7 +73,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         title: const Text('Admin Authorized', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                         subtitle: const Text('Allow critical write actions globally.', style: TextStyle(color: Colors.grey, fontSize: 12)),
                         value: provider.isAdminAuthorized,
-                        activeThumbColor: Colors.redAccent,
+                        activeColor: Colors.redAccent, // বাংলা মন্তব্য: Flutter ৩.২৯.০ সংস্করণে activeThumbColor সাপোর্ট করে না, তাই activeColor ব্যবহার করা হলো।
                         onChanged: (bool value) {
                           provider.toggleGodMode(value);
                           ScaffoldMessenger.of(context).showSnackBar(

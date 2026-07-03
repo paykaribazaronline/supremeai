@@ -1,8 +1,8 @@
-# 📄 ফাইল: tools\vscode-extension\src\dataconnect-generated\.guides\setup.md
+# 📄 ফাইল: tools/vscode-extension/src/dataconnect-generated/.guides/setup.md
 
 **প্রকার:** .md  
 **সাইজ:** 582 বাইট  
-**আপডেট:** 2026-07-03T20:44:33.856197
+**আপডেট:** 2026-07-03T14:55:14.229360
 
 ---
 

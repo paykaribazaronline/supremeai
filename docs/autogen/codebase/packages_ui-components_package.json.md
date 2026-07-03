@@ -1,8 +1,8 @@
-# 📄 ফাইল: packages\ui-components\package.json
+# 📄 ফাইল: packages/ui-components/package.json
 
 **প্রকার:** .json  
 **সাইজ:** 634 বাইট  
-**আপডেট:** 2026-07-03T20:44:30.293839
+**আপডেট:** 2026-07-03T14:55:14.091835
 
 ---
 
