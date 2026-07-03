@@ -1,8 +1,8 @@
 # 📄 ফাইল: scripts/commit_supreme_ci.yml
 
 **প্রকার:** .yml  
-**সাইজ:** 68,867 বাইট  
-**আপডেট:** 2026-07-03T15:24:11.470139
+**সাইজ:** 69,027 বাইট  
+**আপডেট:** 2026-07-03T15:56:22.570478
 
 ---
 
@@ -1440,7 +1440,9 @@ jobs:
             --service=supremeai-api \
             --region=${{ secrets.GCP_REGION }} \
             --format="value(name)" \
-            --sort-by="~createTime" | tail -n +6 | \
+            --sort-by="~createTime" | \
+            grep -v "$(gcloud run services describe supremeai-api --region=${{ secrets.GCP_REGION }} --format='value(traffic.revisionName)')" | \
+            tail -n +6 | \
             xargs -r -I {} gcloud run revisions delete {} \
               --region=${{ secrets.GCP_REGION }} --quiet
           echo "✅ Cloud Run revision cleanup done"
