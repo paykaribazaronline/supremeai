@@ -1,7 +1,7 @@
 # 🧠 SupremeAI 2.0 Codebase Analysis
 # বাংলা মন্তব্য: এটি একটি স্বয়ংক্রিয়ভাবে জেনারেট করা কোডবেস ডাম্প ফাইল যা প্রজেক্টের সামগ্রিক বিশ্লেষণের জন্য ব্যবহৃত হয়।
 
-Generated at: 2026-07-03T02:03:14.773461 UTC
+Generated at: 2026-07-03T02:50:04.330005 UTC
 
 ## File: `.github/actions/setup-backend/action.yml`
 ```yaml
@@ -2899,6 +2899,7 @@ if __name__ == "__main__":
 
 ## File: `.github/scripts/generate-ci-report.py`
 ```python
+import argparse
 import os
 import sys
 import json
@@ -2956,6 +2957,85 @@ def write_github_summary():
         f.write(md_content)
     print("✅ GitHub Step Summary generated successfully.")
 
+
+def append_text_to_summary(text: str):
+    summary_file = os.getenv("GITHUB_STEP_SUMMARY")
+    if not summary_file:
+        return
+    with open(summary_file, "a", encoding="utf-8") as f:
+        f.write(text)
+
+
+def add_pytest_results_to_summary(json_path: str, label: str = "Backend"):
+    if not os.path.exists(json_path):
+        print(f"⚠️ Pytest JSON report not found: {json_path}")
+        return
+
+    with open(json_path, encoding="utf-8") as f:
+        data = json.load(f)
+
+    summary = data.get('summary', {})
+    total = summary.get('total', 0)
+    passed = summary.get('passed', 0)
+    failed = summary.get('failed', 0)
+    skipped = summary.get('skipped', 0)
+    duration = summary.get('duration', 0.0)
+
+    append_text_to_summary(f"\n### 🧪 {label} Pytest Results\n")
+    append_text_to_summary(f"- Total: {total} | Passed: {passed} | Failed: {failed} | Skipped: {skipped} | Duration: {duration:.1f}s\n")
+
+    failures = [test for test in data.get('tests', []) if test.get('outcome') == 'failed']
+    if failures:
+        append_text_to_summary("\n#### Failed Tests\n")
+        for failure in failures[:5]:
+            append_text_to_summary(f"- {failure.get('nodeid', 'unknown')}\n")
+        if len(failures) > 5:
+            append_text_to_summary(f"- ...and {len(failures) - 5} more failed tests\n")
+
+
+def add_vitest_results_to_summary(json_path: str, label: str = "Frontend"):
+    if not os.path.exists(json_path):
+        print(f"⚠️ Vitest JSON report not found: {json_path}")
+        return
+
+    with open(json_path, encoding="utf-8") as f:
+        data = json.load(f)
+
+    stats = data.get('stats', {})
+    total = stats.get('tests', 0)
+    passed = stats.get('passes', 0)
+    failed = stats.get('failures', 0)
+    skipped = stats.get('pending', 0)
+    duration = stats.get('duration', 0.0)
+
+    append_text_to_summary(f"\n### 🧪 {label} Vitest Results\n")
+    append_text_to_summary(f"- Total: {total} | Passed: {passed} | Failed: {failed} | Skipped: {skipped} | Duration: {duration:.1f}ms\n")
+
+    errors = data.get('errors', []) or []
+    if errors:
+        append_text_to_summary("\n#### Errors\n")
+        for error in errors[:5]:
+            append_text_to_summary(f"- {error.get('name', 'unknown')}: {error.get('message', '').splitlines()[0]}\n")
+        if len(errors) > 5:
+            append_text_to_summary(f"- ...and {len(errors) - 5} more errors\n")
+
+
+def add_coverage_results_to_summary(json_path: str, label: str = "Backend"):
+    if not os.path.exists(json_path):
+        print(f"⚠️ Coverage JSON report not found: {json_path}")
+        return
+
+    with open(json_path, encoding="utf-8") as f:
+        data = json.load(f)
+
+    totals = data.get('totals', {})
+    percent = totals.get('percent_covered', totals.get('percent_covered', 0.0))
+    covered = totals.get('covered_lines', 0)
+    total = totals.get('num_lines', 0)
+
+    append_text_to_summary(f"\n### 📊 {label} Coverage Summary\n")
+    append_text_to_summary(f"- Coverage: {percent:.1f}% ({covered}/{total} lines)\n")
+
 # ==========================================
 # 🔔 2. SEND DISCORD RICH EMBED
 # ==========================================
@@ -3002,8 +3082,26 @@ def send_discord_alert():
 # 🚀 EXECUTION
 # ==========================================
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Generate smart CI report summary for SupremeAI.")
+    parser.add_argument("--type", default="core", help="Report type or category")
+    parser.add_argument("--pytest-json", help="Path to a pytest JSON report")
+    parser.add_argument("--coverage-json", help="Path to a coverage JSON report")
+    parser.add_argument("--vitest-json", action="append", help="Path to a Vitest JSON report")
+    parser.add_argument("--label", default=None, help="Label for the test result block")
+
+    args = parser.parse_args()
+
     print(f"Generating CI/CD Report for {REPO}...")
     write_github_summary()
+
+    if args.pytest_json:
+        add_pytest_results_to_summary(args.pytest_json, args.label or "Backend")
+    if args.coverage_json:
+        add_coverage_results_to_summary(args.coverage_json, args.label or "Backend")
+    if args.vitest_json:
+        for report_path in args.vitest_json:
+            add_vitest_results_to_summary(report_path, args.label or "Frontend")
+
     send_discord_alert()
 
 ```
@@ -4559,8 +4657,19 @@ jobs:
           RENDER_API_KEY: "mock_render_key"
           SUPABASE_DATABASE_URL: "postgresql://mock_user:mock_pass@localhost:5432/mock_db"
           ADMIN_AUTHORIZED: "true"
-        run: poetry run pytest -n auto --cov=core --cov-fail-under=50 -q
-          
+        run: |
+          poetry run pytest --json-report --json-report-file=backend/pytest-report.json \
+            --cov=core --cov-report=json:backend/coverage.json --cov-report=term-missing --cov-fail-under=50 -q
+
+      - name: Add Backend Test Results to GitHub Summary
+        if: always()
+        working-directory: backend
+        run: |
+          python ../.github/scripts/generate-ci-report.py \
+            --pytest-json pytest-report.json \
+            --coverage-json coverage.json \
+            --label Backend
+
       - name: 🔧 SupremeAI Auto-Fix Engine
         if: failure() && steps.backend_tests.outcome == 'failure'
         working-directory: backend
@@ -4607,13 +4716,35 @@ jobs:
           cache: 'pnpm'
           cache-dependency-path: '**/pnpm-lock.yaml'
       
-      - name: Install & Turbo Run
+      - name: Install Frontend Dependencies
         env:
           VITE_API_URL: ${{ env.SUPREMEAI_API_URL }}
         run: |
           pnpm install --frozen-lockfile
-          pnpm turbo run build lint test --filter=supremeai-studio-client --filter=@supremeai/web-chat --filter=supremeai-vscode
-          
+
+      - name: Build & Lint Frontend Packages
+        run: pnpm turbo run build lint --filter=supremeai-studio-client --filter=@supremeai/web-chat --filter=supremeai-vscode
+
+      - name: Run Studio Client Vitest with JSON Report
+        run: pnpm --dir apps/studio-client exec vitest run --reporter=json > apps/studio-client/vitest-report.json
+
+      - name: Add Studio Client Test Results to GitHub Summary
+        run: python .github/scripts/generate-ci-report.py --vitest-json apps/studio-client/vitest-report.json --label "Studio Client"
+
+      - name: Run Web Chat Vitest with JSON Report
+        run: pnpm --dir apps/web-chat exec vitest run --reporter=json > apps/web-chat/vitest-report.json
+
+      - name: Add Web Chat Test Results to GitHub Summary
+        run: python .github/scripts/generate-ci-report.py --vitest-json apps/web-chat/vitest-report.json --label "Web Chat"
+
+      - name: Run VS Code Extension Tests
+        run: pnpm turbo run test --filter=supremeai-vscode
+
+      - name: Playwright Install & Test
+        run: |
+          pnpm exec playwright install --with-deps
+          pnpm exec playwright test
+
       - name: Upload Build Artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -24781,6 +24912,7 @@ import { defineConfig } from 'vitest/config';
 export default defineConfig({
   test: {
     environment: 'jsdom',
+    globals: true,
   },
 });
 
@@ -112081,6 +112213,19 @@ test.describe('SupremeAI Nexus E2E Flow', () => {
 
 ```
 
+## File: `tests/e2e/chat.spec.ts`
+```typescript
+import { test, expect } from '@playwright/test';
+
+test('Chat sends message', async ({ page }) => {
+  await page.goto('/');
+  await page.fill('input[type="text"]', 'Hello SupremeAI!');
+  await page.click('button[type="submit"]');
+  await expect(page.locator('.message')).toContainText('Hello SupremeAI!');
+});
+
+```
+
 ## File: `tests/e2e/playwright.config.ts`
 ```typescript
 import { defineConfig, devices } from '@playwright/test';
@@ -112112,11 +112257,11 @@ export default defineConfig({
     },
   ],
   // Run your local dev server before starting the tests
-  // webServer: {
-  //   command: 'pnpm dev',
-  //   url: 'http://localhost:5173',
-  //   reuseExistingServer: !process.env.CI,
-  // },
+  webServer: {
+    command: 'pnpm --dir apps/studio-client dev --host 0.0.0.0 --port 5173',
+    url: 'http://127.0.0.1:5173',
+    reuseExistingServer: !process.env.CI,
+  },
 });
 
 ```
