@@ -131,6 +131,7 @@ def test_existing_gcp_roundtrip_coverage():
             "pytest",
             "-p",
             "no:pytest_cov",
+            "--override-ini=addopts=",
             f"{test_path_prefix}/test_gcp_integration.py::test_gcp_firestore_integration_queue",
             f"{test_path_prefix}/test_gcp_integration.py::test_gcp_pubsub_publish_pull",
             f"{test_path_prefix}/test_gcp_integration.py::test_gcp_cloud_run_router_route",
