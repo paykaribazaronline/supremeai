@@ -292,7 +292,8 @@
     "eslint": "^8.0.0",
     "openai": "^4.0.0",
     "typescript": "^5.0.0",
-    "vitest": "^2.1.9"
+    "vitest": "^2.1.9",
+    "vscode": "^1.1.37"
   },
   "dependencies": {
     "@dataconnect/generated": "file:src/dataconnect-generated"
