@@ -12,9 +12,7 @@ async def test_graph_service_dry_run():
         service = GraphService()
         assert service.dry_run is True
 
-        sync_result = await service.sync_skills_to_graph(
-            [{"id": "1", "name": "Python", "category": "Coding"}]
-        )
+        sync_result = await service.sync_skills_to_graph([{"id": "1", "name": "Python", "category": "Coding"}])
         assert sync_result is True
 
         rel_result = await service.create_relationship("1", "2", "DEPENDS_ON")

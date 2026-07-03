@@ -11,4 +11,5 @@ class MasterPlanner:
 
     async def submit_for_hitl_review(self, proposal: dict[str, Any]) -> str:
         import uuid
+
         return str(uuid.uuid4())

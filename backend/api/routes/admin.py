@@ -8,9 +8,11 @@ from admin.god import AdminGodLayer  # Your existing god.py
 router = APIRouter(prefix="/api/admin", tags=["Admin Control Center"])
 god_layer = AdminGodLayer(db_path="data/admin_rules.db")
 
+
 class RuleUpdate(BaseModel):
     key: str
     value: str
+
 
 @router.post("/rules")
 async def update_constitutional_rule(payload: RuleUpdate):
@@ -21,12 +23,13 @@ async def update_constitutional_rule(payload: RuleUpdate):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e)) from e
 
+
 @router.post("/actions/{action_type}")
 async def trigger_quick_action(action_type: str):
     """Trigger 1-click Quick Actions from Dashboard"""
     # Verify if admin actions are currently allowed by god.py
-    god_layer.enforce("admin_action") 
-    
+    god_layer.enforce("admin_action")
+
     if action_type == "rollback":
         # Add rollback logic here
         return {"status": "Rollback initiated"}

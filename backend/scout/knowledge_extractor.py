@@ -3,6 +3,7 @@ from typing import Any
 
 try:
     from sentence_transformers import SentenceTransformer
+
     HAS_ST = True
 except ImportError:
     HAS_ST = False

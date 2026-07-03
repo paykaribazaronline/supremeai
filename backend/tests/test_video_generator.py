@@ -10,9 +10,7 @@ def test_video_generator_stub_fallback():
     generator = VideoGenerator(runway_api_key=None, kling_api_key=None)
     with tempfile.TemporaryDirectory() as tmpdir:
         output_path = os.path.join(tmpdir, "output.json")
-        res = generator.generate(
-            "A cinematic shot", duration=5, provider="runway", output_path=output_path
-        )
+        res = generator.generate("A cinematic shot", duration=5, provider="runway", output_path=output_path)
 
         assert res["success"]
         assert res["provider"] == "runway-stub"

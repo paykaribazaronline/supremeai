@@ -1,4 +1,5 @@
 """Cloud storage manager tests for SupremeAI 2.0."""
+
 import pytest
 from unittest.mock import AsyncMock
 from unittest.mock import MagicMock
@@ -106,9 +107,7 @@ class TestCloudStorageManager:
                 mock_client = AsyncMock()
                 mock_client.__aenter__ = AsyncMock(return_value=mock_client)
                 mock_client.__aexit__ = AsyncMock(return_value=None)
-                mock_client.post = AsyncMock(
-                    side_effect=httpx.HTTPError("Network error")
-                )
+                mock_client.post = AsyncMock(side_effect=httpx.HTTPError("Network error"))
                 mock_client_class.return_value = mock_client
 
                 with pytest.raises(HTTPException) as exc_info:

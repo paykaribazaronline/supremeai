@@ -28,33 +28,25 @@ class _InMemoryRedisStub:
 class _RedisFallback:
     @staticmethod
     def from_url(url: str, decode_responses: bool = True):
-        logger.warning(
-            "redis.asyncio is not installed; using in-memory fallback cache for multi-layer cache."
-        )
+        logger.warning("redis.asyncio is not installed; using in-memory fallback cache for multi-layer cache.")
         return _InMemoryRedisStub()
 
 
 if redis is None:
     if os.getenv("ENV", "local").lower() == "production":
-        raise RuntimeError(
-            "redis.asyncio is required in production but is not installed."
-        )
+        raise RuntimeError("redis.asyncio is required in production but is not installed.")
     redis = _RedisFallback()
 
 
 # Level 1: Exact Match Cache (Redis/Upstash)
-exact_match_cache = redis.from_url(
-    os.getenv("REDIS_URL", "redis://localhost:6379"), decode_responses=True
-)
+exact_match_cache = redis.from_url(os.getenv("REDIS_URL", "redis://localhost:6379"), decode_responses=True)
 
 
 # Level 2: Semantic Cache (using existing semantic_cache.py)
 semantic_cache = SemanticCache()
 
 # Level 3: Prefix Cache (Redis with key prefixes)
-prefix_cache = redis.from_url(
-    os.getenv("REDIS_URL", "redis://localhost:6379"), decode_responses=True
-)
+prefix_cache = redis.from_url(os.getenv("REDIS_URL", "redis://localhost:6379"), decode_responses=True)
 
 
 # Level 4: Session Cache (In-memory LRU cache per worker)
@@ -75,17 +67,13 @@ class MultiLayerCache:
         self.local_cache_hits = 0
         self.local_cache_misses = 0
 
-    async def get(
-        self, prompt: str, model_name: str, session_id: str | None = None
-    ) -> dict[str, Any] | None:
+    async def get(self, prompt: str, model_name: str, session_id: str | None = None) -> dict[str, Any] | None:
         """
         Check all 5 cache layers in order. Return cached response if found.
         Returns None if all layers miss.
         """
         # Layer 1: Exact Match Cache (Redis)
-        exact_cache_key = (
-            f"exact:{hashlib.sha256(f'{prompt}:{model_name}'.encode()).hexdigest()}"
-        )
+        exact_cache_key = f"exact:{hashlib.sha256(f'{prompt}:{model_name}'.encode()).hexdigest()}"
         cached_response = await exact_match_cache.get(exact_cache_key)
         if cached_response:
             logger.info("✅ L1 CACHE HIT: Exact Match")
@@ -138,14 +126,10 @@ class MultiLayerCache:
         logger.info("❌ ALL CACHE LAYERS MISS - Calling AI Model")
         return None  # Indicates we need to call the AI model
 
-    async def set(
-        self, prompt: str, response: str, model_name: str, session_id: str | None = None
-    ):
+    async def set(self, prompt: str, response: str, model_name: str, session_id: str | None = None):
         """Store response in all relevant cache layers"""
         # Layer 1: Exact Match Cache
-        exact_cache_key = (
-            f"exact:{hashlib.sha256(f'{prompt}:{model_name}'.encode()).hexdigest()}"
-        )
+        exact_cache_key = f"exact:{hashlib.sha256(f'{prompt}:{model_name}'.encode()).hexdigest()}"
         await exact_match_cache.setex(exact_cache_key, 3600, response)  # 1 hour TTL
 
         # Layer 2: Semantic Cache
@@ -156,9 +140,7 @@ class MultiLayerCache:
         for i in range(1, len(words) + 1):
             prefix = " ".join(words[:i])
             prefix_cache_key = f"prefix:{hashlib.sha256(f'{prefix}:{model_name}'.encode()).hexdigest()}"
-            await prefix_cache.setex(
-                prefix_cache_key, 1800, response
-            )  # 30 min TTL for prefixes
+            await prefix_cache.setex(prefix_cache_key, 1800, response)  # 30 min TTL for prefixes
 
         # Layer 4: Session Cache
         if session_id:
@@ -166,9 +148,7 @@ class MultiLayerCache:
             # For demonstration, we'll just note that session caching would happen here
             pass
 
-        logger.info(
-            f"💾 Response cached in all applicable layers for model {model_name}"
-        )
+        logger.info(f"💾 Response cached in all applicable layers for model {model_name}")
 
 
 # Global instance

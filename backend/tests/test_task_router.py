@@ -133,9 +133,7 @@ class TestTaskRouterTriggerExternalSkill:
     @patch("core.task_router.httpx.AsyncClient")
     def test_trigger_success(self, mock_client_cls, router):
         mock_client_cls.return_value = FakeClient({"ok": True, "data": "mocked"})
-        result = asyncio.run(
-            router.trigger_external_skill("http://example.com/webhook", {"key": "val"})
-        )
+        result = asyncio.run(router.trigger_external_skill("http://example.com/webhook", {"key": "val"}))
         assert result.get("ok") is True
         assert "data" not in result.get("error", "")
         assert result.get("ok") is True

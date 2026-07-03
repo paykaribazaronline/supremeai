@@ -35,9 +35,7 @@ async def gmail_auth(payload: GmailAuthRequest):
 @router.post("/imap")
 async def imap_auth(payload: ImapAuthRequest):
     try:
-        success = email_agent.connect_imap(
-            payload.host, payload.port, payload.username, payload.app_password
-        )
+        success = email_agent.connect_imap(payload.host, payload.port, payload.username, payload.app_password)
         if success:
             return {"status": "success", "message": "Connected generic IMAP"}
         raise HTTPException(status_code=400, detail="Failed to connect generic IMAP")

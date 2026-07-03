@@ -5,6 +5,7 @@ from loguru import logger
 
 try:
     from prometheus_client import Counter
+
     PROMETHEUS_AVAILABLE = True
 except ImportError:
     PROMETHEUS_AVAILABLE = False

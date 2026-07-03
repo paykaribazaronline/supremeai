@@ -1,4 +1,5 @@
 """Tests for core.input_sanitizer.InputSanitizer."""
+
 from core.input_sanitizer import InputSanitizer
 
 
