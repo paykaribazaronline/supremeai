@@ -24,6 +24,8 @@ class LLMGateway:
         # Configure litellm global settings
         litellm.drop_params = True
         litellm.telemetry = False
+        # বাংলা মন্তব্য: লিটেলএলএম প্রক্সি সেটিংস নিশ্চিত করা (test compatibility)
+        litellm.use_litellm_proxy = False
 
         # Initialize semantic cache engine
         from core.semantic_cache import SemanticCache

@@ -1,6 +1,18 @@
 import pytest
 from unittest.mock import patch, AsyncMock
+import litellm
 from core.swarm_orchestrator import SwarmOrchestrator
+
+
+@pytest.fixture(autouse=True)
+def setup_litellm():
+    """কনফিগার করুন litellm সেটিংস প্রতিটি টেস্টের আগে"""
+    # বাংলা মন্তব্য: লিটেলএলএম প্রক্সি সেটিংস নিশ্চিত করা
+    litellm.use_litellm_proxy = False
+    litellm.drop_params = True
+    litellm.telemetry = False
+    yield
+
 
 @pytest.mark.anyio
 async def test_swarm_orchestrator_runs_entire_graph():
