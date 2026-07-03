@@ -1,0 +1,54 @@
+# 📄 ফাইল: backend/tools/bangla_ai_connector.py
+
+**প্রকার:** .py  
+**সাইজ:** 1,276 বাইট  
+**আপডেট:** 2026-07-03T11:21:08.621899
+
+---
+
+## কোড
+
+```py
+# Auto-generated connector for bangla_ai
+# Generated: 2026-05-04T23:05:42.197209
+# Auth type: Session-based
+
+from typing import Any
+
+import requests
+
+
+class BanglaAiConnector:
+    """Auto-generated connector for bangla_ai"""
+
+    def __init__(self, credentials: dict[str, str] | None = None):
+        self.base_url = "https://banglaai.example.com"
+        self.session = requests.Session()
+        self.auth_data = None
+        self.credentials = credentials or {}
+
+    def authenticate(self) -> bool:
+        """Handle authentication"""
+        login_data = {
+            "email": self.credentials.get("email"),
+            "password": self.credentials.get("password"),
+        }
+        resp = self.session.post(f"{self.base_url}/api/login", json=login_data)
+        return resp.status_code == 200
+
+    def call_api(self, prompt: str) -> dict[str, Any]:
+        """Call /api/generate endpoint"""
+        url = f"{self.base_url}/api/generate"
+        payload = {"prompt": prompt}
+        resp = self.session.post(url, json=payload)
+        return resp.json()
+
+    def _return_success(self, data: Any) -> dict[str, Any]:
+        return {
+            "success": True,
+            "platform": "bangla_ai",
+            "data": data,
+            "auto_generated": True,
+        }
+
+```

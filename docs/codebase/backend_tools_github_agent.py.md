@@ -1,0 +1,145 @@
+# 📄 ফাইল: backend/tools/github_agent.py
+
+**প্রকার:** .py  
+**সাইজ:** 4,975 বাইট  
+**আপডেট:** 2026-07-03T11:21:08.630898
+
+---
+
+## কোড
+
+```py
+import datetime
+
+from loguru import logger
+
+
+class GitHubAgent:
+    def __init__(self, token: str = None):
+        self.token = token or ""
+        if not self.token:
+            logger.warning(
+                "GitHubAgent initialized without a token; real API calls disabled."
+            )
+        else:
+            logger.info("GitHubAgent initialized with token.")
+
+    def _require_token(self) -> str:
+        if not self.token:
+            raise RuntimeError("GitHub token is required for real API operations.")
+        return self.token
+
+    def connect_repo(
+        self, repo_owner: str, repo_name: str, installation_id: str = None
+    ) -> dict:
+        token = self.token or ""
+        logger.info(
+            f"Connecting to repo {repo_owner}/{repo_name} using installation_id {installation_id}"
+        )
+        return {
+            "status": "success",
+            "message": f"Connected to {repo_owner}/{repo_name}",
+            "repo": f"{repo_owner}/{repo_name}",
+            "token_prefix": token[:4] + "****",
+        }
+
+    def analyze_repo(self, repo_url: str) -> dict:
+        """Analyze repository code quality/vulnerabilities."""
+        token = self.token or ""
+        logger.info(f"Analyzing repository at {repo_url}")
+        return {
+            "status": "success",
+            "repo": repo_url,
+            "score": 85,
+            "issues": [
+                {
+                    "file": "src/db.py",
+                    "issue": "Missing connection pooling",
+                    "severity": "medium",
+                },
+                {"file": "src/cache.py", "issue": "TTL not set", "severity": "low"},
+            ],
+            "token_prefix": token[:4] + "****",
+        }
+
+    def create_improvement_pr(
+        self, repo_url: str, improvements: dict, base_branch: str = "main"
+    ) -> dict:
+        token = self.token or ""
+        logger.info(f"Applying improvements to {repo_url} from {base_branch}")
+        new_branch = (
+            f"supremeai-improvements-{int(datetime.datetime.now().timestamp())}"
+        )
+        pr_title = "SupremeAI: Automated Code Improvements"
+        pr_body = (
+            "AI has analyzed the repository and suggested the following changes:\n\n"
+        )
+        for file_path, desc in improvements.items():
+            pr_body += f"- {file_path}: {desc}\n"
+        pr_body += "\nNote: Customer approval is required before merging."
+        pr_url = f"https://github.com/{repo_url}/pull/42"
+        return {
+            "status": "success",
+            "branch": new_branch,
+            "pr_title": pr_title,
+            "pr_url": pr_url,
+            "message": "PR created successfully. Waiting for manual approval.",
+            "token_prefix": token[:4] + "****",
+        }
+
+    def create_pr(
+        self,
+        repo_name: str,
+        title: str,
+        body: str,
+        head_branch: str,
+        base_branch: str = "main",
+    ) -> dict:
+        """Creates a pull request on GitHub."""
+        self._require_token()
+        logger.info(f"Creating PR on {repo_name}: '{title}'")
+
+        # This is a mock implementation. A real one would use the GitHub API.
+        # Example using httpx:
+        # url = f"https://api.github.com/repos/{repo_name}/pulls"
+        # headers = {"Authorization": f"Bearer {token}", "Accept": "application/vnd.github.v3+json"}
+        # payload = {"title": title, "body": body, "head": head_branch, "base": base_branch}
+        # response = httpx.post(url, headers=headers, json=payload)
+        # if response.status_code == 201:
+        #     return {"status": "success", "pr_url": response.json()["html_url"]}
+        # else:
+        #     return {"status": "error", "message": response.text}
+
+        mock_pr_url = f"https://github.com/{repo_name}/pull/99"
+        logger.info(f"Mock PR created: {mock_pr_url}")
+        return {"status": "success", "pr_url": mock_pr_url}
+
+    def commit_changes(
+        self, repo_url: str, files_to_commit: list, commit_message: str, branch: str
+    ) -> dict:
+        """Directly commits specified files to a branch."""
+        self._require_token()
+        logger.info(
+            f"Attempting to commit {len(files_to_commit)} files to {repo_url} on branch {branch}"
+        )
+
+        # This is a simplified mock. A real implementation would need to:
+        # 1. Clone the repo if not present
+        # 2. Checkout the branch
+        # 3. Stage the files (`git add ...`)
+        # 4. Commit (`git commit -m "..."`)
+        # 5. Push (`git push`)
+        # This often requires more complex git library integration or shell commands.
+
+        logger.info(f"Simulating git commit with message: '{commit_message}'")
+        for file_path in files_to_commit:
+            logger.info(f"  - Staging {file_path}")
+
+        logger.info(f"  - Pushing to origin {branch}")
+        return {
+            "status": "success",
+            "commit_hash": "mock_commit_hash_123abc",
+            "branch": branch,
+        }
+
+```

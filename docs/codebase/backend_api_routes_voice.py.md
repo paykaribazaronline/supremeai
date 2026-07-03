@@ -1,0 +1,58 @@
+# 📄 ফাইল: backend/api/routes/voice.py
+
+**প্রকার:** .py  
+**সাইজ:** 1,818 বাইট  
+**আপডেট:** 2026-07-03T11:21:08.583005
+
+---
+
+## কোড
+
+```py
+from fastapi import APIRouter
+from fastapi import HTTPException
+from fastapi.responses import StreamingResponse
+from loguru import logger
+
+from tools.multilingual_tts import MultilingualTTS
+
+
+router = APIRouter()
+
+# Initialize TTS engine (can be reused across requests)
+tts_engine = MultilingualTTS()
+
+
+@router.get("/stream_audio")
+async def stream_audio(text: str = "", voice: str | None = None):
+    # বাংলা মন্তব্য: text প্যারামিটারটি ঐচ্ছিক করা হলো যাতে টেক্সট না থাকলে ৪২২ এর বদলে ৪০০ রেসপন্স জেনারেট হয়
+    """Stream TTS audio bytes in real-time for the given text.
+    Uses ElevenLabs for primary synthesis (if API key configured) with fallback to edge-tts.
+    """
+    if not text or not text.strip():
+        raise HTTPException(status_code=400, detail="Text cannot be empty")
+
+    async def audio_stream():
+        try:
+            # Stream audio bytes from TTS engine (ElevenLabs with edge-tts fallback)
+            async for chunk in tts_engine.synthesize_stream(
+                text=text.strip(),
+                voice_id=None,  # Use language-based voice for ElevenLabs; voice param for edge-tts fallback handled internally
+            ):
+                yield chunk
+        except Exception as e:
+            logger.error(f"Audio streaming failed: {e}")
+            yield b""  # Return empty bytes on error to avoid breaking the stream
+
+    return StreamingResponse(
+        audio_stream(),
+        media_type="audio/mpeg",
+        headers={
+            "Cache-Control": "no-cache, no-transform",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no",
+            "Content-Disposition": "inline",
+        },
+    )
+
+```
