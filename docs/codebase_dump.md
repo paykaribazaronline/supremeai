@@ -1,7 +1,7 @@
 # 🧠 SupremeAI 2.0 Codebase Analysis
 # বাংলা মন্তব্য: এটি একটি স্বয়ংক্রিয়ভাবে জেনারেট করা কোডবেস ডাম্প ফাইল যা প্রজেক্টের সামগ্রিক বিশ্লেষণের জন্য ব্যবহৃত হয়।
 
-Generated at: 2026-07-03T10:35:42.382437 UTC
+Generated at: 2026-07-03T10:39:08.655775 UTC
 
 ## File: `.github/actions/setup-backend/action.yml`
 ```yaml
@@ -2967,6 +2967,11 @@ def append_text_to_summary(text: str):
 
 
 def add_pytest_results_to_summary(json_path: str, label: str = "Backend"):
+    # Try JSON format first (pytest-json-report), fall back to markdown (pytest-md)
+    if json_path.endswith('.md') or not json_path.endswith('.json'):
+        add_pytest_markdown_results(json_path, label)
+        return
+    
     if not os.path.exists(json_path):
         print(f"⚠️ Pytest JSON report not found: {json_path}")
         return
@@ -2991,6 +2996,19 @@ def add_pytest_results_to_summary(json_path: str, label: str = "Backend"):
             append_text_to_summary(f"- {failure.get('nodeid', 'unknown')}\n")
         if len(failures) > 5:
             append_text_to_summary(f"- ...and {len(failures) - 5} more failed tests\n")
+
+
+def add_pytest_markdown_results(md_path: str, label: str = "Backend"):
+    """Parse markdown test report from pytest-md and append to summary."""
+    if not os.path.exists(md_path):
+        print(f"⚠️ Pytest markdown report not found: {md_path}")
+        return
+
+    with open(md_path, encoding="utf-8") as f:
+        md_content = f.read()
+
+    append_text_to_summary(f"\n### 🧪 {label} Pytest Results\n")
+    append_text_to_summary(md_content)
 
 
 def add_vitest_results_to_summary(json_path: str, label: str = "Frontend"):
@@ -4658,15 +4676,15 @@ jobs:
           SUPABASE_DATABASE_URL: "postgresql://mock_user:mock_pass@localhost:5432/mock_db"
           ADMIN_AUTHORIZED: "true"
         run: |
-          poetry run pytest --json-report --json-report-file=pytest-report.json \
-            --cov=core --cov-report=json:coverage.json --cov-report=term-missing --cov-fail-under=50 -q
+          poetry run pytest --md pytest-report.md \
+            --cov=core --cov-report=json:coverage.json --cov-report=term-missing --cov-fail-under=66 -q
 
       - name: Add Backend Test Results to GitHub Summary
         if: always()
         working-directory: backend
         run: |
           python ../.github/scripts/generate-ci-report.py \
-            --pytest-json pytest-report.json \
+            --pytest-json pytest-report.md \
             --coverage-json coverage.json \
             --label Backend
 
@@ -112742,8 +112760,8 @@ module.exports = {
     "watch": "tsc -watch -p ./",
     "lint": "eslint src",
     "pretest": "pnpm run compile",
-    "test": "jest --passWithNoTests",
-    "unit": "jest --passWithNoTests",
+    "test": "vitest run",
+    "unit": "vitest run",
     "package-ext": "esbuild src/extension.ts --bundle --outfile=out/extension.js --external:vscode --format=cjs --platform=node --minify"
   },
   "devDependencies": {
@@ -112752,9 +112770,7 @@ module.exports = {
     "@typescript-eslint/eslint-plugin": "^6.0.0",
     "@typescript-eslint/parser": "^6.0.0",
     "eslint": "^8.0.0",
-    "jest": "^29.7.0",
-    "@types/jest": "^29.5.0",
-    "ts-jest": "^29.1.0",
+    "vitest": "^2.0.0",
     "typescript": "^5.0.0",
     "esbuild": "^0.28.0",
     "axios": "^1.6.0",
@@ -119866,7 +119882,7 @@ describe('SupremeAIService', () => {
     "incremental": true,
     "types": [
       "node",
-      "jest"
+      "vitest/globals"
     ]
   },
   "include": [
@@ -119878,6 +119894,19 @@ describe('SupremeAIService', () => {
     "test"
   ]
 }
+```
+
+## File: `tools/vscode-extension/vitest.config.ts`
+```typescript
+import { defineConfig } from 'vitest/config';
+
+export default defineConfig({
+  test: {
+    environment: 'node',
+    include: ['test/**/*.test.ts'],
+  },
+});
+
 ```
 
 ## File: `turbo.json`
