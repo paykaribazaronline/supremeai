@@ -6,6 +6,10 @@ export default {
     globals: true,
     include: ['test/**/*.test.ts'],
     setupFiles: ['./test/setup.ts'],
+    ssr: false,
+    deps: {
+      interopDefault: true,
+    },
   },
   resolve: {
     alias: [
