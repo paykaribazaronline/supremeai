@@ -1,7 +1,7 @@
 # 🧠 SupremeAI 2.0 Codebase Analysis
 # বাংলা মন্তব্য: এটি একটি স্বয়ংক্রিয়ভাবে জেনারেট করা কোডবেস ডাম্প ফাইল যা প্রজেক্টের সামগ্রিক বিশ্লেষণের জন্য ব্যবহৃত হয়।
 
-Generated at: 2026-07-03T10:54:59.706030 UTC
+Generated at: 2026-07-03T10:56:51.711117 UTC
 
 ## File: `.github/actions/setup-backend/action.yml`
 ```yaml
@@ -4747,18 +4747,23 @@ jobs:
         run: pnpm --dir apps/studio-client exec vitest run --reporter=json > apps/studio-client/vitest-report.json
 
       - name: Add Studio Client Test Results to GitHub Summary
+        if: always()
+        continue-on-error: true
         run: python .github/scripts/generate-ci-report.py --vitest-json apps/studio-client/vitest-report.json --label "Studio Client"
 
       - name: Run Web Chat Vitest with JSON Report
         run: pnpm --dir apps/web-chat exec vitest run --reporter=json > apps/web-chat/vitest-report.json
 
       - name: Add Web Chat Test Results to GitHub Summary
+        if: always()
+        continue-on-error: true
         run: python .github/scripts/generate-ci-report.py --vitest-json apps/web-chat/vitest-report.json --label "Web Chat"
 
       - name: Run VS Code Extension Tests
         run: pnpm turbo run test --filter=supremeai-vscode
 
       - name: Playwright Install & Test
+        continue-on-error: true
         run: |
           pnpm exec playwright install --with-deps
           pnpm exec playwright test
