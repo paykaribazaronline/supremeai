@@ -1429,7 +1429,9 @@ jobs:
             --service=supremeai-api \
             --region=${{ secrets.GCP_REGION }} \
             --format="value(name)" \
-            --sort-by="~createTime" | tail -n +6 | \
+            --sort-by="~createTime" | \
+            grep -v "$(gcloud run services describe supremeai-api --region=${{ secrets.GCP_REGION }} --format='value(traffic.revisionName)')" | \
+            tail -n +6 | \
             xargs -r -I {} gcloud run revisions delete {} \
               --region=${{ secrets.GCP_REGION }} --quiet
           echo "✅ Cloud Run revision cleanup done"

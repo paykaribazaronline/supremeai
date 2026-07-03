@@ -23,7 +23,7 @@ android {
 
     defaultConfig {
         applicationId = "com.example.supremeai"
-        minSdk = flutter.minSdkVersion
+        minSdk = 23 // বাংলা মন্তব্য: firebase_app_check এর জন্য minSdkVersion 23 এ উন্নীত করা হলো
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName

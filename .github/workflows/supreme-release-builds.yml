@@ -48,20 +48,29 @@ jobs:
           flutter-version: ${{ env.FLUTTER_VERSION }}
           cache: true
           
-      - name: Build APK
+      - name: Cache Gradle Packages
+        if: matrix.target == 'APK'
+        uses: actions/cache@v4
+        with:
+          path: ~/.gradle/caches
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Build AppBundle
         if: matrix.target == 'APK'
         working-directory: apps/mobile
         run: |
           flutter pub get
 
-          flutter build apk --release --target-platform android-arm64
+          flutter build appbundle --release --target-platform android-arm64
           
-      - name: Upload APK Artifact
+      - name: Upload AppBundle Artifact
         if: matrix.target == 'APK'
         uses: actions/upload-artifact@v4
         with:
-          name: supremeai-mobile-apk
-          path: apps/mobile/build/app/outputs/flutter-apk/*release*.apk
+          name: supremeai-mobile-appbundle
+          path: apps/mobile/build/app/outputs/bundle/release/*.aab
           retention-days: 7
 
       # ----------------------------------------------------
