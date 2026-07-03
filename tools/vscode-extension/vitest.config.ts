@@ -5,8 +5,14 @@ export default {
     environment: 'node',
     globals: true,
     include: ['test/**/*.test.ts'],
+    setupFiles: ['./test/setup.ts'],
   },
-  alias: [
-    { find: /^vscode$/, replacement: fileURLToPath(new URL('./test/mocks/vscode.ts', import.meta.url)) },
-  ],
+  resolve: {
+    alias: [
+      { find: /^vscode$/, replacement: fileURLToPath(new URL('./test/mocks/vscode.ts', import.meta.url)) },
+    ],
+  },
+  coverage: {
+    provider: 'v8',
+  },
 } as any;

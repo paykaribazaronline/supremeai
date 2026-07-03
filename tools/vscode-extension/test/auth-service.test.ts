@@ -1,42 +1,6 @@
-vi.mock('axios');
-vi.mock('vscode');
-
-const axios = require('axios');
-const vscode = require('vscode');
-
-const { AuthService } = require('../src/services/AuthService');
-
-beforeAll(() => {
-  vscode.window = {
-    showInformationMessage: vi.fn(),
-    showErrorMessage: vi.fn(),
-    showWarningMessage: vi.fn(),
-  };
-  vscode.commands = {
-    executeCommand: vi.fn().mockResolvedValue(undefined),
-  };
-  vscode.authentication = {
-    getSession: vi.fn(),
-  };
-  vscode.env = {
-    openExternal: vi.fn().mockResolvedValue(true),
-  };
-  vscode.Uri = {
-    parse: vi.fn().mockImplementation((val) => ({ toString: () => val })),
-  };
-  vscode.workspace = {
-    getConfiguration: vi.fn().mockReturnValue({
-      update: vi.fn().mockResolvedValue(undefined),
-      get: vi.fn().mockReturnValue(''),
-    }),
-    isTrusted: true,
-  };
-  vscode.extensions = {
-    getExtension: vi.fn().mockReturnValue({
-      extensionKind: 1,
-    }),
-  };
-});
+import { vi } from 'vitest';
+import * as vscode from 'vscode';
+import { AuthService } from '../src/services/AuthService';
 
 describe('AuthService', () => {
   let authService: any;

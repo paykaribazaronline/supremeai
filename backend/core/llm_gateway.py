@@ -93,11 +93,13 @@ class LLMGateway:
 
     async def acompletion(
         self,
-        prompt: str | list[dict[str, Any]],
+        prompt: str | list[dict[str, Any]] | None = None,
+        messages: list[dict[str, Any]] | None = None,
         task_type: str = "general",
         stream: bool = False,
         timeout: float = 12.0,
-        model: str | None = None
+        model: str | None = None,
+        **kwargs,
     ) -> Any:
         """
         Main async completion interface with robust fallback routing.
@@ -105,6 +107,10 @@ class LLMGateway:
         # Determine initial models by task difficulty
         difficulty = "easy"
         
+        # Support callers that pass `messages=` instead of `prompt=` (backwards compatibility)
+        if messages is not None and prompt is None:
+            prompt = messages
+
         # Determine prompt text for complexity checking if it's a list
         prompt_text = ""
         if isinstance(prompt, str):

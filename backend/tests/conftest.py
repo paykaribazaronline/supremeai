@@ -6,6 +6,13 @@ import sys
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 if ROOT not in sys.path:
     sys.path.insert(0, ROOT)
+# Also add repository root and scripts/ directory so tests can import moved modules
+REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+SCRIPTS_DIR = os.path.join(REPO_ROOT, "scripts")
+if REPO_ROOT not in sys.path:
+    sys.path.insert(0, REPO_ROOT)
+if os.path.isdir(SCRIPTS_DIR) and SCRIPTS_DIR not in sys.path:
+    sys.path.insert(0, SCRIPTS_DIR)
 os.environ.setdefault("OPENROUTER_API_KEY", "mock-key-value")
 
 # বাংলা মন্তব্য: টেস্ট রান করার সময় রিয়াল ডাটাবেস এড়াতে এবং লক হওয়া রোধ করতে ইন-মেমোরি ডাটাবেস সেট করা হলো

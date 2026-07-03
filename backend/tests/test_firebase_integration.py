@@ -111,7 +111,16 @@ def test_existing_gcp_roundtrip_coverage():
     import sys
 
     env = os.environ.copy()
-    env["PYTHONPATH"] = env.get("PYTHONPATH", "") + os.pathsep + "."
+    # Ensure subprocess pytest can import repository-level modules moved to scripts/
+    repo_root = os.path.abspath(os.path.join(os.getcwd(), ".."))
+    scripts_dir = os.path.join(repo_root, "scripts")
+    paths = [".", repo_root, scripts_dir]
+    existing = env.get("PYTHONPATH", "")
+    env["PYTHONPATH"] = os.pathsep.join([p for p in ([existing] + paths) if p])
+    # Ensure subprocess pytest does not inherit any global pytest addopts that enable
+    # coverage enforcement (this can cause isolated roundtrip runs to fail due to
+    # overall project coverage thresholds).
+    env.pop("PYTEST_ADDOPTS", None)
     test_path_prefix = (
         "tests" if os.path.exists("tests/test_gcp_integration.py") else "backend/tests"
     )
@@ -120,6 +129,8 @@ def test_existing_gcp_roundtrip_coverage():
             sys.executable,
             "-m",
             "pytest",
+            "-p",
+            "no:pytest_cov",
             f"{test_path_prefix}/test_gcp_integration.py::test_gcp_firestore_integration_queue",
             f"{test_path_prefix}/test_gcp_integration.py::test_gcp_pubsub_publish_pull",
             f"{test_path_prefix}/test_gcp_integration.py::test_gcp_cloud_run_router_route",
