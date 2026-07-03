@@ -370,7 +370,9 @@ jobs:
         env:
           SUPREMEAI_API_KEY: ${{ secrets.SUPREMEAI_API_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: python .github/scripts/ci-auto-fix-v3.py --job frontend --mode fix
+        run: |
+          pip install litellm
+          python .github/scripts/ci-auto-fix-v3.py --job frontend --mode fix
 
       - name: Upload Build Artifacts
         uses: actions/upload-artifact@v4
@@ -379,7 +381,7 @@ jobs:
           path: |
             apps/studio-client/dist
             apps/web-chat/dist
-           retention-days: 1
+          retention-days: 1
 
   performance-e2e-test:
     name: 🧪 Human Simulation & Load Tests
