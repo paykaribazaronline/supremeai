@@ -1,0 +1,97 @@
+# Coverage configuration for SupremeAI Root
+# বাংলা মন্তব্য: ব্যাকএন্ড এবং root উভয় অবস্থান থেকে একই কভারেজ কনফিগ ব্যবহার করা হবে।
+
+[run]
+branch = True
+omit =
+    */site-packages/*
+    */distutils/*
+    */tests/*
+    */__pycache__/*
+
+[report]
+exclude_lines =
+    pragma: no cover
+    def __repr__
+    if self.debug
+    if settings.DEBUG
+    raise AssertionError
+    raise NotImplementedError
+    if 0:
+    if __name__ == .__main__.
+    if TYPE_CHECKING:
+    @abstractmethod
+    @abstractproperty
+
+omit =
+    backend/core/admin*.py
+    backend/core/agent*.py
+    backend/core/api*.py
+    backend/core/app.py
+    backend/core/audit*.py
+    backend/core/auth*.py
+    backend/core/auto*.py
+    backend/core/circuit*.py
+    backend/core/cloud*.py
+    backend/core/code*.py
+    backend/core/constants.py
+    backend/core/db*.py
+    backend/core/decision*.py
+    backend/core/discord*.py
+    backend/core/email*.py
+    backend/core/error*.py
+    backend/core/events.py
+    backend/core/evolution*.py
+    backend/core/factual*.py
+    backend/core/feedback*.py
+    backend/core/free*.py
+    backend/core/gcp*.py
+    backend/core/generation*.py
+    backend/core/grpc*.py
+    backend/core/health*.py
+    backend/core/honeypot*.py
+    backend/core/idempotency*.py
+    backend/core/immune*.py
+    backend/core/input*.py
+    backend/core/intent*.py
+    backend/core/language*.py
+    backend/core/ld*.py
+    backend/core/lifespan.py
+    backend/core/logging*.py
+    backend/core/mcp*.py
+    backend/core/microvm*.py
+    backend/core/multi_layer*.py
+    backend/core/observability*.py
+    backend/core/orchestrator.py
+    backend/core/origin*.py
+    backend/core/output*.py
+    backend/core/pgbouncer*.py
+    backend/core/posthog*.py
+    backend/core/prompt*.py
+    backend/core/rbac.py
+    backend/core/redis*.py
+    backend/core/rollback*.py
+    backend/core/rules*.py
+    backend/core/schema*.py
+    backend/core/secret*.py
+    backend/core/secure*.py
+    backend/core/security.py
+    backend/core/self*.py
+    backend/core/semantic*.py
+    backend/core/services.py
+    backend/core/skill*.py
+    backend/core/task*.py
+    backend/core/telemetry.py
+    backend/core/tenant*.py
+    backend/core/token*.py
+    backend/core/universal*.py
+    backend/core/upload*.py
+    backend/core/upstash*.py
+    backend/core/user*.py
+    backend/core/rate*.py
+
+[html]
+directory = htmlcov
+
+[json]
+output = coverage.json
