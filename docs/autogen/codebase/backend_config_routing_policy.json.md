@@ -1,8 +1,8 @@
-# 📄 ফাইল: backend\config\routing_policy.json
+# 📄 ফাইল: backend/config/routing_policy.json
 
 **প্রকার:** .json  
 **সাইজ:** 504 বাইট  
-**আপডেট:** 2026-07-03T19:44:08.843507
+**আপডেট:** 2026-07-03T13:55:00.123931
 
 ---
 

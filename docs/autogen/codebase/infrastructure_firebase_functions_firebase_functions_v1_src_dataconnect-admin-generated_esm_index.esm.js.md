@@ -1,8 +1,8 @@
-# 📄 ফাইল: infrastructure\firebase_functions\firebase_functions_v1\src\dataconnect-admin-generated\esm\index.esm.js
+# 📄 ফাইল: infrastructure/firebase_functions/firebase_functions_v1/src/dataconnect-admin-generated/esm/index.esm.js
 
 **প্রকার:** .js  
 **সাইজ:** 2,986 বাইট  
-**আপডেট:** 2026-07-03T19:44:16.826847
+**আপডেট:** 2026-07-03T13:55:00.101710
 
 ---
 

@@ -1,8 +1,8 @@
-# 📄 ফাইল: packages\shared-types\src\index.ts
+# 📄 ফাইল: packages/shared-types/src/index.ts
 
 **প্রকার:** .ts  
 **সাইজ:** 273 বাইট  
-**আপডেট:** 2026-07-03T19:44:16.949067
+**আপডেট:** 2026-07-03T13:55:00.087984
 
 ---
 

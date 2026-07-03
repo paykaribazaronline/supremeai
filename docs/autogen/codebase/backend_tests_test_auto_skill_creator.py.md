@@ -1,8 +1,8 @@
-# 📄 ফাইল: backend\tests\test_auto_skill_creator.py
+# 📄 ফাইল: backend/tests/test_auto_skill_creator.py
 
 **প্রকার:** .py  
 **সাইজ:** 6,842 বাইট  
-**আপডেট:** 2026-07-03T19:44:11.423330
+**আপডেট:** 2026-07-03T13:55:00.140636
 
 ---
 

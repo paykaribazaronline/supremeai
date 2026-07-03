@@ -1,8 +1,8 @@
-# 📄 ফাইল: scripts\resource_collection\base_api_client.py
+# 📄 ফাইল: scripts/resource_collection/base_api_client.py
 
 **প্রকার:** .py  
 **সাইজ:** 6,813 বাইট  
-**আপডেট:** 2026-07-03T19:44:20.122781
+**আপডেট:** 2026-07-03T13:55:00.087327
 
 ---
 

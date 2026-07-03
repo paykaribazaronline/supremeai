@@ -1,8 +1,8 @@
-# 📄 ফাইল: backend\tools\dependency_manager_agent.py
+# 📄 ফাইল: backend/tools/dependency_manager_agent.py
 
 **প্রকার:** .py  
 **সাইজ:** 6,951 বাইট  
-**আপডেট:** 2026-07-03T19:44:14.073690
+**আপডেট:** 2026-07-03T13:55:00.153606
 
 ---
 

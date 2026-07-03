@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps\studio-client\src\workers\logParser.worker.ts
+# 📄 ফাইল: apps/studio-client/src/workers/logParser.worker.ts
 
 **প্রকার:** .ts  
 **সাইজ:** 1,432 বাইট  
-**আপডেট:** 2026-07-03T19:44:07.511935
+**আপডেট:** 2026-07-03T13:55:00.161126
 
 ---
 

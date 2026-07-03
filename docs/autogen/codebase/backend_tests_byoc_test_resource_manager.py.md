@@ -1,8 +1,8 @@
-# 📄 ফাইল: backend\tests\byoc\test_resource_manager.py
+# 📄 ফাইল: backend/tests/byoc/test_resource_manager.py
 
 **প্রকার:** .py  
 **সাইজ:** 592 বাইট  
-**আপডেট:** 2026-07-03T19:44:13.472635
+**আপডেট:** 2026-07-03T13:55:00.141909
 
 ---
 

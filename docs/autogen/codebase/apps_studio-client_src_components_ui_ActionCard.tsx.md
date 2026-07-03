@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps\studio-client\src\components\ui\ActionCard.tsx
+# 📄 ফাইল: apps/studio-client/src/components/ui/ActionCard.tsx
 
 **প্রকার:** .tsx  
 **সাইজ:** 1,628 বাইট  
-**আপডেট:** 2026-07-03T19:44:07.074003
+**আপডেট:** 2026-07-03T13:55:00.164129
 
 ---
 

@@ -1,8 +1,8 @@
-# 📄 ফাইল: packages\shared-types\src\conversation.ts
+# 📄 ফাইল: packages/shared-types/src/conversation.ts
 
 **প্রকার:** .ts  
 **সাইজ:** 1,206 বাইট  
-**আপডেট:** 2026-07-03T19:44:16.927436
+**আপডেট:** 2026-07-03T13:55:00.087929
 
 ---
 

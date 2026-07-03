@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps\studio-client\src\components\admin\CostAuditor.tsx
+# 📄 ফাইল: apps/studio-client/src/components/admin/CostAuditor.tsx
 
 **প্রকার:** .tsx  
 **সাইজ:** 6,455 বাইট  
-**আপডেট:** 2026-07-03T19:44:06.685530
+**আপডেট:** 2026-07-03T13:55:00.168745
 
 ---
 

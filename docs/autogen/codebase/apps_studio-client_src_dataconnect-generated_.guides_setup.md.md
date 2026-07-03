@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps\studio-client\src\dataconnect-generated\.guides\setup.md
+# 📄 ফাইল: apps/studio-client/src/dataconnect-generated/.guides/setup.md
 
 **প্রকার:** .md  
 **সাইজ:** 1,686 বাইট  
-**আপডেট:** 2026-07-03T19:44:07.157225
+**আপডেট:** 2026-07-03T13:55:00.162813
 
 ---
 

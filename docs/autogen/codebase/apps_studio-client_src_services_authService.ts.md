@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps\studio-client\src\services\authService.ts
+# 📄 ফাইল: apps/studio-client/src/services/authService.ts
 
 **প্রকার:** .ts  
 **সাইজ:** 2,125 বাইট  
-**আপডেট:** 2026-07-03T19:44:07.368109
+**আপডেট:** 2026-07-03T13:55:00.171121
 
 ---
 

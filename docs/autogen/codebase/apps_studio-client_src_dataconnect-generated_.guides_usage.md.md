@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps\studio-client\src\dataconnect-generated\.guides\usage.md
+# 📄 ফাইল: apps/studio-client/src/dataconnect-generated/.guides/usage.md
 
 **প্রকার:** .md  
 **সাইজ:** 3,531 বাইট  
-**আপডেট:** 2026-07-03T19:44:07.166463
+**আপডেট:** 2026-07-03T13:55:00.162750
 
 ---
 

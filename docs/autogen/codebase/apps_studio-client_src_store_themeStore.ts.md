@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps\studio-client\src\store\themeStore.ts
+# 📄 ফাইল: apps/studio-client/src/store/themeStore.ts
 
 **প্রকার:** .ts  
 **সাইজ:** 496 বাইট  
-**আপডেট:** 2026-07-03T19:44:07.463973
+**আপডেট:** 2026-07-03T13:55:00.169957
 
 ---
 

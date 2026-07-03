@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps\mobile\lib\widgets\action_hub_card.dart
+# 📄 ফাইল: apps/mobile/lib/widgets/action_hub_card.dart
 
 **প্রকার:** .dart  
 **সাইজ:** 1,662 বাইট  
-**আপডেট:** 2026-07-03T19:44:06.338064
+**আপডেট:** 2026-07-03T13:55:00.197058
 
 ---
 

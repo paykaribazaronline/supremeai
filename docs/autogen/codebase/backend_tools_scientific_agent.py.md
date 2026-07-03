@@ -1,8 +1,8 @@
-# 📄 ফাইল: backend\tools\scientific_agent.py
+# 📄 ফাইল: backend/tools/scientific_agent.py
 
 **প্রকার:** .py  
 **সাইজ:** 1,565 বাইট  
-**আপডেট:** 2026-07-03T19:44:14.909603
+**আপডেট:** 2026-07-03T13:55:00.153684
 
 ---
 

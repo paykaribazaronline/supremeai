@@ -1,8 +1,8 @@
-# 📄 ফাইল: tools\vscode-extension\FeatureDefinition.java
+# 📄 ফাইল: tools/vscode-extension/FeatureDefinition.java
 
 **প্রকার:** .java  
 **সাইজ:** 679 বাইট  
-**আপডেট:** 2026-07-03T19:44:21.524818
+**আপডেট:** 2026-07-03T13:55:00.201815
 
 ---
 

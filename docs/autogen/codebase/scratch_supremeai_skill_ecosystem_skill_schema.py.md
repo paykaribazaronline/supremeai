@@ -1,8 +1,8 @@
-# 📄 ফাইল: scratch\supremeai_skill_ecosystem\skill_schema.py
+# 📄 ফাইল: scratch/supremeai_skill_ecosystem/skill_schema.py
 
 **প্রকার:** .py  
 **সাইজ:** 1,761 বাইট  
-**আপডেট:** 2026-07-03T19:44:17.267628
+**আপডেট:** 2026-07-03T13:55:00.088861
 
 ---
 

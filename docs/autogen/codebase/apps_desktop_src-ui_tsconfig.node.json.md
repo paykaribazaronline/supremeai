@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps\desktop\src-ui\tsconfig.node.json
+# 📄 ফাইল: apps/desktop/src-ui/tsconfig.node.json
 
 **প্রকার:** .json  
 **সাইজ:** 206 বাইট  
-**আপডেট:** 2026-07-03T19:44:05.658135
+**আপডেট:** 2026-07-03T13:55:00.175347
 
 ---
 

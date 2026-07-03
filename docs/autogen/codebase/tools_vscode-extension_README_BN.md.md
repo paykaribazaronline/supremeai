@@ -1,8 +1,8 @@
-# 📄 ফাইল: tools\vscode-extension\README_BN.md
+# 📄 ফাইল: tools/vscode-extension/README_BN.md
 
 **প্রকার:** .md  
 **সাইজ:** 5,362 বাইট  
-**আপডেট:** 2026-07-03T19:44:21.821727
+**আপডেট:** 2026-07-03T13:55:00.201934
 
 ---
 

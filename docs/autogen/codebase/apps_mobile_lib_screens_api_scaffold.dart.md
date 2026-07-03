@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps\mobile\lib\screens\api_scaffold.dart
+# 📄 ফাইল: apps/mobile/lib/screens/api_scaffold.dart
 
 **প্রকার:** .dart  
 **সাইজ:** 2,728 বাইট  
-**আপডেট:** 2026-07-03T19:44:06.067240
+**আপডেট:** 2026-07-03T13:55:00.188088
 
 ---
 

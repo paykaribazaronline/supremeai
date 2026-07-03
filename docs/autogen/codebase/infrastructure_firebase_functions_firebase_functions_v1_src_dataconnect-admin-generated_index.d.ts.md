@@ -1,8 +1,8 @@
-# 📄 ফাইল: infrastructure\firebase_functions\firebase_functions_v1\src\dataconnect-admin-generated\index.d.ts
+# 📄 ফাইল: infrastructure/firebase_functions/firebase_functions_v1/src/dataconnect-admin-generated/index.d.ts
 
 **প্রকার:** .ts  
 **সাইজ:** 7,666 বাইট  
-**আপডেট:** 2026-07-03T19:44:16.800315
+**আপডেট:** 2026-07-03T13:55:00.101395
 
 ---
 

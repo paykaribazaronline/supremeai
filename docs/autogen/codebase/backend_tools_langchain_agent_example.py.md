@@ -1,8 +1,8 @@
-# 📄 ফাইল: backend\tools\langchain_agent_example.py
+# 📄 ফাইল: backend/tools/langchain_agent_example.py
 
 **প্রকার:** .py  
 **সাইজ:** 5,990 বাইট  
-**আপডেট:** 2026-07-03T19:44:14.332558
+**আপডেট:** 2026-07-03T13:55:00.152436
 
 ---
 

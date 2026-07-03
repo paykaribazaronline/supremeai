@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps\mobile\lib\widgets\json_dropzone.dart
+# 📄 ফাইল: apps/mobile/lib/widgets/json_dropzone.dart
 
 **প্রকার:** .dart  
 **সাইজ:** 5,506 বাইট  
-**আপডেট:** 2026-07-03T19:44:06.361625
+**আপডেট:** 2026-07-03T13:55:00.196671
 
 ---
 

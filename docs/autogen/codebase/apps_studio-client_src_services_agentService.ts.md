@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps\studio-client\src\services\agentService.ts
+# 📄 ফাইল: apps/studio-client/src/services/agentService.ts
 
 **প্রকার:** .ts  
 **সাইজ:** 937 বাইট  
-**আপডেট:** 2026-07-03T19:44:07.345616
+**আপডেট:** 2026-07-03T13:55:00.170884
 
 ---
 

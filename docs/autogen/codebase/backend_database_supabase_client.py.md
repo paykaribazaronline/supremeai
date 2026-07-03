@@ -1,8 +1,8 @@
-# 📄 ফাইল: backend\database\supabase_client.py
+# 📄 ফাইল: backend/database/supabase_client.py
 
 **প্রকার:** .py  
 **সাইজ:** 30,500 বাইট  
-**আপডেট:** 2026-07-03T19:44:10.116814
+**আপডেট:** 2026-07-03T13:55:00.143486
 
 ---
 

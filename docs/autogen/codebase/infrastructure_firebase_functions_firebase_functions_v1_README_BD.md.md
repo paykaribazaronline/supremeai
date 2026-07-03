@@ -1,8 +1,8 @@
-# 📄 ফাইল: infrastructure\firebase_functions\firebase_functions_v1\README_BD.md
+# 📄 ফাইল: infrastructure/firebase_functions/firebase_functions_v1/README_BD.md
 
 **প্রকার:** .md  
 **সাইজ:** 1,470 বাইট  
-**আপডেট:** 2026-07-03T19:44:16.323088
+**আপডেট:** 2026-07-03T13:55:00.099081
 
 ---
 

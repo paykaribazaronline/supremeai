@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps\studio-client\src\hooks\useTranslation.ts
+# 📄 ফাইল: apps/studio-client/src/hooks/useTranslation.ts
 
 **প্রকার:** .ts  
 **সাইজ:** 416 বাইট  
-**আপডেট:** 2026-07-03T19:44:07.282623
+**আপডেট:** 2026-07-03T13:55:00.170374
 
 ---
 

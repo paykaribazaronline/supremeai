@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps\desktop\src-ui\src\pages\AdminPage.tsx
+# 📄 ফাইল: apps/desktop/src-ui/src/pages/AdminPage.tsx
 
 **প্রকার:** .tsx  
 **সাইজ:** 879 বাইট  
-**আপডেট:** 2026-07-03T19:44:05.678610
+**আপডেট:** 2026-07-03T13:55:00.176109
 
 ---
 

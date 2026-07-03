@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps\mobile\lib\screens\terminal_view.dart
+# 📄 ফাইল: apps/mobile/lib/screens/terminal_view.dart
 
 **প্রকার:** .dart  
 **সাইজ:** 2,487 বাইট  
-**আপডেট:** 2026-07-03T19:44:06.103673
+**আপডেট:** 2026-07-03T13:55:00.188379
 
 ---
 

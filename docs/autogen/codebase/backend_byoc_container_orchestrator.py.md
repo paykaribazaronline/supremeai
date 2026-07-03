@@ -1,8 +1,8 @@
-# 📄 ফাইল: backend\byoc\container_orchestrator.py
+# 📄 ফাইল: backend/byoc/container_orchestrator.py
 
 **প্রকার:** .py  
 **সাইজ:** 1,860 বাইট  
-**আপডেট:** 2026-07-03T19:44:08.785366
+**আপডেট:** 2026-07-03T13:55:00.126723
 
 ---
 

@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps\mobile\lib\services\notification_service.dart
+# 📄 ফাইল: apps/mobile/lib/services/notification_service.dart
 
 **প্রকার:** .dart  
 **সাইজ:** 1,609 বাইট  
-**আপডেট:** 2026-07-03T19:44:06.296189
+**আপডেট:** 2026-07-03T13:55:00.196364
 
 ---
 

@@ -1,8 +1,8 @@
-# 📄 ফাইল: tools\vscode-extension\src\dataconnect-generated\index.d.ts
+# 📄 ফাইল: tools/vscode-extension/src/dataconnect-generated/index.d.ts
 
 **প্রকার:** .ts  
 **সাইজ:** 8,426 বাইট  
-**আপডেট:** 2026-07-03T19:44:22.149364
+**আপডেট:** 2026-07-03T13:55:00.202755
 
 ---
 

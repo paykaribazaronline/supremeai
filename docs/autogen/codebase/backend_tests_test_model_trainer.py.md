@@ -1,8 +1,8 @@
-# 📄 ফাইল: backend\tests\test_model_trainer.py
+# 📄 ফাইল: backend/tests/test_model_trainer.py
 
 **প্রকার:** .py  
 **সাইজ:** 1,375 বাইট  
-**আপডেট:** 2026-07-03T19:44:12.533097
+**আপডেট:** 2026-07-03T13:55:00.134587
 
 ---
 

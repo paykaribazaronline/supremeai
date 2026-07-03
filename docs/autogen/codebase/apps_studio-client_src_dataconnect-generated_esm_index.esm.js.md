@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps\studio-client\src\dataconnect-generated\esm\index.esm.js
+# 📄 ফাইল: apps/studio-client/src/dataconnect-generated/esm/index.esm.js
 
 **প্রকার:** .js  
 **সাইজ:** 5,274 বাইট  
-**আপডেট:** 2026-07-03T19:44:07.174752
+**আপডেট:** 2026-07-03T13:55:00.162521
 
 ---
 

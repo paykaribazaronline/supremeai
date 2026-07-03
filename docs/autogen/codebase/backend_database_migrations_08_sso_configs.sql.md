@@ -1,8 +1,8 @@
-# 📄 ফাইল: backend\database\migrations\08_sso_configs.sql
+# 📄 ফাইল: backend/database/migrations/08_sso_configs.sql
 
 **প্রকার:** .sql  
 **সাইজ:** 1,262 বাইট  
-**আপডেট:** 2026-07-03T19:44:10.258955
+**আপডেট:** 2026-07-03T13:55:00.144345
 
 ---
 

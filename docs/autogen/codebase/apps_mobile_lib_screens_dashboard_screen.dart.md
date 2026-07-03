@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps\mobile\lib\screens\dashboard_screen.dart
+# 📄 ফাইল: apps/mobile/lib/screens/dashboard_screen.dart
 
 **প্রকার:** .dart  
 **সাইজ:** 6,544 বাইট  
-**আপডেট:** 2026-07-03T19:44:06.081884
+**আপডেট:** 2026-07-03T13:55:00.188445
 
 ---
 

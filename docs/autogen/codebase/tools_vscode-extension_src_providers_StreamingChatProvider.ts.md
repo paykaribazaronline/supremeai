@@ -1,8 +1,8 @@
-# 📄 ফাইল: tools\vscode-extension\src\providers\StreamingChatProvider.ts
+# 📄 ফাইল: tools/vscode-extension/src/providers/StreamingChatProvider.ts
 
 **প্রকার:** .ts  
 **সাইজ:** 1,203 বাইট  
-**আপডেট:** 2026-07-03T19:44:22.509702
+**আপডেট:** 2026-07-03T13:55:00.203648
 
 ---
 

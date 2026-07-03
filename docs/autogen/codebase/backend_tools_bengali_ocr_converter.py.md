@@ -1,8 +1,8 @@
-# 📄 ফাইল: backend\tools\bengali_ocr_converter.py
+# 📄 ফাইল: backend/tools/bengali_ocr_converter.py
 
 **প্রকার:** .py  
 **সাইজ:** 5,204 বাইট  
-**আপডেট:** 2026-07-03T19:44:13.806168
+**আপডেট:** 2026-07-03T13:55:00.158749
 
 ---
 

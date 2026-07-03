@@ -1,8 +1,8 @@
-# 📄 ফাইল: backend\tests\test_vision_agent.py
+# 📄 ফাইল: backend/tests/test_vision_agent.py
 
 **প্রকার:** .py  
 **সাইজ:** 2,578 বাইট  
-**আপডেট:** 2026-07-03T19:44:13.308241
+**আপডেট:** 2026-07-03T13:55:00.130235
 
 ---
 

@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps\studio-client\src\components\admin\RedesignedDashboardMockup.tsx
+# 📄 ফাইল: apps/studio-client/src/components/admin/RedesignedDashboardMockup.tsx
 
 **প্রকার:** .tsx  
 **সাইজ:** 27,491 বাইট  
-**আপডেট:** 2026-07-03T19:44:06.820264
+**আপডেট:** 2026-07-03T13:55:00.168581
 
 ---
 

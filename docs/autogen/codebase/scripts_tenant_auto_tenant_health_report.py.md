@@ -1,8 +1,8 @@
-# 📄 ফাইল: scripts\tenant\auto_tenant_health_report.py
+# 📄 ফাইল: scripts/tenant/auto_tenant_health_report.py
 
 **প্রকার:** .py  
 **সাইজ:** 27,959 বাইট  
-**আপডেট:** 2026-07-03T19:44:20.727879
+**আপডেট:** 2026-07-03T13:55:00.073840
 
 ---
 

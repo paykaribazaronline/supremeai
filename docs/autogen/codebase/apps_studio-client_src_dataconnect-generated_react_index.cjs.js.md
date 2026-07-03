@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps\studio-client\src\dataconnect-generated\react\index.cjs.js
+# 📄 ফাইল: apps/studio-client/src/dataconnect-generated/react/index.cjs.js
 
 **প্রকার:** .js  
 **সাইজ:** 3,439 বাইট  
-**আপডেট:** 2026-07-03T19:44:07.184900
+**আপডেট:** 2026-07-03T13:55:00.162018
 
 ---
 

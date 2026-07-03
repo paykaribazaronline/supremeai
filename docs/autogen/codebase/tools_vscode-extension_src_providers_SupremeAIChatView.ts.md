@@ -1,8 +1,8 @@
-# 📄 ফাইল: tools\vscode-extension\src\providers\SupremeAIChatView.ts
+# 📄 ফাইল: tools/vscode-extension/src/providers/SupremeAIChatView.ts
 
 **প্রকার:** .ts  
 **সাইজ:** 16,603 বাইট  
-**আপডেট:** 2026-07-03T19:44:22.654079
+**আপডেট:** 2026-07-03T13:55:00.204018
 
 ---
 

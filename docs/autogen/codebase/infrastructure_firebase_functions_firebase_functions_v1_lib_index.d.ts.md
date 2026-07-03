@@ -1,8 +1,8 @@
-# 📄 ফাইল: infrastructure\firebase_functions\firebase_functions_v1\lib\index.d.ts
+# 📄 ফাইল: infrastructure/firebase_functions/firebase_functions_v1/lib/index.d.ts
 
 **প্রকার:** .ts  
 **সাইজ:** 362 বাইট  
-**আপডেট:** 2026-07-03T19:44:16.505854
+**আপডেট:** 2026-07-03T13:55:00.102195
 
 ---
 

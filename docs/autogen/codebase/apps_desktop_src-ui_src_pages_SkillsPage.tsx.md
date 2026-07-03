@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps\desktop\src-ui\src\pages\SkillsPage.tsx
+# 📄 ফাইল: apps/desktop/src-ui/src/pages/SkillsPage.tsx
 
 **প্রকার:** .tsx  
 **সাইজ:** 868 বাইট  
-**আপডেট:** 2026-07-03T19:44:05.708346
+**আপডেট:** 2026-07-03T13:55:00.175898
 
 ---
 

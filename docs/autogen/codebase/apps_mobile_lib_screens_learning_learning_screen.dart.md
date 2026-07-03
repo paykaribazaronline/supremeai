@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps\mobile\lib\screens\learning\learning_screen.dart
+# 📄 ফাইল: apps/mobile/lib/screens/learning/learning_screen.dart
 
 **প্রকার:** .dart  
 **সাইজ:** 7,181 বাইট  
-**আপডেট:** 2026-07-03T19:44:06.177272
+**আপডেট:** 2026-07-03T13:55:00.192971
 
 ---
 

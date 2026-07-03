@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps\studio-client\src\components\chat\UnifiedChatBubble.tsx
+# 📄 ফাইল: apps/studio-client/src/components/chat/UnifiedChatBubble.tsx
 
 **প্রকার:** .tsx  
 **সাইজ:** 7,559 বাইট  
-**আপডেট:** 2026-07-03T19:44:06.918893
+**আপডেট:** 2026-07-03T13:55:00.163917
 
 ---
 

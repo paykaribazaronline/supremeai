@@ -1,8 +1,8 @@
-# 📄 ফাইল: skills\dynamic\text_summarizer.py
+# 📄 ফাইল: skills/dynamic/text_summarizer.py
 
 **প্রকার:** .py  
 **সাইজ:** 500 বাইট  
-**আপডেট:** 2026-07-03T19:44:21.142355
+**আপডেট:** 2026-07-03T13:55:00.103741
 
 ---
 

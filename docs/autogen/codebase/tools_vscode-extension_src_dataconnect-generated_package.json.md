@@ -1,8 +1,8 @@
-# 📄 ফাইল: tools\vscode-extension\src\dataconnect-generated\package.json
+# 📄 ফাইল: tools/vscode-extension/src/dataconnect-generated/package.json
 
 **প্রকার:** .json  
 **সাইজ:** 616 বাইট  
-**আপডেট:** 2026-07-03T19:44:22.187868
+**আপডেট:** 2026-07-03T13:55:00.202905
 
 ---
 

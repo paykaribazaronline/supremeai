@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps\mobile\lib\services\payment_gateway_bridge.dart
+# 📄 ফাইল: apps/mobile/lib/services/payment_gateway_bridge.dart
 
 **প্রকার:** .dart  
 **সাইজ:** 2,920 বাইট  
-**আপডেট:** 2026-07-03T19:44:06.313604
+**আপডেট:** 2026-07-03T13:55:00.196420
 
 ---
 

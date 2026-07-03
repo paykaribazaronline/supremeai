@@ -1,8 +1,8 @@
-# 📄 ফাইল: backend\tools\checkpoint_manager.py
+# 📄 ফাইল: backend/tools/checkpoint_manager.py
 
 **প্রকার:** .py  
 **সাইজ:** 8,616 বাইট  
-**আপডেট:** 2026-07-03T19:44:13.866963
+**আপডেট:** 2026-07-03T13:55:00.153225
 
 ---
 

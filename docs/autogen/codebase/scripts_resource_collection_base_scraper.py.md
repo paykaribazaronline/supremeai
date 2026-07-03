@@ -1,8 +1,8 @@
-# 📄 ফাইল: scripts\resource_collection\base_scraper.py
+# 📄 ফাইল: scripts/resource_collection/base_scraper.py
 
 **প্রকার:** .py  
 **সাইজ:** 6,744 বাইট  
-**আপডেট:** 2026-07-03T19:44:20.190608
+**আপডেট:** 2026-07-03T13:55:00.087402
 
 ---
 

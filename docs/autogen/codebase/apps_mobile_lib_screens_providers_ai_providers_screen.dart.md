@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps\mobile\lib\screens\providers\ai_providers_screen.dart
+# 📄 ফাইল: apps/mobile/lib/screens/providers/ai_providers_screen.dart
 
 **প্রকার:** .dart  
 **সাইজ:** 4,909 বাইট  
-**আপডেট:** 2026-07-03T19:44:06.200014
+**আপডেট:** 2026-07-03T13:55:00.193133
 
 ---
 

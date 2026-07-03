@@ -1,8 +1,8 @@
-# 📄 ফাইল: tools\vscode-extension\ARCHITECTURE_BN.md
+# 📄 ফাইল: tools/vscode-extension/ARCHITECTURE_BN.md
 
 **প্রকার:** .md  
 **সাইজ:** 13,986 বাইট  
-**আপডেট:** 2026-07-03T19:44:21.443575
+**আপডেট:** 2026-07-03T13:55:00.198219
 
 ---
 

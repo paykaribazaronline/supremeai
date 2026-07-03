@@ -1,8 +1,8 @@
-# 📄 ফাইল: backend\scout\knowledge_extractor.py
+# 📄 ফাইল: backend/scout/knowledge_extractor.py
 
 **প্রকার:** .py  
 **সাইজ:** 487 বাইট  
-**আপডেট:** 2026-07-03T19:44:10.935385
+**আপডেট:** 2026-07-03T13:55:00.144776
 
 ---
 

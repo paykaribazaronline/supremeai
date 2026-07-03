@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps\studio-client\src\components\admin\ConsentMatrixModal.tsx
+# 📄 ফাইল: apps/studio-client/src/components/admin/ConsentMatrixModal.tsx
 
 **প্রকার:** .tsx  
 **সাইজ:** 7,494 বাইট  
-**আপডেট:** 2026-07-03T19:44:06.677641
+**আপডেট:** 2026-07-03T13:55:00.168896
 
 ---
 

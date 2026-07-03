@@ -1,8 +1,8 @@
-# 📄 ফাইল: backend\adaptive_engine\registry.py
+# 📄 ফাইল: backend/adaptive_engine/registry.py
 
 **প্রকার:** .py  
 **সাইজ:** 6,585 বাইট  
-**আপডেট:** 2026-07-03T19:44:07.738249
+**আপডেট:** 2026-07-03T13:55:00.145451
 
 ---
 

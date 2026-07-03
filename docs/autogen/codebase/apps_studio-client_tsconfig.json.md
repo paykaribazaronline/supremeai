@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps\studio-client\tsconfig.json
+# 📄 ফাইল: apps/studio-client/tsconfig.json
 
 **প্রকার:** .json  
 **সাইজ:** 119 বাইট  
-**আপডেট:** 2026-07-03T19:44:06.489250
+**আপডেট:** 2026-07-03T13:55:00.160207
 
 ---
 

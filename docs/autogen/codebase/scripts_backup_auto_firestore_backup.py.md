@@ -1,8 +1,8 @@
-# 📄 ফাইল: scripts\backup\auto_firestore_backup.py
+# 📄 ফাইল: scripts/backup/auto_firestore_backup.py
 
 **প্রকার:** .py  
 **সাইজ:** 9,941 বাইট  
-**আপডেট:** 2026-07-03T19:44:18.255542
+**আপডেট:** 2026-07-03T13:55:00.084271
 
 ---
 

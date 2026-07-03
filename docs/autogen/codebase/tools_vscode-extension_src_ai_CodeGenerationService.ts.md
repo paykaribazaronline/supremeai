@@ -1,8 +1,8 @@
-# 📄 ফাইল: tools\vscode-extension\src\ai\CodeGenerationService.ts
+# 📄 ফাইল: tools/vscode-extension/src/ai/CodeGenerationService.ts
 
 **প্রকার:** .ts  
 **সাইজ:** 3,670 বাইট  
-**আপডেট:** 2026-07-03T19:44:22.004328
+**আপডেট:** 2026-07-03T13:55:00.206580
 
 ---
 

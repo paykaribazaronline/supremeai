@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps\mobile\lib\dataconnect_generated\.guides\setup.md
+# 📄 ফাইল: apps/mobile/lib/dataconnect_generated/.guides/setup.md
 
 **প্রকার:** .md  
 **সাইজ:** 760 বাইট  
-**আপডেট:** 2026-07-03T19:44:06.003884
+**আপডেট:** 2026-07-03T13:55:00.195395
 
 ---
 

@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps\java-worker\src\main\java\com\supremeai\JavaWorkerApplication.java
+# 📄 ফাইল: apps/java-worker/src/main/java/com/supremeai/JavaWorkerApplication.java
 
 **প্রকার:** .java  
 **সাইজ:** 325 বাইট  
-**আপডেট:** 2026-07-03T19:44:05.727605
+**আপডেট:** 2026-07-03T13:55:00.177155
 
 ---
 

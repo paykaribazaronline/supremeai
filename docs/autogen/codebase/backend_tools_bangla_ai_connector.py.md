@@ -1,8 +1,8 @@
-# 📄 ফাইল: backend\tools\bangla_ai_connector.py
+# 📄 ফাইল: backend/tools/bangla_ai_connector.py
 
 **প্রকার:** .py  
 **সাইজ:** 1,276 বাইট  
-**আপডেট:** 2026-07-03T19:44:13.743789
+**আপডেট:** 2026-07-03T13:55:00.147965
 
 ---
 

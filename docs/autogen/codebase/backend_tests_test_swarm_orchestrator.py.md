@@ -1,8 +1,8 @@
-# 📄 ফাইল: backend\tests\test_swarm_orchestrator.py
+# 📄 ফাইল: backend/tests/test_swarm_orchestrator.py
 
 **প্রকার:** .py  
-**সাইজ:** 1,608 বাইট  
-**আপডেট:** 2026-07-03T19:44:13.129122
+**সাইজ:** 1,826 বাইট  
+**আপডেট:** 2026-07-03T13:55:00.132066
 
 ---
 
@@ -23,6 +23,13 @@ def setup_litellm():
     litellm.drop_params = True
     litellm.telemetry = False
     yield
+
+
+def test_swarm_orchestrator_initializes_agents():
+    orchestrator = SwarmOrchestrator()
+    assert orchestrator.architect is not None
+    assert orchestrator.coder is not None
+    assert orchestrator.qa is not None
 
 
 @pytest.mark.anyio

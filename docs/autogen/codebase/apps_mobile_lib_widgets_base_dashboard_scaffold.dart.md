@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps\mobile\lib\widgets\base_dashboard_scaffold.dart
+# 📄 ফাইল: apps/mobile/lib/widgets/base_dashboard_scaffold.dart
 
 **প্রকার:** .dart  
 **সাইজ:** 862 বাইট  
-**আপডেট:** 2026-07-03T19:44:06.346150
+**আপডেট:** 2026-07-03T13:55:00.196870
 
 ---
 

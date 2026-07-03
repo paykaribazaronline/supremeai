@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps\mobile\lib\providers\auth_provider.dart
+# 📄 ফাইল: apps/mobile/lib/providers/auth_provider.dart
 
 **প্রকার:** .dart  
 **সাইজ:** 5,830 বাইট  
-**আপডেট:** 2026-07-03T19:44:06.025504
+**আপডেট:** 2026-07-03T13:55:00.194282
 
 ---
 

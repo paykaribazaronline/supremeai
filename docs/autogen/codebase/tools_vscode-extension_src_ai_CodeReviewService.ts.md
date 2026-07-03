@@ -1,8 +1,8 @@
-# 📄 ফাইল: tools\vscode-extension\src\ai\CodeReviewService.ts
+# 📄 ফাইল: tools/vscode-extension/src/ai/CodeReviewService.ts
 
 **প্রকার:** .ts  
 **সাইজ:** 3,241 বাইট  
-**আপডেট:** 2026-07-03T19:44:22.038042
+**আপডেট:** 2026-07-03T13:55:00.206389
 
 ---
 

@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps\studio-client\src\utils\api.ts
+# 📄 ফাইল: apps/studio-client/src/utils/api.ts
 
 **প্রকার:** .ts  
 **সাইজ:** 781 বাইট  
-**আপডেট:** 2026-07-03T19:44:07.501558
+**আপডেট:** 2026-07-03T13:55:00.162892
 
 ---
 

@@ -1,8 +1,8 @@
-# 📄 ফাইল: backend\tests\test_checkpoint_resume.py
+# 📄 ফাইল: backend/tests/test_checkpoint_resume.py
 
 **প্রকার:** .py  
 **সাইজ:** 2,171 বাইট  
-**আপডেট:** 2026-07-03T19:44:11.572731
+**আপডেট:** 2026-07-03T13:55:00.128256
 
 ---
 

@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps\mobile\lib\screens\git\git_screen.dart
+# 📄 ফাইল: apps/mobile/lib/screens/git/git_screen.dart
 
 **প্রকার:** .dart  
 **সাইজ:** 5,307 বাইট  
-**আপডেট:** 2026-07-03T19:44:06.170880
+**আপডেট:** 2026-07-03T13:55:00.193969
 
 ---
 

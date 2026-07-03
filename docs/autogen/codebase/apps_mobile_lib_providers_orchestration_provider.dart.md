@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps\mobile\lib\providers\orchestration_provider.dart
+# 📄 ফাইল: apps/mobile/lib/providers/orchestration_provider.dart
 
 **প্রকার:** .dart  
 **সাইজ:** 10,673 বাইট  
-**আপডেট:** 2026-07-03T19:44:06.039334
+**আপডেট:** 2026-07-03T13:55:00.194355
 
 ---
 

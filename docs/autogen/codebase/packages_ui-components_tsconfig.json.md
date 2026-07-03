@@ -1,8 +1,8 @@
-# 📄 ফাইল: packages\ui-components\tsconfig.json
+# 📄 ফাইল: packages/ui-components/tsconfig.json
 
 **প্রকার:** .json  
 **সাইজ:** 553 বাইট  
-**আপডেট:** 2026-07-03T19:44:16.983059
+**আপডেট:** 2026-07-03T13:55:00.088118
 
 ---
 

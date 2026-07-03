@@ -1,8 +1,8 @@
-# 📄 ফাইল: infrastructure\firebase_functions\firebase_functions_v1\src\dataconnect-admin-generated\package.json
+# 📄 ফাইল: infrastructure/firebase_functions/firebase_functions_v1/src/dataconnect-admin-generated/package.json
 
 **প্রকার:** .json  
 **সাইজ:** 633 বাইট  
-**আপডেট:** 2026-07-03T19:44:16.824637
+**আপডেট:** 2026-07-03T13:55:00.101602
 
 ---
 

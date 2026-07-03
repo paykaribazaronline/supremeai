@@ -1,8 +1,8 @@
-# 📄 ফাইল: backend\memory\long_term_memory.py
+# 📄 ফাইল: backend/memory/long_term_memory.py
 
 **প্রকার:** .py  
 **সাইজ:** 5,880 বাইট  
-**আপডেট:** 2026-07-03T19:44:10.543704
+**আপডেট:** 2026-07-03T13:55:00.123206
 
 ---
 

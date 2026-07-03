@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps\studio-client\src\components\admin\RealTimeMetricsPanel.tsx
+# 📄 ফাইল: apps/studio-client/src/components/admin/RealTimeMetricsPanel.tsx
 
 **প্রকার:** .tsx  
 **সাইজ:** 6,952 বাইট  
-**আপডেট:** 2026-07-03T19:44:06.809237
+**আপডেট:** 2026-07-03T13:55:00.166274
 
 ---
 

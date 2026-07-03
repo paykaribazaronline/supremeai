@@ -1,8 +1,8 @@
-# 📄 ফাইল: backend\tools\ai_pair_programmer.py
+# 📄 ফাইল: backend/tools/ai_pair_programmer.py
 
 **প্রকার:** .py  
 **সাইজ:** 5,384 বাইট  
-**আপডেট:** 2026-07-03T19:44:13.657516
+**আপডেট:** 2026-07-03T13:55:00.146479
 
 ---
 

@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps\studio-client\eslint.config.js
+# 📄 ফাইল: apps/studio-client/eslint.config.js
 
 **প্রকার:** .js  
 **সাইজ:** 898 বাইট  
-**আপডেট:** 2026-07-03T19:44:06.454754
+**আপডেট:** 2026-07-03T13:55:00.159924
 
 ---
 

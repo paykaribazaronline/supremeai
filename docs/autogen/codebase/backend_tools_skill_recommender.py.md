@@ -1,8 +1,8 @@
-# 📄 ফাইল: backend\tools\skill_recommender.py
+# 📄 ফাইল: backend/tools/skill_recommender.py
 
 **প্রকার:** .py  
 **সাইজ:** 4,652 বাইট  
-**আপডেট:** 2026-07-03T19:44:14.975369
+**আপডেট:** 2026-07-03T13:55:00.152822
 
 ---
 

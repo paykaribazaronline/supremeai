@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps\mobile\lib\dataconnect_generated\delete_review.dart
+# 📄 ফাইল: apps/mobile/lib/dataconnect_generated/delete_review.dart
 
 **প্রকার:** .dart  
 **সাইজ:** 3,463 বাইট  
-**আপডেট:** 2026-07-03T19:44:05.942557
+**আপডেট:** 2026-07-03T13:55:00.194757
 
 ---
 

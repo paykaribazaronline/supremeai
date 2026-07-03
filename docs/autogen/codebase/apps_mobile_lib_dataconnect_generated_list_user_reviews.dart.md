@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps\mobile\lib\dataconnect_generated\list_user_reviews.dart
+# 📄 ফাইল: apps/mobile/lib/dataconnect_generated/list_user_reviews.dart
 
 **প্রকার:** .dart  
 **সাইজ:** 5,172 বাইট  
-**আপডেট:** 2026-07-03T19:44:05.974873
+**আপডেট:** 2026-07-03T13:55:00.195001
 
 ---
 

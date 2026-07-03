@@ -1,8 +1,8 @@
-# 📄 ফাইল: tools\vscode-extension\FeatureRegistryController.java
+# 📄 ফাইল: tools/vscode-extension/FeatureRegistryController.java
 
 **প্রকার:** .java  
 **সাইজ:** 1,704 বাইট  
-**আপডেট:** 2026-07-03T19:44:21.561755
+**আপডেট:** 2026-07-03T13:55:00.202015
 
 ---
 

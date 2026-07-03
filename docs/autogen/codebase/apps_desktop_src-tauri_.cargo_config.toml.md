@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps\desktop\src-tauri\.cargo\config.toml
+# 📄 ফাইল: apps/desktop/src-tauri/.cargo/config.toml
 
 **প্রকার:** .toml  
 **সাইজ:** 222 বাইট  
-**আপডেট:** 2026-07-03T19:44:01.392942
+**আপডেট:** 2026-07-03T13:55:00.176880
 
 ---
 

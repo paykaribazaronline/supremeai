@@ -1,8 +1,8 @@
-# 📄 ফাইল: backend\evolution\auto_skill_creator.py
+# 📄 ফাইল: backend/evolution/auto_skill_creator.py
 
 **প্রকার:** .py  
 **সাইজ:** 12,738 বাইট  
-**আপডেট:** 2026-07-03T19:44:10.350927
+**আপডেট:** 2026-07-03T13:55:00.124445
 
 ---
 

@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps\studio-client\src\components\customer\BrowserPreview.tsx
+# 📄 ফাইল: apps/studio-client/src/components/customer/BrowserPreview.tsx
 
 **প্রকার:** .tsx  
 **সাইজ:** 2,219 বাইট  
-**আপডেট:** 2026-07-03T19:44:06.927233
+**আপডেট:** 2026-07-03T13:55:00.164393
 
 ---
 

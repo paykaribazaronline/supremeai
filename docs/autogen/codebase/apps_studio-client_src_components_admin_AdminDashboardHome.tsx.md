@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps\studio-client\src\components\admin\AdminDashboardHome.tsx
+# 📄 ফাইল: apps/studio-client/src/components/admin/AdminDashboardHome.tsx
 
 **প্রকার:** .tsx  
 **সাইজ:** 17,075 বাইট  
-**আপডেট:** 2026-07-03T19:44:06.600451
+**আপডেট:** 2026-07-03T13:55:00.166602
 
 ---
 

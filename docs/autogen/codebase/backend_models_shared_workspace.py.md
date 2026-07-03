@@ -1,8 +1,8 @@
-# 📄 ফাইল: backend\models\shared_workspace.py
+# 📄 ফাইল: backend/models/shared_workspace.py
 
 **প্রকার:** .py  
 **সাইজ:** 928 বাইট  
-**আপডেট:** 2026-07-03T19:44:10.836171
+**আপডেট:** 2026-07-03T13:55:00.122247
 
 ---
 

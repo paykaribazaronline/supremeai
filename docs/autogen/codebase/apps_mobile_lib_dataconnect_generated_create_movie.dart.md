@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps\mobile\lib\dataconnect_generated\create_movie.dart
+# 📄 ফাইল: apps/mobile/lib/dataconnect_generated/create_movie.dart
 
 **প্রকার:** .dart  
 **সাইজ:** 3,598 বাইট  
-**আপডেট:** 2026-07-03T19:44:05.936571
+**আপডেট:** 2026-07-03T13:55:00.195141
 
 ---
 

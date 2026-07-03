@@ -1,8 +1,8 @@
-# 📄 ফাইল: scripts\resource_collection\ossinsight\client.py
+# 📄 ফাইল: scripts/resource_collection/ossinsight/client.py
 
 **প্রকার:** .py  
 **সাইজ:** 6,376 বাইট  
-**আপডেট:** 2026-07-03T19:44:20.375350
+**আপডেট:** 2026-07-03T13:55:00.087598
 
 ---
 

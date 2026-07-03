@@ -1,8 +1,8 @@
-# 📄 ফাইল: infrastructure\firebase_functions\firebase_functions_v1\src\scrapeSchema.yaml
+# 📄 ফাইল: infrastructure/firebase_functions/firebase_functions_v1/src/scrapeSchema.yaml
 
 **প্রকার:** .yaml  
 **সাইজ:** 9,826 বাইট  
-**আপডেট:** 2026-07-03T19:44:16.735447
+**আপডেট:** 2026-07-03T13:55:00.100954
 
 ---
 

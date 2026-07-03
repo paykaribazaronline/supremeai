@@ -1,8 +1,8 @@
-# 📄 ফাইল: tools\vscode-extension\tsconfig.json
+# 📄 ফাইল: tools/vscode-extension/tsconfig.json
 
 **প্রকার:** .json  
 **সাইজ:** 660 বাইট  
-**আপডেট:** 2026-07-03T19:44:21.857435
+**আপডেট:** 2026-07-03T13:55:00.201578
 
 ---
 

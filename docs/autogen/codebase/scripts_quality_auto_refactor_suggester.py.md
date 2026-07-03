@@ -1,8 +1,8 @@
-# 📄 ফাইল: scripts\quality\auto_refactor_suggester.py
+# 📄 ফাইল: scripts/quality/auto_refactor_suggester.py
 
 **প্রকার:** .py  
 **সাইজ:** 18,830 বাইট  
-**আপডেট:** 2026-07-03T19:44:19.868269
+**আপডেট:** 2026-07-03T13:55:00.074891
 
 ---
 

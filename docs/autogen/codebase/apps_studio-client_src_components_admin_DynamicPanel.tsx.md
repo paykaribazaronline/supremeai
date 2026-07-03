@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps\studio-client\src\components\admin\DynamicPanel.tsx
+# 📄 ফাইল: apps/studio-client/src/components/admin/DynamicPanel.tsx
 
 **প্রকার:** .tsx  
 **সাইজ:** 5,090 বাইট  
-**আপডেট:** 2026-07-03T19:44:06.706268
+**আপডেট:** 2026-07-03T13:55:00.167185
 
 ---
 

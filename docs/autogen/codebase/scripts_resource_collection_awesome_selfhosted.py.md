@@ -1,8 +1,8 @@
-# 📄 ফাইল: scripts\resource_collection\awesome_selfhosted.py
+# 📄 ফাইল: scripts/resource_collection/awesome_selfhosted.py
 
 **প্রকার:** .py  
 **সাইজ:** 1,224 বাইট  
-**আপডেট:** 2026-07-03T19:44:20.075477
+**আপডেট:** 2026-07-03T13:55:00.087100
 
 ---
 

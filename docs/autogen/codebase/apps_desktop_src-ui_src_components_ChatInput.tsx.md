@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps\desktop\src-ui\src\components\ChatInput.tsx
+# 📄 ফাইল: apps/desktop/src-ui/src/components/ChatInput.tsx
 
 **প্রকার:** .tsx  
 **সাইজ:** 924 বাইট  
-**আপডেট:** 2026-07-03T19:44:05.673182
+**আপডেট:** 2026-07-03T13:55:00.175823
 
 ---
 

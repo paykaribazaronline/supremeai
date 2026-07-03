@@ -1,8 +1,8 @@
-# 📄 ফাইল: backend\database\migrations\10_tenant_sso_offline.sql
+# 📄 ফাইল: backend/database/migrations/10_tenant_sso_offline.sql
 
 **প্রকার:** .sql  
 **সাইজ:** 2,740 বাইট  
-**আপডেট:** 2026-07-03T19:44:10.301111
+**আপডেট:** 2026-07-03T13:55:00.144413
 
 ---
 

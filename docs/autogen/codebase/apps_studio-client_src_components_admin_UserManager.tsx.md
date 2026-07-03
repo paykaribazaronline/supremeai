@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps\studio-client\src\components\admin\UserManager.tsx
+# 📄 ফাইল: apps/studio-client/src/components/admin/UserManager.tsx
 
 **প্রকার:** .tsx  
 **সাইজ:** 6,218 বাইট  
-**আপডেট:** 2026-07-03T19:44:06.861731
+**আপডেট:** 2026-07-03T13:55:00.167014
 
 ---
 

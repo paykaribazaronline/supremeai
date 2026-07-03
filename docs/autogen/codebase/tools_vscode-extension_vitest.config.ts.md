@@ -1,8 +1,8 @@
-# 📄 ফাইল: tools\vscode-extension\vitest.config.ts
+# 📄 ফাইল: tools/vscode-extension/vitest.config.ts
 
 **প্রকার:** .ts  
 **সাইজ:** 387 বাইট  
-**আপডেট:** 2026-07-03T19:44:21.858631
+**আপডেট:** 2026-07-03T13:55:00.201499
 
 ---
 

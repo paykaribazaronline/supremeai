@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps\mobile\lib\dataconnect_generated\.guides\usage.md
+# 📄 ফাইল: apps/mobile/lib/dataconnect_generated/.guides/usage.md
 
 **প্রকার:** .md  
 **সাইজ:** 1,180 বাইট  
-**আপডেট:** 2026-07-03T19:44:06.010316
+**আপডেট:** 2026-07-03T13:55:00.195340
 
 ---
 

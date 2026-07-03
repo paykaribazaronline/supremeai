@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps\studio-client\src\components\audio\WaveformVisualizer.tsx
+# 📄 ফাইল: apps/studio-client/src/components/audio/WaveformVisualizer.tsx
 
 **প্রকার:** .tsx  
 **সাইজ:** 1,944 বাইট  
-**আপডেট:** 2026-07-03T19:44:06.879027
+**আপডেট:** 2026-07-03T13:55:00.164307
 
 ---
 

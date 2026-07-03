@@ -1,8 +1,8 @@
-# 📄 ফাইল: backend\tests\test_browser_credentials.py
+# 📄 ফাইল: backend/tests/test_browser_credentials.py
 
 **প্রকার:** .py  
 **সাইজ:** 2,065 বাইট  
-**আপডেট:** 2026-07-03T19:44:11.516327
+**আপডেট:** 2026-07-03T13:55:00.140201
 
 ---
 

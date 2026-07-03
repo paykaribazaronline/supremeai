@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps\studio-client\src\components\admin\AdminSubTabContent.tsx
+# 📄 ফাইল: apps/studio-client/src/components/admin/AdminSubTabContent.tsx
 
 **প্রকার:** .tsx  
 **সাইজ:** 10,822 বাইট  
-**আপডেট:** 2026-07-03T19:44:06.613415
+**আপডেট:** 2026-07-03T13:55:00.166373
 
 ---
 

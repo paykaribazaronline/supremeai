@@ -1,8 +1,8 @@
-# 📄 ফাইল: backend\memory\cloud_vector_store.py
+# 📄 ফাইল: backend/memory/cloud_vector_store.py
 
 **প্রকার:** .py  
 **সাইজ:** 2,674 বাইট  
-**আপডেট:** 2026-07-03T19:44:10.508874
+**আপডেট:** 2026-07-03T13:55:00.123123
 
 ---
 

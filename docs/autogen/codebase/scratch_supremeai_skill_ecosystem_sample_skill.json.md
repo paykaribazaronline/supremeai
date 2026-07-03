@@ -1,8 +1,8 @@
-# 📄 ফাইল: scratch\supremeai_skill_ecosystem\sample_skill.json
+# 📄 ফাইল: scratch/supremeai_skill_ecosystem/sample_skill.json
 
 **প্রকার:** .json  
 **সাইজ:** 419 বাইট  
-**আপডেট:** 2026-07-03T19:44:17.243979
+**আপডেট:** 2026-07-03T13:55:00.088916
 
 ---
 

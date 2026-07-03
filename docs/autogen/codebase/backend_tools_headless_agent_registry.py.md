@@ -1,8 +1,8 @@
-# 📄 ফাইল: backend\tools\headless_agent_registry.py
+# 📄 ফাইল: backend/tools/headless_agent_registry.py
 
 **প্রকার:** .py  
 **সাইজ:** 10,909 বাইট  
-**আপডেট:** 2026-07-03T19:44:14.255968
+**আপডেট:** 2026-07-03T13:55:00.152181
 
 ---
 

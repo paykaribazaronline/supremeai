@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps\studio-client\src\components\admin\InteractiveChatTab.tsx
+# 📄 ফাইল: apps/studio-client/src/components/admin/InteractiveChatTab.tsx
 
 **প্রকার:** .tsx  
 **সাইজ:** 19,955 বাইট  
-**আপডেট:** 2026-07-03T19:44:06.749467
+**আপডেট:** 2026-07-03T13:55:00.168999
 
 ---
 

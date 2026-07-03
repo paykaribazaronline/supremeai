@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps\mobile\lib\screens\resilience\resilience_screen.dart
+# 📄 ফাইল: apps/mobile/lib/screens/resilience/resilience_screen.dart
 
 **প্রকার:** .dart  
 **সাইজ:** 4,767 বাইট  
-**আপডেট:** 2026-07-03T19:44:06.216370
+**আপডেট:** 2026-07-03T13:55:00.194055
 
 ---
 

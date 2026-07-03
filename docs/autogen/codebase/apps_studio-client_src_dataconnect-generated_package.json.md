@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps\studio-client\src\dataconnect-generated\package.json
+# 📄 ফাইল: apps/studio-client/src/dataconnect-generated/package.json
 
 **প্রকার:** .json  
 **সাইজ:** 854 বাইট  
-**আপডেট:** 2026-07-03T19:44:07.138512
+**আপডেট:** 2026-07-03T13:55:00.161624
 
 ---
 

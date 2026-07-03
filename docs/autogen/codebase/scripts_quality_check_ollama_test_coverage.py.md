@@ -1,8 +1,8 @@
-# 📄 ফাইল: scripts\quality\check_ollama_test_coverage.py
+# 📄 ফাইল: scripts/quality/check_ollama_test_coverage.py
 
 **প্রকার:** .py  
 **সাইজ:** 11,712 বাইট  
-**আপডেট:** 2026-07-03T19:44:19.931167
+**আপডেট:** 2026-07-03T13:55:00.075437
 
 ---
 

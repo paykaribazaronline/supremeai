@@ -1,8 +1,8 @@
-# 📄 ফাইল: tools\vscode-extension\src\services\SupremeAIService.ts
+# 📄 ফাইল: tools/vscode-extension/src/services/SupremeAIService.ts
 
 **প্রকার:** .ts  
 **সাইজ:** 26,308 বাইট  
-**আপডেট:** 2026-07-03T19:44:22.793974
+**আপডেট:** 2026-07-03T13:55:00.207306
 
 ---
 

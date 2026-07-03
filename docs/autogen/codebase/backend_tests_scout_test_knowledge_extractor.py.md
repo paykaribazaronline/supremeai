@@ -1,8 +1,8 @@
-# 📄 ফাইল: backend\tests\scout\test_knowledge_extractor.py
+# 📄 ফাইল: backend/tests/scout/test_knowledge_extractor.py
 
 **প্রকার:** .py  
 **সাইজ:** 1,170 বাইট  
-**আপডেট:** 2026-07-03T19:44:13.537266
+**আপডেট:** 2026-07-03T13:55:00.142258
 
 ---
 

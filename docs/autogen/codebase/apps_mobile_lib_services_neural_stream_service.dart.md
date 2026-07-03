@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps\mobile\lib\services\neural_stream_service.dart
+# 📄 ফাইল: apps/mobile/lib/services/neural_stream_service.dart
 
 **প্রকার:** .dart  
 **সাইজ:** 1,924 বাইট  
-**আপডেট:** 2026-07-03T19:44:06.289774
+**আপডেট:** 2026-07-03T13:55:00.196310
 
 ---
 

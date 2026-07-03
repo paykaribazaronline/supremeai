@@ -1,8 +1,8 @@
-# 📄 ফাইল: backend\tests\test_universal_rules.py
+# 📄 ফাইল: backend/tests/test_universal_rules.py
 
 **প্রকার:** .py  
 **সাইজ:** 5,854 বাইট  
-**আপডেট:** 2026-07-03T19:44:13.242734
+**আপডেট:** 2026-07-03T13:55:00.133996
 
 ---
 

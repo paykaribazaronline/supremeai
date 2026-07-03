@@ -1,8 +1,8 @@
-# 📄 ফাইল: tools\vscode-extension\src\providers\SupremeAISidebarProvider.ts
+# 📄 ফাইল: tools/vscode-extension/src/providers/SupremeAISidebarProvider.ts
 
 **প্রকার:** .ts  
 **সাইজ:** 11,971 বাইট  
-**আপডেট:** 2026-07-03T19:44:22.724400
+**আপডেট:** 2026-07-03T13:55:00.203501
 
 ---
 

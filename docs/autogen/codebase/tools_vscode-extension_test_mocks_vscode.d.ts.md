@@ -1,8 +1,8 @@
-# 📄 ফাইল: tools\vscode-extension\test\__mocks__\vscode.d.ts
+# 📄 ফাইল: tools/vscode-extension/test/__mocks__/vscode.d.ts
 
 **প্রকার:** .ts  
 **সাইজ:** 879 বাইট  
-**আপডেট:** 2026-07-03T19:44:22.999953
+**আপডেট:** 2026-07-03T13:55:00.207830
 
 ---
 

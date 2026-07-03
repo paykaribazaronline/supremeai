@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps\studio-client\src\components\admin\DeploymentModal.tsx
+# 📄 ফাইল: apps/studio-client/src/components/admin/DeploymentModal.tsx
 
 **প্রকার:** .tsx  
 **সাইজ:** 13,178 বাইট  
-**আপডেট:** 2026-07-03T19:44:06.699090
+**আপডেট:** 2026-07-03T13:55:00.165943
 
 ---
 

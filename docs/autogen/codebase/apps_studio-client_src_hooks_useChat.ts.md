@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps\studio-client\src\hooks\useChat.ts
+# 📄 ফাইল: apps/studio-client/src/hooks/useChat.ts
 
 **প্রকার:** .ts  
 **সাইজ:** 5,316 বাইট  
-**আপডেট:** 2026-07-03T19:44:07.266137
+**আপডেট:** 2026-07-03T13:55:00.170530
 
 ---
 

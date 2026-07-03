@@ -1,8 +1,8 @@
-# 📄 ফাইল: backend\database\storage_client.py
+# 📄 ফাইল: backend/database/storage_client.py
 
 **প্রকার:** .py  
 **সাইজ:** 2,850 বাইট  
-**আপডেট:** 2026-07-03T19:44:10.101560
+**আপডেট:** 2026-07-03T13:55:00.143196
 
 ---
 

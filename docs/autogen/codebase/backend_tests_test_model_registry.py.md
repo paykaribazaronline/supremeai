@@ -1,8 +1,8 @@
-# 📄 ফাইল: backend\tests\test_model_registry.py
+# 📄 ফাইল: backend/tests/test_model_registry.py
 
 **প্রকার:** .py  
 **সাইজ:** 2,077 বাইট  
-**আপডেট:** 2026-07-03T19:44:12.501234
+**আপডেট:** 2026-07-03T13:55:00.139139
 
 ---
 

@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps\studio-client\src\services\apiClient.ts
+# 📄 ফাইল: apps/studio-client/src/services/apiClient.ts
 
 **প্রকার:** .ts  
 **সাইজ:** 2,803 বাইট  
-**আপডেট:** 2026-07-03T19:44:07.357495
+**আপডেট:** 2026-07-03T13:55:00.170942
 
 ---
 

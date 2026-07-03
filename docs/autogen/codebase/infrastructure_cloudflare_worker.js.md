@@ -1,8 +1,8 @@
-# 📄 ফাইল: infrastructure\cloudflare\worker.js
+# 📄 ফাইল: infrastructure/cloudflare/worker.js
 
 **প্রকার:** .js  
 **সাইজ:** 1,668 বাইট  
-**আপডেট:** 2026-07-03T19:44:15.963829
+**আপডেট:** 2026-07-03T13:55:00.094830
 
 ---
 

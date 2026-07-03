@@ -1,8 +1,8 @@
-# 📄 ফাইল: backend\evolution\dynamic_injector.py
+# 📄 ফাইল: backend/evolution/dynamic_injector.py
 
 **প্রকার:** .py  
 **সাইজ:** 4,417 বাইট  
-**আপডেট:** 2026-07-03T19:44:10.372317
+**আপডেট:** 2026-07-03T13:55:00.125003
 
 ---
 

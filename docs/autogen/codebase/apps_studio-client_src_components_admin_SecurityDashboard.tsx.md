@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps\studio-client\src\components\admin\SecurityDashboard.tsx
+# 📄 ফাইল: apps/studio-client/src/components/admin/SecurityDashboard.tsx
 
 **প্রকার:** .tsx  
 **সাইজ:** 5,748 বাইট  
-**আপডেট:** 2026-07-03T19:44:06.836621
+**আপডেট:** 2026-07-03T13:55:00.168032
 
 ---
 

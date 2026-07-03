@@ -1,8 +1,8 @@
-# 📄 ফাইল: infrastructure\cloudflare\wrangler.toml
+# 📄 ফাইল: infrastructure/cloudflare/wrangler.toml
 
 **প্রকার:** .toml  
 **সাইজ:** 141 বাইট  
-**আপডেট:** 2026-07-03T19:44:16.045822
+**আপডেট:** 2026-07-03T13:55:00.094776
 
 ---
 

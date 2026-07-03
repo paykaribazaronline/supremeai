@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps\mobile\lib\services\localization_service.dart
+# 📄 ফাইল: apps/mobile/lib/services/localization_service.dart
 
 **প্রকার:** .dart  
 **সাইজ:** 1,031 বাইট  
-**আপডেট:** 2026-07-03T19:44:06.281839
+**আপডেট:** 2026-07-03T13:55:00.195928
 
 ---
 

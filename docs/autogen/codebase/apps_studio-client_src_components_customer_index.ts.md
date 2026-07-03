@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps\studio-client\src\components\customer\index.ts
+# 📄 ফাইল: apps/studio-client/src/components/customer/index.ts
 
 **প্রকার:** .ts  
 **সাইজ:** 323 বাইট  
-**আপডেট:** 2026-07-03T19:44:06.971098
+**আপডেট:** 2026-07-03T13:55:00.165078
 
 ---
 

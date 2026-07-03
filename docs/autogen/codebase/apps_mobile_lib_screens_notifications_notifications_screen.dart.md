@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps\mobile\lib\screens\notifications\notifications_screen.dart
+# 📄 ফাইল: apps/mobile/lib/screens/notifications/notifications_screen.dart
 
 **প্রকার:** .dart  
 **সাইজ:** 7,599 বাইট  
-**আপডেট:** 2026-07-03T19:44:06.185152
+**আপডেট:** 2026-07-03T13:55:00.192879
 
 ---
 

@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps\studio-client\src\store\customerStore.ts
+# 📄 ফাইল: apps/studio-client/src/store/customerStore.ts
 
 **প্রকার:** .ts  
 **সাইজ:** 1,931 বাইট  
-**আপডেট:** 2026-07-03T19:44:07.445142
+**আপডেট:** 2026-07-03T13:55:00.170067
 
 ---
 

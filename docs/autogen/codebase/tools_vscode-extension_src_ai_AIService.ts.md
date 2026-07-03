@@ -1,8 +1,8 @@
-# 📄 ফাইল: tools\vscode-extension\src\ai\AIService.ts
+# 📄 ফাইল: tools/vscode-extension/src/ai/AIService.ts
 
 **প্রকার:** .ts  
 **সাইজ:** 6,241 বাইট  
-**আপডেট:** 2026-07-03T19:44:21.966987
+**আপডেট:** 2026-07-03T13:55:00.206479
 
 ---
 

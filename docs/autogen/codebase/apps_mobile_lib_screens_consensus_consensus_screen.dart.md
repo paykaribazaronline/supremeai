@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps\mobile\lib\screens\consensus\consensus_screen.dart
+# 📄 ফাইল: apps/mobile/lib/screens/consensus/consensus_screen.dart
 
 **প্রকার:** .dart  
 **সাইজ:** 4,307 বাইট  
-**আপডেট:** 2026-07-03T19:44:06.149550
+**আপডেট:** 2026-07-03T13:55:00.193572
 
 ---
 

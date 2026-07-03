@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps\studio-client\src\components\admin\CommandCenter.tsx
+# 📄 ফাইল: apps/studio-client/src/components/admin/CommandCenter.tsx
 
 **প্রকার:** .tsx  
 **সাইজ:** 29,455 বাইট  
-**আপডেট:** 2026-07-03T19:44:06.663525
+**আপডেট:** 2026-07-03T13:55:00.165694
 
 ---
 

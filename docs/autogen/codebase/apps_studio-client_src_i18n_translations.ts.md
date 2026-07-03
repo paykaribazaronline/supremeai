@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps\studio-client\src\i18n\translations.ts
+# 📄 ফাইল: apps/studio-client/src/i18n/translations.ts
 
 **প্রকার:** .ts  
 **সাইজ:** 718 বাইট  
-**আপডেট:** 2026-07-03T19:44:07.312015
+**আপডেট:** 2026-07-03T13:55:00.162970
 
 ---
 

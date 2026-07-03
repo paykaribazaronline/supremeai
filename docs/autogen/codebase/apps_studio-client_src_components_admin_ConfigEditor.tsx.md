@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps\studio-client\src\components\admin\ConfigEditor.tsx
+# 📄 ফাইল: apps/studio-client/src/components/admin/ConfigEditor.tsx
 
 **প্রকার:** .tsx  
 **সাইজ:** 1,623 বাইট  
-**আপডেট:** 2026-07-03T19:44:06.671155
+**আপডেট:** 2026-07-03T13:55:00.166714
 
 ---
 

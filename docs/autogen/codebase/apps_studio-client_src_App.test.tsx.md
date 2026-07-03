@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps\studio-client\src\App.test.tsx
+# 📄 ফাইল: apps/studio-client/src/App.test.tsx
 
 **প্রকার:** .tsx  
 **সাইজ:** 4,013 বাইট  
-**আপডেট:** 2026-07-03T19:44:06.521493
+**আপডেট:** 2026-07-03T13:55:00.160919
 
 ---
 

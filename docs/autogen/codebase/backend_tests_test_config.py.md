@@ -1,8 +1,8 @@
-# 📄 ফাইল: backend\tests\test_config.py
+# 📄 ফাইল: backend/tests/test_config.py
 
 **প্রকার:** .py  
-**সাইজ:** 2,759 বাইট  
-**আপডেট:** 2026-07-03T19:44:11.672412
+**সাইজ:** 4,113 বাইট  
+**আপডেট:** 2026-07-03T13:55:00.130082
 
 ---
 
@@ -86,6 +86,53 @@ def test_env_override():
     assert s.admin_rules_db == "/tmp/rules.db"
     assert s.memory_db_dir == "/tmp/memory"
     assert s.skill_registry_path == "/tmp/skills.json"
+
+
+@pytest.mark.parametrize(
+    "bad_env",
+    ["staging", "prod", ""],
+)
+@patch.dict(os.environ, {"env": "bad"}, clear=False)
+def test_invalid_env_raises(bad_env):
+    with pytest.raises(Exception):
+        Settings()
+
+
+def test_parse_admin_emails_empty_string():
+    from core.config import Settings
+    from pydantic import ValidationInfo
+    from unittest.mock import MagicMock
+    validator = Settings.parse_admin_emails
+    assert validator("", ValidationInfo()) == []
+
+
+def test_parse_allowed_hosts_empty_string():
+    from core.config import Settings
+    from pydantic import ValidationInfo
+    assert Settings.parse_allowed_hosts("", ValidationInfo()) == []
+
+
+@patch.dict(
+    os.environ,
+    {"env": "production", "cors_origins": '["http://127.0.0.1:3000", "https://example.com"]'},
+    clear=False,
+)
+def test_cors_origins_production_strips_localhost():
+    s = Settings()
+    assert "http://127.0.0.1:3000" not in s.cors_origins
+    assert "https://example.com" in s.cors_origins
+
+
+def test_validate_config_raises_on_missing_production_keys():
+    from core.config import Settings
+    s = Settings.__new__(Settings)
+    s.env = "production"
+    s.openrouter_api_key = ""
+    s.gemini_api_key = ""
+    s.jwt_secret = "secret"
+    s.ci_webhook_secret = "supreme-ci-secret-2026"
+    with pytest.raises(RuntimeError):
+        s.validate_config()
 
 
 @patch.dict(os.environ, {"max_cost_per_task": "abc"}, clear=False)

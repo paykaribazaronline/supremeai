@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps\studio-client\src\dataconnect-generated\index.d.ts
+# 📄 ফাইল: apps/studio-client/src/dataconnect-generated/index.d.ts
 
 **প্রকার:** .ts  
 **সাইজ:** 8,426 বাইট  
-**আপডেট:** 2026-07-03T19:44:07.129398
+**আপডেট:** 2026-07-03T13:55:00.161426
 
 ---
 

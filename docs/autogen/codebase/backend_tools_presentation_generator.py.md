@@ -1,8 +1,8 @@
-# 📄 ফাইল: backend\tools\presentation_generator.py
+# 📄 ফাইল: backend/tools/presentation_generator.py
 
 **প্রকার:** .py  
 **সাইজ:** 3,058 বাইট  
-**আপডেট:** 2026-07-03T19:44:14.705219
+**আপডেট:** 2026-07-03T13:55:00.151516
 
 ---
 

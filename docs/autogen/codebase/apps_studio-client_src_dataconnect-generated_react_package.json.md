@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps\studio-client\src\dataconnect-generated\react\package.json
+# 📄 ফাইল: apps/studio-client/src/dataconnect-generated/react/package.json
 
 **প্রকার:** .json  
 **সাইজ:** 461 বাইট  
-**আপডেট:** 2026-07-03T19:44:07.203056
+**আপডেট:** 2026-07-03T13:55:00.162086
 
 ---
 

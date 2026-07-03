@@ -1,8 +1,8 @@
-# 📄 ফাইল: backend\database\migrations\04_schema_upgrade.sql
+# 📄 ফাইল: backend/database/migrations/04_schema_upgrade.sql
 
 **প্রকার:** .sql  
 **সাইজ:** 1,623 বাইট  
-**আপডেট:** 2026-07-03T19:44:10.183396
+**আপডেট:** 2026-07-03T13:55:00.143850
 
 ---
 

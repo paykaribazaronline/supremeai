@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps\studio-client\src\components\OperatorStudio.tsx
+# 📄 ফাইল: apps/studio-client/src/components/OperatorStudio.tsx
 
 **প্রকার:** .tsx  
 **সাইজ:** 3,189 বাইট  
-**আপডেট:** 2026-07-03T19:44:06.572686
+**আপডেট:** 2026-07-03T13:55:00.163629
 
 ---
 

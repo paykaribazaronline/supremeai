@@ -1,8 +1,8 @@
-# 📄 ফাইল: backend\tests\test_circuit_breaker.py
+# 📄 ফাইল: backend/tests/test_circuit_breaker.py
 
 **প্রকার:** .py  
 **সাইজ:** 2,286 বাইট  
-**আপডেট:** 2026-07-03T19:44:11.590068
+**আপডেট:** 2026-07-03T13:55:00.137425
 
 ---
 

@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps\studio-client\src\components\customer\CodeEditor.tsx
+# 📄 ফাইল: apps/studio-client/src/components/customer/CodeEditor.tsx
 
 **প্রকার:** .tsx  
 **সাইজ:** 1,153 বাইট  
-**আপডেট:** 2026-07-03T19:44:06.954104
+**আপডেট:** 2026-07-03T13:55:00.164759
 
 ---
 

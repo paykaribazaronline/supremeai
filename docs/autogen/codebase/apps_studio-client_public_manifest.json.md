@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps\studio-client\public\manifest.json
+# 📄 ফাইল: apps/studio-client/public/manifest.json
 
 **প্রকার:** .json  
 **সাইজ:** 750 বাইট  
-**আপডেট:** 2026-07-03T19:44:06.506482
+**আপডেট:** 2026-07-03T13:55:00.171560
 
 ---
 

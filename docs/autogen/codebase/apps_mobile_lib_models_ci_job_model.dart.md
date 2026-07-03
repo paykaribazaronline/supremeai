@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps\mobile\lib\models\ci_job_model.dart
+# 📄 ফাইল: apps/mobile/lib/models/ci_job_model.dart
 
 **প্রকার:** .dart  
 **সাইজ:** 579 বাইট  
-**আপডেট:** 2026-07-03T19:44:06.017927
+**আপডেট:** 2026-07-03T13:55:00.195584
 
 ---
 

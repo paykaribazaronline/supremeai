@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps\mobile\lib\services\api_service.dart
+# 📄 ফাইল: apps/mobile/lib/services/api_service.dart
 
 **প্রকার:** .dart  
 **সাইজ:** 5,144 বাইট  
-**আপডেট:** 2026-07-03T19:44:06.241878
+**আপডেট:** 2026-07-03T13:55:00.195987
 
 ---
 
