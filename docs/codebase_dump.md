@@ -1,7 +1,7 @@
 # 🧠 SupremeAI 2.0 Codebase Analysis
 # বাংলা মন্তব্য: এটি একটি স্বয়ংক্রিয়ভাবে জেনারেট করা কোডবেস ডাম্প ফাইল যা প্রজেক্টের সামগ্রিক বিশ্লেষণের জন্য ব্যবহৃত হয়।
 
-Generated at: 2026-07-03T10:56:51.711117 UTC
+Generated at: 2026-07-03T11:04:51.726986 UTC
 
 ## File: `.github/actions/setup-backend/action.yml`
 ```yaml
@@ -4696,7 +4696,7 @@ jobs:
         run: poetry run python ../.github/scripts/ci-auto-fix-v3.py --job backend-test --mode fix
 
   security-audit:
-    name: 🛡️ CodeQL Security Scan
+    name: 🛡️ CodeQL & Trivy Security Scan
     needs: detect-changes
     runs-on: ubuntu-latest
     permissions:
@@ -4705,16 +4705,75 @@ jobs:
       contents: read
     steps:
       - uses: actions/checkout@v4
+      
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v4
         with:
           languages: 'python, javascript'
           paths-ignore: |
             infrastructure/firebase_functions/ocrTrigger.ts
+      
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v4
         with:
           category: "/language:python,javascript"
+          upload: false
+      
+      - name: Upload CodeQL SARIF Reports
+        uses: github/codeql-action/upload-sarif@v4
+        if: always()
+        with:
+          category: 'codeql'
+
+      - name: 🔍 Trivy Scan - Python Dependencies
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: 'backend'
+          format: 'sarif'
+          output: 'trivy-python.sarif'
+          severity: 'CRITICAL,HIGH'
+        continue-on-error: true
+
+      - name: 🔍 Trivy Scan - Node.js Dependencies
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: 'apps,tools'
+          format: 'sarif'
+          output: 'trivy-nodejs.sarif'
+          severity: 'CRITICAL,HIGH'
+        continue-on-error: true
+
+      - name: Upload Trivy Python SARIF
+        uses: github/codeql-action/upload-sarif@v4
+        if: always()
+        with:
+          sarif_file: 'trivy-python.sarif'
+          category: 'trivy-python'
+        continue-on-error: true
+
+      - name: Upload Trivy Node.js SARIF
+        uses: github/codeql-action/upload-sarif@v4
+        if: always()
+        with:
+          sarif_file: 'trivy-nodejs.sarif'
+          category: 'trivy-nodejs'
+        continue-on-error: true
+
+      - name: 📊 Add Security Audit Results to GitHub Summary
+        if: always()
+        run: |
+          echo "## 🛡️ Security Audit Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### CodeQL Analysis" >> $GITHUB_STEP_SUMMARY
+          echo "✅ CodeQL SARIF report uploaded to GitHub Security tab" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Trivy Vulnerability Scan" >> $GITHUB_STEP_SUMMARY
+          echo "✅ Python dependencies scanned (backend/)" >> $GITHUB_STEP_SUMMARY
+          echo "✅ Node.js dependencies scanned (apps/, tools/)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**View full results in the [Security tab](https://github.com/${{ github.repository }}/security/code-scanning)**" >> $GITHUB_STEP_SUMMARY
 
   frontend-core:
     name: 🌐 Frontend Monorepo (Turbo)
@@ -115197,7 +115256,7 @@ export class CodeFlowHandler {
     const patterns = ['**/*.js', '**/*.ts', '**/*.py', '**/*.go', '**/*.rs', '**/*.java', '**/*.rb', '**/*.cpp', '**/*.c'];
 
     for (const pattern of patterns) {
-      const uris = await vscode.workspace.findFiles(new vscode.RelativePattern(workspaceUri, pattern), '**/node_modules/**');
+      const uris = await vscode.workspace.findFiles(new vscode.RelativePattern(workspaceUri.fsPath, pattern), '**/node_modules/**');
       
       for (const uri of uris) {
         try {
@@ -115658,7 +115717,7 @@ export class ErrorHandler {
     const message = diagnostic.message.toLowerCase();
 
     // Use error codes for more specific classification
-    const code = typeof diagnostic.code === 'object' ? String(diagnostic.code.value) : String(diagnostic.code);
+    const code = typeof diagnostic.code === 'object' && 'value' in diagnostic.code ? String((diagnostic.code as any).value) : String(diagnostic.code);
     if (code?.startsWith('ts')) {
       return 'compilation';
     }
@@ -116170,16 +116229,16 @@ export class SupremeAIActivityItem extends vscode.TreeItem {
     return date.toLocaleDateString();
   }
 
-  private getIcon(type: string): vscode.ThemeIcon {
+  private getIcon(type: string): string {
     switch (type) {
       case 'CODE_EDIT':
-        return new vscode.ThemeIcon('edit');
+        return '$(edit)';
       case 'ERROR_REPORT':
-        return new vscode.ThemeIcon('error');
+        return '$(error)';
       case 'SUGGESTION_FEEDBACK':
-        return new vscode.ThemeIcon('thumbsup');
+        return '$(thumbsup)';
       default:
-        return new vscode.ThemeIcon('info');
+        return '$(info)';
     }
   }
 }
@@ -119950,6 +120009,7 @@ describe('SupremeAIService', () => {
     "noImplicitOverride": true,
     "incremental": true,
     "types": [
+      "vscode",
       "node",
       "vitest/globals"
     ]
