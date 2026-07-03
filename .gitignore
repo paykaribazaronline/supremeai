@@ -142,8 +142,7 @@ backend-tests.log
 backend/.coverage.DESKTOP-*
 
 # Auto-generated docs may contain secrets
-docs/autogen/codebase/scripts_repair_env.py.md
-docs/autogen/codebase_full.md
-# বাংলা মন্তব্য: নতুন ফোল্ডারের কোডবেস ডাম্প গিট ইগনোর করা হলো যাতে সিক্রেট লিক বা সাইজ বড় না হয়
-docs/autogen/full/
+# বাংলা মন্তব্য: অটোজেনারেটেড ডকস এবং লোকাল কনফিগ গিট ইগনোর করা হলো যাতে রিপো ক্লিন থাকে
+docs/autogen/
+.kilo/
 
