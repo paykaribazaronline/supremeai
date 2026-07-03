@@ -1,8 +1,8 @@
-# 📄 ফাইল: backend\database\migrations\03_user_preferences_and_metrics.sql
+# 📄 ফাইল: backend/database/migrations/03_user_preferences_and_metrics.sql
 
 **প্রকার:** .sql  
 **সাইজ:** 1,030 বাইট  
-**আপডেট:** 2026-07-03T21:20:54.608491
+**আপডেট:** 2026-07-03T15:24:11.562950
 
 ---
 

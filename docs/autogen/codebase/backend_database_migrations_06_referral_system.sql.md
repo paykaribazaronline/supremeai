@@ -1,8 +1,8 @@
-# 📄 ফাইল: backend\database\migrations\06_referral_system.sql
+# 📄 ফাইল: backend/database/migrations/06_referral_system.sql
 
 **প্রকার:** .sql  
 **সাইজ:** 1,812 বাইট  
-**আপডেট:** 2026-07-03T21:20:54.664329
+**আপডেট:** 2026-07-03T15:24:11.563092
 
 ---
 

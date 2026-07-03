@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps\studio-client\src\components\customer\QuickPresets.test.tsx
+# 📄 ফাইল: apps/studio-client/src/components/customer/QuickPresets.test.tsx
 
 **প্রকার:** .tsx  
 **সাইজ:** 2,196 বাইট  
-**আপডেট:** 2026-07-03T21:20:51.321385
+**আপডেট:** 2026-07-03T15:24:11.595271
 
 ---
 

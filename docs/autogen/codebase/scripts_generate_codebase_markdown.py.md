@@ -1,8 +1,8 @@
-# 📄 ফাইল: scripts\generate_codebase_markdown.py
+# 📄 ফাইল: scripts/generate_codebase_markdown.py
 
 **প্রকার:** .py  
 **সাইজ:** 8,993 বাইট  
-**আপডেট:** 2026-07-03T21:21:02.224777
+**আপডেট:** 2026-07-03T15:24:11.468885
 
 ---
 

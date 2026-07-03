@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps\studio-client\src\components\customer\UserDashboard.tsx
+# 📄 ফাইল: apps/studio-client/src/components/customer/UserDashboard.tsx
 
 **প্রকার:** .tsx  
 **সাইজ:** 15,665 বাইট  
-**আপডেট:** 2026-07-03T21:20:51.363011
+**আপডেট:** 2026-07-03T15:24:11.594731
 
 ---
 

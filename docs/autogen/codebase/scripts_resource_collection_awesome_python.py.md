@@ -1,8 +1,8 @@
-# 📄 ফাইল: scripts\resource_collection\awesome_python.py
+# 📄 ফাইল: scripts/resource_collection/awesome_python.py
 
 **প্রকার:** .py  
 **সাইজ:** 1,178 বাইট  
-**আপডেট:** 2026-07-03T21:21:03.693105
+**আপডেট:** 2026-07-03T15:24:11.479534
 
 ---
 

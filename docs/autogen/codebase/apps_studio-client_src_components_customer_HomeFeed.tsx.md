@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps\studio-client\src\components\customer\HomeFeed.tsx
+# 📄 ফাইল: apps/studio-client/src/components/customer/HomeFeed.tsx
 
 **প্রকার:** .tsx  
 **সাইজ:** 2,959 বাইট  
-**আপডেট:** 2026-07-03T21:20:51.250653
+**আপডেট:** 2026-07-03T15:24:11.595427
 
 ---
 

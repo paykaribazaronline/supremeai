@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps\studio-client\src\components\admin\ModelRouter.tsx
+# 📄 ফাইল: apps/studio-client/src/components/admin/ModelRouter.tsx
 
 **প্রকার:** .tsx  
 **সাইজ:** 9,219 বাইট  
-**আপডেট:** 2026-07-03T21:20:51.004420
+**আপডেট:** 2026-07-03T15:24:11.599815
 
 ---
 

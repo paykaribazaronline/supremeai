@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps\studio-client\src\components\ui\Badge.tsx
+# 📄 ফাইল: apps/studio-client/src/components/ui/Badge.tsx
 
 **প্রকার:** .tsx  
 **সাইজ:** 851 বাইট  
-**আপডেট:** 2026-07-03T21:20:51.454339
+**আপডেট:** 2026-07-03T15:24:11.593415
 
 ---
 

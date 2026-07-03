@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps\mobile\lib\screens\login_screen.dart
+# 📄 ফাইল: apps/mobile/lib/screens/login_screen.dart
 
 **প্রকার:** .dart  
 **সাইজ:** 6,152 বাইট  
-**আপডেট:** 2026-07-03T21:20:50.031592
+**আপডেট:** 2026-07-03T15:24:11.621878
 
 ---
 

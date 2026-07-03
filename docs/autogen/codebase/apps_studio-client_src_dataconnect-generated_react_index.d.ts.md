@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps\studio-client\src\dataconnect-generated\react\index.d.ts
+# 📄 ফাইল: apps/studio-client/src/dataconnect-generated/react/index.d.ts
 
 **প্রকার:** .ts  
 **সাইজ:** 3,961 বাইট  
-**আপডেট:** 2026-07-03T21:20:51.569333
+**আপডেট:** 2026-07-03T15:24:11.589135
 
 ---
 

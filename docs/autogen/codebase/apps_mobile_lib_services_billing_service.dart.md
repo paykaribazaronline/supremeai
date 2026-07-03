@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps\mobile\lib\services\billing_service.dart
+# 📄 ফাইল: apps/mobile/lib/services/billing_service.dart
 
 **প্রকার:** .dart  
 **সাইজ:** 2,758 বাইট  
-**আপডেট:** 2026-07-03T21:20:50.185644
+**আপডেট:** 2026-07-03T15:24:11.631529
 
 ---
 

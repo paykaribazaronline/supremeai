@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps\desktop\src-ui\src\stores\authStore.ts
+# 📄 ফাইল: apps/desktop/src-ui/src/stores/authStore.ts
 
 **প্রকার:** .ts  
 **সাইজ:** 705 বাইট  
-**আপডেট:** 2026-07-03T21:20:49.443965
+**আপডেট:** 2026-07-03T15:24:11.613332
 
 ---
 

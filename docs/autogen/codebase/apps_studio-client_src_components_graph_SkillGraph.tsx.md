@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps\studio-client\src\components\graph\SkillGraph.tsx
+# 📄 ফাইল: apps/studio-client/src/components/graph/SkillGraph.tsx
 
 **প্রকার:** .tsx  
 **সাইজ:** 4,162 বাইট  
-**আপডেট:** 2026-07-03T21:20:51.388440
+**আপডেট:** 2026-07-03T15:24:11.604570
 
 ---
 

@@ -1,8 +1,8 @@
-# 📄 ফাইল: scripts\evolution\auto_marketing_skill_forge.py
+# 📄 ফাইল: scripts/evolution/auto_marketing_skill_forge.py
 
 **প্রকার:** .py  
 **সাইজ:** 9,724 বাইট  
-**আপডেট:** 2026-07-03T21:21:03.447367
+**আপডেট:** 2026-07-03T15:24:11.476684
 
 ---
 

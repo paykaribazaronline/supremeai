@@ -1,8 +1,8 @@
-# 📄 ফাইল: tools\vscode-extension\src\dataconnect-generated\.guides\config.json
+# 📄 ফাইল: tools/vscode-extension/src/dataconnect-generated/.guides/config.json
 
 **প্রকার:** .json  
 **সাইজ:** 236 বাইট  
-**আপডেট:** 2026-07-03T21:21:05.278521
+**আপডেট:** 2026-07-03T15:24:11.638589
 
 ---
 

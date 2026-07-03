@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps\studio-client\src\components\admin\HealthBanner.tsx
+# 📄 ফাইল: apps/studio-client/src/components/admin/HealthBanner.tsx
 
 **প্রকার:** .tsx  
 **সাইজ:** 1,106 বাইট  
-**আপডেট:** 2026-07-03T21:20:50.928453
+**আপডেট:** 2026-07-03T15:24:11.596689
 
 ---
 

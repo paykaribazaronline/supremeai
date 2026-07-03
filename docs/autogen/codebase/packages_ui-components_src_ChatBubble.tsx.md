@@ -1,8 +1,8 @@
-# 📄 ফাইল: packages\ui-components\src\ChatBubble.tsx
+# 📄 ফাইল: packages/ui-components/src/ChatBubble.tsx
 
 **প্রকার:** .tsx  
 **সাইজ:** 566 বাইট  
-**আপডেট:** 2026-07-03T21:21:01.741380
+**আপডেট:** 2026-07-03T15:24:11.481797
 
 ---
 

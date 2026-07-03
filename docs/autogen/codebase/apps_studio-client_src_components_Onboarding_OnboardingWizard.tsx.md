@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps\studio-client\src\components\Onboarding\OnboardingWizard.tsx
+# 📄 ফাইল: apps/studio-client/src/components/Onboarding/OnboardingWizard.tsx
 
 **প্রকার:** .tsx  
 **সাইজ:** 1,631 বাইট  
-**আপডেট:** 2026-07-03T21:20:51.400330
+**আপডেট:** 2026-07-03T15:24:11.604218
 
 ---
 

@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps\mobile\lib\widgets\transaction_history_list.dart
+# 📄 ফাইল: apps/mobile/lib/widgets/transaction_history_list.dart
 
 **প্রকার:** .dart  
 **সাইজ:** 2,391 বাইট  
-**আপডেট:** 2026-07-03T21:20:50.386336
+**আপডেট:** 2026-07-03T15:24:11.632378
 
 ---
 

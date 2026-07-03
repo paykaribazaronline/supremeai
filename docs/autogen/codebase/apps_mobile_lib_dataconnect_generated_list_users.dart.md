@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps\mobile\lib\dataconnect_generated\list_users.dart
+# 📄 ফাইল: apps/mobile/lib/dataconnect_generated/list_users.dart
 
 **প্রকার:** .dart  
 **সাইজ:** 2,236 বাইট  
-**আপডেট:** 2026-07-03T21:20:49.887074
+**আপডেট:** 2026-07-03T15:24:11.627517
 
 ---
 

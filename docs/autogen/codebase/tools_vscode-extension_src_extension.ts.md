@@ -1,8 +1,8 @@
-# 📄 ফাইল: tools\vscode-extension\src\extension.ts
+# 📄 ফাইল: tools/vscode-extension/src/extension.ts
 
 **প্রকার:** .ts  
 **সাইজ:** 27,874 বাইট  
-**আপডেট:** 2026-07-03T21:21:05.031825
+**আপডেট:** 2026-07-03T15:24:11.637053
 
 ---
 

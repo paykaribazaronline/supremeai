@@ -1,8 +1,8 @@
-# 📄 ফাইল: infrastructure\firebase_functions\firebase_functions_v1\src\email_handler.ts
+# 📄 ফাইল: infrastructure/firebase_functions/firebase_functions_v1/src/email_handler.ts
 
 **প্রকার:** .ts  
 **সাইজ:** 4,553 বাইট  
-**আপডেট:** 2026-07-03T21:21:01.389618
+**আপডেট:** 2026-07-03T15:24:11.488055
 
 ---
 

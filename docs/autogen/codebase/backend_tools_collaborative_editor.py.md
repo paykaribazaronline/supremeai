@@ -1,8 +1,8 @@
-# 📄 ফাইল: backend\tools\collaborative_editor.py
+# 📄 ফাইল: backend/tools/collaborative_editor.py
 
 **প্রকার:** .py  
 **সাইজ:** 13,265 বাইট  
-**আপডেট:** 2026-07-03T21:20:58.688394
+**আপডেট:** 2026-07-03T15:24:11.575791
 
 ---
 

@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps\mobile\ios\Runner\Assets.xcassets\LaunchImage.imageset\Contents.json
+# 📄 ফাইল: apps/mobile/ios/Runner/Assets.xcassets/LaunchImage.imageset/Contents.json
 
 **প্রকার:** .json  
 **সাইজ:** 378 বাইট  
-**আপডেট:** 2026-07-03T21:20:49.812526
+**আপডেট:** 2026-07-03T15:24:11.620397
 
 ---
 

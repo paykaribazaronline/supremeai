@@ -1,8 +1,8 @@
-# 📄 ফাইল: backend\tools\code_smell_detector.py
+# 📄 ফাইল: backend/tools/code_smell_detector.py
 
 **প্রকার:** .py  
 **সাইজ:** 22,197 বাইট  
-**আপডেট:** 2026-07-03T21:20:58.670928
+**আপডেট:** 2026-07-03T15:24:11.567949
 
 ---
 

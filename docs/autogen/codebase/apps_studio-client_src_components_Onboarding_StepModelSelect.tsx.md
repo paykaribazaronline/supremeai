@@ -1,8 +1,8 @@
-# 📄 ফাইল: apps\studio-client\src\components\Onboarding\StepModelSelect.tsx
+# 📄 ফাইল: apps/studio-client/src/components/Onboarding/StepModelSelect.tsx
 
 **প্রকার:** .tsx  
 **সাইজ:** 2,131 বাইট  
-**আপডেট:** 2026-07-03T21:20:51.433051
+**আপডেট:** 2026-07-03T15:24:11.603918
 
 ---
 

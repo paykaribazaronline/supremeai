@@ -1,8 +1,8 @@
-# 📄 ফাইল: backend\tests\test_admin_models.py
+# 📄 ফাইল: backend/tests/test_admin_models.py
 
 **প্রকার:** .py  
 **সাইজ:** 1,257 বাইট  
-**আপডেট:** 2026-07-03T21:20:55.518498
+**আপডেট:** 2026-07-03T15:24:11.548686
 
 ---
 
