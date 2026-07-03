@@ -1,7 +1,7 @@
 # 🧠 SupremeAI 2.0 Codebase Analysis
 # বাংলা মন্তব্য: এটি একটি স্বয়ংক্রিয়ভাবে জেনারেট করা কোডবেস ডাম্প ফাইল যা প্রজেক্টের সামগ্রিক বিশ্লেষণের জন্য ব্যবহৃত হয়।
 
-Generated at: 2026-07-03T02:50:04.330005 UTC
+Generated at: 2026-07-03T02:58:40.685485 UTC
 
 ## File: `.github/actions/setup-backend/action.yml`
 ```yaml
@@ -4796,6 +4796,31 @@ jobs:
           GCP_REGION: ${{ vars.GCP_REGION || 'us-central1' }}
         run: python .github/scripts/deploy-backend.py
 
+  load-test:
+    name: ⏱️ Load Test (k6)
+    needs: [backend-core, frontend-core]
+    runs-on: ubuntu-latest
+    if: |
+      needs.detect-changes.outputs.backend == 'true' ||
+      needs.circuit-breaker.outputs.previous_failed == 'true'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install k6
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y k6
+      - name: Run k6 load test
+        env:
+          SUPREMEAI_URL: ${{ env.SUPREMEAI_API_URL }}
+        run: |
+          echo "Running k6 load test against ${SUPREMEAI_URL}"
+          k6 run --out json=load-test-output.json scripts/k6/load_test.js
+      - name: Upload k6 results
+        uses: actions/upload-artifact@v4
+        with:
+          name: k6-load-test
+          path: load-test-output.json
+
   deploy-frontend:
     name: 🌐 Deploy Frontend (Firebase)
     needs: [detect-changes, circuit-breaker, frontend-core]
@@ -9227,6 +9252,14 @@ linter:
     "permissions": "权限"
   }
 }
+
+```
+
+## File: `apps/mobile/devtools_options.yaml`
+```yaml
+description: This file stores settings for Dart & Flutter DevTools.
+documentation: https://docs.flutter.dev/tools/devtools/extensions#configure-extension-enablement-states
+extensions:
 
 ```
 
@@ -100930,6 +100963,12 @@ class SupremeAILoadTester(HttpUser):
     "@playwright/test": "^1.42.0"
   },
   "packageManager": "pnpm@9.0.0",
+  "overrides": {
+    "typescript": "5.4.5",
+    "vite": "7.3.5",
+    "react": "18.2.0",
+    "react-dom": "18.2.0"
+  },
   "engines": {
     "node": ">=20.0.0",
     "pnpm": ">=9.0.0"
