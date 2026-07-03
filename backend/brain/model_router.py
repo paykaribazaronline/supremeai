@@ -184,11 +184,27 @@ class ModelRouter:
                     "error": f"Circuit breaker open for {task_type}"
                 }
 
+            from core.free_tier_tracker import get_free_tier_tracker
+            tracker = get_free_tier_tracker()
+            best_provider = tracker.get_best_provider(["gemini", "groq", "openrouter"])
+
+            if not best_provider:
+                logger.warning("[ModelRouter] All free tiers exhausted! Degrading to Eco-Mode (Local/Mock).")
+                import json
+                return {
+                    "success": True,
+                    "model": "eco_mode_offline",
+                    "eco_mode": True,  # Flag to be converted to X-SupremeAI-Status: Eco-Mode header
+                    "text": json.dumps({"response": "System is running in Eco-Mode. Minimal response generated."}),
+                    "cost": 0.0
+                }
+
             # Delegate directly to our new LiteLLM universal gateway
             try:
                 response = await llm_gateway.acompletion(
                     prompt=normalized_prompt,
                     task_type=task_type,
+                    provider=best_provider,
                     stream=False
                 )
                 if response and response.get("success"):

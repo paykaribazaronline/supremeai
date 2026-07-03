@@ -51,45 +51,38 @@ app.get(['/health', '/api/health'], (req, res) => {
   });
 });
 
-// REAL LLM Connection (Gemini / OpenAI Fallback)
+// REAL LLM Connection (Routed via Python Backend to use FreeTierTracker)
 async function callChatBackend(message, token) {
-  const apiKey = process.env.SUPREME_API_KEY || process.env.GEMINI_API_KEY || process.env.OPENAI_API_KEY;
-  const targetModel = process.env.SUPREME_CORE_MODEL || 'gemini-pro';
-
-  if (!apiKey) {
-    // Fallback to local neural core if no API key
-    return generateSmartAIResponse(message);
-  }
-
+  const backendUrl = process.env.SUPREME_BACKEND_URL || 'http://127.0.0.1:8000';
+  
   try {
-    // Attempt Gemini call
     const response = await axios.post(
-      `https://generativelanguage.googleapis.com/v1beta/models/${targetModel}:generateContent`,
+      `${backendUrl}/api/chat/completion`,
       {
-        contents: [{ parts: [{ text: message }] }]
+        messages: [{ role: 'user', content: message }],
+        task_type: 'general'
       },
       {
         headers: {
-          'x-goog-api-key': apiKey,
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          ...(token && { 'Authorization': `Bearer ${token}` })
         },
-        timeout: 10000
+        timeout: 15000
       }
     );
 
-    if (response.data && response.data.candidates && response.data.candidates.length > 0) {
-      const text = response.data.candidates[0].content.parts[0].text;
-      return {
-        message: text,
-        confidence: 0.95,
-        chatType: 'LLM_RESPONSE',
-        sourceType: 'SUPREME_CORE_API',
-        sources: [`${process.env.SUPREME_BRAND_NAME || 'SupremeAI'} Intelligence`]
-      };
-    }
-    throw new Error('Invalid LLM response format');
+    const isEcoMode = response.data && response.data.eco_mode;
+
+    return {
+      message: response.data.text || "No response generated.",
+      confidence: 0.95,
+      chatType: 'LLM_RESPONSE',
+      sourceType: isEcoMode ? 'SUPREME_ECO_MOCK' : 'SUPREME_CORE_API',
+      sources: [`${process.env.SUPREME_BRAND_NAME || 'SupremeAI'} Intelligence`],
+      ecoMode: isEcoMode
+    };
   } catch (err) {
-    console.error('[LLM] API call failed:', err.message);
+    console.error('[LLM] API call failed via Python backend:', err.message);
     return generateSmartAIResponse(message);
   }
 }
@@ -130,6 +123,11 @@ async function unifiedChatHandler(req, res) {
     if (!answer) {
       try {
         const chatResult = await callChatBackend(message, token);
+        
+        if (chatResult.ecoMode) {
+          res.setHeader('X-SupremeAI-Status', 'Eco-Mode');
+        }
+
         if (chatResult && chatResult.message) {
           answer = chatResult.message;
           confidence = typeof chatResult.confidence === 'number' ? chatResult.confidence : 0.5;

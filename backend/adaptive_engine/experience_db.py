@@ -252,3 +252,39 @@ class ExperienceDatabase:
                 )
                 for r in rows
             ]
+
+    def sync_to_gcs(self, bucket_name: str, blob_name: str = "experience_db_backup.sqlite.gz"):
+        """
+        Compresses the SQLite database and uploads it to Google Cloud Storage.
+        This minimizes bandwidth usage and prevents data loss on Cloud Run restarts.
+        """
+        import gzip
+        import shutil
+        from google.cloud import storage
+        import loguru
+
+        try:
+            if str(self.db_path) == ":memory:":
+                loguru.logger.warning("Cannot sync in-memory DB to GCS directly.")
+                return
+
+            gz_path = self.db_path.with_suffix(".sqlite.gz")
+            with open(self.db_path, 'rb') as f_in:
+                with gzip.open(gz_path, 'wb') as f_out:
+                    shutil.copyfileobj(f_in, f_out)
+            
+            client = storage.Client()
+            bucket = client.bucket(bucket_name)
+            blob = bucket.blob(blob_name)
+            
+            # Set metadata to indicate it's a gzipped sqlite file
+            blob.content_encoding = 'gzip'
+            blob.upload_from_filename(str(gz_path), content_type='application/x-sqlite3')
+            
+            loguru.logger.info(f"Successfully synced experience db to GCS: gs://{bucket_name}/{blob_name}")
+            
+            # Clean up local compressed file
+            gz_path.unlink(missing_ok=True)
+            
+        except Exception as e:
+            loguru.logger.error(f"Failed to sync experience db to GCS: {e}")

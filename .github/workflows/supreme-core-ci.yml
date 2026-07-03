@@ -335,6 +335,7 @@ jobs:
           VITE_API_URL: ${{ env.SUPREMEAI_API_URL }}
         run: |
           pnpm install --frozen-lockfile
+          pnpm store prune
 
       - name: Build & Lint Frontend Packages
         run: pnpm turbo run build lint --filter=supremeai-studio-client --filter=@supremeai/web-chat --filter=supremeai-vscode
