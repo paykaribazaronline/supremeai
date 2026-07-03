@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/test_production_readiness_integration.py
 
 **প্রকার:** .py  
-**সাইজ:** 10,817 বাইট  
-**আপডেট:** 2026-07-03T13:20:21.731623
+**সাইজ:** 10,804 বাইট  
+**আপডেট:** 2026-07-03T13:30:40.182899
 
 ---
 
@@ -51,7 +51,7 @@ class TestProductionReadinessSystems:
                 file_path=file_path,
                 ai_authored=True
             )
-            assert result["allowed"] == False or result["requires_approval"] == True
+            assert not result["allowed"] or result["requires_approval"]
 
     def test_multi_model_validator_returns_json(self):
         """Multi-Model Validator JSON রিপোর্ট ফেরত দেয়"""
