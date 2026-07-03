@@ -1,7 +1,7 @@
 # 🧠 SupremeAI 2.0 Codebase Analysis
 # বাংলা মন্তব্য: এটি একটি স্বয়ংক্রিয়ভাবে জেনারেট করা কোডবেস ডাম্প ফাইল যা প্রজেক্টের সামগ্রিক বিশ্লেষণের জন্য ব্যবহৃত হয়।
 
-Generated at: 2026-07-03T00:32:11.096609 UTC
+Generated at: 2026-07-03T01:24:32.344960 UTC
 
 ## File: `.github/actions/setup-backend/action.yml`
 ```yaml
@@ -5788,11 +5788,12 @@ class AdminGodLayer:
     "src-ui"
   ],
   "scripts": {
-    "dev": "npx tauri dev",
-    "build": "npx tauri build",
-    "dev:ui": "npm run dev --workspace=src-ui",
-    "build:ui": "npm run build --workspace=src-ui"
+    "dev": "pnpm --dir . tauri dev",
+    "build": "pnpm --dir . tauri build",
+    "dev:ui": "pnpm --dir src-ui dev",
+    "build:ui": "pnpm --dir src-ui build"
   },
+  "packageManager": "pnpm@9.0.0",
   "devDependencies": {
     "@tauri-apps/cli": "^1.5.0"
   }
@@ -5879,7 +5880,7 @@ class AdminGodLayer:
       }
     ],
     "updater": {
-      "active": true,
+      "active": false,
       "endpoints": [
         "https://github.com/supremeai/supremeai_2.0/releases/latest/download/latest.json"
       ],
@@ -5933,6 +5934,7 @@ class AdminGodLayer:
     "build": "vite build",
     "preview": "vite preview"
   },
+  "packageManager": "pnpm@9.0.0",
   "eslintConfig": {
     "extends": [
       "react-app",
@@ -10312,6 +10314,7 @@ import { UserDashboard } from "./components/customer/UserDashboard";
 import { getAethelResponse } from "./services/chatService";
 import type { ChatMessage } from "./services/chatService";
 import { getApiBaseUrl } from "./utils/api";
+import { getAdminToken } from './services/adminTokenStore';
 import { Cpu, Send } from 'lucide-react';
 import ReactFlow, { Background, useNodesState, useEdgesState } from 'reactflow';
 import 'reactflow/dist/style.css';
@@ -10374,7 +10377,7 @@ function AdminShell() {
 
     const API_BASE = getApiBaseUrl();
     const headers = {
-      "Authorization": `Bearer ${localStorage.getItem('supremeai_admin_token') || ''}`,
+      "Authorization": `Bearer ${getAdminToken()}`,
       "Content-Type": "application/json"
     };
 
@@ -10418,7 +10421,7 @@ function AdminShell() {
     setActionStatus("TRIGGERING DEPLOY...");
     const API_BASE = getApiBaseUrl();
     const headers = {
-      "Authorization": `Bearer ${localStorage.getItem('supremeai_admin_token') || ''}`,
+      "Authorization": `Bearer ${getAdminToken()}`,
       "Content-Type": "application/json"
     };
     fetch(`${API_BASE}/admin-api/deploy`, { method: "POST", headers })
@@ -10471,7 +10474,7 @@ function AdminShell() {
     if (!newUsername) return;
     const API_BASE = getApiBaseUrl();
     const headers = {
-      "Authorization": `Bearer ${localStorage.getItem('supremeai_admin_token') || ''}`,
+      "Authorization": `Bearer ${getAdminToken()}`,
       "Content-Type": "application/json"
     };
     fetch(`${API_BASE}/admin-api/users`, {
@@ -10490,7 +10493,7 @@ function AdminShell() {
   const handleDeleteUser = (username: string) => {
     const API_BASE = getApiBaseUrl();
     const headers = {
-      "Authorization": `Bearer ${localStorage.getItem('supremeai_admin_token') || ''}`,
+      "Authorization": `Bearer ${getAdminToken()}`,
       "Content-Type": "application/json"
     };
     fetch(`${API_BASE}/admin-api/users/${username}`, { method: "DELETE", headers })
@@ -11278,6 +11281,8 @@ export function OperatorStudio({
 ## File: `apps/studio-client/src/components/admin/ActionCard.tsx`
 ```typescript
 import { useState } from 'react';
+import { getApiBaseUrl } from '../../utils/api';
+import { getAdminToken } from '../../services/adminTokenStore';
 
 interface Action {
   id: string;
@@ -11341,7 +11346,7 @@ export function ActionCard({ rawContent, onSaveToProject, onPreview }: ActionCar
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
-              'Authorization': `Bearer ${localStorage.getItem('supremeai_admin_token') || ''}`
+              'Authorization': `Bearer ${getAdminToken()}`
             }
           });
           if (res.ok) {
@@ -13044,6 +13049,7 @@ import { useState, useEffect } from 'react';
 import { useStore } from '../../store/useStore';
 import { useCIReports } from '../../hooks/useAdminApi';
 import { getApiBaseUrl } from '../../utils/api';
+import { getAdminToken } from '../../services/adminTokenStore';
 import type { CIReport } from '../../types';
 
 interface FeatureFlag {
@@ -13094,7 +13100,7 @@ export function CICDVisualizer() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('supremeai_admin_token') || ''}`
+          'Authorization': `Bearer ${getAdminToken()}`
         }
       });
       if (res.ok) {
@@ -16343,7 +16349,7 @@ export const RateLimitManager: React.FC = () => {
     setLoading(true);
     try {
       const resp = await fetch(`${API_BASE}/admin/tenant-limits`, {
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('supremeai_supremeai_admin_token') || ''}` }
+        headers: { 'Authorization': `Bearer ${getAdminToken()}` }
       });
       if (resp.ok) {
         const data = await resp.json();
@@ -16381,7 +16387,7 @@ export const RateLimitManager: React.FC = () => {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('supremeai_admin_token') || ''}`,
+          'Authorization': `Bearer ${getAdminToken()}`,
         },
         body: JSON.stringify(editValues),
       });
@@ -16410,7 +16416,7 @@ export const RateLimitManager: React.FC = () => {
     try {
       await fetch(`${API_BASE}/admin/tenant-limits`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('supremeai_admin_token') || ''}` },
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getAdminToken()}` },
         body: JSON.stringify(record),
       });
     } catch (e) {
@@ -20166,7 +20172,7 @@ export default function SkillGraph() {
     try {
       const response = await fetch(`${API_BASE_URL}/api/v1/graph/skills`, {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('supremeai_admin_token')}`
+          'Authorization': `Bearer ${getAdminToken()}`
         }
       });
       
@@ -20392,6 +20398,7 @@ export { TypingIndicator } from '../chat/TypingIndicator';
 ## File: `apps/studio-client/src/contexts/ThemeContext.tsx`
 ```typescript
 import React, { createContext, useContext, useEffect, useState } from 'react';
+import { getAdminToken } from '../services/adminTokenStore';
 
 // বাংলা মন্তব্য: ৪টি থিম সাপোর্ট করা হচ্ছে — Dark Space, Sky Blue, Sunset Ember, Emerald Matrix
 type Theme = 'dark' | 'light' | 'sunset' | 'matrix';
@@ -20418,7 +20425,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     
     // 2. ব্যাকএন্ড থেকে ফেচ করা (Cross-device sync)
     const API_BASE = getApiBaseUrl();
-    const token = localStorage.getItem('supremeai_admin_token') || '';
+    const token = getAdminToken();
     fetch(`${API_BASE}/api/v1/preferences`, {
       headers: {
         'Authorization': `Bearer ${token}`
@@ -20454,7 +20461,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
     // ব্যাকএন্ডে async সিঙ্ক করা
     const API_BASE = getApiBaseUrl();
-    const token = localStorage.getItem('supremeai_admin_token') || '';
+    const token = getAdminToken();
     fetch(`${API_BASE}/api/v1/preferences`, {
       method: 'POST',
       headers: { 
@@ -22774,6 +22781,27 @@ export const adminService = {
 
 ```
 
+## File: `apps/studio-client/src/services/adminTokenStore.ts`
+```typescript
+/**
+ * In-memory admin token store.
+ * This intentionally keeps admin tokens out of browser-local storage
+ * to reduce exposure from XSS and persistent storage.
+ */
+let adminToken = '';
+
+export const setAdminToken = (token: string) => {
+  adminToken = token;
+};
+
+export const getAdminToken = () => adminToken;
+
+export const clearAdminToken = () => {
+  adminToken = '';
+};
+
+```
+
 ## File: `apps/studio-client/src/services/agentService.ts`
 ```typescript
 // Agent Operations Service for SupremeAI 2.0
@@ -22849,11 +22877,12 @@ export const fetchJavaWorkerHealth = async (): Promise<JavaWorkerHealth> => {
 // বাংলা মন্তব্য: এটি অ্যাপ্লিকেশনের সেন্ট্রাল এপিআই ক্লায়েন্ট যা হেডার, টোকেন এবং সিকিউর রেট লিমিট (429) / ভ্যালিডেশন এরর ইন্টারসেপ্ট করে।
 
 import { getApiBaseUrl } from '../utils/api';
+import { getAdminToken } from './adminTokenStore';
 
 const API_BASE_URL = getApiBaseUrl();
 
 export const getAuthHeaders = (): Record<string, string> => {
-  const token = localStorage.getItem('supremeai_admin_token') || '';
+  const token = getAdminToken();
   return {
     'Content-Type': 'application/json',
     'Authorization': token ? `Bearer ${token}` : '',
@@ -23345,11 +23374,12 @@ export const ciReportService = {
 // FrR2 Storage API
 
 import { getApiBaseUrl } from './utils/api';
+import { getAdminToken } from './adminTokenStore';
 
 const API_BASE_URL = getApiBaseUrl();
 
 const getAuthToken = () => {
-    return localStorage.getItem('supremeai_admin_token') || '';
+    return getAdminToken();
 };
 
 export const uploadFileToR2 = async (file: File) => {
@@ -23401,6 +23431,7 @@ export const uploadFileToR2 = async (file: File) => {
 ## File: `apps/studio-client/src/store/adminStore.ts`
 ```typescript
 import { create } from 'zustand';
+import { setAdminToken, clearAdminToken } from '../services/adminTokenStore';
 
 interface AdminState {
   adminAuthenticated: boolean;
@@ -23466,7 +23497,7 @@ export const useAdminStore = create<AdminState>((set, get) => ({
         if (res.ok) {
           const data = await res.json();
           set({ adminAuthenticated: true, otpRequired: false, adminOtp: '' });
-          localStorage.setItem('supremeai_admin_token', data.token);
+          setAdminToken(data.token);
         } else {
           const data = await res.json();
           set({ adminError: data.detail || 'Invalid verification code.' });
@@ -23477,7 +23508,7 @@ export const useAdminStore = create<AdminState>((set, get) => ({
     }
   },
   handleAdminLogout: () => {
-    localStorage.removeItem('supremeai_admin_token');
+    clearAdminToken();
     set({ adminAuthenticated: false, adminPassword: '', otpRequired: false, adminOtp: '' });
   },
 }));
@@ -113936,19 +113967,28 @@ export async function activate(context: vscode.ExtensionContext) {
                 case 'updateImage':
                     previewImage.src = 'data:image/png;base64,' + message.data;
                     break;
-                case 'updateLog':
-                    logOutput.innerHTML += \`<p>\${message.data}</p>\`;
+                case 'updateLog': {
+                    const logEntry = document.createElement('p');
+                    logEntry.textContent = message.data;
+                    logOutput.appendChild(logEntry);
                     logOutput.scrollTop = logOutput.scrollHeight; // Scroll to bottom
                     break;
+                }
                 case 'askUser':
                     promptText.innerText = message.data;
                     interactionBox.classList.add('active');
                     userInput.focus();
                     break;
-                case 'taskComplete':
-                    logOutput.innerHTML += \`<p><b>টাস্ক সম্পন্ন হয়েছে:</b> \${message.result}</p>\`;
+                case 'taskComplete': {
+                    const taskEntry = document.createElement('p');
+                    const taskLabel = document.createElement('b');
+                    taskLabel.textContent = 'টাস্ক সম্পন্ন হয়েছে:';
+                    taskEntry.appendChild(taskLabel);
+                    taskEntry.appendChild(document.createTextNode(' ' + message.result));
+                    logOutput.appendChild(taskEntry);
                     vscode.window.showInformationMessage('ব্রাউজার টাস্ক সম্পন্ন হয়েছে!');
                     break;
+                }
             }
         });
     </script>
@@ -116339,8 +116379,17 @@ export class SupremeAIChatView {
   /**
    * Returns the main chat interface HTML.
    */
+  private static escapeHtml(value: string): string {
+    return value
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
   public static getHTMLContent(isGuest: boolean, username: string, hasApiKey: boolean, messageHistory: ChatMessage[]): string {
-    const safeUsername = username || 'User';
+    const safeUsername = this.escapeHtml(username || 'User');
     const messagesHtml = (messageHistory || []).map(msg => this.renderMessage(msg)).join('');
     const emptyState = (!messageHistory || messageHistory.length === 0) ? this.getEmptyState(safeUsername) : '';
 
@@ -116424,6 +116473,20 @@ export class SupremeAIChatView {
     const vscode = acquireVsCodeApi();
     const messagesDiv = document.getElementById('messages');
     let currentStreamingEl: HTMLElement | null = null;
+    const escapeHtml = (value) => {
+      return String(value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    };
+
+    const appendMessageElement = (element) => {
+      messagesDiv.appendChild(element);
+      messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    };
+
     window.addEventListener('message', event => {
       const data = event.data;
       if (data.type === 'addMessage' || data.type === 'showThinking') {
@@ -116432,20 +116495,19 @@ export class SupremeAIChatView {
           const existing = document.getElementById('thinking-message-container');
           if (existing) existing.remove();
         }
-        const msgHtml = renderMessage(msgData);
+        const msgElement = renderMessage(msgData);
         const emptyState = document.querySelector('.empty-state');
         if (emptyState) emptyState.remove();
-        messagesDiv.insertAdjacentHTML('beforeend', msgHtml);
-        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        appendMessageElement(msgElement);
       } else if (data.type === 'removeThinking') {
         const indicators = document.querySelectorAll('[id="thinking-message-container"]');
         indicators.forEach(el => el.remove());
       } else if (data.type === 'streamChunk') {
         const text = data.text || '';
         if (!currentStreamingEl) {
-          const thinkingMsg: any = { id: 'streaming', role: 'assistant', content: text, timestamp: new Date().toISOString(), thinking: false };
-          const msgHtml = renderMessage(thinkingMsg);
-          messagesDiv.insertAdjacentHTML('beforeend', msgHtml);
+          const thinkingMsg = { id: 'streaming', role: 'assistant', content: text, timestamp: new Date().toISOString(), thinking: false };
+          const msgElement = renderMessage(thinkingMsg);
+          appendMessageElement(msgElement);
           currentStreamingEl = document.getElementById('thinking-message-container');
           if (currentStreamingEl) currentStreamingEl.removeAttribute('id');
           const aiContentEl = currentStreamingEl ? currentStreamingEl.querySelector('.message-content') : null;
@@ -116455,7 +116517,7 @@ export class SupremeAIChatView {
         } else {
           const aiContentEl = currentStreamingEl.querySelector('.message-content');
           if (aiContentEl) {
-            aiContentEl.innerHTML += text;
+            aiContentEl.textContent += text;
           }
         }
         messagesDiv.scrollTop = messagesDiv.scrollHeight;
@@ -116471,7 +116533,36 @@ export class SupremeAIChatView {
       const time = new Date(msg.timestamp || Date.now()).toLocaleTimeString();
       const role = msg.role || 'assistant';
       const isThinking = msg.thinking;
-      return '<div class="message-container" ' + (isThinking ? 'id="thinking-message-container"' : '') + '><div class="message ' + role + '"><div class="avatar ' + role + '-avatar">' + (role === 'user' ? 'U' : 'AI') + '</div><div class="message-content ' + (msg.error ? 'error' : '') + ' ' + (isThinking ? 'thinking' : '') + '">' + (msg.content || '') + '</div></div><div class="message-meta" style="margin-left: ' + (role === 'user' ? 'auto' : '44px') + '; text-align: ' + (role === 'user' ? 'right' : 'left') + ';">' + time + '</div></div>';
+
+      const container = document.createElement('div');
+      container.className = 'message-container';
+      if (isThinking) {
+        container.id = 'thinking-message-container';
+      }
+
+      const messageDiv = document.createElement('div');
+      messageDiv.className = 'message ' + role;
+
+      const avatar = document.createElement('div');
+      avatar.className = 'avatar ' + role + '-avatar';
+      avatar.textContent = role === 'user' ? 'U' : 'AI';
+
+      const contentDiv = document.createElement('div');
+      contentDiv.className = 'message-content ' + (msg.error ? 'error' : '') + ' ' + (isThinking ? 'thinking' : '');
+      contentDiv.textContent = msg.content || '';
+
+      const metaDiv = document.createElement('div');
+      metaDiv.className = 'message-meta';
+      metaDiv.style.marginLeft = role === 'user' ? 'auto' : '44px';
+      metaDiv.style.textAlign = role === 'user' ? 'right' : 'left';
+      metaDiv.textContent = time;
+
+      messageDiv.appendChild(avatar);
+      messageDiv.appendChild(contentDiv);
+      container.appendChild(messageDiv);
+      container.appendChild(metaDiv);
+
+      return container;
     }
     function sendMessage() {
       const input = document.getElementById('messageInput');
@@ -116509,7 +116600,7 @@ export class SupremeAIChatView {
     const isThinking = msg.thinking;
     const isError = msg.error;
     const role = msg.role || 'assistant';
-    const content = msg.content || '';
+    const content = this.escapeHtml(msg.content || '');
 
     return `
       <div class="message-container" ${isThinking ? 'id="thinking-message-container"' : ''}>
