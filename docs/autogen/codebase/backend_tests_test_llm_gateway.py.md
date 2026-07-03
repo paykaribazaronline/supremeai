@@ -1,0 +1,163 @@
+# 📄 ফাইল: backend/tests/test_llm_gateway.py
+
+**প্রকার:** .py  
+**সাইজ:** 5,202 বাইট  
+**আপডেট:** 2026-07-03T20:48:16.951509
+
+---
+
+## কোড
+
+```py
+from collections.abc import AsyncGenerator
+from unittest.mock import AsyncMock, MagicMock, patch
+
+import litellm
+import pytest
+
+from core.llm_gateway import LLMGateway
+
+
+@pytest.fixture(autouse=True)
+def setup_litellm():
+    litellm.use_litellm_proxy = False
+    litellm.drop_params = True
+    litellm.telemetry = False
+    yield
+
+
+def test_load_routing_policy_file_not_found(monkeypatch, tmp_path):
+    monkeypatch.setattr(
+        "core.llm_gateway.POLICY_PATH",
+        str(tmp_path / "missing.json"),
+    )
+    gateway = LLMGateway()
+    assert "complexity_rules" in gateway.routing_policy
+    assert "fallback_chain" in gateway.routing_policy
+
+
+def test_inject_secrets_sets_env_vars(monkeypatch):
+    monkeypatch.setattr("core.llm_gateway.settings.groq_api_key", "sk-groq")
+    monkeypatch.setattr("core.llm_gateway.settings.gemini_api_key", "")
+    monkeypatch.setattr("core.llm_gateway.settings.openrouter_api_key", "")
+    monkeypatch.setattr("core.llm_gateway.settings.deepseek_api_key", "")
+    monkeypatch.setattr("core.llm_gateway.settings.hf_api_key", "")
+
+    if "GROQ_API_KEY" in os.environ:
+        monkeypatch.delenv("GROQ_API_KEY")
+    if "GEMINI_API_KEY" in os.environ:
+        monkeypatch.delenv("GEMINI_API_KEY")
+
+    gateway = LLMGateway()
+    assert os.environ.get("GROQ_API_KEY") == "sk-groq"
+    assert "GEMINI_API_KEY" not in os.environ
+
+
+@pytest.mark.anyio
+async def test_acompletion_cache_hit(monkeypatch):
+    gateway = LLMGateway()
+    mock_cache = MagicMock()
+    mock_cache.query_similar = AsyncMock(return_value=MagicMock(response="cached", model="m"))
+    monkeypatch.setattr(gateway, "cache", mock_cache)
+
+    result = await gateway.acompletion(prompt="hello")
+    assert result["cached"] is True
+    assert result["text"] == "cached"
+
+
+@pytest.mark.anyio
+async def test_acompletion_success():
+    gateway = LLMGateway()
+    mock_response = MagicMock()
+    mock_response.choices = [MagicMock(message=MagicMock(content="ok"))]
+    mock_response._response_metadata = {}
+
+    with patch("litellm.acompletion", new_callable=AsyncMock, return_value=mock_response) as mock_call:
+        result = await gateway.acompletion(prompt="hello", model="groq/llama-3.3-70b-versatile")
+        assert result["success"] is True
+        assert result["text"] == "ok"
+        mock_call.assert_called_once()
+
+
+@pytest.mark.anyio
+async def test_acompletion_fallback_after_failure():
+    gateway = LLMGateway()
+    fail = MagicMock()
+    fail.choices = [MagicMock(message=MagicMock(content="fail"))]
+    success = MagicMock()
+    success.choices = [MagicMock(message=MagicMock(content="ok"))]
+    success._response_metadata = {}
+
+    with patch("litellm.acompletion", new_callable=AsyncMock, side_effect=[Exception("err"), success]) as mock_call:
+        result = await gateway.acompletion(prompt="hello")
+        assert result["success"] is True
+        assert result["text"] == "ok"
+        assert mock_call.call_count == 2
+
+
+@pytest.mark.anyio
+async def test_acompletion_all_models_fail():
+    gateway = LLMGateway()
+    with patch("litellm.acompletion", new_callable=AsyncMock, side_effect=Exception("err")):
+        with pytest.raises(Exception):
+            await gateway.acompletion(prompt="hello")
+
+
+@pytest.mark.anyio
+async def test_acompletion_difficulty_routing():
+    gateway = LLMGateway()
+    mock_response = MagicMock()
+    mock_response.choices = [MagicMock(message=MagicMock(content="ok"))]
+    mock_response._response_metadata = {}
+
+    with patch("litellm.acompletion", new_callable=AsyncMock, return_value=mock_response) as mock_call:
+        await gateway.acompletion(prompt="solve x+1=2", task_type="math")
+        assert "hard" in [c.kwargs.get("model", "") for c in mock_call.call_args_list] or mock_call.call_count >= 1
+
+
+import os
+
+
+@pytest.mark.anyio
+async def test_stream_completion_yields_chunks():
+    gateway = LLMGateway()
+
+    async def mock_stream():
+        for chunk in ["hel", "lo"]:
+            m = MagicMock()
+            m.choices = [MagicMock(delta=MagicMock(content=chunk))]
+            yield m
+
+    mock_response = MagicMock()
+    mock_response.__aiter__ = lambda self: mock_stream()
+
+    with patch("litellm.acompletion", new_callable=AsyncMock, return_value=mock_response):
+        result = [chunk async for chunk in gateway._stream_completion([{"role": "user", "content": "hi"}], ["m"], 1.0)]
+        assert result == ["hel", "lo"]
+
+
+@pytest.mark.anyio
+async def test_stream_completion_falls_back():
+    gateway = LLMGateway()
+
+    async def fail_stream():
+        m = MagicMock()
+        m.choices = [MagicMock(delta=MagicMock(content="x"))]
+        yield m
+        raise Exception("stream fail")
+
+    async def ok_stream():
+        m = MagicMock()
+        m.choices = [MagicMock(delta=MagicMock(content="ok"))]
+        yield m
+
+    fail_resp = MagicMock()
+    fail_resp.__aiter__ = lambda self: fail_stream()
+    ok_resp = MagicMock()
+    ok_resp.__aiter__ = lambda self: ok_stream()
+
+    with patch("litellm.acompletion", new_callable=AsyncMock, side_effect=[fail_resp, ok_resp]):
+        result = [chunk async for chunk in gateway._stream_completion([{"role": "user", "content": "hi"}], ["m1", "m2"], 1.0)]
+        assert result == ["ok"]
+
+```

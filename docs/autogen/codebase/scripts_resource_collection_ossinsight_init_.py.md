@@ -1,0 +1,15 @@
+# 📄 ফাইল: scripts/resource_collection/ossinsight/__init__.py
+
+**প্রকার:** .py  
+**সাইজ:** 37 বাইট  
+**আপডেট:** 2026-07-03T20:48:16.906361
+
+---
+
+## কোড
+
+```py
+"""
+Ossinsight API client package
+"""
+```
