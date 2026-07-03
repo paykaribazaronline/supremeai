@@ -2,7 +2,7 @@
 
 **প্রকার:** .json  
 **সাইজ:** 603 বাইট  
-**আপডেট:** 2026-07-03T21:00:13.221165
+**আপডেট:** 2026-07-03T21:37:07.647473
 
 ---
 
@@ -28,7 +28,7 @@
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
     "noUnusedLocals": true,
-    "ignoreDeprecations": "6.0"
+    "ignoreDeprecations": "5.0"
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "lib"]
