@@ -2,6 +2,7 @@ import datetime
 from dataclasses import dataclass
 from dataclasses import field
 
+
 # বাংলা মন্তব্য: টাইমজোন-অ্যাওয়ার টেম্পোরাল ডিফল্ট ব্যবহার করলে Python-ভিত্তিক কমপ্যাটিবিলিটি ও প্রোডাকশন লগিং আরও স্থিতিশীল হয়।
 
 
@@ -19,8 +20,8 @@ class PlatformProfile:
     pricing_tier: str = "free"
     docs_url: str = ""
     status: str = "active"  # "active", "beta", "deprecated"
-    learned_at: datetime.datetime = field(default_factory=lambda: datetime.datetime.now(datetime.timezone.utc))
-    last_updated: datetime.datetime = field(default_factory=lambda: datetime.datetime.now(datetime.timezone.utc))
+    learned_at: datetime.datetime = field(default_factory=lambda: datetime.datetime.now(datetime.UTC))
+    last_updated: datetime.datetime = field(default_factory=lambda: datetime.datetime.now(datetime.UTC))
     success_rate: float = 1.0
 
 

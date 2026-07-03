@@ -1,4 +1,5 @@
 """Tests for core.circuit_breaker.CircuitBreaker."""
+
 import time
 
 import pytest
