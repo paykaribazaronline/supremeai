@@ -1,18 +1,20 @@
 # 📄 ফাইল: scripts/generate_md.py
 
 **প্রকার:** .py  
-**সাইজ:** 1,993 বাইট  
-**আপডেট:** 2026-07-03T20:48:16.895999
+**সাইজ:** 2,238 বাইট  
+**আপডেট:** 2026-07-03T21:00:13.203499
 
 ---
 
 ## কোড
 
 ```py
+from pathlib import Path
 import os
 
-root_dir = r"c:\Users\n\supremeai\supremeai_2.0"
-output_file = os.path.join(root_dir, "project_code.md")
+# বাংলা মন্তব্য: স্ক্রিপ্টের সাপেক্ষে প্রজেক্ট রুট ডিরেক্টরি ডাইনামিকভাবে নির্ধারণ করা
+root_dir = Path(__file__).resolve().parents[1]
+output_file = root_dir / "project_code.md"
 
 exclude_dirs = {'.git', '.venv', 'node_modules', '__pycache__', 'build', 'dist', '.dart_tool', '.idea', '.vscode', 'coverage', '.mypy_cache', '.pytest_cache', 'android', 'ios', 'web', 'windows', 'macos', 'linux'}
 exclude_exts = {'.pyc', '.png', '.jpg', '.jpeg', '.gif', '.svg', '.ico', '.pdf', '.zip', '.tar', '.gz', '.db', '.sqlite3', '.lock', '.ttf'}

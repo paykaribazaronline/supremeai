@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/origin_validator.py
 
 **প্রকার:** .py  
-**সাইজ:** 3,329 বাইট  
-**আপডেট:** 2026-07-03T20:48:16.931007
+**সাইজ:** 3,364 বাইট  
+**আপডেট:** 2026-07-03T21:00:13.241535
 
 ---
 
@@ -12,9 +12,9 @@
 # বাংলা কমেন্ট: সুপ্রিম-এআই এর ট্রাস্টেড অরিজিন ভ্যালিডেশন মিডলওয়্যার।
 # এটি ওয়াইল্ডকার্ড CORS বাইপাস রোধ করে এবং শুধুমাত্র অনুমোদিত ডোমেইন থেকে এপিআই অ্যাক্সেস নিশ্চিত করে।
 
-from fastapi import HTTPException
 from fastapi import Request
 from fastapi import status
+from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from core.config import settings
@@ -34,9 +34,9 @@ class TrustedOriginMiddleware(BaseHTTPMiddleware):
         if origin and origin not in self.allowed_origins:
                 client_ip = request.client.host if request.client else "unknown"
                 logger.critical(f"🔥 CSRF ALERT: Unauthorized Origin Access Blocked! Malicious Origin: {origin} from IP: {client_ip}")
-                raise HTTPException(
+                return JSONResponse(
                     status_code=status.HTTP_403_FORBIDDEN,
-                    detail="Cross-Origin Request Blocked. Device identity unauthorized."
+                    content={"detail": "Cross-Origin Request Blocked. Device identity unauthorized."}
                 )
                 
         # বাংলা মন্তব্য: হোস্ট হেডার ভ্যালিডেশন - WHOLE DOMAIN ম্যাচিং, substring vulnerability removed
@@ -44,9 +44,9 @@ class TrustedOriginMiddleware(BaseHTTPMiddleware):
         is_allowed = host in set(settings.allowed_hosts) if host else True
         if host and not is_allowed:
             logger.critical(f"🚨 Security Intrusion: Host Header Tampering Detected -> {host}")
-            raise HTTPException(
+            return JSONResponse(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail="Host verification failure."
+                content={"detail": "Host verification failure."}
             )
 
         # বাংলা কমেন্ট: ভ্যালিডেশন সাকসেসফুল হলে রিকোয়েস্ট পরবর্তী প্রসেসে পাস হবে

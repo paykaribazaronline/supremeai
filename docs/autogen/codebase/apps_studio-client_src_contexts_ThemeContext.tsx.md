@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/studio-client/src/contexts/ThemeContext.tsx
 
 **প্রকার:** .tsx  
-**সাইজ:** 3,462 বাইট  
-**আপডেট:** 2026-07-03T20:48:17.000731
+**সাইজ:** 3,903 বাইট  
+**আপডেট:** 2026-07-03T21:00:13.314322
 
 ---
 
@@ -29,6 +29,12 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [theme, setTheme] = useState<Theme>('dark'); // ডিফল্ট Deep Space (dark)
 
   useEffect(() => {
+    // বাংলা মন্তব্য: Race Condition এড়াতে AbortController ব্যবহার করা হয়েছে
+    const controller = new AbortController();
+    const token = getAdminToken();
+
+    if (!token) return;
+
     // 1. লোকাল স্টোরেজ থেকে থিম পড়া (Optimistic Load)
     const localTheme = localStorage.getItem('supremeai_theme') as Theme | null;
     if (localTheme && THEME_ORDER.includes(localTheme)) {
@@ -37,20 +43,26 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     
     // 2. ব্যাকএন্ড থেকে ফেচ করা (Cross-device sync)
     const API_BASE = getApiBaseUrl();
-    const token = getAdminToken();
     fetch(`${API_BASE}/api/v1/preferences`, {
       headers: {
         'Authorization': `Bearer ${token}`
-      }
+      },
+      signal: controller.signal
     })
-      .then(res => res.json())
+      .then(res => res.ok ? res.json() : Promise.reject())
       .then(data => {
-        if (data && data.theme && data.theme !== localTheme) {
+        if (data?.theme) {
           setTheme(data.theme);
           localStorage.setItem('supremeai_theme', data.theme);
         }
       })
-      .catch(err => console.log('Background theme sync skipped or failed:', err));
+      .catch(err => {
+        if (err.name !== 'AbortError') {
+          console.error('Theme sync failed:', err);
+        }
+      });
+
+    return () => controller.abort(); // কম্পোনেন্ট আনমাউন্ট হলে রিকোয়েস্ট বাতিল
   }, []);
 
   useEffect(() => {

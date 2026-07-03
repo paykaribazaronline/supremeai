@@ -2,7 +2,7 @@
 
 **প্রকার:** .json  
 **সাইজ:** 1,067 বাইট  
-**আপডেট:** 2026-07-03T20:48:17.017825
+**আপডেট:** 2026-07-03T21:00:13.332060
 
 ---
 
@@ -20,12 +20,12 @@
     "@testing-library/user-event": "^13.5.0",
     "@types/jest": "^29.0.0",
     "@types/node": "^16.18.0",
-    "@types/react": "^18.0.0",
-    "@types/react-dom": "^18.0.0",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7",
     "react-router-dom": "^6.4.0",
-    "typescript": "^4.9.0",
+    "typescript": "^5.4.0",
     "zustand": "^4.3.9"
   },
   "scripts": {

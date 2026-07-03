@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/lifespan.py
 
 **প্রকার:** .py  
-**সাইজ:** 6,098 বাইট  
-**আপডেট:** 2026-07-03T20:48:16.932071
+**সাইজ:** 5,693 বাইট  
+**আপডেট:** 2026-07-03T21:00:13.242648
 
 ---
 
@@ -21,6 +21,7 @@ from core.config import settings
 from core.discord_bot import SupremeDiscordBot
 from core.orchestrator import Orchestrator
 from core.pgbouncer_pool import get_db_pool
+from core.pgbouncer_pool import init_db_pool
 from core.redis_manager import redis_manager
 
 
@@ -96,22 +97,13 @@ async def app_lifespan(app):
     logger.info("✅ Global HTTP Connection Pool initialized [Max Cons: 200].")
 
     try:
-        await get_db_pool()
-        logger.info("PgBouncer connection pool accessed on startup")
+        db_url = settings.supabase_database_url
+        await init_db_pool(db_url)
+        logger.info("⚡ PgBouncer connection pool successfully initialized at startup.")
         await _ensure_api_key_tables()
-    except RuntimeError:
-        try:
-            from core.pgbouncer_pool import init_db_pool
-
-            db_url = settings.supabase_database_url
-            if isinstance(db_url, str) and db_url.startswith(("postgresql://", "postgres://")):
-                await init_db_pool(db_url)
-                logger.info("PgBouncer connection pool initialized on startup")
-                await _ensure_api_key_tables()
-            else:
-                logger.warning("PgBouncer pool initialization deferred: non-PostgreSQL DSN")
-        except RuntimeError as exc:
-            logger.warning(f"PgBouncer pool initialization deferred: {exc}")
+    except Exception as exc:
+        logger.error(f"❌ Failed to initialize DB Pool: {exc}")
+        raise exc
 
     try:
         await redis_manager.initialize()
