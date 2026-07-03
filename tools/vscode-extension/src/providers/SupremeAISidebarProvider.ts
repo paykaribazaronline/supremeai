@@ -380,7 +380,7 @@ export class SupremeAISidebarProvider implements vscode.WebviewViewProvider {
           return '&gt;';
         case '"':
           return '&quot;';
-        case "'":
+        case '\'':
           return '&#39;';
         default:
           return c;
