@@ -35,9 +35,10 @@ class BrowserStealth:
             "--disable-popup-blocking",
         ]
         from tools.proxy_manager import ProxyManager
+
         proxy_mgr = ProxyManager()
         next_proxy = proxy_mgr.get_next_proxy()
-        
+
         context_kwargs = {
             "user_agent": os.getenv(
                 "STEALTH_USER_AGENT",
@@ -50,12 +51,12 @@ class BrowserStealth:
                 "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
                 "Accept-Language": "en-US,en;q=0.9",
                 "Upgrade-Insecure-Requests": "1",
-            }
+            },
         }
         if next_proxy:
             context_kwargs["proxy"] = {"server": next_proxy}
             logger.info(f"Playwright stealth browser launching via proxy: {next_proxy}")
-            
+
         self.context = await browser.new_context(**context_kwargs)
         await self.context.route("**/*.{png,jpg,jpeg,gif,svg,woff,woff2}", lambda route: route.abort())
         await self.context.add_init_script(
@@ -84,7 +85,9 @@ class BrowserStealth:
 
     async def safe_screenshot(self, page: Page, path: str | None = None) -> str | None:
         try:
-            target = path or f"data/artifacts/screenshot_{int(time.time())}_{''.join(random.choices(string.ascii_lowercase + string.digits, k=6))}.png"
+            target = (
+                path or f"data/artifacts/screenshot_{int(time.time())}_{''.join(random.choices(string.ascii_lowercase + string.digits, k=6))}.png"
+            )
             Path("data/artifacts").mkdir(parents=True, exist_ok=True)
             await page.screenshot(path=target, full_page=True)
             return target

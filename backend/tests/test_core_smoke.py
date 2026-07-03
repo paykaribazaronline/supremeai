@@ -41,9 +41,7 @@ async def test_llm_gateway_acompletion_monkeypatched(monkeypatch, tmp_path):
     async def fake_acompletion(*args, **kwargs):
         return FakeResponse("mocked-response")
 
-    fake_litellm = types.SimpleNamespace(
-        acompletion=fake_acompletion, success_callback=[], failure_callback=[]
-    )
+    fake_litellm = types.SimpleNamespace(acompletion=fake_acompletion, success_callback=[], failure_callback=[])
 
     # Fake semantic_cache with a simple query_similar returning None
     fake_semantic_cache_mod = types.ModuleType("core.semantic_cache")

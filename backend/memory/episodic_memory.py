@@ -24,9 +24,7 @@ class EpisodicMemory:
     def _connect(self) -> sqlite3.Connection:
         if self.db_path == ":memory:":
             if self._memory_conn is None:
-                self._memory_conn = sqlite3.connect(
-                    self.db_path, check_same_thread=False
-                )
+                self._memory_conn = sqlite3.connect(self.db_path, check_same_thread=False)
             return self._memory_conn
         return sqlite3.connect(self.db_path, check_same_thread=False)
 
@@ -47,9 +45,7 @@ class EpisodicMemory:
                 )
                 """
             )
-            conn.execute(
-                "CREATE INDEX IF NOT EXISTS idx_episodes_session ON episodes(session_id, event_type)"
-            )
+            conn.execute("CREATE INDEX IF NOT EXISTS idx_episodes_session ON episodes(session_id, event_type)")
             conn.commit()
         finally:
             if not is_memory:

@@ -17,9 +17,7 @@ class InputSanitizer:
         is_ambiguous = len(vague_matches) > 0
         clarifying_questions = []
         if is_ambiguous:
-            clarifying_questions.append(
-                "Could you specify exactly what you mean by 'something/anything/etc.'?"
-            )
+            clarifying_questions.append("Could you specify exactly what you mean by 'something/anything/etc.'?")
         return {
             "is_ambiguous": is_ambiguous,
             "vague_terms": vague_matches,
@@ -54,9 +52,7 @@ class InputSanitizer:
         text = re.sub(ip_pattern, "[IP_ADDRESS]", text)
 
         # Phone pattern
-        phone_pattern = (
-            r"\b\+?\d{1,4}[-.\s]?\(?\d{1,3}?\)?[-.\s]?\d{3,4}[-.\s]?\d{3,4}\b"
-        )
+        phone_pattern = r"\b\+?\d{1,4}[-.\s]?\(?\d{1,3}?\)?[-.\s]?\d{3,4}[-.\s]?\d{3,4}\b"
         text = re.sub(phone_pattern, "[PHONE_NUMBER]", text)
 
         return text
