@@ -3,3 +3,5 @@ export { LiveSujonBackground } from './components/LiveSujonBackground';
 export { SharedProviders } from './contexts/SharedProviders';
 
 export { ChatBubble } from './ChatBubble';
+export { getApiBaseUrl } from './utils/api';
+  

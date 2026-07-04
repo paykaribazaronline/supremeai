@@ -21,6 +21,13 @@
       ],
       "rewrites": [
         {
+          "source": "/admin-api/**",
+          "run": {
+            "serviceId": "supremeai-api",
+            "region": "us-central1"
+          }
+        },
+        {
           "source": "/api/**",
           "run": {
             "serviceId": "supremeai-api",
@@ -127,6 +134,13 @@
         "package-lock.json"
       ],
       "rewrites": [
+        {
+          "source": "/admin-api/**",
+          "run": {
+            "serviceId": "supremeai-api",
+            "region": "us-central1"
+          }
+        },
         {
           "source": "/api/**",
           "run": {
