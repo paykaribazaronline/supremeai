@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/studio-client/src/services/apiClient.ts
 
 **প্রকার:** .ts  
-**সাইজ:** 2,803 বাইট  
-**আপডেট:** 2026-07-04T23:21:14.721529
+**সাইজ:** 2,777 বাইট  
+**আপডেট:** 2026-07-04T23:38:49.270430
 
 ---
 
@@ -15,7 +15,6 @@
 import { getApiBaseUrl } from '../utils/api';
 import { getAdminToken } from './adminTokenStore';
 
-const API_BASE_URL = getApiBaseUrl();
 
 export const getAuthHeaders = (): Record<string, string> => {
   const token = getAdminToken();
@@ -54,7 +53,7 @@ const handleResponse = async (res: Response) => {
 
 export const apiClient = {
   get: async <T>(path: string, options?: RequestInit): Promise<T> => {
-    const res = await fetch(`${API_BASE_URL}${path}`, {
+    const res = await fetch(`${getApiBaseUrl()}${path}`, {
       method: 'GET',
       headers: getAuthHeaders(),
       ...options,
@@ -63,7 +62,7 @@ export const apiClient = {
   },
 
   post: async <T>(path: string, body?: any, options?: RequestInit): Promise<T> => {
-    const res = await fetch(`${API_BASE_URL}${path}`, {
+    const res = await fetch(`${getApiBaseUrl()}${path}`, {
       method: 'POST',
       headers: getAuthHeaders(),
       body: body ? JSON.stringify(body) : undefined,
@@ -73,7 +72,7 @@ export const apiClient = {
   },
 
   put: async <T>(path: string, body?: any, options?: RequestInit): Promise<T> => {
-    const res = await fetch(`${API_BASE_URL}${path}`, {
+    const res = await fetch(`${getApiBaseUrl()}${path}`, {
       method: 'PUT',
       headers: getAuthHeaders(),
       body: body ? JSON.stringify(body) : undefined,
@@ -83,7 +82,7 @@ export const apiClient = {
   },
 
   delete: async <T>(path: string, options?: RequestInit): Promise<T> => {
-    const res = await fetch(`${API_BASE_URL}${path}`, {
+    const res = await fetch(`${getApiBaseUrl()}${path}`, {
       method: 'DELETE',
       headers: getAuthHeaders(),
       ...options,

@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/studio-client/src/services/storageApi.ts
 
 **প্রকার:** .ts  
-**সাইজ:** 1,914 বাইট  
-**আপডেট:** 2026-07-04T23:21:14.722109
+**সাইজ:** 1,879 বাইট  
+**আপডেট:** 2026-07-04T23:38:49.271011
 
 ---
 
@@ -14,7 +14,6 @@
 import { getApiBaseUrl } from './utils/api';
 import { getAdminToken } from './adminTokenStore';
 
-const API_BASE_URL = getApiBaseUrl();
 
 const getAuthToken = () => {
     return getAdminToken();
@@ -23,7 +22,7 @@ const getAuthToken = () => {
 export const uploadFileToR2 = async (file: File) => {
     try {
         // বাংলা মন্তব্য: ১. ব্যাকএন্ড থেকে প্রে-সাইন্ড আপলোড ইউআরএল নিয়ে আসা
-        const response = await fetch(`${API_BASE_URL}/api/v1/media/generate-upload-url`, {
+        const response = await fetch(`${getApiBaseUrl()}/api/v1/media/generate-upload-url`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

@@ -1,7 +1,7 @@
 # 🧠 SupremeAI 2.0 Codebase Dump
 # বাংলা মন্তব্য: এটি একটি স্বয়ংক্রিয়ভাবে জেনারেট করা কোডবেস ডাম্প ফাইল যা প্রজেক্টের সামগ্রিক বিশ্লেষণের জন্য ব্যবহৃত হয়।
 
-Generated at: 2026-07-04T23:21:14.564710
+Generated at: 2026-07-04T23:38:49.127405
 
 
 ## File: `pnpm-lock.yaml`
@@ -117204,7 +117204,7 @@ export default defineConfig({
     jsx: 'automatic',
   },
   resolve: {
-    dedupe: ['react', 'react-dom']
+    dedupe: ['react', 'react-dom', '@tanstack/react-query']
   },
   build: {
     rollupOptions: {
@@ -133842,7 +133842,6 @@ interface InteractiveChatTabProps {
 
 import { getApiBaseUrl } from '../../utils/api';
 
-const API_BASE = getApiBaseUrl();
 
 export function InteractiveChatTab({
   messages: propMessages,
@@ -133901,7 +133900,7 @@ export function InteractiveChatTab({
   // --- বোনাস API কল (Prompt Action metadata) ---
   const fetchActionMetadata = useCallback(async (prompt: string): Promise<Message['action']> => {
     try {
-      const res = await fetch(`${API_BASE}/api/chat/prompt-action`, {
+      const res = await fetch(`${getApiBaseUrl()}/api/chat/prompt-action`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: prompt }),
@@ -133912,7 +133911,7 @@ export function InteractiveChatTab({
     } catch {
       return undefined;
     }
-  }, [API_BASE]);
+  }, []);
 
   // --- লাইভ স্ট্রিমিং API কল ---
   const streamChatResponse = useCallback(async (userPrompt: string) => {
@@ -133927,7 +133926,7 @@ export function InteractiveChatTab({
     ]);
 
     try {
-      const res = await fetch(`${API_BASE}/api/chat/stream`, {
+      const res = await fetch(`${getApiBaseUrl()}/api/chat/stream`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: userPrompt }),
@@ -133977,7 +133976,7 @@ export function InteractiveChatTab({
       setIsStreaming(false);
       abortControllerRef.current = null;
     }
-  }, [API_BASE]);
+  }, []);
 
   // --- চ্যাট সাবমিট ---
   const handleSendChat = async () => {
@@ -134509,7 +134508,6 @@ interface GraphData {
 }
 
 import { getApiBaseUrl } from '../../utils/api';
-const API_BASE_URL = getApiBaseUrl();
 
 export default function SkillGraph() {
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
@@ -134518,7 +134516,7 @@ export default function SkillGraph() {
   // বাংলা মন্তব্য: ব্যাকএন্ড থেকে গ্রাফ ডেটা ফেচ করার ফাংশন
   const fetchGraphData = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/v1/graph/skills`, {
+      const response = await fetch(`${getApiBaseUrl()}/api/v1/graph/skills`, {
         headers: {
           'Authorization': `Bearer ${getAdminToken()}`
         }
@@ -135075,7 +135073,6 @@ export function useHydrated() {
 import { create } from "zustand";
 import { getApiBaseUrl } from '../utils/api';
 
-const API_BASE_URL = getApiBaseUrl();
 
 interface ChatMessage {
   id: string;
@@ -135161,7 +135158,7 @@ export const useStore = create<SupremeState>((set) => ({
     set({ isGateLoading: true });
     try {
       // আমরা যে গেটকিপার ফায়ারস্টোর ডাটা বানিয়েছি তা চেক করার এন্ডপয়েন্ট (অথবা কাস্টম গেট রুট)
-      const res = await fetch(`${API_BASE_URL}/api/admin/metrics/dashboard`);
+      const res = await fetch(`${getApiBaseUrl()}/api/admin/metrics/dashboard`);
       if (res.ok) {
         const data = await res.json();
         // ড্যাশবোর্ড ম্যাট্রিক্স থেকে গেট ডাটা এক্সট্রাক্ট (ফলব্যাকসহ)
@@ -135179,7 +135176,7 @@ export const useStore = create<SupremeState>((set) => ({
 
   executeGateOverride: async (targetStatus, reason, secret) => {
     try {
-      const res = await fetch(`${API_BASE_URL}/api/admin/gate/override`, {
+      const res = await fetch(`${getApiBaseUrl()}/api/admin/gate/override`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -135203,7 +135200,7 @@ export const useStore = create<SupremeState>((set) => ({
     set({ isForging: true, forgeFeedback: "🧠 Self-Evolution Core is structuring your request...", forgeSuccessCode: null });
     
     try {
-      const res = await fetch(`${API_BASE_URL}/api/evolution/forge`, {
+      const res = await fetch(`${getApiBaseUrl()}/api/evolution/forge`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ skill_name: skillName, user_demand: userDemand })
@@ -135730,7 +135727,6 @@ import { useCustomerStore } from '../store/customerStore';
 import type { ChatMessage } from '../types/customer';
 import { getApiBaseUrl } from '../utils/api';
 
-const API_BASE = getApiBaseUrl();
 
 interface UseChatOptions {
   projectId?: string;
@@ -135787,7 +135783,7 @@ export function useChat(options: UseChatOptions = {}): UseChatReturn {
       abortRef.current = new AbortController();
 
       try {
-        const res = await fetch(`${API_BASE}/api/chat/stream`, {
+        const res = await fetch(`${getApiBaseUrl()}/api/chat/stream`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -135854,7 +135850,7 @@ export function useChat(options: UseChatOptions = {}): UseChatReturn {
       }
     } else {
       try {
-        const res = await fetch(`${API_BASE}/api/chat`, {
+        const res = await fetch(`${getApiBaseUrl()}/api/chat`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -135904,16 +135900,15 @@ export function useChat(options: UseChatOptions = {}): UseChatReturn {
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getApiBaseUrl } from '../utils/api';
 
-const API_BASE = getApiBaseUrl();
 
 async function fetchJSON<T>(url: string): Promise<T> {
-  const res = await fetch(`${API_BASE}${url}`);
+  const res = await fetch(`${getApiBaseUrl()}${url}`);
   if (!res.ok) throw new Error(`Failed: ${url}`);
   return res.json();
 }
 
 async function postJSON<T>(url: string, body: unknown): Promise<T> {
-  const res = await fetch(`${API_BASE}${url}`, {
+  const res = await fetch(`${getApiBaseUrl()}${url}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
@@ -135923,7 +135918,7 @@ async function postJSON<T>(url: string, body: unknown): Promise<T> {
 }
 
 async function delJSON<T>(url: string): Promise<T> {
-  const res = await fetch(`${API_BASE}${url}`, { method: 'DELETE' });
+  const res = await fetch(`${getApiBaseUrl()}${url}`, { method: 'DELETE' });
   if (!res.ok) throw new Error('Delete failed');
   return res.json();
 }
@@ -136155,7 +136150,6 @@ export const agentService = {
 import { getApiBaseUrl } from '../utils/api';
 import { getAdminToken } from './adminTokenStore';
 
-const API_BASE_URL = getApiBaseUrl();
 
 export const getAuthHeaders = (): Record<string, string> => {
   const token = getAdminToken();
@@ -136194,7 +136188,7 @@ const handleResponse = async (res: Response) => {
 
 export const apiClient = {
   get: async <T>(path: string, options?: RequestInit): Promise<T> => {
-    const res = await fetch(`${API_BASE_URL}${path}`, {
+    const res = await fetch(`${getApiBaseUrl()}${path}`, {
       method: 'GET',
       headers: getAuthHeaders(),
       ...options,
@@ -136203,7 +136197,7 @@ export const apiClient = {
   },
 
   post: async <T>(path: string, body?: any, options?: RequestInit): Promise<T> => {
-    const res = await fetch(`${API_BASE_URL}${path}`, {
+    const res = await fetch(`${getApiBaseUrl()}${path}`, {
       method: 'POST',
       headers: getAuthHeaders(),
       body: body ? JSON.stringify(body) : undefined,
@@ -136213,7 +136207,7 @@ export const apiClient = {
   },
 
   put: async <T>(path: string, body?: any, options?: RequestInit): Promise<T> => {
-    const res = await fetch(`${API_BASE_URL}${path}`, {
+    const res = await fetch(`${getApiBaseUrl()}${path}`, {
       method: 'PUT',
       headers: getAuthHeaders(),
       body: body ? JSON.stringify(body) : undefined,
@@ -136223,7 +136217,7 @@ export const apiClient = {
   },
 
   delete: async <T>(path: string, options?: RequestInit): Promise<T> => {
-    const res = await fetch(`${API_BASE_URL}${path}`, {
+    const res = await fetch(`${getApiBaseUrl()}${path}`, {
       method: 'DELETE',
       headers: getAuthHeaders(),
       ...options,
@@ -136454,7 +136448,6 @@ export const authService = {
 import { getApiBaseUrl } from './utils/api';
 import { getAdminToken } from './adminTokenStore';
 
-const API_BASE_URL = getApiBaseUrl();
 
 const getAuthToken = () => {
     return getAdminToken();
@@ -136463,7 +136456,7 @@ const getAuthToken = () => {
 export const uploadFileToR2 = async (file: File) => {
     try {
         // বাংলা মন্তব্য: ১. ব্যাকএন্ড থেকে প্রে-সাইন্ড আপলোড ইউআরএল নিয়ে আসা
-        const response = await fetch(`${API_BASE_URL}/api/v1/media/generate-upload-url`, {
+        const response = await fetch(`${getApiBaseUrl()}/api/v1/media/generate-upload-url`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

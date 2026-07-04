@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/studio-client/src/components/admin/InteractiveChatTab.tsx
 
 **প্রকার:** .tsx  
-**সাইজ:** 19,955 বাইট  
-**আপডেট:** 2026-07-04T23:21:14.718064
+**সাইজ:** 19,919 বাইট  
+**আপডেট:** 2026-07-04T23:38:49.267038
 
 ---
 
@@ -42,7 +42,6 @@ interface InteractiveChatTabProps {
 
 import { getApiBaseUrl } from '../../utils/api';
 
-const API_BASE = getApiBaseUrl();
 
 export function InteractiveChatTab({
   messages: propMessages,
@@ -101,7 +100,7 @@ export function InteractiveChatTab({
   // --- বোনাস API কল (Prompt Action metadata) ---
   const fetchActionMetadata = useCallback(async (prompt: string): Promise<Message['action']> => {
     try {
-      const res = await fetch(`${API_BASE}/api/chat/prompt-action`, {
+      const res = await fetch(`${getApiBaseUrl()}/api/chat/prompt-action`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: prompt }),
@@ -112,7 +111,7 @@ export function InteractiveChatTab({
     } catch {
       return undefined;
     }
-  }, [API_BASE]);
+  }, []);
 
   // --- লাইভ স্ট্রিমিং API কল ---
   const streamChatResponse = useCallback(async (userPrompt: string) => {
@@ -127,7 +126,7 @@ export function InteractiveChatTab({
     ]);
 
     try {
-      const res = await fetch(`${API_BASE}/api/chat/stream`, {
+      const res = await fetch(`${getApiBaseUrl()}/api/chat/stream`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: userPrompt }),
@@ -177,7 +176,7 @@ export function InteractiveChatTab({
       setIsStreaming(false);
       abortControllerRef.current = null;
     }
-  }, [API_BASE]);
+  }, []);
 
   // --- চ্যাট সাবমিট ---
   const handleSendChat = async () => {

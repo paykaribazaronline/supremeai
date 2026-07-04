@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/studio-client/vite.config.ts
 
 **প্রকার:** .ts  
-**সাইজ:** 773 বাইট  
-**আপডেট:** 2026-07-04T23:21:14.698866
+**সাইজ:** 798 বাইট  
+**আপডেট:** 2026-07-04T23:38:49.248719
 
 ---
 
@@ -24,7 +24,7 @@ export default defineConfig({
     jsx: 'automatic',
   },
   resolve: {
-    dedupe: ['react', 'react-dom']
+    dedupe: ['react', 'react-dom', '@tanstack/react-query']
   },
   build: {
     rollupOptions: {

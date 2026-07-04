@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/studio-client/src/hooks/useAdminApi.ts
 
 **প্রকার:** .ts  
-**সাইজ:** 4,723 বাইট  
-**আপডেট:** 2026-07-04T23:21:14.720926
+**সাইজ:** 4,710 বাইট  
+**আপডেট:** 2026-07-04T23:38:49.269795
 
 ---
 
@@ -12,16 +12,15 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getApiBaseUrl } from '../utils/api';
 
-const API_BASE = getApiBaseUrl();
 
 async function fetchJSON<T>(url: string): Promise<T> {
-  const res = await fetch(`${API_BASE}${url}`);
+  const res = await fetch(`${getApiBaseUrl()}${url}`);
   if (!res.ok) throw new Error(`Failed: ${url}`);
   return res.json();
 }
 
 async function postJSON<T>(url: string, body: unknown): Promise<T> {
-  const res = await fetch(`${API_BASE}${url}`, {
+  const res = await fetch(`${getApiBaseUrl()}${url}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
@@ -31,7 +30,7 @@ async function postJSON<T>(url: string, body: unknown): Promise<T> {
 }
 
 async function delJSON<T>(url: string): Promise<T> {
-  const res = await fetch(`${API_BASE}${url}`, { method: 'DELETE' });
+  const res = await fetch(`${getApiBaseUrl()}${url}`, { method: 'DELETE' });
   if (!res.ok) throw new Error('Delete failed');
   return res.json();
 }

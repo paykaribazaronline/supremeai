@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/studio-client/src/hooks/useChat.ts
 
 **প্রকার:** .ts  
-**সাইজ:** 5,316 বাইট  
-**আপডেট:** 2026-07-04T23:21:14.720756
+**সাইজ:** 5,296 বাইট  
+**আপডেট:** 2026-07-04T23:38:49.269657
 
 ---
 
@@ -15,7 +15,6 @@ import { useCustomerStore } from '../store/customerStore';
 import type { ChatMessage } from '../types/customer';
 import { getApiBaseUrl } from '../utils/api';
 
-const API_BASE = getApiBaseUrl();
 
 interface UseChatOptions {
   projectId?: string;
@@ -72,7 +71,7 @@ export function useChat(options: UseChatOptions = {}): UseChatReturn {
       abortRef.current = new AbortController();
 
       try {
-        const res = await fetch(`${API_BASE}/api/chat/stream`, {
+        const res = await fetch(`${getApiBaseUrl()}/api/chat/stream`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -139,7 +138,7 @@ export function useChat(options: UseChatOptions = {}): UseChatReturn {
       }
     } else {
       try {
-        const res = await fetch(`${API_BASE}/api/chat`, {
+        const res = await fetch(`${getApiBaseUrl()}/api/chat`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
