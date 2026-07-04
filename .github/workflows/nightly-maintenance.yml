@@ -1,3 +1,15 @@
+# ==============================================================================
+# [IMMUTABLE CONFIGURATION - MANUAL CONTROL ONLY]
+# ------------------------------------------------------------------------------
+# DO NOT ALLOW AI AGENTS OR AUTOMATION TO MODIFY THE PIPELINE LOGIC.
+# Current CI State: 
+# 1. Automatic change detection: DISABLED.
+# 2. Previous failed/skipped job recovery: DISABLED.
+# 3. Execution: Force full run on every trigger.
+# Any modification to this file requires manual human intervention and 
+# signature validation to prevent regression or instability.
+# ==============================================================================
+
 name: 🛠️ SupremeAI Nightly Maintenance
 
 on:
