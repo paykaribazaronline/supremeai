@@ -1,7 +1,7 @@
 # 🧠 SupremeAI 2.0 Codebase Dump
 # বাংলা মন্তব্য: এটি একটি স্বয়ংক্রিয়ভাবে জেনারেট করা কোডবেস ডাম্প ফাইল যা প্রজেক্টের সামগ্রিক বিশ্লেষণের জন্য ব্যবহৃত হয়।
 
-Generated at: 2026-07-04T12:50:55.887369
+Generated at: 2026-07-04T12:59:56.768573
 
 
 ## File: `pnpm-lock.yaml`
@@ -35631,6 +35631,28 @@ export { LiveSujonBackground } from './components/LiveSujonBackground';
 export { SharedProviders } from './contexts/SharedProviders';
 
 export { ChatBubble } from './ChatBubble';
+export { getApiBaseUrl } from './utils/api';
+  
+```
+
+## File: `packages/ui-components/src/utils/api.ts`
+
+```ts
+export const getApiBaseUrl = (): string => {
+  if (typeof window === 'undefined') {
+    return import.meta.env.VITE_API_BASE || import.meta.env.VITE_API_URL || 'http://localhost:8000';
+  }
+
+  if (import.meta.env.VITE_API_BASE) {
+    return import.meta.env.VITE_API_BASE;
+  }
+
+  if (import.meta.env.VITE_API_URL) {
+    return import.meta.env.VITE_API_URL;
+  }
+
+  return window.location.origin;
+};
 
 ```
 
@@ -43532,6 +43554,13 @@ rules:
       ],
       "rewrites": [
         {
+          "source": "/admin-api/**",
+          "run": {
+            "serviceId": "supremeai-api",
+            "region": "us-central1"
+          }
+        },
+        {
           "source": "/api/**",
           "run": {
             "serviceId": "supremeai-api",
@@ -43638,6 +43667,13 @@ rules:
         "package-lock.json"
       ],
       "rewrites": [
+        {
+          "source": "/admin-api/**",
+          "run": {
+            "serviceId": "supremeai-api",
+            "region": "us-central1"
+          }
+        },
         {
           "source": "/api/**",
           "run": {
@@ -116838,6 +116874,10 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
 import { App } from './App.tsx'
+import { getApiBaseUrl } from './utils/api';
+
+// Inject globally for any UI components or legacy scripts that expect it
+(window as any).getApiBaseUrl = getApiBaseUrl;
 
 import { ThemeProvider } from './contexts/ThemeContext'
 // Shared providers (react-query, monaco defaults)
@@ -120033,6 +120073,7 @@ export const useI18n = () => useContext(I18nContext);
 ```tsx
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { getAdminToken } from '../services/adminTokenStore';
+import { getApiBaseUrl } from '../utils/api';
 
 // বাংলা মন্তব্য: ৪টি থিম সাপোর্ট করা হচ্ছে — Dark Space, Sky Blue, Sunset Ember, Emerald Matrix
 type Theme = 'dark' | 'light' | 'sunset' | 'matrix';

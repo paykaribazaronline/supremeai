@@ -1,8 +1,8 @@
 # 📄 ফাইল: config/firebase.json
 
 **প্রকার:** .json  
-**সাইজ:** 5,420 বাইট  
-**আপডেট:** 2026-07-04T12:50:55.918820
+**সাইজ:** 5,754 বাইট  
+**আপডেট:** 2026-07-04T12:59:56.805631
 
 ---
 
@@ -31,6 +31,13 @@
         "package-lock.json"
       ],
       "rewrites": [
+        {
+          "source": "/admin-api/**",
+          "run": {
+            "serviceId": "supremeai-api",
+            "region": "us-central1"
+          }
+        },
         {
           "source": "/api/**",
           "run": {
@@ -138,6 +145,13 @@
         "package-lock.json"
       ],
       "rewrites": [
+        {
+          "source": "/admin-api/**",
+          "run": {
+            "serviceId": "supremeai-api",
+            "region": "us-central1"
+          }
+        },
         {
           "source": "/api/**",
           "run": {

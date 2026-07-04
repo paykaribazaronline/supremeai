@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/studio-client/src/contexts/ThemeContext.tsx
 
 **প্রকার:** .tsx  
-**সাইজ:** 3,903 বাইট  
-**আপডেট:** 2026-07-04T12:50:55.991862
+**সাইজ:** 3,949 বাইট  
+**আপডেট:** 2026-07-04T12:59:56.901642
 
 ---
 
@@ -11,6 +11,7 @@
 ```tsx
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { getAdminToken } from '../services/adminTokenStore';
+import { getApiBaseUrl } from '../utils/api';
 
 // বাংলা মন্তব্য: ৪টি থিম সাপোর্ট করা হচ্ছে — Dark Space, Sky Blue, Sunset Ember, Emerald Matrix
 type Theme = 'dark' | 'light' | 'sunset' | 'matrix';
