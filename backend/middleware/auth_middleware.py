@@ -1,12 +1,13 @@
 
-import os
-import sys
 
 from fastapi import Request
 from loguru import logger
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from core.security import verify_token
+
+# শেয়ার্ড ইউটিলিটি — টেস্ট এনভায়রনমেন্ট চেক কেন্দ্রীভূত
+from utils.environment import is_test_environment
 
 
 class ZeroTrustAuthMiddleware(BaseHTTPMiddleware):
@@ -36,7 +37,8 @@ class ZeroTrustAuthMiddleware(BaseHTTPMiddleware):
         if matched:
             return await call_next(request)
 
-        is_test = "pytest" in sys.modules or os.getenv("ENV") == "test"
+        # রিফ্যাক্টর: লোকাল is_test চেকের বদলে শেয়ার্ড ইউটিলিটি ব্যবহার
+        is_test = is_test_environment()
         auth_header = request.headers.get("Authorization")
 
         if not auth_header or not auth_header.startswith("Bearer "):
