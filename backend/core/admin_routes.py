@@ -174,9 +174,15 @@ def admin_firebase_login(payload: AdminFirebaseLoginRequest):
 @router.post("/api/admin/firebase-totp-setup")
 def admin_firebase_totp_setup(payload: AdminFirebaseTotpSetupRequest):
     id_token = payload.id_token
+    is_production = getattr(settings, "env", "local").lower() == "production"
 
     try:
         if id_token.startswith("mock-"):
+            # বাংলা মন্তব্য: প্রোডাকশনে mock টোকেন দিয়ে TOTP সেটআপ বাইপাস কঠোরভাবে নিষিদ্ধ
+            if is_production:
+                raise HTTPException(
+                    status_code=403, detail="Mock tokens are strictly forbidden in production."
+                )
             uid = "mock-admin-uid"
             email = settings.admin_emails[0] if settings.admin_emails else "admin@example.com"
         elif auth:
@@ -214,9 +220,15 @@ def admin_firebase_totp_setup(payload: AdminFirebaseTotpSetupRequest):
 def admin_firebase_totp_verify(payload: AdminFirebaseTotpVerifyRequest):
     id_token = payload.id_token
     otp = payload.otp
+    is_production = getattr(settings, "env", "local").lower() == "production"
 
     try:
         if id_token.startswith("mock-"):
+            # বাংলা মন্তব্য: প্রোডাকশনে mock টোকেন দিয়ে TOTP ভেরিফিকেশন বাইপাস কঠোরভাবে নিষিদ্ধ
+            if is_production:
+                raise HTTPException(
+                    status_code=403, detail="Mock tokens are strictly forbidden in production."
+                )
             uid = "mock-admin-uid"
         elif auth:
             decoded_token = auth.verify_id_token(id_token)
@@ -415,7 +427,8 @@ def verify_totp_code(user_otp: str, base32_secret: str) -> bool:
             h_num = struct.unpack(">I", h[o : o + 4])[0] & 0x7FFFFFFF
             # বাংলা মন্তব্য: ৭ ডিজিটের ওটিপি জেনারেট করা হলো এন্টারপ্রাইজ গ্রেড সিকিউরিটির জন্য
             code = f"{h_num % 10000000:07d}"
-            if code == user_otp:
+            # বাংলা মন্তব্য: টাইমিং অ্যাটাক প্রতিরোধে constant-time তুলনা ব্যবহার করা হলো
+            if hmac.compare_digest(code, user_otp):
                 return True
         return False
     except Exception:
@@ -437,7 +450,8 @@ def check_totp(user_otp: str, base32_secret: str) -> bool:
             h_num = struct.unpack(">I", h[o : o + 4])[0] & 0x7FFFFFFF
             # বাংলা মন্তব্য: ৭ ডিজিটের ওটিপি জেনারেট করা হলো এন্টারপ্রাইজ গ্রেড সিকিউরিটির জন্য
             code = f"{h_num % 10000000:07d}"
-            if code == user_otp:
+            # বাংলা মন্তব্য: টাইমিং অ্যাটাক প্রতিরোধে constant-time তুলনা ব্যবহার করা হলো
+            if hmac.compare_digest(code, user_otp):
                 return True
         return False
     except Exception:
