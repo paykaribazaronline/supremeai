@@ -1,11 +1,13 @@
 from __future__ import annotations
 
 from typing import Any
+
 from loguru import logger
 
+
 try:
-    from database.supabase_client import db
     from brain.model_router import ModelRouter
+    from database.supabase_client import db
     _DEPENDENCIES_AVAILABLE = True
 except ImportError:
     _DEPENDENCIES_AVAILABLE = False
