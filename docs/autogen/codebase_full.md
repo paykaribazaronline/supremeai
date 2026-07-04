@@ -1,7 +1,7 @@
 # 🧠 SupremeAI 2.0 Codebase Dump
 # বাংলা মন্তব্য: এটি একটি স্বয়ংক্রিয়ভাবে জেনারেট করা কোডবেস ডাম্প ফাইল যা প্রজেক্টের সামগ্রিক বিশ্লেষণের জন্য ব্যবহৃত হয়।
 
-Generated at: 2026-07-04T22:52:01.433058
+Generated at: 2026-07-04T23:04:44.985346
 
 
 ## File: `pnpm-lock.yaml`
@@ -164777,11 +164777,7 @@ jobs:
       - name: Run VS Code Extension Tests
         run: pnpm turbo run test --filter=supremeai-vscode --cache-dir=.turbo
  
-      - name: Playwright Install & Test
-        continue-on-error: true
-        run: |
-          pnpm exec playwright install --with-deps
-          pnpm exec playwright test tests/e2e/accessibility.spec.ts tests/e2e/chat.spec.ts --reporter=html
+
 
       - name: Install Python Dependencies for Frontend Auto-Fix
         if: failure()
