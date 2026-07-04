@@ -1,5 +1,4 @@
-import { vi } from 'vitest';
-
+// vi is available as a global (globals: true in vitest.config.ts)
 vi.mock('vscode', () => ({
   window: {
     showInformationMessage: vi.fn(),
