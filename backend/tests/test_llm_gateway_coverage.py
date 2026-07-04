@@ -66,7 +66,8 @@ async def test_acompletion_accepts_messages_param():
     response = MagicMock()
     response.choices = [MagicMock(message=MagicMock(content="hi"))]
     response._response_metadata = {}
-    with patch("litellm.acompletion", new_callable=AsyncMock, return_value=response) as mock_call:
+    with patch("core.llm_gateway.litellm.acompletion", new_callable=AsyncMock, return_value=response) as mock_call:
+        os.environ["OPENAI_API_KEY"] = "mock_key"
         result = await gateway.acompletion(
             messages=[{"role": "user", "content": "hello there"}],
             model="groq/llama-3.3-70b-versatile",
@@ -88,7 +89,8 @@ async def test_acompletion_medium_difficulty_routing():
     response = MagicMock()
     response.choices = [MagicMock(message=MagicMock(content="ok"))]
     response._response_metadata = {}
-    with patch("litellm.acompletion", new_callable=AsyncMock, return_value=response) as mock_call:
+    with patch("core.llm_gateway.litellm.acompletion", new_callable=AsyncMock, return_value=response) as mock_call:
+        os.environ["OPENAI_API_KEY"] = "mock_key"
         result = await gateway.acompletion(prompt="please do analysis", task_type="agent")
     assert result["success"] is True
     assert mock_call.call_args.kwargs["model"] == "medium/model"
@@ -110,7 +112,8 @@ async def test_acompletion_stream_returns_generator():
 
     stream_resp = MagicMock()
     stream_resp.__aiter__ = lambda self: mock_stream()
-    with patch("litellm.acompletion", new_callable=AsyncMock, return_value=stream_resp):
+    with patch("core.llm_gateway.litellm.acompletion", new_callable=AsyncMock, return_value=stream_resp):
+        os.environ["OPENAI_API_KEY"] = "mock_key"
         gen = await gateway.acompletion(prompt="stream this", stream=True)
         collected = [chunk async for chunk in gen]
     assert collected == ["a", "b"]
@@ -120,6 +123,7 @@ async def test_acompletion_stream_returns_generator():
 async def test_stream_completion_raises_when_all_models_fail():
     # বাংলা মন্তব্য: সব মডেল ফেল করলে শেষ এক্সসেপশন রেইজ হবে
     gateway = LLMGateway()
-    with patch("litellm.acompletion", new_callable=AsyncMock, side_effect=Exception("down")):
+    with patch("core.llm_gateway.litellm.acompletion", new_callable=AsyncMock, side_effect=Exception("down")):
+        os.environ["OPENAI_API_KEY"] = "mock_key"
         with pytest.raises(Exception):
             _ = [c async for c in gateway._stream_completion([{"role": "user", "content": "x"}], ["m1", "m2"], 1.0)]

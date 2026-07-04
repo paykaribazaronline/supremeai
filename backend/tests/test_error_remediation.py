@@ -36,11 +36,11 @@ class TestErrorRemediation:
             assert remediation.qdrant is mock_qdrant
 
     async def test_lookup_fix_no_qdrant(self):
-        """Qdrant ছাড়াই লুকআপ ফিক্স None রিটার্ন করে।"""
+        """Qdrant ছাড়াই লুকআপ ফিক্স ফলব্যাক রিটার্ন করে।"""
         with patch("core.error_remediation.HAS_QDRANT", False):
             remediation = ErrorRemediation()
             result = await remediation.lookup_fix("error-signature-123")
-            assert result is None
+            assert result is not None and "Retry" in result
 
     async def test_lookup_fix_success(self):
         """সফলভাবে ফিক্স লুকআপ করা হচ্ছে।"""

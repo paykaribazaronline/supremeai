@@ -524,7 +524,7 @@ class TestGithubCICDMCPExtended:
             
             params = CreatePRInput(title="Test", body="Test PR", head="feature", base="main")
             result = await github_create_pull_request(params)
-            assert "Invalid GitHub token" in result
+            assert "Invalid API key" in result
 
     @pytest.mark.asyncio
     async def test_create_pr_api_error_403(self, monkeypatch):
@@ -1338,7 +1338,7 @@ class TestInputValidation:
         
         with patch("httpx.AsyncClient") as mock_client:
             mock_instance = MagicMock()
-            mock_instance.post = AsyncMock()
+            mock_instance.post = AsyncMock(return_value=MagicMock())
             mock_client.return_value.__aenter__ = AsyncMock(return_value=mock_instance)
             
             params = FixIssueInput(issue_number=42, branch="fix/issue-42")

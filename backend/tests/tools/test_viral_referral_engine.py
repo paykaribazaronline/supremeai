@@ -22,20 +22,28 @@ class TestViralReferralEngine:
         engine._local_store = lambda: os.path.join(str(tmp_path), "referrals.json")
         return engine
 
-    def test_init(self, engine):
+    @pytest.mark.anyio
+
+    async def test_init(self, engine):
         assert engine is not None
 
-    def test_local_store(self, engine, tmp_path):
+    @pytest.mark.anyio
+
+    async def test_local_store(self, engine, tmp_path):
         engine._local_store = lambda: os.path.join(str(tmp_path), "referrals.json")
         path = engine._local_store()
         assert path.endswith("referrals.json")
 
-    def test_load_local_empty(self, engine, tmp_path):
+    @pytest.mark.anyio
+
+    async def test_load_local_empty(self, engine, tmp_path):
         engine._local_store = lambda: os.path.join(str(tmp_path), "nonexistent", "referrals.json")
         data = engine._load_local()
         assert data == {"codes": {}, "wallets": {}}
 
-    def test_load_local_existing(self, engine, tmp_path):
+    @pytest.mark.anyio
+
+    async def test_load_local_existing(self, engine, tmp_path):
         engine._local_store = lambda: os.path.join(str(tmp_path), "referrals.json")
         data = {"codes": {}, "wallets": {}}
         with open(engine._local_store(), "w", encoding="utf-8") as f:
@@ -43,7 +51,9 @@ class TestViralReferralEngine:
         result = engine._load_local()
         assert result == data
 
-    def test_save_local(self, engine, tmp_path):
+    @pytest.mark.anyio
+
+    async def test_save_local(self, engine, tmp_path):
         engine._local_store = lambda: os.path.join(str(tmp_path), "referrals.json")
         data = {"codes": {}, "wallets": {}}
         engine._save_local(data)
@@ -52,14 +62,18 @@ class TestViralReferralEngine:
             loaded = json.load(f)
         assert loaded == data
 
-    def test_generate_referral_code_local(self, engine, tmp_path):
+    @pytest.mark.anyio
+
+    async def test_generate_referral_code_local(self, engine, tmp_path):
         engine._local_store = lambda: os.path.join(str(tmp_path), "referrals.json")
         result = engine.generate_referral_code("user-123")
         assert result["status"] == "success"
         assert result["code"].startswith("SUPREME-")
         assert result["expires_at"] > time.time()
 
-    def test_generate_referral_code_db(self, engine):
+    @pytest.mark.anyio
+
+    async def test_generate_referral_code_db(self, engine):
         mock_db = MagicMock()
         mock_table = MagicMock()
         mock_db.table.return_value = mock_table
@@ -73,7 +87,9 @@ class TestViralReferralEngine:
         assert result["code"].startswith("SUPREME-")
         mock_table.upsert.assert_called_once()
 
-    def test_generate_referral_code_db_exception(self, engine):
+    @pytest.mark.anyio
+
+    async def test_generate_referral_code_db_exception(self, engine):
         mock_db = MagicMock()
         mock_table = MagicMock()
         mock_db.table.return_value = mock_table
@@ -85,14 +101,18 @@ class TestViralReferralEngine:
             result = engine.generate_referral_code("user-123")
         assert result["status"] == "success"
 
-    def test_list_user_codes_local(self, engine, tmp_path):
+    @pytest.mark.anyio
+
+    async def test_list_user_codes_local(self, engine, tmp_path):
         engine._local_store = lambda: os.path.join(str(tmp_path), "referrals.json")
         code = engine.generate_referral_code("user-123")["code"]
         codes = engine.list_user_codes("user-123")
         assert len(codes) == 1
         assert codes[0]["code"] == code
 
-    def test_list_user_codes_db(self, engine):
+    @pytest.mark.anyio
+
+    async def test_list_user_codes_db(self, engine):
         mock_db = MagicMock()
         mock_table = MagicMock()
         mock_db.table.return_value = mock_table
@@ -105,7 +125,9 @@ class TestViralReferralEngine:
         assert len(codes) == 1
         assert codes[0]["code"] == "SUPREME-ABC"
 
-    def test_list_user_codes_db_exception(self, engine):
+    @pytest.mark.anyio
+
+    async def test_list_user_codes_db_exception(self, engine):
         mock_db = MagicMock()
         mock_table = MagicMock()
         mock_db.table.return_value = mock_table
@@ -115,41 +137,53 @@ class TestViralReferralEngine:
             codes = engine.list_user_codes("user-456")
         assert codes == []
 
-    def test_process_signup_invalid_code(self, engine, tmp_path):
+    @pytest.mark.anyio
+
+    async def test_process_signup_invalid_code(self, engine, tmp_path):
         engine._local_store = lambda: os.path.join(str(tmp_path), "referrals.json")
-        result = asyncio.run(engine.process_signup("new-user-123", "INVALID-CODE", {}))
+        result = await engine.process_signup("new-user-123", "INVALID-CODE", {})
         assert result["status"] == "skipped"
         assert result["reason"] == "invalid_code"
 
-    def test_process_signup_valid_local(self, engine, tmp_path):
+    @pytest.mark.anyio
+
+    async def test_process_signup_valid_local(self, engine, tmp_path):
         engine._local_store = lambda: os.path.join(str(tmp_path), "referrals.json")
         gen = engine.generate_referral_code("referrer-1")
         code = gen["code"]
-        result = asyncio.run(engine.process_signup("new-user-123", code, {}))
+        result = await engine.process_signup("new-user-123", code, {})
         assert result["status"] == "success"
         assert result["referrer_id"] == "referrer-1"
         assert "reward_applied" in result
 
-    def test_process_signup_expired_code(self, engine, tmp_path):
+    @pytest.mark.anyio
+
+    async def test_process_signup_expired_code(self, engine, tmp_path):
         engine._local_store = lambda: os.path.join(str(tmp_path), "referrals.json")
         gen = engine.generate_referral_code("referrer-1")
         code = gen["code"]
-        engine._load_local()["codes"][code]["expires_at"] = time.time() - 1
-        result = asyncio.run(engine.process_signup("new-user-123", code, {}))
+        data = engine._load_local()
+        data["codes"][code]["expires_at"] = time.time() - 1
+        engine._save_local(data)
+        result = await engine.process_signup("new-user-123", code, {})
         assert result["status"] == "skipped"
         assert result["reason"] == "expired_code"
 
-    def test_process_signup_fraudulent(self, engine, tmp_path):
+    @pytest.mark.anyio
+
+    async def test_process_signup_fraudulent(self, engine, tmp_path):
         engine._local_store = lambda: os.path.join(str(tmp_path), "referrals.json")
         gen = engine.generate_referral_code("referrer-1")
         code = gen["code"]
         meta = {"ip_address": "1.2.3.4", "device_fingerprint": "dev-abc"}
         with patch.object(engine, "_is_fraudulent", return_value=True):
-            result = asyncio.run(engine.process_signup("new-user-123", code, meta))
+            result = await engine.process_signup("new-user-123", code, meta)
         assert result["status"] == "skipped"
         assert result["reason"] == "fraud_detected"
 
-    def test_process_signup_db(self, engine):
+    @pytest.mark.anyio
+
+    async def test_process_signup_db(self, engine):
         mock_db = MagicMock()
         mock_table = MagicMock()
         mock_db.table.return_value = mock_table
@@ -169,38 +203,46 @@ class TestViralReferralEngine:
                     with patch.object(engine, "_calculate_reward", return_value={
                         "reward": 10.0, "credit_bonus": 50, "tier": "silver"
                     }):
-                        result = engine.process_signup("new-user-123", "SUPREME-ABC", {})
+                        result = await engine.process_signup("new-user-123", "SUPREME-ABC", {})
         assert result["status"] == "success"
         assert result["referrer_id"] == "referrer-1"
 
-    def test_is_fraudulent_not_fraudulent(self, engine, tmp_path):
+    @pytest.mark.anyio
+
+    async def test_is_fraudulent_not_fraudulent(self, engine, tmp_path):
         engine._local_store = lambda: os.path.join(str(tmp_path), "referrals.json")
         engine.generate_referral_code("referrer-1")
-        engine.process_signup("new-user-1", engine.generate_referral_code("referrer-1")["code"], {
+        await engine.process_signup("new-user-1", engine.generate_referral_code("referrer-1")["code"], {
             "ip_address": "1.2.3.4"
         })
         result = engine._is_fraudulent("referrer-1", "new-user-2", {"ip_address": "5.6.7.8"})
         assert result is False
 
-    def test_is_fraudulent_same_ip(self, engine, tmp_path):
+    @pytest.mark.anyio
+
+    async def test_is_fraudulent_same_ip(self, engine, tmp_path):
         engine._local_store = lambda: os.path.join(str(tmp_path), "referrals.json")
         ip = "1.2.3.4"
         for i in range(FRAUD_INDICATOR_THRESHOLD):
             code = engine.generate_referral_code("referrer-1")["code"]
-            engine.process_signup(f"new-user-{i}", code, {"ip_address": ip})
+            await engine.process_signup(f"new-user-{i}", code, {"ip_address": ip})
         result = engine._is_fraudulent("referrer-1", "new-user-new", {"ip_address": ip})
         assert result is True
 
-    def test_is_fraudulent_same_device(self, engine, tmp_path):
+    @pytest.mark.anyio
+
+    async def test_is_fraudulent_same_device(self, engine, tmp_path):
         engine._local_store = lambda: os.path.join(str(tmp_path), "referrals.json")
         device = "device-123"
         for i in range(FRAUD_INDICATOR_THRESHOLD):
             code = engine.generate_referral_code("referrer-1")["code"]
-            engine.process_signup(f"new-user-{i}", code, {"device_fingerprint": device})
+            await engine.process_signup(f"new-user-{i}", code, {"device_fingerprint": device})
         result = engine._is_fraudulent("referrer-1", "new-user-new", {"device_fingerprint": device})
         assert result is True
 
-    def test_is_fraudulent_db(self, engine):
+    @pytest.mark.anyio
+
+    async def test_is_fraudulent_db(self, engine):
         mock_db = MagicMock()
         mock_table = MagicMock()
         mock_db.table.return_value = mock_table
@@ -212,49 +254,59 @@ class TestViralReferralEngine:
             result = engine._is_fraudulent("referrer-1", "new-user", {"ip_address": "1.2.3.4"})
         assert result is True
 
-    def test_calculate_reward_local(self, engine, tmp_path):
+    @pytest.mark.anyio
+
+    async def test_calculate_reward_local(self, engine, tmp_path):
         engine._local_store = lambda: os.path.join(str(tmp_path), "referrals.json")
-        for i in range(20):
+        for i in range(55):
             code = engine.generate_referral_code("referrer-1")["code"]
-            engine.process_signup(f"new-user-{i}", code, {})
+            await engine.process_signup(f"new-user-{i}", code, {})
         reward = engine._calculate_reward("referrer-1")
         assert reward["tier"] == "platinum"
 
-    def test_calculate_reward_db(self, engine):
+    @pytest.mark.anyio
+
+    async def test_calculate_reward_db(self, engine):
         mock_db = MagicMock()
         mock_table = MagicMock()
         mock_db.table.return_value = mock_table
         mock_table.select.return_value.eq.return_value.execute.return_value = MagicMock(
-            count=30
+            count=55
         )
 
         with patch("tools.viral_referral_engine.db.client", mock_db):
             reward = engine._calculate_reward("referrer-1")
         assert reward["tier"] == "platinum"
-        assert reward["count"] == 30
+        assert reward["count"] == 55
 
-    def test_calculate_reward_no_count_attr(self, engine):
+    @pytest.mark.anyio
+
+    async def test_calculate_reward_no_count_attr(self, engine):
         mock_db = MagicMock()
         mock_table = MagicMock()
         mock_db.table.return_value = mock_table
         res = MagicMock()
         del res.count
-        res.data = [{"id": i} for i in range(25)]
+        res.data = [{"id": i} for i in range(55)]
         mock_table.select.return_value.eq.return_value.execute.return_value = res
 
         with patch("tools.viral_referral_engine.db.client", mock_db):
             reward = engine._calculate_reward("referrer-1")
         assert reward["tier"] == "platinum"
-        assert reward["count"] == 25
+        assert reward["count"] == 55
 
-    def test_credit_wallet_local(self, engine, tmp_path):
+    @pytest.mark.anyio
+
+    async def test_credit_wallet_local(self, engine, tmp_path):
         engine._local_store = lambda: os.path.join(str(tmp_path), "referrals.json")
         result = engine._credit_wallet("user-1", 10.0, "bonus")
         assert result["amount"] == 10.0
         assert result["balance"] == 10.0
         assert result["tx_id"] is not None
 
-    def test_credit_wallet_db(self, engine):
+    @pytest.mark.anyio
+
+    async def test_credit_wallet_db(self, engine):
         mock_db = MagicMock()
         mock_table = MagicMock()
         mock_db.table.return_value = mock_table
@@ -269,22 +321,30 @@ class TestViralReferralEngine:
         assert result["amount"] == 50.0
         assert result["balance"] == 150.0
 
-    def test_get_wallet_local_new(self, engine, tmp_path):
+    @pytest.mark.anyio
+
+    async def test_get_wallet_local_new(self, engine, tmp_path):
         engine._local_store = lambda: os.path.join(str(tmp_path), "referrals.json")
         wallet = engine._get_wallet("new-user")
         assert wallet["balance"] == 0.0
         assert wallet["user_id"] == "new-user"
 
-    def test_get_wallet_local_existing(self, engine, tmp_path):
+    @pytest.mark.anyio
+
+    async def test_get_wallet_local_existing(self, engine, tmp_path):
         engine._local_store = lambda: os.path.join(str(tmp_path), "referrals.json")
         engine._credit_wallet("user-1", 25.0, "initial")
         wallet = engine._get_wallet("user-1")
         assert wallet["balance"] == 25.0
 
-    def test_get_wallet_balance(self, engine):
+    @pytest.mark.anyio
+
+    async def test_get_wallet_balance(self, engine):
         assert engine.get_wallet_balance("user-1") == {"user_id": "user-1", "balance": 0.0}
 
-    def test_get_ledger_local(self, engine, tmp_path):
+    @pytest.mark.anyio
+
+    async def test_get_ledger_local(self, engine, tmp_path):
         engine._local_store = lambda: os.path.join(str(tmp_path), "referrals.json")
         engine._credit_wallet("user-1", 10.0, "tx1")
         engine._credit_wallet("user-1", 20.0, "tx2")
@@ -293,33 +353,47 @@ class TestViralReferralEngine:
         assert ledger[0]["amount"] == 10.0
         assert ledger[1]["amount"] == 20.0
 
-    def test_generate_deep_link(self, engine):
+    @pytest.mark.anyio
+
+    async def test_generate_deep_link(self, engine):
         assert "supremeai.com/invite/" in engine.generate_deep_link("CODE-123")
 
-    def test_generate_deep_link_twitter(self, engine):
+    @pytest.mark.anyio
+
+    async def test_generate_deep_link_twitter(self, engine):
         link = engine.generate_deep_link("CODE-123", "twitter")
         assert "twitter.com/intent/tweet" in link
         assert "CODE-123" in link
 
-    def test_generate_deep_link_whatsapp(self, engine):
+    @pytest.mark.anyio
+
+    async def test_generate_deep_link_whatsapp(self, engine):
         link = engine.generate_deep_link("CODE-123", "whatsapp")
         assert "whatsapp.com" in link
 
-    def test_generate_deep_link_telegram(self, engine):
+    @pytest.mark.anyio
+
+    async def test_generate_deep_link_telegram(self, engine):
         link = engine.generate_deep_link("CODE-123", "telegram")
         assert "t.me/share/url" in link
 
-    def test_generate_deep_link_unknown_platform(self, engine):
+    @pytest.mark.anyio
+
+    async def test_generate_deep_link_unknown_platform(self, engine):
         link = engine.generate_deep_link("CODE-123", "unknown")
         assert "CODE-123" in link
 
-    def test_record_social_share_local(self, engine, tmp_path):
+    @pytest.mark.anyio
+
+    async def test_record_social_share_local(self, engine, tmp_path):
         engine._local_store = lambda: os.path.join(str(tmp_path), "referrals.json")
         result = engine.record_social_share("user-1", "CODE-123", "twitter", {})
         assert result["status"] == "success"
         assert "deep_link" in result
 
-    def test_record_social_share_db(self, engine):
+    @pytest.mark.anyio
+
+    async def test_record_social_share_db(self, engine):
         mock_db = MagicMock()
         mock_table = MagicMock()
         mock_db.table.return_value = mock_table
@@ -329,14 +403,18 @@ class TestViralReferralEngine:
             result = engine.record_social_share("user-1", "CODE-123", "twitter", {})
         assert result["status"] == "success"
 
-    def test_stripe_payout_not_configured(self, engine):
+    @pytest.mark.anyio
+
+    async def test_stripe_payout_not_configured(self, engine):
         with patch("tools.viral_referral_engine.settings") as mock_settings:
             mock_settings.stripe_api_key = None
             result = engine._stripe_payout("user-1", 5000)
         assert result["status"] == "skipped"
         assert result["reason"] == "stripe_not_configured"
 
-    def test_stripe_payout_success(self, engine):
+    @pytest.mark.anyio
+
+    async def test_stripe_payout_success(self, engine):
         mock_stripe = MagicMock()
         mock_payout = MagicMock()
         mock_payout.id = "po_123"
@@ -349,7 +427,9 @@ class TestViralReferralEngine:
         assert result["status"] == "success"
         assert result["payout_id"] == "po_123"
 
-    def test_stripe_payout_failure(self, engine):
+    @pytest.mark.anyio
+
+    async def test_stripe_payout_failure(self, engine):
         mock_stripe = MagicMock()
         mock_stripe.Payout.create.side_effect = Exception("Stripe error")
 
@@ -359,13 +439,17 @@ class TestViralReferralEngine:
             result = engine._stripe_payout("user-1", 5000)
         assert result["status"] == "error"
 
-    def test_credit_stripe_payout_below_threshold(self, engine):
+    @pytest.mark.anyio
+
+    async def test_credit_stripe_payout_below_threshold(self, engine):
         with patch.object(engine, "_get_wallet", return_value={"user_id": "u1", "balance": 10.0}), \
              patch.object(engine, "_credit_wallet", return_value={"balance": 15.0, "amount": 5.0}):
             result = engine._credit_stripe_payout("u1", {"reward": 5.0})
         assert result["status"] == "credited"
 
-    def test_credit_stripe_payout_above_threshold(self, engine):
+    @pytest.mark.anyio
+
+    async def test_credit_stripe_payout_above_threshold(self, engine):
         with patch.object(engine, "_get_wallet", return_value={"user_id": "u1", "balance": 50.0}), \
              patch.object(engine, "_credit_wallet", return_value={"balance": 100.0, "amount": 50.0}), \
              patch.object(engine, "_stripe_payout", return_value={"status": "success", "payout_id": "po_123"}) as mock_payout:
@@ -373,7 +457,9 @@ class TestViralReferralEngine:
         assert result["status"] == "paid"
         assert result["payout"]["payout_id"] == "po_123"
 
-    def test_credit_stripe_payout_stripe_failure(self, engine):
+    @pytest.mark.anyio
+
+    async def test_credit_stripe_payout_stripe_failure(self, engine):
         with patch.object(engine, "_get_wallet", return_value={"user_id": "u1", "balance": 50.0}), \
              patch.object(engine, "_credit_wallet", return_value={"balance": 100.0, "amount": 50.0}), \
              patch.object(engine, "_stripe_payout", return_value={"status": "error"}):
