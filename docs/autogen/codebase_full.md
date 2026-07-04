@@ -1,7 +1,7 @@
 # 🧠 SupremeAI 2.0 Codebase Dump
 # বাংলা মন্তব্য: এটি একটি স্বয়ংক্রিয়ভাবে জেনারেট করা কোডবেস ডাম্প ফাইল যা প্রজেক্টের সামগ্রিক বিশ্লেষণের জন্য ব্যবহৃত হয়।
 
-Generated at: 2026-07-04T03:16:37.930180
+Generated at: 2026-07-04T03:23:34.365470
 
 
 ## File: `pnpm-lock.yaml`
@@ -156390,7 +156390,7 @@ jobs:
 
       - name: Run Web Chat Vitest with JSON Report
         run: |
-          SUPREMEAI_API_URL="https://mock-api.supremeai.local" pnpm --dir apps/web-chat exec vitest run --reporter=json --outputFile=apps/web-chat/vitest-report.json
+          SUPREMEAI_API_URL="https://mock-api.supremeai.local" pnpm --dir apps/web-chat exec vitest run --reporter=json --outputFile=vitest-report.json
 
       - name: Add Web Chat Test Results to GitHub Summary
         if: always()
@@ -156405,6 +156405,12 @@ jobs:
         run: |
           pnpm exec playwright install --with-deps
           pnpm exec playwright test --reporter=html
+
+      - name: Install Python Dependencies for Frontend Auto-Fix
+        if: failure()
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install litellm
 
       - name: 🔧 SupremeAI Auto-Fix Engine (Frontend)
         if: failure()
