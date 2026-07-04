@@ -1,8 +1,8 @@
 # 📄 ফাইল: tests/e2e/chat.spec.ts
 
 **প্রকার:** .ts  
-**সাইজ:** 430 বাইট  
-**আপডেট:** 2026-07-04T23:47:17.633199
+**সাইজ:** 478 বাইট  
+**আপডেট:** 2026-07-04T23:58:53.972319
 
 ---
 
@@ -13,6 +13,7 @@ import { test, expect } from '@playwright/test';
 
 test('Chat sends message', async ({ page }) => {
   await page.goto('/#/workspace');
+  await page.click('[data-testid="tab-chat"]');
   await page.waitForSelector('[data-testid="chat-input"]', { state: 'visible', timeout: 15000 });
   await page.fill('[data-testid="chat-input"]', 'Hello SupremeAI!');
   await page.click('[data-testid="chat-submit"]');

@@ -1,8 +1,8 @@
 # 📄 ফাইল: tests/e2e/accessibility.spec.ts
 
 **প্রকার:** .ts  
-**সাইজ:** 1,350 বাইট  
-**আপডেট:** 2026-07-04T23:47:17.633578
+**সাইজ:** 1,351 বাইট  
+**আপডেট:** 2026-07-04T23:58:53.972845
 
 ---
 
@@ -29,7 +29,7 @@ test.describe('Accessibility Tests (WCAG)', () => {
 
     test('Admin Dashboard should be accessible', async ({ page }) => {
         await page.goto('/admin'); // আপনার অ্যাডমিন পেজের URL
-        await page.waitForSelector('text=SupremeAI', { state: 'visible', timeout: 15000 });
+        await page.waitForSelector('text=Admin Gate', { state: 'visible', timeout: 15000 });
 
         const accessibilityScanResults = await new AxeBuilder({ page }).analyze();
 
