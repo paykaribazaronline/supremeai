@@ -1,8 +1,8 @@
 # 📄 ফাইল: package.json
 
 **প্রকার:** .json  
-**সাইজ:** 1,642 বাইট  
-**আপডেট:** 2026-07-04T08:51:16.215126
+**সাইজ:** 1,681 বাইট  
+**আপডেট:** 2026-07-04T10:39:00.778661
 
 ---
 
@@ -34,14 +34,15 @@
     "seed:load": "python backend/scripts/load_seed_data.py"
   },
   "devDependencies": {
-    "turbo": "^2.0.0",
-    "prettier": "^3.2.0",
-    "typescript": "^5.4.0",
+    "@axe-core/playwright": "^4.12.1",
+    "@playwright/test": "^1.42.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
-    "@playwright/test": "^1.42.0",
-    "vitest": "^3.2.6",
-    "miniflare": "^2.0.1"
+    "miniflare": "^2.0.1",
+    "prettier": "^3.2.0",
+    "turbo": "^2.0.0",
+    "typescript": "^5.4.0",
+    "vitest": "^3.2.6"
   },
   "packageManager": "pnpm@9.0.0",
   "overrides": {
