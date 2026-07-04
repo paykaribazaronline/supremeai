@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/code_smell_detector.py
 
 **প্রকার:** .py  
-**সাইজ:** 22,237 বাইট  
-**আপডেট:** 2026-07-04T12:27:27.498206
+**সাইজ:** 22,289 বাইট  
+**আপডেট:** 2026-07-04T12:50:55.974406
 
 ---
 
@@ -191,6 +191,9 @@ class CodeSmellDetector:
             )
         except Exception as e:
             logger.error(f"Failed to analyze {filepath}: {e}")
+
+        if tree is None:
+            return smells
 
         if self.radon_available:
             try:
