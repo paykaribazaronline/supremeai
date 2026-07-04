@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/cot_reasoner.py
 
 **প্রকার:** .py  
-**সাইজ:** 14,133 বাইট  
-**আপডেট:** 2026-07-04T05:29:42.550986
+**সাইজ:** 14,077 বাইট  
+**আপডেট:** 2026-07-04T05:33:40.940073
 
 ---
 
@@ -58,8 +58,6 @@ def _eval_node(node):
         if isinstance(node.value, (int, float)):
             return node.value
         raise ValueError("Only numeric constants are allowed")
-    if isinstance(node, ast.Num):
-        return node.n
     raise ValueError(f"Unsupported expression node: {type(node).__name__}")
 
 
