@@ -1,8 +1,8 @@
 # 📄 ফাইল: packages/ui-components/package.json
 
 **প্রকার:** .json  
-**সাইজ:** 634 বাইট  
-**আপডেট:** 2026-07-04T05:52:57.749674
+**সাইজ:** 740 বাইট  
+**আপডেট:** 2026-07-04T08:12:03.108531
 
 ---
 
@@ -11,7 +11,8 @@
 ```json
 {
   "name": "@supremeai/ui-components",
-  "version": "1.0.0",
+  "version": "0.1.0",
+  "private": false,
   "type": "module",
   "main": "./src/index.ts",
   "types": "./src/index.ts",
@@ -23,22 +24,22 @@
     "./package.json": "./package.json"
   },
   "peerDependencies": {
-    "react": "^18.0.0 || ^19.0.0",
-    "react-dom": "^18.0.0 || ^19.0.0"
+    "react": "^18 || ^19",
+    "react-dom": "^18 || ^19",
+    "@tanstack/react-query": "^5.0.0",
+    "@monaco-editor/react": "^4.0.0"
   },
   "peerDependenciesMeta": {
-    "react": {
-      "optional": false
-    },
-    "react-dom": {
-      "optional": false
-    }
+    "react": { "optional": false },
+    "react-dom": { "optional": false }
   },
   "devDependencies": {
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "typescript": "^5.4.0"
-  }
+  },
+  "files": ["src/**/*"],
+  "license": "MIT"
 }
 
 ```

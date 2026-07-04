@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/studio-client/src/main.tsx
 
 **প্রকার:** .tsx  
-**সাইজ:** 369 বাইট  
-**আপডেট:** 2026-07-04T05:52:57.793625
+**সাইজ:** 530 বাইট  
+**আপডেট:** 2026-07-04T08:12:03.203995
 
 ---
 
@@ -16,11 +16,15 @@ import './index.css'
 import { App } from './App.tsx'
 
 import { ThemeProvider } from './contexts/ThemeContext'
+// Shared providers (react-query, monaco defaults)
+import { SharedProviders } from '@supremeai/ui-components'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <ThemeProvider>
-      <App />
+      <SharedProviders>
+        <App />
+      </SharedProviders>
     </ThemeProvider>
   </StrictMode>,
 )

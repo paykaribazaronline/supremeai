@@ -1,14 +1,15 @@
 # 📄 ফাইল: backend/tests/tools/test_viral_referral_engine.py
 
 **প্রকার:** .py  
-**সাইজ:** 17,961 বাইট  
-**আপডেট:** 2026-07-04T05:52:57.782194
+**সাইজ:** 18,022 বাইট  
+**আপডেট:** 2026-07-04T08:12:03.179655
 
 ---
 
 ## কোড
 
 ```py
+import asyncio
 import json
 import os
 import time
@@ -125,9 +126,9 @@ class TestViralReferralEngine:
             codes = engine.list_user_codes("user-456")
         assert codes == []
 
-    async def test_process_signup_invalid_code(self, engine, tmp_path):
+    def test_process_signup_invalid_code(self, engine, tmp_path):
         engine._local_store = lambda: os.path.join(str(tmp_path), "referrals.json")
-        result = engine.process_signup("new-user-123", "INVALID-CODE", {})
+        result = asyncio.run(engine.process_signup("new-user-123", "INVALID-CODE", {}))
         assert result["status"] == "skipped"
         assert result["reason"] == "invalid_code"
 
@@ -135,7 +136,7 @@ class TestViralReferralEngine:
         engine._local_store = lambda: os.path.join(str(tmp_path), "referrals.json")
         gen = engine.generate_referral_code("referrer-1")
         code = gen["code"]
-        result = engine.process_signup("new-user-123", code, {})
+        result = asyncio.run(engine.process_signup("new-user-123", code, {}))
         assert result["status"] == "success"
         assert result["referrer_id"] == "referrer-1"
         assert "reward_applied" in result
@@ -145,7 +146,7 @@ class TestViralReferralEngine:
         gen = engine.generate_referral_code("referrer-1")
         code = gen["code"]
         engine._load_local()["codes"][code]["expires_at"] = time.time() - 1
-        result = engine.process_signup("new-user-123", code, {})
+        result = asyncio.run(engine.process_signup("new-user-123", code, {}))
         assert result["status"] == "skipped"
         assert result["reason"] == "expired_code"
 
@@ -155,7 +156,7 @@ class TestViralReferralEngine:
         code = gen["code"]
         meta = {"ip_address": "1.2.3.4", "device_fingerprint": "dev-abc"}
         with patch.object(engine, "_is_fraudulent", return_value=True):
-            result = engine.process_signup("new-user-123", code, meta)
+            result = asyncio.run(engine.process_signup("new-user-123", code, meta))
         assert result["status"] == "skipped"
         assert result["reason"] == "fraud_detected"
 

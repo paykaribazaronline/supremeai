@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/desktop/src-tauri/src/main.rs
 
 **প্রকার:** .rs  
-**সাইজ:** 3,800 বাইট  
-**আপডেট:** 2026-07-04T05:52:57.805152
+**সাইজ:** 3,778 বাইট  
+**আপডেট:** 2026-07-04T08:12:03.229103
 
 ---
 
@@ -15,7 +15,7 @@
 )]
 
 use tauri::{Manager, SystemTray, SystemTrayEvent, SystemTrayMenu, SystemTrayMenuItem, CustomMenuItem, SystemTrayEvent::MenuEvent};
-use tauri::api::{fs::read_text_file, notification::{Notification, NotificationAction}, updater};
+use tauri::api::{fs::read_text_file, notification::Notification, updater};
 use std::sync::Mutex;
 
 struct AppState {

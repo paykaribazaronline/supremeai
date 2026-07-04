@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/desktop/src-ui/package.json
 
 **প্রকার:** .json  
-**সাইজ:** 1,067 বাইট  
-**আপডেট:** 2026-07-04T05:52:57.804061
+**সাইজ:** 1,114 বাইট  
+**আপডেট:** 2026-07-04T08:12:03.226638
 
 ---
 
@@ -26,7 +26,8 @@
     "react-dom": "^19.2.7",
     "react-router-dom": "^6.4.0",
     "typescript": "^5.4.0",
-    "zustand": "^4.3.9"
+    "zustand": "^4.3.9",
+    "@supremeai/ui-components": "workspace:*"
   },
   "scripts": {
     "dev": "vite",
