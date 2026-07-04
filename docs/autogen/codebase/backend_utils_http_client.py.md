@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/utils/http_client.py
 
 **প্রকার:** .py  
-**সাইজ:** 4,589 বাইট  
-**আপডেট:** 2026-07-04T05:33:40.894093
+**সাইজ:** 4,584 বাইট  
+**আপডেট:** 2026-07-04T05:52:57.762726
 
 ---
 
@@ -58,11 +58,11 @@ def handle_api_error(exc: Exception, status_code: int | None = None) -> str:
         মানবপঠনযোগ্য এরর মেসেজ স্ট্রিং।
     """
     if status_code == 401:
-        return "Error: Invalid credentials. Check API key or token configuration."
+        return "Error: Invalid API key. Check API key or token configuration."
     if status_code == 403:
         return "Error: Permission denied. Check token permissions for this resource."
     if status_code == 404:
-        return "Error: Resource not found. Verify the resource name or path."
+        return "Error: Service not found. Verify the resource name or path."
     if status_code == 429:
         return "Error: Rate limit exceeded. Please wait before retrying."
     return f"Error: API request failed - {type(exc).__name__}"

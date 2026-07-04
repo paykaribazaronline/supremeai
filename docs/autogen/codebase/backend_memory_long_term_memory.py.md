@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/memory/long_term_memory.py
 
 **প্রকার:** .py  
-**সাইজ:** 2,730 বাইট  
-**আপডেট:** 2026-07-04T05:33:40.905910
+**সাইজ:** 4,300 বাইট  
+**আপডেট:** 2026-07-04T05:52:57.768152
 
 ---
 
@@ -81,4 +81,38 @@ class LongTermMemory:
     def __init__(self, db_path: str = ":memory:", session_id: str = "default"):
         self.memory_manager = MemoryManager()
         self.session_id = session_id
+        self._facts: list[dict[str, Any]] = []
+        self._summaries: list[dict[str, Any]] = []
+
+    def remember_fact(self, content: str, category: str = "general", importance: float = 0.5, source: str = "unknown") -> dict[str, Any]:
+        """Store a simple fact in memory for later recall and context building."""
+        fact = {
+            "content": content,
+            "category": category,
+            "importance": importance,
+            "source": source,
+        }
+        self._facts.append(fact)
+        return fact
+
+    def recall_facts(self, category: str | None = None) -> list[dict[str, Any]]:
+        """Return stored facts, optionally filtered by category."""
+        if category is None:
+            return list(self._facts)
+        return [fact for fact in self._facts if fact.get("category") == category]
+
+    def save_summary(self, content: str, turn_count: int = 1) -> dict[str, Any]:
+        """Store a summary entry used by context generation."""
+        summary = {"content": content, "turn_count": turn_count}
+        self._summaries.append(summary)
+        return summary
+
+    def build_context(self) -> str:
+        """Build a simple human-readable context string from stored facts and summaries."""
+        parts: list[str] = []
+        if self._summaries:
+            parts.append("Summary: " + "; ".join(item["content"] for item in self._summaries))
+        if self._facts:
+            parts.append("Facts: " + "; ".join(item["content"] for item in self._facts))
+        return "\n".join(parts) if parts else "No memory available."
 ```

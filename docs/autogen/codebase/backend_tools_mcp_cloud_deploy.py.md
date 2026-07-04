@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/mcp_cloud_deploy.py
 
 **প্রকার:** .py  
-**সাইজ:** 11,787 বাইট  
-**আপডেট:** 2026-07-04T05:33:40.955238
+**সাইজ:** 11,880 বাইট  
+**আপডেট:** 2026-07-04T05:52:57.791365
 
 ---
 
@@ -101,8 +101,14 @@ class GetLogsInput(BaseModel):
     lines: int = Field(default=100, description="রিট্রিভ করার লাইন সংখ্যা", ge=1, le=1000)
 
 
-# রিফ্যাক্টর: লোকাল _check_admin_auth, _handle_api_error মুছে
-# শেয়ার্ড ইউটিলিটি (utils.environment, utils.http_client) ব্যবহার করা হচ্ছে।
+def _check_admin_auth() -> bool:
+    """Backwards-compatible wrapper for admin authorization checks."""
+    return is_admin_authorized()
+
+
+def _handle_api_error(exc: Exception, status_code: int | None = None) -> str:
+    """Backwards-compatible wrapper for shared API error formatting."""
+    return handle_api_error(exc, status_code)
 
 
 @mcp.tool(

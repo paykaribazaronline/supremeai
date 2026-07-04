@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/code_smell_detector.py
 
 **প্রকার:** .py  
-**সাইজ:** 22,197 বাইট  
-**আপডেট:** 2026-07-04T05:33:40.942656
+**সাইজ:** 22,237 বাইট  
+**আপডেট:** 2026-07-04T05:52:57.785377
 
 ---
 
@@ -82,10 +82,10 @@ class CodeSmellDetector:
         logger.info(f"Analyzing {filepath} for smells...")
         smells: list[dict[str, Any]] = []
 
+        tree: ast.AST | None = None
         try:
             with open(filepath, encoding="utf-8") as f:
                 content = f.read()
-                content.splitlines()
 
             tree = ast.parse(content)
 
@@ -176,8 +176,9 @@ class CodeSmellDetector:
                             }
                         )
 
-            smells.extend(self._detect_duplicate_functions(tree, filepath))
-            smells.extend(self._detect_broad_exceptions(tree, filepath))
+            if tree is not None:
+                smells.extend(self._detect_duplicate_functions(tree, filepath))
+                smells.extend(self._detect_broad_exceptions(tree, filepath))
 
         except SyntaxError as e:
             smells.append(
