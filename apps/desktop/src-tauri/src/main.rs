@@ -70,6 +70,7 @@ fn main() {
     let system_tray = SystemTray::new().with_menu(tray_menu);
 
     tauri::Builder::default()
+        .plugin(tauri_plugin_store::Builder::default().build())
         .manage(app_state)
         .system_tray(system_tray)
         .on_system_tray_event(|app, event| match event {
