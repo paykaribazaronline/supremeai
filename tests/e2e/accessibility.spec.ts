@@ -4,6 +4,7 @@ import AxeBuilder from '@axe-core/playwright';
 test.describe('Accessibility Tests (WCAG)', () => {
     test('Homepage should not have any automatically detectable accessibility issues', async ({ page }) => {
         await page.goto('/');
+        await page.waitForSelector('[data-testid="dashboard-sidebar"]', { state: 'visible', timeout: 15000 });
 
         const accessibilityScanResults = await new AxeBuilder({ page }).analyze();
 
@@ -17,6 +18,7 @@ test.describe('Accessibility Tests (WCAG)', () => {
 
     test('Admin Dashboard should be accessible', async ({ page }) => {
         await page.goto('/admin'); // আপনার অ্যাডমিন পেজের URL
+        await page.waitForSelector('text=SupremeAI', { state: 'visible', timeout: 15000 });
 
         const accessibilityScanResults = await new AxeBuilder({ page }).analyze();
 
