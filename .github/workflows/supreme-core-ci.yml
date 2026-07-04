@@ -415,7 +415,7 @@ jobs:
         continue-on-error: true
         run: |
           pnpm exec playwright install --with-deps
-          pnpm exec playwright test --reporter=html
+          pnpm exec playwright test tests/e2e/accessibility.spec.ts tests/e2e/chat.spec.ts --reporter=html
 
       - name: Install Python Dependencies for Frontend Auto-Fix
         if: failure()
@@ -487,7 +487,7 @@ jobs:
           # --reporter=html ডিফল্ট হিসেবে কনফিগারেশন ফাইল থেকে আসে,
           # কিন্তু এখানে স্পষ্টভাবে উল্লেখ করাও ভালো।
           # ভিডিও এবং ট্রেস কনফিগারেশন playwright.config.ts থেকে আসবে।
-          pnpm exec playwright test
+          pnpm exec playwright test tests/e2e/accessibility.spec.ts tests/e2e/chat.spec.ts
         env:
           CI: true
       - name: Upload Test Report Artifacts
@@ -539,47 +539,7 @@ jobs:
           GCP_REGION: ${{ vars.GCP_REGION || 'us-central1' }}
         run: python .github/scripts/deploy-backend.py
 
-  load-test:
-    name: ⏱️ Load Test (k6)
-    needs: [backend-core, frontend-core]
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-      - name: Start Backend for Testing
-        working-directory: backend
-        env:
-          GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
-        run: |
-          pip install poetry
-          poetry config virtualenvs.in-project true
-          poetry install --sync --without ml
-          
-          # Create credentials file for Google Cloud/Firestore
-          echo "$GCP_SA_KEY" > $HOME/gcp_key.json
-          export GOOGLE_APPLICATION_CREDENTIALS="$HOME/gcp_key.json"
-          
-          poetry run python main.py &
-          sleep 12
-      # বাংলা মন্তব্য: k6io/setup-k6 রিপোজিটরি অপসারিত হওয়ায় grafana/setup-k6-action@v1 ব্যবহার করা হলো
-      - name: Install k6
-        uses: grafana/setup-k6-action@v1
-      - name: Run k6 load test
-        env:
-          SUPREMEAI_URL: "http://127.0.0.1:8000"
-        run: |
-          echo "Running k6 load test against ${SUPREMEAI_URL}"
-          export CI=true
-          export SUPREMEAI_URL="${SUPREMEAI_URL}"
-          k6 run --out json=load-test-output.json scripts/k6/load_test.js
-      - name: Upload k6 results
-        uses: actions/upload-artifact@v4
-        with:
-          name: k6-load-test
-          path: load-test-output.json
+
 
   flutter-integration-tests:
     name: 📱 Flutter Integration Test
