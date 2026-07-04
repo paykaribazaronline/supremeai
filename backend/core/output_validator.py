@@ -1,6 +1,9 @@
 import json
 from pathlib import Path
 
+from loguru import logger
+
+
 class MultiAICodeGenerator:
     def generate_with_consensus(
         self, task: str, code_kimi: str, code_gpt: str, code_claude: str
@@ -31,9 +34,9 @@ class EnhancedConfidenceScorer:
         """ডাইনামিকালি ডাটাবেজ বা JSON থেকে রুলস লোড করে।"""
         if rules_path and rules_path.exists():
             try:
-                with open(rules_path, 'r', encoding='utf-8') as f:
+                with open(rules_path, encoding='utf-8') as f:
                     return json.load(f)
-            except (json.JSONDecodeError, IOError) as e:
+            except (OSError, json.JSONDecodeError) as e:
                 logger.error(f"Failed to load constitutional rules from {rules_path}: {e}")
         logger.warning("Constitutional rules not found or failed to load. Using empty ruleset.")
         return {"hallucination_patterns": [], "scores": {}}

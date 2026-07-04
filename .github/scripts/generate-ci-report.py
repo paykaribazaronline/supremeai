@@ -116,7 +116,11 @@ def add_vitest_results_to_summary(json_path: str, label: str = "Frontend"):
         return
 
     with open(json_path, encoding="utf-8") as f:
-        data = json.load(f)
+        try:
+            data = json.load(f)
+        except json.JSONDecodeError as exc:
+            print(f"⚠️ Vitest JSON report invalid or empty: {json_path}: {exc}")
+            return
 
     stats = data.get('stats', {})
     total = stats.get('tests', 0)
