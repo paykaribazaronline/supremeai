@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/evolution_engine.py
 
 **প্রকার:** .py  
-**সাইজ:** 13,199 বাইট  
-**আপডেট:** 2026-07-04T03:46:15.379354
+**সাইজ:** 13,217 বাইট  
+**আপডেট:** 2026-07-04T03:48:57.224997
 
 ---
 
@@ -11,12 +11,12 @@
 ```py
 from __future__ import annotations
 
+import hashlib
 import os
 import sqlite3
-import hashlib
 from datetime import UTC
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from brain.model_router import ModelRouter
 
@@ -24,7 +24,7 @@ from brain.model_router import ModelRouter
 class EvolutionEngine:
     """Persists task outcomes, detects repeated failures, proposes and auto-generates skills."""
 
-    def __init__(self, db_path: str | None = None, model_router: Optional[ModelRouter] = None):
+    def __init__(self, db_path: str | None = None, model_router: ModelRouter | None = None):
         base = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         self.db_path = db_path or os.getenv(
             "EVOLUTION_DB_PATH", os.path.join(base, "data", "evolution.db")
@@ -205,7 +205,7 @@ class EvolutionEngine:
         finally:
             conn.close()
             
-    def propose_prompt_optimization(self, original_prompt: str, failure_data: Dict[str, Any]) -> Dict[str, Any]:
+    def propose_prompt_optimization(self, original_prompt: str, failure_data: dict[str, Any]) -> dict[str, Any]:
         task_hash = hashlib.sha256(original_prompt.encode()).hexdigest()
         
         # বাংলা মন্তব্য: LLM ব্যবহার করে উন্নত প্রম্পট তৈরির জন্য একটি প্রম্পট তৈরি করা হচ্ছে।
@@ -253,8 +253,9 @@ Based on the prompt, rewrite it to be more precise, clear, and effective. Provid
     def propose_new_skill(self, pattern: str) -> dict[str, Any]:
         skill_name = f"auto_{pattern.strip().replace(' ', '_').lower()}"
         created_at = datetime.now(UTC).isoformat()
-code = (
-            f"class {''.join(part.capitalize() for part in skill_name.split('_'))}"
+        class_name = ''.join(part.capitalize() for part in skill_name.split('_'))
+        code = (
+            f"class {class_name}:\n"
             f"    def __init__(self): ...\n"
             f"    def run(self, payload: dict) -> dict:\n"
             f"        return {{'skill': '{skill_name}', 'status': 'ok'}}\n"

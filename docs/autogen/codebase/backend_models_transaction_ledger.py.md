@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/models/transaction_ledger.py
 
 **প্রকার:** .py  
-**সাইজ:** 1,021 বাইট  
-**আপডেট:** 2026-07-04T03:46:15.400054
+**সাইজ:** 1,007 বাইট  
+**আপডেট:** 2026-07-04T03:48:57.242442
 
 ---
 
@@ -12,8 +12,8 @@
 # Pydantic schemas for tracking Immutable Billing Ledgers
 # বাংলা মন্তব্য: প্রতিটি ট্রানজেকশন ট্র্যাক করার ইমিউটেবল লেজার স্কিমা।
 
+from datetime import UTC
 from datetime import datetime
-from datetime import timezone
 from typing import Literal
 
 from pydantic import BaseModel
@@ -26,7 +26,7 @@ class TransactionLedgerEntry(BaseModel):
     amount_usd: float = Field(..., description="Amount charged (negative) or credited (positive)")
     transaction_type: Literal["token_usage", "byoc_deployment", "topup", "monthly_grant"]
     description: str = Field(..., description="Context description (e.g. model name, tokens, or invoice ID)")
-    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(UTC))
     status: Literal["success", "failed", "pending"] = "success"
 
 ```

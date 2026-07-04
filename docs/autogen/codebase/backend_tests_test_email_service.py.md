@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/test_email_service.py
 
 **প্রকার:** .py  
-**সাইজ:** 6,076 বাইট  
-**আপডেট:** 2026-07-04T03:46:15.409404
+**সাইজ:** 6,077 বাইট  
+**আপডেট:** 2026-07-04T03:48:57.250374
 
 ---
 
@@ -149,4 +149,5 @@ class TestEmailService:
                 "test@example.com", 10.50, "image_generation"
             )
             assert result is True
+
 ```

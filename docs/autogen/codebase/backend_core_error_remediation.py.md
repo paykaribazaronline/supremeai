@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/error_remediation.py
 
 **প্রকার:** .py  
-**সাইজ:** 3,843 বাইট  
-**আপডেট:** 2026-07-04T03:46:15.377454
+**সাইজ:** 3,771 বাইট  
+**আপডেট:** 2026-07-04T03:48:57.223344
 
 ---
 
@@ -74,14 +74,13 @@ class ErrorRemediation:
 
     def _load_local_fallback(self) -> str | None:
         try:
-            with open(self.fallback_path, "r", encoding="utf-8") as f:
+            with open(self.fallback_path, encoding="utf-8") as f:
                 data = json.load(f)
             return data.get("default_fix") or data.get("fallbacks", {}).get("default")
         except Exception:
             return None
 
     async def _backoff_retry(self, operation, max_attempts: int = 3, base_delay: float = 0.5):
-        last_exception = None
         for attempt in range(1, max_attempts + 1):
             if not self.circuit_breaker.allow_request():
                 logger.warning("Circuit breaker open; skipping Qdrant lookup.")
@@ -91,7 +90,6 @@ class ErrorRemediation:
                 self.circuit_breaker.record_success()
                 return result
             except Exception as exc:
-                last_exception = exc
                 self.circuit_breaker.record_failure()
                 logger.debug(f"Qdrant lookup attempt {attempt} failed: {exc}")
                 if attempt < max_attempts:

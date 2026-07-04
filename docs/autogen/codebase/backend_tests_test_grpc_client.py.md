@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/test_grpc_client.py
 
 **প্রকার:** .py  
-**সাইজ:** 5,954 বাইট  
-**আপডেট:** 2026-07-04T03:46:15.417703
+**সাইজ:** 5,955 বাইট  
+**আপডেট:** 2026-07-04T03:48:57.257439
 
 ---
 
@@ -146,4 +146,5 @@ class TestWorkerGrpcClient:
                     "user_login", "user-123", "auth", {"ip": "127.0.0.1"}
                 )
                 assert result is False
+
 ```

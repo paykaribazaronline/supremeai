@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/test_admin_god.py
 
 **প্রকার:** .py  
-**সাইজ:** 5,605 বাইট  
-**আপডেট:** 2026-07-04T03:46:15.415029
+**সাইজ:** 5,606 বাইট  
+**আপডেট:** 2026-07-04T03:48:57.255251
 
 ---
 
@@ -130,4 +130,5 @@ class TestRBACIntegration:
         ctx = UserContext(user_id="viewer", role="viewer")
         with pytest.raises(PermissionError):
             layer.enforce("admin", ctx)
+
 ```

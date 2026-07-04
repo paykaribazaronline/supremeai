@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/adaptive_engine/experience_db.py
 
 **প্রকার:** .py  
-**সাইজ:** 12,188 বাইট  
-**আপডেট:** 2026-07-04T03:46:15.434415
+**সাইজ:** 12,189 বাইট  
+**আপডেট:** 2026-07-04T03:48:57.271467
 
 ---
 
@@ -271,8 +271,9 @@ class ExperienceDatabase:
         """
         import gzip
         import shutil
-        from google.cloud import storage
+
         import loguru
+        from google.cloud import storage
 
         try:
             if str(self.db_path) == ":memory:":

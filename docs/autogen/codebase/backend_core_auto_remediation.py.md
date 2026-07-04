@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/auto_remediation.py
 
 **প্রকার:** .py  
-**সাইজ:** 12,895 বাইট  
-**আপডেট:** 2026-07-04T03:46:15.380477
+**সাইজ:** 12,897 বাইট  
+**আপডেট:** 2026-07-04T03:48:57.225881
 
 ---
 
@@ -63,6 +63,7 @@ class AutoRemediationEngine:
             from ldai import LDMessage as _LDMessage
             from ldai import ModelConfig as _ModelConfig
             from ldclient.context import Context as _Context
+
             from core.ld_client import ld_ai_client as _ld_ai_client
 
             AICompletionConfigDefault = _AICompletionConfigDefault
@@ -244,6 +245,7 @@ class AutoRemediation:
             from ldai import LDMessage as _LDMessage
             from ldai import ModelConfig as _ModelConfig
             from ldclient.context import Context as _Context
+
             from core.ld_client import ld_ai_client as _ld_ai_client
 
             AICompletionConfigDefault = _AICompletionConfigDefault

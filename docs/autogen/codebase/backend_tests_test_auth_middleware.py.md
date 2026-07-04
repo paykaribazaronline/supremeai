@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/test_auth_middleware.py
 
 **প্রকার:** .py  
-**সাইজ:** 10,419 বাইট  
-**আপডেট:** 2026-07-04T03:46:15.421313
+**সাইজ:** 10,420 বাইট  
+**আপডেট:** 2026-07-04T03:48:57.260420
 
 ---
 
@@ -252,4 +252,5 @@ class TestVerifyAdminSessionFailClosed:
 
                 result = asyncio.run(verify_admin_session_fail_closed(mock_request))
                 assert result["sub"] == "admin-123"
+
 ```

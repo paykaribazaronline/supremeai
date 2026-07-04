@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/memory/long_term_memory.py
 
 **প্রকার:** .py  
-**সাইজ:** 2,544 বাইট  
-**আপডেট:** 2026-07-04T03:46:15.401503
+**সাইজ:** 2,547 বাইট  
+**আপডেট:** 2026-07-04T03:48:57.243594
 
 ---
 
@@ -12,11 +12,13 @@
 from __future__ import annotations
 
 from typing import Any
+
 from loguru import logger
 
+
 try:
-    from database.supabase_client import db
     from brain.model_router import ModelRouter
+    from database.supabase_client import db
     _DEPENDENCIES_AVAILABLE = True
 except ImportError:
     _DEPENDENCIES_AVAILABLE = False
@@ -76,4 +78,5 @@ class MemoryManager:
         memories = [item['content'] for item in result.data] if result.data else []
         logger.info(f"Retrieved {len(memories)} relevant memories.")
         return memories
+
 ```

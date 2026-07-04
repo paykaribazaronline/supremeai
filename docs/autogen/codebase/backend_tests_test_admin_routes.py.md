@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/test_admin_routes.py
 
 **প্রকার:** .py  
-**সাইজ:** 13,752 বাইট  
-**আপডেট:** 2026-07-04T03:46:15.417975
+**সাইজ:** 13,741 বাইট  
+**আপডেট:** 2026-07-04T03:48:57.257660
 
 ---
 
@@ -56,7 +56,7 @@ class TestHelperFunctions:
         with patch.dict("sys.modules", {"bcrypt": None}):
             import importlib
 
-            import core.admin_routes as admin_routes
+            from core import admin_routes
 
             importlib.reload(admin_routes)
             assert admin_routes._verify_password("pass", "hash") is False

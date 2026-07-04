@@ -1,19 +1,25 @@
 # 📄 ফাইল: backend/models/error_remediation.py
 
 **প্রকার:** .py  
-**সাইজ:** 5,666 বাইট  
-**আপডেট:** 2026-07-04T03:46:15.398529
+**সাইজ:** 5,765 বাইট  
+**আপডেট:** 2026-07-04T03:48:57.241208
 
 ---
 
 ## কোড
 
 ```py
-import time
 import logging
-from typing import Callable, Any
-from tenacity import retry, stop_after_attempt, wait_exponential, RetryError
-from pybreaker import CircuitBreaker, CircuitBreakerError
+from collections.abc import Callable
+from typing import Any
+
+from pybreaker import CircuitBreaker
+from pybreaker import CircuitBreakerError
+from tenacity import RetryError
+from tenacity import retry
+from tenacity import stop_after_attempt
+from tenacity import wait_exponential
+
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
@@ -86,4 +92,5 @@ if __name__ == '__main__':
     except CircuitBreakerError as e:
         logging.warning(f"সার্কিট ওপেন থাকায় কলটি ব্লক করা হয়েছে: {e}")
         logging.info(f"ব্রেকার রিসেট হতে আর {db_breaker.seconds_remaining:.1f} সেকেন্ড বাকি।")
+
 ```

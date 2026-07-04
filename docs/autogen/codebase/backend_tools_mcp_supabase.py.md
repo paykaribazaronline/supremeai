@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/mcp_supabase.py
 
 **প্রকার:** .py  
-**সাইজ:** 13,811 বাইট  
-**আপডেট:** 2026-07-04T03:46:15.438600
+**সাইজ:** 13,785 বাইট  
+**আপডেট:** 2026-07-04T03:48:57.275158
 
 ---
 
@@ -23,7 +23,6 @@ from typing import List, Any
 from enum import Enum
 
 import psycopg2
-from loguru import logger
 from pydantic import BaseModel, Field, ConfigDict
 from mcp.server.fastmcp import FastMCP
 

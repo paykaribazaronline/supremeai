@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/generation_monitor.py
 
 **প্রকার:** .py  
-**সাইজ:** 2,554 বাইট  
-**আপডেট:** 2026-07-04T03:46:15.378885
+**সাইজ:** 2,552 বাইট  
+**আপডেট:** 2026-07-04T03:48:57.224597
 
 ---
 
@@ -78,9 +78,9 @@ class GenerationMonitor:
         }
 
     def track_agent_call(self, **kwargs):
-        print(f"--- AGENT CALL ---")
+        print("--- AGENT CALL ---")
         for key, value in kwargs.items():
             print(f"{key}: {value}")
-        print(f"--------------------")
+        print("--------------------")
 
 ```

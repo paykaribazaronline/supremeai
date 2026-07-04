@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/test_cloud_storage.py
 
 **প্রকার:** .py  
-**সাইজ:** 5,375 বাইট  
-**আপডেট:** 2026-07-04T03:46:15.416895
+**সাইজ:** 5,376 বাইট  
+**আপডেট:** 2026-07-04T03:48:57.256783
 
 ---
 
@@ -126,4 +126,5 @@ class TestCloudStorageManager:
                     await manager.upload_file_async("test/file.json", b'{"data": "test"}')
 
                 assert exc_info.value.status_code == 503
+
 ```
