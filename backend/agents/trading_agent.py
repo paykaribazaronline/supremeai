@@ -30,9 +30,7 @@ class TradingAgent:
     def _load_portfolio(self) -> None:
         if db.client:
             try:
-                res = (
-                    db.client.table("trading_portfolio").select("*").limit(1).execute()
-                )
+                res = db.client.table("trading_portfolio").select("*").limit(1).execute()
                 if res.data:
                     self._portfolio = res.data[0]
                     return
@@ -86,11 +84,7 @@ class TradingAgent:
         price = data.get("price") or 0.0
         prev = data.get("previous_close") or price
         change_pct = ((price - prev) / prev * 100) if prev else 0.0
-        sentiment = (
-            "bullish"
-            if change_pct > 1
-            else ("bearish" if change_pct < -1 else "neutral")
-        )
+        sentiment = "bullish" if change_pct > 1 else ("bearish" if change_pct < -1 else "neutral")
         return {
             "symbol": symbol,
             "price": price,
@@ -101,23 +95,15 @@ class TradingAgent:
             "note": "Trend analysis uses simple price momentum. For richer signals, connect technical-indicators library.",
         }
 
-    def buy(
-        self, symbol: str, quantity: float, price: float | None = None
-    ) -> dict[str, Any]:
+    def buy(self, symbol: str, quantity: float, price: float | None = None) -> dict[str, Any]:
         price = price or self.get_market_data(symbol).get("price") or 0.0
         cost = quantity * price
         if cost > self._portfolio.get("cash", 0.0):
             return {"status": "error", "reason": "insufficient_funds"}
         self._portfolio["cash"] = self._portfolio.get("cash", 0.0) - cost
-        pos = self._portfolio.setdefault("positions", {}).get(
-            symbol, {"qty": 0.0, "avg_price": 0.0}
-        )
+        pos = self._portfolio.setdefault("positions", {}).get(symbol, {"qty": 0.0, "avg_price": 0.0})
         total_qty = pos["qty"] + quantity
-        pos["avg_price"] = (
-            (pos["qty"] * pos["avg_price"] + quantity * price) / total_qty
-            if total_qty > 0
-            else 0.0
-        )
+        pos["avg_price"] = (pos["qty"] * pos["avg_price"] + quantity * price) / total_qty if total_qty > 0 else 0.0
         pos["qty"] = total_qty
         self._portfolio.setdefault("positions", {})[symbol] = pos
         self._portfolio.setdefault("history", []).append(
@@ -138,12 +124,8 @@ class TradingAgent:
             "price": price,
         }
 
-    def sell(
-        self, symbol: str, quantity: float, price: float | None = None
-    ) -> dict[str, Any]:
-        pos = self._portfolio.setdefault("positions", {}).get(
-            symbol, {"qty": 0.0, "avg_price": 0.0}
-        )
+    def sell(self, symbol: str, quantity: float, price: float | None = None) -> dict[str, Any]:
+        pos = self._portfolio.setdefault("positions", {}).get(symbol, {"qty": 0.0, "avg_price": 0.0})
         if pos.get("qty", 0.0) < quantity:
             return {"status": "error", "reason": "insufficient_position"}
         price = price or self.get_market_data(symbol).get("price") or 0.0
@@ -173,17 +155,14 @@ class TradingAgent:
     def portfolio(self) -> dict[str, Any]:
         positions = self._portfolio.get("positions", {})
         for sym, pos in positions.items():
-            current = self.get_market_data(sym).get("price") or pos.get(
-                "avg_price", 0.0
-            )
+            current = self.get_market_data(sym).get("price") or pos.get("avg_price", 0.0)
             pos["current_price"] = current
             pos["value"] = round(pos.get("qty", 0.0) * current, 2)
         return {
             "cash": self._portfolio.get("cash", 0.0),
             "positions": positions,
             "total_value": round(
-                self._portfolio.get("cash", 0.0)
-                + sum(p.get("value", 0.0) for p in positions.values()),
+                self._portfolio.get("cash", 0.0) + sum(p.get("value", 0.0) for p in positions.values()),
                 2,
             ),
             "history_count": len(self._portfolio.get("history", [])),

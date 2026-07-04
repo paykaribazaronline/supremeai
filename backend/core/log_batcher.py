@@ -1,9 +1,5 @@
 import asyncio
-import os
-import signal
 from collections import deque
-from datetime import datetime
-from typing import Any, Dict
 
 from loguru import logger
 from sqlalchemy import insert
@@ -34,6 +30,7 @@ class LogBatcherService:
         if self.task:
             self.task.cancel()
             import contextlib
+
             with contextlib.suppress(asyncio.CancelledError):
                 await self.task
         await self._flush()
@@ -45,7 +42,7 @@ class LogBatcherService:
         log_entry must be a dict matching ExecutionLog schema.
         """
         self.queue.put_nowait(log_entry)
-        
+
         # Publish to SSE subscribers
         session_id = str(log_entry.get("session_id"))
         if session_id in self._subscribers:
@@ -62,6 +59,7 @@ class LogBatcherService:
     def unsubscribe(self, session_id: str, q: asyncio.Queue):
         if session_id in self._subscribers:
             import contextlib
+
             with contextlib.suppress(ValueError):
                 self._subscribers[session_id].remove(q)
             if not self._subscribers[session_id]:
@@ -73,7 +71,7 @@ class LogBatcherService:
                 # Wait for at least one item, up to flush_interval
                 item = await asyncio.wait_for(self.queue.get(), timeout=self.flush_interval)
                 self.buffer.append(item)
-                
+
                 # Drain queue up to batch_size
                 while len(self.buffer) < self.batch_size:
                     try:
@@ -81,10 +79,10 @@ class LogBatcherService:
                         self.buffer.append(next_item)
                     except asyncio.QueueEmpty:
                         break
-                        
+
                 if len(self.buffer) >= self.batch_size:
                     await self._flush()
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 if self.buffer:
                     await self._flush()
             except Exception as e:
@@ -93,25 +91,23 @@ class LogBatcherService:
     async def _flush(self):
         if not self.buffer:
             return
-        
+
         batch = list(self.buffer)
         self.buffer.clear()
-        
+
         try:
             # Execute DB insertion in a new isolated session
             async for session in get_db_session():
-                await session.execute(
-                    insert(ExecutionLog),
-                    batch
-                )
+                await session.execute(insert(ExecutionLog), batch)
                 await session.commit()
-                break # Just run once
+                break  # Just run once
             logger.debug(f"Flushed {len(batch)} log entries to database.")
         except Exception as e:
             logger.error(f"Failed to flush log entries to database: {e}")
             # Re-queue on failure (in a real system, might use a dead-letter queue)
             for item in batch:
                 self.queue.put_nowait(item)
+
 
 # Global instance
 batcher = LogBatcherService()

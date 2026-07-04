@@ -43,9 +43,7 @@ def test_recall_episodes_with_filter(memory_store):
 
 def test_recall_episodes_limit(memory_store):
     for idx in range(25):
-        memory_store.store_episode(
-            "task.completed", f"doc-{idx}", "success", importance=float(idx)
-        )
+        memory_store.store_episode("task.completed", f"doc-{idx}", "success", importance=float(idx))
 
     episodes = memory_store.recall_episodes(limit=10)
     assert len(episodes) == 10
@@ -69,9 +67,7 @@ def test_summarize_recent_with_episodes(memory_store):
 
 def test_summarize_recent_limit(memory_store):
     for idx in range(10):
-        memory_store.store_episode(
-            "task.completed", f"doc-{idx}", "success", importance=float(idx)
-        )
+        memory_store.store_episode("task.completed", f"doc-{idx}", "success", importance=float(idx))
 
     text = memory_store.summarize_recent(limit=3)
     assert "Recent episodes:" in text

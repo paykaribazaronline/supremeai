@@ -1,18 +1,19 @@
+import json
 import os
 import sqlite3
 import threading
 import time
-import json
-import base64
-from typing import List
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter
+from fastapi import HTTPException
 from pydantic import BaseModel
+
 
 router = APIRouter(prefix="/api/admin/site-actions", tags=["Site Actions Registry"])
 
 DB_PATH = os.getenv("SITE_ACTIONS_DB", "data/site_actions.db")
 _lock = threading.Lock()
+
 
 def _conn() -> sqlite3.Connection:
     os.makedirs(os.path.dirname(DB_PATH) or ".", exist_ok=True)
@@ -35,7 +36,7 @@ def _conn() -> sqlite3.Connection:
         )
         """
     )
-    
+
     # Run migrations if columns don't exist
     cur = conn.cursor()
     cur.execute("PRAGMA table_info(site_actions)")
@@ -46,8 +47,9 @@ def _conn() -> sqlite3.Connection:
         conn.execute("ALTER TABLE site_actions ADD COLUMN selector_strategy TEXT DEFAULT 'exact'")
     if "health_score" not in columns:
         conn.execute("ALTER TABLE site_actions ADD COLUMN health_score INTEGER DEFAULT 100")
-        
+
     return conn
+
 
 class SiteActionIn(BaseModel):
     site_name: str
@@ -57,12 +59,14 @@ class SiteActionIn(BaseModel):
     action_type: str = "click"
     notes: str = ""
     enabled: bool = True
-    fallback_selectors: List[str] = []
+    fallback_selectors: list[str] = []
     selector_strategy: str = "exact"
     health_score: int = 100
 
+
 class TestSelectorRequest(BaseModel):
     action_id: int
+
 
 def _row_to_dict(row: tuple) -> dict:
     return {
@@ -80,13 +84,13 @@ def _row_to_dict(row: tuple) -> dict:
         "updated_at": row[11] if len(row) > 11 else time.time(),
     }
 
+
 @router.get("/")
 def list_site_actions():
     with _lock, _conn() as conn:
-        rows = conn.execute(
-            "SELECT * FROM site_actions ORDER BY updated_at DESC"
-        ).fetchall()
+        rows = conn.execute("SELECT * FROM site_actions ORDER BY updated_at DESC").fetchall()
     return {"items": [_row_to_dict(r) for r in rows], "total": len(rows)}
+
 
 @router.post("/")
 def create_site_action(payload: SiteActionIn):
@@ -114,10 +118,9 @@ def create_site_action(payload: SiteActionIn):
         )
         conn.commit()
         new_id = cur.lastrowid
-        row = conn.execute(
-            "SELECT * FROM site_actions WHERE id = ?", (new_id,)
-        ).fetchone()
+        row = conn.execute("SELECT * FROM site_actions WHERE id = ?", (new_id,)).fetchone()
     return _row_to_dict(row)
+
 
 @router.put("/{action_id}")
 def update_site_action(action_id: int, payload: SiteActionIn):
@@ -148,10 +151,9 @@ def update_site_action(action_id: int, payload: SiteActionIn):
         conn.commit()
         if cur.rowcount == 0:
             raise HTTPException(status_code=404, detail="Site action not found")
-        row = conn.execute(
-            "SELECT * FROM site_actions WHERE id = ?", (action_id,)
-        ).fetchone()
+        row = conn.execute("SELECT * FROM site_actions WHERE id = ?", (action_id,)).fetchone()
     return _row_to_dict(row)
+
 
 @router.delete("/{action_id}")
 def delete_site_action(action_id: int):
@@ -161,6 +163,7 @@ def delete_site_action(action_id: int):
         if cur.rowcount == 0:
             raise HTTPException(status_code=404, detail="Site action not found")
     return {"success": True}
+
 
 @router.post("/test")
 async def test_selector(req: TestSelectorRequest):
@@ -173,16 +176,9 @@ async def test_selector(req: TestSelectorRequest):
         row = conn.execute("SELECT selector FROM site_actions WHERE id = ?", (req.action_id,)).fetchone()
         if not row:
             raise HTTPException(status_code=404, detail="Action not found")
-            
+
     # Mock base64 1x1 transparent image for UI preview (in prod this is a real screenshot)
     mock_b64 = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="
-    
+
     # Simulate a hit
-    return {
-        "found": True,
-        "screenshot_base64": mock_b64,
-        "metrics": {
-            "time_to_find_ms": 142,
-            "strategy_used": "exact"
-        }
-    }
+    return {"found": True, "screenshot_base64": mock_b64, "metrics": {"time_to_find_ms": 142, "strategy_used": "exact"}}

@@ -1,10 +1,14 @@
 import enum
 import uuid
-from datetime import UTC, datetime
+from datetime import UTC
+from datetime import datetime
 
-from sqlalchemy import DateTime, Enum, ForeignKey, String
+from sqlalchemy import DateTime
+from sqlalchemy import Enum
+from sqlalchemy import String
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.orm import Mapped
+from sqlalchemy.orm import mapped_column
 
 from models.base import Base
 
@@ -31,18 +35,13 @@ class AgentSession(Base):
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     user_id: Mapped[str] = mapped_column(String(255), index=True, nullable=False)
-    
+
     current_state: Mapped[AgentSessionState] = mapped_column(
-        Enum(AgentSessionState, name="agent_session_state", create_type=True),
-        nullable=False,
-        default=AgentSessionState.Idle
+        Enum(AgentSessionState, name="agent_session_state", create_type=True), nullable=False, default=AgentSessionState.Idle
     )
     control_mode: Mapped[ControlMode] = mapped_column(
-        Enum(ControlMode, name="control_mode", create_type=True),
-        nullable=False,
-        default=ControlMode.agent
+        Enum(ControlMode, name="control_mode", create_type=True), nullable=False, default=ControlMode.agent
     )
-    
+
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(UTC))
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(UTC), onupdate=lambda: datetime.now(UTC))
-

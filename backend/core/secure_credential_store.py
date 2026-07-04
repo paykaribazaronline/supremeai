@@ -2,15 +2,18 @@ from __future__ import annotations
 
 import base64
 import os
-from abc import ABC, abstractmethod
-from typing import Any, Tuple
+from abc import ABC
+from abc import abstractmethod
+from typing import Any
 
 from loguru import logger
 
 from core.config import settings
 
+
 try:
     from cryptography.fernet import Fernet
+
     CRYPTO_AVAILABLE = True
 except ImportError:  # pragma: no cover
     CRYPTO_AVAILABLE = False
@@ -24,7 +27,7 @@ def generate_key() -> str:
 
 class EncryptionProvider(ABC):
     @abstractmethod
-    def encrypt(self, plaintext: str) -> Tuple[str, str | None]:
+    def encrypt(self, plaintext: str) -> tuple[str, str | None]:
         """Returns (ciphertext, key_ref)"""
         pass
 
@@ -49,7 +52,7 @@ class LocalFernetProvider(EncryptionProvider):
         if not self.enabled:
             logger.warning("Credential encryption is disabled. Credentials will be stored as plaintext.")
 
-    def encrypt(self, plaintext: str) -> Tuple[str, str | None]:
+    def encrypt(self, plaintext: str) -> tuple[str, str | None]:
         if not self.enabled or self.fernet is None:
             return plaintext, "local:plaintext"
         try:
@@ -74,7 +77,7 @@ class CloudKMSProvider(EncryptionProvider):
         # In a real scenario, initialize GCP KMS Client or Supabase Vault Client here
         logger.info("Initializing CloudKMSProvider for envelope encryption.")
 
-    def encrypt(self, plaintext: str) -> Tuple[str, str | None]:
+    def encrypt(self, plaintext: str) -> tuple[str, str | None]:
         # STUB for Production Cloud KMS
         # Actually call the KMS API
         logger.debug("CloudKMSProvider: encrypting payload...")
@@ -133,4 +136,3 @@ class SecureCredentialStore:
                 last_4 = val_str[-4:] if len(val_str) >= 4 else val_str
                 masked[field] = f"••••••••••{last_4}"
         return masked
-
