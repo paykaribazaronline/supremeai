@@ -38,17 +38,19 @@ export function SessionsPage({ onOpenSession }: SessionsPageProps) {
     setPrompt('');
     onOpenSession(session.id);
 
-    // বাংলা মন্তব্য: React স্টেট মিউটেশন এড়াতে নতুন অবজেক্ট/অ্যারে তৈরি করে আপডেট করা হয়
+    // বাংলা মন্তব্য: রেসপন্স আসার পর localStorage থেকে সর্বশেষ সেশন পড়ে তার উপর মেসেজ যোগ করা হয়,
+    // যাতে ডিটেইল পেজে পাঠানো ফলো-আপ মেসেজ হারিয়ে না যায় (race condition প্রতিরোধ)
     let completed: DashboardSession;
     try {
       const responseText = await getAethelResponse(session.title, [
         { role: 'user', content: session.messages[0].text },
       ]);
+      const latest = loadSessions().find((s) => s.id === session.id) || session;
       completed = {
-        ...session,
+        ...latest,
         status: 'finished',
         messages: [
-          ...session.messages,
+          ...latest.messages,
           {
             id: Date.now(),
             sender: 'SupremeAI',
@@ -58,11 +60,12 @@ export function SessionsPage({ onOpenSession }: SessionsPageProps) {
         ],
       };
     } catch (error) {
+      const latest = loadSessions().find((s) => s.id === session.id) || session;
       completed = {
-        ...session,
+        ...latest,
         status: 'error',
         messages: [
-          ...session.messages,
+          ...latest.messages,
           {
             id: Date.now(),
             sender: 'SupremeAI',

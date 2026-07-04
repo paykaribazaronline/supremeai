@@ -36,10 +36,47 @@ describe('DashboardShell', () => {
   it('renders sidebar with all navigation items', () => {
     renderShell();
     expect(screen.getByTestId('dashboard-sidebar')).toBeInTheDocument();
-    for (const nav of ['sessions', 'workspace', 'knowledge', 'secrets', 'usage', 'settings', 'admin']) {
+    for (const nav of [
+      'sessions',
+      'workspace',
+      'vault',
+      'automation',
+      'knowledge',
+      'secrets',
+      'usage',
+      'settings',
+      'site-actions',
+      'llm-gateway',
+      'admin',
+    ]) {
       expect(screen.getByTestId(`nav-${nav}`)).toBeInTheDocument();
     }
     expect(screen.getByTestId('sidebar-server-status')).toHaveTextContent('Online');
+  });
+
+  it('renders the Sujon live background in idle state by default', () => {
+    renderShell();
+    const bg = screen.getByTestId('sujon-background');
+    expect(bg).toBeInTheDocument();
+    expect(bg).toHaveAttribute('data-sujon-state', 'idle');
+  });
+
+  it('navigates to the Web Authorization Vault page', async () => {
+    renderShell();
+    await act(async () => {
+      fireEvent.click(screen.getByTestId('nav-vault'));
+      window.dispatchEvent(new HashChangeEvent('hashchange'));
+    });
+    expect(screen.getByTestId('vault-connection-status')).toBeInTheDocument();
+  });
+
+  it('navigates to the Site Actions registry editor', async () => {
+    renderShell();
+    await act(async () => {
+      fireEvent.click(screen.getByTestId('nav-site-actions'));
+      window.dispatchEvent(new HashChangeEvent('hashchange'));
+    });
+    expect(screen.getByTestId('sa-save-btn')).toBeInTheDocument();
   });
 
   it('shows sessions page with composer by default', () => {

@@ -9,6 +9,10 @@ import {
   Settings,
   ShieldCheck,
   Plus,
+  Vault,
+  ListChecks,
+  Table2,
+  Cpu,
 } from 'lucide-react';
 import { useHashRoute, type DashboardRoute } from './useHashRoute';
 import { SessionsPage } from './SessionsPage';
@@ -17,6 +21,11 @@ import { KnowledgePage } from './KnowledgePage';
 import { SecretsPage } from './SecretsPage';
 import { UsagePage } from './UsagePage';
 import { SettingsPage } from './SettingsPage';
+import { VaultPage } from './VaultPage';
+import { AutomationQueuePage } from './AutomationQueuePage';
+import { SiteActionsPage } from './SiteActionsPage';
+import { LlmGatewayPage } from './LlmGatewayPage';
+import { LiveSujonBackground } from '../LiveSujonBackground';
 
 interface NavItem {
   id: DashboardRoute;
@@ -27,10 +36,18 @@ interface NavItem {
 const NAV_ITEMS: NavItem[] = [
   { id: 'sessions', label: 'Sessions', icon: <LayoutList size={15} /> },
   { id: 'workspace', label: 'Workspace', icon: <Boxes size={15} /> },
+  { id: 'vault', label: 'Auth Vault', icon: <Vault size={15} /> },
+  { id: 'automation', label: 'Automation', icon: <ListChecks size={15} /> },
   { id: 'knowledge', label: 'Knowledge', icon: <BookOpen size={15} /> },
   { id: 'secrets', label: 'Secrets', icon: <KeyRound size={15} /> },
   { id: 'usage', label: 'Usage', icon: <BarChart3 size={15} /> },
   { id: 'settings', label: 'Settings', icon: <Settings size={15} /> },
+];
+
+// বাংলা মন্তব্য: সুপার-অ্যাডমিন কন্ট্রোল লেয়ার — সাইট অ্যাকশন রেজিস্ট্রি ও LLM গেটওয়ে
+const ADMIN_NAV_ITEMS: NavItem[] = [
+  { id: 'site-actions', label: 'Site Actions', icon: <Table2 size={15} /> },
+  { id: 'llm-gateway', label: 'LLM Gateway', icon: <Cpu size={15} /> },
 ];
 
 interface DashboardShellProps {
@@ -55,6 +72,14 @@ export function DashboardShell({ theme, toggleTheme, isServerOnline, workspace }
         );
       case 'workspace':
         return workspace;
+      case 'vault':
+        return <VaultPage />;
+      case 'automation':
+        return <AutomationQueuePage />;
+      case 'site-actions':
+        return <SiteActionsPage />;
+      case 'llm-gateway':
+        return <LlmGatewayPage />;
       case 'knowledge':
         return <KnowledgePage />;
       case 'secrets':
@@ -72,10 +97,12 @@ export function DashboardShell({ theme, toggleTheme, isServerOnline, workspace }
   const activeNav = route.page === 'session' ? 'sessions' : route.page;
 
   return (
-    <div className="min-h-screen flex bg-[#0b0f19] text-white">
+    <div className="relative min-h-screen flex bg-[#0b0f19] text-white">
+      {/* বাংলা মন্তব্য: Sujon লাইভ AI-কোর অ্যাম্বিয়েন্ট ব্যাকগ্রাউন্ড — Automation স্টেট অনুযায়ী বদলায় */}
+      <LiveSujonBackground />
       <aside
         data-testid="dashboard-sidebar"
-        className="w-56 shrink-0 border-r border-white/[0.06] bg-[#080b13] flex flex-col"
+        className="relative z-10 w-56 shrink-0 border-r border-white/[0.06] bg-[#080b13] flex flex-col"
       >
         <div className="flex items-center gap-2 px-4 py-4 border-b border-white/[0.06]">
           <span className="text-blue-400 text-lg">▲</span>
@@ -108,7 +135,25 @@ export function DashboardShell({ theme, toggleTheme, isServerOnline, workspace }
             </button>
           ))}
 
-          {/* বাংলা মন্তব্য: অ্যাডমিন কনসোল আলাদা রুটে (/admin) — সেখানে TOTP লগইনসহ সম্পূর্ণ অ্যাডমিন ফিচার আছে */}
+          {/* বাংলা মন্তব্য: সুপার-অ্যাডমিন কন্ট্রোল সেকশন */}
+          <p className="px-3 pt-3 pb-1 text-[10px] uppercase tracking-wider text-slate-600">Admin</p>
+          {ADMIN_NAV_ITEMS.map((item) => (
+            <button
+              key={item.id}
+              data-testid={`nav-${item.id}`}
+              onClick={() => navigate(item.id)}
+              className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs transition-colors ${
+                activeNav === item.id
+                  ? 'bg-white/[0.08] text-white'
+                  : 'text-slate-400 hover:text-white hover:bg-white/[0.04]'
+              }`}
+            >
+              {item.icon}
+              {item.label}
+            </button>
+          ))}
+
+          {/* বাংলা মন্তব্য: অ্যাডমিন কন্সোল আলাদা রুটে (/admin) — সেখানে TOTP লগইনসহ সম্পূর্ণ অ্যাডমিন ফিচার আছে */}
           <a
             data-testid="nav-admin"
             href="/admin"
@@ -130,7 +175,7 @@ export function DashboardShell({ theme, toggleTheme, isServerOnline, workspace }
         </div>
       </aside>
 
-      <main className="flex-1 min-w-0 overflow-y-auto">{renderPage()}</main>
+      <main className="relative z-10 flex-1 min-w-0 overflow-y-auto">{renderPage()}</main>
     </div>
   );
 }

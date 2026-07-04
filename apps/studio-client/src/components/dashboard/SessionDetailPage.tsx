@@ -54,20 +54,23 @@ export function SessionDetailPage({ sessionId, onBack }: SessionDetailPageProps)
         content: m.text,
       }));
       const responseText = await getAethelResponse(text, history);
+      // বাংলা মন্তব্য: সেভের আগে localStorage থেকে সর্বশেষ সেশন পড়ে নেওয়া হয় যাতে অন্য পেজের সেভ করা মেসেজ মুছে না যায়
+      const latest = loadSessions().find((s) => s.id === sessionId) || updated;
       completed = {
-        ...updated,
+        ...latest,
         status: 'finished',
         messages: [
-          ...updated.messages,
+          ...latest.messages,
           { id: Date.now(), sender: 'SupremeAI', text: responseText, timestamp: new Date().toLocaleTimeString() },
         ],
       };
     } catch (error) {
+      const latest = loadSessions().find((s) => s.id === sessionId) || updated;
       completed = {
-        ...updated,
+        ...latest,
         status: 'error',
         messages: [
-          ...updated.messages,
+          ...latest.messages,
           {
             id: Date.now(),
             sender: 'SupremeAI',
