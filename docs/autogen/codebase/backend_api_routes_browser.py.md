@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/api/routes/browser.py
 
 **প্রকার:** .py  
-**সাইজ:** 9,221 বাইট  
-**আপডেট:** 2026-07-04T08:12:03.139269
+**সাইজ:** 13,384 বাইট  
+**আপডেট:** 2026-07-04T08:29:41.025962
 
 ---
 
@@ -34,6 +34,9 @@ PERMISSION_REQUESTS: list[dict[str, Any]] = []
 SYSTEM_LEARNING: dict[str, Any] = {"enabled": True}
 TASKS: dict[str, dict[str, Any]] = {}
 FINDINGS: list[dict[str, Any]] = []
+
+# বাংলা মন্তব্য: সার্কিট ব্রেকার থ্রেশোল্ড — টাস্ক এক্সিকিউশন ক্যাপ (৪৫ সেকেন্ড)
+EXECUTION_CAP_MS = 45000
 
 
 class GoalRequest(BaseModel):
@@ -250,9 +253,38 @@ def create_task(req: GoalRequest):
         "goal": req.goal,
         "status": "ACTIVE",
         "createdAt": datetime.now(UTC).isoformat(),
+        "durationMs": 0,
     }
     TASKS[task_id] = task
     return task
+
+
+@router.post("/tasks/{id}/circuit-open")
+def set_task_circuit_open(task_id: str):
+    """বাংলা মন্তব্য: টাস্কটি সার্কিট ব্রেকার স্টেটে সেট করে — UI তে লাল সতর্ক-আভা দেখানোর জন্য"""
+    if task_id not in TASKS:
+        raise HTTPException(status_code=404, detail="Task not found")
+    TASKS[task_id]["status"] = "CIRCUIT_OPEN"
+    TASKS[task_id]["durationMs"] = EXECUTION_CAP_MS
+    return {"success": True, "status": "CIRCUIT_OPEN"}
+
+
+@router.post("/tasks/{id}/complete")
+def set_task_complete(task_id: str):
+    """বাংলা মন্তব্য: টাস্ক সফলভাবে সম্পন্ন হলে কল করুন"""
+    if task_id not in TASKS:
+        raise HTTPException(status_code=404, detail="Task not found")
+    TASKS[task_id]["status"] = "SUCCESS"
+    return {"success": True, "status": "SUCCESS"}
+
+
+@router.post("/tasks/{id}/fail")
+def set_task_failed(task_id: str):
+    """বাংলা মন্তব্য: টাস্ক ব্যর্থ হলে কল করুন"""
+    if task_id not in TASKS:
+        raise HTTPException(status_code=404, detail="Task not found")
+    TASKS[task_id]["status"] = "FAILED"
+    return {"success": True, "status": "FAILED"}
 
 
 @router.delete("/tasks/{id}")
@@ -371,5 +403,73 @@ def execute_step(task_id: str):
         "action": "navigated to dashboard",
         "details": "Autonomous step succeeded",
     }
+
+
+# ──────────────────────────────────────────────
+# বাংলা মন্তব্য: সেশন স্টোর — Firestore-ভিত্তিক সেশন সিঙ্ক (VaultPage-এর মত ব্যাকএন্ড API কল)
+# ──────────────────────────────────────────────
+SESSIONS: dict[str, dict[str, Any]] = {}
+
+
+class SessionMessageIn(BaseModel):
+    id: int
+    sender: str
+    text: str
+    timestamp: str
+
+
+class SessionIn(BaseModel):
+    id: str
+    title: str
+    status: str = "running"
+    created_at: str = ""
+    updated_at: str = ""
+    messages: list[SessionMessageIn] = []
+
+
+@router.get("/sessions")
+def list_sessions():
+    """বাংলা মন্তব্য: সব সেশন তালিকা রিটার্ন করে"""
+    return {"sessions": list(SESSIONS.values())}
+
+
+@router.get("/sessions/{session_id}")
+def get_session(session_id: str):
+    """বাংলা মন্তব্য: নির্দিষ্ট সেশন রিটার্ন করে"""
+    if session_id not in SESSIONS:
+        raise HTTPException(status_code=404, detail="Session not found")
+    return SESSIONS[session_id]
+
+
+@router.post("/sessions")
+def create_session(session: SessionIn):
+    """বাংলা মন্তব্য: নতুন সেশন তৈরি করে"""
+    now = datetime.now(UTC).isoformat()
+    data = session.model_dump()
+    if not data.get("created_at"):
+        data["created_at"] = now
+    if not data.get("updated_at"):
+        data["updated_at"] = now
+    SESSIONS[session.id] = data
+    return {"success": True, "session": data}
+
+
+@router.put("/sessions/{session_id}")
+def update_session(session_id: str, session: SessionIn):
+    """বাংলা মন্তব্য: বিদ্যমান সেশন আপডেট করে"""
+    if session_id not in SESSIONS:
+        raise HTTPException(status_code=404, detail="Session not found")
+    data = session.model_dump()
+    data["updated_at"] = datetime.now(UTC).isoformat()
+    SESSIONS[session_id] = data
+    return {"success": True, "session": data}
+
+
+@router.delete("/sessions/{session_id}")
+def delete_session(session_id: str):
+    """বাংলা মন্তব্য: সেশন মুছে ফেলে"""
+    if session_id in SESSIONS:
+        del SESSIONS[session_id]
+    return {"success": True}
 
 ```

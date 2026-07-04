@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/studio-client/src/components/LiveSujonBackground.tsx
 
 **প্রকার:** .tsx  
-**সাইজ:** 4,796 বাইট  
-**আপডেট:** 2026-07-04T08:12:03.207576
+**সাইজ:** 4,831 বাইট  
+**আপডেট:** 2026-07-04T08:29:41.095068
 
 ---
 
@@ -93,7 +93,7 @@ export function LiveSujonBackground({ state: forcedState }: LiveSujonBackgroundP
           className="absolute inset-0"
           style={{
             backgroundImage:
-              'repeating-linear-gradient(115deg, transparent 0px, transparent 38px, rgba(34,211,238,0.08) 40px)',
+              'repeating-linear-gradient(115deg, transparent 0px, transparent 38px, rgba(34,211,238,0.08) 40px), url(/icons.svg#sujon-cyber-lines)',
             willChange: 'transform',
             animation: 'sujon-scan 2.4s linear infinite',
           }}
