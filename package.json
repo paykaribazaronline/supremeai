@@ -28,7 +28,9 @@
     "typescript": "^5.4.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
-    "@playwright/test": "^1.42.0"
+    "@playwright/test": "^1.42.0",
+    "vitest": "^3.2.6",
+    "miniflare": "^2.0.1"
   },
   "packageManager": "pnpm@9.0.0",
   "pnpm": {

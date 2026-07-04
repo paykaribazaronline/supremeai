@@ -353,7 +353,7 @@ jobs:
 
       - name: 🧪 Run Cloudflare Worker Tests
         id: worker_tests
-        run: pnpm exec vitest run --dir infrastructure --reporter=json > infrastructure/vitest-report.json
+        run: pnpm exec vitest run scripts/cloudflare_worker.test.js --reporter=json > infrastructure/vitest-report.json
  
       - name: Add Worker Test Results to GitHub Summary
         if: always()
