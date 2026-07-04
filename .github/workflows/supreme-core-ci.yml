@@ -36,6 +36,10 @@ env:
 jobs:
   circuit-breaker:
     name: 🛑 Detect Previous Failure
+    # বাংলা মন্তব্য: আপাতত (for now) এই "previous failed" জবটি নিষ্ক্রিয় (if: false) করা হলো
+    # যাতে আগের রান ব্যর্থ হলেও পাইপলাইন আটকে না যায় এবং প্রতিটি জব স্বাধীনভাবে চলে।
+    # পুনরায় চালু করতে নিচের `if: false` লাইনটি মুছে দিন।
+    if: false
     runs-on: ubuntu-latest
     outputs:
       previous_failed: ${{ steps.check.outputs.previous_failed }}
@@ -79,7 +83,11 @@ jobs:
 
   detect-changes:
     name: 🔍 Smart Router
+    # বাংলা মন্তব্য: আপাতত (for now) স্মার্ট চেঞ্জ-ডিটেকশন নিষ্ক্রিয় (if: false) করা হলো যাতে
+    # ব্যাকএন্ড/ফ্রন্টএন্ড/ওয়ার্কার—সব জব শর্ত ছাড়াই সবসময় চলে (ডায়মন্ড-গ্রেড ফুল টেস্ট)।
+    # পুনরায় চালু করতে `if: false` মুছে ও নিচের জবগুলোর needs/if শর্ত ফিরিয়ে আনুন।
     needs: circuit-breaker
+    if: false
     runs-on: ubuntu-latest
     outputs:
       # বাংলা মন্তব্য: ডাইনামিক চেঞ্জ ডিটেকশন পুনরায় চালু করা হলো।
@@ -115,9 +123,9 @@ jobs:
 
   production-readiness:
     name: 🚀 Production Readiness (Safety Guard, Multi-Model Validator, Codegraph)
-    needs: detect-changes
+    # বাংলা মন্তব্য: detect-changes গেটিং সরিয়ে দেওয়া হলো (for now) — আগে `needs: detect-changes`
+    # ও `if: backend == 'true'` থাকায় ব্যাকএন্ড ফাইল না বদলালে জবটি স্কিপ হতো; এখন সবসময় চলবে।
     runs-on: ubuntu-latest
-    if: needs.detect-changes.outputs.backend == 'true'
     steps:
       - uses: actions/checkout@v4
         with:
@@ -334,8 +342,8 @@ jobs:
 
   worker-test:
     name: ⚡ Cloudflare Worker (Test)
-    needs: detect-changes
-    if: needs.detect-changes.outputs.worker == 'true'
+    # বাংলা মন্তব্য: detect-changes গেটিং সরিয়ে এই জবটি সবসময় চালানো হচ্ছে (for now),
+    # ফলে ইনফ্রা ফাইল না বদলালেও Cloudflare Worker টেস্ট সবসময় ভেরিফাই হবে।
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
