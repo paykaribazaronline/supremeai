@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/log_batcher.py
 
 **প্রকার:** .py  
-**সাইজ:** 4,040 বাইট  
-**আপডেট:** 2026-07-04T21:38:51.742160
+**সাইজ:** 4,062 বাইট  
+**আপডেট:** 2026-07-04T21:50:31.725931
 
 ---
 
@@ -44,10 +44,9 @@ class LogBatcherService:
         self.running = False
         if self.task:
             self.task.cancel()
-            try:
+            import contextlib
+            with contextlib.suppress(asyncio.CancelledError):
                 await self.task
-            except asyncio.CancelledError:
-                pass
         await self._flush()
         logger.info("LogBatcherService stopped.")
 
@@ -73,10 +72,9 @@ class LogBatcherService:
 
     def unsubscribe(self, session_id: str, q: asyncio.Queue):
         if session_id in self._subscribers:
-            try:
+            import contextlib
+            with contextlib.suppress(ValueError):
                 self._subscribers[session_id].remove(q)
-            except ValueError:
-                pass
             if not self._subscribers[session_id]:
                 del self._subscribers[session_id]
 

@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/studio-client/src/components/dashboard/ExecutionShell.tsx
 
 **প্রকার:** .tsx  
-**সাইজ:** 4,323 বাইট  
-**আপডেট:** 2026-07-04T21:38:51.826255
+**সাইজ:** 4,336 বাইট  
+**আপডেট:** 2026-07-04T21:50:31.820539
 
 ---
 
@@ -101,6 +101,7 @@ export const ExecutionShell: React.FC = React.memo(() => {
             );
           })}
         </div>
+      </div>
       </div>
 
       {!autoScroll && (

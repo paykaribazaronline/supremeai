@@ -1,7 +1,7 @@
 # 🧠 SupremeAI 2.0 Codebase Dump
 # বাংলা মন্তব্য: এটি একটি স্বয়ংক্রিয়ভাবে জেনারেট করা কোডবেস ডাম্প ফাইল যা প্রজেক্টের সামগ্রিক বিশ্লেষণের জন্য ব্যবহৃত হয়।
 
-Generated at: 2026-07-04T21:38:51.702682
+Generated at: 2026-07-04T21:50:31.681285
 
 
 ## File: `pnpm-lock.yaml`
@@ -46730,10 +46730,9 @@ class LogBatcherService:
         self.running = False
         if self.task:
             self.task.cancel()
-            try:
+            import contextlib
+            with contextlib.suppress(asyncio.CancelledError):
                 await self.task
-            except asyncio.CancelledError:
-                pass
         await self._flush()
         logger.info("LogBatcherService stopped.")
 
@@ -46759,10 +46758,9 @@ class LogBatcherService:
 
     def unsubscribe(self, session_id: str, q: asyncio.Queue):
         if session_id in self._subscribers:
-            try:
+            import contextlib
+            with contextlib.suppress(ValueError):
                 self._subscribers[session_id].remove(q)
-            except ValueError:
-                pass
             if not self._subscribers[session_id]:
                 del self._subscribers[session_id]
 
@@ -61926,7 +61924,8 @@ def create_site_action(payload: SiteActionIn):
         cur = conn.execute(
             """
             INSERT INTO site_actions
-                (site_name, url_pattern, action_name, selector, action_type, notes, enabled, fallback_selectors, selector_strategy, health_score, updated_at)
+                (site_name, url_pattern, action_name, selector, action_type, notes, enabled, 
+                 fallback_selectors, selector_strategy, health_score, updated_at)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
@@ -122961,6 +122960,7 @@ export const ExecutionShell: React.FC = React.memo(() => {
           })}
         </div>
       </div>
+      </div>
 
       {!autoScroll && (
         <button 
@@ -123612,7 +123612,7 @@ export const SandboxViewport: React.FC = () => {
             <div className="flex-1 overflow-auto flex items-center justify-center p-4">
                 <canvas 
                     ref={canvasRef} 
-                    className={\`max-w-full max-h-full object-contain shadow-2xl rounded-sm border \${controlMode === 'human' ? 'border-amber-500/50 cursor-crosshair outline-none' : 'border-slate-800'}\`}
+                    className={`max-w-full max-h-full object-contain shadow-2xl rounded-sm border ${controlMode === 'human' ? 'border-amber-500/50 cursor-crosshair outline-none' : 'border-slate-800'}`}
                     style={{ minWidth: '320px', minHeight: '240px' }}
                 />
             </div>

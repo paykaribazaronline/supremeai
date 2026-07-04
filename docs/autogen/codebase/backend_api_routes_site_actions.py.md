@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/api/routes/site_actions.py
 
 **প্রকার:** .py  
-**সাইজ:** 6,456 বাইট  
-**আপডেট:** 2026-07-04T21:38:51.757862
+**সাইজ:** 6,474 বাইট  
+**আপডেট:** 2026-07-04T21:50:31.743481
 
 ---
 
@@ -105,7 +105,8 @@ def create_site_action(payload: SiteActionIn):
         cur = conn.execute(
             """
             INSERT INTO site_actions
-                (site_name, url_pattern, action_name, selector, action_type, notes, enabled, fallback_selectors, selector_strategy, health_score, updated_at)
+                (site_name, url_pattern, action_name, selector, action_type, notes, enabled, 
+                 fallback_selectors, selector_strategy, health_score, updated_at)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
