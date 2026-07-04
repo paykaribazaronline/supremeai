@@ -1,7 +1,7 @@
 # 🧠 SupremeAI 2.0 Codebase Dump
 # বাংলা মন্তব্য: এটি একটি স্বয়ংক্রিয়ভাবে জেনারেট করা কোডবেস ডাম্প ফাইল যা প্রজেক্টের সামগ্রিক বিশ্লেষণের জন্য ব্যবহৃত হয়।
 
-Generated at: 2026-07-04T03:23:34.365470
+Generated at: 2026-07-04T03:46:15.339192
 
 
 ## File: `pnpm-lock.yaml`
@@ -22710,7 +22710,9 @@ volumes:
     "typescript": "^5.4.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
-    "@playwright/test": "^1.42.0"
+    "@playwright/test": "^1.42.0",
+    "vitest": "^3.2.6",
+    "miniflare": "^2.0.1"
   },
   "packageManager": "pnpm@9.0.0",
   "pnpm": {
@@ -155530,7 +155532,11 @@ def add_vitest_results_to_summary(json_path: str, label: str = "Frontend"):
         return
 
     with open(json_path, encoding="utf-8") as f:
-        data = json.load(f)
+        try:
+            data = json.load(f)
+        except json.JSONDecodeError as exc:
+            print(f"⚠️ Vitest JSON report invalid or empty: {json_path}: {exc}")
+            return
 
     stats = data.get('stats', {})
     total = stats.get('tests', 0)
@@ -156350,7 +156356,7 @@ jobs:
 
       - name: 🧪 Run Cloudflare Worker Tests
         id: worker_tests
-        run: pnpm exec vitest run --dir infrastructure --reporter=json > infrastructure/vitest-report.json
+        run: pnpm exec vitest run scripts/cloudflare_worker.test.js --reporter=json > infrastructure/vitest-report.json
  
       - name: Add Worker Test Results to GitHub Summary
         if: always()
