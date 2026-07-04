@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/desktop/src-tauri/Cargo.toml
 
 **প্রকার:** .toml  
-**সাইজ:** 795 বাইট  
-**আপডেট:** 2026-07-04T05:52:57.804974
+**সাইজ:** 832 বাইট  
+**আপডেট:** 2026-07-04T08:12:03.228715
 
 ---
 
@@ -26,7 +26,7 @@ custom-protocol = ["tauri/custom-protocol"]
 tauri-build = { version = "=1.5.4", features = [] }
 
 [dependencies]
-tauri = { version = "=1.5.4", features = [ "window-maximize", "window-start-dragging", "window-unminimize", "window-unmaximize", "window-hide", "window-show", "window-minimize", "window-close", "notification", "global-shortcut"] }
+tauri = { version = "=1.5.4", features = [ "window-maximize", "window-start-dragging", "window-unminimize", "window-unmaximize", "window-hide", "window-show", "window-minimize", "window-close", "notification", "global-shortcut", "system-tray", "updater", "api-all"] }
 serde_json = "1"
 num_cpus = "1"
 ntapi = "0.4.3"

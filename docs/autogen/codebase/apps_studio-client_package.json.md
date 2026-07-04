@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/studio-client/package.json
 
 **প্রকার:** .json  
-**সাইজ:** 2,529 বাইট  
-**আপডেট:** 2026-07-04T05:52:57.793062
+**সাইজ:** 2,576 বাইট  
+**আপডেট:** 2026-07-04T08:12:03.202881
 
 ---
 
@@ -31,6 +31,7 @@
   },
   "dependencies": {
     "@dataconnect/generated": "file:src/dataconnect-generated",
+    "@supremeai/ui-components": "workspace:*",
     "@monaco-editor/react": "^4.7.0",
     "@tailwindcss/vite": "^4.2.4",
     "@tanstack/react-query": "^5.101.0",

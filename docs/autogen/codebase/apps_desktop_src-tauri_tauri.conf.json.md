@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/desktop/src-tauri/tauri.conf.json
 
 **প্রকার:** .json  
-**সাইজ:** 2,140 বাইট  
-**আপডেট:** 2026-07-04T05:52:57.804917
+**সাইজ:** 2,112 বাইট  
+**আপডেট:** 2026-07-04T08:12:03.228567
 
 ---
 
@@ -11,8 +11,8 @@
 ```json
 {
   "build": {
-    "beforeBuildCommand": "npm run build:ui",
-    "beforeDevCommand": "npm run dev:ui",
+    "beforeBuildCommand": "pnpm --dir src-ui build",
+    "beforeDevCommand": "pnpm --dir src-ui dev",
     "devPath": "http://localhost:1420",
     "distDir": "../src-ui/dist"
   },
@@ -32,9 +32,7 @@
       "notification": {
         "all": false
       },
-      "plugin": {
-        "store": true
-      },
+      
       "window": {
         "all": false,
         "close": true,
