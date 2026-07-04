@@ -138,8 +138,10 @@ export class CodeEditHandler {
   private _manageCacheSize(): void {
     if (this.lastSentCode.size > this.MAX_CACHE_SIZE) {
       const oldestKey = this.lastSentCode.keys().next().value;
-      this.lastSentCode.delete(oldestKey);
-      console.log(`[SupremeAI] Cache limit reached. Evicted oldest entry: ${oldestKey}`);
+      if (oldestKey !== undefined) {
+        this.lastSentCode.delete(oldestKey);
+        console.log(`[SupremeAI] Cache limit reached. Evicted oldest entry: ${oldestKey}`);
+      }
     }
   }
 
