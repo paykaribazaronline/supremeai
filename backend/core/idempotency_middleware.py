@@ -5,6 +5,9 @@ import json
 
 from fastapi.responses import JSONResponse
 
+# শেয়ার্ড ইউটিলিটি — টেস্ট এনভায়রনমেন্ট চেক কেন্দ্রীভূত
+from utils.environment import is_test_environment
+
 
 class IdempotencyMiddleware:
     def __init__(self, app) -> None:
@@ -15,10 +18,8 @@ class IdempotencyMiddleware:
             await self.app(scope, receive, send)
             return
 
-        import os
-        import sys
-
-        if "pytest" in sys.modules or os.getenv("ENV") == "test":
+        # রিফ্যাক্টর: লোকাল is_test চেকের বদলে শেয়ার্ড ইউটিলিটি ব্যবহার
+        if is_test_environment():
             await self.app(scope, receive, send)
             return
 
