@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/mcp_github_cicd.py
 
 **প্রকার:** .py  
-**সাইজ:** 11,449 বাইট  
-**আপডেট:** 2026-07-03T22:59:34.569131
+**সাইজ:** 10,883 বাইট  
+**আপডেট:** 2026-07-04T03:16:38.039406
 
 ---
 
@@ -24,6 +24,11 @@ from enum import Enum
 import httpx
 from pydantic import BaseModel, Field, ConfigDict
 from mcp.server.fastmcp import FastMCP
+
+# শেয়ার্ড ইউটিলিটি — ডুপ্লিকেট কোড দূর করতে কেন্দ্রীয় মডিউল থেকে ইম্পোর্ট
+from utils.environment import is_admin_authorized, is_autofix_authorized
+from utils.http_client import handle_api_error
+from utils.json_helpers import json_error
 
 mcp = FastMCP("github_cicd_mcp")
 
@@ -61,25 +66,8 @@ class FixIssueInput(BaseModel):
     branch: str = Field(..., description="ফিক্স শুরু করার ব্রাঞ্চ", min_length=1)
 
 
-def _check_admin_auth() -> bool:
-    """অ্যাডমিন অথেন্টিকেশন চেক করে।"""
-    return os.getenv("ADMIN_AUTHORIZED", "false").lower() == "true"
-
-
-def _check_autofix_auth() -> bool:
-    """স্বয়ংক্রিয় ফিক্স অথেন্টিকেশন চেক করে।"""
-    return os.getenv("AUTOFIX_AUTHORIZED", "false").lower() == "true"
-
-
-def _handle_api_error(e: Exception, status_code: int = None) -> str:
-    """GitHub API এরর স্ট্যান্ডার্ডাইজ্ড হ্যান্ডলিং।"""
-    if status_code == 401:
-        return "Error: Invalid GitHub token. Check GITHUB_TOKEN is set correctly."
-    if status_code == 404:
-        return "Error: Repository or resource not found. Verify repository name."
-    if status_code == 403:
-        return "Error: Permission denied. Check token permissions for this repository."
-    return f"Error: GitHub API request failed - {type(e).__name__}"
+# রিফ্যাক্টর: লোকাল _check_admin_auth, _check_autofix_auth, _handle_api_error মুছে
+# শেয়ার্ড ইউটিলিটি (utils.environment, utils.http_client) ব্যবহার করা হচ্ছে।
 
 
 @mcp.tool(
@@ -106,14 +94,12 @@ async def github_create_pull_request(params: CreatePRInput) -> str:
     Returns:
         str: PR স্ট্যাটাস ও লিংক
     """
-    if not _check_admin_auth():
-        return json.dumps({
-            "error": "Admin authorization required for PR creation"
-        }, ensure_ascii=False)
+    if not is_admin_authorized():
+        return json_error("Admin authorization required for PR creation")
 
     github_token = _get_github_token()
     if not github_token:
-        return json.dumps({"error": "GITHUB_TOKEN not configured"}, ensure_ascii=False)
+        return json_error("GITHUB_TOKEN not configured")
 
     try:
         async with httpx.AsyncClient(timeout=30.0) as client:
@@ -142,9 +128,9 @@ async def github_create_pull_request(params: CreatePRInput) -> str:
             }, ensure_ascii=False)
 
     except httpx.HTTPStatusError as e:
-        return _handle_api_error(e, e.response.status_code)
+        return handle_api_error(e, e.response.status_code)
     except Exception as e:
-        return _handle_api_error(e)
+        return handle_api_error(e)
 
 
 @mcp.tool(
@@ -172,7 +158,7 @@ async def github_run_auto_fix(params: FixIssueInput) -> str:
     Returns:
         str: অটো-ফিক্স স্ট্যাটাস
     """
-    if not _check_autofix_auth():
+    if not is_autofix_authorized():
         return json.dumps({
             "error": "Auto-fix authorization required",
             "message": "Set AUTOFIX_AUTHORIZED=true in environment"
@@ -180,7 +166,7 @@ async def github_run_auto_fix(params: FixIssueInput) -> str:
 
     github_token = _get_github_token()
     if not github_token:
-        return json.dumps({"error": "GITHUB_TOKEN not configured"}, ensure_ascii=False)
+        return json_error("GITHUB_TOKEN not configured")
 
     try:
         async with httpx.AsyncClient(timeout=60.0) as client:
@@ -206,9 +192,9 @@ async def github_run_auto_fix(params: FixIssueInput) -> str:
             }, ensure_ascii=False)
 
     except httpx.HTTPStatusError as e:
-        return _handle_api_error(e, e.response.status_code)
+        return handle_api_error(e, e.response.status_code)
     except Exception as e:
-        return _handle_api_error(e)
+        return handle_api_error(e)
 
 
 @mcp.tool(
@@ -234,7 +220,7 @@ async def github_list_issues(state: str = "open", labels: str | None = None) -> 
     """
     github_token = _get_github_token()
     if not github_token:
-        return json.dumps({"error": "GITHUB_TOKEN not configured"}, ensure_ascii=False)
+        return json_error("GITHUB_TOKEN not configured")
 
     valid_states = {"open", "closed", "all"}
     if state not in valid_states:
@@ -272,9 +258,9 @@ async def github_list_issues(state: str = "open", labels: str | None = None) -> 
             }, ensure_ascii=False)
 
     except httpx.HTTPStatusError as e:
-        return _handle_api_error(e, e.response.status_code)
+        return handle_api_error(e, e.response.status_code)
     except Exception as e:
-        return _handle_api_error(e)
+        return handle_api_error(e)
 
 
 @mcp.tool(
@@ -299,7 +285,7 @@ async def github_get_ci_status(branch: str = "main") -> str:
     """
     github_token = _get_github_token()
     if not github_token:
-        return json.dumps({"error": "GITHUB_TOKEN not configured"}, ensure_ascii=False)
+        return json_error("GITHUB_TOKEN not configured")
 
     try:
         async with httpx.AsyncClient(timeout=30.0) as client:
@@ -321,9 +307,9 @@ async def github_get_ci_status(branch: str = "main") -> str:
             }, ensure_ascii=False)
 
     except httpx.HTTPStatusError as e:
-        return _handle_api_error(e, e.response.status_code)
+        return handle_api_error(e, e.response.status_code)
     except Exception as e:
-        return _handle_api_error(e)
+        return handle_api_error(e)
 
 
 if __name__ == "__main__":

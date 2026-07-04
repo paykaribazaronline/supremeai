@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/desktop/src-tauri/src/main.rs
 
 **প্রকার:** .rs  
-**সাইজ:** 3,736 বাইট  
-**আপডেট:** 2026-07-03T22:59:34.581879
+**সাইজ:** 3,800 বাইট  
+**আপডেট:** 2026-07-04T03:16:38.069518
 
 ---
 
@@ -81,6 +81,7 @@ fn main() {
     let system_tray = SystemTray::new().with_menu(tray_menu);
 
     tauri::Builder::default()
+        .plugin(tauri_plugin_store::Builder::default().build())
         .manage(app_state)
         .system_tray(system_tray)
         .on_system_tray_event(|app, event| match event {

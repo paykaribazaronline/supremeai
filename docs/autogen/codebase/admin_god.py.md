@@ -1,8 +1,8 @@
 # 📄 ফাইল: admin/god.py
 
 **প্রকার:** .py  
-**সাইজ:** 5,867 বাইট  
-**আপডেট:** 2026-07-03T22:59:34.570876
+**সাইজ:** 6,702 বাইট  
+**আপডেট:** 2026-07-04T03:16:38.043361
 
 ---
 
@@ -28,7 +28,7 @@ class AdminGodLayer:
     def __init__(self, db_path: str):
         self.db_path = Path(db_path)
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
-        self.sqlite_lock = threading.Lock()
+        self.thread_local = threading.local()
         import os
         self.use_firestore = os.getenv("USE_FIRESTORE", "true").lower() == "true"
         if self.use_firestore:
@@ -41,8 +41,19 @@ class AdminGodLayer:
                 self.use_firestore = False
         self._init_db()
 
+    def _get_sqlite_conn(self):
+        """
+        বাংলা মন্তব্য: প্রতিটি থ্রেডের জন্য একটি স্বতন্ত্র SQLite কানেকশন তৈরি ও পরিচালনা করে।
+        এটি 'database is locked' ত্রুটি এড়াতে সাহায্য করে।
+        """
+        if not hasattr(self.thread_local, "conn"):
+            # busy_timeout যোগ করা হয়েছে যাতে ডেটাবেস লক থাকলে কোয়েরি কিছু সময় অপেক্ষা করে।
+            self.thread_local.conn = sqlite3.connect(self.db_path, timeout=10)
+        return self.thread_local.conn
+
     def _init_db(self):
-        with sqlite3.connect(self.db_path, check_same_thread=False) as conn:
+        # ইনিশিয়ালাইজেশনের জন্য একটি অস্থায়ী কানেকশন ব্যবহার করা হচ্ছে।
+        with sqlite3.connect(self.db_path) as conn:
             conn.execute(
                 """
                 CREATE TABLE IF NOT EXISTS rules (
@@ -74,12 +85,11 @@ class AdminGodLayer:
             except Exception as e:
                 logger.error(f"Firestore get_rule failed: {e}")
         
-        # বাংলা মন্তব্য: রিড করার সময় কনকারেন্ট রাইট অপারেশনের সংঘাত এড়াতে লক ব্যবহার করা হলো
-        with self.sqlite_lock:
-            with sqlite3.connect(self.db_path, check_same_thread=False) as conn:
-                cur = conn.execute("SELECT value FROM rules WHERE key = ?", (key,))
-                row = cur.fetchone()
-                return row[0] if row else default
+        # বাংলা মন্তব্য: থ্রেড-লোকাল কানেকশন ব্যবহার করে ডেটাবেস থেকে পড়া হচ্ছে।
+        conn = self._get_sqlite_conn()
+        cur = conn.execute("SELECT value FROM rules WHERE key = ?", (key,))
+        row = cur.fetchone()
+        return row[0] if row else default
 
     def set_rule(self, key: str, value: str) -> None:
         if self.use_firestore:
@@ -93,17 +103,17 @@ class AdminGodLayer:
             except Exception as e:
                 logger.error(f"Firestore set_rule failed: {e}. Falling back to SQLite.")
 
-        with self.sqlite_lock:
-            with sqlite3.connect(self.db_path, check_same_thread=False) as conn:
-                conn.execute(
-                    """
-                    INSERT INTO rules(key, value, updated_at)
-                    VALUES(?, ?, ?)
-                    ON CONFLICT(key) DO UPDATE SET value=excluded.value, updated_at=excluded.updated_at
-                    """,
-                    (key, value, time.time()),
-                )
-                conn.commit()
+        # বাংলা মন্তব্য: থ্রেড-লোকাল কানেকশন ব্যবহার করে ডেটাবেসে লেখা হচ্ছে।
+        conn = self._get_sqlite_conn()
+        conn.execute(
+            """
+            INSERT INTO rules(key, value, updated_at)
+            VALUES(?, ?, ?)
+            ON CONFLICT(key) DO UPDATE SET value=excluded.value, updated_at=excluded.updated_at
+            """,
+            (key, value, time.time()),
+        )
+        conn.commit()
         logger.info(f"Constitutional rule updated in SQLite: {key} = {value}")
 
     def is_admin_action_allowed(self, action: str) -> bool:

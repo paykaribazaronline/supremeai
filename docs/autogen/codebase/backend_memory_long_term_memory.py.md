@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/memory/long_term_memory.py
 
 **প্রকার:** .py  
-**সাইজ:** 5,880 বাইট  
-**আপডেট:** 2026-07-03T22:59:34.549511
+**সাইজ:** 2,544 বাইট  
+**আপডেট:** 2026-07-04T03:16:37.992923
 
 ---
 
@@ -11,171 +11,69 @@
 ```py
 from __future__ import annotations
 
-import os
-import sqlite3
-from datetime import UTC
-from datetime import datetime
 from typing import Any
+from loguru import logger
+
+try:
+    from database.supabase_client import db
+    from brain.model_router import ModelRouter
+    _DEPENDENCIES_AVAILABLE = True
+except ImportError:
+    _DEPENDENCIES_AVAILABLE = False
 
 
-class LongTermMemory:
-    def __init__(
-        self,
-        db_path: str | None = None,
-        session_id: str | None = None,
-    ) -> None:
-        base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        self.db_path = db_path or os.path.join(base_dir, "data", "long_term_memory.db")
-        if self.db_path != ":memory:":
-            os.makedirs(os.path.dirname(self.db_path), exist_ok=True)
-        self.session_id = session_id or "default"
-        self._memory_conn: sqlite3.Connection | None = None
-        self._init_db()
+class MemoryManager:
+    """
+    Manages the agent's long-term memory using a vector database.
+    """
 
-    def _connect(self) -> sqlite3.Connection:
-        if self.db_path == ":memory:":
-            if self._memory_conn is None:
-                self._memory_conn = sqlite3.connect(
-                    self.db_path, check_same_thread=False
-                )
-            return self._memory_conn
-        return sqlite3.connect(self.db_path, check_same_thread=False)
+    def __init__(self):
+        if not _DEPENDENCIES_AVAILABLE:
+            raise ImportError("MemoryManager requires Supabase client and ModelRouter.")
+        self.model_router = ModelRouter()
+        self.db_client = db.client
+        logger.info("Initialized MemoryManager.")
 
-    def _init_db(self) -> None:
-        conn = self._connect()
-        try:
-            conn.execute(
-                """
-                CREATE TABLE IF NOT EXISTS facts (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    session_id TEXT NOT NULL,
-                    category TEXT NOT NULL,
-                    content TEXT NOT NULL,
-                    importance REAL DEFAULT 1.0,
-                    source TEXT,
-                    created_at TEXT NOT NULL,
-                    updated_at TEXT NOT NULL
-                )
-                """
-            )
-            conn.execute(
-                """
-                CREATE TABLE IF NOT EXISTS conversation_summaries (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    session_id TEXT NOT NULL,
-                    summary TEXT NOT NULL,
-                    turn_count INTEGER NOT NULL,
-                    created_at TEXT NOT NULL
-                )
-                """
-            )
-            conn.execute(
-                "CREATE INDEX IF NOT EXISTS idx_facts_session ON facts(session_id, category)"
-            )
-            conn.execute(
-                "CREATE INDEX IF NOT EXISTS idx_summaries_session ON conversation_summaries(session_id)"
-            )
-            conn.commit()
-        finally:
-            if self.db_path != ":memory:":
-                conn.close()
+    async def add_memory(self, learning: str, url: str, metadata: dict[str, Any] | None = None):
+        """
+        Adds a new learning to the long-term memory.
+        """
+        logger.info(f"Adding new memory: '{learning}' from {url}")
+        # 1. Generate a real embedding for the learning text
+        embedding_response = await self.model_router.get_embedding(learning)
+        if not embedding_response.get("success"):
+            logger.error("Failed to generate embedding for memory.")
+            return
+        embedding = embedding_response["embedding"]
 
-    def remember_fact(
-        self,
-        content: str,
-        category: str = "general",
-        importance: float = 1.0,
-        source: str | None = None,
-    ) -> dict[str, Any]:
-        now = self._now()
-        conn = self._connect()
-        try:
-            cursor = conn.execute(
-                """
-                INSERT INTO facts (session_id, category, content, importance, source, created_at, updated_at)
-                VALUES (?, ?, ?, ?, ?, ?, ?)
-                """,
-                (self.session_id, category, content, importance, source, now, now),
-            )
-            conn.commit()
-            return {"status": "ok", "fact_id": cursor.lastrowid}
-        finally:
-            if self.db_path != ":memory:":
-                conn.close()
+        # 2. Store in Supabase 'agent_memories' table
+        await self.db_client.table("agent_memories").insert({
+            "content": learning,
+            "embedding": embedding,
+            "source_url": url,
+            "metadata": metadata or {}
+        }).execute()
 
-    def recall_facts(
-        self,
-        category: str | None = None,
-        min_importance: float = 0.0,
-        limit: int = 20,
-    ) -> list[dict[str, Any]]:
-        conn = self._connect()
-        try:
-            conn.row_factory = sqlite3.Row
-            query = "SELECT * FROM facts WHERE session_id = ? AND importance >= ?"
-            params: list[Any] = [self.session_id, min_importance]
-            if category:
-                query += " AND category = ?"
-                params.append(category)
-            query += " ORDER BY importance DESC, updated_at DESC LIMIT ?"
-            params.append(limit)
-            rows = conn.execute(query, params).fetchall()
-            return [dict(row) for row in rows]
-        finally:
-            if self.db_path != ":memory:":
-                conn.close()
+    async def retrieve_relevant_memories(self, query: str, top_k: int = 3) -> list[str]:
+        """
+        Retrieves the most relevant memories for a given query.
+        """
+        logger.info(f"Retrieving memories relevant to: '{query}'")
+        # 1. Generate a real embedding for the query
+        embedding_response = await self.model_router.get_embedding(query)
+        if not embedding_response.get("success"):
+            logger.error("Failed to generate embedding for memory retrieval.")
+            return []
+        query_embedding = embedding_response["embedding"]
 
-    def save_summary(self, summary: str, turn_count: int) -> dict[str, Any]:
-        now = self._now()
-        conn = self._connect()
-        try:
-            cursor = conn.execute(
-                """
-                INSERT INTO conversation_summaries (session_id, summary, turn_count, created_at)
-                VALUES (?, ?, ?, ?)
-                """,
-                (self.session_id, summary, turn_count, now),
-            )
-            conn.commit()
-            return {"status": "ok", "summary_id": cursor.lastrowid}
-        finally:
-            if self.db_path != ":memory:":
-                conn.close()
+        # 2. Call a Supabase RPC function to perform vector similarity search
+        result = await self.db_client.rpc('match_memories', {
+            'query_embedding': query_embedding,
+            'match_threshold': 0.75,
+            'match_count': top_k
+        }).execute()
 
-    def get_recent_summaries(self, limit: int = 5) -> list[dict[str, Any]]:
-        conn = self._connect()
-        try:
-            conn.row_factory = sqlite3.Row
-            rows = conn.execute(
-                """
-                SELECT * FROM conversation_summaries
-                WHERE session_id = ?
-                ORDER BY created_at DESC
-                LIMIT ?
-                """,
-                (self.session_id, limit),
-            ).fetchall()
-            return [dict(row) for row in rows]
-        finally:
-            if self.db_path != ":memory:":
-                conn.close()
-
-    def build_context(self, limit: int = 10) -> str:
-        facts = self.recall_facts(limit=limit)
-        summaries = self.get_recent_summaries(limit=3)
-        parts: list[str] = []
-        if summaries:
-            parts.append("Recent conversation summaries:")
-            for item in summaries:
-                parts.append(f"- {item['summary']}")
-        if facts:
-            parts.append("Known facts:")
-            for item in facts:
-                parts.append(f"- [{item['category']}] {item['content']}")
-        return "\n".join(parts)
-
-    @staticmethod
-    def _now() -> str:
-        return datetime.now(UTC).isoformat()
-
+        memories = [item['content'] for item in result.data] if result.data else []
+        logger.info(f"Retrieved {len(memories)} relevant memories.")
+        return memories
 ```

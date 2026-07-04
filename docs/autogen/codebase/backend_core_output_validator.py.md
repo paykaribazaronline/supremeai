@@ -1,14 +1,17 @@
 # 📄 ফাইল: backend/core/output_validator.py
 
 **প্রকার:** .py  
-**সাইজ:** 4,381 বাইট  
-**আপডেট:** 2026-07-03T22:59:34.539665
+**সাইজ:** 6,239 বাইট  
+**আপডেট:** 2026-07-04T03:16:37.968741
 
 ---
 
 ## কোড
 
 ```py
+import json
+from pathlib import Path
+
 class MultiAICodeGenerator:
     def generate_with_consensus(
         self, task: str, code_kimi: str, code_gpt: str, code_claude: str
@@ -32,19 +35,32 @@ class MultiAICodeGenerator:
 
 
 class EnhancedConfidenceScorer:
+    def __init__(self, rules_path: Path | None = None):
+        self.rules = self._load_rules(rules_path)
+
+    def _load_rules(self, rules_path: Path | None) -> dict:
+        """ডাইনামিকালি ডাটাবেজ বা JSON থেকে রুলস লোড করে।"""
+        if rules_path and rules_path.exists():
+            try:
+                with open(rules_path, 'r', encoding='utf-8') as f:
+                    return json.load(f)
+            except (json.JSONDecodeError, IOError) as e:
+                logger.error(f"Failed to load constitutional rules from {rules_path}: {e}")
+        logger.warning("Constitutional rules not found or failed to load. Using empty ruleset.")
+        return {"hallucination_patterns": [], "scores": {}}
+
     def score(self, output: str, context: dict) -> dict:
+        output_lower = output.lower()
+        is_flagged = any(p in output_lower for p in self.rules.get("hallucination_patterns", []))
+
         # Factual confidence
-        factual_score = 0.2 if "nadim9/supremeai" in output.lower() else 1.0
+        factual_score = self.rules.get("scores", {}).get("factual_penalty", 0.1) if is_flagged else 1.0
 
         # AI reliability score
-        ai_reliability = context.get("ai_reliability", 0.9)
-        if "nadim9/supremeai" in output.lower():
-            ai_reliability = 0.3
+        ai_reliability = self.rules.get("scores", {}).get("reliability_penalty", 0.1) if is_flagged else context.get("ai_reliability", 0.9)
 
         # External validation score
-        external_score = context.get("external_score", 1.0)
-        if "nadim9/supremeai" in output.lower():
-            external_score = 0.1
+        external_score = self.rules.get("scores", {}).get("external_penalty", 0.1) if is_flagged else context.get("external_score", 1.0)
 
         # Self-consistency score
         consistency_score = 1.0
@@ -92,15 +108,21 @@ class HumanReviewPolicy:
 
 class OutputValidator:
     def __init__(self):
-        self.consensus_threshold = 0.7
+        # আর্কিটেকচারাল ফিক্স: হার্ডকোডেড রুলস ডাইনামিক লোডার দিয়ে প্রতিস্থাপন
+        # ভবিষ্যতে Firestore বা অন্য DB থেকে লোড করার জন্য পাথ প্যারামিটার ব্যবহার করা যাবে
+        rules_path = Path(__file__).parent.parent / "config" / "constitutional_rules.json"
+        self.enhanced_scorer = EnhancedConfidenceScorer(rules_path=rules_path)
+        
+        self.consensus_threshold = self.enhanced_scorer.rules.get("consensus_threshold", 0.7)
+        self.hallucination_patterns = self.enhanced_scorer.rules.get("hallucination_patterns", [])
+        
         self.multi_generator = MultiAICodeGenerator()
-        self.enhanced_scorer = EnhancedConfidenceScorer()
         self.human_policy = HumanReviewPolicy()
 
     def multi_model_consensus(self, output: str, task: str) -> dict:
         score = 1.0
         disagreements = []
-        if "nadim9/supremeai" in output.lower():
+        if any(p in output.lower() for p in self.hallucination_patterns):
             score = 0.1
             disagreements.append(
                 "Incorrect GitHub repository path detected (hallucinated)."
@@ -114,16 +136,16 @@ class OutputValidator:
     def self_reflect(self, output: str) -> dict:
         has_issues = False
         issues = []
-        if "nadim9/supremeai" in output.lower():
+        if any(p in output.lower() for p in self.hallucination_patterns):
             has_issues = True
-            issues.append("Hallucinated repo path 'nadim9/supremeai'")
+            issues.append(f"Hallucinated repo path detected: {self.hallucination_patterns[0]}")
         return {"has_issues": has_issues, "issues": issues}
 
     def score_confidence(self, output: str, verification_results: dict) -> dict:
-        context = {
-            "ai_reliability": 0.4 if "nadim9/supremeai" in output.lower() else 0.9,
-            "external_score": 0.1 if "nadim9/supremeai" in output.lower() else 1.0,
-        }
+        # ai_reliability এবং external_score এখন EnhancedConfidenceScorer এর মধ্যে ডাইনামিকালি হ্যান্ডেল করা হয়
+        context = verification_results.copy()
+        if "ai_reliability" not in context:
+            context["ai_reliability"] = 0.9
         res = self.enhanced_scorer.score(output, context)
         return {
             "overall": res["overall"],

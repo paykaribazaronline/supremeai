@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/desktop/src-tauri/Cargo.toml
 
 **প্রকার:** .toml  
-**সাইজ:** 699 বাইট  
-**আপডেট:** 2026-07-03T22:59:34.581754
+**সাইজ:** 795 বাইট  
+**আপডেট:** 2026-07-04T03:16:38.069055
 
 ---
 
@@ -30,5 +30,6 @@ tauri = { version = "=1.5.4", features = [ "window-maximize", "window-start-drag
 serde_json = "1"
 num_cpus = "1"
 ntapi = "0.4.3"
+tauri-plugin-store = { git = "https://github.com/tauri-apps/plugins-workspace", branch = "v1" }
 
 ```

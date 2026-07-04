@@ -1,8 +1,8 @@
 # 📄 ফাইল: tools/vscode-extension/src/handlers/CodeEditHandler.ts
 
 **প্রকার:** .ts  
-**সাইজ:** 5,113 বাইট  
-**আপডেট:** 2026-07-03T22:59:34.591892
+**সাইজ:** 6,139 বাইট  
+**আপডেট:** 2026-07-04T03:16:38.092470
 
 ---
 
@@ -23,6 +23,7 @@ export class CodeEditHandler {
   private debounceTimer: NodeJS.Timeout | null = null;
   private debounceDelay: number = 2000; // 2 seconds
   private lastSentCode: Map<string, string> = new Map();
+  private readonly MAX_CACHE_SIZE = 50; // আর্কিটেকচারাল ফিক্স: মেমোরি লিক রোধে ক্যাশের আকার সীমিত করা হলো
 
   constructor(context: vscode.ExtensionContext) {
     this.context = context;
@@ -93,6 +94,7 @@ export class CodeEditHandler {
         if (result.success) {
           console.log(`[SupremeAI] Learned from edit in ${filePath}`);
           this.lastSentCode.set(filePath, code);
+          this._manageCacheSize(); // ক্যাশের আকার ম্যানেজ করার জন্য নতুন মেথড কল
         }
       }
     } catch (error: any) {
@@ -138,6 +140,18 @@ export class CodeEditHandler {
   private onDocumentClosed(document: vscode.TextDocument): void {
     const filePath = document.uri.fsPath;
     this.lastSentCode.delete(filePath);
+  }
+
+  /**
+   * মেমোরি লিক রোধ করার জন্য lastSentCode ম্যাপের আকার ম্যানেজ করে।
+   * যদি ম্যাপের আকার MAX_CACHE_SIZE অতিক্রম করে, তবে সবচেয়ে পুরোনো এন্ট্রি মুছে দেয়।
+   */
+  private _manageCacheSize(): void {
+    if (this.lastSentCode.size > this.MAX_CACHE_SIZE) {
+      const oldestKey = this.lastSentCode.keys().next().value;
+      this.lastSentCode.delete(oldestKey);
+      console.log(`[SupremeAI] Cache limit reached. Evicted oldest entry: ${oldestKey}`);
+    }
   }
 
   private isCodeFile(languageId: string): boolean {

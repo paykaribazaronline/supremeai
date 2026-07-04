@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/workers/chaos_worker.py
 
 **প্রকার:** .py  
-**সাইজ:** 5,310 বাইট  
-**আপডেট:** 2026-07-03T22:59:34.539039
+**সাইজ:** 5,631 বাইট  
+**আপডেট:** 2026-07-04T03:16:37.967295
 
 ---
 
@@ -15,8 +15,10 @@ from datetime import UTC
 from datetime import datetime
 
 import httpx
-from google.cloud import firestore
 from loguru import logger
+
+# শেয়ার্ড ইউটিলিটি — Firestore ইনিশিয়ালাইজেশন কেন্দ্রীভূত করা হয়েছে
+from utils.firestore_helpers import get_firestore_db
 
 
 try:
@@ -26,7 +28,6 @@ except ImportError:  # pragma: no cover
     generate_fuzz_payloads = None
     run_sandbox_ast_check = None
 
-HAS_FIRESTORE = True
 SERVER_ERROR_THRESHOLD = 500
 
 
@@ -37,11 +38,11 @@ class NightlyChaosAuditor:
     """
 
     def __init__(self):
-        if HAS_FIRESTORE:
-            self.db = firestore.Client()
+        # রিফ্যাক্টর: সরাসরি firestore.Client() কল না করে শেয়ার্ড হেল্পার ব্যবহার
+        self.db = get_firestore_db()
+        if self.db is not None:
             self.gate_ref = self.db.collection("deploy_gate").document("status")
         else:
-            self.db = None
             self.gate_ref = None
         # স্টেজ রেপ্লিকা ইউআরএল ম্যাপ (প্রোডাকশন থেকে আলাদা)
         self.target_url = os.getenv("STAGING_REPLICA_URL", "http://localhost:8000")

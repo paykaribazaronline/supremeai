@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/desktop/src-tauri/tauri.conf.json
 
 **প্রকার:** .json  
-**সাইজ:** 2,091 বাইট  
-**আপডেট:** 2026-07-03T22:59:34.581698
+**সাইজ:** 2,140 বাইট  
+**আপডেট:** 2026-07-04T03:16:38.068921
 
 ---
 
@@ -31,6 +31,9 @@
       },
       "notification": {
         "all": false
+      },
+      "plugin": {
+        "store": true
       },
       "window": {
         "all": false,

@@ -1,8 +1,8 @@
 # 📄 ফাইল: scripts/commit_supreme_ci.yml
 
 **প্রকার:** .yml  
-**সাইজ:** 69,027 বাইট  
-**আপডেট:** 2026-07-03T22:59:34.528159
+**সাইজ:** 67,754 বাইট  
+**আপডেট:** 2026-07-04T03:16:37.943204
 
 ---
 
@@ -144,55 +144,45 @@ jobs:
   check-previous-failures:
     name: 🤔 Check Previous Failures
     runs-on: ubuntu-latest
+    permissions:
+      actions: read # To download artifacts from other runs
+      issues: write # To create issues for consecutive failures
     outputs:
       force_flags: ${{ steps.check.outputs.force_flags }}
     steps:
       - uses: actions/checkout@v7
-        with:
-          fetch-depth: 1
 
-      - name: Check previous failures for all packages
+      - name: Download failure flags from previous run
+        uses: dawidd6/action-download-artifact@v6
+        with:
+          workflow: ${{ github.workflow_id }}
+          branch: ${{ github.ref_name }}
+          name: ci-failure-flags
+          path: .ci-status-previous
+          if_no_artifact_found: ignore
+
+      - name: Check for consecutive failures
         id: check
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           declare -A RESULTS
-          PACKAGES=("backend" "studio" "mobile" "webchat" "vscode" "prompt")
-          PATTERNS=("Backend Tests" "Studio Client Build" "Mobile App Analysis" "Web Chat Build" "VS Code Extension Build" "LLM Prompt Evaluation")
+          PACKAGES_AND_FLAGS=(
+            "backend:backend-test-failed"
+            "studio:studio-build-failed"
+            "mobile:mobile-analyze-failed"
+            "webchat:webchat-build-failed"
+            "vscode:vscode-build-failed"
+            "prompt:prompt-eval-failed"
+          )
 
-          for i in "${!PACKAGES[@]}"; do
-            pkg="${PACKAGES[$i]}"
-            pattern="${PATTERNS[$i]}"
-            consecutive_failures=0
-            chain_broken=false
-
-            runs_json=$(gh run list --workflow "${{ github.workflow }}" --branch "${{ github.ref_name }}" --limit 6 --json databaseId,conclusion,status)
-            prev_runs=$(echo "$runs_json" | jq -r --arg current_id "${{ github.run_id }}" '.[] | select(.databaseId | tostring != $current_id) | .databaseId' | head -n 5)
-
-            for run_id in $prev_runs; do
-              if [[ "$chain_broken" == true ]]; then break; fi
-
-              jobs_json=$(gh run view "$run_id" --json jobs)
-              if echo "$jobs_json" | jq -e ".jobs[] | select((.name | test(\"$pattern\")) and (.conclusion==\"failure\" or .conclusion==\"cancelled\"))" >/dev/null; then
-                consecutive_failures=$((consecutive_failures + 1))
-              else
-                chain_broken=true
-              fi
-            done
-
-            echo "  ${pattern}: $consecutive_failures consecutive failure(s)."
-
-            if [[ $consecutive_failures -ge 2 ]]; then
-              echo "  ❌ ${pkg}: has failed $consecutive_failures times. Disabling auto-retry and creating issue."
-              RESULTS[$pkg]="false"
-              issue_title="🚨 CI: Job '${pattern}' failing consecutively"
-              issue_body="The **${pattern}** job has failed $consecutive_failures times consecutively on branch \`${{ github.ref_name }}\`. Auto-retry has been disabled. Please investigate. Last failing run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/$(echo $prev_runs | head -n1)"
-              gh issue create --title "$issue_title" --body "$issue_body" --label "bug,ci-cd" || echo "Failed to create issue. Maybe it already exists."
-            elif [[ $consecutive_failures -eq 1 ]]; then
+          for item in "${PACKAGES_AND_FLAGS[@]}"; do
+            pkg="${item%%:*}"
+            flag_file="${item#*:}"
+            if [[ -f ".ci-status-previous/${flag_file}" ]]; then
               echo "  ⚠️  ${pkg}: previously failed. Forcing retry."
               RESULTS[$pkg]="true"
             else
-              echo "  ✅ ${pkg}: no consecutive failures."
               RESULTS[$pkg]="false"
             fi
           done

@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/middleware/auth_middleware.py
 
 **প্রকার:** .py  
-**সাইজ:** 3,328 বাইট  
-**আপডেট:** 2026-07-03T22:59:34.551874
+**সাইজ:** 4,261 বাইট  
+**আপডেট:** 2026-07-04T03:16:37.998454
 
 ---
 
@@ -10,14 +10,15 @@
 
 ```py
 
-import os
-import sys
 
 from fastapi import Request
 from loguru import logger
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from core.security import verify_token
+
+# শেয়ার্ড ইউটিলিটি — টেস্ট এনভায়রনমেন্ট চেক কেন্দ্রীভূত
+from utils.environment import is_test_environment
 
 
 class ZeroTrustAuthMiddleware(BaseHTTPMiddleware):
@@ -47,7 +48,8 @@ class ZeroTrustAuthMiddleware(BaseHTTPMiddleware):
         if matched:
             return await call_next(request)
 
-        is_test = "pytest" in sys.modules or os.getenv("ENV") == "test"
+        # রিফ্যাক্টর: লোকাল is_test চেকের বদলে শেয়ার্ড ইউটিলিটি ব্যবহার
+        is_test = is_test_environment()
         auth_header = request.headers.get("Authorization")
 
         if not auth_header or not auth_header.startswith("Bearer "):
@@ -75,9 +77,13 @@ class ZeroTrustAuthMiddleware(BaseHTTPMiddleware):
             request.state.user = payload
             request.state.tenant_id = payload.get("tenant_id") or payload.get("sub")
 
-            # অ্যাডমিন রাউটের জন্য স্ট্রিক্ট রোল চেক
+            # বাংলা মন্তব্য: শুধু "/api/admin" নয়, prefix ছাড়া রেজিস্টার হওয়া সব
+            # অ্যাডমিন-লেভেল রাউটেও (/admin/*, /admin-api/*, /gcp/*) স্ট্রিক্ট রোল চেক
+            # প্রয়োগ করা হলো — নয়তো সাধারণ ইউজার টোকেন দিয়ে admin_routes.py এর
+            # /admin/rules, /admin/free-tier-override ইত্যাদি অ্যাক্সেস করা যেত (privilege escalation)।
+            admin_prefixes = ("/api/admin", "/admin/", "/admin-api", "/gcp/")
             if (
-                request.url.path.startswith("/api/admin")
+                any(request.url.path.startswith(p) for p in admin_prefixes)
                 and payload.get("role") != "admin"
             ):
                 logger.critical(

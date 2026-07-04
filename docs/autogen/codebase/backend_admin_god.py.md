@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/admin/god.py
 
 **প্রকার:** .py  
-**সাইজ:** 7,323 বাইট  
-**আপডেট:** 2026-07-03T22:59:34.550819
+**সাইজ:** 7,384 বাইট  
+**আপডেট:** 2026-07-04T03:16:37.995970
 
 ---
 
@@ -16,11 +16,8 @@ from pathlib import Path
 
 from loguru import logger
 
-
-try:
-    from google.cloud import firestore
-except ImportError:
-    firestore = None
+# শেয়ার্ড ইউটিলিটি — Firestore ও টেস্ট এনভায়রনমেন্ট চেক কেন্দ্রীভূত
+from utils.firestore_helpers import get_firestore_db
 
 
 class AdminGodLayer:
@@ -44,23 +41,17 @@ class AdminGodLayer:
         self.sqlite_lock = threading.Lock()
         
         self.collection_name = "constitutional_rules"
-        self._db = None
-        
-        import os
-        import sys
-
-        is_test = "pytest" in sys.modules or os.getenv("ENV") == "test"
-        if firestore and not is_test:
+        # রিফ্যাক্টর: সরাসরি firestore.Client() এর বদলে শেয়ার্ড হেল্পার ব্যবহার
+        self._db = get_firestore_db()
+        if self._db is not None:
             try:
-                # Firestore client auto-detects Cloud Run service account
-                self._db = firestore.Client()
                 self._init_db()
             except Exception as e:
                 logger.warning(f"Failed to initialize Firestore for AdminGodLayer: {e}. Falling back to SQLite.")
                 self._db = None
         else:
             logger.warning(
-                "google-cloud-firestore not installed or in test mode. AdminGodLayer using local SQLite fallback."
+                "Firestore unavailable or in test mode. AdminGodLayer using local SQLite fallback."
             )
         
         self._init_sqlite_db()

@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/api_key_middleware.py
 
 **প্রকার:** .py  
-**সাইজ:** 2,602 বাইট  
-**আপডেট:** 2026-07-03T22:59:34.543159
+**সাইজ:** 2,897 বাইট  
+**আপডেট:** 2026-07-04T03:16:37.977097
 
 ---
 
@@ -10,8 +10,6 @@
 
 ```py
 import contextlib
-import os
-import sys
 import time
 
 from fastapi import HTTPException
@@ -26,6 +24,9 @@ from core.security import hash_api_key
 from core.security import mask_api_key
 from models.api_key import record_api_key_usage
 
+# শেয়ার্ড ইউটিলিটি — টেস্ট এনভায়রনমেন্ট চেক কেন্দ্রীভূত
+from utils.environment import is_test_environment
+
 
 class APIKeyAuthMiddleware(BaseHTTPMiddleware):
     def __init__(self, app) -> None:
@@ -38,8 +39,8 @@ class APIKeyAuthMiddleware(BaseHTTPMiddleware):
         if not api_key_header or not api_key_header.startswith(self.prefix):
             return await call_next(request)
 
-        is_test = "pytest" in sys.modules or os.getenv("ENV") == "test"
-        if is_test:
+        # রিফ্যাক্টর: লোকাল is_test চেকের বদলে শেয়ার্ড ইউটিলিটি ব্যবহার
+        if is_test_environment():
             request.state.api_key = {
                 "id": "test",
                 "masked": mask_api_key(api_key_header),

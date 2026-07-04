@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/llm_gateway.py
 
 **প্রকার:** .py  
-**সাইজ:** 9,765 বাইট  
-**আপডেট:** 2026-07-03T22:59:34.542955
+**সাইজ:** 9,501 বাইট  
+**আপডেট:** 2026-07-04T03:16:37.976627
 
 ---
 
@@ -51,14 +51,7 @@ class LLMGateway:
         except Exception as e:
             logger.error(f"Error loading routing policy: {e}")
         
-        return {
-            "complexity_rules": {
-                "easy": ["groq/llama-3.3-70b-versatile"],
-                "medium": ["gemini/gemini-3.5-flash"],
-                "hard": ["openai/gpt-4o-mini"]
-            },
-            "fallback_chain": ["groq/llama-3.3-70b-versatile", "gemini/gemini-3.5-flash"]
-        }
+        return {"complexity_rules": {}, "fallback_chain": []}
 
     def _inject_secrets(self):
         # Inject API keys from core settings dynamically into environment for LiteLLM

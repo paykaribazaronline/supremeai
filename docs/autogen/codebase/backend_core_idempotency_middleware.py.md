@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/idempotency_middleware.py
 
 **প্রকার:** .py  
-**সাইজ:** 5,162 বাইট  
-**আপডেট:** 2026-07-03T22:59:34.543433
+**সাইজ:** 5,466 বাইট  
+**আপডেট:** 2026-07-04T03:16:37.977776
 
 ---
 
@@ -16,6 +16,9 @@ import json
 
 from fastapi.responses import JSONResponse
 
+# শেয়ার্ড ইউটিলিটি — টেস্ট এনভায়রনমেন্ট চেক কেন্দ্রীভূত
+from utils.environment import is_test_environment
+
 
 class IdempotencyMiddleware:
     def __init__(self, app) -> None:
@@ -26,10 +29,8 @@ class IdempotencyMiddleware:
             await self.app(scope, receive, send)
             return
 
-        import os
-        import sys
-
-        if "pytest" in sys.modules or os.getenv("ENV") == "test":
+        # রিফ্যাক্টর: লোকাল is_test চেকের বদলে শেয়ার্ড ইউটিলিটি ব্যবহার
+        if is_test_environment():
             await self.app(scope, receive, send)
             return
 
