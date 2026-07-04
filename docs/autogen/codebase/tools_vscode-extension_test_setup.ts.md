@@ -1,16 +1,15 @@
 # 📄 ফাইল: tools/vscode-extension/test/setup.ts
 
 **প্রকার:** .ts  
-**সাইজ:** 755 বাইট  
-**আপডেট:** 2026-07-04T04:43:53.201230
+**সাইজ:** 792 বাইট  
+**আপডেট:** 2026-07-04T05:05:29.968742
 
 ---
 
 ## কোড
 
 ```ts
-import { vi } from 'vitest';
-
+// vi is available as a global (globals: true in vitest.config.ts)
 vi.mock('vscode', () => ({
   window: {
     showInformationMessage: vi.fn(),

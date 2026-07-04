@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/memory/long_term_memory.py
 
 **প্রকার:** .py  
-**সাইজ:** 2,547 বাইট  
-**আপডেট:** 2026-07-04T04:43:53.114761
+**সাইজ:** 2,730 বাইট  
+**আপডেট:** 2026-07-04T05:05:29.881861
 
 ---
 
@@ -15,14 +15,12 @@ from typing import Any
 
 from loguru import logger
 
-
 try:
     from brain.model_router import ModelRouter
     from database.supabase_client import db
     _DEPENDENCIES_AVAILABLE = True
 except ImportError:
     _DEPENDENCIES_AVAILABLE = False
-
 
 class MemoryManager:
     """
@@ -79,4 +77,8 @@ class MemoryManager:
         logger.info(f"Retrieved {len(memories)} relevant memories.")
         return memories
 
+class LongTermMemory:
+    def __init__(self, db_path: str = ":memory:", session_id: str = "default"):
+        self.memory_manager = MemoryManager()
+        self.session_id = session_id
 ```
