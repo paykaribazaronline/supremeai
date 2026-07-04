@@ -1,8 +1,8 @@
 # 📄 ফাইল: tools/vscode-extension/src/handlers/CodeEditHandler.ts
 
 **প্রকার:** .ts  
-**সাইজ:** 6,139 বাইট  
-**আপডেট:** 2026-07-04T04:38:12.368728
+**সাইজ:** 6,188 বাইট  
+**আপডেট:** 2026-07-04T04:43:53.199704
 
 ---
 
@@ -149,8 +149,10 @@ export class CodeEditHandler {
   private _manageCacheSize(): void {
     if (this.lastSentCode.size > this.MAX_CACHE_SIZE) {
       const oldestKey = this.lastSentCode.keys().next().value;
-      this.lastSentCode.delete(oldestKey);
-      console.log(`[SupremeAI] Cache limit reached. Evicted oldest entry: ${oldestKey}`);
+      if (oldestKey !== undefined) {
+        this.lastSentCode.delete(oldestKey);
+        console.log(`[SupremeAI] Cache limit reached. Evicted oldest entry: ${oldestKey}`);
+      }
     }
   }
 

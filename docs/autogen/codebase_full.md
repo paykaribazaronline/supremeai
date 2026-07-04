@@ -1,7 +1,7 @@
 # 🧠 SupremeAI 2.0 Codebase Dump
 # বাংলা মন্তব্য: এটি একটি স্বয়ংক্রিয়ভাবে জেনারেট করা কোডবেস ডাম্প ফাইল যা প্রজেক্টের সামগ্রিক বিশ্লেষণের জন্য ব্যবহৃত হয়।
 
-Generated at: 2026-07-04T04:38:12.275351
+Generated at: 2026-07-04T04:43:53.059200
 
 
 ## File: `pnpm-lock.yaml`
@@ -151151,8 +151151,10 @@ export class CodeEditHandler {
   private _manageCacheSize(): void {
     if (this.lastSentCode.size > this.MAX_CACHE_SIZE) {
       const oldestKey = this.lastSentCode.keys().next().value;
-      this.lastSentCode.delete(oldestKey);
-      console.log(`[SupremeAI] Cache limit reached. Evicted oldest entry: ${oldestKey}`);
+      if (oldestKey !== undefined) {
+        this.lastSentCode.delete(oldestKey);
+        console.log(`[SupremeAI] Cache limit reached. Evicted oldest entry: ${oldestKey}`);
+      }
     }
   }
 
