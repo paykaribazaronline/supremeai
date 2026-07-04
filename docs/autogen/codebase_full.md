@@ -1,7 +1,7 @@
 # 🧠 SupremeAI 2.0 Codebase Dump
 # বাংলা মন্তব্য: এটি একটি স্বয়ংক্রিয়ভাবে জেনারেট করা কোডবেস ডাম্প ফাইল যা প্রজেক্টের সামগ্রিক বিশ্লেষণের জন্য ব্যবহৃত হয়।
 
-Generated at: 2026-07-04T22:02:59.985070
+Generated at: 2026-07-04T22:20:05.942139
 
 
 ## File: `pnpm-lock.yaml`
@@ -164061,6 +164061,18 @@ jobs:
 ## File: `.github/workflows/nightly-maintenance.yml`
 
 ```yml
+# ==============================================================================
+# [IMMUTABLE CONFIGURATION - MANUAL CONTROL ONLY]
+# ------------------------------------------------------------------------------
+# DO NOT ALLOW AI AGENTS OR AUTOMATION TO MODIFY THE PIPELINE LOGIC.
+# Current CI State: 
+# 1. Automatic change detection: DISABLED.
+# 2. Previous failed/skipped job recovery: DISABLED.
+# 3. Execution: Force full run on every trigger.
+# Any modification to this file requires manual human intervention and 
+# signature validation to prevent regression or instability.
+# ==============================================================================
+
 name: 🛠️ SupremeAI Nightly Maintenance
 
 on:
@@ -164326,12 +164338,108 @@ jobs:
           fi
 
           echo "✅ ডিপেন্ডেন্সি আপডেট PR সফলভাবে তৈরি/আপডেট হয়েছে!"
+  # ----------------------------------------------------
+  # 🖼️ VISUAL REGRESSION TESTS (Heavy UI Audits)
+  # ----------------------------------------------------
+  visual-regression-test:
+    name: 🖼️ Visual Regression Tests
+    if: github.event_name == 'schedule' || github.event.inputs.job_to_run == 'all'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v3
+        with:
+          version: 9.0.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+          cache-dependency-path: '**/pnpm-lock.yaml'
+      - name: Install Dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Install Playwright Browsers
+        run: pnpm exec playwright install --with-deps
+      - name: Start Frontend Preview Server
+        run: |
+          cd apps/studio-client && pnpm exec vite preview --port 5173 &
+          sleep 5
+        env:
+          CI: true
+      - name: Execute Visual Regression
+        run: |
+          mkdir -p playwright-report
+          pnpm exec playwright test tests/e2e/visual.spec.ts --reporter=html
+        env:
+          CI: true
+      - name: Upload Visual Test Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: visual-regression-report
+          path: playwright-report/
+          retention-days: 7
+
+  # ----------------------------------------------------
+  # ⏱️ LOAD TEST (k6)
+  # ----------------------------------------------------
+  load-test:
+    name: ⏱️ Load Test (k6)
+    if: github.event_name == 'schedule' || github.event.inputs.job_to_run == 'all'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Start Backend for Testing
+        working-directory: backend
+        env:
+          GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
+        run: |
+          pip install poetry
+          poetry config virtualenvs.in-project true
+          poetry install --sync --without ml
+          
+          # Create credentials file for Google Cloud/Firestore
+          echo "$GCP_SA_KEY" > $HOME/gcp_key.json
+          export GOOGLE_APPLICATION_CREDENTIALS="$HOME/gcp_key.json"
+          
+          poetry run python main.py &
+          sleep 12
+      - name: Install k6
+        uses: grafana/setup-k6-action@v1
+      - name: Run k6 load test
+        env:
+          SUPREMEAI_URL: "http://127.0.0.1:8000"
+        run: |
+          echo "Running k6 load test against ${SUPREMEAI_URL}"
+          export CI=true
+          export SUPREMEAI_URL="${SUPREMEAI_URL}"
+          k6 run --out json=load-test-output.json scripts/k6/load_test.js
+      - name: Upload k6 results
+        uses: actions/upload-artifact@v4
+        with:
+          name: k6-load-test
+          path: load-test-output.json
 
 ```
 
 ## File: `.github/workflows/supreme-core-ci.yml`
 
 ```yml
+# ==============================================================================
+# [IMMUTABLE CONFIGURATION - MANUAL CONTROL ONLY]
+# ------------------------------------------------------------------------------
+# DO NOT ALLOW AI AGENTS OR AUTOMATION TO MODIFY THE PIPELINE LOGIC.
+# Current CI State: 
+# 1. Automatic change detection: DISABLED.
+# 2. Previous failed/skipped job recovery: DISABLED.
+# 3. Execution: Force full run on every trigger.
+# Any modification to this file requires manual human intervention and 
+# signature validation to prevent regression or instability.
+# ==============================================================================
+
 name: 🧠 SupremeAI Core CI
 
 on:
@@ -164749,7 +164857,7 @@ jobs:
         continue-on-error: true
         run: |
           pnpm exec playwright install --with-deps
-          pnpm exec playwright test --reporter=html
+          pnpm exec playwright test tests/e2e/accessibility.spec.ts tests/e2e/chat.spec.ts --reporter=html
 
       - name: Install Python Dependencies for Frontend Auto-Fix
         if: failure()
@@ -164821,7 +164929,7 @@ jobs:
           # --reporter=html ডিফল্ট হিসেবে কনফিগারেশন ফাইল থেকে আসে,
           # কিন্তু এখানে স্পষ্টভাবে উল্লেখ করাও ভালো।
           # ভিডিও এবং ট্রেস কনফিগারেশন playwright.config.ts থেকে আসবে।
-          pnpm exec playwright test
+          pnpm exec playwright test tests/e2e/accessibility.spec.ts tests/e2e/chat.spec.ts
         env:
           CI: true
       - name: Upload Test Report Artifacts
@@ -164873,47 +164981,7 @@ jobs:
           GCP_REGION: ${{ vars.GCP_REGION || 'us-central1' }}
         run: python .github/scripts/deploy-backend.py
 
-  load-test:
-    name: ⏱️ Load Test (k6)
-    needs: [backend-core, frontend-core]
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-      - name: Start Backend for Testing
-        working-directory: backend
-        env:
-          GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
-        run: |
-          pip install poetry
-          poetry config virtualenvs.in-project true
-          poetry install --sync --without ml
-          
-          # Create credentials file for Google Cloud/Firestore
-          echo "$GCP_SA_KEY" > $HOME/gcp_key.json
-          export GOOGLE_APPLICATION_CREDENTIALS="$HOME/gcp_key.json"
-          
-          poetry run python main.py &
-          sleep 12
-      # বাংলা মন্তব্য: k6io/setup-k6 রিপোজিটরি অপসারিত হওয়ায় grafana/setup-k6-action@v1 ব্যবহার করা হলো
-      - name: Install k6
-        uses: grafana/setup-k6-action@v1
-      - name: Run k6 load test
-        env:
-          SUPREMEAI_URL: "http://127.0.0.1:8000"
-        run: |
-          echo "Running k6 load test against ${SUPREMEAI_URL}"
-          export CI=true
-          export SUPREMEAI_URL="${SUPREMEAI_URL}"
-          k6 run --out json=load-test-output.json scripts/k6/load_test.js
-      - name: Upload k6 results
-        uses: actions/upload-artifact@v4
-        with:
-          name: k6-load-test
-          path: load-test-output.json
+
 
   flutter-integration-tests:
     name: 📱 Flutter Integration Test
