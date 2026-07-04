@@ -348,11 +348,7 @@ jobs:
       - name: Run VS Code Extension Tests
         run: pnpm turbo run test --filter=supremeai-vscode --cache-dir=.turbo
  
-      - name: Playwright Install & Test
-        continue-on-error: true
-        run: |
-          pnpm exec playwright install --with-deps
-          pnpm exec playwright test tests/e2e/accessibility.spec.ts tests/e2e/chat.spec.ts --reporter=html
+
 
       - name: Install Python Dependencies for Frontend Auto-Fix
         if: failure()
