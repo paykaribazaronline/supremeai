@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/studio-client/src/components/graph/SkillGraph.tsx
 
 **প্রকার:** .tsx  
-**সাইজ:** 4,127 বাইট  
-**আপডেট:** 2026-07-04T23:38:49.267800
+**সাইজ:** 4,191 বাইট  
+**আপডেট:** 2026-07-04T23:47:17.654986
 
 ---
 
@@ -30,6 +30,7 @@ interface GraphData {
 }
 
 import { getApiBaseUrl } from '../../utils/api';
+import { getAdminToken } from '../../services/adminTokenStore';
 
 export default function SkillGraph() {
   const [nodes, setNodes, onNodesChange] = useNodesState([]);

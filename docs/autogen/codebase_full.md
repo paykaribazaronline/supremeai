@@ -1,7 +1,7 @@
 # 🧠 SupremeAI 2.0 Codebase Dump
 # বাংলা মন্তব্য: এটি একটি স্বয়ংক্রিয়ভাবে জেনারেট করা কোডবেস ডাম্প ফাইল যা প্রজেক্টের সামগ্রিক বিশ্লেষণের জন্য ব্যবহৃত হয়।
 
-Generated at: 2026-07-04T23:38:49.127405
+Generated at: 2026-07-04T23:47:17.512743
 
 
 ## File: `pnpm-lock.yaml`
@@ -133810,7 +133810,7 @@ export const ConsentMatrixModal: React.FC<ConsentMatrixModalProps> = ({
 
 ```tsx
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Terminal, Globe, Send, RefreshCw, Eye, EyeOff, Layout, TerminalSquare, Compass } from 'lucide-react';
+import { Terminal, Globe, Send, RefreshCw, TerminalSquare, Compass } from 'lucide-react';
 import { useDashboardStore } from '../../store/dashboardStore';
 import { UnifiedChatBubble, TypingIndicator } from '../chat';
 
@@ -133838,9 +133838,12 @@ interface InteractiveChatTabProps {
   onInputChange?: (val: string) => void;
   onSend?: () => void;
   loading?: boolean;
+  onSaveToProject?: (code: string) => void;
+  onPreview?: (code: string) => void;
 }
 
 import { getApiBaseUrl } from '../../utils/api';
+import { getAdminToken } from '../../services/adminTokenStore';
 
 
 export function InteractiveChatTab({
@@ -134508,6 +134511,7 @@ interface GraphData {
 }
 
 import { getApiBaseUrl } from '../../utils/api';
+import { getAdminToken } from '../../services/adminTokenStore';
 
 export default function SkillGraph() {
   const [nodes, setNodes, onNodesChange] = useNodesState([]);

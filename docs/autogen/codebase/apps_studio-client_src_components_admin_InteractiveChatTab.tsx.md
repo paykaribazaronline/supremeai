@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/studio-client/src/components/admin/InteractiveChatTab.tsx
 
 **প্রকার:** .tsx  
-**সাইজ:** 19,919 বাইট  
-**আপডেট:** 2026-07-04T23:38:49.267038
+**সাইজ:** 20,044 বাইট  
+**আপডেট:** 2026-07-04T23:47:17.654205
 
 ---
 
@@ -10,7 +10,7 @@
 
 ```tsx
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Terminal, Globe, Send, RefreshCw, Eye, EyeOff, Layout, TerminalSquare, Compass } from 'lucide-react';
+import { Terminal, Globe, Send, RefreshCw, TerminalSquare, Compass } from 'lucide-react';
 import { useDashboardStore } from '../../store/dashboardStore';
 import { UnifiedChatBubble, TypingIndicator } from '../chat';
 
@@ -38,9 +38,12 @@ interface InteractiveChatTabProps {
   onInputChange?: (val: string) => void;
   onSend?: () => void;
   loading?: boolean;
+  onSaveToProject?: (code: string) => void;
+  onPreview?: (code: string) => void;
 }
 
 import { getApiBaseUrl } from '../../utils/api';
+import { getAdminToken } from '../../services/adminTokenStore';
 
 
 export function InteractiveChatTab({
