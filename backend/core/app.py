@@ -195,6 +195,7 @@ from api.routes import github_router
 from api.routes import graph_router
 from api.routes import internal_router
 from api.routes import knowledge_router
+from api.routes import llm_gateway_router
 from api.routes import markdown_router
 from api.routes import marketplace_router
 from api.routes import media_router
@@ -204,6 +205,7 @@ from api.routes import payments_router
 from api.routes import preferences_router
 from api.routes import repos_router
 from api.routes import simulator_router
+from api.routes import site_actions_router
 from api.routes import sso_router
 from api.routes import stream_router
 from api.routes import task_router
@@ -222,6 +224,12 @@ if markdown_router is not None:
     app.include_router(markdown_router, prefix="/api/v1")
 if simulator_router is not None:
     app.include_router(simulator_router)
+# বাংলা মন্তব্য: site_actions_registry CRUD — অ্যাডমিন ভিজুয়াল এডিটরের ব্যাকএন্ড
+if site_actions_router is not None:
+    app.include_router(site_actions_router)
+# বাংলা মন্তব্য: LLM Gateway ও System Rules — স্টুডিও ড্যাশবোর্ড থেকে রিচেবল
+if llm_gateway_router is not None:
+    app.include_router(llm_gateway_router)
 if browser_router is not None:
     app.include_router(browser_router)
 if stream_router is not None:
