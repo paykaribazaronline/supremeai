@@ -68,9 +68,7 @@ def _row_to_dict(row: tuple) -> dict:
 @router.get("/")
 def list_site_actions():
     with _lock, _conn() as conn:
-        rows = conn.execute(
-            "SELECT * FROM site_actions ORDER BY updated_at DESC"
-        ).fetchall()
+        rows = conn.execute("SELECT * FROM site_actions ORDER BY updated_at DESC").fetchall()
     return {"items": [_row_to_dict(r) for r in rows], "total": len(rows)}
 
 
@@ -96,9 +94,7 @@ def create_site_action(payload: SiteActionIn):
         )
         conn.commit()
         new_id = cur.lastrowid
-        row = conn.execute(
-            "SELECT * FROM site_actions WHERE id = ?", (new_id,)
-        ).fetchone()
+        row = conn.execute("SELECT * FROM site_actions WHERE id = ?", (new_id,)).fetchone()
     return _row_to_dict(row)
 
 
@@ -127,9 +123,7 @@ def update_site_action(action_id: int, payload: SiteActionIn):
         conn.commit()
         if cur.rowcount == 0:
             raise HTTPException(status_code=404, detail="Site action not found")
-        row = conn.execute(
-            "SELECT * FROM site_actions WHERE id = ?", (action_id,)
-        ).fetchone()
+        row = conn.execute("SELECT * FROM site_actions WHERE id = ?", (action_id,)).fetchone()
     return _row_to_dict(row)
 
 
