@@ -1,8 +1,14 @@
-import time
 import logging
-from typing import Callable, Any
-from tenacity import retry, stop_after_attempt, wait_exponential, RetryError
-from pybreaker import CircuitBreaker, CircuitBreakerError
+from collections.abc import Callable
+from typing import Any
+
+from pybreaker import CircuitBreaker
+from pybreaker import CircuitBreakerError
+from tenacity import RetryError
+from tenacity import retry
+from tenacity import stop_after_attempt
+from tenacity import wait_exponential
+
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 

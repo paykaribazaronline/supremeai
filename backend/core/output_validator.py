@@ -42,7 +42,7 @@ class EnhancedConfidenceScorer:
             try:
                 with open(rules_path, encoding='utf-8') as f:
                     return json.load(f)
-            except (json.JSONDecodeError, OSError) as e:
+            except (OSError, json.JSONDecodeError) as e:
                 # বল মনতবয: আগ `logger` ইমপরট কর হয়ন, ফল এই except বলক নজই
                 # NameError ছড়ত ও মল তরটি চপ পড় যত; loguru logger যকত কর ঠক কর হল
                 logger.error(f"Failed to load constitutional rules from {rules_path}: {e}")

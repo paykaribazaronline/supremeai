@@ -73,7 +73,6 @@ class ErrorRemediation:
             return None
 
     async def _backoff_retry(self, operation, max_attempts: int = 3, base_delay: float = 0.5):
-        last_exception = None
         for attempt in range(1, max_attempts + 1):
             if not self.circuit_breaker.allow_request():
                 logger.warning("Circuit breaker open; skipping Qdrant lookup.")
@@ -83,7 +82,6 @@ class ErrorRemediation:
                 self.circuit_breaker.record_success()
                 return result
             except Exception as exc:
-                last_exception = exc
                 self.circuit_breaker.record_failure()
                 logger.debug(f"Qdrant lookup attempt {attempt} failed: {exc}")
                 if attempt < max_attempts:

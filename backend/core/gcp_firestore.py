@@ -322,14 +322,11 @@ class GCPFirestoreVerificationQueue:
 
 
 def get_firestore_client(project_id: str | None = None):
-    import sys
+    """Firestore ক্লায়েন্ট রিটার্ন করে।
 
-    if "pytest" in sys.modules or os.getenv("ENV") == "test":
-        return None
-    project_id = project_id or os.getenv("GCP_PROJECT_ID") or "supremeai-a"
-    try:
-        if FIRESTORE_AVAILABLE:
-            return firestore.Client(project=project_id)
-    except Exception as e:
-        logger.warning(f"Failed to initialize Firestore client: {e}")
-    return None
+    নোট: এই ফাংশনটি পুরানো কোডের সাথে সামঞ্জস্যতার জন্য রাখা হয়েছে।
+    নতুন কোডের জন্য utils.firestore_helpers.get_firestore_db() ব্যবহার করুন।
+    """
+    # রিফ্যাক্টর: শেয়ার্ড ইউটিলিটিতে ডেলিগেট করা হচ্ছে
+    from utils.firestore_helpers import get_firestore_db as _get_db
+    return _get_db(project_id)

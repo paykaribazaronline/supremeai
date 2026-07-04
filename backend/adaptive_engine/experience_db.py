@@ -260,8 +260,9 @@ class ExperienceDatabase:
         """
         import gzip
         import shutil
-        from google.cloud import storage
+
         import loguru
+        from google.cloud import storage
 
         try:
             if str(self.db_path) == ":memory:":

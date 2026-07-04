@@ -1,42 +1,31 @@
-import contextlib
 import json
-
-from fastapi import HTTPException
-from fastapi import Request
-from fastapi.responses import JSONResponse
-from starlette.middleware.base import BaseHTTPMiddleware
-
-
-with contextlib.suppress(ImportError):
-    from google.cloud import firestore
 from datetime import UTC
 from datetime import datetime
 from datetime import timedelta
 
+from fastapi import HTTPException
+from fastapi import Request
+from fastapi.responses import JSONResponse
 from loguru import logger
+from starlette.middleware.base import BaseHTTPMiddleware
+
+from utils.environment import is_test_environment
+
+# শেয়ার্ড ইউটিলিটি — Firestore ইনিশিয়ালাইজেশন ও টেস্ট ডিটেকশন কেন্দ্রীভূত
+from utils.firestore_helpers import get_firestore_db
 
 
 class IdempotencyMiddleware(BaseHTTPMiddleware):
     def __init__(self, app):
         super().__init__(app)
         self.collection_name = "idempotency_locks"
-        self.db = None
+        # রিফ্যাক্টর: সরাসরি firestore.Client() এর বদলে শেয়ার্ড হেল্পার ব্যবহার
         import os
-        import sys
-
-        is_test = (
-            "pytest" in sys.modules
-            or os.getenv("ENV") == "test"
-            or os.getenv("env") == "local"
-            or os.getenv("env") == "production"
-        )
-        if not is_test:
-            try:
-                self.db = firestore.Client()
-            except Exception as e:
-                logger.warning(
-                    f"Failed to initialize Firestore for IdempotencyMiddleware: {e}"
-                )
+        is_local_or_prod = os.getenv("env") in ("local", "production")
+        if is_test_environment() or is_local_or_prod:
+            self.db = None
+        else:
+            self.db = get_firestore_db()
 
     async def dispatch(self, request: Request, call_next):
         # শুধুমাত্র POST রিকোয়েস্ট এবং জেনারেশন এন্ডপয়েন্টের জন্য চেক করবে

@@ -1,3 +1,4 @@
+import contextlib
 import os
 from typing import Any
 
@@ -8,17 +9,10 @@ from fastapi import HTTPException
 from fastapi import Request
 from loguru import logger
 
-
-try:
-    from google.cloud import firestore
-
-    HAS_FIRESTORE = True
-except ImportError:
-    HAS_FIRESTORE = False
-
-import contextlib
-
 from core.config import settings
+
+# শেয়ার্ড ইউটিলিটি — Firestore ইনিশিয়ালাইজেশন কেন্দ্রীভূত
+from utils.firestore_helpers import get_firestore_db
 from workers.chaos_worker import NightlyChaosAuditor
 
 
@@ -28,10 +22,8 @@ auditor = NightlyChaosAuditor()
 
 class SupremeMetricsEngine:
     def __init__(self):
-        if HAS_FIRESTORE:
-            self.db = firestore.Client()
-        else:
-            self.db = None
+        # রিফ্যাক্টর: সরাসরি firestore.Client() এর বদলে শেয়ার্ড হেল্পার ব্যবহার
+        self.db = get_firestore_db()
 
     async def calculate_system_roi(self) -> dict[str, Any]:
         """সিস্টেমের সেভ করা কস্ট এবং ব্লক করা অ্যাটাকের রিয়াল-টাইম ম্যাট্রিক্স ক্যালকুলেটর"""
