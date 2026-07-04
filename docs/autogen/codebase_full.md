@@ -1,7 +1,7 @@
 # 🧠 SupremeAI 2.0 Codebase Dump
 # বাংলা মন্তব্য: এটি একটি স্বয়ংক্রিয়ভাবে জেনারেট করা কোডবেস ডাম্প ফাইল যা প্রজেক্টের সামগ্রিক বিশ্লেষণের জন্য ব্যবহৃত হয়।
 
-Generated at: 2026-07-04T10:39:00.769007
+Generated at: 2026-07-04T11:05:04.689580
 
 
 ## File: `pnpm-lock.yaml`
@@ -22527,32 +22527,6 @@ docs/codebase/ ফোল্ডার রেফার করুন।"
 
 ```
 
-## File: `visual.spec.ts`
-
-```ts
-import { test, expect } from '@playwright/test';
-
-test.describe('Visual Regression Tests', () => {
-    test('Homepage layout should be stable', async ({ page }) => {
-        await page.goto('/');
-        // পুরো পেজের স্ক্রিনশট নিয়ে বেসলাইনের সাথে তুলনা করুন
-        await expect(page).toHaveScreenshot('homepage-stable.png', { fullPage: true });
-    });
-
-    test('ConsentMatrixModal should match the approved snapshot', async ({ page }) => {
-        // একটি ডামি URL প্যারামিটার ব্যবহার করে মোডালটি দেখানো হচ্ছে
-        await page.goto('/?showConsentModal=true');
-
-        // একটি নির্দিষ্ট data-testid দিয়ে মোডালটি লোকেট করা হচ্ছে
-        const modal = page.locator('.consent-matrix-modal-class'); // এখানে আপনার মোডালের আসল সিলেক্টর ব্যবহার করুন
-        await expect(modal).toBeVisible();
-
-        // শুধুমাত্র মোডালটির স্ক্রিনশট নিয়ে বেসলাইনের সাথে তুলনা করুন
-        await expect(modal).toHaveScreenshot('consent-matrix-critical-risk.png');
-    });
-});
-```
-
 ## File: `coverage.toml`
 
 ```toml
@@ -22586,36 +22560,6 @@ directory = "htmlcov"
 [tool.coverage.json]
 output = "coverage.json"
 
-```
-
-## File: `accessibility.spec.ts`
-
-```ts
-import { test, expect } from '@playwright/test';
-import AxeBuilder from '@axe-core/playwright';
-
-test.describe('Accessibility Tests (WCAG)', () => {
-    test('Homepage should not have any automatically detectable accessibility issues', async ({ page }) => {
-        await page.goto('/');
-
-        const accessibilityScanResults = await new AxeBuilder({ page }).analyze();
-
-        // কোনো ভায়োলেশন থাকলে তা প্রিন্ট করার জন্য একটি সহায়ক লগ
-        if (accessibilityScanResults.violations.length > 0) {
-            console.log('Accessibility violations found on homepage:', JSON.stringify(accessibilityScanResults.violations, null, 2));
-        }
-
-        expect(accessibilityScanResults.violations).toEqual([]);
-    });
-
-    test('Admin Dashboard should be accessible', async ({ page }) => {
-        await page.goto('/admin'); // আপনার অ্যাডমিন পেজের URL
-
-        const accessibilityScanResults = await new AxeBuilder({ page }).analyze();
-
-        expect(accessibilityScanResults.violations).toEqual([]);
-    });
-});
 ```
 
 ## File: `docker-compose.yml`
@@ -22703,6 +22647,79 @@ networks:
 volumes:
   postgres_data:
   n8n_data:
+
+```
+
+## File: `playwright.config.ts`
+
+```ts
+import { defineConfig, devices } from '@playwright/test';
+
+/**
+ * আপনার Playwright E2E টেস্ট কনফিগারেশন
+ * এটি স্বয়ংক্রিয়ভাবে ডেভ সার্ভার চালু করবে এবং তারপর E2E টেস্ট রান করবে।
+ * 
+ * CI-তে রান করার জন্য: pnpm exec playwright test
+ * লোকালে চালানোর জন্য: pnpm exec playwright test --headed
+ */
+
+export default defineConfig({
+  testDir: './tests',
+  testMatch: '**/*.spec.ts',
+  fullyParallel: true,
+  forbidOnly: !!process.env.CI,
+  retries: process.env.CI ? 2 : 0,
+  workers: process.env.CI ? 1 : undefined,
+  reporter: [
+    ['html', { outputFolder: 'playwright-report' }],
+    ['json', { outputFile: 'test-results/e2e-report.json' }],
+    ['list'],
+  ],
+  expect: {
+    // Visual Regression Test-এর জন্য ডিফল্ট সেটিংস
+    toHaveScreenshot: { maxDiffPixels: 100, threshold: 0.2 },
+  },
+  
+  use: {
+    // বাংলা মন্তব্য: ডেভেলপমেন্ট সার্ভারের জন্য ডিফল্ট URL
+    baseURL: process.env.BASE_URL || 'http://localhost:5173',
+    trace: 'on-first-retry',
+    screenshot: 'only-on-failure',
+    video: 'retain-on-failure',
+  },
+
+  projects: [
+    {
+      name: 'chromium',
+      use: { ...devices['Desktop Chrome'] },
+    },
+    {
+      name: 'firefox',
+      use: { ...devices['Desktop Firefox'] },
+    },
+    {
+      name: 'webkit',
+      use: { ...devices['Desktop Safari'] },
+    },
+    // মোবাইল ডিভাইসের জন্য টেস্ট
+    {
+      name: 'Mobile Chrome',
+      use: { ...devices['Pixel 5'] },
+    },
+    {
+      name: 'Mobile Safari',
+      use: { ...devices['iPhone 12'] },
+    },
+  ],
+
+  // বাংলা মন্তব্য: ডেভেলপমেন্ট সার্ভার চালু করা, এটি ব্যাকগ্রাউন্ডে থাকবে সমস্ত টেস্ট জুড়ে
+  webServer: {
+    command: 'pnpm --dir apps/studio-client dev --host 0.0.0.0 --port 5173',
+    url: 'http://127.0.0.1:5173',
+    reuseExistingServer: !process.env.CI,
+    timeout: 120 * 1000,
+  },
+});
 
 ```
 
@@ -115404,98 +115421,54 @@ test.describe('SupremeAI Nexus E2E Flow', () => {
 import { test, expect } from '@playwright/test';
 
 test.describe('Visual Regression Tests', () => {
-    test('ConsentMatrixModal should match the approved snapshot', async ({ page }) => {
-        // টেস্টের জন্য মোডালটি দেখানোর ব্যবস্থা করুন
-        // এটি একটি নির্দিষ্ট URL-এ গিয়ে বা কোনো বাটনে ক্লিক করে করা যেতে পারে
-        await page.goto('/?showConsentModal=true'); // উদাহরণস্বরূপ URL
-
-        const modal = page.getByTestId('consent-matrix-modal'); // data-testid ব্যবহার করা হচ্ছে
-        await expect(modal).toBeVisible();
-
-        // মোডালটির স্ক্রিনশট নিয়ে বেসলাইনের সাথে তুলনা করুন
-        await expect(modal).toHaveScreenshot('consent-matrix-critical-risk.png');
-    });
-
     test('Homepage layout should be stable', async ({ page }) => {
         await page.goto('/');
-        // পুরো পেজের স্ক্রিনশট নিন
-        await expect(page).toHaveScreenshot('homepage.png');
+        // পুরো পেজের স্ক্রিনশট নিয়ে বেসলাইনের সাথে তুলনা করুন
+        await expect(page).toHaveScreenshot('homepage-stable.png', { fullPage: true });
+    });
+
+    test('ConsentMatrixModal should match the approved snapshot', async ({ page }) => {
+        // একটি ডামি URL প্যারামিটার ব্যবহার করে মোডালটি দেখানো হচ্ছে
+        await page.goto('/?showConsentModal=true');
+
+        // একটি নির্দিষ্ট data-testid দিয়ে মোডালটি লোকেট করা হচ্ছে
+        const modal = page.locator('.consent-matrix-modal-class'); // এখানে আপনার মোডালের আসল সিলেক্টর ব্যবহার করুন
+        await expect(modal).toBeVisible();
+
+        // শুধুমাত্র মোডালটির স্ক্রিনশট নিয়ে বেসলাইনের সাথে তুলনা করুন
+        await expect(modal).toHaveScreenshot('consent-matrix-critical-risk.png');
     });
 });
-
 ```
 
-## File: `tests/e2e/playwright.config.ts`
+## File: `tests/e2e/accessibility.spec.ts`
 
 ```ts
-import { defineConfig, devices } from '@playwright/test';
+import { test, expect } from '@playwright/test';
+import AxeBuilder from '@axe-core/playwright';
 
-/**
- * আপনার Playwright E2E টেস্ট কনফিগারেশন
- * এটি স্বয়ংক্রিয়ভাবে ডেভ সার্ভার চালু করবে এবং তারপর E2E টেস্ট রান করবে।
- * 
- * CI-তে রান করার জন্য: pnpm exec playwright test
- * লোকালে চালানোর জন্য: pnpm exec playwright test --headed
- */
+test.describe('Accessibility Tests (WCAG)', () => {
+    test('Homepage should not have any automatically detectable accessibility issues', async ({ page }) => {
+        await page.goto('/');
 
-export default defineConfig({
-  testDir: './tests',
-  testMatch: '**/*.spec.ts',
-  fullyParallel: true,
-  forbidOnly: !!process.env.CI,
-  retries: process.env.CI ? 2 : 0,
-  workers: process.env.CI ? 1 : undefined,
-  reporter: [
-    ['html', { outputFolder: 'playwright-report' }],
-    ['json', { outputFile: 'test-results/e2e-report.json' }],
-    ['list'],
-  ],
-  expect: {
-    // Visual Regression Test-এর জন্য ডিফল্ট সেটিংস
-    toHaveScreenshot: { maxDiffPixels: 100, threshold: 0.2 },
-  },
-  
-  use: {
-    // বাংলা মন্তব্য: ডেভেলপমেন্ট সার্ভারের জন্য ডিফল্ট URL
-    baseURL: process.env.BASE_URL || 'http://localhost:5173',
-    trace: 'on-first-retry',
-    screenshot: 'only-on-failure',
-    video: 'retain-on-failure',
-  },
+        const accessibilityScanResults = await new AxeBuilder({ page }).analyze();
 
-  projects: [
-    {
-      name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
-    },
-    {
-      name: 'firefox',
-      use: { ...devices['Desktop Firefox'] },
-    },
-    {
-      name: 'webkit',
-      use: { ...devices['Desktop Safari'] },
-    },
-    // মোবাইল ডিভাইসের জন্য টেস্ট
-    {
-      name: 'Mobile Chrome',
-      use: { ...devices['Pixel 5'] },
-    },
-    {
-      name: 'Mobile Safari',
-      use: { ...devices['iPhone 12'] },
-    },
-  ],
+        // কোনো ভায়োলেশন থাকলে তা প্রিন্ট করার জন্য একটি সহায়ক লগ
+        if (accessibilityScanResults.violations.length > 0) {
+            console.log('Accessibility violations found on homepage:', JSON.stringify(accessibilityScanResults.violations, null, 2));
+        }
 
-  // বাংলা মন্তব্য: ডেভেলপমেন্ট সার্ভার চালু করা, এটি ব্যাকগ্রাউন্ডে থাকবে সমস্ত টেস্ট জুড়ে
-  webServer: {
-    command: 'pnpm --dir apps/studio-client dev --host 0.0.0.0 --port 5173',
-    url: 'http://127.0.0.1:5173',
-    reuseExistingServer: !process.env.CI,
-    timeout: 120 * 1000,
-  },
+        expect(accessibilityScanResults.violations).toEqual([]);
+    });
+
+    test('Admin Dashboard should be accessible', async ({ page }) => {
+        await page.goto('/admin'); // আপনার অ্যাডমিন পেজের URL
+
+        const accessibilityScanResults = await new AxeBuilder({ page }).analyze();
+
+        expect(accessibilityScanResults.violations).toEqual([]);
+    });
 });
-
 ```
 
 ## File: `test-results/.last-run.json`
@@ -158100,6 +158073,11 @@ def main():
 
     check_infinite_loop()
     config = JOB_CONFIGS[target_job]
+    
+    # Handle the case where we are already in the target directory
+    if config.get("cwd") and not os.path.isdir(config["cwd"]):
+        config["cwd"] = "."
+        
     error_logs, failing_file = extract_errors(target_job, config)
 
     if not failing_file:
