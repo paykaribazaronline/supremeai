@@ -12,7 +12,6 @@ from typing import List, Any
 from enum import Enum
 
 import psycopg2
-from loguru import logger
 from pydantic import BaseModel, Field, ConfigDict
 from mcp.server.fastmcp import FastMCP
 

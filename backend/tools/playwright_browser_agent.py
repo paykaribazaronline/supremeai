@@ -12,7 +12,6 @@ from typing import Any
 
 from loguru import logger
 from playwright.sync_api import Page
-from playwright_stealth import stealth_sync
 
 from core.secure_credential_store import SecureCredentialStore
 from database.supabase_client import db
@@ -532,13 +531,13 @@ class PlaywrightBrowserAgent:
 
                 model_router = ModelRouter()
                 # Use a vision-capable model like gpt-4o or gemini-1.5-pro-vision-latest
-                vlm_response = await model_router.async_route_and_generate(
+                vlm_response = asyncio.run(model_router.async_route_and_generate(
                     prompt=vlm_prompt,
                     task_type="vision",
                     image_base64=b64_image,
                     # Force a vision model
                     model_filter=["gpt-4o", "gemini-1.5-pro-vision-latest"] 
-                )
+                ))
 
                 if not vlm_response.get("success"):
                     raise RuntimeError(f"VLM failed to provide an action: {vlm_response.get('text')}")

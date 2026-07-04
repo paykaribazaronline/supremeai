@@ -16,6 +16,11 @@ from loguru import logger
 from pydantic import BaseModel, Field, ConfigDict
 from mcp.server.fastmcp import FastMCP
 
+# শেয়ার্ড ইউটিলিটি — ডুপ্লিকেট কোড দূর করতে কেন্দ্রীয় মডিউল থেকে ইম্পোর্ট
+from utils.environment import is_admin_authorized
+from utils.http_client import handle_api_error
+from utils.json_helpers import json_error
+
 mcp = FastMCP("cloud_deploy_mcp")
 
 CHARACTER_LIMIT = 25000
@@ -85,20 +90,8 @@ class GetLogsInput(BaseModel):
     lines: int = Field(default=100, description="রিট্রিভ করার লাইন সংখ্যা", ge=1, le=1000)
 
 
-def _check_admin_auth() -> bool:
-    """অ্যাডমিন অথেন্টিকেশন চেক করে।"""
-    return os.getenv("ADMIN_AUTHORIZED", "false").lower() == "true"
-
-
-def _handle_api_error(e: Exception, status_code: int = None) -> str:
-    """API এরর স্ট্যান্ডার্ডাইজ্ড হ্যান্ডলিং।"""
-    if status_code == 401:
-        return "Error: Invalid API key. Check cloud provider credentials."
-    if status_code == 404:
-        return "Error: Service not found. Verify service name and provider."
-    if status_code == 429:
-        return "Error: Rate limit exceeded. Please wait before retrying."
-    return f"Error: API request failed - {type(e).__name__}"
+# রিফ্যাক্টর: লোকাল _check_admin_auth, _handle_api_error মুছে
+# শেয়ার্ড ইউটিলিটি (utils.environment, utils.http_client) ব্যবহার করা হচ্ছে।
 
 
 @mcp.tool(
@@ -127,7 +120,7 @@ async def cloud_deploy_service(params: DeployServiceInput) -> str:
     Returns:
         str: ডিপ্লয় স্ট্যাটাস ও ইনফরমেশন
     """
-    if not _check_admin_auth():
+    if not is_admin_authorized():
         return json.dumps({
             "error": "Admin authorization required for deployments",
             "message": "Set ADMIN_AUTHORIZED=true in environment"
@@ -139,21 +132,21 @@ async def cloud_deploy_service(params: DeployServiceInput) -> str:
     if params.provider == CloudProvider.RENDER:
         render_api_key = _get_render_api_key()
         if not render_api_key:
-            return json.dumps({"error": "RENDER_API_KEY not configured"}, ensure_ascii=False)
+            return json_error("RENDER_API_KEY not configured")
         api_url = "https://api.render.com/v1/services"
         headers = {"Authorization": f"Bearer {render_api_key}"}
 
     elif params.provider == CloudProvider.RAILWAY:
         railway_token = _get_railway_token()
         if not railway_token:
-            return json.dumps({"error": "RAILWAY_TOKEN not configured"}, ensure_ascii=False)
+            return json_error("RAILWAY_TOKEN not configured")
         api_url = "https://back-end.railway.app/v2/services"
         headers = {"Authorization": f"Bearer {railway_token}"}
 
     elif params.provider == CloudProvider.ORACLE:
         oracle_key = _get_oracle_api_key()
         if not oracle_key:
-            return json.dumps({"error": "ORACLE_CLOUD_API_KEY not configured"}, ensure_ascii=False)
+            return json_error("ORACLE_CLOUD_API_KEY not configured")
         api_url = f"https://containerengine.{_get_oracle_region()}.oraclecloud.com/api/v1/deploy"
         headers = {"Authorization": f"Bearer {oracle_key}"}
 
@@ -177,9 +170,9 @@ async def cloud_deploy_service(params: DeployServiceInput) -> str:
             }, ensure_ascii=False)
 
     except httpx.HTTPStatusError as e:
-        return _handle_api_error(e, e.response.status_code)
+        return handle_api_error(e, e.response.status_code)
     except Exception as e:
-        return _handle_api_error(e)
+        return handle_api_error(e)
 
 
 @mcp.tool(
@@ -211,21 +204,21 @@ async def cloud_get_deployment_logs(params: GetLogsInput) -> str:
     if params.provider == CloudProvider.RENDER:
         render_api_key = _get_render_api_key()
         if not render_api_key:
-            return json.dumps({"error": "RENDER_API_KEY not configured"}, ensure_ascii=False)
+            return json_error("RENDER_API_KEY not configured")
         api_url = f"https://api.render.com/v1/services/{params.service_name}/logs"
         headers = {"Authorization": f"Bearer {render_api_key}"}
 
     elif params.provider == CloudProvider.RAILWAY:
         railway_token = _get_railway_token()
         if not railway_token:
-            return json.dumps({"error": "RAILWAY_TOKEN not configured"}, ensure_ascii=False)
+            return json_error("RAILWAY_TOKEN not configured")
         api_url = f"https://back-end.railway.app/v2/services/{params.service_name}/logs"
         headers = {"Authorization": f"Bearer {railway_token}"}
 
     elif params.provider == CloudProvider.ORACLE:
         oracle_key = _get_oracle_api_key()
         if not oracle_key:
-            return json.dumps({"error": "ORACLE_CLOUD_API_KEY not configured"}, ensure_ascii=False)
+            return json_error("ORACLE_CLOUD_API_KEY not configured")
         api_url = f"https://logging.{_get_oracle_region()}.oraclecloud.com/api/v1/logs"
         headers = {"Authorization": f"Bearer {oracle_key}"}
 
@@ -249,9 +242,9 @@ async def cloud_get_deployment_logs(params: GetLogsInput) -> str:
             }, ensure_ascii=False)
 
     except httpx.HTTPStatusError as e:
-        return _handle_api_error(e, e.response.status_code)
+        return handle_api_error(e, e.response.status_code)
     except Exception as e:
-        return _handle_api_error(e)
+        return handle_api_error(e)
 
 
 @mcp.tool(

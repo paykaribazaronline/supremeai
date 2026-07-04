@@ -45,7 +45,7 @@ class TestHelperFunctions:
         with patch.dict("sys.modules", {"bcrypt": None}):
             import importlib
 
-            import core.admin_routes as admin_routes
+            from core import admin_routes
 
             importlib.reload(admin_routes)
             assert admin_routes._verify_password("pass", "hash") is False

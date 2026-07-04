@@ -7,11 +7,9 @@ from typing import Any
 
 from loguru import logger
 
-
-try:
-    from google.cloud import firestore
-except ImportError:
-    firestore = None
+# শেয়ার্ড ইউটিলিটি — Firestore ও টেস্ট এনভায়রনমেন্ট চেক কেন্দ্রীভূত
+from utils.environment import is_test_environment
+from utils.firestore_helpers import firestore, get_firestore_db
 
 
 @dataclass
@@ -31,34 +29,22 @@ class CheckpointManager:
         self._db = None
         self.db_path = db_path
 
-        import os
-        import sys
-
-        is_test = "pytest" in sys.modules or os.getenv("ENV") == "test"
-
-        if db_path or is_test:
+        # রিফ্যাক্টর: সরাসরি firestore.Client() এর বদলে শেয়ার্ড হেল্পার ব্যবহার
+        if db_path or is_test_environment():
             self.mode = "sqlite"
             self.db_path = db_path or "checkpoints.db"
             self._init_sqlite()
             logger.info(f"Initialized SQLite CheckpointManager at {self.db_path}")
-        elif firestore:
-            try:
+        else:
+            self._db = get_firestore_db()
+            if self._db is not None:
                 self.mode = "firestore"
-                # Use sync Client since all methods are synchronous
-                self._db = firestore.Client()
                 logger.info("Initialized Firestore CheckpointManager")
-            except Exception as e:
-                logger.warning(
-                    f"Failed to initialize Firestore: {e}. Falling back to SQLite."
-                )
+            else:
                 self.mode = "sqlite"
                 self.db_path = "checkpoints.db"
                 self._init_sqlite()
-        else:
-            self.mode = "sqlite"
-            self.db_path = "checkpoints.db"
-            self._init_sqlite()
-            logger.info(f"Initialized SQLite CheckpointManager at {self.db_path}")
+                logger.info(f"Initialized SQLite CheckpointManager at {self.db_path}")
 
     def _init_sqlite(self):
         conn = sqlite3.connect(self.db_path)

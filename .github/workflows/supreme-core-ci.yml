@@ -353,7 +353,7 @@ jobs:
 
       - name: 🧪 Run Cloudflare Worker Tests
         id: worker_tests
-        run: pnpm exec vitest run --dir infrastructure --reporter=json > infrastructure/vitest-report.json
+        run: pnpm exec vitest run scripts/cloudflare_worker.test.js --reporter=json > infrastructure/vitest-report.json
  
       - name: Add Worker Test Results to GitHub Summary
         if: always()
@@ -393,7 +393,7 @@ jobs:
 
       - name: Run Web Chat Vitest with JSON Report
         run: |
-          SUPREMEAI_API_URL="https://mock-api.supremeai.local" pnpm --dir apps/web-chat exec vitest run --reporter=json --outputFile=apps/web-chat/vitest-report.json
+          SUPREMEAI_API_URL="https://mock-api.supremeai.local" pnpm --dir apps/web-chat exec vitest run --reporter=json --outputFile=vitest-report.json
 
       - name: Add Web Chat Test Results to GitHub Summary
         if: always()
@@ -408,6 +408,12 @@ jobs:
         run: |
           pnpm exec playwright install --with-deps
           pnpm exec playwright test --reporter=html
+
+      - name: Install Python Dependencies for Frontend Auto-Fix
+        if: failure()
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install litellm
 
       - name: 🔧 SupremeAI Auto-Fix Engine (Frontend)
         if: failure()
@@ -567,11 +573,10 @@ jobs:
           name: k6-load-test
           path: load-test-output.json
 
-flutter-integration-tests:
-     name: 📱 Flutter Integration Test
-     needs: frontend-core
-     if: github.event_name == 'pull_request'
-  # শুধুমাত্র PR-এর জন্য চালানো যেতে পারে
+  flutter-integration-tests:
+    name: 📱 Flutter Integration Test
+    needs: frontend-core
+    if: github.event_name == 'pull_request' # শুধুমাত্র PR-এর জন্য চালানো যেতে পারে
     runs-on: macos-latest # iOS সিমুলেটরের জন্য macOS প্রয়োজন
     strategy:
       matrix:
@@ -597,6 +602,80 @@ flutter-integration-tests:
         run: |
           cd apps/mobile
           flutter test integration_test
+
+  build-and-release-desktop:
+    name: 🖥️ Build & Release Desktop App
+    needs: [backend-core, frontend-core]
+    # শুধুমাত্র main ব্রাঞ্চে নতুন ট্যাগ (vX.X.X) পুশ করা হলে এই জবটি চলবে
+    if: startsWith(github.ref, 'refs/tags/v')
+    strategy:
+      fail-fast: false
+      matrix:
+        # বাংলা মন্তব্য: তিনটি প্রধান অপারেটিং সিস্টেমের জন্য বিল্ড ম্যাট্রিক্স তৈরি করা হলো।
+        include:
+          - platform: 'macos-latest'
+            target: 'x86_64-apple-darwin'
+            pnpm_arch_filter: '--filter=supremeai-desktop'
+          - platform: 'ubuntu-latest'
+            target: 'x86_64-unknown-linux-gnu'
+            pnpm_arch_filter: '--filter=supremeai-desktop'
+          - platform: 'windows-latest'
+            target: 'x86_64-pc-windows-msvc'
+            pnpm_arch_filter: '--filter=supremeai-desktop'
+    runs-on: ${{ matrix.platform }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 🦀 Set up Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          target: ${{ matrix.target }}
+          override: true
+
+      - name: 📦 Set up Node.js and pnpm
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - uses: pnpm/action-setup@v3
+        with:
+          version: 9.0.0
+
+      - name: ⬇️ Install Frontend Dependencies
+        run: pnpm install --frozen-lockfile
+
+      # বাংলা মন্তব্য: লিনাক্সের জন্য প্রয়োজনীয় সিস্টেম লাইব্রেরি ইনস্টল করা হচ্ছে।
+      - name: 🐧 Install Linux dependencies
+        if: matrix.platform == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.0-dev libappindicator3-dev librsvg2-dev patchelf
+
+      - name: 🔨 Build Tauri App
+        # tauri.conf.json থেকে beforeBuildCommand (npm run build:ui) স্বয়ংক্রিয়ভাবে চলবে
+        run: pnpm ${{ matrix.pnpm_arch_filter }} tauri build --target ${{ matrix.target }}
+
+      - name: 📦 Upload Release Assets
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          # বিল্ড হওয়া অ্যাসেটগুলোর পাথ খুঁজে বের করে আপলোড করা হচ্ছে
+          asset_path: ./apps/desktop/src-tauri/target/release/bundle/msi/*.msi
+          asset_name: supremeai-desktop_${{ github.ref_name }}_${{ matrix.target }}.msi
+          asset_content_type: application/x-msi
+        if: matrix.platform == 'windows-latest'
+      # macOS এবং Linux-এর জন্য একই রকম 'upload-release-asset' ধাপ যোগ করতে হবে।
+      # উদাহরণস্বরূপ, macOS-এর জন্য:
+      # asset_path: ./apps/desktop/src-tauri/target/release/bundle/dmg/*.dmg
+      # asset_name: supremeai-desktop_${{ github.ref_name }}_${{ matrix.target }}.dmg
+      # asset_content_type: application/x-apple-diskimage
+
+      # Linux-এর জন্য:
+      # asset_path: ./apps/desktop/src-tauri/target/release/bundle/appimage/*.AppImage
+      # asset_name: supremeai-desktop_${{ github.ref_name }}_${{ matrix.target }}.AppImage
+      # asset_content_type: application/octet-stream
 
   deploy-frontend-prod:
     name: 🌐 Deploy Frontend (Firebase)
@@ -698,4 +777,4 @@ flutter-integration-tests:
         if: github.ref == 'refs/heads/main'
         run: |
           # বাংলা মন্তব্য: codebase_full.md ফাইলটি ১৩MB+ বড় হওয়ায় GitHub Pages limit অতিক্রম করে, তাই বাদ দেওয়া হচ্ছে
-          find docs/autogen -name "codebase_
+          find docs/autogen -name "codebase_full.md"
