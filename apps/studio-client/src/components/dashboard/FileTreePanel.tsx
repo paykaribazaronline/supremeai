@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { ChevronRight, ChevronDown, FileText, Folder, FileJson, FileCode, Trash2, Plus } from 'lucide-react';
-import { useSessionCockpitStore, FileNode } from '../../store/sessionCockpitStore';
+import { useSessionCockpitStore, type FileNode } from '../../store/sessionCockpitStore';
 
 export const FileTreePanel: React.FC = () => {
   const { fileTreeData } = useSessionCockpitStore();

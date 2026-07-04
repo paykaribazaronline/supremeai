@@ -1,5 +1,5 @@
 import React from 'react';
-import { SujonState } from '../../store/sessionCockpitStore';
+import { type SujonState } from '../../store/sessionCockpitStore';
 
 interface AgentStatePillProps {
   state: SujonState;
