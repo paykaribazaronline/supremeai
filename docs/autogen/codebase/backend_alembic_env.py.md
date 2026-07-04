@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/alembic/env.py
 
 **প্রকার:** .py  
-**সাইজ:** 2,721 বাইট  
-**আপডেট:** 2026-07-04T13:41:46.843568
+**সাইজ:** 3,220 বাইট  
+**আপডেট:** 2026-07-04T21:38:51.767857
 
 ---
 
@@ -23,6 +23,17 @@ from sqlalchemy import pool
 from alembic import context
 from core.config import settings
 
+from models.base import Base
+# Import all models to ensure they are registered with Base.metadata before autogenerate
+from models.wallet import UserWallet, TransactionLedgerEntry
+from models.evolution import SkillFitness, CodeProposal
+from models.agent_session import AgentSession
+from models.execution_log import ExecutionLog
+from models.execution_policy import ExecutionPolicy
+from models.target_platform_credential import TargetPlatformCredential
+from models.selector_healing_event import SelectorHealingEvent
+from models.handoff_event import HandoffEvent
+
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -38,9 +49,7 @@ if config.config_file_name is not None:
 
 # add your model's MetaData object here
 # for 'autogenerate' support
-# from myapp import mymodel
-# target_metadata = mymodel.Base.metadata
-target_metadata = None
+target_metadata = Base.metadata
 
 # other values from the config, defined by the needs of env.py,
 # can be acquired:

@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/test_secure_credential_store.py
 
 **প্রকার:** .py  
-**সাইজ:** 2,631 বাইট  
-**আপডেট:** 2026-07-04T13:41:46.868156
+**সাইজ:** 3,206 বাইট  
+**আপডেট:** 2026-07-04T21:38:51.790567
 
 ---
 
@@ -10,34 +10,35 @@
 
 ```py
 import os
-
+import pytest
 
 os.environ.setdefault("OPENROUTER_API_KEY", "")
 os.environ.setdefault("HF_API_KEY", "")
 os.environ.setdefault("OLLAMA_URL", "http://127.0.0.1:11434")
-
-import pytest
-
 
 class TestSecureCredentialStoreDisable:
     def test_plaintext_when_no_key(self):
         from core.secure_credential_store import SecureCredentialStore
 
         store = SecureCredentialStore()
-        assert store.enabled is False
+        assert store.provider.enabled is False
         data = {"password": "secret"}
-        assert store.encrypt(data) == data
-        assert store.decrypt(data) == data
+        # when disabled, encrypt does not add __enc__ flag by design? Wait, no, encrypt always adds it.
+        # Actually in the code: encrypt returns {"__enc__": True, "payload": plaintext, "key_ref": "local:plaintext"}
+        res = store.encrypt(data)
+        assert res.get("__enc__") is True
+        dec = store.decrypt(res)
+        assert dec == data
 
     def test_mask_redacts_sensitive_fields(self):
         from core.secure_credential_store import SecureCredentialStore
 
         store = SecureCredentialStore()
         masked = store.mask(
-            {"username": "u", "password": "s", "token": "t", "other": "v"}
+            {"username": "u", "password": "passwords", "token": "tokentokentoken", "other": "v"}
         )
-        assert masked["password"] == "***masked***"
-        assert masked["token"] == "***masked***"
+        assert masked["password"] == "••••••••••ords"
+        assert masked["token"] == "••••••••••oken"
         assert masked["username"] == "u"
 
     def test_mask_no_sensitive_fields(self):
@@ -56,13 +57,14 @@ class TestSecureCredentialStoreDisable:
     reason="cryptography not installed",
 )
 class TestSecureCredentialStoreEncrypted:
-    def test_encrypt_decrypt_roundtrip(self):
+    def test_encrypt_decrypt_roundtrip(self, monkeypatch):
         from core.secure_credential_store import SecureCredentialStore
         from core.secure_credential_store import generate_key
 
         key = generate_key()
-        store = SecureCredentialStore(key)
-        assert store.enabled is True
+        monkeypatch.setenv("SUPREMEAI_CREDENTIAL_ENC_KEY", key)
+        store = SecureCredentialStore()
+        assert store.provider.enabled is True
         data = {"api_key": "abc123", "url": "https://api.example.com"}
         enc = store.encrypt(data)
         assert enc.get("__enc__") is True
@@ -70,21 +72,23 @@ class TestSecureCredentialStoreEncrypted:
         dec = store.decrypt(enc)
         assert dec == data
 
-    def test_decrypt_plaintext_passthrough(self):
+    def test_decrypt_plaintext_passthrough(self, monkeypatch):
         from core.secure_credential_store import SecureCredentialStore
         from core.secure_credential_store import generate_key
 
         key = generate_key()
-        store = SecureCredentialStore(key)
+        monkeypatch.setenv("SUPREMEAI_CREDENTIAL_ENC_KEY", key)
+        store = SecureCredentialStore()
         plain = {"user": "test"}
         assert store.decrypt(plain) == plain
 
-    def test_encrypt_empty_payload(self):
+    def test_encrypt_empty_payload(self, monkeypatch):
         from core.secure_credential_store import SecureCredentialStore
         from core.secure_credential_store import generate_key
 
         key = generate_key()
-        store = SecureCredentialStore(key)
+        monkeypatch.setenv("SUPREMEAI_CREDENTIAL_ENC_KEY", key)
+        store = SecureCredentialStore()
         enc = store.encrypt({})
         dec = store.decrypt(enc)
         assert dec == {}

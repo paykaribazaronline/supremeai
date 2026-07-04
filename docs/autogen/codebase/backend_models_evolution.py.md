@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/models/evolution.py
 
 **প্রকার:** .py  
-**সাইজ:** 3,269 বাইট  
-**আপডেট:** 2026-07-04T13:41:46.839315
+**সাইজ:** 3,217 বাইট  
+**আপডেট:** 2026-07-04T21:38:51.763459
 
 ---
 
@@ -24,13 +24,11 @@ from sqlalchemy import String
 from sqlalchemy import Text
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import mapped_column
 
+from models.base import Base
 
-class Base(DeclarativeBase):
-    pass
 
 class SkillFitness(Base):
     __tablename__ = "skill_fitness"

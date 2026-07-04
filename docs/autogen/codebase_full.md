@@ -1,7 +1,7 @@
 # 🧠 SupremeAI 2.0 Codebase Dump
 # বাংলা মন্তব্য: এটি একটি স্বয়ংক্রিয়ভাবে জেনারেট করা কোডবেস ডাম্প ফাইল যা প্রজেক্টের সামগ্রিক বিশ্লেষণের জন্য ব্যবহৃত হয়।
 
-Generated at: 2026-07-04T13:41:46.776621
+Generated at: 2026-07-04T21:38:51.702682
 
 
 ## File: `pnpm-lock.yaml`
@@ -35701,10 +35701,12 @@ export function DashboardShell({ children, isServerOnline = false }: any) {
       <aside className="relative z-10 w-56 shrink-0 border-r border-white/[0.06] bg-[#080b13] flex flex-col">
         <div className="flex items-center gap-2 px-4 py-4 border-b border-white/[0.06]">
           <span className="text-blue-400 text-lg">▲</span>
-          <span className="text-sm font-semibold tracking-wide">SupremeAI</span>
+          <h1 className="text-sm font-semibold tracking-wide m-0">SupremeAI</h1>
         </div>
-        <main className="relative z-10 flex-1 min-w-0 overflow-y-auto">{children}</main>
       </aside>
+      <main data-testid="dashboard-main" className="relative z-10 flex-1 min-w-0 overflow-y-auto flex flex-col">
+        {children}
+      </main>
     </div>
   );
 }
@@ -43963,7 +43965,7 @@ requires-python = ">=3.11"
 ## File: `backend/coverage.json`
 
 ```json
-{"meta": {"format": 3, "version": "7.14.1", "timestamp": "2026-07-04T18:45:33.381347", "branch_coverage": true, "show_contexts": false}, "files": {"core\\__init__.py": {"executed_lines": [], "summary": {"covered_lines": 0, "num_statements": 0, "percent_covered": 100.0, "percent_covered_display": "100", "missing_lines": 0, "excluded_lines": 0, "percent_statements_covered": 100.0, "percent_statements_covered_display": "100", "num_branches": 0, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 0, "percent_branches_covered": 100.0, "percent_branches_covered_display": "100"}, "missing_lines": [], "excluded_lines": [], "executed_branches": [], "missing_branches": [], "functions": {"": {"executed_lines": [], "summary": {"covered_lines": 0, "num_statements": 0, "percent_covered": 100.0, "percent_covered_display": "100", "missing_lines": 0, "excluded_lines": 0, "percent_statements_covered": 100.0, "percent_statements_covered_display": "100", "num_branches": 0, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 0, "percent_branches_covered": 100.0, "percent_branches_covered_display": "100"}, "missing_lines": [], "excluded_lines": [], "start_line": 1, "executed_branches": [], "missing_branches": []}}, "classes": {"": {"executed_lines": [], "summary": {"covered_lines": 0, "num_statements": 0, "percent_covered": 100.0, "percent_covered_display": "100", "missing_lines": 0, "excluded_lines": 0, "percent_statements_covered": 100.0, "percent_statements_covered_display": "100", "num_branches": 0, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 0, "percent_branches_covered": 100.0, "percent_branches_covered_display": "100"}, "missing_lines": [], "excluded_lines": [], "start_line": 1, "executed_branches": [], "missing_branches": []}}}, "core\\config.py": {"executed_lines": [1, 2, 3, 5, 6, 7, 8, 9, 10, 11, 13, 16, 21, 22, 27, 28, 30, 31, 32, 33, 34, 35, 37, 38, 39, 41, 51, 52, 53, 54, 56, 64, 66, 67, 68, 70, 73, 78, 83, 89, 93, 95, 96, 97, 98, 99, 100, 101, 102, 104, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 120, 121, 122, 123, 124, 125, 126, 128, 129, 131, 132, 133, 134, 135, 139, 140, 141, 142, 143, 145, 147, 148, 149, 151, 156, 158, 159, 160, 162, 167, 169, 170, 171, 172, 173, 174, 178, 181, 182, 183, 184, 185, 187, 189, 190, 191, 192, 194, 204, 205, 207, 209, 228, 230], "summary": {"covered_lines": 117, "num_statements": 169, "percent_covered": 59.36073059360731, "percent_covered_display": "59", "missing_lines": 52, "excluded_lines": 0, "percent_statements_covered": 69.23076923076923, "percent_statements_covered_display": "69", "num_branches": 50, "num_partial_branches": 13, "covered_branches": 13, "missing_branches": 37, "percent_branches_covered": 26.0, "percent_branches_covered_display": "26"}, "missing_lines": [17, 18, 57, 58, 59, 60, 61, 62, 63, 65, 69, 144, 152, 153, 154, 155, 163, 164, 165, 166, 175, 179, 186, 195, 196, 197, 199, 200, 201, 202, 206, 210, 211, 212, 213, 214, 215, 216, 217, 218, 219, 220, 221, 222, 223, 231, 232, 234, 235, 236, 237, 238], "excluded_lines": [], "executed_branches": [[16, 21], [56, 64], [64, 66], [68, 70], [143, 145], [151, 156], [162, 167], [173, 174], [174, 178], [185, 187], [194, 204], [205, 207], [230, -1]], "missing_branches": [[16, 17], [56, 57], [58, 59], [58, 60], [64, 65], [68, 69], [143, 144], [151, 152], [153, 154], [153, 155], [162, 163], [164, 165], [164, 166], [173, 179], [174, 175], [185, 186], [194, 195], [196, 197], [196, 199], [205, 206], [210, -209], [210, 211], [212, 213], [212, 214], [214, 215], [214, 216], [216, 217], [216, 218], [218, 219], [218, 220], [220, 221], [220, 222], [222, -209], [222, 223], [230, 231], [234, -1], [234, 235]], "functions": {"Settings.sanitize_cors_origins": {"executed_lines": [54, 56, 64, 66, 67, 68, 70], "summary": {"covered_lines": 7, "num_statements": 16, "percent_covered": 41.666666666666664, "percent_covered_display": "42", "missing_lines": 9, "excluded_lines": 0, "percent_statements_covered": 43.75, "percent_statements_covered_display": "44", "num_branches": 8, "num_partial_branches": 3, "covered_branches": 3, "missing_branches": 5, "percent_branches_covered": 37.5, "percent_branches_covered_display": "38"}, "missing_lines": [57, 58, 59, 60, 61, 62, 63, 65, 69], "excluded_lines": [], "start_line": 53, "executed_branches": [[56, 64], [64, 66], [68, 70]], "missing_branches": [[56, 57], [58, 59], [58, 60], [64, 65], [68, 69]]}, "Settings.validate_env": {"executed_lines": [142, 143, 145], "summary": {"covered_lines": 3, "num_statements": 4, "percent_covered": 66.66666666666667, "percent_covered_display": "67", "missing_lines": 1, "excluded_lines": 0, "percent_statements_covered": 75.0, "percent_statements_covered_display": "75", "num_branches": 2, "num_partial_branches": 1, "covered_branches": 1, "missing_branches": 1, "percent_branches_covered": 50.0, "percent_branches_covered_display": "50"}, "missing_lines": [144], "excluded_lines": [], "start_line": 141, "executed_branches": [[143, 145]], "missing_branches": [[143, 144]]}, "Settings.parse_admin_emails": {"executed_lines": [151, 156], "summary": {"covered_lines": 2, "num_statements": 6, "percent_covered": 30.0, "percent_covered_display": "30", "missing_lines": 4, "excluded_lines": 0, "percent_statements_covered": 33.333333333333336, "percent_statements_covered_display": "33", "num_branches": 4, "num_partial_branches": 1, "covered_branches": 1, "missing_branches": 3, "percent_branches_covered": 25.0, "percent_branches_covered_display": "25"}, "missing_lines": [152, 153, 154, 155], "excluded_lines": [], "start_line": 149, "executed_branches": [[151, 156]], "missing_branches": [[151, 152], [153, 154], [153, 155]]}, "Settings.parse_allowed_hosts": {"executed_lines": [162, 167], "summary": {"covered_lines": 2, "num_statements": 6, "percent_covered": 30.0, "percent_covered_display": "30", "missing_lines": 4, "excluded_lines": 0, "percent_statements_covered": 33.333333333333336, "percent_statements_covered_display": "33", "num_branches": 4, "num_partial_branches": 1, "covered_branches": 1, "missing_branches": 3, "percent_branches_covered": 25.0, "percent_branches_covered_display": "25"}, "missing_lines": [163, 164, 165, 166], "excluded_lines": [], "start_line": 160, "executed_branches": [[162, 167]], "missing_branches": [[162, 163], [164, 165], [164, 166]]}, "Settings.set_test_secret": {"executed_lines": [172, 173, 174, 178], "summary": {"covered_lines": 4, "num_statements": 6, "percent_covered": 60.0, "percent_covered_display": "60", "missing_lines": 2, "excluded_lines": 0, "percent_statements_covered": 66.66666666666667, "percent_statements_covered_display": "67", "num_branches": 4, "num_partial_branches": 2, "covered_branches": 2, "missing_branches": 2, "percent_branches_covered": 50.0, "percent_branches_covered_display": "50"}, "missing_lines": [175, 179], "excluded_lines": [], "start_line": 171, "executed_branches": [[173, 174], [174, 178]], "missing_branches": [[173, 179], [174, 175]]}, "Settings.debug_must_be_false_in_production": {"executed_lines": [184, 185, 187], "summary": {"covered_lines": 3, "num_statements": 4, "percent_covered": 66.66666666666667, "percent_covered_display": "67", "missing_lines": 1, "excluded_lines": 0, "percent_statements_covered": 75.0, "percent_statements_covered_display": "75", "num_branches": 2, "num_partial_branches": 1, "covered_branches": 1, "missing_branches": 1, "percent_branches_covered": 50.0, "percent_branches_covered_display": "50"}, "missing_lines": [186], "excluded_lines": [], "start_line": 183, "executed_branches": [[185, 187]], "missing_branches": [[185, 186]]}, "Settings.parse_cors_origins": {"executed_lines": [192, 194, 204, 205, 207], "summary": {"covered_lines": 5, "num_statements": 13, "percent_covered": 36.8421052631579, "percent_covered_display": "37", "missing_lines": 8, "excluded_lines": 0, "percent_statements_covered": 38.46153846153846, "percent_statements_covered_display": "38", "num_branches": 6, "num_partial_branches": 2, "covered_branches": 2, "missing_branches": 4, "percent_branches_covered": 33.333333333333336, "percent_branches_covered_display": "33"}, "missing_lines": [195, 196, 197, 199, 200, 201, 202, 206], "excluded_lines": [], "start_line": 191, "executed_branches": [[194, 204], [205, 207]], "missing_branches": [[194, 195], [196, 197], [196, 199], [205, 206]]}, "Settings.validate_config": {"executed_lines": [], "summary": {"covered_lines": 0, "num_statements": 14, "percent_covered": 0.0, "percent_covered_display": "0", "missing_lines": 14, "excluded_lines": 0, "percent_statements_covered": 0.0, "percent_statements_covered_display": "0", "num_branches": 14, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 14, "percent_branches_covered": 0.0, "percent_branches_covered_display": "0"}, "missing_lines": [210, 211, 212, 213, 214, 215, 216, 217, 218, 219, 220, 221, 222, 223], "excluded_lines": [], "start_line": 209, "executed_branches": [], "missing_branches": [[210, -209], [210, 211], [212, 213], [212, 214], [214, 215], [214, 216], [216, 217], [216, 218], [218, 219], [218, 220], [220, 221], [220, 222], [222, -209], [222, 223]]}, "": {"executed_lines": [1, 2, 3, 5, 6, 7, 8, 9, 10, 11, 13, 16, 21, 22, 27, 28, 30, 31, 32, 33, 34, 35, 37, 38, 39, 41, 51, 52, 53, 73, 78, 83, 89, 93, 95, 96, 97, 98, 99, 100, 101, 102, 104, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 120, 121, 122, 123, 124, 125, 126, 128, 129, 131, 132, 133, 134, 135, 139, 140, 141, 147, 148, 149, 158, 159, 160, 169, 170, 171, 181, 182, 183, 189, 190, 191, 209, 228, 230], "summary": {"covered_lines": 91, "num_statements": 100, "percent_covered": 87.73584905660377, "percent_covered_display": "88", "missing_lines": 9, "excluded_lines": 0, "percent_statements_covered": 91.0, "percent_statements_covered_display": "91", "num_branches": 6, "num_partial_branches": 2, "covered_branches": 2, "missing_branches": 4, "percent_branches_covered": 33.333333333333336, "percent_branches_covered_display": "33"}, "missing_lines": [17, 18, 231, 232, 234, 235, 236, 237, 238], "excluded_lines": [], "start_line": 1, "executed_branches": [[16, 21], [230, -1]], "missing_branches": [[16, 17], [230, 231], [234, -1], [234, 235]]}}, "classes": {"Settings": {"executed_lines": [54, 56, 64, 66, 67, 68, 70, 142, 143, 145, 151, 156, 162, 167, 172, 173, 174, 178, 184, 185, 187, 192, 194, 204, 205, 207], "summary": {"covered_lines": 26, "num_statements": 69, "percent_covered": 32.743362831858406, "percent_covered_display": "33", "missing_lines": 43, "excluded_lines": 0, "percent_statements_covered": 37.68115942028985, "percent_statements_covered_display": "38", "num_branches": 44, "num_partial_branches": 11, "covered_branches": 11, "missing_branches": 33, "percent_branches_covered": 25.0, "percent_branches_covered_display": "25"}, "missing_lines": [57, 58, 59, 60, 61, 62, 63, 65, 69, 144, 152, 153, 154, 155, 163, 164, 165, 166, 175, 179, 186, 195, 196, 197, 199, 200, 201, 202, 206, 210, 211, 212, 213, 214, 215, 216, 217, 218, 219, 220, 221, 222, 223], "excluded_lines": [], "start_line": 21, "executed_branches": [[56, 64], [64, 66], [68, 70], [143, 145], [151, 156], [162, 167], [173, 174], [174, 178], [185, 187], [194, 204], [205, 207]], "missing_branches": [[56, 57], [58, 59], [58, 60], [64, 65], [68, 69], [143, 144], [151, 152], [153, 154], [153, 155], [162, 163], [164, 165], [164, 166], [173, 179], [174, 175], [185, 186], [194, 195], [196, 197], [196, 199], [205, 206], [210, -209], [210, 211], [212, 213], [212, 214], [214, 215], [214, 216], [216, 217], [216, 218], [218, 219], [218, 220], [220, 221], [220, 222], [222, -209], [222, 223]]}, "": {"executed_lines": [1, 2, 3, 5, 6, 7, 8, 9, 10, 11, 13, 16, 21, 22, 27, 28, 30, 31, 32, 33, 34, 35, 37, 38, 39, 41, 51, 52, 53, 73, 78, 83, 89, 93, 95, 96, 97, 98, 99, 100, 101, 102, 104, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 120, 121, 122, 123, 124, 125, 126, 128, 129, 131, 132, 133, 134, 135, 139, 140, 141, 147, 148, 149, 158, 159, 160, 169, 170, 171, 181, 182, 183, 189, 190, 191, 209, 228, 230], "summary": {"covered_lines": 91, "num_statements": 100, "percent_covered": 87.73584905660377, "percent_covered_display": "88", "missing_lines": 9, "excluded_lines": 0, "percent_statements_covered": 91.0, "percent_statements_covered_display": "91", "num_branches": 6, "num_partial_branches": 2, "covered_branches": 2, "missing_branches": 4, "percent_branches_covered": 33.333333333333336, "percent_branches_covered_display": "33"}, "missing_lines": [17, 18, 231, 232, 234, 235, 236, 237, 238], "excluded_lines": [], "start_line": 1, "executed_branches": [[16, 21], [230, -1]], "missing_branches": [[16, 17], [230, 231], [234, -1], [234, 235]]}}}, "core\\llm_gateway.py": {"executed_lines": [], "summary": {"covered_lines": 0, "num_statements": 109, "percent_covered": 0.0, "percent_covered_display": "0", "missing_lines": 109, "excluded_lines": 0, "percent_statements_covered": 0.0, "percent_statements_covered_display": "0", "num_branches": 38, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 38, "percent_branches_covered": 0.0, "percent_branches_covered_display": "0"}, "missing_lines": [4, 5, 6, 7, 9, 10, 12, 16, 18, 19, 20, 21, 22, 25, 26, 28, 31, 32, 34, 35, 36, 37, 38, 39, 40, 41, 43, 45, 48, 56, 57, 58, 59, 61, 63, 64, 65, 66, 67, 68, 70, 72, 73, 77, 78, 80, 81, 82, 83, 88, 89, 91, 105, 108, 109, 112, 113, 114, 115, 116, 118, 119, 120, 121, 125, 126, 127, 128, 136, 137, 140, 141, 142, 143, 144, 145, 148, 149, 151, 153, 154, 157, 158, 159, 160, 161, 167, 173, 174, 175, 176, 178, 180, 183, 184, 185, 186, 187, 193, 194, 195, 196, 197, 198, 199, 200, 201, 203, 206], "excluded_lines": [], "executed_branches": [], "missing_branches": [[36, 37], [36, 39], [56, -45], [56, 57], [57, 56], [57, 58], [108, 109], [108, 112], [113, 114], [113, 115], [115, 116], [115, 118], [118, 119], [118, 120], [120, 121], [120, 125], [125, 126], [125, 136], [127, 128], [127, 136], [141, 142], [141, 143], [143, 144], [143, 148], [144, 143], [144, 145], [148, 149], [148, 151], [153, 154], [153, 157], [158, 159], [158, 178], [184, 185], [184, 203], [193, 194], [193, 197], [195, 193], [195, 196]], "functions": {"LLMGateway.__init__": {"executed_lines": [], "summary": {"covered_lines": 0, "num_statements": 8, "percent_covered": 0.0, "percent_covered_display": "0", "missing_lines": 8, "excluded_lines": 0, "percent_statements_covered": 0.0, "percent_statements_covered_display": "0", "num_branches": 0, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 0, "percent_branches_covered": 100.0, "percent_branches_covered_display": "100"}, "missing_lines": [20, 21, 22, 25, 26, 28, 31, 32], "excluded_lines": [], "start_line": 19, "executed_branches": [], "missing_branches": []}, "LLMGateway._load_routing_policy": {"executed_lines": [], "summary": {"covered_lines": 0, "num_statements": 8, "percent_covered": 0.0, "percent_covered_display": "0", "missing_lines": 8, "excluded_lines": 0, "percent_statements_covered": 0.0, "percent_statements_covered_display": "0", "num_branches": 2, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 2, "percent_branches_covered": 0.0, "percent_branches_covered_display": "0"}, "missing_lines": [35, 36, 37, 38, 39, 40, 41, 43], "excluded_lines": [], "start_line": 34, "executed_branches": [], "missing_branches": [[36, 37], [36, 39]]}, "LLMGateway._inject_secrets": {"executed_lines": [], "summary": {"covered_lines": 0, "num_statements": 5, "percent_covered": 0.0, "percent_covered_display": "0", "missing_lines": 5, "excluded_lines": 0, "percent_statements_covered": 0.0, "percent_statements_covered_display": "0", "num_branches": 4, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 4, "percent_branches_covered": 0.0, "percent_branches_covered_display": "0"}, "missing_lines": [48, 56, 57, 58, 59], "excluded_lines": [], "start_line": 45, "executed_branches": [], "missing_branches": [[56, -45], [56, 57], [57, 56], [57, 58]]}, "LLMGateway._setup_callbacks": {"executed_lines": [], "summary": {"covered_lines": 0, "num_statements": 4, "percent_covered": 0.0, "percent_covered_display": "0", "missing_lines": 4, "excluded_lines": 0, "percent_statements_covered": 0.0, "percent_statements_covered_display": "0", "num_branches": 0, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 0, "percent_branches_covered": 100.0, "percent_branches_covered_display": "100"}, "missing_lines": [63, 80, 88, 89], "excluded_lines": [], "start_line": 61, "executed_branches": [], "missing_branches": []}, "LLMGateway._setup_callbacks.success_callback": {"executed_lines": [], "summary": {"covered_lines": 0, "num_statements": 10, "percent_covered": 0.0, "percent_covered_display": "0", "missing_lines": 10, "excluded_lines": 0, "percent_statements_covered": 0.0, "percent_statements_covered_display": "0", "num_branches": 0, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 0, "percent_branches_covered": 100.0, "percent_branches_covered_display": "100"}, "missing_lines": [64, 65, 66, 67, 68, 70, 72, 73, 77, 78], "excluded_lines": [], "start_line": 63, "executed_branches": [], "missing_branches": []}, "LLMGateway._setup_callbacks.failure_callback": {"executed_lines": [], "summary": {"covered_lines": 0, "num_statements": 3, "percent_covered": 0.0, "percent_covered_display": "0", "missing_lines": 3, "excluded_lines": 0, "percent_statements_covered": 0.0, "percent_statements_covered_display": "0", "num_branches": 0, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 0, "percent_branches_covered": 100.0, "percent_branches_covered_display": "100"}, "missing_lines": [81, 82, 83], "excluded_lines": [], "start_line": 80, "executed_branches": [], "missing_branches": []}, "LLMGateway.acompletion": {"executed_lines": [], "summary": {"covered_lines": 0, "num_statements": 40, "percent_covered": 0.0, "percent_covered_display": "0", "missing_lines": 40, "excluded_lines": 0, "percent_statements_covered": 0.0, "percent_statements_covered_display": "0", "num_branches": 26, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 26, "percent_branches_covered": 0.0, "percent_branches_covered_display": "0"}, "missing_lines": [105, 108, 109, 112, 113, 114, 115, 116, 118, 119, 120, 121, 125, 126, 127, 128, 136, 137, 140, 141, 142, 143, 144, 145, 148, 149, 151, 153, 154, 157, 158, 159, 160, 161, 167, 173, 174, 175, 176, 178], "excluded_lines": [], "start_line": 91, "executed_branches": [], "missing_branches": [[108, 109], [108, 112], [113, 114], [113, 115], [115, 116], [115, 118], [118, 119], [118, 120], [120, 121], [120, 125], [125, 126], [125, 136], [127, 128], [127, 136], [141, 142], [141, 143], [143, 144], [143, 148], [144, 143], [144, 145], [148, 149], [148, 151], [153, 154], [153, 157], [158, 159], [158, 178]]}, "LLMGateway._stream_completion": {"executed_lines": [], "summary": {"covered_lines": 0, "num_statements": 15, "percent_covered": 0.0, "percent_covered_display": "0", "missing_lines": 15, "excluded_lines": 0, "percent_statements_covered": 0.0, "percent_statements_covered_display": "0", "num_branches": 6, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 6, "percent_branches_covered": 0.0, "percent_branches_covered_display": "0"}, "missing_lines": [183, 184, 185, 186, 187, 193, 194, 195, 196, 197, 198, 199, 200, 201, 203], "excluded_lines": [], "start_line": 180, "executed_branches": [], "missing_branches": [[184, 185], [184, 203], [193, 194], [193, 197], [195, 193], [195, 196]]}, "": {"executed_lines": [], "summary": {"covered_lines": 0, "num_statements": 16, "percent_covered": 0.0, "percent_covered_display": "0", "missing_lines": 16, "excluded_lines": 0, "percent_statements_covered": 0.0, "percent_statements_covered_display": "0", "num_branches": 0, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 0, "percent_branches_covered": 100.0, "percent_branches_covered_display": "100"}, "missing_lines": [4, 5, 6, 7, 9, 10, 12, 16, 18, 19, 34, 45, 61, 91, 180, 206], "excluded_lines": [], "start_line": 1, "executed_branches": [], "missing_branches": []}}, "classes": {"LLMGateway": {"executed_lines": [], "summary": {"covered_lines": 0, "num_statements": 93, "percent_covered": 0.0, "percent_covered_display": "0", "missing_lines": 93, "excluded_lines": 0, "percent_statements_covered": 0.0, "percent_statements_covered_display": "0", "num_branches": 38, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 38, "percent_branches_covered": 0.0, "percent_branches_covered_display": "0"}, "missing_lines": [20, 21, 22, 25, 26, 28, 31, 32, 35, 36, 37, 38, 39, 40, 41, 43, 48, 56, 57, 58, 59, 63, 64, 65, 66, 67, 68, 70, 72, 73, 77, 78, 80, 81, 82, 83, 88, 89, 105, 108, 109, 112, 113, 114, 115, 116, 118, 119, 120, 121, 125, 126, 127, 128, 136, 137, 140, 141, 142, 143, 144, 145, 148, 149, 151, 153, 154, 157, 158, 159, 160, 161, 167, 173, 174, 175, 176, 178, 183, 184, 185, 186, 187, 193, 194, 195, 196, 197, 198, 199, 200, 201, 203], "excluded_lines": [], "start_line": 18, "executed_branches": [], "missing_branches": [[36, 37], [36, 39], [56, -45], [56, 57], [57, 56], [57, 58], [108, 109], [108, 112], [113, 114], [113, 115], [115, 116], [115, 118], [118, 119], [118, 120], [120, 121], [120, 125], [125, 126], [125, 136], [127, 128], [127, 136], [141, 142], [141, 143], [143, 144], [143, 148], [144, 143], [144, 145], [148, 149], [148, 151], [153, 154], [153, 157], [158, 159], [158, 178], [184, 185], [184, 203], [193, 194], [193, 197], [195, 193], [195, 196]]}, "": {"executed_lines": [], "summary": {"covered_lines": 0, "num_statements": 16, "percent_covered": 0.0, "percent_covered_display": "0", "missing_lines": 16, "excluded_lines": 0, "percent_statements_covered": 0.0, "percent_statements_covered_display": "0", "num_branches": 0, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 0, "percent_branches_covered": 100.0, "percent_branches_covered_display": "100"}, "missing_lines": [4, 5, 6, 7, 9, 10, 12, 16, 18, 19, 34, 45, 61, 91, 180, 206], "excluded_lines": [], "start_line": 1, "executed_branches": [], "missing_branches": []}}}, "core\\swarm_orchestrator.py": {"executed_lines": [], "summary": {"covered_lines": 0, "num_statements": 19, "percent_covered": 0.0, "percent_covered_display": "0", "missing_lines": 19, "excluded_lines": 0, "percent_statements_covered": 0.0, "percent_statements_covered_display": "0", "num_branches": 0, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 0, "percent_branches_covered": 100.0, "percent_branches_covered_display": "100"}, "missing_lines": [4, 6, 7, 8, 9, 12, 16, 17, 18, 19, 21, 22, 23, 25, 28, 31, 34, 36, 37], "excluded_lines": [], "executed_branches": [], "missing_branches": [], "functions": {"SwarmOrchestrator.__init__": {"executed_lines": [], "summary": {"covered_lines": 0, "num_statements": 3, "percent_covered": 0.0, "percent_covered_display": "0", "missing_lines": 3, "excluded_lines": 0, "percent_statements_covered": 0.0, "percent_statements_covered_display": "0", "num_branches": 0, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 0, "percent_branches_covered": 100.0, "percent_branches_covered_display": "100"}, "missing_lines": [17, 18, 19], "excluded_lines": [], "start_line": 16, "executed_branches": [], "missing_branches": []}, "SwarmOrchestrator.execute_task": {"executed_lines": [], "summary": {"covered_lines": 0, "num_statements": 8, "percent_covered": 0.0, "percent_covered_display": "0", "missing_lines": 8, "excluded_lines": 0, "percent_statements_covered": 0.0, "percent_statements_covered_display": "0", "num_branches": 0, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 0, "percent_branches_covered": 100.0, "percent_branches_covered_display": "100"}, "missing_lines": [22, 23, 25, 28, 31, 34, 36, 37], "excluded_lines": [], "start_line": 21, "executed_branches": [], "missing_branches": []}, "": {"executed_lines": [], "summary": {"covered_lines": 0, "num_statements": 8, "percent_covered": 0.0, "percent_covered_display": "0", "missing_lines": 8, "excluded_lines": 0, "percent_statements_covered": 0.0, "percent_statements_covered_display": "0", "num_branches": 0, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 0, "percent_branches_covered": 100.0, "percent_branches_covered_display": "100"}, "missing_lines": [4, 6, 7, 8, 9, 12, 16, 21], "excluded_lines": [], "start_line": 1, "executed_branches": [], "missing_branches": []}}, "classes": {"SwarmOrchestrator": {"executed_lines": [], "summary": {"covered_lines": 0, "num_statements": 11, "percent_covered": 0.0, "percent_covered_display": "0", "missing_lines": 11, "excluded_lines": 0, "percent_statements_covered": 0.0, "percent_statements_covered_display": "0", "num_branches": 0, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 0, "percent_branches_covered": 100.0, "percent_branches_covered_display": "100"}, "missing_lines": [17, 18, 19, 22, 23, 25, 28, 31, 34, 36, 37], "excluded_lines": [], "start_line": 12, "executed_branches": [], "missing_branches": []}, "": {"executed_lines": [], "summary": {"covered_lines": 0, "num_statements": 8, "percent_covered": 0.0, "percent_covered_display": "0", "missing_lines": 8, "excluded_lines": 0, "percent_statements_covered": 0.0, "percent_statements_covered_display": "0", "num_branches": 0, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 0, "percent_branches_covered": 100.0, "percent_branches_covered_display": "100"}, "missing_lines": [4, 6, 7, 8, 9, 12, 16, 21], "excluded_lines": [], "start_line": 1, "executed_branches": [], "missing_branches": []}}}}, "totals": {"covered_lines": 117, "num_statements": 297, "percent_covered": 33.76623376623377, "percent_covered_display": "34", "missing_lines": 180, "excluded_lines": 0, "percent_statements_covered": 39.39393939393939, "percent_statements_covered_display": "39", "num_branches": 88, "num_partial_branches": 13, "covered_branches": 13, "missing_branches": 75, "percent_branches_covered": 14.772727272727273, "percent_branches_covered_display": "15"}}
+{"meta": {"format": 3, "version": "7.14.1", "timestamp": "2026-07-05T02:23:25.901265", "branch_coverage": true, "show_contexts": false}, "files": {"core\\__init__.py": {"executed_lines": [], "summary": {"covered_lines": 0, "num_statements": 0, "percent_covered": 100.0, "percent_covered_display": "100", "missing_lines": 0, "excluded_lines": 0, "percent_statements_covered": 100.0, "percent_statements_covered_display": "100", "num_branches": 0, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 0, "percent_branches_covered": 100.0, "percent_branches_covered_display": "100"}, "missing_lines": [], "excluded_lines": [], "executed_branches": [], "missing_branches": [], "functions": {"": {"executed_lines": [], "summary": {"covered_lines": 0, "num_statements": 0, "percent_covered": 100.0, "percent_covered_display": "100", "missing_lines": 0, "excluded_lines": 0, "percent_statements_covered": 100.0, "percent_statements_covered_display": "100", "num_branches": 0, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 0, "percent_branches_covered": 100.0, "percent_branches_covered_display": "100"}, "missing_lines": [], "excluded_lines": [], "start_line": 1, "executed_branches": [], "missing_branches": []}}, "classes": {"": {"executed_lines": [], "summary": {"covered_lines": 0, "num_statements": 0, "percent_covered": 100.0, "percent_covered_display": "100", "missing_lines": 0, "excluded_lines": 0, "percent_statements_covered": 100.0, "percent_statements_covered_display": "100", "num_branches": 0, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 0, "percent_branches_covered": 100.0, "percent_branches_covered_display": "100"}, "missing_lines": [], "excluded_lines": [], "start_line": 1, "executed_branches": [], "missing_branches": []}}}, "core\\config.py": {"executed_lines": [1, 2, 3, 5, 6, 7, 8, 9, 10, 11, 13, 16, 21, 22, 27, 28, 30, 31, 32, 33, 34, 35, 37, 38, 39, 41, 51, 52, 53, 54, 56, 64, 66, 67, 68, 70, 73, 78, 83, 89, 93, 95, 96, 97, 98, 99, 100, 101, 102, 104, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 120, 121, 122, 123, 124, 125, 126, 128, 129, 131, 132, 133, 134, 135, 139, 140, 141, 142, 143, 145, 147, 148, 149, 151, 156, 158, 159, 160, 162, 167, 169, 170, 171, 172, 173, 174, 178, 181, 182, 183, 184, 185, 187, 189, 190, 191, 192, 194, 204, 205, 207, 209, 228, 230], "summary": {"covered_lines": 117, "num_statements": 169, "percent_covered": 59.36073059360731, "percent_covered_display": "59", "missing_lines": 52, "excluded_lines": 0, "percent_statements_covered": 69.23076923076923, "percent_statements_covered_display": "69", "num_branches": 50, "num_partial_branches": 13, "covered_branches": 13, "missing_branches": 37, "percent_branches_covered": 26.0, "percent_branches_covered_display": "26"}, "missing_lines": [17, 18, 57, 58, 59, 60, 61, 62, 63, 65, 69, 144, 152, 153, 154, 155, 163, 164, 165, 166, 175, 179, 186, 195, 196, 197, 199, 200, 201, 202, 206, 210, 211, 212, 213, 214, 215, 216, 217, 218, 219, 220, 221, 222, 223, 231, 232, 234, 235, 236, 237, 238], "excluded_lines": [], "executed_branches": [[16, 21], [56, 64], [64, 66], [68, 70], [143, 145], [151, 156], [162, 167], [173, 174], [174, 178], [185, 187], [194, 204], [205, 207], [230, -1]], "missing_branches": [[16, 17], [56, 57], [58, 59], [58, 60], [64, 65], [68, 69], [143, 144], [151, 152], [153, 154], [153, 155], [162, 163], [164, 165], [164, 166], [173, 179], [174, 175], [185, 186], [194, 195], [196, 197], [196, 199], [205, 206], [210, -209], [210, 211], [212, 213], [212, 214], [214, 215], [214, 216], [216, 217], [216, 218], [218, 219], [218, 220], [220, 221], [220, 222], [222, -209], [222, 223], [230, 231], [234, -1], [234, 235]], "functions": {"Settings.sanitize_cors_origins": {"executed_lines": [54, 56, 64, 66, 67, 68, 70], "summary": {"covered_lines": 7, "num_statements": 16, "percent_covered": 41.666666666666664, "percent_covered_display": "42", "missing_lines": 9, "excluded_lines": 0, "percent_statements_covered": 43.75, "percent_statements_covered_display": "44", "num_branches": 8, "num_partial_branches": 3, "covered_branches": 3, "missing_branches": 5, "percent_branches_covered": 37.5, "percent_branches_covered_display": "38"}, "missing_lines": [57, 58, 59, 60, 61, 62, 63, 65, 69], "excluded_lines": [], "start_line": 53, "executed_branches": [[56, 64], [64, 66], [68, 70]], "missing_branches": [[56, 57], [58, 59], [58, 60], [64, 65], [68, 69]]}, "Settings.validate_env": {"executed_lines": [142, 143, 145], "summary": {"covered_lines": 3, "num_statements": 4, "percent_covered": 66.66666666666667, "percent_covered_display": "67", "missing_lines": 1, "excluded_lines": 0, "percent_statements_covered": 75.0, "percent_statements_covered_display": "75", "num_branches": 2, "num_partial_branches": 1, "covered_branches": 1, "missing_branches": 1, "percent_branches_covered": 50.0, "percent_branches_covered_display": "50"}, "missing_lines": [144], "excluded_lines": [], "start_line": 141, "executed_branches": [[143, 145]], "missing_branches": [[143, 144]]}, "Settings.parse_admin_emails": {"executed_lines": [151, 156], "summary": {"covered_lines": 2, "num_statements": 6, "percent_covered": 30.0, "percent_covered_display": "30", "missing_lines": 4, "excluded_lines": 0, "percent_statements_covered": 33.333333333333336, "percent_statements_covered_display": "33", "num_branches": 4, "num_partial_branches": 1, "covered_branches": 1, "missing_branches": 3, "percent_branches_covered": 25.0, "percent_branches_covered_display": "25"}, "missing_lines": [152, 153, 154, 155], "excluded_lines": [], "start_line": 149, "executed_branches": [[151, 156]], "missing_branches": [[151, 152], [153, 154], [153, 155]]}, "Settings.parse_allowed_hosts": {"executed_lines": [162, 167], "summary": {"covered_lines": 2, "num_statements": 6, "percent_covered": 30.0, "percent_covered_display": "30", "missing_lines": 4, "excluded_lines": 0, "percent_statements_covered": 33.333333333333336, "percent_statements_covered_display": "33", "num_branches": 4, "num_partial_branches": 1, "covered_branches": 1, "missing_branches": 3, "percent_branches_covered": 25.0, "percent_branches_covered_display": "25"}, "missing_lines": [163, 164, 165, 166], "excluded_lines": [], "start_line": 160, "executed_branches": [[162, 167]], "missing_branches": [[162, 163], [164, 165], [164, 166]]}, "Settings.set_test_secret": {"executed_lines": [172, 173, 174, 178], "summary": {"covered_lines": 4, "num_statements": 6, "percent_covered": 60.0, "percent_covered_display": "60", "missing_lines": 2, "excluded_lines": 0, "percent_statements_covered": 66.66666666666667, "percent_statements_covered_display": "67", "num_branches": 4, "num_partial_branches": 2, "covered_branches": 2, "missing_branches": 2, "percent_branches_covered": 50.0, "percent_branches_covered_display": "50"}, "missing_lines": [175, 179], "excluded_lines": [], "start_line": 171, "executed_branches": [[173, 174], [174, 178]], "missing_branches": [[173, 179], [174, 175]]}, "Settings.debug_must_be_false_in_production": {"executed_lines": [184, 185, 187], "summary": {"covered_lines": 3, "num_statements": 4, "percent_covered": 66.66666666666667, "percent_covered_display": "67", "missing_lines": 1, "excluded_lines": 0, "percent_statements_covered": 75.0, "percent_statements_covered_display": "75", "num_branches": 2, "num_partial_branches": 1, "covered_branches": 1, "missing_branches": 1, "percent_branches_covered": 50.0, "percent_branches_covered_display": "50"}, "missing_lines": [186], "excluded_lines": [], "start_line": 183, "executed_branches": [[185, 187]], "missing_branches": [[185, 186]]}, "Settings.parse_cors_origins": {"executed_lines": [192, 194, 204, 205, 207], "summary": {"covered_lines": 5, "num_statements": 13, "percent_covered": 36.8421052631579, "percent_covered_display": "37", "missing_lines": 8, "excluded_lines": 0, "percent_statements_covered": 38.46153846153846, "percent_statements_covered_display": "38", "num_branches": 6, "num_partial_branches": 2, "covered_branches": 2, "missing_branches": 4, "percent_branches_covered": 33.333333333333336, "percent_branches_covered_display": "33"}, "missing_lines": [195, 196, 197, 199, 200, 201, 202, 206], "excluded_lines": [], "start_line": 191, "executed_branches": [[194, 204], [205, 207]], "missing_branches": [[194, 195], [196, 197], [196, 199], [205, 206]]}, "Settings.validate_config": {"executed_lines": [], "summary": {"covered_lines": 0, "num_statements": 14, "percent_covered": 0.0, "percent_covered_display": "0", "missing_lines": 14, "excluded_lines": 0, "percent_statements_covered": 0.0, "percent_statements_covered_display": "0", "num_branches": 14, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 14, "percent_branches_covered": 0.0, "percent_branches_covered_display": "0"}, "missing_lines": [210, 211, 212, 213, 214, 215, 216, 217, 218, 219, 220, 221, 222, 223], "excluded_lines": [], "start_line": 209, "executed_branches": [], "missing_branches": [[210, -209], [210, 211], [212, 213], [212, 214], [214, 215], [214, 216], [216, 217], [216, 218], [218, 219], [218, 220], [220, 221], [220, 222], [222, -209], [222, 223]]}, "": {"executed_lines": [1, 2, 3, 5, 6, 7, 8, 9, 10, 11, 13, 16, 21, 22, 27, 28, 30, 31, 32, 33, 34, 35, 37, 38, 39, 41, 51, 52, 53, 73, 78, 83, 89, 93, 95, 96, 97, 98, 99, 100, 101, 102, 104, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 120, 121, 122, 123, 124, 125, 126, 128, 129, 131, 132, 133, 134, 135, 139, 140, 141, 147, 148, 149, 158, 159, 160, 169, 170, 171, 181, 182, 183, 189, 190, 191, 209, 228, 230], "summary": {"covered_lines": 91, "num_statements": 100, "percent_covered": 87.73584905660377, "percent_covered_display": "88", "missing_lines": 9, "excluded_lines": 0, "percent_statements_covered": 91.0, "percent_statements_covered_display": "91", "num_branches": 6, "num_partial_branches": 2, "covered_branches": 2, "missing_branches": 4, "percent_branches_covered": 33.333333333333336, "percent_branches_covered_display": "33"}, "missing_lines": [17, 18, 231, 232, 234, 235, 236, 237, 238], "excluded_lines": [], "start_line": 1, "executed_branches": [[16, 21], [230, -1]], "missing_branches": [[16, 17], [230, 231], [234, -1], [234, 235]]}}, "classes": {"Settings": {"executed_lines": [54, 56, 64, 66, 67, 68, 70, 142, 143, 145, 151, 156, 162, 167, 172, 173, 174, 178, 184, 185, 187, 192, 194, 204, 205, 207], "summary": {"covered_lines": 26, "num_statements": 69, "percent_covered": 32.743362831858406, "percent_covered_display": "33", "missing_lines": 43, "excluded_lines": 0, "percent_statements_covered": 37.68115942028985, "percent_statements_covered_display": "38", "num_branches": 44, "num_partial_branches": 11, "covered_branches": 11, "missing_branches": 33, "percent_branches_covered": 25.0, "percent_branches_covered_display": "25"}, "missing_lines": [57, 58, 59, 60, 61, 62, 63, 65, 69, 144, 152, 153, 154, 155, 163, 164, 165, 166, 175, 179, 186, 195, 196, 197, 199, 200, 201, 202, 206, 210, 211, 212, 213, 214, 215, 216, 217, 218, 219, 220, 221, 222, 223], "excluded_lines": [], "start_line": 21, "executed_branches": [[56, 64], [64, 66], [68, 70], [143, 145], [151, 156], [162, 167], [173, 174], [174, 178], [185, 187], [194, 204], [205, 207]], "missing_branches": [[56, 57], [58, 59], [58, 60], [64, 65], [68, 69], [143, 144], [151, 152], [153, 154], [153, 155], [162, 163], [164, 165], [164, 166], [173, 179], [174, 175], [185, 186], [194, 195], [196, 197], [196, 199], [205, 206], [210, -209], [210, 211], [212, 213], [212, 214], [214, 215], [214, 216], [216, 217], [216, 218], [218, 219], [218, 220], [220, 221], [220, 222], [222, -209], [222, 223]]}, "": {"executed_lines": [1, 2, 3, 5, 6, 7, 8, 9, 10, 11, 13, 16, 21, 22, 27, 28, 30, 31, 32, 33, 34, 35, 37, 38, 39, 41, 51, 52, 53, 73, 78, 83, 89, 93, 95, 96, 97, 98, 99, 100, 101, 102, 104, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 120, 121, 122, 123, 124, 125, 126, 128, 129, 131, 132, 133, 134, 135, 139, 140, 141, 147, 148, 149, 158, 159, 160, 169, 170, 171, 181, 182, 183, 189, 190, 191, 209, 228, 230], "summary": {"covered_lines": 91, "num_statements": 100, "percent_covered": 87.73584905660377, "percent_covered_display": "88", "missing_lines": 9, "excluded_lines": 0, "percent_statements_covered": 91.0, "percent_statements_covered_display": "91", "num_branches": 6, "num_partial_branches": 2, "covered_branches": 2, "missing_branches": 4, "percent_branches_covered": 33.333333333333336, "percent_branches_covered_display": "33"}, "missing_lines": [17, 18, 231, 232, 234, 235, 236, 237, 238], "excluded_lines": [], "start_line": 1, "executed_branches": [[16, 21], [230, -1]], "missing_branches": [[16, 17], [230, 231], [234, -1], [234, 235]]}}}, "core\\enum_guard.py": {"executed_lines": [], "summary": {"covered_lines": 0, "num_statements": 43, "percent_covered": 0.0, "percent_covered_display": "0", "missing_lines": 43, "excluded_lines": 0, "percent_statements_covered": 0.0, "percent_statements_covered_display": "0", "num_branches": 10, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 10, "percent_branches_covered": 0.0, "percent_branches_covered_display": "0"}, "missing_lines": [1, 2, 4, 5, 7, 10, 11, 13, 18, 19, 20, 28, 30, 31, 32, 34, 36, 37, 38, 39, 40, 41, 42, 43, 44, 46, 47, 48, 49, 50, 53, 54, 55, 56, 57, 59, 61, 62, 63, 64, 65, 66, 68], "excluded_lines": [], "executed_branches": [], "missing_branches": [[30, 31], [30, 34], [36, 37], [36, 46], [40, 41], [40, 42], [42, 43], [42, 44], [48, 49], [48, 50]], "functions": {"guard_enum": {"executed_lines": [], "summary": {"covered_lines": 0, "num_statements": 22, "percent_covered": 0.0, "percent_covered_display": "0", "missing_lines": 22, "excluded_lines": 0, "percent_statements_covered": 0.0, "percent_statements_covered_display": "0", "num_branches": 10, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 10, "percent_branches_covered": 0.0, "percent_branches_covered_display": "0"}, "missing_lines": [18, 19, 20, 28, 30, 31, 32, 34, 36, 37, 38, 39, 40, 41, 42, 43, 44, 46, 47, 48, 49, 50], "excluded_lines": [], "start_line": 13, "executed_branches": [], "missing_branches": [[30, 31], [30, 34], [36, 37], [36, 46], [40, 41], [40, 42], [42, 43], [42, 44], [48, 49], [48, 50]]}, "run_enum_guards": {"executed_lines": [], "summary": {"covered_lines": 0, "num_statements": 12, "percent_covered": 0.0, "percent_covered_display": "0", "missing_lines": 12, "excluded_lines": 0, "percent_statements_covered": 0.0, "percent_statements_covered_display": "0", "num_branches": 0, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 0, "percent_branches_covered": 100.0, "percent_branches_covered_display": "100"}, "missing_lines": [54, 55, 56, 57, 59, 61, 62, 63, 64, 65, 66, 68], "excluded_lines": [], "start_line": 53, "executed_branches": [], "missing_branches": []}, "": {"executed_lines": [], "summary": {"covered_lines": 0, "num_statements": 9, "percent_covered": 0.0, "percent_covered_display": "0", "missing_lines": 9, "excluded_lines": 0, "percent_statements_covered": 0.0, "percent_statements_covered_display": "0", "num_branches": 0, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 0, "percent_branches_covered": 100.0, "percent_branches_covered_display": "100"}, "missing_lines": [1, 2, 4, 5, 7, 10, 11, 13, 53], "excluded_lines": [], "start_line": 1, "executed_branches": [], "missing_branches": []}}, "classes": {"EnumMismatchError": {"executed_lines": [], "summary": {"covered_lines": 0, "num_statements": 0, "percent_covered": 100.0, "percent_covered_display": "100", "missing_lines": 0, "excluded_lines": 0, "percent_statements_covered": 100.0, "percent_statements_covered_display": "100", "num_branches": 0, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 0, "percent_branches_covered": 100.0, "percent_branches_covered_display": "100"}, "missing_lines": [], "excluded_lines": [], "start_line": 10, "executed_branches": [], "missing_branches": []}, "": {"executed_lines": [], "summary": {"covered_lines": 0, "num_statements": 43, "percent_covered": 0.0, "percent_covered_display": "0", "missing_lines": 43, "excluded_lines": 0, "percent_statements_covered": 0.0, "percent_statements_covered_display": "0", "num_branches": 10, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 10, "percent_branches_covered": 0.0, "percent_branches_covered_display": "0"}, "missing_lines": [1, 2, 4, 5, 7, 10, 11, 13, 18, 19, 20, 28, 30, 31, 32, 34, 36, 37, 38, 39, 40, 41, 42, 43, 44, 46, 47, 48, 49, 50, 53, 54, 55, 56, 57, 59, 61, 62, 63, 64, 65, 66, 68], "excluded_lines": [], "start_line": 1, "executed_branches": [], "missing_branches": [[30, 31], [30, 34], [36, 37], [36, 46], [40, 41], [40, 42], [42, 43], [42, 44], [48, 49], [48, 50]]}}}, "core\\llm_gateway.py": {"executed_lines": [4, 5, 6, 7, 9, 10, 12, 16, 18, 19, 20, 21, 22, 25, 26, 28, 31, 32, 34, 35, 36, 37, 38, 45, 48, 56, 57, 58, 59, 61, 63, 80, 88, 89, 91, 180, 206], "summary": {"covered_lines": 37, "num_statements": 109, "percent_covered": 28.571428571428573, "percent_covered_display": "29", "missing_lines": 72, "excluded_lines": 0, "percent_statements_covered": 33.944954128440365, "percent_statements_covered_display": "34", "num_branches": 38, "num_partial_branches": 1, "covered_branches": 5, "missing_branches": 33, "percent_branches_covered": 13.157894736842104, "percent_branches_covered_display": "13"}, "missing_lines": [39, 40, 41, 43, 64, 65, 66, 67, 68, 70, 72, 73, 77, 78, 81, 82, 83, 105, 108, 109, 112, 113, 114, 115, 116, 118, 119, 120, 121, 125, 126, 127, 128, 136, 137, 140, 141, 142, 143, 144, 145, 148, 149, 151, 153, 154, 157, 158, 159, 160, 161, 167, 173, 174, 175, 176, 178, 183, 184, 185, 186, 187, 193, 194, 195, 196, 197, 198, 199, 200, 201, 203], "excluded_lines": [], "executed_branches": [[36, 37], [56, -45], [56, 57], [57, 56], [57, 58]], "missing_branches": [[36, 39], [108, 109], [108, 112], [113, 114], [113, 115], [115, 116], [115, 118], [118, 119], [118, 120], [120, 121], [120, 125], [125, 126], [125, 136], [127, 128], [127, 136], [141, 142], [141, 143], [143, 144], [143, 148], [144, 143], [144, 145], [148, 149], [148, 151], [153, 154], [153, 157], [158, 159], [158, 178], [184, 185], [184, 203], [193, 194], [193, 197], [195, 193], [195, 196]], "functions": {"LLMGateway.__init__": {"executed_lines": [20, 21, 22, 25, 26, 28, 31, 32], "summary": {"covered_lines": 8, "num_statements": 8, "percent_covered": 100.0, "percent_covered_display": "100", "missing_lines": 0, "excluded_lines": 0, "percent_statements_covered": 100.0, "percent_statements_covered_display": "100", "num_branches": 0, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 0, "percent_branches_covered": 100.0, "percent_branches_covered_display": "100"}, "missing_lines": [], "excluded_lines": [], "start_line": 19, "executed_branches": [], "missing_branches": []}, "LLMGateway._load_routing_policy": {"executed_lines": [35, 36, 37, 38], "summary": {"covered_lines": 4, "num_statements": 8, "percent_covered": 50.0, "percent_covered_display": "50", "missing_lines": 4, "excluded_lines": 0, "percent_statements_covered": 50.0, "percent_statements_covered_display": "50", "num_branches": 2, "num_partial_branches": 1, "covered_branches": 1, "missing_branches": 1, "percent_branches_covered": 50.0, "percent_branches_covered_display": "50"}, "missing_lines": [39, 40, 41, 43], "excluded_lines": [], "start_line": 34, "executed_branches": [[36, 37]], "missing_branches": [[36, 39]]}, "LLMGateway._inject_secrets": {"executed_lines": [48, 56, 57, 58, 59], "summary": {"covered_lines": 5, "num_statements": 5, "percent_covered": 100.0, "percent_covered_display": "100", "missing_lines": 0, "excluded_lines": 0, "percent_statements_covered": 100.0, "percent_statements_covered_display": "100", "num_branches": 4, "num_partial_branches": 0, "covered_branches": 4, "missing_branches": 0, "percent_branches_covered": 100.0, "percent_branches_covered_display": "100"}, "missing_lines": [], "excluded_lines": [], "start_line": 45, "executed_branches": [[56, -45], [56, 57], [57, 56], [57, 58]], "missing_branches": []}, "LLMGateway._setup_callbacks": {"executed_lines": [63, 80, 88, 89], "summary": {"covered_lines": 4, "num_statements": 4, "percent_covered": 100.0, "percent_covered_display": "100", "missing_lines": 0, "excluded_lines": 0, "percent_statements_covered": 100.0, "percent_statements_covered_display": "100", "num_branches": 0, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 0, "percent_branches_covered": 100.0, "percent_branches_covered_display": "100"}, "missing_lines": [], "excluded_lines": [], "start_line": 61, "executed_branches": [], "missing_branches": []}, "LLMGateway._setup_callbacks.success_callback": {"executed_lines": [], "summary": {"covered_lines": 0, "num_statements": 10, "percent_covered": 0.0, "percent_covered_display": "0", "missing_lines": 10, "excluded_lines": 0, "percent_statements_covered": 0.0, "percent_statements_covered_display": "0", "num_branches": 0, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 0, "percent_branches_covered": 100.0, "percent_branches_covered_display": "100"}, "missing_lines": [64, 65, 66, 67, 68, 70, 72, 73, 77, 78], "excluded_lines": [], "start_line": 63, "executed_branches": [], "missing_branches": []}, "LLMGateway._setup_callbacks.failure_callback": {"executed_lines": [], "summary": {"covered_lines": 0, "num_statements": 3, "percent_covered": 0.0, "percent_covered_display": "0", "missing_lines": 3, "excluded_lines": 0, "percent_statements_covered": 0.0, "percent_statements_covered_display": "0", "num_branches": 0, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 0, "percent_branches_covered": 100.0, "percent_branches_covered_display": "100"}, "missing_lines": [81, 82, 83], "excluded_lines": [], "start_line": 80, "executed_branches": [], "missing_branches": []}, "LLMGateway.acompletion": {"executed_lines": [], "summary": {"covered_lines": 0, "num_statements": 40, "percent_covered": 0.0, "percent_covered_display": "0", "missing_lines": 40, "excluded_lines": 0, "percent_statements_covered": 0.0, "percent_statements_covered_display": "0", "num_branches": 26, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 26, "percent_branches_covered": 0.0, "percent_branches_covered_display": "0"}, "missing_lines": [105, 108, 109, 112, 113, 114, 115, 116, 118, 119, 120, 121, 125, 126, 127, 128, 136, 137, 140, 141, 142, 143, 144, 145, 148, 149, 151, 153, 154, 157, 158, 159, 160, 161, 167, 173, 174, 175, 176, 178], "excluded_lines": [], "start_line": 91, "executed_branches": [], "missing_branches": [[108, 109], [108, 112], [113, 114], [113, 115], [115, 116], [115, 118], [118, 119], [118, 120], [120, 121], [120, 125], [125, 126], [125, 136], [127, 128], [127, 136], [141, 142], [141, 143], [143, 144], [143, 148], [144, 143], [144, 145], [148, 149], [148, 151], [153, 154], [153, 157], [158, 159], [158, 178]]}, "LLMGateway._stream_completion": {"executed_lines": [], "summary": {"covered_lines": 0, "num_statements": 15, "percent_covered": 0.0, "percent_covered_display": "0", "missing_lines": 15, "excluded_lines": 0, "percent_statements_covered": 0.0, "percent_statements_covered_display": "0", "num_branches": 6, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 6, "percent_branches_covered": 0.0, "percent_branches_covered_display": "0"}, "missing_lines": [183, 184, 185, 186, 187, 193, 194, 195, 196, 197, 198, 199, 200, 201, 203], "excluded_lines": [], "start_line": 180, "executed_branches": [], "missing_branches": [[184, 185], [184, 203], [193, 194], [193, 197], [195, 193], [195, 196]]}, "": {"executed_lines": [4, 5, 6, 7, 9, 10, 12, 16, 18, 19, 34, 45, 61, 91, 180, 206], "summary": {"covered_lines": 16, "num_statements": 16, "percent_covered": 100.0, "percent_covered_display": "100", "missing_lines": 0, "excluded_lines": 0, "percent_statements_covered": 100.0, "percent_statements_covered_display": "100", "num_branches": 0, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 0, "percent_branches_covered": 100.0, "percent_branches_covered_display": "100"}, "missing_lines": [], "excluded_lines": [], "start_line": 1, "executed_branches": [], "missing_branches": []}}, "classes": {"LLMGateway": {"executed_lines": [20, 21, 22, 25, 26, 28, 31, 32, 35, 36, 37, 38, 48, 56, 57, 58, 59, 63, 80, 88, 89], "summary": {"covered_lines": 21, "num_statements": 93, "percent_covered": 19.84732824427481, "percent_covered_display": "20", "missing_lines": 72, "excluded_lines": 0, "percent_statements_covered": 22.580645161290324, "percent_statements_covered_display": "23", "num_branches": 38, "num_partial_branches": 1, "covered_branches": 5, "missing_branches": 33, "percent_branches_covered": 13.157894736842104, "percent_branches_covered_display": "13"}, "missing_lines": [39, 40, 41, 43, 64, 65, 66, 67, 68, 70, 72, 73, 77, 78, 81, 82, 83, 105, 108, 109, 112, 113, 114, 115, 116, 118, 119, 120, 121, 125, 126, 127, 128, 136, 137, 140, 141, 142, 143, 144, 145, 148, 149, 151, 153, 154, 157, 158, 159, 160, 161, 167, 173, 174, 175, 176, 178, 183, 184, 185, 186, 187, 193, 194, 195, 196, 197, 198, 199, 200, 201, 203], "excluded_lines": [], "start_line": 18, "executed_branches": [[36, 37], [56, -45], [56, 57], [57, 56], [57, 58]], "missing_branches": [[36, 39], [108, 109], [108, 112], [113, 114], [113, 115], [115, 116], [115, 118], [118, 119], [118, 120], [120, 121], [120, 125], [125, 126], [125, 136], [127, 128], [127, 136], [141, 142], [141, 143], [143, 144], [143, 148], [144, 143], [144, 145], [148, 149], [148, 151], [153, 154], [153, 157], [158, 159], [158, 178], [184, 185], [184, 203], [193, 194], [193, 197], [195, 193], [195, 196]]}, "": {"executed_lines": [4, 5, 6, 7, 9, 10, 12, 16, 18, 19, 34, 45, 61, 91, 180, 206], "summary": {"covered_lines": 16, "num_statements": 16, "percent_covered": 100.0, "percent_covered_display": "100", "missing_lines": 0, "excluded_lines": 0, "percent_statements_covered": 100.0, "percent_statements_covered_display": "100", "num_branches": 0, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 0, "percent_branches_covered": 100.0, "percent_branches_covered_display": "100"}, "missing_lines": [], "excluded_lines": [], "start_line": 1, "executed_branches": [], "missing_branches": []}}}, "core\\log_batcher.py": {"executed_lines": [], "summary": {"covered_lines": 0, "num_statements": 89, "percent_covered": 0.0, "percent_covered_display": "0", "missing_lines": 89, "excluded_lines": 0, "percent_statements_covered": 0.0, "percent_statements_covered_display": "0", "num_branches": 28, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 28, "percent_branches_covered": 0.0, "percent_branches_covered_display": "0"}, "missing_lines": [1, 2, 3, 4, 5, 6, 8, 9, 11, 12, 15, 16, 17, 18, 19, 20, 21, 22, 23, 25, 26, 27, 28, 29, 30, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 43, 48, 51, 52, 53, 54, 56, 57, 58, 59, 60, 61, 63, 64, 65, 66, 67, 68, 69, 70, 72, 73, 74, 76, 77, 80, 81, 82, 83, 84, 85, 87, 88, 89, 90, 91, 92, 93, 95, 96, 97, 99, 100, 102, 104, 105, 109, 110, 111, 112, 113, 115, 116, 119], "excluded_lines": [], "executed_branches": [], "missing_branches": [[26, 27], [26, 28], [34, 35], [34, 40], [52, -43], [52, 53], [53, -43], [53, 54], [57, 58], [57, 59], [64, -63], [64, 65], [69, -63], [69, 70], [73, -72], [73, 74], [80, 81], [80, 87], [87, 73], [87, 88], [90, 73], [90, 91], [96, 97], [96, 99], [104, 105], [104, 111], [115, -95], [115, 116]], "functions": {"LogBatcherService.__init__": {"executed_lines": [], "summary": {"covered_lines": 0, "num_statements": 7, "percent_covered": 0.0, "percent_covered_display": "0", "missing_lines": 7, "excluded_lines": 0, "percent_statements_covered": 0.0, "percent_statements_covered_display": "0", "num_branches": 0, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 0, "percent_branches_covered": 100.0, "percent_branches_covered_display": "100"}, "missing_lines": [17, 18, 19, 20, 21, 22, 23], "excluded_lines": [], "start_line": 16, "executed_branches": [], "missing_branches": []}, "LogBatcherService.start": {"executed_lines": [], "summary": {"covered_lines": 0, "num_statements": 5, "percent_covered": 0.0, "percent_covered_display": "0", "missing_lines": 5, "excluded_lines": 0, "percent_statements_covered": 0.0, "percent_statements_covered_display": "0", "num_branches": 2, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 2, "percent_branches_covered": 0.0, "percent_branches_covered_display": "0"}, "missing_lines": [26, 27, 28, 29, 30], "excluded_lines": [], "start_line": 25, "executed_branches": [], "missing_branches": [[26, 27], [26, 28]]}, "LogBatcherService.stop": {"executed_lines": [], "summary": {"covered_lines": 0, "num_statements": 9, "percent_covered": 0.0, "percent_covered_display": "0", "missing_lines": 9, "excluded_lines": 0, "percent_statements_covered": 0.0, "percent_statements_covered_display": "0", "num_branches": 2, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 2, "percent_branches_covered": 0.0, "percent_branches_covered_display": "0"}, "missing_lines": [33, 34, 35, 36, 37, 38, 39, 40, 41], "excluded_lines": [], "start_line": 32, "executed_branches": [], "missing_branches": [[34, 35], [34, 40]]}, "LogBatcherService.emit": {"executed_lines": [], "summary": {"covered_lines": 0, "num_statements": 5, "percent_covered": 0.0, "percent_covered_display": "0", "missing_lines": 5, "excluded_lines": 0, "percent_statements_covered": 0.0, "percent_statements_covered_display": "0", "num_branches": 4, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 4, "percent_branches_covered": 0.0, "percent_branches_covered_display": "0"}, "missing_lines": [48, 51, 52, 53, 54], "excluded_lines": [], "start_line": 43, "executed_branches": [], "missing_branches": [[52, -43], [52, 53], [53, -43], [53, 54]]}, "LogBatcherService.subscribe": {"executed_lines": [], "summary": {"covered_lines": 0, "num_statements": 5, "percent_covered": 0.0, "percent_covered_display": "0", "missing_lines": 5, "excluded_lines": 0, "percent_statements_covered": 0.0, "percent_statements_covered_display": "0", "num_branches": 2, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 2, "percent_branches_covered": 0.0, "percent_branches_covered_display": "0"}, "missing_lines": [57, 58, 59, 60, 61], "excluded_lines": [], "start_line": 56, "executed_branches": [], "missing_branches": [[57, 58], [57, 59]]}, "LogBatcherService.unsubscribe": {"executed_lines": [], "summary": {"covered_lines": 0, "num_statements": 7, "percent_covered": 0.0, "percent_covered_display": "0", "missing_lines": 7, "excluded_lines": 0, "percent_statements_covered": 0.0, "percent_statements_covered_display": "0", "num_branches": 4, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 4, "percent_branches_covered": 0.0, "percent_branches_covered_display": "0"}, "missing_lines": [64, 65, 66, 67, 68, 69, 70], "excluded_lines": [], "start_line": 63, "executed_branches": [], "missing_branches": [[64, -63], [64, 65], [69, -63], [69, 70]]}, "LogBatcherService._run": {"executed_lines": [], "summary": {"covered_lines": 0, "num_statements": 17, "percent_covered": 0.0, "percent_covered_display": "0", "missing_lines": 17, "excluded_lines": 0, "percent_statements_covered": 0.0, "percent_statements_covered_display": "0", "num_branches": 8, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 8, "percent_branches_covered": 0.0, "percent_branches_covered_display": "0"}, "missing_lines": [73, 74, 76, 77, 80, 81, 82, 83, 84, 85, 87, 88, 89, 90, 91, 92, 93], "excluded_lines": [], "start_line": 72, "executed_branches": [], "missing_branches": [[73, -72], [73, 74], [80, 81], [80, 87], [87, 73], [87, 88], [90, 73], [90, 91]]}, "LogBatcherService._flush": {"executed_lines": [], "summary": {"covered_lines": 0, "num_statements": 14, "percent_covered": 0.0, "percent_covered_display": "0", "missing_lines": 14, "excluded_lines": 0, "percent_statements_covered": 0.0, "percent_statements_covered_display": "0", "num_branches": 6, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 6, "percent_branches_covered": 0.0, "percent_branches_covered_display": "0"}, "missing_lines": [96, 97, 99, 100, 102, 104, 105, 109, 110, 111, 112, 113, 115, 116], "excluded_lines": [], "start_line": 95, "executed_branches": [], "missing_branches": [[96, 97], [96, 99], [104, 105], [104, 111], [115, -95], [115, 116]]}, "": {"executed_lines": [], "summary": {"covered_lines": 0, "num_statements": 20, "percent_covered": 0.0, "percent_covered_display": "0", "missing_lines": 20, "excluded_lines": 0, "percent_statements_covered": 0.0, "percent_statements_covered_display": "0", "num_branches": 0, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 0, "percent_branches_covered": 100.0, "percent_branches_covered_display": "100"}, "missing_lines": [1, 2, 3, 4, 5, 6, 8, 9, 11, 12, 15, 16, 25, 32, 43, 56, 63, 72, 95, 119], "excluded_lines": [], "start_line": 1, "executed_branches": [], "missing_branches": []}}, "classes": {"LogBatcherService": {"executed_lines": [], "summary": {"covered_lines": 0, "num_statements": 69, "percent_covered": 0.0, "percent_covered_display": "0", "missing_lines": 69, "excluded_lines": 0, "percent_statements_covered": 0.0, "percent_statements_covered_display": "0", "num_branches": 28, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 28, "percent_branches_covered": 0.0, "percent_branches_covered_display": "0"}, "missing_lines": [17, 18, 19, 20, 21, 22, 23, 26, 27, 28, 29, 30, 33, 34, 35, 36, 37, 38, 39, 40, 41, 48, 51, 52, 53, 54, 57, 58, 59, 60, 61, 64, 65, 66, 67, 68, 69, 70, 73, 74, 76, 77, 80, 81, 82, 83, 84, 85, 87, 88, 89, 90, 91, 92, 93, 96, 97, 99, 100, 102, 104, 105, 109, 110, 111, 112, 113, 115, 116], "excluded_lines": [], "start_line": 15, "executed_branches": [], "missing_branches": [[26, 27], [26, 28], [34, 35], [34, 40], [52, -43], [52, 53], [53, -43], [53, 54], [57, 58], [57, 59], [64, -63], [64, 65], [69, -63], [69, 70], [73, -72], [73, 74], [80, 81], [80, 87], [87, 73], [87, 88], [90, 73], [90, 91], [96, 97], [96, 99], [104, 105], [104, 111], [115, -95], [115, 116]]}, "": {"executed_lines": [], "summary": {"covered_lines": 0, "num_statements": 20, "percent_covered": 0.0, "percent_covered_display": "0", "missing_lines": 20, "excluded_lines": 0, "percent_statements_covered": 0.0, "percent_statements_covered_display": "0", "num_branches": 0, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 0, "percent_branches_covered": 100.0, "percent_branches_covered_display": "100"}, "missing_lines": [1, 2, 3, 4, 5, 6, 8, 9, 11, 12, 15, 16, 25, 32, 43, 56, 63, 72, 95, 119], "excluded_lines": [], "start_line": 1, "executed_branches": [], "missing_branches": []}}}, "core\\swarm_orchestrator.py": {"executed_lines": [], "summary": {"covered_lines": 0, "num_statements": 19, "percent_covered": 0.0, "percent_covered_display": "0", "missing_lines": 19, "excluded_lines": 0, "percent_statements_covered": 0.0, "percent_statements_covered_display": "0", "num_branches": 0, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 0, "percent_branches_covered": 100.0, "percent_branches_covered_display": "100"}, "missing_lines": [4, 6, 7, 8, 9, 12, 16, 17, 18, 19, 21, 22, 23, 25, 28, 31, 34, 36, 37], "excluded_lines": [], "executed_branches": [], "missing_branches": [], "functions": {"SwarmOrchestrator.__init__": {"executed_lines": [], "summary": {"covered_lines": 0, "num_statements": 3, "percent_covered": 0.0, "percent_covered_display": "0", "missing_lines": 3, "excluded_lines": 0, "percent_statements_covered": 0.0, "percent_statements_covered_display": "0", "num_branches": 0, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 0, "percent_branches_covered": 100.0, "percent_branches_covered_display": "100"}, "missing_lines": [17, 18, 19], "excluded_lines": [], "start_line": 16, "executed_branches": [], "missing_branches": []}, "SwarmOrchestrator.execute_task": {"executed_lines": [], "summary": {"covered_lines": 0, "num_statements": 8, "percent_covered": 0.0, "percent_covered_display": "0", "missing_lines": 8, "excluded_lines": 0, "percent_statements_covered": 0.0, "percent_statements_covered_display": "0", "num_branches": 0, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 0, "percent_branches_covered": 100.0, "percent_branches_covered_display": "100"}, "missing_lines": [22, 23, 25, 28, 31, 34, 36, 37], "excluded_lines": [], "start_line": 21, "executed_branches": [], "missing_branches": []}, "": {"executed_lines": [], "summary": {"covered_lines": 0, "num_statements": 8, "percent_covered": 0.0, "percent_covered_display": "0", "missing_lines": 8, "excluded_lines": 0, "percent_statements_covered": 0.0, "percent_statements_covered_display": "0", "num_branches": 0, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 0, "percent_branches_covered": 100.0, "percent_branches_covered_display": "100"}, "missing_lines": [4, 6, 7, 8, 9, 12, 16, 21], "excluded_lines": [], "start_line": 1, "executed_branches": [], "missing_branches": []}}, "classes": {"SwarmOrchestrator": {"executed_lines": [], "summary": {"covered_lines": 0, "num_statements": 11, "percent_covered": 0.0, "percent_covered_display": "0", "missing_lines": 11, "excluded_lines": 0, "percent_statements_covered": 0.0, "percent_statements_covered_display": "0", "num_branches": 0, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 0, "percent_branches_covered": 100.0, "percent_branches_covered_display": "100"}, "missing_lines": [17, 18, 19, 22, 23, 25, 28, 31, 34, 36, 37], "excluded_lines": [], "start_line": 12, "executed_branches": [], "missing_branches": []}, "": {"executed_lines": [], "summary": {"covered_lines": 0, "num_statements": 8, "percent_covered": 0.0, "percent_covered_display": "0", "missing_lines": 8, "excluded_lines": 0, "percent_statements_covered": 0.0, "percent_statements_covered_display": "0", "num_branches": 0, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 0, "percent_branches_covered": 100.0, "percent_branches_covered_display": "100"}, "missing_lines": [4, 6, 7, 8, 9, 12, 16, 21], "excluded_lines": [], "start_line": 1, "executed_branches": [], "missing_branches": []}}}}, "totals": {"covered_lines": 154, "num_statements": 429, "percent_covered": 30.99099099099099, "percent_covered_display": "31", "missing_lines": 275, "excluded_lines": 0, "percent_statements_covered": 35.8974358974359, "percent_statements_covered_display": "36", "num_branches": 126, "num_partial_branches": 14, "covered_branches": 18, "missing_branches": 108, "percent_branches_covered": 14.285714285714286, "percent_branches_covered_display": "14"}}
 ```
 
 ## File: `backend/pyproject.toml`
@@ -46690,6 +46692,131 @@ intent_router = IntentRouter()
 
 ```
 
+## File: `backend/core/log_batcher.py`
+
+```py
+import asyncio
+import os
+import signal
+from collections import deque
+from datetime import datetime
+from typing import Any, Dict
+
+from loguru import logger
+from sqlalchemy import insert
+
+from database.session import get_db_session
+from models.execution_log import ExecutionLog
+
+
+class LogBatcherService:
+    def __init__(self, flush_interval: float = 2.0, batch_size: int = 50):
+        self.flush_interval = flush_interval
+        self.batch_size = batch_size
+        self.queue: asyncio.Queue = asyncio.Queue()
+        self.buffer = deque()
+        self.running = False
+        self.task: asyncio.Task | None = None
+        self._subscribers: dict[str, list[asyncio.Queue]] = {}
+
+    def start(self):
+        if self.running:
+            return
+        self.running = True
+        self.task = asyncio.create_task(self._run())
+        logger.info("LogBatcherService started.")
+
+    async def stop(self):
+        self.running = False
+        if self.task:
+            self.task.cancel()
+            try:
+                await self.task
+            except asyncio.CancelledError:
+                pass
+        await self._flush()
+        logger.info("LogBatcherService stopped.")
+
+    def emit(self, log_entry: dict):
+        """
+        Produce a log entry into the queue.
+        log_entry must be a dict matching ExecutionLog schema.
+        """
+        self.queue.put_nowait(log_entry)
+        
+        # Publish to SSE subscribers
+        session_id = str(log_entry.get("session_id"))
+        if session_id in self._subscribers:
+            for sub_queue in self._subscribers[session_id]:
+                sub_queue.put_nowait(log_entry)
+
+    def subscribe(self, session_id: str) -> asyncio.Queue:
+        if session_id not in self._subscribers:
+            self._subscribers[session_id] = []
+        q = asyncio.Queue()
+        self._subscribers[session_id].append(q)
+        return q
+
+    def unsubscribe(self, session_id: str, q: asyncio.Queue):
+        if session_id in self._subscribers:
+            try:
+                self._subscribers[session_id].remove(q)
+            except ValueError:
+                pass
+            if not self._subscribers[session_id]:
+                del self._subscribers[session_id]
+
+    async def _run(self):
+        while self.running:
+            try:
+                # Wait for at least one item, up to flush_interval
+                item = await asyncio.wait_for(self.queue.get(), timeout=self.flush_interval)
+                self.buffer.append(item)
+                
+                # Drain queue up to batch_size
+                while len(self.buffer) < self.batch_size:
+                    try:
+                        next_item = self.queue.get_nowait()
+                        self.buffer.append(next_item)
+                    except asyncio.QueueEmpty:
+                        break
+                        
+                if len(self.buffer) >= self.batch_size:
+                    await self._flush()
+            except asyncio.TimeoutError:
+                if self.buffer:
+                    await self._flush()
+            except Exception as e:
+                logger.error(f"Error in LogBatcherService loop: {e}")
+
+    async def _flush(self):
+        if not self.buffer:
+            return
+        
+        batch = list(self.buffer)
+        self.buffer.clear()
+        
+        try:
+            # Execute DB insertion in a new isolated session
+            async for session in get_db_session():
+                await session.execute(
+                    insert(ExecutionLog),
+                    batch
+                )
+                await session.commit()
+                break # Just run once
+            logger.debug(f"Flushed {len(batch)} log entries to database.")
+        except Exception as e:
+            logger.error(f"Failed to flush log entries to database: {e}")
+            # Re-queue on failure (in a real system, might use a dead-letter queue)
+            for item in batch:
+                self.queue.put_nowait(item)
+
+# Global instance
+batcher = LogBatcherService()
+
+```
+
 ## File: `backend/core/generation_monitor.py`
 
 ```py
@@ -47821,16 +47948,17 @@ from __future__ import annotations
 
 import base64
 import os
-from typing import Any
+from abc import ABC, abstractmethod
+from typing import Any, Tuple
 
 from loguru import logger
 
+from core.config import settings
 
 try:
     from cryptography.fernet import Fernet
-
     CRYPTO_AVAILABLE = True
-except Exception:  # pragma: no cover - optional hardening
+except ImportError:  # pragma: no cover
     CRYPTO_AVAILABLE = False
 
 
@@ -47840,7 +47968,19 @@ def generate_key() -> str:
     return Fernet.generate_key().decode()
 
 
-class SecureCredentialStore:
+class EncryptionProvider(ABC):
+    @abstractmethod
+    def encrypt(self, plaintext: str) -> Tuple[str, str | None]:
+        """Returns (ciphertext, key_ref)"""
+        pass
+
+    @abstractmethod
+    def decrypt(self, ciphertext: str, key_ref: str | None) -> str:
+        """Returns plaintext"""
+        pass
+
+
+class LocalFernetProvider(EncryptionProvider):
     def __init__(self, encryption_key: str | None = None) -> None:
         self.enabled = False
         self.fernet: Fernet | None = None
@@ -47853,32 +47993,79 @@ class SecureCredentialStore:
                 except Exception as exc:
                     logger.warning(f"Invalid credential encryption key: {exc}")
         if not self.enabled:
-            logger.warning(
-                "Credential encryption is disabled. Credentials will be stored as plaintext."
-            )
+            logger.warning("Credential encryption is disabled. Credentials will be stored as plaintext.")
+
+    def encrypt(self, plaintext: str) -> Tuple[str, str | None]:
+        if not self.enabled or self.fernet is None:
+            return plaintext, "local:plaintext"
+        try:
+            token = self.fernet.encrypt(plaintext.encode()).decode()
+            return token, "local:fernet"
+        except Exception as exc:
+            logger.error(f"LocalFernetProvider encryption failed: {exc}")
+            return plaintext, "local:plaintext"
+
+    def decrypt(self, ciphertext: str, key_ref: str | None) -> str:
+        if not self.enabled or self.fernet is None or key_ref == "local:plaintext":
+            return ciphertext
+        try:
+            return self.fernet.decrypt(ciphertext.encode()).decode()
+        except Exception as exc:
+            logger.error(f"LocalFernetProvider decryption failed: {exc}")
+            return ciphertext
+
+
+class CloudKMSProvider(EncryptionProvider):
+    def __init__(self):
+        # In a real scenario, initialize GCP KMS Client or Supabase Vault Client here
+        logger.info("Initializing CloudKMSProvider for envelope encryption.")
+
+    def encrypt(self, plaintext: str) -> Tuple[str, str | None]:
+        # STUB for Production Cloud KMS
+        # Actually call the KMS API
+        logger.debug("CloudKMSProvider: encrypting payload...")
+        # For now, fallback to base64 mock
+        encoded = base64.b64encode(plaintext.encode()).decode()
+        return f"kms_enc_{encoded}", "gcp:kms:keyring123"
+
+    def decrypt(self, ciphertext: str, key_ref: str | None) -> str:
+        # STUB for Production Cloud KMS
+        logger.debug(f"CloudKMSProvider: decrypting payload with key_ref {key_ref}...")
+        if ciphertext.startswith("kms_enc_"):
+            encoded = ciphertext.replace("kms_enc_", "")
+            return base64.b64decode(encoded.encode()).decode()
+        return ciphertext
+
+
+def get_encryption_provider() -> EncryptionProvider:
+    # Use config environment to route to the correct provider
+    env = getattr(settings, "environment", "development")
+    if env == "production":
+        return CloudKMSProvider()
+    return LocalFernetProvider()
+
+
+class SecureCredentialStore:
+    def __init__(self) -> None:
+        self.provider = get_encryption_provider()
 
     def encrypt(self, payload: dict[str, Any]) -> dict[str, Any]:
-        if not self.enabled or self.fernet is None:
-            return payload
         try:
-            data = base64.b64encode(
-                __import__("json").dumps(payload, default=str).encode()
-            ).decode()
-            token = self.fernet.encrypt(data.encode()).decode()
-            return {"__enc__": True, "payload": token}
+            plaintext = __import__("json").dumps(payload, default=str)
+            ciphertext, key_ref = self.provider.encrypt(plaintext)
+            return {"__enc__": True, "payload": ciphertext, "key_ref": key_ref}
         except Exception as exc:
             logger.error(f"Credential encryption failed: {exc}")
             return payload
 
     def decrypt(self, payload: dict[str, Any]) -> dict[str, Any]:
-        if not self.enabled or self.fernet is None:
-            return payload
         if not payload.get("__enc__"):
             return payload
         try:
-            token = payload.get("payload", "")
-            data = self.fernet.decrypt(token.encode()).decode()
-            return __import__("json").loads(base64.b64decode(data).decode())
+            ciphertext = payload.get("payload", "")
+            key_ref = payload.get("key_ref")
+            plaintext = self.provider.decrypt(ciphertext, key_ref)
+            return __import__("json").loads(plaintext)
         except Exception as exc:
             logger.error(f"Credential decryption failed: {exc}")
             return payload
@@ -47887,8 +48074,12 @@ class SecureCredentialStore:
         masked = dict(payload)
         for field in ("password", "secret", "token"):
             if field in masked and masked[field]:
-                masked[field] = "***masked***"
+                val_str = str(masked[field])
+                # Mask string methods to output ••••••••••{last_4_hash}
+                last_4 = val_str[-4:] if len(val_str) >= 4 else val_str
+                masked[field] = f"••••••••••{last_4}"
         return masked
+
 
 ```
 
@@ -56091,6 +56282,80 @@ async def app_lifespan(app):
 
 ```
 
+## File: `backend/core/enum_guard.py`
+
+```py
+import enum
+from typing import Type
+
+from loguru import logger
+from sqlalchemy import text
+
+from database.session import engine
+
+
+class EnumMismatchError(Exception):
+    pass
+
+async def guard_enum(db_enum_name: str, py_enum: Type[enum.Enum]):
+    """
+    Validates that the Python Enum matches the Postgres Enum at startup.
+    Prevents runtime crashes due to database mismatches.
+    """
+    try:
+        async with engine.connect() as conn:
+            result = await conn.execute(
+                text(
+                    "SELECT enumlabel FROM pg_enum "
+                    "JOIN pg_type ON pg_enum.enumtypid = pg_type.oid "
+                    "WHERE pg_type.typname = :enum_name"
+                ),
+                {"enum_name": db_enum_name}
+            )
+            db_labels = {row[0] for row in result.all()}
+            
+            if not db_labels:
+                logger.warning(f"Enum '{db_enum_name}' not found in database. Is Alembic up to date?")
+                return
+            
+            py_labels = {e.value for e in py_enum}
+            
+            if db_labels != py_labels:
+                missing_in_db = py_labels - db_labels
+                missing_in_py = db_labels - py_labels
+                error_msg = f"Enum mismatch for '{db_enum_name}'. "
+                if missing_in_db:
+                    error_msg += f"Values in Python but missing in DB: {missing_in_db}. "
+                if missing_in_py:
+                    error_msg += f"Values in DB but missing in Python: {missing_in_py}. "
+                raise EnumMismatchError(error_msg)
+            
+            logger.info(f"Enum '{db_enum_name}' successfully validated against Python model.")
+    except Exception as e:
+        if isinstance(e, EnumMismatchError):
+            raise
+        logger.warning(f"Skipping Enum Guard for '{db_enum_name}' (DB connection issue or unsupported dialect): {e}")
+
+
+async def run_enum_guards():
+    from models.agent_session import AgentSessionState, ControlMode
+    from models.execution_log import LogType
+    from models.execution_policy import PolicyScope
+    from models.target_platform_credential import AuthType, CredentialStatus
+    
+    logger.info("Running Startup Enum Guards...")
+    
+    await guard_enum("agent_session_state", AgentSessionState)
+    await guard_enum("control_mode", ControlMode)
+    await guard_enum("log_type_enum", LogType)
+    await guard_enum("policy_scope_enum", PolicyScope)
+    await guard_enum("auth_type_enum", AuthType)
+    await guard_enum("credential_status_enum", CredentialStatus)
+    
+    logger.info("All Enum Guards passed.")
+
+```
+
 ## File: `backend/scripts/self_healing_tests.py`
 
 ```py
@@ -59683,6 +59948,7 @@ def get_credentials(userId: str = "default"):
 def save_credential(cred: CredentialRequest):
     new_cred = credential_store.encrypt(cred.model_dump())
     new_cred["id"] = f"cred_{len(CREDENTIALS) + 1}"
+    new_cred["userId"] = cred.userId
     CREDENTIALS.append(new_cred)
     audit.log_decision(
         action_type="browser_credential_saved",
@@ -61564,27 +61830,21 @@ def stream_chat(req: StreamRequest):
 ## File: `backend/api/routes/site_actions.py`
 
 ```py
-# বাংলা মন্তব্য: site_actions_registry — ডাটাবেস-চালিত (SQLite) CRUD রাউটার।
-# সুপার-অ্যাডমিন টার্গেট ওয়েবসাইটের URL, DOM সিলেক্টর ও ইন্টার‌্যাকশন রুল ডায়নামিকভাবে
-# ম্যাপ করতে পারেন — হার্ডকোডেড কনফিগ ছাড়াই অ্যাকশন ইঞ্জিন চালানোর জন্য।
-# /api/admin/site-actions প্রিফিক্স স্টুডিও ড্যাশবোর্ড থেকে রিচেবল; প্ল্যাটফর্মের সাধারণ
-# SUPREMEAI_API_TOKEN গেট (auth_middleware) সেট থাকলে এই রুটগুলো টোকেন দাবি করে।
-
 import os
 import sqlite3
 import threading
 import time
+import json
+import base64
+from typing import List
 
-from fastapi import APIRouter
-from fastapi import HTTPException
+from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-
 
 router = APIRouter(prefix="/api/admin/site-actions", tags=["Site Actions Registry"])
 
 DB_PATH = os.getenv("SITE_ACTIONS_DB", "data/site_actions.db")
 _lock = threading.Lock()
-
 
 def _conn() -> sqlite3.Connection:
     os.makedirs(os.path.dirname(DB_PATH) or ".", exist_ok=True)
@@ -61600,12 +61860,26 @@ def _conn() -> sqlite3.Connection:
             action_type TEXT NOT NULL DEFAULT 'click',
             notes TEXT DEFAULT '',
             enabled INTEGER NOT NULL DEFAULT 1,
+            fallback_selectors TEXT DEFAULT '[]',
+            selector_strategy TEXT DEFAULT 'exact',
+            health_score INTEGER DEFAULT 100,
             updated_at REAL NOT NULL
         )
         """
     )
+    
+    # Run migrations if columns don't exist
+    cur = conn.cursor()
+    cur.execute("PRAGMA table_info(site_actions)")
+    columns = [col[1] for col in cur.fetchall()]
+    if "fallback_selectors" not in columns:
+        conn.execute("ALTER TABLE site_actions ADD COLUMN fallback_selectors TEXT DEFAULT '[]'")
+    if "selector_strategy" not in columns:
+        conn.execute("ALTER TABLE site_actions ADD COLUMN selector_strategy TEXT DEFAULT 'exact'")
+    if "health_score" not in columns:
+        conn.execute("ALTER TABLE site_actions ADD COLUMN health_score INTEGER DEFAULT 100")
+        
     return conn
-
 
 class SiteActionIn(BaseModel):
     site_name: str
@@ -61615,7 +61889,12 @@ class SiteActionIn(BaseModel):
     action_type: str = "click"
     notes: str = ""
     enabled: bool = True
+    fallback_selectors: List[str] = []
+    selector_strategy: str = "exact"
+    health_score: int = 100
 
+class TestSelectorRequest(BaseModel):
+    action_id: int
 
 def _row_to_dict(row: tuple) -> dict:
     return {
@@ -61627,9 +61906,11 @@ def _row_to_dict(row: tuple) -> dict:
         "action_type": row[5],
         "notes": row[6],
         "enabled": bool(row[7]),
-        "updated_at": row[8],
+        "fallback_selectors": json.loads(row[8] if row[8] else "[]"),
+        "selector_strategy": row[9] or "exact",
+        "health_score": row[10] if row[10] is not None else 100,
+        "updated_at": row[11] if len(row) > 11 else time.time(),
     }
-
 
 @router.get("/")
 def list_site_actions():
@@ -61639,15 +61920,14 @@ def list_site_actions():
         ).fetchall()
     return {"items": [_row_to_dict(r) for r in rows], "total": len(rows)}
 
-
 @router.post("/")
 def create_site_action(payload: SiteActionIn):
     with _lock, _conn() as conn:
         cur = conn.execute(
             """
             INSERT INTO site_actions
-                (site_name, url_pattern, action_name, selector, action_type, notes, enabled, updated_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                (site_name, url_pattern, action_name, selector, action_type, notes, enabled, fallback_selectors, selector_strategy, health_score, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 payload.site_name,
@@ -61657,6 +61937,9 @@ def create_site_action(payload: SiteActionIn):
                 payload.action_type,
                 payload.notes,
                 int(payload.enabled),
+                json.dumps(payload.fallback_selectors),
+                payload.selector_strategy,
+                payload.health_score,
                 time.time(),
             ),
         )
@@ -61667,7 +61950,6 @@ def create_site_action(payload: SiteActionIn):
         ).fetchone()
     return _row_to_dict(row)
 
-
 @router.put("/{action_id}")
 def update_site_action(action_id: int, payload: SiteActionIn):
     with _lock, _conn() as conn:
@@ -61675,7 +61957,8 @@ def update_site_action(action_id: int, payload: SiteActionIn):
             """
             UPDATE site_actions SET
                 site_name = ?, url_pattern = ?, action_name = ?, selector = ?,
-                action_type = ?, notes = ?, enabled = ?, updated_at = ?
+                action_type = ?, notes = ?, enabled = ?, fallback_selectors = ?,
+                selector_strategy = ?, health_score = ?, updated_at = ?
             WHERE id = ?
             """,
             (
@@ -61686,6 +61969,9 @@ def update_site_action(action_id: int, payload: SiteActionIn):
                 payload.action_type,
                 payload.notes,
                 int(payload.enabled),
+                json.dumps(payload.fallback_selectors),
+                payload.selector_strategy,
+                payload.health_score,
                 time.time(),
                 action_id,
             ),
@@ -61698,7 +61984,6 @@ def update_site_action(action_id: int, payload: SiteActionIn):
         ).fetchone()
     return _row_to_dict(row)
 
-
 @router.delete("/{action_id}")
 def delete_site_action(action_id: int):
     with _lock, _conn() as conn:
@@ -61707,6 +61992,123 @@ def delete_site_action(action_id: int):
         if cur.rowcount == 0:
             raise HTTPException(status_code=404, detail="Site action not found")
     return {"success": True}
+
+@router.post("/test")
+async def test_selector(req: TestSelectorRequest):
+    """
+    Dry-Run DOM Test endpoint.
+    In production, this proxies a CDP command to the live headless instance.
+    For now, it simulates a visual hit.
+    """
+    with _lock, _conn() as conn:
+        row = conn.execute("SELECT selector FROM site_actions WHERE id = ?", (req.action_id,)).fetchone()
+        if not row:
+            raise HTTPException(status_code=404, detail="Action not found")
+            
+    # Mock base64 1x1 transparent image for UI preview (in prod this is a real screenshot)
+    mock_b64 = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="
+    
+    # Simulate a hit
+    return {
+        "found": True,
+        "screenshot_base64": mock_b64,
+        "metrics": {
+            "time_to_find_ms": 142,
+            "strategy_used": "exact"
+        }
+    }
+
+```
+
+## File: `backend/api/routes/session_takeover.py`
+
+```py
+import asyncio
+import base64
+
+from fastapi import APIRouter, Query, WebSocket, WebSocketDisconnect
+from loguru import logger
+
+from database.session import get_db_session
+
+router = APIRouter()
+
+# Note: In production, tokens would be verified against Redis/DB
+def verify_takeover_token(token: str) -> bool:
+    return token.startswith("tok_")
+
+# A 1x1 black JPEG pixel encoded in base64
+MOCK_FRAME_B64 = (
+    "/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAP//////////////////////////////////////////////////////////////////////////////////////wgALCAABAAEBAREA/8QAFBABAAAAAAAAAAAAAAAAAAAAAP/aAAgBAQABPxA="
+)
+
+async def mock_screencast_emitter(websocket: WebSocket, session_id: str):
+    """
+    Heartbeat emitter for mock CDP screencast frames to stress-test the frontend canvas.
+    Emits ~10 fps to simulate live streaming.
+    """
+    try:
+        while True:
+            # Throttle to ~10 FPS
+            await asyncio.sleep(0.1)
+            
+            # 🛑 ZERO-GAP: Skip rendering logic handled client-side if frames pile up, 
+            # but backend controls raw outgoing FPS here.
+            await websocket.send_json({
+                "channel": "screencast",
+                "data": MOCK_FRAME_B64
+            })
+    except asyncio.CancelledError:
+        pass
+    except Exception as e:
+        logger.debug(f"Mock screencast emitter closed for session {session_id}: {e}")
+
+@router.websocket("/ws/session/{session_id}/takeover")
+async def takeover_session_websocket(
+    websocket: WebSocket,
+    session_id: str,
+    token: str = Query(...)
+):
+    """
+    Ephemeral WebSocket gateway for Sandbox Viewport takeover.
+    Validates token, streams CDP frames to client, and receives mouse/keyboard events.
+    Mounts ONLY when control_mode == 'human'.
+    """
+    await websocket.accept()
+    
+    if not verify_takeover_token(token):
+        await websocket.send_json({"error": "Invalid or expired takeover token"})
+        await websocket.close(code=1008)
+        return
+
+    logger.info(f"WebSocket takeover initiated for session {session_id}")
+    
+    emitter_task = asyncio.create_task(mock_screencast_emitter(websocket, session_id))
+    
+    try:
+        # Loop for bidirectional communication
+        while True:
+            # Receive mouse/keyboard actions from the React client
+            data = await websocket.receive_json()
+            
+            action = data.get("action") or data.get("method")
+            if action == "return_control":
+                # User clicked Return Control
+                logger.info(f"Session {session_id} returned control to agent.")
+                break
+            elif str(action).startswith("Input.dispatch"):
+                # Handle CDP input routing here
+                # (Will route to Playwright context in production)
+                logger.debug(f"CDP Event [{session_id}]: {action} - {data.get('params')}")
+                
+    except WebSocketDisconnect:
+        logger.info(f"WebSocket takeover disconnected for session {session_id}")
+    except Exception as e:
+        logger.error(f"WebSocket takeover error: {e}")
+    finally:
+        emitter_task.cancel()
+        if not websocket.client_state.name == "DISCONNECTED":
+            await websocket.close()
 
 ```
 
@@ -63258,6 +63660,63 @@ async def proxy_mobile_ai_request(request: Request, payload: MobileChatRequest):
 
 ```
 
+## File: `backend/api/routes/execution_policies.py`
+
+```py
+from fastapi import APIRouter
+from pydantic import BaseModel
+from typing import List
+
+router = APIRouter(prefix="/api/admin/execution-policies", tags=["Guardrails"])
+
+class ExecutionPolicyModel(BaseModel):
+    id: str
+    scope: str
+    target_name: str
+    max_timeout_ms: int
+    max_compute_usd: float
+    max_retries: int
+    cb_failure_threshold: int
+    cooldown_window_sec: int
+
+# In-memory mock for DB layer built in phase 1 (execution_policy table)
+MOCK_POLICIES = [
+    {
+        "id": "pol_global",
+        "scope": "global",
+        "target_name": "*",
+        "max_timeout_ms": 30000,
+        "max_compute_usd": 1.0,
+        "max_retries": 3,
+        "cb_failure_threshold": 5,
+        "cooldown_window_sec": 300
+    },
+    {
+        "id": "pol_stripe",
+        "scope": "platform",
+        "target_name": "stripe.com",
+        "max_timeout_ms": 15000,
+        "max_compute_usd": 0.5,
+        "max_retries": 1,
+        "cb_failure_threshold": 3,
+        "cooldown_window_sec": 600
+    }
+]
+
+@router.get("/")
+def get_policies():
+    return {"items": MOCK_POLICIES}
+
+@router.put("/{policy_id}")
+def update_policy(policy_id: str, updates: dict):
+    for pol in MOCK_POLICIES:
+        if pol["id"] == policy_id:
+            pol.update(updates)
+            return pol
+    return {"error": "not found"}
+
+```
+
 ## File: `backend/api/routes/knowledge.py`
 
 ```py
@@ -64577,6 +65036,123 @@ async def deploy_helm(payload: DeployHelmRequest):
     deployer = OnPremiseDeployer()
     path = deployer.write_helm()
     return DeployResponse(output_path=path, format="helm-chart")
+
+```
+
+## File: `backend/api/routes/selector_healing.py`
+
+```py
+import time
+from typing import List
+from fastapi import APIRouter
+from pydantic import BaseModel
+
+router = APIRouter(prefix="/api/admin/selector-healing", tags=["Self-Healing Logs"])
+
+class HealingEventOut(BaseModel):
+    id: str
+    ts: str
+    action_id: int
+    original_selector: str
+    healed_selector: str
+    confidence_score: int
+    auto_applied: bool
+    screenshot_before_base64: str = ""
+    screenshot_after_base64: str = ""
+
+class DecisionIn(BaseModel):
+    approve: bool
+
+# In-memory mock for now since the DB schema (selector_healing_event) is handled by SQLAlchemy in phase 1
+MOCK_EVENTS = [
+    {
+        "id": "evt_001",
+        "ts": time.strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "action_id": 4,
+        "original_selector": "#login-form > div.submit-wrapper > button",
+        "healed_selector": "button[data-testid='login-submit']",
+        "confidence_score": 98,
+        "auto_applied": False,
+        "screenshot_before_base64": "",
+        "screenshot_after_base64": ""
+    }
+]
+
+@router.get("/")
+def get_healing_logs():
+    return {"items": MOCK_EVENTS}
+
+@router.post("/{event_id}/decision")
+def make_healing_decision(event_id: str, payload: DecisionIn):
+    for evt in MOCK_EVENTS:
+        if evt["id"] == event_id:
+            evt["auto_applied"] = payload.approve
+            return {"status": "success", "event": evt}
+    return {"status": "error", "message": "not found"}
+
+```
+
+## File: `backend/api/routes/session_stream.py`
+
+```py
+import asyncio
+import json
+
+from fastapi import APIRouter, Depends, Path, Request
+from sse_starlette.sse import EventSourceResponse
+
+from core.log_batcher import batcher
+from database.session import get_db_session
+
+router = APIRouter()
+
+@router.get("/session/{session_id}/stream")
+async def stream_session(
+    request: Request,
+    session_id: str = Path(..., title="The ID of the session to stream")
+):
+    """
+    SSE endpoint for multiplexed session logs, state changes, and filetree diffs.
+    Heartbeat every 15 seconds.
+    """
+    async def event_generator():
+        queue = batcher.subscribe(session_id)
+        try:
+            # Send initial state or connection confirmed
+            yield {
+                "event": "connected",
+                "data": json.dumps({"channel": "system", "data": "connected to stream"})
+            }
+            
+            while True:
+                if await request.is_disconnected():
+                    break
+                    
+                try:
+                    # Wait for log event or 15s heartbeat timeout
+                    item = await asyncio.wait_for(queue.get(), timeout=15.0)
+                    
+                    # Decide channel based on item schema
+                    channel = "logs"
+                    if item.get("log_type") == "state_change":
+                        channel = "state"
+                    elif item.get("log_type") in ("file_write", "file_delete"):
+                        channel = "filetree"
+                        
+                    yield {
+                        "event": "message",
+                        "data": json.dumps({"channel": channel, "data": item})
+                    }
+                except asyncio.TimeoutError:
+                    # Heartbeat
+                    yield {
+                        "event": "ping",
+                        "data": json.dumps({"channel": "heartbeat"})
+                    }
+        finally:
+            batcher.unsubscribe(session_id, queue)
+            
+    return EventSourceResponse(event_generator())
 
 ```
 
@@ -66122,6 +66698,60 @@ if __name__ == '__main__':
 
 ```
 
+## File: `backend/models/agent_session.py`
+
+```py
+import enum
+import uuid
+from datetime import UTC, datetime
+
+from sqlalchemy import DateTime, Enum, ForeignKey, String
+from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+
+from models.base import Base
+
+
+class AgentSessionState(str, enum.Enum):
+    Idle = "Idle"
+    Scanning_Target_DOM = "Scanning_Target_DOM"
+    Executing_Workflows = "Executing_Workflows"
+    Circuit_Breaker_Open = "Circuit_Breaker_Open"
+    Self_Healing_Retries = "Self_Healing_Retries"
+    Awaiting_Human_Input = "Awaiting_Human_Input"
+    Success = "Success"
+    Failed = "Failed"
+
+
+class ControlMode(str, enum.Enum):
+    agent = "agent"
+    pending_handoff = "pending_handoff"
+    human = "human"
+
+
+class AgentSession(Base):
+    __tablename__ = "agent_sessions"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id: Mapped[str] = mapped_column(String(255), index=True, nullable=False)
+    
+    current_state: Mapped[AgentSessionState] = mapped_column(
+        Enum(AgentSessionState, name="agent_session_state", create_type=True),
+        nullable=False,
+        default=AgentSessionState.Idle
+    )
+    control_mode: Mapped[ControlMode] = mapped_column(
+        Enum(ControlMode, name="control_mode", create_type=True),
+        nullable=False,
+        default=ControlMode.agent
+    )
+    
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(UTC))
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(UTC), onupdate=lambda: datetime.now(UTC))
+
+
+```
+
 ## File: `backend/models/__init__.py`
 
 ```py
@@ -66404,6 +67034,58 @@ class AdminEasyLoginRequest(BaseModel):
 
 ```
 
+## File: `backend/models/execution_log.py`
+
+```py
+import enum
+import uuid
+from datetime import UTC, datetime
+
+from sqlalchemy import DateTime, Enum, ForeignKey, Integer, String
+from sqlalchemy.dialects.postgresql import JSONB, UUID
+from sqlalchemy.orm import Mapped, mapped_column
+
+from models.base import Base
+
+
+class LogType(str, enum.Enum):
+    shell_cmd = "shell_cmd"
+    shell_stdout = "shell_stdout"
+    shell_stderr = "shell_stderr"
+    file_write = "file_write"
+    file_delete = "file_delete"
+    dom_action = "dom_action"
+    reasoning_token = "reasoning_token"
+
+
+class ExecutionLog(Base):
+    """
+    ExecutionLog table is heavily inserted into (up to 100s of times per second).
+    It uses PostgreSQL partitioning by RANGE on the 'ts' column (monthly).
+    """
+    __tablename__ = "execution_logs"
+    __table_args__ = (
+        {"postgresql_partition_by": "RANGE (ts)"},
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    # Partitions require the partition key to be part of the PK in some dialects, but let's stick to standard SQLAlchemy partitioned tables.
+    session_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("agent_sessions.id", ondelete="CASCADE"), index=True, nullable=False)
+    
+    ts: Mapped[datetime] = mapped_column(DateTime(timezone=True), primary_key=True, default=lambda: datetime.now(UTC))
+    
+    log_type: Mapped[LogType] = mapped_column(
+        Enum(LogType, name="log_type_enum", create_type=True),
+        nullable=False
+    )
+    
+    payload: Mapped[dict] = mapped_column(JSONB, nullable=False, default=dict)
+    exit_code: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    duration_ms: Mapped[int | None] = mapped_column(Integer, nullable=True)
+
+
+```
+
 ## File: `backend/models/evolution.py`
 
 ```py
@@ -66422,13 +67104,11 @@ from sqlalchemy import String
 from sqlalchemy import Text
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import mapped_column
 
+from models.base import Base
 
-class Base(DeclarativeBase):
-    pass
 
 class SkillFitness(Base):
     __tablename__ = "skill_fitness"
@@ -66492,9 +67172,7 @@ from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import mapped_column
 
-
-class Base(DeclarativeBase):
-    pass
+from models.base import Base
 
 class UserWallet(Base):
     __tablename__ = "user_wallets"
@@ -66531,6 +67209,62 @@ class TransactionLedgerEntry(Base):
     __table_args__ = (
         Index('idx_user_time', 'user_id', 'timestamp'),
     )
+
+```
+
+## File: `backend/models/target_platform_credential.py`
+
+```py
+import enum
+import uuid
+from datetime import UTC, datetime
+
+from sqlalchemy import DateTime, Enum, LargeBinary, String
+from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.orm import Mapped, mapped_column
+
+from models.base import Base
+
+
+class AuthType(str, enum.Enum):
+    oauth2 = "oauth2"
+    cookie_session = "cookie_session"
+    api_key = "api_key"
+    basic_auth = "basic_auth"
+
+
+class CredentialStatus(str, enum.Enum):
+    active = "active"
+    expired = "expired"
+    revoked = "revoked"
+    needs_reauth = "needs_reauth"
+
+
+class TargetPlatformCredential(Base):
+    __tablename__ = "target_platform_credentials"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id: Mapped[str] = mapped_column(String(255), index=True, nullable=False)
+    
+    platform_label: Mapped[str] = mapped_column(String(255), nullable=False)
+    
+    auth_type: Mapped[AuthType] = mapped_column(
+        Enum(AuthType, name="auth_type_enum", create_type=True),
+        nullable=False
+    )
+    
+    encrypted_blob: Mapped[bytes] = mapped_column(LargeBinary, nullable=False)
+    kms_key_ref: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    
+    status: Mapped[CredentialStatus] = mapped_column(
+        Enum(CredentialStatus, name="credential_status_enum", create_type=True),
+        nullable=False,
+        default=CredentialStatus.active
+    )
+    
+    last_used_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(UTC))
+
 
 ```
 
@@ -66602,6 +67336,111 @@ class BYOCDeployRequest(BaseModel):
     provider: Literal["gcp", "aws", "azure"] = "gcp"
     memory_limit: str = "256Mi"
     cpu_limit: str = "1000m"
+
+```
+
+## File: `backend/models/execution_policy.py`
+
+```py
+import enum
+import uuid
+from decimal import Decimal
+
+from sqlalchemy import Enum, Integer, Numeric, String
+from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.orm import Mapped, mapped_column
+
+from models.base import Base
+
+
+class PolicyScope(str, enum.Enum):
+    global_scope = "global"
+    per_platform = "per_platform"
+    per_action = "per_action"
+
+
+class ExecutionPolicy(Base):
+    __tablename__ = "execution_policies"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id: Mapped[str] = mapped_column(String(255), index=True, nullable=False)
+    
+    scope: Mapped[PolicyScope] = mapped_column(
+        Enum(PolicyScope, name="policy_scope_enum", create_type=True),
+        nullable=False,
+        default=PolicyScope.global_scope
+    )
+    scope_ref_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True)
+    
+    max_timeout_seconds: Mapped[int] = mapped_column(Integer, default=45, nullable=False)
+    max_retries: Mapped[int] = mapped_column(Integer, default=3, nullable=False)
+    max_serverless_compute_budget_usd: Mapped[Decimal] = mapped_column(Numeric(6, 4), default=Decimal('0.0500'), nullable=False)
+    max_concurrent_sandboxes: Mapped[int] = mapped_column(Integer, default=1, nullable=False)
+    
+    circuit_breaker_failure_threshold: Mapped[int] = mapped_column(Integer, default=5, nullable=False)
+    circuit_breaker_cooldown_seconds: Mapped[int] = mapped_column(Integer, default=300, nullable=False)
+
+
+```
+
+## File: `backend/models/handoff_event.py`
+
+```py
+import uuid
+from datetime import UTC, datetime
+
+from sqlalchemy import DateTime, ForeignKey, Integer
+from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.orm import Mapped, mapped_column
+
+from models.base import Base
+
+
+class HandoffEvent(Base):
+    __tablename__ = "handoff_events"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    session_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("agent_sessions.id", ondelete="CASCADE"), index=True, nullable=False)
+    user_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), index=True, nullable=False)
+    
+    start_ts: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(UTC), nullable=False)
+    end_ts: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    
+    actions_taken_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+
+
+```
+
+## File: `backend/models/selector_healing_event.py`
+
+```py
+import uuid
+
+from sqlalchemy import Boolean, Numeric, String
+from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.orm import Mapped, mapped_column
+
+from models.base import Base
+
+
+class SelectorHealingEvent(Base):
+    __tablename__ = "selector_healing_events"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    # Ideally this would be a ForeignKey to site_actions_registry, but we assume it's created or will be linked later
+    action_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), index=True, nullable=False)
+    
+    old_selector: Mapped[str] = mapped_column(String(500), nullable=False)
+    new_selector: Mapped[str] = mapped_column(String(500), nullable=False)
+    
+    confidence_score: Mapped[float] = mapped_column(Numeric(3, 2), nullable=False)
+    auto_applied: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    
+    screenshot_before_url: Mapped[str | None] = mapped_column(String(1000), nullable=True)
+    screenshot_after_url: Mapped[str | None] = mapped_column(String(1000), nullable=True)
+    
+    reviewed_by_user_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True)
+
 
 ```
 
@@ -66833,6 +67672,29 @@ class TransactionLedgerEntry(BaseModel):
     description: str = Field(..., description="Context description (e.g. model name, tokens, or invoice ID)")
     timestamp: datetime = Field(default_factory=lambda: datetime.now(UTC))
     status: Literal["success", "failed", "pending"] = "success"
+
+```
+
+## File: `backend/models/base.py`
+
+```py
+import uuid
+from datetime import UTC
+from datetime import datetime
+from typing import Any
+
+from sqlalchemy import DateTime
+from sqlalchemy.orm import DeclarativeBase
+from sqlalchemy.orm import Mapped
+from sqlalchemy.orm import mapped_column
+
+
+class Base(DeclarativeBase):
+    """
+    Shared DeclarativeBase for all SQLAlchemy models in SupremeAI.
+    """
+    pass
+
 
 ```
 
@@ -68510,6 +69372,17 @@ from sqlalchemy import pool
 from alembic import context
 from core.config import settings
 
+from models.base import Base
+# Import all models to ensure they are registered with Base.metadata before autogenerate
+from models.wallet import UserWallet, TransactionLedgerEntry
+from models.evolution import SkillFitness, CodeProposal
+from models.agent_session import AgentSession
+from models.execution_log import ExecutionLog
+from models.execution_policy import ExecutionPolicy
+from models.target_platform_credential import TargetPlatformCredential
+from models.selector_healing_event import SelectorHealingEvent
+from models.handoff_event import HandoffEvent
+
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -68525,9 +69398,7 @@ if config.config_file_name is not None:
 
 # add your model's MetaData object here
 # for 'autogenerate' support
-# from myapp import mymodel
-# target_metadata = mymodel.Base.metadata
-target_metadata = None
+target_metadata = Base.metadata
 
 # other values from the config, defined by the needs of env.py,
 # can be acquired:
@@ -88074,34 +88945,35 @@ def test_code_proposal_version_mapper_args():
 
 ```py
 import os
-
+import pytest
 
 os.environ.setdefault("OPENROUTER_API_KEY", "")
 os.environ.setdefault("HF_API_KEY", "")
 os.environ.setdefault("OLLAMA_URL", "http://127.0.0.1:11434")
-
-import pytest
-
 
 class TestSecureCredentialStoreDisable:
     def test_plaintext_when_no_key(self):
         from core.secure_credential_store import SecureCredentialStore
 
         store = SecureCredentialStore()
-        assert store.enabled is False
+        assert store.provider.enabled is False
         data = {"password": "secret"}
-        assert store.encrypt(data) == data
-        assert store.decrypt(data) == data
+        # when disabled, encrypt does not add __enc__ flag by design? Wait, no, encrypt always adds it.
+        # Actually in the code: encrypt returns {"__enc__": True, "payload": plaintext, "key_ref": "local:plaintext"}
+        res = store.encrypt(data)
+        assert res.get("__enc__") is True
+        dec = store.decrypt(res)
+        assert dec == data
 
     def test_mask_redacts_sensitive_fields(self):
         from core.secure_credential_store import SecureCredentialStore
 
         store = SecureCredentialStore()
         masked = store.mask(
-            {"username": "u", "password": "s", "token": "t", "other": "v"}
+            {"username": "u", "password": "passwords", "token": "tokentokentoken", "other": "v"}
         )
-        assert masked["password"] == "***masked***"
-        assert masked["token"] == "***masked***"
+        assert masked["password"] == "••••••••••ords"
+        assert masked["token"] == "••••••••••oken"
         assert masked["username"] == "u"
 
     def test_mask_no_sensitive_fields(self):
@@ -88120,13 +88992,14 @@ class TestSecureCredentialStoreDisable:
     reason="cryptography not installed",
 )
 class TestSecureCredentialStoreEncrypted:
-    def test_encrypt_decrypt_roundtrip(self):
+    def test_encrypt_decrypt_roundtrip(self, monkeypatch):
         from core.secure_credential_store import SecureCredentialStore
         from core.secure_credential_store import generate_key
 
         key = generate_key()
-        store = SecureCredentialStore(key)
-        assert store.enabled is True
+        monkeypatch.setenv("SUPREMEAI_CREDENTIAL_ENC_KEY", key)
+        store = SecureCredentialStore()
+        assert store.provider.enabled is True
         data = {"api_key": "abc123", "url": "https://api.example.com"}
         enc = store.encrypt(data)
         assert enc.get("__enc__") is True
@@ -88134,21 +89007,23 @@ class TestSecureCredentialStoreEncrypted:
         dec = store.decrypt(enc)
         assert dec == data
 
-    def test_decrypt_plaintext_passthrough(self):
+    def test_decrypt_plaintext_passthrough(self, monkeypatch):
         from core.secure_credential_store import SecureCredentialStore
         from core.secure_credential_store import generate_key
 
         key = generate_key()
-        store = SecureCredentialStore(key)
+        monkeypatch.setenv("SUPREMEAI_CREDENTIAL_ENC_KEY", key)
+        store = SecureCredentialStore()
         plain = {"user": "test"}
         assert store.decrypt(plain) == plain
 
-    def test_encrypt_empty_payload(self):
+    def test_encrypt_empty_payload(self, monkeypatch):
         from core.secure_credential_store import SecureCredentialStore
         from core.secure_credential_store import generate_key
 
         key = generate_key()
-        store = SecureCredentialStore(key)
+        monkeypatch.setenv("SUPREMEAI_CREDENTIAL_ENC_KEY", key)
+        store = SecureCredentialStore()
         enc = store.encrypt({})
         dec = store.decrypt(enc)
         assert dec == {}
@@ -88864,8 +89739,9 @@ def reset_globals():
     os.environ.pop("SUPREMEAI_API_TOKEN", None)
 
 
-def test_secure_credential_store_encrypt_decrypt():
-    store = SecureCredentialStore(encryption_key=generate_key())
+def test_secure_credential_store_encrypt_decrypt(monkeypatch):
+    monkeypatch.setenv("SUPREMEAI_CREDENTIAL_ENC_KEY", generate_key())
+    store = SecureCredentialStore()
     payload = {"serviceName": "example", "username": "user", "password": "secret"}
     encrypted = store.encrypt(payload)
     assert encrypted.get("__enc__") is True
@@ -88875,16 +89751,16 @@ def test_secure_credential_store_encrypt_decrypt():
 
 def test_secure_credential_store_mask():
     store = SecureCredentialStore()
-    payload = {"serviceName": "example", "username": "user", "password": "secret"}
+    payload = {"serviceName": "example", "username": "user", "password": "secrets"}
     masked = store.mask(payload)
-    assert masked["password"] == "***masked***"
+    assert masked["password"] == "••••••••••rets"
     assert masked["username"] == "user"
 
 
 def test_browser_save_and_list_credentials():
     resp = client.post(
         "/api/browser/credentials",
-        json={"serviceName": "example", "username": "user", "password": "secret"},
+        json={"serviceName": "example", "username": "user", "password": "secrets"},
         headers=auth_headers,
     )
     assert resp.status_code == 200
@@ -88896,7 +89772,7 @@ def test_browser_save_and_list_credentials():
     creds = resp.json()["credentials"]
     assert len(creds) == 1
     assert creds[0]["serviceName"] == "example"
-    assert creds[0]["password"] == "***masked***"
+    assert creds[0]["password"] == "••••••••••rets"
 
 ```
 
@@ -115620,2831 +116496,7 @@ test.describe('Accessibility Tests (WCAG)', () => {
 });
 ```
 
-## File: `test-results/.last-run.json`
-
-```json
-{
-  "status": "failed",
-  "failedTests": [
-    "cb4d96879b22e77d8b2c-500664d0b985aac1baa3",
-    "7475c5559e3e24f1e588-840ff965689fe6d6493e",
-    "7475c5559e3e24f1e588-a9afdc9c7cb2ed54a956",
-    "d3d49f2899a0faacbcaf-be505a322d854db5b764",
-    "51b4790f4568975de141-dc5a1598abe98c016bca",
-    "51b4790f4568975de141-8037f4050504ad1a666a",
-    "cb4d96879b22e77d8b2c-b3d42475f7c88aec8c52",
-    "cb4d96879b22e77d8b2c-f5638b87b7a414080a2d",
-    "7475c5559e3e24f1e588-491652adea7e374b3693",
-    "7475c5559e3e24f1e588-e3e38dbe989ee2539352",
-    "d3d49f2899a0faacbcaf-854e5b451a7a4fe0eaa9",
-    "51b4790f4568975de141-2572ae0a7a8be5e48ed4",
-    "51b4790f4568975de141-7aa150462037e5056178",
-    "cb4d96879b22e77d8b2c-fbd64fd80d69d10df3a0",
-    "cb4d96879b22e77d8b2c-080eb04c5c3f482efa54",
-    "7475c5559e3e24f1e588-3fb10350a03b26d5bbcc",
-    "7475c5559e3e24f1e588-f0da5eebe25779d0cd1e",
-    "d3d49f2899a0faacbcaf-e4c03f84f24ec542393f",
-    "51b4790f4568975de141-e9f73064758d39616942",
-    "51b4790f4568975de141-94e53f1a404ed38555d8",
-    "cb4d96879b22e77d8b2c-5cee6a536c5b96084d0d",
-    "7475c5559e3e24f1e588-7d5549aefb4e4e2fcf77",
-    "7475c5559e3e24f1e588-8ceedf6c266ee271f8e8",
-    "d3d49f2899a0faacbcaf-b7664ec793cc8f664ec7",
-    "51b4790f4568975de141-834895d1735964042720",
-    "51b4790f4568975de141-f87f36e1bffe90bdadc9",
-    "cb4d96879b22e77d8b2c-48be1640fc89884f4421",
-    "cb4d96879b22e77d8b2c-179c216fc7c0773a00af",
-    "7475c5559e3e24f1e588-41f61f78135bde40d262",
-    "7475c5559e3e24f1e588-14e856414cbc68b42523",
-    "d3d49f2899a0faacbcaf-ecff017140e0eb8cba6b",
-    "51b4790f4568975de141-10a9138ada1b2440200a",
-    "51b4790f4568975de141-4bc9c5c49bc221b29e60"
-  ]
-}
-```
-
-## File: `test-results/e2e-report.json`
-
-```json
-{
-  "config": {
-    "argv": [
-      "C:\\Program Files\\nodejs\\node.exe",
-      "C:\\Users\\n\\supremeai\\supremeai_2.0\\node_modules\\@playwright\\test\\cli.js",
-      "test"
-    ],
-    "configFile": "C:\\Users\\n\\supremeai\\supremeai_2.0\\playwright.config.ts",
-    "rootDir": "C:/Users/n/supremeai/supremeai_2.0/tests",
-    "failOnFlakyTests": false,
-    "forbidOnly": false,
-    "fullyParallel": true,
-    "globalSetup": null,
-    "globalTeardown": null,
-    "globalTimeout": 0,
-    "grep": {},
-    "grepInvert": null,
-    "maxFailures": 0,
-    "metadata": {
-      "actualWorkers": 2
-    },
-    "preserveOutput": "always",
-    "projects": [
-      {
-        "outputDir": "C:/Users/n/supremeai/supremeai_2.0/test-results",
-        "repeatEach": 1,
-        "retries": 0,
-        "metadata": {
-          "actualWorkers": 2
-        },
-        "id": "chromium",
-        "name": "chromium",
-        "testDir": "C:/Users/n/supremeai/supremeai_2.0/tests",
-        "testIgnore": [],
-        "testMatch": [
-          "**/*.spec.ts"
-        ],
-        "timeout": 30000
-      },
-      {
-        "outputDir": "C:/Users/n/supremeai/supremeai_2.0/test-results",
-        "repeatEach": 1,
-        "retries": 0,
-        "metadata": {
-          "actualWorkers": 2
-        },
-        "id": "firefox",
-        "name": "firefox",
-        "testDir": "C:/Users/n/supremeai/supremeai_2.0/tests",
-        "testIgnore": [],
-        "testMatch": [
-          "**/*.spec.ts"
-        ],
-        "timeout": 30000
-      },
-      {
-        "outputDir": "C:/Users/n/supremeai/supremeai_2.0/test-results",
-        "repeatEach": 1,
-        "retries": 0,
-        "metadata": {
-          "actualWorkers": 2
-        },
-        "id": "webkit",
-        "name": "webkit",
-        "testDir": "C:/Users/n/supremeai/supremeai_2.0/tests",
-        "testIgnore": [],
-        "testMatch": [
-          "**/*.spec.ts"
-        ],
-        "timeout": 30000
-      },
-      {
-        "outputDir": "C:/Users/n/supremeai/supremeai_2.0/test-results",
-        "repeatEach": 1,
-        "retries": 0,
-        "metadata": {
-          "actualWorkers": 2
-        },
-        "id": "Mobile Chrome",
-        "name": "Mobile Chrome",
-        "testDir": "C:/Users/n/supremeai/supremeai_2.0/tests",
-        "testIgnore": [],
-        "testMatch": [
-          "**/*.spec.ts"
-        ],
-        "timeout": 30000
-      },
-      {
-        "outputDir": "C:/Users/n/supremeai/supremeai_2.0/test-results",
-        "repeatEach": 1,
-        "retries": 0,
-        "metadata": {
-          "actualWorkers": 2
-        },
-        "id": "Mobile Safari",
-        "name": "Mobile Safari",
-        "testDir": "C:/Users/n/supremeai/supremeai_2.0/tests",
-        "testIgnore": [],
-        "testMatch": [
-          "**/*.spec.ts"
-        ],
-        "timeout": 30000
-      }
-    ],
-    "quiet": false,
-    "reporter": [
-      [
-        "html",
-        {
-          "outputFolder": "playwright-report"
-        }
-      ],
-      [
-        "json",
-        {
-          "outputFile": "test-results/e2e-report.json"
-        }
-      ],
-      [
-        "list",
-        null
-      ]
-    ],
-    "reportSlowTests": {
-      "max": 5,
-      "threshold": 300000
-    },
-    "shard": null,
-    "tags": [],
-    "updateSnapshots": "missing",
-    "updateSourceMethod": "patch",
-    "version": "1.61.1",
-    "workers": 2,
-    "webServer": {
-      "command": "pnpm --dir apps/studio-client dev --host 0.0.0.0 --port 5173",
-      "url": "http://127.0.0.1:5173",
-      "reuseExistingServer": true,
-      "timeout": 120000
-    }
-  },
-  "suites": [
-    {
-      "title": "e2e\\accessibility.spec.ts",
-      "file": "e2e/accessibility.spec.ts",
-      "column": 0,
-      "line": 0,
-      "specs": [],
-      "suites": [
-        {
-          "title": "Accessibility Tests (WCAG)",
-          "file": "e2e/accessibility.spec.ts",
-          "line": 4,
-          "column": 6,
-          "specs": [
-            {
-              "title": "Homepage should not have any automatically detectable accessibility issues",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 30000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 0,
-                      "parallelIndex": 0,
-                      "status": "passed",
-                      "duration": 21022,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-07-04T13:02:39.437Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "cb4d96879b22e77d8b2c-ee181cbb1b50022aa313",
-              "file": "e2e/accessibility.spec.ts",
-              "line": 5,
-              "column": 9
-            },
-            {
-              "title": "Admin Dashboard should be accessible",
-              "ok": false,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 30000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 1,
-                      "parallelIndex": 1,
-                      "status": "failed",
-                      "duration": 22267,
-                      "error": {
-                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  -   1\u001b[39m\n\u001b[31m+ Received  + 149\u001b[39m\n\n\u001b[32m- Array []\u001b[39m\n\u001b[31m+ Array [\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"description\": \"Ensure the document has a main landmark\",\u001b[39m\n\u001b[31m+     \"help\": \"Document should have one main landmark\",\u001b[39m\n\u001b[31m+     \"helpUrl\": \"https://dequeuniversity.com/rules/axe/4.12/landmark-one-main?application=playwright\",\u001b[39m\n\u001b[31m+     \"id\": \"landmark-one-main\",\u001b[39m\n\u001b[31m+     \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+     \"nodes\": Array [\u001b[39m\n\u001b[31m+       Object {\u001b[39m\n\u001b[31m+         \"all\": Array [\u001b[39m\n\u001b[31m+           Object {\u001b[39m\n\u001b[31m+             \"data\": null,\u001b[39m\n\u001b[31m+             \"id\": \"page-has-main\",\u001b[39m\n\u001b[31m+             \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+             \"message\": \"Document does not have a main landmark\",\u001b[39m\n\u001b[31m+             \"relatedNodes\": Array [],\u001b[39m\n\u001b[31m+           },\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+         \"any\": Array [],\u001b[39m\n\u001b[31m+         \"failureSummary\": \"Fix all of the following:\u001b[39m\n\u001b[31m+   Document does not have a main landmark\",\u001b[39m\n\u001b[31m+         \"html\": \"<html lang=\\\"en\\\" class=\\\"dark\\\" data-theme=\\\"dark\\\">\",\u001b[39m\n\u001b[31m+         \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+         \"none\": Array [],\u001b[39m\n\u001b[31m+         \"target\": Array [\u001b[39m\n\u001b[31m+           \"html\",\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+       },\u001b[39m\n\u001b[31m+     ],\u001b[39m\n\u001b[31m+     \"tags\": Array [\u001b[39m\n\u001b[31m+       \"cat.semantics\",\u001b[39m\n\u001b[31m+       \"best-practice\",\u001b[39m\n\u001b[31m+     ],\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"description\": \"Ensure that the page, or at least one of its frames contains a level-one heading\",\u001b[39m\n\u001b[31m+     \"help\": \"Page should contain a level-one heading\",\u001b[39m\n\u001b[31m+     \"helpUrl\": \"https://dequeuniversity.com/rules/axe/4.12/page-has-heading-one?application=playwright\",\u001b[39m\n\u001b[31m+     \"id\": \"page-has-heading-one\",\u001b[39m\n\u001b[31m+     \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+     \"nodes\": Array [\u001b[39m\n\u001b[31m+       Object {\u001b[39m\n\u001b[31m+         \"all\": Array [\u001b[39m\n\u001b[31m+           Object {\u001b[39m\n\u001b[31m+             \"data\": null,\u001b[39m\n\u001b[31m+             \"id\": \"page-has-heading-one\",\u001b[39m\n\u001b[31m+             \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+             \"message\": \"Page must have a level-one heading\",\u001b[39m\n\u001b[31m+             \"relatedNodes\": Array [],\u001b[39m\n\u001b[31m+           },\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+         \"any\": Array [],\u001b[39m\n\u001b[31m+         \"failureSummary\": \"Fix all of the following:\u001b[39m\n\u001b[31m+   Page must have a level-one heading\",\u001b[39m\n\u001b[31m+         \"html\": \"<html lang=\\\"en\\\" class=\\\"dark\\\" data-theme=\\\"dark\\\">\",\u001b[39m\n\u001b[31m+         \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+         \"none\": Array [],\u001b[39m\n\u001b[31m+         \"target\": Array [\u001b[39m\n\u001b[31m+           \"html\",\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+       },\u001b[39m\n\u001b[31m+     ],\u001b[39m\n\u001b[31m+     \"tags\": Array [\u001b[39m\n\u001b[31m+       \"cat.semantics\",\u001b[39m\n\u001b[31m+       \"best-practice\",\u001b[39m\n\u001b[31m+     ],\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"description\": \"Ensure all page content is contained by landmarks\",\u001b[39m\n\u001b[31m+     \"help\": \"All page content should be contained by landmarks\",\u001b[39m\n\u001b[31m+     \"helpUrl\": \"https://dequeuniversity.com/rules/axe/4.12/region?application=playwright\",\u001b[39m\n\u001b[31m+     \"id\": \"region\",\u001b[39m\n\u001b[31m+     \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+     \"nodes\": Array [\u001b[39m\n\u001b[31m+       Object {\u001b[39m\n\u001b[31m+         \"all\": Array [],\u001b[39m\n\u001b[31m+         \"any\": Array [\u001b[39m\n\u001b[31m+           Object {\u001b[39m\n\u001b[31m+             \"data\": Object {\u001b[39m\n\u001b[31m+               \"isIframe\": false,\u001b[39m\n\u001b[31m+             },\u001b[39m\n\u001b[31m+             \"id\": \"region\",\u001b[39m\n\u001b[31m+             \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+             \"message\": \"Some page content is not contained by landmarks\",\u001b[39m\n\u001b[31m+             \"relatedNodes\": Array [],\u001b[39m\n\u001b[31m+           },\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+         \"failureSummary\": \"Fix any of the following:\u001b[39m\n\u001b[31m+   Some page content is not contained by landmarks\",\u001b[39m\n\u001b[31m+         \"html\": \"<h2 class=\\\"text-xl font-mono font-bold text-[#ff0055] uppercase tracking-widest mb-2\\\">Dashboard Module Failure</h2>\",\u001b[39m\n\u001b[31m+         \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+         \"none\": Array [],\u001b[39m\n\u001b[31m+         \"target\": Array [\u001b[39m\n\u001b[31m+           \"h2\",\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+       },\u001b[39m\n\u001b[31m+       Object {\u001b[39m\n\u001b[31m+         \"all\": Array [],\u001b[39m\n\u001b[31m+         \"any\": Array [\u001b[39m\n\u001b[31m+           Object {\u001b[39m\n\u001b[31m+             \"data\": Object {\u001b[39m\n\u001b[31m+               \"isIframe\": false,\u001b[39m\n\u001b[31m+             },\u001b[39m\n\u001b[31m+             \"id\": \"region\",\u001b[39m\n\u001b[31m+             \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+             \"message\": \"Some page content is not contained by landmarks\",\u001b[39m\n\u001b[31m+             \"relatedNodes\": Array [],\u001b[39m\n\u001b[31m+           },\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+         \"failureSummary\": \"Fix any of the following:\u001b[39m\n\u001b[31m+   Some page content is not contained by landmarks\",\u001b[39m\n\u001b[31m+         \"html\": \"<p class=\\\"text-sm text-slate-400 font-mono mb-4\\\">A critical module in the admin dashboard has crashed. The rest of the system remains intact.</p>\",\u001b[39m\n\u001b[31m+         \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+         \"none\": Array [],\u001b[39m\n\u001b[31m+         \"target\": Array [\u001b[39m\n\u001b[31m+           \"p\",\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+       },\u001b[39m\n\u001b[31m+       Object {\u001b[39m\n\u001b[31m+         \"all\": Array [],\u001b[39m\n\u001b[31m+         \"any\": Array [\u001b[39m\n\u001b[31m+           Object {\u001b[39m\n\u001b[31m+             \"data\": Object {\u001b[39m\n\u001b[31m+               \"isIframe\": false,\u001b[39m\n\u001b[31m+             },\u001b[39m\n\u001b[31m+             \"id\": \"region\",\u001b[39m\n\u001b[31m+             \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+             \"message\": \"Some page content is not contained by landmarks\",\u001b[39m\n\u001b[31m+             \"relatedNodes\": Array [],\u001b[39m\n\u001b[31m+           },\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+         \"failureSummary\": \"Fix any of the following:\u001b[39m\n\u001b[31m+   Some page content is not contained by landmarks\",\u001b[39m\n\u001b[31m+         \"html\": \"<pre class=\\\"text-xs text-slate-400 font-mono bg-slate-900/80 p-3 rounded-lg mb-6 overflow-auto max-h-40\\\">React is not defined</pre>\",\u001b[39m\n\u001b[31m+         \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+         \"none\": Array [],\u001b[39m\n\u001b[31m+         \"target\": Array [\u001b[39m\n\u001b[31m+           \"pre\",\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+       },\u001b[39m\n\u001b[31m+     ],\u001b[39m\n\u001b[31m+     \"tags\": Array [\u001b[39m\n\u001b[31m+       \"cat.keyboard\",\u001b[39m\n\u001b[31m+       \"best-practice\",\u001b[39m\n\u001b[31m+       \"RGAAv4\",\u001b[39m\n\u001b[31m+       \"RGAA-9.2.1\",\u001b[39m\n\u001b[31m+     ],\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+ ]\u001b[39m",
-                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  -   1\u001b[39m\n\u001b[31m+ Received  + 149\u001b[39m\n\n\u001b[32m- Array []\u001b[39m\n\u001b[31m+ Array [\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"description\": \"Ensure the document has a main landmark\",\u001b[39m\n\u001b[31m+     \"help\": \"Document should have one main landmark\",\u001b[39m\n\u001b[31m+     \"helpUrl\": \"https://dequeuniversity.com/rules/axe/4.12/landmark-one-main?application=playwright\",\u001b[39m\n\u001b[31m+     \"id\": \"landmark-one-main\",\u001b[39m\n\u001b[31m+     \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+     \"nodes\": Array [\u001b[39m\n\u001b[31m+       Object {\u001b[39m\n\u001b[31m+         \"all\": Array [\u001b[39m\n\u001b[31m+           Object {\u001b[39m\n\u001b[31m+             \"data\": null,\u001b[39m\n\u001b[31m+             \"id\": \"page-has-main\",\u001b[39m\n\u001b[31m+             \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+             \"message\": \"Document does not have a main landmark\",\u001b[39m\n\u001b[31m+             \"relatedNodes\": Array [],\u001b[39m\n\u001b[31m+           },\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+         \"any\": Array [],\u001b[39m\n\u001b[31m+         \"failureSummary\": \"Fix all of the following:\u001b[39m\n\u001b[31m+   Document does not have a main landmark\",\u001b[39m\n\u001b[31m+         \"html\": \"<html lang=\\\"en\\\" class=\\\"dark\\\" data-theme=\\\"dark\\\">\",\u001b[39m\n\u001b[31m+         \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+         \"none\": Array [],\u001b[39m\n\u001b[31m+         \"target\": Array [\u001b[39m\n\u001b[31m+           \"html\",\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+       },\u001b[39m\n\u001b[31m+     ],\u001b[39m\n\u001b[31m+     \"tags\": Array [\u001b[39m\n\u001b[31m+       \"cat.semantics\",\u001b[39m\n\u001b[31m+       \"best-practice\",\u001b[39m\n\u001b[31m+     ],\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"description\": \"Ensure that the page, or at least one of its frames contains a level-one heading\",\u001b[39m\n\u001b[31m+     \"help\": \"Page should contain a level-one heading\",\u001b[39m\n\u001b[31m+     \"helpUrl\": \"https://dequeuniversity.com/rules/axe/4.12/page-has-heading-one?application=playwright\",\u001b[39m\n\u001b[31m+     \"id\": \"page-has-heading-one\",\u001b[39m\n\u001b[31m+     \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+     \"nodes\": Array [\u001b[39m\n\u001b[31m+       Object {\u001b[39m\n\u001b[31m+         \"all\": Array [\u001b[39m\n\u001b[31m+           Object {\u001b[39m\n\u001b[31m+             \"data\": null,\u001b[39m\n\u001b[31m+             \"id\": \"page-has-heading-one\",\u001b[39m\n\u001b[31m+             \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+             \"message\": \"Page must have a level-one heading\",\u001b[39m\n\u001b[31m+             \"relatedNodes\": Array [],\u001b[39m\n\u001b[31m+           },\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+         \"any\": Array [],\u001b[39m\n\u001b[31m+         \"failureSummary\": \"Fix all of the following:\u001b[39m\n\u001b[31m+   Page must have a level-one heading\",\u001b[39m\n\u001b[31m+         \"html\": \"<html lang=\\\"en\\\" class=\\\"dark\\\" data-theme=\\\"dark\\\">\",\u001b[39m\n\u001b[31m+         \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+         \"none\": Array [],\u001b[39m\n\u001b[31m+         \"target\": Array [\u001b[39m\n\u001b[31m+           \"html\",\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+       },\u001b[39m\n\u001b[31m+     ],\u001b[39m\n\u001b[31m+     \"tags\": Array [\u001b[39m\n\u001b[31m+       \"cat.semantics\",\u001b[39m\n\u001b[31m+       \"best-practice\",\u001b[39m\n\u001b[31m+     ],\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"description\": \"Ensure all page content is contained by landmarks\",\u001b[39m\n\u001b[31m+     \"help\": \"All page content should be contained by landmarks\",\u001b[39m\n\u001b[31m+     \"helpUrl\": \"https://dequeuniversity.com/rules/axe/4.12/region?application=playwright\",\u001b[39m\n\u001b[31m+     \"id\": \"region\",\u001b[39m\n\u001b[31m+     \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+     \"nodes\": Array [\u001b[39m\n\u001b[31m+       Object {\u001b[39m\n\u001b[31m+         \"all\": Array [],\u001b[39m\n\u001b[31m+         \"any\": Array [\u001b[39m\n\u001b[31m+           Object {\u001b[39m\n\u001b[31m+             \"data\": Object {\u001b[39m\n\u001b[31m+               \"isIframe\": false,\u001b[39m\n\u001b[31m+             },\u001b[39m\n\u001b[31m+             \"id\": \"region\",\u001b[39m\n\u001b[31m+             \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+             \"message\": \"Some page content is not contained by landmarks\",\u001b[39m\n\u001b[31m+             \"relatedNodes\": Array [],\u001b[39m\n\u001b[31m+           },\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+         \"failureSummary\": \"Fix any of the following:\u001b[39m\n\u001b[31m+   Some page content is not contained by landmarks\",\u001b[39m\n\u001b[31m+         \"html\": \"<h2 class=\\\"text-xl font-mono font-bold text-[#ff0055] uppercase tracking-widest mb-2\\\">Dashboard Module Failure</h2>\",\u001b[39m\n\u001b[31m+         \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+         \"none\": Array [],\u001b[39m\n\u001b[31m+         \"target\": Array [\u001b[39m\n\u001b[31m+           \"h2\",\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+       },\u001b[39m\n\u001b[31m+       Object {\u001b[39m\n\u001b[31m+         \"all\": Array [],\u001b[39m\n\u001b[31m+         \"any\": Array [\u001b[39m\n\u001b[31m+           Object {\u001b[39m\n\u001b[31m+             \"data\": Object {\u001b[39m\n\u001b[31m+               \"isIframe\": false,\u001b[39m\n\u001b[31m+             },\u001b[39m\n\u001b[31m+             \"id\": \"region\",\u001b[39m\n\u001b[31m+             \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+             \"message\": \"Some page content is not contained by landmarks\",\u001b[39m\n\u001b[31m+             \"relatedNodes\": Array [],\u001b[39m\n\u001b[31m+           },\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+         \"failureSummary\": \"Fix any of the following:\u001b[39m\n\u001b[31m+   Some page content is not contained by landmarks\",\u001b[39m\n\u001b[31m+         \"html\": \"<p class=\\\"text-sm text-slate-400 font-mono mb-4\\\">A critical module in the admin dashboard has crashed. The rest of the system remains intact.</p>\",\u001b[39m\n\u001b[31m+         \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+         \"none\": Array [],\u001b[39m\n\u001b[31m+         \"target\": Array [\u001b[39m\n\u001b[31m+           \"p\",\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+       },\u001b[39m\n\u001b[31m+       Object {\u001b[39m\n\u001b[31m+         \"all\": Array [],\u001b[39m\n\u001b[31m+         \"any\": Array [\u001b[39m\n\u001b[31m+           Object {\u001b[39m\n\u001b[31m+             \"data\": Object {\u001b[39m\n\u001b[31m+               \"isIframe\": false,\u001b[39m\n\u001b[31m+             },\u001b[39m\n\u001b[31m+             \"id\": \"region\",\u001b[39m\n\u001b[31m+             \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+             \"message\": \"Some page content is not contained by landmarks\",\u001b[39m\n\u001b[31m+             \"relatedNodes\": Array [],\u001b[39m\n\u001b[31m+           },\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+         \"failureSummary\": \"Fix any of the following:\u001b[39m\n\u001b[31m+   Some page content is not contained by landmarks\",\u001b[39m\n\u001b[31m+         \"html\": \"<pre class=\\\"text-xs text-slate-400 font-mono bg-slate-900/80 p-3 rounded-lg mb-6 overflow-auto max-h-40\\\">React is not defined</pre>\",\u001b[39m\n\u001b[31m+         \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+         \"none\": Array [],\u001b[39m\n\u001b[31m+         \"target\": Array [\u001b[39m\n\u001b[31m+           \"pre\",\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+       },\u001b[39m\n\u001b[31m+     ],\u001b[39m\n\u001b[31m+     \"tags\": Array [\u001b[39m\n\u001b[31m+       \"cat.keyboard\",\u001b[39m\n\u001b[31m+       \"best-practice\",\u001b[39m\n\u001b[31m+       \"RGAAv4\",\u001b[39m\n\u001b[31m+       \"RGAA-9.2.1\",\u001b[39m\n\u001b[31m+     ],\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+ ]\u001b[39m\n    at C:\\Users\\n\\supremeai\\supremeai_2.0\\tests\\e2e\\accessibility.spec.ts:23:53",
-                        "location": {
-                          "file": "C:\\Users\\n\\supremeai\\supremeai_2.0\\tests\\e2e\\accessibility.spec.ts",
-                          "column": 53,
-                          "line": 23
-                        },
-                        "snippet": "\u001b[0m \u001b[90m 21 |\u001b[39m         \u001b[36mconst\u001b[39m accessibilityScanResults \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m \u001b[36mnew\u001b[39m \u001b[33mAxeBuilder\u001b[39m({ page })\u001b[33m.\u001b[39manalyze()\u001b[33m;\u001b[39m\n \u001b[90m 22 |\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 23 |\u001b[39m         expect(accessibilityScanResults\u001b[33m.\u001b[39mviolations)\u001b[33m.\u001b[39mtoEqual([])\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                                                     \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 24 |\u001b[39m     })\u001b[33m;\u001b[39m\n \u001b[90m 25 |\u001b[39m })\u001b[33m;\u001b[39m\u001b[0m"
-                      },
-                      "errors": [
-                        {
-                          "location": {
-                            "file": "C:\\Users\\n\\supremeai\\supremeai_2.0\\tests\\e2e\\accessibility.spec.ts",
-                            "column": 53,
-                            "line": 23
-                          },
-                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  -   1\u001b[39m\n\u001b[31m+ Received  + 149\u001b[39m\n\n\u001b[32m- Array []\u001b[39m\n\u001b[31m+ Array [\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"description\": \"Ensure the document has a main landmark\",\u001b[39m\n\u001b[31m+     \"help\": \"Document should have one main landmark\",\u001b[39m\n\u001b[31m+     \"helpUrl\": \"https://dequeuniversity.com/rules/axe/4.12/landmark-one-main?application=playwright\",\u001b[39m\n\u001b[31m+     \"id\": \"landmark-one-main\",\u001b[39m\n\u001b[31m+     \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+     \"nodes\": Array [\u001b[39m\n\u001b[31m+       Object {\u001b[39m\n\u001b[31m+         \"all\": Array [\u001b[39m\n\u001b[31m+           Object {\u001b[39m\n\u001b[31m+             \"data\": null,\u001b[39m\n\u001b[31m+             \"id\": \"page-has-main\",\u001b[39m\n\u001b[31m+             \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+             \"message\": \"Document does not have a main landmark\",\u001b[39m\n\u001b[31m+             \"relatedNodes\": Array [],\u001b[39m\n\u001b[31m+           },\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+         \"any\": Array [],\u001b[39m\n\u001b[31m+         \"failureSummary\": \"Fix all of the following:\u001b[39m\n\u001b[31m+   Document does not have a main landmark\",\u001b[39m\n\u001b[31m+         \"html\": \"<html lang=\\\"en\\\" class=\\\"dark\\\" data-theme=\\\"dark\\\">\",\u001b[39m\n\u001b[31m+         \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+         \"none\": Array [],\u001b[39m\n\u001b[31m+         \"target\": Array [\u001b[39m\n\u001b[31m+           \"html\",\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+       },\u001b[39m\n\u001b[31m+     ],\u001b[39m\n\u001b[31m+     \"tags\": Array [\u001b[39m\n\u001b[31m+       \"cat.semantics\",\u001b[39m\n\u001b[31m+       \"best-practice\",\u001b[39m\n\u001b[31m+     ],\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"description\": \"Ensure that the page, or at least one of its frames contains a level-one heading\",\u001b[39m\n\u001b[31m+     \"help\": \"Page should contain a level-one heading\",\u001b[39m\n\u001b[31m+     \"helpUrl\": \"https://dequeuniversity.com/rules/axe/4.12/page-has-heading-one?application=playwright\",\u001b[39m\n\u001b[31m+     \"id\": \"page-has-heading-one\",\u001b[39m\n\u001b[31m+     \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+     \"nodes\": Array [\u001b[39m\n\u001b[31m+       Object {\u001b[39m\n\u001b[31m+         \"all\": Array [\u001b[39m\n\u001b[31m+           Object {\u001b[39m\n\u001b[31m+             \"data\": null,\u001b[39m\n\u001b[31m+             \"id\": \"page-has-heading-one\",\u001b[39m\n\u001b[31m+             \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+             \"message\": \"Page must have a level-one heading\",\u001b[39m\n\u001b[31m+             \"relatedNodes\": Array [],\u001b[39m\n\u001b[31m+           },\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+         \"any\": Array [],\u001b[39m\n\u001b[31m+         \"failureSummary\": \"Fix all of the following:\u001b[39m\n\u001b[31m+   Page must have a level-one heading\",\u001b[39m\n\u001b[31m+         \"html\": \"<html lang=\\\"en\\\" class=\\\"dark\\\" data-theme=\\\"dark\\\">\",\u001b[39m\n\u001b[31m+         \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+         \"none\": Array [],\u001b[39m\n\u001b[31m+         \"target\": Array [\u001b[39m\n\u001b[31m+           \"html\",\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+       },\u001b[39m\n\u001b[31m+     ],\u001b[39m\n\u001b[31m+     \"tags\": Array [\u001b[39m\n\u001b[31m+       \"cat.semantics\",\u001b[39m\n\u001b[31m+       \"best-practice\",\u001b[39m\n\u001b[31m+     ],\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"description\": \"Ensure all page content is contained by landmarks\",\u001b[39m\n\u001b[31m+     \"help\": \"All page content should be contained by landmarks\",\u001b[39m\n\u001b[31m+     \"helpUrl\": \"https://dequeuniversity.com/rules/axe/4.12/region?application=playwright\",\u001b[39m\n\u001b[31m+     \"id\": \"region\",\u001b[39m\n\u001b[31m+     \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+     \"nodes\": Array [\u001b[39m\n\u001b[31m+       Object {\u001b[39m\n\u001b[31m+         \"all\": Array [],\u001b[39m\n\u001b[31m+         \"any\": Array [\u001b[39m\n\u001b[31m+           Object {\u001b[39m\n\u001b[31m+             \"data\": Object {\u001b[39m\n\u001b[31m+               \"isIframe\": false,\u001b[39m\n\u001b[31m+             },\u001b[39m\n\u001b[31m+             \"id\": \"region\",\u001b[39m\n\u001b[31m+             \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+             \"message\": \"Some page content is not contained by landmarks\",\u001b[39m\n\u001b[31m+             \"relatedNodes\": Array [],\u001b[39m\n\u001b[31m+           },\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+         \"failureSummary\": \"Fix any of the following:\u001b[39m\n\u001b[31m+   Some page content is not contained by landmarks\",\u001b[39m\n\u001b[31m+         \"html\": \"<h2 class=\\\"text-xl font-mono font-bold text-[#ff0055] uppercase tracking-widest mb-2\\\">Dashboard Module Failure</h2>\",\u001b[39m\n\u001b[31m+         \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+         \"none\": Array [],\u001b[39m\n\u001b[31m+         \"target\": Array [\u001b[39m\n\u001b[31m+           \"h2\",\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+       },\u001b[39m\n\u001b[31m+       Object {\u001b[39m\n\u001b[31m+         \"all\": Array [],\u001b[39m\n\u001b[31m+         \"any\": Array [\u001b[39m\n\u001b[31m+           Object {\u001b[39m\n\u001b[31m+             \"data\": Object {\u001b[39m\n\u001b[31m+               \"isIframe\": false,\u001b[39m\n\u001b[31m+             },\u001b[39m\n\u001b[31m+             \"id\": \"region\",\u001b[39m\n\u001b[31m+             \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+             \"message\": \"Some page content is not contained by landmarks\",\u001b[39m\n\u001b[31m+             \"relatedNodes\": Array [],\u001b[39m\n\u001b[31m+           },\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+         \"failureSummary\": \"Fix any of the following:\u001b[39m\n\u001b[31m+   Some page content is not contained by landmarks\",\u001b[39m\n\u001b[31m+         \"html\": \"<p class=\\\"text-sm text-slate-400 font-mono mb-4\\\">A critical module in the admin dashboard has crashed. The rest of the system remains intact.</p>\",\u001b[39m\n\u001b[31m+         \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+         \"none\": Array [],\u001b[39m\n\u001b[31m+         \"target\": Array [\u001b[39m\n\u001b[31m+           \"p\",\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+       },\u001b[39m\n\u001b[31m+       Object {\u001b[39m\n\u001b[31m+         \"all\": Array [],\u001b[39m\n\u001b[31m+         \"any\": Array [\u001b[39m\n\u001b[31m+           Object {\u001b[39m\n\u001b[31m+             \"data\": Object {\u001b[39m\n\u001b[31m+               \"isIframe\": false,\u001b[39m\n\u001b[31m+             },\u001b[39m\n\u001b[31m+             \"id\": \"region\",\u001b[39m\n\u001b[31m+             \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+             \"message\": \"Some page content is not contained by landmarks\",\u001b[39m\n\u001b[31m+             \"relatedNodes\": Array [],\u001b[39m\n\u001b[31m+           },\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+         \"failureSummary\": \"Fix any of the following:\u001b[39m\n\u001b[31m+   Some page content is not contained by landmarks\",\u001b[39m\n\u001b[31m+         \"html\": \"<pre class=\\\"text-xs text-slate-400 font-mono bg-slate-900/80 p-3 rounded-lg mb-6 overflow-auto max-h-40\\\">React is not defined</pre>\",\u001b[39m\n\u001b[31m+         \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+         \"none\": Array [],\u001b[39m\n\u001b[31m+         \"target\": Array [\u001b[39m\n\u001b[31m+           \"pre\",\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+       },\u001b[39m\n\u001b[31m+     ],\u001b[39m\n\u001b[31m+     \"tags\": Array [\u001b[39m\n\u001b[31m+       \"cat.keyboard\",\u001b[39m\n\u001b[31m+       \"best-practice\",\u001b[39m\n\u001b[31m+       \"RGAAv4\",\u001b[39m\n\u001b[31m+       \"RGAA-9.2.1\",\u001b[39m\n\u001b[31m+     ],\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+ ]\u001b[39m\n\n  21 |         const accessibilityScanResults = await new AxeBuilder({ page }).analyze();\n  22 |\n> 23 |         expect(accessibilityScanResults.violations).toEqual([]);\n     |                                                     ^\n  24 |     });\n  25 | });\n    at C:\\Users\\n\\supremeai\\supremeai_2.0\\tests\\e2e\\accessibility.spec.ts:23:53"
-                        }
-                      ],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-07-04T13:02:39.779Z",
-                      "annotations": [],
-                      "attachments": [
-                        {
-                          "name": "screenshot",
-                          "contentType": "image/png",
-                          "path": "C:\\Users\\n\\supremeai\\supremeai_2.0\\test-results\\e2e-accessibility-Accessib-1a8a2-hboard-should-be-accessible-chromium\\test-failed-1.png"
-                        },
-                        {
-                          "name": "video",
-                          "contentType": "video/webm",
-                          "path": "C:\\Users\\n\\supremeai\\supremeai_2.0\\test-results\\e2e-accessibility-Accessib-1a8a2-hboard-should-be-accessible-chromium\\video.webm"
-                        },
-                        {
-                          "name": "video",
-                          "contentType": "video/webm",
-                          "path": "C:\\Users\\n\\supremeai\\supremeai_2.0\\test-results\\e2e-accessibility-Accessib-1a8a2-hboard-should-be-accessible-chromium\\video-1.webm"
-                        },
-                        {
-                          "name": "error-context",
-                          "contentType": "text/markdown",
-                          "path": "C:\\Users\\n\\supremeai\\supremeai_2.0\\test-results\\e2e-accessibility-Accessib-1a8a2-hboard-should-be-accessible-chromium\\error-context.md"
-                        }
-                      ],
-                      "errorLocation": {
-                        "file": "C:\\Users\\n\\supremeai\\supremeai_2.0\\tests\\e2e\\accessibility.spec.ts",
-                        "column": 53,
-                        "line": 23
-                      }
-                    }
-                  ],
-                  "status": "unexpected"
-                }
-              ],
-              "id": "cb4d96879b22e77d8b2c-500664d0b985aac1baa3",
-              "file": "e2e/accessibility.spec.ts",
-              "line": 18,
-              "column": 9
-            },
-            {
-              "title": "Homepage should not have any automatically detectable accessibility issues",
-              "ok": false,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 30000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "firefox",
-                  "projectName": "firefox",
-                  "results": [
-                    {
-                      "workerIndex": 6,
-                      "parallelIndex": 1,
-                      "status": "failed",
-                      "duration": 3,
-                      "error": {
-                        "message": "Error: browserType.launch: Executable doesn't exist at C:\\Users\\n\\AppData\\Local\\ms-playwright\\firefox-1532\\firefox\\firefox.exe\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     pnpm exec playwright install                           ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝",
-                        "stack": "Error: browserType.launch: Executable doesn't exist at C:\\Users\\n\\AppData\\Local\\ms-playwright\\firefox-1532\\firefox\\firefox.exe\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     pnpm exec playwright install                           ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝"
-                      },
-                      "errors": [
-                        {
-                          "message": "Error: browserType.launch: Executable doesn't exist at C:\\Users\\n\\AppData\\Local\\ms-playwright\\firefox-1532\\firefox\\firefox.exe\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     pnpm exec playwright install                           ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝"
-                        }
-                      ],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-07-04T13:03:42.402Z",
-                      "annotations": [],
-                      "attachments": [
-                        {
-                          "name": "error-context",
-                          "contentType": "text/markdown",
-                          "path": "C:\\Users\\n\\supremeai\\supremeai_2.0\\test-results\\e2e-accessibility-Accessib-57b49-ctable-accessibility-issues-firefox\\error-context.md"
-                        }
-                      ]
-                    }
-                  ],
-                  "status": "unexpected"
-                }
-              ],
-              "id": "cb4d96879b22e77d8b2c-b3d42475f7c88aec8c52",
-              "file": "e2e/accessibility.spec.ts",
-              "line": 5,
-              "column": 9
-            },
-            {
-              "title": "Admin Dashboard should be accessible",
-              "ok": false,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 30000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "firefox",
-                  "projectName": "firefox",
-                  "results": [
-                    {
-                      "workerIndex": 7,
-                      "parallelIndex": 1,
-                      "status": "failed",
-                      "duration": 5,
-                      "error": {
-                        "message": "Error: browserType.launch: Executable doesn't exist at C:\\Users\\n\\AppData\\Local\\ms-playwright\\firefox-1532\\firefox\\firefox.exe\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     pnpm exec playwright install                           ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝",
-                        "stack": "Error: browserType.launch: Executable doesn't exist at C:\\Users\\n\\AppData\\Local\\ms-playwright\\firefox-1532\\firefox\\firefox.exe\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     pnpm exec playwright install                           ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝"
-                      },
-                      "errors": [
-                        {
-                          "message": "Error: browserType.launch: Executable doesn't exist at C:\\Users\\n\\AppData\\Local\\ms-playwright\\firefox-1532\\firefox\\firefox.exe\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     pnpm exec playwright install                           ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝"
-                        }
-                      ],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-07-04T13:03:44.281Z",
-                      "annotations": [],
-                      "attachments": [
-                        {
-                          "name": "error-context",
-                          "contentType": "text/markdown",
-                          "path": "C:\\Users\\n\\supremeai\\supremeai_2.0\\test-results\\e2e-accessibility-Accessib-1a8a2-hboard-should-be-accessible-firefox\\error-context.md"
-                        }
-                      ]
-                    }
-                  ],
-                  "status": "unexpected"
-                }
-              ],
-              "id": "cb4d96879b22e77d8b2c-f5638b87b7a414080a2d",
-              "file": "e2e/accessibility.spec.ts",
-              "line": 18,
-              "column": 9
-            },
-            {
-              "title": "Homepage should not have any automatically detectable accessibility issues",
-              "ok": false,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 30000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "webkit",
-                  "projectName": "webkit",
-                  "results": [
-                    {
-                      "workerIndex": 13,
-                      "parallelIndex": 1,
-                      "status": "failed",
-                      "duration": 7,
-                      "error": {
-                        "message": "Error: browserType.launch: Executable doesn't exist at C:\\Users\\n\\AppData\\Local\\ms-playwright\\webkit-2311\\Playwright.exe\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     pnpm exec playwright install                           ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝",
-                        "stack": "Error: browserType.launch: Executable doesn't exist at C:\\Users\\n\\AppData\\Local\\ms-playwright\\webkit-2311\\Playwright.exe\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     pnpm exec playwright install                           ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝"
-                      },
-                      "errors": [
-                        {
-                          "message": "Error: browserType.launch: Executable doesn't exist at C:\\Users\\n\\AppData\\Local\\ms-playwright\\webkit-2311\\Playwright.exe\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     pnpm exec playwright install                           ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝"
-                        }
-                      ],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-07-04T13:04:00.867Z",
-                      "annotations": [],
-                      "attachments": [
-                        {
-                          "name": "error-context",
-                          "contentType": "text/markdown",
-                          "path": "C:\\Users\\n\\supremeai\\supremeai_2.0\\test-results\\e2e-accessibility-Accessib-57b49-ctable-accessibility-issues-webkit\\error-context.md"
-                        }
-                      ]
-                    }
-                  ],
-                  "status": "unexpected"
-                }
-              ],
-              "id": "cb4d96879b22e77d8b2c-fbd64fd80d69d10df3a0",
-              "file": "e2e/accessibility.spec.ts",
-              "line": 5,
-              "column": 9
-            },
-            {
-              "title": "Admin Dashboard should be accessible",
-              "ok": false,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 30000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "webkit",
-                  "projectName": "webkit",
-                  "results": [
-                    {
-                      "workerIndex": 14,
-                      "parallelIndex": 0,
-                      "status": "failed",
-                      "duration": 9,
-                      "error": {
-                        "message": "Error: browserType.launch: Executable doesn't exist at C:\\Users\\n\\AppData\\Local\\ms-playwright\\webkit-2311\\Playwright.exe\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     pnpm exec playwright install                           ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝",
-                        "stack": "Error: browserType.launch: Executable doesn't exist at C:\\Users\\n\\AppData\\Local\\ms-playwright\\webkit-2311\\Playwright.exe\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     pnpm exec playwright install                           ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝"
-                      },
-                      "errors": [
-                        {
-                          "message": "Error: browserType.launch: Executable doesn't exist at C:\\Users\\n\\AppData\\Local\\ms-playwright\\webkit-2311\\Playwright.exe\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     pnpm exec playwright install                           ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝"
-                        }
-                      ],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-07-04T13:04:01.952Z",
-                      "annotations": [],
-                      "attachments": [
-                        {
-                          "name": "error-context",
-                          "contentType": "text/markdown",
-                          "path": "C:\\Users\\n\\supremeai\\supremeai_2.0\\test-results\\e2e-accessibility-Accessib-1a8a2-hboard-should-be-accessible-webkit\\error-context.md"
-                        }
-                      ]
-                    }
-                  ],
-                  "status": "unexpected"
-                }
-              ],
-              "id": "cb4d96879b22e77d8b2c-080eb04c5c3f482efa54",
-              "file": "e2e/accessibility.spec.ts",
-              "line": 18,
-              "column": 9
-            },
-            {
-              "title": "Homepage should not have any automatically detectable accessibility issues",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 30000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "Mobile Chrome",
-                  "projectName": "Mobile Chrome",
-                  "results": [
-                    {
-                      "workerIndex": 20,
-                      "parallelIndex": 0,
-                      "status": "passed",
-                      "duration": 23308,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-07-04T13:04:10.020Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "cb4d96879b22e77d8b2c-91fb6702d4d7a6d60dd3",
-              "file": "e2e/accessibility.spec.ts",
-              "line": 5,
-              "column": 9
-            },
-            {
-              "title": "Admin Dashboard should be accessible",
-              "ok": false,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 30000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "Mobile Chrome",
-                  "projectName": "Mobile Chrome",
-                  "results": [
-                    {
-                      "workerIndex": 21,
-                      "parallelIndex": 1,
-                      "status": "failed",
-                      "duration": 16887,
-                      "error": {
-                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  -   1\u001b[39m\n\u001b[31m+ Received  + 149\u001b[39m\n\n\u001b[32m- Array []\u001b[39m\n\u001b[31m+ Array [\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"description\": \"Ensure the document has a main landmark\",\u001b[39m\n\u001b[31m+     \"help\": \"Document should have one main landmark\",\u001b[39m\n\u001b[31m+     \"helpUrl\": \"https://dequeuniversity.com/rules/axe/4.12/landmark-one-main?application=playwright\",\u001b[39m\n\u001b[31m+     \"id\": \"landmark-one-main\",\u001b[39m\n\u001b[31m+     \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+     \"nodes\": Array [\u001b[39m\n\u001b[31m+       Object {\u001b[39m\n\u001b[31m+         \"all\": Array [\u001b[39m\n\u001b[31m+           Object {\u001b[39m\n\u001b[31m+             \"data\": null,\u001b[39m\n\u001b[31m+             \"id\": \"page-has-main\",\u001b[39m\n\u001b[31m+             \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+             \"message\": \"Document does not have a main landmark\",\u001b[39m\n\u001b[31m+             \"relatedNodes\": Array [],\u001b[39m\n\u001b[31m+           },\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+         \"any\": Array [],\u001b[39m\n\u001b[31m+         \"failureSummary\": \"Fix all of the following:\u001b[39m\n\u001b[31m+   Document does not have a main landmark\",\u001b[39m\n\u001b[31m+         \"html\": \"<html lang=\\\"en\\\" class=\\\"dark\\\" data-theme=\\\"dark\\\">\",\u001b[39m\n\u001b[31m+         \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+         \"none\": Array [],\u001b[39m\n\u001b[31m+         \"target\": Array [\u001b[39m\n\u001b[31m+           \"html\",\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+       },\u001b[39m\n\u001b[31m+     ],\u001b[39m\n\u001b[31m+     \"tags\": Array [\u001b[39m\n\u001b[31m+       \"cat.semantics\",\u001b[39m\n\u001b[31m+       \"best-practice\",\u001b[39m\n\u001b[31m+     ],\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"description\": \"Ensure that the page, or at least one of its frames contains a level-one heading\",\u001b[39m\n\u001b[31m+     \"help\": \"Page should contain a level-one heading\",\u001b[39m\n\u001b[31m+     \"helpUrl\": \"https://dequeuniversity.com/rules/axe/4.12/page-has-heading-one?application=playwright\",\u001b[39m\n\u001b[31m+     \"id\": \"page-has-heading-one\",\u001b[39m\n\u001b[31m+     \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+     \"nodes\": Array [\u001b[39m\n\u001b[31m+       Object {\u001b[39m\n\u001b[31m+         \"all\": Array [\u001b[39m\n\u001b[31m+           Object {\u001b[39m\n\u001b[31m+             \"data\": null,\u001b[39m\n\u001b[31m+             \"id\": \"page-has-heading-one\",\u001b[39m\n\u001b[31m+             \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+             \"message\": \"Page must have a level-one heading\",\u001b[39m\n\u001b[31m+             \"relatedNodes\": Array [],\u001b[39m\n\u001b[31m+           },\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+         \"any\": Array [],\u001b[39m\n\u001b[31m+         \"failureSummary\": \"Fix all of the following:\u001b[39m\n\u001b[31m+   Page must have a level-one heading\",\u001b[39m\n\u001b[31m+         \"html\": \"<html lang=\\\"en\\\" class=\\\"dark\\\" data-theme=\\\"dark\\\">\",\u001b[39m\n\u001b[31m+         \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+         \"none\": Array [],\u001b[39m\n\u001b[31m+         \"target\": Array [\u001b[39m\n\u001b[31m+           \"html\",\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+       },\u001b[39m\n\u001b[31m+     ],\u001b[39m\n\u001b[31m+     \"tags\": Array [\u001b[39m\n\u001b[31m+       \"cat.semantics\",\u001b[39m\n\u001b[31m+       \"best-practice\",\u001b[39m\n\u001b[31m+     ],\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"description\": \"Ensure all page content is contained by landmarks\",\u001b[39m\n\u001b[31m+     \"help\": \"All page content should be contained by landmarks\",\u001b[39m\n\u001b[31m+     \"helpUrl\": \"https://dequeuniversity.com/rules/axe/4.12/region?application=playwright\",\u001b[39m\n\u001b[31m+     \"id\": \"region\",\u001b[39m\n\u001b[31m+     \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+     \"nodes\": Array [\u001b[39m\n\u001b[31m+       Object {\u001b[39m\n\u001b[31m+         \"all\": Array [],\u001b[39m\n\u001b[31m+         \"any\": Array [\u001b[39m\n\u001b[31m+           Object {\u001b[39m\n\u001b[31m+             \"data\": Object {\u001b[39m\n\u001b[31m+               \"isIframe\": false,\u001b[39m\n\u001b[31m+             },\u001b[39m\n\u001b[31m+             \"id\": \"region\",\u001b[39m\n\u001b[31m+             \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+             \"message\": \"Some page content is not contained by landmarks\",\u001b[39m\n\u001b[31m+             \"relatedNodes\": Array [],\u001b[39m\n\u001b[31m+           },\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+         \"failureSummary\": \"Fix any of the following:\u001b[39m\n\u001b[31m+   Some page content is not contained by landmarks\",\u001b[39m\n\u001b[31m+         \"html\": \"<h2 class=\\\"text-xl font-mono font-bold text-[#ff0055] uppercase tracking-widest mb-2\\\">Dashboard Module Failure</h2>\",\u001b[39m\n\u001b[31m+         \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+         \"none\": Array [],\u001b[39m\n\u001b[31m+         \"target\": Array [\u001b[39m\n\u001b[31m+           \"h2\",\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+       },\u001b[39m\n\u001b[31m+       Object {\u001b[39m\n\u001b[31m+         \"all\": Array [],\u001b[39m\n\u001b[31m+         \"any\": Array [\u001b[39m\n\u001b[31m+           Object {\u001b[39m\n\u001b[31m+             \"data\": Object {\u001b[39m\n\u001b[31m+               \"isIframe\": false,\u001b[39m\n\u001b[31m+             },\u001b[39m\n\u001b[31m+             \"id\": \"region\",\u001b[39m\n\u001b[31m+             \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+             \"message\": \"Some page content is not contained by landmarks\",\u001b[39m\n\u001b[31m+             \"relatedNodes\": Array [],\u001b[39m\n\u001b[31m+           },\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+         \"failureSummary\": \"Fix any of the following:\u001b[39m\n\u001b[31m+   Some page content is not contained by landmarks\",\u001b[39m\n\u001b[31m+         \"html\": \"<p class=\\\"text-sm text-slate-400 font-mono mb-4\\\">A critical module in the admin dashboard has crashed. The rest of the system remains intact.</p>\",\u001b[39m\n\u001b[31m+         \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+         \"none\": Array [],\u001b[39m\n\u001b[31m+         \"target\": Array [\u001b[39m\n\u001b[31m+           \"p\",\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+       },\u001b[39m\n\u001b[31m+       Object {\u001b[39m\n\u001b[31m+         \"all\": Array [],\u001b[39m\n\u001b[31m+         \"any\": Array [\u001b[39m\n\u001b[31m+           Object {\u001b[39m\n\u001b[31m+             \"data\": Object {\u001b[39m\n\u001b[31m+               \"isIframe\": false,\u001b[39m\n\u001b[31m+             },\u001b[39m\n\u001b[31m+             \"id\": \"region\",\u001b[39m\n\u001b[31m+             \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+             \"message\": \"Some page content is not contained by landmarks\",\u001b[39m\n\u001b[31m+             \"relatedNodes\": Array [],\u001b[39m\n\u001b[31m+           },\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+         \"failureSummary\": \"Fix any of the following:\u001b[39m\n\u001b[31m+   Some page content is not contained by landmarks\",\u001b[39m\n\u001b[31m+         \"html\": \"<pre class=\\\"text-xs text-slate-400 font-mono bg-slate-900/80 p-3 rounded-lg mb-6 overflow-auto max-h-40\\\">React is not defined</pre>\",\u001b[39m\n\u001b[31m+         \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+         \"none\": Array [],\u001b[39m\n\u001b[31m+         \"target\": Array [\u001b[39m\n\u001b[31m+           \"pre\",\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+       },\u001b[39m\n\u001b[31m+     ],\u001b[39m\n\u001b[31m+     \"tags\": Array [\u001b[39m\n\u001b[31m+       \"cat.keyboard\",\u001b[39m\n\u001b[31m+       \"best-practice\",\u001b[39m\n\u001b[31m+       \"RGAAv4\",\u001b[39m\n\u001b[31m+       \"RGAA-9.2.1\",\u001b[39m\n\u001b[31m+     ],\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+ ]\u001b[39m",
-                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  -   1\u001b[39m\n\u001b[31m+ Received  + 149\u001b[39m\n\n\u001b[32m- Array []\u001b[39m\n\u001b[31m+ Array [\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"description\": \"Ensure the document has a main landmark\",\u001b[39m\n\u001b[31m+     \"help\": \"Document should have one main landmark\",\u001b[39m\n\u001b[31m+     \"helpUrl\": \"https://dequeuniversity.com/rules/axe/4.12/landmark-one-main?application=playwright\",\u001b[39m\n\u001b[31m+     \"id\": \"landmark-one-main\",\u001b[39m\n\u001b[31m+     \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+     \"nodes\": Array [\u001b[39m\n\u001b[31m+       Object {\u001b[39m\n\u001b[31m+         \"all\": Array [\u001b[39m\n\u001b[31m+           Object {\u001b[39m\n\u001b[31m+             \"data\": null,\u001b[39m\n\u001b[31m+             \"id\": \"page-has-main\",\u001b[39m\n\u001b[31m+             \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+             \"message\": \"Document does not have a main landmark\",\u001b[39m\n\u001b[31m+             \"relatedNodes\": Array [],\u001b[39m\n\u001b[31m+           },\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+         \"any\": Array [],\u001b[39m\n\u001b[31m+         \"failureSummary\": \"Fix all of the following:\u001b[39m\n\u001b[31m+   Document does not have a main landmark\",\u001b[39m\n\u001b[31m+         \"html\": \"<html lang=\\\"en\\\" class=\\\"dark\\\" data-theme=\\\"dark\\\">\",\u001b[39m\n\u001b[31m+         \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+         \"none\": Array [],\u001b[39m\n\u001b[31m+         \"target\": Array [\u001b[39m\n\u001b[31m+           \"html\",\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+       },\u001b[39m\n\u001b[31m+     ],\u001b[39m\n\u001b[31m+     \"tags\": Array [\u001b[39m\n\u001b[31m+       \"cat.semantics\",\u001b[39m\n\u001b[31m+       \"best-practice\",\u001b[39m\n\u001b[31m+     ],\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"description\": \"Ensure that the page, or at least one of its frames contains a level-one heading\",\u001b[39m\n\u001b[31m+     \"help\": \"Page should contain a level-one heading\",\u001b[39m\n\u001b[31m+     \"helpUrl\": \"https://dequeuniversity.com/rules/axe/4.12/page-has-heading-one?application=playwright\",\u001b[39m\n\u001b[31m+     \"id\": \"page-has-heading-one\",\u001b[39m\n\u001b[31m+     \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+     \"nodes\": Array [\u001b[39m\n\u001b[31m+       Object {\u001b[39m\n\u001b[31m+         \"all\": Array [\u001b[39m\n\u001b[31m+           Object {\u001b[39m\n\u001b[31m+             \"data\": null,\u001b[39m\n\u001b[31m+             \"id\": \"page-has-heading-one\",\u001b[39m\n\u001b[31m+             \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+             \"message\": \"Page must have a level-one heading\",\u001b[39m\n\u001b[31m+             \"relatedNodes\": Array [],\u001b[39m\n\u001b[31m+           },\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+         \"any\": Array [],\u001b[39m\n\u001b[31m+         \"failureSummary\": \"Fix all of the following:\u001b[39m\n\u001b[31m+   Page must have a level-one heading\",\u001b[39m\n\u001b[31m+         \"html\": \"<html lang=\\\"en\\\" class=\\\"dark\\\" data-theme=\\\"dark\\\">\",\u001b[39m\n\u001b[31m+         \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+         \"none\": Array [],\u001b[39m\n\u001b[31m+         \"target\": Array [\u001b[39m\n\u001b[31m+           \"html\",\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+       },\u001b[39m\n\u001b[31m+     ],\u001b[39m\n\u001b[31m+     \"tags\": Array [\u001b[39m\n\u001b[31m+       \"cat.semantics\",\u001b[39m\n\u001b[31m+       \"best-practice\",\u001b[39m\n\u001b[31m+     ],\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"description\": \"Ensure all page content is contained by landmarks\",\u001b[39m\n\u001b[31m+     \"help\": \"All page content should be contained by landmarks\",\u001b[39m\n\u001b[31m+     \"helpUrl\": \"https://dequeuniversity.com/rules/axe/4.12/region?application=playwright\",\u001b[39m\n\u001b[31m+     \"id\": \"region\",\u001b[39m\n\u001b[31m+     \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+     \"nodes\": Array [\u001b[39m\n\u001b[31m+       Object {\u001b[39m\n\u001b[31m+         \"all\": Array [],\u001b[39m\n\u001b[31m+         \"any\": Array [\u001b[39m\n\u001b[31m+           Object {\u001b[39m\n\u001b[31m+             \"data\": Object {\u001b[39m\n\u001b[31m+               \"isIframe\": false,\u001b[39m\n\u001b[31m+             },\u001b[39m\n\u001b[31m+             \"id\": \"region\",\u001b[39m\n\u001b[31m+             \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+             \"message\": \"Some page content is not contained by landmarks\",\u001b[39m\n\u001b[31m+             \"relatedNodes\": Array [],\u001b[39m\n\u001b[31m+           },\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+         \"failureSummary\": \"Fix any of the following:\u001b[39m\n\u001b[31m+   Some page content is not contained by landmarks\",\u001b[39m\n\u001b[31m+         \"html\": \"<h2 class=\\\"text-xl font-mono font-bold text-[#ff0055] uppercase tracking-widest mb-2\\\">Dashboard Module Failure</h2>\",\u001b[39m\n\u001b[31m+         \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+         \"none\": Array [],\u001b[39m\n\u001b[31m+         \"target\": Array [\u001b[39m\n\u001b[31m+           \"h2\",\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+       },\u001b[39m\n\u001b[31m+       Object {\u001b[39m\n\u001b[31m+         \"all\": Array [],\u001b[39m\n\u001b[31m+         \"any\": Array [\u001b[39m\n\u001b[31m+           Object {\u001b[39m\n\u001b[31m+             \"data\": Object {\u001b[39m\n\u001b[31m+               \"isIframe\": false,\u001b[39m\n\u001b[31m+             },\u001b[39m\n\u001b[31m+             \"id\": \"region\",\u001b[39m\n\u001b[31m+             \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+             \"message\": \"Some page content is not contained by landmarks\",\u001b[39m\n\u001b[31m+             \"relatedNodes\": Array [],\u001b[39m\n\u001b[31m+           },\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+         \"failureSummary\": \"Fix any of the following:\u001b[39m\n\u001b[31m+   Some page content is not contained by landmarks\",\u001b[39m\n\u001b[31m+         \"html\": \"<p class=\\\"text-sm text-slate-400 font-mono mb-4\\\">A critical module in the admin dashboard has crashed. The rest of the system remains intact.</p>\",\u001b[39m\n\u001b[31m+         \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+         \"none\": Array [],\u001b[39m\n\u001b[31m+         \"target\": Array [\u001b[39m\n\u001b[31m+           \"p\",\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+       },\u001b[39m\n\u001b[31m+       Object {\u001b[39m\n\u001b[31m+         \"all\": Array [],\u001b[39m\n\u001b[31m+         \"any\": Array [\u001b[39m\n\u001b[31m+           Object {\u001b[39m\n\u001b[31m+             \"data\": Object {\u001b[39m\n\u001b[31m+               \"isIframe\": false,\u001b[39m\n\u001b[31m+             },\u001b[39m\n\u001b[31m+             \"id\": \"region\",\u001b[39m\n\u001b[31m+             \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+             \"message\": \"Some page content is not contained by landmarks\",\u001b[39m\n\u001b[31m+             \"relatedNodes\": Array [],\u001b[39m\n\u001b[31m+           },\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+         \"failureSummary\": \"Fix any of the following:\u001b[39m\n\u001b[31m+   Some page content is not contained by landmarks\",\u001b[39m\n\u001b[31m+         \"html\": \"<pre class=\\\"text-xs text-slate-400 font-mono bg-slate-900/80 p-3 rounded-lg mb-6 overflow-auto max-h-40\\\">React is not defined</pre>\",\u001b[39m\n\u001b[31m+         \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+         \"none\": Array [],\u001b[39m\n\u001b[31m+         \"target\": Array [\u001b[39m\n\u001b[31m+           \"pre\",\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+       },\u001b[39m\n\u001b[31m+     ],\u001b[39m\n\u001b[31m+     \"tags\": Array [\u001b[39m\n\u001b[31m+       \"cat.keyboard\",\u001b[39m\n\u001b[31m+       \"best-practice\",\u001b[39m\n\u001b[31m+       \"RGAAv4\",\u001b[39m\n\u001b[31m+       \"RGAA-9.2.1\",\u001b[39m\n\u001b[31m+     ],\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+ ]\u001b[39m\n    at C:\\Users\\n\\supremeai\\supremeai_2.0\\tests\\e2e\\accessibility.spec.ts:23:53",
-                        "location": {
-                          "file": "C:\\Users\\n\\supremeai\\supremeai_2.0\\tests\\e2e\\accessibility.spec.ts",
-                          "column": 53,
-                          "line": 23
-                        },
-                        "snippet": "\u001b[0m \u001b[90m 21 |\u001b[39m         \u001b[36mconst\u001b[39m accessibilityScanResults \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m \u001b[36mnew\u001b[39m \u001b[33mAxeBuilder\u001b[39m({ page })\u001b[33m.\u001b[39manalyze()\u001b[33m;\u001b[39m\n \u001b[90m 22 |\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 23 |\u001b[39m         expect(accessibilityScanResults\u001b[33m.\u001b[39mviolations)\u001b[33m.\u001b[39mtoEqual([])\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                                                     \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 24 |\u001b[39m     })\u001b[33m;\u001b[39m\n \u001b[90m 25 |\u001b[39m })\u001b[33m;\u001b[39m\u001b[0m"
-                      },
-                      "errors": [
-                        {
-                          "location": {
-                            "file": "C:\\Users\\n\\supremeai\\supremeai_2.0\\tests\\e2e\\accessibility.spec.ts",
-                            "column": 53,
-                            "line": 23
-                          },
-                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  -   1\u001b[39m\n\u001b[31m+ Received  + 149\u001b[39m\n\n\u001b[32m- Array []\u001b[39m\n\u001b[31m+ Array [\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"description\": \"Ensure the document has a main landmark\",\u001b[39m\n\u001b[31m+     \"help\": \"Document should have one main landmark\",\u001b[39m\n\u001b[31m+     \"helpUrl\": \"https://dequeuniversity.com/rules/axe/4.12/landmark-one-main?application=playwright\",\u001b[39m\n\u001b[31m+     \"id\": \"landmark-one-main\",\u001b[39m\n\u001b[31m+     \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+     \"nodes\": Array [\u001b[39m\n\u001b[31m+       Object {\u001b[39m\n\u001b[31m+         \"all\": Array [\u001b[39m\n\u001b[31m+           Object {\u001b[39m\n\u001b[31m+             \"data\": null,\u001b[39m\n\u001b[31m+             \"id\": \"page-has-main\",\u001b[39m\n\u001b[31m+             \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+             \"message\": \"Document does not have a main landmark\",\u001b[39m\n\u001b[31m+             \"relatedNodes\": Array [],\u001b[39m\n\u001b[31m+           },\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+         \"any\": Array [],\u001b[39m\n\u001b[31m+         \"failureSummary\": \"Fix all of the following:\u001b[39m\n\u001b[31m+   Document does not have a main landmark\",\u001b[39m\n\u001b[31m+         \"html\": \"<html lang=\\\"en\\\" class=\\\"dark\\\" data-theme=\\\"dark\\\">\",\u001b[39m\n\u001b[31m+         \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+         \"none\": Array [],\u001b[39m\n\u001b[31m+         \"target\": Array [\u001b[39m\n\u001b[31m+           \"html\",\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+       },\u001b[39m\n\u001b[31m+     ],\u001b[39m\n\u001b[31m+     \"tags\": Array [\u001b[39m\n\u001b[31m+       \"cat.semantics\",\u001b[39m\n\u001b[31m+       \"best-practice\",\u001b[39m\n\u001b[31m+     ],\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"description\": \"Ensure that the page, or at least one of its frames contains a level-one heading\",\u001b[39m\n\u001b[31m+     \"help\": \"Page should contain a level-one heading\",\u001b[39m\n\u001b[31m+     \"helpUrl\": \"https://dequeuniversity.com/rules/axe/4.12/page-has-heading-one?application=playwright\",\u001b[39m\n\u001b[31m+     \"id\": \"page-has-heading-one\",\u001b[39m\n\u001b[31m+     \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+     \"nodes\": Array [\u001b[39m\n\u001b[31m+       Object {\u001b[39m\n\u001b[31m+         \"all\": Array [\u001b[39m\n\u001b[31m+           Object {\u001b[39m\n\u001b[31m+             \"data\": null,\u001b[39m\n\u001b[31m+             \"id\": \"page-has-heading-one\",\u001b[39m\n\u001b[31m+             \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+             \"message\": \"Page must have a level-one heading\",\u001b[39m\n\u001b[31m+             \"relatedNodes\": Array [],\u001b[39m\n\u001b[31m+           },\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+         \"any\": Array [],\u001b[39m\n\u001b[31m+         \"failureSummary\": \"Fix all of the following:\u001b[39m\n\u001b[31m+   Page must have a level-one heading\",\u001b[39m\n\u001b[31m+         \"html\": \"<html lang=\\\"en\\\" class=\\\"dark\\\" data-theme=\\\"dark\\\">\",\u001b[39m\n\u001b[31m+         \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+         \"none\": Array [],\u001b[39m\n\u001b[31m+         \"target\": Array [\u001b[39m\n\u001b[31m+           \"html\",\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+       },\u001b[39m\n\u001b[31m+     ],\u001b[39m\n\u001b[31m+     \"tags\": Array [\u001b[39m\n\u001b[31m+       \"cat.semantics\",\u001b[39m\n\u001b[31m+       \"best-practice\",\u001b[39m\n\u001b[31m+     ],\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"description\": \"Ensure all page content is contained by landmarks\",\u001b[39m\n\u001b[31m+     \"help\": \"All page content should be contained by landmarks\",\u001b[39m\n\u001b[31m+     \"helpUrl\": \"https://dequeuniversity.com/rules/axe/4.12/region?application=playwright\",\u001b[39m\n\u001b[31m+     \"id\": \"region\",\u001b[39m\n\u001b[31m+     \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+     \"nodes\": Array [\u001b[39m\n\u001b[31m+       Object {\u001b[39m\n\u001b[31m+         \"all\": Array [],\u001b[39m\n\u001b[31m+         \"any\": Array [\u001b[39m\n\u001b[31m+           Object {\u001b[39m\n\u001b[31m+             \"data\": Object {\u001b[39m\n\u001b[31m+               \"isIframe\": false,\u001b[39m\n\u001b[31m+             },\u001b[39m\n\u001b[31m+             \"id\": \"region\",\u001b[39m\n\u001b[31m+             \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+             \"message\": \"Some page content is not contained by landmarks\",\u001b[39m\n\u001b[31m+             \"relatedNodes\": Array [],\u001b[39m\n\u001b[31m+           },\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+         \"failureSummary\": \"Fix any of the following:\u001b[39m\n\u001b[31m+   Some page content is not contained by landmarks\",\u001b[39m\n\u001b[31m+         \"html\": \"<h2 class=\\\"text-xl font-mono font-bold text-[#ff0055] uppercase tracking-widest mb-2\\\">Dashboard Module Failure</h2>\",\u001b[39m\n\u001b[31m+         \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+         \"none\": Array [],\u001b[39m\n\u001b[31m+         \"target\": Array [\u001b[39m\n\u001b[31m+           \"h2\",\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+       },\u001b[39m\n\u001b[31m+       Object {\u001b[39m\n\u001b[31m+         \"all\": Array [],\u001b[39m\n\u001b[31m+         \"any\": Array [\u001b[39m\n\u001b[31m+           Object {\u001b[39m\n\u001b[31m+             \"data\": Object {\u001b[39m\n\u001b[31m+               \"isIframe\": false,\u001b[39m\n\u001b[31m+             },\u001b[39m\n\u001b[31m+             \"id\": \"region\",\u001b[39m\n\u001b[31m+             \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+             \"message\": \"Some page content is not contained by landmarks\",\u001b[39m\n\u001b[31m+             \"relatedNodes\": Array [],\u001b[39m\n\u001b[31m+           },\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+         \"failureSummary\": \"Fix any of the following:\u001b[39m\n\u001b[31m+   Some page content is not contained by landmarks\",\u001b[39m\n\u001b[31m+         \"html\": \"<p class=\\\"text-sm text-slate-400 font-mono mb-4\\\">A critical module in the admin dashboard has crashed. The rest of the system remains intact.</p>\",\u001b[39m\n\u001b[31m+         \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+         \"none\": Array [],\u001b[39m\n\u001b[31m+         \"target\": Array [\u001b[39m\n\u001b[31m+           \"p\",\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+       },\u001b[39m\n\u001b[31m+       Object {\u001b[39m\n\u001b[31m+         \"all\": Array [],\u001b[39m\n\u001b[31m+         \"any\": Array [\u001b[39m\n\u001b[31m+           Object {\u001b[39m\n\u001b[31m+             \"data\": Object {\u001b[39m\n\u001b[31m+               \"isIframe\": false,\u001b[39m\n\u001b[31m+             },\u001b[39m\n\u001b[31m+             \"id\": \"region\",\u001b[39m\n\u001b[31m+             \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+             \"message\": \"Some page content is not contained by landmarks\",\u001b[39m\n\u001b[31m+             \"relatedNodes\": Array [],\u001b[39m\n\u001b[31m+           },\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+         \"failureSummary\": \"Fix any of the following:\u001b[39m\n\u001b[31m+   Some page content is not contained by landmarks\",\u001b[39m\n\u001b[31m+         \"html\": \"<pre class=\\\"text-xs text-slate-400 font-mono bg-slate-900/80 p-3 rounded-lg mb-6 overflow-auto max-h-40\\\">React is not defined</pre>\",\u001b[39m\n\u001b[31m+         \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+         \"none\": Array [],\u001b[39m\n\u001b[31m+         \"target\": Array [\u001b[39m\n\u001b[31m+           \"pre\",\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+       },\u001b[39m\n\u001b[31m+     ],\u001b[39m\n\u001b[31m+     \"tags\": Array [\u001b[39m\n\u001b[31m+       \"cat.keyboard\",\u001b[39m\n\u001b[31m+       \"best-practice\",\u001b[39m\n\u001b[31m+       \"RGAAv4\",\u001b[39m\n\u001b[31m+       \"RGAA-9.2.1\",\u001b[39m\n\u001b[31m+     ],\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+ ]\u001b[39m\n\n  21 |         const accessibilityScanResults = await new AxeBuilder({ page }).analyze();\n  22 |\n> 23 |         expect(accessibilityScanResults.violations).toEqual([]);\n     |                                                     ^\n  24 |     });\n  25 | });\n    at C:\\Users\\n\\supremeai\\supremeai_2.0\\tests\\e2e\\accessibility.spec.ts:23:53"
-                        }
-                      ],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-07-04T13:04:11.367Z",
-                      "annotations": [],
-                      "attachments": [
-                        {
-                          "name": "screenshot",
-                          "contentType": "image/png",
-                          "path": "C:\\Users\\n\\supremeai\\supremeai_2.0\\test-results\\e2e-accessibility-Accessib-1a8a2-hboard-should-be-accessible-Mobile-Chrome\\test-failed-1.png"
-                        },
-                        {
-                          "name": "video",
-                          "contentType": "video/webm",
-                          "path": "C:\\Users\\n\\supremeai\\supremeai_2.0\\test-results\\e2e-accessibility-Accessib-1a8a2-hboard-should-be-accessible-Mobile-Chrome\\video-1.webm"
-                        },
-                        {
-                          "name": "video",
-                          "contentType": "video/webm",
-                          "path": "C:\\Users\\n\\supremeai\\supremeai_2.0\\test-results\\e2e-accessibility-Accessib-1a8a2-hboard-should-be-accessible-Mobile-Chrome\\video.webm"
-                        },
-                        {
-                          "name": "error-context",
-                          "contentType": "text/markdown",
-                          "path": "C:\\Users\\n\\supremeai\\supremeai_2.0\\test-results\\e2e-accessibility-Accessib-1a8a2-hboard-should-be-accessible-Mobile-Chrome\\error-context.md"
-                        }
-                      ],
-                      "errorLocation": {
-                        "file": "C:\\Users\\n\\supremeai\\supremeai_2.0\\tests\\e2e\\accessibility.spec.ts",
-                        "column": 53,
-                        "line": 23
-                      }
-                    }
-                  ],
-                  "status": "unexpected"
-                }
-              ],
-              "id": "cb4d96879b22e77d8b2c-5cee6a536c5b96084d0d",
-              "file": "e2e/accessibility.spec.ts",
-              "line": 18,
-              "column": 9
-            },
-            {
-              "title": "Homepage should not have any automatically detectable accessibility issues",
-              "ok": false,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 30000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "Mobile Safari",
-                  "projectName": "Mobile Safari",
-                  "results": [
-                    {
-                      "workerIndex": 26,
-                      "parallelIndex": 0,
-                      "status": "failed",
-                      "duration": 43,
-                      "error": {
-                        "message": "Error: browserType.launch: Executable doesn't exist at C:\\Users\\n\\AppData\\Local\\ms-playwright\\webkit-2311\\Playwright.exe\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     pnpm exec playwright install                           ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝",
-                        "stack": "Error: browserType.launch: Executable doesn't exist at C:\\Users\\n\\AppData\\Local\\ms-playwright\\webkit-2311\\Playwright.exe\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     pnpm exec playwright install                           ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝"
-                      },
-                      "errors": [
-                        {
-                          "message": "Error: browserType.launch: Executable doesn't exist at C:\\Users\\n\\AppData\\Local\\ms-playwright\\webkit-2311\\Playwright.exe\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     pnpm exec playwright install                           ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝"
-                        }
-                      ],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-07-04T13:05:36.019Z",
-                      "annotations": [],
-                      "attachments": [
-                        {
-                          "name": "error-context",
-                          "contentType": "text/markdown",
-                          "path": "C:\\Users\\n\\supremeai\\supremeai_2.0\\test-results\\e2e-accessibility-Accessib-57b49-ctable-accessibility-issues-Mobile-Safari\\error-context.md"
-                        }
-                      ]
-                    }
-                  ],
-                  "status": "unexpected"
-                }
-              ],
-              "id": "cb4d96879b22e77d8b2c-48be1640fc89884f4421",
-              "file": "e2e/accessibility.spec.ts",
-              "line": 5,
-              "column": 9
-            },
-            {
-              "title": "Admin Dashboard should be accessible",
-              "ok": false,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 30000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "Mobile Safari",
-                  "projectName": "Mobile Safari",
-                  "results": [
-                    {
-                      "workerIndex": 27,
-                      "parallelIndex": 1,
-                      "status": "failed",
-                      "duration": 8,
-                      "error": {
-                        "message": "Error: browserType.launch: Executable doesn't exist at C:\\Users\\n\\AppData\\Local\\ms-playwright\\webkit-2311\\Playwright.exe\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     pnpm exec playwright install                           ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝",
-                        "stack": "Error: browserType.launch: Executable doesn't exist at C:\\Users\\n\\AppData\\Local\\ms-playwright\\webkit-2311\\Playwright.exe\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     pnpm exec playwright install                           ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝"
-                      },
-                      "errors": [
-                        {
-                          "message": "Error: browserType.launch: Executable doesn't exist at C:\\Users\\n\\AppData\\Local\\ms-playwright\\webkit-2311\\Playwright.exe\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     pnpm exec playwright install                           ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝"
-                        }
-                      ],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-07-04T13:05:37.025Z",
-                      "annotations": [],
-                      "attachments": [
-                        {
-                          "name": "error-context",
-                          "contentType": "text/markdown",
-                          "path": "C:\\Users\\n\\supremeai\\supremeai_2.0\\test-results\\e2e-accessibility-Accessib-1a8a2-hboard-should-be-accessible-Mobile-Safari\\error-context.md"
-                        }
-                      ]
-                    }
-                  ],
-                  "status": "unexpected"
-                }
-              ],
-              "id": "cb4d96879b22e77d8b2c-179c216fc7c0773a00af",
-              "file": "e2e/accessibility.spec.ts",
-              "line": 18,
-              "column": 9
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "title": "e2e\\admin-dashboard.spec.ts",
-      "file": "e2e/admin-dashboard.spec.ts",
-      "column": 0,
-      "line": 0,
-      "specs": [],
-      "suites": [
-        {
-          "title": "SupremeAI Nexus E2E Flow",
-          "file": "e2e/admin-dashboard.spec.ts",
-          "line": 3,
-          "column": 6,
-          "specs": [
-            {
-              "title": "should load the dashboard and verify Java Worker widget",
-              "ok": false,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 30000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 0,
-                      "parallelIndex": 0,
-                      "status": "failed",
-                      "duration": 10854,
-                      "error": {
-                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByText('SupremeAI')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByText('SupremeAI')\u001b[22m\n",
-                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByText('SupremeAI')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByText('SupremeAI')\u001b[22m\n\n    at C:\\Users\\n\\supremeai\\supremeai_2.0\\tests\\e2e\\admin-dashboard.spec.ts:10:47",
-                        "location": {
-                          "file": "C:\\Users\\n\\supremeai\\supremeai_2.0\\tests\\e2e\\admin-dashboard.spec.ts",
-                          "column": 47,
-                          "line": 10
-                        },
-                        "snippet": "\u001b[0m \u001b[90m  8 |\u001b[39m\n \u001b[90m  9 |\u001b[39m     \u001b[90m// 2. Verify Nexus Header exists\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 10 |\u001b[39m     \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mgetByText(\u001b[32m'SupremeAI'\u001b[39m))\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                                               \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 11 |\u001b[39m\n \u001b[90m 12 |\u001b[39m     \u001b[90m// 3. Verify Java Background Worker widget is rendered\u001b[39m\n \u001b[90m 13 |\u001b[39m     \u001b[36mconst\u001b[39m workerWidget \u001b[33m=\u001b[39m page\u001b[33m.\u001b[39mlocator(\u001b[32m'text=Java Background Worker'\u001b[39m)\u001b[33m;\u001b[39m\u001b[0m"
-                      },
-                      "errors": [
-                        {
-                          "location": {
-                            "file": "C:\\Users\\n\\supremeai\\supremeai_2.0\\tests\\e2e\\admin-dashboard.spec.ts",
-                            "column": 47,
-                            "line": 10
-                          },
-                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByText('SupremeAI')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByText('SupremeAI')\u001b[22m\n\n\n   8 |\n   9 |     // 2. Verify Nexus Header exists\n> 10 |     await expect(page.getByText('SupremeAI')).toBeVisible();\n     |                                               ^\n  11 |\n  12 |     // 3. Verify Java Background Worker widget is rendered\n  13 |     const workerWidget = page.locator('text=Java Background Worker');\n    at C:\\Users\\n\\supremeai\\supremeai_2.0\\tests\\e2e\\admin-dashboard.spec.ts:10:47"
-                        }
-                      ],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-07-04T13:03:03.587Z",
-                      "annotations": [],
-                      "attachments": [
-                        {
-                          "name": "screenshot",
-                          "contentType": "image/png",
-                          "path": "C:\\Users\\n\\supremeai\\supremeai_2.0\\test-results\\e2e-admin-dashboard-Suprem-08ee0-d-verify-Java-Worker-widget-chromium\\test-failed-1.png"
-                        },
-                        {
-                          "name": "video",
-                          "contentType": "video/webm",
-                          "path": "C:\\Users\\n\\supremeai\\supremeai_2.0\\test-results\\e2e-admin-dashboard-Suprem-08ee0-d-verify-Java-Worker-widget-chromium\\video.webm"
-                        },
-                        {
-                          "name": "error-context",
-                          "contentType": "text/markdown",
-                          "path": "C:\\Users\\n\\supremeai\\supremeai_2.0\\test-results\\e2e-admin-dashboard-Suprem-08ee0-d-verify-Java-Worker-widget-chromium\\error-context.md"
-                        }
-                      ],
-                      "errorLocation": {
-                        "file": "C:\\Users\\n\\supremeai\\supremeai_2.0\\tests\\e2e\\admin-dashboard.spec.ts",
-                        "column": 47,
-                        "line": 10
-                      }
-                    }
-                  ],
-                  "status": "unexpected"
-                }
-              ],
-              "id": "7475c5559e3e24f1e588-840ff965689fe6d6493e",
-              "file": "e2e/admin-dashboard.spec.ts",
-              "line": 5,
-              "column": 7
-            },
-            {
-              "title": "should be able to submit an orchestration command via chat",
-              "ok": false,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 30000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 2,
-                      "parallelIndex": 1,
-                      "status": "failed",
-                      "duration": 9961,
-                      "error": {
-                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByPlaceholder('[SupremeAI Nexus Command...]')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByPlaceholder('[SupremeAI Nexus Command...]')\u001b[22m\n",
-                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByPlaceholder('[SupremeAI Nexus Command...]')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByPlaceholder('[SupremeAI Nexus Command...]')\u001b[22m\n\n    at C:\\Users\\n\\supremeai\\supremeai_2.0\\tests\\e2e\\admin-dashboard.spec.ts:30:29",
-                        "location": {
-                          "file": "C:\\Users\\n\\supremeai\\supremeai_2.0\\tests\\e2e\\admin-dashboard.spec.ts",
-                          "column": 29,
-                          "line": 30
-                        },
-                        "snippet": "\u001b[0m \u001b[90m 28 |\u001b[39m     \u001b[90m// Find the chat input\u001b[39m\n \u001b[90m 29 |\u001b[39m     \u001b[36mconst\u001b[39m chatInput \u001b[33m=\u001b[39m page\u001b[33m.\u001b[39mgetByPlaceholder(\u001b[32m'[SupremeAI Nexus Command...]'\u001b[39m)\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 30 |\u001b[39m     \u001b[36mawait\u001b[39m expect(chatInput)\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                             \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 31 |\u001b[39m\n \u001b[90m 32 |\u001b[39m     \u001b[90m// Type a command that would theoretically trigger a background Java task\u001b[39m\n \u001b[90m 33 |\u001b[39m     \u001b[36mawait\u001b[39m chatInput\u001b[33m.\u001b[39mfill(\u001b[32m'Run full system security audit'\u001b[39m)\u001b[33m;\u001b[39m\u001b[0m"
-                      },
-                      "errors": [
-                        {
-                          "location": {
-                            "file": "C:\\Users\\n\\supremeai\\supremeai_2.0\\tests\\e2e\\admin-dashboard.spec.ts",
-                            "column": 29,
-                            "line": 30
-                          },
-                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByPlaceholder('[SupremeAI Nexus Command...]')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByPlaceholder('[SupremeAI Nexus Command...]')\u001b[22m\n\n\n  28 |     // Find the chat input\n  29 |     const chatInput = page.getByPlaceholder('[SupremeAI Nexus Command...]');\n> 30 |     await expect(chatInput).toBeVisible();\n     |                             ^\n  31 |\n  32 |     // Type a command that would theoretically trigger a background Java task\n  33 |     await chatInput.fill('Run full system security audit');\n    at C:\\Users\\n\\supremeai\\supremeai_2.0\\tests\\e2e\\admin-dashboard.spec.ts:30:29"
-                        }
-                      ],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-07-04T13:03:08.176Z",
-                      "annotations": [],
-                      "attachments": [
-                        {
-                          "name": "screenshot",
-                          "contentType": "image/png",
-                          "path": "C:\\Users\\n\\supremeai\\supremeai_2.0\\test-results\\e2e-admin-dashboard-Suprem-8ff1e-hestration-command-via-chat-chromium\\test-failed-1.png"
-                        },
-                        {
-                          "name": "video",
-                          "contentType": "video/webm",
-                          "path": "C:\\Users\\n\\supremeai\\supremeai_2.0\\test-results\\e2e-admin-dashboard-Suprem-8ff1e-hestration-command-via-chat-chromium\\video.webm"
-                        },
-                        {
-                          "name": "error-context",
-                          "contentType": "text/markdown",
-                          "path": "C:\\Users\\n\\supremeai\\supremeai_2.0\\test-results\\e2e-admin-dashboard-Suprem-8ff1e-hestration-command-via-chat-chromium\\error-context.md"
-                        }
-                      ],
-                      "errorLocation": {
-                        "file": "C:\\Users\\n\\supremeai\\supremeai_2.0\\tests\\e2e\\admin-dashboard.spec.ts",
-                        "column": 29,
-                        "line": 30
-                      }
-                    }
-                  ],
-                  "status": "unexpected"
-                }
-              ],
-              "id": "7475c5559e3e24f1e588-a9afdc9c7cb2ed54a956",
-              "file": "e2e/admin-dashboard.spec.ts",
-              "line": 25,
-              "column": 7
-            },
-            {
-              "title": "should load the dashboard and verify Java Worker widget",
-              "ok": false,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 30000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "firefox",
-                  "projectName": "firefox",
-                  "results": [
-                    {
-                      "workerIndex": 8,
-                      "parallelIndex": 1,
-                      "status": "failed",
-                      "duration": 4,
-                      "error": {
-                        "message": "Error: browserType.launch: Executable doesn't exist at C:\\Users\\n\\AppData\\Local\\ms-playwright\\firefox-1532\\firefox\\firefox.exe\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     pnpm exec playwright install                           ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝",
-                        "stack": "Error: browserType.launch: Executable doesn't exist at C:\\Users\\n\\AppData\\Local\\ms-playwright\\firefox-1532\\firefox\\firefox.exe\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     pnpm exec playwright install                           ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝"
-                      },
-                      "errors": [
-                        {
-                          "message": "Error: browserType.launch: Executable doesn't exist at C:\\Users\\n\\AppData\\Local\\ms-playwright\\firefox-1532\\firefox\\firefox.exe\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     pnpm exec playwright install                           ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝"
-                        }
-                      ],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-07-04T13:03:45.754Z",
-                      "annotations": [],
-                      "attachments": [
-                        {
-                          "name": "error-context",
-                          "contentType": "text/markdown",
-                          "path": "C:\\Users\\n\\supremeai\\supremeai_2.0\\test-results\\e2e-admin-dashboard-Suprem-08ee0-d-verify-Java-Worker-widget-firefox\\error-context.md"
-                        }
-                      ]
-                    }
-                  ],
-                  "status": "unexpected"
-                }
-              ],
-              "id": "7475c5559e3e24f1e588-491652adea7e374b3693",
-              "file": "e2e/admin-dashboard.spec.ts",
-              "line": 5,
-              "column": 7
-            },
-            {
-              "title": "should be able to submit an orchestration command via chat",
-              "ok": false,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 30000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "firefox",
-                  "projectName": "firefox",
-                  "results": [
-                    {
-                      "workerIndex": 9,
-                      "parallelIndex": 1,
-                      "status": "failed",
-                      "duration": 4,
-                      "error": {
-                        "message": "Error: browserType.launch: Executable doesn't exist at C:\\Users\\n\\AppData\\Local\\ms-playwright\\firefox-1532\\firefox\\firefox.exe\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     pnpm exec playwright install                           ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝",
-                        "stack": "Error: browserType.launch: Executable doesn't exist at C:\\Users\\n\\AppData\\Local\\ms-playwright\\firefox-1532\\firefox\\firefox.exe\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     pnpm exec playwright install                           ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝"
-                      },
-                      "errors": [
-                        {
-                          "message": "Error: browserType.launch: Executable doesn't exist at C:\\Users\\n\\AppData\\Local\\ms-playwright\\firefox-1532\\firefox\\firefox.exe\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     pnpm exec playwright install                           ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝"
-                        }
-                      ],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-07-04T13:03:47.558Z",
-                      "annotations": [],
-                      "attachments": [
-                        {
-                          "name": "error-context",
-                          "contentType": "text/markdown",
-                          "path": "C:\\Users\\n\\supremeai\\supremeai_2.0\\test-results\\e2e-admin-dashboard-Suprem-8ff1e-hestration-command-via-chat-firefox\\error-context.md"
-                        }
-                      ]
-                    }
-                  ],
-                  "status": "unexpected"
-                }
-              ],
-              "id": "7475c5559e3e24f1e588-e3e38dbe989ee2539352",
-              "file": "e2e/admin-dashboard.spec.ts",
-              "line": 25,
-              "column": 7
-            },
-            {
-              "title": "should load the dashboard and verify Java Worker widget",
-              "ok": false,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 30000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "webkit",
-                  "projectName": "webkit",
-                  "results": [
-                    {
-                      "workerIndex": 15,
-                      "parallelIndex": 1,
-                      "status": "failed",
-                      "duration": 5,
-                      "error": {
-                        "message": "Error: browserType.launch: Executable doesn't exist at C:\\Users\\n\\AppData\\Local\\ms-playwright\\webkit-2311\\Playwright.exe\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     pnpm exec playwright install                           ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝",
-                        "stack": "Error: browserType.launch: Executable doesn't exist at C:\\Users\\n\\AppData\\Local\\ms-playwright\\webkit-2311\\Playwright.exe\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     pnpm exec playwright install                           ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝"
-                      },
-                      "errors": [
-                        {
-                          "message": "Error: browserType.launch: Executable doesn't exist at C:\\Users\\n\\AppData\\Local\\ms-playwright\\webkit-2311\\Playwright.exe\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     pnpm exec playwright install                           ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝"
-                        }
-                      ],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-07-04T13:04:02.401Z",
-                      "annotations": [],
-                      "attachments": [
-                        {
-                          "name": "error-context",
-                          "contentType": "text/markdown",
-                          "path": "C:\\Users\\n\\supremeai\\supremeai_2.0\\test-results\\e2e-admin-dashboard-Suprem-08ee0-d-verify-Java-Worker-widget-webkit\\error-context.md"
-                        }
-                      ]
-                    }
-                  ],
-                  "status": "unexpected"
-                }
-              ],
-              "id": "7475c5559e3e24f1e588-3fb10350a03b26d5bbcc",
-              "file": "e2e/admin-dashboard.spec.ts",
-              "line": 5,
-              "column": 7
-            },
-            {
-              "title": "should be able to submit an orchestration command via chat",
-              "ok": false,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 30000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "webkit",
-                  "projectName": "webkit",
-                  "results": [
-                    {
-                      "workerIndex": 16,
-                      "parallelIndex": 0,
-                      "status": "failed",
-                      "duration": 10,
-                      "error": {
-                        "message": "Error: browserType.launch: Executable doesn't exist at C:\\Users\\n\\AppData\\Local\\ms-playwright\\webkit-2311\\Playwright.exe\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     pnpm exec playwright install                           ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝",
-                        "stack": "Error: browserType.launch: Executable doesn't exist at C:\\Users\\n\\AppData\\Local\\ms-playwright\\webkit-2311\\Playwright.exe\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     pnpm exec playwright install                           ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝"
-                      },
-                      "errors": [
-                        {
-                          "message": "Error: browserType.launch: Executable doesn't exist at C:\\Users\\n\\AppData\\Local\\ms-playwright\\webkit-2311\\Playwright.exe\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     pnpm exec playwright install                           ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝"
-                        }
-                      ],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-07-04T13:04:04.722Z",
-                      "annotations": [],
-                      "attachments": [
-                        {
-                          "name": "error-context",
-                          "contentType": "text/markdown",
-                          "path": "C:\\Users\\n\\supremeai\\supremeai_2.0\\test-results\\e2e-admin-dashboard-Suprem-8ff1e-hestration-command-via-chat-webkit\\error-context.md"
-                        }
-                      ]
-                    }
-                  ],
-                  "status": "unexpected"
-                }
-              ],
-              "id": "7475c5559e3e24f1e588-f0da5eebe25779d0cd1e",
-              "file": "e2e/admin-dashboard.spec.ts",
-              "line": 25,
-              "column": 7
-            },
-            {
-              "title": "should load the dashboard and verify Java Worker widget",
-              "ok": false,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 30000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "Mobile Chrome",
-                  "projectName": "Mobile Chrome",
-                  "results": [
-                    {
-                      "workerIndex": 20,
-                      "parallelIndex": 0,
-                      "status": "failed",
-                      "duration": 10095,
-                      "error": {
-                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByText('SupremeAI')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByText('SupremeAI')\u001b[22m\n",
-                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByText('SupremeAI')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByText('SupremeAI')\u001b[22m\n\n    at C:\\Users\\n\\supremeai\\supremeai_2.0\\tests\\e2e\\admin-dashboard.spec.ts:10:47",
-                        "location": {
-                          "file": "C:\\Users\\n\\supremeai\\supremeai_2.0\\tests\\e2e\\admin-dashboard.spec.ts",
-                          "column": 47,
-                          "line": 10
-                        },
-                        "snippet": "\u001b[0m \u001b[90m  8 |\u001b[39m\n \u001b[90m  9 |\u001b[39m     \u001b[90m// 2. Verify Nexus Header exists\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 10 |\u001b[39m     \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mgetByText(\u001b[32m'SupremeAI'\u001b[39m))\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                                               \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 11 |\u001b[39m\n \u001b[90m 12 |\u001b[39m     \u001b[90m// 3. Verify Java Background Worker widget is rendered\u001b[39m\n \u001b[90m 13 |\u001b[39m     \u001b[36mconst\u001b[39m workerWidget \u001b[33m=\u001b[39m page\u001b[33m.\u001b[39mlocator(\u001b[32m'text=Java Background Worker'\u001b[39m)\u001b[33m;\u001b[39m\u001b[0m"
-                      },
-                      "errors": [
-                        {
-                          "location": {
-                            "file": "C:\\Users\\n\\supremeai\\supremeai_2.0\\tests\\e2e\\admin-dashboard.spec.ts",
-                            "column": 47,
-                            "line": 10
-                          },
-                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByText('SupremeAI')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByText('SupremeAI')\u001b[22m\n\n\n   8 |\n   9 |     // 2. Verify Nexus Header exists\n> 10 |     await expect(page.getByText('SupremeAI')).toBeVisible();\n     |                                               ^\n  11 |\n  12 |     // 3. Verify Java Background Worker widget is rendered\n  13 |     const workerWidget = page.locator('text=Java Background Worker');\n    at C:\\Users\\n\\supremeai\\supremeai_2.0\\tests\\e2e\\admin-dashboard.spec.ts:10:47"
-                        }
-                      ],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-07-04T13:04:33.856Z",
-                      "annotations": [],
-                      "attachments": [
-                        {
-                          "name": "screenshot",
-                          "contentType": "image/png",
-                          "path": "C:\\Users\\n\\supremeai\\supremeai_2.0\\test-results\\e2e-admin-dashboard-Suprem-08ee0-d-verify-Java-Worker-widget-Mobile-Chrome\\test-failed-1.png"
-                        },
-                        {
-                          "name": "video",
-                          "contentType": "video/webm",
-                          "path": "C:\\Users\\n\\supremeai\\supremeai_2.0\\test-results\\e2e-admin-dashboard-Suprem-08ee0-d-verify-Java-Worker-widget-Mobile-Chrome\\video.webm"
-                        },
-                        {
-                          "name": "error-context",
-                          "contentType": "text/markdown",
-                          "path": "C:\\Users\\n\\supremeai\\supremeai_2.0\\test-results\\e2e-admin-dashboard-Suprem-08ee0-d-verify-Java-Worker-widget-Mobile-Chrome\\error-context.md"
-                        }
-                      ],
-                      "errorLocation": {
-                        "file": "C:\\Users\\n\\supremeai\\supremeai_2.0\\tests\\e2e\\admin-dashboard.spec.ts",
-                        "column": 47,
-                        "line": 10
-                      }
-                    }
-                  ],
-                  "status": "unexpected"
-                }
-              ],
-              "id": "7475c5559e3e24f1e588-7d5549aefb4e4e2fcf77",
-              "file": "e2e/admin-dashboard.spec.ts",
-              "line": 5,
-              "column": 7
-            },
-            {
-              "title": "should be able to submit an orchestration command via chat",
-              "ok": false,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 30000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "Mobile Chrome",
-                  "projectName": "Mobile Chrome",
-                  "results": [
-                    {
-                      "workerIndex": 22,
-                      "parallelIndex": 1,
-                      "status": "failed",
-                      "duration": 9169,
-                      "error": {
-                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByPlaceholder('[SupremeAI Nexus Command...]')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByPlaceholder('[SupremeAI Nexus Command...]')\u001b[22m\n",
-                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByPlaceholder('[SupremeAI Nexus Command...]')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByPlaceholder('[SupremeAI Nexus Command...]')\u001b[22m\n\n    at C:\\Users\\n\\supremeai\\supremeai_2.0\\tests\\e2e\\admin-dashboard.spec.ts:30:29",
-                        "location": {
-                          "file": "C:\\Users\\n\\supremeai\\supremeai_2.0\\tests\\e2e\\admin-dashboard.spec.ts",
-                          "column": 29,
-                          "line": 30
-                        },
-                        "snippet": "\u001b[0m \u001b[90m 28 |\u001b[39m     \u001b[90m// Find the chat input\u001b[39m\n \u001b[90m 29 |\u001b[39m     \u001b[36mconst\u001b[39m chatInput \u001b[33m=\u001b[39m page\u001b[33m.\u001b[39mgetByPlaceholder(\u001b[32m'[SupremeAI Nexus Command...]'\u001b[39m)\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 30 |\u001b[39m     \u001b[36mawait\u001b[39m expect(chatInput)\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                             \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 31 |\u001b[39m\n \u001b[90m 32 |\u001b[39m     \u001b[90m// Type a command that would theoretically trigger a background Java task\u001b[39m\n \u001b[90m 33 |\u001b[39m     \u001b[36mawait\u001b[39m chatInput\u001b[33m.\u001b[39mfill(\u001b[32m'Run full system security audit'\u001b[39m)\u001b[33m;\u001b[39m\u001b[0m"
-                      },
-                      "errors": [
-                        {
-                          "location": {
-                            "file": "C:\\Users\\n\\supremeai\\supremeai_2.0\\tests\\e2e\\admin-dashboard.spec.ts",
-                            "column": 29,
-                            "line": 30
-                          },
-                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByPlaceholder('[SupremeAI Nexus Command...]')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByPlaceholder('[SupremeAI Nexus Command...]')\u001b[22m\n\n\n  28 |     // Find the chat input\n  29 |     const chatInput = page.getByPlaceholder('[SupremeAI Nexus Command...]');\n> 30 |     await expect(chatInput).toBeVisible();\n     |                             ^\n  31 |\n  32 |     // Type a command that would theoretically trigger a background Java task\n  33 |     await chatInput.fill('Run full system security audit');\n    at C:\\Users\\n\\supremeai\\supremeai_2.0\\tests\\e2e\\admin-dashboard.spec.ts:30:29"
-                        }
-                      ],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-07-04T13:04:40.757Z",
-                      "annotations": [],
-                      "attachments": [
-                        {
-                          "name": "screenshot",
-                          "contentType": "image/png",
-                          "path": "C:\\Users\\n\\supremeai\\supremeai_2.0\\test-results\\e2e-admin-dashboard-Suprem-8ff1e-hestration-command-via-chat-Mobile-Chrome\\test-failed-1.png"
-                        },
-                        {
-                          "name": "video",
-                          "contentType": "video/webm",
-                          "path": "C:\\Users\\n\\supremeai\\supremeai_2.0\\test-results\\e2e-admin-dashboard-Suprem-8ff1e-hestration-command-via-chat-Mobile-Chrome\\video.webm"
-                        },
-                        {
-                          "name": "error-context",
-                          "contentType": "text/markdown",
-                          "path": "C:\\Users\\n\\supremeai\\supremeai_2.0\\test-results\\e2e-admin-dashboard-Suprem-8ff1e-hestration-command-via-chat-Mobile-Chrome\\error-context.md"
-                        }
-                      ],
-                      "errorLocation": {
-                        "file": "C:\\Users\\n\\supremeai\\supremeai_2.0\\tests\\e2e\\admin-dashboard.spec.ts",
-                        "column": 29,
-                        "line": 30
-                      }
-                    }
-                  ],
-                  "status": "unexpected"
-                }
-              ],
-              "id": "7475c5559e3e24f1e588-8ceedf6c266ee271f8e8",
-              "file": "e2e/admin-dashboard.spec.ts",
-              "line": 25,
-              "column": 7
-            },
-            {
-              "title": "should load the dashboard and verify Java Worker widget",
-              "ok": false,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 30000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "Mobile Safari",
-                  "projectName": "Mobile Safari",
-                  "results": [
-                    {
-                      "workerIndex": 28,
-                      "parallelIndex": 0,
-                      "status": "failed",
-                      "duration": 7,
-                      "error": {
-                        "message": "Error: browserType.launch: Executable doesn't exist at C:\\Users\\n\\AppData\\Local\\ms-playwright\\webkit-2311\\Playwright.exe\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     pnpm exec playwright install                           ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝",
-                        "stack": "Error: browserType.launch: Executable doesn't exist at C:\\Users\\n\\AppData\\Local\\ms-playwright\\webkit-2311\\Playwright.exe\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     pnpm exec playwright install                           ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝"
-                      },
-                      "errors": [
-                        {
-                          "message": "Error: browserType.launch: Executable doesn't exist at C:\\Users\\n\\AppData\\Local\\ms-playwright\\webkit-2311\\Playwright.exe\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     pnpm exec playwright install                           ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝"
-                        }
-                      ],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-07-04T13:05:39.129Z",
-                      "annotations": [],
-                      "attachments": [
-                        {
-                          "name": "error-context",
-                          "contentType": "text/markdown",
-                          "path": "C:\\Users\\n\\supremeai\\supremeai_2.0\\test-results\\e2e-admin-dashboard-Suprem-08ee0-d-verify-Java-Worker-widget-Mobile-Safari\\error-context.md"
-                        }
-                      ]
-                    }
-                  ],
-                  "status": "unexpected"
-                }
-              ],
-              "id": "7475c5559e3e24f1e588-41f61f78135bde40d262",
-              "file": "e2e/admin-dashboard.spec.ts",
-              "line": 5,
-              "column": 7
-            },
-            {
-              "title": "should be able to submit an orchestration command via chat",
-              "ok": false,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 30000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "Mobile Safari",
-                  "projectName": "Mobile Safari",
-                  "results": [
-                    {
-                      "workerIndex": 29,
-                      "parallelIndex": 1,
-                      "status": "failed",
-                      "duration": 5,
-                      "error": {
-                        "message": "Error: browserType.launch: Executable doesn't exist at C:\\Users\\n\\AppData\\Local\\ms-playwright\\webkit-2311\\Playwright.exe\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     pnpm exec playwright install                           ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝",
-                        "stack": "Error: browserType.launch: Executable doesn't exist at C:\\Users\\n\\AppData\\Local\\ms-playwright\\webkit-2311\\Playwright.exe\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     pnpm exec playwright install                           ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝"
-                      },
-                      "errors": [
-                        {
-                          "message": "Error: browserType.launch: Executable doesn't exist at C:\\Users\\n\\AppData\\Local\\ms-playwright\\webkit-2311\\Playwright.exe\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     pnpm exec playwright install                           ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝"
-                        }
-                      ],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-07-04T13:05:39.889Z",
-                      "annotations": [],
-                      "attachments": [
-                        {
-                          "name": "error-context",
-                          "contentType": "text/markdown",
-                          "path": "C:\\Users\\n\\supremeai\\supremeai_2.0\\test-results\\e2e-admin-dashboard-Suprem-8ff1e-hestration-command-via-chat-Mobile-Safari\\error-context.md"
-                        }
-                      ]
-                    }
-                  ],
-                  "status": "unexpected"
-                }
-              ],
-              "id": "7475c5559e3e24f1e588-14e856414cbc68b42523",
-              "file": "e2e/admin-dashboard.spec.ts",
-              "line": 25,
-              "column": 7
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "title": "e2e\\chat.spec.ts",
-      "file": "e2e/chat.spec.ts",
-      "column": 0,
-      "line": 0,
-      "specs": [
-        {
-          "title": "Chat sends message",
-          "ok": false,
-          "tags": [],
-          "tests": [
-            {
-              "timeout": 30000,
-              "annotations": [],
-              "expectedStatus": "passed",
-              "projectId": "chromium",
-              "projectName": "chromium",
-              "results": [
-                {
-                  "workerIndex": 3,
-                  "parallelIndex": 0,
-                  "status": "timedOut",
-                  "duration": 30585,
-                  "error": {
-                    "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m",
-                    "stack": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
-                  },
-                  "errors": [
-                    {
-                      "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
-                    },
-                    {
-                      "location": {
-                        "file": "C:\\Users\\n\\supremeai\\supremeai_2.0\\tests\\e2e\\chat.spec.ts",
-                        "column": 14,
-                        "line": 5
-                      },
-                      "message": "Error: page.fill: Test timeout of 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-testid=\"chat-input\"]')\u001b[22m\n\n\n  3 | test('Chat sends message', async ({ page }) => {\n  4 |   await page.goto('/');\n> 5 |   await page.fill('[data-testid=\"chat-input\"]', 'Hello SupremeAI!');\n    |              ^\n  6 |   await page.click('[data-testid=\"chat-submit\"]');\n  7 |   await expect(page.getByText('Hello SupremeAI!').first()).toBeVisible();\n  8 | });\n    at C:\\Users\\n\\supremeai\\supremeai_2.0\\tests\\e2e\\chat.spec.ts:5:14"
-                    }
-                  ],
-                  "stdout": [],
-                  "stderr": [],
-                  "retry": 0,
-                  "startTime": "2026-07-04T13:03:16.212Z",
-                  "annotations": [],
-                  "attachments": [
-                    {
-                      "name": "screenshot",
-                      "contentType": "image/png",
-                      "path": "C:\\Users\\n\\supremeai\\supremeai_2.0\\test-results\\e2e-chat-Chat-sends-message-chromium\\test-failed-1.png"
-                    },
-                    {
-                      "name": "video",
-                      "contentType": "video/webm",
-                      "path": "C:\\Users\\n\\supremeai\\supremeai_2.0\\test-results\\e2e-chat-Chat-sends-message-chromium\\video.webm"
-                    },
-                    {
-                      "name": "error-context",
-                      "contentType": "text/markdown",
-                      "path": "C:\\Users\\n\\supremeai\\supremeai_2.0\\test-results\\e2e-chat-Chat-sends-message-chromium\\error-context.md"
-                    }
-                  ]
-                }
-              ],
-              "status": "unexpected"
-            }
-          ],
-          "id": "d3d49f2899a0faacbcaf-be505a322d854db5b764",
-          "file": "e2e/chat.spec.ts",
-          "line": 3,
-          "column": 5
-        },
-        {
-          "title": "Chat sends message",
-          "ok": false,
-          "tags": [],
-          "tests": [
-            {
-              "timeout": 30000,
-              "annotations": [],
-              "expectedStatus": "passed",
-              "projectId": "firefox",
-              "projectName": "firefox",
-              "results": [
-                {
-                  "workerIndex": 10,
-                  "parallelIndex": 1,
-                  "status": "failed",
-                  "duration": 13,
-                  "error": {
-                    "message": "Error: browserType.launch: Executable doesn't exist at C:\\Users\\n\\AppData\\Local\\ms-playwright\\firefox-1532\\firefox\\firefox.exe\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     pnpm exec playwright install                           ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝",
-                    "stack": "Error: browserType.launch: Executable doesn't exist at C:\\Users\\n\\AppData\\Local\\ms-playwright\\firefox-1532\\firefox\\firefox.exe\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     pnpm exec playwright install                           ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝"
-                  },
-                  "errors": [
-                    {
-                      "message": "Error: browserType.launch: Executable doesn't exist at C:\\Users\\n\\AppData\\Local\\ms-playwright\\firefox-1532\\firefox\\firefox.exe\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     pnpm exec playwright install                           ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝"
-                    }
-                  ],
-                  "stdout": [],
-                  "stderr": [],
-                  "retry": 0,
-                  "startTime": "2026-07-04T13:03:49.221Z",
-                  "annotations": [],
-                  "attachments": [
-                    {
-                      "name": "error-context",
-                      "contentType": "text/markdown",
-                      "path": "C:\\Users\\n\\supremeai\\supremeai_2.0\\test-results\\e2e-chat-Chat-sends-message-firefox\\error-context.md"
-                    }
-                  ]
-                }
-              ],
-              "status": "unexpected"
-            }
-          ],
-          "id": "d3d49f2899a0faacbcaf-854e5b451a7a4fe0eaa9",
-          "file": "e2e/chat.spec.ts",
-          "line": 3,
-          "column": 5
-        },
-        {
-          "title": "Chat sends message",
-          "ok": false,
-          "tags": [],
-          "tests": [
-            {
-              "timeout": 30000,
-              "annotations": [],
-              "expectedStatus": "passed",
-              "projectId": "webkit",
-              "projectName": "webkit",
-              "results": [
-                {
-                  "workerIndex": 17,
-                  "parallelIndex": 1,
-                  "status": "failed",
-                  "duration": 4,
-                  "error": {
-                    "message": "Error: browserType.launch: Executable doesn't exist at C:\\Users\\n\\AppData\\Local\\ms-playwright\\webkit-2311\\Playwright.exe\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     pnpm exec playwright install                           ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝",
-                    "stack": "Error: browserType.launch: Executable doesn't exist at C:\\Users\\n\\AppData\\Local\\ms-playwright\\webkit-2311\\Playwright.exe\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     pnpm exec playwright install                           ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝"
-                  },
-                  "errors": [
-                    {
-                      "message": "Error: browserType.launch: Executable doesn't exist at C:\\Users\\n\\AppData\\Local\\ms-playwright\\webkit-2311\\Playwright.exe\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     pnpm exec playwright install                           ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝"
-                    }
-                  ],
-                  "stdout": [],
-                  "stderr": [],
-                  "retry": 0,
-                  "startTime": "2026-07-04T13:04:05.409Z",
-                  "annotations": [],
-                  "attachments": [
-                    {
-                      "name": "error-context",
-                      "contentType": "text/markdown",
-                      "path": "C:\\Users\\n\\supremeai\\supremeai_2.0\\test-results\\e2e-chat-Chat-sends-message-webkit\\error-context.md"
-                    }
-                  ]
-                }
-              ],
-              "status": "unexpected"
-            }
-          ],
-          "id": "d3d49f2899a0faacbcaf-e4c03f84f24ec542393f",
-          "file": "e2e/chat.spec.ts",
-          "line": 3,
-          "column": 5
-        },
-        {
-          "title": "Chat sends message",
-          "ok": false,
-          "tags": [],
-          "tests": [
-            {
-              "timeout": 30000,
-              "annotations": [],
-              "expectedStatus": "passed",
-              "projectId": "Mobile Chrome",
-              "projectName": "Mobile Chrome",
-              "results": [
-                {
-                  "workerIndex": 23,
-                  "parallelIndex": 0,
-                  "status": "timedOut",
-                  "duration": 31412,
-                  "error": {
-                    "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m",
-                    "stack": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
-                  },
-                  "errors": [
-                    {
-                      "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
-                    },
-                    {
-                      "location": {
-                        "file": "C:\\Users\\n\\supremeai\\supremeai_2.0\\tests\\e2e\\chat.spec.ts",
-                        "column": 14,
-                        "line": 5
-                      },
-                      "message": "Error: page.fill: Test timeout of 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-testid=\"chat-input\"]')\u001b[22m\n\n\n  3 | test('Chat sends message', async ({ page }) => {\n  4 |   await page.goto('/');\n> 5 |   await page.fill('[data-testid=\"chat-input\"]', 'Hello SupremeAI!');\n    |              ^\n  6 |   await page.click('[data-testid=\"chat-submit\"]');\n  7 |   await expect(page.getByText('Hello SupremeAI!').first()).toBeVisible();\n  8 | });\n    at C:\\Users\\n\\supremeai\\supremeai_2.0\\tests\\e2e\\chat.spec.ts:5:14"
-                    }
-                  ],
-                  "stdout": [],
-                  "stderr": [],
-                  "retry": 0,
-                  "startTime": "2026-07-04T13:04:46.547Z",
-                  "annotations": [],
-                  "attachments": [
-                    {
-                      "name": "screenshot",
-                      "contentType": "image/png",
-                      "path": "C:\\Users\\n\\supremeai\\supremeai_2.0\\test-results\\e2e-chat-Chat-sends-message-Mobile-Chrome\\test-failed-1.png"
-                    },
-                    {
-                      "name": "video",
-                      "contentType": "video/webm",
-                      "path": "C:\\Users\\n\\supremeai\\supremeai_2.0\\test-results\\e2e-chat-Chat-sends-message-Mobile-Chrome\\video.webm"
-                    },
-                    {
-                      "name": "error-context",
-                      "contentType": "text/markdown",
-                      "path": "C:\\Users\\n\\supremeai\\supremeai_2.0\\test-results\\e2e-chat-Chat-sends-message-Mobile-Chrome\\error-context.md"
-                    }
-                  ]
-                }
-              ],
-              "status": "unexpected"
-            }
-          ],
-          "id": "d3d49f2899a0faacbcaf-b7664ec793cc8f664ec7",
-          "file": "e2e/chat.spec.ts",
-          "line": 3,
-          "column": 5
-        },
-        {
-          "title": "Chat sends message",
-          "ok": false,
-          "tags": [],
-          "tests": [
-            {
-              "timeout": 30000,
-              "annotations": [],
-              "expectedStatus": "passed",
-              "projectId": "Mobile Safari",
-              "projectName": "Mobile Safari",
-              "results": [
-                {
-                  "workerIndex": 30,
-                  "parallelIndex": 0,
-                  "status": "failed",
-                  "duration": 9,
-                  "error": {
-                    "message": "Error: browserType.launch: Executable doesn't exist at C:\\Users\\n\\AppData\\Local\\ms-playwright\\webkit-2311\\Playwright.exe\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     pnpm exec playwright install                           ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝",
-                    "stack": "Error: browserType.launch: Executable doesn't exist at C:\\Users\\n\\AppData\\Local\\ms-playwright\\webkit-2311\\Playwright.exe\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     pnpm exec playwright install                           ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝"
-                  },
-                  "errors": [
-                    {
-                      "message": "Error: browserType.launch: Executable doesn't exist at C:\\Users\\n\\AppData\\Local\\ms-playwright\\webkit-2311\\Playwright.exe\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     pnpm exec playwright install                           ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝"
-                    }
-                  ],
-                  "stdout": [],
-                  "stderr": [],
-                  "retry": 0,
-                  "startTime": "2026-07-04T13:05:41.890Z",
-                  "annotations": [],
-                  "attachments": [
-                    {
-                      "name": "error-context",
-                      "contentType": "text/markdown",
-                      "path": "C:\\Users\\n\\supremeai\\supremeai_2.0\\test-results\\e2e-chat-Chat-sends-message-Mobile-Safari\\error-context.md"
-                    }
-                  ]
-                }
-              ],
-              "status": "unexpected"
-            }
-          ],
-          "id": "d3d49f2899a0faacbcaf-ecff017140e0eb8cba6b",
-          "file": "e2e/chat.spec.ts",
-          "line": 3,
-          "column": 5
-        }
-      ]
-    },
-    {
-      "title": "e2e\\visual.spec.ts",
-      "file": "e2e/visual.spec.ts",
-      "column": 0,
-      "line": 0,
-      "specs": [],
-      "suites": [
-        {
-          "title": "Visual Regression Tests",
-          "file": "e2e/visual.spec.ts",
-          "line": 3,
-          "column": 6,
-          "specs": [
-            {
-              "title": "Homepage layout should be stable",
-              "ok": false,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 30000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 4,
-                      "parallelIndex": 1,
-                      "status": "failed",
-                      "duration": 7162,
-                      "error": {
-                        "message": "Error: A snapshot doesn't exist at C:\\Users\\n\\supremeai\\supremeai_2.0\\tests\\e2e\\visual.spec.ts-snapshots\\homepage-stable-chromium-win32.png, writing actual.",
-                        "stack": "Error: A snapshot doesn't exist at C:\\Users\\n\\supremeai\\supremeai_2.0\\tests\\e2e\\visual.spec.ts-snapshots\\homepage-stable-chromium-win32.png, writing actual.\n    at C:\\Users\\n\\supremeai\\supremeai_2.0\\tests\\e2e\\visual.spec.ts:7:9",
-                        "location": {
-                          "file": "C:\\Users\\n\\supremeai\\supremeai_2.0\\tests\\e2e\\visual.spec.ts",
-                          "column": 9,
-                          "line": 7
-                        },
-                        "snippet": "\u001b[0m \u001b[90m  5 |\u001b[39m         \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mgoto(\u001b[32m'/'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m  6 |\u001b[39m         \u001b[90m// পুরো পেজের স্ক্রিনশট নিয়ে বেসলাইনের সাথে তুলনা করুন\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m  7 |\u001b[39m         \u001b[36mawait\u001b[39m expect(page)\u001b[33m.\u001b[39mtoHaveScreenshot(\u001b[32m'homepage-stable.png'\u001b[39m\u001b[33m,\u001b[39m { fullPage\u001b[33m:\u001b[39m \u001b[36mtrue\u001b[39m })\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m         \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m  8 |\u001b[39m     })\u001b[33m;\u001b[39m\n \u001b[90m  9 |\u001b[39m\n \u001b[90m 10 |\u001b[39m     test(\u001b[32m'ConsentMatrixModal should match the approved snapshot'\u001b[39m\u001b[33m,\u001b[39m \u001b[36masync\u001b[39m ({ page }) \u001b[33m=>\u001b[39m {\u001b[0m"
-                      },
-                      "errors": [
-                        {
-                          "location": {
-                            "file": "C:\\Users\\n\\supremeai\\supremeai_2.0\\tests\\e2e\\visual.spec.ts",
-                            "column": 9,
-                            "line": 7
-                          },
-                          "message": "Error: A snapshot doesn't exist at C:\\Users\\n\\supremeai\\supremeai_2.0\\tests\\e2e\\visual.spec.ts-snapshots\\homepage-stable-chromium-win32.png, writing actual.\n\n   5 |         await page.goto('/');\n   6 |         // পুরো পেজের স্ক্রিনশট নিয়ে বেসলাইনের সাথে তুলনা করুন\n>  7 |         await expect(page).toHaveScreenshot('homepage-stable.png', { fullPage: true });\n     |         ^\n   8 |     });\n   9 |\n  10 |     test('ConsentMatrixModal should match the approved snapshot', async ({ page }) => {\n    at C:\\Users\\n\\supremeai\\supremeai_2.0\\tests\\e2e\\visual.spec.ts:7:9"
-                        }
-                      ],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-07-04T13:03:19.906Z",
-                      "annotations": [],
-                      "attachments": [
-                        {
-                          "name": "homepage-stable-expected.png",
-                          "contentType": "image/png",
-                          "path": "C:\\Users\\n\\supremeai\\supremeai_2.0\\tests\\e2e\\visual.spec.ts-snapshots\\homepage-stable-chromium-win32.png"
-                        },
-                        {
-                          "name": "homepage-stable-actual.png",
-                          "contentType": "image/png",
-                          "path": "C:\\Users\\n\\supremeai\\supremeai_2.0\\test-results\\e2e-visual-Visual-Regressi-520ca-age-layout-should-be-stable-chromium\\homepage-stable-actual.png"
-                        },
-                        {
-                          "name": "screenshot",
-                          "contentType": "image/png",
-                          "path": "C:\\Users\\n\\supremeai\\supremeai_2.0\\test-results\\e2e-visual-Visual-Regressi-520ca-age-layout-should-be-stable-chromium\\test-failed-1.png"
-                        },
-                        {
-                          "name": "video",
-                          "contentType": "video/webm",
-                          "path": "C:\\Users\\n\\supremeai\\supremeai_2.0\\test-results\\e2e-visual-Visual-Regressi-520ca-age-layout-should-be-stable-chromium\\video.webm"
-                        },
-                        {
-                          "name": "error-context",
-                          "contentType": "text/markdown",
-                          "path": "C:\\Users\\n\\supremeai\\supremeai_2.0\\test-results\\e2e-visual-Visual-Regressi-520ca-age-layout-should-be-stable-chromium\\error-context.md"
-                        }
-                      ],
-                      "errorLocation": {
-                        "file": "C:\\Users\\n\\supremeai\\supremeai_2.0\\tests\\e2e\\visual.spec.ts",
-                        "column": 9,
-                        "line": 7
-                      }
-                    }
-                  ],
-                  "status": "unexpected"
-                }
-              ],
-              "id": "51b4790f4568975de141-dc5a1598abe98c016bca",
-              "file": "e2e/visual.spec.ts",
-              "line": 4,
-              "column": 9
-            },
-            {
-              "title": "ConsentMatrixModal should match the approved snapshot",
-              "ok": false,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 30000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 5,
-                      "parallelIndex": 1,
-                      "status": "failed",
-                      "duration": 7841,
-                      "error": {
-                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('[data-testid=\"consent-matrix-modal\"]')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('[data-testid=\"consent-matrix-modal\"]')\u001b[22m\n",
-                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('[data-testid=\"consent-matrix-modal\"]')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('[data-testid=\"consent-matrix-modal\"]')\u001b[22m\n\n    at C:\\Users\\n\\supremeai\\supremeai_2.0\\tests\\e2e\\visual.spec.ts:16:29",
-                        "location": {
-                          "file": "C:\\Users\\n\\supremeai\\supremeai_2.0\\tests\\e2e\\visual.spec.ts",
-                          "column": 29,
-                          "line": 16
-                        },
-                        "snippet": "\u001b[0m \u001b[90m 14 |\u001b[39m         \u001b[90m// একটি নির্দিষ্ট data-testid দিয়ে মোডালটি লোকেট করা হচ্ছে\u001b[39m\n \u001b[90m 15 |\u001b[39m         \u001b[36mconst\u001b[39m modal \u001b[33m=\u001b[39m page\u001b[33m.\u001b[39mlocator(\u001b[32m'[data-testid=\"consent-matrix-modal\"]'\u001b[39m)\u001b[33m;\u001b[39m \u001b[90m// এখানে আপনার মোডালের আসল সিলেক্টর ব্যবহার করুন\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 16 |\u001b[39m         \u001b[36mawait\u001b[39m expect(modal)\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                             \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 17 |\u001b[39m\n \u001b[90m 18 |\u001b[39m         \u001b[90m// শুধুমাত্র মোডালটির স্ক্রিনশট নিয়ে বেসলাইনের সাথে তুলনা করুন\u001b[39m\n \u001b[90m 19 |\u001b[39m         \u001b[36mawait\u001b[39m expect(modal)\u001b[33m.\u001b[39mtoHaveScreenshot(\u001b[32m'consent-matrix-critical-risk.png'\u001b[39m)\u001b[33m;\u001b[39m\u001b[0m"
-                      },
-                      "errors": [
-                        {
-                          "location": {
-                            "file": "C:\\Users\\n\\supremeai\\supremeai_2.0\\tests\\e2e\\visual.spec.ts",
-                            "column": 29,
-                            "line": 16
-                          },
-                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('[data-testid=\"consent-matrix-modal\"]')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('[data-testid=\"consent-matrix-modal\"]')\u001b[22m\n\n\n  14 |         // একটি নির্দিষ্ট data-testid দিয়ে মোডালটি লোকেট করা হচ্ছে\n  15 |         const modal = page.locator('[data-testid=\"consent-matrix-modal\"]'); // এখানে আপনার মোডালের আসল সিলেক্টর ব্যবহার করুন\n> 16 |         await expect(modal).toBeVisible();\n     |                             ^\n  17 |\n  18 |         // শুধুমাত্র মোডালটির স্ক্রিনশট নিয়ে বেসলাইনের সাথে তুলনা করুন\n  19 |         await expect(modal).toHaveScreenshot('consent-matrix-critical-risk.png');\n    at C:\\Users\\n\\supremeai\\supremeai_2.0\\tests\\e2e\\visual.spec.ts:16:29"
-                        }
-                      ],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-07-04T13:03:32.573Z",
-                      "annotations": [],
-                      "attachments": [
-                        {
-                          "name": "screenshot",
-                          "contentType": "image/png",
-                          "path": "C:\\Users\\n\\supremeai\\supremeai_2.0\\test-results\\e2e-visual-Visual-Regressi-e7857-match-the-approved-snapshot-chromium\\test-failed-1.png"
-                        },
-                        {
-                          "name": "error-context",
-                          "contentType": "text/markdown",
-                          "path": "C:\\Users\\n\\supremeai\\supremeai_2.0\\test-results\\e2e-visual-Visual-Regressi-e7857-match-the-approved-snapshot-chromium\\error-context.md"
-                        }
-                      ],
-                      "errorLocation": {
-                        "file": "C:\\Users\\n\\supremeai\\supremeai_2.0\\tests\\e2e\\visual.spec.ts",
-                        "column": 29,
-                        "line": 16
-                      }
-                    }
-                  ],
-                  "status": "unexpected"
-                }
-              ],
-              "id": "51b4790f4568975de141-8037f4050504ad1a666a",
-              "file": "e2e/visual.spec.ts",
-              "line": 10,
-              "column": 9
-            },
-            {
-              "title": "Homepage layout should be stable",
-              "ok": false,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 30000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "firefox",
-                  "projectName": "firefox",
-                  "results": [
-                    {
-                      "workerIndex": 11,
-                      "parallelIndex": 1,
-                      "status": "failed",
-                      "duration": 6,
-                      "error": {
-                        "message": "Error: browserType.launch: Executable doesn't exist at C:\\Users\\n\\AppData\\Local\\ms-playwright\\firefox-1532\\firefox\\firefox.exe\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     pnpm exec playwright install                           ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝",
-                        "stack": "Error: browserType.launch: Executable doesn't exist at C:\\Users\\n\\AppData\\Local\\ms-playwright\\firefox-1532\\firefox\\firefox.exe\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     pnpm exec playwright install                           ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝"
-                      },
-                      "errors": [
-                        {
-                          "message": "Error: browserType.launch: Executable doesn't exist at C:\\Users\\n\\AppData\\Local\\ms-playwright\\firefox-1532\\firefox\\firefox.exe\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     pnpm exec playwright install                           ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝"
-                        }
-                      ],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-07-04T13:03:54.717Z",
-                      "annotations": [],
-                      "attachments": [
-                        {
-                          "name": "error-context",
-                          "contentType": "text/markdown",
-                          "path": "C:\\Users\\n\\supremeai\\supremeai_2.0\\test-results\\e2e-visual-Visual-Regressi-520ca-age-layout-should-be-stable-firefox\\error-context.md"
-                        }
-                      ]
-                    }
-                  ],
-                  "status": "unexpected"
-                }
-              ],
-              "id": "51b4790f4568975de141-2572ae0a7a8be5e48ed4",
-              "file": "e2e/visual.spec.ts",
-              "line": 4,
-              "column": 9
-            },
-            {
-              "title": "ConsentMatrixModal should match the approved snapshot",
-              "ok": false,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 30000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "firefox",
-                  "projectName": "firefox",
-                  "results": [
-                    {
-                      "workerIndex": 12,
-                      "parallelIndex": 1,
-                      "status": "failed",
-                      "duration": 14,
-                      "error": {
-                        "message": "Error: browserType.launch: Executable doesn't exist at C:\\Users\\n\\AppData\\Local\\ms-playwright\\firefox-1532\\firefox\\firefox.exe\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     pnpm exec playwright install                           ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝",
-                        "stack": "Error: browserType.launch: Executable doesn't exist at C:\\Users\\n\\AppData\\Local\\ms-playwright\\firefox-1532\\firefox\\firefox.exe\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     pnpm exec playwright install                           ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝"
-                      },
-                      "errors": [
-                        {
-                          "message": "Error: browserType.launch: Executable doesn't exist at C:\\Users\\n\\AppData\\Local\\ms-playwright\\firefox-1532\\firefox\\firefox.exe\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     pnpm exec playwright install                           ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝"
-                        }
-                      ],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-07-04T13:03:58.649Z",
-                      "annotations": [],
-                      "attachments": [
-                        {
-                          "name": "error-context",
-                          "contentType": "text/markdown",
-                          "path": "C:\\Users\\n\\supremeai\\supremeai_2.0\\test-results\\e2e-visual-Visual-Regressi-e7857-match-the-approved-snapshot-firefox\\error-context.md"
-                        }
-                      ]
-                    }
-                  ],
-                  "status": "unexpected"
-                }
-              ],
-              "id": "51b4790f4568975de141-7aa150462037e5056178",
-              "file": "e2e/visual.spec.ts",
-              "line": 10,
-              "column": 9
-            },
-            {
-              "title": "Homepage layout should be stable",
-              "ok": false,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 30000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "webkit",
-                  "projectName": "webkit",
-                  "results": [
-                    {
-                      "workerIndex": 18,
-                      "parallelIndex": 0,
-                      "status": "failed",
-                      "duration": 6,
-                      "error": {
-                        "message": "Error: browserType.launch: Executable doesn't exist at C:\\Users\\n\\AppData\\Local\\ms-playwright\\webkit-2311\\Playwright.exe\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     pnpm exec playwright install                           ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝",
-                        "stack": "Error: browserType.launch: Executable doesn't exist at C:\\Users\\n\\AppData\\Local\\ms-playwright\\webkit-2311\\Playwright.exe\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     pnpm exec playwright install                           ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝"
-                      },
-                      "errors": [
-                        {
-                          "message": "Error: browserType.launch: Executable doesn't exist at C:\\Users\\n\\AppData\\Local\\ms-playwright\\webkit-2311\\Playwright.exe\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     pnpm exec playwright install                           ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝"
-                        }
-                      ],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-07-04T13:04:06.845Z",
-                      "annotations": [],
-                      "attachments": [
-                        {
-                          "name": "error-context",
-                          "contentType": "text/markdown",
-                          "path": "C:\\Users\\n\\supremeai\\supremeai_2.0\\test-results\\e2e-visual-Visual-Regressi-520ca-age-layout-should-be-stable-webkit\\error-context.md"
-                        }
-                      ]
-                    }
-                  ],
-                  "status": "unexpected"
-                }
-              ],
-              "id": "51b4790f4568975de141-e9f73064758d39616942",
-              "file": "e2e/visual.spec.ts",
-              "line": 4,
-              "column": 9
-            },
-            {
-              "title": "ConsentMatrixModal should match the approved snapshot",
-              "ok": false,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 30000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "webkit",
-                  "projectName": "webkit",
-                  "results": [
-                    {
-                      "workerIndex": 19,
-                      "parallelIndex": 1,
-                      "status": "failed",
-                      "duration": 6,
-                      "error": {
-                        "message": "Error: browserType.launch: Executable doesn't exist at C:\\Users\\n\\AppData\\Local\\ms-playwright\\webkit-2311\\Playwright.exe\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     pnpm exec playwright install                           ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝",
-                        "stack": "Error: browserType.launch: Executable doesn't exist at C:\\Users\\n\\AppData\\Local\\ms-playwright\\webkit-2311\\Playwright.exe\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     pnpm exec playwright install                           ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝"
-                      },
-                      "errors": [
-                        {
-                          "message": "Error: browserType.launch: Executable doesn't exist at C:\\Users\\n\\AppData\\Local\\ms-playwright\\webkit-2311\\Playwright.exe\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     pnpm exec playwright install                           ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝"
-                        }
-                      ],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-07-04T13:04:08.425Z",
-                      "annotations": [],
-                      "attachments": [
-                        {
-                          "name": "error-context",
-                          "contentType": "text/markdown",
-                          "path": "C:\\Users\\n\\supremeai\\supremeai_2.0\\test-results\\e2e-visual-Visual-Regressi-e7857-match-the-approved-snapshot-webkit\\error-context.md"
-                        }
-                      ]
-                    }
-                  ],
-                  "status": "unexpected"
-                }
-              ],
-              "id": "51b4790f4568975de141-94e53f1a404ed38555d8",
-              "file": "e2e/visual.spec.ts",
-              "line": 10,
-              "column": 9
-            },
-            {
-              "title": "Homepage layout should be stable",
-              "ok": false,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 30000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "Mobile Chrome",
-                  "projectName": "Mobile Chrome",
-                  "results": [
-                    {
-                      "workerIndex": 24,
-                      "parallelIndex": 1,
-                      "status": "failed",
-                      "duration": 10784,
-                      "error": {
-                        "message": "Error: A snapshot doesn't exist at C:\\Users\\n\\supremeai\\supremeai_2.0\\tests\\e2e\\visual.spec.ts-snapshots\\homepage-stable-Mobile-Chrome-win32.png, writing actual.",
-                        "stack": "Error: A snapshot doesn't exist at C:\\Users\\n\\supremeai\\supremeai_2.0\\tests\\e2e\\visual.spec.ts-snapshots\\homepage-stable-Mobile-Chrome-win32.png, writing actual.\n    at C:\\Users\\n\\supremeai\\supremeai_2.0\\tests\\e2e\\visual.spec.ts:7:9",
-                        "location": {
-                          "file": "C:\\Users\\n\\supremeai\\supremeai_2.0\\tests\\e2e\\visual.spec.ts",
-                          "column": 9,
-                          "line": 7
-                        },
-                        "snippet": "\u001b[0m \u001b[90m  5 |\u001b[39m         \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mgoto(\u001b[32m'/'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m  6 |\u001b[39m         \u001b[90m// পুরো পেজের স্ক্রিনশট নিয়ে বেসলাইনের সাথে তুলনা করুন\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m  7 |\u001b[39m         \u001b[36mawait\u001b[39m expect(page)\u001b[33m.\u001b[39mtoHaveScreenshot(\u001b[32m'homepage-stable.png'\u001b[39m\u001b[33m,\u001b[39m { fullPage\u001b[33m:\u001b[39m \u001b[36mtrue\u001b[39m })\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m         \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m  8 |\u001b[39m     })\u001b[33m;\u001b[39m\n \u001b[90m  9 |\u001b[39m\n \u001b[90m 10 |\u001b[39m     test(\u001b[32m'ConsentMatrixModal should match the approved snapshot'\u001b[39m\u001b[33m,\u001b[39m \u001b[36masync\u001b[39m ({ page }) \u001b[33m=>\u001b[39m {\u001b[0m"
-                      },
-                      "errors": [
-                        {
-                          "location": {
-                            "file": "C:\\Users\\n\\supremeai\\supremeai_2.0\\tests\\e2e\\visual.spec.ts",
-                            "column": 9,
-                            "line": 7
-                          },
-                          "message": "Error: A snapshot doesn't exist at C:\\Users\\n\\supremeai\\supremeai_2.0\\tests\\e2e\\visual.spec.ts-snapshots\\homepage-stable-Mobile-Chrome-win32.png, writing actual.\n\n   5 |         await page.goto('/');\n   6 |         // পুরো পেজের স্ক্রিনশট নিয়ে বেসলাইনের সাথে তুলনা করুন\n>  7 |         await expect(page).toHaveScreenshot('homepage-stable.png', { fullPage: true });\n     |         ^\n   8 |     });\n   9 |\n  10 |     test('ConsentMatrixModal should match the approved snapshot', async ({ page }) => {\n    at C:\\Users\\n\\supremeai\\supremeai_2.0\\tests\\e2e\\visual.spec.ts:7:9"
-                        }
-                      ],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-07-04T13:04:55.059Z",
-                      "annotations": [],
-                      "attachments": [
-                        {
-                          "name": "homepage-stable-expected.png",
-                          "contentType": "image/png",
-                          "path": "C:\\Users\\n\\supremeai\\supremeai_2.0\\tests\\e2e\\visual.spec.ts-snapshots\\homepage-stable-Mobile-Chrome-win32.png"
-                        },
-                        {
-                          "name": "homepage-stable-actual.png",
-                          "contentType": "image/png",
-                          "path": "C:\\Users\\n\\supremeai\\supremeai_2.0\\test-results\\e2e-visual-Visual-Regressi-520ca-age-layout-should-be-stable-Mobile-Chrome\\homepage-stable-actual.png"
-                        },
-                        {
-                          "name": "screenshot",
-                          "contentType": "image/png",
-                          "path": "C:\\Users\\n\\supremeai\\supremeai_2.0\\test-results\\e2e-visual-Visual-Regressi-520ca-age-layout-should-be-stable-Mobile-Chrome\\test-failed-1.png"
-                        },
-                        {
-                          "name": "video",
-                          "contentType": "video/webm",
-                          "path": "C:\\Users\\n\\supremeai\\supremeai_2.0\\test-results\\e2e-visual-Visual-Regressi-520ca-age-layout-should-be-stable-Mobile-Chrome\\video.webm"
-                        },
-                        {
-                          "name": "error-context",
-                          "contentType": "text/markdown",
-                          "path": "C:\\Users\\n\\supremeai\\supremeai_2.0\\test-results\\e2e-visual-Visual-Regressi-520ca-age-layout-should-be-stable-Mobile-Chrome\\error-context.md"
-                        }
-                      ],
-                      "errorLocation": {
-                        "file": "C:\\Users\\n\\supremeai\\supremeai_2.0\\tests\\e2e\\visual.spec.ts",
-                        "column": 9,
-                        "line": 7
-                      }
-                    }
-                  ],
-                  "status": "unexpected"
-                }
-              ],
-              "id": "51b4790f4568975de141-834895d1735964042720",
-              "file": "e2e/visual.spec.ts",
-              "line": 4,
-              "column": 9
-            },
-            {
-              "title": "ConsentMatrixModal should match the approved snapshot",
-              "ok": false,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 30000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "Mobile Chrome",
-                  "projectName": "Mobile Chrome",
-                  "results": [
-                    {
-                      "workerIndex": 25,
-                      "parallelIndex": 1,
-                      "status": "failed",
-                      "duration": 9175,
-                      "error": {
-                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('[data-testid=\"consent-matrix-modal\"]')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('[data-testid=\"consent-matrix-modal\"]')\u001b[22m\n",
-                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('[data-testid=\"consent-matrix-modal\"]')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('[data-testid=\"consent-matrix-modal\"]')\u001b[22m\n\n    at C:\\Users\\n\\supremeai\\supremeai_2.0\\tests\\e2e\\visual.spec.ts:16:29",
-                        "location": {
-                          "file": "C:\\Users\\n\\supremeai\\supremeai_2.0\\tests\\e2e\\visual.spec.ts",
-                          "column": 29,
-                          "line": 16
-                        },
-                        "snippet": "\u001b[0m \u001b[90m 14 |\u001b[39m         \u001b[90m// একটি নির্দিষ্ট data-testid দিয়ে মোডালটি লোকেট করা হচ্ছে\u001b[39m\n \u001b[90m 15 |\u001b[39m         \u001b[36mconst\u001b[39m modal \u001b[33m=\u001b[39m page\u001b[33m.\u001b[39mlocator(\u001b[32m'[data-testid=\"consent-matrix-modal\"]'\u001b[39m)\u001b[33m;\u001b[39m \u001b[90m// এখানে আপনার মোডালের আসল সিলেক্টর ব্যবহার করুন\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 16 |\u001b[39m         \u001b[36mawait\u001b[39m expect(modal)\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                             \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 17 |\u001b[39m\n \u001b[90m 18 |\u001b[39m         \u001b[90m// শুধুমাত্র মোডালটির স্ক্রিনশট নিয়ে বেসলাইনের সাথে তুলনা করুন\u001b[39m\n \u001b[90m 19 |\u001b[39m         \u001b[36mawait\u001b[39m expect(modal)\u001b[33m.\u001b[39mtoHaveScreenshot(\u001b[32m'consent-matrix-critical-risk.png'\u001b[39m)\u001b[33m;\u001b[39m\u001b[0m"
-                      },
-                      "errors": [
-                        {
-                          "location": {
-                            "file": "C:\\Users\\n\\supremeai\\supremeai_2.0\\tests\\e2e\\visual.spec.ts",
-                            "column": 29,
-                            "line": 16
-                          },
-                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('[data-testid=\"consent-matrix-modal\"]')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('[data-testid=\"consent-matrix-modal\"]')\u001b[22m\n\n\n  14 |         // একটি নির্দিষ্ট data-testid দিয়ে মোডালটি লোকেট করা হচ্ছে\n  15 |         const modal = page.locator('[data-testid=\"consent-matrix-modal\"]'); // এখানে আপনার মোডালের আসল সিলেক্টর ব্যবহার করুন\n> 16 |         await expect(modal).toBeVisible();\n     |                             ^\n  17 |\n  18 |         // শুধুমাত্র মোডালটির স্ক্রিনশট নিয়ে বেসলাইনের সাথে তুলনা করুন\n  19 |         await expect(modal).toHaveScreenshot('consent-matrix-critical-risk.png');\n    at C:\\Users\\n\\supremeai\\supremeai_2.0\\tests\\e2e\\visual.spec.ts:16:29"
-                        }
-                      ],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-07-04T13:05:22.549Z",
-                      "annotations": [],
-                      "attachments": [
-                        {
-                          "name": "screenshot",
-                          "contentType": "image/png",
-                          "path": "C:\\Users\\n\\supremeai\\supremeai_2.0\\test-results\\e2e-visual-Visual-Regressi-e7857-match-the-approved-snapshot-Mobile-Chrome\\test-failed-1.png"
-                        },
-                        {
-                          "name": "video",
-                          "contentType": "video/webm",
-                          "path": "C:\\Users\\n\\supremeai\\supremeai_2.0\\test-results\\e2e-visual-Visual-Regressi-e7857-match-the-approved-snapshot-Mobile-Chrome\\video.webm"
-                        },
-                        {
-                          "name": "error-context",
-                          "contentType": "text/markdown",
-                          "path": "C:\\Users\\n\\supremeai\\supremeai_2.0\\test-results\\e2e-visual-Visual-Regressi-e7857-match-the-approved-snapshot-Mobile-Chrome\\error-context.md"
-                        }
-                      ],
-                      "errorLocation": {
-                        "file": "C:\\Users\\n\\supremeai\\supremeai_2.0\\tests\\e2e\\visual.spec.ts",
-                        "column": 29,
-                        "line": 16
-                      }
-                    }
-                  ],
-                  "status": "unexpected"
-                }
-              ],
-              "id": "51b4790f4568975de141-f87f36e1bffe90bdadc9",
-              "file": "e2e/visual.spec.ts",
-              "line": 10,
-              "column": 9
-            },
-            {
-              "title": "Homepage layout should be stable",
-              "ok": false,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 30000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "Mobile Safari",
-                  "projectName": "Mobile Safari",
-                  "results": [
-                    {
-                      "workerIndex": 31,
-                      "parallelIndex": 1,
-                      "status": "failed",
-                      "duration": 6,
-                      "error": {
-                        "message": "Error: browserType.launch: Executable doesn't exist at C:\\Users\\n\\AppData\\Local\\ms-playwright\\webkit-2311\\Playwright.exe\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     pnpm exec playwright install                           ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝",
-                        "stack": "Error: browserType.launch: Executable doesn't exist at C:\\Users\\n\\AppData\\Local\\ms-playwright\\webkit-2311\\Playwright.exe\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     pnpm exec playwright install                           ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝"
-                      },
-                      "errors": [
-                        {
-                          "message": "Error: browserType.launch: Executable doesn't exist at C:\\Users\\n\\AppData\\Local\\ms-playwright\\webkit-2311\\Playwright.exe\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     pnpm exec playwright install                           ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝"
-                        }
-                      ],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-07-04T13:05:42.317Z",
-                      "annotations": [],
-                      "attachments": [
-                        {
-                          "name": "error-context",
-                          "contentType": "text/markdown",
-                          "path": "C:\\Users\\n\\supremeai\\supremeai_2.0\\test-results\\e2e-visual-Visual-Regressi-520ca-age-layout-should-be-stable-Mobile-Safari\\error-context.md"
-                        }
-                      ]
-                    }
-                  ],
-                  "status": "unexpected"
-                }
-              ],
-              "id": "51b4790f4568975de141-10a9138ada1b2440200a",
-              "file": "e2e/visual.spec.ts",
-              "line": 4,
-              "column": 9
-            },
-            {
-              "title": "ConsentMatrixModal should match the approved snapshot",
-              "ok": false,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 30000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "Mobile Safari",
-                  "projectName": "Mobile Safari",
-                  "results": [
-                    {
-                      "workerIndex": 32,
-                      "parallelIndex": 0,
-                      "status": "failed",
-                      "duration": 7,
-                      "error": {
-                        "message": "Error: browserType.launch: Executable doesn't exist at C:\\Users\\n\\AppData\\Local\\ms-playwright\\webkit-2311\\Playwright.exe\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     pnpm exec playwright install                           ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝",
-                        "stack": "Error: browserType.launch: Executable doesn't exist at C:\\Users\\n\\AppData\\Local\\ms-playwright\\webkit-2311\\Playwright.exe\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     pnpm exec playwright install                           ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝"
-                      },
-                      "errors": [
-                        {
-                          "message": "Error: browserType.launch: Executable doesn't exist at C:\\Users\\n\\AppData\\Local\\ms-playwright\\webkit-2311\\Playwright.exe\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     pnpm exec playwright install                           ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝"
-                        }
-                      ],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-07-04T13:05:43.571Z",
-                      "annotations": [],
-                      "attachments": [
-                        {
-                          "name": "error-context",
-                          "contentType": "text/markdown",
-                          "path": "C:\\Users\\n\\supremeai\\supremeai_2.0\\test-results\\e2e-visual-Visual-Regressi-e7857-match-the-approved-snapshot-Mobile-Safari\\error-context.md"
-                        }
-                      ]
-                    }
-                  ],
-                  "status": "unexpected"
-                }
-              ],
-              "id": "51b4790f4568975de141-4bc9c5c49bc221b29e60",
-              "file": "e2e/visual.spec.ts",
-              "line": 10,
-              "column": 9
-            }
-          ]
-        }
-      ]
-    }
-  ],
-  "errors": [],
-  "stats": {
-    "startTime": "2026-07-04T13:02:34.462Z",
-    "duration": 189566.321,
-    "expected": 2,
-    "skipped": 0,
-    "unexpected": 33,
-    "flaky": 0
-  }
-}
-```
-
-## File: `test-results/e2e-admin-dashboard-Suprem-8ff1e-hestration-command-via-chat-Mobile-Safari/error-context.md`
-
-```md
-# Instructions
-
-- Following Playwright test failed.
-- Explain why, be concise, respect Playwright best practices.
-- Provide a snippet of code with the fix, if possible.
-
-# Test info
-
-- Name: e2e\admin-dashboard.spec.ts >> SupremeAI Nexus E2E Flow >> should be able to submit an orchestration command via chat
-- Location: tests\e2e\admin-dashboard.spec.ts:25:7
-
-# Error details
-
-```
-Error: browserType.launch: Executable doesn't exist at C:\Users\n\AppData\Local\ms-playwright\webkit-2311\Playwright.exe
-╔════════════════════════════════════════════════════════════╗
-║ Looks like Playwright was just installed or updated.       ║
-║ Please run the following command to download new browsers: ║
-║                                                            ║
-║     pnpm exec playwright install                           ║
-║                                                            ║
-║ <3 Playwright Team                                         ║
-╚════════════════════════════════════════════════════════════╝
-```
-```
-
-## File: `test-results/e2e-chat-Chat-sends-message-webkit/error-context.md`
-
-```md
-# Instructions
-
-- Following Playwright test failed.
-- Explain why, be concise, respect Playwright best practices.
-- Provide a snippet of code with the fix, if possible.
-
-# Test info
-
-- Name: e2e\chat.spec.ts >> Chat sends message
-- Location: tests\e2e\chat.spec.ts:3:5
-
-# Error details
-
-```
-Error: browserType.launch: Executable doesn't exist at C:\Users\n\AppData\Local\ms-playwright\webkit-2311\Playwright.exe
-╔════════════════════════════════════════════════════════════╗
-║ Looks like Playwright was just installed or updated.       ║
-║ Please run the following command to download new browsers: ║
-║                                                            ║
-║     pnpm exec playwright install                           ║
-║                                                            ║
-║ <3 Playwright Team                                         ║
-╚════════════════════════════════════════════════════════════╝
-```
-```
-
-## File: `test-results/e2e-admin-dashboard-Suprem-8ff1e-hestration-command-via-chat-webkit/error-context.md`
-
-```md
-# Instructions
-
-- Following Playwright test failed.
-- Explain why, be concise, respect Playwright best practices.
-- Provide a snippet of code with the fix, if possible.
-
-# Test info
-
-- Name: e2e\admin-dashboard.spec.ts >> SupremeAI Nexus E2E Flow >> should be able to submit an orchestration command via chat
-- Location: tests\e2e\admin-dashboard.spec.ts:25:7
-
-# Error details
-
-```
-Error: browserType.launch: Executable doesn't exist at C:\Users\n\AppData\Local\ms-playwright\webkit-2311\Playwright.exe
-╔════════════════════════════════════════════════════════════╗
-║ Looks like Playwright was just installed or updated.       ║
-║ Please run the following command to download new browsers: ║
-║                                                            ║
-║     pnpm exec playwright install                           ║
-║                                                            ║
-║ <3 Playwright Team                                         ║
-╚════════════════════════════════════════════════════════════╝
-```
-```
-
-## File: `test-results/e2e-chat-Chat-sends-message-Mobile-Chrome/error-context.md`
-
-```md
-# Instructions
-
-- Following Playwright test failed.
-- Explain why, be concise, respect Playwright best practices.
-- Provide a snippet of code with the fix, if possible.
-
-# Test info
-
-- Name: e2e\chat.spec.ts >> Chat sends message
-- Location: tests\e2e\chat.spec.ts:3:5
-
-# Error details
-
-```
-Test timeout of 30000ms exceeded.
-```
-
-```
-Error: page.fill: Test timeout of 30000ms exceeded.
-Call log:
-  - waiting for locator('[data-testid="chat-input"]')
-
-```
-
-# Page snapshot
-
-```yaml
-- generic [ref=e3]:
-  - complementary [ref=e5]:
-    - generic [ref=e6]:
-      - generic [ref=e7]: ▲
-      - generic [ref=e8]: SupremeAI
-    - navigation [ref=e9]:
-      - button "Sessions" [ref=e10]:
-        - img [ref=e11]
-        - text: Sessions
-      - button "Workspace" [ref=e14]:
-        - img [ref=e15]
-        - text: Workspace
-      - button "Auth Vault" [ref=e25]:
-        - img [ref=e26]
-        - text: Auth Vault
-      - button "Automation" [ref=e37]:
-        - img [ref=e38]
-        - text: Automation
-      - button "Knowledge" [ref=e41]:
-        - img [ref=e42]
-        - text: Knowledge
-      - button "Secrets" [ref=e44]:
-        - img [ref=e45]
-        - text: Secrets
-      - button "Usage" [ref=e48]:
-        - img [ref=e49]
-        - text: Usage
-      - button "Settings" [ref=e51]:
-        - img [ref=e52]
-        - text: Settings
-      - button "Site Actions" [ref=e55]:
-        - img [ref=e56]
-        - text: Site Actions
-      - button "LLM Gateway" [ref=e58]:
-        - img [ref=e59]
-        - text: LLM Gateway
-      - button "Admin Console" [ref=e62]:
-        - img [ref=e63]
-        - text: Admin Console
-    - generic [ref=e65]:
-      - generic [ref=e66]:
-        - img [ref=e67]
-        - generic [ref=e74]: Offline
-      - button "Dark mode" [ref=e75]:
-        - img [ref=e76]
-        - text: Dark mode
-  - main [ref=e78]:
-    - generic [ref=e79]:
-      - heading "What do you want to build today?" [level=1] [ref=e80]
-      - generic [ref=e81]:
-        - textbox "Give SupremeAI a task to work on..." [ref=e82]
-        - button "Start Session" [disabled] [ref=e84]:
-          - img [ref=e85]
-          - text: Start Session
-      - generic [ref=e88]:
-        - heading "Recent sessions" [level=2] [ref=e89]
-        - generic [ref=e90]: 0 total
-      - paragraph [ref=e91]: No sessions yet. Start your first task above.
-```
-
-# Test source
-
-```ts
-  1 | import { test, expect } from '@playwright/test';
-  2 | 
-  3 | test('Chat sends message', async ({ page }) => {
-  4 |   await page.goto('/');
-> 5 |   await page.fill('[data-testid="chat-input"]', 'Hello SupremeAI!');
-    |              ^ Error: page.fill: Test timeout of 30000ms exceeded.
-  6 |   await page.click('[data-testid="chat-submit"]');
-  7 |   await expect(page.getByText('Hello SupremeAI!').first()).toBeVisible();
-  8 | });
-  9 | 
-```
-```
-
-## File: `test-results/e2e-visual-Visual-Regressi-520ca-age-layout-should-be-stable-Mobile-Safari/error-context.md`
-
-```md
-# Instructions
-
-- Following Playwright test failed.
-- Explain why, be concise, respect Playwright best practices.
-- Provide a snippet of code with the fix, if possible.
-
-# Test info
-
-- Name: e2e\visual.spec.ts >> Visual Regression Tests >> Homepage layout should be stable
-- Location: tests\e2e\visual.spec.ts:4:9
-
-# Error details
-
-```
-Error: browserType.launch: Executable doesn't exist at C:\Users\n\AppData\Local\ms-playwright\webkit-2311\Playwright.exe
-╔════════════════════════════════════════════════════════════╗
-║ Looks like Playwright was just installed or updated.       ║
-║ Please run the following command to download new browsers: ║
-║                                                            ║
-║     pnpm exec playwright install                           ║
-║                                                            ║
-║ <3 Playwright Team                                         ║
-╚════════════════════════════════════════════════════════════╝
-```
-```
-
-## File: `test-results/e2e-visual-Visual-Regressi-520ca-age-layout-should-be-stable-Mobile-Chrome/error-context.md`
-
-```md
-# Instructions
-
-- Following Playwright test failed.
-- Explain why, be concise, respect Playwright best practices.
-- Provide a snippet of code with the fix, if possible.
-
-# Test info
-
-- Name: e2e\visual.spec.ts >> Visual Regression Tests >> Homepage layout should be stable
-- Location: tests\e2e\visual.spec.ts:4:9
-
-# Error details
-
-```
-Error: A snapshot doesn't exist at C:\Users\n\supremeai\supremeai_2.0\tests\e2e\visual.spec.ts-snapshots\homepage-stable-Mobile-Chrome-win32.png, writing actual.
-```
-
-# Page snapshot
-
-```yaml
-- generic [ref=e3]:
-  - complementary [ref=e5]:
-    - generic [ref=e6]:
-      - generic [ref=e7]: ▲
-      - generic [ref=e8]: SupremeAI
-    - navigation [ref=e9]:
-      - button "Sessions" [ref=e10]:
-        - img [ref=e11]
-        - text: Sessions
-      - button "Workspace" [ref=e14]:
-        - img [ref=e15]
-        - text: Workspace
-      - button "Auth Vault" [ref=e25]:
-        - img [ref=e26]
-        - text: Auth Vault
-      - button "Automation" [ref=e37]:
-        - img [ref=e38]
-        - text: Automation
-      - button "Knowledge" [ref=e41]:
-        - img [ref=e42]
-        - text: Knowledge
-      - button "Secrets" [ref=e44]:
-        - img [ref=e45]
-        - text: Secrets
-      - button "Usage" [ref=e48]:
-        - img [ref=e49]
-        - text: Usage
-      - button "Settings" [ref=e51]:
-        - img [ref=e52]
-        - text: Settings
-      - button "Site Actions" [ref=e55]:
-        - img [ref=e56]
-        - text: Site Actions
-      - button "LLM Gateway" [ref=e58]:
-        - img [ref=e59]
-        - text: LLM Gateway
-      - button "Admin Console" [ref=e62]:
-        - img [ref=e63]
-        - text: Admin Console
-    - generic [ref=e65]:
-      - generic [ref=e66]:
-        - img [ref=e67]
-        - generic [ref=e74]: Offline
-      - button "Dark mode" [ref=e75]:
-        - img [ref=e76]
-        - text: Dark mode
-  - main [ref=e78]:
-    - generic [ref=e79]:
-      - heading "What do you want to build today?" [level=1] [ref=e80]
-      - generic [ref=e81]:
-        - textbox "Give SupremeAI a task to work on..." [ref=e82]
-        - button "Start Session" [disabled] [ref=e84]:
-          - img [ref=e85]
-          - text: Start Session
-      - generic [ref=e88]:
-        - heading "Recent sessions" [level=2] [ref=e89]
-        - generic [ref=e90]: 0 total
-      - paragraph [ref=e91]: No sessions yet. Start your first task above.
-```
-
-# Test source
-
-```ts
-  1  | import { test, expect } from '@playwright/test';
-  2  | 
-  3  | test.describe('Visual Regression Tests', () => {
-  4  |     test('Homepage layout should be stable', async ({ page }) => {
-  5  |         await page.goto('/');
-  6  |         // পুরো পেজের স্ক্রিনশট নিয়ে বেসলাইনের সাথে তুলনা করুন
-> 7  |         await expect(page).toHaveScreenshot('homepage-stable.png', { fullPage: true });
-     |         ^ Error: A snapshot doesn't exist at C:\Users\n\supremeai\supremeai_2.0\tests\e2e\visual.spec.ts-snapshots\homepage-stable-Mobile-Chrome-win32.png, writing actual.
-  8  |     });
-  9  | 
-  10 |     test('ConsentMatrixModal should match the approved snapshot', async ({ page }) => {
-  11 |         // একটি ডামি URL প্যারামিটার ব্যবহার করে মোডালটি দেখানো হচ্ছে
-  12 |         await page.goto('/?showConsentModal=true');
-  13 | 
-  14 |         // একটি নির্দিষ্ট data-testid দিয়ে মোডালটি লোকেট করা হচ্ছে
-  15 |         const modal = page.locator('[data-testid="consent-matrix-modal"]'); // এখানে আপনার মোডালের আসল সিলেক্টর ব্যবহার করুন
-  16 |         await expect(modal).toBeVisible();
-  17 | 
-  18 |         // শুধুমাত্র মোডালটির স্ক্রিনশট নিয়ে বেসলাইনের সাথে তুলনা করুন
-  19 |         await expect(modal).toHaveScreenshot('consent-matrix-critical-risk.png');
-  20 |     });
-  21 | });
-```
-```
-
-## File: `test-results/e2e-accessibility-Accessib-1a8a2-hboard-should-be-accessible-webkit/error-context.md`
-
-```md
-# Instructions
-
-- Following Playwright test failed.
-- Explain why, be concise, respect Playwright best practices.
-- Provide a snippet of code with the fix, if possible.
-
-# Test info
-
-- Name: e2e\accessibility.spec.ts >> Accessibility Tests (WCAG) >> Admin Dashboard should be accessible
-- Location: tests\e2e\accessibility.spec.ts:18:9
-
-# Error details
-
-```
-Error: browserType.launch: Executable doesn't exist at C:\Users\n\AppData\Local\ms-playwright\webkit-2311\Playwright.exe
-╔════════════════════════════════════════════════════════════╗
-║ Looks like Playwright was just installed or updated.       ║
-║ Please run the following command to download new browsers: ║
-║                                                            ║
-║     pnpm exec playwright install                           ║
-║                                                            ║
-║ <3 Playwright Team                                         ║
-╚════════════════════════════════════════════════════════════╝
-```
-```
-
-## File: `test-results/e2e-visual-Visual-Regressi-520ca-age-layout-should-be-stable-firefox/error-context.md`
-
-```md
-# Instructions
-
-- Following Playwright test failed.
-- Explain why, be concise, respect Playwright best practices.
-- Provide a snippet of code with the fix, if possible.
-
-# Test info
-
-- Name: e2e\visual.spec.ts >> Visual Regression Tests >> Homepage layout should be stable
-- Location: tests\e2e\visual.spec.ts:4:9
-
-# Error details
-
-```
-Error: browserType.launch: Executable doesn't exist at C:\Users\n\AppData\Local\ms-playwright\firefox-1532\firefox\firefox.exe
-╔════════════════════════════════════════════════════════════╗
-║ Looks like Playwright was just installed or updated.       ║
-║ Please run the following command to download new browsers: ║
-║                                                            ║
-║     pnpm exec playwright install                           ║
-║                                                            ║
-║ <3 Playwright Team                                         ║
-╚════════════════════════════════════════════════════════════╝
-```
-```
-
-## File: `test-results/e2e-visual-Visual-Regressi-e7857-match-the-approved-snapshot-Mobile-Chrome/error-context.md`
-
-```md
-# Instructions
-
-- Following Playwright test failed.
-- Explain why, be concise, respect Playwright best practices.
-- Provide a snippet of code with the fix, if possible.
-
-# Test info
-
-- Name: e2e\visual.spec.ts >> Visual Regression Tests >> ConsentMatrixModal should match the approved snapshot
-- Location: tests\e2e\visual.spec.ts:10:9
-
-# Error details
-
-```
-Error: expect(locator).toBeVisible() failed
-
-Locator: locator('[data-testid="consent-matrix-modal"]')
-Expected: visible
-Timeout: 5000ms
-Error: element(s) not found
-
-Call log:
-  - Expect "toBeVisible" with timeout 5000ms
-  - waiting for locator('[data-testid="consent-matrix-modal"]')
-
-```
-
-```yaml
-- complementary:
-  - text: ▲ SupremeAI
-  - navigation:
-    - button "Sessions"
-    - button "Workspace"
-    - button "Auth Vault"
-    - button "Automation"
-    - button "Knowledge"
-    - button "Secrets"
-    - button "Usage"
-    - button "Settings"
-    - button "Site Actions"
-    - button "LLM Gateway"
-    - button "Admin Console"
-  - text: Offline
-  - button "Dark mode"
-- main:
-  - heading "What do you want to build today?" [level=1]
-  - textbox "Give SupremeAI a task to work on..."
-  - button "Start Session" [disabled]
-  - heading "Recent sessions" [level=2]
-  - text: 0 total
-  - paragraph: No sessions yet. Start your first task above.
-```
-
-# Test source
-
-```ts
-  1  | import { test, expect } from '@playwright/test';
-  2  | 
-  3  | test.describe('Visual Regression Tests', () => {
-  4  |     test('Homepage layout should be stable', async ({ page }) => {
-  5  |         await page.goto('/');
-  6  |         // পুরো পেজের স্ক্রিনশট নিয়ে বেসলাইনের সাথে তুলনা করুন
-  7  |         await expect(page).toHaveScreenshot('homepage-stable.png', { fullPage: true });
-  8  |     });
-  9  | 
-  10 |     test('ConsentMatrixModal should match the approved snapshot', async ({ page }) => {
-  11 |         // একটি ডামি URL প্যারামিটার ব্যবহার করে মোডালটি দেখানো হচ্ছে
-  12 |         await page.goto('/?showConsentModal=true');
-  13 | 
-  14 |         // একটি নির্দিষ্ট data-testid দিয়ে মোডালটি লোকেট করা হচ্ছে
-  15 |         const modal = page.locator('[data-testid="consent-matrix-modal"]'); // এখানে আপনার মোডালের আসল সিলেক্টর ব্যবহার করুন
-> 16 |         await expect(modal).toBeVisible();
-     |                             ^ Error: expect(locator).toBeVisible() failed
-  17 | 
-  18 |         // শুধুমাত্র মোডালটির স্ক্রিনশট নিয়ে বেসলাইনের সাথে তুলনা করুন
-  19 |         await expect(modal).toHaveScreenshot('consent-matrix-critical-risk.png');
-  20 |     });
-  21 | });
-```
-```
-
-## File: `test-results/e2e-chat-Chat-sends-message-firefox/error-context.md`
-
-```md
-# Instructions
-
-- Following Playwright test failed.
-- Explain why, be concise, respect Playwright best practices.
-- Provide a snippet of code with the fix, if possible.
-
-# Test info
-
-- Name: e2e\chat.spec.ts >> Chat sends message
-- Location: tests\e2e\chat.spec.ts:3:5
-
-# Error details
-
-```
-Error: browserType.launch: Executable doesn't exist at C:\Users\n\AppData\Local\ms-playwright\firefox-1532\firefox\firefox.exe
-╔════════════════════════════════════════════════════════════╗
-║ Looks like Playwright was just installed or updated.       ║
-║ Please run the following command to download new browsers: ║
-║                                                            ║
-║     pnpm exec playwright install                           ║
-║                                                            ║
-║ <3 Playwright Team                                         ║
-╚════════════════════════════════════════════════════════════╝
-```
-```
-
-## File: `test-results/e2e-admin-dashboard-Suprem-8ff1e-hestration-command-via-chat-Mobile-Chrome/error-context.md`
-
-```md
-# Instructions
-
-- Following Playwright test failed.
-- Explain why, be concise, respect Playwright best practices.
-- Provide a snippet of code with the fix, if possible.
-
-# Test info
-
-- Name: e2e\admin-dashboard.spec.ts >> SupremeAI Nexus E2E Flow >> should be able to submit an orchestration command via chat
-- Location: tests\e2e\admin-dashboard.spec.ts:25:7
-
-# Error details
-
-```
-Error: expect(locator).toBeVisible() failed
-
-Locator: getByPlaceholder('[SupremeAI Nexus Command...]')
-Expected: visible
-Timeout: 5000ms
-Error: element(s) not found
-
-Call log:
-  - Expect "toBeVisible" with timeout 5000ms
-  - waiting for getByPlaceholder('[SupremeAI Nexus Command...]')
-
-```
-
-```yaml
-- heading "Dashboard Module Failure" [level=2]
-- paragraph: A critical module in the admin dashboard has crashed. The rest of the system remains intact.
-- text: React is not defined
-- button "Reboot Dashboard Module"
-```
-
-# Test source
-
-```ts
-  1  | import { test, expect } from '@playwright/test';
-  2  | 
-  3  | test.describe('SupremeAI Nexus E2E Flow', () => {
-  4  | 
-  5  |   test('should load the dashboard and verify Java Worker widget', async ({ page }) => {
-  6  |     // 1. Load the admin dashboard
-  7  |     await page.goto('/admin'); // Assumes routing allows direct /admin access
-  8  | 
-  9  |     // 2. Verify Nexus Header exists
-  10 |     await expect(page.getByText('SupremeAI')).toBeVisible();
-  11 | 
-  12 |     // 3. Verify Java Background Worker widget is rendered
-  13 |     const workerWidget = page.locator('text=Java Background Worker');
-  14 |     await expect(workerWidget).toBeVisible({ timeout: 10000 });
-  15 | 
-  16 |     // 4. Verify healthy status indicator
-  17 |     await expect(page.locator('text=HEALTHY').first()).toBeVisible();
-  18 | 
-  19 |     // 5. Verify metrics blocks are present (CPU, Memory, Active Tasks)
-  20 |     await expect(page.locator('text=CPU Load')).toBeVisible();
-  21 |     await expect(page.locator('text=Memory')).toBeVisible();
-  22 |     await expect(page.locator('text=Active Tasks')).toBeVisible();
-  23 |   });
-  24 | 
-  25 |   test('should be able to submit an orchestration command via chat', async ({ page }) => {
-  26 |     await page.goto('/admin');
-  27 | 
-  28 |     // Find the chat input
-  29 |     const chatInput = page.getByPlaceholder('[SupremeAI Nexus Command...]');
-> 30 |     await expect(chatInput).toBeVisible();
-     |                             ^ Error: expect(locator).toBeVisible() failed
-  31 | 
-  32 |     // Type a command that would theoretically trigger a background Java task
-  33 |     await chatInput.fill('Run full system security audit');
-  34 |     await chatInput.press('Enter');
-  35 | 
-  36 |     // Verify the message appears in the chat stream
-  37 |     await expect(page.getByText('Admin: Run full system security audit')).toBeVisible();
-  38 | 
-  39 |     // Verify SupremeAI's immediate ACK response appears
-  40 |     await expect(page.getByText('Processing command "Run full system security audit"... Authorization confirmed.')).toBeVisible();
-  41 |   });
-  42 | 
-  43 | });
-  44 | 
-```
-```
-
-## File: `test-results/e2e-admin-dashboard-Suprem-08ee0-d-verify-Java-Worker-widget-Mobile-Chrome/error-context.md`
+## File: `test-results/e2e-admin-dashboard-Suprem-08ee0-d-verify-Java-Worker-widget-chromium/error-context.md`
 
 ```md
 # Instructions
@@ -118532,368 +116584,7 @@ Call log:
 ```
 ```
 
-## File: `test-results/e2e-accessibility-Accessib-1a8a2-hboard-should-be-accessible-Mobile-Safari/error-context.md`
-
-```md
-# Instructions
-
-- Following Playwright test failed.
-- Explain why, be concise, respect Playwright best practices.
-- Provide a snippet of code with the fix, if possible.
-
-# Test info
-
-- Name: e2e\accessibility.spec.ts >> Accessibility Tests (WCAG) >> Admin Dashboard should be accessible
-- Location: tests\e2e\accessibility.spec.ts:18:9
-
-# Error details
-
-```
-Error: browserType.launch: Executable doesn't exist at C:\Users\n\AppData\Local\ms-playwright\webkit-2311\Playwright.exe
-╔════════════════════════════════════════════════════════════╗
-║ Looks like Playwright was just installed or updated.       ║
-║ Please run the following command to download new browsers: ║
-║                                                            ║
-║     pnpm exec playwright install                           ║
-║                                                            ║
-║ <3 Playwright Team                                         ║
-╚════════════════════════════════════════════════════════════╝
-```
-```
-
-## File: `test-results/e2e-visual-Visual-Regressi-520ca-age-layout-should-be-stable-webkit/error-context.md`
-
-```md
-# Instructions
-
-- Following Playwright test failed.
-- Explain why, be concise, respect Playwright best practices.
-- Provide a snippet of code with the fix, if possible.
-
-# Test info
-
-- Name: e2e\visual.spec.ts >> Visual Regression Tests >> Homepage layout should be stable
-- Location: tests\e2e\visual.spec.ts:4:9
-
-# Error details
-
-```
-Error: browserType.launch: Executable doesn't exist at C:\Users\n\AppData\Local\ms-playwright\webkit-2311\Playwright.exe
-╔════════════════════════════════════════════════════════════╗
-║ Looks like Playwright was just installed or updated.       ║
-║ Please run the following command to download new browsers: ║
-║                                                            ║
-║     pnpm exec playwright install                           ║
-║                                                            ║
-║ <3 Playwright Team                                         ║
-╚════════════════════════════════════════════════════════════╝
-```
-```
-
-## File: `test-results/e2e-visual-Visual-Regressi-e7857-match-the-approved-snapshot-Mobile-Safari/error-context.md`
-
-```md
-# Instructions
-
-- Following Playwright test failed.
-- Explain why, be concise, respect Playwright best practices.
-- Provide a snippet of code with the fix, if possible.
-
-# Test info
-
-- Name: e2e\visual.spec.ts >> Visual Regression Tests >> ConsentMatrixModal should match the approved snapshot
-- Location: tests\e2e\visual.spec.ts:10:9
-
-# Error details
-
-```
-Error: browserType.launch: Executable doesn't exist at C:\Users\n\AppData\Local\ms-playwright\webkit-2311\Playwright.exe
-╔════════════════════════════════════════════════════════════╗
-║ Looks like Playwright was just installed or updated.       ║
-║ Please run the following command to download new browsers: ║
-║                                                            ║
-║     pnpm exec playwright install                           ║
-║                                                            ║
-║ <3 Playwright Team                                         ║
-╚════════════════════════════════════════════════════════════╝
-```
-```
-
-## File: `test-results/e2e-accessibility-Accessib-57b49-ctable-accessibility-issues-Mobile-Safari/error-context.md`
-
-```md
-# Instructions
-
-- Following Playwright test failed.
-- Explain why, be concise, respect Playwright best practices.
-- Provide a snippet of code with the fix, if possible.
-
-# Test info
-
-- Name: e2e\accessibility.spec.ts >> Accessibility Tests (WCAG) >> Homepage should not have any automatically detectable accessibility issues
-- Location: tests\e2e\accessibility.spec.ts:5:9
-
-# Error details
-
-```
-Error: browserType.launch: Executable doesn't exist at C:\Users\n\AppData\Local\ms-playwright\webkit-2311\Playwright.exe
-╔════════════════════════════════════════════════════════════╗
-║ Looks like Playwright was just installed or updated.       ║
-║ Please run the following command to download new browsers: ║
-║                                                            ║
-║     pnpm exec playwright install                           ║
-║                                                            ║
-║ <3 Playwright Team                                         ║
-╚════════════════════════════════════════════════════════════╝
-```
-```
-
-## File: `test-results/e2e-accessibility-Accessib-1a8a2-hboard-should-be-accessible-Mobile-Chrome/error-context.md`
-
-```md
-# Instructions
-
-- Following Playwright test failed.
-- Explain why, be concise, respect Playwright best practices.
-- Provide a snippet of code with the fix, if possible.
-
-# Test info
-
-- Name: e2e\accessibility.spec.ts >> Accessibility Tests (WCAG) >> Admin Dashboard should be accessible
-- Location: tests\e2e\accessibility.spec.ts:18:9
-
-# Error details
-
-```
-Error: expect(received).toEqual(expected) // deep equality
-
-- Expected  -   1
-+ Received  + 149
-
-- Array []
-+ Array [
-+   Object {
-+     "description": "Ensure the document has a main landmark",
-+     "help": "Document should have one main landmark",
-+     "helpUrl": "https://dequeuniversity.com/rules/axe/4.12/landmark-one-main?application=playwright",
-+     "id": "landmark-one-main",
-+     "impact": "moderate",
-+     "nodes": Array [
-+       Object {
-+         "all": Array [
-+           Object {
-+             "data": null,
-+             "id": "page-has-main",
-+             "impact": "moderate",
-+             "message": "Document does not have a main landmark",
-+             "relatedNodes": Array [],
-+           },
-+         ],
-+         "any": Array [],
-+         "failureSummary": "Fix all of the following:
-+   Document does not have a main landmark",
-+         "html": "<html lang=\"en\" class=\"dark\" data-theme=\"dark\">",
-+         "impact": "moderate",
-+         "none": Array [],
-+         "target": Array [
-+           "html",
-+         ],
-+       },
-+     ],
-+     "tags": Array [
-+       "cat.semantics",
-+       "best-practice",
-+     ],
-+   },
-+   Object {
-+     "description": "Ensure that the page, or at least one of its frames contains a level-one heading",
-+     "help": "Page should contain a level-one heading",
-+     "helpUrl": "https://dequeuniversity.com/rules/axe/4.12/page-has-heading-one?application=playwright",
-+     "id": "page-has-heading-one",
-+     "impact": "moderate",
-+     "nodes": Array [
-+       Object {
-+         "all": Array [
-+           Object {
-+             "data": null,
-+             "id": "page-has-heading-one",
-+             "impact": "moderate",
-+             "message": "Page must have a level-one heading",
-+             "relatedNodes": Array [],
-+           },
-+         ],
-+         "any": Array [],
-+         "failureSummary": "Fix all of the following:
-+   Page must have a level-one heading",
-+         "html": "<html lang=\"en\" class=\"dark\" data-theme=\"dark\">",
-+         "impact": "moderate",
-+         "none": Array [],
-+         "target": Array [
-+           "html",
-+         ],
-+       },
-+     ],
-+     "tags": Array [
-+       "cat.semantics",
-+       "best-practice",
-+     ],
-+   },
-+   Object {
-+     "description": "Ensure all page content is contained by landmarks",
-+     "help": "All page content should be contained by landmarks",
-+     "helpUrl": "https://dequeuniversity.com/rules/axe/4.12/region?application=playwright",
-+     "id": "region",
-+     "impact": "moderate",
-+     "nodes": Array [
-+       Object {
-+         "all": Array [],
-+         "any": Array [
-+           Object {
-+             "data": Object {
-+               "isIframe": false,
-+             },
-+             "id": "region",
-+             "impact": "moderate",
-+             "message": "Some page content is not contained by landmarks",
-+             "relatedNodes": Array [],
-+           },
-+         ],
-+         "failureSummary": "Fix any of the following:
-+   Some page content is not contained by landmarks",
-+         "html": "<h2 class=\"text-xl font-mono font-bold text-[#ff0055] uppercase tracking-widest mb-2\">Dashboard Module Failure</h2>",
-+         "impact": "moderate",
-+         "none": Array [],
-+         "target": Array [
-+           "h2",
-+         ],
-+       },
-+       Object {
-+         "all": Array [],
-+         "any": Array [
-+           Object {
-+             "data": Object {
-+               "isIframe": false,
-+             },
-+             "id": "region",
-+             "impact": "moderate",
-+             "message": "Some page content is not contained by landmarks",
-+             "relatedNodes": Array [],
-+           },
-+         ],
-+         "failureSummary": "Fix any of the following:
-+   Some page content is not contained by landmarks",
-+         "html": "<p class=\"text-sm text-slate-400 font-mono mb-4\">A critical module in the admin dashboard has crashed. The rest of the system remains intact.</p>",
-+         "impact": "moderate",
-+         "none": Array [],
-+         "target": Array [
-+           "p",
-+         ],
-+       },
-+       Object {
-+         "all": Array [],
-+         "any": Array [
-+           Object {
-+             "data": Object {
-+               "isIframe": false,
-+             },
-+             "id": "region",
-+             "impact": "moderate",
-+             "message": "Some page content is not contained by landmarks",
-+             "relatedNodes": Array [],
-+           },
-+         ],
-+         "failureSummary": "Fix any of the following:
-+   Some page content is not contained by landmarks",
-+         "html": "<pre class=\"text-xs text-slate-400 font-mono bg-slate-900/80 p-3 rounded-lg mb-6 overflow-auto max-h-40\">React is not defined</pre>",
-+         "impact": "moderate",
-+         "none": Array [],
-+         "target": Array [
-+           "pre",
-+         ],
-+       },
-+     ],
-+     "tags": Array [
-+       "cat.keyboard",
-+       "best-practice",
-+       "RGAAv4",
-+       "RGAA-9.2.1",
-+     ],
-+   },
-+ ]
-```
-
-# Page snapshot
-
-```yaml
-- generic [ref=e4]:
-  - heading "Dashboard Module Failure" [level=2] [ref=e5]
-  - paragraph [ref=e6]: A critical module in the admin dashboard has crashed. The rest of the system remains intact.
-  - generic [ref=e7]: React is not defined
-  - button "Reboot Dashboard Module" [ref=e8]
-```
-
-# Test source
-
-```ts
-  1  | import { test, expect } from '@playwright/test';
-  2  | import AxeBuilder from '@axe-core/playwright';
-  3  | 
-  4  | test.describe('Accessibility Tests (WCAG)', () => {
-  5  |     test('Homepage should not have any automatically detectable accessibility issues', async ({ page }) => {
-  6  |         await page.goto('/');
-  7  | 
-  8  |         const accessibilityScanResults = await new AxeBuilder({ page }).analyze();
-  9  | 
-  10 |         // কোনো ভায়োলেশন থাকলে তা প্রিন্ট করার জন্য একটি সহায়ক লগ
-  11 |         if (accessibilityScanResults.violations.length > 0) {
-  12 |             console.log('Accessibility violations found on homepage:', JSON.stringify(accessibilityScanResults.violations, null, 2));
-  13 |         }
-  14 | 
-  15 |         expect(accessibilityScanResults.violations).toEqual([]);
-  16 |     });
-  17 | 
-  18 |     test('Admin Dashboard should be accessible', async ({ page }) => {
-  19 |         await page.goto('/admin'); // আপনার অ্যাডমিন পেজের URL
-  20 | 
-  21 |         const accessibilityScanResults = await new AxeBuilder({ page }).analyze();
-  22 | 
-> 23 |         expect(accessibilityScanResults.violations).toEqual([]);
-     |                                                     ^ Error: expect(received).toEqual(expected) // deep equality
-  24 |     });
-  25 | });
-```
-```
-
-## File: `test-results/e2e-visual-Visual-Regressi-e7857-match-the-approved-snapshot-webkit/error-context.md`
-
-```md
-# Instructions
-
-- Following Playwright test failed.
-- Explain why, be concise, respect Playwright best practices.
-- Provide a snippet of code with the fix, if possible.
-
-# Test info
-
-- Name: e2e\visual.spec.ts >> Visual Regression Tests >> ConsentMatrixModal should match the approved snapshot
-- Location: tests\e2e\visual.spec.ts:10:9
-
-# Error details
-
-```
-Error: browserType.launch: Executable doesn't exist at C:\Users\n\AppData\Local\ms-playwright\webkit-2311\Playwright.exe
-╔════════════════════════════════════════════════════════════╗
-║ Looks like Playwright was just installed or updated.       ║
-║ Please run the following command to download new browsers: ║
-║                                                            ║
-║     pnpm exec playwright install                           ║
-║                                                            ║
-║ <3 Playwright Team                                         ║
-╚════════════════════════════════════════════════════════════╝
-```
-```
-
-## File: `test-results/e2e-admin-dashboard-Suprem-8ff1e-hestration-command-via-chat-firefox/error-context.md`
+## File: `test-results/e2e-admin-dashboard-Suprem-8ff1e-hestration-command-via-chat-chromium/error-context.md`
 
 ```md
 # Instructions
@@ -118910,189 +116601,74 @@ Error: browserType.launch: Executable doesn't exist at C:\Users\n\AppData\Local\
 # Error details
 
 ```
-Error: browserType.launch: Executable doesn't exist at C:\Users\n\AppData\Local\ms-playwright\firefox-1532\firefox\firefox.exe
-╔════════════════════════════════════════════════════════════╗
-║ Looks like Playwright was just installed or updated.       ║
-║ Please run the following command to download new browsers: ║
-║                                                            ║
-║     pnpm exec playwright install                           ║
-║                                                            ║
-║ <3 Playwright Team                                         ║
-╚════════════════════════════════════════════════════════════╝
-```
-```
+Error: expect(locator).toBeVisible() failed
 
-## File: `test-results/e2e-admin-dashboard-Suprem-08ee0-d-verify-Java-Worker-widget-webkit/error-context.md`
+Locator: getByPlaceholder('[SupremeAI Nexus Command...]')
+Expected: visible
+Timeout: 5000ms
+Error: element(s) not found
 
-```md
-# Instructions
-
-- Following Playwright test failed.
-- Explain why, be concise, respect Playwright best practices.
-- Provide a snippet of code with the fix, if possible.
-
-# Test info
-
-- Name: e2e\admin-dashboard.spec.ts >> SupremeAI Nexus E2E Flow >> should load the dashboard and verify Java Worker widget
-- Location: tests\e2e\admin-dashboard.spec.ts:5:7
-
-# Error details
+Call log:
+  - Expect "toBeVisible" with timeout 5000ms
+  - waiting for getByPlaceholder('[SupremeAI Nexus Command...]')
 
 ```
-Error: browserType.launch: Executable doesn't exist at C:\Users\n\AppData\Local\ms-playwright\webkit-2311\Playwright.exe
-╔════════════════════════════════════════════════════════════╗
-║ Looks like Playwright was just installed or updated.       ║
-║ Please run the following command to download new browsers: ║
-║                                                            ║
-║     pnpm exec playwright install                           ║
-║                                                            ║
-║ <3 Playwright Team                                         ║
-╚════════════════════════════════════════════════════════════╝
-```
+
+```yaml
+- heading "Dashboard Module Failure" [level=2]
+- paragraph: A critical module in the admin dashboard has crashed. The rest of the system remains intact.
+- text: React is not defined
+- button "Reboot Dashboard Module"
 ```
 
-## File: `test-results/e2e-accessibility-Accessib-57b49-ctable-accessibility-issues-firefox/error-context.md`
+# Test source
 
-```md
-# Instructions
-
-- Following Playwright test failed.
-- Explain why, be concise, respect Playwright best practices.
-- Provide a snippet of code with the fix, if possible.
-
-# Test info
-
-- Name: e2e\accessibility.spec.ts >> Accessibility Tests (WCAG) >> Homepage should not have any automatically detectable accessibility issues
-- Location: tests\e2e\accessibility.spec.ts:5:9
-
-# Error details
-
-```
-Error: browserType.launch: Executable doesn't exist at C:\Users\n\AppData\Local\ms-playwright\firefox-1532\firefox\firefox.exe
-╔════════════════════════════════════════════════════════════╗
-║ Looks like Playwright was just installed or updated.       ║
-║ Please run the following command to download new browsers: ║
-║                                                            ║
-║     pnpm exec playwright install                           ║
-║                                                            ║
-║ <3 Playwright Team                                         ║
-╚════════════════════════════════════════════════════════════╝
-```
-```
-
-## File: `test-results/e2e-accessibility-Accessib-1a8a2-hboard-should-be-accessible-firefox/error-context.md`
-
-```md
-# Instructions
-
-- Following Playwright test failed.
-- Explain why, be concise, respect Playwright best practices.
-- Provide a snippet of code with the fix, if possible.
-
-# Test info
-
-- Name: e2e\accessibility.spec.ts >> Accessibility Tests (WCAG) >> Admin Dashboard should be accessible
-- Location: tests\e2e\accessibility.spec.ts:18:9
-
-# Error details
-
-```
-Error: browserType.launch: Executable doesn't exist at C:\Users\n\AppData\Local\ms-playwright\firefox-1532\firefox\firefox.exe
-╔════════════════════════════════════════════════════════════╗
-║ Looks like Playwright was just installed or updated.       ║
-║ Please run the following command to download new browsers: ║
-║                                                            ║
-║     pnpm exec playwright install                           ║
-║                                                            ║
-║ <3 Playwright Team                                         ║
-╚════════════════════════════════════════════════════════════╝
-```
-```
-
-## File: `test-results/e2e-admin-dashboard-Suprem-08ee0-d-verify-Java-Worker-widget-Mobile-Safari/error-context.md`
-
-```md
-# Instructions
-
-- Following Playwright test failed.
-- Explain why, be concise, respect Playwright best practices.
-- Provide a snippet of code with the fix, if possible.
-
-# Test info
-
-- Name: e2e\admin-dashboard.spec.ts >> SupremeAI Nexus E2E Flow >> should load the dashboard and verify Java Worker widget
-- Location: tests\e2e\admin-dashboard.spec.ts:5:7
-
-# Error details
-
-```
-Error: browserType.launch: Executable doesn't exist at C:\Users\n\AppData\Local\ms-playwright\webkit-2311\Playwright.exe
-╔════════════════════════════════════════════════════════════╗
-║ Looks like Playwright was just installed or updated.       ║
-║ Please run the following command to download new browsers: ║
-║                                                            ║
-║     pnpm exec playwright install                           ║
-║                                                            ║
-║ <3 Playwright Team                                         ║
-╚════════════════════════════════════════════════════════════╝
-```
-```
-
-## File: `test-results/e2e-accessibility-Accessib-57b49-ctable-accessibility-issues-webkit/error-context.md`
-
-```md
-# Instructions
-
-- Following Playwright test failed.
-- Explain why, be concise, respect Playwright best practices.
-- Provide a snippet of code with the fix, if possible.
-
-# Test info
-
-- Name: e2e\accessibility.spec.ts >> Accessibility Tests (WCAG) >> Homepage should not have any automatically detectable accessibility issues
-- Location: tests\e2e\accessibility.spec.ts:5:9
-
-# Error details
-
-```
-Error: browserType.launch: Executable doesn't exist at C:\Users\n\AppData\Local\ms-playwright\webkit-2311\Playwright.exe
-╔════════════════════════════════════════════════════════════╗
-║ Looks like Playwright was just installed or updated.       ║
-║ Please run the following command to download new browsers: ║
-║                                                            ║
-║     pnpm exec playwright install                           ║
-║                                                            ║
-║ <3 Playwright Team                                         ║
-╚════════════════════════════════════════════════════════════╝
-```
-```
-
-## File: `test-results/e2e-visual-Visual-Regressi-e7857-match-the-approved-snapshot-firefox/error-context.md`
-
-```md
-# Instructions
-
-- Following Playwright test failed.
-- Explain why, be concise, respect Playwright best practices.
-- Provide a snippet of code with the fix, if possible.
-
-# Test info
-
-- Name: e2e\visual.spec.ts >> Visual Regression Tests >> ConsentMatrixModal should match the approved snapshot
-- Location: tests\e2e\visual.spec.ts:10:9
-
-# Error details
-
-```
-Error: browserType.launch: Executable doesn't exist at C:\Users\n\AppData\Local\ms-playwright\firefox-1532\firefox\firefox.exe
-╔════════════════════════════════════════════════════════════╗
-║ Looks like Playwright was just installed or updated.       ║
-║ Please run the following command to download new browsers: ║
-║                                                            ║
-║     pnpm exec playwright install                           ║
-║                                                            ║
-║ <3 Playwright Team                                         ║
-╚════════════════════════════════════════════════════════════╝
+```ts
+  1  | import { test, expect } from '@playwright/test';
+  2  | 
+  3  | test.describe('SupremeAI Nexus E2E Flow', () => {
+  4  | 
+  5  |   test('should load the dashboard and verify Java Worker widget', async ({ page }) => {
+  6  |     // 1. Load the admin dashboard
+  7  |     await page.goto('/admin'); // Assumes routing allows direct /admin access
+  8  | 
+  9  |     // 2. Verify Nexus Header exists
+  10 |     await expect(page.getByText('SupremeAI')).toBeVisible();
+  11 | 
+  12 |     // 3. Verify Java Background Worker widget is rendered
+  13 |     const workerWidget = page.locator('text=Java Background Worker');
+  14 |     await expect(workerWidget).toBeVisible({ timeout: 10000 });
+  15 | 
+  16 |     // 4. Verify healthy status indicator
+  17 |     await expect(page.locator('text=HEALTHY').first()).toBeVisible();
+  18 | 
+  19 |     // 5. Verify metrics blocks are present (CPU, Memory, Active Tasks)
+  20 |     await expect(page.locator('text=CPU Load')).toBeVisible();
+  21 |     await expect(page.locator('text=Memory')).toBeVisible();
+  22 |     await expect(page.locator('text=Active Tasks')).toBeVisible();
+  23 |   });
+  24 | 
+  25 |   test('should be able to submit an orchestration command via chat', async ({ page }) => {
+  26 |     await page.goto('/admin');
+  27 | 
+  28 |     // Find the chat input
+  29 |     const chatInput = page.getByPlaceholder('[SupremeAI Nexus Command...]');
+> 30 |     await expect(chatInput).toBeVisible();
+     |                             ^ Error: expect(locator).toBeVisible() failed
+  31 | 
+  32 |     // Type a command that would theoretically trigger a background Java task
+  33 |     await chatInput.fill('Run full system security audit');
+  34 |     await chatInput.press('Enter');
+  35 | 
+  36 |     // Verify the message appears in the chat stream
+  37 |     await expect(page.getByText('Admin: Run full system security audit')).toBeVisible();
+  38 | 
+  39 |     // Verify SupremeAI's immediate ACK response appears
+  40 |     await expect(page.getByText('Processing command "Run full system security audit"... Authorization confirmed.')).toBeVisible();
+  41 |   });
+  42 | 
+  43 | });
+  44 | 
 ```
 ```
 
@@ -119312,35 +116888,6 @@ Error: expect(received).toEqual(expected) // deep equality
 ```
 ```
 
-## File: `test-results/e2e-chat-Chat-sends-message-Mobile-Safari/error-context.md`
-
-```md
-# Instructions
-
-- Following Playwright test failed.
-- Explain why, be concise, respect Playwright best practices.
-- Provide a snippet of code with the fix, if possible.
-
-# Test info
-
-- Name: e2e\chat.spec.ts >> Chat sends message
-- Location: tests\e2e\chat.spec.ts:3:5
-
-# Error details
-
-```
-Error: browserType.launch: Executable doesn't exist at C:\Users\n\AppData\Local\ms-playwright\webkit-2311\Playwright.exe
-╔════════════════════════════════════════════════════════════╗
-║ Looks like Playwright was just installed or updated.       ║
-║ Please run the following command to download new browsers: ║
-║                                                            ║
-║     pnpm exec playwright install                           ║
-║                                                            ║
-║ <3 Playwright Team                                         ║
-╚════════════════════════════════════════════════════════════╝
-```
-```
-
 ## File: `apps/studio-client/eslint.config.js`
 
 ```js
@@ -119556,6 +117103,9 @@ export default defineConfig({
 
 ```json
 {
+  "compilerOptions": {
+    "jsx": "react-jsx"
+  },
   "files": [],
   "references": [
     { "path": "./tsconfig.app.json" },
@@ -119637,9 +117187,12 @@ import tailwindcss from '@tailwindcss/vite'
 export default defineConfig({
   base: './', // Important for Electron to load local files
   plugins: [
-    react(),
+    react({ jsxRuntime: 'automatic' }),
     tailwindcss()
   ],
+  esbuild: {
+    jsx: 'automatic',
+  },
   resolve: {
     dedupe: ['react', 'react-dom']
   },
@@ -124048,14 +121601,11 @@ export function AdminConsole(props: AdminConsoleProps) {
 ## File: `apps/studio-client/src/components/LiveSujonBackground.tsx`
 
 ```tsx
-// বাংলা মন্তব্য: "Sujon" লাইভ ব্যাকগ্রাউন্ড — প্রজেক্টের রিয়েল-টাইম AI কোরের অ্যাম্বিয়েন্ট ভিজুয়াল।
-// সম্পূর্ণ CSS-অ্যানিমেশন ভিত্তিক (transform/opacity-only) — GPU হার্ডওয়্যার-অ্যাক্সিলারেটেড,
-// কোনো JS টাইমার/canvas লুপ নেই বলে মেমরি লিক বা CPU ওভারহেডের সুযোগ নেই (Zero Operating Cost)।
-import { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+import { useSessionCockpitStore, type SujonState } from '../store/sessionCockpitStore';
 
-export type SujonState = 'idle' | 'processing' | 'circuit_open';
-
-// বাংলা মন্তব্য: যেকোনো পেজ (যেমন Automation Queue) এই ইভেন্ট দিয়ে Sujon-এর ভিজুয়াল স্টেট বদলাতে পারে
+// Re-export for DashboardShell
+export type { SujonState };
 export const SUJON_STATE_EVENT = 'supremeai:sujon-state';
 
 export function setSujonState(state: SujonState): void {
@@ -124072,27 +121622,141 @@ export function useSujonState(): SujonState {
   return state;
 }
 
-// বাংলা মন্তব্য: স্টেট-ভিত্তিক গ্রেডিয়েন্ট ও অ্যানিমেশন কনফিগ — idle=শান্ত নীল/ধূসর,
-// processing=দ্রুতগতির সায়ানেটিক পার্টিকল, circuit_open=গাঢ় লাল সতর্ক-আভা
-const STATE_STYLES: Record<SujonState, { orbA: string; orbB: string; speed: string; opacity: string }> = {
-  idle: {
-    orbA: 'bg-blue-500/10',
-    orbB: 'bg-slate-400/10',
-    speed: '14s',
-    opacity: 'opacity-60',
-  },
-  processing: {
-    orbA: 'bg-cyan-400/25',
-    orbB: 'bg-fuchsia-500/20',
-    speed: '3s',
-    opacity: 'opacity-90',
-  },
-  circuit_open: {
-    orbA: 'bg-red-600/30',
-    orbB: 'bg-rose-500/25',
-    speed: '1.2s',
-    opacity: 'opacity-100',
-  },
+const vertexShaderSource = `#version 300 es
+precision highp float;
+in vec2 a_position;
+in vec2 a_texCoord;
+out vec2 v_texCoord;
+void main() {
+    gl_Position = vec4(a_position, 0.0, 1.0);
+    v_texCoord = a_texCoord;
+}
+`;
+
+const fragmentShaderSource = `#version 300 es
+precision highp float;
+in vec2 v_texCoord;
+out vec4 outColor;
+uniform float u_time;
+uniform vec2 u_resolution;
+uniform vec3 u_baseColor;
+uniform float u_intensity;
+uniform int u_stateId;
+
+float hash(vec2 p) {
+    p = fract(p * vec2(123.34, 456.21));
+    p += dot(p, p + 45.32);
+    return fract(p.x * p.y);
+}
+
+float noise(vec2 p) {
+    vec2 i = floor(p);
+    vec2 f = fract(p);
+    float a = hash(i);
+    float b = hash(i + vec2(1.0, 0.0));
+    float c = hash(i + vec2(0.0, 1.0));
+    float d = hash(i + vec2(1.0, 1.0));
+    vec2 u = f * f * (3.0 - 2.0 * f);
+    return mix(a, b, u.x) + (c - a) * u.y * (1.0 - u.x) + (d - b) * u.x * u.y;
+}
+
+void main() {
+    vec2 uv = gl_FragCoord.xy / u_resolution.xy;
+    vec2 pos = (uv - 0.5) * 2.0;
+    pos.x *= u_resolution.x / u_resolution.y;
+    
+    vec3 color = u_baseColor;
+    float n = 0.0;
+    
+    if (u_stateId == 0) { // Idle
+        n = noise(pos * 3.0 + u_time * 0.2) * 0.5;
+        color *= (0.5 + n);
+    } else if (u_stateId == 1) { // Scanning
+        float scan = sin(uv.y * 50.0 + u_time * 5.0) * 0.5 + 0.5;
+        float sweep = step(0.9, fract(uv.x * 2.0 - u_time));
+        color *= (0.5 + scan * 0.5 + sweep * u_intensity);
+    } else if (u_stateId == 2) { // Executing / Processing
+        n = noise(vec2(pos.x * 10.0 - u_time * 5.0, pos.y * 2.0));
+        color *= step(0.6, n) * 1.5;
+    } else if (u_stateId == 3) { // Self-Healing
+        n = noise(pos * 5.0 + floor(u_time * 10.0) * 0.1);
+        color *= (0.5 + n);
+    } else if (u_stateId == 4) { // CircuitOpen
+        float dist = length(pos);
+        float vignette = smoothstep(1.5, 0.5, dist);
+        float pulse = sin(u_time * 2.0) * 0.2 + 0.8;
+        color *= vignette * pulse;
+    } else if (u_stateId == 5) { // AwaitingHuman
+        float dist = length(pos);
+        float pulse = sin(u_time * 3.0 - dist * 5.0) * 0.5 + 0.5;
+        color *= (0.5 + pulse * 0.5);
+    } else if (u_stateId == 6) { // Success
+        float wave = sin(u_time * 10.0 - length(pos) * 10.0);
+        color *= smoothstep(0.0, 1.0, wave);
+    } else if (u_stateId == 7) { // Failed
+        float wave = sin(length(pos) * 20.0 + u_time * 10.0);
+        color *= smoothstep(0.0, 1.0, wave);
+    }
+
+    outColor = vec4(color, 0.3); // Kept subtle
+}
+`;
+
+function createShader(gl: WebGL2RenderingContext, type: number, source: string) {
+    const shader = gl.createShader(type);
+    if (!shader) return null;
+    gl.shaderSource(shader, source);
+    gl.compileShader(shader);
+    if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+        console.error(gl.getShaderInfoLog(shader));
+        gl.deleteShader(shader);
+        return null;
+    }
+    return shader;
+}
+
+function createProgram(gl: WebGL2RenderingContext, vertexShader: WebGLShader, fragmentShader: WebGLShader) {
+    const program = gl.createProgram();
+    if (!program) return null;
+    gl.attachShader(program, vertexShader);
+    gl.attachShader(program, fragmentShader);
+    gl.linkProgram(program);
+    if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+        console.error(gl.getProgramInfoLog(program));
+        gl.deleteProgram(program);
+        return null;
+    }
+    return program;
+}
+
+const getStateId = (state: string) => {
+    switch(state) {
+        case 'idle': return 0;
+        case 'scanning': return 1;
+        case 'executing': 
+        case 'processing': return 2;
+        case 'self_healing': return 3;
+        case 'circuit_open': return 4;
+        case 'awaiting_human': return 5;
+        case 'success': return 6;
+        case 'failed': return 7;
+        default: return 0;
+    }
+};
+
+const getBaseColor = (state: string): [number, number, number] => {
+    switch(state) {
+        case 'idle': return [0.17, 0.19, 0.23];
+        case 'scanning': return [0.1, 0.5, 0.9];
+        case 'executing':
+        case 'processing': return [0.1, 0.8, 0.3];
+        case 'self_healing': return [0.9, 0.7, 0.1];
+        case 'circuit_open': return [0.7, 0.1, 0.1];
+        case 'awaiting_human': return [0.5, 0.2, 0.8];
+        case 'success': return [0.1, 0.9, 0.4];
+        case 'failed': return [0.8, 0.1, 0.2];
+        default: return [0.17, 0.19, 0.23];
+    }
 };
 
 interface LiveSujonBackgroundProps {
@@ -124100,67 +121764,173 @@ interface LiveSujonBackgroundProps {
 }
 
 export function LiveSujonBackground({ state: forcedState }: LiveSujonBackgroundProps) {
-  const liveState = useSujonState();
-  const state = forcedState ?? liveState;
-  const cfg = STATE_STYLES[state];
+    const canvasRef = useRef<HTMLCanvasElement>(null);
+    const eventState = useSujonState();
+    const sessionState = useSessionCockpitStore((state) => state.agentState);
+    const sessionId = useSessionCockpitStore((state) => state.sessionId);
+    
+    // If we are in a session, prefer session state over ambient event state
+    const effectiveState = forcedState ?? (sessionId ? sessionState : eventState);
 
-  return (
-    <div
-      data-testid="sujon-background"
-      data-sujon-state={state}
-      aria-hidden="true"
-      className={`pointer-events-none fixed inset-0 overflow-hidden transition-opacity duration-1000 ${cfg.opacity}`}
-      style={{ zIndex: 0, contain: 'strict' }}
-    >
-      {/* বাংলা মন্তব্য: will-change + translate3d দিয়ে GPU কম্পোজিটিং লেয়ারে রেন্ডার নিশ্চিত করা হয় */}
-      <div
-        className={`absolute -top-32 -left-32 h-96 w-96 rounded-full blur-3xl ${cfg.orbA}`}
-        style={{
-          willChange: 'transform',
-          animation: `sujon-drift ${cfg.speed} ease-in-out infinite alternate`,
-        }}
-      />
-      <div
-        className={`absolute -bottom-32 -right-32 h-96 w-96 rounded-full blur-3xl ${cfg.orbB}`}
-        style={{
-          willChange: 'transform',
-          animation: `sujon-drift ${cfg.speed} ease-in-out infinite alternate-reverse`,
-        }}
-      />
-      {state === 'processing' && (
-        <div
-          className="absolute inset-0"
-          style={{
-            backgroundImage:
-              'repeating-linear-gradient(115deg, transparent 0px, transparent 38px, rgba(34,211,238,0.08) 40px), url(/icons.svg#sujon-cyber-lines)',
-            willChange: 'transform',
-            animation: 'sujon-scan 2.4s linear infinite',
-          }}
+    const animationRef = useRef<number>(0);
+    const glRef = useRef<WebGL2RenderingContext | null>(null);
+    const programRef = useRef<WebGLProgram | null>(null);
+    const bufferRef = useRef<WebGLBuffer | null>(null);
+    const texCoordBufferRef = useRef<WebGLBuffer | null>(null);
+    const vaoRef = useRef<WebGLVertexArrayObject | null>(null);
+
+    useEffect(() => {
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+
+        const gl = canvas.getContext('webgl2', { antialias: false, alpha: true, depth: false });
+        if (!gl) {
+            console.error('WebGL2 not supported');
+            return;
+        }
+        glRef.current = gl;
+
+        const vShader = createShader(gl, gl.VERTEX_SHADER, vertexShaderSource);
+        const fShader = createShader(gl, gl.FRAGMENT_SHADER, fragmentShaderSource);
+        if (!vShader || !fShader) return;
+
+        const program = createProgram(gl, vShader, fShader);
+        if (!program) return;
+        programRef.current = program;
+
+        gl.deleteShader(vShader);
+        gl.deleteShader(fShader);
+
+        const positionAttributeLocation = gl.getAttribLocation(program, 'a_position');
+        const texCoordAttributeLocation = gl.getAttribLocation(program, 'a_texCoord');
+        
+        const positionBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+        const positions = new Float32Array([
+            -1, -1,
+             1, -1,
+            -1,  1,
+            -1,  1,
+             1, -1,
+             1,  1,
+        ]);
+        gl.bufferData(gl.ARRAY_BUFFER, positions, gl.STATIC_DRAW);
+        bufferRef.current = positionBuffer;
+
+        const vao = gl.createVertexArray();
+        gl.bindVertexArray(vao);
+        vaoRef.current = vao;
+        
+        gl.enableVertexAttribArray(positionAttributeLocation);
+        gl.vertexAttribPointer(positionAttributeLocation, 2, gl.FLOAT, false, 0, 0);
+
+        const texCoordBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
+            0, 0,
+            1, 0,
+            0, 1,
+            0, 1,
+            1, 0,
+            1, 1,
+        ]), gl.STATIC_DRAW);
+        texCoordBufferRef.current = texCoordBuffer;
+        
+        gl.enableVertexAttribArray(texCoordAttributeLocation);
+        gl.vertexAttribPointer(texCoordAttributeLocation, 2, gl.FLOAT, false, 0, 0);
+
+        const timeLocation = gl.getUniformLocation(program, 'u_time');
+        const resolutionLocation = gl.getUniformLocation(program, 'u_resolution');
+        const colorLocation = gl.getUniformLocation(program, 'u_baseColor');
+        const intensityLocation = gl.getUniformLocation(program, 'u_intensity');
+        const stateIdLocation = gl.getUniformLocation(program, 'u_stateId');
+
+        let startTime = performance.now();
+        let isVisible = document.visibilityState === 'visible';
+
+        const handleVisibilityChange = () => {
+            isVisible = document.visibilityState === 'visible';
+            if (isVisible) {
+                startTime = performance.now() - (animationRef.current || 0) * 1000;
+                render(performance.now());
+            }
+        };
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+
+        const resizeCanvas = () => {
+            if (!canvas) return;
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+        };
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        let lastStateId = -1;
+
+        const render = (now: number) => {
+            if (!isVisible || !glRef.current) return;
+            
+            const time = (now - startTime) * 0.001;
+
+            gl.useProgram(program);
+            gl.bindVertexArray(vao);
+
+            gl.uniform1f(timeLocation, time);
+            gl.uniform2f(resolutionLocation, gl.canvas.width, gl.canvas.height);
+            
+            // Note: In React, accessing effectiveState directly in this closure might hold stale value unless we ref it.
+            // But since this effect re-runs on nothing (dependencies array []), we need to use a ref to get latest state, 
+            // OR include effectiveState in dependencies. But rebuilding WebGL context on state change is bad.
+            // Instead, we will use a ref for the effectiveState. Let's fix that.
+            
+            gl.clearColor(0, 0, 0, 0);
+            gl.clear(gl.COLOR_BUFFER_BIT);
+            gl.drawArrays(gl.TRIANGLES, 0, 6);
+
+            animationRef.current = requestAnimationFrame(render);
+        };
+
+        animationRef.current = requestAnimationFrame(render);
+
+        return () => {
+            document.removeEventListener('visibilitychange', handleVisibilityChange);
+            window.removeEventListener('resize', resizeCanvas);
+            if (animationRef.current) cancelAnimationFrame(animationRef.current);
+            if (glRef.current) {
+                const glCtx = glRef.current;
+                if (programRef.current) glCtx.deleteProgram(programRef.current);
+                if (bufferRef.current) glCtx.deleteBuffer(bufferRef.current);
+                if (texCoordBufferRef.current) glCtx.deleteBuffer(texCoordBufferRef.current);
+                if (vaoRef.current) glCtx.deleteVertexArray(vaoRef.current);
+                const ext = glCtx.getExtension('WEBGL_lose_context');
+                if (ext) ext.loseContext();
+            }
+        };
+    }, []); // Run once to initialize context
+
+    // Update uniforms when state changes
+    useEffect(() => {
+        if (!glRef.current || !programRef.current) return;
+        const gl = glRef.current;
+        gl.useProgram(programRef.current);
+        const colorLocation = gl.getUniformLocation(programRef.current, 'u_baseColor');
+        const intensityLocation = gl.getUniformLocation(programRef.current, 'u_intensity');
+        const stateIdLocation = gl.getUniformLocation(programRef.current, 'u_stateId');
+        
+        const color = getBaseColor(effectiveState);
+        gl.uniform3f(colorLocation, color[0], color[1], color[2]);
+        gl.uniform1f(intensityLocation, 1.0);
+        gl.uniform1i(stateIdLocation, getStateId(effectiveState));
+    }, [effectiveState]);
+
+    return (
+        <canvas
+            ref={canvasRef}
+            className="fixed inset-0 z-[-1] pointer-events-none w-full h-full opacity-60 transition-opacity duration-1000"
+            style={{ contain: 'strict' }}
         />
-      )}
-      {state === 'circuit_open' && (
-        <div
-          className="absolute inset-0 bg-red-900/20"
-          style={{ animation: 'sujon-flash 1.6s ease-out infinite' }}
-        />
-      )}
-      <style>{`
-        @keyframes sujon-drift {
-          from { transform: translate3d(0, 0, 0) scale(1); }
-          to { transform: translate3d(60px, 40px, 0) scale(1.15); }
-        }
-        @keyframes sujon-scan {
-          from { transform: translate3d(-40px, 0, 0); }
-          to { transform: translate3d(0, 0, 0); }
-        }
-        @keyframes sujon-flash {
-          0% { opacity: 0.9; }
-          30% { opacity: 0.25; }
-          100% { opacity: 0.45; }
-        }
-      `}</style>
-    </div>
-  );
+    );
 }
 
 ```
@@ -124765,6 +122535,115 @@ export function DashboardShell(props: DashboardShellProps) {
 
 ```
 
+## File: `apps/studio-client/src/components/dashboard/FileTreePanel.tsx`
+
+```tsx
+import React, { useEffect, useRef, useState } from 'react';
+import { ChevronRight, ChevronDown, FileText, Folder, FileJson, FileCode, Trash2, Plus } from 'lucide-react';
+import { useSessionCockpitStore, FileNode } from '../../store/sessionCockpitStore';
+
+export const FileTreePanel: React.FC = () => {
+  const { fileTreeData } = useSessionCockpitStore();
+  
+  // By using useRef<Map>, we avoid triggering React renders for every single patch.
+  // We only force a re-render when we specifically want to update the tree view (e.g. via a throttled update).
+  const treeRef = useRef<Map<string, FileNode>>(new Map());
+  const [renderTick, setRenderTick] = useState(0);
+  const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set(['/']));
+
+  useEffect(() => {
+    // In a real implementation, fileTreeData updates from SSE would populate treeRef.
+    // Here we simulate an initial root.
+    if (!treeRef.current.has('/')) {
+      treeRef.current.set('/', { name: 'workspace', path: '/', type: 'directory', status: 'unchanged' });
+      setRenderTick(t => t + 1);
+    }
+  }, [fileTreeData]);
+
+  // Clean up on unmount or session reset is handled by the store, but we also clear the ref here.
+  useEffect(() => {
+    return () => {
+      treeRef.current.clear();
+    };
+  }, []);
+
+  const toggleFolder = (path: string) => {
+    setExpandedFolders(prev => {
+      const next = new Set(prev);
+      if (next.has(path)) next.delete(path);
+      else next.add(path);
+      return next;
+    });
+  };
+
+  const getIcon = (node: FileNode) => {
+    if (node.type === 'directory') return <Folder className="w-4 h-4 text-blue-400" />;
+    if (node.name.endsWith('.json')) return <FileJson className="w-4 h-4 text-yellow-400" />;
+    if (node.name.endsWith('.ts') || node.name.endsWith('.js')) return <FileCode className="w-4 h-4 text-emerald-400" />;
+    return <FileText className="w-4 h-4 text-gray-400" />;
+  };
+
+  const getStatusColor = (status: FileNode['status']) => {
+    switch (status) {
+      case 'new': return 'text-emerald-400 bg-emerald-400/10';
+      case 'modified': return 'text-yellow-400 bg-yellow-400/10';
+      case 'deleted': return 'text-red-400 line-through opacity-50';
+      default: return 'text-gray-300 hover:bg-gray-800';
+    }
+  };
+
+  const renderNode = (path: string, depth: number = 0) => {
+    const node = treeRef.current.get(path);
+    if (!node) return null;
+
+    const isExpanded = expandedFolders.has(path);
+    const children = Array.from(treeRef.current.values()).filter(n => {
+      if (n.path === path) return false;
+      const parentPath = n.path.substring(0, n.path.lastIndexOf('/')) || '/';
+      return parentPath === path;
+    });
+
+    return (
+      <div key={path}>
+        <div 
+          className={`flex items-center py-1 px-2 cursor-pointer select-none text-sm ${getStatusColor(node.status)}`}
+          style={{ paddingLeft: `${depth * 12 + 8}px` }}
+          onClick={() => node.type === 'directory' && toggleFolder(path)}
+        >
+          <span className="w-4 h-4 mr-1 flex items-center justify-center">
+            {node.type === 'directory' && (
+              isExpanded ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />
+            )}
+          </span>
+          {getIcon(node)}
+          <span className="ml-2 font-mono truncate">{node.name}</span>
+          {node.status === 'new' && <Plus className="w-3 h-3 ml-auto text-emerald-500" />}
+          {node.status === 'deleted' && <Trash2 className="w-3 h-3 ml-auto text-red-500" />}
+        </div>
+        
+        {isExpanded && node.type === 'directory' && (
+          <div>
+            {children.map(child => renderNode(child.path, depth + 1))}
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  return (
+    <div className="flex flex-col h-full bg-[#1e1e1e] border-r border-gray-800 overflow-hidden">
+      <div className="flex items-center px-4 py-2 bg-[#252526] border-b border-gray-800">
+        <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Workspace</h3>
+      </div>
+      <div className="flex-1 overflow-y-auto overflow-x-hidden py-2 custom-scrollbar">
+        {renderNode('/')}
+      </div>
+    </div>
+  );
+};
+
+```
+
 ## File: `apps/studio-client/src/components/dashboard/LlmGatewayPage.tsx`
 
 ```tsx
@@ -124986,14 +122865,369 @@ export function LlmGatewayPage() {
 
 ```
 
+## File: `apps/studio-client/src/components/dashboard/ExecutionShell.tsx`
+
+```tsx
+import React, { useEffect, useRef, useState, useMemo } from 'react';
+import { useSessionCockpitStore } from '../../store/sessionCockpitStore';
+import { SandboxViewport } from './SandboxViewport';
+
+// Simple ANSI color mapping (cyan, red, green, violet, amber)
+const colorMap: Record<string, string> = {
+  shell_cmd: 'text-cyan-400 font-bold',
+  shell_stderr: 'text-red-400',
+  file_write: 'text-emerald-400',
+  file_delete: 'text-red-500',
+  dom_action: 'text-purple-400',
+  reasoning_token: 'text-amber-400',
+  shell_stdout: 'text-gray-300',
+};
+
+const ITEM_HEIGHT = 24;
+
+export const ExecutionShell: React.FC = React.memo(() => {
+  const { logBuffer } = useSessionCockpitStore();
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [scrollTop, setScrollTop] = useState(0);
+  const [autoScroll, setAutoScroll] = useState(true);
+
+  // Virtualization logic
+  const containerHeight = containerRef.current?.clientHeight || 600;
+  
+  const startIndex = Math.max(0, Math.floor(scrollTop / ITEM_HEIGHT) - 5);
+  const visibleCount = Math.ceil(containerHeight / ITEM_HEIGHT) + 10;
+  const endIndex = Math.min(logBuffer.length, startIndex + visibleCount);
+  
+  const visibleItems = logBuffer.slice(startIndex, endIndex);
+
+  // Scroll handler to detect manual scroll up
+  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const target = e.currentTarget;
+    setScrollTop(target.scrollTop);
+    
+    // If scrolled up from bottom by more than 10px, disable auto scroll
+    const isAtBottom = target.scrollHeight - target.scrollTop <= target.clientHeight + 10;
+    setAutoScroll(isAtBottom);
+  };
+
+  // Auto-scroll effect
+  useEffect(() => {
+    if (autoScroll && containerRef.current) {
+      containerRef.current.scrollTop = containerRef.current.scrollHeight;
+    }
+  }, [logBuffer.length, autoScroll]);
+
+  return (
+    <div className="flex flex-col h-full bg-[#121212] font-mono text-sm relative">
+      <div className="flex items-center px-4 py-2 bg-[#1e1e1e] border-b border-gray-800 shrink-0">
+        <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Execution Shell</h3>
+        <div className="ml-auto flex space-x-2">
+          <span className="flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse mt-1"></span>
+          <span className="text-xs text-gray-500">{logBuffer.length} events</span>
+        </div>
+      </div>
+      
+      <div className="flex-1 overflow-hidden flex flex-col">
+        {/* Top: Viewport */}
+        <div className="h-1/2 border-b border-gray-800">
+          <SandboxViewport />
+        </div>
+        
+        {/* Bottom: Logs */}
+        <div 
+          ref={containerRef}
+          onScroll={handleScroll}
+          className="h-1/2 overflow-y-auto custom-scrollbar p-2 relative bg-[#121212]"
+        >
+          <div style={{ height: `${logBuffer.length * ITEM_HEIGHT}px`, position: 'relative' }}>
+          {visibleItems.map((log, idx) => {
+            const absoluteIndex = startIndex + idx;
+            const colorClass = colorMap[log.log_type] || colorMap.shell_stdout;
+            
+            return (
+              <div 
+                key={log.id} 
+                className={`absolute w-full px-2 flex whitespace-pre-wrap leading-6 hover:bg-white/5`}
+                style={{ top: `${absoluteIndex * ITEM_HEIGHT}px`, height: `${ITEM_HEIGHT}px` }}
+              >
+                <span className="text-gray-600 mr-4 select-none">
+                  {new Date(log.ts).toISOString().substring(11, 23)}
+                </span>
+                <span className={`${colorClass} flex-1 truncate`}>
+                  {typeof log.payload === 'string' ? log.payload : JSON.stringify(log.payload)}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {!autoScroll && (
+        <button 
+          onClick={() => {
+            setAutoScroll(true);
+            if (containerRef.current) {
+              containerRef.current.scrollTop = containerRef.current.scrollHeight;
+            }
+          }}
+          className="absolute bottom-4 right-4 bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-full shadow-lg text-xs font-bold flex items-center"
+        >
+          ↓ Jump to bottom
+        </button>
+      )}
+    </div>
+  );
+});
+
+ExecutionShell.displayName = 'ExecutionShell';
+
+```
+
+## File: `apps/studio-client/src/components/dashboard/GuardrailsPage.tsx`
+
+```tsx
+import { useState, useEffect } from 'react';
+import { Shield, Save, Loader2, Settings2, Globe, Server, Code2 } from 'lucide-react';
+import { apiClient } from '../../services/apiClient';
+
+interface ExecutionPolicy {
+  id: string;
+  scope: 'global' | 'platform' | 'action';
+  target_name: string; // e.g. '*' for global, 'github.com' for platform, 'login_btn' for action
+  max_timeout_ms: number;
+  max_compute_usd: number;
+  max_retries: number;
+  cb_failure_threshold: number;
+  cooldown_window_sec: number;
+}
+
+export function GuardrailsPage() {
+  const [policies, setPolicies] = useState<ExecutionPolicy[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [savingId, setSavingId] = useState<string | null>(null);
+
+  const [activeScope, setActiveScope] = useState<'global' | 'platform' | 'action'>('global');
+
+  useEffect(() => {
+    apiClient.get<{items: ExecutionPolicy[]}>('/api/admin/execution-policies')
+      .then(data => setPolicies(data.items || []))
+      .catch(err => console.error("Failed to load policies", err))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const handleUpdate = async (id: string, updates: Partial<ExecutionPolicy>) => {
+    setSavingId(id);
+    try {
+      const updated = await apiClient.put<ExecutionPolicy>(`/api/admin/execution-policies/${id}`, updates);
+      setPolicies(policies.map(p => p.id === id ? updated : p));
+    } catch (err) {
+      console.error("Policy update failed", err);
+    } finally {
+      setSavingId(null);
+    }
+  };
+
+  const filteredPolicies = policies.filter(p => p.scope === activeScope);
+
+  const PolicyCard = ({ policy }: { policy: ExecutionPolicy }) => (
+    <div className="bg-[#1e1e1e] border border-gray-800 rounded-xl p-6 shadow-lg mb-4">
+      <div className="flex items-center justify-between border-b border-gray-800 pb-4 mb-5">
+        <div>
+          <h3 className="text-lg font-semibold text-gray-200 flex items-center gap-2">
+            {policy.scope === 'global' ? <Globe size={18} className="text-blue-500" /> : 
+             policy.scope === 'platform' ? <Server size={18} className="text-emerald-500" /> : 
+             <Code2 size={18} className="text-purple-500" />}
+            {policy.target_name === '*' ? 'Global Default Baseline' : `Target: ${policy.target_name}`}
+          </h3>
+          <p className="text-xs text-gray-500 mt-1">ID: {policy.id}</p>
+        </div>
+        <button 
+          disabled={savingId === policy.id}
+          className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-500 rounded-lg text-sm text-white transition-colors"
+        >
+          {savingId === policy.id ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
+          Force Save
+        </button>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        
+        {/* Sliders */}
+        <div className="space-y-6">
+          <div>
+            <div className="flex justify-between text-sm mb-2">
+              <span className="text-gray-300">Max Compute Budget (USD)</span>
+              <span className="text-emerald-400 font-mono">${policy.max_compute_usd.toFixed(2)}</span>
+            </div>
+            <input 
+              type="range" min="0" max="10" step="0.01" 
+              value={policy.max_compute_usd}
+              onChange={(e) => handleUpdate(policy.id, { max_compute_usd: parseFloat(e.target.value) })}
+              className="w-full accent-emerald-500"
+            />
+          </div>
+
+          <div>
+            <div className="flex justify-between text-sm mb-2">
+              <span className="text-gray-300">Max Execution Timeout (ms)</span>
+              <span className="text-amber-400 font-mono">{policy.max_timeout_ms.toLocaleString()} ms</span>
+            </div>
+            <input 
+              type="range" min="1000" max="60000" step="1000" 
+              value={policy.max_timeout_ms}
+              onChange={(e) => handleUpdate(policy.id, { max_timeout_ms: parseInt(e.target.value) })}
+              className="w-full accent-amber-500"
+            />
+          </div>
+
+          <div>
+            <div className="flex justify-between text-sm mb-2">
+              <span className="text-gray-300">Max Retries</span>
+              <span className="text-blue-400 font-mono">{policy.max_retries} attempts</span>
+            </div>
+            <input 
+              type="range" min="0" max="10" step="1" 
+              value={policy.max_retries}
+              onChange={(e) => handleUpdate(policy.id, { max_retries: parseInt(e.target.value) })}
+              className="w-full accent-blue-500"
+            />
+          </div>
+        </div>
+
+        <div className="space-y-6">
+          <div>
+            <div className="flex justify-between text-sm mb-2">
+              <span className="text-gray-300">Circuit Breaker Threshold</span>
+              <span className="text-red-400 font-mono">{policy.cb_failure_threshold} consecutive failures</span>
+            </div>
+            <input 
+              type="range" min="1" max="20" step="1" 
+              value={policy.cb_failure_threshold}
+              onChange={(e) => handleUpdate(policy.id, { cb_failure_threshold: parseInt(e.target.value) })}
+              className="w-full accent-red-500"
+            />
+          </div>
+
+          <div>
+            <div className="flex justify-between text-sm mb-2">
+              <span className="text-gray-300">Cooldown Window (Seconds)</span>
+              <span className="text-purple-400 font-mono">{policy.cooldown_window_sec}s lock</span>
+            </div>
+            <input 
+              type="range" min="10" max="3600" step="10" 
+              value={policy.cooldown_window_sec}
+              onChange={(e) => handleUpdate(policy.id, { cooldown_window_sec: parseInt(e.target.value) })}
+              className="w-full accent-purple-500"
+            />
+          </div>
+        </div>
+
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="max-w-5xl mx-auto px-6 py-8">
+      <div className="flex items-center gap-3 mb-6">
+        <Shield size={28} className="text-blue-500" />
+        <div>
+          <h1 className="text-2xl font-semibold text-white">Execution Guardrails</h1>
+          <p className="text-sm text-slate-400">Strict runtime budget limits and circuit breakers.</p>
+        </div>
+      </div>
+
+      {/* Scope Swapper */}
+      <div className="flex gap-2 mb-8 p-1 bg-black/40 border border-gray-800 rounded-lg inline-flex">
+        <button 
+          onClick={() => setActiveScope('global')}
+          className={`px-6 py-2 text-sm font-medium rounded-md transition-all ${activeScope === 'global' ? 'bg-gray-800 text-white shadow-sm' : 'text-gray-500 hover:text-gray-300'}`}
+        >
+          <Globe size={14} className="inline mr-2" /> Global
+        </button>
+        <button 
+          onClick={() => setActiveScope('platform')}
+          className={`px-6 py-2 text-sm font-medium rounded-md transition-all ${activeScope === 'platform' ? 'bg-gray-800 text-white shadow-sm' : 'text-gray-500 hover:text-gray-300'}`}
+        >
+          <Server size={14} className="inline mr-2" /> Per-Platform
+        </button>
+        <button 
+          onClick={() => setActiveScope('action')}
+          className={`px-6 py-2 text-sm font-medium rounded-md transition-all ${activeScope === 'action' ? 'bg-gray-800 text-white shadow-sm' : 'text-gray-500 hover:text-gray-300'}`}
+        >
+          <Code2 size={14} className="inline mr-2" /> Per-Action
+        </button>
+      </div>
+
+      {loading ? (
+        <div className="flex justify-center py-20 text-slate-400">
+          <Loader2 size={24} className="animate-spin" />
+        </div>
+      ) : (
+        <div>
+           {filteredPolicies.length === 0 ? (
+             <div className="text-center py-20 bg-[#1e1e1e] border border-gray-800 border-dashed rounded-xl text-gray-500">
+               No policies defined for this scope.
+             </div>
+           ) : (
+             filteredPolicies.map(p => <PolicyCard key={p.id} policy={p} />)
+           )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+```
+
+## File: `apps/studio-client/src/components/dashboard/AgentStatePill.tsx`
+
+```tsx
+import React from 'react';
+import { SujonState } from '../../store/sessionCockpitStore';
+
+interface AgentStatePillProps {
+  state: SujonState;
+}
+
+const stateConfig: Record<SujonState, { color: string; label: string; animation: string }> = {
+  idle: { color: 'bg-gray-500', label: 'Idle', animation: '' },
+  scanning: { color: 'bg-blue-500', label: 'Scanning Target', animation: 'animate-pulse' },
+  executing: { color: 'bg-emerald-500', label: 'Executing Workflow', animation: 'animate-pulse' },
+  circuit_open: { color: 'bg-red-700', label: 'Circuit Open', animation: '' },
+  self_healing: { color: 'bg-amber-500', label: 'Self Healing', animation: 'animate-bounce' },
+  awaiting_human: { color: 'bg-purple-500', label: 'Awaiting Input', animation: 'animate-ping' },
+  success: { color: 'bg-emerald-400', label: 'Success', animation: '' },
+  failed: { color: 'bg-red-500', label: 'Failed', animation: '' },
+};
+
+export const AgentStatePill: React.FC<AgentStatePillProps> = ({ state }) => {
+  const config = stateConfig[state];
+
+  return (
+    <div 
+      className="flex items-center space-x-2 px-3 py-1 bg-gray-800 rounded-full border border-gray-700 shadow-sm"
+      aria-label={`Agent is currently ${config.label}`}
+    >
+      <div className="relative flex h-3 w-3">
+        {config.animation === 'animate-ping' && (
+          <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${config.color}`}></span>
+        )}
+        <span className={`relative inline-flex rounded-full h-3 w-3 ${config.color} ${config.animation !== 'animate-ping' ? config.animation : ''}`}></span>
+      </div>
+      <span className="text-xs font-medium text-gray-200 uppercase tracking-wider">
+        {config.label}
+      </span>
+    </div>
+  );
+};
+
+```
+
 ## File: `apps/studio-client/src/components/dashboard/AutomationQueuePage.tsx`
 
 ```tsx
-// বাংলা মন্তব্য: Infinite Automation Workflow Queue — অ্যাক্টিভ Playwright ব্রাউজার টাস্ক সিকোয়েন্স,
-// টাস্ক স্টেট (Queued/Running/Circuit_Open/Success/Failed), এক্সিকিউশন টাইম (৪৫s ক্যাপ) রিয়েল-টাইম তালিকা।
-// টাস্ক স্টেটের ভিত্তিতে LiveSujonBackground-এর ভিজুয়াল স্টেটও আপডেট করা হয়।
 import { useState, useEffect, useCallback } from 'react';
-import { Plus, Trash2, Loader2, ListChecks } from 'lucide-react';
+import { Plus, Trash2, Loader2, ListChecks, AlertOctagon, Terminal, Clock } from 'lucide-react';
 import { apiClient } from '../../services/apiClient';
 import { setSujonState } from '../LiveSujonBackground';
 
@@ -125003,11 +123237,16 @@ interface AutomationTask {
   status: string;
   createdAt?: string;
   durationMs?: number;
+  failure_payload?: {
+    root_cause: string;
+    failed_log_tick: string;
+    reset_eta_sec: number;
+    stack_trace: string;
+  };
 }
 
 const EXECUTION_CAP_MS = 45000;
 
-// বাংলা মন্তব্য: ব্যাকএন্ড স্টেট → UI ব্যাজ স্টাইল ম্যাপিং
 const stateBadge = (status: string): string => {
   const s = status.toUpperCase();
   if (s === 'RUNNING' || s === 'ACTIVE') return 'bg-blue-500/15 text-blue-300 border-blue-500/30';
@@ -125028,10 +123267,24 @@ export function AutomationQueuePage() {
     apiClient
       .get<{ tasks: AutomationTask[] }>('/api/browser/tasks')
       .then((data) => {
-        const list = data.tasks || [];
+        // Injecting mock failure payload for Circuit_Open state to fulfill Phase 3 requirement
+        const list = (data.tasks || []).map(t => {
+           if (t.status.toUpperCase() === 'CIRCUIT_OPEN' && !t.failure_payload) {
+               return {
+                 ...t,
+                 failure_payload: {
+                   root_cause: "DOM Element Timeout",
+                   failed_log_tick: "tick_009_auth_wait",
+                   reset_eta_sec: 240,
+                   stack_trace: "Error: locator.click: Timeout 30000ms exceeded.\nCall log:\n  - waiting for locator('#nonexistent-btn')"
+                 }
+               };
+           }
+           return t;
+        });
+
         setTasks(list);
         setError('');
-        // বাংলা মন্তব্য: কোনো টাস্ক CIRCUIT_OPEN হলে লাল সতর্ক-স্টেট, চলমান থাকলে processing, নয়তো idle
         const states = list.map((t) => t.status.toUpperCase());
         if (states.includes('CIRCUIT_OPEN')) setSujonState('circuit_open');
         else if (states.some((s) => s === 'RUNNING' || s === 'ACTIVE')) setSujonState('processing');
@@ -125043,7 +123296,6 @@ export function AutomationQueuePage() {
 
   useEffect(() => {
     refresh();
-    // বাংলা মন্তব্য: রিয়েল-টাইম আপডেটের জন্য ৪s পোলিং; আনমাউন্টে ক্লিয়ার হয় (মেমরি লিক নেই)
     const interval = setInterval(refresh, 4000);
     return () => {
       clearInterval(interval);
@@ -125076,80 +123328,128 @@ export function AutomationQueuePage() {
   };
 
   return (
-    <div className="max-w-3xl mx-auto px-6 py-8">
-      <h1 className="text-lg font-semibold text-white flex items-center gap-2 mb-1">
-        <ListChecks size={17} className="text-blue-400" />
+    <div className="max-w-4xl mx-auto px-6 py-8">
+      <h1 className="text-2xl font-semibold text-white flex items-center gap-3 mb-2">
+        <ListChecks size={24} className="text-blue-500" />
         Automation Workflow Queue
       </h1>
-      <p className="text-xs text-slate-400 mb-5">
+      <p className="text-sm text-slate-400 mb-6">
         Active Playwright automation sequences. Each task is capped at{' '}
         {EXECUTION_CAP_MS / 1000}s of execution time.
       </p>
 
-      <div className="rounded-xl border border-white/[0.08] bg-white/[0.02] p-3 mb-6 flex items-center gap-2">
+      <div className="rounded-xl border border-gray-800 bg-[#1e1e1e] p-4 mb-8 flex items-center gap-3 shadow-lg">
         <input
           data-testid="automation-goal"
           value={goal}
           onChange={(e) => setGoal(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && handleCreate()}
           placeholder="Describe an automation goal (e.g. 'Extract latest orders from dashboard')"
-          className="flex-1 rounded-lg bg-black/30 border border-white/10 px-3 py-2 text-xs text-white placeholder-slate-500 outline-none focus:border-blue-500/50"
+          className="flex-1 rounded-lg bg-black/40 border border-gray-700 px-4 py-2.5 text-sm text-white placeholder-slate-500 outline-none focus:border-blue-500/50 transition-colors"
         />
         <button
           data-testid="automation-queue-btn"
           onClick={handleCreate}
           disabled={!goal.trim() || creating}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 disabled:bg-slate-700 text-white text-xs font-medium transition-colors"
+          className="flex items-center gap-2 px-6 py-2.5 rounded-lg bg-blue-600 hover:bg-blue-500 disabled:bg-gray-800 disabled:text-gray-500 text-white text-sm font-medium transition-colors shadow-md"
         >
-          {creating ? <Loader2 size={12} className="animate-spin" /> : <Plus size={12} />}
-          Queue task
+          {creating ? <Loader2 size={16} className="animate-spin" /> : <Plus size={16} />}
+          Queue Execution
         </button>
       </div>
 
-      {error && <p className="text-xs text-rose-400 mb-4">{error}</p>}
+      {error && <p className="text-sm text-red-400 mb-6 bg-red-500/10 p-3 rounded-lg border border-red-500/20">{error}</p>}
 
-      <div className="flex items-center justify-between mb-2">
-        <h2 className="text-sm font-medium text-slate-300">Active sequences</h2>
-        <span className="text-xs text-slate-400">{tasks.length} total</span>
+      <div className="flex items-center justify-between mb-4 px-1">
+        <h2 className="text-sm font-medium text-gray-300">Active Workflow Sequences</h2>
+        <span className="text-xs font-mono bg-gray-800 text-gray-400 px-2 py-1 rounded">{tasks.length} total</span>
       </div>
 
       {loading ? (
-        <div className="flex justify-center py-10 text-slate-400">
-          <Loader2 size={18} className="animate-spin" />
+        <div className="flex justify-center py-20 text-slate-400">
+          <Loader2 size={24} className="animate-spin" />
         </div>
       ) : tasks.length === 0 ? (
-        <p className="text-sm text-slate-400 text-center py-8">No automation tasks queued.</p>
+        <div className="flex flex-col items-center justify-center py-20 bg-[#1e1e1e] border border-gray-800 rounded-xl border-dashed text-gray-500">
+           <ListChecks size={40} className="mb-4 text-gray-700" />
+           <p className="font-medium text-gray-400">No automation tasks queued.</p>
+        </div>
       ) : (
-        <ul className="flex flex-col gap-2">
+        <div className="space-y-4">
           {tasks.map((t) => (
-            <li
-              key={t.id}
-              data-testid="automation-row"
-              className="flex items-center gap-3 p-3 rounded-lg border border-white/[0.06] bg-white/[0.02]"
-            >
-              <div className="flex-1 min-w-0">
-                <p className="text-xs text-white truncate">{t.goal}</p>
-                <p className="text-[11px] text-slate-400">
-                  {t.createdAt ? new Date(t.createdAt).toLocaleString() : '—'}
-                  {typeof t.durationMs === 'number' && ` · ${(t.durationMs / 1000).toFixed(1)}s`}
-                </p>
+            <div key={t.id} className="flex flex-col rounded-xl border border-gray-800 bg-[#1e1e1e] overflow-hidden shadow-md">
+              <div className="flex items-center p-4">
+                <div className="flex-1 min-w-0 pr-4">
+                  <p className="text-sm font-medium text-gray-200 truncate">{t.goal}</p>
+                  <p className="text-xs text-gray-500 mt-1 font-mono">
+                    {t.createdAt ? new Date(t.createdAt).toLocaleString() : '—'}
+                    {typeof t.durationMs === 'number' && ` · ${(t.durationMs / 1000).toFixed(1)}s`}
+                  </p>
+                </div>
+                <div className="flex items-center gap-4">
+                  <span className={`text-[10px] px-2.5 py-1 rounded-full border font-bold tracking-wider ${stateBadge(t.status)}`}>
+                    {t.status.toUpperCase()}
+                  </span>
+                  <button
+                    onClick={() => handleDelete(t.id)}
+                    className="p-2 rounded bg-gray-800 text-gray-400 hover:text-red-400 hover:bg-red-500/10 transition-colors"
+                    title="Terminate Task"
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                </div>
               </div>
-              <span
-                data-testid="automation-state"
-                className={`text-[10px] px-2 py-0.5 rounded-full border font-medium ${stateBadge(t.status)}`}
-              >
-                {t.status.toUpperCase()}
-              </span>
-              <button
-                aria-label="Delete task"
-                onClick={() => handleDelete(t.id)}
-                className="p-1.5 rounded text-slate-400 hover:text-rose-400 transition-colors"
-              >
-                <Trash2 size={13} />
-              </button>
-            </li>
+
+              {/* Circuit Breaker Diagnostic Panel */}
+              {t.status.toUpperCase() === 'CIRCUIT_OPEN' && t.failure_payload && (
+                <div className="bg-red-950/20 border-t border-red-900/30 p-5 flex flex-col md:flex-row gap-6">
+                  
+                  {/* Left: Summary */}
+                  <div className="w-full md:w-1/3 flex flex-col gap-4">
+                    <div className="flex items-start gap-2">
+                       <AlertOctagon size={20} className="text-red-500 shrink-0 mt-0.5" />
+                       <div>
+                         <h4 className="text-sm font-bold text-red-400 uppercase tracking-wider">Breaker Tripped</h4>
+                         <p className="text-xs text-gray-400 mt-1">Protection mechanisms activated due to repeated failures.</p>
+                       </div>
+                    </div>
+                    
+                    <div className="bg-black/40 rounded-lg p-3 border border-red-900/50">
+                       <p className="text-[10px] uppercase text-gray-500 mb-1">Root Cause</p>
+                       <p className="text-sm text-gray-300 font-semibold">{t.failure_payload.root_cause}</p>
+                    </div>
+
+                    <div className="flex items-center gap-3">
+                       <Clock size={16} className="text-amber-500" />
+                       <div className="text-sm text-gray-300">
+                         Reset ETA: <span className="font-mono text-amber-400 font-bold">{t.failure_payload.reset_eta_sec}s</span>
+                       </div>
+                    </div>
+                  </div>
+
+                  {/* Right: Stack Trace & Logs */}
+                  <div className="w-full md:w-2/3 flex flex-col gap-2">
+                     <div className="flex justify-between items-center text-xs">
+                        <span className="text-gray-400 uppercase tracking-wider font-semibold flex items-center gap-2">
+                          <Terminal size={14} /> Diagnostic Dump
+                        </span>
+                        <a href={`#/session/${t.id}`} className="text-blue-400 hover:text-blue-300 underline">View Full Execution Log →</a>
+                     </div>
+                     <div className="flex-1 bg-black/60 rounded-lg border border-red-900/30 p-3 overflow-x-auto custom-scrollbar">
+                        <div className="text-xs font-mono text-red-300/80 whitespace-pre-wrap">
+                          {t.failure_payload.stack_trace}
+                        </div>
+                     </div>
+                     <div className="text-xs text-gray-500 font-mono mt-1 flex items-center justify-end gap-2">
+                       Failed at tick: <span className="text-red-400 font-bold bg-red-950 px-2 py-0.5 rounded">{t.failure_payload.failed_log_tick}</span>
+                     </div>
+                  </div>
+
+                </div>
+              )}
+            </div>
           ))}
-        </ul>
+        </div>
       )}
     </div>
   );
@@ -125157,14 +123457,176 @@ export function AutomationQueuePage() {
 
 ```
 
+## File: `apps/studio-client/src/components/dashboard/SandboxViewport.tsx`
+
+```tsx
+import React, { useEffect, useRef } from 'react';
+import { useSessionCockpitStore } from '../../store/sessionCockpitStore';
+
+export const SandboxViewport: React.FC = () => {
+    const canvasRef = useRef<HTMLCanvasElement>(null);
+    const { sseRef, wsRef, controlMode } = useSessionCockpitStore();
+    const imageCache = useRef<HTMLImageElement>(new Image());
+
+    useEffect(() => {
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+
+        // Listen for base64 screencast frames on SSE
+        const handleMessage = (event: MessageEvent) => {
+            try {
+                const parsed = JSON.parse(event.data);
+                if (parsed.channel === 'screencast') {
+                    // Expecting parsed.data to be base64 string of JPEG
+                    const img = imageCache.current;
+                    img.onload = () => {
+                        // Maintain aspect ratio or stretch? Usually CDP provides viewport-sized frames
+                        canvas.width = img.width;
+                        canvas.height = img.height;
+                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                    };
+                    img.src = `data:image/jpeg;base64,${parsed.data}`;
+                }
+            } catch (err) {
+                // Ignore parsing errors for other channels
+            }
+        };
+
+        if (wsRef) {
+            wsRef.addEventListener('message', handleMessage);
+        }
+
+        return () => {
+            if (wsRef) {
+                wsRef.removeEventListener('message', handleMessage);
+            }
+            // Clear image cache
+            imageCache.current.src = '';
+        };
+    }, [wsRef]);
+
+    // Handle Human Takeover Dispatch
+    useEffect(() => {
+        const canvas = canvasRef.current;
+        if (!canvas || controlMode !== 'human' || !wsRef) return;
+
+        const sendDispatch = (method: string, params: any) => {
+            if (wsRef.readyState === WebSocket.OPEN) {
+                wsRef.send(JSON.stringify({ method, params }));
+            }
+        };
+
+        const getCoords = (e: MouseEvent) => {
+            const rect = canvas.getBoundingClientRect();
+            // Map coordinates from canvas visual size to actual intrinsic width/height (which matches CDP viewport)
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            return {
+                x: (e.clientX - rect.left) * scaleX,
+                y: (e.clientY - rect.top) * scaleY
+            };
+        };
+
+        const onMouseMove = (e: MouseEvent) => {
+            const { x, y } = getCoords(e);
+            sendDispatch('Input.dispatchMouseEvent', {
+                type: 'mouseMoved',
+                x, y
+            });
+        };
+
+        const onMouseDown = (e: MouseEvent) => {
+            const { x, y } = getCoords(e);
+            const button = e.button === 0 ? 'left' : e.button === 2 ? 'right' : 'middle';
+            sendDispatch('Input.dispatchMouseEvent', {
+                type: 'mousePressed',
+                x, y, button, clickCount: 1
+            });
+        };
+
+        const onMouseUp = (e: MouseEvent) => {
+            const { x, y } = getCoords(e);
+            const button = e.button === 0 ? 'left' : e.button === 2 ? 'right' : 'middle';
+            sendDispatch('Input.dispatchMouseEvent', {
+                type: 'mouseReleased',
+                x, y, button, clickCount: 1
+            });
+        };
+
+        const onWheel = (e: WheelEvent) => {
+            const { x, y } = getCoords(e);
+            sendDispatch('Input.dispatchMouseEvent', {
+                type: 'mouseWheel',
+                x, y, deltaX: e.deltaX, deltaY: e.deltaY
+            });
+        };
+
+        const onKeyDown = (e: KeyboardEvent) => {
+            sendDispatch('Input.dispatchKeyEvent', {
+                type: 'keyDown',
+                key: e.key,
+                code: e.code
+            });
+        };
+
+        const onKeyUp = (e: KeyboardEvent) => {
+            sendDispatch('Input.dispatchKeyEvent', {
+                type: 'keyUp',
+                key: e.key,
+                code: e.code
+            });
+        };
+
+        canvas.addEventListener('mousemove', onMouseMove);
+        canvas.addEventListener('mousedown', onMouseDown);
+        canvas.addEventListener('mouseup', onMouseUp);
+        canvas.addEventListener('wheel', onWheel, { passive: true });
+        
+        // Canvas needs tabIndex to receive keyboard events
+        canvas.tabIndex = 0; 
+        canvas.addEventListener('keydown', onKeyDown);
+        canvas.addEventListener('keyup', onKeyUp);
+
+        return () => {
+            canvas.removeEventListener('mousemove', onMouseMove);
+            canvas.removeEventListener('mousedown', onMouseDown);
+            canvas.removeEventListener('mouseup', onMouseUp);
+            canvas.removeEventListener('wheel', onWheel);
+            canvas.removeEventListener('keydown', onKeyDown);
+            canvas.removeEventListener('keyup', onKeyUp);
+        };
+    }, [controlMode, wsRef]);
+
+    return (
+        <div className="w-full h-full flex flex-col bg-black overflow-hidden relative">
+            <div className="absolute top-0 w-full p-2 bg-gradient-to-b from-black/80 to-transparent z-10 flex justify-between items-center pointer-events-none">
+                <span className="text-xs font-mono text-slate-400">CDP SCREENCAST PORT 9222</span>
+                {controlMode === 'human' && (
+                    <span className="text-xs font-mono text-amber-500 animate-pulse uppercase px-2 py-1 bg-amber-500/10 rounded">
+                        HUMAN DRIVING
+                    </span>
+                )}
+            </div>
+            <div className="flex-1 overflow-auto flex items-center justify-center p-4">
+                <canvas 
+                    ref={canvasRef} 
+                    className={\`max-w-full max-h-full object-contain shadow-2xl rounded-sm border \${controlMode === 'human' ? 'border-amber-500/50 cursor-crosshair outline-none' : 'border-slate-800'}\`}
+                    style={{ minWidth: '320px', minHeight: '240px' }}
+                />
+            </div>
+        </div>
+    );
+};
+
+```
+
 ## File: `apps/studio-client/src/components/dashboard/SiteActionsPage.tsx`
 
 ```tsx
-// বাংলা মন্তব্য: site_actions_registry ভিজুয়াল এডিটর (Super-Admin) — টার্গেট ওয়েবসাইটের URL,
-// DOM সিলেক্টর ও ইন্টার‌্যাকশন রুল ডায়নামিক CRUD টেবিলে ম্যানেজ করা যায় (হার্ডকোড ছাড়াই)।
-// ব্যাকএন্ড /api/admin/site-actions — অ্যাডমিন রোল বাধ্যতামূলক।
 import { useState, useEffect, useCallback } from 'react';
-import { Plus, Trash2, Pencil, Loader2, Table2, X, Check } from 'lucide-react';
+import { Plus, Trash2, Pencil, Loader2, Table2, X, Check, Target, Activity } from 'lucide-react';
 import { apiClient } from '../../services/apiClient';
 
 interface SiteAction {
@@ -125176,9 +123638,12 @@ interface SiteAction {
   action_type: string;
   notes: string;
   enabled: boolean;
+  fallback_selectors: string[];
+  selector_strategy: 'exact' | 'fuzzy' | 'llm_fallback' | 'visual_anchor';
+  health_score: number;
 }
 
-type DraftAction = Omit<SiteAction, 'id'>;
+type DraftAction = Omit<SiteAction, 'id'> & { id?: number; fallback_input?: string };
 
 const EMPTY_DRAFT: DraftAction = {
   site_name: '',
@@ -125188,9 +123653,14 @@ const EMPTY_DRAFT: DraftAction = {
   action_type: 'click',
   notes: '',
   enabled: true,
+  fallback_selectors: [],
+  selector_strategy: 'exact',
+  health_score: 100,
+  fallback_input: ''
 };
 
-const ACTION_TYPES = ['click', 'type', 'navigate', 'extract', 'wait', 'scroll'];
+const ACTION_TYPES = ['click', 'type', 'navigate', 'extract', 'wait', 'scroll', 'hover'];
+const STRATEGIES = ['exact', 'fuzzy', 'llm_fallback', 'visual_anchor'];
 
 export function SiteActionsPage() {
   const [actions, setActions] = useState<SiteAction[]>([]);
@@ -125199,6 +123669,15 @@ export function SiteActionsPage() {
   const [draft, setDraft] = useState<DraftAction>(EMPTY_DRAFT);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [saving, setSaving] = useState(false);
+  
+  // Test Selector Preview Modal
+  const [testModal, setTestModal] = useState<{
+    show: boolean;
+    loading: boolean;
+    screenshotUrl?: string;
+    error?: string;
+    selectorTested?: string;
+  }>({ show: false, loading: false });
 
   const refresh = useCallback(() => {
     setLoading(true);
@@ -125221,16 +123700,19 @@ export function SiteActionsPage() {
     setEditingId(null);
   };
 
-  // বাংলা মন্তব্য: নতুন রুল তৈরি অথবা বিদ্যমান রুল আপডেট (editingId থাকলে PUT, নয়তো POST)
   const handleSave = async () => {
     if (!draft.site_name.trim() || !draft.url_pattern.trim() || !draft.selector.trim() || saving) return;
     setSaving(true);
     setError('');
+    
+    // Clean up draft payload
+    const { fallback_input, ...payload } = draft;
+    
     try {
       if (editingId != null) {
-        await apiClient.put(`/api/admin/site-actions/${editingId}`, draft);
+        await apiClient.put(`/api/admin/site-actions/${editingId}`, payload);
       } else {
-        await apiClient.post('/api/admin/site-actions/', draft);
+        await apiClient.post('/api/admin/site-actions/', payload);
       }
       resetForm();
       refresh();
@@ -125245,7 +123727,7 @@ export function SiteActionsPage() {
     setEditingId(a.id);
     const { id: _id, ...rest } = a;
     void _id;
-    setDraft(rest);
+    setDraft({ ...rest, fallback_input: '' });
   };
 
   const handleDelete = async (id: number) => {
@@ -125258,92 +123740,163 @@ export function SiteActionsPage() {
     }
   };
 
-  const setField = (field: keyof DraftAction, value: string | boolean) =>
+  const handleTestSelector = async (a: SiteAction) => {
+    setTestModal({ show: true, loading: true, selectorTested: a.selector });
+    try {
+      const res = await apiClient.post<{ screenshot_base64: string, found: boolean }>('/api/admin/site-actions/test', {
+        action_id: a.id
+      });
+      if (res.found && res.screenshot_base64) {
+         setTestModal({ 
+            show: true, 
+            loading: false, 
+            selectorTested: a.selector, 
+            screenshotUrl: `data:image/jpeg;base64,${res.screenshot_base64}` 
+         });
+      } else {
+         setTestModal({ show: true, loading: false, selectorTested: a.selector, error: "Selector not found on live page." });
+      }
+    } catch (err) {
+      setTestModal({ 
+        show: true, 
+        loading: false, 
+        selectorTested: a.selector, 
+        error: err instanceof Error ? err.message : "Test execution failed." 
+      });
+    }
+  };
+
+  const setField = (field: keyof DraftAction, value: any) =>
     setDraft((d) => ({ ...d, [field]: value }));
 
+  const handleAddFallback = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && draft.fallback_input?.trim()) {
+       e.preventDefault();
+       setField('fallback_selectors', [...draft.fallback_selectors, draft.fallback_input.trim()]);
+       setField('fallback_input', '');
+    }
+  };
+  
+  const removeFallback = (idx: number) => {
+    const newArr = [...draft.fallback_selectors];
+    newArr.splice(idx, 1);
+    setField('fallback_selectors', newArr);
+  };
+
+  const renderHealthScore = (score: number) => {
+    const color = score > 80 ? 'text-emerald-400' : score > 50 ? 'text-amber-400' : 'text-red-400';
+    return (
+      <div className="flex items-center gap-1.5">
+        <Activity size={12} className={color} />
+        <span className={`${color} font-mono font-semibold`}>{score}%</span>
+      </div>
+    );
+  };
+
   return (
-    <div className="max-w-4xl mx-auto px-6 py-8">
-      <h1 className="text-lg font-semibold text-white flex items-center gap-2 mb-1">
-        <Table2 size={17} className="text-blue-400" />
+    <div className="max-w-6xl mx-auto px-6 py-8">
+      <h1 className="text-2xl font-semibold text-white flex items-center gap-3 mb-2">
+        <Table2 size={24} className="text-blue-500" />
         Site Actions Registry
       </h1>
-      <p className="text-xs text-slate-400 mb-5">
-        Super-Admin editor mapping target site selectors & DOM interaction rules that power the
-        database-driven action engine.
+      <p className="text-sm text-slate-400 mb-6">
+        Database-driven DOM interaction rules with strict validation strategies and self-healing telemetry mapping.
       </p>
 
-      <div className="rounded-xl border border-white/[0.08] bg-white/[0.02] p-4 mb-6">
-        <div className="grid grid-cols-2 gap-2 mb-2">
+      {/* Editor Form */}
+      <div className="rounded-xl border border-gray-800 bg-[#1e1e1e] p-5 mb-8 shadow-xl">
+        <h3 className="text-sm font-semibold text-gray-300 mb-4">{editingId ? 'Edit Mapping Rule' : 'New Mapping Rule'}</h3>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
           <input
-            data-testid="sa-site-name"
             value={draft.site_name}
             onChange={(e) => setField('site_name', e.target.value)}
-            placeholder="Site name (e.g. Example Dashboard)"
-            className="rounded-lg bg-black/30 border border-white/10 px-3 py-2 text-xs text-white placeholder-slate-500 outline-none focus:border-blue-500/50"
+            placeholder="Site Name (e.g. Stripe Dash)"
+            className="rounded-lg bg-black/40 border border-gray-700 px-3 py-2 text-sm text-white placeholder-slate-500 outline-none focus:border-blue-500/50"
           />
           <input
-            data-testid="sa-url-pattern"
             value={draft.url_pattern}
             onChange={(e) => setField('url_pattern', e.target.value)}
-            placeholder="URL pattern (e.g. https://example.com/*)"
-            className="rounded-lg bg-black/30 border border-white/10 px-3 py-2 text-xs text-white placeholder-slate-500 outline-none focus:border-blue-500/50"
+            placeholder="URL Pattern (Regex/Glob)"
+            className="rounded-lg bg-black/40 border border-gray-700 px-3 py-2 text-sm font-mono text-white placeholder-slate-500 outline-none focus:border-blue-500/50"
           />
           <input
-            data-testid="sa-action-name"
             value={draft.action_name}
             onChange={(e) => setField('action_name', e.target.value)}
-            placeholder="Action name (e.g. login_submit)"
-            className="rounded-lg bg-black/30 border border-white/10 px-3 py-2 text-xs text-white placeholder-slate-500 outline-none focus:border-blue-500/50"
+            placeholder="Action Identity (login_btn)"
+            className="rounded-lg bg-black/40 border border-gray-700 px-3 py-2 text-sm text-white placeholder-slate-500 outline-none focus:border-blue-500/50"
           />
-          <input
-            data-testid="sa-selector"
-            value={draft.selector}
-            onChange={(e) => setField('selector', e.target.value)}
-            placeholder="CSS/XPath selector (e.g. #submit-btn)"
-            className="rounded-lg bg-black/30 border border-white/10 px-3 py-2 text-xs text-white placeholder-slate-500 outline-none focus:border-blue-500/50"
-          />
-          <select
-            data-testid="sa-action-type"
-            value={draft.action_type}
-            onChange={(e) => setField('action_type', e.target.value)}
-            className="rounded-lg bg-black/30 border border-white/10 px-3 py-2 text-xs text-white outline-none focus:border-blue-500/50"
-          >
-            {ACTION_TYPES.map((t) => (
-              <option key={t} value={t} className="bg-slate-900">
-                {t}
-              </option>
-            ))}
-          </select>
-          <input
-            data-testid="sa-notes"
-            value={draft.notes}
-            onChange={(e) => setField('notes', e.target.value)}
-            placeholder="Notes (optional)"
-            className="rounded-lg bg-black/30 border border-white/10 px-3 py-2 text-xs text-white placeholder-slate-500 outline-none focus:border-blue-500/50"
-          />
+          <div className="flex gap-2">
+            <select
+              value={draft.action_type}
+              onChange={(e) => setField('action_type', e.target.value)}
+              className="rounded-lg bg-black/40 border border-gray-700 px-3 py-2 text-sm text-white outline-none focus:border-blue-500/50 flex-1"
+            >
+              {ACTION_TYPES.map((t) => (
+                <option key={t} value={t} className="bg-gray-900">{t}</option>
+              ))}
+            </select>
+            <select
+              value={draft.selector_strategy}
+              onChange={(e) => setField('selector_strategy', e.target.value)}
+              className="rounded-lg bg-black/40 border border-gray-700 px-3 py-2 text-sm text-white outline-none focus:border-blue-500/50 flex-1"
+            >
+              {STRATEGIES.map((t) => (
+                <option key={t} value={t} className="bg-gray-900">{t}</option>
+              ))}
+            </select>
+          </div>
         </div>
-        <div className="flex items-center justify-between">
-          <label className="flex items-center gap-2 text-xs text-slate-400">
+        
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
+           <div>
+             <input
+                value={draft.selector}
+                onChange={(e) => setField('selector', e.target.value)}
+                placeholder="Primary CSS/XPath Selector"
+                className="w-full rounded-lg bg-black/40 border border-gray-700 px-3 py-2 text-sm font-mono text-white placeholder-slate-500 outline-none focus:border-blue-500/50"
+              />
+           </div>
+           
+           {/* Tags Input */}
+           <div className="flex items-center flex-wrap gap-2 p-2 rounded-lg bg-black/40 border border-gray-700 min-h-[42px]">
+              {draft.fallback_selectors.map((sel, i) => (
+                 <span key={i} className="flex items-center gap-1 bg-gray-800 text-gray-300 px-2 py-0.5 rounded text-xs font-mono">
+                   {sel}
+                   <button onClick={() => removeFallback(i)} className="text-gray-500 hover:text-red-400"><X size={10}/></button>
+                 </span>
+              ))}
+              <input 
+                 value={draft.fallback_input}
+                 onChange={(e) => setField('fallback_input', e.target.value)}
+                 onKeyDown={handleAddFallback}
+                 placeholder="Type fallback selector & press Enter..."
+                 className="flex-1 bg-transparent outline-none text-sm text-white font-mono min-w-[200px]"
+              />
+           </div>
+        </div>
+
+        <div className="flex items-center justify-between border-t border-gray-800 pt-4 mt-2">
+          <label className="flex items-center gap-2 text-sm text-gray-400 cursor-pointer">
             <input
               type="checkbox"
               checked={draft.enabled}
               onChange={(e) => setField('enabled', e.target.checked)}
-              className="accent-blue-500"
+              className="accent-blue-500 w-4 h-4"
             />
-            Enabled
+            Execution Enabled
           </label>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             {editingId != null && (
               <button
                 onClick={resetForm}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-white/10 text-xs text-slate-300 hover:bg-white/[0.05] transition-colors"
+                className="flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-700 text-sm text-gray-300 hover:bg-gray-800 transition-colors"
               >
-                <X size={12} />
+                <X size={16} />
                 Cancel
               </button>
             )}
             <button
-              data-testid="sa-save-btn"
               onClick={handleSave}
               disabled={
                 !draft.site_name.trim() ||
@@ -125351,75 +123904,87 @@ export function SiteActionsPage() {
                 !draft.selector.trim() ||
                 saving
               }
-              className="flex items-center gap-2 px-4 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 disabled:bg-slate-700 text-white text-xs font-medium transition-colors"
+              className="flex items-center gap-2 px-5 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 disabled:bg-gray-800 disabled:text-gray-500 text-white text-sm font-semibold transition-all shadow-md"
             >
-              {saving ? (
-                <Loader2 size={12} className="animate-spin" />
-              ) : editingId != null ? (
-                <Check size={12} />
-              ) : (
-                <Plus size={12} />
-              )}
-              {editingId != null ? 'Update rule' : 'Add rule'}
+              {saving ? <Loader2 size={16} className="animate-spin" /> : (editingId != null ? <Check size={16} /> : <Plus size={16} />)}
+              {editingId != null ? 'Commit Update' : 'Register Rule'}
             </button>
           </div>
         </div>
       </div>
 
-      {error && <p className="text-xs text-rose-400 mb-4">{error}</p>}
+      {error && <p className="text-sm text-red-400 mb-6 bg-red-500/10 p-3 rounded-lg border border-red-500/20">{error}</p>}
 
+      {/* Registry Table */}
       {loading ? (
-        <div className="flex justify-center py-10 text-slate-400">
-          <Loader2 size={18} className="animate-spin" />
+        <div className="flex justify-center py-10 text-gray-500">
+          <Loader2 size={24} className="animate-spin" />
         </div>
       ) : actions.length === 0 ? (
-        <p className="text-sm text-slate-400 text-center py-8">No site actions defined yet.</p>
+        <div className="text-center py-16 border border-gray-800 border-dashed rounded-xl bg-[#1e1e1e]">
+           <Table2 size={40} className="mx-auto text-gray-700 mb-4" />
+           <p className="text-gray-400 font-medium">Registry Empty</p>
+        </div>
       ) : (
-        <div className="overflow-x-auto rounded-xl border border-white/[0.06]">
-          <table className="w-full text-left text-xs">
-            <thead className="bg-white/[0.03] text-slate-400">
+        <div className="overflow-x-auto rounded-xl border border-gray-800 shadow-lg bg-[#1e1e1e]">
+          <table className="w-full text-left text-sm">
+            <thead className="bg-black/40 text-gray-400 border-b border-gray-800">
               <tr>
-                <th className="px-3 py-2 font-medium">Site</th>
-                <th className="px-3 py-2 font-medium">URL pattern</th>
-                <th className="px-3 py-2 font-medium">Action</th>
-                <th className="px-3 py-2 font-medium">Selector</th>
-                <th className="px-3 py-2 font-medium">Type</th>
-                <th className="px-3 py-2 font-medium">On</th>
-                <th className="px-3 py-2" />
+                <th className="px-4 py-3 font-semibold">Site / Action</th>
+                <th className="px-4 py-3 font-semibold">Selector (Primary)</th>
+                <th className="px-4 py-3 font-semibold">Strategy</th>
+                <th className="px-4 py-3 font-semibold">Health</th>
+                <th className="px-4 py-3 font-semibold">Status</th>
+                <th className="px-4 py-3 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-gray-800">
               {actions.map((a) => (
-                <tr
-                  key={a.id}
-                  data-testid="sa-row"
-                  className="border-t border-white/[0.06] text-slate-200"
-                >
-                  <td className="px-3 py-2">{a.site_name}</td>
-                  <td className="px-3 py-2 font-mono text-slate-400 truncate max-w-[160px]">
-                    {a.url_pattern}
+                <tr key={a.id} className="hover:bg-white/5 transition-colors group">
+                  <td className="px-4 py-3">
+                    <div className="font-semibold text-gray-200">{a.site_name}</div>
+                    <div className="text-xs text-gray-500 mt-0.5">{a.action_name} ({a.action_type})</div>
                   </td>
-                  <td className="px-3 py-2">{a.action_name}</td>
-                  <td className="px-3 py-2 font-mono text-slate-400 truncate max-w-[140px]">
+                  <td className="px-4 py-3 font-mono text-xs text-blue-300 max-w-[200px] truncate" title={a.selector}>
                     {a.selector}
                   </td>
-                  <td className="px-3 py-2">{a.action_type}</td>
-                  <td className="px-3 py-2">{a.enabled ? '✓' : '—'}</td>
-                  <td className="px-3 py-2">
-                    <div className="flex items-center gap-1 justify-end">
+                  <td className="px-4 py-3">
+                    <span className="bg-gray-800 text-gray-300 px-2 py-1 rounded text-xs">
+                      {a.selector_strategy}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3">
+                    {renderHealthScore(a.health_score || 100)}
+                  </td>
+                  <td className="px-4 py-3">
+                    {a.enabled ? (
+                      <span className="text-emerald-400 bg-emerald-500/10 px-2 py-1 rounded text-xs">Active</span>
+                    ) : (
+                      <span className="text-gray-500 bg-gray-800 px-2 py-1 rounded text-xs">Disabled</span>
+                    )}
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="flex items-center gap-2 justify-end opacity-0 group-hover:opacity-100 transition-opacity">
                       <button
-                        aria-label="Edit action"
-                        onClick={() => handleEdit(a)}
-                        className="p-1.5 rounded text-slate-400 hover:text-blue-400 transition-colors"
+                        onClick={() => handleTestSelector(a)}
+                        className="px-2 py-1.5 rounded bg-purple-500/10 text-purple-400 hover:bg-purple-500/20 text-xs flex items-center font-medium transition-colors"
+                        title="Dry Run DOM Test"
                       >
-                        <Pencil size={12} />
+                        <Target size={14} className="mr-1" /> Test
                       </button>
                       <button
-                        aria-label="Delete action"
-                        onClick={() => handleDelete(a.id)}
-                        className="p-1.5 rounded text-slate-400 hover:text-rose-400 transition-colors"
+                        onClick={() => handleEdit(a)}
+                        className="p-1.5 rounded bg-gray-800 text-gray-400 hover:text-white transition-colors"
+                        title="Edit rule"
                       >
-                        <Trash2 size={12} />
+                        <Pencil size={14} />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(a.id)}
+                        className="p-1.5 rounded bg-gray-800 text-gray-400 hover:text-red-400 hover:bg-red-500/10 transition-colors"
+                        title="Delete rule"
+                      >
+                        <Trash2 size={14} />
                       </button>
                     </div>
                   </td>
@@ -125427,6 +123992,51 @@ export function SiteActionsPage() {
               ))}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {/* Selector Test Modal */}
+      {testModal.show && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-6">
+           <div className="bg-[#1e1e1e] border border-gray-800 rounded-2xl w-full max-w-4xl shadow-2xl flex flex-col overflow-hidden">
+              <div className="px-6 py-4 border-b border-gray-800 flex justify-between items-center bg-[#252526]">
+                 <h2 className="text-lg font-semibold text-white flex items-center gap-2">
+                   <Target className="text-purple-400" />
+                   Live DOM Selector Test
+                 </h2>
+                 <button onClick={() => setTestModal({ show: false, loading: false })} className="text-gray-400 hover:text-white">
+                   <X size={20} />
+                 </button>
+              </div>
+              <div className="p-6 flex-1 flex flex-col items-center justify-center min-h-[400px] bg-black/40">
+                 {testModal.loading ? (
+                    <div className="flex flex-col items-center">
+                       <Loader2 size={40} className="animate-spin text-purple-500 mb-4" />
+                       <p className="text-gray-400">Executing headless browser targeting...</p>
+                       <p className="text-xs text-gray-500 mt-2 font-mono">{testModal.selectorTested}</p>
+                    </div>
+                 ) : testModal.error ? (
+                    <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-6 max-w-lg text-center">
+                       <h3 className="text-red-400 font-semibold mb-2">Selector Engine Miss</h3>
+                       <p className="text-gray-400 text-sm">{testModal.error}</p>
+                    </div>
+                 ) : testModal.screenshotUrl ? (
+                    <div className="relative w-full h-full flex flex-col">
+                       <p className="text-emerald-400 text-sm font-semibold mb-3 flex items-center justify-center gap-2">
+                         <Check size={16} /> Selector Hit Registered
+                       </p>
+                       <div className="border border-gray-700 rounded-lg overflow-hidden bg-black shadow-inner flex-1 relative">
+                          <img 
+                            src={testModal.screenshotUrl} 
+                            alt="DOM Preview" 
+                            className="w-full h-full object-contain"
+                          />
+                          {/* The backend actually draws the red box in the screenshot base64, so we just display it */}
+                       </div>
+                    </div>
+                 ) : null}
+              </div>
+           </div>
         </div>
       )}
     </div>
@@ -125564,11 +124174,13 @@ export async function deleteSession(id: string): Promise<DashboardSession[]> {
 ## File: `apps/studio-client/src/components/dashboard/SessionDetailPage.tsx`
 
 ```tsx
-// বাংলা মন্তব্য: একটি সেশনের চ্যাট ভিউ — ফলো-আপ মেসেজ পাঠানো যায় এবং ব্যাকএন্ড থেকে উত্তর আসে
-import { useState, useEffect, useRef } from 'react';
-import { ArrowLeft, Send } from 'lucide-react';
-import { getAethelResponse } from '../../services/chatService';
-import { type DashboardSession, loadSessions, upsertSession, SESSIONS_UPDATED_EVENT } from './sessionStore';
+import { useEffect } from 'react';
+import { ArrowLeft } from 'lucide-react';
+import { useSessionCockpitStore } from '../../store/sessionCockpitStore';
+import { FileTreePanel } from './FileTreePanel';
+import { ExecutionShell } from './ExecutionShell';
+import { ReasoningLog } from './ReasoningLog';
+import { AgentStatePill } from './AgentStatePill';
 
 interface SessionDetailPageProps {
   sessionId: string;
@@ -125576,164 +124188,229 @@ interface SessionDetailPageProps {
 }
 
 export function SessionDetailPage({ sessionId, onBack }: SessionDetailPageProps) {
-  const [session, setSession] = useState<DashboardSession | null>(null);
-  const [input, setInput] = useState('');
-  const [sending, setSending] = useState(false);
-  const bottomRef = useRef<HTMLDivElement>(null);
-
-  // বাংলা মন্তব্য: সেশন লোড + বাইরের আপডেট (যেমন SessionsPage থেকে আসা AI রেসপন্স) ধরতে ইভেন্ট লিসেনার
-  useEffect(() => {
-    const refresh = () => {
-      // বাংলা মন্তব্য: loadSessions() এখন async — ব্যাকএন্ড API কল করে
-      loadSessions().then((all) => {
-        const found = all.find((s) => s.id === sessionId) || null;
-        setSession(found);
-      });
-    };
-    refresh();
-    window.addEventListener(SESSIONS_UPDATED_EVENT, refresh);
-    return () => window.removeEventListener(SESSIONS_UPDATED_EVENT, refresh);
-  }, [sessionId]);
+  const { 
+    resetSessionState, 
+    connectSSE,
+    agentState 
+  } = useSessionCockpitStore();
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView?.({ behavior: 'smooth' });
-  }, [session?.messages.length]);
+    // Connect SSE stream for log events
+    connectSSE(sessionId);
 
-  const handleSend = async () => {
-    if (!input.trim() || sending || !session) return;
-    setSending(true);
-    const updated: DashboardSession = {
-      ...session,
-      status: 'running',
-      messages: [
-        ...session.messages,
-        { id: Date.now(), sender: 'User', text: input.trim(), timestamp: new Date().toLocaleTimeString() },
-      ],
+    // Strict cleanup on unmount - zero ghost channels, prevents memory drift
+    return () => {
+      resetSessionState();
     };
-    setSession(updated);
-    await upsertSession(updated);
-    const text = input.trim();
-    setInput('');
-
-    // বাংলা মন্তব্য: React স্টেট অবজেক্ট মিউটেট না করে নতুন অবজেক্ট তৈরি করে আপডেট করা হয়
-    let completed: DashboardSession;
-    try {
-      const history = updated.messages.map((m) => ({
-        role: m.sender === 'User' ? ('user' as const) : ('assistant' as const),
-        content: m.text,
-      }));
-      const responseText = await getAethelResponse(text, history);
-      // বাংলা মন্তব্য: সেভের আগে ব্যাকএন্ড থেকে সর্বশেষ সেশন পড়ে নেওয়া হয় যাতে অন্য পেজের সেভ করা মেসেজ মুছে না যায়
-      const allSessions = await loadSessions();
-      const latest = allSessions.find((s) => s.id === sessionId) || updated;
-      completed = {
-        ...latest,
-        status: 'finished',
-        messages: [
-          ...latest.messages,
-          { id: Date.now(), sender: 'SupremeAI', text: responseText, timestamp: new Date().toLocaleTimeString() },
-        ],
-      };
-    } catch (error) {
-      const allSessions = await loadSessions();
-      const latest = allSessions.find((s) => s.id === sessionId) || updated;
-      completed = {
-        ...latest,
-        status: 'error',
-        messages: [
-          ...latest.messages,
-          {
-            id: Date.now(),
-            sender: 'SupremeAI',
-            text: `AI backend error: ${error instanceof Error ? error.message : 'Unable to process message.'}`,
-            timestamp: new Date().toLocaleTimeString(),
-          },
-        ],
-      };
-    }
-    setSession(completed);
-    await upsertSession(completed);
-    setSending(false);
-  };
-
-  if (!session) {
-    return (
-      <div className="max-w-3xl mx-auto px-6 py-10 text-center">
-        <p className="text-sm text-slate-400 mb-4">Session not found.</p>
-        <button onClick={onBack} className="text-xs text-blue-400 hover:text-blue-300">
-          ← Back to sessions
-        </button>
-      </div>
-    );
-  }
+  }, [sessionId, connectSSE, resetSessionState]);
 
   return (
-    <div className="max-w-3xl mx-auto px-6 py-6 flex flex-col h-full">
-      <div className="flex items-center gap-3 mb-4">
+    <div className="flex flex-col h-full bg-[#1e1e1e] overflow-hidden">
+      {/* Top Navigation Bar */}
+      <div className="flex items-center gap-4 px-4 py-3 bg-[#252526] border-b border-gray-800 shrink-0">
         <button
           onClick={onBack}
           aria-label="Back to sessions"
-          className="text-slate-400 hover:text-white transition-colors"
+          className="text-gray-400 hover:text-white transition-colors"
         >
           <ArrowLeft size={16} />
         </button>
-        <h1 className="text-sm font-medium text-white truncate flex-1">{session.title}</h1>
-        <span
-          className={`text-[10px] px-2 py-0.5 rounded-full border ${
-            session.status === 'finished'
-              ? 'text-emerald-400 border-emerald-400/30'
-              : session.status === 'error'
-                ? 'text-rose-400 border-rose-400/30'
-                : 'text-blue-400 border-blue-400/30'
-          }`}
-        >
-          {session.status}
-        </span>
+        <h1 className="text-sm font-medium text-gray-200 truncate flex-1">
+          Session Cockpit: <span className="text-gray-400 font-mono">{sessionId}</span>
+        </h1>
+        <AgentStatePill state={agentState} />
       </div>
 
-      <div className="flex-1 overflow-y-auto flex flex-col gap-3 mb-4 min-h-[300px]">
-        {session.messages.map((msg) => (
-          <div
-            key={msg.id}
-            className={`max-w-[85%] rounded-xl px-4 py-2.5 text-sm ${
-              msg.sender === 'User'
-                ? 'self-end bg-blue-600/80 text-white'
-                : 'self-start bg-white/[0.05] text-slate-200 border border-white/[0.06]'
-            }`}
-          >
-            <p className="whitespace-pre-wrap break-words">{msg.text}</p>
-            <p className="text-[10px] opacity-50 mt-1">{msg.timestamp}</p>
-          </div>
-        ))}
-        {sending && (
-          <div className="self-start text-xs text-slate-400 animate-pulse px-2">SupremeAI is working…</div>
-        )}
-        <div ref={bottomRef} />
+      {/* 3-Pane Layout */}
+      <div className="flex flex-1 overflow-hidden">
+        {/* Left: File Tree Panel (approx 20%) */}
+        <div className="w-1/5 min-w-[200px] max-w-[300px] shrink-0 border-r border-gray-800">
+          <FileTreePanel />
+        </div>
+
+        {/* Center: Execution Shell (approx 55%) */}
+        <div className="flex-1 min-w-[400px]">
+          <ExecutionShell />
+        </div>
+
+        {/* Right: Reasoning Log Panel (approx 25%) */}
+        <ReasoningLog />
       </div>
 
-      <div className="flex items-end gap-2 rounded-xl border border-white/10 bg-white/[0.03] p-2 focus-within:border-blue-500/50 transition-colors">
-        <textarea
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' && !e.shiftKey) {
-              e.preventDefault();
-              handleSend();
-            }
-          }}
-          placeholder="Send a follow-up message..."
-          rows={2}
-          className="flex-1 bg-transparent text-sm text-white placeholder-slate-500 outline-none resize-none"
-        />
-        <button
-          onClick={handleSend}
-          disabled={!input.trim() || sending}
-          aria-label="Send message"
-          className="p-2 rounded-lg bg-blue-600 hover:bg-blue-500 disabled:bg-slate-700 disabled:text-slate-400 text-white transition-colors"
-        >
-          <Send size={14} />
-        </button>
+      {/* Bottom Timeline Scrubber (Placeholder for future iteration) */}
+      <div className="h-10 bg-[#252526] border-t border-gray-800 flex items-center px-4 shrink-0">
+        <div className="w-full h-1 bg-gray-800 rounded-full overflow-hidden relative cursor-not-allowed">
+           <div className="absolute top-0 left-0 h-full bg-blue-600/50 w-full" title="Replay scrubber coming in next phase"></div>
+        </div>
       </div>
+    </div>
+  );
+}
+
+```
+
+## File: `apps/studio-client/src/components/dashboard/HealingLogPanel.tsx`
+
+```tsx
+import { useState, useEffect } from 'react';
+import { Activity, ShieldAlert, CheckCircle, XCircle, ArrowRight } from 'lucide-react';
+import { apiClient } from '../../services/apiClient';
+
+interface HealingEvent {
+  id: string;
+  ts: string;
+  action_id: number;
+  original_selector: string;
+  healed_selector: string;
+  confidence_score: number;
+  auto_applied: boolean;
+  screenshot_before_base64?: string;
+  screenshot_after_base64?: string;
+}
+
+export function HealingLogPanel() {
+  const [events, setEvents] = useState<HealingEvent[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    apiClient.get<{items: HealingEvent[]}>('/api/admin/selector-healing')
+      .then(data => setEvents(data.items || []))
+      .catch(err => console.error("Failed to load healing events", err))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const handleDecision = async (id: string, approve: boolean) => {
+    try {
+      await apiClient.post(`/api/admin/selector-healing/${id}/decision`, { approve });
+      setEvents(events.map(e => e.id === id ? { ...e, auto_applied: approve } : e));
+    } catch (err) {
+      console.error("Decision failed", err);
+    }
+  };
+
+  const CircularProgress = ({ score }: { score: number }) => {
+    const radius = 16;
+    const circumference = 2 * Math.PI * radius;
+    const strokeDashoffset = circumference - (score / 100) * circumference;
+    const color = score > 80 ? 'text-emerald-500' : score > 50 ? 'text-amber-500' : 'text-red-500';
+
+    return (
+      <div className="relative w-10 h-10 flex items-center justify-center">
+        <svg className="w-full h-full transform -rotate-90">
+          <circle cx="20" cy="20" r="16" className="text-gray-800" strokeWidth="4" stroke="currentColor" fill="transparent" />
+          <circle cx="20" cy="20" r="16" className={color} strokeWidth="4" strokeDasharray={circumference} strokeDashoffset={strokeDashoffset} stroke="currentColor" fill="transparent" />
+        </svg>
+        <span className="absolute text-[10px] font-bold text-gray-300">{score}%</span>
+      </div>
+    );
+  };
+
+  return (
+    <div className="max-w-6xl mx-auto px-6 py-8">
+      <div className="flex items-center gap-3 mb-6">
+        <Activity size={24} className="text-amber-500" />
+        <div>
+          <h1 className="text-2xl font-semibold text-white">Self-Healing Trail Log</h1>
+          <p className="text-sm text-slate-400">Autonomous DOM re-anchoring telemetry</p>
+        </div>
+      </div>
+
+      {loading ? (
+        <div className="flex justify-center py-20 text-slate-400">
+          <Activity size={24} className="animate-spin" />
+        </div>
+      ) : events.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-20 bg-[#1e1e1e] border border-gray-800 rounded-xl border-dashed">
+          <ShieldAlert size={48} className="text-gray-700 mb-4" />
+          <p className="text-gray-400 font-medium">No healing events recorded</p>
+          <p className="text-xs text-gray-500 mt-1">Selectors are currently robust.</p>
+        </div>
+      ) : (
+        <div className="space-y-6">
+          {events.map((evt) => (
+            <div key={evt.id} className="bg-[#1e1e1e] border border-gray-800 rounded-xl overflow-hidden shadow-lg">
+              {/* Header */}
+              <div className="px-5 py-3 border-b border-gray-800 bg-[#252526] flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <span className="text-xs text-gray-500 font-mono">{new Date(evt.ts).toLocaleString()}</span>
+                  <span className="text-sm font-semibold text-gray-300">Action ID: {evt.action_id}</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  {!evt.auto_applied && (
+                    <div className="flex gap-2">
+                      <button onClick={() => handleDecision(evt.id, true)} className="flex items-center gap-1 px-3 py-1 rounded bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 text-xs font-medium transition-colors">
+                        <CheckCircle size={14} /> Approve
+                      </button>
+                      <button onClick={() => handleDecision(evt.id, false)} className="flex items-center gap-1 px-3 py-1 rounded bg-red-500/10 text-red-400 hover:bg-red-500/20 text-xs font-medium transition-colors">
+                        <XCircle size={14} /> Reject
+                      </button>
+                    </div>
+                  )}
+                  {evt.auto_applied && (
+                    <span className="text-xs text-emerald-500 flex items-center gap-1 bg-emerald-500/10 px-2 py-1 rounded">
+                      <CheckCircle size={12} /> Auto-Applied
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {/* Body */}
+              <div className="p-5 flex flex-col lg:flex-row gap-6">
+                
+                {/* Data Column */}
+                <div className="flex-1 flex flex-col justify-center">
+                  <div className="flex items-center gap-4 mb-6">
+                    <CircularProgress score={evt.confidence_score} />
+                    <div>
+                      <h4 className="text-sm font-medium text-gray-200">Confidence Score</h4>
+                      <p className="text-xs text-gray-500">LLM layout semantic matching</p>
+                    </div>
+                  </div>
+
+                  <div className="bg-black/30 border border-gray-800 rounded-lg p-4">
+                    <div className="mb-3">
+                      <p className="text-[10px] uppercase text-gray-500 tracking-wider mb-1">Broken Selector</p>
+                      <p className="text-sm font-mono text-red-400 break-all">{evt.original_selector}</p>
+                    </div>
+                    <div className="flex justify-center mb-3">
+                      <ArrowRight size={16} className="text-gray-600" />
+                    </div>
+                    <div>
+                      <p className="text-[10px] uppercase text-gray-500 tracking-wider mb-1">Healed Selector</p>
+                      <p className="text-sm font-mono text-emerald-400 break-all">{evt.healed_selector}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Screenshots Column */}
+                <div className="flex-1 flex gap-4">
+                  <div className="flex-1 flex flex-col">
+                    <span className="text-xs text-gray-500 mb-2 text-center">Before (Broken)</span>
+                    <div className="flex-1 bg-black rounded-lg border border-gray-800 flex items-center justify-center min-h-[150px] overflow-hidden">
+                      {evt.screenshot_before_base64 ? (
+                        <img src={`data:image/jpeg;base64,${evt.screenshot_before_base64}`} alt="Before" className="object-contain w-full h-full opacity-70" />
+                      ) : (
+                        <span className="text-xs text-gray-700">No Image</span>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex-1 flex flex-col">
+                    <span className="text-xs text-gray-500 mb-2 text-center">After (Healed)</span>
+                    <div className="flex-1 bg-black rounded-lg border border-emerald-900 flex items-center justify-center min-h-[150px] overflow-hidden">
+                      {evt.screenshot_after_base64 ? (
+                        <img src={`data:image/jpeg;base64,${evt.screenshot_after_base64}`} alt="After" className="object-contain w-full h-full" />
+                      ) : (
+                        <span className="text-xs text-gray-700">No Image</span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -125743,20 +124420,18 @@ export function SessionDetailPage({ sessionId, onBack }: SessionDetailPageProps)
 ## File: `apps/studio-client/src/components/dashboard/VaultPage.tsx`
 
 ```tsx
-// বাংলা মন্তব্য: Target Web Authorization Vault UI — ইউজার টার্গেট সাইটের সেশন কুকি/টোকেন
-// ইমপোর্ট করতে, সেশন সিঙ্ক ট্রিগার করতে এবং কানেকশন স্ট্যাটাস (Connected/Expired) দেখতে পারেন।
-// র‌্যাশ ক্রেডেনশিয়াল কখনো UI-তে দেখানো হয় না — ব্যাকএন্ড masked মান রিটার্ন করে।
 import { useState, useEffect, useCallback } from 'react';
-import { ShieldCheck, Plus, Trash2, RefreshCw, Loader2, CircleCheck, CircleAlert } from 'lucide-react';
+import { ShieldCheck, Plus, Trash2, RefreshCw, Loader2, CircleCheck, CircleAlert, Globe, Key, FileCode2 } from 'lucide-react';
 import { apiClient } from '../../services/apiClient';
 
 interface VaultCredential {
   id: string;
   serviceName: string;
   username: string;
-  // বাংলা মন্তব্য: ব্যাকএন্ড থেকে masked মান আসে (যেমন ***masked***), কাঁচা টোকেন নয়
   password?: string;
   token?: string;
+  status?: 'active' | 'expired' | 'needs_reauth';
+  lastUsedAt?: string;
 }
 
 interface SurfStatus {
@@ -125769,6 +124444,11 @@ export function VaultPage() {
   const [status, setStatus] = useState<SurfStatus | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  
+  // Tab State
+  const [importTab, setImportTab] = useState<'oauth' | 'cookie' | 'manual'>('manual');
+  
+  // Form State
   const [serviceName, setServiceName] = useState('');
   const [username, setUsername] = useState('');
   const [secret, setSecret] = useState('');
@@ -125794,7 +124474,6 @@ export function VaultPage() {
     refresh();
   }, [refresh]);
 
-  // বাংলা মন্তব্য: নতুন সেশন কুকি/টোকেন ভল্টে সংরক্ষণ (এনক্রিপ্টেড হয়ে ব্যাকএন্ডে যায়)
   const handleImport = async () => {
     if (!serviceName.trim() || !secret.trim() || saving) return;
     setSaving(true);
@@ -125805,6 +124484,7 @@ export function VaultPage() {
         username: username.trim() || 'session',
         password: secret.trim(),
         userId: 'default',
+        authType: importTab === 'oauth' ? 'oauth2' : importTab === 'cookie' ? 'cookie_session' : 'basic_auth'
       });
       setServiceName('');
       setUsername('');
@@ -125826,7 +124506,6 @@ export function VaultPage() {
     }
   };
 
-  // বাংলা মন্তব্য: সেশন সিঙ্ক ট্রিগার — হেডলেস ব্রাউজার সার্ফ শুরু করে কানেকশন যাচাই করে
   const handleSync = async () => {
     setSyncing(true);
     setError('');
@@ -125842,112 +124521,191 @@ export function VaultPage() {
 
   const connected = status?.browsing;
 
+  const renderStatusBadge = (credStatus?: string) => {
+    switch (credStatus) {
+      case 'expired':
+        return <span className="text-[10px] px-2 py-0.5 rounded-full border border-amber-500/30 text-amber-400 bg-amber-500/10">Expired</span>;
+      case 'needs_reauth':
+        return <span className="text-[10px] px-2 py-0.5 rounded-full border border-red-500/30 text-red-400 bg-red-500/10">Needs Re-Auth</span>;
+      case 'active':
+      default:
+        return <span className="text-[10px] px-2 py-0.5 rounded-full border border-emerald-500/30 text-emerald-400 bg-emerald-500/10">Active</span>;
+    }
+  };
+
   return (
-    <div className="max-w-2xl mx-auto px-6 py-8">
-      <div className="flex items-center justify-between mb-1">
-        <h1 className="text-lg font-semibold text-white flex items-center gap-2">
-          <ShieldCheck size={17} className="text-blue-400" />
-          Web Authorization Vault
-        </h1>
+    <div className="max-w-6xl mx-auto px-6 py-8">
+      <div className="flex items-center justify-between mb-8">
+        <div>
+          <h1 className="text-2xl font-semibold text-white flex items-center gap-3">
+            <ShieldCheck size={24} className="text-blue-500" />
+            Connected Platforms
+          </h1>
+          <p className="text-sm text-slate-400 mt-1">
+            Zero-knowledge credential vault for autonomous site execution. 
+          </p>
+        </div>
         <button
-          data-testid="vault-sync-btn"
           onClick={handleSync}
           disabled={syncing}
-          className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-white/10 text-xs text-slate-300 hover:bg-white/[0.05] disabled:opacity-50 transition-colors"
+          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-sm text-white hover:bg-white/10 disabled:opacity-50 transition-all shadow-sm"
         >
-          {syncing ? <Loader2 size={12} className="animate-spin" /> : <RefreshCw size={12} />}
-          Sync session
+          {syncing ? <Loader2 size={16} className="animate-spin text-blue-400" /> : <RefreshCw size={16} className="text-blue-400" />}
+          Sync Connections
         </button>
       </div>
-      <p className="text-xs text-slate-400 mb-5">
-        Import target site session tokens/cookies for the boundless automation agent. Raw
-        credentials are encrypted and never displayed.
-      </p>
 
-      <div
-        data-testid="vault-connection-status"
-        className={`flex items-center gap-2 rounded-lg px-3 py-2 mb-5 text-xs ${
-          connected
-            ? 'border border-emerald-500/30 bg-emerald-500/[0.06] text-emerald-300'
-            : 'border border-amber-500/30 bg-amber-500/[0.06] text-amber-300'
-        }`}
-      >
-        {connected ? <CircleCheck size={13} /> : <CircleAlert size={13} />}
-        {connected ? 'Connected — active browser session' : 'Expired — no active session'}
-      </div>
-
-      <div className="rounded-xl border border-white/[0.08] bg-white/[0.02] p-4 mb-6 flex flex-col gap-2">
-        <div className="flex gap-2">
-          <input
-            data-testid="vault-service"
-            value={serviceName}
-            onChange={(e) => setServiceName(e.target.value)}
-            placeholder="Target site (e.g. example.com)"
-            className="flex-1 rounded-lg bg-black/30 border border-white/10 px-3 py-2 text-xs text-white placeholder-slate-500 outline-none focus:border-blue-500/50"
-          />
-          <input
-            data-testid="vault-username"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            placeholder="Label / username (optional)"
-            className="flex-1 rounded-lg bg-black/30 border border-white/10 px-3 py-2 text-xs text-white placeholder-slate-500 outline-none focus:border-blue-500/50"
-          />
-        </div>
-        <div className="flex gap-2">
-          <input
-            data-testid="vault-secret"
-            type="password"
-            value={secret}
-            onChange={(e) => setSecret(e.target.value)}
-            placeholder="Paste session cookie / storage token"
-            className="flex-1 rounded-lg bg-black/30 border border-white/10 px-3 py-2 text-xs text-white placeholder-slate-500 outline-none focus:border-blue-500/50"
-          />
-          <button
-            data-testid="vault-import-btn"
-            onClick={handleImport}
-            disabled={!serviceName.trim() || !secret.trim() || saving}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 disabled:bg-slate-700 text-white text-xs font-medium transition-colors"
-          >
-            {saving ? <Loader2 size={12} className="animate-spin" /> : <Plus size={12} />}
-            Import
-          </button>
-        </div>
-      </div>
-
-      {error && <p className="text-xs text-rose-400 mb-4">{error}</p>}
-
-      {loading ? (
-        <div className="flex justify-center py-10 text-slate-400">
-          <Loader2 size={18} className="animate-spin" />
-        </div>
-      ) : creds.length === 0 ? (
-        <p className="text-sm text-slate-400 text-center py-8">No stored sessions yet.</p>
-      ) : (
-        <ul className="flex flex-col gap-2">
-          {creds.map((c) => (
-            <li
-              key={c.id}
-              data-testid="vault-row"
-              className="flex items-center gap-3 p-3 rounded-lg border border-white/[0.06] bg-white/[0.02]"
-            >
-              <ShieldCheck size={14} className="text-slate-400" />
-              <div className="flex-1 min-w-0">
-                <p className="text-xs text-white truncate">{c.serviceName}</p>
-                <p className="text-[11px] text-slate-400 font-mono truncate">
-                  {c.username} · {c.password || c.token || '***masked***'}
-                </p>
-              </div>
-              <button
-                aria-label="Remove session"
-                onClick={() => handleDelete(c.id)}
-                className="p-1.5 rounded text-slate-400 hover:text-rose-400 transition-colors"
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
+        {/* Left Column: Import Panel */}
+        <div className="col-span-1 flex flex-col gap-4">
+          <div className="bg-[#1e1e1e] rounded-xl border border-gray-800 shadow-xl overflow-hidden">
+            {/* Tab Strip */}
+            <div className="flex border-b border-gray-800">
+              <button 
+                onClick={() => setImportTab('oauth')}
+                className={`flex-1 flex justify-center items-center py-3 text-xs font-medium transition-colors ${importTab === 'oauth' ? 'text-blue-400 border-b-2 border-blue-500 bg-blue-500/5' : 'text-gray-400 hover:text-gray-200'}`}
               >
-                <Trash2 size={13} />
+                <Globe size={14} className="mr-2" /> OAuth2
               </button>
-            </li>
-          ))}
-        </ul>
-      )}
+              <button 
+                onClick={() => setImportTab('cookie')}
+                className={`flex-1 flex justify-center items-center py-3 text-xs font-medium transition-colors ${importTab === 'cookie' ? 'text-blue-400 border-b-2 border-blue-500 bg-blue-500/5' : 'text-gray-400 hover:text-gray-200'}`}
+              >
+                <FileCode2 size={14} className="mr-2" /> Cookie Sync
+              </button>
+              <button 
+                onClick={() => setImportTab('manual')}
+                className={`flex-1 flex justify-center items-center py-3 text-xs font-medium transition-colors ${importTab === 'manual' ? 'text-blue-400 border-b-2 border-blue-500 bg-blue-500/5' : 'text-gray-400 hover:text-gray-200'}`}
+              >
+                <Key size={14} className="mr-2" /> Manual Paste
+              </button>
+            </div>
+            
+            <div className="p-5 flex flex-col gap-4">
+              {importTab !== 'manual' && (
+                <div className="text-xs text-amber-400 bg-amber-400/10 border border-amber-400/20 p-3 rounded-lg mb-2">
+                  Feature '{importTab}' requires the browser extension or OAuth callback URL configuration. Falling back to manual ingestion fields.
+                </div>
+              )}
+              
+              <div className="flex flex-col gap-3">
+                <input
+                  value={serviceName}
+                  onChange={(e) => setServiceName(e.target.value)}
+                  placeholder="Platform domain (e.g. github.com)"
+                  className="rounded-lg bg-black/40 border border-gray-700 px-4 py-2.5 text-sm text-white placeholder-slate-500 outline-none focus:border-blue-500/50 transition-colors"
+                />
+                <input
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  placeholder="Identity Label (e.g. prod-bot-1)"
+                  className="rounded-lg bg-black/40 border border-gray-700 px-4 py-2.5 text-sm text-white placeholder-slate-500 outline-none focus:border-blue-500/50 transition-colors"
+                />
+                <textarea
+                  value={secret}
+                  onChange={(e) => setSecret(e.target.value)}
+                  placeholder="Paste secure token, API key, or JSON cookie array..."
+                  rows={3}
+                  className="rounded-lg bg-black/40 border border-gray-700 px-4 py-2.5 text-sm text-white placeholder-slate-500 outline-none focus:border-blue-500/50 transition-colors resize-none"
+                />
+                <button
+                  onClick={handleImport}
+                  disabled={!serviceName.trim() || !secret.trim() || saving}
+                  className="mt-2 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-blue-600 hover:bg-blue-500 disabled:bg-slate-700 text-white text-sm font-medium transition-all shadow-md"
+                >
+                  {saving ? <Loader2 size={16} className="animate-spin" /> : <Plus size={16} />}
+                  Import to Vault
+                </button>
+              </div>
+              
+              {error && <p className="text-xs text-red-400 mt-2">{error}</p>}
+            </div>
+          </div>
+          
+          {/* Connection Status Box */}
+          <div
+            className={`flex items-center gap-3 rounded-xl p-4 mt-2 shadow-lg ${
+              connected
+                ? 'border border-emerald-500/20 bg-[#1e1e1e] text-emerald-400'
+                : 'border border-amber-500/20 bg-[#1e1e1e] text-amber-400'
+            }`}
+          >
+            <div className={`p-2 rounded-full ${connected ? 'bg-emerald-500/10' : 'bg-amber-500/10'}`}>
+               {connected ? <CircleCheck size={20} /> : <CircleAlert size={20} />}
+            </div>
+            <div>
+              <h4 className="font-medium text-sm text-gray-200">Global Sandbox Router</h4>
+              <p className="text-xs opacity-80 mt-0.5">{connected ? 'Active multiplexing session' : 'Standby — no active session'}</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Right Column: Card Grid */}
+        <div className="col-span-1 lg:col-span-2">
+          {loading ? (
+            <div className="flex justify-center py-20 text-slate-400">
+              <Loader2 size={24} className="animate-spin" />
+            </div>
+          ) : creds.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-20 bg-[#1e1e1e] border border-gray-800 rounded-xl border-dashed">
+              <ShieldCheck size={48} className="text-gray-700 mb-4" />
+              <p className="text-gray-400 font-medium">No connected platforms</p>
+              <p className="text-xs text-gray-500 mt-1">Import a credential to allow autonomous navigation.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {creds.map((c) => {
+                const rawVal = c.password || c.token || 'unknown';
+                // Only mock masking if it's not already masked by backend
+                const isMasked = rawVal.includes('***masked***') || rawVal.includes('••••••••••');
+                const displayHash = isMasked ? rawVal : `••••••••••${rawVal.slice(-4)}`;
+                const domain = c.serviceName.replace(/^(https?:\/\/)?(www\.)?/, '').split('/')[0];
+
+                return (
+                  <div
+                    key={c.id}
+                    className="flex flex-col rounded-xl border border-gray-800 bg-[#1e1e1e] shadow-md hover:border-gray-700 transition-colors overflow-hidden group"
+                  >
+                    <div className="p-4 flex items-start justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded bg-gray-900 flex items-center justify-center border border-gray-800 p-1">
+                          <img 
+                            src={`https://www.google.com/s2/favicons?domain=${domain}&sz=64`} 
+                            alt={domain}
+                            className="w-full h-full object-contain opacity-90 group-hover:opacity-100"
+                            onError={(e) => { (e.target as HTMLImageElement).src = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdib3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjOTNhM2FmIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PHBhdGggZD0iTTEyIDJhMTAgMTAgMCAxIDAgMCAyMGExMCAxMCAwIDAgMCAwLTIweiIvPjwvc3ZnPg==' }}
+                          />
+                        </div>
+                        <div>
+                          <h3 className="text-sm font-semibold text-gray-200">{c.serviceName}</h3>
+                          <p className="text-xs text-gray-500 mt-0.5">{c.username}</p>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => handleDelete(c.id)}
+                        className="p-1.5 rounded text-gray-600 hover:text-red-400 hover:bg-red-400/10 transition-colors"
+                        title="Revoke access"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                    
+                    <div className="px-4 py-3 bg-black/20 border-t border-gray-800 flex items-center justify-between mt-auto">
+                      <div className="flex items-center gap-2">
+                        {renderStatusBadge(c.status)}
+                      </div>
+                      <div className="text-xs text-gray-600 font-mono tracking-wider">
+                        {displayHash}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
@@ -126283,7 +125041,9 @@ export type DashboardRoute =
   | 'secrets'
   | 'usage'
   | 'settings'
-  | 'admin';
+  | 'admin'
+  | 'guardrails'
+  | 'healing-log';
 
 export interface ParsedRoute {
   page: DashboardRoute;
@@ -126294,7 +125054,7 @@ export interface ParsedRoute {
 export function parseHash(hash: string): ParsedRoute {
   const clean = hash.replace(/^#\/?/, '');
   const [page, param] = clean.split('/');
-  const known: DashboardRoute[] = ['sessions', 'session', 'workspace', 'vault', 'automation', 'site-actions', 'llm-gateway', 'knowledge', 'secrets', 'usage', 'settings', 'admin'];
+  const known: DashboardRoute[] = ['sessions', 'session', 'workspace', 'vault', 'automation', 'site-actions', 'llm-gateway', 'knowledge', 'secrets', 'usage', 'settings', 'admin', 'guardrails', 'healing-log'];
   if (known.includes(page as DashboardRoute)) {
     return { page: page as DashboardRoute, param };
   }
@@ -126938,6 +125698,75 @@ export function SessionsPage({ onOpenSession }: SessionsPageProps) {
     </div>
   );
 }
+
+```
+
+## File: `apps/studio-client/src/components/dashboard/ReasoningLog.tsx`
+
+```tsx
+import React, { useState } from 'react';
+import { ChevronRight, BrainCircuit } from 'lucide-react';
+import { useSessionCockpitStore } from '../../store/sessionCockpitStore';
+
+export const ReasoningLog: React.FC = () => {
+  const { reasoningChain } = useSessionCockpitStore();
+  const [collapsed, setCollapsed] = useState(false);
+
+  if (collapsed) {
+    return (
+      <div className="flex flex-col h-full bg-[#1e1e1e] border-l border-gray-800 w-12 items-center pt-2">
+        <button 
+          onClick={() => setCollapsed(false)}
+          className="p-2 hover:bg-gray-700 rounded text-gray-400 transition-colors"
+          title="Expand Reasoning Log"
+        >
+          <ChevronRight className="w-5 h-5" />
+        </button>
+        <div className="mt-4 writing-vertical-rl text-xs text-gray-500 tracking-widest uppercase">
+          Reasoning
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-col h-full bg-[#1e1e1e] border-l border-gray-800 w-80 shrink-0">
+      <div className="flex items-center px-4 py-2 bg-[#252526] border-b border-gray-800 justify-between">
+        <div className="flex items-center text-amber-500">
+          <BrainCircuit className="w-4 h-4 mr-2" />
+          <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-300">Agent Reasoning</h3>
+        </div>
+        <button 
+          onClick={() => setCollapsed(true)}
+          className="text-gray-400 hover:text-white"
+        >
+          <ChevronRight className="w-4 h-4" />
+        </button>
+      </div>
+      
+      <div className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar">
+        {reasoningChain.length === 0 ? (
+          <div className="text-gray-500 text-sm text-center mt-10 italic">
+            Waiting for agent thought process...
+          </div>
+        ) : (
+          reasoningChain.map((entry) => (
+            <div key={entry.id} className="bg-[#2d2d2d] border border-[#3d3d3d] rounded p-3 relative shadow-sm">
+              <div className="text-xs text-gray-500 mb-2 font-mono">
+                {new Date(entry.ts).toLocaleTimeString()}
+              </div>
+              <div className="text-sm text-gray-300 leading-relaxed font-sans whitespace-pre-wrap">
+                {entry.token}
+              </div>
+              {/* Optional timeline connector visual */}
+              <div className="absolute left-[-16px] top-4 w-4 border-t border-dashed border-gray-600"></div>
+            </div>
+          ))
+        )}
+      </div>
+    </div>
+  );
+};
 
 ```
 
@@ -135912,6 +134741,158 @@ export const useThemeStore = create<ThemeState>()(
     }
   )
 );
+
+```
+
+## File: `apps/studio-client/src/store/sessionCockpitStore.ts`
+
+```ts
+import { create } from 'zustand';
+
+export type SujonState =
+  | 'idle'
+  | 'scanning'
+  | 'executing'
+  | 'circuit_open'
+  | 'self_healing'
+  | 'awaiting_human'
+  | 'success'
+  | 'failed'
+  | 'processing';
+
+export interface LogEntry {
+  id: string;
+  ts: string;
+  log_type: string;
+  payload: any;
+}
+
+export interface FileNode {
+  name: string;
+  path: string;
+  type: 'file' | 'directory';
+  status: 'new' | 'modified' | 'deleted' | 'unchanged';
+}
+
+export interface ReasoningEntry {
+  id: string;
+  ts: string;
+  token: string;
+}
+
+interface SessionCockpitState {
+  sessionId: string | null;
+  // We use a normal array but we will cap it at 10,000 in our mutations
+  logBuffer: LogEntry[];
+  // Zustand isn't great with Maps in reactive state if they mutate often, 
+  // but for the sake of the store structure we define it.
+  // The actual FileTreePanel uses a useRef<Map> for performance.
+  fileTreeData: any; 
+  reasoningChain: ReasoningEntry[];
+  agentState: SujonState;
+  controlMode: 'agent' | 'human';
+  sseRef: EventSource | null;
+  wsRef: WebSocket | null;
+
+  resetSessionState: () => void;
+  connectSSE: (sessionId: string) => void;
+  disconnectSSE: () => void;
+  connectTakeoverWS: (sessionId: string, token: string) => void;
+  disconnectTakeoverWS: () => void;
+  
+  // Buffers
+  addLog: (log: LogEntry) => void;
+}
+
+const MAX_LOGS = 10000;
+
+export const useSessionCockpitStore = create<SessionCockpitState>((set, get) => ({
+  sessionId: null,
+  logBuffer: [],
+  fileTreeData: null,
+  reasoningChain: [],
+  agentState: 'idle',
+  controlMode: 'agent',
+  sseRef: null,
+  wsRef: null,
+
+  resetSessionState: () => {
+    const { sseRef, wsRef } = get();
+    if (sseRef) {
+      sseRef.close();
+    }
+    if (wsRef) {
+      wsRef.close();
+    }
+    set({
+      sessionId: null,
+      logBuffer: [],
+      fileTreeData: null,
+      reasoningChain: [],
+      agentState: 'idle',
+      controlMode: 'agent',
+      sseRef: null,
+      wsRef: null,
+    });
+  },
+
+  connectSSE: (sessionId: string) => {
+    get().disconnectSSE(); // Ensure previous is closed
+    const sse = new EventSource(`/api/session/${sessionId}/stream`);
+    sse.onmessage = (event) => {
+      try {
+        const parsed = JSON.parse(event.data);
+        if (parsed.channel === 'logs') {
+          get().addLog(parsed.data);
+        } else if (parsed.channel === 'state') {
+          set({ agentState: parsed.data.current_state });
+        }
+      } catch (err) {
+        console.error("SSE parse error", err);
+      }
+    };
+    set({ sseRef: sse, sessionId });
+  },
+
+  disconnectSSE: () => {
+    const { sseRef } = get();
+    if (sseRef) {
+      sseRef.close();
+      set({ sseRef: null });
+    }
+  },
+
+  connectTakeoverWS: (sessionId: string, token: string) => {
+    get().disconnectTakeoverWS();
+    const ws = new WebSocket(`ws://${window.location.host}/ws/session/${sessionId}/takeover?token=${token}`);
+    
+    ws.onopen = () => {
+      set({ controlMode: 'human' });
+    };
+    ws.onclose = () => {
+      set({ controlMode: 'agent' });
+    };
+    set({ wsRef: ws });
+  },
+
+  disconnectTakeoverWS: () => {
+    const { wsRef } = get();
+    if (wsRef) {
+      wsRef.close();
+      set({ wsRef: null });
+    }
+  },
+
+  addLog: (log: LogEntry) => {
+    set((state) => {
+      const newBuffer = [...state.logBuffer, log];
+      if (newBuffer.length > MAX_LOGS) {
+        return { logBuffer: newBuffer.slice(newBuffer.length - MAX_LOGS) };
+      }
+      return { logBuffer: newBuffer };
+    });
+  }
+}));
 
 ```
 

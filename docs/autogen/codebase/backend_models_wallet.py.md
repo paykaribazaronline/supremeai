@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/models/wallet.py
 
 **প্রকার:** .py  
-**সাইজ:** 2,618 বাইট  
-**আপডেট:** 2026-07-04T13:41:46.839518
+**সাইজ:** 2,608 বাইট  
+**আপডেট:** 2026-07-04T21:38:51.763591
 
 ---
 
@@ -24,9 +24,7 @@ from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import mapped_column
 
-
-class Base(DeclarativeBase):
-    pass
+from models.base import Base
 
 class UserWallet(Base):
     __tablename__ = "user_wallets"

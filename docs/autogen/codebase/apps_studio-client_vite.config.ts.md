@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/studio-client/vite.config.ts
 
 **প্রকার:** .ts  
-**সাইজ:** 706 বাইট  
-**আপডেট:** 2026-07-04T13:41:46.904618
+**সাইজ:** 773 বাইট  
+**আপডেট:** 2026-07-04T21:38:51.819983
 
 ---
 
@@ -17,9 +17,12 @@ import tailwindcss from '@tailwindcss/vite'
 export default defineConfig({
   base: './', // Important for Electron to load local files
   plugins: [
-    react(),
+    react({ jsxRuntime: 'automatic' }),
     tailwindcss()
   ],
+  esbuild: {
+    jsx: 'automatic',
+  },
   resolve: {
     dedupe: ['react', 'react-dom']
   },

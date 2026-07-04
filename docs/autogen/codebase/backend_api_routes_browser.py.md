@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/api/routes/browser.py
 
 **প্রকার:** .py  
-**সাইজ:** 13,384 বাইট  
-**আপডেট:** 2026-07-04T13:41:46.831910
+**সাইজ:** 13,421 বাইট  
+**আপডেট:** 2026-07-04T21:38:51.756261
 
 ---
 
@@ -118,6 +118,7 @@ def get_credentials(userId: str = "default"):
 def save_credential(cred: CredentialRequest):
     new_cred = credential_store.encrypt(cred.model_dump())
     new_cred["id"] = f"cred_{len(CREDENTIALS) + 1}"
+    new_cred["userId"] = cred.userId
     CREDENTIALS.append(new_cred)
     audit.log_decision(
         action_type="browser_credential_saved",

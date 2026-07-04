@@ -1,35 +1,29 @@
 # 📄 ফাইল: backend/api/routes/site_actions.py
 
 **প্রকার:** .py  
-**সাইজ:** 4,905 বাইট  
-**আপডেট:** 2026-07-04T13:41:46.833625
+**সাইজ:** 6,456 বাইট  
+**আপডেট:** 2026-07-04T21:38:51.757862
 
 ---
 
 ## কোড
 
 ```py
-# বাংলা মন্তব্য: site_actions_registry — ডাটাবেস-চালিত (SQLite) CRUD রাউটার।
-# সুপার-অ্যাডমিন টার্গেট ওয়েবসাইটের URL, DOM সিলেক্টর ও ইন্টার‌্যাকশন রুল ডায়নামিকভাবে
-# ম্যাপ করতে পারেন — হার্ডকোডেড কনফিগ ছাড়াই অ্যাকশন ইঞ্জিন চালানোর জন্য।
-# /api/admin/site-actions প্রিফিক্স স্টুডিও ড্যাশবোর্ড থেকে রিচেবল; প্ল্যাটফর্মের সাধারণ
-# SUPREMEAI_API_TOKEN গেট (auth_middleware) সেট থাকলে এই রুটগুলো টোকেন দাবি করে।
-
 import os
 import sqlite3
 import threading
 import time
+import json
+import base64
+from typing import List
 
-from fastapi import APIRouter
-from fastapi import HTTPException
+from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-
 
 router = APIRouter(prefix="/api/admin/site-actions", tags=["Site Actions Registry"])
 
 DB_PATH = os.getenv("SITE_ACTIONS_DB", "data/site_actions.db")
 _lock = threading.Lock()
-
 
 def _conn() -> sqlite3.Connection:
     os.makedirs(os.path.dirname(DB_PATH) or ".", exist_ok=True)
@@ -45,12 +39,26 @@ def _conn() -> sqlite3.Connection:
             action_type TEXT NOT NULL DEFAULT 'click',
             notes TEXT DEFAULT '',
             enabled INTEGER NOT NULL DEFAULT 1,
+            fallback_selectors TEXT DEFAULT '[]',
+            selector_strategy TEXT DEFAULT 'exact',
+            health_score INTEGER DEFAULT 100,
             updated_at REAL NOT NULL
         )
         """
     )
+    
+    # Run migrations if columns don't exist
+    cur = conn.cursor()
+    cur.execute("PRAGMA table_info(site_actions)")
+    columns = [col[1] for col in cur.fetchall()]
+    if "fallback_selectors" not in columns:
+        conn.execute("ALTER TABLE site_actions ADD COLUMN fallback_selectors TEXT DEFAULT '[]'")
+    if "selector_strategy" not in columns:
+        conn.execute("ALTER TABLE site_actions ADD COLUMN selector_strategy TEXT DEFAULT 'exact'")
+    if "health_score" not in columns:
+        conn.execute("ALTER TABLE site_actions ADD COLUMN health_score INTEGER DEFAULT 100")
+        
     return conn
-
 
 class SiteActionIn(BaseModel):
     site_name: str
@@ -60,7 +68,12 @@ class SiteActionIn(BaseModel):
     action_type: str = "click"
     notes: str = ""
     enabled: bool = True
+    fallback_selectors: List[str] = []
+    selector_strategy: str = "exact"
+    health_score: int = 100
 
+class TestSelectorRequest(BaseModel):
+    action_id: int
 
 def _row_to_dict(row: tuple) -> dict:
     return {
@@ -72,9 +85,11 @@ def _row_to_dict(row: tuple) -> dict:
         "action_type": row[5],
         "notes": row[6],
         "enabled": bool(row[7]),
-        "updated_at": row[8],
+        "fallback_selectors": json.loads(row[8] if row[8] else "[]"),
+        "selector_strategy": row[9] or "exact",
+        "health_score": row[10] if row[10] is not None else 100,
+        "updated_at": row[11] if len(row) > 11 else time.time(),
     }
-
 
 @router.get("/")
 def list_site_actions():
@@ -84,15 +99,14 @@ def list_site_actions():
         ).fetchall()
     return {"items": [_row_to_dict(r) for r in rows], "total": len(rows)}
 
-
 @router.post("/")
 def create_site_action(payload: SiteActionIn):
     with _lock, _conn() as conn:
         cur = conn.execute(
             """
             INSERT INTO site_actions
-                (site_name, url_pattern, action_name, selector, action_type, notes, enabled, updated_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                (site_name, url_pattern, action_name, selector, action_type, notes, enabled, fallback_selectors, selector_strategy, health_score, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 payload.site_name,
@@ -102,6 +116,9 @@ def create_site_action(payload: SiteActionIn):
                 payload.action_type,
                 payload.notes,
                 int(payload.enabled),
+                json.dumps(payload.fallback_selectors),
+                payload.selector_strategy,
+                payload.health_score,
                 time.time(),
             ),
         )
@@ -112,7 +129,6 @@ def create_site_action(payload: SiteActionIn):
         ).fetchone()
     return _row_to_dict(row)
 
-
 @router.put("/{action_id}")
 def update_site_action(action_id: int, payload: SiteActionIn):
     with _lock, _conn() as conn:
@@ -120,7 +136,8 @@ def update_site_action(action_id: int, payload: SiteActionIn):
             """
             UPDATE site_actions SET
                 site_name = ?, url_pattern = ?, action_name = ?, selector = ?,
-                action_type = ?, notes = ?, enabled = ?, updated_at = ?
+                action_type = ?, notes = ?, enabled = ?, fallback_selectors = ?,
+                selector_strategy = ?, health_score = ?, updated_at = ?
             WHERE id = ?
             """,
             (
@@ -131,6 +148,9 @@ def update_site_action(action_id: int, payload: SiteActionIn):
                 payload.action_type,
                 payload.notes,
                 int(payload.enabled),
+                json.dumps(payload.fallback_selectors),
+                payload.selector_strategy,
+                payload.health_score,
                 time.time(),
                 action_id,
             ),
@@ -143,7 +163,6 @@ def update_site_action(action_id: int, payload: SiteActionIn):
         ).fetchone()
     return _row_to_dict(row)
 
-
 @router.delete("/{action_id}")
 def delete_site_action(action_id: int):
     with _lock, _conn() as conn:
@@ -152,5 +171,30 @@ def delete_site_action(action_id: int):
         if cur.rowcount == 0:
             raise HTTPException(status_code=404, detail="Site action not found")
     return {"success": True}
+
+@router.post("/test")
+async def test_selector(req: TestSelectorRequest):
+    """
+    Dry-Run DOM Test endpoint.
+    In production, this proxies a CDP command to the live headless instance.
+    For now, it simulates a visual hit.
+    """
+    with _lock, _conn() as conn:
+        row = conn.execute("SELECT selector FROM site_actions WHERE id = ?", (req.action_id,)).fetchone()
+        if not row:
+            raise HTTPException(status_code=404, detail="Action not found")
+            
+    # Mock base64 1x1 transparent image for UI preview (in prod this is a real screenshot)
+    mock_b64 = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="
+    
+    # Simulate a hit
+    return {
+        "found": True,
+        "screenshot_base64": mock_b64,
+        "metrics": {
+            "time_to_find_ms": 142,
+            "strategy_used": "exact"
+        }
+    }
 
 ```

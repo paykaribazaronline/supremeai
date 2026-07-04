@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/test_browser_credentials.py
 
 **প্রকার:** .py  
-**সাইজ:** 2,065 বাইট  
-**আপডেট:** 2026-07-04T13:41:46.869022
+**সাইজ:** 2,164 বাইট  
+**আপডেট:** 2026-07-04T21:38:51.791392
 
 ---
 
@@ -40,8 +40,9 @@ def reset_globals():
     os.environ.pop("SUPREMEAI_API_TOKEN", None)
 
 
-def test_secure_credential_store_encrypt_decrypt():
-    store = SecureCredentialStore(encryption_key=generate_key())
+def test_secure_credential_store_encrypt_decrypt(monkeypatch):
+    monkeypatch.setenv("SUPREMEAI_CREDENTIAL_ENC_KEY", generate_key())
+    store = SecureCredentialStore()
     payload = {"serviceName": "example", "username": "user", "password": "secret"}
     encrypted = store.encrypt(payload)
     assert encrypted.get("__enc__") is True
@@ -51,16 +52,16 @@ def test_secure_credential_store_encrypt_decrypt():
 
 def test_secure_credential_store_mask():
     store = SecureCredentialStore()
-    payload = {"serviceName": "example", "username": "user", "password": "secret"}
+    payload = {"serviceName": "example", "username": "user", "password": "secrets"}
     masked = store.mask(payload)
-    assert masked["password"] == "***masked***"
+    assert masked["password"] == "••••••••••rets"
     assert masked["username"] == "user"
 
 
 def test_browser_save_and_list_credentials():
     resp = client.post(
         "/api/browser/credentials",
-        json={"serviceName": "example", "username": "user", "password": "secret"},
+        json={"serviceName": "example", "username": "user", "password": "secrets"},
         headers=auth_headers,
     )
     assert resp.status_code == 200
@@ -72,6 +73,6 @@ def test_browser_save_and_list_credentials():
     creds = resp.json()["credentials"]
     assert len(creds) == 1
     assert creds[0]["serviceName"] == "example"
-    assert creds[0]["password"] == "***masked***"
+    assert creds[0]["password"] == "••••••••••rets"
 
 ```
