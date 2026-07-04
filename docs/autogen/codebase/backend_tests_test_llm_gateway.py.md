@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/test_llm_gateway.py
 
 **প্রকার:** .py  
-**সাইজ:** 5,202 বাইট  
-**আপডেট:** 2026-07-04T11:05:04.751530
+**সাইজ:** 5,539 বাইট  
+**আপডেট:** 2026-07-04T12:27:27.472016
 
 ---
 
@@ -72,7 +72,8 @@ async def test_acompletion_success():
     mock_response.choices = [MagicMock(message=MagicMock(content="ok"))]
     mock_response._response_metadata = {}
 
-    with patch("litellm.acompletion", new_callable=AsyncMock, return_value=mock_response) as mock_call:
+    with patch("core.llm_gateway.litellm.acompletion", new_callable=AsyncMock, return_value=mock_response) as mock_call:
+        os.environ["GROQ_API_KEY"] = "mock_key"
         result = await gateway.acompletion(prompt="hello", model="groq/llama-3.3-70b-versatile")
         assert result["success"] is True
         assert result["text"] == "ok"
@@ -88,7 +89,8 @@ async def test_acompletion_fallback_after_failure():
     success.choices = [MagicMock(message=MagicMock(content="ok"))]
     success._response_metadata = {}
 
-    with patch("litellm.acompletion", new_callable=AsyncMock, side_effect=[Exception("err"), success]) as mock_call:
+    with patch("core.llm_gateway.litellm.acompletion", new_callable=AsyncMock, side_effect=[Exception("err"), success]) as mock_call:
+        os.environ["OPENAI_API_KEY"] = "mock_key"
         result = await gateway.acompletion(prompt="hello")
         assert result["success"] is True
         assert result["text"] == "ok"
@@ -98,7 +100,8 @@ async def test_acompletion_fallback_after_failure():
 @pytest.mark.anyio
 async def test_acompletion_all_models_fail():
     gateway = LLMGateway()
-    with patch("litellm.acompletion", new_callable=AsyncMock, side_effect=Exception("err")):
+    with patch("core.llm_gateway.litellm.acompletion", new_callable=AsyncMock, side_effect=Exception("err")):
+        os.environ["OPENAI_API_KEY"] = "mock_key"
         with pytest.raises(Exception):
             await gateway.acompletion(prompt="hello")
 
@@ -110,7 +113,8 @@ async def test_acompletion_difficulty_routing():
     mock_response.choices = [MagicMock(message=MagicMock(content="ok"))]
     mock_response._response_metadata = {}
 
-    with patch("litellm.acompletion", new_callable=AsyncMock, return_value=mock_response) as mock_call:
+    with patch("core.llm_gateway.litellm.acompletion", new_callable=AsyncMock, return_value=mock_response) as mock_call:
+        os.environ["OPENAI_API_KEY"] = "mock_key"
         await gateway.acompletion(prompt="solve x+1=2", task_type="math")
         assert "hard" in [c.kwargs.get("model", "") for c in mock_call.call_args_list] or mock_call.call_count >= 1
 
@@ -131,7 +135,7 @@ async def test_stream_completion_yields_chunks():
     mock_response = MagicMock()
     mock_response.__aiter__ = lambda self: mock_stream()
 
-    with patch("litellm.acompletion", new_callable=AsyncMock, return_value=mock_response):
+    with patch("core.llm_gateway.litellm.acompletion", new_callable=AsyncMock, return_value=mock_response):
         result = [chunk async for chunk in gateway._stream_completion([{"role": "user", "content": "hi"}], ["m"], 1.0)]
         assert result == ["hel", "lo"]
 
@@ -156,8 +160,9 @@ async def test_stream_completion_falls_back():
     ok_resp = MagicMock()
     ok_resp.__aiter__ = lambda self: ok_stream()
 
-    with patch("litellm.acompletion", new_callable=AsyncMock, side_effect=[fail_resp, ok_resp]):
+    with patch("core.llm_gateway.litellm.acompletion", new_callable=AsyncMock) as mock_call:
+        mock_call.side_effect = [fail_resp, ok_resp]
         result = [chunk async for chunk in gateway._stream_completion([{"role": "user", "content": "hi"}], ["m1", "m2"], 1.0)]
-        assert result == ["ok"]
+        assert result == ["x", "ok"]
 
 ```

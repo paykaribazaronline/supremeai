@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/test_config.py
 
 **প্রকার:** .py  
-**সাইজ:** 4,113 বাইট  
-**আপডেট:** 2026-07-04T11:05:04.754449
+**সাইজ:** 4,095 বাইট  
+**আপডেট:** 2026-07-04T12:27:27.475035
 
 ---
 
@@ -100,21 +100,23 @@ def test_invalid_env_raises(bad_env):
 
 def test_parse_admin_emails_empty_string():
     from core.config import Settings
-    from pydantic import ValidationInfo
     from unittest.mock import MagicMock
     validator = Settings.parse_admin_emails
-    assert validator("", ValidationInfo()) == []
+    assert validator("") == []
 
 
 def test_parse_allowed_hosts_empty_string():
     from core.config import Settings
-    from pydantic import ValidationInfo
-    assert Settings.parse_allowed_hosts("", ValidationInfo()) == []
+    assert Settings.parse_allowed_hosts("") == []
 
 
 @patch.dict(
     os.environ,
-    {"env": "production", "cors_origins": '["http://127.0.0.1:3000", "https://example.com"]'},
+    {
+        "env": "production", 
+        "cors_origins": '["http://127.0.0.1:3000", "https://example.com"]',
+        "SUPREMEAI_JWT_SECRET": "mock-jwt-secret-for-production"
+    },
     clear=False,
 )
 def test_cors_origins_production_strips_localhost():
@@ -125,12 +127,13 @@ def test_cors_origins_production_strips_localhost():
 
 def test_validate_config_raises_on_missing_production_keys():
     from core.config import Settings
-    s = Settings.__new__(Settings)
-    s.env = "production"
-    s.openrouter_api_key = ""
-    s.gemini_api_key = ""
-    s.jwt_secret = "secret"
-    s.ci_webhook_secret = "supreme-ci-secret-2026"
+    s = Settings.model_construct(
+        env="production",
+        openrouter_api_key="",
+        gemini_api_key="",
+        jwt_secret="secret",
+        ci_webhook_secret="supreme-ci-secret-2026"
+    )
     with pytest.raises(RuntimeError):
         s.validate_config()
 

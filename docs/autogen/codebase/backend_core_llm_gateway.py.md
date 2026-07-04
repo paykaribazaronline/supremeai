@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/llm_gateway.py
 
 **প্রকার:** .py  
-**সাইজ:** 9,501 বাইট  
-**আপডেট:** 2026-07-04T11:05:04.732252
+**সাইজ:** 9,765 বাইট  
+**আপডেট:** 2026-07-04T12:27:27.452781
 
 ---
 
@@ -80,18 +80,20 @@ class LLMGateway:
                 # Extract cost dynamically calculated by litellm
                 cost = response_obj._response_metadata.get("api_cost", 0.0) if hasattr(response_obj, "_response_metadata") else 0.0
                 
+                duration = (end_time - start_time).total_seconds() if hasattr(end_time - start_time, "total_seconds") else (end_time - start_time)
                 logger.info(
                     f"🟢 [LLMGateway Success] Model: {model} | Cost: ${cost:.6f} | "
-                    f"Tokens: P={prompt_tokens} C={completion_tokens} | Duration: {end_time - start_time:.2f}s"
+                    f"Tokens: P={prompt_tokens} C={completion_tokens} | Duration: {duration:.2f}s"
                 )
             except Exception as e:
                 logger.warning(f"Error executing success callback: {e}")
 
         def failure_callback(kwargs, exception_obj, start_time, end_time):
             model = kwargs.get("model", "unknown")
+            duration = (end_time - start_time).total_seconds() if hasattr(end_time - start_time, "total_seconds") else (end_time - start_time)
             logger.error(
                 f"🔴 [LLMGateway Failure] Model: {model} failed! | Error: {str(exception_obj)} | "
-                f"Duration: {end_time - start_time:.2f}s"
+                f"Duration: {duration:.2f}s"
             )
 
         litellm.success_callback = [success_callback]

@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/conftest.py
 
 **প্রকার:** .py  
-**সাইজ:** 4,222 বাইট  
-**আপডেট:** 2026-07-04T11:05:04.763027
+**সাইজ:** 4,262 বাইট  
+**আপডেট:** 2026-07-04T12:27:27.483292
 
 ---
 
@@ -12,6 +12,8 @@
 import os
 os.environ["SUPREMEAI_ENCRYPTION_KEY"] = "9llmzMU2XSRhbAS-R__JMW1XLZzc0ll7obD_RqaVwno="
 import sys
+import matplotlib
+matplotlib.use("Agg")
 
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))

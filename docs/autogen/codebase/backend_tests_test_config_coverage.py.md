@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/test_config_coverage.py
 
 **প্রকার:** .py  
-**সাইজ:** 8,270 বাইট  
-**আপডেট:** 2026-07-04T11:05:04.767093
+**সাইজ:** 8,305 বাইট  
+**আপডেট:** 2026-07-04T12:27:27.487501
 
 ---
 
@@ -68,20 +68,20 @@ def test_sanitize_cors_origins_production_strips_localhost():
 
 # ── parse_cors_origins ─────────────────────────────────────────────────
 def test_parse_cors_origins_empty_string():
-    assert Settings.parse_cors_origins("") == []
-    assert Settings.parse_cors_origins("  ") == []
+    assert Settings(cors_origins="").cors_origins == []
+    assert Settings(cors_origins="  ").cors_origins == []
 
 
 def test_parse_cors_origins_comma_separated():
-    assert Settings.parse_cors_origins("a, b, c") == ["a", "b", "c"]
+    assert Settings(cors_origins="a, b, c").cors_origins == ["a", "b", "c"]
 
 
 def test_parse_cors_origins_json_string():
-    assert Settings.parse_cors_origins('["a", "b"]') == ["a", "b"]
+    assert Settings(cors_origins='["a", "b"]').cors_origins == ["a", "b"]
 
 
 def test_parse_cors_origins_non_string_passthrough():
-    assert Settings.parse_cors_origins(["a"]) == ["a"]
+    assert Settings(cors_origins=["a"]).cors_origins == ["a"]
 
 
 # ── parse_admin_emails ─────────────────────────────────────────────────

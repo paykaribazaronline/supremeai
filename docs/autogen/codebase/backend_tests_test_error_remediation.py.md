@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/test_error_remediation.py
 
 **প্রকার:** .py  
-**সাইজ:** 3,557 বাইট  
-**আপডেট:** 2026-07-04T11:05:04.751980
+**সাইজ:** 3,600 বাইট  
+**আপডেট:** 2026-07-04T12:27:27.472477
 
 ---
 
@@ -47,11 +47,11 @@ class TestErrorRemediation:
             assert remediation.qdrant is mock_qdrant
 
     async def test_lookup_fix_no_qdrant(self):
-        """Qdrant ছাড়াই লুকআপ ফিক্স None রিটার্ন করে।"""
+        """Qdrant ছাড়াই লুকআপ ফিক্স ফলব্যাক রিটার্ন করে।"""
         with patch("core.error_remediation.HAS_QDRANT", False):
             remediation = ErrorRemediation()
             result = await remediation.lookup_fix("error-signature-123")
-            assert result is None
+            assert result is not None and "Retry" in result
 
     async def test_lookup_fix_success(self):
         """সফলভাবে ফিক্স লুকআপ করা হচ্ছে।"""

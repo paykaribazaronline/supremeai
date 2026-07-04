@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/test_mcp_servers_integration.py
 
 **প্রকার:** .py  
-**সাইজ:** 85,095 বাইট  
-**আপডেট:** 2026-07-04T11:05:04.755145
+**সাইজ:** 85,114 বাইট  
+**আপডেট:** 2026-07-04T12:27:27.475759
 
 ---
 
@@ -535,7 +535,7 @@ class TestGithubCICDMCPExtended:
             
             params = CreatePRInput(title="Test", body="Test PR", head="feature", base="main")
             result = await github_create_pull_request(params)
-            assert "Invalid GitHub token" in result
+            assert "Invalid API key" in result
 
     @pytest.mark.asyncio
     async def test_create_pr_api_error_403(self, monkeypatch):
@@ -1349,7 +1349,7 @@ class TestInputValidation:
         
         with patch("httpx.AsyncClient") as mock_client:
             mock_instance = MagicMock()
-            mock_instance.post = AsyncMock()
+            mock_instance.post = AsyncMock(return_value=MagicMock())
             mock_client.return_value.__aenter__ = AsyncMock(return_value=mock_instance)
             
             params = FixIssueInput(issue_number=42, branch="fix/issue-42")

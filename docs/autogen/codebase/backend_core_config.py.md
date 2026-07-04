@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/config.py
 
 **প্রকার:** .py  
-**সাইজ:** 8,968 বাইট  
-**আপডেট:** 2026-07-04T11:05:04.726872
+**সাইজ:** 9,186 বাইট  
+**আপডেট:** 2026-07-04T12:27:27.447434
 
 ---
 
@@ -199,17 +199,22 @@ class Settings(BaseSettings):
 
     @field_validator("cors_origins", mode="before")
     @classmethod
-    def parse_cors_origins(cls, v):
+    def parse_cors_origins(cls, v, info: ValidationInfo):
         import json
 
         if isinstance(v, str):
             v = v.strip()
             if not v:
-                return []
-            try:
-                return json.loads(v)
-            except json.JSONDecodeError:
-                return [origin.strip() for origin in v.split(",") if origin.strip()]
+                v = []
+            else:
+                try:
+                    v = json.loads(v)
+                except json.JSONDecodeError:
+                    v = [origin.strip() for origin in v.split(",") if origin.strip()]
+        
+        env = info.data.get("env", "local")
+        if env == "production" and v:
+            v = [o for o in v if "localhost" not in o and "127.0.0.1" not in o]
         return v
 
     def validate_config(self) -> None:
