@@ -574,7 +574,7 @@ jobs:
           echo "Running k6 load test against ${SUPREMEAI_URL}"
           export CI=true
           export SUPREMEAI_URL="${SUPREMEAI_URL}"
-          pnpm k6 run --out json=load-test-output.json scripts/k6/load_test.js
+          k6 run --out json=load-test-output.json scripts/k6/load_test.js
       - name: Upload k6 results
         uses: actions/upload-artifact@v4
         with:
