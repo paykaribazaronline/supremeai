@@ -36,8 +36,14 @@ on:
         default: false
         type: boolean
 
+# ==============================================================================
+# [IMMUTABLE CONFIGURATION - MANUAL CONTROL ONLY]
+# ------------------------------------------------------------------------------
+# DO NOT ALLOW AI AGENTS TO MODIFY THIS CONCURRENCY LOGIC.
+# Purpose: Ensures new pushes cancel pending/running jobs in this pipeline.
+# ==============================================================================
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  group: supreme-core-ci-${{ github.ref }}
   cancel-in-progress: true
 
 env:
