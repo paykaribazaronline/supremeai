@@ -571,7 +571,8 @@ jobs:
 flutter-integration-tests:
      name: 📱 Flutter Integration Test
      needs: frontend-core
-     if: github.event_name == 'pull_request' # শুধুমাত্র PR-এর জন্য চালানো যেতে পারে
+     if: github.event_name == 'pull_request'
+  # শুধুমাত্র PR-এর জন্য চালানো যেতে পারে
     runs-on: macos-latest # iOS সিমুলেটরের জন্য macOS প্রয়োজন
     strategy:
       matrix:
