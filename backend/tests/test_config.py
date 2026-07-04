@@ -91,6 +91,7 @@ def test_parse_admin_emails_empty_string():
     from core.config import Settings
     from pydantic import ValidationInfo
     from unittest.mock import MagicMock
+
     validator = Settings.parse_admin_emails
     assert validator("", ValidationInfo()) == []
 
@@ -98,6 +99,7 @@ def test_parse_admin_emails_empty_string():
 def test_parse_allowed_hosts_empty_string():
     from core.config import Settings
     from pydantic import ValidationInfo
+
     assert Settings.parse_allowed_hosts("", ValidationInfo()) == []
 
 
@@ -114,6 +116,7 @@ def test_cors_origins_production_strips_localhost():
 
 def test_validate_config_raises_on_missing_production_keys():
     from core.config import Settings
+
     s = Settings.__new__(Settings)
     s.env = "production"
     s.openrouter_api_key = ""

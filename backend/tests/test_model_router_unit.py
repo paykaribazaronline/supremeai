@@ -71,10 +71,12 @@ def test_response_cache_respects_ttl():
 
     def _put_in_cache(prompt, response):
         import time
+
         router._cache[prompt] = (response, time.time() + router._cache_ttl)
 
     def _get_from_cache(prompt):
         import time
+
         if prompt in router._cache:
             res, expires = router._cache[prompt]
             if time.time() < expires:
@@ -88,7 +90,7 @@ def test_response_cache_respects_ttl():
     assert router._get_from_cache("a")["text"] == "v1"
     router._put_in_cache("a", {"text": "v2"})
     assert router._get_from_cache("a")["text"] == "v2"
-    
+
     # Simulate expiration
     router._cache["a"] = (router._cache["a"][0], router._cache["a"][1] - 2.0)
     assert router._get_from_cache("a") is None
@@ -99,7 +101,7 @@ def test_openai_compatible_helper_uses_first_key():
 
     router = ModelRouter()
     router._get_keys = lambda v: ["k1", "k2"]
-    
+
     class MockClient:
         async def post(self, url, headers=None, json=None, **kwargs):
             class _Response:
@@ -119,10 +121,7 @@ def test_openai_compatible_helper_uses_first_key():
         res = await router._http_client.post(base_url, headers=headers)
         res.raise_for_status()
         data = res.json()
-        return {
-            "text": data["choices"][0]["message"]["content"],
-            "provider": provider_name
-        }
+        return {"text": data["choices"][0]["message"]["content"], "provider": provider_name}
 
     router._call_openai_compatible = _call_openai_compatible
 

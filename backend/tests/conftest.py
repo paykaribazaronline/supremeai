@@ -1,4 +1,5 @@
 import os
+
 os.environ["SUPREMEAI_ENCRYPTION_KEY"] = "9llmzMU2XSRhbAS-R__JMW1XLZzc0ll7obD_RqaVwno="
 import sys
 
@@ -123,10 +124,10 @@ def configure_litellm():
     # বাংলা মন্তব্য: লিটেলএলএম প্রক্সি এবং টেলিমেট্রি সেটিংস নিশ্চিত করা
     try:
         import litellm
+
         litellm.use_litellm_proxy = False
         litellm.drop_params = True
         litellm.telemetry = False
     except Exception:
         pass
     yield
-

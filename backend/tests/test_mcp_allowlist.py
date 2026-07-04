@@ -27,9 +27,7 @@ def test_validate_server_denied():
 
 
 def test_allowed_tools_all_granted():
-    result = MCPAllowlist.allowed_tools(
-        "github", ["search_repositories", "get_file_contents"]
-    )
+    result = MCPAllowlist.allowed_tools("github", ["search_repositories", "get_file_contents"])
     assert result["allowed"] is True
     assert result["denied"] == []
 

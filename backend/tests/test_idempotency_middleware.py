@@ -1,4 +1,5 @@
 """Idempotency middleware tests for SupremeAI 2.0."""
+
 import os
 import sys
 from unittest.mock import AsyncMock

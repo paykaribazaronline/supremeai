@@ -80,9 +80,7 @@ class AssetManager:
         if supabase:
             try:
                 with open(local_path, "rb") as f:
-                    supabase.storage.from_(self.bucket).upload(
-                        remote_path, f, {"content-type": content_type}
-                    )
+                    supabase.storage.from_(self.bucket).upload(remote_path, f, {"content-type": content_type})
                 logger.info(f"Uploaded to Supabase: {remote_path}")
                 success = True
             except Exception as exc:

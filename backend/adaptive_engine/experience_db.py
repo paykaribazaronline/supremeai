@@ -33,6 +33,7 @@ class Experience:
 class ExperienceDatabase:
     def __init__(self, db_path: str = None):
         import os
+
         if db_path is None:
             db_path = os.getenv("EXPERIENCE_DB_PATH", "data/experience.db")
         self.db_path = Path(db_path)
@@ -46,23 +47,29 @@ class ExperienceDatabase:
         if HAS_SENTENCE_TRANSFORMERS:
             try:
                 from sentence_transformers import SentenceTransformer
+
                 self.encoder = SentenceTransformer("all-MiniLM-L6-v2")
             except Exception as exc:
                 import loguru
+
                 loguru.logger.debug(f"SentenceTransformer init failed: {exc}")
         if HAS_CHROMADB:
             try:
                 import chromadb
+
                 self.chroma_collection = chromadb.EphemeralClient().get_or_create_collection("experience")
             except Exception as exc:
                 import loguru
+
                 loguru.logger.debug(f"ChromaDB init failed: {exc}")
         if HAS_QDRANT:
             try:
                 from qdrant_client import QdrantClient
+
                 self.qdrant_client = QdrantClient(":memory:")
                 from qdrant_client.models import Distance
                 from qdrant_client.models import VectorParams
+
                 self.qdrant_client.recreate_collection(
                     collection_name=self.qdrant_collection,
                     vectors_config=VectorParams(size=384, distance=Distance.COSINE),
@@ -116,10 +123,10 @@ class ExperienceDatabase:
         request_text = exp.request or ""
         embedding = self._embed(request_text)
         embedding_blob = json.dumps(embedding).encode() if embedding else None
-        
+
         # Determine the code or response text to save in vector metadata
         response_text = exp.generated_code or exp.action_taken or ""
-        
+
         with sqlite3.connect(self.db_path) as conn:
             cursor = conn.cursor()
             cursor.execute(
@@ -167,6 +174,7 @@ class ExperienceDatabase:
         try:
             if self.qdrant_client:
                 from qdrant_client.models import PointStruct
+
                 self.qdrant_client.upsert(
                     collection_name=self.qdrant_collection,
                     points=[PointStruct(id=exp_id, vector=embedding, payload={"result": result, "text": text, "response": response_text})],
@@ -176,6 +184,7 @@ class ExperienceDatabase:
 
     def _cosine_similarity(self, a: list[float], b: list[float]) -> float:
         import math
+
         dot = sum(x * y for x, y in zip(a, b, strict=False))
         norm_a = math.sqrt(sum(x * x for x in a))
         norm_b = math.sqrt(sum(y * y for y in b))
@@ -199,30 +208,21 @@ class ExperienceDatabase:
                     # ChromaDB distance can be Euclidean (L2). Convert to approximate similarity
                     score = 1.0 - float(dist)
                     if score >= threshold:
-                        hits.append({
-                            "source": "chroma",
-                            "id": idx,
-                            "score": score,
-                            "meta": meta,
-                            "response": meta.get("response", ""),
-                            "text": doc
-                        })
+                        hits.append({"source": "chroma", "id": idx, "score": score, "meta": meta, "response": meta.get("response", ""), "text": doc})
             elif self.qdrant_client:
-                res = self.qdrant_client.search(
-                    collection_name=self.qdrant_collection,
-                    query_vector=embedding,
-                    limit=limit
-                )
+                res = self.qdrant_client.search(collection_name=self.qdrant_collection, query_vector=embedding, limit=limit)
                 for hit in res:
                     if hit.score >= threshold:
-                        hits.append({
-                            "source": "qdrant",
-                            "id": hit.id,
-                            "score": hit.score,
-                            "meta": hit.payload,
-                            "response": hit.payload.get("response", ""),
-                            "text": hit.payload.get("text", "")
-                        })
+                        hits.append(
+                            {
+                                "source": "qdrant",
+                                "id": hit.id,
+                                "score": hit.score,
+                                "meta": hit.payload,
+                                "response": hit.payload.get("response", ""),
+                                "text": hit.payload.get("text", ""),
+                            }
+                        )
         except Exception:
             pass
         return hits
@@ -270,22 +270,22 @@ class ExperienceDatabase:
                 return
 
             gz_path = self.db_path.with_suffix(".sqlite.gz")
-            with open(self.db_path, 'rb') as f_in:
-                with gzip.open(gz_path, 'wb') as f_out:
+            with open(self.db_path, "rb") as f_in:
+                with gzip.open(gz_path, "wb") as f_out:
                     shutil.copyfileobj(f_in, f_out)
-            
+
             client = storage.Client()
             bucket = client.bucket(bucket_name)
             blob = bucket.blob(blob_name)
-            
+
             # Set metadata to indicate it's a gzipped sqlite file
-            blob.content_encoding = 'gzip'
-            blob.upload_from_filename(str(gz_path), content_type='application/x-sqlite3')
-            
+            blob.content_encoding = "gzip"
+            blob.upload_from_filename(str(gz_path), content_type="application/x-sqlite3")
+
             loguru.logger.info(f"Successfully synced experience db to GCS: gs://{bucket_name}/{blob_name}")
-            
+
             # Clean up local compressed file
             gz_path.unlink(missing_ok=True)
-            
+
         except Exception as e:
             loguru.logger.error(f"Failed to sync experience db to GCS: {e}")

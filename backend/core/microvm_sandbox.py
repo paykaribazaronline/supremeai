@@ -57,17 +57,13 @@ class MicroVMSandbox:
             json.dump(config, f)
         return config_path
 
-    async def execute_async(
-        self, cmd: str, timeout: int = 30, language: str = "python"
-    ) -> dict[str, Any]:
+    async def execute_async(self, cmd: str, timeout: int = 30, language: str = "python") -> dict[str, Any]:
         vm_type = self._check_microvm_available()
 
         if not vm_type:
             vm_type = os.getenv("ALLOW_SANDBOX_FALLBACK", "false").lower() == "true"
             if not vm_type:
-                logger.error(
-                    "No MicroVM available (Firecracker/gVisor) and fallback disabled"
-                )
+                logger.error("No MicroVM available (Firecracker/gVisor) and fallback disabled")
                 return {
                     "success": False,
                     "error": "MicroVM sandbox unavailable - security enforcement active",
@@ -89,9 +85,7 @@ class MicroVMSandbox:
             if self.auto_destroy:
                 self._destroy_vm(vm_id)
 
-    async def _run_firecracker(
-        self, vm_id: str, cmd: str, language: str, timeout: int
-    ) -> dict[str, Any]:
+    async def _run_firecracker(self, vm_id: str, cmd: str, language: str, timeout: int) -> dict[str, Any]:
         self._create_microvm_config(vm_id, cmd)
 
         try:
@@ -146,9 +140,7 @@ class MicroVMSandbox:
         except Exception as e:
             return {"success": False, "error": str(e), "provider": "gvisor"}
 
-    async def _run_docker_fallback(
-        self, vm_id: str, cmd: str, timeout: int
-    ) -> dict[str, Any]:
+    async def _run_docker_fallback(self, vm_id: str, cmd: str, timeout: int) -> dict[str, Any]:
         try:
             result = subprocess.run(
                 [
@@ -207,7 +199,5 @@ class MicroVMSandbox:
 sandbox = MicroVMSandbox()
 
 
-async def execute_code_securely(
-    code: str, timeout: int = 30, language: str = "python"
-) -> dict[str, Any]:
+async def execute_code_securely(code: str, timeout: int = 30, language: str = "python") -> dict[str, Any]:
     return await sandbox.execute_async(code, timeout, language)
