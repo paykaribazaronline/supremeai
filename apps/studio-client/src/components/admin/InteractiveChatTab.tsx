@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Terminal, Globe, Send, RefreshCw, Eye, EyeOff, Layout, TerminalSquare, Compass } from 'lucide-react';
+import { Terminal, Globe, Send, RefreshCw, TerminalSquare, Compass } from 'lucide-react';
 import { useDashboardStore } from '../../store/dashboardStore';
 import { UnifiedChatBubble, TypingIndicator } from '../chat';
 
@@ -27,9 +27,12 @@ interface InteractiveChatTabProps {
   onInputChange?: (val: string) => void;
   onSend?: () => void;
   loading?: boolean;
+  onSaveToProject?: (code: string) => void;
+  onPreview?: (code: string) => void;
 }
 
 import { getApiBaseUrl } from '../../utils/api';
+import { getAdminToken } from '../../services/adminTokenStore';
 
 
 export function InteractiveChatTab({

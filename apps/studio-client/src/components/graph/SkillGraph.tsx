@@ -19,6 +19,7 @@ interface GraphData {
 }
 
 import { getApiBaseUrl } from '../../utils/api';
+import { getAdminToken } from '../../services/adminTokenStore';
 
 export default function SkillGraph() {
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
