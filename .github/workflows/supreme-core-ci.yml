@@ -567,35 +567,35 @@ jobs:
           name: k6-load-test
           path: load-test-output.json
 
-flutter-integration-tests:
-  name: 📱 Flutter Integration Test
-  needs: frontend-core
-  if: github.event_name == 'pull_request' # শুধুমাত্র PR-এর জন্য চালানো যেতে পারে
-  runs-on: macos-latest # iOS সিমুলেটরের জন্য macOS প্রয়োজন
-  strategy:
-    matrix:
-      api-level: [30] # Android API level
-      target: [ios, android]
-  steps:
-    - uses: actions/checkout@v4
-    - uses: subosito/flutter-action@v2
-      with:
-        channel: 'stable'
-    - name: Install Dependencies
-      run: |
-        cd apps/mobile
-        flutter pub get
-    - name: Run Flutter Integration Tests (Android)
-      if: matrix.target == 'android'
-      uses: reactivecircus/android-emulator-runner@v2
-      with:
-        api-level: ${{ matrix.api-level }}
-        script: cd apps/mobile && flutter test integration_test
-    - name: Run Flutter Integration Tests (iOS)
-      if: matrix.target == 'ios'
-      run: |
-        cd apps/mobile
-        flutter test integration_test
+  flutter-integration-tests:
+    name: 📱 Flutter Integration Test
+    needs: frontend-core
+    if: github.event_name == 'pull_request' # শুধুমাত্র PR-এর জন্য চালানো যেতে পারে
+    runs-on: macos-latest # iOS সিমুলেটরের জন্য macOS প্রয়োজন
+    strategy:
+      matrix:
+        api-level: [30] # Android API level
+        target: [ios, android]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+      - name: Install Dependencies
+        run: |
+          cd apps/mobile
+          flutter pub get
+      - name: Run Flutter Integration Tests (Android)
+        if: matrix.target == 'android'
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: ${{ matrix.api-level }}
+          script: cd apps/mobile && flutter test integration_test
+      - name: Run Flutter Integration Tests (iOS)
+        if: matrix.target == 'ios'
+        run: |
+          cd apps/mobile
+          flutter test integration_test
 
   build-and-release-desktop:
     name: 🖥️ Build & Release Desktop App
