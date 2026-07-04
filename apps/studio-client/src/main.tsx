@@ -5,11 +5,15 @@ import './index.css'
 import { App } from './App.tsx'
 
 import { ThemeProvider } from './contexts/ThemeContext'
+// Shared providers (react-query, monaco defaults)
+import { SharedProviders } from '@supremeai/ui-components'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <ThemeProvider>
-      <App />
+      <SharedProviders>
+        <App />
+      </SharedProviders>
     </ThemeProvider>
   </StrictMode>,
 )

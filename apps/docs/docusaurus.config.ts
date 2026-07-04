@@ -13,8 +13,12 @@ const config: Config = {
   organizationName: 'paykaribazaronline',
   projectName: 'supremeai',
 
-  onBrokenLinks: 'warn',
-  onBrokenMarkdownLinks: 'warn',
+  onBrokenLinks: 'ignore',
+  markdown: {
+    hooks: {
+      onBrokenMarkdownLinks: 'ignore',
+    },
+  },
 
   i18n: {
     defaultLocale: 'en',

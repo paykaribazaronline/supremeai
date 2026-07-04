@@ -1,5 +1,6 @@
 // বাংলা মন্তব্য: Devin-স্টাইল ড্যাশবোর্ড শেল — বাম সাইডবার নেভিগেশন সহ ইউজার ও অ্যাডমিন উভয়ের জন্য মূল লেআউট
-import type { ReactNode } from 'react';
+// হ্যাশ-ভিত্তিক রাউটিং, Sujon ব্যাকগ্রাউন্ড ইন্টিগ্রেশন ও পেজ রেন্ডারিং
+import { type ReactNode, useMemo } from 'react';
 import {
   LayoutList,
   Boxes,
@@ -7,14 +8,15 @@ import {
   KeyRound,
   BarChart3,
   Settings,
-  ShieldCheck,
-  Plus,
   Vault,
   ListChecks,
   Table2,
   Cpu,
+  Shield,
+  Wifi,
+  WifiOff,
 } from 'lucide-react';
-import { useHashRoute, type DashboardRoute } from './useHashRoute';
+import { useHashRoute, type DashboardRoute, parseHash } from './useHashRoute';
 import { SessionsPage } from './SessionsPage';
 import { SessionDetailPage } from './SessionDetailPage';
 import { KnowledgePage } from './KnowledgePage';
@@ -25,7 +27,7 @@ import { VaultPage } from './VaultPage';
 import { AutomationQueuePage } from './AutomationQueuePage';
 import { SiteActionsPage } from './SiteActionsPage';
 import { LlmGatewayPage } from './LlmGatewayPage';
-import { LiveSujonBackground } from '../LiveSujonBackground';
+import { LiveSujonBackground, setSujonState, type SujonState } from '../LiveSujonBackground';
 
 interface NavItem {
   id: DashboardRoute;
@@ -48,6 +50,7 @@ const NAV_ITEMS: NavItem[] = [
 const ADMIN_NAV_ITEMS: NavItem[] = [
   { id: 'site-actions', label: 'Site Actions', icon: <Table2 size={15} /> },
   { id: 'llm-gateway', label: 'LLM Gateway', icon: <Cpu size={15} /> },
+  { id: 'admin', label: 'Admin Console', icon: <Shield size={15} /> },
 ];
 
 interface DashboardShellProps {
@@ -58,20 +61,39 @@ interface DashboardShellProps {
   workspace: ReactNode;
 }
 
-export function DashboardShell({ theme, toggleTheme, isServerOnline, workspace }: DashboardShellProps) {
+export function DashboardShell(props: DashboardShellProps) {
   const [route, navigate] = useHashRoute();
 
+  // বাংলা মন্তব্য: রাউটের ভিত্তিতে Sujon স্টেট সেট করা — টাস্ক এক্সিকিউশন আরম্ভ হলে processing, সেশন শেষে idle
+  useMemo(() => {
+    const sujonState: Record<DashboardRoute, SujonState> = {
+      sessions: 'idle',
+      session: 'processing',
+      workspace: 'idle',
+      vault: 'idle',
+      automation: 'processing',
+      'site-actions': 'idle',
+      'llm-gateway': 'idle',
+      knowledge: 'idle',
+      secrets: 'idle',
+      usage: 'idle',
+      settings: 'idle',
+      admin: 'idle',
+    };
+    setSujonState(sujonState[route.page] || 'idle');
+  }, [route.page]);
+
+  const handleOpenSession = (id: string) => {
+    navigate('session', id);
+  };
+
+  // বাংলা মন্তব্য: হ্যাশ রাউটের ভিত্তিতে সংশ্লিষ্ট পেজ রেন্ডার করা হয়
   const renderPage = () => {
     switch (route.page) {
       case 'session':
-        return (
-          <SessionDetailPage
-            sessionId={route.param || ''}
-            onBack={() => navigate('sessions')}
-          />
-        );
+        return <SessionDetailPage sessionId={route.param || ''} />;
       case 'workspace':
-        return workspace;
+        return <>{props.workspace}</>;
       case 'vault':
         return <VaultPage />;
       case 'automation':
@@ -87,95 +109,91 @@ export function DashboardShell({ theme, toggleTheme, isServerOnline, workspace }
       case 'usage':
         return <UsagePage />;
       case 'settings':
-        return <SettingsPage theme={theme} toggleTheme={toggleTheme} />;
+        return <SettingsPage />;
+      case 'admin':
+        // বাংলা মন্তব্য: অ্যাডমিন কনসোলের জন্য #/admin রুট
+        return <div className="p-6 text-slate-400 text-xs">Admin console (use /admin subdomain)</div>;
       case 'sessions':
       default:
-        return <SessionsPage onOpenSession={(id) => navigate('session', id)} />;
+        return <SessionsPage onOpenSession={handleOpenSession} />;
     }
   };
 
-  const activeNav = route.page === 'session' ? 'sessions' : route.page;
+  const navItems = [...NAV_ITEMS, ...ADMIN_NAV_ITEMS];
 
   return (
     <div className="relative min-h-screen flex bg-[#0b0f19] text-white">
-      {/* বাংলা মন্তব্য: Sujon লাইভ AI-কোর অ্যাম্বিয়েন্ট ব্যাকগ্রাউন্ড — Automation স্টেট অনুযায়ী বদলায় */}
+      {/* বাংলা মন্তব্য: Sujon অ্যাম্বিয়েন্ট ব্যাকগ্রাউন্ড */}
       <LiveSujonBackground />
+
+      {/* বাংলা মন্তব্য: বাম প্যানেল ব্যাকগ্রাউন্ড গ্রেডিয়েন্ট */}
+      <div className="absolute inset-0 -z-10 bg-gradient-to-b from-[#00111a] to-[#061025]" />
+
+      {/* সাইডবার */}
       <aside
         data-testid="dashboard-sidebar"
         className="relative z-10 w-56 shrink-0 border-r border-white/[0.06] bg-[#080b13] flex flex-col"
       >
+        {/* হেডার */}
         <div className="flex items-center gap-2 px-4 py-4 border-b border-white/[0.06]">
           <span className="text-blue-400 text-lg">▲</span>
           <span className="text-sm font-semibold tracking-wide">SupremeAI</span>
         </div>
 
-        <button
-          data-testid="new-session-nav"
-          onClick={() => navigate('sessions')}
-          className="mx-3 mt-3 mb-2 flex items-center justify-center gap-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-medium py-2 transition-colors"
-        >
-          <Plus size={13} />
-          New Session
-        </button>
-
-        <nav className="flex-1 px-2 py-1 flex flex-col gap-0.5">
-          {NAV_ITEMS.map((item) => (
-            <button
-              key={item.id}
-              data-testid={`nav-${item.id}`}
-              onClick={() => navigate(item.id)}
-              className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs transition-colors ${
-                activeNav === item.id
-                  ? 'bg-white/[0.08] text-white'
-                  : 'text-slate-400 hover:text-white hover:bg-white/[0.04]'
-              }`}
-            >
-              {item.icon}
-              {item.label}
-            </button>
-          ))}
-
-          {/* বাংলা মন্তব্য: সুপার-অ্যাডমিন কন্ট্রোল সেকশন */}
-          <p className="px-3 pt-3 pb-1 text-[10px] uppercase tracking-wider text-slate-600">Admin</p>
-          {ADMIN_NAV_ITEMS.map((item) => (
-            <button
-              key={item.id}
-              data-testid={`nav-${item.id}`}
-              onClick={() => navigate(item.id)}
-              className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs transition-colors ${
-                activeNav === item.id
-                  ? 'bg-white/[0.08] text-white'
-                  : 'text-slate-400 hover:text-white hover:bg-white/[0.04]'
-              }`}
-            >
-              {item.icon}
-              {item.label}
-            </button>
-          ))}
-
-          {/* বাংলা মন্তব্য: অ্যাডমিন কন্সোল আলাদা রুটে (/admin) — সেখানে TOTP লগইনসহ সম্পূর্ণ অ্যাডমিন ফিচার আছে */}
-          <a
-            data-testid="nav-admin"
-            href="/admin"
-            className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs text-slate-400 hover:text-white hover:bg-white/[0.04] transition-colors"
-          >
-            <ShieldCheck size={15} />
-            Admin Console
-          </a>
+        {/* সাইডবার নেভিগেশন লিংক */}
+        <nav className="flex-1 overflow-y-auto px-2 py-3 space-y-0.5">
+          {navItems.map((item) => {
+            const isActive = route.page === item.id;
+            return (
+              <button
+                key={item.id}
+                data-testid={`nav-${item.id}`}
+                onClick={() => navigate(item.id)}
+                className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium transition-colors text-left ${
+                  isActive
+                    ? 'bg-blue-600/20 text-blue-300 border border-blue-500/20'
+                    : 'text-slate-400 hover:text-slate-200 hover:bg-white/[0.04]'
+                }`}
+              >
+                {item.icon}
+                {item.label}
+              </button>
+            );
+          })}
         </nav>
 
-        <div className="px-4 py-3 border-t border-white/[0.06] flex items-center justify-between">
-          <span
+        {/* স্ট্যাটাস ও থিম */}
+        <div className="px-3 py-3 border-t border-white/[0.06] space-y-2">
+          <div
             data-testid="sidebar-server-status"
-            className={`text-[10px] font-medium ${isServerOnline ? 'text-emerald-400' : 'text-rose-400'}`}
+            className="flex items-center gap-2 text-[11px]"
           >
-            ● {isServerOnline ? 'Online' : 'Offline'}
-          </span>
-          <span className="text-[10px] text-slate-500">Free plan</span>
+            {props.isServerOnline ? (
+              <>
+                <Wifi size={11} className="text-emerald-400" />
+                <span className="text-emerald-400 font-medium">Online</span>
+              </>
+            ) : (
+              <>
+                <WifiOff size={11} className="text-rose-400" />
+                <span className="text-rose-400 font-medium">Offline</span>
+              </>
+            )}
+          </div>
+          <button
+            onClick={props.toggleTheme}
+            className="w-full flex items-center gap-2 px-3 py-1.5 rounded-lg text-[11px] text-slate-500 hover:text-slate-300 hover:bg-white/[0.04] transition-colors"
+          >
+            <Shield size={11} />
+            {props.theme === 'dark' ? 'Dark' : 'Light'} mode
+          </button>
         </div>
       </aside>
 
-      <main className="relative z-10 flex-1 min-w-0 overflow-y-auto">{renderPage()}</main>
+      {/* মূল কন্টেন্ট এলাকা */}
+      <main className="relative z-10 flex-1 min-w-0 overflow-y-auto">
+        {renderPage()}
+      </main>
     </div>
   );
 }

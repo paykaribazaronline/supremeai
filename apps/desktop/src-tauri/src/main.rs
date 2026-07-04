@@ -4,7 +4,7 @@
 )]
 
 use tauri::{Manager, SystemTray, SystemTrayEvent, SystemTrayMenu, SystemTrayMenuItem, CustomMenuItem, SystemTrayEvent::MenuEvent};
-use tauri::api::{fs::read_text_file, notification::{Notification, NotificationAction}, updater};
+use tauri::api::{fs::read_text_file, notification::Notification, updater};
 use std::sync::Mutex;
 
 struct AppState {
