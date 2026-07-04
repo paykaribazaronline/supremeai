@@ -18,8 +18,11 @@ export function SessionDetailPage({ sessionId, onBack }: SessionDetailPageProps)
   // বাংলা মন্তব্য: সেশন লোড + বাইরের আপডেট (যেমন SessionsPage থেকে আসা AI রেসপন্স) ধরতে ইভেন্ট লিসেনার
   useEffect(() => {
     const refresh = () => {
-      const found = loadSessions().find((s) => s.id === sessionId) || null;
-      setSession(found);
+      // বাংলা মন্তব্য: loadSessions() এখন async — ব্যাকএন্ড API কল করে
+      loadSessions().then((all) => {
+        const found = all.find((s) => s.id === sessionId) || null;
+        setSession(found);
+      });
     };
     refresh();
     window.addEventListener(SESSIONS_UPDATED_EVENT, refresh);
@@ -42,7 +45,7 @@ export function SessionDetailPage({ sessionId, onBack }: SessionDetailPageProps)
       ],
     };
     setSession(updated);
-    upsertSession(updated);
+    await upsertSession(updated);
     const text = input.trim();
     setInput('');
 
@@ -54,8 +57,9 @@ export function SessionDetailPage({ sessionId, onBack }: SessionDetailPageProps)
         content: m.text,
       }));
       const responseText = await getAethelResponse(text, history);
-      // বাংলা মন্তব্য: সেভের আগে localStorage থেকে সর্বশেষ সেশন পড়ে নেওয়া হয় যাতে অন্য পেজের সেভ করা মেসেজ মুছে না যায়
-      const latest = loadSessions().find((s) => s.id === sessionId) || updated;
+      // বাংলা মন্তব্য: সেভের আগে ব্যাকএন্ড থেকে সর্বশেষ সেশন পড়ে নেওয়া হয় যাতে অন্য পেজের সেভ করা মেসেজ মুছে না যায়
+      const allSessions = await loadSessions();
+      const latest = allSessions.find((s) => s.id === sessionId) || updated;
       completed = {
         ...latest,
         status: 'finished',
@@ -65,7 +69,8 @@ export function SessionDetailPage({ sessionId, onBack }: SessionDetailPageProps)
         ],
       };
     } catch (error) {
-      const latest = loadSessions().find((s) => s.id === sessionId) || updated;
+      const allSessions = await loadSessions();
+      const latest = allSessions.find((s) => s.id === sessionId) || updated;
       completed = {
         ...latest,
         status: 'error',
@@ -81,7 +86,7 @@ export function SessionDetailPage({ sessionId, onBack }: SessionDetailPageProps)
       };
     }
     setSession(completed);
-    upsertSession(completed);
+    await upsertSession(completed);
     setSending(false);
   };
 

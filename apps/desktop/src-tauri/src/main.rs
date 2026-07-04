@@ -3,8 +3,9 @@
     windows_subsystem = "windows"
 )]
 
-use tauri::{Manager, SystemTray, SystemTrayEvent, SystemTrayMenu, SystemTrayMenuItem, CustomMenuItem, SystemTrayEvent::MenuEvent};
-use tauri::api::{fs::read_text_file, notification::Notification, updater};
+use tauri::{AppHandle, CustomMenuItem, Manager, SystemTray, SystemTrayEvent, SystemTrayMenu, SystemTrayMenuItem, SystemTrayEvent::MenuEvent};
+use tauri::api::notification::Notification;
+use tauri::updater;
 use std::sync::Mutex;
 
 struct AppState {
@@ -13,22 +14,20 @@ struct AppState {
 
 #[tauri::command]
 fn read_local_file(path: String) -> Result<String, String> {
-    match read_text_file(std::path::Path::new(&path)) {
-        Ok(content) => Ok(content),
-        Err(e) => Err(e.to_string()),
-    }
+    std::fs::read_to_string(path).map_err(|e| e.to_string())
 }
 
 #[tauri::command]
 fn show_notification(title: String, body: String) -> Result<(), String> {
-    let notification = Notification::new(&title)
+    Notification::new(&title)
         .body(&body)
         .show()
         .map_err(|e| e.to_string())?;
     Ok(())
 }
 
-fn toggle_window_visibility(app: &tauri::AppHandle) -> Result<(), String> {
+#[tauri::command]
+fn toggle_window_visibility(app: &AppHandle) -> Result<(), String> {
     let window = app.get_window("main").ok_or("Main window not found")?;
     let is_visible = window.is_visible().map_err(|e| e.to_string())?;
     if is_visible {
@@ -41,18 +40,12 @@ fn toggle_window_visibility(app: &tauri::AppHandle) -> Result<(), String> {
 }
 
 #[tauri::command]
-fn check_for_updates(app: tauri::AppHandle) -> Result<(), String> {
-    updater::build()
-        .update_callback(move |event| {
-            if let updater::UpdateResponse::UpdateAvailable(info) = event {
-                let _ = Notification::new("Update Available")
-                    .body(&format!("Version {} is available. Please restart the application.", info.version))
-                    .show();
-                let _ = app.restart();
-            }
-        })
-        .run()
-        .map_err(|e| e.to_string())?;
+fn check_for_updates(app: AppHandle) -> Result<(), String> {
+    tauri::async_runtime::spawn(async move {
+        if let Err(error) = updater::builder(app).check().await {
+            eprintln!("Updater failed: {error}");
+        }
+    });
     Ok(())
 }
 

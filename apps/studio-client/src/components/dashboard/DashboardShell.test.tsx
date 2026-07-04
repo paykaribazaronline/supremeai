@@ -2,14 +2,32 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, act } from '@testing-library/react';
 
-vi.mock('../../services/apiClient', () => ({
-  apiClient: {
-    get: vi.fn().mockResolvedValue({ items: [], keys: [], total: 0 }),
-    post: vi.fn().mockResolvedValue({}),
-    put: vi.fn().mockResolvedValue({}),
-    delete: vi.fn().mockResolvedValue({}),
-  },
-}));
+vi.mock('../../services/apiClient', () => {
+  const sessionsStore: Record<string, any> = {};
+  return {
+    apiClient: {
+      get: vi.fn().mockImplementation((path: string) => {
+        if (path === '/api/browser/sessions') return Promise.resolve({ sessions: Object.values(sessionsStore) });
+        return Promise.resolve({ items: [], keys: [], total: 0 });
+      }),
+      post: vi.fn().mockImplementation((path: string, body?: any) => {
+        if (path === '/api/browser/sessions' && body?.id) {
+          sessionsStore[body.id] = body;
+        }
+        return Promise.resolve({});
+      }),
+      put: vi.fn().mockImplementation((path: string, body?: any) => {
+        if (body?.id) sessionsStore[body.id] = body;
+        return Promise.resolve({});
+      }),
+      delete: vi.fn().mockImplementation((path: string) => {
+        const id = path.split('/').pop();
+        if (id) delete sessionsStore[id];
+        return Promise.resolve({});
+      }),
+    },
+  };
+});
 
 vi.mock('../../services/chatService', () => ({
   getAethelResponse: vi.fn().mockResolvedValue('Mock response'),
@@ -112,6 +130,8 @@ describe('DashboardShell', () => {
       fireEvent.click(screen.getByTestId('start-session-btn'));
       window.dispatchEvent(new HashChangeEvent('hashchange'));
     });
-    expect(screen.getAllByText('Build a landing page').length).toBeGreaterThan(0);
+    // বাংলা মন্তব্য: সেশন ডিটেইল পেজ async loadSessions() কল করে — তাই find* ব্যবহার করা হয়
+    const elements = await screen.findAllByText('Build a landing page', {}, { timeout: 3000 });
+    expect(elements.length).toBeGreaterThan(0);
   });
 });
