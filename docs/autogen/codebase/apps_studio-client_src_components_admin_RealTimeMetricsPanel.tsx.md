@@ -2,7 +2,7 @@
 
 **প্রকার:** .tsx  
 **সাইজ:** 6,952 বাইট  
-**আপডেট:** 2026-07-04T12:59:56.910479
+**আপডেট:** 2026-07-04T13:24:28.413367
 
 ---
 
@@ -72,7 +72,7 @@ export function RealTimeMetricsPanel() {
   if (isLoading) {
     return (
       <div className="rounded-xl border border-slate-900 bg-slate-950/60 p-5 shadow-[0_0_15px_rgba(0,0,0,0.3)]">
-        <div className="text-[10px] font-mono text-slate-500 uppercase tracking-widest">
+        <div className="text-[10px] font-mono text-slate-400 uppercase tracking-widest">
           Loading metrics...
         </div>
       </div>
@@ -82,7 +82,7 @@ export function RealTimeMetricsPanel() {
   if (!metrics) {
     return (
       <div className="rounded-xl border border-slate-900 bg-slate-950/60 p-5 shadow-[0_0_15px_rgba(0,0,0,0.3)]">
-        <div className="text-[10px] font-mono text-slate-500 uppercase tracking-widest">
+        <div className="text-[10px] font-mono text-slate-400 uppercase tracking-widest">
           Metrics unavailable
         </div>
       </div>
@@ -105,7 +105,7 @@ export function RealTimeMetricsPanel() {
         >
           Live Metrics
         </span>
-        <span className="text-[9px] font-mono text-slate-500">
+        <span className="text-[9px] font-mono text-slate-400">
           {new Date().toLocaleTimeString()}
         </span>
       </div>
@@ -216,7 +216,7 @@ function Kpi({ label, value, accent, isSimple }: { label: string; value: string;
         isSimple ? 'border-slate-100 bg-slate-50' : 'border-slate-900 bg-black/20'
       }`}
     >
-      <div className={`text-[9px] uppercase ${isSimple ? 'text-slate-500' : 'text-slate-500'}`}>
+      <div className={`text-[9px] uppercase ${isSimple ? 'text-slate-400' : 'text-slate-400'}`}>
         {label}
       </div>
       <div className="mt-1 text-sm font-bold" style={{ color: isSimple ? '#0f172a' : accent }}>

@@ -2,7 +2,7 @@
 
 **প্রকার:** .tsx  
 **সাইজ:** 4,880 বাইট  
-**আপডেট:** 2026-07-04T12:59:56.904898
+**আপডেট:** 2026-07-04T13:24:28.407935
 
 ---
 
@@ -61,12 +61,12 @@ export function UsagePage() {
   return (
     <div className="max-w-3xl mx-auto px-6 py-8">
       <h1 className="text-lg font-semibold text-white mb-1">Usage</h1>
-      <p className="text-xs text-slate-500 mb-6">
+      <p className="text-xs text-slate-400 mb-6">
         Platform usage over the last 30 days. SupremeAI is free — no billing, ever.
       </p>
 
       {loading ? (
-        <div className="flex justify-center py-16 text-slate-500">
+        <div className="flex justify-center py-16 text-slate-400">
           <Loader2 size={20} className="animate-spin" />
         </div>
       ) : error ? (
@@ -76,22 +76,22 @@ export function UsagePage() {
           <div className="grid grid-cols-3 gap-3 mb-6">
             <div className="rounded-xl border border-white/[0.08] bg-white/[0.02] p-4">
               <p className="text-xl font-semibold text-white">{totalRequests.toLocaleString()}</p>
-              <p className="text-[11px] text-slate-500">Total requests</p>
+              <p className="text-[11px] text-slate-400">Total requests</p>
             </div>
             <div className="rounded-xl border border-white/[0.08] bg-white/[0.02] p-4">
               <p className="text-xl font-semibold text-white">{totalTokens.toLocaleString()}</p>
-              <p className="text-[11px] text-slate-500">Total tokens</p>
+              <p className="text-[11px] text-slate-400">Total tokens</p>
             </div>
             <div className="rounded-xl border border-white/[0.08] bg-white/[0.02] p-4">
               <p className="text-xl font-semibold text-white">{avgLatency} ms</p>
-              <p className="text-[11px] text-slate-500">Avg latency</p>
+              <p className="text-[11px] text-slate-400">Avg latency</p>
             </div>
           </div>
 
           {chartData.length === 0 ? (
             <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-10 text-center">
               <Activity size={20} className="mx-auto text-slate-600 mb-2" />
-              <p className="text-sm text-slate-500">No usage data recorded yet.</p>
+              <p className="text-sm text-slate-400">No usage data recorded yet.</p>
             </div>
           ) : (
             <div className="rounded-xl border border-white/[0.08] bg-white/[0.02] p-4 h-64">

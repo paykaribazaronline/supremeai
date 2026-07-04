@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/studio-client/src/components/dashboard/SessionDetailPage.tsx
 
 **প্রকার:** .tsx  
-**সাইজ:** 7,012 বাইট  
-**আপডেট:** 2026-07-04T12:59:56.904575
+**সাইজ:** 7,013 বাইট  
+**আপডেট:** 2026-07-04T13:24:28.407606
 
 ---
 
@@ -104,7 +104,7 @@ export function SessionDetailPage({ sessionId, onBack }: SessionDetailPageProps)
   if (!session) {
     return (
       <div className="max-w-3xl mx-auto px-6 py-10 text-center">
-        <p className="text-sm text-slate-500 mb-4">Session not found.</p>
+        <p className="text-sm text-slate-400 mb-4">Session not found.</p>
         <button onClick={onBack} className="text-xs text-blue-400 hover:text-blue-300">
           ← Back to sessions
         </button>
@@ -151,7 +151,7 @@ export function SessionDetailPage({ sessionId, onBack }: SessionDetailPageProps)
           </div>
         ))}
         {sending && (
-          <div className="self-start text-xs text-slate-500 animate-pulse px-2">SupremeAI is working…</div>
+          <div className="self-start text-xs text-slate-400 animate-pulse px-2">SupremeAI is working…</div>
         )}
         <div ref={bottomRef} />
       </div>
@@ -174,7 +174,7 @@ export function SessionDetailPage({ sessionId, onBack }: SessionDetailPageProps)
           onClick={handleSend}
           disabled={!input.trim() || sending}
           aria-label="Send message"
-          className="p-2 rounded-lg bg-blue-600 hover:bg-blue-500 disabled:bg-slate-700 disabled:text-slate-500 text-white transition-colors"
+          className="p-2 rounded-lg bg-blue-600 hover:bg-blue-500 disabled:bg-slate-700 disabled:text-slate-400 text-white transition-colors"
         >
           <Send size={14} />
         </button>
@@ -182,4 +182,5 @@ export function SessionDetailPage({ sessionId, onBack }: SessionDetailPageProps)
     </div>
   );
 }
+
 ```

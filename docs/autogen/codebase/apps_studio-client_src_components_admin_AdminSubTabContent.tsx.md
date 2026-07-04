@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/studio-client/src/components/admin/AdminSubTabContent.tsx
 
 **প্রকার:** .tsx  
-**সাইজ:** 10,822 বাইট  
-**আপডেট:** 2026-07-04T12:59:56.910646
+**সাইজ:** 10,823 বাইট  
+**আপডেট:** 2026-07-04T13:24:28.413541
 
 ---
 
@@ -163,7 +163,7 @@ function SandboxMessages({ adminMessages, loading }: { adminMessages: ChatMessag
           }`}>
             {msg.text}
           </div>
-          <span className="text-[9px] text-slate-500 px-1 font-mono">{msg.timestamp}</span>
+          <span className="text-[9px] text-slate-400 px-1 font-mono">{msg.timestamp}</span>
         </div>
       ))}
       {loading && (
@@ -228,4 +228,5 @@ function SandboxRulesEditor({ rulesJson, setRulesJson }: { rulesJson: string; se
     </div>
   );
 }
+
 ```

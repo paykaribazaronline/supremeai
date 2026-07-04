@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/studio-client/src/components/OperatorStudio.tsx
 
 **প্রকার:** .tsx  
-**সাইজ:** 3,189 বাইট  
-**আপডেট:** 2026-07-04T12:59:56.902844
+**সাইজ:** 3,190 বাইট  
+**আপডেট:** 2026-07-04T13:24:28.405907
 
 ---
 
@@ -96,4 +96,5 @@ export function OperatorStudio({
     </div>
   );
 }
+
 ```

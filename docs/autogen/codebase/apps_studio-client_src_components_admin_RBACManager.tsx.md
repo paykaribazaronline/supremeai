@@ -2,7 +2,7 @@
 
 **প্রকার:** .tsx  
 **সাইজ:** 7,382 বাইট  
-**আপডেট:** 2026-07-04T12:59:56.911366
+**আপডেট:** 2026-07-04T13:24:28.414246
 
 ---
 
@@ -106,7 +106,7 @@ export function RBACManager() {
                 <div className="flex items-center gap-3">
                   <div>
                     <div className="text-xs font-bold text-white font-mono">{user.username}</div>
-                    <div className="text-[10px] text-slate-500 font-mono mt-0.5">
+                    <div className="text-[10px] text-slate-400 font-mono mt-0.5">
                       {user.permissions?.join(', ')}
                     </div>
                   </div>
@@ -123,7 +123,7 @@ export function RBACManager() {
               </div>
             ))}
             {(!users || users.length === 0) && (
-              <div className="text-xs text-slate-500 font-mono text-center py-4">No users configured.</div>
+              <div className="text-xs text-slate-400 font-mono text-center py-4">No users configured.</div>
             )}
           </div>
         </Card>

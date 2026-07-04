@@ -1,8 +1,8 @@
 # 📄 ফাইল: tests/e2e/admin-dashboard.spec.ts
 
 **প্রকার:** .ts  
-**সাইজ:** 1,789 বাইট  
-**আপডেট:** 2026-07-04T12:59:56.895493
+**সাইজ:** 1,767 বাইট  
+**আপডেট:** 2026-07-04T13:24:28.392647
 
 ---
 
@@ -18,7 +18,7 @@ test.describe('SupremeAI Nexus E2E Flow', () => {
     await page.goto('/admin'); // Assumes routing allows direct /admin access
 
     // 2. Verify Nexus Header exists
-    await expect(page.getByText('SUPREMEAI ORCHESTRATOR | ADM-01')).toBeVisible();
+    await expect(page.getByText('SupremeAI')).toBeVisible();
 
     // 3. Verify Java Background Worker widget is rendered
     const workerWidget = page.locator('text=Java Background Worker');

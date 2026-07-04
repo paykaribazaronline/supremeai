@@ -2,7 +2,7 @@
 
 **প্রকার:** .tsx  
 **সাইজ:** 3,499 বাইট  
-**আপডেট:** 2026-07-04T12:59:56.908483
+**আপডেট:** 2026-07-04T13:24:28.411368
 
 ---
 
@@ -85,7 +85,7 @@ export function MobileSimulator({ html, url = 'https://supremeai.web.app' }: Mob
         </div>
         <div className="mt-4 flex items-center justify-between">
           <Badge variant="info">{selectedDevice.name}</Badge>
-          <span className="text-[10px] text-slate-500 font-mono">
+          <span className="text-[10px] text-slate-400 font-mono">
             {currentWidth} x {currentHeight} • {orientation}
           </span>
         </div>

@@ -2,7 +2,7 @@
 
 **প্রকার:** .tsx  
 **সাইজ:** 4,394 বাইট  
-**আপডেট:** 2026-07-04T12:59:56.913176
+**আপডেট:** 2026-07-04T13:24:28.416075
 
 ---
 
@@ -41,7 +41,7 @@ export const AdminTopNav: React.FC<AdminTopNavProps> = ({
           </span>
         </div>
         <div className="hidden md:block w-[1px] h-6 bg-slate-800" />
-        <span className="hidden md:inline text-xs text-slate-500 tracking-[0.15em] uppercase font-sans">
+        <span className="hidden md:inline text-xs text-slate-400 tracking-[0.15em] uppercase font-sans">
           Orchestration Platform
         </span>
       </div>

@@ -1,8 +1,8 @@
 # 📄 ফাইল: tests/e2e/visual.spec.ts
 
 **প্রকার:** .ts  
-**সাইজ:** 1,405 বাইট  
-**আপডেট:** 2026-07-04T12:59:56.895625
+**সাইজ:** 1,414 বাইট  
+**আপডেট:** 2026-07-04T13:24:28.392772
 
 ---
 
@@ -23,7 +23,7 @@ test.describe('Visual Regression Tests', () => {
         await page.goto('/?showConsentModal=true');
 
         // একটি নির্দিষ্ট data-testid দিয়ে মোডালটি লোকেট করা হচ্ছে
-        const modal = page.locator('.consent-matrix-modal-class'); // এখানে আপনার মোডালের আসল সিলেক্টর ব্যবহার করুন
+        const modal = page.locator('[data-testid="consent-matrix-modal"]'); // এখানে আপনার মোডালের আসল সিলেক্টর ব্যবহার করুন
         await expect(modal).toBeVisible();
 
         // শুধুমাত্র মোডালটির স্ক্রিনশট নিয়ে বেসলাইনের সাথে তুলনা করুন

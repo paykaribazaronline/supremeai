@@ -2,7 +2,7 @@
 
 **প্রকার:** .tsx  
 **সাইজ:** 4,483 বাইট  
-**আপডেট:** 2026-07-04T12:59:56.911530
+**আপডেট:** 2026-07-04T13:24:28.414427
 
 ---
 
@@ -57,7 +57,7 @@ export function GithubIntegration() {
                   <span className="text-xs font-bold text-white font-mono">{repo.name}</span>
                   <Badge variant="info">{repo.branch}</Badge>
                 </div>
-                <div className="text-[10px] text-slate-500 font-mono flex items-center gap-2">
+                <div className="text-[10px] text-slate-400 font-mono flex items-center gap-2">
                   <span className="flex items-center gap-1"><GitBranch size={10} /> {repo.commits} commits</span>
                   <span className="flex items-center gap-1"><Clock size={10} /> {repo.updated}</span>
                 </div>
@@ -77,7 +77,7 @@ export function GithubIntegration() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="text-xs font-mono text-white truncate">{commit.message}</div>
-                  <div className="text-[10px] text-slate-500 font-mono mt-0.5">
+                  <div className="text-[10px] text-slate-400 font-mono mt-0.5">
                     {commit.hash} by {commit.author} • {commit.time}
                   </div>
                 </div>
@@ -88,7 +88,7 @@ export function GithubIntegration() {
             ))}
           </div>
           <div className="flex justify-between items-center mt-4 pt-3 border-t border-slate-800">
-            <span className="text-[10px] text-slate-500 font-mono">Showing 4 of {selectedRepo.commits} commits</span>
+            <span className="text-[10px] text-slate-400 font-mono">Showing 4 of {selectedRepo.commits} commits</span>
             <button className="text-[10px] text-[#00f3ff] hover:text-cyan-300 font-mono flex items-center gap-1">
               View all <ArrowRight size={10} />
             </button>

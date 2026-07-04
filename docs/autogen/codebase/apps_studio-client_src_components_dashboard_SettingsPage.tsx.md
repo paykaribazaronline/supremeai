@@ -2,7 +2,7 @@
 
 **প্রকার:** .tsx  
 **সাইজ:** 6,944 বাইট  
-**আপডেট:** 2026-07-04T12:59:56.905047
+**আপডেট:** 2026-07-04T13:24:28.408084
 
 ---
 
@@ -73,7 +73,7 @@ export function SettingsPage({ theme, toggleTheme }: SettingsPageProps) {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-20 text-slate-500">
+      <div className="flex items-center justify-center py-20 text-slate-400">
         <Loader2 size={20} className="animate-spin" />
       </div>
     );
@@ -82,7 +82,7 @@ export function SettingsPage({ theme, toggleTheme }: SettingsPageProps) {
   return (
     <div className="max-w-2xl mx-auto px-6 py-8">
       <h1 className="text-lg font-semibold text-white mb-1">Settings</h1>
-      <p className="text-xs text-slate-500 mb-6">Manage your workspace preferences.</p>
+      <p className="text-xs text-slate-400 mb-6">Manage your workspace preferences.</p>
 
       <div className="flex flex-col gap-5">
         <div className="rounded-xl border border-white/[0.08] bg-white/[0.02] p-5">
@@ -90,7 +90,7 @@ export function SettingsPage({ theme, toggleTheme }: SettingsPageProps) {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-xs text-slate-300">Theme</p>
-              <p className="text-[11px] text-slate-500">Switch between light and dark mode.</p>
+              <p className="text-[11px] text-slate-400">Switch between light and dark mode.</p>
             </div>
             <button
               data-testid="settings-theme-toggle"
@@ -160,7 +160,7 @@ export function SettingsPage({ theme, toggleTheme }: SettingsPageProps) {
           <label className="flex items-center justify-between cursor-pointer">
             <div>
               <p className="text-xs text-slate-300">Auto-save</p>
-              <p className="text-[11px] text-slate-500">Automatically save workspace changes.</p>
+              <p className="text-[11px] text-slate-400">Automatically save workspace changes.</p>
             </div>
             <input
               type="checkbox"

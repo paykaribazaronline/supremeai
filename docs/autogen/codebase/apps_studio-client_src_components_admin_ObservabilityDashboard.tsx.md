@@ -2,7 +2,7 @@
 
 **প্রকার:** .tsx  
 **সাইজ:** 7,053 বাইট  
-**আপডেট:** 2026-07-04T12:59:56.912600
+**আপডেট:** 2026-07-04T13:24:28.415492
 
 ---
 
@@ -73,7 +73,7 @@ export function ObservabilityDashboard() {
         </Card>
         <Card title="Error Rate" banglaHint="মোট রিকোয়েস্টের সাপেক্ষে ফেইল হওয়া এরর পার্সেন্টেজ।">
           <div className="text-2xl font-bold text-emerald-400 font-mono">2.1%</div>
-          <div className="text-[10px] text-slate-500 font-mono">Within acceptable range</div>
+          <div className="text-[10px] text-slate-400 font-mono">Within acceptable range</div>
         </Card>
       </div>
 
@@ -117,7 +117,7 @@ export function ObservabilityDashboard() {
               } />
               <div className="flex-1">
                 <div className="text-xs text-[var(--foreground)] font-mono">{alert.msg}</div>
-                <div className="text-[10px] text-slate-500 mt-0.5">{alert.time}</div>
+                <div className="text-[10px] text-slate-400 mt-0.5">{alert.time}</div>
               </div>
               <Badge variant={alert.status === 'Resolved' || alert.status === 'Completed' ? 'success' : 'warning'}>
                 {alert.status}

@@ -2,7 +2,7 @@
 
 **প্রকার:** .tsx  
 **সাইজ:** 12,157 বাইট  
-**আপডেট:** 2026-07-04T12:59:56.913573
+**আপডেট:** 2026-07-04T13:24:28.416445
 
 ---
 
@@ -115,9 +115,9 @@ export function CICDVisualizer() {
         <div className="lg:col-span-2">
           <Card title="CI Webhook Pipeline History" icon={<GitBranch size={14} />}>
             {isCILoading ? (
-              <div className="text-center py-8 text-slate-500 font-mono text-[10px]">Loading CI run history...</div>
+              <div className="text-center py-8 text-slate-400 font-mono text-[10px]">Loading CI run history...</div>
             ) : !ciReports || ciReports.length === 0 ? (
-              <div className="text-center py-8 text-slate-500 font-mono text-[10px]">No GHA workflow runs recorded yet.</div>
+              <div className="text-center py-8 text-slate-400 font-mono text-[10px]">No GHA workflow runs recorded yet.</div>
             ) : (
               <div className="flex flex-col gap-3">
                 {ciReports.map((report) => (
@@ -141,7 +141,7 @@ export function CICDVisualizer() {
                           <div className="text-xs font-bold text-white font-mono">
                             Run #{report.run_number} — {report.workflow_name}
                           </div>
-                          <div className="flex items-center gap-3 text-[10px] text-slate-500 mt-1 font-mono">
+                          <div className="flex items-center gap-3 text-[10px] text-slate-400 mt-1 font-mono">
                             <span className="flex items-center gap-1"><GitBranch size={10} /> {report.branch}</span>
                             <span className="flex items-center gap-1"><Clock size={10} /> {formatRuntime(report.runtime_seconds)}</span>
                             <span className="flex items-center gap-1"><User size={10} /> {report.actor}</span>
@@ -150,7 +150,7 @@ export function CICDVisualizer() {
                       </div>
                       <div className="flex items-center gap-2">
                         <Badge variant={getStatusBadgeVariant(report.status)}>{report.status.toUpperCase()}</Badge>
-                        {selectedRun?.id === report.id ? <ChevronUp size={14} className="text-slate-500" /> : <ChevronDown size={14} className="text-slate-500" />}
+                        {selectedRun?.id === report.id ? <ChevronUp size={14} className="text-slate-400" /> : <ChevronDown size={14} className="text-slate-400" />}
                       </div>
                     </div>
 
@@ -208,7 +208,7 @@ export function CICDVisualizer() {
                   <div className="flex items-center justify-between mb-2">
                     <div>
                       <div className="text-xs font-bold text-white font-mono">{flag.name}</div>
-                      <div className="text-[10px] text-slate-500 mt-0.5">{flag.description}</div>
+                      <div className="text-[10px] text-slate-400 mt-0.5">{flag.description}</div>
                     </div>
                     <button
                       onClick={() => toggleFlag(flag.id)}

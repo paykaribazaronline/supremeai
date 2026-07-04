@@ -2,7 +2,7 @@
 
 **প্রকার:** .tsx  
 **সাইজ:** 9,219 বাইট  
-**আপডেট:** 2026-07-04T12:59:56.911998
+**আপডেট:** 2026-07-04T13:24:28.414899
 
 ---
 
@@ -73,15 +73,15 @@ export function ModelRouter() {
               <div className="flex-1 p-2 rounded border border-slate-800 bg-slate-900/50 text-xs font-mono text-center">
                 Incoming Request
               </div>
-              <ArrowRight size={14} className="text-slate-500" />
+              <ArrowRight size={14} className="text-slate-400" />
               <div className="flex-1 p-2 rounded border border-[#00f3ff]/50 bg-[#00f3ff]/10 text-xs font-mono text-center text-[#00f3ff]">
                 Intent Classifier
               </div>
-              <ArrowRight size={14} className="text-slate-500" />
+              <ArrowRight size={14} className="text-slate-400" />
               <div className="flex-1 p-2 rounded border border-purple-500/50 bg-purple-500/10 text-xs font-mono text-center text-purple-400">
                 Provider Selector
               </div>
-              <ArrowRight size={14} className="text-slate-500" />
+              <ArrowRight size={14} className="text-slate-400" />
               <div className="flex-1 p-2 rounded border border-emerald-500/50 bg-emerald-500/10 text-xs font-mono text-center text-emerald-400">
                 Model Execution
               </div>
@@ -170,10 +170,10 @@ export function ModelRouter() {
                     style={{ width: `${Math.min(100, (p.latency_ms / 400) * 100)}%` }}
                   />
                 </div>
-                <div className="text-[10px] text-slate-500 font-mono">
+                <div className="text-[10px] text-slate-400 font-mono">
                   API Key: {p.api_key_valid ? '✅ Valid' : '❌ Invalid'}
                 </div>
-                <div className="text-[10px] text-slate-500 font-mono">
+                <div className="text-[10px] text-slate-400 font-mono">
                   Rate Limit: {p.rate_limit_remaining}/{p.rate_limit_max}
                 </div>
                 <div className="flex flex-wrap gap-1 mt-2">
@@ -183,7 +183,7 @@ export function ModelRouter() {
                     </span>
                   ))}
                   {p.models.length > 2 && (
-                    <span className="px-1.5 py-0.5 text-[9px] rounded bg-slate-800 text-slate-500 font-mono">
+                    <span className="px-1.5 py-0.5 text-[9px] rounded bg-slate-800 text-slate-400 font-mono">
                       +{p.models.length - 2}
                     </span>
                   )}

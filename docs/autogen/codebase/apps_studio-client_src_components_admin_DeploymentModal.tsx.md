@@ -2,7 +2,7 @@
 
 **প্রকার:** .tsx  
 **সাইজ:** 13,178 বাইট  
-**আপডেট:** 2026-07-04T12:59:56.909967
+**আপডেট:** 2026-07-04T13:24:28.412862
 
 ---
 
@@ -217,7 +217,7 @@ const DeploymentModal: React.FC<DeploymentModalProps> = ({
                 </div>
                 <div className="space-y-2 max-h-48 overflow-y-auto font-mono text-[11px]">
                   {logs.length === 0 ? (
-                    <div className="text-slate-500 text-[10px] italic">
+                    <div className="text-slate-400 text-[10px] italic">
                       Waiting for deployment to start...
                     </div>
                   ) : (
@@ -228,7 +228,7 @@ const DeploymentModal: React.FC<DeploymentModalProps> = ({
                           <span className={getStatusColor(log.status)}>[{log.status}]</span>{' '}
                           <span className="text-slate-300">{log.message}</span>
                           {log.branch && (
-                            <span className="text-slate-500 ml-2">({log.branch})</span>
+                            <span className="text-slate-400 ml-2">({log.branch})</span>
                           )}
                         </div>
                       </div>

@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/studio-client/src/components/admin/ConsentMatrixModal.tsx
 
 **প্রকার:** .tsx  
-**সাইজ:** 7,494 বাইট  
-**আপডেট:** 2026-07-04T12:59:56.915246
+**সাইজ:** 7,541 বাইট  
+**আপডেট:** 2026-07-04T13:24:28.418094
 
 ---
 
@@ -59,6 +59,7 @@ export const ConsentMatrixModal: React.FC<ConsentMatrixModalProps> = ({
       {isOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm">
           <motion.div
+            data-testid="consent-matrix-modal"
             initial={{ scale: 0.9, opacity: 0, y: 20 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.9, opacity: 0, y: 20 }}

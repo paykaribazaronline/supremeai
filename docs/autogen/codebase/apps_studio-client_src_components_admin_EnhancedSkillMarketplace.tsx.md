@@ -2,7 +2,7 @@
 
 **প্রকার:** .tsx  
 **সাইজ:** 5,141 বাইট  
-**আপডেট:** 2026-07-04T12:59:56.910295
+**আপডেট:** 2026-07-04T13:24:28.413194
 
 ---
 
@@ -63,7 +63,7 @@ export function EnhancedSkillMarketplace() {
               <div className="flex items-start justify-between mb-3">
                 <div>
                   <h3 className="text-sm font-bold text-white font-mono">{skill.name}</h3>
-                  <div className="text-[10px] text-slate-500 mt-0.5">v{skill.version}</div>
+                  <div className="text-[10px] text-slate-400 mt-0.5">v{skill.version}</div>
                 </div>
                 {skill.installed ? (
                   <Badge variant="success">Installed</Badge>
@@ -75,15 +75,15 @@ export function EnhancedSkillMarketplace() {
               {skill.installed && (
                 <div className="grid grid-cols-3 gap-2 mb-4 text-center">
                   <div className="p-1.5 rounded bg-slate-900/50">
-                    <div className="text-[10px] text-slate-500">Success</div>
+                    <div className="text-[10px] text-slate-400">Success</div>
                     <div className="text-xs font-bold text-emerald-400 font-mono">98%</div>
                   </div>
                   <div className="p-1.5 rounded bg-slate-900/50">
-                    <div className="text-[10px] text-slate-500">Avg Time</div>
+                    <div className="text-[10px] text-slate-400">Avg Time</div>
                     <div className="text-xs font-bold text-[#00f3ff] font-mono">120ms</div>
                   </div>
                   <div className="p-1.5 rounded bg-slate-900/50">
-                    <div className="text-[10px] text-slate-500">Errors</div>
+                    <div className="text-[10px] text-slate-400">Errors</div>
                     <div className="text-xs font-bold text-yellow-400 font-mono">2%</div>
                   </div>
                 </div>
@@ -93,7 +93,7 @@ export function EnhancedSkillMarketplace() {
                   {[1, 2, 3, 4, 5].map(star => (
                     <Star key={star} size={10} className={star <= 4 ? 'text-yellow-400 fill-yellow-400' : 'text-slate-700'} />
                   ))}
-                  <span className="text-[9px] text-slate-500 ml-1">4.0</span>
+                  <span className="text-[9px] text-slate-400 ml-1">4.0</span>
                 </div>
                 {!skill.installed ? (
                   <button className="bg-[#00f3ff]/10 hover:bg-[#00f3ff]/20 text-[#00f3ff] border border-[#00f3ff]/30 text-[10px] font-bold px-3 py-1 rounded transition-all font-mono">

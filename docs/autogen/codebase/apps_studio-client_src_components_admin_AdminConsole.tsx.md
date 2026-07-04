@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/studio-client/src/components/admin/AdminConsole.tsx
 
 **প্রকার:** .tsx  
-**সাইজ:** 2,369 বাইট  
-**আপডেট:** 2026-07-04T12:59:56.909355
+**সাইজ:** 2,370 বাইট  
+**আপডেট:** 2026-07-04T13:24:28.412201
 
 ---
 
@@ -86,4 +86,5 @@ export function AdminConsole(props: AdminConsoleProps) {
     </div>
   );
 }
+
 ```

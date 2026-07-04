@@ -2,7 +2,7 @@
 
 **প্রকার:** .tsx  
 **সাইজ:** 7,559 বাইট  
-**আপডেট:** 2026-07-04T12:59:56.903490
+**আপডেট:** 2026-07-04T13:24:28.406524
 
 ---
 
@@ -169,7 +169,7 @@ export function UnifiedChatBubble({
             )}
           </div>
           {timestamp && (
-            <span className="text-[9px] text-slate-500 px-1 font-mono">{timestamp}</span>
+            <span className="text-[9px] text-slate-400 px-1 font-mono">{timestamp}</span>
           )}
         </div>
       );
@@ -188,7 +188,7 @@ export function UnifiedChatBubble({
           </div>
         )}
         {timestamp && (
-          <span className="text-[9px] text-slate-500 px-1 font-mono">{timestamp}</span>
+          <span className="text-[9px] text-slate-400 px-1 font-mono">{timestamp}</span>
         )}
       </div>
     );
@@ -200,7 +200,7 @@ export function UnifiedChatBubble({
         {text}
       </div>
       {timestamp && (
-        <span className="text-[9px] text-slate-500 px-1 font-mono">{timestamp}</span>
+        <span className="text-[9px] text-slate-400 px-1 font-mono">{timestamp}</span>
       )}
     </div>
   );

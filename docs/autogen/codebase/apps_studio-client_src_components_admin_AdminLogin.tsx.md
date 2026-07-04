@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/studio-client/src/components/admin/AdminLogin.tsx
 
 **প্রকার:** .tsx  
-**সাইজ:** 2,580 বাইট  
-**আপডেট:** 2026-07-04T12:59:56.912297
+**সাইজ:** 2,581 বাইট  
+**আপডেট:** 2026-07-04T13:24:28.415201
 
 ---
 
@@ -74,4 +74,5 @@ export function LoginView({
     </div>
   );
 }
+
 ```

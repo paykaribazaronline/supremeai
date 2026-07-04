@@ -2,7 +2,7 @@
 
 **প্রকার:** .tsx  
 **সাইজ:** 4,804 বাইট  
-**আপডেট:** 2026-07-04T12:59:56.905701
+**আপডেট:** 2026-07-04T13:24:28.408721
 
 ---
 
@@ -76,13 +76,13 @@ export function KnowledgePage() {
           Seed knowledge base
         </button>
       </div>
-      <p className="text-xs text-slate-500 mb-6">
+      <p className="text-xs text-slate-400 mb-6">
         Search the indexed knowledge base that powers SupremeAI's answers.
       </p>
 
       <div className="flex items-center gap-2 mb-6">
         <div className="flex-1 flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2 focus-within:border-blue-500/50 transition-colors">
-          <Search size={14} className="text-slate-500" />
+          <Search size={14} className="text-slate-400" />
           <input
             data-testid="knowledge-search-input"
             value={query}
@@ -105,7 +105,7 @@ export function KnowledgePage() {
       {status && <p className="text-xs text-slate-400 mb-4">{status}</p>}
 
       {searched && results.length === 0 && !loading && (
-        <p className="text-sm text-slate-500 text-center py-8">No results found.</p>
+        <p className="text-sm text-slate-400 text-center py-8">No results found.</p>
       )}
 
       <ul className="flex flex-col gap-3">
@@ -115,7 +115,7 @@ export function KnowledgePage() {
               <BookOpen size={13} className="text-blue-400" />
               <h3 className="text-xs font-medium text-white flex-1 truncate">{r.title}</h3>
               {typeof r.score === 'number' && (
-                <span className="text-[10px] text-slate-500">score {r.score.toFixed(2)}</span>
+                <span className="text-[10px] text-slate-400">score {r.score.toFixed(2)}</span>
               )}
             </div>
             <p className="text-[11px] text-slate-400 line-clamp-3 whitespace-pre-wrap">{r.content}</p>

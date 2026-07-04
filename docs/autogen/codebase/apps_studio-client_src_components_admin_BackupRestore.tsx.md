@@ -2,7 +2,7 @@
 
 **প্রকার:** .tsx  
 **সাইজ:** 7,685 বাইট  
-**আপডেট:** 2026-07-04T12:59:56.909037
+**আপডেট:** 2026-07-04T13:24:28.411919
 
 ---
 
@@ -61,7 +61,7 @@ export function BackupRestore() {
             <Database size={20} className="text-[#00f3ff]" />
             <div>
               <div className="text-2xl font-bold text-white font-mono">{backups.length}</div>
-              <div className="text-[10px] text-slate-500">Last 30 days</div>
+              <div className="text-[10px] text-slate-400">Last 30 days</div>
             </div>
           </div>
         </Card>
@@ -70,7 +70,7 @@ export function BackupRestore() {
             <HardDrive size={20} className="text-purple-400" />
             <div>
               <div className="text-2xl font-bold text-white font-mono">9.2 GB</div>
-              <div className="text-[10px] text-slate-500">of 100 GB</div>
+              <div className="text-[10px] text-slate-400">of 100 GB</div>
             </div>
           </div>
         </Card>
@@ -79,7 +79,7 @@ export function BackupRestore() {
             <Clock size={20} className="text-emerald-400" />
             <div>
               <div className="text-sm font-bold text-white font-mono">Today 03:00</div>
-              <div className="text-[10px] text-slate-500">Automatic</div>
+              <div className="text-[10px] text-slate-400">Automatic</div>
             </div>
           </div>
         </Card>
@@ -100,7 +100,7 @@ export function BackupRestore() {
                   </div>
                   <div>
                     <div className="text-xs font-bold text-white font-mono">{backup.timestamp}</div>
-                    <div className="text-[10px] text-slate-500 font-mono flex items-center gap-2">
+                    <div className="text-[10px] text-slate-400 font-mono flex items-center gap-2">
                       <span>{backup.size}</span>
                       <span>•</span>
                       <span>{backup.type}</span>
@@ -126,7 +126,7 @@ export function BackupRestore() {
             <div className="p-4 rounded-lg border border-slate-800 bg-slate-900/30">
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
-                  <Shield size={14} className={maintenanceMode ? 'text-yellow-400' : 'text-slate-500'} />
+                  <Shield size={14} className={maintenanceMode ? 'text-yellow-400' : 'text-slate-400'} />
                   <span className="text-xs font-bold text-white">Maintenance Mode</span>
                 </div>
                 <button
@@ -141,7 +141,7 @@ export function BackupRestore() {
                   ⚠️ System is in maintenance mode. Users will see a maintenance page.
                 </div>
               ) : (
-                <div className="text-[10px] text-slate-500 font-mono">
+                <div className="text-[10px] text-slate-400 font-mono">
                   System is operational. Enable to show maintenance page to users.
                 </div>
               )}

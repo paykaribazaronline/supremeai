@@ -1,8 +1,8 @@
 # 📄 ফাইল: playwright.config.ts
 
 **প্রকার:** .ts  
-**সাইজ:** 2,312 বাইট  
-**আপডেট:** 2026-07-04T12:59:56.779364
+**সাইজ:** 2,596 বাইট  
+**আপডেট:** 2026-07-04T13:24:28.281892
 
 ---
 
@@ -25,7 +25,7 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
-  workers: process.env.CI ? 1 : undefined,
+  workers: process.env.CI ? 4 : undefined,
   reporter: [
     ['html', { outputFolder: 'playwright-report' }],
     ['json', { outputFile: 'test-results/e2e-report.json' }],
@@ -49,23 +49,27 @@ export default defineConfig({
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] },
     },
-    {
-      name: 'firefox',
-      use: { ...devices['Desktop Firefox'] },
-    },
-    {
-      name: 'webkit',
-      use: { ...devices['Desktop Safari'] },
-    },
-    // মোবাইল ডিভাইসের জন্য টেস্ট
-    {
-      name: 'Mobile Chrome',
-      use: { ...devices['Pixel 5'] },
-    },
-    {
-      name: 'Mobile Safari',
-      use: { ...devices['iPhone 12'] },
-    },
+    ...(process.env.CI && process.env.GITHUB_REF && process.env.GITHUB_REF !== 'refs/heads/main' && !process.env.GITHUB_REF.startsWith('refs/tags/')
+      ? []
+      : [
+          {
+            name: 'firefox',
+            use: { ...devices['Desktop Firefox'] },
+          },
+          {
+            name: 'webkit',
+            use: { ...devices['Desktop Safari'] },
+          },
+          // মোবাইল ডিভাইসের জন্য টেস্ট
+          {
+            name: 'Mobile Chrome',
+            use: { ...devices['Pixel 5'] },
+          },
+          {
+            name: 'Mobile Safari',
+            use: { ...devices['iPhone 12'] },
+          },
+        ]),
   ],
 
   // বাংলা মন্তব্য: ডেভেলপমেন্ট সার্ভার চালু করা, এটি ব্যাকগ্রাউন্ডে থাকবে সমস্ত টেস্ট জুড়ে

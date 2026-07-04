@@ -2,7 +2,7 @@
 
 **প্রকার:** .tsx  
 **সাইজ:** 6,360 বাইট  
-**আপডেট:** 2026-07-04T12:59:56.905548
+**আপডেট:** 2026-07-04T13:24:28.408552
 
 ---
 
@@ -95,7 +95,7 @@ export function SecretsPage() {
   return (
     <div className="max-w-2xl mx-auto px-6 py-8">
       <h1 className="text-lg font-semibold text-white mb-1">Secrets & API Keys</h1>
-      <p className="text-xs text-slate-500 mb-6">
+      <p className="text-xs text-slate-400 mb-6">
         Create and manage API keys for programmatic access. Keys are shown only once at creation.
       </p>
 
@@ -142,11 +142,11 @@ export function SecretsPage() {
       {error && <p className="text-xs text-rose-400 mb-4">{error}</p>}
 
       {loading ? (
-        <div className="flex justify-center py-10 text-slate-500">
+        <div className="flex justify-center py-10 text-slate-400">
           <Loader2 size={18} className="animate-spin" />
         </div>
       ) : keys.length === 0 ? (
-        <p className="text-sm text-slate-500 text-center py-8">No API keys yet.</p>
+        <p className="text-sm text-slate-400 text-center py-8">No API keys yet.</p>
       ) : (
         <ul className="flex flex-col gap-2">
           {keys.map((k) => (
@@ -157,14 +157,14 @@ export function SecretsPage() {
               <KeyRound size={14} className="text-slate-400" />
               <div className="flex-1 min-w-0">
                 <p className="text-xs text-white truncate">{k.name}</p>
-                <p className="text-[11px] text-slate-500 font-mono">{k.key_masked}</p>
+                <p className="text-[11px] text-slate-400 font-mono">{k.key_masked}</p>
               </div>
-              <span className="text-[10px] text-slate-500">{k.rate_limit_rps} rps</span>
+              <span className="text-[10px] text-slate-400">{k.rate_limit_rps} rps</span>
               <button
                 aria-label="Revoke key"
                 title="Revoke"
                 onClick={() => handleRevoke(k.id)}
-                className="p-1.5 rounded text-slate-500 hover:text-amber-400 transition-colors"
+                className="p-1.5 rounded text-slate-400 hover:text-amber-400 transition-colors"
               >
                 <Ban size={13} />
               </button>
@@ -172,7 +172,7 @@ export function SecretsPage() {
                 aria-label="Delete key"
                 title="Delete"
                 onClick={() => handleDelete(k.id)}
-                className="p-1.5 rounded text-slate-500 hover:text-rose-400 transition-colors"
+                className="p-1.5 rounded text-slate-400 hover:text-rose-400 transition-colors"
               >
                 <Trash2 size={13} />
               </button>

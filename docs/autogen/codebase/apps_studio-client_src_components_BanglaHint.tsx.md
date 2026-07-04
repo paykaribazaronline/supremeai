@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/studio-client/src/components/BanglaHint.tsx
 
 **প্রকার:** .tsx  
-**সাইজ:** 1,014 বাইট  
-**আপডেট:** 2026-07-04T12:59:56.903019
+**সাইজ:** 1,015 বাইট  
+**আপডেট:** 2026-07-04T13:24:28.406081
 
 ---
 
@@ -38,4 +38,5 @@ export const BanglaHint = ({ text }: BanglaHintProps) => {
     </span>
   );
 };
+
 ```

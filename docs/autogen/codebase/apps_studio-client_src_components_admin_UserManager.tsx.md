@@ -2,7 +2,7 @@
 
 **প্রকার:** .tsx  
 **সাইজ:** 6,218 বাইট  
-**আপডেট:** 2026-07-04T12:59:56.911843
+**আপডেট:** 2026-07-04T13:24:28.414738
 
 ---
 
@@ -115,7 +115,7 @@ export function UserManager({
                       {perm}
                     </span>
                   ))}
-                  {perms.length === 0 && <span className="text-[10px] text-slate-500 italic font-mono">No special permissions assigned</span>}
+                  {perms.length === 0 && <span className="text-[10px] text-slate-400 italic font-mono">No special permissions assigned</span>}
                 </div>
               </div>
               
@@ -129,7 +129,7 @@ export function UserManager({
           );
         })}
         {adminUsers.length === 0 && (
-          <div className="text-center py-8 bg-[#0c0d12]/30 border border-slate-900 rounded-xl text-slate-500 italic font-mono">
+          <div className="text-center py-8 bg-[#0c0d12]/30 border border-slate-900 rounded-xl text-slate-400 italic font-mono">
             No administrative users provisioned in registry.
           </div>
         )}

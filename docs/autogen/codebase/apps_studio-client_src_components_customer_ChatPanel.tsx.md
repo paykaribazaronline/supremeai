@@ -2,7 +2,7 @@
 
 **প্রকার:** .tsx  
 **সাইজ:** 3,293 বাইট  
-**আপডেট:** 2026-07-04T12:59:56.908183
+**আপডেট:** 2026-07-04T13:24:28.411092
 
 ---
 
@@ -45,7 +45,7 @@ export function ChatPanel({ messages, input, onInputChange, onSend, loading, onS
         })}
 
         {loading && (
-          <div className="text-xs text-slate-500 animate-pulse font-mono flex items-center gap-2">
+          <div className="text-xs text-slate-400 animate-pulse font-mono flex items-center gap-2">
             <span className="w-1.5 h-1.5 bg-[#bc13fe] rounded-full animate-bounce"></span>
             SupremeAI is thinking...
           </div>

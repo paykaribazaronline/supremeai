@@ -1,7 +1,7 @@
 # 🧠 SupremeAI 2.0 Codebase Dump
 # বাংলা মন্তব্য: এটি একটি স্বয়ংক্রিয়ভাবে জেনারেট করা কোডবেস ডাম্প ফাইল যা প্রজেক্টের সামগ্রিক বিশ্লেষণের জন্য ব্যবহৃত হয়।
 
-Generated at: 2026-07-04T12:59:56.768573
+Generated at: 2026-07-04T13:24:28.271512
 
 
 ## File: `pnpm-lock.yaml`
@@ -22669,7 +22669,7 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
-  workers: process.env.CI ? 1 : undefined,
+  workers: process.env.CI ? 4 : undefined,
   reporter: [
     ['html', { outputFolder: 'playwright-report' }],
     ['json', { outputFile: 'test-results/e2e-report.json' }],
@@ -22693,23 +22693,27 @@ export default defineConfig({
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] },
     },
-    {
-      name: 'firefox',
-      use: { ...devices['Desktop Firefox'] },
-    },
-    {
-      name: 'webkit',
-      use: { ...devices['Desktop Safari'] },
-    },
-    // মোবাইল ডিভাইসের জন্য টেস্ট
-    {
-      name: 'Mobile Chrome',
-      use: { ...devices['Pixel 5'] },
-    },
-    {
-      name: 'Mobile Safari',
-      use: { ...devices['iPhone 12'] },
-    },
+    ...(process.env.CI && process.env.GITHUB_REF && process.env.GITHUB_REF !== 'refs/heads/main' && !process.env.GITHUB_REF.startsWith('refs/tags/')
+      ? []
+      : [
+          {
+            name: 'firefox',
+            use: { ...devices['Desktop Firefox'] },
+          },
+          {
+            name: 'webkit',
+            use: { ...devices['Desktop Safari'] },
+          },
+          // মোবাইল ডিভাইসের জন্য টেস্ট
+          {
+            name: 'Mobile Chrome',
+            use: { ...devices['Pixel 5'] },
+          },
+          {
+            name: 'Mobile Safari',
+            use: { ...devices['iPhone 12'] },
+          },
+        ]),
   ],
 
   // বাংলা মন্তব্য: ডেভেলপমেন্ট সার্ভার চালু করা, এটি ব্যাকগ্রাউন্ডে থাকবে সমস্ত টেস্ট জুড়ে
@@ -115504,9 +115508,9 @@ import { test, expect } from '@playwright/test';
 
 test('Chat sends message', async ({ page }) => {
   await page.goto('/');
-  await page.fill('input[type="text"]', 'Hello SupremeAI!');
-  await page.click('button[type="submit"]');
-  await expect(page.locator('.message')).toContainText('Hello SupremeAI!');
+  await page.fill('[data-testid="chat-input"]', 'Hello SupremeAI!');
+  await page.click('[data-testid="chat-submit"]');
+  await expect(page.getByText('Hello SupremeAI!').first()).toBeVisible();
 });
 
 ```
@@ -115523,7 +115527,7 @@ test.describe('SupremeAI Nexus E2E Flow', () => {
     await page.goto('/admin'); // Assumes routing allows direct /admin access
 
     // 2. Verify Nexus Header exists
-    await expect(page.getByText('SUPREMEAI ORCHESTRATOR | ADM-01')).toBeVisible();
+    await expect(page.getByText('SupremeAI')).toBeVisible();
 
     // 3. Verify Java Background Worker widget is rendered
     const workerWidget = page.locator('text=Java Background Worker');
@@ -115577,7 +115581,7 @@ test.describe('Visual Regression Tests', () => {
         await page.goto('/?showConsentModal=true');
 
         // একটি নির্দিষ্ট data-testid দিয়ে মোডালটি লোকেট করা হচ্ছে
-        const modal = page.locator('.consent-matrix-modal-class'); // এখানে আপনার মোডালের আসল সিলেক্টর ব্যবহার করুন
+        const modal = page.locator('[data-testid="consent-matrix-modal"]'); // এখানে আপনার মোডালের আসল সিলেক্টর ব্যবহার করুন
         await expect(modal).toBeVisible();
 
         // শুধুমাত্র মোডালটির স্ক্রিনশট নিয়ে বেসলাইনের সাথে তুলনা করুন
@@ -115621,8 +115625,3720 @@ test.describe('Accessibility Tests (WCAG)', () => {
 ```json
 {
   "status": "failed",
-  "failedTests": []
+  "failedTests": [
+    "cb4d96879b22e77d8b2c-500664d0b985aac1baa3",
+    "7475c5559e3e24f1e588-840ff965689fe6d6493e",
+    "7475c5559e3e24f1e588-a9afdc9c7cb2ed54a956",
+    "d3d49f2899a0faacbcaf-be505a322d854db5b764",
+    "51b4790f4568975de141-dc5a1598abe98c016bca",
+    "51b4790f4568975de141-8037f4050504ad1a666a",
+    "cb4d96879b22e77d8b2c-b3d42475f7c88aec8c52",
+    "cb4d96879b22e77d8b2c-f5638b87b7a414080a2d",
+    "7475c5559e3e24f1e588-491652adea7e374b3693",
+    "7475c5559e3e24f1e588-e3e38dbe989ee2539352",
+    "d3d49f2899a0faacbcaf-854e5b451a7a4fe0eaa9",
+    "51b4790f4568975de141-2572ae0a7a8be5e48ed4",
+    "51b4790f4568975de141-7aa150462037e5056178",
+    "cb4d96879b22e77d8b2c-fbd64fd80d69d10df3a0",
+    "cb4d96879b22e77d8b2c-080eb04c5c3f482efa54",
+    "7475c5559e3e24f1e588-3fb10350a03b26d5bbcc",
+    "7475c5559e3e24f1e588-f0da5eebe25779d0cd1e",
+    "d3d49f2899a0faacbcaf-e4c03f84f24ec542393f",
+    "51b4790f4568975de141-e9f73064758d39616942",
+    "51b4790f4568975de141-94e53f1a404ed38555d8",
+    "cb4d96879b22e77d8b2c-5cee6a536c5b96084d0d",
+    "7475c5559e3e24f1e588-7d5549aefb4e4e2fcf77",
+    "7475c5559e3e24f1e588-8ceedf6c266ee271f8e8",
+    "d3d49f2899a0faacbcaf-b7664ec793cc8f664ec7",
+    "51b4790f4568975de141-834895d1735964042720",
+    "51b4790f4568975de141-f87f36e1bffe90bdadc9",
+    "cb4d96879b22e77d8b2c-48be1640fc89884f4421",
+    "cb4d96879b22e77d8b2c-179c216fc7c0773a00af",
+    "7475c5559e3e24f1e588-41f61f78135bde40d262",
+    "7475c5559e3e24f1e588-14e856414cbc68b42523",
+    "d3d49f2899a0faacbcaf-ecff017140e0eb8cba6b",
+    "51b4790f4568975de141-10a9138ada1b2440200a",
+    "51b4790f4568975de141-4bc9c5c49bc221b29e60"
+  ]
 }
+```
+
+## File: `test-results/e2e-report.json`
+
+```json
+{
+  "config": {
+    "argv": [
+      "C:\\Program Files\\nodejs\\node.exe",
+      "C:\\Users\\n\\supremeai\\supremeai_2.0\\node_modules\\@playwright\\test\\cli.js",
+      "test"
+    ],
+    "configFile": "C:\\Users\\n\\supremeai\\supremeai_2.0\\playwright.config.ts",
+    "rootDir": "C:/Users/n/supremeai/supremeai_2.0/tests",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": true,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 2
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "C:/Users/n/supremeai/supremeai_2.0/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 2
+        },
+        "id": "chromium",
+        "name": "chromium",
+        "testDir": "C:/Users/n/supremeai/supremeai_2.0/tests",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.spec.ts"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "C:/Users/n/supremeai/supremeai_2.0/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 2
+        },
+        "id": "firefox",
+        "name": "firefox",
+        "testDir": "C:/Users/n/supremeai/supremeai_2.0/tests",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.spec.ts"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "C:/Users/n/supremeai/supremeai_2.0/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 2
+        },
+        "id": "webkit",
+        "name": "webkit",
+        "testDir": "C:/Users/n/supremeai/supremeai_2.0/tests",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.spec.ts"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "C:/Users/n/supremeai/supremeai_2.0/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 2
+        },
+        "id": "Mobile Chrome",
+        "name": "Mobile Chrome",
+        "testDir": "C:/Users/n/supremeai/supremeai_2.0/tests",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.spec.ts"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "C:/Users/n/supremeai/supremeai_2.0/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 2
+        },
+        "id": "Mobile Safari",
+        "name": "Mobile Safari",
+        "testDir": "C:/Users/n/supremeai/supremeai_2.0/tests",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.spec.ts"
+        ],
+        "timeout": 30000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "html",
+        {
+          "outputFolder": "playwright-report"
+        }
+      ],
+      [
+        "json",
+        {
+          "outputFile": "test-results/e2e-report.json"
+        }
+      ],
+      [
+        "list",
+        null
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.61.1",
+    "workers": 2,
+    "webServer": {
+      "command": "pnpm --dir apps/studio-client dev --host 0.0.0.0 --port 5173",
+      "url": "http://127.0.0.1:5173",
+      "reuseExistingServer": true,
+      "timeout": 120000
+    }
+  },
+  "suites": [
+    {
+      "title": "e2e\\accessibility.spec.ts",
+      "file": "e2e/accessibility.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Accessibility Tests (WCAG)",
+          "file": "e2e/accessibility.spec.ts",
+          "line": 4,
+          "column": 6,
+          "specs": [
+            {
+              "title": "Homepage should not have any automatically detectable accessibility issues",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 21022,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-04T13:02:39.437Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "cb4d96879b22e77d8b2c-ee181cbb1b50022aa313",
+              "file": "e2e/accessibility.spec.ts",
+              "line": 5,
+              "column": 9
+            },
+            {
+              "title": "Admin Dashboard should be accessible",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "failed",
+                      "duration": 22267,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  -   1\u001b[39m\n\u001b[31m+ Received  + 149\u001b[39m\n\n\u001b[32m- Array []\u001b[39m\n\u001b[31m+ Array [\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"description\": \"Ensure the document has a main landmark\",\u001b[39m\n\u001b[31m+     \"help\": \"Document should have one main landmark\",\u001b[39m\n\u001b[31m+     \"helpUrl\": \"https://dequeuniversity.com/rules/axe/4.12/landmark-one-main?application=playwright\",\u001b[39m\n\u001b[31m+     \"id\": \"landmark-one-main\",\u001b[39m\n\u001b[31m+     \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+     \"nodes\": Array [\u001b[39m\n\u001b[31m+       Object {\u001b[39m\n\u001b[31m+         \"all\": Array [\u001b[39m\n\u001b[31m+           Object {\u001b[39m\n\u001b[31m+             \"data\": null,\u001b[39m\n\u001b[31m+             \"id\": \"page-has-main\",\u001b[39m\n\u001b[31m+             \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+             \"message\": \"Document does not have a main landmark\",\u001b[39m\n\u001b[31m+             \"relatedNodes\": Array [],\u001b[39m\n\u001b[31m+           },\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+         \"any\": Array [],\u001b[39m\n\u001b[31m+         \"failureSummary\": \"Fix all of the following:\u001b[39m\n\u001b[31m+   Document does not have a main landmark\",\u001b[39m\n\u001b[31m+         \"html\": \"<html lang=\\\"en\\\" class=\\\"dark\\\" data-theme=\\\"dark\\\">\",\u001b[39m\n\u001b[31m+         \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+         \"none\": Array [],\u001b[39m\n\u001b[31m+         \"target\": Array [\u001b[39m\n\u001b[31m+           \"html\",\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+       },\u001b[39m\n\u001b[31m+     ],\u001b[39m\n\u001b[31m+     \"tags\": Array [\u001b[39m\n\u001b[31m+       \"cat.semantics\",\u001b[39m\n\u001b[31m+       \"best-practice\",\u001b[39m\n\u001b[31m+     ],\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"description\": \"Ensure that the page, or at least one of its frames contains a level-one heading\",\u001b[39m\n\u001b[31m+     \"help\": \"Page should contain a level-one heading\",\u001b[39m\n\u001b[31m+     \"helpUrl\": \"https://dequeuniversity.com/rules/axe/4.12/page-has-heading-one?application=playwright\",\u001b[39m\n\u001b[31m+     \"id\": \"page-has-heading-one\",\u001b[39m\n\u001b[31m+     \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+     \"nodes\": Array [\u001b[39m\n\u001b[31m+       Object {\u001b[39m\n\u001b[31m+         \"all\": Array [\u001b[39m\n\u001b[31m+           Object {\u001b[39m\n\u001b[31m+             \"data\": null,\u001b[39m\n\u001b[31m+             \"id\": \"page-has-heading-one\",\u001b[39m\n\u001b[31m+             \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+             \"message\": \"Page must have a level-one heading\",\u001b[39m\n\u001b[31m+             \"relatedNodes\": Array [],\u001b[39m\n\u001b[31m+           },\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+         \"any\": Array [],\u001b[39m\n\u001b[31m+         \"failureSummary\": \"Fix all of the following:\u001b[39m\n\u001b[31m+   Page must have a level-one heading\",\u001b[39m\n\u001b[31m+         \"html\": \"<html lang=\\\"en\\\" class=\\\"dark\\\" data-theme=\\\"dark\\\">\",\u001b[39m\n\u001b[31m+         \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+         \"none\": Array [],\u001b[39m\n\u001b[31m+         \"target\": Array [\u001b[39m\n\u001b[31m+           \"html\",\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+       },\u001b[39m\n\u001b[31m+     ],\u001b[39m\n\u001b[31m+     \"tags\": Array [\u001b[39m\n\u001b[31m+       \"cat.semantics\",\u001b[39m\n\u001b[31m+       \"best-practice\",\u001b[39m\n\u001b[31m+     ],\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"description\": \"Ensure all page content is contained by landmarks\",\u001b[39m\n\u001b[31m+     \"help\": \"All page content should be contained by landmarks\",\u001b[39m\n\u001b[31m+     \"helpUrl\": \"https://dequeuniversity.com/rules/axe/4.12/region?application=playwright\",\u001b[39m\n\u001b[31m+     \"id\": \"region\",\u001b[39m\n\u001b[31m+     \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+     \"nodes\": Array [\u001b[39m\n\u001b[31m+       Object {\u001b[39m\n\u001b[31m+         \"all\": Array [],\u001b[39m\n\u001b[31m+         \"any\": Array [\u001b[39m\n\u001b[31m+           Object {\u001b[39m\n\u001b[31m+             \"data\": Object {\u001b[39m\n\u001b[31m+               \"isIframe\": false,\u001b[39m\n\u001b[31m+             },\u001b[39m\n\u001b[31m+             \"id\": \"region\",\u001b[39m\n\u001b[31m+             \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+             \"message\": \"Some page content is not contained by landmarks\",\u001b[39m\n\u001b[31m+             \"relatedNodes\": Array [],\u001b[39m\n\u001b[31m+           },\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+         \"failureSummary\": \"Fix any of the following:\u001b[39m\n\u001b[31m+   Some page content is not contained by landmarks\",\u001b[39m\n\u001b[31m+         \"html\": \"<h2 class=\\\"text-xl font-mono font-bold text-[#ff0055] uppercase tracking-widest mb-2\\\">Dashboard Module Failure</h2>\",\u001b[39m\n\u001b[31m+         \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+         \"none\": Array [],\u001b[39m\n\u001b[31m+         \"target\": Array [\u001b[39m\n\u001b[31m+           \"h2\",\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+       },\u001b[39m\n\u001b[31m+       Object {\u001b[39m\n\u001b[31m+         \"all\": Array [],\u001b[39m\n\u001b[31m+         \"any\": Array [\u001b[39m\n\u001b[31m+           Object {\u001b[39m\n\u001b[31m+             \"data\": Object {\u001b[39m\n\u001b[31m+               \"isIframe\": false,\u001b[39m\n\u001b[31m+             },\u001b[39m\n\u001b[31m+             \"id\": \"region\",\u001b[39m\n\u001b[31m+             \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+             \"message\": \"Some page content is not contained by landmarks\",\u001b[39m\n\u001b[31m+             \"relatedNodes\": Array [],\u001b[39m\n\u001b[31m+           },\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+         \"failureSummary\": \"Fix any of the following:\u001b[39m\n\u001b[31m+   Some page content is not contained by landmarks\",\u001b[39m\n\u001b[31m+         \"html\": \"<p class=\\\"text-sm text-slate-400 font-mono mb-4\\\">A critical module in the admin dashboard has crashed. The rest of the system remains intact.</p>\",\u001b[39m\n\u001b[31m+         \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+         \"none\": Array [],\u001b[39m\n\u001b[31m+         \"target\": Array [\u001b[39m\n\u001b[31m+           \"p\",\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+       },\u001b[39m\n\u001b[31m+       Object {\u001b[39m\n\u001b[31m+         \"all\": Array [],\u001b[39m\n\u001b[31m+         \"any\": Array [\u001b[39m\n\u001b[31m+           Object {\u001b[39m\n\u001b[31m+             \"data\": Object {\u001b[39m\n\u001b[31m+               \"isIframe\": false,\u001b[39m\n\u001b[31m+             },\u001b[39m\n\u001b[31m+             \"id\": \"region\",\u001b[39m\n\u001b[31m+             \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+             \"message\": \"Some page content is not contained by landmarks\",\u001b[39m\n\u001b[31m+             \"relatedNodes\": Array [],\u001b[39m\n\u001b[31m+           },\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+         \"failureSummary\": \"Fix any of the following:\u001b[39m\n\u001b[31m+   Some page content is not contained by landmarks\",\u001b[39m\n\u001b[31m+         \"html\": \"<pre class=\\\"text-xs text-slate-400 font-mono bg-slate-900/80 p-3 rounded-lg mb-6 overflow-auto max-h-40\\\">React is not defined</pre>\",\u001b[39m\n\u001b[31m+         \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+         \"none\": Array [],\u001b[39m\n\u001b[31m+         \"target\": Array [\u001b[39m\n\u001b[31m+           \"pre\",\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+       },\u001b[39m\n\u001b[31m+     ],\u001b[39m\n\u001b[31m+     \"tags\": Array [\u001b[39m\n\u001b[31m+       \"cat.keyboard\",\u001b[39m\n\u001b[31m+       \"best-practice\",\u001b[39m\n\u001b[31m+       \"RGAAv4\",\u001b[39m\n\u001b[31m+       \"RGAA-9.2.1\",\u001b[39m\n\u001b[31m+     ],\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+ ]\u001b[39m",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  -   1\u001b[39m\n\u001b[31m+ Received  + 149\u001b[39m\n\n\u001b[32m- Array []\u001b[39m\n\u001b[31m+ Array [\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"description\": \"Ensure the document has a main landmark\",\u001b[39m\n\u001b[31m+     \"help\": \"Document should have one main landmark\",\u001b[39m\n\u001b[31m+     \"helpUrl\": \"https://dequeuniversity.com/rules/axe/4.12/landmark-one-main?application=playwright\",\u001b[39m\n\u001b[31m+     \"id\": \"landmark-one-main\",\u001b[39m\n\u001b[31m+     \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+     \"nodes\": Array [\u001b[39m\n\u001b[31m+       Object {\u001b[39m\n\u001b[31m+         \"all\": Array [\u001b[39m\n\u001b[31m+           Object {\u001b[39m\n\u001b[31m+             \"data\": null,\u001b[39m\n\u001b[31m+             \"id\": \"page-has-main\",\u001b[39m\n\u001b[31m+             \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+             \"message\": \"Document does not have a main landmark\",\u001b[39m\n\u001b[31m+             \"relatedNodes\": Array [],\u001b[39m\n\u001b[31m+           },\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+         \"any\": Array [],\u001b[39m\n\u001b[31m+         \"failureSummary\": \"Fix all of the following:\u001b[39m\n\u001b[31m+   Document does not have a main landmark\",\u001b[39m\n\u001b[31m+         \"html\": \"<html lang=\\\"en\\\" class=\\\"dark\\\" data-theme=\\\"dark\\\">\",\u001b[39m\n\u001b[31m+         \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+         \"none\": Array [],\u001b[39m\n\u001b[31m+         \"target\": Array [\u001b[39m\n\u001b[31m+           \"html\",\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+       },\u001b[39m\n\u001b[31m+     ],\u001b[39m\n\u001b[31m+     \"tags\": Array [\u001b[39m\n\u001b[31m+       \"cat.semantics\",\u001b[39m\n\u001b[31m+       \"best-practice\",\u001b[39m\n\u001b[31m+     ],\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"description\": \"Ensure that the page, or at least one of its frames contains a level-one heading\",\u001b[39m\n\u001b[31m+     \"help\": \"Page should contain a level-one heading\",\u001b[39m\n\u001b[31m+     \"helpUrl\": \"https://dequeuniversity.com/rules/axe/4.12/page-has-heading-one?application=playwright\",\u001b[39m\n\u001b[31m+     \"id\": \"page-has-heading-one\",\u001b[39m\n\u001b[31m+     \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+     \"nodes\": Array [\u001b[39m\n\u001b[31m+       Object {\u001b[39m\n\u001b[31m+         \"all\": Array [\u001b[39m\n\u001b[31m+           Object {\u001b[39m\n\u001b[31m+             \"data\": null,\u001b[39m\n\u001b[31m+             \"id\": \"page-has-heading-one\",\u001b[39m\n\u001b[31m+             \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+             \"message\": \"Page must have a level-one heading\",\u001b[39m\n\u001b[31m+             \"relatedNodes\": Array [],\u001b[39m\n\u001b[31m+           },\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+         \"any\": Array [],\u001b[39m\n\u001b[31m+         \"failureSummary\": \"Fix all of the following:\u001b[39m\n\u001b[31m+   Page must have a level-one heading\",\u001b[39m\n\u001b[31m+         \"html\": \"<html lang=\\\"en\\\" class=\\\"dark\\\" data-theme=\\\"dark\\\">\",\u001b[39m\n\u001b[31m+         \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+         \"none\": Array [],\u001b[39m\n\u001b[31m+         \"target\": Array [\u001b[39m\n\u001b[31m+           \"html\",\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+       },\u001b[39m\n\u001b[31m+     ],\u001b[39m\n\u001b[31m+     \"tags\": Array [\u001b[39m\n\u001b[31m+       \"cat.semantics\",\u001b[39m\n\u001b[31m+       \"best-practice\",\u001b[39m\n\u001b[31m+     ],\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"description\": \"Ensure all page content is contained by landmarks\",\u001b[39m\n\u001b[31m+     \"help\": \"All page content should be contained by landmarks\",\u001b[39m\n\u001b[31m+     \"helpUrl\": \"https://dequeuniversity.com/rules/axe/4.12/region?application=playwright\",\u001b[39m\n\u001b[31m+     \"id\": \"region\",\u001b[39m\n\u001b[31m+     \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+     \"nodes\": Array [\u001b[39m\n\u001b[31m+       Object {\u001b[39m\n\u001b[31m+         \"all\": Array [],\u001b[39m\n\u001b[31m+         \"any\": Array [\u001b[39m\n\u001b[31m+           Object {\u001b[39m\n\u001b[31m+             \"data\": Object {\u001b[39m\n\u001b[31m+               \"isIframe\": false,\u001b[39m\n\u001b[31m+             },\u001b[39m\n\u001b[31m+             \"id\": \"region\",\u001b[39m\n\u001b[31m+             \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+             \"message\": \"Some page content is not contained by landmarks\",\u001b[39m\n\u001b[31m+             \"relatedNodes\": Array [],\u001b[39m\n\u001b[31m+           },\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+         \"failureSummary\": \"Fix any of the following:\u001b[39m\n\u001b[31m+   Some page content is not contained by landmarks\",\u001b[39m\n\u001b[31m+         \"html\": \"<h2 class=\\\"text-xl font-mono font-bold text-[#ff0055] uppercase tracking-widest mb-2\\\">Dashboard Module Failure</h2>\",\u001b[39m\n\u001b[31m+         \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+         \"none\": Array [],\u001b[39m\n\u001b[31m+         \"target\": Array [\u001b[39m\n\u001b[31m+           \"h2\",\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+       },\u001b[39m\n\u001b[31m+       Object {\u001b[39m\n\u001b[31m+         \"all\": Array [],\u001b[39m\n\u001b[31m+         \"any\": Array [\u001b[39m\n\u001b[31m+           Object {\u001b[39m\n\u001b[31m+             \"data\": Object {\u001b[39m\n\u001b[31m+               \"isIframe\": false,\u001b[39m\n\u001b[31m+             },\u001b[39m\n\u001b[31m+             \"id\": \"region\",\u001b[39m\n\u001b[31m+             \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+             \"message\": \"Some page content is not contained by landmarks\",\u001b[39m\n\u001b[31m+             \"relatedNodes\": Array [],\u001b[39m\n\u001b[31m+           },\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+         \"failureSummary\": \"Fix any of the following:\u001b[39m\n\u001b[31m+   Some page content is not contained by landmarks\",\u001b[39m\n\u001b[31m+         \"html\": \"<p class=\\\"text-sm text-slate-400 font-mono mb-4\\\">A critical module in the admin dashboard has crashed. The rest of the system remains intact.</p>\",\u001b[39m\n\u001b[31m+         \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+         \"none\": Array [],\u001b[39m\n\u001b[31m+         \"target\": Array [\u001b[39m\n\u001b[31m+           \"p\",\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+       },\u001b[39m\n\u001b[31m+       Object {\u001b[39m\n\u001b[31m+         \"all\": Array [],\u001b[39m\n\u001b[31m+         \"any\": Array [\u001b[39m\n\u001b[31m+           Object {\u001b[39m\n\u001b[31m+             \"data\": Object {\u001b[39m\n\u001b[31m+               \"isIframe\": false,\u001b[39m\n\u001b[31m+             },\u001b[39m\n\u001b[31m+             \"id\": \"region\",\u001b[39m\n\u001b[31m+             \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+             \"message\": \"Some page content is not contained by landmarks\",\u001b[39m\n\u001b[31m+             \"relatedNodes\": Array [],\u001b[39m\n\u001b[31m+           },\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+         \"failureSummary\": \"Fix any of the following:\u001b[39m\n\u001b[31m+   Some page content is not contained by landmarks\",\u001b[39m\n\u001b[31m+         \"html\": \"<pre class=\\\"text-xs text-slate-400 font-mono bg-slate-900/80 p-3 rounded-lg mb-6 overflow-auto max-h-40\\\">React is not defined</pre>\",\u001b[39m\n\u001b[31m+         \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+         \"none\": Array [],\u001b[39m\n\u001b[31m+         \"target\": Array [\u001b[39m\n\u001b[31m+           \"pre\",\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+       },\u001b[39m\n\u001b[31m+     ],\u001b[39m\n\u001b[31m+     \"tags\": Array [\u001b[39m\n\u001b[31m+       \"cat.keyboard\",\u001b[39m\n\u001b[31m+       \"best-practice\",\u001b[39m\n\u001b[31m+       \"RGAAv4\",\u001b[39m\n\u001b[31m+       \"RGAA-9.2.1\",\u001b[39m\n\u001b[31m+     ],\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+ ]\u001b[39m\n    at C:\\Users\\n\\supremeai\\supremeai_2.0\\tests\\e2e\\accessibility.spec.ts:23:53",
+                        "location": {
+                          "file": "C:\\Users\\n\\supremeai\\supremeai_2.0\\tests\\e2e\\accessibility.spec.ts",
+                          "column": 53,
+                          "line": 23
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 21 |\u001b[39m         \u001b[36mconst\u001b[39m accessibilityScanResults \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m \u001b[36mnew\u001b[39m \u001b[33mAxeBuilder\u001b[39m({ page })\u001b[33m.\u001b[39manalyze()\u001b[33m;\u001b[39m\n \u001b[90m 22 |\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 23 |\u001b[39m         expect(accessibilityScanResults\u001b[33m.\u001b[39mviolations)\u001b[33m.\u001b[39mtoEqual([])\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                                                     \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 24 |\u001b[39m     })\u001b[33m;\u001b[39m\n \u001b[90m 25 |\u001b[39m })\u001b[33m;\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "C:\\Users\\n\\supremeai\\supremeai_2.0\\tests\\e2e\\accessibility.spec.ts",
+                            "column": 53,
+                            "line": 23
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  -   1\u001b[39m\n\u001b[31m+ Received  + 149\u001b[39m\n\n\u001b[32m- Array []\u001b[39m\n\u001b[31m+ Array [\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"description\": \"Ensure the document has a main landmark\",\u001b[39m\n\u001b[31m+     \"help\": \"Document should have one main landmark\",\u001b[39m\n\u001b[31m+     \"helpUrl\": \"https://dequeuniversity.com/rules/axe/4.12/landmark-one-main?application=playwright\",\u001b[39m\n\u001b[31m+     \"id\": \"landmark-one-main\",\u001b[39m\n\u001b[31m+     \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+     \"nodes\": Array [\u001b[39m\n\u001b[31m+       Object {\u001b[39m\n\u001b[31m+         \"all\": Array [\u001b[39m\n\u001b[31m+           Object {\u001b[39m\n\u001b[31m+             \"data\": null,\u001b[39m\n\u001b[31m+             \"id\": \"page-has-main\",\u001b[39m\n\u001b[31m+             \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+             \"message\": \"Document does not have a main landmark\",\u001b[39m\n\u001b[31m+             \"relatedNodes\": Array [],\u001b[39m\n\u001b[31m+           },\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+         \"any\": Array [],\u001b[39m\n\u001b[31m+         \"failureSummary\": \"Fix all of the following:\u001b[39m\n\u001b[31m+   Document does not have a main landmark\",\u001b[39m\n\u001b[31m+         \"html\": \"<html lang=\\\"en\\\" class=\\\"dark\\\" data-theme=\\\"dark\\\">\",\u001b[39m\n\u001b[31m+         \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+         \"none\": Array [],\u001b[39m\n\u001b[31m+         \"target\": Array [\u001b[39m\n\u001b[31m+           \"html\",\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+       },\u001b[39m\n\u001b[31m+     ],\u001b[39m\n\u001b[31m+     \"tags\": Array [\u001b[39m\n\u001b[31m+       \"cat.semantics\",\u001b[39m\n\u001b[31m+       \"best-practice\",\u001b[39m\n\u001b[31m+     ],\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"description\": \"Ensure that the page, or at least one of its frames contains a level-one heading\",\u001b[39m\n\u001b[31m+     \"help\": \"Page should contain a level-one heading\",\u001b[39m\n\u001b[31m+     \"helpUrl\": \"https://dequeuniversity.com/rules/axe/4.12/page-has-heading-one?application=playwright\",\u001b[39m\n\u001b[31m+     \"id\": \"page-has-heading-one\",\u001b[39m\n\u001b[31m+     \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+     \"nodes\": Array [\u001b[39m\n\u001b[31m+       Object {\u001b[39m\n\u001b[31m+         \"all\": Array [\u001b[39m\n\u001b[31m+           Object {\u001b[39m\n\u001b[31m+             \"data\": null,\u001b[39m\n\u001b[31m+             \"id\": \"page-has-heading-one\",\u001b[39m\n\u001b[31m+             \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+             \"message\": \"Page must have a level-one heading\",\u001b[39m\n\u001b[31m+             \"relatedNodes\": Array [],\u001b[39m\n\u001b[31m+           },\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+         \"any\": Array [],\u001b[39m\n\u001b[31m+         \"failureSummary\": \"Fix all of the following:\u001b[39m\n\u001b[31m+   Page must have a level-one heading\",\u001b[39m\n\u001b[31m+         \"html\": \"<html lang=\\\"en\\\" class=\\\"dark\\\" data-theme=\\\"dark\\\">\",\u001b[39m\n\u001b[31m+         \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+         \"none\": Array [],\u001b[39m\n\u001b[31m+         \"target\": Array [\u001b[39m\n\u001b[31m+           \"html\",\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+       },\u001b[39m\n\u001b[31m+     ],\u001b[39m\n\u001b[31m+     \"tags\": Array [\u001b[39m\n\u001b[31m+       \"cat.semantics\",\u001b[39m\n\u001b[31m+       \"best-practice\",\u001b[39m\n\u001b[31m+     ],\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"description\": \"Ensure all page content is contained by landmarks\",\u001b[39m\n\u001b[31m+     \"help\": \"All page content should be contained by landmarks\",\u001b[39m\n\u001b[31m+     \"helpUrl\": \"https://dequeuniversity.com/rules/axe/4.12/region?application=playwright\",\u001b[39m\n\u001b[31m+     \"id\": \"region\",\u001b[39m\n\u001b[31m+     \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+     \"nodes\": Array [\u001b[39m\n\u001b[31m+       Object {\u001b[39m\n\u001b[31m+         \"all\": Array [],\u001b[39m\n\u001b[31m+         \"any\": Array [\u001b[39m\n\u001b[31m+           Object {\u001b[39m\n\u001b[31m+             \"data\": Object {\u001b[39m\n\u001b[31m+               \"isIframe\": false,\u001b[39m\n\u001b[31m+             },\u001b[39m\n\u001b[31m+             \"id\": \"region\",\u001b[39m\n\u001b[31m+             \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+             \"message\": \"Some page content is not contained by landmarks\",\u001b[39m\n\u001b[31m+             \"relatedNodes\": Array [],\u001b[39m\n\u001b[31m+           },\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+         \"failureSummary\": \"Fix any of the following:\u001b[39m\n\u001b[31m+   Some page content is not contained by landmarks\",\u001b[39m\n\u001b[31m+         \"html\": \"<h2 class=\\\"text-xl font-mono font-bold text-[#ff0055] uppercase tracking-widest mb-2\\\">Dashboard Module Failure</h2>\",\u001b[39m\n\u001b[31m+         \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+         \"none\": Array [],\u001b[39m\n\u001b[31m+         \"target\": Array [\u001b[39m\n\u001b[31m+           \"h2\",\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+       },\u001b[39m\n\u001b[31m+       Object {\u001b[39m\n\u001b[31m+         \"all\": Array [],\u001b[39m\n\u001b[31m+         \"any\": Array [\u001b[39m\n\u001b[31m+           Object {\u001b[39m\n\u001b[31m+             \"data\": Object {\u001b[39m\n\u001b[31m+               \"isIframe\": false,\u001b[39m\n\u001b[31m+             },\u001b[39m\n\u001b[31m+             \"id\": \"region\",\u001b[39m\n\u001b[31m+             \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+             \"message\": \"Some page content is not contained by landmarks\",\u001b[39m\n\u001b[31m+             \"relatedNodes\": Array [],\u001b[39m\n\u001b[31m+           },\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+         \"failureSummary\": \"Fix any of the following:\u001b[39m\n\u001b[31m+   Some page content is not contained by landmarks\",\u001b[39m\n\u001b[31m+         \"html\": \"<p class=\\\"text-sm text-slate-400 font-mono mb-4\\\">A critical module in the admin dashboard has crashed. The rest of the system remains intact.</p>\",\u001b[39m\n\u001b[31m+         \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+         \"none\": Array [],\u001b[39m\n\u001b[31m+         \"target\": Array [\u001b[39m\n\u001b[31m+           \"p\",\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+       },\u001b[39m\n\u001b[31m+       Object {\u001b[39m\n\u001b[31m+         \"all\": Array [],\u001b[39m\n\u001b[31m+         \"any\": Array [\u001b[39m\n\u001b[31m+           Object {\u001b[39m\n\u001b[31m+             \"data\": Object {\u001b[39m\n\u001b[31m+               \"isIframe\": false,\u001b[39m\n\u001b[31m+             },\u001b[39m\n\u001b[31m+             \"id\": \"region\",\u001b[39m\n\u001b[31m+             \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+             \"message\": \"Some page content is not contained by landmarks\",\u001b[39m\n\u001b[31m+             \"relatedNodes\": Array [],\u001b[39m\n\u001b[31m+           },\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+         \"failureSummary\": \"Fix any of the following:\u001b[39m\n\u001b[31m+   Some page content is not contained by landmarks\",\u001b[39m\n\u001b[31m+         \"html\": \"<pre class=\\\"text-xs text-slate-400 font-mono bg-slate-900/80 p-3 rounded-lg mb-6 overflow-auto max-h-40\\\">React is not defined</pre>\",\u001b[39m\n\u001b[31m+         \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+         \"none\": Array [],\u001b[39m\n\u001b[31m+         \"target\": Array [\u001b[39m\n\u001b[31m+           \"pre\",\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+       },\u001b[39m\n\u001b[31m+     ],\u001b[39m\n\u001b[31m+     \"tags\": Array [\u001b[39m\n\u001b[31m+       \"cat.keyboard\",\u001b[39m\n\u001b[31m+       \"best-practice\",\u001b[39m\n\u001b[31m+       \"RGAAv4\",\u001b[39m\n\u001b[31m+       \"RGAA-9.2.1\",\u001b[39m\n\u001b[31m+     ],\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+ ]\u001b[39m\n\n  21 |         const accessibilityScanResults = await new AxeBuilder({ page }).analyze();\n  22 |\n> 23 |         expect(accessibilityScanResults.violations).toEqual([]);\n     |                                                     ^\n  24 |     });\n  25 | });\n    at C:\\Users\\n\\supremeai\\supremeai_2.0\\tests\\e2e\\accessibility.spec.ts:23:53"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-04T13:02:39.779Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\Users\\n\\supremeai\\supremeai_2.0\\test-results\\e2e-accessibility-Accessib-1a8a2-hboard-should-be-accessible-chromium\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "C:\\Users\\n\\supremeai\\supremeai_2.0\\test-results\\e2e-accessibility-Accessib-1a8a2-hboard-should-be-accessible-chromium\\video.webm"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "C:\\Users\\n\\supremeai\\supremeai_2.0\\test-results\\e2e-accessibility-Accessib-1a8a2-hboard-should-be-accessible-chromium\\video-1.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "C:\\Users\\n\\supremeai\\supremeai_2.0\\test-results\\e2e-accessibility-Accessib-1a8a2-hboard-should-be-accessible-chromium\\error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "C:\\Users\\n\\supremeai\\supremeai_2.0\\tests\\e2e\\accessibility.spec.ts",
+                        "column": 53,
+                        "line": 23
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "cb4d96879b22e77d8b2c-500664d0b985aac1baa3",
+              "file": "e2e/accessibility.spec.ts",
+              "line": 18,
+              "column": 9
+            },
+            {
+              "title": "Homepage should not have any automatically detectable accessibility issues",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [
+                    {
+                      "workerIndex": 6,
+                      "parallelIndex": 1,
+                      "status": "failed",
+                      "duration": 3,
+                      "error": {
+                        "message": "Error: browserType.launch: Executable doesn't exist at C:\\Users\\n\\AppData\\Local\\ms-playwright\\firefox-1532\\firefox\\firefox.exe\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     pnpm exec playwright install                           ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝",
+                        "stack": "Error: browserType.launch: Executable doesn't exist at C:\\Users\\n\\AppData\\Local\\ms-playwright\\firefox-1532\\firefox\\firefox.exe\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     pnpm exec playwright install                           ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝"
+                      },
+                      "errors": [
+                        {
+                          "message": "Error: browserType.launch: Executable doesn't exist at C:\\Users\\n\\AppData\\Local\\ms-playwright\\firefox-1532\\firefox\\firefox.exe\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     pnpm exec playwright install                           ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-04T13:03:42.402Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "C:\\Users\\n\\supremeai\\supremeai_2.0\\test-results\\e2e-accessibility-Accessib-57b49-ctable-accessibility-issues-firefox\\error-context.md"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "cb4d96879b22e77d8b2c-b3d42475f7c88aec8c52",
+              "file": "e2e/accessibility.spec.ts",
+              "line": 5,
+              "column": 9
+            },
+            {
+              "title": "Admin Dashboard should be accessible",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [
+                    {
+                      "workerIndex": 7,
+                      "parallelIndex": 1,
+                      "status": "failed",
+                      "duration": 5,
+                      "error": {
+                        "message": "Error: browserType.launch: Executable doesn't exist at C:\\Users\\n\\AppData\\Local\\ms-playwright\\firefox-1532\\firefox\\firefox.exe\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     pnpm exec playwright install                           ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝",
+                        "stack": "Error: browserType.launch: Executable doesn't exist at C:\\Users\\n\\AppData\\Local\\ms-playwright\\firefox-1532\\firefox\\firefox.exe\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     pnpm exec playwright install                           ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝"
+                      },
+                      "errors": [
+                        {
+                          "message": "Error: browserType.launch: Executable doesn't exist at C:\\Users\\n\\AppData\\Local\\ms-playwright\\firefox-1532\\firefox\\firefox.exe\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     pnpm exec playwright install                           ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-04T13:03:44.281Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "C:\\Users\\n\\supremeai\\supremeai_2.0\\test-results\\e2e-accessibility-Accessib-1a8a2-hboard-should-be-accessible-firefox\\error-context.md"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "cb4d96879b22e77d8b2c-f5638b87b7a414080a2d",
+              "file": "e2e/accessibility.spec.ts",
+              "line": 18,
+              "column": 9
+            },
+            {
+              "title": "Homepage should not have any automatically detectable accessibility issues",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
+                  "results": [
+                    {
+                      "workerIndex": 13,
+                      "parallelIndex": 1,
+                      "status": "failed",
+                      "duration": 7,
+                      "error": {
+                        "message": "Error: browserType.launch: Executable doesn't exist at C:\\Users\\n\\AppData\\Local\\ms-playwright\\webkit-2311\\Playwright.exe\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     pnpm exec playwright install                           ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝",
+                        "stack": "Error: browserType.launch: Executable doesn't exist at C:\\Users\\n\\AppData\\Local\\ms-playwright\\webkit-2311\\Playwright.exe\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     pnpm exec playwright install                           ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝"
+                      },
+                      "errors": [
+                        {
+                          "message": "Error: browserType.launch: Executable doesn't exist at C:\\Users\\n\\AppData\\Local\\ms-playwright\\webkit-2311\\Playwright.exe\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     pnpm exec playwright install                           ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-04T13:04:00.867Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "C:\\Users\\n\\supremeai\\supremeai_2.0\\test-results\\e2e-accessibility-Accessib-57b49-ctable-accessibility-issues-webkit\\error-context.md"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "cb4d96879b22e77d8b2c-fbd64fd80d69d10df3a0",
+              "file": "e2e/accessibility.spec.ts",
+              "line": 5,
+              "column": 9
+            },
+            {
+              "title": "Admin Dashboard should be accessible",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
+                  "results": [
+                    {
+                      "workerIndex": 14,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 9,
+                      "error": {
+                        "message": "Error: browserType.launch: Executable doesn't exist at C:\\Users\\n\\AppData\\Local\\ms-playwright\\webkit-2311\\Playwright.exe\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     pnpm exec playwright install                           ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝",
+                        "stack": "Error: browserType.launch: Executable doesn't exist at C:\\Users\\n\\AppData\\Local\\ms-playwright\\webkit-2311\\Playwright.exe\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     pnpm exec playwright install                           ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝"
+                      },
+                      "errors": [
+                        {
+                          "message": "Error: browserType.launch: Executable doesn't exist at C:\\Users\\n\\AppData\\Local\\ms-playwright\\webkit-2311\\Playwright.exe\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     pnpm exec playwright install                           ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-04T13:04:01.952Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "C:\\Users\\n\\supremeai\\supremeai_2.0\\test-results\\e2e-accessibility-Accessib-1a8a2-hboard-should-be-accessible-webkit\\error-context.md"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "cb4d96879b22e77d8b2c-080eb04c5c3f482efa54",
+              "file": "e2e/accessibility.spec.ts",
+              "line": 18,
+              "column": 9
+            },
+            {
+              "title": "Homepage should not have any automatically detectable accessibility issues",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Chrome",
+                  "projectName": "Mobile Chrome",
+                  "results": [
+                    {
+                      "workerIndex": 20,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 23308,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-04T13:04:10.020Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "cb4d96879b22e77d8b2c-91fb6702d4d7a6d60dd3",
+              "file": "e2e/accessibility.spec.ts",
+              "line": 5,
+              "column": 9
+            },
+            {
+              "title": "Admin Dashboard should be accessible",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Chrome",
+                  "projectName": "Mobile Chrome",
+                  "results": [
+                    {
+                      "workerIndex": 21,
+                      "parallelIndex": 1,
+                      "status": "failed",
+                      "duration": 16887,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  -   1\u001b[39m\n\u001b[31m+ Received  + 149\u001b[39m\n\n\u001b[32m- Array []\u001b[39m\n\u001b[31m+ Array [\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"description\": \"Ensure the document has a main landmark\",\u001b[39m\n\u001b[31m+     \"help\": \"Document should have one main landmark\",\u001b[39m\n\u001b[31m+     \"helpUrl\": \"https://dequeuniversity.com/rules/axe/4.12/landmark-one-main?application=playwright\",\u001b[39m\n\u001b[31m+     \"id\": \"landmark-one-main\",\u001b[39m\n\u001b[31m+     \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+     \"nodes\": Array [\u001b[39m\n\u001b[31m+       Object {\u001b[39m\n\u001b[31m+         \"all\": Array [\u001b[39m\n\u001b[31m+           Object {\u001b[39m\n\u001b[31m+             \"data\": null,\u001b[39m\n\u001b[31m+             \"id\": \"page-has-main\",\u001b[39m\n\u001b[31m+             \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+             \"message\": \"Document does not have a main landmark\",\u001b[39m\n\u001b[31m+             \"relatedNodes\": Array [],\u001b[39m\n\u001b[31m+           },\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+         \"any\": Array [],\u001b[39m\n\u001b[31m+         \"failureSummary\": \"Fix all of the following:\u001b[39m\n\u001b[31m+   Document does not have a main landmark\",\u001b[39m\n\u001b[31m+         \"html\": \"<html lang=\\\"en\\\" class=\\\"dark\\\" data-theme=\\\"dark\\\">\",\u001b[39m\n\u001b[31m+         \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+         \"none\": Array [],\u001b[39m\n\u001b[31m+         \"target\": Array [\u001b[39m\n\u001b[31m+           \"html\",\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+       },\u001b[39m\n\u001b[31m+     ],\u001b[39m\n\u001b[31m+     \"tags\": Array [\u001b[39m\n\u001b[31m+       \"cat.semantics\",\u001b[39m\n\u001b[31m+       \"best-practice\",\u001b[39m\n\u001b[31m+     ],\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"description\": \"Ensure that the page, or at least one of its frames contains a level-one heading\",\u001b[39m\n\u001b[31m+     \"help\": \"Page should contain a level-one heading\",\u001b[39m\n\u001b[31m+     \"helpUrl\": \"https://dequeuniversity.com/rules/axe/4.12/page-has-heading-one?application=playwright\",\u001b[39m\n\u001b[31m+     \"id\": \"page-has-heading-one\",\u001b[39m\n\u001b[31m+     \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+     \"nodes\": Array [\u001b[39m\n\u001b[31m+       Object {\u001b[39m\n\u001b[31m+         \"all\": Array [\u001b[39m\n\u001b[31m+           Object {\u001b[39m\n\u001b[31m+             \"data\": null,\u001b[39m\n\u001b[31m+             \"id\": \"page-has-heading-one\",\u001b[39m\n\u001b[31m+             \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+             \"message\": \"Page must have a level-one heading\",\u001b[39m\n\u001b[31m+             \"relatedNodes\": Array [],\u001b[39m\n\u001b[31m+           },\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+         \"any\": Array [],\u001b[39m\n\u001b[31m+         \"failureSummary\": \"Fix all of the following:\u001b[39m\n\u001b[31m+   Page must have a level-one heading\",\u001b[39m\n\u001b[31m+         \"html\": \"<html lang=\\\"en\\\" class=\\\"dark\\\" data-theme=\\\"dark\\\">\",\u001b[39m\n\u001b[31m+         \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+         \"none\": Array [],\u001b[39m\n\u001b[31m+         \"target\": Array [\u001b[39m\n\u001b[31m+           \"html\",\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+       },\u001b[39m\n\u001b[31m+     ],\u001b[39m\n\u001b[31m+     \"tags\": Array [\u001b[39m\n\u001b[31m+       \"cat.semantics\",\u001b[39m\n\u001b[31m+       \"best-practice\",\u001b[39m\n\u001b[31m+     ],\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"description\": \"Ensure all page content is contained by landmarks\",\u001b[39m\n\u001b[31m+     \"help\": \"All page content should be contained by landmarks\",\u001b[39m\n\u001b[31m+     \"helpUrl\": \"https://dequeuniversity.com/rules/axe/4.12/region?application=playwright\",\u001b[39m\n\u001b[31m+     \"id\": \"region\",\u001b[39m\n\u001b[31m+     \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+     \"nodes\": Array [\u001b[39m\n\u001b[31m+       Object {\u001b[39m\n\u001b[31m+         \"all\": Array [],\u001b[39m\n\u001b[31m+         \"any\": Array [\u001b[39m\n\u001b[31m+           Object {\u001b[39m\n\u001b[31m+             \"data\": Object {\u001b[39m\n\u001b[31m+               \"isIframe\": false,\u001b[39m\n\u001b[31m+             },\u001b[39m\n\u001b[31m+             \"id\": \"region\",\u001b[39m\n\u001b[31m+             \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+             \"message\": \"Some page content is not contained by landmarks\",\u001b[39m\n\u001b[31m+             \"relatedNodes\": Array [],\u001b[39m\n\u001b[31m+           },\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+         \"failureSummary\": \"Fix any of the following:\u001b[39m\n\u001b[31m+   Some page content is not contained by landmarks\",\u001b[39m\n\u001b[31m+         \"html\": \"<h2 class=\\\"text-xl font-mono font-bold text-[#ff0055] uppercase tracking-widest mb-2\\\">Dashboard Module Failure</h2>\",\u001b[39m\n\u001b[31m+         \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+         \"none\": Array [],\u001b[39m\n\u001b[31m+         \"target\": Array [\u001b[39m\n\u001b[31m+           \"h2\",\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+       },\u001b[39m\n\u001b[31m+       Object {\u001b[39m\n\u001b[31m+         \"all\": Array [],\u001b[39m\n\u001b[31m+         \"any\": Array [\u001b[39m\n\u001b[31m+           Object {\u001b[39m\n\u001b[31m+             \"data\": Object {\u001b[39m\n\u001b[31m+               \"isIframe\": false,\u001b[39m\n\u001b[31m+             },\u001b[39m\n\u001b[31m+             \"id\": \"region\",\u001b[39m\n\u001b[31m+             \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+             \"message\": \"Some page content is not contained by landmarks\",\u001b[39m\n\u001b[31m+             \"relatedNodes\": Array [],\u001b[39m\n\u001b[31m+           },\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+         \"failureSummary\": \"Fix any of the following:\u001b[39m\n\u001b[31m+   Some page content is not contained by landmarks\",\u001b[39m\n\u001b[31m+         \"html\": \"<p class=\\\"text-sm text-slate-400 font-mono mb-4\\\">A critical module in the admin dashboard has crashed. The rest of the system remains intact.</p>\",\u001b[39m\n\u001b[31m+         \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+         \"none\": Array [],\u001b[39m\n\u001b[31m+         \"target\": Array [\u001b[39m\n\u001b[31m+           \"p\",\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+       },\u001b[39m\n\u001b[31m+       Object {\u001b[39m\n\u001b[31m+         \"all\": Array [],\u001b[39m\n\u001b[31m+         \"any\": Array [\u001b[39m\n\u001b[31m+           Object {\u001b[39m\n\u001b[31m+             \"data\": Object {\u001b[39m\n\u001b[31m+               \"isIframe\": false,\u001b[39m\n\u001b[31m+             },\u001b[39m\n\u001b[31m+             \"id\": \"region\",\u001b[39m\n\u001b[31m+             \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+             \"message\": \"Some page content is not contained by landmarks\",\u001b[39m\n\u001b[31m+             \"relatedNodes\": Array [],\u001b[39m\n\u001b[31m+           },\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+         \"failureSummary\": \"Fix any of the following:\u001b[39m\n\u001b[31m+   Some page content is not contained by landmarks\",\u001b[39m\n\u001b[31m+         \"html\": \"<pre class=\\\"text-xs text-slate-400 font-mono bg-slate-900/80 p-3 rounded-lg mb-6 overflow-auto max-h-40\\\">React is not defined</pre>\",\u001b[39m\n\u001b[31m+         \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+         \"none\": Array [],\u001b[39m\n\u001b[31m+         \"target\": Array [\u001b[39m\n\u001b[31m+           \"pre\",\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+       },\u001b[39m\n\u001b[31m+     ],\u001b[39m\n\u001b[31m+     \"tags\": Array [\u001b[39m\n\u001b[31m+       \"cat.keyboard\",\u001b[39m\n\u001b[31m+       \"best-practice\",\u001b[39m\n\u001b[31m+       \"RGAAv4\",\u001b[39m\n\u001b[31m+       \"RGAA-9.2.1\",\u001b[39m\n\u001b[31m+     ],\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+ ]\u001b[39m",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  -   1\u001b[39m\n\u001b[31m+ Received  + 149\u001b[39m\n\n\u001b[32m- Array []\u001b[39m\n\u001b[31m+ Array [\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"description\": \"Ensure the document has a main landmark\",\u001b[39m\n\u001b[31m+     \"help\": \"Document should have one main landmark\",\u001b[39m\n\u001b[31m+     \"helpUrl\": \"https://dequeuniversity.com/rules/axe/4.12/landmark-one-main?application=playwright\",\u001b[39m\n\u001b[31m+     \"id\": \"landmark-one-main\",\u001b[39m\n\u001b[31m+     \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+     \"nodes\": Array [\u001b[39m\n\u001b[31m+       Object {\u001b[39m\n\u001b[31m+         \"all\": Array [\u001b[39m\n\u001b[31m+           Object {\u001b[39m\n\u001b[31m+             \"data\": null,\u001b[39m\n\u001b[31m+             \"id\": \"page-has-main\",\u001b[39m\n\u001b[31m+             \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+             \"message\": \"Document does not have a main landmark\",\u001b[39m\n\u001b[31m+             \"relatedNodes\": Array [],\u001b[39m\n\u001b[31m+           },\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+         \"any\": Array [],\u001b[39m\n\u001b[31m+         \"failureSummary\": \"Fix all of the following:\u001b[39m\n\u001b[31m+   Document does not have a main landmark\",\u001b[39m\n\u001b[31m+         \"html\": \"<html lang=\\\"en\\\" class=\\\"dark\\\" data-theme=\\\"dark\\\">\",\u001b[39m\n\u001b[31m+         \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+         \"none\": Array [],\u001b[39m\n\u001b[31m+         \"target\": Array [\u001b[39m\n\u001b[31m+           \"html\",\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+       },\u001b[39m\n\u001b[31m+     ],\u001b[39m\n\u001b[31m+     \"tags\": Array [\u001b[39m\n\u001b[31m+       \"cat.semantics\",\u001b[39m\n\u001b[31m+       \"best-practice\",\u001b[39m\n\u001b[31m+     ],\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"description\": \"Ensure that the page, or at least one of its frames contains a level-one heading\",\u001b[39m\n\u001b[31m+     \"help\": \"Page should contain a level-one heading\",\u001b[39m\n\u001b[31m+     \"helpUrl\": \"https://dequeuniversity.com/rules/axe/4.12/page-has-heading-one?application=playwright\",\u001b[39m\n\u001b[31m+     \"id\": \"page-has-heading-one\",\u001b[39m\n\u001b[31m+     \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+     \"nodes\": Array [\u001b[39m\n\u001b[31m+       Object {\u001b[39m\n\u001b[31m+         \"all\": Array [\u001b[39m\n\u001b[31m+           Object {\u001b[39m\n\u001b[31m+             \"data\": null,\u001b[39m\n\u001b[31m+             \"id\": \"page-has-heading-one\",\u001b[39m\n\u001b[31m+             \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+             \"message\": \"Page must have a level-one heading\",\u001b[39m\n\u001b[31m+             \"relatedNodes\": Array [],\u001b[39m\n\u001b[31m+           },\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+         \"any\": Array [],\u001b[39m\n\u001b[31m+         \"failureSummary\": \"Fix all of the following:\u001b[39m\n\u001b[31m+   Page must have a level-one heading\",\u001b[39m\n\u001b[31m+         \"html\": \"<html lang=\\\"en\\\" class=\\\"dark\\\" data-theme=\\\"dark\\\">\",\u001b[39m\n\u001b[31m+         \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+         \"none\": Array [],\u001b[39m\n\u001b[31m+         \"target\": Array [\u001b[39m\n\u001b[31m+           \"html\",\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+       },\u001b[39m\n\u001b[31m+     ],\u001b[39m\n\u001b[31m+     \"tags\": Array [\u001b[39m\n\u001b[31m+       \"cat.semantics\",\u001b[39m\n\u001b[31m+       \"best-practice\",\u001b[39m\n\u001b[31m+     ],\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"description\": \"Ensure all page content is contained by landmarks\",\u001b[39m\n\u001b[31m+     \"help\": \"All page content should be contained by landmarks\",\u001b[39m\n\u001b[31m+     \"helpUrl\": \"https://dequeuniversity.com/rules/axe/4.12/region?application=playwright\",\u001b[39m\n\u001b[31m+     \"id\": \"region\",\u001b[39m\n\u001b[31m+     \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+     \"nodes\": Array [\u001b[39m\n\u001b[31m+       Object {\u001b[39m\n\u001b[31m+         \"all\": Array [],\u001b[39m\n\u001b[31m+         \"any\": Array [\u001b[39m\n\u001b[31m+           Object {\u001b[39m\n\u001b[31m+             \"data\": Object {\u001b[39m\n\u001b[31m+               \"isIframe\": false,\u001b[39m\n\u001b[31m+             },\u001b[39m\n\u001b[31m+             \"id\": \"region\",\u001b[39m\n\u001b[31m+             \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+             \"message\": \"Some page content is not contained by landmarks\",\u001b[39m\n\u001b[31m+             \"relatedNodes\": Array [],\u001b[39m\n\u001b[31m+           },\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+         \"failureSummary\": \"Fix any of the following:\u001b[39m\n\u001b[31m+   Some page content is not contained by landmarks\",\u001b[39m\n\u001b[31m+         \"html\": \"<h2 class=\\\"text-xl font-mono font-bold text-[#ff0055] uppercase tracking-widest mb-2\\\">Dashboard Module Failure</h2>\",\u001b[39m\n\u001b[31m+         \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+         \"none\": Array [],\u001b[39m\n\u001b[31m+         \"target\": Array [\u001b[39m\n\u001b[31m+           \"h2\",\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+       },\u001b[39m\n\u001b[31m+       Object {\u001b[39m\n\u001b[31m+         \"all\": Array [],\u001b[39m\n\u001b[31m+         \"any\": Array [\u001b[39m\n\u001b[31m+           Object {\u001b[39m\n\u001b[31m+             \"data\": Object {\u001b[39m\n\u001b[31m+               \"isIframe\": false,\u001b[39m\n\u001b[31m+             },\u001b[39m\n\u001b[31m+             \"id\": \"region\",\u001b[39m\n\u001b[31m+             \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+             \"message\": \"Some page content is not contained by landmarks\",\u001b[39m\n\u001b[31m+             \"relatedNodes\": Array [],\u001b[39m\n\u001b[31m+           },\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+         \"failureSummary\": \"Fix any of the following:\u001b[39m\n\u001b[31m+   Some page content is not contained by landmarks\",\u001b[39m\n\u001b[31m+         \"html\": \"<p class=\\\"text-sm text-slate-400 font-mono mb-4\\\">A critical module in the admin dashboard has crashed. The rest of the system remains intact.</p>\",\u001b[39m\n\u001b[31m+         \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+         \"none\": Array [],\u001b[39m\n\u001b[31m+         \"target\": Array [\u001b[39m\n\u001b[31m+           \"p\",\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+       },\u001b[39m\n\u001b[31m+       Object {\u001b[39m\n\u001b[31m+         \"all\": Array [],\u001b[39m\n\u001b[31m+         \"any\": Array [\u001b[39m\n\u001b[31m+           Object {\u001b[39m\n\u001b[31m+             \"data\": Object {\u001b[39m\n\u001b[31m+               \"isIframe\": false,\u001b[39m\n\u001b[31m+             },\u001b[39m\n\u001b[31m+             \"id\": \"region\",\u001b[39m\n\u001b[31m+             \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+             \"message\": \"Some page content is not contained by landmarks\",\u001b[39m\n\u001b[31m+             \"relatedNodes\": Array [],\u001b[39m\n\u001b[31m+           },\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+         \"failureSummary\": \"Fix any of the following:\u001b[39m\n\u001b[31m+   Some page content is not contained by landmarks\",\u001b[39m\n\u001b[31m+         \"html\": \"<pre class=\\\"text-xs text-slate-400 font-mono bg-slate-900/80 p-3 rounded-lg mb-6 overflow-auto max-h-40\\\">React is not defined</pre>\",\u001b[39m\n\u001b[31m+         \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+         \"none\": Array [],\u001b[39m\n\u001b[31m+         \"target\": Array [\u001b[39m\n\u001b[31m+           \"pre\",\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+       },\u001b[39m\n\u001b[31m+     ],\u001b[39m\n\u001b[31m+     \"tags\": Array [\u001b[39m\n\u001b[31m+       \"cat.keyboard\",\u001b[39m\n\u001b[31m+       \"best-practice\",\u001b[39m\n\u001b[31m+       \"RGAAv4\",\u001b[39m\n\u001b[31m+       \"RGAA-9.2.1\",\u001b[39m\n\u001b[31m+     ],\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+ ]\u001b[39m\n    at C:\\Users\\n\\supremeai\\supremeai_2.0\\tests\\e2e\\accessibility.spec.ts:23:53",
+                        "location": {
+                          "file": "C:\\Users\\n\\supremeai\\supremeai_2.0\\tests\\e2e\\accessibility.spec.ts",
+                          "column": 53,
+                          "line": 23
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 21 |\u001b[39m         \u001b[36mconst\u001b[39m accessibilityScanResults \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m \u001b[36mnew\u001b[39m \u001b[33mAxeBuilder\u001b[39m({ page })\u001b[33m.\u001b[39manalyze()\u001b[33m;\u001b[39m\n \u001b[90m 22 |\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 23 |\u001b[39m         expect(accessibilityScanResults\u001b[33m.\u001b[39mviolations)\u001b[33m.\u001b[39mtoEqual([])\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                                                     \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 24 |\u001b[39m     })\u001b[33m;\u001b[39m\n \u001b[90m 25 |\u001b[39m })\u001b[33m;\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "C:\\Users\\n\\supremeai\\supremeai_2.0\\tests\\e2e\\accessibility.spec.ts",
+                            "column": 53,
+                            "line": 23
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  -   1\u001b[39m\n\u001b[31m+ Received  + 149\u001b[39m\n\n\u001b[32m- Array []\u001b[39m\n\u001b[31m+ Array [\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"description\": \"Ensure the document has a main landmark\",\u001b[39m\n\u001b[31m+     \"help\": \"Document should have one main landmark\",\u001b[39m\n\u001b[31m+     \"helpUrl\": \"https://dequeuniversity.com/rules/axe/4.12/landmark-one-main?application=playwright\",\u001b[39m\n\u001b[31m+     \"id\": \"landmark-one-main\",\u001b[39m\n\u001b[31m+     \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+     \"nodes\": Array [\u001b[39m\n\u001b[31m+       Object {\u001b[39m\n\u001b[31m+         \"all\": Array [\u001b[39m\n\u001b[31m+           Object {\u001b[39m\n\u001b[31m+             \"data\": null,\u001b[39m\n\u001b[31m+             \"id\": \"page-has-main\",\u001b[39m\n\u001b[31m+             \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+             \"message\": \"Document does not have a main landmark\",\u001b[39m\n\u001b[31m+             \"relatedNodes\": Array [],\u001b[39m\n\u001b[31m+           },\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+         \"any\": Array [],\u001b[39m\n\u001b[31m+         \"failureSummary\": \"Fix all of the following:\u001b[39m\n\u001b[31m+   Document does not have a main landmark\",\u001b[39m\n\u001b[31m+         \"html\": \"<html lang=\\\"en\\\" class=\\\"dark\\\" data-theme=\\\"dark\\\">\",\u001b[39m\n\u001b[31m+         \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+         \"none\": Array [],\u001b[39m\n\u001b[31m+         \"target\": Array [\u001b[39m\n\u001b[31m+           \"html\",\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+       },\u001b[39m\n\u001b[31m+     ],\u001b[39m\n\u001b[31m+     \"tags\": Array [\u001b[39m\n\u001b[31m+       \"cat.semantics\",\u001b[39m\n\u001b[31m+       \"best-practice\",\u001b[39m\n\u001b[31m+     ],\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"description\": \"Ensure that the page, or at least one of its frames contains a level-one heading\",\u001b[39m\n\u001b[31m+     \"help\": \"Page should contain a level-one heading\",\u001b[39m\n\u001b[31m+     \"helpUrl\": \"https://dequeuniversity.com/rules/axe/4.12/page-has-heading-one?application=playwright\",\u001b[39m\n\u001b[31m+     \"id\": \"page-has-heading-one\",\u001b[39m\n\u001b[31m+     \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+     \"nodes\": Array [\u001b[39m\n\u001b[31m+       Object {\u001b[39m\n\u001b[31m+         \"all\": Array [\u001b[39m\n\u001b[31m+           Object {\u001b[39m\n\u001b[31m+             \"data\": null,\u001b[39m\n\u001b[31m+             \"id\": \"page-has-heading-one\",\u001b[39m\n\u001b[31m+             \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+             \"message\": \"Page must have a level-one heading\",\u001b[39m\n\u001b[31m+             \"relatedNodes\": Array [],\u001b[39m\n\u001b[31m+           },\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+         \"any\": Array [],\u001b[39m\n\u001b[31m+         \"failureSummary\": \"Fix all of the following:\u001b[39m\n\u001b[31m+   Page must have a level-one heading\",\u001b[39m\n\u001b[31m+         \"html\": \"<html lang=\\\"en\\\" class=\\\"dark\\\" data-theme=\\\"dark\\\">\",\u001b[39m\n\u001b[31m+         \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+         \"none\": Array [],\u001b[39m\n\u001b[31m+         \"target\": Array [\u001b[39m\n\u001b[31m+           \"html\",\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+       },\u001b[39m\n\u001b[31m+     ],\u001b[39m\n\u001b[31m+     \"tags\": Array [\u001b[39m\n\u001b[31m+       \"cat.semantics\",\u001b[39m\n\u001b[31m+       \"best-practice\",\u001b[39m\n\u001b[31m+     ],\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"description\": \"Ensure all page content is contained by landmarks\",\u001b[39m\n\u001b[31m+     \"help\": \"All page content should be contained by landmarks\",\u001b[39m\n\u001b[31m+     \"helpUrl\": \"https://dequeuniversity.com/rules/axe/4.12/region?application=playwright\",\u001b[39m\n\u001b[31m+     \"id\": \"region\",\u001b[39m\n\u001b[31m+     \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+     \"nodes\": Array [\u001b[39m\n\u001b[31m+       Object {\u001b[39m\n\u001b[31m+         \"all\": Array [],\u001b[39m\n\u001b[31m+         \"any\": Array [\u001b[39m\n\u001b[31m+           Object {\u001b[39m\n\u001b[31m+             \"data\": Object {\u001b[39m\n\u001b[31m+               \"isIframe\": false,\u001b[39m\n\u001b[31m+             },\u001b[39m\n\u001b[31m+             \"id\": \"region\",\u001b[39m\n\u001b[31m+             \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+             \"message\": \"Some page content is not contained by landmarks\",\u001b[39m\n\u001b[31m+             \"relatedNodes\": Array [],\u001b[39m\n\u001b[31m+           },\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+         \"failureSummary\": \"Fix any of the following:\u001b[39m\n\u001b[31m+   Some page content is not contained by landmarks\",\u001b[39m\n\u001b[31m+         \"html\": \"<h2 class=\\\"text-xl font-mono font-bold text-[#ff0055] uppercase tracking-widest mb-2\\\">Dashboard Module Failure</h2>\",\u001b[39m\n\u001b[31m+         \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+         \"none\": Array [],\u001b[39m\n\u001b[31m+         \"target\": Array [\u001b[39m\n\u001b[31m+           \"h2\",\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+       },\u001b[39m\n\u001b[31m+       Object {\u001b[39m\n\u001b[31m+         \"all\": Array [],\u001b[39m\n\u001b[31m+         \"any\": Array [\u001b[39m\n\u001b[31m+           Object {\u001b[39m\n\u001b[31m+             \"data\": Object {\u001b[39m\n\u001b[31m+               \"isIframe\": false,\u001b[39m\n\u001b[31m+             },\u001b[39m\n\u001b[31m+             \"id\": \"region\",\u001b[39m\n\u001b[31m+             \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+             \"message\": \"Some page content is not contained by landmarks\",\u001b[39m\n\u001b[31m+             \"relatedNodes\": Array [],\u001b[39m\n\u001b[31m+           },\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+         \"failureSummary\": \"Fix any of the following:\u001b[39m\n\u001b[31m+   Some page content is not contained by landmarks\",\u001b[39m\n\u001b[31m+         \"html\": \"<p class=\\\"text-sm text-slate-400 font-mono mb-4\\\">A critical module in the admin dashboard has crashed. The rest of the system remains intact.</p>\",\u001b[39m\n\u001b[31m+         \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+         \"none\": Array [],\u001b[39m\n\u001b[31m+         \"target\": Array [\u001b[39m\n\u001b[31m+           \"p\",\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+       },\u001b[39m\n\u001b[31m+       Object {\u001b[39m\n\u001b[31m+         \"all\": Array [],\u001b[39m\n\u001b[31m+         \"any\": Array [\u001b[39m\n\u001b[31m+           Object {\u001b[39m\n\u001b[31m+             \"data\": Object {\u001b[39m\n\u001b[31m+               \"isIframe\": false,\u001b[39m\n\u001b[31m+             },\u001b[39m\n\u001b[31m+             \"id\": \"region\",\u001b[39m\n\u001b[31m+             \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+             \"message\": \"Some page content is not contained by landmarks\",\u001b[39m\n\u001b[31m+             \"relatedNodes\": Array [],\u001b[39m\n\u001b[31m+           },\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+         \"failureSummary\": \"Fix any of the following:\u001b[39m\n\u001b[31m+   Some page content is not contained by landmarks\",\u001b[39m\n\u001b[31m+         \"html\": \"<pre class=\\\"text-xs text-slate-400 font-mono bg-slate-900/80 p-3 rounded-lg mb-6 overflow-auto max-h-40\\\">React is not defined</pre>\",\u001b[39m\n\u001b[31m+         \"impact\": \"moderate\",\u001b[39m\n\u001b[31m+         \"none\": Array [],\u001b[39m\n\u001b[31m+         \"target\": Array [\u001b[39m\n\u001b[31m+           \"pre\",\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+       },\u001b[39m\n\u001b[31m+     ],\u001b[39m\n\u001b[31m+     \"tags\": Array [\u001b[39m\n\u001b[31m+       \"cat.keyboard\",\u001b[39m\n\u001b[31m+       \"best-practice\",\u001b[39m\n\u001b[31m+       \"RGAAv4\",\u001b[39m\n\u001b[31m+       \"RGAA-9.2.1\",\u001b[39m\n\u001b[31m+     ],\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+ ]\u001b[39m\n\n  21 |         const accessibilityScanResults = await new AxeBuilder({ page }).analyze();\n  22 |\n> 23 |         expect(accessibilityScanResults.violations).toEqual([]);\n     |                                                     ^\n  24 |     });\n  25 | });\n    at C:\\Users\\n\\supremeai\\supremeai_2.0\\tests\\e2e\\accessibility.spec.ts:23:53"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-04T13:04:11.367Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\Users\\n\\supremeai\\supremeai_2.0\\test-results\\e2e-accessibility-Accessib-1a8a2-hboard-should-be-accessible-Mobile-Chrome\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "C:\\Users\\n\\supremeai\\supremeai_2.0\\test-results\\e2e-accessibility-Accessib-1a8a2-hboard-should-be-accessible-Mobile-Chrome\\video-1.webm"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "C:\\Users\\n\\supremeai\\supremeai_2.0\\test-results\\e2e-accessibility-Accessib-1a8a2-hboard-should-be-accessible-Mobile-Chrome\\video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "C:\\Users\\n\\supremeai\\supremeai_2.0\\test-results\\e2e-accessibility-Accessib-1a8a2-hboard-should-be-accessible-Mobile-Chrome\\error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "C:\\Users\\n\\supremeai\\supremeai_2.0\\tests\\e2e\\accessibility.spec.ts",
+                        "column": 53,
+                        "line": 23
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "cb4d96879b22e77d8b2c-5cee6a536c5b96084d0d",
+              "file": "e2e/accessibility.spec.ts",
+              "line": 18,
+              "column": 9
+            },
+            {
+              "title": "Homepage should not have any automatically detectable accessibility issues",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Safari",
+                  "projectName": "Mobile Safari",
+                  "results": [
+                    {
+                      "workerIndex": 26,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 43,
+                      "error": {
+                        "message": "Error: browserType.launch: Executable doesn't exist at C:\\Users\\n\\AppData\\Local\\ms-playwright\\webkit-2311\\Playwright.exe\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     pnpm exec playwright install                           ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝",
+                        "stack": "Error: browserType.launch: Executable doesn't exist at C:\\Users\\n\\AppData\\Local\\ms-playwright\\webkit-2311\\Playwright.exe\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     pnpm exec playwright install                           ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝"
+                      },
+                      "errors": [
+                        {
+                          "message": "Error: browserType.launch: Executable doesn't exist at C:\\Users\\n\\AppData\\Local\\ms-playwright\\webkit-2311\\Playwright.exe\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     pnpm exec playwright install                           ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-04T13:05:36.019Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "C:\\Users\\n\\supremeai\\supremeai_2.0\\test-results\\e2e-accessibility-Accessib-57b49-ctable-accessibility-issues-Mobile-Safari\\error-context.md"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "cb4d96879b22e77d8b2c-48be1640fc89884f4421",
+              "file": "e2e/accessibility.spec.ts",
+              "line": 5,
+              "column": 9
+            },
+            {
+              "title": "Admin Dashboard should be accessible",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Safari",
+                  "projectName": "Mobile Safari",
+                  "results": [
+                    {
+                      "workerIndex": 27,
+                      "parallelIndex": 1,
+                      "status": "failed",
+                      "duration": 8,
+                      "error": {
+                        "message": "Error: browserType.launch: Executable doesn't exist at C:\\Users\\n\\AppData\\Local\\ms-playwright\\webkit-2311\\Playwright.exe\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     pnpm exec playwright install                           ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝",
+                        "stack": "Error: browserType.launch: Executable doesn't exist at C:\\Users\\n\\AppData\\Local\\ms-playwright\\webkit-2311\\Playwright.exe\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     pnpm exec playwright install                           ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝"
+                      },
+                      "errors": [
+                        {
+                          "message": "Error: browserType.launch: Executable doesn't exist at C:\\Users\\n\\AppData\\Local\\ms-playwright\\webkit-2311\\Playwright.exe\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     pnpm exec playwright install                           ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-04T13:05:37.025Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "C:\\Users\\n\\supremeai\\supremeai_2.0\\test-results\\e2e-accessibility-Accessib-1a8a2-hboard-should-be-accessible-Mobile-Safari\\error-context.md"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "cb4d96879b22e77d8b2c-179c216fc7c0773a00af",
+              "file": "e2e/accessibility.spec.ts",
+              "line": 18,
+              "column": 9
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "e2e\\admin-dashboard.spec.ts",
+      "file": "e2e/admin-dashboard.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "SupremeAI Nexus E2E Flow",
+          "file": "e2e/admin-dashboard.spec.ts",
+          "line": 3,
+          "column": 6,
+          "specs": [
+            {
+              "title": "should load the dashboard and verify Java Worker widget",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 10854,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByText('SupremeAI')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByText('SupremeAI')\u001b[22m\n",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByText('SupremeAI')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByText('SupremeAI')\u001b[22m\n\n    at C:\\Users\\n\\supremeai\\supremeai_2.0\\tests\\e2e\\admin-dashboard.spec.ts:10:47",
+                        "location": {
+                          "file": "C:\\Users\\n\\supremeai\\supremeai_2.0\\tests\\e2e\\admin-dashboard.spec.ts",
+                          "column": 47,
+                          "line": 10
+                        },
+                        "snippet": "\u001b[0m \u001b[90m  8 |\u001b[39m\n \u001b[90m  9 |\u001b[39m     \u001b[90m// 2. Verify Nexus Header exists\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 10 |\u001b[39m     \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mgetByText(\u001b[32m'SupremeAI'\u001b[39m))\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                                               \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 11 |\u001b[39m\n \u001b[90m 12 |\u001b[39m     \u001b[90m// 3. Verify Java Background Worker widget is rendered\u001b[39m\n \u001b[90m 13 |\u001b[39m     \u001b[36mconst\u001b[39m workerWidget \u001b[33m=\u001b[39m page\u001b[33m.\u001b[39mlocator(\u001b[32m'text=Java Background Worker'\u001b[39m)\u001b[33m;\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "C:\\Users\\n\\supremeai\\supremeai_2.0\\tests\\e2e\\admin-dashboard.spec.ts",
+                            "column": 47,
+                            "line": 10
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByText('SupremeAI')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByText('SupremeAI')\u001b[22m\n\n\n   8 |\n   9 |     // 2. Verify Nexus Header exists\n> 10 |     await expect(page.getByText('SupremeAI')).toBeVisible();\n     |                                               ^\n  11 |\n  12 |     // 3. Verify Java Background Worker widget is rendered\n  13 |     const workerWidget = page.locator('text=Java Background Worker');\n    at C:\\Users\\n\\supremeai\\supremeai_2.0\\tests\\e2e\\admin-dashboard.spec.ts:10:47"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-04T13:03:03.587Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\Users\\n\\supremeai\\supremeai_2.0\\test-results\\e2e-admin-dashboard-Suprem-08ee0-d-verify-Java-Worker-widget-chromium\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "C:\\Users\\n\\supremeai\\supremeai_2.0\\test-results\\e2e-admin-dashboard-Suprem-08ee0-d-verify-Java-Worker-widget-chromium\\video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "C:\\Users\\n\\supremeai\\supremeai_2.0\\test-results\\e2e-admin-dashboard-Suprem-08ee0-d-verify-Java-Worker-widget-chromium\\error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "C:\\Users\\n\\supremeai\\supremeai_2.0\\tests\\e2e\\admin-dashboard.spec.ts",
+                        "column": 47,
+                        "line": 10
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "7475c5559e3e24f1e588-840ff965689fe6d6493e",
+              "file": "e2e/admin-dashboard.spec.ts",
+              "line": 5,
+              "column": 7
+            },
+            {
+              "title": "should be able to submit an orchestration command via chat",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 1,
+                      "status": "failed",
+                      "duration": 9961,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByPlaceholder('[SupremeAI Nexus Command...]')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByPlaceholder('[SupremeAI Nexus Command...]')\u001b[22m\n",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByPlaceholder('[SupremeAI Nexus Command...]')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByPlaceholder('[SupremeAI Nexus Command...]')\u001b[22m\n\n    at C:\\Users\\n\\supremeai\\supremeai_2.0\\tests\\e2e\\admin-dashboard.spec.ts:30:29",
+                        "location": {
+                          "file": "C:\\Users\\n\\supremeai\\supremeai_2.0\\tests\\e2e\\admin-dashboard.spec.ts",
+                          "column": 29,
+                          "line": 30
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 28 |\u001b[39m     \u001b[90m// Find the chat input\u001b[39m\n \u001b[90m 29 |\u001b[39m     \u001b[36mconst\u001b[39m chatInput \u001b[33m=\u001b[39m page\u001b[33m.\u001b[39mgetByPlaceholder(\u001b[32m'[SupremeAI Nexus Command...]'\u001b[39m)\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 30 |\u001b[39m     \u001b[36mawait\u001b[39m expect(chatInput)\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                             \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 31 |\u001b[39m\n \u001b[90m 32 |\u001b[39m     \u001b[90m// Type a command that would theoretically trigger a background Java task\u001b[39m\n \u001b[90m 33 |\u001b[39m     \u001b[36mawait\u001b[39m chatInput\u001b[33m.\u001b[39mfill(\u001b[32m'Run full system security audit'\u001b[39m)\u001b[33m;\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "C:\\Users\\n\\supremeai\\supremeai_2.0\\tests\\e2e\\admin-dashboard.spec.ts",
+                            "column": 29,
+                            "line": 30
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByPlaceholder('[SupremeAI Nexus Command...]')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByPlaceholder('[SupremeAI Nexus Command...]')\u001b[22m\n\n\n  28 |     // Find the chat input\n  29 |     const chatInput = page.getByPlaceholder('[SupremeAI Nexus Command...]');\n> 30 |     await expect(chatInput).toBeVisible();\n     |                             ^\n  31 |\n  32 |     // Type a command that would theoretically trigger a background Java task\n  33 |     await chatInput.fill('Run full system security audit');\n    at C:\\Users\\n\\supremeai\\supremeai_2.0\\tests\\e2e\\admin-dashboard.spec.ts:30:29"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-04T13:03:08.176Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\Users\\n\\supremeai\\supremeai_2.0\\test-results\\e2e-admin-dashboard-Suprem-8ff1e-hestration-command-via-chat-chromium\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "C:\\Users\\n\\supremeai\\supremeai_2.0\\test-results\\e2e-admin-dashboard-Suprem-8ff1e-hestration-command-via-chat-chromium\\video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "C:\\Users\\n\\supremeai\\supremeai_2.0\\test-results\\e2e-admin-dashboard-Suprem-8ff1e-hestration-command-via-chat-chromium\\error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "C:\\Users\\n\\supremeai\\supremeai_2.0\\tests\\e2e\\admin-dashboard.spec.ts",
+                        "column": 29,
+                        "line": 30
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "7475c5559e3e24f1e588-a9afdc9c7cb2ed54a956",
+              "file": "e2e/admin-dashboard.spec.ts",
+              "line": 25,
+              "column": 7
+            },
+            {
+              "title": "should load the dashboard and verify Java Worker widget",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [
+                    {
+                      "workerIndex": 8,
+                      "parallelIndex": 1,
+                      "status": "failed",
+                      "duration": 4,
+                      "error": {
+                        "message": "Error: browserType.launch: Executable doesn't exist at C:\\Users\\n\\AppData\\Local\\ms-playwright\\firefox-1532\\firefox\\firefox.exe\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     pnpm exec playwright install                           ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝",
+                        "stack": "Error: browserType.launch: Executable doesn't exist at C:\\Users\\n\\AppData\\Local\\ms-playwright\\firefox-1532\\firefox\\firefox.exe\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     pnpm exec playwright install                           ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝"
+                      },
+                      "errors": [
+                        {
+                          "message": "Error: browserType.launch: Executable doesn't exist at C:\\Users\\n\\AppData\\Local\\ms-playwright\\firefox-1532\\firefox\\firefox.exe\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     pnpm exec playwright install                           ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-04T13:03:45.754Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "C:\\Users\\n\\supremeai\\supremeai_2.0\\test-results\\e2e-admin-dashboard-Suprem-08ee0-d-verify-Java-Worker-widget-firefox\\error-context.md"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "7475c5559e3e24f1e588-491652adea7e374b3693",
+              "file": "e2e/admin-dashboard.spec.ts",
+              "line": 5,
+              "column": 7
+            },
+            {
+              "title": "should be able to submit an orchestration command via chat",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [
+                    {
+                      "workerIndex": 9,
+                      "parallelIndex": 1,
+                      "status": "failed",
+                      "duration": 4,
+                      "error": {
+                        "message": "Error: browserType.launch: Executable doesn't exist at C:\\Users\\n\\AppData\\Local\\ms-playwright\\firefox-1532\\firefox\\firefox.exe\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     pnpm exec playwright install                           ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝",
+                        "stack": "Error: browserType.launch: Executable doesn't exist at C:\\Users\\n\\AppData\\Local\\ms-playwright\\firefox-1532\\firefox\\firefox.exe\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     pnpm exec playwright install                           ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝"
+                      },
+                      "errors": [
+                        {
+                          "message": "Error: browserType.launch: Executable doesn't exist at C:\\Users\\n\\AppData\\Local\\ms-playwright\\firefox-1532\\firefox\\firefox.exe\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     pnpm exec playwright install                           ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-04T13:03:47.558Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "C:\\Users\\n\\supremeai\\supremeai_2.0\\test-results\\e2e-admin-dashboard-Suprem-8ff1e-hestration-command-via-chat-firefox\\error-context.md"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "7475c5559e3e24f1e588-e3e38dbe989ee2539352",
+              "file": "e2e/admin-dashboard.spec.ts",
+              "line": 25,
+              "column": 7
+            },
+            {
+              "title": "should load the dashboard and verify Java Worker widget",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
+                  "results": [
+                    {
+                      "workerIndex": 15,
+                      "parallelIndex": 1,
+                      "status": "failed",
+                      "duration": 5,
+                      "error": {
+                        "message": "Error: browserType.launch: Executable doesn't exist at C:\\Users\\n\\AppData\\Local\\ms-playwright\\webkit-2311\\Playwright.exe\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     pnpm exec playwright install                           ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝",
+                        "stack": "Error: browserType.launch: Executable doesn't exist at C:\\Users\\n\\AppData\\Local\\ms-playwright\\webkit-2311\\Playwright.exe\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     pnpm exec playwright install                           ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝"
+                      },
+                      "errors": [
+                        {
+                          "message": "Error: browserType.launch: Executable doesn't exist at C:\\Users\\n\\AppData\\Local\\ms-playwright\\webkit-2311\\Playwright.exe\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     pnpm exec playwright install                           ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-04T13:04:02.401Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "C:\\Users\\n\\supremeai\\supremeai_2.0\\test-results\\e2e-admin-dashboard-Suprem-08ee0-d-verify-Java-Worker-widget-webkit\\error-context.md"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "7475c5559e3e24f1e588-3fb10350a03b26d5bbcc",
+              "file": "e2e/admin-dashboard.spec.ts",
+              "line": 5,
+              "column": 7
+            },
+            {
+              "title": "should be able to submit an orchestration command via chat",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
+                  "results": [
+                    {
+                      "workerIndex": 16,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 10,
+                      "error": {
+                        "message": "Error: browserType.launch: Executable doesn't exist at C:\\Users\\n\\AppData\\Local\\ms-playwright\\webkit-2311\\Playwright.exe\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     pnpm exec playwright install                           ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝",
+                        "stack": "Error: browserType.launch: Executable doesn't exist at C:\\Users\\n\\AppData\\Local\\ms-playwright\\webkit-2311\\Playwright.exe\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     pnpm exec playwright install                           ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝"
+                      },
+                      "errors": [
+                        {
+                          "message": "Error: browserType.launch: Executable doesn't exist at C:\\Users\\n\\AppData\\Local\\ms-playwright\\webkit-2311\\Playwright.exe\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     pnpm exec playwright install                           ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-04T13:04:04.722Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "C:\\Users\\n\\supremeai\\supremeai_2.0\\test-results\\e2e-admin-dashboard-Suprem-8ff1e-hestration-command-via-chat-webkit\\error-context.md"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "7475c5559e3e24f1e588-f0da5eebe25779d0cd1e",
+              "file": "e2e/admin-dashboard.spec.ts",
+              "line": 25,
+              "column": 7
+            },
+            {
+              "title": "should load the dashboard and verify Java Worker widget",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Chrome",
+                  "projectName": "Mobile Chrome",
+                  "results": [
+                    {
+                      "workerIndex": 20,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 10095,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByText('SupremeAI')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByText('SupremeAI')\u001b[22m\n",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByText('SupremeAI')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByText('SupremeAI')\u001b[22m\n\n    at C:\\Users\\n\\supremeai\\supremeai_2.0\\tests\\e2e\\admin-dashboard.spec.ts:10:47",
+                        "location": {
+                          "file": "C:\\Users\\n\\supremeai\\supremeai_2.0\\tests\\e2e\\admin-dashboard.spec.ts",
+                          "column": 47,
+                          "line": 10
+                        },
+                        "snippet": "\u001b[0m \u001b[90m  8 |\u001b[39m\n \u001b[90m  9 |\u001b[39m     \u001b[90m// 2. Verify Nexus Header exists\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 10 |\u001b[39m     \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mgetByText(\u001b[32m'SupremeAI'\u001b[39m))\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                                               \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 11 |\u001b[39m\n \u001b[90m 12 |\u001b[39m     \u001b[90m// 3. Verify Java Background Worker widget is rendered\u001b[39m\n \u001b[90m 13 |\u001b[39m     \u001b[36mconst\u001b[39m workerWidget \u001b[33m=\u001b[39m page\u001b[33m.\u001b[39mlocator(\u001b[32m'text=Java Background Worker'\u001b[39m)\u001b[33m;\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "C:\\Users\\n\\supremeai\\supremeai_2.0\\tests\\e2e\\admin-dashboard.spec.ts",
+                            "column": 47,
+                            "line": 10
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByText('SupremeAI')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByText('SupremeAI')\u001b[22m\n\n\n   8 |\n   9 |     // 2. Verify Nexus Header exists\n> 10 |     await expect(page.getByText('SupremeAI')).toBeVisible();\n     |                                               ^\n  11 |\n  12 |     // 3. Verify Java Background Worker widget is rendered\n  13 |     const workerWidget = page.locator('text=Java Background Worker');\n    at C:\\Users\\n\\supremeai\\supremeai_2.0\\tests\\e2e\\admin-dashboard.spec.ts:10:47"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-04T13:04:33.856Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\Users\\n\\supremeai\\supremeai_2.0\\test-results\\e2e-admin-dashboard-Suprem-08ee0-d-verify-Java-Worker-widget-Mobile-Chrome\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "C:\\Users\\n\\supremeai\\supremeai_2.0\\test-results\\e2e-admin-dashboard-Suprem-08ee0-d-verify-Java-Worker-widget-Mobile-Chrome\\video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "C:\\Users\\n\\supremeai\\supremeai_2.0\\test-results\\e2e-admin-dashboard-Suprem-08ee0-d-verify-Java-Worker-widget-Mobile-Chrome\\error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "C:\\Users\\n\\supremeai\\supremeai_2.0\\tests\\e2e\\admin-dashboard.spec.ts",
+                        "column": 47,
+                        "line": 10
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "7475c5559e3e24f1e588-7d5549aefb4e4e2fcf77",
+              "file": "e2e/admin-dashboard.spec.ts",
+              "line": 5,
+              "column": 7
+            },
+            {
+              "title": "should be able to submit an orchestration command via chat",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Chrome",
+                  "projectName": "Mobile Chrome",
+                  "results": [
+                    {
+                      "workerIndex": 22,
+                      "parallelIndex": 1,
+                      "status": "failed",
+                      "duration": 9169,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByPlaceholder('[SupremeAI Nexus Command...]')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByPlaceholder('[SupremeAI Nexus Command...]')\u001b[22m\n",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByPlaceholder('[SupremeAI Nexus Command...]')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByPlaceholder('[SupremeAI Nexus Command...]')\u001b[22m\n\n    at C:\\Users\\n\\supremeai\\supremeai_2.0\\tests\\e2e\\admin-dashboard.spec.ts:30:29",
+                        "location": {
+                          "file": "C:\\Users\\n\\supremeai\\supremeai_2.0\\tests\\e2e\\admin-dashboard.spec.ts",
+                          "column": 29,
+                          "line": 30
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 28 |\u001b[39m     \u001b[90m// Find the chat input\u001b[39m\n \u001b[90m 29 |\u001b[39m     \u001b[36mconst\u001b[39m chatInput \u001b[33m=\u001b[39m page\u001b[33m.\u001b[39mgetByPlaceholder(\u001b[32m'[SupremeAI Nexus Command...]'\u001b[39m)\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 30 |\u001b[39m     \u001b[36mawait\u001b[39m expect(chatInput)\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                             \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 31 |\u001b[39m\n \u001b[90m 32 |\u001b[39m     \u001b[90m// Type a command that would theoretically trigger a background Java task\u001b[39m\n \u001b[90m 33 |\u001b[39m     \u001b[36mawait\u001b[39m chatInput\u001b[33m.\u001b[39mfill(\u001b[32m'Run full system security audit'\u001b[39m)\u001b[33m;\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "C:\\Users\\n\\supremeai\\supremeai_2.0\\tests\\e2e\\admin-dashboard.spec.ts",
+                            "column": 29,
+                            "line": 30
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByPlaceholder('[SupremeAI Nexus Command...]')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByPlaceholder('[SupremeAI Nexus Command...]')\u001b[22m\n\n\n  28 |     // Find the chat input\n  29 |     const chatInput = page.getByPlaceholder('[SupremeAI Nexus Command...]');\n> 30 |     await expect(chatInput).toBeVisible();\n     |                             ^\n  31 |\n  32 |     // Type a command that would theoretically trigger a background Java task\n  33 |     await chatInput.fill('Run full system security audit');\n    at C:\\Users\\n\\supremeai\\supremeai_2.0\\tests\\e2e\\admin-dashboard.spec.ts:30:29"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-04T13:04:40.757Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\Users\\n\\supremeai\\supremeai_2.0\\test-results\\e2e-admin-dashboard-Suprem-8ff1e-hestration-command-via-chat-Mobile-Chrome\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "C:\\Users\\n\\supremeai\\supremeai_2.0\\test-results\\e2e-admin-dashboard-Suprem-8ff1e-hestration-command-via-chat-Mobile-Chrome\\video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "C:\\Users\\n\\supremeai\\supremeai_2.0\\test-results\\e2e-admin-dashboard-Suprem-8ff1e-hestration-command-via-chat-Mobile-Chrome\\error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "C:\\Users\\n\\supremeai\\supremeai_2.0\\tests\\e2e\\admin-dashboard.spec.ts",
+                        "column": 29,
+                        "line": 30
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "7475c5559e3e24f1e588-8ceedf6c266ee271f8e8",
+              "file": "e2e/admin-dashboard.spec.ts",
+              "line": 25,
+              "column": 7
+            },
+            {
+              "title": "should load the dashboard and verify Java Worker widget",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Safari",
+                  "projectName": "Mobile Safari",
+                  "results": [
+                    {
+                      "workerIndex": 28,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 7,
+                      "error": {
+                        "message": "Error: browserType.launch: Executable doesn't exist at C:\\Users\\n\\AppData\\Local\\ms-playwright\\webkit-2311\\Playwright.exe\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     pnpm exec playwright install                           ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝",
+                        "stack": "Error: browserType.launch: Executable doesn't exist at C:\\Users\\n\\AppData\\Local\\ms-playwright\\webkit-2311\\Playwright.exe\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     pnpm exec playwright install                           ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝"
+                      },
+                      "errors": [
+                        {
+                          "message": "Error: browserType.launch: Executable doesn't exist at C:\\Users\\n\\AppData\\Local\\ms-playwright\\webkit-2311\\Playwright.exe\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     pnpm exec playwright install                           ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-04T13:05:39.129Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "C:\\Users\\n\\supremeai\\supremeai_2.0\\test-results\\e2e-admin-dashboard-Suprem-08ee0-d-verify-Java-Worker-widget-Mobile-Safari\\error-context.md"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "7475c5559e3e24f1e588-41f61f78135bde40d262",
+              "file": "e2e/admin-dashboard.spec.ts",
+              "line": 5,
+              "column": 7
+            },
+            {
+              "title": "should be able to submit an orchestration command via chat",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Safari",
+                  "projectName": "Mobile Safari",
+                  "results": [
+                    {
+                      "workerIndex": 29,
+                      "parallelIndex": 1,
+                      "status": "failed",
+                      "duration": 5,
+                      "error": {
+                        "message": "Error: browserType.launch: Executable doesn't exist at C:\\Users\\n\\AppData\\Local\\ms-playwright\\webkit-2311\\Playwright.exe\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     pnpm exec playwright install                           ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝",
+                        "stack": "Error: browserType.launch: Executable doesn't exist at C:\\Users\\n\\AppData\\Local\\ms-playwright\\webkit-2311\\Playwright.exe\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     pnpm exec playwright install                           ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝"
+                      },
+                      "errors": [
+                        {
+                          "message": "Error: browserType.launch: Executable doesn't exist at C:\\Users\\n\\AppData\\Local\\ms-playwright\\webkit-2311\\Playwright.exe\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     pnpm exec playwright install                           ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-04T13:05:39.889Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "C:\\Users\\n\\supremeai\\supremeai_2.0\\test-results\\e2e-admin-dashboard-Suprem-8ff1e-hestration-command-via-chat-Mobile-Safari\\error-context.md"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "7475c5559e3e24f1e588-14e856414cbc68b42523",
+              "file": "e2e/admin-dashboard.spec.ts",
+              "line": 25,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "e2e\\chat.spec.ts",
+      "file": "e2e/chat.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "Chat sends message",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 3,
+                  "parallelIndex": 0,
+                  "status": "timedOut",
+                  "duration": 30585,
+                  "error": {
+                    "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m",
+                    "stack": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                  },
+                  "errors": [
+                    {
+                      "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                    },
+                    {
+                      "location": {
+                        "file": "C:\\Users\\n\\supremeai\\supremeai_2.0\\tests\\e2e\\chat.spec.ts",
+                        "column": 14,
+                        "line": 5
+                      },
+                      "message": "Error: page.fill: Test timeout of 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-testid=\"chat-input\"]')\u001b[22m\n\n\n  3 | test('Chat sends message', async ({ page }) => {\n  4 |   await page.goto('/');\n> 5 |   await page.fill('[data-testid=\"chat-input\"]', 'Hello SupremeAI!');\n    |              ^\n  6 |   await page.click('[data-testid=\"chat-submit\"]');\n  7 |   await expect(page.getByText('Hello SupremeAI!').first()).toBeVisible();\n  8 | });\n    at C:\\Users\\n\\supremeai\\supremeai_2.0\\tests\\e2e\\chat.spec.ts:5:14"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-07-04T13:03:16.212Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "C:\\Users\\n\\supremeai\\supremeai_2.0\\test-results\\e2e-chat-Chat-sends-message-chromium\\test-failed-1.png"
+                    },
+                    {
+                      "name": "video",
+                      "contentType": "video/webm",
+                      "path": "C:\\Users\\n\\supremeai\\supremeai_2.0\\test-results\\e2e-chat-Chat-sends-message-chromium\\video.webm"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "C:\\Users\\n\\supremeai\\supremeai_2.0\\test-results\\e2e-chat-Chat-sends-message-chromium\\error-context.md"
+                    }
+                  ]
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "d3d49f2899a0faacbcaf-be505a322d854db5b764",
+          "file": "e2e/chat.spec.ts",
+          "line": 3,
+          "column": 5
+        },
+        {
+          "title": "Chat sends message",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "firefox",
+              "projectName": "firefox",
+              "results": [
+                {
+                  "workerIndex": 10,
+                  "parallelIndex": 1,
+                  "status": "failed",
+                  "duration": 13,
+                  "error": {
+                    "message": "Error: browserType.launch: Executable doesn't exist at C:\\Users\\n\\AppData\\Local\\ms-playwright\\firefox-1532\\firefox\\firefox.exe\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     pnpm exec playwright install                           ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝",
+                    "stack": "Error: browserType.launch: Executable doesn't exist at C:\\Users\\n\\AppData\\Local\\ms-playwright\\firefox-1532\\firefox\\firefox.exe\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     pnpm exec playwright install                           ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝"
+                  },
+                  "errors": [
+                    {
+                      "message": "Error: browserType.launch: Executable doesn't exist at C:\\Users\\n\\AppData\\Local\\ms-playwright\\firefox-1532\\firefox\\firefox.exe\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     pnpm exec playwright install                           ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-07-04T13:03:49.221Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "C:\\Users\\n\\supremeai\\supremeai_2.0\\test-results\\e2e-chat-Chat-sends-message-firefox\\error-context.md"
+                    }
+                  ]
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "d3d49f2899a0faacbcaf-854e5b451a7a4fe0eaa9",
+          "file": "e2e/chat.spec.ts",
+          "line": 3,
+          "column": 5
+        },
+        {
+          "title": "Chat sends message",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "webkit",
+              "projectName": "webkit",
+              "results": [
+                {
+                  "workerIndex": 17,
+                  "parallelIndex": 1,
+                  "status": "failed",
+                  "duration": 4,
+                  "error": {
+                    "message": "Error: browserType.launch: Executable doesn't exist at C:\\Users\\n\\AppData\\Local\\ms-playwright\\webkit-2311\\Playwright.exe\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     pnpm exec playwright install                           ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝",
+                    "stack": "Error: browserType.launch: Executable doesn't exist at C:\\Users\\n\\AppData\\Local\\ms-playwright\\webkit-2311\\Playwright.exe\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     pnpm exec playwright install                           ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝"
+                  },
+                  "errors": [
+                    {
+                      "message": "Error: browserType.launch: Executable doesn't exist at C:\\Users\\n\\AppData\\Local\\ms-playwright\\webkit-2311\\Playwright.exe\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     pnpm exec playwright install                           ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-07-04T13:04:05.409Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "C:\\Users\\n\\supremeai\\supremeai_2.0\\test-results\\e2e-chat-Chat-sends-message-webkit\\error-context.md"
+                    }
+                  ]
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "d3d49f2899a0faacbcaf-e4c03f84f24ec542393f",
+          "file": "e2e/chat.spec.ts",
+          "line": 3,
+          "column": 5
+        },
+        {
+          "title": "Chat sends message",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Chrome",
+              "projectName": "Mobile Chrome",
+              "results": [
+                {
+                  "workerIndex": 23,
+                  "parallelIndex": 0,
+                  "status": "timedOut",
+                  "duration": 31412,
+                  "error": {
+                    "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m",
+                    "stack": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                  },
+                  "errors": [
+                    {
+                      "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                    },
+                    {
+                      "location": {
+                        "file": "C:\\Users\\n\\supremeai\\supremeai_2.0\\tests\\e2e\\chat.spec.ts",
+                        "column": 14,
+                        "line": 5
+                      },
+                      "message": "Error: page.fill: Test timeout of 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-testid=\"chat-input\"]')\u001b[22m\n\n\n  3 | test('Chat sends message', async ({ page }) => {\n  4 |   await page.goto('/');\n> 5 |   await page.fill('[data-testid=\"chat-input\"]', 'Hello SupremeAI!');\n    |              ^\n  6 |   await page.click('[data-testid=\"chat-submit\"]');\n  7 |   await expect(page.getByText('Hello SupremeAI!').first()).toBeVisible();\n  8 | });\n    at C:\\Users\\n\\supremeai\\supremeai_2.0\\tests\\e2e\\chat.spec.ts:5:14"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-07-04T13:04:46.547Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "C:\\Users\\n\\supremeai\\supremeai_2.0\\test-results\\e2e-chat-Chat-sends-message-Mobile-Chrome\\test-failed-1.png"
+                    },
+                    {
+                      "name": "video",
+                      "contentType": "video/webm",
+                      "path": "C:\\Users\\n\\supremeai\\supremeai_2.0\\test-results\\e2e-chat-Chat-sends-message-Mobile-Chrome\\video.webm"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "C:\\Users\\n\\supremeai\\supremeai_2.0\\test-results\\e2e-chat-Chat-sends-message-Mobile-Chrome\\error-context.md"
+                    }
+                  ]
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "d3d49f2899a0faacbcaf-b7664ec793cc8f664ec7",
+          "file": "e2e/chat.spec.ts",
+          "line": 3,
+          "column": 5
+        },
+        {
+          "title": "Chat sends message",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Safari",
+              "projectName": "Mobile Safari",
+              "results": [
+                {
+                  "workerIndex": 30,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 9,
+                  "error": {
+                    "message": "Error: browserType.launch: Executable doesn't exist at C:\\Users\\n\\AppData\\Local\\ms-playwright\\webkit-2311\\Playwright.exe\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     pnpm exec playwright install                           ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝",
+                    "stack": "Error: browserType.launch: Executable doesn't exist at C:\\Users\\n\\AppData\\Local\\ms-playwright\\webkit-2311\\Playwright.exe\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     pnpm exec playwright install                           ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝"
+                  },
+                  "errors": [
+                    {
+                      "message": "Error: browserType.launch: Executable doesn't exist at C:\\Users\\n\\AppData\\Local\\ms-playwright\\webkit-2311\\Playwright.exe\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     pnpm exec playwright install                           ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-07-04T13:05:41.890Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "C:\\Users\\n\\supremeai\\supremeai_2.0\\test-results\\e2e-chat-Chat-sends-message-Mobile-Safari\\error-context.md"
+                    }
+                  ]
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "d3d49f2899a0faacbcaf-ecff017140e0eb8cba6b",
+          "file": "e2e/chat.spec.ts",
+          "line": 3,
+          "column": 5
+        }
+      ]
+    },
+    {
+      "title": "e2e\\visual.spec.ts",
+      "file": "e2e/visual.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Visual Regression Tests",
+          "file": "e2e/visual.spec.ts",
+          "line": 3,
+          "column": 6,
+          "specs": [
+            {
+              "title": "Homepage layout should be stable",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 4,
+                      "parallelIndex": 1,
+                      "status": "failed",
+                      "duration": 7162,
+                      "error": {
+                        "message": "Error: A snapshot doesn't exist at C:\\Users\\n\\supremeai\\supremeai_2.0\\tests\\e2e\\visual.spec.ts-snapshots\\homepage-stable-chromium-win32.png, writing actual.",
+                        "stack": "Error: A snapshot doesn't exist at C:\\Users\\n\\supremeai\\supremeai_2.0\\tests\\e2e\\visual.spec.ts-snapshots\\homepage-stable-chromium-win32.png, writing actual.\n    at C:\\Users\\n\\supremeai\\supremeai_2.0\\tests\\e2e\\visual.spec.ts:7:9",
+                        "location": {
+                          "file": "C:\\Users\\n\\supremeai\\supremeai_2.0\\tests\\e2e\\visual.spec.ts",
+                          "column": 9,
+                          "line": 7
+                        },
+                        "snippet": "\u001b[0m \u001b[90m  5 |\u001b[39m         \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mgoto(\u001b[32m'/'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m  6 |\u001b[39m         \u001b[90m// পুরো পেজের স্ক্রিনশট নিয়ে বেসলাইনের সাথে তুলনা করুন\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m  7 |\u001b[39m         \u001b[36mawait\u001b[39m expect(page)\u001b[33m.\u001b[39mtoHaveScreenshot(\u001b[32m'homepage-stable.png'\u001b[39m\u001b[33m,\u001b[39m { fullPage\u001b[33m:\u001b[39m \u001b[36mtrue\u001b[39m })\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m         \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m  8 |\u001b[39m     })\u001b[33m;\u001b[39m\n \u001b[90m  9 |\u001b[39m\n \u001b[90m 10 |\u001b[39m     test(\u001b[32m'ConsentMatrixModal should match the approved snapshot'\u001b[39m\u001b[33m,\u001b[39m \u001b[36masync\u001b[39m ({ page }) \u001b[33m=>\u001b[39m {\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "C:\\Users\\n\\supremeai\\supremeai_2.0\\tests\\e2e\\visual.spec.ts",
+                            "column": 9,
+                            "line": 7
+                          },
+                          "message": "Error: A snapshot doesn't exist at C:\\Users\\n\\supremeai\\supremeai_2.0\\tests\\e2e\\visual.spec.ts-snapshots\\homepage-stable-chromium-win32.png, writing actual.\n\n   5 |         await page.goto('/');\n   6 |         // পুরো পেজের স্ক্রিনশট নিয়ে বেসলাইনের সাথে তুলনা করুন\n>  7 |         await expect(page).toHaveScreenshot('homepage-stable.png', { fullPage: true });\n     |         ^\n   8 |     });\n   9 |\n  10 |     test('ConsentMatrixModal should match the approved snapshot', async ({ page }) => {\n    at C:\\Users\\n\\supremeai\\supremeai_2.0\\tests\\e2e\\visual.spec.ts:7:9"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-04T13:03:19.906Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "homepage-stable-expected.png",
+                          "contentType": "image/png",
+                          "path": "C:\\Users\\n\\supremeai\\supremeai_2.0\\tests\\e2e\\visual.spec.ts-snapshots\\homepage-stable-chromium-win32.png"
+                        },
+                        {
+                          "name": "homepage-stable-actual.png",
+                          "contentType": "image/png",
+                          "path": "C:\\Users\\n\\supremeai\\supremeai_2.0\\test-results\\e2e-visual-Visual-Regressi-520ca-age-layout-should-be-stable-chromium\\homepage-stable-actual.png"
+                        },
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\Users\\n\\supremeai\\supremeai_2.0\\test-results\\e2e-visual-Visual-Regressi-520ca-age-layout-should-be-stable-chromium\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "C:\\Users\\n\\supremeai\\supremeai_2.0\\test-results\\e2e-visual-Visual-Regressi-520ca-age-layout-should-be-stable-chromium\\video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "C:\\Users\\n\\supremeai\\supremeai_2.0\\test-results\\e2e-visual-Visual-Regressi-520ca-age-layout-should-be-stable-chromium\\error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "C:\\Users\\n\\supremeai\\supremeai_2.0\\tests\\e2e\\visual.spec.ts",
+                        "column": 9,
+                        "line": 7
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "51b4790f4568975de141-dc5a1598abe98c016bca",
+              "file": "e2e/visual.spec.ts",
+              "line": 4,
+              "column": 9
+            },
+            {
+              "title": "ConsentMatrixModal should match the approved snapshot",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 5,
+                      "parallelIndex": 1,
+                      "status": "failed",
+                      "duration": 7841,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('[data-testid=\"consent-matrix-modal\"]')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('[data-testid=\"consent-matrix-modal\"]')\u001b[22m\n",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('[data-testid=\"consent-matrix-modal\"]')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('[data-testid=\"consent-matrix-modal\"]')\u001b[22m\n\n    at C:\\Users\\n\\supremeai\\supremeai_2.0\\tests\\e2e\\visual.spec.ts:16:29",
+                        "location": {
+                          "file": "C:\\Users\\n\\supremeai\\supremeai_2.0\\tests\\e2e\\visual.spec.ts",
+                          "column": 29,
+                          "line": 16
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 14 |\u001b[39m         \u001b[90m// একটি নির্দিষ্ট data-testid দিয়ে মোডালটি লোকেট করা হচ্ছে\u001b[39m\n \u001b[90m 15 |\u001b[39m         \u001b[36mconst\u001b[39m modal \u001b[33m=\u001b[39m page\u001b[33m.\u001b[39mlocator(\u001b[32m'[data-testid=\"consent-matrix-modal\"]'\u001b[39m)\u001b[33m;\u001b[39m \u001b[90m// এখানে আপনার মোডালের আসল সিলেক্টর ব্যবহার করুন\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 16 |\u001b[39m         \u001b[36mawait\u001b[39m expect(modal)\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                             \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 17 |\u001b[39m\n \u001b[90m 18 |\u001b[39m         \u001b[90m// শুধুমাত্র মোডালটির স্ক্রিনশট নিয়ে বেসলাইনের সাথে তুলনা করুন\u001b[39m\n \u001b[90m 19 |\u001b[39m         \u001b[36mawait\u001b[39m expect(modal)\u001b[33m.\u001b[39mtoHaveScreenshot(\u001b[32m'consent-matrix-critical-risk.png'\u001b[39m)\u001b[33m;\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "C:\\Users\\n\\supremeai\\supremeai_2.0\\tests\\e2e\\visual.spec.ts",
+                            "column": 29,
+                            "line": 16
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('[data-testid=\"consent-matrix-modal\"]')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('[data-testid=\"consent-matrix-modal\"]')\u001b[22m\n\n\n  14 |         // একটি নির্দিষ্ট data-testid দিয়ে মোডালটি লোকেট করা হচ্ছে\n  15 |         const modal = page.locator('[data-testid=\"consent-matrix-modal\"]'); // এখানে আপনার মোডালের আসল সিলেক্টর ব্যবহার করুন\n> 16 |         await expect(modal).toBeVisible();\n     |                             ^\n  17 |\n  18 |         // শুধুমাত্র মোডালটির স্ক্রিনশট নিয়ে বেসলাইনের সাথে তুলনা করুন\n  19 |         await expect(modal).toHaveScreenshot('consent-matrix-critical-risk.png');\n    at C:\\Users\\n\\supremeai\\supremeai_2.0\\tests\\e2e\\visual.spec.ts:16:29"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-04T13:03:32.573Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\Users\\n\\supremeai\\supremeai_2.0\\test-results\\e2e-visual-Visual-Regressi-e7857-match-the-approved-snapshot-chromium\\test-failed-1.png"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "C:\\Users\\n\\supremeai\\supremeai_2.0\\test-results\\e2e-visual-Visual-Regressi-e7857-match-the-approved-snapshot-chromium\\error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "C:\\Users\\n\\supremeai\\supremeai_2.0\\tests\\e2e\\visual.spec.ts",
+                        "column": 29,
+                        "line": 16
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "51b4790f4568975de141-8037f4050504ad1a666a",
+              "file": "e2e/visual.spec.ts",
+              "line": 10,
+              "column": 9
+            },
+            {
+              "title": "Homepage layout should be stable",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [
+                    {
+                      "workerIndex": 11,
+                      "parallelIndex": 1,
+                      "status": "failed",
+                      "duration": 6,
+                      "error": {
+                        "message": "Error: browserType.launch: Executable doesn't exist at C:\\Users\\n\\AppData\\Local\\ms-playwright\\firefox-1532\\firefox\\firefox.exe\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     pnpm exec playwright install                           ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝",
+                        "stack": "Error: browserType.launch: Executable doesn't exist at C:\\Users\\n\\AppData\\Local\\ms-playwright\\firefox-1532\\firefox\\firefox.exe\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     pnpm exec playwright install                           ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝"
+                      },
+                      "errors": [
+                        {
+                          "message": "Error: browserType.launch: Executable doesn't exist at C:\\Users\\n\\AppData\\Local\\ms-playwright\\firefox-1532\\firefox\\firefox.exe\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     pnpm exec playwright install                           ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-04T13:03:54.717Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "C:\\Users\\n\\supremeai\\supremeai_2.0\\test-results\\e2e-visual-Visual-Regressi-520ca-age-layout-should-be-stable-firefox\\error-context.md"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "51b4790f4568975de141-2572ae0a7a8be5e48ed4",
+              "file": "e2e/visual.spec.ts",
+              "line": 4,
+              "column": 9
+            },
+            {
+              "title": "ConsentMatrixModal should match the approved snapshot",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [
+                    {
+                      "workerIndex": 12,
+                      "parallelIndex": 1,
+                      "status": "failed",
+                      "duration": 14,
+                      "error": {
+                        "message": "Error: browserType.launch: Executable doesn't exist at C:\\Users\\n\\AppData\\Local\\ms-playwright\\firefox-1532\\firefox\\firefox.exe\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     pnpm exec playwright install                           ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝",
+                        "stack": "Error: browserType.launch: Executable doesn't exist at C:\\Users\\n\\AppData\\Local\\ms-playwright\\firefox-1532\\firefox\\firefox.exe\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     pnpm exec playwright install                           ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝"
+                      },
+                      "errors": [
+                        {
+                          "message": "Error: browserType.launch: Executable doesn't exist at C:\\Users\\n\\AppData\\Local\\ms-playwright\\firefox-1532\\firefox\\firefox.exe\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     pnpm exec playwright install                           ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-04T13:03:58.649Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "C:\\Users\\n\\supremeai\\supremeai_2.0\\test-results\\e2e-visual-Visual-Regressi-e7857-match-the-approved-snapshot-firefox\\error-context.md"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "51b4790f4568975de141-7aa150462037e5056178",
+              "file": "e2e/visual.spec.ts",
+              "line": 10,
+              "column": 9
+            },
+            {
+              "title": "Homepage layout should be stable",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
+                  "results": [
+                    {
+                      "workerIndex": 18,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 6,
+                      "error": {
+                        "message": "Error: browserType.launch: Executable doesn't exist at C:\\Users\\n\\AppData\\Local\\ms-playwright\\webkit-2311\\Playwright.exe\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     pnpm exec playwright install                           ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝",
+                        "stack": "Error: browserType.launch: Executable doesn't exist at C:\\Users\\n\\AppData\\Local\\ms-playwright\\webkit-2311\\Playwright.exe\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     pnpm exec playwright install                           ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝"
+                      },
+                      "errors": [
+                        {
+                          "message": "Error: browserType.launch: Executable doesn't exist at C:\\Users\\n\\AppData\\Local\\ms-playwright\\webkit-2311\\Playwright.exe\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     pnpm exec playwright install                           ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-04T13:04:06.845Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "C:\\Users\\n\\supremeai\\supremeai_2.0\\test-results\\e2e-visual-Visual-Regressi-520ca-age-layout-should-be-stable-webkit\\error-context.md"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "51b4790f4568975de141-e9f73064758d39616942",
+              "file": "e2e/visual.spec.ts",
+              "line": 4,
+              "column": 9
+            },
+            {
+              "title": "ConsentMatrixModal should match the approved snapshot",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
+                  "results": [
+                    {
+                      "workerIndex": 19,
+                      "parallelIndex": 1,
+                      "status": "failed",
+                      "duration": 6,
+                      "error": {
+                        "message": "Error: browserType.launch: Executable doesn't exist at C:\\Users\\n\\AppData\\Local\\ms-playwright\\webkit-2311\\Playwright.exe\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     pnpm exec playwright install                           ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝",
+                        "stack": "Error: browserType.launch: Executable doesn't exist at C:\\Users\\n\\AppData\\Local\\ms-playwright\\webkit-2311\\Playwright.exe\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     pnpm exec playwright install                           ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝"
+                      },
+                      "errors": [
+                        {
+                          "message": "Error: browserType.launch: Executable doesn't exist at C:\\Users\\n\\AppData\\Local\\ms-playwright\\webkit-2311\\Playwright.exe\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     pnpm exec playwright install                           ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-04T13:04:08.425Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "C:\\Users\\n\\supremeai\\supremeai_2.0\\test-results\\e2e-visual-Visual-Regressi-e7857-match-the-approved-snapshot-webkit\\error-context.md"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "51b4790f4568975de141-94e53f1a404ed38555d8",
+              "file": "e2e/visual.spec.ts",
+              "line": 10,
+              "column": 9
+            },
+            {
+              "title": "Homepage layout should be stable",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Chrome",
+                  "projectName": "Mobile Chrome",
+                  "results": [
+                    {
+                      "workerIndex": 24,
+                      "parallelIndex": 1,
+                      "status": "failed",
+                      "duration": 10784,
+                      "error": {
+                        "message": "Error: A snapshot doesn't exist at C:\\Users\\n\\supremeai\\supremeai_2.0\\tests\\e2e\\visual.spec.ts-snapshots\\homepage-stable-Mobile-Chrome-win32.png, writing actual.",
+                        "stack": "Error: A snapshot doesn't exist at C:\\Users\\n\\supremeai\\supremeai_2.0\\tests\\e2e\\visual.spec.ts-snapshots\\homepage-stable-Mobile-Chrome-win32.png, writing actual.\n    at C:\\Users\\n\\supremeai\\supremeai_2.0\\tests\\e2e\\visual.spec.ts:7:9",
+                        "location": {
+                          "file": "C:\\Users\\n\\supremeai\\supremeai_2.0\\tests\\e2e\\visual.spec.ts",
+                          "column": 9,
+                          "line": 7
+                        },
+                        "snippet": "\u001b[0m \u001b[90m  5 |\u001b[39m         \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mgoto(\u001b[32m'/'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m  6 |\u001b[39m         \u001b[90m// পুরো পেজের স্ক্রিনশট নিয়ে বেসলাইনের সাথে তুলনা করুন\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m  7 |\u001b[39m         \u001b[36mawait\u001b[39m expect(page)\u001b[33m.\u001b[39mtoHaveScreenshot(\u001b[32m'homepage-stable.png'\u001b[39m\u001b[33m,\u001b[39m { fullPage\u001b[33m:\u001b[39m \u001b[36mtrue\u001b[39m })\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m         \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m  8 |\u001b[39m     })\u001b[33m;\u001b[39m\n \u001b[90m  9 |\u001b[39m\n \u001b[90m 10 |\u001b[39m     test(\u001b[32m'ConsentMatrixModal should match the approved snapshot'\u001b[39m\u001b[33m,\u001b[39m \u001b[36masync\u001b[39m ({ page }) \u001b[33m=>\u001b[39m {\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "C:\\Users\\n\\supremeai\\supremeai_2.0\\tests\\e2e\\visual.spec.ts",
+                            "column": 9,
+                            "line": 7
+                          },
+                          "message": "Error: A snapshot doesn't exist at C:\\Users\\n\\supremeai\\supremeai_2.0\\tests\\e2e\\visual.spec.ts-snapshots\\homepage-stable-Mobile-Chrome-win32.png, writing actual.\n\n   5 |         await page.goto('/');\n   6 |         // পুরো পেজের স্ক্রিনশট নিয়ে বেসলাইনের সাথে তুলনা করুন\n>  7 |         await expect(page).toHaveScreenshot('homepage-stable.png', { fullPage: true });\n     |         ^\n   8 |     });\n   9 |\n  10 |     test('ConsentMatrixModal should match the approved snapshot', async ({ page }) => {\n    at C:\\Users\\n\\supremeai\\supremeai_2.0\\tests\\e2e\\visual.spec.ts:7:9"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-04T13:04:55.059Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "homepage-stable-expected.png",
+                          "contentType": "image/png",
+                          "path": "C:\\Users\\n\\supremeai\\supremeai_2.0\\tests\\e2e\\visual.spec.ts-snapshots\\homepage-stable-Mobile-Chrome-win32.png"
+                        },
+                        {
+                          "name": "homepage-stable-actual.png",
+                          "contentType": "image/png",
+                          "path": "C:\\Users\\n\\supremeai\\supremeai_2.0\\test-results\\e2e-visual-Visual-Regressi-520ca-age-layout-should-be-stable-Mobile-Chrome\\homepage-stable-actual.png"
+                        },
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\Users\\n\\supremeai\\supremeai_2.0\\test-results\\e2e-visual-Visual-Regressi-520ca-age-layout-should-be-stable-Mobile-Chrome\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "C:\\Users\\n\\supremeai\\supremeai_2.0\\test-results\\e2e-visual-Visual-Regressi-520ca-age-layout-should-be-stable-Mobile-Chrome\\video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "C:\\Users\\n\\supremeai\\supremeai_2.0\\test-results\\e2e-visual-Visual-Regressi-520ca-age-layout-should-be-stable-Mobile-Chrome\\error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "C:\\Users\\n\\supremeai\\supremeai_2.0\\tests\\e2e\\visual.spec.ts",
+                        "column": 9,
+                        "line": 7
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "51b4790f4568975de141-834895d1735964042720",
+              "file": "e2e/visual.spec.ts",
+              "line": 4,
+              "column": 9
+            },
+            {
+              "title": "ConsentMatrixModal should match the approved snapshot",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Chrome",
+                  "projectName": "Mobile Chrome",
+                  "results": [
+                    {
+                      "workerIndex": 25,
+                      "parallelIndex": 1,
+                      "status": "failed",
+                      "duration": 9175,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('[data-testid=\"consent-matrix-modal\"]')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('[data-testid=\"consent-matrix-modal\"]')\u001b[22m\n",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('[data-testid=\"consent-matrix-modal\"]')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('[data-testid=\"consent-matrix-modal\"]')\u001b[22m\n\n    at C:\\Users\\n\\supremeai\\supremeai_2.0\\tests\\e2e\\visual.spec.ts:16:29",
+                        "location": {
+                          "file": "C:\\Users\\n\\supremeai\\supremeai_2.0\\tests\\e2e\\visual.spec.ts",
+                          "column": 29,
+                          "line": 16
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 14 |\u001b[39m         \u001b[90m// একটি নির্দিষ্ট data-testid দিয়ে মোডালটি লোকেট করা হচ্ছে\u001b[39m\n \u001b[90m 15 |\u001b[39m         \u001b[36mconst\u001b[39m modal \u001b[33m=\u001b[39m page\u001b[33m.\u001b[39mlocator(\u001b[32m'[data-testid=\"consent-matrix-modal\"]'\u001b[39m)\u001b[33m;\u001b[39m \u001b[90m// এখানে আপনার মোডালের আসল সিলেক্টর ব্যবহার করুন\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 16 |\u001b[39m         \u001b[36mawait\u001b[39m expect(modal)\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                             \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 17 |\u001b[39m\n \u001b[90m 18 |\u001b[39m         \u001b[90m// শুধুমাত্র মোডালটির স্ক্রিনশট নিয়ে বেসলাইনের সাথে তুলনা করুন\u001b[39m\n \u001b[90m 19 |\u001b[39m         \u001b[36mawait\u001b[39m expect(modal)\u001b[33m.\u001b[39mtoHaveScreenshot(\u001b[32m'consent-matrix-critical-risk.png'\u001b[39m)\u001b[33m;\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "C:\\Users\\n\\supremeai\\supremeai_2.0\\tests\\e2e\\visual.spec.ts",
+                            "column": 29,
+                            "line": 16
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('[data-testid=\"consent-matrix-modal\"]')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('[data-testid=\"consent-matrix-modal\"]')\u001b[22m\n\n\n  14 |         // একটি নির্দিষ্ট data-testid দিয়ে মোডালটি লোকেট করা হচ্ছে\n  15 |         const modal = page.locator('[data-testid=\"consent-matrix-modal\"]'); // এখানে আপনার মোডালের আসল সিলেক্টর ব্যবহার করুন\n> 16 |         await expect(modal).toBeVisible();\n     |                             ^\n  17 |\n  18 |         // শুধুমাত্র মোডালটির স্ক্রিনশট নিয়ে বেসলাইনের সাথে তুলনা করুন\n  19 |         await expect(modal).toHaveScreenshot('consent-matrix-critical-risk.png');\n    at C:\\Users\\n\\supremeai\\supremeai_2.0\\tests\\e2e\\visual.spec.ts:16:29"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-04T13:05:22.549Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\Users\\n\\supremeai\\supremeai_2.0\\test-results\\e2e-visual-Visual-Regressi-e7857-match-the-approved-snapshot-Mobile-Chrome\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "C:\\Users\\n\\supremeai\\supremeai_2.0\\test-results\\e2e-visual-Visual-Regressi-e7857-match-the-approved-snapshot-Mobile-Chrome\\video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "C:\\Users\\n\\supremeai\\supremeai_2.0\\test-results\\e2e-visual-Visual-Regressi-e7857-match-the-approved-snapshot-Mobile-Chrome\\error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "C:\\Users\\n\\supremeai\\supremeai_2.0\\tests\\e2e\\visual.spec.ts",
+                        "column": 29,
+                        "line": 16
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "51b4790f4568975de141-f87f36e1bffe90bdadc9",
+              "file": "e2e/visual.spec.ts",
+              "line": 10,
+              "column": 9
+            },
+            {
+              "title": "Homepage layout should be stable",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Safari",
+                  "projectName": "Mobile Safari",
+                  "results": [
+                    {
+                      "workerIndex": 31,
+                      "parallelIndex": 1,
+                      "status": "failed",
+                      "duration": 6,
+                      "error": {
+                        "message": "Error: browserType.launch: Executable doesn't exist at C:\\Users\\n\\AppData\\Local\\ms-playwright\\webkit-2311\\Playwright.exe\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     pnpm exec playwright install                           ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝",
+                        "stack": "Error: browserType.launch: Executable doesn't exist at C:\\Users\\n\\AppData\\Local\\ms-playwright\\webkit-2311\\Playwright.exe\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     pnpm exec playwright install                           ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝"
+                      },
+                      "errors": [
+                        {
+                          "message": "Error: browserType.launch: Executable doesn't exist at C:\\Users\\n\\AppData\\Local\\ms-playwright\\webkit-2311\\Playwright.exe\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     pnpm exec playwright install                           ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-04T13:05:42.317Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "C:\\Users\\n\\supremeai\\supremeai_2.0\\test-results\\e2e-visual-Visual-Regressi-520ca-age-layout-should-be-stable-Mobile-Safari\\error-context.md"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "51b4790f4568975de141-10a9138ada1b2440200a",
+              "file": "e2e/visual.spec.ts",
+              "line": 4,
+              "column": 9
+            },
+            {
+              "title": "ConsentMatrixModal should match the approved snapshot",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Safari",
+                  "projectName": "Mobile Safari",
+                  "results": [
+                    {
+                      "workerIndex": 32,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 7,
+                      "error": {
+                        "message": "Error: browserType.launch: Executable doesn't exist at C:\\Users\\n\\AppData\\Local\\ms-playwright\\webkit-2311\\Playwright.exe\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     pnpm exec playwright install                           ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝",
+                        "stack": "Error: browserType.launch: Executable doesn't exist at C:\\Users\\n\\AppData\\Local\\ms-playwright\\webkit-2311\\Playwright.exe\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     pnpm exec playwright install                           ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝"
+                      },
+                      "errors": [
+                        {
+                          "message": "Error: browserType.launch: Executable doesn't exist at C:\\Users\\n\\AppData\\Local\\ms-playwright\\webkit-2311\\Playwright.exe\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     pnpm exec playwright install                           ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-04T13:05:43.571Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "C:\\Users\\n\\supremeai\\supremeai_2.0\\test-results\\e2e-visual-Visual-Regressi-e7857-match-the-approved-snapshot-Mobile-Safari\\error-context.md"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "51b4790f4568975de141-4bc9c5c49bc221b29e60",
+              "file": "e2e/visual.spec.ts",
+              "line": 10,
+              "column": 9
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-07-04T13:02:34.462Z",
+    "duration": 189566.321,
+    "expected": 2,
+    "skipped": 0,
+    "unexpected": 33,
+    "flaky": 0
+  }
+}
+```
+
+## File: `test-results/e2e-admin-dashboard-Suprem-8ff1e-hestration-command-via-chat-Mobile-Safari/error-context.md`
+
+```md
+# Instructions
+
+- Following Playwright test failed.
+- Explain why, be concise, respect Playwright best practices.
+- Provide a snippet of code with the fix, if possible.
+
+# Test info
+
+- Name: e2e\admin-dashboard.spec.ts >> SupremeAI Nexus E2E Flow >> should be able to submit an orchestration command via chat
+- Location: tests\e2e\admin-dashboard.spec.ts:25:7
+
+# Error details
+
+```
+Error: browserType.launch: Executable doesn't exist at C:\Users\n\AppData\Local\ms-playwright\webkit-2311\Playwright.exe
+╔════════════════════════════════════════════════════════════╗
+║ Looks like Playwright was just installed or updated.       ║
+║ Please run the following command to download new browsers: ║
+║                                                            ║
+║     pnpm exec playwright install                           ║
+║                                                            ║
+║ <3 Playwright Team                                         ║
+╚════════════════════════════════════════════════════════════╝
+```
+```
+
+## File: `test-results/e2e-chat-Chat-sends-message-webkit/error-context.md`
+
+```md
+# Instructions
+
+- Following Playwright test failed.
+- Explain why, be concise, respect Playwright best practices.
+- Provide a snippet of code with the fix, if possible.
+
+# Test info
+
+- Name: e2e\chat.spec.ts >> Chat sends message
+- Location: tests\e2e\chat.spec.ts:3:5
+
+# Error details
+
+```
+Error: browserType.launch: Executable doesn't exist at C:\Users\n\AppData\Local\ms-playwright\webkit-2311\Playwright.exe
+╔════════════════════════════════════════════════════════════╗
+║ Looks like Playwright was just installed or updated.       ║
+║ Please run the following command to download new browsers: ║
+║                                                            ║
+║     pnpm exec playwright install                           ║
+║                                                            ║
+║ <3 Playwright Team                                         ║
+╚════════════════════════════════════════════════════════════╝
+```
+```
+
+## File: `test-results/e2e-admin-dashboard-Suprem-8ff1e-hestration-command-via-chat-webkit/error-context.md`
+
+```md
+# Instructions
+
+- Following Playwright test failed.
+- Explain why, be concise, respect Playwright best practices.
+- Provide a snippet of code with the fix, if possible.
+
+# Test info
+
+- Name: e2e\admin-dashboard.spec.ts >> SupremeAI Nexus E2E Flow >> should be able to submit an orchestration command via chat
+- Location: tests\e2e\admin-dashboard.spec.ts:25:7
+
+# Error details
+
+```
+Error: browserType.launch: Executable doesn't exist at C:\Users\n\AppData\Local\ms-playwright\webkit-2311\Playwright.exe
+╔════════════════════════════════════════════════════════════╗
+║ Looks like Playwright was just installed or updated.       ║
+║ Please run the following command to download new browsers: ║
+║                                                            ║
+║     pnpm exec playwright install                           ║
+║                                                            ║
+║ <3 Playwright Team                                         ║
+╚════════════════════════════════════════════════════════════╝
+```
+```
+
+## File: `test-results/e2e-chat-Chat-sends-message-Mobile-Chrome/error-context.md`
+
+```md
+# Instructions
+
+- Following Playwright test failed.
+- Explain why, be concise, respect Playwright best practices.
+- Provide a snippet of code with the fix, if possible.
+
+# Test info
+
+- Name: e2e\chat.spec.ts >> Chat sends message
+- Location: tests\e2e\chat.spec.ts:3:5
+
+# Error details
+
+```
+Test timeout of 30000ms exceeded.
+```
+
+```
+Error: page.fill: Test timeout of 30000ms exceeded.
+Call log:
+  - waiting for locator('[data-testid="chat-input"]')
+
+```
+
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - complementary [ref=e5]:
+    - generic [ref=e6]:
+      - generic [ref=e7]: ▲
+      - generic [ref=e8]: SupremeAI
+    - navigation [ref=e9]:
+      - button "Sessions" [ref=e10]:
+        - img [ref=e11]
+        - text: Sessions
+      - button "Workspace" [ref=e14]:
+        - img [ref=e15]
+        - text: Workspace
+      - button "Auth Vault" [ref=e25]:
+        - img [ref=e26]
+        - text: Auth Vault
+      - button "Automation" [ref=e37]:
+        - img [ref=e38]
+        - text: Automation
+      - button "Knowledge" [ref=e41]:
+        - img [ref=e42]
+        - text: Knowledge
+      - button "Secrets" [ref=e44]:
+        - img [ref=e45]
+        - text: Secrets
+      - button "Usage" [ref=e48]:
+        - img [ref=e49]
+        - text: Usage
+      - button "Settings" [ref=e51]:
+        - img [ref=e52]
+        - text: Settings
+      - button "Site Actions" [ref=e55]:
+        - img [ref=e56]
+        - text: Site Actions
+      - button "LLM Gateway" [ref=e58]:
+        - img [ref=e59]
+        - text: LLM Gateway
+      - button "Admin Console" [ref=e62]:
+        - img [ref=e63]
+        - text: Admin Console
+    - generic [ref=e65]:
+      - generic [ref=e66]:
+        - img [ref=e67]
+        - generic [ref=e74]: Offline
+      - button "Dark mode" [ref=e75]:
+        - img [ref=e76]
+        - text: Dark mode
+  - main [ref=e78]:
+    - generic [ref=e79]:
+      - heading "What do you want to build today?" [level=1] [ref=e80]
+      - generic [ref=e81]:
+        - textbox "Give SupremeAI a task to work on..." [ref=e82]
+        - button "Start Session" [disabled] [ref=e84]:
+          - img [ref=e85]
+          - text: Start Session
+      - generic [ref=e88]:
+        - heading "Recent sessions" [level=2] [ref=e89]
+        - generic [ref=e90]: 0 total
+      - paragraph [ref=e91]: No sessions yet. Start your first task above.
+```
+
+# Test source
+
+```ts
+  1 | import { test, expect } from '@playwright/test';
+  2 | 
+  3 | test('Chat sends message', async ({ page }) => {
+  4 |   await page.goto('/');
+> 5 |   await page.fill('[data-testid="chat-input"]', 'Hello SupremeAI!');
+    |              ^ Error: page.fill: Test timeout of 30000ms exceeded.
+  6 |   await page.click('[data-testid="chat-submit"]');
+  7 |   await expect(page.getByText('Hello SupremeAI!').first()).toBeVisible();
+  8 | });
+  9 | 
+```
+```
+
+## File: `test-results/e2e-visual-Visual-Regressi-520ca-age-layout-should-be-stable-Mobile-Safari/error-context.md`
+
+```md
+# Instructions
+
+- Following Playwright test failed.
+- Explain why, be concise, respect Playwright best practices.
+- Provide a snippet of code with the fix, if possible.
+
+# Test info
+
+- Name: e2e\visual.spec.ts >> Visual Regression Tests >> Homepage layout should be stable
+- Location: tests\e2e\visual.spec.ts:4:9
+
+# Error details
+
+```
+Error: browserType.launch: Executable doesn't exist at C:\Users\n\AppData\Local\ms-playwright\webkit-2311\Playwright.exe
+╔════════════════════════════════════════════════════════════╗
+║ Looks like Playwright was just installed or updated.       ║
+║ Please run the following command to download new browsers: ║
+║                                                            ║
+║     pnpm exec playwright install                           ║
+║                                                            ║
+║ <3 Playwright Team                                         ║
+╚════════════════════════════════════════════════════════════╝
+```
+```
+
+## File: `test-results/e2e-visual-Visual-Regressi-520ca-age-layout-should-be-stable-Mobile-Chrome/error-context.md`
+
+```md
+# Instructions
+
+- Following Playwright test failed.
+- Explain why, be concise, respect Playwright best practices.
+- Provide a snippet of code with the fix, if possible.
+
+# Test info
+
+- Name: e2e\visual.spec.ts >> Visual Regression Tests >> Homepage layout should be stable
+- Location: tests\e2e\visual.spec.ts:4:9
+
+# Error details
+
+```
+Error: A snapshot doesn't exist at C:\Users\n\supremeai\supremeai_2.0\tests\e2e\visual.spec.ts-snapshots\homepage-stable-Mobile-Chrome-win32.png, writing actual.
+```
+
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - complementary [ref=e5]:
+    - generic [ref=e6]:
+      - generic [ref=e7]: ▲
+      - generic [ref=e8]: SupremeAI
+    - navigation [ref=e9]:
+      - button "Sessions" [ref=e10]:
+        - img [ref=e11]
+        - text: Sessions
+      - button "Workspace" [ref=e14]:
+        - img [ref=e15]
+        - text: Workspace
+      - button "Auth Vault" [ref=e25]:
+        - img [ref=e26]
+        - text: Auth Vault
+      - button "Automation" [ref=e37]:
+        - img [ref=e38]
+        - text: Automation
+      - button "Knowledge" [ref=e41]:
+        - img [ref=e42]
+        - text: Knowledge
+      - button "Secrets" [ref=e44]:
+        - img [ref=e45]
+        - text: Secrets
+      - button "Usage" [ref=e48]:
+        - img [ref=e49]
+        - text: Usage
+      - button "Settings" [ref=e51]:
+        - img [ref=e52]
+        - text: Settings
+      - button "Site Actions" [ref=e55]:
+        - img [ref=e56]
+        - text: Site Actions
+      - button "LLM Gateway" [ref=e58]:
+        - img [ref=e59]
+        - text: LLM Gateway
+      - button "Admin Console" [ref=e62]:
+        - img [ref=e63]
+        - text: Admin Console
+    - generic [ref=e65]:
+      - generic [ref=e66]:
+        - img [ref=e67]
+        - generic [ref=e74]: Offline
+      - button "Dark mode" [ref=e75]:
+        - img [ref=e76]
+        - text: Dark mode
+  - main [ref=e78]:
+    - generic [ref=e79]:
+      - heading "What do you want to build today?" [level=1] [ref=e80]
+      - generic [ref=e81]:
+        - textbox "Give SupremeAI a task to work on..." [ref=e82]
+        - button "Start Session" [disabled] [ref=e84]:
+          - img [ref=e85]
+          - text: Start Session
+      - generic [ref=e88]:
+        - heading "Recent sessions" [level=2] [ref=e89]
+        - generic [ref=e90]: 0 total
+      - paragraph [ref=e91]: No sessions yet. Start your first task above.
+```
+
+# Test source
+
+```ts
+  1  | import { test, expect } from '@playwright/test';
+  2  | 
+  3  | test.describe('Visual Regression Tests', () => {
+  4  |     test('Homepage layout should be stable', async ({ page }) => {
+  5  |         await page.goto('/');
+  6  |         // পুরো পেজের স্ক্রিনশট নিয়ে বেসলাইনের সাথে তুলনা করুন
+> 7  |         await expect(page).toHaveScreenshot('homepage-stable.png', { fullPage: true });
+     |         ^ Error: A snapshot doesn't exist at C:\Users\n\supremeai\supremeai_2.0\tests\e2e\visual.spec.ts-snapshots\homepage-stable-Mobile-Chrome-win32.png, writing actual.
+  8  |     });
+  9  | 
+  10 |     test('ConsentMatrixModal should match the approved snapshot', async ({ page }) => {
+  11 |         // একটি ডামি URL প্যারামিটার ব্যবহার করে মোডালটি দেখানো হচ্ছে
+  12 |         await page.goto('/?showConsentModal=true');
+  13 | 
+  14 |         // একটি নির্দিষ্ট data-testid দিয়ে মোডালটি লোকেট করা হচ্ছে
+  15 |         const modal = page.locator('[data-testid="consent-matrix-modal"]'); // এখানে আপনার মোডালের আসল সিলেক্টর ব্যবহার করুন
+  16 |         await expect(modal).toBeVisible();
+  17 | 
+  18 |         // শুধুমাত্র মোডালটির স্ক্রিনশট নিয়ে বেসলাইনের সাথে তুলনা করুন
+  19 |         await expect(modal).toHaveScreenshot('consent-matrix-critical-risk.png');
+  20 |     });
+  21 | });
+```
+```
+
+## File: `test-results/e2e-accessibility-Accessib-1a8a2-hboard-should-be-accessible-webkit/error-context.md`
+
+```md
+# Instructions
+
+- Following Playwright test failed.
+- Explain why, be concise, respect Playwright best practices.
+- Provide a snippet of code with the fix, if possible.
+
+# Test info
+
+- Name: e2e\accessibility.spec.ts >> Accessibility Tests (WCAG) >> Admin Dashboard should be accessible
+- Location: tests\e2e\accessibility.spec.ts:18:9
+
+# Error details
+
+```
+Error: browserType.launch: Executable doesn't exist at C:\Users\n\AppData\Local\ms-playwright\webkit-2311\Playwright.exe
+╔════════════════════════════════════════════════════════════╗
+║ Looks like Playwright was just installed or updated.       ║
+║ Please run the following command to download new browsers: ║
+║                                                            ║
+║     pnpm exec playwright install                           ║
+║                                                            ║
+║ <3 Playwright Team                                         ║
+╚════════════════════════════════════════════════════════════╝
+```
+```
+
+## File: `test-results/e2e-visual-Visual-Regressi-520ca-age-layout-should-be-stable-firefox/error-context.md`
+
+```md
+# Instructions
+
+- Following Playwright test failed.
+- Explain why, be concise, respect Playwright best practices.
+- Provide a snippet of code with the fix, if possible.
+
+# Test info
+
+- Name: e2e\visual.spec.ts >> Visual Regression Tests >> Homepage layout should be stable
+- Location: tests\e2e\visual.spec.ts:4:9
+
+# Error details
+
+```
+Error: browserType.launch: Executable doesn't exist at C:\Users\n\AppData\Local\ms-playwright\firefox-1532\firefox\firefox.exe
+╔════════════════════════════════════════════════════════════╗
+║ Looks like Playwright was just installed or updated.       ║
+║ Please run the following command to download new browsers: ║
+║                                                            ║
+║     pnpm exec playwright install                           ║
+║                                                            ║
+║ <3 Playwright Team                                         ║
+╚════════════════════════════════════════════════════════════╝
+```
+```
+
+## File: `test-results/e2e-visual-Visual-Regressi-e7857-match-the-approved-snapshot-Mobile-Chrome/error-context.md`
+
+```md
+# Instructions
+
+- Following Playwright test failed.
+- Explain why, be concise, respect Playwright best practices.
+- Provide a snippet of code with the fix, if possible.
+
+# Test info
+
+- Name: e2e\visual.spec.ts >> Visual Regression Tests >> ConsentMatrixModal should match the approved snapshot
+- Location: tests\e2e\visual.spec.ts:10:9
+
+# Error details
+
+```
+Error: expect(locator).toBeVisible() failed
+
+Locator: locator('[data-testid="consent-matrix-modal"]')
+Expected: visible
+Timeout: 5000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" with timeout 5000ms
+  - waiting for locator('[data-testid="consent-matrix-modal"]')
+
+```
+
+```yaml
+- complementary:
+  - text: ▲ SupremeAI
+  - navigation:
+    - button "Sessions"
+    - button "Workspace"
+    - button "Auth Vault"
+    - button "Automation"
+    - button "Knowledge"
+    - button "Secrets"
+    - button "Usage"
+    - button "Settings"
+    - button "Site Actions"
+    - button "LLM Gateway"
+    - button "Admin Console"
+  - text: Offline
+  - button "Dark mode"
+- main:
+  - heading "What do you want to build today?" [level=1]
+  - textbox "Give SupremeAI a task to work on..."
+  - button "Start Session" [disabled]
+  - heading "Recent sessions" [level=2]
+  - text: 0 total
+  - paragraph: No sessions yet. Start your first task above.
+```
+
+# Test source
+
+```ts
+  1  | import { test, expect } from '@playwright/test';
+  2  | 
+  3  | test.describe('Visual Regression Tests', () => {
+  4  |     test('Homepage layout should be stable', async ({ page }) => {
+  5  |         await page.goto('/');
+  6  |         // পুরো পেজের স্ক্রিনশট নিয়ে বেসলাইনের সাথে তুলনা করুন
+  7  |         await expect(page).toHaveScreenshot('homepage-stable.png', { fullPage: true });
+  8  |     });
+  9  | 
+  10 |     test('ConsentMatrixModal should match the approved snapshot', async ({ page }) => {
+  11 |         // একটি ডামি URL প্যারামিটার ব্যবহার করে মোডালটি দেখানো হচ্ছে
+  12 |         await page.goto('/?showConsentModal=true');
+  13 | 
+  14 |         // একটি নির্দিষ্ট data-testid দিয়ে মোডালটি লোকেট করা হচ্ছে
+  15 |         const modal = page.locator('[data-testid="consent-matrix-modal"]'); // এখানে আপনার মোডালের আসল সিলেক্টর ব্যবহার করুন
+> 16 |         await expect(modal).toBeVisible();
+     |                             ^ Error: expect(locator).toBeVisible() failed
+  17 | 
+  18 |         // শুধুমাত্র মোডালটির স্ক্রিনশট নিয়ে বেসলাইনের সাথে তুলনা করুন
+  19 |         await expect(modal).toHaveScreenshot('consent-matrix-critical-risk.png');
+  20 |     });
+  21 | });
+```
+```
+
+## File: `test-results/e2e-chat-Chat-sends-message-firefox/error-context.md`
+
+```md
+# Instructions
+
+- Following Playwright test failed.
+- Explain why, be concise, respect Playwright best practices.
+- Provide a snippet of code with the fix, if possible.
+
+# Test info
+
+- Name: e2e\chat.spec.ts >> Chat sends message
+- Location: tests\e2e\chat.spec.ts:3:5
+
+# Error details
+
+```
+Error: browserType.launch: Executable doesn't exist at C:\Users\n\AppData\Local\ms-playwright\firefox-1532\firefox\firefox.exe
+╔════════════════════════════════════════════════════════════╗
+║ Looks like Playwright was just installed or updated.       ║
+║ Please run the following command to download new browsers: ║
+║                                                            ║
+║     pnpm exec playwright install                           ║
+║                                                            ║
+║ <3 Playwright Team                                         ║
+╚════════════════════════════════════════════════════════════╝
+```
+```
+
+## File: `test-results/e2e-admin-dashboard-Suprem-8ff1e-hestration-command-via-chat-Mobile-Chrome/error-context.md`
+
+```md
+# Instructions
+
+- Following Playwright test failed.
+- Explain why, be concise, respect Playwright best practices.
+- Provide a snippet of code with the fix, if possible.
+
+# Test info
+
+- Name: e2e\admin-dashboard.spec.ts >> SupremeAI Nexus E2E Flow >> should be able to submit an orchestration command via chat
+- Location: tests\e2e\admin-dashboard.spec.ts:25:7
+
+# Error details
+
+```
+Error: expect(locator).toBeVisible() failed
+
+Locator: getByPlaceholder('[SupremeAI Nexus Command...]')
+Expected: visible
+Timeout: 5000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" with timeout 5000ms
+  - waiting for getByPlaceholder('[SupremeAI Nexus Command...]')
+
+```
+
+```yaml
+- heading "Dashboard Module Failure" [level=2]
+- paragraph: A critical module in the admin dashboard has crashed. The rest of the system remains intact.
+- text: React is not defined
+- button "Reboot Dashboard Module"
+```
+
+# Test source
+
+```ts
+  1  | import { test, expect } from '@playwright/test';
+  2  | 
+  3  | test.describe('SupremeAI Nexus E2E Flow', () => {
+  4  | 
+  5  |   test('should load the dashboard and verify Java Worker widget', async ({ page }) => {
+  6  |     // 1. Load the admin dashboard
+  7  |     await page.goto('/admin'); // Assumes routing allows direct /admin access
+  8  | 
+  9  |     // 2. Verify Nexus Header exists
+  10 |     await expect(page.getByText('SupremeAI')).toBeVisible();
+  11 | 
+  12 |     // 3. Verify Java Background Worker widget is rendered
+  13 |     const workerWidget = page.locator('text=Java Background Worker');
+  14 |     await expect(workerWidget).toBeVisible({ timeout: 10000 });
+  15 | 
+  16 |     // 4. Verify healthy status indicator
+  17 |     await expect(page.locator('text=HEALTHY').first()).toBeVisible();
+  18 | 
+  19 |     // 5. Verify metrics blocks are present (CPU, Memory, Active Tasks)
+  20 |     await expect(page.locator('text=CPU Load')).toBeVisible();
+  21 |     await expect(page.locator('text=Memory')).toBeVisible();
+  22 |     await expect(page.locator('text=Active Tasks')).toBeVisible();
+  23 |   });
+  24 | 
+  25 |   test('should be able to submit an orchestration command via chat', async ({ page }) => {
+  26 |     await page.goto('/admin');
+  27 | 
+  28 |     // Find the chat input
+  29 |     const chatInput = page.getByPlaceholder('[SupremeAI Nexus Command...]');
+> 30 |     await expect(chatInput).toBeVisible();
+     |                             ^ Error: expect(locator).toBeVisible() failed
+  31 | 
+  32 |     // Type a command that would theoretically trigger a background Java task
+  33 |     await chatInput.fill('Run full system security audit');
+  34 |     await chatInput.press('Enter');
+  35 | 
+  36 |     // Verify the message appears in the chat stream
+  37 |     await expect(page.getByText('Admin: Run full system security audit')).toBeVisible();
+  38 | 
+  39 |     // Verify SupremeAI's immediate ACK response appears
+  40 |     await expect(page.getByText('Processing command "Run full system security audit"... Authorization confirmed.')).toBeVisible();
+  41 |   });
+  42 | 
+  43 | });
+  44 | 
+```
+```
+
+## File: `test-results/e2e-admin-dashboard-Suprem-08ee0-d-verify-Java-Worker-widget-Mobile-Chrome/error-context.md`
+
+```md
+# Instructions
+
+- Following Playwright test failed.
+- Explain why, be concise, respect Playwright best practices.
+- Provide a snippet of code with the fix, if possible.
+
+# Test info
+
+- Name: e2e\admin-dashboard.spec.ts >> SupremeAI Nexus E2E Flow >> should load the dashboard and verify Java Worker widget
+- Location: tests\e2e\admin-dashboard.spec.ts:5:7
+
+# Error details
+
+```
+Error: expect(locator).toBeVisible() failed
+
+Locator: getByText('SupremeAI')
+Expected: visible
+Timeout: 5000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" with timeout 5000ms
+  - waiting for getByText('SupremeAI')
+
+```
+
+```yaml
+- heading "Dashboard Module Failure" [level=2]
+- paragraph: A critical module in the admin dashboard has crashed. The rest of the system remains intact.
+- text: React is not defined
+- button "Reboot Dashboard Module"
+```
+
+# Test source
+
+```ts
+  1  | import { test, expect } from '@playwright/test';
+  2  | 
+  3  | test.describe('SupremeAI Nexus E2E Flow', () => {
+  4  | 
+  5  |   test('should load the dashboard and verify Java Worker widget', async ({ page }) => {
+  6  |     // 1. Load the admin dashboard
+  7  |     await page.goto('/admin'); // Assumes routing allows direct /admin access
+  8  | 
+  9  |     // 2. Verify Nexus Header exists
+> 10 |     await expect(page.getByText('SupremeAI')).toBeVisible();
+     |                                               ^ Error: expect(locator).toBeVisible() failed
+  11 | 
+  12 |     // 3. Verify Java Background Worker widget is rendered
+  13 |     const workerWidget = page.locator('text=Java Background Worker');
+  14 |     await expect(workerWidget).toBeVisible({ timeout: 10000 });
+  15 | 
+  16 |     // 4. Verify healthy status indicator
+  17 |     await expect(page.locator('text=HEALTHY').first()).toBeVisible();
+  18 | 
+  19 |     // 5. Verify metrics blocks are present (CPU, Memory, Active Tasks)
+  20 |     await expect(page.locator('text=CPU Load')).toBeVisible();
+  21 |     await expect(page.locator('text=Memory')).toBeVisible();
+  22 |     await expect(page.locator('text=Active Tasks')).toBeVisible();
+  23 |   });
+  24 | 
+  25 |   test('should be able to submit an orchestration command via chat', async ({ page }) => {
+  26 |     await page.goto('/admin');
+  27 | 
+  28 |     // Find the chat input
+  29 |     const chatInput = page.getByPlaceholder('[SupremeAI Nexus Command...]');
+  30 |     await expect(chatInput).toBeVisible();
+  31 | 
+  32 |     // Type a command that would theoretically trigger a background Java task
+  33 |     await chatInput.fill('Run full system security audit');
+  34 |     await chatInput.press('Enter');
+  35 | 
+  36 |     // Verify the message appears in the chat stream
+  37 |     await expect(page.getByText('Admin: Run full system security audit')).toBeVisible();
+  38 | 
+  39 |     // Verify SupremeAI's immediate ACK response appears
+  40 |     await expect(page.getByText('Processing command "Run full system security audit"... Authorization confirmed.')).toBeVisible();
+  41 |   });
+  42 | 
+  43 | });
+  44 | 
+```
+```
+
+## File: `test-results/e2e-accessibility-Accessib-1a8a2-hboard-should-be-accessible-Mobile-Safari/error-context.md`
+
+```md
+# Instructions
+
+- Following Playwright test failed.
+- Explain why, be concise, respect Playwright best practices.
+- Provide a snippet of code with the fix, if possible.
+
+# Test info
+
+- Name: e2e\accessibility.spec.ts >> Accessibility Tests (WCAG) >> Admin Dashboard should be accessible
+- Location: tests\e2e\accessibility.spec.ts:18:9
+
+# Error details
+
+```
+Error: browserType.launch: Executable doesn't exist at C:\Users\n\AppData\Local\ms-playwright\webkit-2311\Playwright.exe
+╔════════════════════════════════════════════════════════════╗
+║ Looks like Playwright was just installed or updated.       ║
+║ Please run the following command to download new browsers: ║
+║                                                            ║
+║     pnpm exec playwright install                           ║
+║                                                            ║
+║ <3 Playwright Team                                         ║
+╚════════════════════════════════════════════════════════════╝
+```
+```
+
+## File: `test-results/e2e-visual-Visual-Regressi-520ca-age-layout-should-be-stable-webkit/error-context.md`
+
+```md
+# Instructions
+
+- Following Playwright test failed.
+- Explain why, be concise, respect Playwright best practices.
+- Provide a snippet of code with the fix, if possible.
+
+# Test info
+
+- Name: e2e\visual.spec.ts >> Visual Regression Tests >> Homepage layout should be stable
+- Location: tests\e2e\visual.spec.ts:4:9
+
+# Error details
+
+```
+Error: browserType.launch: Executable doesn't exist at C:\Users\n\AppData\Local\ms-playwright\webkit-2311\Playwright.exe
+╔════════════════════════════════════════════════════════════╗
+║ Looks like Playwright was just installed or updated.       ║
+║ Please run the following command to download new browsers: ║
+║                                                            ║
+║     pnpm exec playwright install                           ║
+║                                                            ║
+║ <3 Playwright Team                                         ║
+╚════════════════════════════════════════════════════════════╝
+```
+```
+
+## File: `test-results/e2e-visual-Visual-Regressi-e7857-match-the-approved-snapshot-Mobile-Safari/error-context.md`
+
+```md
+# Instructions
+
+- Following Playwright test failed.
+- Explain why, be concise, respect Playwright best practices.
+- Provide a snippet of code with the fix, if possible.
+
+# Test info
+
+- Name: e2e\visual.spec.ts >> Visual Regression Tests >> ConsentMatrixModal should match the approved snapshot
+- Location: tests\e2e\visual.spec.ts:10:9
+
+# Error details
+
+```
+Error: browserType.launch: Executable doesn't exist at C:\Users\n\AppData\Local\ms-playwright\webkit-2311\Playwright.exe
+╔════════════════════════════════════════════════════════════╗
+║ Looks like Playwright was just installed or updated.       ║
+║ Please run the following command to download new browsers: ║
+║                                                            ║
+║     pnpm exec playwright install                           ║
+║                                                            ║
+║ <3 Playwright Team                                         ║
+╚════════════════════════════════════════════════════════════╝
+```
+```
+
+## File: `test-results/e2e-accessibility-Accessib-57b49-ctable-accessibility-issues-Mobile-Safari/error-context.md`
+
+```md
+# Instructions
+
+- Following Playwright test failed.
+- Explain why, be concise, respect Playwright best practices.
+- Provide a snippet of code with the fix, if possible.
+
+# Test info
+
+- Name: e2e\accessibility.spec.ts >> Accessibility Tests (WCAG) >> Homepage should not have any automatically detectable accessibility issues
+- Location: tests\e2e\accessibility.spec.ts:5:9
+
+# Error details
+
+```
+Error: browserType.launch: Executable doesn't exist at C:\Users\n\AppData\Local\ms-playwright\webkit-2311\Playwright.exe
+╔════════════════════════════════════════════════════════════╗
+║ Looks like Playwright was just installed or updated.       ║
+║ Please run the following command to download new browsers: ║
+║                                                            ║
+║     pnpm exec playwright install                           ║
+║                                                            ║
+║ <3 Playwright Team                                         ║
+╚════════════════════════════════════════════════════════════╝
+```
+```
+
+## File: `test-results/e2e-accessibility-Accessib-1a8a2-hboard-should-be-accessible-Mobile-Chrome/error-context.md`
+
+```md
+# Instructions
+
+- Following Playwright test failed.
+- Explain why, be concise, respect Playwright best practices.
+- Provide a snippet of code with the fix, if possible.
+
+# Test info
+
+- Name: e2e\accessibility.spec.ts >> Accessibility Tests (WCAG) >> Admin Dashboard should be accessible
+- Location: tests\e2e\accessibility.spec.ts:18:9
+
+# Error details
+
+```
+Error: expect(received).toEqual(expected) // deep equality
+
+- Expected  -   1
++ Received  + 149
+
+- Array []
++ Array [
++   Object {
++     "description": "Ensure the document has a main landmark",
++     "help": "Document should have one main landmark",
++     "helpUrl": "https://dequeuniversity.com/rules/axe/4.12/landmark-one-main?application=playwright",
++     "id": "landmark-one-main",
++     "impact": "moderate",
++     "nodes": Array [
++       Object {
++         "all": Array [
++           Object {
++             "data": null,
++             "id": "page-has-main",
++             "impact": "moderate",
++             "message": "Document does not have a main landmark",
++             "relatedNodes": Array [],
++           },
++         ],
++         "any": Array [],
++         "failureSummary": "Fix all of the following:
++   Document does not have a main landmark",
++         "html": "<html lang=\"en\" class=\"dark\" data-theme=\"dark\">",
++         "impact": "moderate",
++         "none": Array [],
++         "target": Array [
++           "html",
++         ],
++       },
++     ],
++     "tags": Array [
++       "cat.semantics",
++       "best-practice",
++     ],
++   },
++   Object {
++     "description": "Ensure that the page, or at least one of its frames contains a level-one heading",
++     "help": "Page should contain a level-one heading",
++     "helpUrl": "https://dequeuniversity.com/rules/axe/4.12/page-has-heading-one?application=playwright",
++     "id": "page-has-heading-one",
++     "impact": "moderate",
++     "nodes": Array [
++       Object {
++         "all": Array [
++           Object {
++             "data": null,
++             "id": "page-has-heading-one",
++             "impact": "moderate",
++             "message": "Page must have a level-one heading",
++             "relatedNodes": Array [],
++           },
++         ],
++         "any": Array [],
++         "failureSummary": "Fix all of the following:
++   Page must have a level-one heading",
++         "html": "<html lang=\"en\" class=\"dark\" data-theme=\"dark\">",
++         "impact": "moderate",
++         "none": Array [],
++         "target": Array [
++           "html",
++         ],
++       },
++     ],
++     "tags": Array [
++       "cat.semantics",
++       "best-practice",
++     ],
++   },
++   Object {
++     "description": "Ensure all page content is contained by landmarks",
++     "help": "All page content should be contained by landmarks",
++     "helpUrl": "https://dequeuniversity.com/rules/axe/4.12/region?application=playwright",
++     "id": "region",
++     "impact": "moderate",
++     "nodes": Array [
++       Object {
++         "all": Array [],
++         "any": Array [
++           Object {
++             "data": Object {
++               "isIframe": false,
++             },
++             "id": "region",
++             "impact": "moderate",
++             "message": "Some page content is not contained by landmarks",
++             "relatedNodes": Array [],
++           },
++         ],
++         "failureSummary": "Fix any of the following:
++   Some page content is not contained by landmarks",
++         "html": "<h2 class=\"text-xl font-mono font-bold text-[#ff0055] uppercase tracking-widest mb-2\">Dashboard Module Failure</h2>",
++         "impact": "moderate",
++         "none": Array [],
++         "target": Array [
++           "h2",
++         ],
++       },
++       Object {
++         "all": Array [],
++         "any": Array [
++           Object {
++             "data": Object {
++               "isIframe": false,
++             },
++             "id": "region",
++             "impact": "moderate",
++             "message": "Some page content is not contained by landmarks",
++             "relatedNodes": Array [],
++           },
++         ],
++         "failureSummary": "Fix any of the following:
++   Some page content is not contained by landmarks",
++         "html": "<p class=\"text-sm text-slate-400 font-mono mb-4\">A critical module in the admin dashboard has crashed. The rest of the system remains intact.</p>",
++         "impact": "moderate",
++         "none": Array [],
++         "target": Array [
++           "p",
++         ],
++       },
++       Object {
++         "all": Array [],
++         "any": Array [
++           Object {
++             "data": Object {
++               "isIframe": false,
++             },
++             "id": "region",
++             "impact": "moderate",
++             "message": "Some page content is not contained by landmarks",
++             "relatedNodes": Array [],
++           },
++         ],
++         "failureSummary": "Fix any of the following:
++   Some page content is not contained by landmarks",
++         "html": "<pre class=\"text-xs text-slate-400 font-mono bg-slate-900/80 p-3 rounded-lg mb-6 overflow-auto max-h-40\">React is not defined</pre>",
++         "impact": "moderate",
++         "none": Array [],
++         "target": Array [
++           "pre",
++         ],
++       },
++     ],
++     "tags": Array [
++       "cat.keyboard",
++       "best-practice",
++       "RGAAv4",
++       "RGAA-9.2.1",
++     ],
++   },
++ ]
+```
+
+# Page snapshot
+
+```yaml
+- generic [ref=e4]:
+  - heading "Dashboard Module Failure" [level=2] [ref=e5]
+  - paragraph [ref=e6]: A critical module in the admin dashboard has crashed. The rest of the system remains intact.
+  - generic [ref=e7]: React is not defined
+  - button "Reboot Dashboard Module" [ref=e8]
+```
+
+# Test source
+
+```ts
+  1  | import { test, expect } from '@playwright/test';
+  2  | import AxeBuilder from '@axe-core/playwright';
+  3  | 
+  4  | test.describe('Accessibility Tests (WCAG)', () => {
+  5  |     test('Homepage should not have any automatically detectable accessibility issues', async ({ page }) => {
+  6  |         await page.goto('/');
+  7  | 
+  8  |         const accessibilityScanResults = await new AxeBuilder({ page }).analyze();
+  9  | 
+  10 |         // কোনো ভায়োলেশন থাকলে তা প্রিন্ট করার জন্য একটি সহায়ক লগ
+  11 |         if (accessibilityScanResults.violations.length > 0) {
+  12 |             console.log('Accessibility violations found on homepage:', JSON.stringify(accessibilityScanResults.violations, null, 2));
+  13 |         }
+  14 | 
+  15 |         expect(accessibilityScanResults.violations).toEqual([]);
+  16 |     });
+  17 | 
+  18 |     test('Admin Dashboard should be accessible', async ({ page }) => {
+  19 |         await page.goto('/admin'); // আপনার অ্যাডমিন পেজের URL
+  20 | 
+  21 |         const accessibilityScanResults = await new AxeBuilder({ page }).analyze();
+  22 | 
+> 23 |         expect(accessibilityScanResults.violations).toEqual([]);
+     |                                                     ^ Error: expect(received).toEqual(expected) // deep equality
+  24 |     });
+  25 | });
+```
+```
+
+## File: `test-results/e2e-visual-Visual-Regressi-e7857-match-the-approved-snapshot-webkit/error-context.md`
+
+```md
+# Instructions
+
+- Following Playwright test failed.
+- Explain why, be concise, respect Playwright best practices.
+- Provide a snippet of code with the fix, if possible.
+
+# Test info
+
+- Name: e2e\visual.spec.ts >> Visual Regression Tests >> ConsentMatrixModal should match the approved snapshot
+- Location: tests\e2e\visual.spec.ts:10:9
+
+# Error details
+
+```
+Error: browserType.launch: Executable doesn't exist at C:\Users\n\AppData\Local\ms-playwright\webkit-2311\Playwright.exe
+╔════════════════════════════════════════════════════════════╗
+║ Looks like Playwright was just installed or updated.       ║
+║ Please run the following command to download new browsers: ║
+║                                                            ║
+║     pnpm exec playwright install                           ║
+║                                                            ║
+║ <3 Playwright Team                                         ║
+╚════════════════════════════════════════════════════════════╝
+```
+```
+
+## File: `test-results/e2e-admin-dashboard-Suprem-8ff1e-hestration-command-via-chat-firefox/error-context.md`
+
+```md
+# Instructions
+
+- Following Playwright test failed.
+- Explain why, be concise, respect Playwright best practices.
+- Provide a snippet of code with the fix, if possible.
+
+# Test info
+
+- Name: e2e\admin-dashboard.spec.ts >> SupremeAI Nexus E2E Flow >> should be able to submit an orchestration command via chat
+- Location: tests\e2e\admin-dashboard.spec.ts:25:7
+
+# Error details
+
+```
+Error: browserType.launch: Executable doesn't exist at C:\Users\n\AppData\Local\ms-playwright\firefox-1532\firefox\firefox.exe
+╔════════════════════════════════════════════════════════════╗
+║ Looks like Playwright was just installed or updated.       ║
+║ Please run the following command to download new browsers: ║
+║                                                            ║
+║     pnpm exec playwright install                           ║
+║                                                            ║
+║ <3 Playwright Team                                         ║
+╚════════════════════════════════════════════════════════════╝
+```
+```
+
+## File: `test-results/e2e-admin-dashboard-Suprem-08ee0-d-verify-Java-Worker-widget-webkit/error-context.md`
+
+```md
+# Instructions
+
+- Following Playwright test failed.
+- Explain why, be concise, respect Playwright best practices.
+- Provide a snippet of code with the fix, if possible.
+
+# Test info
+
+- Name: e2e\admin-dashboard.spec.ts >> SupremeAI Nexus E2E Flow >> should load the dashboard and verify Java Worker widget
+- Location: tests\e2e\admin-dashboard.spec.ts:5:7
+
+# Error details
+
+```
+Error: browserType.launch: Executable doesn't exist at C:\Users\n\AppData\Local\ms-playwright\webkit-2311\Playwright.exe
+╔════════════════════════════════════════════════════════════╗
+║ Looks like Playwright was just installed or updated.       ║
+║ Please run the following command to download new browsers: ║
+║                                                            ║
+║     pnpm exec playwright install                           ║
+║                                                            ║
+║ <3 Playwright Team                                         ║
+╚════════════════════════════════════════════════════════════╝
+```
+```
+
+## File: `test-results/e2e-accessibility-Accessib-57b49-ctable-accessibility-issues-firefox/error-context.md`
+
+```md
+# Instructions
+
+- Following Playwright test failed.
+- Explain why, be concise, respect Playwright best practices.
+- Provide a snippet of code with the fix, if possible.
+
+# Test info
+
+- Name: e2e\accessibility.spec.ts >> Accessibility Tests (WCAG) >> Homepage should not have any automatically detectable accessibility issues
+- Location: tests\e2e\accessibility.spec.ts:5:9
+
+# Error details
+
+```
+Error: browserType.launch: Executable doesn't exist at C:\Users\n\AppData\Local\ms-playwright\firefox-1532\firefox\firefox.exe
+╔════════════════════════════════════════════════════════════╗
+║ Looks like Playwright was just installed or updated.       ║
+║ Please run the following command to download new browsers: ║
+║                                                            ║
+║     pnpm exec playwright install                           ║
+║                                                            ║
+║ <3 Playwright Team                                         ║
+╚════════════════════════════════════════════════════════════╝
+```
+```
+
+## File: `test-results/e2e-accessibility-Accessib-1a8a2-hboard-should-be-accessible-firefox/error-context.md`
+
+```md
+# Instructions
+
+- Following Playwright test failed.
+- Explain why, be concise, respect Playwright best practices.
+- Provide a snippet of code with the fix, if possible.
+
+# Test info
+
+- Name: e2e\accessibility.spec.ts >> Accessibility Tests (WCAG) >> Admin Dashboard should be accessible
+- Location: tests\e2e\accessibility.spec.ts:18:9
+
+# Error details
+
+```
+Error: browserType.launch: Executable doesn't exist at C:\Users\n\AppData\Local\ms-playwright\firefox-1532\firefox\firefox.exe
+╔════════════════════════════════════════════════════════════╗
+║ Looks like Playwright was just installed or updated.       ║
+║ Please run the following command to download new browsers: ║
+║                                                            ║
+║     pnpm exec playwright install                           ║
+║                                                            ║
+║ <3 Playwright Team                                         ║
+╚════════════════════════════════════════════════════════════╝
+```
+```
+
+## File: `test-results/e2e-admin-dashboard-Suprem-08ee0-d-verify-Java-Worker-widget-Mobile-Safari/error-context.md`
+
+```md
+# Instructions
+
+- Following Playwright test failed.
+- Explain why, be concise, respect Playwright best practices.
+- Provide a snippet of code with the fix, if possible.
+
+# Test info
+
+- Name: e2e\admin-dashboard.spec.ts >> SupremeAI Nexus E2E Flow >> should load the dashboard and verify Java Worker widget
+- Location: tests\e2e\admin-dashboard.spec.ts:5:7
+
+# Error details
+
+```
+Error: browserType.launch: Executable doesn't exist at C:\Users\n\AppData\Local\ms-playwright\webkit-2311\Playwright.exe
+╔════════════════════════════════════════════════════════════╗
+║ Looks like Playwright was just installed or updated.       ║
+║ Please run the following command to download new browsers: ║
+║                                                            ║
+║     pnpm exec playwright install                           ║
+║                                                            ║
+║ <3 Playwright Team                                         ║
+╚════════════════════════════════════════════════════════════╝
+```
+```
+
+## File: `test-results/e2e-accessibility-Accessib-57b49-ctable-accessibility-issues-webkit/error-context.md`
+
+```md
+# Instructions
+
+- Following Playwright test failed.
+- Explain why, be concise, respect Playwright best practices.
+- Provide a snippet of code with the fix, if possible.
+
+# Test info
+
+- Name: e2e\accessibility.spec.ts >> Accessibility Tests (WCAG) >> Homepage should not have any automatically detectable accessibility issues
+- Location: tests\e2e\accessibility.spec.ts:5:9
+
+# Error details
+
+```
+Error: browserType.launch: Executable doesn't exist at C:\Users\n\AppData\Local\ms-playwright\webkit-2311\Playwright.exe
+╔════════════════════════════════════════════════════════════╗
+║ Looks like Playwright was just installed or updated.       ║
+║ Please run the following command to download new browsers: ║
+║                                                            ║
+║     pnpm exec playwright install                           ║
+║                                                            ║
+║ <3 Playwright Team                                         ║
+╚════════════════════════════════════════════════════════════╝
+```
+```
+
+## File: `test-results/e2e-visual-Visual-Regressi-e7857-match-the-approved-snapshot-firefox/error-context.md`
+
+```md
+# Instructions
+
+- Following Playwright test failed.
+- Explain why, be concise, respect Playwright best practices.
+- Provide a snippet of code with the fix, if possible.
+
+# Test info
+
+- Name: e2e\visual.spec.ts >> Visual Regression Tests >> ConsentMatrixModal should match the approved snapshot
+- Location: tests\e2e\visual.spec.ts:10:9
+
+# Error details
+
+```
+Error: browserType.launch: Executable doesn't exist at C:\Users\n\AppData\Local\ms-playwright\firefox-1532\firefox\firefox.exe
+╔════════════════════════════════════════════════════════════╗
+║ Looks like Playwright was just installed or updated.       ║
+║ Please run the following command to download new browsers: ║
+║                                                            ║
+║     pnpm exec playwright install                           ║
+║                                                            ║
+║ <3 Playwright Team                                         ║
+╚════════════════════════════════════════════════════════════╝
+```
+```
+
+## File: `test-results/e2e-accessibility-Accessib-1a8a2-hboard-should-be-accessible-chromium/error-context.md`
+
+```md
+# Instructions
+
+- Following Playwright test failed.
+- Explain why, be concise, respect Playwright best practices.
+- Provide a snippet of code with the fix, if possible.
+
+# Test info
+
+- Name: e2e\accessibility.spec.ts >> Accessibility Tests (WCAG) >> Admin Dashboard should be accessible
+- Location: tests\e2e\accessibility.spec.ts:18:9
+
+# Error details
+
+```
+Error: expect(received).toEqual(expected) // deep equality
+
+- Expected  -   1
++ Received  + 149
+
+- Array []
++ Array [
++   Object {
++     "description": "Ensure the document has a main landmark",
++     "help": "Document should have one main landmark",
++     "helpUrl": "https://dequeuniversity.com/rules/axe/4.12/landmark-one-main?application=playwright",
++     "id": "landmark-one-main",
++     "impact": "moderate",
++     "nodes": Array [
++       Object {
++         "all": Array [
++           Object {
++             "data": null,
++             "id": "page-has-main",
++             "impact": "moderate",
++             "message": "Document does not have a main landmark",
++             "relatedNodes": Array [],
++           },
++         ],
++         "any": Array [],
++         "failureSummary": "Fix all of the following:
++   Document does not have a main landmark",
++         "html": "<html lang=\"en\" class=\"dark\" data-theme=\"dark\">",
++         "impact": "moderate",
++         "none": Array [],
++         "target": Array [
++           "html",
++         ],
++       },
++     ],
++     "tags": Array [
++       "cat.semantics",
++       "best-practice",
++     ],
++   },
++   Object {
++     "description": "Ensure that the page, or at least one of its frames contains a level-one heading",
++     "help": "Page should contain a level-one heading",
++     "helpUrl": "https://dequeuniversity.com/rules/axe/4.12/page-has-heading-one?application=playwright",
++     "id": "page-has-heading-one",
++     "impact": "moderate",
++     "nodes": Array [
++       Object {
++         "all": Array [
++           Object {
++             "data": null,
++             "id": "page-has-heading-one",
++             "impact": "moderate",
++             "message": "Page must have a level-one heading",
++             "relatedNodes": Array [],
++           },
++         ],
++         "any": Array [],
++         "failureSummary": "Fix all of the following:
++   Page must have a level-one heading",
++         "html": "<html lang=\"en\" class=\"dark\" data-theme=\"dark\">",
++         "impact": "moderate",
++         "none": Array [],
++         "target": Array [
++           "html",
++         ],
++       },
++     ],
++     "tags": Array [
++       "cat.semantics",
++       "best-practice",
++     ],
++   },
++   Object {
++     "description": "Ensure all page content is contained by landmarks",
++     "help": "All page content should be contained by landmarks",
++     "helpUrl": "https://dequeuniversity.com/rules/axe/4.12/region?application=playwright",
++     "id": "region",
++     "impact": "moderate",
++     "nodes": Array [
++       Object {
++         "all": Array [],
++         "any": Array [
++           Object {
++             "data": Object {
++               "isIframe": false,
++             },
++             "id": "region",
++             "impact": "moderate",
++             "message": "Some page content is not contained by landmarks",
++             "relatedNodes": Array [],
++           },
++         ],
++         "failureSummary": "Fix any of the following:
++   Some page content is not contained by landmarks",
++         "html": "<h2 class=\"text-xl font-mono font-bold text-[#ff0055] uppercase tracking-widest mb-2\">Dashboard Module Failure</h2>",
++         "impact": "moderate",
++         "none": Array [],
++         "target": Array [
++           "h2",
++         ],
++       },
++       Object {
++         "all": Array [],
++         "any": Array [
++           Object {
++             "data": Object {
++               "isIframe": false,
++             },
++             "id": "region",
++             "impact": "moderate",
++             "message": "Some page content is not contained by landmarks",
++             "relatedNodes": Array [],
++           },
++         ],
++         "failureSummary": "Fix any of the following:
++   Some page content is not contained by landmarks",
++         "html": "<p class=\"text-sm text-slate-400 font-mono mb-4\">A critical module in the admin dashboard has crashed. The rest of the system remains intact.</p>",
++         "impact": "moderate",
++         "none": Array [],
++         "target": Array [
++           "p",
++         ],
++       },
++       Object {
++         "all": Array [],
++         "any": Array [
++           Object {
++             "data": Object {
++               "isIframe": false,
++             },
++             "id": "region",
++             "impact": "moderate",
++             "message": "Some page content is not contained by landmarks",
++             "relatedNodes": Array [],
++           },
++         ],
++         "failureSummary": "Fix any of the following:
++   Some page content is not contained by landmarks",
++         "html": "<pre class=\"text-xs text-slate-400 font-mono bg-slate-900/80 p-3 rounded-lg mb-6 overflow-auto max-h-40\">React is not defined</pre>",
++         "impact": "moderate",
++         "none": Array [],
++         "target": Array [
++           "pre",
++         ],
++       },
++     ],
++     "tags": Array [
++       "cat.keyboard",
++       "best-practice",
++       "RGAAv4",
++       "RGAA-9.2.1",
++     ],
++   },
++ ]
+```
+
+# Page snapshot
+
+```yaml
+- generic [ref=e4]:
+  - heading "Dashboard Module Failure" [level=2] [ref=e5]
+  - paragraph [ref=e6]: A critical module in the admin dashboard has crashed. The rest of the system remains intact.
+  - generic [ref=e7]: React is not defined
+  - button "Reboot Dashboard Module" [ref=e8]
+```
+
+# Test source
+
+```ts
+  1  | import { test, expect } from '@playwright/test';
+  2  | import AxeBuilder from '@axe-core/playwright';
+  3  | 
+  4  | test.describe('Accessibility Tests (WCAG)', () => {
+  5  |     test('Homepage should not have any automatically detectable accessibility issues', async ({ page }) => {
+  6  |         await page.goto('/');
+  7  | 
+  8  |         const accessibilityScanResults = await new AxeBuilder({ page }).analyze();
+  9  | 
+  10 |         // কোনো ভায়োলেশন থাকলে তা প্রিন্ট করার জন্য একটি সহায়ক লগ
+  11 |         if (accessibilityScanResults.violations.length > 0) {
+  12 |             console.log('Accessibility violations found on homepage:', JSON.stringify(accessibilityScanResults.violations, null, 2));
+  13 |         }
+  14 | 
+  15 |         expect(accessibilityScanResults.violations).toEqual([]);
+  16 |     });
+  17 | 
+  18 |     test('Admin Dashboard should be accessible', async ({ page }) => {
+  19 |         await page.goto('/admin'); // আপনার অ্যাডমিন পেজের URL
+  20 | 
+  21 |         const accessibilityScanResults = await new AxeBuilder({ page }).analyze();
+  22 | 
+> 23 |         expect(accessibilityScanResults.violations).toEqual([]);
+     |                                                     ^ Error: expect(received).toEqual(expected) // deep equality
+  24 |     });
+  25 | });
+```
+```
+
+## File: `test-results/e2e-chat-Chat-sends-message-Mobile-Safari/error-context.md`
+
+```md
+# Instructions
+
+- Following Playwright test failed.
+- Explain why, be concise, respect Playwright best practices.
+- Provide a snippet of code with the fix, if possible.
+
+# Test info
+
+- Name: e2e\chat.spec.ts >> Chat sends message
+- Location: tests\e2e\chat.spec.ts:3:5
+
+# Error details
+
+```
+Error: browserType.launch: Executable doesn't exist at C:\Users\n\AppData\Local\ms-playwright\webkit-2311\Playwright.exe
+╔════════════════════════════════════════════════════════════╗
+║ Looks like Playwright was just installed or updated.       ║
+║ Please run the following command to download new browsers: ║
+║                                                            ║
+║     pnpm exec playwright install                           ║
+║                                                            ║
+║ <3 Playwright Team                                         ║
+╚════════════════════════════════════════════════════════════╝
+```
 ```
 
 ## File: `apps/studio-client/eslint.config.js`
@@ -120326,6 +124042,7 @@ export function AdminConsole(props: AdminConsoleProps) {
     </div>
   );
 }
+
 ```
 
 ## File: `apps/studio-client/src/components/LiveSujonBackground.tsx`
@@ -120574,6 +124291,7 @@ export function OperatorStudio({
     </div>
   );
 }
+
 ```
 
 ## File: `apps/studio-client/src/components/BanglaHint.tsx`
@@ -120608,6 +124326,7 @@ export const BanglaHint = ({ text }: BanglaHintProps) => {
     </span>
   );
 };
+
 ```
 
 ## File: `apps/studio-client/src/components/chat/TypingIndicator.tsx`
@@ -120802,7 +124521,7 @@ export function UnifiedChatBubble({
             )}
           </div>
           {timestamp && (
-            <span className="text-[9px] text-slate-500 px-1 font-mono">{timestamp}</span>
+            <span className="text-[9px] text-slate-400 px-1 font-mono">{timestamp}</span>
           )}
         </div>
       );
@@ -120821,7 +124540,7 @@ export function UnifiedChatBubble({
           </div>
         )}
         {timestamp && (
-          <span className="text-[9px] text-slate-500 px-1 font-mono">{timestamp}</span>
+          <span className="text-[9px] text-slate-400 px-1 font-mono">{timestamp}</span>
         )}
       </div>
     );
@@ -120833,7 +124552,7 @@ export function UnifiedChatBubble({
         {text}
       </div>
       {timestamp && (
-        <span className="text-[9px] text-slate-500 px-1 font-mono">{timestamp}</span>
+        <span className="text-[9px] text-slate-400 px-1 font-mono">{timestamp}</span>
       )}
     </div>
   );
@@ -121028,7 +124747,7 @@ export function DashboardShell(props: DashboardShellProps) {
           </div>
           <button
             onClick={props.toggleTheme}
-            className="w-full flex items-center gap-2 px-3 py-1.5 rounded-lg text-[11px] text-slate-500 hover:text-slate-300 hover:bg-white/[0.04] transition-colors"
+            className="w-full flex items-center gap-2 px-3 py-1.5 rounded-lg text-[11px] text-slate-400 hover:text-slate-300 hover:bg-white/[0.04] transition-colors"
           >
             <Shield size={11} />
             {props.theme === 'dark' ? 'Dark' : 'Light'} mode
@@ -121043,6 +124762,7 @@ export function DashboardShell(props: DashboardShellProps) {
     </div>
   );
 }
+
 ```
 
 ## File: `apps/studio-client/src/components/dashboard/LlmGatewayPage.tsx`
@@ -121158,7 +124878,7 @@ export function LlmGatewayPage() {
           Refresh
         </button>
       </div>
-      <p className="text-xs text-slate-500 mb-5">
+      <p className="text-xs text-slate-400 mb-5">
         Toggle fallback routing chains, switch the live AI model, and mutate central system rules.
       </p>
 
@@ -121166,7 +124886,7 @@ export function LlmGatewayPage() {
       {status && <p className="text-xs text-emerald-400 mb-3">{status}</p>}
 
       {loading ? (
-        <div className="flex justify-center py-10 text-slate-500">
+        <div className="flex justify-center py-10 text-slate-400">
           <Loader2 size={18} className="animate-spin" />
         </div>
       ) : (
@@ -121201,7 +124921,7 @@ export function LlmGatewayPage() {
           <h2 className="text-xs font-medium text-slate-300 mb-2">Providers & live model switch</h2>
           <ul className="flex flex-col gap-2 mb-6">
             {providers.length === 0 ? (
-              <p className="text-sm text-slate-500 py-4">No providers with configured API keys.</p>
+              <p className="text-sm text-slate-400 py-4">No providers with configured API keys.</p>
             ) : (
               providers.map((p) => (
                 <li
@@ -121216,7 +124936,7 @@ export function LlmGatewayPage() {
                       }`}
                     />
                     <span className="text-xs text-white flex-1">{p.name}</span>
-                    <span className="text-[10px] text-slate-500">{p.latency_ms}ms</span>
+                    <span className="text-[10px] text-slate-400">{p.latency_ms}ms</span>
                   </div>
                   <div className="flex flex-wrap gap-1.5">
                     {p.models.map((m) => (
@@ -121361,7 +125081,7 @@ export function AutomationQueuePage() {
         <ListChecks size={17} className="text-blue-400" />
         Automation Workflow Queue
       </h1>
-      <p className="text-xs text-slate-500 mb-5">
+      <p className="text-xs text-slate-400 mb-5">
         Active Playwright automation sequences. Each task is capped at{' '}
         {EXECUTION_CAP_MS / 1000}s of execution time.
       </p>
@@ -121390,15 +125110,15 @@ export function AutomationQueuePage() {
 
       <div className="flex items-center justify-between mb-2">
         <h2 className="text-sm font-medium text-slate-300">Active sequences</h2>
-        <span className="text-xs text-slate-500">{tasks.length} total</span>
+        <span className="text-xs text-slate-400">{tasks.length} total</span>
       </div>
 
       {loading ? (
-        <div className="flex justify-center py-10 text-slate-500">
+        <div className="flex justify-center py-10 text-slate-400">
           <Loader2 size={18} className="animate-spin" />
         </div>
       ) : tasks.length === 0 ? (
-        <p className="text-sm text-slate-500 text-center py-8">No automation tasks queued.</p>
+        <p className="text-sm text-slate-400 text-center py-8">No automation tasks queued.</p>
       ) : (
         <ul className="flex flex-col gap-2">
           {tasks.map((t) => (
@@ -121409,7 +125129,7 @@ export function AutomationQueuePage() {
             >
               <div className="flex-1 min-w-0">
                 <p className="text-xs text-white truncate">{t.goal}</p>
-                <p className="text-[11px] text-slate-500">
+                <p className="text-[11px] text-slate-400">
                   {t.createdAt ? new Date(t.createdAt).toLocaleString() : '—'}
                   {typeof t.durationMs === 'number' && ` · ${(t.durationMs / 1000).toFixed(1)}s`}
                 </p>
@@ -121423,7 +125143,7 @@ export function AutomationQueuePage() {
               <button
                 aria-label="Delete task"
                 onClick={() => handleDelete(t.id)}
-                className="p-1.5 rounded text-slate-500 hover:text-rose-400 transition-colors"
+                className="p-1.5 rounded text-slate-400 hover:text-rose-400 transition-colors"
               >
                 <Trash2 size={13} />
               </button>
@@ -121547,7 +125267,7 @@ export function SiteActionsPage() {
         <Table2 size={17} className="text-blue-400" />
         Site Actions Registry
       </h1>
-      <p className="text-xs text-slate-500 mb-5">
+      <p className="text-xs text-slate-400 mb-5">
         Super-Admin editor mapping target site selectors & DOM interaction rules that power the
         database-driven action engine.
       </p>
@@ -121649,11 +125369,11 @@ export function SiteActionsPage() {
       {error && <p className="text-xs text-rose-400 mb-4">{error}</p>}
 
       {loading ? (
-        <div className="flex justify-center py-10 text-slate-500">
+        <div className="flex justify-center py-10 text-slate-400">
           <Loader2 size={18} className="animate-spin" />
         </div>
       ) : actions.length === 0 ? (
-        <p className="text-sm text-slate-500 text-center py-8">No site actions defined yet.</p>
+        <p className="text-sm text-slate-400 text-center py-8">No site actions defined yet.</p>
       ) : (
         <div className="overflow-x-auto rounded-xl border border-white/[0.06]">
           <table className="w-full text-left text-xs">
@@ -121690,14 +125410,14 @@ export function SiteActionsPage() {
                       <button
                         aria-label="Edit action"
                         onClick={() => handleEdit(a)}
-                        className="p-1.5 rounded text-slate-500 hover:text-blue-400 transition-colors"
+                        className="p-1.5 rounded text-slate-400 hover:text-blue-400 transition-colors"
                       >
                         <Pencil size={12} />
                       </button>
                       <button
                         aria-label="Delete action"
                         onClick={() => handleDelete(a.id)}
-                        className="p-1.5 rounded text-slate-500 hover:text-rose-400 transition-colors"
+                        className="p-1.5 rounded text-slate-400 hover:text-rose-400 transition-colors"
                       >
                         <Trash2 size={12} />
                       </button>
@@ -121939,7 +125659,7 @@ export function SessionDetailPage({ sessionId, onBack }: SessionDetailPageProps)
   if (!session) {
     return (
       <div className="max-w-3xl mx-auto px-6 py-10 text-center">
-        <p className="text-sm text-slate-500 mb-4">Session not found.</p>
+        <p className="text-sm text-slate-400 mb-4">Session not found.</p>
         <button onClick={onBack} className="text-xs text-blue-400 hover:text-blue-300">
           ← Back to sessions
         </button>
@@ -121986,7 +125706,7 @@ export function SessionDetailPage({ sessionId, onBack }: SessionDetailPageProps)
           </div>
         ))}
         {sending && (
-          <div className="self-start text-xs text-slate-500 animate-pulse px-2">SupremeAI is working…</div>
+          <div className="self-start text-xs text-slate-400 animate-pulse px-2">SupremeAI is working…</div>
         )}
         <div ref={bottomRef} />
       </div>
@@ -122009,7 +125729,7 @@ export function SessionDetailPage({ sessionId, onBack }: SessionDetailPageProps)
           onClick={handleSend}
           disabled={!input.trim() || sending}
           aria-label="Send message"
-          className="p-2 rounded-lg bg-blue-600 hover:bg-blue-500 disabled:bg-slate-700 disabled:text-slate-500 text-white transition-colors"
+          className="p-2 rounded-lg bg-blue-600 hover:bg-blue-500 disabled:bg-slate-700 disabled:text-slate-400 text-white transition-colors"
         >
           <Send size={14} />
         </button>
@@ -122017,6 +125737,7 @@ export function SessionDetailPage({ sessionId, onBack }: SessionDetailPageProps)
     </div>
   );
 }
+
 ```
 
 ## File: `apps/studio-client/src/components/dashboard/VaultPage.tsx`
@@ -122138,7 +125859,7 @@ export function VaultPage() {
           Sync session
         </button>
       </div>
-      <p className="text-xs text-slate-500 mb-5">
+      <p className="text-xs text-slate-400 mb-5">
         Import target site session tokens/cookies for the boundless automation agent. Raw
         credentials are encrypted and never displayed.
       </p>
@@ -122196,11 +125917,11 @@ export function VaultPage() {
       {error && <p className="text-xs text-rose-400 mb-4">{error}</p>}
 
       {loading ? (
-        <div className="flex justify-center py-10 text-slate-500">
+        <div className="flex justify-center py-10 text-slate-400">
           <Loader2 size={18} className="animate-spin" />
         </div>
       ) : creds.length === 0 ? (
-        <p className="text-sm text-slate-500 text-center py-8">No stored sessions yet.</p>
+        <p className="text-sm text-slate-400 text-center py-8">No stored sessions yet.</p>
       ) : (
         <ul className="flex flex-col gap-2">
           {creds.map((c) => (
@@ -122212,14 +125933,14 @@ export function VaultPage() {
               <ShieldCheck size={14} className="text-slate-400" />
               <div className="flex-1 min-w-0">
                 <p className="text-xs text-white truncate">{c.serviceName}</p>
-                <p className="text-[11px] text-slate-500 font-mono truncate">
+                <p className="text-[11px] text-slate-400 font-mono truncate">
                   {c.username} · {c.password || c.token || '***masked***'}
                 </p>
               </div>
               <button
                 aria-label="Remove session"
                 onClick={() => handleDelete(c.id)}
-                className="p-1.5 rounded text-slate-500 hover:text-rose-400 transition-colors"
+                className="p-1.5 rounded text-slate-400 hover:text-rose-400 transition-colors"
               >
                 <Trash2 size={13} />
               </button>
@@ -122288,12 +126009,12 @@ export function UsagePage() {
   return (
     <div className="max-w-3xl mx-auto px-6 py-8">
       <h1 className="text-lg font-semibold text-white mb-1">Usage</h1>
-      <p className="text-xs text-slate-500 mb-6">
+      <p className="text-xs text-slate-400 mb-6">
         Platform usage over the last 30 days. SupremeAI is free — no billing, ever.
       </p>
 
       {loading ? (
-        <div className="flex justify-center py-16 text-slate-500">
+        <div className="flex justify-center py-16 text-slate-400">
           <Loader2 size={20} className="animate-spin" />
         </div>
       ) : error ? (
@@ -122303,22 +126024,22 @@ export function UsagePage() {
           <div className="grid grid-cols-3 gap-3 mb-6">
             <div className="rounded-xl border border-white/[0.08] bg-white/[0.02] p-4">
               <p className="text-xl font-semibold text-white">{totalRequests.toLocaleString()}</p>
-              <p className="text-[11px] text-slate-500">Total requests</p>
+              <p className="text-[11px] text-slate-400">Total requests</p>
             </div>
             <div className="rounded-xl border border-white/[0.08] bg-white/[0.02] p-4">
               <p className="text-xl font-semibold text-white">{totalTokens.toLocaleString()}</p>
-              <p className="text-[11px] text-slate-500">Total tokens</p>
+              <p className="text-[11px] text-slate-400">Total tokens</p>
             </div>
             <div className="rounded-xl border border-white/[0.08] bg-white/[0.02] p-4">
               <p className="text-xl font-semibold text-white">{avgLatency} ms</p>
-              <p className="text-[11px] text-slate-500">Avg latency</p>
+              <p className="text-[11px] text-slate-400">Avg latency</p>
             </div>
           </div>
 
           {chartData.length === 0 ? (
             <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-10 text-center">
               <Activity size={20} className="mx-auto text-slate-600 mb-2" />
-              <p className="text-sm text-slate-500">No usage data recorded yet.</p>
+              <p className="text-sm text-slate-400">No usage data recorded yet.</p>
             </div>
           ) : (
             <div className="rounded-xl border border-white/[0.08] bg-white/[0.02] p-4 h-64">
@@ -122427,7 +126148,7 @@ export function SettingsPage({ theme, toggleTheme }: SettingsPageProps) {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-20 text-slate-500">
+      <div className="flex items-center justify-center py-20 text-slate-400">
         <Loader2 size={20} className="animate-spin" />
       </div>
     );
@@ -122436,7 +126157,7 @@ export function SettingsPage({ theme, toggleTheme }: SettingsPageProps) {
   return (
     <div className="max-w-2xl mx-auto px-6 py-8">
       <h1 className="text-lg font-semibold text-white mb-1">Settings</h1>
-      <p className="text-xs text-slate-500 mb-6">Manage your workspace preferences.</p>
+      <p className="text-xs text-slate-400 mb-6">Manage your workspace preferences.</p>
 
       <div className="flex flex-col gap-5">
         <div className="rounded-xl border border-white/[0.08] bg-white/[0.02] p-5">
@@ -122444,7 +126165,7 @@ export function SettingsPage({ theme, toggleTheme }: SettingsPageProps) {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-xs text-slate-300">Theme</p>
-              <p className="text-[11px] text-slate-500">Switch between light and dark mode.</p>
+              <p className="text-[11px] text-slate-400">Switch between light and dark mode.</p>
             </div>
             <button
               data-testid="settings-theme-toggle"
@@ -122514,7 +126235,7 @@ export function SettingsPage({ theme, toggleTheme }: SettingsPageProps) {
           <label className="flex items-center justify-between cursor-pointer">
             <div>
               <p className="text-xs text-slate-300">Auto-save</p>
-              <p className="text-[11px] text-slate-500">Automatically save workspace changes.</p>
+              <p className="text-[11px] text-slate-400">Automatically save workspace changes.</p>
             </div>
             <input
               type="checkbox"
@@ -122832,7 +126553,7 @@ export function SecretsPage() {
   return (
     <div className="max-w-2xl mx-auto px-6 py-8">
       <h1 className="text-lg font-semibold text-white mb-1">Secrets & API Keys</h1>
-      <p className="text-xs text-slate-500 mb-6">
+      <p className="text-xs text-slate-400 mb-6">
         Create and manage API keys for programmatic access. Keys are shown only once at creation.
       </p>
 
@@ -122879,11 +126600,11 @@ export function SecretsPage() {
       {error && <p className="text-xs text-rose-400 mb-4">{error}</p>}
 
       {loading ? (
-        <div className="flex justify-center py-10 text-slate-500">
+        <div className="flex justify-center py-10 text-slate-400">
           <Loader2 size={18} className="animate-spin" />
         </div>
       ) : keys.length === 0 ? (
-        <p className="text-sm text-slate-500 text-center py-8">No API keys yet.</p>
+        <p className="text-sm text-slate-400 text-center py-8">No API keys yet.</p>
       ) : (
         <ul className="flex flex-col gap-2">
           {keys.map((k) => (
@@ -122894,14 +126615,14 @@ export function SecretsPage() {
               <KeyRound size={14} className="text-slate-400" />
               <div className="flex-1 min-w-0">
                 <p className="text-xs text-white truncate">{k.name}</p>
-                <p className="text-[11px] text-slate-500 font-mono">{k.key_masked}</p>
+                <p className="text-[11px] text-slate-400 font-mono">{k.key_masked}</p>
               </div>
-              <span className="text-[10px] text-slate-500">{k.rate_limit_rps} rps</span>
+              <span className="text-[10px] text-slate-400">{k.rate_limit_rps} rps</span>
               <button
                 aria-label="Revoke key"
                 title="Revoke"
                 onClick={() => handleRevoke(k.id)}
-                className="p-1.5 rounded text-slate-500 hover:text-amber-400 transition-colors"
+                className="p-1.5 rounded text-slate-400 hover:text-amber-400 transition-colors"
               >
                 <Ban size={13} />
               </button>
@@ -122909,7 +126630,7 @@ export function SecretsPage() {
                 aria-label="Delete key"
                 title="Delete"
                 onClick={() => handleDelete(k.id)}
-                className="p-1.5 rounded text-slate-500 hover:text-rose-400 transition-colors"
+                className="p-1.5 rounded text-slate-400 hover:text-rose-400 transition-colors"
               >
                 <Trash2 size={13} />
               </button>
@@ -122993,13 +126714,13 @@ export function KnowledgePage() {
           Seed knowledge base
         </button>
       </div>
-      <p className="text-xs text-slate-500 mb-6">
+      <p className="text-xs text-slate-400 mb-6">
         Search the indexed knowledge base that powers SupremeAI's answers.
       </p>
 
       <div className="flex items-center gap-2 mb-6">
         <div className="flex-1 flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2 focus-within:border-blue-500/50 transition-colors">
-          <Search size={14} className="text-slate-500" />
+          <Search size={14} className="text-slate-400" />
           <input
             data-testid="knowledge-search-input"
             value={query}
@@ -123022,7 +126743,7 @@ export function KnowledgePage() {
       {status && <p className="text-xs text-slate-400 mb-4">{status}</p>}
 
       {searched && results.length === 0 && !loading && (
-        <p className="text-sm text-slate-500 text-center py-8">No results found.</p>
+        <p className="text-sm text-slate-400 text-center py-8">No results found.</p>
       )}
 
       <ul className="flex flex-col gap-3">
@@ -123032,7 +126753,7 @@ export function KnowledgePage() {
               <BookOpen size={13} className="text-blue-400" />
               <h3 className="text-xs font-medium text-white flex-1 truncate">{r.title}</h3>
               {typeof r.score === 'number' && (
-                <span className="text-[10px] text-slate-500">score {r.score.toFixed(2)}</span>
+                <span className="text-[10px] text-slate-400">score {r.score.toFixed(2)}</span>
               )}
             </div>
             <p className="text-[11px] text-slate-400 line-clamp-3 whitespace-pre-wrap">{r.content}</p>
@@ -123166,7 +126887,7 @@ export function SessionsPage({ onOpenSession }: SessionsPageProps) {
             data-testid="start-session-btn"
             onClick={handleStartSession}
             disabled={!prompt.trim() || starting}
-            className="flex items-center gap-2 px-4 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 disabled:bg-slate-700 disabled:text-slate-500 text-white text-xs font-medium transition-colors"
+            className="flex items-center gap-2 px-4 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 disabled:bg-slate-700 disabled:text-slate-400 text-white text-xs font-medium transition-colors"
           >
             <Send size={12} />
             {starting ? 'Starting…' : 'Start Session'}
@@ -123176,11 +126897,11 @@ export function SessionsPage({ onOpenSession }: SessionsPageProps) {
 
       <div className="flex items-center justify-between mb-3">
         <h2 className="text-sm font-medium text-slate-300">Recent sessions</h2>
-        <span className="text-xs text-slate-500">{sessions.length} total</span>
+        <span className="text-xs text-slate-400">{sessions.length} total</span>
       </div>
 
       {sessions.length === 0 ? (
-        <p className="text-sm text-slate-500 text-center py-10">
+        <p className="text-sm text-slate-400 text-center py-10">
           No sessions yet. Start your first task above.
         </p>
       ) : (
@@ -123195,7 +126916,7 @@ export function SessionsPage({ onOpenSession }: SessionsPageProps) {
               {statusIcon(session.status)}
               <div className="flex-1 min-w-0">
                 <p className="text-sm text-white truncate">{session.title}</p>
-                <p className="text-[11px] text-slate-500 flex items-center gap-1">
+                <p className="text-[11px] text-slate-400 flex items-center gap-1">
                   <Clock size={10} />
                   {new Date(session.updated_at).toLocaleString()}
                 </p>
@@ -123206,7 +126927,7 @@ export function SessionsPage({ onOpenSession }: SessionsPageProps) {
                   e.stopPropagation();
                   handleDelete(session.id);
                 }}
-                className="opacity-0 group-hover:opacity-100 text-slate-500 hover:text-rose-400 transition-all"
+                className="opacity-0 group-hover:opacity-100 text-slate-400 hover:text-rose-400 transition-all"
               >
                 <Trash2 size={14} />
               </button>
@@ -123217,6 +126938,7 @@ export function SessionsPage({ onOpenSession }: SessionsPageProps) {
     </div>
   );
 }
+
 ```
 
 ## File: `apps/studio-client/src/components/ui/Skeleton.tsx`
@@ -123314,6 +127036,7 @@ export function ActionCard({
     </div>
   );
 }
+
 ```
 
 ## File: `apps/studio-client/src/components/ui/index.ts`
@@ -123487,7 +127210,7 @@ export function BrowserPreview({ url = 'https://supremeai.web.app', html }: Brow
       <Card>
         <div className="flex items-center gap-2 mb-4">
           <div className="flex-1 flex items-center gap-2 bg-[#06080b] border border-slate-800 rounded-lg px-3 py-1.5">
-            <ExternalLink size={12} className="text-slate-500" />
+            <ExternalLink size={12} className="text-slate-400" />
             <input
               type="text"
               value={currentUrl}
@@ -123924,7 +127647,7 @@ export function UserDashboard({
             <h1 data-testid="header-title" className="text-sm font-bold tracking-widest text-[#00f3ff] uppercase">
               Welcome back, {user?.username || 'User'}
             </h1>
-            <p className="text-[10px] text-slate-500 font-mono">
+            <p className="text-[10px] text-slate-400 font-mono">
               Last login: {user?.last_login ? formatDate(user.last_login) : 'Today'}
             </p>
           </div>
@@ -124027,14 +127750,14 @@ export function UserDashboard({
                       </div>
                       <div>
                         <p className="text-xs font-bold text-white">{project.name}</p>
-                        <p className="text-[10px] text-slate-500 font-mono">{formatDate(project.updated_at)}</p>
+                        <p className="text-[10px] text-slate-400 font-mono">{formatDate(project.updated_at)}</p>
                       </div>
                     </div>
                     <span className="badge badge-cyan">{project.settings.default_model}</span>
                   </div>
                 ))
               ) : (
-                <div className="text-center py-8 text-slate-500 text-xs font-mono">
+                <div className="text-center py-8 text-slate-400 text-xs font-mono">
                   No projects yet. Create your first project to get started.
                 </div>
               )}
@@ -124071,13 +127794,13 @@ export function UserDashboard({
                 <Activity size={12} className="inline mr-2" />
                 Recent Activity
               </h2>
-              <span className="text-[10px] text-slate-500 font-mono">Last 24 hours</span>
+              <span className="text-[10px] text-slate-400 font-mono">Last 24 hours</span>
             </div>
             <div className="flex flex-col gap-1">
               {recentChats.length > 0 ? (
                 recentChats.map((msg: ChatMessage, idx: number) => (
                   <div key={idx} className="flex items-center gap-3 p-2.5 rounded-lg bg-black/20 border border-white/[0.03] text-[10px] font-mono">
-                    <Clock size={10} className="text-slate-500" />
+                    <Clock size={10} className="text-slate-400" />
                     <span className="text-slate-400">{msg.sender === 'User' ? 'You' : 'AI'}:</span>
                     <span className="text-slate-300 flex-1 truncate">
                       {msg.text}
@@ -124088,7 +127811,7 @@ export function UserDashboard({
                   </div>
                 ))
               ) : (
-                <p className="text-xs text-slate-500 font-mono text-center py-4">No recent activity</p>
+                <p className="text-xs text-slate-400 font-mono text-center py-4">No recent activity</p>
               )}
             </div>
           </div>
@@ -124487,6 +128210,7 @@ export function HomeFeed() {
     </div>
   );
 }
+
 ```
 
 ## File: `apps/studio-client/src/components/customer/ChatPanel.tsx`
@@ -124528,7 +128252,7 @@ export function ChatPanel({ messages, input, onInputChange, onSend, loading, onS
         })}
 
         {loading && (
-          <div className="text-xs text-slate-500 animate-pulse font-mono flex items-center gap-2">
+          <div className="text-xs text-slate-400 animate-pulse font-mono flex items-center gap-2">
             <span className="w-1.5 h-1.5 bg-[#bc13fe] rounded-full animate-bounce"></span>
             SupremeAI is thinking...
           </div>
@@ -124654,7 +128378,7 @@ export function MobileSimulator({ html, url = 'https://supremeai.web.app' }: Mob
         </div>
         <div className="mt-4 flex items-center justify-between">
           <Badge variant="info">{selectedDevice.name}</Badge>
-          <span className="text-[10px] text-slate-500 font-mono">
+          <span className="text-[10px] text-slate-400 font-mono">
             {currentWidth} x {currentHeight} • {orientation}
           </span>
         </div>
@@ -124845,7 +128569,7 @@ export function MemoryBrowser() {
         <div className="xl:col-span-1">
           <div className="flex gap-2 mb-4">
             <div className="relative flex-1">
-              <Search size={14} className="absolute left-3 top-2 text-slate-500" />
+              <Search size={14} className="absolute left-3 top-2 text-slate-400" />
               <input
                 type="text"
                 placeholder="Search memories..."
@@ -124860,7 +128584,7 @@ export function MemoryBrowser() {
             {isLoading ? (
               <><Skeleton className="h-16 w-full" /><Skeleton className="h-16 w-full" /><Skeleton className="h-16 w-full" /></>
             ) : filtered.length === 0 ? (
-              <div className="text-xs text-slate-500 font-mono p-4 text-center">No conversations found.</div>
+              <div className="text-xs text-slate-400 font-mono p-4 text-center">No conversations found.</div>
             ) : (
               filtered.map((conv: any) => (
                 <button
@@ -124874,7 +128598,7 @@ export function MemoryBrowser() {
                 >
                   <div className="flex items-center justify-between mb-1">
                     <span className="text-xs font-bold text-white font-mono">{conv.session_id}</span>
-                    <span className="text-[9px] text-slate-500 font-mono">{conv.timestamp}</span>
+                    <span className="text-[9px] text-slate-400 font-mono">{conv.timestamp}</span>
                   </div>
                   <div className="text-[10px] text-slate-400 line-clamp-2">{conv.summary}</div>
                   <div className="flex gap-1 mt-2">
@@ -124891,7 +128615,7 @@ export function MemoryBrowser() {
         <div className="xl:col-span-2">
           {selectedConv ? (
             <Card title={`Session: ${selectedConv.session_id}`}>
-              <div className="text-[10px] text-slate-500 mb-3 font-mono flex items-center gap-3">
+              <div className="text-[10px] text-slate-400 mb-3 font-mono flex items-center gap-3">
                 <span className="flex items-center gap-1"><Clock size={10} /> {selectedConv.timestamp}</span>
                 <span className="flex items-center gap-1"><MessageSquare size={10} /> {selectedConv.turns} turns</span>
                 <span className="flex items-center gap-1"><Tag size={10} /> {selectedConv.tags?.length} tags</span>
@@ -124901,13 +128625,13 @@ export function MemoryBrowser() {
                   <div key={i} className={`p-3 rounded-lg border text-xs font-mono ${
                     m.role === 'user' ? 'border-[#00f3ff]/30 bg-[#00f3ff]/5 text-white' : 'border-slate-800 bg-slate-900/30 text-slate-400'
                   }`}>
-                    <div className="text-[9px] text-slate-500 mb-1 uppercase">{m.role}</div>
+                    <div className="text-[9px] text-slate-400 mb-1 uppercase">{m.role}</div>
                     {m.content}
                   </div>
                 ))}
               </div>
               <div className="flex justify-between items-center mt-4 pt-3 border-t border-slate-800">
-                <div className="text-[10px] text-slate-500">Importance score: <span className="text-emerald-400 font-mono">{selectedConv.importance || 0.85}</span></div>
+                <div className="text-[10px] text-slate-400">Importance score: <span className="text-emerald-400 font-mono">{selectedConv.importance || 0.85}</span></div>
                 <div className="flex gap-2">
                   <button className="text-[10px] text-slate-400 hover:text-white font-mono">Export</button>
                   <button className="text-[10px] text-red-400 hover:text-red-300 font-mono flex items-center gap-1"><Trash2 size={10} /> Purge</button>
@@ -124918,7 +128642,7 @@ export function MemoryBrowser() {
             <div className="h-full flex items-center justify-center p-8 border border-dashed border-slate-800 rounded-xl">
               <div className="text-center">
                 <MessageSquare size={32} className="mx-auto text-slate-700 mb-3" />
-                <div className="text-xs text-slate-500 font-mono">Select a conversation to view details</div>
+                <div className="text-xs text-slate-400 font-mono">Select a conversation to view details</div>
               </div>
             </div>
           )}
@@ -124985,7 +128709,7 @@ export function BackupRestore() {
             <Database size={20} className="text-[#00f3ff]" />
             <div>
               <div className="text-2xl font-bold text-white font-mono">{backups.length}</div>
-              <div className="text-[10px] text-slate-500">Last 30 days</div>
+              <div className="text-[10px] text-slate-400">Last 30 days</div>
             </div>
           </div>
         </Card>
@@ -124994,7 +128718,7 @@ export function BackupRestore() {
             <HardDrive size={20} className="text-purple-400" />
             <div>
               <div className="text-2xl font-bold text-white font-mono">9.2 GB</div>
-              <div className="text-[10px] text-slate-500">of 100 GB</div>
+              <div className="text-[10px] text-slate-400">of 100 GB</div>
             </div>
           </div>
         </Card>
@@ -125003,7 +128727,7 @@ export function BackupRestore() {
             <Clock size={20} className="text-emerald-400" />
             <div>
               <div className="text-sm font-bold text-white font-mono">Today 03:00</div>
-              <div className="text-[10px] text-slate-500">Automatic</div>
+              <div className="text-[10px] text-slate-400">Automatic</div>
             </div>
           </div>
         </Card>
@@ -125024,7 +128748,7 @@ export function BackupRestore() {
                   </div>
                   <div>
                     <div className="text-xs font-bold text-white font-mono">{backup.timestamp}</div>
-                    <div className="text-[10px] text-slate-500 font-mono flex items-center gap-2">
+                    <div className="text-[10px] text-slate-400 font-mono flex items-center gap-2">
                       <span>{backup.size}</span>
                       <span>•</span>
                       <span>{backup.type}</span>
@@ -125050,7 +128774,7 @@ export function BackupRestore() {
             <div className="p-4 rounded-lg border border-slate-800 bg-slate-900/30">
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
-                  <Shield size={14} className={maintenanceMode ? 'text-yellow-400' : 'text-slate-500'} />
+                  <Shield size={14} className={maintenanceMode ? 'text-yellow-400' : 'text-slate-400'} />
                   <span className="text-xs font-bold text-white">Maintenance Mode</span>
                 </div>
                 <button
@@ -125065,7 +128789,7 @@ export function BackupRestore() {
                   ⚠️ System is in maintenance mode. Users will see a maintenance page.
                 </div>
               ) : (
-                <div className="text-[10px] text-slate-500 font-mono">
+                <div className="text-[10px] text-slate-400 font-mono">
                   System is operational. Enable to show maintenance page to users.
                 </div>
               )}
@@ -125209,6 +128933,7 @@ export function AdminConsole(props: AdminConsoleProps) {
     </div>
   );
 }
+
 ```
 
 ## File: `apps/studio-client/src/components/admin/CommandCenter.tsx`
@@ -125782,7 +129507,7 @@ export function LiveLogs({ liveLogs, setLiveLogs }: LiveLogsProps) {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 mb-4 pb-3 border-b border-[var(--border-color)]">
         <div className="flex flex-col gap-1">
           <span className="text-slate-400 font-bold uppercase tracking-wider text-[10px]">Real-time Live Stream (supremeai.log)</span>
-          <div className="flex gap-2 text-[10px] text-slate-500 mt-1">
+          <div className="flex gap-2 text-[10px] text-slate-400 mt-1">
             <span>Total: {liveLogs.length}</span>
             <span className="text-emerald-500">Info: {infoCount}</span>
             <span className="text-yellow-500">Warn: {warnCount}</span>
@@ -125820,7 +129545,7 @@ export function LiveLogs({ liveLogs, setLiveLogs }: LiveLogsProps) {
       </div>
       <div className="flex-grow flex flex-col gap-1 overflow-y-auto max-h-[70vh]">
         {filteredLogs.length === 0 ?
-          <div className="text-slate-500 italic">Listening for incoming server logs or no matching logs found...</div>
+          <div className="text-slate-400 italic">Listening for incoming server logs or no matching logs found...</div>
           :
           filteredLogs.map((log, idx) => {
             let logColor = 'text-[#00ff66]';
@@ -126055,7 +129780,7 @@ const DeploymentModal: React.FC<DeploymentModalProps> = ({
                 </div>
                 <div className="space-y-2 max-h-48 overflow-y-auto font-mono text-[11px]">
                   {logs.length === 0 ? (
-                    <div className="text-slate-500 text-[10px] italic">
+                    <div className="text-slate-400 text-[10px] italic">
                       Waiting for deployment to start...
                     </div>
                   ) : (
@@ -126066,7 +129791,7 @@ const DeploymentModal: React.FC<DeploymentModalProps> = ({
                           <span className={getStatusColor(log.status)}>[{log.status}]</span>{' '}
                           <span className="text-slate-300">{log.message}</span>
                           {log.branch && (
-                            <span className="text-slate-500 ml-2">({log.branch})</span>
+                            <span className="text-slate-400 ml-2">({log.branch})</span>
                           )}
                         </div>
                       </div>
@@ -126196,11 +129921,11 @@ export function ThreatDetection() {
         </Card>
         <Card title="Blocked Threats (24h)">
           <div className="text-2xl font-bold text-red-400 font-mono">3</div>
-          <div className="text-[10px] text-slate-500">2 prompt injection, 1 jailbreak</div>
+          <div className="text-[10px] text-slate-400">2 prompt injection, 1 jailbreak</div>
         </Card>
         <Card title="Active Anomalies">
           <div className="text-2xl font-bold text-yellow-400 font-mono">5</div>
-          <div className="text-[10px] text-slate-500">3 from new IPs, 2 from API keys</div>
+          <div className="text-[10px] text-slate-400">3 from new IPs, 2 from API keys</div>
         </Card>
       </div>
 
@@ -126224,7 +129949,7 @@ export function ThreatDetection() {
                   <div className="text-[10px] text-slate-400 font-mono">
                     Source: {t.source} • {t.timestamp}
                   </div>
-                  <div className="text-[10px] text-slate-500 mt-1 truncate">"{t.snippet}"</div>
+                  <div className="text-[10px] text-slate-400 mt-1 truncate">"{t.snippet}"</div>
                 </div>
                 <button className="text-[10px] text-[#00f3ff] hover:text-cyan-300 font-mono px-2 py-1 rounded border border-[#00f3ff]/30">
                   Details
@@ -126297,7 +130022,7 @@ export function EnhancedSkillMarketplace() {
               <div className="flex items-start justify-between mb-3">
                 <div>
                   <h3 className="text-sm font-bold text-white font-mono">{skill.name}</h3>
-                  <div className="text-[10px] text-slate-500 mt-0.5">v{skill.version}</div>
+                  <div className="text-[10px] text-slate-400 mt-0.5">v{skill.version}</div>
                 </div>
                 {skill.installed ? (
                   <Badge variant="success">Installed</Badge>
@@ -126309,15 +130034,15 @@ export function EnhancedSkillMarketplace() {
               {skill.installed && (
                 <div className="grid grid-cols-3 gap-2 mb-4 text-center">
                   <div className="p-1.5 rounded bg-slate-900/50">
-                    <div className="text-[10px] text-slate-500">Success</div>
+                    <div className="text-[10px] text-slate-400">Success</div>
                     <div className="text-xs font-bold text-emerald-400 font-mono">98%</div>
                   </div>
                   <div className="p-1.5 rounded bg-slate-900/50">
-                    <div className="text-[10px] text-slate-500">Avg Time</div>
+                    <div className="text-[10px] text-slate-400">Avg Time</div>
                     <div className="text-xs font-bold text-[#00f3ff] font-mono">120ms</div>
                   </div>
                   <div className="p-1.5 rounded bg-slate-900/50">
-                    <div className="text-[10px] text-slate-500">Errors</div>
+                    <div className="text-[10px] text-slate-400">Errors</div>
                     <div className="text-xs font-bold text-yellow-400 font-mono">2%</div>
                   </div>
                 </div>
@@ -126327,7 +130052,7 @@ export function EnhancedSkillMarketplace() {
                   {[1, 2, 3, 4, 5].map(star => (
                     <Star key={star} size={10} className={star <= 4 ? 'text-yellow-400 fill-yellow-400' : 'text-slate-700'} />
                   ))}
-                  <span className="text-[9px] text-slate-500 ml-1">4.0</span>
+                  <span className="text-[9px] text-slate-400 ml-1">4.0</span>
                 </div>
                 {!skill.installed ? (
                   <button className="bg-[#00f3ff]/10 hover:bg-[#00f3ff]/20 text-[#00f3ff] border border-[#00f3ff]/30 text-[10px] font-bold px-3 py-1 rounded transition-all font-mono">
@@ -126423,7 +130148,7 @@ export function RealTimeMetricsPanel() {
   if (isLoading) {
     return (
       <div className="rounded-xl border border-slate-900 bg-slate-950/60 p-5 shadow-[0_0_15px_rgba(0,0,0,0.3)]">
-        <div className="text-[10px] font-mono text-slate-500 uppercase tracking-widest">
+        <div className="text-[10px] font-mono text-slate-400 uppercase tracking-widest">
           Loading metrics...
         </div>
       </div>
@@ -126433,7 +130158,7 @@ export function RealTimeMetricsPanel() {
   if (!metrics) {
     return (
       <div className="rounded-xl border border-slate-900 bg-slate-950/60 p-5 shadow-[0_0_15px_rgba(0,0,0,0.3)]">
-        <div className="text-[10px] font-mono text-slate-500 uppercase tracking-widest">
+        <div className="text-[10px] font-mono text-slate-400 uppercase tracking-widest">
           Metrics unavailable
         </div>
       </div>
@@ -126456,7 +130181,7 @@ export function RealTimeMetricsPanel() {
         >
           Live Metrics
         </span>
-        <span className="text-[9px] font-mono text-slate-500">
+        <span className="text-[9px] font-mono text-slate-400">
           {new Date().toLocaleTimeString()}
         </span>
       </div>
@@ -126567,7 +130292,7 @@ function Kpi({ label, value, accent, isSimple }: { label: string; value: string;
         isSimple ? 'border-slate-100 bg-slate-50' : 'border-slate-900 bg-black/20'
       }`}
     >
-      <div className={`text-[9px] uppercase ${isSimple ? 'text-slate-500' : 'text-slate-500'}`}>
+      <div className={`text-[9px] uppercase ${isSimple ? 'text-slate-400' : 'text-slate-400'}`}>
         {label}
       </div>
       <div className="mt-1 text-sm font-bold" style={{ color: isSimple ? '#0f172a' : accent }}>
@@ -126748,7 +130473,7 @@ function SandboxMessages({ adminMessages, loading }: { adminMessages: ChatMessag
           }`}>
             {msg.text}
           </div>
-          <span className="text-[9px] text-slate-500 px-1 font-mono">{msg.timestamp}</span>
+          <span className="text-[9px] text-slate-400 px-1 font-mono">{msg.timestamp}</span>
         </div>
       ))}
       {loading && (
@@ -126813,6 +130538,7 @@ function SandboxRulesEditor({ rulesJson, setRulesJson }: { rulesJson: string; se
     </div>
   );
 }
+
 ```
 
 ## File: `apps/studio-client/src/components/admin/RulesEnginePanel.tsx`
@@ -127083,7 +130809,7 @@ export const AdminDashboardHome: React.FC = () => {
       <section className="mb-6 bg-slate-950/60 border border-[#00f3ff]/15 rounded-xl p-5 shadow-[0_0_15px_rgba(0,243,255,0.02)]">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xs uppercase tracking-widest text-[#00f3ff] font-bold">AI Fleet Status</h2>
-          <button className="text-[10px] text-slate-500 hover:text-white border border-slate-800 rounded px-2 py-0.5 transition-all">
+          <button className="text-[10px] text-slate-400 hover:text-white border border-slate-800 rounded px-2 py-0.5 transition-all">
             VIEW DETAILS
           </button>
         </div>
@@ -127092,7 +130818,7 @@ export const AdminDashboardHome: React.FC = () => {
           {/* Active Agents Gauge */}
           <div className="bg-[#040814]/80 border border-slate-900 rounded-lg p-4 flex items-center justify-between">
             <div>
-              <span className="text-[10px] text-slate-500 uppercase block mb-1">Active Agents</span>
+              <span className="text-[10px] text-slate-400 uppercase block mb-1">Active Agents</span>
               <span className="text-2xl font-bold text-[#00f3ff]">1,489</span>
             </div>
             {/* SVG mini gauge */}
@@ -127111,7 +130837,7 @@ export const AdminDashboardHome: React.FC = () => {
           {/* Active Tasks Bar Chart */}
           <div className="bg-[#040814]/80 border border-slate-900 rounded-lg p-4 flex items-center justify-between">
             <div>
-              <span className="text-[10px] text-slate-500 uppercase block mb-1">Active Tasks</span>
+              <span className="text-[10px] text-slate-400 uppercase block mb-1">Active Tasks</span>
               <span className="text-2xl font-bold text-[#b5179e]">8,762</span>
             </div>
             {/* Mini bar animated chart */}
@@ -127129,7 +130855,7 @@ export const AdminDashboardHome: React.FC = () => {
           {/* Latency Metric */}
           <div className="bg-[#040814]/80 border border-slate-900 rounded-lg p-4 flex items-center justify-between">
             <div>
-              <span className="text-[10px] text-slate-500 uppercase block mb-1">Network Latency</span>
+              <span className="text-[10px] text-slate-400 uppercase block mb-1">Network Latency</span>
               <span className="text-2xl font-bold text-emerald-400">42ms</span>
             </div>
             {/* Mini sparkline */}
@@ -127165,11 +130891,11 @@ export const AdminDashboardHome: React.FC = () => {
 
           <div className="flex gap-4 mb-2">
             <div>
-              <div className="text-[9px] text-slate-500">F1-Score</div>
+              <div className="text-[9px] text-slate-400">F1-Score</div>
               <div className="text-emerald-400 text-lg font-bold">0.965</div>
             </div>
             <div>
-              <div className="text-[9px] text-slate-500">Loss</div>
+              <div className="text-[9px] text-slate-400">Loss</div>
               <div className="text-rose-500 text-lg font-bold">0.112</div>
             </div>
           </div>
@@ -127226,28 +130952,28 @@ export const AdminDashboardHome: React.FC = () => {
           <div className="flex-1 flex flex-col gap-4 justify-center py-2">
             <div className="flex justify-between items-center">
               <div className="border border-emerald-500/30 bg-[#040814] rounded p-2 text-center w-20 text-[10px] shadow-[0_0_8px_rgba(16,185,129,0.1)]">
-                <div className="text-slate-500 text-[8px]">Node</div>
+                <div className="text-slate-400 text-[8px]">Node</div>
                 <div className="text-emerald-400 font-bold">Alpha</div>
               </div>
               <svg className="w-12 h-6" viewBox="0 0 50 20">
                 <line x1="0" y1="10" x2="50" y2="10" stroke="#10b981" strokeWidth="2" strokeDasharray="3,3"/>
               </svg>
               <div className="border border-cyan-500/30 bg-[#040814] rounded p-2 text-center w-20 text-[10px]">
-                <div className="text-slate-500 text-[8px]">Node</div>
+                <div className="text-slate-400 text-[8px]">Node</div>
                 <div className="text-cyan-400 font-bold">Beta</div>
               </div>
             </div>
 
             <div className="flex justify-between items-center">
               <div className="border border-purple-500/30 bg-[#040814] rounded p-2 text-center w-20 text-[10px]">
-                <div className="text-slate-500 text-[8px]">Node</div>
+                <div className="text-slate-400 text-[8px]">Node</div>
                 <div className="text-purple-400 font-bold">Gamma</div>
               </div>
               <svg className="w-12 h-6" viewBox="0 0 50 20">
                 <path d="M 0 10 Q 25 20 50 10" fill="none" stroke="#b5179e" strokeWidth="2"/>
               </svg>
               <div className="border border-pink-500/30 bg-[#040814] rounded p-2 text-center w-20 text-[10px] shadow-[0_0_8px_rgba(244,63,94,0.1)]">
-                <div className="text-slate-500 text-[8px]">Node</div>
+                <div className="text-slate-400 text-[8px]">Node</div>
                 <div className="text-pink-500 font-bold">Flow</div>
               </div>
             </div>
@@ -127267,7 +130993,7 @@ export const AdminDashboardHome: React.FC = () => {
         <div className="bg-slate-950/60 border border-slate-900 rounded-xl p-5 flex flex-col justify-between min-h-[380px] shadow-[0_0_15px_rgba(0,0,0,0.3)]">
           <div className="flex justify-between items-center mb-4">
             <span className="text-[10px] text-[#00f3ff] uppercase font-bold tracking-wider">Compute Resource</span>
-            <span className="text-[9px] text-slate-500">DYNAMIC UTILIZATION</span>
+            <span className="text-[9px] text-slate-400">DYNAMIC UTILIZATION</span>
           </div>
 
           {/* Hexagonal grid placeholder */}
@@ -127290,15 +131016,15 @@ export const AdminDashboardHome: React.FC = () => {
 
           <div className="space-y-2 text-[10px]">
             <div className="flex justify-between">
-              <span className="text-slate-500">CPU Usage:</span>
+              <span className="text-slate-400">CPU Usage:</span>
               <span className="text-emerald-400 font-bold">78%</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-slate-500">GPU Usage:</span>
+              <span className="text-slate-400">GPU Usage:</span>
               <span className="text-cyan-400 font-bold">65%</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-slate-500">Memory Allocation:</span>
+              <span className="text-slate-400">Memory Allocation:</span>
               <span className="text-rose-500 font-bold">91%</span>
             </div>
           </div>
@@ -127313,15 +131039,15 @@ export const AdminDashboardHome: React.FC = () => {
         <div className="bg-slate-950/60 border border-slate-900 rounded-xl p-5 flex flex-col justify-between min-h-[300px] shadow-[0_0_15px_rgba(0,0,0,0.3)]">
           <div className="flex justify-between items-center mb-3">
             <span className="text-[10px] text-[#00f3ff] uppercase font-bold tracking-wider">Live Event Log</span>
-            <span className="text-[9px] text-slate-500">SYNC ACTIVE</span>
+            <span className="text-[9px] text-slate-400">SYNC ACTIVE</span>
           </div>
 
           <div className="flex-1 bg-black/40 border border-slate-900 rounded-lg p-3 overflow-y-auto max-h-[180px] text-[10px] font-mono space-y-2 text-[#00ff66]">
-            <div><span className="text-slate-500">[{currentTime}]</span> Model NEURAL_CORE deployed successfully.</div>
-            <div><span className="text-slate-500">[{currentTime}]</span> Active task queue synchronized.</div>
-            <div><span className="text-slate-500">[{currentTime}]</span> Node Alpha load average: 34%.</div>
-            <div><span className="text-slate-500">[{currentTime}]</span> Connection established to Cloud Run.</div>
-            <div className="text-rose-400"><span className="text-slate-500">[{currentTime}]</span> WARNING: Node Flow latency peak 120ms.</div>
+            <div><span className="text-slate-400">[{currentTime}]</span> Model NEURAL_CORE deployed successfully.</div>
+            <div><span className="text-slate-400">[{currentTime}]</span> Active task queue synchronized.</div>
+            <div><span className="text-slate-400">[{currentTime}]</span> Node Alpha load average: 34%.</div>
+            <div><span className="text-slate-400">[{currentTime}]</span> Connection established to Cloud Run.</div>
+            <div className="text-rose-400"><span className="text-slate-400">[{currentTime}]</span> WARNING: Node Flow latency peak 120ms.</div>
           </div>
         </div>
 
@@ -127356,7 +131082,7 @@ export const AdminDashboardHome: React.FC = () => {
         <div className="bg-slate-950/60 border border-slate-900 rounded-xl p-5 flex flex-col justify-between min-h-[300px] shadow-[0_0_15px_rgba(0,0,0,0.3)]">
           <div className="flex justify-between items-center mb-3">
             <span className="text-[10px] text-[#00f3ff] uppercase font-bold tracking-wider">Task Queue</span>
-            <span className="text-[9px] text-slate-500">PENDING QUEUE</span>
+            <span className="text-[9px] text-slate-400">PENDING QUEUE</span>
           </div>
 
           <div className="flex-grow space-y-2 overflow-y-auto max-h-[180px]">
@@ -127368,7 +131094,7 @@ export const AdminDashboardHome: React.FC = () => {
               <div key={task.id} className="bg-[#040814] border border-slate-900 rounded p-2.5 flex justify-between items-center text-[10px]">
                 <div>
                   <div className="font-bold text-slate-200">{task.id}</div>
-                  <div className="text-slate-500 text-[8px]">{task.name}</div>
+                  <div className="text-slate-400 text-[8px]">{task.name}</div>
                 </div>
                 <button className="bg-cyan-950/30 hover:bg-[#00f3ff]/20 text-[#00f3ff] border border-[#00f3ff]/30 rounded px-2.5 py-1 transition-all">
                   MONITOR
@@ -127530,7 +131256,7 @@ export function RBACManager() {
                 <div className="flex items-center gap-3">
                   <div>
                     <div className="text-xs font-bold text-white font-mono">{user.username}</div>
-                    <div className="text-[10px] text-slate-500 font-mono mt-0.5">
+                    <div className="text-[10px] text-slate-400 font-mono mt-0.5">
                       {user.permissions?.join(', ')}
                     </div>
                   </div>
@@ -127547,7 +131273,7 @@ export function RBACManager() {
               </div>
             ))}
             {(!users || users.length === 0) && (
-              <div className="text-xs text-slate-500 font-mono text-center py-4">No users configured.</div>
+              <div className="text-xs text-slate-400 font-mono text-center py-4">No users configured.</div>
             )}
           </div>
         </Card>
@@ -127646,7 +131372,7 @@ export function GithubIntegration() {
                   <span className="text-xs font-bold text-white font-mono">{repo.name}</span>
                   <Badge variant="info">{repo.branch}</Badge>
                 </div>
-                <div className="text-[10px] text-slate-500 font-mono flex items-center gap-2">
+                <div className="text-[10px] text-slate-400 font-mono flex items-center gap-2">
                   <span className="flex items-center gap-1"><GitBranch size={10} /> {repo.commits} commits</span>
                   <span className="flex items-center gap-1"><Clock size={10} /> {repo.updated}</span>
                 </div>
@@ -127666,7 +131392,7 @@ export function GithubIntegration() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="text-xs font-mono text-white truncate">{commit.message}</div>
-                  <div className="text-[10px] text-slate-500 font-mono mt-0.5">
+                  <div className="text-[10px] text-slate-400 font-mono mt-0.5">
                     {commit.hash} by {commit.author} • {commit.time}
                   </div>
                 </div>
@@ -127677,7 +131403,7 @@ export function GithubIntegration() {
             ))}
           </div>
           <div className="flex justify-between items-center mt-4 pt-3 border-t border-slate-800">
-            <span className="text-[10px] text-slate-500 font-mono">Showing 4 of {selectedRepo.commits} commits</span>
+            <span className="text-[10px] text-slate-400 font-mono">Showing 4 of {selectedRepo.commits} commits</span>
             <button className="text-[10px] text-[#00f3ff] hover:text-cyan-300 font-mono flex items-center gap-1">
               View all <ArrowRight size={10} />
             </button>
@@ -127964,7 +131690,7 @@ export function UserManager({
                       {perm}
                     </span>
                   ))}
-                  {perms.length === 0 && <span className="text-[10px] text-slate-500 italic font-mono">No special permissions assigned</span>}
+                  {perms.length === 0 && <span className="text-[10px] text-slate-400 italic font-mono">No special permissions assigned</span>}
                 </div>
               </div>
               
@@ -127978,7 +131704,7 @@ export function UserManager({
           );
         })}
         {adminUsers.length === 0 && (
-          <div className="text-center py-8 bg-[#0c0d12]/30 border border-slate-900 rounded-xl text-slate-500 italic font-mono">
+          <div className="text-center py-8 bg-[#0c0d12]/30 border border-slate-900 rounded-xl text-slate-400 italic font-mono">
             No administrative users provisioned in registry.
           </div>
         )}
@@ -128056,15 +131782,15 @@ export function ModelRouter() {
               <div className="flex-1 p-2 rounded border border-slate-800 bg-slate-900/50 text-xs font-mono text-center">
                 Incoming Request
               </div>
-              <ArrowRight size={14} className="text-slate-500" />
+              <ArrowRight size={14} className="text-slate-400" />
               <div className="flex-1 p-2 rounded border border-[#00f3ff]/50 bg-[#00f3ff]/10 text-xs font-mono text-center text-[#00f3ff]">
                 Intent Classifier
               </div>
-              <ArrowRight size={14} className="text-slate-500" />
+              <ArrowRight size={14} className="text-slate-400" />
               <div className="flex-1 p-2 rounded border border-purple-500/50 bg-purple-500/10 text-xs font-mono text-center text-purple-400">
                 Provider Selector
               </div>
-              <ArrowRight size={14} className="text-slate-500" />
+              <ArrowRight size={14} className="text-slate-400" />
               <div className="flex-1 p-2 rounded border border-emerald-500/50 bg-emerald-500/10 text-xs font-mono text-center text-emerald-400">
                 Model Execution
               </div>
@@ -128153,10 +131879,10 @@ export function ModelRouter() {
                     style={{ width: `${Math.min(100, (p.latency_ms / 400) * 100)}%` }}
                   />
                 </div>
-                <div className="text-[10px] text-slate-500 font-mono">
+                <div className="text-[10px] text-slate-400 font-mono">
                   API Key: {p.api_key_valid ? '✅ Valid' : '❌ Invalid'}
                 </div>
-                <div className="text-[10px] text-slate-500 font-mono">
+                <div className="text-[10px] text-slate-400 font-mono">
                   Rate Limit: {p.rate_limit_remaining}/{p.rate_limit_max}
                 </div>
                 <div className="flex flex-wrap gap-1 mt-2">
@@ -128166,7 +131892,7 @@ export function ModelRouter() {
                     </span>
                   ))}
                   {p.models.length > 2 && (
-                    <span className="px-1.5 py-0.5 text-[9px] rounded bg-slate-800 text-slate-500 font-mono">
+                    <span className="px-1.5 py-0.5 text-[9px] rounded bg-slate-800 text-slate-400 font-mono">
                       +{p.models.length - 2}
                     </span>
                   )}
@@ -128374,6 +132100,7 @@ export function LoginView({
     </div>
   );
 }
+
 ```
 
 ## File: `apps/studio-client/src/components/admin/index.ts`
@@ -128488,7 +132215,7 @@ export function ObservabilityDashboard() {
         </Card>
         <Card title="Error Rate" banglaHint="মোট রিকোয়েস্টের সাপেক্ষে ফেইল হওয়া এরর পার্সেন্টেজ।">
           <div className="text-2xl font-bold text-emerald-400 font-mono">2.1%</div>
-          <div className="text-[10px] text-slate-500 font-mono">Within acceptable range</div>
+          <div className="text-[10px] text-slate-400 font-mono">Within acceptable range</div>
         </Card>
       </div>
 
@@ -128532,7 +132259,7 @@ export function ObservabilityDashboard() {
               } />
               <div className="flex-1">
                 <div className="text-xs text-[var(--foreground)] font-mono">{alert.msg}</div>
-                <div className="text-[10px] text-slate-500 mt-0.5">{alert.time}</div>
+                <div className="text-[10px] text-slate-400 mt-0.5">{alert.time}</div>
               </div>
               <Badge variant={alert.status === 'Resolved' || alert.status === 'Completed' ? 'success' : 'warning'}>
                 {alert.status}
@@ -128591,7 +132318,7 @@ export const ServiceHealthMetrics: React.FC = () => {
     { id: 'threats', label: 'Threats', icon: <ShieldAlert size={14} />, color: 'text-red-500' },
     { id: 'rules', label: 'Rules', icon: <FileText size={14} />, color: 'text-orange-500' },
     { id: 'cicd', label: 'CI/CD', icon: <GitMerge size={14} />, color: 'text-pink-500' },
-    { id: 'github', label: 'GitHub', icon: <GitBranch size={14} />, color: 'text-slate-500' },
+    { id: 'github', label: 'GitHub', icon: <GitBranch size={14} />, color: 'text-slate-400' },
     { id: 'backups', label: 'Backups', icon: <Save size={14} />, color: 'text-lime-500' },
     { id: 'rate-limits', label: 'Limits', icon: <Clock size={14} />, color: 'text-rose-500' }
   ];
@@ -128776,7 +132503,7 @@ const DashboardErrorFallback: React.FC<FallbackProps> = ({ error, resetErrorBoun
         <p className="text-sm text-slate-400 font-mono mb-4">
           A critical module in the admin dashboard has crashed. The rest of the system remains intact.
         </p>
-        <pre className="text-xs text-slate-500 font-mono bg-slate-900/80 p-3 rounded-lg mb-6 overflow-auto max-h-40">
+        <pre className="text-xs text-slate-400 font-mono bg-slate-900/80 p-3 rounded-lg mb-6 overflow-auto max-h-40">
           {error.message}
         </pre>
         <button
@@ -128851,7 +132578,7 @@ export const AdminTopNav: React.FC<AdminTopNavProps> = ({
           </span>
         </div>
         <div className="hidden md:block w-[1px] h-6 bg-slate-800" />
-        <span className="hidden md:inline text-xs text-slate-500 tracking-[0.15em] uppercase font-sans">
+        <span className="hidden md:inline text-xs text-slate-400 tracking-[0.15em] uppercase font-sans">
           Orchestration Platform
         </span>
       </div>
@@ -129063,7 +132790,7 @@ export function AuthenticatedView(props: AuthenticatedViewProps) {
                       : 'hover:bg-slate-900/50 hover:text-slate-200'
                     }`}
                 >
-                  <span className={isActive ? 'text-[#00f3ff]' : 'text-slate-500'}>
+                  <span className={isActive ? 'text-[#00f3ff]' : 'text-slate-400'}>
                     {item.icon}
                   </span>
                   <span>{item.label}</span>
@@ -129104,11 +132831,11 @@ export function AuthenticatedView(props: AuthenticatedViewProps) {
                 autoFocus
                 type="text"
                 placeholder="Navigate to... (e.g. Cost Auditor)"
-                className="flex-1 bg-transparent border-none outline-none text-white font-mono placeholder:text-slate-500"
+                className="flex-1 bg-transparent border-none outline-none text-white font-mono placeholder:text-slate-400"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
-              <span className="text-xs text-slate-500 font-mono">ESC to close</span>
+              <span className="text-xs text-slate-400 font-mono">ESC to close</span>
             </div>
             <div className="max-h-[60vh] overflow-y-auto p-2">
               {filteredOptions.map((opt, i) => (
@@ -129126,7 +132853,7 @@ export function AuthenticatedView(props: AuthenticatedViewProps) {
                 </button>
               ))}
               {filteredOptions.length === 0 && (
-                <div className="px-4 py-8 text-center text-slate-500 font-mono">
+                <div className="px-4 py-8 text-center text-slate-400 font-mono">
                   No modules found.
                 </div>
               )}
@@ -129137,6 +132864,7 @@ export function AuthenticatedView(props: AuthenticatedViewProps) {
     </div>
   );
 }
+
 ```
 
 ## File: `apps/studio-client/src/components/admin/CICDVisualizer.tsx`
@@ -129248,9 +132976,9 @@ export function CICDVisualizer() {
         <div className="lg:col-span-2">
           <Card title="CI Webhook Pipeline History" icon={<GitBranch size={14} />}>
             {isCILoading ? (
-              <div className="text-center py-8 text-slate-500 font-mono text-[10px]">Loading CI run history...</div>
+              <div className="text-center py-8 text-slate-400 font-mono text-[10px]">Loading CI run history...</div>
             ) : !ciReports || ciReports.length === 0 ? (
-              <div className="text-center py-8 text-slate-500 font-mono text-[10px]">No GHA workflow runs recorded yet.</div>
+              <div className="text-center py-8 text-slate-400 font-mono text-[10px]">No GHA workflow runs recorded yet.</div>
             ) : (
               <div className="flex flex-col gap-3">
                 {ciReports.map((report) => (
@@ -129274,7 +133002,7 @@ export function CICDVisualizer() {
                           <div className="text-xs font-bold text-white font-mono">
                             Run #{report.run_number} — {report.workflow_name}
                           </div>
-                          <div className="flex items-center gap-3 text-[10px] text-slate-500 mt-1 font-mono">
+                          <div className="flex items-center gap-3 text-[10px] text-slate-400 mt-1 font-mono">
                             <span className="flex items-center gap-1"><GitBranch size={10} /> {report.branch}</span>
                             <span className="flex items-center gap-1"><Clock size={10} /> {formatRuntime(report.runtime_seconds)}</span>
                             <span className="flex items-center gap-1"><User size={10} /> {report.actor}</span>
@@ -129283,7 +133011,7 @@ export function CICDVisualizer() {
                       </div>
                       <div className="flex items-center gap-2">
                         <Badge variant={getStatusBadgeVariant(report.status)}>{report.status.toUpperCase()}</Badge>
-                        {selectedRun?.id === report.id ? <ChevronUp size={14} className="text-slate-500" /> : <ChevronDown size={14} className="text-slate-500" />}
+                        {selectedRun?.id === report.id ? <ChevronUp size={14} className="text-slate-400" /> : <ChevronDown size={14} className="text-slate-400" />}
                       </div>
                     </div>
 
@@ -129341,7 +133069,7 @@ export function CICDVisualizer() {
                   <div className="flex items-center justify-between mb-2">
                     <div>
                       <div className="text-xs font-bold text-white font-mono">{flag.name}</div>
-                      <div className="text-[10px] text-slate-500 mt-0.5">{flag.description}</div>
+                      <div className="text-[10px] text-slate-400 mt-0.5">{flag.description}</div>
                     </div>
                     <button
                       onClick={() => toggleFlag(flag.id)}
@@ -129598,7 +133326,7 @@ export function CloudOrchestrator() {
             <div className="text-[10px] text-slate-400 uppercase mb-2">CPU Usage</div>
             <div className="flex items-end gap-2">
               <span className="text-3xl font-bold text-white font-mono">42</span>
-              <span className="text-sm text-slate-500 mb-1">%</span>
+              <span className="text-sm text-slate-400 mb-1">%</span>
             </div>
             <div className="w-full bg-slate-800 rounded-full h-1.5 mt-2">
               <div className="h-full rounded-full bg-[#00f3ff]" style={{ width: '42%' }} />
@@ -129608,7 +133336,7 @@ export function CloudOrchestrator() {
             <div className="text-[10px] text-slate-400 uppercase mb-2">Memory Usage</div>
             <div className="flex items-end gap-2">
               <span className="text-3xl font-bold text-white font-mono">68</span>
-              <span className="text-sm text-slate-500 mb-1">%</span>
+              <span className="text-sm text-slate-400 mb-1">%</span>
             </div>
             <div className="w-full bg-slate-800 rounded-full h-1.5 mt-2">
               <div className="h-full rounded-full bg-purple-500" style={{ width: '68%' }} />
@@ -129618,7 +133346,7 @@ export function CloudOrchestrator() {
             <div className="text-[10px] text-slate-400 uppercase mb-2">Network I/O</div>
             <div className="flex items-end gap-2">
               <span className="text-3xl font-bold text-white font-mono">1.2</span>
-              <span className="text-sm text-slate-500 mb-1">Gbps</span>
+              <span className="text-sm text-slate-400 mb-1">Gbps</span>
             </div>
             <div className="w-full bg-slate-800 rounded-full h-1.5 mt-2">
               <div className="h-full rounded-full bg-emerald-500" style={{ width: '35%' }} />
@@ -130099,7 +133827,7 @@ export function HealthMap({ healthMap }: HealthMapProps) {
               <div>Region: <span className="text-slate-200">{prov.region}</span></div>
               <div>Latency: <span className="text-slate-200">{prov.latency}</span></div>
               <div>Uptime: <span className="text-[#00ff66]">{prov.uptime}</span></div>
-              <div>Endpoint: <span className="text-slate-500 truncate block max-w-[150px]">{prov.endpoint}</span></div>
+              <div>Endpoint: <span className="text-slate-400 truncate block max-w-[150px]">{prov.endpoint}</span></div>
             </div>
           </div>
         ))}
@@ -130520,7 +134248,7 @@ const RedesignedDashboardMockup: React.FC = () => {
                 <Sparkles className="text-indigo-600 animate-spin" size={20} />
                 <h1 className="text-xl font-extrabold text-slate-900 tracking-tight">Executive Command Bridge</h1>
               </div>
-              <p className="text-xs text-slate-500 mt-1">
+              <p className="text-xs text-slate-400 mt-1">
                 সিস্টেমের গতিবিধি পর্যবেক্ষণ ও সাধারণ ইউজারদের জন্য সহজ ড্যাশবোর্ড ইন্টারফেস।
               </p>
             </div>
@@ -130544,7 +134272,7 @@ const RedesignedDashboardMockup: React.FC = () => {
                 <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-[0_0_8px_#10b981]"></span>
               </div>
               <p className="text-base font-bold text-slate-850">সিস্টেম গ্রিন</p>
-              <p className="text-[11px] text-slate-500 mt-1">সব প্রধান সার্ভিস সচল আছে।</p>
+              <p className="text-[11px] text-slate-400 mt-1">সব প্রধান সার্ভিস সচল আছে।</p>
             </div>
 
             {/* Threat Card */}
@@ -130554,7 +134282,7 @@ const RedesignedDashboardMockup: React.FC = () => {
                 <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-[0_0_8px_#10b981]"></span>
               </div>
               <p className="text-base font-bold text-slate-850">অনলাইন থ্রেট নাই</p>
-              <p className="text-[11px] text-slate-500 mt-1">ফায়ারওয়াল সক্রিয় এবং নিরাপদ।</p>
+              <p className="text-[11px] text-slate-400 mt-1">ফায়ারওয়াল সক্রিয় এবং নিরাপদ।</p>
             </div>
 
             {/* AI Skills Card */}
@@ -130564,7 +134292,7 @@ const RedesignedDashboardMockup: React.FC = () => {
                 <span className="text-xs font-mono font-bold text-indigo-600">4 Active</span>
               </div>
               <p className="text-base font-bold text-slate-850">৪টি পাইপলাইন সচল</p>
-              <p className="text-[11px] text-slate-500 mt-1">এজেন্টরা নতুন টাস্ক প্রসেস করতে প্রস্তুত।</p>
+              <p className="text-[11px] text-slate-400 mt-1">এজেন্টরা নতুন টাস্ক প্রসেস করতে প্রস্তুত।</p>
             </div>
 
             {/* Cost Efficiency Card */}
@@ -130574,7 +134302,7 @@ const RedesignedDashboardMockup: React.FC = () => {
                 <span className="text-xs font-mono font-bold text-emerald-600">${metrics ? metrics.cost_per_hour : '0.00'}/h</span>
               </div>
               <p className="text-base font-bold text-slate-850">স্বল্প খরচে চলমান</p>
-              <p className="text-[11px] text-slate-500 mt-1">ফ্রি-টিয়ার ক্লাউড অপ্টিমাইজেশন সক্রিয়।</p>
+              <p className="text-[11px] text-slate-400 mt-1">ফ্রি-টিয়ার ক্লাউড অপ্টিমাইজেশন সক্রিয়।</p>
             </div>
           </div>
 
@@ -130618,7 +134346,7 @@ const RedesignedDashboardMockup: React.FC = () => {
             <div className="lg:col-span-4 bg-white border border-slate-100 rounded-3xl p-6 shadow-sm flex flex-col justify-between">
               <div>
                 <h2 className="text-sm font-bold text-slate-900 mb-2">Smart Actions Center</h2>
-                <p className="text-[11px] text-slate-500 mb-6">জটিল ব্যাকএন্ড কমান্ড সরাসরি ওয়ান-ক্লিকে রান করুন।</p>
+                <p className="text-[11px] text-slate-400 mb-6">জটিল ব্যাকএন্ড কমান্ড সরাসরি ওয়ান-ক্লিকে রান করুন।</p>
                 
                 <div className="flex flex-col gap-3">
                   <button
@@ -130805,7 +134533,7 @@ const RedesignedDashboardMockup: React.FC = () => {
               <button
                 key={item.id}
                 onClick={() => setActivePanel(item.id)}
-                className={`p-2 rounded-xl transition-all ${activePanel === item.id ? `bg-[#00f3ff]/20 shadow-[inset_0_0_10px_rgba(0,243,255,0.5)] ${item.activeColor}` : `text-slate-500 ${item.color}`}`}
+                className={`p-2 rounded-xl transition-all ${activePanel === item.id ? `bg-[#00f3ff]/20 shadow-[inset_0_0_10px_rgba(0,243,255,0.5)] ${item.activeColor}` : `text-slate-400 ${item.color}`}`}
                 title={item.id}
               >
                 {item.icon}
@@ -130931,7 +134659,7 @@ export function CostAuditor({ costReport }: CostAuditorProps) {
           <tbody className="divide-y divide-slate-900">
             {recentCharges.map((chg, idx) => (
               <tr key={idx} className="hover:bg-slate-800/10">
-                <td className="p-3 text-slate-500">{chg.time}</td>
+                <td className="p-3 text-slate-400">{chg.time}</td>
                 <td className="p-3 font-bold text-slate-200">{chg.user}</td>
                 <td className="p-3 text-cyan-400">{chg.model}</td>
                 <td className="p-3">{chg.tokens.toLocaleString()}</td>
@@ -130944,7 +134672,7 @@ export function CostAuditor({ costReport }: CostAuditorProps) {
 
       {/* Raw Output Log */}
       <details className="mt-4">
-        <summary className="text-[10px] text-slate-500 cursor-pointer font-mono select-none uppercase hover:text-slate-400">Show raw console output</summary>
+        <summary className="text-[10px] text-slate-400 cursor-pointer font-mono select-none uppercase hover:text-slate-400">Show raw console output</summary>
         <pre className="bg-[#0c0d12] border border-slate-900 rounded-lg p-4 mt-2 text-slate-400 font-mono text-[10px] whitespace-pre-wrap leading-relaxed">
           {costReport || "No raw cost reports currently in buffer."}
         </pre>
@@ -131124,6 +134852,7 @@ export const ConsentMatrixModal: React.FC<ConsentMatrixModalProps> = ({
       {isOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm">
           <motion.div
+            data-testid="consent-matrix-modal"
             initial={{ scale: 0.9, opacity: 0, y: 20 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.9, opacity: 0, y: 20 }}
@@ -131553,7 +135282,7 @@ export function InteractiveChatTab({
               className={`flex items-center gap-1.5 px-2.5 py-1 text-[10px] font-mono rounded border transition-all ${
                 chatTabTerminalOpen
                   ? 'bg-[#00f3ff]/10 text-[#00f3ff] border-[#00f3ff]/30'
-                  : 'bg-slate-900 text-slate-500 border-slate-800'
+                  : 'bg-slate-900 text-slate-400 border-slate-800'
               }`}
             >
               <Terminal size={12} />
@@ -131564,7 +135293,7 @@ export function InteractiveChatTab({
               className={`flex items-center gap-1.5 px-2.5 py-1 text-[10px] font-mono rounded border transition-all ${
                 chatTabBrowserOpen
                   ? 'bg-[#00ff66]/10 text-[#00ff66] border-[#00ff66]/30'
-                  : 'bg-slate-900 text-slate-500 border-slate-800'
+                  : 'bg-slate-900 text-slate-400 border-slate-800'
               }`}
             >
               <Globe size={12} />
@@ -131655,7 +135384,7 @@ export function InteractiveChatTab({
               <span className="text-[10px] font-bold text-[#00ff66] tracking-wider uppercase font-mono flex items-center gap-1.5">
                 <TerminalSquare size={12} /> Live Shell
               </span>
-              <span className="text-[8px] bg-slate-900 text-slate-500 px-1 py-0.5 rounded font-mono">READONLY</span>
+              <span className="text-[8px] bg-slate-900 text-slate-400 px-1 py-0.5 rounded font-mono">READONLY</span>
             </div>
             <div className="flex-1 p-3 overflow-y-auto font-mono text-[10px] text-[#00ff66] flex flex-col gap-1 bg-[#010204]">
               {terminalHistory.map((line, idx) => (
@@ -131692,7 +135421,7 @@ export function InteractiveChatTab({
                 <div className="w-2.5 h-2.5 rounded-full bg-green-500/80"></div>
               </div>
               <form onSubmit={handleBrowserGo} className="flex-grow flex items-center gap-1.5 bg-[#141822] border border-slate-800 rounded-md px-2 py-0.5">
-                <Compass size={10} className="text-slate-500" />
+                <Compass size={10} className="text-slate-400" />
                 <input
                   type="text"
                   value={browserUrl}
@@ -161640,7 +165369,7 @@ on:
         type: boolean
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 env:
@@ -161995,8 +165724,16 @@ jobs:
           pnpm install --frozen-lockfile
           pnpm store prune
 
+      - name: Cache Turborepo
+        uses: actions/cache@v4
+        with:
+          path: .turbo
+          key: ${{ runner.os }}-turbo-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-turbo-
+
       - name: Build & Lint Frontend Packages
-        run: pnpm turbo run build lint --filter=supremeai-studio-client --filter=@supremeai/web-chat --filter=supremeai-vscode
+        run: pnpm turbo run build lint --filter=supremeai-studio-client --filter=@supremeai/web-chat --filter=supremeai-vscode --cache-dir=.turbo
 
       - name: Run Studio Client Vitest with JSON Report
         run: pnpm --dir apps/studio-client exec vitest run --reporter=json > apps/studio-client/vitest-report.json
@@ -162016,7 +165753,7 @@ jobs:
         run: python .github/scripts/generate-ci-report.py --vitest-json apps/web-chat/vitest-report.json --label "Web Chat"
  
       - name: Run VS Code Extension Tests
-        run: pnpm turbo run test --filter=supremeai-vscode
+        run: pnpm turbo run test --filter=supremeai-vscode --cache-dir=.turbo
  
       - name: Playwright Install & Test
         continue-on-error: true
@@ -162081,7 +165818,7 @@ jobs:
           path: apps
         continue-on-error: true
       - name: Install Playwright Browsers
-        run: pnpm exec playwright install --with-deps chromium
+        run: pnpm exec playwright install --with-deps
       - name: Start Frontend Preview Server
         run: |
           cd apps/studio-client && pnpm exec vite preview --port 5173 &

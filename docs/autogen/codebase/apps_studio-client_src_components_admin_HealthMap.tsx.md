@@ -2,7 +2,7 @@
 
 **প্রকার:** .tsx  
 **সাইজ:** 4,803 বাইট  
-**আপডেট:** 2026-07-04T12:59:56.914344
+**আপডেট:** 2026-07-04T13:24:28.417158
 
 ---
 
@@ -109,7 +109,7 @@ export function HealthMap({ healthMap }: HealthMapProps) {
               <div>Region: <span className="text-slate-200">{prov.region}</span></div>
               <div>Latency: <span className="text-slate-200">{prov.latency}</span></div>
               <div>Uptime: <span className="text-[#00ff66]">{prov.uptime}</span></div>
-              <div>Endpoint: <span className="text-slate-500 truncate block max-w-[150px]">{prov.endpoint}</span></div>
+              <div>Endpoint: <span className="text-slate-400 truncate block max-w-[150px]">{prov.endpoint}</span></div>
             </div>
           </div>
         ))}

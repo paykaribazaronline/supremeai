@@ -2,7 +2,7 @@
 
 **প্রকার:** .tsx  
 **সাইজ:** 7,204 বাইট  
-**আপডেট:** 2026-07-04T12:59:56.904041
+**আপডেট:** 2026-07-04T13:24:28.407069
 
 ---
 
@@ -101,7 +101,7 @@ export function AutomationQueuePage() {
         <ListChecks size={17} className="text-blue-400" />
         Automation Workflow Queue
       </h1>
-      <p className="text-xs text-slate-500 mb-5">
+      <p className="text-xs text-slate-400 mb-5">
         Active Playwright automation sequences. Each task is capped at{' '}
         {EXECUTION_CAP_MS / 1000}s of execution time.
       </p>
@@ -130,15 +130,15 @@ export function AutomationQueuePage() {
 
       <div className="flex items-center justify-between mb-2">
         <h2 className="text-sm font-medium text-slate-300">Active sequences</h2>
-        <span className="text-xs text-slate-500">{tasks.length} total</span>
+        <span className="text-xs text-slate-400">{tasks.length} total</span>
       </div>
 
       {loading ? (
-        <div className="flex justify-center py-10 text-slate-500">
+        <div className="flex justify-center py-10 text-slate-400">
           <Loader2 size={18} className="animate-spin" />
         </div>
       ) : tasks.length === 0 ? (
-        <p className="text-sm text-slate-500 text-center py-8">No automation tasks queued.</p>
+        <p className="text-sm text-slate-400 text-center py-8">No automation tasks queued.</p>
       ) : (
         <ul className="flex flex-col gap-2">
           {tasks.map((t) => (
@@ -149,7 +149,7 @@ export function AutomationQueuePage() {
             >
               <div className="flex-1 min-w-0">
                 <p className="text-xs text-white truncate">{t.goal}</p>
-                <p className="text-[11px] text-slate-500">
+                <p className="text-[11px] text-slate-400">
                   {t.createdAt ? new Date(t.createdAt).toLocaleString() : '—'}
                   {typeof t.durationMs === 'number' && ` · ${(t.durationMs / 1000).toFixed(1)}s`}
                 </p>
@@ -163,7 +163,7 @@ export function AutomationQueuePage() {
               <button
                 aria-label="Delete task"
                 onClick={() => handleDelete(t.id)}
-                className="p-1.5 rounded text-slate-500 hover:text-rose-400 transition-colors"
+                className="p-1.5 rounded text-slate-400 hover:text-rose-400 transition-colors"
               >
                 <Trash2 size={13} />
               </button>

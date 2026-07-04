@@ -2,7 +2,7 @@
 
 **প্রকার:** .tsx  
 **সাইজ:** 4,373 বাইট  
-**আপডেট:** 2026-07-04T12:59:56.909809
+**আপডেট:** 2026-07-04T13:24:28.412698
 
 ---
 
@@ -39,7 +39,7 @@ export function LiveLogs({ liveLogs, setLiveLogs }: LiveLogsProps) {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 mb-4 pb-3 border-b border-[var(--border-color)]">
         <div className="flex flex-col gap-1">
           <span className="text-slate-400 font-bold uppercase tracking-wider text-[10px]">Real-time Live Stream (supremeai.log)</span>
-          <div className="flex gap-2 text-[10px] text-slate-500 mt-1">
+          <div className="flex gap-2 text-[10px] text-slate-400 mt-1">
             <span>Total: {liveLogs.length}</span>
             <span className="text-emerald-500">Info: {infoCount}</span>
             <span className="text-yellow-500">Warn: {warnCount}</span>
@@ -77,7 +77,7 @@ export function LiveLogs({ liveLogs, setLiveLogs }: LiveLogsProps) {
       </div>
       <div className="flex-grow flex flex-col gap-1 overflow-y-auto max-h-[70vh]">
         {filteredLogs.length === 0 ?
-          <div className="text-slate-500 italic">Listening for incoming server logs or no matching logs found...</div>
+          <div className="text-slate-400 italic">Listening for incoming server logs or no matching logs found...</div>
           :
           filteredLogs.map((log, idx) => {
             let logColor = 'text-[#00ff66]';
