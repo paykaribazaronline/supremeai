@@ -1,7 +1,7 @@
 # 🧠 SupremeAI 2.0 Codebase Dump
 # বাংলা মন্তব্য: এটি একটি স্বয়ংক্রিয়ভাবে জেনারেট করা কোডবেস ডাম্প ফাইল যা প্রজেক্টের সামগ্রিক বিশ্লেষণের জন্য ব্যবহৃত হয়।
 
-Generated at: 2026-07-04T22:28:39.182767
+Generated at: 2026-07-04T22:38:52.520299
 
 
 ## File: `pnpm-lock.yaml`
@@ -121874,7 +121874,7 @@ export function LiveSujonBackground({ state: forcedState }: LiveSujonBackgroundP
         window.addEventListener('resize', resizeCanvas);
         resizeCanvas();
 
-        let lastStateId = -1;
+
 
         const render = (now: number) => {
             if (!isVisible || !glRef.current) return;
@@ -122556,7 +122556,7 @@ export const FileTreePanel: React.FC = () => {
   // By using useRef<Map>, we avoid triggering React renders for every single patch.
   // We only force a re-render when we specifically want to update the tree view (e.g. via a throttled update).
   const treeRef = useRef<Map<string, FileNode>>(new Map());
-  const [renderTick, setRenderTick] = useState(0);
+  const [treeMap, setTreeMap] = useState<Map<string, FileNode>>(new Map());
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set(['/']));
 
   useEffect(() => {
@@ -122564,7 +122564,7 @@ export const FileTreePanel: React.FC = () => {
     // Here we simulate an initial root.
     if (!treeRef.current.has('/')) {
       treeRef.current.set('/', { name: 'workspace', path: '/', type: 'directory', status: 'unchanged' });
-      setRenderTick(t => t + 1);
+      setTreeMap(new Map(treeRef.current));
     }
   }, [fileTreeData]);
 
@@ -122601,11 +122601,11 @@ export const FileTreePanel: React.FC = () => {
   };
 
   const renderNode = (path: string, depth: number = 0) => {
-    const node = treeRef.current.get(path);
+    const node = treeMap.get(path);
     if (!node) return null;
 
     const isExpanded = expandedFolders.has(path);
-    const children = Array.from(treeRef.current.values()).filter(n => {
+    const children = Array.from(treeMap.values()).filter(n => {
       if (n.path === path) return false;
       const parentPath = n.path.substring(0, n.path.lastIndexOf('/')) || '/';
       return parentPath === path;

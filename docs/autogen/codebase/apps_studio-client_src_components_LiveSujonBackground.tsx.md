@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/studio-client/src/components/LiveSujonBackground.tsx
 
 **প্রকার:** .tsx  
-**সাইজ:** 12,354 বাইট  
-**আপডেট:** 2026-07-04T22:28:39.314371
+**সাইজ:** 12,325 বাইট  
+**আপডেট:** 2026-07-04T22:38:52.649247
 
 ---
 
@@ -274,7 +274,7 @@ export function LiveSujonBackground({ state: forcedState }: LiveSujonBackgroundP
         window.addEventListener('resize', resizeCanvas);
         resizeCanvas();
 
-        let lastStateId = -1;
+
 
         const render = (now: number) => {
             if (!isVisible || !glRef.current) return;
