@@ -1,5 +1,3 @@
-import { vi } from 'vitest';
-
 vi.mock('axios', () => {
   const mockAxios = {
     post: vi.fn(),

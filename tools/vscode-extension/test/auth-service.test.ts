@@ -1,4 +1,3 @@
-import { vi } from 'vitest';
 import * as vscode from 'vscode';
 import { AuthService } from '../src/services/AuthService';
 
