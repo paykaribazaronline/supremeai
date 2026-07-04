@@ -4,6 +4,7 @@ import contextlib
 import json
 
 from fastapi.responses import JSONResponse
+from loguru import logger
 
 
 class IdempotencyMiddleware:
@@ -94,8 +95,10 @@ class IdempotencyMiddleware:
                         )
                     await response(scope, receive, send)
                     return
-            except Exception:
-                pass
+            except Exception as exc:
+                # বল মনতবয: কযশকরত idempotency রকরড পরস করত বযরথ হল রকয়সট পনরায় পরসস হব;
+                # নরবভ ডট করাপশন লকয় রখত warning লগ যকত কর হল
+                logger.warning(f"Failed to parse cached idempotency record for key {idempotency_key}: {exc}")
 
         # 2. Lock the idempotency key (10 minute timeout to prevent deadlocks)
         redis.set(redis_key, json.dumps({"status": "processing"}), ex=600)
