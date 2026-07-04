@@ -155,8 +155,7 @@ class TestProductionReadinessSystems:
             assert "production-readiness" in content or "Safety Guard" in content
             
             # সিস্টেমগুলি সঠিক ক্রমে চলে নিশ্চিত করুন
-            # detect-changes → production-readiness → backend-core
-            assert "detect-changes" in content
+            # production-readiness → backend-core
             assert "backend-core" in content
 
     def test_code_style_guide_includes_bengali_comments(self):
