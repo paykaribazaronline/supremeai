@@ -263,7 +263,7 @@ export function LiveSujonBackground({ state: forcedState }: LiveSujonBackgroundP
         window.addEventListener('resize', resizeCanvas);
         resizeCanvas();
 
-        let lastStateId = -1;
+
 
         const render = (now: number) => {
             if (!isVisible || !glRef.current) return;
