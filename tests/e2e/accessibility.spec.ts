@@ -18,7 +18,7 @@ test.describe('Accessibility Tests (WCAG)', () => {
 
     test('Admin Dashboard should be accessible', async ({ page }) => {
         await page.goto('/admin'); // আপনার অ্যাডমিন পেজের URL
-        await page.waitForSelector('text=SupremeAI', { state: 'visible', timeout: 15000 });
+        await page.waitForSelector('text=Admin Gate', { state: 'visible', timeout: 15000 });
 
         const accessibilityScanResults = await new AxeBuilder({ page }).analyze();
 
