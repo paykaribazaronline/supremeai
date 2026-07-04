@@ -5,6 +5,10 @@ export type DashboardRoute =
   | 'sessions'
   | 'session'
   | 'workspace'
+  | 'vault'
+  | 'automation'
+  | 'site-actions'
+  | 'llm-gateway'
   | 'knowledge'
   | 'secrets'
   | 'usage'
@@ -20,7 +24,7 @@ export interface ParsedRoute {
 export function parseHash(hash: string): ParsedRoute {
   const clean = hash.replace(/^#\/?/, '');
   const [page, param] = clean.split('/');
-  const known: DashboardRoute[] = ['sessions', 'session', 'workspace', 'knowledge', 'secrets', 'usage', 'settings', 'admin'];
+  const known: DashboardRoute[] = ['sessions', 'session', 'workspace', 'vault', 'automation', 'site-actions', 'llm-gateway', 'knowledge', 'secrets', 'usage', 'settings', 'admin'];
   if (known.includes(page as DashboardRoute)) {
     return { page: page as DashboardRoute, param };
   }
