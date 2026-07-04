@@ -361,7 +361,10 @@ jobs:
 
       - name: 🧪 Run Cloudflare Worker Tests
         id: worker_tests
-        run: pnpm exec vitest run scripts/cloudflare_worker.test.js --reporter=json > infrastructure/vitest-report.json
+        # বাংলা মন্তব্য: আগে এখানে scripts/cloudflare_worker.test.js (Miniflare E2E) চালানো হতো, যা
+        # Node-এ `--experimental-vm-modules` ছাড়া ক্র্যাশ করত (worker-test জব সবসময় লাল)। এখন
+        # infrastructure/vitest.config.ts দিয়ে নির্ভরযোগ্য ইউনিট টেস্ট (infrastructure/__tests__) চালানো হয়।
+        run: pnpm exec vitest run --config infrastructure/vitest.config.ts --reporter=json > infrastructure/vitest-report.json
  
       - name: Add Worker Test Results to GitHub Summary
         if: always()
