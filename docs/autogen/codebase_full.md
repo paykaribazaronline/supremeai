@@ -1,7 +1,7 @@
 # 🧠 SupremeAI 2.0 Codebase Dump
 # বাংলা মন্তব্য: এটি একটি স্বয়ংক্রিয়ভাবে জেনারেট করা কোডবেস ডাম্প ফাইল যা প্রজেক্টের সামগ্রিক বিশ্লেষণের জন্য ব্যবহৃত হয়।
 
-Generated at: 2026-07-04T08:43:35.091323
+Generated at: 2026-07-04T08:51:16.202945
 
 
 ## File: `pnpm-lock.yaml`
@@ -121721,8 +121721,11 @@ export function SessionDetailPage({ sessionId, onBack }: SessionDetailPageProps)
   // বাংলা মন্তব্য: সেশন লোড + বাইরের আপডেট (যেমন SessionsPage থেকে আসা AI রেসপন্স) ধরতে ইভেন্ট লিসেনার
   useEffect(() => {
     const refresh = () => {
-      const found = loadSessions().find((s) => s.id === sessionId) || null;
-      setSession(found);
+      // বাংলা মন্তব্য: loadSessions() এখন async — ব্যাকএন্ড API কল করে
+      loadSessions().then((all) => {
+        const found = all.find((s) => s.id === sessionId) || null;
+        setSession(found);
+      });
     };
     refresh();
     window.addEventListener(SESSIONS_UPDATED_EVENT, refresh);
@@ -121745,7 +121748,7 @@ export function SessionDetailPage({ sessionId, onBack }: SessionDetailPageProps)
       ],
     };
     setSession(updated);
-    upsertSession(updated);
+    await upsertSession(updated);
     const text = input.trim();
     setInput('');
 
@@ -121757,8 +121760,9 @@ export function SessionDetailPage({ sessionId, onBack }: SessionDetailPageProps)
         content: m.text,
       }));
       const responseText = await getAethelResponse(text, history);
-      // বাংলা মন্তব্য: সেভের আগে localStorage থেকে সর্বশেষ সেশন পড়ে নেওয়া হয় যাতে অন্য পেজের সেভ করা মেসেজ মুছে না যায়
-      const latest = loadSessions().find((s) => s.id === sessionId) || updated;
+      // বাংলা মন্তব্য: সেভের আগে ব্যাকএন্ড থেকে সর্বশেষ সেশন পড়ে নেওয়া হয় যাতে অন্য পেজের সেভ করা মেসেজ মুছে না যায়
+      const allSessions = await loadSessions();
+      const latest = allSessions.find((s) => s.id === sessionId) || updated;
       completed = {
         ...latest,
         status: 'finished',
@@ -121768,7 +121772,8 @@ export function SessionDetailPage({ sessionId, onBack }: SessionDetailPageProps)
         ],
       };
     } catch (error) {
-      const latest = loadSessions().find((s) => s.id === sessionId) || updated;
+      const allSessions = await loadSessions();
+      const latest = allSessions.find((s) => s.id === sessionId) || updated;
       completed = {
         ...latest,
         status: 'error',
@@ -121784,7 +121789,7 @@ export function SessionDetailPage({ sessionId, onBack }: SessionDetailPageProps)
       };
     }
     setSession(completed);
-    upsertSession(completed);
+    await upsertSession(completed);
     setSending(false);
   };
 
@@ -121869,7 +121874,6 @@ export function SessionDetailPage({ sessionId, onBack }: SessionDetailPageProps)
     </div>
   );
 }
-
 ```
 
 ## File: `apps/studio-client/src/components/dashboard/VaultPage.tsx`
@@ -122460,14 +122464,32 @@ export function useHashRoute(): [ParsedRoute, (page: DashboardRoute, param?: str
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, act } from '@testing-library/react';
 
-vi.mock('../../services/apiClient', () => ({
-  apiClient: {
-    get: vi.fn().mockResolvedValue({ items: [], keys: [], total: 0 }),
-    post: vi.fn().mockResolvedValue({}),
-    put: vi.fn().mockResolvedValue({}),
-    delete: vi.fn().mockResolvedValue({}),
-  },
-}));
+vi.mock('../../services/apiClient', () => {
+  const sessionsStore: Record<string, any> = {};
+  return {
+    apiClient: {
+      get: vi.fn().mockImplementation((path: string) => {
+        if (path === '/api/browser/sessions') return Promise.resolve({ sessions: Object.values(sessionsStore) });
+        return Promise.resolve({ items: [], keys: [], total: 0 });
+      }),
+      post: vi.fn().mockImplementation((path: string, body?: any) => {
+        if (path === '/api/browser/sessions' && body?.id) {
+          sessionsStore[body.id] = body;
+        }
+        return Promise.resolve({});
+      }),
+      put: vi.fn().mockImplementation((path: string, body?: any) => {
+        if (body?.id) sessionsStore[body.id] = body;
+        return Promise.resolve({});
+      }),
+      delete: vi.fn().mockImplementation((path: string) => {
+        const id = path.split('/').pop();
+        if (id) delete sessionsStore[id];
+        return Promise.resolve({});
+      }),
+    },
+  };
+});
 
 vi.mock('../../services/chatService', () => ({
   getAethelResponse: vi.fn().mockResolvedValue('Mock response'),
@@ -122570,7 +122592,9 @@ describe('DashboardShell', () => {
       fireEvent.click(screen.getByTestId('start-session-btn'));
       window.dispatchEvent(new HashChangeEvent('hashchange'));
     });
-    expect(screen.getAllByText('Build a landing page').length).toBeGreaterThan(0);
+    // বাংলা মন্তব্য: সেশন ডিটেইল পেজ async loadSessions() কল করে — তাই find* ব্যবহার করা হয়
+    const elements = await screen.findAllByText('Build a landing page', {}, { timeout: 3000 });
+    expect(elements.length).toBeGreaterThan(0);
   });
 });
 
@@ -122910,7 +122934,8 @@ export function SessionsPage({ onOpenSession }: SessionsPageProps) {
   const [starting, setStarting] = useState(false);
 
   useEffect(() => {
-    setSessions(loadSessions());
+    // বাংলা মন্তব্য: loadSessions() এখন async — ব্যাকএন্ড API কল করে
+    loadSessions().then(setSessions);
   }, []);
 
   // বাংলা মন্তব্য: নতুন সেশন শুরু — প্রম্পট থেকে সেশন তৈরি করে ব্যাকএন্ডে টাস্ক পাঠানো হয়
@@ -122918,18 +122943,20 @@ export function SessionsPage({ onOpenSession }: SessionsPageProps) {
     if (!prompt.trim() || starting) return;
     setStarting(true);
     const session = createSession(prompt.trim());
-    setSessions(upsertSession(session));
+    const updated = await upsertSession(session);
+    setSessions(updated);
     setPrompt('');
     onOpenSession(session.id);
 
-    // বাংলা মন্তব্য: রেসপন্স আসার পর localStorage থেকে সর্বশেষ সেশন পড়ে তার উপর মেসেজ যোগ করা হয়,
+    // বাংলা মন্তব্য: রেসপন্স আসার পর ব্যাকএন্ড থেকে সর্বশেষ সেশন পড়ে তার উপর মেসেজ যোগ করা হয়,
     // যাতে ডিটেইল পেজে পাঠানো ফলো-আপ মেসেজ হারিয়ে না যায় (race condition প্রতিরোধ)
     let completed: DashboardSession;
     try {
       const responseText = await getAethelResponse(session.title, [
         { role: 'user', content: session.messages[0].text },
       ]);
-      const latest = loadSessions().find((s) => s.id === session.id) || session;
+      const allSessions = await loadSessions();
+      const latest = allSessions.find((s) => s.id === session.id) || session;
       completed = {
         ...latest,
         status: 'finished',
@@ -122944,7 +122971,8 @@ export function SessionsPage({ onOpenSession }: SessionsPageProps) {
         ],
       };
     } catch (error) {
-      const latest = loadSessions().find((s) => s.id === session.id) || session;
+      const allSessions = await loadSessions();
+      const latest = allSessions.find((s) => s.id === session.id) || session;
       completed = {
         ...latest,
         status: 'error',
@@ -122959,12 +122987,14 @@ export function SessionsPage({ onOpenSession }: SessionsPageProps) {
         ],
       };
     }
-    setSessions(upsertSession(completed));
+    const finalSessions = await upsertSession(completed);
+    setSessions(finalSessions);
     setStarting(false);
   };
 
-  const handleDelete = (id: string) => {
-    setSessions(deleteSession(id));
+  const handleDelete = async (id: string) => {
+    const remaining = await deleteSession(id);
+    setSessions(remaining);
   };
 
   return (
@@ -123044,7 +123074,6 @@ export function SessionsPage({ onOpenSession }: SessionsPageProps) {
     </div>
   );
 }
-
 ```
 
 ## File: `apps/studio-client/src/components/ui/Skeleton.tsx`
@@ -135276,7 +135305,7 @@ custom-protocol = ["tauri/custom-protocol"]
 tauri-build = { version = "=1.5.4", features = [] }
 
 [dependencies]
-tauri = { version = "=1.5.4", features = ["window-maximize", "window-start-dragging", "window-unminimize", "window-unmaximize", "window-hide", "window-show", "window-minimize", "window-close", "notification", "global-shortcut", "system-tray", "updater", "api-all"], default-features = false }
+tauri = { version = "=1.5.4", features = ["wry", "window-maximize", "window-start-dragging", "window-unminimize", "window-unmaximize", "window-hide", "window-show", "window-minimize", "window-close", "notification", "global-shortcut"], default-features = false }
 serde_json = "1"
 num_cpus = "1"
 ntapi = "0.4.3"
@@ -135339,8 +135368,9 @@ export async function removeSecureToken(): Promise<void> {
     windows_subsystem = "windows"
 )]
 
-use tauri::{Manager, SystemTray, SystemTrayEvent, SystemTrayMenu, SystemTrayMenuItem, CustomMenuItem, SystemTrayEvent::MenuEvent};
-use tauri::api::{fs::read_text_file, notification::Notification, updater};
+use tauri::{AppHandle, CustomMenuItem, Manager, SystemTray, SystemTrayEvent, SystemTrayMenu, SystemTrayMenuItem, SystemTrayEvent::MenuEvent};
+use tauri::api::notification::Notification;
+use tauri::updater;
 use std::sync::Mutex;
 
 struct AppState {
@@ -135349,22 +135379,20 @@ struct AppState {
 
 #[tauri::command]
 fn read_local_file(path: String) -> Result<String, String> {
-    match read_text_file(std::path::Path::new(&path)) {
-        Ok(content) => Ok(content),
-        Err(e) => Err(e.to_string()),
-    }
+    std::fs::read_to_string(path).map_err(|e| e.to_string())
 }
 
 #[tauri::command]
 fn show_notification(title: String, body: String) -> Result<(), String> {
-    let notification = Notification::new(&title)
+    Notification::new(&title)
         .body(&body)
         .show()
         .map_err(|e| e.to_string())?;
     Ok(())
 }
 
-fn toggle_window_visibility(app: &tauri::AppHandle) -> Result<(), String> {
+#[tauri::command]
+fn toggle_window_visibility(app: &AppHandle) -> Result<(), String> {
     let window = app.get_window("main").ok_or("Main window not found")?;
     let is_visible = window.is_visible().map_err(|e| e.to_string())?;
     if is_visible {
@@ -135377,18 +135405,12 @@ fn toggle_window_visibility(app: &tauri::AppHandle) -> Result<(), String> {
 }
 
 #[tauri::command]
-fn check_for_updates(app: tauri::AppHandle) -> Result<(), String> {
-    updater::build()
-        .update_callback(move |event| {
-            if let updater::UpdateResponse::UpdateAvailable(info) = event {
-                let _ = Notification::new("Update Available")
-                    .body(&format!("Version {} is available. Please restart the application.", info.version))
-                    .show();
-                let _ = app.restart();
-            }
-        })
-        .run()
-        .map_err(|e| e.to_string())?;
+fn check_for_updates(app: AppHandle) -> Result<(), String> {
+    tauri::async_runtime::spawn(async move {
+        if let Err(error) = updater::builder(app).check().await {
+            eprintln!("Updater failed: {error}");
+        }
+    });
     Ok(())
 }
 

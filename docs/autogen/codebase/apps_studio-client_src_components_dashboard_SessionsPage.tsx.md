@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/studio-client/src/components/dashboard/SessionsPage.tsx
 
 **প্রকার:** .tsx  
-**সাইজ:** 6,480 বাইট  
-**আপডেট:** 2026-07-04T08:43:35.215432
+**সাইজ:** 6,846 বাইট  
+**আপডেট:** 2026-07-04T08:51:16.330757
 
 ---
 
@@ -37,7 +37,8 @@ export function SessionsPage({ onOpenSession }: SessionsPageProps) {
   const [starting, setStarting] = useState(false);
 
   useEffect(() => {
-    setSessions(loadSessions());
+    // বাংলা মন্তব্য: loadSessions() এখন async — ব্যাকএন্ড API কল করে
+    loadSessions().then(setSessions);
   }, []);
 
   // বাংলা মন্তব্য: নতুন সেশন শুরু — প্রম্পট থেকে সেশন তৈরি করে ব্যাকএন্ডে টাস্ক পাঠানো হয়
@@ -45,18 +46,20 @@ export function SessionsPage({ onOpenSession }: SessionsPageProps) {
     if (!prompt.trim() || starting) return;
     setStarting(true);
     const session = createSession(prompt.trim());
-    setSessions(upsertSession(session));
+    const updated = await upsertSession(session);
+    setSessions(updated);
     setPrompt('');
     onOpenSession(session.id);
 
-    // বাংলা মন্তব্য: রেসপন্স আসার পর localStorage থেকে সর্বশেষ সেশন পড়ে তার উপর মেসেজ যোগ করা হয়,
+    // বাংলা মন্তব্য: রেসপন্স আসার পর ব্যাকএন্ড থেকে সর্বশেষ সেশন পড়ে তার উপর মেসেজ যোগ করা হয়,
     // যাতে ডিটেইল পেজে পাঠানো ফলো-আপ মেসেজ হারিয়ে না যায় (race condition প্রতিরোধ)
     let completed: DashboardSession;
     try {
       const responseText = await getAethelResponse(session.title, [
         { role: 'user', content: session.messages[0].text },
       ]);
-      const latest = loadSessions().find((s) => s.id === session.id) || session;
+      const allSessions = await loadSessions();
+      const latest = allSessions.find((s) => s.id === session.id) || session;
       completed = {
         ...latest,
         status: 'finished',
@@ -71,7 +74,8 @@ export function SessionsPage({ onOpenSession }: SessionsPageProps) {
         ],
       };
     } catch (error) {
-      const latest = loadSessions().find((s) => s.id === session.id) || session;
+      const allSessions = await loadSessions();
+      const latest = allSessions.find((s) => s.id === session.id) || session;
       completed = {
         ...latest,
         status: 'error',
@@ -86,12 +90,14 @@ export function SessionsPage({ onOpenSession }: SessionsPageProps) {
         ],
       };
     }
-    setSessions(upsertSession(completed));
+    const finalSessions = await upsertSession(completed);
+    setSessions(finalSessions);
     setStarting(false);
   };
 
-  const handleDelete = (id: string) => {
-    setSessions(deleteSession(id));
+  const handleDelete = async (id: string) => {
+    const remaining = await deleteSession(id);
+    setSessions(remaining);
   };
 
   return (
@@ -171,5 +177,4 @@ export function SessionsPage({ onOpenSession }: SessionsPageProps) {
     </div>
   );
 }
-
 ```
