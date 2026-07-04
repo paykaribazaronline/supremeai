@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/test_production_readiness_integration.py
 
 **প্রকার:** .py  
-**সাইজ:** 10,804 বাইট  
-**আপডেট:** 2026-07-04T22:38:52.601064
+**সাইজ:** 10,738 বাইট  
+**আপডেট:** 2026-07-04T22:52:01.514328
 
 ---
 
@@ -166,8 +166,7 @@ class TestProductionReadinessSystems:
             assert "production-readiness" in content or "Safety Guard" in content
             
             # সিস্টেমগুলি সঠিক ক্রমে চলে নিশ্চিত করুন
-            # detect-changes → production-readiness → backend-core
-            assert "detect-changes" in content
+            # production-readiness → backend-core
             assert "backend-core" in content
 
     def test_code_style_guide_includes_bengali_comments(self):
