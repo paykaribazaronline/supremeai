@@ -41,11 +41,11 @@ export function ThreatDetection() {
         </Card>
         <Card title="Blocked Threats (24h)">
           <div className="text-2xl font-bold text-red-400 font-mono">3</div>
-          <div className="text-[10px] text-slate-500">2 prompt injection, 1 jailbreak</div>
+          <div className="text-[10px] text-slate-400">2 prompt injection, 1 jailbreak</div>
         </Card>
         <Card title="Active Anomalies">
           <div className="text-2xl font-bold text-yellow-400 font-mono">5</div>
-          <div className="text-[10px] text-slate-500">3 from new IPs, 2 from API keys</div>
+          <div className="text-[10px] text-slate-400">3 from new IPs, 2 from API keys</div>
         </Card>
       </div>
 
@@ -69,7 +69,7 @@ export function ThreatDetection() {
                   <div className="text-[10px] text-slate-400 font-mono">
                     Source: {t.source} • {t.timestamp}
                   </div>
-                  <div className="text-[10px] text-slate-500 mt-1 truncate">"{t.snippet}"</div>
+                  <div className="text-[10px] text-slate-400 mt-1 truncate">"{t.snippet}"</div>
                 </div>
                 <button className="text-[10px] text-[#00f3ff] hover:text-cyan-300 font-mono px-2 py-1 rounded border border-[#00f3ff]/30">
                   Details

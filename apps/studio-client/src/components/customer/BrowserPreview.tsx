@@ -27,7 +27,7 @@ export function BrowserPreview({ url = 'https://supremeai.web.app', html }: Brow
       <Card>
         <div className="flex items-center gap-2 mb-4">
           <div className="flex-1 flex items-center gap-2 bg-[#06080b] border border-slate-800 rounded-lg px-3 py-1.5">
-            <ExternalLink size={12} className="text-slate-500" />
+            <ExternalLink size={12} className="text-slate-400" />
             <input
               type="text"
               value={currentUrl}

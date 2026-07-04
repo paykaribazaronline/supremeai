@@ -105,7 +105,7 @@ export function SiteActionsPage() {
         <Table2 size={17} className="text-blue-400" />
         Site Actions Registry
       </h1>
-      <p className="text-xs text-slate-500 mb-5">
+      <p className="text-xs text-slate-400 mb-5">
         Super-Admin editor mapping target site selectors & DOM interaction rules that power the
         database-driven action engine.
       </p>
@@ -207,11 +207,11 @@ export function SiteActionsPage() {
       {error && <p className="text-xs text-rose-400 mb-4">{error}</p>}
 
       {loading ? (
-        <div className="flex justify-center py-10 text-slate-500">
+        <div className="flex justify-center py-10 text-slate-400">
           <Loader2 size={18} className="animate-spin" />
         </div>
       ) : actions.length === 0 ? (
-        <p className="text-sm text-slate-500 text-center py-8">No site actions defined yet.</p>
+        <p className="text-sm text-slate-400 text-center py-8">No site actions defined yet.</p>
       ) : (
         <div className="overflow-x-auto rounded-xl border border-white/[0.06]">
           <table className="w-full text-left text-xs">
@@ -248,14 +248,14 @@ export function SiteActionsPage() {
                       <button
                         aria-label="Edit action"
                         onClick={() => handleEdit(a)}
-                        className="p-1.5 rounded text-slate-500 hover:text-blue-400 transition-colors"
+                        className="p-1.5 rounded text-slate-400 hover:text-blue-400 transition-colors"
                       >
                         <Pencil size={12} />
                       </button>
                       <button
                         aria-label="Delete action"
                         onClick={() => handleDelete(a.id)}
-                        className="p-1.5 rounded text-slate-500 hover:text-rose-400 transition-colors"
+                        className="p-1.5 rounded text-slate-400 hover:text-rose-400 transition-colors"
                       >
                         <Trash2 size={12} />
                       </button>

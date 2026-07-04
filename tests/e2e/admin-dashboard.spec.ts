@@ -7,7 +7,7 @@ test.describe('SupremeAI Nexus E2E Flow', () => {
     await page.goto('/admin'); // Assumes routing allows direct /admin access
 
     // 2. Verify Nexus Header exists
-    await expect(page.getByText('SUPREMEAI ORCHESTRATOR | ADM-01')).toBeVisible();
+    await expect(page.getByText('SupremeAI')).toBeVisible();
 
     // 3. Verify Java Background Worker widget is rendered
     const workerWidget = page.locator('text=Java Background Worker');

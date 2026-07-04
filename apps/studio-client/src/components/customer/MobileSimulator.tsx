@@ -74,7 +74,7 @@ export function MobileSimulator({ html, url = 'https://supremeai.web.app' }: Mob
         </div>
         <div className="mt-4 flex items-center justify-between">
           <Badge variant="info">{selectedDevice.name}</Badge>
-          <span className="text-[10px] text-slate-500 font-mono">
+          <span className="text-[10px] text-slate-400 font-mono">
             {currentWidth} x {currentHeight} • {orientation}
           </span>
         </div>

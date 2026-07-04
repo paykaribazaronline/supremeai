@@ -108,7 +108,7 @@ export function LlmGatewayPage() {
           Refresh
         </button>
       </div>
-      <p className="text-xs text-slate-500 mb-5">
+      <p className="text-xs text-slate-400 mb-5">
         Toggle fallback routing chains, switch the live AI model, and mutate central system rules.
       </p>
 
@@ -116,7 +116,7 @@ export function LlmGatewayPage() {
       {status && <p className="text-xs text-emerald-400 mb-3">{status}</p>}
 
       {loading ? (
-        <div className="flex justify-center py-10 text-slate-500">
+        <div className="flex justify-center py-10 text-slate-400">
           <Loader2 size={18} className="animate-spin" />
         </div>
       ) : (
@@ -151,7 +151,7 @@ export function LlmGatewayPage() {
           <h2 className="text-xs font-medium text-slate-300 mb-2">Providers & live model switch</h2>
           <ul className="flex flex-col gap-2 mb-6">
             {providers.length === 0 ? (
-              <p className="text-sm text-slate-500 py-4">No providers with configured API keys.</p>
+              <p className="text-sm text-slate-400 py-4">No providers with configured API keys.</p>
             ) : (
               providers.map((p) => (
                 <li
@@ -166,7 +166,7 @@ export function LlmGatewayPage() {
                       }`}
                     />
                     <span className="text-xs text-white flex-1">{p.name}</span>
-                    <span className="text-[10px] text-slate-500">{p.latency_ms}ms</span>
+                    <span className="text-[10px] text-slate-400">{p.latency_ms}ms</span>
                   </div>
                   <div className="flex flex-wrap gap-1.5">
                     {p.models.map((m) => (

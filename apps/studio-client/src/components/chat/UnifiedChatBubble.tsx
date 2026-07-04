@@ -158,7 +158,7 @@ export function UnifiedChatBubble({
             )}
           </div>
           {timestamp && (
-            <span className="text-[9px] text-slate-500 px-1 font-mono">{timestamp}</span>
+            <span className="text-[9px] text-slate-400 px-1 font-mono">{timestamp}</span>
           )}
         </div>
       );
@@ -177,7 +177,7 @@ export function UnifiedChatBubble({
           </div>
         )}
         {timestamp && (
-          <span className="text-[9px] text-slate-500 px-1 font-mono">{timestamp}</span>
+          <span className="text-[9px] text-slate-400 px-1 font-mono">{timestamp}</span>
         )}
       </div>
     );
@@ -189,7 +189,7 @@ export function UnifiedChatBubble({
         {text}
       </div>
       {timestamp && (
-        <span className="text-[9px] text-slate-500 px-1 font-mono">{timestamp}</span>
+        <span className="text-[9px] text-slate-400 px-1 font-mono">{timestamp}</span>
       )}
     </div>
   );

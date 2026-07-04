@@ -172,7 +172,7 @@ const RedesignedDashboardMockup: React.FC = () => {
                 <Sparkles className="text-indigo-600 animate-spin" size={20} />
                 <h1 className="text-xl font-extrabold text-slate-900 tracking-tight">Executive Command Bridge</h1>
               </div>
-              <p className="text-xs text-slate-500 mt-1">
+              <p className="text-xs text-slate-400 mt-1">
                 সিস্টেমের গতিবিধি পর্যবেক্ষণ ও সাধারণ ইউজারদের জন্য সহজ ড্যাশবোর্ড ইন্টারফেস।
               </p>
             </div>
@@ -196,7 +196,7 @@ const RedesignedDashboardMockup: React.FC = () => {
                 <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-[0_0_8px_#10b981]"></span>
               </div>
               <p className="text-base font-bold text-slate-850">সিস্টেম গ্রিন</p>
-              <p className="text-[11px] text-slate-500 mt-1">সব প্রধান সার্ভিস সচল আছে।</p>
+              <p className="text-[11px] text-slate-400 mt-1">সব প্রধান সার্ভিস সচল আছে।</p>
             </div>
 
             {/* Threat Card */}
@@ -206,7 +206,7 @@ const RedesignedDashboardMockup: React.FC = () => {
                 <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-[0_0_8px_#10b981]"></span>
               </div>
               <p className="text-base font-bold text-slate-850">অনলাইন থ্রেট নাই</p>
-              <p className="text-[11px] text-slate-500 mt-1">ফায়ারওয়াল সক্রিয় এবং নিরাপদ।</p>
+              <p className="text-[11px] text-slate-400 mt-1">ফায়ারওয়াল সক্রিয় এবং নিরাপদ।</p>
             </div>
 
             {/* AI Skills Card */}
@@ -216,7 +216,7 @@ const RedesignedDashboardMockup: React.FC = () => {
                 <span className="text-xs font-mono font-bold text-indigo-600">4 Active</span>
               </div>
               <p className="text-base font-bold text-slate-850">৪টি পাইপলাইন সচল</p>
-              <p className="text-[11px] text-slate-500 mt-1">এজেন্টরা নতুন টাস্ক প্রসেস করতে প্রস্তুত।</p>
+              <p className="text-[11px] text-slate-400 mt-1">এজেন্টরা নতুন টাস্ক প্রসেস করতে প্রস্তুত।</p>
             </div>
 
             {/* Cost Efficiency Card */}
@@ -226,7 +226,7 @@ const RedesignedDashboardMockup: React.FC = () => {
                 <span className="text-xs font-mono font-bold text-emerald-600">${metrics ? metrics.cost_per_hour : '0.00'}/h</span>
               </div>
               <p className="text-base font-bold text-slate-850">স্বল্প খরচে চলমান</p>
-              <p className="text-[11px] text-slate-500 mt-1">ফ্রি-টিয়ার ক্লাউড অপ্টিমাইজেশন সক্রিয়।</p>
+              <p className="text-[11px] text-slate-400 mt-1">ফ্রি-টিয়ার ক্লাউড অপ্টিমাইজেশন সক্রিয়।</p>
             </div>
           </div>
 
@@ -270,7 +270,7 @@ const RedesignedDashboardMockup: React.FC = () => {
             <div className="lg:col-span-4 bg-white border border-slate-100 rounded-3xl p-6 shadow-sm flex flex-col justify-between">
               <div>
                 <h2 className="text-sm font-bold text-slate-900 mb-2">Smart Actions Center</h2>
-                <p className="text-[11px] text-slate-500 mb-6">জটিল ব্যাকএন্ড কমান্ড সরাসরি ওয়ান-ক্লিকে রান করুন।</p>
+                <p className="text-[11px] text-slate-400 mb-6">জটিল ব্যাকএন্ড কমান্ড সরাসরি ওয়ান-ক্লিকে রান করুন।</p>
                 
                 <div className="flex flex-col gap-3">
                   <button
@@ -457,7 +457,7 @@ const RedesignedDashboardMockup: React.FC = () => {
               <button
                 key={item.id}
                 onClick={() => setActivePanel(item.id)}
-                className={`p-2 rounded-xl transition-all ${activePanel === item.id ? `bg-[#00f3ff]/20 shadow-[inset_0_0_10px_rgba(0,243,255,0.5)] ${item.activeColor}` : `text-slate-500 ${item.color}`}`}
+                className={`p-2 rounded-xl transition-all ${activePanel === item.id ? `bg-[#00f3ff]/20 shadow-[inset_0_0_10px_rgba(0,243,255,0.5)] ${item.activeColor}` : `text-slate-400 ${item.color}`}`}
                 title={item.id}
               >
                 {item.icon}

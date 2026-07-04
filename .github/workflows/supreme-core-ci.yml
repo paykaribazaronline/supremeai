@@ -25,7 +25,7 @@ on:
         type: boolean
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 env:
@@ -380,8 +380,16 @@ jobs:
           pnpm install --frozen-lockfile
           pnpm store prune
 
+      - name: Cache Turborepo
+        uses: actions/cache@v4
+        with:
+          path: .turbo
+          key: ${{ runner.os }}-turbo-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-turbo-
+
       - name: Build & Lint Frontend Packages
-        run: pnpm turbo run build lint --filter=supremeai-studio-client --filter=@supremeai/web-chat --filter=supremeai-vscode
+        run: pnpm turbo run build lint --filter=supremeai-studio-client --filter=@supremeai/web-chat --filter=supremeai-vscode --cache-dir=.turbo
 
       - name: Run Studio Client Vitest with JSON Report
         run: pnpm --dir apps/studio-client exec vitest run --reporter=json > apps/studio-client/vitest-report.json
@@ -401,7 +409,7 @@ jobs:
         run: python .github/scripts/generate-ci-report.py --vitest-json apps/web-chat/vitest-report.json --label "Web Chat"
  
       - name: Run VS Code Extension Tests
-        run: pnpm turbo run test --filter=supremeai-vscode
+        run: pnpm turbo run test --filter=supremeai-vscode --cache-dir=.turbo
  
       - name: Playwright Install & Test
         continue-on-error: true
@@ -466,7 +474,7 @@ jobs:
           path: apps
         continue-on-error: true
       - name: Install Playwright Browsers
-        run: pnpm exec playwright install --with-deps chromium
+        run: pnpm exec playwright install --with-deps
       - name: Start Frontend Preview Server
         run: |
           cd apps/studio-client && pnpm exec vite preview --port 5173 &

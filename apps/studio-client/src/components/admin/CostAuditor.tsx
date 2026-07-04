@@ -102,7 +102,7 @@ export function CostAuditor({ costReport }: CostAuditorProps) {
           <tbody className="divide-y divide-slate-900">
             {recentCharges.map((chg, idx) => (
               <tr key={idx} className="hover:bg-slate-800/10">
-                <td className="p-3 text-slate-500">{chg.time}</td>
+                <td className="p-3 text-slate-400">{chg.time}</td>
                 <td className="p-3 font-bold text-slate-200">{chg.user}</td>
                 <td className="p-3 text-cyan-400">{chg.model}</td>
                 <td className="p-3">{chg.tokens.toLocaleString()}</td>
@@ -115,7 +115,7 @@ export function CostAuditor({ costReport }: CostAuditorProps) {
 
       {/* Raw Output Log */}
       <details className="mt-4">
-        <summary className="text-[10px] text-slate-500 cursor-pointer font-mono select-none uppercase hover:text-slate-400">Show raw console output</summary>
+        <summary className="text-[10px] text-slate-400 cursor-pointer font-mono select-none uppercase hover:text-slate-400">Show raw console output</summary>
         <pre className="bg-[#0c0d12] border border-slate-900 rounded-lg p-4 mt-2 text-slate-400 font-mono text-[10px] whitespace-pre-wrap leading-relaxed">
           {costReport || "No raw cost reports currently in buffer."}
         </pre>

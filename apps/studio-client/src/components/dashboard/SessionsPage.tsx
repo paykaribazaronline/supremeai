@@ -115,7 +115,7 @@ export function SessionsPage({ onOpenSession }: SessionsPageProps) {
             data-testid="start-session-btn"
             onClick={handleStartSession}
             disabled={!prompt.trim() || starting}
-            className="flex items-center gap-2 px-4 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 disabled:bg-slate-700 disabled:text-slate-500 text-white text-xs font-medium transition-colors"
+            className="flex items-center gap-2 px-4 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 disabled:bg-slate-700 disabled:text-slate-400 text-white text-xs font-medium transition-colors"
           >
             <Send size={12} />
             {starting ? 'Starting…' : 'Start Session'}
@@ -125,11 +125,11 @@ export function SessionsPage({ onOpenSession }: SessionsPageProps) {
 
       <div className="flex items-center justify-between mb-3">
         <h2 className="text-sm font-medium text-slate-300">Recent sessions</h2>
-        <span className="text-xs text-slate-500">{sessions.length} total</span>
+        <span className="text-xs text-slate-400">{sessions.length} total</span>
       </div>
 
       {sessions.length === 0 ? (
-        <p className="text-sm text-slate-500 text-center py-10">
+        <p className="text-sm text-slate-400 text-center py-10">
           No sessions yet. Start your first task above.
         </p>
       ) : (
@@ -144,7 +144,7 @@ export function SessionsPage({ onOpenSession }: SessionsPageProps) {
               {statusIcon(session.status)}
               <div className="flex-1 min-w-0">
                 <p className="text-sm text-white truncate">{session.title}</p>
-                <p className="text-[11px] text-slate-500 flex items-center gap-1">
+                <p className="text-[11px] text-slate-400 flex items-center gap-1">
                   <Clock size={10} />
                   {new Date(session.updated_at).toLocaleString()}
                 </p>
@@ -155,7 +155,7 @@ export function SessionsPage({ onOpenSession }: SessionsPageProps) {
                   e.stopPropagation();
                   handleDelete(session.id);
                 }}
-                className="opacity-0 group-hover:opacity-100 text-slate-500 hover:text-rose-400 transition-all"
+                className="opacity-0 group-hover:opacity-100 text-slate-400 hover:text-rose-400 transition-all"
               >
                 <Trash2 size={14} />
               </button>

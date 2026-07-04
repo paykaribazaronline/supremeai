@@ -71,7 +71,7 @@ export function CloudOrchestrator() {
             <div className="text-[10px] text-slate-400 uppercase mb-2">CPU Usage</div>
             <div className="flex items-end gap-2">
               <span className="text-3xl font-bold text-white font-mono">42</span>
-              <span className="text-sm text-slate-500 mb-1">%</span>
+              <span className="text-sm text-slate-400 mb-1">%</span>
             </div>
             <div className="w-full bg-slate-800 rounded-full h-1.5 mt-2">
               <div className="h-full rounded-full bg-[#00f3ff]" style={{ width: '42%' }} />
@@ -81,7 +81,7 @@ export function CloudOrchestrator() {
             <div className="text-[10px] text-slate-400 uppercase mb-2">Memory Usage</div>
             <div className="flex items-end gap-2">
               <span className="text-3xl font-bold text-white font-mono">68</span>
-              <span className="text-sm text-slate-500 mb-1">%</span>
+              <span className="text-sm text-slate-400 mb-1">%</span>
             </div>
             <div className="w-full bg-slate-800 rounded-full h-1.5 mt-2">
               <div className="h-full rounded-full bg-purple-500" style={{ width: '68%' }} />
@@ -91,7 +91,7 @@ export function CloudOrchestrator() {
             <div className="text-[10px] text-slate-400 uppercase mb-2">Network I/O</div>
             <div className="flex items-end gap-2">
               <span className="text-3xl font-bold text-white font-mono">1.2</span>
-              <span className="text-sm text-slate-500 mb-1">Gbps</span>
+              <span className="text-sm text-slate-400 mb-1">Gbps</span>
             </div>
             <div className="w-full bg-slate-800 rounded-full h-1.5 mt-2">
               <div className="h-full rounded-full bg-emerald-500" style={{ width: '35%' }} />

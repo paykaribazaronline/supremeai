@@ -311,7 +311,7 @@ export function InteractiveChatTab({
               className={`flex items-center gap-1.5 px-2.5 py-1 text-[10px] font-mono rounded border transition-all ${
                 chatTabTerminalOpen
                   ? 'bg-[#00f3ff]/10 text-[#00f3ff] border-[#00f3ff]/30'
-                  : 'bg-slate-900 text-slate-500 border-slate-800'
+                  : 'bg-slate-900 text-slate-400 border-slate-800'
               }`}
             >
               <Terminal size={12} />
@@ -322,7 +322,7 @@ export function InteractiveChatTab({
               className={`flex items-center gap-1.5 px-2.5 py-1 text-[10px] font-mono rounded border transition-all ${
                 chatTabBrowserOpen
                   ? 'bg-[#00ff66]/10 text-[#00ff66] border-[#00ff66]/30'
-                  : 'bg-slate-900 text-slate-500 border-slate-800'
+                  : 'bg-slate-900 text-slate-400 border-slate-800'
               }`}
             >
               <Globe size={12} />
@@ -413,7 +413,7 @@ export function InteractiveChatTab({
               <span className="text-[10px] font-bold text-[#00ff66] tracking-wider uppercase font-mono flex items-center gap-1.5">
                 <TerminalSquare size={12} /> Live Shell
               </span>
-              <span className="text-[8px] bg-slate-900 text-slate-500 px-1 py-0.5 rounded font-mono">READONLY</span>
+              <span className="text-[8px] bg-slate-900 text-slate-400 px-1 py-0.5 rounded font-mono">READONLY</span>
             </div>
             <div className="flex-1 p-3 overflow-y-auto font-mono text-[10px] text-[#00ff66] flex flex-col gap-1 bg-[#010204]">
               {terminalHistory.map((line, idx) => (
@@ -450,7 +450,7 @@ export function InteractiveChatTab({
                 <div className="w-2.5 h-2.5 rounded-full bg-green-500/80"></div>
               </div>
               <form onSubmit={handleBrowserGo} className="flex-grow flex items-center gap-1.5 bg-[#141822] border border-slate-800 rounded-md px-2 py-0.5">
-                <Compass size={10} className="text-slate-500" />
+                <Compass size={10} className="text-slate-400" />
                 <input
                   type="text"
                   value={browserUrl}

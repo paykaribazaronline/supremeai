@@ -152,7 +152,7 @@ function SandboxMessages({ adminMessages, loading }: { adminMessages: ChatMessag
           }`}>
             {msg.text}
           </div>
-          <span className="text-[9px] text-slate-500 px-1 font-mono">{msg.timestamp}</span>
+          <span className="text-[9px] text-slate-400 px-1 font-mono">{msg.timestamp}</span>
         </div>
       ))}
       {loading && (

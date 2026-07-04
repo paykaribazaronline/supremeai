@@ -147,7 +147,7 @@ export function UserDashboard({
             <h1 data-testid="header-title" className="text-sm font-bold tracking-widest text-[#00f3ff] uppercase">
               Welcome back, {user?.username || 'User'}
             </h1>
-            <p className="text-[10px] text-slate-500 font-mono">
+            <p className="text-[10px] text-slate-400 font-mono">
               Last login: {user?.last_login ? formatDate(user.last_login) : 'Today'}
             </p>
           </div>
@@ -250,14 +250,14 @@ export function UserDashboard({
                       </div>
                       <div>
                         <p className="text-xs font-bold text-white">{project.name}</p>
-                        <p className="text-[10px] text-slate-500 font-mono">{formatDate(project.updated_at)}</p>
+                        <p className="text-[10px] text-slate-400 font-mono">{formatDate(project.updated_at)}</p>
                       </div>
                     </div>
                     <span className="badge badge-cyan">{project.settings.default_model}</span>
                   </div>
                 ))
               ) : (
-                <div className="text-center py-8 text-slate-500 text-xs font-mono">
+                <div className="text-center py-8 text-slate-400 text-xs font-mono">
                   No projects yet. Create your first project to get started.
                 </div>
               )}
@@ -294,13 +294,13 @@ export function UserDashboard({
                 <Activity size={12} className="inline mr-2" />
                 Recent Activity
               </h2>
-              <span className="text-[10px] text-slate-500 font-mono">Last 24 hours</span>
+              <span className="text-[10px] text-slate-400 font-mono">Last 24 hours</span>
             </div>
             <div className="flex flex-col gap-1">
               {recentChats.length > 0 ? (
                 recentChats.map((msg: ChatMessage, idx: number) => (
                   <div key={idx} className="flex items-center gap-3 p-2.5 rounded-lg bg-black/20 border border-white/[0.03] text-[10px] font-mono">
-                    <Clock size={10} className="text-slate-500" />
+                    <Clock size={10} className="text-slate-400" />
                     <span className="text-slate-400">{msg.sender === 'User' ? 'You' : 'AI'}:</span>
                     <span className="text-slate-300 flex-1 truncate">
                       {msg.text}
@@ -311,7 +311,7 @@ export function UserDashboard({
                   </div>
                 ))
               ) : (
-                <p className="text-xs text-slate-500 font-mono text-center py-4">No recent activity</p>
+                <p className="text-xs text-slate-400 font-mono text-center py-4">No recent activity</p>
               )}
             </div>
           </div>

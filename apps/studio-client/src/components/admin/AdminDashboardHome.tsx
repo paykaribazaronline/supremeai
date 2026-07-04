@@ -23,7 +23,7 @@ export const AdminDashboardHome: React.FC = () => {
       <section className="mb-6 bg-slate-950/60 border border-[#00f3ff]/15 rounded-xl p-5 shadow-[0_0_15px_rgba(0,243,255,0.02)]">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xs uppercase tracking-widest text-[#00f3ff] font-bold">AI Fleet Status</h2>
-          <button className="text-[10px] text-slate-500 hover:text-white border border-slate-800 rounded px-2 py-0.5 transition-all">
+          <button className="text-[10px] text-slate-400 hover:text-white border border-slate-800 rounded px-2 py-0.5 transition-all">
             VIEW DETAILS
           </button>
         </div>
@@ -32,7 +32,7 @@ export const AdminDashboardHome: React.FC = () => {
           {/* Active Agents Gauge */}
           <div className="bg-[#040814]/80 border border-slate-900 rounded-lg p-4 flex items-center justify-between">
             <div>
-              <span className="text-[10px] text-slate-500 uppercase block mb-1">Active Agents</span>
+              <span className="text-[10px] text-slate-400 uppercase block mb-1">Active Agents</span>
               <span className="text-2xl font-bold text-[#00f3ff]">1,489</span>
             </div>
             {/* SVG mini gauge */}
@@ -51,7 +51,7 @@ export const AdminDashboardHome: React.FC = () => {
           {/* Active Tasks Bar Chart */}
           <div className="bg-[#040814]/80 border border-slate-900 rounded-lg p-4 flex items-center justify-between">
             <div>
-              <span className="text-[10px] text-slate-500 uppercase block mb-1">Active Tasks</span>
+              <span className="text-[10px] text-slate-400 uppercase block mb-1">Active Tasks</span>
               <span className="text-2xl font-bold text-[#b5179e]">8,762</span>
             </div>
             {/* Mini bar animated chart */}
@@ -69,7 +69,7 @@ export const AdminDashboardHome: React.FC = () => {
           {/* Latency Metric */}
           <div className="bg-[#040814]/80 border border-slate-900 rounded-lg p-4 flex items-center justify-between">
             <div>
-              <span className="text-[10px] text-slate-500 uppercase block mb-1">Network Latency</span>
+              <span className="text-[10px] text-slate-400 uppercase block mb-1">Network Latency</span>
               <span className="text-2xl font-bold text-emerald-400">42ms</span>
             </div>
             {/* Mini sparkline */}
@@ -105,11 +105,11 @@ export const AdminDashboardHome: React.FC = () => {
 
           <div className="flex gap-4 mb-2">
             <div>
-              <div className="text-[9px] text-slate-500">F1-Score</div>
+              <div className="text-[9px] text-slate-400">F1-Score</div>
               <div className="text-emerald-400 text-lg font-bold">0.965</div>
             </div>
             <div>
-              <div className="text-[9px] text-slate-500">Loss</div>
+              <div className="text-[9px] text-slate-400">Loss</div>
               <div className="text-rose-500 text-lg font-bold">0.112</div>
             </div>
           </div>
@@ -166,28 +166,28 @@ export const AdminDashboardHome: React.FC = () => {
           <div className="flex-1 flex flex-col gap-4 justify-center py-2">
             <div className="flex justify-between items-center">
               <div className="border border-emerald-500/30 bg-[#040814] rounded p-2 text-center w-20 text-[10px] shadow-[0_0_8px_rgba(16,185,129,0.1)]">
-                <div className="text-slate-500 text-[8px]">Node</div>
+                <div className="text-slate-400 text-[8px]">Node</div>
                 <div className="text-emerald-400 font-bold">Alpha</div>
               </div>
               <svg className="w-12 h-6" viewBox="0 0 50 20">
                 <line x1="0" y1="10" x2="50" y2="10" stroke="#10b981" strokeWidth="2" strokeDasharray="3,3"/>
               </svg>
               <div className="border border-cyan-500/30 bg-[#040814] rounded p-2 text-center w-20 text-[10px]">
-                <div className="text-slate-500 text-[8px]">Node</div>
+                <div className="text-slate-400 text-[8px]">Node</div>
                 <div className="text-cyan-400 font-bold">Beta</div>
               </div>
             </div>
 
             <div className="flex justify-between items-center">
               <div className="border border-purple-500/30 bg-[#040814] rounded p-2 text-center w-20 text-[10px]">
-                <div className="text-slate-500 text-[8px]">Node</div>
+                <div className="text-slate-400 text-[8px]">Node</div>
                 <div className="text-purple-400 font-bold">Gamma</div>
               </div>
               <svg className="w-12 h-6" viewBox="0 0 50 20">
                 <path d="M 0 10 Q 25 20 50 10" fill="none" stroke="#b5179e" strokeWidth="2"/>
               </svg>
               <div className="border border-pink-500/30 bg-[#040814] rounded p-2 text-center w-20 text-[10px] shadow-[0_0_8px_rgba(244,63,94,0.1)]">
-                <div className="text-slate-500 text-[8px]">Node</div>
+                <div className="text-slate-400 text-[8px]">Node</div>
                 <div className="text-pink-500 font-bold">Flow</div>
               </div>
             </div>
@@ -207,7 +207,7 @@ export const AdminDashboardHome: React.FC = () => {
         <div className="bg-slate-950/60 border border-slate-900 rounded-xl p-5 flex flex-col justify-between min-h-[380px] shadow-[0_0_15px_rgba(0,0,0,0.3)]">
           <div className="flex justify-between items-center mb-4">
             <span className="text-[10px] text-[#00f3ff] uppercase font-bold tracking-wider">Compute Resource</span>
-            <span className="text-[9px] text-slate-500">DYNAMIC UTILIZATION</span>
+            <span className="text-[9px] text-slate-400">DYNAMIC UTILIZATION</span>
           </div>
 
           {/* Hexagonal grid placeholder */}
@@ -230,15 +230,15 @@ export const AdminDashboardHome: React.FC = () => {
 
           <div className="space-y-2 text-[10px]">
             <div className="flex justify-between">
-              <span className="text-slate-500">CPU Usage:</span>
+              <span className="text-slate-400">CPU Usage:</span>
               <span className="text-emerald-400 font-bold">78%</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-slate-500">GPU Usage:</span>
+              <span className="text-slate-400">GPU Usage:</span>
               <span className="text-cyan-400 font-bold">65%</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-slate-500">Memory Allocation:</span>
+              <span className="text-slate-400">Memory Allocation:</span>
               <span className="text-rose-500 font-bold">91%</span>
             </div>
           </div>
@@ -253,15 +253,15 @@ export const AdminDashboardHome: React.FC = () => {
         <div className="bg-slate-950/60 border border-slate-900 rounded-xl p-5 flex flex-col justify-between min-h-[300px] shadow-[0_0_15px_rgba(0,0,0,0.3)]">
           <div className="flex justify-between items-center mb-3">
             <span className="text-[10px] text-[#00f3ff] uppercase font-bold tracking-wider">Live Event Log</span>
-            <span className="text-[9px] text-slate-500">SYNC ACTIVE</span>
+            <span className="text-[9px] text-slate-400">SYNC ACTIVE</span>
           </div>
 
           <div className="flex-1 bg-black/40 border border-slate-900 rounded-lg p-3 overflow-y-auto max-h-[180px] text-[10px] font-mono space-y-2 text-[#00ff66]">
-            <div><span className="text-slate-500">[{currentTime}]</span> Model NEURAL_CORE deployed successfully.</div>
-            <div><span className="text-slate-500">[{currentTime}]</span> Active task queue synchronized.</div>
-            <div><span className="text-slate-500">[{currentTime}]</span> Node Alpha load average: 34%.</div>
-            <div><span className="text-slate-500">[{currentTime}]</span> Connection established to Cloud Run.</div>
-            <div className="text-rose-400"><span className="text-slate-500">[{currentTime}]</span> WARNING: Node Flow latency peak 120ms.</div>
+            <div><span className="text-slate-400">[{currentTime}]</span> Model NEURAL_CORE deployed successfully.</div>
+            <div><span className="text-slate-400">[{currentTime}]</span> Active task queue synchronized.</div>
+            <div><span className="text-slate-400">[{currentTime}]</span> Node Alpha load average: 34%.</div>
+            <div><span className="text-slate-400">[{currentTime}]</span> Connection established to Cloud Run.</div>
+            <div className="text-rose-400"><span className="text-slate-400">[{currentTime}]</span> WARNING: Node Flow latency peak 120ms.</div>
           </div>
         </div>
 
@@ -296,7 +296,7 @@ export const AdminDashboardHome: React.FC = () => {
         <div className="bg-slate-950/60 border border-slate-900 rounded-xl p-5 flex flex-col justify-between min-h-[300px] shadow-[0_0_15px_rgba(0,0,0,0.3)]">
           <div className="flex justify-between items-center mb-3">
             <span className="text-[10px] text-[#00f3ff] uppercase font-bold tracking-wider">Task Queue</span>
-            <span className="text-[9px] text-slate-500">PENDING QUEUE</span>
+            <span className="text-[9px] text-slate-400">PENDING QUEUE</span>
           </div>
 
           <div className="flex-grow space-y-2 overflow-y-auto max-h-[180px]">
@@ -308,7 +308,7 @@ export const AdminDashboardHome: React.FC = () => {
               <div key={task.id} className="bg-[#040814] border border-slate-900 rounded p-2.5 flex justify-between items-center text-[10px]">
                 <div>
                   <div className="font-bold text-slate-200">{task.id}</div>
-                  <div className="text-slate-500 text-[8px]">{task.name}</div>
+                  <div className="text-slate-400 text-[8px]">{task.name}</div>
                 </div>
                 <button className="bg-cyan-950/30 hover:bg-[#00f3ff]/20 text-[#00f3ff] border border-[#00f3ff]/30 rounded px-2.5 py-1 transition-all">
                   MONITOR

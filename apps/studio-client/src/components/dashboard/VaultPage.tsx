@@ -114,7 +114,7 @@ export function VaultPage() {
           Sync session
         </button>
       </div>
-      <p className="text-xs text-slate-500 mb-5">
+      <p className="text-xs text-slate-400 mb-5">
         Import target site session tokens/cookies for the boundless automation agent. Raw
         credentials are encrypted and never displayed.
       </p>
@@ -172,11 +172,11 @@ export function VaultPage() {
       {error && <p className="text-xs text-rose-400 mb-4">{error}</p>}
 
       {loading ? (
-        <div className="flex justify-center py-10 text-slate-500">
+        <div className="flex justify-center py-10 text-slate-400">
           <Loader2 size={18} className="animate-spin" />
         </div>
       ) : creds.length === 0 ? (
-        <p className="text-sm text-slate-500 text-center py-8">No stored sessions yet.</p>
+        <p className="text-sm text-slate-400 text-center py-8">No stored sessions yet.</p>
       ) : (
         <ul className="flex flex-col gap-2">
           {creds.map((c) => (
@@ -188,14 +188,14 @@ export function VaultPage() {
               <ShieldCheck size={14} className="text-slate-400" />
               <div className="flex-1 min-w-0">
                 <p className="text-xs text-white truncate">{c.serviceName}</p>
-                <p className="text-[11px] text-slate-500 font-mono truncate">
+                <p className="text-[11px] text-slate-400 font-mono truncate">
                   {c.username} · {c.password || c.token || '***masked***'}
                 </p>
               </div>
               <button
                 aria-label="Remove session"
                 onClick={() => handleDelete(c.id)}
-                className="p-1.5 rounded text-slate-500 hover:text-rose-400 transition-colors"
+                className="p-1.5 rounded text-slate-400 hover:text-rose-400 transition-colors"
               >
                 <Trash2 size={13} />
               </button>

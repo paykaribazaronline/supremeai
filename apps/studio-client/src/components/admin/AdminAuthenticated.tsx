@@ -155,7 +155,7 @@ export function AuthenticatedView(props: AuthenticatedViewProps) {
                       : 'hover:bg-slate-900/50 hover:text-slate-200'
                     }`}
                 >
-                  <span className={isActive ? 'text-[#00f3ff]' : 'text-slate-500'}>
+                  <span className={isActive ? 'text-[#00f3ff]' : 'text-slate-400'}>
                     {item.icon}
                   </span>
                   <span>{item.label}</span>
@@ -196,11 +196,11 @@ export function AuthenticatedView(props: AuthenticatedViewProps) {
                 autoFocus
                 type="text"
                 placeholder="Navigate to... (e.g. Cost Auditor)"
-                className="flex-1 bg-transparent border-none outline-none text-white font-mono placeholder:text-slate-500"
+                className="flex-1 bg-transparent border-none outline-none text-white font-mono placeholder:text-slate-400"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
-              <span className="text-xs text-slate-500 font-mono">ESC to close</span>
+              <span className="text-xs text-slate-400 font-mono">ESC to close</span>
             </div>
             <div className="max-h-[60vh] overflow-y-auto p-2">
               {filteredOptions.map((opt, i) => (
@@ -218,7 +218,7 @@ export function AuthenticatedView(props: AuthenticatedViewProps) {
                 </button>
               ))}
               {filteredOptions.length === 0 && (
-                <div className="px-4 py-8 text-center text-slate-500 font-mono">
+                <div className="px-4 py-8 text-center text-slate-400 font-mono">
                   No modules found.
                 </div>
               )}

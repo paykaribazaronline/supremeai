@@ -19,7 +19,7 @@ const DashboardErrorFallback: React.FC<FallbackProps> = ({ error, resetErrorBoun
         <p className="text-sm text-slate-400 font-mono mb-4">
           A critical module in the admin dashboard has crashed. The rest of the system remains intact.
         </p>
-        <pre className="text-xs text-slate-500 font-mono bg-slate-900/80 p-3 rounded-lg mb-6 overflow-auto max-h-40">
+        <pre className="text-xs text-slate-400 font-mono bg-slate-900/80 p-3 rounded-lg mb-6 overflow-auto max-h-40">
           {error.message}
         </pre>
         <button

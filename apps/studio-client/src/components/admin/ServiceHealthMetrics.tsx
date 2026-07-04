@@ -38,7 +38,7 @@ export const ServiceHealthMetrics: React.FC = () => {
     { id: 'threats', label: 'Threats', icon: <ShieldAlert size={14} />, color: 'text-red-500' },
     { id: 'rules', label: 'Rules', icon: <FileText size={14} />, color: 'text-orange-500' },
     { id: 'cicd', label: 'CI/CD', icon: <GitMerge size={14} />, color: 'text-pink-500' },
-    { id: 'github', label: 'GitHub', icon: <GitBranch size={14} />, color: 'text-slate-500' },
+    { id: 'github', label: 'GitHub', icon: <GitBranch size={14} />, color: 'text-slate-400' },
     { id: 'backups', label: 'Backups', icon: <Save size={14} />, color: 'text-lime-500' },
     { id: 'rate-limits', label: 'Limits', icon: <Clock size={14} />, color: 'text-rose-500' }
   ];
