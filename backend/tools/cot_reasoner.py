@@ -47,8 +47,6 @@ def _eval_node(node):
         if isinstance(node.value, (int, float)):
             return node.value
         raise ValueError("Only numeric constants are allowed")
-    if isinstance(node, ast.Num):
-        return node.n
     raise ValueError(f"Unsupported expression node: {type(node).__name__}")
 
 
