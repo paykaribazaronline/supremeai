@@ -18,6 +18,8 @@ export interface DashboardSession {
 }
 
 const STORAGE_KEY = 'supremeai_dashboard_sessions';
+// বাংলা মন্তব্য: সেশন আপডেট হলে অন্য পেজ (যেমন সেশন ডিটেইল ভিউ) যাতে রিফ্রেশ করতে পারে সেজন্য কাস্টম ইভেন্ট
+export const SESSIONS_UPDATED_EVENT = 'supremeai:sessions-updated';
 
 export function loadSessions(): DashboardSession[] {
   try {
@@ -64,6 +66,7 @@ export function upsertSession(session: DashboardSession): DashboardSession[] {
   if (idx >= 0) sessions[idx] = updated;
   else sessions.unshift(updated);
   saveSessions(sessions);
+  window.dispatchEvent(new CustomEvent(SESSIONS_UPDATED_EVENT));
   return sessions;
 }
 

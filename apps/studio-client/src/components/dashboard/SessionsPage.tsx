@@ -38,29 +38,42 @@ export function SessionsPage({ onOpenSession }: SessionsPageProps) {
     setPrompt('');
     onOpenSession(session.id);
 
+    // বাংলা মন্তব্য: React স্টেট মিউটেশন এড়াতে নতুন অবজেক্ট/অ্যারে তৈরি করে আপডেট করা হয়
+    let completed: DashboardSession;
     try {
       const responseText = await getAethelResponse(session.title, [
         { role: 'user', content: session.messages[0].text },
       ]);
-      session.messages.push({
-        id: Date.now(),
-        sender: 'SupremeAI',
-        text: responseText,
-        timestamp: new Date().toLocaleTimeString(),
-      });
-      session.status = 'finished';
+      completed = {
+        ...session,
+        status: 'finished',
+        messages: [
+          ...session.messages,
+          {
+            id: Date.now(),
+            sender: 'SupremeAI',
+            text: responseText,
+            timestamp: new Date().toLocaleTimeString(),
+          },
+        ],
+      };
     } catch (error) {
-      session.messages.push({
-        id: Date.now(),
-        sender: 'SupremeAI',
-        text: `AI backend error: ${error instanceof Error ? error.message : 'Unable to process task.'}`,
-        timestamp: new Date().toLocaleTimeString(),
-      });
-      session.status = 'error';
-    } finally {
-      setSessions(upsertSession(session));
-      setStarting(false);
+      completed = {
+        ...session,
+        status: 'error',
+        messages: [
+          ...session.messages,
+          {
+            id: Date.now(),
+            sender: 'SupremeAI',
+            text: `AI backend error: ${error instanceof Error ? error.message : 'Unable to process task.'}`,
+            timestamp: new Date().toLocaleTimeString(),
+          },
+        ],
+      };
     }
+    setSessions(upsertSession(completed));
+    setStarting(false);
   };
 
   const handleDelete = (id: string) => {

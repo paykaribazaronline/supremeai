@@ -2,7 +2,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { ArrowLeft, Send } from 'lucide-react';
 import { getAethelResponse } from '../../services/chatService';
-import { type DashboardSession, loadSessions, upsertSession } from './sessionStore';
+import { type DashboardSession, loadSessions, upsertSession, SESSIONS_UPDATED_EVENT } from './sessionStore';
 
 interface SessionDetailPageProps {
   sessionId: string;
@@ -15,9 +15,15 @@ export function SessionDetailPage({ sessionId, onBack }: SessionDetailPageProps)
   const [sending, setSending] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
 
+  // বাংলা মন্তব্য: সেশন লোড + বাইরের আপডেট (যেমন SessionsPage থেকে আসা AI রেসপন্স) ধরতে ইভেন্ট লিসেনার
   useEffect(() => {
-    const found = loadSessions().find((s) => s.id === sessionId) || null;
-    setSession(found);
+    const refresh = () => {
+      const found = loadSessions().find((s) => s.id === sessionId) || null;
+      setSession(found);
+    };
+    refresh();
+    window.addEventListener(SESSIONS_UPDATED_EVENT, refresh);
+    return () => window.removeEventListener(SESSIONS_UPDATED_EVENT, refresh);
   }, [sessionId]);
 
   useEffect(() => {
@@ -40,33 +46,40 @@ export function SessionDetailPage({ sessionId, onBack }: SessionDetailPageProps)
     const text = input.trim();
     setInput('');
 
+    // বাংলা মন্তব্য: React স্টেট অবজেক্ট মিউটেট না করে নতুন অবজেক্ট তৈরি করে আপডেট করা হয়
+    let completed: DashboardSession;
     try {
       const history = updated.messages.map((m) => ({
         role: m.sender === 'User' ? ('user' as const) : ('assistant' as const),
         content: m.text,
       }));
       const responseText = await getAethelResponse(text, history);
-      updated.messages = [
-        ...updated.messages,
-        { id: Date.now(), sender: 'SupremeAI', text: responseText, timestamp: new Date().toLocaleTimeString() },
-      ];
-      updated.status = 'finished';
+      completed = {
+        ...updated,
+        status: 'finished',
+        messages: [
+          ...updated.messages,
+          { id: Date.now(), sender: 'SupremeAI', text: responseText, timestamp: new Date().toLocaleTimeString() },
+        ],
+      };
     } catch (error) {
-      updated.messages = [
-        ...updated.messages,
-        {
-          id: Date.now(),
-          sender: 'SupremeAI',
-          text: `AI backend error: ${error instanceof Error ? error.message : 'Unable to process message.'}`,
-          timestamp: new Date().toLocaleTimeString(),
-        },
-      ];
-      updated.status = 'error';
-    } finally {
-      setSession({ ...updated });
-      upsertSession(updated);
-      setSending(false);
+      completed = {
+        ...updated,
+        status: 'error',
+        messages: [
+          ...updated.messages,
+          {
+            id: Date.now(),
+            sender: 'SupremeAI',
+            text: `AI backend error: ${error instanceof Error ? error.message : 'Unable to process message.'}`,
+            timestamp: new Date().toLocaleTimeString(),
+          },
+        ],
+      };
     }
+    setSession(completed);
+    upsertSession(completed);
+    setSending(false);
   };
 
   if (!session) {
