@@ -137,9 +137,14 @@ export class CodeEditHandler {
    */
   private _manageCacheSize(): void {
     if (this.lastSentCode.size > this.MAX_CACHE_SIZE) {
+      // বাংলা মন্তব্য: Map iterator-এর .value টাইপ `string | undefined`, তাই সরাসরি
+      // delete() কল করলে tsc TS2345 এরর দিত (কম্পাইল ব্যর্থ)। undefined গার্ড যোগ করে
+      // টাইপ-সেফ করা হলো, ফলে খালি ম্যাপেও নিরাপদে চলবে।
       const oldestKey = this.lastSentCode.keys().next().value;
-      this.lastSentCode.delete(oldestKey);
-      console.log(`[SupremeAI] Cache limit reached. Evicted oldest entry: ${oldestKey}`);
+      if (oldestKey !== undefined) {
+        this.lastSentCode.delete(oldestKey);
+        console.log(`[SupremeAI] Cache limit reached. Evicted oldest entry: ${oldestKey}`);
+      }
     }
   }
 

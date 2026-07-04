@@ -5,13 +5,18 @@ const circuitBreakerState = {
   lastFailureTime: 0,
 };
 
-addEventListener('fetch', event => {
-  event.respondWith(handleRequest(event.request))
-})
+// বাংলা মন্তব্য: ইউনিট টেস্টে (Node/vitest) গ্লোবাল `addEventListener` থাকে না, ফলে
+// ফাইলটি ইমপোর্ট করলেই ReferenceError হতো। গার্ড যোগ করায় Cloudflare রানটাইমে আগের
+// মতোই হ্যান্ডলার রেজিস্টার হয়, কিন্তু টেস্ট এনভায়রনমেন্টে নিরাপদে স্কিপ হয়।
+if (typeof addEventListener !== 'undefined') {
+  addEventListener('fetch', event => {
+    event.respondWith(handleRequest(event.request))
+  })
 
-addEventListener('scheduled', event => {
-  event.waitUntil(checkHealthAndStore())
-})
+  addEventListener('scheduled', event => {
+    event.waitUntil(checkHealthAndStore())
+  })
+}
 
 function getBackends() {
   const gcp_url = typeof env !== 'undefined' ? env.GCP_CLOUD_RUN_URL : (typeof GCP_CLOUD_RUN_URL !== 'undefined' ? GCP_CLOUD_RUN_URL : '');
@@ -190,4 +195,17 @@ function omitHopByHopHeaders(headers) {
   const out = new Headers()
   headers.forEach((v, k) => { if (!block.has(k.toLowerCase())) out.set(k, v) })
   return out
+}
+
+// বাংলা মন্তব্য: Cloudflare Worker রানটাইমে `module` ডিফাইনড থাকে না, তাই এই ব্লক
+// প্রোডাকশনে নিরাপদে স্কিপ হয়; কিন্তু vitest/Node-এ ফাংশনগুলো এক্সপোর্ট করে যাতে
+// worker লজিকের রিয়েল ইউনিট টেস্ট লেখা যায়।
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = {
+    getBackends,
+    handleRequest,
+    weightedPick,
+    omitWranglerHeaders,
+    omitHopByHopHeaders,
+  }
 }
