@@ -94,7 +94,8 @@ def create_site_action(payload: SiteActionIn):
         cur = conn.execute(
             """
             INSERT INTO site_actions
-                (site_name, url_pattern, action_name, selector, action_type, notes, enabled, fallback_selectors, selector_strategy, health_score, updated_at)
+                (site_name, url_pattern, action_name, selector, action_type, notes, enabled, 
+                 fallback_selectors, selector_strategy, health_score, updated_at)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (

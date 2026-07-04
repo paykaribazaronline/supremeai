@@ -150,7 +150,7 @@ export const SandboxViewport: React.FC = () => {
             <div className="flex-1 overflow-auto flex items-center justify-center p-4">
                 <canvas 
                     ref={canvasRef} 
-                    className={\`max-w-full max-h-full object-contain shadow-2xl rounded-sm border \${controlMode === 'human' ? 'border-amber-500/50 cursor-crosshair outline-none' : 'border-slate-800'}\`}
+                    className={`max-w-full max-h-full object-contain shadow-2xl rounded-sm border ${controlMode === 'human' ? 'border-amber-500/50 cursor-crosshair outline-none' : 'border-slate-800'}`}
                     style={{ minWidth: '320px', minHeight: '240px' }}
                 />
             </div>

@@ -91,6 +91,7 @@ export const ExecutionShell: React.FC = React.memo(() => {
           })}
         </div>
       </div>
+      </div>
 
       {!autoScroll && (
         <button 
