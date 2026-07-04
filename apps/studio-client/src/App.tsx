@@ -3,6 +3,8 @@ import { useStore } from "./store/useStore";
 import { useAdminStore } from "./store/adminStore";
 import { AdminConsole } from "./components/admin/AdminConsole";
 import { UserDashboard } from "./components/customer/UserDashboard";
+// বাংলা মন্তব্য: Devin-স্টাইল ড্যাশবোর্ড শেল ইম্পোর্ট — সেশন, নলেজ, সিক্রেট, ইউসেজ ও সেটিংস পেজসহ
+import { DashboardShell } from "./components/dashboard/DashboardShell";
 import { getAethelResponse } from "./services/chatService";
 import type { ChatMessage } from "./services/chatService";
 import { getApiBaseUrl } from "./utils/api";
@@ -435,7 +437,8 @@ export const App: React.FC = () => {
     setCode(code);
   };
 
-  return (
+  // বাংলা মন্তব্য: লিগ্যাসি SupremeAI ওয়ার্কস্পেস (চ্যাট, প্রিসেট, ব্রাউজার প্রিভিউ, মোবাইল সিমুলেটর) এখন Devin-স্টাইল শেলের "Workspace" ট্যাবে রেন্ডার হয়
+  const legacyWorkspace = (
     <UserDashboard
       customerMessages={chatMessages}
       customerInput={chatInput}
@@ -454,6 +457,15 @@ export const App: React.FC = () => {
       widgets={[]}
       onSaveToProject={handleSaveToProject}
       onPreview={handlePreview}
+    />
+  );
+
+  return (
+    <DashboardShell
+      theme={theme}
+      toggleTheme={toggleTheme}
+      isServerOnline={isServerOnline}
+      workspace={legacyWorkspace}
     />
   );
 };
