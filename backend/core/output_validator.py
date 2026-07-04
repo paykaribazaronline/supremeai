@@ -1,6 +1,9 @@
 import json
 from pathlib import Path
 
+from loguru import logger
+
+
 class MultiAICodeGenerator:
     def generate_with_consensus(
         self, task: str, code_kimi: str, code_gpt: str, code_claude: str
@@ -23,17 +26,25 @@ class MultiAICodeGenerator:
         }
 
 
+# বল মনতবয: ডফলট কনসটটউশনল রলস ফইলর সটযনডরড অবসথন (backend/config/constitutional_rules.json)
+DEFAULT_RULES_PATH = Path(__file__).parent.parent / "config" / "constitutional_rules.json"
+
+
 class EnhancedConfidenceScorer:
     def __init__(self, rules_path: Path | None = None):
-        self.rules = self._load_rules(rules_path)
+        # বল মনতবয: আগ rules_path=None দল খল রলসট বযবহত হত ও হযলসনশন
+        # ডটকশন নরব নষকরয় থকত; এখন ডফলট কনফগ পথ বযবহর কর ত ঠক কর হল
+        self.rules = self._load_rules(rules_path or DEFAULT_RULES_PATH)
 
     def _load_rules(self, rules_path: Path | None) -> dict:
         """ডাইনামিকালি ডাটাবেজ বা JSON থেকে রুলস লোড করে।"""
         if rules_path and rules_path.exists():
             try:
-                with open(rules_path, 'r', encoding='utf-8') as f:
+                with open(rules_path, encoding='utf-8') as f:
                     return json.load(f)
-            except (json.JSONDecodeError, IOError) as e:
+            except (json.JSONDecodeError, OSError) as e:
+                # বল মনতবয: আগ `logger` ইমপরট কর হয়ন, ফল এই except বলক নজই
+                # NameError ছড়ত ও মল তরটি চপ পড় যত; loguru logger যকত কর ঠক কর হল
                 logger.error(f"Failed to load constitutional rules from {rules_path}: {e}")
         logger.warning("Constitutional rules not found or failed to load. Using empty ruleset.")
         return {"hallucination_patterns": [], "scores": {}}

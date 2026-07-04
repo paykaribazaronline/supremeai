@@ -63,10 +63,13 @@ class ErrorRemediation:
 
     def _load_local_fallback(self) -> str | None:
         try:
-            with open(self.fallback_path, "r", encoding="utf-8") as f:
+            with open(self.fallback_path, encoding="utf-8") as f:
                 data = json.load(f)
             return data.get("default_fix") or data.get("fallbacks", {}).get("default")
-        except Exception:
+        except Exception as exc:
+            # বল মনতবয: ফলবযক ফইল পড়ত বযরথ হল আগ নরবই None রটরন করত;
+            # এখন কন কর ফলবযক অকরযকর হল ত ডবগ লগ কর দশযমন কর হল
+            logger.debug(f"Local fallback load failed from {self.fallback_path}: {exc}")
             return None
 
     async def _backoff_retry(self, operation, max_attempts: int = 3, base_delay: float = 0.5):
@@ -85,6 +88,13 @@ class ErrorRemediation:
                 logger.debug(f"Qdrant lookup attempt {attempt} failed: {exc}")
                 if attempt < max_attempts:
                     await asyncio.sleep(min(base_delay * (2 ** (attempt - 1)), 5.0))
+        # বল মনতবয: সব রটর শষ হওয়র পর last_exception কখনই বযবহত হত ন (নরব সযলপ);
+        # এখন চডনত বযরথতর করণ warning হসব লগ কর হয় যত ডবগ কর সহজ হয়
+        if last_exception is not None:
+            logger.warning(
+                f"Qdrant lookup exhausted {max_attempts} attempts; "
+                f"falling back. Last error: {last_exception}"
+            )
         return None
 
     async def lookup_fix(self, error_sig: str) -> str | None:
