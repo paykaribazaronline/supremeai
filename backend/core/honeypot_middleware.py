@@ -64,8 +64,10 @@ class HoneypotMiddleware:
                     messages.append(message)
                     body_bytes += message.get("body", b"")
                     more_body = message.get("more_body", False)
-            except Exception:
-                pass
+            except Exception as exc:
+                # বল মনতবয: রকয়সট বড রড বযরথ হল ডউনসটরম হযনডলর খল বড দখব;
+                # নরব সযলপর বদল ডবগ লগ কর হল যত করপট/আংশক বড শনকত কর যয়
+                logger.debug(f"Honeypot middleware failed to read request body: {exc}")
 
         # Reconstruct receive channel for downstream handlers
         async def new_receive():

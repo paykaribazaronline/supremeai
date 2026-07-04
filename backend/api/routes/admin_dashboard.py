@@ -311,8 +311,10 @@ def get_env_etag(redis_key: str = "config:env_etag") -> str:
             if redis_queue and getattr(redis_queue, "configured", False):
                 redis_queue.set(redis_key, etag, ex=300)
             return etag
-        except Exception:
-            pass
+        except Exception as exc:
+            # বল মনতবয: .env এর etag গণনা বযর্থ হল "empty-env" ফলবযাক হয়;
+            # নরব সযলপ ন কর ডবগ লগ কর হল
+            logger.debug(f"Failed to compute .env etag: {exc}")
     return "empty-env"
 
 
@@ -323,8 +325,10 @@ def _acquire_env_lock(lock_path: str = ".env.lock") -> bool:
     if redis_queue and getattr(redis_queue, "configured", False):
         try:
             return redis_queue.set_nx("lock:env_write", "locked", ex=10)
-        except Exception:
-            pass
+        except Exception as exc:
+            # বল মনতবয: রডস লক বযর্থ হল ফাইল-লক ফলবযাক বযবহত হয়;
+            # নরব সযলপ ন কর ডবগ লগ কর হল
+            logger.debug(f"Redis env lock acquisition failed, falling back to file lock: {exc}")
     try:
         fd = os.open(lock_path, os.O_CREAT | os.O_EXCL | os.O_RDWR)
         os.close(fd)

@@ -3,6 +3,8 @@ from __future__ import annotations
 import time
 import uuid
 
+from loguru import logger
+
 from api.routes.metrics import record_error
 from api.routes.metrics import record_request
 from api.routes.metrics import record_request_duration
@@ -90,8 +92,10 @@ class ObservabilityMiddleware:
                         "duration": duration,
                     },
                 )
-            except Exception:
-                pass
+            except Exception as exc:
+                # বল মনতবয: PostHog টলমটর বযরথ হল রকয়সট হযনডলং থমন উচত নয়;
+                # তব নরব সযলপ ন কর ডবগ লগ কর হল যত টলমটর সমসয বঝ যয়
+                logger.debug(f"PostHog capture failed in observability middleware: {exc}")
 
             try:
                 from database.supabase_client import db
@@ -110,5 +114,7 @@ class ObservabilityMiddleware:
                             },
                         }
                     )
-            except Exception:
-                pass
+            except Exception as exc:
+                # বল মনতবয: ইভলউশন লগ Supabase-এ লখত বযরথ হল রকয়সট বযহত হয় ন;
+                # নরব সযলপর পরবরত ডবগ লগ যকত কর হল যত পরসসটনস বযরথত টর কর যয়
+                logger.debug(f"Evolution log persistence failed in observability middleware: {exc}")
