@@ -7,13 +7,13 @@ from loguru import logger
 from core.security import verify_token
 from core.tenant_db import TenantAwareFirestore
 
+# শেয়ার্ড ইউটিলিটি — টেস্ট এনভায়রনমেন্ট চেক কেন্দ্রীভূত
+from utils.environment import is_test_environment
+
 
 def get_current_user_token(request: Request) -> dict:
-    import os
-    import sys
-
-    is_test = "pytest" in sys.modules or os.getenv("ENV") == "test"
-    if is_test:
+    # রিফ্যাক্টর: লোকাল is_test চেকের বদলে শেয়ার্ড ইউটিলিটি ব্যবহার
+    if is_test_environment():
         return {"sub": "admin@supremeai.com", "role": "admin"}
 
     auth_header = request.headers.get("Authorization")

@@ -2,9 +2,10 @@ from __future__ import annotations
 
 import os
 import sqlite3
-from datetime import UTC
-from datetime import datetime
 from typing import Any
+
+# শেয়ার্ড ইউটিলিটি — টাইমস্ট্যাম্প কেন্দ্রীভূত
+from utils.timestamps import utc_now_iso
 
 
 class EpisodicMemory:
@@ -117,4 +118,5 @@ class EpisodicMemory:
 
     @staticmethod
     def _now() -> str:
-        return datetime.now(UTC).isoformat()
+        # রিফ্যাক্টর: শেয়ার্ড টাইমস্ট্যাম্প ইউটিলিটি ব্যবহার
+        return utc_now_iso()
