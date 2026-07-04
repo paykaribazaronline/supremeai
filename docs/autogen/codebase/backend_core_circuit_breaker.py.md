@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/circuit_breaker.py
 
 **প্রকার:** .py  
-**সাইজ:** 3,684 বাইট  
-**আপডেট:** 2026-07-04T04:11:01.399617
+**সাইজ:** 4,404 বাইট  
+**আপডেট:** 2026-07-04T04:31:35.543402
 
 ---
 
@@ -17,6 +17,8 @@ import time
 from collections.abc import Callable
 from typing import Any
 from typing import TypeVar
+
+from loguru import logger
 
 
 T = TypeVar("T")
@@ -56,8 +58,10 @@ class CircuitBreaker:
                 self.state = data.get("state", "CLOSED")
                 self.opened_at = data.get("opened_at")
                 self.last_failure_at = data.get("last_failure_at")
-        except Exception:
-            pass
+        except Exception as exc:
+            # বল মনতবয: রডস থক সটট রসটর বযরথ হল লকল ডফলট বযবহত হয়;
+            # নরব সযলপ ন কর ডবগ লগ কর হল যত রডস সমসয দশযমন থক
+            logger.debug(f"CircuitBreaker redis restore failed: {exc}")
 
     def _persist_to_redis(self) -> None:
         if not self.redis_queue or not getattr(self.redis_queue, "configured", False):
@@ -70,8 +74,10 @@ class CircuitBreaker:
                 "last_failure_at": self.last_failure_at,
             }
             self.redis_queue.set(f"{self._key_prefix}:state", json.dumps(data), ex=600)
-        except Exception:
-            pass
+        except Exception as exc:
+            # বল মনতবয: রডস প রসসটনস বযরথ হল ইন-মমর সটটই বযবহত হয়;
+            # সমসয টর করত পরর জনয নরব সযলপর বদল ডবগ লগ যকত কর হল
+            logger.debug(f"CircuitBreaker redis persist failed: {exc}")
 
     def allow_request(self) -> bool:
         if self.state == "OPEN":

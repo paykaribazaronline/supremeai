@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/api/routes/sso.py
 
 **প্রকার:** .py  
-**সাইজ:** 6,462 বাইট  
-**আপডেট:** 2026-07-04T04:11:01.407406
+**সাইজ:** 7,132 বাইট  
+**আপডেট:** 2026-07-04T04:31:35.555954
 
 ---
 
@@ -16,6 +16,7 @@ import time
 
 from fastapi import APIRouter
 from fastapi import HTTPException
+from loguru import logger
 from pydantic import BaseModel
 
 from core.config import settings
@@ -32,7 +33,10 @@ try:
     from tools.sso_integrator import SSOIntegrator
 
     sso = SSOIntegrator()
-except Exception:
+except Exception as exc:
+    # বল মনতবয: SSOIntegrator লড বযরথ হল SSO নরবই নষকরয় হয় যত; কন বযরথ হল
+    # ত দশযমন করত warning লগ যকত কর হল
+    logger.warning(f"SSOIntegrator unavailable; SSO features disabled: {exc}")
     sso = None  # type: ignore[assignment]
 
 router = APIRouter(prefix="/auth/sso", tags=["sso"])
@@ -165,8 +169,10 @@ async def oidc_logout(provider: str):
             tenant=getattr(settings, "oidc_tenant", ""),
         )
         logout_url = base or ""
-    except Exception:
-        pass
+    except Exception as exc:
+        # বল মনতবয: logout URL তরত বযরথ হল খল string ফরত যত; নরব সযলপর বদল
+        # ডবগ লগ যকত কর হল যত OIDC কনফগ সমসয বঝ যয়
+        logger.debug(f"Failed to build OIDC logout URL for provider {provider}: {exc}")
     return {"logout_url": logout_url, "provider": provider}
 
 

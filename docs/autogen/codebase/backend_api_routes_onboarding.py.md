@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/api/routes/onboarding.py
 
 **প্রকার:** .py  
-**সাইজ:** 6,744 বাইট  
-**আপডেট:** 2026-07-04T04:11:01.403499
+**সাইজ:** 7,095 বাইট  
+**আপডেট:** 2026-07-04T04:31:35.550052
 
 ---
 
@@ -208,8 +208,10 @@ async def reset_onboarding(user_id: str) -> dict[str, str]:
             db.client.table("user_preferences").delete().eq(
                 "user_id", user_id
             ).execute()
-    except Exception:
-        pass
+    except Exception as exc:
+        # বল মনতবয: রসট বযরথ হল আগ নরব success রটরন করত (ভল ইমপরশন);
+        # এখন বযরথত warning হসব লগ কর হয় যত সপরট টম সমসয জনত পর
+        logger.warning(f"Failed to reset onboarding state for {user_id}: {exc}")
     return {"status": "reset", "user_id": user_id}
 
 ```

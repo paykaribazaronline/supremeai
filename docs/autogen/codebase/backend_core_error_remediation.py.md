@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/error_remediation.py
 
 **প্রকার:** .py  
-**সাইজ:** 3,771 বাইট  
-**আপডেট:** 2026-07-04T04:11:01.394623
+**সাইজ:** 5,066 বাইট  
+**আপডেট:** 2026-07-04T04:31:35.535213
 
 ---
 
@@ -77,10 +77,16 @@ class ErrorRemediation:
             with open(self.fallback_path, encoding="utf-8") as f:
                 data = json.load(f)
             return data.get("default_fix") or data.get("fallbacks", {}).get("default")
-        except Exception:
+        except Exception as exc:
+            # বল মনতবয: ফলবযক ফইল পড়ত বযরথ হল আগ নরবই None রটরন করত;
+            # এখন কন কর ফলবযক অকরযকর হল ত ডবগ লগ কর দশযমন কর হল
+            logger.debug(f"Local fallback load failed from {self.fallback_path}: {exc}")
             return None
 
     async def _backoff_retry(self, operation, max_attempts: int = 3, base_delay: float = 0.5):
+        # বল মনতবয: শষ ব‍্যরথতর exception ধর রখর জন‍্য last_exception ইনশয়লইজ কর হল,
+        # নহল লপর পর এই ভরযবল undefined থকত (ruff F821) ও চডনত এরর লগ কর যত ন
+        last_exception: Exception | None = None
         for attempt in range(1, max_attempts + 1):
             if not self.circuit_breaker.allow_request():
                 logger.warning("Circuit breaker open; skipping Qdrant lookup.")
@@ -90,10 +96,18 @@ class ErrorRemediation:
                 self.circuit_breaker.record_success()
                 return result
             except Exception as exc:
+                last_exception = exc
                 self.circuit_breaker.record_failure()
                 logger.debug(f"Qdrant lookup attempt {attempt} failed: {exc}")
                 if attempt < max_attempts:
                     await asyncio.sleep(min(base_delay * (2 ** (attempt - 1)), 5.0))
+        # বল মনতবয: সব রটর শষ হওয়র পর last_exception কখনই বযবহত হত ন (নরব সযলপ);
+        # এখন চডনত বযরথতর করণ warning হসব লগ কর হয় যত ডবগ কর সহজ হয়
+        if last_exception is not None:
+            logger.warning(
+                f"Qdrant lookup exhausted {max_attempts} attempts; "
+                f"falling back. Last error: {last_exception}"
+            )
         return None
 
     async def lookup_fix(self, error_sig: str) -> str | None:

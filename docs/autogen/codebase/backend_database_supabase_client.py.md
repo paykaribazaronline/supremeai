@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/database/supabase_client.py
 
 **প্রকার:** .py  
-**সাইজ:** 30,500 বাইট  
-**আপডেট:** 2026-07-04T04:11:01.430930
+**সাইজ:** 30,836 বাইট  
+**আপডেট:** 2026-07-04T04:31:35.593714
 
 ---
 
@@ -56,8 +56,10 @@ class SupabaseDB:
                 if hostname.startswith("db."):
                     return f"https://{hostname[3:]}"
                 return f"https://{hostname}"
-        except Exception:
-            pass
+        except Exception as exc:
+            # বল মনতবয: DATABASE_URL পরস বযরথ হল আগ নরব None রটরন করত;
+            # কনফগ ভল থকল ত যন দশযমন হয় সজনয ডবগ লগ যকত কর হল
+            logger.debug(f"Failed to derive Supabase URL from DATABASE_URL: {exc}")
         return None
 
     @classmethod

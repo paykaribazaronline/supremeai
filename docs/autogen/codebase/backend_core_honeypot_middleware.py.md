@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/honeypot_middleware.py
 
 **প্রকার:** .py  
-**সাইজ:** 6,968 বাইট  
-**আপডেট:** 2026-07-04T04:11:01.395192
+**সাইজ:** 7,358 বাইট  
+**আপডেট:** 2026-07-04T04:31:35.536125
 
 ---
 
@@ -75,8 +75,10 @@ class HoneypotMiddleware:
                     messages.append(message)
                     body_bytes += message.get("body", b"")
                     more_body = message.get("more_body", False)
-            except Exception:
-                pass
+            except Exception as exc:
+                # বল মনতবয: রকয়সট বড রড বযরথ হল ডউনসটরম হযনডলর খল বড দখব;
+                # নরব সযলপর বদল ডবগ লগ কর হল যত করপট/আংশক বড শনকত কর যয়
+                logger.debug(f"Honeypot middleware failed to read request body: {exc}")
 
         # Reconstruct receive channel for downstream handlers
         async def new_receive():

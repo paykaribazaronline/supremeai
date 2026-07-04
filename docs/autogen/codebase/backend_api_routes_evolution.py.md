@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/api/routes/evolution.py
 
 **প্রকার:** .py  
-**সাইজ:** 8,478 বাইট  
-**আপডেট:** 2026-07-04T04:11:01.405136
+**সাইজ:** 8,830 বাইট  
+**আপডেট:** 2026-07-04T04:31:35.552725
 
 ---
 
@@ -72,8 +72,10 @@ async def get_evolution_logs(admin: dict = Depends(require_admin_token)):
         if db.client:
             logs = db.get_evolution_logs(limit=500)
             return {"logs": logs}
-    except Exception:
-        pass
+    except Exception as exc:
+        # বল মনতবয: Supabase থক লগ আনত বযরথ হল লকল JSONL ফলবযক বযবহত হয়;
+        # নরব সযলপ ন কর ডবগ লগ কর হল যত DB সমসয দশযমন থক
+        logger.debug(f"Supabase evolution logs fetch failed, using local fallback: {exc}")
 
     base_dir = Path(__file__).resolve().parent.parent.parent
     log_path = base_dir / "backend" / "data" / "evolution_logs.jsonl"

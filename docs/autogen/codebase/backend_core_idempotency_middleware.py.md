@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/idempotency_middleware.py
 
 **প্রকার:** .py  
-**সাইজ:** 5,466 বাইট  
-**আপডেট:** 2026-07-04T04:11:01.400580
+**সাইজ:** 5,892 বাইট  
+**আপডেট:** 2026-07-04T04:31:35.544955
 
 ---
 
@@ -15,6 +15,7 @@ import contextlib
 import json
 
 from fastapi.responses import JSONResponse
+from loguru import logger
 
 # শেয়ার্ড ইউটিলিটি — টেস্ট এনভায়রনমেন্ট চেক কেন্দ্রীভূত
 from utils.environment import is_test_environment
@@ -106,8 +107,10 @@ class IdempotencyMiddleware:
                         )
                     await response(scope, receive, send)
                     return
-            except Exception:
-                pass
+            except Exception as exc:
+                # বল মনতবয: কযশকরত idempotency রকরড পরস করত বযরথ হল রকয়সট পনরায় পরসস হব;
+                # নরবভ ডট করাপশন লকয় রখত warning লগ যকত কর হল
+                logger.warning(f"Failed to parse cached idempotency record for key {idempotency_key}: {exc}")
 
         # 2. Lock the idempotency key (10 minute timeout to prevent deadlocks)
         redis.set(redis_key, json.dumps({"status": "processing"}), ex=600)

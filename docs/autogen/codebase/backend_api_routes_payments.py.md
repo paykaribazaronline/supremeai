@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/api/routes/payments.py
 
 **প্রকার:** .py  
-**সাইজ:** 6,139 বাইট  
-**আপডেট:** 2026-07-04T04:11:01.404863
+**সাইজ:** 6,739 বাইট  
+**আপডেট:** 2026-07-04T04:31:35.552274
 
 ---
 
@@ -131,8 +131,10 @@ async def create_checkout_session(request: Request, payload: CheckoutRequest):
                 event="checkout_session_created",
                 properties={"price_id": payload.price_id},
             )
-        except Exception:
-            pass
+        except Exception as exc:
+            # বল মনতবয: PostHog তলমটর বযরথ হল চকআউট পরসস আটকান উচত নয়;
+            # তব নরব সযলপ ন কর ডবগ লগ কর হল
+            logger.debug(f"PostHog checkout capture failed: {exc}")
         return {"status": "success", "session_id": session.id, "url": session.url}
     except Exception as e:
         logger.error(f"Failed to create Stripe checkout session: {e}")
@@ -187,8 +189,10 @@ async def stripe_webhook(request: Request):
                 event="subscription_completed",
                 properties={"subscription_id": subscription_id, "price_id": price_id},
             )
-        except Exception:
-            pass
+        except Exception as exc:
+            # বল মনতবয: সাবসকরপশন ইভননথ PostHog-এ পাঠাত বযরথ হল webhook পরসসং চলব;
+            # নরব সযলপর বদল ডবগ লগ কর হল
+            logger.debug(f"PostHog subscription capture failed: {exc}")
 
     return {"status": "success"}
 

@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/output_validator.py
 
 **প্রকার:** .py  
-**সাইজ:** 6,262 বাইট  
-**আপডেট:** 2026-07-04T04:11:01.394711
+**সাইজ:** 7,116 বাইট  
+**আপডেট:** 2026-07-04T04:31:35.535378
 
 ---
 
@@ -37,9 +37,15 @@ class MultiAICodeGenerator:
         }
 
 
+# বল মনতবয: ডফলট কনসটটউশনল রলস ফইলর সটযনডরড অবসথন (backend/config/constitutional_rules.json)
+DEFAULT_RULES_PATH = Path(__file__).parent.parent / "config" / "constitutional_rules.json"
+
+
 class EnhancedConfidenceScorer:
     def __init__(self, rules_path: Path | None = None):
-        self.rules = self._load_rules(rules_path)
+        # বল মনতবয: আগ rules_path=None দল খল রলসট বযবহত হত ও হযলসনশন
+        # ডটকশন নরব নষকরয় থকত; এখন ডফলট কনফগ পথ বযবহর কর ত ঠক কর হল
+        self.rules = self._load_rules(rules_path or DEFAULT_RULES_PATH)
 
     def _load_rules(self, rules_path: Path | None) -> dict:
         """ডাইনামিকালি ডাটাবেজ বা JSON থেকে রুলস লোড করে।"""
@@ -48,6 +54,8 @@ class EnhancedConfidenceScorer:
                 with open(rules_path, encoding='utf-8') as f:
                     return json.load(f)
             except (OSError, json.JSONDecodeError) as e:
+                # বল মনতবয: আগ `logger` ইমপরট কর হয়ন, ফল এই except বলক নজই
+                # NameError ছড়ত ও মল তরটি চপ পড় যত; loguru logger যকত কর ঠক কর হল
                 logger.error(f"Failed to load constitutional rules from {rules_path}: {e}")
         logger.warning("Constitutional rules not found or failed to load. Using empty ruleset.")
         return {"hallucination_patterns": [], "scores": {}}
