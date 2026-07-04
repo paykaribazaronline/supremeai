@@ -522,6 +522,11 @@ def main():
 
     check_infinite_loop()
     config = JOB_CONFIGS[target_job]
+    
+    # Handle the case where we are already in the target directory
+    if config.get("cwd") and not os.path.isdir(config["cwd"]):
+        config["cwd"] = "."
+        
     error_logs, failing_file = extract_errors(target_job, config)
 
     if not failing_file:
