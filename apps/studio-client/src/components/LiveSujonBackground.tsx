@@ -82,7 +82,7 @@ export function LiveSujonBackground({ state: forcedState }: LiveSujonBackgroundP
           className="absolute inset-0"
           style={{
             backgroundImage:
-              'repeating-linear-gradient(115deg, transparent 0px, transparent 38px, rgba(34,211,238,0.08) 40px)',
+              'repeating-linear-gradient(115deg, transparent 0px, transparent 38px, rgba(34,211,238,0.08) 40px), url(/icons.svg#sujon-cyber-lines)',
             willChange: 'transform',
             animation: 'sujon-scan 2.4s linear infinite',
           }}
