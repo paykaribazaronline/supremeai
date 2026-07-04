@@ -5,6 +5,7 @@ from typing import Any
 from fastapi import APIRouter
 from fastapi import BackgroundTasks
 from fastapi import HTTPException
+from loguru import logger
 from pydantic import BaseModel
 
 from database.supabase_client import db as supabase_db
@@ -66,10 +67,14 @@ async def run_export_task(job_id: str, payload: MarkdownExportRequest):
                         "timestamp": time.time(),
                     }
                 ).execute()
-        except Exception:
-            pass  # Silent ignore if table not created yet
+        except Exception as exc:
+            # বল মনতবয: history টবল এখনও তর হয়ন থাকল একসপর্ট বযর্থ কর যাব ন;
+            # তব নরব সযলপ ন কর ডবগ লগ কর হল
+            logger.debug(f"Failed to persist markdown export history for job {job_id}: {exc}")
 
     except Exception as e:
+        # বল মনতবয: একসপর্ট টাস্ক বযর্থ হল job স্টটসর সঙ্গ এরর লগও কর হল
+        logger.error(f"Markdown export task failed for job {job_id}: {e}")
         jobs_db[job_id]["status"] = "failed"
         jobs_db[job_id]["error"] = str(e)
         jobs_db[job_id]["progress"] = 100
@@ -179,8 +184,10 @@ async def get_history():
             )
             if res.data:
                 return {"status": "success", "history": res.data}
-    except Exception:
-        pass
+    except Exception as exc:
+        # বল মনতবয: Supabase থক history আনত বযরথ হল ইন-মমর jobs_db ফলবযাক বযবহত হয়;
+        # নরব সযলপ ন কর ডবগ লগ কর হল যত DB সমসয দশযমন থক
+        logger.debug(f"Supabase markdown history fetch failed, using local fallback: {exc}")
 
     for job_id, job in sorted(
         jobs_db.items(), key=lambda x: x[1]["timestamp"], reverse=True

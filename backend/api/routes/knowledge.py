@@ -4,6 +4,7 @@ from typing import Any
 
 from fastapi import APIRouter
 from fastapi import HTTPException
+from loguru import logger
 from pydantic import BaseModel
 
 
@@ -63,7 +64,10 @@ def _fts_search(query: str, limit: int = 5) -> list[dict[str, Any]]:
         )
         rows = cursor.fetchall()
         return [dict(r) for r in rows]
-    except Exception:
+    except Exception as exc:
+        # বল মনতবয: করপট query ব FTS তরটত 500 এড়ত খল লসট রটরন কর হয়;
+        # তব করণট যন হরয় ন যয় সজনয ডবগ লগ যকত কর হল
+        logger.debug(f"FTS query execution failed for {query!r}: {exc}")
         return []
     finally:
         conn.close()
@@ -84,7 +88,10 @@ async def search_knowledge(q: str, limit: int = 5) -> list[KnowledgeSearchResult
     if sqlite3 is not None:
         try:
             results = _fts_search(q, limit)
-        except Exception:
+        except Exception as exc:
+            # বল মনতবয: SQLite FTS সার্চ বযরথ হল RAG ফলবযাক বযবহত হয়;
+            # খল ফলাফল নরব রটরন ন কর warning লগ কর হল
+            logger.warning(f"FTS knowledge search failed for query {q!r}: {exc}")
             results = []
     if not results and LocalSearchRAGClass is not None:
         try:
@@ -103,8 +110,10 @@ async def search_knowledge(q: str, limit: int = 5) -> list[KnowledgeSearchResult
                         "source": "chromadb",
                     }
                 )
-        except Exception:
-            pass
+        except Exception as exc:
+            # বল মনতবয: RAG সমযান্টক সার্চ বযরথ হল খল রজাল্ট নরব রটরন হত;
+            # এখন warning লগ কর হয় যত search বযরথতর কারণ বঝ যায়
+            logger.warning(f"RAG semantic knowledge search failed for query {q!r}: {exc}")
     formatted: list[KnowledgeSearchResult] = []
     for row in results[:limit]:
         formatted.append(

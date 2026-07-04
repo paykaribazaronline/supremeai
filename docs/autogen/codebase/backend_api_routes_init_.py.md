@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/api/routes/__init__.py
 
 **প্রকার:** .py  
-**সাইজ:** 5,900 বাইট  
-**আপডেট:** 2026-07-04T03:48:57.235355
+**সাইজ:** 6,583 বাইট  
+**আপডেট:** 2026-07-04T04:11:01.403955
 
 ---
 
@@ -108,6 +108,22 @@ try:
     _safe_imports["metrics_router"] = metrics_router
 except Exception:
     metrics_router = None
+
+# বাংলা মন্তব্য: site_actions_registry CRUD রাউটার — অ্যাডমিন ড্যাশবোর্ডের ভিজুয়াল এডিটরের জন্য
+try:
+    from .site_actions import router as site_actions_router
+
+    _safe_imports["site_actions_router"] = site_actions_router
+except Exception:
+    site_actions_router = None
+
+# বাংলা মন্তব্য: LLM Gateway ও System Rules কন্ট্রোলার রাউটার
+try:
+    from .llm_gateway import router as llm_gateway_router
+
+    _safe_imports["llm_gateway_router"] = llm_gateway_router
+except Exception:
+    llm_gateway_router = None
 
 try:
     from .simulator import router as simulator_router

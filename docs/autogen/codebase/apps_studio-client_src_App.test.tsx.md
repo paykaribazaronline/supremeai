@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/studio-client/src/App.test.tsx
 
 **প্রকার:** .tsx  
-**সাইজ:** 4,013 বাইট  
-**আপডেট:** 2026-07-04T03:48:57.289111
+**সাইজ:** 4,349 বাইট  
+**আপডেট:** 2026-07-04T04:11:01.446166
 
 ---
 
@@ -83,6 +83,8 @@ describe('App component', () => {
     storeState.isServerOnline = true;
     storeState.deployGate.status = 'UNLOCKED';
     storeState.deployGate.reason = 'Initial deploy clean';
+    // বাংলা মন্তব্য: লিগ্যাসি ওয়ার্কস্পেস এখন Devin-স্টাইল শেলের #/workspace রুটে রেন্ডার হয়, তাই টেস্টের আগে hash সেট করা হলো
+    window.location.hash = '#/workspace';
   });
 
   // বাংলা মন্তব্য: UI টেক্সট পরিবর্তন হওয়া সত্ত্বেও টেস্ট যাতে স্ট্যাবল থাকে সে জন্য data-testid ব্যবহার করা হলো
