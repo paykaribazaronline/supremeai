@@ -181,6 +181,9 @@ class CodeSmellDetector:
         except Exception as e:
             logger.error(f"Failed to analyze {filepath}: {e}")
 
+        if tree is None:
+            return smells
+
         if self.radon_available:
             try:
                 smells.extend(self._analyze_radon(filepath, tree, complexity_threshold))
