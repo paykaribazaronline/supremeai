@@ -1,7 +1,6 @@
 import { create } from "zustand";
 import { getApiBaseUrl } from '../utils/api';
 
-const API_BASE_URL = getApiBaseUrl();
 
 interface ChatMessage {
   id: string;
@@ -87,7 +86,7 @@ export const useStore = create<SupremeState>((set) => ({
     set({ isGateLoading: true });
     try {
       // আমরা যে গেটকিপার ফায়ারস্টোর ডাটা বানিয়েছি তা চেক করার এন্ডপয়েন্ট (অথবা কাস্টম গেট রুট)
-      const res = await fetch(`${API_BASE_URL}/api/admin/metrics/dashboard`);
+      const res = await fetch(`${getApiBaseUrl()}/api/admin/metrics/dashboard`);
       if (res.ok) {
         const data = await res.json();
         // ড্যাশবোর্ড ম্যাট্রিক্স থেকে গেট ডাটা এক্সট্রাক্ট (ফলব্যাকসহ)
@@ -105,7 +104,7 @@ export const useStore = create<SupremeState>((set) => ({
 
   executeGateOverride: async (targetStatus, reason, secret) => {
     try {
-      const res = await fetch(`${API_BASE_URL}/api/admin/gate/override`, {
+      const res = await fetch(`${getApiBaseUrl()}/api/admin/gate/override`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -129,7 +128,7 @@ export const useStore = create<SupremeState>((set) => ({
     set({ isForging: true, forgeFeedback: "🧠 Self-Evolution Core is structuring your request...", forgeSuccessCode: null });
     
     try {
-      const res = await fetch(`${API_BASE_URL}/api/evolution/forge`, {
+      const res = await fetch(`${getApiBaseUrl()}/api/evolution/forge`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ skill_name: skillName, user_demand: userDemand })

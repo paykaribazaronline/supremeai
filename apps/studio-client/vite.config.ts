@@ -13,7 +13,7 @@ export default defineConfig({
     jsx: 'automatic',
   },
   resolve: {
-    dedupe: ['react', 'react-dom']
+    dedupe: ['react', 'react-dom', '@tanstack/react-query']
   },
   build: {
     rollupOptions: {

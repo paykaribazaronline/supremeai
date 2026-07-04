@@ -19,7 +19,6 @@ interface GraphData {
 }
 
 import { getApiBaseUrl } from '../../utils/api';
-const API_BASE_URL = getApiBaseUrl();
 
 export default function SkillGraph() {
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
@@ -28,7 +27,7 @@ export default function SkillGraph() {
   // বাংলা মন্তব্য: ব্যাকএন্ড থেকে গ্রাফ ডেটা ফেচ করার ফাংশন
   const fetchGraphData = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/v1/graph/skills`, {
+      const response = await fetch(`${getApiBaseUrl()}/api/v1/graph/skills`, {
         headers: {
           'Authorization': `Bearer ${getAdminToken()}`
         }
