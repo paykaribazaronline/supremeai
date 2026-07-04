@@ -231,8 +231,7 @@ jobs:
           SUPABASE_DATABASE_URL: "postgresql://mock_user:mock_pass@localhost:5432/mock_db"
           ADMIN_AUTHORIZED: "true"
         run: |
-          poetry run pytest --md pytest-report.md \
-            --cov=core --cov-report=json:coverage.json --cov-report=term-missing --cov-fail-under=25 -q || true
+          poetry run pytest --md pytest-report.md --cov=core --cov-report=json:coverage.json --cov-report=term-missing --cov-fail-under=25 -q
 
       - name: Add Backend Test Results to GitHub Summary
         if: always()
@@ -354,7 +353,7 @@ jobs:
 
       - name: 🧪 Run Cloudflare Worker Tests
         id: worker_tests
-        run: pnpm exec vitest run --dir infrastructure --reporter=json > infrastructure/vitest-report.json || true
+        run: pnpm exec vitest run --dir infrastructure --reporter=json > infrastructure/vitest-report.json
  
       - name: Add Worker Test Results to GitHub Summary
         if: always()
