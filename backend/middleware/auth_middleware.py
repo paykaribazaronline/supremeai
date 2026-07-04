@@ -64,9 +64,13 @@ class ZeroTrustAuthMiddleware(BaseHTTPMiddleware):
             request.state.user = payload
             request.state.tenant_id = payload.get("tenant_id") or payload.get("sub")
 
-            # অ্যাডমিন রাউটের জন্য স্ট্রিক্ট রোল চেক
+            # বাংলা মন্তব্য: শুধু "/api/admin" নয়, prefix ছাড়া রেজিস্টার হওয়া সব
+            # অ্যাডমিন-লেভেল রাউটেও (/admin/*, /admin-api/*, /gcp/*) স্ট্রিক্ট রোল চেক
+            # প্রয়োগ করা হলো — নয়তো সাধারণ ইউজার টোকেন দিয়ে admin_routes.py এর
+            # /admin/rules, /admin/free-tier-override ইত্যাদি অ্যাক্সেস করা যেত (privilege escalation)।
+            admin_prefixes = ("/api/admin", "/admin/", "/admin-api", "/gcp/")
             if (
-                request.url.path.startswith("/api/admin")
+                any(request.url.path.startswith(p) for p in admin_prefixes)
                 and payload.get("role") != "admin"
             ):
                 logger.critical(
