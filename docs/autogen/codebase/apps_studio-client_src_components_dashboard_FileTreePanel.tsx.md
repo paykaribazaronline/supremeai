@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/studio-client/src/components/dashboard/FileTreePanel.tsx
 
 **প্রকার:** .tsx  
-**সাইজ:** 4,222 বাইট  
-**আপডেট:** 2026-07-04T23:04:45.112475
+**সাইজ:** 4,227 বাইট  
+**আপডেট:** 2026-07-04T23:21:14.705505
 
 ---
 
@@ -11,7 +11,7 @@
 ```tsx
 import React, { useEffect, useRef, useState } from 'react';
 import { ChevronRight, ChevronDown, FileText, Folder, FileJson, FileCode, Trash2, Plus } from 'lucide-react';
-import { useSessionCockpitStore, FileNode } from '../../store/sessionCockpitStore';
+import { useSessionCockpitStore, type FileNode } from '../../store/sessionCockpitStore';
 
 export const FileTreePanel: React.FC = () => {
   const { fileTreeData } = useSessionCockpitStore();

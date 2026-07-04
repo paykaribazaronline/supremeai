@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/studio-client/src/components/dashboard/AgentStatePill.tsx
 
 **প্রকার:** .tsx  
-**সাইজ:** 1,768 বাইট  
-**আপডেট:** 2026-07-04T23:04:45.113166
+**সাইজ:** 1,773 বাইট  
+**আপডেট:** 2026-07-04T23:21:14.706172
 
 ---
 
@@ -10,7 +10,7 @@
 
 ```tsx
 import React from 'react';
-import { SujonState } from '../../store/sessionCockpitStore';
+import { type SujonState } from '../../store/sessionCockpitStore';
 
 interface AgentStatePillProps {
   state: SujonState;

@@ -1,7 +1,7 @@
 # 🧠 SupremeAI 2.0 Codebase Dump
 # বাংলা মন্তব্য: এটি একটি স্বয়ংক্রিয়ভাবে জেনারেট করা কোডবেস ডাম্প ফাইল যা প্রজেক্টের সামগ্রিক বিশ্লেষণের জন্য ব্যবহৃত হয়।
 
-Generated at: 2026-07-04T23:04:44.985346
+Generated at: 2026-07-04T23:21:14.564710
 
 
 ## File: `pnpm-lock.yaml`
@@ -116390,7 +116390,8 @@ if __name__ == "__main__":
 import { test, expect } from '@playwright/test';
 
 test('Chat sends message', async ({ page }) => {
-  await page.goto('/');
+  await page.goto('/#/workspace');
+  await page.waitForSelector('[data-testid="chat-input"]', { state: 'visible', timeout: 15000 });
   await page.fill('[data-testid="chat-input"]', 'Hello SupremeAI!');
   await page.click('[data-testid="chat-submit"]');
   await expect(page.getByText('Hello SupremeAI!').first()).toBeVisible();
@@ -116482,6 +116483,7 @@ import AxeBuilder from '@axe-core/playwright';
 test.describe('Accessibility Tests (WCAG)', () => {
     test('Homepage should not have any automatically detectable accessibility issues', async ({ page }) => {
         await page.goto('/');
+        await page.waitForSelector('[data-testid="dashboard-sidebar"]', { state: 'visible', timeout: 15000 });
 
         const accessibilityScanResults = await new AxeBuilder({ page }).analyze();
 
@@ -116495,6 +116497,7 @@ test.describe('Accessibility Tests (WCAG)', () => {
 
     test('Admin Dashboard should be accessible', async ({ page }) => {
         await page.goto('/admin'); // আপনার অ্যাডমিন পেজের URL
+        await page.waitForSelector('text=SupremeAI', { state: 'visible', timeout: 15000 });
 
         const accessibilityScanResults = await new AxeBuilder({ page }).analyze();
 
@@ -122547,7 +122550,7 @@ export function DashboardShell(props: DashboardShellProps) {
 ```tsx
 import React, { useEffect, useRef, useState } from 'react';
 import { ChevronRight, ChevronDown, FileText, Folder, FileJson, FileCode, Trash2, Plus } from 'lucide-react';
-import { useSessionCockpitStore, FileNode } from '../../store/sessionCockpitStore';
+import { useSessionCockpitStore, type FileNode } from '../../store/sessionCockpitStore';
 
 export const FileTreePanel: React.FC = () => {
   const { fileTreeData } = useSessionCockpitStore();
@@ -123191,7 +123194,7 @@ export function GuardrailsPage() {
 
 ```tsx
 import React from 'react';
-import { SujonState } from '../../store/sessionCockpitStore';
+import { type SujonState } from '../../store/sessionCockpitStore';
 
 interface AgentStatePillProps {
   state: SujonState;

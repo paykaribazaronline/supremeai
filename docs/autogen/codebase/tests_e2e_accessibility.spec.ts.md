@@ -1,8 +1,8 @@
 # 📄 ফাইল: tests/e2e/accessibility.spec.ts
 
 **প্রকার:** .ts  
-**সাইজ:** 1,147 বাইট  
-**আপডেট:** 2026-07-04T23:04:45.104265
+**সাইজ:** 1,350 বাইট  
+**আপডেট:** 2026-07-04T23:21:14.696458
 
 ---
 
@@ -15,6 +15,7 @@ import AxeBuilder from '@axe-core/playwright';
 test.describe('Accessibility Tests (WCAG)', () => {
     test('Homepage should not have any automatically detectable accessibility issues', async ({ page }) => {
         await page.goto('/');
+        await page.waitForSelector('[data-testid="dashboard-sidebar"]', { state: 'visible', timeout: 15000 });
 
         const accessibilityScanResults = await new AxeBuilder({ page }).analyze();
 
@@ -28,6 +29,7 @@ test.describe('Accessibility Tests (WCAG)', () => {
 
     test('Admin Dashboard should be accessible', async ({ page }) => {
         await page.goto('/admin'); // আপনার অ্যাডমিন পেজের URL
+        await page.waitForSelector('text=SupremeAI', { state: 'visible', timeout: 15000 });
 
         const accessibilityScanResults = await new AxeBuilder({ page }).analyze();
 
