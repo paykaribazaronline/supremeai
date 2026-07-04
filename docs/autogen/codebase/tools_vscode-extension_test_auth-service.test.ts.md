@@ -1,15 +1,14 @@
 # 📄 ফাইল: tools/vscode-extension/test/auth-service.test.ts
 
 **প্রকার:** .ts  
-**সাইজ:** 2,268 বাইট  
-**আপডেট:** 2026-07-04T05:05:29.968485
+**সাইজ:** 2,239 বাইট  
+**আপডেট:** 2026-07-04T05:29:42.620611
 
 ---
 
 ## কোড
 
 ```ts
-import { vi } from 'vitest';
 import * as vscode from 'vscode';
 import { AuthService } from '../src/services/AuthService';
 

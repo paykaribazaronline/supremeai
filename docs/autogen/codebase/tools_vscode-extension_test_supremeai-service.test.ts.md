@@ -1,16 +1,14 @@
 # 📄 ফাইল: tools/vscode-extension/test/supremeai-service.test.ts
 
 **প্রকার:** .ts  
-**সাইজ:** 8,335 বাইট  
-**আপডেট:** 2026-07-04T05:05:29.968593
+**সাইজ:** 8,305 বাইট  
+**আপডেট:** 2026-07-04T05:29:42.620795
 
 ---
 
 ## কোড
 
 ```ts
-import { vi } from 'vitest';
-
 vi.mock('axios', () => {
   const mockAxios = {
     post: vi.fn(),
