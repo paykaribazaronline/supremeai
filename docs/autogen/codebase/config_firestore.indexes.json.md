@@ -1,8 +1,8 @@
 # 📄 ফাইল: config/firestore.indexes.json
 
 **প্রকার:** .json  
-**সাইজ:** 1,676 বাইট  
-**আপডেট:** 2026-07-04T08:12:03.120318
+**সাইজ:** 1,907 বাইট  
+**আপডেট:** 2026-07-04T08:29:41.006813
 
 ---
 
@@ -65,6 +65,14 @@
       "fields": [
         { "fieldPath": "taskId", "order": "ASCENDING" },
         { "fieldPath": "timestamp", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "site_actions",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "site_name", "order": "ASCENDING" },
+        { "fieldPath": "enabled", "order": "ASCENDING" }
       ]
     }
   ],
