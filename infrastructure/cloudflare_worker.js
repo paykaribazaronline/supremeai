@@ -1,3 +1,10 @@
+// Architectural Fix: In-memory circuit breaker state
+const circuitBreakerState = {
+  brokenUntil: 0, // Timestamp until which the circuit is open
+  failureCount: 0,
+  lastFailureTime: 0,
+};
+
 addEventListener('fetch', event => {
   event.respondWith(handleRequest(event.request))
 })
@@ -8,7 +15,7 @@ addEventListener('scheduled', event => {
 
 function getBackends() {
   const gcp_url = typeof env !== 'undefined' ? env.GCP_CLOUD_RUN_URL : (typeof GCP_CLOUD_RUN_URL !== 'undefined' ? GCP_CLOUD_RUN_URL : '');
-  
+
   const gcp_weight = typeof env !== 'undefined' ? env.GCP_WEIGHT : (typeof GCP_WEIGHT !== 'undefined' ? GCP_WEIGHT : '50');
 
   const gcp_region = typeof env !== 'undefined' ? env.GCP_REGION : (typeof GCP_REGION !== 'undefined' ? GCP_REGION : 'us-central1');
@@ -34,9 +41,20 @@ async function handleRequest(request) {
     return new Response('No backends configured', { status: 503 })
   }
 
+  // Architectural Fix: Implement Circuit Breaker logic
+  if (Date.now() < circuitBreakerState.brokenUntil) {
+    // Circuit is open, return emergency response without hitting KV or origin
+    console.error('Circuit Breaker is open. Returning emergency fallback response.');
+    // This can be a static page from R2, a simple message, or a data-driven response
+    return new Response('Service temporarily unavailable. Please try again shortly.', { status: 503, headers: { 'Content-Type': 'text/plain' } });
+  }
+
   const healthyBackends = await getHealthyBackendsFromKV(backends)
+  // Architectural Fix #1: Add a fallback to all backends if none are healthy.
   if (healthyBackends.length === 0) {
-    return new Response('All backends unhealthy', { status: 503 })
+    console.warn('All backends reported as unhealthy. Attempting to route to a backend as a last resort.');
+    const backend = weightedPick(backends); // Fallback to all configured backends
+    return forwardRequest(request, backend, url);
   }
 
   const backend = weightedPick(healthyBackends)
@@ -44,6 +62,9 @@ async function handleRequest(request) {
 
   try {
     const response = await fetch(target, {
+      // Architectural Fix #2: Use a separate signal for retries within the worker.
+      // This is a placeholder for a more complex retry logic if you were to implement it here.
+      // For now, we just use the backend's timeout.
       method: request.method,
       headers: omitWranglerHeaders(request.headers),
       body: request.method !== 'GET' ? await request.text() : null,
@@ -56,6 +77,26 @@ async function handleRequest(request) {
     })
   } catch (err) {
     return new Response(`Backend ${backend.name} error: ${err.message}`, { status: 502 })
+  }
+}
+
+async function forwardRequest(request, backend, originalUrl) {
+  const target = new URL(originalUrl.pathname + originalUrl.search, backend.url);
+
+  try {
+    const response = await fetch(target, {
+      method: request.method,
+      headers: omitWranglerHeaders(request.headers),
+      body: request.method !== 'GET' && request.method !== 'HEAD' ? await request.text() : null,
+      signal: AbortSignal.timeout(backend.timeout),
+    });
+
+    return new Response(response.body, {
+      status: response.status,
+      headers: omitHopByHopHeaders(new Headers(response.headers)),
+    });
+  } catch (err) {
+    return new Response(`Last-resort routing to backend ${backend.name} failed: ${err.message}`, { status: 502 });
   }
 }
 
@@ -76,7 +117,19 @@ async function getHealthyBackendsFromKV(backends) {
     console.error('KV read error:', e);
   }
   // Fallback to direct health check if KV is empty or fails
-  return await getHealthyBackends(backends);
+  const directlyChecked = await getHealthyBackends(backends);
+  if (directlyChecked.length === 0 && backends.length > 0) {
+    // All backends are unhealthy, trip the circuit breaker
+    circuitBreakerState.failureCount++;
+    circuitBreakerState.lastFailureTime = Date.now();
+    // If it fails 3 times in a row, open the circuit for 1 minute
+    if (circuitBreakerState.failureCount >= 3) {
+      console.error('All backends unhealthy after direct check. Tripping circuit breaker for 60 seconds.');
+      circuitBreakerState.brokenUntil = Date.now() + 60000; // Open for 60 seconds
+      circuitBreakerState.failureCount = 0; // Reset count
+    }
+  }
+  return directlyChecked;
 }
 
 async function checkHealthAndStore() {
@@ -88,7 +141,10 @@ async function checkHealthAndStore() {
 
   const kv = typeof SUPREMEAI_KV !== 'undefined' ? SUPREMEAI_KV : (typeof env !== 'undefined' && env.SUPREMEAI_KV ? env.SUPREMEAI_KV : null);
   if (kv) {
-    await kv.put('healthy_backends', JSON.stringify(healthyNames))
+    // আর্কিটেকচারাল ফিক্স #2: Add a TTL to prevent using stale data if the cron fails
+    await kv.put('healthy_backends', JSON.stringify(healthyNames), {
+      expirationTtl: 60 // Expire after 60 seconds
+    });
     console.log('Saved healthy backends to KV:', healthyNames)
   }
 }

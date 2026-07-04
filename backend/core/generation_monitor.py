@@ -65,3 +65,9 @@ class GenerationMonitor:
             "has_contradictions": has_contradictions,
             "contradictions": contradictions,
         }
+
+    def track_agent_call(self, **kwargs):
+        print(f"--- AGENT CALL ---")
+        for key, value in kwargs.items():
+            print(f"{key}: {value}")
+        print(f"--------------------")

@@ -40,14 +40,7 @@ class LLMGateway:
         except Exception as e:
             logger.error(f"Error loading routing policy: {e}")
         
-        return {
-            "complexity_rules": {
-                "easy": ["groq/llama-3.3-70b-versatile"],
-                "medium": ["gemini/gemini-3.5-flash"],
-                "hard": ["openai/gpt-4o-mini"]
-            },
-            "fallback_chain": ["groq/llama-3.3-70b-versatile", "gemini/gemini-3.5-flash"]
-        }
+        return {"complexity_rules": {}, "fallback_chain": []}
 
     def _inject_secrets(self):
         # Inject API keys from core settings dynamically into environment for LiteLLM

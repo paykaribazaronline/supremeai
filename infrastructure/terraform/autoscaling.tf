@@ -46,6 +46,24 @@ variable "max_concurrent_requests" {
   default     = 1000
 }
 
+variable "request_cpu" {
+  description = "Initial CPU request for the container"
+  type        = string
+  default     = "500m" # 0.5 CPU cores
+}
+
+variable "request_memory" {
+  description = "Initial memory request for the container"
+  type        = string
+  default     = "1Gi" # 1 GB RAM
+}
+
+variable "limit_cpu" {
+  description = "CPU limit for the container"
+  type        = string
+  default     = "2000m" # 2 CPU cores
+}
+
 #########################
 # CLOUD RUN SERVICE
 #########################
@@ -62,14 +80,14 @@ resource "google_cloud_run_service" "supremeai_api" {
         
         resources {
           limits = {
-            cpu    = "2000m"   # 2 CPU cores
+            cpu    = var.limit_cpu
             memory = "4Gi"     # 4 GB RAM
           }
           
           # Requests for better scheduling
           requests = {
-            cpu    = "500m"    # 0.5 CPU cores
-            memory = "1Gi"     # 1 GB RAM
+            cpu    = var.request_cpu
+            memory = var.request_memory
           }
         }
         

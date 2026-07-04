@@ -39,16 +39,20 @@ class ReviewAgent:
         self.model_router = model_router
 
     def execute(self, description: str, context: str = "") -> dict[str, Any]:
-        prompt = (
+        prompt_template = (
             "C-L-E-A-R Framework\n"
-            f"Role: {self.role}\n"
-            f"Context: {context}\n"
-            f"Action: {description}\n"
+            "Role: {role}\n"
+            "Context: {context}\n"
+            "Action: {description}\n"
             "Expectation: Review findings with severity and suggested fixes."
         )
+        prompt_params = {"role": self.role, "description": description, "context": context}
         try:
             raw = self.model_router.route_and_generate(
-                prompt=prompt, task_type="code", max_cost=0.01
+                prompt_template=prompt_template,
+                prompt_params=prompt_params,
+                task_type="code",
+                max_cost=0.01,
             )
             if raw.get("success") or raw.get("text"):
                 return {
@@ -57,6 +61,7 @@ class ReviewAgent:
                     "output": raw.get("text", ""),
                     "provider": raw.get("provider"),
                     "cost": raw.get("cost", 0.0),
+                    "prompt_version": raw.get("prompt_version"),
                 }
             return {
                 "role": self.role,

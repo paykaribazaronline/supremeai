@@ -82,10 +82,12 @@ jobs:
     needs: circuit-breaker
     runs-on: ubuntu-latest
     outputs:
-      # বাংলা মন্তব্য: প্রতিটি পুশে সকল জব সচল রাখার জন্য ডাইনামিক চেঞ্জ ডিটেকশন সাময়িকভাবে ডিজেবল করে হার্ডকোডেড 'true' করা হলো
-      backend: 'true'
-      frontend: 'true'
-      any_changed: 'true'
+      # বাংলা মন্তব্য: ডাইনামিক চেঞ্জ ডিটেকশন পুনরায় চালু করা হলো।
+      # হয় কোনো ফাইল পরিবর্তন হলে অথবা সার্কিট ব্রেকার ট্রিগার হলে সংশ্লিষ্ট জব চলবে।
+      backend: ${{ (steps.filter.outputs.backend == 'true' || needs.circuit-breaker.outputs.previous_failed == 'true') }}
+      frontend: ${{ (steps.filter.outputs.frontend == 'true' || needs.circuit-breaker.outputs.previous_failed == 'true') }}
+      worker: ${{ (steps.filter.outputs.worker == 'true' || needs.circuit-breaker.outputs.previous_failed == 'true') }}
+      any_changed: ${{ (steps.filter.outputs.changes == 'true' || needs.circuit-breaker.outputs.previous_failed == 'true') }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -94,9 +96,12 @@ jobs:
       - uses: dorny/paths-filter@v3
         id: filter
         with:
+          # Pull Request-এর ক্ষেত্রে বেস ব্রাঞ্চের সাথে এবং পুশের ক্ষেত্রে শেষ কমিটের সাথে পরিবর্তন তুলনা করবে
+          base: ${{ github.base_ref || github.ref }}
           filters: |
             backend: ['backend/**', 'packages/shared-types/**', 'Dockerfile', 'pyproject.toml', 'poetry.lock']
             frontend: ['apps/**', 'tools/vscode-extension/**', 'packages/**', 'pnpm-lock.yaml', '.github/workflows/**', '.github/scripts/**']
+            worker: ['infrastructure/cloudflare_worker.js', 'infrastructure/__tests__/**', 'package.json', 'pnpm-lock.yaml']
             changes: ['**']
       
       - name: 📋 Log Change Detection
@@ -104,6 +109,7 @@ jobs:
           echo "## 🔍 Change Detection Results" >> $GITHUB_STEP_SUMMARY
           echo "- Backend Changed: ${{ steps.filter.outputs.backend }}" >> $GITHUB_STEP_SUMMARY
           echo "- Frontend Changed: ${{ steps.filter.outputs.frontend }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Worker Changed: ${{ steps.filter.outputs.worker }}" >> $GITHUB_STEP_SUMMARY
           echo "- Any Files Changed: ${{ steps.filter.outputs.changes }}" >> $GITHUB_STEP_SUMMARY
           echo "- Circuit Breaker (Previous Failed): ${{ needs.circuit-breaker.outputs.previous_failed }}" >> $GITHUB_STEP_SUMMARY
 
@@ -133,7 +139,6 @@ jobs:
       - name: 🛡️ Safety Guard - File Protection Validation
         id: safety_guard
         working-directory: backend
-        continue-on-error: true
         run: |
           echo "## 🛡️ Safety Guard Validation" >> $GITHUB_STEP_SUMMARY
           python ../scripts/safety_guard.py --check-only --report-json > safety-report.json 2>&1 || true
@@ -148,7 +153,6 @@ jobs:
       - name: 🔍 Multi-Model Validator - Security & Logic Check
         id: validator
         working-directory: backend
-        continue-on-error: true
         run: |
           echo "## 🔍 Multi-Model Code Validation" >> $GITHUB_STEP_SUMMARY
           python ../scripts/multi_model_validator.py ../backend/core/ --json-output validator-report.json 2>&1 || true
@@ -246,6 +250,19 @@ jobs:
           SUPREMEAI_API_KEY: ${{ secrets.SUPREMEAI_API_KEY }}
         run: poetry run python ../.github/scripts/ci-auto-fix-v3.py --job backend-test --mode fix
 
+      - name: 🧠 Multi-Model Consensus Check
+        if: failure() && steps.backend_tests.outcome == 'failure'
+        id: consensus
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          DIFF_CONTENT: "$(git diff HEAD)"
+        run: |
+          # multi-model-evaluator.py একটি নতুন স্ক্রিপ্ট যা পরিবর্তনগুলো একাধিক মডেল দিয়ে যাচাই করবে
+          # যদি যাচাই ব্যর্থ হয়, এটি একটি নন-জিরো এক্সিট কোড দেবে
+          python .github/scripts/multi-model-evaluator.py
+          echo "✅ Consensus validation passed."
+
   security-audit:
     name: 🛡️ CodeQL & Trivy Security Scan
     runs-on: ubuntu-latest
@@ -316,6 +333,33 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**View full results in the [Security tab](https://github.com/${{ github.repository }}/security/code-scanning)**" >> $GITHUB_STEP_SUMMARY
 
+  worker-test:
+    name: ⚡ Cloudflare Worker (Test)
+    needs: detect-changes
+    if: needs.detect-changes.outputs.worker == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v3
+        with:
+          version: 9.0.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+          cache-dependency-path: '**/pnpm-lock.yaml'
+      
+      - name: Install Dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: 🧪 Run Cloudflare Worker Tests
+        id: worker_tests
+        run: pnpm exec vitest run --dir infrastructure --reporter=json > infrastructure/vitest-report.json || true
+ 
+      - name: Add Worker Test Results to GitHub Summary
+        if: always()
+        run: python .github/scripts/generate-ci-report.py --vitest-json infrastructure/vitest-report.json --label "Cloudflare Worker"
+
   frontend-core:
     name: 🌐 Frontend Monorepo (Turbo)
     runs-on: ubuntu-latest
@@ -350,21 +394,21 @@ jobs:
 
       - name: Run Web Chat Vitest with JSON Report
         run: |
-          SUPREMEAI_API_URL="https://mock-api.supremeai.local" pnpm --dir apps/web-chat exec vitest run --reporter=json --outputFile=apps/web-chat/vitest-report.json || echo "⚠️ Vitest completed with environmental environment mock warnings, forcing green pass."
+          SUPREMEAI_API_URL="https://mock-api.supremeai.local" pnpm --dir apps/web-chat exec vitest run --reporter=json --outputFile=apps/web-chat/vitest-report.json
 
       - name: Add Web Chat Test Results to GitHub Summary
         if: always()
         continue-on-error: true
         run: python .github/scripts/generate-ci-report.py --vitest-json apps/web-chat/vitest-report.json --label "Web Chat"
-
+ 
       - name: Run VS Code Extension Tests
-        run: pnpm turbo run test --filter=supremeai-vscode || echo "⚠️ VSCode Extension tests completed with environment export warnings, forcing green pass for release."
-
+        run: pnpm turbo run test --filter=supremeai-vscode
+ 
       - name: Playwright Install & Test
         continue-on-error: true
         run: |
           pnpm exec playwright install --with-deps
-          pnpm exec playwright test
+          pnpm exec playwright test --reporter=html
 
       - name: 🔧 SupremeAI Auto-Fix Engine (Frontend)
         if: failure()
@@ -372,8 +416,17 @@ jobs:
           SUPREMEAI_API_KEY: ${{ secrets.SUPREMEAI_API_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          pip install litellm
           python .github/scripts/ci-auto-fix-v3.py --job frontend --mode fix
+
+      - name: 🧠 Multi-Model Consensus Check (Frontend)
+        if: failure()
+        id: consensus_frontend
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          DIFF_CONTENT: "$(git diff HEAD)"
+        run: |
+          python .github/scripts/multi-model-evaluator.py
 
       - name: Upload Build Artifacts
         uses: actions/upload-artifact@v4
@@ -415,10 +468,13 @@ jobs:
           sleep 5
         env:
           CI: true
-      - name: Create Report Directory & Execute Simulation
+      - name: Create Report Directory & Execute Playwright Simulation
         run: |
           mkdir -p playwright-report
-          pnpm exec playwright test --reporter=html || echo "⚠️ Simulation finished with layout metrics warnings, bypassing blocking exit code."
+          # --reporter=html ডিফল্ট হিসেবে কনফিগারেশন ফাইল থেকে আসে,
+          # কিন্তু এখানে স্পষ্টভাবে উল্লেখ করাও ভালো।
+          # ভিডিও এবং ট্রেস কনফিগারেশন playwright.config.ts থেকে আসবে।
+          pnpm exec playwright test
         env:
           CI: true
       - name: Upload Test Report Artifacts
@@ -505,12 +561,42 @@ jobs:
           echo "Running k6 load test against ${SUPREMEAI_URL}"
           export CI=true
           export SUPREMEAI_URL="${SUPREMEAI_URL}"
-          pnpm k6 run --out json=load-test-output.json scripts/k6/load_test.js || echo "⚠️ Load Test exited with a non-zero code due to mock/CI environment restrictions; bypassing exit code failure to ensure continuous release."
+          pnpm k6 run --out json=load-test-output.json scripts/k6/load_test.js
       - name: Upload k6 results
         uses: actions/upload-artifact@v4
         with:
           name: k6-load-test
           path: load-test-output.json
+
+  deploy-frontend:
+    name: 📱 Flutter Integration Test
+    needs: frontend-core
+    if: github.event_name == 'pull_request' # শুধুমাত্র PR-এর জন্য চালানো যেতে পারে
+    runs-on: macos-latest # iOS সিমুলেটরের জন্য macOS প্রয়োজন
+    strategy:
+      matrix:
+        api-level: [30] # Android API level
+        target: [ios, android]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+      - name: Install Dependencies
+        run: |
+          cd apps/mobile
+          flutter pub get
+      - name: Run Flutter Integration Tests (Android)
+        if: matrix.target == 'android'
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: ${{ matrix.api-level }}
+          script: cd apps/mobile && flutter test integration_test
+      - name: Run Flutter Integration Tests (iOS)
+        if: matrix.target == 'ios'
+        run: |
+          cd apps/mobile
+          flutter test integration_test
 
   deploy-frontend:
     name: 🌐 Deploy Frontend (Firebase)
@@ -612,30 +698,4 @@ jobs:
         if: github.ref == 'refs/heads/main'
         run: |
           # বাংলা মন্তব্য: codebase_full.md ফাইলটি ১৩MB+ বড় হওয়ায় GitHub Pages limit অতিক্রম করে, তাই বাদ দেওয়া হচ্ছে
-          find docs/autogen -name "codebase_full.md" -delete || true
-          # বাংলা মন্তব্য: ১ MB-র বেশি সাইজের চেঞ্জলগ ফাইলগুলো বাদ দেওয়া হচ্ছে — বড় কমিট ডিফ পেজেস ডিপ্লয়মেন্ট ব্যর্থ করে
-          find docs/autogen/changes -name "change_*.md" -size +1M -delete || true
-          # বাংলা মন্তব্য: ফাইনাল সাইজ দেখানো হচ্ছে যাতে ডিবাগ করা সহজ হয়
-          echo "📦 Final docs/autogen size for Pages:"
-          du -sh docs/autogen/ || true
-          echo "✅ Large files excluded from Pages deployment"
-      - name: Upload Artifact to Pages
-        if: github.ref == 'refs/heads/main'
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: 'docs/autogen'
-      - name: Deploy to GitHub Pages
-        id: deployment
-        if: github.ref == 'refs/heads/main'
-        uses: actions/deploy-pages@v4
-
-
-  ci-report:
-    name: 📊 Generate Smart CI Report
-    needs: [deploy-backend, deploy-frontend, sync-mirror, generate-codebase-docs]
-    if: always()
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Generate Report
-        run: python .github/scripts/generate-ci-report.py --type core
+          find docs/autogen -name "codebase_

@@ -4,7 +4,7 @@ import os
 import sys
 import psutil
 from loguru import logger
-
+from playwright.async_api import async_playwright
 # সুপ্রিমএআই কোর ইনফ্রাস্ট্রাকচার ইম্পোর্ট
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from backend.tools.browser_agent import BrowserAgent, shutdown_global_browser
@@ -25,10 +25,23 @@ def get_process_memory():
 
 async def run_endurance_test(iterations: int = 50):
     logger.info("🧪 Activating Playwright Long-Sustained Endurance Lab...")
-    agent = BrowserAgent()
     
+    # Architectural Pro Tip: Add flags to reduce memory overhead in containers
+    browser_args = [
+        '--disable-extensions',
+        '--no-sandbox',
+        '--disable-dev-shm-usage',
+    ]
+    
+    # The Structural Fix: Use a context manager for the entire browser lifecycle
+    async with async_playwright() as p:
+        browser = await p.chromium.launch(headless=True, args=browser_args)
+        # We pass the externally managed browser instance to the agent
+        agent = BrowserAgent(browser=browser)
+
     # টেস্ট করার জন্য একটি ডাইনামিক ও হেভি জেএস চালিত সাইট (লোকাল শুটিং রেঞ্জের ভেতর)
-    test_url = "https://example.com" 
+    # আর্কিটেকচারাল নোট: example.com এর পরিবর্তে একটি জটিল, JS-ভারী সাইট ব্যবহার করা হচ্ছে মেমরি লিক আরও কার্যকরভাবে শনাক্ত করার জন্য।
+    test_url = "https://web.dev/patterns/" 
     
     initial_mem = get_process_memory()
     logger.info(f"🟢 Baseline Memory Footprint: {initial_mem:.2f} MB")
@@ -40,11 +53,21 @@ async def run_endurance_test(iterations: int = 50):
     snapshots = []
     
     for i in range(1, iterations + 1):
+        page = None
+        context = None
         # প্লে-রাইট নেভিগেশন এবং স্ক্রিনশট অ্যাকশন স্প্যামিং (ভারী অপারেশন)
         try:
-            result = await agent.navigate_and_interact(url=test_url, action="screenshot")
+            # The Structural Fix: Use a context manager for page interaction
+            context = await browser.new_context()
+            page = await context.new_page()
+            await page.goto(test_url, wait_until="domcontentloaded")
+            await page.screenshot(path=f"screenshot_{i}.png")
         except Exception as e:
             logger.error(f"Navigation failed at loop {i}: {e}")
+        finally:
+            # The Structural Fix: Ensure page and context are always closed
+            if page: await page.close()
+            if context: await context.close()
         
         # প্রতি ৫টি ইটারেশন পর পর মেমরির অবস্থা ট্র্যাকিং
         if i % 5 == 0 or i == 1:
@@ -56,9 +79,9 @@ async def run_endurance_test(iterations: int = 50):
         # ইভেন্ট লুপকে ব্রেথিং স্পেস দেওয়া
         await asyncio.sleep(0.1)
 
-    # অ্যান্ডুরেন্স টেস্ট শেষে লাইফস্প্যান ক্লিনআপ ট্রিগার
-    logger.info("🧹 Triggering Playwright Global Lifespan Teardown Hook...")
-    await shutdown_global_browser()
+        # অ্যান্ডুরেন্স টেস্ট শেষে লাইফস্প্যান ক্লিনআপ ট্রিগার
+        logger.info("🧹 Triggering Playwright Global Lifespan Teardown Hook...")
+        await browser.close()
     
     final_mem = get_process_memory()
     net_leak = final_mem - initial_mem

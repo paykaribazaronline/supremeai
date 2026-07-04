@@ -1,9 +1,11 @@
 from __future__ import annotations
 
 import contextlib
+import asyncio
 import json
 import random
 import time
+import base64
 from collections.abc import Callable
 from pathlib import Path
 from typing import Any
@@ -14,6 +16,9 @@ from playwright_stealth import stealth_sync
 
 from core.secure_credential_store import SecureCredentialStore
 from database.supabase_client import db
+from tools.browser_stealth import BrowserStealth
+from brain.model_router import ModelRouter
+from memory.long_term_memory import MemoryManager
 
 
 TRUST_SCORE_THRESHOLD = 0.95
@@ -29,6 +34,7 @@ class PlaywrightBrowserAgent:
         self.timeout_ms = timeout_ms
         self.playwright = None
         self.browser = None
+        self.memory = MemoryManager()
         self.secure_store = SecureCredentialStore()
         self.COOKIE_STORAGE_BASE.mkdir(parents=True, exist_ok=True)
 
@@ -91,31 +97,61 @@ class PlaywrightBrowserAgent:
         for char in text:
             page.type(selector, char, delay=random.uniform(30, 100))
 
-    def _human_like_click(self, page: Page, selector: str):
-        """Moves mouse over an element, waits, and then clicks."""
-        page.hover(selector)
-        time.sleep(random.uniform(0.2, 0.6))
-        page.click(selector)
+    def _human_like_click(self, page: Page, selector: str, steps: int = 25):
+        """
+        Moves the mouse in a human-like curve to an element and clicks it.
+        This uses a Bezier curve to simulate a more natural mouse movement.
+        """
+        try:
+            element = page.wait_for_selector(selector, timeout=self.timeout_ms)
+            if not element:
+                raise RuntimeError(f"Element '{selector}' not found.")
 
-    def _new_context(self, session_name: str | None = None) -> Any:
-        if self.browser is None:
-            raise RuntimeError(
-                "Browser is not started. Call start() before creating a context."
-            )
+            bb = element.bounding_box()
+            if not bb:
+                # Fallback for elements without a clear bounding box
+                logger.warning(f"Element '{selector}' has no bounding box. Using simple click.")
+                page.click(selector)
+                return
 
-        context = self.browser.new_context(
-            user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36",
-            # Use a common viewport size
-            viewport={"width": 1920, "height": 1080},
-            # Set common browser language
-            locale="en-US",
-            # Set timezone
-            timezone_id="America/New_York",
-            # Set geolocation (optional, can be randomized)
-            geolocation={"latitude": 40.7128, "longitude": -74.0060},
-            # Set permissions
-            permissions=["geolocation"],
-        )
+            # Target coordinates (center of the element with some randomness)
+            target_x = bb['x'] + bb['width'] / 2 + random.uniform(-bb['width']/4, bb['width']/4)
+            target_y = bb['y'] + bb['height'] / 2 + random.uniform(-bb['height']/4, bb['height']/4)
+
+            # Starting coordinates (random point on the screen)
+            start_x, start_y = random.uniform(0, 500), random.uniform(0, 500)
+
+            # Control points for the Bezier curve
+            control_1_x = start_x + random.uniform(50, 150) * random.choice([-1, 1])
+            control_1_y = start_y + random.uniform(50, 150) * random.choice([-1, 1])
+            control_2_x = target_x + random.uniform(50, 150) * random.choice([-1, 1])
+            control_2_y = target_y + random.uniform(50, 150) * random.choice([-1, 1])
+
+            # Move mouse along the curve
+            page.mouse.move(start_x, start_y)
+            page.mouse.move(control_1_x, control_1_y)
+            page.mouse.move(control_2_x, control_2_y)
+            page.mouse.move(target_x, target_y, steps=steps)
+            page.mouse.click(target_x, target_y)
+
+        except Exception as e:
+            logger.error(f"Human-like click failed for selector '{selector}': {e}. Falling back to simple click.")
+            page.click(selector) # Fallback to a simple click if anything goes wrong
+
+    def _new_context(self, session_name: str | None = None) -> tuple[Any, BrowserStealth]:
+        """
+        Creates a new, stealthy browser context using the BrowserStealth class.
+        This method runs the async setup from BrowserStealth in a sync context.
+        """
+        stealth_manager = BrowserStealth()
+
+        # Since this is a sync method, we run the async setup in a new event loop.
+        try:
+            loop = asyncio.get_running_loop()
+        except RuntimeError:
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+        context = loop.run_until_complete(stealth_manager.create_stealth_browser())
 
         if session_name:
             self._load_cookies(context, session_name)
@@ -126,23 +162,17 @@ class PlaywrightBrowserAgent:
         if not self.is_available():
             raise RuntimeError("playwright is not installed")
 
-        from playwright.sync_api import sync_playwright  # type: ignore
-
-        if self.playwright is None:
-            self.playwright = sync_playwright().start()
-        if self.browser is None:
-            self.browser = self.playwright.chromium.launch(headless=self.headless)
-
-        # Apply stealth patches to all new contexts
-        stealth_sync(self.browser)
+        # The BrowserStealth class now handles Playwright startup.
+        # This method is now just a check.
+        logger.debug("Playwright availability checked.")
 
     def stop(self) -> None:
-        if self.browser:
-            self.browser.close()
-            self.browser = None
-        if self.playwright:
-            self.playwright.stop()
-            self.playwright = None
+        """
+        Stops the Playwright instance. Now handled by stealth_manager cleanup.
+        This method can be kept for explicit cleanup if needed, but the primary
+        mechanism is now within each task's finally block.
+        """
+        logger.debug("Browser and context are now closed within each task.")
 
     def perform_task(
         self,
@@ -154,10 +184,11 @@ class PlaywrightBrowserAgent:
         credentials: dict[str, str] | None = None,
     ) -> dict[str, Any]:
         self.start()
-        context = self._new_context(session_name)
+        context, stealth_manager = self._new_context(session_name)
         page = context.new_page()
-        stealth_sync(page)  # Apply stealth to the page as well
-        page.set_default_timeout(self.timeout_ms)
+        # Stealth is now applied at context creation, so stealth_sync(page) is not needed here.
+        if hasattr(page, 'set_default_timeout'):
+            page.set_default_timeout(self.timeout_ms)
 
         try:
             page.goto(url)
@@ -189,13 +220,13 @@ class PlaywrightBrowserAgent:
         finally:
             page.close()
             context.close()
+            asyncio.run(stealth_manager.close())
 
     def open(self, url: str, session_name: str | None = None) -> dict[str, Any]:
         self.start()
-        context = self._new_context(session_name)
+        context, stealth_manager = self._new_context(session_name)
         page = context.new_page()
-        stealth_sync(page)
-        page.set_default_timeout(self.timeout_ms)
+        page.set_default_timeout(self.timeout_ms) if hasattr(page, 'set_default_timeout') else None
 
         try:
             page.goto(url)
@@ -204,6 +235,7 @@ class PlaywrightBrowserAgent:
         finally:
             page.close()
             context.close()
+            asyncio.run(stealth_manager.close())
 
     def screenshot(
         self,
@@ -212,10 +244,9 @@ class PlaywrightBrowserAgent:
         session_name: str | None = None,
     ) -> dict[str, Any]:
         self.start()
-        context = self._new_context(session_name)
+        context, stealth_manager = self._new_context(session_name)
         page = context.new_page()
-        stealth_sync(page)
-        page.set_default_timeout(self.timeout_ms)
+        page.set_default_timeout(self.timeout_ms) if hasattr(page, 'set_default_timeout') else None
 
         try:
             page.goto(url)
@@ -224,15 +255,15 @@ class PlaywrightBrowserAgent:
         finally:
             page.close()
             context.close()
+            asyncio.run(stealth_manager.close())
 
     def click(
         self, url: str, selector: str, session_name: str | None = None
     ) -> dict[str, Any]:
         self.start()
-        context = self._new_context(session_name)
+        context, stealth_manager = self._new_context(session_name)
         page = context.new_page()
-        stealth_sync(page)
-        page.set_default_timeout(self.timeout_ms)
+        page.set_default_timeout(self.timeout_ms) if hasattr(page, 'set_default_timeout') else None
 
         try:
             page.goto(url)
@@ -241,15 +272,15 @@ class PlaywrightBrowserAgent:
         finally:
             page.close()
             context.close()
+            asyncio.run(stealth_manager.close())
 
     def text(
         self, url: str, selector: str, session_name: str | None = None
     ) -> dict[str, Any]:
         self.start()
-        context = self._new_context(session_name)
+        context, stealth_manager = self._new_context(session_name)
         page = context.new_page()
-        stealth_sync(page)
-        page.set_default_timeout(self.timeout_ms)
+        page.set_default_timeout(self.timeout_ms) if hasattr(page, 'set_default_timeout') else None
 
         try:
             page.goto(url)
@@ -258,6 +289,7 @@ class PlaywrightBrowserAgent:
         finally:
             page.close()
             context.close()
+            asyncio.run(stealth_manager.close())
 
     def _update_model_behavior_in_background(
         self, model_name: str, latency_ms: float, success: bool
@@ -299,9 +331,8 @@ class PlaywrightBrowserAgent:
         """
         logger.info(f"Starting cross-verification for prompt: '{prompt[:50]}...'")
         self.start()
-        context = self._new_context("cross-verification-session")
+        context, stealth_manager = self._new_context("cross-verification-session")
         page = context.new_page()
-        stealth_sync(page)
         page.set_default_timeout(self.timeout_ms)
 
         try:
@@ -398,6 +429,7 @@ class PlaywrightBrowserAgent:
         finally:
             page.close()
             context.close()
+            asyncio.run(stealth_manager.close())
 
     def _query_ai_site(
         self, page: Page, site_config: dict[str, str], prompt: str
@@ -458,3 +490,92 @@ class PlaywrightBrowserAgent:
 # result = agent.cross_verify_prompt("What is the capital of Bangladesh?", GROQ_CONFIG, GEMINI_CONFIG)
 # print(result)
 # agent.stop()
+
+    def execute_goal(self, url: str, goal: str, max_steps: int = 10) -> dict[str, Any]:
+        """
+        Executes a high-level goal using a vision-capable AI model.
+        This is a conceptual implementation. Requires a VLM provider.
+        """
+        logger.info(f"Attempting to achieve goal: '{goal}' at {url}")
+        self.start()
+        context, stealth_manager = self._new_context("goal-execution-session")
+        page = context.new_page()
+        page.set_default_timeout(self.timeout_ms) if hasattr(page, 'set_default_timeout') else None
+
+        try:
+            page.goto(url)
+            time.sleep(2) # Wait for page to settle
+
+            for step in range(max_steps):
+                logger.info(f"Goal Execution Step {step + 1}/{max_steps}")
+
+                # 1. Observe: Take a screenshot
+                screenshot_path = f"step_{step}_screenshot.png"
+                page.screenshot(path=screenshot_path)
+                with open(screenshot_path, "rb") as image_file:
+                    b64_image = base64.b64encode(image_file.read()).decode('utf-8')
+
+                # 1.5. Recall: Consult long-term memory
+                relevant_memories = asyncio.run(self.memory.retrieve_relevant_memories(f"Goal: {goal} on URL: {url}"))
+
+                # 2. Reason: Ask a VLM what to do next
+                vlm_prompt = (
+                    "You are an autonomous web agent. Your goal is to navigate a website to achieve an objective. "
+                    "Based on the current screenshot and your past experiences, decide the next action to take. "
+                    "Return a single JSON object with 'type' ('CLICK', 'TYPE', or 'FINISH'), 'selector' (a CSS selector for the element), "
+                    "and 'text' (if typing). Provide a 'reason' for your choice.\n\n"
+                    f"Objective: {goal}\n\n"
+                    "Past Learnings (if any):\n"
+                    f"{relevant_memories if relevant_memories else 'None'}\n\n"
+                    "Analyze the screenshot and determine the next best action."
+                )
+
+                model_router = ModelRouter()
+                # Use a vision-capable model like gpt-4o or gemini-1.5-pro-vision-latest
+                vlm_response = await model_router.async_route_and_generate(
+                    prompt=vlm_prompt,
+                    task_type="vision",
+                    image_base64=b64_image,
+                    # Force a vision model
+                    model_filter=["gpt-4o", "gemini-1.5-pro-vision-latest"] 
+                )
+
+                if not vlm_response.get("success"):
+                    raise RuntimeError(f"VLM failed to provide an action: {vlm_response.get('text')}")
+
+                try:
+                    # Clean up potential markdown code blocks from the response
+                    action_text = vlm_response["text"].strip().replace("```json", "").replace("```", "")
+                    action = json.loads(action_text)
+                    logger.info(f"VLM Reason: {action.get('reason', 'No reason provided.')}")
+                except (json.JSONDecodeError, KeyError) as e:
+                    logger.error(f"Failed to parse VLM action response: {e}\nResponse was: {vlm_response['text']}")
+                    return {"success": False, "error": "Failed to parse VLM action."}
+
+                if action.get("type", "").upper() == "FINISH":
+                    logger.success(f"Goal '{goal}' achieved as per VLM instruction.")
+                    return {"success": True, "result": f"Goal achieved: {action.get('reason')}"}
+
+                logger.info(f"AI Action: {action['type']} on '{action.get('selector')}'")
+
+                # 3. Act: Execute the action
+                if action["type"] == "CLICK":
+                    self._human_like_click(page, action["selector"])
+                elif action["type"] == "TYPE":
+                    self._human_like_type(page, action["selector"], action["text"])
+
+                # 4. Learn: Reflect on the action and save a memory
+                learning = f"For the goal '{goal}', I performed the action '{action['type']}' on the element '{action.get('selector')}'."
+                asyncio.run(self.memory.add_memory(learning, url, metadata=action))
+                
+                page.wait_for_load_state("networkidle")
+                time.sleep(2) # Wait for animations/transitions
+
+            return {"success": True, "result": f"Completed {max_steps} steps."}
+        except Exception as exc:
+            logger.error(f"Goal execution failed: {exc}")
+            return {"success": False, "error": str(exc)}
+        finally:
+            page.close()
+            context.close()
+            asyncio.run(stealth_manager.close())
