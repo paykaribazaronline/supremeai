@@ -598,7 +598,7 @@ flutter-integration-tests:
           cd apps/mobile
           flutter test integration_test
 
-  deploy-frontend:
+  deploy-frontend-prod:
     name: 🌐 Deploy Frontend (Firebase)
     needs: frontend-core
     if: |
@@ -622,12 +622,12 @@ flutter-integration-tests:
 
   sync-mirror:
     name: 📤 Sync to Secondary Repo
-    needs: [deploy-backend, deploy-frontend, security-audit]
+    needs: [deploy-backend, deploy-frontend-prod, security-audit]
     if: |
       always() &&
       github.ref == 'refs/heads/main' &&
       needs.deploy-backend.result != 'failure' && needs.deploy-backend.result != 'cancelled' &&
-      needs.deploy-frontend.result != 'failure' && needs.deploy-frontend.result != 'cancelled' &&
+      needs.deploy-frontend-prod.result != 'failure' && needs.deploy-frontend-prod.result != 'cancelled' &&
       needs.security-audit.result != 'failure' && needs.security-audit.result != 'cancelled'
     runs-on: ubuntu-latest
     steps:
