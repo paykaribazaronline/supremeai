@@ -6,9 +6,12 @@ import tailwindcss from '@tailwindcss/vite'
 export default defineConfig({
   base: './', // Important for Electron to load local files
   plugins: [
-    react(),
+    react({ jsxRuntime: 'automatic' }),
     tailwindcss()
   ],
+  esbuild: {
+    jsx: 'automatic',
+  },
   resolve: {
     dedupe: ['react', 'react-dom']
   },

@@ -107,6 +107,7 @@ def get_credentials(userId: str = "default"):
 def save_credential(cred: CredentialRequest):
     new_cred = credential_store.encrypt(cred.model_dump())
     new_cred["id"] = f"cred_{len(CREDENTIALS) + 1}"
+    new_cred["userId"] = cred.userId
     CREDENTIALS.append(new_cred)
     audit.log_decision(
         action_type="browser_credential_saved",

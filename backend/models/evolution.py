@@ -13,13 +13,11 @@ from sqlalchemy import String
 from sqlalchemy import Text
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import mapped_column
 
+from models.base import Base
 
-class Base(DeclarativeBase):
-    pass
 
 class SkillFitness(Base):
     __tablename__ = "skill_fitness"
