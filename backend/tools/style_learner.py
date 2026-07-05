@@ -49,6 +49,7 @@ class StyleLearner:
                     except Exception as e:
                         try:
                             import loguru
+
                             loguru.logger.error(f"Tool execution error: {e}")
                         except Exception:
                             pass
@@ -71,9 +72,7 @@ class StyleLearner:
                     f"Code:\n{combined[:5000]}"
                 )
                 # ✅ FIXED: was missing await
-                result = await router_llm.async_route_and_generate(
-                    prompt, task_type="coding", max_cost=0.03
-                )
+                result = await router_llm.async_route_and_generate(prompt, task_type="coding", max_cost=0.03)
                 text = result.get("text", "") if isinstance(result, dict) else ""
                 try:
                     cleaned = text.strip()
@@ -89,6 +88,7 @@ class StyleLearner:
                 except Exception as e:
                     try:
                         import loguru
+
                         loguru.logger.error(f"Tool execution error: {e}")
                     except Exception:
                         pass
@@ -116,6 +116,7 @@ class StyleLearner:
         except Exception as e:
             try:
                 import loguru
+
                 loguru.logger.error(f"Tool execution error: {e}")
             except Exception:
                 pass
@@ -173,9 +174,7 @@ _learner = StyleLearner()
 async def learn_style(request: StyleRequest):
     """Extract and persist coding style from a repository path."""
     if not os.path.isdir(request.repo_path):
-        raise HTTPException(
-            status_code=400, detail=f"Path not found: {request.repo_path}"
-        )
+        raise HTTPException(status_code=400, detail=f"Path not found: {request.repo_path}")
     guidelines = await _learner.extract_style_guidelines(request.repo_path)
     return {"status": "success", "guidelines": guidelines}
 

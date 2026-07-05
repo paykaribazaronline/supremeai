@@ -1,9 +1,9 @@
-
 from fastapi import APIRouter
 from pydantic import BaseModel
 
 
 router = APIRouter(prefix="/api/admin/execution-policies", tags=["Guardrails"])
+
 
 class ExecutionPolicyModel(BaseModel):
     id: str
@@ -15,6 +15,7 @@ class ExecutionPolicyModel(BaseModel):
     cb_failure_threshold: int
     cooldown_window_sec: int
 
+
 # In-memory mock for DB layer built in phase 1 (execution_policy table)
 MOCK_POLICIES = [
     {
@@ -25,7 +26,7 @@ MOCK_POLICIES = [
         "max_compute_usd": 1.0,
         "max_retries": 3,
         "cb_failure_threshold": 5,
-        "cooldown_window_sec": 300
+        "cooldown_window_sec": 300,
     },
     {
         "id": "pol_stripe",
@@ -35,13 +36,15 @@ MOCK_POLICIES = [
         "max_compute_usd": 0.5,
         "max_retries": 1,
         "cb_failure_threshold": 3,
-        "cooldown_window_sec": 600
-    }
+        "cooldown_window_sec": 600,
+    },
 ]
+
 
 @router.get("/")
 def get_policies():
     return {"items": MOCK_POLICIES}
+
 
 @router.put("/{policy_id}")
 def update_policy(policy_id: str, updates: dict):
