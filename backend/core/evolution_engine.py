@@ -8,10 +8,9 @@ from datetime import UTC
 from datetime import datetime
 from typing import Any
 import logging
+from brain.model_router import ModelRouter
 
 logger = logging.getLogger(__name__)
-
-from brain.model_router import ModelRouter
 
 try:
     from prometheus_client import Counter
