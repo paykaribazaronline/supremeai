@@ -28,9 +28,13 @@ class TrustedOriginMiddleware(BaseHTTPMiddleware):
                     content={"detail": "Cross-Origin Request Blocked. Device identity unauthorized."}
                 )
                 
-        # বাংলা মন্তব্য: হোস্ট হেডার ভ্যালিডেশন - WHOLE DOMAIN ম্যাচিং, substring vulnerability removed
+        # বাংলা মন্তব্য: হোস্ট হেডার ভ্যালিডেশন
         host = request.headers.get("Host")
-        is_allowed = host in set(settings.allowed_hosts) if host else True
+        is_allowed = True
+        if host:
+            allowed_hosts = set(settings.allowed_hosts)
+            is_allowed = host in allowed_hosts or any(host.endswith("." + h) for h in allowed_hosts)
+            
         if host and not is_allowed:
             logger.critical(f"🚨 Security Intrusion: Host Header Tampering Detected -> {host}")
             return JSONResponse(
