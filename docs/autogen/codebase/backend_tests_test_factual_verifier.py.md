@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/test_factual_verifier.py
 
 **প্রকার:** .py  
-**সাইজ:** 2,633 বাইট  
-**আপডেট:** 2026-07-05T19:37:54.387601
+**সাইজ:** 2,644 বাইট  
+**আপডেট:** 2026-07-05T19:50:39.006832
 
 ---
 
@@ -41,7 +41,7 @@ def test_verify_with_local_rag_no_rag(monkeypatch):
     verifier.local_rag = None
     result = verifier.verify_with_local_rag("test claim")
     assert result["is_verified"] is False
-    assert result["method"] == "no_local_rag"
+    assert result["method"] == "unverified_no_local_rag"
 
 
 def test_verify_with_local_rag_with_matches():
