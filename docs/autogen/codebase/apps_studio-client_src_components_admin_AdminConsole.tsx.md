@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/studio-client/src/components/admin/AdminConsole.tsx
 
 **প্রকার:** .tsx  
-**সাইজ:** 2,370 বাইট  
-**আপডেট:** 2026-07-05T16:33:15.779803
+**সাইজ:** 2,300 বাইট  
+**আপডেট:** 2026-07-05T16:59:16.454914
 
 ---
 
@@ -72,10 +72,6 @@ interface AdminConsoleProps {
 }
 
 export function AdminConsole(props: AdminConsoleProps) {
-  const hydrated = useHydrated();
-  
-  if (!hydrated) return null;
-  
   return (
     <div className="h-screen w-screen flex flex-col overflow-hidden bg-[#030407]">
       {!props.adminAuthenticated ? (
