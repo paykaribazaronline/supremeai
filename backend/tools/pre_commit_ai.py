@@ -101,8 +101,8 @@ class PreCommitAI:
                     original_content = f.read()
             except Exception as e:
                 try:
-                    from loguru import logger
-                    logger.error(f"Tool execution error: {e}")
+                    import loguru
+                    loguru.logger.error(f"Tool execution error: {e}")
                 except Exception:
                     pass
                 continue  # Skip binary files that can't be read

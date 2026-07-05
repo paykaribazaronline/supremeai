@@ -30,8 +30,8 @@ def is_safe_url(url: str) -> bool:
         return not (ip_obj.is_private or ip_obj.is_loopback or ip_obj.is_link_local)
     except Exception as e:
         try:
-            from loguru import logger
-            logger.error(f"Tool execution error: {e}")
+            import loguru
+            loguru.logger.error(f"Tool execution error: {e}")
         except Exception:
             pass
         return False

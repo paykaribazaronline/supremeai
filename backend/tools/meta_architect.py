@@ -45,8 +45,8 @@ class MetaArchitect:
                             ) + len(lines)
                     except Exception as e:
                         try:
-                            from loguru import logger
-                            logger.error(f"Tool execution error: {e}")
+                            import loguru
+                            loguru.logger.error(f"Tool execution error: {e}")
                         except Exception:
                             pass
                         pass
@@ -103,8 +103,8 @@ class MetaArchitect:
                 plan = json.loads(cleaned)
             except Exception as e:
                 try:
-                    from loguru import logger
-                    logger.error(f"Tool execution error: {e}")
+                    import loguru
+                    loguru.logger.error(f"Tool execution error: {e}")
                 except Exception:
                     pass
                 plan = {

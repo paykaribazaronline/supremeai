@@ -28,8 +28,8 @@ class TenantRateLimiter:
             return getattr(app_mod, "redis_queue", None)
         except Exception as e:
             try:
-                from loguru import logger
-                logger.error(f"Tool execution error: {e}")
+                import loguru
+                loguru.logger.error(f"Tool execution error: {e}")
             except Exception:
                 pass
             return None

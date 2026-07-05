@@ -1,7 +1,8 @@
 import time
-from typing import List
+
 from fastapi import APIRouter
 from pydantic import BaseModel
+
 
 router = APIRouter(prefix="/api/admin/selector-healing", tags=["Self-Healing Logs"])
 

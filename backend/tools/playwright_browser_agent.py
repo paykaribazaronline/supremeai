@@ -197,8 +197,8 @@ class PlaywrightBrowserAgent:
                     is_authenticated = page.is_visible(login_check_selector)
                 except Exception as e:
                     try:
-                        from loguru import logger
-                        logger.error(f"Tool execution error: {e}")
+                        import loguru
+                        loguru.logger.error(f"Tool execution error: {e}")
                     except Exception:
                         pass
                     is_authenticated = False

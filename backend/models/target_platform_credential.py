@@ -1,10 +1,15 @@
 import enum
 import uuid
-from datetime import UTC, datetime
+from datetime import UTC
+from datetime import datetime
 
-from sqlalchemy import DateTime, Enum, LargeBinary, String
+from sqlalchemy import DateTime
+from sqlalchemy import Enum
+from sqlalchemy import LargeBinary
+from sqlalchemy import String
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped
+from sqlalchemy.orm import mapped_column
 
 from models.base import Base
 

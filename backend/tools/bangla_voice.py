@@ -25,8 +25,8 @@ class BanglaVoice:
             return whisper is not None
         except Exception as e:
             try:
-                from loguru import logger
-                logger.error(f"Tool execution error: {e}")
+                import loguru
+                loguru.logger.error(f"Tool execution error: {e}")
             except Exception:
                 pass
             return False
@@ -38,8 +38,8 @@ class BanglaVoice:
             return TTS is not None
         except Exception as e:
             try:
-                from loguru import logger
-                logger.error(f"Tool execution error: {e}")
+                import loguru
+                loguru.logger.error(f"Tool execution error: {e}")
             except Exception:
                 pass
             return False

@@ -48,8 +48,8 @@ class StyleLearner:
                             code_samples.append(f.read()[:1500])
                     except Exception as e:
                         try:
-                            from loguru import logger
-                            logger.error(f"Tool execution error: {e}")
+                            import loguru
+                            loguru.logger.error(f"Tool execution error: {e}")
                         except Exception:
                             pass
                         pass
@@ -88,8 +88,8 @@ class StyleLearner:
                         return parsed
                 except Exception as e:
                     try:
-                        from loguru import logger
-                        logger.error(f"Tool execution error: {e}")
+                        import loguru
+                        loguru.logger.error(f"Tool execution error: {e}")
                     except Exception:
                         pass
                     logger.warning("Failed to parse style guidelines JSON from LLM.")
@@ -115,8 +115,8 @@ class StyleLearner:
                 return
         except Exception as e:
             try:
-                from loguru import logger
-                logger.error(f"Tool execution error: {e}")
+                import loguru
+                loguru.logger.error(f"Tool execution error: {e}")
             except Exception:
                 pass
             pass

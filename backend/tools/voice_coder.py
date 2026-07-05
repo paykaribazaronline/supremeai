@@ -39,8 +39,8 @@ class VoiceCoder:
                 audio_feedback = await self.voice.text_to_speech_async(feedback_text)
             except Exception as e:
                 try:
-                    from loguru import logger
-                    logger.error(f"Tool execution error: {e}")
+                    import loguru
+                    loguru.logger.error(f"Tool execution error: {e}")
                 except Exception:
                     pass
                 audio_feedback = None

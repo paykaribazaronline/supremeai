@@ -1,10 +1,11 @@
 import asyncio
-import base64
 
-from fastapi import APIRouter, Query, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter
+from fastapi import Query
+from fastapi import WebSocket
+from fastapi import WebSocketDisconnect
 from loguru import logger
 
-from database.session import get_db_session
 
 router = APIRouter()
 
@@ -82,5 +83,5 @@ async def takeover_session_websocket(
         logger.error(f"WebSocket takeover error: {e}")
     finally:
         emitter_task.cancel()
-        if not websocket.client_state.name == "DISCONNECTED":
+        if websocket.client_state.name != "DISCONNECTED":
             await websocket.close()

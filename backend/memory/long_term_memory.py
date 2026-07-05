@@ -4,6 +4,7 @@ from typing import Any
 
 from loguru import logger
 
+
 try:
     from brain.model_router import ModelRouter
     from database.supabase_client import db

@@ -1,9 +1,5 @@
 import asyncio
-import os
-import signal
 from collections import deque
-from datetime import datetime
-from typing import Any, Dict
 
 from loguru import logger
 from sqlalchemy import insert
@@ -84,7 +80,7 @@ class LogBatcherService:
                         
                 if len(self.buffer) >= self.batch_size:
                     await self._flush()
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 if self.buffer:
                     await self._flush()
             except Exception as e:

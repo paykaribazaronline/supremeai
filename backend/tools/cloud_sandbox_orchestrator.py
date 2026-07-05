@@ -152,8 +152,8 @@ class CloudSandboxOrchestrator:
                     container.kill()
                 except Exception as e:
                     try:
-                        from loguru import logger
-                        logger.error(f"Tool execution error: {e}")
+                        import loguru
+                        loguru.logger.error(f"Tool execution error: {e}")
                     except Exception:
                         pass
                     pass
@@ -189,8 +189,8 @@ class CloudSandboxOrchestrator:
                     container.remove(force=True)
                 except Exception as e:
                     try:
-                        from loguru import logger
-                        logger.error(f"Tool execution error: {e}")
+                        import loguru
+                        loguru.logger.error(f"Tool execution error: {e}")
                     except Exception:
                         pass
                     pass

@@ -33,8 +33,8 @@ class PresentationGenerator:
                     slides = []
             except Exception as e:
                 try:
-                    from loguru import logger
-                    logger.error(f"Tool execution error: {e}")
+                    import loguru
+                    loguru.logger.error(f"Tool execution error: {e}")
                 except Exception:
                     pass
                 for i in range(1, num_slides + 1):

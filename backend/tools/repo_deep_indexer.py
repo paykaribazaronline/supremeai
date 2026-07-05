@@ -56,8 +56,8 @@ class RepoDeepIndexer:
                             snippet = f.read()[:200]
                     except Exception as e:
                         try:
-                            from loguru import logger
-                            logger.error(f"Tool execution error: {e}")
+                            import loguru
+                            loguru.logger.error(f"Tool execution error: {e}")
                         except Exception:
                             pass
                         snippet = ""
@@ -89,8 +89,8 @@ class RepoDeepIndexer:
                 return await self.vector_db_client.query(query, limit)
         except Exception as e:
             try:
-                from loguru import logger
-                logger.error(f"Tool execution error: {e}")
+                import loguru
+                loguru.logger.error(f"Tool execution error: {e}")
             except Exception:
                 pass
             pass

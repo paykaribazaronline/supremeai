@@ -2,9 +2,13 @@ import enum
 import uuid
 from decimal import Decimal
 
-from sqlalchemy import Enum, Integer, Numeric, String
+from sqlalchemy import Enum
+from sqlalchemy import Integer
+from sqlalchemy import Numeric
+from sqlalchemy import String
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped
+from sqlalchemy.orm import mapped_column
 
 from models.base import Base
 

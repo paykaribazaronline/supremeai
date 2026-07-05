@@ -76,8 +76,8 @@ class ParallelAgentExecutor:
                     redis = app_mod.redis_queue
                 except Exception as e:
                     try:
-                        from loguru import logger
-                        logger.error(f"Tool execution error: {e}")
+                        import loguru
+                        loguru.logger.error(f"Tool execution error: {e}")
                     except Exception:
                         pass
                     redis = None
@@ -117,8 +117,8 @@ class ParallelAgentExecutor:
                     await self._publish_state(redis, agent_name, "failed", error=str(e))
             except Exception as e:
                 try:
-                    from loguru import logger
-                    logger.error(f"Tool execution error: {e}")
+                    import loguru
+                    loguru.logger.error(f"Tool execution error: {e}")
                 except Exception:
                     pass
                 pass

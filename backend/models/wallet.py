@@ -9,11 +9,11 @@ from sqlalchemy import Integer
 from sqlalchemy import Numeric
 from sqlalchemy import String
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import mapped_column
 
 from models.base import Base
+
 
 class UserWallet(Base):
     __tablename__ = "user_wallets"

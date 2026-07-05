@@ -68,8 +68,8 @@ def _get_connection():
         return conn
     except Exception as e:
         try:
-            from loguru import logger
-            logger.error(f"Tool execution error: {e}")
+            import loguru
+            loguru.logger.error(f"Tool execution error: {e}")
         except Exception:
             pass
         return None
@@ -178,8 +178,8 @@ async def supabase_execute_sql(params: ExecuteQueryInput) -> str:
                 conn.close()
             except Exception as e:
                 try:
-                    from loguru import logger
-                    logger.error(f"Tool execution error: {e}")
+                    import loguru
+                    loguru.logger.error(f"Tool execution error: {e}")
                 except Exception:
                     pass
                 pass
@@ -245,8 +245,8 @@ async def supabase_create_table(params: CreateTableInput) -> str:
                 conn.close()
             except Exception as e:
                 try:
-                    from loguru import logger
-                    logger.error(f"Tool execution error: {e}")
+                    import loguru
+                    loguru.logger.error(f"Tool execution error: {e}")
                 except Exception:
                     pass
                 pass
@@ -334,8 +334,8 @@ async def supabase_run_migration(params: MigrationInput) -> str:
                 conn.close()
             except Exception as e:
                 try:
-                    from loguru import logger
-                    logger.error(f"Tool execution error: {e}")
+                    import loguru
+                    loguru.logger.error(f"Tool execution error: {e}")
                 except Exception:
                     pass
                 pass
@@ -390,8 +390,8 @@ async def supabase_list_tables() -> str:
                 conn.close()
             except Exception as e:
                 try:
-                    from loguru import logger
-                    logger.error(f"Tool execution error: {e}")
+                    import loguru
+                    loguru.logger.error(f"Tool execution error: {e}")
                 except Exception:
                     pass
                 pass

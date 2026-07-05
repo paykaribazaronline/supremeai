@@ -22,8 +22,8 @@ class PDFToSDKConverter:
             text = "\n".join(page.get_text() for page in doc)
         except Exception as e:
             try:
-                from loguru import logger
-                logger.error(f"Tool execution error: {e}")
+                import loguru
+                loguru.logger.error(f"Tool execution error: {e}")
             except Exception:
                 pass
             pass
@@ -36,8 +36,8 @@ class PDFToSDKConverter:
                     text = "\n".join(page.extract_text() or "" for page in pdf.pages)
             except Exception as e:
                 try:
-                    from loguru import logger
-                    logger.error(f"Tool execution error: {e}")
+                    import loguru
+                    loguru.logger.error(f"Tool execution error: {e}")
                 except Exception:
                     pass
                 pass
