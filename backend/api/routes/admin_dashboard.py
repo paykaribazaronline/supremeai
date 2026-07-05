@@ -78,7 +78,7 @@ def admin_rate_limit(request: Request):
 
     client_ip = request.client.host if request.client else "unknown"
     key = f"rate_limit:admin:{client_ip}"
-    limit = 20
+    limit = 600
     window = 60
 
     redis_queue = getattr(app_mod, "redis_queue", None)
