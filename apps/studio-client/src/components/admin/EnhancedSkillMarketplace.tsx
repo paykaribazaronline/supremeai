@@ -12,7 +12,7 @@ export function EnhancedSkillMarketplace() {
 
   const [filter, setFilter] = useState<'all' | 'installed' | 'available'>('all');
 
-  const filtered = skills?.filter((s: any) => {
+  const filtered = (Array.isArray(skills) ? skills : [])?.filter((s: any) => {
     if (filter === 'installed') return s.installed;
     if (filter === 'available') return !s.installed;
     return true;
