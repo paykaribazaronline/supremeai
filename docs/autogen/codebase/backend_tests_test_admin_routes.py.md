@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/test_admin_routes.py
 
 **প্রকার:** .py  
-**সাইজ:** 13,741 বাইট  
-**আপডেট:** 2026-07-05T15:51:39.592931
+**সাইজ:** 13,737 বাইট  
+**আপডেট:** 2026-07-05T16:04:46.903056
 
 ---
 
@@ -102,7 +102,7 @@ class TestVerifyTotpCode:
         h = hmac.new(key, msg, hashlib.sha1).digest()
         o = h[19] & 15
         h_num = struct.unpack(">I", h[o : o + 4])[0] & 0x7FFFFFFF
-        valid_otp = f"{h_num % 10000000:07d}"
+        valid_otp = f"{h_num % 1000000:06d}"
 
         assert verify_totp_code(valid_otp, secret) is True
 
@@ -111,7 +111,7 @@ class TestVerifyTotpCode:
         from core.admin_routes import verify_totp_code
 
         secret = base64.b32encode(os.urandom(10)).decode("utf-8")
-        assert verify_totp_code("0000000", secret) is False
+        assert verify_totp_code("000000", secret) is False
 
     def test_check_totp_valid(self):
         """check_totp বৈধ কোড ভেরিফাই করে."""
@@ -125,7 +125,7 @@ class TestVerifyTotpCode:
         h = hmac.new(key, msg, hashlib.sha1).digest()
         o = h[19] & 15
         h_num = struct.unpack(">I", h[o : o + 4])[0] & 0x7FFFFFFF
-        valid_otp = f"{h_num % 10000000:07d}"
+        valid_otp = f"{h_num % 1000000:06d}"
 
         assert check_totp(valid_otp, secret) is True
 
@@ -134,7 +134,7 @@ class TestVerifyTotpCode:
         from core.admin_routes import check_totp
 
         secret = base64.b32encode(os.urandom(10)).decode("utf-8")
-        assert check_totp("1234567", secret) is False
+        assert check_totp("123456", secret) is False
 
     def test_verify_totp_code_bad_secret(self):
         """খারাপ সিক্রেটে TOTP False রিটার্ন করে।"""
