@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/api/routes/task.py
 
 **প্রকার:** .py  
-**সাইজ:** 14,674 বাইট  
-**আপডেট:** 2026-07-05T16:04:46.886454
+**সাইজ:** 14,838 বাইট  
+**আপডেট:** 2026-07-05T16:33:15.702061
 
 ---
 
@@ -411,7 +411,13 @@ async def execute_task(req: TaskRequest, background_tasks: BackgroundTasks):
 @router.get("/api/task/stream")
 async def task_stream():
     async def keepalive():
-        yield f"data: {json.dumps({'status': 'alive', 'timestamp': datetime.datetime.now(datetime.UTC).isoformat()})}\n\n"
+        import asyncio
+        try:
+            while True:
+                yield f"data: {json.dumps({'status': 'alive', 'timestamp': datetime.datetime.now(datetime.UTC).isoformat()})}\n\n"
+                await asyncio.sleep(15)
+        except asyncio.CancelledError:
+            pass
 
     return StreamingResponse(
         keepalive(),

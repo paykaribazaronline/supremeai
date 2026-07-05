@@ -1,7 +1,7 @@
 # 🧠 SupremeAI 2.0 Codebase Dump
 # বাংলা মন্তব্য: এটি একটি স্বয়ংক্রিয়ভাবে জেনারেট করা কোডবেস ডাম্প ফাইল যা প্রজেক্টের সামগ্রিক বিশ্লেষণের জন্য ব্যবহৃত হয়।
 
-Generated at: 2026-07-05T16:04:46.849745
+Generated at: 2026-07-05T16:33:15.648205
 
 
 ## File: `pnpm-lock.yaml`
@@ -59748,7 +59748,13 @@ async def execute_task(req: TaskRequest, background_tasks: BackgroundTasks):
 @router.get("/api/task/stream")
 async def task_stream():
     async def keepalive():
-        yield f"data: {json.dumps({'status': 'alive', 'timestamp': datetime.datetime.now(datetime.UTC).isoformat()})}\n\n"
+        import asyncio
+        try:
+            while True:
+                yield f"data: {json.dumps({'status': 'alive', 'timestamp': datetime.datetime.now(datetime.UTC).isoformat()})}\n\n"
+                await asyncio.sleep(15)
+        except asyncio.CancelledError:
+            pass
 
     return StreamingResponse(
         keepalive(),
