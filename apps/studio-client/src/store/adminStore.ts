@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { setAdminToken, clearAdminToken } from '../services/adminTokenStore';
+import { getApiBaseUrl } from '../utils/api';
 
 interface AdminState {
   adminAuthenticated: boolean;

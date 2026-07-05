@@ -15,6 +15,30 @@ export default defineConfig({
   resolve: {
     dedupe: ['react', 'react-dom', '@tanstack/react-query']
   },
+  server: {
+    proxy: {
+      '/api': {
+        target: process.env.VITE_API_URL || 'http://127.0.0.1:8000',
+        changeOrigin: true
+      },
+      '/admin-api': {
+        target: process.env.VITE_API_URL || 'http://127.0.0.1:8000',
+        changeOrigin: true
+      }
+    }
+  },
+  preview: {
+    proxy: {
+      '/api': {
+        target: process.env.VITE_API_URL || 'http://127.0.0.1:8000',
+        changeOrigin: true
+      },
+      '/admin-api': {
+        target: process.env.VITE_API_URL || 'http://127.0.0.1:8000',
+        changeOrigin: true
+      }
+    }
+  },
   build: {
     rollupOptions: {
       output: {
