@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/test_cloud_sandbox.py
 
 **প্রকার:** .py  
-**সাইজ:** 10,603 বাইট  
-**আপডেট:** 2026-07-05T15:31:52.361280
+**সাইজ:** 10,599 বাইট  
+**আপডেট:** 2026-07-05T15:51:39.592032
 
 ---
 
@@ -204,7 +204,7 @@ class TestTOTPVerification:
         h = hmac.new(key, msg, hashlib.sha1).digest()
         o = h[19] & 15
         h_num = struct.unpack(">I", h[o : o + 4])[0] & 0x7FFFFFFF
-        valid_code = f"{h_num % 10000000:07d}"
+        valid_code = f"{h_num % 1000000:06d}"
 
         assert verify_totp_code(valid_code, secret) is True
 
@@ -212,8 +212,8 @@ class TestTOTPVerification:
         """TOTP কোড প্রসੂসিং এ এক্সেপশন হলে False রিটার্ন করে।"""
         from core.admin_routes import verify_totp_code
 
-        assert verify_totp_code("1234567", "") is False
-        assert verify_totp_code("1234567", "invalid-secret!!!") is False
+        assert verify_totp_code("123456", "") is False
+        assert verify_totp_code("123456", "invalid-secret!!!") is False
 
     def test_check_totp_success(self):
         """check_totp ফাংশন সফল ভেরিফিকেশন রিটার্ন করে।"""
@@ -229,7 +229,7 @@ class TestTOTPVerification:
         h = hmac.new(key, msg, hashlib.sha1).digest()
         o = h[19] & 15
         h_num = struct.unpack(">I", h[o : o + 4])[0] & 0x7FFFFFFF
-        valid_code = f"{h_num % 10000000:07d}"
+        valid_code = f"{h_num % 1000000:06d}"
 
         assert check_totp(valid_code, secret) is True
 
