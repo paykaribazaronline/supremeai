@@ -66,8 +66,9 @@ class LocalSearchRAG:
                 try:
                     import loguru
                     loguru.logger.error(f"Tool execution error: {e}")
-                except Exception:
-                    pass
+                except Exception as e:
+                    import logging
+                    logging.warning(f"Exception suppressed: {e}")
                 self._index = {}
 
     def build_search_url(self, query: str) -> str:

@@ -27,8 +27,9 @@ class BanglaVoice:
             try:
                 import loguru
                 loguru.logger.error(f"Tool execution error: {e}")
-            except Exception:
-                pass
+            except Exception as e:
+                import logging
+                logging.warning(f"Exception suppressed: {e}")
             return False
 
     def _check_tts_available(self) -> bool:
@@ -40,8 +41,9 @@ class BanglaVoice:
             try:
                 import loguru
                 loguru.logger.error(f"Tool execution error: {e}")
-            except Exception:
-                pass
+            except Exception as e:
+                import logging
+                logging.warning(f"Exception suppressed: {e}")
             return False
 
     def transcribe(self, audio_path: str) -> BanglaVoiceResult:

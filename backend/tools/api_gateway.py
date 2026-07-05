@@ -156,8 +156,9 @@ async def gateway_forward(request: GatewayRequest, http_request: Request) -> Res
                     try:
                         import loguru
                         loguru.logger.error(f"Tool execution error: {e}")
-                    except Exception:
-                        pass
+                    except Exception as e:
+                        import logging
+                        logging.warning(f"Exception suppressed: {e}")
                     pass
 
         return JSONResponse(content=response.json(), status_code=response.status_code)

@@ -35,6 +35,7 @@ const TIER_LIMITS: Record<string, Partial<TenantLimit>> = {
 };
 
 const API_BASE = '/api';
+const isDevelopment = import.meta.env?.DEV || process.env.NODE_ENV === 'development';
 
 export const RateLimitManager: React.FC = () => {
   const [tenants, setTenants] = useState<TenantLimit[]>([]);
@@ -101,10 +102,14 @@ export const RateLimitManager: React.FC = () => {
         showToast('error', `❌ Save failed: ${resp.status}`);
       }
     } catch {
-      // optimistic update for dev
-      setTenants(prev => prev.map(t => t.tenant_id === tenant_id ? { ...t, ...editValues } : t));
-      setEditingId(null);
-      showToast('success', `✅ Saved (offline mode)`);
+      if (isDevelopment) {
+        // optimistic update for dev
+        setTenants(prev => prev.map(t => t.tenant_id === tenant_id ? { ...t, ...editValues } : t));
+        setEditingId(null);
+        showToast('success', `✅ Saved (offline mode)`);
+      } else {
+        showToast('error', `❌ Save failed - server unreachable`);
+      }
     }
     setSaving(null);
   };
@@ -116,18 +121,22 @@ export const RateLimitManager: React.FC = () => {
       ...TIER_LIMITS[newTenant.billing_tier],
     } as TenantLimit;
     try {
-      await fetch(`${API_BASE}/admin/tenant-limits`, {
+      const resp = await fetch(`${API_BASE}/admin/tenant-limits`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getAdminToken()}` },
         body: JSON.stringify(record),
       });
+      if (!resp.ok) {
+        throw new Error(`Server returned ${resp.status}: ${resp.statusText}`);
+      }
+      setTenants(prev => [...prev, record]);
+      setNewTenant({ tenant_id: '', org_name: '', billing_tier: 'free' });
+      setShowNewForm(false);
+      showToast('success', `✅ Tenant ${record.tenant_id} created`);
     } catch (e) {
       console.error(e);
+      showToast('error', `❌ Failed to create tenant: ${e instanceof Error ? e.message : 'Unknown error'}`);
     }
-    setTenants(prev => [...prev, record]);
-    setNewTenant({ tenant_id: '', org_name: '', billing_tier: 'free' });
-    setShowNewForm(false);
-    showToast('success', `✅ Tenant ${record.tenant_id} created`);
   };
 
   const usagePercent = (used: number, max: number) => Math.min(100, Math.round((used / max) * 100));

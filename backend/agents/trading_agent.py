@@ -44,19 +44,24 @@ class TradingAgent:
             with open(self._local_path(), encoding="utf-8") as f:
                 self._portfolio = json.load(f)
                 self.is_portfolio_recovered = True
-        except Exception:
-            pass
+        except Exception as e:
+            logger.error(f"Failed to load portfolio from local file: {e}")
+        if not self.is_portfolio_recovered:
+            logger.warning("Portfolio could not be recovered from any source; using default empty portfolio")
 
     def _save_portfolio(self) -> None:
         if db.client:
             try:
                 db.client.table("trading_portfolio").upsert(self._portfolio).execute()
                 return
-            except Exception:
-                pass
-        os.makedirs(os.path.dirname(self._local_path()), exist_ok=True)
-        with open(self._local_path(), "w", encoding="utf-8") as f:
-            json.dump(self._portfolio, f, indent=2)
+            except Exception as e:
+                logger.warning(f"Failed to save portfolio to DB: {e}")
+        try:
+            os.makedirs(os.path.dirname(self._local_path()), exist_ok=True)
+            with open(self._local_path(), "w", encoding="utf-8") as f:
+                json.dump(self._portfolio, f, indent=2)
+        except Exception as e:
+            logger.error(f"Failed to save portfolio to local file: {e}")
 
     def get_market_data(self, symbol: str) -> dict[str, Any]:
         try:

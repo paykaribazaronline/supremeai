@@ -82,8 +82,9 @@ class DomainAdapter:
             try:
                 import loguru
                 loguru.logger.error(f"Tool execution error: {e}")
-            except Exception:
-                pass
+            except Exception as e:
+                import logging
+                logging.warning(f"Exception suppressed: {e}")
             pass
         for domain, defaults in self.DOMAINS.items():
             self._profiles.setdefault(domain, defaults)

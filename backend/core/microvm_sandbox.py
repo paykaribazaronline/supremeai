@@ -29,8 +29,9 @@ class MicroVMSandbox:
                 return True
             if shutil.which("runsc"):
                 return True
-        except Exception:
-            pass
+        except Exception as e:
+            import logging
+            logging.warning(f"Exception suppressed: {e}")
         return False
 
     def _create_microvm_config(self, vm_id: str, cmd: str) -> str:

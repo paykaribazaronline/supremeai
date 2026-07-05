@@ -154,8 +154,9 @@ class CloudSandboxOrchestrator:
                     try:
                         import loguru
                         loguru.logger.error(f"Tool execution error: {e}")
-                    except Exception:
-                        pass
+                    except Exception as e:
+                        import logging
+                        logging.warning(f"Exception suppressed: {e}")
                     pass
                 return {
                     "success": False,
@@ -191,8 +192,9 @@ class CloudSandboxOrchestrator:
                     try:
                         import loguru
                         loguru.logger.error(f"Tool execution error: {e}")
-                    except Exception:
-                        pass
+                    except Exception as e:
+                        import logging
+                        logging.warning(f"Exception suppressed: {e}")
                     pass
 
     async def create_sandbox(self, spec: Dict[str, Any]) -> Dict[str, Any] | None:

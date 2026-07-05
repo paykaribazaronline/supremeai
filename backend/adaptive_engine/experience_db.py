@@ -162,8 +162,9 @@ class ExperienceDatabase:
                     metadatas=[{"result": result, "response": response_text}],
                     documents=[text],
                 )
-        except Exception:
-            pass
+        except Exception as e:
+            import logging
+            logging.warning(f"Exception suppressed: {e}")
         try:
             if self.qdrant_client:
                 from qdrant_client.models import PointStruct
@@ -171,8 +172,9 @@ class ExperienceDatabase:
                     collection_name=self.qdrant_collection,
                     points=[PointStruct(id=exp_id, vector=embedding, payload={"result": result, "text": text, "response": response_text})],
                 )
-        except Exception:
-            pass
+        except Exception as e:
+            import logging
+            logging.warning(f"Exception suppressed: {e}")
 
     def _cosine_similarity(self, a: list[float], b: list[float]) -> float:
         import math
@@ -223,8 +225,9 @@ class ExperienceDatabase:
                             "response": hit.payload.get("response", ""),
                             "text": hit.payload.get("text", "")
                         })
-        except Exception:
-            pass
+        except Exception as e:
+            import logging
+            logging.warning(f"Exception suppressed: {e}")
         return hits
 
     def get_experiences(self, limit: int = 50) -> list[Experience]:

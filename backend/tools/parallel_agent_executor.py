@@ -78,8 +78,9 @@ class ParallelAgentExecutor:
                     try:
                         import loguru
                         loguru.logger.error(f"Tool execution error: {e}")
-                    except Exception:
-                        pass
+                    except Exception as e:
+                        import logging
+                        logging.warning(f"Exception suppressed: {e}")
                     redis = None
 
             if mcp_servers:
@@ -119,8 +120,9 @@ class ParallelAgentExecutor:
                 try:
                     import loguru
                     loguru.logger.error(f"Tool execution error: {e}")
-                except Exception:
-                    pass
+                except Exception as e:
+                    import logging
+                    logging.warning(f"Exception suppressed: {e}")
                 pass
             return {"agent": agent_name, "status": "error", "error": str(e)}
         finally:

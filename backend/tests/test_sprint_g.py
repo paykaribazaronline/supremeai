@@ -453,8 +453,9 @@ class TestTenantAdminAPI:
                     result["tenant"]["requests_per_minute"]
                     == TIER_DEFAULTS["pro"]["requests_per_minute"]
                 )
-            except Exception:
-                pass  # Redis cache failure OK
+            except Exception as e:
+                import logging
+                logging.warning(f"Exception suppressed: {e}")  # Redis cache failure OK
 
     @pytest.mark.anyio
     async def test_delete_tenant(self):

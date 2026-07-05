@@ -92,8 +92,9 @@ class HealthChecker:
                         try:
                             import loguru
                             loguru.logger.error(f"Tool execution error: {e}")
-                        except Exception:
-                            pass
+                        except Exception as e:
+                            import logging
+                            logging.warning(f"Exception suppressed: {e}")
                         continue
             error_count = len(recent_errors)
             if error_count > 20:

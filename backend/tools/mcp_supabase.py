@@ -70,8 +70,9 @@ def _get_connection():
         try:
             import loguru
             loguru.logger.error(f"Tool execution error: {e}")
-        except Exception:
-            pass
+        except Exception as e:
+            import logging
+            logging.warning(f"Exception suppressed: {e}")
         return None
 
 
@@ -180,8 +181,9 @@ async def supabase_execute_sql(params: ExecuteQueryInput) -> str:
                 try:
                     import loguru
                     loguru.logger.error(f"Tool execution error: {e}")
-                except Exception:
-                    pass
+                except Exception as e:
+                    import logging
+                    logging.warning(f"Exception suppressed: {e}")
                 pass
 
 
@@ -247,8 +249,9 @@ async def supabase_create_table(params: CreateTableInput) -> str:
                 try:
                     import loguru
                     loguru.logger.error(f"Tool execution error: {e}")
-                except Exception:
-                    pass
+                except Exception as e:
+                    import logging
+                    logging.warning(f"Exception suppressed: {e}")
                 pass
 
 
@@ -336,8 +339,9 @@ async def supabase_run_migration(params: MigrationInput) -> str:
                 try:
                     import loguru
                     loguru.logger.error(f"Tool execution error: {e}")
-                except Exception:
-                    pass
+                except Exception as e:
+                    import logging
+                    logging.warning(f"Exception suppressed: {e}")
                 pass
 
 
@@ -392,8 +396,9 @@ async def supabase_list_tables() -> str:
                 try:
                     import loguru
                     loguru.logger.error(f"Tool execution error: {e}")
-                except Exception:
-                    pass
+                except Exception as e:
+                    import logging
+                    logging.warning(f"Exception suppressed: {e}")
                 pass
 
 

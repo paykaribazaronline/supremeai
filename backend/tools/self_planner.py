@@ -58,8 +58,9 @@ class SelfPlanner:
                 try:
                     import loguru
                     loguru.logger.error(f"Tool execution error: {e}")
-                except Exception:
-                    pass
+                except Exception as e:
+                    import logging
+                    logging.warning(f"Exception suppressed: {e}")
                 logger.warning("LLM returned non-JSON plan. Using fallback.")
                 plan = self._mock_plan(objective)
         except Exception as e:

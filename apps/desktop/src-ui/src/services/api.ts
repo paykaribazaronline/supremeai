@@ -62,7 +62,9 @@ export const setToken = (token: string | null) => {
     // প্রোডাকশনে লোকাল স্টোরেজ থেকে মুছে ফেলা হচ্ছে
     try {
       localStorage.removeItem('jwt');
-    } catch (e) {}
+    } catch (e) {
+      console.warn('Failed to clear JWT token from localStorage', e);
+    }
   }
 };
 
@@ -71,6 +73,7 @@ export const getToken = (): string | null => {
     try {
       return localStorage.getItem('jwt');
     } catch (e) {
+      console.warn('Failed to get JWT token from localStorage', e);
       return null;
     }
   }
@@ -81,7 +84,9 @@ export const clearToken = () => {
   if (isDevelopment) {
     try {
       localStorage.removeItem('jwt');
-    } catch (e) {}
+    } catch (e) {
+      console.warn('Failed to clear JWT token from localStorage', e);
+    }
   }
   memoryToken = null;
 };

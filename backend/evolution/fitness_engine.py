@@ -44,8 +44,9 @@ class FitnessEngine:
             try:
                 with open(self.metrics_path, encoding="utf-8") as f:
                     return json.load(f)
-            except Exception:
-                pass
+            except Exception as e:
+                import logging
+                logging.warning(f"Exception suppressed: {e}")
         return {}
 
     def _save_metrics(self):

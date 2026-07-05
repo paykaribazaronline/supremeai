@@ -90,8 +90,9 @@ class TelegramBotHandler:
             try:
                 import loguru
                 loguru.logger.error(f"Tool execution error: {e}")
-            except Exception:
-                pass
+            except Exception as e:
+                import logging
+                logging.warning(f"Exception suppressed: {e}")
             pass
 
     async def set_webhook(self, webhook_url: str) -> bool:
@@ -200,8 +201,9 @@ class TelegramBotHandler:
                 try:
                     import loguru
                     loguru.logger.error(f"Tool execution error: {e}")
-                except Exception:
-                    pass
+                except Exception as e:
+                    import logging
+                    logging.warning(f"Exception suppressed: {e}")
                 status_lines.append(f"❌ {name}: unreachable")
         await self.send_message(chat_id, "\n".join(status_lines))
 

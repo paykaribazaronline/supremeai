@@ -199,8 +199,9 @@ class PlaywrightBrowserAgent:
                     try:
                         import loguru
                         loguru.logger.error(f"Tool execution error: {e}")
-                    except Exception:
-                        pass
+                    except Exception as e:
+                        import logging
+                        logging.warning(f"Exception suppressed: {e}")
                     is_authenticated = False
 
                 if not is_authenticated:

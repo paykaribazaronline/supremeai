@@ -30,8 +30,9 @@ class TenantRateLimiter:
             try:
                 import loguru
                 loguru.logger.error(f"Tool execution error: {e}")
-            except Exception:
-                pass
+            except Exception as e:
+                import logging
+                logging.warning(f"Exception suppressed: {e}")
             return None
 
     def _init_billing_tiers(self) -> None:

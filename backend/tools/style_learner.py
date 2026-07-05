@@ -50,8 +50,9 @@ class StyleLearner:
                         try:
                             import loguru
                             loguru.logger.error(f"Tool execution error: {e}")
-                        except Exception:
-                            pass
+                        except Exception as e:
+                            import logging
+                            logging.warning(f"Exception suppressed: {e}")
                         pass
                 if len(code_samples) >= 20:
                     break
@@ -90,8 +91,9 @@ class StyleLearner:
                     try:
                         import loguru
                         loguru.logger.error(f"Tool execution error: {e}")
-                    except Exception:
-                        pass
+                    except Exception as e:
+                        import logging
+                        logging.warning(f"Exception suppressed: {e}")
                     logger.warning("Failed to parse style guidelines JSON from LLM.")
             except Exception as e:
                 logger.warning(f"LLM style analysis failed: {e}")
@@ -117,8 +119,9 @@ class StyleLearner:
             try:
                 import loguru
                 loguru.logger.error(f"Tool execution error: {e}")
-            except Exception:
-                pass
+            except Exception as e:
+                import logging
+                logging.warning(f"Exception suppressed: {e}")
             pass
         # Local fallback
         try:

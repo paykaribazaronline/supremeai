@@ -111,8 +111,9 @@ def bypass_jwt_auth():
             mock = p.start()
             mock.return_value = {"sub": "test_admin@supremeai.com", "role": "admin"}
             patches.append(p)
-        except Exception:
-            pass
+        except Exception as e:
+            import logging
+            logging.warning(f"Exception suppressed: {e}")
     yield
     for p in patches:
         with contextlib.suppress(Exception):
@@ -128,7 +129,8 @@ def configure_litellm():
         litellm.use_litellm_proxy = False
         litellm.drop_params = True
         litellm.telemetry = False
-    except Exception:
-        pass
+    except Exception as e:
+        import logging
+        logging.warning(f"Exception suppressed: {e}")
     yield
 

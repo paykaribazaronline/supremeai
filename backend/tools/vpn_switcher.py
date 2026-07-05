@@ -142,6 +142,7 @@ class VPNRotator:
             try:
                 import loguru
                 loguru.logger.error(f"Tool execution error: {e}")
-            except Exception:
-                pass
+            except Exception as e:
+                import logging
+                logging.warning(f"Exception suppressed: {e}")
             return {"proxy": None, "source": "premium", "reason": "not configured"}

@@ -103,8 +103,9 @@ class PreCommitAI:
                 try:
                     import loguru
                     loguru.logger.error(f"Tool execution error: {e}")
-                except Exception:
-                    pass
+                except Exception as e:
+                    import logging
+                    logging.warning(f"Exception suppressed: {e}")
                 continue  # Skip binary files that can't be read
 
             new_content = original_content

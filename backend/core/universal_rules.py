@@ -60,8 +60,9 @@ class UniversalRulesEngine:
             os.makedirs(os.path.dirname(self.rules_path), exist_ok=True)
             with open(self.rules_path, "w", encoding="utf-8") as f:
                 json.dump(default_rules, f, indent=4)
-        except Exception:
-            pass
+        except Exception as e:
+            import logging
+            logging.warning(f"Exception suppressed: {e}")
 
         return default_rules
 

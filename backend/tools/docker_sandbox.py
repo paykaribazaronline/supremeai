@@ -25,8 +25,9 @@ class DockerSandbox:
             try:
                 import loguru
                 loguru.logger.error(f"Tool execution error: {e}")
-            except Exception:
-                pass
+            except Exception as e:
+                import logging
+                logging.warning(f"Exception suppressed: {e}")
             return False
 
     def execute_command(self, cmd: str) -> dict[str, Any]:

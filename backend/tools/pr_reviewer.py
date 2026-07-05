@@ -136,8 +136,9 @@ class PRReviewer:
                 try:
                     import loguru
                     loguru.logger.error(f"Tool execution error: {e}")
-                except Exception:
-                    pass
+                except Exception as e:
+                    import logging
+                    logging.warning(f"Exception suppressed: {e}")
                 logger.warning("Failed to parse LLM response in PRReviewer.")
         except Exception as e:
             logger.warning(f"ModelRouter call failed in PRReviewer: {e}")

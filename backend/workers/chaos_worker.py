@@ -55,8 +55,9 @@ class NightlyChaosAuditor:
                         logger.critical(
                             "🚨 [SECURITY BREACH] Sandbox bypass detected during autonomous fuzzing!"
                         )
-                except Exception:
-                    pass  # SecurityError আশা করা হচ্ছে, তাই এটি পাস
+                except Exception as e:
+                    import logging
+                    logging.warning(f"Exception suppressed: {e}")  # SecurityError আশা করা হচ্ছে, তাই এটি পাস
 
             # 🧪 টেস্ট ২: রানটাইম কানেকশন পুল স্ট্রেস চেক (Synthetic Heavy Requests)
             async with httpx.AsyncClient(timeout=5.0) as client:

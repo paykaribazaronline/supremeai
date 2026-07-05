@@ -100,8 +100,9 @@ class CommentThreadAI:
             try:
                 import loguru
                 loguru.logger.error(f"Tool execution error: {e}")
-            except Exception:
-                pass
+            except Exception as e:
+                import logging
+                logging.warning(f"Exception suppressed: {e}")
             pass
         try:
             # Issue comments (general PR comments)
@@ -111,8 +112,9 @@ class CommentThreadAI:
             try:
                 import loguru
                 loguru.logger.error(f"Tool execution error: {e}")
-            except Exception:
-                pass
+            except Exception as e:
+                import logging
+                logging.warning(f"Exception suppressed: {e}")
             pass
         return comments
 
@@ -123,8 +125,9 @@ class CommentThreadAI:
             try:
                 import loguru
                 loguru.logger.error(f"Tool execution error: {e}")
-            except Exception:
-                pass
+            except Exception as e:
+                import logging
+                logging.warning(f"Exception suppressed: {e}")
             return []
 
     async def _post_pr_comment(
@@ -320,8 +323,9 @@ class CommentThreadAI:
                     try:
                         import loguru
                         loguru.logger.error(f"Tool execution error: {e}")
-                    except Exception:
-                        pass
+                    except Exception as e:
+                        import logging
+                        logging.warning(f"Exception suppressed: {e}")
                     pass
 
         return {
@@ -432,8 +436,9 @@ async def github_webhook(
         try:
             import loguru
             loguru.logger.error(f"Tool execution error: {e}")
-        except Exception:
-            pass
+        except Exception as e:
+            import logging
+            logging.warning(f"Exception suppressed: {e}")
         raise HTTPException(status_code=400, detail="Invalid JSON payload")
 
     if x_github_event not in ("pull_request_review_comment", "issue_comment"):

@@ -47,8 +47,9 @@ class MetaArchitect:
                         try:
                             import loguru
                             loguru.logger.error(f"Tool execution error: {e}")
-                        except Exception:
-                            pass
+                        except Exception as e:
+                            import logging
+                            logging.warning(f"Exception suppressed: {e}")
                         pass
             if metrics["total_files"]:
                 metrics["avg_file_size"] = (
@@ -105,8 +106,9 @@ class MetaArchitect:
                 try:
                     import loguru
                     loguru.logger.error(f"Tool execution error: {e}")
-                except Exception:
-                    pass
+                except Exception as e:
+                    import logging
+                    logging.warning(f"Exception suppressed: {e}")
                 plan = {
                     "priority": "medium",
                     "steps": [
