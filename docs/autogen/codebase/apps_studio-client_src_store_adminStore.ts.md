@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/studio-client/src/store/adminStore.ts
 
 **প্রকার:** .ts  
-**সাইজ:** 2,820 বাইট  
-**আপডেট:** 2026-07-04T23:58:53.993418
+**সাইজ:** 2,866 বাইট  
+**আপডেট:** 2026-07-05T00:31:19.034048
 
 ---
 
@@ -11,6 +11,7 @@
 ```ts
 import { create } from 'zustand';
 import { setAdminToken, clearAdminToken } from '../services/adminTokenStore';
+import { getApiBaseUrl } from '../utils/api';
 
 interface AdminState {
   adminAuthenticated: boolean;
