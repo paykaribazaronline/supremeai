@@ -30,7 +30,7 @@ def test_verify_with_local_rag_no_rag(monkeypatch):
     verifier.local_rag = None
     result = verifier.verify_with_local_rag("test claim")
     assert result["is_verified"] is False
-    assert result["method"] == "no_local_rag"
+    assert result["method"] == "unverified_no_local_rag"
 
 
 def test_verify_with_local_rag_with_matches():
