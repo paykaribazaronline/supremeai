@@ -1,0 +1,49 @@
+# 📄 ফাইল: infrastructure/cloudrun/autoscale.yaml
+
+**প্রকার:** .yaml  
+**সাইজ:** 958 বাইট  
+**আপডেট:** 2026-07-05T18:19:45.194443
+
+---
+
+## কোড
+
+```yaml
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: supremeai-backend
+  annotations:
+    run.googleapis.com/ingress: all
+    run.googleapis.com/launch-stage: BETA
+spec:
+  template:
+    metadata:
+      annotations:
+        # Autoscale bounds
+        autoscaling.knative.dev/minScale: "1"
+        autoscaling.knative.dev/maxScale: "10"
+        
+        # CPU allocation: CPU is always allocated so background tasks (agents) can run
+        run.googleapis.com/cpu-throttling: "false"
+        
+        # Concurrency
+        autoscaling.knative.dev/target: "80"
+    spec:
+      containerConcurrency: 80
+      containers:
+      - image: gcr.io/supremeai/backend:latest
+        resources:
+          limits:
+            cpu: "2000m"
+            memory: "2Gi"
+        env:
+        - name: GCP_PROJECT_ID
+          value: "supremeai-a"
+        - name: ENV
+          value: "production"
+        ports:
+        - name: http1
+          containerPort: 8000
+
+```

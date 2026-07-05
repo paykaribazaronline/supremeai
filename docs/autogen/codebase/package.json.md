@@ -1,0 +1,61 @@
+# 📄 ফাইল: package.json
+
+**প্রকার:** .json  
+**সাইজ:** 1,681 বাইট  
+**আপডেট:** 2026-07-05T18:19:45.173580
+
+---
+
+## কোড
+
+```json
+{
+  "name": "supremeai-monorepo",
+  "version": "2.0.0",
+  "private": true,
+  "description": "SupremeAI 2.0 — Universal Self-Learning AI Agent (Monorepo)",
+  "scripts": {
+    "build": "turbo run build",
+    "build:affected": "turbo run build --filter=[origin/main]",
+    "test": "turbo run test",
+    "test:affected": "turbo run test --filter=[origin/main]",
+    "test:e2e": "playwright test",
+    "lint": "turbo run lint",
+    "dev": "turbo run dev",
+    "clean": "turbo run clean && rm -rf node_modules",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
+    "backend:dev": "cd backend && poetry run uvicorn core.app:app --reload",
+    "backend:test": "cd backend && poetry run pytest",
+    "docker:build": "docker-compose -f infrastructure/docker/docker-compose.yml build",
+    "docker:up": "docker-compose -f infrastructure/docker/docker-compose.yml up -d",
+    "deploy:gcp": "cd infrastructure/terraform && terraform apply",
+    "deploy:studio": "firebase deploy --only hosting:studio",
+    "deploy:admin": "firebase deploy --only hosting:admin",
+    "seed:load": "python backend/scripts/load_seed_data.py"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "^4.12.1",
+    "@playwright/test": "^1.42.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "miniflare": "^2.0.1",
+    "prettier": "^3.2.0",
+    "turbo": "^2.0.0",
+    "typescript": "^5.4.0",
+    "vitest": "^3.2.6"
+  },
+  "packageManager": "pnpm@9.0.0",
+  "overrides": {
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "typescript": "^5.4.5",
+    "vite": "7.3.5",
+    "firebase": "^12.15.0"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=9.0.0"
+  }
+}
+
+```

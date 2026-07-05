@@ -1,0 +1,81 @@
+# 📄 ফাইল: apps/studio-client/src/store/customerStore.ts
+
+**প্রকার:** .ts  
+**সাইজ:** 1,931 বাইট  
+**আপডেট:** 2026-07-05T18:19:45.317799
+
+---
+
+## কোড
+
+```ts
+import { create } from 'zustand';
+import { persist, createJSONStorage } from 'zustand/middleware';
+import type { CustomerState } from '../types/customer';
+
+const STORAGE_KEY = 'supremeai_customer_state';
+
+const plainStorage = {
+  getItem: (name: string): string | null => {
+    return localStorage.getItem(name);
+  },
+  setItem: (name: string, value: string): void => {
+    localStorage.setItem(name, value);
+  },
+  removeItem: (name: string): void => {
+    localStorage.removeItem(name);
+  }
+};
+
+interface CustomerStoreState extends CustomerState {
+  hydrated: boolean;
+  setHydrated: (val: boolean) => void;
+}
+
+export const useCustomerStore = create<CustomerStoreState>()(
+  persist(
+    (set) => ({
+      user: null,
+      projects: [],
+      activeProjectId: null,
+      chatHistory: [],
+      widgets: [],
+      sidebarCollapsed: false,
+      isLoading: false,
+      hydrated: false,
+
+      setUser: (user) => set({ user }),
+      setProjects: (projects) => set({ projects }),
+      setActiveProject: (id) => set({ activeProjectId: id }),
+      addMessage: (message) =>
+        set((state) => ({
+          chatHistory: [...state.chatHistory, message],
+        })),
+      clearChat: () => set({ chatHistory: [] }),
+      toggleSidebar: () =>
+        set((state) => ({ sidebarCollapsed: !state.sidebarCollapsed })),
+      reorderWidgets: (widgets) => set({ widgets }),
+      setHydrated: (val) => set({ hydrated: val }),
+    }),
+    {
+      name: STORAGE_KEY,
+      storage: createJSONStorage(() => plainStorage),
+      partialize: (state) => ({
+        user: state.user,
+        projects: state.projects,
+        activeProjectId: state.activeProjectId,
+        widgets: state.widgets,
+        sidebarCollapsed: state.sidebarCollapsed,
+      }),
+      onRehydrateStorage: () => (state) => {
+        state?.setHydrated(true);
+      },
+    }
+  )
+);
+
+export function useHydrated() {
+  return useCustomerStore((s) => s.hydrated);
+}
+
+```

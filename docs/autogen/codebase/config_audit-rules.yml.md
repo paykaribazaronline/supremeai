@@ -1,0 +1,50 @@
+# 📄 ফাইল: config/audit-rules.yml
+
+**প্রকার:** .yml  
+**সাইজ:** 974 বাইট  
+**আপডেট:** 2026-07-05T18:19:45.203765
+
+---
+
+## কোড
+
+```yml
+risk_rules:
+  CRITICAL:
+    - pattern: "SECRET_KEY=.*"
+      message: "Hardcoded secrets found"
+    - pattern: "PASSWORD=.*[^*]"
+      message: "Plain passwords found"
+    - pattern: "API_KEY=sk-live"
+      message: "Live production key in non-prod environment"
+    - pattern: "DEBUG=true"
+      message: "Debug active in production"
+  HIGH:
+    - pattern: "DATABASE_URL=.*localhost"
+      message: "Local database configured for staging or production"
+    - pattern: "REDIS_URL=.*localhost"
+      message: "Local redis configured for staging or production"
+    - pattern: "LOG_LEVEL=debug"
+      message: "Verbose logging in production"
+  MEDIUM:
+    - pattern: "MISSING:.*"
+      message: "Required variable is missing"
+
+required_envs:
+  development:
+    - DATABASE_URL
+    - REDIS_URL
+    - API_KEY
+  staging:
+    - DATABASE_URL
+    - REDIS_URL
+    - API_KEY
+    - SENTRY_DSN
+  production:
+    - DATABASE_URL
+    - REDIS_URL
+    - API_KEY
+    - SENTRY_DSN
+    - SSL_CERT
+
+```

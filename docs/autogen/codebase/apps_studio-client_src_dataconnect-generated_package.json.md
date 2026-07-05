@@ -1,0 +1,45 @@
+# 📄 ফাইল: apps/studio-client/src/dataconnect-generated/package.json
+
+**প্রকার:** .json  
+**সাইজ:** 854 বাইট  
+**আপডেট:** 2026-07-05T18:19:45.299700
+
+---
+
+## কোড
+
+```json
+{
+  "name": "@dataconnect/generated",
+  "version": "1.0.0",
+  "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
+  "description": "Generated SDK For example",
+  "license": "Apache-2.0",
+  "engines": {
+    "node": " >=18.0"
+  },
+  "typings": "index.d.ts",
+  "module": "esm/index.esm.js",
+  "main": "index.cjs.js",
+  "browser": "esm/index.esm.js",
+  "exports": {
+    ".": {
+      "types": "./index.d.ts",
+      "require": "./index.cjs.js",
+      "default": "./esm/index.esm.js"
+    },
+    "./react": {
+      "types": "./react/index.d.ts",
+      "require": "./react/index.cjs.js",
+      "import": "./react/esm/index.esm.js",
+      "default": "./react/esm/index.esm.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "peerDependencies": {
+    "firebase": "^12.11.0",
+    "@tanstack-query-firebase/react": "^2.0.0"
+  }
+}
+
+```
