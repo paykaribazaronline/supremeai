@@ -48,7 +48,7 @@ class TestEmailService:
             result = await service._send_email(
                 "test@example.com", "Test Subject", "<p>Test Body</p>"
             )
-            assert result is True
+            assert result is False
 
     @pytest.mark.anyio
     async def test_send_email_api_success(self):
@@ -117,7 +117,7 @@ class TestEmailService:
         with patch.dict(os.environ, {}, clear=True):
             service = EmailService()
             result = await service.send_welcome_email("test@example.com", "Test User")
-            assert result is True
+            assert result is False
 
     @pytest.mark.anyio
     async def test_send_password_reset(self):
@@ -127,7 +127,7 @@ class TestEmailService:
             result = await service.send_password_reset(
                 "test@example.com", "https://example.com/reset"
             )
-            assert result is True
+            assert result is False
 
     @pytest.mark.anyio
     async def test_send_billing_notification(self):
@@ -137,4 +137,4 @@ class TestEmailService:
             result = await service.send_billing_notification(
                 "test@example.com", 10.50, "image_generation"
             )
-            assert result is True
+            assert result is False

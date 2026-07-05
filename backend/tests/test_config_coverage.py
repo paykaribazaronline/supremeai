@@ -18,42 +18,16 @@ def _info(**data) -> SimpleNamespace:
     return SimpleNamespace(data=data)
 
 
-# ── sanitize_cors_origins ──────────────────────────────────────────────
-def test_sanitize_cors_origins_empty_string_returns_empty_list():
-    assert Settings.sanitize_cors_origins("") == []
-    assert Settings.sanitize_cors_origins("   ") == []
-
-
-def test_sanitize_cors_origins_comma_separated_string():
-    result = Settings.sanitize_cors_origins("https://a.com, https://b.com")
-    assert result == ["https://a.com", "https://b.com"]
-
-
-def test_sanitize_cors_origins_json_string():
-    result = Settings.sanitize_cors_origins('["https://a.com", "https://b.com"]')
-    assert result == ["https://a.com", "https://b.com"]
-
-
-def test_sanitize_cors_origins_non_list_passthrough():
-    # বাংলা মন্তব্য: str/list ছাড়া অন্য টাইপ হুবহু ফেরত আসবে
-    assert Settings.sanitize_cors_origins(123) == 123
-
-
-def test_sanitize_cors_origins_local_env_keeps_localhost():
+# ── parse_cors_origins ─────────────────────────────────────────────────
+def test_parse_cors_origins_local_env_keeps_localhost():
     origins = ["http://127.0.0.1:3000", "https://example.com"]
-    assert Settings.sanitize_cors_origins(list(origins)) == origins
+    assert Settings.parse_cors_origins(list(origins), _info(env="local")) == origins
 
-
-def test_sanitize_cors_origins_production_strips_localhost():
+def test_parse_cors_origins_production_strips_localhost():
     # বাংলা মন্তব্য: _env_context প্রোডাকশন হলে localhost অরিজিন বাদ যাবে
     origins = ["http://127.0.0.1:3000", "http://localhost:5173", "https://example.com"]
-    Settings._env_context = "production"
-    try:
-        result = Settings.sanitize_cors_origins(list(origins))
-    finally:
-        del Settings._env_context
+    result = Settings.parse_cors_origins(list(origins), _info(env="production"))
     assert result == ["https://example.com"]
-
 
 # ── parse_cors_origins ─────────────────────────────────────────────────
 def test_parse_cors_origins_empty_string():
