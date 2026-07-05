@@ -1,7 +1,7 @@
 # 🧠 SupremeAI 2.0 Codebase Dump
 # বাংলা মন্তব্য: এটি একটি স্বয়ংক্রিয়ভাবে জেনারেট করা কোডবেস ডাম্প ফাইল যা প্রজেক্টের সামগ্রিক বিশ্লেষণের জন্য ব্যবহৃত হয়।
 
-Generated at: 2026-07-05T19:50:38.915414
+Generated at: 2026-07-05T20:27:26.341483
 
 
 ## File: `pnpm-lock.yaml`
@@ -61336,7 +61336,7 @@ def admin_rate_limit(request: Request):
 
     client_ip = request.client.host if request.client else "unknown"
     key = f"rate_limit:admin:{client_ip}"
-    limit = 20
+    limit = 600
     window = 60
 
     redis_queue = getattr(app_mod, "redis_queue", None)

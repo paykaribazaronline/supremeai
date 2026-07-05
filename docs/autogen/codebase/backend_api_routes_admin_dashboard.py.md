@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/api/routes/admin_dashboard.py
 
 **প্রকার:** .py  
-**সাইজ:** 29,591 বাইট  
-**আপডেট:** 2026-07-05T19:50:38.971436
+**সাইজ:** 29,592 বাইট  
+**আপডেট:** 2026-07-05T20:27:26.395914
 
 ---
 
@@ -89,7 +89,7 @@ def admin_rate_limit(request: Request):
 
     client_ip = request.client.host if request.client else "unknown"
     key = f"rate_limit:admin:{client_ip}"
-    limit = 20
+    limit = 600
     window = 60
 
     redis_queue = getattr(app_mod, "redis_queue", None)
