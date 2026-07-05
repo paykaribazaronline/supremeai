@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/local_search_rag.py
 
 **প্রকার:** .py  
-**সাইজ:** 8,030 বাইট  
-**আপডেট:** 2026-07-05T15:09:14.685159
+**সাইজ:** 8,025 বাইট  
+**আপডেট:** 2026-07-05T15:18:46.695217
 
 ---
 
@@ -75,8 +75,8 @@ class LocalSearchRAG:
                 )
             except Exception as e:
                 try:
-                    from loguru import logger
-                    logger.error(f"Tool execution error: {e}")
+                    import loguru
+                    loguru.logger.error(f"Tool execution error: {e}")
                 except Exception:
                     pass
                 self._index = {}

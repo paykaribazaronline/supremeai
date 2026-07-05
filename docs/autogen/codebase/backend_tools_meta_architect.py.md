@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/meta_architect.py
 
 **প্রকার:** .py  
-**সাইজ:** 6,576 বাইট  
-**আপডেট:** 2026-07-05T15:09:14.688259
+**সাইজ:** 6,566 বাইট  
+**আপডেট:** 2026-07-05T15:18:46.698486
 
 ---
 
@@ -56,8 +56,8 @@ class MetaArchitect:
                             ) + len(lines)
                     except Exception as e:
                         try:
-                            from loguru import logger
-                            logger.error(f"Tool execution error: {e}")
+                            import loguru
+                            loguru.logger.error(f"Tool execution error: {e}")
                         except Exception:
                             pass
                         pass
@@ -114,8 +114,8 @@ class MetaArchitect:
                 plan = json.loads(cleaned)
             except Exception as e:
                 try:
-                    from loguru import logger
-                    logger.error(f"Tool execution error: {e}")
+                    import loguru
+                    loguru.logger.error(f"Tool execution error: {e}")
                 except Exception:
                     pass
                 plan = {

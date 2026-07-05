@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/api_gateway.py
 
 **প্রকার:** .py  
-**সাইজ:** 7,619 বাইট  
-**আপডেট:** 2026-07-05T15:09:14.690609
+**সাইজ:** 7,614 বাইট  
+**আপডেট:** 2026-07-05T15:18:46.701067
 
 ---
 
@@ -165,8 +165,8 @@ async def gateway_forward(request: GatewayRequest, http_request: Request) -> Res
                     )
                 except Exception as e:
                     try:
-                        from loguru import logger
-                        logger.error(f"Tool execution error: {e}")
+                        import loguru
+                        loguru.logger.error(f"Tool execution error: {e}")
                     except Exception:
                         pass
                     pass

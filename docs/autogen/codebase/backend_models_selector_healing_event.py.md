@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/models/selector_healing_event.py
 
 **প্রকার:** .py  
-**সাইজ:** 1,209 বাইট  
-**আপডেট:** 2026-07-05T15:09:14.650446
+**সাইজ:** 1,279 বাইট  
+**আপডেট:** 2026-07-05T15:18:46.658166
 
 ---
 
@@ -11,9 +11,12 @@
 ```py
 import uuid
 
-from sqlalchemy import Boolean, Numeric, String
+from sqlalchemy import Boolean
+from sqlalchemy import Numeric
+from sqlalchemy import String
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped
+from sqlalchemy.orm import mapped_column
 
 from models.base import Base
 

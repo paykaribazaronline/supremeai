@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/style_learner.py
 
 **প্রকার:** .py  
-**সাইজ:** 7,142 বাইট  
-**আপডেট:** 2026-07-05T15:09:14.682577
+**সাইজ:** 7,127 বাইট  
+**আপডেট:** 2026-07-05T15:18:46.692593
 
 ---
 
@@ -59,8 +59,8 @@ class StyleLearner:
                             code_samples.append(f.read()[:1500])
                     except Exception as e:
                         try:
-                            from loguru import logger
-                            logger.error(f"Tool execution error: {e}")
+                            import loguru
+                            loguru.logger.error(f"Tool execution error: {e}")
                         except Exception:
                             pass
                         pass
@@ -99,8 +99,8 @@ class StyleLearner:
                         return parsed
                 except Exception as e:
                     try:
-                        from loguru import logger
-                        logger.error(f"Tool execution error: {e}")
+                        import loguru
+                        loguru.logger.error(f"Tool execution error: {e}")
                     except Exception:
                         pass
                     logger.warning("Failed to parse style guidelines JSON from LLM.")
@@ -126,8 +126,8 @@ class StyleLearner:
                 return
         except Exception as e:
             try:
-                from loguru import logger
-                logger.error(f"Tool execution error: {e}")
+                import loguru
+                loguru.logger.error(f"Tool execution error: {e}")
             except Exception:
                 pass
             pass

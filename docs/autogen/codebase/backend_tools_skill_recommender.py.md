@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/skill_recommender.py
 
 **প্রকার:** .py  
-**সাইজ:** 4,866 বাইট  
-**আপডেট:** 2026-07-05T15:09:14.692287
+**সাইজ:** 4,861 বাইট  
+**আপডেট:** 2026-07-05T15:18:46.702780
 
 ---
 
@@ -110,8 +110,8 @@ class SkillRecommender:
                         )
                 except Exception as e:
                     try:
-                        from loguru import logger
-                        logger.error(f"Tool execution error: {e}")
+                        import loguru
+                        loguru.logger.error(f"Tool execution error: {e}")
                     except Exception:
                         pass
                     pass

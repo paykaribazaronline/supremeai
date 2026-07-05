@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/memory/long_term_memory.py
 
 **প্রকার:** .py  
-**সাইজ:** 4,300 বাইট  
-**আপডেট:** 2026-07-05T15:09:14.652119
+**সাইজ:** 4,302 বাইট  
+**আপডেট:** 2026-07-05T15:18:46.660053
 
 ---
 
@@ -14,6 +14,7 @@ from __future__ import annotations
 from typing import Any
 
 from loguru import logger
+
 
 try:
     from brain.model_router import ModelRouter
@@ -115,4 +116,5 @@ class LongTermMemory:
         if self._facts:
             parts.append("Facts: " + "; ".join(item["content"] for item in self._facts))
         return "\n".join(parts) if parts else "No memory available."
+
 ```

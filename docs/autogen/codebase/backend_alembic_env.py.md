@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/alembic/env.py
 
 **প্রকার:** .py  
-**সাইজ:** 3,220 বাইট  
-**আপডেট:** 2026-07-05T15:09:14.653290
+**সাইজ:** 2,780 বাইট  
+**আপডেট:** 2026-07-05T15:18:46.661294
 
 ---
 
@@ -22,17 +22,10 @@ from sqlalchemy import pool
 
 from alembic import context
 from core.config import settings
-
 from models.base import Base
+
+
 # Import all models to ensure they are registered with Base.metadata before autogenerate
-from models.wallet import UserWallet, TransactionLedgerEntry
-from models.evolution import SkillFitness, CodeProposal
-from models.agent_session import AgentSession
-from models.execution_log import ExecutionLog
-from models.execution_policy import ExecutionPolicy
-from models.target_platform_credential import TargetPlatformCredential
-from models.selector_healing_event import SelectorHealingEvent
-from models.handoff_event import HandoffEvent
 
 
 # this is the Alembic Config object, which provides

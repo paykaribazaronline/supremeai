@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/api/routes/selector_healing.py
 
 **প্রকার:** .py  
-**সাইজ:** 1,403 বাইট  
-**আপডেট:** 2026-07-05T15:09:14.647253
+**সাইজ:** 1,381 বাইট  
+**আপডেট:** 2026-07-05T15:18:46.654693
 
 ---
 
@@ -10,9 +10,10 @@
 
 ```py
 import time
-from typing import List
+
 from fastapi import APIRouter
 from pydantic import BaseModel
+
 
 router = APIRouter(prefix="/api/admin/selector-healing", tags=["Self-Healing Logs"])
 

@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/vpn_switcher.py
 
 **প্রকার:** .py  
-**সাইজ:** 5,627 বাইট  
-**আপডেট:** 2026-07-05T15:09:14.685988
+**সাইজ:** 5,622 বাইট  
+**আপডেট:** 2026-07-05T15:18:46.696139
 
 ---
 
@@ -151,8 +151,8 @@ class VPNRotator:
             return {"proxy": proxy, "source": "premium", "use_case": use_case}
         except Exception as e:
             try:
-                from loguru import logger
-                logger.error(f"Tool execution error: {e}")
+                import loguru
+                loguru.logger.error(f"Tool execution error: {e}")
             except Exception:
                 pass
             return {"proxy": None, "source": "premium", "reason": "not configured"}

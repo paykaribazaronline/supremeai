@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/secure_credential_store.py
 
 **প্রকার:** .py  
-**সাইজ:** 5,167 বাইট  
-**আপডেট:** 2026-07-05T15:09:14.631952
+**সাইজ:** 5,176 বাইট  
+**আপডেট:** 2026-07-05T15:18:46.638478
 
 ---
 
@@ -13,12 +13,14 @@ from __future__ import annotations
 
 import base64
 import os
-from abc import ABC, abstractmethod
-from typing import Any, Tuple
+from abc import ABC
+from abc import abstractmethod
+from typing import Any
 
 from loguru import logger
 
 from core.config import settings
+
 
 try:
     from cryptography.fernet import Fernet
@@ -35,7 +37,7 @@ def generate_key() -> str:
 
 class EncryptionProvider(ABC):
     @abstractmethod
-    def encrypt(self, plaintext: str) -> Tuple[str, str | None]:
+    def encrypt(self, plaintext: str) -> tuple[str, str | None]:
         """Returns (ciphertext, key_ref)"""
         pass
 
@@ -60,7 +62,7 @@ class LocalFernetProvider(EncryptionProvider):
         if not self.enabled:
             logger.warning("Credential encryption is disabled. Credentials will be stored as plaintext.")
 
-    def encrypt(self, plaintext: str) -> Tuple[str, str | None]:
+    def encrypt(self, plaintext: str) -> tuple[str, str | None]:
         if not self.enabled or self.fernet is None:
             return plaintext, "local:plaintext"
         try:
@@ -85,7 +87,7 @@ class CloudKMSProvider(EncryptionProvider):
         # In a real scenario, initialize GCP KMS Client or Supabase Vault Client here
         logger.info("Initializing CloudKMSProvider for envelope encryption.")
 
-    def encrypt(self, plaintext: str) -> Tuple[str, str | None]:
+    def encrypt(self, plaintext: str) -> tuple[str, str | None]:
         # STUB for Production Cloud KMS
         # Actually call the KMS API
         logger.debug("CloudKMSProvider: encrypting payload...")

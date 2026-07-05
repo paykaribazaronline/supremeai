@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/health_checker.py
 
 **প্রকার:** .py  
-**সাইজ:** 6,390 বাইট  
-**আপডেট:** 2026-07-05T15:09:14.685689
+**সাইজ:** 6,385 বাইট  
+**আপডেট:** 2026-07-05T15:18:46.695842
 
 ---
 
@@ -101,8 +101,8 @@ class HealthChecker:
                             recent_errors.append(record)
                     except Exception as e:
                         try:
-                            from loguru import logger
-                            logger.error(f"Tool execution error: {e}")
+                            import loguru
+                            loguru.logger.error(f"Tool execution error: {e}")
                         except Exception:
                             pass
                         continue

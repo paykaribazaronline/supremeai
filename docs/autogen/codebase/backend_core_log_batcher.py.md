@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/log_batcher.py
 
 **প্রকার:** .py  
-**সাইজ:** 4,062 বাইট  
-**আপডেট:** 2026-07-05T15:09:14.631154
+**সাইজ:** 3,971 বাইট  
+**আপডেট:** 2026-07-05T15:18:46.637594
 
 ---
 
@@ -10,11 +10,7 @@
 
 ```py
 import asyncio
-import os
-import signal
 from collections import deque
-from datetime import datetime
-from typing import Any, Dict
 
 from loguru import logger
 from sqlalchemy import insert
@@ -95,7 +91,7 @@ class LogBatcherService:
                         
                 if len(self.buffer) >= self.batch_size:
                     await self._flush()
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 if self.buffer:
                     await self._flush()
             except Exception as e:

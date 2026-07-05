@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/tenant_rate_limiter.py
 
 **প্রকার:** .py  
-**সাইজ:** 8,281 বাইট  
-**আপডেট:** 2026-07-05T15:09:14.687975
+**সাইজ:** 8,276 বাইট  
+**আপডেট:** 2026-07-05T15:18:46.698202
 
 ---
 
@@ -39,8 +39,8 @@ class TenantRateLimiter:
             return getattr(app_mod, "redis_queue", None)
         except Exception as e:
             try:
-                from loguru import logger
-                logger.error(f"Tool execution error: {e}")
+                import loguru
+                loguru.logger.error(f"Tool execution error: {e}")
             except Exception:
                 pass
             return None

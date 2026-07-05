@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/pr_reviewer.py
 
 **প্রকার:** .py  
-**সাইজ:** 9,350 বাইট  
-**আপডেট:** 2026-07-05T15:09:14.694137
+**সাইজ:** 9,345 বাইট  
+**আপডেট:** 2026-07-05T15:18:46.704837
 
 ---
 
@@ -145,8 +145,8 @@ class PRReviewer:
                             )
             except Exception as e:
                 try:
-                    from loguru import logger
-                    logger.error(f"Tool execution error: {e}")
+                    import loguru
+                    loguru.logger.error(f"Tool execution error: {e}")
                 except Exception:
                     pass
                 logger.warning("Failed to parse LLM response in PRReviewer.")

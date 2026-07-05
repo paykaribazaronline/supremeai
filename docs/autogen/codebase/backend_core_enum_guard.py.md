@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/enum_guard.py
 
 **প্রকার:** .py  
-**সাইজ:** 2,607 বাইট  
-**আপডেট:** 2026-07-05T15:09:14.639332
+**সাইজ:** 2,668 বাইট  
+**আপডেট:** 2026-07-05T15:18:46.646249
 
 ---
 
@@ -10,7 +10,6 @@
 
 ```py
 import enum
-from typing import Type
 
 from loguru import logger
 from sqlalchemy import text
@@ -21,7 +20,7 @@ from database.session import engine
 class EnumMismatchError(Exception):
     pass
 
-async def guard_enum(db_enum_name: str, py_enum: Type[enum.Enum]):
+async def guard_enum(db_enum_name: str, py_enum: type[enum.Enum]):
     """
     Validates that the Python Enum matches the Postgres Enum at startup.
     Prevents runtime crashes due to database mismatches.
@@ -62,10 +61,12 @@ async def guard_enum(db_enum_name: str, py_enum: Type[enum.Enum]):
 
 
 async def run_enum_guards():
-    from models.agent_session import AgentSessionState, ControlMode
+    from models.agent_session import AgentSessionState
+    from models.agent_session import ControlMode
     from models.execution_log import LogType
     from models.execution_policy import PolicyScope
-    from models.target_platform_credential import AuthType, CredentialStatus
+    from models.target_platform_credential import AuthType
+    from models.target_platform_credential import CredentialStatus
     
     logger.info("Running Startup Enum Guards...")
     

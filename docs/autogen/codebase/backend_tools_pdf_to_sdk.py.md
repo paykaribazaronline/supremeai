@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/pdf_to_sdk.py
 
 **প্রকার:** .py  
-**সাইজ:** 4,510 বাইট  
-**আপডেট:** 2026-07-05T15:09:14.693067
+**সাইজ:** 4,500 বাইট  
+**আপডেট:** 2026-07-05T15:18:46.703595
 
 ---
 
@@ -33,8 +33,8 @@ class PDFToSDKConverter:
             text = "\n".join(page.get_text() for page in doc)
         except Exception as e:
             try:
-                from loguru import logger
-                logger.error(f"Tool execution error: {e}")
+                import loguru
+                loguru.logger.error(f"Tool execution error: {e}")
             except Exception:
                 pass
             pass
@@ -47,8 +47,8 @@ class PDFToSDKConverter:
                     text = "\n".join(page.extract_text() or "" for page in pdf.pages)
             except Exception as e:
                 try:
-                    from loguru import logger
-                    logger.error(f"Tool execution error: {e}")
+                    import loguru
+                    loguru.logger.error(f"Tool execution error: {e}")
                 except Exception:
                     pass
                 pass

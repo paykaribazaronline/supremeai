@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/telegram_bot.py
 
 **প্রকার:** .py  
-**সাইজ:** 11,322 বাইট  
-**আপডেট:** 2026-07-05T15:09:14.686522
+**সাইজ:** 11,312 বাইট  
+**আপডেট:** 2026-07-05T15:18:46.696726
 
 ---
 
@@ -99,8 +99,8 @@ class TelegramBotHandler:
                 )
         except Exception as e:
             try:
-                from loguru import logger
-                logger.error(f"Tool execution error: {e}")
+                import loguru
+                loguru.logger.error(f"Tool execution error: {e}")
             except Exception:
                 pass
             pass
@@ -209,8 +209,8 @@ class TelegramBotHandler:
                     status_lines.append(f"{icon} {name}: `{r.status_code}`")
             except Exception as e:
                 try:
-                    from loguru import logger
-                    logger.error(f"Tool execution error: {e}")
+                    import loguru
+                    loguru.logger.error(f"Tool execution error: {e}")
                 except Exception:
                     pass
                 status_lines.append(f"❌ {name}: unreachable")

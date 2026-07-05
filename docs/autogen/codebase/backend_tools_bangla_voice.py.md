@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/bangla_voice.py
 
 **প্রকার:** .py  
-**সাইজ:** 3,593 বাইট  
-**আপডেট:** 2026-07-05T15:09:14.690406
+**সাইজ:** 3,583 বাইট  
+**আপডেট:** 2026-07-05T15:18:46.700846
 
 ---
 
@@ -36,8 +36,8 @@ class BanglaVoice:
             return whisper is not None
         except Exception as e:
             try:
-                from loguru import logger
-                logger.error(f"Tool execution error: {e}")
+                import loguru
+                loguru.logger.error(f"Tool execution error: {e}")
             except Exception:
                 pass
             return False
@@ -49,8 +49,8 @@ class BanglaVoice:
             return TTS is not None
         except Exception as e:
             try:
-                from loguru import logger
-                logger.error(f"Tool execution error: {e}")
+                import loguru
+                loguru.logger.error(f"Tool execution error: {e}")
             except Exception:
                 pass
             return False

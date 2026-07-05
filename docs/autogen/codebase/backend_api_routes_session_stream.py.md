@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/api/routes/session_stream.py
 
 **প্রকার:** .py  
-**সাইজ:** 2,057 বাইট  
-**আপডেট:** 2026-07-05T15:09:14.647395
+**সাইজ:** 2,035 বাইট  
+**আপডেট:** 2026-07-05T15:18:46.654857
 
 ---
 
@@ -12,11 +12,13 @@
 import asyncio
 import json
 
-from fastapi import APIRouter, Depends, Path, Request
+from fastapi import APIRouter
+from fastapi import Path
+from fastapi import Request
 from sse_starlette.sse import EventSourceResponse
 
 from core.log_batcher import batcher
-from database.session import get_db_session
+
 
 router = APIRouter()
 
@@ -57,7 +59,7 @@ async def stream_session(
                         "event": "message",
                         "data": json.dumps({"channel": channel, "data": item})
                     }
-                except asyncio.TimeoutError:
+                except TimeoutError:
                     # Heartbeat
                     yield {
                         "event": "ping",

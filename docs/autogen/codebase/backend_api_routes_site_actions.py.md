@@ -1,24 +1,24 @@
 # 📄 ফাইল: backend/api/routes/site_actions.py
 
 **প্রকার:** .py  
-**সাইজ:** 6,474 বাইট  
-**আপডেট:** 2026-07-05T15:09:14.644819
+**সাইজ:** 6,456 বাইট  
+**আপডেট:** 2026-07-05T15:18:46.652064
 
 ---
 
 ## কোড
 
 ```py
+import json
 import os
 import sqlite3
 import threading
 import time
-import json
-import base64
-from typing import List
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter
+from fastapi import HTTPException
 from pydantic import BaseModel
+
 
 router = APIRouter(prefix="/api/admin/site-actions", tags=["Site Actions Registry"])
 
@@ -68,7 +68,7 @@ class SiteActionIn(BaseModel):
     action_type: str = "click"
     notes: str = ""
     enabled: bool = True
-    fallback_selectors: List[str] = []
+    fallback_selectors: list[str] = []
     selector_strategy: str = "exact"
     health_score: int = 100
 

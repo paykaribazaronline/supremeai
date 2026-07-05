@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/models/target_platform_credential.py
 
 **প্রকার:** .py  
-**সাইজ:** 1,630 বাইট  
-**আপডেট:** 2026-07-05T15:09:14.649983
+**সাইজ:** 1,742 বাইট  
+**আপডেট:** 2026-07-05T15:18:46.657599
 
 ---
 
@@ -11,11 +11,16 @@
 ```py
 import enum
 import uuid
-from datetime import UTC, datetime
+from datetime import UTC
+from datetime import datetime
 
-from sqlalchemy import DateTime, Enum, LargeBinary, String
+from sqlalchemy import DateTime
+from sqlalchemy import Enum
+from sqlalchemy import LargeBinary
+from sqlalchemy import String
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped
+from sqlalchemy.orm import mapped_column
 
 from models.base import Base
 

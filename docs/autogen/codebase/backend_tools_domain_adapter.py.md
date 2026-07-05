@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/domain_adapter.py
 
 **প্রকার:** .py  
-**সাইজ:** 6,773 বাইট  
-**আপডেট:** 2026-07-05T15:09:14.689075
+**সাইজ:** 6,768 বাইট  
+**আপডেট:** 2026-07-05T15:18:46.699372
 
 ---
 
@@ -91,8 +91,8 @@ class DomainAdapter:
             self._profiles.update(data)
         except Exception as e:
             try:
-                from loguru import logger
-                logger.error(f"Tool execution error: {e}")
+                import loguru
+                loguru.logger.error(f"Tool execution error: {e}")
             except Exception:
                 pass
             pass

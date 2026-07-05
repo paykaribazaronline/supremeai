@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/self_planner.py
 
 **প্রকার:** .py  
-**সাইজ:** 8,690 বাইট  
-**আপডেট:** 2026-07-05T15:09:14.684289
+**সাইজ:** 8,685 বাইট  
+**আপডেট:** 2026-07-05T15:18:46.694297
 
 ---
 
@@ -67,8 +67,8 @@ class SelfPlanner:
                     plan = []
             except Exception as e:
                 try:
-                    from loguru import logger
-                    logger.error(f"Tool execution error: {e}")
+                    import loguru
+                    loguru.logger.error(f"Tool execution error: {e}")
                 except Exception:
                     pass
                 logger.warning("LLM returned non-JSON plan. Using fallback.")

@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/mcp_supabase.py
 
 **প্রকার:** .py  
-**সাইজ:** 14,715 বাইট  
-**আপডেট:** 2026-07-05T15:09:14.684784
+**সাইজ:** 14,690 বাইট  
+**আপডেট:** 2026-07-05T15:18:46.694836
 
 ---
 
@@ -79,8 +79,8 @@ def _get_connection():
         return conn
     except Exception as e:
         try:
-            from loguru import logger
-            logger.error(f"Tool execution error: {e}")
+            import loguru
+            loguru.logger.error(f"Tool execution error: {e}")
         except Exception:
             pass
         return None
@@ -189,8 +189,8 @@ async def supabase_execute_sql(params: ExecuteQueryInput) -> str:
                 conn.close()
             except Exception as e:
                 try:
-                    from loguru import logger
-                    logger.error(f"Tool execution error: {e}")
+                    import loguru
+                    loguru.logger.error(f"Tool execution error: {e}")
                 except Exception:
                     pass
                 pass
@@ -256,8 +256,8 @@ async def supabase_create_table(params: CreateTableInput) -> str:
                 conn.close()
             except Exception as e:
                 try:
-                    from loguru import logger
-                    logger.error(f"Tool execution error: {e}")
+                    import loguru
+                    loguru.logger.error(f"Tool execution error: {e}")
                 except Exception:
                     pass
                 pass
@@ -345,8 +345,8 @@ async def supabase_run_migration(params: MigrationInput) -> str:
                 conn.close()
             except Exception as e:
                 try:
-                    from loguru import logger
-                    logger.error(f"Tool execution error: {e}")
+                    import loguru
+                    loguru.logger.error(f"Tool execution error: {e}")
                 except Exception:
                     pass
                 pass
@@ -401,8 +401,8 @@ async def supabase_list_tables() -> str:
                 conn.close()
             except Exception as e:
                 try:
-                    from loguru import logger
-                    logger.error(f"Tool execution error: {e}")
+                    import loguru
+                    loguru.logger.error(f"Tool execution error: {e}")
                 except Exception:
                     pass
                 pass

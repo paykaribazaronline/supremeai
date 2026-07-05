@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/voice.py
 
 **প্রকার:** .py  
-**সাইজ:** 6,178 বাইট  
-**আপডেট:** 2026-07-05T15:09:14.689407
+**সাইজ:** 6,173 বাইট  
+**আপডেট:** 2026-07-05T15:18:46.699759
 
 ---
 
@@ -99,8 +99,8 @@ class VoiceInterface:
                     device = "cuda"
             except Exception as e:
                 try:
-                    from loguru import logger
-                    logger.error(f"Tool execution error: {e}")
+                    import loguru
+                    loguru.logger.error(f"Tool execution error: {e}")
                 except Exception:
                     pass
                 pass

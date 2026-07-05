@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/models/execution_log.py
 
 **প্রকার:** .py  
-**সাইজ:** 1,736 বাইট  
-**আপডেট:** 2026-07-05T15:09:14.649660
+**সাইজ:** 1,882 বাইট  
+**আপডেট:** 2026-07-05T15:18:46.657237
 
 ---
 
@@ -11,11 +11,17 @@
 ```py
 import enum
 import uuid
-from datetime import UTC, datetime
+from datetime import UTC
+from datetime import datetime
 
-from sqlalchemy import DateTime, Enum, ForeignKey, Integer, String
-from sqlalchemy.dialects.postgresql import JSONB, UUID
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy import DateTime
+from sqlalchemy import Enum
+from sqlalchemy import ForeignKey
+from sqlalchemy import Integer
+from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.orm import Mapped
+from sqlalchemy.orm import mapped_column
 
 from models.base import Base
 

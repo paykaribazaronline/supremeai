@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/multilingual_tts.py
 
 **প্রকার:** .py  
-**সাইজ:** 19,568 বাইট  
-**আপডেট:** 2026-07-05T15:09:14.690123
+**সাইজ:** 19,563 বাইট  
+**আপডেট:** 2026-07-05T15:18:46.700511
 
 ---
 
@@ -507,8 +507,8 @@ async def clear_cache():
                     removed += 1
                 except Exception as e:
                     try:
-                        from loguru import logger
-                        logger.error(f"Tool execution error: {e}")
+                        import loguru
+                        loguru.logger.error(f"Tool execution error: {e}")
                     except Exception:
                         pass
                     pass

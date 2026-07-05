@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/voice_coder.py
 
 **প্রকার:** .py  
-**সাইজ:** 6,285 বাইট  
-**আপডেট:** 2026-07-05T15:09:14.687402
+**সাইজ:** 6,280 বাইট  
+**আপডেট:** 2026-07-05T15:18:46.697578
 
 ---
 
@@ -50,8 +50,8 @@ class VoiceCoder:
                 audio_feedback = await self.voice.text_to_speech_async(feedback_text)
             except Exception as e:
                 try:
-                    from loguru import logger
-                    logger.error(f"Tool execution error: {e}")
+                    import loguru
+                    loguru.logger.error(f"Tool execution error: {e}")
                 except Exception:
                     pass
                 audio_feedback = None

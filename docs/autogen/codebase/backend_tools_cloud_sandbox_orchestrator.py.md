@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/cloud_sandbox_orchestrator.py
 
 **প্রকার:** .py  
-**সাইজ:** 14,803 বাইট  
-**আপডেট:** 2026-07-05T15:09:14.689549
+**সাইজ:** 14,793 বাইট  
+**আপডেট:** 2026-07-05T15:18:46.699914
 
 ---
 
@@ -163,8 +163,8 @@ class CloudSandboxOrchestrator:
                     container.kill()
                 except Exception as e:
                     try:
-                        from loguru import logger
-                        logger.error(f"Tool execution error: {e}")
+                        import loguru
+                        loguru.logger.error(f"Tool execution error: {e}")
                     except Exception:
                         pass
                     pass
@@ -200,8 +200,8 @@ class CloudSandboxOrchestrator:
                     container.remove(force=True)
                 except Exception as e:
                     try:
-                        from loguru import logger
-                        logger.error(f"Tool execution error: {e}")
+                        import loguru
+                        loguru.logger.error(f"Tool execution error: {e}")
                     except Exception:
                         pass
                     pass

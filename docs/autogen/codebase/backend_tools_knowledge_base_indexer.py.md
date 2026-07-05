@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/knowledge_base_indexer.py
 
 **প্রকার:** .py  
-**সাইজ:** 15,331 বাইট  
-**আপডেট:** 2026-07-05T15:09:14.692406
+**সাইজ:** 15,316 বাইট  
+**আপডেট:** 2026-07-05T15:18:46.702904
 
 ---
 
@@ -47,8 +47,8 @@ class KnowledgeBaseIndexer:
                 source = f.read()
         except Exception as e:
             try:
-                from loguru import logger
-                logger.error(f"Tool execution error: {e}")
+                import loguru
+                loguru.logger.error(f"Tool execution error: {e}")
             except Exception:
                 pass
             return docs
@@ -229,8 +229,8 @@ class KnowledgeBaseIndexer:
                     confidence = float(args[6].value)
         except Exception as e:
             try:
-                from loguru import logger
-                logger.error(f"Tool execution error: {e}")
+                import loguru
+                loguru.logger.error(f"Tool execution error: {e}")
             except Exception:
                 pass
             return None, None
@@ -337,8 +337,8 @@ class KnowledgeBaseIndexer:
             ]
         except Exception as e:
             try:
-                from loguru import logger
-                logger.error(f"Tool execution error: {e}")
+                import loguru
+                loguru.logger.error(f"Tool execution error: {e}")
             except Exception:
                 pass
             return []

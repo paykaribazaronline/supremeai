@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/comment_thread_ai.py
 
 **প্রকার:** .py  
-**সাইজ:** 16,602 বাইট  
-**আপডেট:** 2026-07-05T15:09:14.683122
+**সাইজ:** 16,577 বাইট  
+**আপডেট:** 2026-07-05T15:18:46.693139
 
 ---
 
@@ -109,8 +109,8 @@ class CommentThreadAI:
             comments.extend(review if isinstance(review, list) else [])
         except Exception as e:
             try:
-                from loguru import logger
-                logger.error(f"Tool execution error: {e}")
+                import loguru
+                loguru.logger.error(f"Tool execution error: {e}")
             except Exception:
                 pass
             pass
@@ -120,8 +120,8 @@ class CommentThreadAI:
             comments.extend(issue if isinstance(issue, list) else [])
         except Exception as e:
             try:
-                from loguru import logger
-                logger.error(f"Tool execution error: {e}")
+                import loguru
+                loguru.logger.error(f"Tool execution error: {e}")
             except Exception:
                 pass
             pass
@@ -132,8 +132,8 @@ class CommentThreadAI:
             return await self._gh_get(f"/repos/{repo}/pulls/{pr_number}/files")
         except Exception as e:
             try:
-                from loguru import logger
-                logger.error(f"Tool execution error: {e}")
+                import loguru
+                loguru.logger.error(f"Tool execution error: {e}")
             except Exception:
                 pass
             return []
@@ -329,8 +329,8 @@ class CommentThreadAI:
                         )
                 except Exception as e:
                     try:
-                        from loguru import logger
-                        logger.error(f"Tool execution error: {e}")
+                        import loguru
+                        loguru.logger.error(f"Tool execution error: {e}")
                     except Exception:
                         pass
                     pass
@@ -441,8 +441,8 @@ async def github_webhook(
         payload = await request.json()
     except Exception as e:
         try:
-            from loguru import logger
-            logger.error(f"Tool execution error: {e}")
+            import loguru
+            loguru.logger.error(f"Tool execution error: {e}")
         except Exception:
             pass
         raise HTTPException(status_code=400, detail="Invalid JSON payload")

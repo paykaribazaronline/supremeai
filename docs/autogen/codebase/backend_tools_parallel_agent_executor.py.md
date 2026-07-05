@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/parallel_agent_executor.py
 
 **প্রকার:** .py  
-**সাইজ:** 10,205 বাইট  
-**আপডেট:** 2026-07-05T15:09:14.694623
+**সাইজ:** 10,195 বাইট  
+**আপডেট:** 2026-07-05T15:18:46.705357
 
 ---
 
@@ -87,8 +87,8 @@ class ParallelAgentExecutor:
                     redis = app_mod.redis_queue
                 except Exception as e:
                     try:
-                        from loguru import logger
-                        logger.error(f"Tool execution error: {e}")
+                        import loguru
+                        loguru.logger.error(f"Tool execution error: {e}")
                     except Exception:
                         pass
                     redis = None
@@ -128,8 +128,8 @@ class ParallelAgentExecutor:
                     await self._publish_state(redis, agent_name, "failed", error=str(e))
             except Exception as e:
                 try:
-                    from loguru import logger
-                    logger.error(f"Tool execution error: {e}")
+                    import loguru
+                    loguru.logger.error(f"Tool execution error: {e}")
                 except Exception:
                     pass
                 pass

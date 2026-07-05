@@ -1,17 +1,18 @@
 # 📄 ফাইল: backend/api/routes/execution_policies.py
 
 **প্রকার:** .py  
-**সাইজ:** 1,309 বাইট  
-**আপডেট:** 2026-07-05T15:09:14.646042
+**সাইজ:** 1,287 বাইট  
+**আপডেট:** 2026-07-05T15:18:46.653350
 
 ---
 
 ## কোড
 
 ```py
+
 from fastapi import APIRouter
 from pydantic import BaseModel
-from typing import List
+
 
 router = APIRouter(prefix="/api/admin/execution-policies", tags=["Guardrails"])
 
