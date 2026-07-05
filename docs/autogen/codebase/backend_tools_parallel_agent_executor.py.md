@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/parallel_agent_executor.py
 
 **প্রকার:** .py  
-**সাইজ:** 10,195 বাইট  
-**আপডেট:** 2026-07-05T18:19:45.292350
+**সাইজ:** 10,361 বাইট  
+**আপডেট:** 2026-07-05T19:04:56.715553
 
 ---
 
@@ -89,8 +89,9 @@ class ParallelAgentExecutor:
                     try:
                         import loguru
                         loguru.logger.error(f"Tool execution error: {e}")
-                    except Exception:
-                        pass
+                    except Exception as e:
+                        import logging
+                        logging.warning(f"Exception suppressed: {e}")
                     redis = None
 
             if mcp_servers:
@@ -130,8 +131,9 @@ class ParallelAgentExecutor:
                 try:
                     import loguru
                     loguru.logger.error(f"Tool execution error: {e}")
-                except Exception:
-                    pass
+                except Exception as e:
+                    import logging
+                    logging.warning(f"Exception suppressed: {e}")
                 pass
             return {"agent": agent_name, "status": "error", "error": str(e)}
         finally:

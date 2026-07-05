@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/knowledge_base_indexer.py
 
 **প্রকার:** .py  
-**সাইজ:** 15,316 বাইট  
-**আপডেট:** 2026-07-05T18:19:45.289659
+**সাইজ:** 15,547 বাইট  
+**আপডেট:** 2026-07-05T19:04:56.713312
 
 ---
 
@@ -49,8 +49,9 @@ class KnowledgeBaseIndexer:
             try:
                 import loguru
                 loguru.logger.error(f"Tool execution error: {e}")
-            except Exception:
-                pass
+            except Exception as e:
+                import logging
+                logging.warning(f"Exception suppressed: {e}")
             return docs
 
         module_hash = hashlib.md5(source.encode("utf-8")).hexdigest()
@@ -231,8 +232,9 @@ class KnowledgeBaseIndexer:
             try:
                 import loguru
                 loguru.logger.error(f"Tool execution error: {e}")
-            except Exception:
-                pass
+            except Exception as e:
+                import logging
+                logging.warning(f"Exception suppressed: {e}")
             return None, None
 
         text = "\n".join(text_parts) if text_parts else (doc_name or "")
@@ -339,8 +341,9 @@ class KnowledgeBaseIndexer:
             try:
                 import loguru
                 loguru.logger.error(f"Tool execution error: {e}")
-            except Exception:
-                pass
+            except Exception as e:
+                import logging
+                logging.warning(f"Exception suppressed: {e}")
             return []
 
     # ------------------------------------------------------------------

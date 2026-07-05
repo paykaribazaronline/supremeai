@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/self_planner.py
 
 **প্রকার:** .py  
-**সাইজ:** 8,685 বাইট  
-**আপডেট:** 2026-07-05T18:19:45.278890
+**সাইজ:** 8,766 বাইট  
+**আপডেট:** 2026-07-05T19:04:56.705096
 
 ---
 
@@ -69,8 +69,9 @@ class SelfPlanner:
                 try:
                     import loguru
                     loguru.logger.error(f"Tool execution error: {e}")
-                except Exception:
-                    pass
+                except Exception as e:
+                    import logging
+                    logging.warning(f"Exception suppressed: {e}")
                 logger.warning("LLM returned non-JSON plan. Using fallback.")
                 plan = self._mock_plan(objective)
         except Exception as e:

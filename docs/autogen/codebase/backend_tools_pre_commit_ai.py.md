@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/pre_commit_ai.py
 
 **প্রকার:** .py  
-**সাইজ:** 11,402 বাইট  
-**আপডেট:** 2026-07-05T18:19:45.290820
+**সাইজ:** 11,483 বাইট  
+**আপডেট:** 2026-07-05T19:04:56.714274
 
 ---
 
@@ -114,8 +114,9 @@ class PreCommitAI:
                 try:
                     import loguru
                     loguru.logger.error(f"Tool execution error: {e}")
-                except Exception:
-                    pass
+                except Exception as e:
+                    import logging
+                    logging.warning(f"Exception suppressed: {e}")
                 continue  # Skip binary files that can't be read
 
             new_content = original_content

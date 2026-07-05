@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/api_gateway.py
 
 **প্রকার:** .py  
-**সাইজ:** 7,614 বাইট  
-**আপডেট:** 2026-07-05T18:19:45.287634
+**সাইজ:** 7,699 বাইট  
+**আপডেট:** 2026-07-05T19:04:56.711533
 
 ---
 
@@ -167,8 +167,9 @@ async def gateway_forward(request: GatewayRequest, http_request: Request) -> Res
                     try:
                         import loguru
                         loguru.logger.error(f"Tool execution error: {e}")
-                    except Exception:
-                        pass
+                    except Exception as e:
+                        import logging
+                        logging.warning(f"Exception suppressed: {e}")
                     pass
 
         return JSONResponse(content=response.json(), status_code=response.status_code)

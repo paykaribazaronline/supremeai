@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/domain_adapter.py
 
 **প্রকার:** .py  
-**সাইজ:** 6,768 বাইট  
-**আপডেট:** 2026-07-05T18:19:45.285739
+**সাইজ:** 6,845 বাইট  
+**আপডেট:** 2026-07-05T19:04:56.709955
 
 ---
 
@@ -93,8 +93,9 @@ class DomainAdapter:
             try:
                 import loguru
                 loguru.logger.error(f"Tool execution error: {e}")
-            except Exception:
-                pass
+            except Exception as e:
+                import logging
+                logging.warning(f"Exception suppressed: {e}")
             pass
         for domain, defaults in self.DOMAINS.items():
             self._profiles.setdefault(domain, defaults)

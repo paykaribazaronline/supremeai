@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/gcp_cloud_functions.py
 
 **প্রকার:** .py  
-**সাইজ:** 4,236 বাইট  
-**আপডেট:** 2026-07-05T18:19:45.286553
+**সাইজ:** 4,313 বাইট  
+**আপডেট:** 2026-07-05T19:04:56.710585
 
 ---
 
@@ -132,8 +132,9 @@ class GCPCloudFunctionClient:
             try:
                 import loguru
                 loguru.logger.error(f"Tool execution error: {e}")
-            except Exception:
-                pass
+            except Exception as e:
+                import logging
+                logging.warning(f"Exception suppressed: {e}")
             return {"text": response.text}
 
 ```

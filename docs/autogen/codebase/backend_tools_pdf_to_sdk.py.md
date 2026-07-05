@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/pdf_to_sdk.py
 
 **প্রকার:** .py  
-**সাইজ:** 4,500 বাইট  
-**আপডেট:** 2026-07-05T18:19:45.290414
+**সাইজ:** 4,658 বাইট  
+**আপডেট:** 2026-07-05T19:04:56.713976
 
 ---
 
@@ -35,8 +35,9 @@ class PDFToSDKConverter:
             try:
                 import loguru
                 loguru.logger.error(f"Tool execution error: {e}")
-            except Exception:
-                pass
+            except Exception as e:
+                import logging
+                logging.warning(f"Exception suppressed: {e}")
             pass
 
         if not text:
@@ -49,8 +50,9 @@ class PDFToSDKConverter:
                 try:
                     import loguru
                     loguru.logger.error(f"Tool execution error: {e}")
-                except Exception:
-                    pass
+                except Exception as e:
+                    import logging
+                    logging.warning(f"Exception suppressed: {e}")
                 pass
 
         if not text:

@@ -1,7 +1,7 @@
 # 🧠 SupremeAI 2.0 Codebase Dump
 # বাংলা মন্তব্য: এটি একটি স্বয়ংক্রিয়ভাবে জেনারেট করা কোডবেস ডাম্প ফাইল যা প্রজেক্টের সামগ্রিক বিশ্লেষণের জন্য ব্যবহৃত হয়।
 
-Generated at: 2026-07-05T18:19:45.163608
+Generated at: 2026-07-05T19:04:56.607825
 
 
 ## File: `pnpm-lock.yaml`
@@ -21408,12 +21408,6 @@ export default defineConfig({
         },
     ],
 });
-```
-
-## File: `coverage.json`
-
-```json
-{"meta": {"format": 3, "version": "7.14.1", "timestamp": "2026-07-04T06:15:05.053151", "branch_coverage": true, "show_contexts": false}, "files": {"backend\\core\\__init__.py": {"executed_lines": [], "summary": {"covered_lines": 0, "num_statements": 0, "percent_covered": 100.0, "percent_covered_display": "100", "missing_lines": 0, "excluded_lines": 0, "percent_statements_covered": 100.0, "percent_statements_covered_display": "100", "num_branches": 0, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 0, "percent_branches_covered": 100.0, "percent_branches_covered_display": "100"}, "missing_lines": [], "excluded_lines": [], "executed_branches": [], "missing_branches": [], "functions": {"": {"executed_lines": [], "summary": {"covered_lines": 0, "num_statements": 0, "percent_covered": 100.0, "percent_covered_display": "100", "missing_lines": 0, "excluded_lines": 0, "percent_statements_covered": 100.0, "percent_statements_covered_display": "100", "num_branches": 0, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 0, "percent_branches_covered": 100.0, "percent_branches_covered_display": "100"}, "missing_lines": [], "excluded_lines": [], "start_line": 1, "executed_branches": [], "missing_branches": []}}, "classes": {"": {"executed_lines": [], "summary": {"covered_lines": 0, "num_statements": 0, "percent_covered": 100.0, "percent_covered_display": "100", "missing_lines": 0, "excluded_lines": 0, "percent_statements_covered": 100.0, "percent_statements_covered_display": "100", "num_branches": 0, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 0, "percent_branches_covered": 100.0, "percent_branches_covered_display": "100"}, "missing_lines": [], "excluded_lines": [], "start_line": 1, "executed_branches": [], "missing_branches": []}}}, "backend\\core\\config.py": {"executed_lines": [1, 2, 3, 5, 6, 7, 8, 9, 10, 11, 13, 16, 21, 22, 27, 28, 30, 31, 32, 33, 34, 35, 37, 38, 39, 41, 51, 52, 53, 54, 56, 64, 66, 67, 68, 70, 73, 78, 83, 89, 93, 95, 96, 97, 98, 99, 100, 101, 102, 104, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 120, 121, 122, 123, 124, 125, 126, 128, 129, 131, 132, 133, 134, 135, 139, 140, 141, 142, 143, 145, 147, 148, 149, 151, 156, 158, 159, 160, 162, 167, 169, 170, 171, 172, 173, 174, 178, 181, 182, 183, 184, 185, 187, 189, 190, 191, 192, 194, 202, 204, 223, 225], "summary": {"covered_lines": 115, "num_statements": 166, "percent_covered": 59.345794392523366, "percent_covered_display": "59", "missing_lines": 51, "excluded_lines": 0, "percent_statements_covered": 69.27710843373494, "percent_statements_covered_display": "69", "num_branches": 48, "num_partial_branches": 12, "covered_branches": 12, "missing_branches": 36, "percent_branches_covered": 25.0, "percent_branches_covered_display": "25"}, "missing_lines": [17, 18, 57, 58, 59, 60, 61, 62, 63, 65, 69, 144, 152, 153, 154, 155, 163, 164, 165, 166, 175, 179, 186, 195, 196, 197, 198, 199, 200, 201, 205, 206, 207, 208, 209, 210, 211, 212, 213, 214, 215, 216, 217, 218, 226, 227, 229, 230, 231, 232, 233], "excluded_lines": [], "executed_branches": [[16, 21], [56, 64], [64, 66], [68, 70], [143, 145], [151, 156], [162, 167], [173, 174], [174, 178], [185, 187], [194, 202], [225, -1]], "missing_branches": [[16, 17], [56, 57], [58, 59], [58, 60], [64, 65], [68, 69], [143, 144], [151, 152], [153, 154], [153, 155], [162, 163], [164, 165], [164, 166], [173, 179], [174, 175], [185, 186], [194, 195], [196, 197], [196, 198], [205, -204], [205, 206], [207, 208], [207, 209], [209, 210], [209, 211], [211, 212], [211, 213], [213, 214], [213, 215], [215, 216], [215, 217], [217, -204], [217, 218], [225, 226], [229, -1], [229, 230]], "functions": {"Settings.sanitize_cors_origins": {"executed_lines": [54, 56, 64, 66, 67, 68, 70], "summary": {"covered_lines": 7, "num_statements": 16, "percent_covered": 41.666666666666664, "percent_covered_display": "42", "missing_lines": 9, "excluded_lines": 0, "percent_statements_covered": 43.75, "percent_statements_covered_display": "44", "num_branches": 8, "num_partial_branches": 3, "covered_branches": 3, "missing_branches": 5, "percent_branches_covered": 37.5, "percent_branches_covered_display": "38"}, "missing_lines": [57, 58, 59, 60, 61, 62, 63, 65, 69], "excluded_lines": [], "start_line": 53, "executed_branches": [[56, 64], [64, 66], [68, 70]], "missing_branches": [[56, 57], [58, 59], [58, 60], [64, 65], [68, 69]]}, "Settings.validate_env": {"executed_lines": [142, 143, 145], "summary": {"covered_lines": 3, "num_statements": 4, "percent_covered": 66.66666666666667, "percent_covered_display": "67", "missing_lines": 1, "excluded_lines": 0, "percent_statements_covered": 75.0, "percent_statements_covered_display": "75", "num_branches": 2, "num_partial_branches": 1, "covered_branches": 1, "missing_branches": 1, "percent_branches_covered": 50.0, "percent_branches_covered_display": "50"}, "missing_lines": [144], "excluded_lines": [], "start_line": 141, "executed_branches": [[143, 145]], "missing_branches": [[143, 144]]}, "Settings.parse_admin_emails": {"executed_lines": [151, 156], "summary": {"covered_lines": 2, "num_statements": 6, "percent_covered": 30.0, "percent_covered_display": "30", "missing_lines": 4, "excluded_lines": 0, "percent_statements_covered": 33.333333333333336, "percent_statements_covered_display": "33", "num_branches": 4, "num_partial_branches": 1, "covered_branches": 1, "missing_branches": 3, "percent_branches_covered": 25.0, "percent_branches_covered_display": "25"}, "missing_lines": [152, 153, 154, 155], "excluded_lines": [], "start_line": 149, "executed_branches": [[151, 156]], "missing_branches": [[151, 152], [153, 154], [153, 155]]}, "Settings.parse_allowed_hosts": {"executed_lines": [162, 167], "summary": {"covered_lines": 2, "num_statements": 6, "percent_covered": 30.0, "percent_covered_display": "30", "missing_lines": 4, "excluded_lines": 0, "percent_statements_covered": 33.333333333333336, "percent_statements_covered_display": "33", "num_branches": 4, "num_partial_branches": 1, "covered_branches": 1, "missing_branches": 3, "percent_branches_covered": 25.0, "percent_branches_covered_display": "25"}, "missing_lines": [163, 164, 165, 166], "excluded_lines": [], "start_line": 160, "executed_branches": [[162, 167]], "missing_branches": [[162, 163], [164, 165], [164, 166]]}, "Settings.set_test_secret": {"executed_lines": [172, 173, 174, 178], "summary": {"covered_lines": 4, "num_statements": 6, "percent_covered": 60.0, "percent_covered_display": "60", "missing_lines": 2, "excluded_lines": 0, "percent_statements_covered": 66.66666666666667, "percent_statements_covered_display": "67", "num_branches": 4, "num_partial_branches": 2, "covered_branches": 2, "missing_branches": 2, "percent_branches_covered": 50.0, "percent_branches_covered_display": "50"}, "missing_lines": [175, 179], "excluded_lines": [], "start_line": 171, "executed_branches": [[173, 174], [174, 178]], "missing_branches": [[173, 179], [174, 175]]}, "Settings.debug_must_be_false_in_production": {"executed_lines": [184, 185, 187], "summary": {"covered_lines": 3, "num_statements": 4, "percent_covered": 66.66666666666667, "percent_covered_display": "67", "missing_lines": 1, "excluded_lines": 0, "percent_statements_covered": 75.0, "percent_statements_covered_display": "75", "num_branches": 2, "num_partial_branches": 1, "covered_branches": 1, "missing_branches": 1, "percent_branches_covered": 50.0, "percent_branches_covered_display": "50"}, "missing_lines": [186], "excluded_lines": [], "start_line": 183, "executed_branches": [[185, 187]], "missing_branches": [[185, 186]]}, "Settings.parse_cors_origins": {"executed_lines": [192, 194, 202], "summary": {"covered_lines": 3, "num_statements": 10, "percent_covered": 28.571428571428573, "percent_covered_display": "29", "missing_lines": 7, "excluded_lines": 0, "percent_statements_covered": 30.0, "percent_statements_covered_display": "30", "num_branches": 4, "num_partial_branches": 1, "covered_branches": 1, "missing_branches": 3, "percent_branches_covered": 25.0, "percent_branches_covered_display": "25"}, "missing_lines": [195, 196, 197, 198, 199, 200, 201], "excluded_lines": [], "start_line": 191, "executed_branches": [[194, 202]], "missing_branches": [[194, 195], [196, 197], [196, 198]]}, "Settings.validate_config": {"executed_lines": [], "summary": {"covered_lines": 0, "num_statements": 14, "percent_covered": 0.0, "percent_covered_display": "0", "missing_lines": 14, "excluded_lines": 0, "percent_statements_covered": 0.0, "percent_statements_covered_display": "0", "num_branches": 14, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 14, "percent_branches_covered": 0.0, "percent_branches_covered_display": "0"}, "missing_lines": [205, 206, 207, 208, 209, 210, 211, 212, 213, 214, 215, 216, 217, 218], "excluded_lines": [], "start_line": 204, "executed_branches": [], "missing_branches": [[205, -204], [205, 206], [207, 208], [207, 209], [209, 210], [209, 211], [211, 212], [211, 213], [213, 214], [213, 215], [215, 216], [215, 217], [217, -204], [217, 218]]}, "": {"executed_lines": [1, 2, 3, 5, 6, 7, 8, 9, 10, 11, 13, 16, 21, 22, 27, 28, 30, 31, 32, 33, 34, 35, 37, 38, 39, 41, 51, 52, 53, 73, 78, 83, 89, 93, 95, 96, 97, 98, 99, 100, 101, 102, 104, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 120, 121, 122, 123, 124, 125, 126, 128, 129, 131, 132, 133, 134, 135, 139, 140, 141, 147, 148, 149, 158, 159, 160, 169, 170, 171, 181, 182, 183, 189, 190, 191, 204, 223, 225], "summary": {"covered_lines": 91, "num_statements": 100, "percent_covered": 87.73584905660377, "percent_covered_display": "88", "missing_lines": 9, "excluded_lines": 0, "percent_statements_covered": 91.0, "percent_statements_covered_display": "91", "num_branches": 6, "num_partial_branches": 2, "covered_branches": 2, "missing_branches": 4, "percent_branches_covered": 33.333333333333336, "percent_branches_covered_display": "33"}, "missing_lines": [17, 18, 226, 227, 229, 230, 231, 232, 233], "excluded_lines": [], "start_line": 1, "executed_branches": [[16, 21], [225, -1]], "missing_branches": [[16, 17], [225, 226], [229, -1], [229, 230]]}}, "classes": {"Settings": {"executed_lines": [54, 56, 64, 66, 67, 68, 70, 142, 143, 145, 151, 156, 162, 167, 172, 173, 174, 178, 184, 185, 187, 192, 194, 202], "summary": {"covered_lines": 24, "num_statements": 66, "percent_covered": 31.48148148148148, "percent_covered_display": "31", "missing_lines": 42, "excluded_lines": 0, "percent_statements_covered": 36.36363636363637, "percent_statements_covered_display": "36", "num_branches": 42, "num_partial_branches": 10, "covered_branches": 10, "missing_branches": 32, "percent_branches_covered": 23.80952380952381, "percent_branches_covered_display": "24"}, "missing_lines": [57, 58, 59, 60, 61, 62, 63, 65, 69, 144, 152, 153, 154, 155, 163, 164, 165, 166, 175, 179, 186, 195, 196, 197, 198, 199, 200, 201, 205, 206, 207, 208, 209, 210, 211, 212, 213, 214, 215, 216, 217, 218], "excluded_lines": [], "start_line": 21, "executed_branches": [[56, 64], [64, 66], [68, 70], [143, 145], [151, 156], [162, 167], [173, 174], [174, 178], [185, 187], [194, 202]], "missing_branches": [[56, 57], [58, 59], [58, 60], [64, 65], [68, 69], [143, 144], [151, 152], [153, 154], [153, 155], [162, 163], [164, 165], [164, 166], [173, 179], [174, 175], [185, 186], [194, 195], [196, 197], [196, 198], [205, -204], [205, 206], [207, 208], [207, 209], [209, 210], [209, 211], [211, 212], [211, 213], [213, 214], [213, 215], [215, 216], [215, 217], [217, -204], [217, 218]]}, "": {"executed_lines": [1, 2, 3, 5, 6, 7, 8, 9, 10, 11, 13, 16, 21, 22, 27, 28, 30, 31, 32, 33, 34, 35, 37, 38, 39, 41, 51, 52, 53, 73, 78, 83, 89, 93, 95, 96, 97, 98, 99, 100, 101, 102, 104, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 120, 121, 122, 123, 124, 125, 126, 128, 129, 131, 132, 133, 134, 135, 139, 140, 141, 147, 148, 149, 158, 159, 160, 169, 170, 171, 181, 182, 183, 189, 190, 191, 204, 223, 225], "summary": {"covered_lines": 91, "num_statements": 100, "percent_covered": 87.73584905660377, "percent_covered_display": "88", "missing_lines": 9, "excluded_lines": 0, "percent_statements_covered": 91.0, "percent_statements_covered_display": "91", "num_branches": 6, "num_partial_branches": 2, "covered_branches": 2, "missing_branches": 4, "percent_branches_covered": 33.333333333333336, "percent_branches_covered_display": "33"}, "missing_lines": [17, 18, 226, 227, 229, 230, 231, 232, 233], "excluded_lines": [], "start_line": 1, "executed_branches": [[16, 21], [225, -1]], "missing_branches": [[16, 17], [225, 226], [229, -1], [229, 230]]}}}, "backend\\core\\llm_gateway.py": {"executed_lines": [4, 5, 6, 7, 9, 10, 12, 16, 18, 19, 20, 21, 22, 25, 26, 28, 31, 32, 34, 35, 36, 37, 38, 39, 46, 48, 51, 59, 60, 61, 62, 64, 66, 82, 89, 90, 92, 106, 109, 113, 114, 115, 119, 120, 121, 126, 127, 128, 129, 137, 138, 141, 142, 143, 144, 145, 146, 149, 152, 154, 158, 159, 160, 161, 162, 168, 174, 175, 176, 177, 179, 181, 184, 185, 186, 187, 188, 194, 195, 196, 197, 198, 199, 200, 201, 202, 207], "summary": {"covered_lines": 87, "num_statements": 107, "percent_covered": 79.3103448275862, "percent_covered_display": "79", "missing_lines": 20, "excluded_lines": 0, "percent_statements_covered": 81.30841121495327, "percent_statements_covered_display": "81", "num_branches": 38, "num_partial_branches": 8, "covered_branches": 28, "missing_branches": 10, "percent_branches_covered": 73.6842105263158, "percent_branches_covered_display": "74"}, "missing_lines": [40, 41, 67, 68, 69, 70, 71, 73, 75, 79, 80, 83, 84, 110, 116, 117, 122, 150, 155, 204], "excluded_lines": [], "executed_branches": [[36, 37], [36, 39], [59, -48], [59, 60], [60, 59], [60, 61], [109, 113], [114, 115], [119, 120], [119, 121], [121, 126], [126, 127], [128, 129], [128, 137], [142, 143], [142, 144], [144, 145], [144, 149], [145, 144], [145, 146], [149, 152], [154, 158], [159, 160], [159, 179], [185, 186], [194, 195], [194, 198], [196, 197]], "missing_branches": [[109, 110], [114, 116], [116, 117], [116, 119], [121, 122], [126, 137], [149, 150], [154, 155], [185, 204], [196, 194]], "functions": {"LLMGateway.__init__": {"executed_lines": [20, 21, 22, 25, 26, 28, 31, 32], "summary": {"covered_lines": 8, "num_statements": 8, "percent_covered": 100.0, "percent_covered_display": "100", "missing_lines": 0, "excluded_lines": 0, "percent_statements_covered": 100.0, "percent_statements_covered_display": "100", "num_branches": 0, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 0, "percent_branches_covered": 100.0, "percent_branches_covered_display": "100"}, "missing_lines": [], "excluded_lines": [], "start_line": 19, "executed_branches": [], "missing_branches": []}, "LLMGateway._load_routing_policy": {"executed_lines": [35, 36, 37, 38, 39, 46], "summary": {"covered_lines": 6, "num_statements": 8, "percent_covered": 80.0, "percent_covered_display": "80", "missing_lines": 2, "excluded_lines": 0, "percent_statements_covered": 75.0, "percent_statements_covered_display": "75", "num_branches": 2, "num_partial_branches": 0, "covered_branches": 2, "missing_branches": 0, "percent_branches_covered": 100.0, "percent_branches_covered_display": "100"}, "missing_lines": [40, 41], "excluded_lines": [], "start_line": 34, "executed_branches": [[36, 37], [36, 39]], "missing_branches": []}, "LLMGateway._inject_secrets": {"executed_lines": [51, 59, 60, 61, 62], "summary": {"covered_lines": 5, "num_statements": 5, "percent_covered": 100.0, "percent_covered_display": "100", "missing_lines": 0, "excluded_lines": 0, "percent_statements_covered": 100.0, "percent_statements_covered_display": "100", "num_branches": 4, "num_partial_branches": 0, "covered_branches": 4, "missing_branches": 0, "percent_branches_covered": 100.0, "percent_branches_covered_display": "100"}, "missing_lines": [], "excluded_lines": [], "start_line": 48, "executed_branches": [[59, -48], [59, 60], [60, 59], [60, 61]], "missing_branches": []}, "LLMGateway._setup_callbacks": {"executed_lines": [66, 82, 89, 90], "summary": {"covered_lines": 4, "num_statements": 4, "percent_covered": 100.0, "percent_covered_display": "100", "missing_lines": 0, "excluded_lines": 0, "percent_statements_covered": 100.0, "percent_statements_covered_display": "100", "num_branches": 0, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 0, "percent_branches_covered": 100.0, "percent_branches_covered_display": "100"}, "missing_lines": [], "excluded_lines": [], "start_line": 64, "executed_branches": [], "missing_branches": []}, "LLMGateway._setup_callbacks.success_callback": {"executed_lines": [], "summary": {"covered_lines": 0, "num_statements": 9, "percent_covered": 0.0, "percent_covered_display": "0", "missing_lines": 9, "excluded_lines": 0, "percent_statements_covered": 0.0, "percent_statements_covered_display": "0", "num_branches": 0, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 0, "percent_branches_covered": 100.0, "percent_branches_covered_display": "100"}, "missing_lines": [67, 68, 69, 70, 71, 73, 75, 79, 80], "excluded_lines": [], "start_line": 66, "executed_branches": [], "missing_branches": []}, "LLMGateway._setup_callbacks.failure_callback": {"executed_lines": [], "summary": {"covered_lines": 0, "num_statements": 2, "percent_covered": 0.0, "percent_covered_display": "0", "missing_lines": 2, "excluded_lines": 0, "percent_statements_covered": 0.0, "percent_statements_covered_display": "0", "num_branches": 0, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 0, "percent_branches_covered": 100.0, "percent_branches_covered_display": "100"}, "missing_lines": [83, 84], "excluded_lines": [], "start_line": 82, "executed_branches": [], "missing_branches": []}, "LLMGateway.acompletion": {"executed_lines": [106, 109, 113, 114, 115, 119, 120, 121, 126, 127, 128, 129, 137, 138, 141, 142, 143, 144, 145, 146, 149, 152, 154, 158, 159, 160, 161, 162, 168, 174, 175, 176, 177, 179], "summary": {"covered_lines": 34, "num_statements": 40, "percent_covered": 78.78787878787878, "percent_covered_display": "79", "missing_lines": 6, "excluded_lines": 0, "percent_statements_covered": 85.0, "percent_statements_covered_display": "85", "num_branches": 26, "num_partial_branches": 6, "covered_branches": 18, "missing_branches": 8, "percent_branches_covered": 69.23076923076923, "percent_branches_covered_display": "69"}, "missing_lines": [110, 116, 117, 122, 150, 155], "excluded_lines": [], "start_line": 92, "executed_branches": [[109, 113], [114, 115], [119, 120], [119, 121], [121, 126], [126, 127], [128, 129], [128, 137], [142, 143], [142, 144], [144, 145], [144, 149], [145, 144], [145, 146], [149, 152], [154, 158], [159, 160], [159, 179]], "missing_branches": [[109, 110], [114, 116], [116, 117], [116, 119], [121, 122], [126, 137], [149, 150], [154, 155]]}, "LLMGateway._stream_completion": {"executed_lines": [184, 185, 186, 187, 188, 194, 195, 196, 197, 198, 199, 200, 201, 202], "summary": {"covered_lines": 14, "num_statements": 15, "percent_covered": 85.71428571428571, "percent_covered_display": "86", "missing_lines": 1, "excluded_lines": 0, "percent_statements_covered": 93.33333333333333, "percent_statements_covered_display": "93", "num_branches": 6, "num_partial_branches": 2, "covered_branches": 4, "missing_branches": 2, "percent_branches_covered": 66.66666666666667, "percent_branches_covered_display": "67"}, "missing_lines": [204], "excluded_lines": [], "start_line": 181, "executed_branches": [[185, 186], [194, 195], [194, 198], [196, 197]], "missing_branches": [[185, 204], [196, 194]]}, "": {"executed_lines": [4, 5, 6, 7, 9, 10, 12, 16, 18, 19, 34, 48, 64, 92, 181, 207], "summary": {"covered_lines": 16, "num_statements": 16, "percent_covered": 100.0, "percent_covered_display": "100", "missing_lines": 0, "excluded_lines": 0, "percent_statements_covered": 100.0, "percent_statements_covered_display": "100", "num_branches": 0, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 0, "percent_branches_covered": 100.0, "percent_branches_covered_display": "100"}, "missing_lines": [], "excluded_lines": [], "start_line": 1, "executed_branches": [], "missing_branches": []}}, "classes": {"LLMGateway": {"executed_lines": [20, 21, 22, 25, 26, 28, 31, 32, 35, 36, 37, 38, 39, 46, 51, 59, 60, 61, 62, 66, 82, 89, 90, 106, 109, 113, 114, 115, 119, 120, 121, 126, 127, 128, 129, 137, 138, 141, 142, 143, 144, 145, 146, 149, 152, 154, 158, 159, 160, 161, 162, 168, 174, 175, 176, 177, 179, 184, 185, 186, 187, 188, 194, 195, 196, 197, 198, 199, 200, 201, 202], "summary": {"covered_lines": 71, "num_statements": 91, "percent_covered": 76.74418604651163, "percent_covered_display": "77", "missing_lines": 20, "excluded_lines": 0, "percent_statements_covered": 78.02197802197803, "percent_statements_covered_display": "78", "num_branches": 38, "num_partial_branches": 8, "covered_branches": 28, "missing_branches": 10, "percent_branches_covered": 73.6842105263158, "percent_branches_covered_display": "74"}, "missing_lines": [40, 41, 67, 68, 69, 70, 71, 73, 75, 79, 80, 83, 84, 110, 116, 117, 122, 150, 155, 204], "excluded_lines": [], "start_line": 18, "executed_branches": [[36, 37], [36, 39], [59, -48], [59, 60], [60, 59], [60, 61], [109, 113], [114, 115], [119, 120], [119, 121], [121, 126], [126, 127], [128, 129], [128, 137], [142, 143], [142, 144], [144, 145], [144, 149], [145, 144], [145, 146], [149, 152], [154, 158], [159, 160], [159, 179], [185, 186], [194, 195], [194, 198], [196, 197]], "missing_branches": [[109, 110], [114, 116], [116, 117], [116, 119], [121, 122], [126, 137], [149, 150], [154, 155], [185, 204], [196, 194]]}, "": {"executed_lines": [4, 5, 6, 7, 9, 10, 12, 16, 18, 19, 34, 48, 64, 92, 181, 207], "summary": {"covered_lines": 16, "num_statements": 16, "percent_covered": 100.0, "percent_covered_display": "100", "missing_lines": 0, "excluded_lines": 0, "percent_statements_covered": 100.0, "percent_statements_covered_display": "100", "num_branches": 0, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 0, "percent_branches_covered": 100.0, "percent_branches_covered_display": "100"}, "missing_lines": [], "excluded_lines": [], "start_line": 1, "executed_branches": [], "missing_branches": []}}}, "backend\\core\\swarm_orchestrator.py": {"executed_lines": [], "summary": {"covered_lines": 0, "num_statements": 19, "percent_covered": 0.0, "percent_covered_display": "0", "missing_lines": 19, "excluded_lines": 0, "percent_statements_covered": 0.0, "percent_statements_covered_display": "0", "num_branches": 0, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 0, "percent_branches_covered": 100.0, "percent_branches_covered_display": "100"}, "missing_lines": [4, 6, 7, 8, 9, 12, 16, 17, 18, 19, 21, 22, 23, 25, 28, 31, 34, 36, 37], "excluded_lines": [], "executed_branches": [], "missing_branches": [], "functions": {"SwarmOrchestrator.__init__": {"executed_lines": [], "summary": {"covered_lines": 0, "num_statements": 3, "percent_covered": 0.0, "percent_covered_display": "0", "missing_lines": 3, "excluded_lines": 0, "percent_statements_covered": 0.0, "percent_statements_covered_display": "0", "num_branches": 0, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 0, "percent_branches_covered": 100.0, "percent_branches_covered_display": "100"}, "missing_lines": [17, 18, 19], "excluded_lines": [], "start_line": 16, "executed_branches": [], "missing_branches": []}, "SwarmOrchestrator.execute_task": {"executed_lines": [], "summary": {"covered_lines": 0, "num_statements": 8, "percent_covered": 0.0, "percent_covered_display": "0", "missing_lines": 8, "excluded_lines": 0, "percent_statements_covered": 0.0, "percent_statements_covered_display": "0", "num_branches": 0, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 0, "percent_branches_covered": 100.0, "percent_branches_covered_display": "100"}, "missing_lines": [22, 23, 25, 28, 31, 34, 36, 37], "excluded_lines": [], "start_line": 21, "executed_branches": [], "missing_branches": []}, "": {"executed_lines": [], "summary": {"covered_lines": 0, "num_statements": 8, "percent_covered": 0.0, "percent_covered_display": "0", "missing_lines": 8, "excluded_lines": 0, "percent_statements_covered": 0.0, "percent_statements_covered_display": "0", "num_branches": 0, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 0, "percent_branches_covered": 100.0, "percent_branches_covered_display": "100"}, "missing_lines": [4, 6, 7, 8, 9, 12, 16, 21], "excluded_lines": [], "start_line": 1, "executed_branches": [], "missing_branches": []}}, "classes": {"SwarmOrchestrator": {"executed_lines": [], "summary": {"covered_lines": 0, "num_statements": 11, "percent_covered": 0.0, "percent_covered_display": "0", "missing_lines": 11, "excluded_lines": 0, "percent_statements_covered": 0.0, "percent_statements_covered_display": "0", "num_branches": 0, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 0, "percent_branches_covered": 100.0, "percent_branches_covered_display": "100"}, "missing_lines": [17, 18, 19, 22, 23, 25, 28, 31, 34, 36, 37], "excluded_lines": [], "start_line": 12, "executed_branches": [], "missing_branches": []}, "": {"executed_lines": [], "summary": {"covered_lines": 0, "num_statements": 8, "percent_covered": 0.0, "percent_covered_display": "0", "missing_lines": 8, "excluded_lines": 0, "percent_statements_covered": 0.0, "percent_statements_covered_display": "0", "num_branches": 0, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 0, "percent_branches_covered": 100.0, "percent_branches_covered_display": "100"}, "missing_lines": [4, 6, 7, 8, 9, 12, 16, 21], "excluded_lines": [], "start_line": 1, "executed_branches": [], "missing_branches": []}}}}, "totals": {"covered_lines": 202, "num_statements": 292, "percent_covered": 64.02116402116403, "percent_covered_display": "64", "missing_lines": 90, "excluded_lines": 0, "percent_statements_covered": 69.17808219178082, "percent_statements_covered_display": "69", "num_branches": 86, "num_partial_branches": 20, "covered_branches": 40, "missing_branches": 46, "percent_branches_covered": 46.51162790697674, "percent_branches_covered_display": "47"}}
 ```
 
 ## File: `security-scan.yml`
@@ -42867,12 +42861,6 @@ requires-python = ">=3.11"
 
 ```
 
-## File: `backend/coverage.json`
-
-```json
-{"meta": {"format": 3, "version": "7.14.1", "timestamp": "2026-07-05T22:01:05.374247", "branch_coverage": true, "show_contexts": false}, "files": {"core\\__init__.py": {"executed_lines": [], "summary": {"covered_lines": 0, "num_statements": 0, "percent_covered": 100.0, "percent_covered_display": "100", "missing_lines": 0, "excluded_lines": 0, "percent_statements_covered": 100.0, "percent_statements_covered_display": "100", "num_branches": 0, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 0, "percent_branches_covered": 100.0, "percent_branches_covered_display": "100"}, "missing_lines": [], "excluded_lines": [], "executed_branches": [], "missing_branches": [], "functions": {"": {"executed_lines": [], "summary": {"covered_lines": 0, "num_statements": 0, "percent_covered": 100.0, "percent_covered_display": "100", "missing_lines": 0, "excluded_lines": 0, "percent_statements_covered": 100.0, "percent_statements_covered_display": "100", "num_branches": 0, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 0, "percent_branches_covered": 100.0, "percent_branches_covered_display": "100"}, "missing_lines": [], "excluded_lines": [], "start_line": 1, "executed_branches": [], "missing_branches": []}}, "classes": {"": {"executed_lines": [], "summary": {"covered_lines": 0, "num_statements": 0, "percent_covered": 100.0, "percent_covered_display": "100", "missing_lines": 0, "excluded_lines": 0, "percent_statements_covered": 100.0, "percent_statements_covered_display": "100", "num_branches": 0, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 0, "percent_branches_covered": 100.0, "percent_branches_covered_display": "100"}, "missing_lines": [], "excluded_lines": [], "start_line": 1, "executed_branches": [], "missing_branches": []}}}, "core\\config.py": {"executed_lines": [1, 2, 3, 5, 6, 7, 8, 9, 10, 11, 13, 16, 21, 22, 27, 28, 30, 31, 32, 33, 34, 35, 37, 38, 39, 41, 53, 58, 63, 69, 73, 75, 76, 77, 78, 79, 80, 81, 82, 83, 85, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 101, 102, 103, 104, 105, 106, 107, 109, 110, 112, 113, 114, 115, 116, 120, 121, 122, 123, 124, 126, 128, 129, 130, 132, 137, 139, 140, 141, 143, 148, 150, 151, 152, 153, 154, 155, 159, 162, 163, 164, 165, 166, 168, 170, 171, 172, 173, 175, 185, 186, 188, 190, 209, 211], "summary": {"covered_lines": 108, "num_statements": 151, "percent_covered": 61.13989637305699, "percent_covered_display": "61", "missing_lines": 43, "excluded_lines": 0, "percent_statements_covered": 71.52317880794702, "percent_statements_covered_display": "72", "num_branches": 42, "num_partial_branches": 10, "covered_branches": 10, "missing_branches": 32, "percent_branches_covered": 23.80952380952381, "percent_branches_covered_display": "24"}, "missing_lines": [17, 18, 125, 133, 134, 135, 136, 144, 145, 146, 147, 156, 160, 167, 176, 177, 178, 180, 181, 182, 183, 187, 191, 192, 193, 194, 195, 196, 197, 198, 199, 200, 201, 202, 203, 204, 212, 213, 215, 216, 217, 218, 219], "excluded_lines": [], "executed_branches": [[16, 21], [124, 126], [132, 137], [143, 148], [154, 155], [155, 159], [166, 168], [175, 185], [186, 188], [211, -1]], "missing_branches": [[16, 17], [124, 125], [132, 133], [134, 135], [134, 136], [143, 144], [145, 146], [145, 147], [154, 160], [155, 156], [166, 167], [175, 176], [177, 178], [177, 180], [186, 187], [191, -190], [191, 192], [193, 194], [193, 195], [195, 196], [195, 197], [197, 198], [197, 199], [199, 200], [199, 201], [201, 202], [201, 203], [203, -190], [203, 204], [211, 212], [215, -1], [215, 216]], "functions": {"Settings.validate_env": {"executed_lines": [123, 124, 126], "summary": {"covered_lines": 3, "num_statements": 4, "percent_covered": 66.66666666666667, "percent_covered_display": "67", "missing_lines": 1, "excluded_lines": 0, "percent_statements_covered": 75.0, "percent_statements_covered_display": "75", "num_branches": 2, "num_partial_branches": 1, "covered_branches": 1, "missing_branches": 1, "percent_branches_covered": 50.0, "percent_branches_covered_display": "50"}, "missing_lines": [125], "excluded_lines": [], "start_line": 122, "executed_branches": [[124, 126]], "missing_branches": [[124, 125]]}, "Settings.parse_admin_emails": {"executed_lines": [132, 137], "summary": {"covered_lines": 2, "num_statements": 6, "percent_covered": 30.0, "percent_covered_display": "30", "missing_lines": 4, "excluded_lines": 0, "percent_statements_covered": 33.333333333333336, "percent_statements_covered_display": "33", "num_branches": 4, "num_partial_branches": 1, "covered_branches": 1, "missing_branches": 3, "percent_branches_covered": 25.0, "percent_branches_covered_display": "25"}, "missing_lines": [133, 134, 135, 136], "excluded_lines": [], "start_line": 130, "executed_branches": [[132, 137]], "missing_branches": [[132, 133], [134, 135], [134, 136]]}, "Settings.parse_allowed_hosts": {"executed_lines": [143, 148], "summary": {"covered_lines": 2, "num_statements": 6, "percent_covered": 30.0, "percent_covered_display": "30", "missing_lines": 4, "excluded_lines": 0, "percent_statements_covered": 33.333333333333336, "percent_statements_covered_display": "33", "num_branches": 4, "num_partial_branches": 1, "covered_branches": 1, "missing_branches": 3, "percent_branches_covered": 25.0, "percent_branches_covered_display": "25"}, "missing_lines": [144, 145, 146, 147], "excluded_lines": [], "start_line": 141, "executed_branches": [[143, 148]], "missing_branches": [[143, 144], [145, 146], [145, 147]]}, "Settings.set_test_secret": {"executed_lines": [153, 154, 155, 159], "summary": {"covered_lines": 4, "num_statements": 6, "percent_covered": 60.0, "percent_covered_display": "60", "missing_lines": 2, "excluded_lines": 0, "percent_statements_covered": 66.66666666666667, "percent_statements_covered_display": "67", "num_branches": 4, "num_partial_branches": 2, "covered_branches": 2, "missing_branches": 2, "percent_branches_covered": 50.0, "percent_branches_covered_display": "50"}, "missing_lines": [156, 160], "excluded_lines": [], "start_line": 152, "executed_branches": [[154, 155], [155, 159]], "missing_branches": [[154, 160], [155, 156]]}, "Settings.debug_must_be_false_in_production": {"executed_lines": [165, 166, 168], "summary": {"covered_lines": 3, "num_statements": 4, "percent_covered": 66.66666666666667, "percent_covered_display": "67", "missing_lines": 1, "excluded_lines": 0, "percent_statements_covered": 75.0, "percent_statements_covered_display": "75", "num_branches": 2, "num_partial_branches": 1, "covered_branches": 1, "missing_branches": 1, "percent_branches_covered": 50.0, "percent_branches_covered_display": "50"}, "missing_lines": [167], "excluded_lines": [], "start_line": 164, "executed_branches": [[166, 168]], "missing_branches": [[166, 167]]}, "Settings.parse_cors_origins": {"executed_lines": [173, 175, 185, 186, 188], "summary": {"covered_lines": 5, "num_statements": 13, "percent_covered": 36.8421052631579, "percent_covered_display": "37", "missing_lines": 8, "excluded_lines": 0, "percent_statements_covered": 38.46153846153846, "percent_statements_covered_display": "38", "num_branches": 6, "num_partial_branches": 2, "covered_branches": 2, "missing_branches": 4, "percent_branches_covered": 33.333333333333336, "percent_branches_covered_display": "33"}, "missing_lines": [176, 177, 178, 180, 181, 182, 183, 187], "excluded_lines": [], "start_line": 172, "executed_branches": [[175, 185], [186, 188]], "missing_branches": [[175, 176], [177, 178], [177, 180], [186, 187]]}, "Settings.validate_config": {"executed_lines": [], "summary": {"covered_lines": 0, "num_statements": 14, "percent_covered": 0.0, "percent_covered_display": "0", "missing_lines": 14, "excluded_lines": 0, "percent_statements_covered": 0.0, "percent_statements_covered_display": "0", "num_branches": 14, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 14, "percent_branches_covered": 0.0, "percent_branches_covered_display": "0"}, "missing_lines": [191, 192, 193, 194, 195, 196, 197, 198, 199, 200, 201, 202, 203, 204], "excluded_lines": [], "start_line": 190, "executed_branches": [], "missing_branches": [[191, -190], [191, 192], [193, 194], [193, 195], [195, 196], [195, 197], [197, 198], [197, 199], [199, 200], [199, 201], [201, 202], [201, 203], [203, -190], [203, 204]]}, "": {"executed_lines": [1, 2, 3, 5, 6, 7, 8, 9, 10, 11, 13, 16, 21, 22, 27, 28, 30, 31, 32, 33, 34, 35, 37, 38, 39, 41, 53, 58, 63, 69, 73, 75, 76, 77, 78, 79, 80, 81, 82, 83, 85, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 101, 102, 103, 104, 105, 106, 107, 109, 110, 112, 113, 114, 115, 116, 120, 121, 122, 128, 129, 130, 139, 140, 141, 150, 151, 152, 162, 163, 164, 170, 171, 172, 190, 209, 211], "summary": {"covered_lines": 89, "num_statements": 98, "percent_covered": 87.5, "percent_covered_display": "88", "missing_lines": 9, "excluded_lines": 0, "percent_statements_covered": 90.81632653061224, "percent_statements_covered_display": "91", "num_branches": 6, "num_partial_branches": 2, "covered_branches": 2, "missing_branches": 4, "percent_branches_covered": 33.333333333333336, "percent_branches_covered_display": "33"}, "missing_lines": [17, 18, 212, 213, 215, 216, 217, 218, 219], "excluded_lines": [], "start_line": 1, "executed_branches": [[16, 21], [211, -1]], "missing_branches": [[16, 17], [211, 212], [215, -1], [215, 216]]}}, "classes": {"Settings": {"executed_lines": [123, 124, 126, 132, 137, 143, 148, 153, 154, 155, 159, 165, 166, 168, 173, 175, 185, 186, 188], "summary": {"covered_lines": 19, "num_statements": 53, "percent_covered": 30.337078651685392, "percent_covered_display": "30", "missing_lines": 34, "excluded_lines": 0, "percent_statements_covered": 35.84905660377358, "percent_statements_covered_display": "36", "num_branches": 36, "num_partial_branches": 8, "covered_branches": 8, "missing_branches": 28, "percent_branches_covered": 22.22222222222222, "percent_branches_covered_display": "22"}, "missing_lines": [125, 133, 134, 135, 136, 144, 145, 146, 147, 156, 160, 167, 176, 177, 178, 180, 181, 182, 183, 187, 191, 192, 193, 194, 195, 196, 197, 198, 199, 200, 201, 202, 203, 204], "excluded_lines": [], "start_line": 21, "executed_branches": [[124, 126], [132, 137], [143, 148], [154, 155], [155, 159], [166, 168], [175, 185], [186, 188]], "missing_branches": [[124, 125], [132, 133], [134, 135], [134, 136], [143, 144], [145, 146], [145, 147], [154, 160], [155, 156], [166, 167], [175, 176], [177, 178], [177, 180], [186, 187], [191, -190], [191, 192], [193, 194], [193, 195], [195, 196], [195, 197], [197, 198], [197, 199], [199, 200], [199, 201], [201, 202], [201, 203], [203, -190], [203, 204]]}, "": {"executed_lines": [1, 2, 3, 5, 6, 7, 8, 9, 10, 11, 13, 16, 21, 22, 27, 28, 30, 31, 32, 33, 34, 35, 37, 38, 39, 41, 53, 58, 63, 69, 73, 75, 76, 77, 78, 79, 80, 81, 82, 83, 85, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 101, 102, 103, 104, 105, 106, 107, 109, 110, 112, 113, 114, 115, 116, 120, 121, 122, 128, 129, 130, 139, 140, 141, 150, 151, 152, 162, 163, 164, 170, 171, 172, 190, 209, 211], "summary": {"covered_lines": 89, "num_statements": 98, "percent_covered": 87.5, "percent_covered_display": "88", "missing_lines": 9, "excluded_lines": 0, "percent_statements_covered": 90.81632653061224, "percent_statements_covered_display": "91", "num_branches": 6, "num_partial_branches": 2, "covered_branches": 2, "missing_branches": 4, "percent_branches_covered": 33.333333333333336, "percent_branches_covered_display": "33"}, "missing_lines": [17, 18, 212, 213, 215, 216, 217, 218, 219], "excluded_lines": [], "start_line": 1, "executed_branches": [[16, 21], [211, -1]], "missing_branches": [[16, 17], [211, 212], [215, -1], [215, 216]]}}}, "core\\enum_guard.py": {"executed_lines": [], "summary": {"covered_lines": 0, "num_statements": 44, "percent_covered": 0.0, "percent_covered_display": "0", "missing_lines": 44, "excluded_lines": 0, "percent_statements_covered": 0.0, "percent_statements_covered_display": "0", "num_branches": 10, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 10, "percent_branches_covered": 0.0, "percent_branches_covered_display": "0"}, "missing_lines": [1, 3, 4, 6, 9, 10, 12, 17, 18, 19, 27, 29, 30, 31, 33, 35, 36, 37, 38, 39, 40, 41, 42, 43, 45, 46, 47, 48, 49, 52, 53, 54, 55, 56, 57, 58, 60, 62, 63, 64, 65, 66, 67, 69], "excluded_lines": [], "executed_branches": [], "missing_branches": [[29, 30], [29, 33], [35, 36], [35, 45], [39, 40], [39, 41], [41, 42], [41, 43], [47, 48], [47, 49]], "functions": {"guard_enum": {"executed_lines": [], "summary": {"covered_lines": 0, "num_statements": 22, "percent_covered": 0.0, "percent_covered_display": "0", "missing_lines": 22, "excluded_lines": 0, "percent_statements_covered": 0.0, "percent_statements_covered_display": "0", "num_branches": 10, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 10, "percent_branches_covered": 0.0, "percent_branches_covered_display": "0"}, "missing_lines": [17, 18, 19, 27, 29, 30, 31, 33, 35, 36, 37, 38, 39, 40, 41, 42, 43, 45, 46, 47, 48, 49], "excluded_lines": [], "start_line": 12, "executed_branches": [], "missing_branches": [[29, 30], [29, 33], [35, 36], [35, 45], [39, 40], [39, 41], [41, 42], [41, 43], [47, 48], [47, 49]]}, "run_enum_guards": {"executed_lines": [], "summary": {"covered_lines": 0, "num_statements": 14, "percent_covered": 0.0, "percent_covered_display": "0", "missing_lines": 14, "excluded_lines": 0, "percent_statements_covered": 0.0, "percent_statements_covered_display": "0", "num_branches": 0, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 0, "percent_branches_covered": 100.0, "percent_branches_covered_display": "100"}, "missing_lines": [53, 54, 55, 56, 57, 58, 60, 62, 63, 64, 65, 66, 67, 69], "excluded_lines": [], "start_line": 52, "executed_branches": [], "missing_branches": []}, "": {"executed_lines": [], "summary": {"covered_lines": 0, "num_statements": 8, "percent_covered": 0.0, "percent_covered_display": "0", "missing_lines": 8, "excluded_lines": 0, "percent_statements_covered": 0.0, "percent_statements_covered_display": "0", "num_branches": 0, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 0, "percent_branches_covered": 100.0, "percent_branches_covered_display": "100"}, "missing_lines": [1, 3, 4, 6, 9, 10, 12, 52], "excluded_lines": [], "start_line": 1, "executed_branches": [], "missing_branches": []}}, "classes": {"EnumMismatchError": {"executed_lines": [], "summary": {"covered_lines": 0, "num_statements": 0, "percent_covered": 100.0, "percent_covered_display": "100", "missing_lines": 0, "excluded_lines": 0, "percent_statements_covered": 100.0, "percent_statements_covered_display": "100", "num_branches": 0, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 0, "percent_branches_covered": 100.0, "percent_branches_covered_display": "100"}, "missing_lines": [], "excluded_lines": [], "start_line": 9, "executed_branches": [], "missing_branches": []}, "": {"executed_lines": [], "summary": {"covered_lines": 0, "num_statements": 44, "percent_covered": 0.0, "percent_covered_display": "0", "missing_lines": 44, "excluded_lines": 0, "percent_statements_covered": 0.0, "percent_statements_covered_display": "0", "num_branches": 10, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 10, "percent_branches_covered": 0.0, "percent_branches_covered_display": "0"}, "missing_lines": [1, 3, 4, 6, 9, 10, 12, 17, 18, 19, 27, 29, 30, 31, 33, 35, 36, 37, 38, 39, 40, 41, 42, 43, 45, 46, 47, 48, 49, 52, 53, 54, 55, 56, 57, 58, 60, 62, 63, 64, 65, 66, 67, 69], "excluded_lines": [], "start_line": 1, "executed_branches": [], "missing_branches": [[29, 30], [29, 33], [35, 36], [35, 45], [39, 40], [39, 41], [41, 42], [41, 43], [47, 48], [47, 49]]}}}, "core\\llm_gateway.py": {"executed_lines": [4, 5, 6, 7, 9, 10, 12, 16, 18, 19, 20, 21, 22, 25, 26, 28, 31, 32, 34, 35, 36, 37, 38, 45, 48, 56, 57, 58, 59, 61, 63, 80, 88, 89, 91, 188, 214], "summary": {"covered_lines": 37, "num_statements": 114, "percent_covered": 27.272727272727273, "percent_covered_display": "27", "missing_lines": 77, "excluded_lines": 0, "percent_statements_covered": 32.45614035087719, "percent_statements_covered_display": "32", "num_branches": 40, "num_partial_branches": 1, "covered_branches": 5, "missing_branches": 35, "percent_branches_covered": 12.5, "percent_branches_covered_display": "12"}, "missing_lines": [39, 40, 41, 43, 64, 65, 66, 67, 68, 70, 72, 73, 77, 78, 81, 82, 83, 106, 109, 110, 113, 114, 115, 116, 117, 119, 120, 121, 122, 126, 127, 128, 129, 137, 138, 141, 142, 143, 145, 146, 147, 148, 149, 151, 152, 153, 156, 157, 159, 161, 162, 165, 166, 167, 168, 169, 175, 181, 182, 183, 184, 186, 191, 192, 193, 194, 195, 201, 202, 203, 204, 205, 206, 207, 208, 209, 211], "excluded_lines": [], "executed_branches": [[36, 37], [56, -45], [56, 57], [57, 56], [57, 58]], "missing_branches": [[36, 39], [109, 110], [109, 113], [114, 115], [114, 116], [116, 117], [116, 119], [119, 120], [119, 121], [121, 122], [121, 126], [126, 127], [126, 137], [128, 129], [128, 137], [142, 143], [142, 145], [146, 147], [146, 151], [151, 152], [151, 156], [152, 151], [152, 153], [156, 157], [156, 159], [161, 162], [161, 165], [166, 167], [166, 186], [192, 193], [192, 211], [201, 202], [201, 205], [203, 201], [203, 204]], "functions": {"LLMGateway.__init__": {"executed_lines": [20, 21, 22, 25, 26, 28, 31, 32], "summary": {"covered_lines": 8, "num_statements": 8, "percent_covered": 100.0, "percent_covered_display": "100", "missing_lines": 0, "excluded_lines": 0, "percent_statements_covered": 100.0, "percent_statements_covered_display": "100", "num_branches": 0, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 0, "percent_branches_covered": 100.0, "percent_branches_covered_display": "100"}, "missing_lines": [], "excluded_lines": [], "start_line": 19, "executed_branches": [], "missing_branches": []}, "LLMGateway._load_routing_policy": {"executed_lines": [35, 36, 37, 38], "summary": {"covered_lines": 4, "num_statements": 8, "percent_covered": 50.0, "percent_covered_display": "50", "missing_lines": 4, "excluded_lines": 0, "percent_statements_covered": 50.0, "percent_statements_covered_display": "50", "num_branches": 2, "num_partial_branches": 1, "covered_branches": 1, "missing_branches": 1, "percent_branches_covered": 50.0, "percent_branches_covered_display": "50"}, "missing_lines": [39, 40, 41, 43], "excluded_lines": [], "start_line": 34, "executed_branches": [[36, 37]], "missing_branches": [[36, 39]]}, "LLMGateway._inject_secrets": {"executed_lines": [48, 56, 57, 58, 59], "summary": {"covered_lines": 5, "num_statements": 5, "percent_covered": 100.0, "percent_covered_display": "100", "missing_lines": 0, "excluded_lines": 0, "percent_statements_covered": 100.0, "percent_statements_covered_display": "100", "num_branches": 4, "num_partial_branches": 0, "covered_branches": 4, "missing_branches": 0, "percent_branches_covered": 100.0, "percent_branches_covered_display": "100"}, "missing_lines": [], "excluded_lines": [], "start_line": 45, "executed_branches": [[56, -45], [56, 57], [57, 56], [57, 58]], "missing_branches": []}, "LLMGateway._setup_callbacks": {"executed_lines": [63, 80, 88, 89], "summary": {"covered_lines": 4, "num_statements": 4, "percent_covered": 100.0, "percent_covered_display": "100", "missing_lines": 0, "excluded_lines": 0, "percent_statements_covered": 100.0, "percent_statements_covered_display": "100", "num_branches": 0, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 0, "percent_branches_covered": 100.0, "percent_branches_covered_display": "100"}, "missing_lines": [], "excluded_lines": [], "start_line": 61, "executed_branches": [], "missing_branches": []}, "LLMGateway._setup_callbacks.success_callback": {"executed_lines": [], "summary": {"covered_lines": 0, "num_statements": 10, "percent_covered": 0.0, "percent_covered_display": "0", "missing_lines": 10, "excluded_lines": 0, "percent_statements_covered": 0.0, "percent_statements_covered_display": "0", "num_branches": 0, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 0, "percent_branches_covered": 100.0, "percent_branches_covered_display": "100"}, "missing_lines": [64, 65, 66, 67, 68, 70, 72, 73, 77, 78], "excluded_lines": [], "start_line": 63, "executed_branches": [], "missing_branches": []}, "LLMGateway._setup_callbacks.failure_callback": {"executed_lines": [], "summary": {"covered_lines": 0, "num_statements": 3, "percent_covered": 0.0, "percent_covered_display": "0", "missing_lines": 3, "excluded_lines": 0, "percent_statements_covered": 0.0, "percent_statements_covered_display": "0", "num_branches": 0, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 0, "percent_branches_covered": 100.0, "percent_branches_covered_display": "100"}, "missing_lines": [81, 82, 83], "excluded_lines": [], "start_line": 80, "executed_branches": [], "missing_branches": []}, "LLMGateway.acompletion": {"executed_lines": [], "summary": {"covered_lines": 0, "num_statements": 45, "percent_covered": 0.0, "percent_covered_display": "0", "missing_lines": 45, "excluded_lines": 0, "percent_statements_covered": 0.0, "percent_statements_covered_display": "0", "num_branches": 28, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 28, "percent_branches_covered": 0.0, "percent_branches_covered_display": "0"}, "missing_lines": [106, 109, 110, 113, 114, 115, 116, 117, 119, 120, 121, 122, 126, 127, 128, 129, 137, 138, 141, 142, 143, 145, 146, 147, 148, 149, 151, 152, 153, 156, 157, 159, 161, 162, 165, 166, 167, 168, 169, 175, 181, 182, 183, 184, 186], "excluded_lines": [], "start_line": 91, "executed_branches": [], "missing_branches": [[109, 110], [109, 113], [114, 115], [114, 116], [116, 117], [116, 119], [119, 120], [119, 121], [121, 122], [121, 126], [126, 127], [126, 137], [128, 129], [128, 137], [142, 143], [142, 145], [146, 147], [146, 151], [151, 152], [151, 156], [152, 151], [152, 153], [156, 157], [156, 159], [161, 162], [161, 165], [166, 167], [166, 186]]}, "LLMGateway._stream_completion": {"executed_lines": [], "summary": {"covered_lines": 0, "num_statements": 15, "percent_covered": 0.0, "percent_covered_display": "0", "missing_lines": 15, "excluded_lines": 0, "percent_statements_covered": 0.0, "percent_statements_covered_display": "0", "num_branches": 6, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 6, "percent_branches_covered": 0.0, "percent_branches_covered_display": "0"}, "missing_lines": [191, 192, 193, 194, 195, 201, 202, 203, 204, 205, 206, 207, 208, 209, 211], "excluded_lines": [], "start_line": 188, "executed_branches": [], "missing_branches": [[192, 193], [192, 211], [201, 202], [201, 205], [203, 201], [203, 204]]}, "": {"executed_lines": [4, 5, 6, 7, 9, 10, 12, 16, 18, 19, 34, 45, 61, 91, 188, 214], "summary": {"covered_lines": 16, "num_statements": 16, "percent_covered": 100.0, "percent_covered_display": "100", "missing_lines": 0, "excluded_lines": 0, "percent_statements_covered": 100.0, "percent_statements_covered_display": "100", "num_branches": 0, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 0, "percent_branches_covered": 100.0, "percent_branches_covered_display": "100"}, "missing_lines": [], "excluded_lines": [], "start_line": 1, "executed_branches": [], "missing_branches": []}}, "classes": {"LLMGateway": {"executed_lines": [20, 21, 22, 25, 26, 28, 31, 32, 35, 36, 37, 38, 48, 56, 57, 58, 59, 63, 80, 88, 89], "summary": {"covered_lines": 21, "num_statements": 98, "percent_covered": 18.840579710144926, "percent_covered_display": "19", "missing_lines": 77, "excluded_lines": 0, "percent_statements_covered": 21.428571428571427, "percent_statements_covered_display": "21", "num_branches": 40, "num_partial_branches": 1, "covered_branches": 5, "missing_branches": 35, "percent_branches_covered": 12.5, "percent_branches_covered_display": "12"}, "missing_lines": [39, 40, 41, 43, 64, 65, 66, 67, 68, 70, 72, 73, 77, 78, 81, 82, 83, 106, 109, 110, 113, 114, 115, 116, 117, 119, 120, 121, 122, 126, 127, 128, 129, 137, 138, 141, 142, 143, 145, 146, 147, 148, 149, 151, 152, 153, 156, 157, 159, 161, 162, 165, 166, 167, 168, 169, 175, 181, 182, 183, 184, 186, 191, 192, 193, 194, 195, 201, 202, 203, 204, 205, 206, 207, 208, 209, 211], "excluded_lines": [], "start_line": 18, "executed_branches": [[36, 37], [56, -45], [56, 57], [57, 56], [57, 58]], "missing_branches": [[36, 39], [109, 110], [109, 113], [114, 115], [114, 116], [116, 117], [116, 119], [119, 120], [119, 121], [121, 122], [121, 126], [126, 127], [126, 137], [128, 129], [128, 137], [142, 143], [142, 145], [146, 147], [146, 151], [151, 152], [151, 156], [152, 151], [152, 153], [156, 157], [156, 159], [161, 162], [161, 165], [166, 167], [166, 186], [192, 193], [192, 211], [201, 202], [201, 205], [203, 201], [203, 204]]}, "": {"executed_lines": [4, 5, 6, 7, 9, 10, 12, 16, 18, 19, 34, 45, 61, 91, 188, 214], "summary": {"covered_lines": 16, "num_statements": 16, "percent_covered": 100.0, "percent_covered_display": "100", "missing_lines": 0, "excluded_lines": 0, "percent_statements_covered": 100.0, "percent_statements_covered_display": "100", "num_branches": 0, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 0, "percent_branches_covered": 100.0, "percent_branches_covered_display": "100"}, "missing_lines": [], "excluded_lines": [], "start_line": 1, "executed_branches": [], "missing_branches": []}}}, "core\\log_batcher.py": {"executed_lines": [], "summary": {"covered_lines": 0, "num_statements": 83, "percent_covered": 0.0, "percent_covered_display": "0", "missing_lines": 83, "excluded_lines": 0, "percent_statements_covered": 0.0, "percent_statements_covered_display": "0", "num_branches": 28, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 28, "percent_branches_covered": 0.0, "percent_branches_covered_display": "0"}, "missing_lines": [1, 2, 4, 5, 7, 8, 11, 12, 13, 14, 15, 16, 17, 18, 19, 21, 22, 23, 24, 25, 26, 28, 29, 30, 31, 32, 33, 34, 35, 36, 38, 43, 46, 47, 48, 49, 51, 52, 53, 54, 55, 56, 58, 59, 60, 61, 62, 63, 64, 66, 67, 68, 70, 71, 74, 75, 76, 77, 78, 79, 81, 82, 83, 84, 85, 86, 87, 89, 90, 91, 93, 94, 96, 98, 99, 103, 104, 105, 106, 107, 109, 110, 113], "excluded_lines": [], "executed_branches": [], "missing_branches": [[22, 23], [22, 24], [30, 31], [30, 35], [47, -38], [47, 48], [48, -38], [48, 49], [52, 53], [52, 54], [59, -58], [59, 60], [63, -58], [63, 64], [67, -66], [67, 68], [74, 75], [74, 81], [81, 67], [81, 82], [84, 67], [84, 85], [90, 91], [90, 93], [98, 99], [98, 105], [109, -89], [109, 110]], "functions": {"LogBatcherService.__init__": {"executed_lines": [], "summary": {"covered_lines": 0, "num_statements": 7, "percent_covered": 0.0, "percent_covered_display": "0", "missing_lines": 7, "excluded_lines": 0, "percent_statements_covered": 0.0, "percent_statements_covered_display": "0", "num_branches": 0, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 0, "percent_branches_covered": 100.0, "percent_branches_covered_display": "100"}, "missing_lines": [13, 14, 15, 16, 17, 18, 19], "excluded_lines": [], "start_line": 12, "executed_branches": [], "missing_branches": []}, "LogBatcherService.start": {"executed_lines": [], "summary": {"covered_lines": 0, "num_statements": 5, "percent_covered": 0.0, "percent_covered_display": "0", "missing_lines": 5, "excluded_lines": 0, "percent_statements_covered": 0.0, "percent_statements_covered_display": "0", "num_branches": 2, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 2, "percent_branches_covered": 0.0, "percent_branches_covered_display": "0"}, "missing_lines": [22, 23, 24, 25, 26], "excluded_lines": [], "start_line": 21, "executed_branches": [], "missing_branches": [[22, 23], [22, 24]]}, "LogBatcherService.stop": {"executed_lines": [], "summary": {"covered_lines": 0, "num_statements": 8, "percent_covered": 0.0, "percent_covered_display": "0", "missing_lines": 8, "excluded_lines": 0, "percent_statements_covered": 0.0, "percent_statements_covered_display": "0", "num_branches": 2, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 2, "percent_branches_covered": 0.0, "percent_branches_covered_display": "0"}, "missing_lines": [29, 30, 31, 32, 33, 34, 35, 36], "excluded_lines": [], "start_line": 28, "executed_branches": [], "missing_branches": [[30, 31], [30, 35]]}, "LogBatcherService.emit": {"executed_lines": [], "summary": {"covered_lines": 0, "num_statements": 5, "percent_covered": 0.0, "percent_covered_display": "0", "missing_lines": 5, "excluded_lines": 0, "percent_statements_covered": 0.0, "percent_statements_covered_display": "0", "num_branches": 4, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 4, "percent_branches_covered": 0.0, "percent_branches_covered_display": "0"}, "missing_lines": [43, 46, 47, 48, 49], "excluded_lines": [], "start_line": 38, "executed_branches": [], "missing_branches": [[47, -38], [47, 48], [48, -38], [48, 49]]}, "LogBatcherService.subscribe": {"executed_lines": [], "summary": {"covered_lines": 0, "num_statements": 5, "percent_covered": 0.0, "percent_covered_display": "0", "missing_lines": 5, "excluded_lines": 0, "percent_statements_covered": 0.0, "percent_statements_covered_display": "0", "num_branches": 2, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 2, "percent_branches_covered": 0.0, "percent_branches_covered_display": "0"}, "missing_lines": [52, 53, 54, 55, 56], "excluded_lines": [], "start_line": 51, "executed_branches": [], "missing_branches": [[52, 53], [52, 54]]}, "LogBatcherService.unsubscribe": {"executed_lines": [], "summary": {"covered_lines": 0, "num_statements": 6, "percent_covered": 0.0, "percent_covered_display": "0", "missing_lines": 6, "excluded_lines": 0, "percent_statements_covered": 0.0, "percent_statements_covered_display": "0", "num_branches": 4, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 4, "percent_branches_covered": 0.0, "percent_branches_covered_display": "0"}, "missing_lines": [59, 60, 61, 62, 63, 64], "excluded_lines": [], "start_line": 58, "executed_branches": [], "missing_branches": [[59, -58], [59, 60], [63, -58], [63, 64]]}, "LogBatcherService._run": {"executed_lines": [], "summary": {"covered_lines": 0, "num_statements": 17, "percent_covered": 0.0, "percent_covered_display": "0", "missing_lines": 17, "excluded_lines": 0, "percent_statements_covered": 0.0, "percent_statements_covered_display": "0", "num_branches": 8, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 8, "percent_branches_covered": 0.0, "percent_branches_covered_display": "0"}, "missing_lines": [67, 68, 70, 71, 74, 75, 76, 77, 78, 79, 81, 82, 83, 84, 85, 86, 87], "excluded_lines": [], "start_line": 66, "executed_branches": [], "missing_branches": [[67, -66], [67, 68], [74, 75], [74, 81], [81, 67], [81, 82], [84, 67], [84, 85]]}, "LogBatcherService._flush": {"executed_lines": [], "summary": {"covered_lines": 0, "num_statements": 14, "percent_covered": 0.0, "percent_covered_display": "0", "missing_lines": 14, "excluded_lines": 0, "percent_statements_covered": 0.0, "percent_statements_covered_display": "0", "num_branches": 6, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 6, "percent_branches_covered": 0.0, "percent_branches_covered_display": "0"}, "missing_lines": [90, 91, 93, 94, 96, 98, 99, 103, 104, 105, 106, 107, 109, 110], "excluded_lines": [], "start_line": 89, "executed_branches": [], "missing_branches": [[90, 91], [90, 93], [98, 99], [98, 105], [109, -89], [109, 110]]}, "": {"executed_lines": [], "summary": {"covered_lines": 0, "num_statements": 16, "percent_covered": 0.0, "percent_covered_display": "0", "missing_lines": 16, "excluded_lines": 0, "percent_statements_covered": 0.0, "percent_statements_covered_display": "0", "num_branches": 0, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 0, "percent_branches_covered": 100.0, "percent_branches_covered_display": "100"}, "missing_lines": [1, 2, 4, 5, 7, 8, 11, 12, 21, 28, 38, 51, 58, 66, 89, 113], "excluded_lines": [], "start_line": 1, "executed_branches": [], "missing_branches": []}}, "classes": {"LogBatcherService": {"executed_lines": [], "summary": {"covered_lines": 0, "num_statements": 67, "percent_covered": 0.0, "percent_covered_display": "0", "missing_lines": 67, "excluded_lines": 0, "percent_statements_covered": 0.0, "percent_statements_covered_display": "0", "num_branches": 28, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 28, "percent_branches_covered": 0.0, "percent_branches_covered_display": "0"}, "missing_lines": [13, 14, 15, 16, 17, 18, 19, 22, 23, 24, 25, 26, 29, 30, 31, 32, 33, 34, 35, 36, 43, 46, 47, 48, 49, 52, 53, 54, 55, 56, 59, 60, 61, 62, 63, 64, 67, 68, 70, 71, 74, 75, 76, 77, 78, 79, 81, 82, 83, 84, 85, 86, 87, 90, 91, 93, 94, 96, 98, 99, 103, 104, 105, 106, 107, 109, 110], "excluded_lines": [], "start_line": 11, "executed_branches": [], "missing_branches": [[22, 23], [22, 24], [30, 31], [30, 35], [47, -38], [47, 48], [48, -38], [48, 49], [52, 53], [52, 54], [59, -58], [59, 60], [63, -58], [63, 64], [67, -66], [67, 68], [74, 75], [74, 81], [81, 67], [81, 82], [84, 67], [84, 85], [90, 91], [90, 93], [98, 99], [98, 105], [109, -89], [109, 110]]}, "": {"executed_lines": [], "summary": {"covered_lines": 0, "num_statements": 16, "percent_covered": 0.0, "percent_covered_display": "0", "missing_lines": 16, "excluded_lines": 0, "percent_statements_covered": 0.0, "percent_statements_covered_display": "0", "num_branches": 0, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 0, "percent_branches_covered": 100.0, "percent_branches_covered_display": "100"}, "missing_lines": [1, 2, 4, 5, 7, 8, 11, 12, 21, 28, 38, 51, 58, 66, 89, 113], "excluded_lines": [], "start_line": 1, "executed_branches": [], "missing_branches": []}}}, "core\\swarm_orchestrator.py": {"executed_lines": [], "summary": {"covered_lines": 0, "num_statements": 19, "percent_covered": 0.0, "percent_covered_display": "0", "missing_lines": 19, "excluded_lines": 0, "percent_statements_covered": 0.0, "percent_statements_covered_display": "0", "num_branches": 0, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 0, "percent_branches_covered": 100.0, "percent_branches_covered_display": "100"}, "missing_lines": [4, 6, 7, 8, 9, 12, 16, 17, 18, 19, 21, 22, 23, 25, 28, 31, 34, 36, 37], "excluded_lines": [], "executed_branches": [], "missing_branches": [], "functions": {"SwarmOrchestrator.__init__": {"executed_lines": [], "summary": {"covered_lines": 0, "num_statements": 3, "percent_covered": 0.0, "percent_covered_display": "0", "missing_lines": 3, "excluded_lines": 0, "percent_statements_covered": 0.0, "percent_statements_covered_display": "0", "num_branches": 0, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 0, "percent_branches_covered": 100.0, "percent_branches_covered_display": "100"}, "missing_lines": [17, 18, 19], "excluded_lines": [], "start_line": 16, "executed_branches": [], "missing_branches": []}, "SwarmOrchestrator.execute_task": {"executed_lines": [], "summary": {"covered_lines": 0, "num_statements": 8, "percent_covered": 0.0, "percent_covered_display": "0", "missing_lines": 8, "excluded_lines": 0, "percent_statements_covered": 0.0, "percent_statements_covered_display": "0", "num_branches": 0, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 0, "percent_branches_covered": 100.0, "percent_branches_covered_display": "100"}, "missing_lines": [22, 23, 25, 28, 31, 34, 36, 37], "excluded_lines": [], "start_line": 21, "executed_branches": [], "missing_branches": []}, "": {"executed_lines": [], "summary": {"covered_lines": 0, "num_statements": 8, "percent_covered": 0.0, "percent_covered_display": "0", "missing_lines": 8, "excluded_lines": 0, "percent_statements_covered": 0.0, "percent_statements_covered_display": "0", "num_branches": 0, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 0, "percent_branches_covered": 100.0, "percent_branches_covered_display": "100"}, "missing_lines": [4, 6, 7, 8, 9, 12, 16, 21], "excluded_lines": [], "start_line": 1, "executed_branches": [], "missing_branches": []}}, "classes": {"SwarmOrchestrator": {"executed_lines": [], "summary": {"covered_lines": 0, "num_statements": 11, "percent_covered": 0.0, "percent_covered_display": "0", "missing_lines": 11, "excluded_lines": 0, "percent_statements_covered": 0.0, "percent_statements_covered_display": "0", "num_branches": 0, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 0, "percent_branches_covered": 100.0, "percent_branches_covered_display": "100"}, "missing_lines": [17, 18, 19, 22, 23, 25, 28, 31, 34, 36, 37], "excluded_lines": [], "start_line": 12, "executed_branches": [], "missing_branches": []}, "": {"executed_lines": [], "summary": {"covered_lines": 0, "num_statements": 8, "percent_covered": 0.0, "percent_covered_display": "0", "missing_lines": 8, "excluded_lines": 0, "percent_statements_covered": 0.0, "percent_statements_covered_display": "0", "num_branches": 0, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 0, "percent_branches_covered": 100.0, "percent_branches_covered_display": "100"}, "missing_lines": [4, 6, 7, 8, 9, 12, 16, 21], "excluded_lines": [], "start_line": 1, "executed_branches": [], "missing_branches": []}}}}, "totals": {"covered_lines": 145, "num_statements": 411, "percent_covered": 30.131826741996232, "percent_covered_display": "30", "missing_lines": 266, "excluded_lines": 0, "percent_statements_covered": 35.27980535279806, "percent_statements_covered_display": "35", "num_branches": 120, "num_partial_branches": 11, "covered_branches": 15, "missing_branches": 105, "percent_branches_covered": 12.5, "percent_branches_covered_display": "12"}}
-```
-
 ## File: `backend/pyproject.toml`
 
 ```toml
@@ -43243,8 +43231,9 @@ class NightlyChaosAuditor:
                         logger.critical(
                             "🚨 [SECURITY BREACH] Sandbox bypass detected during autonomous fuzzing!"
                         )
-                except Exception:
-                    pass  # SecurityError আশা করা হচ্ছে, তাই এটি পাস
+                except Exception as e:
+                    import logging
+                    logging.warning(f"Exception suppressed: {e}")  # SecurityError আশা করা হচ্ছে, তাই এটি পাস
 
             # 🧪 টেস্ট ২: রানটাইম কানেকশন পুল স্ট্রেস চেক (Synthetic Heavy Requests)
             async with httpx.AsyncClient(timeout=5.0) as client:
@@ -44378,8 +44367,9 @@ class ErrorRemediation:
             if not self.fallback_path.exists():
                 with open(self.fallback_path, "w", encoding="utf-8") as f:
                     json.dump({"default_fix": "Retry with exponential backoff"}, f, indent=2)
-        except Exception:
-            pass
+        except Exception as e:
+            import logging
+            logging.warning(f"Exception suppressed: {e}")
 
     def _load_local_fallback(self) -> str | None:
         try:
@@ -46465,8 +46455,9 @@ Based on the prompt, rewrite it to be more precise, clear, and effective. Provid
                     user_rating,
                     created_at,
                 )
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning(f"Failed to insert feedback to Supabase: {e}")
+            if evolution_write_failures: evolution_write_failures.inc()
 
         conn = sqlite3.connect(str(self.db_path))
         try:
@@ -48003,8 +47994,9 @@ class UniversalRulesEngine:
             os.makedirs(os.path.dirname(self.rules_path), exist_ok=True)
             with open(self.rules_path, "w", encoding="utf-8") as f:
                 json.dump(default_rules, f, indent=4)
-        except Exception:
-            pass
+        except Exception as e:
+            import logging
+            logging.warning(f"Exception suppressed: {e}")
 
         return default_rules
 
@@ -52688,8 +52680,9 @@ class MicroVMSandbox:
                 return True
             if shutil.which("runsc"):
                 return True
-        except Exception:
-            pass
+        except Exception as e:
+            import logging
+            logging.warning(f"Exception suppressed: {e}")
         return False
 
     def _create_microvm_config(self, vm_id: str, cmd: str) -> str:
@@ -53395,11 +53388,13 @@ health_monitor = HealthMonitor()
 ```py
 import ast
 import contextlib
+import logging
 import operator
 import re
 
 import httpx
 
+_logger = logging.getLogger(__name__)
 
 _ALLOWED_OPERATORS = {
     ast.Add: operator.add,
@@ -53455,15 +53450,16 @@ class FactualVerifier:
 
             self.local_rag = LocalSearchRAG()
         except ImportError:
-            pass
+            _logger.warning("LocalSearchRAG not available, RAG-based verification disabled")
+            self.local_rag = None
 
     def verify_with_local_rag(self, claim: str) -> dict:
         if self.local_rag is None:
             return {
                 "claim": claim,
-                "is_verified": True,
-                "confidence": 0.5,
-                "method": "no_local_rag",
+                "is_verified": False,
+                "confidence": 0.0,
+                "method": "unverified_no_local_rag",
             }
 
         try:
@@ -53481,15 +53477,16 @@ class FactualVerifier:
                 }
             return {
                 "claim": claim,
-                "is_verified": True,
+                "is_verified": False,
                 "confidence": 0.3,
                 "method": "no_matches",
             }
         except Exception as e:
+            _logger.warning(f"RAG verification failed for claim: {claim[:50]}... error: {e}")
             return {
                 "claim": claim,
-                "is_verified": True,
-                "confidence": 0.2,
+                "is_verified": False,
+                "confidence": 0.0,
                 "error": str(e),
                 "method": "rag_error",
             }
@@ -53519,8 +53516,8 @@ class FactualVerifier:
                         "supporting_sources": supporting,
                         "method": "local_rag",
                     }
-            except Exception:
-                pass
+            except Exception as e:
+                _logger.warning(f"RAG search failed in verify_with_web_search: {e}")
 
         try:
             query = __import__("urllib.parse").parse.quote(claim)
@@ -53537,14 +53534,14 @@ class FactualVerifier:
                             "supporting_sources": [data.get("AbstractURL", "")],
                             "method": "duckduckgo_api",
                         }
-        except Exception:
-            pass
+        except Exception as e:
+            _logger.warning(f"Web search failed for claim: {claim[:50]}... error: {e}")
 
         return {
             "claim": claim,
-            "is_verified": True,
-            "confidence": 0.3,
-            "method": "fallback",
+            "is_verified": False,
+            "confidence": 0.0,
+            "method": "unverified_fallback",
         }
 
     def verify_math(self, expression: str, claimed_result: str) -> dict:
@@ -53591,7 +53588,6 @@ class FactualVerifier:
                     "reason": f"Math error: {expr} != {claimed}",
                 }
         return {"is_verified": True}
-
 ```
 
 ## File: `backend/core/docker-compose.yml`
@@ -58450,8 +58446,9 @@ def format_chat_history(messages: list[dict]) -> str:
                 data = json.loads(content)
                 if isinstance(data, dict) and "content" in data:
                     content = data["content"]
-            except Exception:
-                pass
+            except Exception as e:
+                import logging
+                logging.warning(f"Exception suppressed: {e}")
         role_label = "User" if role == "user" else "Assistant"
         lines.append(f"{role_label}: {content}")
     return "\n".join(lines)
@@ -59427,6 +59424,8 @@ def delete_session(session_id: str):
 ## File: `backend/api/routes/payments.py`
 
 ```py
+import os
+
 from fastapi import APIRouter
 from fastapi import HTTPException
 from fastapi import Request
@@ -59517,6 +59516,11 @@ async def create_checkout_session(request: Request, payload: CheckoutRequest):
     try:
         stripe_key = settings.stripe_api_key
         if not stripe_key:
+            if os.environ.get("SUPREMEAI_ENV") == "production":
+                raise RuntimeError(
+                    "Stripe API key not configured in production. "
+                    "Payment processing is unavailable."
+                )
             logger.warning(
                 "Stripe API key not set in settings. Using mock checkout session."
             )
@@ -61154,8 +61158,15 @@ from loguru import logger
 
 router = APIRouter()
 
+import os
+
 # Note: In production, tokens would be verified against Redis/DB
 def verify_takeover_token(token: str) -> bool:
+    if os.environ.get("SUPREMEAI_ENV") == "production":
+        raise NotImplementedError(
+            "Production token verification not implemented! "
+            "Must validate tokens against Redis/DB before deployment."
+        )
     return token.startswith("tok_")
 
 # A 1x1 black JPEG pixel encoded in base64
@@ -65328,8 +65339,8 @@ def record_request(method: str, path: str, status: int) -> None:
                 method=method, endpoint=path, status=str(status)
             ).inc()
             supremeai_requests_total.labels(method=method, endpoint=path).inc()
-        except Exception:
-            pass
+        except Exception as exc:
+            logger.debug(f"Failed to record request metrics: {exc}")
 
 
 def record_error(error_type: str, endpoint: str) -> None:
@@ -65347,8 +65358,8 @@ def record_request_duration(method: str, path: str, duration: float) -> None:
             supremeai_response_seconds.labels(method=method, endpoint=path).observe(
                 duration
             )
-        except Exception:
-            pass
+        except Exception as exc:
+            logger.debug(f"Failed to record request duration metrics: {exc}")
 
 
 def record_model_call(provider: str, model: str) -> None:
@@ -68138,6 +68149,7 @@ class SummaryTree:
 from __future__ import annotations
 
 import json
+import logging
 import math
 import os
 import uuid
@@ -68150,6 +68162,8 @@ try:
     _CHROMA_AVAILABLE = True
 except ImportError:
     _CHROMA_AVAILABLE = False
+
+_logger = logging.getLogger(__name__)
 
 
 class ChromaDBStore:
@@ -68185,7 +68199,8 @@ class ChromaDBStore:
                 name=self.collection_name,
                 metadata={"hnsw:space": "cosine"},
             )
-        except Exception:
+        except Exception as e:
+            _logger.warning(f"Failed to initialize ChromaDB client: {e}")
             self._client = None
             self._collection = None
             self._load_fallback()
@@ -68196,7 +68211,8 @@ class ChromaDBStore:
             try:
                 with open(path, encoding="utf-8") as f:
                     self._fallback_docs = json.load(f)
-            except Exception:
+            except Exception as e:
+                _logger.warning(f"Failed to load fallback docs: {e}")
                 self._fallback_docs = {}
 
     def _save_fallback(self) -> None:
@@ -68255,8 +68271,8 @@ class ChromaDBStore:
             try:
                 self._collection.upsert(ids=ids, documents=texts, metadatas=metadatas)
                 return
-            except Exception:
-                pass
+            except Exception as e:
+                _logger.warning(f"ChromaDB upsert failed, falling back to local storage: {e}")
         for doc in documents:
             doc_id = doc.get("id") or str(uuid.uuid4())
             text = doc.get("text") or doc.get("content") or ""
@@ -68299,8 +68315,8 @@ class ChromaDBStore:
                             (doc_id, score, {"text": doc_text, "metadata": meta})
                         )
                     return matches
-            except Exception:
-                pass
+            except Exception as e:
+                _logger.warning(f"ChromaDB query failed, falling back to TF-IDF: {e}")
         query_vector = self._get_vector(query_text)
         scored = []
         for doc_id, doc_data in self._fallback_docs.items():
@@ -68314,8 +68330,8 @@ class ChromaDBStore:
             try:
                 self._collection.delete(ids=[doc_id])
                 return
-            except Exception:
-                pass
+            except Exception as e:
+                _logger.warning(f"ChromaDB delete failed, falling back to local: {e}")
         self._fallback_docs.pop(doc_id, None)
         self._save_fallback()
 
@@ -68323,8 +68339,9 @@ class ChromaDBStore:
         if self._collection is not None:
             try:
                 return self._collection.count()
-            except Exception:
-                pass
+            except Exception as e:
+                _logger.warning(f"ChromaDB count failed: {e}")
+                return -1  # -1 indicates failure, 0 means empty - distinct states
         return len(self._fallback_docs)
 
     def get_document(self, doc_id: str) -> dict[str, Any] | None:
@@ -68339,10 +68356,9 @@ class ChromaDBStore:
                             result["metadatas"][0] if result.get("metadatas") else {}
                         ),
                     }
-            except Exception:
-                pass
+            except Exception as e:
+                _logger.warning(f"ChromaDB get_document failed for {doc_id}: {e}")
         return self._fallback_docs.get(doc_id)
-
 ```
 
 ## File: `backend/memory/rag_pipeline.py`
@@ -68720,8 +68736,9 @@ class AutoSkillCreator:
                 client = get_firestore_client()
                 if client is not None:
                     self.skills_ref = client.collection("supreme_dynamic_skills")
-            except Exception:
-                pass
+            except Exception as e:
+                import logging
+                logging.warning(f"Exception suppressed: {e}")
             if self.skills_ref is None:
 
                 class MockDoc:
@@ -69434,8 +69451,9 @@ class FitnessEngine:
             try:
                 with open(self.metrics_path, encoding="utf-8") as f:
                     return json.load(f)
-            except Exception:
-                pass
+            except Exception as e:
+                import logging
+                logging.warning(f"Exception suppressed: {e}")
         return {}
 
     def _save_metrics(self):
@@ -71188,19 +71206,24 @@ class TradingAgent:
             with open(self._local_path(), encoding="utf-8") as f:
                 self._portfolio = json.load(f)
                 self.is_portfolio_recovered = True
-        except Exception:
-            pass
+        except Exception as e:
+            logger.error(f"Failed to load portfolio from local file: {e}")
+        if not self.is_portfolio_recovered:
+            logger.warning("Portfolio could not be recovered from any source; using default empty portfolio")
 
     def _save_portfolio(self) -> None:
         if db.client:
             try:
                 db.client.table("trading_portfolio").upsert(self._portfolio).execute()
                 return
-            except Exception:
-                pass
-        os.makedirs(os.path.dirname(self._local_path()), exist_ok=True)
-        with open(self._local_path(), "w", encoding="utf-8") as f:
-            json.dump(self._portfolio, f, indent=2)
+            except Exception as e:
+                logger.warning(f"Failed to save portfolio to DB: {e}")
+        try:
+            os.makedirs(os.path.dirname(self._local_path()), exist_ok=True)
+            with open(self._local_path(), "w", encoding="utf-8") as f:
+                json.dump(self._portfolio, f, indent=2)
+        except Exception as e:
+            logger.error(f"Failed to save portfolio to local file: {e}")
 
     def get_market_data(self, symbol: str) -> dict[str, Any]:
         try:
@@ -84505,8 +84528,9 @@ def bypass_jwt_auth():
             mock = p.start()
             mock.return_value = {"sub": "test_admin@supremeai.com", "role": "admin"}
             patches.append(p)
-        except Exception:
-            pass
+        except Exception as e:
+            import logging
+            logging.warning(f"Exception suppressed: {e}")
     yield
     for p in patches:
         with contextlib.suppress(Exception):
@@ -84522,8 +84546,9 @@ def configure_litellm():
         litellm.use_litellm_proxy = False
         litellm.drop_params = True
         litellm.telemetry = False
-    except Exception:
-        pass
+    except Exception as e:
+        import logging
+        logging.warning(f"Exception suppressed: {e}")
     yield
 
 
@@ -87597,8 +87622,9 @@ class TestTenantAdminAPI:
                     result["tenant"]["requests_per_minute"]
                     == TIER_DEFAULTS["pro"]["requests_per_minute"]
                 )
-            except Exception:
-                pass  # Redis cache failure OK
+            except Exception as e:
+                import logging
+                logging.warning(f"Exception suppressed: {e}")  # Redis cache failure OK
 
     @pytest.mark.anyio
     async def test_delete_tenant(self):
@@ -96013,8 +96039,9 @@ class ExperienceDatabase:
                     metadatas=[{"result": result, "response": response_text}],
                     documents=[text],
                 )
-        except Exception:
-            pass
+        except Exception as e:
+            import logging
+            logging.warning(f"Exception suppressed: {e}")
         try:
             if self.qdrant_client:
                 from qdrant_client.models import PointStruct
@@ -96022,8 +96049,9 @@ class ExperienceDatabase:
                     collection_name=self.qdrant_collection,
                     points=[PointStruct(id=exp_id, vector=embedding, payload={"result": result, "text": text, "response": response_text})],
                 )
-        except Exception:
-            pass
+        except Exception as e:
+            import logging
+            logging.warning(f"Exception suppressed: {e}")
 
     def _cosine_similarity(self, a: list[float], b: list[float]) -> float:
         import math
@@ -96074,8 +96102,9 @@ class ExperienceDatabase:
                             "response": hit.payload.get("response", ""),
                             "text": hit.payload.get("text", "")
                         })
-        except Exception:
-            pass
+        except Exception as e:
+            import logging
+            logging.warning(f"Exception suppressed: {e}")
         return hits
 
     def get_experiences(self, limit: int = 50) -> list[Experience]:
@@ -97047,8 +97076,9 @@ class DockerSandbox:
             try:
                 import loguru
                 loguru.logger.error(f"Tool execution error: {e}")
-            except Exception:
-                pass
+            except Exception as e:
+                import logging
+                logging.warning(f"Exception suppressed: {e}")
             return False
 
     def execute_command(self, cmd: str) -> dict[str, Any]:
@@ -97469,8 +97499,9 @@ class RepoDeepIndexer:
                         try:
                             import loguru
                             loguru.logger.error(f"Tool execution error: {e}")
-                        except Exception:
-                            pass
+                        except Exception as e:
+                            import logging
+                            logging.warning(f"Exception suppressed: {e}")
                         snippet = ""
                     node = {
                         "path": file_path,
@@ -97502,8 +97533,9 @@ class RepoDeepIndexer:
             try:
                 import loguru
                 loguru.logger.error(f"Tool execution error: {e}")
-            except Exception:
-                pass
+            except Exception as e:
+                import logging
+                logging.warning(f"Exception suppressed: {e}")
             pass
         return []
 
@@ -97564,8 +97596,9 @@ class StyleLearner:
                         try:
                             import loguru
                             loguru.logger.error(f"Tool execution error: {e}")
-                        except Exception:
-                            pass
+                        except Exception as e:
+                            import logging
+                            logging.warning(f"Exception suppressed: {e}")
                         pass
                 if len(code_samples) >= 20:
                     break
@@ -97604,8 +97637,9 @@ class StyleLearner:
                     try:
                         import loguru
                         loguru.logger.error(f"Tool execution error: {e}")
-                    except Exception:
-                        pass
+                    except Exception as e:
+                        import logging
+                        logging.warning(f"Exception suppressed: {e}")
                     logger.warning("Failed to parse style guidelines JSON from LLM.")
             except Exception as e:
                 logger.warning(f"LLM style analysis failed: {e}")
@@ -97631,8 +97665,9 @@ class StyleLearner:
             try:
                 import loguru
                 loguru.logger.error(f"Tool execution error: {e}")
-            except Exception:
-                pass
+            except Exception as e:
+                import logging
+                logging.warning(f"Exception suppressed: {e}")
             pass
         # Local fallback
         try:
@@ -98126,8 +98161,9 @@ class CommentThreadAI:
             try:
                 import loguru
                 loguru.logger.error(f"Tool execution error: {e}")
-            except Exception:
-                pass
+            except Exception as e:
+                import logging
+                logging.warning(f"Exception suppressed: {e}")
             pass
         try:
             # Issue comments (general PR comments)
@@ -98137,8 +98173,9 @@ class CommentThreadAI:
             try:
                 import loguru
                 loguru.logger.error(f"Tool execution error: {e}")
-            except Exception:
-                pass
+            except Exception as e:
+                import logging
+                logging.warning(f"Exception suppressed: {e}")
             pass
         return comments
 
@@ -98149,8 +98186,9 @@ class CommentThreadAI:
             try:
                 import loguru
                 loguru.logger.error(f"Tool execution error: {e}")
-            except Exception:
-                pass
+            except Exception as e:
+                import logging
+                logging.warning(f"Exception suppressed: {e}")
             return []
 
     async def _post_pr_comment(
@@ -98346,8 +98384,9 @@ class CommentThreadAI:
                     try:
                         import loguru
                         loguru.logger.error(f"Tool execution error: {e}")
-                    except Exception:
-                        pass
+                    except Exception as e:
+                        import logging
+                        logging.warning(f"Exception suppressed: {e}")
                     pass
 
         return {
@@ -98458,8 +98497,9 @@ async def github_webhook(
         try:
             import loguru
             loguru.logger.error(f"Tool execution error: {e}")
-        except Exception:
-            pass
+        except Exception as e:
+            import logging
+            logging.warning(f"Exception suppressed: {e}")
         raise HTTPException(status_code=400, detail="Invalid JSON payload")
 
     if x_github_event not in ("pull_request_review_comment", "issue_comment"):
@@ -98556,8 +98596,9 @@ def is_safe_url(url: str) -> bool:
         try:
             import loguru
             loguru.logger.error(f"Tool execution error: {e}")
-        except Exception:
-            pass
+        except Exception as e:
+            import logging
+            logging.warning(f"Exception suppressed: {e}")
         return False
 
 
@@ -99416,8 +99457,9 @@ class CodeSmellDetector:
                 try:
                     import loguru
                     loguru.logger.error(f"Tool execution error: {e}")
-                except Exception:
-                    pass
+                except Exception as e:
+                    import logging
+                    logging.warning(f"Exception suppressed: {e}")
                 pass
             return results
         except ImportError:
@@ -99717,8 +99759,9 @@ class SelfPlanner:
                 try:
                     import loguru
                     loguru.logger.error(f"Tool execution error: {e}")
-                except Exception:
-                    pass
+                except Exception as e:
+                    import logging
+                    logging.warning(f"Exception suppressed: {e}")
                 logger.warning("LLM returned non-JSON plan. Using fallback.")
                 plan = self._mock_plan(objective)
         except Exception as e:
@@ -100284,8 +100327,9 @@ class PlaywrightBrowserAgent:
                     try:
                         import loguru
                         loguru.logger.error(f"Tool execution error: {e}")
-                    except Exception:
-                        pass
+                    except Exception as e:
+                        import logging
+                        logging.warning(f"Exception suppressed: {e}")
                     is_authenticated = False
 
                 if not is_authenticated:
@@ -100746,8 +100790,9 @@ def _get_connection():
         try:
             import loguru
             loguru.logger.error(f"Tool execution error: {e}")
-        except Exception:
-            pass
+        except Exception as e:
+            import logging
+            logging.warning(f"Exception suppressed: {e}")
         return None
 
 
@@ -100856,8 +100901,9 @@ async def supabase_execute_sql(params: ExecuteQueryInput) -> str:
                 try:
                     import loguru
                     loguru.logger.error(f"Tool execution error: {e}")
-                except Exception:
-                    pass
+                except Exception as e:
+                    import logging
+                    logging.warning(f"Exception suppressed: {e}")
                 pass
 
 
@@ -100923,8 +100969,9 @@ async def supabase_create_table(params: CreateTableInput) -> str:
                 try:
                     import loguru
                     loguru.logger.error(f"Tool execution error: {e}")
-                except Exception:
-                    pass
+                except Exception as e:
+                    import logging
+                    logging.warning(f"Exception suppressed: {e}")
                 pass
 
 
@@ -101012,8 +101059,9 @@ async def supabase_run_migration(params: MigrationInput) -> str:
                 try:
                     import loguru
                     loguru.logger.error(f"Tool execution error: {e}")
-                except Exception:
-                    pass
+                except Exception as e:
+                    import logging
+                    logging.warning(f"Exception suppressed: {e}")
                 pass
 
 
@@ -101068,8 +101116,9 @@ async def supabase_list_tables() -> str:
                 try:
                     import loguru
                     loguru.logger.error(f"Tool execution error: {e}")
-                except Exception:
-                    pass
+                except Exception as e:
+                    import logging
+                    logging.warning(f"Exception suppressed: {e}")
                 pass
 
 
@@ -101240,8 +101289,9 @@ class LocalSearchRAG:
                 try:
                     import loguru
                     loguru.logger.error(f"Tool execution error: {e}")
-                except Exception:
-                    pass
+                except Exception as e:
+                    import logging
+                    logging.warning(f"Exception suppressed: {e}")
                 self._index = {}
 
     def build_search_url(self, query: str) -> str:
@@ -102331,8 +102381,9 @@ class HealthChecker:
                         try:
                             import loguru
                             loguru.logger.error(f"Tool execution error: {e}")
-                        except Exception:
-                            pass
+                        except Exception as e:
+                            import logging
+                            logging.warning(f"Exception suppressed: {e}")
                         continue
             error_count = len(recent_errors)
             if error_count > 20:
@@ -102464,8 +102515,9 @@ class ViralReferralEngine:
             try:
                 import loguru
                 loguru.logger.error(f"Tool execution error: {e}")
-            except Exception:
-                pass
+            except Exception as e:
+                import logging
+                logging.warning(f"Exception suppressed: {e}")
             return {"codes": {}, "wallets": {}}
 
     def _save_local(self, data):
@@ -103018,8 +103070,9 @@ class VPNRotator:
             try:
                 import loguru
                 loguru.logger.error(f"Tool execution error: {e}")
-            except Exception:
-                pass
+            except Exception as e:
+                import logging
+                logging.warning(f"Exception suppressed: {e}")
             return {"proxy": None, "source": "premium", "reason": "not configured"}
 
 ```
@@ -103601,8 +103654,9 @@ class BrowserStealth:
             try:
                 import loguru
                 loguru.logger.error(f"Tool execution error: {e}")
-            except Exception:
-                pass
+            except Exception as e:
+                import logging
+                logging.warning(f"Exception suppressed: {e}")
             pass
 
 ```
@@ -103702,8 +103756,9 @@ class TelegramBotHandler:
             try:
                 import loguru
                 loguru.logger.error(f"Tool execution error: {e}")
-            except Exception:
-                pass
+            except Exception as e:
+                import logging
+                logging.warning(f"Exception suppressed: {e}")
             pass
 
     async def set_webhook(self, webhook_url: str) -> bool:
@@ -103812,8 +103867,9 @@ class TelegramBotHandler:
                 try:
                     import loguru
                     loguru.logger.error(f"Tool execution error: {e}")
-                except Exception:
-                    pass
+                except Exception as e:
+                    import logging
+                    logging.warning(f"Exception suppressed: {e}")
                 status_lines.append(f"❌ {name}: unreachable")
         await self.send_message(chat_id, "\n".join(status_lines))
 
@@ -104611,8 +104667,9 @@ class VoiceCoder:
                 try:
                     import loguru
                     loguru.logger.error(f"Tool execution error: {e}")
-                except Exception:
-                    pass
+                except Exception as e:
+                    import logging
+                    logging.warning(f"Exception suppressed: {e}")
                 audio_feedback = None
 
             return {
@@ -105151,8 +105208,9 @@ class TenantRateLimiter:
             try:
                 import loguru
                 loguru.logger.error(f"Tool execution error: {e}")
-            except Exception:
-                pass
+            except Exception as e:
+                import logging
+                logging.warning(f"Exception suppressed: {e}")
             return None
 
     def _init_billing_tiers(self) -> None:
@@ -105691,8 +105749,9 @@ class MetaArchitect:
                         try:
                             import loguru
                             loguru.logger.error(f"Tool execution error: {e}")
-                        except Exception:
-                            pass
+                        except Exception as e:
+                            import logging
+                            logging.warning(f"Exception suppressed: {e}")
                         pass
             if metrics["total_files"]:
                 metrics["avg_file_size"] = (
@@ -105749,8 +105808,9 @@ class MetaArchitect:
                 try:
                     import loguru
                     loguru.logger.error(f"Tool execution error: {e}")
-                except Exception:
-                    pass
+                except Exception as e:
+                    import logging
+                    logging.warning(f"Exception suppressed: {e}")
                 plan = {
                     "priority": "medium",
                     "steps": [
@@ -106846,8 +106906,9 @@ class DomainAdapter:
             try:
                 import loguru
                 loguru.logger.error(f"Tool execution error: {e}")
-            except Exception:
-                pass
+            except Exception as e:
+                import logging
+                logging.warning(f"Exception suppressed: {e}")
             pass
         for domain, defaults in self.DOMAINS.items():
             self._profiles.setdefault(domain, defaults)
@@ -107181,8 +107242,9 @@ class VoiceInterface:
                 try:
                     import loguru
                     loguru.logger.error(f"Tool execution error: {e}")
-                except Exception:
-                    pass
+                except Exception as e:
+                    import logging
+                    logging.warning(f"Exception suppressed: {e}")
                 pass
             tts = CoquiTTS(
                 model_name="tts_models/multilingual/multi-dataset/xtts_v2",
@@ -107411,8 +107473,9 @@ class CloudSandboxOrchestrator:
                     try:
                         import loguru
                         loguru.logger.error(f"Tool execution error: {e}")
-                    except Exception:
-                        pass
+                    except Exception as e:
+                        import logging
+                        logging.warning(f"Exception suppressed: {e}")
                     pass
                 return {
                     "success": False,
@@ -107448,8 +107511,9 @@ class CloudSandboxOrchestrator:
                     try:
                         import loguru
                         loguru.logger.error(f"Tool execution error: {e}")
-                    except Exception:
-                        pass
+                    except Exception as e:
+                        import logging
+                        logging.warning(f"Exception suppressed: {e}")
                     pass
 
     async def create_sandbox(self, spec: Dict[str, Any]) -> Dict[str, Any] | None:
@@ -107743,8 +107807,9 @@ class GCPCloudFunctionClient:
             try:
                 import loguru
                 loguru.logger.error(f"Tool execution error: {e}")
-            except Exception:
-                pass
+            except Exception as e:
+                import logging
+                logging.warning(f"Exception suppressed: {e}")
             return {"text": response.text}
 
 ```
@@ -108579,8 +108644,9 @@ async def clear_cache():
                     try:
                         import loguru
                         loguru.logger.error(f"Tool execution error: {e}")
-                    except Exception:
-                        pass
+                    except Exception as e:
+                        import logging
+                        logging.warning(f"Exception suppressed: {e}")
                     pass
     return {"status": "success", "removed_files": removed}
 
@@ -108755,8 +108821,9 @@ class BanglaVoice:
             try:
                 import loguru
                 loguru.logger.error(f"Tool execution error: {e}")
-            except Exception:
-                pass
+            except Exception as e:
+                import logging
+                logging.warning(f"Exception suppressed: {e}")
             return False
 
     def _check_tts_available(self) -> bool:
@@ -108768,8 +108835,9 @@ class BanglaVoice:
             try:
                 import loguru
                 loguru.logger.error(f"Tool execution error: {e}")
-            except Exception:
-                pass
+            except Exception as e:
+                import logging
+                logging.warning(f"Exception suppressed: {e}")
             return False
 
     def transcribe(self, audio_path: str) -> BanglaVoiceResult:
@@ -108867,8 +108935,9 @@ class PresentationGenerator:
                 try:
                     import loguru
                     loguru.logger.error(f"Tool execution error: {e}")
-                except Exception:
-                    pass
+                except Exception as e:
+                    import logging
+                    logging.warning(f"Exception suppressed: {e}")
                 for i in range(1, num_slides + 1):
                     slides.append(
                         {
@@ -109074,8 +109143,9 @@ async def gateway_forward(request: GatewayRequest, http_request: Request) -> Res
                     try:
                         import loguru
                         loguru.logger.error(f"Tool execution error: {e}")
-                    except Exception:
-                        pass
+                    except Exception as e:
+                        import logging
+                        logging.warning(f"Exception suppressed: {e}")
                     pass
 
         return JSONResponse(content=response.json(), status_code=response.status_code)
@@ -110962,8 +111032,9 @@ class SkillRecommender:
                     try:
                         import loguru
                         loguru.logger.error(f"Tool execution error: {e}")
-                    except Exception:
-                        pass
+                    except Exception as e:
+                        import logging
+                        logging.warning(f"Exception suppressed: {e}")
                     pass
         if not enriched:
             enriched = [
@@ -111037,8 +111108,9 @@ class KnowledgeBaseIndexer:
             try:
                 import loguru
                 loguru.logger.error(f"Tool execution error: {e}")
-            except Exception:
-                pass
+            except Exception as e:
+                import logging
+                logging.warning(f"Exception suppressed: {e}")
             return docs
 
         module_hash = hashlib.md5(source.encode("utf-8")).hexdigest()
@@ -111219,8 +111291,9 @@ class KnowledgeBaseIndexer:
             try:
                 import loguru
                 loguru.logger.error(f"Tool execution error: {e}")
-            except Exception:
-                pass
+            except Exception as e:
+                import logging
+                logging.warning(f"Exception suppressed: {e}")
             return None, None
 
         text = "\n".join(text_parts) if text_parts else (doc_name or "")
@@ -111327,8 +111400,9 @@ class KnowledgeBaseIndexer:
             try:
                 import loguru
                 loguru.logger.error(f"Tool execution error: {e}")
-            except Exception:
-                pass
+            except Exception as e:
+                import logging
+                logging.warning(f"Exception suppressed: {e}")
             return []
 
     # ------------------------------------------------------------------
@@ -112155,8 +112229,9 @@ class PDFToSDKConverter:
             try:
                 import loguru
                 loguru.logger.error(f"Tool execution error: {e}")
-            except Exception:
-                pass
+            except Exception as e:
+                import logging
+                logging.warning(f"Exception suppressed: {e}")
             pass
 
         if not text:
@@ -112169,8 +112244,9 @@ class PDFToSDKConverter:
                 try:
                     import loguru
                     loguru.logger.error(f"Tool execution error: {e}")
-                except Exception:
-                    pass
+                except Exception as e:
+                    import logging
+                    logging.warning(f"Exception suppressed: {e}")
                 pass
 
         if not text:
@@ -112454,8 +112530,9 @@ class PreCommitAI:
                 try:
                     import loguru
                     loguru.logger.error(f"Tool execution error: {e}")
-                except Exception:
-                    pass
+                except Exception as e:
+                    import logging
+                    logging.warning(f"Exception suppressed: {e}")
                 continue  # Skip binary files that can't be read
 
             new_content = original_content
@@ -113629,8 +113706,9 @@ class PRReviewer:
                 try:
                     import loguru
                     loguru.logger.error(f"Tool execution error: {e}")
-                except Exception:
-                    pass
+                except Exception as e:
+                    import logging
+                    logging.warning(f"Exception suppressed: {e}")
                 logger.warning("Failed to parse LLM response in PRReviewer.")
         except Exception as e:
             logger.warning(f"ModelRouter call failed in PRReviewer: {e}")
@@ -114247,8 +114325,9 @@ class ParallelAgentExecutor:
                     try:
                         import loguru
                         loguru.logger.error(f"Tool execution error: {e}")
-                    except Exception:
-                        pass
+                    except Exception as e:
+                        import logging
+                        logging.warning(f"Exception suppressed: {e}")
                     redis = None
 
             if mcp_servers:
@@ -114288,8 +114367,9 @@ class ParallelAgentExecutor:
                 try:
                     import loguru
                     loguru.logger.error(f"Tool execution error: {e}")
-                except Exception:
-                    pass
+                except Exception as e:
+                    import logging
+                    logging.warning(f"Exception suppressed: {e}")
                 pass
             return {"agent": agent_name, "status": "error", "error": str(e)}
         finally:
@@ -132871,6 +132951,7 @@ const TIER_LIMITS: Record<string, Partial<TenantLimit>> = {
 };
 
 const API_BASE = '/api';
+const isDevelopment = import.meta.env?.DEV || process.env.NODE_ENV === 'development';
 
 export const RateLimitManager: React.FC = () => {
   const [tenants, setTenants] = useState<TenantLimit[]>([]);
@@ -132937,10 +133018,14 @@ export const RateLimitManager: React.FC = () => {
         showToast('error', `❌ Save failed: ${resp.status}`);
       }
     } catch {
-      // optimistic update for dev
-      setTenants(prev => prev.map(t => t.tenant_id === tenant_id ? { ...t, ...editValues } : t));
-      setEditingId(null);
-      showToast('success', `✅ Saved (offline mode)`);
+      if (isDevelopment) {
+        // optimistic update for dev
+        setTenants(prev => prev.map(t => t.tenant_id === tenant_id ? { ...t, ...editValues } : t));
+        setEditingId(null);
+        showToast('success', `✅ Saved (offline mode)`);
+      } else {
+        showToast('error', `❌ Save failed - server unreachable`);
+      }
     }
     setSaving(null);
   };
@@ -132952,18 +133037,22 @@ export const RateLimitManager: React.FC = () => {
       ...TIER_LIMITS[newTenant.billing_tier],
     } as TenantLimit;
     try {
-      await fetch(`${API_BASE}/admin/tenant-limits`, {
+      const resp = await fetch(`${API_BASE}/admin/tenant-limits`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getAdminToken()}` },
         body: JSON.stringify(record),
       });
+      if (!resp.ok) {
+        throw new Error(`Server returned ${resp.status}: ${resp.statusText}`);
+      }
+      setTenants(prev => [...prev, record]);
+      setNewTenant({ tenant_id: '', org_name: '', billing_tier: 'free' });
+      setShowNewForm(false);
+      showToast('success', `✅ Tenant ${record.tenant_id} created`);
     } catch (e) {
       console.error(e);
+      showToast('error', `❌ Failed to create tenant: ${e instanceof Error ? e.message : 'Unknown error'}`);
     }
-    setTenants(prev => [...prev, record]);
-    setNewTenant({ tenant_id: '', org_name: '', billing_tier: 'free' });
-    setShowNewForm(false);
-    showToast('success', `✅ Tenant ${record.tenant_id} created`);
   };
 
   const usagePercent = (used: number, max: number) => Math.min(100, Math.round((used / max) * 100));
@@ -133184,7 +133273,6 @@ const styles: Record<string, React.CSSProperties> = {
 };
 
 export default RateLimitManager;
-
 ```
 
 ## File: `apps/studio-client/src/components/admin/HealthMap.tsx`
@@ -138527,7 +138615,9 @@ export const setToken = (token: string | null) => {
     // প্রোডাকশনে লোকাল স্টোরেজ থেকে মুছে ফেলা হচ্ছে
     try {
       localStorage.removeItem('jwt');
-    } catch (e) {}
+    } catch (e) {
+      console.warn('Failed to clear JWT token from localStorage', e);
+    }
   }
 };
 
@@ -138536,6 +138626,7 @@ export const getToken = (): string | null => {
     try {
       return localStorage.getItem('jwt');
     } catch (e) {
+      console.warn('Failed to get JWT token from localStorage', e);
       return null;
     }
   }
@@ -138546,7 +138637,9 @@ export const clearToken = () => {
   if (isDevelopment) {
     try {
       localStorage.removeItem('jwt');
-    } catch (e) {}
+    } catch (e) {
+      console.warn('Failed to clear JWT token from localStorage', e);
+    }
   }
   memoryToken = null;
 };

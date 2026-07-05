@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/microvm_sandbox.py
 
 **প্রকার:** .py  
-**সাইজ:** 7,171 বাইট  
-**আপডেট:** 2026-07-05T18:19:45.218825
+**সাইজ:** 7,244 বাইট  
+**আপডেট:** 2026-07-05T19:04:56.653514
 
 ---
 
@@ -40,8 +40,9 @@ class MicroVMSandbox:
                 return True
             if shutil.which("runsc"):
                 return True
-        except Exception:
-            pass
+        except Exception as e:
+            import logging
+            logging.warning(f"Exception suppressed: {e}")
         return False
 
     def _create_microvm_config(self, vm_id: str, cmd: str) -> str:

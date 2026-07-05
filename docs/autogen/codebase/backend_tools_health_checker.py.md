@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/health_checker.py
 
 **প্রকার:** .py  
-**সাইজ:** 6,385 বাইট  
-**আপডেট:** 2026-07-05T18:19:45.280450
+**সাইজ:** 6,474 বাইট  
+**আপডেট:** 2026-07-05T19:04:56.706516
 
 ---
 
@@ -103,8 +103,9 @@ class HealthChecker:
                         try:
                             import loguru
                             loguru.logger.error(f"Tool execution error: {e}")
-                        except Exception:
-                            pass
+                        except Exception as e:
+                            import logging
+                            logging.warning(f"Exception suppressed: {e}")
                         continue
             error_count = len(recent_errors)
             if error_count > 20:

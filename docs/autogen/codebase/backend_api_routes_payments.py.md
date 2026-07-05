@@ -1,14 +1,16 @@
 # 📄 ফাইল: backend/api/routes/payments.py
 
 **প্রকার:** .py  
-**সাইজ:** 6,739 বাইট  
-**আপডেট:** 2026-07-05T18:19:45.228891
+**সাইজ:** 6,993 বাইট  
+**আপডেট:** 2026-07-05T19:04:56.664210
 
 ---
 
 ## কোড
 
 ```py
+import os
+
 from fastapi import APIRouter
 from fastapi import HTTPException
 from fastapi import Request
@@ -99,6 +101,11 @@ async def create_checkout_session(request: Request, payload: CheckoutRequest):
     try:
         stripe_key = settings.stripe_api_key
         if not stripe_key:
+            if os.environ.get("SUPREMEAI_ENV") == "production":
+                raise RuntimeError(
+                    "Stripe API key not configured in production. "
+                    "Payment processing is unavailable."
+                )
             logger.warning(
                 "Stripe API key not set in settings. Using mock checkout session."
             )

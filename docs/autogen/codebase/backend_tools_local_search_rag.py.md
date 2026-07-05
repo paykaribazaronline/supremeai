@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/local_search_rag.py
 
 **প্রকার:** .py  
-**সাইজ:** 8,025 বাইট  
-**আপডেট:** 2026-07-05T18:19:45.279881
+**সাইজ:** 8,106 বাইট  
+**আপডেট:** 2026-07-05T19:04:56.705933
 
 ---
 
@@ -77,8 +77,9 @@ class LocalSearchRAG:
                 try:
                     import loguru
                     loguru.logger.error(f"Tool execution error: {e}")
-                except Exception:
-                    pass
+                except Exception as e:
+                    import logging
+                    logging.warning(f"Exception suppressed: {e}")
                 self._index = {}
 
     def build_search_url(self, query: str) -> str:

@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/docker_sandbox.py
 
 **প্রকার:** .py  
-**সাইজ:** 4,153 বাইট  
-**আপডেট:** 2026-07-05T18:19:45.276305
+**সাইজ:** 4,230 বাইট  
+**আপডেট:** 2026-07-05T19:04:56.702969
 
 ---
 
@@ -36,8 +36,9 @@ class DockerSandbox:
             try:
                 import loguru
                 loguru.logger.error(f"Tool execution error: {e}")
-            except Exception:
-                pass
+            except Exception as e:
+                import logging
+                logging.warning(f"Exception suppressed: {e}")
             return False
 
     def execute_command(self, cmd: str) -> dict[str, Any]:

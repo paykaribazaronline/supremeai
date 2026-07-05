@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/cloud_sandbox_orchestrator.py
 
 **প্রকার:** .py  
-**সাইজ:** 14,793 বাইট  
-**আপডেট:** 2026-07-05T18:19:45.286356
+**সাইজ:** 14,963 বাইট  
+**আপডেট:** 2026-07-05T19:04:56.710433
 
 ---
 
@@ -165,8 +165,9 @@ class CloudSandboxOrchestrator:
                     try:
                         import loguru
                         loguru.logger.error(f"Tool execution error: {e}")
-                    except Exception:
-                        pass
+                    except Exception as e:
+                        import logging
+                        logging.warning(f"Exception suppressed: {e}")
                     pass
                 return {
                     "success": False,
@@ -202,8 +203,9 @@ class CloudSandboxOrchestrator:
                     try:
                         import loguru
                         loguru.logger.error(f"Tool execution error: {e}")
-                    except Exception:
-                        pass
+                    except Exception as e:
+                        import logging
+                        logging.warning(f"Exception suppressed: {e}")
                     pass
 
     async def create_sandbox(self, spec: Dict[str, Any]) -> Dict[str, Any] | None:

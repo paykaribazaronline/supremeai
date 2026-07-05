@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/universal_rules.py
 
 **প্রকার:** .py  
-**সাইজ:** 4,015 বাইট  
-**আপডেট:** 2026-07-05T18:19:45.212695
+**সাইজ:** 4,088 বাইট  
+**আপডেট:** 2026-07-05T19:04:56.646348
 
 ---
 
@@ -71,8 +71,9 @@ class UniversalRulesEngine:
             os.makedirs(os.path.dirname(self.rules_path), exist_ok=True)
             with open(self.rules_path, "w", encoding="utf-8") as f:
                 json.dump(default_rules, f, indent=4)
-        except Exception:
-            pass
+        except Exception as e:
+            import logging
+            logging.warning(f"Exception suppressed: {e}")
 
         return default_rules
 

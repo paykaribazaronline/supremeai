@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/presentation_generator.py
 
 **প্রকার:** .py  
-**সাইজ:** 3,247 বাইট  
-**আপডেট:** 2026-07-05T18:19:45.287480
+**সাইজ:** 3,328 বাইট  
+**আপডেট:** 2026-07-05T19:04:56.711434
 
 ---
 
@@ -46,8 +46,9 @@ class PresentationGenerator:
                 try:
                     import loguru
                     loguru.logger.error(f"Tool execution error: {e}")
-                except Exception:
-                    pass
+                except Exception as e:
+                    import logging
+                    logging.warning(f"Exception suppressed: {e}")
                 for i in range(1, num_slides + 1):
                     slides.append(
                         {

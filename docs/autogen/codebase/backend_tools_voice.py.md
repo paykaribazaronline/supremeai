@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/voice.py
 
 **প্রকার:** .py  
-**সাইজ:** 6,173 বাইট  
-**আপডেট:** 2026-07-05T18:19:45.286191
+**সাইজ:** 6,254 বাইট  
+**আপডেট:** 2026-07-05T19:04:56.710293
 
 ---
 
@@ -101,8 +101,9 @@ class VoiceInterface:
                 try:
                     import loguru
                     loguru.logger.error(f"Tool execution error: {e}")
-                except Exception:
-                    pass
+                except Exception as e:
+                    import logging
+                    logging.warning(f"Exception suppressed: {e}")
                 pass
             tts = CoquiTTS(
                 model_name="tts_models/multilingual/multi-dataset/xtts_v2",

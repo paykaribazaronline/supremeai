@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/conftest.py
 
 **প্রকার:** .py  
-**সাইজ:** 4,262 বাইট  
-**আপডেট:** 2026-07-05T18:19:45.260922
+**সাইজ:** 4,404 বাইট  
+**আপডেট:** 2026-07-05T19:04:56.690059
 
 ---
 
@@ -122,8 +122,9 @@ def bypass_jwt_auth():
             mock = p.start()
             mock.return_value = {"sub": "test_admin@supremeai.com", "role": "admin"}
             patches.append(p)
-        except Exception:
-            pass
+        except Exception as e:
+            import logging
+            logging.warning(f"Exception suppressed: {e}")
     yield
     for p in patches:
         with contextlib.suppress(Exception):
@@ -139,8 +140,9 @@ def configure_litellm():
         litellm.use_litellm_proxy = False
         litellm.drop_params = True
         litellm.telemetry = False
-    except Exception:
-        pass
+    except Exception as e:
+        import logging
+        logging.warning(f"Exception suppressed: {e}")
     yield
 
 

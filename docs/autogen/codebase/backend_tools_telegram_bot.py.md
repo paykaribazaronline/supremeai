@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/telegram_bot.py
 
 **প্রকার:** .py  
-**সাইজ:** 11,312 বাইট  
-**আপডেট:** 2026-07-05T18:19:45.281836
+**সাইজ:** 11,470 বাইট  
+**আপডেট:** 2026-07-05T19:04:56.707380
 
 ---
 
@@ -101,8 +101,9 @@ class TelegramBotHandler:
             try:
                 import loguru
                 loguru.logger.error(f"Tool execution error: {e}")
-            except Exception:
-                pass
+            except Exception as e:
+                import logging
+                logging.warning(f"Exception suppressed: {e}")
             pass
 
     async def set_webhook(self, webhook_url: str) -> bool:
@@ -211,8 +212,9 @@ class TelegramBotHandler:
                 try:
                     import loguru
                     loguru.logger.error(f"Tool execution error: {e}")
-                except Exception:
-                    pass
+                except Exception as e:
+                    import logging
+                    logging.warning(f"Exception suppressed: {e}")
                 status_lines.append(f"❌ {name}: unreachable")
         await self.send_message(chat_id, "\n".join(status_lines))
 

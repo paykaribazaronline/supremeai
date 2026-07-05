@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/factual_verifier.py
 
 **প্রকার:** .py  
-**সাইজ:** 7,016 বাইট  
-**আপডেট:** 2026-07-05T18:19:45.219589
+**সাইজ:** 7,443 বাইট  
+**আপডেট:** 2026-07-05T19:04:56.654362
 
 ---
 
@@ -11,11 +11,13 @@
 ```py
 import ast
 import contextlib
+import logging
 import operator
 import re
 
 import httpx
 
+_logger = logging.getLogger(__name__)
 
 _ALLOWED_OPERATORS = {
     ast.Add: operator.add,
@@ -71,15 +73,16 @@ class FactualVerifier:
 
             self.local_rag = LocalSearchRAG()
         except ImportError:
-            pass
+            _logger.warning("LocalSearchRAG not available, RAG-based verification disabled")
+            self.local_rag = None
 
     def verify_with_local_rag(self, claim: str) -> dict:
         if self.local_rag is None:
             return {
                 "claim": claim,
-                "is_verified": True,
-                "confidence": 0.5,
-                "method": "no_local_rag",
+                "is_verified": False,
+                "confidence": 0.0,
+                "method": "unverified_no_local_rag",
             }
 
         try:
@@ -97,15 +100,16 @@ class FactualVerifier:
                 }
             return {
                 "claim": claim,
-                "is_verified": True,
+                "is_verified": False,
                 "confidence": 0.3,
                 "method": "no_matches",
             }
         except Exception as e:
+            _logger.warning(f"RAG verification failed for claim: {claim[:50]}... error: {e}")
             return {
                 "claim": claim,
-                "is_verified": True,
-                "confidence": 0.2,
+                "is_verified": False,
+                "confidence": 0.0,
                 "error": str(e),
                 "method": "rag_error",
             }
@@ -135,8 +139,8 @@ class FactualVerifier:
                         "supporting_sources": supporting,
                         "method": "local_rag",
                     }
-            except Exception:
-                pass
+            except Exception as e:
+                _logger.warning(f"RAG search failed in verify_with_web_search: {e}")
 
         try:
             query = __import__("urllib.parse").parse.quote(claim)
@@ -153,14 +157,14 @@ class FactualVerifier:
                             "supporting_sources": [data.get("AbstractURL", "")],
                             "method": "duckduckgo_api",
                         }
-        except Exception:
-            pass
+        except Exception as e:
+            _logger.warning(f"Web search failed for claim: {claim[:50]}... error: {e}")
 
         return {
             "claim": claim,
-            "is_verified": True,
-            "confidence": 0.3,
-            "method": "fallback",
+            "is_verified": False,
+            "confidence": 0.0,
+            "method": "unverified_fallback",
         }
 
     def verify_math(self, expression: str, claimed_result: str) -> dict:
@@ -207,5 +211,4 @@ class FactualVerifier:
                     "reason": f"Math error: {expr} != {claimed}",
                 }
         return {"is_verified": True}
-
 ```

@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/test_sprint_g.py
 
 **প্রকার:** .py  
-**সাইজ:** 18,053 বাইট  
-**আপডেট:** 2026-07-05T18:19:45.264722
+**সাইজ:** 18,130 বাইট  
+**আপডেট:** 2026-07-05T19:04:56.693541
 
 ---
 
@@ -464,8 +464,9 @@ class TestTenantAdminAPI:
                     result["tenant"]["requests_per_minute"]
                     == TIER_DEFAULTS["pro"]["requests_per_minute"]
                 )
-            except Exception:
-                pass  # Redis cache failure OK
+            except Exception as e:
+                import logging
+                logging.warning(f"Exception suppressed: {e}")  # Redis cache failure OK
 
     @pytest.mark.anyio
     async def test_delete_tenant(self):

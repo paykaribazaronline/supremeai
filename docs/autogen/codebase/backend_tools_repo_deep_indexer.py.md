@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/repo_deep_indexer.py
 
 **প্রকার:** .py  
-**সাইজ:** 3,634 বাইট  
-**আপডেট:** 2026-07-05T18:19:45.276869
+**সাইজ:** 3,800 বাইট  
+**আপডেট:** 2026-07-05T19:04:56.703396
 
 ---
 
@@ -69,8 +69,9 @@ class RepoDeepIndexer:
                         try:
                             import loguru
                             loguru.logger.error(f"Tool execution error: {e}")
-                        except Exception:
-                            pass
+                        except Exception as e:
+                            import logging
+                            logging.warning(f"Exception suppressed: {e}")
                         snippet = ""
                     node = {
                         "path": file_path,
@@ -102,8 +103,9 @@ class RepoDeepIndexer:
             try:
                 import loguru
                 loguru.logger.error(f"Tool execution error: {e}")
-            except Exception:
-                pass
+            except Exception as e:
+                import logging
+                logging.warning(f"Exception suppressed: {e}")
             pass
         return []
 

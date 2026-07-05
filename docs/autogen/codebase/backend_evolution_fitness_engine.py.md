@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/evolution/fitness_engine.py
 
 **প্রকার:** .py  
-**সাইজ:** 6,199 বাইট  
-**আপডেট:** 2026-07-05T18:19:45.242896
+**সাইজ:** 6,276 বাইট  
+**আপডেট:** 2026-07-05T19:04:56.675185
 
 ---
 
@@ -55,8 +55,9 @@ class FitnessEngine:
             try:
                 with open(self.metrics_path, encoding="utf-8") as f:
                     return json.load(f)
-            except Exception:
-                pass
+            except Exception as e:
+                import logging
+                logging.warning(f"Exception suppressed: {e}")
         return {}
 
     def _save_metrics(self):

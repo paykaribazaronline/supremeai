@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/api/routes/metrics.py
 
 **প্রকার:** .py  
-**সাইজ:** 9,052 বাইট  
-**আপডেট:** 2026-07-05T18:19:45.235419
+**সাইজ:** 9,179 বাইট  
+**আপডেট:** 2026-07-05T19:04:56.669035
 
 ---
 
@@ -202,8 +202,8 @@ def record_request(method: str, path: str, status: int) -> None:
                 method=method, endpoint=path, status=str(status)
             ).inc()
             supremeai_requests_total.labels(method=method, endpoint=path).inc()
-        except Exception:
-            pass
+        except Exception as exc:
+            logger.debug(f"Failed to record request metrics: {exc}")
 
 
 def record_error(error_type: str, endpoint: str) -> None:
@@ -221,8 +221,8 @@ def record_request_duration(method: str, path: str, duration: float) -> None:
             supremeai_response_seconds.labels(method=method, endpoint=path).observe(
                 duration
             )
-        except Exception:
-            pass
+        except Exception as exc:
+            logger.debug(f"Failed to record request duration metrics: {exc}")
 
 
 def record_model_call(provider: str, model: str) -> None:

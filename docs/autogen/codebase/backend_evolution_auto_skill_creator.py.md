@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/evolution/auto_skill_creator.py
 
 **প্রকার:** .py  
-**সাইজ:** 12,738 বাইট  
-**আপডেট:** 2026-07-05T18:19:45.242280
+**সাইজ:** 12,815 বাইট  
+**আপডেট:** 2026-07-05T19:04:56.674546
 
 ---
 
@@ -45,8 +45,9 @@ class AutoSkillCreator:
                 client = get_firestore_client()
                 if client is not None:
                     self.skills_ref = client.collection("supreme_dynamic_skills")
-            except Exception:
-                pass
+            except Exception as e:
+                import logging
+                logging.warning(f"Exception suppressed: {e}")
             if self.skills_ref is None:
 
                 class MockDoc:

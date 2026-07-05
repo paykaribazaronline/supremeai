@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/workers/chaos_worker.py
 
 **প্রকার:** .py  
-**সাইজ:** 5,631 বাইট  
-**আপডেট:** 2026-07-05T18:19:45.206210
+**সাইজ:** 5,712 বাইট  
+**আপডেট:** 2026-07-05T19:04:56.640348
 
 ---
 
@@ -66,8 +66,9 @@ class NightlyChaosAuditor:
                         logger.critical(
                             "🚨 [SECURITY BREACH] Sandbox bypass detected during autonomous fuzzing!"
                         )
-                except Exception:
-                    pass  # SecurityError আশা করা হচ্ছে, তাই এটি পাস
+                except Exception as e:
+                    import logging
+                    logging.warning(f"Exception suppressed: {e}")  # SecurityError আশা করা হচ্ছে, তাই এটি পাস
 
             # 🧪 টেস্ট ২: রানটাইম কানেকশন পুল স্ট্রেস চেক (Synthetic Heavy Requests)
             async with httpx.AsyncClient(timeout=5.0) as client:

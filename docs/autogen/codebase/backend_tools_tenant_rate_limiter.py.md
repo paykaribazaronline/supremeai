@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/tenant_rate_limiter.py
 
 **প্রকার:** .py  
-**সাইজ:** 8,276 বাইট  
-**আপডেট:** 2026-07-05T18:19:45.284064
+**সাইজ:** 8,353 বাইট  
+**আপডেট:** 2026-07-05T19:04:56.708870
 
 ---
 
@@ -41,8 +41,9 @@ class TenantRateLimiter:
             try:
                 import loguru
                 loguru.logger.error(f"Tool execution error: {e}")
-            except Exception:
-                pass
+            except Exception as e:
+                import logging
+                logging.warning(f"Exception suppressed: {e}")
             return None
 
     def _init_billing_tiers(self) -> None:

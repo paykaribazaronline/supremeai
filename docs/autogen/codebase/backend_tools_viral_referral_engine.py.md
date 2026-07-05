@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/viral_referral_engine.py
 
 **প্রকার:** .py  
-**সাইজ:** 16,706 বাইট  
-**আপডেট:** 2026-07-05T18:19:45.280676
+**সাইজ:** 16,783 বাইট  
+**আপডেট:** 2026-07-05T19:04:56.706660
 
 ---
 
@@ -52,8 +52,9 @@ class ViralReferralEngine:
             try:
                 import loguru
                 loguru.logger.error(f"Tool execution error: {e}")
-            except Exception:
-                pass
+            except Exception as e:
+                import logging
+                logging.warning(f"Exception suppressed: {e}")
             return {"codes": {}, "wallets": {}}
 
     def _save_local(self, data):

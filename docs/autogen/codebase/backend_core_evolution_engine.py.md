@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/evolution_engine.py
 
 **প্রকার:** .py  
-**সাইজ:** 14,168 বাইট  
-**আপডেট:** 2026-07-05T18:19:45.210499
+**সাইজ:** 14,302 বাইট  
+**আপডেট:** 2026-07-05T19:04:56.643959
 
 ---
 
@@ -318,8 +318,9 @@ Based on the prompt, rewrite it to be more precise, clear, and effective. Provid
                     user_rating,
                     created_at,
                 )
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning(f"Failed to insert feedback to Supabase: {e}")
+            if evolution_write_failures: evolution_write_failures.inc()
 
         conn = sqlite3.connect(str(self.db_path))
         try:

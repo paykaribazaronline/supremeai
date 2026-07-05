@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/error_remediation.py
 
 **প্রকার:** .py  
-**সাইজ:** 5,066 বাইট  
-**আপডেট:** 2026-07-05T18:19:45.207906
+**সাইজ:** 5,139 বাইট  
+**আপডেট:** 2026-07-05T19:04:56.641466
 
 ---
 
@@ -69,8 +69,9 @@ class ErrorRemediation:
             if not self.fallback_path.exists():
                 with open(self.fallback_path, "w", encoding="utf-8") as f:
                     json.dump({"default_fix": "Retry with exponential backoff"}, f, indent=2)
-        except Exception:
-            pass
+        except Exception as e:
+            import logging
+            logging.warning(f"Exception suppressed: {e}")
 
     def _load_local_fallback(self) -> str | None:
         try:

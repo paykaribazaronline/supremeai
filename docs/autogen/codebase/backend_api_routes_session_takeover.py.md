@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/api/routes/session_takeover.py
 
 **প্রকার:** .py  
-**সাইজ:** 3,217 বাইট  
-**আপডেট:** 2026-07-05T18:19:45.230990
+**সাইজ:** 3,462 বাইট  
+**আপডেট:** 2026-07-05T19:04:56.665563
 
 ---
 
@@ -20,8 +20,15 @@ from loguru import logger
 
 router = APIRouter()
 
+import os
+
 # Note: In production, tokens would be verified against Redis/DB
 def verify_takeover_token(token: str) -> bool:
+    if os.environ.get("SUPREMEAI_ENV") == "production":
+        raise NotImplementedError(
+            "Production token verification not implemented! "
+            "Must validate tokens against Redis/DB before deployment."
+        )
     return token.startswith("tok_")
 
 # A 1x1 black JPEG pixel encoded in base64

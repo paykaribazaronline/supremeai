@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/voice_coder.py
 
 **প্রকার:** .py  
-**সাইজ:** 6,280 বাইট  
-**আপডেট:** 2026-07-05T18:19:45.283140
+**সাইজ:** 6,361 বাইট  
+**আপডেট:** 2026-07-05T19:04:56.708279
 
 ---
 
@@ -52,8 +52,9 @@ class VoiceCoder:
                 try:
                     import loguru
                     loguru.logger.error(f"Tool execution error: {e}")
-                except Exception:
-                    pass
+                except Exception as e:
+                    import logging
+                    logging.warning(f"Exception suppressed: {e}")
                 audio_feedback = None
 
             return {

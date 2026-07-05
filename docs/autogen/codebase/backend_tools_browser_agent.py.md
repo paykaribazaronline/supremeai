@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/browser_agent.py
 
 **প্রকার:** .py  
-**সাইজ:** 10,062 বাইট  
-**আপডেট:** 2026-07-05T18:19:45.278069
+**সাইজ:** 10,135 বাইট  
+**আপডেট:** 2026-07-05T19:04:56.704417
 
 ---
 
@@ -43,8 +43,9 @@ def is_safe_url(url: str) -> bool:
         try:
             import loguru
             loguru.logger.error(f"Tool execution error: {e}")
-        except Exception:
-            pass
+        except Exception as e:
+            import logging
+            logging.warning(f"Exception suppressed: {e}")
         return False
 
 

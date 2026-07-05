@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/playwright_browser_agent.py
 
 **প্রকার:** .py  
-**সাইজ:** 24,622 বাইট  
-**আপডেট:** 2026-07-05T18:19:45.279198
+**সাইজ:** 24,707 বাইট  
+**আপডেট:** 2026-07-05T19:04:56.705357
 
 ---
 
@@ -210,8 +210,9 @@ class PlaywrightBrowserAgent:
                     try:
                         import loguru
                         loguru.logger.error(f"Tool execution error: {e}")
-                    except Exception:
-                        pass
+                    except Exception as e:
+                        import logging
+                        logging.warning(f"Exception suppressed: {e}")
                     is_authenticated = False
 
                 if not is_authenticated:

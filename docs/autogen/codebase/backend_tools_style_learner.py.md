@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/style_learner.py
 
 **প্রকার:** .py  
-**সাইজ:** 7,127 বাইট  
-**আপডেট:** 2026-07-05T18:19:45.277008
+**সাইজ:** 7,378 বাইট  
+**আপডেট:** 2026-07-05T19:04:56.703507
 
 ---
 
@@ -61,8 +61,9 @@ class StyleLearner:
                         try:
                             import loguru
                             loguru.logger.error(f"Tool execution error: {e}")
-                        except Exception:
-                            pass
+                        except Exception as e:
+                            import logging
+                            logging.warning(f"Exception suppressed: {e}")
                         pass
                 if len(code_samples) >= 20:
                     break
@@ -101,8 +102,9 @@ class StyleLearner:
                     try:
                         import loguru
                         loguru.logger.error(f"Tool execution error: {e}")
-                    except Exception:
-                        pass
+                    except Exception as e:
+                        import logging
+                        logging.warning(f"Exception suppressed: {e}")
                     logger.warning("Failed to parse style guidelines JSON from LLM.")
             except Exception as e:
                 logger.warning(f"LLM style analysis failed: {e}")
@@ -128,8 +130,9 @@ class StyleLearner:
             try:
                 import loguru
                 loguru.logger.error(f"Tool execution error: {e}")
-            except Exception:
-                pass
+            except Exception as e:
+                import logging
+                logging.warning(f"Exception suppressed: {e}")
             pass
         # Local fallback
         try:

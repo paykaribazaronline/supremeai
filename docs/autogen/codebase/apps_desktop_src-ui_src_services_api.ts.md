@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/desktop/src-ui/src/services/api.ts
 
 **প্রকার:** .ts  
-**সাইজ:** 4,273 বাইট  
-**আপডেট:** 2026-07-05T18:19:45.324251
+**সাইজ:** 4,491 বাইট  
+**আপডেট:** 2026-07-05T19:04:56.742916
 
 ---
 
@@ -73,7 +73,9 @@ export const setToken = (token: string | null) => {
     // প্রোডাকশনে লোকাল স্টোরেজ থেকে মুছে ফেলা হচ্ছে
     try {
       localStorage.removeItem('jwt');
-    } catch (e) {}
+    } catch (e) {
+      console.warn('Failed to clear JWT token from localStorage', e);
+    }
   }
 };
 
@@ -82,6 +84,7 @@ export const getToken = (): string | null => {
     try {
       return localStorage.getItem('jwt');
     } catch (e) {
+      console.warn('Failed to get JWT token from localStorage', e);
       return null;
     }
   }
@@ -92,7 +95,9 @@ export const clearToken = () => {
   if (isDevelopment) {
     try {
       localStorage.removeItem('jwt');
-    } catch (e) {}
+    } catch (e) {
+      console.warn('Failed to clear JWT token from localStorage', e);
+    }
   }
   memoryToken = null;
 };

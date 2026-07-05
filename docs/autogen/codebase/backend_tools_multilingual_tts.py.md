@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/multilingual_tts.py
 
 **প্রকার:** .py  
-**সাইজ:** 19,563 বাইট  
-**আপডেট:** 2026-07-05T18:19:45.287024
+**সাইজ:** 19,648 বাইট  
+**আপডেট:** 2026-07-05T19:04:56.711038
 
 ---
 
@@ -509,8 +509,9 @@ async def clear_cache():
                     try:
                         import loguru
                         loguru.logger.error(f"Tool execution error: {e}")
-                    except Exception:
-                        pass
+                    except Exception as e:
+                        import logging
+                        logging.warning(f"Exception suppressed: {e}")
                     pass
     return {"status": "success", "removed_files": removed}
 

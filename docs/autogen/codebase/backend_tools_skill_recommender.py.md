@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/skill_recommender.py
 
 **প্রকার:** .py  
-**সাইজ:** 4,861 বাইট  
-**আপডেট:** 2026-07-05T18:19:45.289492
+**সাইজ:** 4,946 বাইট  
+**আপডেট:** 2026-07-05T19:04:56.713202
 
 ---
 
@@ -112,8 +112,9 @@ class SkillRecommender:
                     try:
                         import loguru
                         loguru.logger.error(f"Tool execution error: {e}")
-                    except Exception:
-                        pass
+                    except Exception as e:
+                        import logging
+                        logging.warning(f"Exception suppressed: {e}")
                     pass
         if not enriched:
             enriched = [
