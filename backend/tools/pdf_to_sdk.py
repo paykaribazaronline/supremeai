@@ -20,7 +20,12 @@ class PDFToSDKConverter:
 
             doc = fitz.open(pdf_path)
             text = "\n".join(page.get_text() for page in doc)
-        except Exception:
+        except Exception as e:
+            try:
+                from loguru import logger
+                logger.error(f"Tool execution error: {e}")
+            except Exception:
+                pass
             pass
 
         if not text:
@@ -29,7 +34,12 @@ class PDFToSDKConverter:
 
                 with pdfplumber.open(pdf_path) as pdf:
                     text = "\n".join(page.extract_text() or "" for page in pdf.pages)
-            except Exception:
+            except Exception as e:
+                try:
+                    from loguru import logger
+                    logger.error(f"Tool execution error: {e}")
+                except Exception:
+                    pass
                 pass
 
         if not text:

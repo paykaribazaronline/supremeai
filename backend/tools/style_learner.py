@@ -46,7 +46,12 @@ class StyleLearner:
                     try:
                         with open(path, encoding="utf-8") as f:
                             code_samples.append(f.read()[:1500])
-                    except Exception:
+                    except Exception as e:
+                        try:
+                            from loguru import logger
+                            logger.error(f"Tool execution error: {e}")
+                        except Exception:
+                            pass
                         pass
                 if len(code_samples) >= 20:
                     break
@@ -81,7 +86,12 @@ class StyleLearner:
                         self.learned_styles[repo_path] = parsed
                         await self._persist_style(repo_path, parsed)
                         return parsed
-                except Exception:
+                except Exception as e:
+                    try:
+                        from loguru import logger
+                        logger.error(f"Tool execution error: {e}")
+                    except Exception:
+                        pass
                     logger.warning("Failed to parse style guidelines JSON from LLM.")
             except Exception as e:
                 logger.warning(f"LLM style analysis failed: {e}")
@@ -103,7 +113,12 @@ class StyleLearner:
                     }
                 ).execute()
                 return
-        except Exception:
+        except Exception as e:
+            try:
+                from loguru import logger
+                logger.error(f"Tool execution error: {e}")
+            except Exception:
+                pass
             pass
         # Local fallback
         try:

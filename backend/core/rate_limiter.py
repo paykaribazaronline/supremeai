@@ -137,7 +137,12 @@ class RateLimitMiddleware:
                     return
             except Exception as exc:
                 logger.error(f"Error checking tenant rate limit: {exc}")
-
+                response = JSONResponse(
+                    status_code=429,
+                    content={"detail": "Too many requests. Please try again later."},
+                )
+                await response(scope, receive, send)
+                return
         else:
             client = scope.get("client")
             client_ip = client[0] if client else "unknown"

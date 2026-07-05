@@ -62,7 +62,12 @@ class LocalSearchRAG:
                 self._index = json.loads(
                     self.embeddings_path.read_text(encoding="utf-8")
                 )
-            except Exception:
+            except Exception as e:
+                try:
+                    from loguru import logger
+                    logger.error(f"Tool execution error: {e}")
+                except Exception:
+                    pass
                 self._index = {}
 
     def build_search_url(self, query: str) -> str:

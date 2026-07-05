@@ -17,9 +17,9 @@ class EmailService:
 
     async def _send_email(self, to_email: str, subject: str, html_body: str) -> bool:
         if not self.api_key:
-            logger.info(f"[Mock Email] To: {to_email} | Subject: {subject}")
+            logger.warning(f"[Mock Email] To: {to_email} | Subject: {subject}")
             logger.debug(f"Body: {html_body[:100]}...")
-            return True
+            return False
 
         try:
             async with httpx.AsyncClient() as client:

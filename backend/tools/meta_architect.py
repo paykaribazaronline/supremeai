@@ -43,7 +43,12 @@ class MetaArchitect:
                             metrics["languages"][lang] = metrics["languages"].get(
                                 lang, 0
                             ) + len(lines)
-                    except Exception:
+                    except Exception as e:
+                        try:
+                            from loguru import logger
+                            logger.error(f"Tool execution error: {e}")
+                        except Exception:
+                            pass
                         pass
             if metrics["total_files"]:
                 metrics["avg_file_size"] = (
@@ -96,7 +101,12 @@ class MetaArchitect:
                 if cleaned.endswith("```"):
                     cleaned = "\n".join(cleaned.splitlines()[:-1])
                 plan = json.loads(cleaned)
-            except Exception:
+            except Exception as e:
+                try:
+                    from loguru import logger
+                    logger.error(f"Tool execution error: {e}")
+                except Exception:
+                    pass
                 plan = {
                     "priority": "medium",
                     "steps": [

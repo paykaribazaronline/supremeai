@@ -36,6 +36,7 @@ class GCPFirestoreVerificationQueue:
             or os.getenv("GOOGLE_CLOUD_PROJECT")
         )
         self.client = None
+        self._memory_conn = None
         self.mode = "local_sqlite"
         self.db_path = db_path or os.getenv("GCP_FIRESTORE_SQLITE_PATH")
 

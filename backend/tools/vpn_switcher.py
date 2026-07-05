@@ -138,5 +138,10 @@ class VPNRotator:
                 cfg = json.load(fh)
             proxy = cfg.get(use_case) or cfg.get("default")
             return {"proxy": proxy, "source": "premium", "use_case": use_case}
-        except Exception:
+        except Exception as e:
+            try:
+                from loguru import logger
+                logger.error(f"Tool execution error: {e}")
+            except Exception:
+                pass
             return {"proxy": None, "source": "premium", "reason": "not configured"}

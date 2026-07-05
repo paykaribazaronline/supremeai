@@ -41,6 +41,7 @@ class GCPPubSubQueue:
         self.db_path = db_path or os.getenv("GCP_PUBSUB_SQLITE_PATH")
         self.publisher = None
         self.subscriber = None
+        self._memory_conn = None
         self.mode = "local_sqlite"
 
         if PUBSUB_AVAILABLE and self.project_id:

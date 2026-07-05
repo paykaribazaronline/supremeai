@@ -97,7 +97,12 @@ class SkillRecommender:
                         enriched.append(
                             {**res.data[0], "match_score": round(item["score"], 3)}
                         )
-                except Exception:
+                except Exception as e:
+                    try:
+                        from loguru import logger
+                        logger.error(f"Tool execution error: {e}")
+                    except Exception:
+                        pass
                     pass
         if not enriched:
             enriched = [

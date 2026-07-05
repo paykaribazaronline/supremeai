@@ -54,7 +54,12 @@ class SelfPlanner:
                 plan = json.loads(text)
                 if not isinstance(plan, list):
                     plan = []
-            except Exception:
+            except Exception as e:
+                try:
+                    from loguru import logger
+                    logger.error(f"Tool execution error: {e}")
+                except Exception:
+                    pass
                 logger.warning("LLM returned non-JSON plan. Using fallback.")
                 plan = self._mock_plan(objective)
         except Exception as e:

@@ -54,7 +54,12 @@ class RepoDeepIndexer:
                     try:
                         with open(file_path, encoding="utf-8") as f:
                             snippet = f.read()[:200]
-                    except Exception:
+                    except Exception as e:
+                        try:
+                            from loguru import logger
+                            logger.error(f"Tool execution error: {e}")
+                        except Exception:
+                            pass
                         snippet = ""
                     node = {
                         "path": file_path,
@@ -82,6 +87,11 @@ class RepoDeepIndexer:
         try:
             if self.vector_db_client:
                 return await self.vector_db_client.query(query, limit)
-        except Exception:
+        except Exception as e:
+            try:
+                from loguru import logger
+                logger.error(f"Tool execution error: {e}")
+            except Exception:
+                pass
             pass
         return []

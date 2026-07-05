@@ -31,7 +31,12 @@ class PresentationGenerator:
                 slides = json.loads(cleaned)
                 if not isinstance(slides, list):
                     slides = []
-            except Exception:
+            except Exception as e:
+                try:
+                    from loguru import logger
+                    logger.error(f"Tool execution error: {e}")
+                except Exception:
+                    pass
                 for i in range(1, num_slides + 1):
                     slides.append(
                         {

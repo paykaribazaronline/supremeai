@@ -184,8 +184,8 @@ class ModelRouter:
                     "error": f"Circuit breaker open for {task_type}"
                 }
 
-            from core.free_tier_tracker import get_free_tier_tracker
-            tracker = get_free_tier_tracker()
+            from core.free_tier_tracker import get_tracker
+            tracker = get_tracker()
             best_provider = tracker.get_best_provider(["gemini", "groq", "openrouter"])
 
             if not best_provider:

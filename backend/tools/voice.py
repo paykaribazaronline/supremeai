@@ -86,7 +86,12 @@ class VoiceInterface:
 
                 if torch.cuda.is_available():
                     device = "cuda"
-            except Exception:
+            except Exception as e:
+                try:
+                    from loguru import logger
+                    logger.error(f"Tool execution error: {e}")
+                except Exception:
+                    pass
                 pass
             tts = CoquiTTS(
                 model_name="tts_models/multilingual/multi-dataset/xtts_v2",

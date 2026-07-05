@@ -117,5 +117,10 @@ class GCPCloudFunctionClient:
     def _safe_json(response: httpx.Response) -> Any:
         try:
             return response.json()
-        except Exception:
+        except Exception as e:
+            try:
+                from loguru import logger
+                logger.error(f"Tool execution error: {e}")
+            except Exception:
+                pass
             return {"text": response.text}

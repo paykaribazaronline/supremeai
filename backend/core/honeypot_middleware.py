@@ -157,9 +157,14 @@ class HoneypotMiddleware:
             import asyncio
 
             loop = asyncio.get_running_loop()
-            loop.run_in_executor(
+            task = loop.run_in_executor(
                 None, self._persist_threat_intel, ip, payload, endpoint
             )
+            def _on_done(fut):
+                if fut.exception():
+                    logger.error(f"Threat intel persistence failed: {fut.exception()}")
+            import asyncio
+            asyncio.ensure_future(task).add_done_callback(_on_done)
         except RuntimeError:
             self._persist_threat_intel(ip, payload, endpoint)
         except Exception as exc:

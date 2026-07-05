@@ -96,6 +96,7 @@ class LLMGateway:
         stream: bool = False,
         timeout: float = 12.0,
         model: str | None = None,
+        provider: str | None = None,
         **kwargs,
     ) -> Any:
         """
@@ -140,7 +141,14 @@ class LLMGateway:
         call_chain = []
         if model:
             call_chain.append(model)
-        for m in (model_candidates + fallbacks):
+            
+        all_models = model_candidates + fallbacks
+        if provider:
+            provider_models = [m for m in all_models if m.startswith(f"{provider}/")]
+            other_models = [m for m in all_models if not m.startswith(f"{provider}/")]
+            all_models = provider_models + other_models
+            
+        for m in all_models:
             if m not in call_chain:
                 call_chain.append(m)
 

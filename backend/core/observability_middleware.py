@@ -36,8 +36,9 @@ class ObservabilityMiddleware:
                 trace_id = v.decode("utf-8")
             elif k.lower() == b"x-user-id":
                 continue
-        if "state" in scope and hasattr(scope.get("state", object()), "user"):
-            authenticated_user = scope["state"].user if hasattr(scope.get("state"), "user") else None
+        from starlette.requests import Request
+        request = Request(scope)
+        authenticated_user = getattr(request.state, "user", None) if hasattr(request, "state") else None
         if authenticated_user:
             user_id = authenticated_user.get("sub") or authenticated_user.get("user_id") or user_id
 

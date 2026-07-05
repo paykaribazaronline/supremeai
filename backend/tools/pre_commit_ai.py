@@ -99,7 +99,12 @@ class PreCommitAI:
             try:
                 with open(filepath, encoding="utf-8", errors="ignore") as f:
                     original_content = f.read()
-            except Exception:
+            except Exception as e:
+                try:
+                    from loguru import logger
+                    logger.error(f"Tool execution error: {e}")
+                except Exception:
+                    pass
                 continue  # Skip binary files that can't be read
 
             new_content = original_content

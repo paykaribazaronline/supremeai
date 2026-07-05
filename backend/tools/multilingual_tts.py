@@ -494,6 +494,11 @@ async def clear_cache():
                 try:
                     os.unlink(os.path.join(base_dir, f))
                     removed += 1
-                except Exception:
+                except Exception as e:
+                    try:
+                        from loguru import logger
+                        logger.error(f"Tool execution error: {e}")
+                    except Exception:
+                        pass
                     pass
     return {"status": "success", "removed_files": removed}

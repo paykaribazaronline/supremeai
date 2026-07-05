@@ -23,7 +23,12 @@ class BanglaVoice:
             import whisper  # type: ignore
 
             return whisper is not None
-        except Exception:
+        except Exception as e:
+            try:
+                from loguru import logger
+                logger.error(f"Tool execution error: {e}")
+            except Exception:
+                pass
             return False
 
     def _check_tts_available(self) -> bool:
@@ -31,7 +36,12 @@ class BanglaVoice:
             from TTS.api import TTS  # type: ignore
 
             return TTS is not None
-        except Exception:
+        except Exception as e:
+            try:
+                from loguru import logger
+                logger.error(f"Tool execution error: {e}")
+            except Exception:
+                pass
             return False
 
     def transcribe(self, audio_path: str) -> BanglaVoiceResult:

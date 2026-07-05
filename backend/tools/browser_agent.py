@@ -28,7 +28,12 @@ def is_safe_url(url: str) -> bool:
         ip = socket.gethostbyname(hostname)
         ip_obj = ipaddress.ip_address(ip)
         return not (ip_obj.is_private or ip_obj.is_loopback or ip_obj.is_link_local)
-    except Exception:
+    except Exception as e:
+        try:
+            from loguru import logger
+            logger.error(f"Tool execution error: {e}")
+        except Exception:
+            pass
         return False
 
 

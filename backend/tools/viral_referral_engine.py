@@ -37,7 +37,12 @@ class ViralReferralEngine:
 
             with open(path, encoding="utf-8") as f:
                 return json.load(f)
-        except Exception:
+        except Exception as e:
+            try:
+                from loguru import logger
+                logger.error(f"Tool execution error: {e}")
+            except Exception:
+                pass
             return {"codes": {}, "wallets": {}}
 
     def _save_local(self, data):

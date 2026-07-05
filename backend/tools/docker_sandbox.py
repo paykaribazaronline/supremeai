@@ -21,7 +21,12 @@ class DockerSandbox:
                 check=False,
             )
             return res.returncode == 0
-        except Exception:
+        except Exception as e:
+            try:
+                from loguru import logger
+                logger.error(f"Tool execution error: {e}")
+            except Exception:
+                pass
             return False
 
     def execute_command(self, cmd: str) -> dict[str, Any]:

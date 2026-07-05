@@ -152,7 +152,12 @@ async def gateway_forward(request: GatewayRequest, http_request: Request) -> Res
                     logger.warning(
                         f"Provider {failed_provider} hit 429, paused for 60s."
                     )
-                except Exception:
+                except Exception as e:
+                    try:
+                        from loguru import logger
+                        logger.error(f"Tool execution error: {e}")
+                    except Exception:
+                        pass
                     pass
 
         return JSONResponse(content=response.json(), status_code=response.status_code)

@@ -151,5 +151,10 @@ class BrowserStealth:
                 await self.context.close()
             if self.playwright:
                 await self.playwright.stop()
-        except Exception:
+        except Exception as e:
+            try:
+                from loguru import logger
+                logger.error(f"Tool execution error: {e}")
+            except Exception:
+                pass
             pass

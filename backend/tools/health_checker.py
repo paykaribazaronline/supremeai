@@ -88,7 +88,12 @@ class HealthChecker:
                         ts = datetime.fromisoformat(record["timestamp"])
                         if ts >= cutoff:
                             recent_errors.append(record)
-                    except Exception:
+                    except Exception as e:
+                        try:
+                            from loguru import logger
+                            logger.error(f"Tool execution error: {e}")
+                        except Exception:
+                            pass
                         continue
             error_count = len(recent_errors)
             if error_count > 20:

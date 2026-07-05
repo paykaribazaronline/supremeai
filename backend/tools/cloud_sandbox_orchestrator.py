@@ -150,7 +150,12 @@ class CloudSandboxOrchestrator:
                 logger.error("Sandbox container execution timed out! Force-killing container...")
                 try:
                     container.kill()
-                except Exception:
+                except Exception as e:
+                    try:
+                        from loguru import logger
+                        logger.error(f"Tool execution error: {e}")
+                    except Exception:
+                        pass
                     pass
                 return {
                     "success": False,
@@ -182,7 +187,12 @@ class CloudSandboxOrchestrator:
             if container:
                 try:
                     container.remove(force=True)
-                except Exception:
+                except Exception as e:
+                    try:
+                        from loguru import logger
+                        logger.error(f"Tool execution error: {e}")
+                    except Exception:
+                        pass
                     pass
 
     async def create_sandbox(self, spec: Dict[str, Any]) -> Dict[str, Any] | None:

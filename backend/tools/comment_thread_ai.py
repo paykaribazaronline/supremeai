@@ -96,20 +96,35 @@ class CommentThreadAI:
             # Review comments (line-level)
             review = await self._gh_get(f"/repos/{repo}/pulls/{pr_number}/comments")
             comments.extend(review if isinstance(review, list) else [])
-        except Exception:
+        except Exception as e:
+            try:
+                from loguru import logger
+                logger.error(f"Tool execution error: {e}")
+            except Exception:
+                pass
             pass
         try:
             # Issue comments (general PR comments)
             issue = await self._gh_get(f"/repos/{repo}/issues/{pr_number}/comments")
             comments.extend(issue if isinstance(issue, list) else [])
-        except Exception:
+        except Exception as e:
+            try:
+                from loguru import logger
+                logger.error(f"Tool execution error: {e}")
+            except Exception:
+                pass
             pass
         return comments
 
     async def _get_pr_files(self, repo: str, pr_number: int) -> list[dict]:
         try:
             return await self._gh_get(f"/repos/{repo}/pulls/{pr_number}/files")
-        except Exception:
+        except Exception as e:
+            try:
+                from loguru import logger
+                logger.error(f"Tool execution error: {e}")
+            except Exception:
+                pass
             return []
 
     async def _post_pr_comment(
@@ -301,7 +316,12 @@ class CommentThreadAI:
                                 "url": pr.get("html_url", ""),
                             }
                         )
-                except Exception:
+                except Exception as e:
+                    try:
+                        from loguru import logger
+                        logger.error(f"Tool execution error: {e}")
+                    except Exception:
+                        pass
                     pass
 
         return {
@@ -408,7 +428,12 @@ async def github_webhook(
         return {"status": "pong"}
     try:
         payload = await request.json()
-    except Exception:
+    except Exception as e:
+        try:
+            from loguru import logger
+            logger.error(f"Tool execution error: {e}")
+        except Exception:
+            pass
         raise HTTPException(status_code=400, detail="Invalid JSON payload")
 
     if x_github_event not in ("pull_request_review_comment", "issue_comment"):

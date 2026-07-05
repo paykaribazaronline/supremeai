@@ -26,7 +26,12 @@ class TenantRateLimiter:
             import core.services as app_mod
 
             return getattr(app_mod, "redis_queue", None)
-        except Exception:
+        except Exception as e:
+            try:
+                from loguru import logger
+                logger.error(f"Tool execution error: {e}")
+            except Exception:
+                pass
             return None
 
     def _init_billing_tiers(self) -> None:
