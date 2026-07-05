@@ -1,7 +1,7 @@
 # 🧠 SupremeAI 2.0 Codebase Dump
 # বাংলা মন্তব্য: এটি একটি স্বয়ংক্রিয়ভাবে জেনারেট করা কোডবেস ডাম্প ফাইল যা প্রজেক্টের সামগ্রিক বিশ্লেষণের জন্য ব্যবহৃত হয়।
 
-Generated at: 2026-07-05T19:04:56.607825
+Generated at: 2026-07-05T19:15:04.169038
 
 
 ## File: `pnpm-lock.yaml`
@@ -46147,6 +46147,7 @@ def mask_api_key(key: str) -> str:
 
 ```py
 from __future__ import annotations
+from __future__ import annotations
 
 import hashlib
 import os
@@ -46154,6 +46155,9 @@ import sqlite3
 from datetime import UTC
 from datetime import datetime
 from typing import Any
+import logging
+
+logger = logging.getLogger(__name__)
 
 from brain.model_router import ModelRouter
 
@@ -46235,7 +46239,8 @@ class EvolutionEngine:
                 db.insert_task_history(task, approach, result, True, created_at)
         except Exception as e:
             logger.warning(f"Failed to insert success to Supabase: {e}")
-            if evolution_write_failures: evolution_write_failures.inc()
+            if evolution_write_failures:
+                evolution_write_failures.inc()
 
         conn = sqlite3.connect(str(self.db_path))
         try:
@@ -46264,7 +46269,8 @@ class EvolutionEngine:
                 db.insert_task_history(task, approach, result, False, created_at)
         except Exception as e:
             logger.warning(f"Failed to insert failure to Supabase: {e}")
-            if evolution_write_failures: evolution_write_failures.inc()
+            if evolution_write_failures:
+                evolution_write_failures.inc()
 
         conn = sqlite3.connect(str(self.db_path))
         try:
@@ -46294,7 +46300,8 @@ class EvolutionEngine:
                     return failures
         except Exception as e:
             logger.warning(f"Failed to query repeated failures from Supabase: {e}")
-            if evolution_write_failures: evolution_write_failures.inc()
+            if evolution_write_failures:
+                evolution_write_failures.inc()
 
         conn = sqlite3.connect(str(self.db_path))
         try:
@@ -46421,7 +46428,8 @@ Based on the prompt, rewrite it to be more precise, clear, and effective. Provid
                 )
         except Exception as e:
             logger.warning(f"Failed to insert skill proposal to Supabase: {e}")
-            if evolution_write_failures: evolution_write_failures.inc()
+            if evolution_write_failures:
+                evolution_write_failures.inc()
 
         conn = sqlite3.connect(str(self.db_path))
         try:
@@ -46457,7 +46465,8 @@ Based on the prompt, rewrite it to be more precise, clear, and effective. Provid
                 )
         except Exception as e:
             logger.warning(f"Failed to insert feedback to Supabase: {e}")
-            if evolution_write_failures: evolution_write_failures.inc()
+            if evolution_write_failures:
+                evolution_write_failures.inc()
 
         conn = sqlite3.connect(str(self.db_path))
         try:
@@ -46513,7 +46522,8 @@ Based on the prompt, rewrite it to be more precise, clear, and effective. Provid
                 db.append_evolution_log(report)
         except Exception as e:
             logger.warning(f"Failed to append evolution log to Supabase: {e}")
-            if evolution_write_failures: evolution_write_failures.inc()
+            if evolution_write_failures:
+                evolution_write_failures.inc()
         return report
 
 ```
