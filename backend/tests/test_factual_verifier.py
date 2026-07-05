@@ -29,7 +29,7 @@ def test_verify_with_local_rag_no_rag(monkeypatch):
     verifier = FactualVerifier()
     verifier.local_rag = None
     result = verifier.verify_with_local_rag("test claim")
-    assert result["is_verified"] is True
+    assert result["is_verified"] is False
     assert result["method"] == "no_local_rag"
 
 
@@ -58,7 +58,7 @@ def test_verify_with_local_rag_no_matches():
     )()
     verifier.local_rag = mock_rag
     result = verifier.verify_with_local_rag("test claim")
-    assert result["is_verified"] is True
+    assert result["is_verified"] is False
     assert result["method"] == "no_matches"
     assert result["confidence"] == 0.3
 
