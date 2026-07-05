@@ -20,6 +20,7 @@ class TradingAgent:
             "positions": {},
             "history": [],
         }
+        self.is_portfolio_recovered = False
         self._load_portfolio()
         logger.info("Initialized TradingAgent")
 
@@ -35,12 +36,14 @@ class TradingAgent:
                 )
                 if res.data:
                     self._portfolio = res.data[0]
+                    self.is_portfolio_recovered = True
                     return
-            except Exception:
-                pass
+            except Exception as e:
+                logger.warning(f"Failed to load portfolio from Supabase: {e}")
         try:
             with open(self._local_path(), encoding="utf-8") as f:
                 self._portfolio = json.load(f)
+                self.is_portfolio_recovered = True
         except Exception:
             pass
 

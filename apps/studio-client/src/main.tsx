@@ -4,6 +4,10 @@ import { createRoot } from 'react-dom/client'
 import './index.css'
 import { App } from './App.tsx'
 import { getApiBaseUrl } from './utils/api';
+import { setupGlobalFetchInterceptor } from './utils/apiInterceptor';
+import { ToastProvider } from './contexts/ToastContext';
+
+setupGlobalFetchInterceptor();
 
 // Inject globally for any UI components or legacy scripts that expect it
 (window as any).getApiBaseUrl = getApiBaseUrl;
@@ -14,11 +18,13 @@ import { SharedProviders } from '@supremeai/ui-components'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <ThemeProvider>
-      <SharedProviders>
-        <App />
-      </SharedProviders>
-    </ThemeProvider>
+    <ToastProvider>
+      <ThemeProvider>
+        <SharedProviders>
+          <App />
+        </SharedProviders>
+      </ThemeProvider>
+    </ToastProvider>
   </StrictMode>,
 )
 

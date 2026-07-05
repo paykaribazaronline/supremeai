@@ -9,6 +9,14 @@ from typing import Any
 
 from brain.model_router import ModelRouter
 
+try:
+    from prometheus_client import Counter
+    evolution_write_failures = Counter(
+        "evolution_write_failures_total",
+        "Number of failures while reading/writing evolution databases"
+    )
+except ImportError:
+    evolution_write_failures = None
 
 class EvolutionEngine:
     """Persists task outcomes, detects repeated failures, proposes and auto-generates skills."""
@@ -77,8 +85,9 @@ class EvolutionEngine:
 
             if db.client:
                 db.insert_task_history(task, approach, result, True, created_at)
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning(f"Failed to insert success to Supabase: {e}")
+            if evolution_write_failures: evolution_write_failures.inc()
 
         conn = sqlite3.connect(str(self.db_path))
         try:
@@ -105,8 +114,9 @@ class EvolutionEngine:
 
             if db.client:
                 db.insert_task_history(task, approach, result, False, created_at)
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning(f"Failed to insert failure to Supabase: {e}")
+            if evolution_write_failures: evolution_write_failures.inc()
 
         conn = sqlite3.connect(str(self.db_path))
         try:
@@ -134,8 +144,9 @@ class EvolutionEngine:
                 failures = db.get_repeated_failures(min_occurrences=min_occurrences)
                 if failures:
                     return failures
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning(f"Failed to query repeated failures from Supabase: {e}")
+            if evolution_write_failures: evolution_write_failures.inc()
 
         conn = sqlite3.connect(str(self.db_path))
         try:
@@ -260,8 +271,9 @@ Based on the prompt, rewrite it to be more precise, clear, and effective. Provid
                     "proposed",
                     created_at,
                 )
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning(f"Failed to insert skill proposal to Supabase: {e}")
+            if evolution_write_failures: evolution_write_failures.inc()
 
         conn = sqlite3.connect(str(self.db_path))
         try:
@@ -350,6 +362,7 @@ Based on the prompt, rewrite it to be more precise, clear, and effective. Provid
 
             if db.client:
                 db.append_evolution_log(report)
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning(f"Failed to append evolution log to Supabase: {e}")
+            if evolution_write_failures: evolution_write_failures.inc()
         return report

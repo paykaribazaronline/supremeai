@@ -1,4 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
+import { getAdminToken } from '../../services/adminTokenStore';
+import { getApiBaseUrl } from '../../utils/api';
+import { useToast } from '../../contexts/ToastContext';
 
 interface TenantLimit {
   tenant_id: string;
@@ -40,14 +43,9 @@ export const RateLimitManager: React.FC = () => {
   const [saving, setSaving] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editValues, setEditValues] = useState<Partial<TenantLimit>>({});
-  const [toast, setToast] = useState<{ type: 'success' | 'error'; msg: string } | null>(null);
+  const { showToast } = useToast();
   const [newTenant, setNewTenant] = useState({ tenant_id: '', org_name: '', billing_tier: 'free' as const });
   const [showNewForm, setShowNewForm] = useState(false);
-
-  const showToast = (type: 'success' | 'error', msg: string) => {
-    setToast({ type, msg });
-    setTimeout(() => setToast(null), 3500);
-  };
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -136,11 +134,6 @@ export const RateLimitManager: React.FC = () => {
 
   return (
     <div style={styles.container}>
-      {toast && (
-        <div style={{ ...styles.toast, background: toast.type === 'success' ? '#065f46' : '#7f1d1d' }}>
-          {toast.msg}
-        </div>
-      )}
 
       {/* Header */}
       <div style={styles.header}>
@@ -352,7 +345,6 @@ const styles: Record<string, React.CSSProperties> = {
   progressLabel: { display: 'flex', justifyContent: 'space-between', fontSize: '0.72rem', color: '#64748b' },
   progressBar: { height: '6px', background: '#0f172a', borderRadius: '3px', overflow: 'hidden' },
   progressFill: { height: '100%', borderRadius: '3px', transition: 'width 0.4s ease' },
-  toast: { position: 'fixed', top: '20px', right: '20px', zIndex: 9999, padding: '12px 20px', borderRadius: '10px', color: '#fff', fontSize: '0.875rem', fontWeight: 600, boxShadow: '0 4px 20px rgba(0,0,0,0.4)' },
 };
 
 export default RateLimitManager;

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Activity, ShieldAlert, CheckCircle, XCircle, ArrowRight } from 'lucide-react';
 import { apiClient } from '../../services/apiClient';
-
+import { useToast } from '../../contexts/ToastContext';
 interface HealingEvent {
   id: string;
   ts: string;
@@ -17,11 +17,15 @@ interface HealingEvent {
 export function HealingLogPanel() {
   const [events, setEvents] = useState<HealingEvent[]>([]);
   const [loading, setLoading] = useState(true);
+  const { showToast } = useToast();
 
   useEffect(() => {
     apiClient.get<{items: HealingEvent[]}>('/api/admin/selector-healing')
       .then(data => setEvents(data.items || []))
-      .catch(err => console.error("Failed to load healing events", err))
+      .catch(err => {
+        console.error("Failed to load healing events", err);
+        showToast('error', 'Failed to load healing events');
+      })
       .finally(() => setLoading(false));
   }, []);
 
@@ -29,8 +33,10 @@ export function HealingLogPanel() {
     try {
       await apiClient.post(`/api/admin/selector-healing/${id}/decision`, { approve });
       setEvents(events.map(e => e.id === id ? { ...e, auto_applied: approve } : e));
+      showToast('success', 'Decision applied successfully');
     } catch (err) {
       console.error("Decision failed", err);
+      showToast('error', 'Failed to apply decision');
     }
   };
 

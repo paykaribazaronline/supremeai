@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Shield, Save, Loader2, Settings2, Globe, Server, Code2 } from 'lucide-react';
 import { apiClient } from '../../services/apiClient';
+import { useToast } from '../../contexts/ToastContext';
 
 interface ExecutionPolicy {
   id: string;
@@ -17,6 +18,7 @@ export function GuardrailsPage() {
   const [policies, setPolicies] = useState<ExecutionPolicy[]>([]);
   const [loading, setLoading] = useState(true);
   const [savingId, setSavingId] = useState<string | null>(null);
+  const { showToast } = useToast();
 
   const [activeScope, setActiveScope] = useState<'global' | 'platform' | 'action'>('global');
 
@@ -32,8 +34,10 @@ export function GuardrailsPage() {
     try {
       const updated = await apiClient.put<ExecutionPolicy>(`/api/admin/execution-policies/${id}`, updates);
       setPolicies(policies.map(p => p.id === id ? updated : p));
+      showToast('Policy updated successfully', 'success');
     } catch (err) {
       console.error("Policy update failed", err);
+      showToast('Failed to update policy', 'error');
     } finally {
       setSavingId(null);
     }
