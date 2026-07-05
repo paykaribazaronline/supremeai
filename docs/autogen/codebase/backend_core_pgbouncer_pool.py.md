@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/pgbouncer_pool.py
 
 **প্রকার:** .py  
-**সাইজ:** 2,129 বাইট  
-**আপডেট:** 2026-07-05T02:47:34.436370
+**সাইজ:** 3,512 বাইট  
+**আপডেট:** 2026-07-05T14:19:11.188385
 
 ---
 
@@ -47,6 +47,32 @@ class PgBouncerConnectionPool:
         """Releases a connection back to the pool."""
         if self._pool:
             await self._pool.release(conn)
+
+    # asyncpg.Pool এর মেথডগুলোকে সরাসরি কল করার জন্য proxy মেথডগুলো যুক্ত করা হলো
+    # যাতে কোডবেসে pool.execute() বা pool.fetch() কল করলে কোনো Attribute Error না দেয়।
+    async def execute(self, query: str, *args, **kwargs):
+        """Executes a query using the pool."""
+        if not self._pool:
+            raise RuntimeError("Connection pool not initialized.")
+        return await self._pool.execute(query, *args, **kwargs)
+
+    async def fetch(self, query: str, *args, **kwargs):
+        """Fetches rows using the pool."""
+        if not self._pool:
+            raise RuntimeError("Connection pool not initialized.")
+        return await self._pool.fetch(query, *args, **kwargs)
+
+    async def fetchrow(self, query: str, *args, **kwargs):
+        """Fetches a single row using the pool."""
+        if not self._pool:
+            raise RuntimeError("Connection pool not initialized.")
+        return await self._pool.fetchrow(query, *args, **kwargs)
+
+    async def fetchval(self, query: str, *args, **kwargs):
+        """Fetches a single value using the pool."""
+        if not self._pool:
+            raise RuntimeError("Connection pool not initialized.")
+        return await self._pool.fetchval(query, *args, **kwargs)
 
     async def close(self):
         """Closes the connection pool."""

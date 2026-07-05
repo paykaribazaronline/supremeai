@@ -1,7 +1,7 @@
 # 🧠 SupremeAI 2.0 Codebase Dump
 # বাংলা মন্তব্য: এটি একটি স্বয়ংক্রিয়ভাবে জেনারেট করা কোডবেস ডাম্প ফাইল যা প্রজেক্টের সামগ্রিক বিশ্লেষণের জন্য ব্যবহৃত হয়।
 
-Generated at: 2026-07-05T02:47:34.397827
+Generated at: 2026-07-05T14:19:11.152967
 
 
 ## File: `pnpm-lock.yaml`
@@ -44476,6 +44476,32 @@ class PgBouncerConnectionPool:
         """Releases a connection back to the pool."""
         if self._pool:
             await self._pool.release(conn)
+
+    # asyncpg.Pool এর মেথডগুলোকে সরাসরি কল করার জন্য proxy মেথডগুলো যুক্ত করা হলো
+    # যাতে কোডবেসে pool.execute() বা pool.fetch() কল করলে কোনো Attribute Error না দেয়।
+    async def execute(self, query: str, *args, **kwargs):
+        """Executes a query using the pool."""
+        if not self._pool:
+            raise RuntimeError("Connection pool not initialized.")
+        return await self._pool.execute(query, *args, **kwargs)
+
+    async def fetch(self, query: str, *args, **kwargs):
+        """Fetches rows using the pool."""
+        if not self._pool:
+            raise RuntimeError("Connection pool not initialized.")
+        return await self._pool.fetch(query, *args, **kwargs)
+
+    async def fetchrow(self, query: str, *args, **kwargs):
+        """Fetches a single row using the pool."""
+        if not self._pool:
+            raise RuntimeError("Connection pool not initialized.")
+        return await self._pool.fetchrow(query, *args, **kwargs)
+
+    async def fetchval(self, query: str, *args, **kwargs):
+        """Fetches a single value using the pool."""
+        if not self._pool:
+            raise RuntimeError("Connection pool not initialized.")
+        return await self._pool.fetchval(query, *args, **kwargs)
 
     async def close(self):
         """Closes the connection pool."""
