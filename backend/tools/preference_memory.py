@@ -42,9 +42,7 @@ class PreferenceMemory:
                 json.dump(self.preferences[user_id], f, indent=4)
             logger.info(f"Saved preferences for user {user_id}")
 
-    def update_preference(
-        self, user_id: str, key: str, value: Any, weight: float = 1.0
-    ):
+    def update_preference(self, user_id: str, key: str, value: Any, weight: float = 1.0):
         """
         Updates a preference. In a real ML scenario, 'weight' updates the embedding vector.
         """
@@ -54,9 +52,7 @@ class PreferenceMemory:
         # ML implementation would adjust embedding weights here
         prefs[key] = value
         self.save_preferences(user_id)
-        logger.info(
-            f"Updated preference '{key}' to '{value}' for user {user_id} (weight: {weight})"
-        )
+        logger.info(f"Updated preference '{key}' to '{value}' for user {user_id} (weight: {weight})")
 
     def generate_context_prompt(self, user_id: str) -> str:
         """Generates a system prompt modifier based on user preferences."""
@@ -65,8 +61,6 @@ class PreferenceMemory:
         prompt = "USER PREFERENCES:\n"
         prompt += f"- Verbosity: {prefs.get('verbosity', 'normal')}\n"
         if prefs.get("preferred_frameworks"):
-            prompt += (
-                f"- Preferred Frameworks: {', '.join(prefs['preferred_frameworks'])}\n"
-            )
+            prompt += f"- Preferred Frameworks: {', '.join(prefs['preferred_frameworks'])}\n"
 
         return prompt

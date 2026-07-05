@@ -141,6 +141,7 @@ class VPNRotator:
         except Exception as e:
             try:
                 import loguru
+
                 loguru.logger.error(f"Tool execution error: {e}")
             except Exception:
                 pass

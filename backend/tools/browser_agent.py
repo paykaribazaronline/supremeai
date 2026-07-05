@@ -31,6 +31,7 @@ def is_safe_url(url: str) -> bool:
     except Exception as e:
         try:
             import loguru
+
             loguru.logger.error(f"Tool execution error: {e}")
         except Exception:
             pass
@@ -83,9 +84,7 @@ async def shutdown_global_browser():
             await _playwright_runner.stop()
         logger.info("✅ All Playwright OS processes terminated cleanly.")
     except Exception as e:
-        logger.critical(
-            f"❌ Error during global browser termination sequence: {str(e)}"
-        )
+        logger.critical(f"❌ Error during global browser termination sequence: {str(e)}")
     finally:
         _global_browser = None
         _playwright_runner = None
@@ -117,12 +116,8 @@ class BrowserAgent:
                 "url": url,
             }
         try:
-            headers = {
-                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
-            }
-            response = httpx.get(
-                url, headers=headers, timeout=15.0, follow_redirects=True
-            )
+            headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"}
+            response = httpx.get(url, headers=headers, timeout=15.0, follow_redirects=True)
             response.raise_for_status()
             soup = BeautifulSoup(response.text, "html.parser")
             title = soup.title.string.strip() if soup.title else "No Title"
@@ -238,9 +233,7 @@ class BrowserAgent:
                 f"Content: {page_data.get('content', '')[:2000]}\n\n"
                 "Return a clean JSON object with the extracted data."
             )
-            result = await router.async_route_and_generate(
-                prompt, task_type="reasoning", max_cost=0.02
-            )
+            result = await router.async_route_and_generate(prompt, task_type="reasoning", max_cost=0.02)
             extracted = result.get("text", "") if isinstance(result, dict) else ""
             return {
                 "success": True,

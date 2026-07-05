@@ -101,8 +101,6 @@ class UniversalRulesEngine:
 
             if decision_context["cost"] > max_cost:
                 decision_context["blocked"] = True
-                decision_context["reason"] = (
-                    f"Exceeds Universal Rule: Max cost per task ({max_cost})"
-                )
+                decision_context["reason"] = f"Exceeds Universal Rule: Max cost per task ({max_cost})"
 
         return decision_context
