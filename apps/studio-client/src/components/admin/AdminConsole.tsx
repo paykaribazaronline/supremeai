@@ -61,10 +61,6 @@ interface AdminConsoleProps {
 }
 
 export function AdminConsole(props: AdminConsoleProps) {
-  const hydrated = useHydrated();
-  
-  if (!hydrated) return null;
-  
   return (
     <div className="h-screen w-screen flex flex-col overflow-hidden bg-[#030407]">
       {!props.adminAuthenticated ? (
