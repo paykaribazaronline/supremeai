@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/evolution_engine.py
 
 **প্রকার:** .py  
-**সাইজ:** 14,486 বাইট  
-**আপডেট:** 2026-07-05T19:15:04.204544
+**সাইজ:** 14,485 বাইট  
+**আপডেট:** 2026-07-05T19:24:05.984836
 
 ---
 
@@ -19,10 +19,9 @@ from datetime import UTC
 from datetime import datetime
 from typing import Any
 import logging
+from brain.model_router import ModelRouter
 
 logger = logging.getLogger(__name__)
-
-from brain.model_router import ModelRouter
 
 try:
     from prometheus_client import Counter
