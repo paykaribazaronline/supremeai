@@ -1,14 +1,15 @@
 # 📄 ফাইল: apps/studio-client/src/components/admin/RedesignedDashboardMockup.tsx
 
 **প্রকার:** .tsx  
-**সাইজ:** 27,491 বাইট  
-**আপডেট:** 2026-07-05T01:16:22.351507
+**সাইজ:** 27,518 বাইট  
+**আপডেট:** 2026-07-05T01:29:35.678813
 
 ---
 
 ## কোড
 
 ```tsx
+import React from 'react';
 import { Home, Server, Shield, Activity, Settings, Cpu, HardDrive, X, DollarSign, Database, GitBranch, ShieldAlert, Sparkles, RefreshCw, Layout } from 'lucide-react';
 import ReactFlow, { Background, Controls, useNodesState, useEdgesState, Panel } from 'reactflow';
 import { motion, AnimatePresence } from 'framer-motion';
