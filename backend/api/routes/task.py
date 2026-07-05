@@ -400,7 +400,13 @@ async def execute_task(req: TaskRequest, background_tasks: BackgroundTasks):
 @router.get("/api/task/stream")
 async def task_stream():
     async def keepalive():
-        yield f"data: {json.dumps({'status': 'alive', 'timestamp': datetime.datetime.now(datetime.UTC).isoformat()})}\n\n"
+        import asyncio
+        try:
+            while True:
+                yield f"data: {json.dumps({'status': 'alive', 'timestamp': datetime.datetime.now(datetime.UTC).isoformat()})}\n\n"
+                await asyncio.sleep(15)
+        except asyncio.CancelledError:
+            pass
 
     return StreamingResponse(
         keepalive(),
