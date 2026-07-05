@@ -1,7 +1,7 @@
 # 🧠 SupremeAI 2.0 Codebase Dump
 # বাংলা মন্তব্য: এটি একটি স্বয়ংক্রিয়ভাবে জেনারেট করা কোডবেস ডাম্প ফাইল যা প্রজেক্টের সামগ্রিক বিশ্লেষণের জন্য ব্যবহৃত হয়।
 
-Generated at: 2026-07-05T19:24:05.946148
+Generated at: 2026-07-05T19:37:54.336809
 
 
 ## File: `pnpm-lock.yaml`
@@ -89398,7 +89398,7 @@ def test_verify_with_local_rag_no_rag(monkeypatch):
     verifier = FactualVerifier()
     verifier.local_rag = None
     result = verifier.verify_with_local_rag("test claim")
-    assert result["is_verified"] is True
+    assert result["is_verified"] is False
     assert result["method"] == "no_local_rag"
 
 
@@ -89427,7 +89427,7 @@ def test_verify_with_local_rag_no_matches():
     )()
     verifier.local_rag = mock_rag
     result = verifier.verify_with_local_rag("test claim")
-    assert result["is_verified"] is True
+    assert result["is_verified"] is False
     assert result["method"] == "no_matches"
     assert result["confidence"] == 0.3
 
