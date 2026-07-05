@@ -209,9 +209,9 @@ def admin_firebase_totp_setup(payload: AdminFirebaseTotpSetupRequest):
         except Exception as e:
             logger.error(f"Failed to store temp TOTP secret in Firestore: {e}")
 
-    # বাংলা মন্তব্য: ৭ ডিজিটের ওটিপি রিকোয়েস্ট করার জন্য digits=7 যোগ করা হলো
+    # বাংলা মন্তব্য: ৬ ডিজিটের ওটিপি রিকোয়েস্ট করা হলো
     provisioning_uri = (
-        f"otpauth://totp/SupremeAI:{email}?secret={secret}&issuer=SupremeAI&digits=7"
+        f"otpauth://totp/SupremeAI:{email}?secret={secret}&issuer=SupremeAI&digits=6"
     )
     return {"secret": secret, "provisioning_uri": provisioning_uri}
 
@@ -425,8 +425,8 @@ def verify_totp_code(user_otp: str, base32_secret: str) -> bool:
             h = hmac.new(key, msg, hashlib.sha1).digest()
             o = h[19] & 15
             h_num = struct.unpack(">I", h[o : o + 4])[0] & 0x7FFFFFFF
-            # বাংলা মন্তব্য: ৭ ডিজিটের ওটিপি জেনারেট করা হলো এন্টারপ্রাইজ গ্রেড সিকিউরিটির জন্য
-            code = f"{h_num % 10000000:07d}"
+            # বাংলা মন্তব্য: ৬ ডিজিটের ওটিপি জেনারেট করা হলো
+            code = f"{h_num % 1000000:06d}"
             # বাংলা মন্তব্য: টাইমিং অ্যাটাক প্রতিরোধে constant-time তুলনা ব্যবহার করা হলো
             if hmac.compare_digest(code, user_otp):
                 return True
@@ -448,8 +448,8 @@ def check_totp(user_otp: str, base32_secret: str) -> bool:
             h = hmac.new(key, msg, hashlib.sha1).digest()
             o = h[19] & 15
             h_num = struct.unpack(">I", h[o : o + 4])[0] & 0x7FFFFFFF
-            # বাংলা মন্তব্য: ৭ ডিজিটের ওটিপি জেনারেট করা হলো এন্টারপ্রাইজ গ্রেড সিকিউরিটির জন্য
-            code = f"{h_num % 10000000:07d}"
+            # বাংলা মন্তব্য: ৬ ডিজিটের ওটিপি জেনারেট করা হলো
+            code = f"{h_num % 1000000:06d}"
             # বাংলা মন্তব্য: টাইমিং অ্যাটাক প্রতিরোধে constant-time তুলনা ব্যবহার করা হলো
             if hmac.compare_digest(code, user_otp):
                 return True
