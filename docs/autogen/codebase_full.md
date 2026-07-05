@@ -1,7 +1,7 @@
 # 🧠 SupremeAI 2.0 Codebase Dump
 # বাংলা মন্তব্য: এটি একটি স্বয়ংক্রিয়ভাবে জেনারেট করা কোডবেস ডাম্প ফাইল যা প্রজেক্টের সামগ্রিক বিশ্লেষণের জন্য ব্যবহৃত হয়।
 
-Generated at: 2026-07-05T01:29:35.540276
+Generated at: 2026-07-05T02:47:34.397827
 
 
 ## File: `pnpm-lock.yaml`
@@ -44043,7 +44043,7 @@ litellm = "^1.40.0"
 launchdarkly-server-sdk = "^9.8.0"
 launchdarkly-server-sdk-ai = "^1.0.0"
 launchdarkly-observability = "^1.0.0"
-
+redis = ">=5,<9"
 
 [tool.poetry.group.ml.dependencies]
 # ── ML/AI: torch, OCR, whisper, embeddings (~3 GB) ──
@@ -44077,7 +44077,6 @@ edge-tts = "^6.1.9"
 boto3 = "^1.34.0"
 docker = "^7.0.0"
 celery = "^5.4.0"
-redis = ">=5,<9"
 radon = "^6.0.0"
 networkx = "^3.2.0"
 onelogin = "^1.1.0"
