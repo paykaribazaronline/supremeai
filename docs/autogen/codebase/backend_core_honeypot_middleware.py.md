@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/honeypot_middleware.py
 
 **প্রকার:** .py  
-**সাইজ:** 7,358 বাইট  
-**আপডেট:** 2026-07-05T14:42:46.626655
+**সাইজ:** 7,615 বাইট  
+**আপডেট:** 2026-07-05T15:09:14.630613
 
 ---
 
@@ -168,9 +168,14 @@ class HoneypotMiddleware:
             import asyncio
 
             loop = asyncio.get_running_loop()
-            loop.run_in_executor(
+            task = loop.run_in_executor(
                 None, self._persist_threat_intel, ip, payload, endpoint
             )
+            def _on_done(fut):
+                if fut.exception():
+                    logger.error(f"Threat intel persistence failed: {fut.exception()}")
+            import asyncio
+            asyncio.ensure_future(task).add_done_callback(_on_done)
         except RuntimeError:
             self._persist_threat_intel(ip, payload, endpoint)
         except Exception as exc:

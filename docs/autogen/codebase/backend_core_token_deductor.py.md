@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/token_deductor.py
 
 **প্রকার:** .py  
-**সাইজ:** 9,804 বাইট  
-**আপডেট:** 2026-07-05T14:42:46.635649
+**সাইজ:** 9,980 বাইট  
+**আপডেট:** 2026-07-05T15:09:14.638163
 
 ---
 
@@ -94,7 +94,8 @@ class TokenDeductor:
         # Poll lock acquisition to avoid blocking
         acquired = False
         for _ in range(20):
-            if self._acquire_distributed_lock(lock_key, lock_value, ttl=5):
+            acquired_lock = await asyncio.to_thread(self._acquire_distributed_lock, lock_key, lock_value, 5)
+            if acquired_lock:
                 acquired = True
                 break
             await asyncio.sleep(0.1)
@@ -156,7 +157,7 @@ class TokenDeductor:
             logger.error(f"Transaction failed for {user_id}: {str(e)}")
             return False
         finally:
-            self._release_distributed_lock(lock_key, lock_value)
+            await asyncio.to_thread(self._release_distributed_lock, lock_key, lock_value)
 
     async def deduct_byoc_deployment(self, session: AsyncSession, user_id: str, skill_name: str) -> bool:
         """
@@ -167,7 +168,8 @@ class TokenDeductor:
         
         acquired = False
         for _ in range(20):
-            if self._acquire_distributed_lock(lock_key, lock_value, ttl=5):
+            acquired_lock = await asyncio.to_thread(self._acquire_distributed_lock, lock_key, lock_value, 5)
+            if acquired_lock:
                 acquired = True
                 break
             await asyncio.sleep(0.1)
@@ -218,6 +220,6 @@ class TokenDeductor:
             logger.error(f"Transaction failed for {user_id}: {str(e)}")
             return False
         finally:
-            self._release_distributed_lock(lock_key, lock_value)
+            await asyncio.to_thread(self._release_distributed_lock, lock_key, lock_value)
 
 ```

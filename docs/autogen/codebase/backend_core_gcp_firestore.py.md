@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/gcp_firestore.py
 
 **প্রকার:** .py  
-**সাইজ:** 11,523 বাইট  
-**আপডেট:** 2026-07-05T14:42:46.628021
+**সাইজ:** 11,556 বাইট  
+**আপডেট:** 2026-07-05T15:09:14.631781
 
 ---
 
@@ -47,6 +47,7 @@ class GCPFirestoreVerificationQueue:
             or os.getenv("GOOGLE_CLOUD_PROJECT")
         )
         self.client = None
+        self._memory_conn = None
         self.mode = "local_sqlite"
         self.db_path = db_path or os.getenv("GCP_FIRESTORE_SQLITE_PATH")
 

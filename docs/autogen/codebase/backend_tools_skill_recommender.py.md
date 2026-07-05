@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/skill_recommender.py
 
 **প্রকার:** .py  
-**সাইজ:** 4,652 বাইট  
-**আপডেট:** 2026-07-05T14:42:46.701663
+**সাইজ:** 4,866 বাইট  
+**আপডেট:** 2026-07-05T15:09:14.692287
 
 ---
 
@@ -108,7 +108,12 @@ class SkillRecommender:
                         enriched.append(
                             {**res.data[0], "match_score": round(item["score"], 3)}
                         )
-                except Exception:
+                except Exception as e:
+                    try:
+                        from loguru import logger
+                        logger.error(f"Tool execution error: {e}")
+                    except Exception:
+                        pass
                     pass
         if not enriched:
             enriched = [

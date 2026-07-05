@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/browser_stealth.py
 
 **প্রকার:** .py  
-**সাইজ:** 7,406 বাইট  
-**আপডেট:** 2026-07-05T14:42:46.694628
+**সাইজ:** 7,580 বাইট  
+**আপডেট:** 2026-07-05T15:09:14.686354
 
 ---
 
@@ -162,7 +162,12 @@ class BrowserStealth:
                 await self.context.close()
             if self.playwright:
                 await self.playwright.stop()
-        except Exception:
+        except Exception as e:
+            try:
+                from loguru import logger
+                logger.error(f"Tool execution error: {e}")
+            except Exception:
+                pass
             pass
 
 ```

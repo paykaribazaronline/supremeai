@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/browser_agent.py
 
 **প্রকার:** .py  
-**সাইজ:** 9,913 বাইট  
-**আপডেট:** 2026-07-05T14:42:46.691355
+**সাইজ:** 10,067 বাইট  
+**আপডেট:** 2026-07-05T15:09:14.683491
 
 ---
 
@@ -39,7 +39,12 @@ def is_safe_url(url: str) -> bool:
         ip = socket.gethostbyname(hostname)
         ip_obj = ipaddress.ip_address(ip)
         return not (ip_obj.is_private or ip_obj.is_loopback or ip_obj.is_link_local)
-    except Exception:
+    except Exception as e:
+        try:
+            from loguru import logger
+            logger.error(f"Tool execution error: {e}")
+        except Exception:
+            pass
         return False
 
 

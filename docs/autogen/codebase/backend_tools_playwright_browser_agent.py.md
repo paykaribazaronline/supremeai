@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/playwright_browser_agent.py
 
 **প্রকার:** .py  
-**সাইজ:** 24,413 বাইট  
-**আপডেট:** 2026-07-05T14:42:46.692566
+**সাইজ:** 24,627 বাইট  
+**আপডেট:** 2026-07-05T15:09:14.684568
 
 ---
 
@@ -206,7 +206,12 @@ class PlaywrightBrowserAgent:
             if login_check_selector and login_flow and credentials:
                 try:
                     is_authenticated = page.is_visible(login_check_selector)
-                except Exception:
+                except Exception as e:
+                    try:
+                        from loguru import logger
+                        logger.error(f"Tool execution error: {e}")
+                    except Exception:
+                        pass
                     is_authenticated = False
 
                 if not is_authenticated:

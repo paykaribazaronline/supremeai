@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/email_service.py
 
 **প্রকার:** .py  
-**সাইজ:** 3,802 বাইট  
-**আপডেট:** 2026-07-05T14:42:46.629294
+**সাইজ:** 3,806 বাইট  
+**আপডেট:** 2026-07-05T15:09:14.632806
 
 ---
 
@@ -28,9 +28,9 @@ class EmailService:
 
     async def _send_email(self, to_email: str, subject: str, html_body: str) -> bool:
         if not self.api_key:
-            logger.info(f"[Mock Email] To: {to_email} | Subject: {subject}")
+            logger.warning(f"[Mock Email] To: {to_email} | Subject: {subject}")
             logger.debug(f"Body: {html_body[:100]}...")
-            return True
+            return False
 
         try:
             async with httpx.AsyncClient() as client:

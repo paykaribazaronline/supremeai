@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/bangla_voice.py
 
 **প্রকার:** .py  
-**সাইজ:** 3,245 বাইট  
-**আপডেট:** 2026-07-05T14:42:46.699441
+**সাইজ:** 3,593 বাইট  
+**আপডেট:** 2026-07-05T15:09:14.690406
 
 ---
 
@@ -34,7 +34,12 @@ class BanglaVoice:
             import whisper  # type: ignore
 
             return whisper is not None
-        except Exception:
+        except Exception as e:
+            try:
+                from loguru import logger
+                logger.error(f"Tool execution error: {e}")
+            except Exception:
+                pass
             return False
 
     def _check_tts_available(self) -> bool:
@@ -42,7 +47,12 @@ class BanglaVoice:
             from TTS.api import TTS  # type: ignore
 
             return TTS is not None
-        except Exception:
+        except Exception as e:
+            try:
+                from loguru import logger
+                logger.error(f"Tool execution error: {e}")
+            except Exception:
+                pass
             return False
 
     def transcribe(self, audio_path: str) -> BanglaVoiceResult:

@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/presentation_generator.py
 
 **প্রকার:** .py  
-**সাইজ:** 3,058 বাইট  
-**আপডেট:** 2026-07-05T14:42:46.699573
+**সাইজ:** 3,252 বাইট  
+**আপডেট:** 2026-07-05T15:09:14.690509
 
 ---
 
@@ -42,7 +42,12 @@ class PresentationGenerator:
                 slides = json.loads(cleaned)
                 if not isinstance(slides, list):
                     slides = []
-            except Exception:
+            except Exception as e:
+                try:
+                    from loguru import logger
+                    logger.error(f"Tool execution error: {e}")
+                except Exception:
+                    pass
                 for i in range(1, num_slides + 1):
                     slides.append(
                         {

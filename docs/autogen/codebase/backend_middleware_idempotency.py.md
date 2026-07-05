@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/middleware/idempotency.py
 
 **প্রকার:** .py  
-**সাইজ:** 5,894 বাইট  
-**আপডেট:** 2026-07-05T14:42:46.658834
+**সাইজ:** 6,024 বাইট  
+**আপডেট:** 2026-07-05T15:09:14.656980
 
 ---
 
@@ -32,7 +32,7 @@ class IdempotencyMiddleware(BaseHTTPMiddleware):
         self.collection_name = "idempotency_locks"
         # রিফ্যাক্টর: সরাসরি firestore.Client() এর বদলে শেয়ার্ড হেল্পার ব্যবহার
         import os
-        is_local_or_prod = os.getenv("env") in ("local", "production")
+        is_local_or_prod = os.getenv("ENV") in ("local", "production")
         if is_test_environment() or is_local_or_prod:
             self.db = None
         else:
@@ -111,8 +111,13 @@ class IdempotencyMiddleware(BaseHTTPMiddleware):
                     response_body = [
                         section async for section in response.body_iterator
                     ]
-                    response.body_iterator = __import__("anyio").from_thread.run(
-                        self._recreate_iterator, response_body
+                    from starlette.responses import Response
+                    body_bytes = b"".join(response_body)
+                    response = Response(
+                        content=body_bytes,
+                        status_code=response.status_code,
+                        headers=dict(response.headers),
+                        media_type=response.media_type
                     )
                 else:
                     response_body = [response.body]
@@ -137,8 +142,5 @@ class IdempotencyMiddleware(BaseHTTPMiddleware):
             logger.error(f"❌ Execution failed inside Idempotency block: {str(e)}")
             raise e
 
-    async def _recreate_iterator(self, body):
-        for chunk in body:
-            yield chunk
 
 ```

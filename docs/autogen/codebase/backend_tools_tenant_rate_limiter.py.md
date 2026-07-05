@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/tenant_rate_limiter.py
 
 **প্রকার:** .py  
-**সাইজ:** 8,107 বাইট  
-**আপডেট:** 2026-07-05T14:42:46.696539
+**সাইজ:** 8,281 বাইট  
+**আপডেট:** 2026-07-05T15:09:14.687975
 
 ---
 
@@ -37,7 +37,12 @@ class TenantRateLimiter:
             import core.services as app_mod
 
             return getattr(app_mod, "redis_queue", None)
-        except Exception:
+        except Exception as e:
+            try:
+                from loguru import logger
+                logger.error(f"Tool execution error: {e}")
+            except Exception:
+                pass
             return None
 
     def _init_billing_tiers(self) -> None:

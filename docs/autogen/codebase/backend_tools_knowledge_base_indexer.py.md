@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/knowledge_base_indexer.py
 
 **প্রকার:** .py  
-**সাইজ:** 14,809 বাইট  
-**আপডেট:** 2026-07-05T14:42:46.701801
+**সাইজ:** 15,331 বাইট  
+**আপডেট:** 2026-07-05T15:09:14.692406
 
 ---
 
@@ -45,7 +45,12 @@ class KnowledgeBaseIndexer:
         try:
             with open(path, encoding="utf-8", errors="ignore") as f:
                 source = f.read()
-        except Exception:
+        except Exception as e:
+            try:
+                from loguru import logger
+                logger.error(f"Tool execution error: {e}")
+            except Exception:
+                pass
             return docs
 
         module_hash = hashlib.md5(source.encode("utf-8")).hexdigest()
@@ -222,7 +227,12 @@ class KnowledgeBaseIndexer:
             if len(args) > 6:
                 with contextlib.suppress(Exception):
                     confidence = float(args[6].value)
-        except Exception:
+        except Exception as e:
+            try:
+                from loguru import logger
+                logger.error(f"Tool execution error: {e}")
+            except Exception:
+                pass
             return None, None
 
         text = "\n".join(text_parts) if text_parts else (doc_name or "")
@@ -325,7 +335,12 @@ class KnowledgeBaseIndexer:
                 }
                 for doc_id, score, doc_data in raw
             ]
-        except Exception:
+        except Exception as e:
+            try:
+                from loguru import logger
+                logger.error(f"Tool execution error: {e}")
+            except Exception:
+                pass
             return []
 
     # ------------------------------------------------------------------

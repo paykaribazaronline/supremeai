@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/voice.py
 
 **প্রকার:** .py  
-**সাইজ:** 5,984 বাইট  
-**আপডেট:** 2026-07-05T14:42:46.698263
+**সাইজ:** 6,178 বাইট  
+**আপডেট:** 2026-07-05T15:09:14.689407
 
 ---
 
@@ -97,7 +97,12 @@ class VoiceInterface:
 
                 if torch.cuda.is_available():
                     device = "cuda"
-            except Exception:
+            except Exception as e:
+                try:
+                    from loguru import logger
+                    logger.error(f"Tool execution error: {e}")
+                except Exception:
+                    pass
                 pass
             tts = CoquiTTS(
                 model_name="tts_models/multilingual/multi-dataset/xtts_v2",

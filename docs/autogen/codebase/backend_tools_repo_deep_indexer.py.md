@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/repo_deep_indexer.py
 
 **প্রকার:** .py  
-**সাইজ:** 3,236 বাইট  
-**আপডেট:** 2026-07-05T14:42:46.690142
+**সাইজ:** 3,644 বাইট  
+**আপডেট:** 2026-07-05T15:09:14.682468
 
 ---
 
@@ -65,7 +65,12 @@ class RepoDeepIndexer:
                     try:
                         with open(file_path, encoding="utf-8") as f:
                             snippet = f.read()[:200]
-                    except Exception:
+                    except Exception as e:
+                        try:
+                            from loguru import logger
+                            logger.error(f"Tool execution error: {e}")
+                        except Exception:
+                            pass
                         snippet = ""
                     node = {
                         "path": file_path,
@@ -93,7 +98,12 @@ class RepoDeepIndexer:
         try:
             if self.vector_db_client:
                 return await self.vector_db_client.query(query, limit)
-        except Exception:
+        except Exception as e:
+            try:
+                from loguru import logger
+                logger.error(f"Tool execution error: {e}")
+            except Exception:
+                pass
             pass
         return []
 

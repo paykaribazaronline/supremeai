@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/meta_architect.py
 
 **প্রকার:** .py  
-**সাইজ:** 6,148 বাইট  
-**আপডেট:** 2026-07-05T14:42:46.696856
+**সাইজ:** 6,576 বাইট  
+**আপডেট:** 2026-07-05T15:09:14.688259
 
 ---
 
@@ -54,7 +54,12 @@ class MetaArchitect:
                             metrics["languages"][lang] = metrics["languages"].get(
                                 lang, 0
                             ) + len(lines)
-                    except Exception:
+                    except Exception as e:
+                        try:
+                            from loguru import logger
+                            logger.error(f"Tool execution error: {e}")
+                        except Exception:
+                            pass
                         pass
             if metrics["total_files"]:
                 metrics["avg_file_size"] = (
@@ -107,7 +112,12 @@ class MetaArchitect:
                 if cleaned.endswith("```"):
                     cleaned = "\n".join(cleaned.splitlines()[:-1])
                 plan = json.loads(cleaned)
-            except Exception:
+            except Exception as e:
+                try:
+                    from loguru import logger
+                    logger.error(f"Tool execution error: {e}")
+                except Exception:
+                    pass
                 plan = {
                     "priority": "medium",
                     "steps": [

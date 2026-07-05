@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/health_checker.py
 
 **প্রকার:** .py  
-**সাইজ:** 6,156 বাইট  
-**আপডেট:** 2026-07-05T14:42:46.693809
+**সাইজ:** 6,390 বাইট  
+**আপডেট:** 2026-07-05T15:09:14.685689
 
 ---
 
@@ -99,7 +99,12 @@ class HealthChecker:
                         ts = datetime.fromisoformat(record["timestamp"])
                         if ts >= cutoff:
                             recent_errors.append(record)
-                    except Exception:
+                    except Exception as e:
+                        try:
+                            from loguru import logger
+                            logger.error(f"Tool execution error: {e}")
+                        except Exception:
+                            pass
                         continue
             error_count = len(recent_errors)
             if error_count > 20:

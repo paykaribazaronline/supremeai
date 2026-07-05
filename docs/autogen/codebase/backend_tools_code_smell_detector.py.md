@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/code_smell_detector.py
 
 **প্রকার:** .py  
-**সাইজ:** 22,289 বাইট  
-**আপডেট:** 2026-07-05T14:42:46.691962
+**সাইজ:** 22,483 বাইট  
+**আপডেট:** 2026-07-05T15:09:14.684086
 
 ---
 
@@ -327,7 +327,12 @@ class CodeSmellDetector:
                             "severity": "warning",
                         }
                     )
-            except Exception:
+            except Exception as e:
+                try:
+                    from loguru import logger
+                    logger.error(f"Tool execution error: {e}")
+                except Exception:
+                    pass
                 pass
             return results
         except ImportError:

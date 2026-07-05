@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/cloud_sandbox_orchestrator.py
 
 **প্রকার:** .py  
-**সাইজ:** 14,375 বাইট  
-**আপডেট:** 2026-07-05T14:42:46.698437
+**সাইজ:** 14,803 বাইট  
+**আপডেট:** 2026-07-05T15:09:14.689549
 
 ---
 
@@ -161,7 +161,12 @@ class CloudSandboxOrchestrator:
                 logger.error("Sandbox container execution timed out! Force-killing container...")
                 try:
                     container.kill()
-                except Exception:
+                except Exception as e:
+                    try:
+                        from loguru import logger
+                        logger.error(f"Tool execution error: {e}")
+                    except Exception:
+                        pass
                     pass
                 return {
                     "success": False,
@@ -193,7 +198,12 @@ class CloudSandboxOrchestrator:
             if container:
                 try:
                     container.remove(force=True)
-                except Exception:
+                except Exception as e:
+                    try:
+                        from loguru import logger
+                        logger.error(f"Tool execution error: {e}")
+                    except Exception:
+                        pass
                     pass
 
     async def create_sandbox(self, spec: Dict[str, Any]) -> Dict[str, Any] | None:

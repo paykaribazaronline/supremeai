@@ -1,7 +1,7 @@
 # 🧠 SupremeAI 2.0 Codebase Dump
 # বাংলা মন্তব্য: এটি একটি স্বয়ংক্রিয়ভাবে জেনারেট করা কোডবেস ডাম্প ফাইল যা প্রজেক্টের সামগ্রিক বিশ্লেষণের জন্য ব্যবহৃত হয়।
 
-Generated at: 2026-07-05T14:42:46.583381
+Generated at: 2026-07-05T15:09:14.593986
 
 
 ## File: `pnpm-lock.yaml`
@@ -46021,6 +46021,7 @@ class GCPPubSubQueue:
         self.db_path = db_path or os.getenv("GCP_PUBSUB_SQLITE_PATH")
         self.publisher = None
         self.subscriber = None
+        self._memory_conn = None
         self.mode = "local_sqlite"
 
         if PUBSUB_AVAILABLE and self.project_id:
@@ -46395,9 +46396,14 @@ class HoneypotMiddleware:
             import asyncio
 
             loop = asyncio.get_running_loop()
-            loop.run_in_executor(
+            task = loop.run_in_executor(
                 None, self._persist_threat_intel, ip, payload, endpoint
             )
+            def _on_done(fut):
+                if fut.exception():
+                    logger.error(f"Threat intel persistence failed: {fut.exception()}")
+            import asyncio
+            asyncio.ensure_future(task).add_done_callback(_on_done)
         except RuntimeError:
             self._persist_threat_intel(ip, payload, endpoint)
         except Exception as exc:
@@ -46981,26 +46987,6 @@ class Settings(BaseSettings):
         "https://supremeai-admin.firebaseapp.com",
     ]
 
-    @field_validator("cors_origins", mode="before")
-    @classmethod
-    def sanitize_cors_origins(cls, v):
-        import json
-
-        if isinstance(v, str):
-            v = v.strip()
-            if not v:
-                return []
-            try:
-                v = json.loads(v)
-            except json.JSONDecodeError:
-                v = [origin.strip() for origin in v.split(",") if origin.strip()]
-        if not isinstance(v, list):
-            return v
-        localhost_origins = {"http://127.0.0.1:3000", "http://127.0.0.1:8000", "http://localhost:5173"}
-        env = getattr(cls, "_env_context", "local")
-        if env == "production":
-            return [origin for origin in v if origin not in localhost_origins]
-        return v
 
     # বাংলা মন্তব্য: এডমিন ইমেইল লিস্ট সরাসরি .env ফাইল থেকে লোড করা হবে
     admin_emails: list[str] = Field(
@@ -47028,6 +47014,7 @@ class Settings(BaseSettings):
     openrouter_api_key: str = secret_vault.fetch_secret("OPENROUTER_API_KEY", "")
     hf_api_key: str = secret_vault.fetch_secret("HF_API_KEY", "")
     gemini_api_key: str = secret_vault.fetch_secret("GEMINI_API_KEY", "")
+    openai_api_key: str = secret_vault.fetch_secret("OPENAI_API_KEY", "")
     deepseek_api_key: str = secret_vault.fetch_secret("DEEPSEEK_API_KEY", "")
     groq_api_key: str = secret_vault.fetch_secret("GROQ_API_KEY", "")
     nvidia_api_key: str = secret_vault.fetch_secret("NVIDIA_API_KEY", "")
@@ -47676,6 +47663,7 @@ class GCPFirestoreVerificationQueue:
             or os.getenv("GOOGLE_CLOUD_PROJECT")
         )
         self.client = None
+        self._memory_conn = None
         self.mode = "local_sqlite"
         self.db_path = db_path or os.getenv("GCP_FIRESTORE_SQLITE_PATH")
 
@@ -48325,7 +48313,12 @@ class RateLimitMiddleware:
                     return
             except Exception as exc:
                 logger.error(f"Error checking tenant rate limit: {exc}")
-
+                response = JSONResponse(
+                    status_code=429,
+                    content={"detail": "Too many requests. Please try again later."},
+                )
+                await response(scope, receive, send)
+                return
         else:
             client = scope.get("client")
             client_ip = client[0] if client else "unknown"
@@ -48913,9 +48906,9 @@ class EmailService:
 
     async def _send_email(self, to_email: str, subject: str, html_body: str) -> bool:
         if not self.api_key:
-            logger.info(f"[Mock Email] To: {to_email} | Subject: {subject}")
+            logger.warning(f"[Mock Email] To: {to_email} | Subject: {subject}")
             logger.debug(f"Body: {html_body[:100]}...")
-            return True
+            return False
 
         try:
             async with httpx.AsyncClient() as client:
@@ -51352,8 +51345,9 @@ class ObservabilityMiddleware:
                 trace_id = v.decode("utf-8")
             elif k.lower() == b"x-user-id":
                 continue
-        if "state" in scope and hasattr(scope.get("state", object()), "user"):
-            authenticated_user = scope["state"].user if hasattr(scope.get("state"), "user") else None
+        from starlette.requests import Request
+        request = Request(scope)
+        authenticated_user = getattr(request.state, "user", None) if hasattr(request, "state") else None
         if authenticated_user:
             user_id = authenticated_user.get("sub") or authenticated_user.get("user_id") or user_id
 
@@ -53634,6 +53628,7 @@ class LLMGateway:
         stream: bool = False,
         timeout: float = 12.0,
         model: str | None = None,
+        provider: str | None = None,
         **kwargs,
     ) -> Any:
         """
@@ -53678,7 +53673,14 @@ class LLMGateway:
         call_chain = []
         if model:
             call_chain.append(model)
-        for m in (model_candidates + fallbacks):
+            
+        all_models = model_candidates + fallbacks
+        if provider:
+            provider_models = [m for m in all_models if m.startswith(f"{provider}/")]
+            other_models = [m for m in all_models if not m.startswith(f"{provider}/")]
+            all_models = provider_models + other_models
+            
+        for m in all_models:
             if m not in call_chain:
                 call_chain.append(m)
 
@@ -55237,7 +55239,8 @@ class TokenDeductor:
         # Poll lock acquisition to avoid blocking
         acquired = False
         for _ in range(20):
-            if self._acquire_distributed_lock(lock_key, lock_value, ttl=5):
+            acquired_lock = await asyncio.to_thread(self._acquire_distributed_lock, lock_key, lock_value, 5)
+            if acquired_lock:
                 acquired = True
                 break
             await asyncio.sleep(0.1)
@@ -55299,7 +55302,7 @@ class TokenDeductor:
             logger.error(f"Transaction failed for {user_id}: {str(e)}")
             return False
         finally:
-            self._release_distributed_lock(lock_key, lock_value)
+            await asyncio.to_thread(self._release_distributed_lock, lock_key, lock_value)
 
     async def deduct_byoc_deployment(self, session: AsyncSession, user_id: str, skill_name: str) -> bool:
         """
@@ -55310,7 +55313,8 @@ class TokenDeductor:
         
         acquired = False
         for _ in range(20):
-            if self._acquire_distributed_lock(lock_key, lock_value, ttl=5):
+            acquired_lock = await asyncio.to_thread(self._acquire_distributed_lock, lock_key, lock_value, 5)
+            if acquired_lock:
                 acquired = True
                 break
             await asyncio.sleep(0.1)
@@ -55361,7 +55365,7 @@ class TokenDeductor:
             logger.error(f"Transaction failed for {user_id}: {str(e)}")
             return False
         finally:
-            self._release_distributed_lock(lock_key, lock_value)
+            await asyncio.to_thread(self._release_distributed_lock, lock_key, lock_value)
 
 ```
 
@@ -56250,6 +56254,8 @@ async def app_lifespan(app):
         await redis_manager.initialize()
     except Exception as e:
         logger.error(f"Failed to initialize Redis Manager: {e}")
+        if os.getenv("ENV") == "production":
+            raise e
 
     try:
         if settings.discord_bot_token and settings.discord_bot_token != "mock_token":
@@ -56299,6 +56305,20 @@ async def app_lifespan(app):
             await orchestrator.stop()
     except Exception as e:
         logger.error(f"Error closing Discord Bot: {e}")
+
+    try:
+        pool = await get_db_pool()
+        if pool:
+            await pool.close()
+            logger.info("✅ Database connection pool closed successfully.")
+    except Exception as e:
+        logger.error(f"Error closing DB pool: {e}")
+
+    try:
+        await redis_manager.close()
+        logger.info("✅ Redis Manager connection closed.")
+    except Exception as e:
+        logger.error(f"Error closing Redis Manager: {e}")
 
     try:
         if services.global_http_client:
@@ -58618,6 +58638,9 @@ try:
 
     _safe_imports["approval_manager_router"] = approval_manager_router
 except Exception:
+    import traceback
+    from loguru import logger
+    logger.warning(f"Router import failed for approval_manager_router: {traceback.format_exc()}")
     approval_manager_router = None
 
 try:
@@ -58625,6 +58648,9 @@ try:
 
     _safe_imports["admin_dashboard_router"] = admin_dashboard_router
 except Exception:
+    import traceback
+    from loguru import logger
+    logger.warning(f"Router import failed for admin_dashboard_router: {traceback.format_exc()}")
     admin_dashboard_router = None
 
 try:
@@ -58632,6 +58658,9 @@ try:
 
     _safe_imports["agent_router"] = agent_router
 except Exception:
+    import traceback
+    from loguru import logger
+    logger.warning(f"Router import failed for agent_router: {traceback.format_exc()}")
     agent_router = None
 
 try:
@@ -58639,6 +58668,9 @@ try:
 
     _safe_imports["auth_router"] = auth_router
 except Exception:
+    import traceback
+    from loguru import logger
+    logger.warning(f"Router import failed for auth_router: {traceback.format_exc()}")
     auth_router = None
 
 try:
@@ -58646,6 +58678,9 @@ try:
 
     _safe_imports["async_task_router"] = async_task_router
 except Exception:
+    import traceback
+    from loguru import logger
+    logger.warning(f"Router import failed for async_task_router: {traceback.format_exc()}")
     async_task_router = None
 
 try:
@@ -58653,6 +58688,9 @@ try:
 
     _safe_imports["cdc_router"] = cdc_router
 except Exception:
+    import traceback
+    from loguru import logger
+    logger.warning(f"Router import failed for cdc_router: {traceback.format_exc()}")
     cdc_router = None
 
 try:
@@ -58660,6 +58698,9 @@ try:
 
     _safe_imports["browser_router"] = browser_router
 except Exception:
+    import traceback
+    from loguru import logger
+    logger.warning(f"Router import failed for browser_router: {traceback.format_exc()}")
     browser_router = None
 
 try:
@@ -58667,6 +58708,9 @@ try:
 
     _safe_imports["codeflow_router"] = codeflow_router
 except Exception:
+    import traceback
+    from loguru import logger
+    logger.warning(f"Router import failed for codeflow_router: {traceback.format_exc()}")
     codeflow_router = None
 
 try:
@@ -58674,6 +58718,9 @@ try:
 
     _safe_imports["feedback_router"] = feedback_router
 except Exception:
+    import traceback
+    from loguru import logger
+    logger.warning(f"Router import failed for feedback_router: {traceback.format_exc()}")
     feedback_router = None
 
 try:
@@ -58681,6 +58728,9 @@ try:
 
     _safe_imports["knowledge_router"] = knowledge_router
 except Exception:
+    import traceback
+    from loguru import logger
+    logger.warning(f"Router import failed for knowledge_router: {traceback.format_exc()}")
     knowledge_router = None
 
 try:
@@ -58688,6 +58738,9 @@ try:
 
     _safe_imports["marketplace_router"] = marketplace_router
 except Exception:
+    import traceback
+    from loguru import logger
+    logger.warning(f"Router import failed for marketplace_router: {traceback.format_exc()}")
     marketplace_router = None
 
 try:
@@ -58695,6 +58748,9 @@ try:
 
     _safe_imports["media_router"] = media_router
 except Exception:
+    import traceback
+    from loguru import logger
+    logger.warning(f"Router import failed for media_router: {traceback.format_exc()}")
     media_router = None
 
 try:
@@ -58702,6 +58758,9 @@ try:
 
     _safe_imports["memory_router"] = memory_router
 except Exception:
+    import traceback
+    from loguru import logger
+    logger.warning(f"Router import failed for memory_router: {traceback.format_exc()}")
     memory_router = None
 
 try:
@@ -58709,6 +58768,9 @@ try:
 
     _safe_imports["metrics_router"] = metrics_router
 except Exception:
+    import traceback
+    from loguru import logger
+    logger.warning(f"Router import failed for metrics_router: {traceback.format_exc()}")
     metrics_router = None
 
 # বাংলা মন্তব্য: site_actions_registry CRUD রাউটার — অ্যাডমিন ড্যাশবোর্ডের ভিজুয়াল এডিটরের জন্য
@@ -58717,6 +58779,9 @@ try:
 
     _safe_imports["site_actions_router"] = site_actions_router
 except Exception:
+    import traceback
+    from loguru import logger
+    logger.warning(f"Router import failed for site_actions_router: {traceback.format_exc()}")
     site_actions_router = None
 
 # বাংলা মন্তব্য: LLM Gateway ও System Rules কন্ট্রোলার রাউটার
@@ -58725,6 +58790,9 @@ try:
 
     _safe_imports["llm_gateway_router"] = llm_gateway_router
 except Exception:
+    import traceback
+    from loguru import logger
+    logger.warning(f"Router import failed for llm_gateway_router: {traceback.format_exc()}")
     llm_gateway_router = None
 
 try:
@@ -58732,6 +58800,9 @@ try:
 
     _safe_imports["simulator_router"] = simulator_router
 except Exception:
+    import traceback
+    from loguru import logger
+    logger.warning(f"Router import failed for simulator_router: {traceback.format_exc()}")
     simulator_router = None
 
 try:
@@ -58739,6 +58810,9 @@ try:
 
     _safe_imports["stream_router"] = stream_router
 except Exception:
+    import traceback
+    from loguru import logger
+    logger.warning(f"Router import failed for stream_router: {traceback.format_exc()}")
     stream_router = None
 
 try:
@@ -58747,8 +58821,8 @@ try:
     _safe_imports["task_router"] = task_router
 except Exception:
     import traceback
-
-    traceback.print_exc()
+    from loguru import logger
+    logger.warning(f"Router import failed for task_router: {traceback.format_exc()}")
     task_router = None
 
 try:
@@ -58756,6 +58830,9 @@ try:
 
     _safe_imports["email_router"] = email_router
 except Exception:
+    import traceback
+    from loguru import logger
+    logger.warning(f"Router import failed for email_router: {traceback.format_exc()}")
     email_router = None
 
 try:
@@ -58763,6 +58840,9 @@ try:
 
     _safe_imports["github_router"] = github_router
 except Exception:
+    import traceback
+    from loguru import logger
+    logger.warning(f"Router import failed for github_router: {traceback.format_exc()}")
     github_router = None
 
 try:
@@ -58770,6 +58850,9 @@ try:
 
     _safe_imports["internal_router"] = internal_router
 except Exception:
+    import traceback
+    from loguru import logger
+    logger.warning(f"Router import failed for internal_router: {traceback.format_exc()}")
     internal_router = None
 
 try:
@@ -58777,6 +58860,9 @@ try:
 
     _safe_imports["config_router"] = config_router
 except Exception:
+    import traceback
+    from loguru import logger
+    logger.warning(f"Router import failed for config_router: {traceback.format_exc()}")
     config_router = None
 
 try:
@@ -58784,6 +58870,9 @@ try:
 
     _safe_imports["sso_router"] = sso_router
 except Exception:
+    import traceback
+    from loguru import logger
+    logger.warning(f"Router import failed for sso_router: {traceback.format_exc()}")
     sso_router = None
 
 try:
@@ -58791,6 +58880,9 @@ try:
 
     _safe_imports["repos_router"] = repos_router
 except Exception:
+    import traceback
+    from loguru import logger
+    logger.warning(f"Router import failed for repos_router: {traceback.format_exc()}")
     repos_router = None
 
 try:
@@ -58798,6 +58890,9 @@ try:
 
     _safe_imports["tools_ops_router"] = tools_ops_router
 except Exception:
+    import traceback
+    from loguru import logger
+    logger.warning(f"Router import failed for tools_ops_router: {traceback.format_exc()}")
     tools_ops_router = None
 
 try:
@@ -58805,6 +58900,9 @@ try:
 
     _safe_imports["voice_router"] = voice_router
 except Exception:
+    import traceback
+    from loguru import logger
+    logger.warning(f"Router import failed for voice_router: {traceback.format_exc()}")
     voice_router = None
 
 try:
@@ -58812,6 +58910,9 @@ try:
 
     _safe_imports["onboarding_router"] = onboarding_router
 except Exception:
+    import traceback
+    from loguru import logger
+    logger.warning(f"Router import failed for onboarding_router: {traceback.format_exc()}")
     onboarding_router = None
 
 try:
@@ -58819,6 +58920,9 @@ try:
 
     _safe_imports["tools_registry_router"] = tools_registry_router
 except Exception:
+    import traceback
+    from loguru import logger
+    logger.warning(f"Router import failed for tools_registry_router: {traceback.format_exc()}")
     tools_registry_router = None
 
 try:
@@ -58826,6 +58930,9 @@ try:
 
     _safe_imports["preferences_router"] = preferences_router
 except Exception:
+    import traceback
+    from loguru import logger
+    logger.warning(f"Router import failed for preferences_router: {traceback.format_exc()}")
     preferences_router = None
 
 try:
@@ -58833,6 +58940,9 @@ try:
 
     _safe_imports["usage_metrics_router"] = usage_metrics_router
 except Exception:
+    import traceback
+    from loguru import logger
+    logger.warning(f"Router import failed for usage_metrics_router: {traceback.format_exc()}")
     usage_metrics_router = None
 
 try:
@@ -58840,6 +58950,9 @@ try:
 
     _safe_imports["agents_router"] = agents_router
 except Exception:
+    import traceback
+    from loguru import logger
+    logger.warning(f"Router import failed for agents_router: {traceback.format_exc()}")
     agents_router = None
 
 try:
@@ -58847,6 +58960,9 @@ try:
 
     _safe_imports["payments_router"] = payments_router
 except Exception:
+    import traceback
+    from loguru import logger
+    logger.warning(f"Router import failed for payments_router: {traceback.format_exc()}")
     payments_router = None
 
 try:
@@ -58854,6 +58970,9 @@ try:
 
     _safe_imports["markdown_router"] = markdown_router
 except Exception:
+    import traceback
+    from loguru import logger
+    logger.warning(f"Router import failed for markdown_router: {traceback.format_exc()}")
     markdown_router = None
 
 try:
@@ -58861,6 +58980,9 @@ try:
 
     _safe_imports["api_keys_router"] = api_keys_router
 except Exception:
+    import traceback
+    from loguru import logger
+    logger.warning(f"Router import failed for api_keys_router: {traceback.format_exc()}")
     api_keys_router = None
 
 try:
@@ -58868,6 +58990,9 @@ try:
 
     _safe_imports["graph_router"] = graph_router
 except Exception:
+    import traceback
+    from loguru import logger
+    logger.warning(f"Router import failed for graph_router: {traceback.format_exc()}")
     graph_router = None
 
 try:
@@ -58875,12 +59000,18 @@ try:
 
     _safe_imports["ci_webhooks_router"] = ci_webhooks_router
 except Exception:
+    import traceback
+    from loguru import logger
+    logger.warning(f"Router import failed for ci_webhooks_router: {traceback.format_exc()}")
     ci_webhooks_router = None
 
 try:
     from .websocket_voice import router as websocket_voice_router
     _safe_imports["websocket_voice_router"] = websocket_voice_router
 except Exception:
+    import traceback
+    from loguru import logger
+    logger.warning(f"Router import failed for websocket_voice_router: {traceback.format_exc()}")
     websocket_voice_router = None
 
 __all__ = list(_safe_imports.keys()) + ["voice_router", "websocket_voice_router"]
@@ -72602,7 +72733,7 @@ class IdempotencyMiddleware(BaseHTTPMiddleware):
         self.collection_name = "idempotency_locks"
         # রিফ্যাক্টর: সরাসরি firestore.Client() এর বদলে শেয়ার্ড হেল্পার ব্যবহার
         import os
-        is_local_or_prod = os.getenv("env") in ("local", "production")
+        is_local_or_prod = os.getenv("ENV") in ("local", "production")
         if is_test_environment() or is_local_or_prod:
             self.db = None
         else:
@@ -72681,8 +72812,13 @@ class IdempotencyMiddleware(BaseHTTPMiddleware):
                     response_body = [
                         section async for section in response.body_iterator
                     ]
-                    response.body_iterator = __import__("anyio").from_thread.run(
-                        self._recreate_iterator, response_body
+                    from starlette.responses import Response
+                    body_bytes = b"".join(response_body)
+                    response = Response(
+                        content=body_bytes,
+                        status_code=response.status_code,
+                        headers=dict(response.headers),
+                        media_type=response.media_type
                     )
                 else:
                     response_body = [response.body]
@@ -72707,9 +72843,6 @@ class IdempotencyMiddleware(BaseHTTPMiddleware):
             logger.error(f"❌ Execution failed inside Idempotency block: {str(e)}")
             raise e
 
-    async def _recreate_iterator(self, body):
-        for chunk in body:
-            yield chunk
 
 ```
 
@@ -97962,7 +98095,12 @@ class DockerSandbox:
                 check=False,
             )
             return res.returncode == 0
-        except Exception:
+        except Exception as e:
+            try:
+                from loguru import logger
+                logger.error(f"Tool execution error: {e}")
+            except Exception:
+                pass
             return False
 
     def execute_command(self, cmd: str) -> dict[str, Any]:
@@ -98379,7 +98517,12 @@ class RepoDeepIndexer:
                     try:
                         with open(file_path, encoding="utf-8") as f:
                             snippet = f.read()[:200]
-                    except Exception:
+                    except Exception as e:
+                        try:
+                            from loguru import logger
+                            logger.error(f"Tool execution error: {e}")
+                        except Exception:
+                            pass
                         snippet = ""
                     node = {
                         "path": file_path,
@@ -98407,7 +98550,12 @@ class RepoDeepIndexer:
         try:
             if self.vector_db_client:
                 return await self.vector_db_client.query(query, limit)
-        except Exception:
+        except Exception as e:
+            try:
+                from loguru import logger
+                logger.error(f"Tool execution error: {e}")
+            except Exception:
+                pass
             pass
         return []
 
@@ -98464,7 +98612,12 @@ class StyleLearner:
                     try:
                         with open(path, encoding="utf-8") as f:
                             code_samples.append(f.read()[:1500])
-                    except Exception:
+                    except Exception as e:
+                        try:
+                            from loguru import logger
+                            logger.error(f"Tool execution error: {e}")
+                        except Exception:
+                            pass
                         pass
                 if len(code_samples) >= 20:
                     break
@@ -98499,7 +98652,12 @@ class StyleLearner:
                         self.learned_styles[repo_path] = parsed
                         await self._persist_style(repo_path, parsed)
                         return parsed
-                except Exception:
+                except Exception as e:
+                    try:
+                        from loguru import logger
+                        logger.error(f"Tool execution error: {e}")
+                    except Exception:
+                        pass
                     logger.warning("Failed to parse style guidelines JSON from LLM.")
             except Exception as e:
                 logger.warning(f"LLM style analysis failed: {e}")
@@ -98521,7 +98679,12 @@ class StyleLearner:
                     }
                 ).execute()
                 return
-        except Exception:
+        except Exception as e:
+            try:
+                from loguru import logger
+                logger.error(f"Tool execution error: {e}")
+            except Exception:
+                pass
             pass
         # Local fallback
         try:
@@ -99011,20 +99174,35 @@ class CommentThreadAI:
             # Review comments (line-level)
             review = await self._gh_get(f"/repos/{repo}/pulls/{pr_number}/comments")
             comments.extend(review if isinstance(review, list) else [])
-        except Exception:
+        except Exception as e:
+            try:
+                from loguru import logger
+                logger.error(f"Tool execution error: {e}")
+            except Exception:
+                pass
             pass
         try:
             # Issue comments (general PR comments)
             issue = await self._gh_get(f"/repos/{repo}/issues/{pr_number}/comments")
             comments.extend(issue if isinstance(issue, list) else [])
-        except Exception:
+        except Exception as e:
+            try:
+                from loguru import logger
+                logger.error(f"Tool execution error: {e}")
+            except Exception:
+                pass
             pass
         return comments
 
     async def _get_pr_files(self, repo: str, pr_number: int) -> list[dict]:
         try:
             return await self._gh_get(f"/repos/{repo}/pulls/{pr_number}/files")
-        except Exception:
+        except Exception as e:
+            try:
+                from loguru import logger
+                logger.error(f"Tool execution error: {e}")
+            except Exception:
+                pass
             return []
 
     async def _post_pr_comment(
@@ -99216,7 +99394,12 @@ class CommentThreadAI:
                                 "url": pr.get("html_url", ""),
                             }
                         )
-                except Exception:
+                except Exception as e:
+                    try:
+                        from loguru import logger
+                        logger.error(f"Tool execution error: {e}")
+                    except Exception:
+                        pass
                     pass
 
         return {
@@ -99323,7 +99506,12 @@ async def github_webhook(
         return {"status": "pong"}
     try:
         payload = await request.json()
-    except Exception:
+    except Exception as e:
+        try:
+            from loguru import logger
+            logger.error(f"Tool execution error: {e}")
+        except Exception:
+            pass
         raise HTTPException(status_code=400, detail="Invalid JSON payload")
 
     if x_github_event not in ("pull_request_review_comment", "issue_comment"):
@@ -99416,7 +99604,12 @@ def is_safe_url(url: str) -> bool:
         ip = socket.gethostbyname(hostname)
         ip_obj = ipaddress.ip_address(ip)
         return not (ip_obj.is_private or ip_obj.is_loopback or ip_obj.is_link_local)
-    except Exception:
+    except Exception as e:
+        try:
+            from loguru import logger
+            logger.error(f"Tool execution error: {e}")
+        except Exception:
+            pass
         return False
 
 
@@ -100271,7 +100464,12 @@ class CodeSmellDetector:
                             "severity": "warning",
                         }
                     )
-            except Exception:
+            except Exception as e:
+                try:
+                    from loguru import logger
+                    logger.error(f"Tool execution error: {e}")
+                except Exception:
+                    pass
                 pass
             return results
         except ImportError:
@@ -100567,7 +100765,12 @@ class SelfPlanner:
                 plan = json.loads(text)
                 if not isinstance(plan, list):
                     plan = []
-            except Exception:
+            except Exception as e:
+                try:
+                    from loguru import logger
+                    logger.error(f"Tool execution error: {e}")
+                except Exception:
+                    pass
                 logger.warning("LLM returned non-JSON plan. Using fallback.")
                 plan = self._mock_plan(objective)
         except Exception as e:
@@ -101129,7 +101332,12 @@ class PlaywrightBrowserAgent:
             if login_check_selector and login_flow and credentials:
                 try:
                     is_authenticated = page.is_visible(login_check_selector)
-                except Exception:
+                except Exception as e:
+                    try:
+                        from loguru import logger
+                        logger.error(f"Tool execution error: {e}")
+                    except Exception:
+                        pass
                     is_authenticated = False
 
                 if not is_authenticated:
@@ -101586,7 +101794,12 @@ def _get_connection():
     try:
         conn = psycopg2.connect(supabase_db_url)
         return conn
-    except Exception:
+    except Exception as e:
+        try:
+            from loguru import logger
+            logger.error(f"Tool execution error: {e}")
+        except Exception:
+            pass
         return None
 
 
@@ -101691,7 +101904,12 @@ async def supabase_execute_sql(params: ExecuteQueryInput) -> str:
         if conn:
             try:
                 conn.close()
-            except Exception:
+            except Exception as e:
+                try:
+                    from loguru import logger
+                    logger.error(f"Tool execution error: {e}")
+                except Exception:
+                    pass
                 pass
 
 
@@ -101753,7 +101971,12 @@ async def supabase_create_table(params: CreateTableInput) -> str:
         if conn:
             try:
                 conn.close()
-            except Exception:
+            except Exception as e:
+                try:
+                    from loguru import logger
+                    logger.error(f"Tool execution error: {e}")
+                except Exception:
+                    pass
                 pass
 
 
@@ -101837,7 +102060,12 @@ async def supabase_run_migration(params: MigrationInput) -> str:
         if conn:
             try:
                 conn.close()
-            except Exception:
+            except Exception as e:
+                try:
+                    from loguru import logger
+                    logger.error(f"Tool execution error: {e}")
+                except Exception:
+                    pass
                 pass
 
 
@@ -101888,7 +102116,12 @@ async def supabase_list_tables() -> str:
         if conn:
             try:
                 conn.close()
-            except Exception:
+            except Exception as e:
+                try:
+                    from loguru import logger
+                    logger.error(f"Tool execution error: {e}")
+                except Exception:
+                    pass
                 pass
 
 
@@ -102055,7 +102288,12 @@ class LocalSearchRAG:
                 self._index = json.loads(
                     self.embeddings_path.read_text(encoding="utf-8")
                 )
-            except Exception:
+            except Exception as e:
+                try:
+                    from loguru import logger
+                    logger.error(f"Tool execution error: {e}")
+                except Exception:
+                    pass
                 self._index = {}
 
     def build_search_url(self, query: str) -> str:
@@ -103141,7 +103379,12 @@ class HealthChecker:
                         ts = datetime.fromisoformat(record["timestamp"])
                         if ts >= cutoff:
                             recent_errors.append(record)
-                    except Exception:
+                    except Exception as e:
+                        try:
+                            from loguru import logger
+                            logger.error(f"Tool execution error: {e}")
+                        except Exception:
+                            pass
                         continue
             error_count = len(recent_errors)
             if error_count > 20:
@@ -103269,7 +103512,12 @@ class ViralReferralEngine:
 
             with open(path, encoding="utf-8") as f:
                 return json.load(f)
-        except Exception:
+        except Exception as e:
+            try:
+                from loguru import logger
+                logger.error(f"Tool execution error: {e}")
+            except Exception:
+                pass
             return {"codes": {}, "wallets": {}}
 
     def _save_local(self, data):
@@ -103818,7 +104066,12 @@ class VPNRotator:
                 cfg = json.load(fh)
             proxy = cfg.get(use_case) or cfg.get("default")
             return {"proxy": proxy, "source": "premium", "use_case": use_case}
-        except Exception:
+        except Exception as e:
+            try:
+                from loguru import logger
+                logger.error(f"Tool execution error: {e}")
+            except Exception:
+                pass
             return {"proxy": None, "source": "premium", "reason": "not configured"}
 
 ```
@@ -104396,7 +104649,12 @@ class BrowserStealth:
                 await self.context.close()
             if self.playwright:
                 await self.playwright.stop()
-        except Exception:
+        except Exception as e:
+            try:
+                from loguru import logger
+                logger.error(f"Tool execution error: {e}")
+            except Exception:
+                pass
             pass
 
 ```
@@ -104492,7 +104750,12 @@ class TelegramBotHandler:
                     f"{self.api_base}/sendChatAction",
                     json={"chat_id": chat_id, "action": "typing"},
                 )
-        except Exception:
+        except Exception as e:
+            try:
+                from loguru import logger
+                logger.error(f"Tool execution error: {e}")
+            except Exception:
+                pass
             pass
 
     async def set_webhook(self, webhook_url: str) -> bool:
@@ -104597,7 +104860,12 @@ class TelegramBotHandler:
                     r = await c.get(url + "/health")
                     icon = "✅" if r.status_code == 200 else "⚠️"
                     status_lines.append(f"{icon} {name}: `{r.status_code}`")
-            except Exception:
+            except Exception as e:
+                try:
+                    from loguru import logger
+                    logger.error(f"Tool execution error: {e}")
+                except Exception:
+                    pass
                 status_lines.append(f"❌ {name}: unreachable")
         await self.send_message(chat_id, "\n".join(status_lines))
 
@@ -105391,7 +105659,12 @@ class VoiceCoder:
             feedback_text = f"Done. {action}."
             try:
                 audio_feedback = await self.voice.text_to_speech_async(feedback_text)
-            except Exception:
+            except Exception as e:
+                try:
+                    from loguru import logger
+                    logger.error(f"Tool execution error: {e}")
+                except Exception:
+                    pass
                 audio_feedback = None
 
             return {
@@ -105926,7 +106199,12 @@ class TenantRateLimiter:
             import core.services as app_mod
 
             return getattr(app_mod, "redis_queue", None)
-        except Exception:
+        except Exception as e:
+            try:
+                from loguru import logger
+                logger.error(f"Tool execution error: {e}")
+            except Exception:
+                pass
             return None
 
     def _init_billing_tiers(self) -> None:
@@ -106461,7 +106739,12 @@ class MetaArchitect:
                             metrics["languages"][lang] = metrics["languages"].get(
                                 lang, 0
                             ) + len(lines)
-                    except Exception:
+                    except Exception as e:
+                        try:
+                            from loguru import logger
+                            logger.error(f"Tool execution error: {e}")
+                        except Exception:
+                            pass
                         pass
             if metrics["total_files"]:
                 metrics["avg_file_size"] = (
@@ -106514,7 +106797,12 @@ class MetaArchitect:
                 if cleaned.endswith("```"):
                     cleaned = "\n".join(cleaned.splitlines()[:-1])
                 plan = json.loads(cleaned)
-            except Exception:
+            except Exception as e:
+                try:
+                    from loguru import logger
+                    logger.error(f"Tool execution error: {e}")
+                except Exception:
+                    pass
                 plan = {
                     "priority": "medium",
                     "steps": [
@@ -107606,7 +107894,12 @@ class DomainAdapter:
             with open(self._local_path(), encoding="utf-8") as f:
                 data = json.load(f)
             self._profiles.update(data)
-        except Exception:
+        except Exception as e:
+            try:
+                from loguru import logger
+                logger.error(f"Tool execution error: {e}")
+            except Exception:
+                pass
             pass
         for domain, defaults in self.DOMAINS.items():
             self._profiles.setdefault(domain, defaults)
@@ -107936,7 +108229,12 @@ class VoiceInterface:
 
                 if torch.cuda.is_available():
                     device = "cuda"
-            except Exception:
+            except Exception as e:
+                try:
+                    from loguru import logger
+                    logger.error(f"Tool execution error: {e}")
+                except Exception:
+                    pass
                 pass
             tts = CoquiTTS(
                 model_name="tts_models/multilingual/multi-dataset/xtts_v2",
@@ -108161,7 +108459,12 @@ class CloudSandboxOrchestrator:
                 logger.error("Sandbox container execution timed out! Force-killing container...")
                 try:
                     container.kill()
-                except Exception:
+                except Exception as e:
+                    try:
+                        from loguru import logger
+                        logger.error(f"Tool execution error: {e}")
+                    except Exception:
+                        pass
                     pass
                 return {
                     "success": False,
@@ -108193,7 +108496,12 @@ class CloudSandboxOrchestrator:
             if container:
                 try:
                     container.remove(force=True)
-                except Exception:
+                except Exception as e:
+                    try:
+                        from loguru import logger
+                        logger.error(f"Tool execution error: {e}")
+                    except Exception:
+                        pass
                     pass
 
     async def create_sandbox(self, spec: Dict[str, Any]) -> Dict[str, Any] | None:
@@ -108483,7 +108791,12 @@ class GCPCloudFunctionClient:
     def _safe_json(response: httpx.Response) -> Any:
         try:
             return response.json()
-        except Exception:
+        except Exception as e:
+            try:
+                from loguru import logger
+                logger.error(f"Tool execution error: {e}")
+            except Exception:
+                pass
             return {"text": response.text}
 
 ```
@@ -109314,7 +109627,12 @@ async def clear_cache():
                 try:
                     os.unlink(os.path.join(base_dir, f))
                     removed += 1
-                except Exception:
+                except Exception as e:
+                    try:
+                        from loguru import logger
+                        logger.error(f"Tool execution error: {e}")
+                    except Exception:
+                        pass
                     pass
     return {"status": "success", "removed_files": removed}
 
@@ -109485,7 +109803,12 @@ class BanglaVoice:
             import whisper  # type: ignore
 
             return whisper is not None
-        except Exception:
+        except Exception as e:
+            try:
+                from loguru import logger
+                logger.error(f"Tool execution error: {e}")
+            except Exception:
+                pass
             return False
 
     def _check_tts_available(self) -> bool:
@@ -109493,7 +109816,12 @@ class BanglaVoice:
             from TTS.api import TTS  # type: ignore
 
             return TTS is not None
-        except Exception:
+        except Exception as e:
+            try:
+                from loguru import logger
+                logger.error(f"Tool execution error: {e}")
+            except Exception:
+                pass
             return False
 
     def transcribe(self, audio_path: str) -> BanglaVoiceResult:
@@ -109587,7 +109915,12 @@ class PresentationGenerator:
                 slides = json.loads(cleaned)
                 if not isinstance(slides, list):
                     slides = []
-            except Exception:
+            except Exception as e:
+                try:
+                    from loguru import logger
+                    logger.error(f"Tool execution error: {e}")
+                except Exception:
+                    pass
                 for i in range(1, num_slides + 1):
                     slides.append(
                         {
@@ -109789,7 +110122,12 @@ async def gateway_forward(request: GatewayRequest, http_request: Request) -> Res
                     logger.warning(
                         f"Provider {failed_provider} hit 429, paused for 60s."
                     )
-                except Exception:
+                except Exception as e:
+                    try:
+                        from loguru import logger
+                        logger.error(f"Tool execution error: {e}")
+                    except Exception:
+                        pass
                     pass
 
         return JSONResponse(content=response.json(), status_code=response.status_code)
@@ -111672,7 +112010,12 @@ class SkillRecommender:
                         enriched.append(
                             {**res.data[0], "match_score": round(item["score"], 3)}
                         )
-                except Exception:
+                except Exception as e:
+                    try:
+                        from loguru import logger
+                        logger.error(f"Tool execution error: {e}")
+                    except Exception:
+                        pass
                     pass
         if not enriched:
             enriched = [
@@ -111742,7 +112085,12 @@ class KnowledgeBaseIndexer:
         try:
             with open(path, encoding="utf-8", errors="ignore") as f:
                 source = f.read()
-        except Exception:
+        except Exception as e:
+            try:
+                from loguru import logger
+                logger.error(f"Tool execution error: {e}")
+            except Exception:
+                pass
             return docs
 
         module_hash = hashlib.md5(source.encode("utf-8")).hexdigest()
@@ -111919,7 +112267,12 @@ class KnowledgeBaseIndexer:
             if len(args) > 6:
                 with contextlib.suppress(Exception):
                     confidence = float(args[6].value)
-        except Exception:
+        except Exception as e:
+            try:
+                from loguru import logger
+                logger.error(f"Tool execution error: {e}")
+            except Exception:
+                pass
             return None, None
 
         text = "\n".join(text_parts) if text_parts else (doc_name or "")
@@ -112022,7 +112375,12 @@ class KnowledgeBaseIndexer:
                 }
                 for doc_id, score, doc_data in raw
             ]
-        except Exception:
+        except Exception as e:
+            try:
+                from loguru import logger
+                logger.error(f"Tool execution error: {e}")
+            except Exception:
+                pass
             return []
 
     # ------------------------------------------------------------------
@@ -112845,7 +113203,12 @@ class PDFToSDKConverter:
 
             doc = fitz.open(pdf_path)
             text = "\n".join(page.get_text() for page in doc)
-        except Exception:
+        except Exception as e:
+            try:
+                from loguru import logger
+                logger.error(f"Tool execution error: {e}")
+            except Exception:
+                pass
             pass
 
         if not text:
@@ -112854,7 +113217,12 @@ class PDFToSDKConverter:
 
                 with pdfplumber.open(pdf_path) as pdf:
                     text = "\n".join(page.extract_text() or "" for page in pdf.pages)
-            except Exception:
+            except Exception as e:
+                try:
+                    from loguru import logger
+                    logger.error(f"Tool execution error: {e}")
+                except Exception:
+                    pass
                 pass
 
         if not text:
@@ -113134,7 +113502,12 @@ class PreCommitAI:
             try:
                 with open(filepath, encoding="utf-8", errors="ignore") as f:
                     original_content = f.read()
-            except Exception:
+            except Exception as e:
+                try:
+                    from loguru import logger
+                    logger.error(f"Tool execution error: {e}")
+                except Exception:
+                    pass
                 continue  # Skip binary files that can't be read
 
             new_content = original_content
@@ -114304,7 +114677,12 @@ class PRReviewer:
                                     "body": item["body"],
                                 }
                             )
-            except Exception:
+            except Exception as e:
+                try:
+                    from loguru import logger
+                    logger.error(f"Tool execution error: {e}")
+                except Exception:
+                    pass
                 logger.warning("Failed to parse LLM response in PRReviewer.")
         except Exception as e:
             logger.warning(f"ModelRouter call failed in PRReviewer: {e}")
@@ -114917,7 +115295,12 @@ class ParallelAgentExecutor:
                     import core.services as app_mod
 
                     redis = app_mod.redis_queue
-                except Exception:
+                except Exception as e:
+                    try:
+                        from loguru import logger
+                        logger.error(f"Tool execution error: {e}")
+                    except Exception:
+                        pass
                     redis = None
 
             if mcp_servers:
@@ -114953,7 +115336,12 @@ class ParallelAgentExecutor:
                     redis = app_mod.redis_queue
                 if redis and getattr(redis, "configured", False):
                     await self._publish_state(redis, agent_name, "failed", error=str(e))
-            except Exception:
+            except Exception as e:
+                try:
+                    from loguru import logger
+                    logger.error(f"Tool execution error: {e}")
+                except Exception:
+                    pass
                 pass
             return {"agent": agent_name, "status": "error", "error": str(e)}
         finally:

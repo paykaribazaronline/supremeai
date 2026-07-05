@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/pr_reviewer.py
 
 **প্রকার:** .py  
-**সাইজ:** 9,156 বাইট  
-**আপডেট:** 2026-07-05T14:42:46.703900
+**সাইজ:** 9,350 বাইট  
+**আপডেট:** 2026-07-05T15:09:14.694137
 
 ---
 
@@ -143,7 +143,12 @@ class PRReviewer:
                                     "body": item["body"],
                                 }
                             )
-            except Exception:
+            except Exception as e:
+                try:
+                    from loguru import logger
+                    logger.error(f"Tool execution error: {e}")
+                except Exception:
+                    pass
                 logger.warning("Failed to parse LLM response in PRReviewer.")
         except Exception as e:
             logger.warning(f"ModelRouter call failed in PRReviewer: {e}")

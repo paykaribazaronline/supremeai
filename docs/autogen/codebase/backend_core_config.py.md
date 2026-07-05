@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/config.py
 
 **প্রকার:** .py  
-**সাইজ:** 9,186 বাইট  
-**আপডেট:** 2026-07-05T14:42:46.627534
+**সাইজ:** 8,511 বাইট  
+**আপডেট:** 2026-07-05T15:09:14.631377
 
 ---
 
@@ -59,26 +59,6 @@ class Settings(BaseSettings):
         "https://supremeai-admin.firebaseapp.com",
     ]
 
-    @field_validator("cors_origins", mode="before")
-    @classmethod
-    def sanitize_cors_origins(cls, v):
-        import json
-
-        if isinstance(v, str):
-            v = v.strip()
-            if not v:
-                return []
-            try:
-                v = json.loads(v)
-            except json.JSONDecodeError:
-                v = [origin.strip() for origin in v.split(",") if origin.strip()]
-        if not isinstance(v, list):
-            return v
-        localhost_origins = {"http://127.0.0.1:3000", "http://127.0.0.1:8000", "http://localhost:5173"}
-        env = getattr(cls, "_env_context", "local")
-        if env == "production":
-            return [origin for origin in v if origin not in localhost_origins]
-        return v
 
     # বাংলা মন্তব্য: এডমিন ইমেইল লিস্ট সরাসরি .env ফাইল থেকে লোড করা হবে
     admin_emails: list[str] = Field(
@@ -106,6 +86,7 @@ class Settings(BaseSettings):
     openrouter_api_key: str = secret_vault.fetch_secret("OPENROUTER_API_KEY", "")
     hf_api_key: str = secret_vault.fetch_secret("HF_API_KEY", "")
     gemini_api_key: str = secret_vault.fetch_secret("GEMINI_API_KEY", "")
+    openai_api_key: str = secret_vault.fetch_secret("OPENAI_API_KEY", "")
     deepseek_api_key: str = secret_vault.fetch_secret("DEEPSEEK_API_KEY", "")
     groq_api_key: str = secret_vault.fetch_secret("GROQ_API_KEY", "")
     nvidia_api_key: str = secret_vault.fetch_secret("NVIDIA_API_KEY", "")

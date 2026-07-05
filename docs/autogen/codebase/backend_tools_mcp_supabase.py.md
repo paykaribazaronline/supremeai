@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/mcp_supabase.py
 
 **প্রকার:** .py  
-**সাইজ:** 13,785 বাইট  
-**আপডেট:** 2026-07-05T14:42:46.692792
+**সাইজ:** 14,715 বাইট  
+**আপডেট:** 2026-07-05T15:09:14.684784
 
 ---
 
@@ -77,7 +77,12 @@ def _get_connection():
     try:
         conn = psycopg2.connect(supabase_db_url)
         return conn
-    except Exception:
+    except Exception as e:
+        try:
+            from loguru import logger
+            logger.error(f"Tool execution error: {e}")
+        except Exception:
+            pass
         return None
 
 
@@ -182,7 +187,12 @@ async def supabase_execute_sql(params: ExecuteQueryInput) -> str:
         if conn:
             try:
                 conn.close()
-            except Exception:
+            except Exception as e:
+                try:
+                    from loguru import logger
+                    logger.error(f"Tool execution error: {e}")
+                except Exception:
+                    pass
                 pass
 
 
@@ -244,7 +254,12 @@ async def supabase_create_table(params: CreateTableInput) -> str:
         if conn:
             try:
                 conn.close()
-            except Exception:
+            except Exception as e:
+                try:
+                    from loguru import logger
+                    logger.error(f"Tool execution error: {e}")
+                except Exception:
+                    pass
                 pass
 
 
@@ -328,7 +343,12 @@ async def supabase_run_migration(params: MigrationInput) -> str:
         if conn:
             try:
                 conn.close()
-            except Exception:
+            except Exception as e:
+                try:
+                    from loguru import logger
+                    logger.error(f"Tool execution error: {e}")
+                except Exception:
+                    pass
                 pass
 
 
@@ -379,7 +399,12 @@ async def supabase_list_tables() -> str:
         if conn:
             try:
                 conn.close()
-            except Exception:
+            except Exception as e:
+                try:
+                    from loguru import logger
+                    logger.error(f"Tool execution error: {e}")
+                except Exception:
+                    pass
                 pass
 
 

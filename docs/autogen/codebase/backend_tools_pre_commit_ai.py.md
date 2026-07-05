@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/pre_commit_ai.py
 
 **প্রকার:** .py  
-**সাইজ:** 11,213 বাইট  
-**আপডেট:** 2026-07-05T14:42:46.702966
+**সাইজ:** 11,407 বাইট  
+**আপডেট:** 2026-07-05T15:09:14.693365
 
 ---
 
@@ -110,7 +110,12 @@ class PreCommitAI:
             try:
                 with open(filepath, encoding="utf-8", errors="ignore") as f:
                     original_content = f.read()
-            except Exception:
+            except Exception as e:
+                try:
+                    from loguru import logger
+                    logger.error(f"Tool execution error: {e}")
+                except Exception:
+                    pass
                 continue  # Skip binary files that can't be read
 
             new_content = original_content

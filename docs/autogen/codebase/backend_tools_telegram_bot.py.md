@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/telegram_bot.py
 
 **প্রকার:** .py  
-**সাইজ:** 10,954 বাইট  
-**আপডেট:** 2026-07-05T14:42:46.694807
+**সাইজ:** 11,322 বাইট  
+**আপডেট:** 2026-07-05T15:09:14.686522
 
 ---
 
@@ -97,7 +97,12 @@ class TelegramBotHandler:
                     f"{self.api_base}/sendChatAction",
                     json={"chat_id": chat_id, "action": "typing"},
                 )
-        except Exception:
+        except Exception as e:
+            try:
+                from loguru import logger
+                logger.error(f"Tool execution error: {e}")
+            except Exception:
+                pass
             pass
 
     async def set_webhook(self, webhook_url: str) -> bool:
@@ -202,7 +207,12 @@ class TelegramBotHandler:
                     r = await c.get(url + "/health")
                     icon = "✅" if r.status_code == 200 else "⚠️"
                     status_lines.append(f"{icon} {name}: `{r.status_code}`")
-            except Exception:
+            except Exception as e:
+                try:
+                    from loguru import logger
+                    logger.error(f"Tool execution error: {e}")
+                except Exception:
+                    pass
                 status_lines.append(f"❌ {name}: unreachable")
         await self.send_message(chat_id, "\n".join(status_lines))
 

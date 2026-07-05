@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/gcp_pubsub_queue.py
 
 **প্রকার:** .py  
-**সাইজ:** 8,586 বাইট  
-**আপডেট:** 2026-07-05T14:42:46.626493
+**সাইজ:** 8,619 বাইট  
+**আপডেট:** 2026-07-05T15:09:14.630391
 
 ---
 
@@ -52,6 +52,7 @@ class GCPPubSubQueue:
         self.db_path = db_path or os.getenv("GCP_PUBSUB_SQLITE_PATH")
         self.publisher = None
         self.subscriber = None
+        self._memory_conn = None
         self.mode = "local_sqlite"
 
         if PUBSUB_AVAILABLE and self.project_id:

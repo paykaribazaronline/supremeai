@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/viral_referral_engine.py
 
 **প্রকার:** .py  
-**সাইজ:** 16,537 বাইট  
-**আপডেট:** 2026-07-05T14:42:46.693950
+**সাইজ:** 16,711 বাইট  
+**আপডেট:** 2026-07-05T15:09:14.685810
 
 ---
 
@@ -48,7 +48,12 @@ class ViralReferralEngine:
 
             with open(path, encoding="utf-8") as f:
                 return json.load(f)
-        except Exception:
+        except Exception as e:
+            try:
+                from loguru import logger
+                logger.error(f"Tool execution error: {e}")
+            except Exception:
+                pass
             return {"codes": {}, "wallets": {}}
 
     def _save_local(self, data):

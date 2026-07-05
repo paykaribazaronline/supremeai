@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/lifespan.py
 
 **প্রকার:** .py  
-**সাইজ:** 5,970 বাইট  
-**আপডেট:** 2026-07-05T14:42:46.636904
+**সাইজ:** 6,475 বাইট  
+**আপডেট:** 2026-07-05T15:09:14.639217
 
 ---
 
@@ -116,6 +116,8 @@ async def app_lifespan(app):
         await redis_manager.initialize()
     except Exception as e:
         logger.error(f"Failed to initialize Redis Manager: {e}")
+        if os.getenv("ENV") == "production":
+            raise e
 
     try:
         if settings.discord_bot_token and settings.discord_bot_token != "mock_token":
@@ -165,6 +167,20 @@ async def app_lifespan(app):
             await orchestrator.stop()
     except Exception as e:
         logger.error(f"Error closing Discord Bot: {e}")
+
+    try:
+        pool = await get_db_pool()
+        if pool:
+            await pool.close()
+            logger.info("✅ Database connection pool closed successfully.")
+    except Exception as e:
+        logger.error(f"Error closing DB pool: {e}")
+
+    try:
+        await redis_manager.close()
+        logger.info("✅ Redis Manager connection closed.")
+    except Exception as e:
+        logger.error(f"Error closing Redis Manager: {e}")
 
     try:
         if services.global_http_client:

@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/gcp_cloud_functions.py
 
 **প্রকার:** .py  
-**সাইজ:** 4,067 বাইট  
-**আপডেট:** 2026-07-05T14:42:46.698605
+**সাইজ:** 4,241 বাইট  
+**আপডেট:** 2026-07-05T15:09:14.689704
 
 ---
 
@@ -128,7 +128,12 @@ class GCPCloudFunctionClient:
     def _safe_json(response: httpx.Response) -> Any:
         try:
             return response.json()
-        except Exception:
+        except Exception as e:
+            try:
+                from loguru import logger
+                logger.error(f"Tool execution error: {e}")
+            except Exception:
+                pass
             return {"text": response.text}
 
 ```

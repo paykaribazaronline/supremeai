@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/api_gateway.py
 
 **প্রকার:** .py  
-**সাইজ:** 7,405 বাইট  
-**আপডেট:** 2026-07-05T14:42:46.699705
+**সাইজ:** 7,619 বাইট  
+**আপডেট:** 2026-07-05T15:09:14.690609
 
 ---
 
@@ -163,7 +163,12 @@ async def gateway_forward(request: GatewayRequest, http_request: Request) -> Res
                     logger.warning(
                         f"Provider {failed_provider} hit 429, paused for 60s."
                     )
-                except Exception:
+                except Exception as e:
+                    try:
+                        from loguru import logger
+                        logger.error(f"Tool execution error: {e}")
+                    except Exception:
+                        pass
                     pass
 
         return JSONResponse(content=response.json(), status_code=response.status_code)
