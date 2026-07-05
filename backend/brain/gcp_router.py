@@ -19,9 +19,7 @@ class GCPCloudRunRouter:
     ):
         self.base_url = (base_url or os.getenv("GCP_CLOUD_RUN_URL", "")).rstrip("/")
         self.region = region or os.getenv("GCP_REGION", "us-central1")
-        self.service_name = service_name or os.getenv(
-            "GCP_SERVICE_NAME", "supremeai-api"
-        )
+        self.service_name = service_name or os.getenv("GCP_SERVICE_NAME", "supremeai-api")
         self.timeout = timeout
 
     @property

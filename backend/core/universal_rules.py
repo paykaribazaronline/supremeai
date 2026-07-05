@@ -62,6 +62,7 @@ class UniversalRulesEngine:
                 json.dump(default_rules, f, indent=4)
         except Exception as e:
             import logging
+
             logging.warning(f"Exception suppressed: {e}")
 
         return default_rules
@@ -102,8 +103,6 @@ class UniversalRulesEngine:
 
             if decision_context["cost"] > max_cost:
                 decision_context["blocked"] = True
-                decision_context["reason"] = (
-                    f"Exceeds Universal Rule: Max cost per task ({max_cost})"
-                )
+                decision_context["reason"] = f"Exceeds Universal Rule: Max cost per task ({max_cost})"
 
         return decision_context

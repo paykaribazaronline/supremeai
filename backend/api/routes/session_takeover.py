@@ -11,19 +11,17 @@ router = APIRouter()
 
 import os
 
+
 # Note: In production, tokens would be verified against Redis/DB
 def verify_takeover_token(token: str) -> bool:
     if os.environ.get("SUPREMEAI_ENV") == "production":
-        raise NotImplementedError(
-            "Production token verification not implemented! "
-            "Must validate tokens against Redis/DB before deployment."
-        )
+        raise NotImplementedError("Production token verification not implemented! " "Must validate tokens against Redis/DB before deployment.")
     return token.startswith("tok_")
 
+
 # A 1x1 black JPEG pixel encoded in base64
-MOCK_FRAME_B64 = (
-    "/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAP//////////////////////////////////////////////////////////////////////////////////////wgALCAABAAEBAREA/8QAFBABAAAAAAAAAAAAAAAAAAAAAP/aAAgBAQABPxA="
-)
+MOCK_FRAME_B64 = "/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAP//////////////////////////////////////////////////////////////////////////////////////wgALCAABAAEBAREA/8QAFBABAAAAAAAAAAAAAAAAAAAAAP/aAAgBAQABPxA="
+
 
 async def mock_screencast_emitter(websocket: WebSocket, session_id: str):
     """
@@ -34,46 +32,40 @@ async def mock_screencast_emitter(websocket: WebSocket, session_id: str):
         while True:
             # Throttle to ~10 FPS
             await asyncio.sleep(0.1)
-            
-            # 🛑 ZERO-GAP: Skip rendering logic handled client-side if frames pile up, 
+
+            # 🛑 ZERO-GAP: Skip rendering logic handled client-side if frames pile up,
             # but backend controls raw outgoing FPS here.
-            await websocket.send_json({
-                "channel": "screencast",
-                "data": MOCK_FRAME_B64
-            })
+            await websocket.send_json({"channel": "screencast", "data": MOCK_FRAME_B64})
     except asyncio.CancelledError:
         pass
     except Exception as e:
         logger.debug(f"Mock screencast emitter closed for session {session_id}: {e}")
 
+
 @router.websocket("/ws/session/{session_id}/takeover")
-async def takeover_session_websocket(
-    websocket: WebSocket,
-    session_id: str,
-    token: str = Query(...)
-):
+async def takeover_session_websocket(websocket: WebSocket, session_id: str, token: str = Query(...)):
     """
     Ephemeral WebSocket gateway for Sandbox Viewport takeover.
     Validates token, streams CDP frames to client, and receives mouse/keyboard events.
     Mounts ONLY when control_mode == 'human'.
     """
     await websocket.accept()
-    
+
     if not verify_takeover_token(token):
         await websocket.send_json({"error": "Invalid or expired takeover token"})
         await websocket.close(code=1008)
         return
 
     logger.info(f"WebSocket takeover initiated for session {session_id}")
-    
+
     emitter_task = asyncio.create_task(mock_screencast_emitter(websocket, session_id))
-    
+
     try:
         # Loop for bidirectional communication
         while True:
             # Receive mouse/keyboard actions from the React client
             data = await websocket.receive_json()
-            
+
             action = data.get("action") or data.get("method")
             if action == "return_control":
                 # User clicked Return Control
@@ -83,7 +75,7 @@ async def takeover_session_websocket(
                 # Handle CDP input routing here
                 # (Will route to Playwright context in production)
                 logger.debug(f"CDP Event [{session_id}]: {action} - {data.get('params')}")
-                
+
     except WebSocketDisconnect:
         logger.info(f"WebSocket takeover disconnected for session {session_id}")
     except Exception as e:

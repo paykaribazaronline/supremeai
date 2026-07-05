@@ -1,34 +1,32 @@
 from __future__ import annotations
-from __future__ import annotations
 
 import hashlib
+import logging
 import os
 import sqlite3
 from datetime import UTC
 from datetime import datetime
 from typing import Any
-import logging
+
 from brain.model_router import ModelRouter
+
 
 logger = logging.getLogger(__name__)
 
 try:
     from prometheus_client import Counter
-    evolution_write_failures = Counter(
-        "evolution_write_failures_total",
-        "Number of failures while reading/writing evolution databases"
-    )
+
+    evolution_write_failures = Counter("evolution_write_failures_total", "Number of failures while reading/writing evolution databases")
 except ImportError:
     evolution_write_failures = None
+
 
 class EvolutionEngine:
     """Persists task outcomes, detects repeated failures, proposes and auto-generates skills."""
 
     def __init__(self, db_path: str | None = None, model_router: ModelRouter | None = None):
         base = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        self.db_path = db_path or os.getenv(
-            "EVOLUTION_DB_PATH", os.path.join(base, "data", "evolution.db")
-        )
+        self.db_path = db_path or os.getenv("EVOLUTION_DB_PATH", os.path.join(base, "data", "evolution.db"))
         self.model_router = model_router or ModelRouter()
         os.makedirs(os.path.dirname(str(self.db_path)), exist_ok=True)
         self._ensure_schema()
@@ -79,9 +77,7 @@ class EvolutionEngine:
         finally:
             conn.close()
 
-    def learn_from_success(
-        self, task: str, approach: str, result: str
-    ) -> dict[str, Any]:
+    def learn_from_success(self, task: str, approach: str, result: str) -> dict[str, Any]:
         created_at = datetime.now(UTC).isoformat()
         try:
             from database.supabase_client import db
@@ -109,9 +105,7 @@ class EvolutionEngine:
         finally:
             conn.close()
 
-    def learn_from_failure(
-        self, task: str, approach: str, result: str
-    ) -> dict[str, Any]:
+    def learn_from_failure(self, task: str, approach: str, result: str) -> dict[str, Any]:
         created_at = datetime.now(UTC).isoformat()
         try:
             from database.supabase_client import db
@@ -139,9 +133,7 @@ class EvolutionEngine:
         finally:
             conn.close()
 
-    def detect_repeated_failures(
-        self, min_occurrences: int = 3
-    ) -> list[dict[str, Any]]:
+    def detect_repeated_failures(self, min_occurrences: int = 3) -> list[dict[str, Any]]:
         try:
             from database.supabase_client import db
 
@@ -179,9 +171,7 @@ class EvolutionEngine:
         finally:
             conn.close()
 
-    def detect_underperforming_prompts(
-        self, min_occurrences: int = 5, min_failure_rate: float = 0.5
-    ) -> list[dict[str, Any]]:
+    def detect_underperforming_prompts(self, min_occurrences: int = 5, min_failure_rate: float = 0.5) -> list[dict[str, Any]]:
         conn = sqlite3.connect(str(self.db_path))
         try:
             # বাংলা মন্তব্য: এখানে আমরা টাস্কের নাম (প্রম্পট) দ্বারা গ্রুপ করে ব্যর্থতার হার বিশ্লেষণ করছি।
@@ -210,10 +200,10 @@ class EvolutionEngine:
             ]
         finally:
             conn.close()
-            
+
     def propose_prompt_optimization(self, original_prompt: str, failure_data: dict[str, Any]) -> dict[str, Any]:
         task_hash = hashlib.sha256(original_prompt.encode()).hexdigest()
-        
+
         # বাংলা মন্তব্য: LLM ব্যবহার করে উন্নত প্রম্পট তৈরির জন্য একটি প্রম্পট তৈরি করা হচ্ছে।
         optimization_prompt = f"""
 System: You are a Prompt Optimization specialist. Your task is to rewrite a failing prompt to improve its success rate.
@@ -225,11 +215,11 @@ This prompt has a failure rate of {failure_data['failure_rate']:.2%} after {fail
 
 Based on the prompt, rewrite it to be more precise, clear, and effective. Provide only the new prompt, without any explanation or extra text.
 """
-        
+
         try:
             response = self.model_router.route_and_generate(optimization_prompt, task_type="analysis")
             optimized_prompt = response.get("text", "").strip()
-            
+
             if not optimized_prompt or optimized_prompt == original_prompt:
                 return {"status": "no_change_generated"}
 
@@ -259,7 +249,7 @@ Based on the prompt, rewrite it to be more precise, clear, and effective. Provid
     def propose_new_skill(self, pattern: str) -> dict[str, Any]:
         skill_name = f"auto_{pattern.strip().replace(' ', '_').lower()}"
         created_at = datetime.now(UTC).isoformat()
-        class_name = ''.join(part.capitalize() for part in skill_name.split('_'))
+        class_name = "".join(part.capitalize() for part in skill_name.split("_"))
         code = (
             f"class {class_name}:\n"
             f"    def __init__(self): ...\n"
@@ -299,9 +289,7 @@ Based on the prompt, rewrite it to be more precise, clear, and effective. Provid
         finally:
             conn.close()
 
-    def record_feedback(
-        self, session_id: str, query: str, retrieved_chunks: str, user_rating: float
-    ) -> dict[str, Any]:
+    def record_feedback(self, session_id: str, query: str, retrieved_chunks: str, user_rating: float) -> dict[str, Any]:
         created_at = datetime.now(UTC).isoformat()
         try:
             from database.supabase_client import db
@@ -334,7 +322,7 @@ Based on the prompt, rewrite it to be more precise, clear, and effective. Provid
         total = len(task_history)
         successful = sum(1 for t in task_history if t.get("success"))
         success_rate = (successful / total * 100.0) if total > 0 else 100.0
-        
+
         # Skill proposal based on repeated failures
         failures = self.detect_repeated_failures()
         failed_tasks = [f["task"] for f in failures]
@@ -342,7 +330,7 @@ Based on the prompt, rewrite it to be more precise, clear, and effective. Provid
         for task in failed_tasks:
             proposal = self.propose_new_skill(task)
             new_skills_proposed.append(proposal["skill_name"])
-            
+
         # Prompt optimization proposals
         underperforming_prompts = self.detect_underperforming_prompts()
         prompt_optimizations_proposed = []
@@ -351,11 +339,7 @@ Based on the prompt, rewrite it to be more precise, clear, and effective. Provid
             if proposal.get("status") == "proposed":
                 prompt_optimizations_proposed.append(proposal)
 
-        optimizations = (
-            ["Increase RAG context depth to reduce hallucination."]
-            if success_rate < 95
-            else []
-        )
+        optimizations = ["Increase RAG context depth to reduce hallucination."] if success_rate < 95 else []
 
         report = {
             "timestamp": datetime.now(UTC).isoformat(),

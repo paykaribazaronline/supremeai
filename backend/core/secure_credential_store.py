@@ -13,6 +13,7 @@ from core.config import settings
 
 try:
     from cryptography.fernet import Fernet
+
     CRYPTO_AVAILABLE = True
 except ImportError:  # pragma: no cover
     CRYPTO_AVAILABLE = False
@@ -135,4 +136,3 @@ class SecureCredentialStore:
                 last_4 = val_str[-4:] if len(val_str) >= 4 else val_str
                 masked[field] = f"••••••••••{last_4}"
         return masked
-
