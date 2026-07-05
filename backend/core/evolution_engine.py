@@ -1,4 +1,5 @@
 from __future__ import annotations
+from __future__ import annotations
 
 import hashlib
 import os
@@ -6,6 +7,9 @@ import sqlite3
 from datetime import UTC
 from datetime import datetime
 from typing import Any
+import logging
+
+logger = logging.getLogger(__name__)
 
 from brain.model_router import ModelRouter
 
@@ -87,7 +91,8 @@ class EvolutionEngine:
                 db.insert_task_history(task, approach, result, True, created_at)
         except Exception as e:
             logger.warning(f"Failed to insert success to Supabase: {e}")
-            if evolution_write_failures: evolution_write_failures.inc()
+            if evolution_write_failures:
+                evolution_write_failures.inc()
 
         conn = sqlite3.connect(str(self.db_path))
         try:
@@ -116,7 +121,8 @@ class EvolutionEngine:
                 db.insert_task_history(task, approach, result, False, created_at)
         except Exception as e:
             logger.warning(f"Failed to insert failure to Supabase: {e}")
-            if evolution_write_failures: evolution_write_failures.inc()
+            if evolution_write_failures:
+                evolution_write_failures.inc()
 
         conn = sqlite3.connect(str(self.db_path))
         try:
@@ -146,7 +152,8 @@ class EvolutionEngine:
                     return failures
         except Exception as e:
             logger.warning(f"Failed to query repeated failures from Supabase: {e}")
-            if evolution_write_failures: evolution_write_failures.inc()
+            if evolution_write_failures:
+                evolution_write_failures.inc()
 
         conn = sqlite3.connect(str(self.db_path))
         try:
@@ -273,7 +280,8 @@ Based on the prompt, rewrite it to be more precise, clear, and effective. Provid
                 )
         except Exception as e:
             logger.warning(f"Failed to insert skill proposal to Supabase: {e}")
-            if evolution_write_failures: evolution_write_failures.inc()
+            if evolution_write_failures:
+                evolution_write_failures.inc()
 
         conn = sqlite3.connect(str(self.db_path))
         try:
@@ -309,7 +317,8 @@ Based on the prompt, rewrite it to be more precise, clear, and effective. Provid
                 )
         except Exception as e:
             logger.warning(f"Failed to insert feedback to Supabase: {e}")
-            if evolution_write_failures: evolution_write_failures.inc()
+            if evolution_write_failures:
+                evolution_write_failures.inc()
 
         conn = sqlite3.connect(str(self.db_path))
         try:
@@ -365,5 +374,6 @@ Based on the prompt, rewrite it to be more precise, clear, and effective. Provid
                 db.append_evolution_log(report)
         except Exception as e:
             logger.warning(f"Failed to append evolution log to Supabase: {e}")
-            if evolution_write_failures: evolution_write_failures.inc()
+            if evolution_write_failures:
+                evolution_write_failures.inc()
         return report
