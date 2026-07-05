@@ -1,3 +1,4 @@
+import React from 'react';
 import { Home, Server, Shield, Activity, Settings, Cpu, HardDrive, X, DollarSign, Database, GitBranch, ShieldAlert, Sparkles, RefreshCw, Layout } from 'lucide-react';
 import ReactFlow, { Background, Controls, useNodesState, useEdgesState, Panel } from 'reactflow';
 import { motion, AnimatePresence } from 'framer-motion';
