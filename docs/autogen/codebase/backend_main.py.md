@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/main.py
 
 **প্রকার:** .py  
-**সাইজ:** 1,825 বাইট  
-**আপডেট:** 2026-07-07T15:42:20.830017
+**সাইজ:** 1,816 বাইট  
+**আপডেট:** 2026-07-07T16:04:55.470995
 
 ---
 
@@ -50,7 +50,7 @@ signal.signal(signal.SIGINT, _handle_sigterm)
 
 
 def run_server() -> None:
-    port = int(os.environ.get("PORT", settings.port))
+    port = int(os.environ.get("PORT", 8080))
     is_local = settings.env == "local"
     uvicorn_kwargs = {
         "host": settings.host,
