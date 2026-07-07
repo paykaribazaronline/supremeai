@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/studio-client/src/utils/apiInterceptor.ts
 
 **প্রকার:** .ts  
-**সাইজ:** 2,007 বাইট  
-**আপডেট:** 2026-07-07T07:19:28.324239
+**সাইজ:** 2,033 বাইট  
+**আপডেট:** 2026-07-07T08:19:30.116942
 
 ---
 
@@ -18,7 +18,8 @@ export function setupGlobalFetchInterceptor() {
   const originalFetch = window.fetch;
 
   window.fetch = async function (...args) {
-    let [url, options] = args;
+    const url = args[0];
+    let options: any = args[1];
     const apiBase = getApiBaseUrl();
 
     if (typeof url === 'string' && url.startsWith(apiBase)) {

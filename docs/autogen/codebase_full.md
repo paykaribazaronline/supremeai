@@ -1,7 +1,7 @@
 # 🧠 SupremeAI 2.0 Codebase Dump
 # বাংলা মন্তব্য: এটি একটি স্বয়ংক্রিয়ভাবে জেনারেট করা কোডবেস ডাম্প ফাইল যা প্রজেক্টের সামগ্রিক বিশ্লেষণের জন্য ব্যবহৃত হয়।
 
-Generated at: 2026-07-07T07:19:28.198498
+Generated at: 2026-07-07T08:19:29.989024
 
 
 ## File: `pnpm-lock.yaml`
@@ -121868,7 +121868,8 @@ export function setupGlobalFetchInterceptor() {
   const originalFetch = window.fetch;
 
   window.fetch = async function (...args) {
-    let [url, options] = args;
+    const url = args[0];
+    let options: any = args[1];
     const apiBase = getApiBaseUrl();
 
     if (typeof url === 'string' && url.startsWith(apiBase)) {
