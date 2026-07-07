@@ -1,7 +1,7 @@
 # 🧠 SupremeAI 2.0 Codebase Dump
 # বাংলা মন্তব্য: এটি একটি স্বয়ংক্রিয়ভাবে জেনারেট করা কোডবেস ডাম্প ফাইল যা প্রজেক্টের সামগ্রিক বিশ্লেষণের জন্য ব্যবহৃত হয়।
 
-Generated at: 2026-07-07T08:33:49.486382
+Generated at: 2026-07-07T08:37:57.055418
 
 
 ## File: `pnpm-lock.yaml`
@@ -117902,7 +117902,7 @@ const queryClient = new QueryClient({
     queries: {
       retry: (failureCount, error: any) => {
         if (error?.status === 401 || error?.status === 403) return false;
-        return failureCount < 3;
+        return failureCount < 1;
       },
       retryDelay: 5000,
       refetchOnWindowFocus: false,
@@ -131277,7 +131277,7 @@ export function UserManager({
       {/* Users List */}
       <h4 className="text-xs font-bold text-slate-400 mb-4 tracking-wider uppercase font-mono">Administrative User Registry</h4>
       <div className="flex flex-col gap-3">
-        {adminUsers.map(user => {
+        {Array.isArray(adminUsers) && adminUsers.map(user => {
           const perms = Array.isArray(user.permissions) 
             ? user.permissions 
             : typeof user.permissions === 'string'
@@ -134242,7 +134242,7 @@ export function CostAuditor({ costReport }: CostAuditorProps) {
       {/* Provider Quotas */}
       <h4 className="text-xs font-bold text-slate-400 mb-4 tracking-wider uppercase font-mono">Provider Quotas & Consumption</h4>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-        {providerCosts.map(prov => {
+        {Array.isArray(providerCosts) && providerCosts.map(prov => {
           const provPercent = Math.min((prov.spent / prov.quota) * 100, 100);
           return (
             <div key={prov.name} className="bg-[#090a0f] border border-slate-900/60 rounded-xl p-4 flex flex-col gap-3">
@@ -134275,7 +134275,7 @@ export function CostAuditor({ costReport }: CostAuditorProps) {
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-900">
-            {recentCharges.map((chg, idx) => (
+            {Array.isArray(recentCharges) && recentCharges.map((chg, idx) => (
               <tr key={idx} className="hover:bg-slate-800/10">
                 <td className="p-3 text-slate-400">{chg.time}</td>
                 <td className="p-3 font-bold text-slate-200">{chg.user}</td>
@@ -136877,16 +136877,25 @@ describe('useTranslation', () => {
  * This intentionally keeps admin tokens out of browser-local storage
  * to reduce exposure from XSS and persistent storage.
  */
-let adminToken = '';
+const TOKEN_KEY = 'supreme_admin_token';
 
 export const setAdminToken = (token: string) => {
-  adminToken = token;
+  if (typeof window !== 'undefined') {
+    sessionStorage.setItem(TOKEN_KEY, token);
+  }
 };
 
-export const getAdminToken = () => adminToken;
+export const getAdminToken = (): string | null => {
+  if (typeof window !== 'undefined') {
+    return sessionStorage.getItem(TOKEN_KEY);
+  }
+  return null;
+};
 
 export const clearAdminToken = () => {
-  adminToken = '';
+  if (typeof window !== 'undefined') {
+    sessionStorage.removeItem(TOKEN_KEY);
+  }
 };
 
 ```

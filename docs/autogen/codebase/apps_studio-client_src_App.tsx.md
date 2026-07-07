@@ -2,7 +2,7 @@
 
 **প্রকার:** .tsx  
 **সাইজ:** 22,588 বাইট  
-**আপডেট:** 2026-07-07T08:33:49.606227
+**আপডেট:** 2026-07-07T08:37:57.175510
 
 ---
 
@@ -19,7 +19,7 @@ const queryClient = new QueryClient({
     queries: {
       retry: (failureCount, error: any) => {
         if (error?.status === 401 || error?.status === 403) return false;
-        return failureCount < 3;
+        return failureCount < 1;
       },
       retryDelay: 5000,
       refetchOnWindowFocus: false,

@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/studio-client/src/components/admin/CostAuditor.tsx
 
 **প্রকার:** .tsx  
-**সাইজ:** 6,455 বাইট  
-**আপডেট:** 2026-07-07T08:33:49.623786
+**সাইজ:** 6,519 বাইট  
+**আপডেট:** 2026-07-07T08:37:57.192896
 
 ---
 
@@ -78,7 +78,7 @@ export function CostAuditor({ costReport }: CostAuditorProps) {
       {/* Provider Quotas */}
       <h4 className="text-xs font-bold text-slate-400 mb-4 tracking-wider uppercase font-mono">Provider Quotas & Consumption</h4>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-        {providerCosts.map(prov => {
+        {Array.isArray(providerCosts) && providerCosts.map(prov => {
           const provPercent = Math.min((prov.spent / prov.quota) * 100, 100);
           return (
             <div key={prov.name} className="bg-[#090a0f] border border-slate-900/60 rounded-xl p-4 flex flex-col gap-3">
@@ -111,7 +111,7 @@ export function CostAuditor({ costReport }: CostAuditorProps) {
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-900">
-            {recentCharges.map((chg, idx) => (
+            {Array.isArray(recentCharges) && recentCharges.map((chg, idx) => (
               <tr key={idx} className="hover:bg-slate-800/10">
                 <td className="p-3 text-slate-400">{chg.time}</td>
                 <td className="p-3 font-bold text-slate-200">{chg.user}</td>

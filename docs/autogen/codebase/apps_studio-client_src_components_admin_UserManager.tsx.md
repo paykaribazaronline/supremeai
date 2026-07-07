@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/studio-client/src/components/admin/UserManager.tsx
 
 **প্রকার:** .tsx  
-**সাইজ:** 6,218 বাইট  
-**আপডেট:** 2026-07-07T08:33:49.620783
+**সাইজ:** 6,247 বাইট  
+**আপডেট:** 2026-07-07T08:37:57.189959
 
 ---
 
@@ -85,7 +85,7 @@ export function UserManager({
       {/* Users List */}
       <h4 className="text-xs font-bold text-slate-400 mb-4 tracking-wider uppercase font-mono">Administrative User Registry</h4>
       <div className="flex flex-col gap-3">
-        {adminUsers.map(user => {
+        {Array.isArray(adminUsers) && adminUsers.map(user => {
           const perms = Array.isArray(user.permissions) 
             ? user.permissions 
             : typeof user.permissions === 'string'
