@@ -1,3 +1,9 @@
 {
-  "ignoreCommand": "git diff --quiet HEAD^ HEAD ./apps/desktop"
+  "buildCommand": "pnpm turbo run build --filter=supremeai-studio-client",
+  "ignoreCommand": "git diff --quiet HEAD^ HEAD ./apps/studio-client",
+  "outputDirectory": "apps/studio-client/dist",
+  "framework": "vite",
+  "env": {
+    "VITE_PORTAL_TYPE": "user"
+  }
 }
