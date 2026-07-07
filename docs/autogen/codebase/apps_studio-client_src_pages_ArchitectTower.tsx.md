@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/studio-client/src/pages/ArchitectTower.tsx
 
 **প্রকার:** .tsx  
-**সাইজ:** 8,596 বাইট  
-**আপডেট:** 2026-07-07T18:40:05.158734
+**সাইজ:** 4,798 বাইট  
+**আপডেট:** 2026-07-07T19:02:10.589937
 
 ---
 
@@ -11,15 +11,13 @@
 ```tsx
 import React, { useState, useEffect } from 'react';
 import { ShieldAlert, Activity, CheckCircle, Database } from 'lucide-react';
-import { FixPreviewModal } from '../components/FixPreviewModal';
+import { OneClickPatch } from '../components/admin/OneClickPatch';
 import { getApiBaseUrl } from '../utils/api';
 import { getAdminToken } from '../services/adminTokenStore';
 
 export const ArchitectTower: React.FC = () => {
   const [fixes, setFixes] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedFix, setSelectedFix] = useState<any>(null);
-  const [actionLoading, setActionLoading] = useState(false);
   const [error, setError] = useState('');
 
   const fetchFixes = async () => {
@@ -46,51 +44,9 @@ export const ArchitectTower: React.FC = () => {
     fetchFixes();
   }, []);
 
-  const handleApprove = async () => {
-    if (!selectedFix) return;
-    setActionLoading(true);
-    try {
-      const token = getAdminToken();
-      const res = await fetch(`${getApiBaseUrl()}/api/admin/fixes/${selectedFix.id}/approve?tenant_id=supremeai-a`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token || 'mock_token'}`,
-          'Content-Type': 'application/json'
-        }
-      });
-      if (!res.ok) throw new Error('Failed to approve fix');
-      
-      setSelectedFix(null);
-      fetchFixes(); // Refresh list
-    } catch (err: any) {
-      alert(err.message);
-    } finally {
-      setActionLoading(false);
-    }
-  };
-
-  const handleReject = async () => {
-    if (!selectedFix) return;
-    setActionLoading(true);
-    try {
-      const token = getAdminToken();
-      const res = await fetch(`${getApiBaseUrl()}/api/admin/fixes/${selectedFix.id}/reject?tenant_id=supremeai-a`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token || 'mock_token'}`,
-          'Content-Type': 'application/json'
-        }
-      });
-      if (!res.ok) throw new Error('Failed to reject fix');
-      
-      setSelectedFix(null);
-      fetchFixes(); // Refresh list
-    } catch (err: any) {
-      alert(err.message);
-    } finally {
-      setActionLoading(false);
-    }
-  };
+  useEffect(() => {
+    fetchFixes();
+  }, []);
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-300 p-8">
@@ -156,67 +112,20 @@ export const ArchitectTower: React.FC = () => {
             <div className="p-12 text-center text-slate-500">
               No pending fixes. System is running optimally.
             </div>
-          ) : (
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="bg-slate-800/50">
-                  <th className="p-4 font-semibold text-slate-400 text-sm">Fix ID / Context</th>
-                  <th className="p-4 font-semibold text-slate-400 text-sm">Error Type</th>
-                  <th className="p-4 font-semibold text-slate-400 text-sm">Impact Score</th>
-                  <th className="p-4 font-semibold text-slate-400 text-sm">Created At</th>
-                  <th className="p-4 font-semibold text-slate-400 text-sm text-right">Action</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-800/50">
-                {fixes.map((fix) => (
-                  <tr key={fix.id} className="hover:bg-slate-800/30 transition-colors">
-                    <td className="p-4">
-                      <div className="font-mono text-emerald-400 text-sm">{fix.id}</div>
-                      <div className="text-xs text-slate-500 mt-1">{fix.target_file || 'Unknown file'}</div>
-                    </td>
-                    <td className="p-4">
-                      <span className="px-2 py-1 bg-rose-950/50 text-rose-400 rounded text-xs border border-rose-900/50">
-                        {fix.error_type}
-                      </span>
-                    </td>
-                    <td className="p-4">
-                      <div className="flex items-center gap-2">
-                        <div className="w-full bg-slate-800 rounded-full h-1.5 w-16">
-                          <div 
-                            className="bg-amber-500 h-1.5 rounded-full" 
-                            style={{ width: `${Math.min(100, (fix.impact_score || 0) * 10)}%` }} 
-                          />
-                        </div>
-                        <span className="text-sm font-medium">{fix.impact_score}</span>
-                      </div>
-                    </td>
-                    <td className="p-4 text-sm text-slate-400">
-                      {new Date(fix.created_at).toLocaleString()}
-                    </td>
-                    <td className="p-4 text-right">
-                      <button 
-                        onClick={() => setSelectedFix(fix)}
-                        className="px-4 py-2 bg-emerald-600/10 hover:bg-emerald-600/20 text-emerald-400 border border-emerald-500/20 rounded-lg text-sm font-medium transition-colors"
-                      >
-                        Preview Fix
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <OneClickPatch 
+              proposals={fixes.map(f => ({
+                id: f.id,
+                issueId: f.target_file,
+                description: `Error Type: ${f.error_type} | Impact Score: ${f.impact_score}`,
+                beforeCode: f.metadata?.original_code || "// Original code missing",
+                afterCode: f.metadata?.proposed_code || "// Proposed fix missing",
+                status: 'pending_review'
+              }))}
+              onPatchApplied={fetchFixes}
+            />
           )}
         </div>
       </div>
-
-      <FixPreviewModal 
-        isOpen={!!selectedFix}
-        onClose={() => setSelectedFix(null)}
-        onApprove={handleApprove}
-        onReject={handleReject}
-        fix={selectedFix}
-        loading={actionLoading}
-      />
     </div>
   );
 };

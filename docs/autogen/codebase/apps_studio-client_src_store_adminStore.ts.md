@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/studio-client/src/store/adminStore.ts
 
 **প্রকার:** .ts  
-**সাইজ:** 2,866 বাইট  
-**আপডেট:** 2026-07-07T18:40:05.159854
+**সাইজ:** 3,053 বাইট  
+**আপডেট:** 2026-07-07T19:02:10.591029
 
 ---
 
@@ -10,7 +10,6 @@
 
 ```ts
 import { create } from 'zustand';
-import { setAdminToken, clearAdminToken } from '../services/adminTokenStore';
 import { getApiBaseUrl } from '../utils/api';
 
 interface AdminState {
@@ -32,7 +31,7 @@ interface AdminState {
 }
 
 export const useAdminStore = create<AdminState>((set, get) => ({
-  adminAuthenticated: true,
+  adminAuthenticated: false,
   adminPassword: '',
   setAdminPassword: (val) => set({ adminPassword: val }),
   adminError: '',
@@ -57,6 +56,7 @@ export const useAdminStore = create<AdminState>((set, get) => ({
         const res = await fetch(`${API_BASE}/api/admin/login`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
           body: JSON.stringify({ password: cleanPassword }),
         });
         if (res.ok) {
@@ -72,12 +72,13 @@ export const useAdminStore = create<AdminState>((set, get) => ({
         const res = await fetch(`${API_BASE}/api/admin/verify`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
           body: JSON.stringify({ password: cleanPassword, otp: adminOtp.trim() }),
         });
         if (res.ok) {
           const data = await res.json();
-          set({ adminAuthenticated: true, otpRequired: false, adminOtp: '' });
-          setAdminToken(data.token);
+          // Token is now set via httpOnly cookie from the backend.
+          set({ adminAuthenticated: true, otpRequired: false, adminOtp: '', adminPassword: '' });
         } else {
           const data = await res.json();
           set({ adminError: data.detail || 'Invalid verification code.' });
@@ -87,8 +88,11 @@ export const useAdminStore = create<AdminState>((set, get) => ({
       set({ adminError: 'Connection failed: ' + err.message });
     }
   },
-  handleAdminLogout: () => {
-    clearAdminToken();
+  handleAdminLogout: async () => {
+    try {
+      const API_BASE = getApiBaseUrl();
+      await fetch(`${API_BASE}/api/admin/logout`, { method: 'POST', credentials: 'include' });
+    } catch(e) {}
     set({ adminAuthenticated: false, adminPassword: '', otpRequired: false, adminOtp: '' });
   },
 }));

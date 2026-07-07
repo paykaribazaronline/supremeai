@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/studio-client/vite.config.ts
 
 **প্রকার:** .ts  
-**সাইজ:** 1,492 বাইট  
-**আপডেট:** 2026-07-07T18:40:05.139017
+**সাইজ:** 1,572 বাইট  
+**আপডেট:** 2026-07-07T19:02:10.569026
 
 ---
 
@@ -22,6 +22,7 @@ export default defineConfig({
   ],
   esbuild: {
     jsx: 'automatic',
+    drop: process.env.NODE_ENV === 'production' ? ['console', 'debugger'] : [],
   },
   resolve: {
     dedupe: ['react', 'react-dom', '@tanstack/react-query']

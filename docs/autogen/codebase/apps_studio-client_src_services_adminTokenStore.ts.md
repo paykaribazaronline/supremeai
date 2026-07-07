@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/studio-client/src/services/adminTokenStore.ts
 
 **প্রকার:** .ts  
-**সাইজ:** 637 বাইট  
-**আপডেট:** 2026-07-07T18:40:05.161781
+**সাইজ:** 982 বাইট  
+**আপডেট:** 2026-07-07T19:02:10.592881
 
 ---
 
@@ -10,28 +10,41 @@
 
 ```ts
 /**
- * In-memory admin token store.
+ * In-memory admin session metadata store.
  * This intentionally keeps admin tokens out of browser-local storage
- * to reduce exposure from XSS and persistent storage.
+ * (since we use httpOnly cookies) but stores non-sensitive session metadata.
  */
-const TOKEN_KEY = 'supreme_admin_token';
+const METADATA_KEY = 'supreme_admin_metadata';
 
-export const setAdminToken = (token: string) => {
+export interface AdminSessionMetadata {
+  role?: string;
+  permissions?: string[];
+  expiry_timestamp?: number;
+}
+
+export const setAdminMetadata = (metadata: AdminSessionMetadata) => {
   if (typeof window !== 'undefined') {
-    sessionStorage.setItem(TOKEN_KEY, token);
+    sessionStorage.setItem(METADATA_KEY, JSON.stringify(metadata));
   }
 };
 
-export const getAdminToken = (): string | null => {
+export const getAdminMetadata = (): AdminSessionMetadata | null => {
   if (typeof window !== 'undefined') {
-    return sessionStorage.getItem(TOKEN_KEY);
+    const data = sessionStorage.getItem(METADATA_KEY);
+    if (data) {
+      try {
+        return JSON.parse(data);
+      } catch (e) {
+        return null;
+      }
+    }
   }
   return null;
 };
 
-export const clearAdminToken = () => {
+export const clearAdminMetadata = () => {
   if (typeof window !== 'undefined') {
-    sessionStorage.removeItem(TOKEN_KEY);
+    sessionStorage.removeItem(METADATA_KEY);
   }
 };
 

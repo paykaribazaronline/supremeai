@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/studio-client/src/store/useStore.ts
 
 **প্রকার:** .ts  
-**সাইজ:** 5,617 বাইট  
-**আপডেট:** 2026-07-07T18:40:05.160131
+**সাইজ:** 6,040 বাইট  
+**আপডেট:** 2026-07-07T19:02:10.591298
 
 ---
 
@@ -11,6 +11,7 @@
 ```ts
 import { create } from "zustand";
 import { getApiBaseUrl } from '../utils/api';
+import { AppDefaults } from '../config/constants';
 
 
 interface ChatMessage {
@@ -22,8 +23,15 @@ interface ChatMessage {
 
 interface DeployGateInfo {
   status: "LOCKED" | "UNLOCKED";
+  status: "LOCKED" | "UNLOCKED";
   reason: string;
   updated_at?: string;
+}
+
+interface ConfigState {
+  systemConfig: typeof AppDefaults;
+  isConfigLoaded: boolean;
+  setConfig: (config: Partial<typeof AppDefaults>) => void;
 }
 
 interface EvolutionState {
@@ -35,7 +43,7 @@ interface EvolutionState {
   forgeNewSkill: (skillName: string, userDemand: string) => Promise<void>;
 }
 
-interface SupremeState extends EvolutionState {
+interface SupremeState extends EvolutionState, ConfigState {
   isServerOnline: boolean;
   sessionId: string | null;
   currentIdempotencyKey: string | null;
@@ -62,6 +70,10 @@ interface SupremeState extends EvolutionState {
 }
 
 export const useStore = create<SupremeState>((set) => ({
+  systemConfig: AppDefaults,
+  isConfigLoaded: false,
+  setConfig: (config) => set((state) => ({ systemConfig: { ...state.systemConfig, ...config }, isConfigLoaded: true })),
+
   isServerOnline: false,
   sessionId: null,
   currentIdempotencyKey: null,
