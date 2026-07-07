@@ -16,7 +16,8 @@ def test_app() -> FastAPI:
     try:
         base_app.include_router(voice_router, prefix="/api/voice")
     except ValueError:
-        pass # Router already added
+        import logging
+        logging.warning("Router already added in test_voice_stream")
     return base_app
 
 

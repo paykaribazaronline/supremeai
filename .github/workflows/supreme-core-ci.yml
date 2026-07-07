@@ -177,6 +177,17 @@ jobs:
           poetry run ruff check . --fix
           poetry run ruff format .
  
+      - name: 🚫 Zero-Gap Stub Data Gate
+        id: stub_data_gate
+        working-directory: backend
+        run: |
+          echo "## 🚫 Zero-Gap Stub Data Gate" >> $GITHUB_STEP_SUMMARY
+          python ../scripts/find_stub_data.py --path .. --fail-on HIGH >> $GITHUB_STEP_SUMMARY 2>&1 || {
+            echo "❌ Stub/placeholder data detected in codebase" >> $GITHUB_STEP_SUMMARY
+            exit 1
+          }
+          echo "✅ No stub/placeholder patterns found above HIGH severity" >> $GITHUB_STEP_SUMMARY
+
       - name: 🧪 Run Tests
         id: backend_tests
         working-directory: backend

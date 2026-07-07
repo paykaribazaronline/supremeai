@@ -185,7 +185,7 @@ class LocalSearchRAG:
             title, text = fields[0], fields[1] if len(fields) > 1 else ""
             if not text:
                 continue
-            doc_id = hashlib.md5(url.encode("utf-8")).hexdigest()
+            doc_id = hashlib.md5(url.encode("utf-8"), usedforsecurity=False).hexdigest()
             ids.append(doc_id)
             documents.append(text)
             metadatas.append({"url": url, "title": title, "query": query})

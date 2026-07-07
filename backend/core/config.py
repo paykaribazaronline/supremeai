@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 from loguru import logger
 from pydantic import Field
 from pydantic import ValidationInfo
+from pydantic import computed_field
 from pydantic import field_validator
 from pydantic_settings import BaseSettings
 from pydantic_settings import SettingsConfigDict
@@ -66,20 +67,49 @@ class Settings(BaseSettings):
 
     # ⚡ ডাইনামিকলি সরাসরি ক্লাউড মেমরি থেকে সিক্রেট রিড করা হচ্ছে
     # ডিস্কে কোনো .env ফাইল না থাকলেও প্রোডাকশন এপিআই ১০০% স্মুথলি চলবে
-    supabase_database_url: str = secret_vault.fetch_secret(
-        "SUPABASE_DATABASE_URL_POOLER"
-    )
-    redis_url: str = secret_vault.fetch_secret("REDIS_URL")
+    @computed_field
+    def supabase_database_url(self) -> str:
+        return secret_vault.fetch_secret("SUPABASE_DATABASE_URL_POOLER")
 
-    openrouter_api_key: str = secret_vault.fetch_secret("OPENROUTER_API_KEY")
-    hf_api_key: str = secret_vault.fetch_secret("HF_API_KEY")
-    gemini_api_key: str = secret_vault.fetch_secret("GEMINI_API_KEY")
-    openai_api_key: str = secret_vault.fetch_secret("OPENAI_API_KEY")
-    deepseek_api_key: str = secret_vault.fetch_secret("DEEPSEEK_API_KEY")
-    groq_api_key: str = secret_vault.fetch_secret("GROQ_API_KEY")
-    nvidia_api_key: str = secret_vault.fetch_secret("NVIDIA_API_KEY")
-    firecrawl_api_key: str = secret_vault.fetch_secret("FIRECRAWL_API_KEY")
-    discord_bot_token: str = secret_vault.fetch_secret("DISCORD_BOT_TOKEN")
+    @computed_field
+    def redis_url(self) -> str:
+        return secret_vault.fetch_secret("REDIS_URL")
+
+    @computed_field
+    def openrouter_api_key(self) -> str:
+        return secret_vault.fetch_secret("OPENROUTER_API_KEY")
+
+    @computed_field
+    def hf_api_key(self) -> str:
+        return secret_vault.fetch_secret("HF_API_KEY")
+
+    @computed_field
+    def gemini_api_key(self) -> str:
+        return secret_vault.fetch_secret("GEMINI_API_KEY")
+
+    @computed_field
+    def openai_api_key(self) -> str:
+        return secret_vault.fetch_secret("OPENAI_API_KEY")
+
+    @computed_field
+    def deepseek_api_key(self) -> str:
+        return secret_vault.fetch_secret("DEEPSEEK_API_KEY")
+
+    @computed_field
+    def groq_api_key(self) -> str:
+        return secret_vault.fetch_secret("GROQ_API_KEY")
+
+    @computed_field
+    def nvidia_api_key(self) -> str:
+        return secret_vault.fetch_secret("NVIDIA_API_KEY")
+
+    @computed_field
+    def firecrawl_api_key(self) -> str:
+        return secret_vault.fetch_secret("FIRECRAWL_API_KEY")
+
+    @computed_field
+    def discord_bot_token(self) -> str:
+        return secret_vault.fetch_secret("DISCORD_BOT_TOKEN")
 
     claude_openrouter_model: str = "anthropic/claude-3.5-haiku:free"
 

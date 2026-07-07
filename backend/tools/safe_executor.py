@@ -166,7 +166,7 @@ def run_restricted(
 
         # Execute the sandboxed code. RestrictedPython will raise an exception if
         # the code attempts to use disallowed operations.
-        exec(byte_code, globals_, locals_)
+        exec(byte_code, globals_, locals_)  # noqa: S102
         return True, locals_
 
     except (ValueError, SyntaxError, NameError, TypeError) as e:

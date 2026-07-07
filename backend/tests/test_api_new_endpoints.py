@@ -20,6 +20,7 @@ import pytest
 def setup_token():
     os.environ["SUPREMEAI_API_TOKEN"] = "test-token"
     yield
+    os.environ.pop("SUPREMEAI_API_TOKEN", None)
 
 
 def test_api_email_endpoints():

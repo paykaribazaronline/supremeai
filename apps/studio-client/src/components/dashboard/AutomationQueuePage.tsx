@@ -68,9 +68,15 @@ export function AutomationQueuePage() {
 
   useEffect(() => {
     refresh();
-    const interval = setInterval(refresh, 4000);
+    const backendUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+    const sse = new EventSource(`${backendUrl}/api/dashboard/stream`);
+    
+    sse.addEventListener('browser_tasks', () => {
+      refresh();
+    });
+
     return () => {
-      clearInterval(interval);
+      sse.close();
       setSujonState('idle');
     };
   }, [refresh]);

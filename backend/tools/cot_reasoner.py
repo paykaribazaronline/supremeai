@@ -3,7 +3,8 @@ from __future__ import annotations
 import ast
 import contextlib
 import operator
-import random
+import secrets
+random = secrets.SystemRandom()
 from typing import Any
 
 from loguru import logger

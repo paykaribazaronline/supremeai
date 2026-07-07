@@ -1,4 +1,5 @@
 import os
+import shlex
 import subprocess
 from typing import Any
 
@@ -25,8 +26,8 @@ class ComputerAgent:
 
         try:
             result = subprocess.run(
-                cmd,
-                shell=True,
+                shlex.split(cmd),
+                shell=False,
                 capture_output=True,
                 text=True,
                 timeout=15.0,

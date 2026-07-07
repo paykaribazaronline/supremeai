@@ -1,6 +1,7 @@
 import asyncio
 import os
-import random
+import secrets
+random = secrets.SystemRandom()
 import string
 import time
 from pathlib import Path

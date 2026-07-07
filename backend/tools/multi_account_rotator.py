@@ -18,6 +18,8 @@ from datetime import timedelta
 from enum import Enum
 from typing import Any
 
+from core.config_cache import config_cache
+
 
 # Configure logging
 logging.basicConfig(
@@ -509,7 +511,7 @@ class MultiAccountRotator:
         provider = self.providers[provider_name]
 
         # Generate unique account ID
-        account_id = hashlib.md5(f"{provider_name}_{email}".encode()).hexdigest()[:8]
+        account_id = hashlib.md5(f"{provider_name}_{email}".encode(), usedforsecurity=False).hexdigest()[:8]
 
         account = Account(
             id=account_id,
@@ -523,48 +525,25 @@ class MultiAccountRotator:
         logger.info(f"Added account {account_id} to provider {provider_name}")
 
     def _create_provider_if_missing(self, provider_name: str):
-        """Create a basic provider configuration if missing"""
-        if provider_name == "groq":
-            provider = Provider(
-                name="groq",
-                base_url="https://api.groq.com",
-                models=["llama3-70b-8192", "mixtral-8x7b-32768"],
-                rate_limit_rpm=60,
-                rate_limit_tpm=1000000,
-                status=ProviderStatus.ACTIVE,
-                cost_per_token=0.0002,
-            )
-        elif provider_name == "deepseek":
-            provider = Provider(
-                name="deepseek",
-                base_url="https://api.deepseek.com",
-                models=["deepseek-coder", "deepseek-chat"],
-                rate_limit_rpm=100,
-                rate_limit_tpm=5000000,
-                status=ProviderStatus.ACTIVE,
-                cost_per_token=0.00005,
-            )
-        elif provider_name == "google_ai_studio":
-            provider = Provider(
-                name="google_ai_studio",
-                base_url="https://generativelanguage.googleapis.com",
-                models=["gemini-2.0-flash-exp", "gemini-1.5-pro"],
-                rate_limit_rpm=15,
-                rate_limit_tpm=1000000,
-                status=ProviderStatus.ACTIVE,
-                cost_per_token=0.0001,
-            )
-        else:
-            # Generic provider
-            provider = Provider(
-                name=provider_name,
-                base_url=f"https://api.{provider_name}.com",
-                models=["default-model"],
-                rate_limit_rpm=10,
-                rate_limit_tpm=100000,
-                status=ProviderStatus.ACTIVE,
-                cost_per_token=0.0001,
-            )
+        """Create a basic provider configuration using ConfigCache DB fallback"""
+        # Fetch dynamically from ConfigCache (which falls back to defaults or DB)
+        base_url = config_cache.get(f"provider_base_url_{provider_name}", f"https://api.{provider_name}.com")
+        models = config_cache.get(f"provider_models_{provider_name}", ["default-model"])
+        
+        # We can also dynamically fetch rate limits if we want, or default them
+        # Note: default values here are just fallback in case even DEFAULT_CONFIGS doesn't have it
+        rpm = config_cache.get(f"rate_limit_{provider_name}_rpm", 60)
+        tpm = config_cache.get(f"rate_limit_{provider_name}_tpm", 100000)
+        
+        provider = Provider(
+            name=provider_name,
+            base_url=base_url,
+            models=models,
+            rate_limit_rpm=rpm,
+            rate_limit_tpm=tpm,
+            status=ProviderStatus.ACTIVE,
+            cost_per_token=0.0001,
+        )
 
         self.providers[provider_name] = provider
         logger.info(f"Created missing provider: {provider_name}")

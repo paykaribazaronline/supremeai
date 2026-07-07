@@ -82,6 +82,6 @@ export const useAdminStore = create<AdminState>((set, get) => ({
       const API_BASE = getApiBaseUrl();
       await fetch(`${API_BASE}/api/admin/logout`, { method: 'POST', credentials: 'include' });
     } catch(e) {}
-    set({ adminAuthenticated: false, adminPassword: '', otpRequired: false, adminOtp: '' });
+    set({ adminAuthenticated: false, adminPassword: '', otpRequired: false, adminOtp: '', adminError: '' });
   },
 }));

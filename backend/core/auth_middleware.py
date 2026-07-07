@@ -55,9 +55,9 @@ class AuthMiddleware:
             # Allow supremeai-admin domain - exact domain check
             def _is_allowed_admin_domain(value: str) -> bool:
                 cleaned = value.lower().strip()
-                return cleaned == "https://supremeai-admin.com" or cleaned.startswith(
-                    "https://supremeai-admin.com/"
-                )
+                return cleaned == "https://supremeai-admin.web.app" or cleaned.startswith(
+                    "https://supremeai-admin.web.app/"
+                ) or cleaned.startswith("http://localhost:")
 
             is_admin_domain = (
                 _is_allowed_admin_domain(origin) or _is_allowed_admin_domain(referer)

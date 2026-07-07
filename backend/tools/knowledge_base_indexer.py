@@ -43,7 +43,7 @@ class KnowledgeBaseIndexer:
                 logging.warning(f"Exception suppressed: {e}")
             return docs
 
-        module_hash = hashlib.md5(source.encode("utf-8")).hexdigest()
+        module_hash = hashlib.md5(source.encode("utf-8"), usedforsecurity=False).hexdigest()
         self._indexed_hashes[path] = module_hash
 
         docs.append(
@@ -287,7 +287,7 @@ class KnowledgeBaseIndexer:
             metadata["source_type"] = metadata.get("source_type", "external")
 
             # Generate a unique ID based on the content or provided ID
-            item_id = item.get("id") or hashlib.md5(text.encode("utf-8")).hexdigest()
+            item_id = item.get("id") or hashlib.md5(text.encode("utf-8"), usedforsecurity=False).hexdigest()
 
             docs.append(
                 {

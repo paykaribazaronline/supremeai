@@ -1,6 +1,7 @@
+
 from fastapi import APIRouter
 from pydantic import BaseModel
-from typing import Dict, Any
+
 
 router = APIRouter(
     prefix="/config/public",
@@ -10,7 +11,7 @@ router = APIRouter(
 class PublicConfigResponse(BaseModel):
     adminEmail: str
     maxConcurrency: int
-    features: Dict[str, bool]
+    features: dict[str, bool]
 
 @router.get("", response_model=PublicConfigResponse)
 async def get_public_config():

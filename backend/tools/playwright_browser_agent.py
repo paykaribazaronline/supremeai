@@ -3,7 +3,8 @@ from __future__ import annotations
 import contextlib
 import asyncio
 import json
-import random
+import secrets
+random = secrets.SystemRandom()
 import time
 import base64
 from collections.abc import Callable

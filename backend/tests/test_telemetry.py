@@ -114,11 +114,9 @@ def test_trace_span_records_exception_on_error():
     mock_tracer.start_as_current_span.return_value.__enter__.return_value = mock_span
 
     with patch("core.telemetry.get_tracer", return_value=mock_tracer):
-        try:
+        with pytest.raises(RuntimeError):
             with trace_span("error-span"):
                 raise RuntimeError("boom")
-        except RuntimeError:
-            pass
         from opentelemetry.trace import StatusCode
 
         mock_span.set_status.assert_called()

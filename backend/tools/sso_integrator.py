@@ -1,4 +1,4 @@
-import xml.etree.ElementTree as ET
+import defusedxml.ElementTree as ET
 from typing import Any
 from urllib.parse import parse_qs
 from urllib.parse import urlparse

@@ -61,6 +61,11 @@ class ProductionSecretVault:
                 raise RuntimeError(f"Failed to fetch {secret_id} in production: {e}") from e
             return ""
 
+    async def fetch_secret_async(self, secret_id: str) -> str:
+        """অ্যাসিঙ্ক ইভেন্ট লুপ ব্লক না করে সিক্রেট ফেচ করার মেথড"""
+        import asyncio
+        return await asyncio.to_thread(self.fetch_secret, secret_id)
+
 
 # Global Vault Singleton Instance
 secret_vault = ProductionSecretVault()

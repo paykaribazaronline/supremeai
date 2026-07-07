@@ -96,8 +96,18 @@ class VisionAgent:
 
             doc = fitz.open(pdf_path)
             return [page.get_text("text") for page in doc if not page.is_closed]
-        except ImportError:
-            pass
+        except ImportError as e:
+            logger.exception(f"❌ Critical task failure in vision_agent.py: {e}")
+            from core.event_bus import error_event_bus, ErrorEvent
+            error_event_bus.emit(
+                ErrorEvent(
+                    module="backend.tools.vision_agent",
+                    error_type=type(e).__name__,
+                    message=str(e),
+                    severity="WARNING",
+                    context={"action": "extract_pdf_text_fitz"}
+                )
+            )
         try:
             import pdfplumber
 
@@ -106,8 +116,18 @@ class VisionAgent:
                 for page in pdf.pages:
                     pages.append(page.extract_text() or "")
             return pages
-        except ImportError:
-            pass
+        except ImportError as e:
+            logger.exception(f"❌ Critical task failure in vision_agent.py: {e}")
+            from core.event_bus import error_event_bus, ErrorEvent
+            error_event_bus.emit(
+                ErrorEvent(
+                    module="backend.tools.vision_agent",
+                    error_type=type(e).__name__,
+                    message=str(e),
+                    severity="WARNING",
+                    context={"action": "extract_pdf_text_pdfplumber"}
+                )
+            )
         logger.warning(
             "Neither PyMuPDF nor pdfplumber is available for PDF extraction."
         )

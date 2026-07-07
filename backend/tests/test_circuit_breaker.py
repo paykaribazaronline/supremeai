@@ -83,10 +83,8 @@ async def test_call_failure_trips():
         raise RuntimeError("boom")
 
     for _ in range(2):
-        try:
+        with pytest.raises(RuntimeError):
             await cb.call(fake_func)
-        except RuntimeError:
-            pass
     assert cb.state == "OPEN"
 
 

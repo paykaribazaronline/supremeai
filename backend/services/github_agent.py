@@ -7,7 +7,6 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.security_vault import decrypt_token
-from database.session import get_db_session
 from models.integration import Integration
 
 

@@ -39,7 +39,7 @@ class ResearchAssistant:
             return []
 
     def _parse_arxiv_xml(self, xml: str) -> list[dict[str, Any]]:
-        import xml.etree.ElementTree as ET
+        import defusedxml.ElementTree as ET
 
         ns = {
             "atom": "http://www.w3.org/2005/Atom",

@@ -161,6 +161,10 @@ class LLMGateway:
             if m not in call_chain:
                 call_chain.append(m)
 
+        if not call_chain:
+            call_chain = ["gemini-1.5-flash", "gpt-3.5-turbo"]
+            logger.warning("Empty call chain detected in LLMGateway. Using default fallback models.")
+
         # বাংলা মন্তব্য: পেলোড নরমালাইজেশন — স্ট্রিং অথবা মেসেজ লিস্ট দুই ফরম্যাটই সাপোর্ট করে
         if isinstance(prompt, list):
             messages = prompt

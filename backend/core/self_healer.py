@@ -5,6 +5,8 @@ from typing import Any
 
 from loguru import logger
 
+from core.event_bus import error_event_bus, ErrorEvent
+
 
 class SelfHealerService:
     def __init__(self, db: Any):
@@ -75,3 +77,15 @@ class SelfHealerService:
         # Here we would normally use the cloud_sandbox_orchestrator
         # For now, return True as a placeholder
         return True
+
+async def _self_healer_error_listener(event: ErrorEvent):
+    """
+    Listens to the centralized error event bus.
+    If an error meets the criteria, it can trigger the self healer's propose_fix logic.
+    """
+    logger.info(f"SelfHealer triggered by event from {event.module}: {event.error_type}")
+    # In a full implementation, this would instantiate SelfHealerService and call propose_fix
+    # based on the severity and context of the event.
+
+# Register the listener
+error_event_bus.register_listener(_self_healer_error_listener)
