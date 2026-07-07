@@ -7,8 +7,8 @@ from typing import Any
 
 from loguru import logger
 
-from core.semantic_cache import SemanticCache
 from core.prompt_handler import estimate_tokens
+from core.semantic_cache import SemanticCache
 
 
 class AutocacheProxy:

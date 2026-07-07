@@ -1,14 +1,15 @@
 from __future__ import annotations
-from __future__ import annotations
 
 import hashlib
+import logging
 import os
 import sqlite3
 from datetime import UTC
 from datetime import datetime
 from typing import Any
-import logging
+
 from brain.model_router import ModelRouter
+
 
 logger = logging.getLogger(__name__)
 

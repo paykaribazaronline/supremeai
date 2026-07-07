@@ -1,7 +1,13 @@
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 import asyncio
+
+from fastapi import APIRouter
+from fastapi import WebSocket
+from fastapi import WebSocketDisconnect
 from pydantic import BaseModel
-from core.knowledge_base import get_from_memory, save_to_memory
+
+from core.knowledge_base import get_from_memory
+from core.knowledge_base import save_to_memory
+
 
 router = APIRouter()
 
@@ -60,6 +66,7 @@ async def commit_to_memory(request: LearnRequest):
     return {"status": "success", "message": "Memorized successfully"}
 
 from services.github_agent import create_autonomous_pr
+
 
 @router.post("/agent/github/pr")
 async def trigger_github_pr(request: PRRequest):

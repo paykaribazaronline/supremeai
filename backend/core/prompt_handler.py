@@ -1,5 +1,6 @@
 from typing import Any
 
+
 def normalize_prompt(prompt: str | list[dict[str, Any]]) -> str:
     """
     Extracts the textual representation of a prompt for hashing, token estimation,

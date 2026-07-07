@@ -11,6 +11,7 @@ router = APIRouter()
 
 import os
 
+
 # Note: In production, tokens would be verified against Redis/DB
 def verify_takeover_token(token: str) -> bool:
     if os.environ.get("SUPREMEAI_ENV") == "production":

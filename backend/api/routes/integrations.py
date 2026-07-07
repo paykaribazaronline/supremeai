@@ -1,11 +1,14 @@
-from fastapi import APIRouter, Depends, Request
-from fastapi.responses import RedirectResponse
-import httpx
 from urllib.parse import urlencode
+
+import httpx
+from fastapi import APIRouter
+from fastapi import Request
+from fastapi.responses import RedirectResponse
 
 from core.config import settings
 from core.security_vault import encrypt_token
-from database.session import get_db
+
+
 # Assuming we will use a database session/dependency to save the token. 
 # For now, we stub the DB save and print it.
 
@@ -47,7 +50,7 @@ async def github_callback(code: str, request: Request):
         return {"status": "error", "message": "Failed to get access token from GitHub."}
     
     # Encrypt the token using our AES-256 (Fernet) vault
-    encrypted_token = encrypt_token(access_token)
+    _encrypted_token = encrypt_token(access_token)
     
     # TODO: In a real app, extract user_id from the session/JWT
     user_id = "test_user_id" 

@@ -1,6 +1,7 @@
 import os
-import base64
+
 from cryptography.fernet import Fernet
+
 
 # The key should be a 32-url-safe-base64-encoded bytes (Fernet key)
 # In production, this must be set in environment variables!

@@ -10,6 +10,7 @@ from sqlalchemy.orm import mapped_column
 
 from models.base import Base
 
+
 class Integration(Base):
     __tablename__ = "integrations"
 
