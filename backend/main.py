@@ -8,6 +8,7 @@ from loguru import logger
 from api.routes import websocket_agent
 from api.routes.task_workspace import router as workspace_task_router
 from api.routes.agent_workspace import router as agent_router
+from api.routes.integrations import router as integrations_router
 from core.app import app  # noqa: F401
 from core.config import settings
 from core.logging_config import setup_logging
@@ -16,6 +17,7 @@ from core.logging_config import setup_logging
 app.include_router(workspace_task_router)
 app.include_router(websocket_agent.router)
 app.include_router(agent_router, prefix="/api/v1")
+app.include_router(integrations_router, prefix="/api/v1")
 
 setup_logging()
 

@@ -8,6 +8,7 @@ from typing import Any
 from loguru import logger
 
 from core.semantic_cache import SemanticCache
+from core.prompt_handler import estimate_tokens
 
 
 class AutocacheProxy:
@@ -42,11 +43,6 @@ class AutocacheProxy:
         """রিকোয়েস্টের জন্য ইউনিক হ্যাশ তৈরি করুন"""
         content = f"{model}:{prompt}"
         return hashlib.sha256(content.encode()).hexdigest()
-
-    def _estimate_tokens(self, text: str) -> int:
-        """টেক্সটের টোকেন গণনা করুন (rough estimate)"""
-        # স্ট্যান্ডার্ড এস্টিমেশন: ৪ টেক্সট = ১ টোকেন
-        return len(text) // 4
 
     def _calculate_cost(self, model: str, input_tokens: int, output_tokens: int) -> float:
         """API কল খরচ ক্যালকুলেট করুন"""
@@ -83,7 +79,7 @@ class AutocacheProxy:
         
         if cached_result and cached_result.response:
             # খরচ সেভিং্স ক্যালকুলেট করুন
-            input_tokens = self._estimate_tokens(prompt)
+            input_tokens = estimate_tokens(prompt)
             estimated_cost = self._calculate_cost(model, input_tokens, 100)
             
             self.cost_metrics["cached_hits"] += 1
@@ -138,7 +134,7 @@ class AutocacheProxy:
     def record_request(self, model: str, prompt: str, response: str, tokens_used: int):
         """সফল রিকোয়েস্ট রেকর্ড করুন ভবিষ্যত ক্যাশিংয়ের জন্য"""
         req_hash = self._compute_request_hash(model, prompt)
-        cost = self._calculate_cost(model, self._estimate_tokens(prompt), tokens_used)
+        cost = self._calculate_cost(model, estimate_tokens(prompt), tokens_used)
         
         self.request_history[req_hash] = {
             "response": response,
@@ -188,7 +184,7 @@ class AutocacheProxy:
             return {
                 "proceed": False,
                 "cached_response": dedup_result["cached_response"],
-                "cost_saved": self._calculate_cost(model, self._estimate_tokens(prompt), 100),
+                "cost_saved": self._calculate_cost(model, estimate_tokens(prompt), 100),
                 "recommendation": "DEDUP_HIT - Using recent cached response"
             }
         

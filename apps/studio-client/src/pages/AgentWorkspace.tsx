@@ -17,6 +17,7 @@ export const AgentWorkspace: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [generatedCode, setGeneratedCode] = useState<string>('// SupremeAI Agent Ready.\n// Type a prompt on the left to generate code...');
   const [isLoading, setIsLoading] = useState(false);
+  const [isHealing, setIsHealing] = useState(false);
 
   const terminalRef = useRef<HTMLDivElement>(null);
   const xtermRef = useRef<Terminal | null>(null);
@@ -137,22 +138,105 @@ export const AgentWorkspace: React.FC = () => {
     }
   };
 
-  const handleRunCode = async () => {
-    if (!webcontainerRef.current || !shellWriterRef.current) {
-      console.warn("⚠️ Sandbox is not fully loaded yet.");
-      return;
-    }
-
+  const handleRunAndEvaluate = async (codeToRun = generatedCode, retryCount = 0) => {
+    if (!webcontainerRef.current || !xtermRef.current) return;
+    const term = xtermRef.current;
+    
+    setIsHealing(true);
     try {
-      // ১. Monaco Editor-এর কোড WebContainer-এর ভার্চুয়াল ফাইলে সেভ করা
-      await webcontainerRef.current.fs.writeFile('/index.js', generatedCode);
+      term.writeln(`\r\n⚙️ \x1b[1;36m[Execution] Running code... (Attempt ${retryCount + 1}/3)\x1b[0m`);
       
-      // ২. টার্মিনালকে কমান্ড পাঠানো (node index.js রান করতে বলা)
-      // \r মানে হলো Enter প্রেস করা
-      await shellWriterRef.current.write('node index.js\r');
+      // ১. ফাইল সেভ করা
+      await webcontainerRef.current.fs.writeFile('/index.js', codeToRun);
       
+      // ২. সরাসরি Node.js প্রসেস স্পন (Spawn) করা যাতে Exit Code ধরতে পারি
+      const process = await webcontainerRef.current.spawn('node', ['index.js']);
+      
+      let processOutput = '';
+      
+      // ৩. আউটপুট ক্যাপচার করা এবং টার্মিনালে দেখানো
+      process.output.pipeTo(
+        new WritableStream({
+          write(data) {
+            processOutput += data;
+            term.write(data);
+          }
+        })
+      );
+      
+      // ৪. প্রসেস শেষ হওয়ার জন্য অপেক্ষা করা (The Evaluation)
+      const exitCode = await process.exit;
+      
+      if (exitCode !== 0) {
+        // ❌ এরর পেয়েছে! (Self-Healing Loop)
+        if (retryCount < 2) {
+          term.writeln(`\r\n⚠️ \x1b[1;33m[Auto-Heal] Code failed with exit code ${exitCode}. Requesting AI fix...\x1b[0m`);
+          
+          // ব্যাকএন্ডে এরর মেসেজসহ ফিক্সের জন্য রিকোয়েস্ট পাঠানো
+          const fixResponse = await fetch('http://localhost:8000/api/v1/agent/execute', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              prompt: `I tried to run this code but got an error. \n\nCODE:\n${codeToRun}\n\nERROR:\n${processOutput}\n\nPlease fix the bug and return ONLY the full working code.`,
+              project_id: 'proj_123'
+            }),
+          });
+          
+          const fixData = await fixResponse.json();
+          if (fixData.status === 'success') {
+            const fixedCode = fixData.code;
+            setGeneratedCode(fixedCode); // এডিটরে নতুন কোড বসবে
+            setMessages(prev => [...prev, { role: 'agent', content: `🔧 I analyzed the error and fixed the code. Retrying...` }]);
+            
+            // রিকার্সিভ কল (নতুন কোড দিয়ে আবার টেস্ট করবে)
+            await handleRunAndEvaluate(fixedCode, retryCount + 1);
+          }
+        } else {
+          term.writeln(`\r\n❌ \x1b[1;31m[System] Self-healing failed after 3 attempts. Manual intervention required.\x1b[0m`);
+        }
+      } else {
+        // ✅ কোড পারফেক্টলি রান করেছে! (The Learning Phase)
+        term.writeln(`\r\n✅ \x1b[1;32m[Success] Execution flawless! Committing to Memory Vault...\x1b[0m`);
+        
+        // ব্যাকএন্ডকে কনফার্ম করা যে কোডটি কাজ করেছে, মেমোরিতে সেভ করো
+        await fetch('http://localhost:8000/api/v1/agent/learn', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            prompt: prompt, // অরিজিনাল প্রম্পট
+            working_code: codeToRun
+          }),
+        });
+        
+        setMessages(prev => [...prev, { role: 'agent', content: `🎯 Execution verified! I have memorized this solution in the Zero-Cost Vault.`, source: 'memory' }]);
+
+        // 🟢 ২. GitHub-এ Auto-PR তৈরি করা (The New Magic)
+        term.writeln(`\r\n🐙 \x1b[1;34m[GitHub] Pushing verified code to repository as a PR...\x1b[0m`);
+        
+        const prResponse = await fetch('http://localhost:8000/api/v1/agent/github/pr', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            user_id: 'admin_123', // সেশন থেকে নেবেন
+            repo_name: 'YOUR_GITHUB_USERNAME/YOUR_TEST_REPO', // আপনার টেস্ট রিপোর নাম দিন
+            file_path: 'src/auto_generated.js',
+            code: codeToRun,
+            prompt: prompt
+          }),
+        });
+
+        const prData = await prResponse.json();
+        if (prData.status === 'success') {
+          term.writeln(`\r\n🎉 \x1b[1;32m[GitHub] PR Created Successfully! Link: ${prData.pr_url}\x1b[0m`);
+          setMessages(prev => [...prev, { role: 'agent', content: `🚀 I have autonomously created a Pull Request in your GitHub repo! Check it out: ${prData.pr_url}` }]);
+        } else {
+          term.writeln(`\r\n❌ \x1b[1;31m[GitHub Error] Failed to create PR: ${prData.message}\x1b[0m`);
+        }
+      }
     } catch (error) {
-      console.error("Failed to execute code in sandbox:", error);
+      console.error("Execution error:", error);
+    } finally {
+      setIsHealing(false);
     }
   };
 
@@ -221,10 +305,11 @@ export const AgentWorkspace: React.FC = () => {
             
             {/* 🟢 নতুন Run Button */}
             <button 
-              onClick={handleRunCode}
-              className="bg-green-600 hover:bg-green-500 text-white text-xs font-bold py-1 px-3 rounded flex items-center transition-colors"
+              onClick={() => handleRunAndEvaluate(generatedCode, 0)}
+              disabled={isHealing}
+              className="bg-green-600 hover:bg-green-500 disabled:bg-gray-600 text-white text-xs font-bold py-1 px-3 rounded flex items-center transition-colors"
             >
-              ▶ Run Code
+              {isHealing ? '⏳ Healing...' : '▶ Run & Auto-Evaluate'}
             </button>
 
           </div>
