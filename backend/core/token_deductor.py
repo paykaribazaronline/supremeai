@@ -32,7 +32,7 @@ class TokenDeductor:
         try:
             with open(config_path, encoding="utf-8") as f:
                 self.config = json.load(f)
-        except Exception:
+        except Exception:  # noqa: BLE001
             self.config = {
                 "token_rates_usd_per_1k": {"input": 0.0015, "output": 0.0020},
                 "byoc_deployment_fee_usd": 0.05
@@ -46,11 +46,11 @@ class TokenDeductor:
         if not redis_queue.configured:
             # Fallback for local testing without active Upstash credentials
             return True
-            
+
         try:
             # SET lock_key lock_value NX EX ttl
             return redis_queue.set_nx(lock_key, lock_value, ex=ttl)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Failed to acquire distributed lock: {e}")
             return False
 
@@ -70,7 +70,7 @@ class TokenDeductor:
             end
             """
             redis_queue.eval(lua_script, 1, lock_key, lock_value)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Failed to release distributed lock: {e}")
 
     async def deduct_tokens(self, session: AsyncSession, user_id: str, input_tokens: int, output_tokens: int, model_name: str) -> bool:
@@ -79,7 +79,7 @@ class TokenDeductor:
         """
         lock_key = f"lock:wallet:{user_id}"
         lock_value = str(uuid.uuid4())
-        
+
         # Poll lock acquisition to avoid blocking
         acquired = False
         for _ in range(20):
@@ -132,17 +132,17 @@ class TokenDeductor:
                     description=f"Consumed {input_tokens}i/{output_tokens}o tokens on model: {model_name}"
                 )
                 session.add(entry)
-            
-            # session.begin() ব্লকের বাইরে আসার সাথে সাথে এটি অটোমেটিকভাবে কমিট হবে। 
+
+            # session.begin() ব্লকের বাইরে আসার সাথে সাথে এটি অটোমেটিকভাবে কমিট হবে।
             # যদি অন্য কোনো থ্রেড ইতমধ্যে ব্যালেন্স মডিফাই করে থাকে, তবে SQLAlchemy 'version' কলাম চেক করে StaleDataError থ্রো করবে।
-            
+
             logger.success(f"Deducted ${cost} from user {user_id} for token usage.")
             return True
 
         except StaleDataError:
             logger.critical(f"Optimistic Concurrency Failure: Wallet modified by another transaction for user {user_id}")
             return False
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Transaction failed for {user_id}: {str(e)}")
             return False
         finally:
@@ -154,7 +154,7 @@ class TokenDeductor:
         """
         lock_key = f"lock:wallet:{user_id}"
         lock_value = str(uuid.uuid4())
-        
+
         acquired = False
         for _ in range(20):
             acquired_lock = await asyncio.to_thread(self._acquire_distributed_lock, lock_key, lock_value, 5)
@@ -198,14 +198,14 @@ class TokenDeductor:
                     description=f"BYOC deployment fee for skill: {skill_name}"
                 )
                 session.add(entry)
-            
+
             logger.success(f"Deducted ${cost} deployment fee from user {user_id}.")
             return True
-            
+
         except StaleDataError:
             logger.critical(f"Optimistic Concurrency Failure: Wallet modified by another transaction for user {user_id}")
             return False
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Transaction failed for {user_id}: {str(e)}")
             return False
         finally:

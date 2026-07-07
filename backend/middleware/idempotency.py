@@ -1,6 +1,4 @@
 import json
-from datetime import UTC, datetime, timedelta
-from typing import Any
 
 from fastapi import HTTPException, Request
 from fastapi.responses import JSONResponse
@@ -50,7 +48,7 @@ class IdempotencyMiddleware(BaseHTTPMiddleware):
             return await call_next(request)
 
         # বাংলা মন্তব্য: Redis থেকে cached response চেক করা
-        cached_response = None
+        cached_response = None  # noqa: F841
         if redis_manager.client is not None:
             try:
                 cached_key = f"idempotency:response:{idempotency_key}"
@@ -63,7 +61,7 @@ class IdempotencyMiddleware(BaseHTTPMiddleware):
                         content=cached_data.get("body", {}),
                         headers={"X-Cache-Lookup": "HIT - Idempotency Lock"},
                     )
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 logger.warning(f"[Idempotency] Cache read failed — continuing: {e}")
 
         # বাংলা মন্তব্য: Processing lock অধিগ্রহণ
@@ -97,11 +95,11 @@ class IdempotencyMiddleware(BaseHTTPMiddleware):
                     body_str = body_bytes.decode("utf-8")
                     cache_data = json.dumps({"status_code": 200, "body": json.loads(body_str)})
                     await cache_response_and_release_lock(
-                        idempotency_key, 
-                        cache_data, 
+                        idempotency_key,
+                        cache_data,
                         IDEMPOTENCY_TTL_SECONDS * 5
                     )
-                except Exception as cache_err:
+                except Exception as cache_err:  # noqa: BLE001
                     logger.warning(f"[Idempotency] Response caching failed (non-blocking): {cache_err}")
                     await release_idempotency_lock(idempotency_key)
             else:

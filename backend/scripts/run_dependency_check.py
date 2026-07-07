@@ -23,8 +23,8 @@ async def main():
     pip_results = agent.check_pip_dependencies()
     if pip_results.get("success") and pip_results.get("count", 0) > 0:
         logger.info(f"Found {pip_results['count']} outdated pip packages.")
-        print("--- Outdated Pip Packages ---")
-        print(json.dumps(pip_results["outdated_packages"], indent=2))
+        print("--- Outdated Pip Packages ---")  # noqa: T201
+        print(json.dumps(pip_results["outdated_packages"], indent=2))  # noqa: T201
         # Here you could add logic to automatically update a specific package
         # For example, to update the first outdated package:
         # outdated_pkg = pip_results['outdated_packages'][0]
@@ -37,8 +37,8 @@ async def main():
         logger.warning(
             f"Found {pip_vuln_results['count']} vulnerabilities in pip packages."
         )
-        print("--- Pip Package Vulnerabilities (pip-audit) ---")
-        print(json.dumps(pip_vuln_results["vulnerabilities"], indent=2))
+        print("--- Pip Package Vulnerabilities (pip-audit) ---")  # noqa: T201
+        print(json.dumps(pip_vuln_results["vulnerabilities"], indent=2))  # noqa: T201
     else:
         logger.info("No vulnerabilities found in pip packages.")
 
@@ -49,8 +49,8 @@ async def main():
         npm_results = agent.check_npm_dependencies(project_path=frontend_path)
         if npm_results.get("success") and npm_results.get("count", 0) > 0:
             logger.info(f"Found {npm_results['count']} outdated npm packages.")
-            print("--- Outdated NPM Packages ---")
-            print(json.dumps(npm_results["outdated_packages"], indent=2))
+            print("--- Outdated NPM Packages ---")  # noqa: T201
+            print(json.dumps(npm_results["outdated_packages"], indent=2))  # noqa: T201
         else:
             logger.info("No outdated npm packages found.")
 
@@ -62,8 +62,8 @@ async def main():
                 .get("vulnerabilities", {})
             )
             logger.warning(f"NPM audit found vulnerabilities: {summary}")
-            print("--- NPM Package Vulnerabilities (npm audit) ---")
-            print(json.dumps(npm_vuln_results["audit_results"], indent=2))
+            print("--- NPM Package Vulnerabilities (npm audit) ---")  # noqa: T201
+            print(json.dumps(npm_vuln_results["audit_results"], indent=2))  # noqa: T201
 
     logger.info("Dependency analysis complete.")
 

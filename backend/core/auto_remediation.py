@@ -36,7 +36,7 @@ class AutoRemediationEngine:
                 )
                 logger.info(f"✅ Auto-Remediation PR created for {file_path}")
 
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"❌ Remediation failed: {str(e)}")
 
     def _generate_ai_patch(self, code: str, line: int, issue: str) -> str:
@@ -60,7 +60,7 @@ class AutoRemediationEngine:
             ModelConfig = _ModelConfig
             Context = _Context
             ld_ai_client = _ld_ai_client
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.warning(f"LaunchDarkly auto-remediation modules unavailable, using fallback path: {exc}")
 
         default_prompt_template = """You are an elite AI AppSec Engineer. Fix the following vulnerability.
@@ -95,7 +95,7 @@ class AutoRemediationEngine:
                     ),
                     variables=prompt_vars
                 )
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 logger.warning(f"LaunchDarkly config evaluation failed, falling back: {exc}")
 
         if config and config.enabled:
@@ -189,7 +189,7 @@ class AutoRemediation:
             with open(file_path, "w", encoding="utf-8") as f:
                 f.write(fixed_code)
             logger.info(f"Patch applied successfully to {file_path}")
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             return {"success": False, "error": f"Failed to apply patch to file: {e}"}
 
         # Attempt to commit the change, but don't fail if token is missing
@@ -242,7 +242,7 @@ class AutoRemediation:
             ModelConfig = _ModelConfig
             Context = _Context
             ld_ai_client = _ld_ai_client
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.warning(f"LaunchDarkly remediation modules unavailable, using fallback path: {exc}")
 
         default_prompt_template = """You are an elite secure coding assistant. Correct the security vulnerability in this file.
@@ -281,7 +281,7 @@ class AutoRemediation:
                     ),
                     variables=prompt_vars
                 )
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 logger.warning(f"LaunchDarkly config evaluation failed, falling back: {exc}")
 
         if config and config.enabled:
@@ -314,6 +314,6 @@ class AutoRemediation:
                     raw_text = "\n".join(lines)
 
             return raw_text.strip()
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Failed to generate patch from Gemini: {e}")
             return ""

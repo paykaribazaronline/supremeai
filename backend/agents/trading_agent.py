@@ -38,13 +38,13 @@ class TradingAgent:
                     self._portfolio = res.data[0]
                     self.is_portfolio_recovered = True
                     return
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 logger.warning(f"Failed to load portfolio from Supabase: {e}")
         try:
             with open(self._local_path(), encoding="utf-8") as f:
                 self._portfolio = json.load(f)
                 self.is_portfolio_recovered = True
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Failed to load portfolio from local file: {e}")
         if not self.is_portfolio_recovered:
             logger.warning("Portfolio could not be recovered from any source; using default empty portfolio")
@@ -54,13 +54,13 @@ class TradingAgent:
             try:
                 db.client.table("trading_portfolio").upsert(self._portfolio).execute()
                 return
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 logger.warning(f"Failed to save portfolio to DB: {e}")
         try:
             os.makedirs(os.path.dirname(self._local_path()), exist_ok=True)
             with open(self._local_path(), "w", encoding="utf-8") as f:
                 json.dump(self._portfolio, f, indent=2)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Failed to save portfolio to local file: {e}")
 
     def get_market_data(self, symbol: str) -> dict[str, Any]:
@@ -80,7 +80,7 @@ class TradingAgent:
                     "currency": meta.get("currency", "USD"),
                     "source": "yahoo_finance",
                 }
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.debug(f"Market data fetch failed for {symbol}: {exc}")
         return {
             "symbol": symbol,

@@ -67,7 +67,7 @@ class GenerationMonitor:
         }
 
     def track_agent_call(self, **kwargs):
-        print("--- AGENT CALL ---")
+        print("--- AGENT CALL ---")  # noqa: T201
         for key, value in kwargs.items():
-            print(f"{key}: {value}")
-        print("--------------------")
+            print(f"{key}: {value}")  # noqa: T201
+        print("--------------------")  # noqa: T201

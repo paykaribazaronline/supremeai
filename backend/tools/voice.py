@@ -35,7 +35,7 @@ class VoiceInterface:
             if transcription:
                 logger.info(f"Locally transcribed audio: {transcription}")
                 return transcription
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.warning(
                 f"Local Whisper not available or failed: {e}. Falling back to HuggingFace API..."
             )
@@ -61,7 +61,7 @@ class VoiceInterface:
                     f"Whisper API error: {response.status_code} - {response.text}"
                 )
                 return f"Error transcribing audio (status code: {response.status_code})"
-        except Exception as api_err:
+        except Exception as api_err:  # noqa: BLE001
             logger.error(f"Exception during speech to text API fallback: {api_err}")
             return f"Error: {str(api_err)}"
 
@@ -86,11 +86,11 @@ class VoiceInterface:
 
                 if torch.cuda.is_available():
                     device = "cuda"
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 try:
                     import loguru
                     loguru.logger.error(f"Tool execution error: {e}")
-                except Exception as e:
+                except Exception as e:  # noqa: BLE001
                     import logging
                     logging.warning(f"Exception suppressed: {e}")
                 pass
@@ -102,14 +102,14 @@ class VoiceInterface:
             if hasattr(tts, "to"):
                 try:
                     tts.to(device)
-                except Exception as device_err:
+                except Exception as device_err:  # noqa: BLE001
                     logger.warning(
                         f"Coqui TTS device set failed ({device_err}); using default device."
                     )
             tts.tts_to_file(text=text, file_path=output_path, language=lang)
             logger.info(f"Generated offline speech file at: {output_path}")
             return True
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.warning(
                 f"Coqui TTS unavailable or failed: {e}. Falling back to gTTS..."
             )
@@ -122,7 +122,7 @@ class VoiceInterface:
             tts.save(output_path)
             logger.info(f"Generated speech file locally at: {output_path}")
             return True
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.warning(
                 f"gTTS library not available or failed: {e}. Falling back to Google TTS API..."
             )
@@ -140,7 +140,7 @@ class VoiceInterface:
                 return True
             logger.error(f"TTS service returned status code: {response.status_code}")
             return False
-        except Exception as api_err:
+        except Exception as api_err:  # noqa: BLE001
             logger.error(f"Exception during text to speech API fallback: {api_err}")
             return False
 

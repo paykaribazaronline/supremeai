@@ -89,7 +89,7 @@ class AutoPRPipeline:
                 "branch": branch,
             }
 
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Auto PR Pipeline failed: {e}")
             # Cleanup: checkout original branch and delete the new one
             logger.info("Cleaning up failed PR attempt...")
@@ -147,7 +147,7 @@ class AutoPRPipeline:
                 "pr_url": pr_result.get("pr_url"),
             }
 
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Auto PR Pipeline failed: {str(e)}")
             # Cleanup failed branch
             await self._run_git_command(["checkout", original_branch], cwd=repo_path)

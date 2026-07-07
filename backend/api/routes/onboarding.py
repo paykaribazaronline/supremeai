@@ -55,7 +55,7 @@ async def _validate_api_key(provider: str, api_key: str) -> bool:
         async with httpx.AsyncClient(timeout=8.0) as client:
             resp = await client.get(url, headers=headers)
             return resp.status_code in (200, 206)
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001
         logger.debug(f"API key validation request failed: {exc}")
         return False
 
@@ -81,7 +81,7 @@ def _save_user_preferences(payload: OnboardingPayload) -> bool:
             db.client.table("user_preferences").upsert(prefs).execute()
             logger.info(f"Onboarding prefs saved to Supabase for {payload.user_id}")
             return True
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001
         logger.debug(f"Supabase preference save failed: {exc}")
 
     # Local fallback
@@ -93,7 +93,7 @@ def _save_user_preferences(payload: OnboardingPayload) -> bool:
         safe = payload.user_id.replace("/", "_")[:40]
         (p / f"{safe}.json").write_text(json.dumps(prefs, indent=2))
         return True
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001
         logger.warning(f"Local preference save failed: {exc}")
         return False
 
@@ -125,7 +125,7 @@ async def complete_onboarding(payload: OnboardingPayload):
 
             store = SecureCredentialStore()
             store.set(f"{payload.user_id}:{payload.provider}_api_key", payload.api_key)
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.debug(f"Credential store failed: {exc}")
 
     model_ready = provider_valid and bool(payload.default_model)
@@ -181,7 +181,7 @@ async def get_onboarding_status(user_id: str) -> dict[str, Any]:
                         ),
                     },
                 }
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001
         logger.debug(f"Status check DB error: {exc}")
 
     return {"user_id": user_id, "onboarding_complete": False}
@@ -197,7 +197,7 @@ async def reset_onboarding(user_id: str) -> dict[str, str]:
             db.client.table("user_preferences").delete().eq(
                 "user_id", user_id
             ).execute()
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001
         # বল মনতবয: রসট বযরথ হল আগ নরব success রটরন করত (ভল ইমপরশন);
         # এখন বযরথত warning হসব লগ কর হয় যত সপরট টম সমসয জনত পর
         logger.warning(f"Failed to reset onboarding state for {user_id}: {exc}")

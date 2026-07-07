@@ -22,11 +22,11 @@ class DockerSandbox:
                 check=False,
             )
             return res.returncode == 0
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             try:
                 import loguru
                 loguru.logger.error(f"Tool execution error: {e}")
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 import logging
                 logging.warning(f"Exception suppressed: {e}")
             return False
@@ -109,7 +109,7 @@ class DockerSandbox:
                     "exit_code": res.returncode,
                     "simulated": True,
                 }
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 return {"success": False, "error": str(e), "simulated": True}
 
         # Run command securely inside docker
@@ -135,5 +135,5 @@ class DockerSandbox:
                 "exit_code": res.returncode,
                 "simulated": False,
             }
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             return {"success": False, "error": str(e), "simulated": False}

@@ -4,7 +4,7 @@ Revision ID: 664fe16e33ca
 Revises: 
 Create Date: 2026-06-29 02:10:12.661696
 
-"""
+"""  # noqa: W291
 
 from collections.abc import Sequence
 

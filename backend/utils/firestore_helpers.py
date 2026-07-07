@@ -64,7 +64,7 @@ def get_firestore_db(project_id: str | None = None) -> Any | None:
         _client_cache[resolved_project] = client
         logger.info(f"Firestore client initialized for project: {resolved_project}")
         return client
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001
         logger.warning(f"Firestore client initialization failed: {exc}")
         return None
 

@@ -46,11 +46,11 @@ class StyleLearner:
                     try:
                         with open(path, encoding="utf-8") as f:
                             code_samples.append(f.read()[:1500])
-                    except Exception as e:
+                    except Exception as e:  # noqa: BLE001
                         try:
                             import loguru
                             loguru.logger.error(f"Tool execution error: {e}")
-                        except Exception as e:
+                        except Exception as e:  # noqa: BLE001
                             import logging
                             logging.warning(f"Exception suppressed: {e}")
                         pass
@@ -87,15 +87,15 @@ class StyleLearner:
                         self.learned_styles[repo_path] = parsed
                         await self._persist_style(repo_path, parsed)
                         return parsed
-                except Exception as e:
+                except Exception as e:  # noqa: BLE001
                     try:
                         import loguru
                         loguru.logger.error(f"Tool execution error: {e}")
-                    except Exception as e:
+                    except Exception as e:  # noqa: BLE001
                         import logging
                         logging.warning(f"Exception suppressed: {e}")
                     logger.warning("Failed to parse style guidelines JSON from LLM.")
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 logger.warning(f"LLM style analysis failed: {e}")
 
         guidelines = self._default_guidelines()
@@ -115,11 +115,11 @@ class StyleLearner:
                     }
                 ).execute()
                 return
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             try:
                 import loguru
                 loguru.logger.error(f"Tool execution error: {e}")
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 import logging
                 logging.warning(f"Exception suppressed: {e}")
             pass
@@ -129,7 +129,7 @@ class StyleLearner:
             safe_name = repo_path.replace("/", "_").replace("\\", "_")[:50]
             with open(f"data/styles/{safe_name}.json", "w") as f:
                 json.dump(style, f, indent=2)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.debug(f"Style persist fallback failed: {e}")
 
     def _default_guidelines(self) -> dict[str, Any]:

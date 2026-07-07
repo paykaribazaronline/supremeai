@@ -407,7 +407,7 @@ class TestTenantAdminAPI:
             )
             try:
                 await create_tenant(payload)
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 # May fail on tier cache — check local store directly
                 import logging
                 logging.warning(f"Tenant creation failed in test, checking local store fallback. Error: {e}")
@@ -454,7 +454,7 @@ class TestTenantAdminAPI:
                     result["tenant"]["requests_per_minute"]
                     == TIER_DEFAULTS["pro"]["requests_per_minute"]
                 )
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 import logging
                 logging.warning(f"Exception suppressed: {e}")  # Redis cache failure OK
 

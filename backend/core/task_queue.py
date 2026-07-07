@@ -39,7 +39,7 @@ def process_requirement_async(project_id: str, description: str) -> dict[str, An
         try:
             task = _process_requirement_task.delay(project_id, description)
             return {"status": "queued", "task_id": task.id}
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Failed to queue task with Celery: {e}")
 
     # Fallback to synchronous execution for testing/dev

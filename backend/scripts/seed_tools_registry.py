@@ -365,7 +365,7 @@ def seed_tools():
         db.client.table("tools_registry").upsert(records).execute()
         logger.success(f"✅ Seeded {len(records)} tools successfully.")
         return True
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.error(f"Failed to seed tools: {e}")
         return False
 

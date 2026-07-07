@@ -40,7 +40,7 @@ class EnsembleRouter:
                 "best_response": best_response,
                 "all_responses": valid,
             }
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.error(f"Ensemble routing failed: {exc}")
             return {
                 "status": "error",

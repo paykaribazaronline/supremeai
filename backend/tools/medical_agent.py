@@ -28,7 +28,7 @@ class MedicalAgent:
                 "analysis": text or "Analysis unavailable.",
                 "disclaimer": "This is not medical advice. Consult a qualified healthcare provider.",
             }
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.error(f"Medical analysis failed: {exc}")
             return {
                 "status": "error",

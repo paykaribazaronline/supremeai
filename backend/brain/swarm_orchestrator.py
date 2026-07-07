@@ -41,7 +41,7 @@ class SwarmOrchestrator:
                     output = future.result()
                     task.output = output
                     results[task.description] = output
-                except Exception as exc:
+                except Exception as exc:  # noqa: BLE001
                     logger.error(
                         f"Task '{task.description[:30]}' failed in swarm: {exc}"
                     )

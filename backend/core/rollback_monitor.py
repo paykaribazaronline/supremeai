@@ -151,7 +151,7 @@ class RollbackMonitor:
                 }
             else:
                 logger.error("Could not find a previous revision to rollback to.")
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Failed to execute gcloud rollback command: {e}")
 
         # Fallback response if gcloud tool is not installed or command failed

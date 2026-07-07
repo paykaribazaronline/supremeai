@@ -88,7 +88,7 @@ class ResourceCatalog:
             return self._parse_awesome_markdown(
                 response.text, query, limit, source_name="awesome-selfhosted"
             )
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.warning(
                 f"ResourceCatalog: failed to search awesome-selfhosted for '{query}': {exc}"
             )
@@ -103,7 +103,7 @@ class ResourceCatalog:
             return self._parse_awesome_markdown(
                 response.text, query, limit, source_name="awesome-python"
             )
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.warning(
                 f"ResourceCatalog: failed to search awesome-python for '{query}': {exc}"
             )
@@ -144,7 +144,7 @@ class ResourceCatalog:
                     }
                 )
             return results
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.warning(
                 f"ResourceCatalog: failed to search ossinsight for '{query}': {exc}"
             )
@@ -188,7 +188,7 @@ class ResourceCatalog:
                     }
                 )
             return results
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.warning(
                 f"ResourceCatalog: failed to search libraries.io for '{query}': {exc}"
             )

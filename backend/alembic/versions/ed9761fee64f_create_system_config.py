@@ -37,7 +37,7 @@ def upgrade() -> None:
                type_=sa.DateTime(timezone=True),
                nullable=False,
                existing_server_default=sa.text('now()'))
-    
+
     op.execute("DROP INDEX IF EXISTS idx_system_config_category")
     op.create_index(op.f('ix_system_config_key'), 'system_config', ['key'], unique=True)
     op.execute("ALTER TABLE system_config DROP COLUMN IF EXISTS updated_by")

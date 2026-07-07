@@ -23,7 +23,7 @@ class LLMGateway:
     def __init__(self):
         self.routing_policy = self._load_routing_policy()
         self._setup_callbacks()
-        
+
         # Configure litellm global settings
         litellm.drop_params = True
         litellm.telemetry = False
@@ -40,20 +40,20 @@ class LLMGateway:
                 with open(POLICY_PATH, encoding="utf-8") as f:
                     return json.load(f)
             logger.warning("Routing policy file not found, using default fallback configs.")
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Error loading routing policy: {e}")
-        
+
         return {"complexity_rules": {}, "fallback_chain": []}
 
     def _get_key_for_model(self, model: str) -> str | None:
-        if not model: return None
+        if not model: return None  # noqa: E701
         model_l = model.lower()
-        if "groq" in model_l: return getattr(settings, "groq_api_key", None)
-        if "gemini" in model_l: return getattr(settings, "gemini_api_key", None)
-        if "gpt" in model_l or "openai" in model_l: return getattr(settings, "openai_api_key", None)
-        if "deepseek" in model_l: return getattr(settings, "deepseek_api_key", None)
-        if "openrouter" in model_l: return getattr(settings, "openrouter_api_key", None)
-        if "hf" in model_l or "huggingface" in model_l: return getattr(settings, "hf_api_key", None)
+        if "groq" in model_l: return getattr(settings, "groq_api_key", None)  # noqa: E701
+        if "gemini" in model_l: return getattr(settings, "gemini_api_key", None)  # noqa: E701
+        if "gpt" in model_l or "openai" in model_l: return getattr(settings, "openai_api_key", None)  # noqa: E701
+        if "deepseek" in model_l: return getattr(settings, "deepseek_api_key", None)  # noqa: E701
+        if "openrouter" in model_l: return getattr(settings, "openrouter_api_key", None)  # noqa: E701
+        if "hf" in model_l or "huggingface" in model_l: return getattr(settings, "hf_api_key", None)  # noqa: E701
         return None
 
     def _setup_callbacks(self):
@@ -66,13 +66,13 @@ class LLMGateway:
                 completion_tokens = usage.completion_tokens if usage else 0
                 # Extract cost dynamically calculated by litellm
                 cost = response_obj._response_metadata.get("api_cost", 0.0) if hasattr(response_obj, "_response_metadata") else 0.0
-                
+
                 duration = (end_time - start_time).total_seconds() if hasattr(end_time - start_time, "total_seconds") else (end_time - start_time)
                 logger.info(
                     f"🟢 [LLMGateway Success] Model: {model} | Cost: ${cost:.6f} | "
                     f"Tokens: P={prompt_tokens} C={completion_tokens} | Duration: {duration:.2f}s"
                 )
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 logger.warning(f"Error executing success callback: {e}")
 
         def failure_callback(kwargs, exception_obj, start_time, end_time):
@@ -103,7 +103,7 @@ class LLMGateway:
         """
         # Determine initial models by task difficulty
         difficulty = "easy"
-        
+
         # Support callers that pass `messages=` instead of `prompt=` (backwards compatibility)
         if messages is not None and prompt is None:
             prompt = messages
@@ -139,18 +139,18 @@ class LLMGateway:
 
         model_candidates = self.routing_policy.get("complexity_rules", {}).get(difficulty, [])
         fallbacks = self.routing_policy.get("fallback_chain", [])
-        
+
         # Merge target candidate with the fallback chain to prevent duplication
         call_chain = []
         if model:
             call_chain.append(model)
-            
+
         all_models = model_candidates + fallbacks
         if provider:
             provider_models = [m for m in all_models if m.startswith(f"{provider}/")]
             other_models = [m for m in all_models if not m.startswith(f"{provider}/")]
             all_models = provider_models + other_models
-            
+
         for m in all_models:
             if m not in call_chain:
                 call_chain.append(m)
@@ -164,7 +164,7 @@ class LLMGateway:
             messages = prompt
         else:
             messages = [{"role": "user", "content": prompt}]
-        
+
         if stream:
             return self._stream_completion(messages, call_chain, timeout)
 
@@ -187,7 +187,7 @@ class LLMGateway:
                     "model": model,
                     "cost": response._response_metadata.get("api_cost", 0.0) if hasattr(response, "_response_metadata") else 0.0
                 }
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 last_exception = e
                 logger.warning(f"Model {model} failed in chain. Exception: {e}")
                 continue
@@ -228,11 +228,11 @@ class LLMGateway:
                     if content:
                         yield content
                 return # Successfully streamed out all tokens
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 last_exception = e
                 logger.warning(f"Model {model} streaming failed, trying fallback...")
                 continue
-        
+
         raise last_exception or RuntimeError("All streaming fallback options failed.")
 
 # Initialize global gateway singleton

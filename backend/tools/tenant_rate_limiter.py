@@ -26,11 +26,11 @@ class TenantRateLimiter:
             import core.services as app_mod
 
             return getattr(app_mod, "redis_queue", None)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             try:
                 import loguru
                 loguru.logger.error(f"Tool execution error: {e}")
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 import logging
                 logging.warning(f"Exception suppressed: {e}")
             return None
@@ -64,7 +64,7 @@ class TenantRateLimiter:
             tier = self.queue.get(f"billing:tier:{tenant_id}")
             if tier is not None:
                 return tier.decode("utf-8") if isinstance(tier, bytes) else str(tier)
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.debug(f"Tier lookup failed: {exc}")
         return "free"
 
@@ -75,7 +75,7 @@ class TenantRateLimiter:
             raise ValueError(f"Invalid tier: {tier}")
         try:
             self.queue.set(f"billing:tier:{tenant_id}", tier, ex=3600)
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.debug(f"Tier update failed: {exc}")
 
     async def check_quota(
@@ -123,7 +123,7 @@ class TenantRateLimiter:
                     "current": rpd,
                     "limit": tier["rpd"],
                 }
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.debug(f"Redis quota check failed: {exc}")
             return {"allowed": True, "reason": "redis_error", "tier": tier_key}
 
@@ -183,7 +183,7 @@ class TenantRateLimiter:
                     str(int(self.queue.get(tokens_key) or 0) + tokens),
                     ex=86400 + 300,
                 )
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.debug(f"Redis usage recording failed: {exc}")
 
         total_cost = float(self.queue.get(cost_key) or 0.0) if self.queue else 0.0
@@ -224,5 +224,5 @@ class TenantRateLimiter:
                 description=f"SupremeAI usage - tenant {tenant_id}",
             )
             logger.info(f"Stripe usage recorded for tenant {tenant_id}: ${amount:.4f}")
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.debug(f"Stripe charge failed: {exc}")

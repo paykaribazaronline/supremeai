@@ -112,7 +112,7 @@ def bypass_jwt_auth():
             mock = p.start()
             mock.return_value = {"sub": "test_admin@supremeai.com", "role": "admin"}
             patches.append(p)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             import logging
             logging.warning(f"Exception suppressed: {e}")
     yield
@@ -130,7 +130,7 @@ def configure_litellm():
         litellm.use_litellm_proxy = False
         litellm.drop_params = True
         litellm.telemetry = False
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         import logging
         logging.warning(f"Exception suppressed: {e}")
     yield

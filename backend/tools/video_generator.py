@@ -100,7 +100,7 @@ class VideoGenerator:
                 return self._stub(prompt, duration, "runway", output_path=output_path)
             try:
                 return self._call_runway(prompt, duration)
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 logger.error(f"Runway failed: {exc}")
                 if self.kling_api_key and "kling" not in tried:
                     logger.info("Falling back to Kling provider.")
@@ -123,7 +123,7 @@ class VideoGenerator:
                 return self._stub(prompt, duration, "kling", output_path=output_path)
             try:
                 return self._call_kling(prompt, duration)
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 logger.error(f"Kling failed: {exc}")
                 if self.runway_api_key and "runway" not in tried:
                     logger.info("Falling back to Runway provider.")

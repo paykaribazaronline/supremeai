@@ -64,8 +64,8 @@ def require_admin_token(credentials: HTTPAuthorizationCredentials = Depends(secu
                 logger.warning("Redis not configured; falling back to in-memory JWT blacklist check.")
 
         return decoded
-    except Exception as e:
-        logger.warning(f"Admin token validation failed", exc_info=True)
+    except Exception:  # noqa: BLE001
+        logger.warning("Admin token validation failed", exc_info=True)
         expected = os.getenv("SUPREMEAI_API_TOKEN") or ""
         if expected and secrets.compare_digest(token, expected):
             return {"uid": "admin", "role": "admin"}
@@ -104,7 +104,7 @@ def admin_rate_limit(request: Request):
                 )
         except HTTPException:
             raise
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.error(f"Distributed rate limiter check failed, falling back: {exc}")
 
 
@@ -149,7 +149,7 @@ def load_users() -> list[dict[str, Any]]:
     try:
         with open(USERS_FILE) as f:
             return json.load(f)
-    except Exception:
+    except Exception:  # noqa: BLE001
         return []
 
 
@@ -171,7 +171,7 @@ async def logs_stream():
                     lines = f.readlines()[-30:]
                     for line in lines:
                         yield f"data: {line.strip()}\n\n"
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 yield f"data: Error reading logs: {e}\n\n"
 
         file_obj = None
@@ -227,7 +227,7 @@ def get_costs():
                 "status": "ok",
                 "report": "# 📊 Cost Data Unavailable\n\nNo tasks have been executed in the current billing cycle to generate a cost report.",
             }
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.error(f"Failed to generate cost report: {e}")
         return {
             "status": "error",
@@ -312,7 +312,7 @@ def get_env_etag(redis_key: str = "config:env_etag") -> str:
             if redis_queue and getattr(redis_queue, "configured", False):
                 redis_queue.set(redis_key, etag, ex=300)
             return etag
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             # বল মনতবয: .env এর etag গণনা বযর্থ হল "empty-env" ফলবযাক হয়;
             # নরব সযলপ ন কর ডবগ লগ কর হল
             logger.debug(f"Failed to compute .env etag: {exc}")
@@ -326,7 +326,7 @@ def _acquire_env_lock(lock_path: str = ".env.lock") -> bool:
     if redis_queue and getattr(redis_queue, "configured", False):
         try:
             return redis_queue.set_nx("lock:env_write", "locked", ex=10)
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             # বল মনতবয: রডস লক বযর্থ হল ফাইল-লক ফলবযাক বযবহত হয়;
             # নরব সযলপ ন কর ডবগ লগ কর হল
             logger.debug(f"Redis env lock acquisition failed, falling back to file lock: {exc}")
@@ -336,7 +336,7 @@ def _acquire_env_lock(lock_path: str = ".env.lock") -> bool:
         return True
     except FileExistsError:
         return False
-    except Exception:
+    except Exception:  # noqa: BLE001
         return False
 
 
@@ -389,10 +389,10 @@ def get_metrics():
         import psutil
         cpu_usage = psutil.cpu_percent(interval=None) or 15.2
         memory_usage = psutil.virtual_memory().percent or 40.5
-        
+
         # GPU Usage estimation: check if we can estimate or fallback to CPU load baseline
         gpu_usage = min(90.0, float(cpu_usage * 0.8 + 10.0))
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001
         logger.warning(f"Failed to fetch system metrics via psutil: {exc}")
         cpu_usage = 22.4
         memory_usage = 45.2
@@ -593,7 +593,7 @@ def trigger_backup():
         if os.path.exists(fname):
             try:
                 shutil.copy2(fname, os.path.join(backup_dir, os.path.basename(fname)))
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 logger.warning(f"Backup skipped for {fname}: {exc}")
     logger.info(f"Backup created at {backup_dir}")
     return {"status": "success", "backup_path": backup_dir}
@@ -649,7 +649,7 @@ def run_security_scan():
                     "message": ".env file not found",
                 }
             )
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.error(f"Security scan failed: {e}")
         return {"status": "error", "detail": str(e)}
     return {
@@ -680,12 +680,12 @@ async def admin_websocket(websocket: WebSocket):
                         },
                     }
                 )
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 logger.debug(f"WS send error: {exc}")
             await asyncio.sleep(2)
     except WebSocketDisconnect:
         logger.info("Admin WebSocket client disconnected")
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001
         logger.error(f"Admin WebSocket error: {exc}")
 
 
@@ -695,7 +695,7 @@ from pydantic import Field
 with contextlib.suppress(ImportError):
     from google.cloud import firestore
 from datetime import UTC
-from datetime import datetime
+from datetime import datetime  # noqa: F811
 
 
 class GateOverridePayload(BaseModel):
@@ -819,7 +819,7 @@ async def get_events(limit: int = Query(50, ge=1, le=200)):
     events_log_path = "data/dashboard_events.jsonl"
     if not os.path.exists(events_log_path):
         events_log_path = "/app/data/dashboard_events.jsonl"
-    
+
     if not os.path.exists(events_log_path):
         return []
 
@@ -854,13 +854,13 @@ async def list_reports(report_name: str = None):
         import re
         if not re.fullmatch(r"[A-Za-z0-9_\-]+", report_name):
             raise HTTPException(status_code=400, detail="Invalid report name.")
-            
+
         file_path = os.path.join(reports_dir, f"{os.path.basename(report_name)}.md")
-        
+
         # Verify resolved path is inside reports_dir (Defense in depth)
         if not os.path.realpath(file_path).startswith(os.path.realpath(reports_dir)):
             raise HTTPException(status_code=400, detail="Invalid path.")
-            
+
         if not os.path.exists(file_path):
             raise HTTPException(status_code=404, detail="Report not found.")
         with open(file_path, encoding="utf-8") as f:

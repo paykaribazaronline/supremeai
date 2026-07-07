@@ -132,15 +132,15 @@ class PRReviewer:
                                     "body": item["body"],
                                 }
                             )
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 try:
                     import loguru
                     loguru.logger.error(f"Tool execution error: {e}")
-                except Exception as e:
+                except Exception as e:  # noqa: BLE001
                     import logging
                     logging.warning(f"Exception suppressed: {e}")
                 logger.warning("Failed to parse LLM response in PRReviewer.")
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.warning(f"ModelRouter call failed in PRReviewer: {e}")
 
         return issues
@@ -191,7 +191,7 @@ class PRReviewer:
                 )
 
             return {"status": "success", "action_taken": action, "comments": comments}
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Error reviewing PR: {e}")
             return {"status": "error", "error": str(e), "comments": []}
 
@@ -211,6 +211,6 @@ class PRReviewer:
             pr = repo.get_pull(pr_number)
             comment = pr.create_issue_comment(comment_body)
             return {"status": "success", "comment_url": comment.html_url}
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Failed to post comment to GitHub: {e}")
             return {"status": "error", "error": str(e)}

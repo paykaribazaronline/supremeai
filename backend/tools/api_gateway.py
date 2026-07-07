@@ -49,7 +49,7 @@ class InternalGateway:
                 "status_code": response.status_code,
                 "data": response.json() if response.is_success else response.text,
             }
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.error(f"n8n trigger failed: {exc}")
             return {"success": False, "error": str(exc)}
 
@@ -60,7 +60,7 @@ class InternalGateway:
         try:
             response = httpx.post(webhook_url, json=payload, timeout=10.0)
             return {"success": response.is_success, "response": response.text}
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             return {"success": False, "error": str(exc)}
 
 
@@ -131,7 +131,7 @@ async def gateway_forward(request: GatewayRequest, http_request: Request) -> Res
                         logger.info(
                             f"Injected {provider.name} key from rotator for {normalized}"
                         )
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.warning(f"Failed to inject dynamic API key: {e}")
 
     try:
@@ -152,11 +152,11 @@ async def gateway_forward(request: GatewayRequest, http_request: Request) -> Res
                     logger.warning(
                         f"Provider {failed_provider} hit 429, paused for 60s."
                     )
-                except Exception as e:
+                except Exception as e:  # noqa: BLE001
                     try:
                         import loguru
                         loguru.logger.error(f"Tool execution error: {e}")
-                    except Exception as e:
+                    except Exception as e:  # noqa: BLE001
                         import logging
                         logging.warning(f"Exception suppressed: {e}")
                     pass
@@ -164,7 +164,7 @@ async def gateway_forward(request: GatewayRequest, http_request: Request) -> Res
         return JSONResponse(content=response.json(), status_code=response.status_code)
     except httpx.HTTPStatusError as exc:
         raise HTTPException(status_code=exc.response.status_code)
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001
         logger.exception("gateway forward failed")
         raise HTTPException(status_code=502, detail=str(exc))
 

@@ -19,7 +19,7 @@ SupremeAI 2.0-এর জন্য TTL-based config cache layer.
     
     # Set a config value (also persists to DB)
     await config_cache.set("cache_threshold_code", 0.90)
-"""
+"""  # noqa: W293
 
 import threading
 import time
@@ -66,19 +66,19 @@ class ConfigCache:
     - TTL (ডিফল্ট: ৬০ সেকেন্ড) পর্যন্ত in-memory serve করে
     - TTL expire হলে পরবর্তি request-এ DB reload করে
     - force_refresh() দিয়ে ম্যানুয়ালি invalidate করা যায়
-    """
-    
+    """  # noqa: W293
+
     def __init__(self, ttl_seconds: int = 60):
         self._cache: dict[str, Any] = {}
         self._ttl = ttl_seconds
         self._last_refresh: float = 0.0
         self._lock = threading.Lock()
         self._loaded = False
-        
+
     def _should_refresh(self) -> bool:
         """TTL expire হয়েছে কিনা চেক করে।"""
         return (time.time() - self._last_refresh) > self._ttl
-        
+
     def _load_from_db(self) -> dict[str, Any]:
         """
         DB থেকে active SystemConfig রেকর্ড লোড করে।
@@ -94,7 +94,7 @@ class ConfigCache:
 
             from database.session import AsyncSessionLocal
             from models.system_config import SystemConfig
-            
+
             async def _async_load():
                 async with AsyncSessionLocal() as session:
                     stmt = select(SystemConfig).where(SystemConfig.is_active)
@@ -103,7 +103,7 @@ class ConfigCache:
                     for row in rows:
                         configs[row.key] = row.value
                     return configs
-            
+
             try:
                 loop = asyncio.new_event_loop()
                 asyncio.set_event_loop(loop)
@@ -122,12 +122,12 @@ class ConfigCache:
                         context={"action": "async_load_fallback"}
                     )
                 )
-                
-        except Exception as exc:
+
+        except Exception as exc:  # noqa: BLE001
             logger.debug(f"ConfigCache: DB load failed, using defaults: {exc}")
-            
+
         return configs
-    
+
     def refresh(self):
         """ফোর্স রিফ্রেশ — ক্যাশ DB থেকে রিলোড করে (সিঙ্ক্রোনাস)।"""
         with self._lock:
@@ -141,7 +141,7 @@ class ConfigCache:
         from sqlalchemy import select
         from database.session import AsyncSessionLocal
         from models.system_config import SystemConfig
-        
+
         configs = dict(DEFAULT_CONFIGS)
         try:
             async with AsyncSessionLocal() as session:
@@ -150,13 +150,13 @@ class ConfigCache:
                 rows = result.scalars().all()
                 for row in rows:
                     configs[row.key] = row.value
-            
+
             with self._lock:
                 self._cache = configs
                 self._last_refresh = time.time()
                 self._loaded = True
             logger.info(f"ConfigCache: Async loaded {len(configs)} configs from DB")
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.debug(f"ConfigCache: DB load failed during startup, using defaults: {exc}")
             with self._lock:
                 self._cache = configs
@@ -171,15 +171,15 @@ class ConfigCache:
         """
         if not self._loaded or self._should_refresh():
             self.refresh()
-        
+
         with self._lock:
             return self._cache.get(key, default)
-    
+
     def get_all(self, category: str | None = None) -> dict[str, Any]:
         """সব কনফিগ (অথবা নির্দিষ্ট category) রিটার্ন করে।"""
         if not self._loaded or self._should_refresh():
             self.refresh()
-        
+
         with self._lock:
             if category:
                 # Filter by key prefix pattern (e.g., "cache_threshold_", "provider_")
@@ -188,7 +188,7 @@ class ConfigCache:
                     if k.startswith(category)
                 }
             return dict(self._cache)
-    
+
     async def set(self, key: str, value: Any, description: str = "") -> bool:
         """
         কনফিগ ভ্যালু সেট করে — DB-তেও persist করে + cache update করে।
@@ -197,13 +197,13 @@ class ConfigCache:
 
         from database.session import AsyncSessionLocal
         from models.system_config import SystemConfig
-        
+
         try:
             async with AsyncSessionLocal() as session:
                 stmt = select(SystemConfig).where(SystemConfig.key == key)
                 result = await session.execute(stmt)
                 existing = result.scalar_one_or_none()
-                
+
                 if existing:
                     existing.value = value
                     existing.version += 1
@@ -216,19 +216,19 @@ class ConfigCache:
                         description=description or f"Auto-created config for '{key}'",
                     )
                     session.add(new_config)
-                
+
                 await session.commit()
-                
+
                 # Update in-memory cache
                 with self._lock:
                     self._cache[key] = value
-                
+
                 logger.info(f"ConfigCache: Set '{key}' = {value}")
                 return True
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.error(f"ConfigCache: Failed to set '{key}': {exc}")
             return False
-    
+
     def invalidate(self, key: str | None = None):
         """
         নির্দিষ্ট key (বা সব) ক্যাশ invalidate করে।

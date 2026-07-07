@@ -67,7 +67,7 @@ class SupremeMetricsEngine:
                     "sandbox_violations_logged": 0,  # AST ব্লকার ট্র্যাক
                 },
             }
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"❌ Failed to aggregate cloud run metrics: {str(e)}")
             return {"status": "DEGRADED", "error": str(e)}
 
@@ -191,7 +191,7 @@ def record_request(method: str, path: str, status: int) -> None:
                 method=method, endpoint=path, status=str(status)
             ).inc()
             supremeai_requests_total.labels(method=method, endpoint=path).inc()
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.debug(f"Failed to record request metrics: {exc}")
 
 
@@ -210,7 +210,7 @@ def record_request_duration(method: str, path: str, duration: float) -> None:
             supremeai_response_seconds.labels(method=method, endpoint=path).observe(
                 duration
             )
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.debug(f"Failed to record request duration metrics: {exc}")
 
 

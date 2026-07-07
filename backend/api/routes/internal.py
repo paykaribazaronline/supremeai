@@ -53,13 +53,13 @@ async def run_daily_evolution(request: Request, payload: RunEvolutionRequest):
             db = getattr(fq, "client", None)
             if db:
                 db.collection("evolution_logs").add(report)
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001
         logger.debug(f"Failed to persist evolution log to Firestore: {exc}")
     try:
         from database.supabase_client import db as supabase_db
 
         if supabase_db.client:
             supabase_db.append_evolution_log(report)
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001
         logger.debug(f"Failed to persist evolution log to Supabase: {exc}")
     return report

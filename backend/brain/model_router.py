@@ -55,7 +55,7 @@ class ModelRouter:
     ) -> dict[str, Any]:
         # বাংলা মন্তব্য: CoT সাপোর্টের জন্য cot_reasoner এর মকিং প্রপার্টিসমূহ রিটার্ন করা হলো
         res = self.route_and_generate(prompt, task_type, max_cost)
-        
+
         # tests/test_brain.py-তে cot_reasoner-কে mock করা হয়ে থাকে, তাই সরাসরি কল রেজাল্ট নেওয়া হচ্ছে
         reasoning_res = self.cot_reasoner.reason(prompt) if hasattr(self.cot_reasoner, "reason") else {}
         type_name = type(reasoning_res).__name__
@@ -67,11 +67,11 @@ class ModelRouter:
                 "final_answer": "42",
                 "last_output": {},
             }
-        
+
         verification_res = self.cot_reasoner.verify(res.get("text", "")) if hasattr(self.cot_reasoner, "verify") else {"matches": True}
         if type(verification_res).__name__ == "MagicMock":
             verification_res = {"matches": True}
-            
+
         return {
             "success": res.get("success", False),
             "text": res.get("text", ""),
@@ -86,16 +86,16 @@ class ModelRouter:
         # বাংলা মন্তব্য: টেস্টে যদি async_route_and_generate কে mock করা হয়, তবে সেটিকেও সাপোর্ট করার জন্য ডাইনামিক কলিং
         res = None
         async_func = getattr(self, "async_route_and_generate", None)
-        if (async_func and 
-            async_func != ModelRouter.async_route_and_generate and 
+        if (async_func and
+            async_func != ModelRouter.async_route_and_generate and
             (inspect.iscoroutinefunction(async_func) or hasattr(async_func, "assert_called_with") or type(async_func).__name__ == "AsyncMock")):
             res = run_async_as_sync(async_func(prompt, task_type, max_cost))
-        
+
         if res is None:
             res = run_async_as_sync(
                 self.async_route_and_generate(prompt, task_type, max_cost)
             )
-            
+
         if res is None:
             import json
             res = {
@@ -118,7 +118,7 @@ class ModelRouter:
         self, prompt: Any, task_type: str = "general", max_cost: float = 0.01
     ) -> dict[str, Any]:
         logger.info(f"[ModelRouter] Forwarding task_type='{task_type}' to LLMGateway")
-        
+
         # বাংলা মন্তব্য: টেস্ট কেসে যদি monkeypatch করা মেথডসমূহ থাকে, তবে ফলব্যাক রান করানো হচ্ছে
         p_str = str(prompt)
         try:
@@ -130,7 +130,7 @@ class ModelRouter:
                         return await val(p_str, "model")
                     else:
                         return val(p_str, "model")
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             return {"success": False, "text": f"Error: {e} (Services unavailable)", "error": str(e)}
 
         # বাংলা মন্তব্য: pytest রানিং মোডে থাকলে বা এপিআই কী না থাকলে লাইভ গেটওয়ে এড়াতে ফলব্যাক রিটার্ন
@@ -157,7 +157,7 @@ class ModelRouter:
         try:
             # বাংলা মন্তব্য: পেলোড নরমালাইজেশন — র-ইনপুট বিশ্লেষণ করে স্ট্রিং বা চ্যাট লিস্টে কনভার্ট করা হচ্ছে
             normalized_prompt: str | list[dict[str, Any]] = ""
-            
+
             if isinstance(prompt, str):
                 normalized_prompt = prompt
             elif isinstance(prompt, list):
@@ -211,7 +211,7 @@ class ModelRouter:
                     breaker.mark_success()
                 else:
                     breaker.mark_failure()
-                
+
                 if response is None:
                     return {
                         "success": False,
@@ -222,7 +222,7 @@ class ModelRouter:
             except Exception as exc:
                 breaker.mark_failure()
                 raise exc
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"[ModelRouter] Gateway completion failed: {e}")
             return {
                 "success": False,

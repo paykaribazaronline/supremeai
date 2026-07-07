@@ -127,7 +127,7 @@ async def create_checkout_session(request: Request, payload: CheckoutRequest):
                 event="checkout_session_created",
                 properties={"price_id": payload.price_id},
             )
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             # বল মনতবয: PostHog তলমটর বযরথ হল চকআউট পরসস আটকান উচত নয়;
             # তব নরব সযলপ ন কর ডবগ লগ কর হল
             logger.debug(f"PostHog checkout capture failed: {exc}")
@@ -173,7 +173,7 @@ async def stripe_webhook(request: Request):
                         "plan_id": price_id,
                     }
                 )
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 logger.error(
                     f"Failed to update user subscription status in Firestore: {e}"
                 )
@@ -185,7 +185,7 @@ async def stripe_webhook(request: Request):
                 event="subscription_completed",
                 properties={"subscription_id": subscription_id, "price_id": price_id},
             )
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             # বল মনতবয: সাবসকরপশন ইভননথ PostHog-এ পাঠাত বযরথ হল webhook পরসসং চলব;
             # নরব সযলপর বদল ডবগ লগ কর হল
             logger.debug(f"PostHog subscription capture failed: {exc}")

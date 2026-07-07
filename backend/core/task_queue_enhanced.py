@@ -165,7 +165,7 @@ class TaskQueue:
                     task_acks_late=True,
                 )
                 logger.info("Celery backend initialized")
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 logger.warning(f"Failed to initialize Celery: {e}")
                 self.celery_app = None
         else:
@@ -178,7 +178,7 @@ class TaskQueue:
                     self.redis_url, decode_responses=True
                 )
                 logger.info("Redis backend initialized")
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 logger.warning(f"Failed to initialize Redis: {e}")
                 self.redis_client = None
         else:
@@ -193,7 +193,7 @@ class TaskQueue:
                     self.project_id, "supremeai-tasks"
                 )
                 logger.info("Pub/Sub backend initialized")
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 logger.warning(f"Failed to initialize Pub/Sub: {e}")
                 self.publisher = None
                 self.subscriber = None
@@ -422,13 +422,13 @@ class TaskQueue:
                 func, task_id, args, kwargs = await self.local_queue.get()
                 try:
                     await self._execute_sync(func, task_id, args, kwargs)
-                except Exception as e:
+                except Exception as e:  # noqa: BLE001
                     logger.error(f"Error in asyncio worker for task {task_id}: {e}")
                 finally:
                     self.local_queue.task_done()
         except asyncio.CancelledError:
             logger.info("Asyncio worker cancelled")
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Asyncio worker failed: {e}")
             await asyncio.sleep(5)
             logger.info("Restarting asyncio worker after crash...")

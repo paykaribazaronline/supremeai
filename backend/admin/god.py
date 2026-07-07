@@ -28,21 +28,21 @@ class AdminGodLayer:
         self.db_path = Path(db_path)
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
         self.sqlite_lock = threading.Lock()
-        
+
         self.collection_name = "constitutional_rules"
         # রিফ্যাক্টর: সরাসরি firestore.Client() এর বদলে শেয়ার্ড হেল্পার ব্যবহার
         self._db = get_firestore_db()
         if self._db is not None:
             try:
                 self._init_db()
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 logger.warning(f"Failed to initialize Firestore for AdminGodLayer: {e}. Falling back to SQLite.")
                 self._db = None
         else:
             logger.warning(
                 "Firestore unavailable or in test mode. AdminGodLayer using local SQLite fallback."
             )
-        
+
         self._init_sqlite_db()
 
     def _init_sqlite_db(self):
@@ -83,14 +83,14 @@ class AdminGodLayer:
             if not doc_ref.get().exists:
                 self.set_rule("admin_authorized", "false")
                 logger.warning("Firestore: Defaulting 'admin_authorized' to 'false' for security.")
-            
+
             autofix_ref = self._db.collection(self.collection_name).document(
                 "autofix_authorized"
             )
             if not autofix_ref.get().exists:
                 self.set_rule("autofix_authorized", "false")
                 logger.warning("Firestore: Defaulting 'autofix_authorized' to 'false' for security.")
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Error initializing AdminGodLayer DB: {e}")
 
     def get_rule(self, key: str, default: str | None = None) -> str | None:
@@ -101,7 +101,7 @@ class AdminGodLayer:
                 if doc.exists:
                     return doc.to_dict().get("value", default)
                 return default
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 logger.error(f"Error fetching rule {key} from Firestore: {e}")
 
         # বাংলা মন্তব্য: ফায়ারস্টোর নিষ্ক্রিয় বা টেস্ট মোডে থাকলে SQLite ব্যাকআপ থেকে রিড হবে
@@ -118,7 +118,7 @@ class AdminGodLayer:
                 doc_ref.set({"value": value, "updated_at": time.time()})
                 logger.info(f"Constitutional rule updated in Firestore: {key} = {value}")
                 return
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 logger.error(f"Error setting rule {key} in Firestore: {e}. Falling back to SQLite.")
 
         # বাংলা মন্তব্য: SQLite ব্যাকআপ ডাটাবেসে রুল সংরক্ষণ করা হচ্ছে

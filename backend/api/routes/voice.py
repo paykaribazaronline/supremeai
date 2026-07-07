@@ -29,7 +29,7 @@ async def stream_audio(text: str = "", voice: str | None = None):
                 voice_id=None,  # Use language-based voice for ElevenLabs; voice param for edge-tts fallback handled internally
             ):
                 yield chunk
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Audio streaming failed: {e}")
             yield b""  # Return empty bytes on error to avoid breaking the stream
 

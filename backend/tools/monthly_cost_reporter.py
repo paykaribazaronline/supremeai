@@ -74,7 +74,7 @@ class MonthlyCostReporter:
                 url, json={"chat_id": self.admin_chat_id, "text": text}, timeout=10
             )
             return True
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.error(f"Failed to send monthly cost report: {exc}")
             return False
 

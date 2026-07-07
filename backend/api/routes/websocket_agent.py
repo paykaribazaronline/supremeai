@@ -66,9 +66,9 @@ JSON:"""
                     "user_id": user_id,
                     "preferences": merged_prefs
                 })
-                print(f"🤖 [WS] Updated user preferences for {user_id}: {merged_prefs}")
-        except Exception:
-            print("⚠️ [WS] Failed to analyze user preferences")
+                print(f"🤖 [WS] Updated user preferences for {user_id}: {merged_prefs}")  # noqa: T201
+        except Exception:  # noqa: BLE001
+            print("⚠️ [WS] Failed to analyze user preferences")  # noqa: T201
 
 
 # ==========================================
@@ -82,12 +82,12 @@ class ConnectionManager:
     async def connect(self, websocket: WebSocket):
         await websocket.accept()
         self.active_connections.append(websocket)
-        print("🟢 [WS] New Client Connected to Neural Engine.")
+        print("🟢 [WS] New Client Connected to Neural Engine.")  # noqa: T201
 
     def disconnect(self, websocket: WebSocket):
         if websocket in self.active_connections:
             self.active_connections.remove(websocket)
-        print("🔴 [WS] Client Disconnected.")
+        print("🔴 [WS] Client Disconnected.")  # noqa: T201
 
     async def _authenticate(self, websocket: WebSocket) -> dict | None:
         token = websocket.query_params.get("token")
@@ -95,7 +95,7 @@ class ConnectionManager:
             return {"sub": "anonymous", "role": "viewer"}
         try:
             return verify_token(token)
-        except Exception:
+        except Exception:  # noqa: BLE001
             await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
             return None
 
@@ -153,10 +153,10 @@ async def websocket_chat_endpoint(
 
                 content_to_send = text_prompt
                 if image_base64:
-                    print("📸 [WS] Image payload received and decoded.")
+                    print("📸 [WS] Image payload received and decoded.")  # noqa: T201
 
             except json.JSONDecodeError:
-                print(f"👤 [USER - Text Only]: {user_message}")
+                print(f"👤 [USER - Text Only]: {user_message}")  # noqa: T201
                 content_to_send = user_message
 
             try:
@@ -188,13 +188,13 @@ async def websocket_chat_endpoint(
                 chat_history.append({"role": "assistant", "content": response_content})
 
                 await websocket.send_text("[DONE]")
-                print("✅ [AI]: Stream completed.")
+                print("✅ [AI]: Stream completed.")  # noqa: T201
 
                 pref_task = asyncio.create_task(analyze_and_save_preferences(user_id, content_to_send))
                 manager.track_pref_task(user_id, pref_task)
 
-            except Exception:
-                print("❌ [GENERATION ERROR]")
+            except Exception:  # noqa: BLE001
+                print("❌ [GENERATION ERROR]")  # noqa: T201
                 await websocket.send_text("\n[Error: Neural pipeline failed]\n[DONE]")
 
     except WebSocketDisconnect:

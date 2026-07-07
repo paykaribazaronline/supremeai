@@ -15,7 +15,7 @@ class PostHogClient:
                 posthog.project_api_key = self.api_key
                 posthog.host = self.host
                 logger.info("Initialized PostHog Analytics Client")
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 logger.error(f"Failed to initialize PostHog: {e}")
                 self.enabled = False
         else:
@@ -27,7 +27,7 @@ class PostHogClient:
         if self.enabled:
             try:
                 posthog.capture(distinct_id, event, properties or {})
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 logger.error(f"PostHog capture failed: {e}")
         else:
             logger.info(

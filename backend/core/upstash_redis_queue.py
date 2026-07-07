@@ -51,7 +51,7 @@ class UpstashRedisQueue:
             response = self._request(*command)
             # Upstash REST-এর ক্ষেত্রে সেট সফল হলে {"result": "OK"} অন্যথায় {"result": null} আসে
             return response.get("result") == "OK"
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.error(f"Upstash Redis SET NX failed: {exc}")
             return False
 
@@ -64,7 +64,7 @@ class UpstashRedisQueue:
             command.extend(args)
             response = self._request(*command)
             return response.get("result")
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.error(f"Upstash Redis EVAL failed: {exc}")
             return None
 
@@ -73,7 +73,7 @@ class UpstashRedisQueue:
             return None
         try:
             return self._request("GET", key).get("result")
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.error(f"Upstash Redis GET failed: {exc}")
             return None
 
@@ -86,7 +86,7 @@ class UpstashRedisQueue:
                 command.extend(["EX", ex])
             self._request(*command)
             return True
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.error(f"Upstash Redis SET failed: {exc}")
             return False
 
@@ -96,7 +96,7 @@ class UpstashRedisQueue:
         try:
             result = self._request("INCR", key).get("result")
             return int(result) if result is not None else None
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.error(f"Upstash Redis INCR failed: {exc}")
             return None
 
@@ -106,7 +106,7 @@ class UpstashRedisQueue:
         try:
             result = self._request("DECR", key).get("result")
             return int(result) if result is not None else None
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.error(f"Upstash Redis DECR failed: {exc}")
             return None
 
@@ -116,7 +116,7 @@ class UpstashRedisQueue:
         try:
             self._request("EXPIRE", key, str(ttl))
             return True
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.error(f"Upstash Redis EXPIRE failed: {exc}")
             return False
 
@@ -126,7 +126,7 @@ class UpstashRedisQueue:
         try:
             self._request("PUBLISH", channel, message)
             return True
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.error(f"Upstash Redis PUBLISH failed: {exc}")
             return False
 
@@ -136,7 +136,7 @@ class UpstashRedisQueue:
         try:
             result = self._request("LPUSH", key, value).get("result")
             return int(result) if result is not None else None
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.error(f"Upstash Redis LPUSH failed: {exc}")
             return None
 
@@ -145,7 +145,7 @@ class UpstashRedisQueue:
             return None
         try:
             return self._request("RPOP", key).get("result")
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.error(f"Upstash Redis RPOP failed: {exc}")
             return None
 

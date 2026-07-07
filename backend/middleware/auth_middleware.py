@@ -87,7 +87,7 @@ class ZeroTrustAuthMiddleware(BaseHTTPMiddleware):
                     },
                 )
 
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             from fastapi.responses import JSONResponse
 
             logger.error(f"Token validation failed: {e}")

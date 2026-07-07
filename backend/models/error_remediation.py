@@ -32,7 +32,7 @@ class ExternalService:
             self._fail_count += 1
             logging.error(f"অপারেশন ফেইল! চেষ্টার সংখ্যা: {self._fail_count}")
             raise ConnectionError("ডেটাবেজ কানেকশন স্থাপন করা যায়নি")
-        
+
         logging.info("অপারেশন সফলভাবে সম্পন্ন হয়েছে।")
         self._fail_count = 0 # সফল হলে কাউন্টার রিসেট
         return "অপারেশন সফল"
@@ -50,7 +50,7 @@ def resilient_call(service_operation: Callable[..., Any], *args, **kwargs) -> An
     
     - Retry Logic: এক্সপোনেনশিয়াল ব্যাকঅফসহ সর্বোচ্চ ৩ বার চেষ্টা করবে, যেখানে সর্বোচ্চ ডিলে ৫ সেকেন্ড।
     - Circuit Breaker: যদি ৩ বার চেষ্টার পরও ব্যর্থ হয়, সার্কিট ব্রেকার 'open' হয়ে যাবে।
-    """
+    """  # noqa: W293
     logging.info("অপারেশন চালানোর চেষ্টা করা হচ্ছে...")
     return service_operation(*args, **kwargs)
 

@@ -53,7 +53,7 @@ if HAS_LANGSMITH:
                 fallbacks=get_fallback_chain(model),
             )
             return {"model": model, "text": response.choices[0].message.content}
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.error(f"Model dispatch failed: {exc}")
             return {"model": model, "text": "", "error": str(exc)}
 else:

@@ -18,5 +18,5 @@ args = ['-p', 'no:pytest_cov', 'backend/tests/test_gcp_integration.py::test_gcp_
         'backend/tests/test_gcp_integration.py::test_gcp_cloud_run_router_route', '-q']
 
 ret = pytest.main(args)
-print('pytest exit code:', ret)
+print('pytest exit code:', ret)  # noqa: T201
 sys.exit(ret)

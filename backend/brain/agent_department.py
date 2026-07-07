@@ -28,7 +28,7 @@ class CodingAgent:
                 "success": False,
                 "error": raw.get("error", "unknown"),
             }
-        except Exception as exc:  # pylint: disable=broad-except
+        except Exception as exc:  # pylint: disable=broad-except  # noqa: BLE001
             return {"role": self.role, "success": False, "error": str(exc)}
 
 
@@ -68,7 +68,7 @@ class ReviewAgent:
                 "success": False,
                 "error": raw.get("error", "unknown"),
             }
-        except Exception as exc:  # pylint: disable=broad-except
+        except Exception as exc:  # pylint: disable=broad-except  # noqa: BLE001
             return {"role": self.role, "success": False, "error": str(exc)}
 
 
@@ -104,7 +104,7 @@ class QAAgent:
                 "success": False,
                 "error": raw.get("error", "unknown"),
             }
-        except Exception as exc:  # pylint: disable=broad-except
+        except Exception as exc:  # pylint: disable=broad-except  # noqa: BLE001
             return {"role": self.role, "success": False, "error": str(exc)}
 
 

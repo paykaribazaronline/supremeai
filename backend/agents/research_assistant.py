@@ -34,7 +34,7 @@ class ResearchAssistant:
             resp = httpx.get(self.ARXIV_API, params=params, timeout=15.0)
             resp.raise_for_status()
             return self._parse_arxiv_xml(resp.text)
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.debug(f"ArXiv search failed: {exc}")
             return []
 
@@ -115,7 +115,7 @@ class ResearchAssistant:
                     }
                 )
             return papers
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.debug(f"Semantic Scholar search failed: {exc}")
             return []
 
@@ -156,7 +156,7 @@ class ResearchAssistant:
                     "source": paper.get("source"),
                     "url": paper.get("url"),
                 }
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.debug(f"Paper summarization failed: {exc}")
         return {
             "summary": abstract[:300] + "...",

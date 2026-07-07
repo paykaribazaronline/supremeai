@@ -17,17 +17,17 @@ class ASTSecurityScanner(ast.NodeVisitor):
         self.banned_imports: set[str] = {
             "os", "sys", "subprocess", "pty", "shlex",
             "importlib", "code", "runpy", "multiprocessing",
-            "pickle", "marshal", "tempfile", "socket", 
+            "pickle", "marshal", "tempfile", "socket",
             "urllib", "urllib3", "requests", "http", "ctypes", "builtins"
         }
-        
+
         # 🛑 ZERO-GAP: Banned Built-in Functions for Introspection & Execution
         self.banned_functions: set[str] = {
             "eval", "exec", "compile", "globals", "locals",
             "vars", "dir", "type", "chr", "ord", "breakpoint",
             "__import__", "getattr", "setattr", "delattr", "hasattr", "open"
         }
-        
+
         # 🛑 ZERO-GAP: Prevent Sandbox Escapes via Dunder Attributes
         self.banned_attributes: set[str] = {
             "__class__", "__bases__", "__subclasses__",
@@ -53,11 +53,11 @@ class ASTSecurityScanner(ast.NodeVisitor):
         # Block direct function calls like eval(), __import__()
         if isinstance(node.func, ast.Name) and node.func.id in self.banned_functions:
             raise SecuritySandboxError(f"Banned function call detected: {node.func.id}")
-        
+
         # Block malicious module methods like importlib.import_module() or os.system()
         elif isinstance(node.func, ast.Attribute) and node.func.attr in {"import_module", "system", "popen", "spawn", "fork"}:
             raise SecuritySandboxError(f"Banned method invocation detected: {node.func.attr}")
-        
+
         self.generic_visit(node)
 
     def visit_Attribute(self, node: ast.Attribute):
@@ -102,6 +102,6 @@ class ImmuneSystemScanner:
         except SyntaxError as se:
             logger.error(f"Syntax validation failed: {se}")
             return {"safe": False, "error": f"SyntaxError: {str(se)}"}
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Unexpected error during static analysis: {e}")
             return {"safe": False, "error": f"AnalysisException: {str(e)}"}

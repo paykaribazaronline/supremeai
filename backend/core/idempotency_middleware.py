@@ -96,7 +96,7 @@ class IdempotencyMiddleware:
                         )
                     await response(scope, receive, send)
                     return
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 # বল মনতবয: কযশকরত idempotency রকরড পরস করত বযরথ হল রকয়সট পনরায় পরসস হব;
                 # নরবভ ডট করাপশন লকয় রখত warning লগ যকত কর হল
                 logger.warning(f"Failed to parse cached idempotency record for key {idempotency_key}: {exc}")

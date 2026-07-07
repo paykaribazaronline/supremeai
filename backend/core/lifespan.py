@@ -101,10 +101,10 @@ async def app_lifespan(app):
     except Exception as exc:
         logger.error(f"❌ Failed to initialize DB Pool: {exc}")
         raise exc
-        
+
     try:
         await config_cache.refresh_async()
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001
         logger.critical(f"🚨 সিস্টেম স্টার্টআপ ব্লক করা হয়েছে - কনফিগারেশন অনুপস্থিত! {exc}")
         import sys
         sys.exit(1)
@@ -124,7 +124,7 @@ async def app_lifespan(app):
             )
             app.state.discord_bot = bot
             logger.info("🤖 Discord Bot background task initialized successfully.")
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.warning(f"Deferred Discord Bot initialization: {e}")
 
     try:
@@ -132,7 +132,7 @@ async def app_lifespan(app):
         app.state.orchestrator = orch_inst
         await orch_inst.start()
         logger.info("⚙️ Orchestrator background tasks initialized successfully.")
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.error(f"Failed to initialize Orchestrator: {e}")
 
     try:
@@ -143,7 +143,7 @@ async def app_lifespan(app):
         ):
             supabase_db.bootstrap_schema()
             logger.info("Supabase schema bootstrap complete")
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001
         logger.warning(
             f"Supabase bootstrap failed on startup: {exc}. Continuing without schema bootstrap."
         )
@@ -162,7 +162,7 @@ async def app_lifespan(app):
         orchestrator = getattr(app.state, "orchestrator", None)
         if orchestrator:
             await orchestrator.stop()
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.error(f"Error closing Discord Bot: {e}")
 
     try:
@@ -170,27 +170,27 @@ async def app_lifespan(app):
         if pool:
             await pool.close()
             logger.info("✅ Database connection pool closed successfully.")
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.error(f"Error closing DB pool: {e}")
 
     try:
         await redis_manager.close()
         logger.info("✅ Redis Manager connection closed.")
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.error(f"Error closing Redis Manager: {e}")
 
     try:
         if services.global_http_client:
             await services.global_http_client.aclose()
         logger.info("✅ Global HTTP connection pool closed successfully.")
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.error(f"Error during HTTP connection pool drainage: {str(e)}")
 
     try:
         from tools.browser_agent import shutdown_global_browser
 
         await shutdown_global_browser()
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.error(f"Failed to shutdown global browser: {e}")
 
     logger.info("💀 Serverless runtime environment sequence successfully finalized.")

@@ -27,7 +27,7 @@ class Model3DGenerator:
                 "model_url": "",
                 "note": "Real 3D generation requires Shap-E/Point-E integration.",
             }
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.error(f"3D model generation failed: {exc}")
             return {
                 "status": "error",

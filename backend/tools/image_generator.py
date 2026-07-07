@@ -68,7 +68,7 @@ class HFImageGenerator:
                     "output_path": output_path,
                     "mock": False,
                 }
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(
                 f"HuggingFace image generation failed: {e}. Falling back to mock generation."
             )
@@ -98,5 +98,5 @@ class HFImageGenerator:
                 "output_path": output_path,
                 "mock": True,
             }
-        except Exception as ex:
+        except Exception as ex:  # noqa: BLE001
             return {"success": False, "error": f"Mock generation failed: {ex}"}

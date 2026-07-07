@@ -25,7 +25,7 @@ class ArchitectureAgent(SwarmAgentBase):
         workspace.log("ArchitectureAgent: Starting system architecture layout analysis...")
         sys_prompt = "You are a lead system architect. Define file structures, component breakdown, and database schemas."
         user_prompt = f"Design architecture for task: {workspace.original_prompt}"
-        
+
         design_output = await self.call_gateway(sys_prompt, user_prompt, user_id)
         workspace.architecture_design = design_output
         workspace.log("ArchitectureAgent: System design blueprint completed.")
@@ -47,7 +47,7 @@ class QAAgent(SwarmAgentBase):
         workspace.log("QAAgent: Initiating test suites and static CodeQL scans...")
         # Simulating running ImmuneSystem AST scan and Python validations
         code_to_test = workspace.generated_code.get("main.py", "")
-        
+
         if "import os" in code_to_test or "eval(" in code_to_test:
             workspace.test_results["safe"] = False
             workspace.test_results["error"] = "Security Exception: Banned AST calls detected by static scan."
@@ -56,7 +56,7 @@ class QAAgent(SwarmAgentBase):
             workspace.test_results["safe"] = True
             workspace.test_results["passed"] = True
             workspace.log("QAAgent: AST Static scans and sanity runs completed successfully.")
-        
+
         sys_prompt = "You are a QA engineer. Review code and validation results and give feedback."
         user_prompt = f"Code:\n{code_to_test}\nResults: {workspace.test_results}"
         qa_feedback = await self.call_gateway(sys_prompt, user_prompt, user_id)

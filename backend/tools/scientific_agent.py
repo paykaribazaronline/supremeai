@@ -21,7 +21,7 @@ class ScientificAgent:
                 "solution": str(solution),
                 "method": method,
             }
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.error(f"Equation solving failed: {exc}")
             return {
                 "status": "error",

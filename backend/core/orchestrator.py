@@ -138,7 +138,7 @@ class Orchestrator:
                         executed_skills[-2], skill, success=True
                     )
 
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 logger.error(
                     f"Skill execution failed for '{skill}': {e}. Triggering rollback/fallback."
                 )
@@ -192,7 +192,7 @@ class Orchestrator:
                 async with asyncio.TaskGroup() as tg:
                     for task_fn in self._tasks:
                         tg.create_task(task_fn())
-        except* Exception as eg:
+        except* Exception as eg:  # noqa: BLE001
             for exc in eg.exceptions:
                 logger.error(f"Error in orchestrator task group loop: {exc}")
 

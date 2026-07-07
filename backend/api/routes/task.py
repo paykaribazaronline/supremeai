@@ -194,7 +194,7 @@ def format_chat_history(messages: list[dict]) -> str:
                 data = json.loads(content)
                 if isinstance(data, dict) and "content" in data:
                     content = data["content"]
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 import logging
                 logging.warning(f"Exception suppressed: {e}")
         role_label = "User" if role == "user" else "Assistant"

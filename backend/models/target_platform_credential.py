@@ -33,23 +33,23 @@ class TargetPlatformCredential(Base):
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     user_id: Mapped[str] = mapped_column(String(255), index=True, nullable=False)
-    
+
     platform_label: Mapped[str] = mapped_column(String(255), nullable=False)
-    
+
     auth_type: Mapped[AuthType] = mapped_column(
         Enum(AuthType, name="auth_type_enum", create_type=True),
         nullable=False
     )
-    
+
     encrypted_blob: Mapped[bytes] = mapped_column(LargeBinary, nullable=False)
     kms_key_ref: Mapped[str | None] = mapped_column(String(255), nullable=True)
-    
+
     status: Mapped[CredentialStatus] = mapped_column(
         Enum(CredentialStatus, name="credential_status_enum", create_type=True),
         nullable=False,
         default=CredentialStatus.active
     )
-    
+
     last_used_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(UTC))
 

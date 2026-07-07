@@ -42,7 +42,7 @@ class EmailService:
                 else:
                     logger.error(f"Failed to send email to {to_email}: {response.text}")
                     return False
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Exception while sending email: {e}")
             return False
 

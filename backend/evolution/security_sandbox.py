@@ -10,7 +10,7 @@ class ASTGatekeeper(ast.NodeVisitor):
     """
     হোয়াইটলিস্ট-বেসড কড়া AST গেটকিপার। যেকোনো ব্ল্যাকলিস্টেড ফাংশন, 
     মডিউল ইম্পোর্ট বা ইন্টারনাল অ্যাট্রিবিউট ডাইভার্সন দেখলেই এটি এক্সিকিউশন ডিসেবল করে।
-    """
+    """  # noqa: W291
     # বাংলা কমেন্ট: শুধুমাত্র নিরাপদ পাইথন নোডগুলোর হোয়াইটলিস্ট
     ALLOWED_NODES = {
         ast.Module, ast.Expr, ast.Load, ast.Store, ast.Name,
@@ -24,12 +24,12 @@ class ASTGatekeeper(ast.NodeVisitor):
 
     # বাংলা কমেন্ট: মারাত্মক আরসিই (RCE) ভেক্টরের ব্ল্যাকলিস্ট
     FORBIDDEN_BUILTINS = {
-        'eval', 'exec', 'compile', 'open', '__import__', 'globals', 
+        'eval', 'exec', 'compile', 'open', '__import__', 'globals',
         'locals', 'getattr', 'setattr', 'delattr', 'hasattr', 'input'
     }
 
     FORBIDDEN_ATTRIBUTES = {
-        '__subclasses__', '__builtins__', '__globals__', '__code__', 
+        '__subclasses__', '__builtins__', '__globals__', '__code__',
         '__dict__', '__class__', '__base__', '__bases__'
     }
 
@@ -74,25 +74,25 @@ def execute_secure_sandbox(code_source: str, local_scope: dict = None) -> dict:
     """
     if local_scope is None:
         local_scope = {}
-        
+
     try:
         # বাংলা কমেন্ট: স্ট্রিং সোর্স কোডকে AST তে রূপান্তর করে গেটকিপার দিয়ে স্ক্যান করানো হচ্ছে
         parsed_ast = ast.parse(code_source)
         gatekeeper = ASTGatekeeper()
         gatekeeper.visit(parsed_ast)
-        
+
         # বাংলা কমেন্ট: সম্পূর্ণ ফাকা গ্লোবাল ডিকশনারি দিয়ে exec রান করা হচ্ছে যাতে বিল্ট-ইন এক্সেস না পায় (০% গ্যাপ পলিসি)
         safe_globals = {"__builtins__": {
-            'print': print, 'range': range, 'len': len, 'int': int, 
+            'print': print, 'range': range, 'len': len, 'int': int,
             'str': str, 'float': float, 'list': list, 'dict': dict, 'abs': abs
         }}
-        
+
         # কোড এক্সিকিউশন
         exec(code_source, safe_globals, local_scope)
         return {"status": "SUCCESS", "output": local_scope}
-        
+
     except SecurityException as sec_err:
         return {"status": "BLOCKED", "reason": str(sec_err)}
-    except Exception as run_err:
+    except Exception as run_err:  # noqa: BLE001
         logger.error(f"⚠️ Runtime compilation error inside sandbox: {str(run_err)}")
         return {"status": "FAILED", "reason": str(run_err)}

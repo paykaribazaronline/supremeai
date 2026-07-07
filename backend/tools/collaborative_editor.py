@@ -174,7 +174,7 @@ class CollaborativeEditor:
             # এডিটরে কোড ব্রডকাস্ট করা (সব ইউজারের কাছে চলে যাবে)
             await self.broadcast_delta(session_id, delta, sender_id="supreme-ai-agent")
 
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Error processing AI request: {e}")
         finally:
             # কাজ শেষ, "AI is typing..." অ্যানিমেশন বন্ধ করার সিগন্যাল পাঠানো
@@ -204,7 +204,7 @@ class CollaborativeEditor:
                             if client_id != sender_id:
                                 try:
                                     await ws.send_text(data)
-                                except Exception as e:
+                                except Exception as e:  # noqa: BLE001
                                     logger.error(
                                         f"Error sending to local client {client_id}: {e}"
                                     )
@@ -247,7 +247,7 @@ async def websocket_collab(websocket: WebSocket, session_id: str, client_id: str
                 logger.warning(f"Invalid JSON received from client {client_id}")
     except WebSocketDisconnect:
         await editor_manager.disconnect_client(session_id, client_id)
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.error(
             f"WebSocket error in session {session_id} for client {client_id}: {e}"
         )

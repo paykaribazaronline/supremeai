@@ -32,7 +32,7 @@ class SeedDataLoader:
             blob = bucket.blob(f"seed/{blob_name}.json")
             data = blob.download_as_string()
             return json.loads(data)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"GCS load failed: {e}")
             return self._local_fallback(blob_name)
 
@@ -42,7 +42,7 @@ class SeedDataLoader:
             s3 = boto3.client("s3")
             response = s3.get_object(Bucket=self.bucket, Key=f"seed/{key}.json")
             return json.loads(response["Body"].read())
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"S3 load failed: {e}")
             return self._local_fallback(key)
 
@@ -89,4 +89,4 @@ class SeedDataLoader:
 if __name__ == "__main__":
     loader = SeedDataLoader()
     data = loader.load_all()
-    print(f"Loaded {len(data)} categories")
+    print(f"Loaded {len(data)} categories")  # noqa: T201

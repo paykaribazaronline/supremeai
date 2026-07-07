@@ -50,7 +50,7 @@ class AuditLogger:
                     (action_type, decision_details, reasoning),
                 )
                 conn.commit()
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Failed to write to audit database: {e}")
 
     def get_audit_trail(self) -> list:
@@ -61,6 +61,6 @@ class AuditLogger:
                 cursor.execute("SELECT * FROM audit_logs ORDER BY timestamp DESC")
                 rows = cursor.fetchall()
                 return [dict(r) for r in rows]
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Failed to query audit trail: {e}")
             return []

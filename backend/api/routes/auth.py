@@ -53,7 +53,7 @@ async def optional_current_user(
         user_id = payload.get("sub", "unknown")
         role = payload.get("role", "viewer")
         return UserContext(user_id=user_id, role=role)
-    except Exception:
+    except Exception:  # noqa: BLE001
         return None
 
 

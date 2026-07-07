@@ -1,5 +1,4 @@
 # বাংলা মন্তব্য: টেস্টে ব্যবহৃত asyncio এবং patch আমদানি করা হলো এবং অব্যবহৃত টাইপ মুছে ফেলা হলো।
-import asyncio
 from unittest.mock import patch
 
 import pytest

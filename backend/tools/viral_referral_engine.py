@@ -37,11 +37,11 @@ class ViralReferralEngine:
 
             with open(path, encoding="utf-8") as f:
                 return json.load(f)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             try:
                 import loguru
                 loguru.logger.error(f"Tool execution error: {e}")
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 import logging
                 logging.warning(f"Exception suppressed: {e}")
             return {"codes": {}, "wallets": {}}
@@ -67,7 +67,7 @@ class ViralReferralEngine:
         if db.client:
             try:
                 db.client.table("referral_codes").upsert(record).execute()
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 logger.debug(f"Referral code persistence failed: {exc}")
         else:
             data = self._load_local()
@@ -87,7 +87,7 @@ class ViralReferralEngine:
                     .execute()
                 )
                 out = res.data or []
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 logger.debug(f"Failed to list codes: {exc}")
         else:
             data = self._load_local()
@@ -115,7 +115,7 @@ class ViralReferralEngine:
                 if rows:
                     record = rows[0]
                     referrer_id = record.get("referrer_id")
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 logger.debug(f"Referral lookup failed: {exc}")
         else:
             data = self._load_local()
@@ -153,7 +153,7 @@ class ViralReferralEngine:
                 db.client.table("referral_codes").update(
                     {"redeemed_count": record.get("redeemed_count", 0) + 1}
                 ).eq("code", referral_code).execute()
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 logger.debug(f"Referral redemption persistence failed: {exc}")
         else:
             data = self._load_local()
@@ -185,7 +185,7 @@ class ViralReferralEngine:
                     .execute()
                 )
                 history = res.data or []
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 logger.debug(f"Fraud history lookup failed: {exc}")
         else:
             data = self._load_local()
@@ -241,7 +241,7 @@ class ViralReferralEngine:
                     if hasattr(res, "count")
                     else (len(res.data) if res.data else 0)
                 )
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 logger.debug(f"Reward tier count failed: {exc}")
         else:
             data = self._load_local()
@@ -287,7 +287,7 @@ class ViralReferralEngine:
                         "updated_at": time.time(),
                     }
                 ).execute()
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 logger.debug(f"Credit wallet update failed: {exc}")
         else:
             data = self._load_local()
@@ -315,7 +315,7 @@ class ViralReferralEngine:
                 rows = res.data
                 if rows:
                     return rows[0]
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 logger.debug(f"Wallet fetch failed: {exc}")
         else:
             data = self._load_local()
@@ -341,7 +341,7 @@ class ViralReferralEngine:
                     .execute()
                 )
                 out = res.data or []
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 logger.debug(f"Ledger fetch failed: {exc}")
         else:
             data = self._load_local()
@@ -382,7 +382,7 @@ class ViralReferralEngine:
         if db.client:
             try:
                 db.client.table("referral_redemptions").insert(event).execute()
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 logger.debug(f"Social share persistence failed: {exc}")
         else:
             data = self._load_local()
@@ -419,7 +419,7 @@ class ViralReferralEngine:
                 "amount": amount_cents,
                 "currency": currency,
             }
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.error(f"Stripe payout failed for {user_id}: {exc}")
             return {"status": "error", "reason": str(exc)}
 

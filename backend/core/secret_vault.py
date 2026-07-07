@@ -28,7 +28,7 @@ class ProductionSecretVault:
                 logger.info(
                     f"🔒 Production Secret Vault hooked into GCP Project: {self.project_id}"
                 )
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 logger.warning(
                     f"Failed to bind Secret Manager Service Client: {str(e)}. Falling back to raw env."
                 )

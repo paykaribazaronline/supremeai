@@ -55,7 +55,7 @@ class NightlyChaosAuditor:
                         logger.critical(
                             "🚨 [SECURITY BREACH] Sandbox bypass detected during autonomous fuzzing!"
                         )
-                except Exception as e:
+                except Exception as e:  # noqa: BLE001
                     import logging
                     logging.warning(f"Exception suppressed: {e}")  # SecurityError আশা করা হচ্ছে, তাই এটি পাস
 
@@ -114,7 +114,7 @@ class NightlyChaosAuditor:
                 )
                 return True
 
-        except Exception as global_err:
+        except Exception as global_err:  # noqa: BLE001
             logger.critical(
                 f"⚠️ Auditor crashed internally: {str(global_err)}. Locking pipeline for safety."
             )

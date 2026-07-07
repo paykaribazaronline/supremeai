@@ -37,16 +37,16 @@ class SelfHealerService:
         with a 'pending_review' status for Human-in-the-Loop (HITL) approval.
         """
         self._safety_check(proposed_fix)
-        
+
         # Ensure impact score is valid
         if not (0.0 <= impact_score <= 1.0):
             raise ValueError("Impact score must be between 0.0 and 1.0")
-            
+
         trace_id = self._generate_trace_id()
         fix_id = f"fix-{uuid.uuid4().hex[:8]}"
-        
+
         doc_ref = self._db.collection(f"tenants/{tenant_id}/fixes").document(fix_id)
-        
+
         fix_data = {
             "trace_id": trace_id,
             "timestamp": datetime.now(UTC).isoformat(),
@@ -58,13 +58,13 @@ class SelfHealerService:
             "reviewed_by": None,
             "applied_at": None
         }
-        
+
         import asyncio
         if asyncio.iscoroutinefunction(doc_ref.set):
             await doc_ref.set(fix_data)
         else:
             doc_ref.set(fix_data)
-            
+
         logger.info(f"Generated auto-fix {fix_id} for trace {trace_id} (Status: pending_review)")
         return fix_id
 

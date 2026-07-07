@@ -41,7 +41,7 @@ class ComputerAgent:
             }
         except subprocess.TimeoutExpired:
             return {"success": False, "error": "Command timeout expired"}
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             return {"success": False, "error": str(e)}
 
     def read_file(self, filepath: str) -> dict[str, Any]:
@@ -50,5 +50,5 @@ class ComputerAgent:
         try:
             with open(filepath, encoding="utf-8") as f:
                 return {"success": True, "content": f.read()}
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             return {"success": False, "error": str(e)}

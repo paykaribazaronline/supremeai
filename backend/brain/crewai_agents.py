@@ -47,7 +47,7 @@ class CrewAgent:
             if raw.get("success") or raw.get("text"):
                 return raw.get("text", "")
             return f"Error: {raw.get('error', 'unknown')}"
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.error(f"CrewAgent '{self.role}' failed: {exc}")
             return f"Error: {exc}"
 

@@ -173,7 +173,7 @@ def run_restricted(
         error_message = f"Restricted execution failed: {type(e).__name__}: {e}"
         logger.error(error_message)
         return False, error_message
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         error_message = f"An unexpected error occurred during restricted execution: {e}"
         logger.error(error_message)
         return False, error_message

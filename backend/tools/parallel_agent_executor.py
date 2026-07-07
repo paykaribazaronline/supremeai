@@ -74,11 +74,11 @@ class ParallelAgentExecutor:
                     import core.services as app_mod
 
                     redis = app_mod.redis_queue
-                except Exception as e:
+                except Exception as e:  # noqa: BLE001
                     try:
                         import loguru
                         loguru.logger.error(f"Tool execution error: {e}")
-                    except Exception as e:
+                    except Exception as e:  # noqa: BLE001
                         import logging
                         logging.warning(f"Exception suppressed: {e}")
                     redis = None
@@ -106,7 +106,7 @@ class ParallelAgentExecutor:
 
             logger.info(f"[Agent: {agent_name}] Task completed successfully.")
             return {"agent": agent_name, "status": "success", "result": result}
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"[Agent: {agent_name}] Task failed: {str(e)}")
             try:
                 redis = self.redis_client
@@ -116,11 +116,11 @@ class ParallelAgentExecutor:
                     redis = app_mod.redis_queue
                 if redis and getattr(redis, "configured", False):
                     await self._publish_state(redis, agent_name, "failed", error=str(e))
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 try:
                     import loguru
                     loguru.logger.error(f"Tool execution error: {e}")
-                except Exception as e:
+                except Exception as e:  # noqa: BLE001
                     import logging
                     logging.warning(f"Exception suppressed: {e}")
                 pass
@@ -189,7 +189,7 @@ class ParallelAgentExecutor:
             try:
                 disconnect_fn = mcp_client.disconnect
                 await asyncio.to_thread(disconnect_fn)
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 logger.debug(f"MCP cleanup error for {name}: {exc}")
 
     async def _publish_state(self, redis, agent_name: str, state: str, **kwargs):
@@ -212,7 +212,7 @@ class ParallelAgentExecutor:
                 redis.publish(
                     f"supremeai:agents:{self.execution_group}", json.dumps(payload)
                 )
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.warning(
                 f"Failed to publish agent state: {e}. Running with local logger fallback."
             )

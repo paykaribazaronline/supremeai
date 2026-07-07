@@ -48,6 +48,6 @@ class AgentDepartment:
                 "success": False,
                 "error": result.get("error", "unknown"),
             }
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.exception("agent department execution failed")
             return {"role": role_key, "success": False, "error": str(exc)}

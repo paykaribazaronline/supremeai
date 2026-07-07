@@ -19,7 +19,7 @@ class CostAuditor:
         if PROMETHEUS_AVAILABLE:
             try:
                 self.cost_counter.labels(provider=provider, model=model).inc(cost)
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 logger.debug(f"Prometheus metric record failed: {exc}")
 
     def generate_report(self) -> dict[str, Any]:

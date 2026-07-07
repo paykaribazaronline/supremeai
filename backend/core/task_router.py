@@ -96,7 +96,7 @@ class TaskRouter:
                     response.raise_for_status()
                     logger.success(f"Skill triggered on attempt {attempt + 1}")
                     return response.json()
-                except Exception as e:
+                except Exception as e:  # noqa: BLE001
                     logger.warning(f"Attempt {attempt + 1} failed: {str(e)}")
                     if attempt == retries - 1:
                         logger.error("All retry attempts failed.")

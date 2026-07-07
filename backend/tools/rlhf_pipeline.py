@@ -25,7 +25,7 @@ class RLHFPipeline:
                 logger.info(
                     f"Loaded {len(self.preference_logs)} existing preference records"
                 )
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 logger.error(f"Failed to load existing preferences: {e}")
 
     def record_preference(
@@ -63,7 +63,7 @@ class RLHFPipeline:
                 "exported": len(self.preference_logs),
                 "output_path": output_path,
             }
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.error(f"DPO export failed: {exc}")
             return {"status": "error", "error": str(exc)}
 

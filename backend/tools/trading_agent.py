@@ -29,7 +29,7 @@ class TradingAgent:
                 "backtest_results": {},
                 "note": "Real trading requires backtesting framework and market data integration.",
             }
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.error(f"Trading strategy generation failed: {exc}")
             return {
                 "status": "error",

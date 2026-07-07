@@ -58,7 +58,7 @@ class PlanSorter:
                     logger.info(
                         f"Organized plan '{filename}' as {category} -> {dest_subfolder}"
                     )
-                except Exception as e:
+                except Exception as e:  # noqa: BLE001
                     logger.error(f"Failed to process plan file '{filename}': {e}")
 
         return categorized

@@ -56,7 +56,7 @@ class GCPCredentialManager:
         try:
             service_account.Credentials.from_service_account_info(sa_dict)
             return True
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"GCP Service Account validation failed: {e}")
             return False
 

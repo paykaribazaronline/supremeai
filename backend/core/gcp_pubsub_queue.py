@@ -13,7 +13,7 @@ try:
     from google.cloud import pubsub_v1  # type: ignore[import-untyped]
 
     PUBSUB_AVAILABLE = True
-except Exception:
+except Exception:  # noqa: BLE001
     PUBSUB_AVAILABLE = False
 
 
@@ -56,7 +56,7 @@ class GCPPubSubQueue:
                 )
                 self.mode = "gcp_pubsub"
                 logger.info("Using GCP Pub/Sub task queue")
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 logger.warning(f"Pub/Sub unavailable, falling back to SQLite: {exc}")
 
         if self.mode == "local_sqlite":

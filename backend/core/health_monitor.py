@@ -82,7 +82,7 @@ class HealthMonitor:
                 self.memory_available_mb.set(result["memory_available_mb"])
                 self.active_tasks.set(result["active_tasks"])
                 self.status.set(1 if status == "healthy" else 0)
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 logger.debug(f"Prometheus metrics update failed: {exc}")
         return result
 
@@ -100,7 +100,7 @@ class HealthMonitor:
         if _PROMETHEUS_AVAILABLE:
             try:
                 self.request_duration_seconds.observe(duration_seconds)
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 logger.debug(f"Failed to record request duration: {exc}")
 
 

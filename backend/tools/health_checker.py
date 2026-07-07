@@ -57,7 +57,7 @@ class HealthChecker:
         try:
             with open(report_path, "w", encoding="utf-8") as f:
                 json.dump(report, f, indent=4)
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.error(f"Failed to write health report: {exc}")
         return report
 
@@ -69,7 +69,7 @@ class HealthChecker:
         try:
             with open(self.error_history_path, "a", encoding="utf-8") as f:
                 f.write(json.dumps(record) + "\n")
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.error(f"Failed to log error: {exc}")
 
     def detect_anomalies(self) -> list[dict[str, Any]]:
@@ -88,11 +88,11 @@ class HealthChecker:
                         ts = datetime.fromisoformat(record["timestamp"])
                         if ts >= cutoff:
                             recent_errors.append(record)
-                    except Exception as e:
+                    except Exception as e:  # noqa: BLE001
                         try:
                             import loguru
                             loguru.logger.error(f"Tool execution error: {e}")
-                        except Exception as e:
+                        except Exception as e:  # noqa: BLE001
                             import logging
                             logging.warning(f"Exception suppressed: {e}")
                         continue
@@ -152,7 +152,7 @@ class HealthChecker:
                 url, json={"chat_id": self.admin_chat_id, "text": text}, timeout=10
             )
             return True
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.error(f"Failed to report anomaly: {exc}")
             return False
 

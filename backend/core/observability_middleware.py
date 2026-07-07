@@ -93,7 +93,7 @@ class ObservabilityMiddleware:
                         "duration": duration,
                     },
                 )
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 # বল মনতবয: PostHog টলমটর বযরথ হল রকয়সট হযনডলং থমন উচত নয়;
                 # তব নরব সযলপ ন কর ডবগ লগ কর হল যত টলমটর সমসয বঝ যয়
                 logger.debug(f"PostHog capture failed in observability middleware: {exc}")
@@ -115,7 +115,7 @@ class ObservabilityMiddleware:
                             },
                         }
                     )
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 # বল মনতবয: ইভলউশন লগ Supabase-এ লখত বযরথ হল রকয়সট বযহত হয় ন;
                 # নরব সযলপর পরবরত ডবগ লগ যকত কর হল যত পরসসটনস বযরথত টর কর যয়
                 logger.debug(f"Evolution log persistence failed in observability middleware: {exc}")

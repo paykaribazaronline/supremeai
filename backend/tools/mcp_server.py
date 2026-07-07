@@ -90,7 +90,7 @@ async def handle_call_tool(
         else:
             raise ValueError(f"Unknown MCP tool: {name}")
 
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.error(f"MCP Server execution error: {e}")
         return [
             types.TextContent(

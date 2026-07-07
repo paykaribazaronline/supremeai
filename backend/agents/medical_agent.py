@@ -7,7 +7,7 @@ try:
     from tools.domain_adapter import DomainAdapter
 
     _DOMAIN_ADAPTER_AVAILABLE = True
-except Exception:
+except Exception:  # noqa: BLE001
     _DOMAIN_ADAPTER_AVAILABLE = False
 
 
@@ -129,7 +129,7 @@ class MedicalAgent:
                     "provider": result.get("provider", "unknown"),
                     "disclaimer": result.get("disclaimer", self.SYSTEM_PROMPT),
                 }
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 logger.debug(f"MedicalAgent generation failed: {exc}")
         return {
             "action": action,

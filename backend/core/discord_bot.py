@@ -43,7 +43,7 @@ class SupremeDiscordBot(commands.Bot):
                         await message.channel.send(response[i : i + 2000])
                 else:
                     await message.channel.send(response)
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 logger.error(f"Error handling Discord message: {e}")
                 await message.channel.send("Error executing request.")
 

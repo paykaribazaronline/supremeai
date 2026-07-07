@@ -18,9 +18,9 @@ class HandoffEvent(Base):
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     session_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("agent_sessions.id", ondelete="CASCADE"), index=True, nullable=False)
     user_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), index=True, nullable=False)
-    
+
     start_ts: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(UTC), nullable=False)
     end_ts: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
-    
+
     actions_taken_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
 

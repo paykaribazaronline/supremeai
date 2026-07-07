@@ -36,7 +36,7 @@ class ImageToCode:
         try:
             base64_image = self._encode_image_bytes(image_bytes)
             return await self._call_vision_model(base64_image, framework, styling)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Image to Code generation failed: {str(e)}")
             return {"status": "error", "error": str(e)}
 
@@ -49,7 +49,7 @@ class ImageToCode:
         try:
             base64_image = self._encode_image_file(image_path)
             return await self._call_vision_model(base64_image, framework, styling)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Image to Code generation failed: {str(e)}")
             return {"status": "error", "error": str(e)}
 
@@ -126,6 +126,6 @@ async def api_image_to_code(
             raise HTTPException(status_code=500, detail=result.get("error"))
 
         return result
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.error(f"Failed to process image upload: {e}")
         raise HTTPException(status_code=500, detail=str(e))

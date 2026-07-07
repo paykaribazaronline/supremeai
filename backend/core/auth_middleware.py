@@ -99,7 +99,7 @@ class AuthMiddleware:
                     )
                     await response(scope, receive, send)
                     return
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 logger.error(f"Admin JWT validation failed: {e}")
                 response = JSONResponse(
                     status_code=401,
@@ -151,7 +151,7 @@ async def verify_admin_session_fail_closed(request: Request) -> dict:
     """
     টোকেন অথেনটিকেশন এবং ডিকোডিং মেকানিজম। 
     সামান্যতম গ্যাপ বা এক্সেপশন দেখা দিলে এটি সরাসরি Fail-Closed প্রোটোকল ট্রিগার করে।
-    """
+    """  # noqa: W291
     # বাংলা কমেন্ট: Authorization হেডার এক্সট্রাকশন
     auth_header = request.headers.get("Authorization")
     if not auth_header or not auth_header.startswith("Bearer "):
@@ -164,7 +164,7 @@ async def verify_admin_session_fail_closed(request: Request) -> dict:
 
     token = auth_header.split(" ")[1]
     jwt_secret = settings.jwt_secret  # ক্লাউড সিক্রেট ভল্ট থেকে লোডকৃত
-    
+
     if not jwt_secret:
         logger.critical("🔥 Security Emergency: SUPREMEAI_JWT_SECRET is unconfigured! Fail-Closed triggered.")
         raise HTTPException(
@@ -175,10 +175,10 @@ async def verify_admin_session_fail_closed(request: Request) -> dict:
     try:
         # P2 ফিক্স: টোকেন ডিকোড এবং ভ্যালিডেশন ওয়ান-শট এক্সিকিউশন
         payload = jwt.decode(token, jwt_secret, algorithms=["HS256"])
-        
+
         user_id = payload.get("sub")
         role = payload.get("role")
-        
+
         # বাংলা মন্তব্য: ০% গ্যাপ পলিসি — পেলোডে যদি প্রয়োজনীয় ফিল্ড মিসিং থাকে বা রোল অসঙ্গতি থাকে, সরাসরি রিজেক্ট।
         # এখানে 'admin' এবং 'master_admin' উভয় রোলকেই অনুমতি প্রদান করা হলো।
         if not user_id or role not in {"admin", "master_admin"}:
@@ -187,7 +187,7 @@ async def verify_admin_session_fail_closed(request: Request) -> dict:
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="Administrative identity verification failed."
             )
-            
+
         logger.success(f"🔱 Admin Session Authorized for User: {user_id}")
         return payload
 
@@ -205,7 +205,7 @@ async def verify_admin_session_fail_closed(request: Request) -> dict:
             detail="Session has expired or token is invalid.",
         ) from None
 
-    except Exception as fatal_exception:
+    except Exception as fatal_exception:  # noqa: BLE001
         # ❌ পুরানো ভুল পদ্ধতি (Fail-Open): return None বা পাস করা
         # ✅ নতুন সঠিক পদ্ধতি: P1/P2 Fail-Closed এনফোর্সমেন্ট। যেকোনো আননোন ক্র্যাশে রিকোয়েস্ট হার্ড-ব্লক।
         logger.critical(f"🔥 FATAL AUTH EXCEPTION: Dynamic crash detected during auth flow -> {str(fatal_exception)}")

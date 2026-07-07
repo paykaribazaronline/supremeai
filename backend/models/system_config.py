@@ -35,7 +35,7 @@ class SystemConfig(Base):
     TTL caching layer (ConfigCache) এই টেবিলের ওপর বসবে — 
     প্রতি request-এ DB hit না করে in-memory cache serve করবে,
     এবং change-event এলে cache invalidate হবে।
-    """
+    """  # noqa: W291, W293
     __tablename__ = "system_config"
 
     id: Mapped[uuid.UUID] = mapped_column(

@@ -234,7 +234,7 @@ class AsyncTaskManager:
                     json={"task_id": task_id, "type": task_type, "payload": payload},
                     timeout=2.0,
                 )
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 logger.debug(f"Celery enqueue failed: {e}")
         else:
             self._simulate_task(task_id, task_type)
@@ -309,7 +309,7 @@ def budget_aware_route(
                 logger.warning(
                     "[Orchestrator] budget_aware_route: all free providers exhausted"
                 )
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.warning(f"[Orchestrator] budget_aware_route failed: {exc}")
 
     return {

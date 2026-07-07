@@ -25,6 +25,6 @@ def decrypt_token(cipher_text: str) -> str:
     try:
         decrypted_bytes = fernet.decrypt(cipher_text.encode('utf-8'))
         return decrypted_bytes.decode('utf-8')
-    except Exception as e:
-        print(f"Error decrypting token: {e}")
+    except Exception as e:  # noqa: BLE001
+        print(f"Error decrypting token: {e}")  # noqa: T201
         return ""

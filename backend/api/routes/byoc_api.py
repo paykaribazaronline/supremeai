@@ -48,7 +48,7 @@ async def save_credentials(payload: BYOCCredentialsPayload):
         encrypted_data = GCPCredentialManager.encrypt_credentials(sa_dict)
         user_id = "default_user_session"
         encrypted_vault[user_id] = encrypted_data
-        
+
         return {
             "status": "success",
             "message": "GCP Service Account credentials encrypted and securely saved.",
@@ -77,7 +77,7 @@ async def deploy_container(payload: BYOCDeployRequest, background_tasks: Backgro
         with open(config_path, encoding="utf-8") as f:
             limits = json.load(f)["limits"]
             user_limits = limits.get(user_tier, limits["free"])
-    except Exception:
+    except Exception:  # noqa: BLE001
         user_limits = {"max_containers": 1, "max_memory": "256Mi", "max_cpu": "500m"}
 
     # Count active containers (simulation check)
@@ -122,7 +122,7 @@ async def deploy_container(payload: BYOCDeployRequest, background_tasks: Backgro
                 job.finished_at = datetime.now(UTC)
                 job.error_message = res.get("error", "Deployment failed")
                 job.logs.append(f"❌ Deployment failed: {job.error_message}")
-        except Exception as ex:
+        except Exception as ex:  # noqa: BLE001
             job.status = "failed"
             job.finished_at = datetime.now(UTC)
             job.error_message = str(ex)

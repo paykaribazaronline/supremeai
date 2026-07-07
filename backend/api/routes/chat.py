@@ -96,7 +96,7 @@ async def stream_chat(payload: ChatPayload, db=Depends(get_tenant_db)):
                     yield f"data: {chunk}\n\n"
 
             yield "data: [DONE]\n\n"
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Stream broken: {str(e)}")
             yield f"data: [ERROR] {str(e)}\n\n"
 

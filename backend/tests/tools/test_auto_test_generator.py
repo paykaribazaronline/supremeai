@@ -361,7 +361,7 @@ def client(generator):
         from backend.api import app as _app
 
         app = _app
-    except Exception:
+    except Exception:  # noqa: BLE001
         from backend.tools.auto_test_generator import router as test_router
         from fastapi import FastAPI
 
@@ -473,7 +473,7 @@ async def test_generate_endpoint_success(client):
         from backend.api import app as _app
 
         app = _app
-    except Exception:
+    except Exception:  # noqa: BLE001
         app = None
 
     if app is None:
@@ -516,7 +516,7 @@ async def test_generate_endpoint_error(client):
         from backend.api import app as _app
 
         app = _app
-    except Exception:
+    except Exception:  # noqa: BLE001
         app = None
 
     if app is None:
@@ -558,7 +558,7 @@ async def test_generate_file_endpoint(client, generator):
         from backend.api import app as _app
 
         app = _app
-    except Exception:
+    except Exception:  # noqa: BLE001
         app = None
 
     if app is None:

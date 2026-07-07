@@ -29,7 +29,7 @@ class GameDevAgent:
                 "code": "",
                 "note": "Real game dev requires Unity/Unreal/Godot SDK integration.",
             }
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.error(f"Game dev generation failed: {exc}")
             return {
                 "status": "error",

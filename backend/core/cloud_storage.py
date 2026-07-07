@@ -39,7 +39,7 @@ class CloudStorageManager:
             # বাংলা কমেন্ট: নন-ব্লকিং অ্যাসিঙ্ক ক্লায়েন্ট ব্যবহার করে রিকোয়েস্ট পাঠানো হচ্ছে।
             async with httpx.AsyncClient(timeout=10.0) as client:
                 response = await client.post(url, content=file_bytes, headers=headers)
-                
+
             if response.status_code != 200:
                 logger.error(f"❌ Cloud Upload Rejected: {response.text}")
                 raise HTTPException(

@@ -94,7 +94,7 @@ class FactualVerifier:
                 "confidence": 0.3,
                 "method": "no_matches",
             }
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             _logger.warning(f"RAG verification failed for claim: {claim[:50]}... error: {e}")
             return {
                 "claim": claim,
@@ -129,7 +129,7 @@ class FactualVerifier:
                         "supporting_sources": supporting,
                         "method": "local_rag",
                     }
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 _logger.warning(f"RAG search failed in verify_with_web_search: {e}")
 
         try:
@@ -147,7 +147,7 @@ class FactualVerifier:
                             "supporting_sources": [data.get("AbstractURL", "")],
                             "method": "duckduckgo_api",
                         }
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             _logger.warning(f"Web search failed for claim: {claim[:50]}... error: {e}")
 
         return {
@@ -172,7 +172,7 @@ class FactualVerifier:
                 "expression_sympy": str(expr),
                 "claimed_result": str(claimed),
             }
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             try:
                 clean_expr = re.sub(r"[^0-9\+\-\*\/\(\)\.]", "", expression)
                 result = _safe_eval_math(clean_expr)
@@ -184,7 +184,7 @@ class FactualVerifier:
                     "claimed_result": claimed,
                     "fallback_used": True,
                 }
-            except Exception as inner_e:
+            except Exception as inner_e:  # noqa: BLE001
                 return {
                     "is_verified": False,
                     "error": f"Sympy error: {e}, Fallback error: {inner_e}",

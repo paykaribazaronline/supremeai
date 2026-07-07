@@ -15,7 +15,7 @@ class WorkerGrpcClient:
     def __init__(self, host: str = "localhost", port: int = 9090):
         self.channel = grpc.insecure_channel(f"{host}:{port}")
         self.stub = pb2_grpc.WorkerServiceStub(self.channel)
-        
+
     def submit_task(self, task_type: str, payload: dict[str, Any], requested_by: str = "fastapi-engine") -> str | None:
         try:
             req = pb2.TaskRequest(

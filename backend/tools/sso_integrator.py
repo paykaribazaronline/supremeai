@@ -63,7 +63,7 @@ class SSOIntegrator:
                     "content_type": "application/xml",
                     "body": metadata,
                 }
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 logger.error(f"Metadata generation failed: {exc}")
         xml = self._fallback_metadata()
         return {"status": "fallback", "content_type": "application/xml", "body": xml}
@@ -76,7 +76,7 @@ class SSOIntegrator:
                 auth = self._OneLogin_Saml2_Auth(req, old_settings=settings_obj)
                 sso_url = auth.login(return_to=relay_state)
                 return sso_url
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 logger.error(f"SSO URL generation failed: {exc}")
         return self.saml_settings.get("idp_sso_url", "")
 
@@ -129,7 +129,7 @@ class SSOIntegrator:
                     "roles": roles,
                     "method": "python-saml",
                 }
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 logger.error(f"SAML response processing failed: {exc}")
         try:
             root = ET.fromstring(post_data.get("SAMLResponse", ""))
@@ -183,7 +183,7 @@ class SSOIntegrator:
                 req = self._prepare_request(request or {})
                 auth = self._OneLogin_Saml2_Auth(req, old_settings=settings_obj)
                 return auth.logout(return_to=relay_state)
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 logger.error(f"Logout URL generation failed: {exc}")
         return self.saml_settings.get("idp_slo_url", "")
 
@@ -195,7 +195,7 @@ class SSOIntegrator:
                 auth = self._OneLogin_Saml2_Auth(req, old_settings=settings_obj)
                 auth.process_slo(delete_session_callback=lambda: None)
                 return {"status": "success", "method": "python-saml"}
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 logger.error(f"SLO processing failed: {exc}")
         return {"status": "success", "method": "mock_fallback"}
 
@@ -346,7 +346,7 @@ class SSOIntegrator:
                     "header": header,
                 }
             return {"status": "success", "tokens": tokens}
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.error(f"OIDC code exchange failed: {exc}")
             return {"status": "error", "message": str(exc)}
 

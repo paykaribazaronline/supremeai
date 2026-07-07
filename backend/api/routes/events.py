@@ -18,7 +18,7 @@ async def dashboard_stream(request: Request):
         dashboard_queue = global_pubsub.subscribe("dashboard_events")
         metrics_queue = global_pubsub.subscribe("metrics_events")
         tasks_queue = global_pubsub.subscribe("browser_tasks")
-        
+
         try:
             while True:
                 # Wait for an event or a heartbeat timeout (20s)
@@ -26,13 +26,13 @@ async def dashboard_stream(request: Request):
                 dashboard_task = asyncio.create_task(dashboard_queue.get())
                 metrics_task = asyncio.create_task(metrics_queue.get())
                 tasks_task = asyncio.create_task(tasks_queue.get())
-                
+
                 done, pending = await asyncio.wait(
                     [dashboard_task, metrics_task, tasks_task],
                     timeout=20,
                     return_when=asyncio.FIRST_COMPLETED
                 )
-                
+
                 if not done:
                     # Heartbeat
                     yield {
@@ -47,10 +47,10 @@ async def dashboard_stream(request: Request):
                             "event": result.get("type", "message"),
                             "data": json.dumps(result.get("payload", {}))
                         }
-                        
+
                 for t in pending:
                     t.cancel()
-                    
+
                 # If client disconnected, break
                 if await request.is_disconnected():
                     break

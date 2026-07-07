@@ -59,7 +59,7 @@ class CostAuditor:
             logger.info(
                 f"Cost reports generated. Image: {image_report_path}, Text: {text_report_path}"
             )
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Failed to generate cost report image: {e}")
 
         return {"text_report": text_report_path, "image_report": image_report_path}

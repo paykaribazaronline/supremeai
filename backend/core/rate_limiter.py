@@ -53,7 +53,7 @@ class RedisRateLimiter:
             from core.upstash_redis_queue import UpstashRedisQueue
 
             self._redis = UpstashRedisQueue()
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.warning(
                 f"Redis rate limiter unavailable, falling back to in-memory: {exc}"
             )
@@ -70,7 +70,7 @@ class RedisRateLimiter:
             elif count and count > self.burst:
                 return False
             return True
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.error(f"Redis rate limit check failed, blocking request: {exc}")
             return self._fallback_limiter.is_allowed(key)
 
@@ -82,7 +82,7 @@ class RedisRateLimiter:
             value = self._redis.get(redis_key)
             count = int(value) if value is not None else 0
             return max(0, self.burst - count)
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.warning(f"Redis rate limit remaining check failed: {exc}")
             return self._fallback_limiter.remaining(key)
 
@@ -134,7 +134,7 @@ class RateLimitMiddleware:
                     )
                     await response(scope, receive, send)
                     return
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 logger.error(f"Error checking tenant rate limit: {exc}. Failing closed (503).")
                 response = JSONResponse(
                     status_code=503,
@@ -143,14 +143,14 @@ class RateLimitMiddleware:
                 await response(scope, receive, send)
                 return
             client = scope.get("client")
-            
+
             x_forwarded_for = None
             headers = scope.get("headers", [])
             for k, v in headers:
                 if k.lower() == b"x-forwarded-for":
                     x_forwarded_for = v.decode("utf-8")
                     break
-                    
+
             if x_forwarded_for:
                 client_ip = x_forwarded_for.split(",")[0].strip()
             else:

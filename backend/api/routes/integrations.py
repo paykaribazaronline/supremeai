@@ -112,7 +112,7 @@ async def github_callback(
             db.add(new_integration)
         await db.commit()
         logger.info(f"✅ GitHub integration saved for user '{user_id}'")
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001
         await db.rollback()
         logger.error(f"Failed to save GitHub integration for user '{user_id}': {exc}")
         return RedirectResponse(

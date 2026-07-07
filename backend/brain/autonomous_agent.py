@@ -23,7 +23,7 @@ class AutonomousAgent:
             from evolution.auto_skill_creator import AutoSkillCreator
 
             self.skill_creator = AutoSkillCreator()
-        except Exception:
+        except Exception:  # noqa: BLE001
             self.skill_creator = None  # type: ignore
 
     def plan(self, task_description: str) -> dict[str, Any]:
@@ -69,7 +69,7 @@ class AutonomousAgent:
             try:
                 step_result = self._run_step(step, task_description, context)
                 results.append(step_result)
-            except Exception as exc:  # pylint: disable=broad-except
+            except Exception as exc:  # pylint: disable=broad-except  # noqa: BLE001
                 logger.exception("Agent step failed")
                 results.append(
                     StepResult(
@@ -173,7 +173,7 @@ class AutonomousAgent:
                         description=f"Auto-created skill from task: {task_description}",
                     )
                     output["created_skill"] = skill_result
-                except Exception as exc:
+                except Exception as exc:  # noqa: BLE001
                     logger.warning(f"Auto skill creator hook failed: {exc}")
         elif step == "execute":
             output = {"message": "Execution complete.", "result": task_description}
@@ -184,7 +184,7 @@ class AutonomousAgent:
                         description=f"Auto-created skill from task: {task_description}",
                     )
                     output["created_skill"] = skill_result
-                except Exception as exc:
+                except Exception as exc:  # noqa: BLE001
                     logger.warning(f"Auto skill creator hook failed: {exc}")
         else:
             output = {"message": f"Step `{step}` has no handler.", "step": step}

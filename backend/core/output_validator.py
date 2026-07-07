@@ -112,10 +112,10 @@ class OutputValidator:
         # ভবিষ্যতে Firestore বা অন্য DB থেকে লোড করার জন্য পাথ প্যারামিটার ব্যবহার করা যাবে
         rules_path = Path(__file__).parent.parent / "config" / "constitutional_rules.json"
         self.enhanced_scorer = EnhancedConfidenceScorer(rules_path=rules_path)
-        
+
         self.consensus_threshold = self.enhanced_scorer.rules.get("consensus_threshold", 0.7)
         self.hallucination_patterns = self.enhanced_scorer.rules.get("hallucination_patterns", [])
-        
+
         self.multi_generator = MultiAICodeGenerator()
         self.human_policy = HumanReviewPolicy()
 

@@ -27,21 +27,21 @@ def get_cache_threshold(task_type: str) -> float:
     
     Admin চাইলে Dashboard থেকে এগুলো পরিবর্তন করতে পারে — re-deploy ছাড়াই।
     TTL-এর মধ্যে in-memory ক্যাশ serve হবে, প্রতি request-এ DB hit হবে না।
-    """
+    """  # noqa: W293
     task_lower = task_type.lower()
-    
+
     # Try ConfigCache first (DB-driven)
     cached_default = config_cache.get(f"cache_threshold_{task_lower}")
     if cached_default is not None:
         return float(cached_default)
-    
+
     # Fallback: check if any key prefix matches
     all_thresholds = config_cache.get_all("cache_threshold_")
     for key, threshold in all_thresholds.items():
         config_task = key.replace("cache_threshold_", "")
         if config_task in task_lower:
             return float(threshold)
-    
+
     # Ultimate fallback
     return 0.85
 
@@ -75,7 +75,7 @@ class SemanticCache:
                     response=best_hit.get("response", "")
                 )
             return None
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"⚠️ SemanticCache lookup failed: {e}")
             return None
 
@@ -90,5 +90,5 @@ class SemanticCache:
             )
             self.db.record_experience(exp)
             logger.info(f"💾 Successfully recorded successful experience pattern for {task_type}")
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"❌ Failed to save experience pattern: {e}")

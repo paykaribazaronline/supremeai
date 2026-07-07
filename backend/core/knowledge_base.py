@@ -24,9 +24,9 @@ def save_to_memory(prompt: str, solution_code: str):
     """নতুন সমাধান শিখলে সেটি জিরো-কস্ট মেমোরিতে সেভ করে রাখবে"""
     with open(MEMORY_FILE_PATH) as f:
         memory = json.load(f)
-    
+
     memory[prompt] = solution_code
-    
+
     with open(MEMORY_FILE_PATH, "w") as f:
         json.dump(memory, f, indent=4)
-    print("🧠 [Auto-Didact] New skill learned and saved to memory vault!")
+    print("🧠 [Auto-Didact] New skill learned and saved to memory vault!")  # noqa: T201

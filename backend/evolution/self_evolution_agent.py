@@ -65,7 +65,7 @@ class SelfEvolutionAgent:
             start = time.time()
             try:
                 await self._tick()
-            except Exception:
+            except Exception:  # noqa: BLE001
                 logger.exception("Self-evolution tick failed")
             elapsed = time.time() - start
             try:
@@ -155,10 +155,10 @@ class SelfEvolutionAgent:
 
     # 🛑 ZERO-GAP: Core Database and Security validation pipeline
     async def process_new_skill_proposal(
-        self, 
-        session: AsyncSession, 
-        skill_name: str, 
-        generated_code: str, 
+        self,
+        session: AsyncSession,
+        skill_name: str,
+        generated_code: str,
         metadata: dict = None
     ) -> bool:
         """
@@ -166,7 +166,7 @@ class SelfEvolutionAgent:
         """
         proposal_id = f"prop-{uuid.uuid4().hex[:8]}"
         metadata = metadata or {}
-        
+
         # Step 1: Record Proposal (Atomic Transaction)
         async with session.begin():
             proposal = CodeProposal(
@@ -177,9 +177,9 @@ class SelfEvolutionAgent:
                 metadata_json=metadata
             )
             session.add(proposal)
-            
+
         logger.info(f"New skill proposal recorded: {proposal_id} for {skill_name}")
-        
+
         # Step 2: Strict AST Security Scan
         # scan_code will check using ASTSecurityScanner under the hood
         res = self.scanner.scan_code(generated_code)
@@ -187,23 +187,23 @@ class SelfEvolutionAgent:
             logger.critical(f"AST Scanner BLOCKED proposal {proposal_id}: {res['error']}")
             await self._update_proposal_status(session, proposal_id, "rejected_by_ast")
             return False
-            
+
         # If we reach here, AST is safe. Update state.
         await self._update_proposal_status(session, proposal_id, "ast_validated", ast_validated=True)
         logger.success(f"Proposal {proposal_id} passed AST Security Scan.")
-        
+
         # Step 3: CI/CD Dry Run (MicroVM / Sandbox Execution)
         ci_passed = await self._run_ci_cd_dry_run(proposal_id, skill_name, generated_code)
-        
+
         if not ci_passed:
             logger.error(f"CI/CD dry-run FAILED for proposal {proposal_id}")
             await self._update_proposal_status(session, proposal_id, "rejected_by_ci")
             return False
-            
+
         # Step 4: Final Approval for Merge/Apply
         await self._update_proposal_status(session, proposal_id, "ci_passed", ci_passed=True)
         logger.success(f"Evolution successful: {skill_name} ({proposal_id}) passed all zero-gap gates.")
-        
+
         return True
 
     async def _update_proposal_status(self, session: AsyncSession, proposal_id: str, new_status: str, **kwargs):
@@ -217,7 +217,7 @@ class SelfEvolutionAgent:
                     proposal.ast_validated = kwargs['ast_validated']
                 if 'ci_passed' in kwargs:
                     proposal.ci_passed = kwargs['ci_passed']
-                    
+
     async def _run_ci_cd_dry_run(self, proposal_id: str, skill_name: str, code: str) -> bool:
         """
         Simulates a sandboxed test run.

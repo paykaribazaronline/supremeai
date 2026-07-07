@@ -62,11 +62,11 @@ class LocalSearchRAG:
                 self._index = json.loads(
                     self.embeddings_path.read_text(encoding="utf-8")
                 )
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 try:
                     import loguru
                     loguru.logger.error(f"Tool execution error: {e}")
-                except Exception as e:
+                except Exception as e:  # noqa: BLE001
                     import logging
                     logging.warning(f"Exception suppressed: {e}")
                 self._index = {}
@@ -139,7 +139,7 @@ class LocalSearchRAG:
                         }
                     )
                 return {"status": "ok", "query": query, "matches": matches}
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             import loguru
 
             loguru.logger.warning(
@@ -195,7 +195,7 @@ class LocalSearchRAG:
                 self.collection.upsert(
                     ids=ids, documents=documents, metadatas=metadatas
                 )
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 import loguru
 
                 loguru.logger.error(f"ChromaDB upsert failed: {exc}")

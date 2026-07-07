@@ -66,7 +66,7 @@ class Settings(BaseSettings):
     )
 
     _cached_secrets: dict[str, str] = PrivateAttr(default_factory=dict)
-    
+
     def _get_cached_secret(self, key: str) -> str:
         if key not in self._cached_secrets:
             self._cached_secrets[key] = secret_vault.fetch_secret(key)
@@ -149,16 +149,16 @@ class Settings(BaseSettings):
     admin_rules_db: str = "data/constitutional_rules.db"
     memory_db_dir: str = "data/memory"
     skill_registry_path: str = "data/skill_registry.json"
-    
+
     # 🔗 Universal Integration Hub (OAuth)
     @computed_field
     def github_client_id(self) -> str:
         return self._get_cached_secret("GITHUB_CLIENT_ID")
-        
+
     @computed_field
     def github_client_secret(self) -> str:
         return self._get_cached_secret("GITHUB_CLIENT_SECRET")
-    
+
     @computed_field
     def ci_webhook_secret(self) -> str:
         return self._get_cached_secret("CI_WEBHOOK_SECRET")
@@ -237,7 +237,7 @@ class Settings(BaseSettings):
                     v = json.loads(v)
                 except json.JSONDecodeError:
                     v = [origin.strip() for origin in v.split(",") if origin.strip()]
-        
+
         env = info.data.get("env", "local")
         if env == "production" and v:
             v = [o for o in v if "localhost" not in o and "127.0.0.1" not in o]
@@ -272,7 +272,7 @@ if settings.env == "production" or os.getenv("ENV") == "production":
         # Verify encryption key is configured
         if not os.getenv("SUPREMEAI_ENCRYPTION_KEY"):
             raise RuntimeError("SUPREMEAI_ENCRYPTION_KEY environment variable must be set in production")
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001
         logger.critical(f"FATAL CONFIG ERROR: {exc}")
         sys.exit(1)
 

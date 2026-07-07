@@ -270,7 +270,7 @@ class FreeTierTracker:
                                 "priority": idx,
                                 "is_active": True,
                             })
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 logger.debug(f"Failed to fetch provider configs from Supabase: {e}")
             return None, None
 

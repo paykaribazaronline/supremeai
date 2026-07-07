@@ -177,7 +177,7 @@ async def cloud_deploy_service(params: DeployServiceInput) -> str:
 
     except httpx.HTTPStatusError as e:
         return handle_api_error(e, e.response.status_code)
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         return handle_api_error(e)
 
 
@@ -249,7 +249,7 @@ async def cloud_get_deployment_logs(params: GetLogsInput) -> str:
 
     except httpx.HTTPStatusError as e:
         return handle_api_error(e, e.response.status_code)
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         return handle_api_error(e)
 
 
@@ -288,7 +288,7 @@ async def cloud_list_services() -> str:
                             "status": svc.get("status"),
                             "url": svc.get("url", "")
                         })
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Failed to list services from Render: {e}")
 
     railway_token = _get_railway_token()
@@ -307,7 +307,7 @@ async def cloud_list_services() -> str:
                             "status": svc.get("status"),
                             "url": svc.get("url", "")
                         })
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Failed to list services from Railway: {e}")
 
     return json.dumps({
