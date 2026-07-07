@@ -1,6 +1,9 @@
 import { useQuery } from '@tanstack/react-query';
 import { Card, Badge, Skeleton } from '../ui';
 import { Globe, HardDrive, Cpu, Network, RefreshCw } from 'lucide-react';
+// বাংলা মন্তব্য: raw fetch()-এর বদলে apiClient ব্যবহার করা হচ্ছে — auth হেডার ও থ্রটল গ্যারান্টি দেয়
+import { apiClient } from '../../services/apiClient';
+import { getAdminToken } from '../../services/adminTokenStore';
 
 const CLOUD_PROVIDERS = [
   { id: 'gcp', name: 'Google Cloud Platform', color: '#4285f4', icon: Globe },
@@ -13,9 +16,12 @@ const CLOUD_PROVIDERS = [
 ];
 
 export function CloudOrchestrator() {
+  // বাংলা মন্তব্য: queryKey ম্যাচ করানো হয়েছে useDashboardData.useHealthMap()-এর সাথে — ক্যাশ শেয়ার হবে, ডুপ্লিকেট ফেচ বন্ধ
   const { data: health, isLoading } = useQuery({
-    queryKey: ['cloud-health'],
-    queryFn: () => fetch('/admin-api/health-map').then(r => r.json()),
+    queryKey: ['dashboard', 'health'],
+    queryFn: () => apiClient.get<any>('/admin-api/health-map'),
+    enabled: !!getAdminToken(),
+    staleTime: 20_000,
   });
 
   const providerHealth = Object.entries(health || {}).map(([id, data]: [string, any]) => ({
