@@ -1,8 +1,8 @@
 # 📄 ফাইল: firebase.json
 
 **প্রকার:** .json  
-**সাইজ:** 5,754 বাইট  
-**আপডেট:** 2026-07-07T12:36:45.196285
+**সাইজ:** 4,998 বাইট  
+**আপডেট:** 2026-07-07T12:40:01.914125
 
 ---
 
@@ -88,23 +88,7 @@
           }
         },
         {
-          "source": "/admin/**",
-          "destination": "/index.html"
-        },
-        {
-          "source": "/user/**",
-          "destination": "/index.html"
-        },
-        {
-          "source": "/login",
-          "destination": "/index.html"
-        },
-        {
-          "source": "/mobile/**",
-          "destination": "/index.html"
-        },
-        {
-          "source": "/visualizer",
+          "source": "**",
           "destination": "/index.html"
         }
       ],
@@ -202,23 +186,7 @@
           }
         },
         {
-          "source": "/admin/**",
-          "destination": "/index.html"
-        },
-        {
-          "source": "/user/**",
-          "destination": "/index.html"
-        },
-        {
-          "source": "/login",
-          "destination": "/index.html"
-        },
-        {
-          "source": "/mobile/**",
-          "destination": "/index.html"
-        },
-        {
-          "source": "/visualizer",
+          "source": "**",
           "destination": "/index.html"
         }
       ],

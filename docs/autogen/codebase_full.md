@@ -1,7 +1,7 @@
 # 🧠 SupremeAI 2.0 Codebase Dump
 # বাংলা মন্তব্য: এটি একটি স্বয়ংক্রিয়ভাবে জেনারেট করা কোডবেস ডাম্প ফাইল যা প্রজেক্টের সামগ্রিক বিশ্লেষণের জন্য ব্যবহৃত হয়।
 
-Generated at: 2026-07-07T12:36:45.186498
+Generated at: 2026-07-07T12:40:01.903709
 
 
 ## File: `pnpm-lock.yaml`
@@ -22584,23 +22584,7 @@ docs/codebase/ ফোল্ডার রেফার করুন।"
           }
         },
         {
-          "source": "/admin/**",
-          "destination": "/index.html"
-        },
-        {
-          "source": "/user/**",
-          "destination": "/index.html"
-        },
-        {
-          "source": "/login",
-          "destination": "/index.html"
-        },
-        {
-          "source": "/mobile/**",
-          "destination": "/index.html"
-        },
-        {
-          "source": "/visualizer",
+          "source": "**",
           "destination": "/index.html"
         }
       ],
@@ -22698,23 +22682,7 @@ docs/codebase/ ফোল্ডার রেফার করুন।"
           }
         },
         {
-          "source": "/admin/**",
-          "destination": "/index.html"
-        },
-        {
-          "source": "/user/**",
-          "destination": "/index.html"
-        },
-        {
-          "source": "/login",
-          "destination": "/index.html"
-        },
-        {
-          "source": "/mobile/**",
-          "destination": "/index.html"
-        },
-        {
-          "source": "/visualizer",
+          "source": "**",
           "destination": "/index.html"
         }
       ],
