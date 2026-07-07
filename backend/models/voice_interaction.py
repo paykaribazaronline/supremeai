@@ -28,8 +28,7 @@ class VoiceInteractionLog(BaseModel):
                 "transcript": "Execute deployment check on Node 47.",
                 "supremeai_response": "Analyzing Node 47. Status: Nominal.",
                 "stt_provider": "groq-whisper",
-                "latency_ms": 120
+                "latency_ms": 120,
             }
         }
     )
-

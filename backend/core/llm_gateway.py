@@ -19,12 +19,13 @@ from utils.firestore_helpers import get_firestore_db
 # Load routing policy configuration
 POLICY_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "config", "routing_policy.json")
 
+
 class LLMGateway:
     def __init__(self):
         self.routing_policy = self._load_routing_policy()
         self._inject_secrets()
         self._setup_callbacks()
-        
+
         # Configure litellm global settings
         litellm.drop_params = True
         litellm.telemetry = False
@@ -33,6 +34,7 @@ class LLMGateway:
 
         # Initialize semantic cache engine
         from core.semantic_cache import SemanticCache
+
         self.cache = SemanticCache()
 
     def _load_routing_policy(self) -> dict[str, Any]:
@@ -43,7 +45,7 @@ class LLMGateway:
             logger.warning("Routing policy file not found, using default fallback configs.")
         except Exception as e:
             logger.error(f"Error loading routing policy: {e}")
-        
+
         return {"complexity_rules": {}, "fallback_chain": []}
 
     def _inject_secrets(self):
@@ -55,7 +57,7 @@ class LLMGateway:
             "OPENAI_API_KEY": getattr(settings, "openai_api_key", ""),
             "DEEPSEEK_API_KEY": getattr(settings, "deepseek_api_key", ""),
             "OPENROUTER_API_KEY": getattr(settings, "openrouter_api_key", ""),
-            "HF_API_KEY": getattr(settings, "hf_api_key", "")
+            "HF_API_KEY": getattr(settings, "hf_api_key", ""),
         }
         for env_name, key_val in keys.items():
             if key_val:
@@ -72,7 +74,7 @@ class LLMGateway:
                 completion_tokens = usage.completion_tokens if usage else 0
                 # Extract cost dynamically calculated by litellm
                 cost = response_obj._response_metadata.get("api_cost", 0.0) if hasattr(response_obj, "_response_metadata") else 0.0
-                
+
                 duration = (end_time - start_time).total_seconds() if hasattr(end_time - start_time, "total_seconds") else (end_time - start_time)
                 logger.info(
                     f"🟢 [LLMGateway Success] Model: {model} | Cost: ${cost:.6f} | "
@@ -84,10 +86,7 @@ class LLMGateway:
         def failure_callback(kwargs, exception_obj, start_time, end_time):
             model = kwargs.get("model", "unknown")
             duration = (end_time - start_time).total_seconds() if hasattr(end_time - start_time, "total_seconds") else (end_time - start_time)
-            logger.error(
-                f"🔴 [LLMGateway Failure] Model: {model} failed! | Error: {str(exception_obj)} | "
-                f"Duration: {duration:.2f}s"
-            )
+            logger.error(f"🔴 [LLMGateway Failure] Model: {model} failed! | Error: {str(exception_obj)} | " f"Duration: {duration:.2f}s")
 
         litellm.success_callback = [success_callback]
         litellm.failure_callback = [failure_callback]
@@ -109,7 +108,7 @@ class LLMGateway:
         """
         # Determine initial models by task difficulty
         difficulty = "easy"
-        
+
         # Support callers that pass `messages=` instead of `prompt=` (backwards compatibility)
         if messages is not None and prompt is None:
             prompt = messages
@@ -127,13 +126,7 @@ class LLMGateway:
         if prompt_text and not stream:
             cached_res = await self.cache.query_similar(prompt_text, task_type=task_type)
             if cached_res:
-                return {
-                    "success": True,
-                    "text": cached_res.response,
-                    "model": cached_res.model,
-                    "cost": 0.0,
-                    "cached": True
-                }
+                return {"success": True, "text": cached_res.response, "model": cached_res.model, "cost": 0.0, "cached": True}
 
         # ── Pre-flight Cost Guard Check ──
         if tenant_id:
@@ -145,18 +138,18 @@ class LLMGateway:
 
         model_candidates = self.routing_policy.get("complexity_rules", {}).get(difficulty, [])
         fallbacks = self.routing_policy.get("fallback_chain", [])
-        
+
         # Merge target candidate with the fallback chain to prevent duplication
         call_chain = []
         if model:
             call_chain.append(model)
-            
+
         all_models = model_candidates + fallbacks
         if provider:
             provider_models = [m for m in all_models if m.startswith(f"{provider}/")]
             other_models = [m for m in all_models if not m.startswith(f"{provider}/")]
             all_models = provider_models + other_models
-            
+
         for m in all_models:
             if m not in call_chain:
                 call_chain.append(m)
@@ -166,7 +159,7 @@ class LLMGateway:
             messages = prompt
         else:
             messages = [{"role": "user", "content": prompt}]
-        
+
         if stream:
             return self._stream_completion(messages, call_chain, timeout)
 
@@ -175,17 +168,12 @@ class LLMGateway:
         for model in call_chain:
             try:
                 logger.info(f"Attempting completion with model: {model}")
-                response = await litellm.acompletion(
-                    model=model,
-                    messages=messages,
-                    timeout=timeout,
-                    stream=False
-                )
+                response = await litellm.acompletion(model=model, messages=messages, timeout=timeout, stream=False)
                 return {
                     "success": True,
                     "text": response.choices[0].message.content,
                     "model": model,
-                    "cost": response._response_metadata.get("api_cost", 0.0) if hasattr(response, "_response_metadata") else 0.0
+                    "cost": response._response_metadata.get("api_cost", 0.0) if hasattr(response, "_response_metadata") else 0.0,
                 }
             except Exception as e:
                 last_exception = e
@@ -204,7 +192,7 @@ class LLMGateway:
                     error_pattern=f"LLMGateway Exception: {error_msg[:100]}",
                     proposed_fix=f"# Recommend checking fallback models or API keys for error:\n# {error_msg}",
                     impact_score=0.2,
-                    dependency_tree=["core.llm_gateway"]
+                    dependency_tree=["core.llm_gateway"],
                 )
         raise final_exception
 
@@ -215,23 +203,19 @@ class LLMGateway:
         for model in call_chain:
             try:
                 logger.info(f"Attempting streaming with model: {model}")
-                response_stream = await litellm.acompletion(
-                    model=model,
-                    messages=messages,
-                    timeout=timeout,
-                    stream=True
-                )
+                response_stream = await litellm.acompletion(model=model, messages=messages, timeout=timeout, stream=True)
                 async for chunk in response_stream:
                     content = chunk.choices[0].delta.content
                     if content:
                         yield content
-                return # Successfully streamed out all tokens
+                return  # Successfully streamed out all tokens
             except Exception as e:
                 last_exception = e
                 logger.warning(f"Model {model} streaming failed, trying fallback...")
                 continue
-        
+
         raise last_exception or RuntimeError("All streaming fallback options failed.")
+
 
 # Initialize global gateway singleton
 llm_gateway = LLMGateway()

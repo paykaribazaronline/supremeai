@@ -23,13 +23,10 @@ _ROUTER_STATE: dict[str, object] = {
 @router.get("/providers")
 def list_providers():
     known = [
-        ("openrouter", "OpenRouter", settings.openrouter_api_key,
-         ["gpt-4o", "claude-3.5-sonnet", "llama-3.1-70b"]),
-        ("gemini", "Google Gemini", settings.gemini_api_key,
-         ["gemini-2.0-flash", "gemini-1.5-pro"]),
+        ("openrouter", "OpenRouter", settings.openrouter_api_key, ["gpt-4o", "claude-3.5-sonnet", "llama-3.1-70b"]),
+        ("gemini", "Google Gemini", settings.gemini_api_key, ["gemini-2.0-flash", "gemini-1.5-pro"]),
         ("groq", "Groq", settings.groq_api_key, ["llama-3.1-8b", "mixtral-8x7b"]),
-        ("deepseek", "DeepSeek", settings.deepseek_api_key,
-         ["deepseek-chat", "deepseek-reasoner"]),
+        ("deepseek", "DeepSeek", settings.deepseek_api_key, ["deepseek-chat", "deepseek-reasoner"]),
     ]
     providers = [
         {

@@ -37,6 +37,7 @@ class ObservabilityMiddleware:
             elif k.lower() == b"x-user-id":
                 continue
         from starlette.requests import Request
+
         request = Request(scope)
         authenticated_user = getattr(request.state, "user", None) if hasattr(request, "state") else None
         if authenticated_user:

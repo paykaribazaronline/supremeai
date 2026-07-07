@@ -14,50 +14,50 @@ from utils.firestore_helpers import get_firestore_db
 logger.remove()
 logger.add(sys.stdout, level="INFO")
 
+
 async def simulate_request(tenant_id: str, request_id: int):
     try:
-        await llm_gateway.acompletion(
-            prompt=f"Test prompt {request_id}",
-            model="openai/gpt-3.5-turbo",
-            tenant_id=tenant_id
-        )
+        await llm_gateway.acompletion(prompt=f"Test prompt {request_id}", model="openai/gpt-3.5-turbo", tenant_id=tenant_id)
         return "success"
     except Exception as e:
         if "402 Payment Required" in str(e):
             return "402"
         return "error"
 
+
 async def main():
     print("Starting Phase 3 Load Test (1,000 Transactions)")
     tenant_id = "tenant-load-test"
     db = get_firestore_db()
-    
+
     # Pre-configure mock DB if needed
     if db:
         budget_ref = db.collection("tenants").document(tenant_id).collection("budget").document("current")
         await budget_ref.set({"monthly_limit": 100.0, "spent_amount": 0.0})
-    
+
     # Mock LiteLLM so we don't make real API calls
     with patch("litellm.acompletion", new_callable=AsyncMock) as mock_litellm:
         # Simulate 1% failure rate for SelfHealer testing
         def mock_acompletion_side_effect(*args, **kwargs):
             import random
+
             if random.random() < 0.01:
                 raise Exception("Simulated LiteLLM Error for SelfHealer")
             return AsyncMock()
+
         mock_litellm.side_effect = mock_acompletion_side_effect
-        
+
         start_time = time.perf_counter()
-        
+
         tasks = [simulate_request(tenant_id, i) for i in range(1000)]
         results = await asyncio.gather(*tasks)
-        
+
         elapsed = time.perf_counter() - start_time
-        
+
         successes = results.count("success")
         payment_required = results.count("402")
         errors = results.count("error")
-        
+
         print("\n=== Load Test Results ===")
         print("Total Requests: 1000")
         print(f"Success: {successes}")
@@ -72,22 +72,23 @@ async def main():
         orchestrator = CloudSandboxOrchestrator(provider="runpod")
         sandbox_id = "load-test-sandbox-1"
         orchestrator._active_sandboxes[sandbox_id] = {
-            "created_at": time.time() - 700, # 11.6 minutes ago (exceeds 10m TTL)
-            "status": "running"
+            "created_at": time.time() - 700,  # 11.6 minutes ago (exceeds 10m TTL)
+            "status": "running",
         }
-        
+
         print(f"Injected sandbox {sandbox_id} with age 11.6 minutes.")
         print("Starting auto_destroy_worker for 1 iteration (mocked sleep to exit)...")
-        
+
         with patch("asyncio.sleep", AsyncMock(side_effect=Exception("Exit Loop"))):
             try:
                 await orchestrator.auto_destroy_worker(tenant_id)
             except Exception as e:
                 if str(e) == "Exit Loop":
                     pass
-        
+
         remaining = len(orchestrator._active_sandboxes)
         print(f"Remaining sandboxes after cleanup: {remaining} (Expected 0)")
+
 
 if __name__ == "__main__":
     asyncio.run(main())
