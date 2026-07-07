@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/self_healer.py
 
 **প্রকার:** .py  
-**সাইজ:** 3,246 বাইট  
-**আপডেট:** 2026-07-07T21:58:43.457577
+**সাইজ:** 3,272 বাইট  
+**আপডেট:** 2026-07-07T22:11:19.741350
 
 ---
 
@@ -16,7 +16,8 @@ from typing import Any
 
 from loguru import logger
 
-from core.event_bus import error_event_bus, ErrorEvent
+from core.event_bus import ErrorEvent
+from core.event_bus import error_event_bus
 
 
 class SelfHealerService:

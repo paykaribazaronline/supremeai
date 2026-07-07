@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/agents/test_legal_agent.py
 
 **প্রকার:** .py  
-**সাইজ:** 6,825 বাইট  
-**আপডেট:** 2026-07-07T21:58:43.472382
+**সাইজ:** 6,826 বাইট  
+**আপডেট:** 2026-07-07T22:11:19.770199
 
 ---
 
@@ -13,6 +13,7 @@
 from unittest.mock import patch
 
 import pytest
+
 from agents.legal_agent import LegalAgent
 
 

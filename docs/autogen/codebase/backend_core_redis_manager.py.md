@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/redis_manager.py
 
 **প্রকার:** .py  
-**সাইজ:** 7,366 বাইট  
-**আপডেট:** 2026-07-07T21:58:43.458087
+**সাইজ:** 7,367 বাইট  
+**আপডেট:** 2026-07-07T22:11:19.742364
 
 ---
 
@@ -13,6 +13,7 @@
 # রেডিস ডাউন থাকলে এটি কোনো সিকিউরিটি গেট বাইপাস করতে দেবে না (Fail-Closed)।
 
 import time
+
 import redis.asyncio as aioredis
 
 from core.config import settings

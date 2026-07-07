@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/scripts/trigger_mock_error.py
 
 **প্রকার:** .py  
-**সাইজ:** 755 বাইট  
-**আপডেট:** 2026-07-07T21:58:43.463668
+**সাইজ:** 797 বাইট  
+**আপডেট:** 2026-07-07T22:11:19.753213
 
 ---
 
@@ -12,10 +12,13 @@
 import asyncio
 import logging
 
+
 # Configure logger to output to terminal
 logging.basicConfig(level=logging.WARNING)
 
-from core.event_bus import error_event_bus, ErrorEvent  # noqa: E402
+from core.event_bus import ErrorEvent  # noqa: E402
+from core.event_bus import error_event_bus  # noqa: E402
+
 
 async def main():
     print("Mocking an error trigger...")  # noqa: T201

@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/adaptive_engine/test_platform_learner.py
 
 **প্রকার:** .py  
-**সাইজ:** 9,421 বাইট  
-**আপডেট:** 2026-07-07T21:58:43.486587
+**সাইজ:** 9,435 বাইট  
+**আপডেট:** 2026-07-07T22:11:19.797712
 
 ---
 
@@ -15,8 +15,8 @@ from unittest.mock import patch
 
 import httpx
 import pytest
-from adaptive_engine.platform_learner import PlatformLearner
 
+from adaptive_engine.platform_learner import PlatformLearner
 from adaptive_engine.registry import PlatformProfile
 
 
@@ -169,7 +169,7 @@ class TestPlatformLearner:
         mock_model_router.async_route_and_generate.side_effect = Exception('Test')
         platform_name = 'test'
         docs_url = 'https://test.com'
-        with pytest.raises(Exception):
+        with pytest.raises(Exception, match='Test'):
             await platform_learner.learn_from_docs(platform_name, docs_url)
 
 ```

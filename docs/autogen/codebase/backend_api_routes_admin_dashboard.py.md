@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/api/routes/admin_dashboard.py
 
 **প্রকার:** .py  
-**সাইজ:** 31,229 বাইট  
-**আপডেট:** 2026-07-07T21:58:43.466502
+**সাইজ:** 31,245 বাইট  
+**আপডেট:** 2026-07-07T22:11:19.758767
 
 ---
 
@@ -75,14 +75,14 @@ def require_admin_token(credentials: HTTPAuthorizationCredentials = Depends(secu
                 logger.warning("Redis not configured; falling back to in-memory JWT blacklist check.")
 
         return decoded
-    except Exception:  # noqa: BLE001
+    except Exception as err:  # noqa: BLE001
         logger.warning("Admin token validation failed", exc_info=True)
         expected = os.getenv("SUPREMEAI_API_TOKEN") or ""
         if expected and secrets.compare_digest(token, expected):
             return {"uid": "admin", "role": "admin"}
         raise HTTPException(
             status_code=401, detail="Authentication failed."
-        )
+        ) from err
 
 
 def admin_rate_limit(request: Request):

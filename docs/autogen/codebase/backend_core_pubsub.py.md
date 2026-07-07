@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/pubsub.py
 
 **প্রকার:** .py  
-**সাইজ:** 874 বাইট  
-**আপডেট:** 2026-07-07T21:58:43.462110
+**সাইজ:** 846 বাইট  
+**আপডেট:** 2026-07-07T22:11:19.750232
 
 ---
 
@@ -10,11 +10,11 @@
 
 ```py
 import asyncio
-from typing import Dict, Set
+
 
 class PubSub:
     def __init__(self):
-        self.subscribers: Dict[str, Set[asyncio.Queue]] = {}
+        self.subscribers: dict[str, set[asyncio.Queue]] = {}
 
     def subscribe(self, channel: str) -> asyncio.Queue:
         if channel not in self.subscribers:

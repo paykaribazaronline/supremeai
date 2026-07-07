@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/config.py
 
 **প্রকার:** .py  
-**সাইজ:** 10,031 বাইট  
-**আপডেট:** 2026-07-07T21:58:43.458689
+**সাইজ:** 10,051 বাইট  
+**আপডেট:** 2026-07-07T22:11:19.743560
 
 ---
 
@@ -15,7 +15,8 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 from loguru import logger
-from pydantic import Field, PrivateAttr
+from pydantic import Field
+from pydantic import PrivateAttr
 from pydantic import ValidationInfo
 from pydantic import computed_field
 from pydantic import field_validator

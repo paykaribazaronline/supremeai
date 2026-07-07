@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/api/routes/session_takeover.py
 
 **প্রকার:** .py  
-**সাইজ:** 3,896 বাইট  
-**আপডেট:** 2026-07-07T21:58:43.466350
+**সাইজ:** 3,930 বাইট  
+**আপডেট:** 2026-07-07T22:11:19.758467
 
 ---
 
@@ -58,7 +58,8 @@ async def mock_screencast_emitter(websocket: WebSocket, session_id: str):
         raise
     except Exception as e:  # noqa: BLE001
         logger.exception(f"❌ Critical task failure in session_takeover.py: {e}")
-        from core.event_bus import error_event_bus, ErrorEvent
+        from core.event_bus import ErrorEvent
+        from core.event_bus import error_event_bus
         await error_event_bus.emit_async(
             ErrorEvent(
                 module="backend.api.routes.session_takeover",

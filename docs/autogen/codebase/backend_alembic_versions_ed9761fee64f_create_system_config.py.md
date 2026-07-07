@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/alembic/versions/ed9761fee64f_create_system_config.py
 
 **প্রকার:** .py  
-**সাইজ:** 1,910 বাইট  
-**আপডেট:** 2026-07-07T21:58:43.471202
+**সাইজ:** 1,899 বাইট  
+**আপডেট:** 2026-07-07T22:11:19.767799
 
 ---
 
@@ -16,17 +16,19 @@ Revises: 664fe16e33ca
 Create Date: 2026-07-08 02:54:58.952639
 
 """
-from typing import Sequence, Union
+from collections.abc import Sequence
 
-from alembic import op
 import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
 
+from alembic import op
+
+
 # revision identifiers, used by Alembic.
 revision: str = 'ed9761fee64f'
-down_revision: Union[str, Sequence[str], None] = '664fe16e33ca'
-branch_labels: Union[str, Sequence[str], None] = None
-depends_on: Union[str, Sequence[str], None] = None
+down_revision: str | Sequence[str] | None = '664fe16e33ca'
+branch_labels: str | Sequence[str] | None = None
+depends_on: str | Sequence[str] | None = None
 
 
 def upgrade() -> None:

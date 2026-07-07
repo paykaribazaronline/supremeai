@@ -1,7 +1,7 @@
 # 🧠 SupremeAI 2.0 Codebase Dump
 # বাংলা মন্তব্য: এটি একটি স্বয়ংক্রিয়ভাবে জেনারেট করা কোডবেস ডাম্প ফাইল যা প্রজেক্টের সামগ্রিক বিশ্লেষণের জন্য ব্যবহৃত হয়।
 
-Generated at: 2026-07-07T21:58:43.436607
+Generated at: 2026-07-07T22:11:19.707194
 
 
 ## File: `pnpm-lock.yaml`
@@ -25749,6 +25749,42 @@ if __name__ == "__main__":
     asyncio.run(main())
 ```
 
+## File: `scripts/generate_openapi.py`
+
+```py
+#!/usr/bin/env python3
+"""
+SupremeAI - OpenAPI Schema Extractor
+This script extracts the OpenAPI schema from the FastAPI app and writes it to API-swagger.yaml.
+"""
+import sys
+import yaml
+import json
+from pathlib import Path
+
+# Add backend directory to path so we can import the app
+sys.path.append('backend')
+
+try:
+    from main import app
+except ImportError as e:
+    print(f"Failed to import FastAPI app from backend.main: {e}")
+    sys.exit(1)
+
+def generate_openapi():
+    openapi_schema = app.openapi()
+    
+    output_path = Path("API-swagger.yaml")
+    with open(output_path, "w", encoding="utf-8") as f:
+        yaml.dump(openapi_schema, f, sort_keys=False)
+        
+    print(f"Successfully generated OpenAPI schema at {output_path.absolute()}")
+
+if __name__ == "__main__":
+    generate_openapi()
+
+```
+
 ## File: `scripts/commit_supreme_ci.yml`
 
 ```yml
@@ -29353,6 +29389,239 @@ def generate_docs():
 if __name__ == "__main__":
     generate_docs()
     print("Documentation generated successfully in docs/autogen/")
+```
+
+## File: `scripts/auto_generate_architecture_docs.py`
+
+```py
+#!/usr/bin/env python3
+"""
+SupremeAI - Auto Generate Architecture Docs
+Analyzes recent git changes and generates/updates:
+- Architecture Decision Records (ADR)
+- Data Flow Diagrams (DFD - Mermaid.js)
+- Sequence Diagrams (Mermaid.js)
+- Security Threat Models
+"""
+
+import os
+import subprocess
+import sys
+from pathlib import Path
+from litellm import completion
+
+def get_recent_diff():
+    try:
+        # Get diff of the most recent push (or just HEAD~1 if not available)
+        diff = subprocess.check_output(['git', 'diff', 'HEAD~1', 'HEAD'], text=True, errors='replace')
+        return diff
+    except subprocess.CalledProcessError:
+        return ""
+
+def call_llm(prompt):
+    try:
+        print("Calling LLM via litellm...")
+        response = completion(
+            model="gemini/gemini-2.5-pro",
+            messages=[{"role": "user", "content": prompt}],
+            timeout=60
+        )
+        return response.choices[0].message.content
+    except Exception as e:
+        print(f"LLM Generation Error: {e}")
+        return ""
+
+def generate_adr(diff):
+    print("Generating ADR...")
+    prompt = f"""
+You are an expert Enterprise Software Architect. Review this git diff and determine if a new Architecture Decision Record (ADR) is needed. 
+If yes, write a concise ADR in Markdown format. If no architectural changes are present, output EXACTLY "NO_ADR_NEEDED".
+Git Diff:
+```diff
+{diff[:20000]}
+```
+"""
+    result = call_llm(prompt)
+    if "NO_ADR_NEEDED" not in result and result.strip():
+        # Find a suitable filename
+        adr_count = len(list(Path('.').glob('ADR-*.md'))) + 1
+        filename = f"ADR-{adr_count:03d}-auto-generated.md"
+        with open(filename, "w", encoding="utf-8") as f:
+            f.write(result)
+        print(f"Created {filename}")
+
+def generate_diagrams(diff):
+    print("Generating Mermaid Diagrams (DFD & Sequence)...")
+    prompt = f"""
+You are an expert Systems Architect. Analyze this git diff and generate:
+1. A Data Flow Diagram (DFD) using Mermaid.js syntax.
+2. A Sequence Diagram using Mermaid.js syntax.
+
+Important: ONLY output valid Mermaid code blocks (```mermaid ... ```).
+Do not output anything else. Include both diagrams in your response.
+
+Git Diff:
+```diff
+{diff[:20000]}
+```
+"""
+    result = call_llm(prompt)
+    if "```mermaid" in result:
+        diagram_count = len(list(Path('.').glob('DIAGRAM-*.md'))) + 1
+        filename = f"DIAGRAM-{diagram_count:03d}-auto-generated.md"
+        content = f"# Auto-Generated Architecture Diagrams\n\n{result}"
+        with open(filename, "w", encoding="utf-8") as f:
+            f.write(content)
+        print(f"Created {filename}")
+
+def update_threat_model(diff):
+    print("Updating Threat Model...")
+    prompt = f"""
+You are an Elite Cyber Security Auditor. Analyze this git diff for new API routes, external calls, or data access.
+Mandate: Check for Auth, SSRF, and Injection vulnerabilities for any new routes.
+If you find new security implications, write an update for the Threat Model in Markdown.
+If no security changes are present, output EXACTLY "NO_THREAT_UPDATES".
+
+Git Diff:
+```diff
+{diff[:20000]}
+```
+"""
+    result = call_llm(prompt)
+    if "NO_THREAT_UPDATES" not in result and result.strip():
+        tm_file = Path("THREAT-MODEL-001-authentication.md")
+        if tm_file.exists():
+            with open(tm_file, "a", encoding="utf-8") as f:
+                f.write(f"\n\n## Auto-Generated Security Audit Update\n\n{result}")
+            print(f"Updated {tm_file}")
+        else:
+            with open("THREAT-MODEL-auto-generated.md", "w", encoding="utf-8") as f:
+                f.write(result)
+            print("Created THREAT-MODEL-auto-generated.md")
+
+def main():
+    diff = get_recent_diff()
+    if not diff.strip():
+        print("No diff found. Exiting.")
+        return
+        
+    generate_adr(diff)
+    generate_diagrams(diff)
+    update_threat_model(diff)
+
+if __name__ == "__main__":
+    main()
+
+```
+
+## File: `scripts/generate_push_summary.py`
+
+```py
+#!/usr/bin/env python3
+"""
+SupremeAI - PR / Push Summary Generator
+Generates a markdown summary of git differences between two SHAs using LLM
+and posts it as a PR comment (if running in a Pull Request context).
+"""
+
+import argparse
+import subprocess
+import os
+import sys
+import httpx
+from litellm import completion
+
+def get_git_diff(base_sha, head_sha):
+    try:
+        diff = subprocess.check_output(
+            ['git', 'diff', f'{base_sha}..{head_sha}'],
+            text=True,
+            errors='replace'
+        )
+        return diff
+    except subprocess.CalledProcessError as e:
+        print(f"Error generating git diff: {e}")
+        sys.exit(1)
+
+def generate_summary(diff_content):
+    if not diff_content.strip():
+        return "No significant changes found in this push."
+        
+    # Cap the diff size to avoid hitting LLM token limits (e.g. max 50KB string)
+    max_diff_size = 50 * 1024
+    if len(diff_content) > max_diff_size:
+        diff_content = diff_content[:max_diff_size] + "\n...[DIFF TRUNCATED]..."
+
+    prompt = f"""
+You are an expert Enterprise Software Architect. 
+Review the following git diff and provide a concise, high-level technical summary of the changes.
+Highlight any major architectural shifts, security implications, or critical logic updates.
+Keep it strictly under 300 words. Format the output in Markdown.
+
+### Git Diff:
+```diff
+{diff_content}
+```
+"""
+
+    try:
+        # Using litellm. The model name can be set to gemini/gemini-2.5-pro or an internal litellm proxy endpoint
+        # As per Architect mandate, we use litellm. We map SUPREMEAI_API_KEY to litellm's expected API keys via env vars
+        # Or simply call completion with gemini
+        print("Calling LLM via litellm...")
+        response = completion(
+            model="gemini/gemini-2.5-pro",
+            messages=[{"role": "user", "content": prompt}],
+            # We assume GEMINI_API_KEY is available in the environment from CI secrets
+        )
+        return response.choices[0].message.content
+    except Exception as e:
+        print(f"LLM Generation Error: {e}")
+        return f"### PR Summary\nFailed to generate summary via LLM: {str(e)}"
+
+def post_pr_comment(repo, pr_number, token, content):
+    print(f"Posting comment to PR #{pr_number} in {repo}...")
+    url = f"https://api.github.com/repos/{repo}/issues/{pr_number}/comments"
+    headers = {
+        "Authorization": f"token {token}",
+        "Accept": "application/vnd.github.v3+json"
+    }
+    data = {"body": content}
+    
+    with httpx.Client() as client:
+        response = client.post(url, headers=headers, json=data, timeout=30.0)
+        
+    if response.status_code == 201:
+        print("Successfully posted PR comment.")
+    else:
+        print(f"Failed to post PR comment. Status: {response.status_code}, Response: {response.text}")
+
+def main():
+    parser = argparse.ArgumentParser(description="Generate PR/Push Summary via LLM")
+    parser.add_argument("base_sha", help="Base commit SHA")
+    parser.add_argument("head_sha", help="Head commit SHA")
+    parser.add_argument("output_file", help="Path to write the markdown summary")
+    parser.add_argument("--repo", help="GitHub repository (e.g. owner/repo)")
+    parser.add_argument("--pr-number", help="Pull Request number (if applicable)")
+    parser.add_argument("--token", help="GitHub Token for posting comments")
+    args = parser.parse_args()
+
+    print(f"Generating summary for {args.base_sha}..{args.head_sha}")
+    diff = get_git_diff(args.base_sha, args.head_sha)
+    summary = generate_summary(diff)
+    
+    with open(args.output_file, "w", encoding="utf-8") as f:
+        f.write(summary)
+    print(f"Saved summary to {args.output_file}")
+    
+    if args.repo and args.pr_number and args.token:
+        # Add a prefix to identify it as AI-generated
+        comment_body = f"🤖 **SupremeAI Push Summary**\n\n{summary}"
+        post_pr_comment(args.repo, args.pr_number, args.token, comment_body)
+
+if __name__ == "__main__":
+    main()
+
 ```
 
 ## File: `scripts/docker_ai_guard.py`
@@ -44881,8 +45150,11 @@ async def init_db_pool(dsn: str) -> PgBouncerConnectionPool:
 ```py
 import asyncio
 import logging
+from collections.abc import Callable
+from typing import Any
+
 from pydantic import BaseModel
-from typing import Dict, Any, Callable, List
+
 
 logger = logging.getLogger("supremeai.event_bus")
 
@@ -44891,11 +45163,11 @@ class ErrorEvent(BaseModel):
     error_type: str
     message: str
     severity: str  # CRITICAL, WARNING, INFO
-    context: Dict[str, Any]
+    context: dict[str, Any]
 
 class ErrorEventBus:
     def __init__(self):
-        self._listeners: List[Callable[[ErrorEvent], asyncio.Future]] = []
+        self._listeners: list[Callable[[ErrorEvent], asyncio.Future]] = []
 
     def register_listener(self, listener: Callable[[ErrorEvent], asyncio.Future]):
         self._listeners.append(listener)
@@ -44969,7 +45241,8 @@ from typing import Any
 
 from loguru import logger
 
-from core.event_bus import error_event_bus, ErrorEvent
+from core.event_bus import ErrorEvent
+from core.event_bus import error_event_bus
 
 
 class SelfHealerService:
@@ -46218,6 +46491,7 @@ class OutputValidator:
 # রেডিস ডাউন থাকলে এটি কোনো সিকিউরিটি গেট বাইপাস করতে দেবে না (Fail-Closed)।
 
 import time
+
 import redis.asyncio as aioredis
 
 from core.config import settings
@@ -47536,7 +47810,8 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 from loguru import logger
-from pydantic import Field, PrivateAttr
+from pydantic import Field
+from pydantic import PrivateAttr
 from pydantic import ValidationInfo
 from pydantic import computed_field
 from pydantic import field_validator
@@ -49867,7 +50142,8 @@ class ConfigCache:
                 logger.info(f"ConfigCache: Loaded {len(configs)} configs from DB")
             except RuntimeError as e:
                 logger.exception(f"❌ Critical task failure in config_cache.py: {e}")
-                from core.event_bus import error_event_bus, ErrorEvent
+                from core.event_bus import ErrorEvent
+                from core.event_bus import error_event_bus
                 error_event_bus.emit(
                     ErrorEvent(
                         module="backend.core.config_cache",
@@ -49894,6 +50170,7 @@ class ConfigCache:
     async def refresh_async(self):
         """Asynchronous refresh, mainly for startup."""
         from sqlalchemy import select
+
         from database.session import AsyncSessionLocal
         from models.system_config import SystemConfig
 
@@ -50683,8 +50960,8 @@ def setup_logging():
 import logging
 import os
 import secrets
-import sentry_sdk
 
+import sentry_sdk
 from fastapi import Depends
 from fastapi import FastAPI
 from fastapi import HTTPException
@@ -51137,7 +51414,10 @@ app.router.lifespan_context = lifespan.app_lifespan
 def router_health_check(fastapi_app: FastAPI):
     expected_count = 20
     if len(fastapi_app.routes) < expected_count:
-        logger.critical(f"🔥 CRITICAL: Only {len(fastapi_app.routes)} routes loaded. Expected at least {expected_count}. Some routers failed to load silently!")
+        logger.critical(
+            f"🔥 CRITICAL: Only {len(fastapi_app.routes)} routes loaded. "
+            f"Expected at least {expected_count}. Some routers failed to load silently!"
+        )
 
 router_health_check(app)
 
@@ -55639,11 +55919,11 @@ class APIKeyAuthMiddleware(BaseHTTPMiddleware):
 
 ```py
 import asyncio
-from typing import Dict, Set
+
 
 class PubSub:
     def __init__(self):
-        self.subscribers: Dict[str, Set[asyncio.Queue]] = {}
+        self.subscribers: dict[str, set[asyncio.Queue]] = {}
 
     def subscribe(self, channel: str) -> asyncio.Queue:
         if channel not in self.subscribers:
@@ -57496,12 +57776,12 @@ from loguru import logger
 
 from core import services
 from core.config import settings
+from core.config_cache import config_cache
 from core.discord_bot import SupremeDiscordBot
 from core.orchestrator import Orchestrator
 from core.pgbouncer_pool import get_db_pool
 from core.pgbouncer_pool import init_db_pool
 from core.redis_manager import redis_manager
-from core.config_cache import config_cache
 
 
 async def _ensure_api_key_tables() -> None:
@@ -58640,10 +58920,13 @@ if __name__ == "__main__":
 import asyncio
 import logging
 
+
 # Configure logger to output to terminal
 logging.basicConfig(level=logging.WARNING)
 
-from core.event_bus import error_event_bus, ErrorEvent  # noqa: E402
+from core.event_bus import ErrorEvent  # noqa: E402
+from core.event_bus import error_event_bus  # noqa: E402
+
 
 async def main():
     print("Mocking an error trigger...")  # noqa: T201
@@ -63914,7 +64197,8 @@ async def mock_screencast_emitter(websocket: WebSocket, session_id: str):
         raise
     except Exception as e:  # noqa: BLE001
         logger.exception(f"❌ Critical task failure in session_takeover.py: {e}")
-        from core.event_bus import error_event_bus, ErrorEvent
+        from core.event_bus import ErrorEvent
+        from core.event_bus import error_event_bus
         await error_event_bus.emit_async(
             ErrorEvent(
                 module="backend.api.routes.session_takeover",
@@ -64154,14 +64438,14 @@ def require_admin_token(credentials: HTTPAuthorizationCredentials = Depends(secu
                 logger.warning("Redis not configured; falling back to in-memory JWT blacklist check.")
 
         return decoded
-    except Exception:  # noqa: BLE001
+    except Exception as err:  # noqa: BLE001
         logger.warning("Admin token validation failed", exc_info=True)
         expected = os.getenv("SUPREMEAI_API_TOKEN") or ""
         if expected and secrets.compare_digest(token, expected):
             return {"uid": "admin", "role": "admin"}
         raise HTTPException(
             status_code=401, detail="Authentication failed."
-        )
+        ) from err
 
 
 def admin_rate_limit(request: Request):
@@ -64967,9 +65251,13 @@ async def list_reports(report_name: str = None):
 ```py
 import asyncio
 import json
-from fastapi import APIRouter, Request
+
+from fastapi import APIRouter
+from fastapi import Request
 from sse_starlette.sse import EventSourceResponse
+
 from core.pubsub import global_pubsub
+
 
 router = APIRouter(tags=["Events"])
 
@@ -71713,6 +72001,7 @@ from alembic import context
 from core.config import settings
 from models.base import Base
 
+
 # Import all models to ensure they are registered with Base.metadata before autogenerate
 
 
@@ -71857,17 +72146,19 @@ Revises: 664fe16e33ca
 Create Date: 2026-07-08 02:54:58.952639
 
 """
-from typing import Sequence, Union
+from collections.abc import Sequence
 
-from alembic import op
 import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
 
+from alembic import op
+
+
 # revision identifiers, used by Alembic.
 revision: str = 'ed9761fee64f'
-down_revision: Union[str, Sequence[str], None] = '664fe16e33ca'
-branch_labels: Union[str, Sequence[str], None] = None
-depends_on: Union[str, Sequence[str], None] = None
+down_revision: str | Sequence[str] | None = '664fe16e33ca'
+branch_labels: str | Sequence[str] | None = None
+depends_on: str | Sequence[str] | None = None
 
 
 def upgrade() -> None:
@@ -74027,6 +74318,7 @@ class MedicalAgent:
 from unittest.mock import patch
 
 import pytest
+
 from agents.legal_agent import LegalAgent
 
 
@@ -74938,10 +75230,12 @@ class ChaosInjectorMiddleware(BaseHTTPMiddleware):
 ```py
 import json
 
-from fastapi import HTTPException, Request
+from fastapi import HTTPException
+from fastapi import Request
 from fastapi.responses import JSONResponse
 from loguru import logger
 from starlette.middleware.base import BaseHTTPMiddleware
+
 
 # বাংলা মন্তব্য: Redis-based Distributed Idempotency Middleware
 # পূর্বে Firestore (Firebase) ব্যবহার করা হতো, যা Serverless-এ ব্যয়বহুল এবং ধীর ছিল।
@@ -74979,7 +75273,10 @@ class IdempotencyMiddleware(BaseHTTPMiddleware):
 
         # বাংলা মন্তব্য: Redis lock অধিগ্রহণের চেষ্টা (SET NX — atomic)
         try:
-            from core.redis_manager import acquire_idempotency_lock, release_idempotency_lock, cache_response_and_release_lock, redis_manager
+            from core.redis_manager import acquire_idempotency_lock
+            from core.redis_manager import cache_response_and_release_lock
+            from core.redis_manager import redis_manager
+            from core.redis_manager import release_idempotency_lock
         except ImportError:
             # Redis ইমপোর্ট ব্যর্থ হলে fail-open — request পাস করে দাও
             logger.warning("[Idempotency] Failed to import redis_manager — skipping check (fail-open)")
@@ -100920,8 +101217,8 @@ from unittest.mock import patch
 
 import httpx
 import pytest
-from adaptive_engine.platform_learner import PlatformLearner
 
+from adaptive_engine.platform_learner import PlatformLearner
 from adaptive_engine.registry import PlatformProfile
 
 
@@ -101074,7 +101371,7 @@ class TestPlatformLearner:
         mock_model_router.async_route_and_generate.side_effect = Exception('Test')
         platform_name = 'test'
         docs_url = 'https://test.com'
-        with pytest.raises(Exception):
+        with pytest.raises(Exception, match='Test'):
             await platform_learner.learn_from_docs(platform_name, docs_url)
 
 ```
@@ -123163,6 +123460,8 @@ const storeState = {
   forgeFeedback: null,
   forgeSuccessCode: null,
   forgeNewSkill: mockForgeNewSkill,
+  isConfigLoaded: true,
+  setConfig: vi.fn(),
 };
 
 vi.mock('./store/useStore', () => ({
@@ -171035,6 +171334,38 @@ jobs:
             exit 1
           fi
           echo "✅ PASS: All httpx clients have explicit timeouts" >> $GITHUB_STEP_SUMMARY
+
+  ai-architecture-generation:
+    name: 🤖 AI Architecture Documentation
+    needs: [pre-merge-gate]
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - name: Install dependencies
+        run: pip install litellm pyyaml httpx
+      - name: Generate AI Docs
+        env:
+          SUPREMEAI_API_KEY: ${{ secrets.SUPREMEAI_API_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: |
+          python scripts/generate_openapi.py
+          python scripts/auto_generate_architecture_docs.py
+      - name: Auto-Commit Docs
+        run: |
+          git config user.name "SupremeAI-DocBot"
+          git config user.email "docbot@supremeai.dev"
+          git add ADR-*.md DIAGRAM-*.md THREAT-MODEL-*.md API-swagger.yaml || true
+          git commit -m "docs: [auto-docs] Automated ADR/DFD/Threat Model updates [skip ci]" || exit 0
+          git push
 
   generate-pr-summary:
     name: 📝 Generate PR Diff Summary

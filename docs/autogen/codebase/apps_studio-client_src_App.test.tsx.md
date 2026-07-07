@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/studio-client/src/App.test.tsx
 
 **প্রকার:** .tsx  
-**সাইজ:** 4,665 বাইট  
-**আপডেট:** 2026-07-07T21:58:43.496185
+**সাইজ:** 4,711 বাইট  
+**আপডেট:** 2026-07-07T22:11:19.816443
 
 ---
 
@@ -56,6 +56,8 @@ const storeState = {
   forgeFeedback: null,
   forgeSuccessCode: null,
   forgeNewSkill: mockForgeNewSkill,
+  isConfigLoaded: true,
+  setConfig: vi.fn(),
 };
 
 vi.mock('./store/useStore', () => ({

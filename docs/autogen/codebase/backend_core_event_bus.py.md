@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/event_bus.py
 
 **প্রকার:** .py  
-**সাইজ:** 2,402 বাইট  
-**আপডেট:** 2026-07-07T21:58:43.457479
+**সাইজ:** 2,419 বাইট  
+**আপডেট:** 2026-07-07T22:11:19.741153
 
 ---
 
@@ -11,8 +11,11 @@
 ```py
 import asyncio
 import logging
+from collections.abc import Callable
+from typing import Any
+
 from pydantic import BaseModel
-from typing import Dict, Any, Callable, List
+
 
 logger = logging.getLogger("supremeai.event_bus")
 
@@ -21,11 +24,11 @@ class ErrorEvent(BaseModel):
     error_type: str
     message: str
     severity: str  # CRITICAL, WARNING, INFO
-    context: Dict[str, Any]
+    context: dict[str, Any]
 
 class ErrorEventBus:
     def __init__(self):
-        self._listeners: List[Callable[[ErrorEvent], asyncio.Future]] = []
+        self._listeners: list[Callable[[ErrorEvent], asyncio.Future]] = []
 
     def register_listener(self, listener: Callable[[ErrorEvent], asyncio.Future]):
         self._listeners.append(listener)

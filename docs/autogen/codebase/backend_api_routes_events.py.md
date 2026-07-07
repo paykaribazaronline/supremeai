@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/api/routes/events.py
 
 **প্রকার:** .py  
-**সাইজ:** 2,408 বাইট  
-**আপডেট:** 2026-07-07T21:58:43.466625
+**সাইজ:** 2,430 বাইট  
+**আপডেট:** 2026-07-07T22:11:19.759048
 
 ---
 
@@ -11,9 +11,13 @@
 ```py
 import asyncio
 import json
-from fastapi import APIRouter, Request
+
+from fastapi import APIRouter
+from fastapi import Request
 from sse_starlette.sse import EventSourceResponse
+
 from core.pubsub import global_pubsub
+
 
 router = APIRouter(tags=["Events"])
 
