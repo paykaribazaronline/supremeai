@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/studio-client/src/components/admin/ModelRouter.tsx
 
 **প্রকার:** .tsx  
-**সাইজ:** 9,219 বাইট  
-**আপডেট:** 2026-07-07T12:40:02.025440
+**সাইজ:** 9,116 বাইট  
+**আপডেট:** 2026-07-07T12:54:09.837269
 
 ---
 
@@ -13,6 +13,7 @@ import { Card, Badge, BanglaHint } from '../ui';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { GitBranch, ArrowRight, Settings } from 'lucide-react';
+import { apiClient } from '../../services/apiClient';
 
 const PROVIDER_LIST = [
   { id: 'openrouter', label: 'OpenRouter', color: 'bg-cyan-500' },
@@ -24,11 +25,11 @@ const PROVIDER_LIST = [
 export function ModelRouter() {
   const routerQuery = useQuery({
     queryKey: ['model-router'],
-    queryFn: () => fetch('/admin-api/model-router').then(r => r.json()),
+    queryFn: () => apiClient.get('/admin-api/model-router'),
   });
   const providersQuery = useQuery({
     queryKey: ['providers'],
-    queryFn: () => fetch('/admin-api/providers').then(r => r.json()),
+    queryFn: () => apiClient.get('/admin-api/providers'),
   });
 
   const config = routerQuery.data;
@@ -40,11 +41,7 @@ export function ModelRouter() {
 
   const overrideMutation = useMutation({
     mutationFn: (payload: { provider: string; model: string; remaining_requests: number }) =>
-      fetch('/admin-api/model-router/override', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      }).then(r => r.json()),
+      apiClient.post('/admin-api/model-router/override', payload),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['model-router'] });
     },

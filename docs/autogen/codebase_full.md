@@ -1,7 +1,7 @@
 # 🧠 SupremeAI 2.0 Codebase Dump
 # বাংলা মন্তব্য: এটি একটি স্বয়ংক্রিয়ভাবে জেনারেট করা কোডবেস ডাম্প ফাইল যা প্রজেক্টের সামগ্রিক বিশ্লেষণের জন্য ব্যবহৃত হয়।
 
-Generated at: 2026-07-07T12:40:01.903709
+Generated at: 2026-07-07T12:54:09.724196
 
 
 ## File: `pnpm-lock.yaml`
@@ -129592,11 +129592,12 @@ import { Badge, Skeleton } from '../ui';
 import { Star, RefreshCw } from 'lucide-react';
 import { useState } from 'react';
 import SkillGraph from '../graph/SkillGraph';
+import { apiClient } from '../../services/apiClient';
 
 export function EnhancedSkillMarketplace() {
   const { data: skills, isLoading } = useQuery({
     queryKey: ['skills', 'marketplace'],
-    queryFn: () => fetch('/api/skills/search').then(r => r.json()),
+    queryFn: () => apiClient.get('/api/skills/search'),
   });
 
   const [filter, setFilter] = useState<'all' | 'installed' | 'available'>('all');
@@ -131325,6 +131326,7 @@ import { Card, Badge, BanglaHint } from '../ui';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { GitBranch, ArrowRight, Settings } from 'lucide-react';
+import { apiClient } from '../../services/apiClient';
 
 const PROVIDER_LIST = [
   { id: 'openrouter', label: 'OpenRouter', color: 'bg-cyan-500' },
@@ -131336,11 +131338,11 @@ const PROVIDER_LIST = [
 export function ModelRouter() {
   const routerQuery = useQuery({
     queryKey: ['model-router'],
-    queryFn: () => fetch('/admin-api/model-router').then(r => r.json()),
+    queryFn: () => apiClient.get('/admin-api/model-router'),
   });
   const providersQuery = useQuery({
     queryKey: ['providers'],
-    queryFn: () => fetch('/admin-api/providers').then(r => r.json()),
+    queryFn: () => apiClient.get('/admin-api/providers'),
   });
 
   const config = routerQuery.data;
@@ -131352,11 +131354,7 @@ export function ModelRouter() {
 
   const overrideMutation = useMutation({
     mutationFn: (payload: { provider: string; model: string; remaining_requests: number }) =>
-      fetch('/admin-api/model-router/override', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      }).then(r => r.json()),
+      apiClient.post('/admin-api/model-router/override', payload),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['model-router'] });
     },

@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/studio-client/src/components/admin/EnhancedSkillMarketplace.tsx
 
 **প্রকার:** .tsx  
-**সাইজ:** 5,172 বাইট  
-**আপডেট:** 2026-07-07T12:40:02.024019
+**সাইজ:** 5,214 বাইট  
+**আপডেট:** 2026-07-07T12:54:09.835920
 
 ---
 
@@ -14,11 +14,12 @@ import { Badge, Skeleton } from '../ui';
 import { Star, RefreshCw } from 'lucide-react';
 import { useState } from 'react';
 import SkillGraph from '../graph/SkillGraph';
+import { apiClient } from '../../services/apiClient';
 
 export function EnhancedSkillMarketplace() {
   const { data: skills, isLoading } = useQuery({
     queryKey: ['skills', 'marketplace'],
-    queryFn: () => fetch('/api/skills/search').then(r => r.json()),
+    queryFn: () => apiClient.get('/api/skills/search'),
   });
 
   const [filter, setFilter] = useState<'all' | 'installed' | 'available'>('all');
