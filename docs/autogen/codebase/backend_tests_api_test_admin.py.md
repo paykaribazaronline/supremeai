@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/api/test_admin.py
 
 **প্রকার:** .py  
-**সাইজ:** 2,131 বাইট  
-**আপডেট:** 2026-07-07T18:04:16.128803
+**সাইজ:** 2,649 বাইট  
+**আপডেট:** 2026-07-07T18:09:12.375012
 
 ---
 
@@ -37,9 +37,18 @@ def mock_firestore():
         mock.return_value = db
         yield db
 
-def test_get_fixes_unauthorized():
+@patch("api.routes.admin.get_current_user_token")
+def test_get_fixes_unauthorized(mock_token):
+    app.dependency_overrides[mock_token] = lambda: {"sub": "user_test", "role": "user"}
+    from api.routes.admin import get_current_admin
+    # We must also clear the get_current_admin override if it exists, or just mock it to raise 403
+    app.dependency_overrides[get_current_admin] = lambda: (_ for _ in ()).throw(
+        __import__("fastapi").HTTPException(status_code=403, detail="Not enough permissions")
+    )
+    
     response = client.get("/api/admin/fixes")
     assert response.status_code in (401, 403), f"Unexpected status: {response.status_code}, details: {response.text}"
+    app.dependency_overrides = {}
 
 @patch("api.routes.admin.get_current_user_token")
 def test_get_fixes_authorized(mock_token, mock_healer, mock_firestore):
