@@ -424,6 +424,9 @@ jobs:
           cache: 'pip'
       - name: Install Backend Dependencies & Start Server
         working-directory: backend
+        env:
+          ENCRYPTION_KEY: ${{ secrets.ENCRYPTION_KEY }}
+          SUPREMEAI_API_URL: http://127.0.0.1:8000
         run: |
           pip install poetry
           poetry install --sync --with dev --without ml
@@ -445,6 +448,7 @@ jobs:
           pnpm exec playwright test tests/e2e/accessibility.spec.ts tests/e2e/chat.spec.ts
         env:
           CI: true
+          SUPREMEAI_API_URL: http://127.0.0.1:8000
       - name: Upload Test Report Artifacts
         if: always()
         uses: actions/upload-artifact@v4
