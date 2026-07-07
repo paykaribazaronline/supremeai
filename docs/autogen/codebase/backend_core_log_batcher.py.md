@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/log_batcher.py
 
 **প্রকার:** .py  
-**সাইজ:** 4,000 বাইট  
-**আপডেট:** 2026-07-07T16:18:57.075184
+**সাইজ:** 4,275 বাইট  
+**আপডেট:** 2026-07-07T16:46:48.494977
 
 ---
 
@@ -96,7 +96,11 @@ class LogBatcherService:
                 if self.buffer:
                     await self._flush()
             except Exception as e:
-                logger.error(f"Error in LogBatcherService loop: {e}")
+                logger.error(f"Critical error in LogBatcherService: {e}")
+                # সেলফ-হিলিং: ডাটা লস রোধে বাফার রিকিউ করা হচ্ছে
+                while self.buffer:
+                    item = self.buffer.popleft()
+                    self.queue.put_nowait(item)
 
     async def _flush(self):
         if not self.buffer:

@@ -1,7 +1,7 @@
 # 🧠 SupremeAI 2.0 Codebase Dump
 # বাংলা মন্তব্য: এটি একটি স্বয়ংক্রিয়ভাবে জেনারেট করা কোডবেস ডাম্প ফাইল যা প্রজেক্টের সামগ্রিক বিশ্লেষণের জন্য ব্যবহৃত হয়।
 
-Generated at: 2026-07-07T16:18:57.034518
+Generated at: 2026-07-07T16:46:48.455313
 
 
 ## File: `pnpm-lock.yaml`
@@ -45782,7 +45782,11 @@ class LogBatcherService:
                 if self.buffer:
                     await self._flush()
             except Exception as e:
-                logger.error(f"Error in LogBatcherService loop: {e}")
+                logger.error(f"Critical error in LogBatcherService: {e}")
+                # সেলফ-হিলিং: ডাটা লস রোধে বাফার রিকিউ করা হচ্ছে
+                while self.buffer:
+                    item = self.buffer.popleft()
+                    self.queue.put_nowait(item)
 
     async def _flush(self):
         if not self.buffer:
@@ -90922,6 +90926,64 @@ def test_celery_app_exposed():
 
 ```
 
+## File: `backend/tests/core/test_swarm_orchestrator.py`
+
+```py
+import pytest
+from unittest.mock import AsyncMock, MagicMock, patch
+
+from models.shared_workspace import SharedWorkspace
+
+
+@pytest.fixture(autouse=True)
+def mock_agents():
+    mock_architect = MagicMock()
+    mock_architect.design = AsyncMock()
+    mock_coder = MagicMock()
+    mock_coder.generate_code = AsyncMock()
+    mock_qa = MagicMock()
+    mock_qa.verify = AsyncMock()
+
+    with patch.dict(
+        "sys.modules",
+        {
+            "agents.crew_departments": MagicMock(
+                ArchitectureAgent=MagicMock(return_value=mock_architect),
+                CodeGeneratorAgent=MagicMock(return_value=mock_coder),
+                QAAgent=MagicMock(return_value=mock_qa),
+            )
+        },
+    ):
+        from core.swarm_orchestrator import SwarmOrchestrator
+
+        yield {
+            "orchestrator_class": SwarmOrchestrator,
+            "architect": mock_architect,
+            "coder": mock_coder,
+            "qa": mock_qa,
+        }
+
+
+def test_swarm_orchestrator_initializes_agents(mock_agents):
+    orchestrator = mock_agents["orchestrator_class"]()
+    assert orchestrator.architect is not None
+    assert orchestrator.coder is not None
+    assert orchestrator.qa is not None
+
+
+@pytest.mark.anyio
+async def test_swarm_orchestrator_execute_task(mock_agents):
+    orchestrator = mock_agents["orchestrator_class"]()
+    workspace = await orchestrator.execute_task("do something", user_id="user1")
+    assert isinstance(workspace, SharedWorkspace)
+    mock_agents["architect"].design.assert_awaited_once()
+    mock_agents["coder"].generate_code.assert_awaited_once()
+    mock_agents["qa"].verify.assert_awaited_once()
+    assert workspace.task_id is not None
+    assert workspace.original_prompt == "do something"
+
+```
+
 ## File: `backend/tests/core/test_log_batcher.py`
 
 ```py
@@ -91044,49 +91106,90 @@ import pytest
 from unittest.mock import AsyncMock, patch, MagicMock
 from core.enum_guard import EnumMismatchError, guard_enum, run_enum_guards
 
-@pytest.mark.anyio
-async def test_guard_enum_db_not_found():
-    # Mock the database connection and result with empty list
-    mock_conn = AsyncMock()
-    mock_result = MagicMock()
-    mock_result.all.return_value = []  # DB has no such enum
-    mock_conn.execute = AsyncMock(return_value=mock_result)
-    
-    mock_engine = AsyncMock()
-    mock_engine.connect.return_value.__aenter__.return_value = mock_conn
-    
-    with patch('core.enum_guard.engine', mock_engine):
-        from enum import Enum
-        class TestEnum(Enum):
-            ACTIVE = 'active'
-        
-        # Should log a warning and return without raising
-        await guard_enum('test_enum', TestEnum)
-        # No assertion needed, just ensure no exception
 
-@pytest.mark.anyio
-async def test_guard_enum_db_connection_error():
-    # Mock the database connection to raise an exception
-    mock_engine = AsyncMock()
-    # Make the connect method raise an exception
-    mock_engine.connect.side_effect = Exception("DB connection failed")
-    
-    with patch('core.enum_guard.engine', mock_engine):
-        from enum import Enum
-        class TestEnum(Enum):
-            ACTIVE = 'active'
-        
-        # Should log a warning and return without raising
-        await guard_enum('test_enum', TestEnum)
-        # No assertion needed
+class TestGuardEnumSuccess:
+    @pytest.mark.anyio
+    async def test_guard_enum_matching_labels(self):
+        mock_conn = AsyncMock()
+        mock_result = MagicMock()
+        mock_result.all.return_value = [("active",), ("pending",)]
+        mock_conn.execute = AsyncMock(return_value=mock_result)
 
-@pytest.mark.anyio
-async def test_run_enum_guards():
-    # Mock each guard_enum call to avoid actual DB calls
-    with patch('core.enum_guard.guard_enum', new_callable=AsyncMock) as mock_guard:
-        await run_enum_guards()
-        # Ensure guard_enum was called for each enum
-        assert mock_guard.call_count == 6  # Because there are 6 enums in run_enum_guards
+        mock_engine = MagicMock()
+        mock_ctx = AsyncMock()
+        mock_ctx.__aenter__.return_value = mock_conn
+        mock_ctx.__aexit__.return_value = False
+        mock_engine.connect.return_value = mock_ctx
+
+        with patch('core.enum_guard.engine', mock_engine):
+            from enum import Enum
+            class TestEnum(Enum):
+                ACTIVE = 'active'
+                PENDING = 'pending'
+
+            await guard_enum('test_enum', TestEnum)
+
+    @pytest.mark.anyio
+    async def test_guard_enum_db_not_found(self):
+        mock_conn = AsyncMock()
+        mock_result = MagicMock()
+        mock_result.all.return_value = []
+        mock_conn.execute = AsyncMock(return_value=mock_result)
+
+        mock_engine = MagicMock()
+        mock_ctx = AsyncMock()
+        mock_ctx.__aenter__.return_value = mock_conn
+        mock_ctx.__aexit__.return_value = False
+        mock_engine.connect.return_value = mock_ctx
+
+        with patch('core.enum_guard.engine', mock_engine):
+            from enum import Enum
+            class TestEnum(Enum):
+                ACTIVE = 'active'
+
+            await guard_enum('test_enum', TestEnum)
+
+    @pytest.mark.anyio
+    async def test_guard_enum_db_connection_error(self):
+        mock_engine = MagicMock()
+        mock_engine.connect.side_effect = Exception("DB connection failed")
+
+        with patch('core.enum_guard.engine', mock_engine):
+            from enum import Enum
+            class TestEnum(Enum):
+                ACTIVE = 'active'
+
+            await guard_enum('test_enum', TestEnum)
+
+    @pytest.mark.anyio
+    async def test_guard_enum_mismatch_raises(self):
+        mock_conn = AsyncMock()
+        mock_result = MagicMock()
+        mock_result.all.return_value = [("active",), ("archived",)]
+        mock_conn.execute = AsyncMock(return_value=mock_result)
+
+        mock_engine = MagicMock()
+        mock_ctx = AsyncMock()
+        mock_ctx.__aenter__.return_value = mock_conn
+        mock_ctx.__aexit__.return_value = False
+        mock_engine.connect.return_value = mock_ctx
+
+        with patch('core.enum_guard.engine', mock_engine):
+            from enum import Enum
+            class TestEnum(Enum):
+                ACTIVE = 'active'
+                PENDING = 'pending'
+
+            with pytest.raises(EnumMismatchError):
+                await guard_enum('test_enum', TestEnum)
+
+
+class TestRunEnumGuards:
+    @pytest.mark.anyio
+    async def test_run_enum_guards(self):
+        with patch('core.enum_guard.guard_enum', new_callable=AsyncMock) as mock_guard:
+            await run_enum_guards()
+            assert mock_guard.call_count == 6
 
 ```
 
