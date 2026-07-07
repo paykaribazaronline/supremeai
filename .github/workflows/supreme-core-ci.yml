@@ -114,14 +114,16 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
       - name: Install dependencies
-        run: pip install litellm pyyaml httpx
+        run: |
+          pip install poetry litellm pyyaml httpx
+          cd backend && poetry install --sync --with dev --without ml,tools
       - name: Generate AI Docs
         env:
           SUPREMEAI_API_KEY: ${{ secrets.SUPREMEAI_API_KEY }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: |
-          python scripts/generate_openapi.py
-          python scripts/auto_generate_architecture_docs.py
+          cd backend && poetry run python ../scripts/generate_openapi.py
+          cd .. && python scripts/auto_generate_architecture_docs.py
       - name: Auto-Commit Docs
         run: |
           git config user.name "SupremeAI-DocBot"
