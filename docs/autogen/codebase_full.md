@@ -1,7 +1,7 @@
 # 🧠 SupremeAI 2.0 Codebase Dump
 # বাংলা মন্তব্য: এটি একটি স্বয়ংক্রিয়ভাবে জেনারেট করা কোডবেস ডাম্প ফাইল যা প্রজেক্টের সামগ্রিক বিশ্লেষণের জন্য ব্যবহৃত হয়।
 
-Generated at: 2026-07-07T09:44:07.214606
+Generated at: 2026-07-07T11:15:52.020668
 
 
 ## File: `pnpm-lock.yaml`
@@ -117893,7 +117893,7 @@ export default defineConfig({
 
 ```tsx
 import React, { useEffect, useState, useMemo } from "react";
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useStore } from "./store/useStore";
 
@@ -117985,29 +117985,11 @@ function AdminShell() {
     }
   }, [theme]);
 
+  // বাংলা মন্তব্য: health-map, costs, users-এর raw fetch() কল সরানো হয়েছে —
+  // useDashboardData.ts ও useAdminApi.ts-এ React Query হুক এই ডেটা ইতিমধ্যে ফেচ করে।
+  // ডুপ্লিকেট কল সরানোর ফলে 429 রেট লিমিট স্টর্ম বন্ধ হবে।
   useEffect(() => {
     if (!adminAuthenticated) return;
-
-    const API_BASE = getApiBaseUrl();
-    const headers = {
-      "Authorization": `Bearer ${getAdminToken()}`,
-      "Content-Type": "application/json"
-    };
-
-    fetch(`${API_BASE}/admin-api/health-map`, { headers })
-      .then(res => res.json())
-      .then(data => setHealthMap(data))
-      .catch(err => console.error("Error fetching health map:", err));
-
-    fetch(`${API_BASE}/admin-api/costs`, { headers })
-      .then(res => res.json())
-      .then(data => setCostReport(data.report || ""))
-      .catch(err => console.error("Error fetching cost report:", err));
-
-    fetch(`${API_BASE}/admin-api/users`, { headers })
-      .then(res => res.json())
-      .then(data => setAdminUsers(data))
-      .catch(err => console.error("Error fetching users:", err));
 
     setEnvConfig({
       "ENV": "local",
@@ -118180,6 +118162,9 @@ function AdminShell() {
     />
   );
 }
+
+// .env থেকে পোর্টাল টাইপটি পড়বে (ডিফল্ট: user)
+const PORTAL_TYPE = import.meta.env.VITE_PORTAL_TYPE || 'user';
 
 export const App: React.FC = () => {
   const {
@@ -118379,21 +118364,33 @@ export const App: React.FC = () => {
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
         <Routes>
-          {/* ১. পাবলিক/ইউজার রাউট */}
-          <Route path="/" element={legacyWorkspace} />
-          
-          {/* ২. অ্যাডমিন রাউট */}
-          <Route path="/admin/*" element={<AdminShell />} />
-          
-          {/* ৩. প্রোডাকশন ড্যাশবোর্ড শেল */}
-          <Route path="/workspace/*" element={
-            <DashboardShell
-              theme={theme}
-              toggleTheme={toggleTheme}
-              isServerOnline={isServerOnline}
-              workspace={legacyWorkspace}
-            />
-          } />
+          {PORTAL_TYPE === 'admin' ? (
+            /* =========================================
+               ADMIN PORTAL (supremeai-admin.web.app)
+            ========================================= */
+            <>
+              <Route path="/" element={<Navigate to="/admin" replace />} />
+              <Route path="/admin/*" element={<AdminShell />} />
+              <Route path="*" element={<Navigate to="/admin" replace />} />
+            </>
+          ) : (
+            /* =========================================
+               USER PORTAL (supremeai-lac.vercel.app)
+            ========================================= */
+            <>
+              <Route path="/" element={legacyWorkspace} />
+              <Route path="/workspace/*" element={
+                <DashboardShell
+                  theme={theme}
+                  toggleTheme={toggleTheme}
+                  isServerOnline={isServerOnline}
+                  workspace={legacyWorkspace}
+                />
+              } />
+              {/* ইউজাররা /admin এ যাওয়ার চেষ্টা করলে হোমপেজে পাঠিয়ে দেবে */}
+              <Route path="/admin/*" element={<Navigate to="/" replace />} />
+            </>
+          )}
         </Routes>
       </QueryClientProvider>
     </ErrorBoundary>
@@ -128470,12 +128467,17 @@ export function BackupRestore() {
 import { useQuery } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
 import { apiClient } from '../../services/apiClient';
+// বাংলা মন্তব্য: টোকেন গার্ড — টোকেন ছাড়া health-map রিকোয়েস্ট যাবে না, 401 স্টর্ম ঠেকাবে
+import { getAdminToken } from '../../services/adminTokenStore';
 
 const HealthBanner: React.FC = () => {
   const { data: health } = useQuery({
     queryKey: ['dashboard', 'health'],
     queryFn: () => apiClient.get<{ gcp: { status: string }; railway: { status: string }; render: { status: string } }>('/admin-api/health-map'),
     refetchInterval: (query: any) => query.state.error ? false : 30000,
+    // বাংলা মন্তব্য: টোকেন না থাকলে কোয়েরি ডিসেবল — অপ্রয়োজনীয় 401 ঠেকাতে
+    enabled: !!getAdminToken(),
+    staleTime: 20_000,
   });
 
   const isDegraded = (health?.gcp && health.gcp.status === 'degraded') || (health?.railway && health.railway.status === 'degraded') || (health?.render && health.render.status === 'degraded');
@@ -130790,29 +130792,29 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { Card, Badge } from '../ui';
 import { Shield, UserPlus, Trash2, Settings2, CheckCircle2, XCircle } from 'lucide-react';
+// বাংলা মন্তব্য: raw fetch()-এর বদলে apiClient ব্যবহার — auth হেডার ও থ্রটল নিশ্চিত করে
+import { apiClient } from '../../services/apiClient';
+import { getAdminToken } from '../../services/adminTokenStore';
 
 export function RBACManager() {
+  // বাংলা মন্তব্য: queryKey ম্যাচ করানো হয়েছে useAdminApi.useAdminUsers()-এর সাথে — ক্যাশ শেয়ার হবে
   const { data: users } = useQuery({
-    queryKey: ['users'],
-    queryFn: () => fetch('/admin-api/users').then(r => r.json()),
+    queryKey: ['admin', 'users'],
+    queryFn: () => apiClient.get<any[]>('/admin-api/users'),
+    enabled: !!getAdminToken(),
+    staleTime: 30_000,
   });
   const qc = useQueryClient();
   const [newUser, setNewUser] = useState({ username: '', role: 'Operator', permissions: 'read,write' });
 
   const addUser = useMutation({
-    mutationFn: (user: any) =>
-      fetch('/admin-api/users', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(user),
-      }).then(r => r.json()),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['users'] }),
+    mutationFn: (user: any) => apiClient.post('/admin-api/users', user),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['admin', 'users'] }),
   });
 
   const deleteUser = useMutation({
-    mutationFn: (username: string) =>
-      fetch(`/admin-api/users/${username}`, { method: 'DELETE' }).then(r => r.json()),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['users'] }),
+    mutationFn: (username: string) => apiClient.delete(`/admin-api/users/${username}`),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['admin', 'users'] }),
   });
 
   const roleColors: Record<string, 'purple' | 'info' | 'warning' | 'default'> = {
@@ -132883,6 +132885,9 @@ export function SecurityDashboard() {
 import { useQuery } from '@tanstack/react-query';
 import { Card, Badge, Skeleton } from '../ui';
 import { Globe, HardDrive, Cpu, Network, RefreshCw } from 'lucide-react';
+// বাংলা মন্তব্য: raw fetch()-এর বদলে apiClient ব্যবহার করা হচ্ছে — auth হেডার ও থ্রটল গ্যারান্টি দেয়
+import { apiClient } from '../../services/apiClient';
+import { getAdminToken } from '../../services/adminTokenStore';
 
 const CLOUD_PROVIDERS = [
   { id: 'gcp', name: 'Google Cloud Platform', color: '#4285f4', icon: Globe },
@@ -132895,9 +132900,12 @@ const CLOUD_PROVIDERS = [
 ];
 
 export function CloudOrchestrator() {
+  // বাংলা মন্তব্য: queryKey ম্যাচ করানো হয়েছে useDashboardData.useHealthMap()-এর সাথে — ক্যাশ শেয়ার হবে, ডুপ্লিকেট ফেচ বন্ধ
   const { data: health, isLoading } = useQuery({
-    queryKey: ['cloud-health'],
-    queryFn: () => fetch('/admin-api/health-map').then(r => r.json()),
+    queryKey: ['dashboard', 'health'],
+    queryFn: () => apiClient.get<any>('/admin-api/health-map'),
+    enabled: !!getAdminToken(),
+    staleTime: 20_000,
   });
 
   const providerHealth = Object.entries(health || {}).map(([id, data]: [string, any]) => ({
@@ -165647,6 +165655,8 @@ jobs:
             ${{ runner.os }}-turbo-
 
       - name: Build & Lint Frontend Packages
+        env:
+          VITE_PORTAL_TYPE: 'admin'
         run: pnpm turbo run build lint --filter=supremeai-studio-client --filter=@supremeai/web-chat --filter=supremeai-vscode --cache-dir=.turbo
 
       - name: Run Studio Client Vitest with JSON Report
@@ -165935,11 +165945,11 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: frontend-dist
-          path: apps
+          path: .
 
       - name: 🌐 Deploy to Firebase
         run: |
-          npx -y firebase-tools deploy --only hosting --project ${{ secrets.GCP_PROJECT_ID }} --token "${{ secrets.FIREBASE_TOKEN }}" || true
+          npx -y firebase-tools deploy --only hosting --project ${{ secrets.GCP_PROJECT_ID }} --token "${{ secrets.FIREBASE_TOKEN }}"
 
   sync-mirror:
     name: 📤 Sync to Secondary Repo

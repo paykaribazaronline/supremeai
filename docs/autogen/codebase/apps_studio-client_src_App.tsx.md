@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/studio-client/src/App.tsx
 
 **প্রকার:** .tsx  
-**সাইজ:** 23,682 বাইট  
-**আপডেট:** 2026-07-07T09:44:07.333609
+**সাইজ:** 24,157 বাইট  
+**আপডেট:** 2026-07-07T11:15:52.145035
 
 ---
 
@@ -10,7 +10,7 @@
 
 ```tsx
 import React, { useEffect, useState, useMemo } from "react";
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useStore } from "./store/useStore";
 
@@ -102,29 +102,11 @@ function AdminShell() {
     }
   }, [theme]);
 
+  // বাংলা মন্তব্য: health-map, costs, users-এর raw fetch() কল সরানো হয়েছে —
+  // useDashboardData.ts ও useAdminApi.ts-এ React Query হুক এই ডেটা ইতিমধ্যে ফেচ করে।
+  // ডুপ্লিকেট কল সরানোর ফলে 429 রেট লিমিট স্টর্ম বন্ধ হবে।
   useEffect(() => {
     if (!adminAuthenticated) return;
-
-    const API_BASE = getApiBaseUrl();
-    const headers = {
-      "Authorization": `Bearer ${getAdminToken()}`,
-      "Content-Type": "application/json"
-    };
-
-    fetch(`${API_BASE}/admin-api/health-map`, { headers })
-      .then(res => res.json())
-      .then(data => setHealthMap(data))
-      .catch(err => console.error("Error fetching health map:", err));
-
-    fetch(`${API_BASE}/admin-api/costs`, { headers })
-      .then(res => res.json())
-      .then(data => setCostReport(data.report || ""))
-      .catch(err => console.error("Error fetching cost report:", err));
-
-    fetch(`${API_BASE}/admin-api/users`, { headers })
-      .then(res => res.json())
-      .then(data => setAdminUsers(data))
-      .catch(err => console.error("Error fetching users:", err));
 
     setEnvConfig({
       "ENV": "local",
@@ -297,6 +279,9 @@ function AdminShell() {
     />
   );
 }
+
+// .env থেকে পোর্টাল টাইপটি পড়বে (ডিফল্ট: user)
+const PORTAL_TYPE = import.meta.env.VITE_PORTAL_TYPE || 'user';
 
 export const App: React.FC = () => {
   const {
@@ -496,21 +481,33 @@ export const App: React.FC = () => {
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
         <Routes>
-          {/* ১. পাবলিক/ইউজার রাউট */}
-          <Route path="/" element={legacyWorkspace} />
-          
-          {/* ২. অ্যাডমিন রাউট */}
-          <Route path="/admin/*" element={<AdminShell />} />
-          
-          {/* ৩. প্রোডাকশন ড্যাশবোর্ড শেল */}
-          <Route path="/workspace/*" element={
-            <DashboardShell
-              theme={theme}
-              toggleTheme={toggleTheme}
-              isServerOnline={isServerOnline}
-              workspace={legacyWorkspace}
-            />
-          } />
+          {PORTAL_TYPE === 'admin' ? (
+            /* =========================================
+               ADMIN PORTAL (supremeai-admin.web.app)
+            ========================================= */
+            <>
+              <Route path="/" element={<Navigate to="/admin" replace />} />
+              <Route path="/admin/*" element={<AdminShell />} />
+              <Route path="*" element={<Navigate to="/admin" replace />} />
+            </>
+          ) : (
+            /* =========================================
+               USER PORTAL (supremeai-lac.vercel.app)
+            ========================================= */
+            <>
+              <Route path="/" element={legacyWorkspace} />
+              <Route path="/workspace/*" element={
+                <DashboardShell
+                  theme={theme}
+                  toggleTheme={toggleTheme}
+                  isServerOnline={isServerOnline}
+                  workspace={legacyWorkspace}
+                />
+              } />
+              {/* ইউজাররা /admin এ যাওয়ার চেষ্টা করলে হোমপেজে পাঠিয়ে দেবে */}
+              <Route path="/admin/*" element={<Navigate to="/" replace />} />
+            </>
+          )}
         </Routes>
       </QueryClientProvider>
     </ErrorBoundary>

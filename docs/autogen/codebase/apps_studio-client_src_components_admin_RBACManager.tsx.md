@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/studio-client/src/components/admin/RBACManager.tsx
 
 **প্রকার:** .tsx  
-**সাইজ:** 7,382 বাইট  
-**আপডেট:** 2026-07-07T09:44:07.347408
+**সাইজ:** 7,785 বাইট  
+**আপডেট:** 2026-07-07T11:15:52.159169
 
 ---
 
@@ -13,29 +13,29 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { Card, Badge } from '../ui';
 import { Shield, UserPlus, Trash2, Settings2, CheckCircle2, XCircle } from 'lucide-react';
+// বাংলা মন্তব্য: raw fetch()-এর বদলে apiClient ব্যবহার — auth হেডার ও থ্রটল নিশ্চিত করে
+import { apiClient } from '../../services/apiClient';
+import { getAdminToken } from '../../services/adminTokenStore';
 
 export function RBACManager() {
+  // বাংলা মন্তব্য: queryKey ম্যাচ করানো হয়েছে useAdminApi.useAdminUsers()-এর সাথে — ক্যাশ শেয়ার হবে
   const { data: users } = useQuery({
-    queryKey: ['users'],
-    queryFn: () => fetch('/admin-api/users').then(r => r.json()),
+    queryKey: ['admin', 'users'],
+    queryFn: () => apiClient.get<any[]>('/admin-api/users'),
+    enabled: !!getAdminToken(),
+    staleTime: 30_000,
   });
   const qc = useQueryClient();
   const [newUser, setNewUser] = useState({ username: '', role: 'Operator', permissions: 'read,write' });
 
   const addUser = useMutation({
-    mutationFn: (user: any) =>
-      fetch('/admin-api/users', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(user),
-      }).then(r => r.json()),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['users'] }),
+    mutationFn: (user: any) => apiClient.post('/admin-api/users', user),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['admin', 'users'] }),
   });
 
   const deleteUser = useMutation({
-    mutationFn: (username: string) =>
-      fetch(`/admin-api/users/${username}`, { method: 'DELETE' }).then(r => r.json()),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['users'] }),
+    mutationFn: (username: string) => apiClient.delete(`/admin-api/users/${username}`),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['admin', 'users'] }),
   });
 
   const roleColors: Record<string, 'purple' | 'info' | 'warning' | 'default'> = {
