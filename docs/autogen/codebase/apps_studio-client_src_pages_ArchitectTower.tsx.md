@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/studio-client/src/pages/ArchitectTower.tsx
 
 **প্রকার:** .tsx  
-**সাইজ:** 4,798 বাইট  
-**আপডেট:** 2026-07-07T19:02:10.589937
+**সাইজ:** 4,765 বাইট  
+**আপডেট:** 2026-07-07T19:14:31.251695
 
 ---
 
@@ -39,10 +39,6 @@ export const ArchitectTower: React.FC = () => {
       setLoading(false);
     }
   };
-
-  useEffect(() => {
-    fetchFixes();
-  }, []);
 
   useEffect(() => {
     fetchFixes();
@@ -112,6 +108,7 @@ export const ArchitectTower: React.FC = () => {
             <div className="p-12 text-center text-slate-500">
               No pending fixes. System is running optimally.
             </div>
+          ) : (
             <OneClickPatch 
               proposals={fixes.map(f => ({
                 id: f.id,

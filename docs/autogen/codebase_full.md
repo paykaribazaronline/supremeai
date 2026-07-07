@@ -1,7 +1,7 @@
 # 🧠 SupremeAI 2.0 Codebase Dump
 # বাংলা মন্তব্য: এটি একটি স্বয়ংক্রিয়ভাবে জেনারেট করা কোডবেস ডাম্প ফাইল যা প্রজেক্টের সামগ্রিক বিশ্লেষণের জন্য ব্যবহৃত হয়।
 
-Generated at: 2026-07-07T19:02:10.434514
+Generated at: 2026-07-07T19:14:31.108177
 
 
 ## File: `pnpm-lock.yaml`
@@ -137802,10 +137802,6 @@ export const ArchitectTower: React.FC = () => {
     fetchFixes();
   }, []);
 
-  useEffect(() => {
-    fetchFixes();
-  }, []);
-
   return (
     <div className="min-h-screen bg-slate-950 text-slate-300 p-8">
       <div className="max-w-7xl mx-auto space-y-8">
@@ -137870,6 +137866,7 @@ export const ArchitectTower: React.FC = () => {
             <div className="p-12 text-center text-slate-500">
               No pending fixes. System is running optimally.
             </div>
+          ) : (
             <OneClickPatch 
               proposals={fixes.map(f => ({
                 id: f.id,
@@ -139906,6 +139903,11 @@ export const clearAdminMetadata = () => {
   if (typeof window !== 'undefined') {
     sessionStorage.removeItem(METADATA_KEY);
   }
+};
+
+// Legacy support to prevent build errors in components that haven't migrated to apiClient yet
+export const getAdminToken = (): string => {
+  return "";
 };
 
 ```

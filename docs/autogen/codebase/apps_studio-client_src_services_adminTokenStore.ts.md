@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/studio-client/src/services/adminTokenStore.ts
 
 **প্রকার:** .ts  
-**সাইজ:** 982 বাইট  
-**আপডেট:** 2026-07-07T19:02:10.592881
+**সাইজ:** 1,139 বাইট  
+**আপডেট:** 2026-07-07T19:14:31.254455
 
 ---
 
@@ -46,6 +46,11 @@ export const clearAdminMetadata = () => {
   if (typeof window !== 'undefined') {
     sessionStorage.removeItem(METADATA_KEY);
   }
+};
+
+// Legacy support to prevent build errors in components that haven't migrated to apiClient yet
+export const getAdminToken = (): string => {
+  return "";
 };
 
 ```
