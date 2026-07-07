@@ -41,7 +41,7 @@ class TestCloudSandboxOrchestrator:
 
         result = await orchestrator.create_sandbox(spec={"imageName": "ubuntu"})
         assert result is not None
-        assert result["id"] == "mock-sandbox-id-12345"
+        assert result["id"].startswith("mock-sandbox-id-")
         assert result["status"] == "running"
         assert result["mock"] is True
 

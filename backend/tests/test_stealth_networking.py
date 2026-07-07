@@ -12,8 +12,12 @@ def test_production_sandbox_fails_without_docker():
     settings.env = "production"
     
     orchestrator = CloudSandboxOrchestrator()
+    import sys
+    from unittest.mock import MagicMock
     # Mock docker to fail
-    with patch("docker.from_env", side_effect=Exception("Docker daemon down")):
+    mock_docker = MagicMock()
+    mock_docker.from_env.side_effect = Exception("Docker daemon down")
+    with patch.dict('sys.modules', {'docker': mock_docker}):
         res = orchestrator.run_code("print('hello')")
         
     assert res["success"] is False

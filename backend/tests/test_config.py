@@ -104,7 +104,8 @@ def test_parse_allowed_hosts_empty_string():
     {
         "env": "production", 
         "cors_origins": '["http://127.0.0.1:3000", "https://example.com"]',
-        "SUPREMEAI_JWT_SECRET": "mock-jwt-secret-for-production"
+        "SUPREMEAI_JWT_SECRET": "mock-jwt-secret-for-production",
+        "SUPREMEAI_ADMIN_PASSWORD_HASH": "mock_hash_for_production_test",
     },
     clear=False,
 )
