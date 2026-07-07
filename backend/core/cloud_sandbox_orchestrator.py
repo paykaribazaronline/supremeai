@@ -14,6 +14,11 @@ from typing import Any
 
 import httpx
 from loguru import logger
+import datetime
+
+from utils.firestore_helpers import get_firestore_db
+from core.self_healer import SelfHealerService
+from core.config_proxy import DynamicConfigProxy
 
 
 class CloudSandboxOrchestrator:
@@ -35,6 +40,7 @@ class CloudSandboxOrchestrator:
             headers=headers,
             timeout=60.0,
         )
+        self._active_sandboxes = {}
         logger.info(f"Initialized CloudSandboxOrchestrator (Provider: {self.provider})")
 
     def _get_base_url(self) -> str:
@@ -48,8 +54,10 @@ class CloudSandboxOrchestrator:
     async def create_sandbox(self, spec: dict[str, Any]) -> dict[str, Any] | None:
         if not self.api_key:
             logger.warning("Cannot create sandbox: API key is missing. Running in mock/dry-run mode.")
+            mock_id = f"mock-sandbox-id-{os.urandom(4).hex()}"
+            self._active_sandboxes[mock_id] = {"created_at": datetime.datetime.now(datetime.timezone.utc), "status": "running"}
             return {
-                "id": "mock-sandbox-id-12345",
+                "id": mock_id,
                 "status": "running",
                 "provider": self.provider,
                 "mock": True
@@ -63,7 +71,10 @@ class CloudSandboxOrchestrator:
             response = await self.client.post(endpoint, json=payload)
             response.raise_for_status()
             data = response.json()
-            logger.success(f"Successfully created sandbox with ID: {data.get('id')}")
+            sandbox_id = data.get('id')
+            if sandbox_id:
+                self._active_sandboxes[sandbox_id] = {"created_at": datetime.datetime.now(datetime.timezone.utc), "status": "running"}
+            logger.success(f"Successfully created sandbox with ID: {sandbox_id}")
             return data
         except httpx.HTTPStatusError as e:
             logger.error(f"Failed to create sandbox. Status: {e.response.status_code}, Body: {e.response.text}")
@@ -125,10 +136,51 @@ class CloudSandboxOrchestrator:
             response = await self.client.post(endpoint)
             response.raise_for_status()
             logger.success(f"Sandbox {sandbox_id} destroyed successfully.")
+            if sandbox_id in self._active_sandboxes:
+                del self._active_sandboxes[sandbox_id]
             return True
         except httpx.HTTPStatusError as e:
             logger.error(f"Failed to destroy sandbox {sandbox_id}. Status: {e.response.status_code}")
         return False
+
+    async def auto_destroy_worker(self, tenant_id: str):
+        """
+        Background worker that checks TTL and terminates idle/crashed sandboxes.
+        Integrates with SelfHealer to log errors if termination is due to a crash or timeout.
+        """
+        logger.info("Started Sandbox Auto-Destroy Worker")
+        db = get_firestore_db()
+        config_proxy = DynamicConfigProxy(tenant_id, db) if db else None
+        
+        while True:
+            try:
+                # Default 10 minutes TTL
+                ttl_minutes = await config_proxy.get("SANDBOX_TTL_MINUTES", 10) if config_proxy else 10
+                ttl_delta = datetime.timedelta(minutes=ttl_minutes)
+                now = datetime.datetime.now(datetime.timezone.utc)
+                
+                for sandbox_id, data in list(self._active_sandboxes.items()):
+                    created_at = data.get("created_at")
+                    if created_at and (now - created_at) > ttl_delta:
+                        logger.warning(f"Sandbox {sandbox_id} exceeded TTL of {ttl_minutes}m. Terminating...")
+                        
+                        # If we assume it timed out or crashed, notify SelfHealer
+                        if db:
+                            healer = SelfHealerService(db)
+                            await healer.propose_fix(
+                                tenant_id=tenant_id,
+                                error_pattern=f"SandboxTimeout: Sandbox {sandbox_id} was active for > {ttl_minutes}m",
+                                proposed_fix=f"# Recommend analyzing sandbox logs or increasing TTL for task.",
+                                impact_score=0.3,
+                                dependency_tree=["core.cloud_sandbox_orchestrator"]
+                            )
+                        
+                        await self.destroy_sandbox(sandbox_id)
+                        
+                await asyncio.sleep(60) # Check every minute
+            except Exception as e:
+                logger.error(f"Auto-Destroy Worker encountered an error: {e}")
+                await asyncio.sleep(60)
 
     # ------------------------------------------------------------------------
     # 🤖 FREEBUFF AI WORKER INTEGRATION

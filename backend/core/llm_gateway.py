@@ -9,6 +9,10 @@ from typing import Any
 import litellm
 from loguru import logger
 
+from utils.firestore_helpers import get_firestore_db
+from core.cost_guard import CostGuard
+from core.self_healer import SelfHealerService
+
 from core.config import settings
 from core.prompt_handler import normalize_prompt
 
@@ -98,6 +102,7 @@ class LLMGateway:
         timeout: float = 12.0,
         model: str | None = None,
         provider: str | None = None,
+        tenant_id: str | None = None,
         **kwargs,
     ) -> Any:
         """
@@ -130,6 +135,14 @@ class LLMGateway:
                     "cost": 0.0,
                     "cached": True
                 }
+
+        # ── Pre-flight Cost Guard Check ──
+        if tenant_id:
+            db = get_firestore_db()
+            if db:
+                cost_guard = CostGuard(db)
+                # For pre-flight, estimate a fixed cost for simplicity (e.g. 0.01)
+                await cost_guard.check_budget(tenant_id, 0.01)
 
         model_candidates = self.routing_policy.get("complexity_rules", {}).get(difficulty, [])
         fallbacks = self.routing_policy.get("fallback_chain", [])
@@ -180,7 +193,21 @@ class LLMGateway:
                 logger.warning(f"Model {model} failed in chain. Exception: {e}")
                 continue
 
-        raise last_exception or RuntimeError("All routing models failed to produce a completion.")
+        # ── Trigger Self Healer on Failure ──
+        final_exception = last_exception or RuntimeError("All routing models failed to produce a completion.")
+        if tenant_id:
+            db = get_firestore_db()
+            if db:
+                healer = SelfHealerService(db)
+                error_msg = str(final_exception)
+                await healer.propose_fix(
+                    tenant_id=tenant_id,
+                    error_pattern=f"LLMGateway Exception: {error_msg[:100]}",
+                    proposed_fix=f"# Recommend checking fallback models or API keys for error:\n# {error_msg}",
+                    impact_score=0.2,
+                    dependency_tree=["core.llm_gateway"]
+                )
+        raise final_exception
 
     async def _stream_completion(self, messages: list[dict[str, str]], call_chain: list[str], timeout: float) -> AsyncGenerator[str, None]:
         # Handle streaming responses with fallback failover support
