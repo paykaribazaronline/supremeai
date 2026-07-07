@@ -13,6 +13,9 @@ export interface MetricsData {
   cost_projected_monthly: number;
   active_providers: string[];
   model_call_distribution: Record<string, number>;
+  cpu_usage_percent?: number;
+  gpu_usage_percent?: number;
+  memory_usage_percent?: number;
 }
 
 export interface CostReport {

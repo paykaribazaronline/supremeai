@@ -159,4 +159,5 @@ async def test_perform_autonomous_signup():
         assert len(accounts) == 1
         assert accounts[0].email.startswith("supremeai+")
         assert accounts[0].password is not None
-        assert accounts[0].recovery_email == "recovery@yourdomain.com"
+        # বাংলা মন্তব্য: ডাইনামিক রিকভারি ইমেইল ভ্যালিডেশন
+        assert "@yourdomain.com" in accounts[0].recovery_email

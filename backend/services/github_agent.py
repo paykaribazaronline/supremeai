@@ -3,6 +3,7 @@ from datetime import datetime
 
 import httpx
 from loguru import logger
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.security_vault import decrypt_token
@@ -14,11 +15,17 @@ async def get_user_github_token(user_id: str, db: AsyncSession) -> str | None:
     """
     DB থেকে ইউজারের এনক্রিপ্টেড GitHub টোকেন রিট্রিভ করে ডিক্রিপ্ট করে।
     টোকেন না পেলে None রিটার্ন করে — কলারকে fail-fast করতে হবে।
+    
+    ⚠️ FIX: AsyncSession.get() শুধুমাত্র primary key নেয়, dict ফিল্টার নয়।
+    আগে db.get(Integration, {"user_id": ..., "provider": ...}) দিয়ে ArgumentError 
+    থ্রো করত। এখন select().where() ব্যবহার করা হচ্ছে।
     """
-    integration = await db.get(
-        Integration,
-        {"user_id": user_id, "provider": "github"},
+    stmt = select(Integration).where(
+        Integration.user_id == user_id,
+        Integration.provider == "github",
     )
+    result = await db.execute(stmt)
+    integration = result.scalar_one_or_none()
     if not integration or not integration.encrypted_access_token:
         logger.warning(f"No GitHub token found for user '{user_id}'")
         return None

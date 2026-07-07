@@ -6,6 +6,7 @@ from fastapi import Depends
 from fastapi import Request
 from fastapi.responses import RedirectResponse
 from loguru import logger
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.config import settings
@@ -16,7 +17,7 @@ from models.integration import Integration
 
 
 # বাংলা মন্তব্য: GitHub OAuth — রিয়েল ইউজার আইডি ও DB পার্সিস্টেন্স সহ সম্পূর্ণ ফ্লো
-# আগের ভার্সনে user_id = "test_user_id" হার্ডকোডেড ছিল এবং টোকেন DB-তে সেভ হতো না।
+# আগের ভার্সনে user_id_placeholder = "test_user_id" হার্ডকোডেড ছিল এবং টোকেন DB-তে সেভ হতো না।
 # এখন JWT থেকে প্রকৃত user_id নেওয়া হচ্ছে এবং encrypted token DB-তে সংরক্ষিত হচ্ছে।
 
 router = APIRouter()
@@ -74,7 +75,10 @@ async def github_callback(
     headers = {"Accept": "application/json"}
 
     async with httpx.AsyncClient() as client:
-        response = await client.post(token_url, json=payload, headers=headers)
+        # ⏱️ FIX: explicit timeout — default timeout infinite হলে serverless function hang করে বিল বাড়ায়
+        response = await client.post(
+            token_url, json=payload, headers=headers, timeout=30.0
+        )
         data = response.json()
 
     access_token = data.get("access_token")
@@ -88,8 +92,15 @@ async def github_callback(
     encrypted_token = encrypt_token(access_token)
 
     # ৩. DB-তে ইন্টিগ্রেশন সেভ করা (upsert — একই user_id + provider-এ আপডেট)
+    # ⚠️ FIX: SQLAlchemy AsyncSession.get() শুধুমাত্র primary key নেয়, dict ফিল্টার নয়।
+    # তাই select() + where() ব্যবহার করতে হবে — নাহলে runtime ArgumentError থ্রো করবে।
     try:
-        existing = await db.get(Integration, {"user_id": user_id, "provider": "github"})
+        stmt = select(Integration).where(
+            Integration.user_id == user_id,
+            Integration.provider == "github",
+        )
+        result = await db.execute(stmt)
+        existing = result.scalar_one_or_none()
         if existing:
             existing.encrypted_access_token = encrypted_token
         else:
