@@ -1,7 +1,10 @@
 import asyncio
-from datetime import datetime, timedelta
+from datetime import datetime
+from datetime import timedelta
 from typing import Any
+
 from loguru import logger
+
 
 class DynamicConfigProxy:
     def __init__(self, tenant_id: str, db: Any):
@@ -44,4 +47,4 @@ class DynamicConfigProxy:
                 self._expiry = datetime.now() + timedelta(minutes=1)
         except Exception as e:
             logger.error(f"Failed to refresh config from DB: {e}")
-            raise RuntimeError(f"Failed to refresh config from DB: {e}")
+            raise RuntimeError(f"Failed to refresh config from DB: {e}") from e

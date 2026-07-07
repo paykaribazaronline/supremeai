@@ -28,7 +28,6 @@ class TenantAwareFirestore:
         self.tenant_id = tenant_id
         # Use existing configured firestore client if available, fallback to default
         import os
-        import sys
 
         if os.getenv("ENV") == "test":
 

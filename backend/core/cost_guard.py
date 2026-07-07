@@ -1,6 +1,8 @@
 from typing import Any
+
 from fastapi import HTTPException
 from loguru import logger
+
 
 class CostGuard:
     def __init__(self, db: Any):
@@ -40,4 +42,4 @@ class CostGuard:
         except Exception as e:
             logger.error(f"CostGuard DB Error: {e}")
             # Failsafe: if DB is down, maybe reject or accept? Zero-Gap means strict.
-            raise RuntimeError(f"CostGuard failed to verify budget: {e}")
+            raise RuntimeError(f"CostGuard failed to verify budget: {e}") from e

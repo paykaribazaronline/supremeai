@@ -58,7 +58,7 @@ class ProductionSecretVault:
         except Exception as e:
             logger.error(f"❌ Failed to fetch secret [{secret_id}] from GSM: {str(e)}")
             if self.env == "production":
-                raise RuntimeError(f"Failed to fetch {secret_id} in production: {e}")
+                raise RuntimeError(f"Failed to fetch {secret_id} in production: {e}") from e
             return ""
 
 
