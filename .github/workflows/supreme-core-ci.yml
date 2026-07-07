@@ -235,7 +235,7 @@ jobs:
         uses: aquasecurity/trivy-action@master
         with:
           scan-type: 'fs'
-          scan-ref: 'apps,tools'
+          scan-ref: '.'
           format: 'sarif'
           output: 'trivy-nodejs.sarif'
           severity: 'CRITICAL,HIGH'
