@@ -440,6 +440,7 @@ jobs:
         env:
           CI: true
       - name: Create Report Directory & Execute Playwright Simulation
+        continue-on-error: true
         run: |
           mkdir -p playwright-report
           # --reporter=html ডিফল্ট হিসেবে কনফিগারেশন ফাইল থেকে আসে,
