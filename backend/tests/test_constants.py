@@ -3,6 +3,7 @@ from unittest.mock import MagicMock
 from core.constants import get_common_strings_to_ignore, get_default_code_smell_thresholds
 from core.config_proxy import DynamicConfigProxy
 
+
 @pytest.fixture
 def mock_proxy():
     db = MagicMock()
@@ -11,9 +12,10 @@ def mock_proxy():
     snapshot.exists = False
     doc_ref.get.return_value = snapshot
     db.collection.return_value.document.return_value = doc_ref
-    
+
     proxy = DynamicConfigProxy("tenant-123", db)
     return proxy
+
 
 @pytest.mark.asyncio
 async def test_constants_via_proxy(mock_proxy):

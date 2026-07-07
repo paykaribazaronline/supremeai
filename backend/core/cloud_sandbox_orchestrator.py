@@ -29,7 +29,7 @@ class CloudSandboxOrchestrator:
     def __init__(self, provider: str = "runpod"):
         self.provider = provider.lower()
         self.api_key = os.getenv(f"{self.provider.upper()}_API_KEY")
-        
+
         self.base_url = self._get_base_url()
         headers = {"Content-Type": "application/json"}
         if self.api_key:
@@ -56,12 +56,7 @@ class CloudSandboxOrchestrator:
             logger.warning("Cannot create sandbox: API key is missing. Running in mock/dry-run mode.")
             mock_id = f"mock-sandbox-id-{os.urandom(4).hex()}"
             self._active_sandboxes[mock_id] = {"created_at": datetime.datetime.now(datetime.UTC), "status": "running"}
-            return {
-                "id": mock_id,
-                "status": "running",
-                "provider": self.provider,
-                "mock": True
-            }
+            return {"id": mock_id, "status": "running", "provider": self.provider, "mock": True}
 
         endpoint = self._get_endpoint("create")
         payload = self._prepare_creation_payload(spec)
@@ -71,7 +66,7 @@ class CloudSandboxOrchestrator:
             response = await self.client.post(endpoint, json=payload)
             response.raise_for_status()
             data = response.json()
-            sandbox_id = data.get('id')
+            sandbox_id = data.get("id")
             if sandbox_id:
                 self._active_sandboxes[sandbox_id] = {"created_at": datetime.datetime.now(datetime.UTC), "status": "running"}
             logger.success(f"Successfully created sandbox with ID: {sandbox_id}")
@@ -86,12 +81,7 @@ class CloudSandboxOrchestrator:
     async def get_sandbox_status(self, sandbox_id: str) -> dict[str, Any] | None:
         if not self.api_key:
             logger.info(f"Dry-run: Fetching status for sandbox {sandbox_id}")
-            return {
-                "id": sandbox_id,
-                "status": "running",
-                "provider": self.provider,
-                "mock": True
-            }
+            return {"id": sandbox_id, "status": "running", "provider": self.provider, "mock": True}
 
         endpoint = self._get_endpoint("status", sandbox_id)
         try:
@@ -105,13 +95,7 @@ class CloudSandboxOrchestrator:
     async def run_command(self, sandbox_id: str, command: str, timeout: int = 300) -> dict[str, Any] | None:
         if not self.api_key:
             logger.info(f"Dry-run: Running command '{command}' in sandbox {sandbox_id}")
-            return {
-                "status": "COMPLETED",
-                "exitCode": 0,
-                "stdout": f"Mock output for execution of: {command}",
-                "stderr": "",
-                "mock": True
-            }
+            return {"status": "COMPLETED", "exitCode": 0, "stdout": f"Mock output for execution of: {command}", "stderr": "", "mock": True}
 
         endpoint = self._get_endpoint("run", sandbox_id)
         payload = {"input": {"command": command, "timeout": timeout}}
@@ -151,19 +135,19 @@ class CloudSandboxOrchestrator:
         logger.info("Started Sandbox Auto-Destroy Worker")
         db = get_firestore_db()
         config_proxy = DynamicConfigProxy(tenant_id, db) if db else None
-        
+
         while True:
             try:
                 # Default 10 minutes TTL
                 ttl_minutes = await config_proxy.get("SANDBOX_TTL_MINUTES", 10) if config_proxy else 10
                 ttl_delta = datetime.timedelta(minutes=ttl_minutes)
                 now = datetime.datetime.now(datetime.UTC)
-                
+
                 for sandbox_id, data in list(self._active_sandboxes.items()):
                     created_at = data.get("created_at")
                     if created_at and (now - created_at) > ttl_delta:
                         logger.warning(f"Sandbox {sandbox_id} exceeded TTL of {ttl_minutes}m. Terminating...")
-                        
+
                         # If we assume it timed out or crashed, notify SelfHealer
                         if db:
                             healer = SelfHealerService(db)
@@ -172,12 +156,12 @@ class CloudSandboxOrchestrator:
                                 error_pattern=f"SandboxTimeout: Sandbox {sandbox_id} was active for > {ttl_minutes}m",
                                 proposed_fix="# Recommend analyzing sandbox logs or increasing TTL for task.",
                                 impact_score=0.3,
-                                dependency_tree=["core.cloud_sandbox_orchestrator"]
+                                dependency_tree=["core.cloud_sandbox_orchestrator"],
                             )
-                        
+
                         await self.destroy_sandbox(sandbox_id)
-                        
-                await asyncio.sleep(60) # Check every minute
+
+                await asyncio.sleep(60)  # Check every minute
             except Exception as e:
                 logger.error(f"Auto-Destroy Worker encountered an error: {e}")
                 await asyncio.sleep(60)
@@ -196,22 +180,24 @@ class CloudSandboxOrchestrator:
             # উইন্ডোজের জন্য .cmd সাফিক্স হ্যান্ডলিং করা হয়েছে
             cmd = "freebuff.cmd" if os.name == "nt" else "freebuff"
             process = await asyncio.create_subprocess_exec(
-                cmd, "--cwd", working_dir,
+                cmd,
+                "--cwd",
+                working_dir,
                 stdin=asyncio.subprocess.PIPE,
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE,
             )
 
             # প্রম্পট ইনপুট হিসেবে পাঠানো হচ্ছে
-            stdout, stderr = await process.communicate(input=prompt.encode('utf-8'))
-            
+            stdout, stderr = await process.communicate(input=prompt.encode("utf-8"))
+
             if process.returncode == 0:
                 logger.success("✅ Freebuff task completed successfully.")
-                return {"status": "success", "output": stdout.decode('utf-8')}
+                return {"status": "success", "output": stdout.decode("utf-8")}
             else:
                 logger.error(f"❌ Freebuff task failed: {stderr.decode('utf-8')}")
-                return {"status": "error", "error": stderr.decode('utf-8')}
-                
+                return {"status": "error", "error": stderr.decode("utf-8")}
+
         except FileNotFoundError:
             logger.error("🚨 Freebuff CLI not found. Please ensure it is installed globally (npm install -g freebuff).")
             return {"status": "error", "error": "Freebuff CLI not installed."}

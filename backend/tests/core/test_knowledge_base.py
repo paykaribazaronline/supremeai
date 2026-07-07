@@ -39,7 +39,7 @@ def test_save_to_memory_creates_file_if_not_exists(temp_memory_file):
     # Ensure file exists
     with open(temp_memory_file, "w") as f:
         json.dump({}, f)
-    
+
     save_to_memory("new prompt", "new solution")
     result = get_from_memory("new prompt")
     assert result == "new solution"
