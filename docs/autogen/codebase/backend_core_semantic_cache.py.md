@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/semantic_cache.py
 
 **প্রকার:** .py  
-**সাইজ:** 4,618 বাইট  
-**আপডেট:** 2026-07-07T19:34:31.386522
+**সাইজ:** 4,785 বাইট  
+**আপডেট:** 2026-07-07T20:32:00.964605
 
 ---
 
@@ -16,39 +16,45 @@ from loguru import logger
 
 from adaptive_engine.experience_db import Experience
 from adaptive_engine.experience_db import ExperienceDatabase
-from core.config import settings
+from core.config_cache import config_cache
 
 
-# বাংলা মন্তব্য: ক্যাশ পলিসি — task_type-ভিত্তিক থ্রেশহোল্ড
-# এখন থেকে এগুলো settings/supabase-config থেকে ওভাররাইড করা যাবে।
-# ডিফল্ট মান: কোড টাস্কের জন্য ৯৫%, জেনারেল টাস্কের জন্য ৮৫%।
-# প্রোডাকশনে A/B টেস্টের জন্য থ্রেশহোল্ড কোড ডিপ্লয় ছাড়াই পরিবর্তন করতে হবে।
-DEFAULT_CACHE_THRESHOLDS: dict[str, float] = {
-    "code": 0.95,
-    "generation": 0.95,
-    "general": 0.85,
-    "qa": 0.85,
-    "reasoning": 0.80,
-}
+# বাংলা মন্তব্য: ক্যাশ পলিসি — এখন প্রকৃত অর্থে Database-Driven!
+# get_cache_threshold() ConfigCache থেকে value নেয়, যা SystemConfig DB টেবিলে persist করে।
+# Admin চাইলে Admin Dashboard বা API কলের মাধ্যমে threshold পরিবর্তন করতে পারে —
+# কোন re-deploy লাগবে না। ConfigCache TTL (৬০ সেকেন্ড) পর্যন্ত in-memory serve করে,
+# তারপর DB থেকে reload করে।
 
 
 def get_cache_threshold(task_type: str) -> float:
     """
-    task_type অনুযায়ী ক্যাশ থ্রেশহোল্ড রিটার্ন করে।
-    settings থেকে কাস্টম থ্রেশহোল্ড ওভাররাইড নেওয়া যেতে পারে
-    (যদি settings.cache_thresholds থাকে), অন্যথায় DEFAULT_CACHE_THRESHOLDS ব্যবহার করে।
+    task_type অনুযায়ী ক্যাশ থ্রেশহোল্ড রিটার্ন করে — **DB-Driven**।
+    
+    ConfigCache SystemConfig টেবিল থেকে কনফিগ লোড করে:
+      - cache_threshold_code = 0.95
+      - cache_threshold_general = 0.85
+      - cache_threshold_reasoning = 0.80
+      - ইত্যাদি
+    
+    Admin চাইলে Dashboard থেকে এগুলো পরিবর্তন করতে পারে — re-deploy ছাড়াই।
+    TTL-এর মধ্যে in-memory ক্যাশ serve হবে, প্রতি request-এ DB hit হবে না।
     """
-    # settings-এ cache_policies টেবিল থেকে ডাইনামিক থ্রেশহোল্ড নেওয়ার সুযোগ
-    custom_thresholds: dict[str, float] | None = getattr(
-        settings, "cache_thresholds", None
-    )
-    thresholds = custom_thresholds or DEFAULT_CACHE_THRESHOLDS
-
     task_lower = task_type.lower()
-    for key, threshold in thresholds.items():
-        if key in task_lower:
-            return threshold
-    return thresholds.get("general", 0.85)
+    
+    # Try ConfigCache first (DB-driven)
+    cached_default = config_cache.get(f"cache_threshold_{task_lower}")
+    if cached_default is not None:
+        return float(cached_default)
+    
+    # Fallback: check if any key prefix matches
+    all_thresholds = config_cache.get_all("cache_threshold_")
+    for key, threshold in all_thresholds.items():
+        config_task = key.replace("cache_threshold_", "")
+        if config_task in task_lower:
+            return float(threshold)
+    
+    # Ultimate fallback
+    return 0.85
 
 
 class CacheEntry:

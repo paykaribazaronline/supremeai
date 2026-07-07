@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/studio-client/src/hooks/useDashboardData.ts
 
 **প্রকার:** .ts  
-**সাইজ:** 5,495 বাইট  
-**আপডেট:** 2026-07-07T19:34:31.494262
+**সাইজ:** 5,588 বাইট  
+**আপডেট:** 2026-07-07T20:32:01.069819
 
 ---
 
@@ -24,6 +24,9 @@ export interface MetricsData {
   cost_projected_monthly: number;
   active_providers: string[];
   model_call_distribution: Record<string, number>;
+  cpu_usage_percent?: number;
+  gpu_usage_percent?: number;
+  memory_usage_percent?: number;
 }
 
 export interface CostReport {

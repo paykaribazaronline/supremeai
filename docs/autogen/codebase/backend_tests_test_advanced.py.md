@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/test_advanced.py
 
 **প্রকার:** .py  
-**সাইজ:** 5,173 বাইট  
-**আপডেট:** 2026-07-07T19:34:31.421407
+**সাইজ:** 5,308 বাইট  
+**আপডেট:** 2026-07-07T20:32:00.999862
 
 ---
 
@@ -170,6 +170,7 @@ async def test_perform_autonomous_signup():
         assert len(accounts) == 1
         assert accounts[0].email.startswith("supremeai+")
         assert accounts[0].password is not None
-        assert accounts[0].recovery_email == "recovery@yourdomain.com"
+        # বাংলা মন্তব্য: ডাইনামিক রিকভারি ইমেইল ভ্যালিডেশন
+        assert "@yourdomain.com" in accounts[0].recovery_email
 
 ```
