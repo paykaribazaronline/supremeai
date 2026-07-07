@@ -1,7 +1,7 @@
 # 🧠 SupremeAI 2.0 Codebase Dump
 # বাংলা মন্তব্য: এটি একটি স্বয়ংক্রিয়ভাবে জেনারেট করা কোডবেস ডাম্প ফাইল যা প্রজেক্টের সামগ্রিক বিশ্লেষণের জন্য ব্যবহৃত হয়।
 
-Generated at: 2026-07-07T14:29:43.551766
+Generated at: 2026-07-07T15:17:41.574064
 
 
 ## File: `pnpm-lock.yaml`
@@ -22887,6 +22887,57 @@ volumes:
 
 ```
 
+## File: `test_pr_dry_run.py`
+
+```py
+import asyncio
+from unittest.mock import patch, MagicMock
+from backend.services.github_agent import create_autonomous_pr
+
+async def test_dry_run_pr():
+    print("Testing create_autonomous_pr in dry-run mode...")
+    with patch('backend.services.github_agent.httpx.AsyncClient') as mock_client_cls:
+        mock_client = MagicMock()
+        mock_client_cls.return_value.__aenter__.return_value = mock_client
+        
+        # Setup mock responses
+        mock_repo_info = MagicMock()
+        mock_repo_info.status_code = 200
+        mock_repo_info.json.return_value = {"default_branch": "main"}
+        
+        mock_ref_info = MagicMock()
+        mock_ref_info.status_code = 200
+        mock_ref_info.json.return_value = {"object": {"sha": "mock_sha_123"}}
+        
+        mock_branch_res = MagicMock()
+        mock_branch_res.status_code = 201
+        
+        mock_commit_res = MagicMock()
+        mock_commit_res.status_code = 201
+        
+        mock_pr_response = MagicMock()
+        mock_pr_response.status_code = 201
+        mock_pr_response.json.return_value = {"html_url": "https://github.com/mock/pr/1"}
+        
+        mock_client.get.side_effect = [mock_repo_info, mock_ref_info]
+        mock_client.post.side_effect = [mock_branch_res, mock_pr_response]
+        mock_client.put.return_value = mock_commit_res
+        
+        pr_url = await create_autonomous_pr(
+            user_id="test_user",
+            repo_name="test/repo",
+            file_path="test.py",
+            code_content="print('hello')",
+            commit_msg="Test dry run"
+        )
+        
+        print(f"PR Dry Run Success! Mock PR URL: {pr_url}")
+
+if __name__ == "__main__":
+    asyncio.run(test_dry_run_pr())
+
+```
+
 ## File: `playwright.config.ts`
 
 ```ts
@@ -43083,6 +43134,7 @@ from loguru import logger
 from api.routes import websocket_agent
 from api.routes.task_workspace import router as workspace_task_router
 from api.routes.agent_workspace import router as agent_router
+from api.routes.integrations import router as integrations_router
 from core.app import app  # noqa: F401
 from core.config import settings
 from core.logging_config import setup_logging
@@ -43091,6 +43143,7 @@ from core.logging_config import setup_logging
 app.include_router(workspace_task_router)
 app.include_router(websocket_agent.router)
 app.include_router(agent_router, prefix="/api/v1")
+app.include_router(integrations_router, prefix="/api/v1")
 
 setup_logging()
 
@@ -45944,6 +45997,11 @@ class Settings(BaseSettings):
     admin_rules_db: str = "data/constitutional_rules.db"
     memory_db_dir: str = "data/memory"
     skill_registry_path: str = "data/skill_registry.json"
+    
+    # 🔗 Universal Integration Hub (OAuth)
+    github_client_id: str = secret_vault.fetch_secret("GITHUB_CLIENT_ID", "dummy_github_id")
+    github_client_secret: str = secret_vault.fetch_secret("GITHUB_CLIENT_SECRET", "dummy_github_secret")
+    
     ci_webhook_secret: str = secret_vault.fetch_secret(
         "CI_WEBHOOK_SECRET", ""
     )
@@ -47815,6 +47873,31 @@ class AdminGodLayer:
 
 ```
 
+## File: `backend/core/prompt_handler.py`
+
+```py
+from typing import Any
+
+def normalize_prompt(prompt: str | list[dict[str, Any]]) -> str:
+    """
+    Extracts the textual representation of a prompt for hashing, token estimation,
+    or complexity checks.
+    """
+    if isinstance(prompt, str):
+        return prompt
+    elif isinstance(prompt, list) and len(prompt) > 0:
+        return str(prompt[-1].get("content", ""))
+    return ""
+
+def estimate_tokens(text: str | list[dict[str, Any]]) -> int:
+    """
+    Estimates the number of tokens in a prompt (rough estimate: 4 chars = 1 token).
+    """
+    normalized_text = normalize_prompt(text)
+    return len(normalized_text) // 4
+
+```
+
 ## File: `backend/core/email_service.py`
 
 ```py
@@ -49129,6 +49212,7 @@ from typing import Any
 from loguru import logger
 
 from core.semantic_cache import SemanticCache
+from core.prompt_handler import estimate_tokens
 
 
 class AutocacheProxy:
@@ -49163,11 +49247,6 @@ class AutocacheProxy:
         """রিকোয়েস্টের জন্য ইউনিক হ্যাশ তৈরি করুন"""
         content = f"{model}:{prompt}"
         return hashlib.sha256(content.encode()).hexdigest()
-
-    def _estimate_tokens(self, text: str) -> int:
-        """টেক্সটের টোকেন গণনা করুন (rough estimate)"""
-        # স্ট্যান্ডার্ড এস্টিমেশন: ৪ টেক্সট = ১ টোকেন
-        return len(text) // 4
 
     def _calculate_cost(self, model: str, input_tokens: int, output_tokens: int) -> float:
         """API কল খরচ ক্যালকুলেট করুন"""
@@ -49204,7 +49283,7 @@ class AutocacheProxy:
         
         if cached_result and cached_result.response:
             # খরচ সেভিং্স ক্যালকুলেট করুন
-            input_tokens = self._estimate_tokens(prompt)
+            input_tokens = estimate_tokens(prompt)
             estimated_cost = self._calculate_cost(model, input_tokens, 100)
             
             self.cost_metrics["cached_hits"] += 1
@@ -49259,7 +49338,7 @@ class AutocacheProxy:
     def record_request(self, model: str, prompt: str, response: str, tokens_used: int):
         """সফল রিকোয়েস্ট রেকর্ড করুন ভবিষ্যত ক্যাশিংয়ের জন্য"""
         req_hash = self._compute_request_hash(model, prompt)
-        cost = self._calculate_cost(model, self._estimate_tokens(prompt), tokens_used)
+        cost = self._calculate_cost(model, estimate_tokens(prompt), tokens_used)
         
         self.request_history[req_hash] = {
             "response": response,
@@ -49309,7 +49388,7 @@ class AutocacheProxy:
             return {
                 "proceed": False,
                 "cached_response": dedup_result["cached_response"],
-                "cost_saved": self._calculate_cost(model, self._estimate_tokens(prompt), 100),
+                "cost_saved": self._calculate_cost(model, estimate_tokens(prompt), 100),
                 "recommendation": "DEDUP_HIT - Using recent cached response"
             }
         
@@ -52230,6 +52309,41 @@ class SmartDataRepository:
 
 ```
 
+## File: `backend/core/security_vault.py`
+
+```py
+import os
+import base64
+from cryptography.fernet import Fernet
+
+# The key should be a 32-url-safe-base64-encoded bytes (Fernet key)
+# In production, this must be set in environment variables!
+ENCRYPTION_KEY = os.environ.get("ENCRYPTION_KEY")
+if not ENCRYPTION_KEY:
+    raise ValueError("CRITICAL: ENCRYPTION_KEY environment variable is not set. Halting application for security reasons.")
+
+fernet = Fernet(ENCRYPTION_KEY.encode('utf-8'))
+
+def encrypt_token(plain_text: str) -> str:
+    """Encrypts a token using AES (Fernet)"""
+    if not plain_text:
+        return ""
+    encrypted_bytes = fernet.encrypt(plain_text.encode('utf-8'))
+    return encrypted_bytes.decode('utf-8')
+
+def decrypt_token(cipher_text: str) -> str:
+    """Decrypts a token using AES (Fernet)"""
+    if not cipher_text:
+        return ""
+    try:
+        decrypted_bytes = fernet.decrypt(cipher_text.encode('utf-8'))
+        return decrypted_bytes.decode('utf-8')
+    except Exception as e:
+        print(f"Error decrypting token: {e}")
+        return ""
+
+```
+
 ## File: `backend/core/circuit_breaker.py`
 
 ```py
@@ -52515,6 +52629,7 @@ import litellm
 from loguru import logger
 
 from core.config import settings
+from core.prompt_handler import normalize_prompt
 
 
 # Load routing policy configuration
@@ -52615,11 +52730,7 @@ class LLMGateway:
             prompt = messages
 
         # Determine prompt text for complexity checking if it's a list
-        prompt_text = ""
-        if isinstance(prompt, str):
-            prompt_text = prompt
-        elif isinstance(prompt, list) and len(prompt) > 0:
-            prompt_text = str(prompt[-1].get("content", ""))
+        prompt_text = normalize_prompt(prompt)
 
         if "reasoning" in task_type.lower() or "math" in task_type.lower() or "code" in task_type.lower():
             difficulty = "hard"
@@ -58037,7 +58148,18 @@ except Exception:
     logger.warning(f"Router import failed for websocket_voice_router: {traceback.format_exc()}")
     websocket_voice_router = None
 
-__all__ = list(_safe_imports.keys()) + ["voice_router", "websocket_voice_router"]
+try:
+    from .integrations import router as integrations_router
+    _safe_imports["integrations_router"] = integrations_router
+except Exception:
+    import traceback
+
+    from loguru import logger
+    logger.warning(f"Router import failed for integrations_router: {traceback.format_exc()}")
+    integrations_router = None
+
+
+__all__ = list(_safe_imports.keys()) + ["voice_router", "websocket_voice_router", "integrations_router"]
 
 ```
 
@@ -61339,6 +61461,17 @@ class WorkspaceCommand(BaseModel):
     prompt: str
     project_id: str
 
+class PRRequest(BaseModel):
+    user_id: str
+    repo_name: str # e.g., "paykaribazaronline/supremeai"
+    file_path: str
+    code: str
+    prompt: str
+
+class LearnRequest(BaseModel):
+    prompt: str
+    working_code: str
+
 @router.post("/agent/execute")
 async def execute_agent_command(command: WorkspaceCommand):
     
@@ -61360,14 +61493,40 @@ async def execute_agent_command(command: WorkspaceCommand):
     ai_generated_code = f"// Code generated by AI for: {command.prompt}\nconsole.log('Hello World');"
     
     # 🧠 Step 3: Learn and Save (AI-এর সমাধানটি মেমোরিতে সেভ করে রাখবে)
-    save_to_memory(command.prompt, ai_generated_code)
+    # save_to_memory(command.prompt, ai_generated_code) (Removed: saving now happens in /agent/learn)
     
     return {
         "status": "success",
         "source": "ai_api", 
-        "message": "Generated via AI and saved to memory.",
+        "message": "Generated via AI (not saved to memory yet).",
         "code": ai_generated_code
     }
+
+@router.post("/agent/learn")
+async def commit_to_memory(request: LearnRequest):
+    """
+    শুধুমাত্র ভেরিফায়েড এবং কাজ করা কোডগুলোই মেমোরি ভল্টে সেভ হবে।
+    """
+    save_to_memory(request.prompt, request.working_code)
+    print(f"🧠 [Auto-Didact] Verified solution saved for prompt: {request.prompt[:30]}...")
+    return {"status": "success", "message": "Memorized successfully"}
+
+from services.github_agent import create_autonomous_pr
+
+@router.post("/agent/github/pr")
+async def trigger_github_pr(request: PRRequest):
+    try:
+        commit_msg = f"Implemented: {request.prompt[:50]}..."
+        pr_url = await create_autonomous_pr(
+            user_id=request.user_id,
+            repo_name=request.repo_name,
+            file_path=request.file_path,
+            code_content=request.code,
+            commit_msg=commit_msg
+        )
+        return {"status": "success", "pr_url": pr_url}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
 
 @router.websocket("/agent/terminal-stream")
 async def terminal_stream(websocket: WebSocket):
@@ -64029,6 +64188,75 @@ async def sso_metadata():
 
 ```
 
+## File: `backend/api/routes/integrations.py`
+
+```py
+from fastapi import APIRouter, Depends, Request
+from fastapi.responses import RedirectResponse
+import httpx
+from urllib.parse import urlencode
+
+from core.config import settings
+from core.security_vault import encrypt_token
+from database.session import get_db
+# Assuming we will use a database session/dependency to save the token. 
+# For now, we stub the DB save and print it.
+
+router = APIRouter()
+
+@router.get("/integrations/github/link")
+async def link_github():
+    """
+    Redirects the user to GitHub's OAuth login page.
+    """
+    params = {
+        "client_id": settings.github_client_id,
+        "scope": "repo user",
+        "redirect_uri": "http://localhost:8000/api/v1/integrations/github/callback"
+    }
+    github_auth_url = f"https://github.com/login/oauth/authorize?{urlencode(params)}"
+    return RedirectResponse(url=github_auth_url)
+
+@router.get("/integrations/github/callback")
+async def github_callback(code: str, request: Request):
+    """
+    Handles the callback from GitHub, exchanges code for token, and saves it.
+    """
+    token_url = "https://github.com/login/oauth/access_token"
+    payload = {
+        "client_id": settings.github_client_id,
+        "client_secret": settings.github_client_secret,
+        "code": code,
+        "redirect_uri": "http://localhost:8000/api/v1/integrations/github/callback"
+    }
+    headers = {"Accept": "application/json"}
+    
+    async with httpx.AsyncClient() as client:
+        response = await client.post(token_url, json=payload, headers=headers)
+        data = response.json()
+        
+    access_token = data.get("access_token")
+    if not access_token:
+        return {"status": "error", "message": "Failed to get access token from GitHub."}
+    
+    # Encrypt the token using our AES-256 (Fernet) vault
+    encrypted_token = encrypt_token(access_token)
+    
+    # TODO: In a real app, extract user_id from the session/JWT
+    user_id = "test_user_id" 
+    
+    # Simulate saving to database
+    # new_integration = Integration(user_id=user_id, provider="github", encrypted_access_token=encrypted_token)
+    # db.add(new_integration)
+    # db.commit()
+    
+    print(f"🔗 [Universal Integration Hub] GitHub connected for user '{user_id}'. Token encrypted successfully.")
+    
+    # Redirect back to the frontend Integrations page
+    return RedirectResponse(url="http://localhost:5173/integrations?status=success")
+
+```
+
 ## File: `backend/api/routes/github.py`
 
 ```py
@@ -66573,6 +66801,36 @@ class TargetPlatformCredential(Base):
     last_used_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(UTC))
 
+
+```
+
+## File: `backend/models/integration.py`
+
+```py
+import uuid
+from datetime import UTC
+from datetime import datetime
+
+from sqlalchemy import DateTime
+from sqlalchemy import String
+from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.orm import Mapped
+from sqlalchemy.orm import mapped_column
+
+from models.base import Base
+
+class Integration(Base):
+    __tablename__ = "integrations"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id: Mapped[str] = mapped_column(String(255), index=True, nullable=False)
+    
+    provider: Mapped[str] = mapped_column(String(50), nullable=False)  # e.g., 'github', 'facebook'
+    encrypted_access_token: Mapped[str] = mapped_column(String, nullable=False)
+    repo_url: Mapped[str] = mapped_column(String, nullable=True) # Secondary repo or page id
+    
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(UTC))
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(UTC), onupdate=lambda: datetime.now(UTC))
 
 ```
 
@@ -72328,6 +72586,39 @@ def test_validate_nested_model(validator):
     result = validator.validate("nested", {"id": 99, "label": "item"})
     assert result["status"] == "ok"
     assert result["data"]["id"] == 99
+
+```
+
+## File: `backend/tests/test_prompt_handler.py`
+
+```py
+import pytest
+from core.prompt_handler import normalize_prompt, estimate_tokens
+
+def test_normalize_prompt_string():
+    prompt = "Hello World"
+    assert normalize_prompt(prompt) == "Hello World"
+
+def test_normalize_prompt_list():
+    prompt = [
+        {"role": "system", "content": "You are a helpful assistant."},
+        {"role": "user", "content": "Tell me a joke."}
+    ]
+    assert normalize_prompt(prompt) == "Tell me a joke."
+
+def test_normalize_prompt_empty_list():
+    prompt = []
+    assert normalize_prompt(prompt) == ""
+
+def test_estimate_tokens():
+    prompt = "12345678"  # 8 chars
+    assert estimate_tokens(prompt) == 2
+
+def test_estimate_tokens_list():
+    prompt = [
+        {"role": "user", "content": "1234"}
+    ]
+    assert estimate_tokens(prompt) == 1
 
 ```
 
@@ -94539,6 +94830,91 @@ class OptimizationEngine:
 
     async def suggest_free_alternatives(self, provider: str) -> list[str]:
         return []
+
+```
+
+## File: `backend/services/github_agent.py`
+
+```py
+import httpx
+import base64
+from datetime import datetime
+from core.security_vault import decrypt_token
+# from backend.models.integration import get_user_github_token # Will implement DB fetch later
+
+async def create_autonomous_pr(user_id: str, repo_name: str, file_path: str, code_content: str, commit_msg: str):
+    """
+    এনক্রিপ্টেড টোকেন ডিক্রিপ্ট করে গিটহাবে নতুন ব্রাঞ্চ এবং PR তৈরি করবে।
+    repo_name ফরম্যাট হতে হবে: "username/repo"
+    """
+    # ১. ডাটাবেস থেকে এনক্রিপ্টেড টোকেন নিয়ে ডিক্রিপ্ট করা (আপনার লজিক অনুযায়ী)
+    # encrypted_token = get_user_github_token(user_id)
+    # access_token = decrypt_token(encrypted_token)
+    
+    # TODO: Fetch from DB using user_id
+    access_token = "YOUR_DECRYPTED_TOKEN_HERE" 
+    
+    headers = {
+        "Authorization": f"Bearer {access_token}",
+        "Accept": "application/vnd.github.v3+json"
+    }
+    
+    branch_name = f"supremeai-auto-fix-{datetime.now().strftime('%Y%m%d%H%M%S')}"
+    base_url = f"https://api.github.com/repos/{repo_name}"
+
+    async with httpx.AsyncClient() as client:
+        # Step A: Get Default Branch SHA (সাধারণত 'main' বা 'master')
+        repo_info = await client.get(base_url, headers=headers)
+        if repo_info.status_code != 200:
+            raise Exception(f"Failed to fetch repo info: {repo_info.text}")
+            
+        default_branch = repo_info.json().get("default_branch", "main")
+        
+        ref_info = await client.get(f"{base_url}/git/refs/heads/{default_branch}", headers=headers)
+        if ref_info.status_code != 200:
+            raise Exception(f"Failed to fetch ref info: {ref_info.text}")
+            
+        base_sha = ref_info.json()["object"]["sha"]
+
+        # Step B: Create New Branch
+        branch_res = await client.post(
+            f"{base_url}/git/refs",
+            headers=headers,
+            json={"ref": f"refs/heads/{branch_name}", "sha": base_sha}
+        )
+        if branch_res.status_code != 201:
+            raise Exception(f"Failed to create branch: {branch_res.text}")
+
+        # Step C: Commit the Code to New Branch
+        encoded_code = base64.b64encode(code_content.encode("utf-8")).decode("utf-8")
+        commit_res = await client.put(
+            f"{base_url}/contents/{file_path}",
+            headers=headers,
+            json={
+                "message": commit_msg,
+                "content": encoded_code,
+                "branch": branch_name
+            }
+        )
+        if commit_res.status_code not in (200, 201):
+            raise Exception(f"Failed to commit file: {commit_res.text}")
+
+        # Step D: Create the Pull Request
+        pr_response = await client.post(
+            f"{base_url}/pulls",
+            headers=headers,
+            json={
+                "title": f"🚀 SupremeAI Auto-Fix: {commit_msg}",
+                "body": "This PR was autonomously generated and verified in the SupremeAI Zero-Cost Sandbox.\n\n- ✅ Execution Verified\n- 🧠 Saved to Memory Vault",
+                "head": branch_name,
+                "base": default_branch
+            }
+        )
+        
+        if pr_response.status_code != 201:
+            raise Exception(f"Failed to create PR: {pr_response.text}")
+            
+        return pr_response.json().get("html_url")
 
 ```
 
@@ -118258,6 +118634,7 @@ import AethelNode from './components/admin/AethelNode';
 import RedesignedDashboardMockup from './components/admin/RedesignedDashboardMockup';
 import ErrorBoundary from './components/admin/DashboardErrorBoundary';
 import { AgentWorkspace } from './pages/AgentWorkspace';
+import { IntegrationsManager } from './pages/IntegrationsManager';
 
 function AdminShell() {
   const {
@@ -118703,6 +119080,7 @@ export const App: React.FC = () => {
             <>
               <Route path="/" element={legacyWorkspace} />
               <Route path="/workspace/agent" element={<AgentWorkspace />} />
+              <Route path="/integrations" element={<IntegrationsManager />} />
               <Route path="/workspace/*" element={
                 <DashboardShell
                   theme={theme}
@@ -135724,6 +136102,81 @@ export default function SkillGraph() {
 
 ```
 
+## File: `apps/studio-client/src/pages/IntegrationsManager.tsx`
+
+```tsx
+import React, { useState } from 'react';
+
+export const IntegrationsManager: React.FC = () => {
+  // টেস্টিংয়ের জন্য লোকাল স্টেট, পরবর্তীতে এটি ব্যাকএন্ড থেকে আসবে
+  const [githubStatus, setGithubStatus] = useState<'Disconnected' | 'Connected'>('Disconnected');
+
+  const handleGithubConnect = () => {
+    // সরাসরি আমাদের ব্যাকএন্ডের OAuth লিংকে রিডাইরেক্ট করবে
+    window.location.href = 'http://localhost:8000/api/v1/integrations/github/link';
+  };
+
+  return (
+    <div className="p-8 text-white bg-gray-900 min-h-screen">
+      <div className="max-w-5xl mx-auto">
+        <h1 className="text-3xl font-bold mb-2">🔗 Universal Integrations Hub</h1>
+        <p className="text-gray-400 mb-8">
+          Connect your favorite tools and platforms to empower SupremeAI's autonomous capabilities.
+        </p>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          
+          {/* 🟢 GitHub Card (Active) */}
+          <div className="bg-gray-800 rounded-xl p-6 border border-gray-700 flex flex-col items-center shadow-lg transition-transform hover:-translate-y-1 hover:border-blue-500">
+            <div className="text-5xl mb-4">🐙</div>
+            <h2 className="text-xl font-bold mb-2">GitHub</h2>
+            <p className="text-sm text-gray-400 text-center mb-6">
+              Automate code pushes, PR creation, and repository management.
+            </p>
+            <button
+              onClick={handleGithubConnect}
+              className={`w-full py-2.5 rounded-lg font-bold transition-all duration-200 ${
+                githubStatus === 'Connected'
+                  ? 'bg-green-600/20 text-green-400 border border-green-500/50 hover:bg-green-600/30'
+                  : 'bg-white text-black hover:bg-gray-200 shadow-md'
+              }`}
+            >
+              {githubStatus === 'Connected' ? '✅ Connected' : 'Connect GitHub'}
+            </button>
+          </div>
+
+          {/* 🟡 Facebook Card (Coming Soon) */}
+          <div className="bg-gray-800 rounded-xl p-6 border border-gray-700 flex flex-col items-center shadow-lg opacity-50 grayscale hover:grayscale-0 transition-all duration-300">
+            <div className="text-5xl mb-4">📘</div>
+            <h2 className="text-xl font-bold mb-2">Facebook</h2>
+            <p className="text-sm text-gray-400 text-center mb-6">
+              Auto-post updates, manage pages, and reply to comments.
+            </p>
+            <button disabled className="w-full py-2.5 rounded-lg font-bold bg-gray-700 text-gray-500 cursor-not-allowed">
+              Coming Soon
+            </button>
+          </div>
+
+          {/* 🟡 Instagram Card (Coming Soon) */}
+          <div className="bg-gray-800 rounded-xl p-6 border border-gray-700 flex flex-col items-center shadow-lg opacity-50 grayscale hover:grayscale-0 transition-all duration-300">
+            <div className="text-5xl mb-4">📸</div>
+            <h2 className="text-xl font-bold mb-2">Instagram</h2>
+            <p className="text-sm text-gray-400 text-center mb-6">
+              AI-driven visual content publishing and scheduling.
+            </p>
+            <button disabled className="w-full py-2.5 rounded-lg font-bold bg-gray-700 text-gray-500 cursor-not-allowed">
+              Coming Soon
+            </button>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  );
+};
+
+```
+
 ## File: `apps/studio-client/src/pages/AgentWorkspace.tsx`
 
 ```tsx
@@ -135746,6 +136199,7 @@ export const AgentWorkspace: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [generatedCode, setGeneratedCode] = useState<string>('// SupremeAI Agent Ready.\n// Type a prompt on the left to generate code...');
   const [isLoading, setIsLoading] = useState(false);
+  const [isHealing, setIsHealing] = useState(false);
 
   const terminalRef = useRef<HTMLDivElement>(null);
   const xtermRef = useRef<Terminal | null>(null);
@@ -135866,22 +136320,105 @@ export const AgentWorkspace: React.FC = () => {
     }
   };
 
-  const handleRunCode = async () => {
-    if (!webcontainerRef.current || !shellWriterRef.current) {
-      console.warn("⚠️ Sandbox is not fully loaded yet.");
-      return;
-    }
-
+  const handleRunAndEvaluate = async (codeToRun = generatedCode, retryCount = 0) => {
+    if (!webcontainerRef.current || !xtermRef.current) return;
+    const term = xtermRef.current;
+    
+    setIsHealing(true);
     try {
-      // ১. Monaco Editor-এর কোড WebContainer-এর ভার্চুয়াল ফাইলে সেভ করা
-      await webcontainerRef.current.fs.writeFile('/index.js', generatedCode);
+      term.writeln(`\r\n⚙️ \x1b[1;36m[Execution] Running code... (Attempt ${retryCount + 1}/3)\x1b[0m`);
       
-      // ২. টার্মিনালকে কমান্ড পাঠানো (node index.js রান করতে বলা)
-      // \r মানে হলো Enter প্রেস করা
-      await shellWriterRef.current.write('node index.js\r');
+      // ১. ফাইল সেভ করা
+      await webcontainerRef.current.fs.writeFile('/index.js', codeToRun);
       
+      // ২. সরাসরি Node.js প্রসেস স্পন (Spawn) করা যাতে Exit Code ধরতে পারি
+      const process = await webcontainerRef.current.spawn('node', ['index.js']);
+      
+      let processOutput = '';
+      
+      // ৩. আউটপুট ক্যাপচার করা এবং টার্মিনালে দেখানো
+      process.output.pipeTo(
+        new WritableStream({
+          write(data) {
+            processOutput += data;
+            term.write(data);
+          }
+        })
+      );
+      
+      // ৪. প্রসেস শেষ হওয়ার জন্য অপেক্ষা করা (The Evaluation)
+      const exitCode = await process.exit;
+      
+      if (exitCode !== 0) {
+        // ❌ এরর পেয়েছে! (Self-Healing Loop)
+        if (retryCount < 2) {
+          term.writeln(`\r\n⚠️ \x1b[1;33m[Auto-Heal] Code failed with exit code ${exitCode}. Requesting AI fix...\x1b[0m`);
+          
+          // ব্যাকএন্ডে এরর মেসেজসহ ফিক্সের জন্য রিকোয়েস্ট পাঠানো
+          const fixResponse = await fetch('http://localhost:8000/api/v1/agent/execute', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              prompt: `I tried to run this code but got an error. \n\nCODE:\n${codeToRun}\n\nERROR:\n${processOutput}\n\nPlease fix the bug and return ONLY the full working code.`,
+              project_id: 'proj_123'
+            }),
+          });
+          
+          const fixData = await fixResponse.json();
+          if (fixData.status === 'success') {
+            const fixedCode = fixData.code;
+            setGeneratedCode(fixedCode); // এডিটরে নতুন কোড বসবে
+            setMessages(prev => [...prev, { role: 'agent', content: `🔧 I analyzed the error and fixed the code. Retrying...` }]);
+            
+            // রিকার্সিভ কল (নতুন কোড দিয়ে আবার টেস্ট করবে)
+            await handleRunAndEvaluate(fixedCode, retryCount + 1);
+          }
+        } else {
+          term.writeln(`\r\n❌ \x1b[1;31m[System] Self-healing failed after 3 attempts. Manual intervention required.\x1b[0m`);
+        }
+      } else {
+        // ✅ কোড পারফেক্টলি রান করেছে! (The Learning Phase)
+        term.writeln(`\r\n✅ \x1b[1;32m[Success] Execution flawless! Committing to Memory Vault...\x1b[0m`);
+        
+        // ব্যাকএন্ডকে কনফার্ম করা যে কোডটি কাজ করেছে, মেমোরিতে সেভ করো
+        await fetch('http://localhost:8000/api/v1/agent/learn', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            prompt: prompt, // অরিজিনাল প্রম্পট
+            working_code: codeToRun
+          }),
+        });
+        
+        setMessages(prev => [...prev, { role: 'agent', content: `🎯 Execution verified! I have memorized this solution in the Zero-Cost Vault.`, source: 'memory' }]);
+
+        // 🟢 ২. GitHub-এ Auto-PR তৈরি করা (The New Magic)
+        term.writeln(`\r\n🐙 \x1b[1;34m[GitHub] Pushing verified code to repository as a PR...\x1b[0m`);
+        
+        const prResponse = await fetch('http://localhost:8000/api/v1/agent/github/pr', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            user_id: 'admin_123', // সেশন থেকে নেবেন
+            repo_name: 'YOUR_GITHUB_USERNAME/YOUR_TEST_REPO', // আপনার টেস্ট রিপোর নাম দিন
+            file_path: 'src/auto_generated.js',
+            code: codeToRun,
+            prompt: prompt
+          }),
+        });
+
+        const prData = await prResponse.json();
+        if (prData.status === 'success') {
+          term.writeln(`\r\n🎉 \x1b[1;32m[GitHub] PR Created Successfully! Link: ${prData.pr_url}\x1b[0m`);
+          setMessages(prev => [...prev, { role: 'agent', content: `🚀 I have autonomously created a Pull Request in your GitHub repo! Check it out: ${prData.pr_url}` }]);
+        } else {
+          term.writeln(`\r\n❌ \x1b[1;31m[GitHub Error] Failed to create PR: ${prData.message}\x1b[0m`);
+        }
+      }
     } catch (error) {
-      console.error("Failed to execute code in sandbox:", error);
+      console.error("Execution error:", error);
+    } finally {
+      setIsHealing(false);
     }
   };
 
@@ -135950,10 +136487,11 @@ export const AgentWorkspace: React.FC = () => {
             
             {/* 🟢 নতুন Run Button */}
             <button 
-              onClick={handleRunCode}
-              className="bg-green-600 hover:bg-green-500 text-white text-xs font-bold py-1 px-3 rounded flex items-center transition-colors"
+              onClick={() => handleRunAndEvaluate(generatedCode, 0)}
+              disabled={isHealing}
+              className="bg-green-600 hover:bg-green-500 disabled:bg-gray-600 text-white text-xs font-bold py-1 px-3 rounded flex items-center transition-colors"
             >
-              ▶ Run Code
+              {isHealing ? '⏳ Healing...' : '▶ Run & Auto-Evaluate'}
             </button>
 
           </div>

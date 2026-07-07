@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/llm_gateway.py
 
 **প্রকার:** .py  
-**সাইজ:** 10,108 বাইট  
-**আপডেট:** 2026-07-07T14:29:43.597641
+**সাইজ:** 9,990 বাইট  
+**আপডেট:** 2026-07-07T15:17:41.594121
 
 ---
 
@@ -21,6 +21,7 @@ import litellm
 from loguru import logger
 
 from core.config import settings
+from core.prompt_handler import normalize_prompt
 
 
 # Load routing policy configuration
@@ -121,11 +122,7 @@ class LLMGateway:
             prompt = messages
 
         # Determine prompt text for complexity checking if it's a list
-        prompt_text = ""
-        if isinstance(prompt, str):
-            prompt_text = prompt
-        elif isinstance(prompt, list) and len(prompt) > 0:
-            prompt_text = str(prompt[-1].get("content", ""))
+        prompt_text = normalize_prompt(prompt)
 
         if "reasoning" in task_type.lower() or "math" in task_type.lower() or "code" in task_type.lower():
             difficulty = "hard"

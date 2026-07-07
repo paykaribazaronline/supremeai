@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/api/routes/__init__.py
 
 **প্রকার:** .py  
-**সাইজ:** 11,939 বাইট  
-**আপডেট:** 2026-07-07T14:29:43.604548
+**সাইজ:** 12,287 বাইট  
+**আপডেট:** 2026-07-07T15:17:41.596287
 
 ---
 
@@ -430,6 +430,17 @@ except Exception:
     logger.warning(f"Router import failed for websocket_voice_router: {traceback.format_exc()}")
     websocket_voice_router = None
 
-__all__ = list(_safe_imports.keys()) + ["voice_router", "websocket_voice_router"]
+try:
+    from .integrations import router as integrations_router
+    _safe_imports["integrations_router"] = integrations_router
+except Exception:
+    import traceback
+
+    from loguru import logger
+    logger.warning(f"Router import failed for integrations_router: {traceback.format_exc()}")
+    integrations_router = None
+
+
+__all__ = list(_safe_imports.keys()) + ["voice_router", "websocket_voice_router", "integrations_router"]
 
 ```

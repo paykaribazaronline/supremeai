@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/config.py
 
 **প্রকার:** .py  
-**সাইজ:** 8,616 বাইট  
-**আপডেট:** 2026-07-07T14:29:43.590809
+**সাইজ:** 8,869 বাইট  
+**আপডেট:** 2026-07-07T15:17:41.591957
 
 ---
 
@@ -124,6 +124,11 @@ class Settings(BaseSettings):
     admin_rules_db: str = "data/constitutional_rules.db"
     memory_db_dir: str = "data/memory"
     skill_registry_path: str = "data/skill_registry.json"
+    
+    # 🔗 Universal Integration Hub (OAuth)
+    github_client_id: str = secret_vault.fetch_secret("GITHUB_CLIENT_ID", "dummy_github_id")
+    github_client_secret: str = secret_vault.fetch_secret("GITHUB_CLIENT_SECRET", "dummy_github_secret")
+    
     ci_webhook_secret: str = secret_vault.fetch_secret(
         "CI_WEBHOOK_SECRET", ""
     )
