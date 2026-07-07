@@ -1,7 +1,7 @@
 # 🧠 SupremeAI 2.0 Codebase Dump
 # বাংলা মন্তব্য: এটি একটি স্বয়ংক্রিয়ভাবে জেনারেট করা কোডবেস ডাম্প ফাইল যা প্রজেক্টের সামগ্রিক বিশ্লেষণের জন্য ব্যবহৃত হয়।
 
-Generated at: 2026-07-07T18:09:12.290943
+Generated at: 2026-07-07T18:25:59.784953
 
 
 ## File: `pnpm-lock.yaml`
@@ -164427,7 +164427,8 @@ def get_ai_fix(error_log: str, file_path: str, comment_char: str) -> str:
         response = litellm.completion(
             model=target_model,
             messages=[{"role": "user", "content": prompt}],
-            timeout=60.0
+            timeout=120.0,
+            num_retries=3
         )
         return response.choices[0].message.content
     except Exception as e:
@@ -164436,7 +164437,8 @@ def get_ai_fix(error_log: str, file_path: str, comment_char: str) -> str:
         response = litellm.completion(
             model="gemini/gemini-2.5-flash",
             messages=[{"role": "user", "content": prompt}],
-            timeout=60.0
+            timeout=120.0,
+            num_retries=3
         )
         return response.choices[0].message.content
 
