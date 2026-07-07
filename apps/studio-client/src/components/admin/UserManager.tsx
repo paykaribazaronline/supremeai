@@ -74,7 +74,7 @@ export function UserManager({
       {/* Users List */}
       <h4 className="text-xs font-bold text-slate-400 mb-4 tracking-wider uppercase font-mono">Administrative User Registry</h4>
       <div className="flex flex-col gap-3">
-        {adminUsers.map(user => {
+        {Array.isArray(adminUsers) && adminUsers.map(user => {
           const perms = Array.isArray(user.permissions) 
             ? user.permissions 
             : typeof user.permissions === 'string'
