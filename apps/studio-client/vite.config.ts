@@ -16,6 +16,10 @@ export default defineConfig({
     dedupe: ['react', 'react-dom', '@tanstack/react-query']
   },
   server: {
+    headers: {
+      'Cross-Origin-Embedder-Policy': 'require-corp',
+      'Cross-Origin-Opener-Policy': 'same-origin',
+    },
     proxy: {
       '/api': {
         target: process.env.VITE_API_URL || 'http://127.0.0.1:8000',

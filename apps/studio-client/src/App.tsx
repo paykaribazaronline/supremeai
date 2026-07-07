@@ -41,6 +41,7 @@ import './components/admin/AethelCoreStyles.css';
 import AethelNode from './components/admin/AethelNode';
 import RedesignedDashboardMockup from './components/admin/RedesignedDashboardMockup';
 import ErrorBoundary from './components/admin/DashboardErrorBoundary';
+import { AgentWorkspace } from './pages/AgentWorkspace';
 
 function AdminShell() {
   const {
@@ -485,6 +486,7 @@ export const App: React.FC = () => {
             ========================================= */
             <>
               <Route path="/" element={legacyWorkspace} />
+              <Route path="/workspace/agent" element={<AgentWorkspace />} />
               <Route path="/workspace/*" element={
                 <DashboardShell
                   theme={theme}
