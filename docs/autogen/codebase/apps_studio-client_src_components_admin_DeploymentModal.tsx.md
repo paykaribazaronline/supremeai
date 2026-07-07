@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/studio-client/src/components/admin/DeploymentModal.tsx
 
 **প্রকার:** .tsx  
-**সাইজ:** 13,178 বাইট  
-**আপডেট:** 2026-07-07T08:37:57.188181
+**সাইজ:** 13,222 বাইট  
+**আপডেট:** 2026-07-07T08:44:02.487064
 
 ---
 
@@ -52,7 +52,7 @@ const DeploymentModal: React.FC<DeploymentModalProps> = ({
   const { data: ciLogs, refetch: refetchCILogs } = useQuery({
     queryKey: ['deployment-logs'],
     queryFn: () => apiClient.get('/admin-api/ci-logs?limit=10'),
-    refetchInterval: 15000,
+    refetchInterval: (query: any) => query.state.error ? false : 15000,
     enabled: isDeploymentModalOpen,
   });
 

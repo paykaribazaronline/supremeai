@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/studio-client/src/components/admin/HealthBanner.tsx
 
 **প্রকার:** .tsx  
-**সাইজ:** 1,106 বাইট  
-**আপডেট:** 2026-07-07T08:37:57.187445
+**সাইজ:** 1,150 বাইট  
+**আপডেট:** 2026-07-07T08:44:02.486510
 
 ---
 
@@ -17,7 +17,7 @@ const HealthBanner: React.FC = () => {
   const { data: health } = useQuery({
     queryKey: ['dashboard', 'health'],
     queryFn: () => apiClient.get<{ gcp: { status: string }; railway: { status: string }; render: { status: string } }>('/admin-api/health-map'),
-    refetchInterval: 30000,
+    refetchInterval: (query: any) => query.state.error ? false : 30000,
   });
 
   const isDegraded = (health?.gcp && health.gcp.status === 'degraded') || (health?.railway && health.railway.status === 'degraded') || (health?.render && health.render.status === 'degraded');

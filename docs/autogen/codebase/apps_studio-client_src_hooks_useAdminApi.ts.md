@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/studio-client/src/hooks/useAdminApi.ts
 
 **প্রকার:** .ts  
-**সাইজ:** 4,710 বাইট  
-**আপডেট:** 2026-07-07T08:37:57.196172
+**সাইজ:** 4,930 বাইট  
+**আপডেট:** 2026-07-07T08:44:02.492470
 
 ---
 
@@ -84,7 +84,7 @@ export function useCostReport() {
   return useQuery({
     queryKey: ['costs'],
     queryFn: () => fetchJSON<{ report: string }>('/admin-api/costs'),
-    refetchInterval: 60000,
+    refetchInterval: (query: any) => query.state.error ? false : 60000,
   });
 }
 
@@ -92,7 +92,7 @@ export function useHealthMap() {
   return useQuery({
     queryKey: ['health'],
     queryFn: () => fetchJSON<any>('/admin-api/health-map'),
-    refetchInterval: 30000,
+    refetchInterval: (query: any) => query.state.error ? false : 30000,
   });
 }
 
@@ -145,7 +145,7 @@ export function useGcpHealth() {
   return useQuery({
     queryKey: ['gcp', 'health'],
     queryFn: () => fetchJSON<import('../types').GcpHealth>('/gcp/health'),
-    refetchInterval: 30000,
+    refetchInterval: (query: any) => query.state.error ? false : 30000,
   });
 }
 
@@ -153,7 +153,7 @@ export function useCloudStats() {
   return useQuery({
     queryKey: ['cloud', 'distribution'],
     queryFn: () => fetchJSON<import('../types').CloudStats>('/admin/cloud-distribution'),
-    refetchInterval: 30000,
+    refetchInterval: (query: any) => query.state.error ? false : 30000,
   });
 }
 
@@ -162,7 +162,7 @@ export function useCIReports(limit = 20) {
   return useQuery({
     queryKey: ['ci', 'reports', limit],
     queryFn: () => fetchJSON<import('../types').CIReport[]>(`/admin-api/ci-logs?limit=${limit}`),
-    refetchInterval: 15000,
+    refetchInterval: (query: any) => query.state.error ? false : 15000,
   });
 }
 

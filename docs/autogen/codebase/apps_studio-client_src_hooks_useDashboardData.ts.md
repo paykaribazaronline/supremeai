@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/studio-client/src/hooks/useDashboardData.ts
 
 **প্রকার:** .ts  
-**সাইজ:** 4,082 বাইট  
-**আপডেট:** 2026-07-07T08:37:57.195402
+**সাইজ:** 4,346 বাইট  
+**আপডেট:** 2026-07-07T08:44:02.491980
 
 ---
 
@@ -59,7 +59,7 @@ export function useMetrics(intervalMs = 30000) {
   return useQuery({
     queryKey: ['dashboard', 'metrics'],
     queryFn: () => apiClient.get<MetricsData>('/admin-api/metrics'),
-    refetchInterval: intervalMs,
+    refetchInterval: (query: any) => query.state.error ? false : intervalMs,
   });
 }
 
@@ -67,7 +67,7 @@ export function useCostReport(intervalMs = 60000) {
   return useQuery({
     queryKey: ['dashboard', 'costs'],
     queryFn: () => apiClient.get<CostReport>('/admin-api/costs'),
-    refetchInterval: intervalMs,
+    refetchInterval: (query: any) => query.state.error ? false : intervalMs,
   });
 }
 
@@ -75,7 +75,7 @@ export function useHealthMap(intervalMs = 30000) {
   return useQuery({
     queryKey: ['dashboard', 'health'],
     queryFn: () => apiClient.get<HealthMapData>('/admin-api/health-map'),
-    refetchInterval: intervalMs,
+    refetchInterval: (query: any) => query.state.error ? false : intervalMs,
   });
 }
 
@@ -83,7 +83,7 @@ export function useCIReports(limit = 5, intervalMs = 15000) {
   return useQuery({
     queryKey: ['dashboard', 'ci-logs', limit],
     queryFn: () => apiClient.get<CIReport[]>(`/admin-api/ci-logs?limit=${limit}`),
-    refetchInterval: intervalMs,
+    refetchInterval: (query: any) => query.state.error ? false : intervalMs,
   });
 }
 
@@ -91,7 +91,7 @@ export function useThreatScan() {
   return useQuery({
     queryKey: ['dashboard', 'security-scan'],
     queryFn: () => apiClient.get<ThreatScanResult>('/admin-api/security-scan'),
-    refetchInterval: 30000,
+    refetchInterval: (query: any) => query.state.error ? false : 30000,
   });
 }
 
@@ -133,7 +133,7 @@ export function useDashboardEvents(limit = 50, intervalMs = 10000) {
   return useQuery({
     queryKey: ['dashboard', 'events', limit],
     queryFn: () => apiClient.get<DashboardEvent[]>(`/admin-api/events?limit=${limit}`),
-    refetchInterval: intervalMs,
+    refetchInterval: (query: any) => query.state.error ? false : intervalMs,
   });
 }
 

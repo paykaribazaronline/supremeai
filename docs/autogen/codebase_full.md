@@ -1,7 +1,7 @@
 # 🧠 SupremeAI 2.0 Codebase Dump
 # বাংলা মন্তব্য: এটি একটি স্বয়ংক্রিয়ভাবে জেনারেট করা কোডবেস ডাম্প ফাইল যা প্রজেক্টের সামগ্রিক বিশ্লেষণের জন্য ব্যবহৃত হয়।
 
-Generated at: 2026-07-07T08:37:57.055418
+Generated at: 2026-07-07T08:44:02.390892
 
 
 ## File: `pnpm-lock.yaml`
@@ -128465,7 +128465,7 @@ const HealthBanner: React.FC = () => {
   const { data: health } = useQuery({
     queryKey: ['dashboard', 'health'],
     queryFn: () => apiClient.get<{ gcp: { status: string }; railway: { status: string }; render: { status: string } }>('/admin-api/health-map'),
-    refetchInterval: 30000,
+    refetchInterval: (query: any) => query.state.error ? false : 30000,
   });
 
   const isDegraded = (health?.gcp && health.gcp.status === 'degraded') || (health?.railway && health.railway.status === 'degraded') || (health?.render && health.render.status === 'degraded');
@@ -129248,7 +129248,7 @@ const DeploymentModal: React.FC<DeploymentModalProps> = ({
   const { data: ciLogs, refetch: refetchCILogs } = useQuery({
     queryKey: ['deployment-logs'],
     queryFn: () => apiClient.get('/admin-api/ci-logs?limit=10'),
-    refetchInterval: 15000,
+    refetchInterval: (query: any) => query.state.error ? false : 15000,
     enabled: isDeploymentModalOpen,
   });
 
@@ -136067,7 +136067,7 @@ export function useMetrics(intervalMs = 30000) {
   return useQuery({
     queryKey: ['dashboard', 'metrics'],
     queryFn: () => apiClient.get<MetricsData>('/admin-api/metrics'),
-    refetchInterval: intervalMs,
+    refetchInterval: (query: any) => query.state.error ? false : intervalMs,
   });
 }
 
@@ -136075,7 +136075,7 @@ export function useCostReport(intervalMs = 60000) {
   return useQuery({
     queryKey: ['dashboard', 'costs'],
     queryFn: () => apiClient.get<CostReport>('/admin-api/costs'),
-    refetchInterval: intervalMs,
+    refetchInterval: (query: any) => query.state.error ? false : intervalMs,
   });
 }
 
@@ -136083,7 +136083,7 @@ export function useHealthMap(intervalMs = 30000) {
   return useQuery({
     queryKey: ['dashboard', 'health'],
     queryFn: () => apiClient.get<HealthMapData>('/admin-api/health-map'),
-    refetchInterval: intervalMs,
+    refetchInterval: (query: any) => query.state.error ? false : intervalMs,
   });
 }
 
@@ -136091,7 +136091,7 @@ export function useCIReports(limit = 5, intervalMs = 15000) {
   return useQuery({
     queryKey: ['dashboard', 'ci-logs', limit],
     queryFn: () => apiClient.get<CIReport[]>(`/admin-api/ci-logs?limit=${limit}`),
-    refetchInterval: intervalMs,
+    refetchInterval: (query: any) => query.state.error ? false : intervalMs,
   });
 }
 
@@ -136099,7 +136099,7 @@ export function useThreatScan() {
   return useQuery({
     queryKey: ['dashboard', 'security-scan'],
     queryFn: () => apiClient.get<ThreatScanResult>('/admin-api/security-scan'),
-    refetchInterval: 30000,
+    refetchInterval: (query: any) => query.state.error ? false : 30000,
   });
 }
 
@@ -136141,7 +136141,7 @@ export function useDashboardEvents(limit = 50, intervalMs = 10000) {
   return useQuery({
     queryKey: ['dashboard', 'events', limit],
     queryFn: () => apiClient.get<DashboardEvent[]>(`/admin-api/events?limit=${limit}`),
-    refetchInterval: intervalMs,
+    refetchInterval: (query: any) => query.state.error ? false : intervalMs,
   });
 }
 
@@ -136755,7 +136755,7 @@ export function useCostReport() {
   return useQuery({
     queryKey: ['costs'],
     queryFn: () => fetchJSON<{ report: string }>('/admin-api/costs'),
-    refetchInterval: 60000,
+    refetchInterval: (query: any) => query.state.error ? false : 60000,
   });
 }
 
@@ -136763,7 +136763,7 @@ export function useHealthMap() {
   return useQuery({
     queryKey: ['health'],
     queryFn: () => fetchJSON<any>('/admin-api/health-map'),
-    refetchInterval: 30000,
+    refetchInterval: (query: any) => query.state.error ? false : 30000,
   });
 }
 
@@ -136816,7 +136816,7 @@ export function useGcpHealth() {
   return useQuery({
     queryKey: ['gcp', 'health'],
     queryFn: () => fetchJSON<import('../types').GcpHealth>('/gcp/health'),
-    refetchInterval: 30000,
+    refetchInterval: (query: any) => query.state.error ? false : 30000,
   });
 }
 
@@ -136824,7 +136824,7 @@ export function useCloudStats() {
   return useQuery({
     queryKey: ['cloud', 'distribution'],
     queryFn: () => fetchJSON<import('../types').CloudStats>('/admin/cloud-distribution'),
-    refetchInterval: 30000,
+    refetchInterval: (query: any) => query.state.error ? false : 30000,
   });
 }
 
@@ -136833,7 +136833,7 @@ export function useCIReports(limit = 20) {
   return useQuery({
     queryKey: ['ci', 'reports', limit],
     queryFn: () => fetchJSON<import('../types').CIReport[]>(`/admin-api/ci-logs?limit=${limit}`),
-    refetchInterval: 15000,
+    refetchInterval: (query: any) => query.state.error ? false : 15000,
   });
 }
 
