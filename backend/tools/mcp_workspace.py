@@ -15,6 +15,7 @@ from pathlib import Path
 from typing import Dict, Any
 from enum import Enum
 
+from loguru import logger
 from pydantic import BaseModel, Field, ConfigDict
 from mcp.server.fastmcp import FastMCP
 
@@ -123,8 +124,8 @@ def _session_file_lock(lock_path: Path):
         if acquired:
             try:
                 lock_dir.rmdir()
-            except OSError:
-                pass
+            except OSError as exc:
+                logger.debug(f"Could not remove lock directory {lock_dir}: {exc}")
 
 def _save_workspace_session(project_type: WorkspaceType, tenant_id: str | None = None):
     """ওয়ার্কস্পেস সেশন সংরক্ষণ করে।"""
@@ -145,8 +146,8 @@ def _save_workspace_session(project_type: WorkspaceType, tenant_id: str | None =
         except Exception as e:
             try:
                 os.unlink(temp_path)
-            except OSError:
-                pass
+            except OSError as exc:
+                logger.debug(f"Could not remove temp file {temp_path}: {exc}")
             raise e
 
 

@@ -20,9 +20,20 @@ Usage:
     # Or run as a background service
 """
 
+"""
+auto_budget_guardian.py
+SupremeAI 2.0 Budget Guardian — Serverless-Ready Version.
+
+ব্যবহার: 
+  1. Cloud Scheduler / Cron Job হিসেবে: প্রতি ৫ মিনিটে `run_budget_guardian_check()` কল করুন
+  2. Persistent process হিসেবে: `main()` দিয়ে infinite loop চালান (শুধুমাত্র VM/Bare-metal এ)
+
+Serverless (Cloud Run, Cloud Functions) পরিবেশে শুধুমাত্র `run_budget_guardian_check()`
+ব্যবহার করতে হবে — প্রতিটি কল একটি স্বতন্ত্র stateless invocation, যা timeout খাবে না।
+"""
+
 import os
 import time
-import logging
 from typing import Dict, Any
 from datetime import datetime, timedelta
 
@@ -33,7 +44,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '../../backend'))
 from core.free_tier_tracker import get_tracker
 from loguru import logger
 
-# Configuration
+# Configuration — ENV vars থেকে কনফিগারেশন নেওয়া হয়
 CHECK_INTERVAL_SECONDS = int(os.getenv("BUDGET_GUARDIAN_INTERVAL", "300"))  # 5 minutes
 THRESHOLD_PERCENT = float(os.getenv("BUDGET_GUARDIAN_THRESHOLD", "0.8"))   # 80%
 PAUSE_DURATION_SECONDS = int(os.getenv("BUDGET_GUARDIAN_PAUSE_DURATION", "3600"))  # 1 hour
@@ -143,8 +154,8 @@ def run_budget_guardian_check() -> None:
                     "content": f"🆘 **Budget Guardian Check Failed**\n```{str(e)}```"
                 }
                 requests.post(DISCORD_WEBHOOK_URL, json=payload, timeout=10)
-            except:
-                pass  # Avoid recursive error handling
+            except Exception as notify_err:
+                logger.error(f"Failed to send Discord error notification (non-blocking): {notify_err}")
 
 def main() -> None:
     """Main monitoring loop."""

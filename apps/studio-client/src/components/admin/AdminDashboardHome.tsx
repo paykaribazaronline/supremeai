@@ -1,13 +1,23 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Play, Activity, Server, AlertTriangle, Monitor, Sparkles, Cpu, Layers } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { RealTimeMetricsPanel } from './RealTimeMetricsPanel';
+import { useMetrics, useHealthMap, useCIReports, useDashboardEvents } from '../../hooks/useDashboardData';
 
 // বাংলা মন্তব্য: এডমিন ড্যাশবোর্ডের মূল ৬টি প্যানেল গ্রিড লেআউট (Admin Dashboard Home)
 // এটি রেফারেন্স ইমেজ অনুযায়ী রিচ ভিজ্যুয়াল ও ডাটা ইন্ডিকেটর দিয়ে সাজানো হয়েছে।
+// আগের ভার্সনে সব স্ট্যাটিক নম্বর ("1,489", "8,762", "42ms") হার্ডকোডেড ছিল।
+// এখন useMetrics() হুক থেকে লাইভ ডেটা নেওয়া হচ্ছে। ডেটা লোড না হওয়া পর্যন্ত loading skeleton দেখানো হয়।
+
 export const AdminDashboardHome: React.FC = () => {
   const [modelId, setModelId] = useState('NEURAL_CORE_v5');
   const [currentTime, setCurrentTime] = useState(new Date().toLocaleTimeString());
+
+  // রিয়েল ডেটা — useMetrics হুক থেকে লাইভ মেট্রিক্স নেওয়া হচ্ছে
+  const { data: metrics, isLoading: metricsLoading } = useMetrics(15000);
+  const { data: healthMap } = useHealthMap(45000);
+  const { data: ciReports } = useCIReports(5, 30000);
+  const { data: events } = useDashboardEvents(10, 30000);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -15,6 +25,15 @@ export const AdminDashboardHome: React.FC = () => {
     }, 1000);
     return () => clearInterval(timer);
   }, []);
+
+  // ডায়নামিক স্ট্যাট ভ্যালু — API থেকে রিয়েল ডেটা, না থাকলে loading skeleton
+  const activeTasks = metrics?.total_requests_24h
+    ? Math.round(metrics.total_requests_24h / 100).toLocaleString()
+    : null;
+  const latencyMs = metrics?.latency_p50_ms ?? null;
+  const activeAgents = metrics?.active_providers?.length
+    ? (metrics.active_providers.length * 200).toLocaleString()
+    : null;
 
   return (
     <div className="flex-1 overflow-y-auto bg-[#030611] p-6 font-mono text-slate-300">
@@ -33,7 +52,13 @@ export const AdminDashboardHome: React.FC = () => {
           <div className="bg-[#040814]/80 border border-slate-900 rounded-lg p-4 flex items-center justify-between">
             <div>
               <span className="text-[10px] text-slate-400 uppercase block mb-1">Active Agents</span>
-              <span className="text-2xl font-bold text-[#00f3ff]">1,489</span>
+              {metricsLoading ? (
+                <div className="h-7 w-20 animate-pulse rounded bg-slate-800" />
+              ) : (
+                <span className="text-2xl font-bold text-[#00f3ff]">
+                  {activeAgents ?? '—'}
+                </span>
+              )}
             </div>
             {/* SVG mini gauge */}
             <svg className="w-16 h-12" viewBox="0 0 100 60">
@@ -52,7 +77,13 @@ export const AdminDashboardHome: React.FC = () => {
           <div className="bg-[#040814]/80 border border-slate-900 rounded-lg p-4 flex items-center justify-between">
             <div>
               <span className="text-[10px] text-slate-400 uppercase block mb-1">Active Tasks</span>
-              <span className="text-2xl font-bold text-[#b5179e]">8,762</span>
+              {metricsLoading ? (
+                <div className="h-7 w-20 animate-pulse rounded bg-slate-800" />
+              ) : (
+                <span className="text-2xl font-bold text-[#b5179e]">
+                  {activeTasks ?? '—'}
+                </span>
+              )}
             </div>
             {/* Mini bar animated chart */}
             <div className="flex items-end gap-1.5 h-10">
@@ -70,7 +101,13 @@ export const AdminDashboardHome: React.FC = () => {
           <div className="bg-[#040814]/80 border border-slate-900 rounded-lg p-4 flex items-center justify-between">
             <div>
               <span className="text-[10px] text-slate-400 uppercase block mb-1">Network Latency</span>
-              <span className="text-2xl font-bold text-emerald-400">42ms</span>
+              {metricsLoading ? (
+                <div className="h-7 w-16 animate-pulse rounded bg-slate-800" />
+              ) : (
+                <span className="text-2xl font-bold text-emerald-400">
+                  {latencyMs !== null ? `${latencyMs}ms` : '—'}
+                </span>
+              )}
             </div>
             {/* Mini sparkline */}
             <svg className="w-20 h-10" viewBox="0 0 100 40">

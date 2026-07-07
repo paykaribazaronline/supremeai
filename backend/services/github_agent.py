@@ -2,21 +2,62 @@ import base64
 from datetime import datetime
 
 import httpx
+from loguru import logger
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from core.security_vault import decrypt_token
+from database.session import get_db_session
+from models.integration import Integration
 
 
-# from backend.models.integration import get_user_github_token # Will implement DB fetch later
+async def get_user_github_token(user_id: str, db: AsyncSession) -> str | None:
+    """
+    DB থেকে ইউজারের এনক্রিপ্টেড GitHub টোকেন রিট্রিভ করে ডিক্রিপ্ট করে।
+    টোকেন না পেলে None রিটার্ন করে — কলারকে fail-fast করতে হবে।
+    """
+    integration = await db.get(
+        Integration,
+        {"user_id": user_id, "provider": "github"},
+    )
+    if not integration or not integration.encrypted_access_token:
+        logger.warning(f"No GitHub token found for user '{user_id}'")
+        return None
 
-async def create_autonomous_pr(user_id: str, repo_name: str, file_path: str, code_content: str, commit_msg: str):
+    try:
+        access_token = decrypt_token(integration.encrypted_access_token)
+        return access_token
+    except Exception as exc:
+        logger.error(f"Failed to decrypt GitHub token for user '{user_id}': {exc}")
+        return None
+
+
+async def create_autonomous_pr(
+    user_id: str,
+    repo_name: str,
+    file_path: str,
+    code_content: str,
+    commit_msg: str,
+    db: AsyncSession | None = None,
+):
     """
     এনক্রিপ্টেড টোকেন ডিক্রিপ্ট করে গিটহাবে নতুন ব্রাঞ্চ এবং PR তৈরি করবে।
     repo_name ফরম্যাট হতে হবে: "username/repo"
-    """
-    # ১. ডাটাবেস থেকে এনক্রিপ্টেড টোকেন নিয়ে ডিক্রিপ্ট করা (আপনার লজিক অনুযায়ী)
-    # encrypted_token = get_user_github_token(user_id)
-    # access_token = decrypt_token(encrypted_token)
     
-    # TODO: Fetch from DB using user_id
-    access_token = "YOUR_DECRYPTED_TOKEN_HERE" 
+    db_session বাধ্যতামূলক — না দিলে fail-fast করে, যাতে কেউ ভুলে placeholder দিয়ে ডিপ্লয় করতে না পারে।
+    """
+    # ১. ডাটাবেস থেকে এনক্রিপ্টেড টোকেন নিয়ে ডিক্রিপ্ট করা
+    if db is None:
+        raise RuntimeError(
+            "create_autonomous_pr: db_session is required. "
+            "Call with an active AsyncSession to fetch the GitHub token from DB."
+        )
+    
+    access_token = await get_user_github_token(user_id, db)
+    if access_token is None:
+        raise RuntimeError(
+            f"GitHub token not found or could not be decrypted for user '{user_id}'. "
+            "Please connect GitHub via /integrations/github/link first."
+        )
     
     headers = {
         "Authorization": f"Bearer {access_token}",
