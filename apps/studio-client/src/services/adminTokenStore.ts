@@ -36,3 +36,8 @@ export const clearAdminMetadata = () => {
     sessionStorage.removeItem(METADATA_KEY);
   }
 };
+
+// Legacy support to prevent build errors in components that haven't migrated to apiClient yet
+export const getAdminToken = (): string => {
+  return "";
+};

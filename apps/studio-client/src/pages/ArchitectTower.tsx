@@ -33,10 +33,6 @@ export const ArchitectTower: React.FC = () => {
     fetchFixes();
   }, []);
 
-  useEffect(() => {
-    fetchFixes();
-  }, []);
-
   return (
     <div className="min-h-screen bg-slate-950 text-slate-300 p-8">
       <div className="max-w-7xl mx-auto space-y-8">
@@ -101,6 +97,7 @@ export const ArchitectTower: React.FC = () => {
             <div className="p-12 text-center text-slate-500">
               No pending fixes. System is running optimally.
             </div>
+          ) : (
             <OneClickPatch 
               proposals={fixes.map(f => ({
                 id: f.id,
