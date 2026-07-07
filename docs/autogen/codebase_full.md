@@ -1,7 +1,7 @@
 # 🧠 SupremeAI 2.0 Codebase Dump
 # বাংলা মন্তব্য: এটি একটি স্বয়ংক্রিয়ভাবে জেনারেট করা কোডবেস ডাম্প ফাইল যা প্রজেক্টের সামগ্রিক বিশ্লেষণের জন্য ব্যবহৃত হয়।
 
-Generated at: 2026-07-07T17:24:59.948335
+Generated at: 2026-07-07T17:30:18.311780
 
 
 ## File: `pnpm-lock.yaml`
@@ -167228,7 +167228,7 @@ on:
 # Purpose: Ensures new pushes cancel pending/running jobs in this pipeline.
 # ==============================================================================
 concurrency:
-  group: supreme-core-ci-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 env:
@@ -167253,12 +167253,21 @@ jobs:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: 'pip'
 
+      - name: Cache Poetry
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pypoetry
+          key: ${{ runner.os }}-poetry-${{ env.PYTHON_VERSION }}-${{ hashFiles('backend/poetry.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-poetry-${{ env.PYTHON_VERSION }}-
+            ${{ runner.os }}-poetry-
+
       - name: Install Dependencies
         working-directory: backend
         run: |
           pip install poetry
           poetry config virtualenvs.in-project true
-          poetry install --sync --with dev --without ml
+          poetry install --sync --with dev --without ml,tools
 
       - name: 🛡️ Safety Guard - File Protection Validation
         id: safety_guard
@@ -167331,12 +167340,21 @@ jobs:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: 'pip'
       
+      - name: Cache Poetry
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pypoetry
+          key: ${{ runner.os }}-poetry-${{ env.PYTHON_VERSION }}-${{ hashFiles('backend/poetry.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-poetry-${{ env.PYTHON_VERSION }}-
+            ${{ runner.os }}-poetry-
+
       - name: Install Dependencies
         working-directory: backend
         run: |
           pip install poetry
           poetry config virtualenvs.in-project true
-          poetry install --sync --with dev --without ml
+          poetry install --sync --with dev --without ml,tools
       
       - name: 🧹 Lint Code (Auto-Fix & Warning Mode)
         working-directory: backend
@@ -167607,6 +167625,14 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: 'pip'
+      - name: Cache Poetry
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pypoetry
+          key: ${{ runner.os }}-poetry-${{ env.PYTHON_VERSION }}-${{ hashFiles('backend/poetry.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-poetry-${{ env.PYTHON_VERSION }}-
+            ${{ runner.os }}-poetry-
       - name: Install Backend Dependencies & Start Server
         working-directory: backend
         env:
@@ -167614,7 +167640,7 @@ jobs:
           SUPREMEAI_API_URL: http://127.0.0.1:8000
         run: |
           pip install poetry
-          poetry install --sync --with dev --without ml
+          poetry install --sync --with dev --without ml,tools
           poetry run uvicorn main:app --port 8000 &
       - name: Install Playwright Browsers
         run: pnpm exec playwright install --with-deps
@@ -167667,16 +167693,20 @@ jobs:
           username: _json_key
           password: ${{ secrets.GCP_SA_KEY }}
       
-      - uses: docker/setup-buildx-action@v3
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        with:
+          driver-opts: image=moby/buildkit:buildx-stable-1
       
       - name: Build & Push API Image
         uses: docker/build-push-action@v5
         with:
           context: .
+          file: ./backend/Dockerfile
           push: true
           tags: ${{ vars.GCP_REGION || 'us-central1' }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/supremeai-repo/supremeai-api:latest
           cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-to: type=gha,mode=min
 
       - name: 🚀 Deploy API to Cloud Run
         env:
