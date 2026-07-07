@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/test_config_coverage.py
 
 **প্রকার:** .py  
-**সাইজ:** 7,440 বাইট  
-**আপডেট:** 2026-07-07T13:36:09.968728
+**সাইজ:** 7,418 বাইট  
+**আপডেট:** 2026-07-07T14:00:40.999928
 
 ---
 
@@ -141,7 +141,7 @@ def test_validate_config_raises_when_production_keys_missing():
         gemini_api_key="",
         sentry_dsn="",
         jwt_secret="",
-        ci_webhook_secret="supreme-ci-secret-2026",
+        ci_webhook_secret="",
     )
     with pytest.raises(RuntimeError) as exc:
         s.validate_config()

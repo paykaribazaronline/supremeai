@@ -1,7 +1,7 @@
 # 🧠 SupremeAI 2.0 Codebase Dump
 # বাংলা মন্তব্য: এটি একটি স্বয়ংক্রিয়ভাবে জেনারেট করা কোডবেস ডাম্প ফাইল যা প্রজেক্টের সামগ্রিক বিশ্লেষণের জন্য ব্যবহৃত হয়।
 
-Generated at: 2026-07-07T13:36:09.873533
+Generated at: 2026-07-07T14:00:40.909066
 
 
 ## File: `pnpm-lock.yaml`
@@ -45634,6 +45634,7 @@ class LogBatcherService:
             import contextlib
             with contextlib.suppress(asyncio.CancelledError):
                 await self.task
+            self.task = None
         await self._flush()
         logger.info("LogBatcherService stopped.")
 
@@ -46004,7 +46005,7 @@ class Settings(BaseSettings):
                 raise RuntimeError(
                     f"Missing required configurations for production: {', '.join(missing)}"
                 )
-        if self.env.lower() in {"production", "staging"} and not self.ci_webhook_secret:
+        elif self.env.lower() == "staging" and not self.ci_webhook_secret:
             raise RuntimeError("Missing required configuration for staging/production: secure CI_WEBHOOK_SECRET")
 
 
@@ -56462,7 +56463,11 @@ def is_test_environment() -> bool:
     """
     if os.getenv("ENV", "").lower() in {"production", "staging"}:
         return False
-    return "pytest" in sys.modules
+    return (
+        "pytest" in sys.modules
+        or os.getenv("CI") == "true"
+        or os.getenv("GITHUB_ACTIONS") == "true"
+    )
 
 
 def is_admin_authorized() -> bool:
@@ -88561,7 +88566,7 @@ def test_validate_config_raises_when_production_keys_missing():
         gemini_api_key="",
         sentry_dsn="",
         jwt_secret="",
-        ci_webhook_secret="supreme-ci-secret-2026",
+        ci_webhook_secret="",
     )
     with pytest.raises(RuntimeError) as exc:
         s.validate_config()
@@ -90460,6 +90465,172 @@ def test_celery_app_exposed():
     assert app is not None
 
 
+```
+
+## File: `backend/tests/core/test_log_batcher.py`
+
+```py
+import pytest
+from unittest.mock import AsyncMock, patch, MagicMock
+import asyncio
+from collections import deque
+from core.log_batcher import LogBatcherService, batcher
+
+@pytest.fixture
+def batcher_service():
+    return LogBatcherService(flush_interval=0.1, batch_size=2)
+
+def test_log_batcher_service_init(batcher_service):
+    assert batcher_service.flush_interval == 0.1
+    assert batcher_service.batch_size == 2
+    assert isinstance(batcher_service.queue, asyncio.Queue)
+    assert isinstance(batcher_service.buffer, deque)
+    assert batcher_service.running is False
+    assert batcher_service.task is None
+    assert batcher_service._subscribers == {}
+
+@pytest.mark.anyio
+async def test_log_batcher_service_start(batcher_service):
+    batcher_service.start()
+    assert batcher_service.running is True
+    assert batcher_service.task is not None
+    # Clean up
+    await batcher_service.stop()
+
+@pytest.mark.anyio
+async def test_log_batcher_service_stop(batcher_service):
+    batcher_service.start()
+    await batcher_service.stop()
+    assert batcher_service.running is False
+    assert batcher_service.task is None
+
+@pytest.mark.anyio
+async def test_log_batcher_service_emit(batcher_service):
+    log_entry = {"session_id": "123", "message": "test"}
+    batcher_service.emit(log_entry)
+    # The item should be in the queue
+    assert not batcher_service.queue.empty()
+    item = await batcher_service.queue.get()
+    assert item == log_entry
+
+@pytest.mark.anyio
+async def test_log_batcher_service_subscribe(batcher_service):
+    session_id = "123"
+    queue = batcher_service.subscribe(session_id)
+    assert session_id in batcher_service._subscribers
+    assert queue in batcher_service._subscribers[session_id]
+    assert isinstance(queue, asyncio.Queue)
+
+@pytest.mark.anyio
+async def test_log_batcher_service_unsubscribe(batcher_service):
+    session_id = "123"
+    queue = batcher_service.subscribe(session_id)
+    batcher_service.unsubscribe(session_id, queue)
+    assert session_id not in batcher_service._subscribers
+
+@pytest.mark.anyio
+async def test_log_batcher_service_flush(batcher_service):
+    # Mock the database session and execution
+    mock_session = AsyncMock()
+    mock_session.execute.return_value = None
+    mock_session.commit.return_value = None
+    
+    async def mock_get_db_session():
+        yield mock_session
+    
+    with patch('core.log_batcher.get_db_session', return_value=mock_get_db_session()):
+        # Add some items to the buffer
+        batcher_service.buffer.append({"session_id": "123", "message": "test1"})
+        batcher_service.buffer.append({"session_id": "123", "message": "test2"})
+        
+        await batcher_service._flush()
+        
+        # Check that the buffer is cleared
+        assert len(batcher_service.buffer) == 0
+        # Check that the session was used
+        mock_session.execute.assert_called_once()
+        mock_session.commit.assert_called_once()
+
+@pytest.mark.anyio
+async def test_log_batcher_service_run(batcher_service):
+    # We'll test the _run method by mocking the queue and flush interval
+    batcher_service.running = True
+    
+    # Mock asyncio.wait_for to simulate timeout and then stop
+    call_count = 0
+    async def mock_wait_for(coro, timeout):
+        nonlocal call_count
+        call_count += 1
+        if call_count >= 2:
+            # After two timeouts, we stop the service to break the loop
+            batcher_service.running = False
+        # On first call, we return a dummy item to add to buffer
+        if call_count == 1:
+            return {"session_id": "123", "message": "test"}
+        else:
+            raise asyncio.TimeoutError()
+    
+    with patch('asyncio.wait_for', side_effect=mock_wait_for):
+        with patch.object(batcher_service, '_flush', new_callable=AsyncMock) as mock_flush:
+            await batcher_service._run()
+            # We expect _flush to be called at least once (from the timeout after the first item)
+            assert mock_flush.await_count >= 1
+
+# Test the global batcher instance
+def test_global_batcher_instance():
+    assert isinstance(batcher, LogBatcherService)
+```
+
+## File: `backend/tests/core/test_enum_guard.py`
+
+```py
+import pytest
+from unittest.mock import AsyncMock, patch, MagicMock
+from core.enum_guard import EnumMismatchError, guard_enum, run_enum_guards
+
+@pytest.mark.anyio
+async def test_guard_enum_db_not_found():
+    # Mock the database connection and result with empty list
+    mock_conn = AsyncMock()
+    mock_result = MagicMock()
+    mock_result.all.return_value = []  # DB has no such enum
+    mock_conn.execute = AsyncMock(return_value=mock_result)
+    
+    mock_engine = AsyncMock()
+    mock_engine.connect.return_value.__aenter__.return_value = mock_conn
+    
+    with patch('core.enum_guard.engine', mock_engine):
+        from enum import Enum
+        class TestEnum(Enum):
+            ACTIVE = 'active'
+        
+        # Should log a warning and return without raising
+        await guard_enum('test_enum', TestEnum)
+        # No assertion needed, just ensure no exception
+
+@pytest.mark.anyio
+async def test_guard_enum_db_connection_error():
+    # Mock the database connection to raise an exception
+    mock_engine = AsyncMock()
+    # Make the connect method raise an exception
+    mock_engine.connect.side_effect = Exception("DB connection failed")
+    
+    with patch('core.enum_guard.engine', mock_engine):
+        from enum import Enum
+        class TestEnum(Enum):
+            ACTIVE = 'active'
+        
+        # Should log a warning and return without raising
+        await guard_enum('test_enum', TestEnum)
+        # No assertion needed
+
+@pytest.mark.anyio
+async def test_run_enum_guards():
+    # Mock each guard_enum call to avoid actual DB calls
+    with patch('core.enum_guard.guard_enum', new_callable=AsyncMock) as mock_guard:
+        await run_enum_guards()
+        # Ensure guard_enum was called for each enum
+        assert mock_guard.call_count == 6  # Because there are 6 enums in run_enum_guards
 ```
 
 ## File: `backend/tests/engine/test_cost_optimizer.py`
@@ -137516,6 +137687,7 @@ export class AudioPlaybackService {
     // while the speech is active to drive the WaveformVisualizer UI.
     
     let osc: OscillatorNode | null = null;
+    let intervalId: ReturnType<typeof setInterval> | null = null;
 
     utterance.onstart = () => {
       console.log('🗣️ [AudioPlaybackService] SupremeAI started speaking.');
@@ -137528,7 +137700,7 @@ export class AudioPlaybackService {
       gain.gain.value = 0; // Silent oscillator, only used for data
       
       // Modulate oscillator frequency to make the waveform look like speech
-      const intervalId = setInterval(() => {
+      intervalId = setInterval(() => {
         if (osc) osc.frequency.value = 100 + Math.random() * 400;
       }, 50);
 

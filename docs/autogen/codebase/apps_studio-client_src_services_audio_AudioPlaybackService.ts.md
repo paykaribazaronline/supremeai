@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/studio-client/src/services/audio/AudioPlaybackService.ts
 
 **প্রকার:** .ts  
-**সাইজ:** 2,868 বাইট  
-**আপডেট:** 2026-07-07T13:36:10.025388
+**সাইজ:** 2,928 বাইট  
+**আপডেট:** 2026-07-07T14:00:41.053189
 
 ---
 
@@ -58,6 +58,7 @@ export class AudioPlaybackService {
     // while the speech is active to drive the WaveformVisualizer UI.
     
     let osc: OscillatorNode | null = null;
+    let intervalId: ReturnType<typeof setInterval> | null = null;
 
     utterance.onstart = () => {
       console.log('🗣️ [AudioPlaybackService] SupremeAI started speaking.');
@@ -70,7 +71,7 @@ export class AudioPlaybackService {
       gain.gain.value = 0; // Silent oscillator, only used for data
       
       // Modulate oscillator frequency to make the waveform look like speech
-      const intervalId = setInterval(() => {
+      intervalId = setInterval(() => {
         if (osc) osc.frequency.value = 100 + Math.random() * 400;
       }, 50);
 

@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/log_batcher.py
 
 **প্রকার:** .py  
-**সাইজ:** 3,971 বাইট  
-**আপডেট:** 2026-07-07T13:36:09.914059
+**সাইজ:** 4,000 বাইট  
+**আপডেট:** 2026-07-07T14:00:40.948556
 
 ---
 
@@ -43,6 +43,7 @@ class LogBatcherService:
             import contextlib
             with contextlib.suppress(asyncio.CancelledError):
                 await self.task
+            self.task = None
         await self._flush()
         logger.info("LogBatcherService stopped.")
 
