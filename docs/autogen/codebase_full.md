@@ -1,7 +1,7 @@
 # 🧠 SupremeAI 2.0 Codebase Dump
 # বাংলা মন্তব্য: এটি একটি স্বয়ংক্রিয়ভাবে জেনারেট করা কোডবেস ডাম্প ফাইল যা প্রজেক্টের সামগ্রিক বিশ্লেষণের জন্য ব্যবহৃত হয়।
 
-Generated at: 2026-07-07T11:31:19.119670
+Generated at: 2026-07-07T11:35:20.539845
 
 
 ## File: `pnpm-lock.yaml`
@@ -165734,7 +165734,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: frontend-dist
-          path: .
+          path: apps
         continue-on-error: true
       # বাংলা মন্তব্য: আর্টিফ্যাক্ট ডাউনলোড ব্যর্থ হলে বা dist না থাকলে ফলব্যাক হিসেবে বিল্ড চালানো হবে
       - name: Fallback Build Frontend (if dist missing)
@@ -165945,7 +165945,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: frontend-dist
-          path: .
+          path: apps
 
       - name: 🌐 Deploy to Firebase
         run: |
