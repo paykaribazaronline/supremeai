@@ -1,7 +1,7 @@
 # 🧠 SupremeAI 2.0 Codebase Dump
 # বাংলা মন্তব্য: এটি একটি স্বয়ংক্রিয়ভাবে জেনারেট করা কোডবেস ডাম্প ফাইল যা প্রজেক্টের সামগ্রিক বিশ্লেষণের জন্য ব্যবহৃত হয়।
 
-Generated at: 2026-07-07T16:46:48.455313
+Generated at: 2026-07-07T17:03:49.356402
 
 
 ## File: `pnpm-lock.yaml`
@@ -90944,16 +90944,9 @@ def mock_agents():
     mock_qa = MagicMock()
     mock_qa.verify = AsyncMock()
 
-    with patch.dict(
-        "sys.modules",
-        {
-            "agents.crew_departments": MagicMock(
-                ArchitectureAgent=MagicMock(return_value=mock_architect),
-                CodeGeneratorAgent=MagicMock(return_value=mock_coder),
-                QAAgent=MagicMock(return_value=mock_qa),
-            )
-        },
-    ):
+    with patch("core.swarm_orchestrator.ArchitectureAgent", return_value=mock_architect), \
+         patch("core.swarm_orchestrator.CodeGeneratorAgent", return_value=mock_coder), \
+         patch("core.swarm_orchestrator.QAAgent", return_value=mock_qa):
         from core.swarm_orchestrator import SwarmOrchestrator
 
         yield {
