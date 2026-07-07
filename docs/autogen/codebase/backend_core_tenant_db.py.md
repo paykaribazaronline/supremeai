@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/tenant_db.py
 
 **প্রকার:** .py  
-**সাইজ:** 2,876 বাইট  
-**আপডেট:** 2026-07-07T17:03:49.407158
+**সাইজ:** 2,849 বাইট  
+**আপডেট:** 2026-07-07T17:20:39.834063
 
 ---
 
@@ -41,7 +41,7 @@ class TenantAwareFirestore:
         import os
         import sys
 
-        if "pytest" in sys.modules or os.getenv("ENV") == "test":
+        if os.getenv("ENV") == "test":
 
             class MockFirestore:
                 def collection(self, *args, **kwargs):

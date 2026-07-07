@@ -1,23 +1,39 @@
 # 📄 ফাইল: backend/tests/test_constants.py
 
 **প্রকার:** .py  
-**সাইজ:** 362 বাইট  
-**আপডেট:** 2026-07-07T17:03:49.432524
+**সাইজ:** 871 বাইট  
+**আপডেট:** 2026-07-07T17:20:39.854740
 
 ---
 
 ## কোড
 
 ```py
-from __future__ import annotations
+import pytest
+from unittest.mock import MagicMock
+from core.constants import get_common_strings_to_ignore, get_default_code_smell_thresholds
+from core.config_proxy import DynamicConfigProxy
 
-from core.constants import COMMON_STRINGS_TO_IGNORE, DEFAULT_CODE_SMELL_THRESHOLDS
+@pytest.fixture
+def mock_proxy():
+    db = MagicMock()
+    doc_ref = MagicMock()
+    snapshot = MagicMock()
+    snapshot.exists = False
+    doc_ref.get.return_value = snapshot
+    db.collection.return_value.document.return_value = doc_ref
+    
+    proxy = DynamicConfigProxy("tenant-123", db)
+    return proxy
 
+@pytest.mark.asyncio
+async def test_constants_via_proxy(mock_proxy):
+    thresholds = await get_default_code_smell_thresholds(mock_proxy)
+    assert isinstance(thresholds, dict)
+    assert thresholds["complexity"] == 10
 
-def test_constants_defined():
-    assert isinstance(DEFAULT_CODE_SMELL_THRESHOLDS, dict)
-    assert DEFAULT_CODE_SMELL_THRESHOLDS["complexity"] == 10
-    assert "utf-8" in COMMON_STRINGS_TO_IGNORE
-    assert "rb" in COMMON_STRINGS_TO_IGNORE
+    strings_to_ignore = await get_common_strings_to_ignore(mock_proxy)
+    assert "utf-8" in strings_to_ignore
+    assert "rb" in strings_to_ignore
 
 ```

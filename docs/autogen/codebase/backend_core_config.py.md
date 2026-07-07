@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/config.py
 
 **প্রকার:** .py  
-**সাইজ:** 8,869 বাইট  
-**আপডেট:** 2026-07-07T17:03:49.397651
+**সাইজ:** 9,103 বাইট  
+**আপডেট:** 2026-07-07T17:20:39.825564
 
 ---
 
@@ -78,20 +78,19 @@ class Settings(BaseSettings):
     # ⚡ ডাইনামিকলি সরাসরি ক্লাউড মেমরি থেকে সিক্রেট রিড করা হচ্ছে
     # ডিস্কে কোনো .env ফাইল না থাকলেও প্রোডাকশন এপিআই ১০০% স্মুথলি চলবে
     supabase_database_url: str = secret_vault.fetch_secret(
-        "SUPABASE_DATABASE_URL_POOLER",
-        "postgresql://localhost:5432/postgres",
+        "SUPABASE_DATABASE_URL_POOLER"
     )
-    redis_url: str = secret_vault.fetch_secret("REDIS_URL", "redis://localhost:6379/0")
+    redis_url: str = secret_vault.fetch_secret("REDIS_URL")
 
-    openrouter_api_key: str = secret_vault.fetch_secret("OPENROUTER_API_KEY", "")
-    hf_api_key: str = secret_vault.fetch_secret("HF_API_KEY", "")
-    gemini_api_key: str = secret_vault.fetch_secret("GEMINI_API_KEY", "")
-    openai_api_key: str = secret_vault.fetch_secret("OPENAI_API_KEY", "")
-    deepseek_api_key: str = secret_vault.fetch_secret("DEEPSEEK_API_KEY", "")
-    groq_api_key: str = secret_vault.fetch_secret("GROQ_API_KEY", "")
-    nvidia_api_key: str = secret_vault.fetch_secret("NVIDIA_API_KEY", "")
-    firecrawl_api_key: str = secret_vault.fetch_secret("FIRECRAWL_API_KEY", "")
-    discord_bot_token: str = secret_vault.fetch_secret("DISCORD_BOT_TOKEN", "")
+    openrouter_api_key: str = secret_vault.fetch_secret("OPENROUTER_API_KEY")
+    hf_api_key: str = secret_vault.fetch_secret("HF_API_KEY")
+    gemini_api_key: str = secret_vault.fetch_secret("GEMINI_API_KEY")
+    openai_api_key: str = secret_vault.fetch_secret("OPENAI_API_KEY")
+    deepseek_api_key: str = secret_vault.fetch_secret("DEEPSEEK_API_KEY")
+    groq_api_key: str = secret_vault.fetch_secret("GROQ_API_KEY")
+    nvidia_api_key: str = secret_vault.fetch_secret("NVIDIA_API_KEY")
+    firecrawl_api_key: str = secret_vault.fetch_secret("FIRECRAWL_API_KEY")
+    discord_bot_token: str = secret_vault.fetch_secret("DISCORD_BOT_TOKEN")
 
     claude_openrouter_model: str = "anthropic/claude-3.5-haiku:free"
 
@@ -126,11 +125,11 @@ class Settings(BaseSettings):
     skill_registry_path: str = "data/skill_registry.json"
     
     # 🔗 Universal Integration Hub (OAuth)
-    github_client_id: str = secret_vault.fetch_secret("GITHUB_CLIENT_ID", "dummy_github_id")
-    github_client_secret: str = secret_vault.fetch_secret("GITHUB_CLIENT_SECRET", "dummy_github_secret")
+    github_client_id: str = secret_vault.fetch_secret("GITHUB_CLIENT_ID")
+    github_client_secret: str = secret_vault.fetch_secret("GITHUB_CLIENT_SECRET")
     
     ci_webhook_secret: str = secret_vault.fetch_secret(
-        "CI_WEBHOOK_SECRET", ""
+        "CI_WEBHOOK_SECRET"
     )
 
     @field_validator("env")
@@ -173,6 +172,16 @@ class Settings(BaseSettings):
                     "SUPREMEAI_JWT_SECRET environment variable must be set in production"
                 )
             return "test-secret-placeholder"
+        return v
+
+    @field_validator("supremeai_admin_password_hash", mode="before")
+    @classmethod
+    def validate_admin_hash(cls, v: str | None, info: ValidationInfo) -> str | None:
+        env = info.data.get("env", "local")
+        if not v and env == "production":
+            raise ValueError(
+                "supremeai_admin_password_hash must be set in production"
+            )
         return v
 
     @field_validator("debug")

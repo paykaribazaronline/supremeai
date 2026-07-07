@@ -1,7 +1,7 @@
 # 🧠 SupremeAI 2.0 Codebase Dump
 # বাংলা মন্তব্য: এটি একটি স্বয়ংক্রিয়ভাবে জেনারেট করা কোডবেস ডাম্প ফাইল যা প্রজেক্টের সামগ্রিক বিশ্লেষণের জন্য ব্যবহৃত হয়।
 
-Generated at: 2026-07-07T17:03:49.356402
+Generated at: 2026-07-07T17:20:39.784482
 
 
 ## File: `pnpm-lock.yaml`
@@ -43516,6 +43516,86 @@ def format_unified_chat_prompt(
 
 ```
 
+## File: `backend/core/self_healer.py`
+
+```py
+import uuid
+from datetime import datetime, timezone
+from typing import Any, List, Optional
+from loguru import logger
+
+class SelfHealerService:
+    def __init__(self, db: Any):
+        self._db = db
+
+    def _generate_trace_id(self) -> str:
+        return f"err-trace-{uuid.uuid4().hex[:12]}"
+
+    def _safety_check(self, proposed_fix: str) -> None:
+        """
+        Safety Filter: Ensure dangerous commands are not proposed in the fix.
+        """
+        dangerous_keywords = ["exec(", "eval(", "os.system", "subprocess.call", "__import__"]
+        for keyword in dangerous_keywords:
+            if keyword in proposed_fix:
+                raise ValueError(f"Dangerous keyword '{keyword}' detected in proposed fix. Rejected by Safety Filter.")
+
+    async def propose_fix(
+        self,
+        tenant_id: str,
+        error_pattern: str,
+        proposed_fix: str,
+        impact_score: float,
+        dependency_tree: List[str]
+    ) -> str:
+        """
+        Generates and stores an automatic fix for an error in the Firestore database
+        with a 'pending_review' status for Human-in-the-Loop (HITL) approval.
+        """
+        self._safety_check(proposed_fix)
+        
+        # Ensure impact score is valid
+        if not (0.0 <= impact_score <= 1.0):
+            raise ValueError("Impact score must be between 0.0 and 1.0")
+            
+        trace_id = self._generate_trace_id()
+        fix_id = f"fix-{uuid.uuid4().hex[:8]}"
+        
+        doc_ref = self._db.collection(f"tenants/{tenant_id}/fixes").document(fix_id)
+        
+        fix_data = {
+            "trace_id": trace_id,
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "error_pattern": error_pattern,
+            "proposed_fix": proposed_fix,
+            "impact_score": impact_score,
+            "dependency_tree": dependency_tree,
+            "status": "pending_review",
+            "reviewed_by": None,
+            "applied_at": None
+        }
+        
+        import asyncio
+        if asyncio.iscoroutinefunction(doc_ref.set):
+            await doc_ref.set(fix_data)
+        else:
+            doc_ref.set(fix_data)
+            
+        logger.info(f"Generated auto-fix {fix_id} for trace {trace_id} (Status: pending_review)")
+        return fix_id
+
+    async def test_fix_in_sandbox(self, fix_id: str, tenant_id: str) -> bool:
+        """
+        Tests the proposed fix in an isolated sandbox environment.
+        (Placeholder for actual sandbox testing logic)
+        """
+        logger.info(f"Testing fix {fix_id} in sandbox environment for tenant {tenant_id}")
+        # Here we would normally use the cloud_sandbox_orchestrator
+        # For now, return True as a placeholder
+        return True
+
+```
+
 ## File: `backend/core/immune_system.py`
 
 ```py
@@ -45967,20 +46047,19 @@ class Settings(BaseSettings):
     # ⚡ ডাইনামিকলি সরাসরি ক্লাউড মেমরি থেকে সিক্রেট রিড করা হচ্ছে
     # ডিস্কে কোনো .env ফাইল না থাকলেও প্রোডাকশন এপিআই ১০০% স্মুথলি চলবে
     supabase_database_url: str = secret_vault.fetch_secret(
-        "SUPABASE_DATABASE_URL_POOLER",
-        "postgresql://localhost:5432/postgres",
+        "SUPABASE_DATABASE_URL_POOLER"
     )
-    redis_url: str = secret_vault.fetch_secret("REDIS_URL", "redis://localhost:6379/0")
+    redis_url: str = secret_vault.fetch_secret("REDIS_URL")
 
-    openrouter_api_key: str = secret_vault.fetch_secret("OPENROUTER_API_KEY", "")
-    hf_api_key: str = secret_vault.fetch_secret("HF_API_KEY", "")
-    gemini_api_key: str = secret_vault.fetch_secret("GEMINI_API_KEY", "")
-    openai_api_key: str = secret_vault.fetch_secret("OPENAI_API_KEY", "")
-    deepseek_api_key: str = secret_vault.fetch_secret("DEEPSEEK_API_KEY", "")
-    groq_api_key: str = secret_vault.fetch_secret("GROQ_API_KEY", "")
-    nvidia_api_key: str = secret_vault.fetch_secret("NVIDIA_API_KEY", "")
-    firecrawl_api_key: str = secret_vault.fetch_secret("FIRECRAWL_API_KEY", "")
-    discord_bot_token: str = secret_vault.fetch_secret("DISCORD_BOT_TOKEN", "")
+    openrouter_api_key: str = secret_vault.fetch_secret("OPENROUTER_API_KEY")
+    hf_api_key: str = secret_vault.fetch_secret("HF_API_KEY")
+    gemini_api_key: str = secret_vault.fetch_secret("GEMINI_API_KEY")
+    openai_api_key: str = secret_vault.fetch_secret("OPENAI_API_KEY")
+    deepseek_api_key: str = secret_vault.fetch_secret("DEEPSEEK_API_KEY")
+    groq_api_key: str = secret_vault.fetch_secret("GROQ_API_KEY")
+    nvidia_api_key: str = secret_vault.fetch_secret("NVIDIA_API_KEY")
+    firecrawl_api_key: str = secret_vault.fetch_secret("FIRECRAWL_API_KEY")
+    discord_bot_token: str = secret_vault.fetch_secret("DISCORD_BOT_TOKEN")
 
     claude_openrouter_model: str = "anthropic/claude-3.5-haiku:free"
 
@@ -46015,11 +46094,11 @@ class Settings(BaseSettings):
     skill_registry_path: str = "data/skill_registry.json"
     
     # 🔗 Universal Integration Hub (OAuth)
-    github_client_id: str = secret_vault.fetch_secret("GITHUB_CLIENT_ID", "dummy_github_id")
-    github_client_secret: str = secret_vault.fetch_secret("GITHUB_CLIENT_SECRET", "dummy_github_secret")
+    github_client_id: str = secret_vault.fetch_secret("GITHUB_CLIENT_ID")
+    github_client_secret: str = secret_vault.fetch_secret("GITHUB_CLIENT_SECRET")
     
     ci_webhook_secret: str = secret_vault.fetch_secret(
-        "CI_WEBHOOK_SECRET", ""
+        "CI_WEBHOOK_SECRET"
     )
 
     @field_validator("env")
@@ -46062,6 +46141,16 @@ class Settings(BaseSettings):
                     "SUPREMEAI_JWT_SECRET environment variable must be set in production"
                 )
             return "test-secret-placeholder"
+        return v
+
+    @field_validator("supremeai_admin_password_hash", mode="before")
+    @classmethod
+    def validate_admin_hash(cls, v: str | None, info: ValidationInfo) -> str | None:
+        env = info.data.get("env", "local")
+        if not v and env == "production":
+            raise ValueError(
+                "supremeai_admin_password_hash must be set in production"
+            )
         return v
 
     @field_validator("debug")
@@ -50170,19 +50259,16 @@ class CodeValidator:
 
 ```py
 """
-Project-wide constants to promote maintainability and DRY principles.
+Refactored constants using DynamicConfigProxy
 """
 
-# Code Smell Detector default thresholds
-DEFAULT_CODE_SMELL_THRESHOLDS = {
-    "complexity": 10,
-    "lines": 75,
-    "args": 5,
-    "class_methods": 15,
-}
+from core.config_proxy import DynamicConfigProxy
 
-# Common strings to ignore when detecting "magic strings"
-COMMON_STRINGS_TO_IGNORE = {"", "utf-8", "rb", "wb", "r", "w", "a", "x", "b", "t", "+"}
+async def get_default_code_smell_thresholds(proxy: DynamicConfigProxy) -> dict:
+    return await proxy.get("DEFAULT_CODE_SMELL_THRESHOLDS")
+
+async def get_common_strings_to_ignore(proxy: DynamicConfigProxy) -> list:
+    return await proxy.get("COMMON_STRINGS_TO_IGNORE")
 
 ```
 
@@ -50750,7 +50836,7 @@ class ProductionSecretVault:
                 "⚙️ Local/Dev mode active or library missing. Bypassing Google Secret Manager."
             )
 
-    def fetch_secret(self, secret_id: str, default_fallback: str = "") -> str:
+    def fetch_secret(self, secret_id: str) -> str:
         """গুগল সিক্রেট ম্যানেজার থেকে রিয়াল-টাইমে সিক্রেট ভ্যালু রিড করার মেকানিজম"""
         # লোকাল মোড বা ক্লাউড রান এনভায়রনমেন্ট ভ্যারিয়েবল ব্যাকআপ চেক
         env_fallback = os.getenv(secret_id)
@@ -50758,7 +50844,9 @@ class ProductionSecretVault:
             return env_fallback
 
         if not self.client or not self.project_id:
-            return default_fallback
+            if self.env == "production":
+                raise RuntimeError(f"Secret {secret_id} not found and no local fallback allowed in production!")
+            return ""
 
         try:
             # GCP Secret Manager Standard Resource Path
@@ -50767,10 +50855,10 @@ class ProductionSecretVault:
             payload = response.payload.data.decode("UTF-8")
             return payload.strip()
         except Exception as e:
-            logger.error(
-                f"❌ Failed to fetch secret [{secret_id}] from GSM: {str(e)}. Using fallback."
-            )
-            return default_fallback
+            logger.error(f"❌ Failed to fetch secret [{secret_id}] from GSM: {str(e)}")
+            if self.env == "production":
+                raise RuntimeError(f"Failed to fetch {secret_id} in production: {e}")
+            return ""
 
 
 # Global Vault Singleton Instance
@@ -51826,6 +51914,55 @@ class UserProfiler:
 
     async def update_from_history(self, user_id: str, task: dict[str, Any]) -> None:
         logger.debug(f"Updating user profile for {user_id} from task")
+
+```
+
+## File: `backend/core/cost_guard.py`
+
+```py
+from typing import Any
+from fastapi import HTTPException
+from loguru import logger
+
+class CostGuard:
+    def __init__(self, db: Any):
+        self._db = db
+
+    async def check_budget(self, tenant_id: str, estimated_cost: float) -> bool:
+        """
+        Pre-flight Check:
+        Check if the tenant has enough budget for the estimated cost.
+        Raises HTTPException 402 if budget exceeded.
+        """
+        try:
+            doc_ref = self._db.collection(f"tenants/{tenant_id}/budget").document("status")
+            
+            import asyncio
+            if asyncio.iscoroutinefunction(doc_ref.get):
+                snapshot = await doc_ref.get()
+            else:
+                snapshot = doc_ref.get()
+                
+            if not snapshot.exists:
+                # If no budget info found, we might want to default to a free tier or reject.
+                # Assuming safe rejection or default limit. Let's raise an error for strict mode.
+                raise HTTPException(status_code=402, detail="Payment Required: No budget configured.")
+                
+            data = snapshot.to_dict()
+            monthly_limit = float(data.get("monthly_limit", 0.0))
+            spent_amount = float(data.get("spent_amount", 0.0))
+            
+            if spent_amount + estimated_cost > monthly_limit:
+                logger.warning(f"Tenant {tenant_id} exceeded budget. Spent: {spent_amount}, Limit: {monthly_limit}, Estimated: {estimated_cost}")
+                raise HTTPException(status_code=402, detail="Payment Required: Budget Exceeded")
+                
+            return True
+        except HTTPException:
+            raise
+        except Exception as e:
+            logger.error(f"CostGuard DB Error: {e}")
+            # Failsafe: if DB is down, maybe reject or accept? Zero-Gap means strict.
+            raise RuntimeError(f"CostGuard failed to verify budget: {e}")
 
 ```
 
@@ -54260,6 +54397,59 @@ class UpstashRedisQueue:
 
 ```
 
+## File: `backend/core/config_proxy.py`
+
+```py
+import asyncio
+from datetime import datetime, timedelta
+from typing import Any
+from loguru import logger
+
+class DynamicConfigProxy:
+    def __init__(self, tenant_id: str, db: Any):
+        self._tenant_id = tenant_id
+        self._db = db
+        self._cache = {}
+        self._expiry = datetime.min
+
+    async def get(self, key: str, default: Any = None) -> Any:
+        # TTL চেক (১ মিনিট)
+        if datetime.now() > self._expiry:
+            await self._refresh_cache()
+        
+        return self._cache.get(key, default)
+
+    async def _refresh_cache(self):
+        try:
+            doc_ref = self._db.collection(f"tenants/{self._tenant_id}/config/runtime").document("settings")
+            
+            # handle both sync and async get() based on the db client
+            if asyncio.iscoroutinefunction(doc_ref.get):
+                snapshot = await doc_ref.get()
+            else:
+                snapshot = doc_ref.get()
+                
+            if snapshot.exists:
+                self._cache = snapshot.to_dict()
+                self._expiry = datetime.now() + timedelta(minutes=1)
+            else:
+                # ডামি ডকুমেন্ট তৈরি করা হচ্ছে (fallback/test)
+                self._cache = {
+                    "DEFAULT_CODE_SMELL_THRESHOLDS": {
+                        "complexity": 10,
+                        "lines": 75,
+                        "args": 5,
+                        "class_methods": 15,
+                    },
+                    "COMMON_STRINGS_TO_IGNORE": ["", "utf-8", "rb", "wb", "r", "w", "a", "x", "b", "t", "+"]
+                }
+                self._expiry = datetime.now() + timedelta(minutes=1)
+        except Exception as e:
+            logger.error(f"Failed to refresh config from DB: {e}")
+            raise RuntimeError(f"Failed to refresh config from DB: {e}")
+
+```
+
 ## File: `backend/core/token_deductor.py`
 
 ```py
@@ -55164,7 +55354,7 @@ class TenantAwareFirestore:
         import os
         import sys
 
-        if "pytest" in sys.modules or os.getenv("ENV") == "test":
+        if os.getenv("ENV") == "test":
 
             class MockFirestore:
                 def collection(self, *args, **kwargs):
@@ -74194,16 +74384,32 @@ def test_reasoning_orchestrator_route():
 ## File: `backend/tests/test_constants.py`
 
 ```py
-from __future__ import annotations
+import pytest
+from unittest.mock import MagicMock
+from core.constants import get_common_strings_to_ignore, get_default_code_smell_thresholds
+from core.config_proxy import DynamicConfigProxy
 
-from core.constants import COMMON_STRINGS_TO_IGNORE, DEFAULT_CODE_SMELL_THRESHOLDS
+@pytest.fixture
+def mock_proxy():
+    db = MagicMock()
+    doc_ref = MagicMock()
+    snapshot = MagicMock()
+    snapshot.exists = False
+    doc_ref.get.return_value = snapshot
+    db.collection.return_value.document.return_value = doc_ref
+    
+    proxy = DynamicConfigProxy("tenant-123", db)
+    return proxy
 
+@pytest.mark.asyncio
+async def test_constants_via_proxy(mock_proxy):
+    thresholds = await get_default_code_smell_thresholds(mock_proxy)
+    assert isinstance(thresholds, dict)
+    assert thresholds["complexity"] == 10
 
-def test_constants_defined():
-    assert isinstance(DEFAULT_CODE_SMELL_THRESHOLDS, dict)
-    assert DEFAULT_CODE_SMELL_THRESHOLDS["complexity"] == 10
-    assert "utf-8" in COMMON_STRINGS_TO_IGNORE
-    assert "rb" in COMMON_STRINGS_TO_IGNORE
+    strings_to_ignore = await get_common_strings_to_ignore(mock_proxy)
+    assert "utf-8" in strings_to_ignore
+    assert "rb" in strings_to_ignore
 
 ```
 
@@ -90926,6 +91132,80 @@ def test_celery_app_exposed():
 
 ```
 
+## File: `backend/tests/core/test_cost_guard.py`
+
+```py
+import pytest
+from unittest.mock import MagicMock
+from fastapi import HTTPException
+from core.cost_guard import CostGuard
+
+@pytest.fixture
+def mock_db():
+    return MagicMock()
+
+@pytest.mark.asyncio
+async def test_cost_guard_allows_when_under_budget(mock_db):
+    doc_ref = MagicMock()
+    snapshot = MagicMock()
+    snapshot.exists = True
+    snapshot.to_dict.return_value = {
+        "monthly_limit": 10.0,
+        "spent_amount": 5.0
+    }
+    doc_ref.get.return_value = snapshot
+    mock_db.collection.return_value.document.return_value = doc_ref
+    
+    guard = CostGuard(mock_db)
+    result = await guard.check_budget("tenant-1", 1.0)
+    assert result is True
+
+@pytest.mark.asyncio
+async def test_cost_guard_blocks_when_over_budget(mock_db):
+    doc_ref = MagicMock()
+    snapshot = MagicMock()
+    snapshot.exists = True
+    snapshot.to_dict.return_value = {
+        "monthly_limit": 10.0,
+        "spent_amount": 9.5
+    }
+    doc_ref.get.return_value = snapshot
+    mock_db.collection.return_value.document.return_value = doc_ref
+    
+    guard = CostGuard(mock_db)
+    with pytest.raises(HTTPException) as exc:
+        await guard.check_budget("tenant-1", 1.0)
+    
+    assert exc.value.status_code == 402
+    assert "Budget Exceeded" in exc.value.detail
+
+@pytest.mark.asyncio
+async def test_cost_guard_blocks_when_no_budget_doc(mock_db):
+    doc_ref = MagicMock()
+    snapshot = MagicMock()
+    snapshot.exists = False
+    doc_ref.get.return_value = snapshot
+    mock_db.collection.return_value.document.return_value = doc_ref
+    
+    guard = CostGuard(mock_db)
+    with pytest.raises(HTTPException) as exc:
+        await guard.check_budget("tenant-1", 1.0)
+    
+    assert exc.value.status_code == 402
+    assert "No budget configured" in exc.value.detail
+
+@pytest.mark.asyncio
+async def test_cost_guard_raises_runtime_error_on_db_failure(mock_db):
+    doc_ref = MagicMock()
+    doc_ref.get.side_effect = Exception("Firestore Offline")
+    mock_db.collection.return_value.document.return_value = doc_ref
+    
+    guard = CostGuard(mock_db)
+    with pytest.raises(RuntimeError, match="CostGuard failed to verify budget: Firestore Offline"):
+        await guard.check_budget("tenant-1", 1.0)
+
+```
+
 ## File: `backend/tests/core/test_swarm_orchestrator.py`
 
 ```py
@@ -91089,6 +91369,173 @@ async def test_log_batcher_service_run(batcher_service):
 # Test the global batcher instance
 def test_global_batcher_instance():
     assert isinstance(batcher, LogBatcherService)
+
+```
+
+## File: `backend/tests/core/test_self_healer.py`
+
+```py
+import pytest
+from unittest.mock import MagicMock
+from core.self_healer import SelfHealerService
+
+@pytest.fixture
+def mock_db():
+    return MagicMock()
+
+@pytest.mark.asyncio
+async def test_self_healer_propose_fix_success(mock_db):
+    doc_ref = MagicMock()
+    mock_db.collection.return_value.document.return_value = doc_ref
+    
+    service = SelfHealerService(mock_db)
+    
+    fix_id = await service.propose_fix(
+        tenant_id="tenant-1",
+        error_pattern="ValueError: unknown field",
+        proposed_fix="def fix():\n    pass",
+        impact_score=0.5,
+        dependency_tree=["core.utils"]
+    )
+    
+    assert fix_id.startswith("fix-")
+    doc_ref.set.assert_called_once()
+    
+    # Verify the payload
+    call_args = doc_ref.set.call_args[0][0]
+    assert call_args["status"] == "pending_review"
+    assert call_args["error_pattern"] == "ValueError: unknown field"
+    assert call_args["impact_score"] == 0.5
+    assert call_args["dependency_tree"] == ["core.utils"]
+    assert call_args["trace_id"].startswith("err-trace-")
+
+@pytest.mark.asyncio
+async def test_self_healer_rejects_dangerous_code(mock_db):
+    service = SelfHealerService(mock_db)
+    
+    with pytest.raises(ValueError, match="Dangerous keyword 'exec\\(' detected"):
+        await service.propose_fix(
+            tenant_id="tenant-1",
+            error_pattern="Any error",
+            proposed_fix="exec('rm -rf /')",
+            impact_score=0.1,
+            dependency_tree=[]
+        )
+
+@pytest.mark.asyncio
+async def test_self_healer_rejects_invalid_impact_score(mock_db):
+    service = SelfHealerService(mock_db)
+    
+    with pytest.raises(ValueError, match="Impact score must be between 0.0 and 1.0"):
+        await service.propose_fix(
+            tenant_id="tenant-1",
+            error_pattern="Any error",
+            proposed_fix="valid code",
+            impact_score=1.5,
+            dependency_tree=[]
+        )
+
+@pytest.mark.asyncio
+async def test_self_healer_test_sandbox_placeholder(mock_db):
+    service = SelfHealerService(mock_db)
+    result = await service.test_fix_in_sandbox("fix-123", "tenant-1")
+    assert result is True
+
+```
+
+## File: `backend/tests/core/test_config_proxy.py`
+
+```py
+import pytest
+from unittest.mock import MagicMock
+from core.config_proxy import DynamicConfigProxy
+from datetime import datetime, timedelta
+
+@pytest.fixture
+def mock_db():
+    db = MagicMock()
+    return db
+
+@pytest.mark.asyncio
+async def test_dynamic_config_proxy_loads_default_when_no_doc(mock_db):
+    doc_ref = MagicMock()
+    # Mocking snapshot.exists = False
+    snapshot = MagicMock()
+    snapshot.exists = False
+    doc_ref.get.return_value = snapshot
+    
+    mock_db.collection.return_value.document.return_value = doc_ref
+    
+    proxy = DynamicConfigProxy("tenant-123", mock_db)
+    
+    # Should load the fallback defaults
+    thresholds = await proxy.get("DEFAULT_CODE_SMELL_THRESHOLDS")
+    assert thresholds is not None
+    assert thresholds["complexity"] == 10
+
+@pytest.mark.asyncio
+async def test_dynamic_config_proxy_loads_from_db(mock_db):
+    doc_ref = MagicMock()
+    snapshot = MagicMock()
+    snapshot.exists = True
+    snapshot.to_dict.return_value = {
+        "DEFAULT_CODE_SMELL_THRESHOLDS": {"complexity": 20},
+        "COMMON_STRINGS_TO_IGNORE": ["a", "b"]
+    }
+    doc_ref.get.return_value = snapshot
+    mock_db.collection.return_value.document.return_value = doc_ref
+    
+    proxy = DynamicConfigProxy("tenant-123", mock_db)
+    
+    thresholds = await proxy.get("DEFAULT_CODE_SMELL_THRESHOLDS")
+    assert thresholds["complexity"] == 20
+    
+    strings = await proxy.get("COMMON_STRINGS_TO_IGNORE")
+    assert "a" in strings
+
+@pytest.mark.asyncio
+async def test_dynamic_config_proxy_raises_runtime_error_on_db_failure(mock_db):
+    doc_ref = MagicMock()
+    # Simulate DB connection error
+    doc_ref.get.side_effect = Exception("DB Connection Timeout")
+    mock_db.collection.return_value.document.return_value = doc_ref
+    
+    proxy = DynamicConfigProxy("tenant-123", mock_db)
+    
+    with pytest.raises(RuntimeError, match="Failed to refresh config from DB: DB Connection Timeout"):
+        await proxy.get("DEFAULT_CODE_SMELL_THRESHOLDS")
+
+@pytest.mark.asyncio
+async def test_dynamic_config_proxy_caches_values(mock_db):
+    doc_ref = MagicMock()
+    snapshot = MagicMock()
+    snapshot.exists = True
+    snapshot.to_dict.return_value = {
+        "TEST_KEY": "TEST_VALUE"
+    }
+    doc_ref.get.return_value = snapshot
+    mock_db.collection.return_value.document.return_value = doc_ref
+    
+    proxy = DynamicConfigProxy("tenant-123", mock_db)
+    
+    val1 = await proxy.get("TEST_KEY")
+    assert val1 == "TEST_VALUE"
+    
+    # Change DB value
+    snapshot.to_dict.return_value = {
+        "TEST_KEY": "NEW_VALUE"
+    }
+    
+    # Should still return cached value because TTL is 1 min
+    val2 = await proxy.get("TEST_KEY")
+    assert val2 == "TEST_VALUE"
+    
+    # Force expire cache
+    proxy._expiry = datetime.min
+    
+    # Now it should fetch the new value
+    val3 = await proxy.get("TEST_KEY")
+    assert val3 == "NEW_VALUE"
 
 ```
 

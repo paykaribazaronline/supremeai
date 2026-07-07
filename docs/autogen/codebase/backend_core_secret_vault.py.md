@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/secret_vault.py
 
 **প্রকার:** .py  
-**সাইজ:** 2,614 বাইট  
-**আপডেট:** 2026-07-07T17:03:49.402709
+**সাইজ:** 2,792 বাইট  
+**আপডেট:** 2026-07-07T17:20:39.830262
 
 ---
 
@@ -48,7 +48,7 @@ class ProductionSecretVault:
                 "⚙️ Local/Dev mode active or library missing. Bypassing Google Secret Manager."
             )
 
-    def fetch_secret(self, secret_id: str, default_fallback: str = "") -> str:
+    def fetch_secret(self, secret_id: str) -> str:
         """গুগল সিক্রেট ম্যানেজার থেকে রিয়াল-টাইমে সিক্রেট ভ্যালু রিড করার মেকানিজম"""
         # লোকাল মোড বা ক্লাউড রান এনভায়রনমেন্ট ভ্যারিয়েবল ব্যাকআপ চেক
         env_fallback = os.getenv(secret_id)
@@ -56,7 +56,9 @@ class ProductionSecretVault:
             return env_fallback
 
         if not self.client or not self.project_id:
-            return default_fallback
+            if self.env == "production":
+                raise RuntimeError(f"Secret {secret_id} not found and no local fallback allowed in production!")
+            return ""
 
         try:
             # GCP Secret Manager Standard Resource Path
@@ -65,10 +67,10 @@ class ProductionSecretVault:
             payload = response.payload.data.decode("UTF-8")
             return payload.strip()
         except Exception as e:
-            logger.error(
-                f"❌ Failed to fetch secret [{secret_id}] from GSM: {str(e)}. Using fallback."
-            )
-            return default_fallback
+            logger.error(f"❌ Failed to fetch secret [{secret_id}] from GSM: {str(e)}")
+            if self.env == "production":
+                raise RuntimeError(f"Failed to fetch {secret_id} in production: {e}")
+            return ""
 
 
 # Global Vault Singleton Instance
