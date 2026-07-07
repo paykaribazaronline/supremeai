@@ -23,5 +23,6 @@ class PubSub:
             for queue in self.subscribers[channel]:
                 await queue.put(message)
 
+
 # Global Instance
 global_pubsub = PubSub()

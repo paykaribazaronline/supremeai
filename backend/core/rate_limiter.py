@@ -38,9 +38,7 @@ class RateLimiter:
 
 
 class RedisRateLimiter:
-    def __init__(
-        self, requests_per_minute: int = 60, burst: int = 10, window: int = 60
-    ) -> None:
+    def __init__(self, requests_per_minute: int = 60, burst: int = 10, window: int = 60) -> None:
         self.requests_per_minute = requests_per_minute
         self.burst = burst
         self.window = window
@@ -54,9 +52,7 @@ class RedisRateLimiter:
 
             self._redis = UpstashRedisQueue()
         except Exception as exc:  # noqa: BLE001
-            logger.warning(
-                f"Redis rate limiter unavailable, falling back to in-memory: {exc}"
-            )
+            logger.warning(f"Redis rate limiter unavailable, falling back to in-memory: {exc}")
             self._redis = None
 
     def is_allowed(self, key: str) -> bool:
@@ -90,9 +86,7 @@ class RedisRateLimiter:
 class RateLimitMiddleware:
     def __init__(self, app, requests_per_minute: int = 60, burst: int = 10) -> None:
         self.app = app
-        self.limiter = RedisRateLimiter(
-            requests_per_minute=requests_per_minute, burst=burst
-        )
+        self.limiter = RedisRateLimiter(requests_per_minute=requests_per_minute, burst=burst)
 
     async def __call__(self, scope, receive, send) -> None:
         if scope["type"] != "http":
@@ -119,18 +113,12 @@ class RateLimitMiddleware:
                 if not hasattr(self, "_tenant_limiter"):
                     self._tenant_limiter = TenantRateLimiter()
 
-                quota_status = await self._tenant_limiter.check_quota(
-                    tenant_id, cost=0.0
-                )
+                quota_status = await self._tenant_limiter.check_quota(tenant_id, cost=0.0)
                 if not quota_status.get("allowed", True):
-                    logger.warning(
-                        f"Tenant rate limit exceeded for {tenant_id}: {quota_status}"
-                    )
+                    logger.warning(f"Tenant rate limit exceeded for {tenant_id}: {quota_status}")
                     response = JSONResponse(
                         status_code=429,
-                        content={
-                            "detail": f"Tenant rate limit exceeded: {quota_status.get('reason')}"
-                        },
+                        content={"detail": f"Tenant rate limit exceeded: {quota_status.get('reason')}"},
                     )
                     await response(scope, receive, send)
                     return

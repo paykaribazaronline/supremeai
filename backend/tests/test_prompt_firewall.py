@@ -1,4 +1,5 @@
 """Tests for core.prompt_firewall.PromptFirewall and module-level helpers."""
+
 import pytest
 
 from core.prompt_firewall import PromptFirewall, pre_flight_scan, classify_intent

@@ -11,6 +11,7 @@ import protos.supreme_engine_pb2_grpc as pb2_grpc
 
 logger = logging.getLogger(__name__)
 
+
 class WorkerGrpcClient:
     def __init__(self, host: str = "localhost", port: int = 9090):
         self.channel = grpc.insecure_channel(f"{host}:{port}")
@@ -18,11 +19,7 @@ class WorkerGrpcClient:
 
     def submit_task(self, task_type: str, payload: dict[str, Any], requested_by: str = "fastapi-engine") -> str | None:
         try:
-            req = pb2.TaskRequest(
-                task_type=task_type,
-                payload_json=json.dumps(payload),
-                requested_by=requested_by
-            )
+            req = pb2.TaskRequest(task_type=task_type, payload_json=json.dumps(payload), requested_by=requested_by)
             response = self.stub.SubmitTask(req)
             logger.info(f"Task submitted to Java Worker. Task ID: {response.task_id}")
             return response.task_id
@@ -38,7 +35,7 @@ class WorkerGrpcClient:
                 "task_id": response.task_id,
                 "status": response.status,
                 "result_json": json.loads(response.result_json) if response.result_json else None,
-                "error_message": response.error_message
+                "error_message": response.error_message,
             }
         except grpc.RpcError as e:
             logger.error(f"gRPC call failed: {e}")
@@ -46,17 +43,13 @@ class WorkerGrpcClient:
 
     def log_audit_event(self, event_type: str, user_id: str, resource: str, details: dict[str, Any]) -> bool:
         try:
-            req = pb2.AuditLogRequest(
-                event_type=event_type,
-                user_id=user_id,
-                resource=resource,
-                details_json=json.dumps(details)
-            )
+            req = pb2.AuditLogRequest(event_type=event_type, user_id=user_id, resource=resource, details_json=json.dumps(details))
             response = self.stub.LogAuditEvent(req)
             return response.success
         except grpc.RpcError as e:
             logger.error(f"gRPC call failed: {e}")
             return False
+
 
 # Global instance
 worker_client = WorkerGrpcClient()

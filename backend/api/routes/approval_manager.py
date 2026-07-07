@@ -38,6 +38,7 @@ def approve_task(task_id: str, req: ApproveRequest):
     if task.task_type == "SKILL_GENERATION":
         try:
             import os
+
             skill_name = task.payload.get("skill_name")
             code = task.payload.get("generated_code")
             if skill_name and code:
