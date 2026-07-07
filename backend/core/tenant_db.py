@@ -30,7 +30,7 @@ class TenantAwareFirestore:
         import os
         import sys
 
-        if "pytest" in sys.modules or os.getenv("ENV") == "test":
+        if os.getenv("ENV") == "test":
 
             class MockFirestore:
                 def collection(self, *args, **kwargs):
