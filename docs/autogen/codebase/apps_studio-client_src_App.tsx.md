@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/studio-client/src/App.tsx
 
 **প্রকার:** .tsx  
-**সাইজ:** 21,974 বাইট  
-**আপডেট:** 2026-07-07T06:57:02.478971
+**সাইজ:** 22,588 বাইট  
+**আপডেট:** 2026-07-07T07:10:31.745476
 
 ---
 
@@ -14,7 +14,18 @@ import { Routes, Route } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useStore } from "./store/useStore";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: (failureCount, error: any) => {
+        if (error?.status === 401 || error?.status === 403) return false;
+        return failureCount < 3;
+      },
+      retryDelay: 5000,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 import { useAdminStore } from "./store/adminStore";
 import { AdminConsole } from "./components/admin/AdminConsole";
 import { UserDashboard } from "./components/customer/UserDashboard";
@@ -324,6 +335,15 @@ export const App: React.FC = () => {
     eventSource.onerror = () => {
       console.error("🔴 [SYSTEM CRITICAL] SSE Stream severed. SupremeAI Server is OFFLINE.");
       setServerStatus(false);
+      eventSource.close(); // Prevent infinite native retries
+    };
+    
+    eventSource.onmessage = (e) => {
+      if (e.data && (e.data.includes('auth_error') || e.data.includes('401'))) {
+         console.error("🔴 SSE Auth Error: Closing stream to prevent storm.");
+         eventSource.close();
+         setServerStatus(false);
+      }
     };
 
     return () => {

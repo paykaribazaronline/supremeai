@@ -1,7 +1,7 @@
 # 🧠 SupremeAI 2.0 Codebase Dump
 # বাংলা মন্তব্য: এটি একটি স্বয়ংক্রিয়ভাবে জেনারেট করা কোডবেস ডাম্প ফাইল যা প্রজেক্টের সামগ্রিক বিশ্লেষণের জন্য ব্যবহৃত হয়।
 
-Generated at: 2026-07-07T06:57:02.358113
+Generated at: 2026-07-07T07:10:31.641749
 
 
 ## File: `pnpm-lock.yaml`
@@ -117897,7 +117897,18 @@ import { Routes, Route } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useStore } from "./store/useStore";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: (failureCount, error: any) => {
+        if (error?.status === 401 || error?.status === 403) return false;
+        return failureCount < 3;
+      },
+      retryDelay: 5000,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 import { useAdminStore } from "./store/adminStore";
 import { AdminConsole } from "./components/admin/AdminConsole";
 import { UserDashboard } from "./components/customer/UserDashboard";
@@ -118207,6 +118218,15 @@ export const App: React.FC = () => {
     eventSource.onerror = () => {
       console.error("🔴 [SYSTEM CRITICAL] SSE Stream severed. SupremeAI Server is OFFLINE.");
       setServerStatus(false);
+      eventSource.close(); // Prevent infinite native retries
+    };
+    
+    eventSource.onmessage = (e) => {
+      if (e.data && (e.data.includes('auth_error') || e.data.includes('401'))) {
+         console.error("🔴 SSE Auth Error: Closing stream to prevent storm.");
+         eventSource.close();
+         setServerStatus(false);
+      }
     };
 
     return () => {
@@ -121839,12 +121859,38 @@ export function searchMovie(dcOrVars, varsOrOptions, options) {
 ## File: `apps/studio-client/src/utils/apiInterceptor.ts`
 
 ```ts
+import { getAdminToken } from '../services/adminTokenStore';
+import { getApiBaseUrl } from './api';
+
 export function setupGlobalFetchInterceptor() {
   if (typeof window === 'undefined') return;
 
   const originalFetch = window.fetch;
 
   window.fetch = async function (...args) {
+    let [url, options] = args;
+    const apiBase = getApiBaseUrl();
+
+    if (typeof url === 'string' && url.startsWith(apiBase)) {
+      const token = getAdminToken();
+      
+      if (url.includes('/admin-api/')) {
+        if (!token) {
+           console.warn("Blocked unauthorized API request to prevent storm:", url);
+           return Promise.reject(new Error("No token found"));
+        }
+      }
+
+      if (token) {
+        options = options || {};
+        options.headers = {
+          ...options.headers,
+          'Authorization': `Bearer ${token}`
+        };
+        args[1] = options;
+      }
+    }
+
     try {
       const response = await originalFetch.apply(this, args);
       
