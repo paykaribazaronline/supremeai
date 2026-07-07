@@ -7,7 +7,8 @@ export function setupGlobalFetchInterceptor() {
   const originalFetch = window.fetch;
 
   window.fetch = async function (...args) {
-    let [url, options] = args;
+    const url = args[0];
+    let options: any = args[1];
     const apiBase = getApiBaseUrl();
 
     if (typeof url === 'string' && url.startsWith(apiBase)) {
