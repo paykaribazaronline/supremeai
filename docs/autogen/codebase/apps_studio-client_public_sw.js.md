@@ -1,27 +1,38 @@
 # 📄 ফাইল: apps/studio-client/public/sw.js
 
 **প্রকার:** .js  
-**সাইজ:** 2,126 বাইট  
-**আপডেট:** 2026-07-07T08:44:02.493808
+**সাইজ:** 3,511 বাইট  
+**আপডেট:** 2026-07-07T09:44:07.356097
 
 ---
 
 ## কোড
 
 ```js
-const CACHE_NAME = 'supremeai-pwa-cache-v1';
-const OFFLINE_URL = '/offline.html';
+const CACHE_NAME = 'supremeai-pwa-cache-v2';
+
+// বাংলা মন্তব্য: যেসব রিসোর্স ক্যাশ করা হবে — শুধু নিশ্চিত ফাইলগুলো রাখা হয়েছে
+const PRECACHE_URLS = [
+  '/',
+  '/index.html',
+  '/manifest.json',
+];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll([
-        '/',
-        '/index.html',
-        OFFLINE_URL,
-        '/manifest.json',
-        '/favicon.ico'
-      ]);
+    caches.open(CACHE_NAME).then(async (cache) => {
+      // বাংলা মন্তব্য: addAll ব্যবহার না করে একটা একটা করে ক্যাশ করা হচ্ছে — কোনো একটা ফেইল করলেও বাকিগুলো ক্যাশ হবে
+      const results = await Promise.allSettled(
+        PRECACHE_URLS.map((url) =>
+          fetch(url)
+            .then((res) => {
+              if (res.ok) return cache.put(url, res);
+              console.debug(`[SW] Skipping cache for ${url}: ${res.status}`);
+            })
+            .catch((err) => console.debug(`[SW] Failed to fetch ${url}:`, err))
+        )
+      );
+      console.debug('[SW] Precache results:', results.map((r) => r.status));
     })
   );
   self.skipWaiting();
@@ -44,6 +55,12 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  // বাংলা মন্তব্য: API রেসপন্স ক্যাশ করলে stale ডেটা দেখাবে — শুধু স্ট্যাটিক অ্যাসেট ক্যাশ করা হবে
+  const url = new URL(event.request.url);
+  if (url.pathname.startsWith('/admin-api/') || url.pathname.startsWith('/api/')) {
+    return;
+  }
+
   event.respondWith(
     fetch(event.request)
       .then((response) => {
@@ -62,9 +79,9 @@ self.addEventListener('fetch', (event) => {
           if (response) {
             return response;
           }
-          // If HTML request, return offline page
-          if (event.request.headers.get('accept').includes('text/html')) {
-            return caches.match(OFFLINE_URL);
+          // বাংলা মন্তব্য: HTML রিকোয়েস্ট হলে ক্যাশ করা index.html ফেরত দেওয়া হবে (SPA ফলব্যাক)
+          if (event.request.headers.get('accept')?.includes('text/html')) {
+            return caches.match('/index.html');
           }
         });
       })

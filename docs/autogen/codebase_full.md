@@ -1,7 +1,7 @@
 # 🧠 SupremeAI 2.0 Codebase Dump
 # বাংলা মন্তব্য: এটি একটি স্বয়ংক্রিয়ভাবে জেনারেট করা কোডবেস ডাম্প ফাইল যা প্রজেক্টের সামগ্রিক বিশ্লেষণের জন্য ব্যবহৃত হয়।
 
-Generated at: 2026-07-07T08:44:02.390892
+Generated at: 2026-07-07T09:44:07.214606
 
 
 ## File: `pnpm-lock.yaml`
@@ -117897,15 +117897,25 @@ import { Routes, Route } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useStore } from "./store/useStore";
 
+// বাংলা মন্তব্য: 401/403/429 এরর হলে কোনো রিট্রাই করা হবে না — রেট লিমিট স্টর্ম ঠেকাতে
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       retry: (failureCount, error: any) => {
-        if (error?.status === 401 || error?.status === 403) return false;
-        return failureCount < 1;
+        // 401/403 = auth ভুল, 429 = rate limit — রিট্রাই করলে পরিস্থিতি আরও খারাপ হবে
+        const msg = error?.message || '';
+        if (
+          error?.status === 401 || error?.status === 403 || error?.status === 429 ||
+          msg.includes('401') || msg.includes('403') || msg.includes('429') ||
+          msg.includes('Rate limit') || msg.includes('Unauthorized')
+        ) return false;
+        return failureCount < 2;
       },
-      retryDelay: 5000,
+      // বাংলা মন্তব্য: এক্সপোনেন্সিয়াল ব্যাকঅফ + জিটার — সার্ভার চাপ কমাতে
+      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex + Math.random() * 500, 15000),
       refetchOnWindowFocus: false,
+      // বাংলা মন্তব্য: staleTime বাড়ানো হলো যাতে মাউন্টে ডুপ্লিকেট রিকোয়েস্ট না যায়
+      staleTime: 30_000,
     },
   },
 });
@@ -136019,6 +136029,7 @@ export const useStore = create<SupremeState>((set) => ({
 ```ts
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '../services/apiClient';
+import { getAdminToken } from '../services/adminTokenStore';
 
 export interface MetricsData {
   latency_p50_ms: number;
@@ -136063,11 +136074,17 @@ export interface ThreatScanResult {
   total_findings: number;
 }
 
+// বাংলা মন্তব্য: টোকেন চেক হেল্পার — টোকেন না থাকলে কোয়েরি enabled=false হবে, 401 স্টর্ম ঠেকাবে
+const hasToken = (): boolean => !!getAdminToken();
+
+// বাংলা মন্তব্য: রিফেচ ইন্টারভালগুলো আলাদা আলাদা সময়ে সেট করা হয়েছে যাতে সব কোয়েরি একসাথে ফায়ার না হয়
 export function useMetrics(intervalMs = 30000) {
   return useQuery({
     queryKey: ['dashboard', 'metrics'],
     queryFn: () => apiClient.get<MetricsData>('/admin-api/metrics'),
     refetchInterval: (query: any) => query.state.error ? false : intervalMs,
+    enabled: hasToken(),
+    staleTime: 15_000,
   });
 }
 
@@ -136076,22 +136093,28 @@ export function useCostReport(intervalMs = 60000) {
     queryKey: ['dashboard', 'costs'],
     queryFn: () => apiClient.get<CostReport>('/admin-api/costs'),
     refetchInterval: (query: any) => query.state.error ? false : intervalMs,
+    enabled: hasToken(),
+    staleTime: 30_000,
   });
 }
 
-export function useHealthMap(intervalMs = 30000) {
+export function useHealthMap(intervalMs = 45000) {
   return useQuery({
     queryKey: ['dashboard', 'health'],
     queryFn: () => apiClient.get<HealthMapData>('/admin-api/health-map'),
     refetchInterval: (query: any) => query.state.error ? false : intervalMs,
+    enabled: hasToken(),
+    staleTime: 20_000,
   });
 }
 
-export function useCIReports(limit = 5, intervalMs = 15000) {
+export function useCIReports(limit = 5, intervalMs = 30000) {
   return useQuery({
     queryKey: ['dashboard', 'ci-logs', limit],
     queryFn: () => apiClient.get<CIReport[]>(`/admin-api/ci-logs?limit=${limit}`),
     refetchInterval: (query: any) => query.state.error ? false : intervalMs,
+    enabled: hasToken(),
+    staleTime: 15_000,
   });
 }
 
@@ -136099,7 +136122,10 @@ export function useThreatScan() {
   return useQuery({
     queryKey: ['dashboard', 'security-scan'],
     queryFn: () => apiClient.get<ThreatScanResult>('/admin-api/security-scan'),
-    refetchInterval: (query: any) => query.state.error ? false : 30000,
+    // বাংলা মন্তব্য: সিকিউরিটি স্ক্যান কম ঘন ঘন চলবে — ১২০ সেকেন্ড ইন্টারভাল
+    refetchInterval: (query: any) => query.state.error ? false : 120000,
+    enabled: hasToken(),
+    staleTime: 60_000,
   });
 }
 
@@ -136137,11 +136163,13 @@ export interface ReportDetail {
 }
 
 // বাংলা মন্তব্য: রিয়েল-টাইম ইভেন্ট ডেটা ফেচ করার জন্য রিয়্যাক্ট কোয়েরি হুক
-export function useDashboardEvents(limit = 50, intervalMs = 10000) {
+export function useDashboardEvents(limit = 50, intervalMs = 30000) {
   return useQuery({
     queryKey: ['dashboard', 'events', limit],
     queryFn: () => apiClient.get<DashboardEvent[]>(`/admin-api/events?limit=${limit}`),
     refetchInterval: (query: any) => query.state.error ? false : intervalMs,
+    enabled: hasToken(),
+    staleTime: 15_000,
   });
 }
 
@@ -136153,8 +136181,11 @@ export function useDashboardReports(reportName?: string) {
       const url = reportName ? `/admin-api/reports?report_name=${reportName}` : '/admin-api/reports';
       return apiClient.get<any>(url);
     },
+    enabled: hasToken(),
+    staleTime: 60_000,
   });
 }
+
 
 ```
 
@@ -136681,42 +136712,25 @@ export function useChat(options: UseChatOptions = {}): UseChatReturn {
 
 ```ts
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getApiBaseUrl } from '../utils/api';
+import { apiClient } from '../services/apiClient';
+import { getAdminToken } from '../services/adminTokenStore';
 
-
-async function fetchJSON<T>(url: string): Promise<T> {
-  const res = await fetch(`${getApiBaseUrl()}${url}`);
-  if (!res.ok) throw new Error(`Failed: ${url}`);
-  return res.json();
-}
-
-async function postJSON<T>(url: string, body: unknown): Promise<T> {
-  const res = await fetch(`${getApiBaseUrl()}${url}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-  });
-  if (!res.ok) throw new Error((await res.json()).detail || 'Request failed');
-  return res.json();
-}
-
-async function delJSON<T>(url: string): Promise<T> {
-  const res = await fetch(`${getApiBaseUrl()}${url}`, { method: 'DELETE' });
-  if (!res.ok) throw new Error('Delete failed');
-  return res.json();
-}
+// বাংলা মন্তব্য: টোকেন চেক — টোকেন ছাড়া কোনো admin-api কল হবে না
+const hasToken = (): boolean => !!getAdminToken();
 
 export function useAdminRules() {
   return useQuery({
     queryKey: ['admin', 'rules'],
-    queryFn: () => fetchJSON<any>('/admin/rules'),
+    queryFn: () => apiClient.get<any>('/admin/rules'),
+    enabled: hasToken(),
+    staleTime: 30_000,
   });
 }
 
 export function useSaveRules() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (rules: unknown) => postJSON('/admin/rules', { rules }),
+    mutationFn: (rules: unknown) => apiClient.post('/admin/rules', { rules }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['admin', 'rules'] }),
   });
 }
@@ -136724,14 +136738,15 @@ export function useSaveRules() {
 export function useSkills(query = '') {
   return useQuery({
     queryKey: ['skills', query],
-    queryFn: () => postJSON<import('../types').Skill[]>('/api/skills/search', { query, installed_only: false }),
+    queryFn: () => apiClient.post<import('../types').Skill[]>('/api/skills/search', { query, installed_only: false }),
+    staleTime: 30_000,
   });
 }
 
 export function useInstallSkill() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (skill: string) => postJSON(`/api/skills/install`, { skill }),
+    mutationFn: (skill: string) => apiClient.post(`/api/skills/install`, { skill }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['skills'] }),
   });
 }
@@ -136739,38 +136754,46 @@ export function useInstallSkill() {
 export function useCheckpoints() {
   return useQuery({
     queryKey: ['checkpoints'],
-    queryFn: () => fetchJSON<import('../types').Checkpoint[]>('/memory/checkpoints'),
+    queryFn: () => apiClient.get<import('../types').Checkpoint[]>('/memory/checkpoints'),
+    staleTime: 30_000,
   });
 }
 
 export function useDeleteCheckpoint() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (taskId: string) => delJSON(`/memory/checkpoint/${taskId}`),
+    mutationFn: (taskId: string) => apiClient.delete(`/memory/checkpoint/${taskId}`),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['checkpoints'] }),
   });
 }
 
+// বাংলা মন্তব্য: useDashboardData.ts এ একই ডেটার জন্য হুক আছে — queryKey ম্যাচ করানো হয়েছে ডুপ্লিকেট ফেচ ঠেকাতে
 export function useCostReport() {
   return useQuery({
-    queryKey: ['costs'],
-    queryFn: () => fetchJSON<{ report: string }>('/admin-api/costs'),
+    queryKey: ['dashboard', 'costs'],
+    queryFn: () => apiClient.get<{ report: string }>('/admin-api/costs'),
     refetchInterval: (query: any) => query.state.error ? false : 60000,
+    enabled: hasToken(),
+    staleTime: 30_000,
   });
 }
 
 export function useHealthMap() {
   return useQuery({
-    queryKey: ['health'],
-    queryFn: () => fetchJSON<any>('/admin-api/health-map'),
-    refetchInterval: (query: any) => query.state.error ? false : 30000,
+    queryKey: ['dashboard', 'health'],
+    queryFn: () => apiClient.get<any>('/admin-api/health-map'),
+    refetchInterval: (query: any) => query.state.error ? false : 45000,
+    enabled: hasToken(),
+    staleTime: 20_000,
   });
 }
 
 export function useAdminUsers() {
   return useQuery({
-    queryKey: ['users'],
-    queryFn: () => fetchJSON<any[]>('/admin-api/users'),
+    queryKey: ['admin', 'users'],
+    queryFn: () => apiClient.get<any[]>('/admin-api/users'),
+    enabled: hasToken(),
+    staleTime: 30_000,
   });
 }
 
@@ -136778,64 +136801,71 @@ export function useSaveUser() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (user: { username: string; role: string; permissions: string[] }) =>
-      postJSON('/admin-api/users', user),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['users'] }),
+      apiClient.post('/admin-api/users', user),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['admin', 'users'] }),
   });
 }
 
 export function useDeleteUser() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (username: string) => delJSON(`/admin-api/users/${username}`),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['users'] }),
+    mutationFn: (username: string) => apiClient.delete(`/admin-api/users/${username}`),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['admin', 'users'] }),
   });
 }
 
 export function useEnvConfig() {
   return useQuery({
-    queryKey: ['config'],
-    queryFn: () => fetchJSON<Record<string, string>>('/admin-api/config'),
+    queryKey: ['admin', 'config'],
+    queryFn: () => apiClient.get<Record<string, string>>('/admin-api/config'),
+    enabled: hasToken(),
+    staleTime: 60_000,
   });
 }
 
 export function useSaveConfig() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (env_vars: Record<string, string>) => postJSON('/admin-api/config', { env_vars }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['config'] }),
+    mutationFn: (env_vars: Record<string, string>) => apiClient.post('/admin-api/config', { env_vars }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['admin', 'config'] }),
   });
 }
 
 export function useTriggerDeploy() {
   return useMutation({
-    mutationFn: () => postJSON<{ message: string }>('/admin-api/deploy', {}),
+    mutationFn: () => apiClient.post<{ message: string }>('/admin-api/deploy', {}),
   });
 }
 
 export function useGcpHealth() {
   return useQuery({
     queryKey: ['gcp', 'health'],
-    queryFn: () => fetchJSON<import('../types').GcpHealth>('/gcp/health'),
-    refetchInterval: (query: any) => query.state.error ? false : 30000,
+    queryFn: () => apiClient.get<import('../types').GcpHealth>('/gcp/health'),
+    refetchInterval: (query: any) => query.state.error ? false : 45000,
+    staleTime: 20_000,
   });
 }
 
 export function useCloudStats() {
   return useQuery({
     queryKey: ['cloud', 'distribution'],
-    queryFn: () => fetchJSON<import('../types').CloudStats>('/admin/cloud-distribution'),
-    refetchInterval: (query: any) => query.state.error ? false : 30000,
+    queryFn: () => apiClient.get<import('../types').CloudStats>('/admin/cloud-distribution'),
+    refetchInterval: (query: any) => query.state.error ? false : 45000,
+    staleTime: 20_000,
   });
 }
 
 export function useCIReports(limit = 20) {
-  // বাংলা মন্তব্য: সাম্প্রতিক সিআই রিপোর্টগুলো ব্যাকএন্ড এপিআই থেকে রিড করে ক্যাশ ও অটো-রিফ্রেশ করার কাস্টম হুক
+  // বাংলা মন্তব্য: সাম্প্রতিক সিআই রিপোর্টগুলো — queryKey ম্যাচ করানো হয়েছে useDashboardData এর সাথে
   return useQuery({
-    queryKey: ['ci', 'reports', limit],
-    queryFn: () => fetchJSON<import('../types').CIReport[]>(`/admin-api/ci-logs?limit=${limit}`),
-    refetchInterval: (query: any) => query.state.error ? false : 15000,
+    queryKey: ['dashboard', 'ci-logs', limit],
+    queryFn: () => apiClient.get<import('../types').CIReport[]>(`/admin-api/ci-logs?limit=${limit}`),
+    refetchInterval: (query: any) => query.state.error ? false : 30000,
+    enabled: hasToken(),
+    staleTime: 15_000,
   });
 }
+
 
 ```
 
@@ -136942,6 +136972,41 @@ export const agentService = {
 import { getApiBaseUrl } from '../utils/api';
 import { getAdminToken } from './adminTokenStore';
 
+// বাংলা মন্তব্য: কাস্টম এরর ক্লাস — status প্রপার্টি দিয়ে React Query retry ফাংশন সঠিকভাবে 401/403/429 চিহ্নিত করতে পারে
+export class ApiError extends Error {
+  status: number;
+  constructor(message: string, status: number) {
+    super(message);
+    this.name = 'ApiError';
+    this.status = status;
+  }
+}
+
+// বাংলা মন্তব্য: কনকারেন্সি লিমিটার — একসাথে সর্বোচ্চ MAX_CONCURRENT টি রিকোয়েস্ট যাবে, বাকিগুলো কিউতে থাকবে
+const MAX_CONCURRENT = 3;
+let activeRequests = 0;
+const requestQueue: Array<() => void> = [];
+
+function enqueue(): Promise<void> {
+  if (activeRequests < MAX_CONCURRENT) {
+    activeRequests++;
+    return Promise.resolve();
+  }
+  return new Promise<void>((resolve) => {
+    requestQueue.push(() => {
+      activeRequests++;
+      resolve();
+    });
+  });
+}
+
+function dequeue(): void {
+  activeRequests--;
+  if (requestQueue.length > 0) {
+    const next = requestQueue.shift();
+    next?.();
+  }
+}
 
 export const getAuthHeaders = (): Record<string, string> => {
   const token = getAdminToken();
@@ -136964,23 +137029,34 @@ const handleResponse = async (res: Response) => {
     // 🛑 ZERO-GAP: Intercept specific critical HTTP exception statuses
     if (res.status === 429) {
       console.warn("Rate limit exceeded (429). Throttling client requests.");
-      throw new Error(`Rate limit exceeded: ${errMsg}. Please wait before retrying.`);
+      throw new ApiError(`Rate limit exceeded: ${errMsg}. Please wait before retrying.`, 429);
     }
     if (res.status === 422) {
       console.error("Validation error (422) detected in payload schema.");
-      throw new Error(`Validation Error: ${errMsg}`);
+      throw new ApiError(`Validation Error: ${errMsg}`, 422);
     }
     if (res.status === 401 || res.status === 403) {
       console.warn("Authorization failure (401/403). Session invalidated.");
+      throw new ApiError(errMsg, res.status);
     }
-    throw new Error(errMsg);
+    throw new ApiError(errMsg, res.status);
   }
   return res.json();
 };
 
+// বাংলা মন্তব্য: throttledFetch — কিউ দিয়ে একসাথে অতিরিক্ত রিকোয়েস্ট না যাওয়ার নিশ্চয়তা
+const throttledFetch = async (url: string, options: RequestInit): Promise<Response> => {
+  await enqueue();
+  try {
+    return await fetch(url, options);
+  } finally {
+    dequeue();
+  }
+};
+
 export const apiClient = {
   get: async <T>(path: string, options?: RequestInit): Promise<T> => {
-    const res = await fetch(`${getApiBaseUrl()}${path}`, {
+    const res = await throttledFetch(`${getApiBaseUrl()}${path}`, {
       method: 'GET',
       headers: getAuthHeaders(),
       ...options,
@@ -136989,7 +137065,7 @@ export const apiClient = {
   },
 
   post: async <T>(path: string, body?: any, options?: RequestInit): Promise<T> => {
-    const res = await fetch(`${getApiBaseUrl()}${path}`, {
+    const res = await throttledFetch(`${getApiBaseUrl()}${path}`, {
       method: 'POST',
       headers: getAuthHeaders(),
       body: body ? JSON.stringify(body) : undefined,
@@ -136999,7 +137075,7 @@ export const apiClient = {
   },
 
   put: async <T>(path: string, body?: any, options?: RequestInit): Promise<T> => {
-    const res = await fetch(`${getApiBaseUrl()}${path}`, {
+    const res = await throttledFetch(`${getApiBaseUrl()}${path}`, {
       method: 'PUT',
       headers: getAuthHeaders(),
       body: body ? JSON.stringify(body) : undefined,
@@ -137009,7 +137085,7 @@ export const apiClient = {
   },
 
   delete: async <T>(path: string, options?: RequestInit): Promise<T> => {
-    const res = await fetch(`${getApiBaseUrl()}${path}`, {
+    const res = await throttledFetch(`${getApiBaseUrl()}${path}`, {
       method: 'DELETE',
       headers: getAuthHeaders(),
       ...options,
@@ -137017,6 +137093,7 @@ export const apiClient = {
     return handleResponse(res);
   },
 };
+
 
 ```
 
@@ -137617,19 +137694,30 @@ export class AudioRecorderService {
 ## File: `apps/studio-client/public/sw.js`
 
 ```js
-const CACHE_NAME = 'supremeai-pwa-cache-v1';
-const OFFLINE_URL = '/offline.html';
+const CACHE_NAME = 'supremeai-pwa-cache-v2';
+
+// বাংলা মন্তব্য: যেসব রিসোর্স ক্যাশ করা হবে — শুধু নিশ্চিত ফাইলগুলো রাখা হয়েছে
+const PRECACHE_URLS = [
+  '/',
+  '/index.html',
+  '/manifest.json',
+];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll([
-        '/',
-        '/index.html',
-        OFFLINE_URL,
-        '/manifest.json',
-        '/favicon.ico'
-      ]);
+    caches.open(CACHE_NAME).then(async (cache) => {
+      // বাংলা মন্তব্য: addAll ব্যবহার না করে একটা একটা করে ক্যাশ করা হচ্ছে — কোনো একটা ফেইল করলেও বাকিগুলো ক্যাশ হবে
+      const results = await Promise.allSettled(
+        PRECACHE_URLS.map((url) =>
+          fetch(url)
+            .then((res) => {
+              if (res.ok) return cache.put(url, res);
+              console.debug(`[SW] Skipping cache for ${url}: ${res.status}`);
+            })
+            .catch((err) => console.debug(`[SW] Failed to fetch ${url}:`, err))
+        )
+      );
+      console.debug('[SW] Precache results:', results.map((r) => r.status));
     })
   );
   self.skipWaiting();
@@ -137652,6 +137740,12 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  // বাংলা মন্তব্য: API রেসপন্স ক্যাশ করলে stale ডেটা দেখাবে — শুধু স্ট্যাটিক অ্যাসেট ক্যাশ করা হবে
+  const url = new URL(event.request.url);
+  if (url.pathname.startsWith('/admin-api/') || url.pathname.startsWith('/api/')) {
+    return;
+  }
+
   event.respondWith(
     fetch(event.request)
       .then((response) => {
@@ -137670,9 +137764,9 @@ self.addEventListener('fetch', (event) => {
           if (response) {
             return response;
           }
-          // If HTML request, return offline page
-          if (event.request.headers.get('accept').includes('text/html')) {
-            return caches.match(OFFLINE_URL);
+          // বাংলা মন্তব্য: HTML রিকোয়েস্ট হলে ক্যাশ করা index.html ফেরত দেওয়া হবে (SPA ফলব্যাক)
+          if (event.request.headers.get('accept')?.includes('text/html')) {
+            return caches.match('/index.html');
           }
         });
       })
@@ -165151,6 +165245,11 @@ jobs:
         run: pnpm install --frozen-lockfile
       - name: Install Playwright Browsers
         run: pnpm exec playwright install --with-deps
+      # বাংলা মন্তব্য: vite preview চালানোর আগে dist বিল্ড করা দরকার
+      - name: Build Frontend for Preview
+        run: pnpm --dir apps/studio-client exec vite build
+        env:
+          CI: true
       - name: Start Frontend Preview Server
         run: |
           cd apps/studio-client && pnpm exec vite preview --port 5173 &
@@ -165627,6 +165726,17 @@ jobs:
           name: frontend-dist
           path: .
         continue-on-error: true
+      # বাংলা মন্তব্য: আর্টিফ্যাক্ট ডাউনলোড ব্যর্থ হলে বা dist না থাকলে ফলব্যাক হিসেবে বিল্ড চালানো হবে
+      - name: Fallback Build Frontend (if dist missing)
+        run: |
+          if [ ! -d "apps/studio-client/dist" ]; then
+            echo "⚠️ dist/ not found — building frontend as fallback..."
+            pnpm --dir apps/studio-client exec vite build
+          else
+            echo "✅ dist/ found from artifact download."
+          fi
+        env:
+          CI: true
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}

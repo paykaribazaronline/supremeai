@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/studio-client/src/services/apiClient.ts
 
 **প্রকার:** .ts  
-**সাইজ:** 2,777 বাইট  
-**আপডেট:** 2026-07-07T08:44:02.492909
+**সাইজ:** 4,512 বাইট  
+**আপডেট:** 2026-07-07T09:44:07.354690
 
 ---
 
@@ -15,6 +15,41 @@
 import { getApiBaseUrl } from '../utils/api';
 import { getAdminToken } from './adminTokenStore';
 
+// বাংলা মন্তব্য: কাস্টম এরর ক্লাস — status প্রপার্টি দিয়ে React Query retry ফাংশন সঠিকভাবে 401/403/429 চিহ্নিত করতে পারে
+export class ApiError extends Error {
+  status: number;
+  constructor(message: string, status: number) {
+    super(message);
+    this.name = 'ApiError';
+    this.status = status;
+  }
+}
+
+// বাংলা মন্তব্য: কনকারেন্সি লিমিটার — একসাথে সর্বোচ্চ MAX_CONCURRENT টি রিকোয়েস্ট যাবে, বাকিগুলো কিউতে থাকবে
+const MAX_CONCURRENT = 3;
+let activeRequests = 0;
+const requestQueue: Array<() => void> = [];
+
+function enqueue(): Promise<void> {
+  if (activeRequests < MAX_CONCURRENT) {
+    activeRequests++;
+    return Promise.resolve();
+  }
+  return new Promise<void>((resolve) => {
+    requestQueue.push(() => {
+      activeRequests++;
+      resolve();
+    });
+  });
+}
+
+function dequeue(): void {
+  activeRequests--;
+  if (requestQueue.length > 0) {
+    const next = requestQueue.shift();
+    next?.();
+  }
+}
 
 export const getAuthHeaders = (): Record<string, string> => {
   const token = getAdminToken();
@@ -37,23 +72,34 @@ const handleResponse = async (res: Response) => {
     // 🛑 ZERO-GAP: Intercept specific critical HTTP exception statuses
     if (res.status === 429) {
       console.warn("Rate limit exceeded (429). Throttling client requests.");
-      throw new Error(`Rate limit exceeded: ${errMsg}. Please wait before retrying.`);
+      throw new ApiError(`Rate limit exceeded: ${errMsg}. Please wait before retrying.`, 429);
     }
     if (res.status === 422) {
       console.error("Validation error (422) detected in payload schema.");
-      throw new Error(`Validation Error: ${errMsg}`);
+      throw new ApiError(`Validation Error: ${errMsg}`, 422);
     }
     if (res.status === 401 || res.status === 403) {
       console.warn("Authorization failure (401/403). Session invalidated.");
+      throw new ApiError(errMsg, res.status);
     }
-    throw new Error(errMsg);
+    throw new ApiError(errMsg, res.status);
   }
   return res.json();
 };
 
+// বাংলা মন্তব্য: throttledFetch — কিউ দিয়ে একসাথে অতিরিক্ত রিকোয়েস্ট না যাওয়ার নিশ্চয়তা
+const throttledFetch = async (url: string, options: RequestInit): Promise<Response> => {
+  await enqueue();
+  try {
+    return await fetch(url, options);
+  } finally {
+    dequeue();
+  }
+};
+
 export const apiClient = {
   get: async <T>(path: string, options?: RequestInit): Promise<T> => {
-    const res = await fetch(`${getApiBaseUrl()}${path}`, {
+    const res = await throttledFetch(`${getApiBaseUrl()}${path}`, {
       method: 'GET',
       headers: getAuthHeaders(),
       ...options,
@@ -62,7 +108,7 @@ export const apiClient = {
   },
 
   post: async <T>(path: string, body?: any, options?: RequestInit): Promise<T> => {
-    const res = await fetch(`${getApiBaseUrl()}${path}`, {
+    const res = await throttledFetch(`${getApiBaseUrl()}${path}`, {
       method: 'POST',
       headers: getAuthHeaders(),
       body: body ? JSON.stringify(body) : undefined,
@@ -72,7 +118,7 @@ export const apiClient = {
   },
 
   put: async <T>(path: string, body?: any, options?: RequestInit): Promise<T> => {
-    const res = await fetch(`${getApiBaseUrl()}${path}`, {
+    const res = await throttledFetch(`${getApiBaseUrl()}${path}`, {
       method: 'PUT',
       headers: getAuthHeaders(),
       body: body ? JSON.stringify(body) : undefined,
@@ -82,7 +128,7 @@ export const apiClient = {
   },
 
   delete: async <T>(path: string, options?: RequestInit): Promise<T> => {
-    const res = await fetch(`${getApiBaseUrl()}${path}`, {
+    const res = await throttledFetch(`${getApiBaseUrl()}${path}`, {
       method: 'DELETE',
       headers: getAuthHeaders(),
       ...options,
@@ -90,5 +136,6 @@ export const apiClient = {
     return handleResponse(res);
   },
 };
+
 
 ```
