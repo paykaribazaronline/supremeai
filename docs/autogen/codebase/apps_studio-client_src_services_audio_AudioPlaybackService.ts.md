@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/studio-client/src/services/audio/AudioPlaybackService.ts
 
 **প্রকার:** .ts  
-**সাইজ:** 2,889 বাইট  
-**আপডেট:** 2026-07-07T13:28:54.232491
+**সাইজ:** 2,868 বাইট  
+**আপডেট:** 2026-07-07T13:36:10.025388
 
 ---
 
@@ -69,9 +69,8 @@ export class AudioPlaybackService {
       const gain = this.audioContext.createGain();
       gain.gain.value = 0; // Silent oscillator, only used for data
       
-      let intervalId: any;
       // Modulate oscillator frequency to make the waveform look like speech
-      intervalId = setInterval(() => {
+      const intervalId = setInterval(() => {
         if (osc) osc.frequency.value = 100 + Math.random() * 400;
       }, 50);
 

@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/config.py
 
 **প্রকার:** .py  
-**সাইজ:** 8,646 বাইট  
-**আপডেট:** 2026-07-07T13:28:54.130715
+**সাইজ:** 8,630 বাইট  
+**আপডেট:** 2026-07-07T13:36:09.914366
 
 ---
 
@@ -215,9 +215,8 @@ class Settings(BaseSettings):
                 raise RuntimeError(
                     f"Missing required configurations for production: {', '.join(missing)}"
                 )
-        if self.env.lower() in {"production", "staging"}:
-            if not self.ci_webhook_secret:
-                raise RuntimeError("Missing required configuration for staging/production: secure CI_WEBHOOK_SECRET")
+        if self.env.lower() in {"production", "staging"} and not self.ci_webhook_secret:
+            raise RuntimeError("Missing required configuration for staging/production: secure CI_WEBHOOK_SECRET")
 
 
 settings = Settings()
