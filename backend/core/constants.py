@@ -1,14 +1,11 @@
 """
-Project-wide constants to promote maintainability and DRY principles.
+Refactored constants using DynamicConfigProxy
 """
 
-# Code Smell Detector default thresholds
-DEFAULT_CODE_SMELL_THRESHOLDS = {
-    "complexity": 10,
-    "lines": 75,
-    "args": 5,
-    "class_methods": 15,
-}
+from core.config_proxy import DynamicConfigProxy
 
-# Common strings to ignore when detecting "magic strings"
-COMMON_STRINGS_TO_IGNORE = {"", "utf-8", "rb", "wb", "r", "w", "a", "x", "b", "t", "+"}
+async def get_default_code_smell_thresholds(proxy: DynamicConfigProxy) -> dict:
+    return await proxy.get("DEFAULT_CODE_SMELL_THRESHOLDS")
+
+async def get_common_strings_to_ignore(proxy: DynamicConfigProxy) -> list:
+    return await proxy.get("COMMON_STRINGS_TO_IGNORE")
