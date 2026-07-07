@@ -45,6 +45,8 @@ const storeState = {
   forgeFeedback: null,
   forgeSuccessCode: null,
   forgeNewSkill: mockForgeNewSkill,
+  isConfigLoaded: true,
+  setConfig: vi.fn(),
 };
 
 vi.mock('./store/useStore', () => ({
