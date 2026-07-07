@@ -175,14 +175,18 @@ export function useDashboardSSE() {
       try {
         const data = JSON.parse(e.data);
         qc.setQueryData(['dashboard', 'events', 50], data); // update cache directly
-      } catch (err) {}
+      } catch (err) {
+        console.error('Failed to parse dashboard_events:', err);
+      }
     });
 
     sse.addEventListener('metrics_events', (e) => {
       try {
         const data = JSON.parse(e.data);
         qc.setQueryData(['dashboard', 'metrics'], data);
-      } catch (err) {}
+      } catch (err) {
+        console.error('Failed to parse metrics_events:', err);
+      }
     });
 
     return () => {
