@@ -204,9 +204,8 @@ class Settings(BaseSettings):
                 raise RuntimeError(
                     f"Missing required configurations for production: {', '.join(missing)}"
                 )
-        if self.env.lower() in {"production", "staging"}:
-            if not self.ci_webhook_secret:
-                raise RuntimeError("Missing required configuration for staging/production: secure CI_WEBHOOK_SECRET")
+        if self.env.lower() in {"production", "staging"} and not self.ci_webhook_secret:
+            raise RuntimeError("Missing required configuration for staging/production: secure CI_WEBHOOK_SECRET")
 
 
 settings = Settings()
