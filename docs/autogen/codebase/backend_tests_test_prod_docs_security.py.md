@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/test_prod_docs_security.py
 
 **প্রকার:** .py  
-**সাইজ:** 4,097 বাইট  
-**আপডেট:** 2026-07-07T18:37:32.339986
+**সাইজ:** 4,308 বাইট  
+**আপডেট:** 2026-07-07T18:40:05.091091
 
 ---
 
@@ -103,6 +103,11 @@ def test_docs_disabled_in_production():
         os.environ["SUPREMEAI_ADMIN_PASSWORD_HASH"] = "mock_hash_for_production_test"
         os.environ["docs_auth_enabled"] = "false"
         os.environ["REDIS_URL"] = "redis://mock:6379"
+        
+        # Mock secret fetching to prevent errors for missing production secrets
+        import core.secret_vault as sv
+        sv.ProductionSecretVault.fetch_secret = lambda self, name: "mock"
+        
         import core.app as app_mod
         import core.services as services
 

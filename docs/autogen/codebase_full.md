@@ -1,7 +1,7 @@
 # 🧠 SupremeAI 2.0 Codebase Dump
 # বাংলা মন্তব্য: এটি একটি স্বয়ংক্রিয়ভাবে জেনারেট করা কোডবেস ডাম্প ফাইল যা প্রজেক্টের সামগ্রিক বিশ্লেষণের জন্য ব্যবহৃত হয়।
 
-Generated at: 2026-07-07T18:37:32.260735
+Generated at: 2026-07-07T18:40:05.015308
 
 
 ## File: `pnpm-lock.yaml`
@@ -75762,6 +75762,11 @@ def test_docs_disabled_in_production():
         os.environ["SUPREMEAI_ADMIN_PASSWORD_HASH"] = "mock_hash_for_production_test"
         os.environ["docs_auth_enabled"] = "false"
         os.environ["REDIS_URL"] = "redis://mock:6379"
+        
+        # Mock secret fetching to prevent errors for missing production secrets
+        import core.secret_vault as sv
+        sv.ProductionSecretVault.fetch_secret = lambda self, name: "mock"
+        
         import core.app as app_mod
         import core.services as services
 
