@@ -1,7 +1,7 @@
 # 🧠 SupremeAI 2.0 Codebase Dump
 # বাংলা মন্তব্য: এটি একটি স্বয়ংক্রিয়ভাবে জেনারেট করা কোডবেস ডাম্প ফাইল যা প্রজেক্টের সামগ্রিক বিশ্লেষণের জন্য ব্যবহৃত হয়।
 
-Generated at: 2026-07-07T11:15:52.020668
+Generated at: 2026-07-07T11:31:19.119670
 
 
 ## File: `pnpm-lock.yaml`
@@ -165949,7 +165949,8 @@ jobs:
 
       - name: 🌐 Deploy to Firebase
         run: |
-          npx -y firebase-tools deploy --only hosting --project ${{ secrets.GCP_PROJECT_ID }} --token "${{ secrets.FIREBASE_TOKEN }}"
+          npm install -g firebase-tools
+          firebase deploy --only hosting --project ${{ secrets.GCP_PROJECT_ID }} --token "${{ secrets.FIREBASE_TOKEN }}"
 
   sync-mirror:
     name: 📤 Sync to Secondary Repo

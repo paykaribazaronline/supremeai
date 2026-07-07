@@ -1,0 +1,8570 @@
+# 📋 Commit ff1a5df1a74b243355bc2a0e1a974321d6bfbbcf
+
+## Commit Stats
+```
+commit ff1a5df1a74b243355bc2a0e1a974321d6bfbbcf
+Author: github-actions[bot] <github-actions[bot]@users.noreply.github.com>
+Date:   Tue Jul 7 11:15:54 2026 +0000
+
+    docs: auto-update codebase docs & dashboard [skip ci]
+
+ docs/autogen/INDEX.md                              |    2 +-
+ ...nge_6afc88915f14bb47ce3af1ee795bab2921c6052e.md | 9239 ++++++++++++++++++++
+ ...nge_7b657ebeb099d2e1af6cc5d2ef5f3086fd155014.md |   57 -
+ ...nge_e972fa7d60543ecd24ae98d25286f0d4cb459ed5.md | 9239 --------------------
+ ...nge_f1cbf044f78b0b06ffa4fccfd34bb6983fb049e2.md |  257 +
+ .../.github_actions_setup-backend_action.yml.md    |    2 +-
+ ...github_scripts_advanced-validation-report.py.md |    2 +-
+ .../codebase/.github_scripts_canary-deploy.py.md   |    2 +-
+ .../codebase/.github_scripts_ci-auto-fix-v3.py.md  |    2 +-
+ .../codebase/.github_scripts_ci-auto-fix.py.md     |    2 +-
+ .../.github_scripts_ci-decision-engine.py.md       |    2 +-
+ .../codebase/.github_scripts_ci-health-check.py.md |    2 +-
+ .../.github_scripts_clean_action_logs.py.md        |    2 +-
+ .../codebase/.github_scripts_deploy-backend.py.md  |    2 +-
+ .../.github_scripts_detect-previous-failures.py.md |    2 +-
+ .../codebase/.github_scripts_enforce_24h_gap.py.md |    2 +-
+ .../.github_scripts_generate-ci-report.py.md       |    2 +-
+ .../.github_scripts_generate_ai_prompt.py.md       |    2 +-
+ .../.github_scripts_multi-model-evaluator.py.md    |    2 +-
+ docs/autogen/codebase/.github_scripts_review.py.md |    2 +-
+ .../.github_scripts_supremeai-evaluator.py.md      |    2 +-
+ .../.github_scripts_test_ai_reviewer.py.md         |    2 +-
+ .../codebase/.github_workflows_deploy.yml.md       |    2 +-
+ .../.github_workflows_nightly-maintenance.yml.md   |    2 +-
+ .../.github_workflows_supreme-core-ci.yml.md       |   10 +-
+ .../.github_workflows_supreme-mobile-cd.yml.md     |    2 +-
+ ....github_workflows_supreme-release-builds.yml.md |    2 +-
+ .../.github_workflows_sync-from-prod.yml.md        |    2 +-
+ docs/autogen/codebase/AGENTS.md.md                 |    2 +-
+ docs/autogen/codebase/CHANGELOG.md.md              |    2 +-
+ docs/autogen/codebase/CI_PIPELINE.md.md            |    2 +-
+ docs/autogen/codebase/CONTRIBUTING.md.md           |    2 +-
+ docs/autogen/codebase/IMPLEMENTATION_STATUS.md.md  |    2 +-
+ .../codebase/PRODUCTION_READINESS_GUIDE.md.md      |    2 +-
+ docs/autogen/codebase/README.md.md                 |    2 +-
+ docs/autogen/codebase/SECURITY.md.md               |    2 +-
+ docs/autogen/codebase/admin_dashboard_script.js.md |    2 +-
+ docs/autogen/codebase/apps_desktop_README.md.md    |    2 +-
+ docs/autogen/codebase/apps_desktop_package.json.md |    2 +-
+ .../codebase/apps_desktop_src-tauri_Cargo.toml.md  |    2 +-
+ .../codebase/apps_desktop_src-tauri_build.rs.md    |    2 +-
+ .../apps_desktop_src-tauri_secure-store.ts.md      |    2 +-
+ .../codebase/apps_desktop_src-tauri_src_main.rs.md |    2 +-
+ .../apps_desktop_src-tauri_tauri.conf.json.md      |    2 +-
+ .../codebase/apps_desktop_src-ui_package.json.md   |    2 +-
+ .../codebase/apps_desktop_src-ui_src_App.tsx.md    |    2 +-
+ ..._desktop_src-ui_src_components_ChatInput.tsx.md |    2 +-
+ .../codebase/apps_desktop_src-ui_src_main.tsx.md   |    2 +-
+ .../apps_desktop_src-ui_src_pages_AdminPage.tsx.md |    2 +-
+ .../apps_desktop_src-ui_src_pages_ChatPage.tsx.md  |    2 +-
+ ...s_desktop_src-ui_src_pages_EvolutionPage.tsx.md |    2 +-
+ .../apps_desktop_src-ui_src_pages_LoginPage.tsx.md |    2 +-
+ ...apps_desktop_src-ui_src_pages_SkillsPage.tsx.md |    2 +-
+ .../apps_desktop_src-ui_src_services_api.ts.md     |    2 +-
+ .../apps_desktop_src-ui_src_stores_authStore.ts.md |    2 +-
+ .../apps_desktop_src-ui_src_types_index.ts.md      |    2 +-
+ .../apps_desktop_src-ui_src_vite-env.d.ts.md       |    2 +-
+ .../codebase/apps_desktop_src-ui_tsconfig.json.md  |    2 +-
+ .../apps_desktop_src-ui_tsconfig.node.json.md      |    2 +-
+ .../codebase/apps_desktop_src-ui_vite.config.ts.md |    2 +-
+ ...ava_com_supremeai_JavaWorkerApplication.java.md |    2 +-
+ ...va_com_supremeai_grpc_WorkerServiceImpl.java.md |    2 +-
+ ...in_java_com_supremeai_models_TaskEntity.java.md |    2 +-
+ ...m_supremeai_repositories_TaskRepository.java.md |    2 +-
+ ...va-worker_src_main_resources_application.yml.md |    2 +-
+ docs/autogen/codebase/apps_mobile_README.md.md     |    2 +-
+ docs/autogen/codebase/apps_mobile_README_BD.md.md  |    2 +-
+ .../codebase/apps_mobile_analysis_options.yaml.md  |    2 +-
+ .../codebase/apps_mobile_assets_i18n_ar.json.md    |    2 +-
+ .../codebase/apps_mobile_assets_i18n_bn.json.md    |    2 +-
+ .../codebase/apps_mobile_assets_i18n_en.json.md    |    2 +-
+ .../codebase/apps_mobile_assets_i18n_es.json.md    |    2 +-
+ .../codebase/apps_mobile_assets_i18n_hi.json.md    |    2 +-
+ .../codebase/apps_mobile_assets_i18n_zh.json.md    |    2 +-
+ .../codebase/apps_mobile_devtools_options.yaml.md  |    2 +-
+ ...ts.xcassets_AppIcon.appiconset_Contents.json.md |    2 +-
+ ....xcassets_LaunchImage.imageset_Contents.json.md |    2 +-
+ ...sets.xcassets_LaunchImage.imageset_README.md.md |    2 +-
+ ...s_mobile_lib_dataconnect_generated_README.md.md |    2 +-
+ ...le_lib_dataconnect_generated_add_review.dart.md |    2 +-
+ ..._lib_dataconnect_generated_create_movie.dart.md |    2 +-
+ ...lib_dataconnect_generated_delete_review.dart.md |    2 +-
+ ...ile_lib_dataconnect_generated_generated.dart.md |    2 +-
+ ...b_dataconnect_generated_get_movie_by_id.dart.md |    2 +-
+ ...e_lib_dataconnect_generated_list_movies.dart.md |    2 +-
+ ...dataconnect_generated_list_user_reviews.dart.md |    2 +-
+ ...le_lib_dataconnect_generated_list_users.dart.md |    2 +-
+ ..._lib_dataconnect_generated_search_movie.dart.md |    2 +-
+ ...e_lib_dataconnect_generated_upsert_user.dart.md |    2 +-
+ docs/autogen/codebase/apps_mobile_lib_main.dart.md |    2 +-
+ .../apps_mobile_lib_models_ci_job_model.dart.md    |    2 +-
+ ...apps_mobile_lib_providers_auth_provider.dart.md |    2 +-
+ ...mobile_lib_providers_dashboard_provider.dart.md |    2 +-
+ ...le_lib_providers_orchestration_provider.dart.md |    2 +-
+ ..._mobile_lib_providers_settings_provider.dart.md |    2 +-
+ ...ps_mobile_lib_screens_agent_chat_screen.dart.md |    2 +-
+ ...mobile_lib_screens_alerts_alerts_screen.dart.md |    2 +-
+ ..._lib_screens_analytics_analytics_screen.dart.md |    2 +-
+ ...apps_mobile_lib_screens_api_keys_screen.dart.md |    2 +-
+ .../apps_mobile_lib_screens_api_scaffold.dart.md   |    2 +-
+ ...apps_mobile_lib_screens_byoc_hub_screen.dart.md |    2 +-
+ ..._lib_screens_consensus_consensus_screen.dart.md |    2 +-
+ ...obile_lib_screens_dashboard_home_screen.dart.md |    2 +-
+ ...pps_mobile_lib_screens_dashboard_screen.dart.md |    2 +-
+ ..._lib_screens_extension_extension_screen.dart.md |    2 +-
+ .../apps_mobile_lib_screens_git_git_screen.dart.md |    2 +-
+ ...le_lib_screens_learning_learning_screen.dart.md |    2 +-
+ .../apps_mobile_lib_screens_login_screen.dart.md   |    2 +-
+ ...eens_notifications_notifications_screen.dart.md |    2 +-
+ ...b_screens_projects_projects_list_screen.dart.md |    2 +-
+ ...b_screens_providers_ai_providers_screen.dart.md |    2 +-
+ ...s_mobile_lib_screens_quota_quota_screen.dart.md |    2 +-
+ ...ib_screens_resilience_resilience_screen.dart.md |    2 +-
+ ...apps_mobile_lib_screens_settings_screen.dart.md |    2 +-
+ .../apps_mobile_lib_screens_terminal_view.dart.md  |    2 +-
+ .../apps_mobile_lib_screens_vpn_vpn_screen.dart.md |    2 +-
+ .../apps_mobile_lib_screens_wallet_screen.dart.md  |    2 +-
+ .../apps_mobile_lib_services_api_client.dart.md    |    2 +-
+ .../apps_mobile_lib_services_api_service.dart.md   |    2 +-
+ ...pps_mobile_lib_services_billing_service.dart.md |    2 +-
+ .../apps_mobile_lib_services_byoc_service.dart.md  |    2 +-
+ ...pps_mobile_lib_services_ci_sync_service.dart.md |    2 +-
+ ...s_mobile_lib_services_deployment_stream.dart.md |    2 +-
+ ...obile_lib_services_localization_service.dart.md |    2 +-
+ ...bile_lib_services_neural_stream_service.dart.md |    2 +-
+ ...obile_lib_services_notification_service.dart.md |    2 +-
+ ...obile_lib_services_offline_sync_service.dart.md |    2 +-
+ ...ile_lib_services_payment_gateway_bridge.dart.md |    2 +-
+ ..._mobile_lib_services_screen_api_service.dart.md |    2 +-
+ .../apps_mobile_lib_theme_app_theme.dart.md        |    2 +-
+ .../apps_mobile_lib_theme_theme_provider.dart.md   |    2 +-
+ ...apps_mobile_lib_widgets_action_hub_card.dart.md |    2 +-
+ ...ile_lib_widgets_base_dashboard_scaffold.dart.md |    2 +-
+ .../codebase/apps_mobile_lib_widgets_es.json.md    |    2 +-
+ .../apps_mobile_lib_widgets_json_dropzone.dart.md  |    2 +-
+ .../apps_mobile_lib_widgets_live_terminal.dart.md  |    2 +-
+ ...apps_mobile_lib_widgets_loading_widgets.dart.md |    2 +-
+ ...le_lib_widgets_transaction_history_list.dart.md |    2 +-
+ .../apps_mobile_lib_widgets_usage_chart.dart.md    |    2 +-
+ ...ts.xcassets_AppIcon.appiconset_Contents.json.md |    2 +-
+ docs/autogen/codebase/apps_mobile_pubspec.lock.md  |    2 +-
+ docs/autogen/codebase/apps_mobile_pubspec.yaml.md  |    2 +-
+ ...bile_test_auth_provider_edge_cases_test.dart.md |    2 +-
+ .../apps_mobile_test_auth_provider_test.dart.md    |    2 +-
+ ...mobile_test_home_screen_edge_cases_test.dart.md |    2 +-
+ .../apps_mobile_test_home_screen_test.dart.md      |    2 +-
+ ...s_mobile_test_screens_login_screen_test.dart.md |    2 +-
+ .../codebase/apps_mobile_web_manifest.json.md      |    2 +-
+ .../codebase/apps_studio-client_README.md.md       |    2 +-
+ .../codebase/apps_studio-client_components.json.md |    2 +-
+ .../apps_studio-client_eslint.config.js.md         |    2 +-
+ .../autogen/codebase/apps_studio-client_main.js.md |    2 +-
+ .../codebase/apps_studio-client_package.json.md    |    2 +-
+ .../apps_studio-client_public_manifest.json.md     |    2 +-
+ .../codebase/apps_studio-client_public_sw.js.md    |    2 +-
+ .../apps_studio-client_src_App.test.tsx.md         |    2 +-
+ .../codebase/apps_studio-client_src_App.tsx.md     |   75 +-
+ ...tudio-client_src_components_AdminConsole.tsx.md |    2 +-
+ ..._studio-client_src_components_BanglaHint.tsx.md |    2 +-
+ ...apps_studio-client_src_components_Header.tsx.md |    2 +-
+ ...lient_src_components_LiveSujonBackground.tsx.md |    2 +-
+ ...c_components_Onboarding_OnboardingWizard.tsx.md |    2 +-
+ ...ent_src_components_Onboarding_StepApiKey.tsx.md |    2 +-
+ ..._src_components_Onboarding_StepFirstChat.tsx.md |    2 +-
+ ...rc_components_Onboarding_StepModelSelect.tsx.md |    2 +-
+ ...dio-client_src_components_OperatorStudio.tsx.md |    2 +-
+ ...o-client_src_components_admin_ActionCard.tsx.md |    2 +-
+ ..._src_components_admin_AdminAuthenticated.tsx.md |    2 +-
+ ...client_src_components_admin_AdminConsole.tsx.md |    2 +-
+ ..._src_components_admin_AdminDashboardHome.tsx.md |    2 +-
+ ...o-client_src_components_admin_AdminLogin.tsx.md |    2 +-
+ ..._src_components_admin_AdminSubTabContent.tsx.md |    2 +-
+ ...-client_src_components_admin_AdminTopNav.tsx.md |    2 +-
+ ...o-client_src_components_admin_AethelNode.tsx.md |    2 +-
+ ...ient_src_components_admin_AuditLogsPanel.tsx.md |    2 +-
+ ...lient_src_components_admin_BackupRestore.tsx.md |    2 +-
+ ...ient_src_components_admin_CICDVisualizer.tsx.md |    2 +-
+ ...t_src_components_admin_CloudOrchestrator.tsx.md |   14 +-
+ ...lient_src_components_admin_CommandCenter.tsx.md |    2 +-
+ ...client_src_components_admin_ConfigEditor.tsx.md |    2 +-
+ ..._src_components_admin_ConsentMatrixModal.tsx.md |    2 +-
+ ...-client_src_components_admin_CostAuditor.tsx.md |    2 +-
+ ..._components_admin_DashboardErrorBoundary.tsx.md |    2 +-
+ ...ent_src_components_admin_DeploymentModal.tsx.md |    2 +-
+ ...client_src_components_admin_DynamicPanel.tsx.md |    2 +-
+ ...omponents_admin_EnhancedSkillMarketplace.tsx.md |    2 +-
+ ...t_src_components_admin_GithubIntegration.tsx.md |    2 +-
+ ...client_src_components_admin_HealthBanner.tsx.md |    9 +-
+ ...io-client_src_components_admin_HealthMap.tsx.md |    2 +-
+ ..._src_components_admin_InteractiveChatTab.tsx.md |    2 +-
+ ...dio-client_src_components_admin_LiveLogs.tsx.md |    2 +-
+ ...lient_src_components_admin_MemoryBrowser.tsx.md |    2 +-
+ ...-client_src_components_admin_ModelRouter.tsx.md |    2 +-
+ ..._components_admin_ObservabilityDashboard.tsx.md |    2 +-
+ ...-client_src_components_admin_RBACManager.tsx.md |   28 +-
+ ...nt_src_components_admin_RateLimitManager.tsx.md |    2 +-
+ ...rc_components_admin_RealTimeMetricsPanel.tsx.md |    2 +-
+ ...mponents_admin_RedesignedDashboardMockup.tsx.md |    2 +-
+ ...nt_src_components_admin_RulesEnginePanel.tsx.md |    2 +-
+ ...t_src_components_admin_SecurityDashboard.tsx.md |    2 +-
+ ...rc_components_admin_ServiceHealthMetrics.tsx.md |    2 +-
+ ...ent_src_components_admin_ThreatDetection.tsx.md |    2 +-
+ ...-client_src_components_admin_UserManager.tsx.md |    2 +-
+ ..._src_components_admin_VisualRulesBuilder.tsx.md |    2 +-
+ ..._studio-client_src_components_admin_index.ts.md |    2 +-
+ ..._src_components_audio_WaveformVisualizer.tsx.md |    2 +-
+ ...ient_src_components_chat_TypingIndicator.tsx.md |    2 +-
+ ...nt_src_components_chat_UnifiedChatBubble.tsx.md |    2 +-
+ ...s_studio-client_src_components_chat_index.ts.md |    2 +-
+ ...t_src_components_customer_BrowserPreview.tsx.md |    2 +-
+ ...t_src_components_customer_ChatPanel.test.tsx.md |    2 +-
+ ...client_src_components_customer_ChatPanel.tsx.md |    2 +-
+ ...lient_src_components_customer_CodeEditor.tsx.md |    2 +-
+ ...-client_src_components_customer_HomeFeed.tsx.md |    2 +-
+ ..._src_components_customer_MobileSimulator.tsx.md |    2 +-
+ ...rc_components_customer_QuickPresets.test.tsx.md |    2 +-
+ ...ent_src_components_customer_QuickPresets.tsx.md |    2 +-
+ ...c_components_customer_UserDashboard.test.tsx.md |    2 +-
+ ...nt_src_components_customer_UserDashboard.tsx.md |    2 +-
+ ...udio-client_src_components_customer_index.ts.md |    2 +-
+ ..._src_components_dashboard_AgentStatePill.tsx.md |    2 +-
+ ...components_dashboard_AutomationQueuePage.tsx.md |    2 +-
+ ...components_dashboard_DashboardShell.test.tsx.md |    2 +-
+ ..._src_components_dashboard_DashboardShell.tsx.md |    2 +-
+ ..._src_components_dashboard_ExecutionShell.tsx.md |    2 +-
+ ...t_src_components_dashboard_FileTreePanel.tsx.md |    2 +-
+ ..._src_components_dashboard_GuardrailsPage.tsx.md |    2 +-
+ ...src_components_dashboard_HealingLogPanel.tsx.md |    2 +-
+ ...t_src_components_dashboard_KnowledgePage.tsx.md |    2 +-
+ ..._src_components_dashboard_LlmGatewayPage.tsx.md |    2 +-
+ ...nt_src_components_dashboard_ReasoningLog.tsx.md |    2 +-
+ ...src_components_dashboard_SandboxViewport.tsx.md |    2 +-
+ ...ent_src_components_dashboard_SecretsPage.tsx.md |    2 +-
+ ...c_components_dashboard_SessionDetailPage.tsx.md |    2 +-
+ ...nt_src_components_dashboard_SessionsPage.tsx.md |    2 +-
+ ...nt_src_components_dashboard_SettingsPage.tsx.md |    2 +-
+ ...src_components_dashboard_SiteActionsPage.tsx.md |    2 +-
+ ...lient_src_components_dashboard_UsagePage.tsx.md |    2 +-
+ ...lient_src_components_dashboard_VaultPage.tsx.md |    2 +-
+ ...ent_src_components_dashboard_sessionStore.ts.md |    2 +-
+ ...ent_src_components_dashboard_useHashRoute.ts.md |    2 +-
+ ...lient_src_components_editor_CollabEditor.tsx.md |    2 +-
+ ...o-client_src_components_graph_SkillGraph.tsx.md |    2 +-
+ ...udio-client_src_components_ui_ActionCard.tsx.md |    2 +-
+ ...ps_studio-client_src_components_ui_Badge.tsx.md |    2 +-
+ ...pps_studio-client_src_components_ui_Card.tsx.md |    2 +-
+ ...studio-client_src_components_ui_Skeleton.tsx.md |    2 +-
+ ...pps_studio-client_src_components_ui_index.ts.md |    2 +-
+ ..._studio-client_src_contexts_ThemeContext.tsx.md |    2 +-
+ ..._studio-client_src_contexts_ToastContext.tsx.md |    2 +-
+ ...o-client_src_dataconnect-generated_README.md.md |    2 +-
+ ...t_src_dataconnect-generated_esm_index.esm.js.md |    2 +-
+ ...t_src_dataconnect-generated_esm_package.json.md |    2 +-
+ ...lient_src_dataconnect-generated_index.cjs.js.md |    2 +-
+ ...-client_src_dataconnect-generated_index.d.ts.md |    2 +-
+ ...lient_src_dataconnect-generated_package.json.md |    2 +-
+ ...nt_src_dataconnect-generated_react_README.md.md |    2 +-
+ ...dataconnect-generated_react_esm_index.esm.js.md |    2 +-
+ ...dataconnect-generated_react_esm_package.json.md |    2 +-
+ ...src_dataconnect-generated_react_index.cjs.js.md |    2 +-
+ ...t_src_dataconnect-generated_react_index.d.ts.md |    2 +-
+ ...src_dataconnect-generated_react_package.json.md |    2 +-
+ .../codebase/apps_studio-client_src_firebase.ts.md |    2 +-
+ .../apps_studio-client_src_hooks_index.ts.md       |    2 +-
+ ...lient_src_hooks_tests_useTranslation.test.ts.md |    2 +-
+ .../apps_studio-client_src_hooks_useAdminApi.ts.md |    2 +-
+ .../apps_studio-client_src_hooks_useAuth.ts.md     |    2 +-
+ .../apps_studio-client_src_hooks_useChat.ts.md     |    2 +-
+ ..._studio-client_src_hooks_useDashboardData.ts.md |    2 +-
+ ...ps_studio-client_src_hooks_useTranslation.ts.md |    2 +-
+ ...apps_studio-client_src_hooks_useWebSocket.ts.md |    2 +-
+ ...apps_studio-client_src_i18n_I18nProvider.tsx.md |    2 +-
+ .../apps_studio-client_src_i18n_config.ts.md       |    2 +-
+ .../apps_studio-client_src_i18n_translations.ts.md |    2 +-
+ .../codebase/apps_studio-client_src_lib_etag.ts.md |    2 +-
+ .../codebase/apps_studio-client_src_main.tsx.md    |    2 +-
+ ...s_studio-client_src_services_adminService.ts.md |    2 +-
+ ...tudio-client_src_services_adminTokenStore.ts.md |    2 +-
+ ...s_studio-client_src_services_agentService.ts.md |    2 +-
+ ...apps_studio-client_src_services_apiClient.ts.md |    2 +-
+ ...ient_src_services_api_microserviceMonitor.ts.md |    2 +-
+ ...t_src_services_audio_AudioPlaybackService.ts.md |    2 +-
+ ...t_src_services_audio_AudioRecorderService.ts.md |    2 +-
+ ...ps_studio-client_src_services_authService.ts.md |    2 +-
+ ...ps_studio-client_src_services_chatService.ts.md |    2 +-
+ ...tudio-client_src_services_ciReportService.ts.md |    2 +-
+ ...pps_studio-client_src_services_storageApi.ts.md |    2 +-
+ .../apps_studio-client_src_store_adminStore.ts.md  |    2 +-
+ ...pps_studio-client_src_store_customerStore.ts.md |    2 +-
+ ...ps_studio-client_src_store_dashboardStore.ts.md |    2 +-
+ ...udio-client_src_store_sessionCockpitStore.ts.md |    2 +-
+ .../apps_studio-client_src_store_themeStore.ts.md  |    2 +-
+ .../apps_studio-client_src_store_useStore.ts.md    |    2 +-
+ .../apps_studio-client_src_test_setup.ts.md        |    2 +-
+ .../codebase/apps_studio-client_src_types.ts.md    |    2 +-
+ .../apps_studio-client_src_types_customer.ts.md    |    2 +-
+ .../apps_studio-client_src_utils_api.ts.md         |    2 +-
+ ...ps_studio-client_src_utils_apiInterceptor.ts.md |    2 +-
+ .../apps_studio-client_src_vite-env.d.ts.md        |    2 +-
+ ...tudio-client_src_workers_logParser.worker.ts.md |    2 +-
+ .../apps_studio-client_tsconfig.app.json.md        |    2 +-
+ .../codebase/apps_studio-client_tsconfig.json.md   |    2 +-
+ .../apps_studio-client_tsconfig.node.json.md       |    2 +-
+ .../codebase/apps_studio-client_vite.config.ts.md  |    2 +-
+ .../apps_studio-client_vitest.config.ts.md         |    2 +-
+ docs/autogen/codebase/apps_web-chat_api.test.ts.md |    2 +-
+ docs/autogen/codebase/apps_web-chat_api.ts.md      |    2 +-
+ .../autogen/codebase/apps_web-chat_package.json.md |    2 +-
+ docs/autogen/codebase/apps_web-chat_script.ts.md   |    2 +-
+ .../codebase/apps_web-chat_tsconfig.json.md        |    2 +-
+ .../codebase/apps_web-chat_vite-env.d.ts.md        |    2 +-
+ .../codebase/apps_web-chat_vite.config.ts.md       |    2 +-
+ .../codebase/apps_web-chat_vitest.config.ts.md     |    2 +-
+ docs/autogen/codebase/backend_README.md.md         |    2 +-
+ .../backend_adaptive_engine_experience_db.py.md    |    2 +-
+ .../codebase/backend_adaptive_engine_init_.py.md   |    2 +-
+ .../backend_adaptive_engine_intent_parser.py.md    |    2 +-
+ .../backend_adaptive_engine_learning_loop.py.md    |    2 +-
+ .../backend_adaptive_engine_platform_learner.py.md |    2 +-
+ .../backend_adaptive_engine_registry.py.md         |    2 +-
+ ...end_adaptive_engine_test_platform_learner.py.md |    2 +-
+ docs/autogen/codebase/backend_admin_god.py.md      |    2 +-
+ docs/autogen/codebase/backend_admin_init_.py.md    |    2 +-
+ docs/autogen/codebase/backend_admin_test_god.py.md |    2 +-
+ .../codebase/backend_agents_crew_departments.py.md |    2 +-
+ docs/autogen/codebase/backend_agents_init_.py.md   |    2 +-
+ .../codebase/backend_agents_legal_agent.py.md      |    2 +-
+ .../codebase/backend_agents_medical_agent.py.md    |    2 +-
+ .../backend_agents_research_assistant.py.md        |    2 +-
+ .../codebase/backend_agents_test_legal_agent.py.md |    2 +-
+ .../backend_agents_test_medical_agent.py.md        |    2 +-
+ .../codebase/backend_agents_trading_agent.py.md    |    2 +-
+ docs/autogen/codebase/backend_alembic_env.py.md    |    2 +-
+ ...ersions_664fe16e33ca_add_ci_reports_table.py.md |    2 +-
+ .../codebase/backend_api_dependencies.py.md        |    2 +-
+ docs/autogen/codebase/backend_api_init_.py.md      |    2 +-
+ .../codebase/backend_api_routes_admin.py.md        |    2 +-
+ .../backend_api_routes_admin_dashboard.py.md       |    2 +-
+ .../codebase/backend_api_routes_agent_tasks.py.md  |    2 +-
+ .../codebase/backend_api_routes_agents.py.md       |    2 +-
+ .../codebase/backend_api_routes_api_keys.py.md     |    2 +-
+ .../backend_api_routes_approval_manager.py.md      |    2 +-
+ .../backend_api_routes_async_task_router.py.md     |    2 +-
+ .../autogen/codebase/backend_api_routes_auth.py.md |    2 +-
+ .../codebase/backend_api_routes_billing_api.py.md  |    2 +-
+ .../codebase/backend_api_routes_browser.py.md      |    2 +-
+ .../codebase/backend_api_routes_byoc_api.py.md     |    2 +-
+ .../codebase/backend_api_routes_cdc_webhooks.py.md |    2 +-
+ .../autogen/codebase/backend_api_routes_chat.py.md |    2 +-
+ .../codebase/backend_api_routes_ci_webhooks.py.md  |    2 +-
+ .../codebase/backend_api_routes_cloud_mesh.py.md   |    2 +-
+ .../codebase/backend_api_routes_codeflow.py.md     |    2 +-
+ .../codebase/backend_api_routes_config.py.md       |    2 +-
+ .../codebase/backend_api_routes_email.py.md        |    2 +-
+ .../codebase/backend_api_routes_evolution.py.md    |    2 +-
+ .../backend_api_routes_execution_policies.py.md    |    2 +-
+ .../codebase/backend_api_routes_feedback.py.md     |    2 +-
+ .../codebase/backend_api_routes_github.py.md       |    2 +-
+ .../codebase/backend_api_routes_graph.py.md        |    2 +-
+ .../codebase/backend_api_routes_init_.py.md        |    2 +-
+ .../codebase/backend_api_routes_internal.py.md     |    2 +-
+ .../codebase/backend_api_routes_knowledge.py.md    |    2 +-
+ .../codebase/backend_api_routes_llm_gateway.py.md  |    2 +-
+ .../codebase/backend_api_routes_markdown.py.md     |    2 +-
+ .../codebase/backend_api_routes_marketplace.py.md  |    2 +-
+ .../backend_api_routes_marketplace_endpoints.py.md |    2 +-
+ .../codebase/backend_api_routes_media.py.md        |    2 +-
+ .../codebase/backend_api_routes_memory.py.md       |    2 +-
+ .../codebase/backend_api_routes_metrics.py.md      |    2 +-
+ .../codebase/backend_api_routes_mobile_bff.py.md   |    2 +-
+ .../codebase/backend_api_routes_onboarding.py.md   |    2 +-
+ .../codebase/backend_api_routes_payments.py.md     |    2 +-
+ .../codebase/backend_api_routes_preferences.py.md  |    2 +-
+ .../codebase/backend_api_routes_repos.py.md        |    2 +-
+ .../backend_api_routes_selector_healing.py.md      |    2 +-
+ .../backend_api_routes_session_stream.py.md        |    2 +-
+ .../backend_api_routes_session_takeover.py.md      |    2 +-
+ .../codebase/backend_api_routes_simulator.py.md    |    2 +-
+ .../codebase/backend_api_routes_site_actions.py.md |    2 +-
+ docs/autogen/codebase/backend_api_routes_sso.py.md |    2 +-
+ .../codebase/backend_api_routes_stream.py.md       |    2 +-
+ .../autogen/codebase/backend_api_routes_task.py.md |    2 +-
+ .../backend_api_routes_task_workspace.py.md        |    2 +-
+ .../codebase/backend_api_routes_tenant_admin.py.md |    2 +-
+ .../codebase/backend_api_routes_tools_ops.py.md    |    2 +-
+ .../backend_api_routes_tools_registry.py.md        |    2 +-
+ .../backend_api_routes_usage_metrics.py.md         |    2 +-
+ .../codebase/backend_api_routes_voice.py.md        |    2 +-
+ .../backend_api_routes_websocket_agent.py.md       |    2 +-
+ .../backend_api_routes_websocket_voice.py.md       |    2 +-
+ .../codebase/backend_byoc_cloud_connector.py.md    |    2 +-
+ .../backend_byoc_container_orchestrator.py.md      |    2 +-
+ docs/autogen/codebase/backend_byoc_init_.py.md     |    2 +-
+ .../codebase/backend_byoc_resource_manager.py.md   |    2 +-
+ .../codebase/backend_config_byoc_limits.json.md    |    2 +-
+ .../backend_config_constitutional_rules.json.md    |    2 +-
+ .../codebase/backend_config_pricing_tiers.json.md  |    2 +-
+ .../codebase/backend_config_routing_policy.json.md |    2 +-
+ docs/autogen/codebase/backend_core_admin_god.py.md |    2 +-
+ .../codebase/backend_core_admin_routes.py.md       |    2 +-
+ .../codebase/backend_core_agent_orchestrator.py.md |    2 +-
+ .../codebase/backend_core_api_key_middleware.py.md |    2 +-
+ .../backend_core_api_key_rate_limiter.py.md        |    2 +-
+ docs/autogen/codebase/backend_core_app.py.md       |    2 +-
+ .../codebase/backend_core_audit_logger.py.md       |    2 +-
+ .../codebase/backend_core_auth_middleware.py.md    |    2 +-
+ .../codebase/backend_core_auto_remediation.py.md   |    2 +-
+ .../codebase/backend_core_autocache_proxy.py.md    |    2 +-
+ .../codebase/backend_core_circuit_breaker.py.md    |    2 +-
+ .../backend_core_cloud_sandbox_orchestrator.py.md  |    2 +-
+ .../codebase/backend_core_cloud_storage.py.md      |    2 +-
+ .../codebase/backend_core_code_validator.py.md     |    2 +-
+ docs/autogen/codebase/backend_core_config.py.md    |    2 +-
+ docs/autogen/codebase/backend_core_constants.py.md |    2 +-
+ .../codebase/backend_core_db_repository.py.md      |    2 +-
+ .../codebase/backend_core_decision_engine.py.md    |    2 +-
+ .../codebase/backend_core_discord_bot.py.md        |    2 +-
+ .../codebase/backend_core_docker-compose.yml.md    |    2 +-
+ .../codebase/backend_core_email_service.py.md      |    2 +-
+ .../autogen/codebase/backend_core_enum_guard.py.md |    2 +-
+ .../codebase/backend_core_error_pattern_db.py.md   |    2 +-
+ .../codebase/backend_core_error_remediation.py.md  |    2 +-
+ docs/autogen/codebase/backend_core_events.py.md    |    2 +-
+ .../codebase/backend_core_evolution_engine.py.md   |    2 +-
+ .../codebase/backend_core_factual_verifier.py.md   |    2 +-
+ .../codebase/backend_core_feedback_loop.py.md      |    2 +-
+ .../codebase/backend_core_free_tier_tracker.py.md  |    2 +-
+ .../codebase/backend_core_gcp_firestore.py.md      |    2 +-
+ .../codebase/backend_core_gcp_pubsub_queue.py.md   |    2 +-
+ .../codebase/backend_core_generation_monitor.py.md |    2 +-
+ .../codebase/backend_core_grpc_client.py.md        |    2 +-
+ .../codebase/backend_core_health_monitor.py.md     |    2 +-
+ .../backend_core_honeypot_middleware.py.md         |    2 +-
+ .../backend_core_idempotency_middleware.py.md      |    2 +-
+ .../codebase/backend_core_immune_system.py.md      |    2 +-
+ docs/autogen/codebase/backend_core_init_.py.md     |    2 +-
+ .../codebase/backend_core_input_sanitizer.py.md    |    2 +-
+ docs/autogen/codebase/backend_core_intent.py.md    |    2 +-
+ .../codebase/backend_core_intent_router.py.md      |    2 +-
+ .../codebase/backend_core_language_router.py.md    |    2 +-
+ docs/autogen/codebase/backend_core_ld_client.py.md |    2 +-
+ docs/autogen/codebase/backend_core_lifespan.py.md  |    2 +-
+ .../codebase/backend_core_llm_gateway.py.md        |    2 +-
+ .../codebase/backend_core_log_batcher.py.md        |    2 +-
+ .../codebase/backend_core_logging_config.py.md     |    2 +-
+ .../codebase/backend_core_mcp_allowlist.py.md      |    2 +-
+ .../codebase/backend_core_microvm_sandbox.py.md    |    2 +-
+ .../codebase/backend_core_multi_layer_cache.py.md  |    2 +-
+ .../backend_core_observability_middleware.py.md    |    2 +-
+ .../codebase/backend_core_orchestrator.py.md       |    2 +-
+ .../codebase/backend_core_origin_validator.py.md   |    2 +-
+ .../codebase/backend_core_output_validator.py.md   |    2 +-
+ .../codebase/backend_core_pgbouncer_pool.py.md     |    2 +-
+ .../codebase/backend_core_posthog_client.py.md     |    2 +-
+ .../codebase/backend_core_prompt_firewall.py.md    |    2 +-
+ .../codebase/backend_core_prompt_helpers.py.md     |    2 +-
+ .../codebase/backend_core_rate_limiter.py.md       |    2 +-
+ docs/autogen/codebase/backend_core_rbac.py.md      |    2 +-
+ .../codebase/backend_core_redis_manager.py.md      |    2 +-
+ .../codebase/backend_core_rollback_monitor.py.md   |    2 +-
+ .../codebase/backend_core_rules_mutator.py.md      |    2 +-
+ .../codebase/backend_core_schema_validator.py.md   |    2 +-
+ .../codebase/backend_core_secret_vault.py.md       |    2 +-
+ .../backend_core_secure_credential_store.py.md     |    2 +-
+ docs/autogen/codebase/backend_core_security.py.md  |    2 +-
+ .../codebase/backend_core_self_healing_agent.py.md |    2 +-
+ .../codebase/backend_core_semantic_cache.py.md     |    2 +-
+ docs/autogen/codebase/backend_core_services.py.md  |    2 +-
+ .../codebase/backend_core_skill_graph.py.md        |    2 +-
+ .../codebase/backend_core_swarm_orchestrator.py.md |    2 +-
+ .../autogen/codebase/backend_core_task_queue.py.md |    2 +-
+ .../backend_core_task_queue_enhanced.py.md         |    2 +-
+ .../codebase/backend_core_task_router.py.md        |    2 +-
+ docs/autogen/codebase/backend_core_telemetry.py.md |    2 +-
+ docs/autogen/codebase/backend_core_tenant_db.py.md |    2 +-
+ .../codebase/backend_core_token_budget.py.md       |    2 +-
+ .../codebase/backend_core_token_deductor.py.md     |    2 +-
+ .../codebase/backend_core_universal_rules.py.md    |    2 +-
+ .../codebase/backend_core_upload_validator.py.md   |    2 +-
+ .../backend_core_upstash_redis_queue.py.md         |    2 +-
+ .../codebase/backend_core_user_profiler.py.md      |    2 +-
+ docs/autogen/codebase/backend_database_init_.py.md |    2 +-
+ ...end_database_migrations_01_initial_setup.sql.md |    2 +-
+ ...kend_database_migrations_02_phase2_setup.sql.md |    2 +-
+ ...grations_03_user_preferences_and_metrics.sql.md |    2 +-
+ ...nd_database_migrations_04_schema_upgrade.sql.md |    2 +-
+ ...database_migrations_05_seed_github_repos.sql.md |    2 +-
+ ...d_database_migrations_06_referral_system.sql.md |    2 +-
+ ...end_database_migrations_07_tenant_config.sql.md |    2 +-
+ ...ckend_database_migrations_08_sso_configs.sql.md |    2 +-
+ ...database_migrations_09_offline_sync_logs.sql.md |    2 +-
+ ...atabase_migrations_10_tenant_sso_offline.sql.md |    2 +-
+ .../codebase/backend_database_session.py.md        |    2 +-
+ .../codebase/backend_database_storage_client.py.md |    2 +-
+ .../backend_database_supabase_client.py.md         |    2 +-
+ .../codebase/backend_engine_cost_optimizer.py.md   |    2 +-
+ docs/autogen/codebase/backend_engine_init_.py.md   |    2 +-
+ .../codebase/backend_engine_model_dispatcher.py.md |    2 +-
+ .../backend_evolution_auto_skill_creator.py.md     |    2 +-
+ .../backend_evolution_auto_update_manager.py.md    |    2 +-
+ .../backend_evolution_dynamic_injector.py.md       |    2 +-
+ .../backend_evolution_fitness_engine.py.md         |    2 +-
+ .../autogen/codebase/backend_evolution_init_.py.md |    2 +-
+ .../backend_evolution_master_planner.py.md         |    2 +-
+ .../backend_evolution_security_sandbox.py.md       |    2 +-
+ .../backend_evolution_self_evolution_agent.py.md   |    2 +-
+ .../codebase/backend_evolution_skill_graph.py.md   |    2 +-
+ docs/autogen/codebase/backend_fix_tests.py.md      |    2 +-
+ docs/autogen/codebase/backend_init_.py.md          |    2 +-
+ docs/autogen/codebase/backend_main.py.md           |    2 +-
+ .../backend_memory_checkpoint_resume.py.md         |    2 +-
+ .../codebase/backend_memory_chromadb_store.py.md   |    2 +-
+ .../backend_memory_cloud_postgres_store.py.md      |    2 +-
+ .../backend_memory_cloud_vector_store.py.md        |    2 +-
+ .../codebase/backend_memory_episodic_memory.py.md  |    2 +-
+ docs/autogen/codebase/backend_memory_init_.py.md   |    2 +-
+ .../codebase/backend_memory_long_term_memory.py.md |    2 +-
+ .../codebase/backend_memory_rag_pipeline.py.md     |    2 +-
+ .../codebase/backend_memory_sliding_window.py.md   |    2 +-
+ .../codebase/backend_memory_sqlite_store.py.md     |    2 +-
+ .../codebase/backend_memory_summary_tree.py.md     |    2 +-
+ .../codebase/backend_memory_supabase_store.py.md   |    2 +-
+ .../backend_memory_vector_store_config.py.md       |    2 +-
+ .../backend_middleware_auth_middleware.py.md       |    2 +-
+ .../backend_middleware_chaos_injector.py.md        |    2 +-
+ .../codebase/backend_middleware_idempotency.py.md  |    2 +-
+ docs/autogen/codebase/backend_models_admin.py.md   |    2 +-
+ .../codebase/backend_models_agent_session.py.md    |    2 +-
+ docs/autogen/codebase/backend_models_api_key.py.md |    2 +-
+ docs/autogen/codebase/backend_models_base.py.md    |    2 +-
+ .../codebase/backend_models_byoc_payloads.py.md    |    2 +-
+ .../codebase/backend_models_ci_report.py.md        |    2 +-
+ .../codebase/backend_models_deployment_logs.py.md  |    2 +-
+ .../backend_models_error_remediation.py.md         |    2 +-
+ .../codebase/backend_models_evolution.py.md        |    2 +-
+ .../codebase/backend_models_execution_log.py.md    |    2 +-
+ .../codebase/backend_models_execution_policy.py.md |    2 +-
+ .../codebase/backend_models_handoff_event.py.md    |    2 +-
+ docs/autogen/codebase/backend_models_init_.py.md   |    2 +-
+ .../backend_models_local_model_handler.py.md       |    2 +-
+ .../codebase/backend_models_pending_tasks.py.md    |    2 +-
+ .../backend_models_selector_healing_event.py.md    |    2 +-
+ .../codebase/backend_models_shared_workspace.py.md |    2 +-
+ ...backend_models_target_platform_credential.py.md |    2 +-
+ .../backend_models_transaction_ledger.py.md        |    2 +-
+ .../backend_models_voice_interaction.py.md         |    2 +-
+ docs/autogen/codebase/backend_models_wallet.py.md  |    2 +-
+ .../codebase/backend_monitoring_cost_auditor.py.md |    2 +-
+ .../codebase/backend_monitoring_init_.py.md        |    2 +-
+ .../codebase/backend_p2p_credit_system.py.md       |    2 +-
+ docs/autogen/codebase/backend_p2p_init_.py.md      |    2 +-
+ .../codebase/backend_p2p_secure_tunnel.py.md       |    2 +-
+ docs/autogen/codebase/backend_pyproject.toml.md    |    2 +-
+ docs/autogen/codebase/backend_reports_init_.py.md  |    2 +-
+ .../backend_reports_optimization_engine.py.md      |    2 +-
+ .../codebase/backend_run_roundtrip_tests.py.md     |    2 +-
+ docs/autogen/codebase/backend_scout_init_.py.md    |    2 +-
+ .../backend_scout_knowledge_extractor.py.md        |    2 +-
+ .../codebase/backend_scout_web_crawler_agent.py.md |    2 +-
+ .../codebase/backend_scripts_check_ollama.py.md    |    2 +-
+ docs/autogen/codebase/backend_scripts_init_.py.md  |    2 +-
+ .../codebase/backend_scripts_load_seed_data.py.md  |    2 +-
+ .../backend_scripts_run_dependency_check.py.md     |    2 +-
+ .../backend_scripts_seed_tools_registry.py.md      |    2 +-
+ .../backend_scripts_self_healing_tests.py.md       |    2 +-
+ docs/autogen/codebase/backend_skills_init_.py.md   |    2 +-
+ .../codebase/backend_skills_provisioner.py.md      |    2 +-
+ .../codebase/backend_skills_skill_registry.py.md   |    2 +-
+ .../codebase/backend_storage_asset_manager.py.md   |    2 +-
+ docs/autogen/codebase/backend_storage_init_.py.md  |    2 +-
+ .../backend_storage_r2_storage_client.py.md        |    2 +-
+ .../backend_tests_agents_test_legal_agent.py.md    |    2 +-
+ .../backend_tests_agents_test_medical_agent.py.md  |    2 +-
+ ...kend_tests_agents_test_research_assistant.py.md |    2 +-
+ .../backend_tests_agents_test_trading_agent.py.md  |    2 +-
+ .../backend_tests_byoc_test_cloud_connector.py.md  |    2 +-
+ ...nd_tests_byoc_test_container_orchestrator.py.md |    2 +-
+ .../backend_tests_byoc_test_resource_manager.py.md |    2 +-
+ docs/autogen/codebase/backend_tests_conftest.py.md |    2 +-
+ .../backend_tests_engine_test_cost_optimizer.py.md |    2 +-
+ ...ackend_tests_engine_test_model_dispatcher.py.md |    2 +-
+ docs/autogen/codebase/backend_tests_init_.py.md    |    2 +-
+ ...ackend_tests_monitoring_test_cost_auditor.py.md |    2 +-
+ .../backend_tests_p2p_test_credit_system.py.md     |    2 +-
+ .../backend_tests_p2p_test_secure_tunnel.py.md     |    2 +-
+ ...kend_tests_scout_test_knowledge_extractor.py.md |    2 +-
+ ...ackend_tests_scout_test_web_crawler_agent.py.md |    2 +-
+ .../backend_tests_test_adaptive_engine.py.md       |    2 +-
+ .../codebase/backend_tests_test_admin_god.py.md    |    2 +-
+ .../codebase/backend_tests_test_admin_models.py.md |    2 +-
+ .../codebase/backend_tests_test_admin_routes.py.md |    2 +-
+ .../codebase/backend_tests_test_advanced.py.md     |    2 +-
+ .../backend_tests_test_agent_department.py.md      |    2 +-
+ .../backend_tests_test_agent_departments.py.md     |    2 +-
+ .../backend_tests_test_agent_orchestrator.py.md    |    2 +-
+ ...ackend_tests_test_agents_crew_departments.py.md |    2 +-
+ docs/autogen/codebase/backend_tests_test_api.py.md |    2 +-
+ .../codebase/backend_tests_test_api_chat.py.md     |    2 +-
+ .../codebase/backend_tests_test_api_keys.py.md     |    2 +-
+ .../backend_tests_test_api_new_endpoints.py.md     |    2 +-
+ .../codebase/backend_tests_test_api_router.py.md   |    2 +-
+ .../codebase/backend_tests_test_audit_logger.py.md |    2 +-
+ .../backend_tests_test_auth_middleware.py.md       |    2 +-
+ .../codebase/backend_tests_test_auth_routes.py.md  |    2 +-
+ .../backend_tests_test_auto_fix_trigger.py.md      |    2 +-
+ .../backend_tests_test_auto_skill_creator.py.md    |    2 +-
+ .../backend_tests_test_autonomous_agent.py.md      |    2 +-
+ .../codebase/backend_tests_test_bangla_nlp.py.md   |    2 +-
+ .../codebase/backend_tests_test_bangla_voice.py.md |    2 +-
+ .../backend_tests_test_billing_system.py.md        |    2 +-
+ .../codebase/backend_tests_test_brain.py.md        |    2 +-
+ .../backend_tests_test_browser_credentials.py.md   |    2 +-
+ .../backend_tests_test_byoc_endpoints.py.md        |    2 +-
+ .../codebase/backend_tests_test_chaos_worker.py.md |    2 +-
+ .../backend_tests_test_checkpoint_resume.py.md     |    2 +-
+ .../backend_tests_test_circuit_breaker.py.md       |    2 +-
+ .../backend_tests_test_cloud_sandbox.py.md         |    2 +-
+ .../backend_tests_test_cloud_storage.py.md         |    2 +-
+ .../backend_tests_test_code_validator.py.md        |    2 +-
+ .../backend_tests_test_collaborative_editor.py.md  |    2 +-
+ .../codebase/backend_tests_test_config.py.md       |    2 +-
+ .../backend_tests_test_config_additional.py.md     |    2 +-
+ .../backend_tests_test_config_coverage.py.md       |    2 +-
+ .../codebase/backend_tests_test_constants.py.md    |    2 +-
+ .../backend_tests_test_context_and_actions.py.md   |    2 +-
+ .../autogen/codebase/backend_tests_test_core.py.md |    2 +-
+ .../codebase/backend_tests_test_core_smoke.py.md   |    2 +-
+ .../backend_tests_test_coverage_gaps.py.md         |    2 +-
+ .../codebase/backend_tests_test_crew_mcp.py.md     |    2 +-
+ ...ackend_tests_test_database_storage_client.py.md |    2 +-
+ .../backend_tests_test_db_repository.py.md         |    2 +-
+ docs/autogen/codebase/backend_tests_test_e2e.py.md |    2 +-
+ .../codebase/backend_tests_test_e2e_media.py.md    |    2 +-
+ .../codebase/backend_tests_test_email_agent.py.md  |    2 +-
+ .../backend_tests_test_email_service.py.md         |    2 +-
+ .../backend_tests_test_episodic_memory.py.md       |    2 +-
+ .../backend_tests_test_error_remediation.py.md     |    2 +-
+ .../backend_tests_test_evolution_engine.py.md      |    2 +-
+ .../backend_tests_test_evolution_pipeline.py.md    |    2 +-
+ .../backend_tests_test_factual_verifier.py.md      |    2 +-
+ .../backend_tests_test_feedback_loop.py.md         |    2 +-
+ .../backend_tests_test_firebase_integration.py.md  |    2 +-
+ .../backend_tests_test_fitness_engine.py.md        |    2 +-
+ .../backend_tests_test_free_tier_tracker.py.md     |    2 +-
+ .../backend_tests_test_gcp_integration.py.md       |    2 +-
+ .../backend_tests_test_generation_monitor.py.md    |    2 +-
+ .../codebase/backend_tests_test_github_agent.py.md |    2 +-
+ .../codebase/backend_tests_test_graph_routes.py.md |    2 +-
+ .../backend_tests_test_graph_service.py.md         |    2 +-
+ .../codebase/backend_tests_test_grpc_client.py.md  |    2 +-
+ .../backend_tests_test_hallucination_guard.py.md   |    2 +-
+ .../codebase/backend_tests_test_health.py.md       |    2 +-
+ .../backend_tests_test_health_monitor.py.md        |    2 +-
+ .../backend_tests_test_health_monitor_routes.py.md |    2 +-
+ .../backend_tests_test_honeypot_middleware.py.md   |    2 +-
+ ...backend_tests_test_idempotency_middleware.py.md |    2 +-
+ .../backend_tests_test_immune_system.py.md         |    2 +-
+ .../backend_tests_test_immune_system_scanner.py.md |    2 +-
+ .../backend_tests_test_input_sanitizer.py.md       |    2 +-
+ .../backend_tests_test_language_router.py.md       |    2 +-
+ .../codebase/backend_tests_test_llm_gateway.py.md  |    2 +-
+ .../backend_tests_test_llm_gateway_coverage.py.md  |    2 +-
+ .../backend_tests_test_long_term_memory.py.md      |    2 +-
+ .../backend_tests_test_markdown_export.py.md       |    2 +-
+ .../backend_tests_test_marketplace_agent.py.md     |    2 +-
+ .../backend_tests_test_mcp_allowlist.py.md         |    2 +-
+ .../codebase/backend_tests_test_mcp_server.py.md   |    2 +-
+ ...ackend_tests_test_mcp_servers_integration.py.md |    2 +-
+ .../codebase/backend_tests_test_media_r2.py.md     |    2 +-
+ ...kend_tests_test_middleware_chaos_injector.py.md |    2 +-
+ .../codebase/backend_tests_test_migrations.py.md   |    2 +-
+ ...kend_tests_test_migrations_and_onboarding.py.md |    2 +-
+ .../codebase/backend_tests_test_mobile_e2e.py.md   |    2 +-
+ .../backend_tests_test_model_registry.py.md        |    2 +-
+ .../backend_tests_test_model_router_unit.py.md     |    2 +-
+ .../backend_tests_test_model_trainer.py.md         |    2 +-
+ .../backend_tests_test_models_ci_report.py.md      |    2 +-
+ .../backend_tests_test_models_evolution.py.md      |    2 +-
+ .../codebase/backend_tests_test_monitoring.py.md   |    2 +-
+ .../backend_tests_test_multi_account_rotator.py.md |    2 +-
+ .../codebase/backend_tests_test_multicloud.py.md   |    2 +-
+ .../backend_tests_test_new_endpoints_sprint5.py.md |    2 +-
+ .../backend_tests_test_new_interfaces.py.md        |    2 +-
+ .../backend_tests_test_new_tools_sprint5.py.md     |    2 +-
+ .../backend_tests_test_optimization_engine.py.md   |    2 +-
+ .../backend_tests_test_output_validator.py.md      |    2 +-
+ ...ackend_tests_test_parallel_agent_executor.py.md |    2 +-
+ .../codebase/backend_tests_test_payments.py.md     |    2 +-
+ ...ckend_tests_test_performance_aware_router.py.md |    2 +-
+ .../backend_tests_test_pgbouncer_pool.py.md        |    2 +-
+ .../codebase/backend_tests_test_posthog.py.md      |    2 +-
+ .../codebase/backend_tests_test_pr_reviewer.py.md  |    2 +-
+ .../backend_tests_test_prod_docs_security.py.md    |    2 +-
+ ...sts_test_production_readiness_integration.py.md |    2 +-
+ .../backend_tests_test_prompt_firewall.py.md       |    2 +-
+ .../autogen/codebase/backend_tests_test_rbac.py.md |    2 +-
+ ...backend_tests_test_reasoning_orchestrator.py.md |    2 +-
+ .../backend_tests_test_repo_discovery.py.md        |    2 +-
+ .../backend_tests_test_resource_catalog.py.md      |    2 +-
+ .../autogen/codebase/backend_tests_test_rlhf.py.md |    2 +-
+ ...kend_tests_test_sandbox_orchestration_run.py.md |    2 +-
+ .../backend_tests_test_schema_validator.py.md      |    2 +-
+ .../codebase/backend_tests_test_secret_vault.py.md |    2 +-
+ ...ackend_tests_test_secure_credential_store.py.md |    2 +-
+ .../backend_tests_test_security_middleware.py.md   |    2 +-
+ .../backend_tests_test_security_regression.py.md   |    2 +-
+ .../backend_tests_test_self_evolution_agent.py.md  |    2 +-
+ .../backend_tests_test_simulator_browser_api.py.md |    2 +-
+ .../codebase/backend_tests_test_skill_graph.py.md  |    2 +-
+ .../backend_tests_test_skill_recommender.py.md     |    2 +-
+ .../backend_tests_test_sliding_window_memory.py.md |    2 +-
+ .../backend_tests_test_sprint_c_tools.py.md        |    2 +-
+ .../codebase/backend_tests_test_sprint_g.py.md     |    2 +-
+ .../backend_tests_test_stealth_networking.py.md    |    2 +-
+ .../codebase/backend_tests_test_stream.py.md       |    2 +-
+ .../backend_tests_test_style_learner.py.md         |    2 +-
+ ...kend_tests_test_supabase_schema_bootstrap.py.md |    2 +-
+ .../backend_tests_test_supabase_store.py.md        |    2 +-
+ .../backend_tests_test_swarm_orchestrator.py.md    |    2 +-
+ .../backend_tests_test_task_endpoints.py.md        |    2 +-
+ .../codebase/backend_tests_test_task_queue.py.md   |    2 +-
+ .../codebase/backend_tests_test_task_router.py.md  |    2 +-
+ .../codebase/backend_tests_test_telegram_bot.py.md |    2 +-
+ .../codebase/backend_tests_test_telemetry.py.md    |    2 +-
+ .../backend_tests_test_tenant_rate_limiter.py.md   |    2 +-
+ .../backend_tests_test_universal_rules.py.md       |    2 +-
+ .../backend_tests_test_upstash_redis.py.md         |    2 +-
+ docs/autogen/codebase/backend_tests_test_uss.py.md |    2 +-
+ .../backend_tests_test_video_generator.py.md       |    2 +-
+ .../codebase/backend_tests_test_vision_agent.py.md |    2 +-
+ .../codebase/backend_tests_test_voice_stream.py.md |    2 +-
+ .../codebase/backend_tests_test_vpn_switcher.py.md |    2 +-
+ .../codebase/backend_tests_test_vscode_e2e.py.md   |    2 +-
+ .../codebase/backend_tests_test_web_fallback.py.md |    2 +-
+ ...d_tests_tools_test_auto_coverage_improver.py.md |    2 +-
+ ...kend_tests_tools_test_auto_test_generator.py.md |    2 +-
+ ...kend_tests_tools_test_code_smell_detector.py.md |    2 +-
+ .../backend_tests_tools_test_cot_reasoner.py.md    |    2 +-
+ ...backend_tests_tools_test_coverage_auditor.py.md |    2 +-
+ ...d_tests_tools_test_knowledge_base_indexer.py.md |    2 +-
+ ...backend_tests_tools_test_multilingual_tts.py.md |    2 +-
+ ...nd_tests_tools_test_viral_referral_engine.py.md |    2 +-
+ .../backend_tests_utils_test_api_tracker.py.md     |    2 +-
+ .../backend_tests_workers_test_celery_app.py.md    |    2 +-
+ .../backend_tools_3d_model_generator.py.md         |    2 +-
+ .../codebase/backend_tools_agent_tools.py.md       |    2 +-
+ .../backend_tools_ai_federation_protocol.py.md     |    2 +-
+ .../backend_tools_ai_pair_programmer.py.md         |    2 +-
+ .../codebase/backend_tools_api_gateway.py.md       |    2 +-
+ .../backend_tools_auto_coverage_improver.py.md     |    2 +-
+ .../codebase/backend_tools_auto_pr_pipeline.py.md  |    2 +-
+ .../backend_tools_auto_test_generator.py.md        |    2 +-
+ .../backend_tools_bandwidth_optimizer.py.md        |    2 +-
+ .../backend_tools_bangla_ai_connector.py.md        |    2 +-
+ .../codebase/backend_tools_bangla_nlp.py.md        |    2 +-
+ .../codebase/backend_tools_bangla_voice.py.md      |    2 +-
+ .../codebase/backend_tools_benchmark_agent.py.md   |    2 +-
+ .../backend_tools_bengali_ocr_converter.py.md      |    2 +-
+ .../codebase/backend_tools_blockchain_agent.py.md  |    2 +-
+ .../autogen/codebase/backend_tools_bootstrap.py.md |    2 +-
+ .../codebase/backend_tools_browser_agent.py.md     |    2 +-
+ .../codebase/backend_tools_browser_stealth.py.md   |    2 +-
+ .../backend_tools_checkpoint_manager.py.md         |    2 +-
+ docs/autogen/codebase/backend_tools_cli.py.md      |    2 +-
+ .../backend_tools_cloud_sandbox_orchestrator.py.md |    2 +-
+ .../backend_tools_code_smell_detector.py.md        |    2 +-
+ .../codebase/backend_tools_codebase_exporter.py.md |    2 +-
+ .../backend_tools_collaborative_editor.py.md       |    2 +-
+ .../codebase/backend_tools_comment_thread_ai.py.md |    2 +-
+ .../codebase/backend_tools_computer_agent.py.md    |    2 +-
+ .../backend_tools_conversation_manager.py.md       |    2 +-
+ .../codebase/backend_tools_cost_auditor.py.md      |    2 +-
+ .../codebase/backend_tools_cot_reasoner.py.md      |    2 +-
+ .../codebase/backend_tools_coverage_auditor.py.md  |    2 +-
+ .../backend_tools_dependency_manager_agent.py.md   |    2 +-
+ .../backend_tools_diagram_to_architecture.py.md    |    2 +-
+ .../codebase/backend_tools_docker_sandbox.py.md    |    2 +-
+ .../codebase/backend_tools_domain_adapter.py.md    |    2 +-
+ .../codebase/backend_tools_email_agent.py.md       |    2 +-
+ .../codebase/backend_tools_ensemble_router.py.md   |    2 +-
+ .../codebase/backend_tools_fuzz_sandbox.py.md      |    2 +-
+ .../codebase/backend_tools_game_dev_agent.py.md    |    2 +-
+ .../backend_tools_gcp_cloud_functions.py.md        |    2 +-
+ .../backend_tools_git_knowledge_extractor.py.md    |    2 +-
+ .../codebase/backend_tools_github_agent.py.md      |    2 +-
+ .../codebase/backend_tools_graph_service.py.md     |    2 +-
+ .../backend_tools_headless_agent_registry.py.md    |    2 +-
+ .../codebase/backend_tools_health_checker.py.md    |    2 +-
+ .../codebase/backend_tools_image_generator.py.md   |    2 +-
+ .../codebase/backend_tools_image_to_code.py.md     |    2 +-
+ docs/autogen/codebase/backend_tools_init_.py.md    |    2 +-
+ .../backend_tools_knowledge_base_indexer.py.md     |    2 +-
+ .../backend_tools_langchain_agent_example.py.md    |    2 +-
+ .../codebase/backend_tools_legal_agent.py.md       |    2 +-
+ .../backend_tools_local_ocr_extractor.py.md        |    2 +-
+ .../codebase/backend_tools_local_search_rag.py.md  |    2 +-
+ .../codebase/backend_tools_marketplace_agent.py.md |    2 +-
+ .../codebase/backend_tools_mcp_cloud_deploy.py.md  |    2 +-
+ .../codebase/backend_tools_mcp_github_cicd.py.md   |    2 +-
+ .../codebase/backend_tools_mcp_server.py.md        |    2 +-
+ .../codebase/backend_tools_mcp_supabase.py.md      |    2 +-
+ .../codebase/backend_tools_mcp_workspace.py.md     |    2 +-
+ .../codebase/backend_tools_medical_agent.py.md     |    2 +-
+ .../codebase/backend_tools_meta_architect.py.md    |    2 +-
+ .../codebase/backend_tools_model_trainer.py.md     |    2 +-
+ .../backend_tools_monthly_cost_reporter.py.md      |    2 +-
+ .../backend_tools_multi_account_rotator.py.md      |    2 +-
+ .../codebase/backend_tools_multilingual_tts.py.md  |    2 +-
+ .../codebase/backend_tools_music_generator.py.md   |    2 +-
+ .../codebase/backend_tools_offline_mode.py.md      |    2 +-
+ .../backend_tools_on_premise_deployer.py.md        |    2 +-
+ .../backend_tools_parallel_agent_executor.py.md    |    2 +-
+ .../codebase/backend_tools_pdf_to_sdk.py.md        |    2 +-
+ .../codebase/backend_tools_plan_sorter.py.md       |    2 +-
+ .../backend_tools_playwright_browser_agent.py.md   |    2 +-
+ .../codebase/backend_tools_pr_reviewer.py.md       |    2 +-
+ .../codebase/backend_tools_pre_commit_ai.py.md     |    2 +-
+ .../codebase/backend_tools_preference_memory.py.md |    2 +-
+ .../backend_tools_presentation_generator.py.md     |    2 +-
+ .../codebase/backend_tools_proxy_manager.py.md     |    2 +-
+ .../codebase/backend_tools_repo_deep_indexer.py.md |    2 +-
+ .../backend_tools_repo_discovery_agent.py.md       |    2 +-
+ .../codebase/backend_tools_resource_catalog.py.md  |    2 +-
+ .../codebase/backend_tools_rlhf_pipeline.py.md     |    2 +-
+ .../codebase/backend_tools_safe_executor.py.md     |    2 +-
+ .../codebase/backend_tools_scientific_agent.py.md  |    2 +-
+ .../codebase/backend_tools_seed_database.py.md     |    2 +-
+ .../codebase/backend_tools_self_planner.py.md      |    2 +-
+ .../codebase/backend_tools_skill_recommender.py.md |    2 +-
+ .../codebase/backend_tools_sso_integrator.py.md    |    2 +-
+ .../backend_tools_stealth_http_client.py.md        |    2 +-
+ .../codebase/backend_tools_style_learner.py.md     |    2 +-
+ .../codebase/backend_tools_telegram_bot.py.md      |    2 +-
+ .../backend_tools_tenant_rate_limiter.py.md        |    2 +-
+ .../backend_tools_test_3d_model_generator.py.md    |    2 +-
+ ...end_tools_test_cloud_sandbox_orchestrator.py.md |    2 +-
+ .../codebase/backend_tools_trading_agent.py.md     |    2 +-
+ .../codebase/backend_tools_video_generator.py.md   |    2 +-
+ .../backend_tools_viral_referral_engine.py.md      |    2 +-
+ .../codebase/backend_tools_vision_agent.py.md      |    2 +-
+ docs/autogen/codebase/backend_tools_voice.py.md    |    2 +-
+ .../codebase/backend_tools_voice_coder.py.md       |    2 +-
+ .../codebase/backend_tools_vpn_switcher.py.md      |    2 +-
+ .../backend_tools_vulnerability_predictor.py.md    |    2 +-
+ .../backend_tools_web_fallback_agent.py.md         |    2 +-
+ .../codebase/backend_utils_api_tracker.py.md       |    2 +-
+ .../codebase/backend_utils_environment.py.md       |    2 +-
+ .../codebase/backend_utils_firestore_helpers.py.md |    2 +-
+ .../codebase/backend_utils_http_client.py.md       |    2 +-
+ docs/autogen/codebase/backend_utils_init_.py.md    |    2 +-
+ .../codebase/backend_utils_json_helpers.py.md      |    2 +-
+ .../codebase/backend_utils_timestamps.py.md        |    2 +-
+ docs/autogen/codebase/backend_uv.lock.md           |    2 +-
+ .../codebase/backend_workers_celery_app.py.md      |    2 +-
+ .../codebase/backend_workers_chaos_worker.py.md    |    2 +-
+ .../codebase/config_.pre-commit-config.yaml.md     |    2 +-
+ docs/autogen/codebase/config_audit-rules.yml.md    |    2 +-
+ .../codebase/config_compliance-rules.yml.md        |    2 +-
+ docs/autogen/codebase/config_docker-limits.yml.md  |    2 +-
+ .../codebase/config_firestore.indexes.json.md      |    2 +-
+ docs/autogen/codebase/config_kilo.json.md          |    2 +-
+ .../codebase/config_promptfooconfig.yaml.md        |    2 +-
+ docs/autogen/codebase/config_proxy_list.json.md    |    2 +-
+ .../autogen/codebase/config_routing_policy.json.md |    2 +-
+ docs/autogen/codebase/config_vercel.json.md        |    2 +-
+ docs/autogen/codebase/coverage.toml.md             |    2 +-
+ docs/autogen/codebase/docker-compose.yml.md        |    2 +-
+ .../codebase/evolution_auto_skill_creator.py.md    |    2 +-
+ .../autogen/codebase/evolution_daily_learner.py.md |    2 +-
+ .../codebase/evolution_evolution_engine.py.md      |    2 +-
+ .../codebase/evolution_evolution_react_agent.py.md |    2 +-
+ docs/autogen/codebase/evolution_self_updater.py.md |    2 +-
+ docs/autogen/codebase/find_duplicate_files.py.md   |    2 +-
+ docs/autogen/codebase/find_duplicate_tests.py.md   |    2 +-
+ docs/autogen/codebase/firebase.json.md             |    2 +-
+ .../infrastructure_check_deploy_gate.py.md         |    2 +-
+ ...infrastructure_cloudflare_enhanced-worker.js.md |    2 +-
+ .../infrastructure_cloudflare_worker.js.md         |    2 +-
+ .../infrastructure_cloudflare_wrangler.toml.md     |    2 +-
+ .../infrastructure_cloudrun_autoscale.yaml.md      |    2 +-
+ .../infrastructure_cloudrun_multi_region.yaml.md   |    2 +-
+ ...functions_firebase_functions_v1_README_BD.md.md |    2 +-
+ ...unctions_firebase_functions_v1_api-router.js.md |    2 +-
+ ..._firebase_functions_v1_deployment-monitor.js.md |    2 +-
+ ...ctions_firebase_functions_v1_health-smart.js.md |    2 +-
+ ...ase_functions_firebase_functions_v1_index.js.md |    2 +-
+ ...functions_firebase_functions_v1_package.json.md |    2 +-
+ ...ons_firebase_functions_v1_providers-smart.js.md |    2 +-
+ ...se_functions_v1_server-connection-monitor.js.md |    2 +-
+ ..._firebase_functions_v1_src_chatClassifier.ts.md |    2 +-
+ ...dataconnect-admin-generated_esm_index.esm.js.md |    2 +-
+ ...dataconnect-admin-generated_esm_package.json.md |    2 +-
+ ...src_dataconnect-admin-generated_index.cjs.js.md |    2 +-
+ ...1_src_dataconnect-admin-generated_index.d.ts.md |    2 +-
+ ...src_dataconnect-admin-generated_package.json.md |    2 +-
+ ...s_firebase_functions_v1_src_email_handler.ts.md |    2 +-
+ ...functions_firebase_functions_v1_src_index.ts.md |    2 +-
+ ...ns_firebase_functions_v1_src_scrapeEngine.ts.md |    2 +-
+ ...ase_functions_v1_src_scrapeHistoryManager.ts.md |    2 +-
+ ..._firebase_functions_v1_src_scrapeSchema.yaml.md |    2 +-
+ ...functions_firebase_functions_v1_swagger.yaml.md |    2 +-
+ ...tions_firebase_functions_v1_system-health.js.md |    2 +-
+ ...unctions_firebase_functions_v1_tsconfig.json.md |    2 +-
+ ...irebase_functions_v1_utils_externalClient.js.md |    2 +-
+ ...rastructure_firebase_functions_ocrTrigger.ts.md |    2 +-
+ ...ure_monitoring_docker-compose.monitoring.yml.md |    2 +-
+ ...astructure_monitoring_grafana_dashboard.json.md |    2 +-
+ ...cture_terraform_root_cause_analysis_agent.py.md |    2 +-
+ ..._terraform_test_root_cause_analysis_agent.py.md |    2 +-
+ .../codebase/infrastructure_vitest-report.json.md  |    2 +-
+ docs/autogen/codebase/package.json.md              |    2 +-
+ .../codebase/packages_shared-types_package.json.md |    2 +-
+ .../packages_shared-types_src_conversation.ts.md   |    2 +-
+ .../codebase/packages_shared-types_src_index.ts.md |    2 +-
+ .../packages_shared-types_src_message.ts.md        |    2 +-
+ .../packages_shared-types_tsconfig.json.md         |    2 +-
+ .../packages_ui-components_package.json.md         |    2 +-
+ .../packages_ui-components_src_ChatBubble.tsx.md   |    2 +-
+ ...components_src_components_DashboardShell.tsx.md |    2 +-
+ ...nents_src_components_LiveSujonBackground.tsx.md |    2 +-
+ ...-components_src_contexts_SharedProviders.tsx.md |    2 +-
+ .../packages_ui-components_src_index.ts.md         |    2 +-
+ .../packages_ui-components_src_utils_api.ts.md     |    2 +-
+ .../packages_ui-components_tsconfig.json.md        |    2 +-
+ docs/autogen/codebase/playwright-ct.config.ts.md   |    2 +-
+ docs/autogen/codebase/playwright.config.ts.md      |    2 +-
+ docs/autogen/codebase/pnpm-lock.yaml.md            |    2 +-
+ docs/autogen/codebase/pnpm-workspace.yaml.md       |    2 +-
+ docs/autogen/codebase/scratch_job_details.json.md  |    2 +-
+ docs/autogen/codebase/scratch_smoke_check.py.md    |    2 +-
+ .../scratch_supremeai_skill_ecosystem_app.py.md    |    2 +-
+ ...ratch_supremeai_skill_ecosystem_generator.py.md |    2 +-
+ ..._supremeai_skill_ecosystem_sample_skill.json.md |    2 +-
+ ...ch_supremeai_skill_ecosystem_skill_schema.py.md |    2 +-
+ .../codebase/scratch_sync_gsm_secrets.py.md        |    2 +-
+ docs/autogen/codebase/scratch_update_vault.py.md   |    2 +-
+ .../autogen/codebase/scratch_update_vault_r2.py.md |    2 +-
+ .../codebase/scratch_verify_project_health.py.md   |    2 +-
+ .../codebase/scripts_add_bangla_comments.py.md     |    2 +-
+ .../codebase/scripts_aggregate_context.py.md       |    2 +-
+ ...scripts_backup_auto_cross_cloud_replicate.py.md |    2 +-
+ .../scripts_backup_auto_firestore_backup.py.md     |    2 +-
+ .../scripts_benchmark_perf_benchmark.py.md         |    2 +-
+ .../codebase/scripts_bots_auto_alert_bot.py.md     |    2 +-
+ .../scripts_bots_auto_daily_standup_bot.py.md      |    2 +-
+ .../codebase/scripts_code_smell_detector.py.md     |    2 +-
+ docs/autogen/codebase/scripts_codebase_to_md.py.md |    2 +-
+ .../codebase/scripts_codegraph_integration.py.md   |    2 +-
+ .../codebase/scripts_commit_supreme_ci.yml.md      |    2 +-
+ docs/autogen/codebase/scripts_config_audit.py.md   |    2 +-
+ .../scripts_core_engine_multicatalog_search.py.md  |    2 +-
+ .../codebase/scripts_core_engine_tool_ranker.py.md |    2 +-
+ .../codebase/scripts_create_test_admin.py.md       |    2 +-
+ .../autogen/codebase/scripts_db_auto_migrate.py.md |    2 +-
+ docs/autogen/codebase/scripts_db_auto_seed.py.md   |    2 +-
+ .../autogen/codebase/scripts_docker_ai_guard.py.md |    2 +-
+ ...ipts_evolution_auto_marketing_skill_forge.py.md |    2 +-
+ docs/autogen/codebase/scripts_fix_mypy.py.md       |    2 +-
+ docs/autogen/codebase/scripts_fuzz_sandbox.py.md   |    2 +-
+ .../scripts_generate_codebase_markdown.py.md       |    2 +-
+ ...scripts_generate_codebase_single_markdown.py.md |    2 +-
+ docs/autogen/codebase/scripts_generate_md.py.md    |    2 +-
+ .../codebase/scripts_generate_smart_docs.py.md     |    2 +-
+ docs/autogen/codebase/scripts_k6_load_test.js.md   |    2 +-
+ docs/autogen/codebase/scripts_locustfile.py.md     |    2 +-
+ docs/autogen/codebase/scripts_migrate.py.md        |    2 +-
+ .../codebase/scripts_multi_model_validator.py.md   |    2 +-
+ ...scripts_orchestrator_auto_budget_guardian.py.md |    2 +-
+ docs/autogen/codebase/scripts_profile_memory.py.md |    2 +-
+ .../scripts_quality_auto_dead_code_remover.py.md   |    2 +-
+ .../scripts_quality_auto_improve_coverage.py.md    |    2 +-
+ .../scripts_quality_auto_refactor_suggester.py.md  |    2 +-
+ ...cripts_quality_check_ollama_test_coverage.py.md |    2 +-
+ .../scripts_resource_collection_awesome_go.py.md   |    2 +-
+ ...cripts_resource_collection_awesome_python.py.md |    2 +-
+ ...ts_resource_collection_awesome_selfhosted.py.md |    2 +-
+ ...ripts_resource_collection_base_api_client.py.md |    2 +-
+ .../scripts_resource_collection_base_scraper.py.md |    2 +-
+ ...pts_resource_collection_ossinsight_client.py.md |    2 +-
+ ...ipts_resource_collection_ossinsight_init_.py.md |    2 +-
+ ...ripts_resource_collection_ossinsight_test.py.md |    2 +-
+ .../scripts_resource_collection_run_all.py.md      |    2 +-
+ ...ts_resource_collection_run_all_collectors.py.md |    2 +-
+ ...ripts_resource_scraping_awesome_go_scrape.py.md |    2 +-
+ ...s_resource_scraping_awesome_python_scrape.py.md |    2 +-
+ ...source_scraping_awesome_selfhosted_scrape.py.md |    2 +-
+ .../codebase/scripts_run_all_collectors.py.md      |    2 +-
+ docs/autogen/codebase/scripts_safety_guard.py.md   |    2 +-
+ .../scripts_security_auto_find_blindspots.py.md    |    2 +-
+ .../scripts_security_auto_secret_rotate.py.md      |    2 +-
+ .../scripts_security_check_dependencies.py.md      |    2 +-
+ .../codebase/scripts_security_code-quality.yml.md  |    2 +-
+ ...scripts_security_dependency-health-check.yml.md |    2 +-
+ .../codebase/scripts_security_find_dead_code.py.md |    2 +-
+ docs/autogen/codebase/scripts_seed_repos.py.md     |    2 +-
+ .../autogen/codebase/scripts_setup_ci_runner.py.md |    2 +-
+ .../codebase/scripts_setup_firebase_admin.py.md    |    2 +-
+ docs/autogen/codebase/scripts_skill_loader.py.md   |    2 +-
+ .../codebase/scripts_supreme-config-audit.py.md    |    2 +-
+ .../codebase/scripts_supreme-docker-analyzer.py.md |    2 +-
+ .../codebase/scripts_supreme-risk-scorer.py.md     |    2 +-
+ .../codebase/scripts_supreme_context_builder.py.md |    2 +-
+ .../scripts_tenant_auto_tenant_health_report.py.md |    2 +-
+ .../scripts_tenant_auto_tenant_setup.py.md         |    2 +-
+ docs/autogen/codebase/scripts_test_bangla.py.md    |    2 +-
+ docs/autogen/codebase/scripts_test_read.py.md      |    2 +-
+ docs/autogen/codebase/security-scan.yml.md         |    2 +-
+ .../codebase/skills_dynamic_csv_exporter.py.md     |    2 +-
+ .../codebase/skills_dynamic_text_summarizer.py.md  |    2 +-
+ .../codebase/skills_dynamic_web_scraper.py.md      |    2 +-
+ docs/autogen/codebase/skills_init_.py.md           |    2 +-
+ docs/autogen/codebase/skills_installer.py.md       |    2 +-
+ docs/autogen/codebase/skills_marketplace.py.md     |    2 +-
+ docs/autogen/codebase/skills_registry.py.md        |    2 +-
+ docs/autogen/codebase/skills_schema.py.md          |    2 +-
+ .../codebase/test-results_.last-run.json.md        |    2 +-
+ ...be-accessible-Mobile-Chrome_error-context.md.md |    2 +-
+ ...be-accessible-Mobile-Safari_error-context.md.md |    2 +-
+ ...bility-issues-Mobile-Safari_error-context.md.md |    2 +-
+ ...sends-message-Mobile-Chrome_error-context.md.md |    2 +-
+ ...sends-message-Mobile-Safari_error-context.md.md |    2 +-
+ ...Chat-sends-message-chromium_error-context.md.md |    2 +-
+ .../codebase/test-results_e2e-report.json.md       |    2 +-
+ .../codebase/tests_e2e_accessibility.spec.ts.md    |    2 +-
+ .../codebase/tests_e2e_admin-dashboard.spec.ts.md  |    2 +-
+ docs/autogen/codebase/tests_e2e_chat.spec.ts.md    |    2 +-
+ docs/autogen/codebase/tests_e2e_visual.spec.ts.md  |    2 +-
+ docs/autogen/codebase/tests_test_tenant_di.py.md   |    2 +-
+ docs/autogen/codebase/tools_cache_cleanup.py.md    |    2 +-
+ .../tools_vscode-extension_ARCHITECTURE_BN.md.md   |    2 +-
+ ...vscode-extension_AdminMetricsController.java.md |    2 +-
+ ...s_vscode-extension_CodebaseAuditService.java.md |    2 +-
+ ...ools_vscode-extension_FeatureDefinition.java.md |    2 +-
+ ...ode-extension_FeatureRegistryController.java.md |    2 +-
+ ...vscode-extension_FeatureRegistryService.java.md |    2 +-
+ .../tools_vscode-extension_GlobalMetrics.java.md   |    2 +-
+ ...s_vscode-extension_GlobalMetricsService.java.md |    2 +-
+ ...ols_vscode-extension_INTEGRATION_GUIDE_BN.md.md |    2 +-
+ .../codebase/tools_vscode-extension_README.md.md   |    2 +-
+ .../tools_vscode-extension_README_BN.md.md         |    2 +-
+ .../tools_vscode-extension_jest.config.js.md       |    2 +-
+ .../tools_vscode-extension_package.json.md         |    2 +-
+ .../tools_vscode-extension_package.nls.bn.json.md  |    2 +-
+ .../tools_vscode-extension_src_agentDetector.ts.md |    2 +-
+ .../tools_vscode-extension_src_ai_AIService.ts.md  |    2 +-
+ ...de-extension_src_ai_CodeGenerationService.ts.md |    2 +-
+ ...vscode-extension_src_ai_CodeReviewService.ts.md |    2 +-
+ ...ls_vscode-extension_src_ai_ContextBuilder.ts.md |    2 +-
+ ...xtension_src_dataconnect-generated_README.md.md |    2 +-
+ ...n_src_dataconnect-generated_esm_index.esm.js.md |    2 +-
+ ...n_src_dataconnect-generated_esm_package.json.md |    2 +-
+ ...nsion_src_dataconnect-generated_index.cjs.js.md |    2 +-
+ ...tension_src_dataconnect-generated_index.d.ts.md |    2 +-
+ ...nsion_src_dataconnect-generated_package.json.md |    2 +-
+ .../tools_vscode-extension_src_extension.ts.md     |    2 +-
+ ...de-extension_src_handlers_CodeEditHandler.ts.md |    2 +-
+ ...de-extension_src_handlers_CodeFlowHandler.ts.md |    2 +-
+ ...scode-extension_src_handlers_ErrorHandler.ts.md |    2 +-
+ ...de-extension_src_handlers_FeedbackHandler.ts.md |    2 +-
+ ...ode-extension_src_providers_CodeFlowPanel.ts.md |    2 +-
+ ...nsion_src_providers_StreamingChatProvider.ts.md |    2 +-
+ ...n_src_providers_SupremeAIActivityProvider.ts.md |    2 +-
+ ...providers_SupremeAIAdminDashboardProvider.ts.md |    2 +-
+ ...nsion_src_providers_SupremeAIChatProvider.ts.md |    2 +-
+ ...extension_src_providers_SupremeAIChatView.ts.md |    2 +-
+ ...viders_SupremeAICustomerDashboardProvider.ts.md |    2 +-
+ ...on_src_providers_SupremeAISidebarProvider.ts.md |    2 +-
+ ...vscode-extension_src_services_AuthService.ts.md |    2 +-
+ ...e-extension_src_services_SupremeAIService.ts.md |    2 +-
+ .../tools_vscode-extension_src_types_index.ts.md   |    2 +-
+ ...ension_src_utils_DynamicSignatureRegistry.ts.md |    2 +-
+ ...s_vscode-extension_test_auth-service.test.ts.md |    2 +-
+ ...ools_vscode-extension_test_mocks_vscode.d.ts.md |    2 +-
+ .../tools_vscode-extension_test_mocks_vscode.ts.md |    2 +-
+ .../tools_vscode-extension_test_setup.ts.md        |    2 +-
+ ...ode-extension_test_supremeai-service.test.ts.md |    2 +-
+ .../tools_vscode-extension_tsconfig.json.md        |    2 +-
+ .../tools_vscode-extension_vitest.config.ts.md     |    2 +-
+ docs/autogen/codebase/turbo.json.md                |    2 +-
+ docs/autogen/codebase/vercel.json.md               |    2 +-
+ docs/autogen/codebase_full.md                      |  118 +-
+ 1081 files changed, 10704 insertions(+), 10484 deletions(-)
+
+```
+
+## Diff Detail
+```diff
+commit ff1a5df1a74b243355bc2a0e1a974321d6bfbbcf
+Author: github-actions[bot] <github-actions[bot]@users.noreply.github.com>
+Date:   Tue Jul 7 11:15:54 2026 +0000
+
+    docs: auto-update codebase docs & dashboard [skip ci]
+
+diff --git a/docs/autogen/INDEX.md b/docs/autogen/INDEX.md
+index a3fd545df..f378632f0 100644
+--- a/docs/autogen/INDEX.md
++++ b/docs/autogen/INDEX.md
+@@ -13,4 +13,4 @@
+ - **ডিরেক্টরি:** [changes/](changes/)
+ 
+ ---
+-*স্বয়ংক্রিয়ভাবে তৈরি — 2026-07-07 09:44:08*
++*স্বয়ংক্রিয়ভাবে তৈরি — 2026-07-07 11:15:53*
+diff --git a/docs/autogen/changes/change_6afc88915f14bb47ce3af1ee795bab2921c6052e.md b/docs/autogen/changes/change_6afc88915f14bb47ce3af1ee795bab2921c6052e.md
+new file mode 100644
+index 000000000..36ed8a0cf
+--- /dev/null
++++ b/docs/autogen/changes/change_6afc88915f14bb47ce3af1ee795bab2921c6052e.md
+@@ -0,0 +1,9239 @@
++# 📋 Commit 6afc88915f14bb47ce3af1ee795bab2921c6052e
++
++## Commit Stats
++```
++commit 6afc88915f14bb47ce3af1ee795bab2921c6052e
++Author: github-actions[bot] <github-actions[bot]@users.noreply.github.com>
++Date:   Tue Jul 7 09:44:09 2026 +0000
++
++    docs: auto-update codebase docs & dashboard [skip ci]
++
++ docs/autogen/INDEX.md                              |    2 +-
++ ...nge_198dc0b7121eb7a0c75430d675a497f0ce589e0f.md | 9998 --------------------
++ ...nge_9184c3b54d6e2e9a526275f71dba651800be89a9.md |  596 ++
++ ...nge_96ca69e64ef93cfade11878dcc482adb163b03bb.md | 9997 +++++++++++++++++++
++ ...nge_db7598a27a14c6bfcd8e85bd90ee2be61326346d.md |   39 -
++ .../.github_actions_setup-backend_action.yml.md    |    2 +-
++ ...github_scripts_advanced-validation-report.py.md |    2 +-
++ .../codebase/.github_scripts_canary-deploy.py.md   |    2 +-
++ .../codebase/.github_scripts_ci-auto-fix-v3.py.md  |    2 +-
++ .../codebase/.github_scripts_ci-auto-fix.py.md     |    2 +-
++ .../.github_scripts_ci-decision-engine.py.md       |    2 +-
++ .../codebase/.github_scripts_ci-health-check.py.md |    2 +-
++ .../.github_scripts_clean_action_logs.py.md        |    2 +-
++ .../codebase/.github_scripts_deploy-backend.py.md  |    2 +-
++ .../.github_scripts_detect-previous-failures.py.md |    2 +-
++ .../codebase/.github_scripts_enforce_24h_gap.py.md |    2 +-
++ .../.github_scripts_generate-ci-report.py.md       |    2 +-
++ .../.github_scripts_generate_ai_prompt.py.md       |    2 +-
++ .../.github_scripts_multi-model-evaluator.py.md    |    2 +-
++ docs/autogen/codebase/.github_scripts_review.py.md |    2 +-
++ .../.github_scripts_supremeai-evaluator.py.md      |    2 +-
++ .../.github_scripts_test_ai_reviewer.py.md         |    2 +-
++ .../codebase/.github_workflows_deploy.yml.md       |    2 +-
++ .../.github_workflows_nightly-maintenance.yml.md   |    9 +-
++ .../.github_workflows_supreme-core-ci.yml.md       |   15 +-
++ .../.github_workflows_supreme-mobile-cd.yml.md     |    2 +-
++ ....github_workflows_supreme-release-builds.yml.md |    2 +-
++ .../.github_workflows_sync-from-prod.yml.md        |    2 +-
++ docs/autogen/codebase/AGENTS.md.md                 |    2 +-
++ docs/autogen/codebase/CHANGELOG.md.md              |    2 +-
++ docs/autogen/codebase/CI_PIPELINE.md.md            |    2 +-
++ docs/autogen/codebase/CONTRIBUTING.md.md           |    2 +-
++ docs/autogen/codebase/IMPLEMENTATION_STATUS.md.md  |    2 +-
++ .../codebase/PRODUCTION_READINESS_GUIDE.md.md      |    2 +-
++ docs/autogen/codebase/README.md.md                 |    2 +-
++ docs/autogen/codebase/SECURITY.md.md               |    2 +-
++ docs/autogen/codebase/admin_dashboard_script.js.md |    2 +-
++ docs/autogen/codebase/apps_desktop_README.md.md    |    2 +-
++ docs/autogen/codebase/apps_desktop_package.json.md |    2 +-
++ .../codebase/apps_desktop_src-tauri_Cargo.toml.md  |    2 +-
++ .../codebase/apps_desktop_src-tauri_build.rs.md    |    2 +-
++ .../apps_desktop_src-tauri_secure-store.ts.md      |    2 +-
++ .../codebase/apps_desktop_src-tauri_src_main.rs.md |    2 +-
++ .../apps_desktop_src-tauri_tauri.conf.json.md      |    2 +-
++ .../codebase/apps_desktop_src-ui_package.json.md   |    2 +-
++ .../codebase/apps_desktop_src-ui_src_App.tsx.md    |    2 +-
++ ..._desktop_src-ui_src_components_ChatInput.tsx.md |    2 +-
++ .../codebase/apps_desktop_src-ui_src_main.tsx.md   |    2 +-
++ .../apps_desktop_src-ui_src_pages_AdminPage.tsx.md |    2 +-
++ .../apps_desktop_src-ui_src_pages_ChatPage.tsx.md  |    2 +-
++ ...s_desktop_src-ui_src_pages_EvolutionPage.tsx.md |    2 +-
++ .../apps_desktop_src-ui_src_pages_LoginPage.tsx.md |    2 +-
++ ...apps_desktop_src-ui_src_pages_SkillsPage.tsx.md |    2 +-
++ .../apps_desktop_src-ui_src_services_api.ts.md     |    2 +-
++ .../apps_desktop_src-ui_src_stores_authStore.ts.md |    2 +-
++ .../apps_desktop_src-ui_src_types_index.ts.md      |    2 +-
++ .../apps_desktop_src-ui_src_vite-env.d.ts.md       |    2 +-
++ .../codebase/apps_desktop_src-ui_tsconfig.json.md  |    2 +-
++ .../apps_desktop_src-ui_tsconfig.node.json.md      |    2 +-
++ .../codebase/apps_desktop_src-ui_vite.config.ts.md |    2 +-
++ ...ava_com_supremeai_JavaWorkerApplication.java.md |    2 +-
++ ...va_com_supremeai_grpc_WorkerServiceImpl.java.md |    2 +-
++ ...in_java_com_supremeai_models_TaskEntity.java.md |    2 +-
++ ...m_supremeai_repositories_TaskRepository.java.md |    2 +-
++ ...va-worker_src_main_resources_application.yml.md |    2 +-
++ docs/autogen/codebase/apps_mobile_README.md.md     |    2 +-
++ docs/autogen/codebase/apps_mobile_README_BD.md.md  |    2 +-
++ .../codebase/apps_mobile_analysis_options.yaml.md  |    2 +-
++ .../codebase/apps_mobile_assets_i18n_ar.json.md    |    2 +-
++ .../codebase/apps_mobile_assets_i18n_bn.json.md    |    2 +-
++ .../codebase/apps_mobile_assets_i18n_en.json.md    |    2 +-
++ .../codebase/apps_mobile_assets_i18n_es.json.md    |    2 +-
++ .../codebase/apps_mobile_assets_i18n_hi.json.md    |    2 +-
++ .../codebase/apps_mobile_assets_i18n_zh.json.md    |    2 +-
++ .../codebase/apps_mobile_devtools_options.yaml.md  |    2 +-
++ ...ts.xcassets_AppIcon.appiconset_Contents.json.md |    2 +-
++ ....xcassets_LaunchImage.imageset_Contents.json.md |    2 +-
++ ...sets.xcassets_LaunchImage.imageset_README.md.md |    2 +-
++ ...s_mobile_lib_dataconnect_generated_README.md.md |    2 +-
++ ...le_lib_dataconnect_generated_add_review.dart.md |    2 +-
++ ..._lib_dataconnect_generated_create_movie.dart.md |    2 +-
++ ...lib_dataconnect_generated_delete_review.dart.md |    2 +-
++ ...ile_lib_dataconnect_generated_generated.dart.md |    2 +-
++ ...b_dataconnect_generated_get_movie_by_id.dart.md |    2 +-
++ ...e_lib_dataconnect_generated_list_movies.dart.md |    2 +-
++ ...dataconnect_generated_list_user_reviews.dart.md |    2 +-
++ ...le_lib_dataconnect_generated_list_users.dart.md |    2 +-
++ ..._lib_dataconnect_generated_search_movie.dart.md |    2 +-
++ ...e_lib_dataconnect_generated_upsert_user.dart.md |    2 +-
++ docs/autogen/codebase/apps_mobile_lib_main.dart.md |    2 +-
++ .../apps_mobile_lib_models_ci_job_model.dart.md    |    2 +-
++ ...apps_mobile_lib_providers_auth_provider.dart.md |    2 +-
++ ...mobile_lib_providers_dashboard_provider.dart.md |    2 +-
++ ...le_lib_providers_orchestration_provider.dart.md |    2 +-
++ ..._mobile_lib_providers_settings_provider.dart.md |    2 +-
++ ...ps_mobile_lib_screens_agent_chat_screen.dart.md |    2 +-
++ ...mobile_lib_screens_alerts_alerts_screen.dart.md |    2 +-
++ ..._lib_screens_analytics_analytics_screen.dart.md |    2 +-
++ ...apps_mobile_lib_screens_api_keys_screen.dart.md |    2 +-
++ .../apps_mobile_lib_screens_api_scaffold.dart.md   |    2 +-
++ ...apps_mobile_lib_screens_byoc_hub_screen.dart.md |    2 +-
++ ..._lib_screens_consensus_consensus_screen.dart.md |    2 +-
++ ...obile_lib_screens_dashboard_home_screen.dart.md |    2 +-
++ ...pps_mobile_lib_screens_dashboard_screen.dart.md |    2 +-
++ ..._lib_screens_extension_extension_screen.dart.md |    2 +-
++ .../apps_mobile_lib_screens_git_git_screen.dart.md |    2 +-
++ ...le_lib_screens_learning_learning_screen.dart.md |    2 +-
++ .../apps_mobile_lib_screens_login_screen.dart.md   |    2 +-
++ ...eens_notifications_notifications_screen.dart.md |    2 +-
++ ...b_screens_projects_projects_list_screen.dart.md |    2 +-
++ ...b_screens_providers_ai_providers_screen.dart.md |    2 +-
++ ...s_mobile_lib_screens_quota_quota_screen.dart.md |    2 +-
++ ...ib_screens_resilience_resilience_screen.dart.md |    2 +-
++ ...apps_mobile_lib_screens_settings_screen.dart.md |    2 +-
++ .../apps_mobile_lib_screens_terminal_view.dart.md  |    2 +-
++ .../apps_mobile_lib_screens_vpn_vpn_screen.dart.md |    2 +-
++ .../apps_mobile_lib_screens_wallet_screen.dart.md  |    2 +-
++ .../apps_mobile_lib_services_api_client.dart.md    |    2 +-
++ .../apps_mobile_lib_services_api_service.dart.md   |    2 +-
++ ...pps_mobile_lib_services_billing_service.dart.md |    2 +-
++ .../apps_mobile_lib_services_byoc_service.dart.md  |    2 +-
++ ...pps_mobile_lib_services_ci_sync_service.dart.md |    2 +-
++ ...s_mobile_lib_services_deployment_stream.dart.md |    2 +-
++ ...obile_lib_services_localization_service.dart.md |    2 +-
++ ...bile_lib_services_neural_stream_service.dart.md |    2 +-
++ ...obile_lib_services_notification_service.dart.md |    2 +-
++ ...obile_lib_services_offline_sync_service.dart.md |    2 +-
++ ...ile_lib_services_payment_gateway_bridge.dart.md |    2 +-
++ ..._mobile_lib_services_screen_api_service.dart.md |    2 +-
++ .../apps_mobile_lib_theme_app_theme.dart.md        |    2 +-
++ .../apps_mobile_lib_theme_theme_provider.dart.md   |    2 +-
++ ...apps_mobile_lib_widgets_action_hub_card.dart.md |    2 +-
++ ...ile_lib_widgets_base_dashboard_scaffold.dart.md |    2 +-
++ .../codebase/apps_mobile_lib_widgets_es.json.md    |    2 +-
++ .../apps_mobile_lib_widgets_json_dropzone.dart.md  |    2 +-
++ .../apps_mobile_lib_widgets_live_terminal.dart.md  |    2 +-
++ ...apps_mobile_lib_widgets_loading_widgets.dart.md |    2 +-
++ ...le_lib_widgets_transaction_history_list.dart.md |    2 +-
++ .../apps_mobile_lib_widgets_usage_chart.dart.md    |    2 +-
++ ...ts.xcassets_AppIcon.appiconset_Contents.json.md |    2 +-
++ docs/autogen/codebase/apps_mobile_pubspec.lock.md  |    2 +-
++ docs/autogen/codebase/apps_mobile_pubspec.yaml.md  |    2 +-
++ ...bile_test_auth_provider_edge_cases_test.dart.md |    2 +-
++ .../apps_mobile_test_auth_provider_test.dart.md    |    2 +-
++ ...mobile_test_home_screen_edge_cases_test.dart.md |    2 +-
++ .../apps_mobile_test_home_screen_test.dart.md      |    2 +-
++ ...s_mobile_test_screens_login_screen_test.dart.md |    2 +-
++ .../codebase/apps_mobile_web_manifest.json.md      |    2 +-
++ .../codebase/apps_studio-client_README.md.md       |    2 +-
++ .../codebase/apps_studio-client_components.json.md |    2 +-
++ .../apps_studio-client_eslint.config.js.md         |    2 +-
++ .../autogen/codebase/apps_studio-client_main.js.md |    2 +-
++ .../codebase/apps_studio-client_package.json.md    |    2 +-
++ .../apps_studio-client_public_manifest.json.md     |    2 +-
++ .../codebase/apps_studio-client_public_sw.js.md    |   47 +-
++ .../apps_studio-client_src_App.test.tsx.md         |    2 +-
++ .../codebase/apps_studio-client_src_App.tsx.md     |   20 +-
++ ...tudio-client_src_components_AdminConsole.tsx.md |    2 +-
++ ..._studio-client_src_components_BanglaHint.tsx.md |    2 +-
++ ...apps_studio-client_src_components_Header.tsx.md |    2 +-
++ ...lient_src_components_LiveSujonBackground.tsx.md |    2 +-
++ ...c_components_Onboarding_OnboardingWizard.tsx.md |    2 +-
++ ...ent_src_components_Onboarding_StepApiKey.tsx.md |    2 +-
++ ..._src_components_Onboarding_StepFirstChat.tsx.md |    2 +-
++ ...rc_components_Onboarding_StepModelSelect.tsx.md |    2 +-
++ ...dio-client_src_components_OperatorStudio.tsx.md |    2 +-
++ ...o-client_src_components_admin_ActionCard.tsx.md |    2 +-
++ ..._src_components_admin_AdminAuthenticated.tsx.md |    2 +-
++ ...client_src_components_admin_AdminConsole.tsx.md |    2 +-
++ ..._src_components_admin_AdminDashboardHome.tsx.md |    2 +-
++ ...o-client_src_components_admin_AdminLogin.tsx.md |    2 +-
++ ..._src_components_admin_AdminSubTabContent.tsx.md |    2 +-
++ ...-client_src_components_admin_AdminTopNav.tsx.md |    2 +-
++ ...o-client_src_components_admin_AethelNode.tsx.md |    2 +-
++ ...ient_src_components_admin_AuditLogsPanel.tsx.md |    2 +-
++ ...lient_src_components_admin_BackupRestore.tsx.md |    2 +-
++ ...ient_src_components_admin_CICDVisualizer.tsx.md |    2 +-
++ ...t_src_components_admin_CloudOrchestrator.tsx.md |    2 +-
++ ...lient_src_components_admin_CommandCenter.tsx.md |    2 +-
++ ...client_src_components_admin_ConfigEditor.tsx.md |    2 +-
++ ..._src_components_admin_ConsentMatrixModal.tsx.md |    2 +-
++ ...-client_src_components_admin_CostAuditor.tsx.md |    2 +-
++ ..._components_admin_DashboardErrorBoundary.tsx.md |    2 +-
++ ...ent_src_components_admin_DeploymentModal.tsx.md |    2 +-
++ ...client_src_components_admin_DynamicPanel.tsx.md |    2 +-
++ ...omponents_admin_EnhancedSkillMarketplace.tsx.md |    2 +-
++ ...t_src_components_admin_GithubIntegration.tsx.md |    2 +-
++ ...client_src_components_admin_HealthBanner.tsx.md |    2 +-
++ ...io-client_src_components_admin_HealthMap.tsx.md |    2 +-
++ ..._src_components_admin_InteractiveChatTab.tsx.md |    2 +-
++ ...dio-client_src_components_admin_LiveLogs.tsx.md |    2 +-
++ ...lient_src_components_admin_MemoryBrowser.tsx.md |    2 +-
++ ...-client_src_components_admin_ModelRouter.tsx.md |    2 +-
++ ..._components_admin_ObservabilityDashboard.tsx.md |    2 +-
++ ...-client_src_components_admin_RBACManager.tsx.md |    2 +-
++ ...nt_src_components_admin_RateLimitManager.tsx.md |    2 +-
++ ...rc_components_admin_RealTimeMetricsPanel.tsx.md |    2 +-
++ ...mponents_admin_RedesignedDashboardMockup.tsx.md |    2 +-
++ ...nt_src_components_admin_RulesEnginePanel.tsx.md |    2 +-
++ ...t_src_components_admin_SecurityDashboard.tsx.md |    2 +-
++ ...rc_components_admin_ServiceHealthMetrics.tsx.md |    2 +-
++ ...ent_src_components_admin_ThreatDetection.tsx.md |    2 +-
++ ...-client_src_components_admin_UserManager.tsx.md |    2 +-
++ ..._src_components_admin_VisualRulesBuilder.tsx.md |    2 +-
++ ..._studio-client_src_components_admin_index.ts.md |    2 +-
++ ..._src_components_audio_WaveformVisualizer.tsx.md |    2 +-
++ ...ient_src_components_chat_TypingIndicator.tsx.md |    2 +-
++ ...nt_src_components_chat_UnifiedChatBubble.tsx.md |    2 +-
++ ...s_studio-client_src_components_chat_index.ts.md |    2 +-
++ ...t_src_components_customer_BrowserPreview.tsx.md |    2 +-
++ ...t_src_components_customer_ChatPanel.test.tsx.md |    2 +-
++ ...client_src_components_customer_ChatPanel.tsx.md |    2 +-
++ ...lient_src_components_customer_CodeEditor.tsx.md |    2 +-
++ ...-client_src_components_customer_HomeFeed.tsx.md |    2 +-
++ ..._src_components_customer_MobileSimulator.tsx.md |    2 +-
++ ...rc_components_customer_QuickPresets.test.tsx.md |    2 +-
++ ...ent_src_components_customer_QuickPresets.tsx.md |    2 +-
++ ...c_components_customer_UserDashboard.test.tsx.md |    2 +-
++ ...nt_src_components_customer_UserDashboard.tsx.md |    2 +-
++ ...udio-client_src_components_customer_index.ts.md |    2 +-
++ ..._src_components_dashboard_AgentStatePill.tsx.md |    2 +-
++ ...components_dashboard_AutomationQueuePage.tsx.md |    2 +-
++ ...components_dashboard_DashboardShell.test.tsx.md |    2 +-
++ ..._src_components_dashboard_DashboardShell.tsx.md |    2 +-
++ ..._src_components_dashboard_ExecutionShell.tsx.md |    2 +-
++ ...t_src_components_dashboard_FileTreePanel.tsx.md |    2 +-
++ ..._src_components_dashboard_GuardrailsPage.tsx.md |    2 +-
++ ...src_components_dashboard_HealingLogPanel.tsx.md |    2 +-
++ ...t_src_components_dashboard_KnowledgePage.tsx.md |    2 +-
++ ..._src_components_dashboard_LlmGatewayPage.tsx.md |    2 +-
++ ...nt_src_components_dashboard_ReasoningLog.tsx.md |    2 +-
++ ...src_components_dashboard_SandboxViewport.tsx.md |    2 +-
++ ...ent_src_components_dashboard_SecretsPage.tsx.md |    2 +-
++ ...c_components_dashboard_SessionDetailPage.tsx.md |    2 +-
++ ...nt_src_components_dashboard_SessionsPage.tsx.md |    2 +-
++ ...nt_src_components_dashboard_SettingsPage.tsx.md |    2 +-
++ ...src_components_dashboard_SiteActionsPage.tsx.md |    2 +-
++ ...lient_src_components_dashboard_UsagePage.tsx.md |    2 +-
++ ...lient_src_components_dashboard_VaultPage.tsx.md |    2 +-
++ ...ent_src_components_dashboard_sessionStore.ts.md |    2 +-
++ ...ent_src_components_dashboard_useHashRoute.ts.md |    2 +-
++ ...lient_src_components_editor_CollabEditor.tsx.md |    2 +-
++ ...o-client_src_components_graph_SkillGraph.tsx.md |    2 +-
++ ...udio-client_src_components_ui_ActionCard.tsx.md |    2 +-
++ ...ps_studio-client_src_components_ui_Badge.tsx.md |    2 +-
++ ...pps_studio-client_src_components_ui_Card.tsx.md |    2 +-
++ ...studio-client_src_components_ui_Skeleton.tsx.md |    2 +-
++ ...pps_studio-client_src_components_ui_index.ts.md |    2 +-
++ ..._studio-client_src_contexts_ThemeContext.tsx.md |    2 +-
++ ..._studio-client_src_contexts_ToastContext.tsx.md |    2 +-
++ ...o-client_src_dataconnect-generated_README.md.md |    2 +-
++ ...t_src_dataconnect-generated_esm_index.esm.js.md |    2 +-
++ ...t_src_dataconnect-generated_esm_package.json.md |    2 +-
++ ...lient_src_dataconnect-generated_index.cjs.js.md |    2 +-
++ ...-client_src_dataconnect-generated_index.d.ts.md |    2 +-
++ ...lient_src_dataconnect-generated_package.json.md |    2 +-
++ ...nt_src_dataconnect-generated_react_README.md.md |    2 +-
++ ...dataconnect-generated_react_esm_index.esm.js.md |    2 +-
++ ...dataconnect-generated_react_esm_package.json.md |    2 +-
++ ...src_dataconnect-generated_react_index.cjs.js.md |    2 +-
++ ...t_src_dataconnect-generated_react_index.d.ts.md |    2 +-
++ ...src_dataconnect-generated_react_package.json.md |    2 +-
++ .../codebase/apps_studio-client_src_firebase.ts.md |    2 +-
++ .../apps_studio-client_src_hooks_index.ts.md       |    2 +-
++ ...lient_src_hooks_tests_useTranslation.test.ts.md |    2 +-
++ .../apps_studio-client_src_hooks_useAdminApi.ts.md |  109 +-
++ .../apps_studio-client_src_hooks_useAuth.ts.md     |    2 +-
++ .../apps_studio-client_src_hooks_useChat.ts.md     |    2 +-
++ ..._studio-client_src_hooks_useDashboardData.ts.md |   33 +-
++ ...ps_studio-client_src_hooks_useTranslation.ts.md |    2 +-
++ ...apps_studio-client_src_hooks_useWebSocket.ts.md |    2 +-
++ ...apps_studio-client_src_i18n_I18nProvider.tsx.md |    2 +-
++ .../apps_studio-client_src_i18n_config.ts.md       |    2 +-
++ .../apps_studio-client_src_i18n_translations.ts.md |    2 +-
++ .../codebase/apps_studio-client_src_lib_etag.ts.md |    2 +-
++ .../codebase/apps_studio-client_src_main.tsx.md    |    2 +-
++ ...s_studio-client_src_services_adminService.ts.md |    2 +-
++ ...tudio-client_src_services_adminTokenStore.ts.md |    2 +-
++ ...s_studio-client_src_services_agentService.ts.md |    2 +-
++ ...apps_studio-client_src_services_apiClient.ts.md |   65 +-
++ ...ient_src_services_api_microserviceMonitor.ts.md |    2 +-
++ ...t_src_services_audio_AudioPlaybackService.ts.md |    2 +-
++ ...t_src_services_audio_AudioRecorderService.ts.md |    2 +-
++ ...ps_studio-client_src_services_authService.ts.md |    2 +-
++ ...ps_studio-client_src_services_chatService.ts.md |    2 +-
++ ...tudio-client_src_services_ciReportService.ts.md |    2 +-
++ ...pps_studio-client_src_services_storageApi.ts.md |    2 +-
++ .../apps_studio-client_src_store_adminStore.ts.md  |    2 +-
++ ...pps_studio-client_src_store_customerStore.ts.md |    2 +-
++ ...ps_studio-client_src_store_dashboardStore.ts.md |    2 +-
++ ...udio-client_src_store_sessionCockpitStore.ts.md |    2 +-
++ .../apps_studio-client_src_store_themeStore.ts.md  |    2 +-
++ .../apps_studio-client_src_store_useStore.ts.md    |    2 +-
++ .../apps_studio-client_src_test_setup.ts.md        |    2 +-
++ .../codebase/apps_studio-client_src_types.ts.md    |    2 +-
++ .../apps_studio-client_src_types_customer.ts.md    |    2 +-
++ .../apps_studio-client_src_utils_api.ts.md         |    2 +-
++ ...ps_studio-client_src_utils_apiInterceptor.ts.md |    2 +-
++ .../apps_studio-client_src_vite-env.d.ts.md        |    2 +-
++ ...tudio-client_src_workers_logParser.worker.ts.md |    2 +-
++ .../apps_studio-client_tsconfig.app.json.md        |    2 +-
++ .../codebase/apps_studio-client_tsconfig.json.md   |    2 +-
++ .../apps_studio-client_tsconfig.node.json.md       |    2 +-
++ .../codebase/apps_studio-client_vite.config.ts.md  |    2 +-
++ .../apps_studio-client_vitest.config.ts.md         |    2 +-
++ docs/autogen/codebase/apps_web-chat_api.test.ts.md |    2 +-
++ docs/autogen/codebase/apps_web-chat_api.ts.md      |    2 +-
++ .../autogen/codebase/apps_web-chat_package.json.md |    2 +-
++ docs/autogen/codebase/apps_web-chat_script.ts.md   |    2 +-
++ .../codebase/apps_web-chat_tsconfig.json.md        |    2 +-
++ .../codebase/apps_web-chat_vite-env.d.ts.md        |    2 +-
++ .../codebase/apps_web-chat_vite.config.ts.md       |    2 +-
++ .../codebase/apps_web-chat_vitest.config.ts.md     |    2 +-
++ docs/autogen/codebase/backend_README.md.md         |    2 +-
++ .../backend_adaptive_engine_experience_db.py.md    |    2 +-
++ .../codebase/backend_adaptive_engine_init_.py.md   |    2 +-
++ .../backend_adaptive_engine_intent_parser.py.md    |    2 +-
++ .../backend_adaptive_engine_learning_loop.py.md    |    2 +-
++ .../backend_adaptive_engine_platform_learner.py.md |    2 +-
++ .../backend_adaptive_engine_registry.py.md         |    2 +-
++ ...end_adaptive_engine_test_platform_learner.py.md |    2 +-
++ docs/autogen/codebase/backend_admin_god.py.md      |    2 +-
++ docs/autogen/codebase/backend_admin_init_.py.md    |    2 +-
++ docs/autogen/codebase/backend_admin_test_god.py.md |    2 +-
++ .../codebase/backend_agents_crew_departments.py.md |    2 +-
++ docs/autogen/codebase/backend_agents_init_.py.md   |    2 +-
++ .../codebase/backend_agents_legal_agent.py.md      |    2 +-
++ .../codebase/backend_agents_medical_agent.py.md    |    2 +-
++ .../backend_agents_research_assistant.py.md        |    2 +-
++ .../codebase/backend_agents_test_legal_agent.py.md |    2 +-
++ .../backend_agents_test_medical_agent.py.md        |    2 +-
++ .../codebase/backend_agents_trading_agent.py.md    |    2 +-
++ docs/autogen/codebase/backend_alembic_env.py.md    |    2 +-
++ ...ersions_664fe16e33ca_add_ci_reports_table.py.md |    2 +-
++ .../codebase/backend_api_dependencies.py.md        |    2 +-
++ docs/autogen/codebase/backend_api_init_.py.md      |    2 +-
++ .../codebase/backend_api_routes_admin.py.md        |    2 +-
++ .../backend_api_routes_admin_dashboard.py.md       |    2 +-
++ .../codebase/backend_api_routes_agent_tasks.py.md  |    2 +-
++ .../codebase/backend_api_routes_agents.py.md       |    2 +-
++ .../codebase/backend_api_routes_api_keys.py.md     |    2 +-
++ .../backend_api_routes_approval_manager.py.md      |    2 +-
++ .../backend_api_routes_async_task_router.py.md     |    2 +-
++ .../autogen/codebase/backend_api_routes_auth.py.md |    2 +-
++ .../codebase/backend_api_routes_billing_api.py.md  |    2 +-
++ .../codebase/backend_api_routes_browser.py.md      |    2 +-
++ .../codebase/backend_api_routes_byoc_api.py.md     |    2 +-
++ .../codebase/backend_api_routes_cdc_webhooks.py.md |    2 +-
++ .../autogen/codebase/backend_api_routes_chat.py.md |    2 +-
++ .../codebase/backend_api_routes_ci_webhooks.py.md  |    2 +-
++ .../codebase/backend_api_routes_cloud_mesh.py.md   |    2 +-
++ .../codebase/backend_api_routes_codeflow.py.md     |    2 +-
++ .../codebase/backend_api_routes_config.py.md       |    2 +-
++ .../codebase/backend_api_routes_email.py.md        |    2 +-
++ .../codebase/backend_api_routes_evolution.py.md    |    2 +-
++ .../backend_api_routes_execution_policies.py.md    |    2 +-
++ .../codebase/backend_api_routes_feedback.py.md     |    2 +-
++ .../codebase/backend_api_routes_github.py.md       |    2 +-
++ .../codebase/backend_api_routes_graph.py.md        |    2 +-
++ .../codebase/backend_api_routes_init_.py.md        |    2 +-
++ .../codebase/backend_api_routes_internal.py.md     |    2 +-
++ .../codebase/backend_api_routes_knowledge.py.md    |    2 +-
++ .../codebase/backend_api_routes_llm_gateway.py.md  |    2 +-
++ .../codebase/backend_api_routes_markdown.py.md     |    2 +-
++ .../codebase/backend_api_routes_marketplace.py.md  |    2 +-
++ .../backend_api_routes_marketplace_endpoints.py.md |    2 +-
++ .../codebase/backend_api_routes_media.py.md        |    2 +-
++ .../codebase/backend_api_routes_memory.py.md       |    2 +-
++ .../codebase/backend_api_routes_metrics.py.md      |    2 +-
++ .../codebase/backend_api_routes_mobile_bff.py.md   |    2 +-
++ .../codebase/backend_api_routes_onboarding.py.md   |    2 +-
++ .../codebase/backend_api_routes_payments.py.md     |    2 +-
++ .../codebase/backend_api_routes_preferences.py.md  |    2 +-
++ .../codebase/backend_api_routes_repos.py.md        |    2 +-
++ .../backend_api_routes_selector_healing.py.md      |    2 +-
++ .../backend_api_routes_session_stream.py.md        |    2 +-
++ .../backend_api_routes_session_takeover.py.md      |    2 +-
++ .../codebase/backend_api_routes_simulator.py.md    |    2 +-
++ .../codebase/backend_api_routes_site_actions.py.md |    2 +-
++ docs/autogen/codebase/backend_api_routes_sso.py.md |    2 +-
++ .../codebase/backend_api_routes_stream.py.md       |    2 +-
++ .../autogen/codebase/backend_api_routes_task.py.md |    2 +-
++ .../backend_api_routes_task_workspace.py.md        |    2 +-
++ .../codebase/backend_api_routes_tenant_admin.py.md |    2 +-
++ .../codebase/backend_api_routes_tools_ops.py.md    |    2 +-
++ .../backend_api_routes_tools_registry.py.md        |    2 +-
++ .../backend_api_routes_usage_metrics.py.md         |    2 +-
++ .../codebase/backend_api_routes_voice.py.md        |    2 +-
++ .../backend_api_routes_websocket_agent.py.md       |    2 +-
++ .../backend_api_routes_websocket_voice.py.md       |    2 +-
++ .../codebase/backend_byoc_cloud_connector.py.md    |    2 +-
++ .../backend_byoc_container_orchestrator.py.md      |    2 +-
++ docs/autogen/codebase/backend_byoc_init_.py.md     |    2 +-
++ .../codebase/backend_byoc_resource_manager.py.md   |    2 +-
++ .../codebase/backend_config_byoc_limits.json.md    |    2 +-
++ .../backend_config_constitutional_rules.json.md    |    2 +-
++ .../codebase/backend_config_pricing_tiers.json.md  |    2 +-
++ .../codebase/backend_config_routing_policy.json.md |    2 +-
++ docs/autogen/codebase/backend_core_admin_god.py.md |    2 +-
++ .../codebase/backend_core_admin_routes.py.md       |    2 +-
++ .../codebase/backend_core_agent_orchestrator.py.md |    2 +-
++ .../codebase/backend_core_api_key_middleware.py.md |    2 +-
++ .../backend_core_api_key_rate_limiter.py.md        |    2 +-
++ docs/autogen/codebase/backend_core_app.py.md       |    2 +-
++ .../codebase/backend_core_audit_logger.py.md       |    2 +-
++ .../codebase/backend_core_auth_middleware.py.md    |    2 +-
++ .../codebase/backend_core_auto_remediation.py.md   |    2 +-
++ .../codebase/backend_core_autocache_proxy.py.md    |    2 +-
++ .../codebase/backend_core_circuit_breaker.py.md    |    2 +-
++ .../backend_core_cloud_sandbox_orchestrator.py.md  |    2 +-
++ .../codebase/backend_core_cloud_storage.py.md      |    2 +-
++ .../codebase/backend_core_code_validator.py.md     |    2 +-
++ docs/autogen/codebase/backend_core_config.py.md    |    2 +-
++ docs/autogen/codebase/backend_core_constants.py.md |    2 +-
++ .../codebase/backend_core_db_repository.py.md      |    2 +-
++ .../codebase/backend_core_decision_engine.py.md    |    2 +-
++ .../codebase/backend_core_discord_bot.py.md        |    2 +-
++ .../codebase/backend_core_docker-compose.yml.md    |    2 +-
++ .../codebase/backend_core_email_service.py.md      |    2 +-
++ .../autogen/codebase/backend_core_enum_guard.py.md |    2 +-
++ .../codebase/backend_core_error_pattern_db.py.md   |    2 +-
++ .../codebase/backend_core_error_remediation.py.md  |    2 +-
++ docs/autogen/codebase/backend_core_events.py.md    |    2 +-
++ .../codebase/backend_core_evolution_engine.py.md   |    2 +-
++ .../codebase/backend_core_factual_verifier.py.md   |    2 +-
++ .../codebase/backend_core_feedback_loop.py.md      |    2 +-
++ .../codebase/backend_core_free_tier_tracker.py.md  |    2 +-
++ .../codebase/backend_core_gcp_firestore.py.md      |    2 +-
++ .../codebase/backend_core_gcp_pubsub_queue.py.md   |    2 +-
++ .../codebase/backend_core_generation_monitor.py.md |    2 +-
++ .../codebase/backend_core_grpc_client.py.md        |    2 +-
++ .../codebase/backend_core_health_monitor.py.md     |    2 +-
++ .../backend_core_honeypot_middleware.py.md         |    2 +-
++ .../backend_core_idempotency_middleware.py.md      |    2 +-
++ .../codebase/backend_core_immune_system.py.md      |    2 +-
++ docs/autogen/codebase/backend_core_init_.py.md     |    2 +-
++ .../codebase/backend_core_input_sanitizer.py.md    |    2 +-
++ docs/autogen/codebase/backend_core_intent.py.md    |    2 +-
++ .../codebase/backend_core_intent_router.py.md      |    2 +-
++ .../codebase/backend_core_language_router.py.md    |    2 +-
++ docs/autogen/codebase/backend_core_ld_client.py.md |    2 +-
++ docs/autogen/codebase/backend_core_lifespan.py.md  |    2 +-
++ .../codebase/backend_core_llm_gateway.py.md        |    2 +-
++ .../codebase/backend_core_log_batcher.py.md        |    2 +-
++ .../codebase/backend_core_logging_config.py.md     |    2 +-
++ .../codebase/backend_core_mcp_allowlist.py.md      |    2 +-
++ .../codebase/backend_core_microvm_sandbox.py.md    |    2 +-
++ .../codebase/backend_core_multi_layer_cache.py.md  |    2 +-
++ .../backend_core_observability_middleware.py.md    |    2 +-
++ .../codebase/backend_core_orchestrator.py.md       |    2 +-
++ .../codebase/backend_core_origin_validator.py.md   |    2 +-
++ .../codebase/backend_core_output_validator.py.md   |    2 +-
++ .../codebase/backend_core_pgbouncer_pool.py.md     |    2 +-
++ .../codebase/backend_core_posthog_client.py.md     |    2 +-
++ .../codebase/backend_core_prompt_firewall.py.md    |    2 +-
++ .../codebase/backend_core_prompt_helpers.py.md     |    2 +-
++ .../codebase/backend_core_rate_limiter.py.md       |    2 +-
++ docs/autogen/codebase/backend_core_rbac.py.md      |    2 +-
++ .../codebase/backend_core_redis_manager.py.md      |    2 +-
++ .../codebase/backend_core_rollback_monitor.py.md   |    2 +-
++ .../codebase/backend_core_rules_mutator.py.md      |    2 +-
++ .../codebase/backend_core_schema_validator.py.md   |    2 +-
++ .../codebase/backend_core_secret_vault.py.md       |    2 +-
++ .../backend_core_secure_credential_store.py.md     |    2 +-
++ docs/autogen/codebase/backend_core_security.py.md  |    2 +-
++ .../codebase/backend_core_self_healing_agent.py.md |    2 +-
++ .../codebase/backend_core_semantic_cache.py.md     |    2 +-
++ docs/autogen/codebase/backend_core_services.py.md  |    2 +-
++ .../codebase/backend_core_skill_graph.py.md        |    2 +-
++ .../codebase/backend_core_swarm_orchestrator.py.md |    2 +-
++ .../autogen/codebase/backend_core_task_queue.py.md |    2 +-
++ .../backend_core_task_queue_enhanced.py.md         |    2 +-
++ .../codebase/backend_core_task_router.py.md        |    2 +-
++ docs/autogen/codebase/backend_core_telemetry.py.md |    2 +-
++ docs/autogen/codebase/backend_core_tenant_db.py.md |    2 +-
++ .../codebase/backend_core_token_budget.py.md       |    2 +-
++ .../codebase/backend_core_token_deductor.py.md     |    2 +-
++ .../codebase/backend_core_universal_rules.py.md    |    2 +-
++ .../codebase/backend_core_upload_validator.py.md   |    2 +-
++ .../backend_core_upstash_redis_queue.py.md         |    2 +-
++ .../codebase/backend_core_user_profiler.py.md      |    2 +-
++ docs/autogen/codebase/backend_database_init_.py.md |    2 +-
++ ...end_database_migrations_01_initial_setup.sql.md |    2 +-
++ ...kend_database_migrations_02_phase2_setup.sql.md |    2 +-
++ ...grations_03_user_preferences_and_metrics.sql.md |    2 +-
++ ...nd_database_migrations_04_schema_upgrade.sql.md |    2 +-
++ ...database_migrations_05_seed_github_repos.sql.md |    2 +-
++ ...d_database_migrations_06_referral_system.sql.md |    2 +-
++ ...end_database_migrations_07_tenant_config.sql.md |    2 +-
++ ...ckend_database_migrations_08_sso_configs.sql.md |    2 +-
++ ...database_migrations_09_offline_sync_logs.sql.md |    2 +-
++ ...atabase_migrations_10_tenant_sso_offline.sql.md |    2 +-
++ .../codebase/backend_database_session.py.md        |    2 +-
++ .../codebase/backend_database_storage_client.py.md |    2 +-
++ .../backend_database_supabase_client.py.md         |    2 +-
++ .../codebase/backend_engine_cost_optimizer.py.md   |    2 +-
++ docs/autogen/codebase/backend_engine_init_.py.md   |    2 +-
++ .../codebase/backend_engine_model_dispatcher.py.md |    2 +-
++ .../backend_evolution_auto_skill_creator.py.md     |    2 +-
++ .../backend_evolution_auto_update_manager.py.md    |    2 +-
++ .../backend_evolution_dynamic_injector.py.md       |    2 +-
++ .../backend_evolution_fitness_engine.py.md         |    2 +-
++ .../autogen/codebase/backend_evolution_init_.py.md |    2 +-
++ .../backend_evolution_master_planner.py.md         |    2 +-
++ .../backend_evolution_security_sandbox.py.md       |    2 +-
++ .../backend_evolution_self_evolution_agent.py.md   |    2 +-
++ .../codebase/backend_evolution_skill_graph.py.md   |    2 +-
++ docs/autogen/codebase/backend_fix_tests.py.md      |    2 +-
++ docs/autogen/codebase/backend_init_.py.md          |    2 +-
++ docs/autogen/codebase/backend_main.py.md           |    2 +-
++ .../backend_memory_checkpoint_resume.py.md         |    2 +-
++ .../codebase/backend_memory_chromadb_store.py.md   |    2 +-
++ .../backend_memory_cloud_postgres_store.py.md      |    2 +-
++ .../backend_memory_cloud_vector_store.py.md        |    2 +-
++ .../codebase/backend_memory_episodic_memory.py.md  |    2 +-
++ docs/autogen/codebase/backend_memory_init_.py.md   |    2 +-
++ .../codebase/backend_memory_long_term_memory.py.md |    2 +-
++ .../codebase/backend_memory_rag_pipeline.py.md     |    2 +-
++ .../codebase/backend_memory_sliding_window.py.md   |    2 +-
++ .../codebase/backend_memory_sqlite_store.py.md     |    2 +-
++ .../codebase/backend_memory_summary_tree.py.md     |    2 +-
++ .../codebase/backend_memory_supabase_store.py.md   |    2 +-
++ .../backend_memory_vector_store_config.py.md       |    2 +-
++ .../backend_middleware_auth_middleware.py.md       |    2 +-
++ .../backend_middleware_chaos_injector.py.md        |    2 +-
++ .../codebase/backend_middleware_idempotency.py.md  |    2 +-
++ docs/autogen/codebase/backend_models_admin.py.md   |    2 +-
++ .../codebase/backend_models_agent_session.py.md    |    2 +-
++ docs/autogen/codebase/backend_models_api_key.py.md |    2 +-
++ docs/autogen/codebase/backend_models_base.py.md    |    2 +-
++ .../codebase/backend_models_byoc_payloads.py.md    |    2 +-
++ .../codebase/backend_models_ci_report.py.md        |    2 +-
++ .../codebase/backend_models_deployment_logs.py.md  |    2 +-
++ .../backend_models_error_remediation.py.md         |    2 +-
++ .../codebase/backend_models_evolution.py.md        |    2 +-
++ .../codebase/backend_models_execution_log.py.md    |    2 +-
++ .../codebase/backend_models_execution_policy.py.md |    2 +-
++ .../codebase/backend_models_handoff_event.py.md    |    2 +-
++ docs/autogen/codebase/backend_models_init_.py.md   |    2 +-
++ .../backend_models_local_model_handler.py.md       |    2 +-
++ .../codebase/backend_models_pending_tasks.py.md    |    2 +-
++ .../backend_models_selector_healing_event.py.md    |    2 +-
++ .../codebase/backend_models_shared_workspace.py.md |    2 +-
++ ...backend_models_target_platform_credential.py.md |    2 +-
++ .../backend_models_transaction_ledger.py.md        |    2 +-
++ .../backend_models_voice_interaction.py.md         |    2 +-
++ docs/autogen/codebase/backend_models_wallet.py.md  |    2 +-
++ .../codebase/backend_monitoring_cost_auditor.py.md |    2 +-
++ .../codebase/backend_monitoring_init_.py.md        |    2 +-
++ .../codebase/backend_p2p_credit_system.py.md       |    2 +-
++ docs/autogen/codebase/backend_p2p_init_.py.md      |    2 +-
++ .../codebase/backend_p2p_secure_tunnel.py.md       |    2 +-
++ docs/autogen/codebase/backend_pyproject.toml.md    |    2 +-
++ docs/autogen/codebase/backend_reports_init_.py.md  |    2 +-
++ .../backend_reports_optimization_engine.py.md      |    2 +-
++ .../codebase/backend_run_roundtrip_tests.py.md     |    2 +-
++ docs/autogen/codebase/backend_scout_init_.py.md    |    2 +-
++ .../backend_scout_knowledge_extractor.py.md        |    2 +-
++ .../codebase/backend_scout_web_crawler_agent.py.md |    2 +-
++ .../codebase/backend_scripts_check_ollama.py.md    |    2 +-
++ docs/autogen/codebase/backend_scripts_init_.py.md  |    2 +-
++ .../codebase/backend_scripts_load_seed_data.py.md  |    2 +-
++ .../backend_scripts_run_dependency_check.py.md     |    2 +-
++ .../backend_scripts_seed_tools_registry.py.md      |    2 +-
++ .../backend_scripts_self_healing_tests.py.md       |    2 +-
++ docs/autogen/codebase/backend_skills_init_.py.md   |    2 +-
++ .../codebase/backend_skills_provisioner.py.md      |    2 +-
++ .../codebase/backend_skills_skill_registry.py.md   |    2 +-
++ .../codebase/backend_storage_asset_manager.py.md   |    2 +-
++ docs/autogen/codebase/backend_storage_init_.py.md  |    2 +-
++ .../backend_storage_r2_storage_client.py.md        |    2 +-
++ .../backend_tests_agents_test_legal_agent.py.md    |    2 +-
++ .../backend_tests_agents_test_medical_agent.py.md  |    2 +-
++ ...kend_tests_agents_test_research_assistant.py.md |    2 +-
++ .../backend_tests_agents_test_trading_agent.py.md  |    2 +-
++ .../backend_tests_byoc_test_cloud_connector.py.md  |    2 +-
++ ...nd_tests_byoc_test_container_orchestrator.py.md |    2 +-
++ .../backend_tests_byoc_test_resource_manager.py.md |    2 +-
++ docs/autogen/codebase/backend_tests_conftest.py.md |    2 +-
++ .../backend_tests_engine_test_cost_optimizer.py.md |    2 +-
++ ...ackend_tests_engine_test_model_dispatcher.py.md |    2 +-
++ docs/autogen/codebase/backend_tests_init_.py.md    |    2 +-
++ ...ackend_tests_monitoring_test_cost_auditor.py.md |    2 +-
++ .../backend_tests_p2p_test_credit_system.py.md     |    2 +-
++ .../backend_tests_p2p_test_secure_tunnel.py.md     |    2 +-
++ ...kend_tests_scout_test_knowledge_extractor.py.md |    2 +-
++ ...ackend_tests_scout_test_web_crawler_agent.py.md |    2 +-
++ .../backend_tests_test_adaptive_engine.py.md       |    2 +-
++ .../codebase/backend_tests_test_admin_god.py.md    |    2 +-
++ .../codebase/backend_tests_test_admin_models.py.md |    2 +-
++ .../codebase/backend_tests_test_admin_routes.py.md |    2 +-
++ .../codebase/backend_tests_test_advanced.py.md     |    2 +-
++ .../backend_tests_test_agent_department.py.md      |    2 +-
++ .../backend_tests_test_agent_departments.py.md     |    2 +-
++ .../backend_tests_test_agent_orchestrator.py.md    |    2 +-
++ ...ackend_tests_test_agents_crew_departments.py.md |    2 +-
++ docs/autogen/codebase/backend_tests_test_api.py.md |    2 +-
++ .../codebase/backend_tests_test_api_chat.py.md     |    2 +-
++ .../codebase/backend_tests_test_api_keys.py.md     |    2 +-
++ .../backend_tests_test_api_new_endpoints.py.md     |    2 +-
++ .../codebase/backend_tests_test_api_router.py.md   |    2 +-
++ .../codebase/backend_tests_test_audit_logger.py.md |    2 +-
++ .../backend_tests_test_auth_middleware.py.md       |    2 +-
++ .../codebase/backend_tests_test_auth_routes.py.md  |    2 +-
++ .../backend_tests_test_auto_fix_trigger.py.md      |    2 +-
++ .../backend_tests_test_auto_skill_creator.py.md    |    2 +-
++ .../backend_tests_test_autonomous_agent.py.md      |    2 +-
++ .../codebase/backend_tests_test_bangla_nlp.py.md   |    2 +-
++ .../codebase/backend_tests_test_bangla_voice.py.md |    2 +-
++ .../backend_tests_test_billing_system.py.md        |    2 +-
++ .../codebase/backend_tests_test_brain.py.md        |    2 +-
++ .../backend_tests_test_browser_credentials.py.md   |    2 +-
++ .../backend_tests_test_byoc_endpoints.py.md        |    2 +-
++ .../codebase/backend_tests_test_chaos_worker.py.md |    2 +-
++ .../backend_tests_test_checkpoint_resume.py.md     |    2 +-
++ .../backend_tests_test_circuit_breaker.py.md       |    2 +-
++ .../backend_tests_test_cloud_sandbox.py.md         |    2 +-
++ .../backend_tests_test_cloud_storage.py.md         |    2 +-
++ .../backend_tests_test_code_validator.py.md        |    2 +-
++ .../backend_tests_test_collaborative_editor.py.md  |    2 +-
++ .../codebase/backend_tests_test_config.py.md       |    2 +-
++ .../backend_tests_test_config_additional.py.md     |    2 +-
++ .../backend_tests_test_config_coverage.py.md       |    2 +-
++ .../codebase/backend_tests_test_constants.py.md    |    2 +-
++ .../backend_tests_test_context_and_actions.py.md   |    2 +-
++ .../autogen/codebase/backend_tests_test_core.py.md |    2 +-
++ .../codebase/backend_tests_test_core_smoke.py.md   |    2 +-
++ .../backend_tests_test_coverage_gaps.py.md         |    2 +-
++ .../codebase/backend_tests_test_crew_mcp.py.md     |    2 +-
++ ...ackend_tests_test_database_storage_client.py.md |    2 +-
++ .../backend_tests_test_db_repository.py.md         |    2 +-
++ docs/autogen/codebase/backend_tests_test_e2e.py.md |    2 +-
++ .../codebase/backend_tests_test_e2e_media.py.md    |    2 +-
++ .../codebase/backend_tests_test_email_agent.py.md  |    2 +-
++ .../backend_tests_test_email_service.py.md         |    2 +-
++ .../backend_tests_test_episodic_memory.py.md       |    2 +-
++ .../backend_tests_test_error_remediation.py.md     |    2 +-
++ .../backend_tests_test_evolution_engine.py.md      |    2 +-
++ .../backend_tests_test_evolution_pipeline.py.md    |    2 +-
++ .../backend_tests_test_factual_verifier.py.md      |    2 +-
++ .../backend_tests_test_feedback_loop.py.md         |    2 +-
++ .../backend_tests_test_firebase_integration.py.md  |    2 +-
++ .../backend_tests_test_fitness_engine.py.md        |    2 +-
++ .../backend_tests_test_free_tier_tracker.py.md     |    2 +-
++ .../backend_tests_test_gcp_integration.py.md       |    2 +-
++ .../backend_tests_test_generation_monitor.py.md    |    2 +-
++ .../codebase/backend_tests_test_github_agent.py.md |    2 +-
++ .../codebase/backend_tests_test_graph_routes.py.md |    2 +-
++ .../backend_tests_test_graph_service.py.md         |    2 +-
++ .../codebase/backend_tests_test_grpc_client.py.md  |    2 +-
++ .../backend_tests_test_hallucination_guard.py.md   |    2 +-
++ .../codebase/backend_tests_test_health.py.md       |    2 +-
++ .../backend_tests_test_health_monitor.py.md        |    2 +-
++ .../backend_tests_test_health_monitor_routes.py.md |    2 +-
++ .../backend_tests_test_honeypot_middleware.py.md   |    2 +-
++ ...backend_tests_test_idempotency_middleware.py.md |    2 +-
++ .../backend_tests_test_immune_system.py.md         |    2 +-
++ .../backend_tests_test_immune_system_scanner.py.md |    2 +-
++ .../backend_tests_test_input_sanitizer.py.md       |    2 +-
++ .../backend_tests_test_language_router.py.md       |    2 +-
++ .../codebase/backend_tests_test_llm_gateway.py.md  |    2 +-
++ .../backend_tests_test_llm_gateway_coverage.py.md  |    2 +-
++ .../backend_tests_test_long_term_memory.py.md      |    2 +-
++ .../backend_tests_test_markdown_export.py.md       |    2 +-
++ .../backend_tests_test_marketplace_agent.py.md     |    2 +-
++ .../backend_tests_test_mcp_allowlist.py.md         |    2 +-
++ .../codebase/backend_tests_test_mcp_server.py.md   |    2 +-
++ ...ackend_tests_test_mcp_servers_integration.py.md |    2 +-
++ .../codebase/backend_tests_test_media_r2.py.md     |    2 +-
++ ...kend_tests_test_middleware_chaos_injector.py.md |    2 +-
++ .../codebase/backend_tests_test_migrations.py.md   |    2 +-
++ ...kend_tests_test_migrations_and_onboarding.py.md |    2 +-
++ .../codebase/backend_tests_test_mobile_e2e.py.md   |    2 +-
++ .../backend_tests_test_model_registry.py.md        |    2 +-
++ .../backend_tests_test_model_router_unit.py.md     |    2 +-
++ .../backend_tests_test_model_trainer.py.md         |    2 +-
++ .../backend_tests_test_models_ci_report.py.md      |    2 +-
++ .../backend_tests_test_models_evolution.py.md      |    2 +-
++ .../codebase/backend_tests_test_monitoring.py.md   |    2 +-
++ .../backend_tests_test_multi_account_rotator.py.md |    2 +-
++ .../codebase/backend_tests_test_multicloud.py.md   |    2 +-
++ .../backend_tests_test_new_endpoints_sprint5.py.md |    2 +-
++ .../backend_tests_test_new_interfaces.py.md        |    2 +-
++ .../backend_tests_test_new_tools_sprint5.py.md     |    2 +-
++ .../backend_tests_test_optimization_engine.py.md   |    2 +-
++ .../backend_tests_test_output_validator.py.md      |    2 +-
++ ...ackend_tests_test_parallel_agent_executor.py.md |    2 +-
++ .../codebase/backend_tests_test_payments.py.md     |    2 +-
++ ...ckend_tests_test_performance_aware_router.py.md |    2 +-
++ .../backend_tests_test_pgbouncer_pool.py.md        |    2 +-
++ .../codebase/backend_tests_test_posthog.py.md      |    2 +-
++ .../codebase/backend_tests_test_pr_reviewer.py.md  |    2 +-
++ .../backend_tests_test_prod_docs_security.py.md    |    2 +-
++ ...sts_test_production_readiness_integration.py.md |    2 +-
++ .../backend_tests_test_prompt_firewall.py.md       |    2 +-
++ .../autogen/codebase/backend_tests_test_rbac.py.md |    2 +-
++ ...backend_tests_test_reasoning_orchestrator.py.md |    2 +-
++ .../backend_tests_test_repo_discovery.py.md        |    2 +-
++ .../backend_tests_test_resource_catalog.py.md      |    2 +-
++ .../autogen/codebase/backend_tests_test_rlhf.py.md |    2 +-
++ ...kend_tests_test_sandbox_orchestration_run.py.md |    2 +-
++ .../backend_tests_test_schema_validator.py.md      |    2 +-
++ .../codebase/backend_tests_test_secret_vault.py.md |    2 +-
++ ...ackend_tests_test_secure_credential_store.py.md |    2 +-
++ .../backend_tests_test_security_middleware.py.md   |    2 +-
++ .../backend_tests_test_security_regression.py.md   |    2 +-
++ .../backend_tests_test_self_evolution_agent.py.md  |    2 +-
++ .../backend_tests_test_simulator_browser_api.py.md |    2 +-
++ .../codebase/backend_tests_test_skill_graph.py.md  |    2 +-
++ .../backend_tests_test_skill_recommender.py.md     |    2 +-
++ .../backend_tests_test_sliding_window_memory.py.md |    2 +-
++ .../backend_tests_test_sprint_c_tools.py.md        |    2 +-
++ .../codebase/backend_tests_test_sprint_g.py.md     |    2 +-
++ .../backend_tests_test_stealth_networking.py.md    |    2 +-
++ .../codebase/backend_tests_test_stream.py.md       |    2 +-
++ .../backend_tests_test_style_learner.py.md         |    2 +-
++ ...kend_tests_test_supabase_schema_bootstrap.py.md |    2 +-
++ .../backend_tests_test_supabase_store.py.md        |    2 +-
++ .../backend_tests_test_swarm_orchestrator.py.md    |    2 +-
++ .../backend_tests_test_task_endpoints.py.md        |    2 +-
++ .../codebase/backend_tests_test_task_queue.py.md   |    2 +-
++ .../codebase/backend_tests_test_task_router.py.md  |    2 +-
++ .../codebase/backend_tests_test_telegram_bot.py.md |    2 +-
++ .../codebase/backend_tests_test_telemetry.py.md    |    2 +-
++ .../backend_tests_test_tenant_rate_limiter.py.md   |    2 +-
++ .../backend_tests_test_universal_rules.py.md       |    2 +-
++ .../backend_tests_test_upstash_redis.py.md         |    2 +-
++ docs/autogen/codebase/backend_tests_test_uss.py.md |    2 +-
++ .../backend_tests_test_video_generator.py.md       |    2 +-
++ .../codebase/backend_tests_test_vision_agent.py.md |    2 +-
++ .../codebase/backend_tests_test_voice_stream.py.md |    2 +-
++ .../codebase/backend_tests_test_vpn_switcher.py.md |    2 +-
++ .../codebase/backend_tests_test_vscode_e2e.py.md   |    2 +-
++ .../codebase/backend_tests_test_web_fallback.py.md |    2 +-
++ ...d_tests_tools_test_auto_coverage_improver.py.md |    2 +-
++ ...kend_tests_tools_test_auto_test_generator.py.md |    2 +-
++ ...kend_tests_tools_test_code_smell_detector.py.md |    2 +-
++ .../backend_tests_tools_test_cot_reasoner.py.md    |    2 +-
++ ...backend_tests_tools_test_coverage_auditor.py.md |    2 +-
++ ...d_tests_tools_test_knowledge_base_indexer.py.md |    2 +-
++ ...backend_tests_tools_test_multilingual_tts.py.md |    2 +-
++ ...nd_tests_tools_test_viral_referral_engine.py.md |    2 +-
++ .../backend_tests_utils_test_api_tracker.py.md     |    2 +-
++ .../backend_tests_workers_test_celery_app.py.md    |    2 +-
++ .../backend_tools_3d_model_generator.py.md         |    2 +-
++ .../codebase/backend_tools_agent_tools.py.md       |    2 +-
++ .../backend_tools_ai_federation_protocol.py.md     |    2 +-
++ .../backend_tools_ai_pair_programmer.py.md         |    2 +-
++ .../codebase/backend_tools_api_gateway.py.md       |    2 +-
++ .../backend_tools_auto_coverage_improver.py.md     |    2 +-
++ .../codebase/backend_tools_auto_pr_pipeline.py.md  |    2 +-
++ .../backend_tools_auto_test_generator.py.md        |    2 +-
++ .../backend_tools_bandwidth_optimizer.py.md        |    2 +-
++ .../backend_tools_bangla_ai_connector.py.md        |    2 +-
++ .../codebase/backend_tools_bangla_nlp.py.md        |    2 +-
++ .../codebase/backend_tools_bangla_voice.py.md      |    2 +-
++ .../codebase/backend_tools_benchmark_agent.py.md   |    2 +-
++ .../backend_tools_bengali_ocr_converter.py.md      |    2 +-
++ .../codebase/backend_tools_blockchain_agent.py.md  |    2 +-
++ .../autogen/codebase/backend_tools_bootstrap.py.md |    2 +-
++ .../codebase/backend_tools_browser_agent.py.md     |    2 +-
++ .../codebase/backend_tools_browser_stealth.py.md   |    2 +-
++ .../backend_tools_checkpoint_manager.py.md         |    2 +-
++ docs/autogen/codebase/backend_tools_cli.py.md      |    2 +-
++ .../backend_tools_cloud_sandbox_orchestrator.py.md |    2 +-
++ .../backend_tools_code_smell_detector.py.md        |    2 +-
++ .../codebase/backend_tools_codebase_exporter.py.md |    2 +-
++ .../backend_tools_collaborative_editor.py.md       |    2 +-
++ .../codebase/backend_tools_comment_thread_ai.py.md |    2 +-
++ .../codebase/backend_tools_computer_agent.py.md    |    2 +-
++ .../backend_tools_conversation_manager.py.md       |    2 +-
++ .../codebase/backend_tools_cost_auditor.py.md      |    2 +-
++ .../codebase/backend_tools_cot_reasoner.py.md      |    2 +-
++ .../codebase/backend_tools_coverage_auditor.py.md  |    2 +-
++ .../backend_tools_dependency_manager_agent.py.md   |    2 +-
++ .../backend_tools_diagram_to_architecture.py.md    |    2 +-
++ .../codebase/backend_tools_docker_sandbox.py.md    |    2 +-
++ .../codebase/backend_tools_domain_adapter.py.md    |    2 +-
++ .../codebase/backend_tools_email_agent.py.md       |    2 +-
++ .../codebase/backend_tools_ensemble_router.py.md   |    2 +-
++ .../codebase/backend_tools_fuzz_sandbox.py.md      |    2 +-
++ .../codebase/backend_tools_game_dev_agent.py.md    |    2 +-
++ .../backend_tools_gcp_cloud_functions.py.md        |    2 +-
++ .../backend_tools_git_knowledge_extractor.py.md    |    2 +-
++ .../codebase/backend_tools_github_agent.py.md      |    2 +-
++ .../codebase/backend_tools_graph_service.py.md     |    2 +-
++ .../backend_tools_headless_agent_registry.py.md    |    2 +-
++ .../codebase/backend_tools_health_checker.py.md    |    2 +-
++ .../codebase/backend_tools_image_generator.py.md   |    2 +-
++ .../codebase/backend_tools_image_to_code.py.md     |    2 +-
++ docs/autogen/codebase/backend_tools_init_.py.md    |    2 +-
++ .../backend_tools_knowledge_base_indexer.py.md     |    2 +-
++ .../backend_tools_langchain_agent_example.py.md    |    2 +-
++ .../codebase/backend_tools_legal_agent.py.md       |    2 +-
++ .../backend_tools_local_ocr_extractor.py.md        |    2 +-
++ .../codebase/backend_tools_local_search_rag.py.md  |    2 +-
++ .../codebase/backend_tools_marketplace_agent.py.md |    2 +-
++ .../codebase/backend_tools_mcp_cloud_deploy.py.md  |    2 +-
++ .../codebase/backend_tools_mcp_github_cicd.py.md   |    2 +-
++ .../codebase/backend_tools_mcp_server.py.md        |    2 +-
++ .../codebase/backend_tools_mcp_supabase.py.md      |    2 +-
++ .../codebase/backend_tools_mcp_workspace.py.md     |    2 +-
++ .../codebase/backend_tools_medical_agent.py.md     |    2 +-
++ .../codebase/backend_tools_meta_architect.py.md    |    2 +-
++ .../codebase/backend_tools_model_trainer.py.md     |    2 +-
++ .../backend_tools_monthly_cost_reporter.py.md      |    2 +-
++ .../backend_tools_multi_account_rotator.py.md      |    2 +-
++ .../codebase/backend_tools_multilingual_tts.py.md  |    2 +-
++ .../codebase/backend_tools_music_generator.py.md   |    2 +-
++ .../codebase/backend_tools_offline_mode.py.md      |    2 +-
++ .../backend_tools_on_premise_deployer.py.md        |    2 +-
++ .../backend_tools_parallel_agent_executor.py.md    |    2 +-
++ .../codebase/backend_tools_pdf_to_sdk.py.md        |    2 +-
++ .../codebase/backend_tools_plan_sorter.py.md       |    2 +-
++ .../backend_tools_playwright_browser_agent.py.md   |    2 +-
++ .../codebase/backend_tools_pr_reviewer.py.md       |    2 +-
++ .../codebase/backend_tools_pre_commit_ai.py.md     |    2 +-
++ .../codebase/backend_tools_preference_memory.py.md |    2 +-
++ .../backend_tools_presentation_generator.py.md     |    2 +-
++ .../codebase/backend_tools_proxy_manager.py.md     |    2 +-
++ .../codebase/backend_tools_repo_deep_indexer.py.md |    2 +-
++ .../backend_tools_repo_discovery_agent.py.md       |    2 +-
++ .../codebase/backend_tools_resource_catalog.py.md  |    2 +-
++ .../codebase/backend_tools_rlhf_pipeline.py.md     |    2 +-
++ .../codebase/backend_tools_safe_executor.py.md     |    2 +-
++ .../codebase/backend_tools_scientific_agent.py.md  |    2 +-
++ .../codebase/backend_tools_seed_database.py.md     |    2 +-
++ .../codebase/backend_tools_self_planner.py.md      |    2 +-
++ .../codebase/backend_tools_skill_recommender.py.md |    2 +-
++ .../codebase/backend_tools_sso_integrator.py.md    |    2 +-
++ .../backend_tools_stealth_http_client.py.md        |    2 +-
++ .../codebase/backend_tools_style_learner.py.md     |    2 +-
++ .../codebase/backend_tools_telegram_bot.py.md      |    2 +-
++ .../backend_tools_tenant_rate_limiter.py.md        |    2 +-
++ .../backend_tools_test_3d_model_generator.py.md    |    2 +-
++ ...end_tools_test_cloud_sandbox_orchestrator.py.md |    2 +-
++ .../codebase/backend_tools_trading_agent.py.md     |    2 +-
++ .../codebase/backend_tools_video_generator.py.md   |    2 +-
++ .../backend_tools_viral_referral_engine.py.md      |    2 +-
++ .../codebase/backend_tools_vision_agent.py.md      |    2 +-
++ docs/autogen/codebase/backend_tools_voice.py.md    |    2 +-
++ .../codebase/backend_tools_voice_coder.py.md       |    2 +-
++ .../codebase/backend_tools_vpn_switcher.py.md      |    2 +-
++ .../backend_tools_vulnerability_predictor.py.md    |    2 +-
++ .../backend_tools_web_fallback_agent.py.md         |    2 +-
++ .../codebase/backend_utils_api_tracker.py.md       |    2 +-
++ .../codebase/backend_utils_environment.py.md       |    2 +-
++ .../codebase/backend_utils_firestore_helpers.py.md |    2 +-
++ .../codebase/backend_utils_http_client.py.md       |    2 +-
++ docs/autogen/codebase/backend_utils_init_.py.md    |    2 +-
++ .../codebase/backend_utils_json_helpers.py.md      |    2 +-
++ .../codebase/backend_utils_timestamps.py.md        |    2 +-
++ docs/autogen/codebase/backend_uv.lock.md           |    2 +-
++ .../codebase/backend_workers_celery_app.py.md      |    2 +-
++ .../codebase/backend_workers_chaos_worker.py.md    |    2 +-
++ .../codebase/config_.pre-commit-config.yaml.md     |    2 +-
++ docs/autogen/codebase/config_audit-rules.yml.md    |    2 +-
++ .../codebase/config_compliance-rules.yml.md        |    2 +-
++ docs/autogen/codebase/config_docker-limits.yml.md  |    2 +-
++ .../codebase/config_firestore.indexes.json.md      |    2 +-
++ docs/autogen/codebase/config_kilo.json.md          |    2 +-
++ .../codebase/config_promptfooconfig.yaml.md        |    2 +-
++ docs/autogen/codebase/config_proxy_list.json.md    |    2 +-
++ .../autogen/codebase/config_routing_policy.json.md |    2 +-
++ docs/autogen/codebase/config_vercel.json.md        |    2 +-
++ docs/autogen/codebase/coverage.toml.md             |    2 +-
++ docs/autogen/codebase/docker-compose.yml.md        |    2 +-
++ .../codebase/evolution_auto_skill_creator.py.md    |    2 +-
++ .../autogen/codebase/evolution_daily_learner.py.md |    2 +-
++ .../codebase/evolution_evolution_engine.py.md      |    2 +-
++ .../codebase/evolution_evolution_react_agent.py.md |    2 +-
++ docs/autogen/codebase/evolution_self_updater.py.md |    2 +-
++ docs/autogen/codebase/find_duplicate_files.py.md   |    2 +-
++ docs/autogen/codebase/find_duplicate_tests.py.md   |    2 +-
++ docs/autogen/codebase/firebase.json.md             |    2 +-
++ .../infrastructure_check_deploy_gate.py.md         |    2 +-
++ ...infrastructure_cloudflare_enhanced-worker.js.md |    2 +-
++ .../infrastructure_cloudflare_worker.js.md         |    2 +-
++ .../infrastructure_cloudflare_wrangler.toml.md     |    2 +-
++ .../infrastructure_cloudrun_autoscale.yaml.md      |    2 +-
++ .../infrastructure_cloudrun_multi_region.yaml.md   |    2 +-
++ ...functions_firebase_functions_v1_README_BD.md.md |    2 +-
++ ...unctions_firebase_functions_v1_api-router.js.md |    2 +-
++ ..._firebase_functions_v1_deployment-monitor.js.md |    2 +-
++ ...ctions_firebase_functions_v1_health-smart.js.md |    2 +-
++ ...ase_functions_firebase_functions_v1_index.js.md |    2 +-
++ ...functions_firebase_functions_v1_package.json.md |    2 +-
++ ...ons_firebase_functions_v1_providers-smart.js.md |    2 +-
++ ...se_functions_v1_server-connection-monitor.js.md |    2 +-
++ ..._firebase_functions_v1_src_chatClassifier.ts.md |    2 +-
++ ...dataconnect-admin-generated_esm_index.esm.js.md |    2 +-
++ ...dataconnect-admin-generated_esm_package.json.md |    2 +-
++ ...src_dataconnect-admin-generated_index.cjs.js.md |    2 +-
++ ...1_src_dataconnect-admin-generated_index.d.ts.md |    2 +-
++ ...src_dataconnect-admin-generated_package.json.md |    2 +-
++ ...s_firebase_functions_v1_src_email_handler.ts.md |    2 +-
++ ...functions_firebase_functions_v1_src_index.ts.md |    2 +-
++ ...ns_firebase_functions_v1_src_scrapeEngine.ts.md |    2 +-
++ ...ase_functions_v1_src_scrapeHistoryManager.ts.md |    2 +-
++ ..._firebase_functions_v1_src_scrapeSchema.yaml.md |    2 +-
++ ...functions_firebase_functions_v1_swagger.yaml.md |    2 +-
++ ...tions_firebase_functions_v1_system-health.js.md |    2 +-
++ ...unctions_firebase_functions_v1_tsconfig.json.md |    2 +-
++ ...irebase_functions_v1_utils_externalClient.js.md |    2 +-
++ ...rastructure_firebase_functions_ocrTrigger.ts.md |    2 +-
++ ...ure_monitoring_docker-compose.monitoring.yml.md |    2 +-
++ ...astructure_monitoring_grafana_dashboard.json.md |    2 +-
++ ...cture_terraform_root_cause_analysis_agent.py.md |    2 +-
++ ..._terraform_test_root_cause_analysis_agent.py.md |    2 +-
++ .../codebase/infrastructure_vitest-report.json.md  |    2 +-
++ docs/autogen/codebase/package.json.md              |    2 +-
++ .../codebase/packages_shared-types_package.json.md |    2 +-
++ .../packages_shared-types_src_conversation.ts.md   |    2 +-
++ .../codebase/packages_shared-types_src_index.ts.md |    2 +-
++ .../packages_shared-types_src_message.ts.md        |    2 +-
++ .../packages_shared-types_tsconfig.json.md         |    2 +-
++ .../packages_ui-components_package.json.md         |    2 +-
++ .../packages_ui-components_src_ChatBubble.tsx.md   |    2 +-
++ ...components_src_components_DashboardShell.tsx.md |    2 +-
++ ...nents_src_components_LiveSujonBackground.tsx.md |    2 +-
++ ...-components_src_contexts_SharedProviders.tsx.md |    2 +-
++ .../packages_ui-components_src_index.ts.md         |    2 +-
++ .../packages_ui-components_src_utils_api.ts.md     |    2 +-
++ .../packages_ui-components_tsconfig.json.md        |    2 +-
++ docs/autogen/codebase/playwright-ct.config.ts.md   |    2 +-
++ docs/autogen/codebase/playwright.config.ts.md      |    2 +-
++ docs/autogen/codebase/pnpm-lock.yaml.md            |    2 +-
++ docs/autogen/codebase/pnpm-workspace.yaml.md       |    2 +-
++ docs/autogen/codebase/scratch_job_details.json.md  |    2 +-
++ docs/autogen/codebase/scratch_smoke_check.py.md    |    2 +-
++ .../scratch_supremeai_skill_ecosystem_app.py.md    |    2 +-
++ ...ratch_supremeai_skill_ecosystem_generator.py.md |    2 +-
++ ..._supremeai_skill_ecosystem_sample_skill.json.md |    2 +-
++ ...ch_supremeai_skill_ecosystem_skill_schema.py.md |    2 +-
++ .../codebase/scratch_sync_gsm_secrets.py.md        |    2 +-
++ docs/autogen/codebase/scratch_update_vault.py.md   |    2 +-
++ .../autogen/codebase/scratch_update_vault_r2.py.md |    2 +-
++ .../codebase/scratch_verify_project_health.py.md   |    2 +-
++ .../codebase/scripts_add_bangla_comments.py.md     |    2 +-
++ .../codebase/scripts_aggregate_context.py.md       |    2 +-
++ ...scripts_backup_auto_cross_cloud_replicate.py.md |    2 +-
++ .../scripts_backup_auto_firestore_backup.py.md     |    2 +-
++ .../scripts_benchmark_perf_benchmark.py.md         |    2 +-
++ .../codebase/scripts_bots_auto_alert_bot.py.md     |    2 +-
++ .../scripts_bots_auto_daily_standup_bot.py.md      |    2 +-
++ .../codebase/scripts_code_smell_detector.py.md     |    2 +-
++ docs/autogen/codebase/scripts_codebase_to_md.py.md |    2 +-
++ .../codebase/scripts_codegraph_integration.py.md   |    2 +-
++ .../codebase/scripts_commit_supreme_ci.yml.md      |    2 +-
++ docs/autogen/codebase/scripts_config_audit.py.md   |    2 +-
++ .../scripts_core_engine_multicatalog_search.py.md  |    2 +-
++ .../codebase/scripts_core_engine_tool_ranker.py.md |    2 +-
++ .../codebase/scripts_create_test_admin.py.md       |    2 +-
++ .../autogen/codebase/scripts_db_auto_migrate.py.md |    2 +-
++ docs/autogen/codebase/scripts_db_auto_seed.py.md   |    2 +-
++ .../autogen/codebase/scripts_docker_ai_guard.py.md |    2 +-
++ ...ipts_evolution_auto_marketing_skill_forge.py.md |    2 +-
++ docs/autogen/codebase/scripts_fix_mypy.py.md       |    2 +-
++ docs/autogen/codebase/scripts_fuzz_sandbox.py.md   |    2 +-
++ .../scripts_generate_codebase_markdown.py.md       |    2 +-
++ ...scripts_generate_codebase_single_markdown.py.md |    2 +-
++ docs/autogen/codebase/scripts_generate_md.py.md    |    2 +-
++ .../codebase/scripts_generate_smart_docs.py.md     |    2 +-
++ docs/autogen/codebase/scripts_k6_load_test.js.md   |    2 +-
++ docs/autogen/codebase/scripts_locustfile.py.md     |    2 +-
++ docs/autogen/codebase/scripts_migrate.py.md        |    2 +-
++ .../codebase/scripts_multi_model_validator.py.md   |    2 +-
++ ...scripts_orchestrator_auto_budget_guardian.py.md |    2 +-
++ docs/autogen/codebase/scripts_profile_memory.py.md |    2 +-
++ .../scripts_quality_auto_dead_code_remover.py.md   |    2 +-
++ .../scripts_quality_auto_improve_coverage.py.md    |    2 +-
++ .../scripts_quality_auto_refactor_suggester.py.md  |    2 +-
++ ...cripts_quality_check_ollama_test_coverage.py.md |    2 +-
++ .../scripts_resource_collection_awesome_go.py.md   |    2 +-
++ ...cripts_resource_collection_awesome_python.py.md |    2 +-
++ ...ts_resource_collection_awesome_selfhosted.py.md |    2 +-
++ ...ripts_resource_collection_base_api_client.py.md |    2 +-
++ .../scripts_resource_collection_base_scraper.py.md |    2 +-
++ ...pts_resource_collection_ossinsight_client.py.md |    2 +-
++ ...ipts_resource_collection_ossinsight_init_.py.md |    2 +-
++ ...ripts_resource_collection_ossinsight_test.py.md |    2 +-
++ .../scripts_resource_collection_run_all.py.md      |    2 +-
++ ...ts_resource_collection_run_all_collectors.py.md |    2 +-
++ ...ripts_resource_scraping_awesome_go_scrape.py.md |    2 +-
++ ...s_resource_scraping_awesome_python_scrape.py.md |    2 +-
++ ...source_scraping_awesome_selfhosted_scrape.py.md |    2 +-
++ .../codebase/scripts_run_all_collectors.py.md      |    2 +-
++ docs/autogen/codebase/scripts_safety_guard.py.md   |    2 +-
++ .../scripts_security_auto_find_blindspots.py.md    |    2 +-
++ .../scripts_security_auto_secret_rotate.py.md      |    2 +-
++ .../scripts_security_check_dependencies.py.md      |    2 +-
++ .../codebase/scripts_security_code-quality.yml.md  |    2 +-
++ ...scripts_security_dependency-health-check.yml.md |    2 +-
++ .../codebase/scripts_security_find_dead_code.py.md |    2 +-
++ docs/autogen/codebase/scripts_seed_repos.py.md     |    2 +-
++ .../autogen/codebase/scripts_setup_ci_runner.py.md |    2 +-
++ .../codebase/scripts_setup_firebase_admin.py.md    |    2 +-
++ docs/autogen/codebase/scripts_skill_loader.py.md   |    2 +-
++ .../codebase/scripts_supreme-config-audit.py.md    |    2 +-
++ .../codebase/scripts_supreme-docker-analyzer.py.md |    2 +-
++ .../codebase/scripts_supreme-risk-scorer.py.md     |    2 +-
++ .../codebase/scripts_supreme_context_builder.py.md |    2 +-
++ .../scripts_tenant_auto_tenant_health_report.py.md |    2 +-
++ .../scripts_tenant_auto_tenant_setup.py.md         |    2 +-
++ docs/autogen/codebase/scripts_test_bangla.py.md    |    2 +-
++ docs/autogen/codebase/scripts_test_read.py.md      |    2 +-
++ docs/autogen/codebase/security-scan.yml.md         |    2 +-
++ .../codebase/skills_dynamic_csv_exporter.py.md     |    2 +-
++ .../codebase/skills_dynamic_text_summarizer.py.md  |    2 +-
++ .../codebase/skills_dynamic_web_scraper.py.md      |    2 +-
++ docs/autogen/codebase/skills_init_.py.md           |    2 +-
++ docs/autogen/codebase/skills_installer.py.md       |    2 +-
++ docs/autogen/codebase/skills_marketplace.py.md     |    2 +-
++ docs/autogen/codebase/skills_registry.py.md        |    2 +-
++ docs/autogen/codebase/skills_schema.py.md          |    2 +-
++ .../codebase/test-results_.last-run.json.md        |    2 +-
++ ...be-accessible-Mobile-Chrome_error-context.md.md |    2 +-
++ ...be-accessible-Mobile-Safari_error-context.md.md |    2 +-
++ ...bility-issues-Mobile-Safari_error-context.md.md |    2 +-
++ ...sends-message-Mobile-Chrome_error-context.md.md |    2 +-
++ ...sends-message-Mobile-Safari_error-context.md.md |    2 +-
++ ...Chat-sends-message-chromium_error-context.md.md |    2 +-
++ .../codebase/test-results_e2e-report.json.md       |    2 +-
++ .../codebase/tests_e2e_accessibility.spec.ts.md    |    2 +-
++ .../codebase/tests_e2e_admin-dashboard.spec.ts.md  |    2 +-
++ docs/autogen/codebase/tests_e2e_chat.spec.ts.md    |    2 +-
++ docs/autogen/codebase/tests_e2e_visual.spec.ts.md  |    2 +-
++ docs/autogen/codebase/tests_test_tenant_di.py.md   |    2 +-
++ docs/autogen/codebase/tools_cache_cleanup.py.md    |    2 +-
++ .../tools_vscode-extension_ARCHITECTURE_BN.md.md   |    2 +-
++ ...vscode-extension_AdminMetricsController.java.md |    2 +-
++ ...s_vscode-extension_CodebaseAuditService.java.md |    2 +-
++ ...ools_vscode-extension_FeatureDefinition.java.md |    2 +-
++ ...ode-extension_FeatureRegistryController.java.md |    2 +-
++ ...vscode-extension_FeatureRegistryService.java.md |    2 +-
++ .../tools_vscode-extension_GlobalMetrics.java.md   |    2 +-
++ ...s_vscode-extension_GlobalMetricsService.java.md |    2 +-
++ ...ols_vscode-extension_INTEGRATION_GUIDE_BN.md.md |    2 +-
++ .../codebase/tools_vscode-extension_README.md.md   |    2 +-
++ .../tools_vscode-extension_README_BN.md.md         |    2 +-
++ .../tools_vscode-extension_jest.config.js.md       |    2 +-
++ .../tools_vscode-extension_package.json.md         |    2 +-
++ .../tools_vscode-extension_package.nls.bn.json.md  |    2 +-
++ .../tools_vscode-extension_src_agentDetector.ts.md |    2 +-
++ .../tools_vscode-extension_src_ai_AIService.ts.md  |    2 +-
++ ...de-extension_src_ai_CodeGenerationService.ts.md |    2 +-
++ ...vscode-extension_src_ai_CodeReviewService.ts.md |    2 +-
++ ...ls_vscode-extension_src_ai_ContextBuilder.ts.md |    2 +-
++ ...xtension_src_dataconnect-generated_README.md.md |    2 +-
++ ...n_src_dataconnect-generated_esm_index.esm.js.md |    2 +-
++ ...n_src_dataconnect-generated_esm_package.json.md |    2 +-
++ ...nsion_src_dataconnect-generated_index.cjs.js.md |    2 +-
++ ...tension_src_dataconnect-generated_index.d.ts.md |    2 +-
++ ...nsion_src_dataconnect-generated_package.json.md |    2 +-
++ .../tools_vscode-extension_src_extension.ts.md     |    2 +-
++ ...de-extension_src_handlers_CodeEditHandler.ts.md |    2 +-
++ ...de-extension_src_handlers_CodeFlowHandler.ts.md |    2 +-
++ ...scode-extension_src_handlers_ErrorHandler.ts.md |    2 +-
++ ...de-extension_src_handlers_FeedbackHandler.ts.md |    2 +-
++ ...ode-extension_src_providers_CodeFlowPanel.ts.md |    2 +-
++ ...nsion_src_providers_StreamingChatProvider.ts.md |    2 +-
++ ...n_src_providers_SupremeAIActivityProvider.ts.md |    2 +-
++ ...providers_SupremeAIAdminDashboardProvider.ts.md |    2 +-
++ ...nsion_src_providers_SupremeAIChatProvider.ts.md |    2 +-
++ ...extension_src_providers_SupremeAIChatView.ts.md |    2 +-
++ ...viders_SupremeAICustomerDashboardProvider.ts.md |    2 +-
++ ...on_src_providers_SupremeAISidebarProvider.ts.md |    2 +-
++ ...vscode-extension_src_services_AuthService.ts.md |    2 +-
++ ...e-extension_src_services_SupremeAIService.ts.md |    2 +-
++ .../tools_vscode-extension_src_types_index.ts.md   |    2 +-
++ ...ension_src_utils_DynamicSignatureRegistry.ts.md |    2 +-
++ ...s_vscode-extension_test_auth-service.test.ts.md |    2 +-
++ ...ools_vscode-extension_test_mocks_vscode.d.ts.md |    2 +-
++ .../tools_vscode-extension_test_mocks_vscode.ts.md |    2 +-
++ .../tools_vscode-extension_test_setup.ts.md        |    2 +-
++ ...ode-extension_test_supremeai-service.test.ts.md |    2 +-
++ .../tools_vscode-extension_tsconfig.json.md        |    2 +-
++ .../tools_vscode-extension_vitest.config.ts.md     |    2 +-
++ docs/autogen/codebase/turbo.json.md                |    2 +-
++ docs/autogen/codebase/vercel.json.md               |    2 +-
++ docs/autogen/codebase_full.md                      |  272 +-
++ 1081 files changed, 12057 insertions(+), 11281 deletions(-)
++
++```
++
++## Diff Detail
++```diff
++commit 6afc88915f14bb47ce3af1ee795bab2921c6052e
++Author: github-actions[bot] <github-actions[bot]@users.noreply.github.com>
++Date:   Tue Jul 7 09:44:09 2026 +0000
++
++    docs: auto-update codebase docs & dashboard [skip ci]
++
++diff --git a/docs/autogen/INDEX.md b/docs/autogen/INDEX.md
++index 645109489..a3fd545df 100644
++--- a/docs/autogen/INDEX.md
+++++ b/docs/autogen/INDEX.md
++@@ -13,4 +13,4 @@
++ - **ডিরেক্টরি:** [changes/](changes/)
++ 
++ ---
++-*স্বয়ংক্রিয়ভাবে তৈরি — 2026-07-07 08:44:03*
+++*স্বয়ংক্রিয়ভাবে তৈরি — 2026-07-07 09:44:08*
++diff --git a/docs/autogen/changes/change_198dc0b7121eb7a0c75430d675a497f0ce589e0f.md b/docs/autogen/changes/change_198dc0b7121eb7a0c75430d675a497f0ce589e0f.md
++deleted file mode 100644
++index 954464b07..000000000
++--- a/docs/autogen/changes/change_198dc0b7121eb7a0c75430d675a497f0ce589e0f.md
+++++ /dev/null
++@@ -1,9998 +0,0 @@
++-# 📋 Commit 198dc0b7121eb7a0c75430d675a497f0ce589e0f
++-
++-## Commit Stats
++-```
++-commit 198dc0b7121eb7a0c75430d675a497f0ce589e0f
++-Author: github-actions[bot] <github-actions[bot]@users.noreply.github.com>
++-Date:   Tue Jul 7 07:19:30 2026 +0000
++-
++-    docs: auto-update codebase docs & dashboard [skip ci]
++-
++- docs/autogen/INDEX.md                              |     2 +-
++- ...nge_02cda7b92868e8e18084361bbe639bc49107e2a7.md | 10820 +++++++++++++++++++
++- ...nge_32cf1dfd6bf70903045cadf0b8d5f43729e48fa3.md |   149 +
++- ...nge_6888a2cec7138b79252fcedc2b4b623a5b8d3531.md |    38 -
++- ...nge_df1e273f18a21a0aaa517fd16a11756b123874a8.md |  9296 ----------------
++- .../.github_actions_setup-backend_action.yml.md    |     2 +-
++- ...github_scripts_advanced-validation-report.py.md |     2 +-
++- .../codebase/.github_scripts_canary-deploy.py.md   |     2 +-
++- .../codebase/.github_scripts_ci-auto-fix-v3.py.md  |     2 +-
++- .../codebase/.github_scripts_ci-auto-fix.py.md     |     2 +-
++- .../.github_scripts_ci-decision-engine.py.md       |     2 +-
++- .../codebase/.github_scripts_ci-health-check.py.md |     2 +-
++- .../.github_scripts_clean_action_logs.py.md        |     2 +-
++- .../codebase/.github_scripts_deploy-backend.py.md  |     2 +-
++- .../.github_scripts_detect-previous-failures.py.md |     2 +-
++- .../codebase/.github_scripts_enforce_24h_gap.py.md |     2 +-
++- .../.github_scripts_generate-ci-report.py.md       |     2 +-
++- .../.github_scripts_generate_ai_prompt.py.md       |     2 +-
++- .../.github_scripts_multi-model-evaluator.py.md    |     2 +-
++- docs/autogen/codebase/.github_scripts_review.py.md |     2 +-
++- .../.github_scripts_supremeai-evaluator.py.md      |     2 +-
++- .../.github_scripts_test_ai_reviewer.py.md         |     2 +-
++- .../codebase/.github_workflows_deploy.yml.md       |     2 +-
++- .../.github_workflows_nightly-maintenance.yml.md   |     2 +-
++- .../.github_workflows_supreme-core-ci.yml.md       |     2 +-
++- .../.github_workflows_supreme-mobile-cd.yml.md     |     2 +-
++- ....github_workflows_supreme-release-builds.yml.md |     2 +-
++- .../.github_workflows_sync-from-prod.yml.md        |     2 +-
++- docs/autogen/codebase/AGENTS.md.md                 |     2 +-
++- docs/autogen/codebase/CHANGELOG.md.md              |     2 +-
++- docs/autogen/codebase/CI_PIPELINE.md.md            |     2 +-
++- docs/autogen/codebase/CONTRIBUTING.md.md           |     2 +-
++- docs/autogen/codebase/IMPLEMENTATION_STATUS.md.md  |     2 +-
++- .../codebase/PRODUCTION_READINESS_GUIDE.md.md      |     2 +-
++- docs/autogen/codebase/README.md.md                 |     2 +-
++- docs/autogen/codebase/SECURITY.md.md               |     2 +-
++- docs/autogen/codebase/admin_dashboard_script.js.md |     2 +-
++- docs/autogen/codebase/apps_desktop_README.md.md    |     2 +-
++- docs/autogen/codebase/apps_desktop_package.json.md |     2 +-
++- .../codebase/apps_desktop_src-tauri_Cargo.toml.md  |     2 +-
++- .../codebase/apps_desktop_src-tauri_build.rs.md    |     2 +-
++- .../apps_desktop_src-tauri_secure-store.ts.md      |     2 +-
++- .../codebase/apps_desktop_src-tauri_src_main.rs.md |     2 +-
++- .../apps_desktop_src-tauri_tauri.conf.json.md      |     2 +-
++- .../codebase/apps_desktop_src-ui_package.json.md   |     2 +-
++- .../codebase/apps_desktop_src-ui_src_App.tsx.md    |     2 +-
++- ..._desktop_src-ui_src_components_ChatInput.tsx.md |     2 +-
++- .../codebase/apps_desktop_src-ui_src_main.tsx.md   |     2 +-
++- .../apps_desktop_src-ui_src_pages_AdminPage.tsx.md |     2 +-
++- .../apps_desktop_src-ui_src_pages_ChatPage.tsx.md  |     2 +-
++- ...s_desktop_src-ui_src_pages_EvolutionPage.tsx.md |     2 +-
++- .../apps_desktop_src-ui_src_pages_LoginPage.tsx.md |     2 +-
++- ...apps_desktop_src-ui_src_pages_SkillsPage.tsx.md |     2 +-
++- .../apps_desktop_src-ui_src_services_api.ts.md     |     2 +-
++- .../apps_desktop_src-ui_src_stores_authStore.ts.md |     2 +-
++- .../apps_desktop_src-ui_src_types_index.ts.md      |     2 +-
++- .../apps_desktop_src-ui_src_vite-env.d.ts.md       |     2 +-
++- .../codebase/apps_desktop_src-ui_tsconfig.json.md  |     2 +-
++- .../apps_desktop_src-ui_tsconfig.node.json.md      |     2 +-
++- .../codebase/apps_desktop_src-ui_vite.config.ts.md |     2 +-
++- ...ava_com_supremeai_JavaWorkerApplication.java.md |     2 +-
++- ...va_com_supremeai_grpc_WorkerServiceImpl.java.md |     2 +-
++- ...in_java_com_supremeai_models_TaskEntity.java.md |     2 +-
++- ...m_supremeai_repositories_TaskRepository.java.md |     2 +-
++- ...va-worker_src_main_resources_application.yml.md |     2 +-
++- docs/autogen/codebase/apps_mobile_README.md.md     |     2 +-
++- docs/autogen/codebase/apps_mobile_README_BD.md.md  |     2 +-
++- .../codebase/apps_mobile_analysis_options.yaml.md  |     2 +-
++- .../codebase/apps_mobile_assets_i18n_ar.json.md    |     2 +-
++- .../codebase/apps_mobile_assets_i18n_bn.json.md    |     2 +-
++- .../codebase/apps_mobile_assets_i18n_en.json.md    |     2 +-
++- .../codebase/apps_mobile_assets_i18n_es.json.md    |     2 +-
++- .../codebase/apps_mobile_assets_i18n_hi.json.md    |     2 +-
++- .../codebase/apps_mobile_assets_i18n_zh.json.md    |     2 +-
++- .../codebase/apps_mobile_devtools_options.yaml.md  |     2 +-
++- ...ts.xcassets_AppIcon.appiconset_Contents.json.md |     2 +-
++- ....xcassets_LaunchImage.imageset_Contents.json.md |     2 +-
++- ...sets.xcassets_LaunchImage.imageset_README.md.md |     2 +-
++- ...s_mobile_lib_dataconnect_generated_README.md.md |     2 +-
++- ...le_lib_dataconnect_generated_add_review.dart.md |     2 +-
++- ..._lib_dataconnect_generated_create_movie.dart.md |     2 +-
++- ...lib_dataconnect_generated_delete_review.dart.md |     2 +-
++- ...ile_lib_dataconnect_generated_generated.dart.md |     2 +-
++- ...b_dataconnect_generated_get_movie_by_id.dart.md |     2 +-
++- ...e_lib_dataconnect_generated_list_movies.dart.md |     2 +-
++- ...dataconnect_generated_list_user_reviews.dart.md |     2 +-
++- ...le_lib_dataconnect_generated_list_users.dart.md |     2 +-
++- ..._lib_dataconnect_generated_search_movie.dart.md |     2 +-
++- ...e_lib_dataconnect_generated_upsert_user.dart.md |     2 +-
++- docs/autogen/codebase/apps_mobile_lib_main.dart.md |     2 +-
++- .../apps_mobile_lib_models_ci_job_model.dart.md    |     2 +-
++- ...apps_mobile_lib_providers_auth_provider.dart.md |     2 +-
++- ...mobile_lib_providers_dashboard_provider.dart.md |     2 +-
++- ...le_lib_providers_orchestration_provider.dart.md |     2 +-
++- ..._mobile_lib_providers_settings_provider.dart.md |     2 +-
++- ...ps_mobile_lib_screens_agent_chat_screen.dart.md |     2 +-
++- ...mobile_lib_screens_alerts_alerts_screen.dart.md |     2 +-
++- ..._lib_screens_analytics_analytics_screen.dart.md |     2 +-
++- ...apps_mobile_lib_screens_api_keys_screen.dart.md |     2 +-
++- .../apps_mobile_lib_screens_api_scaffold.dart.md   |     2 +-
++- ...apps_mobile_lib_screens_byoc_hub_screen.dart.md |     2 +-
++- ..._lib_screens_consensus_consensus_screen.dart.md |     2 +-
++- ...obile_lib_screens_dashboard_home_screen.dart.md |     2 +-
++- ...pps_mobile_lib_screens_dashboard_screen.dart.md |     2 +-
++- ..._lib_screens_extension_extension_screen.dart.md |     2 +-
++- .../apps_mobile_lib_screens_git_git_screen.dart.md |     2 +-
++- ...le_lib_screens_learning_learning_screen.dart.md |     2 +-
++- .../apps_mobile_lib_screens_login_screen.dart.md   |     2 +-
++- ...eens_notifications_notifications_screen.dart.md |     2 +-
++- ...b_screens_projects_projects_list_screen.dart.md |     2 +-
++- ...b_screens_providers_ai_providers_screen.dart.md |     2 +-
++- ...s_mobile_lib_screens_quota_quota_screen.dart.md |     2 +-
++- ...ib_screens_resilience_resilience_screen.dart.md |     2 +-
++- ...apps_mobile_lib_screens_settings_screen.dart.md |     2 +-
++- .../apps_mobile_lib_screens_terminal_view.dart.md  |     2 +-
++- .../apps_mobile_lib_screens_vpn_vpn_screen.dart.md |     2 +-
++- .../apps_mobile_lib_screens_wallet_screen.dart.md  |     2 +-
++- .../apps_mobile_lib_services_api_client.dart.md    |     2 +-
++- .../apps_mobile_lib_services_api_service.dart.md   |     2 +-
++- ...pps_mobile_lib_services_billing_service.dart.md |     2 +-
++- .../apps_mobile_lib_services_byoc_service.dart.md  |     2 +-
++- ...pps_mobile_lib_services_ci_sync_service.dart.md |     2 +-
++- ...s_mobile_lib_services_deployment_stream.dart.md |     2 +-
++- ...obile_lib_services_localization_service.dart.md |     2 +-
++- ...bile_lib_services_neural_stream_service.dart.md |     2 +-
++- ...obile_lib_services_notification_service.dart.md |     2 +-
++- ...obile_lib_services_offline_sync_service.dart.md |     2 +-
++- ...ile_lib_services_payment_gateway_bridge.dart.md |     2 +-
++- ..._mobile_lib_services_screen_api_service.dart.md |     2 +-
++- .../apps_mobile_lib_theme_app_theme.dart.md        |     2 +-
++- .../apps_mobile_lib_theme_theme_provider.dart.md   |     2 +-
++- ...apps_mobile_lib_widgets_action_hub_card.dart.md |     2 +-
++- ...ile_lib_widgets_base_dashboard_scaffold.dart.md |     2 +-
++- .../codebase/apps_mobile_lib_widgets_es.json.md    |     2 +-
++- .../apps_mobile_lib_widgets_json_dropzone.dart.md  |     2 +-
++- .../apps_mobile_lib_widgets_live_terminal.dart.md  |     2 +-
++- ...apps_mobile_lib_widgets_loading_widgets.dart.md |     2 +-
++- ...le_lib_widgets_transaction_history_list.dart.md |     2 +-
++- .../apps_mobile_lib_widgets_usage_chart.dart.md    |     2 +-
++- ...ts.xcassets_AppIcon.appiconset_Contents.json.md |     2 +-
++- docs/autogen/codebase/apps_mobile_pubspec.lock.md  |     2 +-
++- docs/autogen/codebase/apps_mobile_pubspec.yaml.md  |     2 +-
++- ...bile_test_auth_provider_edge_cases_test.dart.md |     2 +-
++- .../apps_mobile_test_auth_provider_test.dart.md    |     2 +-
++- ...mobile_test_home_screen_edge_cases_test.dart.md |     2 +-
++- .../apps_mobile_test_home_screen_test.dart.md      |     2 +-
++- ...s_mobile_test_screens_login_screen_test.dart.md |     2 +-
++- .../codebase/apps_mobile_web_manifest.json.md      |     2 +-
++- .../codebase/apps_studio-client_README.md.md       |     2 +-
++- .../codebase/apps_studio-client_components.json.md |     2 +-
++- .../apps_studio-client_eslint.config.js.md         |     2 +-
++- .../autogen/codebase/apps_studio-client_main.js.md |     2 +-
++- .../codebase/apps_studio-client_package.json.md    |     2 +-
++- .../apps_studio-client_public_manifest.json.md     |     2 +-
++- .../codebase/apps_studio-client_public_sw.js.md    |     2 +-
++- .../apps_studio-client_src_App.test.tsx.md         |     2 +-
++- .../codebase/apps_studio-client_src_App.tsx.md     |     2 +-
++- ...tudio-client_src_components_AdminConsole.tsx.md |     2 +-
++- ..._studio-client_src_components_BanglaHint.tsx.md |     2 +-
++- ...apps_studio-client_src_components_Header.tsx.md |     2 +-
++- ...lient_src_components_LiveSujonBackground.tsx.md |     2 +-
++- ...c_components_Onboarding_OnboardingWizard.tsx.md |     2 +-
++- ...ent_src_components_Onboarding_StepApiKey.tsx.md |     2 +-
++- ..._src_components_Onboarding_StepFirstChat.tsx.md |     2 +-
++- ...rc_components_Onboarding_StepModelSelect.tsx.md |     2 +-
++- ...dio-client_src_components_OperatorStudio.tsx.md |     2 +-
++- ...o-client_src_components_admin_ActionCard.tsx.md |     2 +-
++- ..._src_components_admin_AdminAuthenticated.tsx.md |     2 +-
++- ...client_src_components_admin_AdminConsole.tsx.md |     2 +-
++- ..._src_components_admin_AdminDashboardHome.tsx.md |     2 +-
++- ...o-client_src_components_admin_AdminLogin.tsx.md |     2 +-
++- ..._src_components_admin_AdminSubTabContent.tsx.md |   110 +-
++- ...-client_src_components_admin_AdminTopNav.tsx.md |     2 +-
++- ...o-client_src_components_admin_AethelNode.tsx.md |     2 +-
++- ...ient_src_components_admin_AuditLogsPanel.tsx.md |     2 +-
++- ...lient_src_components_admin_BackupRestore.tsx.md |     2 +-
++- ...ient_src_components_admin_CICDVisualizer.tsx.md |     2 +-
++- ...t_src_components_admin_CloudOrchestrator.tsx.md |     2 +-
++- ...lient_src_components_admin_CommandCenter.tsx.md |     2 +-
++- ...client_src_components_admin_ConfigEditor.tsx.md |     2 +-
++- ..._src_components_admin_ConsentMatrixModal.tsx.md |     2 +-
++- ...-client_src_components_admin_CostAuditor.tsx.md |     2 +-
++- ..._components_admin_DashboardErrorBoundary.tsx.md |     2 +-
++- ...ent_src_components_admin_DeploymentModal.tsx.md |     2 +-
++- ...client_src_components_admin_DynamicPanel.tsx.md |     2 +-
++- ...omponents_admin_EnhancedSkillMarketplace.tsx.md |     2 +-
++- ...t_src_components_admin_GithubIntegration.tsx.md |     2 +-
++- ...client_src_components_admin_HealthBanner.tsx.md |     2 +-
++- ...io-client_src_components_admin_HealthMap.tsx.md |     2 +-
++- ..._src_components_admin_InteractiveChatTab.tsx.md |     2 +-
++- ...dio-client_src_components_admin_LiveLogs.tsx.md |     2 +-
++- ...lient_src_components_admin_MemoryBrowser.tsx.md |     2 +-
++- ...-client_src_components_admin_ModelRouter.tsx.md |     2 +-
++- ..._components_admin_ObservabilityDashboard.tsx.md |     2 +-
++- ...-client_src_components_admin_RBACManager.tsx.md |     2 +-
++- ...nt_src_components_admin_RateLimitManager.tsx.md |     2 +-
++- ...rc_components_admin_RealTimeMetricsPanel.tsx.md |     2 +-
++- ...mponents_admin_RedesignedDashboardMockup.tsx.md |     2 +-
++- ...nt_src_components_admin_RulesEnginePanel.tsx.md |     2 +-
++- ...t_src_components_admin_SecurityDashboard.tsx.md |     2 +-
++- ...rc_components_admin_ServiceHealthMetrics.tsx.md |     2 +-
++- ...ent_src_components_admin_ThreatDetection.tsx.md |     2 +-
++- ...-client_src_components_admin_UserManager.tsx.md |     2 +-
++- ..._src_components_admin_VisualRulesBuilder.tsx.md |     2 +-
++- ..._studio-client_src_components_admin_index.ts.md |     2 +-
++- ..._src_components_audio_WaveformVisualizer.tsx.md |     2 +-
++- ...ient_src_components_chat_TypingIndicator.tsx.md |     2 +-
++- ...nt_src_components_chat_UnifiedChatBubble.tsx.md |     2 +-
++- ...s_studio-client_src_components_chat_index.ts.md |     2 +-
++- ...t_src_components_customer_BrowserPreview.tsx.md |     2 +-
++- ...t_src_components_customer_ChatPanel.test.tsx.md |     2 +-
++- ...client_src_components_customer_ChatPanel.tsx.md |     2 +-
++- ...lient_src_components_customer_CodeEditor.tsx.md |     2 +-
++- ...-client_src_components_customer_HomeFeed.tsx.md |     2 +-
++- ..._src_components_customer_MobileSimulator.tsx.md |     2 +-
++- ...rc_components_customer_QuickPresets.test.tsx.md |     2 +-
++- ...ent_src_components_customer_QuickPresets.tsx.md |     2 +-
++- ...c_components_customer_UserDashboard.test.tsx.md |     2 +-
++- ...nt_src_components_customer_UserDashboard.tsx.md |     2 +-
++- ...udio-client_src_components_customer_index.ts.md |     2 +-
++- ..._src_components_dashboard_AgentStatePill.tsx.md |     2 +-
++- ...components_dashboard_AutomationQueuePage.tsx.md |     2 +-
++- ...components_dashboard_DashboardShell.test.tsx.md |     2 +-
++- ..._src_components_dashboard_DashboardShell.tsx.md |     2 +-
++- ..._src_components_dashboard_ExecutionShell.tsx.md |     2 +-
++- ...t_src_components_dashboard_FileTreePanel.tsx.md |     2 +-
++- ..._src_components_dashboard_GuardrailsPage.tsx.md |     2 +-
++- ...src_components_dashboard_HealingLogPanel.tsx.md |     2 +-
++- ...t_src_components_dashboard_KnowledgePage.tsx.md |     2 +-
++- ..._src_components_dashboard_LlmGatewayPage.tsx.md |     2 +-
++- ...nt_src_components_dashboard_ReasoningLog.tsx.md |     2 +-
++- ...src_components_dashboard_SandboxViewport.tsx.md |     2 +-
++- ...ent_src_components_dashboard_SecretsPage.tsx.md |     2 +-
++- ...c_components_dashboard_SessionDetailPage.tsx.md |     2 +-
++- ...nt_src_components_dashboard_SessionsPage.tsx.md |     2 +-
++- ...nt_src_components_dashboard_SettingsPage.tsx.md |     2 +-
++- ...src_components_dashboard_SiteActionsPage.tsx.md |     2 +-
++- ...lient_src_components_dashboard_UsagePage.tsx.md |     2 +-
++- ...lient_src_components_dashboard_VaultPage.tsx.md |     2 +-
++- ...ent_src_components_dashboard_sessionStore.ts.md |     2 +-
++- ...ent_src_components_dashboard_useHashRoute.ts.md |     2 +-
++- ...lient_src_components_editor_CollabEditor.tsx.md |     2 +-
++- ...o-client_src_components_graph_SkillGraph.tsx.md |     2 +-
++- ...udio-client_src_components_ui_ActionCard.tsx.md |     2 +-
++- ...ps_studio-client_src_components_ui_Badge.tsx.md |     2 +-
++- ...pps_studio-client_src_components_ui_Card.tsx.md |     2 +-
++- ...studio-client_src_components_ui_Skeleton.tsx.md |     2 +-
++- ...pps_studio-client_src_components_ui_index.ts.md |     2 +-
++- ..._studio-client_src_contexts_ThemeContext.tsx.md |     2 +-
++- ..._studio-client_src_contexts_ToastContext.tsx.md |     2 +-
++- ...o-client_src_dataconnect-generated_README.md.md |     2 +-
++- ...t_src_dataconnect-generated_esm_index.esm.js.md |     2 +-
++- ...t_src_dataconnect-generated_esm_package.json.md |     2 +-
++- ...lient_src_dataconnect-generated_index.cjs.js.md |     2 +-
++- ...-client_src_dataconnect-generated_index.d.ts.md |     2 +-
++- ...lient_src_dataconnect-generated_package.json.md |     2 +-
++- ...nt_src_dataconnect-generated_react_README.md.md |     2 +-
++- ...dataconnect-generated_react_esm_index.esm.js.md |     2 +-
++- ...dataconnect-generated_react_esm_package.json.md |     2 +-
++- ...src_dataconnect-generated_react_index.cjs.js.md |     2 +-
++- ...t_src_dataconnect-generated_react_index.d.ts.md |     2 +-
++- ...src_dataconnect-generated_react_package.json.md |     2 +-
++- .../codebase/apps_studio-client_src_firebase.ts.md |     2 +-
++- .../apps_studio-client_src_hooks_index.ts.md       |     2 +-
++- ...lient_src_hooks_tests_useTranslation.test.ts.md |     2 +-
++- .../apps_studio-client_src_hooks_useAdminApi.ts.md |     2 +-
++- .../apps_studio-client_src_hooks_useAuth.ts.md     |     2 +-
++- .../apps_studio-client_src_hooks_useChat.ts.md     |     2 +-
++- ..._studio-client_src_hooks_useDashboardData.ts.md |     2 +-
++- ...ps_studio-client_src_hooks_useTranslation.ts.md |     2 +-
++- ...apps_studio-client_src_hooks_useWebSocket.ts.md |     2 +-
++- ...apps_studio-client_src_i18n_I18nProvider.tsx.md |     2 +-
++- .../apps_studio-client_src_i18n_config.ts.md       |     2 +-
++- .../apps_studio-client_src_i18n_translations.ts.md |     2 +-
++- .../codebase/apps_studio-client_src_lib_etag.ts.md |     2 +-
++- .../codebase/apps_studio-client_src_main.tsx.md    |     2 +-
++- ...s_studio-client_src_services_adminService.ts.md |     2 +-
++- ...tudio-client_src_services_adminTokenStore.ts.md |     2 +-
++- ...s_studio-client_src_services_agentService.ts.md |     2 +-
++- ...apps_studio-client_src_services_apiClient.ts.md |     2 +-
++- ...ient_src_services_api_microserviceMonitor.ts.md |     2 +-
++- ...t_src_services_audio_AudioPlaybackService.ts.md |     2 +-
++- ...t_src_services_audio_AudioRecorderService.ts.md |     2 +-
++- ...ps_studio-client_src_services_authService.ts.md |     2 +-
++- ...ps_studio-client_src_services_chatService.ts.md |     2 +-
++- ...tudio-client_src_services_ciReportService.ts.md |     2 +-
++- ...pps_studio-client_src_services_storageApi.ts.md |     2 +-
++- .../apps_studio-client_src_store_adminStore.ts.md  |     2 +-
++- ...pps_studio-client_src_store_customerStore.ts.md |     2 +-
++- ...ps_studio-client_src_store_dashboardStore.ts.md |     2 +-
++- ...udio-client_src_store_sessionCockpitStore.ts.md |     2 +-
++- .../apps_studio-client_src_store_themeStore.ts.md  |     2 +-
++- .../apps_studio-client_src_store_useStore.ts.md    |     2 +-
++- .../apps_studio-client_src_test_setup.ts.md        |     2 +-
++- .../codebase/apps_studio-client_src_types.ts.md    |     2 +-
++- .../apps_studio-client_src_types_customer.ts.md    |     2 +-
++- .../apps_studio-client_src_utils_api.ts.md         |     2 +-
++- ...ps_studio-client_src_utils_apiInterceptor.ts.md |     2 +-
++- .../apps_studio-client_src_vite-env.d.ts.md        |     2 +-
++- ...tudio-client_src_workers_logParser.worker.ts.md |     2 +-
++- .../apps_studio-client_tsconfig.app.json.md        |     2 +-
++- .../codebase/apps_studio-client_tsconfig.json.md   |     2 +-
++- .../apps_studio-client_tsconfig.node.json.md       |     2 +-
++- .../codebase/apps_studio-client_vite.config.ts.md  |     2 +-
++- .../apps_studio-client_vitest.config.ts.md         |     2 +-
++- docs/autogen/codebase/apps_web-chat_api.test.ts.md |     2 +-
++- docs/autogen/codebase/apps_web-chat_api.ts.md      |     2 +-
++- .../autogen/codebase/apps_web-chat_package.json.md |     2 +-
++- docs/autogen/codebase/apps_web-chat_script.ts.md   |     2 +-
++- .../codebase/apps_web-chat_tsconfig.json.md        |     2 +-
++- .../codebase/apps_web-chat_vite-env.d.ts.md        |     2 +-
++- .../codebase/apps_web-chat_vite.config.ts.md       |     2 +-
++- .../codebase/apps_web-chat_vitest.config.ts.md     |     2 +-
++- docs/autogen/codebase/backend_README.md.md         |     2 +-
++- .../backend_adaptive_engine_experience_db.py.md    |     2 +-
++- .../codebase/backend_adaptive_engine_init_.py.md   |     2 +-
++- .../backend_adaptive_engine_intent_parser.py.md    |     2 +-
++- .../backend_adaptive_engine_learning_loop.py.md    |     2 +-
++- .../backend_adaptive_engine_platform_learner.py.md |     2 +-
++- .../backend_adaptive_engine_registry.py.md         |     2 +-
++- ...end_adaptive_engine_test_platform_learner.py.md |     2 +-
++- docs/autogen/codebase/backend_admin_god.py.md      |     2 +-
++- docs/autogen/codebase/backend_admin_init_.py.md    |     2 +-
++- docs/autogen/codebase/backend_admin_test_god.py.md |     2 +-
++- .../codebase/backend_agents_crew_departments.py.md |     2 +-
++- docs/autogen/codebase/backend_agents_init_.py.md   |     2 +-
++- .../codebase/backend_agents_legal_agent.py.md      |     2 +-
++- .../codebase/backend_agents_medical_agent.py.md    |     2 +-
++- .../backend_agents_research_assistant.py.md        |     2 +-
++- .../codebase/backend_agents_test_legal_agent.py.md |     2 +-
++- .../backend_agents_test_medical_agent.py.md        |     2 +-
++- .../codebase/backend_agents_trading_agent.py.md    |     2 +-
++- docs/autogen/codebase/backend_alembic_env.py.md    |     2 +-
++- ...ersions_664fe16e33ca_add_ci_reports_table.py.md |     2 +-
++- .../codebase/backend_api_dependencies.py.md        |     2 +-
++- docs/autogen/codebase/backend_api_init_.py.md      |     2 +-
++- .../codebase/backend_api_routes_admin.py.md        |     2 +-
++- .../backend_api_routes_admin_dashboard.py.md       |     2 +-
++- .../codebase/backend_api_routes_agent_tasks.py.md  |     2 +-
++- .../codebase/backend_api_routes_agents.py.md       |     2 +-
++- .../codebase/backend_api_routes_api_keys.py.md     |     2 +-
++- .../backend_api_routes_approval_manager.py.md      |     2 +-
++- .../backend_api_routes_async_task_router.py.md     |     2 +-
++- .../autogen/codebase/backend_api_routes_auth.py.md |     2 +-
++- .../codebase/backend_api_routes_billing_api.py.md  |     2 +-
++- .../codebase/backend_api_routes_browser.py.md      |     2 +-
++- .../codebase/backend_api_routes_byoc_api.py.md     |     2 +-
++- .../codebase/backend_api_routes_cdc_webhooks.py.md |     2 +-
++- .../autogen/codebase/backend_api_routes_chat.py.md |     2 +-
++- .../codebase/backend_api_routes_ci_webhooks.py.md  |     2 +-
++- .../codebase/backend_api_routes_cloud_mesh.py.md   |     2 +-
++- .../codebase/backend_api_routes_codeflow.py.md     |     2 +-
++- .../codebase/backend_api_routes_config.py.md       |     2 +-
++- .../codebase/backend_api_routes_email.py.md        |     2 +-
++- .../codebase/backend_api_routes_evolution.py.md    |     2 +-
++- .../backend_api_routes_execution_policies.py.md    |     2 +-
++- .../codebase/backend_api_routes_feedback.py.md     |     2 +-
++- .../codebase/backend_api_routes_github.py.md       |     2 +-
++- .../codebase/backend_api_routes_graph.py.md        |     2 +-
++- .../codebase/backend_api_routes_init_.py.md        |     2 +-
++- .../codebase/backend_api_routes_internal.py.md     |     2 +-
++- .../codebase/backend_api_routes_knowledge.py.md    |     2 +-
++- .../codebase/backend_api_routes_llm_gateway.py.md  |     2 +-
++- .../codebase/backend_api_routes_markdown.py.md     |     2 +-
++- .../codebase/backend_api_routes_marketplace.py.md  |     2 +-
++- .../backend_api_routes_marketplace_endpoints.py.md |     2 +-
++- .../codebase/backend_api_routes_media.py.md        |     2 +-
++- .../codebase/backend_api_routes_memory.py.md       |     2 +-
++- .../codebase/backend_api_routes_metrics.py.md      |     2 +-
++- .../codebase/backend_api_routes_mobile_bff.py.md   |     2 +-
++- .../codebase/backend_api_routes_onboarding.py.md   |     2 +-
++- .../codebase/backend_api_routes_payments.py.md     |     2 +-
++- .../codebase/backend_api_routes_preferences.py.md  |     2 +-
++- .../codebase/backend_api_routes_repos.py.md        |     2 +-
++- .../backend_api_routes_selector_healing.py.md      |     2 +-
++- .../backend_api_routes_session_stream.py.md        |     2 +-
++- .../backend_api_routes_session_takeover.py.md      |     2 +-
++- .../codebase/backend_api_routes_simulator.py.md    |     2 +-
++- .../codebase/backend_api_routes_site_actions.py.md |     2 +-
++- docs/autogen/codebase/backend_api_routes_sso.py.md |     2 +-
++- .../codebase/backend_api_routes_stream.py.md       |     2 +-
++- .../autogen/codebase/backend_api_routes_task.py.md |     2 +-
++- .../backend_api_routes_task_workspace.py.md        |     2 +-
++- .../codebase/backend_api_routes_tenant_admin.py.md |     2 +-
++- .../codebase/backend_api_routes_tools_ops.py.md    |     2 +-
++- .../backend_api_routes_tools_registry.py.md        |     2 +-
++- .../backend_api_routes_usage_metrics.py.md         |     2 +-
++- .../codebase/backend_api_routes_voice.py.md        |     2 +-
++- .../backend_api_routes_websocket_agent.py.md       |     2 +-
++- .../backend_api_routes_websocket_voice.py.md       |     2 +-
++- .../codebase/backend_byoc_cloud_connector.py.md    |     2 +-
++- .../backend_byoc_container_orchestrator.py.md      |     2 +-
++- docs/autogen/codebase/backend_byoc_init_.py.md     |     2 +-
++- .../codebase/backend_byoc_resource_manager.py.md   |     2 +-
++- .../codebase/backend_config_byoc_limits.json.md    |     2 +-
++- .../backend_config_constitutional_rules.json.md    |     2 +-
++- .../codebase/backend_config_pricing_tiers.json.md  |     2 +-
++- .../codebase/backend_config_routing_policy.json.md |     2 +-
++- docs/autogen/codebase/backend_core_admin_god.py.md |     2 +-
++- .../codebase/backend_core_admin_routes.py.md       |     2 +-
++- .../codebase/backend_core_agent_orchestrator.py.md |     2 +-
++- .../codebase/backend_core_api_key_middleware.py.md |     2 +-
++- .../backend_core_api_key_rate_limiter.py.md        |     2 +-
++- docs/autogen/codebase/backend_core_app.py.md       |     2 +-
++- .../codebase/backend_core_audit_logger.py.md       |     2 +-
++- .../codebase/backend_core_auth_middleware.py.md    |     2 +-
++- .../codebase/backend_core_auto_remediation.py.md   |     2 +-
++- .../codebase/backend_core_autocache_proxy.py.md    |     2 +-
++- .../codebase/backend_core_circuit_breaker.py.md    |     2 +-
++- .../backend_core_cloud_sandbox_orchestrator.py.md  |     2 +-
++- .../codebase/backend_core_cloud_storage.py.md      |     2 +-
++- .../codebase/backend_core_code_validator.py.md     |     2 +-
++- docs/autogen/codebase/backend_core_config.py.md    |     2 +-
++- docs/autogen/codebase/backend_core_constants.py.md |     2 +-
++- .../codebase/backend_core_db_repository.py.md      |     2 +-
++- .../codebase/backend_core_decision_engine.py.md    |     2 +-
++- .../codebase/backend_core_discord_bot.py.md        |     2 +-
++- .../codebase/backend_core_docker-compose.yml.md    |     2 +-
++- .../codebase/backend_core_email_service.py.md      |     2 +-
++- .../autogen/codebase/backend_core_enum_guard.py.md |     2 +-
++- .../codebase/backend_core_error_pattern_db.py.md   |     2 +-
++- .../codebase/backend_core_error_remediation.py.md  |     2 +-
++- docs/autogen/codebase/backend_core_events.py.md    |     2 +-
++- .../codebase/backend_core_evolution_engine.py.md   |     2 +-
++- .../codebase/backend_core_factual_verifier.py.md   |     2 +-
++- .../codebase/backend_core_feedback_loop.py.md      |     2 +-
++- .../codebase/backend_core_free_tier_tracker.py.md  |     2 +-
++- .../codebase/backend_core_gcp_firestore.py.md      |     2 +-
++- .../codebase/backend_core_gcp_pubsub_queue.py.md   |     2 +-
++- .../codebase/backend_core_generation_monitor.py.md |     2 +-
++- .../codebase/backend_core_grpc_client.py.md        |     2 +-
++- .../codebase/backend_core_health_monitor.py.md     |     2 +-
++- .../backend_core_honeypot_middleware.py.md         |     2 +-
++- .../backend_core_idempotency_middleware.py.md      |     2 +-
++- .../codebase/backend_core_immune_system.py.md      |     2 +-
++- docs/autogen/codebase/backend_core_init_.py.md     |     2 +-
++- .../codebase/backend_core_input_sanitizer.py.md    |     2 +-
++- docs/autogen/codebase/backend_core_intent.py.md    |     2 +-
++- .../codebase/backend_core_intent_router.py.md      |     2 +-
++- .../codebase/backend_core_language_router.py.md    |     2 +-
++- docs/autogen/codebase/backend_core_ld_client.py.md |     2 +-
++- docs/autogen/codebase/backend_core_lifespan.py.md  |     2 +-
++- .../codebase/backend_core_llm_gateway.py.md        |     2 +-
++- .../codebase/backend_core_log_batcher.py.md        |     2 +-
++- .../codebase/backend_core_logging_config.py.md     |     2 +-
++- .../codebase/backend_core_mcp_allowlist.py.md      |     2 +-
++- .../codebase/backend_core_microvm_sandbox.py.md    |     2 +-
++- .../codebase/backend_core_multi_layer_cache.py.md  |     2 +-
++- .../backend_core_observability_middleware.py.md    |     2 +-
++- .../codebase/backend_core_orchestrator.py.md       |     2 +-
++- .../codebase/backend_core_origin_validator.py.md   |     2 +-
++- .../codebase/backend_core_output_validator.py.md   |     2 +-
++- .../codebase/backend_core_pgbouncer_pool.py.md     |     2 +-
++- .../codebase/backend_core_posthog_client.py.md     |     2 +-
++- .../codebase/backend_core_prompt_firewall.py.md    |     2 +-
++- .../codebase/backend_core_prompt_helpers.py.md     |     2 +-
++- .../codebase/backend_core_rate_limiter.py.md       |     2 +-
++- docs/autogen/codebase/backend_core_rbac.py.md      |     2 +-
++- .../codebase/backend_core_redis_manager.py.md      |     2 +-
++- .../codebase/backend_core_rollback_monitor.py.md   |     2 +-
++- .../codebase/backend_core_rules_mutator.py.md      |     2 +-
++- .../codebase/backend_core_schema_validator.py.md   |     2 +-
++- .../codebase/backend_core_secret_vault.py.md       |     2 +-
++- .../backend_core_secure_credential_store.py.md     |     2 +-
++- docs/autogen/codebase/backend_core_security.py.md  |     2 +-
++- .../codebase/backend_core_self_healing_agent.py.md |     2 +-
++- .../codebase/backend_core_semantic_cache.py.md     |     2 +-
++- docs/autogen/codebase/backend_core_services.py.md  |     2 +-
++- .../codebase/backend_core_skill_graph.py.md        |     2 +-
++- .../codebase/backend_core_swarm_orchestrator.py.md |     2 +-
++- .../autogen/codebase/backend_core_task_queue.py.md |     2 +-
++- .../backend_core_task_queue_enhanced.py.md         |     2 +-
++- .../codebase/backend_core_task_router.py.md        |     2 +-
++- docs/autogen/codebase/backend_core_telemetry.py.md |     2 +-
++- docs/autogen/codebase/backend_core_tenant_db.py.md |     2 +-
++- .../codebase/backend_core_token_budget.py.md       |     2 +-
++- .../codebase/backend_core_token_deductor.py.md     |     2 +-
++- .../codebase/backend_core_universal_rules.py.md    |     2 +-
++- .../codebase/backend_core_upload_validator.py.md   |     2 +-
++- .../backend_core_upstash_redis_queue.py.md         |     2 +-
++- .../codebase/backend_core_user_profiler.py.md      |     2 +-
++- docs/autogen/codebase/backend_database_init_.py.md |     2 +-
++- ...end_database_migrations_01_initial_setup.sql.md |     2 +-
++- ...kend_database_migrations_02_phase2_setup.sql.md |     2 +-
++- ...grations_03_user_preferences_and_metrics.sql.md |     2 +-
++- ...nd_database_migrations_04_schema_upgrade.sql.md |     2 +-
++- ...database_migrations_05_seed_github_repos.sql.md |     2 +-
++- ...d_database_migrations_06_referral_system.sql.md |     2 +-
++- ...end_database_migrations_07_tenant_config.sql.md |     2 +-
++- ...ckend_database_migrations_08_sso_configs.sql.md |     2 +-
++- ...database_migrations_09_offline_sync_logs.sql.md |     2 +-
++- ...atabase_migrations_10_tenant_sso_offline.sql.md |     2 +-
++- .../codebase/backend_database_session.py.md        |     2 +-
++- .../codebase/backend_database_storage_client.py.md |     2 +-
++- .../backend_database_supabase_client.py.md         |     2 +-
++- .../codebase/backend_engine_cost_optimizer.py.md   |     2 +-
++- docs/autogen/codebase/backend_engine_init_.py.md   |     2 +-
++- .../codebase/backend_engine_model_dispatcher.py.md |     2 +-
++- .../backend_evolution_auto_skill_creator.py.md     |     2 +-
++- .../backend_evolution_auto_update_manager.py.md    |     2 +-
++- .../backend_evolution_dynamic_injector.py.md       |     2 +-
++- .../backend_evolution_fitness_engine.py.md         |     2 +-
++- .../autogen/codebase/backend_evolution_init_.py.md |     2 +-
++- .../backend_evolution_master_planner.py.md         |     2 +-
++- .../backend_evolution_security_sandbox.py.md       |     2 +-
++- .../backend_evolution_self_evolution_agent.py.md   |     2 +-
++- .../codebase/backend_evolution_skill_graph.py.md   |     2 +-
++- docs/autogen/codebase/backend_fix_tests.py.md      |     2 +-
++- docs/autogen/codebase/backend_init_.py.md          |     2 +-
++- docs/autogen/codebase/backend_main.py.md           |     2 +-
++- .../backend_memory_checkpoint_resume.py.md         |     2 +-
++- .../codebase/backend_memory_chromadb_store.py.md   |     2 +-
++- .../backend_memory_cloud_postgres_store.py.md      |     2 +-
++- .../backend_memory_cloud_vector_store.py.md        |     2 +-
++- .../codebase/backend_memory_episodic_memory.py.md  |     2 +-
++- docs/autogen/codebase/backend_memory_init_.py.md   |     2 +-
++- .../codebase/backend_memory_long_term_memory.py.md |     2 +-
++- .../codebase/backend_memory_rag_pipeline.py.md     |     2 +-
++- .../codebase/backend_memory_sliding_window.py.md   |     2 +-
++- .../codebase/backend_memory_sqlite_store.py.md     |     2 +-
++- .../codebase/backend_memory_summary_tree.py.md     |     2 +-
++- .../codebase/backend_memory_supabase_store.py.md   |     2 +-
++- .../backend_memory_vector_store_config.py.md       |     2 +-
++- .../backend_middleware_auth_middleware.py.md       |     2 +-
++- .../backend_middleware_chaos_injector.py.md        |     2 +-
++- .../codebase/backend_middleware_idempotency.py.md  |     2 +-
++- docs/autogen/codebase/backend_models_admin.py.md   |     2 +-
++- .../codebase/backend_models_agent_session.py.md    |     2 +-
++- docs/autogen/codebase/backend_models_api_key.py.md |     2 +-
++- docs/autogen/codebase/backend_models_base.py.md    |     2 +-
++- .../codebase/backend_models_byoc_payloads.py.md    |     2 +-
++- .../codebase/backend_models_ci_report.py.md        |     2 +-
++- .../codebase/backend_models_deployment_logs.py.md  |     2 +-
++- .../backend_models_error_remediation.py.md         |     2 +-
++- .../codebase/backend_models_evolution.py.md        |     2 +-
++- .../codebase/backend_models_execution_log.py.md    |     2 +-
++- .../codebase/backend_models_execution_policy.py.md |     2 +-
++- .../codebase/backend_models_handoff_event.py.md    |     2 +-
++- docs/autogen/codebase/backend_models_init_.py.md   |     2 +-
++- .../backend_models_local_model_handler.py.md       |     2 +-
++- .../codebase/backend_models_pending_tasks.py.md    |     2 +-
++- .../backend_models_selector_healing_event.py.md    |     2 +-
++- .../codebase/backend_models_shared_workspace.py.md |     2 +-
++- ...backend_models_target_platform_credential.py.md |     2 +-
++- .../backend_models_transaction_ledger.py.md        |     2 +-
++- .../backend_models_voice_interaction.py.md         |     2 +-
++- docs/autogen/codebase/backend_models_wallet.py.md  |     2 +-
++- .../codebase/backend_monitoring_cost_auditor.py.md |     2 +-
++- .../codebase/backend_monitoring_init_.py.md        |     2 +-
++- .../codebase/backend_p2p_credit_system.py.md       |     2 +-
++- docs/autogen/codebase/backend_p2p_init_.py.md      |     2 +-
++- .../codebase/backend_p2p_secure_tunnel.py.md       |     2 +-
++- docs/autogen/codebase/backend_pyproject.toml.md    |     2 +-
++- docs/autogen/codebase/backend_reports_init_.py.md  |     2 +-
++- .../backend_reports_optimization_engine.py.md      |     2 +-
++- .../codebase/backend_run_roundtrip_tests.py.md     |     2 +-
++- docs/autogen/codebase/backend_scout_init_.py.md    |     2 +-
++- .../backend_scout_knowledge_extractor.py.md        |     2 +-
++- .../codebase/backend_scout_web_crawler_agent.py.md |     2 +-
++- .../codebase/backend_scripts_check_ollama.py.md    |     2 +-
++- docs/autogen/codebase/backend_scripts_init_.py.md  |     2 +-
++- .../codebase/backend_scripts_load_seed_data.py.md  |     2 +-
++- .../backend_scripts_run_dependency_check.py.md     |     2 +-
++- .../backend_scripts_seed_tools_registry.py.md      |     2 +-
++- .../backend_scripts_self_healing_tests.py.md       |     2 +-
++- docs/autogen/codebase/backend_skills_init_.py.md   |     2 +-
++- .../codebase/backend_skills_provisioner.py.md      |     2 +-
++- .../codebase/backend_skills_skill_registry.py.md   |     2 +-
++- .../codebase/backend_storage_asset_manager.py.md   |     2 +-
++- docs/autogen/codebase/backend_storage_init_.py.md  |     2 +-
++- .../backend_storage_r2_storage_client.py.md        |     2 +-
++- .../backend_tests_agents_test_legal_agent.py.md    |     2 +-
++- .../backend_tests_agents_test_medical_agent.py.md  |     2 +-
++- ...kend_tests_agents_test_research_assistant.py.md |     2 +-
++- .../backend_tests_agents_test_trading_agent.py.md  |     2 +-
++- .../backend_tests_byoc_test_cloud_connector.py.md  |     2 +-
++- ...nd_tests_byoc_test_container_orchestrator.py.md |     2 +-
++- .../backend_tests_byoc_test_resource_manager.py.md |     2 +-
++- docs/autogen/codebase/backend_tests_conftest.py.md |     2 +-
++- .../backend_tests_engine_test_cost_optimizer.py.md |     2 +-
++- ...ackend_tests_engine_test_model_dispatcher.py.md |     2 +-
++- docs/autogen/codebase/backend_tests_init_.py.md    |     2 +-
++- ...ackend_tests_monitoring_test_cost_auditor.py.md |     2 +-
++- .../backend_tests_p2p_test_credit_system.py.md     |     2 +-
++- .../backend_tests_p2p_test_secure_tunnel.py.md     |     2 +-
++- ...kend_tests_scout_test_knowledge_extractor.py.md |     2 +-
++- ...ackend_tests_scout_test_web_crawler_agent.py.md |     2 +-
++- .../backend_tests_test_adaptive_engine.py.md       |     2 +-
++- .../codebase/backend_tests_test_admin_god.py.md    |     2 +-
++- .../codebase/backend_tests_test_admin_models.py.md |     2 +-
++- .../codebase/backend_tests_test_admin_routes.py.md |     2 +-
++- .../codebase/backend_tests_test_advanced.py.md     |     2 +-
++- .../backend_tests_test_agent_department.py.md      |     2 +-
++- .../backend_tests_test_agent_departments.py.md     |     2 +-
++- .../backend_tests_test_agent_orchestrator.py.md    |     2 +-
++- ...ackend_tests_test_agents_crew_departments.py.md |     2 +-
++- docs/autogen/codebase/backend_tests_test_api.py.md |     2 +-
++- .../codebase/backend_tests_test_api_chat.py.md     |     2 +-
++- .../codebase/backend_tests_test_api_keys.py.md     |     2 +-
++- .../backend_tests_test_api_new_endpoints.py.md     |     2 +-
++- .../codebase/backend_tests_test_api_router.py.md   |     2 +-
++- .../codebase/backend_tests_test_audit_logger.py.md |     2 +-
++- .../backend_tests_test_auth_middleware.py.md       |     2 +-
++- .../codebase/backend_tests_test_auth_routes.py.md  |     2 +-
++- .../backend_tests_test_auto_fix_trigger.py.md      |     2 +-
++- .../backend_tests_test_auto_skill_creator.py.md    |     2 +-
++- .../backend_tests_test_autonomous_agent.py.md      |     2 +-
++- .../codebase/backend_tests_test_bangla_nlp.py.md   |     2 +-
++- .../codebase/backend_tests_test_bangla_voice.py.md |     2 +-
++- .../backend_tests_test_billing_system.py.md        |     2 +-
++- .../codebase/backend_tests_test_brain.py.md        |     2 +-
++- .../backend_tests_test_browser_credentials.py.md   |     2 +-
++- .../backend_tests_test_byoc_endpoints.py.md        |     2 +-
++- .../codebase/backend_tests_test_chaos_worker.py.md |     2 +-
++- .../backend_tests_test_checkpoint_resume.py.md     |     2 +-
++- .../backend_tests_test_circuit_breaker.py.md       |     2 +-
++- .../backend_tests_test_cloud_sandbox.py.md         |     2 +-
++- .../backend_tests_test_cloud_storage.py.md         |     2 +-
++- .../backend_tests_test_code_validator.py.md        |     2 +-
++- .../backend_tests_test_collaborative_editor.py.md  |     2 +-
++- .../codebase/backend_tests_test_config.py.md       |     2 +-
++- .../backend_tests_test_config_additional.py.md     |     2 +-
++- .../backend_tests_test_config_coverage.py.md       |     2 +-
++- .../codebase/backend_tests_test_constants.py.md    |     2 +-
++- .../backend_tests_test_context_and_actions.py.md   |     2 +-
++- .../autogen/codebase/backend_tests_test_core.py.md |     2 +-
++- .../codebase/backend_tests_test_core_smoke.py.md   |     2 +-
++- .../backend_tests_test_coverage_gaps.py.md         |     2 +-
++- .../codebase/backend_tests_test_crew_mcp.py.md     |     2 +-
++- ...ackend_tests_test_database_storage_client.py.md |     2 +-
++- .../backend_tests_test_db_repository.py.md         |     2 +-
++- docs/autogen/codebase/backend_tests_test_e2e.py.md |     2 +-
++- .../codebase/backend_tests_test_e2e_media.py.md    |     2 +-
++- .../codebase/backend_tests_test_email_agent.py.md  |     2 +-
++- .../backend_tests_test_email_service.py.md         |     2 +-
++- .../backend_tests_test_episodic_memory.py.md       |     2 +-
++- .../backend_tests_test_error_remediation.py.md     |     2 +-
++- .../backend_tests_test_evolution_engine.py.md      |     2 +-
++- .../backend_tests_test_evolution_pipeline.py.md    |     2 +-
++- .../backend_tests_test_factual_verifier.py.md      |     2 +-
++- .../backend_tests_test_feedback_loop.py.md         |     2 +-
++- .../backend_tests_test_firebase_integration.py.md  |     2 +-
++- .../backend_tests_test_fitness_engine.py.md        |     2 +-
++- .../backend_tests_test_free_tier_tracker.py.md     |     2 +-
++- .../backend_tests_test_gcp_integration.py.md       |     2 +-
++- .../backend_tests_test_generation_monitor.py.md    |     2 +-
++- .../codebase/backend_tests_test_github_agent.py.md |     2 +-
++- .../codebase/backend_tests_test_graph_routes.py.md |     2 +-
++- .../backend_tests_test_graph_service.py.md         |     2 +-
++- .../codebase/backend_tests_test_grpc_client.py.md  |     2 +-
++- .../backend_tests_test_hallucination_guard.py.md   |     2 +-
++- .../codebase/backend_tests_test_health.py.md       |     2 +-
++- .../backend_tests_test_health_monitor.py.md        |     2 +-
++- .../backend_tests_test_health_monitor_routes.py.md |     2 +-
++- .../backend_tests_test_honeypot_middleware.py.md   |     2 +-
++- ...backend_tests_test_idempotency_middleware.py.md |     2 +-
++- .../backend_tests_test_immune_system.py.md         |     2 +-
++- .../backend_tests_test_immune_system_scanner.py.md |     2 +-
++- .../backend_tests_test_input_sanitizer.py.md       |     2 +-
++- .../backend_tests_test_language_router.py.md       |     2 +-
++- .../codebase/backend_tests_test_llm_gateway.py.md  |     2 +-
++- .../backend_tests_test_llm_gateway_coverage.py.md  |     2 +-
++- .../backend_tests_test_long_term_memory.py.md      |     2 +-
++- .../backend_tests_test_markdown_export.py.md       |     2 +-
++- .../backend_tests_test_marketplace_agent.py.md     |     2 +-
++- .../backend_tests_test_mcp_allowlist.py.md         |     2 +-
++- .../codebase/backend_tests_test_mcp_server.py.md   |     2 +-
++- ...ackend_tests_test_mcp_servers_integration.py.md |     2 +-
++- .../codebase/backend_tests_test_media_r2.py.md     |     2 +-
++- ...kend_tests_test_middleware_chaos_injector.py.md |     2 +-
++- .../codebase/backend_tests_test_migrations.py.md   |     2 +-
++- ...kend_tests_test_migrations_and_onboarding.py.md |     2 +-
++- .../codebase/backend_tests_test_mobile_e2e.py.md   |     2 +-
++- .../backend_tests_test_model_registry.py.md        |     2 +-
++- .../backend_tests_test_model_router_unit.py.md     |     2 +-
++- .../backend_tests_test_model_trainer.py.md         |     2 +-
++- .../backend_tests_test_models_ci_report.py.md      |     2 +-
++- .../backend_tests_test_models_evolution.py.md      |     2 +-
++- .../codebase/backend_tests_test_monitoring.py.md   |     2 +-
++- .../backend_tests_test_multi_account_rotator.py.md |     2 +-
++- .../codebase/backend_tests_test_multicloud.py.md   |     2 +-
++- .../backend_tests_test_new_endpoints_sprint5.py.md |     2 +-
++- .../backend_tests_test_new_interfaces.py.md        |     2 +-
++- .../backend_tests_test_new_tools_sprint5.py.md     |     2 +-
++- .../backend_tests_test_optimization_engine.py.md   |     2 +-
++- .../backend_tests_test_output_validator.py.md      |     2 +-
++- ...ackend_tests_test_parallel_agent_executor.py.md |     2 +-
++- .../codebase/backend_tests_test_payments.py.md     |     2 +-
++- ...ckend_tests_test_performance_aware_router.py.md |     2 +-
++- .../backend_tests_test_pgbouncer_pool.py.md        |     2 +-
++- .../codebase/backend_tests_test_posthog.py.md      |     2 +-
++- .../codebase/backend_tests_test_pr_reviewer.py.md  |     2 +-
++- .../backend_tests_test_prod_docs_security.py.md    |     2 +-
++- ...sts_test_production_readiness_integration.py.md |     2 +-
++- .../backend_tests_test_prompt_firewall.py.md       |     2 +-
++- .../autogen/codebase/backend_tests_test_rbac.py.md |     2 +-
++- ...backend_tests_test_reasoning_orchestrator.py.md |     2 +-
++- .../backend_tests_test_repo_discovery.py.md        |     2 +-
++- .../backend_tests_test_resource_catalog.py.md      |     2 +-
++- .../autogen/codebase/backend_tests_test_rlhf.py.md |     2 +-
++- ...kend_tests_test_sandbox_orchestration_run.py.md |     2 +-
++- .../backend_tests_test_schema_validator.py.md      |     2 +-
++- .../codebase/backend_tests_test_secret_vault.py.md |     2 +-
++- ...ackend_tests_test_secure_credential_store.py.md |     2 +-
++- .../backend_tests_test_security_middleware.py.md   |     2 +-
++- .../backend_tests_test_security_regression.py.md   |     2 +-
++- .../backend_tests_test_self_evolution_agent.py.md  |     2 +-
++- .../backend_tests_test_simulator_browser_api.py.md |     2 +-
++- .../codebase/backend_tests_test_skill_graph.py.md  |     2 +-
++- .../backend_tests_test_skill_recommender.py.md     |     2 +-
++- .../backend_tests_test_sliding_window_memory.py.md |     2 +-
++- .../backend_tests_test_sprint_c_tools.py.md        |     2 +-
++- .../codebase/backend_tests_test_sprint_g.py.md     |     2 +-
++- .../backend_tests_test_stealth_networking.py.md    |     2 +-
++- .../codebase/backend_tests_test_stream.py.md       |     2 +-
++- .../backend_tests_test_style_learner.py.md         |     2 +-
++- ...kend_tests_test_supabase_schema_bootstrap.py.md |     2 +-
++- .../backend_tests_test_supabase_store.py.md        |     2 +-
++- .../backend_tests_test_swarm_orchestrator.py.md    |     2 +-
++- .../backend_tests_test_task_endpoints.py.md        |     2 +-
++- .../codebase/backend_tests_test_task_queue.py.md   |     2 +-
++- .../codebase/backend_tests_test_task_router.py.md  |     2 +-
++- .../codebase/backend_tests_test_telegram_bot.py.md |     2 +-
++- .../codebase/backend_tests_test_telemetry.py.md    |     2 +-
++- .../backend_tests_test_tenant_rate_limiter.py.md   |     2 +-
++- .../backend_tests_test_universal_rules.py.md       |     2 +-
++- .../backend_tests_test_upstash_redis.py.md         |     2 +-
++- docs/autogen/codebase/backend_tests_test_uss.py.md |     2 +-
++- .../backend_tests_test_video_generator.py.md       |     2 +-
++- .../codebase/backend_tests_test_vision_agent.py.md |     2 +-
++- .../codebase/backend_tests_test_voice_stream.py.md |     2 +-
++- .../codebase/backend_tests_test_vpn_switcher.py.md |     2 +-
++- .../codebase/backend_tests_test_vscode_e2e.py.md   |     2 +-
++- .../codebase/backend_tests_test_web_fallback.py.md |     2 +-
++- ...d_tests_tools_test_auto_coverage_improver.py.md |     2 +-
++- ...kend_tests_tools_test_auto_test_generator.py.md |     2 +-
++- ...kend_tests_tools_test_code_smell_detector.py.md |     2 +-
++- .../backend_tests_tools_test_cot_reasoner.py.md    |     2 +-
++- ...backend_tests_tools_test_coverage_auditor.py.md |     2 +-
++- ...d_tests_tools_test_knowledge_base_indexer.py.md |     2 +-
++- ...backend_tests_tools_test_multilingual_tts.py.md |     2 +-
++- ...nd_tests_tools_test_viral_referral_engine.py.md |     2 +-
++- .../backend_tests_utils_test_api_tracker.py.md     |     2 +-
++- .../backend_tests_workers_test_celery_app.py.md    |     2 +-
++- .../backend_tools_3d_model_generator.py.md         |     2 +-
++- .../codebase/backend_tools_agent_tools.py.md       |     2 +-
++- .../backend_tools_ai_federation_protocol.py.md     |     2 +-
++- .../backend_tools_ai_pair_programmer.py.md         |     2 +-
++- .../codebase/backend_tools_api_gateway.py.md       |     2 +-
++- .../backend_tools_auto_coverage_improver.py.md     |     2 +-
++- .../codebase/backend_tools_auto_pr_pipeline.py.md  |     2 +-
++- .../backend_tools_auto_test_generator.py.md        |     2 +-
++- .../backend_tools_bandwidth_optimizer.py.md        |     2 +-
++- .../backend_tools_bangla_ai_connector.py.md        |     2 +-
++- .../codebase/backend_tools_bangla_nlp.py.md        |     2 +-
++- .../codebase/backend_tools_bangla_voice.py.md      |     2 +-
++- .../codebase/backend_tools_benchmark_agent.py.md   |     2 +-
++- .../backend_tools_bengali_ocr_converter.py.md      |     2 +-
++- .../codebase/backend_tools_blockchain_agent.py.md  |     2 +-
++- .../autogen/codebase/backend_tools_bootstrap.py.md |     2 +-
++- .../codebase/backend_tools_browser_agent.py.md     |     2 +-
++- .../codebase/backend_tools_browser_stealth.py.md   |     2 +-
++- .../backend_tools_checkpoint_manager.py.md         |     2 +-
++- docs/autogen/codebase/backend_tools_cli.py.md      |     2 +-
++- .../backend_tools_cloud_sandbox_orchestrator.py.md |     2 +-
++- .../backend_tools_code_smell_detector.py.md        |     2 +-
++- .../codebase/backend_tools_codebase_exporter.py.md |     2 +-
++- .../backend_tools_collaborative_editor.py.md       |     2 +-
++- .../codebase/backend_tools_comment_thread_ai.py.md |     2 +-
++- .../codebase/backend_tools_computer_agent.py.md    |     2 +-
++- .../backend_tools_conversation_manager.py.md       |     2 +-
++- .../codebase/backend_tools_cost_auditor.py.md      |     2 +-
++- .../codebase/backend_tools_cot_reasoner.py.md      |     2 +-
++- .../codebase/backend_tools_coverage_auditor.py.md  |     2 +-
++- .../backend_tools_dependency_manager_agent.py.md   |     2 +-
++- .../backend_tools_diagram_to_architecture.py.md    |     2 +-
++- .../codebase/backend_tools_docker_sandbox.py.md    |     2 +-
++- .../codebase/backend_tools_domain_adapter.py.md    |     2 +-
++- .../codebase/backend_tools_email_agent.py.md       |     2 +-
++- .../codebase/backend_tools_ensemble_router.py.md   |     2 +-
++- .../codebase/backend_tools_fuzz_sandbox.py.md      |     2 +-
++- .../codebase/backend_tools_game_dev_agent.py.md    |     2 +-
++- .../backend_tools_gcp_cloud_functions.py.md        |     2 +-
++- .../backend_tools_git_knowledge_extractor.py.md    |     2 +-
++- .../codebase/backend_tools_github_agent.py.md      |     2 +-
++- .../codebase/backend_tools_graph_service.py.md     |     2 +-
++- .../backend_tools_headless_agent_registry.py.md    |     2 +-
++- .../codebase/backend_tools_health_checker.py.md    |     2 +-
++- .../codebase/backend_tools_image_generator.py.md   |     2 +-
++- .../codebase/backend_tools_image_to_code.py.md     |     2 +-
++- docs/autogen/codebase/backend_tools_init_.py.md    |     2 +-
++- .../backend_tools_knowledge_base_indexer.py.md     |     2 +-
++- .../backend_tools_langchain_agent_example.py.md    |     2 +-
++- .../codebase/backend_tools_legal_agent.py.md       |     2 +-
++- .../backend_tools_local_ocr_extractor.py.md        |     2 +-
++- .../codebase/backend_tools_local_search_rag.py.md  |     2 +-
++- .../codebase/backend_tools_marketplace_agent.py.md |     2 +-
++- .../codebase/backend_tools_mcp_cloud_deploy.py.md  |     2 +-
++- .../codebase/backend_tools_mcp_github_cicd.py.md   |     2 +-
++- .../codebase/backend_tools_mcp_server.py.md        |     2 +-
++- .../codebase/backend_tools_mcp_supabase.py.md      |     2 +-
++- .../codebase/backend_tools_mcp_workspace.py.md     |     2 +-
++- .../codebase/backend_tools_medical_agent.py.md     |     2 +-
++- .../codebase/backend_tools_meta_architect.py.md    |     2 +-
++- .../codebase/backend_tools_model_trainer.py.md     |     2 +-
++- .../backend_tools_monthly_cost_reporter.py.md      |     2 +-
++- .../backend_tools_multi_account_rotator.py.md      |     2 +-
++- .../codebase/backend_tools_multilingual_tts.py.md  |     2 +-
++- .../codebase/backend_tools_music_generator.py.md   |     2 +-
++- .../codebase/backend_tools_offline_mode.py.md      |     2 +-
++- .../backend_tools_on_premise_deployer.py.md        |     2 +-
++- .../backend_tools_parallel_agent_executor.py.md    |     2 +-
++- .../codebase/backend_tools_pdf_to_sdk.py.md        |     2 +-
++- .../codebase/backend_tools_plan_sorter.py.md       |     2 +-
++- .../backend_tools_playwright_browser_agent.py.md   |     2 +-
++- .../codebase/backend_tools_pr_reviewer.py.md       |     2 +-
++- .../codebase/backend_tools_pre_commit_ai.py.md     |     2 +-
++- .../codebase/backend_tools_preference_memory.py.md |     2 +-
++- .../backend_tools_presentation_generator.py.md     |     2 +-
++- .../codebase/backend_tools_proxy_manager.py.md     |     2 +-
++- .../codebase/backend_tools_repo_deep_indexer.py.md |     2 +-
++- .../backend_tools_repo_discovery_agent.py.md       |     2 +-
++- .../codebase/backend_tools_resource_catalog.py.md  |     2 +-
++- .../codebase/backend_tools_rlhf_pipeline.py.md     |     2 +-
++- .../codebase/backend_tools_safe_executor.py.md     |     2 +-
++- .../codebase/backend_tools_scientific_agent.py.md  |     2 +-
++- .../codebase/backend_tools_seed_database.py.md     |     2 +-
++- .../codebase/backend_tools_self_planner.py.md      |     2 +-
++- .../codebase/backend_tools_skill_recommender.py.md |     2 +-
++- .../codebase/backend_tools_sso_integrator.py.md    |     2 +-
++- .../backend_tools_stealth_http_client.py.md        |     2 +-
++- .../codebase/backend_tools_style_learner.py.md     |     2 +-
++- .../codebase/backend_tools_telegram_bot.py.md      |     2 +-
++- .../backend_tools_tenant_rate_limiter.py.md        |     2 +-
++- .../backend_tools_test_3d_model_generator.py.md    |     2 +-
++- ...end_tools_test_cloud_sandbox_orchestrator.py.md |     2 +-
++- .../codebase/backend_tools_trading_agent.py.md     |     2 +-
++- .../codebase/backend_tools_video_generator.py.md   |     2 +-
++- .../backend_tools_viral_referral_engine.py.md      |     2 +-
++- .../codebase/backend_tools_vision_agent.py.md      |     2 +-
++- docs/autogen/codebase/backend_tools_voice.py.md    |     2 +-
++- .../codebase/backend_tools_voice_coder.py.md       |     2 +-
++- .../codebase/backend_tools_vpn_switcher.py.md      |     2 +-
++- .../backend_tools_vulnerability_predictor.py.md    |     2 +-
++- .../backend_tools_web_fallback_agent.py.md         |     2 +-
++- .../codebase/backend_utils_api_tracker.py.md       |     2 +-
++- .../codebase/backend_utils_environment.py.md       |     2 +-
++- .../codebase/backend_utils_firestore_helpers.py.md |     2 +-
++- .../codebase/backend_utils_http_client.py.md       |     2 +-
++- docs/autogen/codebase/backend_utils_init_.py.md    |     2 +-
++- .../codebase/backend_utils_json_helpers.py.md      |     2 +-
++- .../codebase/backend_utils_timestamps.py.md        |     2 +-
++- docs/autogen/codebase/backend_uv.lock.md           |     2 +-
++- .../codebase/backend_workers_celery_app.py.md      |     2 +-
++- .../codebase/backend_workers_chaos_worker.py.md    |     2 +-
++- .../codebase/config_.pre-commit-config.yaml.md     |     2 +-
++- docs/autogen/codebase/config_audit-rules.yml.md    |     2 +-
++- .../codebase/config_compliance-rules.yml.md        |     2 +-
++- docs/autogen/codebase/config_docker-limits.yml.md  |     2 +-
++- .../codebase/config_firestore.indexes.json.md      |     2 +-
++- docs/autogen/codebase/config_kilo.json.md          |     2 +-
++- .../codebase/config_promptfooconfig.yaml.md        |     2 +-
++- docs/autogen/codebase/config_proxy_list.json.md    |     2 +-
++- .../autogen/codebase/config_routing_policy.json.md |     2 +-
++- docs/autogen/codebase/config_vercel.json.md        |     2 +-
++- docs/autogen/codebase/coverage.toml.md             |     2 +-
++- docs/autogen/codebase/docker-compose.yml.md        |     2 +-
++- .../codebase/evolution_auto_skill_creator.py.md    |     2 +-
++- .../autogen/codebase/evolution_daily_learner.py.md |     2 +-
++- .../codebase/evolution_evolution_engine.py.md      |     2 +-
++- .../codebase/evolution_evolution_react_agent.py.md |     2 +-
++- docs/autogen/codebase/evolution_self_updater.py.md |     2 +-
++- docs/autogen/codebase/find_duplicate_files.py.md   |     2 +-
++- docs/autogen/codebase/find_duplicate_tests.py.md   |     2 +-
++- docs/autogen/codebase/firebase.json.md             |     2 +-
++- .../infrastructure_check_deploy_gate.py.md         |     2 +-
++- ...infrastructure_cloudflare_enhanced-worker.js.md |     2 +-
++- .../infrastructure_cloudflare_worker.js.md         |     2 +-
++- .../infrastructure_cloudflare_wrangler.toml.md     |     2 +-
++- .../infrastructure_cloudrun_autoscale.yaml.md      |     2 +-
++- .../infrastructure_cloudrun_multi_region.yaml.md   |     2 +-
++- ...functions_firebase_functions_v1_README_BD.md.md |     2 +-
++- ...unctions_firebase_functions_v1_api-router.js.md |     2 +-
++- ..._firebase_functions_v1_deployment-monitor.js.md |     2 +-
++- ...ctions_firebase_functions_v1_health-smart.js.md |     2 +-
++- ...ase_functions_firebase_functions_v1_index.js.md |     2 +-
++- ...functions_firebase_functions_v1_package.json.md |     2 +-
++- ...ons_firebase_functions_v1_providers-smart.js.md |     2 +-
++- ...se_functions_v1_server-connection-monitor.js.md |     2 +-
++- ..._firebase_functions_v1_src_chatClassifier.ts.md |     2 +-
++- ...dataconnect-admin-generated_esm_index.esm.js.md |     2 +-
++- ...dataconnect-admin-generated_esm_package.json.md |     2 +-
++- ...src_dataconnect-admin-generated_index.cjs.js.md |     2 +-
++- ...1_src_dataconnect-admin-generated_index.d.ts.md |     2 +-
++- ...src_dataconnect-admin-generated_package.json.md |     2 +-
++- ...s_firebase_functions_v1_src_email_handler.ts.md |     2 +-
++- ...functions_firebase_functions_v1_src_index.ts.md |     2 +-
++- ...ns_firebase_functions_v1_src_scrapeEngine.ts.md |     2 +-
++- ...ase_functions_v1_src_scrapeHistoryManager.ts.md |     2 +-
++- ..._firebase_functions_v1_src_scrapeSchema.yaml.md |     2 +-
++- ...functions_firebase_functions_v1_swagger.yaml.md |     2 +-
++- ...tions_firebase_functions_v1_system-health.js.md |     2 +-
++- ...unctions_firebase_functions_v1_tsconfig.json.md |     2 +-
++- ...irebase_functions_v1_utils_externalClient.js.md |     2 +-
++- ...rastructure_firebase_functions_ocrTrigger.ts.md |     2 +-
++- ...ure_monitoring_docker-compose.monitoring.yml.md |     2 +-
++- ...astructure_monitoring_grafana_dashboard.json.md |     2 +-
++- ...cture_terraform_root_cause_analysis_agent.py.md |     2 +-
++- ..._terraform_test_root_cause_analysis_agent.py.md |     2 +-
++- .../codebase/infrastructure_vitest-report.json.md  |     2 +-
++- docs/autogen/codebase/package.json.md              |     2 +-
++- .../codebase/packages_shared-types_package.json.md |     2 +-
++- .../packages_shared-types_src_conversation.ts.md   |     2 +-
++- .../codebase/packages_shared-types_src_index.ts.md |     2 +-
++- .../packages_shared-types_src_message.ts.md        |     2 +-
++- .../packages_shared-types_tsconfig.json.md         |     2 +-
++- .../packages_ui-components_package.json.md         |     2 +-
++- .../packages_ui-components_src_ChatBubble.tsx.md   |     2 +-
++- ...components_src_components_DashboardShell.tsx.md |     2 +-
++- ...nents_src_components_LiveSujonBackground.tsx.md |     2 +-
++- ...-components_src_contexts_SharedProviders.tsx.md |     2 +-
++- .../packages_ui-components_src_index.ts.md         |     2 +-
++- .../packages_ui-components_src_utils_api.ts.md     |     2 +-
++- .../packages_ui-components_tsconfig.json.md        |     2 +-
++- docs/autogen/codebase/playwright-ct.config.ts.md   |     2 +-
++- docs/autogen/codebase/playwright.config.ts.md      |     2 +-
++- docs/autogen/codebase/pnpm-lock.yaml.md            |     2 +-
++- docs/autogen/codebase/pnpm-workspace.yaml.md       |     2 +-
++- docs/autogen/codebase/scratch_job_details.json.md  |     2 +-
++- docs/autogen/codebase/scratch_smoke_check.py.md    |     2 +-
++- .../scratch_supremeai_skill_ecosystem_app.py.md    |     2 +-
++- ...ratch_supremeai_skill_ecosystem_generator.py.md |     2 +-
++- ..._supremeai_skill_ecosystem_sample_skill.json.md |     2 +-
++- ...ch_supremeai_skill_ecosystem_skill_schema.py.md |     2 +-
++- .../codebase/scratch_sync_gsm_secrets.py.md        |     2 +-
++- docs/autogen/codebase/scratch_update_vault.py.md   |     2 +-
++- .../autogen/codebase/scratch_update_vault_r2.py.md |     2 +-
++- .../codebase/scratch_verify_project_health.py.md   |     2 +-
++- .../codebase/scripts_add_bangla_comments.py.md     |     2 +-
++- .../codebase/scripts_aggregate_context.py.md       |     2 +-
++- ...scripts_backup_auto_cross_cloud_replicate.py.md |     2 +-
++- .../scripts_backup_auto_firestore_backup.py.md     |     2 +-
++- .../scripts_benchmark_perf_benchmark.py.md         |     2 +-
++- .../codebase/scripts_bots_auto_alert_bot.py.md     |     2 +-
++- .../scripts_bots_auto_daily_standup_bot.py.md      |     2 +-
++- .../codebase/scripts_code_smell_detector.py.md     |     2 +-
++- docs/autogen/codebase/scripts_codebase_to_md.py.md |     2 +-
++- .../codebase/scripts_codegraph_integration.py.md   |     2 +-
++- .../codebase/scripts_commit_supreme_ci.yml.md      |     2 +-
++- docs/autogen/codebase/scripts_config_audit.py.md   |     2 +-
++- .../scripts_core_engine_multicatalog_search.py.md  |     2 +-
++- .../codebase/scripts_core_engine_tool_ranker.py.md |     2 +-
++- .../codebase/scripts_create_test_admin.py.md       |     2 +-
++- .../autogen/codebase/scripts_db_auto_migrate.py.md |     2 +-
++- docs/autogen/codebase/scripts_db_auto_seed.py.md   |     2 +-
++- .../autogen/codebase/scripts_docker_ai_guard.py.md |     2 +-
++- ...ipts_evolution_auto_marketing_skill_forge.py.md |     2 +-
++- docs/autogen/codebase/scripts_fix_mypy.py.md       |     2 +-
++- docs/autogen/codebase/scripts_fuzz_sandbox.py.md   |     2 +-
++- .../scripts_generate_codebase_markdown.py.md       |     2 +-
++- ...scripts_generate_codebase_single_markdown.py.md |     2 +-
++- docs/autogen/codebase/scripts_generate_md.py.md    |     2 +-
++- .../codebase/scripts_generate_smart_docs.py.md     |     2 +-
++- docs/autogen/codebase/scripts_k6_load_test.js.md   |     2 +-
++- docs/autogen/codebase/scripts_locustfile.py.md     |     2 +-
++- docs/autogen/codebase/scripts_migrate.py.md        |     2 +-
++- .../codebase/scripts_multi_model_validator.py.md   |     2 +-
++- ...scripts_orchestrator_auto_budget_guardian.py.md |     2 +-
++- docs/autogen/codebase/scripts_profile_memory.py.md |     2 +-
++- .../scripts_quality_auto_dead_code_remover.py.md   |     2 +-
++- .../scripts_quality_auto_improve_coverage.py.md    |     2 +-
++- .../scripts_quality_auto_refactor_suggester.py.md  |     2 +-
++- ...cripts_quality_check_ollama_test_coverage.py.md |     2 +-
++- .../scripts_resource_collection_awesome_go.py.md   |     2 +-
++- ...cripts_resource_collection_awesome_python.py.md |     2 +-
++- ...ts_resource_collection_awesome_selfhosted.py.md |     2 +-
++- ...ripts_resource_collection_base_api_client.py.md |     2 +-
++- .../scripts_resource_collection_base_scraper.py.md |     2 +-
++- ...pts_resource_collection_ossinsight_client.py.md |     2 +-
++- ...ipts_resource_collection_ossinsight_init_.py.md |     2 +-
++- ...ripts_resource_collection_ossinsight_test.py.md |     2 +-
++- .../scripts_resource_collection_run_all.py.md      |     2 +-
++- ...ts_resource_collection_run_all_collectors.py.md |     2 +-
++- ...ripts_resource_scraping_awesome_go_scrape.py.md |     2 +-
++- ...s_resource_scraping_awesome_python_scrape.py.md |     2 +-
++- ...source_scraping_awesome_selfhosted_scrape.py.md |     2 +-
++- .../codebase/scripts_run_all_collectors.py.md      |     2 +-
++- docs/autogen/codebase/scripts_safety_guard.py.md   |     2 +-
++- .../scripts_security_auto_find_blindspots.py.md    |     2 +-
++- .../scripts_security_auto_secret_rotate.py.md      |     2 +-
++- .../scripts_security_check_dependencies.py.md      |     2 +-
++- .../codebase/scripts_security_code-quality.yml.md  |     2 +-
++- ...scripts_security_dependency-health-check.yml.md |     2 +-
++- .../codebase/scripts_security_find_dead_code.py.md |     2 +-
++- docs/autogen/codebase/scripts_seed_repos.py.md     |     2 +-
++- .../autogen/codebase/scripts_setup_ci_runner.py.md |     2 +-
++- .../codebase/scripts_setup_firebase_admin.py.md    |     2 +-
++- docs/autogen/codebase/scripts_skill_loader.py.md   |     2 +-
++- .../codebase/scripts_supreme-config-audit.py.md    |     2 +-
++- .../codebase/scripts_supreme-docker-analyzer.py.md |     2 +-
++- .../codebase/scripts_supreme-risk-scorer.py.md     |     2 +-
++- .../codebase/scripts_supreme_context_builder.py.md |     2 +-
++- .../scripts_tenant_auto_tenant_health_report.py.md |     2 +-
++- .../scripts_tenant_auto_tenant_setup.py.md         |     2 +-
++- docs/autogen/codebase/scripts_test_bangla.py.md    |     2 +-
++- docs/autogen/codebase/scripts_test_read.py.md      |     2 +-
++- docs/autogen/codebase/security-scan.yml.md         |     2 +-
++- .../codebase/skills_dynamic_csv_exporter.py.md     |     2 +-
++- .../codebase/skills_dynamic_text_summarizer.py.md  |     2 +-
++- .../codebase/skills_dynamic_web_scraper.py.md      |     2 +-
++- docs/autogen/codebase/skills_init_.py.md           |     2 +-
++- docs/autogen/codebase/skills_installer.py.md       |     2 +-
++- docs/autogen/codebase/skills_marketplace.py.md     |     2 +-
++- docs/autogen/codebase/skills_registry.py.md        |     2 +-
++- docs/autogen/codebase/skills_schema.py.md          |     2 +-
++- .../codebase/test-results_.last-run.json.md        |     2 +-
++- ...be-accessible-Mobile-Chrome_error-context.md.md |     2 +-
++- ...be-accessible-Mobile-Safari_error-context.md.md |     2 +-
++- ...bility-issues-Mobile-Safari_error-context.md.md |     2 +-
++- ...sends-message-Mobile-Chrome_error-context.md.md |     2 +-
++- ...sends-message-Mobile-Safari_error-context.md.md |     2 +-
++- ...Chat-sends-message-chromium_error-context.md.md |     2 +-
++- .../codebase/test-results_e2e-report.json.md       |     2 +-
++- .../codebase/tests_e2e_accessibility.spec.ts.md    |     2 +-
++- .../codebase/tests_e2e_admin-dashboard.spec.ts.md  |     2 +-
++- docs/autogen/codebase/tests_e2e_chat.spec.ts.md    |     2 +-
++- docs/autogen/codebase/tests_e2e_visual.spec.ts.md  |     2 +-
++- docs/autogen/codebase/tests_test_tenant_di.py.md   |     2 +-
++- docs/autogen/codebase/tools_cache_cleanup.py.md    |     2 +-
++- .../tools_vscode-extension_ARCHITECTURE_BN.md.md   |     2 +-
++- ...vscode-extension_AdminMetricsController.java.md |     2 +-
++- ...s_vscode-extension_CodebaseAuditService.java.md |     2 +-
++- ...ools_vscode-extension_FeatureDefinition.java.md |     2 +-
++- ...ode-extension_FeatureRegistryController.java.md |     2 +-
++- ...vscode-extension_FeatureRegistryService.java.md |     2 +-
++- .../tools_vscode-extension_GlobalMetrics.java.md   |     2 +-
++- ...s_vscode-extension_GlobalMetricsService.java.md |     2 +-
++- ...ols_vscode-extension_INTEGRATION_GUIDE_BN.md.md |     2 +-
++- .../codebase/tools_vscode-extension_README.md.md   |     2 +-
++- .../tools_vscode-extension_README_BN.md.md         |     2 +-
++- .../tools_vscode-extension_jest.config.js.md       |     2 +-
++- .../tools_vscode-extension_package.json.md         |     2 +-
++- .../tools_vscode-extension_package.nls.bn.json.md  |     2 +-
++- .../tools_vscode-extension_src_agentDetector.ts.md |     2 +-
++- .../tools_vscode-extension_src_ai_AIService.ts.md  |     2 +-
++- ...de-extension_src_ai_CodeGenerationService.ts.md |     2 +-
++- ...vscode-extension_src_ai_CodeReviewService.ts.md |     2 +-
++- ...ls_vscode-extension_src_ai_ContextBuilder.ts.md |     2 +-
++- ...xtension_src_dataconnect-generated_README.md.md |     2 +-
++- ...n_src_dataconnect-generated_esm_index.esm.js.md |     2 +-
++- ...n_src_dataconnect-generated_esm_package.json.md |     2 +-
++- ...nsion_src_dataconnect-generated_index.cjs.js.md |     2 +-
++- ...tension_src_dataconnect-generated_index.d.ts.md |     2 +-
++- ...nsion_src_dataconnect-generated_package.json.md |     2 +-
++- .../tools_vscode-extension_src_extension.ts.md     |     2 +-
++- ...de-extension_src_handlers_CodeEditHandler.ts.md |     2 +-
++- ...de-extension_src_handlers_CodeFlowHandler.ts.md |     2 +-
++- ...scode-extension_src_handlers_ErrorHandler.ts.md |     2 +-
++- ...de-extension_src_handlers_FeedbackHandler.ts.md |     2 +-
++- ...ode-extension_src_providers_CodeFlowPanel.ts.md |     2 +-
++- ...nsion_src_providers_StreamingChatProvider.ts.md |     2 +-
++- ...n_src_providers_SupremeAIActivityProvider.ts.md |     2 +-
++- ...providers_SupremeAIAdminDashboardProvider.ts.md |     2 +-
++- ...nsion_src_providers_SupremeAIChatProvider.ts.md |     2 +-
++- ...extension_src_providers_SupremeAIChatView.ts.md |     2 +-
++- ...viders_SupremeAICustomerDashboardProvider.ts.md |     2 +-
++- ...on_src_providers_SupremeAISidebarProvider.ts.md |     2 +-
++- ...vscode-extension_src_services_AuthService.ts.md |     2 +-
++- ...e-extension_src_services_SupremeAIService.ts.md |     2 +-
++- .../tools_vscode-extension_src_types_index.ts.md   |     2 +-
++- ...ension_src_utils_DynamicSignatureRegistry.ts.md |     2 +-
++- ...s_vscode-extension_test_auth-service.test.ts.md |     2 +-
++- ...ools_vscode-extension_test_mocks_vscode.d.ts.md |     2 +-
++- .../tools_vscode-extension_test_mocks_vscode.ts.md |     2 +-
++- .../tools_vscode-extension_test_setup.ts.md        |     2 +-
++- ...ode-extension_test_supremeai-service.test.ts.md |     2 +-
++- .../tools_vscode-extension_tsconfig.json.md        |     2 +-
++- .../tools_vscode-extension_vitest.config.ts.md     |     2 +-
++- docs/autogen/codebase/turbo.json.md                |     2 +-
++- docs/autogen/codebase/vercel.json.md               |     2 +-
++- docs/autogen/codebase_full.md                      |   108 +-
++- 1081 files changed, 12137 insertions(+), 10534 deletions(-)
++-
++-```
++-
++-## Diff Detail
++-```diff
++-commit 198dc0b7121eb7a0c75430d675a497f0ce589e0f
++-Author: github-actions[bot] <github-actions[bot]@users.noreply.github.com>
++-Date:   Tue Jul 7 07:19:30 2026 +0000
++-
++-    docs: auto-update codebase docs & dashboard [skip ci]
++-
++-diff --git a/docs/autogen/INDEX.md b/docs/autogen/INDEX.md
++-index 301ad7674..1c095f738 100644
++---- a/docs/autogen/INDEX.md
++-+++ b/docs/autogen/INDEX.md
++-@@ -13,4 +13,4 @@
++- - **ডিরেক্টরি:** [changes/](changes/)
++- 
++- ---
++--*স্বয়ংক্রিয়ভাবে তৈরি — 2026-07-07 07:10:33*
++-+*স্বয়ংক্রিয়ভাবে তৈরি — 2026-07-07 07:19:29*
++-diff --git a/docs/autogen/changes/change_02cda7b92868e8e18084361bbe639bc49107e2a7.md b/docs/autogen/changes/change_02cda7b92868e8e18084361bbe639bc49107e2a7.md
++-new file mode 100644
++-index 000000000..20bbb1cdf
++---- /dev/null
++-+++ b/docs/autogen/changes/change_02cda7b92868e8e18084361bbe639bc49107e2a7.md
++-@@ -0,0 +1,10820 @@
++-+# 📋 Commit 02cda7b92868e8e18084361bbe639bc49107e2a7
++-+
++-+## Commit Stats
++-+```
++-+commit 02cda7b92868e8e18084361bbe639bc49107e2a7
++-+Author: github-actions[bot] <github-actions[bot]@users.noreply.github.com>
++-+Date:   Tue Jul 7 07:10:33 2026 +0000
++-+
++-+    docs: auto-update codebase docs & dashboard [skip ci]
++-+
++-+ docs/autogen/INDEX.md                              |     2 +-
++-+ ...nge_2a4ec4991835e461130ab9fa375765a396518604.md | 11707 +++++++++++++++++++
++-+ ...nge_3bd9abbba1f1183d72314f89435c590c4c07d455.md |  9005 --------------
++-+ ...nge_7ae15cae946b33f1fc7866fa7ef9b7690306842e.md |   106 +
++-+ ...nge_ee617c15e7970a5ed0b6c69f17e252009a8b4194.md |    47 -
++-+ .../.github_actions_setup-backend_action.yml.md    |     2 +-
++-+ ...github_scripts_advanced-validation-report.py.md |     2 +-
++-+ .../codebase/.github_scripts_canary-deploy.py.md   |     2 +-
++-+ .../codebase/.github_scripts_ci-auto-fix-v3.py.md  |     2 +-
++-+ .../codebase/.github_scripts_ci-auto-fix.py.md     |     2 +-
++-+ .../.github_scripts_ci-decision-engine.py.md       |     2 +-
++-+ .../codebase/.github_scripts_ci-health-check.py.md |     2 +-
++-+ .../.github_scripts_clean_action_logs.py.md        |     2 +-
++-+ .../codebase/.github_scripts_deploy-backend.py.md  |     2 +-
++-+ .../.github_scripts_detect-previous-failures.py.md |     2 +-
++-+ .../codebase/.github_scripts_enforce_24h_gap.py.md |     2 +-
++-+ .../.github_scripts_generate-ci-report.py.md       |     2 +-
++-+ .../.github_scripts_generate_ai_prompt.py.md       |     2 +-
++-+ .../.github_scripts_multi-model-evaluator.py.md    |     2 +-
++-+ docs/autogen/codebase/.github_scripts_review.py.md |     2 +-
++-+ .../.github_scripts_supremeai-evaluator.py.md      |     2 +-
++-+ .../.github_scripts_test_ai_reviewer.py.md         |     2 +-
++-+ .../codebase/.github_workflows_deploy.yml.md       |     2 +-
++-+ .../.github_workflows_nightly-maintenance.yml.md   |     2 +-
++-+ .../.github_workflows_supreme-core-ci.yml.md       |     2 +-
++-+ .../.github_workflows_supreme-mobile-cd.yml.md     |     2 +-
++-+ ....github_workflows_supreme-release-builds.yml.md |     2 +-
++-+ .../.github_workflows_sync-from-prod.yml.md        |     2 +-
++-+ docs/autogen/codebase/AGENTS.md.md                 |     2 +-
++-+ docs/autogen/codebase/CHANGELOG.md.md              |     2 +-
++-+ docs/autogen/codebase/CI_PIPELINE.md.md            |     2 +-
++-+ docs/autogen/codebase/CONTRIBUTING.md.md           |     2 +-
++-+ docs/autogen/codebase/IMPLEMENTATION_STATUS.md.md  |     2 +-
++-+ .../codebase/PRODUCTION_READINESS_GUIDE.md.md      |     2 +-
++-+ docs/autogen/codebase/README.md.md                 |     2 +-
++-+ docs/autogen/codebase/SECURITY.md.md               |     2 +-
++-+ docs/autogen/codebase/admin_dashboard_script.js.md |     2 +-
++-+ docs/autogen/codebase/apps_desktop_README.md.md    |     2 +-
++-+ docs/autogen/codebase/apps_desktop_package.json.md |     2 +-
++-+ .../codebase/apps_desktop_src-tauri_Cargo.toml.md  |     2 +-
++-+ .../codebase/apps_desktop_src-tauri_build.rs.md    |     2 +-
++-+ .../apps_desktop_src-tauri_secure-store.ts.md      |     2 +-
++-+ .../codebase/apps_desktop_src-tauri_src_main.rs.md |     2 +-
++-+ .../apps_desktop_src-tauri_tauri.conf.json.md      |     2 +-
++-+ .../codebase/apps_desktop_src-ui_package.json.md   |     2 +-
++-+ .../codebase/apps_desktop_src-ui_src_App.tsx.md    |     2 +-
++-+ ..._desktop_src-ui_src_components_ChatInput.tsx.md |     2 +-
++-+ .../codebase/apps_desktop_src-ui_src_main.tsx.md   |     2 +-
++-+ .../apps_desktop_src-ui_src_pages_AdminPage.tsx.md |     2 +-
++-+ .../apps_desktop_src-ui_src_pages_ChatPage.tsx.md  |     2 +-
++-+ ...s_desktop_src-ui_src_pages_EvolutionPage.tsx.md |     2 +-
++-+ .../apps_desktop_src-ui_src_pages_LoginPage.tsx.md |     2 +-
++-+ ...apps_desktop_src-ui_src_pages_SkillsPage.tsx.md |     2 +-
++-+ .../apps_desktop_src-ui_src_services_api.ts.md     |     2 +-
++-+ .../apps_desktop_src-ui_src_stores_authStore.ts.md |     2 +-
++-+ .../apps_desktop_src-ui_src_types_index.ts.md      |     2 +-
++-+ .../apps_desktop_src-ui_src_vite-env.d.ts.md       |     2 +-
++-+ .../codebase/apps_desktop_src-ui_tsconfig.json.md  |     2 +-
++-+ .../apps_desktop_src-ui_tsconfig.node.json.md      |     2 +-
++-+ .../codebase/apps_desktop_src-ui_vite.config.ts.md |     2 +-
++-+ ...ava_com_supremeai_JavaWorkerApplication.java.md |     2 +-
++-+ ...va_com_supremeai_grpc_WorkerServiceImpl.java.md |     2 +-
++-+ ...in_java_com_supremeai_models_TaskEntity.java.md |     2 +-
++-+ ...m_supremeai_repositories_TaskRepository.java.md |     2 +-
++-+ ...va-worker_src_main_resources_application.yml.md |     2 +-
++-+ docs/autogen/codebase/apps_mobile_README.md.md     |     2 +-
++-+ docs/autogen/codebase/apps_mobile_README_BD.md.md  |     2 +-
++-+ .../codebase/apps_mobile_analysis_options.yaml.md  |     2 +-
++-+ .../codebase/apps_mobile_assets_i18n_ar.json.md    |     2 +-
++-+ .../codebase/apps_mobile_assets_i18n_bn.json.md    |     2 +-
++-+ .../codebase/apps_mobile_assets_i18n_en.json.md    |     2 +-
++-+ .../codebase/apps_mobile_assets_i18n_es.json.md    |     2 +-
++-+ .../codebase/apps_mobile_assets_i18n_hi.json.md    |     2 +-
++-+ .../codebase/apps_mobile_assets_i18n_zh.json.md    |     2 +-
++-+ .../codebase/apps_mobile_devtools_options.yaml.md  |     2 +-
++-+ ...ts.xcassets_AppIcon.appiconset_Contents.json.md |     2 +-
++-+ ....xcassets_LaunchImage.imageset_Contents.json.md |     2 +-
++-+ ...sets.xcassets_LaunchImage.imageset_README.md.md |     2 +-
++-+ ...s_mobile_lib_dataconnect_generated_README.md.md |     2 +-
++-+ ...le_lib_dataconnect_generated_add_review.dart.md |     2 +-
++-+ ..._lib_dataconnect_generated_create_movie.dart.md |     2 +-
++-+ ...lib_dataconnect_generated_delete_review.dart.md |     2 +-
++-+ ...ile_lib_dataconnect_generated_generated.dart.md |     2 +-
++-+ ...b_dataconnect_generated_get_movie_by_id.dart.md |     2 +-
++-+ ...e_lib_dataconnect_generated_list_movies.dart.md |     2 +-
++-+ ...dataconnect_generated_list_user_reviews.dart.md |     2 +-
++-+ ...le_lib_dataconnect_generated_list_users.dart.md |     2 +-
++-+ ..._lib_dataconnect_generated_search_movie.dart.md |     2 +-
++-+ ...e_lib_dataconnect_generated_upsert_user.dart.md |     2 +-
++-+ docs/autogen/codebase/apps_mobile_lib_main.dart.md |     2 +-
++-+ .../apps_mobile_lib_models_ci_job_model.dart.md    |     2 +-
++-+ ...apps_mobile_lib_providers_auth_provider.dart.md |     2 +-
++-+ ...mobile_lib_providers_dashboard_provider.dart.md |     2 +-
++-+ ...le_lib_providers_orchestration_provider.dart.md |     2 +-
++-+ ..._mobile_lib_providers_settings_provider.dart.md |     2 +-
++-+ ...ps_mobile_lib_screens_agent_chat_screen.dart.md |     2 +-
++-+ ...mobile_lib_screens_alerts_alerts_screen.dart.md |     2 +-
++-+ ..._lib_screens_analytics_analytics_screen.dart.md |     2 +-
++-+ ...apps_mobile_lib_screens_api_keys_screen.dart.md |     2 +-
++-+ .../apps_mobile_lib_screens_api_scaffold.dart.md   |     2 +-
++-+ ...apps_mobile_lib_screens_byoc_hub_screen.dart.md |     2 +-
++-+ ..._lib_screens_consensus_consensus_screen.dart.md |     2 +-
++-+ ...obile_lib_screens_dashboard_home_screen.dart.md |     2 +-
++-+ ...pps_mobile_lib_screens_dashboard_screen.dart.md |     2 +-
++-+ ..._lib_screens_extension_extension_screen.dart.md |     2 +-
++-+ .../apps_mobile_lib_screens_git_git_screen.dart.md |     2 +-
++-+ ...le_lib_screens_learning_learning_screen.dart.md |     2 +-
++-+ .../apps_mobile_lib_screens_login_screen.dart.md   |     2 +-
++-+ ...eens_notifications_notifications_screen.dart.md |     2 +-
++-+ ...b_screens_projects_projects_list_screen.dart.md |     2 +-
++-+ ...b_screens_providers_ai_providers_screen.dart.md |     2 +-
++-+ ...s_mobile_lib_screens_quota_quota_screen.dart.md |     2 +-
++-+ ...ib_screens_resilience_resilience_screen.dart.md |     2 +-
++-+ ...apps_mobile_lib_screens_settings_screen.dart.md |     2 +-
++-+ .../apps_mobile_lib_screens_terminal_view.dart.md  |     2 +-
++-+ .../apps_mobile_lib_screens_vpn_vpn_screen.dart.md |     2 +-
++-+ .../apps_mobile_lib_screens_wallet_screen.dart.md  |     2 +-
++-+ .../apps_mobile_lib_services_api_client.dart.md    |     2 +-
++-+ .../apps_mobile_lib_services_api_service.dart.md   |     2 +-
++-+ ...pps_mobile_lib_services_billing_service.dart.md |     2 +-
++-+ .../apps_mobile_lib_services_byoc_service.dart.md  |     2 +-
++-+ ...pps_mobile_lib_services_ci_sync_service.dart.md |     2 +-
++-+ ...s_mobile_lib_services_deployment_stream.dart.md |     2 +-
++-+ ...obile_lib_services_localization_service.dart.md |     2 +-
++-+ ...bile_lib_services_neural_stream_service.dart.md |     2 +-
++-+ ...obile_lib_services_notification_service.dart.md |     2 +-
++-+ ...obile_lib_services_offline_sync_service.dart.md |     2 +-
++-+ ...ile_lib_services_payment_gateway_bridge.dart.md |     2 +-
++-+ ..._mobile_lib_services_screen_api_service.dart.md |     2 +-
++-+ .../apps_mobile_lib_theme_app_theme.dart.md        |     2 +-
++-+ .../apps_mobile_lib_theme_theme_provider.dart.md   |     2 +-
++-+ ...apps_mobile_lib_widgets_action_hub_card.dart.md |     2 +-
++-+ ...ile_lib_widgets_base_dashboard_scaffold.dart.md |     2 +-
++-+ .../codebase/apps_mobile_lib_widgets_es.json.md    |     2 +-
++-+ .../apps_mobile_lib_widgets_json_dropzone.dart.md  |     2 +-
++-+ .../apps_mobile_lib_widgets_live_terminal.dart.md  |     2 +-
++-+ ...apps_mobile_lib_widgets_loading_widgets.dart.md |     2 +-
++-+ ...le_lib_widgets_transaction_history_list.dart.md |     2 +-
++-+ .../apps_mobile_lib_widgets_usage_chart.dart.md    |     2 +-
++-+ ...ts.xcassets_AppIcon.appiconset_Contents.json.md |     2 +-
++-+ docs/autogen/codebase/apps_mobile_pubspec.lock.md  |     2 +-
++-+ docs/autogen/codebase/apps_mobile_pubspec.yaml.md  |     2 +-
++-+ ...bile_test_auth_provider_edge_cases_test.dart.md |     2 +-
++-+ .../apps_mobile_test_auth_provider_test.dart.md    |     2 +-
++-+ ...mobile_test_home_screen_edge_cases_test.dart.md |     2 +-
++-+ .../apps_mobile_test_home_screen_test.dart.md      |     2 +-
++-+ ...s_mobile_test_screens_login_screen_test.dart.md |     2 +-
++-+ .../codebase/apps_mobile_web_manifest.json.md      |     2 +-
++-+ .../codebase/apps_studio-client_README.md.md       |     2 +-
++-+ .../codebase/apps_studio-client_components.json.md |     2 +-
++-+ .../apps_studio-client_eslint.config.js.md         |     2 +-
++-+ .../autogen/codebase/apps_studio-client_main.js.md |     2 +-
++-+ .../codebase/apps_studio-client_package.json.md    |     2 +-
++-+ .../apps_studio-client_public_manifest.json.md     |     2 +-
++-+ .../codebase/apps_studio-client_public_sw.js.md    |     2 +-
++-+ .../apps_studio-client_src_App.test.tsx.md         |     2 +-
++-+ .../codebase/apps_studio-client_src_App.tsx.md     |    26 +-
++-+ ...tudio-client_src_components_AdminConsole.tsx.md |     2 +-
++-+ ..._studio-client_src_components_BanglaHint.tsx.md |     2 +-
++-+ ...apps_studio-client_src_components_Header.tsx.md |     2 +-
++-+ ...lient_src_components_LiveSujonBackground.tsx.md |     2 +-
++-+ ...c_components_Onboarding_OnboardingWizard.tsx.md |     2 +-
++-+ ...ent_src_components_Onboarding_StepApiKey.tsx.md |     2 +-
++-+ ..._src_components_Onboarding_StepFirstChat.tsx.md |     2 +-
++-+ ...rc_components_Onboarding_StepModelSelect.tsx.md |     2 +-
++-+ ...dio-client_src_components_OperatorStudio.tsx.md |     2 +-
++-+ ...o-client_src_components_admin_ActionCard.tsx.md |     2 +-
++-+ ..._src_components_admin_AdminAuthenticated.tsx.md |     2 +-
++-+ ...client_src_components_admin_AdminConsole.tsx.md |     2 +-
++-+ ..._src_components_admin_AdminDashboardHome.tsx.md |     2 +-
++-+ ...o-client_src_components_admin_AdminLogin.tsx.md |     2 +-
++-+ ..._src_components_admin_AdminSubTabContent.tsx.md |     2 +-
++-+ ...-client_src_components_admin_AdminTopNav.tsx.md |     2 +-
++-+ ...o-client_src_components_admin_AethelNode.tsx.md |     2 +-
++-+ ...ient_src_components_admin_AuditLogsPanel.tsx.md |     2 +-
++-+ ...lient_src_components_admin_BackupRestore.tsx.md |     2 +-
++-+ ...ient_src_components_admin_CICDVisualizer.tsx.md |     2 +-
++-+ ...t_src_components_admin_CloudOrchestrator.tsx.md |     2 +-
++-+ ...lient_src_components_admin_CommandCenter.tsx.md |     2 +-
++-+ ...client_src_components_admin_ConfigEditor.tsx.md |     2 +-
++-+ ..._src_components_admin_ConsentMatrixModal.tsx.md |     2 +-
++-+ ...-client_src_components_admin_CostAuditor.tsx.md |     2 +-
++-+ ..._components_admin_DashboardErrorBoundary.tsx.md |     2 +-
++-+ ...ent_src_components_admin_DeploymentModal.tsx.md |     2 +-
++-+ ...client_src_components_admin_DynamicPanel.tsx.md |     2 +-
++-+ ...omponents_admin_EnhancedSkillMarketplace.tsx.md |     2 +-
++-+ ...t_src_components_admin_GithubIntegration.tsx.md |     2 +-
++-+ ...client_src_components_admin_HealthBanner.tsx.md |     2 +-
++-+ ...io-client_src_components_admin_HealthMap.tsx.md |     2 +-
++-+ ..._src_components_admin_InteractiveChatTab.tsx.md |     2 +-
++-+ ...dio-client_src_components_admin_LiveLogs.tsx.md |     2 +-
++-+ ...lient_src_components_admin_MemoryBrowser.tsx.md |     2 +-
++-+ ...-client_src_components_admin_ModelRouter.tsx.md |     2 +-
++-+ ..._components_admin_ObservabilityDashboard.tsx.md |     2 +-
++-+ ...-client_src_components_admin_RBACManager.tsx.md |     2 +-
++-+ ...nt_src_components_admin_RateLimitManager.tsx.md |     2 +-
++-+ ...rc_components_admin_RealTimeMetricsPanel.tsx.md |     2 +-
++-+ ...mponents_admin_RedesignedDashboardMockup.tsx.md |     2 +-
++-+ ...nt_src_components_admin_RulesEnginePanel.tsx.md |     2 +-
++-+ ...t_src_components_admin_SecurityDashboard.tsx.md |     2 +-
++-+ ...rc_components_admin_ServiceHealthMetrics.tsx.md |     2 +-
++-+ ...ent_src_components_admin_ThreatDetection.tsx.md |     2 +-
++-+ ...-client_src_components_admin_UserManager.tsx.md |     2 +-
++-+ ..._src_components_admin_VisualRulesBuilder.tsx.md |     2 +-
++-+ ..._studio-client_src_components_admin_index.ts.md |     2 +-
++-+ ..._src_components_audio_WaveformVisualizer.tsx.md |     2 +-
++-+ ...ient_src_components_chat_TypingIndicator.tsx.md |     2 +-
++-+ ...nt_src_components_chat_UnifiedChatBubble.tsx.md |     2 +-
++-+ ...s_studio-client_src_components_chat_index.ts.md |     2 +-
++-+ ...t_src_components_customer_BrowserPreview.tsx.md |     2 +-
++-+ ...t_src_components_customer_ChatPanel.test.tsx.md |     2 +-
++-+ ...client_src_components_customer_ChatPanel.tsx.md |     2 +-
++-+ ...lient_src_components_customer_CodeEditor.tsx.md |     2 +-
++-+ ...-client_src_components_customer_HomeFeed.tsx.md |     2 +-
++-+ ..._src_components_customer_MobileSimulator.tsx.md |     2 +-
++-+ ...rc_components_customer_QuickPresets.test.tsx.md |     2 +-
++-+ ...ent_src_components_customer_QuickPresets.tsx.md |     2 +-
++-+ ...c_components_customer_UserDashboard.test.tsx.md |     2 +-
++-+ ...nt_src_components_customer_UserDashboard.tsx.md |     2 +-
++-+ ...udio-client_src_components_customer_index.ts.md |     2 +-
++-+ ..._src_components_dashboard_AgentStatePill.tsx.md |     2 +-
++-+ ...components_dashboard_AutomationQueuePage.tsx.md |     2 +-
++-+ ...components_dashboard_DashboardShell.test.tsx.md |     2 +-
++-+ ..._src_components_dashboard_DashboardShell.tsx.md |     2 +-
++-+ ..._src_components_dashboard_ExecutionShell.tsx.md |     2 +-
++-+ ...t_src_components_dashboard_FileTreePanel.tsx.md |     2 +-
++-+ ..._src_components_dashboard_GuardrailsPage.tsx.md |     2 +-
++-+ ...src_components_dashboard_HealingLogPanel.tsx.md |     2 +-
++-+ ...t_src_components_dashboard_KnowledgePage.tsx.md |     2 +-
++-+ ..._src_components_dashboard_LlmGatewayPage.tsx.md |     2 +-
++-+ ...nt_src_components_dashboard_ReasoningLog.tsx.md |     2 +-
++-+ ...src_components_dashboard_SandboxViewport.tsx.md |     2 +-
++-+ ...ent_src_components_dashboard_SecretsPage.tsx.md |     2 +-
++-+ ...c_components_dashboard_SessionDetailPage.tsx.md |     2 +-
++-+ ...nt_src_components_dashboard_SessionsPage.tsx.md |     2 +-
++-+ ...nt_src_components_dashboard_SettingsPage.tsx.md |     2 +-
++-+ ...src_components_dashboard_SiteActionsPage.tsx.md |     2 +-
++-+ ...lient_src_components_dashboard_UsagePage.tsx.md |     2 +-
++-+ ...lient_src_components_dashboard_VaultPage.tsx.md |     2 +-
++-+ ...ent_src_components_dashboard_sessionStore.ts.md |     2 +-
++-+ ...ent_src_components_dashboard_useHashRoute.ts.md |     2 +-
++-+ ...lient_src_components_editor_CollabEditor.tsx.md |     2 +-
++-+ ...o-client_src_components_graph_SkillGraph.tsx.md |     2 +-
++-+ ...udio-client_src_components_ui_ActionCard.tsx.md |     2 +-
++-+ ...ps_studio-client_src_components_ui_Badge.tsx.md |     2 +-
++-+ ...pps_studio-client_src_components_ui_Card.tsx.md |     2 +-
++-+ ...studio-client_src_components_ui_Skeleton.tsx.md |     2 +-
++-+ ...pps_studio-client_src_components_ui_index.ts.md |     2 +-
++-+ ..._studio-client_src_contexts_ThemeContext.tsx.md |     2 +-
++-+ ..._studio-client_src_contexts_ToastContext.tsx.md |     2 +-
++-+ ...o-client_src_dataconnect-generated_README.md.md |     2 +-
++-+ ...t_src_dataconnect-generated_esm_index.esm.js.md |     2 +-
++-+ ...t_src_dataconnect-generated_esm_package.json.md |     2 +-
++-+ ...lient_src_dataconnect-generated_index.cjs.js.md |     2 +-
++-+ ...-client_src_dataconnect-generated_index.d.ts.md |     2 +-
++-+ ...lient_src_dataconnect-generated_package.json.md |     2 +-
++-+ ...nt_src_dataconnect-generated_react_README.md.md |     2 +-
++-+ ...dataconnect-generated_react_esm_index.esm.js.md |     2 +-
++-+ ...dataconnect-generated_react_esm_package.json.md |     2 +-
++-+ ...src_dataconnect-generated_react_index.cjs.js.md |     2 +-
++-+ ...t_src_dataconnect-generated_react_index.d.ts.md |     2 +-
++-+ ...src_dataconnect-generated_react_package.json.md |     2 +-
++-+ .../codebase/apps_studio-client_src_firebase.ts.md |     2 +-
++-+ .../apps_studio-client_src_hooks_index.ts.md       |     2 +-
++-+ ...lient_src_hooks_tests_useTranslation.test.ts.md |     2 +-
++-+ .../apps_studio-client_src_hooks_useAdminApi.ts.md |     2 +-
++-+ .../apps_studio-client_src_hooks_useAuth.ts.md     |     2 +-
++-+ .../apps_studio-client_src_hooks_useChat.ts.md     |     2 +-
++-+ ..._studio-client_src_hooks_useDashboardData.ts.md |     2 +-
++-+ ...ps_studio-client_src_hooks_useTranslation.ts.md |     2 +-
++-+ ...apps_studio-client_src_hooks_useWebSocket.ts.md |     2 +-
++-+ ...apps_studio-client_src_i18n_I18nProvider.tsx.md |     2 +-
++-+ .../apps_studio-client_src_i18n_config.ts.md       |     2 +-
++-+ .../apps_studio-client_src_i18n_translations.ts.md |     2 +-
++-+ .../codebase/apps_studio-client_src_lib_etag.ts.md |     2 +-
++-+ .../codebase/apps_studio-client_src_main.tsx.md    |     2 +-
++-+ ...s_studio-client_src_services_adminService.ts.md |     2 +-
++-+ ...tudio-client_src_services_adminTokenStore.ts.md |     2 +-
++-+ ...s_studio-client_src_services_agentService.ts.md |     2 +-
++-+ ...apps_studio-client_src_services_apiClient.ts.md |     2 +-
++-+ ...ient_src_services_api_microserviceMonitor.ts.md |     2 +-
++-+ ...t_src_services_audio_AudioPlaybackService.ts.md |     2 +-
++-+ ...t_src_services_audio_AudioRecorderService.ts.md |     2 +-
++-+ ...ps_studio-client_src_services_authService.ts.md |     2 +-
++-+ ...ps_studio-client_src_services_chatService.ts.md |     2 +-
++-+ ...tudio-client_src_services_ciReportService.ts.md |     2 +-
++-+ ...pps_studio-client_src_services_storageApi.ts.md |     2 +-
++-+ .../apps_studio-client_src_store_adminStore.ts.md  |     2 +-
++-+ ...pps_studio-client_src_store_customerStore.ts.md |     2 +-
++-+ ...ps_studio-client_src_store_dashboardStore.ts.md |     2 +-
++-+ ...udio-client_src_store_sessionCockpitStore.ts.md |     2 +-
++-+ .../apps_studio-client_src_store_themeStore.ts.md  |     2 +-
++-+ .../apps_studio-client_src_store_useStore.ts.md    |     2 +-
++-+ .../apps_studio-client_src_test_setup.ts.md        |     2 +-
++-+ .../codebase/apps_studio-client_src_types.ts.md    |     2 +-
++-+ .../apps_studio-client_src_types_customer.ts.md    |     2 +-
++-+ .../apps_studio-client_src_utils_api.ts.md         |     2 +-
++-+ ...ps_studio-client_src_utils_apiInterceptor.ts.md |    30 +-
++-+ .../apps_studio-client_src_vite-env.d.ts.md        |     2 +-
++-+ ...tudio-client_src_workers_logParser.worker.ts.md |     2 +-
++-+ .../apps_studio-client_tsconfig.app.json.md        |     2 +-
++-+ .../codebase/apps_studio-client_tsconfig.json.md   |     2 +-
++-+ .../apps_studio-client_tsconfig.node.json.md       |     2 +-
++-+ .../codebase/apps_studio-client_vite.config.ts.md  |     2 +-
++-+ .../apps_studio-client_vitest.config.ts.md         |     2 +-
++-+ docs/autogen/codebase/apps_web-chat_api.test.ts.md |     2 +-
++-+ docs/autogen/codebase/apps_web-chat_api.ts.md      |     2 +-
++-+ .../autogen/codebase/apps_web-chat_package.json.md |     2 +-
++-+ docs/autogen/codebase/apps_web-chat_script.ts.md   |     2 +-
++-+ .../codebase/apps_web-chat_tsconfig.json.md        |     2 +-
++-+ .../codebase/apps_web-chat_vite-env.d.ts.md        |     2 +-
++-+ .../codebase/apps_web-chat_vite.config.ts.md       |     2 +-
++-+ .../codebase/apps_web-chat_vitest.config.ts.md     |     2 +-
++-+ docs/autogen/codebase/backend_README.md.md         |     2 +-
++-+ .../backend_adaptive_engine_experience_db.py.md    |     2 +-
++-+ .../codebase/backend_adaptive_engine_init_.py.md   |     2 +-
++-+ .../backend_adaptive_engine_intent_parser.py.md    |     2 +-
++-+ .../backend_adaptive_engine_learning_loop.py.md    |     2 +-
++-+ .../backend_adaptive_engine_platform_learner.py.md |     2 +-
++-+ .../backend_adaptive_engine_registry.py.md         |     2 +-
++-+ ...end_adaptive_engine_test_platform_learner.py.md |     2 +-
++-+ docs/autogen/codebase/backend_admin_god.py.md      |     2 +-
++-+ docs/autogen/codebase/backend_admin_init_.py.md    |     2 +-
++-+ docs/autogen/codebase/backend_admin_test_god.py.md |     2 +-
++-+ .../codebase/backend_agents_crew_departments.py.md |     2 +-
++-+ docs/autogen/codebase/backend_agents_init_.py.md   |     2 +-
++-+ .../codebase/backend_agents_legal_agent.py.md      |     2 +-
++-+ .../codebase/backend_agents_medical_agent.py.md    |     2 +-
++-+ .../backend_agents_research_assistant.py.md        |     2 +-
++-+ .../codebase/backend_agents_test_legal_agent.py.md |     2 +-
++-+ .../backend_agents_test_medical_agent.py.md        |     2 +-
++-+ .../codebase/backend_agents_trading_agent.py.md    |     2 +-
++-+ docs/autogen/codebase/backend_alembic_env.py.md    |     2 +-
++-+ ...ersions_664fe16e33ca_add_ci_reports_table.py.md |     2 +-
++-+ .../codebase/backend_api_dependencies.py.md        |     2 +-
++-+ docs/autogen/codebase/backend_api_init_.py.md      |     2 +-
++-+ .../codebase/backend_api_routes_admin.py.md        |     2 +-
++-+ .../backend_api_routes_admin_dashboard.py.md       |     2 +-
++-+ .../codebase/backend_api_routes_agent_tasks.py.md  |     2 +-
++-+ .../codebase/backend_api_routes_agents.py.md       |     2 +-
++-+ .../codebase/backend_api_routes_api_keys.py.md     |     2 +-
++-+ .../backend_api_routes_approval_manager.py.md      |     2 +-
++-+ .../backend_api_routes_async_task_router.py.md     |     2 +-
++-+ .../autogen/codebase/backend_api_routes_auth.py.md |     2 +-
++-+ .../codebase/backend_api_routes_billing_api.py.md  |     2 +-
++-+ .../codebase/backend_api_routes_browser.py.md      |     2 +-
++-+ .../codebase/backend_api_routes_byoc_api.py.md     |     2 +-
++-+ .../codebase/backend_api_routes_cdc_webhooks.py.md |     2 +-
++-+ .../autogen/codebase/backend_api_routes_chat.py.md |     2 +-
++-+ .../codebase/backend_api_routes_ci_webhooks.py.md  |     2 +-
++-+ .../codebase/backend_api_routes_cloud_mesh.py.md   |     2 +-
++-+ .../codebase/backend_api_routes_codeflow.py.md     |     2 +-
++-+ .../codebase/backend_api_routes_config.py.md       |     2 +-
++-+ .../codebase/backend_api_routes_email.py.md        |     2 +-
++-+ .../codebase/backend_api_routes_evolution.py.md    |     2 +-
++-+ .../backend_api_routes_execution_policies.py.md    |     2 +-
++-+ .../codebase/backend_api_routes_feedback.py.md     |     2 +-
++-+ .../codebase/backend_api_routes_github.py.md       |     2 +-
++-+ .../codebase/backend_api_routes_graph.py.md        |     2 +-
++-+ .../codebase/backend_api_routes_init_.py.md        |     2 +-
++-+ .../codebase/backend_api_routes_internal.py.md     |     2 +-
++-+ .../codebase/backend_api_routes_knowledge.py.md    |     2 +-
++-+ .../codebase/backend_api_routes_llm_gateway.py.md  |     2 +-
++-+ .../codebase/backend_api_routes_markdown.py.md     |     2 +-
++-+ .../codebase/backend_api_routes_marketplace.py.md  |     2 +-
++-+ .../backend_api_routes_marketplace_endpoints.py.md |     2 +-
++-+ .../codebase/backend_api_routes_media.py.md        |     2 +-
++-+ .../codebase/backend_api_routes_memory.py.md       |     2 +-
++-+ .../codebase/backend_api_routes_metrics.py.md      |     2 +-
++-+ .../codebase/backend_api_routes_mobile_bff.py.md   |     2 +-
++-+ .../codebase/backend_api_routes_onboarding.py.md   |     2 +-
++-+ .../codebase/backend_api_routes_payments.py.md     |     2 +-
++-+ .../codebase/backend_api_routes_preferences.py.md  |     2 +-
++-+ .../codebase/backend_api_routes_repos.py.md        |     2 +-
++-+ .../backend_api_routes_selector_healing.py.md      |     2 +-
++-+ .../backend_api_routes_session_stream.py.md        |     2 +-
++-+ .../backend_api_routes_session_takeover.py.md      |     2 +-
++-+ .../codebase/backend_api_routes_simulator.py.md    |     2 +-
++-+ .../codebase/backend_api_routes_site_actions.py.md |     2 +-
++-+ docs/autogen/codebase/backend_api_routes_sso.py.md |     2 +-
++-+ .../codebase/backend_api_routes_stream.py.md       |     2 +-
++-+ .../autogen/codebase/backend_api_routes_task.py.md |     2 +-
++-+ .../backend_api_routes_task_workspace.py.md        |     2 +-
++-+ .../codebase/backend_api_routes_tenant_admin.py.md |     2 +-
++-+ .../codebase/backend_api_routes_tools_ops.py.md    |     2 +-
++-+ .../backend_api_routes_tools_registry.py.md        |     2 +-
++-+ .../backend_api_routes_usage_metrics.py.md         |     2 +-
++-+ .../codebase/backend_api_routes_voice.py.md        |     2 +-
++-+ .../backend_api_routes_websocket_agent.py.md       |     2 +-
++-+ .../backend_api_routes_websocket_voice.py.md       |     2 +-
++-+ .../codebase/backend_byoc_cloud_connector.py.md    |     2 +-
++-+ .../backend_byoc_container_orchestrator.py.md      |     2 +-
++-+ docs/autogen/codebase/backend_byoc_init_.py.md     |     2 +-
++-+ .../codebase/backend_byoc_resource_manager.py.md   |     2 +-
++-+ .../codebase/backend_config_byoc_limits.json.md    |     2 +-
++-+ .../backend_config_constitutional_rules.json.md    |     2 +-
++-+ .../codebase/backend_config_pricing_tiers.json.md  |     2 +-
++-+ .../codebase/backend_config_routing_policy.json.md |     2 +-
++-+ docs/autogen/codebase/backend_core_admin_god.py.md |     2 +-
++-+ .../codebase/backend_core_admin_routes.py.md       |     2 +-
++-+ .../codebase/backend_core_agent_orchestrator.py.md |     2 +-
++-+ .../codebase/backend_core_api_key_middleware.py.md |     2 +-
++-+ .../backend_core_api_key_rate_limiter.py.md        |     2 +-
++-+ docs/autogen/codebase/backend_core_app.py.md       |     2 +-
++-+ .../codebase/backend_core_audit_logger.py.md       |     2 +-
++-+ .../codebase/backend_core_auth_middleware.py.md    |     2 +-
++-+ .../codebase/backend_core_auto_remediation.py.md   |     2 +-
++-+ .../codebase/backend_core_autocache_proxy.py.md    |     2 +-
++-+ .../codebase/backend_core_circuit_breaker.py.md    |     2 +-
++-+ .../backend_core_cloud_sandbox_orchestrator.py.md  |     2 +-
++-+ .../codebase/backend_core_cloud_storage.py.md      |     2 +-
++-+ .../codebase/backend_core_code_validator.py.md     |     2 +-
++-+ docs/autogen/codebase/backend_core_config.py.md    |     2 +-
++-+ docs/autogen/codebase/backend_core_constants.py.md |     2 +-
++-+ .../codebase/backend_core_db_repository.py.md      |     2 +-
++-+ .../codebase/backend_core_decision_engine.py.md    |     2 +-
++-+ .../codebase/backend_core_discord_bot.py.md        |     2 +-
++-+ .../codebase/backend_core_docker-compose.yml.md    |     2 +-
++-+ .../codebase/backend_core_email_service.py.md      |     2 +-
++-+ .../autogen/codebase/backend_core_enum_guard.py.md |     2 +-
++-+ .../codebase/backend_core_error_pattern_db.py.md   |     2 +-
++-+ .../codebase/backend_core_error_remediation.py.md  |     2 +-
++-+ docs/autogen/codebase/backend_core_events.py.md    |     2 +-
++-+ .../codebase/backend_core_evolution_engine.py.md   |     2 +-
++-+ .../codebase/backend_core_factual_verifier.py.md   |     2 +-
++-+ .../codebase/backend_core_feedback_loop.py.md      |     2 +-
++-+ .../codebase/backend_core_free_tier_tracker.py.md  |     2 +-
++-+ .../codebase/backend_core_gcp_firestore.py.md      |     2 +-
++-+ .../codebase/backend_core_gcp_pubsub_queue.py.md   |     2 +-
++-+ .../codebase/backend_core_generation_monitor.py.md |     2 +-
++-+ .../codebase/backend_core_grpc_client.py.md        |     2 +-
++-+ .../codebase/backend_core_health_monitor.py.md     |     2 +-
++-+ .../backend_core_honeypot_middleware.py.md         |     2 +-
++-+ .../backend_core_idempotency_middleware.py.md      |     2 +-
++-+ .../codebase/backend_core_immune_system.py.md      |     2 +-
++-+ docs/autogen/codebase/backend_core_init_.py.md     |     2 +-
++-+ .../codebase/backend_core_input_sanitizer.py.md    |     2 +-
++-+ docs/autogen/codebase/backend_core_intent.py.md    |     2 +-
++-+ .../codebase/backend_core_intent_router.py.md      |     2 +-
++-+ .../codebase/backend_core_language_router.py.md    |     2 +-
++-+ docs/autogen/codebase/backend_core_ld_client.py.md |     2 +-
++-+ docs/autogen/codebase/backend_core_lifespan.py.md  |     2 +-
++-+ .../codebase/backend_core_llm_gateway.py.md        |     2 +-
++-+ .../codebase/backend_core_log_batcher.py.md        |     2 +-
++-+ .../codebase/backend_core_logging_config.py.md     |     2 +-
++-+ .../codebase/backend_core_mcp_allowlist.py.md      |     2 +-
++-+ .../codebase/backend_core_microvm_sandbox.py.md    |     2 +-
++-+ .../codebase/backend_core_multi_layer_cache.py.md  |     2 +-
++-+ .../backend_core_observability_middleware.py.md    |     2 +-
++-+ .../codebase/backend_core_orchestrator.py.md       |     2 +-
++-+ .../codebase/backend_core_origin_validator.py.md   |     2 +-
++-+ .../codebase/backend_core_output_validator.py.md   |     2 +-
++-+ .../codebase/backend_core_pgbouncer_pool.py.md     |     2 +-
++-+ .../codebase/backend_core_posthog_client.py.md     |     2 +-
++-+ .../codebase/backend_core_prompt_firewall.py.md    |     2 +-
++-+ .../codebase/backend_core_prompt_helpers.py.md     |     2 +-
++-+ .../codebase/backend_core_rate_limiter.py.md       |     2 +-
++-+ docs/autogen/codebase/backend_core_rbac.py.md      |     2 +-
++-+ .../codebase/backend_core_redis_manager.py.md      |     2 +-
++-+ .../codebase/backend_core_rollback_monitor.py.md   |     2 +-
++-+ .../codebase/backend_core_rules_mutator.py.md      |     2 +-
++-+ .../codebase/backend_core_schema_validator.py.md   |     2 +-
++-+ .../codebase/backend_core_secret_vault.py.md       |     2 +-
++-+ .../backend_core_secure_credential_store.py.md     |     2 +-
++-+ docs/autogen/codebase/backend_core_security.py.md  |     2 +-
++-+ .../codebase/backend_core_self_healing_agent.py.md |     2 +-
++-+ .../codebase/backend_core_semantic_cache.py.md     |     2 +-
++-+ docs/autogen/codebase/backend_core_services.py.md  |     2 +-
++-+ .../codebase/backend_core_skill_graph.py.md        |     2 +-
++-+ .../codebase/backend_core_swarm_orchestrator.py.md |     2 +-
++-+ .../autogen/codebase/backend_core_task_queue.py.md |     2 +-
++-+ .../backend_core_task_queue_enhanced.py.md         |     2 +-
++-+ .../codebase/backend_core_task_router.py.md        |     2 +-
++-+ docs/autogen/codebase/backend_core_telemetry.py.md |     2 +-
++-+ docs/autogen/codebase/backend_core_tenant_db.py.md |     2 +-
++-+ .../codebase/backend_core_token_budget.py.md       |     2 +-
++-+ .../codebase/backend_core_token_deductor.py.md     |     2 +-
++-+ .../codebase/backend_core_universal_rules.py.md    |     2 +-
++-+ .../codebase/backend_core_upload_validator.py.md   |     2 +-
++-+ .../backend_core_upstash_redis_queue.py.md         |     2 +-
++-+ .../codebase/backend_core_user_profiler.py.md      |     2 +-
++-+ docs/autogen/codebase/backend_database_init_.py.md |     2 +-
++-+ ...end_database_migrations_01_initial_setup.sql.md |     2 +-
++-+ ...kend_database_migrations_02_phase2_setup.sql.md |     2 +-
++-+ ...grations_03_user_preferences_and_metrics.sql.md |     2 +-
++-+ ...nd_database_migrations_04_schema_upgrade.sql.md |     2 +-
++-+ ...database_migrations_05_seed_github_repos.sql.md |     2 +-
++-+ ...d_database_migrations_06_referral_system.sql.md |     2 +-
++-+ ...end_database_migrations_07_tenant_config.sql.md |     2 +-
++-+ ...ckend_database_migrations_08_sso_configs.sql.md |     2 +-
++-+ ...database_migrations_09_offline_sync_logs.sql.md |     2 +-
++-+ ...atabase_migrations_10_tenant_sso_offline.sql.md |     2 +-
++-+ .../codebase/backend_database_session.py.md        |     2 +-
++-+ .../codebase/backend_database_storage_client.py.md |     2 +-
++-+ .../backend_database_supabase_client.py.md         |     2 +-
++-+ .../codebase/backend_engine_cost_optimizer.py.md   |     2 +-
++-+ docs/autogen/codebase/backend_engine_init_.py.md   |     2 +-
++-+ .../codebase/backend_engine_model_dispatcher.py.md |     2 +-
++-+ .../backend_evolution_auto_skill_creator.py.md     |     2 +-
++-+ .../backend_evolution_auto_update_manager.py.md    |     2 +-
++-+ .../backend_evolution_dynamic_injector.py.md       |     2 +-
++-+ .../backend_evolution_fitness_engine.py.md         |     2 +-
++-+ .../autogen/codebase/backend_evolution_init_.py.md |     2 +-
++-+ .../backend_evolution_master_planner.py.md         |     2 +-
++-+ .../backend_evolution_security_sandbox.py.md       |     2 +-
++-+ .../backend_evolution_self_evolution_agent.py.md   |     2 +-
++-+ .../codebase/backend_evolution_skill_graph.py.md   |     2 +-
++-+ docs/autogen/codebase/backend_fix_tests.py.md      |     2 +-
++-+ docs/autogen/codebase/backend_init_.py.md          |     2 +-
++-+ docs/autogen/codebase/backend_main.py.md           |     2 +-
++-+ .../backend_memory_checkpoint_resume.py.md         |     2 +-
++-+ .../codebase/backend_memory_chromadb_store.py.md   |     2 +-
++-+ .../backend_memory_cloud_postgres_store.py.md      |     2 +-
++-+ .../backend_memory_cloud_vector_store.py.md        |     2 +-
++-+ .../codebase/backend_memory_episodic_memory.py.md  |     2 +-
++-+ docs/autogen/codebase/backend_memory_init_.py.md   |     2 +-
++-+ .../codebase/backend_memory_long_term_memory.py.md |     2 +-
++-+ .../codebase/backend_memory_rag_pipeline.py.md     |     2 +-
++-+ .../codebase/backend_memory_sliding_window.py.md   |     2 +-
++-+ .../codebase/backend_memory_sqlite_store.py.md     |     2 +-
++-+ .../codebase/backend_memory_summary_tree.py.md     |     2 +-
++-+ .../codebase/backend_memory_supabase_store.py.md   |     2 +-
++-+ .../backend_memory_vector_store_config.py.md       |     2 +-
++-+ .../backend_middleware_auth_middleware.py.md       |     2 +-
++-+ .../backend_middleware_chaos_injector.py.md        |     2 +-
++-+ .../codebase/backend_middleware_idempotency.py.md  |     2 +-
++-+ docs/autogen/codebase/backend_models_admin.py.md   |     2 +-
++-+ .../codebase/backend_models_agent_session.py.md    |     2 +-
++-+ docs/autogen/codebase/backend_models_api_key.py.md |     2 +-
++-+ docs/autogen/codebase/backend_models_base.py.md    |     2 +-
++-+ .../codebase/backend_models_byoc_payloads.py.md    |     2 +-
++-+ .../codebase/backend_models_ci_report.py.md        |     2 +-
++-+ .../codebase/backend_models_deployment_logs.py.md  |     2 +-
++-+ .../backend_models_error_remediation.py.md         |     2 +-
++-+ .../codebase/backend_models_evolution.py.md        |     2 +-
++-+ .../codebase/backend_models_execution_log.py.md    |     2 +-
++-+ .../codebase/backend_models_execution_policy.py.md |     2 +-
++-+ .../codebase/backend_models_handoff_event.py.md    |     2 +-
++-+ docs/autogen/codebase/backend_models_init_.py.md   |     2 +-
++-+ .../backend_models_local_model_handler.py.md       |     2 +-
++-+ .../codebase/backend_models_pending_tasks.py.md    |     2 +-
++-+ .../backend_models_selector_healing_event.py.md    |     2 +-
++-+ .../codebase/backend_models_shared_workspace.py.md |     2 +-
++-+ ...backend_models_target_platform_credential.py.md |     2 +-
++-+ .../backend_models_transaction_ledger.py.md        |     2 +-
++-+ .../backend_models_voice_interaction.py.md         |     2 +-
++-+ docs/autogen/codebase/backend_models_wallet.py.md  |     2 +-
++-+ .../codebase/backend_monitoring_cost_auditor.py.md |     2 +-
++-+ .../codebase/backend_monitoring_init_.py.md        |     2 +-
++-+ .../codebase/backend_p2p_credit_system.py.md       |     2 +-
++-+ docs/autogen/codebase/backend_p2p_init_.py.md      |     2 +-
++-+ .../codebase/backend_p2p_secure_tunnel.py.md       |     2 +-
++-+ docs/autogen/codebase/backend_pyproject.toml.md    |     2 +-
++-+ docs/autogen/codebase/backend_reports_init_.py.md  |     2 +-
++-+ .../backend_reports_optimization_engine.py.md      |     2 +-
++-+ .../codebase/backend_run_roundtrip_tests.py.md     |     2 +-
++-+ docs/autogen/codebase/backend_scout_init_.py.md    |     2 +-
++-+ .../backend_scout_knowledge_extractor.py.md        |     2 +-
++-+ .../codebase/backend_scout_web_crawler_agent.py.md |     2 +-
++-+ .../codebase/backend_scripts_check_ollama.py.md    |     2 +-
++-+ docs/autogen/codebase/backend_scripts_init_.py.md  |     2 +-
++-+ .../codebase/backend_scripts_load_seed_data.py.md  |     2 +-
++-+ .../backend_scripts_run_dependency_check.py.md     |     2 +-
++-+ .../backend_scripts_seed_tools_registry.py.md      |     2 +-
++-+ .../backend_scripts_self_healing_tests.py.md       |     2 +-
++-+ docs/autogen/codebase/backend_skills_init_.py.md   |     2 +-
++-+ .../codebase/backend_skills_provisioner.py.md      |     2 +-
++-+ .../codebase/backend_skills_skill_registry.py.md   |     2 +-
++-+ .../codebase/backend_storage_asset_manager.py.md   |     2 +-
++-+ docs/autogen/codebase/backend_storage_init_.py.md  |     2 +-
++-+ .../backend_storage_r2_storage_client.py.md        |     2 +-
++-+ .../backend_tests_agents_test_legal_agent.py.md    |     2 +-
++-+ .../backend_tests_agents_test_medical_agent.py.md  |     2 +-
++-+ ...kend_tests_agents_test_research_assistant.py.md |     2 +-
++-+ .../backend_tests_agents_test_trading_agent.py.md  |     2 +-
++-+ .../backend_tests_byoc_test_cloud_connector.py.md  |     2 +-
++-+ ...nd_tests_byoc_test_container_orchestrator.py.md |     2 +-
++-+ .../backend_tests_byoc_test_resource_manager.py.md |     2 +-
++-+ docs/autogen/codebase/backend_tests_conftest.py.md |     2 +-
++-+ .../backend_tests_engine_test_cost_optimizer.py.md |     2 +-
++-+ ...ackend_tests_engine_test_model_dispatcher.py.md |     2 +-
++-+ docs/autogen/codebase/backend_tests_init_.py.md    |     2 +-
++-+ ...ackend_tests_monitoring_test_cost_auditor.py.md |     2 +-
++-+ .../backend_tests_p2p_test_credit_system.py.md     |     2 +-
++-+ .../backend_tests_p2p_test_secure_tunnel.py.md     |     2 +-
++-+ ...kend_tests_scout_test_knowledge_extractor.py.md |     2 +-
++-+ ...ackend_tests_scout_test_web_crawler_agent.py.md |     2 +-
++-+ .../backend_tests_test_adaptive_engine.py.md       |     2 +-
++-+ .../codebase/backend_tests_test_admin_god.py.md    |     2 +-
++-+ .../codebase/backend_tests_test_admin_models.py.md |     2 +-
++-+ .../codebase/backend_tests_test_admin_routes.py.md |     2 +-
++-+ .../codebase/backend_tests_test_advanced.py.md     |     2 +-
++-+ .../backend_tests_test_agent_department.py.md      |     2 +-
++-+ .../backend_tests_test_agent_departments.py.md     |     2 +-
++-+ .../backend_tests_test_agent_orchestrator.py.md    |     2 +-
++-+ ...ackend_tests_test_agents_crew_departments.py.md |     2 +-
++-+ docs/autogen/codebase/backend_tests_test_api.py.md |     2 +-
++-+ .../codebase/backend_tests_test_api_chat.py.md     |     2 +-
++-+ .../codebase/backend_tests_test_api_keys.py.md     |     2 +-
++-+ .../backend_tests_test_api_new_endpoints.py.md     |     2 +-
++-+ .../codebase/backend_tests_test_api_router.py.md   |     2 +-
++-+ .../codebase/backend_tests_test_audit_logger.py.md |     2 +-
++-+ .../backend_tests_test_auth_middleware.py.md       |     2 +-
++-+ .../codebase/backend_tests_test_auth_routes.py.md  |     2 +-
++-+ .../backend_tests_test_auto_fix_trigger.py.md      |     2 +-
++-+ .../backend_tests_test_auto_skill_creator.py.md    |     2 +-
++-+ .../backend_tests_test_autonomous_agent.py.md      |     2 +-
++-+ .../codebase/backend_tests_test_bangla_nlp.py.md   |     2 +-
++-+ .../codebase/backend_tests_test_bangla_voice.py.md |     2 +-
++-+ .../backend_tests_test_billing_system.py.md        |     2 +-
++-+ .../codebase/backend_tests_test_brain.py.md        |     2 +-
++-+ .../backend_tests_test_browser_credentials.py.md   |     2 +-
++-+ .../backend_tests_test_byoc_endpoints.py.md        |     2 +-
++-+ .../codebase/backend_tests_test_chaos_worker.py.md |     2 +-
++-+ .../backend_tests_test_checkpoint_resume.py.md     |     2 +-
++-+ .../backend_tests_test_circuit_breaker.py.md       |     2 +-
++-+ .../backend_tests_test_cloud_sandbox.py.md         |     2 +-
++-+ .../backend_tests_test_cloud_storage.py.md         |     2 +-
++-+ .../backend_tests_test_code_validator.py.md        |     2 +-
++-+ .../backend_tests_test_collaborative_editor.py.md  |     2 +-
++-+ .../codebase/backend_tests_test_config.py.md       |     2 +-
++-+ .../backend_tests_test_config_additional.py.md     |     2 +-
++-+ .../backend_tests_test_config_coverage.py.md       |     2 +-
++-+ .../codebase/backend_tests_test_constants.py.md    |     2 +-
++-+ .../backend_tests_test_context_and_actions.py.md   |     2 +-
++-+ .../autogen/codebase/backend_tests_test_core.py.md |     2 +-
++-+ .../codebase/backend_tests_test_core_smoke.py.md   |     2 +-
++-+ .../backend_tests_test_coverage_gaps.py.md         |     2 +-
++-+ .../codebase/backend_tests_test_crew_mcp.py.md     |     2 +-
++-+ ...ackend_tests_test_database_storage_client.py.md |     2 +-
++-+ .../backend_tests_test_db_repository.py.md         |     2 +-
++-+ docs/autogen/codebase/backend_tests_test_e2e.py.md |     2 +-
++-+ .../codebase/backend_tests_test_e2e_media.py.md    |     2 +-
++-+ .../codebase/backend_tests_test_email_agent.py.md  |     2 +-
++-+ .../backend_tests_test_email_service.py.md         |     2 +-
++-+ .../backend_tests_test_episodic_memory.py.md       |     2 +-
++-+ .../backend_tests_test_error_remediation.py.md     |     2 +-
++-+ .../backend_tests_test_evolution_engine.py.md      |     2 +-
++-+ .../backend_tests_test_evolution_pipeline.py.md    |     2 +-
++-+ .../backend_tests_test_factual_verifier.py.md      |     2 +-
++-+ .../backend_tests_test_feedback_loop.py.md         |     2 +-
++-+ .../backend_tests_test_firebase_integration.py.md  |     2 +-
++-+ .../backend_tests_test_fitness_engine.py.md        |     2 +-
++-+ .../backend_tests_test_free_tier_tracker.py.md     |     2 +-
++-+ .../backend_tests_test_gcp_integration.py.md       |     2 +-
++-+ .../backend_tests_test_generation_monitor.py.md    |     2 +-
++-+ .../codebase/backend_tests_test_github_agent.py.md |     2 +-
++-+ .../codebase/backend_tests_test_graph_routes.py.md |     2 +-
++-+ .../backend_tests_test_graph_service.py.md         |     2 +-
++-+ .../codebase/backend_tests_test_grpc_client.py.md  |     2 +-
++-+ .../backend_tests_test_hallucination_guard.py.md   |     2 +-
++-+ .../codebase/backend_tests_test_health.py.md       |     2 +-
++-+ .../backend_tests_test_health_monitor.py.md        |     2 +-
++-+ .../backend_tests_test_health_monitor_routes.py.md |     2 +-
++-+ .../backend_tests_test_honeypot_middleware.py.md   |     2 +-
++-+ ...backend_tests_test_idempotency_middleware.py.md |     2 +-
++-+ .../backend_tests_test_immune_system.py.md         |     2 +-
++-+ .../backend_tests_test_immune_system_scanner.py.md |     2 +-
++-+ .../backend_tests_test_input_sanitizer.py.md       |     2 +-
++-+ .../backend_tests_test_language_router.py.md       |     2 +-
++-+ .../codebase/backend_tests_test_llm_gateway.py.md  |     2 +-
++-+ .../backend_tests_test_llm_gateway_coverage.py.md  |     2 +-
++-+ .../backend_tests_test_long_term_memory.py.md      |     2 +-
++-+ .../backend_tests_test_markdown_export.py.md       |     2 +-
++-+ .../backend_tests_test_marketplace_agent.py.md     |     2 +-
++-+ .../backend_tests_test_mcp_allowlist.py.md         |     2 +-
++-+ .../codebase/backend_tests_test_mcp_server.py.md   |     2 +-
++-+ ...ackend_tests_test_mcp_servers_integration.py.md |     2 +-
++-+ .../codebase/backend_tests_test_media_r2.py.md     |     2 +-
++-+ ...kend_tests_test_middleware_chaos_injector.py.md |     2 +-
++-+ .../codebase/backend_tests_test_migrations.py.md   |     2 +-
++-+ ...kend_tests_test_migrations_and_onboarding.py.md |     2 +-
++-+ .../codebase/backend_tests_test_mobile_e2e.py.md   |     2 +-
++-+ .../backend_tests_test_model_registry.py.md        |     2 +-
++-+ .../backend_tests_test_model_router_unit.py.md     |     2 +-
++-+ .../backend_tests_test_model_trainer.py.md         |     2 +-
++-+ .../backend_tests_test_models_ci_report.py.md      |     2 +-
++-+ .../backend_tests_test_models_evolution.py.md      |     2 +-
++-+ .../codebase/backend_tests_test_monitoring.py.md   |     2 +-
++-+ .../backend_tests_test_multi_account_rotator.py.md |     2 +-
++-+ .../codebase/backend_tests_test_multicloud.py.md   |     2 +-
++-+ .../backend_tests_test_new_endpoints_sprint5.py.md |     2 +-
++-+ .../backend_tests_test_new_interfaces.py.md        |     2 +-
++-+ .../backend_tests_test_new_tools_sprint5.py.md     |     2 +-
++-+ .../backend_tests_test_optimization_engine.py.md   |     2 +-
++-+ .../backend_tests_test_output_validator.py.md      |     2 +-
++-+ ...ackend_tests_test_parallel_agent_executor.py.md |     2 +-
++-+ .../codebase/backend_tests_test_payments.py.md     |     2 +-
++-+ ...ckend_tests_test_performance_aware_router.py.md |     2 +-
++-+ .../backend_tests_test_pgbouncer_pool.py.md        |     2 +-
++-+ .../codebase/backend_tests_test_posthog.py.md      |     2 +-
++-+ .../codebase/backend_tests_test_pr_reviewer.py.md  |     2 +-
++-+ .../backend_tests_test_prod_docs_security.py.md    |     2 +-
++-+ ...sts_test_production_readiness_integration.py.md |     2 +-
++-+ .../backend_tests_test_prompt_firewall.py.md       |     2 +-
++-+ .../autogen/codebase/backend_tests_test_rbac.py.md |     2 +-
++-+ ...backend_tests_test_reasoning_orchestrator.py.md |     2 +-
++-+ .../backend_tests_test_repo_discovery.py.md        |     2 +-
++-+ .../backend_tests_test_resource_catalog.py.md      |     2 +-
++-+ .../autogen/codebase/backend_tests_test_rlhf.py.md |     2 +-
++-+ ...kend_tests_test_sandbox_orchestration_run.py.md |     2 +-
++-+ .../backend_tests_test_schema_validator.py.md      |     2 +-
++-+ .../codebase/backend_tests_test_secret_vault.py.md |     2 +-
++-+ ...ackend_tests_test_secure_credential_store.py.md |     2 +-
++-+ .../backend_tests_test_security_middleware.py.md   |     2 +-
++-+ .../backend_tests_test_security_regression.py.md   |     2 +-
++-+ .../backend_tests_test_self_evolution_agent.py.md  |     2 +-
++-+ .../backend_tests_test_simulator_browser_api.py.md |     2 +-
++-+ .../codebase/backend_tests_test_skill_graph.py.md  |     2 +-
++-+ .../backend_tests_test_skill_recommender.py.md     |     2 +-
++-+ .../backend_tests_test_sliding_window_memory.py.md |     2 +-
++-+ .../backend_tests_test_sprint_c_tools.py.md        |     2 +-
++-+ .../codebase/backend_tests_test_sprint_g.py.md     |     2 +-
++-+ .../backend_tests_test_stealth_networking.py.md    |     2 +-
++-+ .../codebase/backend_tests_test_stream.py.md       |     2 +-
++-+ .../backend_tests_test_style_learner.py.md         |     2 +-
++-+ ...kend_tests_test_supabase_schema_bootstrap.py.md |     2 +-
++-+ .../backend_tests_test_supabase_store.py.md        |     2 +-
++-+ .../backend_tests_test_swarm_orchestrator.py.md    |     2 +-
++-+ .../backend_tests_test_task_endpoints.py.md        |     2 +-
++-+ .../codebase/backend_tests_test_task_queue.py.md   |     2 +-
++-+ .../codebase/backend_tests_test_task_router.py.md  |     2 +-
++-+ .../codebase/backend_tests_test_telegram_bot.py.md |     2 +-
++-+ .../codebase/backend_tests_test_telemetry.py.md    |     2 +-
++-+ .../backend_tests_test_tenant_rate_limiter.py.md   |     2 +-
++-+ .../backend_tests_test_universal_rules.py.md       |     2 +-
++-+ .../backend_tests_test_upstash_redis.py.md         |     2 +-
++-+ docs/autogen/codebase/backend_tests_test_uss.py.md |     2 +-
++-+ .../backend_tests_test_video_generator.py.md       |     2 +-
++-+ .../codebase/backend_tests_test_vision_agent.py.md |     2 +-
++-+ .../codebase/backend_tests_test_voice_stream.py.md |     2 +-
++-+ .../codebase/backend_tests_test_vpn_switcher.py.md |     2 +-
++-+ .../codebase/backend_tests_test_vscode_e2e.py.md   |     2 +-
++-+ .../codebase/backend_tests_test_web_fallback.py.md |     2 +-
++-+ ...d_tests_tools_test_auto_coverage_improver.py.md |     2 +-
++-+ ...kend_tests_tools_test_auto_test_generator.py.md |     2 +-
++-+ ...kend_tests_tools_test_code_smell_detector.py.md |     2 +-
++-+ .../backend_tests_tools_test_cot_reasoner.py.md    |     2 +-
++-+ ...backend_tests_tools_test_coverage_auditor.py.md |     2 +-
++-+ ...d_tests_tools_test_knowledge_base_indexer.py.md |     2 +-
++-+ ...backend_tests_tools_test_multilingual_tts.py.md |     2 +-
++-+ ...nd_tests_tools_test_viral_referral_engine.py.md |     2 +-
++-+ .../backend_tests_utils_test_api_tracker.py.md     |     2 +-
++-+ .../backend_tests_workers_test_celery_app.py.md    |     2 +-
++-+ .../backend_tools_3d_model_generator.py.md         |     2 +-
++-+ .../codebase/backend_tools_agent_tools.py.md       |     2 +-
++-+ .../backend_tools_ai_federation_protocol.py.md     |     2 +-
++-+ .../backend_tools_ai_pair_programmer.py.md         |     2 +-
++-+ .../codebase/backend_tools_api_gateway.py.md       |     2 +-
++-+ .../backend_tools_auto_coverage_improver.py.md     |     2 +-
++-+ .../codebase/backend_tools_auto_pr_pipeline.py.md  |     2 +-
++-+ .../backend_tools_auto_test_generator.py.md        |     2 +-
++-+ .../backend_tools_bandwidth_optimizer.py.md        |     2 +-
++-+ .../backend_tools_bangla_ai_connector.py.md        |     2 +-
++-+ .../codebase/backend_tools_bangla_nlp.py.md        |     2 +-
++-+ .../codebase/backend_tools_bangla_voice.py.md      |     2 +-
++-+ .../codebase/backend_tools_benchmark_agent.py.md   |     2 +-
++-+ .../backend_tools_bengali_ocr_converter.py.md      |     2 +-
++-+ .../codebase/backend_tools_blockchain_agent.py.md  |     2 +-
++-+ .../autogen/codebase/backend_tools_bootstrap.py.md |     2 +-
++-+ .../codebase/backend_tools_browser_agent.py.md     |     2 +-
++-+ .../codebase/backend_tools_browser_stealth.py.md   |     2 +-
++-+ .../backend_tools_checkpoint_manager.py.md         |     2 +-
++-+ docs/autogen/codebase/backend_tools_cli.py.md      |     2 +-
++-+ .../backend_tools_cloud_sandbox_orchestrator.py.md |     2 +-
++-+ .../backend_tools_code_smell_detector.py.md        |     2 +-
++-+ .../codebase/backend_tools_codebase_exporter.py.md |     2 +-
++-+ .../backend_tools_collaborative_editor.py.md       |     2 +-
++-+ .../codebase/backend_tools_comment_thread_ai.py.md |     2 +-
++-+ .../codebase/backend_tools_computer_agent.py.md    |     2 +-
++-+ .../backend_tools_conversation_manager.py.md       |     2 +-
++-+ .../codebase/backend_tools_cost_auditor.py.md      |     2 +-
++-+ .../codebase/backend_tools_cot_reasoner.py.md      |     2 +-
++-+ .../codebase/backend_tools_coverage_auditor.py.md  |     2 +-
++-+ .../backend_tools_dependency_manager_agent.py.md   |     2 +-
++-+ .../backend_tools_diagram_to_architecture.py.md    |     2 +-
++-+ .../codebase/backend_tools_docker_sandbox.py.md    |     2 +-
++-+ .../codebase/backend_tools_domain_adapter.py.md    |     2 +-
++-+ .../codebase/backend_tools_email_agent.py.md       |     2 +-
++-+ .../codebase/backend_tools_ensemble_router.py.md   |     2 +-
++-+ .../codebase/backend_tools_fuzz_sandbox.py.md      |     2 +-
++-+ .../codebase/backend_tools_game_dev_agent.py.md    |     2 +-
++-+ .../backend_tools_gcp_cloud_functions.py.md        |     2 +-
++-+ .../backend_tools_git_knowledge_extractor.py.md    |     2 +-
++-+ .../codebase/backend_tools_github_agent.py.md      |     2 +-
++-+ .../codebase/backend_tools_graph_service.py.md     |     2 +-
++-+ .../backend_tools_headless_agent_registry.py.md    |     2 +-
++-+ .../codebase/backend_tools_health_checker.py.md    |     2 +-
++-+ .../codebase/backend_tools_image_generator.py.md   |     2 +-
++-+ .../codebase/backend_tools_image_to_code.py.md     |     2 +-
++-+ docs/autogen/codebase/backend_tools_init_.py.md    |     2 +-
++-+ .../backend_tools_knowledge_base_indexer.py.md     |     2 +-
++-+ .../backend_tools_langchain_agent_example.py.md    |     2 +-
++-+ .../codebase/backend_tools_legal_agent.py.md       |     2 +-
++-+ .../backend_tools_local_ocr_extractor.py.md        |     2 +-
++-+ .../codebase/backend_tools_local_search_rag.py.md  |     2 +-
++-+ .../codebase/backend_tools_marketplace_agent.py.md |     2 +-
++-+ .../codebase/backend_tools_mcp_cloud_deploy.py.md  |     2 +-
++-+ .../codebase/backend_tools_mcp_github_cicd.py.md   |     2 +-
++-+ .../codebase/backend_tools_mcp_server.py.md        |     2 +-
++-+ .../codebase/backend_tools_mcp_supabase.py.md      |     2 +-
++-+ .../codebase/backend_tools_mcp_workspace.py.md     |     2 +-
++-+ .../codebase/backend_tools_medical_agent.py.md     |     2 +-
++-+ .../codebase/backend_tools_meta_architect.py.md    |     2 +-
++-+ .../codebase/backend_tools_model_trainer.py.md     |     2 +-
++-+ .../backend_tools_monthly_cost_reporter.py.md      |     2 +-
++-+ .../backend_tools_multi_account_rotator.py.md      |     2 +-
++-+ .../codebase/backend_tools_multilingual_tts.py.md  |     2 +-
++-+ .../codebase/backend_tools_music_generator.py.md   |     2 +-
++-+ .../codebase/backend_tools_offline_mode.py.md      |     2 +-
++-+ .../backend_tools_on_premise_deployer.py.md        |     2 +-
++-+ .../backend_tools_parallel_agent_executor.py.md    |     2 +-
++-+ .../codebase/backend_tools_pdf_to_sdk.py.md        |     2 +-
++-+ .../codebase/backend_tools_plan_sorter.py.md       |     2 +-
++-+ .../backend_tools_playwright_browser_agent.py.md   |     2 +-
++-+ .../codebase/backend_tools_pr_reviewer.py.md       |     2 +-
++-+ .../codebase/backend_tools_pre_commit_ai.py.md     |     2 +-
++-+ .../codebase/backend_tools_preference_memory.py.md |     2 +-
++-+ .../backend_tools_presentation_generator.py.md     |     2 +-
++-+ .../codebase/backend_tools_proxy_manager.py.md     |     2 +-
++-+ .../codebase/backend_tools_repo_deep_indexer.py.md |     2 +-
++-+ .../backend_tools_repo_discovery_agent.py.md       |     2 +-
++-+ .../codebase/backend_tools_resource_catalog.py.md  |     2 +-
++-+ .../codebase/backend_tools_rlhf_pipeline.py.md     |     2 +-
++-+ .../codebase/backend_tools_safe_executor.py.md     |     2 +-
++-+ .../codebase/backend_tools_scientific_agent.py.md  |     2 +-
++-+ .../codebase/backend_tools_seed_database.py.md     |     2 +-
++-+ .../codebase/backend_tools_self_planner.py.md      |     2 +-
++-+ .../codebase/backend_tools_skill_recommender.py.md |     2 +-
++-+ .../codebase/backend_tools_sso_integrator.py.md    |     2 +-
++-+ .../backend_tools_stealth_http_client.py.md        |     2 +-
++-+ .../codebase/backend_tools_style_learner.py.md     |     2 +-
++-+ .../codebase/backend_tools_telegram_bot.py.md      |     2 +-
++-+ .../backend_tools_tenant_rate_limiter.py.md        |     2 +-
++-+ .../backend_tools_test_3d_model_generator.py.md    |     2 +-
++-+ ...end_tools_test_cloud_sandbox_orchestrator.py.md |     2 +-
++-+ .../codebase/backend_tools_trading_agent.py.md     |     2 +-
++-+ .../codebase/backend_tools_video_generator.py.md   |     2 +-
++-+ .../backend_tools_viral_referral_engine.py.md      |     2 +-
++-+ .../codebase/backend_tools_vision_agent.py.md      |     2 +-
++-+ docs/autogen/codebase/backend_tools_voice.py.md    |     2 +-
++-+ .../codebase/backend_tools_voice_coder.py.md       |     2 +-
++-+ .../codebase/backend_tools_vpn_switcher.py.md      |     2 +-
++-+ .../backend_tools_vulnerability_predictor.py.md    |     2 +-
++-+ .../backend_tools_web_fallback_agent.py.md         |     2 +-
++-+ .../codebase/backend_utils_api_tracker.py.md       |     2 +-
++-+ .../codebase/backend_utils_environment.py.md       |     2 +-
++-+ .../codebase/backend_utils_firestore_helpers.py.md |     2 +-
++-+ .../codebase/backend_utils_http_client.py.md       |     2 +-
++-+ docs/autogen/codebase/backend_utils_init_.py.md    |     2 +-
++-+ .../codebase/backend_utils_json_helpers.py.md      |     2 +-
++-+ .../codebase/backend_utils_timestamps.py.md        |     2 +-
++-+ docs/autogen/codebase/backend_uv.lock.md           |     2 +-
++-+ .../codebase/backend_workers_celery_app.py.md      |     2 +-
++-+ .../codebase/backend_workers_chaos_worker.py.md    |     2 +-
++-+ .../codebase/config_.pre-commit-config.yaml.md     |     2 +-
++-+ docs/autogen/codebase/config_audit-rules.yml.md    |     2 +-
++-+ .../codebase/config_compliance-rules.yml.md        |     2 +-
++-+ docs/autogen/codebase/config_docker-limits.yml.md  |     2 +-
++-+ .../codebase/config_firestore.indexes.json.md      |     2 +-
++-+ docs/autogen/codebase/config_kilo.json.md          |     2 +-
++-+ .../codebase/config_promptfooconfig.yaml.md        |     2 +-
++-+ docs/autogen/codebase/config_proxy_list.json.md    |     2 +-
++-+ .../autogen/codebase/config_routing_policy.json.md |     2 +-
++-+ docs/autogen/codebase/config_vercel.json.md        |     2 +-
++-+ docs/autogen/codebase/coverage.toml.md             |     2 +-
++-+ docs/autogen/codebase/docker-compose.yml.md        |     2 +-
++-+ .../codebase/evolution_auto_skill_creator.py.md    |     2 +-
++-+ .../autogen/codebase/evolution_daily_learner.py.md |     2 +-
++-+ .../codebase/evolution_evolution_engine.py.md      |     2 +-
++-+ .../codebase/evolution_evolution_react_agent.py.md |     2 +-
++-+ docs/autogen/codebase/evolution_self_updater.py.md |     2 +-
++-+ docs/autogen/codebase/find_duplicate_files.py.md   |     2 +-
++-+ docs/autogen/codebase/find_duplicate_tests.py.md   |     2 +-
++-+ docs/autogen/codebase/firebase.json.md             |     2 +-
++-+ .../infrastructure_check_deploy_gate.py.md         |     2 +-
++-+ ...infrastructure_cloudflare_enhanced-worker.js.md |     2 +-
++-+ .../infrastructure_cloudflare_worker.js.md         |     2 +-
++-+ .../infrastructure_cloudflare_wrangler.toml.md     |     2 +-
++-+ .../infrastructure_cloudrun_autoscale.yaml.md      |     2 +-
++-+ .../infrastructure_cloudrun_multi_region.yaml.md   |     2 +-
++-+ ...functions_firebase_functions_v1_README_BD.md.md |     2 +-
++-+ ...unctions_firebase_functions_v1_api-router.js.md |     2 +-
++-+ ..._firebase_functions_v1_deployment-monitor.js.md |     2 +-
++-+ ...ctions_firebase_functions_v1_health-smart.js.md |     2 +-
++-+ ...ase_functions_firebase_functions_v1_index.js.md |     2 +-
++-+ ...functions_firebase_functions_v1_package.json.md |     2 +-
++-+ ...ons_firebase_functions_v1_providers-smart.js.md |     2 +-
++-+ ...se_functions_v1_server-connection-monitor.js.md |     2 +-
++-+ ..._firebase_functions_v1_src_chatClassifier.ts.md |     2 +-
++-+ ...dataconnect-admin-generated_esm_index.esm.js.md |     2 +-
++-+ ...dataconnect-admin-generated_esm_package.json.md |     2 +-
++-+ ...src_dataconnect-admin-generated_index.cjs.js.md |     2 +-
++-+ ...1_src_dataconnect-admin-generated_index.d.ts.md |     2 +-
++-+ ...src_dataconnect-admin-generated_package.json.md |     2 +-
++-+ ...s_firebase_functions_v1_src_email_handler.ts.md |     2 +-
++-+ ...functions_firebase_functions_v1_src_index.ts.md |     2 +-
++-+ ...ns_firebase_functions_v1_src_scrapeEngine.ts.md |     2 +-
++-+ ...ase_functions_v1_src_scrapeHistoryManager.ts.md |     2 +-
++-+ ..._firebase_functions_v1_src_scrapeSchema.yaml.md |     2 +-
++-+ ...functions_firebase_functions_v1_swagger.yaml.md |     2 +-
++-+ ...tions_firebase_functions_v1_system-health.js.md |     2 +-
++-+ ...unctions_firebase_functions_v1_tsconfig.json.md |     2 +-
++-+ ...irebase_functions_v1_utils_externalClient.js.md |     2 +-
++-+ ...rastructure_firebase_functions_ocrTrigger.ts.md |     2 +-
++-+ ...ure_monitoring_docker-compose.monitoring.yml.md |     2 +-
++-+ ...astructure_monitoring_grafana_dashboard.json.md |     2 +-
++-+ ...cture_terraform_root_cause_analysis_agent.py.md |     2 +-
++-+ ..._terraform_test_root_cause_analysis_agent.py.md |     2 +-
++-+ .../codebase/infrastructure_vitest-report.json.md  |     2 +-
++-+ docs/autogen/codebase/package.json.md              |     2 +-
++-+ .../codebase/packages_shared-types_package.json.md |     2 +-
++-+ .../packages_shared-types_src_conversation.ts.md   |     2 +-
++-+ .../codebase/packages_shared-types_src_index.ts.md |     2 +-
++-+ .../packages_shared-types_src_message.ts.md        |     2 +-
++-+ .../packages_shared-types_tsconfig.json.md         |     2 +-
++-+ .../packages_ui-components_package.json.md         |     2 +-
++-+ .../packages_ui-components_src_ChatBubble.tsx.md   |     2 +-
++-+ ...components_src_components_DashboardShell.tsx.md |     2 +-
++-+ ...nents_src_components_LiveSujonBackground.tsx.md |     2 +-
++-+ ...-components_src_contexts_SharedProviders.tsx.md |     2 +-
++-+ .../packages_ui-components_src_index.ts.md         |     2 +-
++-+ .../packages_ui-components_src_utils_api.ts.md     |     2 +-
++-+ .../packages_ui-components_tsconfig.json.md        |     2 +-
++-+ docs/autogen/codebase/playwright-ct.config.ts.md   |     2 +-
++-+ docs/autogen/codebase/playwright.config.ts.md      |     2 +-
++-+ docs/autogen/codebase/pnpm-lock.yaml.md            |     2 +-
++-+ docs/autogen/codebase/pnpm-workspace.yaml.md       |     2 +-
++-+ docs/autogen/codebase/scratch_job_details.json.md  |     2 +-
++-+ docs/autogen/codebase/scratch_smoke_check.py.md    |     2 +-
++-+ .../scratch_supremeai_skill_ecosystem_app.py.md    |     2 +-
++-+ ...ratch_supremeai_skill_ecosystem_generator.py.md |     2 +-
++-+ ..._supremeai_skill_ecosystem_sample_skill.json.md |     2 +-
++-+ ...ch_supremeai_skill_ecosystem_skill_schema.py.md |     2 +-
++-+ .../codebase/scratch_sync_gsm_secrets.py.md        |     2 +-
++-+ docs/autogen/codebase/scratch_update_vault.py.md   |     2 +-
++-+ .../autogen/codebase/scratch_update_vault_r2.py.md |     2 +-
++-+ .../codebase/scratch_verify_project_health.py.md   |     2 +-
++-+ .../codebase/scripts_add_bangla_comments.py.md     |     2 +-
++-+ .../codebase/scripts_aggregate_context.py.md       |     2 +-
++-+ ...scripts_backup_auto_cross_cloud_replicate.py.md |     2 +-
++-+ .../scripts_backup_auto_firestore_backup.py.md     |     2 +-
++-+ .../scripts_benchmark_perf_benchmark.py.md         |     2 +-
++-+ .../codebase/scripts_bots_auto_alert_bot.py.md     |     2 +-
++-+ .../scripts_bots_auto_daily_standup_bot.py.md      |     2 +-
++-+ .../codebase/scripts_code_smell_detector.py.md     |     2 +-
++-+ docs/autogen/codebase/scripts_codebase_to_md.py.md |     2 +-
++-+ .../codebase/scripts_codegraph_integration.py.md   |     2 +-
++-+ .../codebase/scripts_commit_supreme_ci.yml.md      |     2 +-
++-+ docs/autogen/codebase/scripts_config_audit.py.md   |     2 +-
++-+ .../scripts_core_engine_multicatalog_search.py.md  |     2 +-
++-+ .../codebase/scripts_core_engine_tool_ranker.py.md |     2 +-
++-+ .../codebase/scripts_create_test_admin.py.md       |     2 +-
++-+ .../autogen/codebase/scripts_db_auto_migrate.py.md |     2 +-
++-+ docs/autogen/codebase/scripts_db_auto_seed.py.md   |     2 +-
++-+ .../autogen/codebase/scripts_docker_ai_guard.py.md |     2 +-
++-+ ...ipts_evolution_auto_marketing_skill_forge.py.md |     2 +-
++-+ docs/autogen/codebase/scripts_fix_mypy.py.md       |     2 +-
++-+ docs/autogen/codebase/scripts_fuzz_sandbox.py.md   |     2 +-
++-+ .../scripts_generate_codebase_markdown.py.md       |     2 +-
++-+ ...scripts_generate_codebase_single_markdown.py.md |     2 +-
++-+ docs/autogen/codebase/scripts_generate_md.py.md    |     2 +-
++-+ .../codebase/scripts_generate_smart_docs.py.md     |     2 +-
++-+ docs/autogen/codebase/scripts_k6_load_test.js.md   |     2 +-
++-+ docs/autogen/codebase/scripts_locustfile.py.md     |     2 +-
++-+ docs/autogen/codebase/scripts_migrate.py.md        |     2 +-
++-+ .../codebase/scripts_multi_model_validator.py.md   |     2 +-
++-+ ...scripts_orchestrator_auto_budget_guardian.py.md |     2 +-
++-+ docs/autogen/codebase/scripts_profile_memory.py.md |     2 +-
++-+ .../scripts_quality_auto_dead_code_remover.py.md   |     2 +-
++-+ .../scripts_quality_auto_improve_coverage.py.md    |     2 +-
++-+ .../scripts_quality_auto_refactor_suggester.py.md  |     2 +-
++-+ ...cripts_quality_check_ollama_test_coverage.py.md |     2 +-
++-+ .../scripts_resource_collection_awesome_go.py.md   |     2 +-
++-+ ...cripts_resource_collection_awesome_python.py.md |     2 +-
++-+ ...ts_resource_collection_awesome_selfhosted.py.md |     2 +-
++-+ ...ripts_resource_collection_base_api_client.py.md |     2 +-
++-+ .../scripts_resource_collection_base_scraper.py.md |     2 +-
++-+ ...pts_resource_collection_ossinsight_client.py.md |     2 +-
++-+ ...ipts_resource_collection_ossinsight_init_.py.md |     2 +-
++-+ ...ripts_resource_collection_ossinsight_test.py.md |     2 +-
++-+ .../scripts_resource_collection_run_all.py.md      |     2 +-
++-+ ...ts_resource_collection_run_all_collectors.py.md |     2 +-
++-+ ...ripts_resource_scraping_awesome_go_scrape.py.md |     2 +-
++-+ ...s_resource_scraping_awesome_python_scrape.py.md |     2 +-
++-+ ...source_scraping_awesome_selfhosted_scrape.py.md |     2 +-
++-+ .../codebase/scripts_run_all_collectors.py.md      |     2 +-
++-+ docs/autogen/codebase/scripts_safety_guard.py.md   |     2 +-
++-+ .../scripts_security_auto_find_blindspots.py.md    |     2 +-
++-+ .../scripts_security_auto_secret_rotate.py.md      |     2 +-
++-+ .../scripts_security_check_dependencies.py.md      |     2 +-
++-+ .../codebase/scripts_security_code-quality.yml.md  |     2 +-
++-+ ...scripts_security_dependency-health-check.yml.md |     2 +-
++-+ .../codebase/scripts_security_find_dead_code.py.md |     2 +-
++-+ docs/autogen/codebase/scripts_seed_repos.py.md     |     2 +-
++-+ .../autogen/codebase/scripts_setup_ci_runner.py.md |     2 +-
++-+ .../codebase/scripts_setup_firebase_admin.py.md    |     2 +-
++-+ docs/autogen/codebase/scripts_skill_loader.py.md   |     2 +-
++-+ .../codebase/scripts_supreme-config-audit.py.md    |     2 +-
++-+ .../codebase/scripts_supreme-docker-analyzer.py.md |     2 +-
++-+ .../codebase/scripts_supreme-risk-scorer.py.md     |     2 +-
++-+ .../codebase/scripts_supreme_context_builder.py.md |     2 +-
++-+ .../scripts_tenant_auto_tenant_health_report.py.md |     2 +-
++-+ .../scripts_tenant_auto_tenant_setup.py.md         |     2 +-
++-+ docs/autogen/codebase/scripts_test_bangla.py.md    |     2 +-
++-+ docs/autogen/codebase/scripts_test_read.py.md      |     2 +-
++-+ docs/autogen/codebase/security-scan.yml.md         |     2 +-
++-+ .../codebase/skills_dynamic_csv_exporter.py.md     |     2 +-
++-+ .../codebase/skills_dynamic_text_summarizer.py.md  |     2 +-
++-+ .../codebase/skills_dynamic_web_scraper.py.md      |     2 +-
++-+ docs/autogen/codebase/skills_init_.py.md           |     2 +-
++-+ docs/autogen/codebase/skills_installer.py.md       |     2 +-
++-+ docs/autogen/codebase/skills_marketplace.py.md     |     2 +-
++-+ docs/autogen/codebase/skills_registry.py.md        |     2 +-
++-+ docs/autogen/codebase/skills_schema.py.md          |     2 +-
++-+ .../codebase/test-results_.last-run.json.md        |     2 +-
++-+ ...be-accessible-Mobile-Chrome_error-context.md.md |     2 +-
++-+ ...be-accessible-Mobile-Safari_error-context.md.md |     2 +-
++-+ ...bility-issues-Mobile-Safari_error-context.md.md |     2 +-
++-+ ...sends-message-Mobile-Chrome_error-context.md.md |     2 +-
++-+ ...sends-message-Mobile-Safari_error-context.md.md |     2 +-
++-+ ...Chat-sends-message-chromium_error-context.md.md |     2 +-
++-+ .../codebase/test-results_e2e-report.json.md       |     2 +-
++-+ .../codebase/tests_e2e_accessibility.spec.ts.md    |     2 +-
++-+ .../codebase/tests_e2e_admin-dashboard.spec.ts.md  |     2 +-
++-+ docs/autogen/codebase/tests_e2e_chat.spec.ts.md    |     2 +-
++-+ docs/autogen/codebase/tests_e2e_visual.spec.ts.md  |     2 +-
++-+ docs/autogen/codebase/tests_test_tenant_di.py.md   |     2 +-
++-+ docs/autogen/codebase/tools_cache_cleanup.py.md    |     2 +-
++-+ .../tools_vscode-extension_ARCHITECTURE_BN.md.md   |     2 +-
++-+ ...vscode-extension_AdminMetricsController.java.md |     2 +-
++-+ ...s_vscode-extension_CodebaseAuditService.java.md |     2 +-
++-+ ...ools_vscode-extension_FeatureDefinition.java.md |     2 +-
++-+ ...ode-extension_FeatureRegistryController.java.md |     2 +-
++-+ ...vscode-extension_FeatureRegistryService.java.md |     2 +-
++-+ .../tools_vscode-extension_GlobalMetrics.java.md   |     2 +-
++-+ ...s_vscode-extension_GlobalMetricsService.java.md |     2 +-
++-+ ...ols_vscode-extension_INTEGRATION_GUIDE_BN.md.md |     2 +-
++-+ .../codebase/tools_vscode-extension_README.md.md   |     2 +-
++-+ .../tools_vscode-extension_README_BN.md.md         |     2 +-
++-+ .../tools_vscode-extension_jest.config.js.md       |     2 +-
++-+ .../tools_vscode-extension_package.json.md         |     2 +-
++-+ .../tools_vscode-extension_package.nls.bn.json.md  |     2 +-
++-+ .../tools_vscode-extension_src_agentDetector.ts.md |     2 +-
++-+ .../tools_vscode-extension_src_ai_AIService.ts.md  |     2 +-
++-+ ...de-extension_src_ai_CodeGenerationService.ts.md |     2 +-
++-+ ...vscode-extension_src_ai_CodeReviewService.ts.md |     2 +-
++-+ ...ls_vscode-extension_src_ai_ContextBuilder.ts.md |     2 +-
++-+ ...xtension_src_dataconnect-generated_README.md.md |     2 +-
++-+ ...n_src_dataconnect-generated_esm_index.esm.js.md |     2 +-
++-+ ...n_src_dataconnect-generated_esm_package.json.md |     2 +-
++-+ ...nsion_src_dataconnect-generated_index.cjs.js.md |     2 +-
++-+ ...tension_src_dataconnect-generated_index.d.ts.md |     2 +-
++-+ ...nsion_src_dataconnect-generated_package.json.md |     2 +-
++-+ .../tools_vscode-extension_src_extension.ts.md     |     2 +-
++-+ ...de-extension_src_handlers_CodeEditHandler.ts.md |     2 +-
++-+ ...de-extension_src_handlers_CodeFlowHandler.ts.md |     2 +-
++-+ ...scode-extension_src_handlers_ErrorHandler.ts.md |     2 +-
++-+ ...de-extension_src_handlers_FeedbackHandler.ts.md |     2 +-
++-+ ...ode-extension_src_providers_CodeFlowPanel.ts.md |     2 +-
++-+ ...nsion_src_providers_StreamingChatProvider.ts.md |     2 +-
++-+ ...n_src_providers_SupremeAIActivityProvider.ts.md |     2 +-
++-+ ...providers_SupremeAIAdminDashboardProvider.ts.md |     2 +-
++-+ ...nsion_src_providers_SupremeAIChatProvider.ts.md |     2 +-
++-+ ...extension_src_providers_SupremeAIChatView.ts.md |     2 +-
++-+ ...viders_SupremeAICustomerDashboardProvider.ts.md |     2 +-
++-+ ...on_src_providers_SupremeAISidebarProvider.ts.md |     2 +-
++-+ ...vscode-extension_src_services_AuthService.ts.md |     2 +-
++-+ ...e-extension_src_services_SupremeAIService.ts.md |     2 +-
++-+ .../tools_vscode-extension_src_types_index.ts.md   |     2 +-
++-+ ...ension_src_utils_DynamicSignatureRegistry.ts.md |     2 +-
++-+ ...s_vscode-extension_test_auth-service.test.ts.md |     2 +-
++-+ ...ools_vscode-extension_test_mocks_vscode.d.ts.md |     2 +-
++-+ .../tools_vscode-extension_test_mocks_vscode.ts.md |     2 +-
++-+ .../tools_vscode-extension_test_setup.ts.md        |     2 +-
++-+ ...ode-extension_test_supremeai-service.test.ts.md |     2 +-
++-+ .../tools_vscode-extension_tsconfig.json.md        |     2 +-
++-+ .../tools_vscode-extension_vitest.config.ts.md     |     2 +-
++-+ docs/autogen/codebase/turbo.json.md                |     2 +-
++-+ docs/autogen/codebase/vercel.json.md               |     2 +-
++-+ docs/autogen/codebase_full.md                      |    50 +-
++-+ 1081 files changed, 12986 insertions(+), 10133 deletions(-)
++-+
++-+```
++-+
++-+## Diff Detail
++-+```diff
++-+commit 02cda7b92868e8e18084361bbe639bc49107e2a7
++-+Author: github-actions[bot] <github-actions[bot]@users.noreply.github.com>
++-+Date:   Tue Jul 7 07:10:33 2026 +0000
++-+
++-+    docs: auto-update codebase docs & dashboard [skip ci]
++-+
++-+diff --git a/docs/autogen/INDEX.md b/docs/autogen/INDEX.md
++-+index 2a4b5cc98..301ad7674 100644
++-+--- a/docs/autogen/INDEX.md
++-++++ b/docs/autogen/INDEX.md
++-+@@ -13,4 +13,4 @@
++-+ - **ডিরেক্টরি:** [changes/](changes/)
++-+ 
++-+ ---
++-+-*স্বয়ংক্রিয়ভাবে তৈরি — 2026-07-07 06:57:03*
++-++*স্বয়ংক্রিয়ভাবে তৈরি — 2026-07-07 07:10:33*
++-+diff --git a/docs/autogen/changes/change_2a4ec4991835e461130ab9fa375765a396518604.md b/docs/autogen/changes/change_2a4ec4991835e461130ab9fa375765a396518604.md
++-+new file mode 100644
++-+index 000000000..4f98bbc1f
++-+--- /dev/null
++-++++ b/docs/autogen/changes/change_2a4ec4991835e461130ab9fa375765a396518604.md
++-+@@ -0,0 +1,11707 @@
++-++# 📋 Commit 2a4ec4991835e461130ab9fa375765a396518604
++-++
++-++## Commit Stats
++-++```
++-++commit 2a4ec4991835e461130ab9fa375765a396518604
++-++Author: github-actions[bot] <github-actions[bot]@users.noreply.github.com>
++-++Date:   Tue Jul 7 06:57:04 2026 +0000
++-++
++-++    docs: auto-update codebase docs & dashboard [skip ci]
++-++
++-++ docs/autogen/INDEX.md                              |     2 +-
++-++ ...nge_4163e41f3732ba2efd46e0c2d54f1a7691d36975.md |    75 +
++-++ ...nge_50eb3cf012a0f762c2eeac865b9a82322522a97d.md | 12671 +++++++++++++++++++
++-++ ...nge_64eadbbef4e0d5691127dcc7d5f9d09b141bd09a.md |    42 -
++-++ ...nge_9e1dea0eff5c6b757431baa336877eb5bdf32348.md |  9008 -------------
++-++ .../.github_actions_setup-backend_action.yml.md    |     2 +-
++-++ ...github_scripts_advanced-validation-report.py.md |     2 +-
++-++ .../codebase/.github_scripts_canary-deploy.py.md   |     2 +-
++-++ .../codebase/.github_scripts_ci-auto-fix-v3.py.md  |     2 +-
++-++ .../codebase/.github_scripts_ci-auto-fix.py.md     |     2 +-
++-++ .../.github_scripts_ci-decision-engine.py.md       |     2 +-
++-++ .../codebase/.github_scripts_ci-health-check.py.md |     2 +-
++-++ .../.github_scripts_clean_action_logs.py.md        |     2 +-
++-++ .../codebase/.github_scripts_deploy-backend.py.md  |     2 +-
++-++ .../.github_scripts_detect-previous-failures.py.md |     2 +-
++-++ .../codebase/.github_scripts_enforce_24h_gap.py.md |     2 +-
++-++ .../.github_scripts_generate-ci-report.py.md       |     2 +-
++-++ .../.github_scripts_generate_ai_prompt.py.md       |     2 +-
++-++ .../.github_scripts_multi-model-evaluator.py.md    |     2 +-
++-++ docs/autogen/codebase/.github_scripts_review.py.md |     2 +-
++-++ .../.github_scripts_supremeai-evaluator.py.md      |     2 +-
++-++ .../.github_scripts_test_ai_reviewer.py.md         |     2 +-
++-++ .../codebase/.github_workflows_deploy.yml.md       |     2 +-
++-++ .../.github_workflows_nightly-maintenance.yml.md   |     2 +-
++-++ .../.github_workflows_supreme-core-ci.yml.md       |     2 +-
++-++ .../.github_workflows_supreme-mobile-cd.yml.md     |     2 +-
++-++ ....github_workflows_supreme-release-builds.yml.md |     2 +-
++-++ .../.github_workflows_sync-from-prod.yml.md        |     2 +-
++-++ docs/autogen/codebase/AGENTS.md.md                 |     2 +-
++-++ docs/autogen/codebase/CHANGELOG.md.md              |     2 +-
++-++ docs/autogen/codebase/CI_PIPELINE.md.md            |     2 +-
++-++ docs/autogen/codebase/CONTRIBUTING.md.md           |     2 +-
++-++ docs/autogen/codebase/IMPLEMENTATION_STATUS.md.md  |     2 +-
++-++ .../codebase/PRODUCTION_READINESS_GUIDE.md.md      |     2 +-
++-++ docs/autogen/codebase/README.md.md                 |     2 +-
++-++ docs/autogen/codebase/SECURITY.md.md               |     2 +-
++-++ docs/autogen/codebase/admin_dashboard_script.js.md |     2 +-
++-++ docs/autogen/codebase/apps_desktop_README.md.md    |     2 +-
++-++ docs/autogen/codebase/apps_desktop_package.json.md |     2 +-
++-++ .../codebase/apps_desktop_src-tauri_Cargo.toml.md  |     2 +-
++-++ .../codebase/apps_desktop_src-tauri_build.rs.md    |     2 +-
++-++ .../apps_desktop_src-tauri_secure-store.ts.md      |     2 +-
++-++ .../codebase/apps_desktop_src-tauri_src_main.rs.md |     2 +-
++-++ .../apps_desktop_src-tauri_tauri.conf.json.md      |     2 +-
++-++ .../codebase/apps_desktop_src-ui_package.json.md   |     2 +-
++-++ .../codebase/apps_desktop_src-ui_src_App.tsx.md    |     2 +-
++-++ ..._desktop_src-ui_src_components_ChatInput.tsx.md |     2 +-
++-++ .../codebase/apps_desktop_src-ui_src_main.tsx.md   |     2 +-
++-++ .../apps_desktop_src-ui_src_pages_AdminPage.tsx.md |     2 +-
++-++ .../apps_desktop_src-ui_src_pages_ChatPage.tsx.md  |     2 +-
++-++ ...s_desktop_src-ui_src_pages_EvolutionPage.tsx.md |     2 +-
++-++ .../apps_desktop_src-ui_src_pages_LoginPage.tsx.md |     2 +-
++-++ ...apps_desktop_src-ui_src_pages_SkillsPage.tsx.md |     2 +-
++-++ .../apps_desktop_src-ui_src_services_api.ts.md     |     2 +-
++-++ .../apps_desktop_src-ui_src_stores_authStore.ts.md |     2 +-
++-++ .../apps_desktop_src-ui_src_types_index.ts.md      |     2 +-
++-++ .../apps_desktop_src-ui_src_vite-env.d.ts.md       |     2 +-
++-++ .../codebase/apps_desktop_src-ui_tsconfig.json.md  |     2 +-
++-++ .../apps_desktop_src-ui_tsconfig.node.json.md      |     2 +-
++-++ .../codebase/apps_desktop_src-ui_vite.config.ts.md |     2 +-
++-++ ...ava_com_supremeai_JavaWorkerApplication.java.md |     2 +-
++-++ ...va_com_supremeai_grpc_WorkerServiceImpl.java.md |     2 +-
++-++ ...in_java_com_supremeai_models_TaskEntity.java.md |     2 +-
++-++ ...m_supremeai_repositories_TaskRepository.java.md |     2 +-
++-++ ...va-worker_src_main_resources_application.yml.md |     2 +-
++-++ docs/autogen/codebase/apps_mobile_README.md.md     |     2 +-
++-++ docs/autogen/codebase/apps_mobile_README_BD.md.md  |     2 +-
++-++ .../codebase/apps_mobile_analysis_options.yaml.md  |     2 +-
++-++ .../codebase/apps_mobile_assets_i18n_ar.json.md    |     2 +-
++-++ .../codebase/apps_mobile_assets_i18n_bn.json.md    |     2 +-
++-++ .../codebase/apps_mobile_assets_i18n_en.json.md    |     2 +-
++-++ .../codebase/apps_mobile_assets_i18n_es.json.md    |     2 +-
++-++ .../codebase/apps_mobile_assets_i18n_hi.json.md    |     2 +-
++-++ .../codebase/apps_mobile_assets_i18n_zh.json.md    |     2 +-
++-++ .../codebase/apps_mobile_devtools_options.yaml.md  |     2 +-
++-++ ...ts.xcassets_AppIcon.appiconset_Contents.json.md |     2 +-
++-++ ....xcassets_LaunchImage.imageset_Contents.json.md |     2 +-
++-++ ...sets.xcassets_LaunchImage.imageset_README.md.md |     2 +-
++-++ ...s_mobile_lib_dataconnect_generated_README.md.md |     2 +-
++-++ ...le_lib_dataconnect_generated_add_review.dart.md |     2 +-
++-++ ..._lib_dataconnect_generated_create_movie.dart.md |     2 +-
++-++ ...lib_dataconnect_generated_delete_review.dart.md |     2 +-
++-++ ...ile_lib_dataconnect_generated_generated.dart.md |     2 +-
++-++ ...b_dataconnect_generated_get_movie_by_id.dart.md |     2 +-
++-++ ...e_lib_dataconnect_generated_list_movies.dart.md |     2 +-
++-++ ...dataconnect_generated_list_user_reviews.dart.md |     2 +-
++-++ ...le_lib_dataconnect_generated_list_users.dart.md |     2 +-
++-++ ..._lib_dataconnect_generated_search_movie.dart.md |     2 +-
++-++ ...e_lib_dataconnect_generated_upsert_user.dart.md |     2 +-
++-++ docs/autogen/codebase/apps_mobile_lib_main.dart.md |     2 +-
++-++ .../apps_mobile_lib_models_ci_job_model.dart.md    |     2 +-
++-++ ...apps_mobile_lib_providers_auth_provider.dart.md |     2 +-
++-++ ...mobile_lib_providers_dashboard_provider.dart.md |     2 +-
++-++ ...le_lib_providers_orchestration_provider.dart.md |     2 +-
++-++ ..._mobile_lib_providers_settings_provider.dart.md |     2 +-
++-++ ...ps_mobile_lib_screens_agent_chat_screen.dart.md |     2 +-
++-++ ...mobile_lib_screens_alerts_alerts_screen.dart.md |     2 +-
++-++ ..._lib_screens_analytics_analytics_screen.dart.md |     2 +-
++-++ ...apps_mobile_lib_screens_api_keys_screen.dart.md |     2 +-
++-++ .../apps_mobile_lib_screens_api_scaffold.dart.md   |     2 +-
++-++ ...apps_mobile_lib_screens_byoc_hub_screen.dart.md |     2 +-
++-++ ..._lib_screens_consensus_consensus_screen.dart.md |     2 +-
++-++ ...obile_lib_screens_dashboard_home_screen.dart.md |     2 +-
++-++ ...pps_mobile_lib_screens_dashboard_screen.dart.md |     2 +-
++-++ ..._lib_screens_extension_extension_screen.dart.md |     2 +-
++-++ .../apps_mobile_lib_screens_git_git_screen.dart.md |     2 +-
++-++ ...le_lib_screens_learning_learning_screen.dart.md |     2 +-
++-++ .../apps_mobile_lib_screens_login_screen.dart.md   |     2 +-
++-++ ...eens_notifications_notifications_screen.dart.md |     2 +-
++-++ ...b_screens_projects_projects_list_screen.dart.md |     2 +-
++-++ ...b_screens_providers_ai_providers_screen.dart.md |     2 +-
++-++ ...s_mobile_lib_screens_quota_quota_screen.dart.md |     2 +-
++-++ ...ib_screens_resilience_resilience_screen.dart.md |     2 +-
++-++ ...apps_mobile_lib_screens_settings_screen.dart.md |     2 +-
++-++ .../apps_mobile_lib_screens_terminal_view.dart.md  |     2 +-
++-++ .../apps_mobile_lib_screens_vpn_vpn_screen.dart.md |     2 +-
++-++ .../apps_mobile_lib_screens_wallet_screen.dart.md  |     2 +-
++-++ .../apps_mobile_lib_services_api_client.dart.md    |     2 +-
++-++ .../apps_mobile_lib_services_api_service.dart.md   |     2 +-
++-++ ...pps_mobile_lib_services_billing_service.dart.md |     2 +-
++-++ .../apps_mobile_lib_services_byoc_service.dart.md  |     2 +-
++-++ ...pps_mobile_lib_services_ci_sync_service.dart.md |     2 +-
++-++ ...s_mobile_lib_services_deployment_stream.dart.md |     2 +-
++-++ ...obile_lib_services_localization_service.dart.md |     2 +-
++-++ ...bile_lib_services_neural_stream_service.dart.md |     2 +-
++-++ ...obile_lib_services_notification_service.dart.md |     2 +-
++-++ ...obile_lib_services_offline_sync_service.dart.md |     2 +-
++-++ ...ile_lib_services_payment_gateway_bridge.dart.md |     2 +-
++-++ ..._mobile_lib_services_screen_api_service.dart.md |     2 +-
++-++ .../apps_mobile_lib_theme_app_theme.dart.md        |     2 +-
++-++ .../apps_mobile_lib_theme_theme_provider.dart.md   |     2 +-
++-++ ...apps_mobile_lib_widgets_action_hub_card.dart.md |     2 +-
++-++ ...ile_lib_widgets_base_dashboard_scaffold.dart.md |     2 +-
++-++ .../codebase/apps_mobile_lib_widgets_es.json.md    |     2 +-
++-++ .../apps_mobile_lib_widgets_json_dropzone.dart.md  |     2 +-
++-++ .../apps_mobile_lib_widgets_live_terminal.dart.md  |     2 +-
++-++ ...apps_mobile_lib_widgets_loading_widgets.dart.md |     2 +-
++-++ ...le_lib_widgets_transaction_history_list.dart.md |     2 +-
++-++ .../apps_mobile_lib_widgets_usage_chart.dart.md    |     2 +-
++-++ ...ts.xcassets_AppIcon.appiconset_Contents.json.md |     2 +-
++-++ docs/autogen/codebase/apps_mobile_pubspec.lock.md  |     2 +-
++-++ docs/autogen/codebase/apps_mobile_pubspec.yaml.md  |     2 +-
++-++ ...bile_test_auth_provider_edge_cases_test.dart.md |     2 +-
++-++ .../apps_mobile_test_auth_provider_test.dart.md    |     2 +-
++-++ ...mobile_test_home_screen_edge_cases_test.dart.md |     2 +-
++-++ .../apps_mobile_test_home_screen_test.dart.md      |     2 +-
++-++ ...s_mobile_test_screens_login_screen_test.dart.md |     2 +-
++-++ .../codebase/apps_mobile_web_manifest.json.md      |     2 +-
++-++ .../codebase/apps_studio-client_README.md.md       |     2 +-
++-++ .../codebase/apps_studio-client_components.json.md |     2 +-
++-++ .../apps_studio-client_eslint.config.js.md         |     2 +-
++-++ .../autogen/codebase/apps_studio-client_main.js.md |     2 +-
++-++ .../codebase/apps_studio-client_package.json.md    |     2 +-
++-++ .../apps_studio-client_public_manifest.json.md     |     2 +-
++-++ .../codebase/apps_studio-client_public_sw.js.md    |     2 +-
++-++ .../apps_studio-client_src_App.test.tsx.md         |    23 +-
++-++ .../codebase/apps_studio-client_src_App.tsx.md     |     2 +-
++-++ ...tudio-client_src_components_AdminConsole.tsx.md |     2 +-
++-++ ..._studio-client_src_components_BanglaHint.tsx.md |     2 +-
++-++ ...apps_studio-client_src_components_Header.tsx.md |     2 +-
++-++ ...lient_src_components_LiveSujonBackground.tsx.md |     2 +-
++-++ ...c_components_Onboarding_OnboardingWizard.tsx.md |     2 +-
++-++ ...ent_src_components_Onboarding_StepApiKey.tsx.md |     2 +-
++-++ ..._src_components_Onboarding_StepFirstChat.tsx.md |     2 +-
++-++ ...rc_components_Onboarding_StepModelSelect.tsx.md |     2 +-
++-++ ...dio-client_src_components_OperatorStudio.tsx.md |     2 +-
++-++ ...o-client_src_components_admin_ActionCard.tsx.md |     2 +-
++-++ ..._src_components_admin_AdminAuthenticated.tsx.md |     2 +-
++-++ ...client_src_components_admin_AdminConsole.tsx.md |     2 +-
++-++ ..._src_components_admin_AdminDashboardHome.tsx.md |     2 +-
++-++ ...o-client_src_components_admin_AdminLogin.tsx.md |     2 +-
++-++ ..._src_components_admin_AdminSubTabContent.tsx.md |     2 +-
++-++ ...-client_src_components_admin_AdminTopNav.tsx.md |     2 +-
++-++ ...o-client_src_components_admin_AethelNode.tsx.md |     2 +-
++-++ ...ient_src_components_admin_AuditLogsPanel.tsx.md |     2 +-
++-++ ...lient_src_components_admin_BackupRestore.tsx.md |     2 +-
++-++ ...ient_src_components_admin_CICDVisualizer.tsx.md |     2 +-
++-++ ...t_src_components_admin_CloudOrchestrator.tsx.md |     2 +-
++-++ ...lient_src_components_admin_CommandCenter.tsx.md |     2 +-
++-++ ...client_src_components_admin_ConfigEditor.tsx.md |     2 +-
++-++ ..._src_components_admin_ConsentMatrixModal.tsx.md |     2 +-
++-++ ...-client_src_components_admin_CostAuditor.tsx.md |     2 +-
++-++ ..._components_admin_DashboardErrorBoundary.tsx.md |     2 +-
++-++ ...ent_src_components_admin_DeploymentModal.tsx.md |     2 +-
++-++ ...client_src_components_admin_DynamicPanel.tsx.md |     2 +-
++-++ ...omponents_admin_EnhancedSkillMarketplace.tsx.md |     2 +-
++-++ ...t_src_components_admin_GithubIntegration.tsx.md |     2 +-
++-++ ...client_src_components_admin_HealthBanner.tsx.md |     2 +-
++-++ ...io-client_src_components_admin_HealthMap.tsx.md |     2 +-
++-++ ..._src_components_admin_InteractiveChatTab.tsx.md |     2 +-
++-++ ...dio-client_src_components_admin_LiveLogs.tsx.md |     2 +-
++-++ ...lient_src_components_admin_MemoryBrowser.tsx.md |     2 +-
++-++ ...-client_src_components_admin_ModelRouter.tsx.md |     2 +-
++-++ ..._components_admin_ObservabilityDashboard.tsx.md |     2 +-
++-++ ...-client_src_components_admin_RBACManager.tsx.md |     2 +-
++-++ ...nt_src_components_admin_RateLimitManager.tsx.md |     2 +-
++-++ ...rc_components_admin_RealTimeMetricsPanel.tsx.md |     2 +-
++-++ ...mponents_admin_RedesignedDashboardMockup.tsx.md |     2 +-
++-++ ...nt_src_components_admin_RulesEnginePanel.tsx.md |     2 +-
++-++ ...t_src_components_admin_SecurityDashboard.tsx.md |     2 +-
++-++ ...rc_components_admin_ServiceHealthMetrics.tsx.md |     2 +-
++-++ ...ent_src_components_admin_ThreatDetection.tsx.md |     2 +-
++-++ ...-client_src_components_admin_UserManager.tsx.md |     2 +-
++-++ ..._src_components_admin_VisualRulesBuilder.tsx.md |     2 +-
++-++ ..._studio-client_src_components_admin_index.ts.md |     2 +-
++-++ ..._src_components_audio_WaveformVisualizer.tsx.md |     2 +-
++-++ ...ient_src_components_chat_TypingIndicator.tsx.md |     2 +-
++-++ ...nt_src_components_chat_UnifiedChatBubble.tsx.md |     2 +-
++-++ ...s_studio-client_src_components_chat_index.ts.md |     2 +-
++-++ ...t_src_components_customer_BrowserPreview.tsx.md |     2 +-
++-++ ...t_src_components_customer_ChatPanel.test.tsx.md |     2 +-
++-++ ...client_src_components_customer_ChatPanel.tsx.md |     2 +-
++-++ ...lient_src_components_customer_CodeEditor.tsx.md |     2 +-
++-++ ...-client_src_components_customer_HomeFeed.tsx.md |     2 +-
++-++ ..._src_components_customer_MobileSimulator.tsx.md |     2 +-
++-++ ...rc_components_customer_QuickPresets.test.tsx.md |     2 +-
++-++ ...ent_src_components_customer_QuickPresets.tsx.md |     2 +-
++-++ ...c_components_customer_UserDashboard.test.tsx.md |     2 +-
++-++ ...nt_src_components_customer_UserDashboard.tsx.md |     2 +-
++-++ ...udio-client_src_components_customer_index.ts.md |     2 +-
++-++ ..._src_components_dashboard_AgentStatePill.tsx.md |     2 +-
++-++ ...components_dashboard_AutomationQueuePage.tsx.md |     2 +-
++-++ ...components_dashboard_DashboardShell.test.tsx.md |     2 +-
++-++ ..._src_components_dashboard_DashboardShell.tsx.md |     2 +-
++-++ ..._src_components_dashboard_ExecutionShell.tsx.md |     2 +-
++-++ ...t_src_components_dashboard_FileTreePanel.tsx.md |     2 +-
++-++ ..._src_components_dashboard_GuardrailsPage.tsx.md |     2 +-
++-++ ...src_components_dashboard_HealingLogPanel.tsx.md |     2 +-
++-++ ...t_src_components_dashboard_KnowledgePage.tsx.md |     2 +-
++-++ ..._src_components_dashboard_LlmGatewayPage.tsx.md |     2 +-
++-++ ...nt_src_components_dashboard_ReasoningLog.tsx.md |     2 +-
++-++ ...src_components_dashboard_SandboxViewport.tsx.md |     2 +-
++-++ ...ent_src_components_dashboard_SecretsPage.tsx.md |     2 +-
++-++ ...c_components_dashboard_SessionDetailPage.tsx.md |     2 +-
++-++ ...nt_src_components_dashboard_SessionsPage.tsx.md |     2 +-
++-++ ...nt_src_components_dashboard_SettingsPage.tsx.md |     2 +-
++-++ ...src_components_dashboard_SiteActionsPage.tsx.md |     2 +-
++-++ ...lient_src_components_dashboard_UsagePage.tsx.md |     2 +-
++-++ ...lient_src_components_dashboard_VaultPage.tsx.md |     2 +-
++-++ ...ent_src_components_dashboard_sessionStore.ts.md |     2 +-
++-++ ...ent_src_components_dashboard_useHashRoute.ts.md |     2 +-
++-++ ...lient_src_components_editor_CollabEditor.tsx.md |     2 +-
++-++ ...o-client_src_components_graph_SkillGraph.tsx.md |     2 +-
++-++ ...udio-client_src_components_ui_ActionCard.tsx.md |     2 +-
++-++ ...ps_studio-client_src_components_ui_Badge.tsx.md |     2 +-
++-++ ...pps_studio-client_src_components_ui_Card.tsx.md |     2 +-
++-++ ...studio-client_src_components_ui_Skeleton.tsx.md |     2 +-
++-++ ...pps_studio-client_src_components_ui_index.ts.md |     2 +-
++-++ ..._studio-client_src_contexts_ThemeContext.tsx.md |     2 +-
++-++ ..._studio-client_src_contexts_ToastContext.tsx.md |     2 +-
++-++ ...o-client_src_dataconnect-generated_README.md.md |     2 +-
++-++ ...t_src_dataconnect-generated_esm_index.esm.js.md |     2 +-
++-++ ...t_src_dataconnect-generated_esm_package.json.md |     2 +-
++-++ ...lient_src_dataconnect-generated_index.cjs.js.md |     2 +-
++-++ ...-client_src_dataconnect-generated_index.d.ts.md |     2 +-
++-++ ...lient_src_dataconnect-generated_package.json.md |     2 +-
++-++ ...nt_src_dataconnect-generated_react_README.md.md |     2 +-
++-++ ...dataconnect-generated_react_esm_index.esm.js.md |     2 +-
++-++ ...dataconnect-generated_react_esm_package.json.md |     2 +-
++-++ ...src_dataconnect-generated_react_index.cjs.js.md |     2 +-
++-++ ...t_src_dataconnect-generated_react_index.d.ts.md |     2 +-
++-++ ...src_dataconnect-generated_react_package.json.md |     2 +-
++-++ .../codebase/apps_studio-client_src_firebase.ts.md |     2 +-
++-++ .../apps_studio-client_src_hooks_index.ts.md       |     2 +-
++-++ ...lient_src_hooks_tests_useTranslation.test.ts.md |     2 +-
++-++ .../apps_studio-client_src_hooks_useAdminApi.ts.md |     2 +-
++-++ .../apps_studio-client_src_hooks_useAuth.ts.md     |     2 +-
++-++ .../apps_studio-client_src_hooks_useChat.ts.md     |     2 +-
++-++ ..._studio-client_src_hooks_useDashboardData.ts.md |     2 +-
++-++ ...ps_studio-client_src_hooks_useTranslation.ts.md |     2 +-
++-++ ...apps_studio-client_src_hooks_useWebSocket.ts.md |     2 +-
++-++ ...apps_studio-client_src_i18n_I18nProvider.tsx.md |     2 +-
++-++ .../apps_studio-client_src_i18n_config.ts.md       |     2 +-
++-++ .../apps_studio-client_src_i18n_translations.ts.md |     2 +-
++-++ .../codebase/apps_studio-client_src_lib_etag.ts.md |     2 +-
++-++ .../codebase/apps_studio-client_src_main.tsx.md    |     2 +-
++-++ ...s_studio-client_src_services_adminService.ts.md |     2 +-
++-++ ...tudio-client_src_services_adminTokenStore.ts.md |     2 +-
++-++ ...s_studio-client_src_services_agentService.ts.md |     2 +-
++-++ ...apps_studio-client_src_services_apiClient.ts.md |     2 +-
++-++ ...ient_src_services_api_microserviceMonitor.ts.md |     2 +-
++-++ ...t_src_services_audio_AudioPlaybackService.ts.md |     2 +-
++-++ ...t_src_services_audio_AudioRecorderService.ts.md |     2 +-
++-++ ...ps_studio-client_src_services_authService.ts.md |     2 +-
++-++ ...ps_studio-client_src_services_chatService.ts.md |     2 +-
++-++ ...tudio-client_src_services_ciReportService.ts.md |     2 +-
++-++ ...pps_studio-client_src_services_storageApi.ts.md |     2 +-
++-++ .../apps_studio-client_src_store_adminStore.ts.md  |     2 +-
++-++ ...pps_studio-client_src_store_customerStore.ts.md |     2 +-
++-++ ...ps_studio-client_src_store_dashboardStore.ts.md |     2 +-
++-++ ...udio-client_src_store_sessionCockpitStore.ts.md |     2 +-
++-++ .../apps_studio-client_src_store_themeStore.ts.md  |     2 +-
++-++ .../apps_studio-client_src_store_useStore.ts.md    |     2 +-
++-++ .../apps_studio-client_src_test_setup.ts.md        |     2 +-
++-++ .../codebase/apps_studio-client_src_types.ts.md    |     2 +-
++-++ .../apps_studio-client_src_types_customer.ts.md    |     2 +-
++-++ .../apps_studio-client_src_utils_api.ts.md         |     2 +-
++-++ ...ps_studio-client_src_utils_apiInterceptor.ts.md |     2 +-
++-++ .../apps_studio-client_src_vite-env.d.ts.md        |     2 +-
++-++ ...tudio-client_src_workers_logParser.worker.ts.md |     2 +-
++-++ .../apps_studio-client_tsconfig.app.json.md        |     2 +-
++-++ .../codebase/apps_studio-client_tsconfig.json.md   |     2 +-
++-++ .../apps_studio-client_tsconfig.node.json.md       |     2 +-
++-++ .../codebase/apps_studio-client_vite.config.ts.md  |     2 +-
++-++ .../apps_studio-client_vitest.config.ts.md         |     2 +-
++-++ docs/autogen/codebase/apps_web-chat_api.test.ts.md |     2 +-
++-++ docs/autogen/codebase/apps_web-chat_api.ts.md      |     2 +-
++-++ .../autogen/codebase/apps_web-chat_package.json.md |     2 +-
++-++ docs/autogen/codebase/apps_web-chat_script.ts.md   |     2 +-
++-++ .../codebase/apps_web-chat_tsconfig.json.md        |     2 +-
++-++ .../codebase/apps_web-chat_vite-env.d.ts.md        |     2 +-
++-++ .../codebase/apps_web-chat_vite.config.ts.md       |     2 +-
++-++ .../codebase/apps_web-chat_vitest.config.ts.md     |     2 +-
++-++ docs/autogen/codebase/backend_README.md.md         |     2 +-
++-++ .../backend_adaptive_engine_experience_db.py.md    |     2 +-
++-++ .../codebase/backend_adaptive_engine_init_.py.md   |     2 +-
++-++ .../backend_adaptive_engine_intent_parser.py.md    |     2 +-
++-++ .../backend_adaptive_engine_learning_loop.py.md    |     2 +-
++-++ .../backend_adaptive_engine_platform_learner.py.md |     2 +-
++-++ .../backend_adaptive_engine_registry.py.md         |     2 +-
++-++ ...end_adaptive_engine_test_platform_learner.py.md |     2 +-
++-++ docs/autogen/codebase/backend_admin_god.py.md      |     2 +-
++-++ docs/autogen/codebase/backend_admin_init_.py.md    |     2 +-
++-++ docs/autogen/codebase/backend_admin_test_god.py.md |     2 +-
++-++ .../codebase/backend_agents_crew_departments.py.md |     2 +-
++-++ docs/autogen/codebase/backend_agents_init_.py.md   |     2 +-
++-++ .../codebase/backend_agents_legal_agent.py.md      |     2 +-
++-++ .../codebase/backend_agents_medical_agent.py.md    |     2 +-
++-++ .../backend_agents_research_assistant.py.md        |     2 +-
++-++ .../codebase/backend_agents_test_legal_agent.py.md |     2 +-
++-++ .../backend_agents_test_medical_agent.py.md        |     2 +-
++-++ .../codebase/backend_agents_trading_agent.py.md    |     2 +-
++-++ docs/autogen/codebase/backend_alembic_env.py.md    |     2 +-
++-++ ...ersions_664fe16e33ca_add_ci_reports_table.py.md |     2 +-
++-++ .../codebase/backend_api_dependencies.py.md        |     2 +-
++-++ docs/autogen/codebase/backend_api_init_.py.md      |     2 +-
++-++ .../codebase/backend_api_routes_admin.py.md        |     2 +-
++-++ .../backend_api_routes_admin_dashboard.py.md       |     2 +-
++-++ .../codebase/backend_api_routes_agent_tasks.py.md  |     2 +-
++-++ .../codebase/backend_api_routes_agents.py.md       |     2 +-
++-++ .../codebase/backend_api_routes_api_keys.py.md     |     2 +-
++-++ .../backend_api_routes_approval_manager.py.md      |     2 +-
++-++ .../backend_api_routes_async_task_router.py.md     |     2 +-
++-++ .../autogen/codebase/backend_api_routes_auth.py.md |     2 +-
++-++ .../codebase/backend_api_routes_billing_api.py.md  |     2 +-
++-++ .../codebase/backend_api_routes_browser.py.md      |     2 +-
++-++ .../codebase/backend_api_routes_byoc_api.py.md     |     2 +-
++-++ .../codebase/backend_api_routes_cdc_webhooks.py.md |     2 +-
++-++ .../autogen/codebase/backend_api_routes_chat.py.md |     2 +-
++-++ .../codebase/backend_api_routes_ci_webhooks.py.md  |     2 +-
++-++ .../codebase/backend_api_routes_cloud_mesh.py.md   |     2 +-
++-++ .../codebase/backend_api_routes_codeflow.py.md     |     2 +-
++-++ .../codebase/backend_api_routes_config.py.md       |     2 +-
++-++ .../codebase/backend_api_routes_email.py.md        |     2 +-
++-++ .../codebase/backend_api_routes_evolution.py.md    |     2 +-
++-++ .../backend_api_routes_execution_policies.py.md    |     2 +-
++-++ .../codebase/backend_api_routes_feedback.py.md     |     2 +-
++-++ .../codebase/backend_api_routes_github.py.md       |     2 +-
++-++ .../codebase/backend_api_routes_graph.py.md        |     2 +-
++-++ .../codebase/backend_api_routes_init_.py.md        |     2 +-
++-++ .../codebase/backend_api_routes_internal.py.md     |     2 +-
++-++ .../codebase/backend_api_routes_knowledge.py.md    |     2 +-
++-++ .../codebase/backend_api_routes_llm_gateway.py.md  |     2 +-
++-++ .../codebase/backend_api_routes_markdown.py.md     |     2 +-
++-++ .../codebase/backend_api_routes_marketplace.py.md  |     2 +-
++-++ .../backend_api_routes_marketplace_endpoints.py.md |     2 +-
++-++ .../codebase/backend_api_routes_media.py.md        |     2 +-
++-++ .../codebase/backend_api_routes_memory.py.md       |     2 +-
++-++ .../codebase/backend_api_routes_metrics.py.md      |     2 +-
++-++ .../codebase/backend_api_routes_mobile_bff.py.md   |     2 +-
++-++ .../codebase/backend_api_routes_onboarding.py.md   |     2 +-
++-++ .../codebase/backend_api_routes_payments.py.md     |     2 +-
++-++ .../codebase/backend_api_routes_preferences.py.md  |     2 +-
++-++ .../codebase/backend_api_routes_repos.py.md        |     2 +-
++-++ .../backend_api_routes_selector_healing.py.md      |     2 +-
++-++ .../backend_api_routes_session_stream.py.md        |     2 +-
++-++ .../backend_api_routes_session_takeover.py.md      |     2 +-
++-++ .../codebase/backend_api_routes_simulator.py.md    |     2 +-
++-++ .../codebase/backend_api_routes_site_actions.py.md |     2 +-
++-++ docs/autogen/codebase/backend_api_routes_sso.py.md |     2 +-
++-++ .../codebase/backend_api_routes_stream.py.md       |     2 +-
++-++ .../autogen/codebase/backend_api_routes_task.py.md |     2 +-
++-++ .../backend_api_routes_task_workspace.py.md        |     2 +-
++-++ .../codebase/backend_api_routes_tenant_admin.py.md |     2 +-
++-++ .../codebase/backend_api_routes_tools_ops.py.md    |     2 +-
++-++ .../backend_api_routes_tools_registry.py.md        |     2 +-
++-++ .../backend_api_routes_usage_metrics.py.md         |     2 +-
++-++ .../codebase/backend_api_routes_voice.py.md        |     2 +-
++-++ .../backend_api_routes_websocket_agent.py.md       |     2 +-
++-++ .../backend_api_routes_websocket_voice.py.md       |     2 +-
++-++ .../codebase/backend_byoc_cloud_connector.py.md    |     2 +-
++-++ .../backend_byoc_container_orchestrator.py.md      |     2 +-
++-++ docs/autogen/codebase/backend_byoc_init_.py.md     |     2 +-
++-++ .../codebase/backend_byoc_resource_manager.py.md   |     2 +-
++-++ .../codebase/backend_config_byoc_limits.json.md    |     2 +-
++-++ .../backend_config_constitutional_rules.json.md    |     2 +-
++-++ .../codebase/backend_config_pricing_tiers.json.md  |     2 +-
++-++ .../codebase/backend_config_routing_policy.json.md |     2 +-
++-++ docs/autogen/codebase/backend_core_admin_god.py.md |     2 +-
++-++ .../codebase/backend_core_admin_routes.py.md       |     2 +-
++-++ .../codebase/backend_core_agent_orchestrator.py.md |     2 +-
++-++ .../codebase/backend_core_api_key_middleware.py.md |     2 +-
++-++ .../backend_core_api_key_rate_limiter.py.md        |     2 +-
++-++ docs/autogen/codebase/backend_core_app.py.md       |     2 +-
++-++ .../codebase/backend_core_audit_logger.py.md       |     2 +-
++-++ .../codebase/backend_core_auth_middleware.py.md    |     2 +-
++-++ .../codebase/backend_core_auto_remediation.py.md   |     2 +-
++-++ .../codebase/backend_core_autocache_proxy.py.md    |     2 +-
++-++ .../codebase/backend_core_circuit_breaker.py.md    |     2 +-
++-++ .../backend_core_cloud_sandbox_orchestrator.py.md  |     2 +-
++-++ .../codebase/backend_core_cloud_storage.py.md      |     2 +-
++-++ .../codebase/backend_core_code_validator.py.md     |     2 +-
++-++ docs/autogen/codebase/backend_core_config.py.md    |     2 +-
++-++ docs/autogen/codebase/backend_core_constants.py.md |     2 +-
++-++ .../codebase/backend_core_db_repository.py.md      |     2 +-
++-++ .../codebase/backend_core_decision_engine.py.md    |     2 +-
++-++ .../codebase/backend_core_discord_bot.py.md        |     2 +-
++-++ .../codebase/backend_core_docker-compose.yml.md    |     2 +-
++-++ .../codebase/backend_core_email_service.py.md      |     2 +-
++-++ .../autogen/codebase/backend_core_enum_guard.py.md |     2 +-
++-++ .../codebase/backend_core_error_pattern_db.py.md   |     2 +-
++-++ .../codebase/backend_core_error_remediation.py.md  |     2 +-
++-++ docs/autogen/codebase/backend_core_events.py.md    |     2 +-
++-++ .../codebase/backend_core_evolution_engine.py.md   |     2 +-
++-++ .../codebase/backend_core_factual_verifier.py.md   |     2 +-
++-++ .../codebase/backend_core_feedback_loop.py.md      |     2 +-
++-++ .../codebase/backend_core_free_tier_tracker.py.md  |     2 +-
++-++ .../codebase/backend_core_gcp_firestore.py.md      |     2 +-
++-++ .../codebase/backend_core_gcp_pubsub_queue.py.md   |     2 +-
++-++ .../codebase/backend_core_generation_monitor.py.md |     2 +-
++-++ .../codebase/backend_core_grpc_client.py.md        |     2 +-
++-++ .../codebase/backend_core_health_monitor.py.md     |     2 +-
++-++ .../backend_core_honeypot_middleware.py.md         |     2 +-
++-++ .../backend_core_idempotency_middleware.py.md      |     2 +-
++-++ .../codebase/backend_core_immune_system.py.md      |     2 +-
++-++ docs/autogen/codebase/backend_core_init_.py.md     |     2 +-
++-++ .../codebase/backend_core_input_sanitizer.py.md    |     2 +-
++-++ docs/autogen/codebase/backend_core_intent.py.md    |     2 +-
++-++ .../codebase/backend_core_intent_router.py.md      |     2 +-
++-++ .../codebase/backend_core_language_router.py.md    |     2 +-
++-++ docs/autogen/codebase/backend_core_ld_client.py.md |     2 +-
++-++ docs/autogen/codebase/backend_core_lifespan.py.md  |     2 +-
++-++ .../codebase/backend_core_llm_gateway.py.md        |     2 +-
++-++ .../codebase/backend_core_log_batcher.py.md        |     2 +-
++-++ .../codebase/backend_core_logging_config.py.md     |     2 +-
++-++ .../codebase/backend_core_mcp_allowlist.py.md      |     2 +-
++-++ .../codebase/backend_core_microvm_sandbox.py.md    |     2 +-
++-++ .../codebase/backend_core_multi_layer_cache.py.md  |     2 +-
++-++ .../backend_core_observability_middleware.py.md    |     2 +-
++-++ .../codebase/backend_core_orchestrator.py.md       |     2 +-
++-++ .../codebase/backend_core_origin_validator.py.md   |     2 +-
++-++ .../codebase/backend_core_output_validator.py.md   |     2 +-
++-++ .../codebase/backend_core_pgbouncer_pool.py.md     |     2 +-
++-++ .../codebase/backend_core_posthog_client.py.md     |     2 +-
++-++ .../codebase/backend_core_prompt_firewall.py.md    |     2 +-
++-++ .../codebase/backend_core_prompt_helpers.py.md     |     2 +-
++-++ .../codebase/backend_core_rate_limiter.py.md       |     2 +-
++-++ docs/autogen/codebase/backend_core_rbac.py.md      |     2 +-
++-++ .../codebase/backend_core_redis_manager.py.md      |     2 +-
++-++ .../codebase/backend_core_rollback_monitor.py.md   |     2 +-
++-++ .../codebase/backend_core_rules_mutator.py.md      |     2 +-
++-++ .../codebase/backend_core_schema_validator.py.md   |     2 +-
++-++ .../codebase/backend_core_secret_vault.py.md       |     2 +-
++-++ .../backend_core_secure_credential_store.py.md     |     2 +-
++-++ docs/autogen/codebase/backend_core_security.py.md  |     2 +-
++-++ .../codebase/backend_core_self_healing_agent.py.md |     2 +-
++-++ .../codebase/backend_core_semantic_cache.py.md     |     2 +-
++-++ docs/autogen/codebase/backend_core_services.py.md  |     2 +-
++-++ .../codebase/backend_core_skill_graph.py.md        |     2 +-
++-++ .../codebase/backend_core_swarm_orchestrator.py.md |     2 +-
++-++ .../autogen/codebase/backend_core_task_queue.py.md |     2 +-
++-++ .../backend_core_task_queue_enhanced.py.md         |     2 +-
++-++ .../codebase/backend_core_task_router.py.md        |     2 +-
++-++ docs/autogen/codebase/backend_core_telemetry.py.md |     2 +-
++-++ docs/autogen/codebase/backend_core_tenant_db.py.md |     2 +-
++-++ .../codebase/backend_core_token_budget.py.md       |     2 +-
++-++ .../codebase/backend_core_token_deductor.py.md     |     2 +-
++-++ .../codebase/backend_core_universal_rules.py.md    |     2 +-
++-++ .../codebase/backend_core_upload_validator.py.md   |     2 +-
++-++ .../backend_core_upstash_redis_queue.py.md         |     2 +-
++-++ .../codebase/backend_core_user_profiler.py.md      |     2 +-
++-++ docs/autogen/codebase/backend_database_init_.py.md |     2 +-
++-++ ...end_database_migrations_01_initial_setup.sql.md |     2 +-
++-++ ...kend_database_migrations_02_phase2_setup.sql.md |     2 +-
++-++ ...grations_03_user_preferences_and_metrics.sql.md |     2 +-
++-++ ...nd_database_migrations_04_schema_upgrade.sql.md |     2 +-
++-++ ...database_migrations_05_seed_github_repos.sql.md |     2 +-
++-++ ...d_database_migrations_06_referral_system.sql.md |     2 +-
++-++ ...end_database_migrations_07_tenant_config.sql.md |     2 +-
++-++ ...ckend_database_migrations_08_sso_configs.sql.md |     2 +-
++-++ ...database_migrations_09_offline_sync_logs.sql.md |     2 +-
++-++ ...atabase_migrations_10_tenant_sso_offline.sql.md |     2 +-
++-++ .../codebase/backend_database_session.py.md        |     2 +-
++-++ .../codebase/backend_database_storage_client.py.md |     2 +-
++-++ .../backend_database_supabase_client.py.md         |     2 +-
++-++ .../codebase/backend_engine_cost_optimizer.py.md   |     2 +-
++-++ docs/autogen/codebase/backend_engine_init_.py.md   |     2 +-
++-++ .../codebase/backend_engine_model_dispatcher.py.md |     2 +-
++-++ .../backend_evolution_auto_skill_creator.py.md     |     2 +-
++-++ .../backend_evolution_auto_update_manager.py.md    |     2 +-
++-++ .../backend_evolution_dynamic_injector.py.md       |     2 +-
++-++ .../backend_evolution_fitness_engine.py.md         |     2 +-
++-++ .../autogen/codebase/backend_evolution_init_.py.md |     2 +-
++-++ .../backend_evolution_master_planner.py.md         |     2 +-
++-++ .../backend_evolution_security_sandbox.py.md       |     2 +-
++-++ .../backend_evolution_self_evolution_agent.py.md   |     2 +-
++-++ .../codebase/backend_evolution_skill_graph.py.md   |     2 +-
++-++ docs/autogen/codebase/backend_fix_tests.py.md      |     2 +-
++-++ docs/autogen/codebase/backend_init_.py.md          |     2 +-
++-++ docs/autogen/codebase/backend_main.py.md           |     2 +-
++-++ .../backend_memory_checkpoint_resume.py.md         |     2 +-
++-++ .../codebase/backend_memory_chromadb_store.py.md   |     2 +-
++-++ .../backend_memory_cloud_postgres_store.py.md      |     2 +-
++-++ .../backend_memory_cloud_vector_store.py.md        |     2 +-
++-++ .../codebase/backend_memory_episodic_memory.py.md  |     2 +-
++-++ docs/autogen/codebase/backend_memory_init_.py.md   |     2 +-
++-++ .../codebase/backend_memory_long_term_memory.py.md |     2 +-
++-++ .../codebase/backend_memory_rag_pipeline.py.md     |     2 +-
++-++ .../codebase/backend_memory_sliding_window.py.md   |     2 +-
++-++ .../codebase/backend_memory_sqlite_store.py.md     |     2 +-
++-++ .../codebase/backend_memory_summary_tree.py.md     |     2 +-
++-++ .../codebase/backend_memory_supabase_store.py.md   |     2 +-
++-++ .../backend_memory_vector_store_config.py.md       |     2 +-
++-++ .../backend_middleware_auth_middleware.py.md       |     2 +-
++-++ .../backend_middleware_chaos_injector.py.md        |     2 +-
++-++ .../codebase/backend_middleware_idempotency.py.md  |     2 +-
++-++ docs/autogen/codebase/backend_models_admin.py.md   |     2 +-
++-++ .../codebase/backend_models_agent_session.py.md    |     2 +-
++-++ docs/autogen/codebase/backend_models_api_key.py.md |     2 +-
++-++ docs/autogen/codebase/backend_models_base.py.md    |     2 +-
++-++ .../codebase/backend_models_byoc_payloads.py.md    |     2 +-
++-++ .../codebase/backend_models_ci_report.py.md        |     2 +-
++-++ .../codebase/backend_models_deployment_logs.py.md  |     2 +-
++-++ .../backend_models_error_remediation.py.md         |     2 +-
++-++ .../codebase/backend_models_evolution.py.md        |     2 +-
++-++ .../codebase/backend_models_execution_log.py.md    |     2 +-
++-++ .../codebase/backend_models_execution_policy.py.md |     2 +-
++-++ .../codebase/backend_models_handoff_event.py.md    |     2 +-
++-++ docs/autogen/codebase/backend_models_init_.py.md   |     2 +-
++-++ .../backend_models_local_model_handler.py.md       |     2 +-
++-++ .../codebase/backend_models_pending_tasks.py.md    |     2 +-
++-++ .../backend_models_selector_healing_event.py.md    |     2 +-
++-++ .../codebase/backend_models_shared_workspace.py.md |     2 +-
++-++ ...backend_models_target_platform_credential.py.md |     2 +-
++-++ .../backend_models_transaction_ledger.py.md        |     2 +-
++-++ .../backend_models_voice_interaction.py.md         |     2 +-
++-++ docs/autogen/codebase/backend_models_wallet.py.md  |     2 +-
++-++ .../codebase/backend_monitoring_cost_auditor.py.md |     2 +-
++-++ .../codebase/backend_monitoring_init_.py.md        |     2 +-
++-++ .../codebase/backend_p2p_credit_system.py.md       |     2 +-
++-++ docs/autogen/codebase/backend_p2p_init_.py.md      |     2 +-
++-++ .../codebase/backend_p2p_secure_tunnel.py.md       |     2 +-
++-++ docs/autogen/codebase/backend_pyproject.toml.md    |     2 +-
++-++ docs/autogen/codebase/backend_reports_init_.py.md  |     2 +-
++-++ .../backend_reports_optimization_engine.py.md      |     2 +-
++-++ .../codebase/backend_run_roundtrip_tests.py.md     |     2 +-
++-++ docs/autogen/codebase/backend_scout_init_.py.md    |     2 +-
++-++ .../backend_scout_knowledge_extractor.py.md        |     2 +-
++-++ .../codebase/backend_scout_web_crawler_agent.py.md |     2 +-
++-++ .../codebase/backend_scripts_check_ollama.py.md    |     2 +-
++-++ docs/autogen/codebase/backend_scripts_init_.py.md  |     2 +-
++-++ .../codebase/backend_scripts_load_seed_data.py.md  |     2 +-
++-++ .../backend_scripts_run_dependency_check.py.md     |     2 +-
++-++ .../backend_scripts_seed_tools_registry.py.md      |     2 +-
++-++ .../backend_scripts_self_healing_tests.py.md       |     2 +-
++-++ docs/autogen/codebase/backend_skills_init_.py.md   |     2 +-
++-++ .../codebase/backend_skills_provisioner.py.md      |     2 +-
++-++ .../codebase/backend_skills_skill_registry.py.md   |     2 +-
++-++ .../codebase/backend_storage_asset_manager.py.md   |     2 +-
++-++ docs/autogen/codebase/backend_storage_init_.py.md  |     2 +-
++-++ .../backend_storage_r2_storage_client.py.md        |     2 +-
++-++ .../backend_tests_agents_test_legal_agent.py.md    |     2 +-
++-++ .../backend_tests_agents_test_medical_agent.py.md  |     2 +-
++-++ ...kend_tests_agents_test_research_assistant.py.md |     2 +-
++-++ .../backend_tests_agents_test_trading_agent.py.md  |     2 +-
++-++ .../backend_tests_byoc_test_cloud_connector.py.md  |     2 +-
++-++ ...nd_tests_byoc_test_container_orchestrator.py.md |     2 +-
++-++ .../backend_tests_byoc_test_resource_manager.py.md |     2 +-
++-++ docs/autogen/codebase/backend_tests_conftest.py.md |     2 +-
++-++ .../backend_tests_engine_test_cost_optimizer.py.md |     2 +-
++-++ ...ackend_tests_engine_test_model_dispatcher.py.md |     2 +-
++-++ docs/autogen/codebase/backend_tests_init_.py.md    |     2 +-
++-++ ...ackend_tests_monitoring_test_cost_auditor.py.md |     2 +-
++-++ .../backend_tests_p2p_test_credit_system.py.md     |     2 +-
++-++ .../backend_tests_p2p_test_secure_tunnel.py.md     |     2 +-
++-++ ...kend_tests_scout_test_knowledge_extractor.py.md |     2 +-
++-++ ...ackend_tests_scout_test_web_crawler_agent.py.md |     2 +-
++-++ .../backend_tests_test_adaptive_engine.py.md       |     2 +-
++-++ .../codebase/backend_tests_test_admin_god.py.md    |     2 +-
++-++ .../codebase/backend_tests_test_admin_models.py.md |     2 +-
++-++ .../codebase/backend_tests_test_admin_routes.py.md |     2 +-
++-++ .../codebase/backend_tests_test_advanced.py.md     |     2 +-
++-++ .../backend_tests_test_agent_department.py.md      |     2 +-
++-++ .../backend_tests_test_agent_departments.py.md     |     2 +-
++-++ .../backend_tests_test_agent_orchestrator.py.md    |     2 +-
++-++ ...ackend_tests_test_agents_crew_departments.py.md |     2 +-
++-++ docs/autogen/codebase/backend_tests_test_api.py.md |     2 +-
++-++ .../codebase/backend_tests_test_api_chat.py.md     |     2 +-
++-++ .../codebase/backend_tests_test_api_keys.py.md     |     2 +-
++-++ .../backend_tests_test_api_new_endpoints.py.md     |     2 +-
++-++ .../codebase/backend_tests_test_api_router.py.md   |     2 +-
++-++ .../codebase/backend_tests_test_audit_logger.py.md |     2 +-
++-++ .../backend_tests_test_auth_middleware.py.md       |     2 +-
++-++ .../codebase/backend_tests_test_auth_routes.py.md  |     2 +-
++-++ .../backend_tests_test_auto_fix_trigger.py.md      |     2 +-
++-++ .../backend_tests_test_auto_skill_creator.py.md    |     2 +-
++-++ .../backend_tests_test_autonomous_agent.py.md      |     2 +-
++-++ .../codebase/backend_tests_test_bangla_nlp.py.md   |     2 +-
++-++ .../codebase/backend_tests_test_bangla_voice.py.md |     2 +-
++-++ .../backend_tests_test_billing_system.py.md        |     2 +-
++-++ .../codebase/backend_tests_test_brain.py.md        |     2 +-
++-++ .../backend_tests_test_browser_credentials.py.md   |     2 +-
++-++ .../backend_tests_test_byoc_endpoints.py.md        |     2 +-
++-++ .../codebase/backend_tests_test_chaos_worker.py.md |     2 +-
++-++ .../backend_tests_test_checkpoint_resume.py.md     |     2 +-
++-++ .../backend_tests_test_circuit_breaker.py.md       |     2 +-
++-++ .../backend_tests_test_cloud_sandbox.py.md         |     2 +-
++-++ .../backend_tests_test_cloud_storage.py.md         |     2 +-
++-++ .../backend_tests_test_code_validator.py.md        |     2 +-
++-++ .../backend_tests_test_collaborative_editor.py.md  |     2 +-
++-++ .../codebase/backend_tests_test_config.py.md       |     2 +-
++-++ .../backend_tests_test_config_additional.py.md     |     2 +-
++-++ .../backend_tests_test_config_coverage.py.md       |     2 +-
++-++ .../codebase/backend_tests_test_constants.py.md    |     2 +-
++-++ .../backend_tests_test_context_and_actions.py.md   |     2 +-
++-++ .../autogen/codebase/backend_tests_test_core.py.md |     2 +-
++-++ .../codebase/backend_tests_test_core_smoke.py.md   |     2 +-
++-++ .../backend_tests_test_coverage_gaps.py.md         |     2 +-
++-++ .../codebase/backend_tests_test_crew_mcp.py.md     |     2 +-
++-++ ...ackend_tests_test_database_storage_client.py.md |     2 +-
++-++ .../backend_tests_test_db_repository.py.md         |     2 +-
++-++ docs/autogen/codebase/backend_tests_test_e2e.py.md |     2 +-
++-++ .../codebase/backend_tests_test_e2e_media.py.md    |     2 +-
++-++ .../codebase/backend_tests_test_email_agent.py.md  |     2 +-
++-++ .../backend_tests_test_email_service.py.md         |     2 +-
++-++ .../backend_tests_test_episodic_memory.py.md       |     2 +-
++-++ .../backend_tests_test_error_remediation.py.md     |     2 +-
++-++ .../backend_tests_test_evolution_engine.py.md      |     2 +-
++-++ .../backend_tests_test_evolution_pipeline.py.md    |     2 +-
++-++ .../backend_tests_test_factual_verifier.py.md      |     2 +-
++-++ .../backend_tests_test_feedback_loop.py.md         |     2 +-
++-++ .../backend_tests_test_firebase_integration.py.md  |     2 +-
++-++ .../backend_tests_test_fitness_engine.py.md        |     2 +-
++-++ .../backend_tests_test_free_tier_tracker.py.md     |     2 +-
++-++ .../backend_tests_test_gcp_integration.py.md       |     2 +-
++-++ .../backend_tests_test_generation_monitor.py.md    |     2 +-
++-++ .../codebase/backend_tests_test_github_agent.py.md |     2 +-
++-++ .../codebase/backend_tests_test_graph_routes.py.md |     2 +-
++-++ .../backend_tests_test_graph_service.py.md         |     2 +-
++-++ .../codebase/backend_tests_test_grpc_client.py.md  |     2 +-
++-++ .../backend_tests_test_hallucination_guard.py.md   |     2 +-
++-++ .../codebase/backend_tests_test_health.py.md       |     2 +-
++-++ .../backend_tests_test_health_monitor.py.md        |     2 +-
++-++ .../backend_tests_test_health_monitor_routes.py.md |     2 +-
++-++ .../backend_tests_test_honeypot_middleware.py.md   |     2 +-
++-++ ...backend_tests_test_idempotency_middleware.py.md |     2 +-
++-++ .../backend_tests_test_immune_system.py.md         |     2 +-
++-++ .../backend_tests_test_immune_system_scanner.py.md |     2 +-
++-++ .../backend_tests_test_input_sanitizer.py.md       |     2 +-
++-++ .../backend_tests_test_language_router.py.md       |     2 +-
++-++ .../codebase/backend_tests_test_llm_gateway.py.md  |     2 +-
++-++ .../backend_tests_test_llm_gateway_coverage.py.md  |     2 +-
++-++ .../backend_tests_test_long_term_memory.py.md      |     2 +-
++-++ .../backend_tests_test_markdown_export.py.md       |     2 +-
++-++ .../backend_tests_test_marketplace_agent.py.md     |     2 +-
++-++ .../backend_tests_test_mcp_allowlist.py.md         |     2 +-
++-++ .../codebase/backend_tests_test_mcp_server.py.md   |     2 +-
++-++ ...ackend_tests_test_mcp_servers_integration.py.md |     2 +-
++-++ .../codebase/backend_tests_test_media_r2.py.md     |     2 +-
++-++ ...kend_tests_test_middleware_chaos_injector.py.md |     2 +-
++-++ .../codebase/backend_tests_test_migrations.py.md   |     2 +-
++-++ ...kend_tests_test_migrations_and_onboarding.py.md |     2 +-
++-++ .../codebase/backend_tests_test_mobile_e2e.py.md   |     2 +-
++-++ .../backend_tests_test_model_registry.py.md        |     2 +-
++-++ .../backend_tests_test_model_router_unit.py.md     |     2 +-
++-++ .../backend_tests_test_model_trainer.py.md         |     2 +-
++-++ .../backend_tests_test_models_ci_report.py.md      |     2 +-
++-++ .../backend_tests_test_models_evolution.py.md      |     2 +-
++-++ .../codebase/backend_tests_test_monitoring.py.md   |     2 +-
++-++ .../backend_tests_test_multi_account_rotator.py.md |     2 +-
++-++ .../codebase/backend_tests_test_multicloud.py.md   |     2 +-
++-++ .../backend_tests_test_new_endpoints_sprint5.py.md |     2 +-
++-++ .../backend_tests_test_new_interfaces.py.md        |     2 +-
++-++ .../backend_tests_test_new_tools_sprint5.py.md     |     2 +-
++-++ .../backend_tests_test_optimization_engine.py.md   |     2 +-
++-++ .../backend_tests_test_output_validator.py.md      |     2 +-
++-++ ...ackend_tests_test_parallel_agent_executor.py.md |     2 +-
++-++ .../codebase/backend_tests_test_payments.py.md     |     2 +-
++-++ ...ckend_tests_test_performance_aware_router.py.md |     2 +-
++-++ .../backend_tests_test_pgbouncer_pool.py.md        |     2 +-
++-++ .../codebase/backend_tests_test_posthog.py.md      |     2 +-
++-++ .../codebase/backend_tests_test_pr_reviewer.py.md  |     2 +-
++-++ .../backend_tests_test_prod_docs_security.py.md    |     2 +-
++-++ ...sts_test_production_readiness_integration.py.md |     2 +-
++-++ .../backend_tests_test_prompt_firewall.py.md       |     2 +-
++-++ .../autogen/codebase/backend_tests_test_rbac.py.md |     2 +-
++-++ ...backend_tests_test_reasoning_orchestrator.py.md |     2 +-
++-++ .../backend_tests_test_repo_discovery.py.md        |     2 +-
++-++ .../backend_tests_test_resource_catalog.py.md      |     2 +-
++-++ .../autogen/codebase/backend_tests_test_rlhf.py.md |     2 +-
++-++ ...kend_tests_test_sandbox_orchestration_run.py.md |     2 +-
++-++ .../backend_tests_test_schema_validator.py.md      |     2 +-
++-++ .../codebase/backend_tests_test_secret_vault.py.md |     2 +-
++-++ ...ackend_tests_test_secure_credential_store.py.md |     2 +-
++-++ .../backend_tests_test_security_middleware.py.md   |     2 +-
++-++ .../backend_tests_test_security_regression.py.md   |     2 +-
++-++ .../backend_tests_test_self_evolution_agent.py.md  |     2 +-
++-++ .../backend_tests_test_simulator_browser_api.py.md |     2 +-
++-++ .../codebase/backend_tests_test_skill_graph.py.md  |     2 +-
++-++ .../backend_tests_test_skill_recommender.py.md     |     2 +-
++-++ .../backend_tests_test_sliding_window_memory.py.md |     2 +-
++-++ .../backend_tests_test_sprint_c_tools.py.md        |     2 +-
++-++ .../codebase/backend_tests_test_sprint_g.py.md     |     2 +-
++-++ .../backend_tests_test_stealth_networking.py.md    |     2 +-
++-++ .../codebase/backend_tests_test_stream.py.md       |     2 +-
++-++ .../backend_tests_test_style_learner.py.md         |     2 +-
++-++ ...kend_tests_test_supabase_schema_bootstrap.py.md |     2 +-
++-++ .../backend_tests_test_supabase_store.py.md        |     2 +-
++-++ .../backend_tests_test_swarm_orchestrator.py.md    |     2 +-
++-++ .../backend_tests_test_task_endpoints.py.md        |     2 +-
++-++ .../codebase/backend_tests_test_task_queue.py.md   |     2 +-
++-++ .../codebase/backend_tests_test_task_router.py.md  |     2 +-
++-++ .../codebase/backend_tests_test_telegram_bot.py.md |     2 +-
++-++ .../codebase/backend_tests_test_telemetry.py.md    |     2 +-
++-++ .../backend_tests_test_tenant_rate_limiter.py.md   |     2 +-
++-++ .../backend_tests_test_universal_rules.py.md       |     2 +-
++-++ .../backend_tests_test_upstash_redis.py.md         |     2 +-
++-++ docs/autogen/codebase/backend_tests_test_uss.py.md |     2 +-
++-++ .../backend_tests_test_video_generator.py.md       |     2 +-
++-++ .../codebase/backend_tests_test_vision_agent.py.md |     2 +-
++-++ .../codebase/backend_tests_test_voice_stream.py.md |     2 +-
++-++ .../codebase/backend_tests_test_vpn_switcher.py.md |     2 +-
++-++ .../codebase/backend_tests_test_vscode_e2e.py.md   |     2 +-
++-++ .../codebase/backend_tests_test_web_fallback.py.md |     2 +-
++-++ ...d_tests_tools_test_auto_coverage_improver.py.md |     2 +-
++-++ ...kend_tests_tools_test_auto_test_generator.py.md |     2 +-
++-++ ...kend_tests_tools_test_code_smell_detector.py.md |     2 +-
++-++ .../backend_tests_tools_test_cot_reasoner.py.md    |     2 +-
++-++ ...backend_tests_tools_test_coverage_auditor.py.md |     2 +-
++-++ ...d_tests_tools_test_knowledge_base_indexer.py.md |     2 +-
++-++ ...backend_tests_tools_test_multilingual_tts.py.md |     2 +-
++-++ ...nd_tests_tools_test_viral_referral_engine.py.md |     2 +-
++-++ .../backend_tests_utils_test_api_tracker.py.md     |     2 +-
++-++ .../backend_tests_workers_test_celery_app.py.md    |     2 +-
++-++ .../backend_tools_3d_model_generator.py.md         |     2 +-
++-++ .../codebase/backend_tools_agent_tools.py.md       |     2 +-
++-++ .../backend_tools_ai_federation_protocol.py.md     |     2 +-
++-++ .../backend_tools_ai_pair_programmer.py.md         |     2 +-
++-++ .../codebase/backend_tools_api_gateway.py.md       |     2 +-
++-++ .../backend_tools_auto_coverage_improver.py.md     |     2 +-
++-++ .../codebase/backend_tools_auto_pr_pipeline.py.md  |     2 +-
++-++ .../backend_tools_auto_test_generator.py.md        |     2 +-
++-++ .../backend_tools_bandwidth_optimizer.py.md        |     2 +-
++-++ .../backend_tools_bangla_ai_connector.py.md        |     2 +-
++-++ .../codebase/backend_tools_bangla_nlp.py.md        |     2 +-
++-++ .../codebase/backend_tools_bangla_voice.py.md      |     2 +-
++-++ .../codebase/backend_tools_benchmark_agent.py.md   |     2 +-
++-++ .../backend_tools_bengali_ocr_converter.py.md      |     2 +-
++-++ .../codebase/backend_tools_blockchain_agent.py.md  |     2 +-
++-++ .../autogen/codebase/backend_tools_bootstrap.py.md |     2 +-
++-++ .../codebase/backend_tools_browser_agent.py.md     |     2 +-
++-++ .../codebase/backend_tools_browser_stealth.py.md   |     2 +-
++-++ .../backend_tools_checkpoint_manager.py.md         |     2 +-
++-++ docs/autogen/codebase/backend_tools_cli.py.md      |     2 +-
++-++ .../backend_tools_cloud_sandbox_orchestrator.py.md |     2 +-
++-++ .../backend_tools_code_smell_detector.py.md        |     2 +-
++-++ .../codebase/backend_tools_codebase_exporter.py.md |     2 +-
++-++ .../backend_tools_collaborative_editor.py.md       |     2 +-
++-++ .../codebase/backend_tools_comment_thread_ai.py.md |     2 +-
++-++ .../codebase/backend_tools_computer_agent.py.md    |     2 +-
++-++ .../backend_tools_conversation_manager.py.md       |     2 +-
++-++ .../codebase/backend_tools_cost_auditor.py.md      |     2 +-
++-++ .../codebase/backend_tools_cot_reasoner.py.md      |     2 +-
++-++ .../codebase/backend_tools_coverage_auditor.py.md  |     2 +-
++-++ .../backend_tools_dependency_manager_agent.py.md   |     2 +-
++-++ .../backend_tools_diagram_to_architecture.py.md    |     2 +-
++-++ .../codebase/backend_tools_docker_sandbox.py.md    |     2 +-
++-++ .../codebase/backend_tools_domain_adapter.py.md    |     2 +-
++-++ .../codebase/backend_tools_email_agent.py.md       |     2 +-
++-++ .../codebase/backend_tools_ensemble_router.py.md   |     2 +-
++-++ .../codebase/backend_tools_fuzz_sandbox.py.md      |     2 +-
++-++ .../codebase/backend_tools_game_dev_agent.py.md    |     2 +-
++-++ .../backend_tools_gcp_cloud_functions.py.md        |     2 +-
++-++ .../backend_tools_git_knowledge_extractor.py.md    |     2 +-
++-++ .../codebase/backend_tools_github_agent.py.md      |     2 +-
++-++ .../codebase/backend_tools_graph_service.py.md     |     2 +-
++-++ .../backend_tools_headless_agent_registry.py.md    |     2 +-
++-++ .../codebase/backend_tools_health_checker.py.md    |     2 +-
++-++ .../codebase/backend_tools_image_generator.py.md   |     2 +-
++-++ .../codebase/backend_tools_image_to_code.py.md     |     2 +-
++-++ docs/autogen/codebase/backend_tools_init_.py.md    |     2 +-
++-++ .../backend_tools_knowledge_base_indexer.py.md     |     2 +-
++-++ .../backend_tools_langchain_agent_example.py.md    |     2 +-
++-++ .../codebase/backend_tools_legal_agent.py.md       |     2 +-
++-++ .../backend_tools_local_ocr_extractor.py.md        |     2 +-
++-++ .../codebase/backend_tools_local_search_rag.py.md  |     2 +-
++-++ .../codebase/backend_tools_marketplace_agent.py.md |     2 +-
++-++ .../codebase/backend_tools_mcp_cloud_deploy.py.md  |     2 +-
++-++ .../codebase/backend_tools_mcp_github_cicd.py.md   |     2 +-
++-++ .../codebase/backend_tools_mcp_server.py.md        |     2 +-
++-++ .../codebase/backend_tools_mcp_supabase.py.md      |     2 +-
++-++ .../codebase/backend_tools_mcp_workspace.py.md     |     2 +-
++-++ .../codebase/backend_tools_medical_agent.py.md     |     2 +-
++-++ .../codebase/backend_tools_meta_architect.py.md    |     2 +-
++-++ .../codebase/backend_tools_model_trainer.py.md     |     2 +-
++-++ .../backend_tools_monthly_cost_reporter.py.md      |     2 +-
++-++ .../backend_tools_multi_account_rotator.py.md      |     2 +-
++-++ .../codebase/backend_tools_multilingual_tts.py.md  |     2 +-
++-++ .../codebase/backend_tools_music_generator.py.md   |     2 +-
++-++ .../codebase/backend_tools_offline_mode.py.md      |     2 +-
++-++ .../backend_tools_on_premise_deployer.py.md        |     2 +-
++-++ .../backend_tools_parallel_agent_executor.py.md    |     2 +-
++-++ .../codebase/backend_tools_pdf_to_sdk.py.md        |     2 +-
++-++ .../codebase/backend_tools_plan_sorter.py.md       |     2 +-
++-++ .../backend_tools_playwright_browser_agent.py.md   |     2 +-
++-++ .../codebase/backend_tools_pr_reviewer.py.md       |     2 +-
++-++ .../codebase/backend_tools_pre_commit_ai.py.md     |     2 +-
++-++ .../codebase/backend_tools_preference_memory.py.md |     2 +-
++-++ .../backend_tools_presentation_generator.py.md     |     2 +-
++-++ .../codebase/backend_tools_proxy_manager.py.md     |     2 +-
++-++ .../codebase/backend_tools_repo_deep_indexer.py.md |     2 +-
++-++ .../backend_tools_repo_discovery_agent.py.md       |     2 +-
++-++ .../codebase/backend_tools_resource_catalog.py.md  |     2 +-
++-++ .../codebase/backend_tools_rlhf_pipeline.py.md     |     2 +-
++-++ .../codebase/backend_tools_safe_executor.py.md     |     2 +-
++-++ .../codebase/backend_tools_scientific_agent.py.md  |     2 +-
++-++ .../codebase/backend_tools_seed_database.py.md     |     2 +-
++-++ .../codebase/backend_tools_self_planner.py.md      |     2 +-
++-++ .../codebase/backend_tools_skill_recommender.py.md |     2 +-
++-++ .../codebase/backend_tools_sso_integrator.py.md    |     2 +-
++-++ .../backend_tools_stealth_http_client.py.md        |     2 +-
++-++ .../codebase/backend_tools_style_learner.py.md     |     2 +-
++-++ .../codebase/backend_tools_telegram_bot.py.md      |     2 +-
++-++ .../backend_tools_tenant_rate_limiter.py.md        |     2 +-
++-++ .../backend_tools_test_3d_model_generator.py.md    |     2 +-
++-++ ...end_tools_test_cloud_sandbox_orchestrator.py.md |     2 +-
++-++ .../codebase/backend_tools_trading_agent.py.md     |     2 +-
++-++ .../codebase/backend_tools_video_generator.py.md   |     2 +-
++-++ .../backend_tools_viral_referral_engine.py.md      |     2 +-
++-++ .../codebase/backend_tools_vision_agent.py.md      |     2 +-
++-++ docs/autogen/codebase/backend_tools_voice.py.md    |     2 +-
++-++ .../codebase/backend_tools_voice_coder.py.md       |     2 +-
++-++ .../codebase/backend_tools_vpn_switcher.py.md      |     2 +-
++-++ .../backend_tools_vulnerability_predictor.py.md    |     2 +-
++-++ .../backend_tools_web_fallback_agent.py.md         |     2 +-
++-++ .../codebase/backend_utils_api_tracker.py.md       |     2 +-
++-++ .../codebase/backend_utils_environment.py.md       |     2 +-
++-++ .../codebase/backend_utils_firestore_helpers.py.md |     2 +-
++-++ .../codebase/backend_utils_http_client.py.md       |     2 +-
++-++ docs/autogen/codebase/backend_utils_init_.py.md    |     2 +-
++-++ .../codebase/backend_utils_json_helpers.py.md      |     2 +-
++-++ .../codebase/backend_utils_timestamps.py.md        |     2 +-
++-++ docs/autogen/codebase/backend_uv.lock.md           |     2 +-
++-++ .../codebase/backend_workers_celery_app.py.md      |     2 +-
++-++ .../codebase/backend_workers_chaos_worker.py.md    |     2 +-
++-++ .../codebase/config_.pre-commit-config.yaml.md     |     2 +-
++-++ docs/autogen/codebase/config_audit-rules.yml.md    |     2 +-
++-++ .../codebase/config_compliance-rules.yml.md        |     2 +-
++-++ docs/autogen/codebase/config_docker-limits.yml.md  |     2 +-
++-++ .../codebase/config_firestore.indexes.json.md      |     2 +-
++-++ docs/autogen/codebase/config_kilo.json.md          |     2 +-
++-++ .../codebase/config_promptfooconfig.yaml.md        |     2 +-
++-++ docs/autogen/codebase/config_proxy_list.json.md    |     2 +-
++-++ .../autogen/codebase/config_routing_policy.json.md |     2 +-
++-++ docs/autogen/codebase/config_vercel.json.md        |     2 +-
++-++ docs/autogen/codebase/coverage.toml.md             |     2 +-
++-++ docs/autogen/codebase/docker-compose.yml.md        |     2 +-
++-++ .../codebase/evolution_auto_skill_creator.py.md    |     2 +-
++-++ .../autogen/codebase/evolution_daily_learner.py.md |     2 +-
++-++ .../codebase/evolution_evolution_engine.py.md      |     2 +-
++-++ .../codebase/evolution_evolution_react_agent.py.md |     2 +-
++-++ docs/autogen/codebase/evolution_self_updater.py.md |     2 +-
++-++ docs/autogen/codebase/find_duplicate_files.py.md   |     2 +-
++-++ docs/autogen/codebase/find_duplicate_tests.py.md   |     2 +-
++-++ docs/autogen/codebase/firebase.json.md             |     2 +-
++-++ .../infrastructure_check_deploy_gate.py.md         |     2 +-
++-++ ...infrastructure_cloudflare_enhanced-worker.js.md |     2 +-
++-++ .../infrastructure_cloudflare_worker.js.md         |     2 +-
++-++ .../infrastructure_cloudflare_wrangler.toml.md     |     2 +-
++-++ .../infrastructure_cloudrun_autoscale.yaml.md      |     2 +-
++-++ .../infrastructure_cloudrun_multi_region.yaml.md   |     2 +-
++-++ ...functions_firebase_functions_v1_README_BD.md.md |     2 +-
++-++ ...unctions_firebase_functions_v1_api-router.js.md |     2 +-
++-++ ..._firebase_functions_v1_deployment-monitor.js.md |     2 +-
++-++ ...ctions_firebase_functions_v1_health-smart.js.md |     2 +-
++-++ ...ase_functions_firebase_functions_v1_index.js.md |     2 +-
++-++ ...functions_firebase_functions_v1_package.json.md |     2 +-
++-++ ...ons_firebase_functions_v1_providers-smart.js.md |     2 +-
++-++ ...se_functions_v1_server-connection-monitor.js.md |     2 +-
++-++ ..._firebase_functions_v1_src_chatClassifier.ts.md |     2 +-
++-++ ...dataconnect-admin-generated_esm_index.esm.js.md |     2 +-
++-++ ...dataconnect-admin-generated_esm_package.json.md |     2 +-
++-++ ...src_dataconnect-admin-generated_index.cjs.js.md |     2 +-
++-++ ...1_src_dataconnect-admin-generated_index.d.ts.md |     2 +-
++-++ ...src_dataconnect-admin-generated_package.json.md |     2 +-
++-++ ...s_firebase_functions_v1_src_email_handler.ts.md |     2 +-
++-++ ...functions_firebase_functions_v1_src_index.ts.md |     2 +-
++-++ ...ns_firebase_functions_v1_src_scrapeEngine.ts.md |     2 +-
++-++ ...ase_functions_v1_src_scrapeHistoryManager.ts.md |     2 +-
++-++ ..._firebase_functions_v1_src_scrapeSchema.yaml.md |     2 +-
++-++ ...functions_firebase_functions_v1_swagger.yaml.md |     2 +-
++-++ ...tions_firebase_functions_v1_system-health.js.md |     2 +-
++-++ ...unctions_firebase_functions_v1_tsconfig.json.md |     2 +-
++-++ ...irebase_functions_v1_utils_externalClient.js.md |     2 +-
++-++ ...rastructure_firebase_functions_ocrTrigger.ts.md |     2 +-
++-++ ...ure_monitoring_docker-compose.monitoring.yml.md |     2 +-
++-++ ...astructure_monitoring_grafana_dashboard.json.md |     2 +-
++-++ ...cture_terraform_root_cause_analysis_agent.py.md |     2 +-
++-++ ..._terraform_test_root_cause_analysis_agent.py.md |     2 +-
++-++ .../codebase/infrastructure_vitest-report.json.md  |     2 +-
++-++ docs/autogen/codebase/package.json.md              |     2 +-
++-++ .../codebase/packages_shared-types_package.json.md |     2 +-
++-++ .../packages_shared-types_src_conversation.ts.md   |     2 +-
++-++ .../codebase/packages_shared-types_src_index.ts.md |     2 +-
++-++ .../packages_shared-types_src_message.ts.md        |     2 +-
++-++ .../packages_shared-types_tsconfig.json.md         |     2 +-
++-++ .../packages_ui-components_package.json.md         |     2 +-
++-++ .../packages_ui-components_src_ChatBubble.tsx.md   |     2 +-
++-++ ...components_src_components_DashboardShell.tsx.md |     2 +-
++-++ ...nents_src_components_LiveSujonBackground.tsx.md |     2 +-
++-++ ...-components_src_contexts_SharedProviders.tsx.md |     2 +-
++-++ .../packages_ui-components_src_index.ts.md         |     2 +-
++-++ .../packages_ui-components_src_utils_api.ts.md     |     2 +-
++-++ .../packages_ui-components_tsconfig.json.md        |     2 +-
++-++ docs/autogen/codebase/playwright-ct.config.ts.md   |     2 +-
++-++ docs/autogen/codebase/playwright.config.ts.md      |     2 +-
++-++ docs/autogen/codebase/pnpm-lock.yaml.md            |     2 +-
++-++ docs/autogen/codebase/pnpm-workspace.yaml.md       |     2 +-
++-++ docs/autogen/codebase/scratch_job_details.json.md  |     2 +-
++-++ docs/autogen/codebase/scratch_smoke_check.py.md    |     2 +-
++-++ .../scratch_supremeai_skill_ecosystem_app.py.md    |     2 +-
++-++ ...ratch_supremeai_skill_ecosystem_generator.py.md |     2 +-
++-++ ..._supremeai_skill_ecosystem_sample_skill.json.md |     2 +-
++-++ ...ch_supremeai_skill_ecosystem_skill_schema.py.md |     2 +-
++-++ .../codebase/scratch_sync_gsm_secrets.py.md        |     2 +-
++-++ docs/autogen/codebase/scratch_update_vault.py.md   |     2 +-
++-++ .../autogen/codebase/scratch_update_vault_r2.py.md |     2 +-
++-++ .../codebase/scratch_verify_project_health.py.md   |     2 +-
++-++ .../codebase/scripts_add_bangla_comments.py.md     |     2 +-
++-++ .../codebase/scripts_aggregate_context.py.md       |     2 +-
++-++ ...scripts_backup_auto_cross_cloud_replicate.py.md |     2 +-
++-++ .../scripts_backup_auto_firestore_backup.py.md     |     2 +-
++-++ .../scripts_benchmark_perf_benchmark.py.md         |     2 +-
++-++ .../codebase/scripts_bots_auto_alert_bot.py.md     |     2 +-
++-++ .../scripts_bots_auto_daily_standup_bot.py.md      |     2 +-
++-++ .../codebase/scripts_code_smell_detector.py.md     |     2 +-
++-++ docs/autogen/codebase/scripts_codebase_to_md.py.md |     2 +-
++-++ .../codebase/scripts_codegraph_integration.py.md   |     2 +-
++-++ .../codebase/scripts_commit_supreme_ci.yml.md      |     2 +-
++-++ docs/autogen/codebase/scripts_config_audit.py.md   |     2 +-
++-++ .../scripts_core_engine_multicatalog_search.py.md  |     2 +-
++-++ .../codebase/scripts_core_engine_tool_ranker.py.md |     2 +-
++-++ .../codebase/scripts_create_test_admin.py.md       |     2 +-
++-++ .../autogen/codebase/scripts_db_auto_migrate.py.md |     2 +-
++-++ docs/autogen/codebase/scripts_db_auto_seed.py.md   |     2 +-
++-++ .../autogen/codebase/scripts_docker_ai_guard.py.md |     2 +-
++-++ ...ipts_evolution_auto_marketing_skill_forge.py.md |     2 +-
++-++ docs/autogen/codebase/scripts_fix_mypy.py.md       |     2 +-
++-++ docs/autogen/codebase/scripts_fuzz_sandbox.py.md   |     2 +-
++-++ .../scripts_generate_codebase_markdown.py.md       |     2 +-
++-++ ...scripts_generate_codebase_single_markdown.py.md |     2 +-
++-++ docs/autogen/codebase/scripts_generate_md.py.md    |     2 +-
++-++ .../codebase/scripts_generate_smart_docs.py.md     |     2 +-
++-++ docs/autogen/codebase/scripts_k6_load_test.js.md   |     2 +-
++-++ docs/autogen/codebase/scripts_locustfile.py.md     |     2 +-
++-++ docs/autogen/codebase/scripts_migrate.py.md        |     2 +-
++-++ .../codebase/scripts_multi_model_validator.py.md   |     2 +-
++-++ ...scripts_orchestrator_auto_budget_guardian.py.md |     2 +-
++-++ docs/autogen/codebase/scripts_profile_memory.py.md |     2 +-
++-++ .../scripts_quality_auto_dead_code_remover.py.md   |     2 +-
++-++ .../scripts_quality_auto_improve_coverage.py.md    |     2 +-
++-++ .../scripts_quality_auto_refactor_suggester.py.md  |     2 +-
++-++ ...cripts_quality_check_ollama_test_coverage.py.md |     2 +-
++-++ .../scripts_resource_collection_awesome_go.py.md   |     2 +-
++-++ ...cripts_resource_collection_awesome_python.py.md |     2 +-
++-++ ...ts_resource_collection_awesome_selfhosted.py.md |     2 +-
++-++ ...ripts_resource_collection_base_api_client.py.md |     2 +-
++-++ .../scripts_resource_collection_base_scraper.py.md |     2 +-
++-++ ...pts_resource_collection_ossinsight_client.py.md |     2 +-
++-++ ...ipts_resource_collection_ossinsight_init_.py.md |     2 +-
++-++ ...ripts_resource_collection_ossinsight_test.py.md |     2 +-
++-++ .../scripts_resource_collection_run_all.py.md      |     2 +-
++-++ ...ts_resource_collection_run_all_collectors.py.md |     2 +-
++-++ ...ripts_resource_scraping_awesome_go_scrape.py.md |     2 +-
++-++ ...s_resource_scraping_awesome_python_scrape.py.md |     2 +-
++-++ ...source_scraping_awesome_selfhosted_scrape.py.md |     2 +-
++-++ .../codebase/scripts_run_all_collectors.py.md      |     2 +-
++-++ docs/autogen/codebase/scripts_safety_guard.py.md   |     2 +-
++-++ .../scripts_security_auto_find_blindspots.py.md    |     2 +-
++-++ .../scripts_security_auto_secret_rotate.py.md      |     2 +-
++-++ .../scripts_security_check_dependencies.py.md      |     2 +-
++-++ .../codebase/scripts_security_code-quality.yml.md  |     2 +-
++-++ ...scripts_security_dependency-health-check.yml.md |     2 +-
++-++ .../codebase/scripts_security_find_dead_code.py.md |     2 +-
++-++ docs/autogen/codebase/scripts_seed_repos.py.md     |     2 +-
++-++ .../autogen/codebase/scripts_setup_ci_runner.py.md |     2 +-
++-++ .../codebase/scripts_setup_firebase_admin.py.md    |     2 +-
++-++ docs/autogen/codebase/scripts_skill_loader.py.md   |     2 +-
++-++ .../codebase/scripts_supreme-config-audit.py.md    |     2 +-
++-++ .../codebase/scripts_supreme-docker-analyzer.py.md |     2 +-
++-++ .../codebase/scripts_supreme-risk-scorer.py.md     |     2 +-
++-++ .../codebase/scripts_supreme_context_builder.py.md |     2 +-
++-++ .../scripts_tenant_auto_tenant_health_report.py.md |     2 +-
++-++ .../scripts_tenant_auto_tenant_setup.py.md         |     2 +-
++-++ docs/autogen/codebase/scripts_test_bangla.py.md    |     2 +-
++-++ docs/autogen/codebase/scripts_test_read.py.md      |     2 +-
++-++ docs/autogen/codebase/security-scan.yml.md         |     2 +-
++-++ .../codebase/skills_dynamic_csv_exporter.py.md     |     2 +-
++-++ .../codebase/skills_dynamic_text_summarizer.py.md  |     2 +-
++-++ .../codebase/skills_dynamic_web_scraper.py.md      |     2 +-
++-++ docs/autogen/codebase/skills_init_.py.md           |     2 +-
++-++ docs/autogen/codebase/skills_installer.py.md       |     2 +-
++-++ docs/autogen/codebase/skills_marketplace.py.md     |     2 +-
++-++ docs/autogen/codebase/skills_registry.py.md        |     2 +-
++-++ docs/autogen/codebase/skills_schema.py.md          |     2 +-
++-++ .../codebase/test-results_.last-run.json.md        |     2 +-
++-++ ...be-accessible-Mobile-Chrome_error-context.md.md |     2 +-
++-++ ...be-accessible-Mobile-Safari_error-context.md.md |     2 +-
++-++ ...bility-issues-Mobile-Safari_error-context.md.md |     2 +-
++-++ ...sends-message-Mobile-Chrome_error-context.md.md |     2 +-
++-++ ...sends-message-Mobile-Safari_error-context.md.md |     2 +-
++-++ ...Chat-sends-message-chromium_error-context.md.md |     2 +-
++-++ .../codebase/test-results_e2e-report.json.md       |     2 +-
++-++ .../codebase/tests_e2e_accessibility.spec.ts.md    |     2 +-
++-++ .../codebase/tests_e2e_admin-dashboard.spec.ts.md  |     2 +-
++-++ docs/autogen/codebase/tests_e2e_chat.spec.ts.md    |     2 +-
++-++ docs/autogen/codebase/tests_e2e_visual.spec.ts.md  |     2 +-
++-++ docs/autogen/codebase/tests_test_tenant_di.py.md   |     2 +-
++-++ docs/autogen/codebase/tools_cache_cleanup.py.md    |     2 +-
++-++ .../tools_vscode-extension_ARCHITECTURE_BN.md.md   |     2 +-
++-++ ...vscode-extension_AdminMetricsController.java.md |     2 +-
++-++ ...s_vscode-extension_CodebaseAuditService.java.md |     2 +-
++-++ ...ools_vscode-extension_FeatureDefinition.java.md |     2 +-
++-++ ...ode-extension_FeatureRegistryController.java.md |     2 +-
++-++ ...vscode-extension_FeatureRegistryService.java.md |     2 +-
++-++ .../tools_vscode-extension_GlobalMetrics.java.md   |     2 +-
++-++ ...s_vscode-extension_GlobalMetricsService.java.md |     2 +-
++-++ ...ols_vscode-extension_INTEGRATION_GUIDE_BN.md.md |     2 +-
++-++ .../codebase/tools_vscode-extension_README.md.md   |     2 +-
++-++ .../tools_vscode-extension_README_BN.md.md         |     2 +-
++-++ .../tools_vscode-extension_jest.config.js.md       |     2 +-
++-++ .../tools_vscode-extension_package.json.md         |     2 +-
++-++ .../tools_vscode-extension_package.nls.bn.json.md  |     2 +-
++-++ .../tools_vscode-extension_src_agentDetector.ts.md |     2 +-
++-++ .../tools_vscode-extension_src_ai_AIService.ts.md  |     2 +-
++-++ ...de-extension_src_ai_CodeGenerationService.ts.md |     2 +-
++-++ ...vscode-extension_src_ai_CodeReviewService.ts.md |     2 +-
++-++ ...ls_vscode-extension_src_ai_ContextBuilder.ts.md |     2 +-
++-++ ...xtension_src_dataconnect-generated_README.md.md |     2 +-
++-++ ...n_src_dataconnect-generated_esm_index.esm.js.md |     2 +-
++-++ ...n_src_dataconnect-generated_esm_package.json.md |     2 +-
++-++ ...nsion_src_dataconnect-generated_index.cjs.js.md |     2 +-
++-++ ...tension_src_dataconnect-generated_index.d.ts.md |     2 +-
++-++ ...nsion_src_dataconnect-generated_package.json.md |     2 +-
++-++ .../tools_vscode-extension_src_extension.ts.md     |     2 +-
++-++ ...de-extension_src_handlers_CodeEditHandler.ts.md |     2 +-
++-++ ...de-extension_src_handlers_CodeFlowHandler.ts.md |     2 +-
++-++ ...scode-extension_src_handlers_ErrorHandler.ts.md |     2 +-
++-++ ...de-extension_src_handlers_FeedbackHandler.ts.md |     2 +-
++-++ ...ode-extension_src_providers_CodeFlowPanel.ts.md |     2 +-
++-++ ...nsion_src_providers_StreamingChatProvider.ts.md |     2 +-
++-++ ...n_src_providers_SupremeAIActivityProvider.ts.md |     2 +-
++-++ ...providers_SupremeAIAdminDashboardProvider.ts.md |     2 +-
++-++ ...nsion_src_providers_SupremeAIChatProvider.ts.md |     2 +-
++-++ ...extension_src_providers_SupremeAIChatView.ts.md |     2 +-
++-++ ...viders_SupremeAICustomerDashboardProvider.ts.md |     2 +-
++-++ ...on_src_providers_SupremeAISidebarProvider.ts.md |     2 +-
++-++ ...vscode-extension_src_services_AuthService.ts.md |     2 +-
++-++ ...e-extension_src_services_SupremeAIService.ts.md |     2 +-
++-++ .../tools_vscode-extension_src_types_index.ts.md   |     2 +-
++-++ ...ension_src_utils_DynamicSignatureRegistry.ts.md |     2 +-
++-++ ...s_vscode-extension_test_auth-service.test.ts.md |     2 +-
++-++ ...ools_vscode-extension_test_mocks_vscode.d.ts.md |     2 +-
++-++ .../tools_vscode-extension_test_mocks_vscode.ts.md |     2 +-
++-++ .../tools_vscode-extension_test_setup.ts.md        |     2 +-
++-++ ...ode-extension_test_supremeai-service.test.ts.md |     2 +-
++-++ .../tools_vscode-extension_tsconfig.json.md        |     2 +-
++-++ .../tools_vscode-extension_vitest.config.ts.md     |     2 +-
++-++ docs/autogen/codebase/turbo.json.md                |     2 +-
++-++ docs/autogen/codebase/vercel.json.md               |     2 +-
++-++ docs/autogen/codebase_full.md                      |    21 +-
++-++ 1081 files changed, 13856 insertions(+), 10134 deletions(-)
++-++
++-++```
++-++
++-++## Diff Detail
++-++```diff
++-++commit 2a4ec4991835e461130ab9fa375765a396518604
++-++Author: github-actions[bot] <github-actions[bot]@users.noreply.github.com>
++-++Date:   Tue Jul 7 06:57:04 2026 +0000
++-++
++-++    docs: auto-update codebase docs & dashboard [skip ci]
++-++
++-++diff --git a/docs/autogen/INDEX.md b/docs/autogen/INDEX.md
++-++index a68d52ad7..2a4b5cc98 100644
++-++--- a/docs/autogen/INDEX.md
++-+++++ b/docs/autogen/INDEX.md
++-++@@ -13,4 +13,4 @@
++-++ - **ডিরেক্টরি:** [changes/](changes/)
++-++ 
++-++ ---
++-++-*স্বয়ংক্রিয়ভাবে তৈরি — 2026-07-07 06:42:46*
++-+++*স্বয়ংক্রিয়ভাবে তৈরি — 2026-07-07 06:57:03*
++-++diff --git a/docs/autogen/changes/change_4163e41f3732ba2efd46e0c2d54f1a7691d36975.md b/docs/autogen/changes/change_4163e41f3732ba2efd46e0c2d54f1a7691d36975.md
++-++new file mode 100644
++-++index 000000000..831d4d8d6
++-++--- /dev/null
++-+++++ b/docs/autogen/changes/change_4163e41f3732ba2efd46e0c2d54f1a7691d36975.md
++-++@@ -0,0 +1,75 @@
++-+++# 📋 Commit 4163e41f3732ba2efd46e0c2d54f1a7691d36975
++-+++
++-+++## Commit Stats
++-+++```
++-+++commit 4163e41f3732ba2efd46e0c2d54f1a7691d36975
++-+++Author: SupremeAI CI Bot <ci-bot@supremeai.dev>
++-+++Date:   Tue Jul 7 12:49:33 2026 +0600
++-+++
++-+++    Fix App.test.tsx to use MemoryRouter
++-+++
++-+++ apps/studio-client/src/App.test.tsx | 19 ++++++++++++++++---
++-+++ 1 file changed, 16 insertions(+), 3 deletions(-)
++-+++
++-+++```
++-+++
++-+++## Diff Detail
++-+++```diff
++-+++commit 4163e41f3732ba2efd46e0c2d54f1a7691d36975
++-+++Author: SupremeAI CI Bot <ci-bot@supremeai.dev>
++-+++Date:   Tue Jul 7 12:49:33 2026 +0600
++-+++
++-+++    Fix App.test.tsx to use MemoryRouter
++-+++
++-+++diff --git a/apps/studio-client/src/App.test.tsx b/apps/studio-client/src/App.test.tsx
++-+++index df6717934..2ea10c8d7 100644
++-+++--- a/apps/studio-client/src/App.test.tsx
++-++++++ b/apps/studio-client/src/App.test.tsx
++-+++@@ -1,5 +1,6 @@
++-+++ import { describe, it, expect, vi, beforeEach } from 'vitest';
++-+++ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
++-++++import { MemoryRouter } from 'react-router-dom';
++-+++ 
++-+++ vi.mock('./services/chatService', () => ({
++-+++   getAethelResponse: vi.fn().mockResolvedValue('Mock Aethel backend response'),
++-+++@@ -78,7 +79,11 @@ describe('App component', () => {
++-+++ 
++-+++   // বাংলা মন্তব্য: UI টেক্সট পরিবর্তন হওয়া সত্ত্বেও টেস্ট যাতে স্ট্যাবল থাকে সে জন্য data-testid ব্যবহার করা হলো
++-+++   it('renders header, title, and health status', () => {
++-+++-    render(<App />);
++-++++    render(
++-++++      <MemoryRouter initialEntries={['/workspace']}>
++-++++        <App />
++-++++      </MemoryRouter>
++-++++    );
++-+++ 
++-+++     expect(screen.getByTestId('header-title')).toBeInTheDocument();
++-+++     expect(screen.getByTestId('core-status')).toBeInTheDocument();
++-+++@@ -86,7 +91,11 @@ describe('App component', () => {
++-+++ 
++-+++   // বাংলা মন্তব্য: চ্যাট ট্যাব সক্রিয় করে চ্যাট কনসোল রেন্ডারিং চেক করা হচ্ছে
++-+++   it('renders chat console when chat tab is active', () => {
++-+++-    render(<App />);
++-++++    render(
++-++++      <MemoryRouter initialEntries={['/workspace']}>
++-++++        <App />
++-++++      </MemoryRouter>
++-++++    );
++-+++ 
++-+++     // চ্যাট ট্যাবে ক্লিক করা হচ্ছে
++-+++     fireEvent.click(screen.getByTestId('tab-chat'));
++-+++@@ -96,7 +105,11 @@ describe('App component', () => {
++-+++ 
++-+++   // বাংলা মন্তব্য: চ্যাট প্যানেলে মেসেজ টাইপ ও সাবমিট করে প্রসেসিং সফলভাবে হচ্ছে কিনা টেস্ট করা হচ্ছে
++-+++   it('allows user to send messages in the chat console', async () => {
++-+++-    render(<App />);
++-++++    render(
++-++++      <MemoryRouter initialEntries={['/workspace']}>
++-++++        <App />
++-++++      </MemoryRouter>
++-++++    );
++-+++ 
++-+++     // চ্যাট ট্যাবে ক্লিক করা হচ্ছে
++-+++     fireEvent.click(screen.getByTestId('tab-chat'));
++-+++
++-+++```
++-++diff --git a/docs/autogen/changes/change_50eb3cf012a0f762c2eeac865b9a82322522a97d.md b/docs/autogen/changes/change_50eb3cf012a0f762c2eeac865b9a82322522a97d.md
++-++new file mode 100644
++-++index 000000000..156e9bd8c
++-++--- /dev/null
++-+++++ b/docs/autogen/changes/change_50eb3cf012a0f762c2eeac865b9a82322522a97d.md
++-++@@ -0,0 +1,12671 @@
++-+++# 📋 Commit 50eb3cf012a0f762c2eeac865b9a82322522a97d
++-+++
++-+++## Commit Stats
++-+++```
++-+++commit 50eb3cf012a0f762c2eeac865b9a82322522a97d
++-+++Author: github-actions[bot] <github-actions[bot]@users.noreply.github.com>
++-+++Date:   Tue Jul 7 06:42:47 2026 +0000
++-+++
++-+++    docs: auto-update codebase docs & dashboard [skip ci]
++-+++
++-+++ docs/autogen/INDEX.md                              |     2 +-
++-+++ ...nge_284476142ac96c881e385f69b6d47f74c7c2d0c6.md | 13726 ++++++++++++++++++
++-+++ ...nge_2de1d5d14186066e74f38ac1f2648519c651343f.md |  9026 ------------
++-+++ ...nge_4e241b248870f3efb9b8539943a15ca9801ead92.md |   184 +
++-+++ ...nge_6a762b5eb113e6a19090291589da3043dffde676.md |   103 -
++-+++ ...nge_e10b21490fcaa0447bb826f7bc6d9801f2cc6ed6.md | 13728 -------------------
++-+++ ...nge_e570176002604288980c609779f88f6cceaccf92.md |    83 +
++-+++ .../.github_actions_setup-backend_action.yml.md    |     2 +-
++-+++ ...github_scripts_advanced-validation-report.py.md |     2 +-
++-+++ .../codebase/.github_scripts_canary-deploy.py.md   |     2 +-
++-+++ .../codebase/.github_scripts_ci-auto-fix-v3.py.md  |     2 +-
++-+++ .../codebase/.github_scripts_ci-auto-fix.py.md     |     2 +-
++-+++ .../.github_scripts_ci-decision-engine.py.md       |     2 +-
++-+++ .../codebase/.github_scripts_ci-health-check.py.md |     2 +-
++-+++ .../.github_scripts_clean_action_logs.py.md        |     2 +-
++-+++ .../codebase/.github_scripts_deploy-backend.py.md  |     2 +-
++-+++ .../.github_scripts_detect-previous-failures.py.md |     2 +-
++-+++ .../codebase/.github_scripts_enforce_24h_gap.py.md |     2 +-
++-+++ .../.github_scripts_generate-ci-report.py.md       |     2 +-
++-+++ .../.github_scripts_generate_ai_prompt.py.md       |     2 +-
++-+++ .../.github_scripts_multi-model-evaluator.py.md    |     2 +-
++-+++ docs/autogen/codebase/.github_scripts_review.py.md |     2 +-
++-+++ .../.github_scripts_supremeai-evaluator.py.md      |     2 +-
++-+++ .../.github_scripts_test_ai_reviewer.py.md         |     2 +-
++-+++ .../codebase/.github_workflows_deploy.yml.md       |     2 +-
++-+++ .../.github_workflows_nightly-maintenance.yml.md   |     2 +-
++-+++ .../.github_workflows_supreme-core-ci.yml.md       |     2 +-
++-+++ .../.github_workflows_supreme-mobile-cd.yml.md     |     2 +-
++-+++ ....github_workflows_supreme-release-builds.yml.md |     2 +-
++-+++ .../.github_workflows_sync-from-prod.yml.md        |     2 +-
++-+++ docs/autogen/codebase/AGENTS.md.md                 |     2 +-
++-+++ docs/autogen/codebase/CHANGELOG.md.md              |     2 +-
++-+++ docs/autogen/codebase/CI_PIPELINE.md.md            |     2 +-
++-+++ docs/autogen/codebase/CONTRIBUTING.md.md           |     2 +-
++-+++ docs/autogen/codebase/IMPLEMENTATION_STATUS.md.md  |     2 +-
++-+++ .../codebase/PRODUCTION_READINESS_GUIDE.md.md      |     2 +-
++-+++ docs/autogen/codebase/README.md.md                 |     2 +-
++-+++ docs/autogen/codebase/SECURITY.md.md               |     2 +-
++-+++ docs/autogen/codebase/admin_dashboard_script.js.md |     2 +-
++-+++ docs/autogen/codebase/apps_desktop_README.md.md    |     2 +-
++-+++ docs/autogen/codebase/apps_desktop_package.json.md |     2 +-
++-+++ .../codebase/apps_desktop_src-tauri_Cargo.toml.md  |     2 +-
++-+++ .../codebase/apps_desktop_src-tauri_build.rs.md    |     2 +-
++-+++ .../apps_desktop_src-tauri_secure-store.ts.md      |     2 +-
++-+++ .../codebase/apps_desktop_src-tauri_src_main.rs.md |     2 +-
++-+++ .../apps_desktop_src-tauri_tauri.conf.json.md      |     2 +-
++-+++ .../codebase/apps_desktop_src-ui_package.json.md   |     2 +-
++-+++ .../codebase/apps_desktop_src-ui_src_App.tsx.md    |     2 +-
++-+++ ..._desktop_src-ui_src_components_ChatInput.tsx.md |     2 +-
++-+++ .../codebase/apps_desktop_src-ui_src_main.tsx.md   |     2 +-
++-+++ .../apps_desktop_src-ui_src_pages_AdminPage.tsx.md |     2 +-
++-+++ .../apps_desktop_src-ui_src_pages_ChatPage.tsx.md  |     2 +-
++-+++ ...s_desktop_src-ui_src_pages_EvolutionPage.tsx.md |     2 +-
++-+++ .../apps_desktop_src-ui_src_pages_LoginPage.tsx.md |     2 +-
++-+++ ...apps_desktop_src-ui_src_pages_SkillsPage.tsx.md |     2 +-
++-+++ .../apps_desktop_src-ui_src_services_api.ts.md     |     2 +-
++-+++ .../apps_desktop_src-ui_src_stores_authStore.ts.md |     2 +-
++-+++ .../apps_desktop_src-ui_src_types_index.ts.md      |     2 +-
++-+++ .../apps_desktop_src-ui_src_vite-env.d.ts.md       |     2 +-
++-+++ .../codebase/apps_desktop_src-ui_tsconfig.json.md  |     2 +-
++-+++ .../apps_desktop_src-ui_tsconfig.node.json.md      |     2 +-
++-+++ .../codebase/apps_desktop_src-ui_vite.config.ts.md |     2 +-
++-+++ ...ava_com_supremeai_JavaWorkerApplication.java.md |     2 +-
++-+++ ...va_com_supremeai_grpc_WorkerServiceImpl.java.md |     2 +-
++-+++ ...in_java_com_supremeai_models_TaskEntity.java.md |     2 +-
++-+++ ...m_supremeai_repositories_TaskRepository.java.md |     2 +-
++-+++ ...va-worker_src_main_resources_application.yml.md |     2 +-
++-+++ docs/autogen/codebase/apps_mobile_README.md.md     |     2 +-
++-+++ docs/autogen/codebase/apps_mobile_README_BD.md.md  |     2 +-
++-+++ .../codebase/apps_mobile_analysis_options.yaml.md  |     2 +-
++-+++ .../codebase/apps_mobile_assets_i18n_ar.json.md    |     2 +-
++-+++ .../codebase/apps_mobile_assets_i18n_bn.json.md    |     2 +-
++-+++ .../codebase/apps_mobile_assets_i18n_en.json.md    |     2 +-
++-+++ .../codebase/apps_mobile_assets_i18n_es.json.md    |     2 +-
++-+++ .../codebase/apps_mobile_assets_i18n_hi.json.md    |     2 +-
++-+++ .../codebase/apps_mobile_assets_i18n_zh.json.md    |     2 +-
++-+++ .../codebase/apps_mobile_devtools_options.yaml.md  |     2 +-
++-+++ ...ts.xcassets_AppIcon.appiconset_Contents.json.md |     2 +-
++-+++ ....xcassets_LaunchImage.imageset_Contents.json.md |     2 +-
++-+++ ...sets.xcassets_LaunchImage.imageset_README.md.md |     2 +-
++-+++ ...s_mobile_lib_dataconnect_generated_README.md.md |     2 +-
++-+++ ...le_lib_dataconnect_generated_add_review.dart.md |     2 +-
++-+++ ..._lib_dataconnect_generated_create_movie.dart.md |     2 +-
++-+++ ...lib_dataconnect_generated_delete_review.dart.md |     2 +-
++-+++ ...ile_lib_dataconnect_generated_generated.dart.md |     2 +-
++-+++ ...b_dataconnect_generated_get_movie_by_id.dart.md |     2 +-
++-+++ ...e_lib_dataconnect_generated_list_movies.dart.md |     2 +-
++-+++ ...dataconnect_generated_list_user_reviews.dart.md |     2 +-
++-+++ ...le_lib_dataconnect_generated_list_users.dart.md |     2 +-
++-+++ ..._lib_dataconnect_generated_search_movie.dart.md |     2 +-
++-+++ ...e_lib_dataconnect_generated_upsert_user.dart.md |     2 +-
++-+++ docs/autogen/codebase/apps_mobile_lib_main.dart.md |     2 +-
++-+++ .../apps_mobile_lib_models_ci_job_model.dart.md    |     2 +-
++-+++ ...apps_mobile_lib_providers_auth_provider.dart.md |     2 +-
++-+++ ...mobile_lib_providers_dashboard_provider.dart.md |     2 +-
++-+++ ...le_lib_providers_orchestration_provider.dart.md |     2 +-
++-+++ ..._mobile_lib_providers_settings_provider.dart.md |     2 +-
++-+++ ...ps_mobile_lib_screens_agent_chat_screen.dart.md |     2 +-
++-+++ ...mobile_lib_screens_alerts_alerts_screen.dart.md |     2 +-
++-+++ ..._lib_screens_analytics_analytics_screen.dart.md |     2 +-
++-+++ ...apps_mobile_lib_screens_api_keys_screen.dart.md |     2 +-
++-+++ .../apps_mobile_lib_screens_api_scaffold.dart.md   |     2 +-
++-+++ ...apps_mobile_lib_screens_byoc_hub_screen.dart.md |     2 +-
++-+++ ..._lib_screens_consensus_consensus_screen.dart.md |     2 +-
++-+++ ...obile_lib_screens_dashboard_home_screen.dart.md |     2 +-
++-+++ ...pps_mobile_lib_screens_dashboard_screen.dart.md |     2 +-
++-+++ ..._lib_screens_extension_extension_screen.dart.md |     2 +-
++-+++ .../apps_mobile_lib_screens_git_git_screen.dart.md |     2 +-
++-+++ ...le_lib_screens_learning_learning_screen.dart.md |     2 +-
++-+++ .../apps_mobile_lib_screens_login_screen.dart.md   |     2 +-
++-+++ ...eens_notifications_notifications_screen.dart.md |     2 +-
++-+++ ...b_screens_projects_projects_list_screen.dart.md |     2 +-
++-+++ ...b_screens_providers_ai_providers_screen.dart.md |     2 +-
++-+++ ...s_mobile_lib_screens_quota_quota_screen.dart.md |     2 +-
++-+++ ...ib_screens_resilience_resilience_screen.dart.md |     2 +-
++-+++ ...apps_mobile_lib_screens_settings_screen.dart.md |     2 +-
++-+++ .../apps_mobile_lib_screens_terminal_view.dart.md  |     2 +-
++-+++ .../apps_mobile_lib_screens_vpn_vpn_screen.dart.md |     2 +-
++-+++ .../apps_mobile_lib_screens_wallet_screen.dart.md  |     2 +-
++-+++ .../apps_mobile_lib_services_api_client.dart.md    |     2 +-
++-+++ .../apps_mobile_lib_services_api_service.dart.md   |     2 +-
++-+++ ...pps_mobile_lib_services_billing_service.dart.md |     2 +-
++-+++ .../apps_mobile_lib_services_byoc_service.dart.md  |     2 +-
++-+++ ...pps_mobile_lib_services_ci_sync_service.dart.md |     2 +-
++-+++ ...s_mobile_lib_services_deployment_stream.dart.md |     2 +-
++-+++ ...obile_lib_services_localization_service.dart.md |     2 +-
++-+++ ...bile_lib_services_neural_stream_service.dart.md |     2 +-
++-+++ ...obile_lib_services_notification_service.dart.md |     2 +-
++-+++ ...obile_lib_services_offline_sync_service.dart.md |     2 +-
++-+++ ...ile_lib_services_payment_gateway_bridge.dart.md |     2 +-
++-+++ ..._mobile_lib_services_screen_api_service.dart.md |     2 +-
++-+++ .../apps_mobile_lib_theme_app_theme.dart.md        |     2 +-
++-+++ .../apps_mobile_lib_theme_theme_provider.dart.md   |     2 +-
++-+++ ...apps_mobile_lib_widgets_action_hub_card.dart.md |     2 +-
++-+++ ...ile_lib_widgets_base_dashboard_scaffold.dart.md |     2 +-
++-+++ .../codebase/apps_mobile_lib_widgets_es.json.md    |     2 +-
++-+++ .../apps_mobile_lib_widgets_json_dropzone.dart.md  |     2 +-
++-+++ .../apps_mobile_lib_widgets_live_terminal.dart.md  |     2 +-
++-+++ ...apps_mobile_lib_widgets_loading_widgets.dart.md |     2 +-
++-+++ ...le_lib_widgets_transaction_history_list.dart.md |     2 +-
++-+++ .../apps_mobile_lib_widgets_usage_chart.dart.md    |     2 +-
++-+++ ...ts.xcassets_AppIcon.appiconset_Contents.json.md |     2 +-
++-+++ docs/autogen/codebase/apps_mobile_pubspec.lock.md  |     2 +-
++-+++ docs/autogen/codebase/apps_mobile_pubspec.yaml.md  |     2 +-
++-+++ ...bile_test_auth_provider_edge_cases_test.dart.md |     2 +-
++-+++ .../apps_mobile_test_auth_provider_test.dart.md    |     2 +-
++-+++ ...mobile_test_home_screen_edge_cases_test.dart.md |     2 +-
++-+++ .../apps_mobile_test_home_screen_test.dart.md      |     2 +-
++-+++ ...s_mobile_test_screens_login_screen_test.dart.md |     2 +-
++-+++ .../codebase/apps_mobile_web_manifest.json.md      |     2 +-
++-+++ .../codebase/apps_studio-client_README.md.md       |     2 +-
++-+++ .../codebase/apps_studio-client_components.json.md |     2 +-
++-+++ .../apps_studio-client_eslint.config.js.md         |     2 +-
++-+++ .../autogen/codebase/apps_studio-client_main.js.md |     2 +-
++-+++ .../codebase/apps_studio-client_package.json.md    |     8 +-
++-+++ .../apps_studio-client_public_manifest.json.md     |     2 +-
++-+++ .../codebase/apps_studio-client_public_sw.js.md    |     2 +-
++-+++ .../apps_studio-client_src_App.test.tsx.md         |     2 +-
++-+++ .../codebase/apps_studio-client_src_App.tsx.md     |    48 +-
++-+++ ...tudio-client_src_components_AdminConsole.tsx.md |     2 +-
++-+++ ..._studio-client_src_components_BanglaHint.tsx.md |     2 +-
++-+++ ...apps_studio-client_src_components_Header.tsx.md |     2 +-
++-+++ ...lient_src_components_LiveSujonBackground.tsx.md |     2 +-
++-+++ ...c_components_Onboarding_OnboardingWizard.tsx.md |     2 +-
++-+++ ...ent_src_components_Onboarding_StepApiKey.tsx.md |     2 +-
++-+++ ..._src_components_Onboarding_StepFirstChat.tsx.md |     2 +-
++-+++ ...rc_components_Onboarding_StepModelSelect.tsx.md |     2 +-
++-+++ ...dio-client_src_components_OperatorStudio.tsx.md |     2 +-
++-+++ ...o-client_src_components_admin_ActionCard.tsx.md |     2 +-
++-+++ ..._src_components_admin_AdminAuthenticated.tsx.md |     2 +-
++-+++ ...client_src_components_admin_AdminConsole.tsx.md |     2 +-
++-+++ ..._src_components_admin_AdminDashboardHome.tsx.md |     2 +-
++-+++ ...o-client_src_components_admin_AdminLogin.tsx.md |     2 +-
++-+++ ..._src_components_admin_AdminSubTabContent.tsx.md |     2 +-
++-+++ ...-client_src_components_admin_AdminTopNav.tsx.md |     2 +-
++-+++ ...o-client_src_components_admin_AethelNode.tsx.md |     2 +-
++-+++ ...ient_src_components_admin_AuditLogsPanel.tsx.md |     2 +-
++-+++ ...lient_src_components_admin_BackupRestore.tsx.md |     2 +-
++-+++ ...ient_src_components_admin_CICDVisualizer.tsx.md |     2 +-
++-+++ ...t_src_components_admin_CloudOrchestrator.tsx.md |     2 +-
++-+++ ...lient_src_components_admin_CommandCenter.tsx.md |     2 +-
++-+++ ...client_src_components_admin_ConfigEditor.tsx.md |     2 +-
++-+++ ..._src_components_admin_ConsentMatrixModal.tsx.md |     2 +-
++-+++ ...-client_src_components_admin_CostAuditor.tsx.md |     2 +-
++-+++ ..._components_admin_DashboardErrorBoundary.tsx.md |     2 +-
++-+++ ...ent_src_components_admin_DeploymentModal.tsx.md |     2 +-
++-+++ ...client_src_components_admin_DynamicPanel.tsx.md |     2 +-
++-+++ ...omponents_admin_EnhancedSkillMarketplace.tsx.md |     6 +-
++-+++ ...t_src_components_admin_GithubIntegration.tsx.md |     2 +-
++-+++ ...client_src_components_admin_HealthBanner.tsx.md |     2 +-
++-+++ ...io-client_src_components_admin_HealthMap.tsx.md |     2 +-
++-+++ ..._src_components_admin_InteractiveChatTab.tsx.md |     2 +-
++-+++ ...dio-client_src_components_admin_LiveLogs.tsx.md |    15 +-
++-+++ ...lient_src_components_admin_MemoryBrowser.tsx.md |     6 +-
++-+++ ...-client_src_components_admin_ModelRouter.tsx.md |     2 +-
++-+++ ..._components_admin_ObservabilityDashboard.tsx.md |     2 +-
++-+++ ...-client_src_components_admin_RBACManager.tsx.md |     2 +-
++-+++ ...nt_src_components_admin_RateLimitManager.tsx.md |     2 +-
++-+++ ...rc_components_admin_RealTimeMetricsPanel.tsx.md |     2 +-
++-+++ ...mponents_admin_RedesignedDashboardMockup.tsx.md |     2 +-
++-+++ ...nt_src_components_admin_RulesEnginePanel.tsx.md |     2 +-
++-+++ ...t_src_components_admin_SecurityDashboard.tsx.md |     2 +-
++-+++ ...rc_components_admin_ServiceHealthMetrics.tsx.md |     2 +-
++-+++ ...ent_src_components_admin_ThreatDetection.tsx.md |     2 +-
++-+++ ...-client_src_components_admin_UserManager.tsx.md |     2 +-
++-+++ ..._src_components_admin_VisualRulesBuilder.tsx.md |     2 +-
++-+++ ..._studio-client_src_components_admin_index.ts.md |     2 +-
++-+++ ..._src_components_audio_WaveformVisualizer.tsx.md |     2 +-
++-+++ ...ient_src_components_chat_TypingIndicator.tsx.md |     2 +-
++-+++ ...nt_src_components_chat_UnifiedChatBubble.tsx.md |     2 +-
++-+++ ...s_studio-client_src_components_chat_index.ts.md |     2 +-
++-+++ ...t_src_components_customer_BrowserPreview.tsx.md |     2 +-
++-+++ ...t_src_components_customer_ChatPanel.test.tsx.md |     2 +-
++-+++ ...client_src_components_customer_ChatPanel.tsx.md |     2 +-
++-+++ ...lient_src_components_customer_CodeEditor.tsx.md |     2 +-
++-+++ ...-client_src_components_customer_HomeFeed.tsx.md |     2 +-
++-+++ ..._src_components_customer_MobileSimulator.tsx.md |     2 +-
++-+++ ...rc_components_customer_QuickPresets.test.tsx.md |     2 +-
++-+++ ...ent_src_components_customer_QuickPresets.tsx.md |     2 +-
++-+++ ...c_components_customer_UserDashboard.test.tsx.md |     2 +-
++-+++ ...nt_src_components_customer_UserDashboard.tsx.md |     2 +-
++-+++ ...udio-client_src_components_customer_index.ts.md |     2 +-
++-+++ ..._src_components_dashboard_AgentStatePill.tsx.md |     2 +-
++-+++ ...components_dashboard_AutomationQueuePage.tsx.md |     2 +-
++-+++ ...components_dashboard_DashboardShell.test.tsx.md |     2 +-
++-+++ ..._src_components_dashboard_DashboardShell.tsx.md |     2 +-
++-+++ ..._src_components_dashboard_ExecutionShell.tsx.md |     2 +-
++-+++ ...t_src_components_dashboard_FileTreePanel.tsx.md |     2 +-
++-+++ ..._src_components_dashboard_GuardrailsPage.tsx.md |     2 +-
++-+++ ...src_components_dashboard_HealingLogPanel.tsx.md |     2 +-
++-+++ ...t_src_components_dashboard_KnowledgePage.tsx.md |     2 +-
++-+++ ..._src_components_dashboard_LlmGatewayPage.tsx.md |     2 +-
++-+++ ...nt_src_components_dashboard_ReasoningLog.tsx.md |     2 +-
++-+++ ...src_components_dashboard_SandboxViewport.tsx.md |     2 +-
++-+++ ...ent_src_components_dashboard_SecretsPage.tsx.md |     2 +-
++-+++ ...c_components_dashboard_SessionDetailPage.tsx.md |     2 +-
++-+++ ...nt_src_components_dashboard_SessionsPage.tsx.md |     2 +-
++-+++ ...nt_src_components_dashboard_SettingsPage.tsx.md |     2 +-
++-+++ ...src_components_dashboard_SiteActionsPage.tsx.md |     2 +-
++-+++ ...lient_src_components_dashboard_UsagePage.tsx.md |     2 +-
++-+++ ...lient_src_components_dashboard_VaultPage.tsx.md |     2 +-
++-+++ ...ent_src_components_dashboard_sessionStore.ts.md |     2 +-
++-+++ ...ent_src_components_dashboard_useHashRoute.ts.md |     2 +-
++-+++ ...lient_src_components_editor_CollabEditor.tsx.md |     2 +-
++-+++ ...o-client_src_components_graph_SkillGraph.tsx.md |     2 +-
++-+++ ...udio-client_src_components_ui_ActionCard.tsx.md |     2 +-
++-+++ ...ps_studio-client_src_components_ui_Badge.tsx.md |     2 +-
++-+++ ...pps_studio-client_src_components_ui_Card.tsx.md |     2 +-
++-+++ ...studio-client_src_components_ui_Skeleton.tsx.md |     2 +-
++-+++ ...pps_studio-client_src_components_ui_index.ts.md |     2 +-
++-+++ ..._studio-client_src_contexts_ThemeContext.tsx.md |     2 +-
++-+++ ..._studio-client_src_contexts_ToastContext.tsx.md |     2 +-
++-+++ ...o-client_src_dataconnect-generated_README.md.md |     2 +-
++-+++ ...t_src_dataconnect-generated_esm_index.esm.js.md |     2 +-
++-+++ ...t_src_dataconnect-generated_esm_package.json.md |     2 +-
++-+++ ...lient_src_dataconnect-generated_index.cjs.js.md |     2 +-
++-+++ ...-client_src_dataconnect-generated_index.d.ts.md |     2 +-
++-+++ ...lient_src_dataconnect-generated_package.json.md |     2 +-
++-+++ ...nt_src_dataconnect-generated_react_README.md.md |     2 +-
++-+++ ...dataconnect-generated_react_esm_index.esm.js.md |     2 +-
++-+++ ...dataconnect-generated_react_esm_package.json.md |     2 +-
++-+++ ...src_dataconnect-generated_react_index.cjs.js.md |     2 +-
++-+++ ...t_src_dataconnect-generated_react_index.d.ts.md |     2 +-
++-+++ ...src_dataconnect-generated_react_package.json.md |     2 +-
++-+++ .../codebase/apps_studio-client_src_firebase.ts.md |     2 +-
++-+++ .../apps_studio-client_src_hooks_index.ts.md       |     2 +-
++-+++ ...lient_src_hooks_tests_useTranslation.test.ts.md |     2 +-
++-+++ .../apps_studio-client_src_hooks_useAdminApi.ts.md |     2 +-
++-+++ .../apps_studio-client_src_hooks_useAuth.ts.md     |     2 +-
++-+++ .../apps_studio-client_src_hooks_useChat.ts.md     |     2 +-
++-+++ ..._studio-client_src_hooks_useDashboardData.ts.md |     2 +-
++-+++ ...ps_studio-client_src_hooks_useTranslation.ts.md |     2 +-
++-+++ ...apps_studio-client_src_hooks_useWebSocket.ts.md |     2 +-
++-+++ ...apps_studio-client_src_i18n_I18nProvider.tsx.md |     2 +-
++-+++ .../apps_studio-client_src_i18n_config.ts.md       |     2 +-
++-+++ .../apps_studio-client_src_i18n_translations.ts.md |     2 +-
++-+++ .../codebase/apps_studio-client_src_lib_etag.ts.md |     2 +-
++-+++ .../codebase/apps_studio-client_src_main.tsx.md    |     9 +-
++-+++ ...s_studio-client_src_services_adminService.ts.md |     2 +-
++-+++ ...tudio-client_src_services_adminTokenStore.ts.md |     2 +-
++-+++ ...s_studio-client_src_services_agentService.ts.md |     2 +-
++-+++ ...apps_studio-client_src_services_apiClient.ts.md |     2 +-
++-+++ ...ient_src_services_api_microserviceMonitor.ts.md |     2 +-
++-+++ ...t_src_services_audio_AudioPlaybackService.ts.md |     2 +-
++-+++ ...t_src_services_audio_AudioRecorderService.ts.md |     2 +-
++-+++ ...ps_studio-client_src_services_authService.ts.md |     2 +-
++-+++ ...ps_studio-client_src_services_chatService.ts.md |     2 +-
++-+++ ...tudio-client_src_services_ciReportService.ts.md |     2 +-
++-+++ ...pps_studio-client_src_services_storageApi.ts.md |     2 +-
++-+++ .../apps_studio-client_src_store_adminStore.ts.md  |     2 +-
++-+++ ...pps_studio-client_src_store_customerStore.ts.md |     2 +-
++-+++ ...ps_studio-client_src_store_dashboardStore.ts.md |     2 +-
++-+++ ...udio-client_src_store_sessionCockpitStore.ts.md |     2 +-
++-+++ .../apps_studio-client_src_store_themeStore.ts.md  |     2 +-
++-+++ .../apps_studio-client_src_store_useStore.ts.md    |     2 +-
++-+++ .../apps_studio-client_src_test_setup.ts.md        |     2 +-
++-+++ .../codebase/apps_studio-client_src_types.ts.md    |     2 +-
++-+++ .../apps_studio-client_src_types_customer.ts.md    |     2 +-
++-+++ .../apps_studio-client_src_utils_api.ts.md         |     2 +-
++-+++ ...ps_studio-client_src_utils_apiInterceptor.ts.md |     2 +-
++-+++ .../apps_studio-client_src_vite-env.d.ts.md        |     2 +-
++-+++ ...tudio-client_src_workers_logParser.worker.ts.md |     2 +-
++-+++ .../apps_studio-client_tsconfig.app.json.md        |     2 +-
++-+++ .../codebase/apps_studio-client_tsconfig.json.md   |     2 +-
++-+++ .../apps_studio-client_tsconfig.node.json.md       |     2 +-
++-+++ .../codebase/apps_studio-client_vite.config.ts.md  |     2 +-
++-+++ .../apps_studio-client_vitest.config.ts.md         |     2 +-
++-+++ docs/autogen/codebase/apps_web-chat_api.test.ts.md |     2 +-
++-+++ docs/autogen/codebase/apps_web-chat_api.ts.md      |     2 +-
++-+++ .../autogen/codebase/apps_web-chat_package.json.md |     2 +-
++-+++ docs/autogen/codebase/apps_web-chat_script.ts.md   |     2 +-
++-+++ .../codebase/apps_web-chat_tsconfig.json.md        |     2 +-
++-+++ .../codebase/apps_web-chat_vite-env.d.ts.md        |     2 +-
++-+++ .../codebase/apps_web-chat_vite.config.ts.md       |     2 +-
++-+++ .../codebase/apps_web-chat_vitest.config.ts.md     |     2 +-
++-+++ docs/autogen/codebase/backend_README.md.md         |     2 +-
++-+++ .../backend_adaptive_engine_experience_db.py.md    |     2 +-
++-+++ .../codebase/backend_adaptive_engine_init_.py.md   |     2 +-
++-+++ .../backend_adaptive_engine_intent_parser.py.md    |     2 +-
++-+++ .../backend_adaptive_engine_learning_loop.py.md    |     2 +-
++-+++ .../backend_adaptive_engine_platform_learner.py.md |     2 +-
++-+++ .../backend_adaptive_engine_registry.py.md         |     2 +-
++-+++ ...end_adaptive_engine_test_platform_learner.py.md |     2 +-
++-+++ docs/autogen/codebase/backend_admin_god.py.md      |     2 +-
++-+++ docs/autogen/codebase/backend_admin_init_.py.md    |     2 +-
++-+++ docs/autogen/codebase/backend_admin_test_god.py.md |     2 +-
++-+++ .../codebase/backend_agents_crew_departments.py.md |     2 +-
++-+++ docs/autogen/codebase/backend_agents_init_.py.md   |     2 +-
++-+++ .../codebase/backend_agents_legal_agent.py.md      |     2 +-
++-+++ .../codebase/backend_agents_medical_agent.py.md    |     2 +-
++-+++ .../backend_agents_research_assistant.py.md        |     2 +-
++-+++ .../codebase/backend_agents_test_legal_agent.py.md |     2 +-
++-+++ .../backend_agents_test_medical_agent.py.md        |     2 +-
++-+++ .../codebase/backend_agents_trading_agent.py.md    |     2 +-
++-+++ docs/autogen/codebase/backend_alembic_env.py.md    |     2 +-
++-+++ ...ersions_664fe16e33ca_add_ci_reports_table.py.md |     2 +-
++-+++ .../codebase/backend_api_dependencies.py.md        |     2 +-
++-+++ docs/autogen/codebase/backend_api_init_.py.md      |     2 +-
++-+++ .../codebase/backend_api_routes_admin.py.md        |     2 +-
++-+++ .../backend_api_routes_admin_dashboard.py.md       |     2 +-
++-+++ .../codebase/backend_api_routes_agent_tasks.py.md  |     2 +-
++-+++ .../codebase/backend_api_routes_agents.py.md       |     2 +-
++-+++ .../codebase/backend_api_routes_api_keys.py.md     |     2 +-
++-+++ .../backend_api_routes_approval_manager.py.md      |     2 +-
++-+++ .../backend_api_routes_async_task_router.py.md     |     2 +-
++-+++ .../autogen/codebase/backend_api_routes_auth.py.md |     2 +-
++-+++ .../codebase/backend_api_routes_billing_api.py.md  |     2 +-
++-+++ .../codebase/backend_api_routes_browser.py.md      |     2 +-
++-+++ .../codebase/backend_api_routes_byoc_api.py.md     |     2 +-
++-+++ .../codebase/backend_api_routes_cdc_webhooks.py.md |     2 +-
++-+++ .../autogen/codebase/backend_api_routes_chat.py.md |     2 +-
++-+++ .../codebase/backend_api_routes_ci_webhooks.py.md  |     2 +-
++-+++ .../codebase/backend_api_routes_cloud_mesh.py.md   |     2 +-
++-+++ .../codebase/backend_api_routes_codeflow.py.md     |     2 +-
++-+++ .../codebase/backend_api_routes_config.py.md       |     2 +-
++-+++ .../codebase/backend_api_routes_email.py.md        |     2 +-
++-+++ .../codebase/backend_api_routes_evolution.py.md    |     2 +-
++-+++ .../backend_api_routes_execution_policies.py.md    |     2 +-
++-+++ .../codebase/backend_api_routes_feedback.py.md     |     2 +-
++-+++ .../codebase/backend_api_routes_github.py.md       |     2 +-
++-+++ .../codebase/backend_api_routes_graph.py.md        |     2 +-
++-+++ .../codebase/backend_api_routes_init_.py.md        |     2 +-
++-+++ .../codebase/backend_api_routes_internal.py.md     |     2 +-
++-+++ .../codebase/backend_api_routes_knowledge.py.md    |     2 +-
++-+++ .../codebase/backend_api_routes_llm_gateway.py.md  |     2 +-
++-+++ .../codebase/backend_api_routes_markdown.py.md     |     2 +-
++-+++ .../codebase/backend_api_routes_marketplace.py.md  |     2 +-
++-+++ .../backend_api_routes_marketplace_endpoints.py.md |     2 +-
++-+++ .../codebase/backend_api_routes_media.py.md        |     2 +-
++-+++ .../codebase/backend_api_routes_memory.py.md       |     2 +-
++-+++ .../codebase/backend_api_routes_metrics.py.md      |     2 +-
++-+++ .../codebase/backend_api_routes_mobile_bff.py.md   |     2 +-
++-+++ .../codebase/backend_api_routes_onboarding.py.md   |     2 +-
++-+++ .../codebase/backend_api_routes_payments.py.md     |     2 +-
++-+++ .../codebase/backend_api_routes_preferences.py.md  |     2 +-
++-+++ .../codebase/backend_api_routes_repos.py.md        |     2 +-
++-+++ .../backend_api_routes_selector_healing.py.md      |     2 +-
++-+++ .../backend_api_routes_session_stream.py.md        |     2 +-
++-+++ .../backend_api_routes_session_takeover.py.md      |     2 +-
++-+++ .../codebase/backend_api_routes_simulator.py.md    |     2 +-
++-+++ .../codebase/backend_api_routes_site_actions.py.md |     2 +-
++-+++ docs/autogen/codebase/backend_api_routes_sso.py.md |     2 +-
++-+++ .../codebase/backend_api_routes_stream.py.md       |     2 +-
++-+++ .../autogen/codebase/backend_api_routes_task.py.md |     2 +-
++-+++ .../backend_api_routes_task_workspace.py.md        |     2 +-
++-+++ .../codebase/backend_api_routes_tenant_admin.py.md |     2 +-
++-+++ .../codebase/backend_api_routes_tools_ops.py.md    |     2 +-
++-+++ .../backend_api_routes_tools_registry.py.md        |     2 +-
++-+++ .../backend_api_routes_usage_metrics.py.md         |     2 +-
++-+++ .../codebase/backend_api_routes_voice.py.md        |     2 +-
++-+++ .../backend_api_routes_websocket_agent.py.md       |     2 +-
++-+++ .../backend_api_routes_websocket_voice.py.md       |     2 +-
++-+++ .../codebase/backend_byoc_cloud_connector.py.md    |     2 +-
++-+++ .../backend_byoc_container_orchestrator.py.md      |     2 +-
++-+++ docs/autogen/codebase/backend_byoc_init_.py.md     |     2 +-
++-+++ .../codebase/backend_byoc_resource_manager.py.md   |     2 +-
++-+++ .../codebase/backend_config_byoc_limits.json.md    |     2 +-
++-+++ .../backend_config_constitutional_rules.json.md    |     2 +-
++-+++ .../codebase/backend_config_pricing_tiers.json.md  |     2 +-
++-+++ .../codebase/backend_config_routing_policy.json.md |     2 +-
++-+++ docs/autogen/codebase/backend_core_admin_god.py.md |     2 +-
++-+++ .../codebase/backend_core_admin_routes.py.md       |     2 +-
++-+++ .../codebase/backend_core_agent_orchestrator.py.md |     2 +-
++-+++ .../codebase/backend_core_api_key_middleware.py.md |     2 +-
++-+++ .../backend_core_api_key_rate_limiter.py.md        |     2 +-
++-+++ docs/autogen/codebase/backend_core_app.py.md       |     2 +-
++-+++ .../codebase/backend_core_audit_logger.py.md       |     2 +-
++-+++ .../codebase/backend_core_auth_middleware.py.md    |     2 +-
++-+++ .../codebase/backend_core_auto_remediation.py.md   |     2 +-
++-+++ .../codebase/backend_core_autocache_proxy.py.md    |     2 +-
++-+++ .../codebase/backend_core_circuit_breaker.py.md    |     2 +-
++-+++ .../backend_core_cloud_sandbox_orchestrator.py.md  |     2 +-
++-+++ .../codebase/backend_core_cloud_storage.py.md      |     2 +-
++-+++ .../codebase/backend_core_code_validator.py.md     |     2 +-
++-+++ docs/autogen/codebase/backend_core_config.py.md    |     2 +-
++-+++ docs/autogen/codebase/backend_core_constants.py.md |     2 +-
++-+++ .../codebase/backend_core_db_repository.py.md      |     2 +-
++-+++ .../codebase/backend_core_decision_engine.py.md    |     2 +-
++-+++ .../codebase/backend_core_discord_bot.py.md        |     2 +-
++-+++ .../codebase/backend_core_docker-compose.yml.md    |     2 +-
++-+++ .../codebase/backend_core_email_service.py.md      |     2 +-
++-+++ .../autogen/codebase/backend_core_enum_guard.py.md |     2 +-
++-+++ .../codebase/backend_core_error_pattern_db.py.md   |     2 +-
++-+++ .../codebase/backend_core_error_remediation.py.md  |     2 +-
++-+++ docs/autogen/codebase/backend_core_events.py.md    |     2 +-
++-+++ .../codebase/backend_core_evolution_engine.py.md   |     2 +-
++-+++ .../codebase/backend_core_factual_verifier.py.md   |     2 +-
++-+++ .../codebase/backend_core_feedback_loop.py.md      |     2 +-
++-+++ .../codebase/backend_core_free_tier_tracker.py.md  |     2 +-
++-+++ .../codebase/backend_core_gcp_firestore.py.md      |     2 +-
++-+++ .../codebase/backend_core_gcp_pubsub_queue.py.md   |     2 +-
++-+++ .../codebase/backend_core_generation_monitor.py.md |     2 +-
++-+++ .../codebase/backend_core_grpc_client.py.md        |     2 +-
++-+++ .../codebase/backend_core_health_monitor.py.md     |     2 +-
++-+++ .../backend_core_honeypot_middleware.py.md         |     2 +-
++-+++ .../backend_core_idempotency_middleware.py.md      |     2 +-
++-+++ .../codebase/backend_core_immune_system.py.md      |     2 +-
++-+++ docs/autogen/codebase/backend_core_init_.py.md     |     2 +-
++-+++ .../codebase/backend_core_input_sanitizer.py.md    |     2 +-
++-+++ docs/autogen/codebase/backend_core_intent.py.md    |     2 +-
++-+++ .../codebase/backend_core_intent_router.py.md      |     2 +-
++-+++ .../codebase/backend_core_language_router.py.md    |     2 +-
++-+++ docs/autogen/codebase/backend_core_ld_client.py.md |     2 +-
++-+++ docs/autogen/codebase/backend_core_lifespan.py.md  |     2 +-
++-+++ .../codebase/backend_core_llm_gateway.py.md        |     2 +-
++-+++ .../codebase/backend_core_log_batcher.py.md        |     2 +-
++-+++ .../codebase/backend_core_logging_config.py.md     |     2 +-
++-+++ .../codebase/backend_core_mcp_allowlist.py.md      |     2 +-
++-+++ .../codebase/backend_core_microvm_sandbox.py.md    |     2 +-
++-+++ .../codebase/backend_core_multi_layer_cache.py.md  |     2 +-
++-+++ .../backend_core_observability_middleware.py.md    |     2 +-
++-+++ .../codebase/backend_core_orchestrator.py.md       |     2 +-
++-+++ .../codebase/backend_core_origin_validator.py.md   |     2 +-
++-+++ .../codebase/backend_core_output_validator.py.md   |     2 +-
++-+++ .../codebase/backend_core_pgbouncer_pool.py.md     |     2 +-
++-+++ .../codebase/backend_core_posthog_client.py.md     |     2 +-
++-+++ .../codebase/backend_core_prompt_firewall.py.md    |     2 +-
++-+++ .../codebase/backend_core_prompt_helpers.py.md     |     2 +-
++-+++ .../codebase/backend_core_rate_limiter.py.md       |     2 +-
++-+++ docs/autogen/codebase/backend_core_rbac.py.md      |     2 +-
++-+++ .../codebase/backend_core_redis_manager.py.md      |     2 +-
++-+++ .../codebase/backend_core_rollback_monitor.py.md   |     2 +-
++-+++ .../codebase/backend_core_rules_mutator.py.md      |     2 +-
++-+++ .../codebase/backend_core_schema_validator.py.md   |     2 +-
++-+++ .../codebase/backend_core_secret_vault.py.md       |     2 +-
++-+++ .../backend_core_secure_credential_store.py.md     |     2 +-
++-+++ docs/autogen/codebase/backend_core_security.py.md  |     2 +-
++-+++ .../codebase/backend_core_self_healing_agent.py.md |     2 +-
++-+++ .../codebase/backend_core_semantic_cache.py.md     |     2 +-
++-+++ docs/autogen/codebase/backend_core_services.py.md  |     2 +-
++-+++ .../codebase/backend_core_skill_graph.py.md        |     2 +-
++-+++ .../codebase/backend_core_swarm_orchestrator.py.md |     2 +-
++-+++ .../autogen/codebase/backend_core_task_queue.py.md |     2 +-
++-+++ .../backend_core_task_queue_enhanced.py.md         |     2 +-
++-+++ .../codebase/backend_core_task_router.py.md        |     2 +-
++-+++ docs/autogen/codebase/backend_core_telemetry.py.md |     2 +-
++-+++ docs/autogen/codebase/backend_core_tenant_db.py.md |     2 +-
++-+++ .../codebase/backend_core_token_budget.py.md       |     2 +-
++-+++ .../codebase/backend_core_token_deductor.py.md     |     2 +-
++-+++ .../codebase/backend_core_universal_rules.py.md    |     2 +-
++-+++ .../codebase/backend_core_upload_validator.py.md   |     2 +-
++-+++ .../backend_core_upstash_redis_queue.py.md         |     2 +-
++-+++ .../codebase/backend_core_user_profiler.py.md      |     2 +-
++-+++ docs/autogen/codebase/backend_database_init_.py.md |     2 +-
++-+++ ...end_database_migrations_01_initial_setup.sql.md |     2 +-
++-+++ ...kend_database_migrations_02_phase2_setup.sql.md |     2 +-
++-+++ ...grations_03_user_preferences_and_metrics.sql.md |     2 +-
++-+++ ...nd_database_migrations_04_schema_upgrade.sql.md |     2 +-
++-+++ ...database_migrations_05_seed_github_repos.sql.md |     2 +-
++-+++ ...d_database_migrations_06_referral_system.sql.md |     2 +-
++-+++ ...end_database_migrations_07_tenant_config.sql.md |     2 +-
++-+++ ...ckend_database_migrations_08_sso_configs.sql.md |     2 +-
++-+++ ...database_migrations_09_offline_sync_logs.sql.md |     2 +-
++-+++ ...atabase_migrations_10_tenant_sso_offline.sql.md |     2 +-
++-+++ .../codebase/backend_database_session.py.md        |     2 +-
++-+++ .../codebase/backend_database_storage_client.py.md |     2 +-
++-+++ .../backend_database_supabase_client.py.md         |     2 +-
++-+++ .../codebase/backend_engine_cost_optimizer.py.md   |     2 +-
++-+++ docs/autogen/codebase/backend_engine_init_.py.md   |     2 +-
++-+++ .../codebase/backend_engine_model_dispatcher.py.md |     2 +-
++-+++ .../backend_evolution_auto_skill_creator.py.md     |     2 +-
++-+++ .../backend_evolution_auto_update_manager.py.md    |     2 +-
++-+++ .../backend_evolution_dynamic_injector.py.md       |     2 +-
++-+++ .../backend_evolution_fitness_engine.py.md         |     2 +-
++-+++ .../autogen/codebase/backend_evolution_init_.py.md |     2 +-
++-+++ .../backend_evolution_master_planner.py.md         |     2 +-
++-+++ .../backend_evolution_security_sandbox.py.md       |     2 +-
++-+++ .../backend_evolution_self_evolution_agent.py.md   |     2 +-
++-+++ .../codebase/backend_evolution_skill_graph.py.md   |     2 +-
++-+++ docs/autogen/codebase/backend_fix_tests.py.md      |     2 +-
++-+++ docs/autogen/codebase/backend_init_.py.md          |     2 +-
++-+++ docs/autogen/codebase/backend_main.py.md           |     2 +-
++-+++ .../backend_memory_checkpoint_resume.py.md         |     2 +-
++-+++ .../codebase/backend_memory_chromadb_store.py.md   |     2 +-
++-+++ .../backend_memory_cloud_postgres_store.py.md      |     2 +-
++-+++ .../backend_memory_cloud_vector_store.py.md        |     2 +-
++-+++ .../codebase/backend_memory_episodic_memory.py.md  |     2 +-
++-+++ docs/autogen/codebase/backend_memory_init_.py.md   |     2 +-
++-+++ .../codebase/backend_memory_long_term_memory.py.md |     2 +-
++-+++ .../codebase/backend_memory_rag_pipeline.py.md     |     2 +-
++-+++ .../codebase/backend_memory_sliding_window.py.md   |     2 +-
++-+++ .../codebase/backend_memory_sqlite_store.py.md     |     2 +-
++-+++ .../codebase/backend_memory_summary_tree.py.md     |     2 +-
++-+++ .../codebase/backend_memory_supabase_store.py.md   |     2 +-
++-+++ .../backend_memory_vector_store_config.py.md       |     2 +-
++-+++ .../backend_middleware_auth_middleware.py.md       |     2 +-
++-+++ .../backend_middleware_chaos_injector.py.md        |     2 +-
++-+++ .../codebase/backend_middleware_idempotency.py.md  |     2 +-
++-+++ docs/autogen/codebase/backend_models_admin.py.md   |     2 +-
++-+++ .../codebase/backend_models_agent_session.py.md    |     2 +-
++-+++ docs/autogen/codebase/backend_models_api_key.py.md |     2 +-
++-+++ docs/autogen/codebase/backend_models_base.py.md    |     2 +-
++-+++ .../codebase/backend_models_byoc_payloads.py.md    |     2 +-
++-+++ .../codebase/backend_models_ci_report.py.md        |     2 +-
++-+++ .../codebase/backend_models_deployment_logs.py.md  |     2 +-
++-+++ .../backend_models_error_remediation.py.md         |     2 +-
++-+++ .../codebase/backend_models_evolution.py.md        |     2 +-
++-+++ .../codebase/backend_models_execution_log.py.md    |     2 +-
++-+++ .../codebase/backend_models_execution_policy.py.md |     2 +-
++-+++ .../codebase/backend_models_handoff_event.py.md    |     2 +-
++-+++ docs/autogen/codebase/backend_models_init_.py.md   |     2 +-
++-+++ .../backend_models_local_model_handler.py.md       |     2 +-
++-+++ .../codebase/backend_models_pending_tasks.py.md    |     2 +-
++-+++ .../backend_models_selector_healing_event.py.md    |     2 +-
++-+++ .../codebase/backend_models_shared_workspace.py.md |     2 +-
++-+++ ...backend_models_target_platform_credential.py.md |     2 +-
++-+++ .../backend_models_transaction_ledger.py.md        |     2 +-
++-+++ .../backend_models_voice_interaction.py.md         |     2 +-
++-+++ docs/autogen/codebase/backend_models_wallet.py.md  |     2 +-
++-+++ .../codebase/backend_monitoring_cost_auditor.py.md |     2 +-
++-+++ .../codebase/backend_monitoring_init_.py.md        |     2 +-
++-+++ .../codebase/backend_p2p_credit_system.py.md       |     2 +-
++-+++ docs/autogen/codebase/backend_p2p_init_.py.md      |     2 +-
++-+++ .../codebase/backend_p2p_secure_tunnel.py.md       |     2 +-
++-+++ docs/autogen/codebase/backend_pyproject.toml.md    |     2 +-
++-+++ docs/autogen/codebase/backend_reports_init_.py.md  |     2 +-
++-+++ .../backend_reports_optimization_engine.py.md      |     2 +-
++-+++ .../codebase/backend_run_roundtrip_tests.py.md     |     2 +-
++-+++ docs/autogen/codebase/backend_scout_init_.py.md    |     2 +-
++-+++ .../backend_scout_knowledge_extractor.py.md        |     2 +-
++-+++ .../codebase/backend_scout_web_crawler_agent.py.md |     2 +-
++-+++ .../codebase/backend_scripts_check_ollama.py.md    |     2 +-
++-+++ docs/autogen/codebase/backend_scripts_init_.py.md  |     2 +-
++-+++ .../codebase/backend_scripts_load_seed_data.py.md  |     2 +-
++-+++ .../backend_scripts_run_dependency_check.py.md     |     2 +-
++-+++ .../backend_scripts_seed_tools_registry.py.md      |     2 +-
++-+++ .../backend_scripts_self_healing_tests.py.md       |     2 +-
++-+++ docs/autogen/codebase/backend_skills_init_.py.md   |     2 +-
++-+++ .../codebase/backend_skills_provisioner.py.md      |     2 +-
++-+++ .../codebase/backend_skills_skill_registry.py.md   |     2 +-
++-+++ .../codebase/backend_storage_asset_manager.py.md   |     2 +-
++-+++ docs/autogen/codebase/backend_storage_init_.py.md  |     2 +-
++-+++ .../backend_storage_r2_storage_client.py.md        |     2 +-
++-+++ .../backend_tests_agents_test_legal_agent.py.md    |     2 +-
++-+++ .../backend_tests_agents_test_medical_agent.py.md  |     2 +-
++-+++ ...kend_tests_agents_test_research_assistant.py.md |     2 +-
++-+++ .../backend_tests_agents_test_trading_agent.py.md  |     2 +-
++-+++ .../backend_tests_byoc_test_cloud_connector.py.md  |     2 +-
++-+++ ...nd_tests_byoc_test_container_orchestrator.py.md |     2 +-
++-+++ .../backend_tests_byoc_test_resource_manager.py.md |     2 +-
++-+++ docs/autogen/codebase/backend_tests_conftest.py.md |     2 +-
++-+++ .../backend_tests_engine_test_cost_optimizer.py.md |     2 +-
++-+++ ...ackend_tests_engine_test_model_dispatcher.py.md |     2 +-
++-+++ docs/autogen/codebase/backend_tests_init_.py.md    |     2 +-
++-+++ ...ackend_tests_monitoring_test_cost_auditor.py.md |     2 +-
++-+++ .../backend_tests_p2p_test_credit_system.py.md     |     2 +-
++-+++ .../backend_tests_p2p_test_secure_tunnel.py.md     |     2 +-
++-+++ ...kend_tests_scout_test_knowledge_extractor.py.md |     2 +-
++-+++ ...ackend_tests_scout_test_web_crawler_agent.py.md |     2 +-
++-+++ .../backend_tests_test_adaptive_engine.py.md       |     2 +-
++-+++ .../codebase/backend_tests_test_admin_god.py.md    |     2 +-
++-+++ .../codebase/backend_tests_test_admin_models.py.md |     2 +-
++-+++ .../codebase/backend_tests_test_admin_routes.py.md |     2 +-
++-+++ .../codebase/backend_tests_test_advanced.py.md     |     2 +-
++-+++ .../backend_tests_test_agent_department.py.md      |     2 +-
++-+++ .../backend_tests_test_agent_departments.py.md     |     2 +-
++-+++ .../backend_tests_test_agent_orchestrator.py.md    |     2 +-
++-+++ ...ackend_tests_test_agents_crew_departments.py.md |     2 +-
++-+++ docs/autogen/codebase/backend_tests_test_api.py.md |     2 +-
++-+++ .../codebase/backend_tests_test_api_chat.py.md     |     2 +-
++-+++ .../codebase/backend_tests_test_api_keys.py.md     |     2 +-
++-+++ .../backend_tests_test_api_new_endpoints.py.md     |     2 +-
++-+++ .../codebase/backend_tests_test_api_router.py.md   |     2 +-
++-+++ .../codebase/backend_tests_test_audit_logger.py.md |     2 +-
++-+++ .../backend_tests_test_auth_middleware.py.md       |     2 +-
++-+++ .../codebase/backend_tests_test_auth_routes.py.md  |     2 +-
++-+++ .../backend_tests_test_auto_fix_trigger.py.md      |     2 +-
++-+++ .../backend_tests_test_auto_skill_creator.py.md    |     2 +-
++-+++ .../backend_tests_test_autonomous_agent.py.md      |     2 +-
++-+++ .../codebase/backend_tests_test_bangla_nlp.py.md   |     2 +-
++-+++ .../codebase/backend_tests_test_bangla_voice.py.md |     2 +-
++-+++ .../backend_tests_test_billing_system.py.md        |     2 +-
++-+++ .../codebase/backend_tests_test_brain.py.md        |     2 +-
++-+++ .../backend_tests_test_browser_credentials.py.md   |     2 +-
++-+++ .../backend_tests_test_byoc_endpoints.py.md        |     2 +-
++-+++ .../codebase/backend_tests_test_chaos_worker.py.md |     2 +-
++-+++ .../backend_tests_test_checkpoint_resume.py.md     |     2 +-
++-+++ .../backend_tests_test_circuit_breaker.py.md       |     2 +-
++-+++ .../backend_tests_test_cloud_sandbox.py.md         |     2 +-
++-+++ .../backend_tests_test_cloud_storage.py.md         |     2 +-
++-+++ .../backend_tests_test_code_validator.py.md        |     2 +-
++-+++ .../backend_tests_test_collaborative_editor.py.md  |     2 +-
++-+++ .../codebase/backend_tests_test_config.py.md       |     2 +-
++-+++ .../backend_tests_test_config_additional.py.md     |     2 +-
++-+++ .../backend_tests_test_config_coverage.py.md       |     2 +-
++-+++ .../codebase/backend_tests_test_constants.py.md    |     2 +-
++-+++ .../backend_tests_test_context_and_actions.py.md   |     2 +-
++-+++ .../autogen/codebase/backend_tests_test_core.py.md |     2 +-
++-+++ .../codebase/backend_tests_test_core_smoke.py.md   |     2 +-
++-+++ .../backend_tests_test_coverage_gaps.py.md         |     2 +-
++-+++ .../codebase/backend_tests_test_crew_mcp.py.md     |     2 +-
++-+++ ...ackend_tests_test_database_storage_client.py.md |     2 +-
++-+++ .../backend_tests_test_db_repository.py.md         |     2 +-
++-+++ docs/autogen/codebase/backend_tests_test_e2e.py.md |     2 +-
++-+++ .../codebase/backend_tests_test_e2e_media.py.md    |     2 +-
++-+++ .../codebase/backend_tests_test_email_agent.py.md  |     2 +-
++-+++ .../backend_tests_test_email_service.py.md         |     2 +-
++-+++ .../backend_tests_test_episodic_memory.py.md       |     2 +-
++-+++ .../backend_tests_test_error_remediation.py.md     |     2 +-
++-+++ .../backend_tests_test_evolution_engine.py.md      |     2 +-
++-+++ .../backend_tests_test_evolution_pipeline.py.md    |     2 +-
++-+++ .../backend_tests_test_factual_verifier.py.md      |     2 +-
++-+++ .../backend_tests_test_feedback_loop.py.md         |     2 +-
++-+++ .../backend_tests_test_firebase_integration.py.md  |     2 +-
++-+++ .../backend_tests_test_fitness_engine.py.md        |     2 +-
++-+++ .../backend_tests_test_free_tier_tracker.py.md     |     2 +-
++-+++ .../backend_tests_test_gcp_integration.py.md       |     2 +-
++-+++ .../backend_tests_test_generation_monitor.py.md    |     2 +-
++-+++ .../codebase/backend_tests_test_github_agent.py.md |     2 +-
++-+++ .../codebase/backend_tests_test_graph_routes.py.md |     2 +-
++-+++ .../backend_tests_test_graph_service.py.md         |     2 +-
++-+++ .../codebase/backend_tests_test_grpc_client.py.md  |     2 +-
++-+++ .../backend_tests_test_hallucination_guard.py.md   |     2 +-
++-+++ .../codebase/backend_tests_test_health.py.md       |     2 +-
++-+++ .../backend_tests_test_health_monitor.py.md        |     2 +-
++-+++ .../backend_tests_test_health_monitor_routes.py.md |     2 +-
++-+++ .../backend_tests_test_honeypot_middleware.py.md   |     2 +-
++-+++ ...backend_tests_test_idempotency_middleware.py.md |     2 +-
++-+++ .../backend_tests_test_immune_system.py.md         |     2 +-
++-+++ .../backend_tests_test_immune_system_scanner.py.md |     2 +-
++-+++ .../backend_tests_test_input_sanitizer.py.md       |     2 +-
++-+++ .../backend_tests_test_language_router.py.md       |     2 +-
++-+++ .../codebase/backend_tests_test_llm_gateway.py.md  |     2 +-
++-+++ .../backend_tests_test_llm_gateway_coverage.py.md  |     2 +-
++-+++ .../backend_tests_test_long_term_memory.py.md      |     2 +-
++-+++ .../backend_tests_test_markdown_export.py.md       |     2 +-
++-+++ .../backend_tests_test_marketplace_agent.py.md     |     2 +-
++-+++ .../backend_tests_test_mcp_allowlist.py.md         |     2 +-
++-+++ .../codebase/backend_tests_test_mcp_server.py.md   |     2 +-
++-+++ ...ackend_tests_test_mcp_servers_integration.py.md |     2 +-
++-+++ .../codebase/backend_tests_test_media_r2.py.md     |     2 +-
++-+++ ...kend_tests_test_middleware_chaos_injector.py.md |     2 +-
++-+++ .../codebase/backend_tests_test_migrations.py.md   |     2 +-
++-+++ ...kend_tests_test_migrations_and_onboarding.py.md |     2 +-
++-+++ .../codebase/backend_tests_test_mobile_e2e.py.md   |     2 +-
++-+++ .../backend_tests_test_model_registry.py.md        |     2 +-
++-+++ .../backend_tests_test_model_router_unit.py.md     |     2 +-
++-+++ .../backend_tests_test_model_trainer.py.md         |     2 +-
++-+++ .../backend_tests_test_models_ci_report.py.md      |     2 +-
++-+++ .../backend_tests_test_models_evolution.py.md      |     2 +-
++-+++ .../codebase/backend_tests_test_monitoring.py.md   |     2 +-
++-+++ .../backend_tests_test_multi_account_rotator.py.md |     2 +-
++-+++ .../codebase/backend_tests_test_multicloud.py.md   |     2 +-
++-+++ .../backend_tests_test_new_endpoints_sprint5.py.md |     2 +-
++-+++ .../backend_tests_test_new_interfaces.py.md        |     2 +-
++-+++ .../backend_tests_test_new_tools_sprint5.py.md     |     2 +-
++-+++ .../backend_tests_test_optimization_engine.py.md   |     2 +-
++-+++ .../backend_tests_test_output_validator.py.md      |     2 +-
++-+++ ...ackend_tests_test_parallel_agent_executor.py.md |     2 +-
++-+++ .../codebase/backend_tests_test_payments.py.md     |     2 +-
++-+++ ...ckend_tests_test_performance_aware_router.py.md |     2 +-
++-+++ .../backend_tests_test_pgbouncer_pool.py.md        |     2 +-
++-+++ .../codebase/backend_tests_test_posthog.py.md      |     2 +-
++-+++ .../codebase/backend_tests_test_pr_reviewer.py.md  |     2 +-
++-+++ .../backend_tests_test_prod_docs_security.py.md    |     2 +-
++-+++ ...sts_test_production_readiness_integration.py.md |     2 +-
++-+++ .../backend_tests_test_prompt_firewall.py.md       |     2 +-
++-+++ .../autogen/codebase/backend_tests_test_rbac.py.md |     2 +-
++-+++ ...backend_tests_test_reasoning_orchestrator.py.md |     2 +-
++-+++ .../backend_tests_test_repo_discovery.py.md        |     2 +-
++-+++ .../backend_tests_test_resource_catalog.py.md      |     2 +-
++-+++ .../autogen/codebase/backend_tests_test_rlhf.py.md |     2 +-
++-+++ ...kend_tests_test_sandbox_orchestration_run.py.md |     2 +-
++-+++ .../backend_tests_test_schema_validator.py.md      |     2 +-
++-+++ .../codebase/backend_tests_test_secret_vault.py.md |     2 +-
++-+++ ...ackend_tests_test_secure_credential_store.py.md |     2 +-
++-+++ .../backend_tests_test_security_middleware.py.md   |     2 +-
++-+++ .../backend_tests_test_security_regression.py.md   |     2 +-
++-+++ .../backend_tests_test_self_evolution_agent.py.md  |     2 +-
++-+++ .../backend_tests_test_simulator_browser_api.py.md |     2 +-
++-+++ .../codebase/backend_tests_test_skill_graph.py.md  |     2 +-
++-+++ .../backend_tests_test_skill_recommender.py.md     |     2 +-
++-+++ .../backend_tests_test_sliding_window_memory.py.md |     2 +-
++-+++ .../backend_tests_test_sprint_c_tools.py.md        |     2 +-
++-+++ .../codebase/backend_tests_test_sprint_g.py.md     |     2 +-
++-+++ .../backend_tests_test_stealth_networking.py.md    |     2 +-
++-+++ .../codebase/backend_tests_test_stream.py.md       |     2 +-
++-+++ .../backend_tests_test_style_learner.py.md         |     2 +-
++-+++ ...kend_tests_test_supabase_schema_bootstrap.py.md |     2 +-
++-+++ .../backend_tests_test_supabase_store.py.md        |     2 +-
++-+++ .../backend_tests_test_swarm_orchestrator.py.md    |     2 +-
++-+++ .../backend_tests_test_task_endpoints.py.md        |     2 +-
++-+++ .../codebase/backend_tests_test_task_queue.py.md   |     2 +-
++-+++ .../codebase/backend_tests_test_task_router.py.md  |     2 +-
++-+++ .../codebase/backend_tests_test_telegram_bot.py.md |     2 +-
++-+++ .../codebase/backend_tests_test_telemetry.py.md    |     2 +-
++-+++ .../backend_tests_test_tenant_rate_limiter.py.md   |     2 +-
++-+++ .../backend_tests_test_universal_rules.py.md       |     2 +-
++-+++ .../backend_tests_test_upstash_redis.py.md         |     2 +-
++-+++ docs/autogen/codebase/backend_tests_test_uss.py.md |     2 +-
++-+++ .../backend_tests_test_video_generator.py.md       |     2 +-
++-+++ .../codebase/backend_tests_test_vision_agent.py.md |     2 +-
++-+++ .../codebase/backend_tests_test_voice_stream.py.md |     2 +-
++-+++ .../codebase/backend_tests_test_vpn_switcher.py.md |     2 +-
++-+++ .../codebase/backend_tests_test_vscode_e2e.py.md   |     2 +-
++-+++ .../codebase/backend_tests_test_web_fallback.py.md |     2 +-
++-+++ ...d_tests_tools_test_auto_coverage_improver.py.md |     2 +-
++-+++ ...kend_tests_tools_test_auto_test_generator.py.md |     2 +-
++-+++ ...kend_tests_tools_test_code_smell_detector.py.md |     2 +-
++-+++ .../backend_tests_tools_test_cot_reasoner.py.md    |     2 +-
++-+++ ...backend_tests_tools_test_coverage_auditor.py.md |     2 +-
++-+++ ...d_tests_tools_test_knowledge_base_indexer.py.md |     2 +-
++-+++ ...backend_tests_tools_test_multilingual_tts.py.md |     2 +-
++-+++ ...nd_tests_tools_test_viral_referral_engine.py.md |     2 +-
++-+++ .../backend_tests_utils_test_api_tracker.py.md     |     2 +-
++-+++ .../backend_tests_workers_test_celery_app.py.md    |     2 +-
++-+++ .../backend_tools_3d_model_generator.py.md         |     2 +-
++-+++ .../codebase/backend_tools_agent_tools.py.md       |     2 +-
++-+++ .../backend_tools_ai_federation_protocol.py.md     |     2 +-
++-+++ .../backend_tools_ai_pair_programmer.py.md         |     2 +-
++-+++ .../codebase/backend_tools_api_gateway.py.md       |     2 +-
++-+++ .../backend_tools_auto_coverage_improver.py.md     |     2 +-
++-+++ .../codebase/backend_tools_auto_pr_pipeline.py.md  |     2 +-
++-+++ .../backend_tools_auto_test_generator.py.md        |     2 +-
++-+++ .../backend_tools_bandwidth_optimizer.py.md        |     2 +-
++-+++ .../backend_tools_bangla_ai_connector.py.md        |     2 +-
++-+++ .../codebase/backend_tools_bangla_nlp.py.md        |     2 +-
++-+++ .../codebase/backend_tools_bangla_voice.py.md      |     2 +-
++-+++ .../codebase/backend_tools_benchmark_agent.py.md   |     2 +-
++-+++ .../backend_tools_bengali_ocr_converter.py.md      |     2 +-
++-+++ .../codebase/backend_tools_blockchain_agent.py.md  |     2 +-
++-+++ .../autogen/codebase/backend_tools_bootstrap.py.md |     2 +-
++-+++ .../codebase/backend_tools_browser_agent.py.md     |     2 +-
++-+++ .../codebase/backend_tools_browser_stealth.py.md   |     2 +-
++-+++ .../backend_tools_checkpoint_manager.py.md         |     2 +-
++-+++ docs/autogen/codebase/backend_tools_cli.py.md      |     2 +-
++-+++ .../backend_tools_cloud_sandbox_orchestrator.py.md |     2 +-
++-+++ .../backend_tools_code_smell_detector.py.md        |     2 +-
++-+++ .../codebase/backend_tools_codebase_exporter.py.md |     2 +-
++-+++ .../backend_tools_collaborative_editor.py.md       |     2 +-
++-+++ .../codebase/backend_tools_comment_thread_ai.py.md |     2 +-
++-+++ .../codebase/backend_tools_computer_agent.py.md    |     2 +-
++-+++ .../backend_tools_conversation_manager.py.md       |     2 +-
++-+++ .../codebase/backend_tools_cost_auditor.py.md      |     2 +-
++-+++ .../codebase/backend_tools_cot_reasoner.py.md      |     2 +-
++-+++ .../codebase/backend_tools_coverage_auditor.py.md  |     2 +-
++-+++ .../backend_tools_dependency_manager_agent.py.md   |     2 +-
++-+++ .../backend_tools_diagram_to_architecture.py.md    |     2 +-
++-+++ .../codebase/backend_tools_docker_sandbox.py.md    |     2 +-
++-+++ .../codebase/backend_tools_domain_adapter.py.md    |     2 +-
++-+++ .../codebase/backend_tools_email_agent.py.md       |     2 +-
++-+++ .../codebase/backend_tools_ensemble_router.py.md   |     2 +-
++-+++ .../codebase/backend_tools_fuzz_sandbox.py.md      |     2 +-
++-+++ .../codebase/backend_tools_game_dev_agent.py.md    |     2 +-
++-+++ .../backend_tools_gcp_cloud_functions.py.md        |     2 +-
++-+++ .../backend_tools_git_knowledge_extractor.py.md    |     2 +-
++-+++ .../codebase/backend_tools_github_agent.py.md      |     2 +-
++-+++ .../codebase/backend_tools_graph_service.py.md     |     2 +-
++-+++ .../backend_tools_headless_agent_registry.py.md    |     2 +-
++-+++ .../codebase/backend_tools_health_checker.py.md    |     2 +-
++-+++ .../codebase/backend_tools_image_generator.py.md   |     2 +-
++-+++ .../codebase/backend_tools_image_to_code.py.md     |     2 +-
++-+++ docs/autogen/codebase/backend_tools_init_.py.md    |     2 +-
++-+++ .../backend_tools_knowledge_base_indexer.py.md     |     2 +-
++-+++ .../backend_tools_langchain_agent_example.py.md    |     2 +-
++-+++ .../codebase/backend_tools_legal_agent.py.md       |     2 +-
++-+++ .../backend_tools_local_ocr_extractor.py.md        |     2 +-
++-+++ .../codebase/backend_tools_local_search_rag.py.md  |     2 +-
++-+++ .../codebase/backend_tools_marketplace_agent.py.md |     2 +-
++-+++ .../codebase/backend_tools_mcp_cloud_deploy.py.md  |     2 +-
++-+++ .../codebase/backend_tools_mcp_github_cicd.py.md   |     2 +-
++-+++ .../codebase/backend_tools_mcp_server.py.md        |     2 +-
++-+++ .../codebase/backend_tools_mcp_supabase.py.md      |     2 +-
++-+++ .../codebase/backend_tools_mcp_workspace.py.md     |     2 +-
++-+++ .../codebase/backend_tools_medical_agent.py.md     |     2 +-
++-+++ .../codebase/backend_tools_meta_architect.py.md    |     2 +-
++-+++ .../codebase/backend_tools_model_trainer.py.md     |     2 +-
++-+++ .../backend_tools_monthly_cost_reporter.py.md      |     2 +-
++-+++ .../backend_tools_multi_account_rotator.py.md      |     2 +-
++-+++ .../codebase/backend_tools_multilingual_tts.py.md  |     2 +-
++-+++ .../codebase/backend_tools_music_generator.py.md   |     2 +-
++-+++ .../codebase/backend_tools_offline_mode.py.md      |     2 +-
++-+++ .../backend_tools_on_premise_deployer.py.md        |     2 +-
++-+++ .../backend_tools_parallel_agent_executor.py.md    |     2 +-
++-+++ .../codebase/backend_tools_pdf_to_sdk.py.md        |     2 +-
++-+++ .../codebase/backend_tools_plan_sorter.py.md       |     2 +-
++-+++ .../backend_tools_playwright_browser_agent.py.md   |     2 +-
++-+++ .../codebase/backend_tools_pr_reviewer.py.md       |     2 +-
++-+++ .../codebase/backend_tools_pre_commit_ai.py.md     |     2 +-
++-+++ .../codebase/backend_tools_preference_memory.py.md |     2 +-
++-+++ .../backend_tools_presentation_generator.py.md     |     2 +-
++-+++ .../codebase/backend_tools_proxy_manager.py.md     |     2 +-
++-+++ .../codebase/backend_tools_repo_deep_indexer.py.md |     2 +-
++-+++ .../backend_tools_repo_discovery_agent.py.md       |     2 +-
++-+++ .../codebase/backend_tools_resource_catalog.py.md  |     2 +-
++-+++ .../codebase/backend_tools_rlhf_pipeline.py.md     |     2 +-
++-+++ .../codebase/backend_tools_safe_executor.py.md     |     2 +-
++-+++ .../codebase/backend_tools_scientific_agent.py.md  |     2 +-
++-+++ .../codebase/backend_tools_seed_database.py.md     |     2 +-
++-+++ .../codebase/backend_tools_self_planner.py.md      |     2 +-
++-+++ .../codebase/backend_tools_skill_recommender.py.md |     2 +-
++-+++ .../codebase/backend_tools_sso_integrator.py.md    |     2 +-
++-+++ .../backend_tools_stealth_http_client.py.md        |     2 +-
++-+++ .../codebase/backend_tools_style_learner.py.md     |     2 +-
++-+++ .../codebase/backend_tools_telegram_bot.py.md      |     2 +-
++-+++ .../backend_tools_tenant_rate_limiter.py.md        |     2 +-
++-+++ .../backend_tools_test_3d_model_generator.py.md    |     2 +-
++-+++ ...end_tools_test_cloud_sandbox_orchestrator.py.md |     2 +-
++-+++ .../codebase/backend_tools_trading_agent.py.md     |     2 +-
++-+++ .../codebase/backend_tools_video_generator.py.md   |     2 +-
++-+++ .../backend_tools_viral_referral_engine.py.md      |     2 +-
++-+++ .../codebase/backend_tools_vision_agent.py.md      |     2 +-
++-+++ docs/autogen/codebase/backend_tools_voice.py.md    |     2 +-
++-+++ .../codebase/backend_tools_voice_coder.py.md       |     2 +-
++-+++ .../codebase/backend_tools_vpn_switcher.py.md      |     2 +-
++-+++ .../backend_tools_vulnerability_predictor.py.md    |     2 +-
++-+++ .../backend_tools_web_fallback_agent.py.md         |     2 +-
++-+++ .../codebase/backend_utils_api_tracker.py.md       |     2 +-
++-+++ .../codebase/backend_utils_environment.py.md       |     2 +-
++-+++ .../codebase/backend_utils_firestore_helpers.py.md |     2 +-
++-+++ .../codebase/backend_utils_http_client.py.md       |     2 +-
++-+++ docs/autogen/codebase/backend_utils_init_.py.md    |     2 +-
++-+++ .../codebase/backend_utils_json_helpers.py.md      |     2 +-
++-+++ .../codebase/backend_utils_timestamps.py.md        |     2 +-
++-+++ docs/autogen/codebase/backend_uv.lock.md           |     2 +-
++-+++ .../codebase/backend_workers_celery_app.py.md      |     2 +-
++-+++ .../codebase/backend_workers_chaos_worker.py.md    |     2 +-
++-+++ .../codebase/config_.pre-commit-config.yaml.md     |     2 +-
++-+++ docs/autogen/codebase/config_audit-rules.yml.md    |     2 +-
++-+++ .../codebase/config_compliance-rules.yml.md        |     2 +-
++-+++ docs/autogen/codebase/config_docker-limits.yml.md  |     2 +-
++-+++ .../codebase/config_firestore.indexes.json.md      |     2 +-
++-+++ docs/autogen/codebase/config_kilo.json.md          |     2 +-
++-+++ .../codebase/config_promptfooconfig.yaml.md        |     2 +-
++-+++ docs/autogen/codebase/config_proxy_list.json.md    |     2 +-
++-+++ .../autogen/codebase/config_routing_policy.json.md |     2 +-
++-+++ docs/autogen/codebase/config_vercel.json.md        |     2 +-
++-+++ docs/autogen/codebase/coverage.toml.md             |     2 +-
++-+++ docs/autogen/codebase/docker-compose.yml.md        |     2 +-
++-+++ .../codebase/evolution_auto_skill_creator.py.md    |     2 +-
++-+++ .../autogen/codebase/evolution_daily_learner.py.md |     2 +-
++-+++ .../codebase/evolution_evolution_engine.py.md      |     2 +-
++-+++ .../codebase/evolution_evolution_react_agent.py.md |     2 +-
++-+++ docs/autogen/codebase/evolution_self_updater.py.md |     2 +-
++-+++ docs/autogen/codebase/find_duplicate_files.py.md   |     2 +-
++-+++ docs/autogen/codebase/find_duplicate_tests.py.md   |     2 +-
++-+++ docs/autogen/codebase/firebase.json.md             |     2 +-
++-+++ .../infrastructure_check_deploy_gate.py.md         |     2 +-
++-+++ ...infrastructure_cloudflare_enhanced-worker.js.md |     2 +-
++-+++ .../infrastructure_cloudflare_worker.js.md         |     2 +-
++-+++ .../infrastructure_cloudflare_wrangler.toml.md     |     2 +-
++-+++ .../infrastructure_cloudrun_autoscale.yaml.md      |     2 +-
++-+++ .../infrastructure_cloudrun_multi_region.yaml.md   |     2 +-
++-+++ ...functions_firebase_functions_v1_README_BD.md.md |     2 +-
++-+++ ...unctions_firebase_functions_v1_api-router.js.md |     2 +-
++-+++ ..._firebase_functions_v1_deployment-monitor.js.md |     2 +-
++-+++ ...ctions_firebase_functions_v1_health-smart.js.md |     2 +-
++-+++ ...ase_functions_firebase_functions_v1_index.js.md |     2 +-
++-+++ ...functions_firebase_functions_v1_package.json.md |     2 +-
++-+++ ...ons_firebase_functions_v1_providers-smart.js.md |     2 +-
++-+++ ...se_functions_v1_server-connection-monitor.js.md |     2 +-
++-+++ ..._firebase_functions_v1_src_chatClassifier.ts.md |     2 +-
++-+++ ...dataconnect-admin-generated_esm_index.esm.js.md |     2 +-
++-+++ ...dataconnect-admin-generated_esm_package.json.md |     2 +-
++-+++ ...src_dataconnect-admin-generated_index.cjs.js.md |     2 +-
++-+++ ...1_src_dataconnect-admin-generated_index.d.ts.md |     2 +-
++-+++ ...src_dataconnect-admin-generated_package.json.md |     2 +-
++-+++ ...s_firebase_functions_v1_src_email_handler.ts.md |     2 +-
++-+++ ...functions_firebase_functions_v1_src_index.ts.md |     2 +-
++-+++ ...ns_firebase_functions_v1_src_scrapeEngine.ts.md |     2 +-
++-+++ ...ase_functions_v1_src_scrapeHistoryManager.ts.md |     2 +-
++-+++ ..._firebase_functions_v1_src_scrapeSchema.yaml.md |     2 +-
++-+++ ...functions_firebase_functions_v1_swagger.yaml.md |     2 +-
++-+++ ...tions_firebase_functions_v1_system-health.js.md |     2 +-
++-+++ ...unctions_firebase_functions_v1_tsconfig.json.md |     2 +-
++-+++ ...irebase_functions_v1_utils_externalClient.js.md |     2 +-
++-+++ ...rastructure_firebase_functions_ocrTrigger.ts.md |     2 +-
++-+++ ...ure_monitoring_docker-compose.monitoring.yml.md |     2 +-
++-+++ ...astructure_monitoring_grafana_dashboard.json.md |     2 +-
++-+++ ...cture_terraform_root_cause_analysis_agent.py.md |     2 +-
++-+++ ..._terraform_test_root_cause_analysis_agent.py.md |     2 +-
++-+++ .../codebase/infrastructure_vitest-report.json.md  |     2 +-
++-+++ docs/autogen/codebase/package.json.md              |     2 +-
++-+++ .../codebase/packages_shared-types_package.json.md |     2 +-
++-+++ .../packages_shared-types_src_conversation.ts.md   |     2 +-
++-+++ .../codebase/packages_shared-types_src_index.ts.md |     2 +-
++-+++ .../packages_shared-types_src_message.ts.md        |     2 +-
++-+++ .../packages_shared-types_tsconfig.json.md         |     2 +-
++-+++ .../packages_ui-components_package.json.md         |     2 +-
++-+++ .../packages_ui-components_src_ChatBubble.tsx.md   |     2 +-
++-+++ ...components_src_components_DashboardShell.tsx.md |     2 +-
++-+++ ...nents_src_components_LiveSujonBackground.tsx.md |     2 +-
++-+++ ...-components_src_contexts_SharedProviders.tsx.md |     2 +-
++-+++ .../packages_ui-components_src_index.ts.md         |     2 +-
++-+++ .../packages_ui-components_src_utils_api.ts.md     |     2 +-
++-+++ .../packages_ui-components_tsconfig.json.md        |     2 +-
++-+++ docs/autogen/codebase/playwright-ct.config.ts.md   |     2 +-
++-+++ docs/autogen/codebase/playwright.config.ts.md      |     2 +-
++-+++ docs/autogen/codebase/pnpm-lock.yaml.md            |    11 +-
++-+++ docs/autogen/codebase/pnpm-workspace.yaml.md       |     2 +-
++-+++ docs/autogen/codebase/scratch_job_details.json.md  |     2 +-
++-+++ docs/autogen/codebase/scratch_smoke_check.py.md    |     2 +-
++-+++ .../scratch_supremeai_skill_ecosystem_app.py.md    |     2 +-
++-+++ ...ratch_supremeai_skill_ecosystem_generator.py.md |     2 +-
++-+++ ..._supremeai_skill_ecosystem_sample_skill.json.md |     2 +-
++-+++ ...ch_supremeai_skill_ecosystem_skill_schema.py.md |     2 +-
++-+++ .../codebase/scratch_sync_gsm_secrets.py.md        |     2 +-
++-+++ docs/autogen/codebase/scratch_update_vault.py.md   |     2 +-
++-+++ .../autogen/codebase/scratch_update_vault_r2.py.md |     2 +-
++-+++ .../codebase/scratch_verify_project_health.py.md   |     2 +-
++-+++ .../codebase/scripts_add_bangla_comments.py.md     |     2 +-
++-+++ .../codebase/scripts_aggregate_context.py.md       |     2 +-
++-+++ ...scripts_backup_auto_cross_cloud_replicate.py.md |     2 +-
++-+++ .../scripts_backup_auto_firestore_backup.py.md     |     2 +-
++-+++ .../scripts_benchmark_perf_benchmark.py.md         |     2 +-
++-+++ .../codebase/scripts_bots_auto_alert_bot.py.md     |     2 +-
++-+++ .../scripts_bots_auto_daily_standup_bot.py.md      |     2 +-
++-+++ .../codebase/scripts_code_smell_detector.py.md     |     2 +-
++-+++ docs/autogen/codebase/scripts_codebase_to_md.py.md |     2 +-
++-+++ .../codebase/scripts_codegraph_integration.py.md   |     2 +-
++-+++ .../codebase/scripts_commit_supreme_ci.yml.md      |     2 +-
++-+++ docs/autogen/codebase/scripts_config_audit.py.md   |     2 +-
++-+++ .../scripts_core_engine_multicatalog_search.py.md  |     2 +-
++-+++ .../codebase/scripts_core_engine_tool_ranker.py.md |     2 +-
++-+++ .../codebase/scripts_create_test_admin.py.md       |     2 +-
++-+++ .../autogen/codebase/scripts_db_auto_migrate.py.md |     2 +-
++-+++ docs/autogen/codebase/scripts_db_auto_seed.py.md   |     2 +-
++-+++ .../autogen/codebase/scripts_docker_ai_guard.py.md |     2 +-
++-+++ ...ipts_evolution_auto_marketing_skill_forge.py.md |     2 +-
++-+++ docs/autogen/codebase/scripts_fix_mypy.py.md       |     2 +-
++-+++ docs/autogen/codebase/scripts_fuzz_sandbox.py.md   |     2 +-
++-+++ .../scripts_generate_codebase_markdown.py.md       |     2 +-
++-+++ ...scripts_generate_codebase_single_markdown.py.md |     2 +-
++-+++ docs/autogen/codebase/scripts_generate_md.py.md    |     2 +-
++-+++ .../codebase/scripts_generate_smart_docs.py.md     |     2 +-
++-+++ docs/autogen/codebase/scripts_k6_load_test.js.md   |     2 +-
++-+++ docs/autogen/codebase/scripts_locustfile.py.md     |     2 +-
++-+++ docs/autogen/codebase/scripts_migrate.py.md        |     2 +-
++-+++ .../codebase/scripts_multi_model_validator.py.md   |     2 +-
++-+++ ...scripts_orchestrator_auto_budget_guardian.py.md |     2 +-
++-+++ docs/autogen/codebase/scripts_profile_memory.py.md |     2 +-
++-+++ .../scripts_quality_auto_dead_code_remover.py.md   |     2 +-
++-+++ .../scripts_quality_auto_improve_coverage.py.md    |     2 +-
++-+++ .../scripts_quality_auto_refactor_suggester.py.md  |     2 +-
++-+++ ...cripts_quality_check_ollama_test_coverage.py.md |     2 +-
++-+++ .../scripts_resource_collection_awesome_go.py.md   |     2 +-
++-+++ ...cripts_resource_collection_awesome_python.py.md |     2 +-
++-+++ ...ts_resource_collection_awesome_selfhosted.py.md |     2 +-
++-+++ ...ripts_resource_collection_base_api_client.py.md |     2 +-
++-+++ .../scripts_resource_collection_base_scraper.py.md |     2 +-
++-+++ ...pts_resource_collection_ossinsight_client.py.md |     2 +-
++-+++ ...ipts_resource_collection_ossinsight_init_.py.md |     2 +-
++-+++ ...ripts_resource_collection_ossinsight_test.py.md |     2 +-
++-+++ .../scripts_resource_collection_run_all.py.md      |     2 +-
++-+++ ...ts_resource_collection_run_all_collectors.py.md |     2 +-
++-+++ ...ripts_resource_scraping_awesome_go_scrape.py.md |     2 +-
++-+++ ...s_resource_scraping_awesome_python_scrape.py.md |     2 +-
++-+++ ...source_scraping_awesome_selfhosted_scrape.py.md |     2 +-
++-+++ .../codebase/scripts_run_all_collectors.py.md      |     2 +-
++-+++ docs/autogen/codebase/scripts_safety_guard.py.md   |     2 +-
++-+++ .../scripts_security_auto_find_blindspots.py.md    |     2 +-
++-+++ .../scripts_security_auto_secret_rotate.py.md      |     2 +-
++-+++ .../scripts_security_check_dependencies.py.md      |     2 +-
++-+++ .../codebase/scripts_security_code-quality.yml.md  |     2 +-
++-+++ ...scripts_security_dependency-health-check.yml.md |     2 +-
++-+++ .../codebase/scripts_security_find_dead_code.py.md |     2 +-
++-+++ docs/autogen/codebase/scripts_seed_repos.py.md     |     2 +-
++-+++ .../autogen/codebase/scripts_setup_ci_runner.py.md |     2 +-
++-+++ .../codebase/scripts_setup_firebase_admin.py.md    |     2 +-
++-+++ docs/autogen/codebase/scripts_skill_loader.py.md   |     2 +-
++-+++ .../codebase/scripts_supreme-config-audit.py.md    |     2 +-
++-+++ .../codebase/scripts_supreme-docker-analyzer.py.md |     2 +-
++-+++ .../codebase/scripts_supreme-risk-scorer.py.md     |     2 +-
++-+++ .../codebase/scripts_supreme_context_builder.py.md |     2 +-
++-+++ .../scripts_tenant_auto_tenant_health_report.py.md |     2 +-
++-+++ .../scripts_tenant_auto_tenant_setup.py.md         |     2 +-
++-+++ docs/autogen/codebase/scripts_test_bangla.py.md    |     2 +-
++-+++ docs/autogen/codebase/scripts_test_read.py.md      |     2 +-
++-+++ docs/autogen/codebase/security-scan.yml.md         |     2 +-
++-+++ .../codebase/skills_dynamic_csv_exporter.py.md     |     2 +-
++-+++ .../codebase/skills_dynamic_text_summarizer.py.md  |     2 +-
++-+++ .../codebase/skills_dynamic_web_scraper.py.md      |     2 +-
++-+++ docs/autogen/codebase/skills_init_.py.md           |     2 +-
++-+++ docs/autogen/codebase/skills_installer.py.md       |     2 +-
++-+++ docs/autogen/codebase/skills_marketplace.py.md     |     2 +-
++-+++ docs/autogen/codebase/skills_registry.py.md        |     2 +-
++-+++ docs/autogen/codebase/skills_schema.py.md          |     2 +-
++-+++ .../codebase/test-results_.last-run.json.md        |     2 +-
++-+++ ...be-accessible-Mobile-Chrome_error-context.md.md |     2 +-
++-+++ ...be-accessible-Mobile-Safari_error-context.md.md |     2 +-
++-+++ ...bility-issues-Mobile-Safari_error-context.md.md |     2 +-
++-+++ ...sends-message-Mobile-Chrome_error-context.md.md |     2 +-
++-+++ ...sends-message-Mobile-Safari_error-context.md.md |     2 +-
++-+++ ...Chat-sends-message-chromium_error-context.md.md |     2 +-
++-+++ .../codebase/test-results_e2e-report.json.md       |     2 +-
++-+++ .../codebase/tests_e2e_accessibility.spec.ts.md    |     2 +-
++-+++ .../codebase/tests_e2e_admin-dashboard.spec.ts.md  |     2 +-
++-+++ docs/autogen/codebase/tests_e2e_chat.spec.ts.md    |     2 +-
++-+++ docs/autogen/codebase/tests_e2e_visual.spec.ts.md  |     2 +-
++-+++ docs/autogen/codebase/tests_test_tenant_di.py.md   |     2 +-
++-+++ docs/autogen/codebase/tools_cache_cleanup.py.md    |     2 +-
++-+++ .../tools_vscode-extension_ARCHITECTURE_BN.md.md   |     2 +-
++-+++ ...vscode-extension_AdminMetricsController.java.md |     2 +-
++-+++ ...s_vscode-extension_CodebaseAuditService.java.md |     2 +-
++-+++ ...ools_vscode-extension_FeatureDefinition.java.md |     2 +-
++-+++ ...ode-extension_FeatureRegistryController.java.md |     2 +-
++-+++ ...vscode-extension_FeatureRegistryService.java.md |     2 +-
++-+++ .../tools_vscode-extension_GlobalMetrics.java.md   |     2 +-
++-+++ ...s_vscode-extension_GlobalMetricsService.java.md |     2 +-
++-+++ ...ols_vscode-extension_INTEGRATION_GUIDE_BN.md.md |     2 +-
++-+++ .../codebase/tools_vscode-extension_README.md.md   |     2 +-
++-+++ .../tools_vscode-extension_README_BN.md.md         |     2 +-
++-+++ .../tools_vscode-extension_jest.config.js.md       |     2 +-
++-+++ .../tools_vscode-extension_package.json.md         |     2 +-
++-+++ .../tools_vscode-extension_package.nls.bn.json.md  |     2 +-
++-+++ .../tools_vscode-extension_src_agentDetector.ts.md |     2 +-
++-+++ .../tools_vscode-extension_src_ai_AIService.ts.md  |     2 +-
++-+++ ...de-extension_src_ai_CodeGenerationService.ts.md |     2 +-
++-+++ ...vscode-extension_src_ai_CodeReviewService.ts.md |     2 +-
++-+++ ...ls_vscode-extension_src_ai_ContextBuilder.ts.md |     2 +-
++-+++ ...xtension_src_dataconnect-generated_README.md.md |     2 +-
++-+++ ...n_src_dataconnect-generated_esm_index.esm.js.md |     2 +-
++-+++ ...n_src_dataconnect-generated_esm_package.json.md |     2 +-
++-+++ ...nsion_src_dataconnect-generated_index.cjs.js.md |     2 +-
++-+++ ...tension_src_dataconnect-generated_index.d.ts.md |     2 +-
++-+++ ...nsion_src_dataconnect-generated_package.json.md |     2 +-
++-+++ .../tools_vscode-extension_src_extension.ts.md     |     2 +-
++-+++ ...de-extension_src_handlers_CodeEditHandler.ts.md |     2 +-
++-+++ ...de-extension_src_handlers_CodeFlowHandler.ts.md |     2 +-
++-+++ ...scode-extension_src_handlers_ErrorHandler.ts.md |     2 +-
++-+++ ...de-extension_src_handlers_FeedbackHandler.ts.md |     2 +-
++-+++ ...ode-extension_src_providers_CodeFlowPanel.ts.md |     2 +-
++-+++ ...nsion_src_providers_StreamingChatProvider.ts.md |     2 +-
++-+++ ...n_src_providers_SupremeAIActivityProvider.ts.md |     2 +-
++-+++ ...providers_SupremeAIAdminDashboardProvider.ts.md |     2 +-
++-+++ ...nsion_src_providers_SupremeAIChatProvider.ts.md |     2 +-
++-+++ ...extension_src_providers_SupremeAIChatView.ts.md |     2 +-
++-+++ ...viders_SupremeAICustomerDashboardProvider.ts.md |     2 +-
++-+++ ...on_src_providers_SupremeAISidebarProvider.ts.md |     2 +-
++-+++ ...vscode-extension_src_services_AuthService.ts.md |     2 +-
++-+++ ...e-extension_src_services_SupremeAIService.ts.md |     2 +-
++-+++ .../tools_vscode-extension_src_types_index.ts.md   |     2 +-
++-+++ ...ension_src_utils_DynamicSignatureRegistry.ts.md |     2 +-
++-+++ ...s_vscode-extension_test_auth-service.test.ts.md |     2 +-
++-+++ ...ools_vscode-extension_test_mocks_vscode.d.ts.md |     2 +-
++-+++ .../tools_vscode-extension_test_mocks_vscode.ts.md |     2 +-
++-+++ .../tools_vscode-extension_test_setup.ts.md        |     2 +-
++-+++ ...ode-extension_test_supremeai-service.test.ts.md |     2 +-
++-+++ .../tools_vscode-extension_tsconfig.json.md        |     2 +-
++-+++ .../tools_vscode-extension_vitest.config.ts.md     |     2 +-
++-+++ docs/autogen/codebase/turbo.json.md                |     2 +-
++-+++ docs/autogen/codebase/vercel.json.md               |     2 +-
++-+++ docs/autogen/codebase_full.md                      |    77 +-
++-+++ 1083 files changed, 15165 insertions(+), 24003 deletions(-)
++-+++
++-+++```
++-+++
++-+++## Diff Detail
++-+++```diff
++-+++commit 50eb3cf012a0f762c2eeac865b9a82322522a97d
++-+++Author: github-actions[bot] <github-actions[bot]@users.noreply.github.com>
++-+++Date:   Tue Jul 7 06:42:47 2026 +0000
++-+++
++-+++    docs: auto-update codebase docs & dashboard [skip ci]
++-+++
++-+++diff --git a/docs/autogen/INDEX.md b/docs/autogen/INDEX.md
++-+++index 6aae442c2..a68d52ad7 100644
++-+++--- a/docs/autogen/INDEX.md
++-++++++ b/docs/autogen/INDEX.md
++-+++@@ -13,4 +13,4 @@
++-+++ - **ডিরেক্টরি:** [changes/](changes/)
++-+++ 
++-+++ ---
++-+++-*স্বয়ংক্রিয়ভাবে তৈরি — 2026-07-05 20:27:27*
++-++++*স্বয়ংক্রিয়ভাবে তৈরি — 2026-07-07 06:42:46*
++-+++diff --git a/docs/autogen/changes/change_284476142ac96c881e385f69b6d47f74c7c2d0c6.md b/docs/autogen/changes/change_284476142ac96c881e385f69b6d47f74c7c2d0c6.md
++-+++new file mode 100644
++-+++index 000000000..ee2f0f8ec
++-+++--- /dev/null
++-++++++ b/docs/autogen/changes/change_284476142ac96c881e385f69b6d47f74c7c2d0c6.md
++-+++@@ -0,0 +1,13726 @@
++-++++# 📋 Commit 284476142ac96c881e385f69b6d47f74c7c2d0c6
++-++++
++-++++## Commit Stats
++-++++```
++-++++commit 284476142ac96c881e385f69b6d47f74c7c2d0c6
++-++++Author: github-actions[bot] <github-actions[bot]@users.noreply.github.com>
++-++++Date:   Sun Jul 5 20:27:28 2026 +0000
++-++++
++-++++    docs: auto-update codebase docs & dashboard [skip ci]
++-++++
++-++++ docs/autogen/INDEX.md                              |     2 +-
++-++++ ...nge_06e0775ea102e5bb30c2c54c1e498f8c806f67aa.md | 13111 -------------------
++-++++ ...nge_2df4d007a70352042bf41327c6bb1b084c175140.md |  9310 -------------
++-++++ ...nge_a9ef88bb7e34e03cc5b9e186cfe13b9d14c6edf3.md |    38 +
++-++++ ...nge_df1e273f18a21a0aaa517fd16a11756b123874a8.md |  9296 +++++++++++++
++-++++ .../.github_actions_setup-backend_action.yml.md    |     2 +-
++-++++ ...github_scripts_advanced-validation-report.py.md |     2 +-
++-++++ .../codebase/.github_scripts_canary-deploy.py.md   |     2 +-
++-++++ .../codebase/.github_scripts_ci-auto-fix-v3.py.md  |     2 +-
++-++++ .../codebase/.github_scripts_ci-auto-fix.py.md     |     2 +-
++-++++ .../.github_scripts_ci-decision-engine.py.md       |     2 +-
++-++++ .../codebase/.github_scripts_ci-health-check.py.md |     2 +-
++-++++ .../.github_scripts_clean_action_logs.py.md        |     2 +-
++-++++ .../codebase/.github_scripts_deploy-backend.py.md  |     2 +-
++-++++ .../.github_scripts_detect-previous-failures.py.md |     2 +-
++-++++ .../codebase/.github_scripts_enforce_24h_gap.py.md |     2 +-
++-++++ .../.github_scripts_generate-ci-report.py.md       |     2 +-
++-++++ .../.github_scripts_generate_ai_prompt.py.md       |     2 +-
++-++++ .../.github_scripts_multi-model-evaluator.py.md    |     2 +-
++-++++ docs/autogen/codebase/.github_scripts_review.py.md |     2 +-
++-++++ .../.github_scripts_supremeai-evaluator.py.md      |     2 +-
++-++++ .../.github_scripts_test_ai_reviewer.py.md         |     2 +-
++-++++ .../codebase/.github_workflows_deploy.yml.md       |     2 +-
++-++++ .../.github_workflows_nightly-maintenance.yml.md   |     2 +-
++-++++ .../.github_workflows_supreme-core-ci.yml.md       |     2 +-
++-++++ .../.github_workflows_supreme-mobile-cd.yml.md     |     2 +-
++-++++ ....github_workflows_supreme-release-builds.yml.md |     2 +-
++-++++ .../.github_workflows_sync-from-prod.yml.md        |     2 +-
++-++++ docs/autogen/codebase/AGENTS.md.md                 |     2 +-
++-++++ docs/autogen/codebase/CHANGELOG.md.md              |     2 +-
++-++++ docs/autogen/codebase/CI_PIPELINE.md.md            |     2 +-
++-++++ docs/autogen/codebase/CONTRIBUTING.md.md           |     2 +-
++-++++ docs/autogen/codebase/IMPLEMENTATION_STATUS.md.md  |     2 +-
++-++++ .../codebase/PRODUCTION_READINESS_GUIDE.md.md      |     2 +-
++-++++ docs/autogen/codebase/README.md.md                 |     2 +-
++-++++ docs/autogen/codebase/SECURITY.md.md               |     2 +-
++-++++ docs/autogen/codebase/admin_dashboard_script.js.md |     2 +-
++-++++ docs/autogen/codebase/apps_desktop_README.md.md    |     2 +-
++-++++ docs/autogen/codebase/apps_desktop_package.json.md |     2 +-
++-++++ .../codebase/apps_desktop_src-tauri_Cargo.toml.md  |     2 +-
++-++++ .../codebase/apps_desktop_src-tauri_build.rs.md    |     2 +-
++-++++ .../apps_desktop_src-tauri_secure-store.ts.md      |     2 +-
++-++++ .../codebase/apps_desktop_src-tauri_src_main.rs.md |     2 +-
++-++++ .../apps_desktop_src-tauri_tauri.conf.json.md      |     2 +-
++-++++ .../codebase/apps_desktop_src-ui_package.json.md   |     2 +-
++-++++ .../codebase/apps_desktop_src-ui_src_App.tsx.md    |     2 +-
++-++++ ..._desktop_src-ui_src_components_ChatInput.tsx.md |     2 +-
++-++++ .../codebase/apps_desktop_src-ui_src_main.tsx.md   |     2 +-
++-++++ .../apps_desktop_src-ui_src_pages_AdminPage.tsx.md |     2 +-
++-++++ .../apps_desktop_src-ui_src_pages_ChatPage.tsx.md  |     2 +-
++-++++ ...s_desktop_src-ui_src_pages_EvolutionPage.tsx.md |     2 +-
++-++++ .../apps_desktop_src-ui_src_pages_LoginPage.tsx.md |     2 +-
++-++++ ...apps_desktop_src-ui_src_pages_SkillsPage.tsx.md |     2 +-
++-++++ .../apps_desktop_src-ui_src_services_api.ts.md     |     2 +-
++-++++ .../apps_desktop_src-ui_src_stores_authStore.ts.md |     2 +-
++-++++ .../apps_desktop_src-ui_src_types_index.ts.md      |     2 +-
++-++++ .../apps_desktop_src-ui_src_vite-env.d.ts.md       |     2 +-
++-++++ .../codebase/apps_desktop_src-ui_tsconfig.json.md  |     2 +-
++-++++ .../apps_desktop_src-ui_tsconfig.node.json.md      |     2 +-
++-++++ .../codebase/apps_desktop_src-ui_vite.config.ts.md |     2 +-
++-++++ ...ava_com_supremeai_JavaWorkerApplication.java.md |     2 +-
++-++++ ...va_com_supremeai_grpc_WorkerServiceImpl.java.md |     2 +-
++-++++ ...in_java_com_supremeai_models_TaskEntity.java.md |     2 +-
++-++++ ...m_supremeai_repositories_TaskRepository.java.md |     2 +-
++-++++ ...va-worker_src_main_resources_application.yml.md |     2 +-
++-++++ docs/autogen/codebase/apps_mobile_README.md.md     |     2 +-
++-++++ docs/autogen/codebase/apps_mobile_README_BD.md.md  |     2 +-
++-++++ .../codebase/apps_mobile_analysis_options.yaml.md  |     2 +-
++-++++ .../codebase/apps_mobile_assets_i18n_ar.json.md    |     2 +-
++-++++ .../codebase/apps_mobile_assets_i18n_bn.json.md    |     2 +-
++-++++ .../codebase/apps_mobile_assets_i18n_en.json.md    |     2 +-
++-++++ .../codebase/apps_mobile_assets_i18n_es.json.md    |     2 +-
++-++++ .../codebase/apps_mobile_assets_i18n_hi.json.md    |     2 +-
++-++++ .../codebase/apps_mobile_assets_i18n_zh.json.md    |     2 +-
++-++++ .../codebase/apps_mobile_devtools_options.yaml.md  |     2 +-
++-++++ ...ts.xcassets_AppIcon.appiconset_Contents.json.md |     2 +-
++-++++ ....xcassets_LaunchImage.imageset_Contents.json.md |     2 +-
++-++++ ...sets.xcassets_LaunchImage.imageset_README.md.md |     2 +-
++-++++ ...s_mobile_lib_dataconnect_generated_README.md.md |     2 +-
++-++++ ...le_lib_dataconnect_generated_add_review.dart.md |     2 +-
++-++++ ..._lib_dataconnect_generated_create_movie.dart.md |     2 +-
++-++++ ...lib_dataconnect_generated_delete_review.dart.md |     2 +-
++-++++ ...ile_lib_dataconnect_generated_generated.dart.md |     2 +-
++-++++ ...b_dataconnect_generated_get_movie_by_id.dart.md |     2 +-
++-++++ ...e_lib_dataconnect_generated_list_movies.dart.md |     2 +-
++-++++ ...dataconnect_generated_list_user_reviews.dart.md |     2 +-
++-++++ ...le_lib_dataconnect_generated_list_users.dart.md |     2 +-
++-++++ ..._lib_dataconnect_generated_search_movie.dart.md |     2 +-
++-++++ ...e_lib_dataconnect_generated_upsert_user.dart.md |     2 +-
++-++++ docs/autogen/codebase/apps_mobile_lib_main.dart.md |     2 +-
++-++++ .../apps_mobile_lib_models_ci_job_model.dart.md    |     2 +-
++-++++ ...apps_mobile_lib_providers_auth_provider.dart.md |     2 +-
++-++++ ...mobile_lib_providers_dashboard_provider.dart.md |     2 +-
++-++++ ...le_lib_providers_orchestration_provider.dart.md |     2 +-
++-++++ ..._mobile_lib_providers_settings_provider.dart.md |     2 +-
++-++++ ...ps_mobile_lib_screens_agent_chat_screen.dart.md |     2 +-
++-++++ ...mobile_lib_screens_alerts_alerts_screen.dart.md |     2 +-
++-++++ ..._lib_screens_analytics_analytics_screen.dart.md |     2 +-
++-++++ ...apps_mobile_lib_screens_api_keys_screen.dart.md |     2 +-
++-++++ .../apps_mobile_lib_screens_api_scaffold.dart.md   |     2 +-
++-++++ ...apps_mobile_lib_screens_byoc_hub_screen.dart.md |     2 +-
++-++++ ..._lib_screens_consensus_consensus_screen.dart.md |     2 +-
++-++++ ...obile_lib_screens_dashboard_home_screen.dart.md |     2 +-
++-++++ ...pps_mobile_lib_screens_dashboard_screen.dart.md |     2 +-
++-++++ ..._lib_screens_extension_extension_screen.dart.md |     2 +-
++-++++ .../apps_mobile_lib_screens_git_git_screen.dart.md |     2 +-
++-++++ ...le_lib_screens_learning_learning_screen.dart.md |     2 +-
++-++++ .../apps_mobile_lib_screens_login_screen.dart.md   |     2 +-
++-++++ ...eens_notifications_notifications_screen.dart.md |     2 +-
++-++++ ...b_screens_projects_projects_list_screen.dart.md |     2 +-
++-++++ ...b_screens_providers_ai_providers_screen.dart.md |     2 +-
++-++++ ...s_mobile_lib_screens_quota_quota_screen.dart.md |     2 +-
++-++++ ...ib_screens_resilience_resilience_screen.dart.md |     2 +-
++-++++ ...apps_mobile_lib_screens_settings_screen.dart.md |     2 +-
++-++++ .../apps_mobile_lib_screens_terminal_view.dart.md  |     2 +-
++-++++ .../apps_mobile_lib_screens_vpn_vpn_screen.dart.md |     2 +-
++-++++ .../apps_mobile_lib_screens_wallet_screen.dart.md  |     2 +-
++-++++ .../apps_mobile_lib_services_api_client.dart.md    |     2 +-
++-++++ .../apps_mobile_lib_services_api_service.dart.md   |     2 +-
++-++++ ...pps_mobile_lib_services_billing_service.dart.md |     2 +-
++-++++ .../apps_mobile_lib_services_byoc_service.dart.md  |     2 +-
++-++++ ...pps_mobile_lib_services_ci_sync_service.dart.md |     2 +-
++-++++ ...s_mobile_lib_services_deployment_stream.dart.md |     2 +-
++-++++ ...obile_lib_services_localization_service.dart.md |     2 +-
++-++++ ...bile_lib_services_neural_stream_service.dart.md |     2 +-
++-++++ ...obile_lib_services_notification_service.dart.md |     2 +-
++-++++ ...obile_lib_services_offline_sync_service.dart.md |     2 +-
++-++++ ...ile_lib_services_payment_gateway_bridge.dart.md |     2 +-
++-++++ ..._mobile_lib_services_screen_api_service.dart.md |     2 +-
++-++++ .../apps_mobile_lib_theme_app_theme.dart.md        |     2 +-
++-++++ .../apps_mobile_lib_theme_theme_provider.dart.md   |     2 +-
++-++++ ...apps_mobile_lib_widgets_action_hub_card.dart.md |     2 +-
++-++++ ...ile_lib_widgets_base_dashboard_scaffold.dart.md |     2 +-
++-++++ .../codebase/apps_mobile_lib_widgets_es.json.md    |     2 +-
++-++++ .../apps_mobile_lib_widgets_json_dropzone.dart.md  |     2 +-
++-++++ .../apps_mobile_lib_widgets_live_terminal.dart.md  |     2 +-
++-++++ ...apps_mobile_lib_widgets_loading_widgets.dart.md |     2 +-
++-++++ ...le_lib_widgets_transaction_history_list.dart.md |     2 +-
++-++++ .../apps_mobile_lib_widgets_usage_chart.dart.md    |     2 +-
++-++++ ...ts.xcassets_AppIcon.appiconset_Contents.json.md |     2 +-
++-++++ docs/autogen/codebase/apps_mobile_pubspec.lock.md  |     2 +-
++-++++ docs/autogen/codebase/apps_mobile_pubspec.yaml.md  |     2 +-
++-++++ ...bile_test_auth_provider_edge_cases_test.dart.md |     2 +-
++-++++ .../apps_mobile_test_auth_provider_test.dart.md    |     2 +-
++-++++ ...mobile_test_home_screen_edge_cases_test.dart.md |     2 +-
++-++++ .../apps_mobile_test_home_screen_test.dart.md      |     2 +-
++-++++ ...s_mobile_test_screens_login_screen_test.dart.md |     2 +-
++-++++ .../codebase/apps_mobile_web_manifest.json.md      |     2 +-
++-++++ .../codebase/apps_studio-client_README.md.md       |     2 +-
++-++++ .../codebase/apps_studio-client_components.json.md |     2 +-
++-++++ .../apps_studio-client_eslint.config.js.md         |     2 +-
++-++++ .../autogen/codebase/apps_studio-client_main.js.md |     2 +-
++-++++ .../codebase/apps_studio-client_package.json.md    |     2 +-
++-++++ .../apps_studio-client_public_manifest.json.md     |     2 +-
++-++++ .../codebase/apps_studio-client_public_sw.js.md    |     2 +-
++-++++ .../apps_studio-client_src_App.test.tsx.md         |     2 +-
++-++++ .../codebase/apps_studio-client_src_App.tsx.md     |     2 +-
++-++++ ...tudio-client_src_components_AdminConsole.tsx.md |     2 +-
++-++++ ..._studio-client_src_components_BanglaHint.tsx.md |     2 +-
++-++++ ...apps_studio-client_src_components_Header.tsx.md |     2 +-
++-++++ ...lient_src_components_LiveSujonBackground.tsx.md |     2 +-
++-++++ ...c_components_Onboarding_OnboardingWizard.tsx.md |     2 +-
++-++++ ...ent_src_components_Onboarding_StepApiKey.tsx.md |     2 +-
++-++++ ..._src_components_Onboarding_StepFirstChat.tsx.md |     2 +-
++-++++ ...rc_components_Onboarding_StepModelSelect.tsx.md |     2 +-
++-++++ ...dio-client_src_components_OperatorStudio.tsx.md |     2 +-
++-++++ ...o-client_src_components_admin_ActionCard.tsx.md |     2 +-
++-++++ ..._src_components_admin_AdminAuthenticated.tsx.md |     2 +-
++-++++ ...client_src_components_admin_AdminConsole.tsx.md |     2 +-
++-++++ ..._src_components_admin_AdminDashboardHome.tsx.md |     2 +-
++-++++ ...o-client_src_components_admin_AdminLogin.tsx.md |     2 +-
++-++++ ..._src_components_admin_AdminSubTabContent.tsx.md |     2 +-
++-++++ ...-client_src_components_admin_AdminTopNav.tsx.md |     2 +-
++-++++ ...o-client_src_components_admin_AethelNode.tsx.md |     2 +-
++-++++ ...ient_src_components_admin_AuditLogsPanel.tsx.md |     2 +-
++-++++ ...lient_src_components_admin_BackupRestore.tsx.md |     2 +-
++-++++ ...ient_src_components_admin_CICDVisualizer.tsx.md |     2 +-
++-++++ ...t_src_components_admin_CloudOrchestrator.tsx.md |     2 +-
++-++++ ...lient_src_components_admin_CommandCenter.tsx.md |     2 +-
++-++++ ...client_src_components_admin_ConfigEditor.tsx.md |     2 +-
++-++++ ..._src_components_admin_ConsentMatrixModal.tsx.md |     2 +-
++-++++ ...-client_src_components_admin_CostAuditor.tsx.md |     2 +-
++-++++ ..._components_admin_DashboardErrorBoundary.tsx.md |     2 +-
++-++++ ...ent_src_components_admin_DeploymentModal.tsx.md |     2 +-
++-++++ ...client_src_components_admin_DynamicPanel.tsx.md |     2 +-
++-++++ ...omponents_admin_EnhancedSkillMarketplace.tsx.md |     2 +-
++-++++ ...t_src_components_admin_GithubIntegration.tsx.md |     2 +-
++-++++ ...client_src_components_admin_HealthBanner.tsx.md |     2 +-
++-++++ ...io-client_src_components_admin_HealthMap.tsx.md |     2 +-
++-++++ ..._src_components_admin_InteractiveChatTab.tsx.md |     2 +-
++-++++ ...dio-client_src_components_admin_LiveLogs.tsx.md |     2 +-
++-++++ ...lient_src_components_admin_MemoryBrowser.tsx.md |     2 +-
++-++++ ...-client_src_components_admin_ModelRouter.tsx.md |     2 +-
++-++++ ..._components_admin_ObservabilityDashboard.tsx.md |     2 +-
++-++++ ...-client_src_components_admin_RBACManager.tsx.md |     2 +-
++-++++ ...nt_src_components_admin_RateLimitManager.tsx.md |     2 +-
++-++++ ...rc_components_admin_RealTimeMetricsPanel.tsx.md |     2 +-
++-++++ ...mponents_admin_RedesignedDashboardMockup.tsx.md |     2 +-
++-++++ ...nt_src_components_admin_RulesEnginePanel.tsx.md |     2 +-
++-++++ ...t_src_components_admin_SecurityDashboard.tsx.md |     2 +-
++-++++ ...rc_components_admin_ServiceHealthMetrics.tsx.md |     2 +-
++-++++ ...ent_src_components_admin_ThreatDetection.tsx.md |     2 +-
++-++++ ...-client_src_components_admin_UserManager.tsx.md |     2 +-
++-++++ ..._src_components_admin_VisualRulesBuilder.tsx.md |     2 +-
++-++++ ..._studio-client_src_components_admin_index.ts.md |     2 +-
++-++++ ..._src_components_audio_WaveformVisualizer.tsx.md |     2 +-
++-++++ ...ient_src_components_chat_TypingIndicator.tsx.md |     2 +-
++-++++ ...nt_src_components_chat_UnifiedChatBubble.tsx.md |     2 +-
++-++++ ...s_studio-client_src_components_chat_index.ts.md |     2 +-
++-++++ ...t_src_components_customer_BrowserPreview.tsx.md |     2 +-
++-++++ ...t_src_components_customer_ChatPanel.test.tsx.md |     2 +-
++-++++ ...client_src_components_customer_ChatPanel.tsx.md |     2 +-
++-++++ ...lient_src_components_customer_CodeEditor.tsx.md |     2 +-
++-++++ ...-client_src_components_customer_HomeFeed.tsx.md |     2 +-
++-++++ ..._src_components_customer_MobileSimulator.tsx.md |     2 +-
++-++++ ...rc_components_customer_QuickPresets.test.tsx.md |     2 +-
++-++++ ...ent_src_components_customer_QuickPresets.tsx.md |     2 +-
++-++++ ...c_components_customer_UserDashboard.test.tsx.md |     2 +-
++-++++ ...nt_src_components_customer_UserDashboard.tsx.md |     2 +-
++-++++ ...udio-client_src_components_customer_index.ts.md |     2 +-
++-++++ ..._src_components_dashboard_AgentStatePill.tsx.md |     2 +-
++-++++ ...components_dashboard_AutomationQueuePage.tsx.md |     2 +-
++-++++ ...components_dashboard_DashboardShell.test.tsx.md |     2 +-
++-++++ ..._src_components_dashboard_DashboardShell.tsx.md |     2 +-
++-++++ ..._src_components_dashboard_ExecutionShell.tsx.md |     2 +-
++-++++ ...t_src_components_dashboard_FileTreePanel.tsx.md |     2 +-
++-++++ ..._src_components_dashboard_GuardrailsPage.tsx.md |     2 +-
++-++++ ...src_components_dashboard_HealingLogPanel.tsx.md |     2 +-
++-++++ ...t_src_components_dashboard_KnowledgePage.tsx.md |     2 +-
++-++++ ..._src_components_dashboard_LlmGatewayPage.tsx.md |     2 +-
++-++++ ...nt_src_components_dashboard_ReasoningLog.tsx.md |     2 +-
++-++++ ...src_components_dashboard_SandboxViewport.tsx.md |     2 +-
++-++++ ...ent_src_components_dashboard_SecretsPage.tsx.md |     2 +-
++-++++ ...c_components_dashboard_SessionDetailPage.tsx.md |     2 +-
++-++++ ...nt_src_components_dashboard_SessionsPage.tsx.md |     2 +-
++-++++ ...nt_src_components_dashboard_SettingsPage.tsx.md |     2 +-
++-++++ ...src_components_dashboard_SiteActionsPage.tsx.md |     2 +-
++-++++ ...lient_src_components_dashboard_UsagePage.tsx.md |     2 +-
++-++++ ...lient_src_components_dashboard_VaultPage.tsx.md |     2 +-
++-++++ ...ent_src_components_dashboard_sessionStore.ts.md |     2 +-
++-++++ ...ent_src_components_dashboard_useHashRoute.ts.md |     2 +-
++-++++ ...lient_src_components_editor_CollabEditor.tsx.md |     2 +-
++-++++ ...o-client_src_components_graph_SkillGraph.tsx.md |     2 +-
++-++++ ...udio-client_src_components_ui_ActionCard.tsx.md |     2 +-
++-++++ ...ps_studio-client_src_components_ui_Badge.tsx.md |     2 +-
++-++++ ...pps_studio-client_src_components_ui_Card.tsx.md |     2 +-
++-++++ ...studio-client_src_components_ui_Skeleton.tsx.md |     2 +-
++-++++ ...pps_studio-client_src_components_ui_index.ts.md |     2 +-
++-++++ ..._studio-client_src_contexts_ThemeContext.tsx.md |     2 +-
++-++++ ..._studio-client_src_contexts_ToastContext.tsx.md |     2 +-
++-++++ ...o-client_src_dataconnect-generated_README.md.md |     2 +-
++-++++ ...t_src_dataconnect-generated_esm_index.esm.js.md |     2 +-
++-++++ ...t_src_dataconnect-generated_esm_package.json.md |     2 +-
++-++++ ...lient_src_dataconnect-generated_index.cjs.js.md |     2 +-
++-++++ ...-client_src_dataconnect-generated_index.d.ts.md |     2 +-
++-++++ ...lient_src_dataconnect-generated_package.json.md |     2 +-
++-++++ ...nt_src_dataconnect-generated_react_README.md.md |     2 +-
++-++++ ...dataconnect-generated_react_esm_index.esm.js.md |     2 +-
++-++++ ...dataconnect-generated_react_esm_package.json.md |     2 +-
++-++++ ...src_dataconnect-generated_react_index.cjs.js.md |     2 +-
++-++++ ...t_src_dataconnect-generated_react_index.d.ts.md |     2 +-
++-++++ ...src_dataconnect-generated_react_package.json.md |     2 +-
++-++++ .../codebase/apps_studio-client_src_firebase.ts.md |     2 +-
++-++++ .../apps_studio-client_src_hooks_index.ts.md       |     2 +-
++-++++ ...lient_src_hooks_tests_useTranslation.test.ts.md |     2 +-
++-++++ .../apps_studio-client_src_hooks_useAdminApi.ts.md |     2 +-
++-++++ .../apps_studio-client_src_hooks_useAuth.ts.md     |     2 +-
++-++++ .../apps_studio-client_src_hooks_useChat.ts.md     |     2 +-
++-++++ ..._studio-client_src_hooks_useDashboardData.ts.md |     2 +-
++-++++ ...ps_studio-client_src_hooks_useTranslation.ts.md |     2 +-
++-++++ ...apps_studio-client_src_hooks_useWebSocket.ts.md |     2 +-
++-++++ ...apps_studio-client_src_i18n_I18nProvider.tsx.md |     2 +-
++-++++ .../apps_studio-client_src_i18n_config.ts.md       |     2 +-
++-++++ .../apps_studio-client_src_i18n_translations.ts.md |     2 +-
++-++++ .../codebase/apps_studio-client_src_lib_etag.ts.md |     2 +-
++-++++ .../codebase/apps_studio-client_src_main.tsx.md    |     2 +-
++-++++ ...s_studio-client_src_services_adminService.ts.md |     2 +-
++-++++ ...tudio-client_src_services_adminTokenStore.ts.md |     2 +-
++-++++ ...s_studio-client_src_services_agentService.ts.md |     2 +-
++-++++ ...apps_studio-client_src_services_apiClient.ts.md |     2 +-
++-++++ ...ient_src_services_api_microserviceMonitor.ts.md |     2 +-
++-++++ ...t_src_services_audio_AudioPlaybackService.ts.md |     2 +-
++-++++ ...t_src_services_audio_AudioRecorderService.ts.md |     2 +-
++-++++ ...ps_studio-client_src_services_authService.ts.md |     2 +-
++-++++ ...ps_studio-client_src_services_chatService.ts.md |     2 +-
++-++++ ...tudio-client_src_services_ciReportService.ts.md |     2 +-
++-++++ ...pps_studio-client_src_services_storageApi.ts.md |     2 +-
++-++++ .../apps_studio-client_src_store_adminStore.ts.md  |     2 +-
++-++++ ...pps_studio-client_src_store_customerStore.ts.md |     2 +-
++-++++ ...ps_studio-client_src_store_dashboardStore.ts.md |     2 +-
++-++++ ...udio-client_src_store_sessionCockpitStore.ts.md |     2 +-
++-++++ .../apps_studio-client_src_store_themeStore.ts.md  |     2 +-
++-++++ .../apps_studio-client_src_store_useStore.ts.md    |     2 +-
++-++++ .../apps_studio-client_src_test_setup.ts.md        |     2 +-
++-++++ .../codebase/apps_studio-client_src_types.ts.md    |     2 +-
++-++++ .../apps_studio-client_src_types_customer.ts.md    |     2 +-
++-++++ .../apps_studio-client_src_utils_api.ts.md         |     2 +-
++-++++ ...ps_studio-client_src_utils_apiInterceptor.ts.md |     2 +-
++-++++ .../apps_studio-client_src_vite-env.d.ts.md        |     2 +-
++-++++ ...tudio-client_src_workers_logParser.worker.ts.md |     2 +-
++-++++ .../apps_studio-client_tsconfig.app.json.md        |     2 +-
++-++++ .../codebase/apps_studio-client_tsconfig.json.md   |     2 +-
++-++++ .../apps_studio-client_tsconfig.node.json.md       |     2 +-
++-++++ .../codebase/apps_studio-client_vite.config.ts.md  |     2 +-
++-++++ .../apps_studio-client_vitest.config.ts.md         |     2 +-
++-++++ docs/autogen/codebase/apps_web-chat_api.test.ts.md |     2 +-
++-++++ docs/autogen/codebase/apps_web-chat_api.ts.md      |     2 +-
++-++++ .../autogen/codebase/apps_web-chat_package.json.md |     2 +-
++-++++ docs/autogen/codebase/apps_web-chat_script.ts.md   |     2 +-
++-++++ .../codebase/apps_web-chat_tsconfig.json.md        |     2 +-
++-++++ .../codebase/apps_web-chat_vite-env.d.ts.md        |     2 +-
++-++++ .../codebase/apps_web-chat_vite.config.ts.md       |     2 +-
++-++++ .../codebase/apps_web-chat_vitest.config.ts.md     |     2 +-
++-++++ docs/autogen/codebase/backend_README.md.md         |     2 +-
++-++++ .../backend_adaptive_engine_experience_db.py.md    |     2 +-
++-++++ .../codebase/backend_adaptive_engine_init_.py.md   |     2 +-
++-++++ .../backend_adaptive_engine_intent_parser.py.md    |     2 +-
++-++++ .../backend_adaptive_engine_learning_loop.py.md    |     2 +-
++-++++ .../backend_adaptive_engine_platform_learner.py.md |     2 +-
++-++++ .../backend_adaptive_engine_registry.py.md         |     2 +-
++-++++ ...end_adaptive_engine_test_platform_learner.py.md |     2 +-
++-++++ docs/autogen/codebase/backend_admin_god.py.md      |     2 +-
++-++++ docs/autogen/codebase/backend_admin_init_.py.md    |     2 +-
++-++++ docs/autogen/codebase/backend_admin_test_god.py.md |     2 +-
++-++++ .../codebase/backend_agents_crew_departments.py.md |     2 +-
++-++++ docs/autogen/codebase/backend_agents_init_.py.md   |     2 +-
++-++++ .../codebase/backend_agents_legal_agent.py.md      |     2 +-
++-++++ .../codebase/backend_agents_medical_agent.py.md    |     2 +-
++-++++ .../backend_agents_research_assistant.py.md        |     2 +-
++-++++ .../codebase/backend_agents_test_legal_agent.py.md |     2 +-
++-++++ .../backend_agents_test_medical_agent.py.md        |     2 +-
++-++++ .../codebase/backend_agents_trading_agent.py.md    |     2 +-
++-++++ docs/autogen/codebase/backend_alembic_env.py.md    |     2 +-
++-++++ ...ersions_664fe16e33ca_add_ci_reports_table.py.md |     2 +-
++-++++ .../codebase/backend_api_dependencies.py.md        |     2 +-
++-++++ docs/autogen/codebase/backend_api_init_.py.md      |     2 +-
++-++++ .../codebase/backend_api_routes_admin.py.md        |     2 +-
++-++++ .../backend_api_routes_admin_dashboard.py.md       |     6 +-
++-++++ .../codebase/backend_api_routes_agent_tasks.py.md  |     2 +-
++-++++ .../codebase/backend_api_routes_agents.py.md       |     2 +-
++-++++ .../codebase/backend_api_routes_api_keys.py.md     |     2 +-
++-++++ .../backend_api_routes_approval_manager.py.md      |     2 +-
++-++++ .../backend_api_routes_async_task_router.py.md     |     2 +-
++-++++ .../autogen/codebase/backend_api_routes_auth.py.md |     2 +-
++-++++ .../codebase/backend_api_routes_billing_api.py.md  |     2 +-
++-++++ .../codebase/backend_api_routes_browser.py.md      |     2 +-
++-++++ .../codebase/backend_api_routes_byoc_api.py.md     |     2 +-
++-++++ .../codebase/backend_api_routes_cdc_webhooks.py.md |     2 +-
++-++++ .../autogen/codebase/backend_api_routes_chat.py.md |     2 +-
++-++++ .../codebase/backend_api_routes_ci_webhooks.py.md  |     2 +-
++-++++ .../codebase/backend_api_routes_cloud_mesh.py.md   |     2 +-
++-++++ .../codebase/backend_api_routes_codeflow.py.md     |     2 +-
++-++++ .../codebase/backend_api_routes_config.py.md       |     2 +-
++-++++ .../codebase/backend_api_routes_email.py.md        |     2 +-
++-++++ .../codebase/backend_api_routes_evolution.py.md    |     2 +-
++-++++ .../backend_api_routes_execution_policies.py.md    |     2 +-
++-++++ .../codebase/backend_api_routes_feedback.py.md     |     2 +-
++-++++ .../codebase/backend_api_routes_github.py.md       |     2 +-
++-++++ .../codebase/backend_api_routes_graph.py.md        |     2 +-
++-++++ .../codebase/backend_api_routes_init_.py.md        |     2 +-
++-++++ .../codebase/backend_api_routes_internal.py.md     |     2 +-
++-++++ .../codebase/backend_api_routes_knowledge.py.md    |     2 +-
++-++++ .../codebase/backend_api_routes_llm_gateway.py.md  |     2 +-
++-++++ .../codebase/backend_api_routes_markdown.py.md     |     2 +-
++-++++ .../codebase/backend_api_routes_marketplace.py.md  |     2 +-
++-++++ .../backend_api_routes_marketplace_endpoints.py.md |     2 +-
++-++++ .../codebase/backend_api_routes_media.py.md        |     2 +-
++-++++ .../codebase/backend_api_routes_memory.py.md       |     2 +-
++-++++ .../codebase/backend_api_routes_metrics.py.md      |     2 +-
++-++++ .../codebase/backend_api_routes_mobile_bff.py.md   |     2 +-
++-++++ .../codebase/backend_api_routes_onboarding.py.md   |     2 +-
++-++++ .../codebase/backend_api_routes_payments.py.md     |     2 +-
++-++++ .../codebase/backend_api_routes_preferences.py.md  |     2 +-
++-++++ .../codebase/backend_api_routes_repos.py.md        |     2 +-
++-++++ .../backend_api_routes_selector_healing.py.md      |     2 +-
++-++++ .../backend_api_routes_session_stream.py.md        |     2 +-
++-++++ .../backend_api_routes_session_takeover.py.md      |     2 +-
++-++++ .../codebase/backend_api_routes_simulator.py.md    |     2 +-
++-++++ .../codebase/backend_api_routes_site_actions.py.md |     2 +-
++-++++ docs/autogen/codebase/backend_api_routes_sso.py.md |     2 +-
++-++++ .../codebase/backend_api_routes_stream.py.md       |     2 +-
++-++++ .../autogen/codebase/backend_api_routes_task.py.md |     2 +-
++-++++ .../backend_api_routes_task_workspace.py.md        |     2 +-
++-++++ .../codebase/backend_api_routes_tenant_admin.py.md |     2 +-
++-++++ .../codebase/backend_api_routes_tools_ops.py.md    |     2 +-
++-++++ .../backend_api_routes_tools_registry.py.md        |     2 +-
++-++++ .../backend_api_routes_usage_metrics.py.md         |     2 +-
++-++++ .../codebase/backend_api_routes_voice.py.md        |     2 +-
++-++++ .../backend_api_routes_websocket_agent.py.md       |     2 +-
++-++++ .../backend_api_routes_websocket_voice.py.md       |     2 +-
++-++++ .../codebase/backend_byoc_cloud_connector.py.md    |     2 +-
++-++++ .../backend_byoc_container_orchestrator.py.md      |     2 +-
++-++++ docs/autogen/codebase/backend_byoc_init_.py.md     |     2 +-
++-++++ .../codebase/backend_byoc_resource_manager.py.md   |     2 +-
++-++++ .../codebase/backend_config_byoc_limits.json.md    |     2 +-
++-++++ .../backend_config_constitutional_rules.json.md    |     2 +-
++-++++ .../codebase/backend_config_pricing_tiers.json.md  |     2 +-
++-++++ .../codebase/backend_config_routing_policy.json.md |     2 +-
++-++++ docs/autogen/codebase/backend_core_admin_god.py.md |     2 +-
++-++++ .../codebase/backend_core_admin_routes.py.md       |     2 +-
++-++++ .../codebase/backend_core_agent_orchestrator.py.md |     2 +-
++-++++ .../codebase/backend_core_api_key_middleware.py.md |     2 +-
++-++++ .../backend_core_api_key_rate_limiter.py.md        |     2 +-
++-++++ docs/autogen/codebase/backend_core_app.py.md       |     2 +-
++-++++ .../codebase/backend_core_audit_logger.py.md       |     2 +-
++-++++ .../codebase/backend_core_auth_middleware.py.md    |     2 +-
++-++++ .../codebase/backend_core_auto_remediation.py.md   |     2 +-
++-++++ .../codebase/backend_core_autocache_proxy.py.md    |     2 +-
++-++++ .../codebase/backend_core_circuit_breaker.py.md    |     2 +-
++-++++ .../backend_core_cloud_sandbox_orchestrator.py.md  |     2 +-
++-++++ .../codebase/backend_core_cloud_storage.py.md      |     2 +-
++-++++ .../codebase/backend_core_code_validator.py.md     |     2 +-
++-++++ docs/autogen/codebase/backend_core_config.py.md    |     2 +-
++-++++ docs/autogen/codebase/backend_core_constants.py.md |     2 +-
++-++++ .../codebase/backend_core_db_repository.py.md      |     2 +-
++-++++ .../codebase/backend_core_decision_engine.py.md    |     2 +-
++-++++ .../codebase/backend_core_discord_bot.py.md        |     2 +-
++-++++ .../codebase/backend_core_docker-compose.yml.md    |     2 +-
++-++++ .../codebase/backend_core_email_service.py.md      |     2 +-
++-++++ .../autogen/codebase/backend_core_enum_guard.py.md |     2 +-
++-++++ .../codebase/backend_core_error_pattern_db.py.md   |     2 +-
++-++++ .../codebase/backend_core_error_remediation.py.md  |     2 +-
++-++++ docs/autogen/codebase/backend_core_events.py.md    |     2 +-
++-++++ .../codebase/backend_core_evolution_engine.py.md   |     2 +-
++-++++ .../codebase/backend_core_factual_verifier.py.md   |     2 +-
++-++++ .../codebase/backend_core_feedback_loop.py.md      |     2 +-
++-++++ .../codebase/backend_core_free_tier_tracker.py.md  |     2 +-
++-++++ .../codebase/backend_core_gcp_firestore.py.md      |     2 +-
++-++++ .../codebase/backend_core_gcp_pubsub_queue.py.md   |     2 +-
++-++++ .../codebase/backend_core_generation_monitor.py.md |     2 +-
++-++++ .../codebase/backend_core_grpc_client.py.md        |     2 +-
++-++++ .../codebase/backend_core_health_monitor.py.md     |     2 +-
++-++++ .../backend_core_honeypot_middleware.py.md         |     2 +-
++-++++ .../backend_core_idempotency_middleware.py.md      |     2 +-
++-++++ .../codebase/backend_core_immune_system.py.md      |     2 +-
++-++++ docs/autogen/codebase/backend_core_init_.py.md     |     2 +-
++-++++ .../codebase/backend_core_input_sanitizer.py.md    |     2 +-
++-++++ docs/autogen/codebase/backend_core_intent.py.md    |     2 +-
++-++++ .../codebase/backend_core_intent_router.py.md      |     2 +-
++-++++ .../codebase/backend_core_language_router.py.md    |     2 +-
++-++++ docs/autogen/codebase/backend_core_ld_client.py.md |     2 +-
++-++++ docs/autogen/codebase/backend_core_lifespan.py.md  |     2 +-
++-++++ .../codebase/backend_core_llm_gateway.py.md        |     2 +-
++-++++ .../codebase/backend_core_log_batcher.py.md        |     2 +-
++-++++ .../codebase/backend_core_logging_config.py.md     |     2 +-
++-++++ .../codebase/backend_core_mcp_allowlist.py.md      |     2 +-
++-++++ .../codebase/backend_core_microvm_sandbox.py.md    |     2 +-
++-++++ .../codebase/backend_core_multi_layer_cache.py.md  |     2 +-
++-++++ .../backend_core_observability_middleware.py.md    |     2 +-
++-++++ .../codebase/backend_core_orchestrator.py.md       |     2 +-
++-++++ .../codebase/backend_core_origin_validator.py.md   |     2 +-
++-++++ .../codebase/backend_core_output_validator.py.md   |     2 +-
++-++++ .../codebase/backend_core_pgbouncer_pool.py.md     |     2 +-
++-++++ .../codebase/backend_core_posthog_client.py.md     |     2 +-
++-++++ .../codebase/backend_core_prompt_firewall.py.md    |     2 +-
++-++++ .../codebase/backend_core_prompt_helpers.py.md     |     2 +-
++-++++ .../codebase/backend_core_rate_limiter.py.md       |     2 +-
++-++++ docs/autogen/codebase/backend_core_rbac.py.md      |     2 +-
++-++++ .../codebase/backend_core_redis_manager.py.md      |     2 +-
++-++++ .../codebase/backend_core_rollback_monitor.py.md   |     2 +-
++-++++ .../codebase/backend_core_rules_mutator.py.md      |     2 +-
++-++++ .../codebase/backend_core_schema_validator.py.md   |     2 +-
++-++++ .../codebase/backend_core_secret_vault.py.md       |     2 +-
++-++++ .../backend_core_secure_credential_store.py.md     |     2 +-
++-++++ docs/autogen/codebase/backend_core_security.py.md  |     2 +-
++-++++ .../codebase/backend_core_self_healing_agent.py.md |     2 +-
++-++++ .../codebase/backend_core_semantic_cache.py.md     |     2 +-
++-++++ docs/autogen/codebase/backend_core_services.py.md  |     2 +-
++-++++ .../codebase/backend_core_skill_graph.py.md        |     2 +-
++-++++ .../codebase/backend_core_swarm_orchestrator.py.md |     2 +-
++-++++ .../autogen/codebase/backend_core_task_queue.py.md |     2 +-
++-++++ .../backend_core_task_queue_enhanced.py.md         |     2 +-
++-++++ .../codebase/backend_core_task_router.py.md        |     2 +-
++-++++ docs/autogen/codebase/backend_core_telemetry.py.md |     2 +-
++-++++ docs/autogen/codebase/backend_core_tenant_db.py.md |     2 +-
++-++++ .../codebase/backend_core_token_budget.py.md       |     2 +-
++-++++ .../codebase/backend_core_token_deductor.py.md     |     2 +-
++-++++ .../codebase/backend_core_universal_rules.py.md    |     2 +-
++-++++ .../codebase/backend_core_upload_validator.py.md   |     2 +-
++-++++ .../backend_core_upstash_redis_queue.py.md         |     2 +-
++-++++ .../codebase/backend_core_user_profiler.py.md      |     2 +-
++-++++ docs/autogen/codebase/backend_database_init_.py.md |     2 +-
++-++++ ...end_database_migrations_01_initial_setup.sql.md |     2 +-
++-++++ ...kend_database_migrations_02_phase2_setup.sql.md |     2 +-
++-++++ ...grations_03_user_preferences_and_metrics.sql.md |     2 +-
++-++++ ...nd_database_migrations_04_schema_upgrade.sql.md |     2 +-
++-++++ ...database_migrations_05_seed_github_repos.sql.md |     2 +-
++-++++ ...d_database_migrations_06_referral_system.sql.md |     2 +-
++-++++ ...end_database_migrations_07_tenant_config.sql.md |     2 +-
++-++++ ...ckend_database_migrations_08_sso_configs.sql.md |     2 +-
++-++++ ...database_migrations_09_offline_sync_logs.sql.md |     2 +-
++-++++ ...atabase_migrations_10_tenant_sso_offline.sql.md |     2 +-
++-++++ .../codebase/backend_database_session.py.md        |     2 +-
++-++++ .../codebase/backend_database_storage_client.py.md |     2 +-
++-++++ .../backend_database_supabase_client.py.md         |     2 +-
++-++++ .../codebase/backend_engine_cost_optimizer.py.md   |     2 +-
++-++++ docs/autogen/codebase/backend_engine_init_.py.md   |     2 +-
++-++++ .../codebase/backend_engine_model_dispatcher.py.md |     2 +-
++-++++ .../backend_evolution_auto_skill_creator.py.md     |     2 +-
++-++++ .../backend_evolution_auto_update_manager.py.md    |     2 +-
++-++++ .../backend_evolution_dynamic_injector.py.md       |     2 +-
++-++++ .../backend_evolution_fitness_engine.py.md         |     2 +-
++-++++ .../autogen/codebase/backend_evolution_init_.py.md |     2 +-
++-++++ .../backend_evolution_master_planner.py.md         |     2 +-
++-++++ .../backend_evolution_security_sandbox.py.md       |     2 +-
++-++++ .../backend_evolution_self_evolution_agent.py.md   |     2 +-
++-++++ .../codebase/backend_evolution_skill_graph.py.md   |     2 +-
++-++++ docs/autogen/codebase/backend_fix_tests.py.md      |     2 +-
++-++++ docs/autogen/codebase/backend_init_.py.md          |     2 +-
++-++++ docs/autogen/codebase/backend_main.py.md           |     2 +-
++-++++ .../backend_memory_checkpoint_resume.py.md         |     2 +-
++-++++ .../codebase/backend_memory_chromadb_store.py.md   |     2 +-
++-++++ .../backend_memory_cloud_postgres_store.py.md      |     2 +-
++-++++ .../backend_memory_cloud_vector_store.py.md        |     2 +-
++-++++ .../codebase/backend_memory_episodic_memory.py.md  |     2 +-
++-++++ docs/autogen/codebase/backend_memory_init_.py.md   |     2 +-
++-++++ .../codebase/backend_memory_long_term_memory.py.md |     2 +-
++-++++ .../codebase/backend_memory_rag_pipeline.py.md     |     2 +-
++-++++ .../codebase/backend_memory_sliding_window.py.md   |     2 +-
++-++++ .../codebase/backend_memory_sqlite_store.py.md     |     2 +-
++-++++ .../codebase/backend_memory_summary_tree.py.md     |     2 +-
++-++++ .../codebase/backend_memory_supabase_store.py.md   |     2 +-
++-++++ .../backend_memory_vector_store_config.py.md       |     2 +-
++-++++ .../backend_middleware_auth_middleware.py.md       |     2 +-
++-++++ .../backend_middleware_chaos_injector.py.md        |     2 +-
++-++++ .../codebase/backend_middleware_idempotency.py.md  |     2 +-
++-++++ docs/autogen/codebase/backend_models_admin.py.md   |     2 +-
++-++++ .../codebase/backend_models_agent_session.py.md    |     2 +-
++-++++ docs/autogen/codebase/backend_models_api_key.py.md |     2 +-
++-++++ docs/autogen/codebase/backend_models_base.py.md    |     2 +-
++-++++ .../codebase/backend_models_byoc_payloads.py.md    |     2 +-
++-++++ .../codebase/backend_models_ci_report.py.md        |     2 +-
++-++++ .../codebase/backend_models_deployment_logs.py.md  |     2 +-
++-++++ .../backend_models_error_remediation.py.md         |     2 +-
++-++++ .../codebase/backend_models_evolution.py.md        |     2 +-
++-++++ .../codebase/backend_models_execution_log.py.md    |     2 +-
++-++++ .../codebase/backend_models_execution_policy.py.md |     2 +-
++-++++ .../codebase/backend_models_handoff_event.py.md    |     2 +-
++-++++ docs/autogen/codebase/backend_models_init_.py.md   |     2 +-
++-++++ .../backend_models_local_model_handler.py.md       |     2 +-
++-++++ .../codebase/backend_models_pending_tasks.py.md    |     2 +-
++-++++ .../backend_models_selector_healing_event.py.md    |     2 +-
++-++++ .../codebase/backend_models_shared_workspace.py.md |     2 +-
++-++++ ...backend_models_target_platform_credential.py.md |     2 +-
++-++++ .../backend_models_transaction_ledger.py.md        |     2 +-
++-++++ .../backend_models_voice_interaction.py.md         |     2 +-
++-++++ docs/autogen/codebase/backend_models_wallet.py.md  |     2 +-
++-++++ .../codebase/backend_monitoring_cost_auditor.py.md |     2 +-
++-++++ .../codebase/backend_monitoring_init_.py.md        |     2 +-
++-++++ .../codebase/backend_p2p_credit_system.py.md       |     2 +-
++-++++ docs/autogen/codebase/backend_p2p_init_.py.md      |     2 +-
++-++++ .../codebase/backend_p2p_secure_tunnel.py.md       |     2 +-
++-++++ docs/autogen/codebase/backend_pyproject.toml.md    |     2 +-
++-++++ docs/autogen/codebase/backend_reports_init_.py.md  |     2 +-
++-++++ .../backend_reports_optimization_engine.py.md      |     2 +-
++-++++ .../codebase/backend_run_roundtrip_tests.py.md     |     2 +-
++-++++ docs/autogen/codebase/backend_scout_init_.py.md    |     2 +-
++-++++ .../backend_scout_knowledge_extractor.py.md        |     2 +-
++-++++ .../codebase/backend_scout_web_crawler_agent.py.md |     2 +-
++-++++ .../codebase/backend_scripts_check_ollama.py.md    |     2 +-
++-++++ docs/autogen/codebase/backend_scripts_init_.py.md  |     2 +-
++-++++ .../codebase/backend_scripts_load_seed_data.py.md  |     2 +-
++-++++ .../backend_scripts_run_dependency_check.py.md     |     2 +-
++-++++ .../backend_scripts_seed_tools_registry.py.md      |     2 +-
++-++++ .../backend_scripts_self_healing_tests.py.md       |     2 +-
++-++++ docs/autogen/codebase/backend_skills_init_.py.md   |     2 +-
++-++++ .../codebase/backend_skills_provisioner.py.md      |     2 +-
++-++++ .../codebase/backend_skills_skill_registry.py.md   |     2 +-
++-++++ .../codebase/backend_storage_asset_manager.py.md   |     2 +-
++-++++ docs/autogen/codebase/backend_storage_init_.py.md  |     2 +-
++-++++ .../backend_storage_r2_storage_client.py.md        |     2 +-
++-++++ .../backend_tests_agents_test_legal_agent.py.md    |     2 +-
++-++++ .../backend_tests_agents_test_medical_agent.py.md  |     2 +-
++-++++ ...kend_tests_agents_test_research_assistant.py.md |     2 +-
++-++++ .../backend_tests_agents_test_trading_agent.py.md  |     2 +-
++-++++ .../backend_tests_byoc_test_cloud_connector.py.md  |     2 +-
++-++++ ...nd_tests_byoc_test_container_orchestrator.py.md |     2 +-
++-++++ .../backend_tests_byoc_test_resource_manager.py.md |     2 +-
++-++++ docs/autogen/codebase/backend_tests_conftest.py.md |     2 +-
++-++++ .../backend_tests_engine_test_cost_optimizer.py.md |     2 +-
++-++++ ...ackend_tests_engine_test_model_dispatcher.py.md |     2 +-
++-++++ docs/autogen/codebase/backend_tests_init_.py.md    |     2 +-
++-++++ ...ackend_tests_monitoring_test_cost_auditor.py.md |     2 +-
++-++++ .../backend_tests_p2p_test_credit_system.py.md     |     2 +-
++-++++ .../backend_tests_p2p_test_secure_tunnel.py.md     |     2 +-
++-++++ ...kend_tests_scout_test_knowledge_extractor.py.md |     2 +-
++-++++ ...ackend_tests_scout_test_web_crawler_agent.py.md |     2 +-
++-++++ .../backend_tests_test_adaptive_engine.py.md       |     2 +-
++-++++ .../codebase/backend_tests_test_admin_god.py.md    |     2 +-
++-++++ .../codebase/backend_tests_test_admin_models.py.md |     2 +-
++-++++ .../codebase/backend_tests_test_admin_routes.py.md |     2 +-
++-++++ .../codebase/backend_tests_test_advanced.py.md     |     2 +-
++-++++ .../backend_tests_test_agent_department.py.md      |     2 +-
++-++++ .../backend_tests_test_agent_departments.py.md     |     2 +-
++-++++ .../backend_tests_test_agent_orchestrator.py.md    |     2 +-
++-++++ ...ackend_tests_test_agents_crew_departments.py.md |     2 +-
++-++++ docs/autogen/codebase/backend_tests_test_api.py.md |     2 +-
++-++++ .../codebase/backend_tests_test_api_chat.py.md     |     2 +-
++-++++ .../codebase/backend_tests_test_api_keys.py.md     |     2 +-
++-++++ .../backend_tests_test_api_new_endpoints.py.md     |     2 +-
++-++++ .../codebase/backend_tests_test_api_router.py.md   |     2 +-
++-++++ .../codebase/backend_tests_test_audit_logger.py.md |     2 +-
++-++++ .../backend_tests_test_auth_middleware.py.md       |     2 +-
++-++++ .../codebase/backend_tests_test_auth_routes.py.md  |     2 +-
++-++++ .../backend_tests_test_auto_fix_trigger.py.md      |     2 +-
++-++++ .../backend_tests_test_auto_skill_creator.py.md    |     2 +-
++-++++ .../backend_tests_test_autonomous_agent.py.md      |     2 +-
++-++++ .../codebase/backend_tests_test_bangla_nlp.py.md   |     2 +-
++-++++ .../codebase/backend_tests_test_bangla_voice.py.md |     2 +-
++-++++ .../backend_tests_test_billing_system.py.md        |     2 +-
++-++++ .../codebase/backend_tests_test_brain.py.md        |     2 +-
++-++++ .../backend_tests_test_browser_credentials.py.md   |     2 +-
++-++++ .../backend_tests_test_byoc_endpoints.py.md        |     2 +-
++-++++ .../codebase/backend_tests_test_chaos_worker.py.md |     2 +-
++-++++ .../backend_tests_test_checkpoint_resume.py.md     |     2 +-
++-++++ .../backend_tests_test_circuit_breaker.py.md       |     2 +-
++-++++ .../backend_tests_test_cloud_sandbox.py.md         |     2 +-
++-++++ .../backend_tests_test_cloud_storage.py.md         |     2 +-
++-++++ .../backend_tests_test_code_validator.py.md        |     2 +-
++-++++ .../backend_tests_test_collaborative_editor.py.md  |     2 +-
++-++++ .../codebase/backend_tests_test_config.py.md       |     2 +-
++-++++ .../backend_tests_test_config_additional.py.md     |     2 +-
++-++++ .../backend_tests_test_config_coverage.py.md       |     2 +-
++-++++ .../codebase/backend_tests_test_constants.py.md    |     2 +-
++-++++ .../backend_tests_test_context_and_actions.py.md   |     2 +-
++-++++ .../autogen/codebase/backend_tests_test_core.py.md |     2 +-
++-++++ .../codebase/backend_tests_test_core_smoke.py.md   |     2 +-
++-++++ .../backend_tests_test_coverage_gaps.py.md         |     2 +-
++-++++ .../codebase/backend_tests_test_crew_mcp.py.md     |     2 +-
++-++++ ...ackend_tests_test_database_storage_client.py.md |     2 +-
++-++++ .../backend_tests_test_db_repository.py.md         |     2 +-
++-++++ docs/autogen/codebase/backend_tests_test_e2e.py.md |     2 +-
++-++++ .../codebase/backend_tests_test_e2e_media.py.md    |     2 +-
++-++++ .../codebase/backend_tests_test_email_agent.py.md  |     2 +-
++-++++ .../backend_tests_test_email_service.py.md         |     2 +-
++-++++ .../backend_tests_test_episodic_memory.py.md       |     2 +-
++-++++ .../backend_tests_test_error_remediation.py.md     |     2 +-
++-++++ .../backend_tests_test_evolution_engine.py.md      |     2 +-
++-++++ .../backend_tests_test_evolution_pipeline.py.md    |     2 +-
++-++++ .../backend_tests_test_factual_verifier.py.md      |     2 +-
++-++++ .../backend_tests_test_feedback_loop.py.md         |     2 +-
++-++++ .../backend_tests_test_firebase_integration.py.md  |     2 +-
++-++++ .../backend_tests_test_fitness_engine.py.md        |     2 +-
++-++++ .../backend_tests_test_free_tier_tracker.py.md     |     2 +-
++-++++ .../backend_tests_test_gcp_integration.py.md       |     2 +-
++-++++ .../backend_tests_test_generation_monitor.py.md    |     2 +-
++-++++ .../codebase/backend_tests_test_github_agent.py.md |     2 +-
++-++++ .../codebase/backend_tests_test_graph_routes.py.md |     2 +-
++-++++ .../backend_tests_test_graph_service.py.md         |     2 +-
++-++++ .../codebase/backend_tests_test_grpc_client.py.md  |     2 +-
++-++++ .../backend_tests_test_hallucination_guard.py.md   |     2 +-
++-++++ .../codebase/backend_tests_test_health.py.md       |     2 +-
++-++++ .../backend_tests_test_health_monitor.py.md        |     2 +-
++-++++ .../backend_tests_test_health_monitor_routes.py.md |     2 +-
++-++++ .../backend_tests_test_honeypot_middleware.py.md   |     2 +-
++-++++ ...backend_tests_test_idempotency_middleware.py.md |     2 +-
++-++++ .../backend_tests_test_immune_system.py.md         |     2 +-
++-++++ .../backend_tests_test_immune_system_scanner.py.md |     2 +-
++-++++ .../backend_tests_test_input_sanitizer.py.md       |     2 +-
++-++++ .../backend_tests_test_language_router.py.md       |     2 +-
++-++++ .../codebase/backend_tests_test_llm_gateway.py.md  |     2 +-
++-++++ .../backend_tests_test_llm_gateway_coverage.py.md  |     2 +-
++-++++ .../backend_tests_test_long_term_memory.py.md      |     2 +-
++-++++ .../backend_tests_test_markdown_export.py.md       |     2 +-
++-++++ .../backend_tests_test_marketplace_agent.py.md     |     2 +-
++-++++ .../backend_tests_test_mcp_allowlist.py.md         |     2 +-
++-++++ .../codebase/backend_tests_test_mcp_server.py.md   |     2 +-
++-++++ ...ackend_tests_test_mcp_servers_integration.py.md |     2 +-
++-++++ .../codebase/backend_tests_test_media_r2.py.md     |     2 +-
++-++++ ...kend_tests_test_middleware_chaos_injector.py.md |     2 +-
++-++++ .../codebase/backend_tests_test_migrations.py.md   |     2 +-
++-++++ ...kend_tests_test_migrations_and_onboarding.py.md |     2 +-
++-++++ .../codebase/backend_tests_test_mobile_e2e.py.md   |     2 +-
++-++++ .../backend_tests_test_model_registry.py.md        |     2 +-
++-++++ .../backend_tests_test_model_router_unit.py.md     |     2 +-
++-++++ .../backend_tests_test_model_trainer.py.md         |     2 +-
++-++++ .../backend_tests_test_models_ci_report.py.md      |     2 +-
++-++++ .../backend_tests_test_models_evolution.py.md      |     2 +-
++-++++ .../codebase/backend_tests_test_monitoring.py.md   |     2 +-
++-++++ .../backend_tests_test_multi_account_rotator.py.md |     2 +-
++-++++ .../codebase/backend_tests_test_multicloud.py.md   |     2 +-
++-++++ .../backend_tests_test_new_endpoints_sprint5.py.md |     2 +-
++-++++ .../backend_tests_test_new_interfaces.py.md        |     2 +-
++-++++ .../backend_tests_test_new_tools_sprint5.py.md     |     2 +-
++-++++ .../backend_tests_test_optimization_engine.py.md   |     2 +-
++-++++ .../backend_tests_test_output_validator.py.md      |     2 +-
++-++++ ...ackend_tests_test_parallel_agent_executor.py.md |     2 +-
++-++++ .../codebase/backend_tests_test_payments.py.md     |     2 +-
++-++++ ...ckend_tests_test_performance_aware_router.py.md |     2 +-
++-++++ .../backend_tests_test_pgbouncer_pool.py.md        |     2 +-
++-++++ .../codebase/backend_tests_test_posthog.py.md      |     2 +-
++-++++ .../codebase/backend_tests_test_pr_reviewer.py.md  |     2 +-
++-++++ .../backend_tests_test_prod_docs_security.py.md    |     2 +-
++-++++ ...sts_test_production_readiness_integration.py.md |     2 +-
++-++++ .../backend_tests_test_prompt_firewall.py.md       |     2 +-
++-++++ .../autogen/codebase/backend_tests_test_rbac.py.md |     2 +-
++-++++ ...backend_tests_test_reasoning_orchestrator.py.md |     2 +-
++-++++ .../backend_tests_test_repo_discovery.py.md        |     2 +-
++-++++ .../backend_tests_test_resource_catalog.py.md      |     2 +-
++-++++ .../autogen/codebase/backend_tests_test_rlhf.py.md |     2 +-
++-++++ ...kend_tests_test_sandbox_orchestration_run.py.md |     2 +-
++-++++ .../backend_tests_test_schema_validator.py.md      |     2 +-
++-++++ .../codebase/backend_tests_test_secret_vault.py.md |     2 +-
++-++++ ...ackend_tests_test_secure_credential_store.py.md |     2 +-
++-++++ .../backend_tests_test_security_middleware.py.md   |     2 +-
++-++++ .../backend_tests_test_security_regression.py.md   |     2 +-
++-++++ .../backend_tests_test_self_evolution_agent.py.md  |     2 +-
++-++++ .../backend_tests_test_simulator_browser_api.py.md |     2 +-
++-++++ .../codebase/backend_tests_test_skill_graph.py.md  |     2 +-
++-++++ .../backend_tests_test_skill_recommender.py.md     |     2 +-
++-++++ .../backend_tests_test_sliding_window_memory.py.md |     2 +-
++-++++ .../backend_tests_test_sprint_c_tools.py.md        |     2 +-
++-++++ .../codebase/backend_tests_test_sprint_g.py.md     |     2 +-
++-++++ .../backend_tests_test_stealth_networking.py.md    |     2 +-
++-++++ .../codebase/backend_tests_test_stream.py.md       |     2 +-
++-++++ .../backend_tests_test_style_learner.py.md         |     2 +-
++-++++ ...kend_tests_test_supabase_schema_bootstrap.py.md |     2 +-
++-++++ .../backend_tests_test_supabase_store.py.md        |     2 +-
++-++++ .../backend_tests_test_swarm_orchestrator.py.md    |     2 +-
++-++++ .../backend_tests_test_task_endpoints.py.md        |     2 +-
++-++++ .../codebase/backend_tests_test_task_queue.py.md   |     2 +-
++-++++ .../codebase/backend_tests_test_task_router.py.md  |     2 +-
++-++++ .../codebase/backend_tests_test_telegram_bot.py.md |     2 +-
++-++++ .../codebase/backend_tests_test_telemetry.py.md    |     2 +-
++-++++ .../backend_tests_test_tenant_rate_limiter.py.md   |     2 +-
++-++++ .../backend_tests_test_universal_rules.py.md       |     2 +-
++-++++ .../backend_tests_test_upstash_redis.py.md         |     2 +-
++-++++ docs/autogen/codebase/backend_tests_test_uss.py.md |     2 +-
++-++++ .../backend_tests_test_video_generator.py.md       |     2 +-
++-++++ .../codebase/backend_tests_test_vision_agent.py.md |     2 +-
++-++++ .../codebase/backend_tests_test_voice_stream.py.md |     2 +-
++-++++ .../codebase/backend_tests_test_vpn_switcher.py.md |     2 +-
++-++++ .../codebase/backend_tests_test_vscode_e2e.py.md   |     2 +-
++-++++ .../codebase/backend_tests_test_web_fallback.py.md |     2 +-
++-++++ ...d_tests_tools_test_auto_coverage_improver.py.md |     2 +-
++-++++ ...kend_tests_tools_test_auto_test_generator.py.md |     2 +-
++-++++ ...kend_tests_tools_test_code_smell_detector.py.md |     2 +-
++-++++ .../backend_tests_tools_test_cot_reasoner.py.md    |     2 +-
++-++++ ...backend_tests_tools_test_coverage_auditor.py.md |     2 +-
++-++++ ...d_tests_tools_test_knowledge_base_indexer.py.md |     2 +-
++-++++ ...backend_tests_tools_test_multilingual_tts.py.md |     2 +-
++-++++ ...nd_tests_tools_test_viral_referral_engine.py.md |     2 +-
++-++++ .../backend_tests_utils_test_api_tracker.py.md     |     2 +-
++-++++ .../backend_tests_workers_test_celery_app.py.md    |     2 +-
++-++++ .../backend_tools_3d_model_generator.py.md         |     2 +-
++-++++ .../codebase/backend_tools_agent_tools.py.md       |     2 +-
++-++++ .../backend_tools_ai_federation_protocol.py.md     |     2 +-
++-++++ .../backend_tools_ai_pair_programmer.py.md         |     2 +-
++-++++ .../codebase/backend_tools_api_gateway.py.md       |     2 +-
++-++++ .../backend_tools_auto_coverage_improver.py.md     |     2 +-
++-++++ .../codebase/backend_tools_auto_pr_pipeline.py.md  |     2 +-
++-++++ .../backend_tools_auto_test_generator.py.md        |     2 +-
++-++++ .../backend_tools_bandwidth_optimizer.py.md        |     2 +-
++-++++ .../backend_tools_bangla_ai_connector.py.md        |     2 +-
++-++++ .../codebase/backend_tools_bangla_nlp.py.md        |     2 +-
++-++++ .../codebase/backend_tools_bangla_voice.py.md      |     2 +-
++-++++ .../codebase/backend_tools_benchmark_agent.py.md   |     2 +-
++-++++ .../backend_tools_bengali_ocr_converter.py.md      |     2 +-
++-++++ .../codebase/backend_tools_blockchain_agent.py.md  |     2 +-
++-++++ .../autogen/codebase/backend_tools_bootstrap.py.md |     2 +-
++-++++ .../codebase/backend_tools_browser_agent.py.md     |     2 +-
++-++++ .../codebase/backend_tools_browser_stealth.py.md   |     2 +-
++-++++ .../backend_tools_checkpoint_manager.py.md         |     2 +-
++-++++ docs/autogen/codebase/backend_tools_cli.py.md      |     2 +-
++-++++ .../backend_tools_cloud_sandbox_orchestrator.py.md |     2 +-
++-++++ .../backend_tools_code_smell_detector.py.md        |     2 +-
++-++++ .../codebase/backend_tools_codebase_exporter.py.md |     2 +-
++-++++ .../backend_tools_collaborative_editor.py.md       |     2 +-
++-++++ .../codebase/backend_tools_comment_thread_ai.py.md |     2 +-
++-++++ .../codebase/backend_tools_computer_agent.py.md    |     2 +-
++-++++ .../backend_tools_conversation_manager.py.md       |     2 +-
++-++++ .../codebase/backend_tools_cost_auditor.py.md      |     2 +-
++-++++ .../codebase/backend_tools_cot_reasoner.py.md      |     2 +-
++-++++ .../codebase/backend_tools_coverage_auditor.py.md  |     2 +-
++-++++ .../backend_tools_dependency_manager_agent.py.md   |     2 +-
++-++++ .../backend_tools_diagram_to_architecture.py.md    |     2 +-
++-++++ .../codebase/backend_tools_docker_sandbox.py.md    |     2 +-
++-++++ .../codebase/backend_tools_domain_adapter.py.md    |     2 +-
++-++++ .../codebase/backend_tools_email_agent.py.md       |     2 +-
++-++++ .../codebase/backend_tools_ensemble_router.py.md   |     2 +-
++-++++ .../codebase/backend_tools_fuzz_sandbox.py.md      |     2 +-
++-++++ .../codebase/backend_tools_game_dev_agent.py.md    |     2 +-
++-++++ .../backend_tools_gcp_cloud_functions.py.md        |     2 +-
++-++++ .../backend_tools_git_knowledge_extractor.py.md    |     2 +-
++-++++ .../codebase/backend_tools_github_agent.py.md      |     2 +-
++-++++ .../codebase/backend_tools_graph_service.py.md     |     2 +-
++-++++ .../backend_tools_headless_agent_registry.py.md    |     2 +-
++-++++ .../codebase/backend_tools_health_checker.py.md    |     2 +-
++-++++ .../codebase/backend_tools_image_generator.py.md   |     2 +-
++-++++ .../codebase/backend_tools_image_to_code.py.md     |     2 +-
++-++++ docs/autogen/codebase/backend_tools_init_.py.md    |     2 +-
++-++++ .../backend_tools_knowledge_base_indexer.py.md     |     2 +-
++-++++ .../backend_tools_langchain_agent_example.py.md    |     2 +-
++-++++ .../codebase/backend_tools_legal_agent.py.md       |     2 +-
++-++++ .../backend_tools_local_ocr_extractor.py.md        |     2 +-
++-++++ .../codebase/backend_tools_local_search_rag.py.md  |     2 +-
++-++++ .../codebase/backend_tools_marketplace_agent.py.md |     2 +-
++-++++ .../codebase/backend_tools_mcp_cloud_deploy.py.md  |     2 +-
++-++++ .../codebase/backend_tools_mcp_github_cicd.py.md   |     2 +-
++-++++ .../codebase/backend_tools_mcp_server.py.md        |     2 +-
++-++++ .../codebase/backend_tools_mcp_supabase.py.md      |     2 +-
++-++++ .../codebase/backend_tools_mcp_workspace.py.md     |     2 +-
++-++++ .../codebase/backend_tools_medical_agent.py.md     |     2 +-
++-++++ .../codebase/backend_tools_meta_architect.py.md    |     2 +-
++-++++ .../codebase/backend_tools_model_trainer.py.md     |     2 +-
++-++++ .../backend_tools_monthly_cost_reporter.py.md      |     2 +-
++-++++ .../backend_tools_multi_account_rotator.py.md      |     2 +-
++-++++ .../codebase/backend_tools_multilingual_tts.py.md  |     2 +-
++-++++ .../codebase/backend_tools_music_generator.py.md   |     2 +-
++-++++ .../codebase/backend_tools_offline_mode.py.md      |     2 +-
++-++++ .../backend_tools_on_premise_deployer.py.md        |     2 +-
++-++++ .../backend_tools_parallel_agent_executor.py.md    |     2 +-
++-++++ .../codebase/backend_tools_pdf_to_sdk.py.md        |     2 +-
++-++++ .../codebase/backend_tools_plan_sorter.py.md       |     2 +-
++-++++ .../backend_tools_playwright_browser_agent.py.md   |     2 +-
++-++++ .../codebase/backend_tools_pr_reviewer.py.md       |     2 +-
++-++++ .../codebase/backend_tools_pre_commit_ai.py.md     |     2 +-
++-++++ .../codebase/backend_tools_preference_memory.py.md |     2 +-
++-++++ .../backend_tools_presentation_generator.py.md     |     2 +-
++-++++ .../codebase/backend_tools_proxy_manager.py.md     |     2 +-
++-++++ .../codebase/backend_tools_repo_deep_indexer.py.md |     2 +-
++-++++ .../backend_tools_repo_discovery_agent.py.md       |     2 +-
++-++++ .../codebase/backend_tools_resource_catalog.py.md  |     2 +-
++-++++ .../codebase/backend_tools_rlhf_pipeline.py.md     |     2 +-
++-++++ .../codebase/backend_tools_safe_executor.py.md     |     2 +-
++-++++ .../codebase/backend_tools_scientific_agent.py.md  |     2 +-
++-++++ .../codebase/backend_tools_seed_database.py.md     |     2 +-
++-++++ .../codebase/backend_tools_self_planner.py.md      |     2 +-
++-++++ .../codebase/backend_tools_skill_recommender.py.md |     2 +-
++-++++ .../codebase/backend_tools_sso_integrator.py.md    |     2 +-
++-++++ .../backend_tools_stealth_http_client.py.md        |     2 +-
++-++++ .../codebase/backend_tools_style_learner.py.md     |     2 +-
++-++++ .../codebase/backend_tools_telegram_bot.py.md      |     2 +-
++-++++ .../backend_tools_tenant_rate_limiter.py.md        |     2 +-
++-++++ .../backend_tools_test_3d_model_generator.py.md    |     2 +-
++-++++ ...end_tools_test_cloud_sandbox_orchestrator.py.md |     2 +-
++-++++ .../codebase/backend_tools_trading_agent.py.md     |     2 +-
++-++++ .../codebase/backend_tools_video_generator.py.md   |     2 +-
++-++++ .../backend_tools_viral_referral_engine.py.md      |     2 +-
++-++++ .../codebase/backend_tools_vision_agent.py.md      |     2 +-
++-++++ docs/autogen/codebase/backend_tools_voice.py.md    |     2 +-
++-++++ .../codebase/backend_tools_voice_coder.py.md       |     2 +-
++-++++ .../codebase/backend_tools_vpn_switcher.py.md      |     2 +-
++-++++ .../backend_tools_vulnerability_predictor.py.md    |     2 +-
++-++++ .../backend_tools_web_fallback_agent.py.md         |     2 +-
++-++++ .../codebase/backend_utils_api_tracker.py.md       |     2 +-
++-++++ .../codebase/backend_utils_environment.py.md       |     2 +-
++-++++ .../codebase/backend_utils_firestore_helpers.py.md |     2 +-
++-++++ .../codebase/backend_utils_http_client.py.md       |     2 +-
++-++++ docs/autogen/codebase/backend_utils_init_.py.md    |     2 +-
++-++++ .../codebase/backend_utils_json_helpers.py.md      |     2 +-
++-++++ .../codebase/backend_utils_timestamps.py.md        |     2 +-
++-++++ docs/autogen/codebase/backend_uv.lock.md           |     2 +-
++-++++ .../codebase/backend_workers_celery_app.py.md      |     2 +-
++-++++ .../codebase/backend_workers_chaos_worker.py.md    |     2 +-
++-++++ .../codebase/config_.pre-commit-config.yaml.md     |     2 +-
++-++++ docs/autogen/codebase/config_audit-rules.yml.md    |     2 +-
++-++++ .../codebase/config_compliance-rules.yml.md        |     2 +-
++-++++ docs/autogen/codebase/config_docker-limits.yml.md  |     2 +-
++-++++ .../codebase/config_firestore.indexes.json.md      |     2 +-
++-++++ docs/autogen/codebase/config_kilo.json.md          |     2 +-
++-++++ .../codebase/config_promptfooconfig.yaml.md        |     2 +-
++-++++ docs/autogen/codebase/config_proxy_list.json.md    |     2 +-
++-++++ .../autogen/codebase/config_routing_policy.json.md |     2 +-
++-++++ docs/autogen/codebase/config_vercel.json.md        |     2 +-
++-++++ docs/autogen/codebase/coverage.toml.md             |     2 +-
++-++++ docs/autogen/codebase/docker-compose.yml.md        |     2 +-
++-++++ .../codebase/evolution_auto_skill_creator.py.md    |     2 +-
++-++++ .../autogen/codebase/evolution_daily_learner.py.md |     2 +-
++-++++ .../codebase/evolution_evolution_engine.py.md      |     2 +-
++-++++ .../codebase/evolution_evolution_react_agent.py.md |     2 +-
++-++++ docs/autogen/codebase/evolution_self_updater.py.md |     2 +-
++-++++ docs/autogen/codebase/find_duplicate_files.py.md   |     2 +-
++-++++ docs/autogen/codebase/find_duplicate_tests.py.md   |     2 +-
++-++++ docs/autogen/codebase/firebase.json.md             |     2 +-
++-++++ .../infrastructure_check_deploy_gate.py.md         |     2 +-
++-++++ ...infrastructure_cloudflare_enhanced-worker.js.md |     2 +-
++-++++ .../infrastructure_cloudflare_worker.js.md         |     2 +-
++-++++ .../infrastructure_cloudflare_wrangler.toml.md     |     2 +-
++-++++ .../infrastructure_cloudrun_autoscale.yaml.md      |     2 +-
++-++++ .../infrastructure_cloudrun_multi_region.yaml.md   |     2 +-
++-++++ ...functions_firebase_functions_v1_README_BD.md.md |     2 +-
++-++++ ...unctions_firebase_functions_v1_api-router.js.md |     2 +-
++-++++ ..._firebase_functions_v1_deployment-monitor.js.md |     2 +-
++-++++ ...ctions_firebase_functions_v1_health-smart.js.md |     2 +-
++-++++ ...ase_functions_firebase_functions_v1_index.js.md |     2 +-
++-++++ ...functions_firebase_functions_v1_package.json.md |     2 +-
++-++++ ...ons_firebase_functions_v1_providers-smart.js.md |     2 +-
++-++++ ...se_functions_v1_server-connection-monitor.js.md |     2 +-
++-++++ ..._firebase_functions_v1_src_chatClassifier.ts.md |     2 +-
++-++++ ...dataconnect-admin-generated_esm_index.esm.js.md |     2 +-
++-++++ ...dataconnect-admin-generated_esm_package.json.md |     2 +-
++-++++ ...src_dataconnect-admin-generated_index.cjs.js.md |     2 +-
++-++++ ...1_src_dataconnect-admin-generated_index.d.ts.md |     2 +-
++-++++ ...src_dataconnect-admin-generated_package.json.md |     2 +-
++-++++ ...s_firebase_functions_v1_src_email_handler.ts.md |     2 +-
++-++++ ...functions_firebase_functions_v1_src_index.ts.md |     2 +-
++-++++ ...ns_firebase_functions_v1_src_scrapeEngine.ts.md |     2 +-
++-++++ ...ase_functions_v1_src_scrapeHistoryManager.ts.md |     2 +-
++-++++ ..._firebase_functions_v1_src_scrapeSchema.yaml.md |     2 +-
++-++++ ...functions_firebase_functions_v1_swagger.yaml.md |     2 +-
++-++++ ...tions_firebase_functions_v1_system-health.js.md |     2 +-
++-++++ ...unctions_firebase_functions_v1_tsconfig.json.md |     2 +-
++-++++ ...irebase_functions_v1_utils_externalClient.js.md |     2 +-
++-++++ ...rastructure_firebase_functions_ocrTrigger.ts.md |     2 +-
++-++++ ...ure_monitoring_docker-compose.monitoring.yml.md |     2 +-
++-++++ ...astructure_monitoring_grafana_dashboard.json.md |     2 +-
++-++++ ...cture_terraform_root_cause_analysis_agent.py.md |     2 +-
++-++++ ..._terraform_test_root_cause_analysis_agent.py.md |     2 +-
++-++++ .../codebase/infrastructure_vitest-report.json.md  |     2 +-
++-++++ docs/autogen/codebase/package.json.md              |     2 +-
++-++++ .../codebase/packages_shared-types_package.json.md |     2 +-
++-++++ .../packages_shared-types_src_conversation.ts.md   |     2 +-
++-++++ .../codebase/packages_shared-types_src_index.ts.md |     2 +-
++-++++ .../packages_shared-types_src_message.ts.md        |     2 +-
++-++++ .../packages_shared-types_tsconfig.json.md         |     2 +-
++-++++ .../packages_ui-components_package.json.md         |     2 +-
++-++++ .../packages_ui-components_src_ChatBubble.tsx.md   |     2 +-
++-++++ ...components_src_components_DashboardShell.tsx.md |     2 +-
++-++++ ...nents_src_components_LiveSujonBackground.tsx.md |     2 +-
++-++++ ...-components_src_contexts_SharedProviders.tsx.md |     2 +-
++-++++ .../packages_ui-components_src_index.ts.md         |     2 +-
++-++++ .../packages_ui-components_src_utils_api.ts.md     |     2 +-
++-++++ .../packages_ui-components_tsconfig.json.md        |     2 +-
++-++++ docs/autogen/codebase/playwright-ct.config.ts.md   |     2 +-
++-++++ docs/autogen/codebase/playwright.config.ts.md      |     2 +-
++-++++ docs/autogen/codebase/pnpm-lock.yaml.md            |     2 +-
++-++++ docs/autogen/codebase/pnpm-workspace.yaml.md       |     2 +-
++-++++ docs/autogen/codebase/scratch_job_details.json.md  |     2 +-
++-++++ docs/autogen/codebase/scratch_smoke_check.py.md    |     2 +-
++-++++ .../scratch_supremeai_skill_ecosystem_app.py.md    |     2 +-
++-++++ ...ratch_supremeai_skill_ecosystem_generator.py.md |     2 +-
++-++++ ..._supremeai_skill_ecosystem_sample_skill.json.md |     2 +-
++-++++ ...ch_supremeai_skill_ecosystem_skill_schema.py.md |     2 +-
++-++++ .../codebase/scratch_sync_gsm_secrets.py.md        |     2 +-
++-++++ docs/autogen/codebase/scratch_update_vault.py.md   |     2 +-
++-++++ .../autogen/codebase/scratch_update_vault_r2.py.md |     2 +-
++-++++ .../codebase/scratch_verify_project_health.py.md   |     2 +-
++-++++ .../codebase/scripts_add_bangla_comments.py.md     |     2 +-
++-++++ .../codebase/scripts_aggregate_context.py.md       |     2 +-
++-++++ ...scripts_backup_auto_cross_cloud_replicate.py.md |     2 +-
++-++++ .../scripts_backup_auto_firestore_backup.py.md     |     2 +-
++-++++ .../scripts_benchmark_perf_benchmark.py.md         |     2 +-
++-++++ .../codebase/scripts_bots_auto_alert_bot.py.md     |     2 +-
++-++++ .../scripts_bots_auto_daily_standup_bot.py.md      |     2 +-
++-++++ .../codebase/scripts_code_smell_detector.py.md     |     2 +-
++-++++ docs/autogen/codebase/scripts_codebase_to_md.py.md |     2 +-
++-++++ .../codebase/scripts_codegraph_integration.py.md   |     2 +-
++-++++ .../codebase/scripts_commit_supreme_ci.yml.md      |     2 +-
++-++++ docs/autogen/codebase/scripts_config_audit.py.md   |     2 +-
++-++++ .../scripts_core_engine_multicatalog_search.py.md  |     2 +-
++-++++ .../codebase/scripts_core_engine_tool_ranker.py.md |     2 +-
++-++++ .../codebase/scripts_create_test_admin.py.md       |     2 +-
++-++++ .../autogen/codebase/scripts_db_auto_migrate.py.md |     2 +-
++-++++ docs/autogen/codebase/scripts_db_auto_seed.py.md   |     2 +-
++-++++ .../autogen/codebase/scripts_docker_ai_guard.py.md |     2 +-
++-++++ ...ipts_evolution_auto_marketing_skill_forge.py.md |     2 +-
++-++++ docs/autogen/codebase/scripts_fix_mypy.py.md       |     2 +-
++-++++ docs/autogen/codebase/scripts_fuzz_sandbox.py.md   |     2 +-
++-++++ .../scripts_generate_codebase_markdown.py.md       |     2 +-
++-++++ ...scripts_generate_codebase_single_markdown.py.md |     2 +-
++-++++ docs/autogen/codebase/scripts_generate_md.py.md    |     2 +-
++-++++ .../codebase/scripts_generate_smart_docs.py.md     |     2 +-
++-++++ docs/autogen/codebase/scripts_k6_load_test.js.md   |     2 +-
++-++++ docs/autogen/codebase/scripts_locustfile.py.md     |     2 +-
++-++++ docs/autogen/codebase/scripts_migrate.py.md        |     2 +-
++-++++ .../codebase/scripts_multi_model_validator.py.md   |     2 +-
++-++++ ...scripts_orchestrator_auto_budget_guardian.py.md |     2 +-
++-++++ docs/autogen/codebase/scripts_profile_memory.py.md |     2 +-
++-++++ .../scripts_quality_auto_dead_code_remover.py.md   |     2 +-
++-++++ .../scripts_quality_auto_improve_coverage.py.md    |     2 +-
++-++++ .../scripts_quality_auto_refactor_suggester.py.md  |     2 +-
++-++++ ...cripts_quality_check_ollama_test_coverage.py.md |     2 +-
++-++++ .../scripts_resource_collection_awesome_go.py.md   |     2 +-
++-++++ ...cripts_resource_collection_awesome_python.py.md |     2 +-
++-++++ ...ts_resource_collection_awesome_selfhosted.py.md |     2 +-
++-++++ ...ripts_resource_collection_base_api_client.py.md |     2 +-
++-++++ .../scripts_resource_collection_base_scraper.py.md |     2 +-
++-++++ ...pts_resource_collection_ossinsight_client.py.md |     2 +-
++-++++ ...ipts_resource_collection_ossinsight_init_.py.md |     2 +-
++-++++ ...ripts_resource_collection_ossinsight_test.py.md |     2 +-
++-++++ .../scripts_resource_collection_run_all.py.md      |     2 +-
++-++++ ...ts_resource_collection_run_all_collectors.py.md |     2 +-
++-++++ ...ripts_resource_scraping_awesome_go_scrape.py.md |     2 +-
++-++++ ...s_resource_scraping_awesome_python_scrape.py.md |     2 +-
++-++++ ...source_scraping_awesome_selfhosted_scrape.py.md |     2 +-
++-++++ .../codebase/scripts_run_all_collectors.py.md      |     2 +-
++-++++ docs/autogen/codebase/scripts_safety_guard.py.md   |     2 +-
++-++++ .../scripts_security_auto_find_blindspots.py.md    |     2 +-
++-++++ .../scripts_security_auto_secret_rotate.py.md      |     2 +-
++-++++ .../scripts_security_check_dependencies.py.md      |     2 +-
++-++++ .../codebase/scripts_security_code-quality.yml.md  |     2 +-
++-++++ ...scripts_security_dependency-health-check.yml.md |     2 +-
++-++++ .../codebase/scripts_security_find_dead_code.py.md |     2 +-
++-++++ docs/autogen/codebase/scripts_seed_repos.py.md     |     2 +-
++-++++ .../autogen/codebase/scripts_setup_ci_runner.py.md |     2 +-
++-++++ .../codebase/scripts_setup_firebase_admin.py.md    |     2 +-
++-++++ docs/autogen/codebase/scripts_skill_loader.py.md   |     2 +-
++-++++ .../codebase/scripts_supreme-config-audit.py.md    |     2 +-
++-++++ .../codebase/scripts_supreme-docker-analyzer.py.md |     2 +-
++-++++ .../codebase/scripts_supreme-risk-scorer.py.md     |     2 +-
++-++++ .../codebase/scripts_supreme_context_builder.py.md |     2 +-
++-++++ .../scripts_tenant_auto_tenant_health_report.py.md |     2 +-
++-++++ .../scripts_tenant_auto_tenant_setup.py.md         |     2 +-
++-++++ docs/autogen/codebase/scripts_test_bangla.py.md    |     2 +-
++-++++ docs/autogen/codebase/scripts_test_read.py.md      |     2 +-
++-++++ docs/autogen/codebase/security-scan.yml.md         |     2 +-
++-++++ .../codebase/skills_dynamic_csv_exporter.py.md     |     2 +-
++-++++ .../codebase/skills_dynamic_text_summarizer.py.md  |     2 +-
++-++++ .../codebase/skills_dynamic_web_scraper.py.md      |     2 +-
++-++++ docs/autogen/codebase/skills_init_.py.md           |     2 +-
++-++++ docs/autogen/codebase/skills_installer.py.md       |     2 +-
++-++++ docs/autogen/codebase/skills_marketplace.py.md     |     2 +-
++-++++ docs/autogen/codebase/skills_registry.py.md        |     2 +-
++-++++ docs/autogen/codebase/skills_schema.py.md          |     2 +-
++-++++ .../codebase/test-results_.last-run.json.md        |     2 +-
++-++++ ...be-accessible-Mobile-Chrome_error-context.md.md |     2 +-
++-++++ ...be-accessible-Mobile-Safari_error-context.md.md |     2 +-
++-++++ ...bility-issues-Mobile-Safari_error-context.md.md |     2 +-
++-++++ ...sends-message-Mobile-Chrome_error-context.md.md |     2 +-
++-++++ ...sends-message-Mobile-Safari_error-context.md.md |     2 +-
++-++++ ...Chat-sends-message-chromium_error-context.md.md |     2 +-
++-++++ .../codebase/test-results_e2e-report.json.md       |     2 +-
++-++++ .../codebase/tests_e2e_accessibility.spec.ts.md    |     2 +-
++-++++ .../codebase/tests_e2e_admin-dashboard.spec.ts.md  |     2 +-
++-++++ docs/autogen/codebase/tests_e2e_chat.spec.ts.md    |     2 +-
++-++++ docs/autogen/codebase/tests_e2e_visual.spec.ts.md  |     2 +-
++-++++ docs/autogen/codebase/tests_test_tenant_di.py.md   |     2 +-
++-++++ docs/autogen/codebase/tools_cache_cleanup.py.md    |     2 +-
++-++++ .../tools_vscode-extension_ARCHITECTURE_BN.md.md   |     2 +-
++-++++ ...vscode-extension_AdminMetricsController.java.md |     2 +-
++-++++ ...s_vscode-extension_CodebaseAuditService.java.md |     2 +-
++-++++ ...ools_vscode-extension_FeatureDefinition.java.md |     2 +-
++-++++ ...ode-extension_FeatureRegistryController.java.md |     2 +-
++-++++ ...vscode-extension_FeatureRegistryService.java.md |     2 +-
++-++++ .../tools_vscode-extension_GlobalMetrics.java.md   |     2 +-
++-++++ ...s_vscode-extension_GlobalMetricsService.java.md |     2 +-
++-++++ ...ols_vscode-extension_INTEGRATION_GUIDE_BN.md.md |     2 +-
++-++++ .../codebase/tools_vscode-extension_README.md.md   |     2 +-
++-++++ .../tools_vscode-extension_README_BN.md.md         |     2 +-
++-++++ .../tools_vscode-extension_jest.config.js.md       |     2 +-
++-++++ .../tools_vscode-extension_package.json.md         |     2 +-
++-++++ .../tools_vscode-extension_package.nls.bn.json.md  |     2 +-
++-++++ .../tools_vscode-extension_src_agentDetector.ts.md |     2 +-
++-++++ .../tools_vscode-extension_src_ai_AIService.ts.md  |     2 +-
++-++++ ...de-extension_src_ai_CodeGenerationService.ts.md |     2 +-
++-++++ ...vscode-extension_src_ai_CodeReviewService.ts.md |     2 +-
++-++++ ...ls_vscode-extension_src_ai_ContextBuilder.ts.md |     2 +-
++-++++ ...xtension_src_dataconnect-generated_README.md.md |     2 +-
++-++++ ...n_src_dataconnect-generated_esm_index.esm.js.md |     2 +-
++-++++ ...n_src_dataconnect-generated_esm_package.json.md |     2 +-
++-++++ ...nsion_src_dataconnect-generated_index.cjs.js.md |     2 +-
++-++++ ...tension_src_dataconnect-generated_index.d.ts.md |     2 +-
++-++++ ...nsion_src_dataconnect-generated_package.json.md |     2 +-
++-++++ .../tools_vscode-extension_src_extension.ts.md     |     2 +-
++-++++ ...de-extension_src_handlers_CodeEditHandler.ts.md |     2 +-
++-++++ ...de-extension_src_handlers_CodeFlowHandler.ts.md |     2 +-
++-++++ ...scode-extension_src_handlers_ErrorHandler.ts.md |     2 +-
++-++++ ...de-extension_src_handlers_FeedbackHandler.ts.md |     2 +-
++-++++ ...ode-extension_src_providers_CodeFlowPanel.ts.md |     2 +-
++-++++ ...nsion_src_providers_StreamingChatProvider.ts.md |     2 +-
++-++++ ...n_src_providers_SupremeAIActivityProvider.ts.md |     2 +-
++-++++ ...providers_SupremeAIAdminDashboardProvider.ts.md |     2 +-
++-++++ ...nsion_src_providers_SupremeAIChatProvider.ts.md |     2 +-
++-++++ ...extension_src_providers_SupremeAIChatView.ts.md |     2 +-
++-++++ ...viders_SupremeAICustomerDashboardProvider.ts.md |     2 +-
++-++++ ...on_src_providers_SupremeAISidebarProvider.ts.md |     2 +-
++-++++ ...vscode-extension_src_services_AuthService.ts.md |     2 +-
++-++++ ...e-extension_src_services_SupremeAIService.ts.md |     2 +-
++-++++ .../tools_vscode-extension_src_types_index.ts.md   |     2 +-
++-++++ ...ension_src_utils_DynamicSignatureRegistry.ts.md |     2 +-
++-++++ ...s_vscode-extension_test_auth-service.test.ts.md |     2 +-
++-++++ ...ools_vscode-extension_test_mocks_vscode.d.ts.md |     2 +-
++-++++ .../tools_vscode-extension_test_mocks_vscode.ts.md |     2 +-
++-++++ .../tools_vscode-extension_test_setup.ts.md        |     2 +-
++-++++ ...ode-extension_test_supremeai-service.test.ts.md |     2 +-
++-++++ .../tools_vscode-extension_tsconfig.json.md        |     2 +-
++-++++ .../tools_vscode-extension_vitest.config.ts.md     |     2 +-
++-++++ docs/autogen/codebase/turbo.json.md                |     2 +-
++-++++ docs/autogen/codebase/vercel.json.md               |     2 +-
++-++++ docs/autogen/codebase_full.md                      |     4 +-
++-++++ 1081 files changed, 10414 insertions(+), 23501 deletions(-)
++-++++
++-++++```
++-++++
++-++++## Diff Detail
++-++++```diff
++-++++commit 284476142ac96c881e385f69b6d47f74c7c2d0c6
++-++++Author: github-actions[bot] <github-actions[bot]@users.noreply.github.com>
++-++++Date:   Sun Jul 5 20:27:28 2026 +0000
++-++++
++-++++    docs: auto-update codebase docs & dashboard [skip ci]
++-++++
++-++++diff --git a/docs/autogen/INDEX.md b/docs/autogen/INDEX.md
++-++++index a764b511c..6aae442c2 100644
++-++++--- a/docs/autogen/INDEX.md
++-+++++++ b/docs/autogen/INDEX.md
++-++++@@ -13,4 +13,4 @@
++-++++ - **ডিরেক্টরি:** [changes/](changes/)
++-++++ 
++-++++ ---
++-++++-*স্বয়ংক্রিয়ভাবে তৈরি — 2026-07-05 19:50:40*
++-+++++*স্বয়ংক্রিয়ভাবে তৈরি — 2026-07-05 20:27:27*
++-++++diff --git a/docs/autogen/changes/change_06e0775ea102e5bb30c2c54c1e498f8c806f67aa.md b/docs/autogen/changes/change_06e0775ea102e5bb30c2c54c1e498f8c806f67aa.md
++-++++deleted file mode 100644
++-++++index 0ed234e0e..000000000
++-++++--- a/docs/autogen/changes/change_06e0775ea102e5bb30c2c54c1e498f8c806f67aa.md
++-+++++++ /dev/null
++-++++@@ -1,13111 +0,0 @@
++-++++-# 📋 Commit 06e0775ea102e5bb30c2c54c1e498f8c806f67aa
++-++++-
++-++++-## Commit Stats
++-++++-```
++-++++-commit 06e0775ea102e5bb30c2c54c1e498f8c806f67aa
++-++++-Author: SupremeAI CI Bot <ci-bot@supremeai.dev>
++-++++-Date:   Mon Jul 6 01:04:21 2026 +0600
++-++++-
++-++++-    chore: Follow-up audit fixes (silent errors, repo cleanup, mock docs)
++-++++-
++-++++- .gitignore                                         |   Bin 2758 -> 2669 bytes
++-++++- apps/desktop/src-ui/src/services/api.ts            |     9 +-
++-++++- .../src/components/admin/RateLimitManager.tsx      |    29 +-
++-++++- backend/adaptive_engine/experience_db.py           |    15 +-
++-++++- backend/agents/trading_agent.py                    |    19 +-
++-++++- backend/api/routes/metrics.py                      |     8 +-
++-++++- backend/api/routes/payments.py                     |     7 +
++-++++- backend/api/routes/session_takeover.py             |     7 +
++-++++- backend/api/routes/task.py                         |     5 +-
++-++++- backend/core/error_remediation.py                  |     5 +-
++-++++- backend/core/evolution_engine.py                   |     5 +-
++-++++- backend/core/factual_verifier.py                   |    34 +-
++-++++- backend/core/microvm_sandbox.py                    |     5 +-
++-++++- backend/core/universal_rules.py                    |     5 +-
++-++++- backend/coverage.json                              |     1 -
++-++++- backend/coverage.xml                               | 33673 -------------------
++-++++- backend/evolution/auto_skill_creator.py            |     5 +-
++-++++- backend/evolution/fitness_engine.py                |     5 +-
++-++++- backend/memory/chromadb_store.py                   |    32 +-
++-++++- backend/ruff_errors.txt                            |    61 -
++-++++- backend/tests/conftest.py                          |    10 +-
++-++++- backend/tests/test_sprint_g.py                     |     5 +-
++-++++- backend/tests_all_tests.txt                        |   Bin 220552 -> 0 bytes
++-++++- backend/tools/api_gateway.py                       |     5 +-
++-++++- backend/tools/bangla_voice.py                      |    10 +-
++-++++- backend/tools/browser_agent.py                     |     5 +-
++-++++- backend/tools/browser_stealth.py                   |     5 +-
++-++++- backend/tools/cloud_sandbox_orchestrator.py        |    10 +-
++-++++- backend/tools/code_smell_detector.py               |     5 +-
++-++++- backend/tools/comment_thread_ai.py                 |    25 +-
++-++++- backend/tools/docker_sandbox.py                    |     5 +-
++-++++- backend/tools/domain_adapter.py                    |     5 +-
++-++++- backend/tools/gcp_cloud_functions.py               |     5 +-
++-++++- backend/tools/health_checker.py                    |     5 +-
++-++++- backend/tools/knowledge_base_indexer.py            |    15 +-
++-++++- backend/tools/local_search_rag.py                  |     5 +-
++-++++- backend/tools/mcp_supabase.py                      |    25 +-
++-++++- backend/tools/meta_architect.py                    |    10 +-
++-++++- backend/tools/multilingual_tts.py                  |     5 +-
++-++++- backend/tools/parallel_agent_executor.py           |    10 +-
++-++++- backend/tools/pdf_to_sdk.py                        |    10 +-
++-++++- backend/tools/playwright_browser_agent.py          |     5 +-
++-++++- backend/tools/pr_reviewer.py                       |     5 +-
++-++++- backend/tools/pre_commit_ai.py                     |     5 +-
++-++++- backend/tools/presentation_generator.py            |     5 +-
++-++++- backend/tools/repo_deep_indexer.py                 |    10 +-
++-++++- backend/tools/self_planner.py                      |     5 +-
++-++++- backend/tools/skill_recommender.py                 |     5 +-
++-++++- backend/tools/style_learner.py                     |    15 +-
++-++++- backend/tools/telegram_bot.py                      |    10 +-
++-++++- backend/tools/tenant_rate_limiter.py               |     5 +-
++-++++- backend/tools/viral_referral_engine.py             |     5 +-
++-++++- backend/tools/voice.py                             |     5 +-
++-++++- backend/tools/voice_coder.py                       |     5 +-
++-++++- backend/tools/vpn_switcher.py                      |     5 +-
++-++++- backend/trigger_ci.txt                             |   Bin 20 -> 0 bytes
++-++++- backend/workers/chaos_worker.py                    |     5 +-
++-++++- coverage.json                                      |     1 -
++-++++- coverage.xml                                       | 33673 -------------------
++-++++- docs/100%_completed_tasks.md                       |     5 +-
++-++++- docs/FEATURE_STATUS.md                             |    43 +
++-++++- docs/MANUAL_TASKS_TODO.md                          |    17 +
++-++++- docs/reports/diff_current_vs_commit.txt            |   195 -
++-++++- docs/reports/test-output.txt                       |   651 -
++-++++- docs/reports/test-output2.txt                      |    85 -
++-++++- docs/reports/test-output3.txt                      |    53 -
++-++++- docs/reports/test_results.txt                      |   Bin 20374 -> 0 bytes
++-++++- docs/reports/trigger_ci.txt                        |   Bin 20 -> 0 bytes
++-++++- docs/reports/workflow_diff.txt                     |   240 -
++-++++- 69 files changed, 353 insertions(+), 68815 deletions(-)
++-++++-
++-++++-```
++-++++-
++-++++-## Diff Detail
++-++++-```diff
++-++++-commit 06e0775ea102e5bb30c2c54c1e498f8c806f67aa
++-++++-Author: SupremeAI CI Bot <ci-bot@supremeai.dev>
++-++++-Date:   Mon Jul 6 01:04:21 2026 +0600
++-++++-
++-++++-    chore: Follow-up audit fixes (silent errors, repo cleanup, mock docs)
++-++++-
++-++++-diff --git a/.gitignore b/.gitignore
++-++++-index 517a59902..989a89c6f 100644
++-++++-Binary files a/.gitignore and b/.gitignore differ
++-++++-diff --git a/apps/desktop/src-ui/src/services/api.ts b/apps/desktop/src-ui/src/services/api.ts
++-++++-index 20a7dcaa5..749a6be23 100644
++-++++---- a/apps/desktop/src-ui/src/services/api.ts
++-++++-+++ b/apps/desktop/src-ui/src/services/api.ts
++-++++-@@ -62,7 +62,9 @@ export const setToken = (token: string | null) => {
++-++++-     // প্রোডাকশনে লোকাল স্টোরেজ থেকে মুছে ফেলা হচ্ছে
++-++++-     try {
++-++++-       localStorage.removeItem('jwt');
++-++++--    } catch (e) {}
++-++++-+    } catch (e) {
++-++++-+      console.warn('Failed to clear JWT token from localStorage', e);
++-++++-+    }
++-++++-   }
++-++++- };
++-++++- 
++-++++-@@ -71,6 +73,7 @@ export const getToken = (): string | null => {
++-++++-     try {
++-++++-       return localStorage.getItem('jwt');
++-++++-     } catch (e) {
++-++++-+      console.warn('Failed to get JWT token from localStorage', e);
++-++++-       return null;
++-++++-     }
++-++++-   }
++-++++-@@ -81,7 +84,9 @@ export const clearToken = () => {
++-++++-   if (isDevelopment) {
++-++++-     try {
++-++++-       localStorage.removeItem('jwt');
++-++++--    } catch (e) {}
++-++++-+    } catch (e) {
++-++++-+      console.warn('Failed to clear JWT token from localStorage', e);
++-++++-+    }
++-++++-   }
++-++++-   memoryToken = null;
++-++++- };
++-++++-diff --git a/apps/studio-client/src/components/admin/RateLimitManager.tsx b/apps/studio-client/src/components/admin/RateLimitManager.tsx
++-++++-index 9d891d7ff..42ac4921d 100644
++-++++---- a/apps/studio-client/src/components/admin/RateLimitManager.tsx
++-++++-+++ b/apps/studio-client/src/components/admin/RateLimitManager.tsx
++-++++-@@ -35,6 +35,7 @@ const TIER_LIMITS: Record<string, Partial<TenantLimit>> = {
++-++++- };
++-++++- 
++-++++- const API_BASE = '/api';
++-++++-+const isDevelopment = import.meta.env?.DEV || process.env.NODE_ENV === 'development';
++-++++- 
++-++++- export const RateLimitManager: React.FC = () => {
++-++++-   const [tenants, setTenants] = useState<TenantLimit[]>([]);
++-++++-@@ -101,10 +102,14 @@ export const RateLimitManager: React.FC = () => {
++-++++-         showToast('error', `❌ Save failed: ${resp.status}`);
++-++++-       }
++-++++-     } catch {
++-++++--      // optimistic update for dev
++-++++--      setTenants(prev => prev.map(t => t.tenant_id === tenant_id ? { ...t, ...editValues } : t));
++-++++--      setEditingId(null);
++-++++--      showToast('success', `✅ Saved (offline mode)`);
++-++++-+      if (isDevelopment) {
++-++++-+        // optimistic update for dev
++-++++-+        setTenants(prev => prev.map(t => t.tenant_id === tenant_id ? { ...t, ...editValues } : t));
++-++++-+        setEditingId(null);
++-++++-+        showToast('success', `✅ Saved (offline mode)`);
++-++++-+      } else {
++-++++-+        showToast('error', `❌ Save failed - server unreachable`);
++-++++-+      }
++-++++-     }
++-++++-     setSaving(null);
++-++++-   };
++-++++-@@ -116,18 +121,22 @@ export const RateLimitManager: React.FC = () => {
++-++++-       ...TIER_LIMITS[newTenant.billing_tier],
++-++++-     } as TenantLimit;
++-++++-     try {
++-++++--      await fetch(`${API_BASE}/admin/tenant-limits`, {
++-++++-+      const resp = await fetch(`${API_BASE}/admin/tenant-limits`, {
++-++++-         method: 'POST',
++-++++-         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getAdminToken()}` },
++-++++-         body: JSON.stringify(record),
++-++++-       });
++-++++-+      if (!resp.ok) {
++-++++-+        throw new Error(`Server returned ${resp.status}: ${resp.statusText}`);
++-++++-+      }
++-++++-+      setTenants(prev => [...prev, record]);
++-++++-+      setNewTenant({ tenant_id: '', org_name: '', billing_tier: 'free' });
++-++++-+      setShowNewForm(false);
++-++++-+      showToast('success', `✅ Tenant ${record.tenant_id} created`);
++-++++-     } catch (e) {
++-++++-       console.error(e);
++-++++-+      showToast('error', `❌ Failed to create tenant: ${e instanceof Error ? e.message : 'Unknown error'}`);
++-++++-     }
++-++++--    setTenants(prev => [...prev, record]);
++-++++--    setNewTenant({ tenant_id: '', org_name: '', billing_tier: 'free' });
++-++++--    setShowNewForm(false);
++-++++--    showToast('success', `✅ Tenant ${record.tenant_id} created`);
++-++++-   };
++-++++- 
++-++++-   const usagePercent = (used: number, max: number) => Math.min(100, Math.round((used / max) * 100));
++-++++-@@ -347,4 +356,4 @@ const styles: Record<string, React.CSSProperties> = {
++-++++-   progressFill: { height: '100%', borderRadius: '3px', transition: 'width 0.4s ease' },
++-++++- };
++-++++- 
++-++++--export default RateLimitManager;
++-++++-+export default RateLimitManager;
++-++++-\ No newline at end of file
++-++++-diff --git a/backend/adaptive_engine/experience_db.py b/backend/adaptive_engine/experience_db.py
++-++++-index 5eb62819a..9e8b7ee0c 100644
++-++++---- a/backend/adaptive_engine/experience_db.py
++-++++-+++ b/backend/adaptive_engine/experience_db.py
++-++++-@@ -162,8 +162,9 @@ class ExperienceDatabase:
++-++++-                     metadatas=[{"result": result, "response": response_text}],
++-++++-                     documents=[text],
++-++++-                 )
++-++++--        except Exception:
++-++++--            pass
++-++++-+        except Exception as e:
++-++++-+            import logging
++-++++-+            logging.warning(f"Exception suppressed: {e}")
++-++++-         try:
++-++++-             if self.qdrant_client:
++-++++-                 from qdrant_client.models import PointStruct
++-++++-@@ -171,8 +172,9 @@ class ExperienceDatabase:
++-++++-                     collection_name=self.qdrant_collection,
++-++++-                     points=[PointStruct(id=exp_id, vector=embedding, payload={"result": result, "text": text, "response": response_text})],
++-++++-                 )
++-++++--        except Exception:
++-++++--            pass
++-++++-+        except Exception as e:
++-++++-+            import logging
++-++++-+            logging.warning(f"Exception suppressed: {e}")
++-++++- 
++-++++-     def _cosine_similarity(self, a: list[float], b: list[float]) -> float:
++-++++-         import math
++-++++-@@ -223,8 +225,9 @@ class ExperienceDatabase:
++-++++-                             "response": hit.payload.get("response", ""),
++-++++-                             "text": hit.payload.get("text", "")
++-++++-                         })
++-++++--        except Exception:
++-++++--            pass
++-++++-+        except Exception as e:
++-++++-+            import logging
++-++++-+            logging.warning(f"Exception suppressed: {e}")
++-++++-         return hits
++-++++- 
++-++++-     def get_experiences(self, limit: int = 50) -> list[Experience]:
++-++++-diff --git a/backend/agents/trading_agent.py b/backend/agents/trading_agent.py
++-++++-index 44038f705..970750323 100644
++-++++---- a/backend/agents/trading_agent.py
++-++++-+++ b/backend/agents/trading_agent.py
++-++++-@@ -44,19 +44,24 @@ class TradingAgent:
++-++++-             with open(self._local_path(), encoding="utf-8") as f:
++-++++-                 self._portfolio = json.load(f)
++-++++-                 self.is_portfolio_recovered = True
++-++++--        except Exception:
++-++++--            pass
++-++++-+        except Exception as e:
++-++++-+            logger.error(f"Failed to load portfolio from local file: {e}")
++-++++-+        if not self.is_portfolio_recovered:
++-++++-+            logger.warning("Portfolio could not be recovered from any source; using default empty portfolio")
++-++++- 
++-++++-     def _save_portfolio(self) -> None:
++-++++-         if db.client:
++-++++-             try:
++-++++-                 db.client.table("trading_portfolio").upsert(self._portfolio).execute()
++-++++-                 return
++-++++--            except Exception:
++-++++--                pass
++-++++--        os.makedirs(os.path.dirname(self._local_path()), exist_ok=True)
++-++++--        with open(self._local_path(), "w", encoding="utf-8") as f:
++-++++--            json.dump(self._portfolio, f, indent=2)
++-++++-+            except Exception as e:
++-++++-+                logger.warning(f"Failed to save portfolio to DB: {e}")
++-++++-+        try:
++-++++-+            os.makedirs(os.path.dirname(self._local_path()), exist_ok=True)
++-++++-+            with open(self._local_path(), "w", encoding="utf-8") as f:
++-++++-+                json.dump(self._portfolio, f, indent=2)
++-++++-+        except Exception as e:
++-++++-+            logger.error(f"Failed to save portfolio to local file: {e}")
++-++++- 
++-++++-     def get_market_data(self, symbol: str) -> dict[str, Any]:
++-++++-         try:
++-++++-diff --git a/backend/api/routes/metrics.py b/backend/api/routes/metrics.py
++-++++-index 0664ba921..5951bb342 100644
++-++++---- a/backend/api/routes/metrics.py
++-++++-+++ b/backend/api/routes/metrics.py
++-++++-@@ -191,8 +191,8 @@ def record_request(method: str, path: str, status: int) -> None:
++-++++-                 method=method, endpoint=path, status=str(status)
++-++++-             ).inc()
++-++++-             supremeai_requests_total.labels(method=method, endpoint=path).inc()
++-++++--        except Exception:
++-++++--            pass
++-++++-+        except Exception as exc:
++-++++-+            logger.debug(f"Failed to record request metrics: {exc}")
++-++++- 
++-++++- 
++-++++- def record_error(error_type: str, endpoint: str) -> None:
++-++++-@@ -210,8 +210,8 @@ def record_request_duration(method: str, path: str, duration: float) -> None:
++-++++-             supremeai_response_seconds.labels(method=method, endpoint=path).observe(
++-++++-                 duration
++-++++-             )
++-++++--        except Exception:
++-++++--            pass
++-++++-+        except Exception as exc:
++-++++-+            logger.debug(f"Failed to record request duration metrics: {exc}")
++-++++- 
++-++++- 
++-++++- def record_model_call(provider: str, model: str) -> None:
++-++++-diff --git a/backend/api/routes/payments.py b/backend/api/routes/payments.py
++-++++-index b7de5c837..8db498392 100644
++-++++---- a/backend/api/routes/payments.py
++-++++-+++ b/backend/api/routes/payments.py
++-++++-@@ -1,3 +1,5 @@
++-++++-+import os
++-++++-+
++-++++- from fastapi import APIRouter
++-++++- from fastapi import HTTPException
++-++++- from fastapi import Request
++-++++-@@ -88,6 +90,11 @@ async def create_checkout_session(request: Request, payload: CheckoutRequest):
++-++++-     try:
++-++++-         stripe_key = settings.stripe_api_key
++-++++-         if not stripe_key:
++-++++-+            if os.environ.get("SUPREMEAI_ENV") == "production":
++-++++-+                raise RuntimeError(
++-++++-+                    "Stripe API key not configured in production. "
++-++++-+                    "Payment processing is unavailable."
++-++++-+                )
++-++++-             logger.warning(
++-++++-                 "Stripe API key not set in settings. Using mock checkout session."
++-++++-             )
++-++++-diff --git a/backend/api/routes/session_takeover.py b/backend/api/routes/session_takeover.py
++-++++-index f5d963b7a..31786a3a8 100644
++-++++---- a/backend/api/routes/session_takeover.py
++-++++-+++ b/backend/api/routes/session_takeover.py
++-++++-@@ -9,8 +9,15 @@ from loguru import logger
++-++++- 
++-++++- router = APIRouter()
++-++++- 
++-++++-+import os
++-++++-+
++-++++- # Note: In production, tokens would be verified against Redis/DB
++-++++- def verify_takeover_token(token: str) -> bool:
++-++++-+    if os.environ.get("SUPREMEAI_ENV") == "production":
++-++++-+        raise NotImplementedError(
++-++++-+            "Production token verification not implemented! "
++-++++-+            "Must validate tokens against Redis/DB before deployment."
++-++++-+        )
++-++++-     return token.startswith("tok_")
++-++++- 
++-++++- # A 1x1 black JPEG pixel encoded in base64
++-++++-diff --git a/backend/api/routes/task.py b/backend/api/routes/task.py
++-++++-index f6f668580..0fd0f25d5 100644
++-++++---- a/backend/api/routes/task.py
++-++++-+++ b/backend/api/routes/task.py
++-++++-@@ -193,8 +193,9 @@ def format_chat_history(messages: list[dict]) -> str:
++-++++-                 data = json.loads(content)
++-++++-                 if isinstance(data, dict) and "content" in data:
++-++++-                     content = data["content"]
++-++++--            except Exception:
++-++++--                pass
++-++++-+            except Exception as e:
++-++++-+                import logging
++-++++-+                logging.warning(f"Exception suppressed: {e}")
++-++++-         role_label = "User" if role == "user" else "Assistant"
++-++++-         lines.append(f"{role_label}: {content}")
++-++++-     return "\n".join(lines)
++-++++-diff --git a/backend/core/error_remediation.py b/backend/core/error_remediation.py
++-++++-index 2408cd0b0..2727071bf 100644
++-++++---- a/backend/core/error_remediation.py
++-++++-+++ b/backend/core/error_remediation.py
++-++++-@@ -58,8 +58,9 @@ class ErrorRemediation:
++-++++-             if not self.fallback_path.exists():
++-++++-                 with open(self.fallback_path, "w", encoding="utf-8") as f:
++-++++-                     json.dump({"default_fix": "Retry with exponential backoff"}, f, indent=2)
++-++++--        except Exception:
++-++++--            pass
++-++++-+        except Exception as e:
++-++++-+            import logging
++-++++-+            logging.warning(f"Exception suppressed: {e}")
++-++++- 
++-++++-     def _load_local_fallback(self) -> str | None:
++-++++-         try:
++-++++-diff --git a/backend/core/evolution_engine.py b/backend/core/evolution_engine.py
++-++++-index 154931fef..0a7589d94 100644
++-++++---- a/backend/core/evolution_engine.py
++-++++-+++ b/backend/core/evolution_engine.py
++-++++-@@ -307,8 +307,9 @@ Based on the prompt, rewrite it to be more precise, clear, and effective. Provid
++-++++-                     user_rating,
++-++++-                     created_at,
++-++++-                 )
++-++++--        except Exception:
++-++++--            pass
++-++++-+        except Exception as e:
++-++++-+            logger.warning(f"Failed to insert feedback to Supabase: {e}")
++-++++-+            if evolution_write_failures: evolution_write_failures.inc()
++-++++- 
++-++++-         conn = sqlite3.connect(str(self.db_path))
++-++++-         try:
++-++++-diff --git a/backend/core/factual_verifier.py b/backend/core/factual_verifier.py
++-++++-index 205e7fdf5..d2e597121 100644
++-++++---- a/backend/core/factual_verifier.py
++-++++-+++ b/backend/core/factual_verifier.py
++-++++-@@ -1,10 +1,12 @@
++-++++- import ast
++-++++- import contextlib
++-++++-+import logging
++-++++- import operator
++-++++- import re
++-++++- 
++-++++- import httpx
++-++++- 
++-++++-+_logger = logging.getLogger(__name__)
++-++++- 
++-++++- _ALLOWED_OPERATORS = {
++-++++-     ast.Add: operator.add,
++-++++-@@ -60,15 +62,16 @@ class FactualVerifier:
++-++++- 
++-++++-             self.local_rag = LocalSearchRAG()
++-++++-         except ImportError:
++-++++--            pass
++-++++-+            _logger.warning("LocalSearchRAG not available, RAG-based verification disabled")
++-++++-+            self.local_rag = None
++-++++- 
++-++++-     def verify_with_local_rag(self, claim: str) -> dict:
++-++++-         if self.local_rag is None:
++-++++-             return {
++-++++-                 "claim": claim,
++-++++--                "is_verified": True,
++-++++--                "confidence": 0.5,
++-++++--                "method": "no_local_rag",
++-++++-+                "is_verified": False,
++-++++-+                "confidence": 0.0,
++-++++-+                "method": "unverified_no_local_rag",
++-++++-             }
++-++++- 
++-++++-         try:
++-++++-@@ -86,15 +89,16 @@ class FactualVerifier:
++-++++-                 }
++-++++-             return {
++-++++-                 "claim": claim,
++-++++--                "is_verified": True,
++-++++-+                "is_verified": False,
++-++++-                 "confidence": 0.3,
++-++++-                 "method": "no_matches",
++-++++-             }
++-++++-         except Exception as e:
++-++++-+            _logger.warning(f"RAG verification failed for claim: {claim[:50]}... error: {e}")
++-++++-             return {
++-++++-                 "claim": claim,
++-++++--                "is_verified": True,
++-++++--                "confidence": 0.2,
++-++++-+                "is_verified": False,
++-++++-+                "confidence": 0.0,
++-++++-                 "error": str(e),
++-++++-                 "method": "rag_error",
++-++++-             }
++-++++-@@ -124,8 +128,8 @@ class FactualVerifier:
++-++++-                         "supporting_sources": supporting,
++-++++-                         "method": "local_rag",
++-++++-                     }
++-++++--            except Exception:
++-++++--                pass
++-++++-+            except Exception as e:
++-++++-+                _logger.warning(f"RAG search failed in verify_with_web_search: {e}")
++-++++- 
++-++++-         try:
++-++++-             query = __import__("urllib.parse").parse.quote(claim)
++-++++-@@ -142,14 +146,14 @@ class FactualVerifier:
++-++++-                             "supporting_sources": [data.get("AbstractURL", "")],
++-++++-                             "method": "duckduckgo_api",
++-++++-                         }
++-++++--        except Exception:
++-++++--            pass
++-++++-+        except Exception as e:
++-++++-+            _logger.warning(f"Web search failed for claim: {claim[:50]}... error: {e}")
++-++++- 
++-++++-         return {
++-++++-             "claim": claim,
++-++++--            "is_verified": True,
++-++++--            "confidence": 0.3,
++-++++--            "method": "fallback",
++-++++-+            "is_verified": False,
++-++++-+            "confidence": 0.0,
++-++++-+            "method": "unverified_fallback",
++-++++-         }
++-++++- 
++-++++-     def verify_math(self, expression: str, claimed_result: str) -> dict:
++-++++-@@ -195,4 +199,4 @@ class FactualVerifier:
++-++++-                     "is_verified": False,
++-++++-                     "reason": f"Math error: {expr} != {claimed}",
++-++++-                 }
++-++++--        return {"is_verified": True}
++-++++-+        return {"is_verified": True}
++-++++-\ No newline at end of file
++-++++-diff --git a/backend/core/microvm_sandbox.py b/backend/core/microvm_sandbox.py
++-++++-index b80a825c6..b62d7914d 100644
++-++++---- a/backend/core/microvm_sandbox.py
++-++++-+++ b/backend/core/microvm_sandbox.py
++-++++-@@ -29,8 +29,9 @@ class MicroVMSandbox:
++-++++-                 return True
++-++++-             if shutil.which("runsc"):
++-++++-                 return True
++-++++--        except Exception:
++-++++--            pass
++-++++-+        except Exception as e:
++-++++-+            import logging
++-++++-+            logging.warning(f"Exception suppressed: {e}")
++-++++-         return False
++-++++- 
++-++++-     def _create_microvm_config(self, vm_id: str, cmd: str) -> str:
++-++++-diff --git a/backend/core/universal_rules.py b/backend/core/universal_rules.py
++-++++-index 20bcb13d2..e41ef1494 100644
++-++++---- a/backend/core/universal_rules.py
++-++++-+++ b/backend/core/universal_rules.py
++-++++-@@ -60,8 +60,9 @@ class UniversalRulesEngine:
++-++++-             os.makedirs(os.path.dirname(self.rules_path), exist_ok=True)
++-++++-             with open(self.rules_path, "w", encoding="utf-8") as f:
++-++++-                 json.dump(default_rules, f, indent=4)
++-++++--        except Exception:
++-++++--            pass
++-++++-+        except Exception as e:
++-++++-+            import logging
++-++++-+            logging.warning(f"Exception suppressed: {e}")
++-++++- 
++-++++-         return default_rules
++-++++- 
++-++++-diff --git a/backend/coverage.json b/backend/coverage.json
++-++++-deleted file mode 100644
++-++++-index 3ffd90e40..000000000
++-++++---- a/backend/coverage.json
++-++++-+++ /dev/null
++-++++-@@ -1 +0,0 @@
++-++++--{"meta": {"format": 3, "version": "7.14.1", "timestamp": "2026-07-05T22:01:05.374247", "branch_coverage": true, "show_contexts": false}, "files": {"core\\__init__.py": {"executed_lines": [], "summary": {"covered_lines": 0, "num_statements": 0, "percent_covered": 100.0, "percent_covered_display": "100", "missing_lines": 0, "excluded_lines": 0, "percent_statements_covered": 100.0, "percent_statements_covered_display": "100", "num_branches": 0, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 0, "percent_branches_covered": 100.0, "percent_branches_covered_display": "100"}, "missing_lines": [], "excluded_lines": [], "executed_branches": [], "missing_branches": [], "functions": {"": {"executed_lines": [], "summary": {"covered_lines": 0, "num_statements": 0, "percent_covered": 100.0, "percent_covered_display": "100", "missing_lines": 0, "excluded_lines": 0, "percent_statements_covered": 100.0, "percent_statements_covered_display": "100", "num_branches": 0, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 0, "percent_branches_covered": 100.0, "percent_branches_covered_display": "100"}, "missing_lines": [], "excluded_lines": [], "start_line": 1, "executed_branches": [], "missing_branches": []}}, "classes": {"": {"executed_lines": [], "summary": {"covered_lines": 0, "num_statements": 0, "percent_covered": 100.0, "percent_covered_display": "100", "missing_lines": 0, "excluded_lines": 0, "percent_statements_covered": 100.0, "percent_statements_covered_display": "100", "num_branches": 0, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 0, "percent_branches_covered": 100.0, "percent_branches_covered_display": "100"}, "missing_lines": [], "excluded_lines": [], "start_line": 1, "executed_branches": [], "missing_branches": []}}}, "core\\config.py": {"executed_lines": [1, 2, 3, 5, 6, 7, 8, 9, 10, 11, 13, 16, 21, 22, 27, 28, 30, 31, 32, 33, 34, 35, 37, 38, 39, 41, 53, 58, 63, 69, 73, 75, 76, 77, 78, 79, 80, 81, 82, 83, 85, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 101, 102, 103, 104, 105, 106, 107, 109, 110, 112, 113, 114, 115, 116, 120, 121, 122, 123, 124, 126, 128, 129, 130, 132, 137, 139, 140, 141, 143, 148, 150, 151, 152, 153, 154, 155, 159, 162, 163, 164, 165, 166, 168, 170, 171, 172, 173, 175, 185, 186, 188, 190, 209, 211], "summary": {"covered_lines": 108, "num_statements": 151, "percent_covered": 61.13989637305699, "percent_covered_display": "61", "missing_lines": 43, "excluded_lines": 0, "percent_statements_covered": 71.52317880794702, "percent_statements_covered_display": "72", "num_branches": 42, "num_partial_branches": 10, "covered_branches": 10, "missing_branches": 32, "percent_branches_covered": 23.80952380952381, "percent_branches_covered_display": "24"}, "missing_lines": [17, 18, 125, 133, 134, 135, 136, 144, 145, 146, 147, 156, 160, 167, 176, 177, 178, 180, 181, 182, 183, 187, 191, 192, 193, 194, 195, 196, 197, 198, 199, 200, 201, 202, 203, 204, 212, 213, 215, 216, 217, 218, 219], "excluded_lines": [], "executed_branches": [[16, 21], [124, 126], [132, 137], [143, 148], [154, 155], [155, 159], [166, 168], [175, 185], [186, 188], [211, -1]], "missing_branches": [[16, 17], [124, 125], [132, 133], [134, 135], [134, 136], [143, 144], [145, 146], [145, 147], [154, 160], [155, 156], [166, 167], [175, 176], [177, 178], [177, 180], [186, 187], [191, -190], [191, 192], [193, 194], [193, 195], [195, 196], [195, 197], [197, 198], [197, 199], [199, 200], [199, 201], [201, 202], [201, 203], [203, -190], [203, 204], [211, 212], [215, -1], [215, 216]], "functions": {"Settings.validate_env": {"executed_lines": [123, 124, 126], "summary": {"covered_lines": 3, "num_statements": 4, "percent_covered": 66.66666666666667, "percent_covered_display": "67", "missing_lines": 1, "excluded_lines": 0, "percent_statements_covered": 75.0, "percent_statements_covered_display": "75", "num_branches": 2, "num_partial_branches": 1, "covered_branches": 1, "missing_branches": 1, "percent_branches_covered": 50.0, "percent_branches_covered_display": "50"}, "missing_lines": [125], "excluded_lines": [], "start_line": 122, "executed_branches": [[124, 126]], "missing_branches": [[124, 125]]}, "Settings.parse_admin_emails": {"executed_lines": [132, 137], "summary": {"covered_lines": 2, "num_statements": 6, "percent_covered": 30.0, "percent_covered_display": "30", "missing_lines": 4, "excluded_lines": 0, "percent_statements_covered": 33.333333333333336, "percent_statements_covered_display": "33", "num_branches": 4, "num_partial_branches": 1, "covered_branches": 1, "missing_branches": 3, "percent_branches_covered": 25.0, "percent_branches_covered_display": "25"}, "missing_lines": [133, 134, 135, 136], "excluded_lines": [], "start_line": 130, "executed_branches": [[132, 137]], "missing_branches": [[132, 133], [134, 135], [134, 136]]}, "Settings.parse_allowed_hosts": {"executed_lines": [143, 148], "summary": {"covered_lines": 2, "num_statements": 6, "percent_covered": 30.0, "percent_covered_display": "30", "missing_lines": 4, "excluded_lines": 0, "percent_statements_covered": 33.333333333333336, "percent_statements_covered_display": "33", "num_branches": 4, "num_partial_branches": 1, "covered_branches": 1, "missing_branches": 3, "percent_branches_covered": 25.0, "percent_branches_covered_display": "25"}, "missing_lines": [144, 145, 146, 147], "excluded_lines": [], "start_line": 141, "executed_branches": [[143, 148]], "missing_branches": [[143, 144], [145, 146], [145, 147]]}, "Settings.set_test_secret": {"executed_lines": [153, 154, 155, 159], "summary": {"covered_lines": 4, "num_statements": 6, "percent_covered": 60.0, "percent_covered_display": "60", "missing_lines": 2, "excluded_lines": 0, "percent_statements_covered": 66.66666666666667, "percent_statements_covered_display": "67", "num_branches": 4, "num_partial_branches": 2, "covered_branches": 2, "missing_branches": 2, "percent_branches_covered": 50.0, "percent_branches_covered_display": "50"}, "missing_lines": [156, 160], "excluded_lines": [], "start_line": 152, "executed_branches": [[154, 155], [155, 159]], "missing_branches": [[154, 160], [155, 156]]}, "Settings.debug_must_be_false_in_production": {"executed_lines": [165, 166, 168], "summary": {"covered_lines": 3, "num_statements": 4, "percent_covered": 66.66666666666667, "percent_covered_display": "67", "missing_lines": 1, "excluded_lines": 0, "percent_statements_covered": 75.0, "percent_statements_covered_display": "75", "num_branches": 2, "num_partial_branches": 1, "covered_branches": 1, "missing_branches": 1, "percent_branches_covered": 50.0, "percent_branches_covered_display": "50"}, "missing_lines": [167], "excluded_lines": [], "start_line": 164, "executed_branches": [[166, 168]], "missing_branches": [[166, 167]]}, "Settings.parse_cors_origins": {"executed_lines": [173, 175, 185, 186, 188], "summary": {"covered_lines": 5, "num_statements": 13, "percent_covered": 36.8421052631579, "percent_covered_display": "37", "missing_lines": 8, "excluded_lines": 0, "percent_statements_covered": 38.46153846153846, "percent_statements_covered_display": "38", "num_branches": 6, "num_partial_branches": 2, "covered_branches": 2, "missing_branches": 4, "percent_branches_covered": 33.333333333333336, "percent_branches_covered_display": "33"}, "missing_lines": [176, 177, 178, 180, 181, 182, 183, 187], "excluded_lines": [], "start_line": 172, "executed_branches": [[175, 185], [186, 188]], "missing_branches": [[175, 176], [177, 178], [177, 180], [186, 187]]}, "Settings.validate_config": {"executed_lines": [], "summary": {"covered_lines": 0, "num_statements": 14, "percent_covered": 0.0, "percent_covered_display": "0", "missing_lines": 14, "excluded_lines": 0, "percent_statements_covered": 0.0, "percent_statements_covered_display": "0", "num_branches": 14, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 14, "percent_branches_covered": 0.0, "percent_branches_covered_display": "0"}, "missing_lines": [191, 192, 193, 194, 195, 196, 197, 198, 199, 200, 201, 202, 203, 204], "excluded_lines": [], "start_line": 190, "executed_branches": [], "missing_branches": [[191, -190], [191, 192], [193, 194], [193, 195], [195, 196], [195, 197], [197, 198], [197, 199], [199, 200], [199, 201], [201, 202], [201, 203], [203, -190], [203, 204]]}, "": {"executed_lines": [1, 2, 3, 5, 6, 7, 8, 9, 10, 11, 13, 16, 21, 22, 27, 28, 30, 31, 32, 33, 34, 35, 37, 38, 39, 41, 53, 58, 63, 69, 73, 75, 76, 77, 78, 79, 80, 81, 82, 83, 85, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 101, 102, 103, 104, 105, 106, 107, 109, 110, 112, 113, 114, 115, 116, 120, 121, 122, 128, 129, 130, 139, 140, 141, 150, 151, 152, 162, 163, 164, 170, 171, 172, 190, 209, 211], "summary": {"covered_lines": 89, "num_statements": 98, "percent_covered": 87.5, "percent_covered_display": "88", "missing_lines": 9, "excluded_lines": 0, "percent_statements_covered": 90.81632653061224, "percent_statements_covered_display": "91", "num_branches": 6, "num_partial_branches": 2, "covered_branches": 2, "missing_branches": 4, "percent_branches_covered": 33.333333333333336, "percent_branches_covered_display": "33"}, "missing_lines": [17, 18, 212, 213, 215, 216, 217, 218, 219], "excluded_lines": [], "start_line": 1, "executed_branches": [[16, 21], [211, -1]], "missing_branches": [[16, 17], [211, 212], [215, -1], [215, 216]]}}, "classes": {"Settings": {"executed_lines": [123, 124, 126, 132, 137, 143, 148, 153, 154, 155, 159, 165, 166, 168, 173, 175, 185, 186, 188], "summary": {"covered_lines": 19, "num_statements": 53, "percent_covered": 30.337078651685392, "percent_covered_display": "30", "missing_lines": 34, "excluded_lines": 0, "percent_statements_covered": 35.84905660377358, "percent_statements_covered_display": "36", "num_branches": 36, "num_partial_branches": 8, "covered_branches": 8, "missing_branches": 28, "percent_branches_covered": 22.22222222222222, "percent_branches_covered_display": "22"}, "missing_lines": [125, 133, 134, 135, 136, 144, 145, 146, 147, 156, 160, 167, 176, 177, 178, 180, 181, 182, 183, 187, 191, 192, 193, 194, 195, 196, 197, 198, 199, 200, 201, 202, 203, 204], "excluded_lines": [], "start_line": 21, "executed_branches": [[124, 126], [132, 137], [143, 148], [154, 155], [155, 159], [166, 168], [175, 185], [186, 188]], "missing_branches": [[124, 125], [132, 133], [134, 135], [134, 136], [143, 144], [145, 146], [145, 147], [154, 160], [155, 156], [166, 167], [175, 176], [177, 178], [177, 180], [186, 187], [191, -190], [191, 192], [193, 194], [193, 195], [195, 196], [195, 197], [197, 198], [197, 199], [199, 200], [199, 201], [201, 202], [201, 203], [203, -190], [203, 204]]}, "": {"executed_lines": [1, 2, 3, 5, 6, 7, 8, 9, 10, 11, 13, 16, 21, 22, 27, 28, 30, 31, 32, 33, 34, 35, 37, 38, 39, 41, 53, 58, 63, 69, 73, 75, 76, 77, 78, 79, 80, 81, 82, 83, 85, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 101, 102, 103, 104, 105, 106, 107, 109, 110, 112, 113, 114, 115, 116, 120, 121, 122, 128, 129, 130, 139, 140, 141, 150, 151, 152, 162, 163, 164, 170, 171, 172, 190, 209, 211], "summary": {"covered_lines": 89, "num_statements": 98, "percent_covered": 87.5, "percent_covered_display": "88", "missing_lines": 9, "excluded_lines": 0, "percent_statements_covered": 90.81632653061224, "percent_statements_covered_display": "91", "num_branches": 6, "num_partial_branches": 2, "covered_branches": 2, "missing_branches": 4, "percent_branches_covered": 33.333333333333336, "percent_branches_covered_display": "33"}, "missing_lines": [17, 18, 212, 213, 215, 216, 217, 218, 219], "excluded_lines": [], "start_line": 1, "executed_branches": [[16, 21], [211, -1]], "missing_branches": [[16, 17], [211, 212], [215, -1], [215, 216]]}}}, "core\\enum_guard.py": {"executed_lines": [], "summary": {"covered_lines": 0, "num_statements": 44, "percent_covered": 0.0, "percent_covered_display": "0", "missing_lines": 44, "excluded_lines": 0, "percent_statements_covered": 0.0, "percent_statements_covered_display": "0", "num_branches": 10, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 10, "percent_branches_covered": 0.0, "percent_branches_covered_display": "0"}, "missing_lines": [1, 3, 4, 6, 9, 10, 12, 17, 18, 19, 27, 29, 30, 31, 33, 35, 36, 37, 38, 39, 40, 41, 42, 43, 45, 46, 47, 48, 49, 52, 53, 54, 55, 56, 57, 58, 60, 62, 63, 64, 65, 66, 67, 69], "excluded_lines": [], "executed_branches": [], "missing_branches": [[29, 30], [29, 33], [35, 36], [35, 45], [39, 40], [39, 41], [41, 42], [41, 43], [47, 48], [47, 49]], "functions": {"guard_enum": {"executed_lines": [], "summary": {"covered_lines": 0, "num_statements": 22, "percent_covered": 0.0, "percent_covered_display": "0", "missing_lines": 22, "excluded_lines": 0, "percent_statements_covered": 0.0, "percent_statements_covered_display": "0", "num_branches": 10, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 10, "percent_branches_covered": 0.0, "percent_branches_covered_display": "0"}, "missing_lines": [17, 18, 19, 27, 29, 30, 31, 33, 35, 36, 37, 38, 39, 40, 41, 42, 43, 45, 46, 47, 48, 49], "excluded_lines": [], "start_line": 12, "executed_branches": [], "missing_branches": [[29, 30], [29, 33], [35, 36], [35, 45], [39, 40], [39, 41], [41, 42], [41, 43], [47, 48], [47, 49]]}, "run_enum_guards": {"executed_lines": [], "summary": {"covered_lines": 0, "num_statements": 14, "percent_covered": 0.0, "percent_covered_display": "0", "missing_lines": 14, "excluded_lines": 0, "percent_statements_covered": 0.0, "percent_statements_covered_display": "0", "num_branches": 0, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 0, "percent_branches_covered": 100.0, "percent_branches_covered_display": "100"}, "missing_lines": [53, 54, 55, 56, 57, 58, 60, 62, 63, 64, 65, 66, 67, 69], "excluded_lines": [], "start_line": 52, "executed_branches": [], "missing_branches": []}, "": {"executed_lines": [], "summary": {"covered_lines": 0, "num_statements": 8, "percent_covered": 0.0, "percent_covered_display": "0", "missing_lines": 8, "excluded_lines": 0, "percent_statements_covered": 0.0, "percent_statements_covered_display": "0", "num_branches": 0, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 0, "percent_branches_covered": 100.0, "percent_branches_covered_display": "100"}, "missing_lines": [1, 3, 4, 6, 9, 10, 12, 52], "excluded_lines": [], "start_line": 1, "executed_branches": [], "missing_branches": []}}, "classes": {"EnumMismatchError": {"executed_lines": [], "summary": {"covered_lines": 0, "num_statements": 0, "percent_covered": 100.0, "percent_covered_display": "100", "missing_lines": 0, "excluded_lines": 0, "percent_statements_covered": 100.0, "percent_statements_covered_display": "100", "num_branches": 0, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 0, "percent_branches_covered": 100.0, "percent_branches_covered_display": "100"}, "missing_lines": [], "excluded_lines": [], "start_line": 9, "executed_branches": [], "missing_branches": []}, "": {"executed_lines": [], "summary": {"covered_lines": 0, "num_statements": 44, "percent_covered": 0.0, "percent_covered_display": "0", "missing_lines": 44, "excluded_lines": 0, "percent_statements_covered": 0.0, "percent_statements_covered_display": "0", "num_branches": 10, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 10, "percent_branches_covered": 0.0, "percent_branches_covered_display": "0"}, "missing_lines": [1, 3, 4, 6, 9, 10, 12, 17, 18, 19, 27, 29, 30, 31, 33, 35, 36, 37, 38, 39, 40, 41, 42, 43, 45, 46, 47, 48, 49, 52, 53, 54, 55, 56, 57, 58, 60, 62, 63, 64, 65, 66, 67, 69], "excluded_lines": [], "start_line": 1, "executed_branches": [], "missing_branches": [[29, 30], [29, 33], [35, 36], [35, 45], [39, 40], [39, 41], [41, 42], [41, 43], [47, 48], [47, 49]]}}}, "core\\llm_gateway.py": {"executed_lines": [4, 5, 6, 7, 9, 10, 12, 16, 18, 19, 20, 21, 22, 25, 26, 28, 31, 32, 34, 35, 36, 37, 38, 45, 48, 56, 57, 58, 59, 61, 63, 80, 88, 89, 91, 188, 214], "summary": {"covered_lines": 37, "num_statements": 114, "percent_covered": 27.272727272727273, "percent_covered_display": "27", "missing_lines": 77, "excluded_lines": 0, "percent_statements_covered": 32.45614035087719, "percent_statements_covered_display": "32", "num_branches": 40, "num_partial_branches": 1, "covered_branches": 5, "missing_branches": 35, "percent_branches_covered": 12.5, "percent_branches_covered_display": "12"}, "missing_lines": [39, 40, 41, 43, 64, 65, 66, 67, 68, 70, 72, 73, 77, 78, 81, 82, 83, 106, 109, 110, 113, 114, 115, 116, 117, 119, 120, 121, 122, 126, 127, 128, 129, 137, 138, 141, 142, 143, 145, 146, 147, 148, 149, 151, 152, 153, 156, 157, 159, 161, 162, 165, 166, 167, 168, 169, 175, 181, 182, 183, 184, 186, 191, 192, 193, 194, 195, 201, 202, 203, 204, 205, 206, 207, 208, 209, 211], "excluded_lines": [], "executed_branches": [[36, 37], [56, -45], [56, 57], [57, 56], [57, 58]], "missing_branches": [[36, 39], [109, 110], [109, 113], [114, 115], [114, 116], [116, 117], [116, 119], [119, 120], [119, 121], [121, 122], [121, 126], [126, 127], [126, 137], [128, 129], [128, 137], [142, 143], [142, 145], [146, 147], [146, 151], [151, 152], [151, 156], [152, 151], [152, 153], [156, 157], [156, 159], [161, 162], [161, 165], [166, 167], [166, 186], [192, 193], [192, 211], [201, 202], [201, 205], [203, 201], [203, 204]], "functions": {"LLMGateway.__init__": {"executed_lines": [20, 21, 22, 25, 26, 28, 31, 32], "summary": {"covered_lines": 8, "num_statements": 8, "percent_covered": 100.0, "percent_covered_display": "100", "missing_lines": 0, "excluded_lines": 0, "percent_statements_covered": 100.0, "percent_statements_covered_display": "100", "num_branches": 0, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 0, "percent_branches_covered": 100.0, "percent_branches_covered_display": "100"}, "missing_lines": [], "excluded_lines": [], "start_line": 19, "executed_branches": [], "missing_branches": []}, "LLMGateway._load_routing_policy": {"executed_lines": [35, 36, 37, 38], "summary": {"covered_lines": 4, "num_statements": 8, "percent_covered": 50.0, "percent_covered_display": "50", "missing_lines": 4, "excluded_lines": 0, "percent_statements_covered": 50.0, "percent_statements_covered_display": "50", "num_branches": 2, "num_partial_branches": 1, "covered_branches": 1, "missing_branches": 1, "percent_branches_covered": 50.0, "percent_branches_covered_display": "50"}, "missing_lines": [39, 40, 41, 43], "excluded_lines": [], "start_line": 34, "executed_branches": [[36, 37]], "missing_branches": [[36, 39]]}, "LLMGateway._inject_secrets": {"executed_lines": [48, 56, 57, 58, 59], "summary": {"covered_lines": 5, "num_statements": 5, "percent_covered": 100.0, "percent_covered_display": "100", "missing_lines": 0, "excluded_lines": 0, "percent_statements_covered": 100.0, "percent_statements_covered_display": "100", "num_branches": 4, "num_partial_branches": 0, "covered_branches": 4, "missing_branches": 0, "percent_branches_covered": 100.0, "percent_branches_covered_display": "100"}, "missing_lines": [], "excluded_lines": [], "start_line": 45, "executed_branches": [[56, -45], [56, 57], [57, 56], [57, 58]], "missing_branches": []}, "LLMGateway._setup_callbacks": {"executed_lines": [63, 80, 88, 89], "summary": {"covered_lines": 4, "num_statements": 4, "percent_covered": 100.0, "percent_covered_display": "100", "missing_lines": 0, "excluded_lines": 0, "percent_statements_covered": 100.0, "percent_statements_covered_display": "100", "num_branches": 0, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 0, "percent_branches_covered": 100.0, "percent_branches_covered_display": "100"}, "missing_lines": [], "excluded_lines": [], "start_line": 61, "executed_branches": [], "missing_branches": []}, "LLMGateway._setup_callbacks.success_callback": {"executed_lines": [], "summary": {"covered_lines": 0, "num_statements": 10, "percent_covered": 0.0, "percent_covered_display": "0", "missing_lines": 10, "excluded_lines": 0, "percent_statements_covered": 0.0, "percent_statements_covered_display": "0", "num_branches": 0, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 0, "percent_branches_covered": 100.0, "percent_branches_covered_display": "100"}, "missing_lines": [64, 65, 66, 67, 68, 70, 72, 73, 77, 78], "excluded_lines": [], "start_line": 63, "executed_branches": [], "missing_branches": []}, "LLMGateway._setup_callbacks.failure_callback": {"executed_lines": [], "summary": {"covered_lines": 0, "num_statements": 3, "percent_covered": 0.0, "percent_covered_display": "0", "missing_lines": 3, "excluded_lines": 0, "percent_statements_covered": 0.0, "percent_statements_covered_display": "0", "num_branches": 0, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 0, "percent_branches_covered": 100.0, "percent_branches_covered_display": "100"}, "missing_lines": [81, 82, 83], "excluded_lines": [], "start_line": 80, "executed_branches": [], "missing_branches": []}, "LLMGateway.acompletion": {"executed_lines": [], "summary": {"covered_lines": 0, "num_statements": 45, "percent_covered": 0.0, "percent_covered_display": "0", "missing_lines": 45, "excluded_lines": 0, "percent_statements_covered": 0.0, "percent_statements_covered_display": "0", "num_branches": 28, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 28, "percent_branches_covered": 0.0, "percent_branches_covered_display": "0"}, "missing_lines": [106, 109, 110, 113, 114, 115, 116, 117, 119, 120, 121, 122, 126, 127, 128, 129, 137, 138, 141, 142, 143, 145, 146, 147, 148, 149, 151, 152, 153, 156, 157, 159, 161, 162, 165, 166, 167, 168, 169, 175, 181, 182, 183, 184, 186], "excluded_lines": [], "start_line": 91, "executed_branches": [], "missing_branches": [[109, 110], [109, 113], [114, 115], [114, 116], [116, 117], [116, 119], [119, 120], [119, 121], [121, 122], [121, 126], [126, 127], [126, 137], [128, 129], [128, 137], [142, 143], [142, 145], [146, 147], [146, 151], [151, 152], [151, 156], [152, 151], [152, 153], [156, 157], [156, 159], [161, 162], [161, 165], [166, 167], [166, 186]]}, "LLMGateway._stream_completion": {"executed_lines": [], "summary": {"covered_lines": 0, "num_statements": 15, "percent_covered": 0.0, "percent_covered_display": "0", "missing_lines": 15, "excluded_lines": 0, "percent_statements_covered": 0.0, "percent_statements_covered_display": "0", "num_branches": 6, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 6, "percent_branches_covered": 0.0, "percent_branches_covered_display": "0"}, "missing_lines": [191, 192, 193, 194, 195, 201, 202, 203, 204, 205, 206, 207, 208, 209, 211], "excluded_lines": [], "start_line": 188, "executed_branches": [], "missing_branches": [[192, 193], [192, 211], [201, 202], [201, 205], [203, 201], [203, 204]]}, "": {"executed_lines": [4, 5, 6, 7, 9, 10, 12, 16, 18, 19, 34, 45, 61, 91, 188, 214], "summary": {"covered_lines": 16, "num_statements": 16, "percent_covered": 100.0, "percent_covered_display": "100", "missing_lines": 0, "excluded_lines": 0, "percent_statements_covered": 100.0, "percent_statements_covered_display": "100", "num_branches": 0, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 0, "percent_branches_covered": 100.0, "percent_branches_covered_display": "100"}, "missing_lines": [], "excluded_lines": [], "start_line": 1, "executed_branches": [], "missing_branches": []}}, "classes": {"LLMGateway": {"executed_lines": [20, 21, 22, 25, 26, 28, 31, 32, 35, 36, 37, 38, 48, 56, 57, 58, 59, 63, 80, 88, 89], "summary": {"covered_lines": 21, "num_statements": 98, "percent_covered": 18.840579710144926, "percent_covered_display": "19", "missing_lines": 77, "excluded_lines": 0, "percent_statements_covered": 21.428571428571427, "percent_statements_covered_display": "21", "num_branches": 40, "num_partial_branches": 1, "covered_branches": 5, "missing_branches": 35, "percent_branches_covered": 12.5, "percent_branches_covered_display": "12"}, "missing_lines": [39, 40, 41, 43, 64, 65, 66, 67, 68, 70, 72, 73, 77, 78, 81, 82, 83, 106, 109, 110, 113, 114, 115, 116, 117, 119, 120, 121, 122, 126, 127, 128, 129, 137, 138, 141, 142, 143, 145, 146, 147, 148, 149, 151, 152, 153, 156, 157, 159, 161, 162, 165, 166, 167, 168, 169, 175, 181, 182, 183, 184, 186, 191, 192, 193, 194, 195, 201, 202, 203, 204, 205, 206, 207, 208, 209, 211], "excluded_lines": [], "start_line": 18, "executed_branches": [[36, 37], [56, -45], [56, 57], [57, 56], [57, 58]], "missing_branches": [[36, 39], [109, 110], [109, 113], [114, 115], [114, 116], [116, 117], [116, 119], [119, 120], [119, 121], [121, 122], [121, 126], [126, 127], [126, 137], [128, 129], [128, 137], [142, 143], [142, 145], [146, 147], [146, 151], [151, 152], [151, 156], [152, 151], [152, 153], [156, 157], [156, 159], [161, 162], [161, 165], [166, 167], [166, 186], [192, 193], [192, 211], [201, 202], [201, 205], [203, 201], [203, 204]]}, "": {"executed_lines": [4, 5, 6, 7, 9, 10, 12, 16, 18, 19, 34, 45, 61, 91, 188, 214], "summary": {"covered_lines": 16, "num_statements": 16, "percent_covered": 100.0, "percent_covered_display": "100", "missing_lines": 0, "excluded_lines": 0, "percent_statements_covered": 100.0, "percent_statements_covered_display": "100", "num_branches": 0, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 0, "percent_branches_covered": 100.0, "percent_branches_covered_display": "100"}, "missing_lines": [], "excluded_lines": [], "start_line": 1, "executed_branches": [], "missing_branches": []}}}, "core\\log_batcher.py": {"executed_lines": [], "summary": {"covered_lines": 0, "num_statements": 83, "percent_covered": 0.0, "percent_covered_display": "0", "missing_lines": 83, "excluded_lines": 0, "percent_statements_covered": 0.0, "percent_statements_covered_display": "0", "num_branches": 28, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 28, "percent_branches_covered": 0.0, "percent_branches_covered_display": "0"}, "missing_lines": [1, 2, 4, 5, 7, 8, 11, 12, 13, 14, 15, 16, 17, 18, 19, 21, 22, 23, 24, 25, 26, 28, 29, 30, 31, 32, 33, 34, 35, 36, 38, 43, 46, 47, 48, 49, 51, 52, 53, 54, 55, 56, 58, 59, 60, 61, 62, 63, 64, 66, 67, 68, 70, 71, 74, 75, 76, 77, 78, 79, 81, 82, 83, 84, 85, 86, 87, 89, 90, 91, 93, 94, 96, 98, 99, 103, 104, 105, 106, 107, 109, 110, 113], "excluded_lines": [], "executed_branches": [], "missing_branches": [[22, 23], [22, 24], [30, 31], [30, 35], [47, -38], [47, 48], [48, -38], [48, 49], [52, 53], [52, 54], [59, -58], [59, 60], [63, -58], [63, 64], [67, -66], [67, 68], [74, 75], [74, 81], [81, 67], [81, 82], [84, 67], [84, 85], [90, 91], [90, 93], [98, 99], [98, 105], [109, -89], [109, 110]], "functions": {"LogBatcherService.__init__": {"executed_lines": [], "summary": {"covered_lines": 0, "num_statements": 7, "percent_covered": 0.0, "percent_covered_display": "0", "missing_lines": 7, "excluded_lines": 0, "percent_statements_covered": 0.0, "percent_statements_covered_display": "0", "num_branches": 0, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 0, "percent_branches_covered": 100.0, "percent_branches_covered_display": "100"}, "missing_lines": [13, 14, 15, 16, 17, 18, 19], "excluded_lines": [], "start_line": 12, "executed_branches": [], "missing_branches": []}, "LogBatcherService.start": {"executed_lines": [], "summary": {"covered_lines": 0, "num_statements": 5, "percent_covered": 0.0, "percent_covered_display": "0", "missing_lines": 5, "excluded_lines": 0, "percent_statements_covered": 0.0, "percent_statements_covered_display": "0", "num_branches": 2, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 2, "percent_branches_covered": 0.0, "percent_branches_covered_display": "0"}, "missing_lines": [22, 23, 24, 25, 26], "excluded_lines": [], "start_line": 21, "executed_branches": [], "missing_branches": [[22, 23], [22, 24]]}, "LogBatcherService.stop": {"executed_lines": [], "summary": {"covered_lines": 0, "num_statements": 8, "percent_covered": 0.0, "percent_covered_display": "0", "missing_lines": 8, "excluded_lines": 0, "percent_statements_covered": 0.0, "percent_statements_covered_display": "0", "num_branches": 2, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 2, "percent_branches_covered": 0.0, "percent_branches_covered_display": "0"}, "missing_lines": [29, 30, 31, 32, 33, 34, 35, 36], "excluded_lines": [], "start_line": 28, "executed_branches": [], "missing_branches": [[30, 31], [30, 35]]}, "LogBatcherService.emit": {"executed_lines": [], "summary": {"covered_lines": 0, "num_statements": 5, "percent_covered": 0.0, "percent_covered_display": "0", "missing_lines": 5, "excluded_lines": 0, "percent_statements_covered": 0.0, "percent_statements_covered_display": "0", "num_branches": 4, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 4, "percent_branches_covered": 0.0, "percent_branches_covered_display": "0"}, "missing_lines": [43, 46, 47, 48, 49], "excluded_lines": [], "start_line": 38, "executed_branches": [], "missing_branches": [[47, -38], [47, 48], [48, -38], [48, 49]]}, "LogBatcherService.subscribe": {"executed_lines": [], "summary": {"covered_lines": 0, "num_statements": 5, "percent_covered": 0.0, "percent_covered_display": "0", "missing_lines": 5, "excluded_lines": 0, "percent_statements_covered": 0.0, "percent_statements_covered_display": "0", "num_branches": 2, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 2, "percent_branches_covered": 0.0, "percent_branches_covered_display": "0"}, "missing_lines": [52, 53, 54, 55, 56], "excluded_lines": [], "start_line": 51, "executed_branches": [], "missing_branches": [[52, 53], [52, 54]]}, "LogBatcherService.unsubscribe": {"executed_lines": [], "summary": {"covered_lines": 0, "num_statements": 6, "percent_covered": 0.0, "percent_covered_display": "0", "missing_lines": 6, "excluded_lines": 0, "percent_statements_covered": 0.0, "percent_statements_covered_display": "0", "num_branches": 4, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 4, "percent_branches_covered": 0.0, "percent_branches_covered_display": "0"}, "missing_lines": [59, 60, 61, 62, 63, 64], "excluded_lines": [], "start_line": 58, "executed_branches": [], "missing_branches": [[59, -58], [59, 60], [63, -58], [63, 64]]}, "LogBatcherService._run": {"executed_lines": [], "summary": {"covered_lines": 0, "num_statements": 17, "percent_covered": 0.0, "percent_covered_display": "0", "missing_lines": 17, "excluded_lines": 0, "percent_statements_covered": 0.0, "percent_statements_covered_display": "0", "num_branches": 8, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 8, "percent_branches_covered": 0.0, "percent_branches_covered_display": "0"}, "missing_lines": [67, 68, 70, 71, 74, 75, 76, 77, 78, 79, 81, 82, 83, 84, 85, 86, 87], "excluded_lines": [], "start_line": 66, "executed_branches": [], "missing_branches": [[67, -66], [67, 68], [74, 75], [74, 81], [81, 67], [81, 82], [84, 67], [84, 85]]}, "LogBatcherService._flush": {"executed_lines": [], "summary": {"covered_lines": 0, "num_statements": 14, "percent_covered": 0.0, "percent_covered_display": "0", "missing_lines": 14, "excluded_lines": 0, "percent_statements_covered": 0.0, "percent_statements_covered_display": "0", "num_branches": 6, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 6, "percent_branches_covered": 0.0, "percent_branches_covered_display": "0"}, "missing_lines": [90, 91, 93, 94, 96, 98, 99, 103, 104, 105, 106, 107, 109, 110], "excluded_lines": [], "start_line": 89, "executed_branches": [], "missing_branches": [[90, 91], [90, 93], [98, 99], [98, 105], [109, -89], [109, 110]]}, "": {"executed_lines": [], "summary": {"covered_lines": 0, "num_statements": 16, "percent_covered": 0.0, "percent_covered_display": "0", "missing_lines": 16, "excluded_lines": 0, "percent_statements_covered": 0.0, "percent_statements_covered_display": "0", "num_branches": 0, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 0, "percent_branches_covered": 100.0, "percent_branches_covered_display": "100"}, "missing_lines": [1, 2, 4, 5, 7, 8, 11, 12, 21, 28, 38, 51, 58, 66, 89, 113], "excluded_lines": [], "start_line": 1, "executed_branches": [], "missing_branches": []}}, "classes": {"LogBatcherService": {"executed_lines": [], "summary": {"covered_lines": 0, "num_statements": 67, "percent_covered": 0.0, "percent_covered_display": "0", "missing_lines": 67, "excluded_lines": 0, "percent_statements_covered": 0.0, "percent_statements_covered_display": "0", "num_branches": 28, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 28, "percent_branches_covered": 0.0, "percent_branches_covered_display": "0"}, "missing_lines": [13, 14, 15, 16, 17, 18, 19, 22, 23, 24, 25, 26, 29, 30, 31, 32, 33, 34, 35, 36, 43, 46, 47, 48, 49, 52, 53, 54, 55, 56, 59, 60, 61, 62, 63, 64, 67, 68, 70, 71, 74, 75, 76, 77, 78, 79, 81, 82, 83, 84, 85, 86, 87, 90, 91, 93, 94, 96, 98, 99, 103, 104, 105, 106, 107, 109, 110], "excluded_lines": [], "start_line": 11, "executed_branches": [], "missing_branches": [[22, 23], [22, 24], [30, 31], [30, 35], [47, -38], [47, 48], [48, -38], [48, 49], [52, 53], [52, 54], [59, -58], [59, 60], [63, -58], [63, 64], [67, -66], [67, 68], [74, 75], [74, 81], [81, 67], [81, 82], [84, 67], [84, 85], [90, 91], [90, 93], [98, 99], [98, 105], [109, -89], [109, 110]]}, "": {"executed_lines": [], "summary": {"covered_lines": 0, "num_statements": 16, "percent_covered": 0.0, "percent_covered_display": "0", "missing_lines": 16, "excluded_lines": 0, "percent_statements_covered": 0.0, "percent_statements_covered_display": "0", "num_branches": 0, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 0, "percent_branches_covered": 100.0, "percent_branches_covered_display": "100"}, "missing_lines": [1, 2, 4, 5, 7, 8, 11, 12, 21, 28, 38, 51, 58, 66, 89, 113], "excluded_lines": [], "start_line": 1, "executed_branches": [], "missing_branches": []}}}, "core\\swarm_orchestrator.py": {"executed_lines": [], "summary": {"covered_lines": 0, "num_statements": 19, "percent_covered": 0.0, "percent_covered_display": "0", "missing_lines": 19, "excluded_lines": 0, "percent_statements_covered": 0.0, "percent_statements_covered_display": "0", "num_branches": 0, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 0, "percent_branches_covered": 100.0, "percent_branches_covered_display": "100"}, "missing_lines": [4, 6, 7, 8, 9, 12, 16, 17, 18, 19, 21, 22, 23, 25, 28, 31, 34, 36, 37], "excluded_lines": [], "executed_branches": [], "missing_branches": [], "functions": {"SwarmOrchestrator.__init__": {"executed_lines": [], "summary": {"covered_lines": 0, "num_statements": 3, "percent_covered": 0.0, "percent_covered_display": "0", "missing_lines": 3, "excluded_lines": 0, "percent_statements_covered": 0.0, "percent_statements_covered_display": "0", "num_branches": 0, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 0, "percent_branches_covered": 100.0, "percent_branches_covered_display": "100"}, "missing_lines": [17, 18, 19], "excluded_lines": [], "start_line": 16, "executed_branches": [], "missing_branches": []}, "SwarmOrchestrator.execute_task": {"executed_lines": [], "summary": {"covered_lines": 0, "num_statements": 8, "percent_covered": 0.0, "percent_covered_display": "0", "missing_lines": 8, "excluded_lines": 0, "percent_statements_covered": 0.0, "percent_statements_covered_display": "0", "num_branches": 0, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 0, "percent_branches_covered": 100.0, "percent_branches_covered_display": "100"}, "missing_lines": [22, 23, 25, 28, 31, 34, 36, 37], "excluded_lines": [], "start_line": 21, "executed_branches": [], "missing_branches": []}, "": {"executed_lines": [], "summary": {"covered_lines": 0, "num_statements": 8, "percent_covered": 0.0, "percent_covered_display": "0", "missing_lines": 8, "excluded_lines": 0, "percent_statements_covered": 0.0, "percent_statements_covered_display": "0", "num_branches": 0, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 0, "percent_branches_covered": 100.0, "percent_branches_covered_display": "100"}, "missing_lines": [4, 6, 7, 8, 9, 12, 16, 21], "excluded_lines": [], "start_line": 1, "executed_branches": [], "missing_branches": []}}, "classes": {"SwarmOrchestrator": {"executed_lines": [], "summary": {"covered_lines": 0, "num_statements": 11, "percent_covered": 0.0, "percent_covered_display": "0", "missing_lines": 11, "excluded_lines": 0, "percent_statements_covered": 0.0, "percent_statements_covered_display": "0", "num_branches": 0, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 0, "percent_branches_covered": 100.0, "percent_branches_covered_display": "100"}, "missing_lines": [17, 18, 19, 22, 23, 25, 28, 31, 34, 36, 37], "excluded_lines": [], "start_line": 12, "executed_branches": [], "missing_branches": []}, "": {"executed_lines": [], "summary": {"covered_lines": 0, "num_statements": 8, "percent_covered": 0.0, "percent_covered_display": "0", "missing_lines": 8, "excluded_lines": 0, "percent_statements_covered": 0.0, "percent_statements_covered_display": "0", "num_branches": 0, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 0, "percent_branches_covered": 100.0, "percent_branches_covered_display": "100"}, "missing_lines": [4, 6, 7, 8, 9, 12, 16, 21], "excluded_lines": [], "start_line": 1, "executed_branches": [], "missing_branches": []}}}}, "totals": {"covered_lines": 145, "num_statements": 411, "percent_covered": 30.131826741996232, "percent_covered_display": "30", "missing_lines": 266, "excluded_lines": 0, "percent_statements_covered": 35.27980535279806, "percent_statements_covered_display": "35", "num_branches": 120, "num_partial_branches": 11, "covered_branches": 15, "missing_branches": 105, "percent_branches_covered": 12.5, "percent_branches_covered_display": "12"}}
++-++++-\ No newline at end of file
++-++++-diff --git a/backend/coverage.xml b/backend/coverage.xml
++-++++-deleted file mode 100644
++-++++-index 711483a8b..000000000
++-++++---- a/backend/coverage.xml
++-++++-+++ /dev/null
++-++++-@@ -1,33673 +0,0 @@
++-++++--<?xml version="1.0" ?>
++-++++--<coverage version="7.14.2" timestamp="1782947232483" lines-valid="31087" lines-covered="19794" line-rate="0.6367" branches-covered="0" branches-valid="0" branch-rate="0" complexity="0">
++-++++--	<!-- Generated by coverage.py: https://coverage.readthedocs.io/en/7.14.2 -->
++-++++--	<!-- Based on https://raw.githubusercontent.com/cobertura/web/master/htdocs/xml/coverage-04.dtd -->
++-++++--	<sources>
++-++++--		<source>C:\Users\n\supremeai\supremeai_2.0\backend</source>
++-++++--	</sources>
++-++++--	<packages>
++-++++--		<package name="." line-rate="0" branch-rate="0" complexity="0">
++-++++--			<classes>
++-++++--				<class name="__init__.py" filename="__init__.py" complexity="0" line-rate="1" branch-rate="0">
++-++++--					<methods/>
++-++++--					<lines/>
++-++++--				</class>
++-++++--				<class name="fix_tests.py" filename="fix_tests.py" complexity="0" line-rate="0" branch-rate="0">
++-++++--					<methods/>
++-++++--					<lines>
++-++++--						<line number="1" hits="0"/>
++-++++--						<line number="4" hits="0"/>
++-++++--						<line number="11" hits="0"/>
++-++++--						<line number="12" hits="0"/>
++-++++--						<line number="13" hits="0"/>
++-++++--						<line number="14" hits="0"/>
++-++++--						<line number="16" hits="0"/>
++-++++--						<line number="17" hits="0"/>
++-++++--						<line number="19" hits="0"/>
++-++++--						<line number="20" hits="0"/>
++-++++--						<line number="21" hits="0"/>
++-++++--						<line number="22" hits="0"/>
++-++++--						<line number="24" hits="0"/>
++-++++--						<line number="25" hits="0"/>
++-++++--						<line number="26" hits="0"/>
++-++++--						<line number="27" hits="0"/>
++-++++--						<line number="29" hits="0"/>
++-++++--						<line number="30" hits="0"/>
++-++++--						<line number="31" hits="0"/>
++-++++--					</lines>
++-++++--				</class>
++-++++--				<class name="main.py" filename="main.py" complexity="0" line-rate="0" branch-rate="0">
++-++++--					<methods/>
++-++++--					<lines>
++-++++--						<line number="1" hits="0"/>
++-++++--						<line number="2" hits="0"/>
++-++++--						<line number="3" hits="0"/>
++-++++--						<line number="5" hits="0"/>
++-++++--						<line number="6" hits="0"/>
++-++++--						<line number="8" hits="0"/>
++-++++--						<line number="9" hits="0"/>
++-++++--						<line number="10" hits="0"/>
++-++++--						<line number="11" hits="0"/>
++-++++--						<line number="12" hits="0"/>
++-++++--						<line number="15" hits="0"/>
++-++++--						<line number="16" hits="0"/>
++-++++--						<line number="18" hits="0"/>
++-++++--						<line number="20" hits="0"/>
++-++++--						<line number="21" hits="0"/>
++-++++--						<line number="22" hits="0"/>
++-++++--						<line number="23" hits="0"/>
++-++++--						<line number="24" hits="0"/>
++-++++--						<line number="25" hits="0"/>
++-++++--						<line number="28" hits="0"/>
++-++++--						<line number="29" hits="0"/>
++-++++--						<line number="30" hits="0"/>
++-++++--						<line number="33" hits="0"/>
++-++++--						<line number="34" hits="0"/>
++-++++--						<line number="37" hits="0"/>
++-++++--						<line number="38" hits="0"/>
++-++++--						<line number="39" hits="0"/>
++-++++--						<line number="40" hits="0"/>
++-++++--						<line number="47" hits="0"/>
++-++++--						<line number="48" hits="0"/>
++-++++--						<line number="50" hits="0"/>
++-++++--						<line number="51" hits="0"/>
++-++++--						<line number="52" hits="0"/>
++-++++--						<line number="53" hits="0"/>
++-++++--						<line number="55" hits="0"/>
++-++++--						<line number="56" hits="0"/>
++-++++--						<line number="57" hits="0"/>
++-++++--						<line number="58" hits="0"/>
++-++++--						<line number="59" hits="0"/>
++-++++--						<line number="62" hits="0"/>
++-++++--						<line number="63" hits="0"/>
++-++++--					</lines>
++-++++--				</class>
++-++++--			</classes>
++-++++--		</package>
++-++++--		<package name="adaptive_engine" line-rate="0.466" branch-rate="0" complexity="0">
++-++++--			<classes>
++-++++--				<class name="__init__.py" filename="adaptive_engine/__init__.py" complexity="0" line-rate="1" branch-rate="0">
++-++++--					<methods/>
++-++++--					<lines/>
++-++++--				</class>
++-++++--				<class name="experience_db.py" filename="adaptive_engine/experience_db.py" complexity="0" line-rate="0.6143" branch-rate="0">
++-++++--					<methods/>
++-++++--					<lines>
++-++++--						<line number="1" hits="1"/>
++-++++--						<line number="2" hits="1"/>
++-++++--						<line number="3" hits="1"/>
++-++++--						<line number="4" hits="1"/>
++-++++--						<line number="5" hits="1"/>
++-++++--						<line number="6" hits="1"/>
++-++++--						<line number="7" hits="1"/>
++-++++--						<line number="10" hits="1"/>
++-++++--						<line number="11" hits="1"/>
++-++++--						<line number="12" hits="1"/>
++-++++--						<line number="15" hits="1"/>
++-++++--						<line number="16" hits="1"/>
++-++++--						<line number="17" hits="1"/>
++-++++--						<line number="18" hits="1"/>
++-++++--						<line number="19" hits="1"/>
++-++++--						<line number="20" hits="1"/>
++-++++--						<line number="21" hits="1"/>
++-++++--						<line number="22" hits="1"/>
++-++++--						<line number="23" hits="1"/>
++-++++--						<line number="24" hits="1"/>
++-++++--						<line number="25" hits="1"/>
++-++++--						<line number="26" hits="1"/>
++-++++--						<line number="27" hits="1"/>
++-++++--						<line number="28" hits="1"/>
++-++++--						<line number="29" hits="1"/>
++-++++--						<line number="30" hits="1"/>
++-++++--						<line number
+
+... [TRUNCATED — diff was 1,717,949 bytes, capped at 512,000] ...
+
+```
